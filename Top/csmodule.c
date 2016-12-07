@@ -259,15 +259,15 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
                libraryPath, err);
  #endif
       if (csound->delayederrormessages == NULL) {
-        csound->delayederrormessages = malloc(strlen(ERRSTR)+1);
+        csound->delayederrormessages = csound->Malloc(csound, strlen(ERRSTR)+1);
         strcpy(csound->delayederrormessages, ERRSTR);
       }
       else {
         char *new =
-          realloc(csound->delayederrormessages,
-                  strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
+          csound->ReAlloc(csound, csound->delayederrormessages,
+			  strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
         if (new==NULL) {
-          free(csound->delayederrormessages);
+          csound->Free(csound, csound->delayederrormessages);
           return CSOUND_ERROR;
         }
         csound->delayederrormessages = new;
@@ -323,7 +323,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     }
     /* set up module info structure */
     /* (note: space for NUL character is already included in size of struct) */
-    p = (void*) malloc(sizeof(csoundModule_t) + (size_t) strlen(fname));
+    p = (void*) csound->Malloc(csound, sizeof(csoundModule_t) + (size_t) strlen(fname));
     if (UNLIKELY(p == NULL)) {
       csoundCloseLibrary(h);
       csound->ErrorMsg(csound,
@@ -667,7 +667,7 @@ int csoundDestroyModules(CSOUND *csound)
       csoundCloseLibrary(m->h);
       csound->csmodule_db = (void*) m->nxt;
       /* free memory used by database */
-      free((void*) m);
+      csound->Free(csound, (void*) m);
 
     }
     sfont_ModuleDestroy(csound);

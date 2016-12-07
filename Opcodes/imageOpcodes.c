@@ -166,16 +166,16 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     png_read_update_info(png_ptr, info_ptr);
     rowbytes = png_get_rowbytes(png_ptr, info_ptr);
 
-    if (UNLIKELY((image_data = (unsigned char *) malloc(rowbytes * height))==NULL)) {
+    if (UNLIKELY((image_data = (unsigned char *) csound->Malloc(csound, rowbytes * height))==NULL)) {
       png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
       csound->InitError(csound, Str("imageload: out of memory.\n"));
       return NULL;
     }
 
-    row_pointers = (png_bytepp)malloc(height*sizeof(png_bytep));
+    row_pointers = (png_bytepp) csound->Malloc(csound, height*sizeof(png_bytep));
     if (UNLIKELY(row_pointers == NULL)) {
       png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-      free(image_data);
+      csound->Free(csound,image_data);
       image_data = NULL;
       csound->InitError(csound, Str("imageload: out of memory.\n"));
       return NULL;
@@ -185,13 +185,13 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
       row_pointers[i] = image_data + i*rowbytes;
 
     png_read_image(png_ptr, row_pointers);
-    free(row_pointers);
+    csound->Free(csound,row_pointers);
     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
     csound->FileClose(csound, fd);
 
-    img = malloc(sizeof(Image));
+    img = csound->Malloc(csound, sizeof(Image));
     if (UNLIKELY(!img)) {
-      free(image_data);
+      csound->Free(csound,image_data);
       csound->InitError(csound, Str("imageload: out of memory.\n"));
       return NULL;
     }
@@ -214,11 +214,11 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     id=Imlib_init(disp);
     im=Imlib_load_image(id, filename);
 
-    img = malloc(sizeof(Image));
+    img = csound->Malloc(csound, sizeof(Image));
     img->w = im->rgb_width;
     img->h = im->rgb_height;
     datasize = img->w*img->h*3 * sizeof(unsigned char);
-    img->imageData = malloc(datasize);
+    img->imageData = csound->Malloc(csound, datasize);
     memcpy(img->imageData, im->rgb_data, datasize);
 
     return img;
@@ -237,13 +237,13 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     srfc = IMG_Load(filename);
     if (srfc) {
         SDL_LockSurface(srfc);
-        img = malloc(sizeof(Image));
+        img = csound->Malloc(csound, sizeof(Image));
         img->w = srfc->w;
         img->h = srfc->h;
         bpp = srfc->format->BitsPerPixel;
 
         datasize = img->w*img->h*3 * sizeof(unsigned char);
-        img->imageData = malloc(datasize);
+        img->imageData = csound->Malloc(csound, datasize);
 
         for(y = 0; y < img->h; y++) {
             for(x = 0; x < img->w; x++) {
@@ -312,7 +312,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
 
     png_write_info(png_ptr, info_ptr);
 
-    row_pointers = (png_bytepp)malloc(image->h*sizeof(png_bytep));
+    row_pointers = (png_bytepp)csound->Malloc(csound, image->h*sizeof(png_bytep));
     if (UNLIKELY(row_pointers == NULL)) {
       png_destroy_write_struct(&png_ptr, &info_ptr);
       return csound->InitError(csound, Str("imageload: out of memory.\n"));
@@ -326,7 +326,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     png_write_image(png_ptr, row_pointers);
     png_write_end(png_ptr, info_ptr);
 
-    free(row_pointers);
+    csound->Free(csound,row_pointers);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     csound->FileClose(csound, fd);
 
@@ -349,17 +349,17 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
 }
 
 
-static Image * createImage(int w, int h)
+static Image * createImage(CSOUND *csound, int w, int h)
 {
     Image *img;
     size_t datasize;
 
-    img = malloc(sizeof(Image));
+    img = csound->Malloc(csound, sizeof(Image));
     img->w = w;
     img->h = h;
 
     datasize = img->w*img->h*3 * sizeof(unsigned char);
-    img->imageData = malloc(datasize);
+    img->imageData = csound->Malloc(csound, datasize);
 
     return img;
 }
@@ -393,7 +393,7 @@ static int imagecreate (CSOUND *csound, IMGCREATE * p)
       (Image **) csound->ReAlloc(csound, pimages->images,
                                  sizeof(Image *) * pimages->cnt);
 
-    img = createImage(*p->kw, *p->kh);
+    img = createImage(csound, *p->kw, *p->kh);
 
     if (UNLIKELY(img==NULL)) {
       return csound->InitError(csound, Str("Cannot allocate memory.\n"));
@@ -627,8 +627,8 @@ static int imagefree (CSOUND *csound, IMGSAVE * p)
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
     img = pimages->images[(int)(*p->kn)-1];
-    free(img->imageData);
-    free(img);
+    csound->Free(csound,img->imageData);
+    csound->Free(csound,img);
 
     return OK;
 }

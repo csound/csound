@@ -189,7 +189,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
               &(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * PMAX);
       //#endif
       memcpy(&(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * (PMAX-2));
-      ff.e.c.extra = (MYFLT*)malloc(sizeof(MYFLT) * (evtblkp->c.extra[0]+1));
+      ff.e.c.extra = (MYFLT*)csound->Malloc(csound,sizeof(MYFLT) * (evtblkp->c.extra[0]+1));
       memcpy(ff.e.c.extra, evtblkp->c.extra,
              sizeof(MYFLT) * (evtblkp->c.extra[0]+1));
     }
@@ -937,7 +937,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
     ff->e.p[5] = -xintvl;
     ff->e.p[6] = xintvl;
     nn = nh * sizeof(MYFLT) / 2;              /* alloc spc for terms 3,5,7,..*/
-    mp = mspace = (MYFLT *)calloc(1, nn);       /* of 1st row of matrix, and */
+    mp = mspace = (MYFLT *) csound->Calloc(csound, nn);       /* of 1st row of matrix, and */
     for (nn = (nh + 1) >>1; --nn; )             /* form array of non-0 terms */
       *mp++ = mxval = -mxval;                   /*  -val, val, -val, val ... */
     scalfac = 2 / xamp;
@@ -986,7 +986,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
         *mp = prvm = *mp - prvm;
       mxscal *= scalfac;
     } while (--nh);                             /* loop til all h's replaced */
-    free(mspace);
+    csound->Free(csound,mspace);
     return gen03(ff, ftp);                      /* then call gen03 to write */
 }
 
@@ -1002,9 +1002,9 @@ static int gen15(FGDATA *ff, FUNC *ftp)
 
     if (ff->e.pcnt>=PMAX)
       csound->Warning(csound, Str("using extended arguments\n"));
-    hsin = (MYFLT*)malloc(sizeof(MYFLT)*((1+ff->e.pcnt)/2));
+    hsin = (MYFLT*)csound->Malloc(csound,sizeof(MYFLT)*((1+ff->e.pcnt)/2));
     if (UNLIKELY(nargs & 01)) {
-      free(hsin);
+      csound->Free(csound,hsin);
       return fterror(ff, Str("uneven number of args"));
     }
     nh = (nargs - 2) >>1;
@@ -1027,7 +1027,7 @@ static int gen15(FGDATA *ff, FUNC *ftp)
     nargs -= nh;
     ff->e.pcnt = (int16)(nargs + 4);            /* added by F. Pinot 16-01-2012 */
     if (gen13(ff, ftp) != OK) {                  /* call gen13   */
-      free(hsin);
+      csound->Free(csound,hsin);
       return NOTOK;
     }
     lp13 = (void*) ftp;
@@ -1051,7 +1051,7 @@ static int gen15(FGDATA *ff, FUNC *ftp)
     }
     nargs--;
     ff->e.pcnt = (int16)(nargs + 4); /* added by F. Pinot 16-01-2012 */
-    free(hsin);
+    csound->Free(csound,hsin);
     n = gen14(ff, ftp);       /* now draw ftable   */
     ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
     ff->fno--;                /* F. Pinot, the first function table */
@@ -1606,9 +1606,9 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(fd == NULL))
       goto gen28err1;
 
-    x = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
-    y = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
-    z = (MYFLT*)malloc(arraysize*sizeof(MYFLT));
+    x = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
+    y = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
+    z = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
 #if defined(USE_DOUBLE)
     while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF)
 #else
@@ -1663,7 +1663,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
       *fp++ = y[j+1];
     } while (fp < finp);
 
-    free(x); free(y); free(z);
+    csound->Free(csound,x); csound->Free(csound,y); csound->Free(csound,z);
     csound->FileClose(csound, fd);
 
     return OK;
@@ -1671,7 +1671,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
  gen28err1:
     return fterror(ff, Str("could not open space file"));
  gen28err2:
-    free(x); free(y); free(z);
+    csound->Free(csound,x); csound->Free(csound,y); csound->Free(csound,z);
     return fterror(ff, Str("Time values must be in increasing order"));
 }
 
@@ -1725,7 +1725,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     if (minh > maxh)
       return OK;
     i = (l1 > l2 ? l1 : l2) + 2;
-    x = (MYFLT*) malloc(sizeof(MYFLT) * i);
+    x = (MYFLT*) csound->Malloc(csound,sizeof(MYFLT) * i);
     /* read src table with amplitude scale */
     xsr = csound->GetInverseRealFFTScale(csound, l1) * (MYFLT) l1 / (MYFLT) l2;
     for (i = 0; i < l2; i++)
@@ -1751,7 +1751,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     for (i = 0; i < l1; i++)
       f1[i] = x[i];
     f1[l1] = f1[0];     /* write guard point */
-    free(x);
+    csound->Free(csound,x);
 
     return OK;
 }
@@ -1781,8 +1781,8 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     f1 = ftp->ftable;
     l1 = (int) ftp->flen;
 
-    x = (MYFLT*) calloc(l2 + 2, sizeof(MYFLT));
-    y = (MYFLT*) calloc(l1 + 2, sizeof(MYFLT));
+    x = (MYFLT*) csound->Calloc(csound, (l2 + 2)*sizeof(MYFLT));
+    y = (MYFLT*) csound->Calloc(csound, l1 + 2*sizeof(MYFLT));
     /* read and analyze src table, apply amplitude scale */
     a = csound->GetInverseRealFFTScale(csound, l1) * (MYFLT) l1 / (MYFLT) l2;
     for (i = 0; i < l2; i++)
@@ -1829,8 +1829,8 @@ static int gen31(FGDATA *ff, FUNC *ftp)
       f1[i] = y[i];
     f1[l1] = f1[0];     /* write guard point */
 
-    free(x);
-    free(y);
+    csound->Free(csound,x);
+    csound->Free(csound,y);
 
     return OK;
 }
@@ -1860,7 +1860,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     }
 
     ntabl = nargs >> 2;         /* number of waves to mix */
-    pnum  = (int*) malloc(sizeof(int) * ntabl);
+    pnum  = (int*) csound->Malloc(csound,sizeof(int) * ntabl);
     for (i = 0; i < ntabl; i++)
       pnum[i] = (i << 2) + 5;   /* p-field numbers */
     do {
@@ -1890,9 +1890,9 @@ static int gen32(FGDATA *ff, FUNC *ftp)
       l2 = csoundGetTable(csound, &f2, abs(i));
       if (UNLIKELY(l2 < 0)) {
         fterror(ff, Str("GEN32: source ftable %d not found"), abs(i));
-        if (x != NULL) free(x);
-        if (y != NULL) free(y);
-        free(pnum);
+        if (x != NULL) csound->Free(csound,x);
+        if (y != NULL) csound->Free(csound,y);
+        csound->Free(csound,pnum);
         return NOTOK;
       }
       if (i < 0) {              /* use linear interpolation */
@@ -1917,9 +1917,9 @@ static int gen32(FGDATA *ff, FUNC *ftp)
         if (i != ft) {
           ft = i;               /* new table */
           if (y == NULL)
-            y = (MYFLT*) calloc(l1 + 2, sizeof (MYFLT));
-          if (x != NULL) free(x);
-          x = (MYFLT*) calloc(l2 + 2, sizeof (MYFLT));
+            y = (MYFLT*) csound->Calloc(csound,(l1 + 2)*sizeof (MYFLT));
+          if (x != NULL) csound->Free(csound,x);
+          x = (MYFLT*) csound->Calloc(csound,(l2 + 2)*sizeof (MYFLT));
           /* read and analyze src table */
           for (i = 0; i < l2; i++)
             x[i] = f2[i];
@@ -1953,10 +1953,10 @@ static int gen32(FGDATA *ff, FUNC *ftp)
       for (i = 0; i < l1; i++)
         f1[i] += y[i];
       f1[l1] += y[0];           /* write guard point */
-      free(x);         /* free tmp memory */
-      free(y);
+      csound->Free(csound,x);         /* free tmp memory */
+      csound->Free(csound,y);
     }
-    free(pnum);
+    csound->Free(csound,pnum);
 
     return OK;
 }
@@ -2004,7 +2004,7 @@ static int gen33(FGDATA *ff, FUNC *ftp)
     }
 
     /* allocate memory for tmp data */
-    x = (MYFLT*) calloc(flen + 2, sizeof(MYFLT));
+    x = (MYFLT*) csound->Calloc(csound,(flen + 2)*sizeof(MYFLT));
 
     maxp = flen >> 1;           /* max. partial number */
     i = nh;
@@ -2036,7 +2036,7 @@ static int gen33(FGDATA *ff, FUNC *ftp)
     ft[flen] = x[0];            /* write guard point */
 
     /* free tmp memory */
-    free(x);
+    csound->Free(csound,x);
 
     return OK;
 }
@@ -2085,10 +2085,10 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     /* use blocks of 256 samples (2048 bytes) for speed */
     bs = 256L;
     /* allocate memory for tmp data */
-    tmp = (double*) malloc(sizeof (double) * bs);
-    xn  = (double*) malloc(sizeof (double) * (nh + 1L));
-    cn  = (double*) malloc(sizeof (double) * (nh + 1L));
-    vn  = (double*) malloc(sizeof (double) * (nh + 1L));
+    tmp = (double*) csound->Malloc(csound,sizeof (double) * bs);
+    xn  = (double*) csound->Malloc(csound,sizeof (double) * (nh + 1L));
+    cn  = (double*) csound->Malloc(csound,sizeof (double) * (nh + 1L));
+    vn  = (double*) csound->Malloc(csound,sizeof (double) * (nh + 1L));
     /* initialise oscillators */
     i = -1L;
     while (++i < nh) {
@@ -2135,7 +2135,7 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     } while (j);
 
     /* free tmp buffers */
-    free(tmp); free(xn); free(cn); free(vn);
+    csound->Free(csound,tmp); csound->Free(csound,xn); csound->Free(csound,cn); csound->Free(csound,vn);
 
     return OK;
 }
@@ -2155,7 +2155,7 @@ static int gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
     }
     fp_source = srcftp->ftable;
     srcpts = srcftp->flen;
-    fp_temp = (MYFLT *) calloc(srcpts, sizeof(MYFLT));
+    fp_temp = (MYFLT *) csound->Calloc(csound,srcpts*sizeof(MYFLT));
     for (j = 0; j < srcpts; j++) {
       last_value += fp_source[j];
       fp_temp[j] = last_value;
@@ -2169,7 +2169,7 @@ static int gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
       fp[j] = (MYFLT) k;
     }
     fp[j] = fp[j-1];
-    free(fp_temp);
+    csound->Free(csound,fp_temp);
 
     return OK;
 }
@@ -2964,7 +2964,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
               mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
               mpainfo.duration%60);
     }
-    buffer = (uint8_t *)malloc(size);
+    buffer = (uint8_t *)csound->Malloc(csound,size);
     bufsize = size/mpainfo.decoded_sample_size;
     skip = (int)(ff->e.p[6] * mpainfo.frequency);
     while (skip > 0) {
@@ -3004,7 +3004,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       //printf("gen49: p=%d bufused=%d\n", p, bufused);
       for (i=0; i<bufused*nchanls/mpainfo.decoded_sample_size; i++)  {
         if (p>=flen) {
-          free(buffer);
+          csound->Free(csound,buffer);
           //printf("gen49: i=%d p=%d exit as at end of table\n", i, p);
           return ((mp3dec_uninit(mpa) == MP3DEC_RETCODE_OK) ? OK : NOTOK);
         }
@@ -3017,7 +3017,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       r = mp3dec_decode(mpa, buffer, size, &bufused);
     }
 
-    free(buffer);
+    csound->Free(csound, buffer);
     r |= mp3dec_uninit(mpa);
     if (def) ftresdisp(ff, ftp);
     return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
