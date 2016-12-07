@@ -235,7 +235,7 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
                                    * m);
   nBytes = ofs1 + (nBytesPerBuf * (size_t) p->nBuffers);
   /* allocate memory */
-  ptr = (RtJackBuffer**) malloc(nBytes);
+  ptr = (RtJackBuffer**) csound->Malloc(csound, nBytes);
   if (UNLIKELY(ptr == NULL))
     rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
   p->bufs = (RtJackBuffer**) ptr;
@@ -284,14 +284,14 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
 static void listPorts(CSOUND *csound, int isOutput){
           int i,n = listDevices(csound,NULL,isOutput);
           CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-            malloc(n*sizeof(CS_AUDIODEVICE));
+            csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
           listDevices(csound,devs,isOutput);
           csound->Message(csound, "Jack %s ports:\n",
                           isOutput ? "output" : "input");
           for(i=0; i < n; i++)
             csound->Message(csound, " %d: %s (dac:%s)\n",
                             i, devs[i].device_id, devs[i].device_name);
-          free(devs);
+          csound->Free(csound,devs);
 }
 
 /* register JACK ports */
@@ -558,7 +558,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p,
     if (parm->devName != NULL && parm->devName[0] != (char) 0) {
       /* NOTE: this assumes max. 999 channels (the current limit is 255) */
       nBytes = strlen(parm->devName) + 4;
-      s = (char*) malloc(nBytes+1);
+      s = (char*) csound->Malloc(csound, nBytes+1);
       if (UNLIKELY(s == NULL))
         rtJack_Error(csound, CSOUND_MEMORY, Str("memory allocation failure"));
       strcpy(s, parm->devName);
@@ -606,12 +606,12 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
   p->inputEnabled = 1;
   /* allocate pointers to input ports */
   p->inPorts = (jack_port_t**)
-    calloc((size_t) p->nChannels, sizeof(jack_port_t*));
+    csound->Calloc(csound, (size_t) p->nChannels* sizeof(jack_port_t*));
   if (UNLIKELY(p->inPorts == NULL))
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   /* allocate pointers to input port buffers */
   p->inPortBufs = (jack_default_audio_sample_t**)
-    calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
+    csound->Calloc(csound, (size_t) p->nChannels* sizeof(jack_default_audio_sample_t*));
   if (UNLIKELY(p->inPortBufs == NULL))
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   return 0;
@@ -632,12 +632,12 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
   p->outputEnabled = 1;
   /* allocate pointers to output ports */
   p->outPorts = (jack_port_t**)
-    calloc((size_t) p->nChannels, sizeof(jack_port_t*));
+    csound->Calloc(csound, (size_t) p->nChannels* sizeof(jack_port_t*));
   if (UNLIKELY(p->outPorts == NULL))
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   /* allocate pointers to output port buffers */
   p->outPortBufs = (jack_default_audio_sample_t**)
-    calloc((size_t) p->nChannels, sizeof(jack_default_audio_sample_t*));
+    csound->Calloc(csound, (size_t) p->nChannels* sizeof(jack_default_audio_sample_t*));
   if (UNLIKELY(p->outPortBufs == NULL))
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   /* activate client to start playback */
@@ -864,7 +864,7 @@ static void rtJack_DeleteBuffers(RtJackGlobals *p)
     rtJack_DestroyLock(p->csound, &(bufs[i]->csndLock));
     rtJack_DestroyLock(p->csound, &(bufs[i]->jackLock));
   }
-  free((void*) bufs);
+  p->csound->Free(p->csound,(void*) bufs);
 }
 
 /* close the I/O device entirely  */
@@ -914,18 +914,18 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
   }
   /* free copy of input and output device name */
   if (p.inDevName != NULL)
-    free(p.inDevName);
+    csound->Free(csound,p.inDevName);
   if (p.outDevName != NULL)
-    free(p.outDevName);
+    csound->Free(csound,p.outDevName);
   /* free ports and port buffer pointers */
   if (p.inPorts != NULL)
-    free(p.inPorts);
+    csound->Free(csound,p.inPorts);
   if (p.inPortBufs != NULL)
-    free(p.inPortBufs);
+    csound->Free(csound,p.inPortBufs);
   if (p.outPorts != NULL)
-    free(p.outPorts);
+    csound->Free(csound,p.outPorts);
   if (p.outPortBufs != NULL)
-    free(p.outPortBufs);
+    csound->Free(csound,p.outPortBufs);
   /* free ring buffers */
   rtJack_DeleteBuffers(&p);
   csound->DestroyGlobalVariable(csound, "_rtjackGlobals");
