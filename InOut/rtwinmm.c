@@ -311,7 +311,7 @@ static int open_device(CSOUND *csound,
     }
     p = (rtWinMMGlobals*)
           csound->QueryGlobalVariable(csound, "_rtwinmm_globals");
-    dev = (rtWinMMDevice*) malloc(sizeof(rtWinMMDevice));
+    dev = (rtWinMMDevice*) csound->Malloc(csound, sizeof(rtWinMMDevice));
     if (UNLIKELY(dev == NULL))
       return err_msg(csound, Str("memory allocation failure"));
     memset(dev, 0, sizeof(rtWinMMDevice));
@@ -486,7 +486,7 @@ static void rtclose_(CSOUND *csound)
         GlobalFree((HGLOBAL) inDev->buffers[i].lpData);
       }
       waveInClose(inDev->inDev);
-      free(inDev);
+      csound->Free(csound,inDev);
     }
     if (outDev != NULL) {
       volatile DWORD  *dwFlags = &(outDev->buffers[outDev->cur_buf].dwFlags);
@@ -501,7 +501,7 @@ static void rtclose_(CSOUND *csound)
         GlobalFree((HGLOBAL) outDev->buffers[i].lpData);
       }
       waveOutClose(outDev->outDev);
-      free(outDev);
+      csound->Free(csound,outDev);
     }
 }
 
@@ -555,7 +555,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
                        Str("rtmidi: input device number is out of range"));
       return -1;
     }
-    p = (RTMIDI_MME_GLOBALS*) calloc((size_t) 1, sizeof(RTMIDI_MME_GLOBALS));
+    p = (RTMIDI_MME_GLOBALS*) csound->Calloc(csound, (size_t) sizeof(RTMIDI_MME_GLOBALS));
     if (UNLIKELY(p == NULL)) {
       csound->ErrorMsg(csound, Str("rtmidi: memory allocation failure"));
       return -1;
@@ -623,7 +623,7 @@ static int midi_in_close(CSOUND *csound, void *userData)
       midiInClose(p->inDev);
     }
     DeleteCriticalSection(&(p->threadLock));
-    free(p);
+    csound->Free(csound,p);
 
     return 0;
 }
