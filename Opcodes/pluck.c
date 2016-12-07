@@ -72,7 +72,7 @@ static int pluckExcite(CSOUND *csound, WGPLUCK* p)
 /*        p->wg.upperRail.data[i] = shape[i]; */
 
     /* free the space used by the pluck shape */
-    free(shape);
+    csound->Free(csound, shape);
 
     /* Reset the tuning and bridge filters */
     /*filterReset(&p->wg.tnFIR);*/
@@ -168,7 +168,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
     MYFLT M;
 
     /* This memory must be freed after use */
-    shape = (MYFLT *)malloc(len*sizeof(MYFLT));
+    shape = (MYFLT *)csound->Malloc(csound, len*sizeof(MYFLT));
     if (UNLIKELY(!shape))
       error(csound,
             Str("Could not allocate for initial shape"),"<pluckShape>");

@@ -373,7 +373,7 @@ sprintf_opcode_(CSOUND *csound,
     }
 
 
-    strseg = malloc(siz);
+    strseg = csound->Malloc(csound, siz);
     i = 0;
 
     while (1) {
@@ -511,10 +511,10 @@ sprintf_opcode_(CSOUND *csound,
         segwaiting++;
     }
     if (UNLIKELY(numVals > 0)) {
-      free(strseg);
+      csound->Free(csound, strseg);
       return StrOp_ErrMsg(p, Str("too many arguments for format"));
     }
-    free(strseg);
+    csound->Free(csound, strseg);
     return OK;
 }
 
