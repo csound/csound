@@ -280,9 +280,9 @@ static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
     }
 
     connections = calloc(CHANNELS * CHANNELS, sizeof(int));
-    distance_table = calloc(((CHANNELS * (CHANNELS - 1)) / 2), sizeof(MYFLT));
-    distance_table_i = calloc(((CHANNELS * (CHANNELS - 1)) / 2), sizeof(int));
-    distance_table_j = calloc(((CHANNELS * (CHANNELS - 1)) / 2), sizeof(int));
+    distance_table = csound->Calloc(csound, ((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(MYFLT));
+    distance_table_i = csound->Calloc(csound,((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(int));
+    distance_table_j = csound->Calloc(csound, ((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(int));
 
 /*  i_ptr = (int *) connections; */
 /*  for (i=0;i< ((CHANNELS) * (CHANNELS )); i++) */
@@ -376,10 +376,10 @@ static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
         trip_ptr = trip_ptr->next;
       }
     }
-    free(connections);
-    free(distance_table);
-    free(distance_table_i);
-    free(distance_table_j);
+    csound->Free(csound,connections);
+    csound->Free(csound,distance_table);
+    csound->Free(csound,distance_table_i);
+    csound->Free(csound,distance_table_j);
 }
 
 /* returns 1 if there is loudspeaker(s) inside given ls triplet */
