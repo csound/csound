@@ -315,7 +315,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             }
             // two parts needed
             {
-              void *dd = malloc(len+sizeof(int)*(1+ss->dimensions));
+              void *dd = csound->Malloc(csound, len+sizeof(int)*(1+ss->dimensions));
               memcpy(dd, &ss->dimensions, sizeof(int));
               memcpy(dd+sizeof(int), ss->sizes, sizeof(int)*ss->dimensions);
               memcpy(dd+sizeof(int)*(1+ss->dimensions), ss->data, len);
@@ -324,7 +324,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
       /*        ((int*)dd)[0], ((int*)dd)[1], ((int*)dd)[2], ((int*)dd)[3], */
       /*        ((int*)dd)[4], ((int*)dd)[5]); */
               myblob = lo_blob_new(len, dd);
-              free(dd);
+              csound->Free(csound, dd);
             }
             lo_message_add_blob(msg, myblob);
             lo_blob_free(myblob);
