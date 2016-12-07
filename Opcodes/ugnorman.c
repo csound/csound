@@ -1501,9 +1501,9 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
     double  **partialband;
     int     *bandnum;
 
-    partialband = (double **) malloc(sizeof(double*)
+    partialband = (double **) csound->Malloc(csound, sizeof(double*)
                                      * (int) p->atshead->npartials);
-    bandnum = (int *) malloc(sizeof(int) * (int) p->atshead->npartials);
+    bandnum = (int *) csound->Malloc(csound, sizeof(int) * (int) p->atshead->npartials);
 
     for (i = 0; i < (int) p->atshead->nfrms; i++) {
       /* init sums */
@@ -1534,8 +1534,8 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
       curframe += p->frmInc;
     }
 
-    free(partialband);
-    free(bandnum);
+    csound->Free(csound,partialband);
+    csound->Free(csound,bandnum);
 }
 
 static void fetchSINNOIpartials(ATSSINNOI *, MYFLT);
