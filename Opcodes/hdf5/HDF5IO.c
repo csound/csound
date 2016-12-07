@@ -960,7 +960,7 @@ void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
 
       if (inputType != STRING_VAR) {
 
-        csound->Die(csound, St("hdf5read: Error, input argument %zd does not "
+        csound->Die(csound, Str("hdf5read: Error, input argument %zd does not "
                                "appear to be a string, exiting"), i + 1);
       }
       else if (inputType == UNKNOWN) {
