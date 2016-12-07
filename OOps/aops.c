@@ -145,14 +145,14 @@ int minit(CSOUND *csound, ASSIGNM *p)
       *p->r[0] =  *p->a[0];
       return OK;
     }
-    tmp = (MYFLT*)malloc(sizeof(MYFLT)*p->OUTOCOUNT);
+    tmp = (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*p->OUTOCOUNT);
     for (i=0; i<nargs; i++)
       tmp[i] =  *p->a[i];
     for (; i<p->OUTOCOUNT; i++)
       tmp[i] =  *p->a[nargs-1];
     for (i=0; i<p->OUTOCOUNT; i++)
       *p->r[i] = tmp[i];
-    free(tmp);
+    csound->Free(csound, tmp);
     return OK;
 }
 

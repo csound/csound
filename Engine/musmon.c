@@ -1201,7 +1201,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       int n = evt->scnt;
       char *p = evt->strarg;
       while (n--) { p += strlen(p)+1; };
-      e->evt.strarg = (char*) malloc((size_t) (p-evt->strarg)+1);
+      e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (p-evt->strarg)+1);
       if (UNLIKELY(e->evt.strarg == NULL)) {
         free(e);
         return CSOUND_MEMORY;
@@ -1312,7 +1312,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
  err_return:
     /* clean up */
     if (e->evt.strarg != NULL)
-      free(e->evt.strarg);
+      csound->Free(csound, e->evt.strarg);
     e->evt.strarg = NULL;
     e->nxt = csound->freeEvtNodes;
     csound->freeEvtNodes = e;

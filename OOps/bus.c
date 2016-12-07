@@ -508,8 +508,9 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
       return 0;
 
     /* create list, initially in unsorted order */
-    // TODO - should this be malloc or csound->Malloc?
-    *lst = (controlChannelInfo_t*) malloc(n * sizeof(controlChannelInfo_t));
+    //  csound->Malloc and the caller has to free it.
+    // if not, it will be freed on reset
+    *lst = (controlChannelInfo_t*) csound->Malloc(csound, n * sizeof(controlChannelInfo_t));
     if (UNLIKELY(*lst == NULL))
       return CSOUND_MEMORY;
 
@@ -531,8 +532,8 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
 
 PUBLIC void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
 {
-    (void) csound;
-    if (lst != NULL) free(lst);
+  //(void) csound;
+    if (lst != NULL) csound->Free(csound, lst);
 }
 
 PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
