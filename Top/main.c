@@ -137,7 +137,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     if (csound->delayederrormessages) {
       if (O->msglevel>8)
         csound->Warning(csound, "%s", csound->delayederrormessages);
-      free(csound->delayederrormessages);
+      csound->Free(csound, csound->delayederrormessages);
       csound->delayederrormessages = NULL;
     }
 
