@@ -667,7 +667,7 @@ int csoundDestroyModules(CSOUND *csound)
       csoundCloseLibrary(m->h);
       csound->csmodule_db = (void*) m->nxt;
       /* free memory used by database */
-      free((void*) m);
+      csound->Free(csound, (void*) m);
 
     }
     sfont_ModuleDestroy(csound);
