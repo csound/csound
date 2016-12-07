@@ -508,7 +508,6 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
       return 0;
 
     /* create list, initially in unsorted order */
-    // TODO - should this be malloc or csound->Malloc?
     //  csound->Malloc and the caller has to free it.
     // if not, it will be freed on reset
     *lst = (controlChannelInfo_t*) csound->Malloc(csound, n * sizeof(controlChannelInfo_t));

@@ -643,7 +643,7 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
     /* open device */
     retval = set_device_params(csound, dev, play);
     if (retval != 0) {
-      csound->Free(csounddev);
+      csound->Free(csound,csounddev);
       *userDataPtr = NULL;
     }
     return retval;
@@ -773,7 +773,7 @@ static void rtclose_(CSOUND *csound)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)
         csound->Free(csound, dev->buf);
-      csound->Free(csounddev);
+      csound->Free(csound,csounddev);
     }
     dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
     if (dev != NULL) {
@@ -782,7 +782,7 @@ static void rtclose_(CSOUND *csound)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)
         csound->Free(csound, dev->buf);
-      csound->Free(csounddev);
+      csound->Free(csound,csounddev);
     }
 }
 
@@ -801,7 +801,7 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
     if (err != 0) {
       csound->ErrorMsg(csound,
                        Str("ALSA: error opening MIDI input device: '%s'"), s);
-      csound->Free(csounddev);
+      csound->Free(csound,csounddev);
       return NULL;
     }
     csound->Message(csound, Str("ALSA: opened MIDI input device '%s'\n"), s);
@@ -959,7 +959,7 @@ static int midi_in_close(CSOUND *csound, void *userData)
       }
       olddev = dev;
       dev = dev->next;
-      csound->Free(csoundolddev);
+      csound->Free(csound,csoundolddev);
       if (retval != -1)
         retval = ret;
     }
@@ -1385,7 +1385,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
     if (UNLIKELY(err < 0)) {
       csound->ErrorMsg(csound, Str("ALSASEQ: error opening sequencer (%s)"),
                        snd_strerror(err));
-      csound->Free(csoundamidi);
+      csound->Free(csound,csoundamidi);
       return -1;
     }
     csound->Message(csound, Str("ALSASEQ: opened MIDI input sequencer\n"));
@@ -1396,7 +1396,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot set client name '%s' (%s)"),
                        client_name, snd_strerror(err));
       snd_seq_close(amidi->seq);
-      csound->Free(csoundamidi);
+      csound->Free(csound,csoundamidi);
       return -1;
     }
     err = snd_seq_create_simple_port(amidi->seq, client_name,
@@ -1408,7 +1408,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot create input port (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
-      csound->Free(csoundamidi);
+      csound->Free(csound,csoundamidi);
       return -1;
     }
     client_id = snd_seq_client_id(amidi->seq);
@@ -1420,7 +1420,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot create midi event (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
-      csound->Free(csoundamidi);
+      csound->Free(csound,csoundamidi);
       return -1;
     }
     snd_midi_event_init(amidi->mev);
@@ -1453,7 +1453,7 @@ static int alsaseq_in_close(CSOUND *csound, void *userData)
     if (amidi != NULL) {
       snd_midi_event_free(amidi->mev);
       snd_seq_close(amidi->seq);
-      csound->Free(csoundamidi);
+      csound->Free(csound,csoundamidi);
     }
     return OK;
 }
@@ -1500,7 +1500,7 @@ static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot create output port (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
-      csound->Free(csoundamidi);
+      csound->Free(csound,csoundamidi);
       return -1;
     }
     client_id = snd_seq_client_id(amidi->seq);
@@ -1512,7 +1512,7 @@ static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot create midi event (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
-      csound->Free(csoundamidi);
+      csound->Free(csound,csoundamidi);
       return -1;
     }
     snd_midi_event_init(amidi->mev);
@@ -1549,7 +1549,7 @@ static int alsaseq_out_close(CSOUND *csound, void *userData)
       snd_seq_drain_output(amidi->seq);
       snd_midi_event_free(amidi->mev);
       snd_seq_close(amidi->seq);
-      csound->Free(csoundamidi);
+      csound->Free(csound,csoundamidi);
     }
     return OK;
 }
