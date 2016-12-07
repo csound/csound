@@ -425,6 +425,9 @@ sprintf_opcode_(CSOUND *csound,
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data,
                                  str->size  + 24);
+	    if(str->data == NULL) {
+	      return StrOp_ErrMsg(p, Str("memory allocation failure"));
+	    }
             str->size += 24;
             maxChars += 24;
             outstring = str->data + offs;
@@ -446,6 +449,9 @@ sprintf_opcode_(CSOUND *csound,
           if (strlen(strseg) + 24 > (unsigned)maxChars) {
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data, str->size  + 13);
+	    if(str->data == NULL) {
+	      return StrOp_ErrMsg(p, Str("memory allocation failure"));
+	    }
             str->size += 24;
             maxChars += 24;
             outstring = str->data + offs;
@@ -462,6 +468,7 @@ sprintf_opcode_(CSOUND *csound,
             return StrOp_ErrMsg(p, Str("output argument may not be "
                                        "the same as any of the input args"));
           }
+	  //printf("size: %d \n",((STRINGDAT*)parm)->size);
           if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (unsigned)maxChars) {
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data,
