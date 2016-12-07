@@ -282,11 +282,11 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
     int size;
-    char *str1 = strdup(p->str1->data), *str2 = strdup(p->str2->data);
+    char *str1 = cs_strdup(csound, p->str1->data), *str2 = cs_strdup(csound, p->str2->data);
 
     if (str1 == NULL || str2 == NULL){
-      free(str1);
-      free(str2);
+      csound->Free(csound,str1);
+      csound->Free(csound,str2);
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
       return csoundPerfError(csound, ((OPDS*)p)->insdshead, "NULL string \n");
       else return csoundInitError(csound, "NULL string \n");
@@ -315,8 +315,8 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     strncpy((char*) p->r->data,  str1, p->r->size-1);
     strcat((char*) p->r->data, str2);
 
-    free(str2);                 /* not needed anymore */
-    free(str1);
+    csound->Free(csound, str2);                 /* not needed anymore */
+    csound->Free(csound, str1);
     return OK;
 }
 
@@ -401,7 +401,7 @@ sprintf_opcode_(CSOUND *csound,
         maxChars = str->size - len;
         strseg[i] = '\0';
         if (UNLIKELY(numVals <= 0)) {
-          free(strseg);
+          csound->Free(csound, strseg);
           return StrOp_ErrMsg(p, Str("insufficient arguments for format"));
         }
         numVals--;
@@ -467,7 +467,7 @@ sprintf_opcode_(CSOUND *csound,
           break;
         case 's':
           if (((STRINGDAT*)parm)->data == str->data) {
-            free(strseg);
+            csound->Free(csound, strseg);
             return StrOp_ErrMsg(p, Str("output argument may not be "
                                        "the same as any of the input args"));
           }
@@ -483,7 +483,7 @@ sprintf_opcode_(CSOUND *csound,
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           break;
         default:
-          free(strseg);
+          csound->Free(csound, strseg);
           return StrOp_ErrMsg(p, Str("invalid format string"));
         }
         if (n < 0 || n >= maxChars) {
