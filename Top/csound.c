@@ -3186,7 +3186,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
         csound->Warning(csound, "%s",csound->delayederrormessages);
-        free(csound->delayederrormessages);
+        csound->Free(csound, csound->delayederrormessages);
         csound->delayederrormessages = NULL;
       }
       if (UNLIKELY(err==CSOUND_ERROR))
@@ -3202,7 +3202,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
         csound->Warning(csound, "%s", csound->delayederrormessages);
-        free(csound->delayederrormessages);
+        csound->Free(csound, csound->delayederrormessages);
         csound->delayederrormessages = NULL;
       }
       if (err != CSOUND_SUCCESS)

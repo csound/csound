@@ -258,13 +258,13 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     for (i = 0; i < cntdev; i++) {
       if (devnum == i || devnum == -1) {
         if (opendevs == 0) {
-          data = (pmall_data *) malloc(sizeof(pmall_data));
+          data = (pmall_data *) csound->Malloc(csound, sizeof(pmall_data));
           next = data;
           data->next = NULL;
           opendevs++;
         }
         else {
-          next->next = (pmall_data *) malloc(sizeof(pmall_data));
+          next->next = (pmall_data *) csound->Malloc(csound, sizeof(pmall_data));
           next = next->next;
           next->next = NULL;
           opendevs++;
@@ -285,7 +285,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
           // Prevent leaking memory from "data"
           if (data) {
             next = data->next;
-            free(data);
+            csound->Free(csound, data);
           }
           return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
                                           i, Pm_GetErrorText(retval));

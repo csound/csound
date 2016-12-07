@@ -17,9 +17,9 @@
  *
  */
 
-#import "csdl.h"
-#import "hdf5.h"
-#import <stdbool.h>
+#include "csdl.h"
+#include "hdf5.h"
+#include <stdbool.h>
 
 #pragma mark - HDF5IO -
 

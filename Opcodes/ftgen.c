@@ -91,7 +91,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
     int     n;
 
     *p->ifno = FL(0.0);
-    ftevt =(EVTBLK*) malloc(sizeof(EVTBLK)); /* Can use malloc direct as local */
+    ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK)); 
     ftevt->opcod = 'f';
     ftevt->strarg = NULL;
     fp = &ftevt->p[0];
@@ -113,7 +113,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
           named = named->next;                            /*  and round again   */
         }
         if (UNLIKELY(named == NULL)) {
-          free(ftevt);
+          csound->Free(csound,ftevt);
           return csound->InitError(csound,
                                    Str("Named gen \"%s\" not defined"),
                                    (char *)p->p4);
@@ -135,7 +135,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
           ftevt->strarg = ((STRINGDAT *) p->p5)->data;
           break;
         default:
-          free(ftevt);
+          csound->Free(csound, ftevt);
           return csound->InitError(csound, Str("ftgen string arg not allowed"));
         }
       }
@@ -153,7 +153,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
       } while (--n);
     }
     n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
-    free(ftevt);
+    csound->Free(csound, ftevt);
     if (UNLIKELY(n != 0))
       return csound->InitError(csound, Str("ftgen error"));
     if (ftp != NULL)
@@ -621,7 +621,7 @@ static int ftgen_list(CSOUND *csound, FTGEN *p, int istring)
     int     n;
 
     *p->ifno = FL(0.0);
-    ftevt =(EVTBLK*) malloc(sizeof(EVTBLK)); /* Can use malloc direct as local */
+    ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
     ftevt->opcod = 'f';
     ftevt->strarg = NULL;
     fp = &ftevt->p[0];
@@ -643,7 +643,7 @@ static int ftgen_list(CSOUND *csound, FTGEN *p, int istring)
           named = named->next;                            /*  and round again   */
         }
         if (UNLIKELY(named == NULL)) {
-          free(ftevt);
+          csound->Free(csound,ftevt);
           return csound->InitError(csound,
                                    Str("Named gen \"%s\" not defined"),
                                    (char *)p->p4);
@@ -660,7 +660,7 @@ static int ftgen_list(CSOUND *csound, FTGEN *p, int istring)
         i++;
       }
       n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
-     free(ftevt);
+     csound->Free(csound,ftevt);
      if (UNLIKELY(n != 0))
        return csound->InitError(csound, Str("ftgen error"));
      if (ftp != NULL)

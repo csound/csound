@@ -373,7 +373,7 @@ sprintf_opcode_(CSOUND *csound,
     }
 
 
-    strseg = malloc(siz);
+    strseg = csound->Malloc(csound, siz);
     i = 0;
 
     while (1) {
@@ -425,10 +425,14 @@ sprintf_opcode_(CSOUND *csound,
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data,
                                  str->size  + 24);
+	    if(str->data == NULL) {
+	      return StrOp_ErrMsg(p, Str("memory allocation failure"));
+	    }
             str->size += 24;
             maxChars += 24;
             outstring = str->data + offs;
             //printf("maxchars = %d  %s\n", maxChars, strseg);
+	    //printf("size: %d \n",str->size);
 
           }
           n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));
@@ -443,14 +447,19 @@ sprintf_opcode_(CSOUND *csound,
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
+	  //printf("%d %d \n", str->size, strlen(str->data)); 
           if (strlen(strseg) + 24 > (unsigned)maxChars) {
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data, str->size  + 13);
+	    if(str->data == NULL) {
+	      return StrOp_ErrMsg(p, Str("memory allocation failure"));
+	    }
             str->size += 24;
             maxChars += 24;
             outstring = str->data + offs;
             //printf("maxchars = %d  %s\n", maxChars, strseg);
           }
+	  //printf("%d %d \n", str->size, strlen(str->data)); 
           n = snprintf(outstring, maxChars, strseg, (double)*parm);
 #else
           n = sprintf(outstring, strseg, (double)*parm);
@@ -469,7 +478,7 @@ sprintf_opcode_(CSOUND *csound,
                                         strlen(strseg));
             str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
             maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
-            outstring = str->data + offs;
+            outstring = str->data + offs;	    
           }
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           break;
@@ -502,17 +511,18 @@ sprintf_opcode_(CSOUND *csound,
         segwaiting++;
     }
     if (UNLIKELY(numVals > 0)) {
-      free(strseg);
+      csound->Free(csound, strseg);
       return StrOp_ErrMsg(p, Str("too many arguments for format"));
     }
-    free(strseg);
+    csound->Free(csound, strseg);
     return OK;
 }
 
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-    int size = p->sfmt->size+ 10*((int) p->INOCOUNT);
-    if (p->r->data == NULL && p->r->size < size) {
+    int size = p->sfmt->size+ 18*((int) p->INOCOUNT);
+    //printf("%d %d \n", p->r->size, strlen(p->r->data)); 
+    if (p->r->data == NULL || p->r->size < size) {
       /* this 10 is 1n incorrect guess which is OK with numbers*/
       p->r->data = csound->Calloc(csound, size);
       p->r->size = size;
