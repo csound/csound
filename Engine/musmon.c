@@ -391,7 +391,7 @@ static void delete_pending_rt_events(CSOUND *csound)
     while (ep != NULL) {
       EVTNODE *nxt = ep->nxt;
       if (ep->evt.strarg != NULL) {
-        free(ep->evt.strarg);
+        csound->Free(csound,ep->evt.strarg);
         ep->evt.strarg = NULL;
       }
       /* push to stack of free event nodes */
@@ -422,7 +422,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
       csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
-      free(p);
+      csound->Free(csound,p);
     }
 
     /* check if we have already cleaned up */
@@ -456,7 +456,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;
       csound->freeEvtNodes = ((EVTNODE*) p)->nxt;
-      free(p);
+      csound->Free(csound,p);
     }
 
     orcompact(csound);
@@ -866,7 +866,7 @@ static int process_rt_event(CSOUND *csound, int sensType)
       csound->OrcTrigEvts = e->nxt;
       retval = process_score_event(csound, evt, 1);
       if (evt->strarg != NULL) {
-        free(evt->strarg);
+        csound->Free(csound, evt->strarg);
         evt->strarg = NULL;
       }
       /* push back to free alloc stack so it can be reused later */
@@ -1192,7 +1192,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       csound->freeEvtNodes = e->nxt;
     }
     else {
-      e = (EVTNODE*) calloc((size_t) 1, sizeof(EVTNODE)); /* or alloc new one */
+      e = (EVTNODE*) csound->Calloc(csound, sizeof(EVTNODE)); /* or alloc new one */
       if (UNLIKELY(e == NULL))
         return CSOUND_MEMORY;
     }
@@ -1203,7 +1203,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       while (n--) { p += strlen(p)+1; };
       e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (p-evt->strarg)+1);
       if (UNLIKELY(e->evt.strarg == NULL)) {
-        free(e);
+        csound->Free(csound, e);
         return CSOUND_MEMORY;
       }
       memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
@@ -1380,13 +1380,13 @@ PUBLIC int csoundRegisterSenseEventCallback(CSOUND *csound,
     EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
 
     if (fp == NULL) {
-      fp = (EVT_CB_FUNC*) calloc((size_t) 1, sizeof(EVT_CB_FUNC));
+      fp = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
       csound->evtFuncChain = (void*) fp;
     }
     else {
       while (fp->nxt != NULL)
         fp = fp->nxt;
-      fp->nxt = (EVT_CB_FUNC*) calloc((size_t) 1, sizeof(EVT_CB_FUNC));
+      fp->nxt = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
       fp = fp->nxt;
     }
     if (UNLIKELY(fp == NULL))
