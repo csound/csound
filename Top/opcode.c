@@ -97,7 +97,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     }
     nBytes += sizeof(opcodeListEntry);
     /* allocate memory for opcode list */
-    lst = malloc(nBytes);
+    lst = csound->Malloc(csound, nBytes);
     if (UNLIKELY(lst == NULL))
       return CSOUND_MEMORY;
     (*lstp) = (opcodeListEntry*) lst;
@@ -149,8 +149,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
 
 PUBLIC void csoundDisposeOpcodeList(CSOUND *csound, opcodeListEntry *lst)
 {
-    (void) csound;
-    free(lst);
+    csound->Free(csound, lst);
 }
 
 void list_opcodes(CSOUND *csound, int level)
@@ -163,7 +162,7 @@ void list_opcodes(CSOUND *csound, int level)
     cnt = csoundNewOpcodeList(csound, &lst);
     if (UNLIKELY(cnt <= 0)) {
       csound->ErrorMsg(csound, Str("Error creating opcode list"));
-      free(lst);
+      csoundDisposeOpcodeList(csound, lst);
       return;
     }
     if ((level&2)==0)

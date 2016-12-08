@@ -1061,7 +1061,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     inm = (INSTRNAME*) csound->Calloc(csound, sizeof(INSTRNAME));
     inm2 = (INSTRNAME*) csound->Calloc(csound, sizeof(INSTRNAME));
     /* and store parameters */
-    inm->name = strdup(s); inm->ip = ip;
+    inm->name = cs_strdup(csound, s); inm->ip = ip;
     inm2->instno = insno;
     inm2->name = (char*) inm;   /* hack */
     //printf("insno %d \n", insno);
@@ -2094,10 +2094,10 @@ uint8_t file_to_int(CSOUND *csound, const char *name)
     // Not there so add
     // ensure long enough?
     if (n==255) {
-      filedir[n] = strdup(Str("**unrecorded**"));
+      filedir[n] = cs_strdup(csound, Str("**unrecorded**"));
     }
     else {
-      filedir[n] = strdup(name);
+      filedir[n] = cs_strdup(csound, (char *) name);
       filedir[n+1] = NULL;
     }
     return n;
