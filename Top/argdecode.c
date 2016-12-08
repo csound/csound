@@ -1460,10 +1460,10 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
                                   "allowed in .csound6rc"));
         }
         else if (csound->orcname_mode == 0) {
-          if (csound->orchname == NULL)
-            csound->orchname = --s;
+          if (csound->orchname == NULL) /* VL dec 2016: better duplicate these */
+            csound->orchname = cs_strdup(csound, --s);
           else if (LIKELY(csound->scorename == NULL))
-            csound->scorename = --s;
+            csound->scorename = cs_strdup(csound, --s);
           else {
             csound->Message(csound,"argc=%d Additional string \"%s\"\n",argc,--s);
             dieu(csound, Str("too many arguments"));
@@ -1748,7 +1748,7 @@ static void list_audio_devices(CSOUND *csound, int output){
 
     int i,n = csoundGetAudioDevList(csound,NULL, output);
     CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-      malloc(n*sizeof(CS_AUDIODEVICE));
+      csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
     if (output)
       csound->MessageS(csound,CSOUNDMSG_STDOUT,
                        Str("%d audio output devices \n"), n);
@@ -1759,13 +1759,13 @@ static void list_audio_devices(CSOUND *csound, int output){
     for (i=0; i < n; i++)
       csound->Message(csound, " %d: %s (%s)\n",
                       i, devs[i].device_id, devs[i].device_name);
-    free(devs);
+    csound->Free(csound, devs);
 }
 
 static void list_midi_devices(CSOUND *csound, int output){
 
     int i,n = csoundGetMIDIDevList(csound,NULL, output);
-    CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) malloc(n*sizeof(CS_MIDIDEVICE));
+    CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
     if (output)
       csound->MessageS(csound, CSOUNDMSG_STDOUT,
                        Str("%d MIDI output devices \n"), n);
@@ -1776,5 +1776,5 @@ static void list_midi_devices(CSOUND *csound, int output){
     for (i=0; i < n; i++)
       csound->Message(csound, " %d: %s (%s)\n",
                       i, devs[i].device_id, devs[i].device_name);
-    free(devs);
+    csound->Free(csound, devs);
 }

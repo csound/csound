@@ -358,7 +358,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
-static int csoundCheckOpcodeDeny(const char *fname)
+static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
 {
     /* Check to see if the fname is on the do-not-load list */
     char buff[256];
@@ -370,19 +370,19 @@ static int csoundCheckOpcodeDeny(const char *fname)
     if (list==NULL) return 0;
     strncpy(buff, fname, 255); buff[255]='\0';
     strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
-    p = strdup(list);
+    p = cs_strdup(csound, list);
     deny = cs_strtok_r(p, ",", &th);
     /* printf("DEBUG %s(%d): check buff=%s\n", __FILE__, __LINE__, deny); */
     while (deny) {
       /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
       if (strcmp(deny, buff)==0) {
-        free(p);
+        csound->Free(csound, p);
         /* printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); */
         return 1;
       }
       deny = cs_strtok_r(NULL, ",", &th);
     }
-    free(p);
+    csound->Free(csound, p);
     /* printf("DEBUG %s(%d): not found\n", __FILE__, __LINE__); */
     return 0;
 }
@@ -470,7 +470,7 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       }
       /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
-      if (csoundCheckOpcodeDeny(fname)) {
+      if (csoundCheckOpcodeDeny(csound, fname)) {
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
@@ -513,7 +513,7 @@ int csoundLoadExternals(CSOUND *csound)
       if (s[i] == ',')
         cnt++;
     } while (s[++i] != '\0');
-    lst = (char**) malloc(sizeof(char*) * cnt);
+    lst = (char**) csound->Malloc(csound, sizeof(char*) * cnt);
     i = cnt = 0;
     lst[cnt++] = s;
     do {
@@ -535,7 +535,7 @@ int csoundLoadExternals(CSOUND *csound)
       }
     } while (++i < cnt);
     /* file list is no longer needed */
-    free(lst);
+    csound->Free(csound, lst);
     csound->Free(csound, s);
     return 0;
 }

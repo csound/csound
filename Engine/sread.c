@@ -1646,7 +1646,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
     }
     if (c == '#') {
       int mlen = 40;
-      char  *mname = malloc(40);         /* Start Macro definition */
+      char  *mname  = csound->Malloc(csound, 40);         /* Start Macro definition */
       int   i = 0;
       while (isspace((c = getscochar(csound, 1))));
       if (c == 'd') {
@@ -1655,9 +1655,9 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         mm->margs = MARGS;
         if (UNLIKELY(!check_preproc_name(csound, "define"))) {
           csound->Message(csound, Str("Not #define"));
-          csound->Free(csound, mm); free(mname);
+          csound->Free(csound, mm);
+	  csound->Free(csound, mname);
           flushlin(csound);
-          //          free(mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
@@ -1665,7 +1665,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           char  *new;
           mname[i++] = c;
           if (i==mlen) {
-            new = (char *)realloc(mname, mlen+=40);
+            new = (char *) csound->ReAlloc(csound, mname, mlen+=40);
             if (new==NULL) {
               fprintf(stderr, "Out of Memory\n");
               exit(7);
@@ -1687,7 +1687,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
               char *new;
               mname[i++] = c;
               if (i==mlen) {
-                new = (char *)realloc(mname, mlen+=40);
+                new = (char *)csound->ReAlloc(csound, mname, mlen+=40);
                 if (new==NULL) {
                   fprintf(stderr, "Out of Memory\n");
                   exit(7);
@@ -1709,7 +1709,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
           if (UNLIKELY(c!=')')) {
             csound->Message(csound, Str("macro error\n"));
             flushlin(csound);
-            free(mname);
+            csound->Free(csound, mname);
             goto srch;
           }
         }
@@ -1742,7 +1742,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 #endif
         c = ' ';
         flushlin(csound);
-        free(mname);
+        csound->Free(csound, mname);
         goto srch;
       }
       else if (c == 'i') {
@@ -1750,7 +1750,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (UNLIKELY(!check_preproc_name(csound, "include"))) {
           csound->Message(csound, Str("Not #include"));
           flushlin(csound);
-          free(mname);
+          csound->Free(csound, mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
@@ -1794,7 +1794,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         }
         else {
           STA(str)->line = 1;
-          free(mname);
+          csound->Free(csound, mname);
           goto srch;
         }
       }
@@ -1802,7 +1802,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (UNLIKELY(!check_preproc_name(csound, "undef"))) {
           csound->Message(csound, Str("Not #undef"));
           flushlin(csound);
-          free(mname);
+          csound->Free(csound, mname);
           goto srch;
         }
         while (isspace((c = getscochar(csound, 1))));
@@ -1831,7 +1831,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (UNLIKELY(!check_preproc_name(csound, "exit"))) {
           csound->Message(csound, "Not #exit");
           flushlin(csound);
-          free(mname);
+          csound->Free(csound, mname);
           goto srch;
         }
         while (c != '\n' && c != EOF)
@@ -1842,7 +1842,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         sreaderr(csound, Str("unknown # option"));
         flushlin(csound);
       }
-      free(mname);
+      csound->Free(csound, mname);
       goto srch;
     }
 #endif

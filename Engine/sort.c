@@ -272,7 +272,7 @@ void sort(CSOUND *csound)
 
     if (n>1) {
       /* Get a temporary array and populate it */
-      A = ((SRTBLK**) malloc(n*sizeof(SRTBLK*)));
+      A = ((SRTBLK**) csound->Malloc(csound, n*sizeof(SRTBLK*)));
       bp = csound->frstbp;
       for (i=0; i<n; i++,bp = bp->nxtblk)
         A[i] = bp;
@@ -287,7 +287,7 @@ void sort(CSOUND *csound)
       }
       if (n>1) bp = A[n-1]; bp->nxtblk = NULL; bp->prvblk = A[n-2];
       /* and return temporary space */
-      free(A);
+      csound->Free(csound, A);
 
     }
 }

@@ -380,7 +380,7 @@ sprintf_opcode_(CSOUND *csound,
       if (UNLIKELY(i >= siz)) {
         // return StrOp_ErrMsg(p, "format string too long");
         siz *= 2;
-        strseg = realloc(strseg, siz);
+        strseg = csound->ReAlloc(csound, strseg, siz);
       }
       if (*fmt != '%' && *fmt != '\0') {
         strseg[i++] = *fmt++;
