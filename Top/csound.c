@@ -1948,7 +1948,7 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
     else {
       char *sc = scsortstr(csound, csound->scorestr);
       csoundInputMessageInternal(csound, (const char *) sc);
-      free(sc);
+      csound->Free(csound, sc);
       corfile_rm(&(csound->scorestr));
     }
     csoundUnlockMutex(csound->API_lock);
@@ -3037,10 +3037,11 @@ static void reset(CSOUND *csound)
     remove_tmpfiles(csound);
     rlsmemfiles(csound);
 
+     while (csound->filedir[n])        /* Clear source directory */
+	  csound->Free(csound,csound->filedir[n++]);
+
      memRESET(csound);
 
-    while (csound->filedir[n])        /* Clear source directory */
-      free(csound->filedir[n++]);
     /**
      * Copy everything EXCEPT the function pointers.
      * We do it by saving them and copying them back again...
