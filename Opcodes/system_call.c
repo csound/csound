@@ -38,9 +38,9 @@ typedef struct {
 
 static void threadroutine(void *p)
 {
-  SYSTEM *pp = (SYSTEM *) p
-    system(pp->command );
-    pp->csound->Free(pp->csound, command );
+    SYSTEM *pp = (SYSTEM *) p;
+    system(pp->command);
+    pp->csound->Free(pp->csound,pp->command);
 }
 
 static int call_system(CSOUND *csound, SYSTEM *p)
