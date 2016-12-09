@@ -1,5 +1,5 @@
 This folder contains a minimal build of Csound for 64-bit Windows. If you're
-trying to install Csound along with its documentation,
+trying to install Csound along with its documentation, default frontend
 [CsoundQt](https://csoundqt.github.io), and other extras, download and run one
 of the setup executables at https://github.com/csound/csound/releases. The names
 of the setup executables begin with Setup_Csound6_x64_.
@@ -40,9 +40,10 @@ the lib folder, and then click OK. If you moved the lib folder to where Csound's
 setup executables install it, this path is probably
 C:\Program Files\Csound6_x64\lib\csound\plugins64-6.0.
 
-If you want to use the minimal build of Csound with Visual Studio, you must
-create a csound64.lib file. To do this, open an administrator Command Prompt in
-the bin folder and enter
+This package contains an import library for users of Visual Studio. However, if
+for some reason you wish to create your own you may do so using the following steps. 
+
+Open an administrator Command Prompt in the bin folder and enter:
 
     set PATH=%PATH%;%ProgramFiles(x86)%\Microsoft Visual Studio 14.0\VC\bin
     echo LIBRARY csound64.dll > csound64.def && echo EXPORTS >> csound64.def
