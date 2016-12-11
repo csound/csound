@@ -282,7 +282,8 @@ int strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
     int size;
-    char *str1 = cs_strdup(csound, p->str1->data), *str2 = cs_strdup(csound, p->str2->data);
+    char *str1 = cs_strdup(csound, p->str1->data),
+         *str2 = cs_strdup(csound, p->str2->data);
 
     if (str1 == NULL || str2 == NULL){
       csound->Free(csound,str1);
@@ -432,7 +433,7 @@ sprintf_opcode_(CSOUND *csound,
             maxChars += 24;
             outstring = str->data + offs;
             //printf("maxchars = %d  %s\n", maxChars, strseg);
-	    //printf("size: %d \n",str->size);
+            //printf("size: %d \n",str->size);
 
           }
           n = snprintf(outstring, maxChars, strseg, (int) MYFLT2LRND(*parm));
@@ -447,7 +448,7 @@ sprintf_opcode_(CSOUND *csound,
         case 'g':
         case 'G':
 #ifdef HAVE_SNPRINTF
-	  //printf("%d %d \n", str->size, strlen(str->data)); 
+          //printf("%d %d \n", str->size, strlen(str->data));
           if (strlen(strseg) + 24 > (unsigned)maxChars) {
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data, str->size  + 13);
@@ -459,7 +460,7 @@ sprintf_opcode_(CSOUND *csound,
             outstring = str->data + offs;
             //printf("maxchars = %d  %s\n", maxChars, strseg);
           }
-	  //printf("%d %d \n", str->size, strlen(str->data)); 
+          //printf("%d %d \n", str->size, strlen(str->data));
           n = snprintf(outstring, maxChars, strseg, (double)*parm);
 #else
           n = sprintf(outstring, strseg, (double)*parm);
@@ -476,12 +477,12 @@ sprintf_opcode_(CSOUND *csound,
             str->data = csound->ReAlloc(csound, str->data,
                                         str->size  + ((STRINGDAT*)parm)->size +
                                         strlen(strseg));
-	   if(str->data == NULL){
+           if(str->data == NULL){
               return StrOp_ErrMsg(p, Str("memory allocation failure"));
-	    }
+            }
             str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
             maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
-            outstring = str->data + offs;	    
+            outstring = str->data + offs;
           }
           n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           break;
@@ -493,9 +494,9 @@ sprintf_opcode_(CSOUND *csound,
           /* safely detected excess string length */
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data, maxChars*2);
-	    if(str->data == NULL){
+            if(str->data == NULL){
               return StrOp_ErrMsg(p, Str("memory allocation failure"));
-	    }
+            }
             outstring = str->data + offs;
             str->size = maxChars*2;
             maxChars += str->size;
@@ -527,7 +528,7 @@ sprintf_opcode_(CSOUND *csound,
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
     int size = p->sfmt->size+ 18*((int) p->INOCOUNT);
-    //printf("%d %d \n", p->r->size, strlen(p->r->data)); 
+    //printf("%d %d \n", p->r->size, strlen(p->r->data));
     if (p->r->data == NULL || p->r->size < size) {
       /* this 10 is 1n incorrect guess which is OK with numbers*/
       p->r->data = csound->Calloc(csound, size);

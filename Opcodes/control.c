@@ -154,8 +154,8 @@ static void ensure_slider(CONTROL_GLOBALS *p, int n)
     if (n > p->max_sliders) {
       int i, nn = n + 1;
       p->values  = (int*) p->csound->ReAlloc(p->csound,p->values, nn * sizeof(int));
-      p->minvals = (int*) p->csound->ReAlloc(p->csound,p->minvals, nn * sizeof(int));
-      p->maxvals = (int*) p->csound->ReAlloc(p->csound,p->maxvals, nn * sizeof(int));
+      p->minvals = (int*) p->csound->ReAlloc(p->csound,p->minvals,nn * sizeof(int));
+      p->maxvals = (int*) p->csound->ReAlloc(p->csound,p->maxvals,nn * sizeof(int));
       for (i = p->max_sliders + 1; i < nn; i++) {
         p->values[i] = 0; p->minvals[i] = 0; p->maxvals[i] = 127;
       }
@@ -265,7 +265,8 @@ static int button_set(CSOUND *csound, CNTRL *p)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_button) {
-      pp->buttons = (int*) csound->ReAlloc(csound,pp->buttons, (n + 1) * sizeof(int));
+      pp->buttons = (int*) csound->ReAlloc(csound, pp->buttons,
+                                           (n + 1) * sizeof(int));
       do {
         pp->buttons[++(pp->max_button)] = 0;
       } while (pp->max_button < n);

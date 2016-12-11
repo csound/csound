@@ -91,7 +91,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
     int     n;
 
     *p->ifno = FL(0.0);
-    ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK)); 
+    ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
     ftevt->opcod = 'f';
     ftevt->strarg = NULL;
     fp = &ftevt->p[0];
