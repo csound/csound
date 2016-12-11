@@ -2449,10 +2449,11 @@ int  pvs2tabsplit(CSOUND *csound, PVS2TABSPLIT_T *p){
     
     int mags_size = p->mags->sizes[0], freqs_size = p->freqs->sizes[0], N = p->fsig->N, i, j;
     float *fsig = (float *) p->fsig->frame.auxp;
-    for(i = 0, j = 0; i < mags_size && i < N+2; i += 2, j++)
+    for(i = 0, j = 0; j < mags_size && i < N+2; i += 2, j++) {
         p->mags->data[j] = (MYFLT) fsig[i];
+    }
     
-    for(i = 1, j = 0; i < freqs_size && i < N+2; i += 2, j++)
+    for(i = 1, j = 0; j < freqs_size && i < N+2; i += 2, j++)
         p->freqs->data[j] = (MYFLT) fsig[i];
     
     *p->framecount = (MYFLT) p->fsig->framecount;
