@@ -531,10 +531,10 @@ int add_udo_definition(CSOUND *csound, char *opname,
     if (len == 1 && *intypes == '0') {
       opc = find_opcode_exact(csound, opname, outtypes, "o");
     } else {
-      char* adjusted_intypes = malloc(sizeof(char) * (len + 2));
+      char* adjusted_intypes = csound->Malloc(csound, sizeof(char) * (len + 2));
       sprintf(adjusted_intypes, "%so", intypes);
       opc = find_opcode_exact(csound, opname, outtypes, adjusted_intypes);
-      free(adjusted_intypes);
+      csound->Free(csound, adjusted_intypes);
     }
 
     /* check if opcode is already defined */

@@ -1503,7 +1503,8 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
 
     partialband = (double **) csound->Malloc(csound, sizeof(double*)
                                      * (int) p->atshead->npartials);
-    bandnum = (int *) csound->Malloc(csound, sizeof(int) * (int) p->atshead->npartials);
+    bandnum = (int *) csound->Malloc(csound,
+                                     sizeof(int) * (int) p->atshead->npartials);
 
     for (i = 0; i < (int) p->atshead->nfrms; i++) {
       /* init sums */

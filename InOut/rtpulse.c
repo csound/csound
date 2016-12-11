@@ -103,7 +103,8 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
     pulse->spec.channels = csound->GetNchnls(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
     pulse->buf =
-      (float *) csound->Malloc(csound, sizeof(float)*parm->bufSamp_SW * pulse->spec.channels);
+      (float *) csound->Malloc(csound,
+                               sizeof(float)*parm->bufSamp_SW*pulse->spec.channels);
 
     /*
       attr.maxlength = parm->bufSamp_HW;
@@ -199,7 +200,8 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
     pulse->spec.channels = csound->GetNchnls_i(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
     pulse->buf =
-      (float *) csound->Malloc(csound, sizeof(float)* parm->bufSamp_SW * pulse->spec.channels);
+      (float *) csound->Malloc(csound,
+                               sizeof(float)*parm->bufSamp_SW*pulse->spec.channels);
 
     /*
       attr.maxlength = parm->bufSamp_HW;

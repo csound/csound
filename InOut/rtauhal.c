@@ -585,7 +585,8 @@ static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
     cdata->inParm =  (csRtAudioParams *) parm;
     cdata->csound = cdata->csound;
     cdata->inputBuffer =
-      (MYFLT *) csound->Calloc(csound, csound->GetInputBufferSize(csound)* sizeof(MYFLT));
+      (MYFLT *) csound->Calloc(csound,
+                               csound->GetInputBufferSize(csound)* sizeof(MYFLT));
     cdata->incb =
       csound->CreateCircularBuffer(csound,
                                    parm->bufSamp_HW*parm->nChannels, sizeof(MYFLT));
@@ -610,7 +611,8 @@ static int playopen_(CSOUND *csound, const csRtAudioParams * parm)
     cdata->outParm =  (csRtAudioParams *) parm;
     cdata->csound = csound;
     cdata->outputBuffer =
-      (MYFLT *) csound->Calloc(csound, csound->GetOutputBufferSize(csound)* sizeof(MYFLT));
+      (MYFLT *) csound->Calloc(csound,
+                               csound->GetOutputBufferSize(csound)* sizeof(MYFLT));
     memset(cdata->outputBuffer, 0,
            csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
     cdata->outcb =

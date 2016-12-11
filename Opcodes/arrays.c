@@ -104,7 +104,7 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
       if (MYFLT2LRND(*p->isizes[i]) <= 0) {
         return
           csound->InitError(csound,
-                          Str("Error: sizes must be > 0 for array initialization"));
+                      Str("Error: sizes must be > 0 for array initialization"));
       }
     }
 
@@ -1955,7 +1955,7 @@ int cols_init(CSOUND *csound, FFT *p){
 
 int cols_perf(CSOUND *csound, FFT *p){
     int start = *((MYFLT *)p->in2);
-    
+
     if(start < p->in->sizes[1]) {
         int j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
         for(j=0,i=start; j < len; i+=collen, j++) {

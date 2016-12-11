@@ -1919,8 +1919,8 @@ extern "C"
         csound->UnlockMutex(cs_sfg_ftables);
 
         free(cs_sfg_ports);
-	free(cs_sfg_ftables);
-	
+        free(cs_sfg_ftables);
+
         return 0;
     }
  #endif

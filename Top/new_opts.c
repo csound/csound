@@ -169,7 +169,8 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
     else if (LIKELY((int) strlen(s) > 3)) {
       char *buf, *val, *tmp;
       int  retval;
-      buf = (char*) malloc(sizeof(char) * (size_t) ((int) strlen(s) - 1));
+      buf = (char*) csound->Malloc(csound,
+                                   sizeof(char) * (size_t) ((int) strlen(s) - 1));
       if (UNLIKELY(buf == NULL)) {
         csound->Warning(csound, Str(" *** memory allocation failure"));
         return -1;
@@ -195,10 +196,10 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
         csound->Warning(csound,
                         Str(" *** error setting option '%s' to '%s': %s"),
                         buf, val, csoundCfgErrorCodeToString(retval));
-        free((void*) buf);
+        csound->Free(csound, (void*) buf);
         return 0;
       }
-      free((void*) buf);
+      csound->Free(csound, (void*) buf);
     }
     else {
       csound->Warning(csound, Str(" *** '%s' is not a valid "

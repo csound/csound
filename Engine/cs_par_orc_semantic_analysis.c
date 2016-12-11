@@ -272,7 +272,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
-    name = strdup(name); // JPff:  leaks: necessary??
+  name = cs_strdup(csound, name); // JPff:  leaks: necessary??
     //printf("csp_orc_sa_instr_add name=%s\n", name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
