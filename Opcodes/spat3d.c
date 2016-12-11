@@ -868,7 +868,7 @@ static int    spat3dt(CSOUND *csound, SPAT3D *p)
 
     spat3dt_wall_perf(p, ir, (SPAT3D_WALL *) p->ws.auxp);
 
-    free(ir);               /* free tmp memory */
+    csound->Free(csound, ir);               /* free tmp memory */
     return OK;
 }
 

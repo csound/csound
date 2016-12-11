@@ -131,7 +131,7 @@ ArgumentType HDF5IO_getArgumentTypeFromString(CSOUND *csound, const char *string
 // Assign the path string to the file name in the struct
 // Check if the file exists
 // If it doesn't and this function is being called by the hdf5 write function,
-// create the file 
+// create the file
 // If it exists, open the file for appending
 // Find out what size the MYFLT floating point type is and assign the correct
 //hdf5 type to it
@@ -526,10 +526,13 @@ void HDF5Write_initialiseHDF5Dataset(CSOUND *csound, HDF5Write *self,
 //
 // Get the array from the argument pointer
 // If its an i-rate array the rank is copied, if not we add a dimension
-// Allocate arrays for the chunk sizes, maximum sizes, data set sizes and offset sizes
+// Allocate arrays for the chunk sizes, maximum sizes, data set sizes and
+// offset sizes
 // Copy the sizes from the input array variables to the allocated size arrays
-// If it's an a-rate array set the last chunk dimension to ksmps, last max dimension to unlimited and dataset size to 0
-// If it's a k-rate array set the last chunk dimension to 1 and last max dimension to unlimited
+// If it's an a-rate array set the last chunk dimension to ksmps, last max
+// dimension to unlimited and dataset size to 0
+// If it's a k-rate array set the last chunk dimension to 1 and last max
+// dimension to unlimited
 // If it's an i-rate array just return
 
 void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
@@ -546,16 +549,20 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
       dataset->rank = array->dimensions + 1;
     }
 
-    csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t), &dataset->chunkDimensionsMemory);
+    csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t),
+                     &dataset->chunkDimensionsMemory);
     dataset->chunkDimensions = dataset->chunkDimensionsMemory.auxp;
 
-    csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t), &dataset->maxDimensionsMemory);
+    csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t),
+                     &dataset->maxDimensionsMemory);
     dataset->maxDimensions = dataset->maxDimensionsMemory.auxp;
 
-    csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t), &dataset->datasetSizeMemory);
+    csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t),
+                     &dataset->datasetSizeMemory);
     dataset->datasetSize = dataset->datasetSizeMemory.auxp;
 
-    csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t), &dataset->offsetMemory);
+    csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t),
+                     &dataset->offsetMemory);
     dataset->offset = dataset->offsetMemory.auxp;
 
     for (i = 0; i < array->dimensions; ++i) {
@@ -625,7 +632,8 @@ void HDF5Write_newScalarDataset(CSOUND *csound, HDF5Write *self,
 
     if (dataset->writeType != IRATE_VAR) {
 
-      dataset->chunkDimensions[0] = dataset->writeType == ARATE_VAR ? self->ksmps : 1;
+      dataset->chunkDimensions[0] =
+        dataset->writeType == ARATE_VAR ? self->ksmps : 1;
       dataset->maxDimensions[0] = H5S_UNLIMITED;
       dataset->datasetSize[0] = 0;
     }
@@ -642,16 +650,19 @@ void HDF5Write_newScalarDataset(CSOUND *csound, HDF5Write *self,
 //
 // Allocate the memory for the datasets array
 // Get the current empty dataset from the array
-// Set it's dataset name as the input arguments name + 1 which is after the file path string
+// Set it's dataset name as the input arguments name + 1 which is after the
+// file path string
 // Get the argument pointer from the arguments + 1 after the file path string
 // Get the enum write type from the argument pointer
-// Depending on the write type set up the variables in the correct way for writing during performance
+// Depending on the write type set up the variables in the correct way for
+// writing during performance
 // If the variables are i-rate set up the variables and write them
 
 void HDF5Write_createDatasets(CSOUND *csound, HDF5Write *self)
 {
     size_t i;
-    csound->AuxAlloc(csound, sizeof(HDF5Dataset) * self->inputArgumentCount, &self->datasetsMemory);
+    csound->AuxAlloc(csound, sizeof(HDF5Dataset) * self->inputArgumentCount,
+                     &self->datasetsMemory);
     self->datasets = self->datasetsMemory.auxp;
 
     for (i = 0; i < self->inputArgumentCount; ++i) {
@@ -659,7 +670,8 @@ void HDF5Write_createDatasets(CSOUND *csound, HDF5Write *self)
       HDF5Dataset *currentDataset = &self->datasets[i];
       currentDataset->datasetName = csound->GetInputArgName(self, (int)i + 1);
       currentDataset->argumentPointer = self->arguments[i + 1];
-      currentDataset->writeType = HDF5IO_getArgumentTypeFromArgument(csound, currentDataset->argumentPointer);
+      currentDataset->writeType =
+        HDF5IO_getArgumentTypeFromArgument(csound, currentDataset->argumentPointer);
 
       switch (currentDataset->writeType) {
 
@@ -718,8 +730,10 @@ void HDF5Write_createDatasets(CSOUND *csound, HDF5Write *self)
 // Get the amount of samples in a control pass
 // Get the amount of input arguments minus the file path argument
 // Get the amount of output arguments
-// Check that input == output arguments and input arguments are strings, output not strings
-// Register the finish callback to close the hdf5 file when performance is finished
+// Check that input == output arguments and input arguments are strings,
+// output not strings
+// Register the finish callback to close the hdf5 file when performance
+// is finished
 // Check csound is running in sample accurate mode
 // Get the path string from the first argument
 // Open the hdf5 file then open the hdf5 datasets
@@ -741,12 +755,14 @@ int HDF5Read_initialise(CSOUND *csound, HDF5Read *self)
 
 // Copy data from the a-rate variable read sample buffer to the output array data
 //
-// This function is used to copy data from a sample buffer each hdf5 struct to an array data member,
-// this is because in sample accurate mode the stride of the data read from the hdf5 file
-// isn't correct and must be offset properly before it is written to the array data
+// This function is used to copy data from a sample buffer each hdf5
+// struct to an array data member, this is because in sample accurate
+// mode the stride of the data read from the hdf5 file isn't correct
+// and must be offset properly before it is written to the array data
 
-void HDF5Read_copySampleBufferToArray(size_t channelCount, MYFLT *sampleBuffer, MYFLT *arrayData,
-                                      size_t vectorSize, size_t offset, size_t ksmps)
+void HDF5Read_copySampleBufferToArray(size_t channelCount, MYFLT *sampleBuffer,
+                                      MYFLT *arrayData, size_t vectorSize,
+                                      size_t offset, size_t ksmps)
 {
     size_t channel;
     for (channel = 0; channel < channelCount; ++channel) {
@@ -766,7 +782,8 @@ void HDF5Read_copySampleBufferToArray(size_t channelCount, MYFLT *sampleBuffer, 
 // Close the open file and memory spaces
 
 void HDF5Read_readData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset,
-                       hsize_t *offset, hsize_t *chunkDimensions, MYFLT *dataPointer)
+                       hsize_t *offset, hsize_t *chunkDimensions,
+                       MYFLT *dataPointer)
 {
     long kCount = csound->GetKcounter(csound);
 
@@ -777,10 +794,12 @@ void HDF5Read_readData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset,
 
     hid_t filespace = H5Dget_space(dataset->datasetID);
     HDF5ERROR(filespace);
-    HDF5ERROR(H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, NULL, chunkDimensions, NULL));
+    HDF5ERROR(H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset,
+                                  NULL, chunkDimensions, NULL));
     hid_t memspace  = H5Screate_simple(dataset->rank, chunkDimensions, NULL);
     HDF5ERROR(memspace);
-    HDF5ERROR(H5Dread(dataset->datasetID, self->hdf5File->floatSize, memspace, filespace, H5P_DEFAULT, dataPointer));
+    HDF5ERROR(H5Dread(dataset->datasetID, self->hdf5File->floatSize,
+                      memspace, filespace, H5P_DEFAULT, dataPointer));
     HDF5ERROR(H5Sclose(filespace));
     HDF5ERROR(H5Sclose(memspace));
 
@@ -789,19 +808,25 @@ void HDF5Read_readData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset,
 
 // Read data at audio rate from a hdf5 file dataset
 //
-// If the offset is larger than the size of the dataset there is no more data to read so return
+// If the offset is larger than the size of the dataset there is no more
+// data to read so return
 // Get the offset and early variables and work out the size of data to read
-// If the read vector size plus the offset is larger than the dataset size reduce the vector size accordingly
-// If the vector size is less than the ksmps value, use the sample buffer to store read data so the stride can
-// be corrected before writing it to the array data, if not just point directly to array data
+// If the read vector size plus the offset is larger than the dataset size
+// reduce the vector size accordingly
+// If the vector size is less than the ksmps value, use the sample
+// buffer to store read data so the stride can be corrected before
+// writing it to the array data, if not just point directly to array
+// data
 // Create the chunk dimensions variable, set the required size
 // Read data from the hdf5 file
 // If the vector size is not equal to ksmps correct the stride of data
 // Increment the offset by the vector size
 
-void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset, MYFLT *inputDataPointer)
+void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
+                            HDF5Dataset *dataset, MYFLT *inputDataPointer)
 {
-    if (dataset->offset[dataset->rank - 1] >= dataset->datasetSize[dataset->rank - 1]) {
+    if (dataset->offset[dataset->rank - 1] >=
+        dataset->datasetSize[dataset->rank - 1]) {
 
       return;
     }
@@ -811,23 +836,28 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset
 
     int vectorSize = (int)(self->ksmps - offset - early);
 
-    if (vectorSize + dataset->offset[dataset->rank - 1] > dataset->datasetSize[dataset->rank - 1]) {
+    if (vectorSize + dataset->offset[dataset->rank - 1] >
+        dataset->datasetSize[dataset->rank - 1]) {
 
-      vectorSize = (int)(dataset->datasetSize[dataset->rank - 1] - dataset->offset[dataset->rank - 1]);
+      vectorSize = (int)(dataset->datasetSize[dataset->rank - 1] -
+                         dataset->offset[dataset->rank - 1]);
     }
 
-    MYFLT *dataPointer = vectorSize != self->ksmps ? dataset->sampleBuffer : inputDataPointer;
+    MYFLT *dataPointer =
+      vectorSize != self->ksmps ? dataset->sampleBuffer : inputDataPointer;
 
     hsize_t chunkDimensions[dataset->rank];
     memcpy(chunkDimensions, dataset->datasetSize, sizeof(hsize_t) * dataset->rank);
     chunkDimensions[dataset->rank - 1] = vectorSize;
 
 
-    HDF5Read_readData(csound, self, dataset, dataset->offset, chunkDimensions, dataPointer);
+    HDF5Read_readData(csound, self, dataset, dataset->offset,
+                      chunkDimensions, dataPointer);
 
     if (vectorSize != self->ksmps) {
 
-      HDF5Read_copySampleBufferToArray(dataset->elementCount, dataset->sampleBuffer, inputDataPointer,
+      HDF5Read_copySampleBufferToArray(dataset->elementCount,
+                                       dataset->sampleBuffer, inputDataPointer,
                                        vectorSize, offset, self->ksmps);
     }
 
@@ -837,23 +867,28 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset
 
 // Read data at control rate from a hdf5 dataset
 //
-// If the offset of the dataset is larger than the data set size, no more data to read to return
+// If the offset of the dataset is larger than the data set size, no
+// more data to read to return
 // Create chunk dimension variable and set the appropriate size
 // Read the data from the dataset
 // Increment the offset variable
 
-void HDF5Read_readControlData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset, MYFLT *dataPointer)
+void HDF5Read_readControlData(CSOUND *csound, HDF5Read *self,
+                              HDF5Dataset *dataset, MYFLT *dataPointer)
 {
-    if (dataset->offset[dataset->rank - 1] >= dataset->datasetSize[dataset->rank - 1]) {
+    if (dataset->offset[dataset->rank - 1] >=
+        dataset->datasetSize[dataset->rank - 1]) {
 
       return;
     }
 
     hsize_t chunkDimensions[dataset->rank];
-    memcpy(chunkDimensions, dataset->datasetSize, sizeof(hsize_t) * (dataset->rank - 1));
+    memcpy(chunkDimensions, dataset->datasetSize,
+           sizeof(hsize_t) * (dataset->rank - 1));
     chunkDimensions[dataset->rank - 1] = 1;
 
-    HDF5Read_readData(csound, self, dataset, dataset->offset, chunkDimensions, dataPointer);
+    HDF5Read_readData(csound, self, dataset, dataset->offset,
+                      chunkDimensions, dataPointer);
     dataset->offset[dataset->rank - 1]++;
 
 }
@@ -861,7 +896,8 @@ void HDF5Read_readControlData(CSOUND *csound, HDF5Read *self, HDF5Dataset *datas
 // Read dataset variables during performance time
 //
 // Iterate through each of the opened datasets,
-// Depending on the dataset read type use the appropriate read function to read the data
+// Depending on the dataset read type use the appropriate read function
+// to read the data
 
 int HDF5Read_process(CSOUND *csound, HDF5Read *self)
 {
@@ -879,12 +915,14 @@ int HDF5Read_process(CSOUND *csound, HDF5Read *self)
 
       case ARATE_ARRAY: {
 
-        HDF5Read_readAudioData(csound, self, dataset, ((ARRAYDAT *)dataset->argumentPointer)->data);
+        HDF5Read_readAudioData(csound, self, dataset,
+                               ((ARRAYDAT *)dataset->argumentPointer)->data);
         break;
       }
       case KRATE_ARRAY: {
 
-        HDF5Read_readControlData(csound, self, dataset, ((ARRAYDAT *)dataset->argumentPointer)->data);
+        HDF5Read_readControlData(csound, self, dataset,
+                                 ((ARRAYDAT *)dataset->argumentPointer)->data);
         break;
       }
       case ARATE_VAR: {
@@ -931,7 +969,8 @@ int HDF5Read_finish(CSOUND *csound, void *inReference)
 // Check the input and output arguments for validity
 //
 // Check to see that if the amount of input arguments matches output arguments
-// Check that the input arguments are strings, and the output arguments are not strings
+// Check that the input arguments are strings, and the output arguments are
+// not strings
 
 void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
 {

@@ -380,7 +380,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         len1 = strlen(argTypeLeft);
         len2 = strlen(argTypeRight);
-        inArgTypes = malloc(len1 + len2 + 1);
+        inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
         strncpy(inArgTypes, argTypeLeft, len1);
         strncpy(inArgTypes + len1, argTypeRight, len2);
@@ -395,14 +395,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                               "types %s not found, line %d \n"),
                   opname, inArgTypes, tree->line);
           do_baktrace(csound, tree->locn);
-          free(inArgTypes);
+          csound->Free(csound, inArgTypes);
           return NULL;
         }
 
         csound->Free(csound, argTypeLeft);
         csound->Free(csound, argTypeRight);
 
-        free(inArgTypes);
+        csound->Free(csound, inArgTypes);
         return cs_strdup(csound, out);
 
       } else {
@@ -433,7 +433,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       len1 = strlen(argTypeLeft);
       len2 = strlen(argTypeRight);
-      inArgTypes = malloc(len1 + len2 + 1);
+      inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
       strncpy(inArgTypes, argTypeLeft, len1);
       strncpy(inArgTypes + len1, argTypeRight, len2);
@@ -448,13 +448,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                             "types %s not found, line %d \n"),
                 opname, inArgTypes, tree->line);
         do_baktrace(csound, tree->locn);
-        free(inArgTypes);
+        csound->Free(csound, inArgTypes);
         return NULL;
       }
 
       csound->Free(csound, argTypeLeft);
       csound->Free(csound, argTypeRight);
-      free(inArgTypes);
+      csound->Free(csound, inArgTypes);
       return cs_strdup(csound, out);
 
     }

@@ -33,7 +33,7 @@ CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 
 CORFIL *corfile_create_w(void)
 {
-    CORFIL *ans = (CORFIL*)malloc(sizeof(CORFIL));
+    CORFIL *ans = (CORFIL*) malloc(sizeof(CORFIL));
     ans->body = (char*)calloc(100,1);
     ans->len = 100;
     ans->p = 0;
@@ -43,7 +43,7 @@ CORFIL *corfile_create_w(void)
 CORFIL *corfile_create_r(const char *text)
 {
     //char *strdup(const char *);
-    CORFIL *ans = (CORFIL*)malloc(sizeof(CORFIL));
+    CORFIL *ans = (CORFIL*) malloc(sizeof(CORFIL));
     ans->body = strdup(text);
     ans->len = strlen(text)+1;
     ans->p = 0;

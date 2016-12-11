@@ -480,7 +480,7 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
       pmall_data* olddata;
       olddata = data;
       data = data->next;
-      free(olddata);
+      csound->Free(csound, olddata);
     }
     return 0;
 }
