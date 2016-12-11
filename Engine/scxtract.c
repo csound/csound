@@ -40,7 +40,8 @@ int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
 {
     int     n;
 
-    EXTRACT_STATICS* extractStatics =  csound->Calloc(csound, sizeof(EXTRACT_STATICS));
+    EXTRACT_STATICS* extractStatics =  csound->Calloc(csound,
+                                                      sizeof(EXTRACT_STATICS));
 
     csound->scoreout = NULL;
     csound->scorestr = scin;

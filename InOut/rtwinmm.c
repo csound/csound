@@ -395,7 +395,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 
 static int rtrecord_(CSOUND *csound, MYFLT *inBuf, int nbytes)
 {
-    rtWinMMDevice   *dev = (rtWinMMDevice*) *(csound->GetRtRecordUserData(csound)) ;
+    rtWinMMDevice   *dev = (rtWinMMDevice*) *(csound->GetRtRecordUserData(csound));
     WAVEHDR         *buf = &(dev->buffers[dev->cur_buf]);
     volatile DWORD  *dwFlags = &(buf->dwFlags);
 
@@ -555,7 +555,8 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
                        Str("rtmidi: input device number is out of range"));
       return -1;
     }
-    p = (RTMIDI_MME_GLOBALS*) csound->Calloc(csound, (size_t) sizeof(RTMIDI_MME_GLOBALS));
+    p = (RTMIDI_MME_GLOBALS*) csound->Calloc(csound,
+                                             (size_t) sizeof(RTMIDI_MME_GLOBALS));
     if (UNLIKELY(p == NULL)) {
       csound->ErrorMsg(csound, Str("rtmidi: memory allocation failure"));
       return -1;
@@ -630,7 +631,7 @@ static int midi_in_close(CSOUND *csound, void *userData)
 
 static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
 {
-  int         i, ndev, devnum = 0;
+    int         i, ndev, devnum = 0;
     MIDIOUTCAPS caps;
     HMIDIOUT    outDev = (HMIDIOUT) 0;
 

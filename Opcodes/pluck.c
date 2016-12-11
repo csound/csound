@@ -244,7 +244,8 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
  * This routine assumes that the DATA pointer has already been
  * allocated by the calling routine.
  */
-static void circularBufferCircularBuffer(CSOUND *csound, circularBuffer* cb, len_t N)
+static void circularBufferCircularBuffer(CSOUND *csound,
+                                         circularBuffer* cb, len_t N)
 {
     MYFLT *data = cb->data;
     if (UNLIKELY(!data))
