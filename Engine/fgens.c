@@ -189,7 +189,8 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
               &(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * PMAX);
       //#endif
       memcpy(&(ff.e.p[2]), &(evtblkp->p[2]), sizeof(MYFLT) * (PMAX-2));
-      ff.e.c.extra = (MYFLT*)csound->Malloc(csound,sizeof(MYFLT) * (evtblkp->c.extra[0]+1));
+      ff.e.c.extra =
+        (MYFLT*)csound->Malloc(csound,sizeof(MYFLT) * (evtblkp->c.extra[0]+1));
       memcpy(ff.e.c.extra, evtblkp->c.extra,
              sizeof(MYFLT) * (evtblkp->c.extra[0]+1));
     }
@@ -937,7 +938,8 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
     ff->e.p[5] = -xintvl;
     ff->e.p[6] = xintvl;
     nn = nh * sizeof(MYFLT) / 2;              /* alloc spc for terms 3,5,7,..*/
-    mp = mspace = (MYFLT *) csound->Calloc(csound, nn);       /* of 1st row of matrix, and */
+    mp = mspace =
+      (MYFLT *) csound->Calloc(csound, nn);     /* of 1st row of matrix, and */
     for (nn = (nh + 1) >>1; --nn; )             /* form array of non-0 terms */
       *mp++ = mxval = -mxval;                   /*  -val, val, -val, val ... */
     scalfac = 2 / xamp;
@@ -2135,7 +2137,8 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     } while (j);
 
     /* free tmp buffers */
-    csound->Free(csound,tmp); csound->Free(csound,xn); csound->Free(csound,cn); csound->Free(csound,vn);
+    csound->Free(csound,tmp); csound->Free(csound,xn);
+    csound->Free(csound,cn); csound->Free(csound,vn);
 
     return OK;
 }
@@ -2667,7 +2670,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
        if (p->channel == ALLCHNLS)
          ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
-/*ff->flen     -= 1;*/ /* VL: this was causing tables to exclude last point  */
+/*ff->flen     -= 1;*/ /* VL: this was causing tables to exclude last point */
       ftp           = ftalloc(ff);            /*   alloc now, and           */
       ftp->lenmask  = 0L;                     /*   mark hdr partly filled   */
       /*if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;

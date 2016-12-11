@@ -63,15 +63,15 @@ typedef struct HDF5Dataset
     AUXCH offsetMemory;
     hsize_t *datasetSize;
     AUXCH datasetSizeMemory;
-    
+
     hid_t datasetID;
-    
+
     size_t elementCount;
     MYFLT *sampleBuffer;
     AUXCH sampleBufferMemory;
-    
+
     bool readAll;
-    
+
 } HDF5Dataset;
 
 typedef struct HDF5File
@@ -79,11 +79,12 @@ typedef struct HDF5File
     hid_t fileHandle;
     char *fileName;
     hid_t floatSize;
-    
+
 } HDF5File;
 
 
-HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory, STRINGDAT *path, bool openForWriting);
+HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
+                             STRINGDAT *path, bool openForWriting);
 
 void HDF5IO_deleteHDF5File(CSOUND *csound, HDF5File *hdf5File);
 
@@ -99,7 +100,7 @@ typedef struct HDF5Write
     AUXCH hdf5FileMemory;
     HDF5Dataset *datasets;
     AUXCH datasetsMemory;
-    
+
 } HDF5Write;
 
 int HDF5Write_initialise(CSOUND *csound, HDF5Write *self);
@@ -132,7 +133,7 @@ typedef struct HDF5Read
     HDF5Dataset *datasets;
     AUXCH datasetsMemory;
     bool isSampleAccurate;
-    
+
 } HDF5Read;
 
 int HDF5Read_initialise(CSOUND *csound, HDF5Read *self);

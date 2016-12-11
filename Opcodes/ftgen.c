@@ -68,13 +68,13 @@ static int ftable_delete(CSOUND *csound, void *p)
     if (UNLIKELY(err != OK))
       csound->ErrorMsg(csound, Str("Error deleting ftable %d"),
                                ((FTDELETE*) p)->fno);
-    free(p);
+    csound->Free(csound, p);
     return err;
 }
 
 static int register_ftable_delete(CSOUND *csound, void *p, int tableNum)
 {
-    FTDELETE  *op = (FTDELETE*) calloc((size_t) 1, sizeof(FTDELETE));
+  FTDELETE  *op = (FTDELETE*) csound->Calloc(csound, sizeof(FTDELETE));
     if (UNLIKELY(op == NULL))
       return csound->InitError(csound, Str("memory allocation failure"));
     op->h.insdshead = ((OPDS*) p)->insdshead;
@@ -91,7 +91,7 @@ static int ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
     int     n;
 
     *p->ifno = FL(0.0);
-    ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK)); 
+    ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
     ftevt->opcod = 'f';
     ftevt->strarg = NULL;
     fp = &ftevt->p[0];
