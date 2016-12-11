@@ -280,9 +280,12 @@ static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
     }
 
     connections = calloc(CHANNELS * CHANNELS, sizeof(int));
-    distance_table = csound->Calloc(csound, ((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(MYFLT));
-    distance_table_i = csound->Calloc(csound,((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(int));
-    distance_table_j = csound->Calloc(csound, ((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(int));
+    distance_table =
+      csound->Calloc(csound, ((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(MYFLT));
+    distance_table_i =
+      csound->Calloc(csound, ((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(int));
+    distance_table_j =
+      csound->Calloc(csound, ((CHANNELS * (CHANNELS - 1)) / 2)* sizeof(int));
 
 /*  i_ptr = (int *) connections; */
 /*  for (i=0;i< ((CHANNELS) * (CHANNELS )); i++) */

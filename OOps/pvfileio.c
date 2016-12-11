@@ -341,12 +341,13 @@ static int pvsys_createFileHandle(CSOUND *csound)
       /* extend table */
       if (!csound->pvNumFiles) {
         csound->pvNumFiles = 8;
-        tmp = (PVOCFILE**) csound->Malloc(csound, sizeof(PVOCFILE*) * csound->pvNumFiles);
+        tmp = (PVOCFILE**) csound->Malloc(csound,
+                                          sizeof(PVOCFILE*) * csound->pvNumFiles);
       }
       else {
         csound->pvNumFiles <<= 1;
-        tmp = (PVOCFILE**) csound->ReAlloc(csound, csound->pvFileTable, sizeof(PVOCFILE*)
-                                                        * csound->pvNumFiles);
+        tmp = (PVOCFILE**) csound->ReAlloc(csound, csound->pvFileTable,
+                                           sizeof(PVOCFILE*) * csound->pvNumFiles);
       }
       if (tmp == NULL)
         return -1;

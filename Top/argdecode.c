@@ -1598,7 +1598,8 @@ PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p){
 }
 
 
-PUBLIC void csoundSetOutput(CSOUND *csound, const char *name, const char *type, const char *format)
+PUBLIC void csoundSetOutput(CSOUND *csound, const char *name,
+                            const char *type, const char *format)
 {
 
     OPARMS *oparms = csound->oparms;
@@ -1765,7 +1766,8 @@ static void list_audio_devices(CSOUND *csound, int output){
 static void list_midi_devices(CSOUND *csound, int output){
 
     int i,n = csoundGetMIDIDevList(csound,NULL, output);
-    CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
+    CS_MIDIDEVICE *devs =
+      (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
     if (output)
       csound->MessageS(csound, CSOUNDMSG_STDOUT,
                        Str("%d MIDI output devices \n"), n);

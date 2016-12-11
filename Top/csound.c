@@ -3038,7 +3038,7 @@ static void reset(CSOUND *csound)
     rlsmemfiles(csound);
 
      while (csound->filedir[n])        /* Clear source directory */
-	  csound->Free(csound,csound->filedir[n++]);
+       csound->Free(csound,csound->filedir[n++]);
 
      memRESET(csound);
 

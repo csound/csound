@@ -1646,7 +1646,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
     }
     if (c == '#') {
       int mlen = 40;
-      char  *mname  = csound->Malloc(csound, 40);         /* Start Macro definition */
+      char  *mname  = csound->Malloc(csound, 40); /* Start Macro definition */
       int   i = 0;
       while (isspace((c = getscochar(csound, 1))));
       if (c == 'd') {
@@ -1656,7 +1656,7 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
         if (UNLIKELY(!check_preproc_name(csound, "define"))) {
           csound->Message(csound, Str("Not #define"));
           csound->Free(csound, mm);
-	  csound->Free(csound, mname);
+          csound->Free(csound, mname);
           flushlin(csound);
           goto srch;
         }

@@ -379,6 +379,7 @@
 ./Opcodes/scansynx.c
 ./Opcodes/scoreline.c
 ./Opcodes/seqtime.c
+./Opcodes/select.c
 ./Opcodes/serial.c
 ./Opcodes/sf.h
 ./Opcodes/sfenum.h

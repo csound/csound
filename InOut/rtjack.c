@@ -611,7 +611,8 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   /* allocate pointers to input port buffers */
   p->inPortBufs = (jack_default_audio_sample_t**)
-    csound->Calloc(csound, (size_t) p->nChannels* sizeof(jack_default_audio_sample_t*));
+    csound->Calloc(csound,
+                   (size_t) p->nChannels* sizeof(jack_default_audio_sample_t*));
   if (UNLIKELY(p->inPortBufs == NULL))
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   return 0;
@@ -637,7 +638,8 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   /* allocate pointers to output port buffers */
   p->outPortBufs = (jack_default_audio_sample_t**)
-    csound->Calloc(csound, (size_t) p->nChannels* sizeof(jack_default_audio_sample_t*));
+    csound->Calloc(csound,
+                   (size_t) p->nChannels* sizeof(jack_default_audio_sample_t*));
   if (UNLIKELY(p->outPortBufs == NULL))
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   /* activate client to start playback */
