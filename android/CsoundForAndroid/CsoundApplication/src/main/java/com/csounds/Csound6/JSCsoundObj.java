@@ -274,4 +274,10 @@ public class JSCsoundObj extends CsoundObj {
     public void compileCsdText(String csd_text) {
         super.compileCsdText(csd_text);
     }
+
+	@JavascriptInterface
+	public void setOption(String option) {
+		super.SetOption(option);
+	}
+
 }
