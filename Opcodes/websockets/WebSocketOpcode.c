@@ -23,9 +23,6 @@
  02111-1307 USA
  */
 
-#import "WebSocketOpcode.h"
-
-
 #include "WebsocketOpcode.h"
 #import <sys/param.h>
 #import <stdio.h>
