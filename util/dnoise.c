@@ -137,6 +137,17 @@ static void fsst(CSOUND *csound, MYFLT *b, int N)
     csound->InverseRealFFT(csound, b, N);
 }
 
+static void fast2(CSOUND *csound, MYFLT *b, void *setup)
+{
+  csound->RealFFT2(csound, setup, b);    
+}
+
+static void fsst2(CSOUND *csound, MYFLT *b, void *setup)
+{
+  csound->RealFFT2(csound, setup, b);
+}
+
+
 static int dnoise(CSOUND *csound, int argc, char **argv)
 {
      OPARMS  O;
@@ -533,6 +544,10 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       csound->Message(csound,
                       Str("dnoise: warning - N not a valid power of two; "
                           "revised N = %d\n"),i);
+    //FFT setup
+    void *fftsetup_fwd =  csound->RealFFT2Setup(csound,N, FFT_FWD);
+    void *fftsetup_inv =  csound->RealFFT2Setup(csound,N, FFT_INV);
+
     N = i;
     N2 = N / 2;
     Np2 = N + 2;
@@ -799,8 +814,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       fbuf[N] = FL(0.0);
       fbuf[N + 1] = FL(0.0);
 
-      fast(csound, fbuf, N);
-
+      //fast(csound, fbuf, N);
+      fast2(csound, fftsetup_fwd, fbuf);
+      
       f = fbuf;
       for (i = 0; i <= N+1; i++, f++)
         *f  *= Ninv;
@@ -960,8 +976,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
           *f += *w * *ibp;
         }
 
-        fast(csound, fbuf, N);
-
+        //fast(csound, fbuf, N);
+        fast2(csound, fftsetup_fwd, fbuf);
+       
         /* noise reduction: for each bin, calculate average magnitude-squared
             and calculate corresponding gain.  Apply this gain to delayed
             FFT values in mbuf[mj*Np2 + i?]. */
@@ -1070,7 +1087,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         phase vocoder channel outputs at time n are inverse Fourier
         transformed, windowed, and added into the output array. */
 
-        fsst(csound, fbuf, N);
+	fsst(csound, fftsetup_inv, fbuf);
+        //fsst(csound, fbuf, N);
 
         lk = nO - (long) sLen - 1;            /*time shift*/
         while (lk < 0)
