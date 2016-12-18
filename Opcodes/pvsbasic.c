@@ -2438,24 +2438,25 @@ int pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
                  (p->fsig->format == PVS_AMP_PHASE)))
         return csound->InitError(csound, Str("pvs2tab: signal format "
                                              "must be amp-phase or amp-freq."));
-    
+
     if (LIKELY(p->mags->data) && LIKELY(p->freqs->data))
         return OK;
-    
+
     return csound->InitError(csound, Str("array-variable not initialised"));
 }
 
 int  pvs2tabsplit(CSOUND *csound, PVS2TABSPLIT_T *p){
-    
-    int mags_size = p->mags->sizes[0], freqs_size = p->freqs->sizes[0], N = p->fsig->N, i, j;
+
+    int mags_size = p->mags->sizes[0], freqs_size = p->freqs->sizes[0],
+        N = p->fsig->N, i, j;
     float *fsig = (float *) p->fsig->frame.auxp;
     for(i = 0, j = 0; j < mags_size && i < N+2; i += 2, j++) {
         p->mags->data[j] = (MYFLT) fsig[i];
     }
-    
+
     for(i = 1, j = 0; j < freqs_size && i < N+2; i += 2, j++)
         p->freqs->data[j] = (MYFLT) fsig[i];
-    
+
     *p->framecount = (MYFLT) p->fsig->framecount;
     return OK;
 }
@@ -2525,7 +2526,8 @@ typedef struct tab2pvssplit_t {
 
 int tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
 {
-    if (LIKELY(p->mags->data) && LIKELY(p->freqs->data) && (p->mags->sizes[0] == p->freqs->sizes[0])){
+    if (LIKELY(p->mags->data) && LIKELY(p->freqs->data) &&
+        (p->mags->sizes[0] == p->freqs->sizes[0])) {
         int N;
         p->fout->N = N = (p->mags->sizes[0] * 2) - 2;
         p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
@@ -2543,20 +2545,22 @@ int tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
             memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
         return OK;
     }
-    else return csound->InitError(csound, Str("magnitude and frequency arrays not initialised, or are not the same size"));
+    else return csound->InitError(csound,
+                                  Str("magnitude and frequency arrays not "
+                                      "initialised, or are not the same size"));
 }
 
 int  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
 {
     int size = p->mags->sizes[0], i;
     float *fout = (float *) p->fout->frame.auxp;
-    
+
     p->ktime += CS_KSMPS;
     if (p->ktime > (uint32) p->fout->overlap) {
         p->fout->framecount++;
         p->ktime -= p->fout->overlap;
     }
-    
+
     if (p->lastframe < p->fout->framecount){
         for (i = 0; i < size; i++){
             fout[i * 2] = (float) p->mags->data[i];
@@ -2564,7 +2568,7 @@ int  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
         }
         p->lastframe = p->fout->framecount;
     }
-    
+
     return OK;
 }
 
@@ -2620,8 +2624,8 @@ static OENTRY localops[] = {
         (SUBR) pvs2tabsplit_init, (SUBR) pvs2tabsplit, NULL},
   {"tab2pvs", sizeof(TAB2PVS_T), 0, 3, "f", "k[]oop", (SUBR) tab2pvs_init,
    (SUBR) tab2pvs, NULL},
-  {"tab2pvs", sizeof(TAB2PVSSPLIT_T), 0, 3, "f", "k[]k[]oop", (SUBR) tab2pvssplit_init,
-        (SUBR) tab2pvssplit, NULL},
+  {"tab2pvs", sizeof(TAB2PVSSPLIT_T), 0, 3, "f", "k[]k[]oop",
+   (SUBR) tab2pvssplit_init, (SUBR) tab2pvssplit, NULL},
   {"pvs2array", sizeof(PVS2TAB_T), 0,3, "k", "k[]f",
    (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
   {"pvs2array", sizeof(PVS2TABSPLIT_T), 0,3, "k", "k[]k[]f",

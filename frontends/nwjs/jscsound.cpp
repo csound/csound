@@ -140,7 +140,7 @@ void setMessageCallback(const FunctionCallbackInfo<Value>& args)
     csound_message_callback.Reset(isolate,  Handle<Function>::Cast(args[0]));
 }
 
-void csoundMessageCallback_(CSOUND *csound_, int attr, const char *format, va_list valist)
+void csoundMessageCallback_(CSOUND *csound__, int attr, const char *format, va_list valist)
 {
     char buffer[0x1000];
     std::vsprintf(buffer, format, valist);
@@ -383,7 +383,8 @@ void setControlChannel(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     v8::String::Utf8Value channelName(args[0]->ToString());
-    double value = args[1]->ToNumber()->Value();
+    v8::Local<v8::Number> v8_value = v8::Local<v8::Number>::Cast(args[1]);
+    double value = v8_value->NumberValue();
     csoundSetControlChannel(csound_, *channelName, value);
 }
 
