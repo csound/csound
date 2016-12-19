@@ -130,9 +130,8 @@
  *
  * \subsection section_csound_license Csound
  *
- * Copyright (C) 2001-2013 Michael Gogins, Matt Ingalls, John D. Ramsdell,
- *                         John P. ffitch, Istvan Varga, Victor Lazzarini,
- *                         Andres Cabrera and Steven Yi
+ * Copyright (C) 2001-2013 John ffitch, Michael Gogins, Victor Lazzarini,
+ *                         Steven Yi, Istvan Varga, Andres Cabrera                          
  *
  * This software is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

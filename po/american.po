@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 6.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-30 08:53+0100\n"
-"PO-Revision-Date: 2016-12-06 16:21+0000\n"
+"PO-Revision-Date: 2016-12-15 16:28+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (US)\n"
 "Language: en-GB\n"
@@ -9908,11 +9908,11 @@ msgid "Table lengths do not agree!!"
 msgstr "Table lengths don't agree!!"
 
 #: Opcodes/websockets/WebSocketOpcode.c:230
-#, c-format
+#, c-format, fuzzy
 msgid ""
 "websocket: received message from is not correct size for variable %s, "
 "message dumped"
-msgstr ""
+msgstr "websocket: received message from isn't correct size for variable %s, message dumped"
 
 #: Opcodes/websockets/WebSocketOpcode.c:240
 #, c-format
@@ -9945,6 +9945,8 @@ msgid ""
 "websocket: error output string variable %s must not be initialised\n"
 "Exiting"
 msgstr ""
+"websocket: error output string variable %s mustn't be initialized\n"
+"Exiting"
 
 #: Opcodes/websockets/WebSocketOpcode.c:376
 #, c-format
@@ -9963,7 +9965,7 @@ msgstr ""
 
 #: Opcodes/websockets/WebSocketOpcode.c:530
 msgid "websocket: could not initialise websocket, Exiting"
-msgstr "websocket: couldn't initialise websocket, Exiting"
+msgstr "websocket: couldn't initialize websocket, Exiting"
 
 #: Opcodes/websockets/WebSocketOpcode.c:560
 #, c-format
