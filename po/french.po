@@ -6066,9 +6066,8 @@ msgid "Too many arguments to OSCsend"
 msgstr "Trop d'arguments pour OSCsend"
 
 #: Opcodes/OSC.c:196
-#, fuzzy
 msgid "Failed to set multicast"
-msgstr "Echec de la fixation de l'état du fichier\n"
+msgstr "Echec du réglage de la multidiffusion"
 
 #: Opcodes/OSC.c:254
 msgid "Time stamp is two values"
@@ -7759,7 +7758,6 @@ msgid "hdf5write: Error, unable to identify type of argument %zd"
 msgstr "hdf5write : erreur, impossible d'identifier le type de l'argument %zd"
 
 #: Opcodes/hdf5/HDF5IO.c:597
-#, fuzzy
 msgid "This should not happen, exiting"
 msgstr "Ceci ne devrait pas arriver, abandon"
 
@@ -8900,6 +8898,7 @@ msgstr "pvs2tab : le format du signal doit être amp-phase ou amp-fréq."
 msgid ""
 "magnitude and frequency arrays not initialised, or are not the same size"
 msgstr ""
+"tableaux de magnitude et de fréquence non initialisés ou de tailles différentes"
 
 #: Opcodes/pvsbuffer.c:56 Opcodes/pvscent.c:273 Opcodes/pvsdemix.c:49
 msgid "SDFT case not implemented yet"
@@ -10368,13 +10367,13 @@ msgid "Table lengths do not agree!!"
 msgstr "Les longueurs des tables ne concordent pas !!"
 
 #: Opcodes/websockets/WebSocketOpcode.c:230
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "websocket: received message from is not correct size for variable %s, "
 "message dumped"
 msgstr ""
-"websocket : le message reçu de %s a une taille incorrecte pour la variable "
-"%s, message éliminé"
+"websocket : le message reçu a une taille incorrecte pour la variable %s, "
+"message éliminé"
 
 #: Opcodes/websockets/WebSocketOpcode.c:240
 #, c-format
@@ -10435,7 +10434,7 @@ msgid "websocket: could not initialise websocket, Exiting"
 msgstr "websocket : impossible d'initialiser websocket. Sortie"
 
 #: Opcodes/websockets/WebSocketOpcode.c:560
-#, fuzzy, c-format
+#, c-format
 msgid "websocket: variable %s data not sent, buffer overrrun\n"
 msgstr "websocket : données de la variable %s non envoyées, tampon saturé\n"
 
