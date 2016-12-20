@@ -137,12 +137,12 @@ static void fsst(CSOUND *csound, MYFLT *b, int N)
     csound->InverseRealFFT(csound, b, N);
 }
 
-static void fast2(CSOUND *csound, MYFLT *b, void *setup)
+static void fast2(CSOUND *csound, void *setup, MYFLT *b)
 {
   csound->RealFFT2(csound, setup, b);    
 }
 
-static void fsst2(CSOUND *csound, MYFLT *b, void *setup)
+static void fsst2(CSOUND *csound, void *setup, MYFLT *b)
 {
   csound->RealFFT2(csound, setup, b);
 }
@@ -545,8 +545,9 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
                       Str("dnoise: warning - N not a valid power of two; "
                           "revised N = %d\n"),i);
     //FFT setup
-    void *fftsetup_fwd =  csound->RealFFT2Setup(csound,N, FFT_FWD);
-    void *fftsetup_inv =  csound->RealFFT2Setup(csound,N, FFT_INV);
+    printf("NNN %d \n", N);
+    void *fftsetup_fwd =  csound->RealFFT2Setup(csound,N,FFT_FWD);
+    void *fftsetup_inv =  csound->RealFFT2Setup(csound,N,FFT_INV);
 
     N = i;
     N2 = N / 2;
@@ -1087,7 +1088,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         phase vocoder channel outputs at time n are inverse Fourier
         transformed, windowed, and added into the output array. */
 
-	fsst(csound, fftsetup_inv, fbuf);
+	fsst2(csound, fftsetup_inv, fbuf);
         //fsst(csound, fbuf, N);
 
         lk = nO - (long) sLen - 1;            /*time shift*/
