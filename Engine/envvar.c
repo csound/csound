@@ -1260,7 +1260,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
 {
     CSFILE  *p = (CSFILE*) fd;
     int     retval = -1;
-   if(p->async_flag == ASYNC_GLOBAL) {
+    if (p->async_flag == ASYNC_GLOBAL) {
      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
      /* close file */
     switch (p->type) {
