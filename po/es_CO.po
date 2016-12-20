@@ -10089,62 +10089,62 @@ msgstr ""
 msgid "Table lengths do not agree!!"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:230
+#: Opcodes/websockets/WebSocketOpcode.c:116
 #, c-format
-msgid ""
-"websocket: received message from is not correct size for variable %s, "
-"message dumped"
+msgid "websocket: variable %s data not sent, buffer overrrun\n"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:240
-#, c-format
-msgid "websocket: received string message from %s is too large, message dumped"
-msgstr ""
-
-#: Opcodes/websockets/WebSocketOpcode.c:252
-#, c-format
-msgid "websocket: received message from %s dumped, buffer overrrun"
-msgstr ""
-
-#: Opcodes/websockets/WebSocketOpcode.c:286
-#, c-format
-msgid "websocket: connection established for %s\n"
-msgstr ""
-
-#: Opcodes/websockets/WebSocketOpcode.c:335
+#: Opcodes/websockets/WebSocketOpcode.c:217
 msgid ""
 "websocket: this opcode does not send strings, only receiving them is "
 "supported\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:343
+#: Opcodes/websockets/WebSocketOpcode.c:225
 #, c-format
 msgid ""
 "websocket: error output string variable %s must not be initialised\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:376
+#: Opcodes/websockets/WebSocketOpcode.c:259
 #, c-format
 msgid ""
 "websocket: error array variable %s has not been initialised\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:462
+#: Opcodes/websockets/WebSocketOpcode.c:344
 msgid ""
 "websocket: error, incompatible argument detected\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:530
-msgid "websocket: could not initialise websocket, Exiting"
+#: Opcodes/websockets/WebSocketOpcode.c:484
+#, c-format
+msgid ""
+"websocket: received message from is not correct size for variable %s, "
+"message dumped"
 msgstr ""
 
-#: Opcodes/websockets/WebSocketOpcode.c:560
+#: Opcodes/websockets/WebSocketOpcode.c:494
 #, c-format
-msgid "websocket: variable %s data not sent, buffer overrrun\n"
+msgid "websocket: received string message from %s is too large, message dumped"
+msgstr ""
+
+#: Opcodes/websockets/WebSocketOpcode.c:507
+#, c-format
+msgid "websocket: received message from %s dumped, buffer overrrun"
+msgstr ""
+
+#: Opcodes/websockets/WebSocketOpcode.c:543
+#, c-format
+msgid "websocket: connection established for %s\n"
+msgstr ""
+
+#: Opcodes/websockets/WebSocketOpcode.c:635
+msgid "websocket: could not initialise websocket, Exiting"
 msgstr ""
 
 #: Opcodes/wiimote.c:122
