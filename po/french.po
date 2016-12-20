@@ -10366,12 +10366,6 @@ msgstr "Scantable : la table de vélocité n'a pas été trouvée"
 msgid "Table lengths do not agree!!"
 msgstr "Les longueurs des tables ne concordent pas !!"
 
-<<<<<<< HEAD
-#: Opcodes/websockets/WebSocketOpcode.c:116
-#, fuzzy, c-format
-msgid "websocket: variable %s data not sent, buffer overrrun\n"
-msgstr "websocket : données de la variable %s non envoyées, tampon saturé\n"
-=======
 #: Opcodes/websockets/WebSocketOpcode.c:230
 #, c-format
 msgid ""
@@ -10397,7 +10391,6 @@ msgstr "websocket : élimination du message reçu de %s, tampon saturé"
 #, c-format
 msgid "websocket: connection established for %s\n"
 msgstr "websocket : connexion établie pour %s\n"
->>>>>>> 468873ff236d4626342f93b43ca27afafc512335
 
 #: Opcodes/websockets/WebSocketOpcode.c:217
 msgid ""
@@ -10435,32 +10428,6 @@ msgid ""
 msgstr ""
 "websocket : erreur, argument incompatible détecté\n"
 "Sortie"
-
-#: Opcodes/websockets/WebSocketOpcode.c:484
-#, fuzzy, c-format
-msgid ""
-"websocket: received message from is not correct size for variable %s, "
-"message dumped"
-msgstr ""
-"websocket : le message reçu de %s a une taille incorrecte pour la variable "
-"%s, message éliminé"
-
-#: Opcodes/websockets/WebSocketOpcode.c:494
-#, c-format
-msgid "websocket: received string message from %s is too large, message dumped"
-msgstr ""
-"websocket : la chaîne de caractères reçue de %s est trop grande, message "
-"supprimé"
-
-#: Opcodes/websockets/WebSocketOpcode.c:507
-#, c-format
-msgid "websocket: received message from %s dumped, buffer overrrun"
-msgstr "websocket : élimination du message reçu de %s, tampon saturé"
-
-#: Opcodes/websockets/WebSocketOpcode.c:543
-#, c-format
-msgid "websocket: connection established for %s\n"
-msgstr "websocket : connexion établie pour %s\n"
 
 #: Opcodes/websockets/WebSocketOpcode.c:635
 msgid "websocket: could not initialise websocket, Exiting"
