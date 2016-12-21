@@ -905,7 +905,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
           /* fill ib2 */
           nread = csound->getsndin(csound, inf, ib2, ibuflen, p);
           for(i=0; i < nread; i++)
-               ibuf2[i] *= 1.0/csound->Get0dBFS(csound);
+               ib2[i] *= 1.0/csound->Get0dBFS(csound);
           lnread += nread;
           f = ib2 + nread;
           for (i = nread; i < ibuflen; i++, f++)
