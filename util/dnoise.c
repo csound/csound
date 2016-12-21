@@ -99,6 +99,7 @@ static  void    hamming(MYFLT *, int, int);
 
 static int writebuffer(CSOUND *, SNDFILE *, MYFLT *, int, int *, OPARMS *);
 
+#if 0
 static void fast(CSOUND *csound, MYFLT *b, int N)
 {
   /* The DC term is returned in location b[0] with b[1] set to 0.
@@ -115,8 +116,10 @@ static void fast(CSOUND *csound, MYFLT *b, int N)
     b[1] = b[N + 1] = FL(0.0);
 }
 
+
 static void fsst(CSOUND *csound, MYFLT *b, int N)
 {
+
   /* This subroutine synthesizes the real vector b[k] for k=0, 1,
      ..., N-1 from the fourier coefficients stored in the b
      array of size N+2.  The DC term is in location b[0] with
@@ -136,6 +139,7 @@ static void fsst(CSOUND *csound, MYFLT *b, int N)
       b[i] *= scaleVal;
     csound->InverseRealFFT(csound, b, N);
 }
+#endif
 
 static void fast2(CSOUND *csound, void *setup, MYFLT *b)
 {
