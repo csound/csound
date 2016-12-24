@@ -673,19 +673,11 @@ static const CSOUND cenviron_ = {
     NULL,           /*  FFT_table_2         */
     NULL, NULL, NULL, /* tseg, tpsave, tplim */
     (MYFLT*) NULL,  /*  gbloffbas           */
-#if defined(WIN32) //&& (__GNUC_VERSION__ < 40800)
-    (pthread_t){0, 0},   /* file_io_thread    */
-#else
-    (pthread_t)0,   /* file_io_thread    */
-#endif
+    NULL,           /* file_io_thread    */
     0,              /* file_io_start   */
     NULL,           /* file_io_threadlock */
     0,              /* realtime_audio_flag */
-#if defined(WIN32) //&& (__GNUC_VERSION__ < 40800)
-    (pthread_t){0, 0},   /* init pass thread    */
-#else
-    (pthread_t)0,   /* init pass thread */
-#endif
+    NULL,           /* init pass thread */
     0,              /* init pass loop  */
     NULL,           /* init pass threadlock */
     NULL,           /* API_lock */
