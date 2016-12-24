@@ -261,25 +261,35 @@ int diskin_init_S(CSOUND *csound, DISKIN2 *p){
  */
 int sndinset(CSOUND *csound, DISKIN2 *p) {
   int ret;
+  MYFLT tmp = *p->iSampleFormat;
   p->SkipInit = *p->iWrapMode;
-  p->iSampleFormat = p->iSkipTime;
-  p->iSkipTime = p->kTranspose;
+  *p->iSampleFormat = *p->iSkipTime;
+  *p->iSkipTime = *p->kTranspose;
   p->WinSize = 2;
   p->BufSize = 0;
   p->fforceSync = 0;
-  ret = diskin2_init_(csound,p,0);
+  *p->iWrapMode = 0.;
+  ret = diskin2_init_(csound,p,1);
+  *p->iWrapMode = p->SkipInit;
+  *p->iSkipTime = *p->iSampleFormat;
+  *p->iSampleFormat = tmp;
   return ret;
 }
 
 int sndinset_S(CSOUND *csound, DISKIN2 *p){
   int ret;
+  MYFLT tmp = *p->iSampleFormat;
   p->SkipInit = *p->iWrapMode;
-  p->iSampleFormat = p->iSkipTime;
-  p->iSkipTime = p->kTranspose;
+  *p->iSampleFormat = *p->iSkipTime;
+  *p->iSkipTime = *p->kTranspose;
   p->WinSize = 2;
   p->BufSize = 0;
   p->fforceSync = 0;
+  *p->iWrapMode = 0.;
   ret = diskin2_init_(csound,p,1);
+  *p->iWrapMode = p->SkipInit;
+  *p->iSkipTime = *p->iSampleFormat;
+  *p->iSampleFormat = tmp;
   return ret;
 }
 
