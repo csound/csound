@@ -356,15 +356,14 @@ int musmon(CSOUND *csound)
 #ifndef __EMSCRIPTEN__
     if (csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *init_pass_thread(void *);
-      pthread_attr_t attr;
       csound->init_pass_threadlock = csoundCreateMutex(0);
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 1;
       csoundUnlockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 1;
-      pthread_attr_init(&attr);
-      //pthread_attr_setstacksize(&attr, 1048576);
-      pthread_create(&csound->init_pass_thread,&attr,init_pass_thread, csound);
+      csound->init_pass_thread = csound->CreateThread(
+          (uintptr_t (*)(void*)) init_pass_thread, 
+          (void*)csound);
 
     }
 #endif
@@ -447,7 +446,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 0;
       csoundUnlockMutex(csound->init_pass_threadlock);
-      pthread_join(csound->init_pass_thread, NULL);
+      csound->JoinThread(csound->init_pass_thread);
       csoundDestroyMutex(csound->init_pass_threadlock);
       csound->init_pass_threadlock = 0;
     }

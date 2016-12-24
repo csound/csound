@@ -1494,11 +1494,11 @@ typedef struct NAME__ {
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    pthread_t    file_io_thread;
+    void         *file_io_thread;
     int          file_io_start;
     void         *file_io_threadlock;
     int          realtime_audio_flag;
-    pthread_t    init_pass_thread;
+    void         *init_pass_thread;
     int          init_pass_loop;
     void         *init_pass_threadlock;
     void         *API_lock;

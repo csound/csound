@@ -1331,7 +1331,7 @@ void close_all_files(CSOUND *csound)
       csoundFileClose(csound, csound->open_files);
     if (csound->file_io_start) {
 #ifndef __EMSCRIPTEN__
-        pthread_join(csound->file_io_thread, NULL);
+        csound->JoinThread(csound->file_io_thread);
 #endif
         if (csound->file_io_threadlock != NULL)
          csound->DestroyThreadLock(csound->file_io_threadlock);
@@ -1386,7 +1386,7 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
       csound->file_io_start = 1;
       csound->file_io_threadlock = csound->CreateThreadLock();
       csound->NotifyThreadLock(csound->file_io_threadlock);
-      pthread_create(&csound->file_io_thread,NULL, file_iothread, (void *) csound);
+      csound->file_io_thread = csound->CreateThread((uintptr_t (*)(void *))file_iothread, (void *) csound);
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     p->async_flag = ASYNC_GLOBAL;
