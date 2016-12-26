@@ -30,7 +30,8 @@ cmake ../.. -G "MSYS Makefiles" \
 -DPYTHON_LIBRARIES:FILEPATH="C:/Program Files/Anaconda2/libs/python27.a" \
 -DSTK_LIBRARY:FILEPATH=/mingw64/lib/libstk.a \
 -DLIBSNDFILE_LIBRARY:FILEPATH="C:\Program Files\Mega-Nerd\libsndfile\bin\libsndfile-1.dll" \
--DSNDFILE_H_PATH:FILEPATH="C:\Program Files\Mega-Nerd\libsndfile\include\sndfile.h"
+-DSNDFILE_H_PATH:PATH="C:\Program Files\Mega-Nerd\libsndfile\include" \
+-DBUILD_WEBSOCKET_OPCODE=0
 
 
 
