@@ -103,7 +103,11 @@ typedef struct {
 
 static int getcurdir(CSOUND *csound, GETCWD *p)
 {
-    if (p->Scd->data == NULL) {
+  if (p->Scd->size < 1024) {
+    p->Scd->size = 1024;
+    p->Scd->data = csound->ReAlloc(csound,  p->Scd->data, p->Scd->size);
+  }
+  if (p->Scd->data == NULL) {
       p->Scd->size = 1024;
       p->Scd->data = csound->Calloc(csound, p->Scd->size);
     }
