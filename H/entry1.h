@@ -225,7 +225,8 @@ int     inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
 int     inch_set(CSOUND*, void*), outmultiple(CSOUND *, void *);
 /* int     out(CSOUND *, void *), outs(CSOUND *, void *); */
 int     outs1(CSOUND *, void *), outs2(CSOUND *, void *);
-/* int     outq(CSOUND *, void *); */
+int     och2(CSOUND *, void *), och3(CSOUND *, void *);
+int     och4(CSOUND *, void *), ochn(CSOUND *, void *);
 int     outq1(CSOUND *, void *), outq2(CSOUND *, void *);
 int     outq3(CSOUND *, void *), outq4(CSOUND *, void *);
 /* int     outh(CSOUND *, void *), outo(CSOUND *, void *); */
