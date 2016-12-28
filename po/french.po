@@ -4128,12 +4128,11 @@ msgstr "Les nombres d'arguments d'entrée et de sortie différent dans inch"
 
 #: OOps/aops.c:1743
 msgid "Channel greater than nchnls"
-msgstr ""
+msgstr "Canal supérieur à nchnls"
 
 #: OOps/aops.c:1966
-#, fuzzy
 msgid "Excess channels ignored\n"
-msgstr "numéro de canal illégal, ignoré"
+msgstr "Canaux en excès ignorés\n"
 
 #: OOps/aops.c:2124
 msgid "Unknown function called"
@@ -6556,9 +6555,9 @@ msgid "crossfm: ftable not found"
 msgstr "crossfm : table non trouvée"
 
 #: Opcodes/date.c:124
-#, fuzzy, c-format
+#, c-format
 msgid "cannot determine current directory: %s\n"
-msgstr "impossible de déterminer le répertoire courant"
+msgstr "impossible de déterminer le répertoire courant: %s\n"
 
 #: Opcodes/date.c:164
 msgid "readf: failed to open file"
