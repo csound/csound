@@ -1951,7 +1951,6 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 PUBLIC int csoundPerformKsmps(CSOUND *csound)
 {
     int done;
-
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
@@ -1970,8 +1969,8 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     do {
       done = sensevents(csound);
       if (UNLIKELY(done)) {
-         csoundUnlockMutex(csound->API_lock);
-        csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
+        csoundUnlockMutex(csound->API_lock);
+        csoundMessage(csound, Str("Score finished in csoundPerformKsmps() with %d.\n"), done);
         return done;
       }
     } while (csound->kperf(csound));
@@ -2000,7 +1999,7 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     }
    do {
      if ((done = sensevents(csound))) {
-        csoundMessage(csound, Str("Score finished in csoundPerformKsmps().\n"));
+        csoundMessage(csound, Str("Score finished in csoundPerformKsmpsInternal().\n"));
         return done;
       }
     } while (csound->kperf(csound));
