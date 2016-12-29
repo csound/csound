@@ -1920,6 +1920,8 @@ extern "C"
 
         free(cs_sfg_ports);
         free(cs_sfg_ftables);
+        cs_sfg_ports = 0;
+        cs_sfg_ftables = 0;
 
         return 0;
     }
