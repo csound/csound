@@ -3367,7 +3367,7 @@ void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len){
 
 #include "resize.h"
 
- static int warned = 0;
+static int warned = 0;          /* Thread Safe */
 int resize_table(CSOUND *csound, RESIZE *p)
 {
     unsigned int fsize  = (unsigned int) MYFLT2LRND(*p->nsize);

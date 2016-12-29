@@ -142,7 +142,7 @@ static int compare(presetType * elem1, presetType *elem2)
         ihandle SfLoad "filename"
 */
 
-static char *Gfname;
+static char *Gfname;            /* NOT THREAD SAFE */
 
 static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
                                        /* open a file and return its handle */
