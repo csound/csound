@@ -135,9 +135,6 @@ struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
 
-static void* cs_sfg_ftables = 0;
-static void* cs_sfg_ports = 0;
-
 std::ostream &operator << (std::ostream &stream, const EVTBLK &a)
 {
     stream << a.opcod;
@@ -337,7 +334,11 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
     int init(CSOUND *csound)
     {
         //warn(csound, "BEGAN Outleta::init()...\n");
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             sourceOutletId[0] = 0;
             const char *insname =
@@ -357,7 +358,9 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
                      this, aoutlets.size(), sourceOutletId);
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         //warn(csound, "ENDED Outleta::init()...\n");
         return OK;
     }
@@ -390,7 +393,11 @@ struct Inleta : public OpcodeBase<Inleta> {
     int sampleN;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             warn(csound, "BEGAN Inleta::init()...\n");
             sampleN = opds.insdshead->ksmps;
@@ -440,7 +447,9 @@ struct Inleta : public OpcodeBase<Inleta> {
             }
             warn(csound, "ENDED Inleta::init().\n");
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     /**
@@ -448,7 +457,11 @@ struct Inleta : public OpcodeBase<Inleta> {
      */
     int audio(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             //warn(csound, "BEGAN Inleta::audio()...\n");
             // Zero the inlet buffer.
@@ -475,7 +488,9 @@ struct Inleta : public OpcodeBase<Inleta> {
             }
             //warn(csound, "ENDED Inleta::audio().\n");
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
 };
@@ -492,7 +507,11 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
     char sourceOutletId[0x100];
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             const char *insname =
                 csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
@@ -510,7 +529,10 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
                      this, koutlets.size(), sourceOutletId);
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     int noteoff(CSOUND *csound)
@@ -542,7 +564,11 @@ struct Inletk : public OpcodeBase<Inletk> {
     int ksmps;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
 
             ksmps = opds.insdshead->ksmps;
@@ -587,7 +613,9 @@ struct Inletk : public OpcodeBase<Inletk> {
                 }
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     /**
@@ -595,6 +623,11 @@ struct Inletk : public OpcodeBase<Inletk> {
      */
     int kontrol(CSOUND *csound)
     {
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             // Zero the inlet buffer.
             *ksignal = FL(0.0);
@@ -615,7 +648,9 @@ struct Inletk : public OpcodeBase<Inletk> {
                 }
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
 };
@@ -632,6 +667,11 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
     char sourceOutletId[0x100];
     int init(CSOUND *csound)
     {
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             const char *insname =
                 csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
@@ -649,7 +689,9 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
                      this, sourceOutletId);
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     int noteoff(CSOUND *csound)
@@ -683,7 +725,11 @@ struct Inletf : public OpcodeBase<Inletf> {
     bool fsignalInitialized;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             ksmps = opds.insdshead->ksmps;
             lastframe = 0;
@@ -729,7 +775,10 @@ struct Inletf : public OpcodeBase<Inletf> {
                 }
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     /**
@@ -738,7 +787,11 @@ struct Inletf : public OpcodeBase<Inletf> {
     int audio(CSOUND *csound)
     {
         int result = OK;
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             float *sink = 0;
             float *source = 0;
@@ -821,7 +874,10 @@ struct Inletf : public OpcodeBase<Inletf> {
                 }
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return result;
     }
 };
@@ -839,7 +895,11 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
     int init(CSOUND *csound)
     {
         warn(csound, "BEGAN Outletv::init()...\n");
-        csound->UnlockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             sourceOutletId[0] = 0;
             const char *insname =
@@ -859,7 +919,9 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
             }
         }
         warn(csound, "ENDED Outletv::init()...\n");
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     int noteoff(CSOUND *csound)
@@ -893,7 +955,11 @@ struct Inletv : public OpcodeBase<Inletv> {
     int sampleN;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             warn(csound, "BEGAN Inletv::init()...\n");
             sampleN = opds.insdshead->ksmps;
@@ -949,7 +1015,10 @@ struct Inletv : public OpcodeBase<Inletv> {
             }
             warn(csound, "ENDED Inletv::init().\n");
         }
-        csound->UnlockMutex(cs_sfg_ports);
+
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     /**
@@ -957,7 +1026,11 @@ struct Inletv : public OpcodeBase<Inletv> {
      */
     int audio(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             //warn(csound, "BEGAN Inletv::audio()...\n");
             for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
@@ -986,7 +1059,9 @@ struct Inletv : public OpcodeBase<Inletv> {
             }
             //warn(csound, "ENDED Inletv::audio().\n");
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
 };
@@ -1005,7 +1080,11 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
     char *instanceId;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             const char *insname = csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
             instanceId = csound->strarg2name(csound,
@@ -1031,7 +1110,10 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
                      this, koutlets.size(), sourceOutletId);
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     int noteoff(CSOUND *csound)
@@ -1065,7 +1147,11 @@ struct Inletkid : public OpcodeBase<Inletkid> {
     int ksmps;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             ksmps = opds.insdshead->ksmps;
             if (std::find(kidoutletVectorsForCsounds()[csound].begin(),
@@ -1106,7 +1192,9 @@ struct Inletkid : public OpcodeBase<Inletkid> {
                 }
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
     /**
@@ -1114,7 +1202,11 @@ struct Inletkid : public OpcodeBase<Inletkid> {
      */
     int kontrol(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             // Zero the / buffer.
             *ksignal = FL(0.0);
@@ -1137,7 +1229,10 @@ struct Inletkid : public OpcodeBase<Inletkid> {
                 }
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
+
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
 };
@@ -1153,7 +1248,11 @@ struct Connect : public OpcodeBase<Connect> {
     MYFLT *gain;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             std::string sourceOutletId = csound->strarg2name(csound,
                                          (char *) 0,
@@ -1186,7 +1285,10 @@ struct Connect : public OpcodeBase<Connect> {
                  sourceOutletId.c_str(), sinkInletId.c_str());
             connectionsForCsounds()[csound][sinkInletId].push_back(sourceOutletId);
         }
-        csound->UnlockMutex(cs_sfg_ports);
+
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
 };
@@ -1202,7 +1304,11 @@ struct Connecti : public OpcodeBase<Connecti> {
     MYFLT *gain;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             std::string sourceOutletId = csound->strarg2name(csound,
                                          (char *) 0,
@@ -1232,7 +1338,9 @@ struct Connecti : public OpcodeBase<Connecti> {
                  sourceOutletId.c_str(), sinkInletId.c_str());
             connectionsForCsounds()[csound][sinkInletId].push_back(sourceOutletId);
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
 };
@@ -1249,7 +1357,11 @@ struct Connectii : public OpcodeBase<Connectii> {
     MYFLT *gain;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             std::string sourceOutletId = csound->strarg2name(csound,
                                          (char *) 0,
@@ -1280,7 +1392,9 @@ struct Connectii : public OpcodeBase<Connectii> {
                  sourceOutletId.c_str(), sinkInletId.c_str());
             connectionsForCsounds()[csound][sinkInletId].push_back(sourceOutletId);
         }
-        csound->UnlockMutex(cs_sfg_ports);
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
 };
@@ -1296,7 +1410,11 @@ struct ConnectS : public OpcodeBase<ConnectS> {
     MYFLT *gain;
     int init(CSOUND *csound)
     {
-        csound->LockMutex(cs_sfg_ports);
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_PORTS_LOCK");
+        if(cs_sfg_ports != NULL) {
+          csound->LockMutex(*cs_sfg_ports);
+        }
         {
             std::string sourceOutletId = csound->strarg2name(csound,
                                          (char *) 0,
@@ -1324,7 +1442,10 @@ struct ConnectS : public OpcodeBase<ConnectS> {
                  sourceOutletId.c_str(), sinkInletId.c_str());
             connectionsForCsounds()[csound][sinkInletId].push_back(sourceOutletId);
         }
-        csound->UnlockMutex(cs_sfg_ports);
+
+        if(cs_sfg_ports != NULL) {
+          csound->UnlockMutex(*cs_sfg_ports);
+        }
         return OK;
     }
 };
@@ -1451,7 +1572,11 @@ static void warn(CSOUND *csound, const char *format,...)
 static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator, bool hasStringParameter)
 {
     int result = OK;
-    csound->LockMutex(cs_sfg_ftables);
+    void **cs_sfg_ftables = (void**)csound->QueryGlobalVariable(csound, 
+        "SIGNAL_FLOW_FTABLES_LOCK");
+    if(cs_sfg_ftables != NULL) {
+      csound->LockMutex(*cs_sfg_ftables);
+    }
     {
         EventBlock eventBlock;
         EVTBLK  *ftevt = &eventBlock.evtblk;
@@ -1475,6 +1600,9 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator, bool hasS
                 named = named->next;                            /*  and round again   */
             }
             if (UNLIKELY(named == NULL)) {
+                if(cs_sfg_ftables != NULL) {
+                  csound->UnlockMutex(*cs_sfg_ftables);
+                }
                 return csound->InitError(csound,
                                          Str("Named gen \"%s\" not defined"),
                                          (char *)p->p4);
@@ -1498,6 +1626,9 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator, bool hasS
                 ftevt->strarg = ((STRINGDAT *) p->p5)->data;
                 break;
             default:
+                if(cs_sfg_ftables != NULL) {
+                  csound->UnlockMutex(*cs_sfg_ftables);
+                }
                 return csound->InitError(csound, Str("ftgen string arg not allowed"));
             }
         } else {
@@ -1544,7 +1675,9 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator, bool hasS
             }
         }
     }
-    csound->UnlockMutex(cs_sfg_ftables);
+    if(cs_sfg_ftables != NULL) {
+      csound->UnlockMutex(*cs_sfg_ftables);
+    }
     return result;
 }
 
@@ -1810,11 +1943,23 @@ extern "C"
         if(csound->GetDebug(csound)) {
             csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n", csound);
         }
-        if (cs_sfg_ports == 0) {
-            cs_sfg_ports = csound->Create_Mutex(1);
+        if (csound->QueryGlobalVariable(csound, 
+              "SIGNAL_FLOW_PORTS_LOCK") == NULL) {
+            csound->CreateGlobalVariable(csound,  
+                "SIGNAL_FLOW_PORTS_LOCK",
+                sizeof(void**));
+            void** p = (void**)csound->QueryGlobalVariable(csound, 
+              "SIGNAL_FLOW_PORTS_LOCK");
+            *p = csound->Create_Mutex(1);
         }
-        if (cs_sfg_ftables == 0) {
-            cs_sfg_ftables = csound->Create_Mutex(1);
+        if (csound->QueryGlobalVariable(csound, 
+              "SIGNAL_FLOW_FTABLES_LOCK") == NULL) {
+            csound->CreateGlobalVariable(csound,  
+                "SIGNAL_FLOW_FTABLES_LOCK",
+                sizeof(void**));
+            void** p = (void**)csound->QueryGlobalVariable(csound, 
+              "SIGNAL_FLOW_FTABLES_LOCK");
+            *p = csound->Create_Mutex(1);
         }
         return 0;
     }
@@ -1855,10 +2000,15 @@ extern "C"
 
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
+
+        void **cs_sfg_ftables = (void**)csound->QueryGlobalVariable(csound,
+            "SIGNAL_FLOW_FTABLES_LOCK");
+        void **cs_sfg_ports = (void**)csound->QueryGlobalVariable(csound, 
+            "SIGNAL_FLOW_PORTS_LOCK");
         if(csound->GetDebug(csound)) {
             csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)\n", csound);
         }
-        csound->LockMutex(cs_sfg_ports);
+        csound->LockMutex(*cs_sfg_ports);
         {
             if (aoutletsForCsoundsForSourceOutletIds().find(csound) != aoutletsForCsoundsForSourceOutletIds().end()) {
                 aoutletsForCsoundsForSourceOutletIds()[csound].clear();
@@ -1909,19 +2059,17 @@ extern "C"
                 connectionsForCsounds()[csound].clear();
             }
         }
-        csound->UnlockMutex(cs_sfg_ports);
-        csound->LockMutex(cs_sfg_ftables);
+        csound->UnlockMutex(*cs_sfg_ports);
+        csound->LockMutex(*cs_sfg_ftables);
         {
             if (functionTablesForCsoundsForEvtblks().find(csound) != functionTablesForCsoundsForEvtblks().end()) {
                 functionTablesForCsoundsForEvtblks()[csound].clear();
             }
         }
-        csound->UnlockMutex(cs_sfg_ftables);
+        csound->UnlockMutex(*cs_sfg_ftables);
 
-        free(cs_sfg_ports);
-        free(cs_sfg_ftables);
-        cs_sfg_ports = 0;
-        cs_sfg_ftables = 0;
+        free(*cs_sfg_ports);
+        free(*cs_sfg_ftables);
 
         return 0;
     }
