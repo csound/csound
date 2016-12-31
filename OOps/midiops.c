@@ -605,22 +605,6 @@ int ctlin(CSOUND *csound, CTLIN *p)
 
 /* MIDIARP by Rory Walsh, 2016
  */
-typedef struct {
-  OPDS    h;
-  MYFLT   *noteOut, *counter;
-  MYFLT   *arpRate, *arpMode;
-	
-  int metroTick;
-  double  curphs;
-  int flag;	
-  int status, chan, data1, data2,
-    noteCnt, noteIndex, maxNumNotes,
-    direction;
-  int notes[10];
-  int sortedNotes[10];
-  int     local_buf_index;        
-} MIDIARP;
- 
 
 int midiarp_set(CSOUND *csound, MIDIARP *p)
 /* MIDI Arp - Jan 2017 - RW */ 
@@ -628,7 +612,7 @@ int midiarp_set(CSOUND *csound, MIDIARP *p)
   srand(time(NULL));
   p->flag=1, *p->arpMode=0, p->direction=2, p->noteIndex=9;
   p->maxNumNotes=10, p->noteCnt=0, p->status=0, p->chan=0;
-  p->data1=0, p->data2=0, p->repeat=0;
+  p->data1=0, p->data2=0;
 	
   p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
     
@@ -712,7 +696,7 @@ int midiarp(CSOUND *csound, MIDIARP *p)
 	for(i  = 0 ; i < p->maxNumNotes ; i++)
 	  p->sortedNotes[i] = p->notes[i];
 
-	p->noteCnt == (p->noteCnt<0 ? 0 : p->noteCnt--);	
+	p->noteCnt = (p->noteCnt<0 ? 0 : p->noteCnt--);	
 	sort_notes(p->sortedNotes, p->maxNumNotes);
       }
     }
