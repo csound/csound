@@ -123,9 +123,9 @@ using namespace stk;
 
 using namespace std;
 
-static std::map<CSOUND *, std::vector<Instrmnt *> > &getStkInstances()
+static std::vector<Instrmnt *> &getStkInstances()
 {
-    static std::map<CSOUND *, std::vector<Instrmnt *> > stkInstances;
+    static std::vector<Instrmnt *> stkInstances;
     return stkInstances;
 }
 
@@ -181,7 +181,7 @@ public:
         {
           Stk::setSampleRate(csound->GetSr(csound));
           instrument = new T();
-          getStkInstances()[csound].push_back(instrument);
+          getStkInstances().push_back(instrument);
         }
       ksmps = OpcodeBase< STKInstrumentAdapter<T> >::opds.insdshead->ksmps;
       instrument->noteOn(*ifrequency, *igain);
@@ -327,7 +327,7 @@ public:
       if(!instrument) {
         Stk::setSampleRate(csound->GetSr(csound));
         instrument = new T((StkFloat) 10.0);
-        getStkInstances()[csound].push_back(instrument);
+        getStkInstances().push_back(instrument);
       }
       ksmps = OpcodeBase< STKInstrumentAdapter1<T> >::opds.insdshead->ksmps;
       instrument->noteOn(*ifrequency, *igain);
@@ -790,13 +790,9 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    if (getStkInstances().find(csound) != getStkInstances().end()) {
-      for(size_t i = 0, n = getStkInstances()[csound].size(); i < n; ++i) {
-        delete getStkInstances()[csound][i];
+      for(size_t i = 0, n = getStkInstances().size(); i < n; ++i) {
+        delete getStkInstances()[i];
       }
-      //getStkInstances()[csound].clear();
-      getStkInstances().erase(csound);
-    }
     return 0;
   }
 

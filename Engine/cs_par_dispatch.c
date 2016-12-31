@@ -52,11 +52,6 @@ struct global_var_lock_t {
   struct global_var_lock_t    *next;
 };
 
-//static struct global_var_lock_t *global_var_lock_root;
-//static int global_var_lock_count;
-//static struct global_var_lock_t **global_var_lock_cache;
-
-
 inline void csp_locks_lock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {

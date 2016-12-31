@@ -1738,6 +1738,15 @@ int outs1(CSOUND *csound, OUTM *p)
     return OK;
 }
 
+#define OUTCN(n) if (n>csound->nchnls) return           \
+                            csound->InitError(csound,   \
+                                              Str("Channel greater than nchnls")); \
+  return OK;
+
+int och2(CSOUND *csound, OUTM *p) { OUTCN(2) }
+int och3(CSOUND *csound, OUTM *p) { OUTCN(3) }
+int och4(CSOUND *csound, OUTM *p) { OUTCN(4) }
+
 int outs2(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = CS_SPOUT, *ap2 = p->asig;
@@ -1762,32 +1771,32 @@ int outs2(CSOUND *csound, OUTM *p)
     return OK;
 }
 
-int outs12(CSOUND *csound, OUTM *p)
-{
-    MYFLT       *sp = CS_SPOUT, *ap = p->asig;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t nsmps =CS_KSMPS,  n, m;
-    uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
-    CSOUND_SPOUT_SPINLOCK
+/* int outs12(CSOUND *csound, OUTM *p) */
+/* { */
+/*     MYFLT       *sp = CS_SPOUT, *ap = p->asig; */
+/*     uint32_t offset = p->h.insdshead->ksmps_offset; */
+/*     uint32_t nsmps =CS_KSMPS,  n, m; */
+/*     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end; */
+/*     CSOUND_SPOUT_SPINLOCK */
 
-    if (!csound->spoutactive) {
-      for (n=0, m=0; n<nsmps; n++, m+=2) {
-        sp[m] = sp[m+1] = (n<offset||n>early) ? FL(0.0) : ap[n];
-      }
-      csound->spoutactive = 1;
-    }
-    else {
-      for (n=0, m=0; n<early; n++) {
-        if (n<offset) m+=2;
-        else {
-          sp[m++] += ap[n];
-          sp[m++] += ap[n];
-        }
-      }
-    }
-    CSOUND_SPOUT_SPINUNLOCK
-    return OK;
-}
+/*     if (!csound->spoutactive) { */
+/*       for (n=0, m=0; n<nsmps; n++, m+=2) { */
+/*         sp[m] = sp[m+1] = (n<offset||n>early) ? FL(0.0) : ap[n]; */
+/*       } */
+/*       csound->spoutactive = 1; */
+/*     } */
+/*     else { */
+/*       for (n=0, m=0; n<early; n++) { */
+/*         if (n<offset) m+=2; */
+/*         else { */
+/*           sp[m++] += ap[n]; */
+/*           sp[m++] += ap[n]; */
+/*         } */
+/*       } */
+/*     } */
+/*     CSOUND_SPOUT_SPINUNLOCK */
+/*     return OK; */
+/* } */
 
 int outq1(CSOUND *csound, OUTM *p)
 {
@@ -1950,10 +1959,17 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
     return OK;
 }
 
+int ochn(CSOUND *csound, OUTX *p)
+{
+    uint32_t nch = p->INOCOUNT;
+    if (nch>csound->nchnls)
+      csound->Warning(csound, Str("Excess channels ignored\n"));
+    return OK;
+}
+
 int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
 {
     uint32_t nch = p->INOCOUNT;
-
     return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
 }
 
