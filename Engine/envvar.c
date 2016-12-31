@@ -1386,7 +1386,8 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
       csound->file_io_start = 1;
       csound->file_io_threadlock = csound->CreateThreadLock();
       csound->NotifyThreadLock(csound->file_io_threadlock);
-      csound->file_io_thread = csound->CreateThread((uintptr_t (*)(void *))file_iothread, (void *) csound);
+      csound->file_io_thread =
+        csound->CreateThread((uintptr_t (*)(void *))file_iothread, (void *) csound);
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     p->async_flag = ASYNC_GLOBAL;

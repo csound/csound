@@ -137,18 +137,21 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     else
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
-    if (isdigit(*hh)) {
+    if (*hh=='\0') {
+      hh = NULL;
+      p->lhost = csound->Strdup(csound, "localhost");
+    }
+    else     p->lhost = csound->Strdup(csound, hh);
+    if (hh && isdigit(*hh)) {
       int n = atoi(hh);
       p->multicast = (n>=224 && n<=239);
     }
     else p->multicast = 0;
     //printf("multicast=%d\n", p->multicast);
-    if (*hh=='\0') hh = NULL;
     p->addr = lo_address_new(hh, pp);
     // MKG: Seems to have been dropped from liblo.
     // But TTL 1 should be the default for multicast.
     if (p->multicast) lo_address_set_ttl(p->addr, 1);
-    p->lhost = csound->Strdup(csound, hh);
     p->cnt = 0;
     p->last = 0;
     csound->RegisterDeinitCallback(csound, p,
@@ -175,15 +178,15 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     else
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
-    //    if (*hh=='\0') hh = NULL;
+    if (*hh=='\0') hh = NULL;
     /*
        can this be done at init time?
        It was note that this could be creating
-       a latency penatly
+       a latency penalty
        Yes; cached -- JPff
     */
-    if (strcmp(p->lhost, hh)!=0) {
-      if(p->addr != NULL)
+    if (!(hh==NULL && p->lhost == NULL) || strcmp(p->lhost, hh)!=0) {
+      if (p->addr != NULL)
         lo_address_free(p->addr);
       p->addr = lo_address_new(hh, pp);
       // MKG: This seems to have been dropped from liblo.
@@ -193,13 +196,14 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
 #if defined(LINUX)
         if (setsockopt((long)p->addr, IPPROTO_IP,
                        IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1) {
-          csound->Message, csound, Str("Failed to set multicast");
+          csound->Message(csound, Str("Failed to set multicast"));
         }
 #else
         setsockopt(p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #endif
       }
-      csound->Free(csound, p->lhost); p->lhost = csound->Strdup(csound, hh);
+      csound->Free(csound, p->lhost);
+      if (hh) p->lhost = csound->Strdup(csound, hh); else p->lhost = NULL;
     }
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int i=0;

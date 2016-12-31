@@ -47,7 +47,7 @@ extern void print_csound_version(CSOUND* csound);
 /* IV - Feb 19 2005 */
 
 #ifdef EXPERIMENTAL
-static FILE *logFile = NULL;
+static FILE *logFile = NULL;    /* NOT THREAD SAFE */
 
 void msg_callback(CSOUND *csound,
                          int attr, const char *format, va_list args)
