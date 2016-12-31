@@ -1191,6 +1191,8 @@ OENTRY opcodlst_1[] = {
     (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange},
   { "nchnls_hw", S(ASSIGN), 0,1, "ii", "",
     (SUBR)hw_channels},
+   { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",
+     midiarp_set, midiarp, NULL },
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL       }
 };
