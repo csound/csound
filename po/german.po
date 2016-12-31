@@ -1417,137 +1417,137 @@ msgstr "\t... getan\n"
 msgid "playing from cscore.srt\n"
 msgstr ""
 
-#: Engine/musmon.c:351 Engine/musmon.c:516 Engine/musmon.c:1144
-#: Engine/musmon.c:1356
+#: Engine/musmon.c:351 Engine/musmon.c:515 Engine/musmon.c:1143
+#: Engine/musmon.c:1355
 #, c-format
 msgid "SECTION %d:\n"
 msgstr ""
 
-#: Engine/musmon.c:407
+#: Engine/musmon.c:406
 #, c-format
 msgid "%c\tbeep!\n"
 msgstr ""
 
-#: Engine/musmon.c:469
+#: Engine/musmon.c:468
 msgid "end of score.\t\t   overall amps:"
 msgstr ""
 
-#: Engine/musmon.c:480
+#: Engine/musmon.c:479
 msgid ""
 "\n"
 "\t   overall samples out of range:"
 msgstr ""
 
-#: Engine/musmon.c:484
+#: Engine/musmon.c:483
 #, c-format
 msgid ""
 "\n"
 "%d errors in performance\n"
 msgstr ""
 
-#: Engine/musmon.c:486
+#: Engine/musmon.c:485
 msgid "end of performance"
 msgstr ""
 
-#: Engine/musmon.c:499
+#: Engine/musmon.c:498
 msgid "no sound written to disk\n"
 msgstr ""
 
-#: Engine/musmon.c:592 Engine/musmon.c:638
+#: Engine/musmon.c:591 Engine/musmon.c:637
 msgid "\t number of samples out of range:"
 msgstr ""
 
-#: Engine/musmon.c:631
+#: Engine/musmon.c:630
 #, c-format
 msgid "end of section %d\t sect peak amps:"
 msgstr ""
 
-#: Engine/musmon.c:633
+#: Engine/musmon.c:632
 msgid "end of lplay event list\t      peak amps:"
 msgstr ""
 
-#: Engine/musmon.c:698 Engine/musmon.c:725
+#: Engine/musmon.c:697 Engine/musmon.c:724
 #, c-format
 msgid " - note deleted. instr %s undefined"
 msgstr ""
 
-#: Engine/musmon.c:702
+#: Engine/musmon.c:701
 #, c-format
 msgid "Setting instrument %s %s\n"
 msgstr ""
 
-#: Engine/musmon.c:703 Engine/musmon.c:717
+#: Engine/musmon.c:702 Engine/musmon.c:716
 msgid "off"
 msgstr ""
 
-#: Engine/musmon.c:703 Engine/musmon.c:717
+#: Engine/musmon.c:702 Engine/musmon.c:716
 msgid "on"
 msgstr ""
 
-#: Engine/musmon.c:712 Engine/musmon.c:754
+#: Engine/musmon.c:711 Engine/musmon.c:753
 #, c-format
 msgid " - note deleted. instr %d(%d) undefined"
 msgstr ""
 
-#: Engine/musmon.c:716
+#: Engine/musmon.c:715
 #, c-format
 msgid "Setting instrument %d %s\n"
 msgstr ""
 
-#: Engine/musmon.c:744
+#: Engine/musmon.c:743
 #, c-format
 msgid " - note deleted.  i%d (%s) had %d init errors"
 msgstr ""
 
-#: Engine/musmon.c:775
+#: Engine/musmon.c:774
 #, c-format
 msgid " - note deleted.  i%d had %d init errors"
 msgstr ""
 
-#: Engine/musmon.c:796
+#: Engine/musmon.c:795
 #, c-format
 msgid "time advanced %5.3f beats by score request\n"
 msgstr ""
 
-#: Engine/musmon.c:814
+#: Engine/musmon.c:813
 #, c-format
 msgid "\t\t   T%7.3f - note deleted. "
 msgstr ""
 
-#: Engine/musmon.c:818
+#: Engine/musmon.c:817
 #, c-format
 msgid "instr %s had %d init errors\n"
 msgstr ""
 
-#: Engine/musmon.c:821
+#: Engine/musmon.c:820
 #, c-format
 msgid "instr %d had %d init errors\n"
 msgstr ""
 
-#: Engine/musmon.c:918
+#: Engine/musmon.c:917
 msgid "terminating.\n"
 msgstr ""
 
-#: Engine/musmon.c:1005
+#: Engine/musmon.c:1004
 #, c-format
 msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr ""
 
-#: Engine/musmon.c:1268
+#: Engine/musmon.c:1267
 #, c-format
 msgid "insert_score_event(): invalid instrument number or name %d\n"
 msgstr ""
 
-#: Engine/musmon.c:1288
+#: Engine/musmon.c:1287
 #, c-format
 msgid "insert_score_event(): unknown opcode: %c\n"
 msgstr ""
 
-#: Engine/musmon.c:1311
+#: Engine/musmon.c:1310
 msgid "insert_score_event(): insufficient p-fields\n"
 msgstr ""
 
-#: Engine/musmon.c:1365
+#: Engine/musmon.c:1364
 msgid "cannot rewind score: no score in memory \n"
 msgstr ""
 
@@ -4036,23 +4036,31 @@ msgstr ""
 msgid "Input and output argument count differs in inch"
 msgstr ""
 
-#: OOps/aops.c:2108
+#: OOps/aops.c:1743
+msgid "Channel greater than nchnls"
+msgstr ""
+
+#: OOps/aops.c:1966
+msgid "Excess channels ignored\n"
+msgstr ""
+
+#: OOps/aops.c:2124
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:2144
+#: OOps/aops.c:2160
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:2174
+#: OOps/aops.c:2190
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 
-#: OOps/aops.c:2209
+#: OOps/aops.c:2225
 msgid "number of hardware output channels not currently available"
 msgstr ""
 
-#: OOps/aops.c:2214
+#: OOps/aops.c:2230
 msgid "number of hardware input channels not currently available"
 msgstr ""
 
@@ -4148,119 +4156,119 @@ msgstr "ACHTUNG: konnte nicht %s entfernen\n"
 msgid "compileorc: could not read %s\n"
 msgstr "pvsfwrite: konnte nicht Daten schreiben\n"
 
-#: OOps/diskin2.c:273
+#: OOps/diskin2.c:309
 msgid "diskin2: invalid number of channels"
 msgstr ""
 
-#: OOps/diskin2.c:289 OOps/diskin2.c:1761
+#: OOps/diskin2.c:325 OOps/diskin2.c:1571
 msgid "diskin2: unknown sample format"
 msgstr ""
 
-#: OOps/diskin2.c:304
+#: OOps/diskin2.c:340
 #, fuzzy, c-format
 msgid "diskin2: %s: failed to open file (%s)"
 msgstr "Störung Öffnung ASCII Akte"
 
-#: OOps/diskin2.c:315
+#: OOps/diskin2.c:351
 msgid ""
 "diskin2: number of output args inconsistent with number of file channels"
 msgstr ""
 
-#: OOps/diskin2.c:347 OOps/diskin2.c:1837
+#: OOps/diskin2.c:383 OOps/diskin2.c:1647
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: OOps/diskin2.c:433 OOps/diskin2.c:1930
+#: OOps/diskin2.c:469 OOps/diskin2.c:1741
 #, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:447 OOps/diskin2.c:1944
+#: OOps/diskin2.c:483 OOps/diskin2.c:1755
 #, c-format
 msgid ""
 "diskin2: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:528 OOps/diskin2.c:714 OOps/diskin2.c:910
-#: OOps/diskin2.c:1542 OOps/diskin2.c:1976 OOps/diskin2.c:2169
+#: OOps/diskin2.c:564 OOps/diskin2.c:750 OOps/diskin2.c:946
+#: OOps/diskin2.c:1352 OOps/diskin2.c:1787 OOps/diskin2.c:1980
 msgid "diskin2: not initialised"
 msgstr "diskin2: nicht initialisiert"
 
-#: OOps/diskin2.c:694 OOps/diskin2.c:885 OOps/diskin2.c:1713
-#: OOps/diskin2.c:2142
+#: OOps/diskin2.c:730 OOps/diskin2.c:921 OOps/diskin2.c:1523
+#: OOps/diskin2.c:1953
 msgid "diskin2: file descriptor closed or invalid\n"
 msgstr ""
 
-#: OOps/diskin2.c:1019
+#: OOps/diskin2.c:1031
+#, c-format
+msgid "%s is deprecated; use fout instead\n"
+msgstr ""
+
+#: OOps/diskin2.c:1069
+#, c-format
+msgid "%s: invalid sample format: %d"
+msgstr ""
+
+#: OOps/diskin2.c:1074
+#, c-format
+msgid "%s cannot open %s"
+msgstr ""
+
+#: OOps/diskin2.c:1086
+#, c-format
+msgid "%s: opening RAW outfile %s\n"
+msgstr ""
+
+#: OOps/diskin2.c:1111
+msgid "soundout: not initialised"
+msgstr "soundout: nicht initialisiert"
+
+#: OOps/diskin2.c:1133
+msgid "soundouts: not initialised"
+msgstr "soundouts: nicht initialisiert"
+
+#: OOps/diskin2.c:1586
+#, c-format
+msgid "diskin2: %s: failed to open file"
+msgstr ""
+
+#: OOps/diskin2.c:2105
 msgid "soundin: invalid number of channels"
 msgstr ""
 
-#: OOps/diskin2.c:1041
+#: OOps/diskin2.c:2127
 msgid "soundin: unknown sample format"
 msgstr ""
 
-#: OOps/diskin2.c:1062
+#: OOps/diskin2.c:2148
 #, c-format
 msgid "soundin: %s: failed to open file"
 msgstr ""
 
-#: OOps/diskin2.c:1070
+#: OOps/diskin2.c:2156
 #, c-format
 msgid ""
 "soundin: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:1080
+#: OOps/diskin2.c:2166
 msgid ""
 "soundin: number of output args inconsistent with number of file channels"
 msgstr ""
 
-#: OOps/diskin2.c:1089
+#: OOps/diskin2.c:2175
 #, c-format
 msgid "soundin: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: OOps/diskin2.c:1138
+#: OOps/diskin2.c:2225
 msgid "soundin: not initialised"
 msgstr "soundin: nicht initialisiert"
-
-#: OOps/diskin2.c:1221
-#, c-format
-msgid "%s is deprecated; use fout instead\n"
-msgstr ""
-
-#: OOps/diskin2.c:1259
-#, c-format
-msgid "%s: invalid sample format: %d"
-msgstr ""
-
-#: OOps/diskin2.c:1264
-#, c-format
-msgid "%s cannot open %s"
-msgstr ""
-
-#: OOps/diskin2.c:1276
-#, c-format
-msgid "%s: opening RAW outfile %s\n"
-msgstr ""
-
-#: OOps/diskin2.c:1301
-msgid "soundout: not initialised"
-msgstr "soundout: nicht initialisiert"
-
-#: OOps/diskin2.c:1323
-msgid "soundouts: not initialised"
-msgstr "soundouts: nicht initialisiert"
-
-#: OOps/diskin2.c:1776
-#, c-format
-msgid "diskin2: %s: failed to open file"
-msgstr ""
 
 #: OOps/disprep.c:60
 #, c-format
@@ -6361,20 +6369,21 @@ msgstr ""
 msgid "crossfm: ftable not found"
 msgstr ""
 
-#: Opcodes/date.c:116
-msgid "cannot determine current directory"
-msgstr ""
+#: Opcodes/date.c:124
+#, fuzzy, c-format
+msgid "cannot determine current directory: %s\n"
+msgstr "Störung Öffnung ASCII Akte"
 
-#: Opcodes/date.c:154
+#: Opcodes/date.c:164
 msgid "readf: failed to open file"
 msgstr ""
 
-#: Opcodes/date.c:181
+#: Opcodes/date.c:191
 #, fuzzy
 msgid "readf: read failure"
 msgstr "*** Speicherallozierungausfall\n"
 
-#: Opcodes/date.c:191 Opcodes/date.c:199
+#: Opcodes/date.c:201 Opcodes/date.c:209
 #, fuzzy
 msgid "readi failed to initialise"
 msgstr "lpread: nicht initialisiert"
@@ -11109,180 +11118,180 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1485
+#: Top/csound.c:1477
 #, c-format
 msgid "Multithread performance: insno: %3d  thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1491
+#: Top/csound.c:1483
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:1966 Top/csound.c:1998 Top/csound.c:2026 Top/csound.c:2062
-#: Top/csound.c:4216
+#: Top/csound.c:1958 Top/csound.c:1990 Top/csound.c:2018 Top/csound.c:2054
+#: Top/csound.c:4208
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:1982 Top/csound.c:2011
+#: Top/csound.c:1974 Top/csound.c:2003
 msgid "Score finished in csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:2005 Top/csound.c:4223
+#: Top/csound.c:1997 Top/csound.c:4215
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:2033
+#: Top/csound.c:2025
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:2071
+#: Top/csound.c:2063
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2079
+#: Top/csound.c:2071
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2090
+#: Top/csound.c:2082
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2379
+#: Top/csound.c:2371
 msgid "WARNING: "
 msgstr "ACHTUNG: "
 
-#: Top/csound.c:2520
+#: Top/csound.c:2512
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2521
+#: Top/csound.c:2513
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2550 Top/csound.c:2587
+#: Top/csound.c:2542 Top/csound.c:2579
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2554 Top/csound.c:2591
+#: Top/csound.c:2546 Top/csound.c:2583
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2708
+#: Top/csound.c:2700
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2713 Top/csound.c:2747
+#: Top/csound.c:2705 Top/csound.c:2739
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2716 Top/csound.c:2750
+#: Top/csound.c:2708 Top/csound.c:2742
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2742
+#: Top/csound.c:2734
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2764
+#: Top/csound.c:2756
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2927
+#: Top/csound.c:2919
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2949
+#: Top/csound.c:2941
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3091 Top/main.c:376
+#: Top/csound.c:3083 Top/main.c:376
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:3169
+#: Top/csound.c:3161
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3194
+#: Top/csound.c:3186
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3210
+#: Top/csound.c:3202
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3251
+#: Top/csound.c:3243
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:3276
+#: Top/csound.c:3268
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:3281
+#: Top/csound.c:3273
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3287
+#: Top/csound.c:3279
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3295
+#: Top/csound.c:3287
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3301
+#: Top/csound.c:3293
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3306
+#: Top/csound.c:3298
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3312
+#: Top/csound.c:3304
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3317
+#: Top/csound.c:3309
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3324
+#: Top/csound.c:3316
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3329
+#: Top/csound.c:3321
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3339
+#: Top/csound.c:3331
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3345
+#: Top/csound.c:3337
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3352
+#: Top/csound.c:3344
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3561
+#: Top/csound.c:3553
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3591
+#: Top/csound.c:3583
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4113
+#: Top/csound.c:4105
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4145
+#: Top/csound.c:4137
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
@@ -11386,7 +11395,7 @@ msgstr ""
 msgid "Syntax check completed.\n"
 msgstr "Syntaxprüfung durchgeführt.\n"
 
-#: Top/main.c:443 util/dnoise.c:266
+#: Top/main.c:443 util/dnoise.c:279
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr ""
@@ -12016,7 +12025,7 @@ msgstr ""
 msgid "illegal number of filenames"
 msgstr ""
 
-#: util/cvanal.c:117 util/dnoise.c:447 util/lpanal.c:534 util/pvanal.c:255
+#: util/cvanal.c:117 util/dnoise.c:460 util/lpanal.c:534 util/pvanal.c:255
 #: util/srconv.c:354
 #, c-format
 msgid "error while opening %s"
@@ -12057,256 +12066,256 @@ msgstr ""
 msgid "Soundfile analysis for convolve"
 msgstr ""
 
-#: util/dnoise.c:283
+#: util/dnoise.c:296
 msgid "-o cannot be stdin\n"
 msgstr ""
 
-#: util/dnoise.c:295
+#: util/dnoise.c:308
 msgid "-A overriding local default WAV out"
 msgstr ""
 
-#: util/dnoise.c:300
+#: util/dnoise.c:313
 msgid "-J overriding local default AIFF/WAV out"
 msgstr ""
 
-#: util/dnoise.c:307
+#: util/dnoise.c:320
 msgid "-W overriding local default AIFF out"
 msgstr ""
 
-#: util/dnoise.c:347
+#: util/dnoise.c:360
 msgid "no t argument"
 msgstr ""
 
-#: util/dnoise.c:370
+#: util/dnoise.c:383
 msgid "no n argument"
 msgstr ""
 
-#: util/dnoise.c:375
+#: util/dnoise.c:388
 msgid "no b argument"
 msgstr ""
 
-#: util/dnoise.c:383
+#: util/dnoise.c:396
 msgid "no B argument"
 msgstr ""
 
-#: util/dnoise.c:395
+#: util/dnoise.c:408
 msgid "no E argument"
 msgstr ""
 
-#: util/dnoise.c:399
+#: util/dnoise.c:412
 msgid "no N argument"
 msgstr ""
 
-#: util/dnoise.c:403
+#: util/dnoise.c:416
 msgid "no M argument"
 msgstr ""
 
-#: util/dnoise.c:407
+#: util/dnoise.c:420
 msgid "no L argument"
 msgstr ""
 
-#: util/dnoise.c:411
+#: util/dnoise.c:424
 msgid "no w argument"
 msgstr ""
 
-#: util/dnoise.c:415
+#: util/dnoise.c:428
 msgid "no D argument"
 msgstr ""
 
-#: util/dnoise.c:422 util/srconv.c:331
+#: util/dnoise.c:435 util/srconv.c:331
 #, c-format
 msgid "Looking at %c\n"
 msgstr ""
 
-#: util/dnoise.c:429 util/srconv.c:339
+#: util/dnoise.c:442 util/srconv.c:339
 #, c-format
 msgid "Infile set to %s\n"
 msgstr ""
 
-#: util/dnoise.c:432 util/srconv.c:342
+#: util/dnoise.c:445 util/srconv.c:342
 #, c-format
 msgid "End with %s\n"
 msgstr ""
 
-#: util/dnoise.c:438
+#: util/dnoise.c:451
 msgid "dnoise: no input file\n"
 msgstr ""
 
-#: util/dnoise.c:442
+#: util/dnoise.c:455
 msgid "Must have an example noise file (-i name)\n"
 msgstr ""
 
-#: util/dnoise.c:470
+#: util/dnoise.c:483
 #, c-format
 msgid "cannot open %s.\n"
 msgstr ""
 
-#: util/dnoise.c:482 util/srconv.c:475 util/srconv.c:493
+#: util/dnoise.c:495 util/srconv.c:475 util/srconv.c:493
 #, c-format
 msgid "cannot open %s."
 msgstr ""
 
-#: util/dnoise.c:502
+#: util/dnoise.c:515
 msgid "dnoise: input MUST be mono or stereo\n"
 msgstr ""
 
-#: util/dnoise.c:510
+#: util/dnoise.c:523
 msgid "dnoise: cannot open noise reference file\n"
 msgstr ""
 
-#: util/dnoise.c:515
+#: util/dnoise.c:528
 msgid "Incompatible sample rates\n"
 msgstr ""
 
-#: util/dnoise.c:534
+#: util/dnoise.c:547
 #, c-format
 msgid "dnoise: warning - N not a valid power of two; revised N = %d\n"
 msgstr ""
 
-#: util/dnoise.c:544
+#: util/dnoise.c:562
 msgid "dnoise: warning - do not specify both M and W\n"
 msgstr ""
 
-#: util/dnoise.c:554
+#: util/dnoise.c:572
 msgid "dnoise: warning - invalid W ignored\n"
 msgstr ""
 
-#: util/dnoise.c:568
+#: util/dnoise.c:586
 msgid "dnoise: warning - M is too small\n"
 msgstr ""
 
-#: util/dnoise.c:579
+#: util/dnoise.c:597
 msgid "dnoise: M too large\n"
 msgstr ""
 
-#: util/dnoise.c:585
+#: util/dnoise.c:603
 msgid "dnoise: L too large\n"
 msgstr ""
 
-#: util/dnoise.c:595
+#: util/dnoise.c:613
 #, c-format
 msgid "writing %u-byte blks of %s to %s"
 msgstr ""
 
-#: util/dnoise.c:620 util/dnoise.c:659 util/dnoise.c:714 util/dnoise.c:725
-#: util/dnoise.c:729 util/dnoise.c:736 util/dnoise.c:746 util/dnoise.c:751
-#: util/dnoise.c:755 util/dnoise.c:759 util/dnoise.c:763
+#: util/dnoise.c:638 util/dnoise.c:677 util/dnoise.c:732 util/dnoise.c:743
+#: util/dnoise.c:747 util/dnoise.c:754 util/dnoise.c:764 util/dnoise.c:769
+#: util/dnoise.c:773 util/dnoise.c:777 util/dnoise.c:781
 msgid "dnoise: insufficient memory\n"
 msgstr ""
 
-#: util/dnoise.c:774 util/dnoise.c:785
+#: util/dnoise.c:792 util/dnoise.c:803
 msgid "dnoise: begin time is greater than EOF of noise file!"
 msgstr ""
 
-#: util/dnoise.c:819
+#: util/dnoise.c:836
 msgid "dnoise: not enough samples of noise reference\n"
 msgstr ""
 
-#: util/dnoise.c:1117
+#: util/dnoise.c:1140
 #, c-format
 msgid "%5.1f seconds of input complete\n"
 msgstr ""
 
-#: util/dnoise.c:1136
+#: util/dnoise.c:1159
 msgid "processing complete\n"
 msgstr ""
 
-#: util/dnoise.c:1146
+#: util/dnoise.c:1169
 msgid "usage: dnoise [flags] input_file"
 msgstr ""
 
-#: util/dnoise.c:1148
+#: util/dnoise.c:1171
 msgid "flags:"
 msgstr ""
 
-#: util/dnoise.c:1149
+#: util/dnoise.c:1172
 msgid "i = noise reference soundfile"
 msgstr ""
 
-#: util/dnoise.c:1150
+#: util/dnoise.c:1173
 msgid "o = output file"
 msgstr ""
 
-#: util/dnoise.c:1151
+#: util/dnoise.c:1174
 msgid "N = # of bandpass filters (1024)"
 msgstr ""
 
-#: util/dnoise.c:1152
+#: util/dnoise.c:1175
 msgid "w = filter overlap factor: {0,1,(2),3} DO NOT USE -w AND -M"
 msgstr ""
 
-#: util/dnoise.c:1153
+#: util/dnoise.c:1176
 msgid "M = analysis window length (N-1 unless -w is specified)"
 msgstr ""
 
-#: util/dnoise.c:1154
+#: util/dnoise.c:1177
 msgid "L = synthesis window length (M)"
 msgstr ""
 
-#: util/dnoise.c:1155
+#: util/dnoise.c:1178
 msgid "D = decimation factor (M/8)"
 msgstr ""
 
-#: util/dnoise.c:1156
+#: util/dnoise.c:1179
 msgid "b = begin time in noise reference soundfile (0)"
 msgstr ""
 
-#: util/dnoise.c:1157
+#: util/dnoise.c:1180
 msgid "B = starting sample in noise reference soundfile (0)"
 msgstr ""
 
-#: util/dnoise.c:1158
+#: util/dnoise.c:1181
 msgid "e = end time in noise reference soundfile (end)"
 msgstr ""
 
-#: util/dnoise.c:1159
+#: util/dnoise.c:1182
 msgid "E = final sample in noise reference soundfile (end)"
 msgstr ""
 
-#: util/dnoise.c:1160
+#: util/dnoise.c:1183
 msgid "t = threshold above noise reference in dB (30)"
 msgstr ""
 
-#: util/dnoise.c:1161
+#: util/dnoise.c:1184
 msgid "S = sharpness of noise-gate turnoff (1) (1 to 5)"
 msgstr ""
 
-#: util/dnoise.c:1162
+#: util/dnoise.c:1185
 msgid "n = number of FFT frames to average over (5)"
 msgstr ""
 
-#: util/dnoise.c:1163
+#: util/dnoise.c:1186
 msgid "m = minimum gain of noise-gate when off in dB (-40)"
 msgstr ""
 
-#: util/dnoise.c:1164
+#: util/dnoise.c:1187
 msgid "V : verbose - print status info"
 msgstr ""
 
-#: util/dnoise.c:1165
+#: util/dnoise.c:1188
 msgid "A : AIFF format output"
 msgstr ""
 
-#: util/dnoise.c:1166
+#: util/dnoise.c:1189
 msgid "W : WAV format output"
 msgstr ""
 
-#: util/dnoise.c:1167
+#: util/dnoise.c:1190
 msgid "J : IRCAM format output"
 msgstr ""
 
-#: util/dnoise.c:1186
+#: util/dnoise.c:1209
 #, c-format
 msgid "soundfile write returned sample count of %d, not %d\n"
 msgstr ""
 
-#: util/dnoise.c:1188
+#: util/dnoise.c:1211
 msgid ""
 "(disk may be full...\n"
 " closing the file ...)\n"
 msgstr ""
 
-#: util/dnoise.c:1256
+#: util/dnoise.c:1279
 msgid "Removes noise from a sound file"
 msgstr ""
 

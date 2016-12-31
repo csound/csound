@@ -1079,7 +1079,7 @@ static void FetchADDNZbands(int ptls, int firstband, double *datastart,
 
 }
 
-static double freqs[25]= {
+static const double freqs[25]= {
   100.0, 100.0, 100.0, 100.0, 110.0, 120.0, 140.0, 150.0, 160.0, 190.0,
   210.0, 240.0, 280.0, 320.0, 380.0, 450.0, 550.0, 700.0, 900.0, 1100.0,
   1300.0, 1800.0, 2500.0, 3500.0, 4500.0};

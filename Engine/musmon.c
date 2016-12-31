@@ -362,7 +362,7 @@ int musmon(CSOUND *csound)
       csoundUnlockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 1;
       csound->init_pass_thread = csound->CreateThread(
-          (uintptr_t (*)(void*)) init_pass_thread, 
+          (uintptr_t (*)(void*)) init_pass_thread,
           (void*)csound);
 
     }
@@ -911,7 +911,6 @@ int sensevents(CSOUND *csound)
     if (data && data->status == CSDEBUG_STATUS_STOPPED) {
         return 0; /* don't process events if we're in debug mode and stopped */
     }
-
     if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
       deactivate_all_notes(csound);
       csound->Message(csound, Str("terminating.\n"));
@@ -941,7 +940,6 @@ int sensevents(CSOUND *csound)
       else                                  /* this should only happen at */
         csound->cyclesRemaining = 0;        /* beginning of performance   */
     }
-
  retest:
     while (csound->cyclesRemaining <= 0) {   /* read each score event:     */
       if (e->opcod != '\0') {
@@ -1007,8 +1005,6 @@ int sensevents(CSOUND *csound)
           continue;
         }
       }
-
-
       /* calculate the number of k-periods remaining until next event */
       if (!O->sampleAccurate) {
         if (O->Beatmode)
@@ -1037,15 +1033,10 @@ int sensevents(CSOUND *csound)
         }
       }
     }
-
-
-
-
     /* handle any real time events now: */
     /* FIXME: the initialisation pass of real time */
     /*   events is not sorted by instrument number */
     /*   (although it never was sorted anyway...)  */
-
     if (UNLIKELY(O->RTevents || getRemoteSocksIn(csound))) {
       int nrecvd;
       /* run all registered callback functions */
@@ -1111,7 +1102,6 @@ int sensevents(CSOUND *csound)
     }
     /* no score event at this time, return to continue performance */
     return 0;
-
  scode:
     /* end of section (retval == 1), score (retval == 2), */
     /* or lplay list (retval == 3) */
@@ -1134,7 +1124,6 @@ int sensevents(CSOUND *csound)
     }
     else{
       section_amps(csound, 0);
-
     }
     if (retval == 1) {                        /* if s code,        */
       orcompact(csound);                      /*   rtn inactiv spc */
@@ -1143,7 +1132,6 @@ int sensevents(CSOUND *csound)
       csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
       goto retest;                            /*   & back for more */
     }
-
     return 2;                   /* done with entire score */
 }
 
