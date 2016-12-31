@@ -615,8 +615,9 @@ int midiarp_set(CSOUND *csound, MIDIARP *p)
   p->data1=0, p->data2=0;
 	
   p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
-    
-  for(int cnt=0;cnt<10;cnt++)
+
+  int cnt;
+  for(cnt=0;cnt<10;cnt++)
     p->notes[cnt] = 0;
 	
   return OK;
