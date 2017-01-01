@@ -49,12 +49,10 @@
 /**
  * This may help avoid problems with the order of static initializations.
  */
-static std::map<CSOUND *, std::vector<fluid_synth_t *> >
-                &getFluidSynthsForCsoundInstances()
+static std::vector<fluid_synth_t *> &getFluidSynths()
 {
-    static std::map<CSOUND *, std::vector<fluid_synth_t *> >
-                fluidSynthsForCsoundInstances;
-    return fluidSynthsForCsoundInstances;
+    static std::vector<fluid_synth_t *> fluidSynths_;
+    return fluidSynths_;
 }
 
 /**
@@ -173,7 +171,7 @@ public:
                     channelCount,
                     voiceCount);
                 tof(fluidSynth, iFluidSynth);
-                getFluidSynthsForCsoundInstances()[csound].push_back(fluidSynth);
+                getFluidSynths().push_back(fluidSynth);
             }
         }
         return result;
@@ -467,8 +465,7 @@ public:
             memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
             memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
           }
-          std::vector<fluid_synth_t *> &fluidSynths =
-            getFluidSynthsForCsoundInstances()[csound];
+          std::vector<fluid_synth_t *> &fluidSynths = getFluidSynths();
           for (frame = offset; frame < ksmps; frame++) {
             aLeftOut[frame] = FL(0.0);
             aRightOut[frame] = FL(0.0);
@@ -805,10 +802,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
 #pragma omp critical (critical_section_fluidopcodes)
     {
-      std::map<CSOUND *, std::vector<fluid_synth_t *> > &fluidEngines =
-                                      getFluidSynthsForCsoundInstances();
-      std::vector<fluid_synth_t *> &fluidSynths = fluidEngines[csound];
-
+      std::vector<fluid_synth_t *> &fluidSynths = getFluidSynths();
       for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
         fluid_synth_t *fluidSynth = fluidSynths[i];
         //csound->Message(csound, "deleting engine %p \n", fluidSynth);
@@ -817,7 +811,6 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
         delete_fluid_settings(fluidSettings);
       }
       fluidSynths.clear();
-      fluidEngines.erase(csound);
     }
     return 0;
 }
