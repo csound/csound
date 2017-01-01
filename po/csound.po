@@ -163,25 +163,25 @@ msgstr ""
 msgid "Invalid NULL Parameter out_set_element"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:64 Engine/cs_par_dispatch.c:77
+#: Engine/cs_par_dispatch.c:59 Engine/cs_par_dispatch.c:72
 #, c-format
 msgid "Poorly specified global lock index: %i [max: %i]\n"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:91 Engine/cs_par_dispatch.c:111
+#: Engine/cs_par_dispatch.c:86 Engine/cs_par_dispatch.c:106
 msgid "Invalid NULL parameter name for a global variable\n"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:142
+#: Engine/cs_par_dispatch.c:137
 msgid "Inserting Parallelism Constructs into AST\n"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:165
+#: Engine/cs_par_dispatch.c:160
 #, c-format
 msgid "Instr %d needs locks"
 msgstr ""
 
-#: Engine/cs_par_dispatch.c:245
+#: Engine/cs_par_dispatch.c:240
 msgid "[End Inserting Parallelism Constructs into AST]\n"
 msgstr ""
 
@@ -608,7 +608,7 @@ msgid "insufficient gen arguments"
 msgstr ""
 
 #: Engine/fgens.c:211 Opcodes/ftgen.c:118 Opcodes/ftgen.c:648
-#: Opcodes/signalflowgraph.cpp:1479
+#: Opcodes/signalflowgraph.cpp:1610
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr ""
@@ -1399,8 +1399,8 @@ msgstr ""
 msgid "playing from cscore.srt\n"
 msgstr ""
 
-#: Engine/musmon.c:351 Engine/musmon.c:515 Engine/musmon.c:1143
-#: Engine/musmon.c:1355
+#: Engine/musmon.c:351 Engine/musmon.c:515 Engine/musmon.c:1132
+#: Engine/musmon.c:1343
 #, c-format
 msgid "SECTION %d:\n"
 msgstr ""
@@ -1506,30 +1506,30 @@ msgstr ""
 msgid "instr %d had %d init errors\n"
 msgstr ""
 
-#: Engine/musmon.c:917
+#: Engine/musmon.c:916
 msgid "terminating.\n"
 msgstr ""
 
-#: Engine/musmon.c:1004
+#: Engine/musmon.c:1002
 #, c-format
 msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr ""
 
-#: Engine/musmon.c:1267
+#: Engine/musmon.c:1255
 #, c-format
 msgid "insert_score_event(): invalid instrument number or name %d\n"
 msgstr ""
 
-#: Engine/musmon.c:1287
+#: Engine/musmon.c:1275
 #, c-format
 msgid "insert_score_event(): unknown opcode: %c\n"
 msgstr ""
 
-#: Engine/musmon.c:1310
+#: Engine/musmon.c:1298
 msgid "insert_score_event(): insufficient p-fields\n"
 msgstr ""
 
-#: Engine/musmon.c:1364
+#: Engine/musmon.c:1352
 msgid "cannot rewind score: no score in memory \n"
 msgstr ""
 
@@ -4398,6 +4398,11 @@ msgstr ""
 msgid "pgmassign: invalid program number"
 msgstr ""
 
+#: OOps/midiops.c:745
+#, c-format
+msgid "Invalid arp mode selected: %d. Valid modes are 0, 1, 2, and 3\n"
+msgstr ""
+
 #: OOps/midiout.c:119
 msgid "illegal mrtmsg argument"
 msgstr ""
@@ -5830,73 +5835,73 @@ msgstr ""
 msgid "Too many arguments to OSCsend"
 msgstr ""
 
-#: Opcodes/OSC.c:196
+#: Opcodes/OSC.c:199
 msgid "Failed to set multicast"
 msgstr ""
 
-#: Opcodes/OSC.c:254
+#: Opcodes/OSC.c:258
 msgid "Time stamp is two values"
 msgstr ""
 
-#: Opcodes/OSC.c:278
+#: Opcodes/OSC.c:282
 #, c-format
 msgid "ftable %.2f does not exist"
 msgstr ""
 
-#: Opcodes/OSC.c:314
+#: Opcodes/OSC.c:318
 #, c-format
 msgid "argument %d is not an array"
 msgstr ""
 
-#: Opcodes/OSC.c:336
+#: Opcodes/OSC.c:340
 #, c-format
 msgid "Unknown OSC type %c\n"
 msgstr ""
 
-#: Opcodes/OSC.c:370
+#: Opcodes/OSC.c:374
 msgid "OSC: failed to allocate globals"
 msgstr ""
 
-#: Opcodes/OSC.c:518
+#: Opcodes/OSC.c:522
 msgid "OSC deinitiatised\n"
 msgstr ""
 
-#: Opcodes/OSC.c:541 Opcodes/OSC.c:577
+#: Opcodes/OSC.c:545 Opcodes/OSC.c:581
 #, c-format
 msgid "cannot start OSC listener on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:550
+#: Opcodes/OSC.c:554
 #, c-format
 msgid "OSC listener #%d started on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:587
+#: Opcodes/OSC.c:591
 #, c-format
 msgid "OSC multicast listener #%d started on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:640
+#: Opcodes/OSC.c:644
 msgid "OSC not running"
 msgstr ""
 
-#: Opcodes/OSC.c:644
+#: Opcodes/OSC.c:648
 msgid "invalid handle"
 msgstr ""
 
-#: Opcodes/OSC.c:652
+#: Opcodes/OSC.c:656
 msgid "invalid number of arguments"
 msgstr ""
 
-#: Opcodes/OSC.c:677 Opcodes/OSC.c:682
+#: Opcodes/OSC.c:681 Opcodes/OSC.c:686
 msgid "argument list inconsistent with format string"
 msgstr ""
 
-#: Opcodes/OSC.c:686
+#: Opcodes/OSC.c:690
 msgid "invalid type"
 msgstr ""
 
-#: Opcodes/OSC.c:782
+#: Opcodes/OSC.c:786
 #, c-format
 msgid "Invalid ftable no. %d"
 msgstr ""
@@ -6622,7 +6627,7 @@ msgstr ""
 msgid "Error deleting ftable %d"
 msgstr ""
 
-#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1501
+#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1635
 msgid "ftgen string arg not allowed"
 msgstr ""
 
@@ -8395,7 +8400,7 @@ msgstr ""
 #: Opcodes/pvlock.c:871 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:710
 #: Opcodes/pvsbasic.c:1036 Opcodes/pvsbasic.c:1250 Opcodes/pvsbasic.c:1357
 #: Opcodes/pvsbasic.c:1595 Opcodes/pvsbasic.c:1813 Opcodes/pvsbasic.c:1987
-#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:763
+#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:819
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
@@ -8864,98 +8869,98 @@ msgstr ""
 msgid "powershape: ifullscale must be strictly positive"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:356 Opcodes/signalflowgraph.cpp:509
-#: Opcodes/signalflowgraph.cpp:1030
+#: Opcodes/signalflowgraph.cpp:360 Opcodes/signalflowgraph.cpp:531
+#: Opcodes/signalflowgraph.cpp:1112
 #, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:370
+#: Opcodes/signalflowgraph.cpp:376
 #, c-format
 msgid "Removed instance 0x%x of %d instances of outleta %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:423 Opcodes/signalflowgraph.cpp:570
-#: Opcodes/signalflowgraph.cpp:712 Opcodes/signalflowgraph.cpp:1095
+#: Opcodes/signalflowgraph.cpp:433 Opcodes/signalflowgraph.cpp:599
+#: Opcodes/signalflowgraph.cpp:761 Opcodes/signalflowgraph.cpp:1184
 #, c-format
 msgid "Created instance 0x%x of inlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:437 Opcodes/signalflowgraph.cpp:727
-#: Opcodes/signalflowgraph.cpp:1105
+#: Opcodes/signalflowgraph.cpp:447 Opcodes/signalflowgraph.cpp:776
+#: Opcodes/signalflowgraph.cpp:1194
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:522
+#: Opcodes/signalflowgraph.cpp:547
 #, c-format
 msgid "Removed 0x%x of %d instances of outletk %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:584
+#: Opcodes/signalflowgraph.cpp:613
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:648
+#: Opcodes/signalflowgraph.cpp:691
 #, c-format
 msgid "Created instance 0x%x of outlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:661
+#: Opcodes/signalflowgraph.cpp:706
 #, c-format
 msgid "Removed 0x%x of %d instances of outletf %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:790
+#: Opcodes/signalflowgraph.cpp:846
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:857
+#: Opcodes/signalflowgraph.cpp:920
 #, c-format
 msgid ""
 "Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: "
 "%2d size: %4d [%4d] data: 0x%x (0x%x))\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:871
+#: Opcodes/signalflowgraph.cpp:936
 #, c-format
 msgid "Removed 0x%x of %d instances of outletv %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:931
+#: Opcodes/signalflowgraph.cpp:1000
 #, c-format
 msgid ""
 "Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d "
 "[%4d] data: 0x%x (0x%x))\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:946
+#: Opcodes/signalflowgraph.cpp:1015
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1043
+#: Opcodes/signalflowgraph.cpp:1128
 #, c-format
 msgid "Removed 0x%x of %d instances of outletkid %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1185 Opcodes/signalflowgraph.cpp:1231
-#: Opcodes/signalflowgraph.cpp:1279 Opcodes/signalflowgraph.cpp:1323
+#: Opcodes/signalflowgraph.cpp:1287 Opcodes/signalflowgraph.cpp:1340
+#: Opcodes/signalflowgraph.cpp:1394 Opcodes/signalflowgraph.cpp:1444
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1518 Opcodes/signalflowgraph.cpp:1522
+#: Opcodes/signalflowgraph.cpp:1652 Opcodes/signalflowgraph.cpp:1656
 #, c-format
 msgid "ftgenonce: re-using existing func: %f\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1528
+#: Opcodes/signalflowgraph.cpp:1662
 msgid "ftgenonce error"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1533
+#: Opcodes/signalflowgraph.cpp:1667
 #, c-format
 msgid "ftgenonce: created new func: %d\n"
 msgstr ""
@@ -10994,171 +10999,176 @@ msgstr ""
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:1958 Top/csound.c:1990 Top/csound.c:2018 Top/csound.c:2054
-#: Top/csound.c:4208
+#: Top/csound.c:1957 Top/csound.c:1989 Top/csound.c:2017 Top/csound.c:2053
+#: Top/csound.c:4207
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:1974 Top/csound.c:2003
-msgid "Score finished in csoundPerformKsmps().\n"
+#: Top/csound.c:1973
+#, c-format
+msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr ""
 
-#: Top/csound.c:1997 Top/csound.c:4215
+#: Top/csound.c:1996 Top/csound.c:4214
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:2025
+#: Top/csound.c:2002
+msgid "Score finished in csoundPerformKsmpsInternal().\n"
+msgstr ""
+
+#: Top/csound.c:2024
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:2063
+#: Top/csound.c:2062
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2071
+#: Top/csound.c:2070
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2082
+#: Top/csound.c:2081
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2371
+#: Top/csound.c:2370
 msgid "WARNING: "
 msgstr ""
 
-#: Top/csound.c:2512
+#: Top/csound.c:2511
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2513
+#: Top/csound.c:2512
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2542 Top/csound.c:2579
+#: Top/csound.c:2541 Top/csound.c:2578
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2546 Top/csound.c:2583
+#: Top/csound.c:2545 Top/csound.c:2582
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2700
+#: Top/csound.c:2699
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2705 Top/csound.c:2739
+#: Top/csound.c:2704 Top/csound.c:2738
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2708 Top/csound.c:2742
+#: Top/csound.c:2707 Top/csound.c:2741
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2734
+#: Top/csound.c:2733
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2756
+#: Top/csound.c:2755
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2919
+#: Top/csound.c:2918
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2941
+#: Top/csound.c:2940
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3083 Top/main.c:376
+#: Top/csound.c:3082 Top/main.c:376
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:3161
+#: Top/csound.c:3160
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3186
+#: Top/csound.c:3185
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3202
+#: Top/csound.c:3201
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3243
+#: Top/csound.c:3242
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:3268
+#: Top/csound.c:3267
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:3273
+#: Top/csound.c:3272
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3279
+#: Top/csound.c:3278
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3287
+#: Top/csound.c:3286
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3293
+#: Top/csound.c:3292
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3298
+#: Top/csound.c:3297
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3304
+#: Top/csound.c:3303
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3309
+#: Top/csound.c:3308
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3316
+#: Top/csound.c:3315
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3321
+#: Top/csound.c:3320
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3331
+#: Top/csound.c:3330
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3337
+#: Top/csound.c:3336
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3344
+#: Top/csound.c:3343
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3553
+#: Top/csound.c:3552
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3583
+#: Top/csound.c:3582
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4105
+#: Top/csound.c:4104
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4137
+#: Top/csound.c:4136
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
