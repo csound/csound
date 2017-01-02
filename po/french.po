@@ -4544,7 +4544,7 @@ msgstr "pgmassign : numéro de programme non valide"
 #: OOps/midiops.c:745
 #, c-format
 msgid "Invalid arp mode selected: %d. Valid modes are 0, 1, 2, and 3\n"
-msgstr ""
+msgstr "Mode arp sélectionné non valide: %d. Les modes autorisés sont 0, 1, 2 et 3\n"
 
 #: OOps/midiout.c:119
 msgid "illegal mrtmsg argument"
@@ -11582,18 +11582,17 @@ msgstr ""
 "Csound n'est pas prêt pour l'exécution : csoundStart() n'a pas été appelée\n"
 
 #: Top/csound.c:1973
-#, fuzzy, c-format
+#, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
-msgstr "La partition est finie dans csoundPerformKsmps().\n"
+msgstr "La partition est finie dans csoundPerformKsmps() avec %d.\n"
 
 #: Top/csound.c:1996 Top/csound.c:4214
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr "Retour prématuré de csoundPerformKsmps().\n"
 
 #: Top/csound.c:2002
-#, fuzzy
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
-msgstr "La partition est finie dans csoundPerformKsmps().\n"
+msgstr "La partition est finie dans csoundPerformKsmpsInternal().\n"
 
 #: Top/csound.c:2024
 msgid "Early return from csoundPerformBuffer().\n"
