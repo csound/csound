@@ -317,9 +317,9 @@ static void sensLine(CSOUND *csound, void *userData)
           cp = newcp - 1;
         } while (pcnt < PMAX);
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
-        else        /* check sufficient pfields */
-          if (UNLIKELY(pcnt < 3 && e.opcod != 'e')) {
-            csound->ErrorMsg(csound, Str("too few pfields"));
+        else        /* Check for sufficient pfields (0-based, opcode counted already). */
+          if (UNLIKELY(pcnt < 2 && e.opcod != 'e')) {
+            csound->ErrorMsg(csound, Str("too few pfields (%d)"), pcnt + 1);
             goto Lerr;
           }
         if (UNLIKELY(pcnt > 1 && e.p[2] < FL(0.0))) {
