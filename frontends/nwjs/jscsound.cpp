@@ -409,6 +409,16 @@ void setScorePending(const FunctionCallbackInfo<Value>& args)
 }
 
 /**
+ * Starts the Csound performance.
+ */
+void start(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    csoundStart(csound_);
+}
+
+/**
  * Stops any ongoing Csound performance.
  */
 void stop(const FunctionCallbackInfo<Value>& args)
@@ -441,12 +451,11 @@ void uv_csound_message_callback(uv_async_t *handle)
 void uv_csound_perform_thread_routine(void * arg)
 {
     csoundMessage(csound_, "Began JavaScript perform()...\n");
-    csoundStart(csound_);
     int result = 0;
     ScoreEvent *event = 0;
     char *score_text = 0;
     for (stop_playing = false, finished = false, paused = false;
-            ((stop_playing == false) && (finished == false)); ) {
+            ((stop_playing == false) && (finished == 0)); ) {
         if (paused == false) {
 #if defined(_MSC_VER)
             while (csound_event_queue.try_pop(event)) {
@@ -515,6 +524,7 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "setMessageCallback", setMessageCallback);
     NODE_SET_METHOD(target, "setOption", setOption);
     NODE_SET_METHOD(target, "setScorePending", setScorePending);
+    NODE_SET_METHOD(target, "start", start);
     NODE_SET_METHOD(target, "stop", stop);
     uv_async_init(uv_default_loop(), &uv_csound_message_async, uv_csound_message_callback);
     std::atexit(&on_exit);
