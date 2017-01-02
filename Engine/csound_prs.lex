@@ -74,12 +74,12 @@ STSTR           \"
 ESCAPE          \\.
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTN          [a-zA-Z0-9_]+
-MACRONAME       "$"[a-zA-Z_][a-zA-Z0-9_]*
-MACRONAMED      "$"[a-zA-Z_][a-zA-Z0-9_]*\.
-MACRONAMEA      "$"[a-zA-Z_][a-zA-Z0-9_]*\(
-MACRONAMEDA     "$"[a-zA-Z_][a-zA-Z0-9_]*\.\(
-MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
-MACRO           [a-zA-Z_][a-zA-Z0-9_]*
+MACRONAME       "$"[a-zA-Z][a-zA-Z0-9_]*
+MACRONAMED      "$"[a-zA-Z][a-zA-Z0-9_]*\.
+MACRONAMEA      "$"[a-zA-Z][a-zA-Z0-9_]*\(
+MACRONAMEDA     "$"[a-zA-Z][a-zA-Z0-9_]*\.\(
+MACROB          [a-zA-Z](_?[a-zA-Z0-9])*\(
+MACRO           [a-zA-Z](_?[a-zA-Z0-9])*
 
 STCOM           \/\*
 INCLUDE         "#include"
@@ -1318,14 +1318,14 @@ static void csound_prs_line(CORFIL* cf, void *yyscanner)
     /* This assumes that the initial line was not written with this system  */
     if (cf->p>0 && cf->body[cf->p-1]=='\n') {
       uint64_t locn = PARM->locn;
+#if 0
       uint64_t llocn = PARM->llocn;
-/* #ifdef SCORE_PARSER */
-/*       if (locn != llocn) { */
-/*         //char bb[80]; */
-/*         //sprintf(bb, "#source %llu\n", locn); */
-/*         //corfile_puts(bb, cf); */
-/*       } */
-/* #endif */
+      if (locn != llocn) {
+        //char bb[80];
+        //sprintf(bb, "#source %llu\n", locn);
+        //corfile_puts(bb, cf);
+      }
+#endif
       PARM->llocn = locn;
 #ifdef SCORE_PARSER
       //if (n!=PARM->line+1) {
