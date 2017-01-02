@@ -65,12 +65,13 @@ STSTR           \"
 ESCAPE          \\.
 XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-MACRONAME       "$"[a-zA-Z_][a-zA-Z0-9_]*
-MACRONAMED      "$"[a-zA-Z_][a-zA-Z0-9_]*\.
-MACRONAMEA      "$"[a-zA-Z_][a-zA-Z0-9_]*\(
-MACRONAMEDA     "$"[a-zA-Z_][a-zA-Z0-9_]*\.\(
-MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
-MACRO           [a-zA-Z_][a-zA-Z0-9_]*
+MACRONAME       "$"[a-zA-Z][a-zA-Z0-9_]*
+MACRONAMED      "$"[a-zA-Z][a-zA-Z0-9_]*\.
+MACRONAMEA      "$"[a-zA-Z][a-zA-Z0-9_]*\(
+MACRONAMEDA     "$"[a-zA-Z][a-zA-Z0-9_]*\.\(
+MACROB          [a-zA-Z](_?[a-zA-Z0-9]*)\(
+MACRO           [a-zA-Z](_?[a-zA-Z0-9_])*
+
 
 STCOM           \/\*
 INCLUDE         "#include"
