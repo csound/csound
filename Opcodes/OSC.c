@@ -785,8 +785,10 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("Invalid ftable no. %d"), fno);
             ftp = csound->FTFindP(csound, p->args[i]);
-            if (ftp==NULL) // need to allocate ***FIXME***
-              {}
+            if (ftp==NULL) { // need to allocate ***FIXME***
+              return csound->PerfError(csound, p->h.insdshead,
+                                       Str("OSC internal error"));
+            }
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
             ftp->fno = fno;
             ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
