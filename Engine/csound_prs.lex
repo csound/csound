@@ -46,7 +46,7 @@ static void delete_macros(CSOUND*, yyscan_t);
  
 static inline int isNameChar(int c, int pos)
 {
-    c = (int) ((unsigned char) c);
+    //c = (int) ((unsigned char) c);
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
@@ -78,8 +78,8 @@ MACRONAME       "$"[a-zA-Z][a-zA-Z0-9_]*
 MACRONAMED      "$"[a-zA-Z][a-zA-Z0-9_]*\.
 MACRONAMEA      "$"[a-zA-Z][a-zA-Z0-9_]*\(
 MACRONAMEDA     "$"[a-zA-Z][a-zA-Z0-9_]*\.\(
-MACROB          [a-zA-Z](_?[a-zA-Z0-9])*\(
-MACRO           [a-zA-Z](_?[a-zA-Z0-9])*
+MACROB          [a-zA-Z][a-zA-Z0-9_]*\(
+MACRO           [a-zA-Z][a-zA-Z0-9_]*
 
 STCOM           \/\*
 INCLUDE         "#include"
@@ -470,7 +470,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 		    csound->LongJmp(csound, 1);
 		  }
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%ld; lastloc=%ld\n",
+                  csound->DebugMsg(csound,"%s(%d): loc=%u; lastloc=%u\n",
                                    __FILE__, __LINE__,
                          PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
