@@ -1246,9 +1246,9 @@ msgid "cannot carry string p-field"
 msgstr "impossible de reporter un p-champ chaîne de caractères"
 
 #: Engine/linevent.c:322
-#, fuzzy, c-format
+#, c-format
 msgid "too few pfields (%d)"
-msgstr "pas assez de p-champs"
+msgstr "pas assez de p-champs (%d)"
 
 #: Engine/linevent.c:326
 msgid "-L with negative p2 illegal"
@@ -6152,9 +6152,8 @@ msgid "Invalid ftable no. %d"
 msgstr "Numéro de ftable %d non valide."
 
 #: Opcodes/OSC.c:790
-#, fuzzy
 msgid "OSC internal error"
-msgstr "Erreur interne op=%c"
+msgstr "Erreur interne OSC"
 
 #: Opcodes/Vosim.c:51
 msgid "vosim: pulse table not found"
