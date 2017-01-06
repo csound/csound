@@ -28,6 +28,7 @@
 
 -(void)viewDidLoad {
     self.title = @"Button Test";
+    self.csound = NULL;
     [super viewDidLoad];
 }
 
@@ -46,8 +47,8 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stop];
-        
+		//[self.csound stop];
+        if(self.csound == NULL){
         self.csound = [[CsoundObj alloc] init];
         [self.csound addListener:self];
         
@@ -62,9 +63,11 @@
         [csoundUI addSlider:mReleaseSlider  forChannelName:@"release"];
         
         [self.csound play:tempFile];
+        }
         
 	} else {
         [self.csound stop];
+        self.csound = NULL;
     }
 }
 

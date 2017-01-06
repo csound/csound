@@ -51,6 +51,7 @@
 
 -(void)viewDidLoad {
     self.title = @"Simple Test 2";
+    self.csound = NULL;
     [super viewDidLoad];
 }
 
@@ -63,8 +64,8 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"test2" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stop];
-        
+		//[self.csound stop];
+        if(self.csound == NULL){
         self.csound = [[CsoundObj alloc] init];
         [self.csound addListener:self];
         
@@ -84,9 +85,11 @@
         [csoundUI addLabel:releaseLabel  forChannelName:@"release"];
         
         [self.csound play:tempFile];
+        }
         
 	} else {
         [self.csound stop];
+        self.csound = NULL;
     }
 }
 
