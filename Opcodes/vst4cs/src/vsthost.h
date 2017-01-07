@@ -85,7 +85,7 @@ class VSTPlugin {
   bool edited;
   bool showParameters;
   VstTimeInfo vstTimeInfo;
-  size_t framesPerSecond;
+  float framesPerSecond;
   size_t framesPerBlock;
   int targetFLpanel; //GAB
 
