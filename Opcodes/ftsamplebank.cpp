@@ -351,7 +351,7 @@ extern "C" {
       return 0;
   }
 #endif
-  
+
   PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound)
   {
 
