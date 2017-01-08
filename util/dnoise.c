@@ -983,7 +983,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
 
         //fast(csound, fbuf, N);
         fast2(csound, fftsetup_fwd, fbuf);
-       
+
         /* noise reduction: for each bin, calculate average magnitude-squared
             and calculate corresponding gain.  Apply this gain to delayed
             FFT values in mbuf[mj*Np2 + i?]. */
@@ -999,7 +999,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
           for (i = 0; i <= N2;
                i++, f++, i0+=2, i1+=2, f0+=2, f1+=2, j0+=2, j1+=2) {
             /*
-             *  ii0 = 2 * i;
+             *  ii0 = 2 * i; // better as in by 2 or shift?
              *  ii1 = ii0 + 1;
              *
              *  rsum[i] -= mbuf[mp + ii0] * mbuf[mp + ii0];
@@ -1092,7 +1092,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         phase vocoder channel outputs at time n are inverse Fourier
         transformed, windowed, and added into the output array. */
 
-	fsst2(csound, fftsetup_inv, fbuf);
+        fsst2(csound, fftsetup_inv, fbuf);
         //fsst(csound, fbuf, N);
 
         lk = nO - (long) sLen - 1;            /*time shift*/

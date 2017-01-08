@@ -755,6 +755,66 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
             PARM->repeat_index--;
           }
        }
+'r'    {
+          int c, i;
+          PARM->repeat_index++;
+          if (UNLIKELY(PARM->repeat_index >= RPTDEPTH))
+            csound->Die(csound, Str("Loops are nested too deeply"));
+          PARM->repeat_mm_n[PARM->repeat_index] =
+            (MACRO*)csound->Malloc(csound, sizeof(MACRO));
+          if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index] == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+          PARM->repeat_cnt_n[PARM->repeat_index] = 0;
+          do {
+            c = input(yyscanner);
+          } while(isblank(c));
+          while (isdigit(c)) {
+            PARM->repeat_cnt_n[PARM->repeat_index] =
+              10 * PARM->repeat_cnt_n[PARM->repeat_index] + c - '0';
+            c = input(yyscanner);
+          }
+          if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0
+                       || !isspace(c)))
+            csound->Die(csound, Str("{: invalid repeat count"));
+          if (csound->oparms->odebug)
+              csound->Message(csound, Str("r LOOP=%d\n"),
+                              PARM->repeat_cnt_n[PARM->repeat_index]);
+          while (isblank(c)) {
+            c = input(yyscanner);
+          }
+          for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
+            PARM->repeat_name_n[PARM->repeat_index][i] = c;
+            c = input(yyscanner);
+          }
+          PARM->repeat_name_n[PARM->repeat_index][i] = '\0';
+          unput(c);
+          /* Define macro for counter */
+          PARM->repeat_mm_n[PARM->repeat_index]->name =
+            csound->Malloc(csound,
+                           strlen(PARM->repeat_name_n[PARM->repeat_index])+1);
+          if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index]->name == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+          strcpy(PARM->repeat_mm_n[PARM->repeat_index]->name,
+                 PARM->repeat_name_n[PARM->repeat_index]);
+          PARM->repeat_mm_n[PARM->repeat_index]->acnt = -1;
+          PARM->repeat_mm_n[PARM->repeat_index]->body =
+            csound->Calloc(csound, 16); // ensure nulls
+          PARM->repeat_mm_n[PARM->repeat_index]->body[0] = '0';
+          PARM->repeat_indx[PARM->repeat_index] = 0;
+          csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n",
+                           __FILE__, __LINE__,
+                           PARM->repeat_name_n[PARM->repeat_index],
+                           PARM->repeat_mm_n[PARM->repeat_index]->body);
+          PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
+          PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
+          while (input(yyscanner)!='\n'){}
+          PARM->cf_stack[PARM->repeat_index] = PARM->cf;
+          PARM->cf = corfile_create_w();
+        }
 
 .               { corfile_putc(yytext[0], PARM->cf); }
 
