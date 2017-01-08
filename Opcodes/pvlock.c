@@ -935,19 +935,22 @@ static int hilbert_init(CSOUND *csound, HILB *p){
   int N = (int) *p->ifftsize;
   int h = (int) *p->ihopsize;
   unsigned int size;
-  int *p1, *p2, i;
+  int *p1, *p2, i, decim;
 
-  /*for (i=0; N; i++) {
-      N >>= 1;
+  if(h > N) h = N;
+
+  for (i=0; N; i++) {
+    N >>= 1;
   }
   N = (int) pow(2.0, i-1);
 
   for (i=0; h; i++) {
-      h >>= 1;
+    h >>= 1;
   }
-  h = (int) pow(2.0, i-1);*/
+  h = (int) pow(2.0, i-1);
+  decim = N/h;
 
-  size = (N*N/h)*sizeof(MYFLT);
+  size = (N*decim)*sizeof(MYFLT);
   if (p->inframe.auxp == NULL || p->inframe.size < size)
     csound->AuxAlloc(csound, size, &p->inframe);
   memset(p->inframe.auxp, 0, size);
@@ -955,7 +958,7 @@ static int hilbert_init(CSOUND *csound, HILB *p){
   if (p->outframe.auxp == NULL || p->outframe.size < size)
     csound->AuxAlloc(csound, size, &p->outframe);
   memset(p->outframe.auxp, 0, size);
-  size /= (N/h);
+  size /= decim;
   if (p->fftdata.auxp == NULL || p->fftdata.size < size)
     csound->AuxAlloc(csound, size, &p->fftdata);
   memset(p->fftdata.auxp, 0, size);
@@ -967,8 +970,8 @@ static int hilbert_init(CSOUND *csound, HILB *p){
   p1 = (int *) p->iframecnt.auxp;
   p2 = (int *) p->oframecnt.auxp;
   for(i = 0; i < N/h; i++){
-    p1[i] = i*h;
-    p2[i] = 2*i*h;
+    p1[i] = (decim - 1 - i)*h;
+    p2[i] = 2*(decim - 1 - i)*h;
   }
 
   size = N*sizeof(MYFLT);
@@ -1001,6 +1004,7 @@ static int hilbert_proc(CSOUND *csound, HILB *p){
   MYFLT *win = (MYFLT *) p->win.auxp;
   MYFLT **out = p->out;
   MYFLT *in = p->in;
+  MYFLT scal = decim < 4 ? 1 : 16./(3*decim);
 
   if (UNLIKELY(early)) {
     nsmps -= early;
@@ -1027,8 +1031,8 @@ static int hilbert_proc(CSOUND *csound, HILB *p){
       memset(fftdata+fftsize, 0, fftsize*sizeof(MYFLT));
       csound->InverseComplexFFT(csound, fftdata, fftsize);
       for(i = j = 0; i < fftsize; i++, j+=2) {
-	outframe[j+2*off] = fftdata[j]*win[i]*(16./(3*decim));
-	outframe[j+1+2*off] = fftdata[j+1]*win[i]*(16./(3*decim));
+	outframe[j+2*off] = fftdata[j]*win[i]*scal;
+	outframe[j+1+2*off] = fftdata[j+1]*win[i]*scal;
       }
       off += fftsize;
       p->off = off = off%(fftsize*decim);
@@ -1047,6 +1051,56 @@ static int hilbert_proc(CSOUND *csound, HILB *p){
   return OK;
 }
 
+typedef struct amfm {
+  OPDS h;
+  MYFLT *am, *fm;
+  MYFLT *re, *im;
+  double ph;
+  double scal;
+} AMFM;
+
+
+int am_fm_init(CSOUND *csound, AMFM *p) {
+  p->ph = FL(0.0);
+  p->scal = csound->GetSr(csound)/(2*PI);
+  return OK;
+}
+
+int am_fm(CSOUND *csound, AMFM *p){
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  int n, nsmps = CS_KSMPS;
+  double oph = p->ph, f, ph;
+  MYFLT *fm = p->fm;
+  MYFLT *am = p->am;
+  MYFLT *re = p->re;
+  MYFLT *im = p->im;
+  MYFLT scal = p->scal;
+
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&am[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&fm[nsmps], '\0', early*sizeof(MYFLT));
+  }
+  if (UNLIKELY(offset)) {
+    memset(&am[nsmps], '\0', offset*sizeof(MYFLT));
+    memset(&fm[nsmps], '\0', offset*sizeof(MYFLT));
+  } 
+  
+  for (n=offset; n < nsmps; n++) {
+    am[n] = SQRT(re[n]*re[n] + im[n]*im[n]);
+    ph = atan2(im[n], re[n]);
+    f = ph - oph;
+    oph = ph;
+    if(f >= PI) f -= 2*PI;
+    else if(f < -PI) f += 2*PI;
+    fm[n] = f*scal;
+  }
+  p->ph = oph;
+  return OK;
+}
+
+
 static OENTRY pvlock_localops[] = {
   {"mincer", sizeof(DATASPACE), 0, 5, "mm", "akkkkoo",
    (SUBR)sinit1, NULL,(SUBR)sprocess1 },
@@ -1056,6 +1110,8 @@ static OENTRY pvlock_localops[] = {
    (SUBR)sinit3, NULL,(SUBR)sprocess3 },
   {"hilbert2", sizeof(HILB), 0, 5, "aa", "aii", (SUBR) hilbert_init, NULL,
    (SUBR) hilbert_proc},
+  {"fmanal", sizeof(AMFM), 0, 5, "aa", "aa", (SUBR) am_fm_init, NULL,
+   (SUBR) am_fm},
   {"pvslock", sizeof(PVSLOCK), 0, 3, "f", "fk", (SUBR) pvslockset,
    (SUBR) pvslockproc},
 };
