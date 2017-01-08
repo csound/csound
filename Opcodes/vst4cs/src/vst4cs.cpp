@@ -51,7 +51,7 @@ std::vector<VSTPlugin*> &vstPlugins()
 
 
 extern "C" {
-  std::string version = "0.2beta";
+  std::string version = "0.2";
 #ifdef WIN32
   static void path_convert(char *in);
 #endif
