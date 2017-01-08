@@ -34,14 +34,14 @@
 ; Can run from the command line with "/S /D installation directory".
 ;
 ; Uncomment the following line to build CsoundVST and vst4cs:
-#define CSOUNDVST
+; #define CSOUNDVST
 
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.08.1-vst"
+#define MyAppMinVersion "6.09.0-vst-beta"
 #else
-#define MyAppMinVersion "6.08.1"
+#define MyAppMinVersion "6.09.0-beta"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
