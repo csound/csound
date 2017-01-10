@@ -865,17 +865,17 @@ typedef struct S_MACRO {          /* To store active macros */
 typedef struct in_stack_s {     /* Stack of active inputs */
     int16       is_marked_repeat;     /* 1 if this input created by 'n' stmnt */
     int16       args;                 /* Argument count for macro */
-    CORFIL      *cf;                  /* In core file */
-    void        *fd;                  /* for closing stream */
+  //CORFIL      *cf;                  /* In core file */
+  //void        *fd;                  /* for closing stream */
     S_MACRO       *mac;
     int         line;
+    int32       oposit;
 } IN_STACK;
 
 typedef struct marked_sections {
     char        *name;
     int32       posit;
     int         line;
-    char        *file;
 } MARKED_SECTIONS;
 
 typedef struct namelst {
@@ -1527,7 +1527,7 @@ typedef struct NAME__ {
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
       S_MACRO   *macros;
-      int     next_name /* = -1 */;
+      int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;
       int     pop;                    /* Number of macros to pop              */

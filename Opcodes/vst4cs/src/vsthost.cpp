@@ -433,6 +433,7 @@ VSTPlugin::VSTPlugin(CSOUND *csound_)
     framesPerBlock(0)
 {
     memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
+    framesPerSecond = (float) csound->GetSr(csound);
     initializeOpcodes();
 }
 
@@ -656,9 +657,9 @@ void VSTPlugin::Init()
 {
     size_t i;
     Debug("VSTPlugin::Init.\n");
-    framesPerSecond = (size_t) ((long) (csound->GetSr(csound) + FL(0.5)));
+    framesPerSecond = (float) csound->GetSr(csound);
     framesPerBlock = csound->GetKsmps(csound);
-    Log("VSTPlugin::Init framesPerSecond %d framesPerBlock %d "
+    Log("VSTPlugin::Init framesPerSecond %f framesPerBlock %d "
         "channels %d in / %d out.\n",
         framesPerSecond, framesPerBlock, getNumInputs(), getNumOutputs());
     inputs_.resize((size_t) getNumInputs());
@@ -673,9 +674,10 @@ void VSTPlugin::Init()
     }
     Dispatch(effOpen        ,  0, 0, NULL, 0.0f);
     Dispatch(effSetProgram  ,  0, 0, NULL, 0.0f);
+    Dispatch(effSetSampleRate, 0, 0, NULL, framesPerSecond);
+    Dispatch(effSetBlockSize,  0, framesPerBlock, NULL, 0.0f);
     Dispatch(effMainsChanged,  0, 1, NULL, 0.0f);
-    Dispatch(effSetSampleRate, 0, 0, 0, (float) framesPerSecond );
-    Dispatch(effSetBlockSize,  0, framesPerBlock, NULL, 0.0f );
+    //Dispatch(effSetBlockSizeAndSampleRate, 0, framesPerBlock, NULL, (float) framesPerSecond);
 }
 
 bool VSTPlugin::SetParameter(int parameter, float value)
@@ -1040,7 +1042,7 @@ VstIntPtr VSTPlugin::Master(AEffect *effect,
       if (plugin)
         return plugin->framesPerSecond;
       else
-        return 44100;
+        return ((size_t) (csound->GetSr(csound) + FL(0.5)));
     case audioMasterGetVendorString:
       strcpy((char *)ptr, "vst4cs");
       return 0;
