@@ -314,8 +314,8 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       }
 
     /* copy in string name... */
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME);
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME);
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1);
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1);
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel,

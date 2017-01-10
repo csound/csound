@@ -876,7 +876,7 @@ struct JackoFreewheel : public OpcodeBase<JackoFreewheel>
   MYFLT *ifreewheel;
   int init(CSOUND *csound)
   {
-    
+
     int freewheel = (int) *ifreewheel;
     int result = jack_set_freewheel(jackoState->jackClient, freewheel);
     if (result) {
@@ -1265,14 +1265,14 @@ struct JackoMidiOut : public OpcodeBase<JackoMidiOut>
   char priordata1;
   char priordata2;
   // State.
-  const char *csoundPortName;  
+  const char *csoundPortName;
   jack_port_t *csoundPort;
   jack_nframes_t csoundFramesPerTick;
   jack_midi_data_t *buffer;
   int init(CSOUND *csound)
   {
       int result = OK;
-      
+
       csoundFramesPerTick = jackoState->csoundFramesPerTick;
       csoundPortName = csound->strarg2name(csound,
                                            (char *)0,

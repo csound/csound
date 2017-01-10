@@ -454,8 +454,13 @@ void uv_csound_perform_thread_routine(void * arg)
     int result = 0;
     ScoreEvent *event = 0;
     char *score_text = 0;
-    for (stop_playing = false, finished = false, paused = false;
-            ((stop_playing == false) && (finished == 0)); ) {
+    stop_playing = false;
+    finished = 0;
+    paused = false;
+    while (true) {
+        if (stop_playing == true) {
+            break;
+        }
         if (paused == false) {
 #if defined(_MSC_VER)
             while (csound_event_queue.try_pop(event)) {
@@ -474,6 +479,9 @@ void uv_csound_perform_thread_routine(void * arg)
                 free(score_text);
             }
             finished = csoundPerformKsmps(csound_);
+            if (finished != 0) {
+                break;
+            }
         }
     }
     csoundMessage(csound_, "Ended JavaScript perform(), cleaning up now.\n");

@@ -1920,6 +1920,7 @@ int kperf_debug(CSOUND *csound)
 PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 {
     OPARMS  *O = csound->oparms;
+    csoundLockMutex(csound->API_lock);
      /* protect resource */
     if (csound->scorestr != NULL &&
        csound->scorestr->body != NULL)
@@ -1932,7 +1933,6 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 #endif
     corfile_flush(csound->scorestr);
     /* copy sorted score name */
-    csoundLockMutex(csound->API_lock);
     if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
       scsortstr(csound, csound->scorestr);
       O->playscore = csound->scstr;
