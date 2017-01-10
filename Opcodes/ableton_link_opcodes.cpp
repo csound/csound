@@ -16,7 +16,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
+#include <cstdint>
+#include <type_traits>
+#include <byteswap.h>
+#include <ableton/Link.hpp>
 #include <OpcodeBase.hpp>
+
 /**
  * A B L E T O N   L I N K   O P C O D E S
  *
@@ -32,8 +37,8 @@
  * programs, processes, and network addresses. This is useful e.g. for laptop 
  * orchestras. 
  * 
- * There is one global, peer-to-peer Link session on the local area network, 
- * which maintains a global time and beat. Any peer may set the global tempo, 
+ * There is one global, peer-to-peer Link session that maintains a global time 
+ * and beat on the local area network. Any peer may set the global tempo, 
  * and thereafter all peers in the session share that tempo. A process may 
  * have any number of peers (i.e., any number of Link objects). Each peer 
  * may also define its own "quantum" i.e. some multiple of the beat, e.g. a 
@@ -41,35 +46,26 @@
  * the quantum, e.g. phase 0.5 of a quantum of 4 would be the second beat of 
  * the measure. Peers may read and write timelines with local time, beat, and 
  * phase, counting from when the peer is enabled, but the tempo and beat on 
- * all timelines for all peers will coincide.
+ * all timelines for all peers in the session will coincide.
  *
  * The Link tempo is independent of the Csound score tempo. Performances that 
  * need to synchronize the score tempo with the Link tempo may use the tempo 
  * opcode to set the score tempo from the Link tempo; or conversely, set the 
  * Link tempo from the score tempo using the tempoval opcode.
+ * 
+ * Build for testing with something like: 
+ *
+ * g++ ableton_link_opcodes.cpp -std=gnu++11 -O2 -g -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I../include -I../H -shared -oableton_link_opcodes.dll
  */
  
-extern "C"
-{
-
-std::vector<Link *> &getLinkInstances() {
-    static std::vector<Link *> linkInstances;
-    return linkInstances;
+extern "C" {
+    static uint64_t htonll(uint64_t x) { return bswap_64(x); }
 }
 
-struct link_cast_t {
-    union {
-        MYFLT float;
-        ableton::Link *pointer;
-    };
-    link_cast_t &operator = (MYFLT *float_) {
-        float = *float_;
-        return *this;
-    }
-    ableton::Link *operator->() {
-        return pointer;
-    }
-}
+typedef union {
+    MYFLT float;
+    ableton::Link *pointer;
+} link_cast_t;
 
 // i_link link_create [j_bpm = 60] 
 
@@ -88,8 +84,7 @@ public:
         } else {
             bpm = *p0_bpm;
         }
-        link = new Link(bpm);
-        getLinkInstances().push_back(link.pointer);
+        link.pointer = new Link(bpm);
         *r0_link = link.float;
         return OK;
     }
@@ -377,14 +372,15 @@ class link_peers_t : public OpcodeBase<link_peers_t>
     link_cast_t link;
 public:
     int init(CSOUND *csound) {
-        link = p0_link;
-        *r0_peers = link->numPeers();
+        link.float = p0_link;
+        *r0_peers = link.pointer->numPeers();
         return OK;
     }
 };
 
+extern "C" {
 
-  OENTRY oentries[] =
+    OENTRY oentries[] =
     {
       {
         (char*)"link_create",
@@ -442,248 +438,6 @@ public:
         0,
       },
       {
-        (char*)"STKBrass",
-        sizeof(STKInstrumentAdapter1<Brass>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter1<Brass>::init_,
-        (SUBR) STKInstrumentAdapter1<Brass>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKClarinet",
-        sizeof(STKInstrumentAdapter1<Clarinet>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter1<Clarinet>::init_,
-        (SUBR) STKInstrumentAdapter1<Clarinet>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKDrummer",
-        sizeof(STKInstrumentAdapter<Drummer>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Drummer>::init_,
-        (SUBR) STKInstrumentAdapter<Drummer>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKFlute",
-        sizeof(STKInstrumentAdapter1<Flute>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter1<Flute>::init_,
-        (SUBR) STKInstrumentAdapter1<Flute>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKFMVoices",
-        sizeof(STKInstrumentAdapter<FMVoices>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<FMVoices>::init_,
-        (SUBR) STKInstrumentAdapter<FMVoices>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKHevyMetl",
-        sizeof(STKInstrumentAdapter<HevyMetl>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<HevyMetl>::init_,
-        (SUBR) STKInstrumentAdapter<HevyMetl>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKMandolin",
-        sizeof(STKInstrumentAdapter1<Mandolin>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter1<Mandolin>::init_,
-        (SUBR) STKInstrumentAdapter1<Mandolin>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKModalBar",
-        sizeof(STKInstrumentAdapter<ModalBar>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<ModalBar>::init_,
-        (SUBR) STKInstrumentAdapter<ModalBar>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKMoog",
-        sizeof(STKInstrumentAdapter<Moog>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Moog>::init_,
-        (SUBR) STKInstrumentAdapter<Moog>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKPercFlut",
-        sizeof(STKInstrumentAdapter<PercFlut>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<PercFlut>::init_,
-        (SUBR) STKInstrumentAdapter<PercFlut>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKPlucked",
-        sizeof(STKInstrumentAdapter1<Plucked>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter1<Plucked>::init_,
-        (SUBR) STKInstrumentAdapter1<Plucked>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKResonate",
-        sizeof(STKInstrumentAdapter<Resonate>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Resonate>::init_,
-        (SUBR) STKInstrumentAdapter<Resonate>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKRhodey",
-        sizeof(STKInstrumentAdapter<Rhodey>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Rhodey>::init_,
-        (SUBR) STKInstrumentAdapter<Rhodey>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKSaxofony",
-        sizeof(STKInstrumentAdapter1<Saxofony>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter1<Saxofony>::init_,
-        (SUBR) STKInstrumentAdapter1<Saxofony>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKShakers",
-        sizeof(STKInstrumentAdapter<Shakers>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Shakers>::init_,
-        (SUBR) STKInstrumentAdapter<Shakers>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKSimple",
-        sizeof(STKInstrumentAdapter<Simple>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Simple>::init_,
-        (SUBR) STKInstrumentAdapter<Simple>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKSitar",
-        sizeof(STKInstrumentAdapter<Sitar>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Sitar>::init_,
-        (SUBR) STKInstrumentAdapter<Sitar>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKStifKarp",
-        sizeof(STKInstrumentAdapter1<StifKarp>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter1<StifKarp>::init_,
-        (SUBR) STKInstrumentAdapter1<StifKarp>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKTubeBell",
-        sizeof(STKInstrumentAdapter<TubeBell>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<TubeBell>::init_,
-        (SUBR) STKInstrumentAdapter<TubeBell>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKVoicForm",
-        sizeof(STKInstrumentAdapter<VoicForm>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<VoicForm>::init_,
-        (SUBR) STKInstrumentAdapter<VoicForm>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKWhistle",
-        sizeof(STKInstrumentAdapter<Whistle>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Whistle>::init_,
-        (SUBR) STKInstrumentAdapter<Whistle>::kontrol_,
-        0,
-      },
-      {
-        (char*)"STKWurley",
-        sizeof(STKInstrumentAdapter<Wurley>),
-        0,
-        3,
-        (char*)"a",
-        (char*)"iiJJJJJJJJJJJJJJJJ",
-        (SUBR) STKInstrumentAdapter<Wurley>::init_,
-        (SUBR) STKInstrumentAdapter<Wurley>::kontrol_,
-        0,
-      },
-      {
         0,
         0,
         0,
@@ -718,9 +472,6 @@ public:
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-      for(size_t i = 0, n = getLinkInstances().size(); i < n; ++i) {
-        delete getLinkInstances()[i];
-      }
     return 0;
   }
 
