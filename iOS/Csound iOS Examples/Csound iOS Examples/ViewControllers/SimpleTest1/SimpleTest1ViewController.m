@@ -36,6 +36,7 @@
 
 -(void)viewDidLoad {
     self.title = @"Simple Test 1";
+    self.csound = NULL;
     [super viewDidLoad];
 }
 
@@ -47,8 +48,8 @@
         NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
         NSLog(@"FILE PATH: %@", csdFile);
         
-		[self.csound stop];
-        
+		//[self.csound stop];
+        if(self.csound == NULL){
         self.csound = [[CsoundObj alloc] init];
         [self.csound addListener:self];
         
@@ -57,9 +58,11 @@
         [csoundUI addSlider:uiSlider forChannelName:@"slider"];
         
         [self.csound play:csdFile];
+        }
         
 	} else {
         [self.csound stop];
+        self.csound = NULL;
     }
 }
 

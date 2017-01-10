@@ -65,10 +65,10 @@ STSTR           \"
 ESCAPE          \\.
 XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-MACRONAME       "$"[a-zA-Z_][a-zA-Z0-9_]*
-MACRONAMED      "$"[a-zA-Z_][a-zA-Z0-9_]*\.
-MACRONAMEA      "$"[a-zA-Z_][a-zA-Z0-9_]*\(
-MACRONAMEDA     "$"[a-zA-Z_][a-zA-Z0-9_]*\.\(
+MACRONAME       "$"`?[a-zA-Z_][a-zA-Z0-9_`]*
+MACRONAMED      "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.
+MACRONAMEA      "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\(
+MACRONAMEDA     "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.\(
 MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
 MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -896,7 +896,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     do {
       i = 0;
       q = name0;
-      mname[i++] = '_';
+      mname[i++] = '`';
       while ((c = *q++)) {
         mname[i++] = c;
         if (UNLIKELY(i==mlen))
@@ -906,7 +906,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
       }
-      mname[i++] = '_';
+      mname[i++] = '`';
       if (UNLIKELY(i==mlen)) {
         mname = (char *)realloc(mname, mlen+=40);
         if (UNLIKELY(mname == NULL)) {
@@ -914,7 +914,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
       }
-      mname[i++] = '_';
+      mname[i++] = '`';
       if (UNLIKELY(i==mlen)) {
         mname = (char *)realloc(mname, mlen+=40);
         if (UNLIKELY(mname == NULL)) {
@@ -1007,9 +1007,9 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
             csound->LongJmp(csound, 1);
           }
         }
-        mm->body[i] = '$'; mm->body[i+1] = '_';
+        mm->body[i] = '$'; mm->body[i+1] = '`';
         strcpy(&mm->body[i+2], name0);
-        mm->body[i + n - 2] = '_'; mm->body[i + n - 1] = '_';
+        mm->body[i + n - 2] = '`'; mm->body[i + n - 1] = '`';
         i+=n;
         continue;
       }
@@ -1399,8 +1399,8 @@ static MACRO *find_definition(MACRO *mmo, char *s)
       mm = mmo;
       s++;                      /* skip _ */
     looking:
-      while (*s++!='_') { if (*s=='\0') return NULL; }
-      if (*s++!='_') { s--; goto looking; }
+      while (*s++!='`') { if (*s=='\0') return NULL; }
+      if (*s++!='`') { s--; goto looking; }
       //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
         //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);

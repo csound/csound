@@ -608,7 +608,7 @@ msgid "insufficient gen arguments"
 msgstr ""
 
 #: Engine/fgens.c:211 Opcodes/ftgen.c:118 Opcodes/ftgen.c:648
-#: Opcodes/signalflowgraph.cpp:1610
+#: Opcodes/signalflowgraph.cpp:1612
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr ""
@@ -1205,7 +1205,8 @@ msgid "cannot carry string p-field"
 msgstr "can't carry string p-field"
 
 #: Engine/linevent.c:322
-msgid "too few pfields"
+#, c-format
+msgid "too few pfields (%d)"
 msgstr ""
 
 #: Engine/linevent.c:326
@@ -5913,6 +5914,10 @@ msgstr ""
 msgid "Invalid ftable no. %d"
 msgstr ""
 
+#: Opcodes/OSC.c:790
+msgid "OSC internal error"
+msgstr ""
+
 #: Opcodes/Vosim.c:51
 msgid "vosim: pulse table not found"
 msgstr ""
@@ -6479,23 +6484,23 @@ msgstr ""
 msgid "wguide2 xfreq1 and xfreq2 arguments must be both a-rate or k and i-rate"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:158
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:156
 msgid "error allocating fluid engine\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:231
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:229
 #, c-format
 msgid "fluid: unable to load %s"
 msgstr "fluid: unable to load %s"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:544
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:541
 #, c-format
 msgid ""
 "result: %d \n"
 " Note off: c:%3d k:%3d\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:635
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:632
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr ""
 
@@ -6634,7 +6639,7 @@ msgstr "ftconv: not initialized"
 msgid "Error deleting ftable %d"
 msgstr ""
 
-#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1635
+#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1637
 msgid "ftgen string arg not allowed"
 msgstr ""
 
@@ -7672,47 +7677,47 @@ msgstr ""
 msgid "Jack sampling rate %d != Csound sr %d, exiting...\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:570
+#: Opcodes/jacko.cpp:569
 #, c-format
 msgid "Activated Jack client \"%s\".\n"
 msgstr "Activated Jack client \"%s\".\n"
 
-#: Opcodes/jacko.cpp:574
+#: Opcodes/jacko.cpp:573
 #, c-format
 msgid "Failed to activate Jack client \"%s\": status %d.\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:589
+#: Opcodes/jacko.cpp:588
 msgid "BEGAN JackoState::close()...\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:629
+#: Opcodes/jacko.cpp:628
 msgid "ENDED JackoState::close().\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:894
+#: Opcodes/jacko.cpp:884
 #, c-format
 msgid "Failed to set Jack freewheeling mode to \"%s\": error %d.\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:897
+#: Opcodes/jacko.cpp:887
 #, c-format
 msgid "Set Jack freewheeling mode to \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:913
+#: Opcodes/jacko.cpp:901
 #, c-format
 msgid "Turned Jack connections \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:957 Opcodes/jacko.cpp:1064 Opcodes/jacko.cpp:1171
-#: Opcodes/jacko.cpp:1243
+#: Opcodes/jacko.cpp:943 Opcodes/jacko.cpp:1046 Opcodes/jacko.cpp:1149
+#: Opcodes/jacko.cpp:1219
 #, c-format
 msgid "Could not create Jack port \"%s\".\n"
 msgstr "Couldn't create Jack port \"%s\".\n"
 
-#: Opcodes/jacko.cpp:971 Opcodes/jacko.cpp:1079 Opcodes/jacko.cpp:1186
-#: Opcodes/jacko.cpp:1257
+#: Opcodes/jacko.cpp:957 Opcodes/jacko.cpp:1061 Opcodes/jacko.cpp:1164
+#: Opcodes/jacko.cpp:1233
 #, c-format
 msgid "Could not create Jack connection from \"%s\" to \"%s\": status %d.\n"
 msgstr "Couldn't create Jack connection from \"%s\" to \"%s\": status %d.\n"
@@ -8420,7 +8425,7 @@ msgstr ""
 #: Opcodes/pvlock.c:871 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:710
 #: Opcodes/pvsbasic.c:1036 Opcodes/pvsbasic.c:1250 Opcodes/pvsbasic.c:1357
 #: Opcodes/pvsbasic.c:1595 Opcodes/pvsbasic.c:1813 Opcodes/pvsbasic.c:1987
-#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:819
+#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:823
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
@@ -8891,98 +8896,98 @@ msgstr "error... couldn't create sfont globals\n"
 msgid "powershape: ifullscale must be strictly positive"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:360 Opcodes/signalflowgraph.cpp:531
-#: Opcodes/signalflowgraph.cpp:1112
+#: Opcodes/signalflowgraph.cpp:364 Opcodes/signalflowgraph.cpp:535
+#: Opcodes/signalflowgraph.cpp:1116
 #, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:376
+#: Opcodes/signalflowgraph.cpp:380
 #, c-format
 msgid "Removed instance 0x%x of %d instances of outleta %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:433 Opcodes/signalflowgraph.cpp:599
-#: Opcodes/signalflowgraph.cpp:761 Opcodes/signalflowgraph.cpp:1184
+#: Opcodes/signalflowgraph.cpp:437 Opcodes/signalflowgraph.cpp:603
+#: Opcodes/signalflowgraph.cpp:765 Opcodes/signalflowgraph.cpp:1188
 #, c-format
 msgid "Created instance 0x%x of inlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:447 Opcodes/signalflowgraph.cpp:776
-#: Opcodes/signalflowgraph.cpp:1194
+#: Opcodes/signalflowgraph.cpp:451 Opcodes/signalflowgraph.cpp:780
+#: Opcodes/signalflowgraph.cpp:1198
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:547
+#: Opcodes/signalflowgraph.cpp:551
 #, c-format
 msgid "Removed 0x%x of %d instances of outletk %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:613
+#: Opcodes/signalflowgraph.cpp:617
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:691
+#: Opcodes/signalflowgraph.cpp:695
 #, c-format
 msgid "Created instance 0x%x of outlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:706
+#: Opcodes/signalflowgraph.cpp:710
 #, c-format
 msgid "Removed 0x%x of %d instances of outletf %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:846
+#: Opcodes/signalflowgraph.cpp:850
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:920
+#: Opcodes/signalflowgraph.cpp:924
 #, c-format
 msgid ""
 "Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: "
 "%2d size: %4d [%4d] data: 0x%x (0x%x))\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:936
+#: Opcodes/signalflowgraph.cpp:940
 #, c-format
 msgid "Removed 0x%x of %d instances of outletv %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1000
+#: Opcodes/signalflowgraph.cpp:1004
 #, c-format
 msgid ""
 "Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d "
 "[%4d] data: 0x%x (0x%x))\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1015
+#: Opcodes/signalflowgraph.cpp:1019
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1128
+#: Opcodes/signalflowgraph.cpp:1132
 #, c-format
 msgid "Removed 0x%x of %d instances of outletkid %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1287 Opcodes/signalflowgraph.cpp:1340
-#: Opcodes/signalflowgraph.cpp:1394 Opcodes/signalflowgraph.cpp:1444
+#: Opcodes/signalflowgraph.cpp:1291 Opcodes/signalflowgraph.cpp:1344
+#: Opcodes/signalflowgraph.cpp:1398 Opcodes/signalflowgraph.cpp:1448
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1652 Opcodes/signalflowgraph.cpp:1656
+#: Opcodes/signalflowgraph.cpp:1654 Opcodes/signalflowgraph.cpp:1658
 #, c-format
 msgid "ftgenonce: re-using existing func: %f\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1662
+#: Opcodes/signalflowgraph.cpp:1664
 msgid "ftgenonce error"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1667
+#: Opcodes/signalflowgraph.cpp:1669
 #, c-format
 msgid "ftgenonce: created new func: %d\n"
 msgstr ""
@@ -9738,7 +9743,7 @@ msgstr ""
 msgid "ATSCROSS: time pointer out of range, truncating to last frame\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2923
+#: Opcodes/ugnorman.c:2922
 msgid "ATSCROSS: you must have an atsbufread before an atsinterpread"
 msgstr ""
 

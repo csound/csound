@@ -2899,7 +2899,6 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG (oscphase[i]);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
-      nsmps = CS_KSMPS;
       inca = (amp-oldamps[i])/nsmps;
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
