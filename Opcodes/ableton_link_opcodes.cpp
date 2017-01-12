@@ -55,15 +55,12 @@
  * 
  * Build for testing with something like: 
  *
- * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_LINUX=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I../include -I../H -shared -oableton_link_opcodes.dll
+ * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_WINDOWS=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I../include -I../H -shared -oableton_link_opcodes.dll
+ * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_LINUX=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I/usr/local/include/csound -I/home/mkg/csound/csound/include -shared -oableton_link_opcodes.so
  */
  
-extern "C" {
-    static uint64_t htonll(uint64_t x) { return bswap_64(x); }
-}
-
 typedef union {
-    MYFLT float;
+    MYFLT myflt;
     ableton::Link *pointer;
 } link_cast_t;
 
@@ -77,6 +74,7 @@ class link_create_t : public OpcodeBase<link_create_t>
     MYFLT *p0_bpm;
     // State:
     link_cast_t link;
+    double bpm;
 public:
     int init(CSOUND *csound) {
         if (*p0_bpm == FL(-1.0)) {
@@ -84,8 +82,8 @@ public:
         } else {
             bpm = *p0_bpm;
         }
-        link.pointer = new Link(bpm);
-        *r0_link = link.float;
+        link.pointer = new ableton::Link(bpm);
+        *r0_link = link.myflt;
         return OK;
     }
 };
@@ -103,14 +101,14 @@ class link_enable_t : public OpcodeBase<link_enable_t>
     MYFLT prior_enabled;
 public:
     int init(CSOUND *csound) {
-        link = *p0_link;
-        link->enable(*p1_enabled);
+        link.myflt = *p0_link;
+        link.pointer->enable(*p1_enabled);
         prior_enabled = *p1_enabled;
         return OK;
     }
     int kontrol(CSOUND *csound) {
         if (prior_enabled != *p1_enabled) {
-            link->enable(*p1_enabled);
+            link.pointer->enable(*p1_enabled);
             prior_enabled = *p1_enabled;
         }
         return OK;
@@ -128,19 +126,19 @@ class link_disable_t : public OpcodeBase<link_disable_t>
     link_cast_t link;
 public:
     int init(CSOUND *csound) {
-        link = p0_link;
-        link->disable();
+        link.myflt = *p0_link;
+        link.pointer->enable(false);
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        if (link->isEnabled()) {
-            link->disable();
+        if (link.pointer->isEnabled()) {
+            link.pointer->enable(false);
         }
         return OK;
     }
 };
 
-// link_tempo_set i_link, k_bpm [, O_at_time_seconds = current time]
+// link_tempo_set i_link, k_bpm [, P_at_time_seconds = current time]
 
 class link_tempo_set_t : public OpcodeBase<link_tempo_set_t> 
 {
@@ -148,28 +146,39 @@ class link_tempo_set_t : public OpcodeBase<link_tempo_set_t>
     // Pfields in:
     MYFLT *p0_link;
     MYFLT *p1_bpm;
-    MPFLT *p2_at_time_seconds;
+    MYFLT *p2_at_time_seconds;
     // State:
     link_cast_t link;
     MYFLT prior_bpm;
-    MYFLT prior_at_time_seconds;
+    std::chrono::microseconds microseconds;
+    
 public:
     int init(CSOUND *csound) {
-        link = po_link;
-        TODO: Fix (needs clock time). Timeline timeline = link->captureAudioTimeline();
+        link.myflt = *p0_link; 
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         prior_bpm = *p1_bpm;
-        prior_at_time_seconds = *p2_at_time_seconds;
-        timeline.setTempo(prior_bpm, prior_at_time_seconds);
-        link->commitAudioTimeline(timeline);
+        microseconds = link.pointer->clock().micros();
+        if (*p2_at_time_seconds == FL(-1.0)) {
+            prior_at_time_seconds = microseconds * 1000000.0;
+        } else {
+            prior_at_time_seconds = *p2_at_time_seconds;
+        }
+        timeline.setTempo(prior_bpm, at_time_seconds);
+        link.pointer->commitAudioTimeline(timeline);
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        if ((prior_bpm != *p1_bpm) || (prior_at_time_seconds != *p2_at_time_seconds)) {
-            Timeline timeline = link->captureAudioTimeline();
+        if (prior_bpm != *p1_bpm) {
+            ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
             prior_bpm = *p1_bpm;
-            prior_at_time_seconds = *p2_at_time_seconds;
-            timeline.setTempo(prior_bpm, prior_at_time_seconds);
-            link->commitAudioTimeline(timeline);
+            microseconds = link.pointer->clock().micros();
+            if (*p2_at_time_seconds == FL(-1.0)) {
+                prior_at_time_seconds = microseconds * 1000000.0;
+            } else {
+                prior_at_time_seconds = *p2_at_time_seconds;
+            }
+            timeline.setTempo(prior_bpm, at_time_seconds);
+            link.pointer->commitAudioTimeline(timeline);
         }
         return OK;
     }
@@ -187,13 +196,13 @@ class link_tempo_get_t : public OpcodeBase<link_tempo_get_t>
     link_cast_t link;
 public:
     int init(CSOUND *csound) {
-        link = p0_link;
-        Timeline timeline = link->captureAudioTimeline();
+        link.myflt = *p0_link;
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         *r0_bpm = timeline.tempo();
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        Timeline timeline = link->captureAudioTimeline();
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         *r0_bpm = timeline.tempo();
         return OK;
     }
@@ -215,17 +224,17 @@ class link_beat_get_t : public OpcodeBase<link_beat_get_t>
     double microseconds;
 public:
     int init(CSOUND *csound) {
-        link = p0_link;
-        Timeline timeline = link->captureAudioTimeline();
-        microseconds = link->clock().micros();
+        link.myflt = *p0_link;
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        microseconds = link.pointer->clock().micros();
         *r0_beat = timeline.beatAtTime(microseconds, *p1_quantum);
         *r1_phase = timeline.phaseAtTime(microseconds, *p1_quantum);
         *r2_seconds = microseconds * 1000000.0;        
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        Timeline timeline = link->captureAudioTimeline();
-        microseconds = link->clock().micros();
+        abeton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        microseconds = link.pointer->clock().micros();
         *r0_beat = timeline.beatAtTime(microseconds, *p1_quantum);
         *r1_phase = timeline.phaseAtTime(microseconds, *p1_quantum);
         *r2_seconds = microseconds * 1000000.0;        
@@ -253,9 +262,9 @@ public:
     // The trigger is "on" when the new phase is less than the prior phase, and "off" 
     // when the new phase is greater than the prior phase.
     int init(CSOUND *csound) {
-        link = p0_link;
-        Timeline timeline = link->captureAudioTimeline();
-        microseconds = link->clock().micros();
+        link.myflt = *p0_link;
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        microseconds = link.pointer->clock().micros();
         *r0_trigger = 0;
         *r1_beat = timeline.beatAtTime(microseconds, *p1_quantum);
         *r2_phase = timeline.phaseAtTime(microseconds, *p1_quantum);
@@ -264,8 +273,8 @@ public:
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        Timeline timeline = link->captureAudioTimeline();
-        microseconds = link->clock().micros();
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        microseconds = link.pointer->clock().micros();
         *r1_beat = timeline.beatAtTime(microseconds, *p1_quantum);
         *r2_phase = timeline.phaseAtTime(microseconds, *p1_quantum);
         if (*r2_phase < prior_phase) {
@@ -296,22 +305,22 @@ class link_beat_request_t : public OpcodeBase<link_beat_request_t>
     MYFLT prior_quantum;
 public:
     int init(CSOUND *csound) {
-        link = p0_link;
+        link.myflt = *p0_link;
         prior_beat = *p1_beat;
         prior_at_time_seconds = *p2_at_time_seconds;
         double milliseconds = prior_at_time_seconds / 1000000.0;
         prior_quantum = *p3_quantum;
-        Timeline timeline = link->captureAudioTimeline();
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         timeline.requestBeatAtTime(prior_beat, milliseconds, prior_quantum);
-        link->commitAudioTimeline(timeline);        
+        link.pointer->commitAudioTimeline(timeline);        
         return OK;
     }
     int kontrol(CSOUND *csound) {
         if ((prior_beat != *p1_beat) || (prior_at_time_seconds != *p2_at_time_seconds) || (prior_quantum != *p3_quantum)) {
             double milliseconds = p2_at_time_seconds / 1000000.0;
-            Timeline timeline = link->captureAudioTimeline();
+            ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
             timeline.requestBeatAtTime(*p1_beat, milliseconds, p3_quantum);
-            link->commitAudioTimeline(timeline);        
+            link.pointer->commitAudioTimeline(timeline);        
             prior_beat = *p1_beat;
             prior_at_time_seconds = *p2_at_time_seconds;
             prior_quantum = *p3_quantum;
@@ -336,22 +345,22 @@ class link_beat_force_t : public OpcodeBase<link_beat_force_t>
     MYFLT prior_quantum;
 public:
     int init(CSOUND *csound) {
-        link = p0_link;
+        link.myflt = *p0_link;
         prior_beat = *p1_beat;
         prior_at_time_seconds = *p2_at_time_seconds;
         double milliseconds = prior_at_time_seconds / 1000000.0;
         prior_quantum = *p3_quantum;
-        Timeline timeline = link->captureAudioTimeline();
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         timeline.forceBeatAtTime(prior_beat, milliseconds, prior_quantum);
-        link->commitAudioTimeline(timeline);        
+        link.pointer->commitAudioTimeline(timeline);        
         return OK;
     }
     int kontrol(CSOUND *csound) {
         if ((prior_beat != *p1_beat) || (prior_at_time_seconds != *p2_at_time_seconds) || (prior_quantum != *p3_quantum)) {
             double milliseconds = p2_at_time_seconds / 1000000.0;
-            Timeline timeline = link->captureAudioTimeline();
+            ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
             timeline.forceBeatAtTime(*p1_beat, milliseconds, p3_quantum);
-            link->commitAudioTimeline(timeline);        
+            link.pointer->commitAudioTimeline(timeline);        
             prior_beat = *p1_beat;
             prior_at_time_seconds = *p2_at_time_seconds;
             prior_quantum = *p3_quantum;
@@ -372,7 +381,7 @@ class link_peers_t : public OpcodeBase<link_peers_t>
     link_cast_t link;
 public:
     int init(CSOUND *csound) {
-        link.float = p0_link;
+        link.myflt = *p0_link;
         *r0_peers = link.pointer->numPeers();
         return OK;
     }
