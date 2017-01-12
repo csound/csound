@@ -793,6 +793,7 @@ SEND            [es]
           buff[i] = '\0';
           //printf("macro name %s\n", buff);
           unput(c);
+          PARM->repeat_sect_line = PARM->line;
           /* Define macro for counter */
           PARM->repeat_sect_mm->name = cs_strdup(csound, buff);
           PARM->repeat_sect_mm->acnt = -1; /* inhibit */
@@ -819,6 +820,7 @@ SEND            [es]
             csound_prs_scan_string(PARM->cf->body, yyscanner);
             { CORFIL *tmp = PARM->cf; PARM->cf = PARM->repeat_sect_cf;
               PARM->repeat_sect_cf = tmp; }
+            PARM->line = PARM->repeat_sect_line;
           }
           else if (PARM->in_repeat_sect==2) {
             yypop_buffer_state(yyscanner);
@@ -832,8 +834,8 @@ SEND            [es]
               //printf("%s now %s\n",
               //       PARM->repeat_sect_mm->name,PARM->repeat_sect_mm->body);
               csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-              csound_prs_scan_string(PARM->repeat_sect_cf->body,
-                                     yyscanner);
+              csound_prs_scan_string(PARM->repeat_sect_cf->body, yyscanner);
+              PARM->line = PARM->repeat_sect_line;
             }
             else {
               //printf("end of loop\n");
