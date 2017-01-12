@@ -16,9 +16,15 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
-#include <cstdint>
-#include <type_traits>
-#include <byteswap.h>
+#if defined(__MINGW64__)
+#include <stdint.h>
+
+extern "C" {
+    uint64_t htonll(uint64_t value);
+    uint64_t ntohll(uint64_t value);
+}
+#endif
+
 #include <ableton/Link.hpp>
 #include <OpcodeBase.hpp>
 
@@ -28,45 +34,47 @@
  * Author: Michael Gogins
  * January 2017
  *
- * These opcodes implement the Ableton Link protocol from: 
+ * These opcodes implement the Ableton Link protocol from:
  *
- * https://github.com/Ableton/link 
+ * https://github.com/Ableton/link
  *
  * The purpose of Ableton Link is to sychronize musical time, beat, and phase
- * between musical applications performing in real time from separate 
- * programs, processes, and network addresses. This is useful e.g. for laptop 
- * orchestras. 
- * 
- * There is one global, peer-to-peer Link session that maintains a global time 
- * and beat on the local area network. Any peer may set the global tempo, 
- * and thereafter all peers in the session share that tempo. A process may 
- * have any number of peers (i.e., any number of Link objects). Each peer 
- * may also define its own "quantum" i.e. some multiple of the beat, e.g. a 
- * quantum of 4 might imply 4/4 time. The phase of the time is defined w.r.t 
- * the quantum, e.g. phase 0.5 of a quantum of 4 would be the second beat of 
- * the measure. Peers may read and write timelines with local time, beat, and 
- * phase, counting from when the peer is enabled, but the tempo and beat on 
+ * between musical applications performing in real time from separate
+ * programs, processes, and network addresses. This is useful e.g. for laptop
+ * orchestras.
+ *
+ * There is one global, peer-to-peer Link session that maintains a global time
+ * and beat on the local area network. Any peer may set the global tempo,
+ * and thereafter all peers in the session share that tempo. A process may
+ * have any number of peers (i.e., any number of Link objects). Each peer
+ * may also define its own "quantum" i.e. some multiple of the beat, e.g. a
+ * quantum of 4 might imply 4/4 time. The phase of the time is defined w.r.t
+ * the quantum, e.g. phase 0.5 of a quantum of 4 would be the second beat of
+ * the measure. Peers may read and write timelines with local time, beat, and
+ * phase, counting from when the peer is enabled, but the tempo and beat on
  * all timelines for all peers in the session will coincide.
  *
- * The Link tempo is independent of the Csound score tempo. Performances that 
- * need to synchronize the score tempo with the Link tempo may use the tempo 
- * opcode to set the score tempo from the Link tempo; or conversely, set the 
+ * The Link tempo is independent of the Csound score tempo. Performances that
+ * need to synchronize the score tempo with the Link tempo may use the tempo
+ * opcode to set the score tempo from the Link tempo; or conversely, set the
  * Link tempo from the score tempo using the tempoval opcode.
- * 
- * Build for testing with something like: 
  *
- * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_WINDOWS=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I../include -I../H -shared -oableton_link_opcodes.dll
+ * Build for testing with something like:
+ *
+ * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_WINDOWS=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/restore/link/include -I/home/restore/link/modules/asio-standalone/asio/include -I../include -I../H -shared -oableton_link_opcodes.dll
  * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_LINUX=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I/usr/local/include/csound -I/home/mkg/csound/csound/include -shared -oableton_link_opcodes.so
  */
- 
+
+using floating_point_microseconds = std::chrono::duration<double, std::chrono::microseconds::period>;
+
 typedef union {
     MYFLT myflt;
     ableton::Link *pointer;
 } link_cast_t;
 
-// i_link link_create [j_bpm = 60] 
+// i_link link_create [j_bpm = 60]
 
-class link_create_t : public OpcodeBase<link_create_t> 
+class link_create_t : public OpcodeBase<link_create_t>
 {
     // Pfields out:
     MYFLT *r0_link;
@@ -90,7 +98,7 @@ public:
 
 // link_enable i_link [, p_enabled = 1]
 
-class link_enable_t : public OpcodeBase<link_enable_t> 
+class link_enable_t : public OpcodeBase<link_enable_t>
 {
     // Pfields out:
     // Pfields in:
@@ -117,7 +125,7 @@ public:
 
 // link_disable i_link
 
-class link_disable_t : public OpcodeBase<link_disable_t> 
+class link_disable_t : public OpcodeBase<link_disable_t>
 {
     // Pfields out:
     // Pfields in:
@@ -140,7 +148,7 @@ public:
 
 // link_tempo_set i_link, k_bpm [, P_at_time_seconds = current time]
 
-class link_tempo_set_t : public OpcodeBase<link_tempo_set_t> 
+class link_tempo_set_t : public OpcodeBase<link_tempo_set_t>
 {
     // Pfields out:
     // Pfields in:
@@ -150,20 +158,18 @@ class link_tempo_set_t : public OpcodeBase<link_tempo_set_t>
     // State:
     link_cast_t link;
     MYFLT prior_bpm;
-    std::chrono::microseconds microseconds;
-    
+    std::chrono::microseconds at_time_microseconds;
 public:
     int init(CSOUND *csound) {
-        link.myflt = *p0_link; 
+        link.myflt = *p0_link;
         ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         prior_bpm = *p1_bpm;
-        microseconds = link.pointer->clock().micros();
         if (*p2_at_time_seconds == FL(-1.0)) {
-            prior_at_time_seconds = microseconds * 1000000.0;
-        } else {
-            prior_at_time_seconds = *p2_at_time_seconds;
+            at_time_microseconds = link.pointer->clock().micros();
+         } else {
+            at_time_microseconds = std::chrono::microseconds(int(p2_at_time_seconds * 1000000.0);
         }
-        timeline.setTempo(prior_bpm, at_time_seconds);
+        timeline.setTempo(prior_bpm, at_time_microseconds);
         link.pointer->commitAudioTimeline(timeline);
         return OK;
     }
@@ -171,13 +177,12 @@ public:
         if (prior_bpm != *p1_bpm) {
             ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
             prior_bpm = *p1_bpm;
-            microseconds = link.pointer->clock().micros();
             if (*p2_at_time_seconds == FL(-1.0)) {
-                prior_at_time_seconds = microseconds * 1000000.0;
-            } else {
-                prior_at_time_seconds = *p2_at_time_seconds;
+                at_time_microseconds = link.pointer->clock().micros();
+             } else {
+                at_time_microseconds = floating_point_microseconds(*p2_at_time_seconds * 1000000.0)S;
             }
-            timeline.setTempo(prior_bpm, at_time_seconds);
+            timeline.setTempo(prior_bpm, at_time_microseconds);
             link.pointer->commitAudioTimeline(timeline);
         }
         return OK;
@@ -186,7 +191,7 @@ public:
 
 // k_bpm link_tempo_get i_link
 
-class link_tempo_get_t : public OpcodeBase<link_tempo_get_t> 
+class link_tempo_get_t : public OpcodeBase<link_tempo_get_t>
 {
     // Pfields out:
     MYFLT *r1_bpm;
@@ -210,7 +215,7 @@ public:
 
 // k_beat_number, k_phase, k_current_time_seconds link_beat_get i_link [, P_quantum = 1]
 
-class link_beat_get_t : public OpcodeBase<link_beat_get_t> 
+class link_beat_get_t : public OpcodeBase<link_beat_get_t>
 {
     // Pfields out:
     MYFLT *r0_beat;
@@ -229,7 +234,7 @@ public:
         microseconds = link.pointer->clock().micros();
         *r0_beat = timeline.beatAtTime(microseconds, *p1_quantum);
         *r1_phase = timeline.phaseAtTime(microseconds, *p1_quantum);
-        *r2_seconds = microseconds * 1000000.0;        
+        *r2_seconds = microseconds * 1000000.0;
         return OK;
     }
     int kontrol(CSOUND *csound) {
@@ -237,14 +242,14 @@ public:
         microseconds = link.pointer->clock().micros();
         *r0_beat = timeline.beatAtTime(microseconds, *p1_quantum);
         *r1_phase = timeline.phaseAtTime(microseconds, *p1_quantum);
-        *r2_seconds = microseconds * 1000000.0;        
+        *r2_seconds = microseconds * 1000000.0;
         return OK;
     }
 };
 
 // k_trigger, k_beat, k_phase, k_current_time_seconds link_metro i_link [, P_quantum = 1]
 
-class link_metro_t : public OpcodeBase<link_metro_t> 
+class link_metro_t : public OpcodeBase<link_metro_t>
 {
     // Pfields out:
     MYFLT *r0_trigger;
@@ -259,7 +264,7 @@ class link_metro_t : public OpcodeBase<link_metro_t>
     double microseconds;
     MYFLT prior_phase;
 public:
-    // The trigger is "on" when the new phase is less than the prior phase, and "off" 
+    // The trigger is "on" when the new phase is less than the prior phase, and "off"
     // when the new phase is greater than the prior phase.
     int init(CSOUND *csound) {
         link.myflt = *p0_link;
@@ -269,7 +274,7 @@ public:
         *r1_beat = timeline.beatAtTime(microseconds, *p1_quantum);
         *r2_phase = timeline.phaseAtTime(microseconds, *p1_quantum);
         prior_phase = *r2_phase;
-        *r3_seconds = microseconds * 1000000.0;        
+        *r3_seconds = microseconds * 1000000.0;
         return OK;
     }
     int kontrol(CSOUND *csound) {
@@ -283,14 +288,14 @@ public:
             *r0_trigger = 0;
         }
         prior_phase = *r2_phase;
-        *r3_seconds = microseconds * 1000000.0;        
+        *r3_seconds = microseconds * 1000000.0;
         return OK;
     }
 };
 
 // link_beat_request i_link k_beat, k_at_time_seconds [, P_quantum = 1]
 
-class link_beat_request_t : public OpcodeBase<link_beat_request_t> 
+class link_beat_request_t : public OpcodeBase<link_beat_request_t>
 {
     // Pfields out:
     // Pfields in:
@@ -312,7 +317,7 @@ public:
         prior_quantum = *p3_quantum;
         ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         timeline.requestBeatAtTime(prior_beat, milliseconds, prior_quantum);
-        link.pointer->commitAudioTimeline(timeline);        
+        link.pointer->commitAudioTimeline(timeline);
         return OK;
     }
     int kontrol(CSOUND *csound) {
@@ -320,7 +325,7 @@ public:
             double milliseconds = p2_at_time_seconds / 1000000.0;
             ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
             timeline.requestBeatAtTime(*p1_beat, milliseconds, p3_quantum);
-            link.pointer->commitAudioTimeline(timeline);        
+            link.pointer->commitAudioTimeline(timeline);
             prior_beat = *p1_beat;
             prior_at_time_seconds = *p2_at_time_seconds;
             prior_quantum = *p3_quantum;
@@ -330,7 +335,7 @@ public:
 
 // link_beat_force i_link k_beat, k_at_time_seconds [, P_quantum = 1]
 
-class link_beat_force_t : public OpcodeBase<link_beat_force_t> 
+class link_beat_force_t : public OpcodeBase<link_beat_force_t>
 {
     // Pfields out:
     // Pfields in:
@@ -352,7 +357,7 @@ public:
         prior_quantum = *p3_quantum;
         ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         timeline.forceBeatAtTime(prior_beat, milliseconds, prior_quantum);
-        link.pointer->commitAudioTimeline(timeline);        
+        link.pointer->commitAudioTimeline(timeline);
         return OK;
     }
     int kontrol(CSOUND *csound) {
@@ -360,7 +365,7 @@ public:
             double milliseconds = p2_at_time_seconds / 1000000.0;
             ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
             timeline.forceBeatAtTime(*p1_beat, milliseconds, p3_quantum);
-            link.pointer->commitAudioTimeline(timeline);        
+            link.pointer->commitAudioTimeline(timeline);
             prior_beat = *p1_beat;
             prior_at_time_seconds = *p2_at_time_seconds;
             prior_quantum = *p3_quantum;
@@ -371,7 +376,7 @@ public:
 
 // i_count link_peers i_link
 
-class link_peers_t : public OpcodeBase<link_peers_t> 
+class link_peers_t : public OpcodeBase<link_peers_t>
 {
     // Pfields out:
     MYFLT *r0_peers;
