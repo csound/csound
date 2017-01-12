@@ -1929,9 +1929,9 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
 
     csound->scorestr = corfile_create_w();
     corfile_puts((char *)str, csound->scorestr);
-#ifdef SCORE_PARSER
+    //#ifdef SCORE_PARSER
     corfile_puts("\n#exit\n", csound->scorestr);
-#endif
+    //#endif
     corfile_flush(csound->scorestr);
     /* copy sorted score name */
     if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
