@@ -898,7 +898,7 @@ set_source_files_properties(${PRELEX_OUT} GENERATED)
 
 # Handling New Score Parser
 
-list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
+##list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
 #set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
 #set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
