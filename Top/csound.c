@@ -483,7 +483,7 @@ static const CSOUND cenviron_ = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */

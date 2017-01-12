@@ -73,6 +73,7 @@ typedef struct prs_parm_s {
     int     in_repeat_sect;
     int     repeat_sect_cnt;
     int     repeat_sect_index;
+    int     repeat_sect_line;
     CORFIL  *repeat_sect_cf;
     MACRO   *repeat_sect_mm;
 } PRS_PARM;
