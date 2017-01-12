@@ -54,17 +54,24 @@ extern "C" {
  * phase, counting from when the peer is enabled, but the tempo and beat on
  * all timelines for all peers in the session will coincide.
  *
+ * The first peer to enable a session determines the initial tempo. After 
+ * that, the tempo is changed only, and whenever, any peer explicity calls 
+ * the set tempo functon (link_tempo_set, in Csound).
+ *
  * The Link tempo is independent of the Csound score tempo. Performances that
  * need to synchronize the score tempo with the Link tempo may use the tempo
  * opcode to set the score tempo from the Link tempo; or conversely, set the
  * Link tempo from the score tempo using the tempoval opcode.
+ *
+ * Please note, the phase and beat obtained or set by these opcodes is only as 
+ * precise as the duration of Csound's kperiod.
  *
  * Build for testing with something like:
  *
  * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_WINDOWS=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/restore/link/include -I/home/restore/link/modules/asio-standalone/asio/include -I../include -I../H -shared -oableton_link_opcodes.dll
  * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_LINUX=1 -Werror -Wno-multichar -O2 -g -fPIC -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I/usr/local/include/csound -I/home/mkg/csound/csound/include -shared -oableton_link_opcodes.so
  */
-static bool enable_debug = true;
+static bool enable_debug = false;
 
 static void debug(const char *format,...)
 {
@@ -77,10 +84,12 @@ static void debug(const char *format,...)
     va_end(args);
 }
 
-
 using floating_point_microseconds = std::chrono::duration<double, std::chrono::microseconds::period>;
 using floating_point_seconds = std::chrono::duration<double, std::chrono::seconds::period>;
 
+/**
+ * This is used to perform a static cast in a clear, obvious, and bulletproof way.
+ */
 typedef union {
     MYFLT myflt;
     ableton::Link *pointer;
@@ -284,7 +293,7 @@ public:
     int init(CSOUND *csound) {
         link.myflt = *p0_link;
         debug("link_metro i: link.pointer: %p link.myflt: %g\n", link.pointer, link.myflt);
-        ableton::Link::Timeline timeline = link.pointer->captureAppTimeline();
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         at_time_microseconds = link.pointer->clock().micros();
         *r0_trigger = 0;
         *r1_beat = timeline.beatAtTime(at_time_microseconds, *p1_quantum);
@@ -295,7 +304,7 @@ public:
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        ableton::Link::Timeline timeline = link.pointer->captureAppTimeline();
+        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
         at_time_microseconds = link.pointer->clock().micros();
         *r1_beat = timeline.beatAtTime(at_time_microseconds, *p1_quantum);
         *r2_phase = timeline.phaseAtTime(at_time_microseconds, *p1_quantum);
