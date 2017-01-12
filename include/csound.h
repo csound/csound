@@ -822,6 +822,11 @@ extern "C" {
     PUBLIC MYFLT csoundGet0dBFS(CSOUND *);
 
     /**
+     * Returns the A4 frequency reference
+     */
+    PUBLIC MYFLT csoundGetA4(CSOUND *);
+
+    /**
      * Return the current performance time in samples
      */
   PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);

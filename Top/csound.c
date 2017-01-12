@@ -478,11 +478,12 @@ static const CSOUND cenviron_ = {
     csoundRealFFT2Setup,
     csoundRealFFT2,
     fterror,
+    csoundGetA4,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -707,7 +708,7 @@ static const CSOUND cenviron_ = {
       0,0,0,        /*  input_size, input_cnt, pop */
       1,            /*  ingappop            */
       -1,           /*  linepos             */
-      {{NULL, 0, 0, NULL}}, /* names        */
+      {{NULL, 0, 0}}, /* names        */
       {""},         /*  repeat_name_n[RPTDEPTH][NAMELEN] */
       {0},          /*  repeat_cnt_n[RPTDEPTH] */
       {0},          /*  repeat_point_n[RPTDEPTH] */
@@ -4194,6 +4195,8 @@ uint64_t csoundGetKcounter(CSOUND *csound){
 
 static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
+
+MYFLT csoundGetA4(CSOUND *csound) { return (MYFLT) csound->A4; }
 
 #if 0
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
