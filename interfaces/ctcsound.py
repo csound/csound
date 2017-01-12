@@ -213,6 +213,8 @@ libcsound.csoundGetNchnlsInput.restype = c_uint32
 libcsound.csoundGetNchnlsInput.argtypes = [c_void_p]
 libcsound.csoundGet0dBFS.restype = MYFLT
 libcsound.csoundGet0dBFS.argtypes = [c_void_p]
+libcsound.csoundGetA4.restype = MYFLT
+libcsound.csoundGetA4.argtypes = [c_void_p]
 libcsound.csoundGetCurrentTimeSamples.restype = c_int64
 libcsound.csoundGetCurrentTimeSamples.argtypes = [c_void_p]
 libcsound.csoundGetHostData.restype = py_object
@@ -886,6 +888,10 @@ class Csound:
     def get0dBFS(self):
         """Return the 0dBFS level of the spin/spout buffers."""
         return libcsound.csoundGet0dBFS(self.cs)
+    
+    def A4(self):
+        """Return the A4 frequency reference."""
+        return libcsound.csoundGetA4(self.cs)
     
     def currentTimeSamples(self):
         """Return the current performance time in samples."""
