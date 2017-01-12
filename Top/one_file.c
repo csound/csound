@@ -405,11 +405,11 @@ static int createScore(CSOUND *csound, CORFIL *cf)
       p = buffer;
       while (isblank(*p)) p++;
       if (strstr(p, "</CsScore>") == p) {
-#ifdef SCORE_PARSER
+        //#ifdef SCORE_PARSER
         corfile_puts("\n#exit\n", csound->scorestr);
         corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
         corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
-#endif
+        //#endif
         return TRUE;
       }
       else

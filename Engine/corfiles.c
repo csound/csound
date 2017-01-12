@@ -250,11 +250,11 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
       corfile_puts(buffer, mm);
       memset(buffer, '\0', 1024);
     }
-#ifdef SCORE_PARSER
+    //#ifdef SCORE_PARSER
     if (fromScore) {
       corfile_puts("\n#exit\n", mm);
     }
-#endif
+    //#endif
     corfile_putc('\0', mm);     /* For use in bison/flex */
     corfile_putc('\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(mm);
