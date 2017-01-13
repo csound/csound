@@ -64,7 +64,8 @@ extern "C" {
  * Link tempo from the score tempo using the tempoval opcode.
  *
  * Please note, the phase and beat obtained or set by these opcodes is only as 
- * precise as the duration of Csound's kperiod.
+ * precise as allowed by the duration of Csound's kperiod, the audio driver 
+ * used by Csound, the network stability, and the system's most precise clock.
  *
  * Build for testing with something like:
  *
@@ -80,7 +81,11 @@ using floating_point_microseconds = std::chrono::duration<double, std::chrono::m
 using floating_point_seconds = std::chrono::duration<double, std::chrono::seconds::period>;
 
 /**
- * This is used to perform a static cast in a clear, obvious, and bulletproof way.
+ * This is used to perform a static type cast in a clear, obvious, and 
+ * bulletproof way. Here, we want a bit-for-bit cast between a Csound MYFLT 
+ * (usually a double) and a pointer. This will only work if sizeof(MYFLT) > 
+ * sizeof(void *). That is always the case on 32 bit CPU architecture, and 
+ * will be the case on 64 bit CPU architecture if MYFLT is double-precision.
  */
 typedef union {
     MYFLT myflt;

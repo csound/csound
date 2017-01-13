@@ -27,9 +27,11 @@ Start LinkHut, then start this csd.
 
 Test 1 -- Join Session without Changing Session Tempo, and Tempo Sync
 
-At first, both peers should show a tempo of 120 which is the default for 
-LinkHut. Change tempo in LinkHut. Tempo in Csound should sync. This csd will 
-change tempo to 80 after 10 seconds. LinkHut should sync.
+At first, both peers should show a tempo of 120 which is the default for this 
+csd. Change tempo in LinkHut. Tempo in Csound should sync if Link is enabled, 
+but not sync if Link is disabled. This csd will change tempo to 80 after 10 
+seconds. LinkHut should sync if Link is enabled, but not sync if Link is 
+enabled.
 
 Test 2 -- Tempo Range
 
@@ -43,7 +45,7 @@ Link should be re-enabled. The session tempo and beat should not change. Then,
 in LinkHut, manually disable and re-enable Link. The session tempo and beat 
 should not change.
 
-Test 4 -- Beat stability
+Test 4 -- Beat Stability
 
 Kill and restart LinkHut while this csd is running. Enable and disable Link in 
 LinkHut. The beat should continue without any temporal or rhythmic discontinuity.
@@ -55,10 +57,12 @@ Start this csd, then start LinkHut.
 Test 5 -- Join Session without Changing Session Tempo, and Tempo Sync
 
 At first, both peers should show a tempo of 72 which is the default for this 
-csd. Change tempo in LinkHut. Tempo in Csound should sync. This csd will 
-change tempo to 80 after 10 seconds. LinkHut should sync.
+csd. Change tempo in LinkHut. Tempo in Csound should sync if Link is enabled, 
+but not sync if Link is disabled. This csd will change tempo to 80 after 10 
+seconds. LinkHut should sync if Link is enabled, but not sync if Link is 
+enabled.
 
-Test 6 -- Beat stability
+Test 6 -- Beat Stability
 
 Kill and restart this csd while LinkHut is running. Enable and disable Link in 
 LinkHut. The beat should continue without any temporal or rhythmic 
@@ -69,20 +73,18 @@ for delay compensation is not applicable. By using the smallest practical
 audio latency in Csound, however, the sync should not be much looser than 
 Ableton's minimum requirement of 3 milliseconds. This is approximately the 
 accuracy of a really good performing musician.
-
 </CsLicense>
 <CsOptions>
--odac -m0 -d
+-m0 -d -odac 
 </CsOptions>
-
 <CsInstruments>
-sr=96000
-ksmps=10
-nchnls=2
+sr = 96000
+ksmps = 10
+nchnls = 2
 
 alwayson "LinkMonitor"
 
-gi_link init 0
+gi_link link_create 72
 gk_beat init 0
 
 instr Beep
@@ -102,7 +104,6 @@ endin
 instr LinkMonitor
 i_kperiod_seconds = ksmps / sr
 printf_i "kperiod: %9.6f seconds.\n", 1, i_kperiod_seconds
-gi_link link_create 72
 printf_i "gi_link: %g\n", 1, gi_link
 link_enable gi_link, 1
 k_trigger, gk_beat, k_phase, k_time link_metro gi_link, 1
@@ -116,16 +117,13 @@ else
 k_hz = 2000
 endif
 schedkwhen k_trigger, 0, 1, "Beep", 0, 0.01, k_hz
-printf "LinkMonitor: gi_link: %12g k_enabled: %9.4f k_trigger: %9.4f beat: %9.4f k_phase: %9.4f time: %9.4f tempo: %9.4f peers: %3d\n", k_trigger, gi_link, k_enabled, k_trigger, gk_beat, k_phase, k_time, k_tempo, k_peers
+printf "LinkMonitor: gi_link: %g k_enabled: %9.4f k_trigger: %9.4f beat: %9.4f k_phase: %9.4f time: %9.4f tempo: %9.4f peers: %3d\n", k_trigger, gi_link, k_enabled, k_trigger, gk_beat, k_phase, k_time, k_tempo, k_peers
 endin
-
 </CsInstruments>
-
 <CsScore>
 f 0 360
 i "TempoChange" 10 80
-i "LinkEnable" 20 1 0
-i "LinkEnable" 30 1 1
+i "LinkEnable"  20 1 0
+i "LinkEnable"  30 1 1
 </CsScore>
-
 </CsoundSynthesizer>
