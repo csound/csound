@@ -71,18 +71,10 @@ extern "C" {
  * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_WINDOWS=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/restore/link/include -I/home/restore/link/modules/asio-standalone/asio/include -I../include -I../H -shared -oableton_link_opcodes.dll
  * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_LINUX=1 -Werror -Wno-multichar -O2 -g -fPIC -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I/usr/local/include/csound -I/home/mkg/csound/csound/include -shared -oableton_link_opcodes.so
  */
-static bool enable_debug = false;
+static bool enable_debug = 0;
 
-static void debug(const char *format,...)
-{
-    if (enable_debug == false) {
-        return;
-    }
-    va_list args;
-    va_start(args, format);
-    vfprintf(stdout, format, args);
-    va_end(args);
-}
+#define debug(fmt, ...) \
+            do { if (enable_debug) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
 
 using floating_point_microseconds = std::chrono::duration<double, std::chrono::microseconds::period>;
 using floating_point_seconds = std::chrono::duration<double, std::chrono::seconds::period>;
