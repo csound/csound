@@ -91,11 +91,13 @@ LOOP            #loop
 EXIT            #exit
 CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 SEND            [es]
-
+NM              [nm]
+   
 %X incl
 %x macro
 %x umacro
 %x ifdef
+%x lname
 
 %%
 
@@ -618,6 +620,16 @@ SEND            [es]
                     corfile_puts(yytext, PARM->cf);
                   }
                 }
+{NM}            {
+                  corfile_putc(yytext[0], PARM->cf);
+                  BEGIN(lname);
+                }
+<lname>[ \t]*     /* eat the whitespace */
+<lname>{IDENT}   {
+                  corfile_putc(' ', PARM->cf);
+                  corfile_puts(yytext, PARM->cf);
+                  BEGIN(INITIAL);
+                }
 
 "{"             {
                   int c, i;
@@ -780,7 +792,7 @@ SEND            [es]
           }
           if (UNLIKELY(PARM->repeat_sect_cnt <= 0
                        || !isspace(c)))
-            csound->Die(csound, Str("{: invalid repeat count"));
+            csound->Die(csound, Str("r: invalid repeat count"));
           if (csound->oparms->odebug)
             csound->Message(csound, Str("r LOOP=%d\n"), PARM->repeat_sect_cnt);
           while (isblank(c)) {

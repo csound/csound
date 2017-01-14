@@ -573,7 +573,8 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
 
   if(p->OUTOCOUNT != p->nchans)
     return csound->InitError(csound,
-                             Str("filescal: mismatched channel numbers. %d outputs, %d inputs\n"),
+                             Str("filescal: mismatched channel numbers. "
+                                 "%d outputs, %d inputs\n"),
                              p->OUTOCOUNT, p->nchans);
 
   sinit(csound, p);

@@ -184,6 +184,7 @@
 ./Opcodes/LuaCsound.cpp
 ./Opcodes/OSC.c
 ./Opcodes/Vosim.c
+./Opcodes/ableton_link_opcodes.cpp
 ./Opcodes/afilters.c
 ./Opcodes/ambicode.c
 ./Opcodes/ambicode1.c
