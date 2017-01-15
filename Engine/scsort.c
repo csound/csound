@@ -54,6 +54,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       sort(csound);
       twarp(csound);
       swritestr(csound, sco, first);
+      //printf("sorted: >>>%s<<<\n", sco->body);
       m++;
     }
     if (first) {
