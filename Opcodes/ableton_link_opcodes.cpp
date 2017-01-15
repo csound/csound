@@ -18,10 +18,17 @@
 */
 #if defined(__MINGW64__)
 #include <stdint.h>
+#include <stdlib.h>
 
 extern "C" {
-    uint64_t htonll(uint64_t value);
-    uint64_t ntohll(uint64_t value);
+    uint64_t htonll(uint64_t value)
+    {
+        _byteswap_uint64(value);
+    }
+    uint64_t ntohll(uint64_t value)
+    {
+        _byteswap_uint64(value);
+    }
 }
 #endif
 
@@ -54,8 +61,8 @@ extern "C" {
  * phase, counting from when the peer is enabled, but the tempo and beat on
  * all timelines for all peers in the session will coincide.
  *
- * The first peer to enable a session determines the initial tempo. After 
- * that, the tempo is changed only, and whenever, any peer explicity calls 
+ * The first peer to enable a session determines the initial tempo. After
+ * that, the tempo is changed only, and whenever, any peer explicity calls
  * the set tempo functon (link_tempo_set, in Csound).
  *
  * The Link tempo is independent of the Csound score tempo. Performances that
@@ -63,8 +70,8 @@ extern "C" {
  * opcode to set the score tempo from the Link tempo; or conversely, set the
  * Link tempo from the score tempo using the tempoval opcode.
  *
- * Please note, the phase and beat obtained or set by these opcodes is only as 
- * precise as allowed by the duration of Csound's kperiod, the audio driver 
+ * Please note, the phase and beat obtained or set by these opcodes is only as
+ * precise as allowed by the duration of Csound's kperiod, the audio driver
  * used by Csound, the network stability, and the system's most precise clock.
  *
  * Build for testing with something like:
@@ -81,10 +88,10 @@ using floating_point_microseconds = std::chrono::duration<double, std::chrono::m
 using floating_point_seconds = std::chrono::duration<double, std::chrono::seconds::period>;
 
 /**
- * This is used to perform a static type cast in a clear, obvious, and 
- * bulletproof way. Here, we want a bit-for-bit cast between a Csound MYFLT 
- * (usually a double) and a pointer. This will only work if sizeof(MYFLT) > 
- * sizeof(void *). That is always the case on 32 bit CPU architecture, and 
+ * This is used to perform a static type cast in a clear, obvious, and
+ * bulletproof way. Here, we want a bit-for-bit cast between a Csound MYFLT
+ * (usually a double) and a pointer. This will only work if sizeof(MYFLT) >
+ * sizeof(void *). That is always the case on 32 bit CPU architecture, and
  * will be the case on 64 bit CPU architecture if MYFLT is double-precision.
  */
 typedef union {
@@ -297,7 +304,7 @@ public:
         *r2_phase = timeline.phaseAtTime(at_time_microseconds, *p1_quantum);
         prior_phase = *r2_phase;
         *r3_seconds = std::chrono::duration_cast<floating_point_seconds>(at_time_microseconds).count();
-        debug("link_metro i: r0_trigger: %f r1_beat: %f r2_phase: %f r3_seconds: %f\n", *r0_trigger, *r1_beat, *r2_phase, *r3_seconds); 
+        debug("link_metro i: r0_trigger: %f r1_beat: %f r2_phase: %f r3_seconds: %f\n", *r0_trigger, *r1_beat, *r2_phase, *r3_seconds);
         return OK;
     }
     int kontrol(CSOUND *csound) {
@@ -307,7 +314,7 @@ public:
         *r2_phase = timeline.phaseAtTime(at_time_microseconds, *p1_quantum);
         if (*r2_phase < prior_phase) {
             *r0_trigger = 1;
-            debug("link_metro k: r0_trigger: %f r1_beat: %f r2_phase: %f r3_seconds: %f\n", *r0_trigger, *r1_beat, *r2_phase, *r3_seconds); 
+            debug("link_metro k: r0_trigger: %f r1_beat: %f r2_phase: %f r3_seconds: %f\n", *r0_trigger, *r1_beat, *r2_phase, *r3_seconds);
         } else {
             *r0_trigger = 0;
         }
