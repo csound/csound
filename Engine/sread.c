@@ -672,45 +672,45 @@ static int getscochar(CSOUND *csound, int expand)
 /*     return 0; */
 /* } */
 /* #endif */
-static int do_repeat(CSOUND *csound)
-{                               /* At end of section repeat if necessary */
-    STA(repeat_cnt)--;
-    if (STA(repeat_cnt) == 0) {  /* Expired */
-      /* Delete macro (assuming there is any) */
-      if (csound->oparms->msglevel & TIMEMSG)
-        csound->Message(csound, Str("Loop terminated\n"));
-      if (STA(repeat_name)[0] != '\0')
-        undefine_score_macro(csound, STA(repeat_name));
-      STA(repeat_name)[0] = '\0';
-    }
-    else {
-      int i, n;
-      corfile_set(csound->expanded_sco, STA(repeat_point));
-      if (STA(repeat_name)[0] != '\0') {
-        sscanf(corfile_current(STA(repeat_mm)->body), "%d%n", &i, &n);
-        i = i + STA(repeat_inc);
-        corfile_seek(STA(repeat_mm)->body, n, SEEK_CUR);
-        {
-          char buffer[128];
-          snprintf(buffer, 128, "%d", i);
-          corfile_reset(STA(repeat_mm)->body);
-          corfile_puts(buffer, STA(repeat_mm)->body);
-          corfile_rewind(STA(repeat_mm)->body);
-        }
-        if (csound->oparms->msglevel & TIMEMSG)
-          csound->Message(csound, Str("Repeat section (%d)\n"), i);
-      }
-      else
-        csound->Message(csound, Str("Repeat section\n"));
-      /* replace 'e' or 'r' with 's' and end section */
-      STA(bp)->text[0] = 's';
-      STA(clock_base) = FL(0.0);
-      STA(warp_factor) = FL(1.0);
-      STA(prvp2) = -FL(1.0);
-      return 1;
-    }
-    return 0;
-}
+/* static int do_repeat(CSOUND *csound) */
+/* {                               /\* At end of section repeat if necessary *\/ */
+/*     STA(repeat_cnt)--; */
+/*     if (STA(repeat_cnt) == 0) {  /\* Expired *\/ */
+/*       /\* Delete macro (assuming there is any) *\/ */
+/*       if (csound->oparms->msglevel & TIMEMSG) */
+/*         csound->Message(csound, Str("Loop terminated\n")); */
+/*       if (STA(repeat_name)[0] != '\0') */
+/*         undefine_score_macro(csound, STA(repeat_name)); */
+/*       STA(repeat_name)[0] = '\0'; */
+/*     } */
+/*     else { */
+/*       int i, n; */
+/*       corfile_set(csound->expanded_sco, STA(repeat_point)); */
+/*       if (STA(repeat_name)[0] != '\0') { */
+/*         sscanf(corfile_current(STA(repeat_mm)->body), "%d%n", &i, &n); */
+/*         i = i + STA(repeat_inc); */
+/*         corfile_seek(STA(repeat_mm)->body, n, SEEK_CUR); */
+/*         { */
+/*           char buffer[128]; */
+/*           snprintf(buffer, 128, "%d", i); */
+/*           corfile_reset(STA(repeat_mm)->body); */
+/*           corfile_puts(buffer, STA(repeat_mm)->body); */
+/*           corfile_rewind(STA(repeat_mm)->body); */
+/*         } */
+/*         if (csound->oparms->msglevel & TIMEMSG) */
+/*           csound->Message(csound, Str("Repeat section (%d)\n"), i); */
+/*       } */
+/*       else */
+/*         csound->Message(csound, Str("Repeat section\n")); */
+/*       /\* replace 'e' or 'r' with 's' and end section *\/ */
+/*       STA(bp)->text[0] = 's'; */
+/*       STA(clock_base) = FL(0.0); */
+/*       STA(warp_factor) = FL(1.0); */
+/*       STA(prvp2) = -FL(1.0); */
+/*       return 1; */
+/*     } */
+/*     return 0; */
+/* } */
 
 static void init_smacros(CSOUND *csound, NAMES *nn)
 {
@@ -941,17 +941,17 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           printf("end of n; return to %d\n", STA(str)->oposit);
           corfile_set(csound->expanded_sco, STA(str)->oposit);
           STA(str)--;
-          goto again;
+          return rtncod;
         }
-        while (STA(str)->is_marked_repeat && STA(input_cnt) > 0) {
-          /* close all marked repeat inputs */
-          //corfile_rm(&(STA(str)->cf));
-          STA(str)--; STA(input_cnt)--;
-        }
-        if (STA(repeat_cnt) != 0) {
-          if (do_repeat(csound))
-            return rtncod;
-        }
+        /* while (STA(str)->is_marked_repeat && STA(input_cnt) > 0) { */
+        /*   /\* close all marked repeat inputs *\/ */
+        /*   //corfile_rm(&(STA(str)->cf)); */
+        /*   STA(str)--; STA(input_cnt)--; */
+        /* } */
+        /* if (STA(repeat_cnt) != 0) { */
+        /*   if (do_repeat(csound)) */
+        /*     return rtncod; */
+        /* } */
         if (STA(op) != 'e') {
           STA(clock_base) = FL(0.0);
           STA(warp_factor) = FL(1.0);
@@ -1138,8 +1138,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           buff[i] = '\0';
           if (c != EOF && c != '\n') flushlin(csound);
           if (csound->oparms->msglevel & TIMEMSG)
-            csound->Message(csound,Str("Named section >>>%s<<<\n"), buff);
-          //printf("*** last_name = %d\n", STA(last_name));
+            csound->Message(csound,Str("m Named section >>>%s<<<\n"), buff);
+            //printf("*** last_name = %d\n", STA(last_name));
           for (j=0; j<STA(last_name); j++) {
             //printf("m: %s %s(%d)\n", buff, STA(names)[j].name, j);
             if (strcmp(buff, STA(names)[j].name)==0) break;
@@ -1174,6 +1174,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             c = getscochar(csound, 1);
           }
           buff[i] = '\0';
+          printf("n Named section %s\n", buff);
           if (c != '\n' && c != EOF) flushlin(csound);
           //printf("last_name %d\n", STA(last_name));
           for (i = 0; i<=STA(last_name); i++) {
@@ -1202,7 +1203,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             //printf("posit was %d moved to %d\n",
             //       STA(str)->oposit, STA(names)[i].posit);
           }
-          STA(op) = getop(csound);
+              STA(op) = getop(csound);
           STA(nxp) = old_nxp;
           *STA(nxp)++ = STA(op); /* Undo this line */
           STA(nxp)++;
@@ -1251,8 +1252,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
     if (STA(repeat_cnt) > 0) {
       STA(op) = 'e';
       salcblk(csound);
-      if (do_repeat(csound))
-        return rtncod;
+      /* if (do_repeat(csound)) */
+      /*   return rtncod; */
       *STA(nxp)++ = LF;
     }
     if (!rtncod) {                      /* Ending so clear macros */
