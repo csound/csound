@@ -622,7 +622,7 @@ NM              [nm]
                 }
 {NM}            {
                   corfile_putc(yytext[0], PARM->cf);
-                  BEGIN(lname);
+                  if (!PARM->isString) BEGIN(lname);
                 }
 <lname>[ \t]*     /* eat the whitespace */
 <lname>{IDENT}   {
