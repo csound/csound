@@ -289,7 +289,9 @@ NM              [nm]
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c == '\\') {
-                         c = input(yyscanner);
+                         int newc = input(yyscanner);
+                         if (newc != ')') nn ->body[i++] = c;
+                         c = newc;
                        }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
@@ -391,7 +393,11 @@ NM              [nm]
                        if (c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
-                       if (c == '\\') c = input(yyscanner);
+                       if (c == '\\') {
+                         int newc = input(yyscanner);
+                         if (newc != ')') nn->body[i++] = c;
+                          c = newc;
+                       }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
                                      Str("Missing argument terminator\n%.98s"),
