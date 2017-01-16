@@ -346,6 +346,7 @@ QNAN		"qnan"[ \t]*\(
                        if (c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
+                       if (c == '\\') c = input(yyscanner);
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
                                      Str("Missing argument terminator\n%.98s"),
@@ -446,6 +447,7 @@ QNAN		"qnan"[ \t]*\(
                        if (c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
+                       if (c == '\\') c = input(yyscanner);
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
                                      Str("Missing argument terminator\n%.98s"),
