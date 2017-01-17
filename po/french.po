@@ -573,7 +573,7 @@ msgstr "impossible de créer la variable %s : type NULL"
 #: Engine/csound_orc.lex:475
 #, c-format
 msgid "unterminated string found on line %d >>%s<<\n"
-msgstr ""
+msgstr "chaîne de caractères non close trouvée ligne %d >>%s<<\n"
 
 #: Engine/csound_orc.y:247
 msgid "No number following instr\n"
@@ -623,24 +623,21 @@ msgstr "Macro non définie : '%s'"
 #: Engine/csound_prs.lex:1208 Engine/csound_prs.lex:1217
 #: Engine/csound_prs.lex:1274 Engine/csound_prs.lex:1380
 #: Engine/csound_prs.lex:1393 Engine/csound_prs.lex:1408
-#, fuzzy
 msgid "Memory exhausted"
-msgstr "Echec de l'allocation mémoire\n"
+msgstr "Plus de mémoire"
 
 #: Engine/csound_pre.lex:259 Engine/csound_pre.lex:297
 #: Engine/csound_pre.lex:398 Engine/csound_pre.lex:491
 #: Engine/csound_prs.lex:189 Engine/csound_prs.lex:194
 #: Engine/csound_prs.lex:238 Engine/csound_prs.lex:340
 #: Engine/csound_prs.lex:437
-#, fuzzy
 msgid "macros/include nested too deep: "
-msgstr "Imbrication des boucles trop profonde"
+msgstr "Imbrication des macros/include trop profonde"
 
 #: Engine/csound_pre.lex:347 Engine/csound_pre.lex:447
 #: Engine/csound_prs.lex:289 Engine/csound_prs.lex:389
-#, fuzzy
 msgid "Too few arguments to macro\n"
-msgstr "Trop d'arguments pour OSCsend"
+msgstr "Trop peu d'arguments pour la macro\n"
 
 #: Engine/csound_pre.lex:351 Engine/csound_pre.lex:451
 #: Engine/csound_prs.lex:293 Engine/csound_prs.lex:393
@@ -653,28 +650,26 @@ msgstr ""
 "%.98s"
 
 #: Engine/csound_pre.lex:521
-#, fuzzy
 msgid "unexpected EOF!"
-msgstr "caractère %c inattendu"
+msgstr "EOF inattendu !"
 
 #: Engine/csound_pre.lex:596 Engine/csound_prs.lex:548
-#, fuzzy, c-format
+#, c-format
 msgid "Unexpected character %c(%.2x) line %d\n"
-msgstr "sread : caractère %c inattendu, sect %d ligne %d\n"
+msgstr "Caractère %c(%.2x) inattendu, ligne %d\n"
 
 #: Engine/csound_pre.lex:635 Engine/csound_prs.lex:587
 msgid "#else without #if\n"
-msgstr ""
+msgstr "#else sans #if\n"
 
 #: Engine/csound_pre.lex:639 Engine/csound_pre.lex:1231
 #: Engine/csound_prs.lex:591 Engine/csound_prs.lex:1335
 msgid "#else after #else\n"
-msgstr ""
+msgstr "#else après un #else\n"
 
 #: Engine/csound_pre.lex:657 Engine/csound_prs.lex:609
-#, fuzzy
 msgid "Unmatched #end\n"
-msgstr "#endif non apparié"
+msgstr "#end non apparié\n"
 
 #: Engine/csound_pre.lex:827 Engine/csound_prs.lex:432
 #: Engine/csound_prs.lex:935
@@ -684,7 +679,7 @@ msgstr "Imbrication des boucles trop profonde"
 #: Engine/csound_pre.lex:842 Engine/csound_prs.lex:952
 #, c-format
 msgid "%s is a directory; not including"
-msgstr ""
+msgstr "%s est un répertoire ; pas inclus"
 
 #: Engine/csound_pre.lex:846 Engine/csound_prs.lex:956
 #, c-format
@@ -703,23 +698,22 @@ msgstr "erreur de macro\n"
 #: Engine/csound_prs.lex:1078 Engine/csound_prs.lex:1083
 #: Engine/csound_prs.lex:1170 Engine/csound_prs.lex:1174
 #: Engine/csound_prs.lex:1181 Engine/csound_prs.lex:1186
-#, fuzzy
 msgid "define macro runaway\n"
-msgstr "Macro non définie : '%s'"
+msgstr "define de macro disparu\n"
 
 #: Engine/csound_pre.lex:986 Engine/csound_pre.lex:1089
 #: Engine/csound_prs.lex:1090 Engine/csound_prs.lex:1193
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
-msgstr ""
+msgstr "caractère %c(0x%.2x) inattendu dans define de macro à la place de #\n"
 
 #: Engine/csound_pre.lex:1000 Engine/csound_prs.lex:1104
 msgid "define macro with args: unexpected EOF"
-msgstr ""
+msgstr "define de macro avec args : EOF inattendu"
 
 #: Engine/csound_pre.lex:1099 Engine/csound_prs.lex:1203
 msgid "define macro: unexpected EOF"
-msgstr ""
+msgstr "define de macro : EOF inattendu"
 
 #: Engine/csound_pre.lex:1134 Engine/csound_prs.lex:1238
 #, c-format
@@ -731,9 +725,9 @@ msgid "Undefining undefined macro"
 msgstr "Libération de la macro non définie"
 
 #: Engine/csound_pre.lex:1204 Engine/csound_prs.lex:1308
-#, fuzzy, c-format
+#, c-format
 msgid "Unmatched #if%sdef\n"
-msgstr "#ifdef non apparié\n"
+msgstr "#if%sdef non apparié\n"
 
 #: Engine/csound_pre.lex:1306 Engine/csound_prs.lex:1373 Engine/sread.c:726
 #, c-format
@@ -745,9 +739,8 @@ msgid "Invalid macro name for --omacro"
 msgstr "Nom de macro non valide pour --omacro"
 
 #: Engine/csound_prs.lex:471
-#, fuzzy
 msgid "unexpected EOF!!\n"
-msgstr "caractère %c inattendu"
+msgstr "EOF inattendu !!\n"
 
 #: Engine/csound_prs.lex:638
 msgid "Loops are nested too deeply"
@@ -768,14 +761,12 @@ msgid "External LOOP=%d Level:%d\n"
 msgstr "BOUCLE externe=%d, Niveau : %d\n"
 
 #: Engine/csound_prs.lex:713
-#, fuzzy
 msgid "unmatched } in score\n"
-msgstr "guillemet non apparié"
+msgstr "} non apparié dans la partition\n"
 
 #: Engine/csound_prs.lex:776
-#, fuzzy
 msgid "Section loops cannot be nested"
-msgstr "l'entrée ne peut pas être stdout"
+msgstr "Les boucles de section ne peuvent pas être imbriquées"
 
 #: Engine/csound_prs.lex:795
 msgid "r: invalid repeat count"
@@ -784,7 +775,7 @@ msgstr "r : nombre de répétitions non valide"
 #: Engine/csound_prs.lex:797
 #, c-format
 msgid "r LOOP=%d\n"
-msgstr ""
+msgstr "r LOOP=%d\n"
 
 #: Engine/envvar.c:216
 #, c-format
@@ -1939,14 +1930,14 @@ msgid "Clockbase = %f\n"
 msgstr "Base de l'horloge = %f\n"
 
 #: Engine/sread.c:1141
-#, fuzzy, c-format
+#, c-format
 msgid "m Named section >>>%s<<<\n"
-msgstr "Section nommée >>>%s<<<\n"
+msgstr "m section nommée >>>%s<<<\n"
 
 #: Engine/sread.c:1156
-#, fuzzy, c-format
+#, c-format
 msgid "%d: %s position %ld\n"
-msgstr "%d : Fichier %s position %ld\n"
+msgstr "%d : %s position %ld\n"
 
 #: Engine/sread.c:1186
 #, c-format
