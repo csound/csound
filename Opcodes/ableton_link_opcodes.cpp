@@ -79,6 +79,20 @@ extern "C" {
  * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_WINDOWS=1 -Werror -Wno-multichar -O2 -g -lcsound64 -I/home/restore/link/include -I/home/restore/link/modules/asio-standalone/asio/include -I../include -I../H -shared -oableton_link_opcodes.dll
  * g++ ableton_link_opcodes.cpp -std=gnu++11 -DLINK_PLATFORM_LINUX=1 -Werror -Wno-multichar -O2 -g -fPIC -lcsound64 -I/home/mkg/link/include -I/home/mkg/link/modules/asio-standalone/asio/include -I/usr/local/include/csound -I/home/mkg/csound/csound/include -shared -oableton_link_opcodes.so
  */
+using namespace csound;
+
+static CSOUND *csound_;
+
+void * operator new(std::size_t n) throw(std::bad_alloc)
+{
+    return csound_->Malloc(csound_, n);
+}
+
+void operator delete(void * p) throw()
+{
+  csound_->Free(csound_, p);
+}
+
 static bool enable_debug = 0;
 
 #define debug(fmt, ...) \
@@ -582,6 +596,7 @@ extern "C" {
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
+    csound_ = csound;
     return 0;
   }
 

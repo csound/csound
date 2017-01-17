@@ -446,6 +446,20 @@
 #include <string>
 #include <vector>
 
+using namespace csound;
+
+static CSOUND *csound_;
+
+void * operator new(std::size_t n) throw(std::bad_alloc)
+{
+    return csound_->Malloc(csound_, n);
+}
+
+void operator delete(void * p) throw()
+{
+  csound_->Free(csound_, p);
+}
+
 struct JackoInit;
 struct JackoInfo;
 struct JackoFreewheel;
