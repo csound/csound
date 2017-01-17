@@ -114,6 +114,8 @@ using namespace stk;
 #include <csGblMtx.h>
 #include <OpcodeBase.hpp>
 
+using namespace csound;
+
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -122,12 +124,7 @@ using namespace stk;
 #include <vector>
 
 using namespace std;
-
-static std::vector<Instrmnt *> &getStkInstances()
-{
-    static std::vector<Instrmnt *> stkInstances;
-    return stkInstances;
-}
+using namespace csound;
 
 template<typename T>
 class STKInstrumentAdapter : public OpcodeBase< STKInstrumentAdapter<T> >
@@ -181,7 +178,6 @@ public:
         {
           Stk::setSampleRate(csound->GetSr(csound));
           instrument = new T();
-          getStkInstances().push_back(instrument);
         }
       ksmps = OpcodeBase< STKInstrumentAdapter<T> >::opds.insdshead->ksmps;
       instrument->noteOn(*ifrequency, *igain);
@@ -327,7 +323,6 @@ public:
       if(!instrument) {
         Stk::setSampleRate(csound->GetSr(csound));
         instrument = new T((StkFloat) 10.0);
-        getStkInstances().push_back(instrument);
       }
       ksmps = OpcodeBase< STKInstrumentAdapter1<T> >::opds.insdshead->ksmps;
       instrument->noteOn(*ifrequency, *igain);
@@ -790,9 +785,6 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-      for(size_t i = 0, n = getStkInstances().size(); i < n; ++i) {
-        delete getStkInstances()[i];
-      }
     return 0;
   }
 

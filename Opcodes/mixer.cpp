@@ -3,6 +3,20 @@
 #include <vector>
 #include "interlocks.h"
 
+using namespace csound;
+
+static CSOUND *csound_;
+
+void * operator new(std::size_t n) throw(std::bad_alloc)
+{
+    return csound_->Malloc(csound_, n);
+}
+
+void operator delete(void * p) throw()
+{
+  csound_->Free(csound_, p);
+}
+
 // Define ENABLE_MIXER_IDEBUG to enable i-rate debug messages.
 //#define ENABLE_MIXER_IDEBUG
 
@@ -397,6 +411,7 @@ extern "C"
   }
     PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
+    csound_ = csound;
     return 0;
   }
 
