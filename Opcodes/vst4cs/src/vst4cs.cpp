@@ -35,6 +35,18 @@
 #include "vsthost.h"
 #include "fxbank.h"
 
+static CSOUND *csound_;
+
+void * operator new(std::size_t n) throw(std::bad_alloc)
+{
+    return csound_->Malloc(csound_, n);
+}
+
+void operator delete(void * p) throw()
+{
+  csound_->Free(csound_, p);
+}
+
 // These two collections replace similar ones that used to be in widglobals.h.
 
 std::vector<VSTPlugin*> &vstPlugEditors()
@@ -555,6 +567,7 @@ extern "C" {
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
+    csound_ = csound;
     return 0;
   }
 
