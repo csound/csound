@@ -114,18 +114,6 @@
 
 #define SIGNALFLOWGRAPH_DEBUG 0
 
-static CSOUND *csound_;
-
-void * operator new(std::size_t n) throw(std::bad_alloc)
-{
-    return csound_->Malloc(csound_, n);
-}
-
-void operator delete(void * p) throw()
-{
-  csound_->Free(csound_, p);
-}
-
 namespace csound
 {
 
@@ -1938,7 +1926,6 @@ extern "C"
 
     PUBLIC int csoundModuleCreate_signalflowgraph(CSOUND *csound)
     {
-        csound_ = csound;
         if(csound->GetDebug(csound)) {
             csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n", csound);
         }
@@ -2011,7 +1998,6 @@ extern "C"
         ///csound->UnlockMutex(signal_flow_ftables_lock);
         ///csound->DestroyMutex(signal_flow_ports_lock);
         ///csound->DestroyMutex(signal_flow_ftables_lock);
-        csound_ = 0;
         return 0;
     }
  #endif

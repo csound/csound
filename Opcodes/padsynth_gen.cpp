@@ -27,18 +27,6 @@ extern "C" {
 #include <complex>
 #include <random>
 
-static CSOUND *csound_;
-
-void * operator new(std::size_t n) throw(std::bad_alloc)
-{
-    return csound_->Malloc(csound_, n);
-}
-
-void operator delete(void * p) throw()
-{
-  csound_->Free(csound_, p);
-}
-
 /**
 
 Paul Octavian Nasca's "padsynth algorithm" adds bandwidth to each partial of a
@@ -564,8 +552,7 @@ extern "C" {
 
     PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
     {   
-        csound_ = csound; 
-        return padsynth_gens;     
+         return padsynth_gens;     
     }  
 
 };
