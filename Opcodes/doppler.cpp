@@ -28,18 +28,6 @@
 
 using namespace csound;
 
-static CSOUND *csound_;
-
-void * operator new(std::size_t n) throw(std::bad_alloc)
-{
-    return csound_->Malloc(csound_, n);
-}
-
-void operator delete(void * p) throw()
-{
-  csound_->Free(csound_, p);
-}
-
 /* ***************  does not deal with unaligned signals ************** */
 // Why not use the constants already defined?
 static MYFLT pi = std::atan(1.0) * MYFLT(4.0);
