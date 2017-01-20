@@ -8,6 +8,8 @@ ksmps     = 256
 nchnls    = 2
 0dbfs	  = 1
 
+maxalloc 2, 1
+
 	instr 1
 S_file strget p4
 ilen filelen S_file

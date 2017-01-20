@@ -23,11 +23,11 @@ kattPitch chnget "attitudePitch"
 kattYaw chnget "attitudeYaw" 
 
 
-kcutoff = 5000 + (4000 * kaccelX)
-kresonance = .3 + (.3  * kaccelY)
-kpch = 880 + kaccelX * 220
+kcutoff = 5000 + (4000 * kattYaw)
+kresonance = .3 + (.3  * kattRoll)
+kpch = 880 + (kaccelX * 220)
 
-a1 vco2 (kaccelZ + .5)  * .2, kpch
+a1 vco2 (kattPitch + .5)  * .2, kpch
 
 a1 moogladder a1, kcutoff, kresonance
 

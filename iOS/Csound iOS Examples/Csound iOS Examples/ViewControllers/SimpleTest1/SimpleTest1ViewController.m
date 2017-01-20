@@ -3,6 +3,7 @@
  SimpleTest1ViewController.m:
  
  Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -35,7 +36,7 @@
 @implementation SimpleTest1ViewController
 
 -(void)viewDidLoad {
-    self.title = @"Simple Test 1";
+    self.title = @"01. Simple Test 1";
     self.csound = NULL;
     [super viewDidLoad];
 }
@@ -66,11 +67,30 @@
     }
 }
 
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.frame;
+    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    NSString *description = @"Flip the switch to begin rendering Csound.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:18];
+    [infoVC.view addSubview:infoText];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
+}
+
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[uiSwitch setOn:NO animated:YES];
-    uiLabel.text = @"";
+    [uiLabel performSelectorOnMainThread:@selector(setText:) withObject:@"" waitUntilDone:NO];
 }
 
 

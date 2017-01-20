@@ -28,7 +28,7 @@
 @implementation MultiTouchXYViewController
 
 -(void)viewDidLoad {
-    self.title = @"MultiTouch XY";
+    self.title = @"15. MultiTouch XY Pad";
 	
 	for (int i = 0; i < 10; i++) {
 		touchIds[i] = 0;
@@ -40,6 +40,25 @@
     [super viewDidLoad];
 	
 
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.frame;
+    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    NSString *description = @"Multitouch XY Pad demonstrates a multitouch performance surface. Each touch is dynamically mapped to a unique instance of a Csound instrument.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:18];
+    [infoVC.view addSubview:infoText];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -140,8 +159,6 @@
 		int touchId = [self getTouchId:touch];
 		if (touchId != -1) {
 			touchIds[touchId] = 0;
-//			touchX[touchId] = 0;
-//			touchY[touchId] = 0;
 			touchArray[touchId] = nil;
 			[self.csound sendScore:[NSString stringWithFormat:@"i-1.%d 0 0 %d", touchId, touchId]];
 
@@ -154,8 +171,6 @@
 		int touchId = [self getTouchId:touch];
 		if (touchId != -1) {
 			touchIds[touchId] = 0;
-//			touchX[touchId] = 0;
-//			touchY[touchId] = 0;
 			touchArray[touchId] = nil;
 			[self.csound sendScore:[NSString stringWithFormat:@"i-1.%d 0 0", touchId, nil]];
 			

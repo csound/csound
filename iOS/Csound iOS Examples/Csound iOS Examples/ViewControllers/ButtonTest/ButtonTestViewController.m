@@ -3,6 +3,7 @@
  ButtonTestViewController.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -27,7 +28,7 @@
 @implementation ButtonTestViewController
 
 -(void)viewDidLoad {
-    self.title = @"Button Test";
+    self.title = @"03. Button Test";
     self.csound = NULL;
     [super viewDidLoad];
 }
@@ -69,6 +70,25 @@
         [self.csound stop];
         self.csound = NULL;
     }
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.frame;
+    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    NSString *description = @"Uses a .csd based on SimpleTest 2, but depends on the user to press a button to trigger each note. One button uses a binding and the other sends a score message to CsoundObj.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:18];
+    [infoVC.view addSubview:infoText];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 #pragma mark CsoundObjListener
