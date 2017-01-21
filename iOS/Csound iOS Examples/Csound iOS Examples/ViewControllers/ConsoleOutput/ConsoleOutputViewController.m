@@ -3,6 +3,7 @@
  ConsoleOutputViewController.m:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -41,6 +42,28 @@
 	[self.csound play:csdPath];
 }
 
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.frame;
+    [infoVC setPreferredContentSize:CGSizeMake(400, 100)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    NSString *description = @"Renders a simple 5-second 'countdown' .csd and publishes information to a virtual Csound console every second.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
+}
+
 - (void)updateUIWithNewMessage:(NSString *)newMessage
 {
 	NSString *oldText = mTextView.text;
@@ -51,7 +74,7 @@
 - (void)messageCallback:(NSValue *)infoObj
 {
     @autoreleasepool {
-    
+
         Message info;
         [infoObj getValue:&info];
         char message[1024];
@@ -67,7 +90,7 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        self.title = @"Console Output";
+        self.title = @"07. Console Output";
     }
     return self;
 }
