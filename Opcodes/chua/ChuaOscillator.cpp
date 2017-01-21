@@ -122,6 +122,8 @@ using namespace boost::numeric;
 #include <OpcodeBase.hpp>
 #include <cmath>
 
+using namespace csound;
+
 #undef CS_KSMPS
 #define CS_KSMPS     (opds.insdshead->ksmps)
 

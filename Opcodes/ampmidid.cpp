@@ -22,6 +22,8 @@
  */
 #include "OpcodeBase.hpp"
 
+using namespace csound;
+
 #include <cmath>
 
 /**

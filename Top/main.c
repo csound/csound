@@ -531,15 +531,20 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
     int res = read_unified_file4(csound, corfile_create_r(csd_text));
     if (res) {
       if(csound->csdname != NULL) csound->Free(csound, csound->csdname);
-      csound->csdname = cs_strdup(csound, "*string*"); /* Mark asfrom text */
+      csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
       res = csoundCompileOrc(csound, NULL);
       if (res == CSOUND_SUCCESS){
         csoundLockMutex(csound->API_lock);
         char *sc = scsortstr(csound, csound->scorestr);
-        if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          csoundInputMessageInternal(csound, (const char *) sc);
+        if (sc) {
+          if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+            csound->Message(csound, Str("\"Real-time\" performance (engineStatus: %d).\n"), csound->engineStatus);
+            csoundInputMessageInternal(csound, (const char *) sc);
+            csound->Free(csound, sc);
+          } else {
+            csound->Message(csound, Str("\"Non-real-time\" performance (engineStatus: %d).\n"), csound->engineStatus);
+          }
         }
-        csound->Free(csound, sc);
         csoundUnlockMutex(csound->API_lock);
       }
     }

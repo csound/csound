@@ -29,7 +29,7 @@
 #define CSOUNDCORE_H
 
 #include "sysdep.h"
-#ifndef EMSCRIPTEN
+#if !defined(EMSCRIPTEN) && !defined(CABBAGE)
 #include <pthread.h>
 #endif
 #include "cs_par_structs.h"

@@ -347,6 +347,8 @@ extern "C"
 #include <vector>
 #include <gmm/gmm.h>
 
+using namespace csound;
+
 /**
  * Template union for safely and efficiently
  * typecasting the value of a MYFLT variable
