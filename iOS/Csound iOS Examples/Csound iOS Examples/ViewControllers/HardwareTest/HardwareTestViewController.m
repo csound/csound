@@ -102,13 +102,16 @@
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
     popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(300, 200)];
+    [infoVC setPreferredContentSize:CGSizeMake(400, 200)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
     NSString *description = @"Hardware: Motion Control shows how to use the device's motion sensor data as a set of controllers for Csound, and also displays this data in a set of UILabels. Accelerometer X controls oscillator frequency, Attitude: Yaw controls filter cutoff, Attitude: Pitch controls amplitude, and Attitude: Roll controls filter resonance.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
-    infoText.font = [UIFont fontWithName:@"Menlo" size:18];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
     [self presentViewController:infoVC animated:YES completion:nil];
     

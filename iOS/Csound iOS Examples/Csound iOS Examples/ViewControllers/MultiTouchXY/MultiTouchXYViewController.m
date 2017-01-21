@@ -49,13 +49,16 @@
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
     popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
+    [infoVC setPreferredContentSize:CGSizeMake(400, 100)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
     NSString *description = @"Multitouch XY Pad demonstrates a multitouch performance surface. Each touch is dynamically mapped to a unique instance of a Csound instrument.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
-    infoText.font = [UIFont fontWithName:@"Menlo" size:18];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
     [self presentViewController:infoVC animated:YES completion:nil];
     

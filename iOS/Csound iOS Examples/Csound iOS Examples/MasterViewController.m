@@ -271,6 +271,11 @@
         splitViewController.viewControllers = viewControllers;
         splitViewController.delegate = controller;
         
+        if ([[UIDevice currentDevice] orientation] == UIDeviceOrientationPortrait) {
+            [UIView animateWithDuration:0.2 animations:^{
+                splitViewController.preferredDisplayMode = UISplitViewControllerDisplayModePrimaryHidden;
+            }];
+        }
     }
 
     

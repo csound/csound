@@ -127,11 +127,9 @@
         self.navigationItem.leftBarButtonItem = svc.displayModeButtonItem;
         self.navigationItem.leftBarButtonItem.title = NSLocalizedString(@"Master", @"Master");
         self.masterPopoverController = svc;
-        NSLog(@"Hidden");
     } else if (displayMode == UISplitViewControllerDisplayModeAllVisible) {
         [self.navigationItem setLeftBarButtonItem:nil animated:YES];
         self.masterPopoverController = nil;
-        NSLog(@"Shown");
     }
 }
 
