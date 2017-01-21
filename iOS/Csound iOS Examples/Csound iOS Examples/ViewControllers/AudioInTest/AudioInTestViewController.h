@@ -3,6 +3,7 @@
  AudioInTestViewController.h:
  
  Copyright (C) 2011 Steven Yi, Victor Lazzarini
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  

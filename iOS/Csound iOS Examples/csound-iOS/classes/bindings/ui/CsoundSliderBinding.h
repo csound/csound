@@ -24,6 +24,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
 @interface CsoundSliderBinding : NSObject<CsoundBinding> 
