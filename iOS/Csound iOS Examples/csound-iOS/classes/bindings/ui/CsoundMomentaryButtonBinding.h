@@ -23,6 +23,7 @@
  
  */
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
 @interface CsoundMomentaryButtonBinding : NSObject<CsoundBinding>

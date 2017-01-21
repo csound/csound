@@ -3,6 +3,7 @@
  DetailViewController.m:
  
  Copyright (C) 2011 Steven Yi
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -26,7 +27,7 @@
 #import "DetailViewController.h"
 
 @interface DetailViewController ()
-@property (strong, nonatomic) UIPopoverController *masterPopoverController;
+@property (strong, nonatomic) UIViewController *masterPopoverController;
 - (void)configureView;
 @end
 
@@ -44,7 +45,7 @@
     }
 
     if (self.masterPopoverController != nil) {
-        [self.masterPopoverController dismissPopoverAnimated:YES];
+        [self.masterPopoverController dismissViewControllerAnimated:YES completion:nil];
     }        
 }
 
@@ -120,18 +121,16 @@
 							
 #pragma mark - Split view
 
-- (void)splitViewController:(UISplitViewController *)splitController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
+- (void)splitViewController:(UISplitViewController *)svc willChangeToDisplayMode:(UISplitViewControllerDisplayMode)displayMode
 {
-    barButtonItem.title = NSLocalizedString(@"Master", @"Master");
-    [self.navigationItem setLeftBarButtonItem:barButtonItem animated:YES];
-    self.masterPopoverController = popoverController;
-}
-
-- (void)splitViewController:(UISplitViewController *)splitController willShowViewController:(UIViewController *)viewController invalidatingBarButtonItem:(UIBarButtonItem *)barButtonItem
-{
-    // Called when the view is shown again in the split view, invalidating the button and popover controller.
-    [self.navigationItem setLeftBarButtonItem:nil animated:YES];
-    self.masterPopoverController = nil;
+    if(displayMode == UISplitViewControllerDisplayModePrimaryHidden ) {
+        self.navigationItem.leftBarButtonItem = svc.displayModeButtonItem;
+        self.navigationItem.leftBarButtonItem.title = NSLocalizedString(@"Master", @"Master");
+        self.masterPopoverController = svc;
+    } else if (displayMode == UISplitViewControllerDisplayModeAllVisible) {
+        [self.navigationItem setLeftBarButtonItem:nil animated:YES];
+        self.masterPopoverController = nil;
+    }
 }
 
 @end

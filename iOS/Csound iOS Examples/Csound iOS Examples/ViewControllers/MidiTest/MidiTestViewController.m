@@ -3,6 +3,7 @@
  MidiTestViewController.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -27,7 +28,7 @@
 @implementation MidiTestViewController
 
 -(void)viewDidLoad {
-    self.title = @"MIDI Test";
+    self.title = @"04. Hardware: MIDI Controller";
     
     widgetsManager = [[MidiWidgetsManager alloc] init];
     
@@ -88,6 +89,27 @@
     [self.csound sendScore:@"i\"allNotesOff\" 0 1"];
 }
 
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.frame;
+    [infoVC setPreferredContentSize:CGSizeMake(400, 90)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    NSString *description = @"This example demonstrate MIDI input from hardware, as well an on-screen (simulated) MIDI keyboard.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
+}
 
 
 #pragma mark CsoundObjListener
