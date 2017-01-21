@@ -45,7 +45,7 @@
 {
 	NSString *audioFilePath = [[NSBundle mainBundle] pathForResource:@"testAudioFile"
 															  ofType:@"aif"];
-	NSString *score = [NSString stringWithFormat:@"i1.1 0 1 \"%@\"", audioFilePath];
+	NSString *score = [NSString stringWithFormat:@"i1 0 1 \"%@\"", audioFilePath];
     [self.csound sendScore:score];
 }
 
@@ -56,7 +56,7 @@
 
 
 - (IBAction)stop:(UIButton *)sender {
-    [self.csound sendScore:@"i-1.1 0 1"];
+    [self.csound sendScore:@"i3 0 1 2"];
 }
 
 - (IBAction)showInfo:(UIButton *)sender {
@@ -66,13 +66,16 @@
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
     popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
+    [infoVC setPreferredContentSize:CGSizeMake(400, 120)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
     NSString *description = @"Soundfile PitchShifter uses the URL of a bundled AIFF file and playing it with Csound. Also demonstrated is a custom UI control knob widget, used to change playback pitch.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
-    infoText.font = [UIFont fontWithName:@"Menlo" size:18];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
     [self presentViewController:infoVC animated:YES completion:nil];
     

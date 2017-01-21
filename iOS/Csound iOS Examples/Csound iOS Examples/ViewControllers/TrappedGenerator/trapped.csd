@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--+rtmidi=null -+rtaudio=null -Wd -+msg_color=0 
+;-+rtmidi=null -+rtaudio=null -Wd -+msg_color=0
 </CsOptions>
 <CsInstruments>
 ;============================================================================;

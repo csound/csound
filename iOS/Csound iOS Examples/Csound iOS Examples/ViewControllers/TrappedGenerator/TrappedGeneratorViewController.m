@@ -87,13 +87,16 @@
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
     popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
+    [infoVC setPreferredContentSize:CGSizeMake(400, 120)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
     NSString *description = @"This example demonstrates creating a virtual Csound console, and implementing a method to update this virtual console with information accessed from CsoundObj.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
-    infoText.font = [UIFont fontWithName:@"Menlo" size:18];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
     [self presentViewController:infoVC animated:YES completion:nil];
     

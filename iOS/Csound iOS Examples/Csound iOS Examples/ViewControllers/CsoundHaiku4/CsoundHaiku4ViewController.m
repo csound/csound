@@ -59,13 +59,16 @@
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
     popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
+    [infoVC setPreferredContentSize:CGSizeMake(400, 160)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
     NSString *description = @"Haiku IV is the fourth in a suite of nine generative Csound pieces by Iain McCurdy. Csound begins rendering the work when the view appears and stops when the view unloads and CsoundObj is deallocated.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
-    infoText.font = [UIFont fontWithName:@"Menlo" size:18];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
     [self presentViewController:infoVC animated:YES completion:nil];
     

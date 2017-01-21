@@ -955,7 +955,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "$(SRCROOT)/Csound iOS Examples/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/csound-iOS/libs",
@@ -980,7 +980,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "$(SRCROOT)/Csound iOS Examples/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/csound-iOS/libs",
