@@ -3,6 +3,7 @@
  SimpleTest2ViewController.h:
  
  Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -50,7 +51,7 @@
 @implementation SimpleTest2ViewController
 
 -(void)viewDidLoad {
-    self.title = @"Simple Test 2";
+    self.title = @"02. Simple Test 2";
     self.csound = NULL;
     [super viewDidLoad];
 }
@@ -93,7 +94,27 @@
     }
 }
 
-
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.frame;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 140)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    NSString *description = @"A generative music example that contains a number of sliders that affect the rate, duration, and envelope of each note.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
+}
 
 #pragma mark CsoundObjListener
 

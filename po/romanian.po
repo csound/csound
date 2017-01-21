@@ -540,6 +540,211 @@ msgstr ""
 msgid "cannot create variable %s: NULL type"
 msgstr ""
 
+#: Engine/csound_orc.lex:475
+#, c-format
+msgid "unterminated string found on line %d >>%s<<\n"
+msgstr ""
+
+#: Engine/csound_orc.y:247
+msgid "No number following instr\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:234 Engine/csound_pre.lex:272
+#: Engine/csound_pre.lex:314 Engine/csound_pre.lex:414
+#: Engine/csound_prs.lex:160 Engine/csound_prs.lex:208
+#: Engine/csound_prs.lex:256 Engine/csound_prs.lex:356
+#, c-format
+msgid "Undefined macro: '%s'"
+msgstr ""
+
+#: Engine/csound_pre.lex:245 Engine/csound_pre.lex:283
+#: Engine/csound_pre.lex:327 Engine/csound_pre.lex:332
+#: Engine/csound_pre.lex:342 Engine/csound_pre.lex:358
+#: Engine/csound_pre.lex:376 Engine/csound_pre.lex:427
+#: Engine/csound_pre.lex:432 Engine/csound_pre.lex:442
+#: Engine/csound_pre.lex:458 Engine/csound_pre.lex:476
+#: Engine/csound_pre.lex:852 Engine/csound_pre.lex:886
+#: Engine/csound_pre.lex:892 Engine/csound_pre.lex:905
+#: Engine/csound_pre.lex:913 Engine/csound_pre.lex:921
+#: Engine/csound_pre.lex:932 Engine/csound_pre.lex:941
+#: Engine/csound_pre.lex:949 Engine/csound_pre.lex:994
+#: Engine/csound_pre.lex:1006 Engine/csound_pre.lex:1020
+#: Engine/csound_pre.lex:1029 Engine/csound_pre.lex:1051
+#: Engine/csound_pre.lex:1059 Engine/csound_pre.lex:1094
+#: Engine/csound_pre.lex:1104 Engine/csound_pre.lex:1113
+#: Engine/csound_pre.lex:1170 Engine/csound_pre.lex:1313
+#: Engine/csound_pre.lex:1326 Engine/csound_pre.lex:1341
+#: Engine/csound_prs.lex:175 Engine/csound_prs.lex:224
+#: Engine/csound_prs.lex:269 Engine/csound_prs.lex:274
+#: Engine/csound_prs.lex:284 Engine/csound_prs.lex:300
+#: Engine/csound_prs.lex:318 Engine/csound_prs.lex:369
+#: Engine/csound_prs.lex:374 Engine/csound_prs.lex:384
+#: Engine/csound_prs.lex:400 Engine/csound_prs.lex:418
+#: Engine/csound_prs.lex:642 Engine/csound_prs.lex:689
+#: Engine/csound_prs.lex:727 Engine/csound_prs.lex:780
+#: Engine/csound_prs.lex:962 Engine/csound_prs.lex:990
+#: Engine/csound_prs.lex:996 Engine/csound_prs.lex:1009
+#: Engine/csound_prs.lex:1017 Engine/csound_prs.lex:1025
+#: Engine/csound_prs.lex:1036 Engine/csound_prs.lex:1045
+#: Engine/csound_prs.lex:1053 Engine/csound_prs.lex:1098
+#: Engine/csound_prs.lex:1110 Engine/csound_prs.lex:1124
+#: Engine/csound_prs.lex:1133 Engine/csound_prs.lex:1155
+#: Engine/csound_prs.lex:1163 Engine/csound_prs.lex:1198
+#: Engine/csound_prs.lex:1208 Engine/csound_prs.lex:1217
+#: Engine/csound_prs.lex:1274 Engine/csound_prs.lex:1380
+#: Engine/csound_prs.lex:1393 Engine/csound_prs.lex:1408
+msgid "Memory exhausted"
+msgstr ""
+
+#: Engine/csound_pre.lex:259 Engine/csound_pre.lex:297
+#: Engine/csound_pre.lex:398 Engine/csound_pre.lex:491
+#: Engine/csound_prs.lex:189 Engine/csound_prs.lex:194
+#: Engine/csound_prs.lex:238 Engine/csound_prs.lex:340
+#: Engine/csound_prs.lex:437
+msgid "macros/include nested too deep: "
+msgstr ""
+
+#: Engine/csound_pre.lex:347 Engine/csound_pre.lex:447
+#: Engine/csound_prs.lex:289 Engine/csound_prs.lex:389
+msgid "Too few arguments to macro\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:351 Engine/csound_pre.lex:451
+#: Engine/csound_prs.lex:293 Engine/csound_prs.lex:393
+#, c-format
+msgid ""
+"Missing argument terminator\n"
+"%.98s"
+msgstr ""
+
+#: Engine/csound_pre.lex:521
+msgid "unexpected EOF!"
+msgstr ""
+
+#: Engine/csound_pre.lex:596 Engine/csound_prs.lex:548
+#, c-format
+msgid "Unexpected character %c(%.2x) line %d\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:635 Engine/csound_prs.lex:587
+msgid "#else without #if\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:639 Engine/csound_pre.lex:1231
+#: Engine/csound_prs.lex:591 Engine/csound_prs.lex:1335
+msgid "#else after #else\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:657 Engine/csound_prs.lex:609
+msgid "Unmatched #end\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:827 Engine/csound_prs.lex:432
+#: Engine/csound_prs.lex:935
+msgid "Includes nested too deeply"
+msgstr ""
+
+#: Engine/csound_pre.lex:842 Engine/csound_prs.lex:952
+#, c-format
+msgid "%s is a directory; not including"
+msgstr ""
+
+#: Engine/csound_pre.lex:846 Engine/csound_prs.lex:956
+#, c-format
+msgid "Cannot open #include'd file %s\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:958 Engine/csound_prs.lex:1062
+msgid "macro error\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:963 Engine/csound_pre.lex:967
+#: Engine/csound_pre.lex:974 Engine/csound_pre.lex:979
+#: Engine/csound_pre.lex:1066 Engine/csound_pre.lex:1070
+#: Engine/csound_pre.lex:1077 Engine/csound_pre.lex:1082
+#: Engine/csound_prs.lex:1067 Engine/csound_prs.lex:1071
+#: Engine/csound_prs.lex:1078 Engine/csound_prs.lex:1083
+#: Engine/csound_prs.lex:1170 Engine/csound_prs.lex:1174
+#: Engine/csound_prs.lex:1181 Engine/csound_prs.lex:1186
+msgid "define macro runaway\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:986 Engine/csound_pre.lex:1089
+#: Engine/csound_prs.lex:1090 Engine/csound_prs.lex:1193
+#, c-format
+msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:1000 Engine/csound_prs.lex:1104
+msgid "define macro with args: unexpected EOF"
+msgstr ""
+
+#: Engine/csound_pre.lex:1099 Engine/csound_prs.lex:1203
+msgid "define macro: unexpected EOF"
+msgstr ""
+
+#: Engine/csound_pre.lex:1134 Engine/csound_prs.lex:1238
+#, c-format
+msgid "macro %s undefined\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:1149 Engine/csound_prs.lex:1253 Engine/sread.c:218
+msgid "Undefining undefined macro"
+msgstr ""
+
+#: Engine/csound_pre.lex:1204 Engine/csound_prs.lex:1308
+#, c-format
+msgid "Unmatched #if%sdef\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:1306 Engine/csound_prs.lex:1373 Engine/sread.c:726
+#, c-format
+msgid "Macro definition for %*s\n"
+msgstr ""
+
+#: Engine/csound_pre.lex:1309 Engine/csound_prs.lex:1376
+msgid "Invalid macro name for --omacro"
+msgstr ""
+
+#: Engine/csound_prs.lex:471
+msgid "unexpected EOF!!\n"
+msgstr ""
+
+#: Engine/csound_prs.lex:638
+msgid "Loops are nested too deeply"
+msgstr ""
+
+#: Engine/csound_prs.lex:656
+msgid "{: invalid repeat count"
+msgstr ""
+
+#: Engine/csound_prs.lex:665
+#, c-format
+msgid "%s Nested LOOP=%d Level:%d\n"
+msgstr ""
+
+#: Engine/csound_prs.lex:671
+#, c-format
+msgid "External LOOP=%d Level:%d\n"
+msgstr ""
+
+#: Engine/csound_prs.lex:713
+msgid "unmatched } in score\n"
+msgstr ""
+
+#: Engine/csound_prs.lex:776
+msgid "Section loops cannot be nested"
+msgstr ""
+
+#: Engine/csound_prs.lex:795
+msgid "r: invalid repeat count"
+msgstr ""
+
+#: Engine/csound_prs.lex:797
+#, c-format
+msgid "r LOOP=%d\n"
+msgstr ""
+
 #: Engine/envvar.c:216
 #, c-format
 msgid "Environment variable '%s' has been set to "
@@ -1400,8 +1605,8 @@ msgstr ""
 msgid "playing from cscore.srt\n"
 msgstr ""
 
-#: Engine/musmon.c:351 Engine/musmon.c:515 Engine/musmon.c:1132
-#: Engine/musmon.c:1343
+#: Engine/musmon.c:351 Engine/musmon.c:516 Engine/musmon.c:1133
+#: Engine/musmon.c:1344
 #, c-format
 msgid "SECTION %d:\n"
 msgstr ""
@@ -1415,122 +1620,122 @@ msgstr ""
 msgid "end of score.\t\t   overall amps:"
 msgstr ""
 
-#: Engine/musmon.c:479
+#: Engine/musmon.c:480
 msgid ""
 "\n"
 "\t   overall samples out of range:"
 msgstr ""
 
-#: Engine/musmon.c:483
+#: Engine/musmon.c:484
 #, c-format
 msgid ""
 "\n"
 "%d errors in performance\n"
 msgstr ""
 
-#: Engine/musmon.c:485
+#: Engine/musmon.c:486
 msgid "end of performance"
 msgstr ""
 
-#: Engine/musmon.c:498
+#: Engine/musmon.c:499
 msgid "no sound written to disk\n"
 msgstr ""
 
-#: Engine/musmon.c:591 Engine/musmon.c:637
+#: Engine/musmon.c:592 Engine/musmon.c:638
 msgid "\t number of samples out of range:"
 msgstr ""
 
-#: Engine/musmon.c:630
+#: Engine/musmon.c:631
 #, c-format
 msgid "end of section %d\t sect peak amps:"
 msgstr ""
 
-#: Engine/musmon.c:632
+#: Engine/musmon.c:633
 msgid "end of lplay event list\t      peak amps:"
 msgstr ""
 
-#: Engine/musmon.c:697 Engine/musmon.c:724
+#: Engine/musmon.c:698 Engine/musmon.c:725
 #, c-format
 msgid " - note deleted. instr %s undefined"
 msgstr ""
 
-#: Engine/musmon.c:701
+#: Engine/musmon.c:702
 #, c-format
 msgid "Setting instrument %s %s\n"
 msgstr ""
 
-#: Engine/musmon.c:702 Engine/musmon.c:716
+#: Engine/musmon.c:703 Engine/musmon.c:717
 msgid "off"
 msgstr ""
 
-#: Engine/musmon.c:702 Engine/musmon.c:716
+#: Engine/musmon.c:703 Engine/musmon.c:717
 msgid "on"
 msgstr ""
 
-#: Engine/musmon.c:711 Engine/musmon.c:753
+#: Engine/musmon.c:712 Engine/musmon.c:754
 #, c-format
 msgid " - note deleted. instr %d(%d) undefined"
 msgstr ""
 
-#: Engine/musmon.c:715
+#: Engine/musmon.c:716
 #, c-format
 msgid "Setting instrument %d %s\n"
 msgstr ""
 
-#: Engine/musmon.c:743
+#: Engine/musmon.c:744
 #, c-format
 msgid " - note deleted.  i%d (%s) had %d init errors"
 msgstr ""
 
-#: Engine/musmon.c:774
+#: Engine/musmon.c:775
 #, c-format
 msgid " - note deleted.  i%d had %d init errors"
 msgstr ""
 
-#: Engine/musmon.c:795
+#: Engine/musmon.c:796
 #, c-format
 msgid "time advanced %5.3f beats by score request\n"
 msgstr ""
 
-#: Engine/musmon.c:813
+#: Engine/musmon.c:814
 #, c-format
 msgid "\t\t   T%7.3f - note deleted. "
 msgstr ""
 
-#: Engine/musmon.c:817
+#: Engine/musmon.c:818
 #, c-format
 msgid "instr %s had %d init errors\n"
 msgstr ""
 
-#: Engine/musmon.c:820
+#: Engine/musmon.c:821
 #, c-format
 msgid "instr %d had %d init errors\n"
 msgstr ""
 
-#: Engine/musmon.c:916
+#: Engine/musmon.c:917
 msgid "terminating.\n"
 msgstr ""
 
-#: Engine/musmon.c:1002
+#: Engine/musmon.c:1003
 #, c-format
 msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr ""
 
-#: Engine/musmon.c:1255
+#: Engine/musmon.c:1256
 #, c-format
 msgid "insert_score_event(): invalid instrument number or name %d\n"
 msgstr ""
 
-#: Engine/musmon.c:1275
+#: Engine/musmon.c:1276
 #, c-format
 msgid "insert_score_event(): unknown opcode: %c\n"
 msgstr ""
 
-#: Engine/musmon.c:1298
+#: Engine/musmon.c:1299
 msgid "insert_score_event(): insufficient p-fields\n"
 msgstr ""
 
-#: Engine/musmon.c:1352
+#: Engine/musmon.c:1353
 msgid "cannot rewind score: no score in memory \n"
 msgstr ""
 
@@ -1616,316 +1821,175 @@ msgstr ""
 msgid "sort: illegal opcode %c(%.2x)\n"
 msgstr ""
 
-#: Engine/sread.c:69
+#: Engine/sread.c:65
 msgid "sread:  text space overrun, increase MARGIN"
 msgstr ""
 
-#: Engine/sread.c:114
+#: Engine/sread.c:110
 msgid "sread: "
 msgstr ""
 
-#: Engine/sread.c:129
+#: Engine/sread.c:125
 msgid "score error:  "
 msgstr ""
 
-#: Engine/sread.c:143
+#: Engine/sread.c:139
 #, c-format
 msgid "  section %d:  at position %d%s"
 msgstr ""
 
-#: Engine/sread.c:149
+#: Engine/sread.c:145
 msgid "Internal error in print_input_backtrace()"
 msgstr ""
 
-#: Engine/sread.c:153
+#: Engine/sread.c:149
 #, c-format
 msgid "  included from line %d of macro %s%s"
 msgstr ""
 
-#: Engine/sread.c:154
+#: Engine/sread.c:150
 #, c-format
 msgid "  called from line %d of macro %s%s"
 msgstr ""
 
-#: Engine/sread.c:156
+#: Engine/sread.c:152
 #, c-format
 msgid "  in line %d of macro %s%s"
 msgstr ""
 
-#: Engine/sread.c:191
+#: Engine/sread.c:187
 #, c-format
 msgid "Internal error op=%c"
 msgstr ""
 
-#: Engine/sread.c:222
-msgid "Undefining undefined macro"
-msgstr ""
-
-#: Engine/sread.c:326
-msgid "Macro expansion symbol ($) without macro name"
-msgstr ""
-
-#: Engine/sread.c:328
-#, c-format
-msgid "Undefined macro: '%s'"
-msgstr ""
-
-#: Engine/sread.c:332
-#, c-format
-msgid "$%s matches macro name $%s"
-msgstr ""
-
-#: Engine/sread.c:349 Engine/sread.c:366
-msgid "Syntax error in macro call"
-msgstr ""
-
-#: Engine/sread.c:415 Engine/sread.c:1908
-msgid "illegal placement of number in [] expression"
-msgstr ""
-
-#: Engine/sread.c:442 Engine/sread.c:1935
-msgid "illegal placement of operator ~ in [] expression"
-msgstr ""
-
-#: Engine/sread.c:452 Engine/sread.c:1945
-msgid "illegal placement of operator @ or @@ in [] expression"
-msgstr ""
-
-#: Engine/sread.c:484 Engine/sread.c:498 Engine/sread.c:1977
-#: Engine/sread.c:1991
-#, c-format
-msgid "illegal placement of operator %c in [] expression"
-msgstr ""
-
-#: Engine/sread.c:510 Engine/sread.c:2003
-msgid "illegal placement of '(' in [] expression"
-msgstr ""
-
-#: Engine/sread.c:516 Engine/sread.c:2009
-msgid "missing operand before ')' in [] expression"
-msgstr ""
-
-#: Engine/sread.c:530 Engine/sread.c:2023
-msgid "missing operand before closing bracket in []"
-msgstr ""
-
-#: Engine/sread.c:545 Engine/sread.c:2038
-#, c-format
-msgid "illegal character %c(%.2x) in [] expression"
-msgstr ""
-
-#: Engine/sread.c:619
-#, c-format
-msgid "%s Nested LOOP terminated, level:%d\n"
-msgstr ""
-
-#: Engine/sread.c:625
-#, c-format
-msgid "External LOOP terminated, level:%d\n"
-msgstr ""
-
-#: Engine/sread.c:672
-#, c-format
-msgid "%s  Nested LOOP section (%d) Level:%d\n"
-msgstr ""
-
-#: Engine/sread.c:677
-#, c-format
-msgid " External LOOP section (%d) Level:%d\n"
-msgstr ""
-
-#: Engine/sread.c:691
-msgid "Loop terminated\n"
-msgstr ""
-
-#: Engine/sread.c:711
-#, c-format
-msgid "Repeat section (%d)\n"
-msgstr ""
-
-#: Engine/sread.c:714
-msgid "Repeat section\n"
-msgstr ""
-
-#: Engine/sread.c:736
-#, c-format
-msgid "Macro definition for %*s\n"
-msgstr ""
-
-#: Engine/sread.c:739
+#: Engine/sread.c:729
 msgid "Invalid macro name for --smacro"
 msgstr ""
 
-#: Engine/sread.c:908
+#: Engine/sread.c:893
 #, c-format
 msgid "Clockbase = %f\n"
 msgstr ""
 
-#: Engine/sread.c:992
-msgid "Loops are nested too deeply"
-msgstr ""
-
-#: Engine/sread.c:1006
-msgid "{: invalid repeat count"
-msgstr ""
-
-#: Engine/sread.c:1015
+#: Engine/sread.c:1141
 #, c-format
-msgid "%s Nested LOOP=%d Level:%d\n"
-msgstr ""
-
-#: Engine/sread.c:1021
-#, c-format
-msgid "External LOOP=%d Level:%d\n"
-msgstr ""
-
-#: Engine/sread.c:1108
-msgid "r: invalid repeat count"
-msgstr ""
-
-#: Engine/sread.c:1110
-#, c-format
-msgid "Repeats=%d\n"
+msgid "m Named section >>>%s<<<\n"
 msgstr ""
 
 #: Engine/sread.c:1156
 #, c-format
-msgid "Named section >>>%s<<<\n"
+msgid "%d: %s position %ld\n"
 msgstr ""
 
-#: Engine/sread.c:1171
-#, c-format
-msgid "%d: File %s position %ld\n"
-msgstr ""
-
-#: Engine/sread.c:1196
+#: Engine/sread.c:1186
 #, c-format
 msgid "Name %s not found"
 msgstr ""
 
-#: Engine/sread.c:1198
-#, c-format
-msgid "Duplicate %d: %s (%s,%ld)\n"
-msgstr ""
-
-#: Engine/sread.c:1227
+#: Engine/sread.c:1218
 #, c-format
 msgid "Warp_factor = %f\n"
 msgstr ""
 
-#: Engine/sread.c:1255
+#: Engine/sread.c:1246
 #, c-format
 msgid "sread is confused on legal opcodes %c(%.2x)\n"
 msgstr ""
 
-#: Engine/sread.c:1318
+#: Engine/sread.c:1309
 msgid "No previous event for ^"
 msgstr ""
 
-#: Engine/sread.c:1323
+#: Engine/sread.c:1314
 #, c-format
 msgid "illegal space following %s, zero substituted"
 msgstr ""
 
-#: Engine/sread.c:1353
+#: Engine/sread.c:1344
 #, c-format
 msgid "ignoring '%s' in '%c' event"
 msgstr ""
 
-#: Engine/sread.c:1356
+#: Engine/sread.c:1347
 msgid "! invalid in p1, p2, or p3"
 msgstr ""
 
-#: Engine/sread.c:1357 Engine/sread.c:1362 Engine/sread.c:1882
-#: Engine/sread.c:2070 Engine/sread.c:2084
+#: Engine/sread.c:1348 Engine/sread.c:1353 Engine/sread.c:1873
+#: Engine/sread.c:2059 Engine/sread.c:2073
 msgid "      remainder of line flushed\n"
 msgstr ""
 
-#: Engine/sread.c:1361
+#: Engine/sread.c:1352
 #, c-format
 msgid "illegal character after !: '%c'"
 msgstr ""
 
-#: Engine/sread.c:1449
+#: Engine/sread.c:1440
 #, c-format
 msgid "WARNING: instr %s not found, assuming insno = -1\n"
 msgstr ""
 
-#: Engine/sread.c:1469
+#: Engine/sread.c:1460
 msgid "sread: illegal use of carry,   0 substituted\n"
 msgstr ""
 
-#: Engine/sread.c:1618
-msgid "Improper \\"
-msgstr ""
-
-#: Engine/sread.c:1657
-msgid "Not #define"
-msgstr ""
-
-#: Engine/sread.c:1679
-#, c-format
-msgid "Macro definition for %s\n"
-msgstr ""
-
-#: Engine/sread.c:1710
-msgid "macro error\n"
-msgstr ""
-
-#: Engine/sread.c:1719 Engine/sread.c:1728
-msgid "Syntax error in macro definition"
-msgstr ""
-
-#: Engine/sread.c:1739
-#, c-format
-msgid "Macro %s with %d arguments defined\n"
-msgstr ""
-
-#: Engine/sread.c:1751
-msgid "Not #include"
-msgstr ""
-
-#: Engine/sread.c:1793
-#, c-format
-msgid "Cannot open #include'd file %s"
-msgstr ""
-
-#: Engine/sread.c:1803
-msgid "Not #undef"
-msgstr ""
-
-#: Engine/sread.c:1824
-#, c-format
-msgid "macro %s undefined\n"
-msgstr ""
-
-#: Engine/sread.c:1842
-msgid "unknown # option"
-msgstr ""
-
-#: Engine/sread.c:1881
+#: Engine/sread.c:1872
 #, c-format
 msgid "illegal opcode %c"
 msgstr ""
 
-#: Engine/sread.c:2069
+#: Engine/sread.c:1898
+msgid "illegal placement of number in [] expression"
+msgstr ""
+
+#: Engine/sread.c:1925
+msgid "illegal placement of operator ~ in [] expression"
+msgstr ""
+
+#: Engine/sread.c:1935
+msgid "illegal placement of operator @ or @@ in [] expression"
+msgstr ""
+
+#: Engine/sread.c:1967 Engine/sread.c:1981
+#, c-format
+msgid "illegal placement of operator %c in [] expression"
+msgstr ""
+
+#: Engine/sread.c:1993
+msgid "illegal placement of '(' in [] expression"
+msgstr ""
+
+#: Engine/sread.c:1999
+msgid "missing operand before ')' in [] expression"
+msgstr ""
+
+#: Engine/sread.c:2013
+msgid "missing operand before closing bracket in []"
+msgstr ""
+
+#: Engine/sread.c:2028
+#, c-format
+msgid "illegal character %c(%.2x) in [] expression"
+msgstr ""
+
+#: Engine/sread.c:2058
 #, c-format
 msgid "unexpected char %c"
 msgstr ""
 
-#: Engine/sread.c:2083
+#: Engine/sread.c:2072
 msgid "illegally placed string"
 msgstr ""
 
-#: Engine/sread.c:2090
+#: Engine/sread.c:2079
 msgid "unmatched quote"
 msgstr ""
 
-#: Engine/sread.c:2134
+#: Engine/sread.c:2123
 msgid "sread: illegal number format:  "
 msgstr ""
 
-#: Engine/sread.c:2140
+#: Engine/sread.c:2129
 msgid "   zero substituted.\n"
 msgstr ""
 
@@ -8402,14 +8466,14 @@ msgstr ""
 msgid "filescal: mismatched channel numbers. %d outputs, %d inputs\n"
 msgstr ""
 
-#: Opcodes/pvlock.c:871 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:710
+#: Opcodes/pvlock.c:872 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:710
 #: Opcodes/pvsbasic.c:1036 Opcodes/pvsbasic.c:1250 Opcodes/pvsbasic.c:1357
 #: Opcodes/pvsbasic.c:1595 Opcodes/pvsbasic.c:1813 Opcodes/pvsbasic.c:1987
 #: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:823
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
-#: Opcodes/pvlock.c:883
+#: Opcodes/pvlock.c:884
 msgid "pvsfreeze: signal format must be amp-freq."
 msgstr ""
 
@@ -10995,185 +11059,185 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1477
+#: Top/csound.c:1478
 #, c-format
 msgid "Multithread performance: insno: %3d  thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1483
+#: Top/csound.c:1484
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:1957 Top/csound.c:1989 Top/csound.c:2017 Top/csound.c:2053
-#: Top/csound.c:4207
+#: Top/csound.c:1958 Top/csound.c:1990 Top/csound.c:2018 Top/csound.c:2054
+#: Top/csound.c:4210
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:1973
+#: Top/csound.c:1974
 #, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr ""
 
-#: Top/csound.c:1996 Top/csound.c:4214
+#: Top/csound.c:1997 Top/csound.c:4217
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:2002
+#: Top/csound.c:2003
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
 msgstr ""
 
-#: Top/csound.c:2024
+#: Top/csound.c:2025
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:2062
+#: Top/csound.c:2063
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2070
+#: Top/csound.c:2071
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2081
+#: Top/csound.c:2082
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2370
+#: Top/csound.c:2371
 msgid "WARNING: "
 msgstr ""
 
-#: Top/csound.c:2511
+#: Top/csound.c:2512
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2512
+#: Top/csound.c:2513
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2541 Top/csound.c:2578
+#: Top/csound.c:2542 Top/csound.c:2579
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2545 Top/csound.c:2582
+#: Top/csound.c:2546 Top/csound.c:2583
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2699
+#: Top/csound.c:2700
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2704 Top/csound.c:2738
+#: Top/csound.c:2705 Top/csound.c:2739
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2707 Top/csound.c:2741
+#: Top/csound.c:2708 Top/csound.c:2742
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2733
+#: Top/csound.c:2734
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2755
+#: Top/csound.c:2756
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2918
+#: Top/csound.c:2919
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:2940
+#: Top/csound.c:2941
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3082 Top/main.c:376
+#: Top/csound.c:3083 Top/main.c:376
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:3160
+#: Top/csound.c:3161
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3185
+#: Top/csound.c:3186
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3201
+#: Top/csound.c:3202
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3242
+#: Top/csound.c:3243
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:3267
+#: Top/csound.c:3268
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:3272
+#: Top/csound.c:3273
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3278
+#: Top/csound.c:3279
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3286
+#: Top/csound.c:3287
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3292
+#: Top/csound.c:3293
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3297
+#: Top/csound.c:3298
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3303
+#: Top/csound.c:3304
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3308
+#: Top/csound.c:3309
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3315
+#: Top/csound.c:3316
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3320
+#: Top/csound.c:3321
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3330
+#: Top/csound.c:3331
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3336
+#: Top/csound.c:3337
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3343
+#: Top/csound.c:3344
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3552
+#: Top/csound.c:3553
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3582
+#: Top/csound.c:3583
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4104
+#: Top/csound.c:4105
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4136
+#: Top/csound.c:4137
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 

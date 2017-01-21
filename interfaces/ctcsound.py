@@ -723,9 +723,15 @@ class Csound:
         return libcsound.csoundCompileArgs(self.cs, argc, argv)
     
     def start(self):
-        """Prepares Csound for performance after compilation.
+        """Prepares Csound for performance.
         
-        Using one or more of the above functions.
+        Normally called after compiling a csd file or an orc file, in which
+        case score preprocessing is performed and performance terminates
+        when the score terminates.
+        However, if called before compiling a csd file or an orc file, 
+        score preprocessing is not performed and "i" statements are dispatched 
+        as real-time events, the <CsOptions> tag is ignored, and performance 
+        continues indefinitely or until ended using the API.
         NB: this is called internally by compile_(), therefore
         it is only required if performance is started without
         a call to that function.

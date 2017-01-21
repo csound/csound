@@ -1,6 +1,8 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtaudio=null -dm0
+-o dac
+;-+rtaudio=null
+;-dm0
 </CsOptions>
 <CsInstruments>
 nchnls=2

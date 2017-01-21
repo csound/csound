@@ -230,23 +230,27 @@ i1 45.2 . . 10.06   ;F# octave above 1st one
 i1 45.3 . . 10.10   ;Bb next one up
 i1 45.4 . . 10.11   ;B
 i1 45.5 . . 11.04   ;E
-e
+e 60
 </CsScore>
 </CsoundSynthesizer>
 ")
 (format t "csd text: ~A~%" csd)
 (with-alien ((result integer)
     (cs integer)
-    (host-data integer)
-    (csd-text c-string))
+    (host-data integer))
     (setq host-data 0)
-    (setq csd-text csd)
     (setq cs (alien-funcall (extern-alien "csoundCreate" (function integer integer)) host-data))
     (format t "csoundCreate returned: 0x~X~%" cs)
+    (setq result (alien-funcall (extern-alien "csoundSetOption" (function integer integer c-string)) cs "-odac"))
+    (setq result (alien-funcall (extern-alien "csoundSetOption" (function integer integer c-string)) cs "--nchnls=2"))
+    ;;(setq result (alien-funcall (extern-alien "csoundStart" (function integer integer)) cs))
+    ;;(format t "csoundStart returned: ~A~%" result)
     (setq result (alien-funcall (extern-alien "csoundCompileCsdText" (function integer integer c-string)) cs csd))
     (format t "csoundCompileCsdText returned: ~A~%" result)
     (setq result (alien-funcall (extern-alien "csoundStart" (function integer integer)) cs))
-    (format t "csoundStart returned: ~A~%" result)
+    (format t "csoundStart returned: ~A~%" result)    
+    ;;(setq result (alien-funcall (extern-alien "csoundPerform" (function integer integer)) cs))
+    ;;(format t "csoundPerform returned: ~A~%" result)
     (loop
        (setq result (alien-funcall (extern-alien "csoundPerformKsmps" (function integer integer)) cs))
        (when (not (equal result 0))(return))

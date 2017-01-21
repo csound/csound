@@ -3,6 +3,7 @@
  MidiTestViewController.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  

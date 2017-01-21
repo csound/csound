@@ -28,6 +28,7 @@
 #include <vector>
 
 using namespace std;
+using namespace csound;
 
 extern "C"
 {

@@ -550,6 +550,9 @@ extern "C" {
         { NULL, NULL }
     };
 
-    FLINKAGE_BUILTIN(padsynth_gens)
+    PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
+    {   
+         return padsynth_gens;     
+    }  
 
 };

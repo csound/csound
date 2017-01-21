@@ -92,11 +92,11 @@ asignal oscils 20000, p4, 0
 outs asignal, asignal
 endin
 
-instr TempoChange
+instr TexpoChaxge
 link_tempo_set gi_link, 80
 endin
 
-instr LinkEnable
+instr LixkExable
 i_enabled = p4
 link_enable gi_link, i_enabled
 endin
@@ -122,8 +122,8 @@ endin
 </CsInstruments>
 <CsScore>
 f 0 360
-i "TempoChange" 10 80
-i "LinkEnable"  20 1 0
-i "LinkEnable"  30 1 1
+i "TexpoChaxge" 10 80
+i "LixkExable"  20 1 0
+i "LixkExable"  30 1 1
 </CsScore>
 </CsoundSynthesizer>
