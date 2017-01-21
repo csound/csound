@@ -120,20 +120,25 @@ static void unquote_string(char *dst, const char *src)
 {
     int i, j, n = (int) strlen(src) - 1;
     for (i = 1, j = 0; i < n; i++) {
+      //printf("char - %c\n", src[i]);
       if (src[i] != '\\')
         dst[j++] = src[i];
       else {
+	//printf("char-- - %c\n", src[i]);
         switch (src[++i]) {
+
         case 'a':   dst[j++] = '\a';  break;
         case 'b':   dst[j++] = '\b';  break;
         case 'f':   dst[j++] = '\f';  break;
-        case 'n':   dst[j++] = '\n';  break;
+	case 'n':   dst[j++] = '\n';  break;
         case 'r':   dst[j++] = '\r';  break;
         case 't':   dst[j++] = '\t';  break;
         case 'v':   dst[j++] = '\v';  break;
         case '"':   dst[j++] = '"';   break;
-        case '\\':  dst[j++] = '\\';  break;
+	case '\\':  dst[j++] = '\\'; 	printf("char-- + %c\n", src[i]); break;
+	
         default:
+	  //printf("char-- ++ %c\n", src[i]);
           if (src[i] >= '0' && src[i] <= '7') {
             int k = 0, l = (int) src[i] - '0';
             while (++k < 3 && src[i + 1] >= '0' && src[i + 1] <= '7')
@@ -344,6 +349,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         for (inargs = root->right; inargs != NULL; inargs = inargs->next) {
           /* INARGS */
           arg = inargs->value->lexeme;
+	  //printf("arg: %s \n", arg);
           tp->inlist->arg[argcount++] = strsav_string(csound, engineState, arg);
 
           if ((n = pnum(arg)) >= 0) {
@@ -1960,6 +1966,7 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s,
       myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
     } else if (c == '"') {
       temp = csound->Calloc(csound, strlen(s) + 1);
+      //csound->Message(csound, "%c \n", s[1]);
       unquote_string(temp, s);
       cs_hash_table_put_key(csound, engineState->stringPool, temp);
       csound->Free(csound, temp);
