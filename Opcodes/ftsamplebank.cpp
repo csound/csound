@@ -30,6 +30,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace csound;
 
 /* this function will load all samples of supported types into function
    tables number 'index' and upwards.

@@ -335,13 +335,14 @@ if(BUILD_ABLETON_LINK_OPCODES)
     else()
         make_plugin(ableton_link_opcodes ableton_link_opcodes.cpp)
         if(WIN32 AND NOT MSVC)
-          set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11 -Wno-multichar -DLINK_PLATFORM_WINDOWS=1"
+          set_target_properties(ableton_link_opcodes PROPERTIES COMPILE_FLAGS "-std=gnu++11 -Wno-multichar -DLINK_PLATFORM_WINDOWS=1"
             LINK_FLAGS "-std=gnu++11")
+          target_link_libraries(ableton_link_opcodes wsock32 ws2_32 iphlpapi)
         endif()
     endif()
     #install(TARGETS ableton_link_opcodes
     #    LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
-    #    ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})    
+    #    ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
 
 add_subdirectory(stk)

@@ -27,7 +27,7 @@
 #import <CoreMotion/Coremotion.h>
 #import "CsoundObj.h"
 
-@interface CsoundAccelerometerBinding : NSObject<CsoundBinding, UIAccelerometerDelegate>
+@interface CsoundAccelerometerBinding : NSObject<CsoundBinding>
 
 -(id)init:(CMMotionManager *)manager;
 

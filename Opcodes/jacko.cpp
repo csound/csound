@@ -446,6 +446,8 @@
 #include <string>
 #include <vector>
 
+using namespace csound;
+
 struct JackoInit;
 struct JackoInfo;
 struct JackoFreewheel;

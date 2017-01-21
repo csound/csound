@@ -1,13 +1,18 @@
-Csound Haiku - IV
-Iain McCurdy, 2011.
+;Csound Haiku - IV
+;Iain McCurdy, 2011.
 
 <CsoundSynthesizer>
 
 <CsOptions>
--odac -dm0 -+rtmidi=null -+rtaudio=null -+msg_color=0
+-odac
+;-dm0
+;-+rtmidi=null
+;-+rtaudio=null
+;-+msg_color=0
 </CsOptions>
 
 <CsInstruments>
+
 sr 		= 		44100
 ksmps 		= 		32
 nchnls 		= 		2

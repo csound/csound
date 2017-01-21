@@ -12,6 +12,10 @@
 ./Engine/csound_orc_semantics.c
 ./Engine/csound_standard_types.c
 ./Engine/csound_type_system.c
+./Engine/csound_orc.lex
+./Engine/csound_orc.y
+./Engine/csound_pre.lex
+./Engine/csound_prs.lex
 ./Engine/entry1.c
 ./Engine/envvar.c
 ./Engine/extract.c
