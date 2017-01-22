@@ -55,6 +55,7 @@
         [self.csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        [csoundUI setLabelPrecision:2];
         [csoundUI addLabel:uiLabel forChannelName:@"slider"];
         [csoundUI addSlider:uiSlider forChannelName:@"slider"];
         
@@ -73,15 +74,17 @@
     
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
-    popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(200, 80)];
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
     infoText.editable = NO;
-    NSString *description = @"Flip the switch to begin rendering Csound.";
+    infoText.selectable = NO;
+    NSString *description = @"Flip the switch to begin rendering Csound. Use the slider to control pitch.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
     infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    popover.delegate = self;
     
     [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     

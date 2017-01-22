@@ -37,4 +37,6 @@
 - (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName;
 - (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
 
+@property int labelPrecision;
+
 @end
