@@ -30,4 +30,6 @@
 
 -(instancetype)initLabel:(UILabel *)label channelName:(NSString *)channelName;
 
+@property int precision;
+
 @end

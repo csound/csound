@@ -12,6 +12,7 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ConsoleOutputViewController">
             <connections>
                 <outlet property="mTextView" destination="6" id="8"/>
+                <outlet property="renderButton" destination="9" id="5Pd-lU-aEN"/>
                 <outlet property="view" destination="1" id="3"/>
             </connections>
         </placeholder>
@@ -32,6 +33,7 @@
                     <state key="normal" title="Render">
                         <color key="titleShadowColor" red="0.5" green="0.5" blue="0.5" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </state>
+                    <state key="selected" title="Stop"/>
                     <connections>
                         <action selector="run:" destination="-1" eventType="touchUpInside" id="10"/>
                     </connections>
@@ -47,14 +49,25 @@
                         <action selector="showInfo:" destination="-1" eventType="touchUpInside" id="OIH-Sd-oOf"/>
                     </connections>
                 </button>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="38M-Ok-fM2">
+                    <rect key="frame" x="219" y="70" width="78" height="30"/>
+                    <state key="normal" title="Select CSD">
+                        <color key="titleColor" red="0.19898453782211789" green="1" blue="0.230141230145117" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </state>
+                    <connections>
+                        <action selector="showCSDs:" destination="-1" eventType="touchUpInside" id="CPx-eZ-vwI"/>
+                    </connections>
+                </button>
             </subviews>
             <color key="backgroundColor" red="0.76209677419999999" green="0.79435483870000001" blue="0.83467741939999995" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
             <constraints>
+                <constraint firstAttribute="trailing" secondItem="38M-Ok-fM2" secondAttribute="trailing" constant="23" id="4O1-7v-y4G"/>
                 <constraint firstItem="9" firstAttribute="top" secondItem="1" secondAttribute="top" constant="70" id="8Ry-r0-UdC"/>
                 <constraint firstItem="8Hx-yy-g0M" firstAttribute="leading" secondItem="1" secondAttribute="leading" constant="16" id="8wP-s8-Vsu"/>
                 <constraint firstAttribute="trailing" secondItem="6" secondAttribute="trailing" id="VH9-97-l0a"/>
                 <constraint firstItem="6" firstAttribute="top" secondItem="9" secondAttribute="bottom" constant="15" id="eAm-n4-5uc"/>
                 <constraint firstAttribute="bottom" secondItem="6" secondAttribute="bottom" id="ndR-Ba-3zI"/>
+                <constraint firstItem="38M-Ok-fM2" firstAttribute="centerY" secondItem="9" secondAttribute="centerY" id="o0Z-kZ-iHa"/>
                 <constraint firstItem="8Hx-yy-g0M" firstAttribute="centerY" secondItem="9" secondAttribute="centerY" id="pfQ-40-h3C"/>
                 <constraint firstItem="9" firstAttribute="centerX" secondItem="1" secondAttribute="centerX" id="zGB-kp-ufq"/>
                 <constraint firstItem="6" firstAttribute="leading" secondItem="1" secondAttribute="leading" id="zaU-dp-uXq"/>
