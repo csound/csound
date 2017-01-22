@@ -1,4 +1,4 @@
-/* 
+/*
  
  MultiTouchXYViewController.h:
  
@@ -36,6 +36,9 @@
 		float* touchXPtr[10];
 		float* touchYPtr[10];
 		UITouch* touchArray[10];
+        unsigned long touchesCount;
+        
+        IBOutlet UILabel *touchesLabel;
 }
 
 

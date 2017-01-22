@@ -2,6 +2,28 @@ Csound for iOS ChangeLog
 
 This ChangeLog shows changes specific to Csound for iOS. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
+6.08.0 - 2017-01-21
+
+* API Change
+  Added variable precision to label formatting with:
+
+  labelPrecision: user-settable int property of CsoundUI (default: 8)
+  precision: 	  int property of CsoundLabelBinding set by CsoundUI
+
+* Csound Console Output example now has multiple CSDs to choose from.
+* Cleanup, various bug fixes, corrections.
+* Popover handling on iPhone fixed.
+
+ 6.08.0 - 2017-01-20
+
+* Replaced deprecated code in API and examples
+* Fixed microphone input with Info.plist key
+* Removed .pch, general cleanup and project 'modernization'
+* Added info button to each example that displays popover with example info
+* Cleaned up csd files
+* Various other minor fixes
+  
+
 6.04.0 - 2014-12-01 
 
 * Added information about required Frameworks to Csound for iOS Documentation

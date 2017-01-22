@@ -84,6 +84,8 @@
         [csoundUI addLabel:decayLabel    forChannelName:@"decay"];
         [csoundUI addLabel:sustainLabel  forChannelName:@"sustain"];
         [csoundUI addLabel:releaseLabel  forChannelName:@"release"];
+            
+        [csoundUI setLabelPrecision:2];
         
         [self.csound play:tempFile];
         }
@@ -97,18 +99,21 @@
 - (IBAction)showInfo:(UIButton *)sender {
     UIViewController *infoVC = [[UIViewController alloc] init];
     infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    infoVC.definesPresentationContext = YES;
     
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
-    popover.sourceRect = sender.frame;
+    popover.sourceRect = sender.bounds;
     [infoVC setPreferredContentSize:CGSizeMake(300, 140)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
     infoText.editable = NO;
+    infoText.selectable = NO;
     NSString *description = @"A generative music example that contains a number of sliders that affect the rate, duration, and envelope of each note.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
     infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    popover.delegate = self;
     
     [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
