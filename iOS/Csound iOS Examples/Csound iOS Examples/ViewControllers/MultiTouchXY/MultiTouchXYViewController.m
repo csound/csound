@@ -36,6 +36,8 @@
 		touchY[i] = 0.0f;
 		touchArray[i] = nil;
 	}
+    
+    touchesCount = 0;
 		
     [super viewDidLoad];
 	
@@ -48,15 +50,17 @@
     
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
-    popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(400, 100)];
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 120)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
     infoText.editable = NO;
+    infoText.selectable = NO;
     NSString *description = @"Multitouch XY Pad demonstrates a multitouch performance surface. Each touch is dynamically mapped to a unique instance of a Csound instrument.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
     infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    popover.delegate = self;
     
     [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
@@ -145,6 +149,12 @@
 			[self.csound sendScore:[NSString stringWithFormat:@"i1.%d 0 -2 %d", touchId, touchId, nil]];
 		}
 	}
+    touchesCount += touches.allObjects.count;
+    touchesLabel.text = [NSString stringWithFormat:@"Touches: %lu", touchesCount];
+    
+    if(touchesCount > [[event allTouches] count]) {
+        touchesCount = [[event allTouches] count];
+    }
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -157,6 +167,7 @@
 		}
 	}
 }
+
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
 	for (UITouch* touch in touches) {
 		int touchId = [self getTouchId:touch];
@@ -167,8 +178,10 @@
 
 		}
 	}
-
+    touchesCount -= touches.allObjects.count;
+    touchesLabel.text = [NSString stringWithFormat:@"Touches: %lu", touchesCount];
 }
+
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
 	for (UITouch* touch in touches) {
 		int touchId = [self getTouchId:touch];
@@ -179,7 +192,6 @@
 			
 		}
 	}
-
 }
 
 @end
