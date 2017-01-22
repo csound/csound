@@ -53,9 +53,9 @@
     [motionManager startGyroUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMGyroData *gyroData, NSError *error){
         if(error!= nil) NSLog(@"%@", [error localizedDescription]);
         
-        accX.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.x];
-        accY.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.y];
-        accZ.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.z];
+        gyroX.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.x];
+        gyroY.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.y];
+        gyroZ.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.z];
     }];
     
     [motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMDeviceMotion *motionData, NSError *error) {
@@ -101,15 +101,17 @@
     
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
-    popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(400, 200)];
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 220)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
     infoText.editable = NO;
+    infoText.selectable = NO;
     NSString *description = @"Hardware: Motion Control shows how to use the device's motion sensor data as a set of controllers for Csound, and also displays this data in a set of UILabels. Accelerometer X controls oscillator frequency, Attitude: Yaw controls filter cutoff, Attitude: Pitch controls amplitude, and Attitude: Roll controls filter resonance.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
     infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    popover.delegate = self;
     
     [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
