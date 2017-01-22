@@ -86,15 +86,17 @@
     
     UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
     popover.sourceView = sender;
-    popover.sourceRect = sender.frame;
-    [infoVC setPreferredContentSize:CGSizeMake(400, 120)];
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 140)];
     
     UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
     infoText.editable = NO;
+    infoText.selectable = NO;
     NSString *description = @"This example demonstrates creating a virtual Csound console, and implementing a method to update this virtual console with information accessed from CsoundObj.";
     [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
     infoText.font = [UIFont fontWithName:@"Menlo" size:16];
     [infoVC.view addSubview:infoText];
+    popover.delegate = self;
     
     [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
     
@@ -107,7 +109,7 @@
 - (void)csoundObjCompleted:(CsoundObj *)csoundObj {
     
     NSString *title = @"Render Complete";
-    NSString *message = @"File generated as trapped.wav in application Documents Folder";
+    NSString *message = @"File generated as trapped.wav in application Documents Folder.";
     
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction *defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
