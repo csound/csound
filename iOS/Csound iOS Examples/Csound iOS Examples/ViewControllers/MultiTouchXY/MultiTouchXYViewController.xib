@@ -11,6 +11,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MultiTouchXYViewController">
             <connections>
+                <outlet property="touchesLabel" destination="yfF-Ys-wtg" id="V2X-kZ-1Y8"/>
                 <outlet property="view" destination="1" id="3"/>
             </connections>
         </placeholder>
@@ -30,10 +31,18 @@
                         <action selector="showInfo:" destination="-1" eventType="touchUpInside" id="Axe-zy-mNH"/>
                     </connections>
                 </button>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Touches: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yfF-Ys-wtg">
+                    <rect key="frame" x="219" y="79" width="85" height="21"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                    <nil key="textColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
             </subviews>
             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
             <constraints>
+                <constraint firstItem="yfF-Ys-wtg" firstAttribute="top" secondItem="QOF-Kq-PD0" secondAttribute="bottom" constant="-23" id="7Ut-9a-Zhq"/>
                 <constraint firstItem="QOF-Kq-PD0" firstAttribute="leading" secondItem="1" secondAttribute="leading" constant="16" id="Ay0-qo-MzC"/>
+                <constraint firstAttribute="trailing" secondItem="yfF-Ys-wtg" secondAttribute="trailing" constant="16" id="Ipt-TX-9W6"/>
                 <constraint firstItem="QOF-Kq-PD0" firstAttribute="top" secondItem="1" secondAttribute="top" constant="77" id="KeK-iL-EmK"/>
             </constraints>
             <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
