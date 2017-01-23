@@ -262,8 +262,8 @@ static int trig_a(CSOUND *csound, Trig *p) {
 	prevtrig = p->prevtrig,
 	level = p->level;
   unsigned long counter = p->counter;
-  uint32_t nsmps = CS_KSMPS;
-  for(uint32_t n=0; n<nsmps; n++) {
+  uint32_t n, nsmps = CS_KSMPS;
+  for(n=0; n<nsmps; n++) {
 	MYFLT curtrig = *in; in++;
 	MYFLT zout;
 	if (counter > 0) {
@@ -379,7 +379,8 @@ static int phasor_aa(CSOUND *csound, Phasor *p) {
   MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
   MYFLT previn = p->previn;
   MYFLT level = p->level;
-  for (uint32_t n=0; n<CS_KSMPS; n++) {
+  uint32_t n;
+  for(n=0; n<CS_KSMPS; n++) {
 	MYFLT curin = *in; in++;
 	MYFLT zrate = *rate; rate++;
 	if (previn <= FL(0) && curin > FL(0)) {
@@ -406,7 +407,8 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
   MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
   MYFLT previn = p->previn;
   MYFLT level = p->level;
-  for (uint32_t n=0; n<CS_KSMPS; n++) {
+  uint32_t n;
+  for(n=0; n<CS_KSMPS; n++) {
 	MYFLT curin = *in; in++;
 	if (previn <= FL(0) && curin > FL(0)) {
 	  MYFLT frac = FL(1) - previn/(curin-previn);
