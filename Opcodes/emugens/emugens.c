@@ -311,7 +311,7 @@ static int mton(CSOUND *csound, MTON *p) {
   int octave = m / 12 - 1;
   int pc = (int)m % 12;
   int cents = round((m - floor(m))*100.0);
-  int sign, cursor;
+  int sign, cursor, i;
   
   if(cents == 0) {
 	sign = 0;
@@ -364,7 +364,7 @@ static int mton(CSOUND *csound, MTON *p) {
 	  cursor += 2;
 	} 
   }
-  for(int i=cursor; i<maxsize; i++) {
+  for(i=cursor; i<maxsize; i++) {
 	dst[i] = '\0';
   }
 }
