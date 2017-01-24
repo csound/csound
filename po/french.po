@@ -6698,12 +6698,11 @@ msgstr ""
 #: Opcodes/emugens/emugens.c:258
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
-msgstr ""
+msgstr "caractère a attendu entre A et G, mais %c obtenu\n"
 
 #: Opcodes/emugens/emugens.c:284
-#, fuzzy
 msgid "format not understood\n"
-msgstr "fabrique non trouvée %d\n"
+msgstr "format non compris\n"
 
 #: Opcodes/fareygen.c:116
 msgid "insufficient arguments for fareytable"
@@ -11952,12 +11951,12 @@ msgstr "%s n'est pas un réglage d'env SFOUTYP reconnu"
 #: Top/main.c:541
 #, c-format
 msgid "\"Real-time\" performance (engineStatus: %d).\n"
-msgstr ""
+msgstr "Exécution en \"temps réel\" (engineStatus : %d).\n"
 
 #: Top/main.c:545
 #, c-format
 msgid "\"Non-real-time\" performance (engineStatus: %d).\n"
-msgstr ""
+msgstr "Exécution en \"différé\" (engineStatus : %d).\n"
 
 #: Top/new_opts.c:58
 msgid "<integer>"
