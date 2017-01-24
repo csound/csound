@@ -210,176 +210,176 @@ msgstr ""
 msgid "Not a proper list of ints"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:237
+#: Engine/csound_orc_compile.c:242
 msgid "ERROR: Unmatched bracket found in arrayargument type specification\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:408
+#: Engine/csound_orc_compile.c:414
 #, c-format
 msgid "create_opcode: No rule to handle statement of type %d\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:579 Engine/csound_orc_compile.c:659
+#: Engine/csound_orc_compile.c:585 Engine/csound_orc_compile.c:665
 #, c-format
 msgid "%s invalid sample rate"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:581 Engine/csound_orc_compile.c:661
+#: Engine/csound_orc_compile.c:587 Engine/csound_orc_compile.c:667
 #, c-format
 msgid "%s invalid control rate"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:585 Engine/csound_orc_compile.c:657
+#: Engine/csound_orc_compile.c:591 Engine/csound_orc_compile.c:663
 #, c-format
 msgid "%s invalid ksmps value"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:587 Engine/csound_orc_compile.c:663
+#: Engine/csound_orc_compile.c:593 Engine/csound_orc_compile.c:669
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:589
+#: Engine/csound_orc_compile.c:595
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps \n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:609
+#: Engine/csound_orc_compile.c:615
 msgid "bad value for 0dbfs: must be positive. Setting default value."
 msgstr ""
 
-#: Engine/csound_orc_compile.c:654
+#: Engine/csound_orc_compile.c:660
 #, c-format
 msgid ""
 "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 "error:"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:665
+#: Engine/csound_orc_compile.c:671
 #, c-format
 msgid "sample rate overrides: esr = %7.4f, ekr = %7.4f, ksmps = %d\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:741
+#: Engine/csound_orc_compile.c:747
 msgid "system constants can only be set once\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:827
+#: Engine/csound_orc_compile.c:833
 #, c-format
 msgid "create_instrument: instr num %ld\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:944
+#: Engine/csound_orc_compile.c:950
 msgid "-- deleted instr from deadpool \n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:972
+#: Engine/csound_orc_compile.c:978
 #, c-format
 msgid " -- free instr def %p %p \n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:986 Engine/csound_orc_compile.c:997
+#: Engine/csound_orc_compile.c:992 Engine/csound_orc_compile.c:1003
 #, c-format
 msgid " -- added to deadpool slot %d \n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1025 Engine/csound_orc_compile.c:1180
+#: Engine/csound_orc_compile.c:1031 Engine/csound_orc_compile.c:1186
 #, c-format
 msgid "instr %ld redefined, replacing previous definition"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1052
+#: Engine/csound_orc_compile.c:1058
 msgid "no active instances \n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1129
+#: Engine/csound_orc_compile.c:1135
 #, c-format
 msgid "instr %s uses instrument number %d\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1177
+#: Engine/csound_orc_compile.c:1183
 #, c-format
 msgid "instr %d redefined\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1210
+#: Engine/csound_orc_compile.c:1216
 #, c-format
 msgid "no active instances of instr %d \n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1256
+#: Engine/csound_orc_compile.c:1262
 msgid "!!! csound->opcodeInfo is NULL !!!\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1292
+#: Engine/csound_orc_compile.c:1298
 #, c-format
 msgid " merging constants %d) %f\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1302
+#: Engine/csound_orc_compile.c:1308
 #, c-format
 msgid " merging %p %d) %s:%s\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1318
+#: Engine/csound_orc_compile.c:1324
 #, c-format
 msgid " adding %p %d) %s:%s\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1341
+#: Engine/csound_orc_compile.c:1347
 #, c-format
 msgid "merging instr %d \n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1349
+#: Engine/csound_orc_compile.c:1355
 #, c-format
 msgid "merging instr %s \n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1542 Engine/csound_orc_compile.c:1577
-#: Engine/csound_orc_compile.c:1600
+#: Engine/csound_orc_compile.c:1548 Engine/csound_orc_compile.c:1583
+#: Engine/csound_orc_compile.c:1606
 msgid "invalid name for instrument"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1582 Engine/csound_orc_compile.c:1605
+#: Engine/csound_orc_compile.c:1588 Engine/csound_orc_compile.c:1611
 #, c-format
 msgid "instr %s redefined"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1627
+#: Engine/csound_orc_compile.c:1633
 #, c-format
 msgid "ERROR: Could not find OPCODINFO for opname: %s\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1649
+#: Engine/csound_orc_compile.c:1655
 #, c-format
 msgid "Unknown TREE node of type %d (%s) found in root.\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1658
+#: Engine/csound_orc_compile.c:1664
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1702
+#: Engine/csound_orc_compile.c:1708
 #, c-format
 msgid "perf-pass statements illegal in header blk (%s)\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:1894
+#: Engine/csound_orc_compile.c:1900
 msgid "i[fixme] pset args != pmax"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:2037
+#: Engine/csound_orc_compile.c:2044
 #, c-format
 msgid "Missing local arg: %s\n"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:2097
+#: Engine/csound_orc_compile.c:2104
 msgid "**unrecorded**"
 msgstr ""
 
-#: Engine/csound_orc_compile.c:2170
+#: Engine/csound_orc_compile.c:2177
 #, c-format
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr ""
@@ -540,7 +540,7 @@ msgstr ""
 msgid "cannot create variable %s: NULL type"
 msgstr ""
 
-#: Engine/csound_orc.lex:475
+#: Engine/csound_orc.lex:480
 #, c-format
 msgid "unterminated string found on line %d >>%s<<\n"
 msgstr ""
@@ -550,197 +550,197 @@ msgid "No number following instr\n"
 msgstr ""
 
 #: Engine/csound_pre.lex:234 Engine/csound_pre.lex:272
-#: Engine/csound_pre.lex:314 Engine/csound_pre.lex:414
+#: Engine/csound_pre.lex:314 Engine/csound_pre.lex:420
 #: Engine/csound_prs.lex:160 Engine/csound_prs.lex:208
-#: Engine/csound_prs.lex:256 Engine/csound_prs.lex:356
+#: Engine/csound_prs.lex:256 Engine/csound_prs.lex:361
 #, c-format
 msgid "Undefined macro: '%s'"
 msgstr ""
 
 #: Engine/csound_pre.lex:245 Engine/csound_pre.lex:283
 #: Engine/csound_pre.lex:327 Engine/csound_pre.lex:332
-#: Engine/csound_pre.lex:342 Engine/csound_pre.lex:358
-#: Engine/csound_pre.lex:376 Engine/csound_pre.lex:427
-#: Engine/csound_pre.lex:432 Engine/csound_pre.lex:442
-#: Engine/csound_pre.lex:458 Engine/csound_pre.lex:476
-#: Engine/csound_pre.lex:852 Engine/csound_pre.lex:886
-#: Engine/csound_pre.lex:892 Engine/csound_pre.lex:905
-#: Engine/csound_pre.lex:913 Engine/csound_pre.lex:921
-#: Engine/csound_pre.lex:932 Engine/csound_pre.lex:941
-#: Engine/csound_pre.lex:949 Engine/csound_pre.lex:994
-#: Engine/csound_pre.lex:1006 Engine/csound_pre.lex:1020
-#: Engine/csound_pre.lex:1029 Engine/csound_pre.lex:1051
-#: Engine/csound_pre.lex:1059 Engine/csound_pre.lex:1094
-#: Engine/csound_pre.lex:1104 Engine/csound_pre.lex:1113
-#: Engine/csound_pre.lex:1170 Engine/csound_pre.lex:1313
-#: Engine/csound_pre.lex:1326 Engine/csound_pre.lex:1341
+#: Engine/csound_pre.lex:342 Engine/csound_pre.lex:364
+#: Engine/csound_pre.lex:382 Engine/csound_pre.lex:433
+#: Engine/csound_pre.lex:438 Engine/csound_pre.lex:448
+#: Engine/csound_pre.lex:469 Engine/csound_pre.lex:487
+#: Engine/csound_pre.lex:863 Engine/csound_pre.lex:897
+#: Engine/csound_pre.lex:903 Engine/csound_pre.lex:916
+#: Engine/csound_pre.lex:924 Engine/csound_pre.lex:932
+#: Engine/csound_pre.lex:943 Engine/csound_pre.lex:952
+#: Engine/csound_pre.lex:960 Engine/csound_pre.lex:1005
+#: Engine/csound_pre.lex:1017 Engine/csound_pre.lex:1031
+#: Engine/csound_pre.lex:1040 Engine/csound_pre.lex:1062
+#: Engine/csound_pre.lex:1070 Engine/csound_pre.lex:1105
+#: Engine/csound_pre.lex:1115 Engine/csound_pre.lex:1124
+#: Engine/csound_pre.lex:1181 Engine/csound_pre.lex:1324
+#: Engine/csound_pre.lex:1337 Engine/csound_pre.lex:1352
 #: Engine/csound_prs.lex:175 Engine/csound_prs.lex:224
 #: Engine/csound_prs.lex:269 Engine/csound_prs.lex:274
-#: Engine/csound_prs.lex:284 Engine/csound_prs.lex:300
-#: Engine/csound_prs.lex:318 Engine/csound_prs.lex:369
-#: Engine/csound_prs.lex:374 Engine/csound_prs.lex:384
-#: Engine/csound_prs.lex:400 Engine/csound_prs.lex:418
-#: Engine/csound_prs.lex:642 Engine/csound_prs.lex:689
-#: Engine/csound_prs.lex:727 Engine/csound_prs.lex:780
-#: Engine/csound_prs.lex:962 Engine/csound_prs.lex:990
-#: Engine/csound_prs.lex:996 Engine/csound_prs.lex:1009
-#: Engine/csound_prs.lex:1017 Engine/csound_prs.lex:1025
-#: Engine/csound_prs.lex:1036 Engine/csound_prs.lex:1045
-#: Engine/csound_prs.lex:1053 Engine/csound_prs.lex:1098
-#: Engine/csound_prs.lex:1110 Engine/csound_prs.lex:1124
-#: Engine/csound_prs.lex:1133 Engine/csound_prs.lex:1155
-#: Engine/csound_prs.lex:1163 Engine/csound_prs.lex:1198
-#: Engine/csound_prs.lex:1208 Engine/csound_prs.lex:1217
-#: Engine/csound_prs.lex:1274 Engine/csound_prs.lex:1380
-#: Engine/csound_prs.lex:1393 Engine/csound_prs.lex:1408
+#: Engine/csound_prs.lex:284 Engine/csound_prs.lex:305
+#: Engine/csound_prs.lex:323 Engine/csound_prs.lex:374
+#: Engine/csound_prs.lex:379 Engine/csound_prs.lex:389
+#: Engine/csound_prs.lex:410 Engine/csound_prs.lex:428
+#: Engine/csound_prs.lex:652 Engine/csound_prs.lex:699
+#: Engine/csound_prs.lex:737 Engine/csound_prs.lex:792
+#: Engine/csound_prs.lex:976 Engine/csound_prs.lex:1004
+#: Engine/csound_prs.lex:1010 Engine/csound_prs.lex:1023
+#: Engine/csound_prs.lex:1031 Engine/csound_prs.lex:1039
+#: Engine/csound_prs.lex:1050 Engine/csound_prs.lex:1059
+#: Engine/csound_prs.lex:1067 Engine/csound_prs.lex:1112
+#: Engine/csound_prs.lex:1124 Engine/csound_prs.lex:1138
+#: Engine/csound_prs.lex:1147 Engine/csound_prs.lex:1169
+#: Engine/csound_prs.lex:1177 Engine/csound_prs.lex:1212
+#: Engine/csound_prs.lex:1222 Engine/csound_prs.lex:1231
+#: Engine/csound_prs.lex:1288 Engine/csound_prs.lex:1394
+#: Engine/csound_prs.lex:1407 Engine/csound_prs.lex:1422
 msgid "Memory exhausted"
 msgstr ""
 
 #: Engine/csound_pre.lex:259 Engine/csound_pre.lex:297
-#: Engine/csound_pre.lex:398 Engine/csound_pre.lex:491
+#: Engine/csound_pre.lex:404 Engine/csound_pre.lex:502
 #: Engine/csound_prs.lex:189 Engine/csound_prs.lex:194
-#: Engine/csound_prs.lex:238 Engine/csound_prs.lex:340
-#: Engine/csound_prs.lex:437
+#: Engine/csound_prs.lex:238 Engine/csound_prs.lex:345
+#: Engine/csound_prs.lex:447
 msgid "macros/include nested too deep: "
 msgstr ""
 
-#: Engine/csound_pre.lex:347 Engine/csound_pre.lex:447
-#: Engine/csound_prs.lex:289 Engine/csound_prs.lex:389
+#: Engine/csound_pre.lex:347 Engine/csound_pre.lex:453
+#: Engine/csound_prs.lex:289 Engine/csound_prs.lex:394
 msgid "Too few arguments to macro\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:351 Engine/csound_pre.lex:451
-#: Engine/csound_prs.lex:293 Engine/csound_prs.lex:393
+#: Engine/csound_pre.lex:357 Engine/csound_pre.lex:462
+#: Engine/csound_prs.lex:298 Engine/csound_prs.lex:403
 #, c-format
 msgid ""
 "Missing argument terminator\n"
 "%.98s"
 msgstr ""
 
-#: Engine/csound_pre.lex:521
+#: Engine/csound_pre.lex:532
 msgid "unexpected EOF!"
 msgstr ""
 
-#: Engine/csound_pre.lex:596 Engine/csound_prs.lex:548
+#: Engine/csound_pre.lex:607 Engine/csound_prs.lex:558
 #, c-format
 msgid "Unexpected character %c(%.2x) line %d\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:635 Engine/csound_prs.lex:587
+#: Engine/csound_pre.lex:646 Engine/csound_prs.lex:597
 msgid "#else without #if\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:639 Engine/csound_pre.lex:1231
-#: Engine/csound_prs.lex:591 Engine/csound_prs.lex:1335
+#: Engine/csound_pre.lex:650 Engine/csound_pre.lex:1242
+#: Engine/csound_prs.lex:601 Engine/csound_prs.lex:1349
 msgid "#else after #else\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:657 Engine/csound_prs.lex:609
+#: Engine/csound_pre.lex:668 Engine/csound_prs.lex:619
 msgid "Unmatched #end\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:827 Engine/csound_prs.lex:432
-#: Engine/csound_prs.lex:935
+#: Engine/csound_pre.lex:838 Engine/csound_prs.lex:442
+#: Engine/csound_prs.lex:949
 msgid "Includes nested too deeply"
 msgstr ""
 
-#: Engine/csound_pre.lex:842 Engine/csound_prs.lex:952
+#: Engine/csound_pre.lex:853 Engine/csound_prs.lex:966
 #, c-format
 msgid "%s is a directory; not including"
 msgstr ""
 
-#: Engine/csound_pre.lex:846 Engine/csound_prs.lex:956
+#: Engine/csound_pre.lex:857 Engine/csound_prs.lex:970
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:958 Engine/csound_prs.lex:1062
+#: Engine/csound_pre.lex:969 Engine/csound_prs.lex:1076
 msgid "macro error\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:963 Engine/csound_pre.lex:967
-#: Engine/csound_pre.lex:974 Engine/csound_pre.lex:979
-#: Engine/csound_pre.lex:1066 Engine/csound_pre.lex:1070
-#: Engine/csound_pre.lex:1077 Engine/csound_pre.lex:1082
-#: Engine/csound_prs.lex:1067 Engine/csound_prs.lex:1071
-#: Engine/csound_prs.lex:1078 Engine/csound_prs.lex:1083
-#: Engine/csound_prs.lex:1170 Engine/csound_prs.lex:1174
-#: Engine/csound_prs.lex:1181 Engine/csound_prs.lex:1186
+#: Engine/csound_pre.lex:974 Engine/csound_pre.lex:978
+#: Engine/csound_pre.lex:985 Engine/csound_pre.lex:990
+#: Engine/csound_pre.lex:1077 Engine/csound_pre.lex:1081
+#: Engine/csound_pre.lex:1088 Engine/csound_pre.lex:1093
+#: Engine/csound_prs.lex:1081 Engine/csound_prs.lex:1085
+#: Engine/csound_prs.lex:1092 Engine/csound_prs.lex:1097
+#: Engine/csound_prs.lex:1184 Engine/csound_prs.lex:1188
+#: Engine/csound_prs.lex:1195 Engine/csound_prs.lex:1200
 msgid "define macro runaway\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:986 Engine/csound_pre.lex:1089
-#: Engine/csound_prs.lex:1090 Engine/csound_prs.lex:1193
+#: Engine/csound_pre.lex:997 Engine/csound_pre.lex:1100
+#: Engine/csound_prs.lex:1104 Engine/csound_prs.lex:1207
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1000 Engine/csound_prs.lex:1104
+#: Engine/csound_pre.lex:1011 Engine/csound_prs.lex:1118
 msgid "define macro with args: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1099 Engine/csound_prs.lex:1203
+#: Engine/csound_pre.lex:1110 Engine/csound_prs.lex:1217
 msgid "define macro: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1134 Engine/csound_prs.lex:1238
+#: Engine/csound_pre.lex:1145 Engine/csound_prs.lex:1252
 #, c-format
 msgid "macro %s undefined\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1149 Engine/csound_prs.lex:1253 Engine/sread.c:218
+#: Engine/csound_pre.lex:1160 Engine/csound_prs.lex:1267 Engine/sread.c:218
 msgid "Undefining undefined macro"
 msgstr ""
 
-#: Engine/csound_pre.lex:1204 Engine/csound_prs.lex:1308
+#: Engine/csound_pre.lex:1215 Engine/csound_prs.lex:1322
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1306 Engine/csound_prs.lex:1373 Engine/sread.c:726
+#: Engine/csound_pre.lex:1317 Engine/csound_prs.lex:1387 Engine/sread.c:726
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1309 Engine/csound_prs.lex:1376
+#: Engine/csound_pre.lex:1320 Engine/csound_prs.lex:1390
 msgid "Invalid macro name for --omacro"
 msgstr ""
 
-#: Engine/csound_prs.lex:471
+#: Engine/csound_prs.lex:481
 msgid "unexpected EOF!!\n"
 msgstr ""
 
-#: Engine/csound_prs.lex:638
+#: Engine/csound_prs.lex:648
 msgid "Loops are nested too deeply"
 msgstr ""
 
-#: Engine/csound_prs.lex:656
+#: Engine/csound_prs.lex:666
 msgid "{: invalid repeat count"
 msgstr ""
 
-#: Engine/csound_prs.lex:665
+#: Engine/csound_prs.lex:675
 #, c-format
 msgid "%s Nested LOOP=%d Level:%d\n"
 msgstr ""
 
-#: Engine/csound_prs.lex:671
+#: Engine/csound_prs.lex:681
 #, c-format
 msgid "External LOOP=%d Level:%d\n"
 msgstr ""
 
-#: Engine/csound_prs.lex:713
+#: Engine/csound_prs.lex:723
 msgid "unmatched } in score\n"
 msgstr ""
 
-#: Engine/csound_prs.lex:776
+#: Engine/csound_prs.lex:788
 msgid "Section loops cannot be nested"
 msgstr ""
 
-#: Engine/csound_prs.lex:795
+#: Engine/csound_prs.lex:807
 msgid "r: invalid repeat count"
 msgstr ""
 
-#: Engine/csound_prs.lex:797
+#: Engine/csound_prs.lex:809
 #, c-format
 msgid "r LOOP=%d\n"
 msgstr ""
@@ -813,7 +813,7 @@ msgid "insufficient gen arguments"
 msgstr ""
 
 #: Engine/fgens.c:211 Opcodes/ftgen.c:118 Opcodes/ftgen.c:648
-#: Opcodes/signalflowgraph.cpp:1612
+#: Opcodes/signalflowgraph.cpp:1593
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr ""
@@ -6432,6 +6432,15 @@ msgstr ""
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
 
+#: Opcodes/emugens/emugens.c:258
+#, c-format
+msgid "expecting a char between A and G, but got %c\n"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:284
+msgid "format not understood\n"
+msgstr ""
+
 #: Opcodes/fareygen.c:116
 msgid "insufficient arguments for fareytable"
 msgstr ""
@@ -6541,23 +6550,23 @@ msgstr ""
 msgid "wguide2 xfreq1 and xfreq2 arguments must be both a-rate or k and i-rate"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:156
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:152
 msgid "error allocating fluid engine\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:229
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:219
 #, c-format
 msgid "fluid: unable to load %s"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:541
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:531
 #, c-format
 msgid ""
 "result: %d \n"
 " Note off: c:%3d k:%3d\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:632
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:622
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr ""
 
@@ -6696,7 +6705,7 @@ msgstr ""
 msgid "Error deleting ftable %d"
 msgstr ""
 
-#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1637
+#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1618
 msgid "ftgen string arg not allowed"
 msgstr ""
 
@@ -6742,20 +6751,20 @@ msgstr ""
 msgid "ftsave: failed to write file"
 msgstr ""
 
-#: Opcodes/ftsamplebank.cpp:198
+#: Opcodes/ftsamplebank.cpp:199
 #, c-format
 msgid "Cannot load file. Error opening directory: %s\n"
 msgstr ""
 
-#: Opcodes/ftsamplebank.cpp:251
+#: Opcodes/ftsamplebank.cpp:252
 msgid "Error: you must pass a directory as a string."
 msgstr ""
 
-#: Opcodes/ftsamplebank.cpp:268
+#: Opcodes/ftsamplebank.cpp:269
 msgid "Error: second parameter to directory must be a string"
 msgstr ""
 
-#: Opcodes/ftsamplebank.cpp:333
+#: Opcodes/ftsamplebank.cpp:334
 #, c-format
 msgid "Cannot find directory. Error opening directory: %s\n"
 msgstr ""
@@ -7699,69 +7708,69 @@ msgstr ""
 msgid "jacktransport: invalid parameter.\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:537
+#: Opcodes/jacko.cpp:539
 #, c-format
 msgid ""
 "Could not create Jack client \"%s\" -- is Jack server \"%s\" running? "
 "Status: %d\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:545
+#: Opcodes/jacko.cpp:547
 #, c-format
 msgid "Created Jack client \"%s\" for Jack server \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:551
+#: Opcodes/jacko.cpp:553
 #, c-format
 msgid "Jack buffer size %d != Csound ksmps %d, exiting...\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:559
+#: Opcodes/jacko.cpp:561
 #, c-format
 msgid "Jack sampling rate %d != Csound sr %d, exiting...\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:569
+#: Opcodes/jacko.cpp:571
 #, c-format
 msgid "Activated Jack client \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:573
+#: Opcodes/jacko.cpp:575
 #, c-format
 msgid "Failed to activate Jack client \"%s\": status %d.\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:588
+#: Opcodes/jacko.cpp:590
 msgid "BEGAN JackoState::close()...\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:628
+#: Opcodes/jacko.cpp:630
 msgid "ENDED JackoState::close().\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:884
+#: Opcodes/jacko.cpp:886
 #, c-format
 msgid "Failed to set Jack freewheeling mode to \"%s\": error %d.\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:887
+#: Opcodes/jacko.cpp:889
 #, c-format
 msgid "Set Jack freewheeling mode to \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:901
+#: Opcodes/jacko.cpp:903
 #, c-format
 msgid "Turned Jack connections \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:943 Opcodes/jacko.cpp:1046 Opcodes/jacko.cpp:1149
-#: Opcodes/jacko.cpp:1219
+#: Opcodes/jacko.cpp:945 Opcodes/jacko.cpp:1048 Opcodes/jacko.cpp:1151
+#: Opcodes/jacko.cpp:1221
 #, c-format
 msgid "Could not create Jack port \"%s\".\n"
 msgstr ""
 
-#: Opcodes/jacko.cpp:957 Opcodes/jacko.cpp:1061 Opcodes/jacko.cpp:1164
-#: Opcodes/jacko.cpp:1233
+#: Opcodes/jacko.cpp:959 Opcodes/jacko.cpp:1063 Opcodes/jacko.cpp:1166
+#: Opcodes/jacko.cpp:1235
 #, c-format
 msgid "Could not create Jack connection from \"%s\" to \"%s\": status %d.\n"
 msgstr ""
@@ -8469,7 +8478,7 @@ msgstr ""
 #: Opcodes/pvlock.c:872 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:710
 #: Opcodes/pvsbasic.c:1036 Opcodes/pvsbasic.c:1250 Opcodes/pvsbasic.c:1357
 #: Opcodes/pvsbasic.c:1595 Opcodes/pvsbasic.c:1813 Opcodes/pvsbasic.c:1987
-#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:823
+#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:809
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
@@ -8938,98 +8947,98 @@ msgstr ""
 msgid "powershape: ifullscale must be strictly positive"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:364 Opcodes/signalflowgraph.cpp:535
-#: Opcodes/signalflowgraph.cpp:1116
+#: Opcodes/signalflowgraph.cpp:354 Opcodes/signalflowgraph.cpp:523
+#: Opcodes/signalflowgraph.cpp:1100
 #, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:380
+#: Opcodes/signalflowgraph.cpp:370
 #, c-format
 msgid "Removed instance 0x%x of %d instances of outleta %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:437 Opcodes/signalflowgraph.cpp:603
-#: Opcodes/signalflowgraph.cpp:765 Opcodes/signalflowgraph.cpp:1188
+#: Opcodes/signalflowgraph.cpp:427 Opcodes/signalflowgraph.cpp:591
+#: Opcodes/signalflowgraph.cpp:753 Opcodes/signalflowgraph.cpp:1172
 #, c-format
 msgid "Created instance 0x%x of inlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:451 Opcodes/signalflowgraph.cpp:780
-#: Opcodes/signalflowgraph.cpp:1198
+#: Opcodes/signalflowgraph.cpp:441 Opcodes/signalflowgraph.cpp:768
+#: Opcodes/signalflowgraph.cpp:1182
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:551
+#: Opcodes/signalflowgraph.cpp:539
 #, c-format
 msgid "Removed 0x%x of %d instances of outletk %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:617
+#: Opcodes/signalflowgraph.cpp:605
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:695
+#: Opcodes/signalflowgraph.cpp:683
 #, c-format
 msgid "Created instance 0x%x of outlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:710
+#: Opcodes/signalflowgraph.cpp:698
 #, c-format
 msgid "Removed 0x%x of %d instances of outletf %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:850
+#: Opcodes/signalflowgraph.cpp:836
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:924
+#: Opcodes/signalflowgraph.cpp:910
 #, c-format
 msgid ""
 "Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: "
 "%2d size: %4d [%4d] data: 0x%x (0x%x))\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:940
+#: Opcodes/signalflowgraph.cpp:926
 #, c-format
 msgid "Removed 0x%x of %d instances of outletv %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1004
+#: Opcodes/signalflowgraph.cpp:990
 #, c-format
 msgid ""
 "Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d "
 "[%4d] data: 0x%x (0x%x))\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1019
+#: Opcodes/signalflowgraph.cpp:1005
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1132
+#: Opcodes/signalflowgraph.cpp:1116
 #, c-format
 msgid "Removed 0x%x of %d instances of outletkid %s\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1291 Opcodes/signalflowgraph.cpp:1344
-#: Opcodes/signalflowgraph.cpp:1398 Opcodes/signalflowgraph.cpp:1448
+#: Opcodes/signalflowgraph.cpp:1272 Opcodes/signalflowgraph.cpp:1324
+#: Opcodes/signalflowgraph.cpp:1378 Opcodes/signalflowgraph.cpp:1428
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1654 Opcodes/signalflowgraph.cpp:1658
+#: Opcodes/signalflowgraph.cpp:1635 Opcodes/signalflowgraph.cpp:1639
 #, c-format
 msgid "ftgenonce: re-using existing func: %f\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1664
+#: Opcodes/signalflowgraph.cpp:1645
 msgid "ftgenonce error"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1669
+#: Opcodes/signalflowgraph.cpp:1650
 #, c-format
 msgid "ftgenonce: created new func: %d\n"
 msgstr ""
@@ -9369,13 +9378,13 @@ msgstr ""
 msgid "stdopcod.c: error: globals already allocated"
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:753
+#: Opcodes/stk/stkOpcodes.cpp:748
 msgid ""
 "STK opcodes not available: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:775
+#: Opcodes/stk/stkOpcodes.cpp:770
 #, c-format
 msgid "RAWWAVE_PATH: %s\n"
 msgstr ""
@@ -11343,6 +11352,16 @@ msgstr ""
 #: Top/main.c:443 util/dnoise.c:279
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
+msgstr ""
+
+#: Top/main.c:541
+#, c-format
+msgid "\"Real-time\" performance (engineStatus: %d).\n"
+msgstr ""
+
+#: Top/main.c:545
+#, c-format
+msgid "\"Non-real-time\" performance (engineStatus: %d).\n"
 msgstr ""
 
 #: Top/new_opts.c:58
