@@ -57,7 +57,7 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 /*       result = YY_NULL; \ */
 /*     } */
 
-#define YY_USER_INIT 
+#define YY_USER_INIT
 
 struct yyguts_t;
 ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
@@ -103,11 +103,11 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                   return NEWLINE; }
-"("{OPTWHITE}"\n"? { 
+"("{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
-                     return '('; 
+                     return '(';
                 }
 ")"             { return ')'; }
 "["{OPTWHITE}"\n"? { if (strchr(yytext, '\n'))
@@ -116,43 +116,43 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                      return '[';
                 }
 "]"             { return ']'; }
-"+"{OPTWHITE}"\n"? { 
+"+"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '+';
                    }
-"-"{OPTWHITE}"\n"? { 
+"-"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '-';
                    }
-"*"{OPTWHITE}"\n"? { 
+"*"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '*';
                    }
-"/"{OPTWHITE}"\n"? { 
+"/"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '/';
                    }
-"%"{OPTWHITE}"\n"? { 
+"%"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '%';
                    }
-"\^"{OPTWHITE}"\n"? { 
+"\^"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '^';
                    }
-"?"{OPTWHITE}"\n"? { 
+"?"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
@@ -163,102 +163,102 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
-                     return ','; 
+                     return ',';
                    }
-"!"{OPTWHITE}"\n"? { 
+"!"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '!'; }
 "->"               { return S_ELIPSIS; }
-"!="{OPTWHITE}"\n"? { 
+"!="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_NEQ; }
-"&&"{OPTWHITE}"\n"? { 
+"&&"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_AND; }
-"||"{OPTWHITE}"\n"? { 
+"||"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_OR; }
-"<<"{OPTWHITE}"\n"? { 
+"<<"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_BITSHIFT_LEFT; }
-">>"{OPTWHITE}"\n"? { 
+">>"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_BITSHIFT_RIGHT; }
-"<"{OPTWHITE}"\n"? { 
+"<"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_LT; }
-"<="{OPTWHITE}"\n"? { 
+"<="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_LE; }
-"=="{OPTWHITE}"\n"? { 
+"=="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_EQ; }
-"+="{OPTWHITE}"\n"? {  
+"+="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_ADDIN; }
-"-="{OPTWHITE}"\n"? {  
+"-="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_SUBIN; }
-"*="{OPTWHITE}"\n"? {  
+"*="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_MULIN; }
-"/="{OPTWHITE}"\n"? {  
+"/="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_DIVIN; }
-"="{OPTWHITE}"\n"? {   
+"="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      *lvalp = make_token(csound, "=");
                      (*lvalp)->type = '=';
                      return '='; }
-">"{OPTWHITE}"\n"? { 
+">"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_GT; }
-">="{OPTWHITE}"\n"? { 
+">="{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return S_GE; }
-"|"{OPTWHITE}"\n"? { 
+"|"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '|'; }
-"&"{OPTWHITE}"\n"? { 
+"&"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '&'; }
-"#"{OPTWHITE}"\n"? { 
+"#"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
@@ -269,7 +269,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                      return '~'; }
-"~"{OPTWHITE}"\n"? { 
+"~"{OPTWHITE}"\n"? {
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
@@ -281,7 +281,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
-"if("{OPTWHITE}"\n"? { 
+"if("{OPTWHITE}"\n"? {
                   if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
@@ -301,7 +301,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 "elseif"        { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
-"elseif("{OPTWHITE}"\n"? { 
+"elseif("{OPTWHITE}"\n"? {
                   if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
@@ -376,9 +376,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   *lvalp = new_token(csound, UDOEND_TOKEN); return UDOEND_TOKEN;
                 }
 
-{LABEL}         { char *pp = yytext;                 
+{LABEL}         { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
-		  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
+                  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                }
 
 "\{\{"          {
@@ -421,7 +421,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
 
-<udodef>{WHITE} { } 
+<udodef>{WHITE} { }
 <udodef>{IDENT} { BEGIN(udoarg);
                   *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
@@ -431,7 +431,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                      if (strchr(yytext, '\n'))
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
-                     return ','; 
+                     return ',';
                    }
 <udoarg>{XIDENT} { BEGIN(udoarg);
                   *lvalp = lookup_token(csound, yytext, yyscanner);
@@ -665,7 +665,7 @@ uint64_t csound_orcget_ilocn(void *yyscanner)
 {STRCONSTe}     { *lvalp = make_string(csound, yytext);
                   csound->Message(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
-                          csound_orcget_lineno(yyscanner), 
+                          csound_orcget_lineno(yyscanner),
                           yytext);
                   return (STRING_TOKEN); }
 STRCONSTe \"(\.|[^\"])$
