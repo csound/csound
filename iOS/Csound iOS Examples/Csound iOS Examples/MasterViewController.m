@@ -56,8 +56,24 @@
             self.clearsSelectionOnViewWillAppear = NO;
             self.preferredContentSize = CGSizeMake(320.0, 600.0);
         }
-        testNames = [NSMutableArray arrayWithObjects:@"01. Simple Test 1", @"02. Simple Test 2",
-                      @"03. Button Test", @"04. Hardware: MIDI Controller", @"05. Play: Haiku IV", @"06. Render: Trapped in Convert", @"07. Console Output", @"08. Instrument Tweaker", @"09. F-table Viewer", @"10. Soundfile: Pitch Shifter", @"11. Mic: Stereo Delay", @"12. Mic: Harmonizer", @"13. Mic: Recording", @"14. Hardware: Motion Control", @"15. Multitouch XY Pad", @"16. Mic: XY PitchShift+Mix", nil];
+        testNames = [NSMutableArray arrayWithObjects:
+                     @"01. Simple Test 1",
+                     @"02. Simple Test 2",
+                     @"03. Button Test",
+                     @"04. Play: Haiku IV",
+                     @"05. Render: Trapped in Convert",
+                     @"06. Render: Console Output",
+                     @"07. Instrument Tweaker",
+                     @"08. F-table Viewer",
+                     @"09. Soundfile: Pitch Shifter",
+                     @"10. Mic: Stereo Delay",
+                     @"11. Mic: Harmonizer",
+                     @"12. Mic: Recording",
+                     @"13. Hardware: MIDI Controller",
+                     @"14. Hardware: Motion Control",
+                     @"15. XY Pad: MultiTouch ",
+                     @"16. XY Pad: Mic PitchShift+Mix",
+                     nil];
     }
     return self;
 }
@@ -201,40 +217,38 @@
             controller = [[ButtonTestViewController alloc] initWithNibName:@"ButtonTestViewController" bundle:nil];
             break;
         case 3:
-		{
-			if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-				controller = [[MidiTestViewController alloc] initWithNibName:@"MidiTestViewController" bundle:nil];
-			} else {
-				controller = [[MidiTestViewController alloc] initWithNibName:@"MidiTestViewController_iPad" bundle:nil];
-			}
-		}
-            break;
-        case 4:
             controller = [[CsoundHaiku4ViewController alloc] initWithNibName:@"CsoundHaiku4ViewController" bundle:nil];
             break;
-        case 5:
+        case 4:
             controller = [[TrappedGeneratorViewController alloc] initWithNibName:@"TrappedGeneratorViewController" bundle:nil];
+            break;
+        case 5:
+            controller = [[ConsoleOutputViewController alloc] initWithNibName:@"ConsoleOutputViewController" bundle:nil];
             break;            
         case 6:
-            controller = [[ConsoleOutputViewController alloc] initWithNibName:@"ConsoleOutputViewController" bundle:nil];
+            controller = [[InstrumentEditorViewController  alloc] initWithNibName:@"InstrumentEditorViewController" bundle:nil];
             break;
 		case 7:
-            controller = [[InstrumentEditorViewController  alloc] initWithNibName:@"InstrumentEditorViewController" bundle:nil];
-			break;
-        case 8:
             controller = [[WaveviewViewController alloc] initWithNibName:@"WaveviewViewController" bundle:nil];
 			break;
-		case 9:
+        case 8:
             controller = [[AudioFileTestViewController alloc] initWithNibName:@"AudioFileTestViewController" bundle:nil];
 			break;
-		case 10:
+		case 9:
             controller = [[AudioInTestViewController alloc] initWithNibName:@"AudioInTestViewController" bundle:nil];
 			break;
-		case 11:
+		case 10:
             controller = [[HarmonizerTest alloc] initWithNibName:@"HarmonizerTest" bundle:nil];
 			break;
-		case 12:
+		case 11:
             controller = [[RecordTestViewController alloc] initWithNibName:@"RecordTestViewController" bundle:nil];
+			break;
+		case 12:
+            if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+                controller = [[MidiTestViewController alloc] initWithNibName:@"MidiTestViewController" bundle:nil];
+            } else {
+                controller = [[MidiTestViewController alloc] initWithNibName:@"MidiTestViewController_iPad" bundle:nil];
+            }
 			break;
 		case 13:
             controller = [[HardwareTestViewController alloc] initWithNibName:@"HardwareTestViewController" bundle:nil];
