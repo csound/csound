@@ -32,6 +32,15 @@
 #pragma GCC diagnostic ignored "-fpermissive"
 #endif
 
+#ifdef __MACH__
+#include <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFBundle.h>
+#endif
+
+
+
+
 #ifdef MSVC
 #pragma warning(disable:4786) //gab
 #define round int
@@ -548,7 +557,7 @@ int VSTPlugin::Instantiate(const char *libraryName_)
                                                    CFSTR("VSTPluginMain"));
     /* For VST SDK 2.3 and earlier. */
     if (!main) {
-      main = CFBundleGetFunctionPointerForName(vstBundle, CFSTR("main_macho"));
+      main = (PVSTMAIN)  CFBundleGetFunctionPointerForName(vstBundle, CFSTR("main_macho"));
     }
 #else
     /* For VST SDK 2.4 and later. */
