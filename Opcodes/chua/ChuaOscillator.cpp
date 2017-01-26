@@ -117,8 +117,7 @@
 //     d = sys_variables(12);
 //     gnor = a*(x.^3) + b*(x.^2) + c*x + d;
 
-#include <boost/numeric/ublas/vector.hpp>
-using namespace boost::numeric;
+#include <eigen3/Eigen/Dense>
 #include <OpcodeBase.hpp>
 #include <cmath>
 
@@ -162,12 +161,12 @@ public:
   MYFLT h2;
   MYFLT h6;
   // Runge-Kutta slopes.
-  ublas::vector<MYFLT> k1;
-  ublas::vector<MYFLT> k2;
-  ublas::vector<MYFLT> k3;
-  ublas::vector<MYFLT> k4;
+  Eigen::VectorXd k1;
+  Eigen::VectorXd k2;
+  Eigen::VectorXd k3;
+  Eigen::VectorXd k4;
   // Temporary value.
-  ublas::vector<MYFLT> M;
+  Eigen::VectorXd M;
   // Polynomial for nonlinear element.
   MYFLT a;
   MYFLT b;
@@ -235,7 +234,7 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
-    // NOTE: MATLAB code goes into ublas C++ code pretty straightforwardly,
+    // NOTE: MATLAB code goes into eigen3 C++ code pretty straightforwardly,
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
@@ -417,12 +416,12 @@ public:
   MYFLT h2;
   MYFLT h6;
   // Runge-Kutta slopes.
-  ublas::vector<MYFLT> k1;
-  ublas::vector<MYFLT> k2;
-  ublas::vector<MYFLT> k3;
-  ublas::vector<MYFLT> k4;
+  Eigen::VectorXd k1;
+  Eigen::VectorXd k2;
+  Eigen::VectorXd k3;
+  Eigen::VectorXd k4;
   // Temporary value.
-  ublas::vector<MYFLT> M;
+  Eigen::VectorXd M;
   // Other variables.
   MYFLT step_size;
   MYFLT anor;
@@ -486,7 +485,7 @@ public:
   }
  int kontrol(CSOUND *csound)
   {
-    // NOTE: MATLAB code goes into ublas C++ code pretty straightforwardly,
+    // NOTE: MATLAB code goes into eigen3 C++ code pretty straightforwardly,
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
