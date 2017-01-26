@@ -460,6 +460,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     TREE *current;
     MYFLT sr= FL(-1.0), kr= FL(-1.0), ksmps= FL(-1.0),
           nchnls= DFLT_NCHNLS, inchnls = FL(0.0), _0dbfs= FL(-1.0);
+    int krdef = 0, ksmpsdef = 0, srdef = 0; 
     double A4 = 0.0;
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
 
@@ -530,13 +531,16 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           /* removed assignments to csound->tran_* */
           if (current->left->type == SRATE_TOKEN) {
             sr = val;
+	    srdef = 1;
           }
           else if (current->left->type == KRATE_TOKEN) {
             kr = val;
+	    krdef = 1;
           }
           else if (current->left->type == KSMPS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
             ksmps = uval;
+	    ksmpsdef = 1;
           }
           else if (current->left->type == NCHNLS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
@@ -635,9 +639,14 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
       if(!O->ksmps_override){
       csound->esr = (MYFLT) (O->sr_override ? O->sr_override : csound->esr);
+      if(krdef) {
       csound->ekr = (MYFLT) (O->kr_override ? O->kr_override : csound->ekr);
       csound->ksmps = (int) ((ensmps = ((MYFLT) csound->esr
                                         / (MYFLT) csound->ekr)) + FL(0.5));
+      } else {
+	 csound->ekr = csound->esr / csound->ksmps;
+	 ensmps = csound->ksmps;
+      }
       }
       else {
         csound->ksmps = (ensmps = O->ksmps_override);
