@@ -1,5 +1,5 @@
 /**
-  optest.cpp
+  opcodes.cpp
   C++ plugin opcode interface examples
 
   (c) Victor Lazzarini, 2017
@@ -28,18 +28,19 @@
     with 1 output and 1 input \n
     iout simple iin
  */
-struct Simplei : csnd::Plugin<1, 1> {
+struct Simplei : csnd::Plugin<1,1> {
   int init() {
     outargs[0] = inargs[0];
     return OK;
   }
 };
 
+
 /** k-rate plugin opcode example
     with 1 output and 1 input \n
     kout simple kin
  */
-struct Simplek : csnd::Plugin<1, 1> {
+struct Simplek : csnd::Plugin<1,1> {
   int kperf() {
     outargs[0] = inargs[0];
     return OK;
@@ -50,9 +51,10 @@ struct Simplek : csnd::Plugin<1, 1> {
     with only 1 input \n
     tprint Sin
  */
-struct Tprint : csnd::Plugin<0, 1> {
+struct Tprint : csnd::Plugin<0,1> {
   int init() {
-    csound->Message(csound, "%s", inargs.str_data(0).data);
+    csound->Message(csound, "%s",
+		    inargs.str_data(0).data);
     return OK;
   }
 };
@@ -61,26 +63,26 @@ struct Tprint : csnd::Plugin<0, 1> {
     with 1 output and 2 inputs (a,i) \n
     asig delayline ain,idel
  */
-struct DelayLine : csnd::Plugin<1, 2> {
+struct DelayLine : csnd::Plugin<1,2> {
   csnd::AuxMem<MYFLT> delay;
   csnd::AuxMem<MYFLT>::iterator iter;
 
   int init() {
-    delay.allocate(csound, csound->GetSr(csound) * inargs[1]);
+    delay.allocate(csound, csound->GetSr(csound)*inargs[1]);
     iter = delay.begin();
     return OK;
   }
-
+  
   int aperf() {
     MYFLT *out = outargs.data(0);
     MYFLT *in = inargs.data(0);
-
+    
     sa_offset(out);
-    for (uint32_t i = offset; i < nsmps; i++, iter++) {
-      if (iter == delay.end())
-        iter = delay.begin();
+    for(uint32_t i=offset; i < nsmps; i++, iter++) {
+      if(iter == delay.end())
+	 iter = delay.begin();
       out[i] = *iter;
-      *iter = in[i];
+      *iter = in[i];  
     }
     return OK;
   }
@@ -90,30 +92,31 @@ struct DelayLine : csnd::Plugin<1, 2> {
     with 1 output and 3 inputs (k,k,i) \n
     aout oscillator kamp,kcps,ifn
  */
-struct Oscillator : csnd::Plugin<1, 3> {
+struct Oscillator : csnd::Plugin<1,3> {
   csnd::Table table;
+  MYFLT scl;
   MYFLT ndx;
 
   int init() {
-    table.init(csound, inargs.data(2));
+    table.init(csound,inargs.data(2));
+    scl = table.len()/csound->GetSr(csound);
     ndx = 0;
     return OK;
   }
-
+  
   int aperf() {
     MYFLT *out = outargs.data(0);
     MYFLT amp = inargs[0];
-    MYFLT freq = inargs[1];
-    MYFLT incr = freq * table.len() / csound->GetSr(csound);
-
+    MYFLT si = inargs[1]*scl;
+    
     sa_offset(out);
-    for (uint32_t i = offset; i < nsmps; i++) {
-      out[i] = amp * table[(uint32_t)ndx];
-      ndx += incr;
-      while (ndx < 0)
-        ndx += table.len();
-      while (ndx >= table.len())
-        ndx -= table.len();
+    for(uint32_t i=offset; i < nsmps; i++) {
+      out[i] = amp*table[(uint32_t)ndx];
+      ndx += si;
+      while(ndx < 0)
+	ndx += table.len();
+      while(ndx >= table.len())
+	ndx -= table.len();
     }
     return OK;
   }
@@ -121,36 +124,34 @@ struct Oscillator : csnd::Plugin<1, 3> {
 
 /** f-sig plugin opcode example: pv gain change
     with 1 output and 2 inputs (f,k) \n
-    fsig simple fsin, kgain
+    fsig pvg fsin, kgain
  */
-struct PVGain : csnd::Plugin<1, 2> {
-  uint32_t framecount;
-
+struct PVGain : csnd::FPlugin<1,2> {
+  
   int init() {
-    if (inargs.fsig_data(0).isSliding())
-      return csound->InitError(csound, "sliding mode not supported\n");
-    else if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs ||
-             inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar) {
-      csnd::Fsig &fout = outargs.fsig_data(0);
-      fout.init(csound, inargs.fsig_data(0));
-      framecount = 0;
-      return OK;
-    } else
-      return csound->InitError(csound, "wrong fsig format\n");
-  }
+    if(check_sliding(inargs.fsig_data(0)) != OK &&
+       (check_format(inargs.fsig_data(0)) != OK ||
+	check_format(inargs.fsig_data(0), csnd::fsig_format::polar)))
+      return NOTOK;
+     
+     csnd::Fsig &fout = outargs.fsig_data(0);
+     fout.init(csound, inargs.fsig_data(0));
+     framecount = 0;
+     return OK; 
+  } 
 
   int kperf() {
     csnd::Fsig &fin = inargs.fsig_data(0);
     csnd::Fsig &fout = outargs.fsig_data(0);
-    csnd::Fsig::iterator iteri, itero;
-    if (framecount < fin.count()) {
-      for (iteri = fin.begin(), itero = fout.begin(); iteri < fin.end();
-           iteri += 2, itero += 2) {
-        *itero = *iteri * inargs[1];
-        *(itero + 1) = *(itero + 1);
-      }
-      framecount = fout.count(fin.count());
-    }
+    uint32_t i;
+    
+    if(framecount < fin.count()) {
+      for(i=0; i < fin.len(); i++) {
+        fout[i] = inargs[1]*fin[i];
+        fout[i+1] = fin[i+1];
+     }
+     framecount = fout.count(fin.count());
+    }     
     return OK;
   }
 };
@@ -159,11 +160,11 @@ struct PVGain : csnd::Plugin<1, 2> {
  */
 extern "C" {
 PUBLIC int csoundModuleInit(CSOUND *csound) {
-  csnd::plugin<Simplei>(csound, "simple", "i", "i", csnd::thread::i);
-  csnd::plugin<Simplek>(csound, "simple", "k", "k", csnd::thread::k);
-  csnd::plugin<Tprint>(csound, "tprint", "", "S", csnd::thread::i);
+  csnd::plugin<Simplei>(csound, "simple", "i", "i",  csnd::thread::i);
+  csnd::plugin<Simplek>(csound, "simple", "k", "k",  csnd::thread::k);
+  csnd::plugin<Tprint>(csound, "tprint", "", "S",  csnd::thread::i);
   csnd::plugin<DelayLine>(csound, "delayline", "a", "ai", csnd::thread::ia);
-  csnd::plugin<Oscillator>(csound, "oscillator", "a", "kki", csnd::thread::ia);
+  csnd::plugin<Oscillator>(csound, "oscillator", "a", "kki",csnd::thread::ia);
   csnd::plugin<PVGain>(csound, "pvg", "f", "fk", csnd::thread::ik);
   return 0;
 }
