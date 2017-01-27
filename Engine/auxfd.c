@@ -64,7 +64,8 @@ uintptr_t alloc_thread(void *p) {
   newm.size = pp->nbytes;
   newm.auxp = csound->Calloc(csound, pp->nbytes);
   newm.endp = (char*) newm.auxp + pp->nbytes;
-  csound->Free(csound, pp->notify(csound, pp->userData, &newm));
+  pp->notify(csound, pp->userData, &newm);
+  csound->Free(csound, newm.auxp);
   return 0;
 }
 
