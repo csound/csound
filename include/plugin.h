@@ -1,5 +1,6 @@
 /**
   plugin.h
+  CPOF Csound Plugin Opcode Framework
   C++ plugin opcode interface
 
   (c) Victor Lazzarini, 2017
@@ -77,8 +78,8 @@ class Fsig : PVSDAT {
 public:
   /** initialise the container
    */
-  void init(CSOUND *csound, uint32_t n, uint32_t h, uint32_t w, uint32_t t,
-            uint32_t f, uint32_t nb = 0, uint32_t sl = 0, uint32_t nsmps = 1) {
+  void init(CSOUND *csound, int32_t n, int32_t h, int32_t w, int32_t t,
+            int32_t f, int32_t nb = 0, int32_t sl = 0, uint32_t nsmps = 1) {
     N = n;
     overlap = h;
     winsize = w;
@@ -298,7 +299,11 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
 
   /** i-time function placeholder
    */
-  int init() { return OK; }
+  int init() {
+    nsmps =  insdshead->ksmps;
+    offset = 0;
+    return OK;
+  }
 
   /** k-rate function placeholder
    */
@@ -322,6 +327,33 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
       std::fill(v + nsmps, v + nsmps + early, 0);
   }
 };
-}
 
+/** Fsig plugin template base class:
+    N outputs and M inputs
+ */
+template<uint32_t N, uint32_t M>
+struct FPlugin : Plugin<N,M> {
+    uint32_t framecount;
+
+    /** check for format, returns NOTOK or OK
+     */
+    int check_format(Fsig  &f, int format = fsig_format::pvs) {
+      CSOUND *csound = Plugin<N,M>::csound;
+      if(f.fsig_format() != format)
+	return csound->InitError(csound, "wrong format");
+      else return OK;
+    }
+
+     /** check for sliding, returns the sliding flag
+         and issues an init error if it is not supported
+     */
+    int check_sliding(Fsig  &f, bool notsupported=true) {
+      CSOUND *csound = Plugin<N,M>::csound;
+      if(f.isSliding() && notsupported)
+	csound->InitError(csound, "sliding mode not supported\n");
+      return f.isSliding();
+    }
+};
+
+}
 #endif
