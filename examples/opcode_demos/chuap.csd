@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -RWfo chuas_oscillator.wav
+csound -odac
 </CsOptions>
 <CsInstruments>
 sr              =           44100
