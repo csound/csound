@@ -374,7 +374,7 @@ typedef struct CORFIL {
     CSOUND *csound;
     size_t nbytes;
     void *userData;
-    void (*notify)(void *, AUXCH *);   
+    AUXCH* (*notify)(CSOUND *, void *, AUXCH *);   
   } AUXASYNC;
 
   typedef struct {

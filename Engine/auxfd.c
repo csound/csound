@@ -60,13 +60,14 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 uintptr_t alloc_thread(void *p) {
   AUXASYNC *pp = (AUXASYNC *) p;
   CSOUND *csound = pp->csound;
-  AUXCH new;
-  csoundLockMutex(csound->API_lock);
-  csoundAuxAlloc(csound, pp->nbytes, &new);
-  pp->notify(pp->userData, &new);
-  csoundUnlockMutex(csound->API_lock);
+  AUXCH newm;
+  newm.size = pp->nbytes;
+  newm.auxp = csound->Calloc(csound, pp->nbytes);
+  newm.endp = (char*) newm.auxp + pp->nbytes;
+  csound->Free(csound, pp->notify(csound, pp->userData, &newm));
   return 0;
 }
+
 
 int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXASYNC *p) {
   p->csound = csound;
