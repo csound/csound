@@ -61,8 +61,10 @@ uintptr_t alloc_thread(void *p) {
   AUXASYNC *pp = (AUXASYNC *) p;
   CSOUND *csound = pp->csound;
   AUXCH new;
+  csoundLockMutex(csound->API_lock);
   csoundAuxAlloc(csound, pp->nbytes, &new);
   pp->notify(pp->userData, &new);
+  csoundUnlockMutex(csound->API_lock);
   return 0;
 }
 
