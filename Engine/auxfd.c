@@ -56,6 +56,26 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
       auxchprint(csound, csound->curip);
 }
 
+
+uintptr_t alloc_thread(void *p) {
+  AUXASYNC *pp = (AUXASYNC *) p;
+  CSOUND *csound = pp->csound;
+  AUXCH new;
+  csoundAuxAlloc(csound, pp->nbytes, &new);
+  pp->notify(pp->userData, &new);
+  return 0;
+}
+
+int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXASYNC *p) {
+  p->csound = csound;
+  p->nbytes = nbytes;
+  if(csoundCreateThread(alloc_thread, p) == NULL)
+    return CSOUND_ERROR;
+  else
+    return CSOUND_SUCCESS; 
+}
+
+
 /* put fdchp into chain of fd's for this instr */
 /*      call only from init (xxxset) modules   */
 
