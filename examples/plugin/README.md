@@ -43,20 +43,20 @@ To make it do something, we will need to reimplement one, two or three
 of its methods. This base class is derived from the Csound structure
 OPDS and has the following members:
 
-	* outargs: output arguments.
-	* inargs: input arguments.
-	* csound: a pointer to the Csound object running this opcode.
-	* offset: the starting position of an audio vector (for audio opcodes).
-	* nsmps: the size of an audio vector (also for audio opcodes only).
-	* init(), kperf() and aperf() non-op methods, to be reimplemented as needed.
-	* sa_offset() method to be used in audio processsing to calculate offset and
+* outargs: output arguments.
+* inargs: input arguments.
+* csound: a pointer to the Csound object running this opcode.
+* offset: the starting position of an audio vector (for audio opcodes).
+* nsmps: the size of an audio vector (also for audio opcodes only).
+* init(), kperf() and aperf() non-op methods, to be reimplemented as needed.
+* sa_offset() method to be used in audio processsing to calculate offset and
 	nsmps for sample-accurate behaviour.
 
 The other base class in the CPOF is FPlugin, derived from Plugin, which
 provides some extra facilities for fsig (streaming frequency-domain) plugins:
 
-	* framecount: a member to hold a running count of fsig frames.
-    * check_sliding() and check_format() methods to check an input fsig format.
+* framecount: a member to hold a running count of fsig frames.
+* check_sliding() and check_format() methods to check an input fsig format.
 
 Init-time opcodes
 -------------------------------------------
@@ -162,12 +162,12 @@ For opcode type identifiers, the most common types are: a (audio), k (control), 
 S (string) and f (fsig). For the thread argument, we have the following options, which
 depend on the processing methods implemented in our plugin class:
 
-	* csnd::thread::i : init().
-	* csnd::thread::k : kperf(). 
-	* csnd::thread::ik : init() and kperf().
-	* csnd:thread::a : aperf().
-	* csnd::thread::ia : init() and aperf().
-	* csnd::thread::ika : init(), kperf() and aperf().
+* csnd::thread::i : init().
+* csnd::thread::k : kperf(). 
+* csnd::thread::ik : init() and kperf().
+* csnd:thread::a : aperf().
+* csnd::thread::ia : init() and aperf().
+* csnd::thread::ika : init(), kperf() and aperf().
 
 We instantiate and call these template functions inside the csoundModuleInit() function
 of our opcode dynamic library. This is one of three functions we need to supply in order
