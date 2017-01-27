@@ -25,57 +25,161 @@
 
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
-#include <csdl.h>
 #include <algorithm>
+#include <csdl.h>
+#include <pstream.h>
 
 namespace csnd {
 
-/** opcode thread function template 
+/** opcode threads: i-time, k-perf and/or a-perf
+*/
+enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
+
+/** fsig formats: phase vocoder, stft polar, stft complex, or
+    sinusoidal tracks
+*/
+enum fsig_format { pvs = 0, polar, complex, tracks };
+
+/** opcode thread function template (i-time)
 */
 template <typename T> int init(CSOUND *csound, T *p) {
   p->csound = csound;
   return p->init();
 }
+
+/** opcode thread function template (k-rate)
+*/
 template <typename T> int kperf(CSOUND *csound, T *p) {
   p->csound = csound;
   return p->kperf();
 }
+
+/** opcode thread function template (a-rate)
+*/
 template <typename T> int aperf(CSOUND *csound, T *p) {
   p->csound = csound;
   return p->aperf();
 }
 
-/** plugin registration function template 
+/** plugin registration function template
  */
 template <typename T>
-int plugin(CSOUND *csound, const char *name, int thread, const char *oargs,
-          const char *iargs) {
+int plugin(CSOUND *csound, const char *name, const char *oargs,
+           const char *iargs, uint32_t thread) {
   return csound->AppendOpcode(csound, (char *)name, sizeof(T), 0, thread,
-                       (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                       (SUBR)kperf<T>, (SUBR)aperf<T>);
+                              (char *)oargs, (char *)iargs, (SUBR)init<T>,
+                              (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
 
-/** function table container class 
+/** fsig container class
+ */
+class Fsig : PVSDAT {
+public:
+  /** initialise the container
+   */
+  void init(CSOUND *csound, uint32_t n, uint32_t h, uint32_t w, uint32_t t,
+            uint32_t f, uint32_t nb = 0, uint32_t sl = 0, uint32_t nsmps = 1) {
+    N = n;
+    overlap = h;
+    winsize = w;
+    wintype = t;
+    format = f;
+    NB = nb;
+    sliding = sl;
+    if (!sliding) {
+      int bytes = (n + 2) * sizeof(float);
+      if (frame.auxp == nullptr || frame.size < bytes) {
+        csound->AuxAlloc(csound, bytes, &frame);
+        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0);
+      }
+    } else {
+      int bytes = (n + 2) * sizeof(MYFLT) * nsmps;
+      if (frame.auxp == NULL || frame.size < bytes)
+        csound->AuxAlloc(csound, bytes, &frame);
+    }
+    framecount = 1;
+  }
+  void init(CSOUND *csound, const Fsig &f, uint32_t nsmps = 1) {
+    init(csound, f.N, f.overlap, f.winsize, f.wintype, f.format, f.NB,
+         f.sliding, nsmps);
+  }
+
+  /** iterator type
+  */
+  typedef float *iterator;
+
+  /** const_iterator type
+  */
+  typedef const float *const_iterator;
+
+  /** returns an iterator to the
+      beginning of the frame
+   */
+  iterator begin() { return (float *)frame.auxp; }
+
+  /** returns an iterator to the
+       end of the frame
+    */
+  iterator end() { return (float *)frame.auxp + N + 2; }
+
+  /** array subscript access operator (write)
+   */
+  float &operator[](int n) { return ((float *)frame.auxp)[n]; }
+
+  /** array subscript access operator (read)
+   */
+  const float &operator[](int n) const { return ((float *)frame.auxp)[n]; }
+
+  /** function table data pointer
+   */
+  float *data() const { return (float *)frame.auxp; }
+
+  /** function table data pointer (sliding case)
+   */
+  MYFLT *data_sliding() const { return (MYFLT *)frame.auxp; }
+
+  /** frame length
+   */
+  uint32_t len() { return N + 2; }
+
+  /** get framecount
+   */
+  uint32_t count() const { return framecount; }
+
+  /** set framecount
+   */
+  uint32_t count(uint32_t cnt) { return (framecount = cnt); }
+
+  /** check for sliding mode
+   */
+  bool isSliding() { return (bool)sliding; }
+
+  /** get fsig data format
+   */
+  int fsig_format() { return format; }
+};
+
+/** function table container class
  */
 class Table : FUNC {
-  
+
 public:
-  
   /** Initialise this object from an opcode
       argument arg */
   int init(CSOUND *csound, MYFLT *arg) {
-    Table *f = (Table *) csound->FTnp2Find(csound,arg);
-    if(f != nullptr) {
-     std::copy(f,f+1,this);
-     return OK;
-    } return NOTOK;
+    Table *f = (Table *)csound->FTnp2Find(csound, arg);
+    if (f != nullptr) {
+      std::copy(f, f + 1, this);
+      return OK;
+    }
+    return NOTOK;
   }
-  
-  /** iterator type 
+
+  /** iterator type
   */
   typedef MYFLT *iterator;
-  
-  /** const_iterator type 
+
+  /** const_iterator type
   */
   typedef const MYFLT *const_iterator;
 
@@ -84,9 +188,9 @@ public:
    */
   iterator begin() { return ftable; }
 
- /** returns an iterator to the
-      end of the table
-   */
+  /** returns an iterator to the
+       end of the table
+    */
   iterator end() { return ftable + flen; }
 
   /** array subscript access operator (write)
@@ -95,7 +199,7 @@ public:
 
   /** array subscript access operator (read)
    */
-  const MYFLT &operator[](int n) const  { return ftable[n]; }
+  const MYFLT &operator[](int n) const { return ftable[n]; }
 
   /** function table data pointer
    */
@@ -103,86 +207,89 @@ public:
 
   /** function table length
    */
-  uint32_t len() { return flen;}
-  
+  uint32_t len() { return flen; }
 };
 
 /** vector container template using Csound AuxAlloc
     mechanism for dynamic memory allocation
  */
-template<typename T>
-class AuxMem : AUXCH {
-  
+template <typename T> class AuxMem : AUXCH {
+
 public:
-  /** allocate memory for the container 
+  /** allocate memory for the container
    */
   void allocate(CSOUND *csound, int n) {
-    int bytes = n*sizeof(T);
-    if(auxp == nullptr || size < bytes) {
-      csound->AuxAlloc(csound,bytes,(AUXCH *) this);
-      std::fill((T *)auxp,(T *)auxp+n,0);
+    int bytes = n * sizeof(T);
+    if (auxp == nullptr || size < bytes) {
+      csound->AuxAlloc(csound, bytes, (AUXCH *)this);
+      std::fill((T *)auxp, (T *)auxp + n, 0);
     }
   }
 
-  /** iterator type 
+  /** iterator type
   */
   typedef T *iterator;
 
-  /** const_iterator type 
+  /** const_iterator type
   */
   typedef const T *const_iterator;
 
   /** vector beginning
    */
-  iterator begin() { return (T *) auxp; }
+  iterator begin() { return (T *)auxp; }
 
   /** vector end
    */
-  iterator end() { return (T *) auxp + len(); }
+  iterator end() { return (T *)auxp + len(); }
 
   /** array subscript access (write)
    */
-  T &operator[](int n) { return ((T*)auxp)[n]; }
+  T &operator[](int n) { return ((T *)auxp)[n]; }
 
   /** array subscript access (read)
    */
-  const T &operator[](int n) const  { return ((T*)auxp)[n]; }
+  const T &operator[](int n) const { return ((T *)auxp)[n]; }
 
   /** returns a pointer to the vector data
    */
-  T *data() { return (T *) auxp;}
+  T *data() { return (T *)auxp; }
 
   /** returns the length of the vector
    */
-  uint32_t len() { return size/sizeof(T); }
-  
+  uint32_t len() { return size / sizeof(T); }
 };
 
 /** Parameters template class
  */
-template<uint32_t N>
-class Params {
+template <uint32_t N> class Params {
   MYFLT *ptrs[N];
-public:
 
+public:
   /** parameter access via array subscript (write)
    */
   MYFLT &operator[](int n) { return *ptrs[n]; }
 
   /** parameter access via array subscript (read)
    */
-  const MYFLT &operator[](int n) const  { return *ptrs[n]; }
+  const MYFLT &operator[](int n) const { return *ptrs[n]; }
 
-  /** parameter data (raw pointer) at index n
+  /** parameter data (MYFLT pointer) at index n
    */
-  MYFLT *data(int n) const { return ptrs[n]; }
+  MYFLT *data(int n) { return ptrs[n]; }
+
+  /** parameter string data (STRINGDAT ref) at index n
+   */
+  STRINGDAT &str_data(int n) { return (STRINGDAT &)*ptrs[n]; }
+
+  /** parameter fsig data (PVSDAT ref) at index n
+   */
+  Fsig &fsig_data(int n) { return (Fsig &)*ptrs[n]; }
 };
 
-/** Plugin template base class: 
+/** Plugin template base class:
     N outputs and M inputs
  */
-template<uint32_t N,uint32_t M>
-struct Plugin : OPDS {
+template <uint32_t N, uint32_t M> struct Plugin : OPDS {
   Params<N> outargs;
   Params<M> inargs;
   CSOUND *csound;
@@ -192,30 +299,29 @@ struct Plugin : OPDS {
   /** i-time function placeholder
    */
   int init() { return OK; }
-  
+
   /** k-rate function placeholder
    */
   int kperf() { return OK; }
 
   /** a-rate function placeholder
-   */  
+   */
   int aperf() { return OK; }
 
   /** sample-accurate offset for
       a-rate opcodes; updates offset
-      and nsmps 
+      and nsmps
    */
   void sa_offset(MYFLT *v) {
-    uint32_t early  = insdshead->ksmps_no_end;
+    uint32_t early = insdshead->ksmps_no_end;
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
-    if(UNLIKELY(offset))
-       std::fill(v,v+offset,0);
-    if(UNLIKELY(early))
-       std::fill(v+nsmps,v+nsmps+early,0);
+    if (UNLIKELY(offset))
+      std::fill(v, v + offset, 0);
+    if (UNLIKELY(early))
+      std::fill(v + nsmps, v + nsmps + early, 0);
   }
 };
- 
 }
- 
+
 #endif
