@@ -190,3 +190,70 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
 
 Note how the class name is passed as an argument to the function template,
 followed by the function call.
+
+Memory allocation
+---------------------------------------------------
+
+For efficiency and to prevent leaks and undefined behaviour we need to
+leave all memory allocation to Csound and refrain from using C++
+allocators or standard library containers that use dynamic allocation
+behind the scenes (e.g. std::vector). If we follow these rules, our code
+will work as intended and cause no problems for users.
+
+This requires us to use the AuxAlloc mechanism implemented by
+Csound for opcodes. To allow for ease of use, CPOF provides a wrapper
+template class (which is not too dissimilar to std::vector) for us to
+allocate and use as much memory as we need. This functionality
+is given by the AuxMem class, which has the following methods and
+members:
+
+* allocate(): allocates memory (if required).
+* operator[] : array-subscript access to the allocated memory.
+* data(): returns a pointer to the data.
+* len(): returns the length of the vector.
+* begin() and end(): return iterators to the beginning and end of
+data
+* iterator and const_iterator: iterator types for this class.
+
+As an example of use, we can implement a simple delay line
+opcode, whose delay time is set at i-time, providing a slap-back
+echo effect:
+
+```
+/** a-rate plugin opcode example: delay line
+    with 1 output and 2 inputs (a,i) \n
+    asig delayline ain,idel
+ */
+struct DelayLine : csnd::Plugin<1,2> {
+  csnd::AuxMem<MYFLT> delay;
+  csnd::AuxMem<MYFLT>::iterator iter;
+
+  int init() {
+    delay.allocate(csound, csound->GetSr(csound)*inargs[1]);
+    iter = delay.begin();
+    return OK;
+  }
+  
+  int aperf() {
+    MYFLT *out = outargs.data(0);
+    MYFLT *in = inargs.data(0);
+    
+    sa_offset(out);
+    for(uint32_t i=offset; i < nsmps; i++, iter++) {
+      if(iter == delay.end()) iter = delay.begin();
+      out[i] = *iter;
+      *iter = in[i]; 
+    }
+    return OK;
+  }
+};
+```
+
+In this example, we use an AuxMem interator to access the
+delay vector. It is equally possible to access each element with
+an array-style subscript. The memory allocated by this class is
+managed by Csound, so we do not need to be concerned about
+disposing of it.
+
+
+
