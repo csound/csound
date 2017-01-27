@@ -253,7 +253,11 @@ In this example, we use an AuxMem interator to access the
 delay vector. It is equally possible to access each element with
 an array-style subscript. The memory allocated by this class is
 managed by Csound, so we do not need to be concerned about
-disposing of it.
+disposing of it. To register this opcode, we do
+
+```
+csnd::plugin<DelayLine>(csound, "delayline", "a", "ai", csnd::thread::ia);
+```
 
 Table Access
 -----------------------------------------------
@@ -310,7 +314,136 @@ struct Oscillator : csnd::Plugin<1,3> {
   }
 };
 ```
-Note that, as we need a precise phase index value,
+The table is initialised by passing the relevant argument
+pointer to it (using its data() method). Also note that,
+as we need a precise phase index value,
 we cannot use iterators in this case (without making it
 very awkward), so we employ straightforward
-array subscripting.
+array subscripting. The opcode is registered by
+
+```
+csnd::plugin<Oscillator>(csound, "oscillator", "a", "kki",csnd::thread::ia);
+```
+
+String opcodes
+---------------------------------------------
+
+String variables in Csound are held in a STRINGDAT data structure,
+containing a data member that holds the actual string and a size
+member with the allocated memory size. While CPOF does not
+wrap strings, it provides a translated access to string arguments
+through the argument objects str_data() function. This takes a
+an argument index (similarly to data()) and returns a reference to
+the string variable, as demonstrated in this example:
+
+```
+/** i-time string plugin opcode example
+    with only 1 input \n
+    tprint Sin
+ */
+struct Tprint : csnd::Plugin<0,1> {
+  int init() {
+    csound->Message(csound, "%s",
+		    inargs.str_data(0).data);
+    return OK;
+  }
+};
+```
+
+This opcode will print the string to the console. Note that we have
+no output arguments, so we set the first template parameter to 0.
+We register it using
+
+```
+csnd::plugin<Tprint>(csound, "tprint", "", "S",  csnd::thread::i);
+
+```
+
+Fsig opcodes
+------------------------------------------------
+
+Finally, for streaming spectral processing opcodes, we have a
+different base class with extra facilities needed for their operation.
+Fsig variables are held in a PVSDAT data structure. To facilitate
+their manipulation, CPOF provides a wrapper class Fsig
+with the following members:
+
+* init(): initialisation from individual parameters or from an
+existing fsig. Also allocates frame memory as needed.
+* operator[] : array-subscript access to the spectral frame.
+* data(): returns a pointer to the spectral frame data.
+* len(): returns the length of the frame.
+* begin() and end(): return iterators to the beginning and end of
+the data frame (undefined behaviour for sliding mode)
+* iterator and const_iterator: iterator types for this class.
+* data_sliding(): returns a pointer to the spectral frame data for
+sliding analysis mode.
+* count(): get and set fsig framecount.
+* isSliding(): checks for sliding mode.
+* fsig_format(): returns the fsig data format.
+
+Fsig opcodes run at k-rate but will internally use an update rate based
+on the analysis hopsize. For this to work, a framecount is kept and
+checked to make sure we only process the input when new data is
+available. The following example class implements a simple gain
+scaler for fsigs:
+
+```
+/** f-sig plugin opcode example: pv gain change
+    with 1 output and 2 inputs (f,k) \n
+    fsig pvg fsin, kgain
+ */
+struct PVGain : csnd::FPlugin<1,2> {
+  
+  int init() {
+    if(check_sliding(inargs.fsig_data(0)) != OK &&
+       (check_format(inargs.fsig_data(0)) != OK ||
+	check_format(inargs.fsig_data(0), csnd::fsig_format::polar)))
+      return NOTOK;
+     
+     csnd::Fsig &fout = outargs.fsig_data(0);
+     fout.init(csound, inargs.fsig_data(0));
+     framecount = 0;
+     return OK; 
+  } 
+
+  int kperf() {
+    csnd::Fsig &fin = inargs.fsig_data(0);
+    csnd::Fsig &fout = outargs.fsig_data(0);
+    uint32_t i;
+    
+    if(framecount < fin.count()) {
+      for(i=0; i < fin.len(); i++) {
+        fout[i] = inargs[1]*fin[i];
+        fout[i+1] = fin[i+1];
+     }
+     framecount = fout.count(fin.count());
+    }     
+    return OK;
+  }
+};
+```
+
+Note that, as with strings, there is a dedicated method in the arguments
+object that returns a ref to an Fsig class. This is used to initialise the
+output object at i-time and then to obtain the input and output
+variable data Csound processing. The framecount member is provided
+by the base class, as well as the format check methods. This opcode
+is registered using
+
+```
+csnd::plugin<PVGain>(csound, "pvg", "f", "fk", csnd::thread::ik);
+```
+
+Building the opcodes
+-------------------------------------------
+
+The code discussed here is provided in the opcodes.cpp source file in the
+examples directory. In order to build these opcodes, we require a c++
+compiler using c++11 mode (-std=c++11), and the Csound public
+headers (including plugin.h). The opcodes should be built as a dynamic/shared
+library (e.g so in Linux and dylib in OSX), but CPOF does not impose any
+link-time dependencies (not even to Csound).
+
+Victor Lazzarini, 01/2017
+
