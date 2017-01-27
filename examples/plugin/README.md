@@ -255,5 +255,62 @@ an array-style subscript. The memory allocated by this class is
 managed by Csound, so we do not need to be concerned about
 disposing of it.
 
+Table Access
+-----------------------------------------------
+
+Access to function tables has also been facilitated by a thin
+wrapper class that allows us to treat it as a vector object.
+This is provided by the Table class, which has the
+following members:
+
+* init(): initialises a table object from an opcode argument pointer.
+* operator[] : array-subscript access to the function table.
+* data(): returns a pointer to the function table data.
+* len(): returns the length of the table (excluding guard point).
+* begin() and end(): return iterators to the beginning and end of
+the function table
+* iterator and const_iterator: iterator types for this class.
 
 
+An example of table access is given by an oscillator opcode,
+which is implemented in the following class:
+
+```
+/** a-rate plugin opcode example: oscillator
+    with 1 output and 3 inputs (k,k,i) \n
+    aout oscillator kamp,kcps,ifn
+ */
+struct Oscillator : csnd::Plugin<1,3> {
+  csnd::Table table;
+  double scl;
+  double ndx;
+
+  int init() {
+    table.init(csound,inargs.data(2));
+    scl = table.len()/csound->GetSr(csound);
+    ndx = 0;
+    return OK;
+  }
+  
+  int aperf() {
+    MYFLT *out = outargs.data(0);
+    MYFLT amp = inargs[0];
+    MYFLT si = inargs[1]*scl;
+    
+    sa_offset(out);
+    for(uint32_t i=offset; i < nsmps; i++) {
+      out[i] = amp*table[(uint32_t)ndx];
+      ndx += si;
+      while(ndx < 0)
+	ndx += table.len();
+      while(ndx >= table.len())
+	ndx -= table.len();
+    }
+    return OK;
+  }
+};
+```
+Note that, as we need a precise phase index value,
+we cannot use iterators in this case (without making it
+very awkward), so we employ straightforward
+array subscripting.
