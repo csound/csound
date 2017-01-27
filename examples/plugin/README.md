@@ -152,11 +152,11 @@ int plugin(CSOUND *csound, const char *name, const char *oargs,
 
 Its parameters are:
 
-	* csound: a pointer to the Csound object to which we want to register our opcode.
-	* name: the opcode name as it will be used in Csound code.
-	* oargs: a string containing the opcode output types, one identifier per argument
-	* iargs: a string containintg the opcode input types, one identifier per argument
-	* thread: a code to tell Csound when the opcode shoulld be active.
+* csound: a pointer to the Csound object to which we want to register our opcode.
+* name: the opcode name as it will be used in Csound code.
+* oargs: a string containing the opcode output types, one identifier per argument
+* iargs: a string containintg the opcode input types, one identifier per argument
+* thread: a code to tell Csound when the opcode shoulld be active.
 
 For opcode type identifiers, the most common types are: a (audio), k (control), i (i-time),
 S (string) and f (fsig). For the thread argument, we have the following options, which
