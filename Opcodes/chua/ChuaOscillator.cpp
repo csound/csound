@@ -463,10 +463,10 @@ public:
     M(3) = *I3_ / (*E_ * *G_);
     ksmps = opds.insdshead->ksmps;
     warn(csound, "ChuasOscillatorPiecewise::init: L: %f  R0: %f  C2: %f  G: "
-         "%f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2):"
-         " %f  M(3): %f step: %f\n",
+         "%f  Ga: %f  Gb: %f  E: %f  C1: %f  iI3: %f  iV2:"
+         " %f  iV1: %f step: %f\n",
          *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_,
-         M(1), M(2), M(3), step_size);
+        *I3_, *V2_, *V1_, step_size);
     return OK;
   }
   int noteoff(CSOUND *csound)
