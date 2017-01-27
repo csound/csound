@@ -41,6 +41,7 @@ void    mfreeDebug(CSOUND *, void *, char*, int);
 char    *cs_strdup(CSOUND*, char*);
 char    *cs_strndup(CSOUND*, char*, size_t);
 void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
+int     csoundAuxAllocAsync(CSOUND *, size_t, AUXASYNC *);
 void    fdrecord(CSOUND *, FDCH *), fdclose(CSOUND *, FDCH *);
 void    fdchclose(CSOUND *, INSDS *);
 CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
