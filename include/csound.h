@@ -2084,6 +2084,7 @@ extern "C" {
 #ifndef SWIG
 
 #include <libkern/OSAtomic.h>
+  
 #define csoundSpinLock(spinlock)                \
     {                                           \
        OSSpinLockLock(spinlock);                \
