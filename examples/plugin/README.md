@@ -325,7 +325,7 @@ array subscripting. The opcode is registered by
 csnd::plugin<Oscillator>(csound, "oscillator", "a", "kki",csnd::thread::ia);
 ```
 
-String opcodes
+Strings
 ---------------------------------------------
 
 String variables in Csound are held in a STRINGDAT data structure,
@@ -359,10 +359,10 @@ csnd::plugin<Tprint>(csound, "tprint", "", "S",  csnd::thread::i);
 
 ```
 
-Fsig opcodes
+Fsigs
 ------------------------------------------------
 
-Finally, for streaming spectral processing opcodes, we have a
+For streaming spectral processing opcodes, we have a
 different base class with extra facilities needed for their operation.
 Fsig variables are held in a PVSDAT data structure. To facilitate
 their manipulation, CPOF provides a wrapper class Fsig
@@ -435,7 +435,7 @@ is registered using
 csnd::plugin<PVGain>(csound, "pvg", "f", "fk", csnd::thread::ik);
 ```
 
-Array Opcodes
+Arrays
 ----------------------------------------------
 
 Opcodes with array inputs or outputs use the data structure ARRAYDAT
