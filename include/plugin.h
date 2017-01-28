@@ -72,6 +72,64 @@ int plugin(CSOUND *csound, const char *name, const char *oargs,
                               (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
 
+/** One-dimensional array container
+    template class
+ */
+template <typename T> class Vector : ARRAYDAT {
+public:
+  /** Initialise the container
+   */
+  void init(CSOUND *csound, int size) {
+    if (data == NULL || dimensions == 0 ||
+        (dimensions == 1 && sizes[0] < size)) {
+      size_t ss;
+      if (data == NULL) {
+        CS_VARIABLE *var = arrayType->createVariable(csound, NULL);
+        arrayMemberSize = var->memBlockSize;
+      }
+      ss = arrayMemberSize * size;
+      if (data == NULL)
+        data = (MYFLT *)csound->Calloc(csound, ss);
+      else
+        data = (MYFLT *)csound->ReAlloc(csound, data, ss);
+      dimensions = 1;
+      sizes = (int *)csound->Malloc(csound, sizeof(int));
+      sizes[0] = size;
+    }
+  }
+  /** iterator type
+   */
+  typedef T *iterator;
+
+  /** const_iterator type
+  */
+  typedef const T *const_iterator;
+
+  /** vector beginning
+   */
+  iterator begin() { return (T *)data; }
+
+  /** vector end
+   */
+  iterator end() { return (T *)data + sizes[0]; }
+
+  /** array subscript access (write)
+   */
+  T &operator[](int n) { return ((T *)data)[n]; }
+
+  /** array subscript access (read)
+   */
+  const T &operator[](int n) const { return ((T *)data)[n]; }
+
+  /** array subscript access (read)
+   */
+  uint32_t len() { return sizes[0]; }
+
+  /** array data
+   */
+  T *data_array() { return (T *)data; }
+};
+
 /** fsig container class
  */
 class Fsig : PVSDAT {
@@ -121,7 +179,7 @@ public:
   /** returns an iterator to the
        end of the frame
     */
-  iterator end() { return (float *)frame.auxp + N + 2; }
+  iterator end() { return (float *)frame.endp; }
 
   /** array subscript access operator (write)
    */
@@ -241,7 +299,7 @@ public:
 
   /** vector end
    */
-  iterator end() { return (T *)auxp + len(); }
+  iterator end() { return (T *)endp; }
 
   /** array subscript access (write)
    */
@@ -285,6 +343,12 @@ public:
   /** parameter fsig data (PVSDAT ref) at index n
    */
   Fsig &fsig_data(int n) { return (Fsig &)*ptrs[n]; }
+
+  /** 1-D array data
+   */
+  template <typename T> Vector<T> &vector_data(int n) {
+    return *((Vector<T> *)ptrs[n]);
+  }
 };
 
 /** Plugin template base class:
