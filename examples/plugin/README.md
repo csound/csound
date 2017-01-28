@@ -435,6 +435,59 @@ is registered using
 csnd::plugin<PVGain>(csound, "pvg", "f", "fk", csnd::thread::ik);
 ```
 
+Array Opcodes
+----------------------------------------------
+
+Opcodes with array inputs or outputs use the data structure ARRAYDAT
+for parameters. Again, in order to facilitate access to these argument
+types, CPOF provides a wrapper class. The framework currently supports
+only one-dimensional arrays (for multidimensional arrays a raw pointer
+to ARRAYDAT should be used), which covers the most common uses.
+
+The template container class Vector, derived from ARRAYDAT, holds the
+argument data. It has the following members:
+
+* init(): initialises an output variable.
+* operator[] : array-subscript access to the vector data.
+* data(): returns a pointer to the vector data.
+* len(): returns the length of the vector.
+* begin() and end(): return iterators to the beginning and end of
+the vector.
+* iterator and const_iterator: iterator types for this class.
+* data_array(): returns a pointer to the vector data.
+
+In addition to this, the inargs and outargs objects in the Plugin
+class have a template method that can be used to get a Vector
+class reference. A trivial example is shown below:
+
+```
+/** k-rate numeric array example
+    with 1 output and 1 input \n
+    kout[] simple kin[]
+ */
+struct SimpleArray : csnd::Plugin<1, 1> {
+  int init() {
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    out.init(csound, in.len());
+    return OK;
+  }
+
+  int kperf() {
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    std::copy(in.begin(), in.end(), out.begin());
+    return OK;
+  }
+  };
+  ```
+
+This opcode is registered using the following line:
+
+```
+csnd::plugin<SimpleArray>(csound, "simple", "k[]", "k[]", csnd::thread::ik);
+```
+
 Building the opcodes
 -------------------------------------------
 
