@@ -367,14 +367,22 @@ typedef struct CORFIL {
     void    *auxp, *endp;
   } AUXCH;
 
+  /**  this callback is used to notify the
+       availability of new storage in AUXCH *.
+       It can be used to swap the old storage
+       for the new one and return it for deallocation.
+  */
+  typedef AUXCH* (*aux_cb)(CSOUND *, void *, AUXCH *);
+  
   /**
    * AuxAllocAsync data
    */
   typedef struct {
     CSOUND *csound;
     size_t nbytes;
+    AUXCH *auxchp;
     void *userData;
-    AUXCH* (*notify)(CSOUND *, void *, AUXCH *);   
+    aux_cb notify;   
   } AUXASYNC;
 
   typedef struct {
@@ -1320,7 +1328,8 @@ typedef struct NAME__ {
                      void *p, MYFLT *sig);
     int  (*ftError)(const FGDATA *, const char *, ...);
     MYFLT (*GetA4)(CSOUND *csound);
-    int (*AuxAllocAsync)(CSOUND *, size_t, AUXASYNC *);
+    int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
+			 AUXASYNC *, aux_cb, void *);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
