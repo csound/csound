@@ -367,6 +367,16 @@ typedef struct CORFIL {
     void    *auxp, *endp;
   } AUXCH;
 
+  /**
+   * AuxAllocAsync data
+   */
+  typedef struct {
+    CSOUND *csound;
+    size_t nbytes;
+    void *userData;
+    AUXCH* (*notify)(CSOUND *, void *, AUXCH *);   
+  } AUXASYNC;
+
   typedef struct {
     int      dimensions;
     int*     sizes;             /* size of each dimensions */
@@ -925,6 +935,7 @@ typedef struct NAME__ {
     char type[12];
   } MODULE_INFO;
 
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1309,6 +1320,7 @@ typedef struct NAME__ {
                      void *p, MYFLT *sig);
     int  (*ftError)(const FGDATA *, const char *, ...);
     MYFLT (*GetA4)(CSOUND *csound);
+    int (*AuxAllocAsync)(CSOUND *, size_t, AUXASYNC *);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
