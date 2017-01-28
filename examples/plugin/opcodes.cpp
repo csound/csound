@@ -58,6 +58,26 @@ struct Simplea : csnd::Plugin<1, 1> {
   }
 };
 
+/** k-rate numeric array example
+    with 1 output and 1 input \n
+    kout[] simple kin[]
+ */
+struct SimpleArray : csnd::Plugin<1, 1> {
+  int init() {
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    out.init(csound, in.len());
+    return OK;
+  }
+
+  int kperf() {
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    std::copy(in.begin(), in.end(), out.begin());
+    return OK;
+  }
+};
+
 /** i-time string plugin opcode example
     with only 1 input \n
     tprint Sin
@@ -156,7 +176,7 @@ struct PVGain : csnd::FPlugin<1, 2> {
     uint32_t i;
 
     if (framecount < fin.count()) {
-      for (i = 0; i < fin.len(); i++) {
+      for (i = 0; i < fin.len(); i+=2) {
         fout[i] = inargs[1] * fin[i];
         fout[i + 1] = fin[i + 1];
       }
@@ -173,6 +193,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
   csnd::plugin<Simplei>(csound, "simple", "i", "i", csnd::thread::i);
   csnd::plugin<Simplek>(csound, "simple", "k", "k", csnd::thread::k);
   csnd::plugin<Simplea>(csound, "simple", "a", "a", csnd::thread::a);
+  csnd::plugin<SimpleArray>(csound, "simple", "k[]", "k[]", csnd::thread::ik);
   csnd::plugin<Tprint>(csound, "tprint", "", "S", csnd::thread::i);
   csnd::plugin<DelayLine>(csound, "delayline", "a", "ai", csnd::thread::ia);
   csnd::plugin<Oscillator>(csound, "oscillator", "a", "kki", csnd::thread::ia);
