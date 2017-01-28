@@ -47,6 +47,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -79,7 +80,7 @@ public:
     bool try_pop(Data& popped_value)
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        if(queue_.empty()) {
+        if (queue_.empty()) {
             return false;
         }
         popped_value = queue_.front();
@@ -89,7 +90,7 @@ public:
     void wait_and_pop(Data& popped_value)
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        while(queue_.empty()) {
+        while (queue_.empty()) {
             condition_variable_.wait(lock);
         }
         popped_value = queue_.front();
@@ -160,7 +161,7 @@ struct CsoundTextEvent : public CsoundEvent
 class PUBLIC CsoundThreaded : public Csound
 {
 protected:
-    std::thread *performance_thread;
+    std::thread performance_thread;
     std::atomic<bool> keep_running;
     void (*kperiod_callback)(CSOUND *, void *);
     void *kperiod_callback_user_data;
@@ -173,9 +174,9 @@ protected:
         }
     }
 public:
-    CsoundThreaded() : Csound(), performance_thread(0), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {};
-    CsoundThreaded(CSOUND *csound_) : Csound(csound_), performance_thread(0), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {};
-    CsoundThreaded(void *host_data) : Csound(host_data), performance_thread(0), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {}; 
+    CsoundThreaded() : Csound(), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {};
+    CsoundThreaded(CSOUND *csound_) : Csound(csound_), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {};
+    CsoundThreaded(void *host_data) : Csound(host_data), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {}; 
     virtual ~CsoundThreaded() 
     {
         Stop();
@@ -187,9 +188,9 @@ public:
         kperiod_callback = kperiod_callback_;
         kperiod_callback_user_data = kperiod_callback_user_data_;
     }
-    virtual int PerformRoutine(bool reset)
+    virtual int PerformRoutine()
     {
-        Message("Began threaded Perform()...\n");
+        Message("Began CsoundThreaded::PerformRoutine()...\n");
         keep_running = true;
         int result = 0;
         while (true) {
@@ -199,24 +200,25 @@ public:
             CsoundEvent *event = 0;
             while (input_queue.try_pop(event)) {
                 (*event)(csound);
+                delete event;
             }                
             if (kperiod_callback != nullptr) {
                 kperiod_callback(csound, kperiod_callback_user_data);
             }
             result = Csound::PerformKsmps();
             if (result != 0) {
+                Message("CsoundThreaded::PerformRoutine(): CsoundThreaded::PerformKsmps() ended with %d...\n", result);
                 break;
             }
         }
         keep_running = false;
         ClearQueue();
-        if (reset) {
-            Message("Ended Perform() thread, cleaning up now.\n");
-            result = Cleanup();
-            Reset();
-        } else {
-            Message("Ended Perform() thread.\n");
-        }
+        Message("CsoundThreaded::PerformRoutine(): Cleared performance queue...\n");
+        result = Cleanup();
+        Message("CsoundThreaded::PerformRoutine(): Cleanup() finished with %d...\n", result);
+        Reset();
+        Message("CsoundThreaded::PerformRoutine(): Reset() finished...\n");
+        Message("Ended CsoundThreaded::PerformRoutine() with %d.\n", result);
         return result;
     }
     /**
@@ -224,16 +226,13 @@ public:
      * The granularity of time is one kperiod. Returns the native handle 
      * of the performance thread. If a kperiod callback has been set, 
      * it is called with the CSOUND object and any user data on every
-     * kperiod. If the reset parameter is false, then csoundCleanup and 
-     * csoundReset are not called at the end of the performance.
+     * kperiod. Unlike csoundPerform(), this function calls csoundCleanup() 
+     * and csoundReset() when the performance is finished.
      */
-    virtual int Perform(bool reset = true) 
+    virtual int Perform() 
     {
-        Stop();
-        Join();
-        ClearQueue();
-        performance_thread = new std::thread(&CsoundThreaded::PerformRoutine, this, reset);
-        return performance_thread->native_handle();
+        performance_thread = std::thread(&CsoundThreaded::PerformRoutine, this);
+        return performance_thread.native_handle();
     }
     /** 
      * Enqueues a low-level score event with raw pfields for dispatch from 
@@ -280,9 +279,8 @@ public:
      */
     virtual void Join() 
     {
-        if (performance_thread != nullptr) {
-            performance_thread->join();
-            performance_thread = nullptr;
+        if (performance_thread.joinable()) {
+            performance_thread.join();
         }
     }
     /**

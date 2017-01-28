@@ -80,7 +80,7 @@ elseif(LINUX)
     CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_CXX11)
      if(COMPILER_SUPPORTS_CXX11)
        make_plugin(arrayops arrayops.cpp)
-       set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11")
+       set_target_properties(arrayops PROPERTIES COMPILE_FLAGS "-std=gnu++11")
      else()
         message(STATUS "Not building array operators as no C++11 support
         found.")
@@ -88,7 +88,7 @@ elseif(LINUX)
 else()
     make_plugin(arrayops arrayops.cpp)
     if(WIN32 AND NOT MSVC)
-      set_target_properties(padsynth PROPERTIES COMPILE_FLAGS
+      set_target_properties(arrayops PROPERTIES COMPILE_FLAGS
       "-std=gnu++11")
       endif()
 endif()
