@@ -162,6 +162,8 @@ class PUBLIC CsoundThreaded : public Csound
 protected:
     std::thread *performance_thread;
     std::atomic<bool> keep_running;
+    void (*kperiod_callback)(CSOUND *, void *);
+    void *kperiod_callback_user_data;
     concurrent_queue<CsoundEvent *> input_queue;
     void ClearQueue()
     {
@@ -171,15 +173,21 @@ protected:
         }
     }
 public:
-    CsoundThreaded() : Csound(), performance_thread(0), keep_running(false) {};
-    CsoundThreaded(void *host_data) : Csound(host_data), performance_thread(0), keep_running(false) {}; 
+    CsoundThreaded() : Csound(), performance_thread(0), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {};
+    CsoundThreaded(CSOUND *csound_) : Csound(csound_), performance_thread(0), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {};
+    CsoundThreaded(void *host_data) : Csound(host_data), performance_thread(0), keep_running(false), kperiod_callback(nullptr), kperiod_callback_user_data(nullptr) {}; 
     virtual ~CsoundThreaded() 
     {
         Stop();
         Join();
         ClearQueue();
     }
-    virtual int PerformRoutine()
+    virtual void SetKperiodCallback(void (*kperiod_callback_)(CSOUND *, void *), void *kperiod_callback_user_data_)
+    {
+        kperiod_callback = kperiod_callback_;
+        kperiod_callback_user_data = kperiod_callback_user_data_;
+    }
+    virtual int PerformRoutine(bool reset)
     {
         Message("Began threaded Perform()...\n");
         keep_running = true;
@@ -192,6 +200,9 @@ public:
             while (input_queue.try_pop(event)) {
                 (*event)(csound);
             }                
+            if (kperiod_callback != nullptr) {
+                kperiod_callback(csound, kperiod_callback_user_data);
+            }
             result = Csound::PerformKsmps();
             if (result != 0) {
                 break;
@@ -199,21 +210,29 @@ public:
         }
         keep_running = false;
         ClearQueue();
-        Message("Ended threaded Perform(), cleaning up now.\n");
-        result = Cleanup();
-        Reset();
+        if (reset) {
+            Message("Ended Perform() thread, cleaning up now.\n");
+            result = Cleanup();
+            Reset();
+        } else {
+            Message("Ended Perform() thread.\n");
+        }
         return result;
     }
     /**
      * Overrides Csound::Perform to run in a separate thread of execution. 
-     * The granularity of time is one kperiod.
+     * The granularity of time is one kperiod. Returns the native handle 
+     * of the performance thread. If a kperiod callback has been set, 
+     * it is called with the CSOUND object and any user data on every
+     * kperiod. If the reset parameter is false, then csoundCleanup and 
+     * csoundReset are not called at the end of the performance.
      */
-    virtual int Perform() 
+    virtual int Perform(bool reset = true) 
     {
         Stop();
         Join();
         ClearQueue();
-        performance_thread = new std::thread(&CsoundThreaded::PerformRoutine, this);
+        performance_thread = new std::thread(&CsoundThreaded::PerformRoutine, this, reset);
         return performance_thread->native_handle();
     }
     /** 
