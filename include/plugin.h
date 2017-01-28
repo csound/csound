@@ -347,7 +347,7 @@ public:
   /** 1-D array data
    */
   template <typename T> Vector<T> &vector_data(int n) {
-    return *((Vector<T> *)ptrs[n]);
+    return (Vector<T> &)*ptrs[n];
   }
 };
 
