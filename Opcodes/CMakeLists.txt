@@ -72,6 +72,28 @@ make_plugin(getftargs getftargs.c)
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
 
+if(APPLE)
+   make_plugin(arrayops arrayops.cpp)
+   set_target_properties(arrayops PROPERTIES COMPILE_FLAGS "-std=c++11")
+elseif(LINUX)
+    include(CheckCXXCompilerFlag)
+    CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_CXX11)
+     if(COMPILER_SUPPORTS_CXX11)
+       make_plugin(arrayops arrayops.cpp)
+       set_target_properties(padsynth PROPERTIES COMPILE_FLAGS "-std=gnu++11")
+     else()
+        message(STATUS "Not building array operators as no C++11 support
+        found.")
+     endif()
+else()
+    make_plugin(arrayops arrayops.cpp)
+    if(WIN32 AND NOT MSVC)
+      set_target_properties(padsynth PROPERTIES COMPILE_FLAGS
+      "-std=gnu++11")
+      endif()
+endif()
+
+
 if(BUILD_PADSYNTH_OPCODES)
 if(APPLE)
   make_plugin(padsynth padsynth_gen.cpp)
