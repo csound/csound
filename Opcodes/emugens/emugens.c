@@ -48,6 +48,7 @@ static int linlink(CSOUND *csound, LINLINK *p) {
     MYFLT x0 = *p->kx0;
     MYFLT y0 = *p->ky0;
     MYFLT x = *p->kx;
+    /* if x0 == *(p->kx1) this crashes */
     *p->kout = (x - x0) / (*(p->kx1) -x0) * (*(p->ky1) - y0) + y0;
     return OK;
 }
