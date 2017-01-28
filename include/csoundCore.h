@@ -367,8 +367,13 @@ typedef struct CORFIL {
     void    *auxp, *endp;
   } AUXCH;
 
-
+  /**  this callback is used to notify the
+       availability of new storage in AUXCH *.
+       It can be used to swap the old storage
+       for the new one and return it for deallocation.
+  */
   typedef AUXCH* (*aux_cb)(CSOUND *, void *, AUXCH *);
+  
   /**
    * AuxAllocAsync data
    */
@@ -377,13 +382,6 @@ typedef struct CORFIL {
     size_t nbytes;
     AUXCH *auxchp;
     void *userData;
-    /** 
-       this callback is used to notify the
-       availability of new storage in newch.
-       It can be used to swap the old storage
-       by the new one and return the old memory 
-       address in newch for deallocation.
-    */
     aux_cb notify;   
   } AUXASYNC;
 
