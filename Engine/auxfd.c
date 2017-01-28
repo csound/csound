@@ -86,11 +86,11 @@ uintptr_t alloc_thread(void *p) {
 
 
 /* Allocate an auxds asynchronously and
-   pass the newly allocated memory via a 
+   pass the newly allocated memory via a
    callback, where it can be swapped if necessary.
 */
 int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
-			AUXASYNC *as, aux_cb cb, void *userData) {
+                        AUXASYNC *as, aux_cb cb, void *userData) {
   as->csound = csound;
   as->nbytes = nbytes;
   as->auxchp = auxchp;
@@ -99,7 +99,7 @@ int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
   if(csoundCreateThread(alloc_thread, as) == NULL)
     return CSOUND_ERROR;
   else
-    return CSOUND_SUCCESS; 
+    return CSOUND_SUCCESS;
 }
 
 
@@ -219,4 +219,3 @@ static CS_NOINLINE void fdchprint(CSOUND *csound, INSDS *ip)
       csoundMessage(csound, Str("  fd %p in %p"), curchp->fd, curchp);
     csoundMessage(csound, "\n");
 }
-
