@@ -62,9 +62,10 @@
 }
 
 //static  void    kaiser(int, float *, int, int, double);
-static  void    usage(CSOUND *);
 
 #if 0
+static  void    usage(CSOUND *);
+
 static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
                        SNDFILE *outfd, int length, OPARMS *oparms)
 {
@@ -761,6 +762,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 }
 #endif
 
+#if 0
 static const char *usage_txt[] = {
   Str_noop("usage: srconv [flags] infile\n\nflags:"),
   Str_noop("-P num\tpitch transposition ratio (srate/r) [do not specify "
@@ -817,7 +819,6 @@ static double ino(double x)
     return e;
 }
 
-#if 0
 static void kaiser(int nf, float *w, int n, int ieo, double beta)
 {
 

@@ -91,15 +91,15 @@ uintptr_t alloc_thread(void *p) {
 */
 int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
                         AUXASYNC *as, aux_cb cb, void *userData) {
-  as->csound = csound;
-  as->nbytes = nbytes;
-  as->auxchp = auxchp;
-  as->notify = cb;
-  as->userData = userData;
-  if(csoundCreateThread(alloc_thread, as) == NULL)
-    return CSOUND_ERROR;
-  else
-    return CSOUND_SUCCESS;
+    as->csound = csound;
+    as->nbytes = nbytes;
+    as->auxchp = auxchp;
+    as->notify = cb;
+    as->userData = userData;
+    if(csoundCreateThread(alloc_thread, as) == NULL)
+      return CSOUND_ERROR;
+    else
+      return CSOUND_SUCCESS;
 }
 
 

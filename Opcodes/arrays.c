@@ -1412,7 +1412,7 @@ static int monitora_perf(CSOUND *csound, OUTA *p)
     ARRAYDAT *aa = p->tabin;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t i, j, k, l, nsmps = CS_KSMPS;
+    uint32_t i, j, l, nsmps = CS_KSMPS;
     MYFLT       *data = aa->data;
     MYFLT       *sp= CS_SPOUT;
     uint32_t len = (uint32_t)p->len;
