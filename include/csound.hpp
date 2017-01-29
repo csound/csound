@@ -143,7 +143,7 @@ public:
   {
     return csoundSetGlobalEnv(name, value);
   }
-  virtual int SetOption(char *option)
+  virtual int SetOption(const char *option)
   {
    return csoundSetOption(csound, option);
   }
