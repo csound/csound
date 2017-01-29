@@ -48,6 +48,7 @@ static int linlink(CSOUND *csound, LINLINK *p) {
     MYFLT x0 = *p->kx0;
     MYFLT y0 = *p->ky0;
     MYFLT x = *p->kx;
+    /* if x0 == *(p->kx1) this crashes */
     *p->kout = (x - x0) / (*(p->kx1) -x0) * (*(p->ky1) - y0) + y0;
     return OK;
 }
@@ -81,6 +82,7 @@ typedef struct {
 static int xyscalei_init(CSOUND *csound, XYSCALE *p) {
     p->d0 = (*p->v01) - (*p->v00);
     p->d1 = (*p->v11) - (*p->v10);
+    return OK;
 }
 
 static int xyscalei(CSOUND *csound, XYSCALE *p) {
@@ -251,7 +253,13 @@ static int bpf5(CSOUND *csound, BPF5 *p) {
 
         midi to notename conversion
 
- */
+    imidi = ntom("A4-31")
+    kmidi = ntom(Snotename)
+
+    Snotename = mton(69.5)
+    Snotename = mton(kmidi)
+
+*/
 
 typedef struct {
   OPDS h;
@@ -387,28 +395,138 @@ static int mton(CSOUND *csound, MTON *p) {
     for(i=cursor; i<maxsize; i++) {
       dst[i] = '\0';
     }
+    return OK;
+}
+
+
+/*
+
+  cmp
+
+  aout cmp a1, ">", a2
+  aout cmp a1, "<=", k2
+  aout cmp a1, "==", 0
+
+*/
+
+typedef struct {
+  OPDS h;
+  MYFLT *out, *a0;
+  STRINGDAT *op;
+  MYFLT *a1;
+  int mode;
+} Cmp;
+
+static int cmp_init(CSOUND *csound, Cmp *p) {
+    char *op = (char *) p->op->data;
+    int opsize = p->op->size - 1;
+
+    if (op[0] == '>') {
+      p->mode = (opsize == 1) ? 0 : 1;
+    } else if (op[0] == '<') {
+      p->mode = (opsize == 1) ? 2 : 3;
+    } else if (op[0] == '=') {
+      p->mode = 4;
+    } else {
+      printf("cmp: operator not understood. Expecting <, <=, >, >=, ==\n");
+      return NOTOK;
+    }
+    return OK;
+}
+
+static int cmp_aa(CSOUND *csound, Cmp* p) {
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT *out = p->out;
+    MYFLT *a0 = p->a0;
+    MYFLT *a1 = p->a1;
+    switch(p->mode) {
+    case 0:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] > a1[n];
+      }
+      break;
+    case 1:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] >= a1[n];
+      }
+      break;
+    case 2:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] < a1[n];
+      }
+      break;
+    case 3:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] <= a1[n];
+      }
+      break;
+    case 4:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] == a1[n];
+      }
+      break;
+    }
+    return OK;
+}
+
+static int cmp_ak(CSOUND *csound, Cmp* p) {
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT *out = p->out;
+    MYFLT *a0 = p->a0;
+    MYFLT a1 = *(p->a1);
+    switch(p->mode) {
+    case 0:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] > a1;
+      }
+      break;
+    case 1:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] >= a1;
+      }
+      break;
+    case 2:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] < a1;
+      }
+      break;
+    case 3:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] <= a1;
+      }
+      break;
+    case 4:
+      for(n=0; n<nsmps; n++) {
+        out[n] = a0[n] == a1;
+      }
+      break;
+    }
+    return OK;
 }
 
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "linlin",  S(LINLINK),   0, 2,      "k", "kkkkk",   NULL, (SUBR)linlink },
-  { "xyscale", S(XYSCALE),   0, 2,      "k", "kkkkkk",  NULL, (SUBR)xyscale },
-  { "xyscale", S(XYSCALE),   0, 3,      "k", "kkiiii",  (SUBR)xyscalei_init, (SUBR)xyscalei },
-  { "mtof",    S(PITCHCONV), 0, 3,      "k", "k",  (SUBR)mtof_init, (SUBR)mtof},
-  { "mtof",    S(PITCHCONV), 0, 1,      "i", "i",  (SUBR)mtof_init},
-  { "ftom",    S(PITCHCONV), 0, 3,      "k", "k",  (SUBR)ftom_init, (SUBR)ftom},
-  { "ftom",    S(PITCHCONV), 0, 1,      "i", "i",  (SUBR)ftom_init},
-  { "pchtom",  S(PITCHCONV), 0, 1,      "i", "i",   (SUBR)pchtom},
-  { "pchtom",  S(PITCHCONV), 0, 2,      "k", "k",   NULL, (SUBR)pchtom},
-  { "bpf",     S(BPF3),      0, 3,      "k", "kkkkkkk",     (SUBR)bpf3, (SUBR)bpf3 },
-  { "bpf",     S(BPF4),      0, 3,      "k", "kkkkkkkkk",   (SUBR)bpf4, (SUBR)bpf4 },
-  { "bpf",     S(BPF5),      0, 3,      "k", "kkkkkkkkkkk", (SUBR)bpf5, (SUBR)bpf5 },
-  { "ntom",    S(NTOM),      0, 3,      "k", "S", (SUBR)ntom, (SUBR)ntom },
-  { "ntom",    S(NTOM),      0, 1,      "i", "S", (SUBR)ntom },
-  { "mton",    S(MTON),      0, 3,      "S", "k", (SUBR)mton, (SUBR)mton},
-  { "mton",    S(MTON),      0, 1,      "S", "i", (SUBR)mton}
+  { "linlin",  S(LINLINK),   0, 2,  "k", "kkkkk",   NULL, (SUBR)linlink },
+  { "xyscale", S(XYSCALE),   0, 2,  "k", "kkkkkk",  NULL, (SUBR)xyscale },
+  { "xyscale", S(XYSCALE),   0, 3,  "k", "kkiiii",
+    (SUBR)xyscalei_init, (SUBR)xyscalei },
+  { "mtof",    S(PITCHCONV), 0, 3,  "k", "k",  (SUBR)mtof_init, (SUBR)mtof},
+  { "mtof",    S(PITCHCONV), 0, 1,  "i", "i",  (SUBR)mtof_init},
+  { "ftom",    S(PITCHCONV), 0, 3,  "k", "k",  (SUBR)ftom_init, (SUBR)ftom},
+  { "ftom",    S(PITCHCONV), 0, 1,  "i", "i",  (SUBR)ftom_init},
+  { "pchtom",  S(PITCHCONV), 0, 1,  "i", "i",   (SUBR)pchtom},
+  { "pchtom",  S(PITCHCONV), 0, 2,  "k", "k",   NULL, (SUBR)pchtom},
+  { "bpf",     S(BPF3),      0, 3,  "k", "kkkkkkk",     (SUBR)bpf3, (SUBR)bpf3 },
+  { "bpf",     S(BPF4),      0, 3,  "k", "kkkkkkkkk",   (SUBR)bpf4, (SUBR)bpf4 },
+  { "bpf",     S(BPF5),      0, 3,  "k", "kkkkkkkkkkk", (SUBR)bpf5, (SUBR)bpf5 },
+  { "ntom",    S(NTOM),      0, 3,  "k", "S", (SUBR)ntom, (SUBR)ntom },
+  { "ntom",    S(NTOM),      0, 1,  "i", "S", (SUBR)ntom },
+  { "mton",    S(MTON),      0, 3,  "S", "k", (SUBR)mton, (SUBR)mton},
+  { "mton",    S(MTON),      0, 1,  "S", "i", (SUBR)mton},
+  { "cmp",     S(Cmp),       0, 5,  "a", "aSa", (SUBR)cmp_init, NULL,(SUBR)cmp_aa },
+  { "cmp",     S(Cmp),       0, 5,  "a", "aSk", (SUBR)cmp_init, NULL, (SUBR)cmp_ak }
 };
 
 

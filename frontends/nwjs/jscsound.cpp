@@ -44,10 +44,19 @@
 #include <v8.h>
 
 using namespace v8;
+
 static CsoundThreaded csound;
 static uv_async_t uv_csound_message_async;
 static Persistent<Function> csound_message_callback;
 static concurrent_queue<char *> csound_messages_queue;
+
+void cleanup(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    int result = csound.Cleanup();
+    args.GetReturnValue().Set(Number::New(isolate, result));
+}
 
 /**
  * Compiles the CSD file.
@@ -290,6 +299,11 @@ void readScore(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
+void reset(const FunctionCallbackInfo<Value>& args)
+{
+    csound.Reset();
+}
+
 void rewindScore(const FunctionCallbackInfo<Value>& args)
 {
     csound.RewindScore();
@@ -377,6 +391,9 @@ void start(const FunctionCallbackInfo<Value>& args)
 void stop(const FunctionCallbackInfo<Value>& args)
 {
     csound.Stop();
+    // Prevent the host from restarting Csound before it has finished 
+    // stopping.
+    csound.Join();
 }
 
 void uv_csound_message_callback(uv_async_t *handle)
@@ -391,7 +408,7 @@ void uv_csound_message_callback(uv_async_t *handle)
 #endif
         Local<v8::Value> args[] = { String::NewFromUtf8(isolate, message) };
         if (csound_message_callback.IsEmpty()) {
-            auto  local_function = Local<Function>::New(isolate, console_function(isolate));
+            auto local_function = Local<Function>::New(isolate, console_function(isolate));
             local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
         } else {
             auto local_csound_message_callback = Local<Function>::New(isolate, csound_message_callback);
@@ -405,6 +422,7 @@ void init(Handle<Object> target)
 {
     csound.SetMessageCallback(csoundMessageCallback_);
     // Keep these in alphabetical order.
+    NODE_SET_METHOD(target, "cleanup", cleanup);
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
     NODE_SET_METHOD(target, "compileCsdText", compileCsdText);
     NODE_SET_METHOD(target, "compileOrc", compileOrc);
@@ -421,6 +439,7 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "message", message);
     NODE_SET_METHOD(target, "perform", perform);
     NODE_SET_METHOD(target, "readScore", readScore);
+    NODE_SET_METHOD(target, "reset", reset);
     NODE_SET_METHOD(target, "rewindScore", rewindScore);
     NODE_SET_METHOD(target, "scoreEvent", scoreEvent);
     NODE_SET_METHOD(target, "setControlChannel", setControlChannel);
