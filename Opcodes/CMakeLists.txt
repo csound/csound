@@ -27,7 +27,6 @@ find_library(JACK_LIBRARY jack)
 find_library(JACKDMP_LIBRARY jackdmp)
 check_include_file(jack/jack.h JACK_HEADER)
 check_include_file_cxx(gmm/gmm.h GMM_HEADER)
-check_include_file_cxx(eigen3/E.h GMM_HEADER)
 check_include_file(lo/lo.h OSC_HEADER)
 find_library(LIBLO_LIBRARY lo)
 find_package(ZLIB)
@@ -150,9 +149,9 @@ endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 
-check_deps(BUILD_CHUA_OPCODES Boost_INCLUDE_DIRS)
+check_deps(BUILD_CHUA_OPCODES EIGEN3_INCLUDE_PATH)
 if(BUILD_CHUA_OPCODES)
-    include_directories(${Boost_INCLUDE_DIRS})
+    include_directories(${EIGEN3_INCLUDE_PATH})
     make_plugin(chua chua/ChuaOscillator.cpp)
 endif()
 

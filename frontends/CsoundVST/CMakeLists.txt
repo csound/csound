@@ -7,15 +7,12 @@ IF(APPLE)
 find_library(FLTK libfltk)
 ENDIF(APPLE)
 
-find_file(EIGEN_DENSE Dense ${EIGEN3_INCLUDE_DIR}/eigen3/Eigen)
-
-
-check_deps(BUILD_CSOUNDVST Boost_FOUND BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN_DENSE VSTSDK2X_FOUND)
+check_deps(BUILD_CSOUNDVST Boost_FOUND BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN3_INCLUDE_PATH VSTSDK2X_FOUND)
 message(STATUS "BUILD_CSOUNDVST: ${BUILD_CSOUNDVST}.")
 if(BUILD_CSOUNDVST)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
     include_directories(${CMAKE_HOME_DIRECTORY}/frontends/CsoundVST)
-    include_directories(${EIGEN3_INCLUDE_DIR})
+    include_directories(${EIGEN3_INCLUDE_PATH})
     include_directories(${VSTSDK2X_INCLUDE_DIR})
     include_directories(${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x)
     include_directories(${VSTSDK2X_INCLUDE_DIR}/pluginterfaces/source/vst2.x)
