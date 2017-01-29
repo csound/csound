@@ -214,20 +214,14 @@ public:
         keep_running = false;
         ClearQueue();
         Message("CsoundThreaded::PerformRoutine(): Cleared performance queue...\n");
-        result = Cleanup();
-        Message("CsoundThreaded::PerformRoutine(): Cleanup() finished with %d...\n", result);
-        Reset();
-        Message("CsoundThreaded::PerformRoutine(): Reset() finished...\n");
         Message("Ended CsoundThreaded::PerformRoutine() with %d.\n", result);
         return result;
     }
     /**
      * Overrides Csound::Perform to run in a separate thread of execution. 
      * The granularity of time is one kperiod. Returns the native handle 
-     * of the performance thread. If a kperiod callback has been set, 
-     * it is called with the CSOUND object and any user data on every
-     * kperiod. Unlike csoundPerform(), this function calls csoundCleanup() 
-     * and csoundReset() when the performance is finished.
+     * of the performance thread. If a kperiod callback has been set, it is 
+     * called with the CSOUND object and any user data on every kperiod.
      */
     virtual int Perform() 
     {
@@ -270,8 +264,10 @@ public:
      */
     virtual void Stop() 
     {
+        Message("CsoundThreaded::Stop()...\n");
         keep_running = false;
         Csound::Stop();
+        Message("CsoundThreaded::Stop().\n");
     }
     /**
      * Causes the calling thread to wait for the end of the performance
@@ -279,9 +275,11 @@ public:
      */
     virtual void Join() 
     {
+        Message("CsoundThreaded::Join()...\n");
         if (performance_thread.joinable()) {
             performance_thread.join();
         }
+        Message("CsoundThreaded::Join().\n");
     }
     /**
      * Returns whether or not the performance thread routine is running.
