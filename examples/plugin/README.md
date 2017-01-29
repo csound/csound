@@ -363,7 +363,7 @@ Fsigs
 ------------------------------------------------
 
 For streaming spectral processing opcodes, we have a
-different base class with extra facilities needed for their operation.
+different base class with extra facilities needed for their operation (FPlugin).
 Fsig variables are held in a PVSDAT data structure. To facilitate
 their manipulation, CPOF provides a wrapper class Fsig
 with the following members:
@@ -371,16 +371,28 @@ with the following members:
 * init(): initialisation from individual parameters or from an
 existing fsig. Also allocates frame memory as needed.
 * operator[] : array-subscript access to the spectral frame.
-* data(): returns a pointer to the spectral frame data.
+* data(): returns a pointer to the spectral frame data (as
+  csnd::pvscmplx, same as std::complex<float>).
 * len(): returns the length of the frame.
 * begin() and end(): return iterators to the beginning and end of
-the data frame (undefined behaviour for sliding mode)
+the data frame (undefined behaviour for sliding mode).
 * iterator and const_iterator: iterator types for this class.
 * data_sliding(): returns a pointer to the spectral frame data for
-sliding analysis mode.
+sliding analysis mode (as a csnd::sldcmplx, same as std::complex<MYFLT>).
 * count(): get and set fsig framecount.
 * isSliding(): checks for sliding mode.
-* fsig_format(): returns the fsig data format.
+* fsig_format(): returns the fsig data format (csnd::fsig_format::pvs,
+csnd::fsig_format::polar, csnd::fsig_format::complex, or
+csnd::fsig_format::tracks).
+
+To facilitate the handling of pvs bin data, we have a translation
+type pvsbin, to which we can assign frame data. This has the
+following methods:
+
+* amp(): returns the bin amplitude.
+* freq(): returns the bin frequency.
+* amp(float a): sets the bin amplitude to a.
+* freq(float f): sets the bin frequency to f.
 
 Fsig opcodes run at k-rate but will internally use an update rate based
 on the analysis hopsize. For this to work, a framecount is kept and
@@ -393,32 +405,32 @@ scaler for fsigs:
     with 1 output and 2 inputs (f,k) \n
     fsig pvg fsin, kgain
  */
-struct PVGain : csnd::FPlugin<1,2> {
-  
+struct PVGain : csnd::FPlugin<1, 2> {
+
   int init() {
-    if(check_sliding(inargs.fsig_data(0)) != OK &&
-       (check_format(inargs.fsig_data(0)) != OK ||
-	check_format(inargs.fsig_data(0), csnd::fsig_format::polar)))
+    if (check_sliding(inargs.fsig_data(0)) != OK &&
+        (check_format(inargs.fsig_data(0)) != OK ||
+         check_format(inargs.fsig_data(0), csnd::fsig_format::polar)))
       return NOTOK;
-     
-     csnd::Fsig &fout = outargs.fsig_data(0);
-     fout.init(csound, inargs.fsig_data(0));
-     framecount = 0;
-     return OK; 
-  } 
+
+    csnd::Fsig &fout = outargs.fsig_data(0);
+    fout.init(csound, inargs.fsig_data(0));
+    framecount = 0;
+    return OK;
+  }
 
   int kperf() {
     csnd::Fsig &fin = inargs.fsig_data(0);
     csnd::Fsig &fout = outargs.fsig_data(0);
     uint32_t i;
-    
-    if(framecount < fin.count()) {
-      for(i=0; i < fin.len(); i++) {
-        fout[i] = inargs[1]*fin[i];
-        fout[i+1] = fin[i+1];
-     }
-     framecount = fout.count(fin.count());
-    }     
+
+    if (framecount < fin.count()) {
+      MYFLT g = inargs[1];
+      std::transform(fin.begin(), fin.end(), fout.begin(),
+		     [g](csnd::pvsbin f)
+		     { f.amp(g*f.amp()); return f;});
+      framecount = fout.count(fin.count());
+    }
     return OK;
   }
 };
