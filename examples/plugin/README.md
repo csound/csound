@@ -367,7 +367,7 @@ different base class with extra facilities needed for their operation (FPlugin).
 Fsig variables are held in a PVSDAT data structure. To facilitate
 their manipulation, CPOF provides a wrapper class Fsig. This
 will give access to phase vocoder bins through the csnd::pvsbin
-class, with the following methods:
+objects, which have the following methods:
 
 * amp(): returns the bin amplitude.
 * freq(): returns the bin frequency.
