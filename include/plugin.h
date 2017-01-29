@@ -27,6 +27,7 @@
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
 #include <algorithm>
+#include <complex>
 #include <csdl.h>
 #include <pstream.h>
 
@@ -130,6 +131,23 @@ public:
   T *data_array() { return (T *)data; }
 };
 
+typedef std::complex<float> pvscmplx;
+typedef std::complex<MYFLT> sldcmplx;
+
+/** pvsbin translation class
+ */
+class pvsbin {
+  pvscmplx &c;
+public:
+  pvsbin(pvscmplx &in) : c(in){};
+  float amp() { return c.real(); }
+  float freq() { return c.imag(); }
+  void amp(float a) { c.real(a); }
+  void freq(float f) { c.imag(f); }
+  operator pvscmplx &() { return c; }
+  operator pvscmplx *() { return &c; }
+};
+
 /** fsig container class
  */
 class Fsig : PVSDAT {
@@ -165,41 +183,43 @@ public:
 
   /** iterator type
   */
-  typedef float *iterator;
+  typedef pvscmplx *iterator;
 
   /** const_iterator type
   */
-  typedef const float *const_iterator;
+  typedef const pvscmplx *const_iterator;
 
   /** returns an iterator to the
       beginning of the frame
    */
-  iterator begin() { return (float *)frame.auxp; }
+  iterator begin() { return (pvscmplx *)frame.auxp; }
 
   /** returns an iterator to the
        end of the frame
     */
-  iterator end() { return (float *)frame.endp; }
+  iterator end() { return (pvscmplx *)frame.auxp + N / 2 + 1; }
 
   /** array subscript access operator (write)
    */
-  float &operator[](int n) { return ((float *)frame.auxp)[n]; }
+  pvscmplx &operator[](int n) { return ((pvscmplx *)frame.auxp)[n]; }
 
   /** array subscript access operator (read)
    */
-  const float &operator[](int n) const { return ((float *)frame.auxp)[n]; }
+  const pvscmplx &operator[](int n) const {
+    return ((pvscmplx *)frame.auxp)[n];
+  }
 
   /** function table data pointer
    */
-  float *data() const { return (float *)frame.auxp; }
+  pvscmplx *data() const { return (pvscmplx *)frame.auxp; }
 
   /** function table data pointer (sliding case)
    */
-  MYFLT *data_sliding() const { return (MYFLT *)frame.auxp; }
+  sldcmplx *data_sliding() const { return (sldcmplx *)frame.auxp; }
 
   /** frame length
    */
-  uint32_t len() { return N + 2; }
+  uint32_t len() { return N / 2 + 1; }
 
   /** get framecount
    */
