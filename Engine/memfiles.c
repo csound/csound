@@ -42,12 +42,12 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
     int16 x;
     char *all;
     char buffer[16];
-    void *dummy = 0;
+    //void *dummy = 0;
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_HETRO, 0, 0);
     all = (char *)csound->Malloc(csound, (size_t) length);
     for (i=0; i<6; i++) fgetc(f); /* Skip HETRO */
-    dummy = fgets(buffer, 10, f);         /* number of partials */
+    /*dummy =*/ (void)fgets(buffer, 10, f);         /* number of partials */
     x = atoi(buffer);
     memcpy(&all[0], &x, sizeof(int16));
     /* Read data until end, pack as int16 */
@@ -128,12 +128,12 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     CVSTRUCT cvh = {0,0,0,0,0.0,0,0,0,0,{0}};
     char buff[120];
     char *p;
-    void *dummy = 0;
+    //void *dummy = 0;
 
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_CVANAL, 0, 0);
     all = (char *)csound->Malloc(csound, (size_t) length);
-    dummy = fgets(buff, 120, f); /* Skip CVANAL */
+    /* dummy =*/ (void)fgets(buff, 120, f); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
     p = fgets(buff, 120, f);
     if (p==NULL) {
@@ -185,7 +185,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     char *all, *p;
     LPHEADER lph = {0,0,0,0,0.0,0.0,0.0,{0}};
     char buff[120];
-    void *dummy = 0;
+    //void *dummy = 0;
 
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_LPC, 0, 0);
@@ -196,7 +196,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
       fclose(f);
       return csound->InitError(csound, Str("Ill-formed LPC file\n"));
     }
-    dummy = fgets(buff, 120, f);
+    /* dummy = */ (void)fgets(buff, 120, f);
     lph.framrate = (MYFLT)cs_strtod(buff, &p);
     lph.srate = (MYFLT)cs_strtod(p, &p);
     lph.duration = (MYFLT)cs_strtod(p, &p);
@@ -238,14 +238,14 @@ static int Load_File_(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int csFileType)
 {
     FILE *f;
-    void *dummy = 0;
+    //void *dummy = 0;
     *allocp = NULL;
     f = fopen(filnam, "rb");
     if (UNLIKELY(f == NULL))                    /* if cannot open the file */
       return 1;                                 /*    return 1             */
     if (csFileType==CSFTYPE_HETRO) {
       char buff[8];
-      dummy = fgets(buff, 6, f);
+      /* dummy = */ (void)fgets(buff, 6, f);
       if (strcmp(buff, "HETRO")==0) {
         fclose(f);
         return Load_Het_File_(csound, filnam, allocp, len);
@@ -253,7 +253,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     }
     else if (csFileType==CSFTYPE_CVANAL) {
       char buff[8];
-      dummy = fgets(buff, 7, f);
+      /* dummy = */ (void)fgets(buff, 7, f);
       if (strcmp(buff, "CVANAL")==0) {
         fclose(f);
         return Load_CV_File_(csound, filnam, allocp, len);
@@ -261,7 +261,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     }
     else if (csFileType==CSFTYPE_LPC) {
       char buff[8];
-      dummy = fgets(buff, 7, f);
+      /* dummy = */ (void)fgets(buff, 7, f);
       if (strcmp(buff, "LPANAL")==0) {
         fclose(f);
         return Load_LP_File_(csound, filnam, allocp, len);
