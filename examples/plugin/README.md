@@ -370,15 +370,16 @@ with the following members:
 
 * init(): initialisation from individual parameters or from an
 existing fsig. Also allocates frame memory as needed.
-* operator[] : array-subscript access to the spectral frame (csnd::pvscmplx).
-* data(): returns a pointer to the spectral frame data (as
-  csnd::pvscmplx, same as std::complex\<float\>).
+* operator[] : array-subscript access to the spectral frame
+  (csnd::pvscmplx, same as std::complex\<float\>).
+* data(): returns a pointer to the spectral frame data (
+  csnd::pvscmpl*).
 * len(): returns the length of the frame.
 * begin() and end(): return iterators to the beginning and end of
 the data frame (undefined behaviour for sliding mode).
 * iterator and const_iterator: iterator types for this class.
 * data_sliding(): returns a pointer to the spectral frame data for
-sliding analysis mode (as a csnd::sldcmplx, same as std::complex\<MYFLT\>).
+sliding analysis mode (as a csnd::sldcmplx*, same as std::complex\<MYFLT\>*).
 * count(): get and set fsig framecount.
 * isSliding(): checks for sliding mode.
 * fsig_format(): returns the fsig data format (csnd::fsig_format::pvs,
