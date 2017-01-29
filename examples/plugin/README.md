@@ -375,7 +375,7 @@ objects, which have the following methods:
 * freq(float f): sets the bin frequency to f.
 
 The pvsbin class can also be translated into a std::complex<float>
-object if needed. This ckass is also fully compatible the C complex
+object if needed. This class is also fully compatible the C complex
 type and an object obj can be cast into a float array consisting of two items
 (or a float pointer), using reinterpret_cast\<float (&)[2]\>(obj) or
 reinterpret_cast\<float \*\>(&obj)
