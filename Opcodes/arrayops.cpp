@@ -36,16 +36,16 @@ struct ArrayOp : csnd::Plugin<1, 1> {
     csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
     out.init(csound,in.len());
     std::transform(in.begin(), in.end(), out.begin(),
-		   [](MYFLT f) { return op(f); });
+                   [](MYFLT f) { return op(f); });
     return OK;
   }
-  
-  int kperf() {    
+
+  int kperf() {
     csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
     csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
     std::transform(in.begin(), in.end(), out.begin(),
-		   [](MYFLT f) { return op(f); });
-     
+                   [](MYFLT f) { return op(f); });
+
     return OK;
   }
 };

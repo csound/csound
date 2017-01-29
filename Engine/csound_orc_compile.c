@@ -460,7 +460,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     TREE *current;
     MYFLT sr= FL(-1.0), kr= FL(-1.0), ksmps= FL(-1.0),
           nchnls= DFLT_NCHNLS, inchnls = FL(0.0), _0dbfs= FL(-1.0);
-    int krdef = 0, ksmpsdef = 0, srdef = 0;
+    int krdef = 0; //, ksmpsdef = 0, srdef = 0;
     double A4 = 0.0;
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
 
@@ -531,7 +531,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           /* removed assignments to csound->tran_* */
           if (current->left->type == SRATE_TOKEN) {
             sr = val;
-            srdef = 1;
+            //srdef = 1;
           }
           else if (current->left->type == KRATE_TOKEN) {
             kr = val;
@@ -540,7 +540,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           else if (current->left->type == KSMPS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
             ksmps = uval;
-            ksmpsdef = 1;
+            //ksmpsdef = 1;
           }
           else if (current->left->type == NCHNLS_TOKEN) {
             uval = (val<=0 ? 1u : (unsigned int)val);
