@@ -1710,7 +1710,7 @@ int init_logarray(CSOUND *csound, FFT *p){
     if(*((MYFLT *)p->in2))
       p->b = 1/log(*((MYFLT *)p->in2));
     else
-      p->b = FL(0.0);
+      p->b = FL(1.0);
     return OK;
 }
 
@@ -2500,7 +2500,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_mags, (SUBR) perf_pows, NULL},
     {"phs", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_mags, (SUBR) perf_phs, NULL},
-    {"log", sizeof(FFT), 0, 3, "k[]","k[]o",
+    {"log", sizeof(FFT), 0, 3, "k[]","k[]i",
      (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
     {"r2c", sizeof(FFT), 0, 1, "i[]","i[]",
      (SUBR) rtoc_i, NULL, NULL},
