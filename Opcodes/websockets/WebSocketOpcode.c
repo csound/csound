@@ -94,7 +94,7 @@ int WebSocketOpcode_initialise(CSOUND *csound, WebSocketOpcode *self)
 
 void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self)
 {
-    size_t i;
+    int i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
       OpcodeArgument *currentArgument = &self->inputArguments[i];
@@ -122,7 +122,7 @@ void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self
 void WebSocketOpcode_receiveOutputArgumentData(CSOUND *csound,
                                                WebSocketOpcode *self)
 {
-    size_t i;
+    int i;
     for (i = 0; i < self->outputArgumentCount; ++i) {
 
       OpcodeArgument *currentArgument = &self->outputArguments[i];
@@ -159,7 +159,7 @@ int WebSocketOpcode_process(CSOUND *csound, WebSocketOpcode *self)
 
 int WebSocketOpcode_finish(CSOUND *csound, void *opaqueReference)
 {
-    size_t i;
+    int i;
     WebSocketOpcode *self = opaqueReference;
     self->isRunning = false;
 
@@ -195,7 +195,7 @@ int WebSocketOpcode_finish(CSOUND *csound, void *opaqueReference)
 int WebSocketOpcode_getArrayElementCount(ARRAYDAT *array)
 {
     int elementCount = array->sizes[0];
-    size_t i;
+    int i;
     for (i = 1; i < array->dimensions; ++i) {
 
       elementCount *= array->sizes[i];
