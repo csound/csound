@@ -41,12 +41,12 @@
 
 static inline MYFLT zapgremlins(MYFLT x)
 {
-    MYFLT absx = abs(x);
+    MYFLT absx = fabs(x);
     // very small numbers fail the first test, eliminating denormalized numbers
     //    (zero also fails the first test, but that is OK since it returns zero.)
     // very large numbers fail the second test, eliminating infinities
     // Not-a-Numbers fail both tests and are eliminated.
-    return (absx > (MYFLT)1e-15 && absx < (MYFLT)1e15) ? x : (MYFLT)0.;
+    return (absx > (MYFLT)1e-15 && absx < (MYFLT)1e15) ? x : (MYFLT)0.0;
 }
 
 
@@ -131,7 +131,7 @@ static int laga_init(CSOUND *csound, LAG *p) {
 
 
 static int laga_next(CSOUND *csound, LAG *p) {
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t nsmps = CS_KSMPS;
     MYFLT *in = p->in, *out = p->out;
     MYFLT lag = *p->lagtime;
     MYFLT y1 = p->y1;
@@ -221,7 +221,7 @@ static int lagud_k(CSOUND *csound, LagUD *p) {
       lagd = *p->lagtimeD,
       y1 = p->y1;
 
-    uint32_t nsmps = CS_KSMPS;
+    //uint32_t nsmps = CS_KSMPS;
 
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
       MYFLT y0 = *in;
@@ -337,6 +337,7 @@ static int trig_init(CSOUND *csound, Trig *p) {
     p->prevtrig = FL(0);
     p->level = FL(0);
     trig_k(csound, p);
+    return OK;
 }
 
 
@@ -380,13 +381,14 @@ static int phasor_init(CSOUND *csound, Phasor *p) {
     p->previn = 0;
     p->level = 0;
     p->resetk = 1;
-
+    return OK;
 }
 
 static int phasor_init0(CSOUND *csound, Phasor *p) {
     p->previn = 0;
     p->level = 0;
     p->resetk = 0;
+    return OK;
 }
 
 static int phasor_aa(CSOUND *csound, Phasor *p) {

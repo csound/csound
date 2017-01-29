@@ -1329,7 +1329,7 @@ typedef struct NAME__ {
     int  (*ftError)(const FGDATA *, const char *, ...);
     MYFLT (*GetA4)(CSOUND *csound);
     int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
-			 AUXASYNC *, aux_cb, void *);
+                         AUXASYNC *, aux_cb, void *);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
