@@ -135,17 +135,19 @@ typedef std::complex<float> pvscmplx;
 typedef std::complex<MYFLT> sldcmplx;
 
 /** pvsbin translation class
+    allows alternative access via a std::complex
+    array.
  */
 class pvsbin {
-  pvscmplx &c;
+  float am;
+  float fr;
 public:
-  pvsbin(pvscmplx &in) : c(in){};
-  float amp() { return c.real(); }
-  float freq() { return c.imag(); }
-  void amp(float a) { c.real(a); }
-  void freq(float f) { c.imag(f); }
-  operator pvscmplx &() { return c; }
-  operator pvscmplx *() { return &c; }
+  float amp() { return am; }
+  float freq() { return fr; }
+  void amp(float a) { am = a; }
+  void freq(float f) { fr = f; }
+  operator pvscmplx &() { return (pvscmplx &)reinterpret_cast<float (&)[2]>(*this); }
+  operator pvscmplx *() { return (pvscmplx *)reinterpret_cast<float *>(this); }
 };
 
 /** fsig container class
@@ -183,35 +185,35 @@ public:
 
   /** iterator type
   */
-  typedef pvscmplx *iterator;
+  typedef pvsbin *iterator;
 
   /** const_iterator type
   */
-  typedef const pvscmplx *const_iterator;
+  typedef const pvsbin *const_iterator;
 
   /** returns an iterator to the
       beginning of the frame
    */
-  iterator begin() { return (pvscmplx *)frame.auxp; }
+  iterator begin() { return (pvsbin *)frame.auxp; }
 
   /** returns an iterator to the
        end of the frame
     */
-  iterator end() { return (pvscmplx *)frame.auxp + N / 2 + 1; }
+  iterator end() { return (pvsbin *)frame.auxp + N / 2 + 1; }
 
   /** array subscript access operator (write)
    */
-  pvscmplx &operator[](int n) { return ((pvscmplx *)frame.auxp)[n]; }
+  pvsbin &operator[](int n) { return ((pvsbin *)frame.auxp)[n]; }
 
   /** array subscript access operator (read)
    */
-  const pvscmplx &operator[](int n) const {
-    return ((pvscmplx *)frame.auxp)[n];
+  const pvsbin &operator[](int n) const {
+    return ((pvsbin *)frame.auxp)[n];
   }
 
   /** function table data pointer
    */
-  pvscmplx *data() const { return (pvscmplx *)frame.auxp; }
+  pvsbin *data() const { return (pvsbin *)frame.auxp; }
 
   /** function table data pointer (sliding case)
    */
