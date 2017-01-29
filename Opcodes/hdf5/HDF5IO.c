@@ -359,7 +359,7 @@ void HDF5Write_writeControlData(CSOUND *csound, HDF5Write *self,
 
 int HDF5Write_process(CSOUND *csound, HDF5Write *self)
 {
-    size_t i;
+    int i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
       HDF5Dataset *currentDataset = &self->datasets[i];
@@ -412,7 +412,7 @@ int HDF5Write_finish(CSOUND *csound, void *inReference)
     HDF5Write *self = inReference;
 
     if (self->datasets != NULL) {
-      size_t i;
+      int i;
       for (i = 0; i < self->inputArgumentCount; ++i) {
 
         HDF5Dataset *dataset = &self->datasets[i];
@@ -456,7 +456,7 @@ int HDF5Write_finish(CSOUND *csound, void *inReference)
 
 void HDF5Write_checkArgumentSanity(CSOUND *csound, const HDF5Write *self)
 {
-    size_t i;
+    int i;
     ArgumentType type = HDF5IO_getArgumentTypeFromArgument(csound,
                                                            self->arguments[0]);
 
@@ -539,7 +539,7 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
                                HDF5Dataset *dataset)
 {
     ARRAYDAT *array = (ARRAYDAT *)dataset->argumentPointer;
-    size_t i;
+    int i;
     if (dataset->writeType == IRATE_ARRAY) {
 
       dataset->rank = array->dimensions;
@@ -660,7 +660,7 @@ void HDF5Write_newScalarDataset(CSOUND *csound, HDF5Write *self,
 
 void HDF5Write_createDatasets(CSOUND *csound, HDF5Write *self)
 {
-    size_t i;
+    int i;
     csound->AuxAlloc(csound, sizeof(HDF5Dataset) * self->inputArgumentCount,
                      &self->datasetsMemory);
     self->datasets = self->datasetsMemory.auxp;
@@ -785,7 +785,7 @@ void HDF5Read_readData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset,
                        hsize_t *offset, hsize_t *chunkDimensions,
                        MYFLT *dataPointer)
 {
-    long kCount = csound->GetKcounter(csound);
+    unsigned long kCount = csound->GetKcounter(csound);
 
     if (kCount >= dataset->datasetSize[dataset->rank - 1]) {
 
@@ -834,7 +834,7 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
     size_t offset = self->h.insdshead->ksmps_offset;
     size_t early  = self->h.insdshead->ksmps_no_end;
 
-    int vectorSize = (int)(self->ksmps - offset - early);
+    size_t vectorSize = (int)(self->ksmps - offset - early);
 
     if (vectorSize + dataset->offset[dataset->rank - 1] >
         dataset->datasetSize[dataset->rank - 1]) {
@@ -901,7 +901,7 @@ void HDF5Read_readControlData(CSOUND *csound, HDF5Read *self,
 
 int HDF5Read_process(CSOUND *csound, HDF5Read *self)
 {
-    size_t i;
+    int i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
       HDF5Dataset *dataset = &self->datasets[i];
@@ -953,7 +953,7 @@ int HDF5Read_process(CSOUND *csound, HDF5Read *self)
 int HDF5Read_finish(CSOUND *csound, void *inReference)
 {
     HDF5Read *self = inReference;
-    size_t i;
+    int i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
       HDF5Dataset *dataset = &self->datasets[i];
@@ -974,7 +974,7 @@ int HDF5Read_finish(CSOUND *csound, void *inReference)
 
 void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
 {
-    size_t i;
+    int i;
     if (self->inputArgumentCount != self->outputArgumentCount) {
 
       if (self->inputArgumentCount > self->outputArgumentCount) {
@@ -1276,7 +1276,7 @@ void HDF5Read_initialiseScalarOutput(CSOUND *csound, HDF5Read *self,
 
 void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self)
 {
-    size_t i;
+    int i;
     csound->AuxAlloc(csound, sizeof(HDF5Dataset) * self->inputArgumentCount,
                      &self->datasetsMemory);
     self->datasets = self->datasetsMemory.auxp;
