@@ -30,7 +30,12 @@ static int linlink(CSOUND *csound, LINLINK *p) {
   MYFLT x0 = *p->kx0;
   MYFLT y0 = *p->ky0;
   MYFLT x = *p->kx;
-  *p->kout = (x - x0) / (*(p->kx1) -x0) * (*(p->ky1) - y0) + y0;
+  MYFLT x1 = *p->kx1;
+  if (UNLIKELY(x1 == x0)) {
+	return csound->PerfError(csound, p->h.insdshead,
+							 Str("linlin.k: Division by zero"));
+  }
+  *p->kout = (x - x0) / (x1 - x0) * (*(p->ky1) - y0) + y0;
   return OK;
 }
 
@@ -63,6 +68,7 @@ typedef struct {
 static int xyscalei_init(CSOUND *csound, XYSCALE *p) {
   p->d0 = (*p->v01) - (*p->v00);
   p->d1 = (*p->v11) - (*p->v10);
+  return OK;
 }
 
 static int xyscalei(CSOUND *csound, XYSCALE *p) {
@@ -171,7 +177,12 @@ typedef struct {
   MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2;
 } BPF3;
 
-  
+#define BPF_CHECK(x1, x2)     \
+  { if ((x2) <= (x1))													\
+	return csound->InitError(csound, Str("x values should be sorted"));	\
+  }																		\
+ 
+
 static int bpf3(CSOUND *csound, BPF3 *p) {
   MYFLT x = *p->x;
   MYFLT n, m;
@@ -185,6 +196,14 @@ static int bpf3(CSOUND *csound, BPF3 *p) {
   }
   return OK;
 }
+
+static int bpf3_init(CSOUND *csound, BPF3 *p) {
+  BPF_CHECK(*p->x0, *p->x1);
+  BPF_CHECK(*p->x1, *p->x2);
+  bpf3(csound, p);
+  return OK;
+}
+
 
 typedef struct {
   OPDS    h;
@@ -208,6 +227,16 @@ static int bpf4(CSOUND *csound, BPF4 *p) {
   return OK;
 }
 
+static int bpf4_init(CSOUND *csound, BPF4 *p) {
+  BPF_CHECK(*p->x0, *p->x1);
+  BPF_CHECK(*p->x1, *p->x2);
+  BPF_CHECK(*p->x2, *p->x3);
+  bpf4(csound, p);
+  return OK;
+}
+
+
+
 typedef struct {
   OPDS    h;
   MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3, *x4, *y4;
@@ -229,6 +258,14 @@ static int bpf5(CSOUND *csound, BPF5 *p) {
   return OK;
 }
 
+static int bpf5_init(CSOUND *csound, BPF5 *p) {
+  BPF_CHECK(*p->x0, *p->x1);
+  BPF_CHECK(*p->x1, *p->x2);
+  BPF_CHECK(*p->x2, *p->x3);
+  BPF_CHECK(*p->x3, *p->x4);
+  bpf5(csound, p);
+  return OK;
+}
 
 /*  ntom  - mton
 
@@ -261,8 +298,8 @@ static int ntom(CSOUND *csound, NTOM *p) {
   int octave = n[0] - '0';
   int pcidx = n[1] - 'A';
   if(pcidx < 0 || pcidx >= 7) {
-	printf("expecting a chr between A and G, but got %c\n", n[1]);
-	return NOTOK;
+	return csound->PerfError(csound, p->h.insdshead,
+							 Str("expecting a chr between A and G, but got %c\n"), n[1]);
   }
   int pc = _pcs[pcidx];
   int cents = 0;
@@ -286,8 +323,8 @@ static int ntom(CSOUND *csound, NTOM *p) {
 	} else if (rest == 3) {
 	  cents = 10*(n[cursor+1] - '0') + (n[cursor+2] - '0');
 	} else {
-	  printf("format not understood\n");
-	  return NOTOK;
+	  return csound->PerfError(csound, p->h.insdshead,
+							   Str("ntom: format not understood"));
 	}
 	cents *= sign;
   }
@@ -374,6 +411,7 @@ static int mton(CSOUND *csound, MTON *p) {
   for(i=cursor; i<maxsize; i++) {
 	dst[i] = '\0';
   }
+  return OK;
 }
 
 
@@ -398,17 +436,29 @@ typedef struct {
 static int cmp_init(CSOUND *csound, Cmp *p) {
   char *op = (char *) p->op->data;
   int opsize = p->op->size - 1;
-  
-  if (op[0] == '>') {
-	p->mode = (opsize == 1) ? 0 : 1;
-  } else if (op[0] == '<') {
-	p->mode = (opsize == 1) ? 2 : 3;
-  } else if (op[0] == '=') {
-	p->mode = 4;
-  } else {
-	printf("cmp: operator not understood. Expecting <, <=, >, >=, ==\n");
-	return NOTOK;
+  int mode = -1;
+  if (opsize == 1) {
+	if (op[0] == '>') {
+	  mode = 0;
+	} else if (op[0] == '<') {
+	  mode = 2;
+	}
+  } else if (opsize == 2) {
+	if (strcmp(op, ">=") == 0) {
+	  mode = 1;
+	} else if (strcmp(op, "<=") == 0) {
+	  mode = 3;
+	} else if (strcmp(op, "==") == 0) {
+	  mode = 4;
+	} else if (strcmp(op, "!=") == 0) {
+	  mode = 5;
+	}
   }
+  if (mode < 0) {
+	return csound->PerfError(csound, p->h.insdshead,
+							 Str("cmp: operator must be <, <=, >, >=, == or !="));
+  }
+  p->mode = mode;
   return OK;
 }
 
@@ -441,6 +491,11 @@ static int cmp_aa(CSOUND *csound, Cmp* p) {
   case 4:
 	for(n=0; n<nsmps; n++) {
 	  out[n] = a0[n] == a1[n];
+	}
+	break;
+  case 5:
+	for(n=0; n<nsmps; n++) {
+	  out[n] = a0[n] != a1[n];
 	}
 	break;
   }
@@ -478,6 +533,11 @@ static int cmp_ak(CSOUND *csound, Cmp* p) {
 	  out[n] = a0[n] == a1;
 	}
 	break;
+  case 5:
+	for(n=0; n<nsmps; n++) {
+	  out[n] = a0[n] != a1;
+	}
+	break;
   }
   return OK;
 }
@@ -495,9 +555,9 @@ static OENTRY localops[] = {
   { "ftom",    S(PITCHCONV), 0, 1,      "i", "i",  (SUBR)ftom_init},
   { "pchtom",  S(PITCHCONV), 0, 1,      "i", "i",   (SUBR)pchtom},
   { "pchtom",  S(PITCHCONV), 0, 2,      "k", "k",   NULL, (SUBR)pchtom},
-  { "bpf",     S(BPF3),      0, 3,      "k", "kkkkkkk",     (SUBR)bpf3, (SUBR)bpf3 },
-  { "bpf",     S(BPF4),      0, 3,      "k", "kkkkkkkkk",   (SUBR)bpf4, (SUBR)bpf4 },
-  { "bpf",     S(BPF5),      0, 3,      "k", "kkkkkkkkkkk", (SUBR)bpf5, (SUBR)bpf5 },
+  { "bpf",     S(BPF3),      0, 3,      "k", "kkkkkkk",     (SUBR)bpf3_init, (SUBR)bpf3 },
+  { "bpf",     S(BPF4),      0, 3,      "k", "kkkkkkkkk",   (SUBR)bpf4_init, (SUBR)bpf4 },
+  { "bpf",     S(BPF5),      0, 3,      "k", "kkkkkkkkkkk", (SUBR)bpf5_init, (SUBR)bpf5 },
   { "ntom",    S(NTOM),      0, 3,      "k", "S", (SUBR)ntom, (SUBR)ntom },
   { "ntom",    S(NTOM),      0, 1,      "i", "S", (SUBR)ntom },
   { "mton",    S(MTON),      0, 3,      "S", "k", (SUBR)mton, (SUBR)mton},

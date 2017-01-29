@@ -22,7 +22,7 @@
 
 static inline MYFLT zapgremlins(MYFLT x)
 {
-	MYFLT absx = abs(x);
+	MYFLT absx = fabs(x);
 	// very small numbers fail the first test, eliminating denormalized numbers
 	//    (zero also fails the first test, but that is OK since it returns zero.)
 	// very large numbers fail the second test, eliminating infinities
@@ -112,7 +112,7 @@ static int laga_init(CSOUND *csound, LAG *p) {
 
 
 static int laga_next(CSOUND *csound, LAG *p) {
-  uint32_t n, nsmps = CS_KSMPS;
+  uint32_t nsmps = CS_KSMPS;
   MYFLT *in = p->in, *out = p->out;
   MYFLT lag = *p->lagtime;
   MYFLT y1 = p->y1;
@@ -201,8 +201,6 @@ static int lagud_k(CSOUND *csound, LagUD *p) {
 	lagu = *p->lagtimeU,
 	lagd = *p->lagtimeD,
 	y1 = p->y1;
-  
-  uint32_t nsmps = CS_KSMPS;
 
   if ((lagu == p->lagu) && (lagd == p->lagd)) {
 	MYFLT y0 = *in;
@@ -242,7 +240,7 @@ static int lagud_init(CSOUND *csound, LagUD *p) {
 // ------------------ Trig -------------------------
 // trig(signal, duration)
 // Returns 1 for given duration whenever signal crosses from
-// non-positive to positiv
+// non-positive to positive
 
 
 typedef struct {
@@ -318,6 +316,7 @@ static int trig_init(CSOUND *csound, Trig *p) {
   p->prevtrig = FL(0);
   p->level = FL(0);
   trig_k(csound, p);
+  return OK;
 }
 
 
@@ -347,7 +346,8 @@ rate: The amount of change per sample, i.e at a rate of 1 the value
       of each sample will be 1 greater than the preceding sample.
 start: Start point of the ramp.
 end:   End point of the ramp.
-resetPos: The value to jump to upon receiving a trigger.
+resetPos: The value to jump to upon receiving a trigger. Defaults to
+          start if not given
 */
 
 
@@ -361,13 +361,14 @@ static int phasor_init(CSOUND *csound, Phasor *p) {
   p->previn = 0;
   p->level = 0;
   p->resetk = 1;
-  
+  return OK;
 }
 
 static int phasor_init0(CSOUND *csound, Phasor *p) {
   p->previn = 0;
   p->level = 0;
   p->resetk = 0;
+  return OK;
 }
 
 static int phasor_aa(CSOUND *csound, Phasor *p) {
@@ -376,7 +377,7 @@ static int phasor_aa(CSOUND *csound, Phasor *p) {
   MYFLT *rate = p->rate;
   MYFLT start = *p->start;
   MYFLT end   = *p->end;
-  MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+  MYFLT resetPos = p->resetk ? (*p->resetPos) : start;
   MYFLT previn = p->previn;
   MYFLT level = p->level;
   uint32_t n;
@@ -404,7 +405,7 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
   MYFLT start = *p->start;
   MYFLT end   = *p->end;
   // MYFLT resetPos = *p->resetPos;
-  MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+  MYFLT resetPos = p->resetk ? (*p->resetPos) : start;
   MYFLT previn = p->previn;
   MYFLT level = p->level;
   uint32_t n;
@@ -430,7 +431,7 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
   MYFLT start = *p->start;
   MYFLT end   = *p->end;
   // MYFLT resetPos = *p->resetPos;
-  MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+  MYFLT resetPos = p->resetk ? (*p->resetPos) : start;
   MYFLT previn = p->previn;
   MYFLT level = p->level;
 
