@@ -44,6 +44,7 @@
 #include <v8.h>
 
 using namespace v8;
+
 static CsoundThreaded csound;
 static uv_async_t uv_csound_message_async;
 static Persistent<Function> csound_message_callback;
@@ -377,6 +378,9 @@ void start(const FunctionCallbackInfo<Value>& args)
 void stop(const FunctionCallbackInfo<Value>& args)
 {
     csound.Stop();
+    // Prevent the host from restarting Csound before it has finished 
+    // stopping.
+    csound.Join();
 }
 
 void uv_csound_message_callback(uv_async_t *handle)
@@ -391,7 +395,7 @@ void uv_csound_message_callback(uv_async_t *handle)
 #endif
         Local<v8::Value> args[] = { String::NewFromUtf8(isolate, message) };
         if (csound_message_callback.IsEmpty()) {
-            auto  local_function = Local<Function>::New(isolate, console_function(isolate));
+            auto local_function = Local<Function>::New(isolate, console_function(isolate));
             local_function->Call(isolate->GetCurrentContext()->Global(), 1, args);
         } else {
             auto local_csound_message_callback = Local<Function>::New(isolate, csound_message_callback);
