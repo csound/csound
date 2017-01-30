@@ -141,12 +141,37 @@ typedef std::complex<MYFLT> sldcmplx;
 class pvsbin {
   float am;
   float fr;
+
 public:
   float amp() { return am; }
   float freq() { return fr; }
   void amp(float a) { am = a; }
   void freq(float f) { fr = f; }
-  operator pvscmplx &() { return (pvscmplx &)reinterpret_cast<float (&)[2]>(*this); }
+
+  const pvsbin &operator*=(const pvsbin &bin) {
+    am *= bin.am;
+    fr = bin.fr;
+    return *this;
+  }
+
+  pvsbin operator*(const pvsbin &a) {
+    pvsbin res = *this;
+    return (res *= a);
+  }
+
+  const pvsbin &operator*=(MYFLT f) {
+    am *= f;
+    return *this;
+  }
+
+  pvsbin operator*(MYFLT f) {
+    pvsbin res = *this;
+    return (res *= f);
+  }
+
+  operator pvscmplx &() {
+    return (pvscmplx &)reinterpret_cast<float(&)[2]>(*this);
+  }
   operator pvscmplx *() { return (pvscmplx *)reinterpret_cast<float *>(this); }
 };
 
@@ -207,9 +232,7 @@ public:
 
   /** array subscript access operator (read)
    */
-  const pvsbin &operator[](int n) const {
-    return ((pvsbin *)frame.auxp)[n];
-  }
+  const pvsbin &operator[](int n) const { return ((pvsbin *)frame.auxp)[n]; }
 
   /** function table data pointer
    */
