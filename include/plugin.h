@@ -143,6 +143,7 @@ class pvsbin {
   float fr;
 
 public:
+  pvsbin() : am(0.f), fr(0.f) {};
   float amp() { return am; }
   float freq() { return fr; }
   void amp(float a) { am = a; }
