@@ -178,8 +178,7 @@ struct PVGain : csnd::FPlugin<1, 2> {
     if (framecount < fin.count()) {
       MYFLT g = inargs[1];
       std::transform(fin.begin(), fin.end(), fout.begin(),
-		     [g](csnd::pvsbin f)
-		      { f.amp(g*f.amp()); return f;});
+                     [g](csnd::pvsbin f) { return f *= g; });
       framecount = fout.count(fin.count());
     }
     return OK;

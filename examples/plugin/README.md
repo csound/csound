@@ -373,6 +373,9 @@ objects, which have the following methods:
 * freq(): returns the bin frequency.
 * amp(float a): sets the bin amplitude to a.
 * freq(float f): sets the bin frequency to f.
+* operator*(pvsbin f): multiply the amp of a pvs bin by f.amp.
+* operator*(MYFLT f): multiply the bin amp by f
+* operator*=(): unary versions of the above.
 
 The pvsbin class can also be translated into a std::complex<float>
 object if needed. This class is also fully compatible the C complex
@@ -433,8 +436,7 @@ struct PVGain : csnd::FPlugin<1, 2> {
     if (framecount < fin.count()) {
       MYFLT g = inargs[1];
       std::transform(fin.begin(), fin.end(), fout.begin(),
-		     [g](csnd::pvsbin f)
-		     { f.amp(g*f.amp()); return f;});
+		    [g](csnd::pvsbin f){ return f *= g; });
       framecount = fout.count(fin.count());
     }
     return OK;
