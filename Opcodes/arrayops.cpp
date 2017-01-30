@@ -23,13 +23,12 @@
 #include <algorithm>
 #include <cmath>
 
-static inline MYFLT frac(MYFLT f) { return std::modf(f,nullptr); }
-static inline MYFLT pof2(MYFLT f) { return std::pow(2.,f); }
+static inline MYFLT frac(MYFLT f) { return std::modf(f,&f); }
 
 /** i-time, k-rate operator
     kout[] op kin[]
  */
-template<double (*op)(double)>
+template<MYFLT (*op)(MYFLT)>
 struct ArrayOp : csnd::Plugin<1, 1> {
   int init() {
     csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
@@ -50,6 +49,35 @@ struct ArrayOp : csnd::Plugin<1, 1> {
   }
 };
 
+/** i-time, k-rate binary operator
+    kout[] op kin1[], kin2[]
+ */
+template<MYFLT (*bop)(MYFLT, MYFLT)>
+struct ArrayOp2 : csnd::Plugin<1, 2> {
+  int init() {
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in1 = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in2 = inargs.vector_data<MYFLT>(0);
+    if(in2.len() < in1.len())
+      return csound->InitError(csound, "second input array is too short\n"); 
+    out.init(csound,in1.len());
+    std::transform(in1.begin(), in1.end(), in2.begin(), out.begin(),
+                   [](MYFLT f1, MYFLT f2) { return bop(f1,f2); });
+    return OK;
+  }
+
+  int kperf() {
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in1 = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in2 = inargs.vector_data<MYFLT>(0);
+    std::transform(in1.begin(), in1.end(), in2.begin(), out.begin(),
+                   [](MYFLT f1, MYFLT f2) { return bop(f1,f2); });
+
+    return OK;
+  }
+};
+
+
 
 /** Module creation, initalisation and destruction
  */
@@ -65,8 +93,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "k[]", "k[]", csnd::thread::i);
   csnd::plugin<ArrayOp<frac>>(csound, "frac", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<frac>>(csound, "frac", "k[]", "k[]", csnd::thread::i);
-  csnd::plugin<ArrayOp<pof2>>(csound, "powoftwo", "i[]", "i[]", csnd::thread::i);
-  csnd::plugin<ArrayOp<pof2>>(csound, "powoftwo", "k[]", "k[]", csnd::thread::i);
+  csnd::plugin<ArrayOp<std::exp2>>(csound, "powoftwo", "i[]", "i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp<std::exp2>>(csound, "powoftwo", "k[]", "k[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "k[]", "k[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "i[]", "i[]", csnd::thread::i);
@@ -99,6 +127,20 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
   csnd::plugin<ArrayOp<std::sinh>>(csound, "sinh", "k[]", "k[]", csnd::thread::ik);
   csnd::plugin<ArrayOp<std::tanh>>(csound, "tanh", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::tanh>>(csound, "tanh", "k[]", "k[]", csnd::thread::ik);
+  csnd::plugin<ArrayOp<std::cbrt>>(csound, "cbrt", "i[]", "i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp<std::cbrt>>(csound, "cbrt", "k[]", "k[]", csnd::thread::ik);
+  csnd::plugin<ArrayOp2<std::atan2>>(csound, "taninv", "i[]", "i[]i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp2<std::atan2>>(csound, "taninv", "k[]", "k[]k[]", csnd::thread::ik);
+  csnd::plugin<ArrayOp2<std::pow>>(csound, "pow", "i[]", "i[]i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp2<std::pow>>(csound, "pow", "k[]", "k[]k[]", csnd::thread::ik);
+  csnd::plugin<ArrayOp2<std::hypot>>(csound, "hypot", "i[]", "i[]i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp2<std::hypot>>(csound, "hypot", "k[]", "k[]k[]", csnd::thread::ik);
+  csnd::plugin<ArrayOp2<std::fmod>>(csound, "fmod", "i[]", "i[]i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp2<std::fmod>>(csound, "fmod", "k[]", "k[]k[]", csnd::thread::ik);
+  csnd::plugin<ArrayOp2<std::fmax>>(csound, "fmax", "i[]", "i[]i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp2<std::fmax>>(csound, "fmax", "k[]", "k[]k[]", csnd::thread::ik);
+  csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "i[]", "i[]i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "k[]", "k[]k[]", csnd::thread::ik);
   return 0;
 }
 PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
