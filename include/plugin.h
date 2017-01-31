@@ -1,4 +1,4 @@
-/**
+/*
   plugin.h
   CPOF Csound Plugin Opcode Framework
   C++ plugin opcode interface
@@ -67,11 +67,22 @@ template <typename T> int aperf(CSOUND *csound, T *p) {
  */
 template <typename T>
 int plugin(CSOUND *csound, const char *name, const char *oargs,
-           const char *iargs, uint32_t thread) {
-  return csound->AppendOpcode(csound, (char *)name, sizeof(T), 0, thread,
+           const char *iargs, uint32_t thread, uint32_t flags=0) {
+  return csound->AppendOpcode(csound, (char *)name, sizeof(T), flags, thread,
                               (char *)oargs, (char *)iargs, (SUBR)init<T>,
                               (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
+
+/** plugin registration function template 
+    for classes with self-defined opcode argument types
+ */
+template <typename T>
+int plugin(CSOUND *csound, const char *name, uint32_t thread, uint32_t flags=0) {
+  return csound->AppendOpcode(csound, (char *)name, sizeof(T), 0, thread,
+                              (char *) T::otypes, (char *) T::itypes, (SUBR)init<T>,
+                              (SUBR)kperf<T>, (SUBR)aperf<T>);
+}
+ 
 
 /** One-dimensional array container
     template class
@@ -134,46 +145,76 @@ public:
 typedef std::complex<float> pvscmplx;
 typedef std::complex<MYFLT> sldcmplx;
 
-/** pvsbin translation class
-    allows alternative access via a std::complex
-    array.
+/** pvsbin translation class for fsig_format::pvs. \n
+    Holds a phase vocoder bin, and
+    also allows alternative access via a std::complex 
+    implicit or explicit cast.
  */
 class pvsbin {
   float am;
   float fr;
 
 public:
+  /** constructor
+   */
   pvsbin() : am(0.f), fr(0.f) {};
+
+  /** access amplitude
+   */
   float amp() { return am; }
+
+  /** access frequency
+   */
   float freq() { return fr; }
+
+  /** set amplitude
+   */
   void amp(float a) { am = a; }
+
+  /** set frequency
+   */
   void freq(float f) { fr = f; }
 
+  /** multiplication (unary)
+   */
   const pvsbin &operator*=(const pvsbin &bin) {
     am *= bin.am;
     fr = bin.fr;
     return *this;
   }
 
+  /** multiplication (binary)
+   */
   pvsbin operator*(const pvsbin &a) {
     pvsbin res = *this;
     return (res *= a);
   }
 
+  /** multiplication by MYFLT (unary)
+   */
   const pvsbin &operator*=(MYFLT f) {
     am *= f;
     return *this;
   }
 
+  /** multiplication by MYFLT (binary)
+   */
   pvsbin operator*(MYFLT f) {
     pvsbin res = *this;
     return (res *= f);
   }
 
+  /** cast to std::complex<float>&
+   */
   operator pvscmplx &() {
     return (pvscmplx &)reinterpret_cast<float(&)[2]>(*this);
   }
-  operator pvscmplx *() { return (pvscmplx *)reinterpret_cast<float *>(this); }
+
+  /** cast to std::complex<float>*
+   */
+  operator pvscmplx *() {
+    return (pvscmplx *)reinterpret_cast<float *>(this);
+  }
 };
 
 /** fsig container class
@@ -400,7 +441,7 @@ public:
 /** Plugin template base class:
     N outputs and M inputs
  */
-template <uint32_t N, uint32_t M> struct Plugin : OPDS {
+ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
   Params<N> outargs;
   Params<M> inargs;
   CSOUND *csound;
@@ -437,18 +478,26 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
       std::fill(v + nsmps, v + nsmps + early, 0);
   }
 
+  /** init-time error message
+   */
   int init_error(const std::string &s){
     return csound->InitError(csound, "%s\n", s.c_str()); 
   }
 
+  /** perf-time error message
+   */
   int perf_error(const std::string &s){
     return csound->PerfError(csound, insdshead, "%s\n", s.c_str()); 
   }
 
+  /** warning message
+   */
   void warning(const std::string &s) {
     csound->Warning(csound, "%s", s.c_str());
   }
 
+  /** console messages
+   */
   void message(const std::string &s) {
     csound->Message(csound, "%s\n", s.c_str());
   }
@@ -457,7 +506,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
 /** Fsig plugin template base class:
     N outputs and M inputs
  */
-template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N, M> {
+ template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N,M> {
   uint32_t framecount;
 };
  

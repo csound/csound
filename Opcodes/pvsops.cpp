@@ -24,6 +24,8 @@
 
 struct PVTrace : csnd::FPlugin<1, 2> {
   csnd::AuxMem<float> amps;
+  static constexpr char const *otypes = "f";
+  static constexpr char const *itypes = "fk";
 
   int init() {
     if (inargs.fsig_data(0).isSliding())
@@ -62,7 +64,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
 
 extern "C" {
 PUBLIC int csoundModuleInit(CSOUND *csound) {
-  csnd::plugin<PVTrace>(csound, "pvstrace", "f", "fk", csnd::thread::ik);
+  csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
   return 0;
 }
 PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
