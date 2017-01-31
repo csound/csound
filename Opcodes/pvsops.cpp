@@ -24,12 +24,17 @@
 
 struct PVTrace : csnd::FPlugin<1, 2> {
   csnd::AuxMem<float> amps;
+  static constexpr char const *otypes = "f";
+  static constexpr char const *itypes = "fk";
 
   int init() {
-    if (check_sliding(inargs.fsig_data(0)) != OK &&
-        (check_format(inargs.fsig_data(0)) != OK ||
-         check_format(inargs.fsig_data(0), csnd::fsig_format::polar)))
-      return NOTOK;
+    if (inargs.fsig_data(0).isSliding())
+      return init_error("sliding not supported");
+    
+    if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
+        inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
+      return init_error("fsig format not supported");
+
     amps.allocate(csound, inargs.fsig_data(0).len());
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
@@ -40,7 +45,6 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   int kperf() {
     csnd::Fsig &fin = inargs.fsig_data(0);
     csnd::Fsig &fout = outargs.fsig_data(0);
-    uint32_t i;
 
     if (framecount < fin.count()) {
       int n =  fin.len() - (int) inargs[1];
@@ -60,7 +64,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
 
 extern "C" {
 PUBLIC int csoundModuleInit(CSOUND *csound) {
-  csnd::plugin<PVTrace>(csound, "pvstrace", "f", "fk", csnd::thread::ik);
+  csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
   return 0;
 }
 PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }

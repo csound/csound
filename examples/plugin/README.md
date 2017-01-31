@@ -49,14 +49,21 @@ OPDS and has the following members:
 * offset: the starting position of an audio vector (for audio opcodes).
 * nsmps: the size of an audio vector (also for audio opcodes only).
 * init(), kperf() and aperf() non-op methods, to be reimplemented as needed.
-* sa_offset() method to be used in audio processsing to calculate offset and
-	nsmps for sample-accurate behaviour.
+* sa_offset((MYFLT *v) method to be used in audio processsing to calculate offset and
+nsmps for sample-accurate behaviour. It takes an audio output vector
+as input and returns the updated nsmps value. This method should be
+called for each output in the case of multiple channels.
+* init_error(std::string s) to pass an init-time error with an
+accompanying message, returning an error code.
+* perf_error(std::string s) to pass a perf-time error with an
+accompanying message, returning an error code.
+* warning(std::string s) to display a warning message.
+* message(std::string s) to print a message to the console.
 
 The other base class in the CPOF is FPlugin, derived from Plugin, which
-provides some extra facilities for fsig (streaming frequency-domain) plugins:
+provides an extra facility for fsig (streaming frequency-domain) plugins:
 
 * framecount: a member to hold a running count of fsig frames.
-* check_sliding() and check_format() methods to check an input fsig format.
 
 Init-time opcodes
 -------------------------------------------
@@ -124,7 +131,7 @@ struct Simplea : csnd::Plugin<1,1> {
     return OK;
   }
 };
-  ```
+```
 
 Because audio arguments are vectors, we get these using the data() method
 for the inargs and outargs objects, which takes the argument number as
@@ -146,7 +153,7 @@ plugin():
 ```
 template <typename T>
 int plugin(CSOUND *csound, const char *name, const char *oargs,
-           const char *iargs, uint32_t thread)
+           const char *iargs, uint32_t thread, uint32_t flags = 0)
 
 ```
 
@@ -157,6 +164,7 @@ Its parameters are:
 * oargs: a string containing the opcode output types, one identifier per argument
 * iargs: a string containintg the opcode input types, one identifier per argument
 * thread: a code to tell Csound when the opcode shoulld be active.
+* flags: multithread flags (generally 0 unless the opcode accesses global resources).
 
 For opcode type identifiers, the most common types are: a (audio), k (control), i (i-time),
 S (string) and f (fsig). For the thread argument, we have the following options, which
@@ -189,7 +197,28 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
 ```
 
 Note how the class name is passed as an argument to the function template,
-followed by the function call.
+followed by the function call. If the class defines two specific
+static members, otypes and itypes, to hold the types for output and input arguments,
+declared as
+
+```
+Struct MyPlug : csnd::Plugin<1,2> {
+  static constexpr char const *otypes = "k";
+  static constexpr char const *itypes = "ki";
+  ...
+};
+```
+
+then we can use a simpler overload of the plugin registration
+function:
+
+
+```
+template <typename T>
+int plugin(CSOUND *csound, const char *name, uint32_t thread, uint32_t flags = 0)
+
+```
+
 
 Memory allocation
 ---------------------------------------------------
@@ -343,8 +372,7 @@ the string variable, as demonstrated in this example:
  */
 struct Tprint : csnd::Plugin<0,1> {
   int init() {
-    csound->Message(csound, "%s",
-		    inargs.str_data(0).data);
+    message(inargs.str_data(0).data);
     return OK;
   }
 };
@@ -415,13 +443,17 @@ scaler for fsigs:
     fsig pvg fsin, kgain
  */
 struct PVGain : csnd::FPlugin<1, 2> {
+  static constexpr char const *otypes = "f";
+  static constexpr char const *itypes = "fk";
 
   int init() {
-    if (check_sliding(inargs.fsig_data(0)) != OK &&
-        (check_format(inargs.fsig_data(0)) != OK ||
-         check_format(inargs.fsig_data(0), csnd::fsig_format::polar)))
-      return NOTOK;
-
+    if (inargs.fsig_data(0).isSliding())
+      return init_error("sliding not supported");
+    
+    if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
+        inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
+		return init_error("fsig format not supported");
+		
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
     framecount = 0;
@@ -452,8 +484,14 @@ by the base class, as well as the format check methods. This opcode
 is registered using
 
 ```
-csnd::plugin<PVGain>(csound, "pvg", "f", "fk", csnd::thread::ik);
+csnd::plugin<PVGain>(csound, "pvg", csnd::thread::ik);
 ```
+
+For some classes, this might be a very convenient way to define the
+argument types. For other cases, where opcode polymorphism might
+be involved, we might re-use the same class for different argument
+types, in which case it is not desirable to define these statically in
+a class.
 
 Arrays
 ----------------------------------------------
@@ -500,7 +538,7 @@ struct SimpleArray : csnd::Plugin<1, 1> {
     return OK;
   }
   };
-  ```
+```
 
 This opcode is registered using the following line:
 
