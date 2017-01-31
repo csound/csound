@@ -281,7 +281,7 @@ void perform(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
-    int result = csound.Perform();
+    int result = csound.PerformAndReset();
     args.GetReturnValue().Set(Number::New(isolate, result));
 }
 
@@ -391,7 +391,7 @@ void start(const FunctionCallbackInfo<Value>& args)
 void stop(const FunctionCallbackInfo<Value>& args)
 {
     csound.Stop();
-    // Prevent the host from restarting Csound before it has finished 
+    // Prevent the host from restarting Csound before it has finished
     // stopping.
     csound.Join();
 }
