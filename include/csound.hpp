@@ -199,10 +199,6 @@ public:
   {
     return csoundCompileArgs(csound, argc, argv);
   }
-  virtual int Start(CSOUND *csound)
-  {
-    return  csoundStart(csound);
-  }
   virtual int Compile(int argc,const char **argv)
   {
     return csoundCompile(csound, argc, argv);
@@ -276,71 +272,80 @@ public:
   }
   virtual int Perform(int argc, const char **argv)
   {
-    int retval = csoundCompile(csound, argc, argv);
-    if (!retval)
-      retval = csoundPerform(csound);
+    int result = csoundCompile(csound, argc, argv);
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
   virtual int Perform(const char *csdName)
   {
     const char  *argv[3];
-    int   retval;
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = csdName;
     argv[2] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 2, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 2, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
   virtual int Perform(const char *orcName, const char *scoName)
   {
     const char  *argv[4];
-    int   retval;
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = orcName;
     argv[2] = scoName;
     argv[3] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 3, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 3, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
-  virtual int Perform(const char *arg1,const char *arg2,const char *arg3)
+  virtual int Perform(const char *arg1, const char *arg2, const char *arg3)
   {
     const char  *argv[5];
-    int   retval;
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
     argv[4] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 4, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 4, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
-  virtual int Perform(const char *arg1,const  char *arg2,const  char *arg3,const  char *arg4)
+  virtual int Perform(const char *arg1, const  char *arg2, const  char *arg3, const  char *arg4)
   {
     const char  *argv[6];
-    int   retval;
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
     argv[4] = arg4;
     argv[5] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 5, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 5, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
-  virtual int Perform(const char *arg1,const  char *arg2,const  char *arg3,
+  virtual int Perform(const char *arg1, const  char *arg2, const  char *arg3,
                       const char *arg4, const  char *arg5)
   {
     const char  *argv[7];
-    int   retval;
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
@@ -348,10 +353,12 @@ public:
     argv[4] = arg4;
     argv[5] = arg5;
     argv[6] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 6, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 6, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
   virtual int PerformKsmps()
   {
