@@ -49,14 +49,21 @@ OPDS and has the following members:
 * offset: the starting position of an audio vector (for audio opcodes).
 * nsmps: the size of an audio vector (also for audio opcodes only).
 * init(), kperf() and aperf() non-op methods, to be reimplemented as needed.
-* sa_offset() method to be used in audio processsing to calculate offset and
-	nsmps for sample-accurate behaviour.
+* sa_offset((MYFLT *v) method to be used in audio processsing to calculate offset and
+nsmps for sample-accurate behaviour. It takes an audio output vector
+as input and returns the updated nsmps value. This method should be
+called for each output in the case of multiple channels.
+* init_error(std::string s) to pass an init-time error with an
+accompanying message, returning an error code.
+* perf_error(std::string s) to pass a perf-time error with an
+accompanying message, returning an error code.
+* warning(std::string s) to display a warning message.
+* message(std::string s) to print a message to the console.
 
 The other base class in the CPOF is FPlugin, derived from Plugin, which
-provides some extra facilities for fsig (streaming frequency-domain) plugins:
+provides an extra facility for fsig (streaming frequency-domain) plugins:
 
 * framecount: a member to hold a running count of fsig frames.
-* check_sliding() and check_format() methods to check an input fsig format.
 
 Init-time opcodes
 -------------------------------------------
@@ -343,8 +350,7 @@ the string variable, as demonstrated in this example:
  */
 struct Tprint : csnd::Plugin<0,1> {
   int init() {
-    csound->Message(csound, "%s",
-		    inargs.str_data(0).data);
+    message(inargs.str_data(0).data);
     return OK;
   }
 };
@@ -417,11 +423,13 @@ scaler for fsigs:
 struct PVGain : csnd::FPlugin<1, 2> {
 
   int init() {
-    if (check_sliding(inargs.fsig_data(0)) != OK &&
-        (check_format(inargs.fsig_data(0)) != OK ||
-         check_format(inargs.fsig_data(0), csnd::fsig_format::polar)))
-      return NOTOK;
-
+    if (inargs.fsig_data(0).isSliding())
+      return init_error("sliding not supported");
+    
+    if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
+        inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
+		return init_error("fsig format not supported");
+		
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
     framecount = 0;
