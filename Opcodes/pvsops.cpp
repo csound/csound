@@ -40,7 +40,6 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   int kperf() {
     csnd::Fsig &fin = inargs.fsig_data(0);
     csnd::Fsig &fout = outargs.fsig_data(0);
-    uint32_t i;
 
     if (framecount < fin.count()) {
       int n =  fin.len() - (int) inargs[1];
