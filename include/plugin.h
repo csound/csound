@@ -436,6 +436,22 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
     if (UNLIKELY(early))
       std::fill(v + nsmps, v + nsmps + early, 0);
   }
+
+  int init_error(const std::string &s){
+    return csound->InitError(csound, "%s\n", s.c_str()); 
+  }
+
+  int perf_error(const std::string &s){
+    return csound->PerfError(csound, insdshead, "%s\n", s.c_str()); 
+  }
+
+  void warning(const std::string &s) {
+    csound->Warning(csound, "%s", s.c_str());
+  }
+
+  void message(const std::string &s) {
+    csound->Message(csound, "%s\n", s.c_str());
+  }
 };
 
 /** Fsig plugin template base class:
@@ -443,26 +459,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
  */
 template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N, M> {
   uint32_t framecount;
-
-  /** check for format, returns NOTOK or OK
-   */
-  int check_format(Fsig &f, int format = fsig_format::pvs) {
-    CSOUND *csound = Plugin<N, M>::csound;
-    if (f.fsig_format() != format)
-      return csound->InitError(csound, "wrong format");
-    else
-      return OK;
-  }
-
-  /** check for sliding, returns the sliding flag
-      and issues an init error if it is not supported
-  */
-  int check_sliding(Fsig &f, bool notsupported = true) {
-    CSOUND *csound = Plugin<N, M>::csound;
-    if (f.isSliding() && notsupported)
-      csound->InitError(csound, "sliding mode not supported\n");
-    return f.isSliding();
-  }
 };
+ 
 }
 #endif

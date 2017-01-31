@@ -84,7 +84,7 @@ struct SimpleArray : csnd::Plugin<1, 1> {
  */
 struct Tprint : csnd::Plugin<0, 1> {
   int init() {
-    csound->Message(csound, "%s", inargs.str_data(0).data);
+    message(inargs.str_data(0).data);
     return OK;
   }
 };
@@ -159,10 +159,12 @@ struct Oscillator : csnd::Plugin<1, 3> {
 struct PVGain : csnd::FPlugin<1, 2> {
 
   int init() {
-    if (check_sliding(inargs.fsig_data(0)) != OK &&
-        (check_format(inargs.fsig_data(0)) != OK ||
-         check_format(inargs.fsig_data(0), csnd::fsig_format::polar)))
-      return NOTOK;
+    if (inargs.fsig_data(0).isSliding())
+      return init_error("sliding not supported");
+    
+    if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
+        inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
+      return init_error("fsig format not supported");
 
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
