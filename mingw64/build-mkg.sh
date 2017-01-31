@@ -11,7 +11,7 @@ rm -rf dist
 # --trace-expand \
 
 cmake ../.. -G "MSYS Makefiles" \
--DABL ETON_LINK_HOME:PATH="D:\msys64\home\restore\link" \
+-DABLETON_LINK_HOME:PATH="D:\msys64\home\restore\link" \
 -DBUILD_ABLETON_LINK_OPCODES:BOOL=Yes \
 -DBUILD_CSOUNDVST=1 \
 -DBUILD_PD_CLASS=0 \
