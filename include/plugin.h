@@ -45,14 +45,15 @@ enum fsig_format { pvs = 0, polar, complex, tracks };
 /** Csound Engine object.
  */
 class Csound : CSOUND {
-public:
-  /** Utility classes with full access
+  
+  /** Utility classes
    */
   template <typename T> friend class Vector;
   friend class Fsig;
   friend class Table;
   template <typename T> friend class AuxMem;
-
+  
+public:
   /** init-time error message
    */
   int init_error(const std::string &s) {
@@ -502,11 +503,11 @@ public:
    */
   STRINGDAT &str_data(int n) { return (STRINGDAT &)*ptrs[n]; }
 
-  /** parameter fsig data (PVSDAT ref) at index n
+  /** parameter fsig data (Fsig ref) at index n
    */
   Fsig &fsig_data(int n) { return (Fsig &)*ptrs[n]; }
 
-  /** 1-D array data
+  /** 1-D array data as Vector template ref
    */
   template <typename T> Vector<T> &vector_data(int n) {
     return (Vector<T> &)*ptrs[n];
@@ -517,17 +518,20 @@ public:
     N outputs and M inputs
  */
 template <uint32_t N, uint32_t M> struct Plugin : OPDS {
+  /** output arguments */
   Params<N> outargs;
+  /** input arguments */
   Params<M> inargs;
+  /** Csound engine */
   Csound *csound;
+  /** sample-accurate offset */
   uint32_t offset;
+  /** vector samples to process */
   uint32_t nsmps;
 
   /** i-time function placeholder
    */
   int init() {
-    nsmps = insdshead->ksmps;
-    offset = 0;
     return OK;
   }
 
@@ -558,24 +562,31 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
     N outputs and M inputs
  */
 template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N, M> {
+  /** current frame time index */
   uint32_t framecount;
 };
 
-/** opcode thread function template (i-time)
+/** 
+  @private 
+  opcode thread function template (i-time)
 */
 template <typename T> int init(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   return p->init();
 }
 
-/** opcode thread function template (k-rate)
+/**
+   @private  
+   opcode thread function template (k-rate)
 */
 template <typename T> int kperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   return p->kperf();
 }
 
-/** opcode thread function template (a-rate)
+/** 
+  @private 
+  opcode thread function template (a-rate)
 */
 template <typename T> int aperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
