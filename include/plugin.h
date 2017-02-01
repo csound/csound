@@ -44,40 +44,34 @@ enum fsig_format { pvs = 0, polar, complex, tracks };
 
 /** Csound Engine object.
  */
- class Csound : CSOUND {
- public:
-   /** Utility classes with full access
-    */
-   template <typename T>
-     friend class Vector;
-   friend class Fsig;
-   friend class Table;
-   template <typename T>
-     friend class AuxMem;
+class Csound : CSOUND {
+public:
+  /** Utility classes with full access
+   */
+  template <typename T> friend class Vector;
+  friend class Fsig;
+  friend class Table;
+  template <typename T> friend class AuxMem;
 
   /** init-time error message
    */
-  int init_error(const std::string &s){
-    return InitError(this, "%s\n", s.c_str()); 
+  int init_error(const std::string &s) {
+    return InitError(this, "%s\n", s.c_str());
   }
 
   /** perf-time error message
    */
-  int perf_error(const std::string &s, INSDS *inst){
-    return PerfError(this, inst, "%s\n", s.c_str()); 
+  int perf_error(const std::string &s, INSDS *inst) {
+    return PerfError(this, inst, "%s\n", s.c_str());
   }
 
   /** warning message
    */
-  void warning(const std::string &s) {
-    Warning(this, "%s", s.c_str());
-  }
+  void warning(const std::string &s) { Warning(this, "%s", s.c_str()); }
 
   /** console messages
    */
-  void message(const std::string &s) {
-    Message(this, "%s\n", s.c_str());
-  }
+  void message(const std::string &s) { Message(this, "%s\n", s.c_str()); }
 
   /** system sampling rate
    */
@@ -101,67 +95,54 @@ enum fsig_format { pvs = 0, polar, complex, tracks };
 
   /** time count (samples)
    */
-  int64_t current_time_samples() {
-     return GetCurrentTimeSamples(this);
-  }
+  int64_t current_time_samples() { return GetCurrentTimeSamples(this); }
 
   /** time count (seconds)
    */
   double current_time_seconds() {
-    return GetCurrentTimeSamples(this)/GetSr(this);
+    return GetCurrentTimeSamples(this) / GetSr(this);
   }
 
   /** midi channel number for this instrument
    */
-  int midi_channel() {
-    return GetMidiChannelNumber(this);
-  }
+  int midi_channel() { return GetMidiChannelNumber(this); }
 
- 
   /** midi note number for this instrument
    */
-  int midi_note_num() {
-    return GetMidiNoteNumber(this);
-  }
+  int midi_note_num() { return GetMidiNoteNumber(this); }
 
   /** midi note velocity for this instrument
    */
-  int midi_note_vel(){
-    return GetMidiVelocity(this);
-  }
+  int midi_note_vel() { return GetMidiVelocity(this); }
 
   /** midi aftertouch for this channel
    */
-  MYFLT midi_chn_aftertouch(){
-    return GetMidiChannel(this)->aftouch;
-  }
+  MYFLT midi_chn_aftertouch() { return GetMidiChannel(this)->aftouch; }
 
   /** midi poly aftertouch for this channel
    */
-  MYFLT midi_chn_polytouch(uint32_t note){
+  MYFLT midi_chn_polytouch(uint32_t note) {
     return GetMidiChannel(this)->polyaft[note];
   }
 
   /** midi ctl change for this channel
-   */  
-  MYFLT midi_chn_ctl(uint32_t ctl){
+   */
+  MYFLT midi_chn_ctl(uint32_t ctl) {
     return GetMidiChannel(this)->ctl_val[ctl];
   }
 
   /** midi pitchbend for this channel
-   */    
-  MYFLT midi_chn_pitchbend(){
-    return GetMidiChannel(this)->pchbend;
-  }
+   */
+  MYFLT midi_chn_pitchbend() { return GetMidiChannel(this)->pchbend; }
 
   /** list of active instrument instances for this channel \n
       returns an INSDS array with 128 items, one per
       MIDI note number. Inactive instances are marked NULL.
    */
   const INSDS *midi_chn_list() {
-    return (const INSDS *) GetMidiChannel(this)->kinsptr;
+    return (const INSDS *)GetMidiChannel(this)->kinsptr;
   }
-  
+
   /** FFT setup: real-to-complex and complex-to-real \n
       direction: FFT_FWD or FFT_INV \n
       returns a handle to the FFT setup.
@@ -171,16 +152,14 @@ enum fsig_format { pvs = 0, polar, complex, tracks };
   }
 
   /** FFT operation, in-place, but also
-      returning a pointer to std::complex<MYFLT> 
+      returning a pointer to std::complex<MYFLT>
       to the transformed data memory.
   */
   std::complex<MYFLT> *rfft(void *setup, MYFLT *data) {
-    RealFFT2(this,setup,data);
-    return reinterpret_cast<std::complex<MYFLT>*>(data);
+    RealFFT2(this, setup, data);
+    return reinterpret_cast<std::complex<MYFLT> *>(data);
   }
-  
- };
- 
+};
 
 /** One-dimensional array container
     template class
@@ -245,7 +224,7 @@ typedef std::complex<MYFLT> sldcmplx;
 
 /** pvsbin translation class for fsig_format::pvs. \n
     Holds a phase vocoder bin, and
-    also allows alternative access via a std::complex 
+    also allows alternative access via a std::complex
     implicit or explicit cast.
  */
 class pvsbin {
@@ -255,7 +234,7 @@ class pvsbin {
 public:
   /** constructor
    */
-  pvsbin() : am(0.f), fr(0.f) {};
+  pvsbin() : am(0.f), fr(0.f){};
 
   /** access amplitude
    */
@@ -310,9 +289,7 @@ public:
 
   /** cast to std::complex<float>*
    */
-  operator pvscmplx *() {
-    return (pvscmplx *)reinterpret_cast<float *>(this);
-  }
+  operator pvscmplx *() { return (pvscmplx *)reinterpret_cast<float *>(this); }
 };
 
 /** fsig container class
@@ -503,9 +480,6 @@ public:
   uint32_t len() { return size / sizeof(T); }
 };
 
-
-
- 
 /** Parameters template class
  */
 template <uint32_t N> class Params {
@@ -542,10 +516,10 @@ public:
 /** Plugin template base class:
     N outputs and M inputs
  */
- template <uint32_t N, uint32_t M> struct Plugin : OPDS {
+template <uint32_t N, uint32_t M> struct Plugin : OPDS {
   Params<N> outargs;
   Params<M> inargs;
-  Csound  *csound;
+  Csound *csound;
   uint32_t offset;
   uint32_t nsmps;
 
@@ -577,35 +551,34 @@ public:
       std::fill(v, v + offset, 0);
     if (UNLIKELY(early))
       std::fill(v + nsmps, v + nsmps + early, 0);
-  } 
+  }
 };
 
 /** Fsig plugin template base class:
     N outputs and M inputs
  */
- template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N,M> {
+template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N, M> {
   uint32_t framecount;
 };
 
-
- /** opcode thread function template (i-time)
+/** opcode thread function template (i-time)
 */
- template <typename T> int init(CSOUND *csound, T *p) {
-   p->csound = (Csound *) csound;
+template <typename T> int init(CSOUND *csound, T *p) {
+  p->csound = (Csound *)csound;
   return p->init();
 }
 
 /** opcode thread function template (k-rate)
 */
 template <typename T> int kperf(CSOUND *csound, T *p) {
-  p->csound = (Csound *) csound;
+  p->csound = (Csound *)csound;
   return p->kperf();
 }
 
 /** opcode thread function template (a-rate)
 */
 template <typename T> int aperf(CSOUND *csound, T *p) {
-  p->csound = (Csound *) csound;
+  p->csound = (Csound *)csound;
   return p->aperf();
 }
 
@@ -613,21 +586,21 @@ template <typename T> int aperf(CSOUND *csound, T *p) {
  */
 template <typename T>
 int plugin(CSOUND *csound, const char *name, const char *oargs,
-           const char *iargs, uint32_t thread, uint32_t flags=0) {
+           const char *iargs, uint32_t thread, uint32_t flags = 0) {
   return csound->AppendOpcode(csound, (char *)name, sizeof(T), flags, thread,
                               (char *)oargs, (char *)iargs, (SUBR)init<T>,
                               (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
 
-/** plugin registration function template 
+/** plugin registration function template
     for classes with self-defined opcode argument types
  */
 template <typename T>
-int plugin(CSOUND *csound, const char *name, uint32_t thread, uint32_t flags=0) {
+int plugin(CSOUND *csound, const char *name, uint32_t thread,
+           uint32_t flags = 0) {
   return csound->AppendOpcode(csound, (char *)name, sizeof(T), 0, thread,
-                              (char *) T::otypes, (char *) T::itypes, (SUBR)init<T>,
-                              (SUBR)kperf<T>, (SUBR)aperf<T>);
+                              (char *)T::otypes, (char *)T::itypes,
+                              (SUBR)init<T>, (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
- 
 }
 #endif
