@@ -25,7 +25,7 @@
  *     size_t state1;
  *     double state2;
  *     MYFLT state3;
- *     // If the opcode shares data protect it by creating one or more void 
+ *     // If the opcode shares data protect it by creating one or more void
  *     // *mutex pointers:
  *     void *mutex1;
  *     void *mutex2;
@@ -39,9 +39,9 @@
  *     void deinit();
  * };
  */
- 
+
 namespace csound {
- 
+
 inline void *get_mutex(CSOUND *csound, const char *mutex_name)
 {
   void **mutex = (void **)csound->QueryGlobalVariable(csound, mutex_name);

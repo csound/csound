@@ -373,7 +373,7 @@ typedef struct CORFIL {
        for the new one and return it for deallocation.
   */
   typedef AUXCH* (*aux_cb)(CSOUND *, void *, AUXCH *);
-  
+
   /**
    * AuxAllocAsync data
    */
@@ -382,7 +382,7 @@ typedef struct CORFIL {
     size_t nbytes;
     AUXCH *auxchp;
     void *userData;
-    aux_cb notify;   
+    aux_cb notify;
   } AUXASYNC;
 
   typedef struct {
