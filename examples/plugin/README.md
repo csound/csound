@@ -15,7 +15,7 @@ so we have provided a lightweight framework to facilitate programming in
 this environment. While there is an existing interface for plugin writing in
 the Csound codebase, we would like to provide here an alternative to it
 attempts to be thin, simple, complete and that handles internal
-Csound resources in a safe way.
+Csound resources in a safe way. 
 
 The Base Classes
 ---------------------------
@@ -120,8 +120,9 @@ is provide an implementation of the aperf() method:
     aout simple ain
  */
 struct Simplea : csnd::Plugin<1,1> {
-  int aperf() {
-    std::copy(inargs.data(0),inargs.data(0)+insdshead->ksmps, outargs.data(0));
+int aperf() {
+    nsmps = insdshead->ksmps;
+    std::copy(inargs.data(0),inargs.data(0)+nsmps, outargs.data(0));
     return OK;
   }
 };
