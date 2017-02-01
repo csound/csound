@@ -371,6 +371,7 @@
 ./Opcodes/pvsdemix.c
 ./Opcodes/pvsdemix.h
 ./Opcodes/pvsgendy.c
+./Opcodes/pvsops.cpp
 ./Opcodes/py/pycall.auto.c
 ./Opcodes/py/pycall.auto.h
 ./Opcodes/py/pythonhelper.h

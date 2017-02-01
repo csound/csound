@@ -59,7 +59,7 @@ struct ArrayOp2 : csnd::Plugin<1, 2> {
     csnd::Vector<MYFLT> &in1 = inargs.vector_data<MYFLT>(0);
     csnd::Vector<MYFLT> &in2 = inargs.vector_data<MYFLT>(0);
     if(in2.len() < in1.len())
-      return csound->init_error("second input array is too short\n"); 
+      return csound->init_error(Str("second input array is too short\n"));
     out.init(csound,in1.len());
     std::transform(in1.begin(), in1.end(), in2.begin(), out.begin(),
                    [](MYFLT f1, MYFLT f2) { return bop(f1,f2); });
