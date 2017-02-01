@@ -43,7 +43,7 @@ static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
 #define MACDEBUG 1
- 
+
 static inline int isNameChar(int c, int pos)
 {
     //c = (int) ((unsigned char) c);
@@ -92,7 +92,7 @@ EXIT            #exit
 CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 SEND            [es]
 NM              [nm]
-   
+
 %X incl
 %x macro
 %x umacro
