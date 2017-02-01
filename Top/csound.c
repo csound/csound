@@ -1972,7 +1972,9 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       done = sensevents(csound);
       if (UNLIKELY(done)) {
         csoundUnlockMutex(csound->API_lock);
-        csoundMessage(csound, Str("Score finished in csoundPerformKsmps() with %d.\n"), done);
+        csoundMessage(csound,
+                      Str("Score finished in csoundPerformKsmps() with %d.\n"),
+                      done);
         return done;
       }
     } while (csound->kperf(csound));
@@ -2001,7 +2003,8 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     }
    do {
      if ((done = sensevents(csound))) {
-        csoundMessage(csound, Str("Score finished in csoundPerformKsmpsInternal().\n"));
+       csoundMessage(csound,
+                     Str("Score finished in csoundPerformKsmpsInternal().\n"));
         return done;
       }
     } while (csound->kperf(csound));
