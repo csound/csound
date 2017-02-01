@@ -29,11 +29,11 @@ struct PVTrace : csnd::FPlugin<1, 2> {
 
   int init() {
     if (inargs.fsig_data(0).isSliding())
-      return init_error("sliding not supported");
+      return csound->init_error("sliding not supported");
     
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
-      return init_error("fsig format not supported");
+      return csound->init_error("fsig format not supported");
 
     amps.allocate(csound, inargs.fsig_data(0).len());
     csnd::Fsig &fout = outargs.fsig_data(0);

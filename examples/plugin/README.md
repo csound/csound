@@ -45,7 +45,7 @@ OPDS and has the following members:
 
 * outargs: output arguments.
 * inargs: input arguments.
-* csound: a pointer to the Csound object running this opcode.
+* csound: a pointer to the Csound engine object.
 * offset: the starting position of an audio vector (for audio opcodes).
 * nsmps: the size of an audio vector (also for audio opcodes only).
 * init(), kperf() and aperf() non-op methods, to be reimplemented as needed.
@@ -53,12 +53,6 @@ OPDS and has the following members:
 nsmps for sample-accurate behaviour. It takes an audio output vector
 as input and returns the updated nsmps value. This method should be
 called for each output in the case of multiple channels.
-* init_error(std::string s) to pass an init-time error with an
-accompanying message, returning an error code.
-* perf_error(std::string s) to pass a perf-time error with an
-accompanying message, returning an error code.
-* warning(std::string s) to display a warning message.
-* message(std::string s) to print a message to the console.
 
 The other base class in the CPOF is FPlugin, derived from Plugin, which
 provides an extra facility for fsig (streaming frequency-domain) plugins:
@@ -372,7 +366,7 @@ the string variable, as demonstrated in this example:
  */
 struct Tprint : csnd::Plugin<0,1> {
   int init() {
-    message(inargs.str_data(0).data);
+    csound->message(inargs.str_data(0).data);
     return OK;
   }
 };
@@ -448,11 +442,11 @@ struct PVGain : csnd::FPlugin<1, 2> {
 
   int init() {
     if (inargs.fsig_data(0).isSliding())
-      return init_error("sliding not supported");
+      return csound->init_error("sliding not supported");
     
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
-		return init_error("fsig format not supported");
+		return csound->init_error("fsig format not supported");
 		
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
