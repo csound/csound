@@ -41,20 +41,7 @@ enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
     sinusoidal tracks
 */
 enum fsig_format { pvs = 0, polar, complex, tracks };
-
-class Csound;
  
-/** 
-  @private 
-  opcode function template (deinit-time)
-*/
-template <typename T> int deinit(CSOUND *csound, void *pp) {
-  T *p = (T *) pp;
-  p->csound = (Csound *) csound;
-  return p->deinit();
-}
-
-
 /** Csound Engine object.
  */
 class Csound : CSOUND {
@@ -65,6 +52,16 @@ class Csound : CSOUND {
   friend class Fsig;
   friend class Table;
   template <typename T> friend class AuxMem;
+
+  /** 
+  @private 
+  opcode function template (deinit-time)
+   */
+  template <typename T> static int deinit(CSOUND *csound, void *pp) {
+    T *p = (T *) pp;
+    p->csound = (Csound *) csound;
+    return p->deinit();
+  }
   
 public:
   /** init-time error message
