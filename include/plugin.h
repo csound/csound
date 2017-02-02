@@ -42,6 +42,19 @@ enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
 */
 enum fsig_format { pvs = 0, polar, complex, tracks };
 
+class Csound;
+ 
+/** 
+  @private 
+  opcode function template (deinit-time)
+*/
+template <typename T> int deinit(CSOUND *csound, void *pp) {
+  T *p = (T *) pp;
+  p->csound = (Csound *) csound;
+  return p->deinit();
+}
+
+
 /** Csound Engine object.
  */
 class Csound : CSOUND {
@@ -142,6 +155,13 @@ public:
    */
   const INSDS *midi_chn_list() {
     return (const INSDS *)GetMidiChannel(this)->kinsptr;
+  }
+
+  /** deinit registration for a given plugin class
+   */
+  template<typename T>
+  void plugin_deinit(T *p) {
+    RegisterDeinitCallback(this,(void *) p, deinit<T>);                                        
   }
 
   /** FFT setup: real-to-complex and complex-to-real \n
@@ -592,7 +612,7 @@ template <typename T> int aperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   return p->aperf();
 }
-
+ 
 /** plugin registration function template
  */
 template <typename T>
