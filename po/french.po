@@ -6299,9 +6299,8 @@ msgid "bformdec1 output array not initilised"
 msgstr "tableau de sortie de bformdec1 non initialisé"
 
 #: Opcodes/arrayops.cpp:62
-#, fuzzy
 msgid "second input array is too short\n"
-msgstr "tableau d'entrée trop petit\n"
+msgstr "second tableau d'entrée trop petit\n"
 
 #: Opcodes/arrays.c:101
 msgid "Error: no sizes set for array initialization"
@@ -9049,14 +9048,12 @@ msgid "pvsgendy: not initialised"
 msgstr "pvsgendy : non initialisé"
 
 #: Opcodes/pvsops.cpp:32
-#, fuzzy
 msgid "sliding not supported"
-msgstr "xyin n'est pas supporté"
+msgstr "slidng non supporté"
 
 #: Opcodes/pvsops.cpp:36
-#, fuzzy
 msgid "fsig format not supported"
-msgstr "l'audio sur stdin n'est pas supporté"
+msgstr "format fsig non supporté"
 
 #: Opcodes/repluck.c:166
 #, c-format
