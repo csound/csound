@@ -387,44 +387,49 @@ Fsigs
 
 For streaming spectral processing opcodes, we have a
 different base class with extra facilities needed for their operation (FPlugin).
-Fsig variables are held in a PVSDAT data structure. To facilitate
-their manipulation, CPOF provides a wrapper class Fsig. This
-will give access to phase vocoder bins through the csnd::pvsbin
+In Csound, fsig variables are held in a PVSDAT data structure.
+
+To facilitate their manipulation, CPOF provides a wrapper class csnd::Fsig
+that holds the PVSDAT data. To access to phase vocoder bins,
+a container interface is provided by csnd::pv_frame (spv_frame for the
+sliding mode). This holds a series of csnd::pv_bin (spv_bin for sliding)
 objects, which have the following methods:
 
 * amp(): returns the bin amplitude.
 * freq(): returns the bin frequency.
 * amp(float a): sets the bin amplitude to a.
 * freq(float f): sets the bin frequency to f.
-* operator*(pvsbin f): multiply the amp of a pvs bin by f.amp.
+* operator*(pv_bin f): multiply the amp of a pvs bin by f.amp.
 * operator*(MYFLT f): multiply the bin amp by f
 * operator*=(): unary versions of the above.
 
-The pvsbin class can also be translated into a std::complex<float>
+The pv_bin class can also be translated into a std::complex<float>
 object if needed. This class is also fully compatible the C complex
 type and an object obj can be cast into a float array consisting of two items
 (or a float pointer), using reinterpret_cast\<float (&)[2]\>(obj) or
 reinterpret_cast\<float \*\>(&obj)
 
-The Fsig class has the following members:
+The Fsig class has the following methods:
 
 * init(): initialisation from individual parameters or from an
 existing fsig. Also allocates frame memory as needed.
-* operator[] : array-subscript access to the spectral frame
-  (csnd::pvsbin)
-* data(): returns a pointer to the spectral frame data (csnd::pvsbin *).
-* len(): returns the length of the frame.
-* begin() and end(): return iterators to the beginning and end of
-the data frame (undefined behaviour for sliding mode).
-* iterator and const_iterator: iterator types for this class.
-* data_sliding(): returns a pointer to the spectral frame data for
-sliding analysis mode (as a csnd::sldcmplx \*, same as std::complex\<MYFLT\>\*).
+* dft_size(), hop_size(), win_size(), win_type() and nbins(), returning the
+PV data parameters.
 * count(): get and set fsig framecount.
 * isSliding(): checks for sliding mode.
 * fsig_format(): returns the fsig data format (csnd::fsig_format::pvs,
 csnd::fsig_format::polar, csnd::fsig_format::complex, or
-csnd::fsig_format::tracks). Only the first three formats are supported
-by CPOF.
+csnd::fsig_format::tracks). 
+
+The pv_frame (or spv_frame) class contains the following
+methods:
+
+* operator[] : array-subscript access to the spectral frame
+* data(): returns a pointer to the spectral frame data.
+* len(): returns the length of the frame.
+* begin() and end(): return iterators to the beginning and end of
+the data frame.
+* iterator and const_iterator: iterator types for this class.
 
 Fsig opcodes run at k-rate but will internally use an update rate based
 on the analysis hopsize. For this to work, a framecount is kept and
@@ -456,14 +461,14 @@ struct PVGain : csnd::FPlugin<1, 2> {
   }
 
   int kperf() {
-    csnd::Fsig &fin = inargs.fsig_data(0);
-    csnd::Fsig &fout = outargs.fsig_data(0);
+    csnd::pv_frame &fin = inargs.fsig_data(0);
+    csnd::pv_frame &fout = outargs.fsig_data(0);
     uint32_t i;
 
     if (framecount < fin.count()) {
       MYFLT g = inargs[1];
       std::transform(fin.begin(), fin.end(), fout.begin(),
-		    [g](csnd::pvsbin f){ return f *= g; });
+		    [g](csnd::pv_bin f){ return f *= g; });
       framecount = fout.count(fin.count());
     }
     return OK;
@@ -472,7 +477,8 @@ struct PVGain : csnd::FPlugin<1, 2> {
 ```
 
 Note that, as with strings, there is a dedicated method in the arguments
-object that returns a ref to an Fsig class. This is used to initialise the
+object that returns a ref to an Fsig class (which can also be assigned
+to a pv_frame ref). This is used to initialise the
 output object at i-time and then to obtain the input and output
 variable data Csound processing. The framecount member is provided
 by the base class, as well as the format check methods. This opcode
