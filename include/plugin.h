@@ -54,13 +54,11 @@ class Csound : CSOUND {
   template <typename T> friend class AuxMem;
 
   /** 
-  @private 
-  opcode function template (deinit-time)
+    @private 
+    opcode function template (deinit-time)
    */
-  template <typename T> static int deinit(CSOUND *csound, void *pp) {
-    T *p = (T *) pp;
-    p->csound = (Csound *) csound;
-    return p->deinit();
+  template <typename T> static int deinit(CSOUND *csound, void *p) {
+    return ((T *) p)->deinit();
   }
   
 public:
