@@ -35,7 +35,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
       return csound->init_error(Str("fsig format not supported"));
 
-    amps.allocate(csound, inargs.fsig_data(0).len());
+    amps.allocate(csound, inargs.fsig_data(0).nbins());
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
     framecount = 0;
@@ -43,19 +43,19 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   }
 
   int kperf() {
-    csnd::Fsig &fin = inargs.fsig_data(0);
-    csnd::Fsig &fout = outargs.fsig_data(0);
+    csnd::pv_data &fin = inargs.fsig_data(0);
+    csnd::pv_data &fout = outargs.fsig_data(0);
 
     if (framecount < fin.count()) {
       int n =  fin.len() - (int) inargs[1];
       float thrsh;
       std::transform(fin.begin(), fin.end(), amps.begin(),
-                     [](csnd::pvsbin f){ return f.amp(); });
+                     [](csnd::pv_bin f){ return f.amp(); });
       std::nth_element(amps.begin(), amps.begin()+n, amps.end());
       thrsh = amps[n];
       std::transform(fin.begin(), fin.end(), fout.begin(),
-                     [thrsh](csnd::pvsbin f){
-                       return f.amp() >= thrsh ? f : csnd::pvsbin(); });
+                     [thrsh](csnd::pv_bin f){
+                       return f.amp() >= thrsh ? f : csnd::pv_bin(); });
       framecount = fout.count(fin.count());
     }
     return OK;

@@ -41,11 +41,11 @@ enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
     sinusoidal tracks
 */
 enum fsig_format { pvs = 0, polar, complex, tracks };
- 
+
 /** Csound Engine object.
  */
 class Csound : CSOUND {
-  
+
   /** Utility classes
    */
   template <typename T> friend class Vector;
@@ -53,14 +53,14 @@ class Csound : CSOUND {
   friend class Table;
   template <typename T> friend class AuxMem;
 
-  /** 
-    @private 
+  /**
+    @private
     opcode function template (deinit-time)
    */
   template <typename T> static int deinit(CSOUND *csound, void *p) {
-    return ((T *) p)->deinit();
+    return ((T *)p)->deinit();
   }
-  
+
 public:
   /** init-time error message
    */
@@ -154,9 +154,8 @@ public:
 
   /** deinit registration for a given plugin class
    */
-  template<typename T>
-  void plugin_deinit(T *p) {
-    RegisterDeinitCallback(this,(void *) p, deinit<T>);                                        
+  template <typename T> void plugin_deinit(T *p) {
+    RegisterDeinitCallback(this, (void *)p, deinit<T>);
   }
 
   /** FFT setup: real-to-complex and complex-to-real \n
@@ -181,6 +180,7 @@ public:
     template class
  */
 template <typename T> class Vector : ARRAYDAT {
+
 public:
   /** Initialise the container
    */
@@ -202,6 +202,7 @@ public:
       sizes[0] = size;
     }
   }
+
   /** iterator type
    */
   typedef T *iterator;
@@ -238,39 +239,36 @@ public:
 typedef std::complex<float> pvscmplx;
 typedef std::complex<MYFLT> sldcmplx;
 
-/** pvsbin translation class for fsig_format::pvs. \n
-    Holds a phase vocoder bin, and
-    also allows alternative access via a std::complex
-    implicit or explicit cast.
+/** PvBin holds one Phase Vocoder bin
  */
-class pvsbin {
-  float am;
-  float fr;
+template <typename T> class PvBin {
+  T am;
+  T fr;
 
 public:
   /** constructor
    */
-  pvsbin() : am(0.f), fr(0.f){};
+  PvBin() : am((T)0), fr((T)0){};
 
   /** access amplitude
    */
-  float amp() { return am; }
+  T amp() { return am; }
 
   /** access frequency
    */
-  float freq() { return fr; }
+  T freq() { return fr; }
 
   /** set amplitude
    */
-  void amp(float a) { am = a; }
+  T amp(float a) { am = a; }
 
   /** set frequency
    */
-  void freq(float f) { fr = f; }
+  T freq(float f) { fr = f; }
 
   /** multiplication (unary)
    */
-  const pvsbin &operator*=(const pvsbin &bin) {
+  const PvBin &operator*=(const PvBin &bin) {
     am *= bin.am;
     fr = bin.fr;
     return *this;
@@ -278,41 +276,54 @@ public:
 
   /** multiplication (binary)
    */
-  pvsbin operator*(const pvsbin &a) {
-    pvsbin res = *this;
+  PvBin operator*(const PvBin &a) {
+    PvBin res = *this;
     return (res *= a);
   }
 
   /** multiplication by MYFLT (unary)
    */
-  const pvsbin &operator*=(MYFLT f) {
+  const PvBin &operator*=(MYFLT f) {
     am *= f;
     return *this;
   }
 
   /** multiplication by MYFLT (binary)
    */
-  pvsbin operator*(MYFLT f) {
-    pvsbin res = *this;
+  PvBin operator*(MYFLT f) {
+    PvBin res = *this;
     return (res *= f);
   }
 
-  /** cast to std::complex<float>&
+  /** cast to std::complex<T>&
    */
-  operator pvscmplx &() {
-    return (pvscmplx &)reinterpret_cast<float(&)[2]>(*this);
-  }
+  operator pvscmplx &() { return (pvscmplx &)reinterpret_cast<T(&)[2]>(*this); }
 
-  /** cast to std::complex<float>*
+  /** cast to std::complex<T>*
    */
-  operator pvscmplx *() { return (pvscmplx *)reinterpret_cast<float *>(this); }
+  operator pvscmplx *() { return (pvscmplx *)reinterpret_cast<T *>(this); }
 };
 
-/** fsig container class
+/** Phase Vocoder bin */
+typedef PvBin<float> pv_bin;
+
+/** Sliding Phase Vocoder bin */
+typedef PvBin<MYFLT> spv_bin;
+
+template <typename T> class Pvs;
+
+/** Phase Vocoder frame */
+typedef Pvs<pv_bin> pv_frame;
+
+/** Sliding Phase Vocoder frame */
+typedef Pvs<spv_bin> spv_frame;
+
+/** fsig base class, holds PVSDAT data
  */
-class Fsig : PVSDAT {
+class Fsig : protected PVSDAT {
 public:
-  /** initialise the container
+  /** initialise the object, allocating memory
+      if necessary.
    */
   void init(Csound *csound, int32_t n, int32_t h, int32_t w, int32_t t,
             int32_t f, int32_t nb = 0, int32_t sl = 0, uint32_t nsmps = 1) {
@@ -341,45 +352,27 @@ public:
          f.sliding, nsmps);
   }
 
-  /** iterator type
-  */
-  typedef pvsbin *iterator;
-
-  /** const_iterator type
-  */
-  typedef const pvsbin *const_iterator;
-
-  /** returns an iterator to the
-      beginning of the frame
+  /** get the DFT size
    */
-  iterator begin() { return (pvsbin *)frame.auxp; }
+  uint32_t dft_size() { return N; }
 
-  /** returns an iterator to the
-       end of the frame
-    */
-  iterator end() { return (pvsbin *)frame.auxp + N / 2 + 1; }
-
-  /** array subscript access operator (write)
+  /** get the analysis hop size
    */
-  pvsbin &operator[](int n) { return ((pvsbin *)frame.auxp)[n]; }
+  uint32_t hop_size() { return overlap; }
 
-  /** array subscript access operator (read)
+  /** get the analysis window size
    */
-  const pvsbin &operator[](int n) const { return ((pvsbin *)frame.auxp)[n]; }
+  uint32_t win_size() { return winsize; }
 
-  /** function table data pointer
+  /** get the window type
    */
-  pvsbin *data() const { return (pvsbin *)frame.auxp; }
+  int32_t win_type() { return wintype; }
 
-  /** function table data pointer (sliding case)
+  /** get the number of bins
    */
-  sldcmplx *data_sliding() const { return (sldcmplx *)frame.auxp; }
+  uint32_t nbins() { return N / 2 + 1; }
 
-  /** frame length
-   */
-  uint32_t len() { return N / 2 + 1; }
-
-  /** get framecount
+  /** get the framecount
    */
   uint32_t count() const { return framecount; }
 
@@ -394,6 +387,55 @@ public:
   /** get fsig data format
    */
   int fsig_format() { return format; }
+
+  /** convert to pv_frame ref
+   */
+  operator pv_frame &() { return reinterpret_cast<pv_frame &>(*this); }
+
+  /** convert to spv_frame ref
+   */
+  operator spv_frame &() { return reinterpret_cast<spv_frame &>(*this); }
+};
+
+/**  Container class for a Phase Vocoder
+     analysis frame
+*/
+template <typename T> class Pvs : public Fsig {
+
+public:
+  /** iterator type
+  */
+  typedef T *iterator;
+
+  /** const_iterator type
+  */
+  typedef const T *const_iterator;
+
+  /** returns an iterator to the
+      beginning of the frame
+   */
+  iterator begin() { return (T *)frame.auxp; }
+
+  /** returns an iterator to the
+       end of the frame
+    */
+  iterator end() { return (T *)frame.auxp + N / 2 + 1; }
+
+  /** array subscript access operator (write)
+   */
+  T &operator[](int n) { return ((T *)frame.auxp)[n]; }
+
+  /** array subscript access operator (read)
+   */
+  const T &operator[](int n) const { return ((T *)frame.auxp)[n]; }
+
+  /** frame data pointer
+   */
+  T *data() const { return (T *)frame.auxp; }
+
+  /** return the container length
+   */
+  uint32_t len() { return nbins(); }
 };
 
 /** function table container class
@@ -546,9 +588,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
 
   /** i-time function placeholder
    */
-  int init() {
-    return OK;
-  }
+  int init() { return OK; }
 
   /** k-rate function placeholder
    */
@@ -581,8 +621,8 @@ template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N, M> {
   uint32_t framecount;
 };
 
-/** 
-  @private 
+/**
+  @private
   opcode thread function template (i-time)
 */
 template <typename T> int init(CSOUND *csound, T *p) {
@@ -591,7 +631,7 @@ template <typename T> int init(CSOUND *csound, T *p) {
 }
 
 /**
-   @private  
+   @private
    opcode thread function template (k-rate)
 */
 template <typename T> int kperf(CSOUND *csound, T *p) {
@@ -599,15 +639,15 @@ template <typename T> int kperf(CSOUND *csound, T *p) {
   return p->kperf();
 }
 
-/** 
-  @private 
+/**
+  @private
   opcode thread function template (a-rate)
 */
 template <typename T> int aperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   return p->aperf();
 }
- 
+
 /** plugin registration function template
  */
 template <typename T>

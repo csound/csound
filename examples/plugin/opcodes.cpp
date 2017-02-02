@@ -22,8 +22,8 @@
   02111-1307 USA
 
 */
-#include <plugin.h>
 #include <iostream>
+#include <plugin.h>
 
 /** i-time plugin opcode example
     with 1 output and 1 input \n
@@ -54,28 +54,35 @@ struct Simplek : csnd::Plugin<1, 1> {
 struct Simplea : csnd::Plugin<1, 1> {
   int aperf() {
     nsmps = insdshead->ksmps;
-    std::copy(inargs.data(0), inargs.data(0) + nsmps,
-              outargs.data(0));
+    std::copy(inargs.data(0), inargs.data(0) + nsmps, outargs.data(0));
     return OK;
   }
 };
 
 /** k-rate numeric array example
     with 1 output and 1 input \n
-    kout[] simple kin[]
+    kout[] simple kin[] \n\n
+    with a minimal deinit example
  */
 struct SimpleArray : csnd::Plugin<1, 1> {
   int init() {
-    csnd::Vector<MYFLT> &out =  outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
-    out.init(csound,in.len());
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    out.init(csound, in.len());
+    csound->plugin_deinit(this);
     return OK;
   }
-  
-  int kperf() {    
+
+  int deinit() {
+    /** nothing to do, just announce itself */
+    csound->message("deinit called");
+    return OK;
+  }
+
+  int kperf() {
     csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
-    std::copy(in.begin(), in.end(), out.begin());   
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    std::copy(in.begin(), in.end(), out.begin());
     return OK;
   }
 };
@@ -90,7 +97,6 @@ struct Tprint : csnd::Plugin<0, 1> {
     return OK;
   }
 };
-
 
 /** a-rate plugin opcode example: delay line
     with 1 output and 2 inputs (a,i) \n
@@ -115,7 +121,7 @@ struct DelayLine : csnd::Plugin<1, 2> {
       if (iter == delay.end())
         iter = delay.begin();
       out[i] = *iter;
-     *iter = in[i];     
+      *iter = in[i];
     }
     return OK;
   }
@@ -162,11 +168,11 @@ struct Oscillator : csnd::Plugin<1, 3> {
 struct PVGain : csnd::FPlugin<1, 2> {
   static constexpr char const *otypes = "f";
   static constexpr char const *itypes = "fk";
-  
+
   int init() {
     if (inargs.fsig_data(0).isSliding())
       return csound->init_error("sliding not supported");
-    
+
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
       return csound->init_error("fsig format not supported");
@@ -178,19 +184,18 @@ struct PVGain : csnd::FPlugin<1, 2> {
   }
 
   int kperf() {
-    csnd::Fsig &fin = inargs.fsig_data(0);
-    csnd::Fsig &fout = outargs.fsig_data(0);
+    csnd::pv_data &fin = inargs.fsig_data(0);
+    csnd::pv_data &fout = outargs.fsig_data(0);
 
     if (framecount < fin.count()) {
       MYFLT g = inargs[1];
       std::transform(fin.begin(), fin.end(), fout.begin(),
-		     [g](csnd::pvsbin f){ return f *= g; });
+                     [g](csnd::pv_bin f) { return f *= g; });
       framecount = fout.count(fin.count());
     }
     return OK;
   }
 };
-
 
 /** Module creation, initalisation and destruction
  */
