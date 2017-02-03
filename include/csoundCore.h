@@ -1459,6 +1459,7 @@ typedef struct NAME__ {
     char          **strsets;
     MYFLT         *spin;
     MYFLT         *spout;
+    MYFLT         *spraw;
     int           nspin;
     int           nspout;
     MYFLT         *auxspin;
