@@ -605,16 +605,17 @@ static const CSOUND cenviron_ = {
     NULL,           /*  csRandState         */
     NULL,           /*  csRtClock           */
     // 16384,            /*  strVarMaxLen        */
-       0,              /*  strsmax             */
+    0,              /*  strsmax             */
     (char**) NULL,  /*  strsets             */
     NULL,           /*  spin                */
     NULL,           /*  spout               */
+    NULL,           /*  spraw               */
     0,              /*  nspin               */
     0,              /*  nspout              */
-    NULL,           /*  auxspin  */
+    NULL,           /*  auxspin             */
     (OPARMS*) NULL, /*  oparms              */
     { NULL },       /*  m_chnbp             */
-    0,                      /*   dither_output  */
+    0,              /*   dither_output      */
     FL(0.0),        /*  onedsr              */
     FL(0.0),        /*  sicvt               */
     FL(-1.0),       /*  tpidsr              */
@@ -1459,6 +1460,24 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     }
     return played_count;
 }
+inline static void make_interleave(CSOUND *csound)
+{
+    uint32_t nsmps = csound->ksmps, i, j, k=0;
+    MYFLT *spout = csound->spout;
+
+    if (!csound->spoutactive) {
+      memset(spout, '\0', csound->nspout);
+    }
+    else {
+      for (j=0; j<nsmps; j++) {
+        for (i=0; i<csound->nchnls; i++) {
+          spout[k + i] += csound->spraw[i+csound->nchnls*j];
+        }
+        k += csound->nchnls;
+      }
+    }
+}
+
 
 unsigned long kperfThread(void * cs)
 {
@@ -1535,6 +1554,7 @@ int kperf_nodebug(CSOUND *csound)
     csound->spoutactive = 0;            /*   make spout inactive   */
     /* clear spout */
     memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
+    memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
     ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
@@ -1632,7 +1652,9 @@ int kperf_nodebug(CSOUND *csound)
 
     if (!csound->spoutactive) { /* results now in spout? */
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
+      memset(csound->spraw, 0, csound->nspout * sizeof(MYFLT));
     }
+    make_interleave(csound);
     csound->spoutran(csound); /* send to audio_out */
     //#ifdef ANDROID
     //struct timespec ts;
@@ -1759,6 +1781,7 @@ int kperf_debug(CSOUND *csound)
       csound->spoutactive = 0;            /*   make spout inactive   */
       /* clear spout */
       memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
+      memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
     }
 
     ip = csound->actanchor.nxtact;
@@ -1912,7 +1935,10 @@ int kperf_debug(CSOUND *csound)
     {
     if (!csound->spoutactive) {             /*   results now in spout? */
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
+      memset(csound->spraw, 0, csound->nspout * sizeof(MYFLT));
     }
+    else
+      make_interleave(csound);
     csound->spoutran(csound);               /*      send to audio_out  */
     }
     return 0;
@@ -2182,7 +2208,7 @@ PUBLIC const char *csoundGetOutputName(CSOUND *csound)
 /**
  * Calling this function with a non-zero will disable all default
  * handling of sound I/O by the Csound library, allowing the host
- * application to use the spin/spout/input/output buffers directly.
+ * application to use the spin/<spout/input/output buffers directly.
  * If 'bufSize' is greater than zero, the buffer size (-b) will be
  * set to the integer multiple of ksmps that is nearest to the value
  * specified.
