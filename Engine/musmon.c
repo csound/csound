@@ -206,6 +206,7 @@ int musmon(CSOUND *csound)
     csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
     csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin * sizeof(MYFLT));
+    csound->spraw = (MYFLT *) csound->Calloc(csound, csound->nspout * sizeof(MYFLT));
     csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout * sizeof(MYFLT));
     csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin *sizeof(MYFLT));
     /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */

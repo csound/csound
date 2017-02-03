@@ -1901,33 +1901,26 @@ int outq4(CSOUND *csound, OUTM *p)
 inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t nsmps =CS_KSMPS,  i, j, k=0;
-    MYFLT *spout = CS_SPOUT;
+    MYFLT *spout = csound->spraw;
     if (csound->oparms->sampleAccurate) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
 
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
-
-        for (j=0; j<nsmps; j++) {
-          for (i=0; i<n; i++) {
-            spout[k + i] = (j<offset||j>early) ? FL(0.0) : p->asig[i][j];
-          }
-          for ( ; i < csound->nchnls; i++) {
-            spout[k + i] = FL(0.0);
-          }
+        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
+        for (i=0; i<n; i++) {
+          memcpy(&spout[k+offset], p->asig[i]+offset, (early-offset)*sizeof(MYFLT));
           k += csound->nchnls;
         }
         csound->spoutactive = 1;
       }
       else {
-        //if(offset) printf("offset = %d, %d nsmps\n", offset, nsmps);
-        // no need to offset as the data is already offset in the asig
-        for (j=0; j<early; j++) {
-          for (i=0; i<n; i++) {
-            spout[k + i] += p->asig[i][j];
+        for (i=0; i<n; i++) {
+          for (j=offset; j<early; j++) {
+            spout[k + j] += p->asig[i][j];
           }
-          k += csound->nchnls;
+          k += nsmps;
         }
       }
       CSOUND_SPOUT_SPINUNLOCK
@@ -1936,23 +1929,21 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
       CSOUND_SPOUT_SPINLOCK
 
       if (!csound->spoutactive) {
-        for (j=0; j<nsmps; j++) {
-          for (i=0; i<n; i++) {
+        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
+        for (i=0; i<n; i++) {
+          for (j=0; j<nsmps; j++) {
             spout[k + i] = p->asig[i][j];
           }
-          for ( ; i < csound->nchnls; i++) {
-            spout[k + i] = FL(0.0);
-          }
-          k += csound->nchnls;
+          k += nsmps;
         }
         csound->spoutactive = 1;
       }
       else {
-        for (j=0; j<nsmps; j++) {
-          for (i=0; i<n; i++) {
+        for (i=0; i<n; i++) {
+          for (j=0; j<nsmps; j++) {
             spout[k + i] += p->asig[i][j];
           }
-          k += csound->nchnls;
+          k += nsmps;
         }
       }
       CSOUND_SPOUT_SPINUNLOCK
