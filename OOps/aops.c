@@ -1902,41 +1902,40 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t nsmps =CS_KSMPS,  i, j, k=0;
     MYFLT *spout = csound->spraw;
-    /* if (csound->oparms->sampleAccurate) { */
-    /*   uint32_t offset = p->h.insdshead->ksmps_offset; */
-    /*   uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end; */
+    if (csound->oparms->sampleAccurate) {
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
 
-    /*   CSOUND_SPOUT_SPINLOCK */
-    /*   if (!csound->spoutactive) { */
-    /*     memset(spout, '\0', csound->nspout*sizeof(MYFLT)); */
-    /*     for (i=0; i<n; i++) { */
-    /*       memcpy(&spout[k+offset], p->asig[i]+offset, (early-offset)*sizeof(MYFLT)); */
-    /*       k += csound->nchnls; */
-    /*     } */
-    /*     csound->spoutactive = 1; */
-    /*   } */
-    /*   else { */
-    /*     for (i=0; i<n; i++) { */
-    /*       for (j=offset; j<early; j++) { */
-    /*         spout[k + j] += p->asig[i][j]; */
-    /*       } */
-    /*       k += nsmps; */
-    /*     } */
-    /*   } */
-    /*   CSOUND_SPOUT_SPINUNLOCK */
-    /* } */
-    /* else { */
+      CSOUND_SPOUT_SPINLOCK
+      if (!csound->spoutactive) {
+        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
+        for (i=0; i<n; i++) {
+          memcpy(&spout[k+offset], p->asig[i]+offset, (early-offset)*sizeof(MYFLT));
+          k += nsmps;
+        }
+        csound->spoutactive = 1;
+      }
+      else {
+        for (i=0; i<n; i++) {
+          for (j=offset; j<early; j++) {
+            spout[k + j] += p->asig[i][j];
+          }
+          k += nsmps;
+        }
+      }
+      CSOUND_SPOUT_SPINUNLOCK
+    }
+    else {
       CSOUND_SPOUT_SPINLOCK
 
       if (!csound->spoutactive) {
-        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
-        printf("n=%d\n", n);
         for (i=0; i<n; i++) {
-          for (j=0; j<nsmps; j++) {
-            printf("k+j=%d\n", k+j);
-            spout[k + j] = p->asig[i][j];
-          }
+          memcpy(&spout[k], p->asig[i], nsmps*sizeof(MYFLT));
           k += nsmps;
+        }
+        if (csound->nchnls>n+1) {
+          printf("nchnks, n = %d,%d\n", csound->nchnls, n);
+          memset(&spout[k], '\0', (nsmps*(csound->nchnls-n))*sizeof(MYFLT));
         }
         csound->spoutactive = 1;
       }
@@ -1949,7 +1948,7 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
         }
       }
       CSOUND_SPOUT_SPINUNLOCK
-    /* } */
+    }
     return OK;
 }
 

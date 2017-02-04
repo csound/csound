@@ -1460,18 +1460,19 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     }
     return played_count;
 }
+
 inline static void make_interleave(CSOUND *csound)
 {
     uint32_t nsmps = csound->ksmps, i, j, k=0;
     MYFLT *spout = csound->spout;
 
     if (!csound->spoutactive) {
-      memset(spout, '\0', csound->nspout);
+      memset(spout, '\0', csound->nspout*sizeof(MYFLT));
     }
     else {
       for (j=0; j<nsmps; j++) {
         for (i=0; i<csound->nchnls; i++) {
-          spout[k + i] += csound->spraw[i+csound->nchnls*j];
+          spout[k + i] += csound->spraw[i*nsmps+j];
         }
         k += csound->nchnls;
       }
