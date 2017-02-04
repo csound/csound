@@ -1716,22 +1716,26 @@ int inall_opcode(CSOUND *csound, INALL *p)
 
 int outs1(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp= CS_SPOUT, *ap1= p->asig;
+    MYFLT       *sp= csound->spraw, *ap1= p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t nsmps =CS_KSMPS,  n, m;
+    uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
 
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
-      for (n=0, m=0; n<nsmps; n++) {
-        sp[m++] = (n<offset || n>early) ? FL(0.0) : ap1[n];
-        sp[m++] = FL(0.0);
-      }
+      if (offset) memset(sp, '\0', offset*sizeof(MYFLT));
+      memcpy(&sp[offset], &ap1[offset], (early-offset)*sizeof(MYFLT));
+      if (early!=nsmps) memset(&sp[early], '\0', (nsmps-early)*sizeof(MYFLT));
+      /* for (n=0; n<nsmps; n++) { */
+      /*   sp[n] = (n<offset || n>early) ? FL(0.0) : ap1[n]; */
+      /* } */
+      if (csound->nchnls>1)
+        memset(&sp[nsmps], '\0', nsmps*(csound->nchnls-1)*sizeof(MYFLT));
       csound->spoutactive = 1;
     }
     else {
-      for (n=0, m=0; n<early; n++, m+=2) {
-        if (n>=offset) sp[m]   += ap1[n];
+      for (n=0; n<early; n++) {
+        if (n>=offset) sp[n]   += ap1[n];
       }
     }
     CSOUND_SPOUT_SPINUNLOCK
@@ -1749,99 +1753,25 @@ int och4(CSOUND *csound, OUTM *p) { OUTCN(4) }
 
 int outs2(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = CS_SPOUT, *ap2 = p->asig;
+    MYFLT       *sp = csound->spraw, *ap2 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t nsmps =CS_KSMPS,  n, m;
+    uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
 
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
-      for (n=0, m=0; n<nsmps; n++) {
-        sp[m++] = FL(0.0);
-        sp[m++] = (n<offset||n>early) ? FL(0.0) : ap2[n];
-      }
+      memset(sp, '\0', nsmps*sizeof(MYFLT));
+      sp +=nsmps;
+      if (offset) memset(sp, '\0', offset*sizeof(MYFLT));
+      memcpy(&sp[offset], &ap2[offset], (early-offset)*sizeof(MYFLT));
+      if (early!=nsmps) memset(&sp[early], '\0', (nsmps-early)*sizeof(MYFLT));
+      if (csound->nchnls>2)
+        memset(&sp[nsmps], '\0', (csound->nchnls-2)*sizeof(MYFLT));
       csound->spoutactive = 1;
     }
     else {
-      for (n=0, m=1; n<early; n++, m+=2) {
-        if (n>=offset) sp[m] += ap2[n];
-      }
-    }
-    CSOUND_SPOUT_SPINUNLOCK
-    return OK;
-}
-
-/* int outs12(CSOUND *csound, OUTM *p) */
-/* { */
-/*     MYFLT       *sp = CS_SPOUT, *ap = p->asig; */
-/*     uint32_t offset = p->h.insdshead->ksmps_offset; */
-/*     uint32_t nsmps =CS_KSMPS,  n, m; */
-/*     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end; */
-/*     CSOUND_SPOUT_SPINLOCK */
-
-/*     if (!csound->spoutactive) { */
-/*       for (n=0, m=0; n<nsmps; n++, m+=2) { */
-/*         sp[m] = sp[m+1] = (n<offset||n>early) ? FL(0.0) : ap[n]; */
-/*       } */
-/*       csound->spoutactive = 1; */
-/*     } */
-/*     else { */
-/*       for (n=0, m=0; n<early; n++) { */
-/*         if (n<offset) m+=2; */
-/*         else { */
-/*           sp[m++] += ap[n]; */
-/*           sp[m++] += ap[n]; */
-/*         } */
-/*       } */
-/*     } */
-/*     CSOUND_SPOUT_SPINUNLOCK */
-/*     return OK; */
-/* } */
-
-int outq1(CSOUND *csound, OUTM *p)
-{
-    MYFLT       *sp = CS_SPOUT, *ap1 = p->asig;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t nsmps =CS_KSMPS,  n, m;
-    uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
-    CSOUND_SPOUT_SPINLOCK
-    if (!csound->spoutactive) {
-      for (n=0, m=0; n<nsmps; n++, m+=4) {
-        sp[m]   = (n<offset||n>early) ? FL(0.0) : ap1[n];
-        sp[m+1] = FL(0.0);
-        sp[m+2] = FL(0.0);
-        sp[m+3] = FL(0.0);
-      }
-      csound->spoutactive = 1;
-    }
-    else {
-      for (n=0, m=0; n<early; n++, m+=4) {
-        if (n>=offset) sp[m]   += ap1[n];
-      }
-    }
-    CSOUND_SPOUT_SPINUNLOCK
-    return OK;
-}
-
-int outq2(CSOUND *csound, OUTM *p)
-{
-    MYFLT       *sp = CS_SPOUT, *ap2 = p->asig;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t nsmps =CS_KSMPS,  n, m;
-    uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
-    CSOUND_SPOUT_SPINLOCK
-    if (!csound->spoutactive) {
-      for (n=0, m=0; n<nsmps; n++, m+=4) {
-        sp[m]   = FL(0.0);
-        sp[m+1] = (n<offset||n>early) ? FL(0.0) : ap2[n];
-        sp[m+2] = FL(0.0);
-        sp[m+3] = FL(0.0);
-      }
-      csound->spoutactive = 1;
-    }
-    else {
-      for (n=0, m=1; n<early; n++, m+=4) {
-        if (n>=offset) sp[m]   += ap2[n];
+      for (n=offset; n<early; n++) {
+        sp[n] += ap2[n];
       }
     }
     CSOUND_SPOUT_SPINUNLOCK
