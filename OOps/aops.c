@@ -1780,23 +1780,25 @@ int outs2(CSOUND *csound, OUTM *p)
 
 int outq3(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = CS_SPOUT, *ap3 = p->asig;
+    MYFLT       *sp = csound->spraw, *ap3 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t nsmps =CS_KSMPS,  n, m;
+    uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
-      for (n=0, m=0; n<nsmps; n++, m+=4) {
-        sp[m]   = FL(0.0);
-        sp[m+1] = FL(0.0);
-        sp[m+2] = (n<offset||n>early) ? FL(0.0) : ap3[n];
-        sp[m+3] = FL(0.0);
-      }
+       memset(sp, '\0', 2*nsmps*sizeof(MYFLT));
+      sp += 2*nsmps;
+      if (offset) memset(sp, '\0', offset*sizeof(MYFLT));
+      memcpy(&sp[offset], &ap3[offset], (early-offset)*sizeof(MYFLT));
+      if (early!=nsmps) memset(&sp[early], '\0', (nsmps-early)*sizeof(MYFLT));
+      if (csound->nchnls>3)
+        memset(&sp[nsmps], '\0', (csound->nchnls-3)*sizeof(MYFLT));
       csound->spoutactive = 1;
     }
     else {
-      for (n=0, m=2; n<early; n++, m+=4) {
-        if (n>=offset) sp[m]   += ap3[n];
+      sp += 2*nsmps;
+      for (n=offset; n<early; n++) {
+        sp[n]   += ap3[n];
       }
     }
     CSOUND_SPOUT_SPINUNLOCK
@@ -1805,23 +1807,25 @@ int outq3(CSOUND *csound, OUTM *p)
 
 int outq4(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = CS_SPOUT, *ap4 = p->asig;
+    MYFLT       *sp = csound->spraw, *ap4 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t nsmps =CS_KSMPS,  n, m;
+    uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
-      for (n=0, m=0; n<nsmps; n++, m+=4) {
-        sp[m]   = FL(0.0);
-        sp[m+1] = FL(0.0);
-        sp[m+2] = FL(0.0);
-        sp[m+3] = (n<offset||n>early) ? FL(0.0) : ap4[n];
-      }
+        memset(sp, '\0', 3*nsmps*sizeof(MYFLT));
+      sp += 3*nsmps;
+      if (offset) memset(sp, '\0', offset*sizeof(MYFLT));
+      memcpy(&sp[offset], &ap4[offset], (early-offset)*sizeof(MYFLT));
+      if (early!=nsmps) memset(&sp[early], '\0', (nsmps-early)*sizeof(MYFLT));
+      if (csound->nchnls>4)
+        memset(&sp[nsmps], '\0', (csound->nchnls-4)*sizeof(MYFLT));
       csound->spoutactive = 1;
     }
     else {
-      for (n=0, m=3; n<early; n++, m+=4) {
-        if (n>=offset) sp[m]   += ap4[n];
+      sp += 3*nsmps;
+      for (n=offset; n<early; n++) {
+        sp[n]   += ap4[n];
       }
     }
     CSOUND_SPOUT_SPINUNLOCK
@@ -1898,60 +1902,46 @@ int outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
 
 int outarr(CSOUND *csound, OUTARRAY *p)
 {
-    uint32_t nsmps =CS_KSMPS,  i, j, k=0;
+    uint32_t nsmps =CS_KSMPS,  i, j;
     uint32_t ksmps = nsmps;
     uint32_t n = p->tabin->sizes[0];
     MYFLT *data = p->tabin->data;
-    MYFLT *spout = CS_SPOUT;
+    MYFLT *spout = csound->spraw;
     if (csound->oparms->sampleAccurate) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
 
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
-        for (j=0; j<nsmps; j++) {
-          for (i=0; i<n; i++) {
-            spout[k + i] = (j<offset||j>early) ? FL(0.0) : data[j+i*ksmps];
+        memset(spout, '\0', nsmps*csound->nchnls*sizeof(MYFLT)); 
+        for (i=0; i<n; i++) {
+          for (j=offset; j<early; j++) {
+            spout[j+i*ksmps] = data[j+i*ksmps];
           }
-          for ( ; i < csound->nchnls; i++) {
-            spout[k + i] = FL(0.0);
-          }
-          k += csound->nchnls;
         }
         csound->spoutactive = 1;
       }
       else {
         /* no need to offset data is already offset in the buffer*/
-        for (j=0; j<early; j++) {
-          for (i=0; i<n; i++) {
-            spout[k + i] += data[j+i*ksmps];
+        for (i=0; i<n; i++) {
+          for (j=offset; j<early; j++) {
+            spout[j+i*ksmps] += data[j+i*ksmps];
           }
-          k += csound->nchnls;
         }
       }
       CSOUND_SPOUT_SPINUNLOCK
     }
     else {
       CSOUND_SPOUT_SPINLOCK
-
       if (!csound->spoutactive) {
-        for (j=0; j<nsmps; j++) {
-          for (i=0; i<n; i++) {
-            spout[k + i] = data[j+i*ksmps];
-          }
-          for ( ; i < csound->nchnls; i++) {
-            spout[k + i] = FL(0.0);
-          }
-          k += csound->nchnls;
-        }
+        memcpy(spout, data, n*ksmps*sizeof(MYFLT));
+        if (csound->nchnls!=n)
+          memset(&spout[n*ksmps], '\0', (csound->nchnls-n)*ksmps*sizeof(MYFLT));
         csound->spoutactive = 1;
       }
       else {
-        for (j=0; j<nsmps; j++) {
-          for (i=0; i<n; i++) {
-            spout[k + i] += data[j+i*ksmps];
-          }
-          k += csound->nchnls;
+        for (i=0; i<n*nsmps; i++) {
+          spout[i] += data[i];
         }
       }
       CSOUND_SPOUT_SPINUNLOCK
