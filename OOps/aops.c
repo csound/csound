@@ -1954,33 +1954,27 @@ int outch(CSOUND *csound, OUTCH *p)
     uint32_t    ch;
     MYFLT       *sp, *apn;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t    nsmps = CS_KSMPS,  i, j, n;
+    uint32_t    nsmps = CS_KSMPS, j, n;
     uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
     uint32_t    count = p->INOCOUNT;
     MYFLT       **args = p->args;
     uint32_t    nchnls = csound->nchnls;
-    MYFLT *spout = CS_SPOUT;
+    MYFLT *spout = csound->spraw;
     CSOUND_SPOUT_SPINLOCK
     for (j = 0; j < count; j += 2) {
       ch = (int)(*args[j] + FL(0.5));
       apn = args[j + 1];
       if (ch > nchnls) continue;
       if (!csound->spoutactive) {
-        sp = spout;
-        for (n=0; n<nsmps; n++) {
-          for (i = 1; i <= nchnls; i++) {
-            *sp = ((i == ch && n>=offset && n<early) ? apn[n] : FL(0.0));
-            sp++;
-          }
-        }
+        ch--;
+        memset(spout, '\0', nsmps*nchnls*sizeof(MYFLT));
+        memcpy(&spout[offset+ch*nsmps], apn, (early-offset)*sizeof(MYFLT));
         csound->spoutactive = 1;
       }
       else {
-        sp = spout + (ch - 1);
-        /* no need to offset */
-        for (n=0; n<early; n++) {
-          /* if (n>=offset)*/ *sp += apn[n];
-          sp += nchnls;
+        sp = spout + (ch - 1)*nchnls;
+        for (n=offset; n<early; n++) {
+          sp[n] += apn[n];
         }
       }
     }
@@ -2045,26 +2039,22 @@ int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t i, j, nsmps = CS_KSMPS;
-    MYFLT *spout = CS_SPOUT;
+    uint32_t i, j, nsmps = CS_KSMPS, nchnls = csound->GetNchnls(csound);
+    MYFLT *spout = csound->spraw;
 
     if (csound->spoutactive) {
-      int   k = 0;
-      for (i = 0; i<nsmps; i++) {
-        for (j = 0; j<csound->GetNchnls(csound); j++) {
+      for (j = 0; j<nchnls; j++) {
+        for (i = 0; i<nsmps; i++) {
           if (i<offset||i>nsmps-early)
             p->ar[j][i] = FL(0.0);
           else
-            p->ar[j][i] = spout[k];
-          k++;
+            p->ar[j][i] = spout[i+j*nsmps];
         }
       }
     }
     else {
-      for (j = 0; j<csound->GetNchnls(csound); j++) {
-        for (i = 0; i<CS_KSMPS; i++) {
-          p->ar[j][i] = FL(0.0);
-        }
+      for (j = 0; j<nchnls; j++) {
+        memset(p->ar[j], '\0', nsmps*sizeof(MYFLT));
       }
     }
     return OK;
@@ -2082,7 +2072,7 @@ int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 
 int outRange_i(CSOUND *csound, OUTRANGE *p)
 {
-   IGN(csound);
+    IGN(csound);
     p->narg = p->INOCOUNT-1;
 
     return OK;
@@ -2091,15 +2081,14 @@ int outRange_i(CSOUND *csound, OUTRANGE *p)
 int outRange(CSOUND *csound, OUTRANGE *p)
 {
     int j;
-    //uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int nchnls = csound->GetNchnls(csound);
     MYFLT *ara[VARGMAX];
     int startChan = (int) *p->kstartChan -1;
-    MYFLT *sp = CS_SPOUT + startChan;
+    MYFLT *sp = csound->spraw + startChan*nsmps;
     int narg = p->narg;
-
 
     if (startChan < 0)
       return csound->PerfError(csound, p->h.insdshead,
@@ -2110,24 +2099,22 @@ int outRange(CSOUND *csound, OUTRANGE *p)
       ara[j] = p->argums[j];
 
     if (!csound->spoutactive) {
-      memset(CS_SPOUT, 0, nsmps * nchnls * sizeof(MYFLT));
-      /* no need to offset */
-      for (n=0; n<nsmps-early; n++) {
-        int i;
-        MYFLT *sptemp = sp;
-        for (i=0; i < narg; i++)
-          sptemp[i] = ara[i][n];
-        sp += nchnls;
+      memset(csound->spraw, '\0', nsmps * nchnls * sizeof(MYFLT));
+      /* no need to offset ?? why ?? */
+      int i;
+      for (i=0; i < narg; i++) {
+        memcpy(sp, ara[i], nsmps*sizeof(MYFLT));
+        sp += nsmps;
       }
       csound->spoutactive = 1;
     }
     else {
-      for (n=0; n<nsmps-early; n++) {
-        int i;
-        MYFLT *sptemp = sp;
-        for (i=0; i < narg; i++)
-          sptemp[i] += ara[i][n];
-        sp += nchnls;
+      int i;
+      for (i=0; i < narg; i++) {
+        for (n=offset; n<nsmps-early; n++) {
+          sp[n] += ara[i][n];
+        }
+        sp += nsmps;
       }
     }
     return OK;
