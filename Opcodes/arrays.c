@@ -1340,26 +1340,23 @@ static int outa_set(CSOUND *csound, OUTA *p)
 
 static int outa(CSOUND *csound, OUTA *p)
 {
-    unsigned int n, m=0, nsmps = CS_KSMPS;
+    unsigned int n, nsmps = CS_KSMPS, nchns = csound->GetNchnls(csound);
     unsigned int l, pl = p->len;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;
-    MYFLT       *sp= CS_SPOUT;
+    MYFLT       *sp= csound->spraw;
     if (!csound->spoutactive) {
-      for (n=0; n<nsmps; n++) {
-        for (l=0; l<pl; l++) {
-          sp[m++] = (n>=offset && n<early ? data[l+n*nsmps] :FL(0.0)) ;
-        }
+      memset(sp, '\0', nsmps*nchns*sizeof(MYFLT));
+      for (l=0; l<pl; l++) {
+        memcpy(&sp[offset], &data[l*nsmps+offset], (early-offset)*sizeof(MYFLT));
       }
       csound->spoutactive = 1;
     }
     else {
-      for (n=0; n<nsmps; n++) {
-        for (l=0; l<p->len; l++) {
-          if (n>=offset && n<early)
-            sp[m] += data[l+n*nsmps];
-          m++;
+      for (l=0; l<p->len; l++) {
+        for (n=offset; n<early; n++) {
+          sp[n+l*nsmps] += data[n+l*nsmps];
         }
       }
     }
