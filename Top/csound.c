@@ -1473,7 +1473,7 @@ inline static void make_interleave(CSOUND *csound)
       for (j=0; j<nsmps; j++) {
         for (i=0; i<csound->nchnls; i++) {
           // Will be copy t ad when complette
-          spout[k + i] += csound->spraw[i*nsmps+j];
+          spout[k + i] = csound->spraw[i*nsmps+j];
         }
         k += csound->nchnls;
       }
