@@ -1913,7 +1913,7 @@ int outarr(CSOUND *csound, OUTARRAY *p)
 
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
-        memset(spout, '\0', nsmps*csound->nchnls*sizeof(MYFLT)); 
+        memset(spout, '\0', csound->nspout*sizeof(MYFLT)); 
         for (i=0; i<n; i++) {
           for (j=offset; j<early; j++) {
             spout[j+i*ksmps] = data[j+i*ksmps];
@@ -1967,7 +1967,7 @@ int outch(CSOUND *csound, OUTCH *p)
       if (ch > nchnls) continue;
       if (!csound->spoutactive) {
         ch--;
-        memset(spout, '\0', nsmps*nchnls*sizeof(MYFLT));
+        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
         memcpy(&spout[offset+ch*nsmps], apn, (early-offset)*sizeof(MYFLT));
         csound->spoutactive = 1;
       }
@@ -2084,7 +2084,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int nchnls = csound->GetNchnls(csound);
+    //int nchnls = csound->GetNchnls(csound);
     MYFLT *ara[VARGMAX];
     int startChan = (int) *p->kstartChan -1;
     MYFLT *sp = csound->spraw + startChan*nsmps;
@@ -2099,7 +2099,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
       ara[j] = p->argums[j];
 
     if (!csound->spoutactive) {
-      memset(csound->spraw, '\0', nsmps * nchnls * sizeof(MYFLT));
+      memset(csound->spraw, '\0', csound->nspout * sizeof(MYFLT));
       /* no need to offset ?? why ?? */
       int i;
       for (i=0; i < narg; i++) {
