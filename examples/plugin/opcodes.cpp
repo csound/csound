@@ -88,6 +88,34 @@ struct SimpleArray : csnd::Plugin<1, 1> {
   }
 };
 
+/** a-rate numeric array example
+    with 1 output and 1 input \n
+    aout[] simple ain[] \n\n
+    NB: in this case, each item contains 
+    elem_offset() MYFLTs
+ */
+struct SimpleArrayA : csnd::Plugin<1, 1> {
+  int init() {
+    csnd::Vector<MYFLT> &out =  outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
+    out.init(csound,in.len());
+    return OK;
+  }
+  
+  int aperf() {    
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
+    // copy each a-var ksmps vector in turn
+    // NB: copying the whole memory block
+    // from in.begin() to in.end() also works
+    for(int i = 0; i < in.len(); i++)
+      std::copy(in.begin()+i*in.elem_offset(),
+	      in.begin()+(i+1)*in.elem_offset(),
+	      out.begin()+i*in.elem_offset());   
+    return OK;
+  }
+};
+
 /** i-time string plugin opcode example
     with only 1 input \n
     tprint Sin
