@@ -571,6 +571,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       if (sr == FL(-1.0)) sr = DFLT_SR;
       if (kr == FL(-1.0)) kr = DFLT_KR;
       ksmps = (MYFLT) ((int) (sr/kr + FL(0.5)));
+      kr = sr/ksmps; /* VL - avoid inconsistency */
     }
     else if (kr == FL(-1.0)) {
       if (sr == FL(-1.0)) sr = DFLT_SR;
@@ -594,7 +595,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                                       MYFLT2LRND(ksmps))))
         synterr(p, Str("%s invalid ksmps value"), err_msg);
       else if (UNLIKELY(FLOAT_COMPARE(sr,(double)kr *ksmps)))
-        synterr(p, Str("%s inconsistent sr, kr, ksmps"), err_msg);
+        synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
       else if (ksmps > sr)
         synterr(p, Str("%s inconsistent sr, kr, ksmps \n"), err_msg);
     }
