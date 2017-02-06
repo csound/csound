@@ -30,6 +30,7 @@
 #include <complex>
 #include <csdl.h>
 #include <pstream.h>
+#include <iostream>
 
 namespace csnd {
 
@@ -180,7 +181,7 @@ public:
     template class
  */
 template <typename T> class Vector : ARRAYDAT {
-
+  
 public:
   /** Initialise the container
    */
@@ -217,7 +218,7 @@ public:
 
   /** vector end
    */
-  iterator end() { return (T *)data + sizes[0]; }
+  iterator end() { return (T *) ((char*)data + sizes[0]*arrayMemberSize); }
 
   /** array subscript access (write)
    */
@@ -230,6 +231,10 @@ public:
   /** array subscript access (read)
    */
   uint32_t len() { return sizes[0]; }
+
+  /** element offset 
+   */
+  uint32_t elem_offset() { return arrayMemberSize/sizeof(T); }
 
   /** array data
    */
