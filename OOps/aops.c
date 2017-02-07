@@ -465,14 +465,14 @@ AA_VEC(addaa,_mm_add_pd)
 AA_VEC(subaa,_mm_sub_pd)
 AA_VEC(mulaa,_mm_mul_pd)
 AA_VEC(divaa,_mm_div_pd)
-#endif
 
-
-
+#else
 AA(addaa,+)
 AA(subaa,-)
 AA(mulaa,*)
 AA(divaa,/)
+
+#endif
 
 /* ********COULD BE IMPROVED******** */
 int modaa(CSOUND *csound, AOP *p)
