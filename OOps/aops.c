@@ -432,7 +432,6 @@ int modak(CSOUND *csound, AOP *p)
 #define AA_VEC(OPNAME,OP)	    \
 int OPNAME(CSOUND *csound, AOP *p){ \
   MYFLT   *r, *a, *b; \
-  MYFLT ans[2]; \
   __m128d va, vb; \
   uint32_t n, nsmps = CS_KSMPS, end; \
   if (LIKELY(nsmps!=1)) { \
@@ -448,9 +447,8 @@ int OPNAME(CSOUND *csound, AOP *p){ \
   for (n=offset/2; n<end; n+=2) { \
    va = _mm_load_pd(&a[n]); \
    vb = _mm_load_pd(&b[n]); \
-   va = OP(va,vb);	    \
-   /*_mm_store_pd(ans,va);*/			\
-   memcpy(&r[n], ans, 128);			\
+   va = OP(va,vb);\
+   _mm_store_pd(&r[n],va); \
   } 	\
   return OK; \
   } \
@@ -459,7 +457,6 @@ int OPNAME(CSOUND *csound, AOP *p){ \
       return OK; \
    }		 \
 } \
-
 
 AA_VEC(addaa,_mm_add_pd)
 AA_VEC(subaa,_mm_sub_pd)
@@ -471,7 +468,6 @@ AA(addaa,+)
 AA(subaa,-)
 AA(mulaa,*)
 AA(divaa,/)
-
 #endif
 
 /* ********COULD BE IMPROVED******** */
