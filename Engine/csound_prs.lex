@@ -786,12 +786,6 @@ NM              [nm]
            //printf("r detected\n");
            if (PARM->in_repeat_sect)
              csound->Die(csound, Str("Section loops cannot be nested"));
-           PARM->repeat_sect_mm =
-             (MACRO*)csound->Malloc(csound, sizeof(MACRO));
-           if (UNLIKELY(PARM->repeat_sect_mm== NULL)) {
-             csound->Message(csound, Str("Memory exhausted"));
-             csound->LongJmp(csound, 1);
-           }
            PARM->repeat_sect_cnt = 0;
            PARM->in_repeat_sect = 1; /* Mark as recording */
            do {
@@ -810,69 +804,88 @@ NM              [nm]
            while (isblank(c)) {
              c = input(yyscanner);
            }
-           for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
-             buff[i] = c;
-             c = input(yyscanner);
+           if (!isalpha(c)) { //no macro
+             //printf("No macro\n");
+             PARM->repeat_sect_mm =NULL;
            }
-           buff[i] = '\0';
-           //printf("macro name %s\n", buff);
+           else {
+             for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
+               buff[i] = c;
+               c = input(yyscanner);
+             }
+             PARM->repeat_sect_mm =
+               (MACRO*)csound->Malloc(csound, sizeof(MACRO));
+             if (UNLIKELY(PARM->repeat_sect_mm== NULL)) {
+               csound->Message(csound, Str("Memory exhausted"));
+               csound->LongJmp(csound, 1);
+             }
+             buff[i] = '\0';
+             printf("macro name %s\n", buff);
+                      /* Define macro for counter */
+             PARM->repeat_sect_mm->name = cs_strdup(csound, buff);
+             PARM->repeat_sect_mm->acnt = -1; /* inhibit */
+             PARM->repeat_sect_mm->body = csound->Calloc(csound, 16); // ensure nulls
+             PARM->repeat_sect_mm->body[0] = '0';
+             //csound->DebugMsg(csound,"repeat %s zero %s\n",
+             //                 buff, PARM->repeat_sect_mm->body);
+             PARM->repeat_sect_mm->next = PARM->macros; /* add to chain */
+             PARM->macros = PARM->repeat_sect_mm;
+           }
            unput(c);
            PARM->repeat_sect_line = PARM->line;
-           /* Define macro for counter */
-           PARM->repeat_sect_mm->name = cs_strdup(csound, buff);
-           PARM->repeat_sect_mm->acnt = -1; /* inhibit */
-           PARM->repeat_sect_mm->body = csound->Calloc(csound, 16); // ensure nulls
-           PARM->repeat_sect_mm->body[0] = '0';
            PARM->repeat_sect_index = 0;
-           csound->DebugMsg(csound,"repeat %s zero %s\n",
-                            buff, PARM->repeat_sect_mm->body);
-           PARM->repeat_sect_mm->next = PARM->macros; /* add to chain */
-           PARM->macros = PARM->repeat_sect_mm;
            while (input(yyscanner)!='\n') {}
            PARM->repeat_sect_cf = PARM->cf;
            PARM->cf = corfile_create_w();
          }
         }
 {SEND}  {
-          corfile_putc(yytext[0], PARM->cf);
           if (!PARM->isString) {
-          //printf("section end %d %c\n%s\n",
-          //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
-          if (PARM->in_repeat_sect==1) {
-            PARM->in_repeat_sect=2;
-            //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
-            PARM->repeat_sect_mm->acnt = 0; /* uninhibit */
-            csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-            csound_prs_scan_string(PARM->cf->body, yyscanner);
-            { CORFIL *tmp = PARM->cf; PARM->cf = PARM->repeat_sect_cf;
-              PARM->repeat_sect_cf = tmp; }
-            PARM->line = PARM->repeat_sect_line;
-          }
-          else if (PARM->in_repeat_sect==2) {
-            yypop_buffer_state(yyscanner);
-            PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-            //printf("repeat section %d %d\n",
-            //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
-            PARM->repeat_sect_index++;
-            if (PARM->repeat_sect_index<PARM->repeat_sect_cnt) {
-              snprintf(PARM->repeat_sect_mm->body, 16, "%d",
-                       PARM->repeat_sect_index);
-              //printf("%s now %s\n",
-              //       PARM->repeat_sect_mm->name,PARM->repeat_sect_mm->body);
+            corfile_putc('s', PARM->cf);
+            corfile_putc('\n', PARM->cf);
+            //printf("section end %d %c\n%s\n",
+            //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
+            if (PARM->in_repeat_sect==1) {
+              PARM->in_repeat_sect=2;
+              //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
+              if (PARM->repeat_sect_mm)
+                PARM->repeat_sect_mm->acnt = 0; /* uninhibit */
               csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-              csound_prs_scan_string(PARM->repeat_sect_cf->body, yyscanner);
+              csound_prs_scan_string(PARM->cf->body, yyscanner);
+              { CORFIL *tmp = PARM->cf; PARM->cf = PARM->repeat_sect_cf;
+                PARM->repeat_sect_cf = tmp; }
               PARM->line = PARM->repeat_sect_line;
             }
-            else {
-              //printf("end of loop\n");
-              PARM->in_repeat_sect=0;
-              corfile_rm(&PARM->repeat_sect_cf);
-              //csound->Free(csound, PARM->repeat_sect_mm->body);
-              //PARM->repeat_sect_mm->body = NULL;
-           }
+            else if (PARM->in_repeat_sect==2) {
+              yypop_buffer_state(yyscanner);
+              PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
+              //printf("repeat section %d %d\n",
+              //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
+              PARM->repeat_sect_index++;
+              if (PARM->repeat_sect_index<PARM->repeat_sect_cnt) {
+                if (PARM->repeat_sect_mm) {
+                  snprintf(PARM->repeat_sect_mm->body, 16, "%d",
+                           PARM->repeat_sect_index);
+                  //printf("%s now %s\n",
+                  //       PARM->repeat_sect_mm->name,PARM->repeat_sect_mm->body);
+                }
+                csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+                csound_prs_scan_string(PARM->repeat_sect_cf->body, yyscanner);
+                PARM->line = PARM->repeat_sect_line;
+              }
+              else {
+                //printf("end of loop\n");
+                PARM->in_repeat_sect=0;
+                corfile_rm(&PARM->repeat_sect_cf);
+                //csound->Free(csound, PARM->repeat_sect_mm->body);
+                //PARM->repeat_sect_mm->body = NULL;
+              }
+            }
+            else
+              corfile_putc(yytext[0], PARM->cf);
           }
-          }}
-.               { corfile_putc(yytext[0], PARM->cf); }
+        }
+.       { corfile_putc(yytext[0], PARM->cf); }
 
 %%
 static void comment(yyscan_t yyscanner)              /* Skip until nextline */
