@@ -1972,7 +1972,7 @@ int outch(CSOUND *csound, OUTCH *p)
         csound->spoutactive = 1;
       }
       else {
-        sp = spout + (ch - 1)*nchnls;
+        sp = spout + (ch - 1)*nsmps;
         for (n=offset; n<early; n++) {
           sp[n] += apn[n];
         }
