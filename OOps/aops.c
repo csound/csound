@@ -423,49 +423,52 @@ int modak(CSOUND *csound, AOP *p)
     }                                           \
   }
 
-
 /* VL
-   experimental code using SIMD for operations
+   experimental code using SSE for operations
+   needs memory alignment - 16 bytes
 */
-#define GCCVSIZEB 64
-#define GCCVSIZE  (GCCVSIZEB/sizeof(MYFLT))
-#define MAXKSMPS 256
-typedef double v2d __attribute__((vector_size(GCCVSIZEB)));
-#define AA_VECTOR(OPNAME,OP)                   \
-  int OPNAME(CSOUND *csound, AOP *p) {          \
-  MYFLT   *r, *a, *b;                           \
-  v2d     rv[MAXKSMPS/GCCVSIZE], av[MAXKSMPS/GCCVSIZE], bv[MAXKSMPS/GCCVSIZE];  \
-  uint32_t n, nsmps = CS_KSMPS, end;            \
-  if (LIKELY(nsmps!=1)) {                       \
-    uint32_t offset = p->h.insdshead->ksmps_offset; \
-    uint32_t early  = p->h.insdshead->ksmps_no_end; \
-    r = p->r;                                   \
-    a = p->a;                                   \
-    b = p->b;                                   \
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT)); \
-    if (UNLIKELY(early)) {                      \
-      nsmps -= early;                           \
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
-    }                                           \
-    memcpy(av,a,nsmps*sizeof(MYFLT));       \
-    memcpy(bv,b,nsmps*sizeof(MYFLT));       \
-    offset /= GCCVSIZE; end = nsmps/GCCVSIZE; \
-    for (n=offset/GCCVSIZE; n<end; n+=1){         \
-       rv[n] = av[n] OP bv[n];                  \
-    }                                           \
-    memcpy(r,rv,nsmps*sizeof(MYFLT));           \
-    return OK;                                  \
-  }                                             \
-    else {                                      \
-      *p->r = *p->a OP *p->b;                    \
-      return OK;                                \
-    }                                           \
-  }
+#ifdef USE_SSE
+#include "emmintrin.h"
+#define AA_VEC(OPNAME,OP)	    \
+int OPNAME(CSOUND *csound, AOP *p){ \
+  MYFLT   *r, *a, *b; \
+  __m128d va, vb; \
+  uint32_t n, nsmps = CS_KSMPS, end; \
+  if (LIKELY(nsmps!=1)) { \
+  uint32_t offset = p->h.insdshead->ksmps_offset; \
+  uint32_t early  = p->h.insdshead->ksmps_no_end; \
+  r = p->r; a = p->a; b = p->b; \
+  if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT)); \
+  if (UNLIKELY(early)) { \
+      nsmps -= early;   \
+      memset(&r[nsmps], '\0', early*sizeof(MYFLT));  \
+  } \
+  end = nsmps/2; \
+  for (n=offset/2; n<end; n+=2) { \
+   va = _mm_load_pd(&a[n]); \
+   vb = _mm_load_pd(&b[n]); \
+   va = OP(va,vb);\
+   _mm_store_pd(&r[n],va); \
+  } 	\
+  return OK; \
+  } \
+   else { \
+     *p->r = *p->a + *p->b;\
+      return OK; \
+   }		 \
+} \
 
+AA_VEC(addaa,_mm_add_pd)
+AA_VEC(subaa,_mm_sub_pd)
+AA_VEC(mulaa,_mm_mul_pd)
+AA_VEC(divaa,_mm_div_pd)
+
+#else
 AA(addaa,+)
 AA(subaa,-)
 AA(mulaa,*)
 AA(divaa,/)
+#endif
 
 /* ********COULD BE IMPROVED******** */
 int modaa(CSOUND *csound, AOP *p)
@@ -1972,7 +1975,7 @@ int outch(CSOUND *csound, OUTCH *p)
         csound->spoutactive = 1;
       }
       else {
-        sp = spout + (ch - 1)*nchnls;
+        sp = spout + (ch - 1)*nsmps;
         for (n=offset; n<early; n++) {
           sp[n] += apn[n];
         }
