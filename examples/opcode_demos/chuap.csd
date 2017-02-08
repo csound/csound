@@ -35,6 +35,7 @@ aguide          buzz        5000, 440, sr/440, gibuzztable
 aI3, aV2, aV1   chuap       iL, iR0, iC2, iG, iGa, iGb, iE, iC1, iI3, iV2, iV1, istep_size	
 asignal         balance     aV2, aguide
                 outs        adamping * asignal, adamping * asignal
+printks "Chuas_Oscillator     I3: %12.4f V2: %12.4f V1: %12.4f chuap L: %12.4f R0: %12.4f C2: %12.4f G: %12.4f Ga: %12.4f Gb: %12.4f E: %12.4f C1: %12.4f iI3: %12.4f iV2: %12.4f iV1: %12.4f step: %12.4f\n", 1, aI3, aV2, aV1, iL, iR0, iC2, iG, iGa, iGb, iE, iC1, iI3, iV2, iV1, istep_size
                 endin
 </CsInstruments>
 <CsScore>
