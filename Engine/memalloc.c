@@ -37,24 +37,6 @@
 #define CSOUND_MEM_SPINLOCK csoundSpinLock(&csound->memlock);
 #define CSOUND_MEM_SPINUNLOCK csoundSpinUnLock(&csound->memlock);
 
-void* mymalloc(size_t n)
-{
-    void* p;
-    int res = posix_memalign(&p, 16, n);
-    if (res==0) return p;
-    else return NULL;
-}
-void* mycalloc(size_t n, size_t m)
-{
-    void* p;
-    int res = posix_memalign(&p, 16, n*m);
-    if (res==0) {
-      memset(p, 0, n*m);
-      return p;
-    }
-    else return NULL;
-}
-
 typedef struct memAllocBlock_s {
 #ifdef MEMDEBUG
     int                     magic;      /* 0x6D426C6B ("mBlk")          */
@@ -90,7 +72,7 @@ void *mmalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = mymalloc(ALLOC_BYTES(size))) == NULL)) {
+    if (UNLIKELY((p = malloc(ALLOC_BYTES(size))) == NULL)) {
         memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
@@ -128,7 +110,7 @@ void *mcalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = mycalloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
+    if (UNLIKELY((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
       memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
