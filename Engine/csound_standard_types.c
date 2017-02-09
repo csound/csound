@@ -188,7 +188,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 //      OPDS* p = (OPDS*)instr;
 //      ksmps = CS_KSMPS;
 //    } else {
-    ksmps = csound->ksmps;
+    ksmps = CS_FLOAT_ALIGN(csound->ksmps);
 //    }
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));

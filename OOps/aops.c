@@ -424,7 +424,7 @@ int modak(CSOUND *csound, AOP *p)
   }
 
 /* VL
-   experimental code using SSE for operations
+   experimental code using SSE` for operations
    needs memory alignment - 16 bytes
 */
 #ifdef USE_SSE
@@ -443,7 +443,8 @@ int OPNAME(CSOUND *csound, AOP *p){ \
       nsmps -= early;   \
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));  \
   } \
-  end = nsmps/2; \
+  end = nsmps-early;               \
+  printf("r a b = %p %p %p\n",r,a,b);           \
   for (n=offset/2; n<end; n+=2) { \
    va = _mm_load_pd(&a[n]); \
    vb = _mm_load_pd(&b[n]); \
