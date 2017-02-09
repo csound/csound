@@ -189,7 +189,7 @@ typedef uint_least16_t uint16;
 #endif
 
 /* Aligning to double boundaries, should work with MYFLT as float or double */
-#define CS_FLOAT_ALIGN(x) ((int)(x + 15) & (~15))
+#define CS_FLOAT_ALIGN(x) ((int)(x + 7) & (~7))
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
