@@ -159,10 +159,10 @@ static int cfg_alloc_structure(CSOUND* csound,
     ldBytes = (ldBytes + 15) & (~15);
     totBytes = structBytes + nameBytes + sdBytes + ldBytes;
     /* allocate memory */
-    pp = (void*) csound->Malloc(csound, (size_t) totBytes);
+    pp = (void*) csound->Calloc(csound, (size_t) totBytes);
     if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_MEMORY;
-    memset(pp, 0, (size_t) totBytes);
+    //memset(pp, 0, (size_t) totBytes);
     (*ptr) = (csCfgVariable_t*) pp;
     /* copy name and descriptions */
     strcpy(((char*) pp + (int) structBytes), name);
