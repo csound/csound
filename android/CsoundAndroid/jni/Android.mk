@@ -250,6 +250,7 @@ $(CSOUND_SRC_ROOT)/InOut/libmpadec/mpadec.c \
 $(CSOUND_SRC_ROOT)/InOut/libmpadec/mp3dec.c \
 csound_orclex.c \
 csound_prelex.c \
+csound_prslex.c \
 csound_orcparse.c \
 rtopensl.c \
 AndroidCsound.cpp \

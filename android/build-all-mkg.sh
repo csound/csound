@@ -10,8 +10,10 @@ then
     find . -name "*.o" -delete
 fi
 
+
 cd ${CSOUND_HOME}/android/pluginlibs/luajit-2.0
-make HOST_CC="gcc -m32"  BUILD_MODE=static CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=linux $1
+# Requires the gcc-arm-linux-gnueabi package.
+make HOST_CC="gcc -m32" BUILD_MODE=static CROSS=arm-linux-gnueabi- TARGET_CFLAGS="-mcpu=cortex-a8 -mfloat-abi=softfp -fPIC"
 
 cd ${CSOUND_HOME}/android/pluginlibs/LuaCsound
 $NDK/ndk-build $1
