@@ -42,14 +42,14 @@ extern "C"
 // but LuaCsound is built with the NDK for the bionic runtime library.
 
 #if defined(__ANDROID__)
-#undef stdin
-FILE *stdin  = &__sF[0];
-#undef stdout
-FILE *stdout = &__sF[1];
-#undef stderr
-FILE *stderr = &__sF[2];
 extern "C" 
 {
+    #undef stdin
+    FILE *stdin  = &__sF[0];
+    #undef stdout
+    FILE *stdout = &__sF[1];
+    #undef stderr
+    FILE *stderr = &__sF[2];
     volatile int * __errno_location(void)
     {
         return __errno();

@@ -17,10 +17,6 @@ LOCAL_CFLAGS := -O3 -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DI
 LOCAL_CPPFLAGS :=$(LOCAL_CFLAGS)
 LOCAL_CPPFLAGS += -pthread -frtti -fexceptions -std=c++11 
 
-#LOCAL_C_INCLUDES += $(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/include
-#LOCAL_C_INCLUDES += $(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include
-#LOCAL_LDLIBS += $(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libgnustl_static.a
-
 LOCAL_LDLIBS += -ldl 
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Opcodes/LuaCsound.cpp
