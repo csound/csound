@@ -14,10 +14,10 @@ fi
 cd ${CSOUND_HOME}/android/pluginlibs/luajit-2.0
 # The luajit library can't be compiled with the clang NDK, so we cross-compile using gcc.
 # This requires the gcc-arm-linux-gnueabi package.
-#make clean
-#  D_FILE_OFFSET_BITS=64 or 32
-#make HOST_CC="gcc -m32" BUILD_MODE=static CROSS=arm-linux-gnueabi- TARGET_CFLAGS="-mcpu=cortex-a8 -mfloat-abi=softfp -fPIC -D_FILE_OFFSET_BITS=32"
-# Force LuaCsound to link only with the static LuaJIT library.
+make clean
+# We have to turn large file support OFF.
+make HOST_CC="gcc -m32" BUILD_MODE=static CROSS=arm-linux-gnueabi- TARGET_CFLAGS="-mcpu=cortex-a8 -mfloat-abi=softfp -fPIC -D_FILE_OFFSET_BITS=32"
+# Make certain that LuaCsound links only with the static LuaJIT library.
 rm -f src/libluajit.so
 
 cd ${CSOUND_HOME}/android/pluginlibs/LuaCsound
