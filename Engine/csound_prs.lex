@@ -884,6 +884,7 @@ NM              [nm]
             else
               corfile_putc(yytext[0], PARM->cf);
           }
+          else corfile_putc(yytext[0], PARM->cf);
         }
 .       { corfile_putc(yytext[0], PARM->cf); }
 
