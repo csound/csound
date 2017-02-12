@@ -10,6 +10,8 @@ then
     find . -name "*.o" -delete
 fi
 
+cd ${CSOUND_HOME}/android/pluginlibs/ableton_link_opcodes
+$NDK/ndk-build $1
 
 cd ${CSOUND_HOME}/android/pluginlibs/luajit-2.0
 # The luajit library can't be compiled with the clang NDK, so we cross-compile using gcc.
