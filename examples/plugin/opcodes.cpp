@@ -83,16 +83,16 @@ struct SimpleArray : csnd::Plugin<1, 1> {
   int kperf() {    
     csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
     csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
-    std::copy(in.begin(), in.end(), out.begin());   
+    std::copy(in.begin(), in.end(), out.begin());
     return OK;
   }
 };
 
+
 /** a-rate numeric array example
     with 1 output and 1 input \n
     aout[] simple ain[] \n\n
-    NB: in this case, each item contains 
-    elem_offset() MYFLTs
+    NB: in this case, each 
  */
 struct SimpleArrayA : csnd::Plugin<1, 1> {
   int init() {
@@ -227,21 +227,17 @@ struct PVGain : csnd::FPlugin<1, 2> {
   }
 };
 
-
-/** Module creation, initalisation and destruction
+/** Library loading
  */
-extern "C" {
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+void csnd::on_load(CSOUND *csound) {
   csnd::plugin<Simplei>(csound, "simple", "i", "i", csnd::thread::i);
   csnd::plugin<Simplek>(csound, "simple", "k", "k", csnd::thread::k);
   csnd::plugin<Simplea>(csound, "simple", "a", "a", csnd::thread::a);
   csnd::plugin<SimpleArray>(csound, "simple", "k[]", "k[]", csnd::thread::ik);
+  csnd::plugin<SimpleArrayA>(csound, "simple", "a[]", "a[]", csnd::thread::ia);
   csnd::plugin<Tprint>(csound, "tprint", "", "S", csnd::thread::i);
   csnd::plugin<DelayLine>(csound, "delayline", "a", "ai", csnd::thread::ia);
   csnd::plugin<Oscillator>(csound, "oscillator", "a", "kki", csnd::thread::ia);
   csnd::plugin<PVGain>(csound, "pvg", csnd::thread::ik);
-  return 0;
 }
-PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
-PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
-}
+

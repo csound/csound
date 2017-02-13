@@ -29,23 +29,24 @@ static inline MYFLT frac(MYFLT f) { return std::modf(f,&f); }
     kout[] op kin[]
  */
 template<MYFLT (*op)(MYFLT)>
-struct ArrayOp : csnd::Plugin<1, 1> {
-  int init() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
-    out.init(csound,in.len());
+struct ArrayOp : csnd::Plugin<1, 1> {  
+  int process(csnd::Vector<MYFLT> &out,
+	      csnd::Vector<MYFLT> &in) {
     std::transform(in.begin(), in.end(), out.begin(),
                    [](MYFLT f) { return op(f); });
     return OK;
   }
+  
+  int init() {
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd:: Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    out.init(csound,in.len());
+    return process(out, in);
+  }
 
   int kperf() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
-    std::transform(in.begin(), in.end(), out.begin(),
-                   [](MYFLT f) { return op(f); });
-
-    return OK;
+    return process(outargs.vector_data<MYFLT>(0),
+		   inargs.vector_data<MYFLT>(0));;
   }
 };
 
@@ -77,12 +78,7 @@ struct ArrayOp2 : csnd::Plugin<1, 2> {
   }
 };
 
-
-
-/** Module creation, initalisation and destruction
- */
-extern "C" {
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+void csnd::on_load(CSOUND *csound) {
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "k[]", "k[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::floor>>(csound, "floor", "i[]", "i[]", csnd::thread::i);
@@ -141,8 +137,5 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
   csnd::plugin<ArrayOp2<std::fmax>>(csound, "fmax", "k[]", "k[]k[]", csnd::thread::ik);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "i[]", "i[]i[]", csnd::thread::i);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "k[]", "k[]k[]", csnd::thread::ik);
-  return 0;
 }
-PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
-PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
-}
+
