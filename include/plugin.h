@@ -673,5 +673,23 @@ int plugin(CSOUND *csound, const char *name, uint32_t thread,
                               (char *)T::otypes, (char *)T::itypes,
                               (SUBR)init<T>, (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
+
+/** Plugin library entry point
+ */
+void on_load(CSOUND *);
+
+}
+
+/**
+  @private
+  library loading functions
+*/
+extern "C" {
+PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
+PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
+PUBLIC int csoundModuleInit(CSOUND *csound) {
+  csnd::on_load(csound);
+  return 0;
+  }
 }
 #endif

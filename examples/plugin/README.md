@@ -172,22 +172,16 @@ depend on the processing methods implemented in our plugin class:
 * csnd::thread::ia : init() and aperf().
 * csnd::thread::ika : init(), kperf() and aperf().
 
-We instantiate and call these template functions inside the csoundModuleInit() function
-of our opcode dynamic library. This is one of three functions we need to supply in order
-for Csound to load the plugin (the other two are generally left as non-ops):
+We instantiate and call these template functions inside the plugin
+library entry-point function on_load():
+
 
 ```
-/** Module creation, initalisation and destruction
- */
-extern "C" {
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+void csnd::on_load(CSOUND *csound){
   csnd::plugin<Simplei>(csound, "simple", "i", "i",  csnd::thread::i);
   csnd::plugin<Simplek>(csound, "simple", "k", "k",  csnd::thread::k);
   csnd::plugin<Simplea>(csound, "simple", "a", "a",  csnd::thread::a);
   return 0;
-}
-PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
-PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
 }
 ```
 
