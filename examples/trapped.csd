@@ -390,9 +390,9 @@ gadel   =      0
        instr   99                            ; p4 = panrate
 k1     oscil   .5, p4, 1
 k2     =       .5 + k1
-k3     =       1 - k2
+k3     =       k2 - 1
 asig   reverb  garvb, 2.1
-       outs    asig * k2, (asig * k3) * (-1)
+       outs    asig * k2, asig * k3
 garvb  =       0
        endin
 ;============================================================================;
