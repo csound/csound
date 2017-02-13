@@ -29,15 +29,15 @@
 #define CALCSLOPE(next,prev,nsmps) ((next - prev) * (FL(1)/nsmps))
 #define SR (csound->GetSr(csound))
 
-/* This use of pointer aritmetic is te wrong way to do it -- JPff */
-#define LOOP1(length, stmt)    \
-  {     int xxn = (length);    \
-        do {                   \
-          stmt;                \
-        } while (--xxn);       \
-  }
+/* This use of pointer arithmetic is the wrong way to do it -- JPff */
+/* #define LOOP1(length, stmt)    \ */
+/*   {     int xxn = (length);    \ */
+/*         do {                   \ */
+/*           stmt;                \ */
+/*         } while (--xxn);       \ */
+/*   } */
 
-#define ZXP(z) (*(z)++)
+/* #define ZXP(z) (*(z)++) */
 
 static inline MYFLT zapgremlins(MYFLT x)
 {
@@ -131,18 +131,23 @@ static int laga_init(CSOUND *csound, LAG *p) {
 
 
 static int laga_next(CSOUND *csound, LAG *p) {
-    uint32_t nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS;
     MYFLT *in = p->in, *out = p->out;
     MYFLT lag = *p->lagtime;
     MYFLT y1 = p->y1;
     MYFLT b1 = p->b1;
     MYFLT y0;
     if (lag == p->lag) {
-      LOOP1(nsmps,
-            y0 = *in; in++;
-            y1 = y0 + b1 * (y1 - y0);
-            *out = y1; out++;
-            );
+      for (n=0; n<nsmps; n++) {
+        y0 = in[n];
+        y1 = y0 + b1 * (y1 - y0);
+        out[n] = y1;
+      }
+      /* LOOP1(nsmps, */
+      /*       y0 = *in; in++; */
+      /*       y1 = y0 + b1 * (y1 - y0); */
+      /*       *out = y1; out++; */
+      /*       ); */
       p->y1 = y1;
       return OK;
     } else {
@@ -150,12 +155,18 @@ static int laga_next(CSOUND *csound, LAG *p) {
       p->b1 = lag == FL(0) ? FL(0) : exp(LOG001 / (lag * p->sr));
       MYFLT b1_slope = CALCSLOPE(p->b1, b1, nsmps);
       p->lag = lag;
-      LOOP1(nsmps,
-            b1 += b1_slope;
-            y0 = *in; in++;
-            y1 = y0 + b1 * (y1 - y0);
-            *out = y1; out++;
-            );
+      for (n=0; n<nsmps; n++) {
+        b1 += b1_slope;
+        y0 = in[n];
+        y1 = y0 + b1 * (y1 - y0);
+        out[n] = y1;
+      }
+      /* LOOP1(nsmps, */
+      /*       b1 += b1_slope; */
+      /*       y0 = *in; in++; */
+      /*       y1 = y0 + b1 * (y1 - y0); */
+      /*       *out = y1; out++; */
+      /*       ); */
       p->y1 = y1;
       return OK;
     }
@@ -179,17 +190,25 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
       b1u = p->b1u,
       b1d = p->b1d;
 
-    uint32_t nsmps = CS_KSMPS;
+    uint32_t n, nsmps = CS_KSMPS;
 
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
-      LOOP1(nsmps,
-            MYFLT y0 = *in; in++;
-            if (y0 > y1)
-              y1 = y0 + b1u * (y1 - y0);
-            else
-              y1 = y0 + b1d * (y1 - y0);
-            *out = y1; out++;
-            );
+      for (n=0; n<nsmps; n++) {
+        MYFLT y0 = in[n];
+        if (y0 > y1)
+          y1 = y0 + b1u * (y1 - y0);
+        else
+          y1 = y0 + b1d * (y1 - y0);
+        out[n]= y1;
+      }
+      /* LOOP1(nsmps, */
+      /*       MYFLT y0 = *in; in++; */
+      /*       if (y0 > y1) */
+      /*         y1 = y0 + b1u * (y1 - y0); */
+      /*       else */
+      /*         y1 = y0 + b1d * (y1 - y0); */
+      /*       *out = y1; out++; */
+      /*       ); */
     } else {
       MYFLT sr = csound->GetSr(csound);
       // faust uses tau2pole = exp(-1 / (lag*sr))
@@ -199,16 +218,26 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
       p->b1d = lagd == FL(0) ? FL(0) : exp(LOG001 / (lagd * sr));
       MYFLT b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps);
       p->lagd = lagd;
-      LOOP1(nsmps,
-            b1u += b1u_slope;
-            b1d += b1d_slope;
-            MYFLT y0 = *in; in++;
-            if (y0 > y1)
-              y1 = y0 + b1u * (y1-y0);
-            else
-              y1 = y0 + b1d * (y1-y0);
-            *out = y1; out++;
-            );
+      for (n=0; n<nsmps; n++) {
+        MYFLT y0 = in[n];
+        b1u += b1u_slope;
+        b1d += b1d_slope;
+        if (y0 > y1)
+          y1 = y0 + b1u * (y1-y0);
+        else
+          y1 = y0 + b1d * (y1-y0);
+        out[n] = y1;
+      }
+      /* LOOP1(nsmps, */
+      /*       b1u += b1u_slope; */
+      /*       b1d += b1d_slope; */
+      /*       MYFLT y0 = *in; in++; */
+      /*       if (y0 > y1) */
+      /*         y1 = y0 + b1u * (y1-y0); */
+      /*       else */
+      /*         y1 = y0 + b1d * (y1-y0); */
+      /*       *out = y1; out++; */
+      /*       ); */
     }
     p->y1 = zapgremlins(y1);
     return OK;
@@ -283,22 +312,22 @@ static int trig_a(CSOUND *csound, Trig *p) {
     unsigned long counter = p->counter;
     uint32_t n, nsmps = CS_KSMPS;
     for(n=0; n<nsmps; n++) {
-      MYFLT curtrig = *in; in++;
+      MYFLT curtrig = in[n];
       MYFLT zout;
       if (counter > 0) {
         zout = --counter ? level : FL(0);
       } else {
-        if (curtrig > FL(0) && prevtrig <= FL(0)) {
+        if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
           counter = (long)(dur * sr + FL(0.5));
           if (counter < 1) counter = 1;
           level = curtrig;
           zout = level;
         } else {
-          zout = FL(0);
+          zout = FL(0.0);
         }
       }
       prevtrig = curtrig;
-      *out = zout; out++;
+      out[n] = zout;
     }
     p->prevtrig = prevtrig;
     p->counter = counter;
@@ -402,13 +431,13 @@ static int phasor_aa(CSOUND *csound, Phasor *p) {
     MYFLT level = p->level;
     uint32_t n;
     for(n=0; n<CS_KSMPS; n++) {
-      MYFLT curin = *in; in++;
-      MYFLT zrate = *rate; rate++;
-      if (previn <= FL(0) && curin > FL(0)) {
+      MYFLT curin = in[n];
+      MYFLT zrate = rate[n];
+      if (previn <= FL(0.0) && curin > FL(0.0)) {
         MYFLT frac = FL(1) - previn/(curin-previn);
         level = resetPos + frac * zrate;
       }
-      *out = level; out++;
+      out[n] = level;
       level += zrate;
       level = sc_wrap(level, start, end);
       previn = curin;
@@ -430,12 +459,12 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
     MYFLT level = p->level;
     uint32_t n;
     for(n=0; n<CS_KSMPS; n++) {
-      MYFLT curin = *in; in++;
-      if (previn <= FL(0) && curin > FL(0)) {
-        MYFLT frac = FL(1) - previn/(curin-previn);
+      MYFLT curin = in[n];
+      if (previn <= FL(0.0) && curin > FL(0.0)) {
+        MYFLT frac = FL(1.0) - previn/(curin-previn);
         level = resetPos + frac * rate;
       }
-      *out = level; out++;
+      out[n] = level; 
       level += rate;
       level = sc_wrap(level, start, end);
       previn = curin;
@@ -455,7 +484,7 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
     MYFLT previn = p->previn;
     MYFLT level = p->level;
 
-    if (previn <= FL(0) && curin > FL(0)) {
+    if (previn <= FL(0.0) && curin > FL(0.0)) {
       level = resetPos;
     }
     level = sc_wrap(level, start, end);

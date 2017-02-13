@@ -108,11 +108,11 @@ typedef uint_least16_t uint16;
 
 #include "float-version.h"
 
+#ifdef USE_DOUBLE
 /* Defined here as Android does not have log2 functions */
 #define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */
 #define LOG2(a) (MYRECIPLN2*log(a))       /* floating point logarithm base 2 */
 
-#ifdef USE_DOUBLE
   #define ACOS acos
   #define ASIN asin
   #define ATAN atan
@@ -139,6 +139,10 @@ typedef uint_least16_t uint16;
   #define FMOD fmod
   #define MODF modf
 #else
+/* Defined here as Android does not have log2 functions */
+#define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */
+#define LOG2(a) (MYRECIPLN2*logf(a))       /* floating point logarithm base 2 */
+
   #define ACOS acosf
   #define ASIN asinf
   #define ATAN atanf
