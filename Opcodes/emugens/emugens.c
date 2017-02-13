@@ -122,7 +122,7 @@ typedef struct {
 } PITCHCONV;
 
 static int mtof(CSOUND *csound, PITCHCONV *p) {
-    *p->r = pow(FL(2.0), (*p->k - FL(69.0)) / FL(12.0)) * p->freqA4;
+    *p->r = POWER(FL(2.0), (*p->k - FL(69.0)) / FL(12.0)) * p->freqA4;
     return OK;
 }
 
@@ -133,7 +133,7 @@ static int mtof_init(CSOUND *csound, PITCHCONV *p) {
 }
 
 static int ftom(CSOUND *csound, PITCHCONV *p) {
-    *p->r = FL(12.0) * log2(*p->k / p->freqA4) + FL(69.0);
+    *p->r = FL(12.0) * LOG2(*p->k / p->freqA4) + FL(69.0);
     return OK;
 }
 
@@ -145,7 +145,7 @@ static int ftom_init(CSOUND *csound, PITCHCONV *p) {
 
 static int pchtom(CSOUND *csound, PITCHCONV *p) {
     MYFLT pch = *p->k;
-    MYFLT oct = floor(pch);
+    MYFLT oct = FLOOR(pch);
     MYFLT note = pch - oct;
     *p->r = (oct-FL(3.0))*FL(12.0)+note*FL(100.0);
     return OK;
@@ -172,7 +172,8 @@ inline MYFLT interpol_l(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1) {
     return x < x0 ? y0 : ((x-x0)/(x1-x0) * (y1-y0) + y0);
 }
 
-#define INTERP_R(X, X0, X1, Y0, Y1) ((X) > (X1) ? (Y1) : (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0)))
+#define INTERP_R(X, X0, X1, Y0, Y1) ((X) > (X1) ? (Y1) : \
+                                     (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0)))
 
 inline MYFLT interpol_r(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1) {
     return x > x1 ? y0 : ((x-x0)/(x1-x0) * (y1-y0) + y0);
@@ -366,34 +367,27 @@ static int mton(CSOUND *csound, MTON *p) {
     cursor += 1;
     int alt = _pc2alt[pc];
     if(alt > 0) {
-      dst[cursor] = _alts[alt];
-      cursor++;
+      dst[cursor++] = _alts[alt];
     }
     if(sign == 1) {
-      dst[cursor] = '+';
-      cursor++;
+      dst[cursor++] = '+';
       if(cents < 10) {
-        dst[cursor] = '0'+cents;
-        cursor++;
+        dst[cursor++] = '0'+cents;
       } else if(cents != 50) {
-        dst[cursor] = '0' + (int)(cents / 10);
-        dst[cursor+1] = '0' + (cents % 10);
-        cursor += 2;
+        dst[cursor++] = '0' + (int)(cents / 10);
+        dst[cursor++] = '0' + (cents % 10);
       }
     } else if(sign == -1) {
-      dst[cursor] = '-';
-      cursor++;
+      dst[cursor++] = '-';
       if(cents < 10) {
-        dst[cursor] = '0'+cents;
-        cursor++;
+        dst[cursor++] = '0'+cents;
       } else if(cents != 50) {
-        dst[cursor] = '0' + (int)(cents / 10);
-        dst[cursor+1] = '0' + (cents % 10);
-        cursor += 2;
+        dst[cursor++] = '0' + (int)(cents / 10);
+        dst[cursor++] = '0' + (cents % 10);
       }
     }
     for(i=cursor; i<maxsize; i++) {
-      dst[i] = '\0';
+      dst[i] = '\0';            /* Why the loop?  one is enough - JPff */
     }
     return OK;
 }
