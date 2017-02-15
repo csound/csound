@@ -241,19 +241,21 @@ public:
   T *data_array() { return (T *)data; }
 };
 
+
+typedef Vector<MYFLT> myfltvec;
 typedef std::complex<float> pvscmplx;
 typedef std::complex<MYFLT> sldcmplx;
 
-/** PvBin holds one Phase Vocoder bin
+/** Pvbin holds one Phase Vocoder bin
  */
-template <typename T> class PvBin {
+template <typename T> class Pvbin {
   T am;
   T fr;
 
 public:
   /** constructor
    */
-  PvBin() : am((T)0), fr((T)0){};
+  Pvbin() : am((T)0), fr((T)0){};
 
   /** access amplitude
    */
@@ -273,7 +275,7 @@ public:
 
   /** multiplication (unary)
    */
-  const PvBin &operator*=(const PvBin &bin) {
+  const Pvbin &operator*=(const Pvbin &bin) {
     am *= bin.am;
     fr = bin.fr;
     return *this;
@@ -281,22 +283,22 @@ public:
 
   /** multiplication (binary)
    */
-  PvBin operator*(const PvBin &a) {
-    PvBin res = *this;
+  Pvbin operator*(const Pvbin &a) {
+    Pvbin res = *this;
     return (res *= a);
   }
 
   /** multiplication by MYFLT (unary)
    */
-  const PvBin &operator*=(MYFLT f) {
+  const Pvbin &operator*=(MYFLT f) {
     am *= f;
     return *this;
   }
 
   /** multiplication by MYFLT (binary)
    */
-  PvBin operator*(MYFLT f) {
-    PvBin res = *this;
+  Pvbin operator*(MYFLT f) {
+    Pvbin res = *this;
     return (res *= f);
   }
 
@@ -310,18 +312,18 @@ public:
 };
 
 /** Phase Vocoder bin */
-typedef PvBin<float> pv_bin;
+typedef Pvbin<float> pv_bin;
 
 /** Sliding Phase Vocoder bin */
-typedef PvBin<MYFLT> spv_bin;
+typedef Pvbin<MYFLT> spv_bin;
 
-template <typename T> class Pvs;
+template <typename T> class Pvframe;
 
 /** Phase Vocoder frame */
-typedef Pvs<pv_bin> pv_frame;
+typedef Pvframe<pv_bin> pv_frame;
 
 /** Sliding Phase Vocoder frame */
-typedef Pvs<spv_bin> spv_frame;
+typedef Pvframe<spv_bin> spv_frame;
 
 /** fsig base class, holds PVSDAT data
  */
@@ -405,7 +407,7 @@ public:
 /**  Container class for a Phase Vocoder
      analysis frame
 */
-template <typename T> class Pvs : public Fsig {
+template <typename T> class Pvframe : public Fsig {
 
 public:
   /** iterator type
@@ -545,7 +547,7 @@ public:
 
 /** Parameters template class
  */
-template <uint32_t N> class Params {
+template <uint32_t N> class Param {
   MYFLT *ptrs[N];
 
 public:
@@ -574,6 +576,12 @@ public:
   template <typename T> Vector<T> &vector_data(int n) {
     return (Vector<T> &)*ptrs[n];
   }
+
+  /** retunrs 1-D numeric array data
+   */
+  myfltvec &myfltvec_data(int n) {
+     return (myfltvec &)*ptrs[n];
+  }
 };
 
 /** Plugin template base class:
@@ -581,9 +589,9 @@ public:
  */
 template <uint32_t N, uint32_t M> struct Plugin : OPDS {
   /** output arguments */
-  Params<N> outargs;
+  Param<N> outargs;
   /** input arguments */
-  Params<M> inargs;
+  Param<M> inargs;
   /** Csound engine */
   Csound *csound;
   /** sample-accurate offset */
@@ -656,9 +664,10 @@ template <typename T> int aperf(CSOUND *csound, T *p) {
 /** plugin registration function template
  */
 template <typename T>
-int plugin(CSOUND *csound, const char *name, const char *oargs,
+int plugin(Csound *csound, const char *name, const char *oargs,
            const char *iargs, uint32_t thread, uint32_t flags = 0) {
-  return csound->AppendOpcode(csound, (char *)name, sizeof(T), flags, thread,
+  CSOUND *cs = (CSOUND *) csound;
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thread,
                               (char *)oargs, (char *)iargs, (SUBR)init<T>,
                               (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
@@ -667,16 +676,17 @@ int plugin(CSOUND *csound, const char *name, const char *oargs,
     for classes with self-defined opcode argument types
  */
 template <typename T>
-int plugin(CSOUND *csound, const char *name, uint32_t thread,
+int plugin(Csound *csound, const char *name, uint32_t thread,
            uint32_t flags = 0) {
-  return csound->AppendOpcode(csound, (char *)name, sizeof(T), 0, thread,
+  CSOUND *cs = (CSOUND *) csound;
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), 0, thread,
                               (char *)T::otypes, (char *)T::itypes,
                               (SUBR)init<T>, (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
 
 /** Plugin library entry point
  */
-void on_load(CSOUND *);
+void on_load(Csound *);
 
 }
 
@@ -688,7 +698,7 @@ extern "C" {
 PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
 PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
 PUBLIC int csoundModuleInit(CSOUND *csound) {
-  csnd::on_load(csound);
+  csnd::on_load((csnd::Csound *)csound);
   return 0;
   }
 }
