@@ -29,14 +29,14 @@ static inline MYFLT frac(MYFLT f) { return std::modf(f,&f); }
     kout[] op kin[]
  */
 template<MYFLT (*op)(MYFLT)>
-struct ArrayOp : csnd::Plugin<1, 1> {  
+struct ArrayOp : csnd::Plugin<1, 1> {
   int process(csnd::myfltvec &out,
-	      csnd::myfltvec &in) {
+              csnd::myfltvec &in) {
     std::transform(in.begin(), in.end(), out.begin(),
                    [](MYFLT f) { return op(f); });
     return OK;
   }
-  
+
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd:: myfltvec &in = inargs.myfltvec_data(0);
@@ -46,7 +46,7 @@ struct ArrayOp : csnd::Plugin<1, 1> {
 
   int kperf() {
     return process(outargs.myfltvec_data(0),
-		   inargs.myfltvec_data(0));;
+                   inargs.myfltvec_data(0));;
   }
 };
 
@@ -138,4 +138,3 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "i[]", "i[]i[]", csnd::thread::i);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "k[]", "k[]k[]", csnd::thread::ik);
 }
-

@@ -49,7 +49,7 @@ public:
     // Inputs.
     STRINGDAT* sDirectory;
     MYFLT* index;
-    MYFLT* trigger;
+  //    MYFLT* trigger;
     MYFLT* skiptime;
     MYFLT* format;
     MYFLT* channel;
