@@ -374,8 +374,8 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
               src = ((STRINGDAT*) p->args[i])->data;
               dst = ((STRINGDAT*)(char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
               if(dst->size <= (int) strlen(src)){
-              dst->data = csound->Strdup(csound, src);
-              dst->size = strlen(src) + 1;
+                dst->data = csound->Strdup(csound, src);
+                dst->size = strlen(src) + 1;
               } else {
                 strcpy(dst->data, src);
               }
