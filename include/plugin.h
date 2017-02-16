@@ -508,7 +508,7 @@ public:
     int bytes = n * sizeof(T);
     if (auxp == nullptr || size < bytes) {
       csound->AuxAlloc(csound, bytes, (AUXCH *)this);
-      std::fill((T *)auxp, (T *)auxp + n, 0);
+      std::fill((char *)auxp, (char *)endp, 0);
     }
   }
 
@@ -684,6 +684,17 @@ int plugin(Csound *csound, const char *name, uint32_t thread,
                               (SUBR)init<T>, (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
 
+
+/** utility constructor function template for member classes: \n 
+    takes the class and constructor types as arguments. \n
+    Function takes the allocated memory pointer and constructor
+    arguments.\n
+ */
+template <typename T, typename ... Types>
+T *constr(T* p, Types ... args){
+  return new(p) T(args ...);
+}
+ 
 /** Plugin library entry point
  */
 void on_load(Csound *);
