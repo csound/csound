@@ -249,7 +249,7 @@ int delset(CSOUND *csound, DELAY *p)
     if (UNLIKELY(*p->istor && p->auxch.auxp != NULL))
       return OK;
     /* Round not truncate */
-    if (UNLIKELY((npts = (int32) (FL(0.5) + *p->idlt * csound->esr)) <= 0)) {
+    if (UNLIKELY((npts = MYFLT2LRND(*p->idlt * csound->esr)) <= 0)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
 
@@ -291,7 +291,7 @@ int delrset(CSOUND *csound, DELAYR *p)
     if (UNLIKELY(*p->istor != FL(0.0) && p->auxch.auxp != NULL))
       return OK;
     /* ksmps is min dely */
-    if (UNLIKELY((npts=(uint32_t)(FL(0.5) + *p->idlt*csound->esr)) < CS_KSMPS)) {
+    if (UNLIKELY((npts=(uint32_t)MYFLT2LRND(*p->idlt*csound->esr)) < CS_KSMPS)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
@@ -461,7 +461,7 @@ int deltap(CSOUND *csound, DELTAP *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    tap = q->curp - (int32) (FL(0.5) + *p->xdlt * csound->esr);
+    tap = q->curp - MYFLT2LRND(*p->xdlt * csound->esr);
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
     endp = (MYFLT *) q->auxch.endp;
@@ -751,7 +751,7 @@ int deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
           out1[n] = (MYFLT)(n1 * sin(PI * x1) / PI);
         }
         else {                                          /* integer sample */
-          xpos = (int32) ((double)xpos + x1 + 0.5);     /* position */
+          xpos = MYFLT2LRND((double)xpos + x1);         /* position */
           if (xpos >= maxd) xpos -= maxd;
           out1[n] = buf1[xpos];
         }
@@ -835,7 +835,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
           } while (--i);
         }
         else {                                          /* integer sample */
-          xpos = (int32) ((double)xpos + x1 + 0.5);     /* position */
+          xpos = MYFLT2LRND((double)xpos + x1);         /* position */
           if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
           buf1[xpos] += in1[n];
         }
@@ -904,11 +904,11 @@ int cmbset(CSOUND *csound, COMB *p)
     int32       lpsiz, nbytes;
 
     if (*p->insmps != 0) {
-      if (UNLIKELY((lpsiz = (int32)(FL(0.5)+*p->ilpt))) <= 0) {
+      if (UNLIKELY((lpsiz = MYFLT2LRND(*p->ilpt))) <= 0) {
         return csound->InitError(csound, Str("illegal loop time"));
       }
     }
-    else if (UNLIKELY((lpsiz = (int32)(FL(0.5) + *p->ilpt * csound->esr)) <= 0)) {
+    else if (UNLIKELY((lpsiz = MYFLT2LRND(*p->ilpt * csound->esr)) <= 0)) {
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
@@ -1063,7 +1063,7 @@ void reverbinit(CSOUND *csound)         /* called once by oload */
     if (csound->revlpsum==0) {
       csound->revlpsum = 0;
       for (n=0; n<6; n++) {
-        lpsizp[n] = (int32) (lptimp[n] * csound->esr + 0.5);
+        lpsizp[n] = MYFLT2LRND(lptimp[n] * csound->esr);
         csound->revlpsum += lpsizp[n];
       }
     }

@@ -464,7 +464,7 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
         MYFLT frac = FL(1.0) - previn/(curin-previn);
         level = resetPos + frac * rate;
       }
-      out[n] = level; 
+      out[n] = level;
       level += rate;
       level = sc_wrap(level, start, end);
       previn = curin;
