@@ -429,10 +429,10 @@ int modak(CSOUND *csound, AOP *p)
 */
 #ifdef USE_SSE
 #include "emmintrin.h"
-#define AA_VEC(OPNAME,OP)	    \
+#define AA_VEC(OPNAME,OP)                   \
 int OPNAME(CSOUND *csound, AOP *p){ \
   MYFLT   *r, *a, *b; \
-  __m128d va, vb;		     \
+  __m128d va, vb;                    \
   uint32_t n, nsmps = CS_KSMPS, end; \
   if (LIKELY(nsmps!=1)) { \
   uint32_t offset = p->h.insdshead->ksmps_offset; \
@@ -449,13 +449,13 @@ int OPNAME(CSOUND *csound, AOP *p){ \
    vb = _mm_loadu_pd(&b[n]); \
    va = OP(va,vb);\
    _mm_storeu_pd(&r[n],va); \
-  } 	\
+  }     \
   return OK; \
   } \
    else { \
      *p->r = *p->a + *p->b;\
       return OK; \
-   }		 \
+   }             \
 } \
 
 AA_VEC(addaa,_mm_add_pd)
@@ -1916,7 +1916,7 @@ int outarr(CSOUND *csound, OUTARRAY *p)
 
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
-        memset(spout, '\0', csound->nspout*sizeof(MYFLT)); 
+        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
         for (i=0; i<n; i++) {
           for (j=offset; j<early; j++) {
             spout[j+i*ksmps] = data[j+i*ksmps];
