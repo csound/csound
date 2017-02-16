@@ -97,10 +97,10 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
 int pvssanalset(CSOUND *csound, PVSANAL *p)
 {
     /* opcode params */
-    int N = (int) (FL(0.5)+*(p->winsize));
+    int N = MYFLT2LRND(*p->winsize);
     int NB;
     int i;
-    int wintype = (int) (FL(0.5)+*p->wintype);
+    int wintype = MYFLT2LRND(*p->wintype);
 
     /* deal with iinit and iformat later on! */
 
