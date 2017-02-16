@@ -30,23 +30,23 @@ static inline MYFLT frac(MYFLT f) { return std::modf(f,&f); }
  */
 template<MYFLT (*op)(MYFLT)>
 struct ArrayOp : csnd::Plugin<1, 1> {
-  int process(csnd::Vector<MYFLT> &out,
-              csnd::Vector<MYFLT> &in) {
+  int process(csnd::myfltvec &out,
+              csnd::myfltvec &in) {
     std::transform(in.begin(), in.end(), out.begin(),
                    [](MYFLT f) { return op(f); });
     return OK;
   }
 
   int init() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd:: Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::myfltvec &out = outargs.myfltvec_data(0);
+    csnd:: myfltvec &in = inargs.myfltvec_data(0);
     out.init(csound,in.len());
     return process(out, in);
   }
 
   int kperf() {
-    return process(outargs.vector_data<MYFLT>(0),
-                   inargs.vector_data<MYFLT>(0));;
+    return process(outargs.myfltvec_data(0),
+                   inargs.myfltvec_data(0));;
   }
 };
 
@@ -56,9 +56,9 @@ struct ArrayOp : csnd::Plugin<1, 1> {
 template<MYFLT (*bop)(MYFLT, MYFLT)>
 struct ArrayOp2 : csnd::Plugin<1, 2> {
   int init() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in1 = inargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in2 = inargs.vector_data<MYFLT>(0);
+    csnd::myfltvec &out = outargs.myfltvec_data(0);
+    csnd::myfltvec &in1 = inargs.myfltvec_data(0);
+    csnd::myfltvec &in2 = inargs.myfltvec_data(0);
     if(in2.len() < in1.len())
       return csound->init_error(Str("second input array is too short\n"));
     out.init(csound,in1.len());
@@ -68,9 +68,9 @@ struct ArrayOp2 : csnd::Plugin<1, 2> {
   }
 
   int kperf() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in1 = inargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in2 = inargs.vector_data<MYFLT>(0);
+    csnd::myfltvec &out = outargs.myfltvec_data(0);
+    csnd::myfltvec &in1 = inargs.myfltvec_data(0);
+    csnd::myfltvec &in2 = inargs.myfltvec_data(0);
     std::transform(in1.begin(), in1.end(), in2.begin(), out.begin(),
                    [](MYFLT f1, MYFLT f2) { return bop(f1,f2); });
 
@@ -78,7 +78,7 @@ struct ArrayOp2 : csnd::Plugin<1, 2> {
   }
 };
 
-void csnd::on_load(CSOUND *csound) {
+void csnd::on_load(Csound *csound) {
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "k[]", "k[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::floor>>(csound, "floor", "i[]", "i[]", csnd::thread::i);
