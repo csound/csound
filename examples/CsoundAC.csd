@@ -60,7 +60,7 @@ iampheadroom                    init                    ampdb(idbaheadroom)
                                 prints                  "Balance so the overall amps at the end of performance -6 dbfs.\n"
 
 #ifdef VST
-giPianoteq                      vstinit                 "C:\\utah\\opt\\pianoteq-3.5\\Pianoteq.dll", 0
+giPianoteq                      vstinit                 "C:/Program_Files/Steinberg/VSTPlugins/Pianoteq5_x64", 0
                                 vstinfo                 giPianoteq
 #endif
 
