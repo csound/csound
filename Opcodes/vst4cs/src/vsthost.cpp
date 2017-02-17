@@ -859,9 +859,9 @@ void VSTPlugin::Debug(const char *format, ...)
         csound->MessageV(csound, 0, format, args);
       }
     }
-    else {
-      vfprintf(stdout, format, args);
-    }
+    //else {
+    //  vfprintf(stdout, format, args);
+    //}
     va_end(args);
 }
 
