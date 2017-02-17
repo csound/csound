@@ -43,6 +43,8 @@ enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
 */
 enum fsig_format { pvs = 0, polar, complex, tracks };
 
+typedef CSOUND_FFT_SETUP* fftp;
+  
 /** Csound Engine object.
  */
 class Csound : CSOUND {
@@ -163,20 +165,72 @@ public:
       direction: FFT_FWD or FFT_INV \n
       returns a handle to the FFT setup.
    */
-  void *rfft_setup(uint32_t size, uint32_t direction) {
-    return RealFFT2Setup(this, size, direction);
+  fftp fft_setup(uint32_t size, uint32_t direction) {
+    return (fftp) RealFFT2Setup(this, size, direction);
   }
 
   /** FFT operation, in-place, but also
       returning a pointer to std::complex<MYFLT>
       to the transformed data memory.
   */
-  std::complex<MYFLT> *rfft(void *setup, MYFLT *data) {
-    RealFFT2(this, setup, data);
+  std::complex<MYFLT> *rfft(fftp setup, MYFLT *data) {
+    if(!setup->p2) {
+      if(setup->d == FFT_FWD)
+	 RealFFTnp2(this, data, setup->N);
+      else
+         InverseRealFFTnp2(this, data, setup->N);
+    }
+    else
+      RealFFT2(this, setup, data);
     return reinterpret_cast<std::complex<MYFLT> *>(data);
   }
+
+  /** FFT operation for complex data, in-place, but also
+      returning a pointer to std::complex<MYFLT>
+      to the transformed data memory.
+  */
+  std::complex<MYFLT> *fft(fftp setup, std::complex<MYFLT> *data) {
+    MYFLT *fdata = reinterpret_cast<MYFLT*>(data);
+    if(setup->d == FFT_FWD)
+      ComplexFFT(this,fdata,setup->N);
+    else
+      ComplexFFT(this,fdata,setup->N);
+    return reinterpret_cast<std::complex<MYFLT>*>(fdata);
+  }
+  
 };
 
+uintptr_t thrdRun(void *t);
+
+/**
+  Thread pure virtual base class
+ */
+class Thread  {
+   void *thread;
+   friend uintptr_t thrdRun(void *);
+ protected:
+   Csound *csound;
+ public:
+   Thread(Csound *cs) :
+   csound(cs) {
+     CSOUND *p = (CSOUND *) csound;
+     thread = p->CreateThread(thrdRun, (void *) this);
+   }
+   virtual uintptr_t run() = 0;
+   uintptr_t join(){
+     CSOUND *p = (CSOUND *) csound;
+     return p->JoinThread(thread);
+   }
+   void *get_thread() {
+     return thread;
+   }   
+ };
+
+ uintptr_t thrdRun(void *t) {
+   return ((Thread *)t)->run();
+ }
+
+ 
 /** One-dimensional array container
     template class
  */
