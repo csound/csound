@@ -936,6 +936,19 @@ typedef struct NAME__ {
 
 
   /**
+   * Nen FFT interface
+   */
+  typedef struct _FFT_SETUP{
+    int N, M;
+    void  *setup;
+    MYFLT *buffer;
+    int    lib;
+    int    d;
+    int  p2;
+  } CSOUND_FFT_SETUP;
+
+  
+  /**
    * plugin module info
    */
   typedef struct {
