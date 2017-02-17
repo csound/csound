@@ -44,7 +44,7 @@ enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
 enum fsig_format { pvs = 0, polar, complex, tracks };
 
 typedef CSOUND_FFT_SETUP* fftp;
- 
+  
 /** Csound Engine object.
  */
 class Csound : CSOUND {
@@ -200,6 +200,37 @@ public:
   
 };
 
+uintptr_t thrdRun(void *t);
+
+/**
+  Thread pure virtual base class
+ */
+class Thread  {
+   void *thread;
+   friend uintptr_t thrdRun(void *);
+ protected:
+   Csound *csound;
+ public:
+   Thread(Csound *cs) :
+   csound(cs) {
+     CSOUND *p = (CSOUND *) csound;
+     thread = p->CreateThread(thrdRun, (void *) this);
+   }
+   virtual uintptr_t run() = 0;
+   uintptr_t join(){
+     CSOUND *p = (CSOUND *) csound;
+     return p->JoinThread(thread);
+   }
+   void *get_thread() {
+     return thread;
+   }   
+ };
+
+ uintptr_t thrdRun(void *t) {
+   return ((Thread *)t)->run();
+ }
+
+ 
 /** One-dimensional array container
     template class
  */
