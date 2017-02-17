@@ -22,8 +22,10 @@
   02111-1307 USA
 
 */
-#include <plugin.h>
+#include <atomic>
 #include <iostream>
+#include <plugin.h>
+#include <random>
 
 /** i-time plugin opcode example
     with 1 output and 1 input \n
@@ -54,8 +56,7 @@ struct Simplek : csnd::Plugin<1, 1> {
 struct Simplea : csnd::Plugin<1, 1> {
   int aperf() {
     nsmps = insdshead->ksmps;
-    std::copy(inargs.data(0), inargs.data(0) + nsmps,
-              outargs.data(0));
+    std::copy(inargs.data(0), inargs.data(0) + nsmps, outargs.data(0));
     return OK;
   }
 };
@@ -67,51 +68,50 @@ struct Simplea : csnd::Plugin<1, 1> {
  */
 struct SimpleArray : csnd::Plugin<1, 1> {
   int init() {
-    csnd::Vector<MYFLT> &out =  outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
-    out.init(csound,in.len());
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    out.init(csound, in.len());
     csound->plugin_deinit(this);
     return OK;
   }
-  
+
   int deinit() {
     /** nothing to do, just announce itself */
     csound->message("deinit called");
     return OK;
   }
-  
-  int kperf() {    
+
+  int kperf() {
     csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
     std::copy(in.begin(), in.end(), out.begin());
     return OK;
   }
 };
 
-
 /** a-rate numeric array example
     with 1 output and 1 input \n
     aout[] simple ain[] \n\n
-    NB: in this case, each 
+    NB: in this case, each
  */
 struct SimpleArrayA : csnd::Plugin<1, 1> {
   int init() {
-    csnd::Vector<MYFLT> &out =  outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
-    out.init(csound,in.len());
+    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    out.init(csound, in.len());
     return OK;
   }
-  
-  int aperf() {    
+
+  int aperf() {
     csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in =  inargs.vector_data<MYFLT>(0);
+    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
     // copy each a-var ksmps vector in turn
     // NB: copying the whole memory block
     // from in.begin() to in.end() also works
-    for(int i = 0; i < in.len(); i++)
-      std::copy(in.begin()+i*in.elem_offset(),
-	      in.begin()+(i+1)*in.elem_offset(),
-	      out.begin()+i*in.elem_offset());   
+    for (int i = 0; i < in.len(); i++)
+      std::copy(in.begin() + i * in.elem_offset(),
+                in.begin() + (i + 1) * in.elem_offset(),
+                out.begin() + i * in.elem_offset());
     return OK;
   }
 };
@@ -126,7 +126,6 @@ struct Tprint : csnd::Plugin<0, 1> {
     return OK;
   }
 };
-
 
 /** a-rate plugin opcode example: delay line
     with 1 output and 2 inputs (a,i) \n
@@ -151,7 +150,7 @@ struct DelayLine : csnd::Plugin<1, 2> {
       if (iter == delay.end())
         iter = delay.begin();
       out[i] = *iter;
-     *iter = in[i];     
+      *iter = in[i];
     }
     return OK;
   }
@@ -198,11 +197,11 @@ struct Oscillator : csnd::Plugin<1, 3> {
 struct PVGain : csnd::FPlugin<1, 2> {
   static constexpr char const *otypes = "f";
   static constexpr char const *itypes = "fk";
-  
+
   int init() {
     if (inargs.fsig_data(0).isSliding())
       return csound->init_error("sliding not supported");
-    
+
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
       return csound->init_error("fsig format not supported");
@@ -215,21 +214,65 @@ struct PVGain : csnd::FPlugin<1, 2> {
 
   int kperf() {
     csnd::pv_frame &fin = inargs.fsig_data(0);
-    csnd::pv_frame &fout =  outargs.fsig_data(0);
+    csnd::pv_frame &fout = outargs.fsig_data(0);
 
     if (framecount < fin.count()) {
       MYFLT g = inargs[1];
       std::transform(fin.begin(), fin.end(), fout.begin(),
-		     [g](csnd::pv_bin f){ return f *= g; });
+                     [g](csnd::pv_bin f) { return f *= g; });
       framecount = fout.count(fin.count());
     }
     return OK;
   }
 };
 
+/** Thread to compute Gaussian distr.
+ */
+class MyThread : public csnd::Thread {
+  MYFLT *res;
+  std::atomic_bool on;
+  std::normal_distribution<MYFLT> norm;
+  std::mt19937 gen;
+
+public:
+  MyThread(csnd::Csound *csound, MYFLT mean, MYFLT std, MYFLT *r)
+      : Thread(csound), res(r), on(true), norm(mean, std), gen(){};
+  uintptr_t run() {
+    while (on)
+      *res = norm(gen);
+    return 0;
+  }
+  void stop() { on = false; }
+};
+
+/**
+   Asynchronous normal distribution generation
+ */
+struct AsyncGauss : csnd::Plugin<1, 2> {
+  MyThread t;
+  MYFLT res;
+
+  int init() {
+    csound->plugin_deinit(this);
+    csnd::constr<MyThread>(&t, csound, inargs[0], inargs[1], &res);
+    return OK;
+  }
+
+  int deinit() {
+    t.stop();
+    t.join();
+    return OK;
+  }
+
+  int kperf() {
+    outargs[0] = res;
+    return OK;
+  }
+};
+
 /** Library loading
  */
-void csnd::on_load(CSOUND *csound) {
+void csnd::on_load(Csound *csound) {
   csnd::plugin<Simplei>(csound, "simple", "i", "i", csnd::thread::i);
   csnd::plugin<Simplek>(csound, "simple", "k", "k", csnd::thread::k);
   csnd::plugin<Simplea>(csound, "simple", "a", "a", csnd::thread::a);
@@ -239,5 +282,5 @@ void csnd::on_load(CSOUND *csound) {
   csnd::plugin<DelayLine>(csound, "delayline", "a", "ai", csnd::thread::ia);
   csnd::plugin<Oscillator>(csound, "oscillator", "a", "kki", csnd::thread::ia);
   csnd::plugin<PVGain>(csound, "pvg", csnd::thread::ik);
+  csnd::plugin<AsyncGauss>(csound, "gaussa", "k", "ii", csnd::thread::ik);
 }
-
