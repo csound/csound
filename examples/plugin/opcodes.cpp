@@ -24,8 +24,9 @@
 */
 #include <atomic>
 #include <iostream>
-#include <plugin.h>
 #include <random>
+#include <modload.h>
+#include <plugin.h>
 
 /** i-time plugin opcode example
     with 1 output and 1 input \n
@@ -272,6 +273,7 @@ struct AsyncGauss : csnd::Plugin<1, 2> {
 
 /** Library loading
  */
+
 void csnd::on_load(Csound *csound) {
   csnd::plugin<Simplei>(csound, "simple", "i", "i", csnd::thread::i);
   csnd::plugin<Simplek>(csound, "simple", "k", "k", csnd::thread::k);
