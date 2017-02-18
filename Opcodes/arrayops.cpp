@@ -78,6 +78,7 @@ struct ArrayOp2 : csnd::Plugin<1, 2> {
   }
 };
 
+#include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "k[]", "k[]", csnd::thread::i);
