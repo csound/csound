@@ -746,17 +746,4 @@ T *constr(T* p, Types ... args){
 }
 
 }
-
-/**
-  @private
-  library loading functions
-*/
-//extern "C" {
-//PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
-//PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
-//PUBLIC int csoundModuleInit(CSOUND *csound) {
-//  csnd::on_load((csnd::Csound *)csound);
-//  return 0;
-//  }
-//}
 #endif
