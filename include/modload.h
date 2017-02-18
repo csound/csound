@@ -1,8 +1,8 @@
 #ifndef __MODLOAD__H
 #define __MODLOAD__H
 
+#include <plugin.h>
 namespace csnd {
-  class Csound;
   /** Plugin library entry point
    */
   void on_load(Csound *);
