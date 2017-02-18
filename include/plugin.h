@@ -200,14 +200,14 @@ public:
   
 };
 
-uintptr_t thrdRun(void *t);
-
 /**
   Thread pure virtual base class
  */
 class Thread  {
    void *thread;
-   friend uintptr_t thrdRun(void *);
+   static uintptr_t thrdRun(void *t){
+     return ((Thread *)t)->run();
+   }
  protected:
    Csound *csound;
  public:
@@ -225,10 +225,6 @@ class Thread  {
      return thread;
    }   
  };
-
- uintptr_t thrdRun(void *t) {
-   return ((Thread *)t)->run();
- }
 
  
 /** One-dimensional array container
@@ -748,23 +744,6 @@ template <typename T, typename ... Types>
 T *constr(T* p, Types ... args){
   return new(p) T(args ...);
 }
- 
-/** Plugin library entry point
- */
-void on_load(Csound *);
 
-}
-
-/**
-  @private
-  library loading functions
-*/
-extern "C" {
-PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
-PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
-PUBLIC int csoundModuleInit(CSOUND *csound) {
-  csnd::on_load((csnd::Csound *)csound);
-  return 0;
-  }
 }
 #endif
