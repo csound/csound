@@ -62,6 +62,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   }
 };
 
+#include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
 }
