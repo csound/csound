@@ -226,6 +226,62 @@ class Thread  {
    }   
  };
 
+/** Class AudioSig wraps an audio signal
+ */
+class AudioSig {
+   uint32_t early;
+   uint32_t offset;
+   uint32_t nsmps;
+   MYFLT *sig;
+
+ public:
+   /** Constructor takes the plugin object and the
+       audio argument pointer, and a reset flag if
+       we need to clear an output buffer 
+    */
+ AudioSig(OPDS *p, MYFLT *s, bool res = false) :
+   early(p->insdshead->ksmps_no_end), offset(p->insdshead->ksmps_offset),
+     nsmps(p->insdshead->ksmps - p->insdshead->ksmps_no_end), sig(s) {
+     if(res) {
+       std::fill(sig, sig + p->insdshead->ksmps, 0);
+     }
+   };
+   
+  /** iterator type
+  */
+  typedef MYFLT *iterator;
+
+  /** const_iterator type
+  */
+  typedef const MYFLT *const_iterator;
+
+  /** vector beginning
+   */
+  iterator begin() { return (MYFLT *) sig + offset; }
+
+  /** vector end
+   */
+  iterator end() { return (MYFLT *) sig + nsmps; }
+
+  /** array subscript access (write)
+   */
+  MYFLT &operator[](int n) { return sig[n]; }
+
+  /** array subscript access (read)
+   */
+  const MYFLT &operator[](int n) const { return sig[n]; }
+
+    /** array subscript access (write)
+   */
+  MYFLT &operator[](int n) { return sig[n]; }
+
+  /** array subscript access (read)
+   */
+  const MYFLT &operator[](int n) const { return sig[n]; }
+  
+ };
+
+ 
  
 /** One-dimensional array container
     template class
@@ -611,6 +667,8 @@ public:
 
   /** parameter data (MYFLT pointer) at index n
    */
+  MYFLT *operator()(int n) { return ptrs[n]; }
+  
   MYFLT *data(int n) { return ptrs[n]; }
 
   /** parameter string data (STRINGDAT ref) at index n
@@ -648,7 +706,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
   uint32_t offset;
   /** vector samples to process */
   uint32_t nsmps;
-
+  
   /** i-time function placeholder
    */
   int init() { return OK; }
@@ -661,18 +719,22 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
    */
   int aperf() { return OK; }
 
-  /** sample-accurate offset for
+  /** @private
+      sample-accurate offset for
       a-rate opcodes; updates offset
-      and nsmps
+      and nsmps. Called implicitly by
+      the aperf() method.
    */
-  void sa_offset(MYFLT *v) {
+  void sa_offset(MYFLT *v = nullptr) {
     uint32_t early = insdshead->ksmps_no_end;
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
+    if(v) {
     if (UNLIKELY(offset))
       std::fill(v, v + offset, 0);
     if (UNLIKELY(early))
       std::fill(v + nsmps, v + nsmps + early, 0);
+    }
   }
 };
 
@@ -708,6 +770,7 @@ template <typename T> int kperf(CSOUND *csound, T *p) {
 */
 template <typename T> int aperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
+  p->sa_offset(p->outargs(0));
   return p->aperf();
 }
 
