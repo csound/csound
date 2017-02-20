@@ -252,11 +252,19 @@ public:
 
   /** vector beginning
    */
-  iterator begin() { return (MYFLT *)sig + offset; }
+  iterator begin() { return sig + offset; }
 
   /** vector end
    */
-  iterator end() { return (MYFLT *)sig + nsmps; }
+  iterator end() { return sig + nsmps; }
+
+  /** vector beginning
+   */
+  const_iterator cbegin() const { return sig + offset; }
+
+  /** vector end
+   */
+  const_iterator cend() const { return sig + nsmps; }
 
   /** array subscript access (write)
    */
@@ -310,6 +318,14 @@ public:
   /** vector end
    */
   iterator end() { return (T *)((char *)data + sizes[0] * arrayMemberSize); }
+
+  /** vector beginning
+   */
+  const_iterator begin() const { return (const T *)data; }
+
+  /** vector end
+   */
+  const_iterator end() const { return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
 
   /** array subscript access (write)
    */
@@ -518,6 +534,16 @@ public:
     */
   iterator end() { return (T *)frame.auxp + N / 2 + 1; }
 
+  /** returns a const iterator to the
+      beginning of the frame
+   */
+  const_iterator cbegin() const { return (const T *)frame.auxp; }
+
+  /** returns a const iterator to the
+       end of the frame
+    */
+  const_iterator cend() const { return (const T *)frame.auxp + N / 2 + 1; }
+
   /** array subscript access operator (write)
    */
   T &operator[](int n) { return ((T *)frame.auxp)[n]; }
@@ -569,6 +595,16 @@ public:
     */
   iterator end() { return ftable + flen; }
 
+   /** returns a const iterator to the
+      beginning of the table
+   */
+  const_iterator cbegin() const { return ftable; }
+
+  /** returns a const iterator to the
+       end of the table
+    */
+  const_iterator cend() const { return ftable + flen; }
+  
   /** array subscript access operator (write)
    */
   MYFLT &operator[](int n) { return ftable[n]; }
@@ -618,6 +654,14 @@ public:
    */
   iterator end() { return (T *)endp; }
 
+  /** vector beginning (const iterator)
+   */
+  const_iterator cbegin() const { return (const T *)auxp; }
+
+  /** vector end  (const iterator)
+   */
+  const_iterator cend() { return (const T *)endp; }
+
   /** array subscript access (write)
    */
   T &operator[](int n) { return ((T *)auxp)[n]; }
@@ -649,10 +693,37 @@ public:
    */
   const MYFLT &operator[](int n) const { return *ptrs[n]; }
 
+    /** iterator type
+  */
+  typedef MYFLT **iterator;
+
+  /** const_iterator type
+  */
+  typedef const MYFLT **const_iterator;
+
+  /** vector beginning
+   */
+  iterator begin() { return ptrs; }
+
+  /** vector end
+   */
+  iterator end() { return ptrs + N; }
+
+  /** vector beginning
+   */
+  const_iterator cbegin() const { return ptrs; }
+
+  /** vector end
+   */
+  const_iterator cend() const { return ptrs + N; }
+
   /** parameter data (MYFLT pointer) at index n
    */
   MYFLT *operator()(int n) { return ptrs[n]; }
 
+  /** @private: 
+       same as operator()
+   */
   MYFLT *data(int n) { return ptrs[n]; }
 
   /** parameter string data (STRINGDAT ref) at index n
