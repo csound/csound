@@ -24,9 +24,9 @@
 */
 #include <atomic>
 #include <iostream>
-#include <random>
 #include <modload.h>
 #include <plugin.h>
+#include <random>
 
 /** i-time plugin opcode example
     with 1 output and 1 input \n
@@ -56,8 +56,8 @@ struct Simplek : csnd::Plugin<1, 1> {
  */
 struct Simplea : csnd::Plugin<1, 1> {
   int aperf() {
-    nsmps = insdshead->ksmps;
-    std::copy(inargs.data(0), inargs.data(0) + nsmps, outargs.data(0));
+    std::copy(inargs(0) + offset, inargs(0) + nsmps,
+	      outargs(0));
     return OK;
   }
 };
@@ -143,15 +143,15 @@ struct DelayLine : csnd::Plugin<1, 2> {
   }
 
   int aperf() {
-    MYFLT *out = outargs.data(0);
-    MYFLT *in = inargs.data(0);
+    csnd::AudioSig in(this, inargs(0));
+    csnd::AudioSig out(this, outargs(0));
+    csnd::AudioSig::iterator o = out.begin();
 
-    sa_offset(out);
-    for (uint32_t i = offset; i < nsmps; i++, iter++) {
-      if (iter == delay.end())
+    for (MYFLT s : in) {
+      *o++ = *iter;
+      *iter = s;
+      if (++iter == delay.end())
         iter = delay.begin();
-      out[i] = *iter;
-      *iter = in[i];
     }
     return OK;
   }
@@ -162,31 +162,31 @@ struct DelayLine : csnd::Plugin<1, 2> {
     aout oscillator kamp,kcps,ifn
  */
 struct Oscillator : csnd::Plugin<1, 3> {
-  csnd::Table table;
+  csnd::Table tab;
   double scl;
-  double ndx;
+  double x;
 
   int init() {
-    table.init(csound, inargs.data(2));
-    scl = table.len() / csound->sr();
-    ndx = 0;
+    tab.init(csound, inargs(2));
+    scl = tab.len() / csound->sr();
+    x = 0.;
     return OK;
   }
 
   int aperf() {
-    MYFLT *out = outargs.data(0);
+    csnd::AudioSig out(this, outargs(0));
     MYFLT amp = inargs[0];
     MYFLT si = inargs[1] * scl;
-
-    sa_offset(out);
-    for (uint32_t i = offset; i < nsmps; i++) {
-      out[i] = amp * table[(uint32_t)ndx];
-      ndx += si;
-      while (ndx < 0)
-        ndx += table.len();
-      while (ndx >= table.len())
-        ndx -= table.len();
-    }
+    auto synth = [this, amp, si](MYFLT s) {
+      s = amp * tab[(uint32_t)x];
+      x += si;
+      while (x < 0)
+        x += tab.len();
+      while (x >= tab.len())
+        x -= tab.len();
+      return s;
+    };
+    std::transform(out.begin(), out.end(), out.begin(), synth);
     return OK;
   }
 };
