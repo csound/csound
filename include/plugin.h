@@ -266,13 +266,6 @@ public:
    */
   const MYFLT &operator[](int n) const { return sig[n]; }
 
-  /** array subscript access (write)
- */
-  MYFLT &operator[](int n) { return sig[n]; }
-
-  /** array subscript access (read)
-   */
-  const MYFLT &operator[](int n) const { return sig[n]; }
 };
 
 /** One-dimensional array container
