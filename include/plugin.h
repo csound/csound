@@ -155,6 +155,12 @@ public:
     return (const INSDS *)GetMidiChannel(this)->kinsptr;
   }
 
+  /** check for audio signal variable argument
+   */
+  bool is_asig(void *arg){
+    return !std::strcmp(GetTypeForArg(arg)->varTypeName, "a");
+  }
+    
   /** deinit registration for a given plugin class
    */
   template <typename T> void plugin_deinit(T *p) {
@@ -778,15 +784,17 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
       and nsmps. Called implicitly by
       the aperf() method.
    */
-  void sa_offset(MYFLT *v = nullptr) {
+  void sa_offset() {
     uint32_t early = insdshead->ksmps_no_end;
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
-    if (v) {
+    for(auto &arg : outargs) {  
+    if (csound->is_asig(arg)) {
       if (UNLIKELY(offset))
-        std::fill(v, v + offset, 0);
+        std::fill(arg, arg + offset, 0);
       if (UNLIKELY(early))
-        std::fill(v + nsmps, v + nsmps + early, 0);
+        std::fill(arg + nsmps, arg + nsmps + early, 0);
+     }
     }
   }
 };
@@ -823,7 +831,7 @@ template <typename T> int kperf(CSOUND *csound, T *p) {
 */
 template <typename T> int aperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
-  p->sa_offset(p->outargs(0));
+  p->sa_offset();
   return p->aperf();
 }
 
