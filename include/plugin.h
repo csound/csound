@@ -31,6 +31,7 @@
 #include <csdl.h>
 #include <iostream>
 #include <pstream.h>
+#include <cstring>
 
 namespace csnd {
 
