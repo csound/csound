@@ -373,21 +373,14 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
               /* int   j, maxLen; */
               src = ((STRINGDAT*) p->args[i])->data;
               dst = ((STRINGDAT*)(char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
-              if(dst->size <= (int) strlen(src)){
+              printf("*** pushing string \"%s\" dsize=%d\n", src, dst->size);
+              if (dst->size <= (int) strlen(src)) {
                 dst->data = csound->Strdup(csound, src);
                 dst->size = strlen(src) + 1;
+                printf("***dst = %p %d, \"%s\"\n", dst, dst->size, dst->data);
               } else {
                 strcpy(dst->data, src);
               }
-              /* maxLen = ((STRINGDAT*) p->args[i])->size; */
-              /* for (j = 0; src[j] != (char) 0; j++) { */
-              /*   dst[j] = src[j]; */
-              /*   if (j >= maxLen) { */
-              /*     dst[j] = (char) 0; */
-              /*     csoundStack_LengthError(p); */
-              /*   } */
-              /* } */
-              /* dst[j] = (char) 0; */
             }
           }
         }
@@ -473,8 +466,20 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
                 *((MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF)));
             break;
           case CS_STACK_S:
-            strcpy((char*) p->args[i],
-                   (char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
+            {
+              /* str is wrong here */
+              STRINGDAT *str = (STRINGDAT*)(bp+(int)(curOffs&(int)0x00FFFFFF));
+              STRINGDAT * dst = (STRINGDAT*)p->args[i];
+              printf("***string: %p\nbp=%p Off = %x\n", str, bp, curOffs);
+              if (str->size>dst->size) {
+                csound->Free(csound,dst->data);
+                dst->data = csound->Strdup(csound, str->data);
+                dst->size = strlen(dst->data)+1;
+              }
+              else {
+                strcpy((char*) dst->data, str->data);
+              }
+            }
             break;
           }
         }
