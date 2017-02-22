@@ -698,7 +698,6 @@ set(libcsound_SRCS
     Opcodes/arrays.c
     Opcodes/phisem.c
     Opcodes/hrtfopcodes.c
-    Opcodes/stackops.c
     Opcodes/vbap.c
     Opcodes/vbap1.c
     Opcodes/vbap_n.c
