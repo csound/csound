@@ -364,6 +364,8 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
         if (!(p->argMap[0] & (1 << i))) {
           int   curOffs = p->argMap[i + 3];
           *(ofsp++) = curOffs;
+          /* printf("state: bp=%p, curOffs=%x, dataSpace=%p freeSpaceOffset=%x\n", */
+          /*        bp, curOffs, p->pp->dataSpace, p->pp->freeSpaceOffset); */
           switch (curOffs & (int) 0x7F000000) {
           case CS_STACK_I:
             *((MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF))) =
@@ -380,8 +382,8 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
               dst->data = csound->Strdup(csound, src);
               dst->size = strlen(src) + 1;
               *ans = dst;
-              printf("***dst = %p %p %d, \"%s\"\n",
-                     ans, dst, dst->size, dst->data);
+              /* printf("***dst = %p %p %d, \"%s\"\n", */
+              /*        ans, dst, dst->size, dst->data); */
             }
           }
         }
@@ -461,6 +463,8 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
           if (curOffs != *ofsp)
             csoundStack_TypeError(p);
           ofsp++;
+          /* printf("state: bp=%p, curOffs=%x, dataSpace=%p freeSpaceOffset=%x\n", */
+          /*        bp, curOffs, p->pp->dataSpace, p->pp->freeSpaceOffset); */
           switch (curOffs & (int) 0x7F000000) {
           case CS_STACK_I:
             *(p->args[i]) =
@@ -468,12 +472,12 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
             break;
           case CS_STACK_S:
             {
-              /* str is wrong here */
-              STRINGDAT **ans = (STRINGDAT**)(bp+(int)(curOffs&(int)0x00FFFFFF));
+              STRINGDAT **ans =
+                ((STRINGDAT**)(char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
               STRINGDAT *str = *ans;
               STRINGDAT *dst = (STRINGDAT*)p->args[i];
-              printf("***string: %p\nbp=%p Off = %x\n", ans, bp, curOffs);
-              printf("***string: %p->%s\n", str, dst->data);
+              /* printf("***string: %p\nbp=%p Off = %x\n", ans, bp, curOffs); */
+              /* printf("***string: %p->%s\n", str, dst->data); */
               if (str==NULL)
                 return csound->InitError(csound, "pop of strings broken");
               if (str->size>dst->size) {
