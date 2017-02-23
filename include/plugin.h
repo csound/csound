@@ -29,8 +29,9 @@
 #include <algorithm>
 #include <complex>
 #include <csdl.h>
-#include <pstream.h>
 #include <iostream>
+#include <pstream.h>
+#include <cstring>
 
 namespace csnd {
 
@@ -43,8 +44,8 @@ enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
 */
 enum fsig_format { pvs = 0, polar, complex, tracks };
 
-typedef CSOUND_FFT_SETUP* fftp;
-  
+typedef CSOUND_FFT_SETUP *fftp;
+
 /** Csound Engine object.
  */
 class Csound : CSOUND {
@@ -155,6 +156,12 @@ public:
     return (const INSDS *)GetMidiChannel(this)->kinsptr;
   }
 
+  /** check for audio signal variable argument
+   */
+  bool is_asig(void *arg){
+    return !std::strcmp(GetTypeForArg(arg)->varTypeName, "a");
+  }
+    
   /** deinit registration for a given plugin class
    */
   template <typename T> void plugin_deinit(T *p) {
@@ -166,7 +173,7 @@ public:
       returns a handle to the FFT setup.
    */
   fftp fft_setup(uint32_t size, uint32_t direction) {
-    return (fftp) RealFFT2Setup(this, size, direction);
+    return (fftp)RealFFT2Setup(this, size, direction);
   }
 
   /** FFT operation, in-place, but also
@@ -174,13 +181,12 @@ public:
       to the transformed data memory.
   */
   std::complex<MYFLT> *rfft(fftp setup, MYFLT *data) {
-    if(!setup->p2) {
-      if(setup->d == FFT_FWD)
-	 RealFFTnp2(this, data, setup->N);
+    if (!setup->p2) {
+      if (setup->d == FFT_FWD)
+        RealFFTnp2(this, data, setup->N);
       else
-         InverseRealFFTnp2(this, data, setup->N);
-    }
-    else
+        InverseRealFFTnp2(this, data, setup->N);
+    } else
       RealFFT2(this, setup, data);
     return reinterpret_cast<std::complex<MYFLT> *>(data);
   }
@@ -190,48 +196,98 @@ public:
       to the transformed data memory.
   */
   std::complex<MYFLT> *fft(fftp setup, std::complex<MYFLT> *data) {
-    MYFLT *fdata = reinterpret_cast<MYFLT*>(data);
-    if(setup->d == FFT_FWD)
-      ComplexFFT(this,fdata,setup->N);
+    MYFLT *fdata = reinterpret_cast<MYFLT *>(data);
+    if (setup->d == FFT_FWD)
+      ComplexFFT(this, fdata, setup->N);
     else
-      ComplexFFT(this,fdata,setup->N);
-    return reinterpret_cast<std::complex<MYFLT>*>(fdata);
+      ComplexFFT(this, fdata, setup->N);
+    return reinterpret_cast<std::complex<MYFLT> *>(fdata);
   }
-  
 };
 
 /**
   Thread pure virtual base class
  */
-class Thread  {
-   void *thread;
-   static uintptr_t thrdRun(void *t){
-     return ((Thread *)t)->run();
-   }
- protected:
-   Csound *csound;
- public:
-   Thread(Csound *cs) :
-   csound(cs) {
-     CSOUND *p = (CSOUND *) csound;
-     thread = p->CreateThread(thrdRun, (void *) this);
-   }
-   virtual uintptr_t run() = 0;
-   uintptr_t join(){
-     CSOUND *p = (CSOUND *) csound;
-     return p->JoinThread(thread);
-   }
-   void *get_thread() {
-     return thread;
-   }   
- };
+class Thread {
+  void *thread;
+  static uintptr_t thrdRun(void *t) { return ((Thread *)t)->run(); }
 
- 
+protected:
+  Csound *csound;
+
+public:
+  Thread(Csound *cs) : csound(cs) {
+    CSOUND *p = (CSOUND *)csound;
+    thread = p->CreateThread(thrdRun, (void *)this);
+  }
+  virtual uintptr_t run() = 0;
+  uintptr_t join() {
+    CSOUND *p = (CSOUND *)csound;
+    return p->JoinThread(thread);
+  }
+  void *get_thread() { return thread; }
+};
+
+/** Class AudioSig wraps an audio signal
+ */
+class AudioSig {
+  uint32_t early;
+  uint32_t offset;
+  uint32_t nsmps;
+  MYFLT *sig;
+
+public:
+  /** Constructor takes the plugin object and the
+      audio argument pointer, and a reset flag if
+      we need to clear an output buffer
+   */
+  AudioSig(OPDS *p, MYFLT *s, bool res = false)
+      : early(p->insdshead->ksmps_no_end), offset(p->insdshead->ksmps_offset),
+        nsmps(p->insdshead->ksmps - p->insdshead->ksmps_no_end), sig(s) {
+    if (res) {
+      std::fill(sig, sig + p->insdshead->ksmps, 0);
+    }
+  };
+
+  /** iterator type
+  */
+  typedef MYFLT *iterator;
+
+  /** const_iterator type
+  */
+  typedef const MYFLT *const_iterator;
+
+  /** vector beginning
+   */
+  iterator begin() { return sig + offset; }
+
+  /** vector end
+   */
+  iterator end() { return sig + nsmps; }
+
+  /** vector beginning
+   */
+  const_iterator cbegin() const { return sig + offset; }
+
+  /** vector end
+   */
+  const_iterator cend() const { return sig + nsmps; }
+
+  /** array subscript access (write)
+   */
+  MYFLT &operator[](int n) { return sig[n]; }
+
+  /** array subscript access (read)
+   */
+  const MYFLT &operator[](int n) const { return sig[n]; }
+
+};
+
 /** One-dimensional array container
     template class
  */
 template <typename T> class Vector : ARRAYDAT {
-  
+
 public:
   /** Initialise the container
    */
@@ -268,7 +324,15 @@ public:
 
   /** vector end
    */
-  iterator end() { return (T *) ((char*)data + sizes[0]*arrayMemberSize); }
+  iterator end() { return (T *)((char *)data + sizes[0] * arrayMemberSize); }
+
+  /** vector beginning
+   */
+  const_iterator begin() const { return (const T *)data; }
+
+  /** vector end
+   */
+  const_iterator end() const { return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
 
   /** array subscript access (write)
    */
@@ -282,15 +346,14 @@ public:
    */
   uint32_t len() { return sizes[0]; }
 
-  /** element offset 
+  /** element offset
    */
-  uint32_t elem_offset() { return arrayMemberSize/sizeof(T); }
+  uint32_t elem_offset() { return arrayMemberSize / sizeof(T); }
 
   /** array data
    */
   T *data_array() { return (T *)data; }
 };
-
 
 typedef Vector<MYFLT> myfltvec;
 typedef std::complex<float> pvscmplx;
@@ -478,6 +541,16 @@ public:
     */
   iterator end() { return (T *)frame.auxp + N / 2 + 1; }
 
+  /** returns a const iterator to the
+      beginning of the frame
+   */
+  const_iterator cbegin() const { return (const T *)frame.auxp; }
+
+  /** returns a const iterator to the
+       end of the frame
+    */
+  const_iterator cend() const { return (const T *)frame.auxp + N / 2 + 1; }
+
   /** array subscript access operator (write)
    */
   T &operator[](int n) { return ((T *)frame.auxp)[n]; }
@@ -529,6 +602,16 @@ public:
     */
   iterator end() { return ftable + flen; }
 
+   /** returns a const iterator to the
+      beginning of the table
+   */
+  const_iterator cbegin() const { return ftable; }
+
+  /** returns a const iterator to the
+       end of the table
+    */
+  const_iterator cend() const { return ftable + flen; }
+  
   /** array subscript access operator (write)
    */
   MYFLT &operator[](int n) { return ftable[n]; }
@@ -578,6 +661,14 @@ public:
    */
   iterator end() { return (T *)endp; }
 
+  /** vector beginning (const iterator)
+   */
+  const_iterator cbegin() const { return (const T *)auxp; }
+
+  /** vector end  (const iterator)
+   */
+  const_iterator cend() { return (const T *)endp; }
+
   /** array subscript access (write)
    */
   T &operator[](int n) { return ((T *)auxp)[n]; }
@@ -609,7 +700,36 @@ public:
    */
   const MYFLT &operator[](int n) const { return *ptrs[n]; }
 
+    /** iterator type
+  */
+  typedef MYFLT **iterator;
+
+  /** const_iterator type
+  */
+  typedef const MYFLT **const_iterator;
+
+  /** vector beginning
+   */
+  iterator begin() { return ptrs; }
+
+  /** vector end
+   */
+  iterator end() { return ptrs + N; }
+
+  /** vector beginning
+   */
+  const_iterator cbegin() const { return ptrs; }
+
+  /** vector end
+   */
+  const_iterator cend() const { return ptrs + N; }
+
   /** parameter data (MYFLT pointer) at index n
+   */
+  MYFLT *operator()(int n) { return ptrs[n]; }
+
+  /** @private: 
+       same as operator()
    */
   MYFLT *data(int n) { return ptrs[n]; }
 
@@ -629,9 +749,7 @@ public:
 
   /** retunrs 1-D numeric array data
    */
-  myfltvec &myfltvec_data(int n) {
-     return (myfltvec &)*ptrs[n];
-  }
+  myfltvec &myfltvec_data(int n) { return (myfltvec &)*ptrs[n]; }
 };
 
 /** Plugin template base class:
@@ -661,18 +779,24 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
    */
   int aperf() { return OK; }
 
-  /** sample-accurate offset for
+  /** @private
+      sample-accurate offset for
       a-rate opcodes; updates offset
-      and nsmps
+      and nsmps. Called implicitly by
+      the aperf() method.
    */
-  void sa_offset(MYFLT *v) {
+  void sa_offset() {
     uint32_t early = insdshead->ksmps_no_end;
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
-    if (UNLIKELY(offset))
-      std::fill(v, v + offset, 0);
-    if (UNLIKELY(early))
-      std::fill(v + nsmps, v + nsmps + early, 0);
+    for(auto &arg : outargs) {  
+    if (csound->is_asig(arg)) {
+      if (UNLIKELY(offset))
+        std::fill(arg, arg + offset, 0);
+      if (UNLIKELY(early))
+        std::fill(arg + nsmps, arg + nsmps + early, 0);
+     }
+    }
   }
 };
 
@@ -708,6 +832,7 @@ template <typename T> int kperf(CSOUND *csound, T *p) {
 */
 template <typename T> int aperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
+  p->sa_offset();
   return p->aperf();
 }
 
@@ -716,10 +841,10 @@ template <typename T> int aperf(CSOUND *csound, T *p) {
 template <typename T>
 int plugin(Csound *csound, const char *name, const char *oargs,
            const char *iargs, uint32_t thread, uint32_t flags = 0) {
-  CSOUND *cs = (CSOUND *) csound;
+  CSOUND *cs = (CSOUND *)csound;
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thread,
-                              (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                              (SUBR)kperf<T>, (SUBR)aperf<T>);
+                          (char *)oargs, (char *)iargs, (SUBR)init<T>,
+                          (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
 
 /** plugin registration function template
@@ -728,22 +853,19 @@ int plugin(Csound *csound, const char *name, const char *oargs,
 template <typename T>
 int plugin(Csound *csound, const char *name, uint32_t thread,
            uint32_t flags = 0) {
-  CSOUND *cs = (CSOUND *) csound;
+  CSOUND *cs = (CSOUND *)csound;
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), 0, thread,
-                              (char *)T::otypes, (char *)T::itypes,
-                              (SUBR)init<T>, (SUBR)kperf<T>, (SUBR)aperf<T>);
+                          (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
+                          (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
 
-
-/** utility constructor function template for member classes: \n 
+/** utility constructor function template for member classes: \n
     takes the class and constructor types as arguments. \n
     Function takes the allocated memory pointer and constructor
     arguments.\n
  */
-template <typename T, typename ... Types>
-T *constr(T* p, Types ... args){
-  return new(p) T(args ...);
+template <typename T, typename... Types> T *constr(T *p, Types... args) {
+  return new (p) T(args...);
 }
-
 }
 #endif
