@@ -464,22 +464,19 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-find_library(PTHREAD_LIBRARY winpthread-1)
+if(NOT WIN32)
+  find_library(PTHREAD_LIBRARY pthread)
 
-if(NOT PTHREAD_LIBRARY)
-    find_library(PTHREAD_LIBRARY pthread)
+  if(NOT PTHREAD_LIBRARY)
+      message(FATAL_ERROR "Csound requires the pthread library")
+  endif()
+
+  set(CMAKE_REQUIRED_INCLUDES pthread.h)
+  set(CMAKE_REQUIRED_LIBRARIES pthread)
+
+  set(libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
 
-if(NOT PTHREAD_LIBRARY AND WIN32)
-    find_library(PTHREAD_LIBRARY pthreadGC2)
-endif()
-
-if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
-    message(FATAL_ERROR "Csound requires the pthread library")
-endif()
-
-set(CMAKE_REQUIRED_INCLUDES pthread.h)
-set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 # Now, non required library searches #
 
@@ -1094,13 +1091,13 @@ endif()
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
-  set(libcsound_LIBS
-    ${LIBSNDFILE_LIBRARY})
 else()
   set(libcsound_LIBS
     ${LIBSNDFILE_LIBRARY}
     ${PTHREAD_LIBRARY})
 endif()
+
+set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
