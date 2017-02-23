@@ -39,20 +39,171 @@
 #include <windows.h>
 #include <process.h>
 
-#ifndef MSVC
-//void __stdcall GetSystemTimeAsFileTime(FILETIME*);
+/* #undef NO_WIN9X_COMPATIBILITY */
+
+typedef struct {
+  uintptr_t   (*func)(void *);
+  void        *userdata;
+  HANDLE      threadLock;
+} threadParams;
+
+static unsigned int __stdcall threadRoutineWrapper(void *p)
+{
+  uintptr_t (*threadRoutine)(void *);
+  void      *userData;
+
+  threadRoutine = ((threadParams*) p)->func;
+  userData = ((threadParams*) p)->userdata;
+  SetEvent(((threadParams*) p)->threadLock);
+  return (unsigned int) threadRoutine(userData);
+}
+
+PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
+    void *userdata)
+{
+  threadParams  p;
+  void          *h;
+  unsigned int  threadID;
+
+  p.func = threadRoutine;
+  p.userdata = userdata;
+  p.threadLock = CreateEvent(0, 0, 0, 0);
+  if (p.threadLock == (HANDLE) 0)
+    return NULL;
+  h = (void*) _beginthreadex(NULL, (unsigned) 0, threadRoutineWrapper,
+      (void*) &p, (unsigned) 0, &threadID);
+  if (h != NULL)
+    WaitForSingleObject(p.threadLock, INFINITE);
+  CloseHandle(p.threadLock);
+  return h;
+}
+
+PUBLIC void *csoundGetCurrentThreadId(void)
+{
+  return (void*) GetCurrentThreadId();
+}
+
+PUBLIC uintptr_t csoundJoinThread(void *thread)
+{
+  DWORD   retval = (DWORD) 0;
+  WaitForSingleObject((HANDLE) thread, INFINITE);
+  GetExitCodeThread((HANDLE) thread, &retval);
+  CloseHandle((HANDLE) thread);
+  return (uintptr_t) retval;
+}
+
+PUBLIC void *csoundCreateThreadLock(void)
+{
+  HANDLE threadLock = CreateEvent(0, 0, TRUE, 0);
+  return (void*) threadLock;
+}
+
+PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
+{
+  return (int) WaitForSingleObject((HANDLE) lock, milliseconds);
+}
+
+PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
+{
+  WaitForSingleObject((HANDLE) lock, INFINITE);
+}
+
+PUBLIC void csoundNotifyThreadLock(void *lock)
+{
+  SetEvent((HANDLE) lock);
+}
+
+PUBLIC void csoundDestroyThreadLock(void *lock)
+{
+  CloseHandle((HANDLE) lock);
+}
+
+PUBLIC void csoundSleep(size_t milliseconds)
+{
+  Sleep((DWORD) milliseconds);
+}
+
+/**
+ * Creates and returns a mutex object, or NULL if not successful.
+ * Mutexes can be faster than the more general purpose monitor objects
+ * returned by csoundCreateThreadLock() on some platforms, and can also
+ * be recursive, but the result of unlocking a mutex that is owned by
+ * another thread or is not locked is undefined.
+ * If 'isRecursive' is non-zero, the mutex can be re-locked multiple
+ * times by the same thread, requiring an equal number of unlock calls;
+ * otherwise, attempting to re-lock the mutex results in undefined
+ * behavior.
+ * Note: the handles returned by csoundCreateThreadLock() and
+ * csoundCreateMutex() are not compatible.
+ */
+
+PUBLIC void *csoundCreateMutex(int isRecursive)
+{
+  CRITICAL_SECTION  *cs;
+
+  (void) isRecursive;
+  cs = (CRITICAL_SECTION*) malloc(sizeof(CRITICAL_SECTION));
+  if (cs != NULL)
+    InitializeCriticalSection((LPCRITICAL_SECTION) cs);
+  return (void*) cs;
+}
+
+/**
+ * Acquires the indicated mutex object; if it is already in use by
+ * another thread, the function waits until the mutex is released by
+ * the other thread.
+ */
+
+PUBLIC void csoundLockMutex(void *mutex_)
+{
+  EnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+}
+
+/**
+ * Acquires the indicated mutex object and returns zero, unless it is
+ * already in use by another thread, in which case a non-zero value is
+ * returned immediately, rather than waiting until the mutex becomes
+ * available.
+ * Note: this function may be unimplemented on Windows.
+ */
+
+PUBLIC int csoundLockMutexNoWait(void *mutex_)
+{
+#ifdef NO_WIN9X_COMPATIBILITY
+  BOOL    retval;
+  /* FIXME: may need to define _WIN32_WINNT before including windows.h */
+  retval = TryEnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+  return (retval == FALSE ? 1 : 0);
+#else
+  /* stub for compatibility with Windows 9x */
+  EnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+  return 0;
 #endif
+}
 
-void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
-   {
-          union {
-             long long ns100; /*time since 1 Jan 1601 in 100ns units */
-                 FILETIME ft;
-          } now;
+/**
+ * Releases the indicated mutex object, which should be owned by
+ * the current thread, otherwise the operation of this function is
+ * undefined. A recursive mutex needs to be unlocked as many times
+ * as it was locked previously.
+ */
 
-      GetSystemTimeAsFileTime( &(now.ft) );
-      p->tv_usec=(long)((now.ns100 / 10LL) % 1000000LL );
-      p->tv_sec= (long)((now.ns100-(116444736000000000LL))/10000000LL);
+PUBLIC void csoundUnlockMutex(void *mutex_)
+{
+  LeaveCriticalSection((LPCRITICAL_SECTION) mutex_);
+}
+
+/**
+ * Destroys the indicated mutex object. Destroying a mutex that
+ * is currently owned by a thread results in undefined behavior.
+ */
+
+PUBLIC void csoundDestroyMutex(void *mutex_)
+{
+  if (mutex_ != NULL) {
+    DeleteCriticalSection((LPCRITICAL_SECTION) mutex_);
+    free(mutex_);
+  }
 }
 
 /**
@@ -70,23 +221,58 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
 
 PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 {
-    long    retval;
+  long    retval;
 
-    if (argv == NULL || argv[0] == NULL)
-      return -1L;
-    retval = (long) _spawnvp((noWait ? (int) _P_NOWAIT : (int) _P_WAIT),
-                             argv[0], argv);
-    if (!noWait && retval >= 0L)
-      retval &= 255L;
-    return retval;
+  if (argv == NULL || argv[0] == NULL)
+    return -1L;
+  retval = (long) _spawnvp((noWait ? (int) _P_NOWAIT : (int) _P_WAIT),
+      argv[0], argv);
+  if (!noWait && retval >= 0L)
+    retval &= 255L;
+  return retval;
 }
 
-PUBLIC void csoundSleep(size_t milliseconds)
+PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
-    Sleep((DWORD) milliseconds);
+  fprintf(stderr, Str("csoundCreateBarrier() is not implemented on this platform.\n"));
+  return NULL;
 }
 
-#else
+PUBLIC int csoundDestroyBarrier(void *barrier)
+{
+  fprintf(stderr, Str("csoundDestroyBarrier() is not implemented on this platform.\n"));
+  return 0;
+}
+
+PUBLIC int csoundWaitBarrier(void *barrier)
+{
+  fprintf(stderr, Str("csoundWaitBarrier() is not implemented on this platform.\n"));
+  return 0;
+}
+
+
+#elif defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || \
+    defined(ANDROID) 
+
+#include <errno.h>
+#include <pthread.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/time.h>
+
+#define BARRIER_SERIAL_THREAD (-1)
+
+#if !defined(HAVE_PTHREAD_BARRIER_INIT)
+#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID) && !defined(NACL) && !defined(__CYGWIN__)
+
+typedef struct barrier {
+    pthread_mutex_t mut;
+    pthread_cond_t cond;
+    unsigned int count, max, iteration;
+} barrier_t;
+#endif
+#endif
+
 
 #include <sys/wait.h>
 /**
@@ -147,35 +333,6 @@ PUBLIC void csoundSleep(size_t milliseconds)
       ;
 }
 
-#endif
-
-
-
-#if defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || \
-    defined(ANDROID) || defined(WIN32)
-
-#include <errno.h>
-#include <pthread.h>
-#include <time.h>
-#ifdef MSVC
-#include <time.h>
-#else
-#include <unistd.h>
-#include <sys/time.h>
-#endif
-
-#define BARRIER_SERIAL_THREAD (-1)
-
-#if !defined(HAVE_PTHREAD_BARRIER_INIT)
-#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID) && !defined(NACL) && !defined(__CYGWIN__)
-
-typedef struct barrier {
-    pthread_mutex_t mut;
-    pthread_cond_t cond;
-    unsigned int count, max, iteration;
-} barrier_t;
-#endif
-#endif
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
@@ -211,7 +368,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     }
 }
 
-#if !defined(ANDROID) && (/*defined(LINUX) ||*/ defined(__HAIKU__) || defined(WIN32))
+#if !defined(ANDROID) && (/*defined(LINUX) ||*/ defined(__HAIKU__))
 
 PUBLIC void *csoundCreateThreadLock(void)
 {
