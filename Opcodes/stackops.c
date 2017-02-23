@@ -25,8 +25,23 @@
 #include "interlocks.h"
 #include "pstream.h"
 
-#define STR_ARG_P(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_S)
-#define ASIG_ARG_P(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_A)
+static int STR_ARG_P(CSOUND *csound, void* arg) {
+    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    if(strcmp("S", cs_type->varTypeName) == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+static int ASIG_ARG_P(CSOUND *csound, void* arg) {
+    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    if(strcmp("a", cs_type->varTypeName) == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 typedef struct CsoundArgStack_s CsoundArgStack_t;
 
@@ -209,11 +224,11 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
     argCnt_p = 0;
     for (i = 0; i < argCnt; i++) {
       int   maskVal = (1 << i);
-      if (ASIG_ARG_P(args[i])) {
+      if (ASIG_ARG_P(csound, args[i])) {
         argMap[0] |= maskVal;
         argCnt_p++;
       }
-      else if (STR_ARG_P(args[i])) {
+      else if (STR_ARG_P(csound, args[i])) {
         argCnt_i++;
       }
       else {
@@ -244,7 +259,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
       int   maskVal = (1 << i);
       if (argMap[0] & maskVal) {
         /* performance time types */
-        if (ASIG_ARG_P(args[i])) {
+        if (ASIG_ARG_P(csound, args[i])) {
           argMap[i + 3] = (curOffs_p | CS_STACK_A);
           curOffs_p += ((int) sizeof(MYFLT) * CS_KSMPS);
         }
@@ -255,7 +270,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
       }
       else {
         /* init time types */
-        if (STR_ARG_P(args[i])) {
+        if (STR_ARG_P(csound, args[i])) {
           argMap[i + 3] = (curOffs_i | CS_STACK_S);
           curOffs_i += (int) sizeof(STRINGDAT);
             /* curOffs_i = csoundStack_Align(curOffs_i);*/
