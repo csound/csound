@@ -1091,10 +1091,6 @@ endif()
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
-else()
-  set(libcsound_LIBS
-    ${LIBSNDFILE_LIBRARY}
-    ${PTHREAD_LIBRARY})
 endif()
 
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
