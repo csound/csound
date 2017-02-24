@@ -1984,7 +1984,8 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     ans->markup = NULL;
     //if(ans->value)
     // printf("make leaf %p %p (%s) \n", ans, ans->value, ans->value->lexeme);
-    csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
+    csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
+                     __LINE__, line);
     return ans;
 }
 
@@ -2406,8 +2407,8 @@ void handle_optional_args(CSOUND *csound, TREE *l)
       char** inArgParts = NULL;
 
       if (UNLIKELY(ep==NULL)) { /* **** FIXME **** */
-        printf("THIS SHOULD NOT HAPPEN -- ep NULL %s(%d)\n",
-               __FILE__, __LINE__);
+        printf("THIS SHOULD NOT HAPPEN -- ep NULL csound_orc-semantics(%d)\n",
+               __LINE__);
       }
       if (ep->intypes != NULL) {
         nreqd = argsRequired(ep->intypes);
