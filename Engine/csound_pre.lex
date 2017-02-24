@@ -566,8 +566,8 @@ QNAN            "qnan"[ \t]*\(
                   }
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound, "%s(%d): line now %d at %d\n",
-                                   __FILE__, __LINE__,
+                  csound->DebugMsg(csound, "csound_pe(%d): line now %d at %d\n",
+                                   __LINE__,
                                    csound_preget_lineno(yyscanner),
                                    PARM->macro_stack_ptr);
                   csound->DebugMsg(csound,
@@ -866,7 +866,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       /* csound->DebugMsg(csound, "alt_stack now %d long, \n", */
       /*                  PARM->macro_stack_size); */
     }
-    csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
+    csound->DebugMsg(csound,"cso_pre(%d): stacking line %d at %d\n", __LINE__,
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
