@@ -483,9 +483,8 @@ NM              [nm]
                     csound->LongJmp(csound, 1);
                   }
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
-                  csound->DebugMsg(csound,"%s(%d): loc=%u; lastloc=%u\n",
-                                   __FILE__, __LINE__,
-                         PARM->llocn, PARM->locn);
+                  csound->DebugMsg(csound,"csound-prs(%d): loc=%u; lastloc=%u\n",
+                                   __LINE__, PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   csound->DebugMsg(csound,"End of input; popping to %p\n",
                           YY_CURRENT_BUFFER);
@@ -518,8 +517,8 @@ NM              [nm]
                   }
                   csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound, "%s(%d): line now %d at %d\n",
-                                   __FILE__, __LINE__,
+                  csound->DebugMsg(csound, "csound_prs(%d): line now %d at %d\n",
+                                   __LINE__,
                                    csound_prsget_lineno(yyscanner),
                                    PARM->macro_stack_ptr);
                   csound->DebugMsg(csound,
@@ -707,8 +706,8 @@ NM              [nm]
                     csound->Calloc(csound, 16); // ensure nulls
                   PARM->repeat_mm_n[PARM->repeat_index]->body[0] = '0';
                   PARM->repeat_indx[PARM->repeat_index] = 0;
-                  csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n",
-                                   __FILE__, __LINE__,
+                  csound->DebugMsg(csound,"csound_prs(%d): repeat %s zero %p\n",
+                                   __LINE__,
                                    PARM->repeat_name_n[PARM->repeat_index],
                                    PARM->repeat_mm_n[PARM->repeat_index]->body);
                   PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
@@ -739,8 +738,8 @@ NM              [nm]
               csound->LongJmp(csound, 1);
             }
           }
-          csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n",
-                           __FILE__, __LINE__,
+          csound->DebugMsg(csound,"csound_ps(%d): stacking line %d at %d\n",
+                           __LINE__,
                            csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
           PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
           PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -994,7 +993,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       /* csound->DebugMsg(csound, "alt_stack now %d long, \n", */
       /*                  PARM->macro_stack_size); */
     }
-    csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
+    csound->DebugMsg(csound,"csound_prs(%d): stacking line %d at %d\n", __LINE__,
            csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_prsget_lineno(yyscanner);
