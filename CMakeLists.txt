@@ -558,16 +558,19 @@ include_directories(./)
 
 #checking pthread functions
 if(PTHREAD_LIBRARY)
-check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
-check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
 
-if(PTHREAD_SPIN_LOCK_EXISTS)
-   list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_SPIN_LOCK)
-endif()
+  list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
 
-if(PTHREAD_BARRIER_INIT_EXISTS)
-   list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
-endif()
+  check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
+  check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
+
+  if(PTHREAD_SPIN_LOCK_EXISTS)
+     list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_SPIN_LOCK)
+  endif()
+
+  if(PTHREAD_BARRIER_INIT_EXISTS)
+     list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
+  endif()
 endif()
 
 
