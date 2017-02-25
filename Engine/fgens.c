@@ -120,6 +120,10 @@ static int GENUL(FGDATA *ff, FUNC *ftp)
     return fterror(ff, Str("unknown GEN number"));
 }
 
+static inline unsigned int isPowerOfTwo (unsigned int x) {
+    return ((x != 0) && !(x & (x - 1)));
+}
+
 /**
  * Create ftable using evtblk data, and store pointer to new table in *ftpp.
  * If mode is zero, a zero table number is ignored, otherwise a new table
@@ -239,9 +243,10 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       return 0;
     }
     /* if user flen given */
-    if (ff.flen < 0L) {                 /* gab for non-pow-of-two-length    */
+    if (ff.flen < 0L || !(isPowerOfTwo(ff.flen) || isPowerOfTwo(ff.flen-1))) {
+      /* gab for non-pow-of-two-length    */
       ff.guardreq = 1;
-      ff.flen = -(ff.flen);             /* gab: fixed */
+      if (ff.flen<0) ff.flen = -(ff.flen);             /* gab: fixed */
       if (!(ff.flen & (ff.flen - 1L)) || ff.flen > MAXLEN)
         goto powOfTwoLen;
       lobits = 0;                       /* Hope this is not needed! */
