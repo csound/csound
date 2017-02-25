@@ -32,7 +32,7 @@ endin
 #define BAR #2#
 #define FOO #[$BAR + 1]#
 f 1 0 16384 10 1
-{ $FOO 3
+{ 3 $FOO
 i 1 0 0.1 440
 i 2 0 0.1 220
 i 1 0 0.1 110

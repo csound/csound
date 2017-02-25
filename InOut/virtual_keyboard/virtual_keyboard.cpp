@@ -22,7 +22,6 @@
 */
 
 #include "csdl.h"
-#include "csGblMtx.h"
 #include "midiops.h"
 #include "winFLTK.h"
 #include "FLTKKeyboardWindow.hpp"

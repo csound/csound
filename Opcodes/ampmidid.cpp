@@ -50,11 +50,13 @@ public:
   // Inputs.
   MYFLT *kvelocity;
   MYFLT *irdb;
+  MYFLT *iuse0dbfs;
   // State.
   MYFLT ir;
   MYFLT im;
   MYFLT ib;
   MYFLT onedrms;
+  MYFLT dbfs;
   KAMPMIDID() :
     kamplitude(0),
     kvelocity(0),
@@ -62,7 +64,8 @@ public:
     ir(0),
     im(0),
     ib(0),
-    onedrms(0)
+    onedrms(0),
+    dbfs(1)
   {}
   int init(CSOUND *csound)
   {
@@ -75,11 +78,14 @@ public:
       ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) -
         MYFLT(1.0) / MYFLT(126.0);
       im = ( MYFLT(1.0) - ib ) / MYFLT(127.0);
+      if (*iuse0dbfs != FL(0.0)) {
+          dbfs = csound->Get0dBFS(csound);
+      }
       return OK;
   }
   int kontrol(CSOUND *csound)
   {
-      *kamplitude = std::pow( (im * (*kvelocity + ib) ), MYFLT(2.0) ) * onedrms;
+      *kamplitude = dbfs * std::pow( (im * (*kvelocity + ib) ), MYFLT(2.0) ) * onedrms;
       return OK;
   }
 };
@@ -92,11 +98,13 @@ public:
   // Inputs.
   MYFLT *ivelocity;
   MYFLT *irdb;
+  MYFLT *iuse0dbfs;
   // State.
   MYFLT ir;
   MYFLT im;
   MYFLT ib;
   MYFLT onedrms;
+  MYFLT dbfs;
   IAMPMIDID() :
     iamplitude(0),
     ivelocity(0),
@@ -104,7 +112,8 @@ public:
     ir(0),
     im(0),
     ib(0),
-    onedrms(0)
+    onedrms(0),
+    dbfs(1)
   {}
   int init(CSOUND *csound)
   {
@@ -117,7 +126,10 @@ public:
       ib = MYFLT(127.0) / ( MYFLT(126.0) * std::sqrt(ir) ) -
         MYFLT(1.0) / MYFLT(126.0);
       im = ( MYFLT(1.0) - ib ) / MYFLT(127.0);
-      *iamplitude = std::pow( (im * (*ivelocity + ib) ), MYFLT(2.0) ) * onedrms;
+      if (*iuse0dbfs != FL(0.0)) {
+          dbfs = csound->Get0dBFS(csound);
+      }
+      *iamplitude = dbfs * std::pow( (im * (*ivelocity + ib) ), MYFLT(2.0) ) * onedrms;
       return OK;
   }
   int noteoff(CSOUND *)
@@ -143,7 +155,7 @@ extern "C" {
                                         0,
                                         3,
                                         (char*)"k",
-                                        (char*)"ki",
+                                        (char*)"kio",
                                         (int(*)(CSOUND*,void*)) KAMPMIDID::init_,
                                         (int(*)(CSOUND*,void*)) KAMPMIDID::kontrol_,
                                         (int (*)(CSOUND*,void*)) 0);
@@ -153,7 +165,7 @@ extern "C" {
                                         0,
                                      1,
                                      (char*)"i",
-                                     (char*)"ii",
+                                     (char*)"iio",
                                      (int (*)(CSOUND*,void*)) IAMPMIDID::init_,
                                      (int (*)(CSOUND*,void*)) 0,
                                      (int (*)(CSOUND*,void*)) 0);
