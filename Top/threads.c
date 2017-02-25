@@ -32,8 +32,6 @@
 #endif
 
 #include "csoundCore.h"
-#include "csGblMtx.h"
-
 
 #if defined(WIN32)
 #include <windows.h>
@@ -795,33 +793,3 @@ PUBLIC int csoundWaitBarrier(void *barrier)
 
 #endif
 
-/* internal functions for csound.c */
-
-void csoundLock(void)
-{
-    csound_global_mutex_lock();
-}
-
-void csoundUnLock(void)
-{
-    csound_global_mutex_unlock();
-}
-
-#ifdef WIN32
-
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
-    (void) hinstDLL;
-    (void) lpvReserved;
-    switch ((int) fdwReason) {
-    case (int) DLL_PROCESS_ATTACH:
-      csound_global_mutex_init_();
-      break;
-    case (int) DLL_PROCESS_DETACH:
-      csound_global_mutex_destroy_();
-      break;
-    }
-    return TRUE;
-}
-
-#endif

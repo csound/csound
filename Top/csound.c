@@ -907,9 +907,6 @@ static const CSOUND cenviron_ = {
     /*, NULL */           /* self-reference */
 };
 
-/* from threads.c */
-void csoundLock(void);
-void csoundUnLock(void);
 void csound_aops_init_tables(CSOUND *cs);
 
 typedef struct csInstance_s {
@@ -1512,13 +1509,16 @@ unsigned long kperfThread(void * cs)
 
       csound->WaitBarrier(csound->barrier1);
 
-      csound_global_mutex_lock();
+      // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so, use some other
+      // kind of locking mechanism as it isn't clear why a global mutex would be necessary 
+      // versus a per-CSOUND instance mutex
+      /*csound_global_mutex_lock();*/
       if (csound->multiThreadedComplete == 1) {
-        csound_global_mutex_unlock();
+        /*csound_global_mutex_unlock();*/
         free(threadId);
         return 0UL;
       }
-      csound_global_mutex_unlock();
+      /*csound_global_mutex_unlock();*/
 
       nodePerf(csound, index, numThreads);
 
