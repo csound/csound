@@ -38,7 +38,6 @@
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#include "csGblMtx.h"
 
 /* Used as an error value */
 //typedef int taskID;

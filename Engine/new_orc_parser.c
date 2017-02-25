@@ -90,7 +90,7 @@ uint64_t make_location(PRE_PARM *qq)
 }
 
 // Code to add #includes of UDOs
-void add_include_udo_dir(CORFIL *xx)
+static void add_include_udo_dir(CORFIL *xx)
 {
 #if defined(HAVE_DIRENT_H)
     char *dir = getenv("CS_UDO_DIR");
@@ -107,7 +107,7 @@ void add_include_udo_dir(CORFIL *xx)
           int n = (int)strlen(fname);
           //printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
-            strcpy(buff, "#include \"");
+            strlcat(buff, "#include \"", 1024);
             strlcat(buff, dir, 1024);
             strlcat(buff, "/", 1024);
             strlcat(buff, fname, 1024);
