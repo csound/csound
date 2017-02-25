@@ -37,7 +37,6 @@
 #include <errno.h>
 
 #include "csdl.h"                               /*      IPMIDI.C         */
-#include "csGblMtx.h"
 #include "midiops.h"
 #include "oload.h"
 
