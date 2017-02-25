@@ -867,5 +867,10 @@ int plugin(Csound *csound, const char *name, uint32_t thread,
 template <typename T, typename... Types> T *constr(T *p, Types... args) {
   return new (p) T(args...);
 }
+
+template<typename T> void destr(T *p) {
+  p->T::~T();
+}  
+ 
 }
 #endif
