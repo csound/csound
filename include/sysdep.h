@@ -98,10 +98,6 @@ typedef uint_least16_t uint16;
 #include <pthread.h>
 #endif
 
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-#include <pthread.h>
-#endif
-
 #ifdef __MACH__
 #include <AvailabilityMacros.h>
 #endif
