@@ -24,7 +24,6 @@
 */
 #include <atomic>
 #include <iostream>
-#include <modload.h>
 #include <plugin.h>
 #include <random>
 
@@ -56,8 +55,7 @@ struct Simplek : csnd::Plugin<1, 1> {
  */
 struct Simplea : csnd::Plugin<1, 1> {
   int aperf() {
-    std::copy(inargs(0) + offset, inargs(0) + nsmps,
-	      outargs(0));
+    std::copy(inargs(0) + offset, inargs(0) + nsmps, outargs(0));
     return OK;
   }
 };
@@ -145,14 +143,13 @@ struct DelayLine : csnd::Plugin<1, 2> {
   int aperf() {
     csnd::AudioSig in(this, inargs(0));
     csnd::AudioSig out(this, outargs(0));
-    csnd::AudioSig::iterator o = out.begin();
-
-    for (MYFLT s : in) {
-      *o++ = *iter;
+    std::transform(in.begin(), in.end(), out.begin(), [this](MYFLT s) {
+      MYFLT o = *iter;
       *iter = s;
       if (++iter == delay.end())
         iter = delay.begin();
-    }
+      return o;
+    });
     return OK;
   }
 };
@@ -177,16 +174,14 @@ struct Oscillator : csnd::Plugin<1, 3> {
     csnd::AudioSig out(this, outargs(0));
     MYFLT amp = inargs[0];
     MYFLT si = inargs[1] * scl;
-    auto synth = [this, amp, si](MYFLT s) {
+    for (auto &s : out) {
       s = amp * tab[(uint32_t)x];
       x += si;
       while (x < 0)
         x += tab.len();
       while (x >= tab.len())
         x -= tab.len();
-      return s;
-    };
-    std::transform(out.begin(), out.end(), out.begin(), synth);
+    }
     return OK;
   }
 };
@@ -255,13 +250,14 @@ struct AsyncGauss : csnd::Plugin<1, 2> {
 
   int init() {
     csound->plugin_deinit(this);
-    csnd::constr<MyThread>(&t, csound, inargs[0], inargs[1], &res);
+    csnd::constr(&t, csound, inargs[0], inargs[1], &res);
     return OK;
   }
 
   int deinit() {
     t.stop();
     t.join();
+    csnd::destr(&t);
     return OK;
   }
 
@@ -271,9 +267,53 @@ struct AsyncGauss : csnd::Plugin<1, 2> {
   }
 };
 
+struct Gaussian : csnd::Plugin<1, 3> {
+  std::normal_distribution<MYFLT> norm;
+  std::mt19937 gen;
+
+  int init() {
+    csnd::constr(&norm, inargs[0], inargs[1]);
+    csnd::constr(&gen, inargs[2]);
+    outargs[0] = norm(gen);
+    csnd::destr(&norm);
+    csnd::destr(&gen);
+    return OK;
+  }
+};
+
+struct GaussianP : csnd::Plugin<1, 3> {
+  std::normal_distribution<MYFLT> norm;
+  std::mt19937 gen;
+
+  int init() {
+    csnd::constr(&norm, inargs[0], inargs[1]);
+    csnd::constr(&gen, inargs[2]);
+    csound->plugin_deinit(this);
+    return OK;
+  }
+
+  int deinit() {
+    csnd::destr(&norm);
+    csnd::destr(&gen);
+    return OK;
+  }
+
+  int kperf() {
+    outargs[0] = norm(gen);
+    return OK;
+  }
+
+  int aperf() {
+    csnd::AudioSig out(this, outargs(0));
+    for (auto &sample : out)
+      sample = norm(gen);
+    return OK;
+  }
+};
+
 /** Library loading
  */
-
+#include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<Simplei>(csound, "simple", "i", "i", csnd::thread::i);
   csnd::plugin<Simplek>(csound, "simple", "k", "k", csnd::thread::k);
@@ -285,4 +325,7 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<Oscillator>(csound, "oscillator", "a", "kki", csnd::thread::ia);
   csnd::plugin<PVGain>(csound, "pvg", csnd::thread::ik);
   csnd::plugin<AsyncGauss>(csound, "gaussa", "k", "ii", csnd::thread::ik);
+  csnd::plugin<Gaussian>(csound, "gaussian", "i", "iii", csnd::thread::i);
+  csnd::plugin<GaussianP>(csound, "gaussian", "k", "iii", csnd::thread::ik);
+  csnd::plugin<GaussianP>(csound, "gaussian", "a", "iii", csnd::thread::ia);
 }
