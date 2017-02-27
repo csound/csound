@@ -80,7 +80,7 @@ MACRONAMEDA     "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.\(
 MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
 MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
-   
+
 STCOM           \/\*
 INCLUDE         "#include"
 DEFINE          #[ \t]*define
