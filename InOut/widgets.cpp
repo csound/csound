@@ -2679,7 +2679,8 @@ extern "C" {
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       ST(stack_count)--;
       ADDR_STACK adrstk = ST(AddrStack).back();
-      if (UNLIKELY(strcmp( adrstk.h->optext->t.opcod, "FLpanel")))
+      if (UNLIKELY(adrstk.h->optext->t.opcod &&
+                   strcmp( adrstk.h->optext->t.opcod, "FLpanel")))
         return csound->InitError(csound,
                                  Str("FLpanel_end: invalid stack pointer: "
                                      "verify its placement"));
