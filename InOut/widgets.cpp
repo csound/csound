@@ -2023,7 +2023,7 @@ extern "C"
             j--;
             if (ST(fl_windows)[j].is_subwindow == 0)
               delete ST(fl_windows)[j].panel;
-            ST(fl_windows).pop_back();
+            ST(fl_windows).pop_back(); // VL: this might leak memory, needs checking.
           } while (j);
           Fl_wait_locked(csound, 0.0);
         }
@@ -2033,10 +2033,10 @@ extern "C"
           for (j = 0; j < ss; j++) {
             svec[j].fields.erase(svec[j].fields.begin(),
                                  svec[j].fields.end());
-            svec.resize(svec.size() + 1);
+            svec.resize(svec.size() + 1); // VL: probably leaks memory, needs checking.
           }
         }
-        ST(AddrSetValue).clear();
+        ST(AddrSetValue).clear();  // VL: leaks memory, needs fixing.
         ST(stack_count)       = 0;
         ST(FLcontrol_iheight) = 15;
         ST(FLroller_iheight)  = 18;
