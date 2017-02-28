@@ -344,7 +344,9 @@ typedef struct dats{
   int finished;
   char init;
   CSOUND *csound;
-  pthread_t t;
+  // PTHREAD: change
+  //pthread_t t;
+  void* t;
   int ti;
   char filling;
   void *fwdsetup, *invsetup;
