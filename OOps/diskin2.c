@@ -433,7 +433,11 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
         *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
+#ifndef WIN32
         csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(pthread_t));
+#else
+		// TODO implement Windows solution
+#endif
         csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int));
         current = *top;
       }
@@ -456,9 +460,13 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
                                                  "DISKIN_THREAD_START")) == 0) {
         void *diskin_io_thread(void *p);
         *start = 1;
+#ifndef WIN32
         pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,
                                                                 "DISKIN_PTHREAD"),
                        NULL, diskin_io_thread, *top);
+#else
+		// TODO implement Windows solution
+#endif
       }
 #endif
       csound->RegisterDeinitCallback(csound, p, diskin2_async_deinit);
@@ -511,14 +519,18 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
 
 #ifndef __EMSCRIPTEN__
     if (*top == NULL) {
-      int *start; pthread_t *pt;
+      int *start; void* pt;
 
       start = (int *) csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START");
       *start = 0;
-      pt = (pthread_t *) csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD");
+#ifndef WIN32
+      pt = csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD");
       //csound->Message(csound, "dealloc %p %d\n", start, *start);
-      pthread_join(*pt, NULL);
+      pthread_join(*((pthread_t *)pt), NULL);
       csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD");
+#else
+	  // TODO implement Windows solution
+#endif
       csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START");
       csound->DestroyGlobalVariable(csound, "DISKIN_INST");
     }
@@ -1313,14 +1325,19 @@ int diskin2_async_deinit_array(CSOUND *csound,  void *p){
 
 #ifndef __EMSCRIPTEN__
     if (*top == NULL) {
-      int *start; pthread_t *pt;
+      int *start; void* pt;
 
       start = (int *) csound->QueryGlobalVariable(csound,
                                                   "DISKIN_THREAD_START_ARRAY");
       *start = 0;
-      pt = (pthread_t *) csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD_ARRAY");
+
+#ifndef WIN32
+      pt = csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD_ARRAY");
       //csound->Message(csound, "dealloc %p %d\n", start, *start);
-      pthread_join(*pt, NULL);
+      pthread_join(*((pthread_t *)pt), NULL);
+#else
+	  // TODO implement windows solution
+#endif
       csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD_ARRAY");
       csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START_ARRAY");
       csound->DestroyGlobalVariable(csound, "DISKIN_INST_ARRAY");
@@ -1700,8 +1717,12 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound,
                                                            "DISKIN_INST_ARRAY");
         *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
+#ifndef WIN32
         csound->CreateGlobalVariable(csound,
                                      "DISKIN_PTHREAD_ARRAY", sizeof(pthread_t));
+#else
+		// TODO implement a Windows solution
+#endif
         csound->CreateGlobalVariable(csound,
                                      "DISKIN_THREAD_START_ARRAY", sizeof(int));
         current = *top;
@@ -1727,9 +1748,13 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                         "DISKIN_THREAD_START_ARRAY")) == 0) {
         void *diskin_io_thread(void *p);
         *start = 1;
+#ifndef WIN32
         pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,
                                                        "DISKIN_PTHREAD_ARRAY"),
                        NULL, diskin_io_thread_array, *top);
+#else
+		// TODO implement a Windows solution
+#endif
       }
 #endif
       csound->RegisterDeinitCallback(csound, (DISKIN2 *) p,
