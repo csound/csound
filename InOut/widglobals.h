@@ -247,4 +247,4 @@ typedef struct {
 } WIDGET_GLOBALS;
 }
 
-#define ST(x)   ((widgetGlobals)->x)
+//#define ST(x)   ((widgetGlobals)->x)
