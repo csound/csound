@@ -470,7 +470,8 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
 
     if (O->numThreads > 1) {
-      void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
+		// PTHREAD: is this required?
+      //void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
       int i;
       THREADINFO *current = NULL;
 

@@ -1328,8 +1328,16 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     }
 
     while(current != NULL) {
+	  // PTHREAD: this should be a class in threads.c to abstract this away
+#ifndef WIN32
       if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
+#else
+	  // FIXME not entirely sure what this should be...
+      //if ((DWORD)csoundGetCurrentThreadId () == (DWORD)threadId)
+	  if ((DWORD)current->threadId == (DWORD)threadId)
+#endif
         return index;
+
       index++;
       current = current->next;
     }

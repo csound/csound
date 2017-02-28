@@ -40,8 +40,14 @@ int csp_thread_index_get(CSOUND *csound)
     }
 
     while (current != NULL) {
-      if (UNLIKELY(pthread_equal(*(pthread_t *)threadId,
-                                 *(pthread_t *)current->threadId))) {
+    // PTHREAD: this should be a class in threads.c to abstract this away
+#ifndef WIN32
+      if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId)) {
+#else
+      // FIXME not entirely sure what this should be...
+      //if ((DWORD)csoundGetCurrentThreadId () == (DWORD)threadId)
+      if ((DWORD)current->threadId == (DWORD)threadId) {
+#endif
         free(threadId);
         return index;
       }
@@ -134,6 +140,8 @@ int barrier_wait(barrier_t *b)
 /***********************************************************************
  * parallel primitives
  */
+ // PTHREAD: change
+#ifndef WIN32
 void csp_barrier_alloc(CSOUND *csound, pthread_barrier_t **barrier,
                        int thread_count)
 {
@@ -150,6 +158,7 @@ void csp_barrier_alloc(CSOUND *csound, pthread_barrier_t **barrier,
     pthread_barrier_init(*barrier, NULL, thread_count);
 }
 
+// PTHREAD: change
 void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 {
     if (UNLIKELY(barrier == NULL || *barrier == NULL))
@@ -157,6 +166,19 @@ void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
 
     pthread_barrier_destroy(*barrier);
 }
+
+#else
+void csp_barrier_alloc(CSOUND *csound, void **barrier, int thread_count)
+{
+  // TODO implement Windows version
+}
+
+void csp_barrier_dealloc(CSOUND *csound, void **barrier)
+{
+  // TODO implement WIndows version
+}
+
+#endif
 
 /***********************************************************************
  * semaphore
