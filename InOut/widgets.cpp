@@ -103,6 +103,9 @@ int widget_reset(CSOUND *csound, void *pp)
     WIDGET_GLOBALS *widgetGlobals =
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (widgetGlobals != NULL) {
+      ST(AddrStack).~vector<ADDR_STACK>();
+      ST(allocatedStrings).~vector<char*>();
+      ST(fl_windows).~vector<PANELS>();
       csound->DestroyGlobalVariable(csound, "WIDGET_GLOBALS");
     }
     graphs_reset(csound);
@@ -2000,6 +2003,7 @@ extern "C"
             /* clean up */
             csound->LockMutex(p->mutex_);
             while (p->eventQueue != NULL) {
+
               rtEvt_t *nxt = p->eventQueue->nxt;
               free(p->eventQueue);
               p->eventQueue = nxt;
@@ -2027,6 +2031,9 @@ extern "C"
           } while (j);
           Fl_wait_locked(csound, 0.0);
         }
+        ST(AddrStack).~vector<ADDR_STACK>();
+        ST(allocatedStrings).~vector<char*>();
+        ST(fl_windows).~vector<PANELS>();
         for (size_t si = 0, sn = ST(snapshots).size(); si < sn; ++si) {
           SNAPVEC &svec = ST(snapshots)[si];
           int ss = svec.size();
