@@ -1,7 +1,10 @@
 #ifndef __CS_PAR_BASE_H__
 #define __CS_PAR_BASE_H__
 
-#include <semaphore.h>
+// Semaphone.h only exists when using pthreads, doesn't apply to Windows
+#ifndef WIN32
+  #include <semaphore.h>
+#endif
 
 /* #define TAKE_LOCK(x) pthread_spin_lock(x)
 #define RELS_LOCK(x) pthread_spin_unlock(x)
@@ -14,17 +17,25 @@
 /* #define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL) */
 
 #if !defined(HAVE_PTHREAD_SPIN_LOCK)
-          /* VL: 18.05.2011 enabled this to allow OSX build */
- # define TAKE_LOCK(x) pthread_mutex_lock(x)
- # define RELS_LOCK(x) pthread_mutex_unlock(x)
- # define LOCK_TYPE  pthread_mutex_t
- # define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL)
-
+// Windows environment should use native threads
+# if WIN32
+ #define TAKE_LOCK(x) csoundLockMutex(x)
+ #define RELS_LOCK(x) csoundUnlockMutex(x)
+ #define LOCK_TYPE  LPCRITICAL_SECTION
+ // PTHREAD: FIXME no init function? unless createMutex should be used but has a different function signature
+ #define INIT_LOCK(x) csoundCreateMutex(0)
+# else
+ /* VL: 18.05.2011 enabled this to allow OSX build */
+ #define TAKE_LOCK(x) pthread_mutex_lock(x)
+ #define RELS_LOCK(x) pthread_mutex_unlock(x)
+ #define LOCK_TYPE  pthread_mutex_t
+ #define INIT_LOCK(x)  pthread_mutex_init(&(x), NULL)
+# endif
  #else
- # define TAKE_LOCK(x) pthread_spin_lock(x)
- # define RELS_LOCK(x) pthread_spin_unlock(x)
- # define LOCK_TYPE  pthread_spinlock_t
- # define INIT_LOCK(x)  pthread_spin_init(&(x), PTHREAD_PROCESS_PRIVATE)
+ #define TAKE_LOCK(x) pthread_spin_lock(x)
+ #define RELS_LOCK(x) pthread_spin_unlock(x)
+ #define LOCK_TYPE  pthread_spinlock_t
+ #define INIT_LOCK(x)  pthread_spin_init(&(x), PTHREAD_PROCESS_PRIVATE)
 #endif
 
 #define DYNAMIC_2_SERIALIZE_PAR
@@ -139,6 +150,13 @@ int csp_set_intersection(CSOUND *csound, struct set_t *first,
 /*     int     *key; */
 /*     int     locks[]; */
 /* }; */
+
+// Kludge to allow us to pass in HANDLE objects to be used as semaphore whilst
+// supporting the traditional pthread way for non Windows platforms
+// FIXME, does this even work? API's take ** versions of sem_t
+#ifdef WIN32
+typedef HANDLE sem_t;
+#endif
 
 /* create a semaphore with a maximum number of threads
  * initially 1 thread is allowed in
