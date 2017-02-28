@@ -30,11 +30,9 @@
 
 #include "sysdep.h"
 #if !defined(EMSCRIPTEN) && !defined(CABBAGE)
-# ifdef WIN32
-// include threads.c?
-# else
-	#include <pthread.h>
-# endif
+#if defined(HAVE_PTHREAD)
+#include <pthread.h>
+#endif
 #endif
 #include "cs_par_structs.h"
 #include <stdarg.h>
