@@ -30,7 +30,11 @@
 
 #include "sysdep.h"
 #if !defined(EMSCRIPTEN) && !defined(CABBAGE)
-#include <pthread.h>
+# ifdef WIN32
+// include threads.c?
+# else
+	#include <pthread.h>
+# endif
 #endif
 #include "cs_par_structs.h"
 #include <stdarg.h>
@@ -1539,12 +1543,12 @@ typedef struct NAME__ {
     void         *init_pass_threadlock;
     void         *API_lock;
     #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t spoutlock, spinlock;
+    void *spoutlock, *spinlock;
 #else
     int           spoutlock, spinlock;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t memlock, spinlock1;
+    void *memlock, *spinlock1;
 #else
     int           memlock, spinlock1;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
@@ -1709,8 +1713,8 @@ typedef struct NAME__ {
     int           multiThreadedComplete;
     THREADINFO    *multiThreadedThreadInfo;
     struct dag_t        *multiThreadedDag;
-    pthread_barrier_t   *barrier1;
-    pthread_barrier_t   *barrier2;
+    void          *barrier1;
+    void          *barrier2;
     /* Statics from cs_par_dispatch; */
     struct global_var_lock_t *global_var_lock_root;
     struct global_var_lock_t **global_var_lock_cache;
