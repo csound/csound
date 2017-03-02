@@ -1706,8 +1706,6 @@ typedef struct NAME__ {
     int            nchanif, nchanof;
     char           *chanif, *chanof;
     /* VL: internal yield callback */
-    void          *multiThreadedBarrier1;
-    void          *multiThreadedBarrier2;
     int           multiThreadedComplete;
     THREADINFO    *multiThreadedThreadInfo;
     struct dag_t        *multiThreadedDag;

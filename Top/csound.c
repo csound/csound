@@ -857,8 +857,6 @@ static const CSOUND cenviron_ = {
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */
     NULL, NULL,     /* chanif, chanof       */
-    NULL,           /* multiThreadedBarrier1 */
-    NULL,           /* multiThreadedBarrier2 */
     0,              /* multiThreadedComplete */
     NULL,           /* multiThreadedThreadInfo */
     NULL,           /* multiThreadedDag */
