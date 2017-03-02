@@ -61,7 +61,6 @@
 #include "pffft.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include <assert.h>
 
 /* detect compiler flavour */
@@ -70,6 +69,11 @@
 #elif defined(__GNUC__)
 #  define COMPILER_GCC
 #endif
+
+#ifdef COMPILER_MSVC 
+#define _USE_MATH_DEFINES
+#endif
+#include <math.h>
 
 #if defined(COMPILER_GCC)
 #  define ALWAYS_INLINE(return_type) inline return_type __attribute__ ((always_inline))
