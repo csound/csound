@@ -46,7 +46,8 @@ int csp_thread_index_get(CSOUND *csound)
 #else
       // FIXME not entirely sure what this should be...
       //if ((DWORD)csoundGetCurrentThreadId () == (DWORD)threadId)
-      if ((DWORD)current->threadId == (DWORD)threadId) {
+      /*if ((DWORD)current->threadId == (DWORD)threadId) {*/
+      if (current->threadId == threadId) {
 #endif
         free(threadId);
         return index;
@@ -140,9 +141,7 @@ int barrier_wait(barrier_t *b)
 /***********************************************************************
  * parallel primitives
  */
- // PTHREAD: change
-#ifndef WIN32
-void csp_barrier_alloc(CSOUND *csound, pthread_barrier_t **barrier,
+void csp_barrier_alloc(CSOUND *csound, void **barrier,
                        int thread_count)
 {
     if (UNLIKELY(barrier == NULL))
@@ -150,35 +149,21 @@ void csp_barrier_alloc(CSOUND *csound, pthread_barrier_t **barrier,
     if (UNLIKELY(thread_count < 1))
       csound->Die(csound, Str("Invalid Parameter thread_count must be > 0"));
 
-    *barrier = (pthread_barrier_t *)csound->Malloc(csound,
-                                                   sizeof(pthread_barrier_t));
+    *barrier = csound->CreateBarrier(thread_count);
     if (UNLIKELY(*barrier == NULL)) {
         csound->Die(csound, Str("Failed to allocate barrier"));
     }
-    pthread_barrier_init(*barrier, NULL, thread_count);
 }
 
 // PTHREAD: change
-void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
+void csp_barrier_dealloc(CSOUND *csound, void **barrier)
 {
     if (UNLIKELY(barrier == NULL || *barrier == NULL))
       csound->Die(csound, Str("Invalid NULL Parameter barrier"));
 
-    pthread_barrier_destroy(*barrier);
+    csound->DestroyBarrier(*barrier);
 }
 
-#else
-void csp_barrier_alloc(CSOUND *csound, void **barrier, int thread_count)
-{
-  // TODO implement Windows version
-}
-
-void csp_barrier_dealloc(CSOUND *csound, void **barrier)
-{
-  // TODO implement WIndows version
-}
-
-#endif
 
 /***********************************************************************
  * semaphore

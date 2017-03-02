@@ -470,13 +470,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
 
     if (O->numThreads > 1) {
-		// PTHREAD: is this required?
-      //void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
+      void csp_barrier_alloc(CSOUND *, void **, int);
       int i;
       THREADINFO *current = NULL;
-
-      csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
-      csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
 
       csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
       csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
