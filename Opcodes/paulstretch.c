@@ -26,6 +26,11 @@
 */
 #include <stdlib.h>
 #include <complex.h>
+
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#endif
+#include <math.h>
 #include <math.h>
 #include "csoundCore.h"
 #include "interlocks.h"
