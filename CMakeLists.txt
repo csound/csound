@@ -886,6 +886,13 @@ set_source_files_properties(${YACC_OUTH} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
 set_source_files_properties(${PRELEX_OUT} GENERATED)
 
+if(MSVC) 
+  set_source_files_properties(${LEX_OUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+  set_source_files_properties(${PRELEX_OUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+endif()
+
 # Handling New Score Parser
 
 ##list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
