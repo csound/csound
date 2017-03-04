@@ -89,7 +89,12 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
       // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
       // so ...
       MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+#ifdef MSVC
+	  // TODO - Double check this is equivalent to non-windows complex definition 
+	  _Fcomplex ph = { cos(x), sin(x) };
+#else
       complex ph =  cos(x) + I*sin(x);
+#endif
       tmp[i] = mag * (MYFLT)crealf(ph);
       tmp[i + 1] = mag * (MYFLT)cimagf(ph);
     }
