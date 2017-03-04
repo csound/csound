@@ -46,8 +46,8 @@
 # include <sys/types.h>
 #endif
 #if defined(WIN32) && !defined(__CYGWIN__)
-# include <windows.h>
 # include <winsock2.h>
+# include <windows.h>
 #endif
 #include <math.h>
 #include "oload.h"
@@ -572,7 +572,7 @@ static const CSOUND cenviron_ = {
     0.0,            /*  beatOffs            */
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
-    0.0,            /*  beatTime            */
+    0L,             /*  beatTime            */
     (EVTBLK*) NULL, /*  currevent           */
     (INSDS*) NULL,  /*  curip               */
     FL(0.0),        /*  cpu_power_busy      */
