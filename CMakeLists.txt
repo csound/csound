@@ -936,6 +936,10 @@ list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
 #set_source_files_properties(${YACC_SCOOUT} GENERATED)
 #set_source_files_properties(${LEX_SCOOUT} GENERATED)
 set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
+if(MSVC) 
+  set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)

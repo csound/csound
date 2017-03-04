@@ -1940,7 +1940,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
           /* clear the end portion of outputs for sample accurate end */
           if (early) {
-            memset(out + g_ksmps, '\0', sizeof(MYFLT) * early);
+            memset((char*)out + g_ksmps, '\0', sizeof(MYFLT) * early);
           }
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
