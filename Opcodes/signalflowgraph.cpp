@@ -111,6 +111,7 @@
 #include "OpcodeBase.hpp"
 #include <pstream.h>
 #include "text.h"
+#include "sysdep.h"
 
 #define SIGNALFLOWGRAPH_DEBUG 0
 
