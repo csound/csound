@@ -131,7 +131,7 @@ extern "C" {
     MYFLT buf[bufsize];
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     while (recordData->running) {
-        pthread_mutex_lock(&recordData->mutex);
+		csoundLockMutex (&recordData->mutex);
         pthread_cond_wait(&recordData->condvar, &recordData->mutex);
         int sampsread;
         do {
@@ -145,7 +145,7 @@ extern "C" {
                            buf, sampsread);
 #endif
         } while(sampsread != 0);
-        pthread_mutex_unlock(&recordData->mutex);
+		csoundUnlockMutex (&recordData->mutex);
     }
     return (uintptr_t) ((unsigned int) retval);
   }
@@ -540,7 +540,7 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     recordData.thread = NULL;
     recordData.running = false;
 
-    pthread_mutex_init(&recordData.mutex, NULL);
+	recordData.mutex = csoundCreateMutex (0);
     pthread_cond_init(&recordData.condvar, NULL);
 
     perfThread = csoundCreateThread(csoundPerformanceThread_, (void*) this);

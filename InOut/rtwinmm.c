@@ -21,14 +21,9 @@
     02111-1307 USA
 */
 
-#ifdef MSVC
 #include <windows.h>
-#endif
 #include "csdl.h"
 #include "soundio.h"
-#ifndef MSVC
-#include <windows.h>
-#endif
 
 #ifdef MAXBUFFERS
 #undef MAXBUFFERS
