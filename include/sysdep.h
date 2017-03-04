@@ -345,27 +345,11 @@ typedef unsigned long       uintptr_t;
 #  endif
 #elif defined(MSVC)
 #  ifndef USE_DOUBLE
-static inline int32 MYFLT2LRND(float fval)
-{
-    int result;
-    _asm {
-      fld   fval
-      fistp result
-      mov   eax, result
-    }
-    return result;
-}
+#    define MYFLT2LONG(x) ((int32) lrintf((float) (x)))
+#    define MYFLT2LRND(x) ((int32) lrintf((float) (x)))
 #  else
-static inline int32 MYFLT2LRND(double fval)
-{
-    int result;
-    _asm {
-      fld   fval
-      fistp result
-      mov   eax, result
-    }
-    return result;
-}
+#    define MYFLT2LONG(x) ((int32) lrint((double) (x)))
+#    define MYFLT2LRND(x) ((int32) lrint((double) (x)))
 #  endif
 #  define MYFLT2LONG(x) MYFLT2LRND(x)
 #else
