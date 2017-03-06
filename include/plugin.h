@@ -798,6 +798,21 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
      }
     }
   }
+
+  /** returns the number of output arguments
+      used in the case of variable output count
+  */
+  uint32_t out_count(){
+    return (uint32_t) optext->t.inArgCount;
+  }
+
+  /** returns the number of input arguments
+      used in the case of variable input count
+  */
+  uint32_t in_count(){
+    return (uint32_t) optext->t.outArgCount;
+  }
+  
 };
 
 /** Fsig plugin template base class:
