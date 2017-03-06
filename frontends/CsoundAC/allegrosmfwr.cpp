@@ -362,6 +362,7 @@ void Alg_smf_write::write_update(Alg_update_ptr update)
                 if (len != 27) return; // not right length
                 s += 3; // cancel effect of longer string
             }
+            else fps = 3;       // Coverity noted missing case
         } else fps = 3;
         s += 6;   int hours = decimal(s);
         s += 4;   int mins = decimal(s);
