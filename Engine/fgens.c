@@ -1942,16 +1942,16 @@ static int gen32(FGDATA *ff, FUNC *ftp)
         p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
         d_re = cos ((double) p); d_im = sin ((double) p);
         p_re = 1.0; p_im = 0.0;         /* init. phase */
-	if(y != NULL) 
-         for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
-          /* mix to table */
-          y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
-          y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
-          /* update phase */
-          ptmp = p_re * d_re - p_im * d_im;
-          p_im = p_im * d_re + p_re * d_im;
-          p_re = ptmp;
-         }
+        if (y != NULL)
+          for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
+            /* mix to table */
+            y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
+            y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
+            /* update phase */
+            ptmp = p_re * d_re - p_im * d_im;
+            p_im = p_im * d_re + p_re * d_im;
+            p_re = ptmp;
+          }
       }
     }
     /* write dest. table */

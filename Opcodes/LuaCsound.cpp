@@ -37,12 +37,12 @@ extern "C"
 #include <lualib.h>
 }
 
-// These redefinitions are required because for Android, 
+// These redefinitions are required because for Android,
 // LuaJIT is built with gcc for the GNU runtime library;
 // but LuaCsound is built with the NDK for the bionic runtime library.
 
 #if defined(__ANDROID__)
-extern "C" 
+extern "C"
 {
     #undef stdin
     FILE *stdin  = &__sF[0];
@@ -54,7 +54,7 @@ extern "C"
     {
         return __errno();
     }
-    int _IO_getc(FILE *file_) 
+    int _IO_getc(FILE *file_)
     {
         return getc(file_);
     }
