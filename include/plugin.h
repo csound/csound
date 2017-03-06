@@ -803,14 +803,14 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
       used in the case of variable output count
   */
   uint32_t out_count(){
-    return (uint32_t) optext->t.inArgCount;
+    return (uint32_t) optext->t.outArgCount;
   }
 
   /** returns the number of input arguments
       used in the case of variable input count
   */
   uint32_t in_count(){
-    return (uint32_t) optext->t.outArgCount;
+    return (uint32_t) optext->t.inArgCount;
   }
   
 };
