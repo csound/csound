@@ -576,7 +576,8 @@ inline int csp_set_count(struct set_t *set)
 }
 
 /* 0 indexed */
-inline int csp_set_get_num(struct set_t *set, int num, void **data)
+// FIXME inlining breaks linkage for MSVC
+/*inline*/ int csp_set_get_num(struct set_t *set, int num, void **data)
 {
 #ifdef SET_DEBUG
     if (UNLIKELY(set == NULL))
