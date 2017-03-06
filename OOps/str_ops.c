@@ -499,7 +499,7 @@ sprintf_opcode_(CSOUND *csound,
             }
             outstring = str->data + offs;
             str->size = maxChars*2;
-	    // VL: Coverity says this is unused.
+            // VL: Coverity says this is unused.
             // maxChars += str->size;
 
         }
