@@ -77,7 +77,7 @@ static char *rcsid = "$Id$";
  *      Initial upload of sources
  *
  *      Revision 1.2  2003/05/21 11:31:06  jpff
- *      Added Copyrigt notices
+ *      Added Copyright notices
  *
  * Revision 3.4  1994/10/31  17:37:28  martin
  * Starting with rcs
@@ -171,7 +171,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
       maxp = m + kt + 1;
     if (UNLIKELY(m+kt > 15)) {
       csound->Warning(csound, Str("\nerror - fft parameter n has "
-                              "more than 15 factors : %d"), n);
+                                  "more than 15 factors : %d"), n);
       return;
     }
     if (kt!=0) {
