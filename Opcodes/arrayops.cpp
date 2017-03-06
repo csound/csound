@@ -23,7 +23,8 @@
 #include <algorithm>
 #include <cmath>
 
-static inline MYFLT frac(MYFLT f) { return std::modf(f,&f); }
+// FIXME seems to fix the compilation but needs to be tested
+extern inline MYFLT frac(MYFLT f) { return std::modf(f,&f); }
 
 /** i-time, k-rate operator
     kout[] op kin[]
