@@ -428,7 +428,7 @@ unsigned int CountCSD(char **csdnames)
   src = getenv("LADSPA_PATH");
   if (src)
     strncpy(ladspa_path, src, 1023);
-  ladspa_path[1023] = "\0";
+  ladspa_path[1023] = '\0';
 #endif
 
   // if no LADSPA_PATH attempt to open
