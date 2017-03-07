@@ -309,7 +309,7 @@ static int flooper_init(CSOUND *csound, flooper *p)
                                Str("crossfade longer than loop duration\n"));
 
     inc =  FL(1.0)/cfds;    /* inc/dec */
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
+    p->sfunc = csound->FTnp2Find(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,Str("function table not found\n"));
     }
@@ -583,7 +583,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             fadein = FL(1.0) - fadeout;
           }
           else {
-            if(crossfade != FL(0.0))
+            if(crossfade > 0)
              fadeout = elen*count/crossfade;
             else fadeout = 0.0;
             fadein = etab[elen - (int)fadeout];
