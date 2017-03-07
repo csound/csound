@@ -121,7 +121,7 @@ static int GENUL(FGDATA *ff, FUNC *ftp)
 }
 
 static inline unsigned int isPowerOfTwo (unsigned int x) {
-    return ((x != 0) && !(x & (x - 1)));
+  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
 }
 
 /**
@@ -2782,7 +2782,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->argcnt = ff->e.pcnt - 3;
     {  /* Note this does not handle extened args -- JPff */
       int size=ftp->argcnt;
-      if (size>PMAX) size=PMAX;
+      //if (size>=PMAX) size=PMAX; // Coverity 96615 says this overflows
       memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
       /* for(k=0; k < size; k++)
          csound->Message(csound, "%f \n", ftp->args[k]);*/
