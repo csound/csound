@@ -412,7 +412,7 @@ int main(int argc, char **argv)
       else {
         /* anything else is Csound flags */
         strcat(extra_opts, " \"");
-        strcat(extra_opts, argv[i]);
+        strncat(extra_opts, argv[i], 1018);
         strcat(extra_opts, "\"");
       }
     }
