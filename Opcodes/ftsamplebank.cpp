@@ -61,6 +61,7 @@ public:
       skiptime = 0;
       format = 0;
       index = 0;
+      numberOfFiles = 0;
     }
 
     //init-pass
