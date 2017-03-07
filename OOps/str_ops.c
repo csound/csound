@@ -494,12 +494,12 @@ sprintf_opcode_(CSOUND *csound,
           /* safely detected excess string length */
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data, maxChars*2);
-            if(str->data == NULL){
+            if (str->data == NULL) {
               return StrOp_ErrMsg(p, Str("memory allocation failure"));
             }
             outstring = str->data + offs;
             str->size = maxChars*2;
-            // VL: Coverity says this is unused.
+            // VL: Coverity says this is unused. (which is true)
             // maxChars += str->size;
 
         }
