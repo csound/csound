@@ -2783,6 +2783,7 @@ bool Alg_iterator::remove_next(Alg_events_ptr &events, long &index,
 
 
 Alg_seq::Alg_seq(const char *filename, bool smf, double *offset_ptr)
+  : pending(), beat_x(0)
 {
     basic_initialization();
     ifstream inf(filename, smf ? ios::binary | ios::in : ios::in);
