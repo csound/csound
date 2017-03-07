@@ -48,7 +48,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
       if (!pcLADSPAPath) {
         csound->Message(csound,
                         "DSSI4CS: LADSPA_PATH environment variable not set.\n");
-        pcLADSPAPath = "/usr/lib/ladspa/";
+        pcLADSPAPath = strdup(csound, "/usr/lib/ladspa/");
       }
       if (pcDSSIPath) {
         int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
@@ -88,7 +88,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
         }
       }
     }
-    //free(pcLADSPAPath);
+    free(pcLADSPAPath);
     /* As a last ditch effort, check if filename does not end with
        ".so". In this case, add this suffix and recurse. */
     iEndsInSO = 0;
@@ -105,6 +105,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
     if (pvResult != NULL)
       return pvResult;
 
+    
     /* If nothing has worked, then at least we can make sure we set the
        correct error message - and this should correspond to a call to
        dlopen() with the actual filename requested. The dlopen() manual
