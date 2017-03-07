@@ -368,9 +368,11 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         return csound->InitError(csound,
                                  "DSSI4CS: Could not instantiate plugin: %s",
                                  dssiFilename);
-      if (UNLIKELY(!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run))
+      if (UNLIKELY(!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run)) {
+	unloadLADSPAPluginLibrary(csound, PluginLibrary);
         return csound->InitError(csound, "DSSI4CS: No run() funtion in: %s",
                                          LDescriptor->Name);
+      }
       PortCount = DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->PortCount;
       DSSIPlugin_->Events =
           (snd_seq_event_t *) csound->Calloc(csound,
