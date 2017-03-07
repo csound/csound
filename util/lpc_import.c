@@ -74,6 +74,7 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
     if (UNLIKELY(hdr.npoles<=0)) { fclose(outf); fclose(inf); return 1;}
+    if (hdr.headersize>0x40000000) return 1;
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
     if (UNLIKELY(fread(str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
