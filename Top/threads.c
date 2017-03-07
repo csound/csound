@@ -248,6 +248,22 @@ PUBLIC int csoundWaitBarrier(void *barrier)
   return 0;
 }
 
+PUBLIC void* csoundCreateCondVar()
+{
+  CONDITION_VARIABLE* condVar = (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
+	  
+  if (condVar != NULL)
+    InitializeConditionVariable(condVar);
+  return (void*) condVar;
+}
+
+PUBLIC void csoundCondWait(void* condVar, void* mutex) {
+	SleepConditionVariableCS(&condVar, &mutex, INFINITE);
+}
+
+PUBLIC void csoundCondSignal(void* condVar) {
+	WakeConditionVariable(&condVar);
+}
 
 #elif defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || \
     defined(ANDROID) 
@@ -689,6 +705,24 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
     }
 }
 
+
+PUBLIC void* csoundCreateCondVar()
+{
+  pthread_cond_t* condVar = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
+	  
+  if (condVar != NULL)
+    pthread_cond_init(condVar, NULL);
+  return (void*) condVar;
+}
+
+PUBLIC void csoundCondWait(void* condVar, void* mutex) {
+	pthread_cond_wait(&condVar, &mutex);
+}
+
+PUBLIC void csoundCondSignal(void* condVar) {
+	pthread_cond_signal(&condVar);
+}
+
 /* ------------------------------------------------------------------------ */
 
 #else
@@ -789,6 +823,21 @@ PUBLIC int csoundWaitBarrier(void *barrier)
 {
     notImplementedWarning_("csoundWaitBarrier");
     return 0;
+}
+
+
+PUBLIC void* csoundCreateCondVar()
+{
+  notImplementedWarning_("csoundCreateCondVar");
+  return NULL;
+}
+
+PUBLIC void csoundCondWait(void* condVar, void* mutex) {
+  notImplementedWarning_("csoundCreateCondWait");
+}
+
+PUBLIC void csoundCondSignal(void* condVar) {
+  notImplementedWarning_("csoundCreateCondSignal");
 }
 
 #endif

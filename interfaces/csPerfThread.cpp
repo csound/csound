@@ -132,7 +132,7 @@ extern "C" {
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     while (recordData->running) {
 		csoundLockMutex (&recordData->mutex);
-        pthread_cond_wait(&recordData->condvar, &recordData->mutex);
+        csoundCondWait(recordData->condvar, recordData->mutex);
         int sampsread;
         do {
             sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf,
@@ -447,7 +447,7 @@ int CsoundPerformanceThread::Perform()
               csoundMessage(csound, "perfThread record buffer overrun.\n");
           }
       }
-      pthread_cond_signal(&recordData.condvar); // Needs to be outside the if
+      csoundCondSignal(&recordData.condvar); // Needs to be outside the if
                               // for the case where stop record was requested
     } while (!retval);
  endOfPerf:
@@ -541,7 +541,7 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     recordData.running = false;
 
 	recordData.mutex = csoundCreateMutex (0);
-    pthread_cond_init(&recordData.condvar, NULL);
+	recordData.condvar = csoundCreateCondVar();
 
     perfThread = csoundCreateThread(csoundPerformanceThread_, (void*) this);
     if (perfThread) {
@@ -593,6 +593,7 @@ CsoundPerformanceThread::~CsoundPerformanceThread()
     }
     if (recordLock) {
         csoundDestroyMutex(recordLock);
+
     }
 }
 
@@ -679,7 +680,7 @@ int CsoundPerformanceThread::Join()
     }
     if (recordData.running) {
         recordData.running = false;
-        pthread_cond_signal(&recordData.condvar);
+        csoundCondSignal(recordData.condvar);
         csoundJoinThread(recordData.thread);
     }
 

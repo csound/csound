@@ -1997,6 +1997,16 @@ extern "C" {
      */
     PUBLIC int csoundWaitBarrier(void *barrier);
 
+
+	/** Creates a conditional variable */
+	PUBLIC void* csoundCreateCondVar();
+
+	/** Waits up on a conditional variable and mutex */
+	PUBLIC void csoundCondWait(void* condVar, void* mutex); 
+
+	/** Signals a conditional variable */
+	PUBLIC void csoundCondSignal(void* condVar);
+
     /**
      * Waits for at least the specified number of milliseconds,
      * yielding the CPU to other threads.

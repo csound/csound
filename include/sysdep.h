@@ -351,7 +351,6 @@ typedef unsigned long       uintptr_t;
 #    define MYFLT2LONG(x) ((int32) lrint((double) (x)))
 #    define MYFLT2LRND(x) ((int32) lrint((double) (x)))
 #  endif
-#  define MYFLT2LONG(x) MYFLT2LRND(x)
 #else
 #  ifndef USE_DOUBLE
 #    define MYFLT2LONG(x) ((int32) (x))
