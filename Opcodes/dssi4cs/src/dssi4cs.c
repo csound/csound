@@ -1079,9 +1079,22 @@ int dssilist(CSOUND * csound, DSSILIST * p)
           char *pcLADSPAPath;
     const char *pcDSSIPath;
     const char *pcStart;
+    const char *src;
 
-    pcLADSPAPath = getenv("LADSPA_PATH");
+    src = getenv("LADSPA_PATH");
+    if(src)
+      pcLADSPAPath = strndup(src, 1024);
+    else
+      pcLADSPAPath = NULL;
+      
     pcDSSIPath = getenv("DSSI_PATH");
+    src = getenv("DSSI_PATH");
+    if(src)
+      pcDSSIPath = strndup(src, 1024);
+    else
+      pcDSSIPath = NULL;
+    
+    
     if (!pcLADSPAPath) {
       csound->Message(csound,
                       "DSSI4CS: LADSPA_PATH environment variable not set.\n");
@@ -1099,10 +1112,12 @@ int dssilist(CSOUND * csound, DSSILIST * p)
         strcpy(nn, pcLADSPAPath);
         strcat(nn, ":");
         strcat(nn, pcDSSIPath);
-        //free(pcLADSPAPath);
+        free(pcLADSPAPath);
         pcLADSPAPath = nn;
       }
-      else pcLADSPAPath = strdup(pcDSSIPath);
+      else {
+	pcLADSPAPath = strdup(pcDSSIPath);
+      }
 
     }
     pcStart = pcLADSPAPath;
@@ -1120,7 +1135,8 @@ int dssilist(CSOUND * csound, DSSILIST * p)
       if (*pcStart == ':')
         pcStart++;
     }
-    if (pcDSSIPath) free(pcLADSPAPath);
+    free(pcLADSPAPath);
+    free(pcDSSIPath);
     return OK;
 }
 

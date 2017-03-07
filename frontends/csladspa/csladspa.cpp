@@ -423,17 +423,13 @@ unsigned int CountCSD(char **csdnames)
   char *src = NULL;
 
 #ifdef MACOSX
-  src = strdup("/Library/Audio/Plug-Ins/LADSPA");
+  strcpy(ladspa_path, "/Library/Audio/Plug-Ins/LADSPA");
 #else
   src = getenv("LADSPA_PATH");
   if (src)
-    src = strdup(src);
-#endif
-
-  if (src) {
     strncpy(ladspa_path, src, 1023);
-    ladspa_path[1023] = '\0';
-  }
+  ladspa_path[1023] = "\0";
+#endif
 
   // if no LADSPA_PATH attempt to open
   // current directory
@@ -477,7 +473,6 @@ unsigned int CountCSD(char **csdnames)
         }
     }
   closedir(dip);
-  free(src);
   return i;
 }
 
