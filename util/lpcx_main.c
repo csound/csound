@@ -95,7 +95,9 @@ int main(int argc, char **argv)
       putc(str[i],outf);
     if (UNLIKELY(hdr.headersize > 100))
       putc('\n', outf);
-    if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0) {
+    if (hdr.npoles+hdr.nvals > 0
+	&& hdr.npoles+hdr.nvals < 0x4FFFFFFF
+	&& hdr.npoles > 0) {
       coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
       for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
         if (UNLIKELY(fread(coef, sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {

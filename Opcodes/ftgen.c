@@ -1,5 +1,5 @@
 /*
-    ftgen.c:
+    ftgen.c: 
 
     Copyright (C) 1991, 1994, 1995, 1998, 2000, 2004
                   Barry Vercoe, John ffitch, Paris Smaragdis,
@@ -300,7 +300,7 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
           goto err;
         ftp = ft_func(csound, &fno_f);
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
-        memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
+        memset(ftp->ftable, 0, sizeof(MYFLT) * ((unsigned int) ftp->flen + 1));
         n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1l, file);
         if (UNLIKELY(n!=ftp->flen + 1)) goto err4;
         /* ***** Need to do byte order here ***** */
