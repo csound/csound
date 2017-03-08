@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     LPHEADER hdr;
     unsigned int i, j;
     char *str = NULL;
-    MYFLT *coef;
+    MYFLT *coef = NULL;
 
     if (argc!= 3) {
       lpc_export_usage();
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
     }
     fclose(outf);
     fclose(inf);
-    if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0) free(coef);
+    if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0 && coef != NULL) free(coef);
     free(str);
     return 0;
 }
