@@ -102,8 +102,10 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
       csound->Free(csound, pcBuffer);
     }
 
-    if (pvResult != NULL)
+    if (pvResult != NULL) {
+      free(pcLADSPAPath);
       return pvResult;
+    }
 
     
     /* If nothing has worked, then at least we can make sure we set the
@@ -113,6 +115,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
        will be kept when multiple calls are made to dlopen(). We've
        covered the former case - now we can handle the latter by calling
        dlopen() again here. */
+    free(pcLADSPAPath);
     return dlopen(pcFilename, iFlag);
 }
 
