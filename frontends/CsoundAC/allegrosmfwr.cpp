@@ -88,9 +88,13 @@ Alg_smf_write::Alg_smf_write(Alg_seq_ptr a_seq)
     // solving for d, d = 600
     division = 600;         // divisions per quarter note
     timesig_num = timesig_den = 0; // initially undefined
+    timesig_when =  0;
     keysig = -99;
     keysig_mode = 0;
+    keysig_when = 0;
     initial_tempo = 500000;
+    num_tracks = 0;
+    channels_per_track = 0;
 
     seq = a_seq;
 
