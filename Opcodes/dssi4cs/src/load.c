@@ -43,8 +43,8 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
          NOT call dlopen() directly as this would find plugins on the
          LD_LIBRARY_PATH, whereas the LADSPA_PATH is the correct place
          to search. */
-      pcLADSPAPath = getenv("LADSPA_PATH");
-      pcDSSIPath = getenv("DSSI_PATH");
+      pcLADSPAPath = strdup(getenv("LADSPA_PATH"));
+      pcDSSIPath = strdup(getenv("DSSI_PATH"));
       if (!pcLADSPAPath) {
         csound->Message(csound,
                         "DSSI4CS: LADSPA_PATH environment variable not set.\n");
@@ -54,6 +54,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
         int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
         char *tmp = (char*)malloc(len);
         snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
+	free(pcLADSPAPath);
         pcLADSPAPath = tmp;
       }
       if (pcLADSPAPath) {
@@ -89,6 +90,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
       }
     }
     free(pcLADSPAPath);
+    free(pcDSSIPath);
     /* As a last ditch effort, check if filename does not end with
        ".so". In this case, add this suffix and recurse. */
     iEndsInSO = 0;
@@ -103,7 +105,6 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
     }
 
     if (pvResult != NULL) {
-      free(pcLADSPAPath);
       return pvResult;
     }
 
@@ -115,7 +116,6 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
        will be kept when multiple calls are made to dlopen(). We've
        covered the former case - now we can handle the latter by calling
        dlopen() again here. */
-    free(pcLADSPAPath);
     return dlopen(pcFilename, iFlag);
 }
 

@@ -172,7 +172,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     char port[8];
     char *pp = port;
     char *hh;
-    int cmpr;
+    int cmpr = 0;
 
     if (*p->port<0)
       pp = NULL;
