@@ -299,6 +299,9 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         if (UNLIKELY(csound->FTAlloc(csound, fno, (int) header.flen) != 0))
           goto err;
         ftp = ft_func(csound, &fno_f);
+        // Do we need to check value of ftp->fflen? #27323
+        if (ftp->flen > 0x40000000)
+          return csound->InitError(Str("table length too long"));
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
         memset(ftp->ftable, 0, sizeof(MYFLT) * ((unsigned int) ftp->flen + 1));
         n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1l, file);
