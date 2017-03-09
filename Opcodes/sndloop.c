@@ -585,7 +585,8 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             fadein = FL(1.0) - fadeout;
           }
           else {
-             fadeout = elen*count/crossfade;
+             if(crossfade > 0) //27292
+               fadeout = elen*count/crossfade;
             else fadeout = 0.0;
             fadein = etab[elen - (int)fadeout];
             fadeout = etab[(int)fadeout];
