@@ -530,7 +530,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
       p->lend = loop_end =   loop_end > len ? len :
         (loop_end < loop_start ? loop_start : loop_end);
       loopsize = loop_end - loop_start;
-      if(*p->crossfade > 0.0)
+      if (*p->crossfade > 0.0)
        crossfade = (int) (*p->crossfade*sr);
       p->ostart = *p->loop_start; p->oend = *p->loop_end;
       if (mode == 1) {
@@ -579,11 +579,12 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           tndx1 = (int) ndx[1];
           frac1 = ndx[1] - tndx1;
           if (etab==NULL){
-            fadeout = count/crossfade;
+            if(crossfade > 0) //27292
+              fadeout = count/crossfade;
+            else fadeout = 0.0;
             fadein = FL(1.0) - fadeout;
           }
           else {
-            if(crossfade > 0) //27292
              fadeout = elen*count/crossfade;
             else fadeout = 0.0;
             fadein = etab[elen - (int)fadeout];
