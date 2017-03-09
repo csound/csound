@@ -224,6 +224,10 @@ if(WIN32 AND NOT MSVC)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
+if(MSVC) 
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/msvc/include)
+endif()
+
 if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
