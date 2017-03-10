@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     if (UNLIKELY(hdr.headersize > 100))
       putc('\n', outf);
     if (hdr.npoles+hdr.nvals > 0
-	&& hdr.npoles+hdr.nvals < 0x4FFFFFFF
+	&& hdr.npoles+hdr.nvals < 0x0FFFFFFF
 	&& hdr.npoles > 0) {
       coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
       for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
