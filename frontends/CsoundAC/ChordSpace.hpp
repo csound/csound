@@ -2842,6 +2842,7 @@ public:
             if (it == indexesForOpttis.end()) {
               // Falling through here means there is a bug that I want to know about.
               csound::print("Error: normalOPTgI %s not found! Please report an issue, this should not appear.\n");
+              exit(1);
             }
             int P_ = it->second;
             if (printme) {
