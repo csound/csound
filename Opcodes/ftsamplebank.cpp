@@ -62,6 +62,7 @@ public:
       format = 0;
       index = 0;
       numberOfFiles = 0;
+      sDirectory = NULL;
     }
 
     //init-pass
