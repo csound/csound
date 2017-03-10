@@ -466,6 +466,10 @@ unsigned int CountCSD(char **csdnames)
           }
           else name = temp;
           if(i < MAXPLUGINS) {
+            if (name.length()>1024) {
+              closedir(dip);
+              return 0;
+            }
             csdnames[i] =  new char[name.length()+1];
             strcpy(csdnames[i], (char*)name.c_str());
             i++;
