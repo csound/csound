@@ -364,10 +364,12 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       if (UNLIKELY(!
           (DSSIPlugin_->Handle =
            (LADSPA_Handle) DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->
-           instantiate(DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin, SampleRate))))
+           instantiate(DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin, SampleRate)))) {
+	unloadLADSPAPluginLibrary(csound, PluginLibrary); 
         return csound->InitError(csound,
                                  "DSSI4CS: Could not instantiate plugin: %s",
                                  dssiFilename);
+      }
       if (UNLIKELY(!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run)) {
 	unloadLADSPAPluginLibrary(csound, PluginLibrary);
         return csound->InitError(csound, "DSSI4CS: No run() funtion in: %s",
