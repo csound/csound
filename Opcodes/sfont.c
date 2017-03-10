@@ -2006,6 +2006,7 @@ static int chunk_read(CSOUND *csound, FILE *fil, CHUNK *chunk)
       chunk->ckSize = 0;
       return 0;
     }
+    if (UNLIKELY(chunk->ckSize>0x40000000)) return 0;
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) csound->Malloc(csound, chunk->ckSize);
     if (chunk->ckDATA==NULL)
