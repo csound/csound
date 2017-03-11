@@ -961,7 +961,7 @@ public:
         note_off_flag = note_off;
         maxlen = len = 0;
         pending_events = NULL;
-        offset = index == 0;
+        offset = index = 0;
         cookie = events_ptr = 0;
     }
     // Normally, iteration is over the events in the one sequence used
