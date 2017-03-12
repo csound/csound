@@ -1,4 +1,4 @@
-// Portsmf (also known as Allegro):
+/ Portsmf (also known as Allegro):
 // music representation system, with
 //      extensible in-memory sequence structure
 //      upward compatible with MIDI
@@ -439,7 +439,7 @@ typedef class Alg_beat {
 public:
     Alg_beat(double t, double b) {
         time = t; beat = b; }
-    Alg_beat() {};
+    Alg_beat() { time = beat = 0; };
     double time;
     double beat;
 } *Alg_beat_ptr;
