@@ -2011,6 +2011,7 @@ static int chunk_read(CSOUND *csound, FILE *fil, CHUNK *chunk)
     chunk->ckDATA = (BYTE *) csound->Malloc(csound, chunk->ckSize);
     if (chunk->ckDATA==NULL)
       return 0;
+    if (chunk->ckSize>0x04000000) return 0;
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
 
