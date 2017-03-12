@@ -48,6 +48,8 @@ public:
         track_number = -1; // no tracks started yet, 1st will be #0
         meta_channel = -1;
         port = 0;
+        divisions = channel_offset = 0;
+        track = NULL;
     }
     // delete destroys the seq member as well, so set it to NULL if you
     // copied the pointer elsewhere
