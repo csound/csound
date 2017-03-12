@@ -1,4 +1,4 @@
-/ Portsmf (also known as Allegro):
+// Portsmf (also known as Allegro):
 // music representation system, with
 //      extensible in-memory sequence structure
 //      upward compatible with MIDI
