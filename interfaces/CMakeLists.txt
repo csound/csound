@@ -3,20 +3,13 @@
 # C++ INTERFACE LIBRARY
 find_package(Boost)
 
-if(BOOST_FOUND)
 option(BUILD_CXX_INTERFACE "Build the C++ interface library" ON)
 option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
-else(BOOST_FOUND)
-option(BUILD_CXX_INTERFACE "Build the C++ interface library" OFF)
-option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTERFACE)" OFF)
-option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" OFF)
-option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" OFF)
 
-endif(BOOST_FOUND)
 
-if(BUILD_CXX_INTERFACE AND BOOST_FOUND)
+if(BUILD_CXX_INTERFACE AND Boost_FOUND)
     message(STATUS "Building C++ interface library.")
     set(libcsnd6_SRCS
         CppSound.cpp
