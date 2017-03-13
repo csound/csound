@@ -365,13 +365,13 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
           (DSSIPlugin_->Handle =
            (LADSPA_Handle) DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->
            instantiate(DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin, SampleRate)))) {
-	unloadLADSPAPluginLibrary(csound, PluginLibrary); 
+        unloadLADSPAPluginLibrary(csound, PluginLibrary);
         return csound->InitError(csound,
                                  "DSSI4CS: Could not instantiate plugin: %s",
                                  dssiFilename);
       }
       if (UNLIKELY(!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run)) {
-	unloadLADSPAPluginLibrary(csound, PluginLibrary);
+        unloadLADSPAPluginLibrary(csound, PluginLibrary);
         return csound->InitError(csound, "DSSI4CS: No run() funtion in: %s",
                                          LDescriptor->Name);
       }
@@ -1088,15 +1088,15 @@ int dssilist(CSOUND * csound, DSSILIST * p)
       pcLADSPAPath = strndup(src, 1024);
     else
       pcLADSPAPath = NULL;
-      
+
     pcDSSIPath = getenv("DSSI_PATH");
     src = getenv("DSSI_PATH");
     if(src)
       pcDSSIPath = strndup(src, 1024);
     else
       pcDSSIPath = NULL;
-    
-    
+
+
     if (!pcLADSPAPath) {
       csound->Message(csound,
                       "DSSI4CS: LADSPA_PATH environment variable not set.\n");
@@ -1118,7 +1118,7 @@ int dssilist(CSOUND * csound, DSSILIST * p)
         pcLADSPAPath = nn;
       }
       else {
-	pcLADSPAPath = strdup(pcDSSIPath);
+        pcLADSPAPath = strdup(pcDSSIPath);
       }
 
     }
