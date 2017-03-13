@@ -232,19 +232,22 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
-  fprintf(stderr, Str("csoundCreateBarrier() is not implemented on this platform.\n"));
-  return NULL;
+  SYNCHRONIZATION_BARRIER *barrier = (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
+	  
+  if (barrier != NULL)
+    InitializeSynchronizationBarrier(barrier, max, -1);
+  return (void*) barrier;
 }
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
-  fprintf(stderr, Str("csoundDestroyBarrier() is not implemented on this platform.\n"));
+  DeleteSynchronizationBarrier(barrier);
   return 0;
 }
 
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
-  fprintf(stderr, Str("csoundWaitBarrier() is not implemented on this platform.\n"));
+  EnterSynchronizationBarrier(barrier, 0);
   return 0;
 }
 
