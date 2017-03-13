@@ -50,7 +50,8 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
       if (tmp) pcDSSIPath = strdup(tmp);
       if (!pcLADSPAPath) {
         csound->Message(csound,
-                    Str("DSSI4CS: LADSPA_PATH environment variable not set.\n"0);
+                        Str("DSSI4CS: LADSPA_PATH environment "
+                            "variable not set.\n"));
         pcLADSPAPath = strdup("/usr/lib/ladspa/");
       }
       if (pcDSSIPath) {
