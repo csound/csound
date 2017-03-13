@@ -1,5 +1,5 @@
 /*
-    ftgen.c: 
+    ftgen.c:
 
     Copyright (C) 1991, 1994, 1995, 1998, 2000, 2004
                   Barry Vercoe, John ffitch, Paris Smaragdis,
