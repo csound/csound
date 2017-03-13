@@ -38,12 +38,10 @@ Csound pieces, but also for developing standalone applications that incorporate 
 It can be used, for example, to develop sound art installations, visual music, or kiosk-type
 applications.
 
-The `csound/examples/html/csound_editor` directory contains a NW.js application that
-can be used to edit and run Csound pieces. Such pieces can be either HTML files
-or Csound Structured Data (CSD) files. The `NW_Csound_Demo.html` piece is an example of
+The `NW_Csound_Demo.html` piece is an example of
 an HTML file that embeds not only Csound, but also a Csound orchestra and score. The
 `GameOfLife3D.csd` piece is an example of a CSD file that embeds a Web page in the
-`<html>` element of the CSD file.
+`<html>` element of the CSD file. See below for how to run these.
 
 The motivation for `csound.node` should be obvious. It works on all personal computer
 platforms, the build steps are simple, and the
@@ -126,7 +124,7 @@ packaging NW.js applications. An example manifest (must be named package.json) f
 
 <pre>
 {
-  "main": "Scrims_linux.html",
+  "main": "Scrims_node.html",
   "name": "Scrims",
   "description": "Visual music for Csound and HTML5",
   "version": "0.1.0",
@@ -147,13 +145,6 @@ packaging NW.js applications. An example manifest (must be named package.json) f
   }
 }
 </pre>
-
-3. Run the `csound_editor` application, either by executing `nw /csound/examples/html/csound_editor`,
-or by dropping the `/csound/examples/html/csound_editor/main.html` file on `nw`'s window. Then,
-click on the Open button to load either a HTML file embedding a Csound piece, or a CSD file
-embedding a Web page in the CSD file's `<html>` element. Click on the Run button to play the
-piece, and click on the Stop button to stop Csound. Csound will also stop if you close the
-window for the piece.
 
 [csound]: http://csound.github.io/
 [nwjs]: http://nwjs.io/
