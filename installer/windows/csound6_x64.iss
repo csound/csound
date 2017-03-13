@@ -164,7 +164,6 @@ Source: "{#MySourceDir}/mingw64/csound64.lib"; DestDir: "{app}\lib"; Components:
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.node"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.pdb"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyNwJsDir}*.*"; DestDir: "{#APP_BIN}\"; Flags: ignoreversion recursesubdirs;  Components: core
-Source: "{#MySourceDir}mingw64/run_csound_editor.cmd"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyPackagesDir}portaudio_asio\src\mingw-w64-x86_64-portaudio\bin\.libs\pa_devs.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyPackagesDir}portaudio_asio\src\mingw-w64-x86_64-portaudio\bin\.libs\pa_minlat.exe"; DestDir: "{#APP_BIN}"; Components: core;
 
@@ -229,7 +228,6 @@ Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#MyAppURL}";  Component
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
 Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core
-Name: "{group}\NW.js"; Filename: "{#APP_BIN}run_csound_editor.cmd"; WorkingDir: "{#APP_BIN}";  Components: core
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
