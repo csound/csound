@@ -45,20 +45,20 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
          LD_LIBRARY_PATH, whereas the LADSPA_PATH is the correct place
          to search. */
       tmp = getenv("LADSPA_PATH");
-	if(tmp) pcLADSPAPath = strdup(tmp);
+      if (tmp) pcLADSPAPath = strdup(tmp);
       tmp = getenv("DSSI_PATH");
-      if(tmp)
-        pcDSSIPath = strdup(tmp);
+      if (tmp) pcDSSIPath = strdup(tmp);
       if (!pcLADSPAPath) {
         csound->Message(csound,
-                        "DSSI4CS: LADSPA_PATH environment variable not set.\n");
+                        Str("DSSI4CS: LADSPA_PATH environment "
+                            "variable not set.\n"));
         pcLADSPAPath = strdup("/usr/lib/ladspa/");
       }
       if (pcDSSIPath) {
         int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
         char *tmp = (char*)malloc(len);
         snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
-	free(pcLADSPAPath);
+        free(pcLADSPAPath);
         pcLADSPAPath = tmp;
       }
       if (pcLADSPAPath) {
@@ -113,7 +113,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
       return pvResult;
     }
 
-    
+
     /* If nothing has worked, then at least we can make sure we set the
        correct error message - and this should correspond to a call to
        dlopen() with the actual filename requested. The dlopen() manual
@@ -195,4 +195,3 @@ const LADSPA_Descriptor *
                         pcPluginLabel, pcPluginLibraryFilename);
     return NULL;    /* compiler only; not reached */
 }
-
