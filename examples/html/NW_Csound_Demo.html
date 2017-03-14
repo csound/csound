@@ -7,9 +7,6 @@
 for running Csound in NW.js, and demonstrates a few simple applications.
 <H2>Building</H2>
 <p>For instructions on building and installing, see <a href="https://github.com/csound/csound/tree/develop/frontends/nwjs">https://github.com/csound/csound/tree/develop/frontends/nwjs</a>.
-<H2>Running</H2>
-<p>Run the nw program.
-<p>Drag and drop this example html file on the NW program's window. Or, run nw with this directory as the one command-line argument.
 You should see some messages from Csound, both on this Web page and in the JavaScript console.
 
 <H3>Orc</H3>
@@ -245,9 +242,9 @@ try  {
     document.write('<p>process.env => ' + process.env);
     console.log('Here is the orc:' + document.getElementById('orc').innerHTML + '\n');
     console.log('Here is the sco:' + document.getElementById('sco').innerHTML + '\n');
-    csound = require("csound.node");
+    var csound = require("csound.node");
     document.write('<p>csound => ' + csound);
-    document.write('<p>csound.hello() => ' + csound.hello());
+    ///document.write('<p>csound.hello() => ' + csound.hello());
     document.write('<p>csound.getVersion() => ' + csound.getVersion());
     document.write('<p>csound.compileOrc(xanadu) => ' + csound.compileOrc(document.getElementById('orc').innerHTML));
     csound.setOption('--logfile=\\csound.log');
@@ -256,7 +253,8 @@ try  {
     csound.message('This is a test of csound.message() from the HTML code.\n');
     document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(document.getElementById('sco').innerHTML));
     // Crashes: csound.setOption('-j4');
-    document.write('<p>csound.perform() => ' + csound.perform());
+    document.write('<p>csound.start() => ' + csound.start());
+     document.write('<p>csound.perform() => ' + csound.perform());
     csound.message('"Done now." from the HTML code.\n');
 } catch(x) {
     alert(x);
