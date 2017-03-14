@@ -112,27 +112,23 @@ export RAWWAVE_PATH=/usr/share/stk/rawwaves
 
 ## RUNNING
 
-There are several ways of running Csound pieces in NW.js with `csound.node`.
-
-1. Run the `nw` program, and drop an HTML file that embeds a Csound piece on the `nw`
-window.
-
-2. From the command line, execute `nw <directory>`, where the directory contains the
+From the command line, execute `nw <directory>`, where the directory contains the
 JSON-formatted manifest of a NW.js application based on an HTML file that embeds a
 Csound piece. See the NW.js documention for more information on the manifest and
-packaging NW.js applications. An example manifest (must be named package.json) for csound.node is:
+packaging NW.js applications. An example manifest (must be named package.json) for
+running "Scrims_node.html" with nw and csound.node is:
 
 <pre>
 {
   "main": "Scrims_node.html",
-  "name": "Scrims",
+  "name": "Scrims_node",
   "description": "Visual music for Csound and HTML5",
   "version": "0.1.0",
   "keywords": [ "Csound", "node-webkit" ],
   "nodejs": true,
   "node-remote": "http://<all-urls>/*",
   "window": {
-    "title": "Scrims",
+    "title": "Scrims_node",
     "icon": "link.png",
     "toolbar": false,
     "frame": false,
@@ -143,8 +139,7 @@ packaging NW.js applications. An example manifest (must be named package.json) f
   "webkit": {
     "plugin": true
   }
-}
-</pre>
+}</pre>
 
 [csound]: http://csound.github.io/
 [nwjs]: http://nwjs.io/
