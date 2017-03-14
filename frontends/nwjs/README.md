@@ -139,7 +139,13 @@ running "Scrims_node.html" with nw and csound.node is:
   "webkit": {
     "plugin": true
   }
-}</pre>
+}
+</pre>
+
+To run your Csound pieces easily in nw, you can use a menu shortcut and script in
+your text editor to automate the construction and deployment
+of the manifest file, or you can use a template package.json and make a copy of your
+piece with the name given in the manifest every time you want to run the piece.
 
 [csound]: http://csound.github.io/
 [nwjs]: http://nwjs.io/
