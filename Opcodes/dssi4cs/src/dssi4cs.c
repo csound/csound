@@ -339,6 +339,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
                             dssiFilename);
     }
     if (UNLIKELY(!LDescriptor)) {
+      unloadLADSPAPluginLibrary(csound, PluginLibrary);
       return csound->InitError(csound, "DSSI4CS: No plugin index %lu in %s",
                                PluginIndex, dssiFilename);
     }
