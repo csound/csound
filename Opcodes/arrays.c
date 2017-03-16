@@ -1469,7 +1469,7 @@ typedef struct _fft {
 
 
 static unsigned int isPowerOfTwo (unsigned int x) {
-    return ((x != 0) && !(x & (x - 1)));
+  return x != 0  ? !(x & (x - 1)) : 0;
 }
 
 
