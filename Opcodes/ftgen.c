@@ -303,7 +303,7 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         if (ftp->flen > 0x40000000)
           return csound->InitError(csound,Str("table length too long"));
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
-        memset(ftp->ftable, 0, sizeof(MYFLT) * ((unsigned int) ftp->flen + 1));
+        memset(ftp->ftable, 0, sizeof(MYFLT) * ((uint64_t) ftp->flen + 1));
         n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1l, file);
         if (UNLIKELY(n!=ftp->flen + 1)) goto err4;
         /* ***** Need to do byte order here ***** */
