@@ -73,8 +73,9 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
-    if (UNLIKELY(hdr.npoles<=0)) { fclose(outf); fclose(inf); return 1;}
-    if (hdr.headersize>0x40000000) {
+    if (UNLIKELY(hdr.npoles<=0) ||
+    if (hdr.headersize>0x40000000 ||
+        hdr.headersize<sizeof(LPHEADER)) {
       fclose(outf);
       fclose(inf);
       return 1;

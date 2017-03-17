@@ -298,6 +298,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
           (LADSPA_Descriptor_Function) dlsym(PluginLibrary,
                                              "ladspa_descriptor");
       if (pfDescriptorFunction==NULL) {
+        dlclose(PluginLibrary);
         return csound->InitError(csound, Str("No lapspa descriptor\n"));
       }
       DSSIPlugin_->Descriptor =
