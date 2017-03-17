@@ -325,7 +325,6 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
                                       "Are you sure this is a LADSPA or "
                                       "DSSI plugin file ?"),
                           dssiFilename, pcError);
-      
       else
         csound->InitError(csound, Str("DSSI4CS: Unable to find "
                                       "ladspa_descriptor() function or\n"
@@ -356,7 +355,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         csound->InitError(csound,
                           Str("DSSI4CS: Could not instantiate plugin: %s"),
                           dssiFilename);
-	dlclose(PluginLibrary);
+        dlclose(PluginLibrary);
         return NOTOK;
 
       }
