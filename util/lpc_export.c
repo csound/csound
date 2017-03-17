@@ -80,6 +80,7 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
     if (UNLIKELY(hdr.npoles<=0)) { fclose(inf); fclose(outf); return 1; }
     // to keep coverity happy
     if (hdr.headersize>0x40000000 ||
+        hdr.headersize<sizeof(LPHEADER) ||
         hdr.npoles+hdr.nvals > 0x10000000) { fclose(inf); fclose(outf); return 2;}
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
     if (UNLIKELY(str==NULL)) {
