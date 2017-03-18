@@ -719,11 +719,11 @@ PUBLIC void* csoundCreateCondVar()
 }
 
 PUBLIC void csoundCondWait(void* condVar, void* mutex) {
-	pthread_cond_wait(&condVar, &mutex);
+	pthread_cond_wait(condVar, mutex);
 }
 
 PUBLIC void csoundCondSignal(void* condVar) {
-	pthread_cond_signal(&condVar);
+	pthread_cond_signal(condVar);
 }
 
 /* ------------------------------------------------------------------------ */
