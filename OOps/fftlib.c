@@ -3440,7 +3440,7 @@ int setupDispose(CSOUND *csound, void *pp){
 }
 
 int isPowTwo(int N) {
-  return ((N != 0) && !(N & (N - 1)));
+  return (N != 0) ? !(N & (N - 1)) : 0;
 }
 
 void *csoundRealFFT2Setup(CSOUND *csound,
@@ -3459,7 +3459,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   setup = (CSOUND_FFT_SETUP *)
     csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
   setup->N = FFTsize;
-
+  setup->p2 = isPowTwo(FFTsize);
   switch(lib){
 #if defined(__MACH__) && !defined(IOS)
   case VDSP_LIB:
@@ -3493,7 +3493,6 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   csound->RegisterResetCallback(csound, (void*) setup,
                                 (int (*)(CSOUND *, void *))
                                 setupDispose);
-  setup->p2 = isPowTwo(FFTsize);
   return (void *) setup;
 }
 

@@ -62,7 +62,69 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   }
 };
 
+struct TVConv : csnd::Plugin<1,3> {
+  static constexpr char const *otypes = "a";
+  static constexpr char const *itypes = "aai";
+  csnd::AuxMem<MYFLT> ir;
+  csnd::AuxMem<MYFLT> in;
+  csnd::AuxMem<MYFLT> out;
+  csnd::AuxMem<MYFLT> saved;
+  uint32_t n; 
+  uint32_t ns;
+  csnd::fftp fwd,inv;
+
+  int init() {
+    ns = inargs[2];
+    fwd = csound->fft_setup(2*ns,FFT_FWD);
+    inv = csound->fft_setup(2*ns,FFT_INV);
+    ir.allocate(csound, 2*ns);
+    in.allocate(csound, 2*ns);
+    out.allocate(csound, 2*ns);
+    saved.allocate(csound, ns);
+    n = 0;
+    return OK;
+  }
+
+  int aperf() {
+    csnd::AudioSig insig(this, inargs(0));
+    csnd::AudioSig irsig(this, inargs(1));
+    csnd::AudioSig outsig(this, outargs(0));
+
+    auto irp = irsig.begin();
+    auto inp = insig.begin();
+
+    for(auto &s: outsig) {
+      ir[n] = *irp++;
+      in[n] = *inp++;
+      s  = out[n] + saved[n];
+      saved[n] = out[n + ns];
+       if(++n == ns) {
+	 std::complex<MYFLT> *ins,*irs;
+	 std::complex<MYFLT> *ous =
+	  reinterpret_cast<std::complex<MYFLT>*>(out.data());
+	 std::fill(in.begin()+ns,in.end(),0.); 
+	 std::fill(ir.begin()+ns,ir.end(),0.);
+	 // FFT
+         irs = csound->rfft(fwd, ir.data());
+	 ins = csound->rfft(fwd, in.data());
+         // Mult
+	 for(uint i=1; i < ns; i++)
+	   ous[i] =  ins[i] * irs[i];    
+	 ous[0].real(irs[0].real()*ins[0].real());	 
+	 ous[0].imag(irs[0].imag()*ins[0].imag());
+	 // IFFT
+	 csound->rfft(inv, out.data());
+         n = 0;
+       }	 
+    }
+    return OK; 
+  }
+};
+
+
+
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
+  csnd::plugin<TVConv>(csound, "tvconv", csnd::thread::ia);
 }
