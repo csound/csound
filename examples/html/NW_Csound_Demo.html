@@ -232,7 +232,6 @@ i1 45.2 . . 10.06   ;F# octave above 1st one
 i1 45.3 . . 10.10   ;Bb next one up
 i1 45.4 . . 10.11   ;B
 i1 45.5 . . 11.04   ;E
-e
 </pre>
 <H3>Performance</H3>
 <script>
@@ -254,7 +253,7 @@ try  {
     document.write('<p>csound.readScore(xanadu) => ' + csound.readScore(document.getElementById('sco').innerHTML));
     // Crashes: csound.setOption('-j4');
     document.write('<p>csound.start() => ' + csound.start());
-     document.write('<p>csound.perform() => ' + csound.perform());
+    document.write('<p>csound.perform() => ' + csound.perform());
     csound.message('"Done now." from the HTML code.\n');
 } catch(x) {
     alert(x);
