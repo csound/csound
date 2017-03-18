@@ -131,7 +131,7 @@ extern "C" {
     MYFLT buf[bufsize];
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     while (recordData->running) {
-		csoundLockMutex (&recordData->mutex);
+		csoundLockMutex (recordData->mutex);
         csoundCondWait(recordData->condvar, recordData->mutex);
         int sampsread;
         do {
@@ -145,7 +145,7 @@ extern "C" {
                            buf, sampsread);
 #endif
         } while(sampsread != 0);
-		csoundUnlockMutex (&recordData->mutex);
+		csoundUnlockMutex (recordData->mutex);
     }
     return (uintptr_t) ((unsigned int) retval);
   }
@@ -447,7 +447,7 @@ int CsoundPerformanceThread::Perform()
               csoundMessage(csound, "perfThread record buffer overrun.\n");
           }
       }
-      csoundCondSignal(&recordData.condvar); // Needs to be outside the if
+      csoundCondSignal(recordData.condvar); // Needs to be outside the if
                               // for the case where stop record was requested
     } while (!retval);
  endOfPerf:
