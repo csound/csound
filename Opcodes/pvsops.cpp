@@ -108,7 +108,7 @@ struct TVConv : csnd::Plugin<1,3> {
          irs = csound->rfft(fwd, ir.data());
 	 ins = csound->rfft(fwd, in.data());
          // Mult
-	 for(uint i=1; i < ns; i++)
+	 for(uint32_t i=1; i < ns; i++)
 	   ous[i] =  ins[i] * irs[i];    
 	 ous[0].real(irs[0].real()*ins[0].real());	 
 	 ous[0].imag(irs[0].imag()*ins[0].imag());
