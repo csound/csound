@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
-    if (hdr.headersize>1024) {
+    if (hdr.headersize>1024 || hdr.headersize<sizeof(LPHEADER)) {
       fprintf(stderr, Str("corrupt header\n"));
       exit(1);
     }
