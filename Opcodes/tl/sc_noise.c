@@ -64,7 +64,7 @@ static int dust_process_krate(CSOUND *csound, DUST *p)
     density = *p->kdensity;
 
     if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr;
+      thresh = p->thresh = density * csound->onedsr*csound->ksmps;
       scale  = p->scale  = (thresh > FL(0.0) ? FL(1.0) / thresh : FL(0.0));
       p->density0 = density;
     }
@@ -74,26 +74,6 @@ static int dust_process_krate(CSOUND *csound, DUST *p)
     }
     p->rand = csoundRand31(&p->rand);
     r = (MYFLT)p->rand * dv2_31;
-    *p->out = *p->kamp * (r < thresh ? r*scale : FL(0.0));
-    return OK;
-}
-
-static int dust3_process_krate(CSOUND *csound, DUST *p)
-{
-    MYFLT   density, thresh, scale, r;
-    density = *p->kdensity;
-
-    if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr;
-      scale  = p->scale  = (thresh > FL(0.0) ? FL(1.0) / thresh : FL(0.0));
-      p->density0 = density;
-    }
-    else {
-      thresh = p->thresh;
-      scale  = p->scale;
-    }
-    p->rand = csoundRand31(&p->rand);
-    r = (MYFLT)p->rand * dv2_31*csound->ksmps;
     *p->out = *p->kamp * (r < thresh ? r*scale : FL(0.0));
     return OK;
 }
@@ -126,26 +106,6 @@ static int dust_process_arate(CSOUND *csound, DUST *p)
 }
 
 static int dust2_process_krate(CSOUND *csound, DUST *p)
-{
-    MYFLT   density, thresh, scale, r;
-    density = *p->kdensity;
-
-    if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr;
-      scale = p->scale = (thresh > FL(0.0) ? FL(2.0) / thresh : FL(0.0));
-      p->density0 = density;
-    }
-    else {
-      thresh = p->thresh;
-      scale  = p->scale;
-    }
-    p->rand = csoundRand31(&p->rand);
-    r = (MYFLT)p->rand * dv2_31;
-    *p->out = *p->kamp * (r < thresh ? r*scale - FL(1.0) : FL(0.0));
-    return OK;
-}
-
-static int dust4_process_krate(CSOUND *csound, DUST *p)
 {
     MYFLT   density, thresh, scale, r;
     density = *p->kdensity;
@@ -349,12 +309,12 @@ static int gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
 static OENTRY scnoise_localops[] = {
   { "dust.k",      sizeof(DUST), 0,3, "k", "kk",
     (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
-  { "dust3.k",     sizeof(DUST), 0,3, "k", "kk",
-    (SUBR)dust_init, (SUBR)dust3_process_krate, NULL },
+  { "dust.k",     sizeof(DUST), 0,3, "k", "kk",
+    (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
   { "dust.a",      sizeof(DUST), 0,5, "a", "kk",
     (SUBR)dust_init, NULL, (SUBR)dust_process_arate },
-  { "dust4.k",     sizeof(DUST), 0,3, "k", "kk",
-    (SUBR)dust_init, (SUBR)dust4_process_krate, NULL },
+  { "dust2.k",     sizeof(DUST), 0,3, "k", "kk",
+    (SUBR)dust_init, (SUBR)dust2_process_krate, NULL },
   { "dust2.a",     sizeof(DUST), 0,5, "a", "kk",
     (SUBR)dust_init, NULL, (SUBR)dust2_process_arate },
   { "gausstrig.k", sizeof(GAUSSTRIG), 0,3, "k", "kkkoo",
