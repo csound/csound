@@ -1,5 +1,5 @@
 /*
-  pvsops.c: pvs opcodes
+  pvsops.c: pvs and other spectral-based opcodes
 
   Copyright (C) 2017 Victor Lazzarini
   This file is part of Csound.
@@ -97,31 +97,35 @@ struct TVConv : csnd::Plugin<1,4> {
   }
 
   int init() {
-    fils = rpow2(inargs[2]);
-    pars = rpow2(inargs[3]);
+    pars = inargs[2];
+    fils = inargs[3];
     if(pars > fils) std::swap(pars,fils);
-    ffts = pars*2;
-    fwd = csound->fft_setup(ffts,FFT_FWD);
-    inv = csound->fft_setup(ffts,FFT_INV);
-    ir.allocate(csound, 2*fils);
-    in.allocate(csound, 2*fils);
-    out.allocate(csound, 2*pars);
-    saved.allocate(csound, pars);
+    if(pars > 1) {
+      pars = rpow2(pars);
+      fils = rpow2(fils);
+      ffts = pars*2;
+      fwd = csound->fft_setup(ffts,FFT_FWD);
+      inv = csound->fft_setup(ffts,FFT_INV);
+      out.allocate(csound, 2*pars);
+      saved.allocate(csound, pars);
+      ir.allocate(csound, 2*fils);
+      in.allocate(csound, 2*fils);
+      nparts = fils/pars;
+      fils *= 2;
+    } else {
+      ir.allocate(csound, fils);
+      in.allocate(csound, fils);
+    }
     n = 0;
     pp = 0;
-    nparts = fils/pars;
-    fils *= 2;
     return OK;
   }
 
-  int aperf() {
-    csnd::AudioSig insig(this, inargs(0));
-    csnd::AudioSig irsig(this, inargs(1));
-    csnd::AudioSig outsig(this, outargs(0));
-
+  int pconv(csnd::AudioSig &outsig,
+	    csnd::AudioSig &insig,
+	    csnd::AudioSig &irsig){
     auto irp = irsig.begin();
     auto inp = insig.begin();
-
     for(auto &s: outsig) {
       ir[n+pp] = *irp++;
       in[n+pp] = *inp++;
@@ -152,6 +156,34 @@ struct TVConv : csnd::Plugin<1,4> {
        }	 
     }
     return OK; 
+  }
+
+  int dconv(csnd::AudioSig &outsig,
+	    csnd::AudioSig &insig,
+	    csnd::AudioSig &irsig) {
+    auto irp = irsig.begin();
+    auto inp = insig.begin();
+    MYFLT sum = 0.0;
+    for(auto &s: outsig) {
+     ir[pp] = *irp++;
+     in[pp] = *inp++;
+     pp = pp != fils - 1 ? pp + 1 : 0;
+     for(uint32_t k = 0, kp = pp; k < fils; k++, kp++) {
+       if(kp == fils) kp = 0;
+       sum += in[kp] * ir[fils - k - 1];
+     }
+     s = sum;
+     sum = 0;
+    }
+    return OK;
+  }
+
+  int aperf() {
+    csnd::AudioSig ins(this, inargs(0));
+    csnd::AudioSig irs(this, inargs(1));
+    csnd::AudioSig outs(this, outargs(0));
+    if(pars > 1) return pconv(outs, ins, irs);
+    else return dconv(outs, ins, irs);
   }
 };
 
