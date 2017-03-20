@@ -473,7 +473,7 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-if(NOT WIN32)
+if(NOT MSVC)
   find_library(PTHREAD_LIBRARY pthread)
 
   if(NOT PTHREAD_LIBRARY)
