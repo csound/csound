@@ -22,7 +22,30 @@
 */
 #ifndef CSOUND_CSGBLMTX_H
 
-#if defined(_WIN32) || defined (__WIN32__)
+
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+static pthread_mutex_t csound_global_lock_ = PTHREAD_MUTEX_INITIALIZER;
+
+void csoundLock() {
+  pthread_mutex_lock(&csound_global_lock_);
+}
+
+void csoundUnLock() {
+  pthread_mutex_unlock(&csound_global_lock_);
+}
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#elif defined(_WIN32) || defined (__WIN32__)
 #define _WIN32_WINNT 0x0600
 #include <windows.h>
 
@@ -72,29 +95,6 @@ void csoundUnLock() {
 
 #endif /* END WIN32 */
 
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-static pthread_mutex_t csound_global_lock_ = PTHREAD_MUTEX_INITIALIZER;
-
-void csoundLock() {
-  pthread_mutex_lock(&csound_global_lock_);
-}
-
-void csoundUnLock() {
-  pthread_mutex_unlock(&csound_global_lock_);
-}
-
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* END HAVE_PTHREAD */
 
 #endif      /* CSOUND_CSGBLMTX_H */
 

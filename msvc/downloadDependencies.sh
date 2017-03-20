@@ -10,6 +10,7 @@ wget -nc http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip
 #wget -nc https://sourceforge.net/projects/winflexbison/files/latest/download 
 #wget -nc https://dl.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip
 wget -nc https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip 
+wget -nc https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.bz2 
 
 cd ../deps
 
