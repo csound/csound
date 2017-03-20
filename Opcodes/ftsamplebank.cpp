@@ -61,6 +61,8 @@ public:
       skiptime = 0;
       format = 0;
       index = 0;
+      numberOfFiles = 0;
+      sDirectory = NULL;
     }
 
     //init-pass
@@ -102,6 +104,7 @@ public:
       skiptime = 0;
       format = 0;
       index = 0;
+      trigger = 0;
     }
 
     //init-pass

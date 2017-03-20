@@ -64,7 +64,7 @@ static int dust_process_krate(CSOUND *csound, DUST *p)
     density = *p->kdensity;
 
     if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr;
+      thresh = p->thresh = density * csound->onedsr*csound->ksmps;
       scale  = p->scale  = (thresh > FL(0.0) ? FL(1.0) / thresh : FL(0.0));
       p->density0 = density;
     }
@@ -111,7 +111,7 @@ static int dust2_process_krate(CSOUND *csound, DUST *p)
     density = *p->kdensity;
 
     if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr;
+      thresh = p->thresh = density * csound->onedsr*csound->ksmps;
       scale = p->scale = (thresh > FL(0.0) ? FL(2.0) / thresh : FL(0.0));
       p->density0 = density;
     }
@@ -307,10 +307,9 @@ static int gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
 }
 
 static OENTRY scnoise_localops[] = {
-  { "dust",      0xffff },
-  { "dust2",     0xffff },
-  { "gausstrig", 0xffff },
   { "dust.k",      sizeof(DUST), 0,3, "k", "kk",
+    (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
+  { "dust.k",     sizeof(DUST), 0,3, "k", "kk",
     (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
   { "dust.a",      sizeof(DUST), 0,5, "a", "kk",
     (SUBR)dust_init, NULL, (SUBR)dust_process_arate },

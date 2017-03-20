@@ -951,7 +951,7 @@ typedef struct NAME__ {
     int  p2;
   } CSOUND_FFT_SETUP;
 
-  
+
   /**
    * plugin module info
    */

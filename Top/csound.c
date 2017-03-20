@@ -3411,7 +3411,7 @@ PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
 {
     /* in realtime mode init pass is executed in a separate thread, so
      we need to protect it */
-    csoundUnlockMutex(csound->API_lock);
+    csoundLockMutex(csound->API_lock);
    if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     csound->flist[table]->ftable[index] = value;
    if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
