@@ -23,7 +23,7 @@
 #include <cmath>
 #include <plugin.h>
 
-static inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
+extern inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
 
 /** i-time, k-rate operator
     kout[] op kin[]
