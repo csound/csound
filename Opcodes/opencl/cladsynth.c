@@ -170,7 +170,7 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   cl_kernel kernel1, kernel2;
   cl_uint num = 0, nump =  0;
   cl_platform_id platforms[16];
-    uint i;
+  uint32_t i;
 
   if(p->fsig->overlap > 1024)
      return csound->InitError(csound, "overlap is too large\n");
