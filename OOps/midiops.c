@@ -696,7 +696,7 @@ int midiarp(CSOUND *csound, MIDIARP *p)
           for(i  = 0 ; i < p->maxNumNotes ; i++)
             p->sortedNotes[i] = p->notes[i];
 
-          p->noteCnt = (p->noteCnt<0 ? 0 : p->noteCnt--);
+          p->noteCnt = (p->noteCnt<0 ? 0 : p->noteCnt-1);
           sort_notes(p->sortedNotes, p->maxNumNotes);
         }
       }

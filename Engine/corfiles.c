@@ -85,7 +85,7 @@ void corfile_puts(const char *s, CORFIL *f)
       }
     }
     if (n > 0) {
-      /* put the extra NUL chars to the end */
+      /* put the extra NULL chars to the end */
       while(--n >= 0) {
         char *new;
         f->body[f->p++] = '\0';

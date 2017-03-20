@@ -384,6 +384,7 @@ static int SVopen(CSOUND *csound)
           break;
         }
     }
+    shutdown(socklisten, SHUT_RD);
     return OK;
 }
 

@@ -172,6 +172,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     char port[8];
     char *pp = port;
     char *hh;
+    int cmpr = 0;
 
     if (*p->port<0)
       pp = NULL;
@@ -185,7 +186,10 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
        a latency penalty
        Yes; cached -- JPff
     */
-    if (!(hh==NULL && p->lhost == NULL) || strcmp(p->lhost, hh)!=0) {
+    // 152269
+    //if (!(hh==NULL && p->lhost == NULL) || strcmp(p->lhost, hh)!=0) {
+    if(hh && p->lhost) cmpr = strcmp(p->lhost, hh);
+    if (!(hh==NULL && p->lhost == NULL) || cmpr !=0) {
       if (p->addr != NULL)
         lo_address_free(p->addr);
       p->addr = lo_address_new(hh, pp);
@@ -199,7 +203,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
           csound->Message(csound, Str("Failed to set multicast"));
         }
 #else
-        setsockopt(p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+        setsockopt((int)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #endif
       }
       csound->Free(csound, p->lhost);
@@ -794,9 +798,10 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
             ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
                                                   len-sizeof(FUNC)+sizeof(MYFLT*));
             {
+#ifdef JPFF
               MYFLT* dst = ftp->ftable;
               MYFLT* src = (MYFLT*)(&(data->ftable));
-#ifdef JPFF
+
               //int j;
               printf("copy data: from %p to %p length %d %d\n",
                      src, dst, len-sizeof(FUNC)+sizeof(MYFLT*), data->flen);

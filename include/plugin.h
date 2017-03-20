@@ -798,6 +798,21 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
      }
     }
   }
+
+  /** returns the number of output arguments
+      used in the case of variable output count
+  */
+  uint32_t out_count(){
+    return (uint32_t) optext->t.outArgCount;
+  }
+
+  /** returns the number of input arguments
+      used in the case of variable input count
+  */
+  uint32_t in_count(){
+    return (uint32_t) optext->t.inArgCount;
+  }
+  
 };
 
 /** Fsig plugin template base class:
@@ -867,5 +882,10 @@ int plugin(Csound *csound, const char *name, uint32_t thread,
 template <typename T, typename... Types> T *constr(T *p, Types... args) {
   return new (p) T(args...);
 }
+
+template<typename T> void destr(T *p) {
+  p->T::~T();
+}  
+ 
 }
 #endif

@@ -121,7 +121,7 @@ static int GENUL(FGDATA *ff, FUNC *ftp)
 }
 
 static inline unsigned int isPowerOfTwo (unsigned int x) {
-    return ((x != 0) && !(x & (x - 1)));
+  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
 }
 
 /**
@@ -243,7 +243,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       return 0;
     }
     /* if user flen given */
-    if (ff.flen < 0L || !(isPowerOfTwo(ff.flen) || isPowerOfTwo(ff.flen-1))) {
+    if (ff.flen < 0L || !isPowerOfTwo(ff.flen&~1)) {
       /* gab for non-pow-of-two-length    */
       ff.guardreq = 1;
       if (ff.flen<0) ff.flen = -(ff.flen);             /* gab: fixed */
@@ -1942,15 +1942,16 @@ static int gen32(FGDATA *ff, FUNC *ftp)
         p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
         d_re = cos ((double) p); d_im = sin ((double) p);
         p_re = 1.0; p_im = 0.0;         /* init. phase */
-        for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
-          /* mix to table */
-          y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
-          y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
-          /* update phase */
-          ptmp = p_re * d_re - p_im * d_im;
-          p_im = p_im * d_re + p_re * d_im;
-          p_re = ptmp;
-        }
+        if (y != NULL)
+          for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
+            /* mix to table */
+            y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
+            y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
+            /* update phase */
+            ptmp = p_re * d_re - p_im * d_im;
+            p_im = p_im * d_re + p_re * d_im;
+            p_re = ptmp;
+          }
       }
     }
     /* write dest. table */
@@ -2781,7 +2782,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->argcnt = ff->e.pcnt - 3;
     {  /* Note this does not handle extened args -- JPff */
       int size=ftp->argcnt;
-      if (size>PMAX) size=PMAX;
+      //if (size>=PMAX) size=PMAX; // Coverity 96615 says this overflows
       memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
       /* for(k=0; k < size; k++)
          csound->Message(csound, "%f \n", ftp->args[k]);*/

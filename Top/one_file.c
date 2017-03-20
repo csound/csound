@@ -495,6 +495,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
         corfile_putc('\0', csound->scorestr);
         corfile_putc('\0', csound->scorestr);
         //corfile_rewind(csound->scorestr); /* necessary? */
+        free(extname); //27363
         return TRUE;
       }
       else fputs(buffer, scof);

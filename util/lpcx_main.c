@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     LPHEADER hdr;
     unsigned int i, j;
     char *str = NULL;
-    MYFLT *coef;
+    MYFLT *coef = NULL;
 
     if (argc!= 3) {
       lpc_export_usage();
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
-    if (hdr.headersize>1024) {
+    if (hdr.headersize>1024 || hdr.headersize<sizeof(LPHEADER)) {
       fprintf(stderr, Str("corrupt header\n"));
       exit(1);
     }
@@ -95,8 +95,10 @@ int main(int argc, char **argv)
       putc(str[i],outf);
     if (UNLIKELY(hdr.headersize > 100))
       putc('\n', outf);
-    if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0) {
-      coef = (MYFLT *)malloc((hdr.npoles+hdr.nvals)*sizeof(MYFLT));
+    if (hdr.npoles+hdr.nvals > 0
+        && hdr.npoles+hdr.nvals < 0x0FFFFFFF
+        && hdr.npoles > 0) {
+      coef = (MYFLT *)malloc(((uint64_t)hdr.npoles+hdr.nvals)*sizeof(MYFLT));
       for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
         if (UNLIKELY(fread(coef, sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
           fprintf(stderr, Str("Read failure\n"));
@@ -108,7 +110,7 @@ int main(int argc, char **argv)
     }
     fclose(outf);
     fclose(inf);
-    if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0) free(coef);
+    if (hdr.npoles+hdr.nvals > 0 && hdr.npoles > 0 && coef != NULL) free(coef);
     free(str);
     return 0;
 }
