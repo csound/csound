@@ -242,7 +242,7 @@ msgid "%s invalid ksmps value"
 msgstr "%s valeur de ksmps non valide"
 
 #: Engine/csound_orc_compile.c:598
-#, fuzzy, c-format
+#, c-format
 msgid "%s inconsistent sr, kr, ksmps\n"
 msgstr "%s sr, kr, ksmps contradictoires\n"
 
@@ -6658,63 +6658,63 @@ msgid "readi failed to initialise"
 msgstr "readi, l'initialisation a échoué"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:245
-#, fuzzy, c-format
+#, c-format
 msgid "DSSI4CS: Failed to load %s."
-msgstr "L'ouverture de %s a échoué"
+msgstr "DSSI4CS : le chargement de %s a échoué"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:250
 msgid "Error creating global variable '$DSSI4CS'"
-msgstr ""
+msgstr "Erreur lors de la création de la variable globale '$DSSI4CS'"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:260
 msgid "DSSI4CS: Loading first instance.\n"
-msgstr ""
+msgstr "DSSI4CS : chargement de la première instance.\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:301
 msgid "No lapspa descriptor\n"
-msgstr ""
+msgstr "Pas de descripteur ladspa\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:321
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "DSSI4CS: Unable to find ladspa_descriptor() function or\n"
 "dssi_descriptor() function in plugin file \"%s\": %s.\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
-"Impossible de trouver la fonction ladspa_descriptor() dans le fichier de "
-"bibliothèque de plugin \"%s\" : %s.\n"
-"Etes-vous sûr que c'est un fichier de plugin LADSPA ?"
+"DSSI4CS : impossible de trouver la fonction ladspa_descriptor() ou\n"
+"la fonction dssi_descriptor() dans le fichier de greffon \"%s\" : %s.\n"
+"Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:330
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "DSSI4CS: Unable to find ladspa_descriptor() function or\n"
 "dssi_descriptor() function in plugin file \"%s\".\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
-"Impossible de trouver la fonction ladspa_descriptor() dans le fichier de "
-"bibliothèque de plugin \"%s\".\n"
-"Etes-vous sûr que c'est un fichier de plugin LADSPA ?"
+"DSSI4CS : impossible de trouver la fonction ladspa_descriptor() ou\n"
+"la fonction dssi_descriptor() dans le fichier de greffon \"%s\".\n"
+"Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:341
 #, c-format
 msgid "DSSI4CS: No plugin index %lu in %s"
-msgstr ""
+msgstr "DSSI4CS : pas d'indice de greffon %lu dans %s"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:357 Opcodes/dssi4cs/src/dssi4cs.c:378
 #, c-format
 msgid "DSSI4CS: Could not instantiate plugin: %s"
-msgstr ""
+msgstr "DSSI4CS : impossible d'instancier le greffon : %s"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:364 Opcodes/dssi4cs/src/dssi4cs.c:383
 #, c-format
 msgid "DSSI4CS: No run() funtion in: %s"
-msgstr ""
+msgstr "DSSI4CS : pas de fonction run() dans : %s"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:564
 #, c-format
 msgid "DSSI4CS: Invalid plugin: %i (MAX= %i)."
-msgstr ""
+msgstr "DSSI4CS : greffon non valide : %i (MAX = %i)."
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:653
 #, c-format
@@ -6728,64 +6728,61 @@ msgstr "DSSI4CS : nombre de canaux audio en sortie supérieur à %d"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:674
 msgid "DSSI4CS: dssiaudio: Invalid plugin handle."
-msgstr ""
+msgstr "DSSI4CS : dssiaudio : descripteur de greffon non valide"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:746
 #, c-format
 msgid "DSSI4CS: Plugin '%s' has %i audio input ports audio input discarded.\n"
-msgstr ""
+msgstr "DSSI4CS : le greffon '%s' a %i ports audio en entrée désactivés.\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:750
 #, c-format
 msgid "DSSI4CS: Plugin '%s' has %i audio input ports."
-msgstr ""
+msgstr "DSSI4CS : le greffon '%s' a %i ports audio en entrée."
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:755
 #, c-format
 msgid "DSSI4CS: Plugin '%s' has %i audio output ports."
-msgstr ""
+msgstr "DSSI4CS : le greffon '%s' a %i ports audio en sortie."
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:805
-#, fuzzy
 msgid "DSSI4CS: Invalid plugin handle."
-msgstr "Descripteur de tampon non valide"
+msgstr "DSSI4CS : descripteur de greffon non valide"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:816
 msgid "DSSI4CS: Audio Rate control ports not implemented yet."
-msgstr ""
+msgstr "DSSI4CS : ports de contrôle du taux audio pas encore implémentés."
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:855
-#, fuzzy, c-format
+#, c-format
 msgid "DSSI4CS: Port %lu from '%s' does not exist."
-msgstr "le canal '%s' n'existe pas"
+msgstr "DSSI4CS : le port %lu de '%s' n'existe pas"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:863
 #, c-format
 msgid "DSSI4CS: Port %lu from '%s' is an output port."
-msgstr ""
+msgstr "DSSI4CS : le port %lu de '%s' est un port de sortie."
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:898
 msgid "DSSI4CS: Not initialised or wrong argument types."
 msgstr "DSSI4CS : non initialisé ou types d'argument incorrects."
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:923
-#, fuzzy
 msgid "DSSI4CS: dssinote not implemented yet."
-msgstr "SDFT pas encore implémentée"
+msgstr "DSSI4CS : dssinote pas encore implémentée"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:934
-#, fuzzy
 msgid "DSSI4CS: dssievent not implemented yet."
-msgstr "SDFT pas encore implémentée"
+msgstr "DSSI4CS : dssievent pas encore implémentée"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:1027 Opcodes/dssi4cs/src/dssi4cs.c:1113
 #: Opcodes/dssi4cs/src/load.c:53
 msgid "DSSI4CS: LADSPA_PATH environment variable not set.\n"
-msgstr ""
+msgstr "DSSI4CS : variable d'environnement LADSPA_PATH pas fixée.\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:1036 Opcodes/dssi4cs/src/dssi4cs.c:1117
 msgid "DSSI4CS: DSSI_PATH environment variable not set.\n"
-msgstr ""
+msgstr "DSSI4CS : variable d'environnement DSSI_PATH pas fixée.\n"
 
 #: Opcodes/dssi4cs/src/load.c:137
 #, c-format
@@ -7140,7 +7137,6 @@ msgid "Invalid table number: %d"
 msgstr "Numéro de table non valide : %d"
 
 #: Opcodes/ftgen.c:304
-#, fuzzy
 msgid "table length too long"
 msgstr "taille de table trop grande"
 
