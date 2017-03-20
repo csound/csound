@@ -2002,12 +2002,16 @@ static int chunk_read(CSOUND *csound, FILE *fil, CHUNK *chunk)
 {
     if (UNLIKELY(4 != fread(chunk->ckID,1,4, fil)))
       return 0;
-    if (UNLIKELY(1 != fread(&chunk->ckSize,4,1,fil)))
+    if (UNLIKELY(1 != fread(&chunk->ckSize,4,1,fil))) {
+      chunk->ckSize = 0;
       return 0;
+    }
+    if (UNLIKELY(chunk->ckSize>0x40000000)) return 0;
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) csound->Malloc(csound, chunk->ckSize);
     if (chunk->ckDATA==NULL)
       return 0;
+    if (chunk->ckSize>0x04000000) return 0;
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
 

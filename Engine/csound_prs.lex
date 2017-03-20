@@ -44,9 +44,9 @@ static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
 #define MACDEBUG 1
 
-static inline int isNameChar(int c, int pos)
+static inline int isNameChar(int cc, int pos)
 {
-    //c = (int) ((unsigned char) c);
+    unsigned char c = ((unsigned char) cc);
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
@@ -80,7 +80,7 @@ MACRONAMEDA     "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.\(
 MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
 MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
-   
+
 STCOM           \/\*
 INCLUDE         "#include"
 DEFINE          #[ \t]*define

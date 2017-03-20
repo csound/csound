@@ -1066,8 +1066,8 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
       if (*fmt == '%') {
         if (*(fmt+1) == '%') {
           *outstring++ = *fmt++;
-          *outstring++ = *fmt++;
-          len-=2;
+          /* *outstring++ = */ fmt++;
+          len-=1;
         }
         else if (*(fmt+1) && isspace(*(fmt+1))) {
           *outstring++ = *fmt++;

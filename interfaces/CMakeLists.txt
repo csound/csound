@@ -1,13 +1,15 @@
 ## Language bindings ##
 
 # C++ INTERFACE LIBRARY
+find_package(Boost)
 
 option(BUILD_CXX_INTERFACE "Build the C++ interface library" ON)
 option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
 
-if(BUILD_CXX_INTERFACE)
+
+if(BUILD_CXX_INTERFACE AND Boost_FOUND)
     message(STATUS "Building C++ interface library.")
     set(libcsnd6_SRCS
         CppSound.cpp
@@ -43,7 +45,8 @@ if(BUILD_CXX_INTERFACE)
     install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
-
+else()
+ message(STATUS "NOT Building C++ interface library.")
 endif()
 
 
