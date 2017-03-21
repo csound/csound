@@ -88,6 +88,8 @@ to memory leaks and more robust code.
 
 - fencepost error in sensLine fixed
     
+- OSCsend corrected for cacing of host name
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
@@ -279,12 +281,6 @@ Date:   Tue Feb 7 21:42:32 2017 +0000
 
     fix compilation vector code
 
-commit 581be68bccf245669d96a1db8743fcc4f01c14d4
-Author: jpff <jpff@codemist.co.uk>
-Date:   Tue Feb 7 17:21:29 2017 +0000
-
-    fix to outch
-
 commit 2064211c149fa24dcce9be6b894a97ef93fa8bc8
 Author: jpff <jpff@codemist.co.uk>
 Date:   Mon Feb 6 21:21:10 2017 +0000
@@ -302,36 +298,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Mon Feb 6 09:49:28 2017 +0000
 
     array offsets corrected for audio var iterator
-
-commit d7712c10d4d098fcb5308229665d25333abeb2bc
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sun Feb 5 20:29:35 2017 +0000
-
-    last changes to outa outz and tidying up
-
-commit 217b78e8d2b9cfba3cd8d508840327e7c9550d42
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sun Feb 5 15:51:55 2017 +0000
-
-    outch, monitor, outrg canged to new model
-
-commit d0fb705e1003d1aff0b717f1997bbc2e57c06d69
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sat Feb 4 23:23:31 2017 +0000
-
-    out array works
-
-commit 7960c9888b798fb97adec983c01bab4ceab2222d
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sat Feb 4 17:18:07 2017 +0000
-
-    outs* and outq12 working
-
-commit eab93c228dc3264562ffc2062b276239626c6ca2
-Author: jpff <jpff@codemist.co.uk>
-Date:   Fri Feb 3 20:47:03 2017 +0000
-
-    atempt t newnoiterleaved spout
 
 commit c66873d96b7334dc7648ee9ae05d46a0b4e7c4a4
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -422,7 +388,7 @@ Date:   Mon Jan 23 10:06:27 2017 +0100
 
     added emugems: bpf, xyscale, ntom, mton, etc. -- beginning of scugens (supercollider ugens): phasor, lag, lagud, trig)
 
-commit 4429b88f5d3cfeb6e2399cc176e23716485ed8d3
+commit 4429b88f5d3cfeb6e2399cc176e23716485edd3
 Author: Nikhil Singh <nsingh1@berklee.edu>
 Date:   Sat Jan 21 21:01:46 2017 -0500
 
@@ -523,12 +489,6 @@ Author: jpff <jpff@codemist.co.uk>
 Date:   Mon Jan 2 21:24:32 2017 +0000
 
     macro names restricted
-
-commit 6c832610adf4b3a355d9284d0a02d88aa6a6db5c
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Dec 29 20:47:09 2016 +0000
-
-    fix to caching of ost name on OSCsend
 
 commit a02db25c3d2bc3ab0d89d4f9a6487bf325d8446e
 Author: Steven Yi <stevenyi@gmail.com>
