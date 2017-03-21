@@ -9,7 +9,7 @@ To maintain this document use the following markdown:
 - First level bullet point
  - Second level bullet point
   - Third level bullet point
-  
+
 `inline code`
 
 ``` preformatted text etc.  ```
@@ -21,10 +21,9 @@ Any valid HTML can also be used.
 --->
 # CSOUND VERSION 6.09 RELEASE NOTES
 
-
 Also as usual there are a number of new opcodes and internal fixes
 to memory leaks and more robust code.
-  
+
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -33,37 +32,39 @@ to memory leaks and more robust code.
 
 - select -- sample-by-sample comparison of audio selecting the output
 
-- midiarp opcode generates arpeggios based on currently held MIDI notes. 
+- midiarp opcode generates arpeggios based on currently held MIDI notes.
 
-- hibert2 --  a DFT-based implementation of a Hilbert transformer.
+- hilbert2 --  a DFT-based implementation of a Hilbert transformer.
+
+- Ableton Link opcodes for synchronizing tempo and beat across local area networks.
 
 ### New Gen and Macros
 
-- 
+-
 
 ### Orchestra
 
-- 
+-
 
 
 ### Score
 
-- 
+-
 ### Options
 
-- 
+-
 
 ### Modified Opcodes and Gens
 
-- ftgentmp impoved string aguents
+- ftgentmp impoved string arguments
 
 - hdf5read opcode now reads entire data sets when dataset name string
-  is suffixed with an asterisk 
+  is suffixed with an asterisk
 
 ### Utilities
 
-- 
-     
+-
+
 ### Frontends
 
 - icsound:
@@ -71,7 +72,7 @@ to memory leaks and more robust code.
 - csound~:
 
 - csdebugger:
-  
+
 - HTML5
 
 - Emscripten:
@@ -80,15 +81,15 @@ to memory leaks and more robust code.
 
 ### General Usage
 
-- 
+-
 
 ## Bugs Fixed
 
 - pwd works on OSX
 
 - fencepost error in sensLine fixed
-    
-- OSCsend corrected for cacing of host name
+
+- OSCsend corrected for caching of host name
 
 ## SYSTEM LEVEL CHANGES
 
@@ -96,12 +97,12 @@ to memory leaks and more robust code.
 
 - soundin now uses te diskin2 code
 
-- out family of opcodes reworked to rduce interleaving costs and to
-  take proper egard if nchnls value.
+- out family of opcodes reworked to reduce interleaving costs and to
+  take proper regard if nchnls value.
 
 ### API
 
-- 
+- New `csound_threaded.hpp` header obviating need for `csPerfThread.cpp` object in some projects.
 
 ### Platform Specific
 
@@ -114,7 +115,7 @@ to memory leaks and more robust code.
 - Windows
 
  - csound64.lib import library added to Windows installer
-    
+
 - OSX
 
 - GNU/Linux
@@ -557,5 +558,5 @@ Author: Steven Yi <stevenyi@gmail.com>
 Date:   Thu Nov 24 18:42:18 2016 -0500
 
     Merge tag '6.08.0' into develop
-    
+
     6.08.0
