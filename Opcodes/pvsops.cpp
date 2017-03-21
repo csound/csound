@@ -157,7 +157,7 @@ struct TVConv : csnd::Plugin<1, 6> {
           ins = to_cmplx(insp.data() + kp);
           irs = to_cmplx(irsp.data() + (nparts - k - 1) * ffts);
           // spectral product
-          for (uint i = 1; i < pars; i++)
+          for (uint32_t i = 1; i < pars; i++)
             ous[i] += ins[i] * irs[i];
           ous[0] += real_prod(ins[0], irs[0]);
         }
