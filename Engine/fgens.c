@@ -1183,13 +1183,14 @@ static int gen18(FGDATA *ff, FUNC *ftp)
 
       range = (MYFLT) (finish - start), j = start;
       while (j <= finish) {                      /* write the table */
-        f = (MYFLT)modf((fnlen*(j++ - start)/range), &i);
-        if (i==fnp->flen)
-          fp18[j] += amp * fp[(int)i];
+        unsigned int ii;
+        f = (MYFLT)modf((fnlen*(j - start)/range), &i);
+        ii = (unsigned int)i;
+        //printf("***ii=%d f=%g\n", ii, f);
+        if (ii==fnp->flen)
+          fp18[j++] += amp * fp[ii];
         else
-          fp18[j] += amp * ((f * (*(fp + (int)(i+1)) -
-                                  *(fp + (int)i))) +
-                            *(fp + (int)i));
+          fp18[j++] += amp * ((f * (fp[ii+1] - fp[ii])) + fp[ii]);
       }
     }
     return OK;
