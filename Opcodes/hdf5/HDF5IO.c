@@ -50,36 +50,36 @@ ArgumentType HDF5IO_getArgumentTypeFromArgument(CSOUND *csound, MYFLT *argument)
 
     if (strcmp("S", type) == 0) {
 
-        argumentType = STRING_VAR;
+      argumentType = STRING_VAR;
     }
     else if (strcmp("a", type) == 0) {
 
-        argumentType = ARATE_VAR;
+      argumentType = ARATE_VAR;
     }
     else if (strcmp("k", type) == 0) {
 
-        argumentType = KRATE_VAR;
+      argumentType = KRATE_VAR;
     }
     else if (strcmp("i", type) == 0) {
 
-        argumentType = IRATE_VAR;
+      argumentType = IRATE_VAR;
     }
     else if (strcmp("[", type) == 0) {
 
-        ARRAYDAT *array = (ARRAYDAT *)argument;
+      ARRAYDAT *array = (ARRAYDAT *)argument;
 
-        if (strcmp("k", array->arrayType->varTypeName) == 0) {
+      if (strcmp("k", array->arrayType->varTypeName) == 0) {
 
-            argumentType = KRATE_ARRAY;
-        }
-        else if (strcmp("a", array->arrayType->varTypeName) == 0) {
+        argumentType = KRATE_ARRAY;
+      }
+      else if (strcmp("a", array->arrayType->varTypeName) == 0) {
 
-            argumentType = ARATE_ARRAY;
-        }
-        else if (strcmp("i", array->arrayType->varTypeName) == 0) {
+        argumentType = ARATE_ARRAY;
+      }
+      else if (strcmp("i", array->arrayType->varTypeName) == 0) {
 
-            argumentType = IRATE_ARRAY;
-        }
+        argumentType = IRATE_ARRAY;
+      }
     }
 
     return argumentType;
@@ -95,31 +95,31 @@ ArgumentType HDF5IO_getArgumentTypeFromString(CSOUND *csound, const char *string
 
     if (strcmp("STRING_VAR", string) == 0) {
 
-        type = STRING_VAR;
+      type = STRING_VAR;
     }
     else if (strcmp("ARATE_VAR", string) == 0) {
 
-        type = ARATE_VAR;
+      type = ARATE_VAR;
     }
     else if (strcmp("KRATE_VAR", string) == 0) {
 
-        type = KRATE_VAR;
+      type = KRATE_VAR;
     }
     else if (strcmp("IRATE_VAR", string) == 0) {
 
-        type = IRATE_VAR;
+      type = IRATE_VAR;
     }
     else if (strcmp("ARATE_ARRAY", string) == 0) {
 
-        type = ARATE_ARRAY;
+      type = ARATE_ARRAY;
     }
     else if (strcmp("KRATE_ARRAY", string) == 0) {
 
-        type = KRATE_ARRAY;
+      type = KRATE_ARRAY;
     }
     else if (strcmp("IRATE_ARRAY", string) == 0) {
 
-        type = IRATE_ARRAY;
+      type = IRATE_ARRAY;
     }
 
     return type;
@@ -149,34 +149,34 @@ HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
 
     if (fileExists == -1) {
 
-        if (openForWriting == true) {
+      if (openForWriting == true) {
 
-            hdf5File->fileHandle = H5Fcreate(hdf5File->fileName, H5F_ACC_TRUNC,
-                                             H5P_DEFAULT, H5P_DEFAULT);
-            HDF5ERROR(hdf5File->fileHandle);
-        }
-        else {
+        hdf5File->fileHandle = H5Fcreate(hdf5File->fileName, H5F_ACC_TRUNC,
+                                         H5P_DEFAULT, H5P_DEFAULT);
+        HDF5ERROR(hdf5File->fileHandle);
+      }
+      else {
 
-            csound->Die(csound, "hdf5read: Error, file does not exist");
-        }
+        csound->Die(csound, "hdf5read: Error, file does not exist");
+      }
     }
     else {
 
-        hdf5File->fileHandle = H5Fopen(hdf5File->fileName, H5F_ACC_RDWR, H5P_DEFAULT);
-        HDF5ERROR(hdf5File->fileHandle);
+      hdf5File->fileHandle = H5Fopen(hdf5File->fileName, H5F_ACC_RDWR, H5P_DEFAULT);
+      HDF5ERROR(hdf5File->fileHandle);
     }
 
     if (sizeof(MYFLT) == sizeof(double)) {
 
-        hdf5File->floatSize = H5T_NATIVE_DOUBLE;
+      hdf5File->floatSize = H5T_NATIVE_DOUBLE;
     }
     else if (sizeof(MYFLT) == sizeof(float)) {
 
-        hdf5File->floatSize = H5T_NATIVE_FLOAT;
+      hdf5File->floatSize = H5T_NATIVE_FLOAT;
     }
     else {
 
-        csound->Die(csound, "HDF5IO: Illegal size for floating point type, exiting");
+      csound->Die(csound, "HDF5IO: Illegal size for floating point type, exiting");
     }
 
     return hdf5File;
@@ -326,7 +326,7 @@ void HDF5Write_writeAudioData(CSOUND *csound, HDF5Write *self,
     int vectorSize = (int)(self->ksmps - offset - early);
 
     if (vectorSize == 0) {
-        return;
+      return;
     }
 
     dataset->datasetSize[0] += self->ksmps;
@@ -362,39 +362,39 @@ int HDF5Write_process(CSOUND *csound, HDF5Write *self)
     int i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
-        HDF5Dataset *currentDataset = &self->datasets[i];
+      HDF5Dataset *currentDataset = &self->datasets[i];
 
-        switch (currentDataset->writeType) {
+      switch (currentDataset->writeType) {
 
-            case ARATE_ARRAY: {
+      case ARATE_ARRAY: {
 
-                HDF5Write_writeAudioData(csound, self, currentDataset,
-                                         ((ARRAYDAT *)currentDataset->argumentPointer)->data);
-                break;
-            }
-            case KRATE_ARRAY: {
+        HDF5Write_writeAudioData(csound, self, currentDataset,
+                             ((ARRAYDAT *)currentDataset->argumentPointer)->data);
+        break;
+      }
+      case KRATE_ARRAY: {
 
-                HDF5Write_writeControlData(csound, self, currentDataset,
-                                           ((ARRAYDAT *)currentDataset->argumentPointer)->data);
-                break;
-            }
-            case ARATE_VAR: {
+        HDF5Write_writeControlData(csound, self, currentDataset,
+                              ((ARRAYDAT *)currentDataset->argumentPointer)->data);
+        break;
+      }
+      case ARATE_VAR: {
 
-                HDF5Write_writeAudioData(csound, self, currentDataset,
-                                         currentDataset->argumentPointer);
-                break;
-            }
-            case KRATE_VAR: {
+        HDF5Write_writeAudioData(csound, self, currentDataset,
+                                 currentDataset->argumentPointer);
+        break;
+      }
+      case KRATE_VAR: {
 
-                HDF5Write_writeControlData(csound, self, currentDataset,
-                                           currentDataset->argumentPointer);
-                break;
-            }
-            default: {
+        HDF5Write_writeControlData(csound, self, currentDataset,
+                                   currentDataset->argumentPointer);
+        break;
+      }
+      default: {
 
-                break;
-            }
-        }
+        break;
+      }
+      }
     }
     return OK;
 }
@@ -412,35 +412,35 @@ int HDF5Write_finish(CSOUND *csound, void *inReference)
     HDF5Write *self = inReference;
 
     if (self->datasets != NULL) {
-        int i;
-        for (i = 0; i < self->inputArgumentCount; ++i) {
+      int i;
+      for (i = 0; i < self->inputArgumentCount; ++i) {
 
-            HDF5Dataset *dataset = &self->datasets[i];
+        HDF5Dataset *dataset = &self->datasets[i];
 
-            switch (dataset->writeType) {
+        switch (dataset->writeType) {
 
-                case ARATE_ARRAY: {
+        case ARATE_ARRAY: {
 
-                    dataset->datasetSize[0] =
-                    dataset->offset[0];
-                    HDF5ERROR(H5Dset_extent(dataset->datasetID, dataset->datasetSize));
-                    break;
-                }
-                case ARATE_VAR: {
-
-                    dataset->datasetSize[0] =
-                    dataset->offset[0];
-                    HDF5ERROR(H5Dset_extent(dataset->datasetID, dataset->datasetSize));
-                    break;
-                }
-                default: {
-
-                    break;
-                }
-            }
-
-            HDF5ERROR(H5Dclose(dataset->datasetID));
+          dataset->datasetSize[0] =
+            dataset->offset[0];
+          HDF5ERROR(H5Dset_extent(dataset->datasetID, dataset->datasetSize));
+          break;
         }
+        case ARATE_VAR: {
+
+          dataset->datasetSize[0] =
+            dataset->offset[0];
+          HDF5ERROR(H5Dset_extent(dataset->datasetID, dataset->datasetSize));
+          break;
+        }
+        default: {
+
+          break;
+        }
+        }
+
+        HDF5ERROR(H5Dclose(dataset->datasetID));
+      }
     }
 
     HDF5ERROR(H5Fclose(self->hdf5File->fileHandle));
@@ -462,21 +462,21 @@ void HDF5Write_checkArgumentSanity(CSOUND *csound, const HDF5Write *self)
 
     if (type != STRING_VAR) {
 
-        csound->Die(csound, Str("hdf5write: Error, first argument does not "
-                                "appear to be a string, exiting"));
+      csound->Die(csound, Str("hdf5write: Error, first argument does not "
+                              "appear to be a string, exiting"));
     }
 
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
-        type = HDF5IO_getArgumentTypeFromArgument(csound, self->arguments[i + 1]);
+      type = HDF5IO_getArgumentTypeFromArgument(csound, self->arguments[i + 1]);
 
-        if (type == STRING_VAR
-            ||
-            type == UNKNOWN) {
+      if (type == STRING_VAR
+          ||
+          type == UNKNOWN) {
 
-            csound->Die(csound, Str("hdf5write: Error, unable to identify type "
-                                    "of argument %zd"), i);
-        }
+        csound->Die(csound, Str("hdf5write: Error, unable to identify type "
+                                "of argument %zd"), i);
+      }
     }
 }
 
@@ -496,8 +496,8 @@ void HDF5Write_initialiseHDF5Dataset(CSOUND *csound, HDF5Write *self,
 
     if (result == 1) {
 
-        HDF5ERROR(H5Ldelete(self->hdf5File->fileHandle,
-                            dataset->datasetName, H5P_DEFAULT));
+      HDF5ERROR(H5Ldelete(self->hdf5File->fileHandle,
+                          dataset->datasetName, H5P_DEFAULT));
     }
 
     hid_t dataspaceID = H5Screate_simple(dataset->rank, dataset->chunkDimensions,
@@ -542,11 +542,11 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
     int i;
     if (dataset->writeType == IRATE_ARRAY) {
 
-        dataset->rank = array->dimensions;
+      dataset->rank = array->dimensions;
     }
     else {
 
-        dataset->rank = array->dimensions + 1;
+      dataset->rank = array->dimensions + 1;
     }
 
     csound->AuxAlloc(csound, dataset->rank * sizeof(hsize_t),
@@ -567,36 +567,36 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
 
     for (i = 0; i < array->dimensions; ++i) {
 
-        dataset->chunkDimensions[i + 1] = array->sizes[i];
-        dataset->maxDimensions[i + 1] = array->sizes[i];
-        dataset->datasetSize[i + 1] = array->sizes[i];
+      dataset->chunkDimensions[i + 1] = array->sizes[i];
+      dataset->maxDimensions[i + 1] = array->sizes[i];
+      dataset->datasetSize[i + 1] = array->sizes[i];
     }
 
     switch (dataset->writeType) {
 
-        case ARATE_ARRAY: {
+    case ARATE_ARRAY: {
 
-            dataset->chunkDimensions[0] = self->ksmps;
-            dataset->maxDimensions[0] = H5S_UNLIMITED;
-            dataset->datasetSize[0] = 0;
+      dataset->chunkDimensions[0] = self->ksmps;
+      dataset->maxDimensions[0] = H5S_UNLIMITED;
+      dataset->datasetSize[0] = 0;
 
-            break;
-        }
-        case KRATE_ARRAY: {
+      break;
+    }
+    case KRATE_ARRAY: {
 
-            dataset->chunkDimensions[0] = 1;
-            dataset->maxDimensions[0] = H5S_UNLIMITED;
-            break;
-        }
-        case IRATE_ARRAY: {
+      dataset->chunkDimensions[0] = 1;
+      dataset->maxDimensions[0] = H5S_UNLIMITED;
+      break;
+    }
+    case IRATE_ARRAY: {
 
-            return;
-        }
-        default: {
+      return;
+    }
+    default: {
 
-            csound->Die(csound, Str("This should not happen, exiting"));
-            break;
-        }
+      csound->Die(csound, Str("This should not happen, exiting"));
+      break;
+    }
     }
 }
 
@@ -632,15 +632,15 @@ void HDF5Write_newScalarDataset(CSOUND *csound, HDF5Write *self,
 
     if (dataset->writeType != IRATE_VAR) {
 
-        dataset->chunkDimensions[0] =
+      dataset->chunkDimensions[0] =
         dataset->writeType == ARATE_VAR ? self->ksmps : 1;
-        dataset->maxDimensions[0] = H5S_UNLIMITED;
-        dataset->datasetSize[0] = 0;
+      dataset->maxDimensions[0] = H5S_UNLIMITED;
+      dataset->datasetSize[0] = 0;
     }
     else {
-        dataset->datasetSize[0] = 1;
-        dataset->chunkDimensions[0] = 1;
-        dataset->maxDimensions[0] = 1;
+      dataset->datasetSize[0] = 1;
+      dataset->chunkDimensions[0] = 1;
+      dataset->maxDimensions[0] = 1;
     }
 
     dataset->offset[0] = 0;
@@ -667,59 +667,59 @@ void HDF5Write_createDatasets(CSOUND *csound, HDF5Write *self)
 
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
-        HDF5Dataset *currentDataset = &self->datasets[i];
-        currentDataset->datasetName = csound->GetInputArgName(self, (int)i + 1);
-        currentDataset->argumentPointer = self->arguments[i + 1];
-        currentDataset->writeType =
+      HDF5Dataset *currentDataset = &self->datasets[i];
+      currentDataset->datasetName = csound->GetInputArgName(self, (int)i + 1);
+      currentDataset->argumentPointer = self->arguments[i + 1];
+      currentDataset->writeType =
         HDF5IO_getArgumentTypeFromArgument(csound, currentDataset->argumentPointer);
 
-        switch (currentDataset->writeType) {
+      switch (currentDataset->writeType) {
 
-            case ARATE_ARRAY: {
+      case ARATE_ARRAY: {
 
-                HDF5Write_newArrayDataset(csound, self, currentDataset);
-                HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
-                break;
-            }
-            case KRATE_ARRAY: {
+        HDF5Write_newArrayDataset(csound, self, currentDataset);
+        HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
+        break;
+      }
+      case KRATE_ARRAY: {
 
-                HDF5Write_newArrayDataset(csound, self, currentDataset);
-                HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
-                break;
-            }
-            case IRATE_ARRAY: {
+        HDF5Write_newArrayDataset(csound, self, currentDataset);
+        HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
+        break;
+      }
+      case IRATE_ARRAY: {
 
-                HDF5Write_newArrayDataset(csound, self, currentDataset);
-                HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
-                HDF5Write_writeData(csound, self, currentDataset,
-                                    ((ARRAYDAT *)currentDataset->argumentPointer)->data);
-                break;
-            }
-            case ARATE_VAR: {
+        HDF5Write_newArrayDataset(csound, self, currentDataset);
+        HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
+        HDF5Write_writeData(csound, self, currentDataset,
+                            ((ARRAYDAT *)currentDataset->argumentPointer)->data);
+        break;
+      }
+      case ARATE_VAR: {
 
-                HDF5Write_newScalarDataset(csound, self, currentDataset);
-                HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
-                break;
-            }
-            case KRATE_VAR: {
+        HDF5Write_newScalarDataset(csound, self, currentDataset);
+        HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
+        break;
+      }
+      case KRATE_VAR: {
 
-                HDF5Write_newScalarDataset(csound, self, currentDataset);
-                HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
-                break;
-            }
-            case IRATE_VAR: {
+        HDF5Write_newScalarDataset(csound, self, currentDataset);
+        HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
+        break;
+      }
+      case IRATE_VAR: {
 
-                HDF5Write_newScalarDataset(csound, self, currentDataset);
-                HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
-                HDF5Write_writeData(csound, self, currentDataset,
-                                    currentDataset->argumentPointer);
-                break;
-            }
-            default: {
+        HDF5Write_newScalarDataset(csound, self, currentDataset);
+        HDF5Write_initialiseHDF5Dataset(csound, self, currentDataset);
+        HDF5Write_writeData(csound, self, currentDataset,
+                            currentDataset->argumentPointer);
+        break;
+      }
+      default: {
 
-                break;
-            }
-        }
+        break;
+      }
+      }
     }
 }
 
@@ -767,9 +767,9 @@ void HDF5Read_copySampleBufferToArray(size_t channelCount, MYFLT *sampleBuffer,
     size_t channel;
     for (channel = 0; channel < channelCount; ++channel) {
 
-        memcpy(&arrayData[ksmps * channel + offset],
-               &sampleBuffer[vectorSize * channel],
-               sizeof(MYFLT) * vectorSize);
+      memcpy(&arrayData[ksmps * channel + offset],
+             &sampleBuffer[vectorSize * channel],
+             sizeof(MYFLT) * vectorSize);
     }
 }
 
@@ -789,7 +789,7 @@ void HDF5Read_readData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset,
 
     if (kCount > dataset->datasetSize[0]) {
 
-        return;
+      return;
     }
 
     hid_t filespace = H5Dget_space(dataset->datasetID);
@@ -828,7 +828,7 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
     if (dataset->offset[0] >=
         dataset->datasetSize[0]) {
 
-        return;
+      return;
     }
 
     size_t offset = self->h.insdshead->ksmps_offset;
@@ -839,15 +839,16 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
     if (vectorSize + dataset->offset[0] >
         dataset->datasetSize[0]) {
 
-        vectorSize = (int)(dataset->datasetSize[0] -
-                           dataset->offset[0]);
+      vectorSize = (int)(dataset->datasetSize[0] -
+                         dataset->offset[0]);
     }
 
     MYFLT *dataPointer =
-    vectorSize != self->ksmps ? dataset->sampleBuffer : inputDataPointer;
+      vectorSize != self->ksmps ? dataset->sampleBuffer : inputDataPointer;
 
     hsize_t chunkDimensions[dataset->rank];
-    memcpy(&chunkDimensions[1], &dataset->datasetSize[1], sizeof(hsize_t) * dataset->rank);
+    memcpy(&chunkDimensions[1], &dataset->datasetSize[1],
+           sizeof(hsize_t) * dataset->rank);
     chunkDimensions[0] = vectorSize;
 
 
@@ -856,9 +857,9 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
 
     if (vectorSize != self->ksmps) {
 
-        HDF5Read_copySampleBufferToArray(dataset->elementCount,
-                                         dataset->sampleBuffer, inputDataPointer,
-                                         vectorSize, offset, self->ksmps);
+      HDF5Read_copySampleBufferToArray(dataset->elementCount,
+                                       dataset->sampleBuffer, inputDataPointer,
+                                       vectorSize, offset, self->ksmps);
     }
 
     dataset->offset[0] += vectorSize;
@@ -879,7 +880,7 @@ void HDF5Read_readControlData(CSOUND *csound, HDF5Read *self,
     if (dataset->offset[0] >=
         dataset->datasetSize[0]) {
 
-        return;
+      return;
     }
 
 
@@ -905,43 +906,43 @@ int HDF5Read_process(CSOUND *csound, HDF5Read *self)
     int i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
-        HDF5Dataset *dataset = &self->datasets[i];
+      HDF5Dataset *dataset = &self->datasets[i];
 
-        if (dataset->readAll == true) {
+      if (dataset->readAll == true) {
 
-            continue;
-        }
+        continue;
+      }
 
-        switch (dataset->readType) {
+      switch (dataset->readType) {
 
-            case ARATE_ARRAY: {
+      case ARATE_ARRAY: {
 
-                HDF5Read_readAudioData(csound, self, dataset,
-                                       ((ARRAYDAT *)dataset->argumentPointer)->data);
-                break;
-            }
-            case KRATE_ARRAY: {
+        HDF5Read_readAudioData(csound, self, dataset,
+                               ((ARRAYDAT *)dataset->argumentPointer)->data);
+        break;
+      }
+      case KRATE_ARRAY: {
 
-                HDF5Read_readControlData(csound, self, dataset,
-                                         ((ARRAYDAT *)dataset->argumentPointer)->data);
-                break;
-            }
-            case ARATE_VAR: {
+        HDF5Read_readControlData(csound, self, dataset,
+                                 ((ARRAYDAT *)dataset->argumentPointer)->data);
+        break;
+      }
+      case ARATE_VAR: {
 
-                HDF5Read_readAudioData(csound, self, dataset, dataset->argumentPointer);
-                break;
-            }
-            case KRATE_VAR: {
+        HDF5Read_readAudioData(csound, self, dataset, dataset->argumentPointer);
+        break;
+      }
+      case KRATE_VAR: {
 
-                HDF5Read_readControlData(csound, self, dataset, dataset->argumentPointer);
-                break;
-            }
+        HDF5Read_readControlData(csound, self, dataset, dataset->argumentPointer);
+        break;
+      }
 
-            default: {
+      default: {
 
-                break;
-            }
-        }
+        break;
+      }
+      }
     }
     return OK;
 }
@@ -957,9 +958,9 @@ int HDF5Read_finish(CSOUND *csound, void *inReference)
     int i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
-        HDF5Dataset *dataset = &self->datasets[i];
+      HDF5Dataset *dataset = &self->datasets[i];
 
-        HDF5ERROR(H5Dclose(dataset->datasetID));
+      HDF5ERROR(H5Dclose(dataset->datasetID));
     }
 
     HDF5ERROR(H5Fclose(self->hdf5File->fileHandle));
@@ -978,47 +979,47 @@ void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
     int i;
     if (self->inputArgumentCount != self->outputArgumentCount) {
 
-        if (self->inputArgumentCount > self->outputArgumentCount) {
+      if (self->inputArgumentCount > self->outputArgumentCount) {
 
-            csound->Die(csound, Str("hdf5read: Error, more input arguments than "
-                                    "output arguments, exiting"));
-        }
-        else {
+        csound->Die(csound, Str("hdf5read: Error, more input arguments than "
+                                "output arguments, exiting"));
+      }
+      else {
 
-            csound->Die(csound, Str("hdf5read: Error, more output arguments than "
-                                    "input arguments, exiting"));
-        }
+        csound->Die(csound, Str("hdf5read: Error, more output arguments than "
+                                "input arguments, exiting"));
+      }
     }
 
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
-        ArgumentType inputType =
+      ArgumentType inputType =
         HDF5IO_getArgumentTypeFromArgument(csound,
-                                           self->arguments[self->outputArgumentCount + i]);
-        ArgumentType outputType =
+                                   self->arguments[self->outputArgumentCount + i]);
+      ArgumentType outputType =
         HDF5IO_getArgumentTypeFromArgument(csound, self->arguments[i]);
 
-        if (inputType != STRING_VAR) {
+      if (inputType != STRING_VAR) {
 
-            csound->Die(csound, Str("hdf5read: Error, input argument %zd does not "
-                                    "appear to be a string, exiting"), i + 1);
-        }
-        else if (inputType == UNKNOWN) {
+        csound->Die(csound, Str("hdf5read: Error, input argument %zd does not "
+                                "appear to be a string, exiting"), i + 1);
+      }
+      else if (inputType == UNKNOWN) {
 
-            csound->Die(csound, Str("hdf5read: Error, input argument %zd type "
-                                    "is unknown, exiting"), i + 1);
-        }
+        csound->Die(csound, Str("hdf5read: Error, input argument %zd type "
+                                "is unknown, exiting"), i + 1);
+      }
 
-        if (outputType == STRING_VAR) {
+      if (outputType == STRING_VAR) {
 
-            csound->Die(csound, Str("hdf5read: Error, output argument %zd appears "
-                                    "to be a string, exiting"), i + 1);
-        }
-        else if (outputType == UNKNOWN) {
+        csound->Die(csound, Str("hdf5read: Error, output argument %zd appears "
+                                "to be a string, exiting"), i + 1);
+      }
+      else if (outputType == UNKNOWN) {
 
-            csound->Die(csound, Str("hdf5read: Error, output argument %zd type "
-                                    "is unknown, exiting"), i + 1);
-        }
+        csound->Die(csound, Str("hdf5read: Error, output argument %zd type "
+                                "is unknown, exiting"), i + 1);
+      }
     }
 }
 
@@ -1035,8 +1036,8 @@ void HDF5Read_initialiseHDF5Dataset(CSOUND *csound, HDF5Read *self,
 
     if (result <= 0) {
 
-        csound->Die(csound, Str("hdf5read: Error, dataset does not exist or "
-                                "cannot be found in file"));
+      csound->Die(csound, Str("hdf5read: Error, dataset does not exist or "
+                              "cannot be found in file"));
     }
 
     dataset->datasetID = H5Dopen2(self->hdf5File->fileHandle,
@@ -1069,41 +1070,41 @@ void HDF5Read_checkReadTypeSanity(CSOUND *csound, HDF5Read *self,
         ||
         dataset->readType == IRATE_ARRAY) {
 
-        if (dataset->writeType == ARATE_ARRAY
-            ||
-            dataset->writeType == KRATE_ARRAY
-            ||
-            dataset->writeType == IRATE_ARRAY
-            ||
-            dataset->writeType == ARATE_VAR
-            ||
-            dataset->writeType == KRATE_VAR) {
+      if (dataset->writeType == ARATE_ARRAY
+          ||
+          dataset->writeType == KRATE_ARRAY
+          ||
+          dataset->writeType == IRATE_ARRAY
+          ||
+          dataset->writeType == ARATE_VAR
+          ||
+          dataset->writeType == KRATE_VAR) {
 
-            return;
-        }
+        return;
+      }
     }
     else if (dataset->readType == ARATE_VAR
              ||
              dataset->readType == KRATE_VAR) {
 
-        if (dataset->writeType == ARATE_VAR
-            ||
-            dataset->writeType == KRATE_VAR) {
+      if (dataset->writeType == ARATE_VAR
+          ||
+          dataset->writeType == KRATE_VAR) {
 
-            return;
-        }
+        return;
+      }
     }
     else if (dataset->readType == IRATE_VAR) {
 
-        if (dataset->writeType == IRATE_VAR) {
+      if (dataset->writeType == IRATE_VAR) {
 
-            return;
-        }
+        return;
+      }
     }
     else {
 
-        csound->Die(csound, Str("hdf5read: Unable to read saved type of "
-                                "dataset, exiting"));
+      csound->Die(csound, Str("hdf5read: Unable to read saved type of "
+                              "dataset, exiting"));
     }
 }
 
@@ -1126,20 +1127,20 @@ void HDF5Read_allocateArray(CSOUND *csound, HDF5Dataset *dataset,
     dataset->elementCount = dimensions[0];
 
     if (rank > 1) {
-        size_t i;
-        for (i = 1; i < rank; ++i) {
+      size_t i;
+      for (i = 1; i < rank; ++i) {
 
-            array->sizes[i] = (int)dimensions[i];
-            dataset->elementCount *= array->sizes[i];
+        array->sizes[i] = (int)dimensions[i];
+        dataset->elementCount *= array->sizes[i];
 
-        }
+      }
     }
 
     CS_VARIABLE *arrayVariable = array->arrayType->createVariable(csound, NULL);
     array->arrayMemberSize = arrayVariable->memBlockSize;
     array->data =
-    csound->Calloc(csound,
-                   arrayVariable->memBlockSize * dataset->elementCount);
+      csound->Calloc(csound,
+                     arrayVariable->memBlockSize * dataset->elementCount);
 }
 
 
@@ -1178,38 +1179,38 @@ void HDF5Read_initialiseArrayOutput(CSOUND *csound, HDF5Read *self,
 
     if (dataset->readType != IRATE_ARRAY && dataset->readAll == false) {
 
-        hsize_t arrayDimensions[dataset->rank - 1];
+      hsize_t arrayDimensions[dataset->rank - 1];
 
-        memcpy(arrayDimensions, &dataset->datasetSize[1],
-               (dataset->rank - 1) * sizeof(hsize_t));
+      memcpy(arrayDimensions, &dataset->datasetSize[1],
+             (dataset->rank - 1) * sizeof(hsize_t));
 
-        HDF5Read_allocateArray(csound, dataset, (dataset->rank - 1), arrayDimensions);
+      HDF5Read_allocateArray(csound, dataset, (dataset->rank - 1), arrayDimensions);
 
-        csound->AuxAlloc(csound, sizeof(hsize_t) * dataset->rank,
-                         &dataset->offsetMemory);
-        dataset->offset = dataset->offsetMemory.auxp;
+      csound->AuxAlloc(csound, sizeof(hsize_t) * dataset->rank,
+                       &dataset->offsetMemory);
+      dataset->offset = dataset->offsetMemory.auxp;
 
-        if (dataset->readType == ARATE_ARRAY
-            ||
-            self->isSampleAccurate == true) {
+      if (dataset->readType == ARATE_ARRAY
+          ||
+          self->isSampleAccurate == true) {
 
-            csound->AuxAlloc(csound,
-                             dataset->elementCount * self->ksmps * sizeof(MYFLT),
-                             &dataset->sampleBufferMemory);
-            dataset->sampleBuffer = dataset->sampleBufferMemory.auxp;
-        }
+        csound->AuxAlloc(csound,
+                         dataset->elementCount * self->ksmps * sizeof(MYFLT),
+                         &dataset->sampleBufferMemory);
+        dataset->sampleBuffer = dataset->sampleBufferMemory.auxp;
+      }
     }
     else {
 
-        hsize_t arrayDimensions[dataset->rank];
-        memcpy(arrayDimensions, dataset->datasetSize,
-               dataset->rank * sizeof(hsize_t));
-        HDF5Read_allocateArray(csound, dataset, dataset->rank, arrayDimensions);
-        ARRAYDAT *array = dataset->argumentPointer;
-        hsize_t offset[dataset->rank];
-        memset(offset, 0, sizeof(hsize_t) * dataset->rank);
-        HDF5Read_readData(csound, self, dataset, offset,
-                          arrayDimensions, array->data);
+      hsize_t arrayDimensions[dataset->rank];
+      memcpy(arrayDimensions, dataset->datasetSize,
+             dataset->rank * sizeof(hsize_t));
+      HDF5Read_allocateArray(csound, dataset, dataset->rank, arrayDimensions);
+      ARRAYDAT *array = dataset->argumentPointer;
+      hsize_t offset[dataset->rank];
+      memset(offset, 0, sizeof(hsize_t) * dataset->rank);
+      HDF5Read_readData(csound, self, dataset, offset,
+                        arrayDimensions, array->data);
     }
 }
 
@@ -1238,32 +1239,32 @@ void HDF5Read_initialiseScalarOutput(CSOUND *csound, HDF5Read *self,
         ||
         dataset->readType == KRATE_VAR) {
 
-        csound->AuxAlloc(csound, sizeof(hsize_t) * dataset->rank,
-                         &dataset->datasetSizeMemory);
-        dataset->datasetSize = dataset->datasetSizeMemory.auxp;
+      csound->AuxAlloc(csound, sizeof(hsize_t) * dataset->rank,
+                       &dataset->datasetSizeMemory);
+      dataset->datasetSize = dataset->datasetSizeMemory.auxp;
 
-        H5Sget_simple_extent_dims(dataspaceID, dataset->datasetSize, NULL);
-        HDF5ERROR(H5Sclose(dataspaceID));
+      H5Sget_simple_extent_dims(dataspaceID, dataset->datasetSize, NULL);
+      HDF5ERROR(H5Sclose(dataspaceID));
 
-        csound->AuxAlloc(csound, sizeof(hsize_t), &dataset->offsetMemory);
-        dataset->offset = dataset->offsetMemory.auxp;
-        memset(dataset->offset, 0, sizeof(hsize_t));
+      csound->AuxAlloc(csound, sizeof(hsize_t), &dataset->offsetMemory);
+      dataset->offset = dataset->offsetMemory.auxp;
+      memset(dataset->offset, 0, sizeof(hsize_t));
 
-        if (dataset->readType == ARATE_VAR
-            &&
-            self->isSampleAccurate == true) {
+      if (dataset->readType == ARATE_VAR
+          &&
+          self->isSampleAccurate == true) {
 
-            csound->AuxAlloc(csound, self->ksmps * sizeof(MYFLT),
-                             &dataset->sampleBufferMemory);
-            dataset->sampleBuffer = dataset->sampleBufferMemory.auxp;
-            dataset->elementCount = 1;
-        }
+        csound->AuxAlloc(csound, self->ksmps * sizeof(MYFLT),
+                         &dataset->sampleBufferMemory);
+        dataset->sampleBuffer = dataset->sampleBufferMemory.auxp;
+        dataset->elementCount = 1;
+      }
     } else {
 
-        hsize_t arrayDimensions[1] = {1};
-        hsize_t offset[1] = {0};
-        HDF5Read_readData(csound, self, dataset, offset, arrayDimensions,
-                          dataset->argumentPointer);
+      hsize_t arrayDimensions[1] = {1};
+      hsize_t offset[1] = {0};
+      HDF5Read_readData(csound, self, dataset, offset, arrayDimensions,
+                        dataset->argumentPointer);
     }
 }
 
@@ -1286,84 +1287,84 @@ void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self)
 
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
-        HDF5Dataset *currentDataset = &self->datasets[i];
-        STRINGDAT *inputArgument =
+      HDF5Dataset *currentDataset = &self->datasets[i];
+      STRINGDAT *inputArgument =
         (STRINGDAT *)self->arguments[self->outputArgumentCount + i + 1];
-        currentDataset->datasetName = inputArgument->data;
+      currentDataset->datasetName = inputArgument->data;
 
-        if (inputArgument->data[strlen(inputArgument->data) - 1] == '*') {
+      if (inputArgument->data[strlen(inputArgument->data) - 1] == '*') {
 
-            currentDataset->readAll = true;
-            inputArgument->data[strlen(inputArgument->data) - 1] = '\0';
-        }
+        currentDataset->readAll = true;
+        inputArgument->data[strlen(inputArgument->data) - 1] = '\0';
+      }
 
-        currentDataset->readType =
+      currentDataset->readType =
         HDF5IO_getArgumentTypeFromArgument(csound, self->arguments[i]);
-        currentDataset->argumentPointer = self->arguments[i];
-        HDF5Read_checkReadTypeSanity(csound, self, currentDataset);
-        HDF5Read_initialiseHDF5Dataset(csound, self, currentDataset);
+      currentDataset->argumentPointer = self->arguments[i];
+      HDF5Read_checkReadTypeSanity(csound, self, currentDataset);
+      HDF5Read_initialiseHDF5Dataset(csound, self, currentDataset);
 
-        switch (currentDataset->readType) {
-            case ARATE_ARRAY: {
+      switch (currentDataset->readType) {
+      case ARATE_ARRAY: {
 
-                HDF5Read_initialiseArrayOutput(csound, self, currentDataset);
-                break;
-            }
-            case KRATE_ARRAY: {
+        HDF5Read_initialiseArrayOutput(csound, self, currentDataset);
+        break;
+      }
+      case KRATE_ARRAY: {
 
-                HDF5Read_initialiseArrayOutput(csound, self, currentDataset);
-                break;
-            }
-            case IRATE_ARRAY: {
+        HDF5Read_initialiseArrayOutput(csound, self, currentDataset);
+        break;
+      }
+      case IRATE_ARRAY: {
 
-                HDF5Read_initialiseArrayOutput(csound, self, currentDataset);
-                break;
-            }
-            case ARATE_VAR: {
+        HDF5Read_initialiseArrayOutput(csound, self, currentDataset);
+        break;
+      }
+      case ARATE_VAR: {
 
-                HDF5Read_initialiseScalarOutput(csound, self, currentDataset);
-                break;
-            }
-            case KRATE_VAR: {
+        HDF5Read_initialiseScalarOutput(csound, self, currentDataset);
+        break;
+      }
+      case KRATE_VAR: {
 
-                HDF5Read_initialiseScalarOutput(csound, self, currentDataset);
-                break;
-            }
-            case IRATE_VAR: {
+        HDF5Read_initialiseScalarOutput(csound, self, currentDataset);
+        break;
+      }
+      case IRATE_VAR: {
 
-                HDF5Read_initialiseScalarOutput(csound, self, currentDataset);
-                break;
-            }
-            default:
-                break;
+        HDF5Read_initialiseScalarOutput(csound, self, currentDataset);
+        break;
+      }
+      default:
+        break;
 
-        }
+      }
     }
 }
 
 
 static OENTRY localops[] = {
 
-    {
-        .opname = "hdf5write",
-        .dsblksiz = sizeof(HDF5Write),
-        .thread = 3,
-        .outypes = "",
-        .intypes = "*",
-        .iopadr = (SUBR)HDF5Write_initialise,
-        .kopadr = (SUBR)HDF5Write_process,
-        .aopadr = NULL
-    },
-    {
-        .opname = "hdf5read",
-        .dsblksiz = sizeof(HDF5Read),
-        .thread = 3,
-        .outypes = "*",
-        .intypes = "*",
-        .iopadr = (SUBR)HDF5Read_initialise,
-        .kopadr = (SUBR)HDF5Read_process,
-        .aopadr = NULL
-    }
+  {
+    .opname = "hdf5write",
+    .dsblksiz = sizeof(HDF5Write),
+    .thread = 3,
+    .outypes = "",
+    .intypes = "*",
+    .iopadr = (SUBR)HDF5Write_initialise,
+    .kopadr = (SUBR)HDF5Write_process,
+    .aopadr = NULL
+  },
+  {
+    .opname = "hdf5read",
+    .dsblksiz = sizeof(HDF5Read),
+    .thread = 3,
+    .outypes = "*",
+    .intypes = "*",
+    .iopadr = (SUBR)HDF5Read_initialise,
+    .kopadr = (SUBR)HDF5Read_process,
+    .aopadr = NULL
+  }
 };
 
 LINKAGE

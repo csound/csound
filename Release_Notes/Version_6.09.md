@@ -168,11 +168,11 @@ incompatible change)
 
 ==END==
 ========================================================================
-commit 53c92166642f209911d8d2e077fdc78cf0c30ae7
+commit 3bd612a23367eb2ba7071f360765797abfc72ea8
 Author: jpff <jpff@codemist.co.uk>
-Date:   Mon Mar 20 19:59:05 2017 +0000
+Date:   Fri Mar 24 14:43:51 2017 +0000
 
-    uint->uint32_t
+    more notes
 
 commit eaca4bbc4616ac0294d6c9f550e11b84dcb44bd0
 Author: Michael Gogins <michael.gogins@gmail.com>
