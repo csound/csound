@@ -401,12 +401,14 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
     }
     /* use panning law table if specified */
     if (p->pantab != NULL) {
-        unsigned tabsize = p->pantab->flen/8;
-        unsigned i1 = (unsigned)((FL(1.0) - maskchannel + 2*chan)*tabsize);
-        unsigned i2 = (unsigned)(maskchannel*tabsize);
+        const unsigned tabsize = p->pantab->flen/8;
+        /* offset of pan table for current output pair */
+        const unsigned tab_offset = chan*tabsize;
+        const unsigned offset = (unsigned)((maskchannel - chan)*(tabsize - 1));
+        const unsigned flip_offset = tabsize - 1 - offset;
 
-        grain->gain1 = p->pantab->ftable[i1];
-        grain->gain2 = p->pantab->ftable[i2];
+        grain->gain1 = p->pantab->ftable[tab_offset + flip_offset];
+        grain->gain2 = p->pantab->ftable[tab_offset + offset];
     } else {
         grain->gain1 = FL(1.0) - (maskchannel - chan);
         grain->gain2 = maskchannel - chan;
