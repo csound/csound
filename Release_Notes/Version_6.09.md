@@ -21,8 +21,10 @@ Any valid HTML can also be used.
 --->
 # CSOUND VERSION 6.09 RELEASE NOTES
 
-Also as usual there are a number of new opcodes and internal fixes
-to memory leaks and more robust code.
+A mixed bag of new opcodes and many fixes and improvements.
+
+Also as usual there are a number of internal changes, including many
+memory leaks fixed and more robust code. 
 
 -- The Developers
 
@@ -53,9 +55,11 @@ to memory leaks and more robust code.
 
 - Including a directory of UDO files o longer fails if more than about 20 entries
 
-- It was possile for kr, sr, and ksmps to be inconsistent in one case, no more
+- It was possible for kr, sr, and ksmps to be inconsistent in one case, no more
 
 - Macro names better policed
+
+- octal values as \000 can be in strings
 
 ### Score
 
@@ -63,7 +67,7 @@ to memory leaks and more robust code.
 
 - m and n opcodes fixed
 
-- Expansion of [...] coected and improved
+- Expansion of [...] corrected and improved
 
 - Strings in scores improved
 
@@ -79,7 +83,7 @@ to memory leaks and more robust code.
 
 ### Modified Opcodes and Gens
 
-- ftgentmp impoved string arguments
+- ftgentmp improved string arguments
 
 - hdf5read opcode now reads entire data sets when dataset name string
   is suffixed with an asterisk
@@ -92,6 +96,9 @@ to memory leaks and more robust code.
 incompatible change)
 
 - In prints the format %% now prints  one %
+
+- OSClisten can be used with no data outputs
+
 ### Utilities
 
 - dnoise fixed
@@ -125,11 +132,14 @@ incompatible change)
 - bug in push/pop opcodes fixed (this opcode is now a plugin and deprecated)
 
 - bug insprintf removed
+
+- bug in soundin removed
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
 
-- soundin now uses te diskin2 code
+- soundin now uses the diskin2 code
 
 - out family of opcodes reworked to reduce interleaving costs and to
   take proper regard if nchnls value.
@@ -158,11 +168,11 @@ incompatible change)
 
 ==END==
 ========================================================================
-commit 53c92166642f209911d8d2e077fdc78cf0c30ae7
+commit 3bd612a23367eb2ba7071f360765797abfc72ea8
 Author: jpff <jpff@codemist.co.uk>
-Date:   Mon Mar 20 19:59:05 2017 +0000
+Date:   Fri Mar 24 14:43:51 2017 +0000
 
-    uint->uint32_t
+    more notes
 
 commit eaca4bbc4616ac0294d6c9f550e11b84dcb44bd0
 Author: Michael Gogins <michael.gogins@gmail.com>
@@ -295,12 +305,6 @@ Date:   Mon Jan 23 10:06:27 2017 +0100
 
     -- beginning of scugens (supercollider ugens): phasor, lag, lagud, trig)
 
-commit fa9cfeeee3e4d89ecf760eb136066c944a80a18d
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 21 21:04:41 2017 +0000
-
-    fixing the lexer for octal in strings
-
 commit 5b6178ea6fa1058cd7d5425598f67fbeadde09e5
 Author: Nikhil Singh <nsingh1@berklee.edu>
 Date:   Fri Jan 20 20:30:49 2017 -0500
@@ -320,12 +324,6 @@ Date:   Thu Jan 12 19:31:02 2017 +0100
     Added getA4 to ctcsound.py
 
 commit 9a69a8554ee8e5bf112b8fb09a018be6e3e4f221
-commit a02db25c3d2bc3ab0d89d4f9a6487bf325d8446e
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Wed Dec 28 21:27:04 2016 -0500
-
-    fix crashing/hanging problem when csoundReset called multiple times
-
 commit 6d421193416a49f6b0acdaeadc97f9ab3ebd2ef9
 Author: Edward Costello <phasereset@gmail.com>
 Date:   Mon Dec 19 17:11:42 2016 +0000
@@ -339,29 +337,9 @@ Date:   Tue Dec 13 16:42:38 2016 +0000
 
     Overloaded pvs2tab and tab2pvs, update websocket opcode
 
-commit 1faad96f6adc27eca7f6a5b6ce7cb89ca72f7c97
-Author: Edward Costello <phasereset@gmail.com>
-Date:   Sun Dec 11 22:18:46 2016 +0000
-
-    Fixed pvs2tab
-
 commit 95c84c040537fd5c637bf42d3ee76f4d07ce5e75
 Author: Edward Costello <phasereset@gmail.com>
 Date:   Wed Dec 7 00:27:47 2016 +0000
 
     Overloaded pvs2tab and tab2pvs so they can create and use split magnitude and phase arrays
 
-commit 501c536c70682a9e115368ccb432cc0df8ff6a60
-Author: jpff <jpff@codemist.co.uk>
-Date:   Tue Dec 6 16:21:50 2016 +0000
-
-    OSC change and tanslations
-
-commit 69a5d1df0db22a42ef85a4c3f61351bf1487b809
-Merge: 1b08942 c1678ef
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Thu Nov 24 18:42:18 2016 -0500
-
-    Merge tag '6.08.0' into develop
-
-    6.08.0
