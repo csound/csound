@@ -42,6 +42,13 @@ memory leaks fixed and more robust code.
 
 - pvstrace -- retain only the N loudest bins.
 
+- several new unary functions/opcodes for k-rate and i-time numeric arrays: ceil, floor, round, int,
+frac, powoftwo, abs, log2, log10, log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh,
+cbrt.
+
+- several new binary functions/opcodes for k-rate and i-time numeric arrays: atan2, pow,hypot, fmod,
+fmax, fmin.
+
 - tvconv -- a time-varying convolution (FIR filter) opcode
 
 - bpf, xyscale, ntom, mton (from SuperCollider?)
@@ -77,6 +84,8 @@ memory leaks fixed and more robust code.
 
 - Macro names better policed
 
+- p2 and p3 are now at higher precision and not truncated to 6 decimal places
+
 ### Options
 
 -
@@ -92,12 +101,14 @@ memory leaks fixed and more robust code.
 
 - ampmidid optionally can be aware of 0dbfs
 
-- dust and dust2 at k-rate ow conform to the manual (NOTE: this is an
+- dust and dust2 at k-rate now conform to the manual (NOTE: this is an
 incompatible change)
 
-- In prints the format %% now prints  one %
+- In prints the format %% now prints one %
 
 - OSClisten can be used with no data outputs
+
+- GEN18 corrected to write to requested range
 
 ### Utilities
 
@@ -131,7 +142,7 @@ incompatible change)
 
 - bug in push/pop opcodes fixed (this opcode is now a plugin and deprecated)
 
-- bug insprintf removed
+- bug in sprintf removed
 
 - bug in soundin removed
 
@@ -150,13 +161,15 @@ incompatible change)
 
 - added GetA4 function
 
+- New framework for plugin opcode development in C++.
+
 ### Platform Specific
 
 - iOS
 
 - Android
 
- - Multichannel input and output allowed
+- Multichannel input and output allowed
 
 - Windows
 
@@ -168,6 +181,8 @@ incompatible change)
 
 ==END==
 ========================================================================
+UNDOCUMENTED/UNDELETED
+
 commit 3bd612a23367eb2ba7071f360765797abfc72ea8
 Author: jpff <jpff@codemist.co.uk>
 Date:   Fri Mar 24 14:43:51 2017 +0000
@@ -216,12 +231,6 @@ Date:   Thu Feb 9 18:37:02 2017 +0000
 
     pvs loops straightened
 
-commit 937745c70d881341d2ea0b9572cb9435beb1e63e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Feb 7 21:42:32 2017 +0000
-
-    fix compilation vector code
-
 commit 4ed3d0303f328744ae7226751f90ff476195317f
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Mon Feb 6 09:49:28 2017 +0000
@@ -240,29 +249,11 @@ Date:   Mon Jan 30 12:46:06 2017 +0000
 
     pvsbin methods
 
-commit 648adab4cfead2af603b29f70cb288f424ad354c
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Jan 30 09:52:27 2017 +0000
-
-    binops for arrays
-
 commit 284a0a9e4852df4a2c20aa96bb2a54772f39298f
 Author: Michael Gogins <michael.gogins@gmail.com>
 Date:   Sun Jan 29 15:38:11 2017 -0500
 
     Resolved difficulties with stopping and restarting in CsoundThreaded hosts.
-
-commit cc7a903118a65e03f0b67eea5cacf31ee16b157d
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Jan 29 19:05:41 2017 +0000
-
-    array operators completed
-
-commit 71ef2536ba4c87c422d67447b55bcd9bcf2d6f32
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 28 22:11:45 2017 +0000
-
-    array operators
 
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sat Jan 28 18:08:28 2017 +0000
@@ -287,11 +278,6 @@ Date:   Thu Jan 26 19:14:34 2017 -0500
 
     Added CsoundThreaded class in csound_threaded.hpp.
 
-commit bad7b270bc2d9b2c879f118331f59237d30cc286
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Jan 26 23:24:58 2017 +0000
-
-    plugin interface
 
 commit df523604caf36367f285a7c8e4c087a7e87d73f9
 Author: vlazzarini <victor.lazzarini@nuim.ie>
