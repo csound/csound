@@ -40,7 +40,11 @@ static char   *fpnum(CSOUND *,char *, int, int, CORFIL *sco);
 static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
     char *c, buffer[1024];
-    CS_SPRINTF(buffer, "%.12f", n); /* is tis the corect length? */
+#ifdef USE_DOUBLE
+    CS_SPRINTF(buffer, "%la", n);
+#else
+    CS_SPRINTF(buffer, "%a", n);
+#endif
     /* corfile_puts(buffer, sco); */
     for (c = buffer; *c != '\0'; c++)
       corfile_putc(*c, sco);
