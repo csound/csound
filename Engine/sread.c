@@ -2117,7 +2117,6 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
 {                                   /*      but a blank or nl at end)       */
     char    *p;
     MYFLT   x = (MYFLT) cs_strtod(s, &p);
-
     if (*p=='z') return FL(800000000000.0); /* 25367 years */
     if (UNLIKELY(s == p || !(*p == '\0' || isspace(*p)))) {
       csound->Message(csound, Str("sread: illegal number format:  "));
