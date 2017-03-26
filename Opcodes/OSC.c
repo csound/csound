@@ -188,7 +188,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     */
     // 152269
     //if (!(hh==NULL && p->lhost == NULL) || strcmp(p->lhost, hh)!=0) {
-    if(hh && p->lhost) cmpr = strcmp(p->lhost, hh);
+    if (hh && p->lhost) cmpr = strcmp(p->lhost, hh);
     if (!(hh==NULL && p->lhost == NULL) || cmpr !=0) {
       if (p->addr != NULL)
         lo_address_free(p->addr);
