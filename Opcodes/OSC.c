@@ -48,6 +48,9 @@ typedef struct {
     char  *lhost;
     int   cnt;
     int   multicast;
+    CSOUND *csound;
+    void *thread;
+    MYFLT lasta;
 } OSCSEND;
 
 
@@ -364,6 +367,31 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
     return OK;
 }
 
+uintptr_t OSCthread(void *pp) {
+  OSCSEND *p = (OSCSEND *) pp;
+  osc_send(p->csound, p);
+  return 0;
+}
+
+static int osc_send_async_set(CSOUND *csound, OSCSEND *p) {
+  p->csound = csound;
+  p->thread = NULL;
+  return osc_send_set(csound, p);
+}
+
+static int osc_send_async(CSOUND *csound, OSCSEND *p) {
+  if(*p->kwhen != p->lasta) {
+   if(p->thread != NULL) { 
+     csound->JoinThread(p->thread);
+     p->thread = NULL;
+   }
+   p->thread = csound->CreateThread(OSCthread, p);
+  }
+  p->lasta = *p->kwhen;
+  return OK;
+}
+
+  
 /* get pointer to globals structure, allocating it on the first call */
 
 static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
@@ -840,6 +868,7 @@ static OENTRY localops[] = {
 { "OSCinitM", S(OSCINITM), 0, 1, "i", "Si", (SUBR)osc_listener_initMulti },
 { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*", (SUBR)OSC_list_init, (SUBR)OSC_list},
 { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS", (SUBR)OSC_list_init, (SUBR)OSC_list},
+{ "OSCsendA", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_async_set, (SUBR)osc_send_async },
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
