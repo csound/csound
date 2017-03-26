@@ -382,14 +382,18 @@ static int osc_send_async_set(CSOUND *csound, OSCSEND *p) {
 }
 
 static int osc_send_async(CSOUND *csound, OSCSEND *p) {
+  /*RTCLOCK t;
+    csound->InitTimerStruct(&t);*/
   if(*p->kwhen != p->lasta) {
-    if(p->thread != NULL) { 
-    csound->JoinThread(p->thread);
-     p->thread = NULL;
+    if(p->thread != NULL) {
+      csound->JoinThread(p->thread);
+      p->thread = NULL;
     } 
-    p->thread = csound->CreateThread(OSCthread, p);
+    p->thread =
+    csound->CreateThread(OSCthread, p);
     p->lasta = *p->kwhen;
   }
+  // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.);
   return OK;
 }
 
