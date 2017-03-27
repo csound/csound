@@ -69,6 +69,7 @@
    Z       begins alternating kakaka...list (any count)    */
 
 /* outarg types include:
+ i, k, a, S as  above
  *       multiple out args of any-type
  m       multiple out aargs
  z       multiple out kargs

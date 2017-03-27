@@ -83,6 +83,24 @@ typedef struct {
     struct sockaddr_in server_addr;
 } SOCKRECV;
 
+typedef struct {
+    OPDS    h;
+    /* 1 channel: ptr1=asig, ptr2=port, ptr3=buffnos */
+    /* 2 channel: ptr1=asigl, ptr2=asigr, ptr3=port, ptr4=buffnos */
+    STRINGDAT *ptr1;
+    MYFLT   *ptr2, *ptr3, *ptr4;
+    AUXCH   buffer, tmp;
+    char    *buf;
+    int     sock;
+    volatile int threadon;
+    int buffsize;
+    int outsamps, rcvsamps;
+    CSOUND  *cs;
+    void    *thrid;
+    void  *cb;
+    struct sockaddr_in server_addr;
+} SOCKRECVSTR;
+
 static int deinit_udpRecv(CSOUND *csound, void *pdata)
 {
     SOCKRECV *p = (SOCKRECV *) pdata;
@@ -178,6 +196,26 @@ static int send_recv_k(CSOUND *csound, SOCKRECV *p)
          csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
       }
     *ksig = p->buf[p->outsamps++];
+    return OK;
+}
+
+static int send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
+{
+    STRINGDAT *str = p->ptr1;
+    int len;
+    if (p->outsamps >= p->rcvsamps) {
+       p->outsamps =  0;
+       p->rcvsamps =
+         csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
+    }
+    printf("len %d\n", len = strlen(&p->buf[p->outsamps]));
+    printf("ans %s\n", &p->buf[p->outsamps]);
+    if (len>str->size) {
+      str->data = csound->ReAlloc(csound, str->data, len+1);
+      str->size  = len;
+    }
+    strcpy(str->data, &p->buf[p->outsamps]);
+    p->outsamps += len;
     return OK;
 }
 
@@ -362,6 +400,8 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
 static OENTRY sockrecv_localops[] = {
   { "sockrecv", S(SOCKRECV), 0, 7, "s", "ii", (SUBR) init_recv, (SUBR) send_recv_k,
     (SUBR) send_recv },
+  { "sockrecv", S(SOCKRECVSTR), 0, 3, "S", "ii", (SUBR) init_recv,
+    (SUBR) send_recv_S, NULL },
   { "sockrecvs", S(SOCKRECV), 0, 5, "aa", "ii", (SUBR) init_recvS, NULL,
     (SUBR) send_recvS },
   { "strecv", S(SOCKRECVT), 0, 5, "a", "Si", (SUBR) init_srecv, NULL,
