@@ -529,7 +529,7 @@ sprintf_opcode_(CSOUND *csound,
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
     int size = p->sfmt->size+ 18*((int) p->INOCOUNT);
-    //printf("%d %d \n", p->r->size, strlen(p->r->data));
+    printf("%d %d \n", p->r->size, strlen(p->r->data));
     if (p->r->data == NULL || p->r->size < size) {
       /* this 10 is 1n incorrect guess which is OK with numbers*/
       p->r->data = csound->Calloc(csound, size);
