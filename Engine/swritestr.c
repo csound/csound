@@ -41,9 +41,9 @@ static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
     char *c, buffer[1024];
 #ifdef USE_DOUBLE
-    CS_SPRINTF(buffer, "%la", n);
+    CS_SPRINTF(buffer, "%.17g", n);
 #else
-    CS_SPRINTF(buffer, "%a", n);
+    CS_SPRINTF(buffer, "%.9g", n);
 #endif
     /* corfile_puts(buffer, sco); */
     for (c = buffer; *c != '\0'; c++)
