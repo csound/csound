@@ -41,7 +41,7 @@ static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
     char *c, buffer[1024];
 #ifdef USE_DOUBLE
-    CS_SPRINTF(buffer, "%.17g", n);
+    CS_SPRINTF(buffer, "%.17lg", n);
 #else
     CS_SPRINTF(buffer, "%.9g", n);
 #endif
