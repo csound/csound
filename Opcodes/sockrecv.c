@@ -128,6 +128,34 @@ static uintptr_t udpRecv(void *pdata)
     return (uintptr_t) 0;
 }
 
+static int deinit_udpRecv_S(CSOUND *csound, void *pdata)
+{
+    SOCKRECV *p = (SOCKRECV *) pdata;
+
+    p->threadon = 0;
+    csound->JoinThread(p->thrid);
+    return OK;
+}
+
+static uintptr_t udpRecv_S(void *pdata)
+{
+    struct sockaddr from;
+    socklen_t clilen = sizeof(from);
+    SOCKRECVSTR *p = (SOCKRECVSTR*) pdata;
+    char *tmp = (char *) p->tmp.auxp;
+    int     bytes;
+    CSOUND *csound = p->cs;
+
+    while (p->threadon) {
+      /* get the data from the socket and store it in a tmp buffer */
+      if ((bytes = recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
+        bytes = (bytes+sizeof(MYFLT)-1)/sizeof(MYFLT);
+        csound->WriteCircularBuffer(csound, p->cb, tmp, bytes);
+      }
+    }
+    return (uintptr_t) 0;
+}
+
 
 /* UDP version one channel */
 static int init_recv(CSOUND *csound, SOCKRECV *p)
@@ -186,6 +214,63 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     return OK;
 }
 
+/* UDP version for strings */
+static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
+{
+    MYFLT   *buf;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
+
+    p->cs = csound;
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+#ifndef WIN32
+    if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
+      return csound->InitError(csound, Str("Cannot set nonblock"));
+#endif
+    if (UNLIKELY(p->sock < 0)) {
+      return csound->InitError
+        (csound, Str("creating socket"));
+    }
+    /* create server address: where we want to send to and clear it out */
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+    p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    p->server_addr.sin_port = htons((int) *p->ptr2);    /* the port */
+    /* associate the socket with the address and port */
+    if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
+                      sizeof(p->server_addr)) < 0))
+      return csound->InitError(csound, Str("bind failed"));
+
+    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, MTU, &p->buffer);
+    else {
+      buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
+      memset(buf, 0, MTU);
+    }
+    /* create a buffer to store the received string data */
+    if (p->tmp.auxp == NULL || (long) p->tmp.size < MTU)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, MTU, &p->tmp);
+    else {
+      buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
+      memset(buf, 0, MTU);
+    }
+    p->buffsize = p->buffer.size/sizeof(MYFLT);
+    p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3, sizeof(MYFLT));
+    /* create thread */
+    p->threadon = 1;
+    p->thrid = csound->CreateThread(udpRecv_S, (void *) p);
+    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv_S);
+    p->buf = p->buffer.auxp;
+    p->outsamps = p->rcvsamps = 0;
+    return OK;
+}
+
 static int send_recv_k(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *ksig = p->ptr1;
@@ -208,14 +293,14 @@ static int send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
        p->rcvsamps =
          csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
     }
-    printf("len %d\n", len = strlen(&p->buf[p->outsamps]));
-    printf("ans %s\n", &p->buf[p->outsamps]);
+    len = strlen(&p->buf[p->outsamps]);
+    printf("len %d ans %s\n", len, &p->buf[p->outsamps]);
     if (len>str->size) {
       str->data = csound->ReAlloc(csound, str->data, len+1);
       str->size  = len;
     }
     strcpy(str->data, &p->buf[p->outsamps]);
-    p->outsamps += len;
+    p->outsamps += (len+sizeof(MYFLT))/sizeof(MYFLT);
     return OK;
 }
 
@@ -400,7 +485,7 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
 static OENTRY sockrecv_localops[] = {
   { "sockrecv", S(SOCKRECV), 0, 7, "s", "ii", (SUBR) init_recv, (SUBR) send_recv_k,
     (SUBR) send_recv },
-  { "sockrecv", S(SOCKRECVSTR), 0, 3, "S", "ii", (SUBR) init_recv,
+  { "sockrecv", S(SOCKRECVSTR), 0, 3, "S", "ii", (SUBR) init_recv_S,
     (SUBR) send_recv_S, NULL },
   { "sockrecvs", S(SOCKRECV), 0, 5, "aa", "ii", (SUBR) init_recvS, NULL,
     (SUBR) send_recvS },
