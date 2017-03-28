@@ -294,13 +294,13 @@ static int send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
          csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
     }
     len = strlen(&p->buf[p->outsamps]);
-    printf("len %d ans %s\n", len, &p->buf[p->outsamps]);
+    //printf("len %d ans %s\n", len, &p->buf[p->outsamps]);
     if (len>str->size) {
       str->data = csound->ReAlloc(csound, str->data, len+1);
       str->size  = len;
     }
-    strcpy(str->data, &p->buf[p->outsamps]);
-    p->outsamps += (len+sizeof(MYFLT))/sizeof(MYFLT);
+    strncpy(str->data, &p->buf[p->outsamps], len+1);
+    p->outsamps += len+1;
     return OK;
 }
 
