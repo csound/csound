@@ -451,7 +451,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outBuf, int nbytes)
     timeWait = dev->bufTime;
     timeWait *= (((float) nbufs / (float) dev->nBuffers) * 0.25f + 0.875f);
     timeWait -= timeDiff;
-    i = (int) MYFLT2LRND((MYFLT) timeWait);
+    i = MYFLT2LRND(timeWait);
     if (i > 0)
       Sleep((DWORD) i);
 }

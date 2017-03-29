@@ -344,12 +344,20 @@ typedef unsigned long       uintptr_t;
 #    define MYFLT2LRND(x) ((int32) lrint((double) (x)))
 #  endif
 #elif defined(MSVC)
+#include <emmintrin.h>
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) ((int32) lrintf((float) (x)))
-#    define MYFLT2LRND(x) ((int32) lrintf((float) (x)))
+// From Agner Fog optimisation manuals p.144
+static inline int MYFLT2LONG (float const x) {
+    return _mm_cvtss_si32 (_mm_load_ss (&x));}static inline int MYFLT2LRND (float const x) {
+    return _mm_cvtss_si32 (_mm_load_ss (&x));}
 #  else
-#    define MYFLT2LONG(x) ((int32) lrint((double) (x)))
-#    define MYFLT2LRND(x) ((int32) lrint((double) (x)))
+static inline int MYFLT2LONG (double const x) {
+    return _mm_cvtsd_si32 (_mm_load_sd (&x));
+}
+
+static inline int MYFLT2LRND (double const x) {
+    return _mm_cvtsd_si32 (_mm_load_sd (&x));
+}
 #  endif
 #else
 #  ifndef USE_DOUBLE
