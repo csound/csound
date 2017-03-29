@@ -962,7 +962,7 @@ struct Inletv : public OpcodeBase<Inletv> {
             warn(csound, "myFltsPerArrayElement: %d\n", myFltsPerArrayElement);
             arraySize = myFltsPerArrayElement;
             for(size_t dimension = 0; dimension < vsignal->dimensions; ++dimension) {
-                arraySize *= MYFLT2LRND(vsignal->sizes[dimension]);
+                arraySize *= vsignal->sizes[dimension];
             }
             warn(csound, "arraySize: %d\n", arraySize);
             warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
