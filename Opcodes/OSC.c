@@ -388,16 +388,15 @@ static int osc_send_async(CSOUND *csound, OSCSEND *p) {
     if(p->thread != NULL) {
       csound->JoinThread(p->thread);
       p->thread = NULL;
-    } 
-    p->thread =
-    csound->CreateThread(OSCthread, p);
+    }
+    p->thread = csound->CreateThread(OSCthread, p);
     p->lasta = *p->kwhen;
   }
   // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.);
   return OK;
 }
 
-  
+
 /* get pointer to globals structure, allocating it on the first call */
 
 static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)

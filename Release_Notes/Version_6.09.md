@@ -1,4 +1,4 @@
-<!---
+!---
 
 To maintain this document use the following markdown:
 
@@ -52,6 +52,8 @@ fmax, fmin.
 - tvconv -- a time-varying convolution (FIR filter) opcode
 
 - bpf, xyscale, ntom, mton (from SuperCollider?)
+
+- OSCsendA asynchronous version of OSCsend
 
 
 ### New Gen and Macros
@@ -109,6 +111,8 @@ incompatible change)
 - OSClisten can be used with no data outputs
 
 - GEN18 corrected to write to requested range
+
+- sockrev now can read strings
 
 ### Utilities
 
@@ -183,11 +187,17 @@ incompatible change)
 ========================================================================
 UNDOCUMENTED/UNDELETED
 
-commit 3bd612a23367eb2ba7071f360765797abfc72ea8
+commit 6305e51a33ce6c7ceb7a0cfe59e8d0f345745f46
 Author: jpff <jpff@codemist.co.uk>
-Date:   Fri Mar 24 14:43:51 2017 +0000
+Date:   Tue Mar 28 14:08:56 2017 +0100
 
-    more notes
+    sockrec string version seems to be working
+
+commit 58801753aabbd705ec8a32b89d8533003930ce6a
+Author: U-HF-31335\Administrator <obrandts@gmail.com>
+Date:   Fri Mar 24 15:16:05 2017 -0700
+
+    fix partikkel channelmask panning curves
 
 commit eaca4bbc4616ac0294d6c9f550e11b84dcb44bd0
 Author: Michael Gogins <michael.gogins@gmail.com>

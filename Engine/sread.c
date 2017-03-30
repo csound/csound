@@ -1432,15 +1432,20 @@ static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
 
     if (csound->ISSTRCOD(STA(bp)->p1val) && *STA(sp) == '"') {
       /* IV - Oct 31 2002 */
+      int sign = 0;
       char name[MAXNAME], *c, *s = STA(sp);
       /* unquote instrument name */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';
+      if (*name=='-') {
+        sign = 1;
+        printf("negative name %s\n", name); }
       /* find corresponding insno */
-      if (UNLIKELY(!(n = (int16) named_instr_find(csound, name)))) {
+      if (UNLIKELY(!(n = (int16) named_instr_find(csound, name+sign)))) {
         csound->Message(csound, Str("WARNING: instr %s not found, "
                                     "assuming insno = -1\n"), name);
         n = -1;
       }
+      if (sign) n = -n;
     }
     else n = (int16) STA(bp)->p1val;         /* set current insno */
     STA(bp)->insno = n;
