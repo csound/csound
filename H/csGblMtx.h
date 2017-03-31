@@ -62,6 +62,7 @@ static BOOL CALLBACK InitHandleFunction ( PINIT_ONCE InitOnce, PVOID Parameter,
     CRITICAL_SECTION* cs = (CRITICAL_SECTION*) malloc(sizeof(CRITICAL_SECTION));
     InitializeCriticalSection(cs);
     *lpContext = cs;
+	return 1;
 }
 
 
