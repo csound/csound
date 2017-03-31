@@ -311,7 +311,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
-      if (*(p->iSkipInit) != FL(0.0))
+      if (p->SkipInit != FL(0.0))
         return OK;
       fdclose(csound, &(p->fdch));
     }
@@ -352,7 +352,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
                                    "inconsistent with number of file channels"));
     }
     /* skip initialisation if requested */
-    if (p->initDone && *(p->iSkipInit) != FL(0.0))
+    if (p->initDone && p->SkipInit != FL(0.0))
       return OK;
 
 
@@ -558,7 +558,7 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
-    if (!p->initDone && !p->iSkipInit){
+    if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -744,7 +744,7 @@ int diskin_file_read(CSOUND *csound, DISKIN2 *p)
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
-    if (!p->initDone && !p->iSkipInit) {
+    if (!p->initDone && !p->SkipInit) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -940,7 +940,7 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
     }
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
-    if (!p->initDone && !p->iSkipInit){
+    if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -1345,7 +1345,7 @@ int diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
-    if (!p->initDone && !p->iSkipInit) {
+    if (!p->initDone && !p->SkipInit) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -1553,7 +1553,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
-      if (*(p->iSkipInit) != FL(0.0))
+      if (p->SkipInit != FL(0.0))
         return OK;
       fdclose(csound, &(p->fdch));
     }
@@ -1615,7 +1615,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     /* } */
 
     /* skip initialisation if requested */
-    if (p->initDone && *(p->iSkipInit) != FL(0.0))
+    if (p->initDone && (p->SkipInit) != FL(0.0))
       return OK;
 
     /* interpolation window size: valid settings are 1 (no interpolation), */
@@ -1780,7 +1780,7 @@ int diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
-    if (!p->initDone && !p->iSkipInit){
+    if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -1973,7 +1973,7 @@ int diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
     }
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
-    if (!p->initDone && !p->iSkipInit){
+    if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }

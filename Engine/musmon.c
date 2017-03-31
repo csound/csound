@@ -693,7 +693,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
     case 'q':
       if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
-        if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
+        if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) == 0)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
                           evt->strarg);
@@ -720,11 +720,14 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       break;
     case 'i':
       if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
-        if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
+        if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) == 0)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
                           evt->strarg);
           break;
+        }
+        if (insno<0) {
+          evt->p[1] = insno; insno = -insno;
         }
         if ((rfd = getRemoteInsRfd(csound, insno))) {
           /* RM: if this note labeled as remote */
