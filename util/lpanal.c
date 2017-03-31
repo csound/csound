@@ -726,7 +726,11 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
       if (new_format) {
         unsigned int i, j;
         for (i=0, j=0; i<osiz; i+=sizeof(MYFLT), j++)
-          fprintf(oFd, "%a\n", coef[j]);
+          #if defined(USE_DOUBLE)
+          fprintf(oFd, "%.17lg\n", coef[j]);
+          #else
+          fprintf(oFd, "%.9f\n", coef[j]);
+          #endif
       }
       else
         if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
