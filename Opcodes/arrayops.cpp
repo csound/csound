@@ -80,45 +80,41 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "i[]", "i[]",
                                    csnd::thread::i);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "k[]", "k[]",
-                                   csnd::thread::i);
+                                   csnd::thread::ik);
   csnd::plugin<ArrayOp<std::floor>>(csound, "floor", "i[]", "i[]",
                                     csnd::thread::i);
   csnd::plugin<ArrayOp<std::floor>>(csound, "floor", "k[]", "k[]",
-                                    csnd::thread::i);
+                                    csnd::thread::ik);
   csnd::plugin<ArrayOp<std::round>>(csound, "round", "i[]", "i[]",
                                     csnd::thread::i);
   csnd::plugin<ArrayOp<std::round>>(csound, "round", "k[]", "k[]",
-                                    csnd::thread::i);
+                                    csnd::thread::ik);
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "i[]", "i[]",
                                     csnd::thread::i);
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "k[]", "k[]",
                                     csnd::thread::i);
   csnd::plugin<ArrayOp<frac>>(csound, "frac", "i[]", "i[]", csnd::thread::i);
-  csnd::plugin<ArrayOp<frac>>(csound, "frac", "k[]", "k[]", csnd::thread::i);
+  csnd::plugin<ArrayOp<frac>>(csound, "frac", "k[]", "k[]", csnd::thread::ik);
   csnd::plugin<ArrayOp<std::exp2>>(csound, "powoftwo", "i[]", "i[]",
                                    csnd::thread::i);
   csnd::plugin<ArrayOp<std::exp2>>(csound, "powoftwo", "k[]", "k[]",
-                                   csnd::thread::i);
+                                   csnd::thread::ik);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "i[]", "i[]",
                                    csnd::thread::i);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "k[]", "k[]",
-                                   csnd::thread::i);
-  csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "i[]", "i[]",
-                                   csnd::thread::i);
-  csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "k[]", "k[]",
-                                   csnd::thread::i);
+                                   csnd::thread::ik);
   csnd::plugin<ArrayOp<std::log10>>(csound, "log2", "i[]", "i[]",
                                     csnd::thread::i);
   csnd::plugin<ArrayOp<std::log10>>(csound, "log2", "k[]", "k[]",
-                                    csnd::thread::i);
+                                    csnd::thread::ik);
   csnd::plugin<ArrayOp<std::log10>>(csound, "log10", "i[]", "i[]",
                                     csnd::thread::i);
   csnd::plugin<ArrayOp<std::log10>>(csound, "log10", "k[]", "k[]",
-                                    csnd::thread::i);
+                                    csnd::thread::ik);
   csnd::plugin<ArrayOp<std::log>>(csound, "log", "i[]", "i[]", csnd::thread::i);
-  csnd::plugin<ArrayOp<std::log>>(csound, "log", "k[]", "k[]", csnd::thread::i);
+  csnd::plugin<ArrayOp<std::log>>(csound, "log", "k[]", "k[]", csnd::thread::ik);
   csnd::plugin<ArrayOp<std::exp>>(csound, "exp", "i[]", "i[]", csnd::thread::i);
-  csnd::plugin<ArrayOp<std::exp>>(csound, "exp", "k[]", "k[]", csnd::thread::i);
+  csnd::plugin<ArrayOp<std::exp>>(csound, "exp", "k[]", "k[]", csnd::thread::ik);
   csnd::plugin<ArrayOp<std::sqrt>>(csound, "sqrt", "i[]", "i[]",
                                    csnd::thread::i);
   csnd::plugin<ArrayOp<std::sqrt>>(csound, "sqrt", "k[]", "k[]",

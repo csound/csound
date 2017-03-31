@@ -48,6 +48,9 @@ typedef struct {
     char  *lhost;
     int   cnt;
     int   multicast;
+    CSOUND *csound;
+    void *thread;
+    MYFLT lasta;
 } OSCSEND;
 
 
@@ -156,6 +159,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     p->last = 0;
     csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND *, void *)) oscsend_deinit);
+    p->thread = NULL;
     return OK;
 }
 
@@ -188,7 +192,8 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     */
     // 152269
     //if (!(hh==NULL && p->lhost == NULL) || strcmp(p->lhost, hh)!=0) {
-    if(hh && p->lhost) cmpr = strcmp(p->lhost, hh);
+    if(p->thread == NULL) {
+     if(hh && p->lhost) cmpr = strcmp(p->lhost, hh);
     if (!(hh==NULL && p->lhost == NULL) || cmpr !=0) {
       if (p->addr != NULL)
         lo_address_free(p->addr);
@@ -208,6 +213,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
       }
       csound->Free(csound, p->lhost);
       if (hh) p->lhost = csound->Strdup(csound, hh); else p->lhost = NULL;
+      }
     }
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int i=0;
@@ -363,6 +369,33 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
     csound->DestroyGlobalVariable(csound, "_OSC_globals");
     return OK;
 }
+
+uintptr_t OSCthread(void *pp) {
+  OSCSEND *p = (OSCSEND *) pp;
+  osc_send(p->csound, p);
+  return 0;
+}
+
+static int osc_send_async_set(CSOUND *csound, OSCSEND *p) {
+  p->csound = csound;
+  return osc_send_set(csound, p);
+}
+
+static int osc_send_async(CSOUND *csound, OSCSEND *p) {
+  /*RTCLOCK t;
+    csound->InitTimerStruct(&t);*/
+  if(*p->kwhen != p->lasta) {
+    if(p->thread != NULL) {
+      csound->JoinThread(p->thread);
+      p->thread = NULL;
+    }
+    p->thread = csound->CreateThread(OSCthread, p);
+    p->lasta = *p->kwhen;
+  }
+  // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.);
+  return OK;
+}
+
 
 /* get pointer to globals structure, allocating it on the first call */
 
@@ -840,6 +873,7 @@ static OENTRY localops[] = {
 { "OSCinitM", S(OSCINITM), 0, 1, "i", "Si", (SUBR)osc_listener_initMulti },
 { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*", (SUBR)OSC_list_init, (SUBR)OSC_list},
 { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS", (SUBR)OSC_list_init, (SUBR)OSC_list},
+{ "OSCsendA", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_async_set, (SUBR)osc_send_async }
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)

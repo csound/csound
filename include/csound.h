@@ -46,32 +46,109 @@
  * \li Plugins are shared libraries loaded by Csound at run time to implement
  *     external opcodes and/or drivers for audio or MIDI input and output.
  *     Plugin opcodes need only include the csdl.h header which brings all
- *     necessary functions and data structures.
+ *     necessary functions and data structures. Plugins can be written in C++
+ *     using either `include/plugin.h` (using the Csound allocator, for opcodes
+ *     that do not involve standard C++ library collections) or
+ *     `include/OpcodeBase.hpp` (using the standard ++ allocator, for opcodes
+ *     that do use standard C++ library collections).
  *
- * \section section_api_c_example An Example Using the Csound API
+ * \section section_api_c_example Examples Using the Csound API
  *
  * The Csound command--line program is itself built using the Csound API.
- * Its code reads as follows:
+ * Its code reads (in outline) as follows:
  *
  * \code
  * #include "csound.h"
  *
  * int main(int argc, char **argv)
  * {
- *   // Create Csound.
  *   void *csound = csoundCreate(0);
- *   // One complete compile/perform cycle.
  *   int result = csoundCompile(csound, argc, argv);
  *   if(!result) {
  *     while(csoundPerformKsmps(csound) == 0){}
  *     csoundCleanup(csound);
  *   }
- *   // Destroy Csound.
  *   csoundDestroy(csound);
  *   return result;
  * }
  * \endcode
  *
+ * The Csound API defines two modes of operation for hosts. In the first mode,
+ * a regular Csound score is performed and then performance automatically
+ * ends. This could be called "score mode." In the second mode, Csound
+ * continues to perform indefinitely until performance is explicitly ended by
+ * calling csoundStop. This could be called "live mode." Which mode is used is
+ * determined by when csoundStart is called. In more detail:
+ *
+ * \subsection s1 Score Mode
+ *
+ * \li The <CsOptions> section of the CSD file is processed.
+ *
+ * \li csoundStart must be called after csoundCompileCsd or csoundReadScore.
+ *
+ * \li The score is pre-processed, and events are dispatched as regular score
+ *     events. "f", "s", and "e" events are permitted in the score.
+ *
+ * \code
+ * #include "csound.h"
+ *
+ * const char *csd_text = "blah blah blah";
+ *
+ * int main(int argc, char **argv)
+ * {
+ *   void *csound = csoundCreate(0);
+ *   int result = csoundCompileCsdText(csound, csd_text);
+ *   result = csoundStart(csound);
+ *   while (1) {
+ *      result = csoundPerformKsmps(csound);
+ *      if (result != 0) {
+ *         break;
+ *      }
+ *   }
+ *   result = csoundCleanup(csound);
+ *   csoundReset(csound);
+ *   csoundDestroy(csound);
+ *   return result;
+ * }
+ * \endcode
+ *
+ * \subsection s2 Live Mode
+ *
+ * \li The <CsOptions> section of the CSD file not processed; options must
+ *     be set by calling csoundSetOption.
+ *
+ * \li csoundStart must be called before csoundCompileCsd or csoundReadScore.
+ *
+ * \li The score is not pre-processed, and events are dispatched as real-time
+ *     events. "f", "s", and "e" events are not permitted.
+ *
+ * \code
+ * #include "csound.h"
+ *
+ * const char *orc_text = "blah blah blah";
+ * const char *sco_text = "blah blah blah";
+ *
+ * int main(int argc, char **argv)
+ * {
+ *   void *csound = csoundCreate(0);
+ *   int result = csoundSetOption(csound, "-d");
+ *   result = csoundSetOption(csound, "-odac");
+ *   result = csoundStart(csound);
+ *   result = csoundCompileOrc(csound, orc_text);
+ *   result = csoundReadScore(csound, sco_text);
+ *   while (1) {
+ *      result = csoundPerformKsmps(csound);
+ *      if (result != 0) {
+ *         break;
+ *      }
+ *   }
+ *   result = csoundCleanup(csound);
+ *   csoundReset(csound);
+ *   csoundDestroy(csound);
+ *   return result;
+ * }
+ * \endcode
+
  *
  * Everything that can be done using C as in the above examples can also be done
  * in a similar manner in Python or any of the other Csound API languages.
