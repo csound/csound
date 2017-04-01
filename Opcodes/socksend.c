@@ -395,7 +395,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 
 
 typedef struct {
-    OPDS h;             
+    OPDS h;
     MYFLT *kwhen;
     STRINGDAT *ipaddress;
     MYFLT *port;        /* UDP port */
@@ -442,20 +442,20 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       switch(p->type->data[i]){
       case 'f':
       case 'i':
-	bsize += 4;
-	iarg++;
-	break;
-      case 's':
-	s = (STRINGDAT *)p->arg[i];
-	bsize += s->size + 1;
+        bsize += 4;
         iarg++;
-	break;
+        break;
+      case 's':
+        s = (STRINGDAT *)p->arg[i];
+        bsize += s->size + 1;
+        iarg++;
+        break;
       default:
-	bsize += sizeof(MYFLT);
-	iarg++;
+        bsize += sizeof(MYFLT);
+        iarg++;
+      }
     }
-    }
-    
+
     bsize += (p->dest->size + p->type->size + 8);
     if (p->aux.auxp == NULL || bsize > p->aux.size)
       /* allocate space for the buffer */
@@ -468,75 +468,74 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 }
 
 char *byteswap(char *p, int N){
-  char tmp;
-  int j ;
-  for(j = 0; j < N/2; j++) {
-    tmp = p[j];  
-    p[j] = p[N - j - 1];
-    p[N - j - 1] = tmp;
-  }
+    char tmp;
+    int j ;
+    for(j = 0; j < N/2; j++) {
+      tmp = p[j];
+      p[j] = p[N - j - 1];
+      p[N - j - 1] = tmp;
+    }
 }
 
 static int osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
-   if(*p->kwhen != p->last) {
-    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+    if(*p->kwhen != p->last) {
+      const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-    int     buffersize = 0, size, i;
-    char    *out = (char *) p->aux.auxp;
+      int     buffersize = 0, size, i;
+      char    *out = (char *) p->aux.auxp;
 
-    memset(out,0,p->aux.size); 
-    /* package destination in 4-byte zero-padded block */
-     memcpy(out,p->dest->data,p->dest->size);
-    size = p->dest->size;
-    size = ceil(size/4.)*4;
-    buffersize += size;
-    /* package type in a 4-byte zero-padded block */
-    out[buffersize] = ',';
-    memcpy(out+buffersize+1,p->type->data,p->type->size);
-    size = p->type->size+1;
-    size = ceil(size/4.)*4;
-    buffersize += size;
-    /* add data to message */
-    	float fdata;
-	int data;
-	STRINGDAT *s;
-    for(i = 0; i < p->iargs; i++) {
-      
-     switch(p->type->data[i]){
-      case 'f':
-	fdata = (float) *p->arg[i];
-	byteswap((char *) &fdata, 4);
-	memcpy(out+buffersize,&fdata, 4);
-	buffersize += 4;
-	break;
-      case 'i':
-	data = (int) *p->arg[i];
-	byteswap((char *) &data, 4);
-	memcpy(out+buffersize,&data, 4);
-	buffersize += 4;
-	break;
-      case 's':
-	s = (STRINGDAT *)p->arg[i];
-	memcpy(out+buffersize, s->data, s->size+1);
-        buffersize += size+1;
-	break;
-      default:
-	/*memcpy(out+buffersize,p->arg[i], 8);
-	  buffersize += 8;*/
-	break;
-    }
+      memset(out,0,p->aux.size);
+      /* package destination in 4-byte zero-padded block */
+      memcpy(out,p->dest->data,p->dest->size);
+      size = p->dest->size;
+      size = ceil(size/4.)*4;
+      buffersize += size;
+      /* package type in a 4-byte zero-padded block */
+      out[buffersize] = ',';
+      memcpy(out+buffersize+1,p->type->data,p->type->size);
+      size = p->type->size+1;
+      size = ceil(size/4.)*4;
+      buffersize += size;
+      /* add data to message */
+      float fdata;
+      int data;
+      STRINGDAT *s;
+      for(i = 0; i < p->iargs; i++) {
 
-    }
-    /*for(i=0; i < buffersize; i++) printf("%c", out[i]);
-      printf("\n");*/
-    
-    if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
-                        sizeof(p->server_addr)) < 0)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("OSCsend2 failed"));
-    }
-    p->last = *p->kwhen;
+        switch(p->type->data[i]){
+        case 'f':
+          fdata = (float) *p->arg[i];
+          byteswap((char *) &fdata, 4);
+          memcpy(out+buffersize,&fdata, 4);
+          buffersize += 4;
+          break;
+        case 'i':
+          data = (int) *p->arg[i];
+          byteswap((char *) &data, 4);
+          memcpy(out+buffersize,&data, 4);
+          buffersize += 4;
+          break;
+        case 's':
+          s = (STRINGDAT *)p->arg[i];
+          memcpy(out+buffersize, s->data, s->size+1);
+          buffersize += size+1;
+          break;
+        default:
+          /*memcpy(out+buffersize,p->arg[i], 8);
+            buffersize += 8;*/
+          break;
+        }
       }
+      /*for(i=0; i < buffersize; i++) printf("%c", out[i]);
+        printf("\n");*/
+
+      if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
+                        sizeof(p->server_addr)) < 0)) {
+        return csound->PerfError(csound, p->h.insdshead, Str("OSCsend2 failed"));
+      }
+      p->last = *p->kwhen;
+    }
     return OK;
 }
 
@@ -557,7 +556,8 @@ static OENTRY socksend_localops[] = {
     (SUBR) send_sendS },
   { "stsend", S(SOCKSEND), 0, 5, "", "aSi", (SUBR) init_ssend, NULL,
     (SUBR) send_ssend },
-  { "OSCsend2", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init, (SUBR)osc_send2 }
+  { "OSCsend2", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init,
+    (SUBR)osc_send2 }
 };
 
 LINKAGE_BUILTIN(socksend_localops)
