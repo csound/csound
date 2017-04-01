@@ -135,7 +135,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
         if (csound->tseg != oldtseg) {
           /* printf(" MOVED "); */
           tp += ((TSEG*)csound->tseg - oldtseg); prvtp = tp-1;
-          csound->tplim = csound->tseg + csound->tseglen-1;
+          csound->tplim = ((char*)csound->tseg) + csound->tseglen-1;
           csound->tpsave = csound->tseg;
         }
         /* printf("%p\n", csound->tseg); */
@@ -174,7 +174,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       csound->tseg =
         (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
       tp += ((TSEG*)csound->tseg - oldtseg);
-      csound->tplim = csound->tseg + csound->tseglen-1;
+      csound->tplim = ((char*)csound->tseg) + csound->tseglen-1;
       csound->tpsave = csound->tseg;
       /* printf("%p\n", csound->tseg); */
       /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */

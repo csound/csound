@@ -98,10 +98,6 @@ typedef uint_least16_t uint16;
 #include <pthread.h>
 #endif
 
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-#include <pthread.h>
-#endif
-
 #ifdef __MACH__
 #include <AvailabilityMacros.h>
 #endif
@@ -348,30 +344,21 @@ typedef unsigned long       uintptr_t;
 #    define MYFLT2LRND(x) ((int32) lrint((double) (x)))
 #  endif
 #elif defined(MSVC)
+#include <emmintrin.h>
 #  ifndef USE_DOUBLE
-static inline int32 MYFLT2LRND(float fval)
-{
-    int result;
-    _asm {
-      fld   fval
-      fistp result
-      mov   eax, result
-    }
-    return result;
-}
+// From Agner Fog optimisation manuals p.144
+static inline int MYFLT2LONG (float const x) {
+    return _mm_cvtss_si32 (_mm_load_ss (&x));}static inline int MYFLT2LRND (float const x) {
+    return _mm_cvtss_si32 (_mm_load_ss (&x));}
 #  else
-static inline int32 MYFLT2LRND(double fval)
-{
-    int result;
-    _asm {
-      fld   fval
-      fistp result
-      mov   eax, result
-    }
-    return result;
+static inline int MYFLT2LONG (double const x) {
+    return _mm_cvtsd_si32 (_mm_load_sd (&x));
+}
+
+static inline int MYFLT2LRND (double const x) {
+    return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 #  endif
-#  define MYFLT2LONG(x) MYFLT2LRND(x)
 #else
 #  ifndef USE_DOUBLE
 #    define MYFLT2LONG(x) ((int32) (x))

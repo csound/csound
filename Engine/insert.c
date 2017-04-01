@@ -314,7 +314,14 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (O->sampleAccurate && !tie) {
       int64_t start_time_samps, start_time_kcycles;
       double duration_samps;
-      while(ip->init_done != 1) usleep(1);
+	  while (ip->init_done != 1) {
+      // FIXME maybe just pass everything through csoundSleep?
+#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
+		  usleep (1);
+#else
+		  csoundSleep (1);
+#endif
+	  }
       start_time_samps = (int64_t) (ip->p2.value * csound->esr);
       duration_samps =  ip->p3.value * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
@@ -1942,7 +1949,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
           /* clear the end portion of outputs for sample accurate end */
           if (early) {
-            memset(out + g_ksmps, '\0', sizeof(MYFLT) * early);
+            memset((char*)out + g_ksmps, '\0', sizeof(MYFLT) * early);
           }
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
