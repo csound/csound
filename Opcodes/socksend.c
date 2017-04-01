@@ -393,6 +393,157 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
     return OK;
 }
 
+
+typedef struct {
+    OPDS h;             
+    MYFLT *kwhen;
+    STRINGDAT *ipaddress;
+    MYFLT *port;        /* UDP port */
+    STRINGDAT *dest;
+    STRINGDAT *type;
+    MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
+    AUXCH   aux;
+    int     sock, iargs;
+    MYFLT last;
+    struct sockaddr_in server_addr;
+} OSCSEND2;
+
+
+static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
+{
+    unsigned int     bsize;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (UNLIKELY(p->sock < 0)) {
+      return csound->InitError(csound, Str("creating socket"));
+    }
+    /* create server address: where we want to send to and clear it out */
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+#if defined(WIN32) && !defined(__CYGWIN__)
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
+#else
+    inet_aton((const char *) p->ipaddress->data,
+              &p->server_addr.sin_addr);    /* the server IP address */
+#endif
+    p->server_addr.sin_port = htons((int) *p->port);    /* the port */
+
+    // todo: parse type to allocate memory
+    int i, iarg = 0;
+    STRINGDAT *s;
+    bsize = 0;
+    for(i=0; i < p->type->size; i++) {
+      switch(p->type->data[i]){
+      case 'f':
+      case 'i':
+	bsize += 4;
+	iarg++;
+	break;
+      case 's':
+	s = (STRINGDAT *)p->arg[i];
+	bsize += s->size + 1;
+        iarg++;
+	break;
+      default:
+	bsize += sizeof(MYFLT);
+	iarg++;
+    }
+    }
+    
+    bsize += (p->dest->size + p->type->size + 8);
+    if (p->aux.auxp == NULL || bsize > p->aux.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, bsize, &p->aux);
+    else {
+      memset(p->aux.auxp, 0, bsize);
+    }
+    p->iargs = iarg;
+    return OK;
+}
+
+char *byteswap(char *p, int N){
+  char tmp;
+  int j ;
+  for(int j = 0; j < N/2; j++) {
+    tmp = p[j];  
+    p[j] = p[N - j - 1];
+    p[N - j - 1] = tmp;
+  }
+}
+
+static int osc_send2(CSOUND *csound, OSCSEND2 *p)
+{
+   if(*p->kwhen != p->last) {
+    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+
+    int     buffersize = 0, size, i;
+    char    *out = (char *) p->aux.auxp;
+
+    memset(out,0,p->aux.size); 
+    /* package destination in 4-byte zero-padded block */
+     memcpy(out,p->dest->data,p->dest->size);
+    size = p->dest->size;
+    size = ceil(size/4.)*4;
+    buffersize += size;
+    /* package type in a 4-byte zero-padded block */
+    out[buffersize] = ',';
+    memcpy(out+buffersize+1,p->type->data,p->type->size);
+    size = p->type->size+1;
+    size = ceil(size/4.)*4;
+    buffersize += size;
+    /* add data to message */
+    	float fdata;
+	int data;
+	STRINGDAT *s;
+    for(i = 0; i < p->iargs; i++) {
+      
+     switch(p->type->data[i]){
+      case 'f':
+	fdata = (float) *p->arg[i];
+	byteswap((char *) &fdata, 4);
+	memcpy(out+buffersize,&fdata, 4);
+	buffersize += 4;
+	break;
+      case 'i':
+	data = (int) *p->arg[i];
+	byteswap((char *) &data, 4);
+	memcpy(out+buffersize,&data, 4);
+	buffersize += 4;
+	break;
+      case 's':
+	s = (STRINGDAT *)p->arg[i];
+	memcpy(out+buffersize, s->data, s->size+1);
+        buffersize += size+1;
+	break;
+      default:
+	/*memcpy(out+buffersize,p->arg[i], 8);
+	  buffersize += 8;*/
+	break;
+    }
+
+    }
+    /*for(i=0; i < buffersize; i++) printf("%c", out[i]);
+      printf("\n");*/
+    
+    if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
+                        sizeof(p->server_addr)) < 0)) {
+      return csound->PerfError(csound, p->h.insdshead, Str("OSCsend2 failed"));
+    }
+    p->last = *p->kwhen;
+      }
+    return OK;
+}
+
+
+
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY socksend_localops[] = {
@@ -405,7 +556,8 @@ static OENTRY socksend_localops[] = {
   { "socksends", S(SOCKSENDS), 0, 5, "", "aaSiio", (SUBR) init_sendS, NULL,
     (SUBR) send_sendS },
   { "stsend", S(SOCKSEND), 0, 5, "", "aSi", (SUBR) init_ssend, NULL,
-    (SUBR) send_ssend }
+    (SUBR) send_ssend },
+  { "OSCsend2", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init, (SUBR)osc_send2 }
 };
 
 LINKAGE_BUILTIN(socksend_localops)
