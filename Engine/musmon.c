@@ -1262,8 +1262,10 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
           p[1] = -i;
         }
       }
-      else if (evt->strarg != NULL && csound->ISSTRCOD(p[1]))
+      else if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
         i = (int) named_instr_find(csound, evt->strarg);
+        if (i<0) {p[1]=i; i= -i;}
+      }
       else
         i = (int) fabs((double) p[1]);
       if (UNLIKELY((unsigned int) (i - 1) >=
