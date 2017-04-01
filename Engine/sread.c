@@ -872,6 +872,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           //goto again;
         }
       case 'i':
+      case 'd':
       case 'f':
       case 'a':
       case 'q':
@@ -1365,42 +1366,44 @@ static void ifa(CSOUND *csound)
         else break;
       }
       else switch (STA(bp)->pcnt) {      /*  watch for p1,p2,p3, */
-      case 1:                           /*   & MYFLT, setinsno..*/
-        if ((STA(op) == 'i' || STA(op) == 'q') && *STA(sp) == '"') {
-        /*   csound->DebugMsg(csound,"***Entering second dubious code scnt=%d\n",
-                                      csound->scnt0); */
-          STA(bp)->p1val = SSTRCOD;      /* allow string name */
-        }
-        else
-          STA(bp)->p1val = stof(csound, STA(sp));
-        if (STA(op) == 'i')
-          setprv(csound);
-        else STA(prvibp) = NULL;
-        break;
-      case 2: STA(prvp2) = STA(bp)->p2val =
-                          STA(warp_factor)*stof(csound, STA(sp)) + STA(clock_base);
-        break;
-      case 3: if (STA(op) == 'i')
-                STA(bp)->p3val = STA(warp_factor) * stof(csound, STA(sp));
-              else STA(bp)->p3val = stof(csound, STA(sp));
-      break;
-      default:break;
+        case 1:                           /*   & MYFLT, setinsno..*/
+          if ((STA(op) == 'i' || STA(op) == 'd' || STA(op) == 'q') &&
+              *STA(sp) == '"') {
+            /* csound->DebugMsg(csound,"***Entering second dubious code scnt=%d\n",
+               csound->scnt0); */
+            STA(bp)->p1val = SSTRCOD;      /* allow string name */
+          }
+          else {
+            STA(bp)->p1val = stof(csound, STA(sp));
+          }
+          if (STA(op) == 'i' || STA(op) == 'd')
+            setprv(csound);
+          else STA(prvibp) = NULL;
+          break;
+        case 2: STA(prvp2) = STA(bp)->p2val =
+            STA(warp_factor)*stof(csound, STA(sp)) + STA(clock_base);
+          break;
+        case 3: if (STA(op) == 'i')
+            STA(bp)->p3val = STA(warp_factor) * stof(csound, STA(sp));
+          else STA(bp)->p3val = stof(csound, STA(sp));
+          break;
+        default:break;
       }
       switch (STA(bp)->pcnt) {               /* newp2, newp3:   */
       case 2: if (STA(warpin)) {             /* for warpin,     */
-        getpfld(csound);                    /*   newp2 follows */
-        STA(bp)->newp2 = STA(warp_factor) * stof(csound, STA(sp)) + STA(clock_base);
-        STA(nxp) = STA(sp);                   /*    (skip text)  */
-      }
-      else STA(bp)->newp2 = STA(bp)->p2val;   /* else use p2val  */
-      break;
+          getpfld(csound);                    /*   newp2 follows */
+          STA(bp)->newp2 = STA(warp_factor) * stof(csound, STA(sp)) + STA(clock_base);
+          STA(nxp) = STA(sp);                   /*    (skip text)  */
+        }
+        else STA(bp)->newp2 = STA(bp)->p2val;   /* else use p2val  */
+        break;
       case 3: if (STA(warpin) && (STA(op) == 'i' || STA(op) == 'f')) {
-        getpfld(csound);                    /* same for newp3  */
-        STA(bp)->newp3 = STA(warp_factor) * stof(csound, STA(sp));
-        STA(nxp) = STA(sp);
-      }
-      else STA(bp)->newp3 = STA(bp)->p3val;
-      break;
+          getpfld(csound);                    /* same for newp3  */
+          STA(bp)->newp3 = STA(warp_factor) * stof(csound, STA(sp));
+          STA(nxp) = STA(sp);
+        }
+        else STA(bp)->newp3 = STA(bp)->p3val;
+        break;
       }
     }
     if (STA(nocarry) && (STA(bp)->pcnt<3) && STA(op) == 'i' &&
@@ -1855,6 +1858,7 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
     switch (c) {        /*   and check legality  */
     case 'a':           /* Advance time */
     case 'b':           /* Reset base clock */
+    case 'd':           /* De-note */
     case 'C':           /* toggle carry flag */
     case 'e':           /* End of all */
     case 'f':           /* f-table */
@@ -2072,7 +2076,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     if (c == '"') {                           /* if have quoted string,  */
       /* IV - Oct 31 2002: allow string instr name for i and q events */
       if (UNLIKELY(STA(bp)->pcnt < 3 &&
-          !((STA(op) == 'i' || STA(op) == 'q') &&
+          !((STA(op) == 'i' || STA(op) == 'd' || STA(op) == 'q') &&
             !STA(bp)->pcnt))) {
         sreaderr(csound, Str("illegally placed string"));
         csound->Message(csound, Str("      remainder of line flushed\n"));

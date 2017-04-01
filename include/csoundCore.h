@@ -76,6 +76,7 @@ extern "C" {
 #endif
 
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
+#include <pthread.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
