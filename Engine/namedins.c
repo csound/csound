@@ -46,13 +46,14 @@ int check_instr_name(char *s)
 int32 named_instr_find(CSOUND *csound, char *s)
 {
     INSTRNAME     *inm;
+    int ss = (*s=='-'?1:0);
 
     if (!csound->engineState.instrumentNames)
       return 0L;                              /* no named instruments defined */
     /* now find instrument */
-    inm = cs_hash_table_get(csound, csound->engineState.instrumentNames, s);
+    inm = cs_hash_table_get(csound, csound->engineState.instrumentNames, s+ss);
 
-    return (inm == NULL) ? 0L : inm->instno;
+    return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
 }
 
 /* convert opcode string argument to instrument number */
