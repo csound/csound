@@ -447,7 +447,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 	break;
       case 's':
 	s = (STRINGDAT *)p->arg[i];
-	bsize += s->size + 1;
+	bsize += s->size + 64;
         iarg++;
 	break;
       default:
@@ -456,7 +456,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     }
     }
     
-    bsize += (p->dest->size + p->type->size + 8);
+    bsize += (p->dest->size + p->type->size + 10);
     if (p->aux.auxp == NULL || bsize > p->aux.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, bsize, &p->aux);
@@ -488,13 +488,13 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
     memset(out,0,p->aux.size); 
     /* package destination in 4-byte zero-padded block */
      memcpy(out,p->dest->data,p->dest->size);
-    size = p->dest->size;
+    size = p->dest->size + 1;
     size = ceil(size/4.)*4;
     buffersize += size;
     /* package type in a 4-byte zero-padded block */
     out[buffersize] = ',';
     memcpy(out+buffersize+1,p->type->data,p->type->size);
-    size = p->type->size+1;
+    size = p->type->size+2;
     size = ceil(size/4.)*4;
     buffersize += size;
     /* add data to message */
