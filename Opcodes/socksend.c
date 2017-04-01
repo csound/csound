@@ -470,7 +470,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 char *byteswap(char *p, int N){
   char tmp;
   int j ;
-  for(int j = 0; j < N/2; j++) {
+  for(j = 0; j < N/2; j++) {
     tmp = p[j];  
     p[j] = p[N - j - 1];
     p[N - j - 1] = tmp;
