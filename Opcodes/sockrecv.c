@@ -295,12 +295,12 @@ static int send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     }
     len = strlen(&p->buf[p->outsamps]);
     //printf("len %d ans %s\n", len, &p->buf[p->outsamps]);
-    if (len>str->size) {
+    if (len>str->size) {        /* ensure enough space for result */
       str->data = csound->ReAlloc(csound, str->data, len+1);
       str->size  = len;
     }
     strncpy(str->data, &p->buf[p->outsamps], len+1);
-    p->outsamps += len+1;
+    p->outsamps += len+1;       /* Move bffer on */
     return OK;
 }
 
