@@ -283,6 +283,7 @@ endif(WIN32)
 
 if(APPLE)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
