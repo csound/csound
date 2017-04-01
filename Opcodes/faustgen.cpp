@@ -35,6 +35,7 @@
 
 */
 #include "csdl.h"
+#include <pthread.h>
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/UI.h"
 #if defined(MACOSX) || defined(linux) || defined(HAIKU)

@@ -29,8 +29,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#endif
 #include <unistd.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -81,148 +81,148 @@ typedef struct {
 /* UDP version one channel */
 static int init_send(CSOUND *csound, SOCKSEND *p)
 {
-  int     bsize;
-  int     bwidth = sizeof(MYFLT);
+    int     bsize;
+    int     bwidth = sizeof(MYFLT);
 #if defined(WIN32) && !defined(__CYGWIN__)
-  WSADATA wsaData = {0};
-  int err;
-  if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-    csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
-  p->ff = (int)(*p->format);
-  p->bsize = bsize = (int) *p->buffersize;
-  /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
-  /*   return csound->InitError(csound,
-       Str("The buffersize must be <= %d samples " */
-  /*                                        "to fit in a udp-packet."), */
-  /*                            (int) (MTU / sizeof(MYFLT))); */
-  /* } */
-  p->wp = 0;
+    p->ff = (int)(*p->format);
+    p->bsize = bsize = (int) *p->buffersize;
+    /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
+    /*   return csound->InitError(csound,
+         Str("The buffersize must be <= %d samples " */
+    /*                                        "to fit in a udp-packet."), */
+    /*                            (int) (MTU / sizeof(MYFLT))); */
+    /* } */
+    p->wp = 0;
 
-  p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-  if (UNLIKELY(p->sock < 0)) {
-    return csound->InitError(csound, Str("creating socket"));
-  }
-  /* create server address: where we want to send to and clear it out */
-  memset(&p->server_addr, 0, sizeof(p->server_addr));
-  p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (UNLIKELY(p->sock < 0)) {
+      return csound->InitError(csound, Str("creating socket"));
+    }
+    /* create server address: where we want to send to and clear it out */
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
 #if defined(WIN32) && !defined(__CYGWIN__)
-  p->server_addr.sin_addr.S_un.S_addr =
-    inet_addr((const char *) p->ipaddress->data);
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
 #else
-  inet_aton((const char *) p->ipaddress->data,
-	    &p->server_addr.sin_addr);    /* the server IP address */
+    inet_aton((const char *) p->ipaddress->data,
+              &p->server_addr.sin_addr);    /* the server IP address */
 #endif
-  p->server_addr.sin_port = htons((int) *p->port);    /* the port */
+    p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
-  if (p->ff) bwidth = sizeof(int16);
-  /* create a buffer to write the interleaved audio to  */
-  if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
-    /* allocate space for the buffer */
-    csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
-  else {
-    memset(p->aux.auxp, 0, bwidth * bsize);
-  }
-  p->bwidth = bwidth;
-  return OK;
+    if (p->ff) bwidth = sizeof(int16);
+    /* create a buffer to write the interleaved audio to  */
+    if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
+    else {
+      memset(p->aux.auxp, 0, bwidth * bsize);
+    }
+    p->bwidth = bwidth;
+    return OK;
 }
 
 static int send_send(CSOUND *csound, SOCKSEND *p)
 {
-  const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t i, nsmps = CS_KSMPS;
-  int     wp;
-  int     buffersize = p->bsize;
-  MYFLT   *asig = p->asig;
-  MYFLT   *out = (MYFLT *) p->aux.auxp;
-  int16   *outs = (int16 *) p->aux.auxp;
-  int     ff = p->ff;
+    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, nsmps = CS_KSMPS;
+    int     wp;
+    int     buffersize = p->bsize;
+    MYFLT   *asig = p->asig;
+    MYFLT   *out = (MYFLT *) p->aux.auxp;
+    int16   *outs = (int16 *) p->aux.auxp;
+    int     ff = p->ff;
 
-  if (UNLIKELY(early)) nsmps -= early;
-  for (i = offset, wp = p->wp; i < nsmps; i++, wp++) {
-    if (wp == buffersize) {
-      /* send the package when we have a full buffer */
-      if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-			  sizeof(p->server_addr)) < 0)) {
-	return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+    if (UNLIKELY(early)) nsmps -= early;
+    for (i = offset, wp = p->wp; i < nsmps; i++, wp++) {
+      if (wp == buffersize) {
+        /* send the package when we have a full buffer */
+        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
+                            sizeof(p->server_addr)) < 0)) {
+          return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+        }
+        wp = 0;
       }
-      wp = 0;
+      if (ff) { // Scale for 0dbfs and make LE
+        int16 val = (int16)((32768.0*asig[i])/csound->e0dbfs);
+        union cheat {
+          char  benchar[2];
+          int16 bensht;
+        } ch;
+        ch.benchar[0] = 0xFF & val;
+        ch.benchar[1] = 0xFF & (val >> 8);
+        outs[wp] = ch.bensht;
+      }
+      else
+        out[wp] = asig[i];
     }
-    if (ff) { // Scale for 0dbfs and make LE
-      int16 val = (int16)((32768.0*asig[i])/csound->e0dbfs);
-      union cheat {
-	char  benchar[2];
-	int16 bensht;
-      } ch;
-      ch.benchar[0] = 0xFF & val;
-      ch.benchar[1] = 0xFF & (val >> 8);
-      outs[wp] = ch.bensht;
-    }
-    else
-      out[wp] = asig[i];
-  }
-  p->wp = wp;
+    p->wp = wp;
 
-  return OK;
+    return OK;
 }
 
 static int send_send_k(CSOUND *csound, SOCKSEND *p)
 {
-  const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-  int     buffersize = p->bsize;
-  MYFLT   *ksig = p->asig;
-  MYFLT   *out = (MYFLT *) p->aux.auxp;
-  int16   *outs = (int16 *) p->aux.auxp;
-  int     ff = p->ff;
+    int     buffersize = p->bsize;
+    MYFLT   *ksig = p->asig;
+    MYFLT   *out = (MYFLT *) p->aux.auxp;
+    int16   *outs = (int16 *) p->aux.auxp;
+    int     ff = p->ff;
 
 
-  if (p->wp == buffersize) {
-    /* send the package when we have a full buffer */
-    if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-			sizeof(p->server_addr)) < 0)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+    if (p->wp == buffersize) {
+      /* send the package when we have a full buffer */
+      if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
+                          sizeof(p->server_addr)) < 0)) {
+        return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+      }
+      p->wp = 0;
     }
-    p->wp = 0;
-  }
-  if (ff) { // Scale for 0dbfs and make LE
-    int16 val = (int16)((32768.0* (*ksig))/csound->e0dbfs);
-    union cheat {
-      char  benchar[2];
-      int16 bensht;
-    } ch;
-    ch.benchar[0] = 0xFF & val;
-    ch.benchar[1] = 0xFF & (val >> 8);
-    outs[p->wp] = ch.bensht;
-  }
-  else out[p->wp++] = *ksig;
+    if (ff) { // Scale for 0dbfs and make LE
+      int16 val = (int16)((32768.0* (*ksig))/csound->e0dbfs);
+      union cheat {
+        char  benchar[2];
+        int16 bensht;
+      } ch;
+      ch.benchar[0] = 0xFF & val;
+      ch.benchar[1] = 0xFF & (val >> 8);
+      outs[p->wp] = ch.bensht;
+    }
+    else out[p->wp++] = *ksig;
 
-  return OK;
+    return OK;
 }
 
 static int send_send_Str(CSOUND *csound, SOCKSENDT *p)
 {
-  const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-  int     buffersize = p->bsize;
-  char    *out = (char *) p->aux.auxp;
-  char    *q = p->str->data;
-  int     len = p->str->size;
+    int     buffersize = p->bsize;
+    char    *out = (char *) p->aux.auxp;
+    char    *q = p->str->data;
+    int     len = p->str->size;
 
-  if (len>=buffersize) {
-    csound->Warning(csound, Str("string truncated in socksend"));
-    len = buffersize-1;
-  }
-  memcpy(out, q, len);
-  memset(out+len, 0, buffersize-len);
-  /* send the package with the string each time */
-  if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
-		      sizeof(p->server_addr)) < 0)) {
-    return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
-  }
-  return OK;
+    if (len>=buffersize) {
+      csound->Warning(csound, Str("string truncated in socksend"));
+      len = buffersize-1;
+    }
+    memcpy(out, q, len);
+    memset(out+len, 0, buffersize-len);
+    /* send the package with the string each time */
+    if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
+                        sizeof(p->server_addr)) < 0)) {
+      return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+    }
+    return OK;
 }
 
 
@@ -230,172 +230,172 @@ static int send_send_Str(CSOUND *csound, SOCKSENDT *p)
 /* UDP version 2 channels */
 static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
-  int     bsize;
-  int     bwidth = sizeof(MYFLT);
+    int     bsize;
+    int     bwidth = sizeof(MYFLT);
 #if defined(WIN32) && !defined(__CYGWIN__)
-  WSADATA wsaData = {0};
-  int err;
-  if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-    csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
-  p->ff = (int)(*p->format);
-  p->bsize = bsize = (int) *p->buffersize;
-  /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
-  /*   return csound->InitError(csound,
-       Str("The buffersize must be <= %d samples " */
-  /*                                        "to fit in a udp-packet."), */
-  /*                            (int) (MTU / sizeof(MYFLT))); */
-  /* } */
-  p->wp = 0;
+    p->ff = (int)(*p->format);
+    p->bsize = bsize = (int) *p->buffersize;
+    /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
+    /*   return csound->InitError(csound,
+         Str("The buffersize must be <= %d samples " */
+    /*                                        "to fit in a udp-packet."), */
+    /*                            (int) (MTU / sizeof(MYFLT))); */
+    /* } */
+    p->wp = 0;
 
-  p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-  if (UNLIKELY(p->sock < 0)) {
-    return csound->InitError(csound, Str("creating socket"));
-  }
-  /* create server address: where we want to send to and clear it out */
-  memset(&p->server_addr, 0, sizeof(p->server_addr));
-  p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (UNLIKELY(p->sock < 0)) {
+      return csound->InitError(csound, Str("creating socket"));
+    }
+    /* create server address: where we want to send to and clear it out */
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
 #if defined(WIN32) && !defined(__CYGWIN__)
-  p->server_addr.sin_addr.S_un.S_addr =
-    inet_addr((const char *) p->ipaddress->data);
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
 #else
-  inet_aton((const char *) p->ipaddress->data,
-	    &p->server_addr.sin_addr);    /* the server IP address */
+    inet_aton((const char *) p->ipaddress->data,
+              &p->server_addr.sin_addr);    /* the server IP address */
 #endif
-  p->server_addr.sin_port = htons((int) *p->port);    /* the port */
+    p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
-  if (p->ff) bwidth = sizeof(int16);
-  /* create a buffer to write the interleaved audio to */
-  if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
-    /* allocate space for the buffer */
-    csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
-  else {
-    memset(p->aux.auxp, 0, bwidth * bsize);
-  }
-  p->bwidth = bwidth;
-  return OK;
+    if (p->ff) bwidth = sizeof(int16);
+    /* create a buffer to write the interleaved audio to */
+    if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
+    else {
+      memset(p->aux.auxp, 0, bwidth * bsize);
+    }
+    p->bwidth = bwidth;
+    return OK;
 }
 
 static int send_sendS(CSOUND *csound, SOCKSENDS *p)
 {
-  const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-  MYFLT   *asigl = p->asigl;
-  MYFLT   *asigr = p->asigr;
-  MYFLT   *out = (MYFLT *) p->aux.auxp;
-  int16   *outs = (int16 *) p->aux.auxp;
-  int     wp;
-  int     buffersize = p->bsize;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t i, nsmps = CS_KSMPS;
-  int     ff = p->ff;
+    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+    MYFLT   *asigl = p->asigl;
+    MYFLT   *asigr = p->asigr;
+    MYFLT   *out = (MYFLT *) p->aux.auxp;
+    int16   *outs = (int16 *) p->aux.auxp;
+    int     wp;
+    int     buffersize = p->bsize;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, nsmps = CS_KSMPS;
+    int     ff = p->ff;
 
-  if (UNLIKELY(early)) nsmps -= early;
-  /* store the samples of the channels interleaved in the packet */
-  /* (left, right) */
-  for (i = offset, wp = p->wp; i < nsmps; i++, wp += 2) {
-    if (wp == buffersize) {
-      /* send the package when we have a full buffer */
-      if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
-			  sizeof(p->server_addr)) < 0)) {
-	return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+    if (UNLIKELY(early)) nsmps -= early;
+    /* store the samples of the channels interleaved in the packet */
+    /* (left, right) */
+    for (i = offset, wp = p->wp; i < nsmps; i++, wp += 2) {
+      if (wp == buffersize) {
+        /* send the package when we have a full buffer */
+        if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
+                            sizeof(p->server_addr)) < 0)) {
+          return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+        }
+        wp = 0;
       }
-      wp = 0;
-    }
-    if (ff) { // Scale for 0dbfs and make LE
-      int16 val = 0x8000*(asigl[i]/csound->e0dbfs);
-      union {
-	char  benchar[2];
-	int16 bensht;
-      } ch;
+      if (ff) { // Scale for 0dbfs and make LE
+        int16 val = 0x8000*(asigl[i]/csound->e0dbfs);
+        union {
+          char  benchar[2];
+          int16 bensht;
+        } ch;
 
-      ch.benchar[0] = 0xFF & val;
-      ch.benchar[1] = 0xFF & (val >> 8);
-      outs[wp] = ch.bensht;
-      val = 0x8000*(asigl[i+1]/csound->e0dbfs);
-      ch.benchar[0] = 0xFF & val;
-      ch.benchar[1] = 0xFF & (val >> 8);
-      outs[wp + 1] = ch.bensht;
+        ch.benchar[0] = 0xFF & val;
+        ch.benchar[1] = 0xFF & (val >> 8);
+        outs[wp] = ch.bensht;
+        val = 0x8000*(asigl[i+1]/csound->e0dbfs);
+        ch.benchar[0] = 0xFF & val;
+        ch.benchar[1] = 0xFF & (val >> 8);
+        outs[wp + 1] = ch.bensht;
+      }
+      else {
+        out[wp] = asigl[i];
+        out[wp + 1] = asigr[i];
+      }
     }
-    else {
-      out[wp] = asigl[i];
-      out[wp + 1] = asigr[i];
-    }
-  }
-  p->wp = wp;
+    p->wp = wp;
 
-  return OK;
+    return OK;
 }
 
 /* TCP version */
 static int init_ssend(CSOUND *csound, SOCKSEND *p)
 {
 #if defined(WIN32) && !defined(__CYGWIN__)
-  WSADATA wsaData = {0};
-  int err;
-  if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-    csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
-  /* create a STREAM (TCP) socket in the INET (IP) protocol */
-  p->sock = socket(PF_INET, SOCK_STREAM, 0);
+    /* create a STREAM (TCP) socket in the INET (IP) protocol */
+    p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
-  if (UNLIKELY(p->sock < 0)) {
-    return csound->InitError(csound, Str("creating socket"));
-  }
+    if (UNLIKELY(p->sock < 0)) {
+      return csound->InitError(csound, Str("creating socket"));
+    }
 
-  /* create server address: where we want to connect to */
+    /* create server address: where we want to connect to */
 
-  /* clear it out */
-  memset(&(p->server_addr), 0, sizeof(p->server_addr));
+    /* clear it out */
+    memset(&(p->server_addr), 0, sizeof(p->server_addr));
 
-  /* it is an INET address */
-  p->server_addr.sin_family = AF_INET;
+    /* it is an INET address */
+    p->server_addr.sin_family = AF_INET;
 
-  /* the server IP address, in network byte order */
+    /* the server IP address, in network byte order */
 #if defined(WIN32) && !defined(__CYGWIN__)
-  p->server_addr.sin_addr.S_un.S_addr =
-    inet_addr((const char *) p->ipaddress->data);
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
 #else
-  inet_aton((const char *) p->ipaddress->data, &(p->server_addr.sin_addr));
+    inet_aton((const char *) p->ipaddress->data, &(p->server_addr.sin_addr));
 #endif
 
-  /* the port we are going to listen on, in network byte order */
-  p->server_addr.sin_port = htons((int) *p->port);
+    /* the port we are going to listen on, in network byte order */
+    p->server_addr.sin_port = htons((int) *p->port);
 
  again:
-  if (connect(p->sock, (struct sockaddr *) &p->server_addr,
-	      sizeof(p->server_addr)) < 0) {
+    if (connect(p->sock, (struct sockaddr *) &p->server_addr,
+                sizeof(p->server_addr)) < 0) {
 #ifdef ECONNREFUSED
-    if (errno == ECONNREFUSED)
-      goto again;
+      if (errno == ECONNREFUSED)
+        goto again;
 #endif
-    return csound->InitError(csound, Str("connect failed (%d)"), errno);
-  }
+      return csound->InitError(csound, Str("connect failed (%d)"), errno);
+    }
 
-  return OK;
+    return OK;
 }
 
 static int send_ssend(CSOUND *csound, SOCKSEND *p)
 {
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
 
-  if (n != write(p->sock, &p->asig[offset], n)) {
-    csound->Message(csound, Str("Expected %d got %d\n"),
-		    (int) (sizeof(MYFLT) * CS_KSMPS), n);
-    return csound->PerfError(csound, p->h.insdshead,
-			     Str("write to socket failed"));
-  }
+    if (n != write(p->sock, &p->asig[offset], n)) {
+      csound->Message(csound, Str("Expected %d got %d\n"),
+                      (int) (sizeof(MYFLT) * CS_KSMPS), n);
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("write to socket failed"));
+    }
 
-  return OK;
+    return OK;
 }
 
 
 typedef struct {
-  OPDS h;             
+  OPDS h;
   MYFLT *kwhen;
   STRINGDAT *ipaddress;
   MYFLT *port;        /* UDP port */
@@ -411,30 +411,30 @@ typedef struct {
 
 static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
-  unsigned int     bsize;
-  if(p->INOCOUNT < (unsigned int) p->type->size + 4)
-    return csound->InitError(csound,
-			     "insufficient number of arguments for OSC message types\n");
-    
+    unsigned int     bsize;
+    if(p->INOCOUNT < (unsigned int) p->type->size + 4)
+      return csound->InitError(csound,
+                               "insufficient number of arguments for OSC message types\n");
+
 #if defined(WIN32) && !defined(__CYGWIN__)
-  WSADATA wsaData = {0};
-  int err;
-  if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-    csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
-  p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-  if (UNLIKELY(p->sock < 0)) {
-    return csound->InitError(csound, Str("creating socket"));
-  }
-  /* create server address: where we want to send to and clear it out */
-  memset(&p->server_addr, 0, sizeof(p->server_addr));
-  p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (UNLIKELY(p->sock < 0)) {
+      return csound->InitError(csound, Str("creating socket"));
+    }
+    /* create server address: where we want to send to and clear it out */
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
 #if defined(WIN32) && !defined(__CYGWIN__)
-  p->server_addr.sin_addr.S_un.S_addr =
-    inet_addr((const char *) p->ipaddress->data);
+    p->server_addr.sin_addr.S_un.S_addr =
+      inet_addr((const char *) p->ipaddress->data);
 #else
-  inet_aton((const char *) p->ipaddress->data,
-	    &p->server_addr.sin_addr);    /* the server IP address */
+    inet_aton((const char *) p->ipaddress->data,
+              &p->server_addr.sin_addr);    /* the server IP address */
 #endif
   p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
@@ -481,21 +481,21 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 }
 
 static char *byteswap(char *p, int N){
-  char tmp;
-  int j ;
-  for(j = 0; j < N/2; j++) {
-    tmp = p[j];  
-    p[j] = p[N - j - 1];
-    p[N - j - 1] = tmp;
-  }
-  return p;
+    char tmp;
+    int j ;
+    for(j = 0; j < N/2; j++) {
+      tmp = p[j];
+      p[j] = p[N - j - 1];
+      p[N - j - 1] = tmp;
+    }
+    return p;
 }
 
 static int osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
-  if(*p->kwhen != p->last) {
-    const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-
+    if(*p->kwhen != p->last) {
+      const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+      
     int buffersize = 0, size, i, bsize = p->aux.size;
     char *out = (char *) p->aux.auxp;
 
@@ -589,14 +589,13 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
 	break;
       }
     }
-    
-    if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
-			sizeof(p->server_addr)) < 0)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("OSCsend2 failed"));
+      if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
+                          sizeof(p->server_addr)) < 0)) {
+        return csound->PerfError(csound, p->h.insdshead, Str("OSCsend2 failed"));
+      }
+      p->last = *p->kwhen;
     }
-    p->last = *p->kwhen;
-  }
-  return OK;
+    return OK;
 }
 
 
@@ -616,7 +615,8 @@ static OENTRY socksend_localops[] = {
     (SUBR) send_sendS },
   { "stsend", S(SOCKSEND), 0, 5, "", "aSi", (SUBR) init_ssend, NULL,
     (SUBR) send_ssend },
-  { "OSCsend2", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init, (SUBR)osc_send2 }
+  { "OSCsend2", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init,
+    (SUBR)osc_send2 }
 };
 
 LINKAGE_BUILTIN(socksend_localops)

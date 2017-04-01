@@ -26,7 +26,6 @@
 /* Realtime MIDI using Portmidi library */
 
 #include "csdl.h"                               /*      PMIDI.C         */
-#include "csGblMtx.h"
 #include "midiops.h"
 #include <portmidi.h>
 #include <porttime.h>
@@ -130,18 +129,18 @@ static int stop_portmidi(CSOUND *csound, void *userData)
 {
     (void) csound;
     (void) userData;
-#if !defined(WIN32)
-    csound_global_mutex_lock();
-#endif
+    //#if !defined(WIN32)
+    //csoundLock();
+    //#endif
     if (portmidi_init_cnt) {
       if (--portmidi_init_cnt == 0UL) {
         Pm_Terminate();
         Pt_Stop();
       }
     }
-#if !defined(WIN32)
-    csound_global_mutex_unlock();
-#endif
+    //#if !defined(WIN32)
+    //csoundUnLock();
+    //#endif
     return 0;
 }
 
@@ -149,9 +148,9 @@ static int start_portmidi(CSOUND *csound)
 {
     const char  *errMsg = NULL;
 
-#if !defined(WIN32)
-    csound_global_mutex_lock();
-#endif
+    //#if !defined(WIN32)
+    //csoundLock();
+    //#endif
     if (!portmidi_init_cnt) {
       if (UNLIKELY(Pm_Initialize() != pmNoError))
         errMsg = Str(" *** error initialising PortMIDI");
@@ -161,9 +160,9 @@ static int start_portmidi(CSOUND *csound)
 
     if (errMsg == NULL)
       portmidi_init_cnt++;
-#if !defined(WIN32)
-    csound_global_mutex_unlock();
-#endif
+    //#if !defined(WIN32)
+    //csoundUnLock();
+    //#endif
     if (UNLIKELY(errMsg != NULL)) {
       csound->ErrorMsg(csound, Str(errMsg));
       return -1;

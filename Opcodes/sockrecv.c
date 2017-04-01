@@ -22,13 +22,13 @@
 */
 
 #include "csoundCore.h"
-#include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

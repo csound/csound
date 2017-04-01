@@ -35,7 +35,6 @@
 
 #include "csdl.h"
 #include "fluidOpcodes.h"
-#include "csGblMtx.h"
 #include "OpcodeBase.hpp"
 
 #include <map>
