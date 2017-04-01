@@ -194,7 +194,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
       int extralloc = STA(Linep) + size - STA(Linebufend);
       // csound->Message(csound, "extralloc: %d %d %d\n",
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
-      // FIXME -- Coverity points out that this test isalways false
+      // FIXME -- Coverity points out that this test is always false
       // and n is never used
 #if 0
       if ((n=linevent_alloc(csound, (STA(linebufsiz) + extralloc) ), 0) != 0) {
