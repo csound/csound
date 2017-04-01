@@ -40,8 +40,15 @@ int csp_thread_index_get(CSOUND *csound)
     }
 
     while (current != NULL) {
-      if (UNLIKELY(pthread_equal(*(pthread_t *)threadId,
-                                 *(pthread_t *)current->threadId))) {
+    // PTHREAD: this should be a class in threads.c to abstract this away
+#ifndef WIN32
+      if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId)) {
+#else
+      // FIXME not entirely sure what this should be...
+      //if ((DWORD)csoundGetCurrentThreadId () == (DWORD)threadId)
+      /*if ((DWORD)current->threadId == (DWORD)threadId) {*/
+      if (current->threadId == threadId) {
+#endif
         free(threadId);
         return index;
       }
@@ -134,7 +141,7 @@ int barrier_wait(barrier_t *b)
 /***********************************************************************
  * parallel primitives
  */
-void csp_barrier_alloc(CSOUND *csound, pthread_barrier_t **barrier,
+void csp_barrier_alloc(CSOUND *csound, void **barrier,
                        int thread_count)
 {
     if (UNLIKELY(barrier == NULL))
@@ -142,21 +149,21 @@ void csp_barrier_alloc(CSOUND *csound, pthread_barrier_t **barrier,
     if (UNLIKELY(thread_count < 1))
       csound->Die(csound, Str("Invalid Parameter thread_count must be > 0"));
 
-    *barrier = (pthread_barrier_t *)csound->Malloc(csound,
-                                                   sizeof(pthread_barrier_t));
+    *barrier = csound->CreateBarrier(thread_count);
     if (UNLIKELY(*barrier == NULL)) {
         csound->Die(csound, Str("Failed to allocate barrier"));
     }
-    pthread_barrier_init(*barrier, NULL, thread_count);
 }
 
-void csp_barrier_dealloc(CSOUND *csound, pthread_barrier_t **barrier)
+// PTHREAD: change
+void csp_barrier_dealloc(CSOUND *csound, void **barrier)
 {
     if (UNLIKELY(barrier == NULL || *barrier == NULL))
       csound->Die(csound, Str("Invalid NULL Parameter barrier"));
 
-    pthread_barrier_destroy(*barrier);
+    csound->DestroyBarrier(*barrier);
 }
+
 
 /***********************************************************************
  * semaphore
@@ -569,7 +576,8 @@ inline int csp_set_count(struct set_t *set)
 }
 
 /* 0 indexed */
-inline int csp_set_get_num(struct set_t *set, int num, void **data)
+// FIXME inlining breaks linkage for MSVC
+/*inline*/ int csp_set_get_num(struct set_t *set, int num, void **data)
 {
 #ifdef SET_DEBUG
     if (UNLIKELY(set == NULL))

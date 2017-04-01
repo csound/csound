@@ -15,8 +15,10 @@ endif()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
+if(NOT MSVC)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
 set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+endif()
 
 # Project definitions
 set(APIVERSION "6.0")
@@ -223,6 +225,10 @@ if(WIN32 AND NOT MSVC)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
+if(MSVC) 
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/msvc/include)
+endif()
+
 if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
@@ -262,11 +268,15 @@ if(WIN32)
         ws2_32
         wsock32)
 
-if(NOT MSVC)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
-set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
+if(MSVC)
+  # Experimented with flags but did not make change performance results
+  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
+else()
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
+  set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
 endif()
 
 endif(WIN32)
@@ -464,22 +474,19 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-find_library(PTHREAD_LIBRARY winpthread-1)
+if(NOT MSVC)
+  find_library(PTHREAD_LIBRARY pthread)
 
-if(NOT PTHREAD_LIBRARY)
-    find_library(PTHREAD_LIBRARY pthread)
+  if(NOT PTHREAD_LIBRARY)
+      message(FATAL_ERROR "Csound requires the pthread library")
+  endif()
+
+  set(CMAKE_REQUIRED_INCLUDES pthread.h)
+  set(CMAKE_REQUIRED_LIBRARIES pthread)
+
+  set(libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
 
-if(NOT PTHREAD_LIBRARY AND WIN32)
-    find_library(PTHREAD_LIBRARY pthreadGC2)
-endif()
-
-if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
-    message(FATAL_ERROR "Csound requires the pthread library")
-endif()
-
-set(CMAKE_REQUIRED_INCLUDES pthread.h)
-set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 # Now, non required library searches #
 
@@ -561,16 +568,19 @@ include_directories(./)
 
 #checking pthread functions
 if(PTHREAD_LIBRARY)
-check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
-check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
 
-if(PTHREAD_SPIN_LOCK_EXISTS)
-   list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_SPIN_LOCK)
-endif()
+  list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
 
-if(PTHREAD_BARRIER_INIT_EXISTS)
-   list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
-endif()
+  check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
+  check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
+
+  if(PTHREAD_SPIN_LOCK_EXISTS)
+     list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_SPIN_LOCK)
+  endif()
+
+  if(PTHREAD_BARRIER_INIT_EXISTS)
+     list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
+  endif()
 endif()
 
 
@@ -886,6 +896,13 @@ set_source_files_properties(${YACC_OUTH} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
 set_source_files_properties(${PRELEX_OUT} GENERATED)
 
+if(MSVC) 
+  set_source_files_properties(${LEX_OUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+  set_source_files_properties(${PRELEX_OUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+endif()
+
 # Handling New Score Parser
 
 ##list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
@@ -929,6 +946,10 @@ list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
 #set_source_files_properties(${YACC_SCOOUT} GENERATED)
 #set_source_files_properties(${LEX_SCOOUT} GENERATED)
 set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
+if(MSVC) 
+  set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
@@ -1094,13 +1115,9 @@ endif()
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
-  set(libcsound_LIBS
-    ${LIBSNDFILE_LIBRARY})
-else()
-  set(libcsound_LIBS
-    ${LIBSNDFILE_LIBRARY}
-    ${PTHREAD_LIBRARY})
 endif()
+
+set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")

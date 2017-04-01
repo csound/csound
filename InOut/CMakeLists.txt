@@ -109,9 +109,16 @@ endif()
 
 if(WIN32)
     message(STATUS "Building Windows MME plugin(rtwinmm).")
-    set(rtwinmm_LIBS
-        winmm gdi32 kernel32) # should probably do checks for these libs
-    make_plugin(rtwinmm rtwinmm.c "${rtwinmm_LIBS}")
+    if(MSVC)
+      make_plugin(rtwinmm rtwinmm.c)
+      target_link_libraries(rtwinmm winmm.lib)
+      target_link_libraries(rtwinmm gdi32)
+      target_link_libraries(rtwinmm kernel32)
+    else()
+      set(rtwinmm_LIBS
+          winmm gdi32 kernel32) # should probably do checks for these libs
+      make_plugin(rtwinmm rtwinmm.c "${rtwinmm_LIBS}")
+    endif()
 endif()
 
 
@@ -132,11 +139,9 @@ if(USE_PORTAUDIO AND PORTAUDIO_V19 MATCHES 1)
     if(BUILD_STATIC_LIBRARY)
         if(WIN32)
             set_source_files_properties(rtpa.c PROPERTIES LANGUAGE CXX)
-            add_library(pthread3 STATIC IMPORTED)
-            set_target_properties(pthread3 PROPERTIES IMPORTED_LOCATION ${PTHREAD_LIBRARY})
-            target_link_libraries(rtpa portaudio pthread3 winmm dsound setupapi ${CSOUND_WINDOWS_LIBRARIES})
+            target_link_libraries(rtpa portaudio winmm dsound setupapi ${CSOUND_WINDOWS_LIBRARIES})
         else()
-            target_link_libraries(rtpa ${PORTAUDIO_LIBRARY} ${PTHREAD_LIBRARY})
+            target_link_libraries(rtpa ${PORTAUDIO_LIBRARY})
         endif()
     else()
       target_link_libraries(rtpa ${PTHREAD_LIBRARY} portaudio)

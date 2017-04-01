@@ -112,7 +112,7 @@
 extern "C" {
 #endif
   void init_getstring(void*);
-  char *csoundLocalizeString(const char *s)
+  PUBLIC char *csoundLocalizeString(const char *s)
      __attribute__ ((format (printf, 1,0)));
   PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts);
   PUBLIC double cs_strtod(char* nptr, char** endptr);

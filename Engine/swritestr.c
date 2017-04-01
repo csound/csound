@@ -95,6 +95,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
       isntAfunc = 0;
     case 'q':
     case 'i':
+    case 'd':
     case 'a':
       corfile_putc(c, sco);
       corfile_putc(*p++, sco);

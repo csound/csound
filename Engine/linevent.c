@@ -24,6 +24,10 @@
 #include "csoundCore.h"     /*                              LINEVENT.C      */
 #include <ctype.h>
 
+#ifdef MSVC
+#include <fcntl.h>
+#endif
+
 #include "linevent.h"
 
 #ifdef PIPES
@@ -86,9 +90,6 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     }
 #endif
 #define MODE ,0
-#if defined(MSVC)
-#define O_RDONLY _O_RDONLY
-#endif
     else
       if (UNLIKELY((csound->Linefd=open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
         csoundDie(csound, Str("Cannot open %s"), O->Linename);
@@ -193,7 +194,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
       int extralloc = STA(Linep) + size - STA(Linebufend);
       // csound->Message(csound, "extralloc: %d %d %d\n",
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
-      // FIXME -- Coverity points out that this test isalways false
+      // FIXME -- Coverity points out that this test is always false
       // and n is never used
 #if 0
       if ((n=linevent_alloc(csound, (STA(linebufsiz) + extralloc) ), 0) != 0) {

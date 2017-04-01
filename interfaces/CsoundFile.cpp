@@ -22,6 +22,7 @@
 #endif
 #include "CsoundFile.hpp"
 #if !defined(__ANDROID__)
+// FIXME Cmake didn't throw an error on missing dependency boost but build fails here
 #include <boost/algorithm/string.hpp>
 #endif
 #include <string.h>
