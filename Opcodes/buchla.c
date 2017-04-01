@@ -23,6 +23,10 @@
 
                                                         /* buchla.c */
 #include "csdl.h"
+#ifdef MSVC
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
 
 #define clip(a,b,c) (a<b ? b : a>c ? c : a)
 

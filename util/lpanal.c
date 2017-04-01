@@ -680,9 +680,9 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 #ifdef TRACE_FILTER
           csound->Message(csound, "filterCoef: %f\n", filterCoef[i]);
 #endif
-          if (filterCoef[i]-polyReal[poleCount-i]>1e-10)
+          if (filterCoef[i]-polyReal[lpc.poleCount-i]>1e-10)
             csound->Message(csound, Str("Error in coef %d : %f <> %f \n"),
-                                    i, filterCoef[i], polyReal[poleCount-i]);
+                                    i, filterCoef[i], polyReal[lpc.poleCount-i]);
         }
         csound->Message(csound,".");
         InvertPoles(lpc.poleCount,polePart1,polePart2);

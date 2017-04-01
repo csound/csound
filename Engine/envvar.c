@@ -1018,12 +1018,12 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     if (env == NULL) {
 #if defined(WIN32)
       /* To handle Widows errors in file name characters. */
-      size_t sz = MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, 0);
+      size_t sz = 2 * MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, 0);
       wchar_t *wfname = alloca(sz);
       wchar_t *wmode = 0;
 
       MultiByteToWideChar(CP_UTF8, 0, name, -1, wfname, sz);
-      sz = MultiByteToWideChar(CP_UTF8, 0, param, -1, NULL, 0);
+      sz = 2 * MultiByteToWideChar(CP_UTF8, 0, param, -1, NULL, 0);
       wmode = alloca(sz);
       MultiByteToWideChar(CP_UTF8, 0, param, -1, wmode, sz);
       if (type == CSFILE_STD) {
