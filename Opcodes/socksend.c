@@ -518,8 +518,10 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
 	break;
       case 's':
 	s = (STRINGDAT *)p->arg[i];
+        size = s->size + 1;
+        size = ceil(size/4.)*4;
 	memcpy(out+buffersize, s->data, s->size+1);
-        buffersize += size+1;
+        buffersize += size;
 	break;
       default:
 	/*memcpy(out+buffersize,p->arg[i], 8);
