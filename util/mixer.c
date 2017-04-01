@@ -387,7 +387,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     csound->SetUtilSr(csound, (MYFLT)mixin[0].p->sr);
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.frames = -1;
-    sfinfo.samplerate = (int) MYFLT2LRND((MYFLT) mixin[0].p->sr);
+    sfinfo.samplerate = mixin[0].p->sr;
     sfinfo.channels /*= csound->nchnls*/ = (int) mixin[0].p->nchanls;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     if (strcmp(O.outfilename, "stdout") == 0) {
