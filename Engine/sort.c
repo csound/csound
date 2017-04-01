@@ -241,6 +241,7 @@ void sort(CSOUND *csound)
     do {
       n++;                      /* Need to count to alloc the array */
       switch (bp->text[0]) {
+      case 'd':
       case 'i':
         if (bp->insno < 0)
           bp->preced = 'b';

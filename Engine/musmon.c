@@ -988,6 +988,7 @@ int sensevents(CSOUND *csound)
           continue;                           /*   for this section     */
         case 'q':
         case 'i':
+        case 'd':
         case 'f':
         case 'a':
           csound->nxtim = (double) e->p[2] + csound->timeOffs;
@@ -1212,73 +1213,85 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
 
     /* check for required p-fields */
     switch (evt->opcod) {
-      case 'f':
-        if (UNLIKELY((evt->pcnt < 4) && (p[1]>0)))
-          goto pfld_err;
-        goto cont;
-      case 'i':
-      case 'q':
-      case 'a':
-        if (UNLIKELY(evt->pcnt < 3))
-          goto pfld_err;
+    case 'f':
+      if (UNLIKELY((evt->pcnt < 4) && (p[1]>0)))
+        goto pfld_err;
+      goto cont;
+    case 'i':
+    case 'q':
+    case 'a':
+      if (UNLIKELY(evt->pcnt < 3))
+        goto pfld_err;
+    case 'd':
     cont:
-        /* calculate actual start time in seconds and k-periods */
-        start_time = (double) p[2] + (double)time_ofs/csound->esr;
-        start_kcnt = time2kcnt(csound, start_time);
-        /* correct p2 value for section offset */
-        p[2] = (MYFLT) (start_time - st->timeOffs);
-        if (p[2] < FL(0.0))
-          p[2] = FL(0.0);
-        /* start beat: this is possibly wrong */
-        evt->p2orig = (MYFLT) (((start_time - st->icurTime/st->esr) /
-                                st->ibeatTime)
-                               + (st->curBeat - st->beatOffs));
-        if (evt->p2orig < FL(0.0))
-          evt->p2orig = FL(0.0);
-        evt->p3orig = p[3];
-        break;
-      default:
-        start_kcnt = 0UL;   /* compiler only */
+      /* calculate actual start time in seconds and k-periods */
+      start_time = (double) p[2] + (double)time_ofs/csound->esr;
+      start_kcnt = time2kcnt(csound, start_time);
+      /* correct p2 value for section offset */
+      p[2] = (MYFLT) (start_time - st->timeOffs);
+      if (p[2] < FL(0.0))
+        p[2] = FL(0.0);
+      /* start beat: this is possibly wrong */
+      evt->p2orig = (MYFLT) (((start_time - st->icurTime/st->esr) /
+                              st->ibeatTime)
+                             + (st->curBeat - st->beatOffs));
+      if (evt->p2orig < FL(0.0))
+        evt->p2orig = FL(0.0);
+      evt->p3orig = p[3];
+      break;
+    default:
+      start_kcnt = 0UL;   /* compiler only */
     }
 
     switch (evt->opcod) {
-      case 'i':                         /* note event */
-        /* calculate the length in beats */
-        if (evt->p3orig > FL(0.0))
-          evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
-        /* fall through required */
-      case 'q':                         /* mute instrument */
-        /* check for a valid instrument number or name */
-        if (evt->strarg != NULL && csound->ISSTRCOD(p[1]))
+    case 'i':                         /* note event */
+    case 'd':
+      /* calculate the length in beats */
+      if (evt->p3orig > FL(0.0))
+        evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
+      /* fall through required */
+    case 'q':                         /* mute instrument */
+      /* check for a valid instrument number or name */
+      if (evt->opcod=='d') {
+        if (evt->strarg != NULL && csound->ISSTRCOD(p[1])){
           i = (int) named_instr_find(csound, evt->strarg);
-        else
-          i = (int) fabs((double) p[1]);
-        if (UNLIKELY((unsigned int) (i - 1) >=
-                     (unsigned int) csound->engineState.maxinsno ||
-                     csound->engineState.instrtxtp[i] == NULL)) {
-          csoundMessage(csound, Str("insert_score_event(): invalid instrument "
-                                    "number or name %d\n" ), i);
-          goto err_return;
+          p[1] = -i;
         }
-        break;
-      case 'a':                         /* advance score time */
-        /* calculate the length in beats */
-        evt->p3orig = (MYFLT) ((double) evt->p3orig *csound->esr/ st->ibeatTime);
-      case 'f':                         /* function table */
-        break;
-      case 'e':                         /* end of score, */
-      case 'l':                         /*   lplay list, */
-      case 's':                         /*   section:    */
-        start_time = (double)time_ofs/csound->esr;
-        if (evt->pcnt >= 2)
-          start_time += (double) p[2];
-        evt->pcnt = 0;
-        start_kcnt = time2kcnt(csound, start_time);
-        break;
-      default:
-        csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
-                              evt->opcod);
+        else {
+          i = (int) fabs((double) p[1]);
+          p[1] = -i;
+        }
+      }
+      else if (evt->strarg != NULL && csound->ISSTRCOD(p[1]))
+        i = (int) named_instr_find(csound, evt->strarg);
+      else
+        i = (int) fabs((double) p[1]);
+      if (UNLIKELY((unsigned int) (i - 1) >=
+                   (unsigned int) csound->engineState.maxinsno ||
+                   csound->engineState.instrtxtp[i] == NULL)) {
+        csoundMessage(csound, Str("insert_score_event(): invalid instrument "
+                                  "number or name %d\n" ), i);
         goto err_return;
+      }
+      break;
+    case 'a':                         /* advance score time */
+      /* calculate the length in beats */
+      evt->p3orig = (MYFLT) ((double) evt->p3orig *csound->esr/ st->ibeatTime);
+    case 'f':                         /* function table */
+      break;
+    case 'e':                         /* end of score, */
+    case 'l':                         /*   lplay list, */
+    case 's':                         /*   section:    */
+      start_time = (double)time_ofs/csound->esr;
+      if (evt->pcnt >= 2)
+        start_time += (double) p[2];
+      evt->pcnt = 0;
+      start_kcnt = time2kcnt(csound, start_time);
+      break;
+    default:
+      csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
+                    evt->opcod);
+      goto err_return;
     }
     /* queue new event */
     e->start_kcnt = start_kcnt;
