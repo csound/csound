@@ -38,9 +38,17 @@ if(BUILD_CXX_INTERFACE AND Boost_FOUND)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
+
+   if(APPLE)
+    add_compiler_flags("-std=c++11" TARGETS libcsnd6)
+   endif()
+
+
     if(${libcsnd6_CFLAGS})
         add_compiler_flags(${libcsnd6_CFLAGS} TARGETS libcsnd6)
     endif()
+
+   
 
     install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
@@ -48,6 +56,8 @@ if(BUILD_CXX_INTERFACE AND Boost_FOUND)
 else()
  message(STATUS "NOT Building C++ interface library.")
 endif()
+
+
 
 
 # SWIG INTERFACES
