@@ -467,7 +467,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     return OK;
 }
 
-char *byteswap(char *p, int N){
+static char *byteswap(char *p, int N){
   char tmp;
   int j ;
   for(j = 0; j < N/2; j++) {
