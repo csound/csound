@@ -3,3 +3,4 @@
 *.tar.xz
 src
 pkg
+portaudio_asio/mingw-w64-x86_64-portaudio
