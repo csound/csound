@@ -569,7 +569,8 @@ include_directories(./)
 #checking pthread functions
 if(PTHREAD_LIBRARY)
 
-  list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
+  #list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
 
   check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
   check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
