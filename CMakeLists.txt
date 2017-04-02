@@ -483,8 +483,6 @@ if(NOT MSVC)
 
   set(CMAKE_REQUIRED_INCLUDES pthread.h)
   set(CMAKE_REQUIRED_LIBRARIES pthread)
-
-  set(libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
 
 
@@ -1119,6 +1117,9 @@ if(EMSCRIPTEN)
 endif()
 
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+if(PTHREAD_LIBRARY)
+  list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
+endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
