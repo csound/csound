@@ -1330,7 +1330,7 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
       if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
 #else
       // FIXME - need to verify this works...
-      if(threadId == current->threadId) 
+      if(threadId == current->threadId)
         return index;
 #endif
       index++;
@@ -1513,7 +1513,7 @@ unsigned long kperfThread(void * cs)
       csound->WaitBarrier(csound->barrier1);
 
       // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so, use some other
-      // kind of locking mechanism as it isn't clear why a global mutex would be necessary 
+      // kind of locking mechanism as it isn't clear why a global mutex would be necessary
       // versus a per-CSOUND instance mutex
       /*csound_global_mutex_lock();*/
       if (csound->multiThreadedComplete == 1) {
