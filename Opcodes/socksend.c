@@ -577,7 +577,7 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
         break;
       case 's':
         s = (STRINGDAT *)p->arg[i];
-        size = strlen(s)+1;
+        size = strlen(s->data)+1; /* JPff added ->data */
         size = ceil(size/4.)*4;
         /* realloc if necessary */
         if(buffersize + size > bsize) {
