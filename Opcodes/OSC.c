@@ -847,7 +847,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 	                                        len-sizeof(FUNC)+sizeof(MYFLT*));
 	    */	    
             {
-#ifdef JPFF
+#ifdef NEVER
               MYFLT* dst = ftp->ftable;
               MYFLT* src = (MYFLT*)(&(data->ftable));
 
