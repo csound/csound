@@ -90,8 +90,8 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
       // so ...
       MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
 #ifdef MSVC
-	  // TODO - Double check this is equivalent to non-windows complex definition 
-	  _Fcomplex ph = { cos(x), sin(x) };
+      // TODO - Double check this is equivalent to non-windows complex definition
+          _Fcomplex ph = { cos(x), sin(x) };
 #else
       complex ph =  cos(x) + I*sin(x);
 #endif
