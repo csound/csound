@@ -369,9 +369,9 @@ static void sensLine(CSOUND *csound, void *userData)
 /* send a lineevent from the orchestra -matt 2001/12/07 */
 
 static const char *errmsg_1 =
-  Str_noop("event: param 1 must be \"a\", \"i\", \"q\", \"f\", or \"e\"");
+  Str_noop("event: param 1 must be \"a\", \"i\", \"q\", \"f\", \"d\", or \"e\"");
 static const char *errmsg_2 =
-  Str_noop("event: string name is allowed only for \"i\" and \"q\" events");
+  Str_noop("event: string name is allowed only for \"i\", \"d\", and \"q\" events");
 
 int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 {
@@ -385,7 +385,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     else  opcod = p1;
 
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
-                  opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
+                  opcod != 'e' && opcod != 'd') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
@@ -396,7 +396,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (insname) {
-        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
+        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
           return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_2));
         evt.p[1] =  csound->strarg2insno(csound,
                                            ((STRINGDAT*) p->args[1])->data, 1);
@@ -412,6 +412,12 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i];
     }
+
+    if(opcod == 'd') {
+      evt.opcod = 'i';
+      evt.p[1] *= -1;
+    }
+    
     if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
       return csound->PerfError(csound, p->h.insdshead,
                                Str("event: error creating '%c' event"),
@@ -444,7 +450,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else opcod = p1;
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
-                  opcod != 'e') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
+                  opcod != 'e' && opcod != 'd') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->InitError(csound, "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
@@ -454,7 +460,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (insname) {
-        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q'))
+        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
           return csound->InitError(csound, "%s", Str(errmsg_2));
         evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
         evt.strarg = NULL; evt.scnt = 0;
@@ -471,6 +477,11 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
           evt.p[i] = *p->args[i];
       }
     }
+    if(opcod == 'd') {
+      evt.opcod = 'i';
+      evt.p[1] *= -1;
+    }
+	
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
       err = csound->hfgens(csound, &dummyftp, &evt, 0);
