@@ -528,18 +528,18 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
 PUBLIC void* csoundCreateCondVar()
 {
   pthread_cond_t* condVar = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
-	  
+
   if (condVar != NULL)
     pthread_cond_init(condVar, NULL);
   return (void*) condVar;
 }
 
 PUBLIC void csoundCondWait(void* condVar, void* mutex) {
-	pthread_cond_wait(condVar, mutex);
+        pthread_cond_wait(condVar, mutex);
 }
 
 PUBLIC void csoundCondSignal(void* condVar) {
-	pthread_cond_signal(condVar);
+        pthread_cond_signal(condVar);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -744,7 +744,7 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
   SYNCHRONIZATION_BARRIER *barrier = (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
-	  
+
   if (barrier != NULL)
     InitializeSynchronizationBarrier(barrier, max, -1);
   return (void*) barrier;
@@ -765,18 +765,18 @@ PUBLIC int csoundWaitBarrier(void *barrier)
 PUBLIC void* csoundCreateCondVar()
 {
   CONDITION_VARIABLE* condVar = (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
-	  
+
   if (condVar != NULL)
     InitializeConditionVariable(condVar);
   return (void*) condVar;
 }
 
 PUBLIC void csoundCondWait(void* condVar, void* mutex) {
-	SleepConditionVariableCS(&condVar, &mutex, INFINITE);
+        SleepConditionVariableCS(&condVar, &mutex, INFINITE);
 }
 
 PUBLIC void csoundCondSignal(void* condVar) {
-	WakeConditionVariable(&condVar);
+        WakeConditionVariable(&condVar);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -897,4 +897,3 @@ PUBLIC void csoundCondSignal(void* condVar) {
 }
 
 #endif
-
