@@ -198,9 +198,9 @@ static int pvsfwrite_destroy(CSOUND *csound, void *pp)
 #ifndef __EMSCRIPTEN__
   if (p->async){
     p->async = 0;
-	// PTHREAD: change
+    // PTHREAD: change
     //pthread_join(p->thread, NULL);
-	csoundJoinThread (p->thread);
+    csoundJoinThread (p->thread);
     csound->DestroyCircularBuffer(csound, p->cb);
   }
 #endif
@@ -248,7 +248,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->dframe);
     p->cb = csound->CreateCircularBuffer(csound, (N+2)*sizeof(float)*bufframes,
                                          sizeof(MYFLT));
-	// PTHREAD: change
+    // PTHREAD: change
     //pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
 	  p->thread = csoundCreateThread (pvs_io_thread, (void*)p);
     p->async = 1;

@@ -281,10 +281,10 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             if (LIKELY((ftp=csound->FTnp2Find(csound,arg[i]))!=NULL)) {
               len = ftp->flen;        /* and set it up */
               data = csound->Malloc(csound,
-                                    olen=sizeof(FUNC)-sizeof(MYFLT*)+
+                                    olen=/*sizeof(FUNC)-sizeof(MYFLT*)+*/
                                          sizeof(MYFLT)*len);
-              memcpy(data, ftp, sizeof(FUNC)-sizeof(MYFLT*));
-              memcpy(data+sizeof(FUNC)-sizeof(MYFLT*),
+	      // memcpy(data, ftp, sizeof(FUNC)-sizeof(MYFLT*));
+              memcpy(data/*+sizeof(FUNC)-sizeof(MYFLT*)*/,
                      ftp->ftable, sizeof(MYFLT)*len);
             }
             else {
@@ -808,30 +808,46 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
             //printf("data = %f %f ...\n", foo->data[0], foo->data[1]);
           }
           else if (c == 'a') {
+	    
             MYFLT *data= (MYFLT*)idata;
             unsigned int len = (int)data[0];
             if (len>CS_KSMPS) len = CS_KSMPS;
             memcpy(p->args[i], &data[1], len*sizeof(MYFLT));
           }
           else if (c == 'G') {  /* ftable received */
-            FUNC* data = (FUNC*)idata;
+            //FUNC* data = (FUNC*)idata;
+	    MYFLT *data = (MYFLT *) idata;
             int fno = MYFLT2LRND(*p->args[i]);
             FUNC *ftp;
-            if (UNLIKELY(fno <= 0 /* ||
-                         fno > csound->maxfnum */))
+            if (UNLIKELY(fno <= 0))
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("Invalid ftable no. %d"), fno);
-            ftp = csound->FTFindP(csound, p->args[i]);
+        
+	    ftp = csound->FTnp2Find(csound, p->args[i]);
+	   if (ftp==NULL) { 
+              return csound->PerfError(csound, p->h.insdshead,
+                                       Str("OSC internal error"));
+            }
+	   if(len > (int)  (ftp->flen*sizeof(MYFLT)))
+              ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
+						    len*sizeof(MYFLT));
+	    memcpy(ftp->ftable,data,len);  
+	    
+            /*ftp = csound->FTFindP(csound, p->args[i]);
             if (ftp==NULL) { // need to allocate ***FIXME***
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("OSC internal error"));
             }
+	   
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
             ftp->fno = fno;
-            ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
-                                                  len-sizeof(FUNC)+sizeof(MYFLT*));
+	    printf("%d \n", len);
+	    if(len > ftp->flen*sizeof(MYFLT))
+              ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
+	                                        len-sizeof(FUNC)+sizeof(MYFLT*));
+	    */	    
             {
-#ifdef JPFF
+#ifdef NEVER
               MYFLT* dst = ftp->ftable;
               MYFLT* src = (MYFLT*)(&(data->ftable));
 

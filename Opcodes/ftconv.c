@@ -149,7 +149,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
 {
     FUNC    *ftp;
     int     i, j, k, n, nBytes, skipSamples;
-    MYFLT   FFTscale;
+    //MYFLT   FFTscale;
 
     /* check parameters */
     p->nChannels = (int) p->OUTOCOUNT;
