@@ -414,7 +414,8 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     unsigned int     bsize;
     if(p->INOCOUNT < (unsigned int) p->type->size + 4)
       return csound->InitError(csound,
-                               "insufficient number of arguments for OSC message types\n");
+                               Str("insufficient number of arguments "
+                                   "for OSC message types\n"));
 
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
@@ -454,7 +455,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       break;
     case 's':
       if(!IS_STR_ARG(p->arg[i]))
-	return csound->InitError(csound, "expecting a string argument\n");
+        return csound->InitError(csound, Str("expecting a string argument\n"));
       s = (STRINGDAT *)p->arg[i];
       bsize += strlen(s->data) + 64;
       iarg++;
@@ -465,10 +466,12 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       iarg++;
       break;
     default:
-      return csound->InitError(csound, "%c: data type not supported\n",p->type->data[i]);
+      return
+        csound->InitError(csound,
+                          Str("%c: data type not supported\n"),p->type->data[i]);
     }
   }
-    
+
   bsize += (strlen(p->dest->data) + strlen(p->type->data) + 11);
   if (p->aux.auxp == NULL || bsize > p->aux.size)
     /* allocate space for the buffer */
@@ -495,17 +498,17 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
     if(*p->kwhen != p->last) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-      
+
     int buffersize = 0, size, i, bsize = p->aux.size;
     char *out = (char *) p->aux.auxp;
 
-    memset(out,0,bsize); 
+    memset(out,0,bsize);
     /* package destination in 4-byte zero-padded block */
     size = strlen(p->dest->data)+1;
     memcpy(out,p->dest->data,size);
     size = ceil(size/4.)*4;
     buffersize += size;
-    /* package type in a 4-byte zero-padded block; 
+    /* package type in a 4-byte zero-padded block;
        add a comma to the beginning of the type string.
     */
     out[buffersize] = ',';
@@ -522,71 +525,71 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
     for(i = 0; i < p->iargs; i++) {
       switch(p->type->data[i]){
       case 'f':
-	/* realloc if necessary */
-	if(buffersize + 4 > bsize) {
-	  csound->AuxAlloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	fdata = (float) *p->arg[i];
-	byteswap((char *) &fdata, 4);
-	memcpy(out+buffersize,&fdata, 4);
-	buffersize += 4;
-	break;
+        /* realloc if necessary */
+        if(buffersize + 4 > bsize) {
+          csound->AuxAlloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        fdata = (float) *p->arg[i];
+        byteswap((char *) &fdata, 4);
+        memcpy(out+buffersize,&fdata, 4);
+        buffersize += 4;
+        break;
        case 'd':
-	/* realloc if necessary */
-	if(buffersize + 8 > bsize) {
-	  csound->AuxAlloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	ddata = *p->arg[i];
-	byteswap((char *) &ddata, 8);
-	memcpy(out+buffersize,&ddata, 8);
-	buffersize += 8;
-	break;
+        /* realloc if necessary */
+        if(buffersize + 8 > bsize) {
+          csound->AuxAlloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        ddata = *p->arg[i];
+        byteswap((char *) &ddata, 8);
+        memcpy(out+buffersize,&ddata, 8);
+        buffersize += 8;
+        break;
       case 'i':
       case 't':
       case 'm':
       case 'c':
-	/* realloc if necessary */
-	if(buffersize + 4 > bsize) {
-	  csound->AuxAlloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	data = (int) *p->arg[i];
-	byteswap((char *) &data, 4);
-	memcpy(out+buffersize,&data, 4);
-	buffersize += 4;
-	break;
+        /* realloc if necessary */
+        if(buffersize + 4 > bsize) {
+          csound->AuxAlloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        data = (int) *p->arg[i];
+        byteswap((char *) &data, 4);
+        memcpy(out+buffersize,&data, 4);
+        buffersize += 4;
+        break;
        case 'l':
-	/* realloc if necessary */
-	if(buffersize + 8 > bsize) {
-	  csound->AuxAlloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	ldata = (int64_t) *p->arg[i];
-	byteswap((char *) &ldata, 8);
-	memcpy(out+buffersize,&data, 8);
-	buffersize += 8;
-	break;
+        /* realloc if necessary */
+        if(buffersize + 8 > bsize) {
+          csound->AuxAlloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        ldata = (int64_t) *p->arg[i];
+        byteswap((char *) &ldata, 8);
+        memcpy(out+buffersize,&data, 8);
+        buffersize += 8;
+        break;
       case 's':
-	s = (STRINGDAT *)p->arg[i];
-	size = strlen(s)+1;
-	size = ceil(size/4.)*4;
-	/* realloc if necessary */
-	if(buffersize + size > bsize) {
-	  csound->AuxAlloc(csound, buffersize + size + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	memcpy(out+buffersize, s->data, s->size);
-	buffersize += size;
-	break;
+        s = (STRINGDAT *)p->arg[i];
+        size = strlen(s)+1;
+        size = ceil(size/4.)*4;
+        /* realloc if necessary */
+        if(buffersize + size > bsize) {
+          csound->AuxAlloc(csound, buffersize + size + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        memcpy(out+buffersize, s->data, s->size);
+        buffersize += size;
+        break;
       default:
-	break;
+        break;
       }
     }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
