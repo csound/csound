@@ -452,7 +452,7 @@ find_package(LIBLO)
 find_package(LUAJIT)
 find_package(MUSICXML)
 find_package(PORTSMF)
-find_package(PythonLibs)
+find_package(PythonLibs 2.7)
 find_package(STK)
 find_package(SWIG)
 find_package(VSTSDK2X)
@@ -483,8 +483,6 @@ if(NOT MSVC)
 
   set(CMAKE_REQUIRED_INCLUDES pthread.h)
   set(CMAKE_REQUIRED_LIBRARIES pthread)
-
-  set(libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
 
 
@@ -1119,6 +1117,9 @@ if(EMSCRIPTEN)
 endif()
 
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+if(PTHREAD_LIBRARY)
+  list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
+endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")

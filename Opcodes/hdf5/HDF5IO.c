@@ -850,8 +850,8 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
     MYFLT *dataPointer =
       vectorSize != self->ksmps ? dataset->sampleBuffer : inputDataPointer;
 
-	// FIXME if this is called frequently or on the audio thread then this won't
-	// work and will need a different solution
+        // FIXME if this is called frequently or on the audio thread then this won't
+        // work and will need a different solution
 #ifdef _MSC_VER
     hsize_t* chunkDimensions = malloc (dataset->rank * sizeof (hsize_t));
 #else
@@ -861,11 +861,11 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
            sizeof(hsize_t) * dataset->rank);
     chunkDimensions[0] = vectorSize;
 
-	memcpy (chunkDimensions, dataset->datasetSize, sizeof (hsize_t) * dataset->rank);
-	chunkDimensions[dataset->rank - 1] = vectorSize;
+        memcpy (chunkDimensions, dataset->datasetSize, sizeof (hsize_t) * dataset->rank);
+        chunkDimensions[dataset->rank - 1] = vectorSize;
 
-	HDF5Read_readData (csound, self, dataset, dataset->offset,
-		chunkDimensions, dataPointer);
+        HDF5Read_readData (csound, self, dataset, dataset->offset,
+                chunkDimensions, dataPointer);
 
     if (vectorSize != self->ksmps) {
 
@@ -877,7 +877,7 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
     dataset->offset[0] += vectorSize;
 
 #ifdef MSVC
-	free (chunkDimensions);
+        free (chunkDimensions);
 #endif
 }
 
@@ -898,8 +898,8 @@ void HDF5Read_readControlData(CSOUND *csound, HDF5Read *self,
       return;
     }
 
-	// FIXME if this is called frequently or on the audio thread then this won't
-	// work and will need a different solution
+        // FIXME if this is called frequently or on the audio thread then this won't
+        // work and will need a different solution
 #ifndef _MSC_VER
     hsize_t chunkDimensions[dataset->rank];
 #else
