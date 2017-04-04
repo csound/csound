@@ -190,7 +190,7 @@ typedef struct {
   uint32 lastframe;
 }PVSFWRITE;
 
-void *pvs_io_thread(void *pp);
+uintptr_t pvs_io_thread(void *pp);
 
 static int pvsfwrite_destroy(CSOUND *csound, void *pp)
 {
@@ -250,7 +250,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                                          sizeof(MYFLT));
     // PTHREAD: change
     //pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
-    p->thread = csoundCreateThread (pvs_io_thread, (void*)p);
+	  p->thread = csoundCreateThread (pvs_io_thread, (void*)p);
     p->async = 1;
   } else
 #endif
@@ -273,7 +273,7 @@ static int pvsfwriteset_S(CSOUND *csound, PVSFWRITE *p){
 }
 
 
-void *pvs_io_thread(void *pp){
+uintptr_t pvs_io_thread(void *pp){
   PVSFWRITE *p = (PVSFWRITE *) pp;
   CSOUND *csound = p->csound;
   MYFLT  *buf = (MYFLT *) p->buf.auxp;
@@ -288,7 +288,7 @@ void *pvs_io_thread(void *pp){
       csound->PVOC_PutFrames(csound, p->pvfile, frame, 1);
     }
   }
-  return NULL;
+  return (uintptr_t)0;
 }
 
 
