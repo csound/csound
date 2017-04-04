@@ -480,6 +480,195 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
     return OK;
 }
 
+
+typedef struct _rawosc {
+  OPDS h;
+  ARRAYDAT *sout;
+  MYFLT *kflag;
+  MYFLT  *port;
+  AUXCH   buffer, tmp;
+  int     sock;
+  volatile int threadon;
+  CSOUND  *cs;
+  void    *thrid;
+  void  *cb;
+  struct sockaddr_in server_addr;
+} RAWOSC;
+
+static uintptr_t oscrecv(void *pdata)
+{
+    struct sockaddr from;
+    socklen_t clilen = sizeof(from);
+    RAWOSC *p = (RAWOSC*) pdata;
+    char *tmp = (char *) p->tmp.auxp;
+    int     bytes;
+    CSOUND *csound = p->cs;
+
+    while (p->threadon) {
+      /* get the data from the socket and store it in a tmp buffer */
+      if ((bytes = recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
+        csound->WriteCircularBuffer(csound, p->cb, tmp, bytes);
+	memset(tmp, 0, bytes);
+      }
+    }
+    return (uintptr_t) 0;
+}
+
+static int deinit_oscrecv(CSOUND *csound, void *pdata)
+{
+    RAWOSC *p = (RAWOSC *) pdata;
+    p->threadon = 0;
+    csound->JoinThread(p->thrid);
+    return OK;
+}
+
+
+static int init_raw_osc(CSOUND *csound, RAWOSC *p)
+{
+    MYFLT   *buf;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    WSADATA wsaData = {0};
+    int err;
+    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+#endif
+
+    p->cs = csound;
+    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+#ifndef WIN32
+    if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
+      return csound->InitError(csound, Str("Cannot set nonblock"));
+#endif
+    if (UNLIKELY(p->sock < 0)) {
+      return csound->InitError
+        (csound, Str("creating socket"));
+    }
+    /* create server address: where we want to send to and clear it out */
+    memset(&p->server_addr, 0, sizeof(p->server_addr));
+    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+    p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    p->server_addr.sin_port = htons((int) *p->port);    /* the port */
+    /* associate the socket with the address and port */
+    if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
+                      sizeof(p->server_addr)) < 0))
+      return csound->InitError(csound, Str("bind failed"));
+
+    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, MTU, &p->buffer);
+    else {
+      buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
+      memset(buf, 0, MTU);
+    }
+    if (p->tmp.auxp == NULL || (unsigned long) (MTU) > p->tmp.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, MTU, &p->tmp);
+    else {
+      buf = (MYFLT *) p->tmp.auxp;   /* make sure buffer is empty */
+      memset(buf, 0, MTU);
+    }
+    p->cb = csound->CreateCircularBuffer(csound, p->buffer.size, 1);
+    /* create thread */
+    p->threadon = 1;
+    p->thrid = csound->CreateThread(oscrecv, (void *) p);
+    csound->RegisterDeinitCallback(csound, (void *) p, deinit_oscrecv);
+    return OK;
+}
+
+static inline char le_test(){
+    union _le {
+      char c[2];
+      short s;
+    } le = {{0x0001}};
+    return le.c[0];
+}
+
+static inline char *byteswap(char *p, int N){
+  if(le_test()) {
+    char tmp;
+    int j ;
+    for(j = 0; j < N/2; j++) {
+      tmp = p[j];
+      p[j] = p[N - j - 1];
+      p[N - j - 1] = tmp;
+    }
+  }
+  return p;
+}
+
+static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
+    
+    ARRAYDAT *sout = p->sout;
+    if(sout->sizes[0] < 2 ||
+       sout->dimensions > 1)
+      return csound->PerfError(csound, p->h.insdshead, "output array too small\n");
+    
+    STRINGDAT *str = (STRINGDAT *) p->sout->data;
+    char *buf = (char *) p->buffer.auxp;
+    int len = 0, n = 0, i = 0, j = 1;
+    char c;
+    memset(buf, 0, p->buffer.size);
+    int bytes =
+      csound->ReadCircularBuffer(csound, p->cb, buf,
+				 p->buffer.size);
+    *p->kflag = bytes;
+    if(bytes) {
+    /* get address & types */
+    while(len < bytes && n < 2) {
+      len = strlen(&buf[i]);
+      if(len > str[n].size) {
+      str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+      str[n].size  = len+1;
+      }
+      strncpy(str[n].data, &buf[i], len+1);
+      i += ceil((len+1)/4.)*4;
+      n++;
+    }
+    if(n < sout->sizes[0]) {
+    // todo: parse remaining data
+    buf = &buf[i];
+    while((c = str[1].data[j++]) != '\0'){
+      if(c == 'f') {
+	float f = *((float *) buf);
+	byteswap((char*)&f,4);
+	snprintf(str[n].data, str[n].size, "%f", f);
+        buf += 4;
+      } else if (c == 'i') {
+	int d = *((int32_t *) buf);
+	byteswap((char*) &d,4);
+        snprintf(str[n].data, str[n].size, "%d", d);
+        buf += 4;
+      } else if (c == 's') {
+	len = strlen(buf);
+	byteswap((char*)&len,4);
+        strncpy(str[n].data, buf, len+1);
+	len = ceil((len+1)/4.)*4;
+	buf += len;
+      } else if (c == 'b') {
+	len = *((uint32_t *) buf);
+	byteswap((char*)&len,4);
+	len = ceil((len)/4.)*4;
+	if(len > str[n].size) {
+          str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+          str[n].size  = len+1;
+        }
+        strncpy(str[n].data, buf, len);
+        buf += len;
+      } /*else {
+        csound->Warning(csound, "data type not supported: %c", c);
+	}*/
+      n++;
+      if(n == sout->sizes[0]) break;
+    }
+    printf("\n ");
+    }
+    }
+    return OK;
+}
+
+
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY sockrecv_localops[] = {
@@ -490,7 +679,8 @@ static OENTRY sockrecv_localops[] = {
   { "sockrecvs", S(SOCKRECV), 0, 5, "aa", "ii", (SUBR) init_recvS, NULL,
     (SUBR) send_recvS },
   { "strecv", S(SOCKRECVT), 0, 5, "a", "Si", (SUBR) init_srecv, NULL,
-    (SUBR) send_srecv }
+    (SUBR) send_srecv },
+  { "OSCraw", S(RAWOSC), 0, 3, "S[]k", "i", (SUBR) init_raw_osc, (SUBR) perf_raw_osc }
 };
 
 LINKAGE_BUILTIN(sockrecv_localops)
