@@ -21,8 +21,6 @@
 	02111-1307 USA
 */
 
-/* Code based on filters by Will Pirkle */
-
 /*
 Zero Delay Feedback Filters
 
@@ -88,10 +86,20 @@ static int zdf_ladder_perf(CSOUND* csound,
 	double Tdiv2 = T / 2.0;
 	double two_div_T = 2.0 / T;
 
+	int cutoff_arate = IS_ASIG_ARG(p->cutoff);
+	int res_arate = IS_ASIG_ARG(p->res);
+
+	MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
+	MYFLT res = res_arate ? 0.0 : *p->res;
+
 	for (n = offset; n < nsmps; n++) {
 
-		MYFLT cutoff = IS_ASIG_ARG(p->cutoff) ? p->cutoff[n] : *p->cutoff;
-		MYFLT res = IS_ASIG_ARG(p->res) ? p->res[n] : *p->res;
+		if(cutoff_arate) {
+			cutoff = p->cutoff[n];
+		}
+		if (res_arate) {
+			res = p->res[n];
+		}
 
 		if (res != last_res) {
 			// first clamp to range 0.0-1.0
