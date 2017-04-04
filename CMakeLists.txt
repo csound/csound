@@ -743,6 +743,7 @@ set(libcsound_SRCS
     Opcodes/gendy.c
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
+    Opcodes/wpfilters.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
