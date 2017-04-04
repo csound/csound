@@ -168,6 +168,30 @@ public:
     RegisterDeinitCallback(this, (void *)p, deinit<T>);
   }
 
+  /** Csound memory allocation - malloc style
+   */
+  void *malloc(size_t size) {
+    return Malloc(this, size);
+  }
+
+  /** Csound memory allocation - calloc style
+   */
+  void *calloc(size_t size) {
+    return Calloc(this, size);
+  }
+
+  /** Csound memory re-allocation 
+   */
+  void *realloc(void *p, size_t size) {
+    return ReAlloc(this, p,size);
+  }
+
+  /** Csound memory de-allocation
+   */
+  void free(void *p) {
+    Free(this,p);
+   }
+  
   /** FFT setup: real-to-complex and complex-to-real \n
       direction: FFT_FWD or FFT_INV \n
       returns a handle to the FFT setup.
