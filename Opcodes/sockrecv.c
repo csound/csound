@@ -632,16 +632,28 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	float f = *((float *) buf);
 	byteswap((char*)&f,4);
 	snprintf(str[n].data, str[n].size, "%f", f);
+        if(str[n].size < 32) {
+          str[n].data = csound->ReAlloc(csound, str[n].data, 32);
+          str[n].size  = 32;
+        }
         buf += 4;
       } else if (c == 'i') {
 	int d = *((int32_t *) buf);
 	byteswap((char*) &d,4);
+	if(str[n].size < 32) {
+          str[n].data = csound->ReAlloc(csound, str[n].data, 32);
+          str[n].size  = 32;
+        }
         snprintf(str[n].data, str[n].size, "%d", d);
         buf += 4;
       } else if (c == 's') {
 	len = strlen(buf);
 	byteswap((char*)&len,4);
-        strncpy(str[n].data, buf, len+1);
+	if(len > str[n].size) {
+          str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+          str[n].size  = len+1;
+        }
+        strncpy(str[n].data, buf, len);
 	len = ceil((len+1)/4.)*4;
 	buf += len;
       } else if (c == 'b') {
