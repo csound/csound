@@ -489,18 +489,18 @@ typedef struct _rawosc {
   AUXCH   buffer;
   int     sock;
   /*
-  AUXCH tmp;
-  volatile int threadon;
-  CSOUND  *cs;
-  void    *thrid;
-  void  *cb;
+    AUXCH tmp;
+    volatile int threadon;
+    CSOUND  *cs;
+    void    *thrid;
+    void  *cb;
   */
   struct sockaddr_in server_addr;
 } RAWOSC;
 
 /*
-static uintptr_t oscrecv(void *pdata)
-{
+  static uintptr_t oscrecv(void *pdata)
+  {
   struct sockaddr from;
   socklen_t clilen = sizeof(from);
   RAWOSC *p = (RAWOSC*) pdata;
@@ -509,21 +509,21 @@ static uintptr_t oscrecv(void *pdata)
   CSOUND *csound = p->cs;
 
   while (p->threadon) {
-    if ((bytes = recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
-      csound->WriteCircularBuffer(csound, p->cb, tmp, bytes);
-      memset(tmp, 0, MTU);
-    }
+  if ((bytes = recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
+  csound->WriteCircularBuffer(csound, p->cb, tmp, bytes);
+  memset(tmp, 0, MTU);
+  }
   }
   return (uintptr_t) 0;
-}
+  }
 
-static int deinit_oscrecv(CSOUND *csound, void *pdata)
-{
+  static int deinit_oscrecv(CSOUND *csound, void *pdata)
+  {
   RAWOSC *p = (RAWOSC *) pdata;
   p->threadon = 0;
   csound->JoinThread(p->thrid);
   return OK;
-}
+  }
 */
 
 static int init_raw_osc(CSOUND *csound, RAWOSC *p)
@@ -562,17 +562,17 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
     memset(buf, 0, MTU);
   }
   /*
-  if (p->tmp.auxp == NULL || (unsigned long) (MTU) > p->tmp.size)
+    if (p->tmp.auxp == NULL || (unsigned long) (MTU) > p->tmp.size)
     csound->AuxAlloc(csound, MTU, &p->tmp);
-  else {
+    else {
     buf = (MYFLT *) p->tmp.auxp;  
     memset(buf, 0, MTU);
-  }
-  p->cb = csound->CreateCircularBuffer(csound, p->buffer.size*4, 1);
-  p->cs = csound;
-  p->threadon = 1;
-  p->thrid = csound->CreateThread(oscrecv, (void *) p);
-  csound->RegisterDeinitCallback(csound, (void *) p, deinit_oscrecv);
+    }
+    p->cb = csound->CreateCircularBuffer(csound, p->buffer.size*4, 1);
+    p->cs = csound;
+    p->threadon = 1;
+    p->thrid = csound->CreateThread(oscrecv, (void *) p);
+    csound->RegisterDeinitCallback(csound, (void *) p, deinit_oscrecv);
   */
   return OK;
 }
@@ -607,9 +607,10 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     
   STRINGDAT *str = (STRINGDAT *) p->sout->data;
   char *buf = (char *) p->buffer.auxp;
-  int len = 0, n = 0, i = 0, j = 1;
+  int len = 0, n = 0, j = 1;
   char c;
   memset(buf, 0, p->buffer.size);
+  uint32_t size = 0;
 
   struct sockaddr from;
   socklen_t clilen = sizeof(from);
@@ -620,36 +621,36 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
   
   *p->kflag = bytes;
   if(bytes) {
-    if(strncmp(buf,"#bundle",7) == 0) { // bundle, ignore
+    if(strncmp(buf,"#bundle",7) == 0) { // bundle
       buf += 8;
-      bytes -= 8;
       buf += 8;
-      bytes -= 8;
-      uint32_t size = *((uint32_t *) buf);
+      size = *((uint32_t *) buf);
       byteswap((char *)&size, 4);
-      csound->Message(csound, "OSC bundle: ignoring %d bytes out of %d bytes\n", size, (int) *p->kflag);
-      //buf += size; bytes -= size;
       buf += 4;
-      *p->kflag = 0;
-    }
-    while(bytes > 0) {
+    } else size = bytes;
+    while(size > 0)  {
       *p->kflag = bytes;
-    /* get address & types */
-    while(len < bytes && n < 2) {
-      len = strlen(&buf[i]);
-      if(len > str[n].size) {
-	str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-	str[n].size  = len+1;
-      }
-      strncpy(str[n].data, &buf[i], len+1);
-      i += ceil((len+1)/4.)*4;
-      n++;
-    }
-    bytes -= 8;
-    if(n < sout->sizes[0]) {
-      // todo: parse remaining data
-      buf = &buf[i];
-      while((c = str[1].data[j++]) != '\0'){
+      /* get address & types */
+      if(n < sout->sizes[0]) {
+	len = strlen(buf);
+	if(len > str[n].size) {
+	  str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+	  str[n].size  = len+1;
+	}
+	strncpy(str[n++].data, buf, len+1);
+	buf += ((size_t) ceil((len+1)/4.)*4);
+      } else return OK;
+      if(n < sout->sizes[0]) {
+	len = strlen(buf);
+	if(len > str[n].size) {
+	  str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+	  str[n].size  = len+1;
+	}
+	strncpy(str[n++].data, buf, len+1);
+	buf += ((size_t) ceil((len+1)/4.)*4);
+      } else return OK;
+      // parse data 
+      while((c = str[1].data[j++]) != '\0' && n < sout->sizes[0]){
 	if(c == 'f') {
 	  float f = *((float *) buf);
 	  byteswap((char*)&f,4);
@@ -659,7 +660,6 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	    str[n].size  = 32;
 	  }
 	  buf += 4;
-	  bytes -= 4;
 	} else if (c == 'i') {
 	  int d = *((int32_t *) buf);
 	  byteswap((char*) &d,4);
@@ -669,7 +669,6 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	  }
 	  snprintf(str[n].data, str[n].size, "%d", d);
 	  buf += 4;
-	  bytes -= 4;
 	} else if (c == 's') {
 	  len = strlen(buf);
 	  byteswap((char*)&len,4);
@@ -680,7 +679,6 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	  strncpy(str[n].data, buf, len);
 	  len = ceil((len+1)/4.)*4;
 	  buf += len;
-	  bytes -= len;
 	} else if (c == 'b') {
 	  len = *((uint32_t *) buf);
 	  byteswap((char*)&len,4);
@@ -691,15 +689,14 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	  }
 	  strncpy(str[n].data, buf, len);
 	  buf += len;
-	  bytes -= len;
-	} /*else {
-	    csound->Warning(csound, "data type not supported: %c", c);
-	    }*/
-	n++;
-	if(n == sout->sizes[0]) break;
+	} 
+	n++;	
       }
-    }
-    }
+      bytes -= size;
+      size = *((uint32_t *) buf);
+      byteswap((char *)&size, 4);
+      buf += 4;
+    } 
   }
   return OK;
 }
