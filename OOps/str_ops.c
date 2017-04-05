@@ -627,7 +627,7 @@ int strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
       return StrOp_ErrMsg(p, Str("empty string"));
     while (isblank(*s)) s++;
     if (UNLIKELY(*s == '\0'))
-      return StrOp_ErrMsg(p, Str("empty string"));
+     return StrOp_ErrMsg(p, Str("empty string"));
     x = cs_strtod(s, &tmp);
     if (UNLIKELY(*tmp != '\0'))
       return StrOp_ErrMsg(p, Str("invalid format"));
@@ -643,10 +643,10 @@ int strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
     s = (char*) p->str->data;
     while (isblank(*s)) s++;
     if (UNLIKELY(*s == '\0'))
-      return StrOp_ErrMsg(p, Str("empty string"));
+     return StrOp_ErrMsg(p, Str("empty string"));
     x = cs_strtod(s, &tmp);
     if (UNLIKELY(*tmp != '\0'))
-      return StrOp_ErrMsg(p, Str("invalid format"));
+     return StrOp_ErrMsg(p, Str("invalid format"));
     *p->indx = (MYFLT) x;
 
     return OK;

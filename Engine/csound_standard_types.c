@@ -163,8 +163,8 @@ void arrayInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
 void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
     CSOUND* cs = (CSOUND*)csound;
-    str->data = cs_strdup(cs, "hello");
-    str->size = 6;
+    str->data = (char *) cs->Calloc(csound, 8);
+    str->size = 8;
     //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
 }
 
