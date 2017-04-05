@@ -63,12 +63,20 @@ typedef struct {
 } ZDF_LADDER;
 
 typedef struct {
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *kval, *nlp, *saturation, *skip;
+  MYFLT a[4], z[4], G[4], beta[4], delta[3], epsilon[3], gamma[3], SG[4];
+  MYFLT SIGMA, GAMMA, last_alpha, last_cut;
+} DIODE_LADDER;
 
-} K35LPF;
+//typedef struct {
+//
+//} K35LPF;
 
 
-typedef struct {
-
-} K35HPF;
+//typedef struct {
+//
+//} K35HPF;
 
 static int zdf_ladder_perf(CSOUND * csound, ZDF_LADDER * p);
