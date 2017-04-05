@@ -486,15 +486,19 @@ typedef struct _rawosc {
   ARRAYDAT *sout;
   MYFLT *kflag;
   MYFLT  *port;
-  AUXCH   buffer, tmp;
+  AUXCH   buffer;
   int     sock;
+  /*
+  AUXCH tmp;
   volatile int threadon;
   CSOUND  *cs;
   void    *thrid;
   void  *cb;
+  */
   struct sockaddr_in server_addr;
 } RAWOSC;
 
+/*
 static uintptr_t oscrecv(void *pdata)
 {
   struct sockaddr from;
@@ -505,7 +509,6 @@ static uintptr_t oscrecv(void *pdata)
   CSOUND *csound = p->cs;
 
   while (p->threadon) {
-    /* get the data from the socket and store it in a tmp buffer */
     if ((bytes = recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
       csound->WriteCircularBuffer(csound, p->cb, tmp, bytes);
       memset(tmp, 0, MTU);
@@ -521,7 +524,7 @@ static int deinit_oscrecv(CSOUND *csound, void *pdata)
   csound->JoinThread(p->thrid);
   return OK;
 }
-
+*/
 
 static int init_raw_osc(CSOUND *csound, RAWOSC *p)
 {
@@ -532,8 +535,6 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
   if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
     csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
-
-  p->cs = csound;
   p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
   if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
@@ -560,18 +561,19 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
     buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
     memset(buf, 0, MTU);
   }
+  /*
   if (p->tmp.auxp == NULL || (unsigned long) (MTU) > p->tmp.size)
-    /* allocate space for the buffer */
     csound->AuxAlloc(csound, MTU, &p->tmp);
   else {
-    buf = (MYFLT *) p->tmp.auxp;   /* make sure buffer is empty */
+    buf = (MYFLT *) p->tmp.auxp;  
     memset(buf, 0, MTU);
   }
   p->cb = csound->CreateCircularBuffer(csound, p->buffer.size*4, 1);
-  /* create thread */
+  p->cs = csound;
   p->threadon = 1;
   p->thrid = csound->CreateThread(oscrecv, (void *) p);
   csound->RegisterDeinitCallback(csound, (void *) p, deinit_oscrecv);
+  */
   return OK;
 }
 
@@ -608,9 +610,14 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
   int len = 0, n = 0, i = 0, j = 1;
   char c;
   memset(buf, 0, p->buffer.size);
+
+  struct sockaddr from;
+  socklen_t clilen = sizeof(from);
   int bytes =
-    csound->ReadCircularBuffer(csound, p->cb, buf,
-			       p->buffer.size);
+    recvfrom(p->sock, (void *)buf, MTU, 0, &from, &clilen);
+  /*csound->ReadCircularBuffer(csound, p->cb, buf,
+    p->buffer.size);*/
+  
   *p->kflag = bytes;
   if(bytes) {
     if(strncmp(buf,"#bundle",7) == 0) { // bundle
@@ -635,7 +642,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
        uint32_t size = *((uint32_t *) buf);
        buf += 4; bytes -= 4;
        byteswap((char *) &size,4);
-       if(str[n].size < size) {
+       if(str[n].size < (int) size) {
 	    str[n].data = csound->ReAlloc(csound, str[n].data, size+1);
 	    str[n].size  = size+1;
        }
