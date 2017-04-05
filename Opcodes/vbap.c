@@ -948,8 +948,11 @@ static OENTRY vbap_localops[] = {
     (SUBR) vbap1_init_a,         (SUBR) vbap1a                               },
   { "vbapz",      S(VBAP_ZAK),     ZW|TR, 5,  "",                 "iiakOOo",
     (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
-  { "vbaplsinit",S(VBAP_LS_INIT),TR,1, "", "iioooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
-    (SUBR) vbap_ls_init,            (SUBR) NULL,    (SUBR) NULL             },
+  { "vbaplsinit",S(VBAP_LS_INIT),TR,1, "",
+    "ii"
+    "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
+    "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+    (SUBR) vbap_ls_init, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL         },
   { "vbapmove.a", S(VBAP_MOVING),
     TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "aiiim",
