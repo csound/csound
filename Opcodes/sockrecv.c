@@ -620,38 +620,17 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
   
   *p->kflag = bytes;
   if(bytes) {
-    if(strncmp(buf,"#bundle",7) == 0) { // bundle
-       if(str[n].size < 8) {
-	    str[n].data = csound->ReAlloc(csound, str[n].data, 8);
-	    str[n].size  = 8;
-      }
-      strcpy(str[n].data, "#bundle");
-      buf += 4;
-      bytes -= 4;
-      n++;
-      uint32_t ttag = *((uint32_t *) buf);
-      byteswap((char *) &ttag,4);
-      if(str[n].size < 32) {
-	    str[n].data = csound->ReAlloc(csound, str[n].data, 32);
-	    str[n].size  = 32;
-      }
-      snprintf(str[n].data, str[n].size, "%d", ttag);
-      buf += 4;
-      bytes -= 4;
-      while(bytes && ++n < sout->sizes[0]) {
-       uint32_t size = *((uint32_t *) buf);
-       buf += 4; bytes -= 4;
-       byteswap((char *) &size,4);
-       if(str[n].size < (int) size) {
-	    str[n].data = csound->ReAlloc(csound, str[n].data, size+1);
-	    str[n].size  = size+1;
-       }
-       memcpy(str[n].data, buf, size);
-       buf += size; bytes -= size;
-      }
-      return OK;
+    if(strncmp(buf,"#bundle",7) == 0) { // bundle, ignore
+      buf += 8;
+      bytes -= 8;
+      uint32_t size = *((uint32_t *) buf);
+      byteswap((char *)&size, 4);
+      csound->Message(csound, "OSC bundle: ignoring %d bytes out of %d bytes\n", size, (int) *p->kflag);
+      buf += size; bytes -= size;
+      *p->kflag = 0;
     }
-    else{
+    if(bytes > 0) {
+      *p->kflag = bytes;
     /* get address & types */
     while(len < bytes && n < 2) {
       len = strlen(&buf[i]);
@@ -711,7 +690,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	n++;
 	if(n == sout->sizes[0]) break;
       }
-     }
+    }
     }
   }
   return OK;
