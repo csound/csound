@@ -540,7 +540,7 @@ static inline int aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
   char *p = aux->auxp;
   aux->auxp = csound->ReAlloc(csound, p, size);
   aux->size = size;
-  aux->endp = aux->auxp + size;
+  aux->endp = (char*)aux->auxp + size;
   return size;
 }
 
