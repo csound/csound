@@ -623,13 +623,16 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     if(strncmp(buf,"#bundle",7) == 0) { // bundle, ignore
       buf += 8;
       bytes -= 8;
+      buf += 8;
+      bytes -= 8;
       uint32_t size = *((uint32_t *) buf);
       byteswap((char *)&size, 4);
       csound->Message(csound, "OSC bundle: ignoring %d bytes out of %d bytes\n", size, (int) *p->kflag);
-      buf += size; bytes -= size;
+      //buf += size; bytes -= size;
+      buf += 4;
       *p->kflag = 0;
     }
-    if(bytes > 0) {
+    while(bytes > 0) {
       *p->kflag = bytes;
     /* get address & types */
     while(len < bytes && n < 2) {
@@ -642,6 +645,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
       i += ceil((len+1)/4.)*4;
       n++;
     }
+    bytes -= 8;
     if(n < sout->sizes[0]) {
       // todo: parse remaining data
       buf = &buf[i];
@@ -655,6 +659,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	    str[n].size  = 32;
 	  }
 	  buf += 4;
+	  bytes -= 4;
 	} else if (c == 'i') {
 	  int d = *((int32_t *) buf);
 	  byteswap((char*) &d,4);
@@ -664,6 +669,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	  }
 	  snprintf(str[n].data, str[n].size, "%d", d);
 	  buf += 4;
+	  bytes -= 4;
 	} else if (c == 's') {
 	  len = strlen(buf);
 	  byteswap((char*)&len,4);
@@ -674,6 +680,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	  strncpy(str[n].data, buf, len);
 	  len = ceil((len+1)/4.)*4;
 	  buf += len;
+	  bytes -= len;
 	} else if (c == 'b') {
 	  len = *((uint32_t *) buf);
 	  byteswap((char*)&len,4);
@@ -684,6 +691,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	  }
 	  strncpy(str[n].data, buf, len);
 	  buf += len;
+	  bytes -= len;
 	} /*else {
 	    csound->Warning(csound, "data type not supported: %c", c);
 	    }*/
