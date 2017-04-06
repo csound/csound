@@ -943,7 +943,8 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 /* static */
 static OENTRY vbap_localops[] = {
   { "vbap.a",      S(VBAP),
-    TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOOo",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
   { "vbap.A",      S(VBAPA), TR, 5,  "a[]",    "akOOo",
@@ -957,6 +958,7 @@ static OENTRY vbap_localops[] = {
     TR|_QQ, 5,  "aaaaaaaaaaaaaaaa", "akOOo",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
   { "vbapg.a",      S(VBAP1),             TR, 3,
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "kOOo",
     (SUBR) vbap1_init,         (SUBR) vbap1                                  },
   { "vbapg.A",      S(VBAPA1),            TR, 3,
@@ -972,7 +974,8 @@ static OENTRY vbap_localops[] = {
   { "vbaplsinit",S(VBAP_LS_INIT),TR,1, "", "iii[]",
     (SUBR) vbap_ls_inita, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL         },
   { "vbapmove.a", S(VBAP_MOVING),
-    TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "aiiim",
     (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
   { "vbapgmove.a",  S(VBAP1_MOVING),      TR, 5,
