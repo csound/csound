@@ -611,7 +611,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
   char c;
   memset(buf, 0, p->buffer.size);
   uint32_t size = 0;
-
+  
   struct sockaddr from;
   socklen_t clilen = sizeof(from);
   int bytes =
@@ -654,11 +654,11 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	if(c == 'f') {
 	  float f = *((float *) buf);
 	  byteswap((char*)&f,4);
-	  snprintf(str[n].data, str[n].size, "%f", f);
 	  if(str[n].size < 32) {
 	    str[n].data = csound->ReAlloc(csound, str[n].data, 32);
 	    str[n].size  = 32;
 	  }
+	  snprintf(str[n].data, str[n].size, "%f", f);
 	  buf += 4;
 	} else if (c == 'i') {
 	  int d = *((int32_t *) buf);
@@ -671,12 +671,12 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	  buf += 4;
 	} else if (c == 's') {
 	  len = strlen(buf);
-	  byteswap((char*)&len,4);
 	  if(len > str[n].size) {
 	    str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
 	    str[n].size  = len+1;
 	  }
-	  strncpy(str[n].data, buf, len+1);
+	  strncpy(str[n].data, buf, len);
+	  str[n].data[len] = '\0';
 	  len = ceil((len+1)/4.)*4;
 	  buf += len;
 	} else if (c == 'b') {
@@ -688,6 +688,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	    str[n].size  = len+1;
 	  }
 	  strncpy(str[n].data, buf, len);
+	  str[n].data[len] = '\0';
 	  buf += len;
 	} 
 	n++;	
