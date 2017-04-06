@@ -379,7 +379,7 @@ static void choose_ls_triplets(CSOUND *csound, ls lss[CHANNELS],
         trip_ptr = trip_ptr->next;
       }
     }
-    csound->Free(csound,connections);
+    free(connections);
     csound->Free(csound,distance_table);
     csound->Free(csound,distance_table_i);
     csound->Free(csound,distance_table_j);
@@ -620,6 +620,22 @@ int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
     int dim = (int) *p->dim;
     MYFLT  layout = (*p->dim-dim)*100;
     return vbap_ls_init_sr(csound, dim, (int) *p->ls_amount, p->f, round(layout));
+}
+
+int vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
+{
+    int dim = (int) *p->dim;
+    MYFLT  layout = (*p->dim-dim)*100;
+    MYFLT  *f[2*CHANNELS];
+    int i, n = (int)*p->ls_amount;
+    if (n>CHANNELS)
+      return csound->InitError(csound, Str("Too many speakers (%n)\n"), n);
+    if (n>p->a->sizes[0])
+      return csound->InitError(csound, Str("Too little data speakers (%n)\n"),
+                              n>p->a->sizes[0]);
+    // Transfer valuer to pointers
+    for (i=0; i<2*n; i++) f[i] = &(p->a->data[i]);
+    return vbap_ls_init_sr(csound, dim, n, f, round(layout));
 }
 
 static void calculate_3x3_matrixes(CSOUND *csound,
@@ -953,6 +969,8 @@ static OENTRY vbap_localops[] = {
     "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
     "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
     (SUBR) vbap_ls_init, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL         },
+  { "vbaplsinit",S(VBAP_LS_INIT),TR,1, "", "iii[]",
+    (SUBR) vbap_ls_inita, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL         },
   { "vbapmove.a", S(VBAP_MOVING),
     TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "aiiim",
