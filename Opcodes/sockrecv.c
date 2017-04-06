@@ -616,6 +616,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
   socklen_t clilen = sizeof(from);
   int bytes =
     recvfrom(p->sock, (void *)buf, MTU, 0, &from, &clilen);
+  if(bytes < 0) bytes = 0;
   /*csound->ReadCircularBuffer(csound, p->cb, buf,
     p->buffer.size);*/
   
@@ -629,7 +630,6 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
       buf += 4;
     } else size = bytes;
     while(size > 0)  {
-      *p->kflag = bytes;
       /* get address & types */
       if(n < sout->sizes[0]) {
 	len = strlen(buf);
@@ -676,7 +676,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	    str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
 	    str[n].size  = len+1;
 	  }
-	  strncpy(str[n].data, buf, len);
+	  strncpy(str[n].data, buf, len+1);
 	  len = ceil((len+1)/4.)*4;
 	  buf += len;
 	} else if (c == 'b') {
@@ -692,7 +692,6 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	} 
 	n++;	
       }
-      bytes -= size;
       size = *((uint32_t *) buf);
       byteswap((char *)&size, 4);
       buf += 4;
