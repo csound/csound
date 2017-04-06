@@ -651,6 +651,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	buf += ((size_t) ceil((len+1)/4.)*4);
 	n++;
       } else return OK;
+      j = 1;
       // parse data 
       while((c = types[j++]) != '\0' && n < sout->sizes[0]){
 	if(c == 'f') {
