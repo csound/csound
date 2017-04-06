@@ -22,7 +22,7 @@
 */
 
 #define LOWEST_ACCEPTABLE_WT FL(0.0)
-#define CHANNELS 64
+#define CHANNELS 128
 #define MIN_VOL_P_SIDE_LGTH FL(0.01)
 
 typedef struct {
@@ -194,6 +194,12 @@ typedef struct {
   MYFLT     *dim, *ls_amount;
   MYFLT     *f[2*CHANNELS];
 } VBAP_LS_INIT;
+
+typedef struct {
+  OPDS      h;                  /* required header */
+  MYFLT     *dim, *ls_amount;
+  ARRAYDAT  *a;
+} VBAP_LS_INITA;
 
 /* A struct for a loudspeaker instance */
 typedef struct {
