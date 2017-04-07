@@ -443,7 +443,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     /* allocate space for the types buffer */
     csound->AuxAlloc(csound, strlen(p->type->data), &p->types);
     memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
-  
+
   // todo: parse type to allocate memory
   int i, iarg = 0;
   STRINGDAT *s;
@@ -467,7 +467,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       break;
     case 's':
       if(!IS_STR_ARG(p->arg[i]))
-	return csound->InitError(csound, "expecting a string argument\n");
+        return csound->InitError(csound, "expecting a string argument\n");
       s = (STRINGDAT *)p->arg[i];
       bsize += strlen(s->data) + 64;
       iarg++;
@@ -503,7 +503,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       return csound->InitError(csound, "%c: data type not supported\n",p->type->data[i]);
     }
   }
-    
+
   bsize += (strlen(p->dest->data) + strlen(p->type->data) + 11);
   bsize *= 2;
   if (p->aux.auxp == NULL || bsize > p->aux.size)
@@ -549,17 +549,17 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
     if(*p->kwhen != p->last) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-      
+
     int buffersize = 0, size, i, bsize = p->aux.size;
     char *out = (char *) p->aux.auxp;
 
-    memset(out,0,bsize); 
+    memset(out,0,bsize);
     /* package destination in 4-byte zero-padded block */
     size = strlen(p->dest->data)+1;
     memcpy(out,p->dest->data,size);
     size = ceil(size/4.)*4;
     buffersize += size;
-    /* package type in a 4-byte zero-padded block; 
+    /* package type in a 4-byte zero-padded block;
        add a comma to the beginning of the type string.
     */
     out[buffersize] = ',';
@@ -593,101 +593,101 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
     for(i = 0; i < p->iargs; i++) {
       switch(p->type->data[i]){
       case 'f':
-	/* realloc if necessary */
-	if(buffersize + 4 > bsize) {
-	  aux_realloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	fdata = (float) *p->arg[i];
-	byteswap((char *) &fdata, 4);
-	memcpy(out+buffersize,&fdata, 4);
-	buffersize += 4;
-	break;
+        /* realloc if necessary */
+        if(buffersize + 4 > bsize) {
+          aux_realloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        fdata = (float) *p->arg[i];
+        byteswap((char *) &fdata, 4);
+        memcpy(out+buffersize,&fdata, 4);
+        buffersize += 4;
+        break;
        case 'd':
-	/* realloc if necessary */
-	if(buffersize + 8 > bsize) {
-	  aux_realloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	ddata = *p->arg[i];
-	byteswap((char *) &ddata, 8);
-	memcpy(out+buffersize,&ddata, 8);
-	buffersize += 8;
-	break;
+        /* realloc if necessary */
+        if(buffersize + 8 > bsize) {
+          aux_realloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        ddata = *p->arg[i];
+        byteswap((char *) &ddata, 8);
+        memcpy(out+buffersize,&ddata, 8);
+        buffersize += 8;
+        break;
       case 't':
       /* realloc if necessary */
        if(buffersize + 4 > bsize) {
-	  aux_realloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
+          aux_realloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
         udata = (uint64_t) MYFLT2LRND(*p->arg[i++]);
-	udata <<= 4;
-	udata |= (uint64_t) MYFLT2LRND(*p->arg[i++]);
-	byteswap((char *) &udata, 8);
-	memcpy(out+buffersize,&udata, 8);
-	buffersize += 8;
-	break;
+        udata <<= 4;
+        udata |= (uint64_t) MYFLT2LRND(*p->arg[i++]);
+        byteswap((char *) &udata, 8);
+        memcpy(out+buffersize,&udata, 8);
+        buffersize += 8;
+        break;
       case 'i':
       case 'm':
       case 'c':
-	/* realloc if necessary */
-	if(buffersize + 4 > bsize) {
-	  aux_realloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
+        /* realloc if necessary */
+        if(buffersize + 4 > bsize) {
+          aux_realloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
         data = MYFLT2LRND(*p->arg[i]);
-	byteswap((char *) &data, 4);
-	memcpy(out+buffersize,&data, 4);
-	buffersize += 4;
-	break;
+        byteswap((char *) &data, 4);
+        memcpy(out+buffersize,&data, 4);
+        buffersize += 4;
+        break;
        case 'h':
-	/* realloc if necessary */
-	if(buffersize + 8 > bsize) {
-	  aux_realloc(csound, buffersize + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	ldata = (int64_t) (*p->arg[i]+0.5);
-	byteswap((char *) &ldata, 8);
-	memcpy(out+buffersize,&data, 8);
-	buffersize += 8;
-	break;
+        /* realloc if necessary */
+        if(buffersize + 8 > bsize) {
+          aux_realloc(csound, buffersize + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        ldata = (int64_t) (*p->arg[i]+0.5);
+        byteswap((char *) &ldata, 8);
+        memcpy(out+buffersize,&data, 8);
+        buffersize += 8;
+        break;
       case 's':
-	s = (STRINGDAT *)p->arg[i];
-	size = strlen(s->data)+1;
-	size = ceil(size/4.)*4;
-	/* realloc if necessary */
-	if(buffersize + size > bsize) {
-	  aux_realloc(csound, buffersize + size + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	memcpy(out+buffersize, s->data, s->size);
-	buffersize += size;
-	break;
+        s = (STRINGDAT *)p->arg[i];
+        size = strlen(s->data)+1;
+        size = ceil(size/4.)*4;
+        /* realloc if necessary */
+        if(buffersize + size > bsize) {
+          aux_realloc(csound, buffersize + size + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        memcpy(out+buffersize, s->data, s->size);
+        buffersize += size;
+        break;
       case 'G':
-	ft = csound->FTnp2Find(csound, p->arg[i]);
+        ft = csound->FTnp2Find(csound, p->arg[i]);
         size = (int32_t)(sizeof(MYFLT)*ft->flen);
-	if(buffersize + size + 4 > bsize) {
-	  aux_realloc(csound, buffersize + size + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
+        if(buffersize + size + 4 > bsize) {
+          aux_realloc(csound, buffersize + size + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
         data = size;
-	byteswap((char *)&data,4);
-	memcpy(out+buffersize,&data,4);
-	buffersize += 4;
+        byteswap((char *)&data,4);
+        memcpy(out+buffersize,&data,4);
+        buffersize += 4;
         memcpy(out+buffersize,ft->ftable,size);
-	buffersize += size;
-	break;
+        buffersize += size;
+        break;
      case 'A':
-	ar = (ARRAYDAT *) p->arg[i];
-	size = 0;
-	for(j=0; j < ar->dimensions; j++) {
+        ar = (ARRAYDAT *) p->arg[i];
+        size = 0;
+        for(j=0; j < ar->dimensions; j++) {
          size += (int32_t)ar->sizes[j]*sizeof(MYFLT);
 	}
 	if(buffersize + size + 12 > bsize) {
@@ -722,30 +722,30 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
 	memcpy(out+buffersize,&data,4);
 	buffersize += 4;
         memcpy(out+buffersize,ar->data,size);
-	buffersize += size;
-	break;
+        buffersize += size;
+        break;
       case 'a':
         size = (int32_t) (CS_KSMPS+1)*sizeof(MYFLT);
-	if(buffersize + size + 4 > bsize) {
-	  aux_realloc(csound, buffersize + size + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	data = size;
-	byteswap((char *)&data,4);
-	memcpy(out+buffersize,&data,4);
-	buffersize += 4;
-	mdata = CS_KSMPS;
-	memcpy(out+buffersize,&mdata,sizeof(MYFLT));
+        if(buffersize + size + 4 > bsize) {
+          aux_realloc(csound, buffersize + size + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        data = size;
+        byteswap((char *)&data,4);
+        memcpy(out+buffersize,&data,4);
+        buffersize += 4;
+        mdata = CS_KSMPS;
+        memcpy(out+buffersize,&mdata,sizeof(MYFLT));
         memcpy(out+buffersize+sizeof(MYFLT),p->arg[i],CS_KSMPS*sizeof(MYFLT));
-	buffersize += size;
-	break;
+        buffersize += size;
+        break;
       case 'T':
       case 'F':
       case 'I':
       case 'N':
       default:
-	break;
+        break;
       }
     }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
