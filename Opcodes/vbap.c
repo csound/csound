@@ -979,6 +979,7 @@ static OENTRY vbap_localops[] = {
     "aiiim",
     (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
   { "vbapgmove.a",  S(VBAP1_MOVING),      TR, 5,
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "iiim",
     (SUBR) vbap1_moving_init,   (SUBR) NULL,    (SUBR) vbap1_moving },
   { "vbapmove.A", S(VBAPA_MOVING),

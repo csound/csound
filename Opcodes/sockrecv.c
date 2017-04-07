@@ -185,7 +185,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
   p->server_addr.sin_port = htons((int) *p->ptr2);    /* the port */
   /* associate the socket with the address and port */
   if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-		    sizeof(p->server_addr)) < 0))
+                    sizeof(p->server_addr)) < 0))
     return csound->InitError(csound, Str("bind failed"));
 
   if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
