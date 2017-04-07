@@ -61,11 +61,16 @@ for($i=0; $i -lt $uriList.Length; $i++)
     $cachedFile = $cacheDir + $fileName
     if (Test-Path $cachedFile -PathType Leaf)
     {
-        echo "Already have file, skipping"
-        continue
+        echo "Already downloaded file: $fileName, skipping"
     }
-    echo "Downloading (build and install): " $uriList[$i]
-    $webclient.DownloadFile($uriList[$i], $cachedFile)
+    else 
+    {
+    	echo "Downloading (build and install): " $uriList[$i]
+    	$webclient.DownloadFile($uriList[$i], $cachedFile)
+    }
     $destDir = $depsDir + $destList[$i]
-    Expand-Archive $cachedFile -DestinationPath $destDir
+    Expand-Archive $cachedFile -DestinationPath $destDir -Force
+    echo "Extracted $fileName"
 }
+
+echo "Finished"
