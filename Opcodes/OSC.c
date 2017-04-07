@@ -704,6 +704,7 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
         //#ifdef SOMEFINEDAY
       case 'G':
       case 'A':
+      case 'D':
       case 'a':
       case 'S':
         p->saved_types[i] = 'b';
@@ -779,7 +780,26 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
           //printf("blob found %p type %c\n", m->args[i].blob, c);
           //printf("length = %d\n", lo_blob_datasize(m->args[i].blob));
           int *idata = lo_blob_dataptr(m->args[i].blob);
-          if (c == 'A') {       /* Decode an numeric array */
+          if(c == 'D') {
+	    int j;
+	    MYFLT *data = (MYFLT *) idata;
+	    ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
+	    int asize = 1;
+	    for(j=0; j < arr->dimensions; j++) {
+	      asize *= arr->sizes[j];
+	    }
+	    len /= sizeof(MYFLT);
+            if(asize < len) {
+	      arr->data = (MYFLT *)
+		csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
+              asize = len;
+	     for(j = 0; j < arr->dimensions; j++)
+              asize /= arr->sizes[j];
+	     arr->sizes[arr->dimensions-1] = asize;
+	    }
+	    memcpy(arr->data,data,len*sizeof(MYFLT)); 
+	   }
+          else if (c == 'A') {       /* Decode an numeric array */
             int j;
             MYFLT* data = (MYFLT*)(&idata[1+idata[0]]);
             int size = 1;
