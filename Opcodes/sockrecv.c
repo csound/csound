@@ -611,7 +611,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
   char c;
   memset(buf, 0, p->buffer.size);
   uint32_t size = 0;
-  
+  char *types;
   struct sockaddr from;
   socklen_t clilen = sizeof(from);
   int bytes =
@@ -620,7 +620,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
   /*csound->ReadCircularBuffer(csound, p->cb, buf,
     p->buffer.size);*/
   
-  *p->kflag = bytes;
+  //*p->kflag = bytes;
   if(bytes) {
     if(strncmp(buf,"#bundle",7) == 0) { // bundle
       buf += 8;
@@ -646,11 +646,14 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 	  str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
 	  str[n].size  = len+1;
 	}
-	strncpy(str[n++].data, buf, len+1);
+	strncpy(str[n].data, buf, len+1);
+	types = str[n].data;
 	buf += ((size_t) ceil((len+1)/4.)*4);
+	n++;
       } else return OK;
+      j = 1;
       // parse data 
-      while((c = str[1].data[j++]) != '\0' && n < sout->sizes[0]){
+      while((c = types[j++]) != '\0' && n < sout->sizes[0]){
 	if(c == 'f') {
 	  float f = *((float *) buf);
 	  byteswap((char*)&f,4);
@@ -698,6 +701,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
       buf += 4;
     } 
   }
+  *p->kflag = n;
   return OK;
 }
 
