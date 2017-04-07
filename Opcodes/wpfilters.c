@@ -40,9 +40,75 @@ Csound C versions by Steven Yi
 
 #include "wpfilters.h"
 
+static int zdf_1pole_init(CSOUND* csound, ZDF_1POLE* p) {
+	if (*p->skip == 0) {
+		p->z1 = 0.0;
+		p->last_cut = -1.0;
+	}
+	return OK;
+}
 
-static int zdf_ladder_init(CSOUND* csound,
-	ZDF_LADDER* p) {
+
+
+static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
+
+	double z1 = p->z1;
+	double last_cut = p->last_cut;
+	double G = p->G;
+
+	uint32_t offset = p->h.insdshead->ksmps_offset;
+	uint32_t early = p->h.insdshead->ksmps_no_end;
+	uint32_t n, nsmps = CS_KSMPS;
+
+	double T = csound->onedsr;
+	double Tdiv2 = T / 2.0;
+	double two_div_T = 2.0 / T;
+
+	int cutoff_arate = IS_ASIG_ARG(p->cutoff);
+
+	MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
+
+	for (n = offset; n < nsmps; n++) {
+
+		if (cutoff_arate) {
+			cutoff = p->cutoff[n];
+		}
+
+		if (cutoff != last_cut) {
+			last_cut = cutoff;
+
+			double wd = TWOPI * cutoff;
+			double wa = two_div_T * tan(wd * Tdiv2);
+			double g = wa * Tdiv2;
+			G = g / (1.0 + g);
+		}
+
+		// do the filter, see VA book p. 46
+		// form sub-node value v(n)
+
+		double in = p->in[n];
+		double v = (in - z1) * G;
+
+		// form output of node + register
+		double lp = v + z1;
+		double hp = in - lp;
+
+		// z1 register update
+		z1 = lp + v;
+
+		p->outlp[n] = lp;
+		p->outhp[n] = hp;
+	}
+
+	p->z1 = z1;
+	p->last_cut = last_cut;
+	p->G = G;
+
+	return OK;
+}
+
+
+static int zdf_ladder_init(CSOUND* csound, ZDF_LADDER* p) {
 
 	if (*p->skip == 0) {
 		p->z1 = 0.0;
@@ -62,8 +128,7 @@ static int zdf_ladder_init(CSOUND* csound,
 	return OK;
 }
 
-static int zdf_ladder_perf(CSOUND* csound,
-	ZDF_LADDER* p) {
+static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
 
 	double z1 = p->z1;
 	double z2 = p->z2;
@@ -393,6 +458,7 @@ static int diode_ladder_perf(CSOUND* csound,
 
 static OENTRY wpfilters_localops[] =
 {
+  { "zdf_1pole", sizeof(ZDF_LADDER), 0,5,"aa","axo",(SUBR)zdf_1pole_init,NULL,(SUBR)zdf_1pole_perf},
   { "zdf_ladder", sizeof(ZDF_LADDER), 0,5,"a","axxo",(SUBR)zdf_ladder_init,NULL,(SUBR)zdf_ladder_perf},
   { "diode_ladder", sizeof(DIODE_LADDER), 0,5,"a","axxOPo",(SUBR)diode_ladder_init,NULL,(SUBR)diode_ladder_perf},
 };
