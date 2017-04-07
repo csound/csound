@@ -620,7 +620,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
   /*csound->ReadCircularBuffer(csound, p->cb, buf,
     p->buffer.size);*/
   
-  *p->kflag = bytes;
+  //*p->kflag = bytes;
   if(bytes) {
     if(strncmp(buf,"#bundle",7) == 0) { // bundle
       buf += 8;
@@ -701,6 +701,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
       buf += 4;
     } 
   }
+  *p->kflag = n;
   return OK;
 }
 
