@@ -784,17 +784,18 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 	    int j;
 	    MYFLT *data = (MYFLT *) idata;
 	    ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
-	    int asize = 0;
-	    for(j=0; j < arr->dimensions; j++)
-	      asize += arr->sizes[j];
+	    int asize = 1;
+	    for(j=0; j < arr->dimensions; j++) {
+	      asize *= arr->sizes[j];
+	    }
 	    len /= sizeof(MYFLT);
             if(asize < len) {
 	      arr->data = (MYFLT *)
 		csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
               asize = len;
-	     for(j=1; j < arr->dimensions; j++)
+	     for(j = 0; j < arr->dimensions; j++)
               asize /= arr->sizes[j];
-	     arr->sizes[0] = asize;
+	     arr->sizes[arr->dimensions-1] = asize;
 	    }
 	    memcpy(arr->data,data,len*sizeof(MYFLT)); 
 	   }
