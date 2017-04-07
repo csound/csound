@@ -792,6 +792,9 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 	      arr->data = (MYFLT *)
 		csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
               asize = len;
+	     for(j=1; j < arr->dimensions; j++)
+              asize /= arr->sizes[j];
+	     arr->sizes[0] = asize;
 	    }
 	    memcpy(arr->data,data,len*sizeof(MYFLT)); 
 	   }
