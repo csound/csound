@@ -250,7 +250,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                                          sizeof(MYFLT));
     // PTHREAD: change
     //pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
-	  p->thread = csoundCreateThread (pvs_io_thread, (void*)p);
+          p->thread = csoundCreateThread (pvs_io_thread, (void*)p);
     p->async = 1;
   } else
 #endif
