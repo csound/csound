@@ -793,7 +793,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 	      arr->data = (MYFLT *)
 		csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
               asize = len;
-	     for(j = 0; j < arr->dimensions; j++)
+	     for(j = 0; j < arr->dimensions-1; j++)
               asize /= arr->sizes[j];
 	     arr->sizes[arr->dimensions-1] = asize;
 	    }
