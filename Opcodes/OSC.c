@@ -781,24 +781,24 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
           //printf("length = %d\n", lo_blob_datasize(m->args[i].blob));
           int *idata = lo_blob_dataptr(m->args[i].blob);
           if(c == 'D') {
-	    int j;
-	    MYFLT *data = (MYFLT *) idata;
-	    ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
-	    int asize = 1;
-	    for(j=0; j < arr->dimensions; j++) {
-	      asize *= arr->sizes[j];
-	    }
-	    len /= sizeof(MYFLT);
+            int j;
+            MYFLT *data = (MYFLT *) idata;
+            ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
+            int asize = 1;
+            for(j=0; j < arr->dimensions; j++) {
+              asize *= arr->sizes[j];
+            }
+            len /= sizeof(MYFLT);
             if(asize < len) {
-	      arr->data = (MYFLT *)
-		csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
+              arr->data = (MYFLT *)
+                csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
               asize = len;
-	     for(j = 0; j < arr->dimensions-1; j++)
+             for(j = 0; j < arr->dimensions-1; j++)
               asize /= arr->sizes[j];
-	     arr->sizes[arr->dimensions-1] = asize;
-	    }
-	    memcpy(arr->data,data,len*sizeof(MYFLT)); 
-	   }
+             arr->sizes[arr->dimensions-1] = asize;
+            }
+            memcpy(arr->data,data,len*sizeof(MYFLT)); 
+           }
           else if (c == 'A') {       /* Decode an numeric array */
             int j;
             MYFLT* data = (MYFLT*)(&idata[1+idata[0]]);
