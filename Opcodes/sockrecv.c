@@ -242,7 +242,7 @@ static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
   p->server_addr.sin_port = htons((int) *p->ptr2);    /* the port */
   /* associate the socket with the address and port */
   if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-		    sizeof(p->server_addr)) < 0))
+                    sizeof(p->server_addr)) < 0))
     return csound->InitError(csound, Str("bind failed"));
 
   if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
@@ -357,7 +357,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
   p->server_addr.sin_port = htons((int) *p->ptr3);    /* the port */
   /* associate the socket with the address and port */
   if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-		    sizeof(p->server_addr)) < 0))
+                    sizeof(p->server_addr)) < 0))
     return csound->InitError(csound, Str("bind failed"));
 
   if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
@@ -451,8 +451,8 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 
   /* associate the socket with the address and port */
   if (UNLIKELY(bind
-	       (p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr))
-	       < 0)) {
+               (p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr))
+               < 0)) {
     return csound->InitError(csound, Str("bind failed"));
   }
 
@@ -475,7 +475,7 @@ static int send_srecv(CSOUND *csound, SOCKRECVT *p)
 
   if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * CS_KSMPS))) {
     return csound->PerfError(csound, p->h.insdshead,
-			     Str("read from socket failed"));
+                             Str("read from socket failed"));
   }
   return OK;
 }
@@ -551,7 +551,7 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
   p->server_addr.sin_port = htons((int) *p->port);    /* the port */
   /* associate the socket with the address and port */
   if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-		    sizeof(p->server_addr)) < 0))
+                    sizeof(p->server_addr)) < 0))
     return csound->InitError(csound, Str("bind failed"));
 
   if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
@@ -632,69 +632,69 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     while(size > 0)  {
       /* get address & types */
       if(n < sout->sizes[0]) {
-	len = strlen(buf);
-	if(len > str[n].size) {
-	  str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-	  str[n].size  = len+1;
-	}
-	strncpy(str[n++].data, buf, len+1);
-	buf += ((size_t) ceil((len+1)/4.)*4);
+        len = strlen(buf);
+        if(len > str[n].size) {
+          str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+          str[n].size  = len+1;
+        }
+        strncpy(str[n++].data, buf, len+1);
+        buf += ((size_t) ceil((len+1)/4.)*4);
       } else return OK;
       if(n < sout->sizes[0]) {
-	len = strlen(buf);
-	if(len > str[n].size) {
-	  str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-	  str[n].size  = len+1;
-	}
-	strncpy(str[n].data, buf, len+1);
-	types = str[n].data;
-	buf += ((size_t) ceil((len+1)/4.)*4);
-	n++;
+        len = strlen(buf);
+        if(len > str[n].size) {
+          str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+          str[n].size  = len+1;
+        }
+        strncpy(str[n].data, buf, len+1);
+        types = str[n].data;
+        buf += ((size_t) ceil((len+1)/4.)*4);
+        n++;
       } else return OK;
       j = 1;
       // parse data 
       while((c = types[j++]) != '\0' && n < sout->sizes[0]){
-	if(c == 'f') {
-	  float f = *((float *) buf);
-	  byteswap((char*)&f,4);
-	  if(str[n].size < 32) {
-	    str[n].data = csound->ReAlloc(csound, str[n].data, 32);
-	    str[n].size  = 32;
-	  }
-	  snprintf(str[n].data, str[n].size, "%f", f);
-	  buf += 4;
-	} else if (c == 'i') {
-	  int d = *((int32_t *) buf);
-	  byteswap((char*) &d,4);
-	  if(str[n].size < 32) {
-	    str[n].data = csound->ReAlloc(csound, str[n].data, 32);
-	    str[n].size  = 32;
-	  }
-	  snprintf(str[n].data, str[n].size, "%d", d);
-	  buf += 4;
-	} else if (c == 's') {
-	  len = strlen(buf);
-	  if(len > str[n].size) {
-	    str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-	    str[n].size  = len+1;
-	  }
-	  strncpy(str[n].data, buf, len);
-	  str[n].data[len] = '\0';
-	  len = ceil((len+1)/4.)*4;
-	  buf += len;
-	} else if (c == 'b') {
-	  len = *((uint32_t *) buf);
-	  byteswap((char*)&len,4);
-	  len = ceil((len)/4.)*4;
-	  if(len > str[n].size) {
-	    str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-	    str[n].size  = len+1;
-	  }
-	  strncpy(str[n].data, buf, len);
-	  str[n].data[len] = '\0';
-	  buf += len;
-	} 
-	n++;	
+        if(c == 'f') {
+          float f = *((float *) buf);
+          byteswap((char*)&f,4);
+          if(str[n].size < 32) {
+            str[n].data = csound->ReAlloc(csound, str[n].data, 32);
+            str[n].size  = 32;
+          }
+          snprintf(str[n].data, str[n].size, "%f", f);
+          buf += 4;
+        } else if (c == 'i') {
+          int d = *((int32_t *) buf);
+          byteswap((char*) &d,4);
+          if(str[n].size < 32) {
+            str[n].data = csound->ReAlloc(csound, str[n].data, 32);
+            str[n].size  = 32;
+          }
+          snprintf(str[n].data, str[n].size, "%d", d);
+          buf += 4;
+        } else if (c == 's') {
+          len = strlen(buf);
+          if(len > str[n].size) {
+            str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+            str[n].size  = len+1;
+          }
+          strncpy(str[n].data, buf, len);
+          str[n].data[len] = '\0';
+          len = ceil((len+1)/4.)*4;
+          buf += len;
+        } else if (c == 'b') {
+          len = *((uint32_t *) buf);
+          byteswap((char*)&len,4);
+          len = ceil((len)/4.)*4;
+          if(len > str[n].size) {
+            str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
+            str[n].size  = len+1;
+          }
+          strncpy(str[n].data, buf, len);
+          str[n].data[len] = '\0';
+          buf += len;
+        } 
+        n++;    
       }
       size = *((uint32_t *) buf);
       byteswap((char *)&size, 4);

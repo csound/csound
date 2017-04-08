@@ -571,10 +571,10 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
         else  ((char *)p->types.auxp)[i] = 'T';
       }
       else if(p->type->data[i] == 'D' ||
-	      p->type->data[i] == 'A' ||
-	      p->type->data[i] == 'G' ||
-	      p->type->data[i] == 'a')
-	 ((char *)p->types.auxp)[i] = 'b';
+              p->type->data[i] == 'A' ||
+              p->type->data[i] == 'G' ||
+              p->type->data[i] == 'a')
+         ((char *)p->types.auxp)[i] = 'b';
     }
     memcpy(out+buffersize+1,p->types.auxp,size-1);
     size = ceil((size+1)/4.)*4;
@@ -689,38 +689,38 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
         size = 0;
         for(j=0; j < ar->dimensions; j++) {
          size += (int32_t)ar->sizes[j]*sizeof(MYFLT);
-	}
-	if(buffersize + size + 12 > bsize) {
-	  aux_realloc(csound, buffersize + size + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	data = size + 8;
-	byteswap((char *)&data,4);
-	memcpy(out+buffersize,&data,4);
-	buffersize += 4;
-	memcpy(out+buffersize,&(ar->dimensions),4);
-	buffersize += 4;
-	memcpy(out+buffersize,&ar->sizes[0],ar->dimensions*4);
-	buffersize += ar->dimensions*4;
+        }
+        if(buffersize + size + 12 > bsize) {
+          aux_realloc(csound, buffersize + size + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        data = size + 8;
+        byteswap((char *)&data,4);
+        memcpy(out+buffersize,&data,4);
+        buffersize += 4;
+        memcpy(out+buffersize,&(ar->dimensions),4);
+        buffersize += 4;
+        memcpy(out+buffersize,&ar->sizes[0],ar->dimensions*4);
+        buffersize += ar->dimensions*4;
         memcpy(out+buffersize,ar->data,size);
-	buffersize += size;
-	break;
+        buffersize += size;
+        break;
       case 'D':
-	ar = (ARRAYDAT *) p->arg[i];
-	size = 0;
-	for(j=0; j < ar->dimensions; j++) {
+        ar = (ARRAYDAT *) p->arg[i];
+        size = 0;
+        for(j=0; j < ar->dimensions; j++) {
          size += (int32_t)ar->sizes[j]*sizeof(MYFLT);
-	}
-	if(buffersize + size + 12 > bsize) {
-	  aux_realloc(csound, buffersize + size + 128, &p->aux);
-	  out = (char *) p->aux.auxp;
-	  bsize = p->aux.size;
-	}
-	data = size;
-	byteswap((char *)&data,4);
-	memcpy(out+buffersize,&data,4);
-	buffersize += 4;
+        }
+        if(buffersize + size + 12 > bsize) {
+          aux_realloc(csound, buffersize + size + 128, &p->aux);
+          out = (char *) p->aux.auxp;
+          bsize = p->aux.size;
+        }
+        data = size;
+        byteswap((char *)&data,4);
+        memcpy(out+buffersize,&data,4);
+        buffersize += 4;
         memcpy(out+buffersize,ar->data,size);
         buffersize += size;
         break;
