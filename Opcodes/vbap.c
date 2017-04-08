@@ -279,7 +279,7 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
       return;
     }
 
-    connections = csound->Calloc(csound, (ls_amount * ls_amount * sizeof(int));
+    connections = csound->Calloc(csound, ls_amount * ls_amount * sizeof(int));
     distance_table =
       csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(MYFLT));
     distance_table_i =
