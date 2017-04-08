@@ -404,11 +404,11 @@ public:
 
   /** set amplitude
    */
-  T amp(float a) { am = a; }
+  void amp(float a) { am = a; }
 
   /** set frequency
    */
-  T freq(float f) { fr = f; }
+  void freq(float f) { fr = f; }
 
   /** multiplication (unary)
    */
