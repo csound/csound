@@ -797,7 +797,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
               asize /= arr->sizes[j];
              arr->sizes[arr->dimensions-1] = asize;
             }
-            memcpy(arr->data,data,len*sizeof(MYFLT)); 
+            memcpy(arr->data,data,len*sizeof(MYFLT));
            }
           else if (c == 'A') {       /* Decode an numeric array */
             int j;
