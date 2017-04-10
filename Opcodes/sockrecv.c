@@ -526,6 +526,27 @@ typedef struct _rawosc {
   }
 */
 
+
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
+{
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
+      size_t ss;
+      if (p->data == NULL) {
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        p->arrayMemberSize = var->memBlockSize;
+      }
+
+      ss = p->arrayMemberSize*size;
+      if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
+      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+      p->dimensions = 1;
+      p->sizes = (int*)csound->Malloc(csound, sizeof(int));
+      p->sizes[0] = size;
+    }
+}
+
+
 static int init_raw_osc(CSOUND *csound, RAWOSC *p)
 {
   MYFLT   *buf;
@@ -574,6 +595,7 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
     p->thrid = csound->CreateThread(oscrecv, (void *) p);
     csound->RegisterDeinitCallback(csound, (void *) p, deinit_oscrecv);
   */
+  tabensure(csound, p->sout, 32); 
   return OK;
 }
 
