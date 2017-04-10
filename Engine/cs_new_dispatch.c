@@ -308,7 +308,7 @@ void dag_reinit(CSOUND *csound)
 #define ATOMIC_CAS(x,current,new)  InterlockedCompareExchange(x, current, new)
 #else
 #define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
-#endif 
+#endif
 
 taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
 {
