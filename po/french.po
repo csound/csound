@@ -1482,16 +1482,14 @@ msgstr ""
 "%*s"
 
 #: Engine/linevent.c:372
-#, fuzzy
 msgid "event: param 1 must be \"a\", \"i\", \"q\", \"f\", \"d\", or \"e\""
-msgstr "event : le paramètre 1 doit être \"a\", \"i\", \"q\", \"f\", ou \"e\""
+msgstr "event : le paramètre 1 doit être \"a\", \"i\", \"q\", \"f\", \"d\" ou \"e\""
 
 #: Engine/linevent.c:374
-#, fuzzy
 msgid "event: string name is allowed only for \"i\", \"d\", and \"q\" events"
 msgstr ""
 "event : un identifiant sous forme de chaîne n'est permis qu'avec les "
-"évènements \"i\" et \"q\""
+"évènements \"i\", \"d\" et \"q\""
 
 #: Engine/linevent.c:423
 #, c-format
@@ -9721,9 +9719,8 @@ msgid "read from socket failed"
 msgstr "la lecture depuis le socket a échoué"
 
 #: Opcodes/sockrecv.c:607
-#, fuzzy
 msgid "output array too small\n"
-msgstr "tableau d'entrée trop petit\n"
+msgstr "tableau de sortie trop petit\n"
 
 #: Opcodes/socksend.c:149 Opcodes/socksend.c:186 Opcodes/socksend.c:223
 #: Opcodes/socksend.c:302
@@ -9745,9 +9742,8 @@ msgid "Expected %d got %d\n"
 msgstr "%d attendu, %d obtenu\n"
 
 #: Opcodes/socksend.c:753
-#, fuzzy
 msgid "OSCsend2 failed"
-msgstr "CLsend a échoué"
+msgstr "OSCsend2 a échoué"
 
 #: Opcodes/space.c:180
 msgid "space: not initialised"
@@ -10459,9 +10455,9 @@ msgid "Too few loudspeakers"
 msgstr "Trop peu de haut-parleurs"
 
 #: Opcodes/vbap.c:634
-#, fuzzy, c-format
+#, c-format
 msgid "Too little data speakers (%n)\n"
-msgstr "Trop peu de haut-parleurs"
+msgstr "Trop peu de données de haut-parleurs (%n)\n"
 
 #: Opcodes/vbap.c:657
 msgid "Not valid 3-D configuration"
@@ -10478,7 +10474,7 @@ msgstr ""
 #: Opcodes/vbap.c:706
 #, c-format
 msgid "Triplet %d Loudspeakers: "
-msgstr "Haut-parleurs Triplet %d : "
+msgstr "Haut-parleurs triplet %d : "
 
 #: Opcodes/vbap.c:756 Opcodes/vbap.c:771
 #, c-format
