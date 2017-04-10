@@ -781,24 +781,24 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
           //printf("length = %d\n", lo_blob_datasize(m->args[i].blob));
           int *idata = lo_blob_dataptr(m->args[i].blob);
           if(c == 'D') {
-	    int j;
-	    MYFLT *data = (MYFLT *) idata;
-	    ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
-	    int asize = 1;
-	    for(j=0; j < arr->dimensions; j++) {
-	      asize *= arr->sizes[j];
-	    }
-	    len /= sizeof(MYFLT);
+            int j;
+            MYFLT *data = (MYFLT *) idata;
+            ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
+            int asize = 1;
+            for(j=0; j < arr->dimensions; j++) {
+              asize *= arr->sizes[j];
+            }
+            len /= sizeof(MYFLT);
             if(asize < len) {
-	      arr->data = (MYFLT *)
-		csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
+              arr->data = (MYFLT *)
+                csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
               asize = len;
-	     for(j = 0; j < arr->dimensions-1; j++)
+             for(j = 0; j < arr->dimensions-1; j++)
               asize /= arr->sizes[j];
-	     arr->sizes[arr->dimensions-1] = asize;
-	    }
-	    memcpy(arr->data,data,len*sizeof(MYFLT)); 
-	   }
+             arr->sizes[arr->dimensions-1] = asize;
+            }
+            memcpy(arr->data,data,len*sizeof(MYFLT));
+           }
           else if (c == 'A') {       /* Decode an numeric array */
             int j;
             MYFLT* data = (MYFLT*)(&idata[1+idata[0]]);
@@ -904,7 +904,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
+{ "OSCsend_lo", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
 { "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
 { "OSCinitM", S(OSCINITM), 0, 1, "i", "Si", (SUBR)osc_listener_initMulti },
 { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*", (SUBR)OSC_list_init, (SUBR)OSC_list},

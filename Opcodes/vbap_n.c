@@ -148,7 +148,7 @@ int vbap_control(CSOUND *csound, VBAP_DATA *p,
     ANG_VEC atmp;
     int32 i,j, spreaddirnum;
     int cnt = p->number;
-    MYFLT tmp_gains[CHANNELS],sum=FL(0.0);
+    MYFLT *tmp_gains = malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
     if (UNLIKELY(p->dim == 2 && fabs(*ele) > 0.0)) {
       csound->Warning(csound,
                       Str("Warning: truncating elevation to 2-D plane\n"));
@@ -247,6 +247,7 @@ int vbap_control(CSOUND *csound, VBAP_DATA *p,
     for (i=0;i<cnt;i++) {
       p->updated_gains[i] /= sum;
     }
+    free(tmp_gains);
     return OK;
 }
 
@@ -442,8 +443,8 @@ int vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, INSDS *insdshead,
     int32 i,j, spreaddirnum;
     CART_VEC tmp1, tmp2, tmp3;
     MYFLT coeff, angle;
-    MYFLT tmp_gains[CHANNELS],sum=FL(0.0);
     int cnt = p->number;
+    MYFLT *tmp_gains=malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
 
     if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
       csound->Warning(csound,
@@ -851,4 +852,5 @@ int vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
     }
     return OK;
 }
+
 
