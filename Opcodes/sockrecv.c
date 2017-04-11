@@ -532,6 +532,10 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
+#else
+    int nMode = 1; // 1: NON-BLOCKING
+    if (ioctlsocket (objSocket, FIONBIO, &nMode) == SOCKET_ERROR)
+       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError
