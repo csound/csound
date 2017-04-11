@@ -797,7 +797,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
               asize /= arr->sizes[j];
              arr->sizes[arr->dimensions-1] = asize;
             }
-            memcpy(arr->data,data,len*sizeof(MYFLT)); 
+            memcpy(arr->data,data,len*sizeof(MYFLT));
            }
           else if (c == 'A') {       /* Decode an numeric array */
             int j;
@@ -904,7 +904,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
+{ "OSCsend_lo", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
 { "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
 { "OSCinitM", S(OSCINITM), 0, 1, "i", "Si", (SUBR)osc_listener_initMulti },
 { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*", (SUBR)OSC_list_init, (SUBR)OSC_list},
