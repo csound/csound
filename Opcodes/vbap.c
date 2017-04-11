@@ -45,7 +45,7 @@ static void add_ldsp_triplet(CSOUND *csound, int i, int j, int k,
                              ls *lss);
 static void calculate_3x3_matrixes(CSOUND *csound,
                                    ls_triplet_chain *ls_triplets,
-                                   ls lss[CHANNELS], int ls_amount, int ind);
+                                   ls lss[], int ls_amount, int ind);
 static void choose_ls_tuplets(CSOUND *csound, ls lss[],
                               ls_triplet_chain **ls_triplets,
                               int ls_amount, int ind);
@@ -1005,3 +1005,4 @@ static OENTRY vbap_localops[] = {
 };
 
 LINKAGE_BUILTIN(vbap_localops)
+
