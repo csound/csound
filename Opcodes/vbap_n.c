@@ -853,3 +853,4 @@ int vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
     return OK;
 }
 
+
