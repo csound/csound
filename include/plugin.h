@@ -186,6 +186,12 @@ public:
     return ReAlloc(this, p,size);
   }
 
+  /** Csound string duplication
+   */
+  char *strdup(char *s) {
+    return Strdup(this, s);
+  }
+   
   /** Csound memory de-allocation
    */
   void free(void *p) {
