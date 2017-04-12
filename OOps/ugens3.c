@@ -211,47 +211,48 @@ int losset(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
-      uint32 maxphs = ((int32) ftp->flenfrms << LOBITS) + ((int32) LOFACT - 1);
+      uint32 maxphs = ftp->flenfrms;
+      //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
-        p->cpscvt = ftp->cvtbas / *p->ibas;
+        p->cpscvt = (ftp->cvtbas / *p->ibas)/LOFACT;
       else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
         p->cpscvt = FL(261.62561); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
+      ///printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
           csound->Warning(csound, Str("loscil: sustain defers to "
                                       "non-looping source"));
         }
-        p->beg1 = ftp->begin1 << LOBITS;
-        p->end1 = ftp->end1 << LOBITS;
+        p->beg1 = ftp->begin1;
+        p->end1 = ftp->end1;
       }
       else if (UNLIKELY(p->mod1 < 0 || p->mod1 > 3))
         goto lerr2;
       else {
-        p->beg1 = (int32) (*p->ibeg1 * (MYFLT) (LOFACT));
-        p->end1 = (int32) (*p->iend1 * (MYFLT) (LOFACT));
-        if (!p->beg1 && !p->end1) {
+        p->beg1 = *p->ibeg1;
+        p->end1 = *p->iend1;
+        if (!p->beg1 && !p->end1)
           /* default to looping the whole sample */
-          p->end1 = (p->mod1 ? (int32)maxphs : ((int32) ftp->flenfrms << LOBITS));
-        }
+          p->end1 = (p->mod1 ? maxphs : ftp->flenfrms); /* These are the same!! */
         else if (UNLIKELY(p->beg1 < 0 ||
-                          p->end1 > (int32)maxphs ||
+                          p->end1 > maxphs ||
                           p->beg1 >= p->end1)) {
-          csound->Message(csound, "beg: %d, end = %d, maxphs = %d\n",
+          csound->Message(csound, "beg: %g, end = %g, maxphs = %d\n",
                           p->beg1, p->end1, maxphs);
           goto lerr2;
         }
       }
       if ((p->mod2 = (int16) *p->imod2) < 0) {
         p->mod2 = ftp->loopmode2;
-        p->beg2 = ftp->begin2 << LOBITS;
-        p->end2 = ftp->end2 << LOBITS;
+        p->beg2 = ftp->begin2;
+        p->end2 = ftp->end2;
       }
       else {
-        p->beg2 = (int32) (*p->ibeg2 * (MYFLT) (LOFACT));
-        p->end2 = (int32) (*p->iend2 * (MYFLT) (LOFACT));
+        p->beg2 = *p->ibeg2;
+        p->end2 = *p->iend2;
         if (UNLIKELY(p->mod2 < 0 || p->mod2 > 3 ||
                      p->beg2 < 0 || p->end2 > (int32)maxphs ||
                      p->beg2 >= p->end2)) {
@@ -301,26 +302,28 @@ int losset(CSOUND *csound, LOSC *p)
 }
 
 static inline void loscil_linear_interp_mono(MYFLT *ar,
-                                             MYFLT *ftbl, int32 phs, int32 flen)
+                                             MYFLT *ftbl, MYFLT phs, int32 flen)
 {
     MYFLT   fract, tmp;
-    int     x;
+    int32   x;
 
-    fract = (MYFLT) ((int) phs & LOMASK) * LOSCAL;
-    x = (int) (phs >> LOBITS);
+    fract = MODF(phs, &tmp);
+    x = (int32) tmp;
+    //printf("phs=%d+%f\n",x, fract);
     tmp = ftbl[x];
-    x = (x < (int) flen ? (x + 1) : (int) flen);
+    x = (x < flen ? (x + 1) : flen);
     *ar = tmp + ((ftbl[x] - tmp) * fract);
 }
 
 static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
-                                               MYFLT *ftbl, int32 phs, int32 flen)
+                                               MYFLT *ftbl, MYFLT phs, int32 flen)
 {
     MYFLT   fract, tmpL, tmpR;
     int     x;
 
-    fract = (MYFLT) ((int) phs & LOMASK) * LOSCAL;
-    x = (int) (phs >> LOBITS) << 1;
+    fract = MODF(phs, &tmpL);
+    x = (int32) tmpL;
+    //printf("phs=%d+%f\n",x, fract);
     tmpL = ftbl[x];
     tmpR = ftbl[x + 1];
     x = (x < ((int) flen - 1) ? (x + 2) : ((int) flen - 1));
@@ -329,17 +332,18 @@ static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
 }
 
 static inline void loscil_cubic_interp_mono(MYFLT *ar,
-                                            MYFLT *ftbl, int32 phs, int32 flen)
+                                            MYFLT *ftbl, MYFLT phs, int32 flen)
 {
     MYFLT   fract, tmp, a0, a1, a2, a3;
     int     x;
 
-    fract = (MYFLT) ((int) phs & LOMASK) * LOSCAL;
+    fract = MODF(phs, &tmp);
+    x = (int32) tmp;
+    //printf("phs=%d+%f\n",x, fract);
     a3 = fract * fract; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
     a2 = fract; a2 += FL(1.0); a0 = (a2 *= FL(0.5)); a0 -= FL(1.0);
     a1 = FL(3.0) * a3; a2 -= a1; a0 -= a3; a1 -= fract;
     a0 *= fract; a1 *= fract; a2 *= fract; a3 *= fract; a1 += FL(1.0);
-    x = (int) (phs >> LOBITS) - 1;
     tmp = ftbl[(x >= 0 ? x : 0)] * a0;
     tmp += ftbl[++x] * a1;
     x++;
@@ -351,17 +355,18 @@ static inline void loscil_cubic_interp_mono(MYFLT *ar,
 
 static CS_NOINLINE void
     loscil_cubic_interp_stereo(MYFLT *arL, MYFLT *arR,
-                               MYFLT *ftbl, int32 phs, int32 flen)
+                               MYFLT *ftbl, MYFLT phs, int32 flen)
 {
     MYFLT   fract, tmpL, tmpR, a0, a1, a2, a3;
     int     x;
 
-    fract = (MYFLT) ((int) phs & LOMASK) * LOSCAL;
+    fract = MODF(phs, &tmpL);
+    x = (int32) tmpL;
+    //printf("phs=%d+%f\n",x, fract);
     a3 = fract * fract; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
     a2 = fract; a2 += FL(1.0); a0 = (a2 *= FL(0.5)); a0 -= FL(1.0);
     a1 = FL(3.0) * a3; a2 -= a1; a0 -= a3; a1 -= fract;
     a0 *= fract; a1 *= fract; a2 *= fract; a3 *= fract; a1 += FL(1.0);
-    x = ((int) (phs >> LOBITS) << 1) - 2;
     tmpL = ftbl[(x >= 0 ? x : 0)] * a0;
     tmpR = ftbl[(x >= 0 ? (x + 1) : 1)] * a0;
     x += 2;
@@ -382,7 +387,8 @@ int loscil(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
-    int32    phs, inc, beg, end;
+    MYFLT    phs;
+    int32    inc, beg, end;
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
@@ -420,16 +426,20 @@ int loscil(CSOUND *csound, LOSC *p)
       goto phsck2;
     }
  phschk:
-    if (phs >= end && p->curmod != 3)
+    if (phs >= end && p->curmod != 3) {
+      //printf("****phs = %d end = %d\n", phs,end);
       goto put0;
+    }
     switch (p->curmod) {
     case 0:
       for (; n<nsmps; n++) {                    /* NO LOOPING  */
         loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-        if ((phs += inc) >= end)
+        if ((phs += inc) >= end) {
+          printf("****phs, end = %d, %d\n", phs, end);
           goto nxtseg;
+        }
       }
       break;
     case 1:
@@ -494,8 +504,9 @@ int loscil(CSOUND *csound, LOSC *p)
 
  phsout:
     p->lphs = phs;
- put0:
-    memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
+put0:
+    printf("****put0\n");
+     memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 
  phsck2:
@@ -587,7 +598,8 @@ int loscil3(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
-    int32    phs, inc, beg, end;
+    MYFLT    phs;
+    int32    inc, beg, end;
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
