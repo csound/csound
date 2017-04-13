@@ -45,14 +45,15 @@ typedef struct {
   MYFLT *outlp, *outhp;
   MYFLT *in, *cutoff, *skip;
   MYFLT last_cut, G;
-  MYFLT z1;
+  double z1;
 } ZDF_1POLE;
-
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
-  MYFLT *in, *cutoff, *q, *mode;
+  MYFLT *outlp,*outbp, *outhp;
+  MYFLT *in, *cutoff, *q, *skip;
+  double last_cut, last_q, g, R;
+  double z1, z2;
 } ZDF_2POLE;
 
 
@@ -60,16 +61,16 @@ typedef struct {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *cutoff, *res, *skip;
-  MYFLT last_cut, last_res, last_k, last_g, last_G, last_G2, last_G3, last_GAMMA;
-  MYFLT z1, z2, z3, z4;
+  double last_cut, last_res, last_k, last_g, last_G, last_G2, last_G3, last_GAMMA;
+  double z1, z2, z3, z4;
 } ZDF_LADDER;
 
 typedef struct {
   OPDS h;
   MYFLT *out;
   MYFLT *in, *cutoff, *kval, *nlp, *saturation, *skip;
-  MYFLT a[4], z[4], G[4], beta[4], delta[3], epsilon[3], gamma[3], SG[4];
-  MYFLT SIGMA, GAMMA, last_alpha, last_cut;
+  double a[4], z[4], G[4], beta[4], delta[3], epsilon[3], gamma[3], SG[4];
+  double SIGMA, GAMMA, last_alpha, last_cut;
 } DIODE_LADDER;
 
 //typedef struct {
