@@ -4,6 +4,8 @@ $webclient = New-Object System.Net.WebClient
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
 $depsDir = $currentDir + "\deps\"
+$stageDir = $currentDir + "\staging\"
+$depsBinDir = $depsDir + "bin\"
 $vcpkgDir = $currentDir + "\vcpkg"
 
 # Testing only, remove all files 
@@ -59,6 +61,7 @@ for($i=0; $i -lt $vcPackages.Length; $i++) {
 
 mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 mkdir deps -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 
 # Manual packages to download and install
 # List of URIs to download and install
@@ -98,7 +101,9 @@ for($i=0; $i -lt $uriList.Length; $i++)
 
 # Manual building...
 # portaudio
-cd deps
+cd staging
+copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
+
 if (Test-Path "portaudio")
 {
     cd portaudio
@@ -110,16 +115,32 @@ else
 {
     git clone --depth=1 "https://git.assembla.com/portaudio.git"
 }
-mkdir portaudioBuild -ErrorAction SilentlyContinue
-cd portaudioBuild
+
+mkdir portaudioBuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+cd portaudioBuild 
 cmake ..\portaudio -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
+copy .\Release\portaudio_x64.dll -Destination $depsBinDir
+
+# Add deps bin directory to the system path if not already there
+if ($env:Path.Contains($depsBinDir))
+{
+    echo "Already added dependency bin dir to path"
+}
+else
+{
+    [Environment]::SetEnvironmentVariable("Path", $env:Path + ";" + $depsBinDir, 
+        [EnvironmentVariableTarget]::User)
+
+    echo "Added dependency bin dir to path: $depsBinDir" 
+}
 
 # Generate solution file
-cd ..\..
+cd $currentDir
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs
 echo "Generating Csound VS project..."
+
 cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -Wdev -Wdeprecated `
  -DCMAKE_BUILD_TYPE="Release" `
@@ -140,7 +161,7 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DSWIG_DIR="C:\msys64\mingw64\share\swig\3.0.6" `
  -DFLEX_EXECUTABLE="..\deps\win_flex_bison\win_flex.exe" `
  -DBISON_EXECUTABLE="..\deps\win_flex_bison\win_bison.exe" `
- -DPORTAUDIO_INCLUDE_PATH="..\deps\portaudio\include" `
- -DPORTAUDIO_LIBRARY="..\deps\portaudioBuild\Release\portaudio_x64.lib"
+ -DPORTAUDIO_INCLUDE_PATH="..\staging\portaudio\include" `
+ -DPORTAUDIO_LIBRARY="..\staging\portaudioBuild\Release\portaudio_x64.lib"
 
 echo "Finished"
