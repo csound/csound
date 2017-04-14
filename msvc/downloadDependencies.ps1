@@ -8,11 +8,6 @@ $stageDir = $currentDir + "\staging\"
 $depsBinDir = $depsDir + "bin\"
 $vcpkgDir = $currentDir + "\vcpkg"
 
-# Testing only, remove all files 
-#rm -Path cache -Force -Recurse -ErrorAction SilentlyContinue
-#rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
-#rm -Path vcpkg -Force -Recurse -ErrorAction SilentlyContinue
-
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
 $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
@@ -25,6 +20,7 @@ if ($systemVCPKG)
     $vcpkgDir = Split-Path -Parent $systemVCPKG
     cd $vcpkgDir 
     git pull
+    vcpkg remove --outdated --recurse
     vcpkg update
     cd $currentDir
 }
@@ -34,6 +30,7 @@ elseif (Test-Path $vcpkgDir)
     echo "vcpkg already installed locally, updating"
     cd vcpkg
     git pull
+    vcpkg remove --outdated --recurse
     vcpkg update
     cd ..
 }
@@ -59,6 +56,7 @@ for($i=0; $i -lt $vcPackages.Length; $i++) {
     vcpkg --triplet $targetTriplet install $vcPackages[$i]
 }
 
+rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 mkdir deps -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
@@ -129,8 +127,12 @@ if ($env:Path.Contains($depsBinDir))
 }
 else
 {
+    # Permanently add to system path
     [Environment]::SetEnvironmentVariable("Path", $env:Path + ";" + $depsBinDir, 
         [EnvironmentVariableTarget]::User)
+
+    # For this session add to path var
+    $env:Path += ";" + $depsBinDir
 
     echo "Added dependency bin dir to path: $depsBinDir" 
 }
