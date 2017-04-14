@@ -11,21 +11,37 @@ $vcpkgDir = $currentDir + "\vcpkg"
 #rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 #rm -Path vcpkg -Force -Recurse -ErrorAction SilentlyContinue
 
+# Find VCPKG from path if it already exists
+# Otherwise use the local Csound version that will be installed
+$systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
+
 # Test if VCPKG is already installed on system
-# Download if not
-if (Test-Path $vcpkgDir)
+# Download locally to csound msvc folder if not
+if ($systemVCPKG)
 {
-    echo "vcpkg already installed, updating"
+    echo "vcpkg already installed on system, updating"
+    $vcpkgDir = Split-Path -Parent $systemVCPKG
+    cd $vcpkgDir 
+    git pull
+    vcpkg update
+    cd $currentDir
+}
+elseif (Test-Path $vcpkgDir)
+{
+    $env:Path += ";" + $vcpkgDir
+    echo "vcpkg already installed locally, updating"
     cd vcpkg
     git pull
     vcpkg update
     cd ..
 }
 else {
+    $env:Path += ";" + $vcpkgDir
     echo "vcpkg missing, downloading and installing"
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
     powershell -exec bypass scripts\bootstrap.ps1
+    vcpkg integrate install
     cd ..
 }
 
@@ -41,8 +57,8 @@ for($i=0; $i -lt $vcPackages.Length; $i++) {
     vcpkg --triplet $targetTriplet install $vcPackages[$i]
 }
 
-mkdir cache -ErrorAction SilentlyContinue
-mkdir deps -ErrorAction SilentlyContinue
+mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+mkdir deps -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 
 # Manual packages to download and install
 # List of URIs to download and install
@@ -105,8 +121,9 @@ mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs
 echo "Generating Csound VS project..."
 cmake ..\.. -G "Visual Studio 15 2017 Win64" `
+ -Wdev -Wdeprecated `
  -DCMAKE_BUILD_TYPE="Release" `
- -DCMAKE_TOOLCHAIN_FILE="..\vcpkg\scripts\buildsystems\vcpkg.cmake" `
+ -DCMAKE_TOOLCHAIN_FILE="$vcpkgDir\scripts\buildsystems\vcpkg.cmake" `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DHAVE_BIG_ENDIAN=0 `
@@ -124,6 +141,6 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DFLEX_EXECUTABLE="..\deps\win_flex_bison\win_flex.exe" `
  -DBISON_EXECUTABLE="..\deps\win_flex_bison\win_bison.exe" `
  -DPORTAUDIO_INCLUDE_PATH="..\deps\portaudio\include" `
- -DPORTAUDIO_LIBRARY="..\deps\portaudioBuild\Release"
+ -DPORTAUDIO_LIBRARY="..\deps\portaudioBuild\Release\portaudio_x64.lib"
 
 echo "Finished"

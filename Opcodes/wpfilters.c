@@ -49,7 +49,6 @@ static int zdf_1pole_init(CSOUND* csound, ZDF_1POLE* p) {
 }
 
 
-
 static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 
 	double z1 = p->z1;
@@ -103,6 +102,92 @@ static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 	p->z1 = z1;
 	p->last_cut = last_cut;
 	p->G = G;
+
+	return OK;
+}
+
+
+static int zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
+	if (*p->skip == 0) {
+		p->z1 = 0.0;
+		p->z2 = 0.0;
+		p->last_cut = -1.0;
+		p->last_q = -1.0;
+		p->g = 0.0;
+		p->R = 0.0;
+	}
+	return OK;
+}
+
+
+static int zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
+	double z1 = p->z1;
+	double z2 = p->z2;
+	double last_cut = p->last_cut;
+	double last_q = p->last_q;
+	double g = p->g;
+	double R = p->R;
+	double g2 = g * g;
+
+	uint32_t offset = p->h.insdshead->ksmps_offset;
+	uint32_t early = p->h.insdshead->ksmps_no_end;
+	uint32_t n, nsmps = CS_KSMPS;
+
+	double T = csound->onedsr;
+	double Tdiv2 = T / 2.0;
+	double two_div_T = 2.0 / T;
+
+	int cutoff_arate = IS_ASIG_ARG(p->cutoff);
+	int q_arate = IS_ASIG_ARG(p->q);
+
+	MYFLT cutoff = *p->cutoff;
+	MYFLT q = *p->q;
+
+	for (n = offset; n < nsmps; n++) {
+
+		if (cutoff_arate) {
+			cutoff = p->cutoff[n];
+		}
+		if (q_arate) {
+			q = p->q[n];
+		}
+
+		if (cutoff != last_cut) {
+			last_cut = cutoff;
+
+			double wd = TWOPI * cutoff;
+			double wa = two_div_T * tan(wd * Tdiv2);
+			g = wa * Tdiv2;
+			g2 = g * g;
+		}
+
+		if (q != last_q) {
+			last_q = q;
+			R = 1.0 / (2.0 * q);
+		}
+
+		double in = p->in[n];
+		double hp = (in - (2.0 * R + g) * z1 - z2) / (1.0 + (2.0 * R * g) + g2);
+		double bp = g * hp + z1;
+		double lp = g * bp + z2;
+//		double notch = in - (2.0 * R * bp); 
+
+		// register updates
+		z1 = g * hp + bp;
+		z2 = g * bp + lp;
+
+		p->outlp[n] = lp;
+		p->outhp[n] = hp;
+		p->outbp[n] = bp;
+//		p->outnotch[n] = notch;
+	}
+
+	p->z1 = z1;
+	p->z2 = z2;
+	p->last_cut = last_cut;
+	p->last_q = last_q;
+	p->g = g;
+	p->R = R;
 
 	return OK;
 }
@@ -458,7 +543,8 @@ static int diode_ladder_perf(CSOUND* csound,
 
 static OENTRY wpfilters_localops[] =
 {
-  { "zdf_1pole", sizeof(ZDF_LADDER), 0,5,"aa","axo",(SUBR)zdf_1pole_init,NULL,(SUBR)zdf_1pole_perf},
+  { "zdf_1pole", sizeof(ZDF_1POLE), 0,5,"aa","axo",(SUBR)zdf_1pole_init,NULL,(SUBR)zdf_1pole_perf},
+  { "zdf_2pole", sizeof(ZDF_2POLE), 0,5,"aaa","axxo",(SUBR)zdf_2pole_init,NULL,(SUBR)zdf_2pole_perf},
   { "zdf_ladder", sizeof(ZDF_LADDER), 0,5,"a","axxo",(SUBR)zdf_ladder_init,NULL,(SUBR)zdf_ladder_perf},
   { "diode_ladder", sizeof(DIODE_LADDER), 0,5,"a","axxOPo",(SUBR)diode_ladder_init,NULL,(SUBR)diode_ladder_perf},
 };

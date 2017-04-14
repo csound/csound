@@ -20,6 +20,7 @@ if(BUILD_CXX_INTERFACE AND Boost_FOUND)
         filebuilding.cpp)
 
     set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
+	include_directories(${Boost_INCLUDE_DIRS})
 
     if(WIN32 AND NOT MSVC)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
