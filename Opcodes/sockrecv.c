@@ -559,7 +559,7 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
       memset(buf, 0, MTU);
     }
 
-  tabensure(csound, p->sout,2); 
+  tabensure(csound, p->sout,2);
   return OK;
 }
 
@@ -623,8 +623,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
           }
           strncpy(str[n++].data, buf, len+1);
           buf += ((size_t) ceil((len+1)/4.)*4);
-        } 
-        if(n < sout->sizes[0]) {
+        }
+        if (n < sout->sizes[0]) {
           len = strlen(buf);
           if(len > str[n].size) {
             str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
@@ -633,7 +633,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
           strncpy(str[n].data, buf, len+1);
           types = str[n++].data;
           buf += ((size_t) ceil((len+1)/4.)*4);
-        } 
+        }
         j = 1;
         // parse data
         while((c = types[j++]) != '\0' && n < sout->sizes[0]){
