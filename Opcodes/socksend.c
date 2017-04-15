@@ -381,7 +381,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
+    int32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
 
     if (n != write(p->sock, &p->asig[offset], n)) {
       csound->Message(csound, Str("Expected %d got %d\n"),
@@ -513,6 +513,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     memset(p->aux.auxp, 0, bsize);
   }
   p->iargs = iarg;
+  p->last = FL(0.0);
   return OK;
 }
 
