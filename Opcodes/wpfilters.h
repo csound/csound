@@ -1,7 +1,7 @@
 /*
     wpfilters.h:
 
-    Copyright (C) 2017 Steven Yi 
+    Copyright (C) 2017 Steven Yi
 
     This file is part of Csound.
 
@@ -27,15 +27,15 @@ Zero Delay Feedback Filters
 Based on code by Will Pirkle, presented in:
 
 http://www.willpirkle.com/Downloads/AN-4VirtualAnalogFilters.2.0.pdf
- 
-and in his book "Designing software synthesizer plug-ins in C++ : for 
+
+and in his book "Designing software synthesizer plug-ins in C++ : for
 RackAFX, VST3, and Audio Units"
 
-ZDF using Trapezoidal integrator by Vadim Zavalishin, presented in "The Art 
+ZDF using Trapezoidal integrator by Vadim Zavalishin, presented in "The Art
 of VA Filter Design" (https://www.native-instruments.com/fileadmin/ni_media/
 downloads/pdf/VAFilterDesign_1.1.1.pdf)
 
-Csound C versions by Steven Yi 
+Csound C versions by Steven Yi
 */
 
 #include "csoundCore.h"
