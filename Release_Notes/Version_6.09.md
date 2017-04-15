@@ -55,6 +55,10 @@ fmax, fmin.
 
 - OSCsendA asynchronous version of OSCsend
 
+- OSCraw to listen for all OSC messages at a given port.
+
+- new implemetation of OSCsend not using liblo, with previous version
+  now called OSCsehd_lo
 
 ### New Gen and Macros
 
@@ -87,6 +91,11 @@ fmax, fmin.
 - Macro names better policed
 
 - p2 and p3 are now at higher precision and not truncated to 6 decimal places
+
+- new opcode d to switch off infinite otes (deote)l same as i wit egative p1
+
+- named instruments can be turned off with i if a - follows the "
+
 
 ### Options
 
@@ -186,6 +195,103 @@ incompatible change)
 ==END==
 ========================================================================
 UNDOCUMENTED/UNDELETED
+
+commit 0438640cc796ef220ab31ed10a890eb9d9636d36
+Author: jpff <jpff@codemist.co.uk>
+Date:   Wed Apr 12 20:56:17 2017 +0100
+
+    fix to score opcode d
+
+commit 7366e3b24038edeeede20907bf70eca09a9db54c
+Author: jpff <jpff@codemist.co.uk>
+Date:   Wed Apr 12 19:55:35 2017 +0100
+
+    loscil changed to fpt indexing
+
+commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Apr 11 22:31:02 2017 +0100
+
+    trying to set non-blocking mode on windows
+
+commit cdf7a90968d4559d79d56c61984d9429e7019c24
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Apr 11 21:27:52 2017 +0100
+
+    Strdup to Csound
+
+commit 1323b26c63fb2435967d542d042de7b7218564d8
+Author: jpff <jpff@codemist.co.uk>
+Date:   Sat Apr 8 21:58:58 2017 +0100
+
+    vbap has arbitrary number of speakers/channels
+
+commit fd14e9437b6358a5927e3ce1d0f341438c65a3db
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Thu Apr 6 18:51:46 2017 -0400
+
+    added zdf_1pole filter
+
+commit 88b1db83f81655420375109302e7aa6ead4f8839
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 6 22:27:31 2017 +0100
+
+    D OSC type
+
+commit 503913df2468332f837c21e0c7a9cddb2174686d
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Apr 6 17:17:13 2017 +0100
+
+    possible fix to vbap
+
+commit c95e92fb2560fb37757209bf4a2ad263c91d7b44
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Apr 6 15:22:13 2017 +0100
+
+    vbapinit with array
+
+commit 193b3838dc14dd11ead838f89eb255260e790c65
+commit 6323888c28515c4365dd1ca429a968bf97862d38
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 6 06:28:48 2017 +0100
+
+    trying to deal with bundles again
+
+commit 8e391a1b0f5962a19dbec3ca5ca63363b802ad1a
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Wed Apr 5 19:00:04 2017 -0400
+
+    implemented diode_ladder, fixed skip handling for zdf_ladder
+
+commit 2fff5566ada754c47ad443c3b47d03ebe389eb95
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 5 21:45:11 2017 +0100
+
+    trying to deal with bundles
+
+commit 9526f92ac0a1908be632017dc9034a997f49d97e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 5 18:33:47 2017 +0100
+
+    ignoring bundles 2
+
+commit 92de2b90b6ea260cef6a8d714e91921d99c17307
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Apr 3 20:31:07 2017 +0100
+
+    G type fixed
+
+commit 3814b45a7c804b09ac1944f76eeac52615c7a88c
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Sat Apr 1 18:05:13 2017 -0400
+
+    fix for pmidi.c and csoundLock/UnLock: add include of csGblMtx.h, fix setting of HAVE_PTHREAD for all targets instead of just for libcsound64
+
+commit 6305e51a33ce6c7ceb7a0cfe59e8d0f345745f46
+Author: jpff <jpff@codemist.co.uk>
+Date:   Tue Mar 28 14:08:56 2017 +0100
+
+    sockrec string version seems to be working
 
 commit 6305e51a33ce6c7ceb7a0cfe59e8d0f345745f46
 Author: jpff <jpff@codemist.co.uk>
