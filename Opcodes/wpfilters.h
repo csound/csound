@@ -56,6 +56,14 @@ typedef struct {
   double z1, z2;
 } ZDF_2POLE;
 
+typedef struct {
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *q, *mode, *skip;
+  double last_cut, last_q, g, R;
+  double z1, z2;
+} ZDF_2POLE_MODE;
+
 
 typedef struct {
   OPDS h;
