@@ -27,6 +27,9 @@ Zero Delay Feedback Filters
 Based on code by Will Pirkle, presented in:
 
 http://www.willpirkle.com/Downloads/AN-4VirtualAnalogFilters.2.0.pdf
+http://www.willpirkle.com/Downloads/AN-5Korg35_V3.pdf
+http://www.willpirkle.com/Downloads/AN-6DiodeLadderFilter.pdf
+http://www.willpirkle.com/Downloads/AN-7Korg35HPF_V2.pdf
 
 and in his book "Designing software synthesizer plug-ins in C++ : for
 RackAFX, VST3, and Audio Units"
@@ -105,6 +108,87 @@ static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 
         return OK;
 }
+
+static int zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
+	if (*p->skip == 0) {
+		p->z1 = 0.0;
+		p->last_cut = -1.0;
+	}
+	return OK;
+}
+
+
+static int zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
+
+	double z1 = p->z1;
+	double last_cut = p->last_cut;
+	double G = p->G;
+
+	uint32_t offset = p->h.insdshead->ksmps_offset;
+	uint32_t early = p->h.insdshead->ksmps_no_end;
+	uint32_t n, nsmps = CS_KSMPS;
+
+	double T = csound->onedsr;
+	double Tdiv2 = T / 2.0;
+	double two_div_T = 2.0 / T;
+	int mode = MYFLT2LONG(*p->mode);
+
+	int cutoff_arate = IS_ASIG_ARG(p->cutoff);
+
+	MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
+
+	for (n = offset; n < nsmps; n++) {
+
+		if (cutoff_arate) {
+			cutoff = p->cutoff[n];
+		}
+
+		if (cutoff != last_cut) {
+			last_cut = cutoff;
+
+			double wd = TWOPI * cutoff;
+			double wa = two_div_T * tan(wd * Tdiv2);
+			double g = wa * Tdiv2;
+			G = g / (1.0 + g);
+		}
+
+		// do the filter, see VA book p. 46
+		// form sub-node value v(n)
+
+		double in = p->in[n];
+		double v = (in - z1) * G;
+
+		// form output of node + register
+		double lp = v + z1;
+
+		if (mode == 0) { // low-pass
+			p->out[n] = lp;
+		}
+		else if (mode == 1) { // high-pass
+			double hp = in - lp;
+			p->out[n] = hp;
+		}
+		else if (mode == 2) { // allpass
+			double hp = in - lp;
+			p->out[n] = lp - hp;
+		}
+		// TODO Implement low-shelf and high-shelf
+		//else if (mode == 3) { // low-shelf 
+		//}
+		//else if (mode == 4) { // high-shelf 
+		//}
+			
+		// z1 register update
+		z1 = lp + v;
+	}
+
+	p->z1 = z1;
+	p->last_cut = last_cut;
+	p->G = G;
+
+	return OK;
+}
+
 
 
 static int zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
@@ -209,7 +293,7 @@ static int zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
         double z2 = p->z2;
         double last_cut = p->last_cut;
         double last_q = p->last_q;
-		double mode = *p->mode;
+		int mode = MYFLT2LONG(*p->mode);
         double g = p->g;
         double R = p->R;
         double g2 = g * g;
@@ -912,6 +996,7 @@ static int k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 static OENTRY wpfilters_localops[] =
 {
   { "zdf_1pole", sizeof(ZDF_1POLE), 0,5,"aa","axo",(SUBR)zdf_1pole_init,NULL,(SUBR)zdf_1pole_perf},
+  { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,5,"a","axOo",(SUBR)zdf_1pole_mode_init,NULL,(SUBR)zdf_1pole_mode_perf},
   { "zdf_2pole", sizeof(ZDF_2POLE), 0,5,"aaa","axxo",(SUBR)zdf_2pole_init,NULL,(SUBR)zdf_2pole_perf},
   { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,5,"a","axxOo",(SUBR)zdf_2pole_mode_init,NULL,(SUBR)zdf_2pole_mode_perf},
   { "zdf_ladder", sizeof(ZDF_LADDER), 0,5,"a","axxo",(SUBR)zdf_ladder_init,NULL,(SUBR)zdf_ladder_perf},
