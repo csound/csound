@@ -42,12 +42,12 @@ memory leaks fixed and more robust code.
 
 - pvstrace -- retain only the N loudest bins.
 
-- several new unary functions/opcodes for k-rate and i-time numeric arrays: ceil, floor, round, int,
-frac, powoftwo, abs, log2, log10, log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh,
-cbrt.
+- several new unary functions/opcodes for k-rate and i-time numeric
+arrays: ceil, floor, round, int, frac, powoftwo, abs, log2, log10,
+log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
-- several new binary functions/opcodes for k-rate and i-time numeric arrays: atan2, pow,hypot, fmod,
-fmax, fmin.
+- several new binary functions/opcodes for k-rate and i-time numeric
+  arrays: atan2, pow,hypot, fmod, fmax, fmin.
 
 - tvconv -- a time-varying convolution (FIR filter) opcode
 
@@ -123,6 +123,9 @@ incompatible change)
 
 - sockrev now can read strings
 
+- vbap system can in some cases allow arbiary uber of speakers via
+  arrays (work in progress)
+
 ### Utilities
 
 - dnoise fixed
@@ -158,6 +161,8 @@ incompatible change)
 - bug in sprintf removed
 
 - bug in soundin removed
+
+- losci/losci3 fixed i case of long tables
 
 ## SYSTEM LEVEL CHANGES
 
@@ -200,14 +205,6 @@ commit 0438640cc796ef220ab31ed10a890eb9d9636d36
 Author: jpff <jpff@codemist.co.uk>
 Date:   Wed Apr 12 20:56:17 2017 +0100
 
-    fix to score opcode d
-
-commit 7366e3b24038edeeede20907bf70eca09a9db54c
-Author: jpff <jpff@codemist.co.uk>
-Date:   Wed Apr 12 19:55:35 2017 +0100
-
-    loscil changed to fpt indexing
-
 commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Apr 11 22:31:02 2017 +0100
@@ -220,12 +217,6 @@ Date:   Tue Apr 11 21:27:52 2017 +0100
 
     Strdup to Csound
 
-commit 1323b26c63fb2435967d542d042de7b7218564d8
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sat Apr 8 21:58:58 2017 +0100
-
-    vbap has arbitrary number of speakers/channels
-
 commit fd14e9437b6358a5927e3ce1d0f341438c65a3db
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Thu Apr 6 18:51:46 2017 -0400
@@ -237,18 +228,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Apr 6 22:27:31 2017 +0100
 
     D OSC type
-
-commit 503913df2468332f837c21e0c7a9cddb2174686d
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Apr 6 17:17:13 2017 +0100
-
-    possible fix to vbap
-
-commit c95e92fb2560fb37757209bf4a2ad263c91d7b44
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Apr 6 15:22:13 2017 +0100
-
-    vbapinit with array
 
 commit 193b3838dc14dd11ead838f89eb255260e790c65
 commit 6323888c28515c4365dd1ca429a968bf97862d38
@@ -375,12 +354,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sat Jan 28 18:08:28 2017 +0000
 
     added csd and support for arrays to CPOF
-
-commit 7263c82a9a9648adbc0d985e04c117df0b35f0d1
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sat Jan 28 17:47:33 2017 +0000
-
-    added a comment about divide by zero
 
 commit 1fb13a751927e4ffd1875eff8e9cd09e83a7a630
 Author: veplaini <victor.lazzarini@nuim.ie>
