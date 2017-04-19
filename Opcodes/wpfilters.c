@@ -27,6 +27,9 @@ Zero Delay Feedback Filters
 Based on code by Will Pirkle, presented in:
 
 http://www.willpirkle.com/Downloads/AN-4VirtualAnalogFilters.2.0.pdf
+http://www.willpirkle.com/Downloads/AN-5Korg35_V3.pdf
+http://www.willpirkle.com/Downloads/AN-6DiodeLadderFilter.pdf
+http://www.willpirkle.com/Downloads/AN-7Korg35HPF_V2.pdf
 
 and in his book "Designing software synthesizer plug-ins in C++ : for
 RackAFX, VST3, and Audio Units"
@@ -106,6 +109,87 @@ static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
         return OK;
 }
 
+static int zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
+	if (*p->skip == 0) {
+		p->z1 = 0.0;
+		p->last_cut = -1.0;
+	}
+	return OK;
+}
+
+
+static int zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
+
+	double z1 = p->z1;
+	double last_cut = p->last_cut;
+	double G = p->G;
+
+	uint32_t offset = p->h.insdshead->ksmps_offset;
+	uint32_t early = p->h.insdshead->ksmps_no_end;
+	uint32_t n, nsmps = CS_KSMPS;
+
+	double T = csound->onedsr;
+	double Tdiv2 = T / 2.0;
+	double two_div_T = 2.0 / T;
+	int mode = MYFLT2LONG(*p->mode);
+
+	int cutoff_arate = IS_ASIG_ARG(p->cutoff);
+
+	MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
+
+	for (n = offset; n < nsmps; n++) {
+
+		if (cutoff_arate) {
+			cutoff = p->cutoff[n];
+		}
+
+		if (cutoff != last_cut) {
+			last_cut = cutoff;
+
+			double wd = TWOPI * cutoff;
+			double wa = two_div_T * tan(wd * Tdiv2);
+			double g = wa * Tdiv2;
+			G = g / (1.0 + g);
+		}
+
+		// do the filter, see VA book p. 46
+		// form sub-node value v(n)
+
+		double in = p->in[n];
+		double v = (in - z1) * G;
+
+		// form output of node + register
+		double lp = v + z1;
+
+		if (mode == 0) { // low-pass
+			p->out[n] = lp;
+		}
+		else if (mode == 1) { // high-pass
+			double hp = in - lp;
+			p->out[n] = hp;
+		}
+		else if (mode == 2) { // allpass
+			double hp = in - lp;
+			p->out[n] = lp - hp;
+		}
+		// TODO Implement low-shelf and high-shelf
+		//else if (mode == 3) { // low-shelf 
+		//}
+		//else if (mode == 4) { // high-shelf 
+		//}
+			
+		// z1 register update
+		z1 = lp + v;
+	}
+
+	p->z1 = z1;
+	p->last_cut = last_cut;
+	p->G = G;
+
+	return OK;
+}
+
+
 
 static int zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
         if (*p->skip == 0) {
@@ -180,6 +264,111 @@ static int zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
                 p->outhp[n] = hp;
                 p->outbp[n] = bp;
 //              p->outnotch[n] = notch;
+        }
+
+        p->z1 = z1;
+        p->z2 = z2;
+        p->last_cut = last_cut;
+        p->last_q = last_q;
+        p->g = g;
+        p->R = R;
+
+        return OK;
+}
+
+
+static int zdf_2pole_mode_init(CSOUND* csound, ZDF_2POLE_MODE* p) {
+        if (*p->skip == 0) {
+                p->z1 = 0.0;
+                p->z2 = 0.0;
+                p->last_cut = -1.0;
+                p->last_q = -1.0;
+                p->g = 0.0;
+                p->R = 0.0;
+        }
+        return OK;
+}
+static int zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
+        double z1 = p->z1;
+        double z2 = p->z2;
+        double last_cut = p->last_cut;
+        double last_q = p->last_q;
+		int mode = MYFLT2LONG(*p->mode);
+        double g = p->g;
+        double R = p->R;
+        double g2 = g * g;
+
+        uint32_t offset = p->h.insdshead->ksmps_offset;
+        uint32_t early = p->h.insdshead->ksmps_no_end;
+        uint32_t n, nsmps = CS_KSMPS;
+
+        double T = csound->onedsr;
+        double Tdiv2 = T / 2.0;
+        double two_div_T = 2.0 / T;
+
+        int cutoff_arate = IS_ASIG_ARG(p->cutoff);
+        int q_arate = IS_ASIG_ARG(p->q);
+
+        MYFLT cutoff = *p->cutoff;
+        MYFLT q = *p->q;
+
+        for (n = offset; n < nsmps; n++) {
+
+                if (cutoff_arate) {
+                        cutoff = p->cutoff[n];
+                }
+                if (q_arate) {
+                        q = p->q[n];
+                }
+
+                if (cutoff != last_cut) {
+                        last_cut = cutoff;
+
+                        double wd = TWOPI * cutoff;
+                        double wa = two_div_T * tan(wd * Tdiv2);
+                        g = wa * Tdiv2;
+                        g2 = g * g;
+                }
+
+                if (q != last_q) {
+                        last_q = q;
+                        R = 1.0 / (2.0 * q);
+                }
+
+                double in = p->in[n];
+                double hp = (in - (2.0 * R + g) * z1 - z2) / (1.0 + (2.0 * R * g) + g2);
+				double bp = g * hp + z1;
+				double lp = g * bp + z2;
+
+				if (mode == 0) { // low-pass
+					p->out[n] = lp;
+				} 
+				else if (mode == 1) { // high-pass
+					p->out[n] = hp;
+				}
+				else if (mode == 2) { // band-pass
+					p->out[n] = bp;
+				} 
+				else if (mode == 3) { // unity-gain band-pass
+					p->out[n] = 2.0 * R * bp;
+				} 
+				else if (mode == 4) { // notch 
+					p->out[n] = in - 2.0 * R * bp;
+				} 
+				else if (mode == 5) { // all-pass filter 
+					p->out[n] = in - 4.0 * R * bp;
+				} 
+				else if (mode == 6) { // peak filter 
+					p->out[n] = lp - hp;
+				}
+				//else if (mode == 7) { // band shelf - not implemented
+				//	p->out[n] = in + 2.0 * K * R * bp;
+				//}
+
+                // register updates
+                z1 = g * hp + bp;
+                z2 = g * bp + lp;
+
         }
 
         p->z1 = z1;
@@ -807,7 +996,9 @@ static int k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 static OENTRY wpfilters_localops[] =
 {
   { "zdf_1pole", sizeof(ZDF_1POLE), 0,5,"aa","axo",(SUBR)zdf_1pole_init,NULL,(SUBR)zdf_1pole_perf},
+  { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,5,"a","axOo",(SUBR)zdf_1pole_mode_init,NULL,(SUBR)zdf_1pole_mode_perf},
   { "zdf_2pole", sizeof(ZDF_2POLE), 0,5,"aaa","axxo",(SUBR)zdf_2pole_init,NULL,(SUBR)zdf_2pole_perf},
+  { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,5,"a","axxOo",(SUBR)zdf_2pole_mode_init,NULL,(SUBR)zdf_2pole_mode_perf},
   { "zdf_ladder", sizeof(ZDF_LADDER), 0,5,"a","axxo",(SUBR)zdf_ladder_init,NULL,(SUBR)zdf_ladder_perf},
   { "diode_ladder", sizeof(DIODE_LADDER), 0,5,"a","axxOPo",(SUBR)diode_ladder_init,NULL,(SUBR)diode_ladder_perf},
   { "k35_lpf", sizeof(K35_LPF), 0,5,"a","axxOPo",(SUBR)k35_lpf_init,NULL,(SUBR)k35_lpf_perf},
