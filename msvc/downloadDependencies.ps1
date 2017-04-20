@@ -65,11 +65,14 @@ mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 # List of URIs to download and install
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
-"http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip"
+"http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
+"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="", 
-"win_flex_bison"
+"win_flex_bison",
+"",
+""
 
 # Download list of files to cache folder
 for($i=0; $i -lt $uriList.Length; $i++) 
@@ -151,9 +154,14 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DHAVE_BIG_ENDIAN=0 `
  -DCMAKE_16BIT_TYPE="unsigned short" `
+ -DUSE_ALSA=0 `
+ -DUSE_AUDIOUNIT=0 `
+ -DUSE_COREMIDI=0 `
+ -DUSE_CURL=0 `
  -DUSE_DOUBLE=1 `
  -DUSE_GETTEXT=0 `
- -DUSE_CURL=0 `
+ -DUSE_JACK=0 `
+ -DUSE_PULSEAUDIO=0 `
  -DBUILD_FLUID_OPCODES=0 `
  -DBUILD_LUA_OPCODES=0 `
  -DBUILD_LUA_INTERFACE=0 `
