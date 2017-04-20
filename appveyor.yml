@@ -3,3 +3,4 @@ install:
 
 build_script:
   - msbuild msvc\csound-vs\Csound.sln
+  
