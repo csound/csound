@@ -21,6 +21,7 @@
 */
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 #include <functional>
 #include <plugin.h>
 
@@ -100,6 +101,32 @@ template <typename T>struct ArraySort : csnd::Plugin<1, 1> {
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
   }
 };
+
+/** dot product
+ */
+struct Dot : csnd::Plugin<1, 2> {
+
+  MYFLT process(csnd::myfltvec &in1, csnd::myfltvec &in2) {
+    return
+      std::inner_product(in1.begin(), in1.end(), in2.begin(), 0.0);
+  }
+
+  int init() {
+    csnd::myfltvec &in1 = inargs.myfltvec_data(0);
+    csnd::myfltvec &in2 = inargs.myfltvec_data(1);
+    if (in2.len() < in1.len())
+      return csound->init_error(Str("second input array is too short\n"));
+    outargs[0] = process(in1, in2);
+    return OK;
+  }
+
+  int kperf() {
+    outargs[0] = process(inargs.myfltvec_data(0), inargs.myfltvec_data(1));
+    return OK;
+  }
+};
+
+
 
 
 #include <modload.h>
@@ -219,5 +246,6 @@ void csnd::on_load(Csound *csound) {
                                     csnd::thread::ik);
   csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "k[]", "k[]",
                                     csnd::thread::ik);
-  
+  csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
+  csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::ik);
 }
