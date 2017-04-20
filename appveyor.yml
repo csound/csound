@@ -1,0 +1,8 @@
+install:
+  - cd msvc
+  - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
+  - cd ..
+
+build_script:
+  - msbuild msvc\csound-vs\Csound.sln
+  
