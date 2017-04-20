@@ -24,7 +24,11 @@
 #include <functional>
 #include <plugin.h>
 
-extern inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
+//extern
+inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
+
+//extern
+inline MYFLT lim1(MYFLT f) { return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0); }
 
 /** i-time, k-rate operator
     kout[] op kin[]
@@ -100,6 +104,10 @@ template <typename T>struct ArraySort : csnd::Plugin<1, 1> {
 
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
+  csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "i[]", "i[]",
+                                   csnd::thread::i);
+  csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "k[]", "k[]",
+                                   csnd::thread::ik);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "i[]", "i[]",
                                    csnd::thread::i);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "k[]", "k[]",
