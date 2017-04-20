@@ -42,32 +42,33 @@ Csound C versions by Steven Yi
 
 typedef struct {
   OPDS h;
-  MYFLT *outlp, *outhp;
-  MYFLT *in, *cutoff, *skip;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *mode, *skip;
   MYFLT last_cut, G;
   double z1;
 } ZDF_1POLE;
 
+
 typedef struct {
   OPDS h;
-  MYFLT *out;
-  MYFLT *in, *cutoff, *mode, *skip;
+  MYFLT *outlp, *outhp;
+  MYFLT *in, *cutoff, *skip;
   MYFLT last_cut, G;
   double z1;
 } ZDF_1POLE_MODE;
 
 typedef struct {
   OPDS h;
-  MYFLT *outlp,*outbp, *outhp;
-  MYFLT *in, *cutoff, *q, *skip;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *q, *mode, *skip;
   double last_cut, last_q, g, R;
   double z1, z2;
 } ZDF_2POLE;
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
-  MYFLT *in, *cutoff, *q, *mode, *skip;
+  MYFLT *outlp,*outbp, *outhp;
+  MYFLT *in, *cutoff, *q, *skip;
   double last_cut, last_q, g, R;
   double z1, z2;
 } ZDF_2POLE_MODE;
