@@ -21,6 +21,7 @@
 */
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <plugin.h>
 
 extern inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
@@ -44,7 +45,6 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
 
   int kperf() {
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
-    ;
   }
 };
 
@@ -74,6 +74,29 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
                    inargs.myfltvec_data(1));
   }
 };
+
+/** i-time, k-rate operator
+    kout[] sort[a,d] kin[]
+ */
+template <typename T>struct ArraySort : csnd::Plugin<1, 1> {
+  int process(csnd::myfltvec &out, csnd::myfltvec &in) {
+    std::copy(in.begin(), in.end(), out.begin());
+    std::sort(out.begin(), out.end(), T());
+    return OK;
+  }
+
+  int init() {
+    csnd::myfltvec &out = outargs.myfltvec_data(0);
+    csnd::myfltvec &in = inargs.myfltvec_data(0);
+    out.init(csound, in.len());
+    return process(out, in);
+  }
+
+  int kperf() {
+    return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
+  }
+};
+
 
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
@@ -180,4 +203,13 @@ void csnd::on_load(Csound *csound) {
                                     csnd::thread::i);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "k[]", "k[]k[]",
                                     csnd::thread::ik);
+  csnd::plugin<ArraySort<std::less<MYFLT>>>(csound, "sorta", "i[]", "i[]",
+                                    csnd::thread::i);
+  csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "i[]", "i[]",
+                                    csnd::thread::i);
+  csnd::plugin<ArraySort<std::less<MYFLT>>>(csound, "sorta", "k[]", "k[]",
+                                    csnd::thread::ik);
+  csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "k[]", "k[]",
+                                    csnd::thread::ik);
+  
 }
