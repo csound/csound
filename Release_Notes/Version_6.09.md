@@ -42,12 +42,12 @@ memory leaks fixed and more robust code.
 
 - pvstrace -- retain only the N loudest bins.
 
-- several new unary functions/opcodes for k-rate and i-time numeric arrays: ceil, floor, round, int,
-frac, powoftwo, abs, log2, log10, log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh,
-cbrt.
+- several new unary functions/opcodes for k-rate and i-time numeric
+arrays: ceil, floor, round, int, frac, powoftwo, abs, log2, log10,
+log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
-- several new binary functions/opcodes for k-rate and i-time numeric arrays: atan2, pow,hypot, fmod,
-fmax, fmin.
+- several new binary functions/opcodes for k-rate and i-time numeric
+  arrays: atan2, pow,hypot, fmod, fmax, fmin.
 
 - tvconv -- a time-varying convolution (FIR filter) opcode
 
@@ -55,6 +55,10 @@ fmax, fmin.
 
 - OSCsendA asynchronous version of OSCsend
 
+- OSCraw to listen for all OSC messages at a given port.
+
+- new implemetation of OSCsend not using liblo, with previous version
+  now called OSCsehd_lo
 
 ### New Gen and Macros
 
@@ -88,6 +92,11 @@ fmax, fmin.
 
 - p2 and p3 are now at higher precision and not truncated to 6 decimal places
 
+- new opcode d to switch off infinite otes (deote)l same as i wit egative p1
+
+- named instruments can be turned off with i if a - follows the "
+
+
 ### Options
 
 -
@@ -113,6 +122,9 @@ incompatible change)
 - GEN18 corrected to write to requested range
 
 - sockrev now can read strings
+
+- vbap system can in some cases allow arbiary uber of speakers via
+  arrays (work in progress)
 
 ### Utilities
 
@@ -150,6 +162,8 @@ incompatible change)
 
 - bug in soundin removed
 
+- losci/losci3 fixed i case of long tables
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
@@ -186,6 +200,77 @@ incompatible change)
 ==END==
 ========================================================================
 UNDOCUMENTED/UNDELETED
+
+commit 0438640cc796ef220ab31ed10a890eb9d9636d36
+Author: jpff <jpff@codemist.co.uk>
+Date:   Wed Apr 12 20:56:17 2017 +0100
+
+commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Apr 11 22:31:02 2017 +0100
+
+    trying to set non-blocking mode on windows
+
+commit cdf7a90968d4559d79d56c61984d9429e7019c24
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Apr 11 21:27:52 2017 +0100
+
+    Strdup to Csound
+
+commit fd14e9437b6358a5927e3ce1d0f341438c65a3db
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Thu Apr 6 18:51:46 2017 -0400
+
+    added zdf_1pole filter
+
+commit 88b1db83f81655420375109302e7aa6ead4f8839
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 6 22:27:31 2017 +0100
+
+    D OSC type
+
+commit 193b3838dc14dd11ead838f89eb255260e790c65
+commit 6323888c28515c4365dd1ca429a968bf97862d38
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 6 06:28:48 2017 +0100
+
+    trying to deal with bundles again
+
+commit 8e391a1b0f5962a19dbec3ca5ca63363b802ad1a
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Wed Apr 5 19:00:04 2017 -0400
+
+    implemented diode_ladder, fixed skip handling for zdf_ladder
+
+commit 2fff5566ada754c47ad443c3b47d03ebe389eb95
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 5 21:45:11 2017 +0100
+
+    trying to deal with bundles
+
+commit 9526f92ac0a1908be632017dc9034a997f49d97e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 5 18:33:47 2017 +0100
+
+    ignoring bundles 2
+
+commit 92de2b90b6ea260cef6a8d714e91921d99c17307
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Apr 3 20:31:07 2017 +0100
+
+    G type fixed
+
+commit 3814b45a7c804b09ac1944f76eeac52615c7a88c
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Sat Apr 1 18:05:13 2017 -0400
+
+    fix for pmidi.c and csoundLock/UnLock: add include of csGblMtx.h, fix setting of HAVE_PTHREAD for all targets instead of just for libcsound64
+
+commit 6305e51a33ce6c7ceb7a0cfe59e8d0f345745f46
+Author: jpff <jpff@codemist.co.uk>
+Date:   Tue Mar 28 14:08:56 2017 +0100
+
+    sockrec string version seems to be working
 
 commit 6305e51a33ce6c7ceb7a0cfe59e8d0f345745f46
 Author: jpff <jpff@codemist.co.uk>
@@ -269,12 +354,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Sat Jan 28 18:08:28 2017 +0000
 
     added csd and support for arrays to CPOF
-
-commit 7263c82a9a9648adbc0d985e04c117df0b35f0d1
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sat Jan 28 17:47:33 2017 +0000
-
-    added a comment about divide by zero
 
 commit 1fb13a751927e4ffd1875eff8e9cd09e83a7a630
 Author: veplaini <victor.lazzarini@nuim.ie>
