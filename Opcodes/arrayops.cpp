@@ -83,7 +83,8 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
 /** i-time, k-rate operator
     kout[] sort[a,d] kin[]
  */
-template <typename T>struct ArraySort : csnd::Plugin<1, 1> {
+template <typename T>
+struct ArraySort : csnd::Plugin<1, 1> {
   int process(csnd::myfltvec &out, csnd::myfltvec &in) {
     std::copy(in.begin(), in.end(), out.begin());
     std::sort(out.begin(), out.end(), T());
@@ -126,7 +127,25 @@ struct Dot : csnd::Plugin<1, 2> {
   }
 };
 
+template <typename T, int I>
+struct Accum : csnd::Plugin<1, 1> {
 
+  MYFLT process(csnd::myfltvec &in1) {
+    return
+      std::accumulate(in1.begin(), in1.end(), FL(I), T());
+  }
+
+  int init() {
+    csnd::myfltvec &in1 = inargs.myfltvec_data(0);
+    outargs[0] = process(in1);
+    return OK;
+  }
+
+  int kperf() {
+    outargs[0] = process(inargs.myfltvec_data(0));
+    return OK;
+  }
+};
 
 
 #include <modload.h>
@@ -248,4 +267,11 @@ void csnd::on_load(Csound *csound) {
                                     csnd::thread::ik);
   csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
   csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::ik);
+
+  csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "k", "k[]", csnd::thread::ik);
+  csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "k", "k[]", csnd::thread::ik);
+
+  csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "i", "i[]", csnd::thread::i);
+  csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "i", "i[]", csnd::thread::i);
+  
 }
