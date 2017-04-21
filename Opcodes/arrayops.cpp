@@ -21,9 +21,15 @@
 */
 #include <algorithm>
 #include <cmath>
+#include <numeric>
+#include <functional>
 #include <plugin.h>
 
-extern inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
+//extern
+inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
+
+//extern
+inline MYFLT lim1(MYFLT f) { return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0); }
 
 /** i-time, k-rate operator
     kout[] op kin[]
@@ -44,7 +50,6 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
 
   int kperf() {
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
-    ;
   }
 };
 
@@ -75,8 +80,80 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
   }
 };
 
+/** i-time, k-rate operator
+    kout[] sort[a,d] kin[]
+ */
+template <typename T>
+struct ArraySort : csnd::Plugin<1, 1> {
+  int process(csnd::myfltvec &out, csnd::myfltvec &in) {
+    std::copy(in.begin(), in.end(), out.begin());
+    std::sort(out.begin(), out.end(), T());
+    return OK;
+  }
+
+  int init() {
+    csnd::myfltvec &out = outargs.myfltvec_data(0);
+    csnd::myfltvec &in = inargs.myfltvec_data(0);
+    out.init(csound, in.len());
+    return process(out, in);
+  }
+
+  int kperf() {
+    return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
+  }
+};
+
+/** dot product
+ */
+struct Dot : csnd::Plugin<1, 2> {
+
+  MYFLT process(csnd::myfltvec &in1, csnd::myfltvec &in2) {
+    return
+      std::inner_product(in1.begin(), in1.end(), in2.begin(), 0.0);
+  }
+
+  int init() {
+    csnd::myfltvec &in1 = inargs.myfltvec_data(0);
+    csnd::myfltvec &in2 = inargs.myfltvec_data(1);
+    if (in2.len() < in1.len())
+      return csound->init_error(Str("second input array is too short\n"));
+    outargs[0] = process(in1, in2);
+    return OK;
+  }
+
+  int kperf() {
+    outargs[0] = process(inargs.myfltvec_data(0), inargs.myfltvec_data(1));
+    return OK;
+  }
+};
+
+template <typename T, int I>
+struct Accum : csnd::Plugin<1, 1> {
+
+  MYFLT process(csnd::myfltvec &in1) {
+    return
+      std::accumulate(in1.begin(), in1.end(), FL(I), T());
+  }
+
+  int init() {
+    csnd::myfltvec &in1 = inargs.myfltvec_data(0);
+    outargs[0] = process(in1);
+    return OK;
+  }
+
+  int kperf() {
+    outargs[0] = process(inargs.myfltvec_data(0));
+    return OK;
+  }
+};
+
+
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
+  csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "i[]", "i[]",
+                                   csnd::thread::i);
+  csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "k[]", "k[]",
+                                   csnd::thread::ik);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "i[]", "i[]",
                                    csnd::thread::i);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "k[]", "k[]",
@@ -180,4 +257,21 @@ void csnd::on_load(Csound *csound) {
                                     csnd::thread::i);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "k[]", "k[]k[]",
                                     csnd::thread::ik);
+  csnd::plugin<ArraySort<std::less<MYFLT>>>(csound, "sorta", "i[]", "i[]",
+                                    csnd::thread::i);
+  csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "i[]", "i[]",
+                                    csnd::thread::i);
+  csnd::plugin<ArraySort<std::less<MYFLT>>>(csound, "sorta", "k[]", "k[]",
+                                    csnd::thread::ik);
+  csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "k[]", "k[]",
+                                    csnd::thread::ik);
+  csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
+  csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::ik);
+
+  csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "k", "k[]", csnd::thread::ik);
+  csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "k", "k[]", csnd::thread::ik);
+
+  csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "i", "i[]", csnd::thread::i);
+  csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "i", "i[]", csnd::thread::i);
+  
 }
