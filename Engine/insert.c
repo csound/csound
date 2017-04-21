@@ -1687,7 +1687,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
         //pbuf += csound->nchnls;
       }
     }
-    
+
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip) {                                  /* loop to last opds */
