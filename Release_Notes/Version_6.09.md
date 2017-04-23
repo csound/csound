@@ -139,6 +139,7 @@ incompatible change)
 - csdebugger:
 
 - HTML5
+ - Removed HTML5 Csound editor which has quit working.
 
 - Emscripten:
 
@@ -163,6 +164,8 @@ incompatible change)
 - bug in soundin removed
 
 - losci/losci3 fixed i case of long tables
+
+-  inrg was broke for a wile
 
 ## SYSTEM LEVEL CHANGES
 
@@ -283,12 +286,6 @@ Author: U-HF-31335\Administrator <obrandts@gmail.com>
 Date:   Fri Mar 24 15:16:05 2017 -0700
 
     fix partikkel channelmask panning curves
-
-commit eaca4bbc4616ac0294d6c9f550e11b84dcb44bd0
-Author: Michael Gogins <michael.gogins@gmail.com>
-Date:   Mon Mar 13 15:21:13 2017 +1100
-
-    Removing HTML5 Csound editor which has quit working.
 
 commit e048a670e9cd1f14c3cede68e5a86d1bfc5312db
 Author: Edward Costello <phasereset@gmail.com>
