@@ -570,7 +570,7 @@ should get the help message.
 
 Windows 32/64 Bit (msys2) <a name="msys2">
 ---------------
-Csound for Windows can now be built using MSYS2. This is the recommeneded way to build Csound for Windows. Please follow the instruction posted [https://github.com/csound/csound/tree/develop/mingw64] here.
+Csound for Windows can now be built using MSYS2. This is the recommeneded way to build Csound for Windows. Please follow the instruction posted [here](https://github.com/csound/csound/tree/develop/mingw64).
 
 
 Windows 32 Bit (mingw32) <a name="mingw32">
