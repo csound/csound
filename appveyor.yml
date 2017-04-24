@@ -11,6 +11,7 @@ after_build:
 
 artifacts:
   - path: csound.zip
-  - name: Csound Zip
+    name: Csound
+    type: zip
 
 cache: msvc\vcpkg\installed\x64-windows -> msvc\downloadDependencies.ps1
