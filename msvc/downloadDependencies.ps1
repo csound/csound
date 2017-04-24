@@ -22,6 +22,7 @@ if ($systemVCPKG)
     git pull
     vcpkg remove --outdated --recurse
     vcpkg update
+    bootstrap-vcpkg.bat
     cd $currentDir
 }
 elseif (Test-Path $vcpkgDir)
@@ -32,6 +33,7 @@ elseif (Test-Path $vcpkgDir)
     git pull
     vcpkg remove --outdated --recurse
     vcpkg update
+    bootstrap-vcpkg.bat
     cd ..
 }
 else {
