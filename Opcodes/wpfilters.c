@@ -388,7 +388,7 @@ static int zdf_ladder_init(CSOUND* csound, ZDF_LADDER* p) {
                 p->z3 = 0.0;
                 p->z4 = 0.0;
                 p->last_cut = -1.0;
-                p->last_res = -1.0;
+                p->last_q = -1.0;
                 p->last_k = 0.0;
                 p->last_g = 0.0;
                 p->last_G = 0.0;
@@ -407,7 +407,7 @@ static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
         double z3 = p->z3;
         double z4 = p->z4;
         double last_cut = p->last_cut;
-        double last_res = p->last_res;
+        double last_q = p->last_q;
         double k = p->last_k;
         double g = p->last_g;
         double G = p->last_G;
@@ -424,29 +424,25 @@ static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
         double two_div_T = 2.0 / T;
 
         int cutoff_arate = IS_ASIG_ARG(p->cutoff);
-        int res_arate = IS_ASIG_ARG(p->res);
+        int q_arate = IS_ASIG_ARG(p->q);
 
         MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
-        MYFLT res = res_arate ? 0.0 : *p->res;
+        MYFLT q = q_arate ? 0.0 : *p->q;
 
         for (n = offset; n < nsmps; n++) {
 
                 if (cutoff_arate) {
                         cutoff = p->cutoff[n];
                 }
-                if (res_arate) {
-                        res = p->res[n];
+                if (q_arate) {
+                        q = p->q[n];
+						q = (q < 0.5) ? 0.5 : (q > 25.0) ? 25.0 : q;
                 }
 
-                if (res != last_res) {
-                        // first clamp to range 0.0-1.0
-                        double R = (res < 0.0) ? 0.0 : (res > 1.0) ? 1.0 : res;
-                        // move to range 0-0.98, which puts Q between 0.5 and 25
-                        R = R * 0.98;
-                        double Q = 1 / (2 * (1 - R));
-                        last_res = res;
+                if (q != last_q) {
+                        last_q = q;
                         // Q [0.5,25] = k [0,4.0]
-                        k = (4.0 * (Q - 0.5)) / (25.0 - 0.5);
+                        k = (4.0 * (q - 0.5)) / (25.0 - 0.5);
                 }
 
                 if (cutoff != last_cut) {
@@ -500,7 +496,7 @@ static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
         p->z4 = z4;
 
         p->last_cut = last_cut;
-        p->last_res = last_res;
+        p->last_q = last_q;
         p->last_k = k;
         p->last_g = g;
         p->last_G = G;
