@@ -49,14 +49,15 @@ else {
 # Download all vcpkg packages available
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows"
-$vcPackages = "boost", "curl", "eigen3", "fltk", "gtk", "libflac", 
-"lua", "libogg", "libvorbis", "zlib"
+$vcPackages = "curl", "eigen3", "fltk", "libflac", "lua", "libogg", "libvorbis", "zlib"
 
 echo "Downloading VC packages..."
 
-for($i=0; $i -lt $vcPackages.Length; $i++) {
-    vcpkg --triplet $targetTriplet install $vcPackages[$i]
-}
+vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
+
+#for($i=0; $i -lt $vcPackages.Length; $i++) {
+#    vcpkg --triplet $targetTriplet install $vcPackages[$i]
+#}
 
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
