@@ -77,8 +77,8 @@ typedef struct {
 typedef struct {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *cutoff, *res, *skip;
-  double last_cut, last_res, last_k, last_g, last_G, last_G2, last_G3, last_GAMMA;
+  MYFLT *in, *cutoff, *q, *skip;
+  double last_cut, last_q, last_k, last_g, last_G, last_G2, last_G3, last_GAMMA;
   double z1, z2, z3, z4;
 } ZDF_LADDER;
 

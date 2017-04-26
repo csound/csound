@@ -548,7 +548,7 @@ static CS_NOINLINE int printf_opcode_(CSOUND *csound, PRINTF_OP *p)
 {
     STRINGDAT buf;
     int   err;
-    buf.size = 3072;
+    buf.size = /*strlen(p->sfmt->data) +*/ 3072;
     buf.data = csound->Calloc(csound, buf.size);
 
     err = sprintf_opcode_(csound, p, &buf, (char*) p->sfmt->data, &(p->args[0]),
