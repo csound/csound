@@ -730,7 +730,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         if (insno<0) {
           evt->p[1] = insno; insno = -insno;
         }
-        else if (evt->opcod=='d') evt->p[1]=-insno; 
+        else if (evt->opcod=='d') evt->p[1]=-insno;
         if ((rfd = getRemoteInsRfd(csound, insno))) {
           /* RM: if this note labeled as remote */
           if (rfd == GLOBAL_REMOT)
