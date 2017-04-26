@@ -350,7 +350,7 @@ static CS_NOINLINE int
 sprintf_opcode_(CSOUND *csound,
                     void *p,          /* opcode data structure pointer       */
                     STRINGDAT *str,   /* pointer to space for output string  */
-                    STRINGDAT *fmts,  /* format string                       */
+                    const char *fmt,  /* format string                       */
                     MYFLT **kvals,    /* array of argument pointers          */
                     int numVals,      /* number of arguments                 */
                     int strCode)      /* bit mask for string arguments       */
@@ -360,8 +360,7 @@ sprintf_opcode_(CSOUND *csound,
     MYFLT   *parm = NULL;
     int     i = 0, j = 0, n;
     const char  *segwaiting = NULL;
-    const char *fmt = (const char *) fmts->data;
-    int     maxChars, siz = /*strlen(fmt) fmts->size*/  1024 + numVals*7 /*+ 1*/;
+    int     maxChars, siz = strlen(fmt) + numVals*7 + 1;
 
     for (i = 0; i < numVals; i++) {
       if (UNLIKELY(IS_ASIG_ARG(kvals[i]))) {
@@ -374,7 +373,8 @@ sprintf_opcode_(CSOUND *csound,
       return NOTOK;
     }
 
-    strseg = csound->Calloc(csound, siz);
+
+    strseg = csound->Malloc(csound, siz);
     i = 0;
 
     while (1) {
@@ -467,7 +467,7 @@ sprintf_opcode_(CSOUND *csound,
 #endif
           break;
         case 's':
-	  if (((STRINGDAT*)parm)->data == str->data) {
+          if (((STRINGDAT*)parm)->data == str->data) {
             csound->Free(csound, strseg);
             return StrOp_ErrMsg(p, Str("output argument may not be "
                                        "the same as any of the input args"));
@@ -529,14 +529,14 @@ sprintf_opcode_(CSOUND *csound,
 int sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
     int size = p->sfmt->size+ 18*((int) p->INOCOUNT);
-    //printf("sprintf: %d %d \n", p->r->size, strlen(p->r->data));
+    //printf("%d %d \n", p->r->size, strlen(p->r->data));
     if (p->r->data == NULL || p->r->size < size) {
       /* this 10 is 1n incorrect guess which is OK with numbers*/
       p->r->data = csound->Calloc(csound, size);
       p->r->size = size;
     }
     if (UNLIKELY(sprintf_opcode_(csound, p, p->r,
-                                  p->sfmt, &(p->args[0]),
+                                  (char*) p->sfmt->data, &(p->args[0]),
                                   (int) p->INOCOUNT - 1,0) == NOTOK)) {
       ((char*) p->r->data)[0] = '\0';
       return NOTOK;
@@ -548,16 +548,13 @@ static CS_NOINLINE int printf_opcode_(CSOUND *csound, PRINTF_OP *p)
 {
     STRINGDAT buf;
     int   err;
-    buf.size = p->sfmt->size + 32*((int) p->INOCOUNT - 2);
-    buf.data = csound->Calloc(csound, buf.size+1);
-    //printf("%p \n", buf.data);
+    buf.size = /*strlen(p->sfmt->data) +*/ 3072;
+    buf.data = csound->Calloc(csound, buf.size);
 
-    err = sprintf_opcode_(csound, p, &buf, p->sfmt, &(p->args[0]),
+    err = sprintf_opcode_(csound, p, &buf, (char*) p->sfmt->data, &(p->args[0]),
                           (int) p->INOCOUNT - 2,0);
     if (LIKELY(err == OK))
-     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf.data);
-
-    // printf("\n== %p \n", buf.data);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buf.data);
     csound->Free(csound, buf.data);
 
     return err;
