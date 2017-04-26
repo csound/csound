@@ -204,9 +204,81 @@ incompatible change)
 ========================================================================
 UNDOCUMENTED/UNDELETED
 
-commit 0438640cc796ef220ab31ed10a890eb9d9636d36
+commit 67371758eb831a5b33ba7591ed8aaa832453ecb7
+Author: Rory Walsh <rorywalsh@ear.ie>
+Date:   Mon Apr 24 20:18:46 2017 +0100
+
+commit 1e666280da3dce4442c5ac4fb5568ce7dec37a07
 Author: jpff <jpff@codemist.co.uk>
-Date:   Wed Apr 12 20:56:17 2017 +0100
+Date:   Fri Apr 21 15:09:55 2017 +0100
+
+    inrg change for sample accurate
+
+commit 312136c7820333fc747a4d7945d675b1ceba304e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Apr 21 01:36:53 2017 +0100
+
+    product and sum
+
+commit a144b7643f6f072b2d880704fd20ad101a5f842e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Apr 21 00:38:53 2017 +0100
+
+    dot
+
+commit 680bc4a415a590e0d106982d42383e0c00a55d3c
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 20 23:25:07 2017 +0100
+
+    limit1
+
+commit d6edd4630ae5dec52b38e75417cb4c09f5476717
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 20 20:56:16 2017 +0100
+
+    array sorting
+
+commit 851dce0cb8acad825b345c93aa7ca9cd3d481f9a
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 20 19:57:13 2017 +0100
+
+    fixed ip->spout to point to the right place
+
+commit c2c1819e71aaf8516ceee980bc3d218b9bd0d063
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Wed Apr 19 20:32:24 2017 -0400
+
+    swapped zdf_1pole/zdf_1pole_mode and zdf_2pole/zdf_2pole_mode
+
+commit 74226c9d266c0b6e604fd842084047a45c21e546
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Tue Apr 18 15:57:23 2017 -0400
+
+    added zdf_1pole_mode filter that can switch between low-pass, high-pass, and allpass
+
+commit d5b694ae5a10163e351d0ceae2d20a571d692cbc
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Mon Apr 17 19:00:25 2017 -0400
+
+    added multi-mode version of zdf_2pole_mode that supports low-pass, high-pass, band-pass, unity-gain bandpass, notch, all-pass, and peak outputs
+
+commit 5401a742ac7fa13395fae86dd79dd552815dcc97
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Sat Apr 15 14:25:16 2017 -0400
+
+    added k35_lpf and k35_hpf filters
+
+commit 20cef0307504573ec78918d35c8f442e96bf52c3
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Fri Apr 14 16:55:58 2017 -0400
+
+    rewrote image opcode build to set target link libraries separately to get it work with Visual Studio
+
+commit 428e8fca2b7edcb53b600e47e02ad05d3db934c7
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Thu Apr 13 19:50:12 2017 -0400
+
+    implemented zdf_2pole with low pass, band pass, and hi pass outputs; defined other structs to always use double for state values
 
 commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
 Author: veplaini <victor.lazzarini@nuim.ie>
