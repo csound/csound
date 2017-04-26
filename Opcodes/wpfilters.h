@@ -91,17 +91,17 @@ typedef struct {
 } DIODE_LADDER;
 
 typedef struct {
-	OPDS h;
-	MYFLT *out;
-	MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
-	double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, lpf2_beta, hpf1_beta;
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
+  double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, lpf2_beta, hpf1_beta;
 } K35_LPF;
 
 typedef struct {
-	OPDS h;
-	MYFLT *out;
-	MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
-	double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, hpf2_beta, lpf1_beta;
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
+  double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, hpf2_beta, lpf1_beta;
 } K35_HPF;
 
 

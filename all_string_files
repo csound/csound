@@ -464,8 +464,10 @@
 ./Opcodes/websockets/WebSocketOpcode.h
 ./Opcodes/wii_mac.h
 ./Opcodes/wiimote.c
+./Opcodes/wpfilters.c
+./Opcodes/wpfilters.h
 ./SDIF/sdif-mem.c
-./SDIF/sdif-mem.h
+./OSDIF/sdif-mem.h
 ./SDIF/sdif.c
 ./SDIF/sdif.h
 ./SDIF/sdif2adsyn.c
