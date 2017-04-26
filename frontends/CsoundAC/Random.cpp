@@ -21,18 +21,9 @@
 
 namespace csound
 {
-  boost::mt19937 Random::mersenneTwister;
+  std::mt19937 Random::mersenneTwister;
 
   Random::Random() :
-    uniform_smallint_generator(0),
-    uniform_int_generator(0),
-    uniform_real_generator(0),
-    bernoulli_distribution_generator(0),
-    geometric_distribution_generator(0),
-    triangle_distribution_generator(0),
-    exponential_distribution_generator(0),
-    normal_distribution_generator(0),
-    lognormal_distribution_generator(0),
     generator_(0),
     row(0),
     column(Event::HOMOGENEITY),
@@ -49,6 +40,7 @@ namespace csound
     sigma(1.0)
   {
     distribution = "uniform_real";
+      
   }
 
   Random::~Random()
@@ -59,73 +51,58 @@ namespace csound
   {
     if(distribution == "uniform_smallint")
       {
-        uniform_smallint_generator =
-          new boost::variate_generator<boost::mt19937, boost::uniform_smallint<> >(mersenneTwister, boost::uniform_smallint<>(int(minimum), int(maximum)));
+        uniform_smallint_generator = std::uniform_int_distribution<std::int32_t>(int(minimum), int(maximum));
         generator_ = &uniform_smallint_generator;
       }
     else if(distribution == "uniform_int")
       {
-        uniform_int_generator =
-          new boost::variate_generator<boost::mt19937, boost::uniform_int<> >(mersenneTwister, boost::uniform_int<>(int(minimum), int(maximum)));
+        uniform_int_generator = std::uniform_int_distribution<std::int64_t>(int(minimum), int(maximum));
         generator_ = &uniform_int_generator;
       }
     else if(distribution == "uniform_real")
       {
-        uniform_real_generator =
-          new boost::variate_generator<boost::mt19937, boost::uniform_real<> >(mersenneTwister, boost::uniform_real<>(int(minimum), int(maximum)));
+        uniform_real_generator = std::uniform_real_distribution<>(minimum, maximum);          
         generator_ = &uniform_real_generator;
       }
     else if(distribution == "bernoulli")
       {
-        bernoulli_distribution_generator =
-          new boost::variate_generator<boost::mt19937, boost::bernoulli_distribution<> >(mersenneTwister, boost::bernoulli_distribution<>(q));
+        bernoulli_distribution_generator = std::bernoulli_distribution(q);          
         generator_ = &bernoulli_distribution_generator;
       }
     else if(distribution == "geometric")
       {
-        geometric_distribution_generator =
-          new boost::variate_generator<boost::mt19937, boost::geometric_distribution<> >(mersenneTwister, boost::geometric_distribution<>(q));
+        geometric_distribution_generator = std::geometric_distribution<>(q);          
         generator_ = &geometric_distribution_generator;
-      }
-    else if(distribution == "triangle")
-      {
-        triangle_distribution_generator =
-          new boost::variate_generator<boost::mt19937, boost::triangle_distribution<> >(mersenneTwister, boost::triangle_distribution<>(a, b, c));
-        generator_ = &triangle_distribution_generator;
       }
     else if(distribution == "exponential")
       {
-        exponential_distribution_generator =
-          new boost::variate_generator<boost::mt19937, boost::exponential_distribution<> >(mersenneTwister, boost::exponential_distribution<>(Lambda));
+        exponential_distribution_generator = std::exponential_distribution<>(Lambda);          
         generator_ = &exponential_distribution_generator;
       }
     else if(distribution == "normal")
       {
-        normal_distribution_generator =
-          new boost::variate_generator<boost::mt19937, boost::normal_distribution<> >(mersenneTwister, boost::normal_distribution<>(mean, sigma));
+        normal_distribution_generator = std::normal_distribution<>(mean, sigma);          
         generator_ = &normal_distribution_generator;
       }
     else if(distribution == "lognormal")
       {
-        lognormal_distribution_generator =
-          new boost::variate_generator<boost::mt19937, boost::lognormal_distribution<> >(mersenneTwister, boost::lognormal_distribution<>(mean, sigma));
+        lognormal_distribution_generator = std::lognormal_distribution<>(mean, sigma);          
         generator_ = &lognormal_distribution_generator;
       }
   }
-  double Random::sample() const
+  double Random::sample() 
   {
-    if(generator_ == &uniform_smallint_generator) return (*uniform_smallint_generator)();
-    if(generator_ == &uniform_int_generator) return (*uniform_int_generator)();
-    if(generator_ == &uniform_real_generator) return (*uniform_real_generator)();
-    if(generator_ == &bernoulli_distribution_generator) return (*bernoulli_distribution_generator)();
-    if(generator_ == &geometric_distribution_generator) return (*geometric_distribution_generator)();
-    if(generator_ == &triangle_distribution_generator) return (*triangle_distribution_generator)();
-    if(generator_ == &exponential_distribution_generator) return (*exponential_distribution_generator)();
-    if(generator_ == &normal_distribution_generator) return (*normal_distribution_generator)();
-    if(generator_ == &lognormal_distribution_generator) return (*lognormal_distribution_generator)();
+    if(generator_ == &uniform_smallint_generator) return uniform_smallint_generator(mersenneTwister);
+    if(generator_ == &uniform_int_generator) return uniform_int_generator(mersenneTwister);
+    if(generator_ == &uniform_real_generator) return uniform_real_generator(mersenneTwister);
+    if(generator_ == &bernoulli_distribution_generator) return bernoulli_distribution_generator(mersenneTwister);
+    if(generator_ == &geometric_distribution_generator) return geometric_distribution_generator(mersenneTwister);
+    if(generator_ == &exponential_distribution_generator) return exponential_distribution_generator(mersenneTwister);
+    if(generator_ == &normal_distribution_generator) return normal_distribution_generator(mersenneTwister);
+    if(generator_ == &lognormal_distribution_generator) return lognormal_distribution_generator(mersenneTwister);
     return 0;
   }
-  Eigen::MatrixXd Random::getRandomCoordinates() const
+  Eigen::MatrixXd Random::getRandomCoordinates()
   {
     Eigen::MatrixXd transformation = getLocalCoordinates();
     for(int i = 0; i < Event::HOMOGENEITY; i++)
