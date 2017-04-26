@@ -1,3 +1,5 @@
+image: Visual Studio 2017
+
 install:
   - cd msvc
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
