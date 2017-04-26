@@ -267,11 +267,8 @@ void csnd::on_load(Csound *csound) {
                                     csnd::thread::ik);
   csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
   csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::ik);
-
   csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "k", "k[]", csnd::thread::ik);
   csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "k", "k[]", csnd::thread::ik);
-
   csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "i", "i[]", csnd::thread::i);
   csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "i", "i[]", csnd::thread::i);
-  
 }
