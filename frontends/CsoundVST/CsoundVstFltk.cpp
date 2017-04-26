@@ -503,10 +503,10 @@ void CsoundVstFltk::onEdit(Fl_Button*, CsoundVstFltk*)
   command.append(buffer);
   csoundVST->Message("Executing command: '%s'\n", command.c_str());
   std::vector<const char *> argv;
-  typedef boost::char_separator<char> charsep;
-  boost::tokenizer<charsep> tokens(command, charsep(" ,\n\r\t"));
-  for(boost::tokenizer<charsep>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
-    argv.push_back(it->c_str());
+  std::stringstream stream(csoundVstFltk->messagebuffer);
+  std::string token;
+  while (std::getline(stream, token, ' ')) {
+     argv.push_back(token->c_str());
   }
   argv.push_back(0);
   csoundRunCommand(&argv.front(), true);
