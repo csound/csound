@@ -70,18 +70,23 @@ void string_copy_value(void* csound, void* dest, void* src) {
         cs->Free(cs, sDest->data);
       }
       sDest->data = cs_strdup(csound, sSrc->data);
+      sDest->size = strlen(sDest->data)+1;
     } else {
       if (sDest->data == NULL) {
         sDest->data = cs_strdup(csound, sSrc->data);
+	sDest->size = strlen(sDest->data)+1;
       } else {//breaks here
-        //fprintf(stderr, " in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
-        //        sSrc, sSrc->size, sSrc->data, sDest->size, sDest->data);
+        //fprintf(stderr, "\n in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
+	//   sSrc->data, sSrc->size, sSrc->data, sDest->size, sDest->data);
         //memcpy(sDest->data, sSrc->data, sDest->size);
-        strcpy(sDest->data, sSrc->data);
+	//memset(sDest->data,0,sDest->size);
+        strncpy(sDest->data, sSrc->data, sDest->size-1);
+
         //cs->Free(cs, sDest->data); sDest->data = cs_strdup(csound, sSrc->data);
+	//sDest->size = strlen(sDest->data)+1;
       }
     }
-    sDest->size = sSrc->size;
+    //sDest->size = sSrc->size;
     //fprintf(stderr, "out:srcsize=%d >>>%s<<<dstsize=%d dst->data=%p\n",
     //        sSrc->size, sSrc->data, sDest->size, sDest->data);
 }
