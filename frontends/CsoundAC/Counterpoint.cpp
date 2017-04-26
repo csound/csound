@@ -16,7 +16,7 @@ int Counterpoint::_Aeolian[12] =            {1,  0,  1,  1,  0,  1,  0,  1,  0, 
 int Counterpoint::_Locrian[12] =            {1,  1,  0,  1,  0,  1,  1,  0,  1,  0,  1,  0};
 int Counterpoint::BadMelodyInterval[13] =   {0,  0,  0,  0,  0,  0,  1,  0,  0,  1,  1,  1,  0};
 int Counterpoint::Indx[17] =                {0,  1, -1,  2, -2,  3, -3,  0,  4, -4,  5,  7, -5,  8, 12, -7,-12};
-boost::mt19937 Counterpoint::mersenneTwister;
+std::mt19937 Counterpoint::mersenneTwister;
 
 void Counterpoint::initialize(int mostnotes, int mostvoices)
 {
@@ -208,13 +208,11 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
     CrossBelowBassPenalty                 = Counterpoint::infinity;
     CrossAboveCantusPenalty               = Counterpoint::infinity;
     NoMotionAgainstOctavePenalty          = 34;
-    uniform_real_generator = new boost::variate_generator<boost::mt19937, boost::uniform_real<> >(mersenneTwister, boost::uniform_real<>(0.0, 1.0));
     initialize(MostNotes_, MostVoices_);
   }
 
   Counterpoint::~Counterpoint()
   {
-    delete uniform_real_generator;
   }
   int Counterpoint::ABS(int i) {if (i < 0) return(-i); else return(i);}
   int Counterpoint::MIN(int a, int b) {if (a < b) return(a); else return(b);}
@@ -1279,7 +1277,7 @@ void Counterpoint::toCsoundScore(std::string filename, double secondsPerPulse)
 
   float Counterpoint::RANDOM(float amp)
   {
-    return amp * (*uniform_real_generator)();
+    return amp * uniform_real_generator(mersenneTwister);
   }
 
   void Counterpoint::UsedRhy(int n) {RhyPat(n,0)=RhyPat(n,0)+1;}
