@@ -21,17 +21,18 @@
 #pragma warning(disable: 4786)
 #endif
 #include "CsoundFile.hpp"
-#if !defined(__ANDROID__)
-# include <boost/algorithm/string.hpp>
-#endif
-#include <string.h>
-#include <ctime>
-#include <cctype>
 #include <algorithm>
+#include <cctype>
+#include <ctime>
+#include <iterator>
 #include <sstream>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <csound.h>
+#include <sstream>
+#include <string>
+#include <string.h>
+#include <vector>
 
 #if defined(HAVE_MUSICXML2)
 #include "elements.h"
@@ -61,7 +62,7 @@ void PUBLIC gatherArgs(int argc, const char **argv, std::string &commandLine)
     }
 }
 
-void PUBLIC scatterArgs(const std::string buffer,
+void PUBLIC scatterArgs(const std::string line,
                         std::vector<std::string> &args, std::vector<char *> &argv)
 {
   args.clear();
@@ -72,14 +73,14 @@ void PUBLIC scatterArgs(const std::string buffer,
       }
   }
   argv.clear();
-  // TODO: Replace boost throughout interfaces.
-  #if !defined(__ANDROID__)
-  boost::split(args, buffer, boost::is_any_of(" \t\n\r"), boost::token_compress_on);
-  #endif
-  for (int i = 0; i < args.size(); ++i) {
-      argv.push_back(const_cast<char *>(strdup(args[i].c_str())));
+  std::stringstream stream(line);
+  std::string token;
+  while (std::getline(stream, token, ' ')) {
+    if (!token.empty()) {
+      args.push_back(token);
+      argv.push_back(strdup(token.c_str()));
+    }
   }
-  argv.push_back(0);
 }
 
 std::string PUBLIC &trim(std::string &value)
