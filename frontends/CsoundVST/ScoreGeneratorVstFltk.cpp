@@ -29,7 +29,6 @@
 #include <algorithm>
 #include "ScoreGeneratorVstFltk.hpp"
 #include "System.hpp"
-#include <boost/tokenizer.hpp>
 
 static std::string about = "SCORE GENERATOR VST\n"
 "Version 1.0\n"
@@ -262,16 +261,14 @@ void ScoreGeneratorVstFltk::log(char *message)
       return;
     }
   scoreGeneratorVstFltk->messagebuffer.append(message);
-  if (scoreGeneratorVstFltk->messagebuffer.find("\n") != std::string::npos)
-    {
-      typedef boost::char_separator<char> charsep;
-      boost::tokenizer<charsep> tokens(scoreGeneratorVstFltk->messagebuffer, charsep("\n"));
-      for(boost::tokenizer<charsep>::iterator it = tokens.begin(); it != tokens.end(); ++it)
-        {
-          scoreGeneratorVstFltk->messages.push_back(*it);
-        }
-      scoreGeneratorVstFltk->messagebuffer.clear();
+  if (scoreGeneratorVstFltk->messagebuffer.find("\n") != std::string::npos) {
+    std::stringstream stream(csoundVstFltk->messagebuffer);
+    std::string line;
+    while (std::getline(stream, line, '\n')) {
+      scoreGeneratorVstFltk->messages.push_back(line);
     }
+    scoreGeneratorVstFltk->messagebuffer.clear();
+  }
 }
 
 void ScoreGeneratorVstFltk::logv(char *format,...)

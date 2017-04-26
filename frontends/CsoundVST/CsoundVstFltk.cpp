@@ -28,7 +28,6 @@
 #include <algorithm>
 #include "CsoundVstFltk.hpp"
 #include "CsoundVST.hpp"
-#include <boost/tokenizer.hpp>
 
 static std::string about = "CSOUND AND CSOUND VST\n"
 #if defined(BETA)
@@ -355,23 +354,22 @@ void CsoundVstFltk::messageCallback(CSOUND *csound, int attribute, const char *f
   csoundVstFltk->messagebuffer.append(buffer);
   if (csoundVstFltk->messagebuffer.find("\n") != std::string::npos)
     {
-      typedef boost::char_separator<char> charsep;
-      boost::tokenizer<charsep> tokens(csoundVstFltk->messagebuffer, charsep("\n"));
-      for(boost::tokenizer<charsep>::iterator it = tokens.begin(); it != tokens.end(); ++it)
-        {
-          if(csoundVstFltk->csoundVST->getIsVst())
-            {
-              csoundVstFltk->messages.push_back(*it);
-            }
-          else
-            {
-              csoundVstFltk->csoundVST->fltklock();
-              //csoundVstFltk->csoundVST->fltkflush();
-              csoundVstFltk->runtimeMessagesBrowser->add(it->c_str());
-              csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
-              csoundVstFltk->csoundVST->fltkunlock();
-            }
-        }
+      std::stringstream stream(csoundVstFltk->messagebuffer);
+      std::string line;
+      while (std::getline(stream, line, '\n')) {
+        if(csoundVstFltk->csoundVST->getIsVst())
+          {
+            csoundVstFltk->messages.push_back(line);
+          }
+        else
+          {
+            csoundVstFltk->csoundVST->fltklock();
+            //csoundVstFltk->csoundVST->fltkflush();
+            csoundVstFltk->runtimeMessagesBrowser->add(line.c_str());
+            csoundVstFltk->runtimeMessagesBrowser->bottomline(csoundVstFltk->runtimeMessagesBrowser->size());
+            csoundVstFltk->csoundVST->fltkunlock();
+          }
+      }
       csoundVstFltk->messagebuffer.clear();
     }
 }
