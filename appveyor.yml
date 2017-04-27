@@ -5,8 +5,13 @@ install:
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
   - cd ..
 
-build_script:
-  - msbuild msvc\csound-vs\Csound.sln
+platform: x64
+
+configuration: Release
+
+build:
+  parallel: true
+  project: msvc\csound-vs\Csound.sln
 
 after_build:
   - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll
