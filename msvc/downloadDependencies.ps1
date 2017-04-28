@@ -9,6 +9,7 @@ $depsDir = $currentDir + "\deps\"
 $stageDir = $currentDir + "\staging\"
 $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
+$vcpkgDir = ""
 
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
@@ -36,7 +37,7 @@ elseif (Test-Path "..\..\vcpkg")
 {
     cd ..\..\vcpkg
     $env:Path += ";" + $(Get-Location)
-    echo $env:Path
+    $vcpkgDir = $(Get-Location)
     echo "vcpkg already installed locally, updating"
     
     # Update and rebuild vcpkg
@@ -51,12 +52,13 @@ elseif (Test-Path "..\..\vcpkg")
 }
 else 
 {
-    cd ..\..
+    cd ..\..    
     echo "vcpkg missing, downloading and installing"
 
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
     $env:Path += ";" + $(Get-Location)
+    $vcpkgDir = $(Get-Location)
 
     powershell -exec bypass scripts\bootstrap.ps1
     vcpkg integrate install
@@ -141,21 +143,21 @@ copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
 
 # Add deps bin directory to the system path if not already there
 # FIXME this is duplicating part of the path for some reason
-if ($env:Path.Contains($depsBinDir))
-{
-    echo "Already added dependency bin dir to path"
-}
-else
-{
+#if ($env:Path.Contains($depsBinDir))
+#{
+#    echo "Already added dependency bin dir to path"
+#}
+#else
+#{
 # For this session add to path var
-    $env:Path += ";" + $depsBinDir
-
-    # Permanently add to system path
-    [Environment]::SetEnvironmentVariable("Path", $env:Path, 
-        [EnvironmentVariableTarget]::User)
-
-    echo "Added dependency bin dir to path: $depsBinDir" 
-}
+#    $env:Path += ";" + $depsBinDir
+#
+#    # Permanently add to system path
+#    [Environment]::SetEnvironmentVariable("Path", $env:Path, 
+#        [EnvironmentVariableTarget]::User)
+#
+#    echo "Added dependency bin dir to path: $depsBinDir" 
+#}
 
 # Generate solution file
 cd $currentDir
