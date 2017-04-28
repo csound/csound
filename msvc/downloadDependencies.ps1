@@ -176,7 +176,7 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DUSE_ALSA=0 `
  -DUSE_AUDIOUNIT=0 `
  -DUSE_COREMIDI=0 `
- -DUSE_CURL=1 `
+ -DUSE_CURL=0 `
  -DUSE_DOUBLE=1 `
  -DUSE_GETTEXT=0 `
  -DUSE_JACK=0 `
@@ -197,4 +197,4 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
 $endTime = (Get-Date).TimeOfDay
 $duration = $endTime - $startTime
 
-echo "Finished in $($duration.Minutes) minutes, ($($duration.Seconds) seconds)"
+echo "Finished in $($duration.TotalMinutes) minutes"
