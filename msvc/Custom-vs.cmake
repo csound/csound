@@ -11,8 +11,11 @@ set(TCL_VERSION 8.5)
 # C4267 loss of data in conversion
 # C4005 macro refinitions
 # C4996 unsafe functions
-set(CMAKE_C_FLAGS "${CMAKE_CX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996")
+# C4047 levels of indirection difference (int and void*)
+# C4090 different const qualifiers
+# C4477 format string type differences
+set(CMAKE_C_FLAGS "${CMAKE_CX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
 
 set(BUILD_PD_CLASS OFF)
 
