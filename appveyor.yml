@@ -21,10 +21,8 @@ artifacts:
     name: Csound
     type: zip
 
-#cache: 
-# - msvc\vcpkg\
-# - msvc\vcpkg\installed\ -> msvc\downloadDependencies.ps1
- 
+cache: 
+ - msvc\vcpkg\ -> msvc\downloadDependencies.ps1
 
 #deploy:
 #  release: myproduct-v$(appveyor_build_version)
