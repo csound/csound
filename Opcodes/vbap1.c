@@ -160,11 +160,7 @@ static int vbap1_control(CSOUND *csound, VBAP1_DATA *p,
     for (i=0;i<cnt;i++) {
       p->gains[i] /= sum;
     }
-<<<<<<< HEAD
-    free(tmp_gains)
-=======
     free(tmp_gains);
->>>>>>> 2f7f8e557f815cd1958d92514b779b2c7b7692fa
     return OK;
 }
 
