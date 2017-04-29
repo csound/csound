@@ -1636,7 +1636,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
             CS_PDS = CS_PDS->insdshead->pds;
             CS_PDS->insdshead->pds = NULL;
           }
-        }while ((CS_PDS = CS_PDS->nxtp));
+        } while ((CS_PDS = CS_PDS->nxtp));
       }
       ip->kcounter++;
     }
@@ -1680,13 +1680,14 @@ int subinstr(CSOUND *csound, SUBINST *p)
     }
     /* copy outputs */
     for (chan = 0; chan < p->OUTOCOUNT; chan++) {
-      for (pbuf = ip->spout + chan, frame = 0;
+      for (pbuf = ip->spout + chan*nsmps, frame = 0;
            frame < nsmps; frame++) {
-        p->ar[chan][frame] = *pbuf;
+        p->ar[chan][frame] = pbuf[frame];
         //printf("%f \n", p->ar[chan][frame]);
-        pbuf += csound->nchnls;
+        //pbuf += csound->nchnls;
       }
     }
+
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip) {                                  /* loop to last opds */

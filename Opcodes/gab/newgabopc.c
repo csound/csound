@@ -379,10 +379,12 @@ static int inRange(CSOUND *csound, INRANGE *p)
       ara[i] = p->argums[i];
       if (UNLIKELY(offset)) memset(ara[i], '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));
+      ara[i] += offset;
     }
     for (j=offset; j<nsmps; j++)  {
-      for (i=0; i<narg; i++)
-        ara[i][j] = sp[i];
+      for (i=0; i<narg; i++) {
+        *ara[i]++ = sp[i];
+      }
       sp += numchans;
     }
     return OK;
