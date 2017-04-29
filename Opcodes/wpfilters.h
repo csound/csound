@@ -42,32 +42,33 @@ Csound C versions by Steven Yi
 
 typedef struct {
   OPDS h;
-  MYFLT *outlp, *outhp;
-  MYFLT *in, *cutoff, *skip;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *mode, *skip;
   MYFLT last_cut, G;
   double z1;
 } ZDF_1POLE;
 
+
 typedef struct {
   OPDS h;
-  MYFLT *out;
-  MYFLT *in, *cutoff, *mode, *skip;
+  MYFLT *outlp, *outhp;
+  MYFLT *in, *cutoff, *skip;
   MYFLT last_cut, G;
   double z1;
 } ZDF_1POLE_MODE;
 
 typedef struct {
   OPDS h;
-  MYFLT *outlp,*outbp, *outhp;
-  MYFLT *in, *cutoff, *q, *skip;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *q, *mode, *skip;
   double last_cut, last_q, g, R;
   double z1, z2;
 } ZDF_2POLE;
 
 typedef struct {
   OPDS h;
-  MYFLT *out;
-  MYFLT *in, *cutoff, *q, *mode, *skip;
+  MYFLT *outlp,*outbp, *outhp;
+  MYFLT *in, *cutoff, *q, *skip;
   double last_cut, last_q, g, R;
   double z1, z2;
 } ZDF_2POLE_MODE;
@@ -76,8 +77,8 @@ typedef struct {
 typedef struct {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *cutoff, *res, *skip;
-  double last_cut, last_res, last_k, last_g, last_G, last_G2, last_G3, last_GAMMA;
+  MYFLT *in, *cutoff, *q, *skip;
+  double last_cut, last_q, last_k, last_g, last_G, last_G2, last_G3, last_GAMMA;
   double z1, z2, z3, z4;
 } ZDF_LADDER;
 
@@ -90,17 +91,17 @@ typedef struct {
 } DIODE_LADDER;
 
 typedef struct {
-	OPDS h;
-	MYFLT *out;
-	MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
-	double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, lpf2_beta, hpf1_beta;
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
+  double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, lpf2_beta, hpf1_beta;
 } K35_LPF;
 
 typedef struct {
-	OPDS h;
-	MYFLT *out;
-	MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
-	double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, hpf2_beta, lpf1_beta;
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *cutoff, *q, *nonlinear, *saturation, *skip;
+  double z1, z2, z3, last_cut, last_q, g, G, K, S35, alpha, hpf2_beta, lpf1_beta;
 } K35_HPF;
 
 
