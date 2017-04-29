@@ -1719,7 +1719,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
 
 int outs1(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp= csound->spraw, *ap1= p->asig;
+    MYFLT       *sp=  CS_SPOUT /*csound->spraw*/, *ap1= p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1756,7 +1756,7 @@ int och4(CSOUND *csound, OUTM *p) { OUTCN(4) }
 
 int outs2(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = csound->spraw, *ap2 = p->asig;
+    MYFLT       *sp =  CS_SPOUT /*csound->spraw*/, *ap2 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1783,7 +1783,7 @@ int outs2(CSOUND *csound, OUTM *p)
 
 int outq3(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = csound->spraw, *ap3 = p->asig;
+  MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap3 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1810,7 +1810,7 @@ int outq3(CSOUND *csound, OUTM *p)
 
 int outq4(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = csound->spraw, *ap4 = p->asig;
+  MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap4 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1838,7 +1838,7 @@ int outq4(CSOUND *csound, OUTM *p)
 inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t nsmps =CS_KSMPS,  i, j, k=0;
-    MYFLT *spout = csound->spraw;
+    MYFLT *spout = CS_SPOUT; ///csound->spraw;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     //    if (UNLIKELY((offset|early))) {
@@ -1909,7 +1909,7 @@ int outarr(CSOUND *csound, OUTARRAY *p)
     uint32_t ksmps = nsmps;
     uint32_t n = p->tabin->sizes[0];
     MYFLT *data = p->tabin->data;
-    MYFLT *spout = csound->spraw;
+    MYFLT *spout = CS_SPOUT; //csound->spraw;
     if (csound->oparms->sampleAccurate) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1962,7 +1962,7 @@ int outch(CSOUND *csound, OUTCH *p)
     uint32_t    count = p->INOCOUNT;
     MYFLT       **args = p->args;
     uint32_t    nchnls = csound->nchnls;
-    MYFLT *spout = csound->spraw;
+    MYFLT *spout = CS_SPOUT;
     CSOUND_SPOUT_SPINLOCK
     for (j = 0; j < count; j += 2) {
       ch = (int)(*args[j] + FL(0.5));

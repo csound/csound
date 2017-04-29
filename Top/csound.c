@@ -1602,7 +1602,7 @@ int kperf_nodebug(CSOUND *csound)
           if (done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
-            ip->spout = csound->spout;
+            ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
               while ((opstart = opstart->nxtp) != NULL) {
@@ -1618,7 +1618,7 @@ int kperf_nodebug(CSOUND *csound)
                 int early = ip->ksmps_no_end;
                 OPDS  *opstart;
                 ip->spin = csound->spin;
-                ip->spout = csound->spout;
+                ip->spout = csound->spraw;
                 ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
 
                 /* we have to deal with sample-accurate code
@@ -1885,7 +1885,7 @@ int kperf_debug(CSOUND *csound)
               bp_node = bp_node->next;
             }
             ip->spin = csound->spin;
-            ip->spout = csound->spout;
+            ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
                 opcode_perf_debug(csound, data, ip);
@@ -1896,7 +1896,7 @@ int kperf_debug(CSOUND *csound)
               int offset =  ip->ksmps_offset;
               int early = ip->ksmps_no_end;
               ip->spin = csound->spin;
-              ip->spout = csound->spout;
+              ip->spout = csound->spraw;
               ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
 
               /* we have to deal with sample-accurate code

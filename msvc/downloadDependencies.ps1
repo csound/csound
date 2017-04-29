@@ -1,12 +1,15 @@
 echo "Downloading Csound dependencies..."
 
+$startTime = (Get-Date).TimeOfDay
+
 $webclient = New-Object System.Net.WebClient
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
 $depsDir = $currentDir + "\deps\"
 $stageDir = $currentDir + "\staging\"
 $depsBinDir = $depsDir + "bin\"
-$vcpkgDir = $currentDir + "\vcpkg"
+$depsLibDir = $depsDir + "lib\"
+$vcpkgDir = ""
 
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
@@ -19,42 +22,56 @@ if ($systemVCPKG)
     echo "vcpkg already installed on system, updating"
     $vcpkgDir = Split-Path -Parent $systemVCPKG
     cd $vcpkgDir 
+
+    # Update and rebuild vcpkg
     git pull
+    bootstrap-vcpkg.bat
+
+    # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
-    vcpkg update
+    vcpkg update # Not really functional it seems yet
+
     cd $currentDir
 }
-elseif (Test-Path $vcpkgDir)
+elseif (Test-Path "..\..\vcpkg")
 {
-    $env:Path += ";" + $vcpkgDir
+    cd ..\..\vcpkg
+    $env:Path += ";" + $(Get-Location)
+    $vcpkgDir = $(Get-Location)
     echo "vcpkg already installed locally, updating"
-    cd vcpkg
+    
+    # Update and rebuild vcpkg
     git pull
+    bootstrap-vcpkg.bat
+
+    # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
     vcpkg update
-    cd ..
+    
+    cd $currentDir
 }
-else {
-    $env:Path += ";" + $vcpkgDir
+else 
+{
+    cd ..\..    
     echo "vcpkg missing, downloading and installing"
+
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
+    $env:Path += ";" + $(Get-Location)
+    $vcpkgDir = $(Get-Location)
+
     powershell -exec bypass scripts\bootstrap.ps1
     vcpkg integrate install
-    cd ..
+
+    cd $currentDir
 }
 
 # Download all vcpkg packages available
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows"
-$vcPackages = "boost", "curl", "eigen3", "fltk", "gtk", "libflac", 
-"lua", "libogg", "libvorbis", "zlib"
-
 echo "Downloading VC packages..."
 
-for($i=0; $i -lt $vcPackages.Length; $i++) {
-    vcpkg --triplet $targetTriplet install $vcPackages[$i]
-}
+vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
 
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
@@ -65,11 +82,14 @@ mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 # List of URIs to download and install
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
-"http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip"
+"http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
+"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="", 
-"win_flex_bison"
+"win_flex_bison",
+"",
+""
 
 # Download list of files to cache folder
 for($i=0; $i -lt $uriList.Length; $i++) 
@@ -98,7 +118,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
 }
 
 # Manual building...
-# portaudio
+# Portaudio
 cd staging
 copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
 
@@ -118,24 +138,26 @@ mkdir portaudioBuild -InformationAction SilentlyContinue -ErrorAction SilentlyCo
 cd portaudioBuild 
 cmake ..\portaudio -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
-copy .\Release\portaudio_x64.dll -Destination $depsBinDir
+copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
+copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
 
 # Add deps bin directory to the system path if not already there
-if ($env:Path.Contains($depsBinDir))
-{
-    echo "Already added dependency bin dir to path"
-}
-else
-{
-    # Permanently add to system path
-    [Environment]::SetEnvironmentVariable("Path", $env:Path + ";" + $depsBinDir, 
-        [EnvironmentVariableTarget]::User)
-
-    # For this session add to path var
-    $env:Path += ";" + $depsBinDir
-
-    echo "Added dependency bin dir to path: $depsBinDir" 
-}
+# FIXME this is duplicating part of the path for some reason
+#if ($env:Path.Contains($depsBinDir))
+#{
+#    echo "Already added dependency bin dir to path"
+#}
+#else
+#{
+# For this session add to path var
+#    $env:Path += ";" + $depsBinDir
+#
+#    # Permanently add to system path
+#    [Environment]::SetEnvironmentVariable("Path", $env:Path, 
+#        [EnvironmentVariableTarget]::User)
+#
+#    echo "Added dependency bin dir to path: $depsBinDir" 
+#}
 
 # Generate solution file
 cd $currentDir
@@ -151,9 +173,15 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DHAVE_BIG_ENDIAN=0 `
  -DCMAKE_16BIT_TYPE="unsigned short" `
+ -DUSE_ALSA=0 `
+ -DUSE_AUDIOUNIT=0 `
+ -DUSE_COREMIDI=0 `
+ -DUSE_CURL=0 `
  -DUSE_DOUBLE=1 `
  -DUSE_GETTEXT=0 `
- -DUSE_CURL=0 `
+ -DUSE_JACK=0 `
+ -DUSE_PULSEAUDIO=0 `
+ -DBUILD_INSTALLER=1 `
  -DBUILD_FLUID_OPCODES=0 `
  -DBUILD_LUA_OPCODES=0 `
  -DBUILD_LUA_INTERFACE=0 `
@@ -166,4 +194,7 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DPORTAUDIO_INCLUDE_PATH="..\staging\portaudio\include" `
  -DPORTAUDIO_LIBRARY="..\staging\portaudioBuild\Release\portaudio_x64.lib"
 
-echo "Finished"
+$endTime = (Get-Date).TimeOfDay
+$duration = $endTime - $startTime
+
+echo "Finished in $($duration.TotalMinutes) minutes"

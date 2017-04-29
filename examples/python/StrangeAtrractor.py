@@ -39,13 +39,13 @@ random.setElement(8, 11, 1)
 
 rescale = CsoundAC.Rescale()
 print 'rescale:', rescale
-rescale.setRescale( 0, 1, 1,  0,     300)
-rescale.setRescale( 1, 1, 0,  2,       4)
-rescale.setRescale( 3, 1, 1, 10,       4)
-rescale.setRescale( 4, 1, 1, 36,      60)
-rescale.setRescale( 5, 1, 1, 35,      12)
-rescale.setRescale( 7, 1, 1, -0.5,     1)
-rescale.setRescale(10, 1, 1,  0,    4095)
+rescale.setRescale( 0, True, True,  0,     300)
+rescale.setRescale( 1, True, False,  2,       4)
+rescale.setRescale( 3, True, True, 10,       4)
+rescale.setRescale( 4, True, True, 36,      60)
+rescale.setRescale( 5, True, True, 35,      12)
+rescale.setRescale( 7, True, True, -0.5,     1)
+rescale.setRescale(10, True, True,  0,    4095)
 random.addChild(strangeAttractor)
 rescale.addChild(random)
 
@@ -57,7 +57,7 @@ model.generate()
 print 'finished.'
 
 csound.load("../CsoundAC.csd")
-csound.setCommand("csound -RWdfo StrangeAttractor.wav")
+csound.setCommand("-RWdfoStrangeAttractor.wav")
 score = model.getScore()
 print 'Events in generated score:', len(score)
 duration = score.getDuration()
@@ -100,8 +100,8 @@ i 210   0       %f      0.81    0.0  		16000
 i 220   0       %f      0.1     0.1
 
 ''' % (duration, duration, duration, duration))
-#print csound.getScore()
-print csound.getCommand()
+print csound.getScore()
+print "Command:", csound.getCommand()
 csound.perform()
 
 

@@ -27,7 +27,7 @@
 #include "Silence.hpp"
 #include <string>
 #include <vector>
-#include <boost/random.hpp>
+#include <random>
 #include <eigen3/Eigen/Dense>
   %}
 %include "std_string.i"
@@ -36,7 +36,7 @@
 #include "Silence.hpp"
 #include <string>
 #include <vector>
-#include <boost/random.hpp>
+#include <random>
 #include <eigen3/Eigen/Dense>
 #endif
 
