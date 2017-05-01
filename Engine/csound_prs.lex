@@ -79,7 +79,7 @@ MACRONAMEA      "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\(
 MACRONAMEDA     "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.\(
 MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
 MACRO           [a-zA-Z_][a-zA-Z0-9_]*
-NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
+NUMBER [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
 
 STCOM           \/\*
 INCLUDE         "#include"
@@ -171,7 +171,7 @@ NM              [nm]
                        PARM->alt_stack =
                          (MACRON*)
                          csound->ReAlloc(csound, PARM->alt_stack,
-                                         sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                     sizeof(MACRON)*(PARM->macro_stack_size+=10));
                        if (UNLIKELY(PARM->alt_stack == NULL)) {
                          csound->Message(csound, Str("Memory exhausted"));
                          csound->LongJmp(csound, 1);
@@ -694,8 +694,8 @@ NM              [nm]
                   /* Define macro for counter */
                   PARM->repeat_mm_n[PARM->repeat_index]->name =
                     csound->Malloc(csound,
-                                   strlen(PARM->repeat_name_n[PARM->repeat_index])+1);
-                  if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index]->name == NULL)) {
+                               strlen(PARM->repeat_name_n[PARM->repeat_index])+1);
+                  if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index]->name==NULL)) {
                     csound->Message(csound, Str("Memory exhausted"));
                     csound->LongJmp(csound, 1);
                   }
@@ -824,7 +824,7 @@ NM              [nm]
                       /* Define macro for counter */
              PARM->repeat_sect_mm->name = cs_strdup(csound, buff);
              PARM->repeat_sect_mm->acnt = -1; /* inhibit */
-             PARM->repeat_sect_mm->body = csound->Calloc(csound, 16); // ensure nulls
+             PARM->repeat_sect_mm->body = csound->Calloc(csound, 16);
              PARM->repeat_sect_mm->body[0] = '0';
              //csound->DebugMsg(csound,"repeat %s zero %s\n",
              //                 buff, PARM->repeat_sect_mm->body);
@@ -1218,7 +1218,8 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
       else if (!isspace(c))
         csound->Die(csound,
-                    Str("define macro unexpected character %c(0x%.2x) awaiting #\n"),
+                    Str("define macro unexpected character %c(0x%.2x)"
+                        "awaiting #\n"),
                     c, c);
     }
     mm->body = (char*) csound->Malloc(csound, 100);

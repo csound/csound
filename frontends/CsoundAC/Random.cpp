@@ -40,7 +40,7 @@ namespace csound
     sigma(1.0)
   {
     distribution = "uniform_real";
-      
+
   }
 
   Random::~Random()
@@ -61,36 +61,36 @@ namespace csound
       }
     else if(distribution == "uniform_real")
       {
-        uniform_real_generator = std::uniform_real_distribution<>(minimum, maximum);          
+        uniform_real_generator = std::uniform_real_distribution<>(minimum, maximum);
         generator_ = &uniform_real_generator;
       }
     else if(distribution == "bernoulli")
       {
-        bernoulli_distribution_generator = std::bernoulli_distribution(q);          
+        bernoulli_distribution_generator = std::bernoulli_distribution(q);
         generator_ = &bernoulli_distribution_generator;
       }
     else if(distribution == "geometric")
       {
-        geometric_distribution_generator = std::geometric_distribution<>(q);          
+        geometric_distribution_generator = std::geometric_distribution<>(q);
         generator_ = &geometric_distribution_generator;
       }
     else if(distribution == "exponential")
       {
-        exponential_distribution_generator = std::exponential_distribution<>(Lambda);          
+        exponential_distribution_generator = std::exponential_distribution<>(Lambda);
         generator_ = &exponential_distribution_generator;
       }
     else if(distribution == "normal")
       {
-        normal_distribution_generator = std::normal_distribution<>(mean, sigma);          
+        normal_distribution_generator = std::normal_distribution<>(mean, sigma);
         generator_ = &normal_distribution_generator;
       }
     else if(distribution == "lognormal")
       {
-        lognormal_distribution_generator = std::lognormal_distribution<>(mean, sigma);          
+        lognormal_distribution_generator = std::lognormal_distribution<>(mean, sigma);
         generator_ = &lognormal_distribution_generator;
       }
   }
-  double Random::sample() 
+  double Random::sample()
   {
     if(generator_ == &uniform_smallint_generator) return uniform_smallint_generator(mersenneTwister);
     if(generator_ == &uniform_int_generator) return uniform_int_generator(mersenneTwister);

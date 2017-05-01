@@ -904,12 +904,18 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend_lo", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
-{ "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
-{ "OSCinitM", S(OSCINITM), 0, 1, "i", "Si", (SUBR)osc_listener_initMulti },
-{ "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*", (SUBR)OSC_list_init, (SUBR)OSC_list},
-{ "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS", (SUBR)OSC_list_init, (SUBR)OSC_list},
-{ "OSCsendA", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_async_set, (SUBR)osc_send_async }
+  { "OSCsend_lo", S(OSCSEND), 0, 3, "", "kSkSS*",
+    (SUBR)osc_send_set, (SUBR)osc_send, NULL,NULL },
+  { "OSCinit", S(OSCINIT), 0, 1, "i", "i",
+    (SUBR)osc_listener_init, NULL, NULL, NULL },
+  { "OSCinitM", S(OSCINITM), 0, 1, "i", "Si",
+    (SUBR)osc_listener_initMulti, NULL, NULL, NULL },
+  { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*",
+    (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
+  { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS",
+    (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
+  { "OSCsendA", S(OSCSEND), 0, 3, "", "kSkSS*",
+    (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL }
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)
