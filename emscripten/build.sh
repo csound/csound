@@ -25,4 +25,6 @@ cd ..
 rm -rf dist
 mkdir dist
 cp build/libcsound.js dist/
+cp src/*.js dist/
 cp build/libcsound.js.mem dist/
+
