@@ -46,8 +46,9 @@ if [ $? -ne 0 ]; then
     echo "Failed to run make."
     exit
 fi
+echo "Compiling csound.node..."
 echo "Compiling NSIS list of targets and dependencies..."
-./find_csound_dependencies.py
+C:/Program_Files/Anaconda2/python ../find_csound_dependencies.py
 echo "Compiling Doxygen API documentation..."
 if [ $? -ne 0 ]; then
     echo "Failed to identify Csound targets and dependencies."
