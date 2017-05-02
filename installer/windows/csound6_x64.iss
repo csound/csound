@@ -36,12 +36,12 @@
 ; Uncomment the following line to build CsoundVST and vst4cs:
 #define CSOUNDVST
 
-#define MyAppName "Csound6_x64"
+#define MyAppName "Csound6_x64-beta4"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.09.0-vst-beta"
+#define MyAppMinVersion "6.09.0-vst-beta4"
 #else
-#define MyAppMinVersion "6.09.0-beta"
+#define MyAppMinVersion "6.09.0-beta4"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
@@ -70,7 +70,7 @@
 ; If you are not Michael Gogins, change this to your STK source directory.
 #define MyLibStkSourceDir "D:\msys64\home\restore\csound\mingw64\packages\stk\src\stk-4.5.1\"
 ; If you are not Michael Gogins, change this to your NW.js installation directory.
-#define MyNwJsDir "D:\nwjs-sdk-v0.18.8-win-x64\"
+#define MyNwJsDir "D:\nwjs-sdk-v0.22.0-win-x64\"
 ; If you are not Michael Gogins, change this to your Winpthreads installation directory.
 #define MyWinPthreadsDir "D:\msys64\home\restore\pthreads-w32-2-9-1-release\Pre-built.2\"
 #define MyPackagesDir "D:\msys64\home\restore\csound\mingw64\packages\"
