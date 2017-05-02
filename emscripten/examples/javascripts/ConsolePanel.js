@@ -35,7 +35,7 @@ define('ConsolePanel', ["ace/ace"], function(ace) {
 		editor.setShowPrintMargin(false); 
 		editor.renderer.setShowGutter(false);
 		editor.setHighlightActiveLine(false);
-		//editor.$blockScrolling = Infinity;
+		editor.$blockScrolling = Infinity;
 		editor.renderer.$cursorLayer.element.style.opacity = 0;
 
 		var clearConsoleButton = document.getElementById("ClearConsoleButton");
