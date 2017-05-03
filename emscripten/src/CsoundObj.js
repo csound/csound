@@ -36,7 +36,7 @@ var CsoundObj = function() {
 	var _setMidiCallbacks = cwrap('CsoundObj_setMidiCallbacks', null, ['number']);
 	var _pushMidiMessage = cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']);
     var _setOutputChannelCallback = cwrap('CsoundObj_setOutputChannelCallback', null, ['number', 'number']);
-	var bufferSize = 256;
+	var bufferSize;
 	var _self = _new();
 
 	var getAudioContext = function() {
@@ -184,22 +184,25 @@ var CsoundObj = function() {
 
 		var inputChannelCount = _getInputChannelCount(_self);
 		var outputChannelCount = _getOutputChannelCount(_self);
-		var audioProcessNode = audioContext.createScriptProcessor(bufferSize, inputChannelCount, outputChannelCount);
+		var audioProcessNode = audioContext.createScriptProcessor(0, inputChannelCount, outputChannelCount);
+		bufferSize = audioProcessNode.bufferSize;
+console.error("bufferSize = " + bufferSize);
 		audioProcessNode.inputCount = inputChannelCount;
 		audioProcessNode.outputCount = outputChannelCount;
 		return audioProcessNode;
 	};
 
 	this.start = function() {
-
+		var ksmps = _getKsmps(_self);
+console.error("ksmps1 = " + ksmps);
 		var audioProcessNode = getAudioProcessNode();
 
-		var ksmps = _getKsmps(_self);
 		var inputChannelCount = audioProcessNode.inputCount;
 		var outputChannelCount = audioProcessNode.outputCount;
 		var outputPointer = _getOutputBuffer(_self);	
 		var csoundOutputBuffer = new Float32Array(Module.HEAP8.buffer, outputPointer, ksmps * outputChannelCount);
 		var contextOutputBuffer;
+		var offset = ksmps;
 
 		if (microphoneNode !== null) {
 
@@ -219,6 +222,8 @@ var CsoundObj = function() {
 		var csoundInputBuffer = new Float32Array(Module.HEAP8.buffer, inputPointer, ksmps * inputChannelCount);
 		var zerodBFS = _getZerodBFS(_self);
 		audioProcessNode.onaudioprocess = function(e) {
+			var idx = 0;
+			var sample_count;
 
 			if (microphoneNode !== null) {
 
@@ -231,25 +236,43 @@ var CsoundObj = function() {
 					}
 				}
 			}
+			sample_count = ksmps - offset;
+//console.error("1: sample_count = " + sample_count);
+			if (sample_count > 0) {
+				for (var i = 0; i < outputChannelCount; ++i) {
 
-			var result = _performKsmps(_self);
+					contextOutputBuffer = e.outputBuffer.getChannelData(i);
 
-			if (result != 0) {
+					for (var j = 0; j < sample_count; ++j) {
 
-				compiled = false;
-				that.stop();	
+						contextOutputBuffer[idx + j] = csoundOutputBuffer[(j + offset) * outputChannelCount + i] / zerodBFS;
+					}	
+				}
+				idx += sample_count;
 			}
+			while (idx < bufferSize) {
+				var result = _performKsmps(_self);
 
-			for (var i = 0; i < outputChannelCount; ++i) {
+				if (result != 0) {
 
-				contextOutputBuffer = e.outputBuffer.getChannelData(i);
+					compiled = false;
+					that.stop();	
+				}
+				sample_count = Math.min(ksmps, bufferSize - idx);
+//console.error("2: sample_count = " + sample_count);
+				for (var i = 0; i < outputChannelCount; ++i) {
 
-				for (var j = 0; j < ksmps; ++j) {
+					contextOutputBuffer = e.outputBuffer.getChannelData(i);
 
-					contextOutputBuffer[j] = csoundOutputBuffer[j * outputChannelCount + i] / zerodBFS;
-				}	
+					for (var j = 0; j < sample_count; ++j) {
+
+						contextOutputBuffer[idx + j] = csoundOutputBuffer[j * outputChannelCount + i] / zerodBFS;
+					}	
+				}
+				idx += sample_count;
 			}
-
+			offset = sample_count;
+//console.error("1: offset = " + offset);
 		};
 
 		that.stop = function() {
