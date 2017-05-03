@@ -13,7 +13,8 @@ if ($systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source)
 else 
 {
     echo "checking VCPKG dir in environmental variable"
-    $vcpkgDir = $env:VCPKGDir
+    #$vcpkgDir = $env:VCPKGDir
+    $vcpkgDir = "..\..\vcpkg"
 }
 
 echo $vcpkgDir
