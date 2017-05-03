@@ -74,16 +74,16 @@ void string_copy_value(void* csound, void* dest, void* src) {
     } else {
       if (sDest->data == NULL) {
         sDest->data = cs_strdup(csound, sSrc->data);
-	sDest->size = strlen(sDest->data)+1;
+        sDest->size = strlen(sDest->data)+1;
       } else {//breaks here
         //fprintf(stderr, "\n in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
-	//   sSrc->data, sSrc->size, sSrc->data, sDest->size, sDest->data);
+        //   sSrc->data, sSrc->size, sSrc->data, sDest->size, sDest->data);
         //memcpy(sDest->data, sSrc->data, sDest->size);
-	//memset(sDest->data,0,sDest->size);
+        //memset(sDest->data,0,sDest->size);
         strncpy(sDest->data, sSrc->data, sDest->size-1);
 
         //cs->Free(cs, sDest->data); sDest->data = cs_strdup(csound, sSrc->data);
-	//sDest->size = strlen(sDest->data)+1;
+        //sDest->size = strlen(sDest->data)+1;
       }
     }
     //sDest->size = sSrc->size;
