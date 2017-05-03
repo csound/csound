@@ -3,6 +3,7 @@ image: Visual Studio 2017
 install:
   - cd msvc
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
+  - powershell -ExecutionPolicy ByPass -File generateProject.ps1
   - cd ..
 
 platform: x64
