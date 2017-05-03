@@ -318,7 +318,7 @@ static void sensLine(CSOUND *csound, void *userData)
           cp = newcp - 1;
         } while (pcnt < PMAX);
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
-        else        /* Check for sufficient pfields (0-based, opcode counted already). */
+        else  /* Check for sufficient pfields (0-based, opcode counted already). */
           if (UNLIKELY(pcnt < 2 && e.opcod != 'e')) {
             csound->ErrorMsg(csound, Str("too few pfields (%d)"), pcnt + 1);
             goto Lerr;
@@ -385,7 +385,8 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     else  opcod = p1;
 
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
-                  opcod != 'e' && opcod != 'd') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
+                  opcod != 'e' && opcod != 'd')
+                 /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
@@ -450,7 +451,8 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
          opcod = *((STRINGDAT*) p->args[0])->data;
     else opcod = p1;
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
-                  opcod != 'e' && opcod != 'd') /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
+                  opcod != 'e' && opcod != 'd')
+                 /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
       return csound->InitError(csound, "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;

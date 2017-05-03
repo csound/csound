@@ -24,7 +24,7 @@ Any valid HTML can also be used.
 A mixed bag of new opcodes and many fixes and improvements.
 
 Also as usual there are a number of internal changes, including many
-memory leaks fixed and more robust code. 
+memory leaks fixed and more robust code.
 
 -- The Developers
 
@@ -60,7 +60,12 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 - new implemetation of OSCsend not using liblo, with previous version
   now called OSCsehd_lo
 
+- sorta and sortd to sort elements of an array
+
+- dot calculates the dot product of two arrays
+
 ### New Gen and Macros
+
 
 -
 
@@ -184,6 +189,8 @@ incompatible change)
 
 - New framework for plugin opcode development in C++.
 
+- added StrDup function
+
 ### Platform Specific
 
 - iOS
@@ -204,15 +211,11 @@ incompatible change)
 ========================================================================
 UNDOCUMENTED/UNDELETED
 
-commit 67371758eb831a5b33ba7591ed8aaa832453ecb7
-Author: Rory Walsh <rorywalsh@ear.ie>
-Date:   Mon Apr 24 20:18:46 2017 +0100
+commit 209e721fca961716ddb776ad475c8fc71de3ae89
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 26 10:52:42 2017 +0100
 
-commit 1e666280da3dce4442c5ac4fb5568ce7dec37a07
-Author: jpff <jpff@codemist.co.uk>
-Date:   Fri Apr 21 15:09:55 2017 +0100
-
-    inrg change for sample accurate
+    fixed bug in string copying
 
 commit 312136c7820333fc747a4d7945d675b1ceba304e
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -220,29 +223,11 @@ Date:   Fri Apr 21 01:36:53 2017 +0100
 
     product and sum
 
-commit a144b7643f6f072b2d880704fd20ad101a5f842e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Apr 21 00:38:53 2017 +0100
-
-    dot
-
 commit 680bc4a415a590e0d106982d42383e0c00a55d3c
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Apr 20 23:25:07 2017 +0100
 
-    limit1
-
-commit d6edd4630ae5dec52b38e75417cb4c09f5476717
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Apr 20 20:56:16 2017 +0100
-
-    array sorting
-
-commit 851dce0cb8acad825b345c93aa7ca9cd3d481f9a
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Apr 20 19:57:13 2017 +0100
-
-    fixed ip->spout to point to the right place
+    limit1 **** UNDOCUMENTED ****
 
 commit c2c1819e71aaf8516ceee980bc3d218b9bd0d063
 Author: Steven Yi <stevenyi@gmail.com>
@@ -268,12 +253,6 @@ Date:   Sat Apr 15 14:25:16 2017 -0400
 
     added k35_lpf and k35_hpf filters
 
-commit 20cef0307504573ec78918d35c8f442e96bf52c3
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Fri Apr 14 16:55:58 2017 -0400
-
-    rewrote image opcode build to set target link libraries separately to get it work with Visual Studio
-
 commit 428e8fca2b7edcb53b600e47e02ad05d3db934c7
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Thu Apr 13 19:50:12 2017 -0400
@@ -285,12 +264,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Apr 11 22:31:02 2017 +0100
 
     trying to set non-blocking mode on windows
-
-commit cdf7a90968d4559d79d56c61984d9429e7019c24
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Apr 11 21:27:52 2017 +0100
-
-    Strdup to Csound
 
 commit fd14e9437b6358a5927e3ce1d0f341438c65a3db
 Author: Steven Yi <stevenyi@gmail.com>
@@ -340,18 +313,6 @@ Author: Steven Yi <stevenyi@gmail.com>
 Date:   Sat Apr 1 18:05:13 2017 -0400
 
     fix for pmidi.c and csoundLock/UnLock: add include of csGblMtx.h, fix setting of HAVE_PTHREAD for all targets instead of just for libcsound64
-
-commit 6305e51a33ce6c7ceb7a0cfe59e8d0f345745f46
-Author: jpff <jpff@codemist.co.uk>
-Date:   Tue Mar 28 14:08:56 2017 +0100
-
-    sockrec string version seems to be working
-
-commit 6305e51a33ce6c7ceb7a0cfe59e8d0f345745f46
-Author: jpff <jpff@codemist.co.uk>
-Date:   Tue Mar 28 14:08:56 2017 +0100
-
-    sockrec string version seems to be working
 
 commit 58801753aabbd705ec8a32b89d8533003930ce6a
 Author: U-HF-31335\Administrator <obrandts@gmail.com>
