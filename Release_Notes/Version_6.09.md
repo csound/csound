@@ -65,9 +65,14 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 - dot calculates the dot product of two arrays
 
 - zero delay filters zdf_1pole_mode, zdf_2pole_mode, zdf_ladder,
-  zdf_1pole and zdf_2pole.xml, diod_ladder
+  zdf_1pole and zdf_2pole.xml, diode_ladder
+
+- product takes a numeric array (k or i-rate) and calculates its product.
+
+- supercollider ugens: sc_phasor, sc_lag, sc_lagud, sc_trig added
 
 ### New Gen and Macros
+
 
 
 -
@@ -224,7 +229,7 @@ commit 312136c7820333fc747a4d7945d675b1ceba304e
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Fri Apr 21 01:36:53 2017 +0100
 
-    product and sum
+    sum **** UNDOCUMENTED ****
 
 commit 680bc4a415a590e0d106982d42383e0c00a55d3c
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -237,12 +242,6 @@ Author: Steven Yi <stevenyi@gmail.com>
 Date:   Sat Apr 15 14:25:16 2017 -0400
 
     added k35_lpf and k35_hpf filters
-
-commit 428e8fca2b7edcb53b600e47e02ad05d3db934c7
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Thu Apr 13 19:50:12 2017 -0400
-
-    implemented zdf_2pole with low pass, band pass, and hi pass outputs; defined other structs to always use double for state values
 
 commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -376,12 +375,6 @@ Author: vlazzarini <victor.lazzarini@nuim.ie>
 Date:   Mon Jan 23 10:33:54 2017 +0000
 
     Own ugens and initial port of some supercollider ugens
-
-commit d227c15bea6c06da580a10ef8ee9d94c41b12a32
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Mon Jan 23 10:06:27 2017 +0100
-
-    -- beginning of scugens (supercollider ugens): phasor, lag, lagud, trig)
 
 commit 5b6178ea6fa1058cd7d5425598f67fbeadde09e5
 Author: Nikhil Singh <nsingh1@berklee.edu>
