@@ -22,7 +22,8 @@
  #define TAKE_LOCK(x) csoundLockMutex(x)
  #define RELS_LOCK(x) csoundUnlockMutex(x)
  #define LOCK_TYPE  LPCRITICAL_SECTION
- // PTHREAD: FIXME no init function? unless createMutex should be used but has a different function signature
+ // PTHREAD: FIXME no init function? unless createMutex should be used
+ //          but has a different function signature
  #define INIT_LOCK(x) csoundCreateMutex(0)
 # else
  /* VL: 18.05.2011 enabled this to allow OSX build */
