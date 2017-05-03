@@ -25,14 +25,16 @@ require.config({
 
 	},
 	paths: {
-		ace: "ace",
-		"jquery" : "jquery",
+		"ace"       : "ace",
+		"jquery"    : "jquery",
 		"bootstrap" :  "bootstrap.min" ,
-		"libcsound":"libcsound"	
+		"libcsound" : "libcsound",
+        "CsoundObj" : "CsoundObj",
+        "FileList"  : "FileList"
 	}
 });
 
-require(["jquery", "bootstrap", "libcsound", "InputPanel", "ConsolePanel", "FileManager", "FilePanel", "HelpPanel", "EditorPanel"], main);
+require(["jquery", "bootstrap", "libcsound", "CsoundObj", "FileList", "InputPanel", "ConsolePanel", "FileManager", "FilePanel", "HelpPanel", "EditorPanel"], main);
 
 
 function main() {
