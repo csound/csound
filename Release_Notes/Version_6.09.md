@@ -62,7 +62,10 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - sorta and sortd to sort elements of an array
 
+- dot calculates the dot product of two arrays
+
 ### New Gen and Macros
+
 
 -
 
@@ -208,9 +211,11 @@ incompatible change)
 ========================================================================
 UNDOCUMENTED/UNDELETED
 
-commit 67371758eb831a5b33ba7591ed8aaa832453ecb7
-Author: Rory Walsh <rorywalsh@ear.ie>
-Date:   Mon Apr 24 20:18:46 2017 +0100
+commit 209e721fca961716ddb776ad475c8fc71de3ae89
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 26 10:52:42 2017 +0100
+
+    fixed bug in string copying
 
 commit 312136c7820333fc747a4d7945d675b1ceba304e
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -218,23 +223,11 @@ Date:   Fri Apr 21 01:36:53 2017 +0100
 
     product and sum
 
-commit a144b7643f6f072b2d880704fd20ad101a5f842e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Apr 21 00:38:53 2017 +0100
-
-    dot
-
 commit 680bc4a415a590e0d106982d42383e0c00a55d3c
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Apr 20 23:25:07 2017 +0100
 
-    limit1
-
-commit 851dce0cb8acad825b345c93aa7ca9cd3d481f9a
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Apr 20 19:57:13 2017 +0100
-
-    fixed ip->spout to point to the right place
+    limit1 **** UNDOCUMENTED ****
 
 commit c2c1819e71aaf8516ceee980bc3d218b9bd0d063
 Author: Steven Yi <stevenyi@gmail.com>

@@ -25,6 +25,7 @@
 #include "csoundCore.h"                                 /*      MIDIOPS.C   */
 #include "midiops.h"
 #include <math.h>
+#include <time.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 
 #define dv127   (FL(1.0)/FL(127.0))
