@@ -23,7 +23,7 @@ artifacts:
     type: zip
 
 cache: 
- - msvc\vcpkg\ -> msvc\downloadDependencies.ps1
+ - C:\projects\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
 
 #deploy:
 #  release: myproduct-v$(appveyor_build_version)
