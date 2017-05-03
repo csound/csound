@@ -64,6 +64,9 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - dot calculates the dot product of two arrays
 
+- zero delay filters zdf_1pole_mode, zdf_2pole_mode, zdf_ladder,
+  zdf_1pole and zdf_2pole.xml, diod_ladder
+
 ### New Gen and Macros
 
 
@@ -229,24 +232,6 @@ Date:   Thu Apr 20 23:25:07 2017 +0100
 
     limit1 **** UNDOCUMENTED ****
 
-commit c2c1819e71aaf8516ceee980bc3d218b9bd0d063
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Wed Apr 19 20:32:24 2017 -0400
-
-    swapped zdf_1pole/zdf_1pole_mode and zdf_2pole/zdf_2pole_mode
-
-commit 74226c9d266c0b6e604fd842084047a45c21e546
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Tue Apr 18 15:57:23 2017 -0400
-
-    added zdf_1pole_mode filter that can switch between low-pass, high-pass, and allpass
-
-commit d5b694ae5a10163e351d0ceae2d20a571d692cbc
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Mon Apr 17 19:00:25 2017 -0400
-
-    added multi-mode version of zdf_2pole_mode that supports low-pass, high-pass, band-pass, unity-gain bandpass, notch, all-pass, and peak outputs
-
 commit 5401a742ac7fa13395fae86dd79dd552815dcc97
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Sat Apr 15 14:25:16 2017 -0400
@@ -265,12 +250,6 @@ Date:   Tue Apr 11 22:31:02 2017 +0100
 
     trying to set non-blocking mode on windows
 
-commit fd14e9437b6358a5927e3ce1d0f341438c65a3db
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Thu Apr 6 18:51:46 2017 -0400
-
-    added zdf_1pole filter
-
 commit 88b1db83f81655420375109302e7aa6ead4f8839
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Apr 6 22:27:31 2017 +0100
@@ -283,12 +262,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Apr 6 06:28:48 2017 +0100
 
     trying to deal with bundles again
-
-commit 8e391a1b0f5962a19dbec3ca5ca63363b802ad1a
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Wed Apr 5 19:00:04 2017 -0400
-
-    implemented diode_ladder, fixed skip handling for zdf_ladder
 
 commit 2fff5566ada754c47ad443c3b47d03ebe389eb95
 Author: veplaini <victor.lazzarini@nuim.ie>
