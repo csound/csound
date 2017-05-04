@@ -3,6 +3,7 @@ image: Visual Studio 2017
 install:
   - cd msvc
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
+  - powershell -ExecutionPolicy ByPass -File generateProject.ps1
   - cd ..
 
 platform: x64
@@ -22,7 +23,7 @@ artifacts:
     type: zip
 
 cache: 
- - msvc\vcpkg\ -> msvc\downloadDependencies.ps1
+ - C:\projects\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
 
 #deploy:
 #  release: myproduct-v$(appveyor_build_version)
