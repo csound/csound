@@ -1,7 +1,6 @@
 ## Language bindings ##
 
 # C++ INTERFACE LIBRARY
-find_package(Boost)
 
 option(BUILD_CXX_INTERFACE "Build the C++ interface library" ON)
 option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTERFACE)" ON)
@@ -9,7 +8,7 @@ option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
 
 
-if(BUILD_CXX_INTERFACE AND Boost_FOUND)
+if(BUILD_CXX_INTERFACE)
     message(STATUS "Building C++ interface library.")
     set(libcsnd6_SRCS
         CppSound.cpp
@@ -20,7 +19,6 @@ if(BUILD_CXX_INTERFACE AND Boost_FOUND)
         filebuilding.cpp)
 
     set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
-	include_directories(${Boost_INCLUDE_DIRS})
 
     if(WIN32 AND NOT MSVC)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
@@ -49,7 +47,7 @@ if(BUILD_CXX_INTERFACE AND Boost_FOUND)
         add_compiler_flags(${libcsnd6_CFLAGS} TARGETS libcsnd6)
     endif()
 
-   
+
 
     install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
