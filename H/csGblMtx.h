@@ -53,7 +53,7 @@ void csoundUnLock() {
 extern "C" {
   #endif
 
-static INIT_ONCE g_InitOnce = INIT_ONCE_STATIC_INIT;
+static INIT_ONCE g_InitOnce = INIT_ONCE_STATIC_INIT; 
 static CRITICAL_SECTION* csound_global_lock;
 
 static BOOL CALLBACK InitHandleFunction ( PINIT_ONCE InitOnce, PVOID Parameter,
@@ -62,13 +62,13 @@ static BOOL CALLBACK InitHandleFunction ( PINIT_ONCE InitOnce, PVOID Parameter,
     CRITICAL_SECTION* cs = (CRITICAL_SECTION*) malloc(sizeof(CRITICAL_SECTION));
     InitializeCriticalSection(cs);
     *lpContext = cs;
-    return 1;
+	return 1;
 }
 
 
 
 void csoundLock() {
-    BOOL status;
+    BOOL status; 
     CRITICAL_SECTION* cs;
 
     status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, &cs);
@@ -79,7 +79,7 @@ void csoundLock() {
 
 void csoundUnLock() {
 
-    BOOL status;
+    BOOL status; 
     CRITICAL_SECTION* cs;
 
     status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, &cs);
@@ -93,8 +93,23 @@ void csoundUnLock() {
 }
 #endif
 
+#else /* END WIN32 */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif /* END WIN32 */
+void csoundLock() {
+}
+
+void csoundUnLock() {
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
 
 
 #endif      /* CSOUND_CSGBLMTX_H */
+

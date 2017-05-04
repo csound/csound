@@ -478,7 +478,7 @@ if(NOT MSVC)
   find_library(PTHREAD_LIBRARY pthread)
 
   if(NOT PTHREAD_LIBRARY)
-      message(FATAL_ERROR "Csound requires the pthread library")
+      message(STATUS "Csound requires the pthread library")
   endif()
 
   set(CMAKE_REQUIRED_INCLUDES pthread.h)
