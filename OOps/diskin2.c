@@ -311,7 +311,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
-      if (*(p->iSkipInit) != FL(0.0))
+      if (p->SkipInit != FL(0.0))
         return OK;
       fdclose(csound, &(p->fdch));
     }
@@ -352,7 +352,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
                                    "inconsistent with number of file channels"));
     }
     /* skip initialisation if requested */
-    if (p->initDone && *(p->iSkipInit) != FL(0.0))
+    if (p->initDone && p->SkipInit != FL(0.0))
       return OK;
 
 
@@ -433,7 +433,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
         *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
-        csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(pthread_t));
+        csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(void**));
         csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int));
         current = *top;
       }
@@ -454,11 +454,10 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
 #ifndef __EMSCRIPTEN__
       if ( *(start = csound->QueryGlobalVariable(csound,
                                                  "DISKIN_THREAD_START")) == 0) {
-        void *diskin_io_thread(void *p);
+        uintptr_t diskin_io_thread(void *p);
+        void **thread = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD");
+        *thread = csound->CreateThread(diskin_io_thread, *top);
         *start = 1;
-        pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,
-                                                                "DISKIN_PTHREAD"),
-                       NULL, diskin_io_thread, *top);
       }
 #endif
       csound->RegisterDeinitCallback(csound, p, diskin2_async_deinit);
@@ -511,13 +510,13 @@ int diskin2_async_deinit(CSOUND *csound,  void *p){
 
 #ifndef __EMSCRIPTEN__
     if (*top == NULL) {
-      int *start; pthread_t *pt;
+      int *start; void **pt;
 
       start = (int *) csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START");
       *start = 0;
-      pt = (pthread_t *) csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD");
+      pt = csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD");
       //csound->Message(csound, "dealloc %p %d\n", start, *start);
-      pthread_join(*pt, NULL);
+      csound->JoinThread(*pt);
       csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD");
       csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START");
       csound->DestroyGlobalVariable(csound, "DISKIN_INST");
@@ -559,7 +558,7 @@ int diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
-    if (!p->initDone && !p->iSkipInit){
+    if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -745,7 +744,7 @@ int diskin_file_read(CSOUND *csound, DISKIN2 *p)
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
-    if (!p->initDone && !p->iSkipInit) {
+    if (!p->initDone && !p->SkipInit) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -941,7 +940,7 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
     }
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
-    if (!p->initDone && !p->iSkipInit){
+    if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -960,7 +959,7 @@ int diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
 }
 
 
-void *diskin_io_thread(void *p){
+uintptr_t diskin_io_thread(void *p){
     DISKIN_INST *current = (DISKIN_INST *) p;
     int wakeup = 1000*current->csound->ksmps/current->csound->esr;
     int *start =
@@ -974,7 +973,7 @@ void *diskin_io_thread(void *p){
         current = current->nxt;
       }
     }
-    return NULL;
+    return 0;
 }
 
 
@@ -1313,14 +1312,13 @@ int diskin2_async_deinit_array(CSOUND *csound,  void *p){
 
 #ifndef __EMSCRIPTEN__
     if (*top == NULL) {
-      int *start; pthread_t *pt;
-
+      int *start; void **pt;
       start = (int *) csound->QueryGlobalVariable(csound,
                                                   "DISKIN_THREAD_START_ARRAY");
       *start = 0;
-      pt = (pthread_t *) csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD_ARRAY");
+      pt = csound->QueryGlobalVariable(csound,"DISKIN_PTHREAD_ARRAY");
       //csound->Message(csound, "dealloc %p %d\n", start, *start);
-      pthread_join(*pt, NULL);
+      csound->JoinThread(*pt);
       csound->DestroyGlobalVariable(csound, "DISKIN_PTHREAD_ARRAY");
       csound->DestroyGlobalVariable(csound, "DISKIN_THREAD_START_ARRAY");
       csound->DestroyGlobalVariable(csound, "DISKIN_INST_ARRAY");
@@ -1347,7 +1345,7 @@ int diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
-    if (!p->initDone && !p->iSkipInit) {
+    if (!p->initDone && !p->SkipInit) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -1524,7 +1522,7 @@ int diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
     return NOTOK;
 }
 
-void *diskin_io_thread_array(void *p){
+uintptr_t diskin_io_thread_array(void *p){
     DISKIN_INST *current = (DISKIN_INST *) p;
     int wakeup = 1000*current->csound->ksmps/current->csound->esr;
     int *start =
@@ -1539,7 +1537,7 @@ void *diskin_io_thread_array(void *p){
         current = current->nxt;
       }
     }
-    return NULL;
+    return 0;
 }
 
 
@@ -1555,7 +1553,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
-      if (*(p->iSkipInit) != FL(0.0))
+      if (p->SkipInit != FL(0.0))
         return OK;
       fdclose(csound, &(p->fdch));
     }
@@ -1617,7 +1615,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     /* } */
 
     /* skip initialisation if requested */
-    if (p->initDone && *(p->iSkipInit) != FL(0.0))
+    if (p->initDone && (p->SkipInit) != FL(0.0))
       return OK;
 
     /* interpolation window size: valid settings are 1 (no interpolation), */
@@ -1701,7 +1699,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                                            "DISKIN_INST_ARRAY");
         *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
         csound->CreateGlobalVariable(csound,
-                                     "DISKIN_PTHREAD_ARRAY", sizeof(pthread_t));
+                                     "DISKIN_PTHREAD_ARRAY", sizeof(void**));
         csound->CreateGlobalVariable(csound,
                                      "DISKIN_THREAD_START_ARRAY", sizeof(int));
         current = *top;
@@ -1725,11 +1723,12 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
       if (*(start =
             csound->QueryGlobalVariable(csound,
                                         "DISKIN_THREAD_START_ARRAY")) == 0) {
-        void *diskin_io_thread(void *p);
+        uintptr_t diskin_io_thread_array(void *p);
+        // TOFIX: this variable (thread) is not referenced
+        void **thread = csound->QueryGlobalVariable(csound,
+                                                       "DISKIN_PTHREAD_ARRAY");
         *start = 1;
-        pthread_create((pthread_t *)csound->QueryGlobalVariable(csound,
-                                                       "DISKIN_PTHREAD_ARRAY"),
-                       NULL, diskin_io_thread_array, *top);
+        csound->CreateThread(diskin_io_thread_array, *top);
       }
 #endif
       csound->RegisterDeinitCallback(csound, (DISKIN2 *) p,
@@ -1782,7 +1781,7 @@ int diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
-    if (!p->initDone && !p->iSkipInit){
+    if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }
@@ -1975,7 +1974,7 @@ int diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
     }
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
-    if (!p->initDone && !p->iSkipInit){
+    if (!p->initDone && !p->SkipInit){
       return csound->PerfError(csound, p->h.insdshead,
                                Str("diskin2: not initialised"));
     }

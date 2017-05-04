@@ -120,6 +120,10 @@ static int GENUL(FGDATA *ff, FUNC *ftp)
     return fterror(ff, Str("unknown GEN number"));
 }
 
+static inline unsigned int isPowerOfTwo (unsigned int x) {
+  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
+}
+
 /**
  * Create ftable using evtblk data, and store pointer to new table in *ftpp.
  * If mode is zero, a zero table number is ignored, otherwise a new table
@@ -239,9 +243,10 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       return 0;
     }
     /* if user flen given */
-    if (ff.flen < 0L) {                 /* gab for non-pow-of-two-length    */
+    if (ff.flen < 0L || !isPowerOfTwo(ff.flen&~1)) {
+      /* gab for non-pow-of-two-length    */
       ff.guardreq = 1;
-      ff.flen = -(ff.flen);             /* gab: fixed */
+      if (ff.flen<0) ff.flen = -(ff.flen);             /* gab: fixed */
       if (!(ff.flen & (ff.flen - 1L)) || ff.flen > MAXLEN)
         goto powOfTwoLen;
       lobits = 0;                       /* Hope this is not needed! */
@@ -1178,13 +1183,14 @@ static int gen18(FGDATA *ff, FUNC *ftp)
 
       range = (MYFLT) (finish - start), j = start;
       while (j <= finish) {                      /* write the table */
-        f = (MYFLT)modf((fnlen*(j++ - start)/range), &i);
-        if (i==fnp->flen)
-          fp18[j] += amp * fp[(int)i];
+        unsigned int ii;
+        f = (MYFLT)modf((fnlen*(j - start)/range), &i);
+        ii = (unsigned int)i;
+        //printf("***ii=%d f=%g\n", ii, f);
+        if (ii==fnp->flen)
+          fp18[j++] += amp * fp[ii];
         else
-          fp18[j] += amp * ((f * (*(fp + (int)(i+1)) -
-                                  *(fp + (int)i))) +
-                            *(fp + (int)i));
+          fp18[j++] += amp * ((f * (fp[ii+1] - fp[ii])) + fp[ii]);
       }
     }
     return OK;
@@ -1937,15 +1943,16 @@ static int gen32(FGDATA *ff, FUNC *ftp)
         p -= (MYFLT) ((int) p); if (p < FL(0.0)) p += FL(1.0); p *= TWOPI_F;
         d_re = cos ((double) p); d_im = sin ((double) p);
         p_re = 1.0; p_im = 0.0;         /* init. phase */
-        for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
-          /* mix to table */
-          y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
-          y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
-          /* update phase */
-          ptmp = p_re * d_re - p_im * d_im;
-          p_im = p_im * d_re + p_re * d_im;
-          p_re = ptmp;
-        }
+        if (y != NULL)
+          for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
+            /* mix to table */
+            y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
+            y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
+            /* update phase */
+            ptmp = p_re * d_re - p_im * d_im;
+            p_im = p_im * d_re + p_re * d_im;
+            p_re = ptmp;
+          }
       }
     }
     /* write dest. table */
@@ -2776,7 +2783,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->argcnt = ff->e.pcnt - 3;
     {  /* Note this does not handle extened args -- JPff */
       int size=ftp->argcnt;
-      if (size>PMAX) size=PMAX;
+      //if (size>=PMAX) size=PMAX; // Coverity 96615 says this overflows
       memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
       /* for(k=0; k < size; k++)
          csound->Message(csound, "%f \n", ftp->args[k]);*/

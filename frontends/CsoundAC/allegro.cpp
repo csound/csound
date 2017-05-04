@@ -784,8 +784,10 @@ void Alg_beats::expand()
     maxlen += (maxlen >> 2); // add 25%
     Alg_beat_ptr new_beats = new Alg_beat[maxlen];
     // now do copy
-    memcpy(new_beats, beats, len * sizeof(Alg_beat));
-    if (beats) delete[] beats;
+    if (beats) {
+      memcpy(new_beats, beats, len * sizeof(Alg_beat));
+      delete[] beats;
+    }
     beats = new_beats;
 }
 
@@ -2781,6 +2783,7 @@ bool Alg_iterator::remove_next(Alg_events_ptr &events, long &index,
 
 
 Alg_seq::Alg_seq(const char *filename, bool smf, double *offset_ptr)
+  : pending(), beat_x(0)
 {
     basic_initialization();
     ifstream inf(filename, smf ? ios::binary | ios::in : ios::in);

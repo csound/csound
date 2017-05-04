@@ -268,6 +268,9 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
             case R.id.itemAbout:
                 goToUrl("http://csound.github.io/");
                 return true;
+            case R.id.itemPrivacy:
+                goToUrl("http://csound.github.io/csound_for_android_privacy.html");
+                return true;
             case R.id.itemSettings:
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
@@ -367,6 +370,34 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                 return true;
             }
             case R.id.itemLindenmayerCanvas: {
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/Silencio.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/ChordSpace.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/tinycolor.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/canvas_wrapper.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/numeric.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/sprintf.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/canvas_wrapper.js");
+                if (outFile == null){
+                    return true;
+                }
                 outFile = copyAsset("Csound6AndroidExamples/Gogins/LindenmayerCanvas.csd");
                 if (outFile != null){
                     OnFileChosen(outFile);

@@ -15,6 +15,7 @@
     </item>
     <item android:id="@+id/itemGuide" android:visible="true" android:title="@string/guide" android:enabled="true" android:menuCategory="container" android:orderInCategory="1"></item>
     <item android:id="@+id/itemHelp" android:title="@string/help" android:visible="true" android:menuCategory="container" android:enabled="true" android:orderInCategory="2"></item>
-    <item android:id="@+id/itemAbout" android:title="@string/about" android:visible="true" android:menuCategory="container" android:enabled="true" android:orderInCategory="4"></item>
+    <item android:id="@+id/itemPrivacy" android:title="@string/privacy" android:visible="true" android:menuCategory="container" android:enabled="true" android:orderInCategory="4"></item>
+    <item android:id="@+id/itemAbout" android:title="@string/about" android:visible="true" android:menuCategory="container" android:enabled="true" android:orderInCategory="5"></item>
     <item android:id="@+id/itemSettings" android:title="@string/settings" android:visible="true" android:menuCategory="container" android:enabled="true" android:orderInCategory="3"></item>
 </menu>

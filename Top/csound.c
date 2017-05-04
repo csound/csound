@@ -46,8 +46,8 @@
 # include <sys/types.h>
 #endif
 #if defined(WIN32) && !defined(__CYGWIN__)
-# include <windows.h>
 # include <winsock2.h>
+# include <windows.h>
 #endif
 #include <math.h>
 #include "oload.h"
@@ -572,7 +572,7 @@ static const CSOUND cenviron_ = {
     0.0,            /*  beatOffs            */
     0.0,            /*  curBeat             */
     0.0,            /*  curBeat_inc         */
-    0.0,            /*  beatTime            */
+    0L,             /*  beatTime            */
     (EVTBLK*) NULL, /*  currevent           */
     (INSDS*) NULL,  /*  curip               */
     FL(0.0),        /*  cpu_power_busy      */
@@ -857,8 +857,6 @@ static const CSOUND cenviron_ = {
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */
     NULL, NULL,     /* chanif, chanof       */
-    NULL,           /* multiThreadedBarrier1 */
-    NULL,           /* multiThreadedBarrier2 */
     0,              /* multiThreadedComplete */
     NULL,           /* multiThreadedThreadInfo */
     NULL,           /* multiThreadedDag */
@@ -907,9 +905,6 @@ static const CSOUND cenviron_ = {
     /*, NULL */           /* self-reference */
 };
 
-/* from threads.c */
-void csoundLock(void);
-void csoundUnLock(void);
 void csound_aops_init_tables(CSOUND *cs);
 
 typedef struct csInstance_s {
@@ -1331,8 +1326,13 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     }
 
     while(current != NULL) {
+#ifdef HAVE_PTHREAD
       if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
+#else
+      // FIXME - need to verify this works...
+      if(threadId == current->threadId)
         return index;
+#endif
       index++;
       current = current->next;
     }
@@ -1512,13 +1512,16 @@ unsigned long kperfThread(void * cs)
 
       csound->WaitBarrier(csound->barrier1);
 
-      csound_global_mutex_lock();
+      // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so, use some other
+      // kind of locking mechanism as it isn't clear why a global mutex would be necessary
+      // versus a per-CSOUND instance mutex
+      /*csound_global_mutex_lock();*/
       if (csound->multiThreadedComplete == 1) {
-        csound_global_mutex_unlock();
+        /*csound_global_mutex_unlock();*/
         free(threadId);
         return 0UL;
       }
-      csound_global_mutex_unlock();
+      /*csound_global_mutex_unlock();*/
 
       nodePerf(csound, index, numThreads);
 
@@ -1599,7 +1602,7 @@ int kperf_nodebug(CSOUND *csound)
           if (done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
-            ip->spout = csound->spout;
+            ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
               while ((opstart = opstart->nxtp) != NULL) {
@@ -1615,7 +1618,7 @@ int kperf_nodebug(CSOUND *csound)
                 int early = ip->ksmps_no_end;
                 OPDS  *opstart;
                 ip->spin = csound->spin;
-                ip->spout = csound->spout;
+                ip->spout = csound->spraw;
                 ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
 
                 /* we have to deal with sample-accurate code
@@ -1882,7 +1885,7 @@ int kperf_debug(CSOUND *csound)
               bp_node = bp_node->next;
             }
             ip->spin = csound->spin;
-            ip->spout = csound->spout;
+            ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
                 opcode_perf_debug(csound, data, ip);
@@ -1893,7 +1896,7 @@ int kperf_debug(CSOUND *csound)
               int offset =  ip->ksmps_offset;
               int early = ip->ksmps_no_end;
               ip->spin = csound->spin;
-              ip->spout = csound->spout;
+              ip->spout = csound->spraw;
               ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
 
               /* we have to deal with sample-accurate code
@@ -3173,10 +3176,10 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
     #ifdef HAVE_PTHREAD_SPIN_LOCK
-     pthread_spin_init(&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->memlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init(&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->memlock, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
     #endif
      if (O->odebug)
         csound->Message(csound,"init spinlocks\n");
@@ -3408,7 +3411,7 @@ PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
 {
     /* in realtime mode init pass is executed in a separate thread, so
      we need to protect it */
-    csoundUnlockMutex(csound->API_lock);
+    csoundLockMutex(csound->API_lock);
    if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     csound->flist[table]->ftable[index] = value;
    if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);

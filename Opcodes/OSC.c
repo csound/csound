@@ -48,6 +48,9 @@ typedef struct {
     char  *lhost;
     int   cnt;
     int   multicast;
+    CSOUND *csound;
+    void *thread;
+    MYFLT lasta;
 } OSCSEND;
 
 
@@ -156,6 +159,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     p->last = 0;
     csound->RegisterDeinitCallback(csound, p,
                                    (int (*)(CSOUND *, void *)) oscsend_deinit);
+    p->thread = NULL;
     return OK;
 }
 
@@ -172,6 +176,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     char port[8];
     char *pp = port;
     char *hh;
+    int cmpr = 0;
 
     if (*p->port<0)
       pp = NULL;
@@ -185,7 +190,11 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
        a latency penalty
        Yes; cached -- JPff
     */
-    if (!(hh==NULL && p->lhost == NULL) || strcmp(p->lhost, hh)!=0) {
+    // 152269
+    //if (!(hh==NULL && p->lhost == NULL) || strcmp(p->lhost, hh)!=0) {
+    if(p->thread == NULL) {
+     if(hh && p->lhost) cmpr = strcmp(p->lhost, hh);
+    if (!(hh==NULL && p->lhost == NULL) || cmpr !=0) {
       if (p->addr != NULL)
         lo_address_free(p->addr);
       p->addr = lo_address_new(hh, pp);
@@ -199,11 +208,12 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
           csound->Message(csound, Str("Failed to set multicast"));
         }
 #else
-        setsockopt(p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+        setsockopt((int)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #endif
       }
       csound->Free(csound, p->lhost);
       if (hh) p->lhost = csound->Strdup(csound, hh); else p->lhost = NULL;
+      }
     }
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int i=0;
@@ -271,10 +281,10 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             if (LIKELY((ftp=csound->FTnp2Find(csound,arg[i]))!=NULL)) {
               len = ftp->flen;        /* and set it up */
               data = csound->Malloc(csound,
-                                    olen=sizeof(FUNC)-sizeof(MYFLT*)+
+                                    olen=/*sizeof(FUNC)-sizeof(MYFLT*)+*/
                                          sizeof(MYFLT)*len);
-              memcpy(data, ftp, sizeof(FUNC)-sizeof(MYFLT*));
-              memcpy(data+sizeof(FUNC)-sizeof(MYFLT*),
+              // memcpy(data, ftp, sizeof(FUNC)-sizeof(MYFLT*));
+              memcpy(data/*+sizeof(FUNC)-sizeof(MYFLT*)*/,
                      ftp->ftable, sizeof(MYFLT)*len);
             }
             else {
@@ -359,6 +369,33 @@ static int OSC_reset(CSOUND *csound, OSC_GLOBALS *p)
     csound->DestroyGlobalVariable(csound, "_OSC_globals");
     return OK;
 }
+
+uintptr_t OSCthread(void *pp) {
+  OSCSEND *p = (OSCSEND *) pp;
+  osc_send(p->csound, p);
+  return 0;
+}
+
+static int osc_send_async_set(CSOUND *csound, OSCSEND *p) {
+  p->csound = csound;
+  return osc_send_set(csound, p);
+}
+
+static int osc_send_async(CSOUND *csound, OSCSEND *p) {
+  /*RTCLOCK t;
+    csound->InitTimerStruct(&t);*/
+  if(*p->kwhen != p->lasta) {
+    if(p->thread != NULL) {
+      csound->JoinThread(p->thread);
+      p->thread = NULL;
+    }
+    p->thread = csound->CreateThread(OSCthread, p);
+    p->lasta = *p->kwhen;
+  }
+  // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.);
+  return OK;
+}
+
 
 /* get pointer to globals structure, allocating it on the first call */
 
@@ -667,6 +704,7 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
         //#ifdef SOMEFINEDAY
       case 'G':
       case 'A':
+      case 'D':
       case 'a':
       case 'S':
         p->saved_types[i] = 'b';
@@ -742,7 +780,26 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
           //printf("blob found %p type %c\n", m->args[i].blob, c);
           //printf("length = %d\n", lo_blob_datasize(m->args[i].blob));
           int *idata = lo_blob_dataptr(m->args[i].blob);
-          if (c == 'A') {       /* Decode an numeric array */
+          if(c == 'D') {
+            int j;
+            MYFLT *data = (MYFLT *) idata;
+            ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
+            int asize = 1;
+            for(j=0; j < arr->dimensions; j++) {
+              asize *= arr->sizes[j];
+            }
+            len /= sizeof(MYFLT);
+            if(asize < len) {
+              arr->data = (MYFLT *)
+                csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
+              asize = len;
+             for(j = 0; j < arr->dimensions-1; j++)
+              asize /= arr->sizes[j];
+             arr->sizes[arr->dimensions-1] = asize;
+            }
+            memcpy(arr->data,data,len*sizeof(MYFLT));
+           }
+          else if (c == 'A') {       /* Decode an numeric array */
             int j;
             MYFLT* data = (MYFLT*)(&idata[1+idata[0]]);
             int size = 1;
@@ -771,32 +828,49 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
             //printf("data = %f %f ...\n", foo->data[0], foo->data[1]);
           }
           else if (c == 'a') {
+
             MYFLT *data= (MYFLT*)idata;
             unsigned int len = (int)data[0];
             if (len>CS_KSMPS) len = CS_KSMPS;
             memcpy(p->args[i], &data[1], len*sizeof(MYFLT));
           }
           else if (c == 'G') {  /* ftable received */
-            FUNC* data = (FUNC*)idata;
+            //FUNC* data = (FUNC*)idata;
+            MYFLT *data = (MYFLT *) idata;
             int fno = MYFLT2LRND(*p->args[i]);
             FUNC *ftp;
-            if (UNLIKELY(fno <= 0 /* ||
-                         fno > csound->maxfnum */))
+            if (UNLIKELY(fno <= 0))
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("Invalid ftable no. %d"), fno);
-            ftp = csound->FTFindP(csound, p->args[i]);
+
+            ftp = csound->FTnp2Find(csound, p->args[i]);
+           if (ftp==NULL) {
+              return csound->PerfError(csound, p->h.insdshead,
+                                       Str("OSC internal error"));
+            }
+           if(len > (int)  (ftp->flen*sizeof(MYFLT)))
+              ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
+                                                    len*sizeof(MYFLT));
+            memcpy(ftp->ftable,data,len);
+
+            /*ftp = csound->FTFindP(csound, p->args[i]);
             if (ftp==NULL) { // need to allocate ***FIXME***
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("OSC internal error"));
             }
+
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
             ftp->fno = fno;
-            ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
-                                                  len-sizeof(FUNC)+sizeof(MYFLT*));
+            printf("%d \n", len);
+            if(len > ftp->flen*sizeof(MYFLT))
+              ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
+                                                len-sizeof(FUNC)+sizeof(MYFLT*));
+            */
             {
+#ifdef NEVER
               MYFLT* dst = ftp->ftable;
               MYFLT* src = (MYFLT*)(&(data->ftable));
-#ifdef JPFF
+
               //int j;
               printf("copy data: from %p to %p length %d %d\n",
                      src, dst, len-sizeof(FUNC)+sizeof(MYFLT*), data->flen);
@@ -830,11 +904,18 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "OSCsend", S(OSCSEND), 0, 3, "", "kSkSS*", (SUBR)osc_send_set, (SUBR)osc_send },
-{ "OSCinit", S(OSCINIT), 0, 1, "i", "i", (SUBR)osc_listener_init },
-{ "OSCinitM", S(OSCINITM), 0, 1, "i", "Si", (SUBR)osc_listener_initMulti },
-{ "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*", (SUBR)OSC_list_init, (SUBR)OSC_list},
-{ "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS", (SUBR)OSC_list_init, (SUBR)OSC_list},
+  { "OSCsend_lo", S(OSCSEND), 0, 3, "", "kSkSS*",
+    (SUBR)osc_send_set, (SUBR)osc_send, NULL,NULL },
+  { "OSCinit", S(OSCINIT), 0, 1, "i", "i",
+    (SUBR)osc_listener_init, NULL, NULL, NULL },
+  { "OSCinitM", S(OSCINITM), 0, 1, "i", "Si",
+    (SUBR)osc_listener_initMulti, NULL, NULL, NULL },
+  { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*",
+    (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
+  { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS",
+    (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
+  { "OSCsendA", S(OSCSEND), 0, 3, "", "kSkSS*",
+    (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL }
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)

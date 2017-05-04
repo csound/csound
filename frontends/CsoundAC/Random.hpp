@@ -28,9 +28,9 @@
 %}
 #else
 #include "Node.hpp"
-#include <boost/random.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <random>
 #include <cmath>
+#include <cstdint>
 #endif
 
 namespace csound
@@ -52,17 +52,16 @@ namespace csound
   protected:
 #if !defined(SWIG)
     void *generator_;
-    boost::variate_generator<boost::mt19937, boost::uniform_smallint<> > *uniform_smallint_generator;
-    boost::variate_generator<boost::mt19937, boost::uniform_int<> > *uniform_int_generator;
-    boost::variate_generator<boost::mt19937, boost::uniform_real<> > *uniform_real_generator;
-    boost::variate_generator<boost::mt19937, boost::bernoulli_distribution<> > *bernoulli_distribution_generator;
-    boost::variate_generator<boost::mt19937, boost::geometric_distribution<> > *geometric_distribution_generator;
-    boost::variate_generator<boost::mt19937, boost::triangle_distribution<> > *triangle_distribution_generator;
-    boost::variate_generator<boost::mt19937, boost::exponential_distribution<> > *exponential_distribution_generator;
-    boost::variate_generator<boost::mt19937, boost::normal_distribution<> > *normal_distribution_generator;
-    boost::variate_generator<boost::mt19937, boost::lognormal_distribution<> > *lognormal_distribution_generator;
+    std::uniform_int_distribution<std::int32_t> uniform_smallint_generator;
+    std::uniform_int_distribution<std::int64_t> uniform_int_generator;
+    std::uniform_real_distribution<> uniform_real_generator;
+    std::bernoulli_distribution bernoulli_distribution_generator;
+    std::geometric_distribution<> geometric_distribution_generator;
+    std::exponential_distribution<> exponential_distribution_generator;
+    std::normal_distribution<> normal_distribution_generator;
+    std::lognormal_distribution<> lognormal_distribution_generator;
   public:
-    static boost::mt19937 mersenneTwister;
+    static std::mt19937 mersenneTwister;
 #endif
   public:
     std::string distribution;
@@ -81,8 +80,8 @@ namespace csound
     double sigma;
     Random();
     virtual ~Random();
-    virtual double sample() const;
-    virtual Eigen::MatrixXd getRandomCoordinates() const;
+    virtual double sample();
+    virtual Eigen::MatrixXd getRandomCoordinates();
     virtual void createDistribution(std::string distribution);
     virtual void produceOrTransform(Score &score, size_t beginAt, size_t endAt,
                                     const Eigen::MatrixXd &compositeCoordinates);

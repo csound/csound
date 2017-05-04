@@ -494,12 +494,13 @@ sprintf_opcode_(CSOUND *csound,
           /* safely detected excess string length */
             int offs = outstring - str->data;
             str->data = csound->ReAlloc(csound, str->data, maxChars*2);
-            if(str->data == NULL){
+            if (str->data == NULL) {
               return StrOp_ErrMsg(p, Str("memory allocation failure"));
             }
             outstring = str->data + offs;
             str->size = maxChars*2;
-            maxChars += str->size;
+            // VL: Coverity says this is unused. (which is true)
+            // maxChars += str->size;
 
         }
         outstring += n;
@@ -547,7 +548,7 @@ static CS_NOINLINE int printf_opcode_(CSOUND *csound, PRINTF_OP *p)
 {
     STRINGDAT buf;
     int   err;
-    buf.size = 3072;
+    buf.size = /*strlen(p->sfmt->data) +*/ 3072;
     buf.data = csound->Calloc(csound, buf.size);
 
     err = sprintf_opcode_(csound, p, &buf, (char*) p->sfmt->data, &(p->args[0]),
@@ -626,7 +627,7 @@ int strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
       return StrOp_ErrMsg(p, Str("empty string"));
     while (isblank(*s)) s++;
     if (UNLIKELY(*s == '\0'))
-      return StrOp_ErrMsg(p, Str("empty string"));
+     return StrOp_ErrMsg(p, Str("empty string"));
     x = cs_strtod(s, &tmp);
     if (UNLIKELY(*tmp != '\0'))
       return StrOp_ErrMsg(p, Str("invalid format"));
@@ -642,10 +643,10 @@ int strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
     s = (char*) p->str->data;
     while (isblank(*s)) s++;
     if (UNLIKELY(*s == '\0'))
-      return StrOp_ErrMsg(p, Str("empty string"));
+     return StrOp_ErrMsg(p, Str("empty string"));
     x = cs_strtod(s, &tmp);
     if (UNLIKELY(*tmp != '\0'))
-      return StrOp_ErrMsg(p, Str("invalid format"));
+     return StrOp_ErrMsg(p, Str("invalid format"));
     *p->indx = (MYFLT) x;
 
     return OK;

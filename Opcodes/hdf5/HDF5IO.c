@@ -19,7 +19,11 @@
 
 #include "HDF5IO.h"
 #include <string.h>
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 
 #define HDF5ERROR(x) if ((x) == -1) {csound->Die(csound, #x" error\nExiting\n");}
 #pragma mark - Common -
@@ -329,11 +333,11 @@ void HDF5Write_writeAudioData(CSOUND *csound, HDF5Write *self,
       return;
     }
 
-    dataset->datasetSize[dataset->rank - 1] += self->ksmps;
+    dataset->datasetSize[0] += self->ksmps;
 
     HDF5Write_writeData(csound, self, dataset, &dataPointer[offset]);
 
-    dataset->offset[dataset->rank - 1] += vectorSize;
+    dataset->offset[0] += vectorSize;
 }
 
 // Write k-rate variables and arrays to the specified data set
@@ -345,11 +349,11 @@ void HDF5Write_writeAudioData(CSOUND *csound, HDF5Write *self,
 void HDF5Write_writeControlData(CSOUND *csound, HDF5Write *self,
                                 HDF5Dataset *dataset, MYFLT *dataPointer)
 {
-    dataset->datasetSize[dataset->rank - 1]++;
+    dataset->datasetSize[0]++;
 
     HDF5Write_writeData(csound, self, dataset, dataPointer);
 
-    dataset->offset[dataset->rank - 1]++;
+    dataset->offset[0]++;
 }
 
 // Send each input argument to the necessary writing function
@@ -369,13 +373,13 @@ int HDF5Write_process(CSOUND *csound, HDF5Write *self)
       case ARATE_ARRAY: {
 
         HDF5Write_writeAudioData(csound, self, currentDataset,
-                            ((ARRAYDAT *)currentDataset->argumentPointer)->data);
+                             ((ARRAYDAT *)currentDataset->argumentPointer)->data);
         break;
       }
       case KRATE_ARRAY: {
 
         HDF5Write_writeControlData(csound, self, currentDataset,
-                            ((ARRAYDAT *)currentDataset->argumentPointer)->data);
+                              ((ARRAYDAT *)currentDataset->argumentPointer)->data);
         break;
       }
       case ARATE_VAR: {
@@ -421,15 +425,15 @@ int HDF5Write_finish(CSOUND *csound, void *inReference)
 
         case ARATE_ARRAY: {
 
-          dataset->datasetSize[dataset->rank - 1] =
-            dataset->offset[dataset->rank - 1];
+          dataset->datasetSize[0] =
+            dataset->offset[0];
           HDF5ERROR(H5Dset_extent(dataset->datasetID, dataset->datasetSize));
           break;
         }
         case ARATE_VAR: {
 
-          dataset->datasetSize[dataset->rank - 1] =
-            dataset->offset[dataset->rank - 1];
+          dataset->datasetSize[0] =
+            dataset->offset[0];
           HDF5ERROR(H5Dset_extent(dataset->datasetID, dataset->datasetSize));
           break;
         }
@@ -567,25 +571,25 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
 
     for (i = 0; i < array->dimensions; ++i) {
 
-      dataset->chunkDimensions[i] = array->sizes[i];
-      dataset->maxDimensions[i] = array->sizes[i];
-      dataset->datasetSize[i] = array->sizes[i];
+      dataset->chunkDimensions[i + 1] = array->sizes[i];
+      dataset->maxDimensions[i + 1] = array->sizes[i];
+      dataset->datasetSize[i + 1] = array->sizes[i];
     }
 
     switch (dataset->writeType) {
 
     case ARATE_ARRAY: {
 
-      dataset->chunkDimensions[dataset->rank - 1] = self->ksmps;
-      dataset->maxDimensions[dataset->rank - 1] = H5S_UNLIMITED;
-      dataset->datasetSize[dataset->rank - 1] = 0;
+      dataset->chunkDimensions[0] = self->ksmps;
+      dataset->maxDimensions[0] = H5S_UNLIMITED;
+      dataset->datasetSize[0] = 0;
 
       break;
     }
     case KRATE_ARRAY: {
 
-      dataset->chunkDimensions[dataset->rank - 1] = 1;
-      dataset->maxDimensions[dataset->rank - 1] = H5S_UNLIMITED;
+      dataset->chunkDimensions[0] = 1;
+      dataset->maxDimensions[0] = H5S_UNLIMITED;
       break;
     }
     case IRATE_ARRAY: {
@@ -787,7 +791,7 @@ void HDF5Read_readData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset,
 {
     unsigned long kCount = csound->GetKcounter(csound);
 
-    if (kCount >= dataset->datasetSize[dataset->rank - 1]) {
+    if (kCount > dataset->datasetSize[0]) {
 
       return;
     }
@@ -825,8 +829,8 @@ void HDF5Read_readData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset,
 void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
                             HDF5Dataset *dataset, MYFLT *inputDataPointer)
 {
-    if (dataset->offset[dataset->rank - 1] >=
-        dataset->datasetSize[dataset->rank - 1]) {
+    if (dataset->offset[0] >=
+        dataset->datasetSize[0]) {
 
       return;
     }
@@ -836,23 +840,32 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
 
     size_t vectorSize = (int)(self->ksmps - offset - early);
 
-    if (vectorSize + dataset->offset[dataset->rank - 1] >
-        dataset->datasetSize[dataset->rank - 1]) {
+    if (vectorSize + dataset->offset[0] >
+        dataset->datasetSize[0]) {
 
-      vectorSize = (int)(dataset->datasetSize[dataset->rank - 1] -
-                         dataset->offset[dataset->rank - 1]);
+      vectorSize = (int)(dataset->datasetSize[0] -
+                         dataset->offset[0]);
     }
 
     MYFLT *dataPointer =
       vectorSize != self->ksmps ? dataset->sampleBuffer : inputDataPointer;
 
+        // FIXME if this is called frequently or on the audio thread then this won't
+        // work and will need a different solution
+#ifdef _MSC_VER
+    hsize_t* chunkDimensions = malloc (dataset->rank * sizeof (hsize_t));
+#else
     hsize_t chunkDimensions[dataset->rank];
-    memcpy(chunkDimensions, dataset->datasetSize, sizeof(hsize_t) * dataset->rank);
-    chunkDimensions[dataset->rank - 1] = vectorSize;
+#endif
+    memcpy(&chunkDimensions[1], &dataset->datasetSize[1],
+           sizeof(hsize_t) * dataset->rank);
+    chunkDimensions[0] = vectorSize;
 
+        memcpy (chunkDimensions, dataset->datasetSize, sizeof (hsize_t) * dataset->rank);
+        chunkDimensions[dataset->rank - 1] = vectorSize;
 
-    HDF5Read_readData(csound, self, dataset, dataset->offset,
-                      chunkDimensions, dataPointer);
+        HDF5Read_readData (csound, self, dataset, dataset->offset,
+                chunkDimensions, dataPointer);
 
     if (vectorSize != self->ksmps) {
 
@@ -861,8 +874,11 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
                                        vectorSize, offset, self->ksmps);
     }
 
-    dataset->offset[dataset->rank - 1] += vectorSize;
+    dataset->offset[0] += vectorSize;
 
+#ifdef MSVC
+        free (chunkDimensions);
+#endif
 }
 
 // Read data at control rate from a hdf5 dataset
@@ -876,20 +892,29 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
 void HDF5Read_readControlData(CSOUND *csound, HDF5Read *self,
                               HDF5Dataset *dataset, MYFLT *dataPointer)
 {
-    if (dataset->offset[dataset->rank - 1] >=
-        dataset->datasetSize[dataset->rank - 1]) {
+    if (dataset->offset[0] >=
+        dataset->datasetSize[0]) {
 
       return;
     }
 
+        // FIXME if this is called frequently or on the audio thread then this won't
+        // work and will need a different solution
+#ifndef _MSC_VER
     hsize_t chunkDimensions[dataset->rank];
-    memcpy(chunkDimensions, dataset->datasetSize,
+#else
+    hsize_t* chunkDimensions = malloc (dataset->rank * sizeof (hsize_t));
+#endif
+    memcpy(&chunkDimensions[1], &dataset->datasetSize[1],
            sizeof(hsize_t) * (dataset->rank - 1));
-    chunkDimensions[dataset->rank - 1] = 1;
+    chunkDimensions[0] = 1;
 
     HDF5Read_readData(csound, self, dataset, dataset->offset,
                       chunkDimensions, dataPointer);
-    dataset->offset[dataset->rank - 1]++;
+    dataset->offset[0]++;
+#ifdef MSVC
+    free (chunkDimensions);
+#endif
 
 }
 
@@ -1000,7 +1025,7 @@ void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
       if (inputType != STRING_VAR) {
 
         csound->Die(csound, Str("hdf5read: Error, input argument %zd does not "
-                               "appear to be a string, exiting"), i + 1);
+                                "appear to be a string, exiting"), i + 1);
       }
       else if (inputType == UNKNOWN) {
 
@@ -1176,10 +1201,16 @@ void HDF5Read_initialiseArrayOutput(CSOUND *csound, HDF5Read *self,
     HDF5ERROR(H5Sclose(dataspaceID));
 
     if (dataset->readType != IRATE_ARRAY && dataset->readAll == false) {
-
+        // FIXME if this is called frequently or on the audio thread then this won't
+        // work and will need a different solution
+#ifdef _MSC_VER
+      hsize_t* arrayDimensions = malloc ((dataset->rank - 1) * sizeof (hsize_t));
+#else
       hsize_t arrayDimensions[dataset->rank - 1];
-      memcpy(arrayDimensions, dataset->datasetSize,
+#endif
+      memcpy(arrayDimensions, &dataset->datasetSize[1],
              (dataset->rank - 1) * sizeof(hsize_t));
+
       HDF5Read_allocateArray(csound, dataset, (dataset->rank - 1), arrayDimensions);
 
       csound->AuxAlloc(csound, sizeof(hsize_t) * dataset->rank,
@@ -1190,23 +1221,36 @@ void HDF5Read_initialiseArrayOutput(CSOUND *csound, HDF5Read *self,
           ||
           self->isSampleAccurate == true) {
 
-        csound->AuxAlloc(csound,
-                         dataset->elementCount * self->ksmps * sizeof(MYFLT),
-                         &dataset->sampleBufferMemory);
-        dataset->sampleBuffer = dataset->sampleBufferMemory.auxp;
+          csound->AuxAlloc(csound,
+                           dataset->elementCount * self->ksmps * sizeof(MYFLT),
+                           &dataset->sampleBufferMemory);
+          dataset->sampleBuffer = dataset->sampleBufferMemory.auxp;
       }
+#ifdef _MSC_VER
+      free (arrayDimensions);
+#endif
     }
     else {
-
+#ifdef _MSC_VER
+      hsize_t* arrayDimensions = malloc ((dataset->rank) * sizeof (hsize_t));
+#else
       hsize_t arrayDimensions[dataset->rank];
+#endif
       memcpy(arrayDimensions, dataset->datasetSize,
              dataset->rank * sizeof(hsize_t));
       HDF5Read_allocateArray(csound, dataset, dataset->rank, arrayDimensions);
       ARRAYDAT *array = dataset->argumentPointer;
+#ifdef _MSC_VER
+      hsize_t* offset = malloc ((dataset->rank) * sizeof (hsize_t));
+#else
       hsize_t offset[dataset->rank];
+#endif
       memset(offset, 0, sizeof(hsize_t) * dataset->rank);
       HDF5Read_readData(csound, self, dataset, offset,
                         arrayDimensions, array->data);
+#ifdef _MSC_VER
+      free (offset);
+#endif
     }
 }
 

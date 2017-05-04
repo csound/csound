@@ -25,6 +25,7 @@
 #include "csoundCore.h"                                 /*      MIDIOPS.C   */
 #include "midiops.h"
 #include <math.h>
+#include <time.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 
 #define dv127   (FL(1.0)/FL(127.0))
@@ -696,7 +697,7 @@ int midiarp(CSOUND *csound, MIDIARP *p)
           for(i  = 0 ; i < p->maxNumNotes ; i++)
             p->sortedNotes[i] = p->notes[i];
 
-          p->noteCnt = (p->noteCnt<0 ? 0 : p->noteCnt--);
+          p->noteCnt = (p->noteCnt<0 ? 0 : p->noteCnt-1);
           sort_notes(p->sortedNotes, p->maxNumNotes);
         }
       }

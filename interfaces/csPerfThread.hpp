@@ -31,7 +31,6 @@ class CsPerfThread_PerformScore;
 %include <std_string.i>
 #else
 #include <string>
-#include <pthread.h>
 #endif
 
 /**
@@ -113,8 +112,8 @@ typedef struct {
     void *sfile;
     void *thread;
     bool running;
-    pthread_cond_t condvar;
-    pthread_mutex_t mutex;
+    void* condvar;
+    void* mutex;
 } recordData_t;
 
 class PUBLIC CsoundPerformanceThread {

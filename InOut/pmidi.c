@@ -131,7 +131,7 @@ static int stop_portmidi(CSOUND *csound, void *userData)
     (void) csound;
     (void) userData;
 #if !defined(WIN32)
-    csound_global_mutex_lock();
+    csoundLock();
 #endif
     if (portmidi_init_cnt) {
       if (--portmidi_init_cnt == 0UL) {
@@ -140,7 +140,7 @@ static int stop_portmidi(CSOUND *csound, void *userData)
       }
     }
 #if !defined(WIN32)
-    csound_global_mutex_unlock();
+    csoundUnLock();
 #endif
     return 0;
 }
@@ -150,7 +150,7 @@ static int start_portmidi(CSOUND *csound)
     const char  *errMsg = NULL;
 
 #if !defined(WIN32)
-    csound_global_mutex_lock();
+    csoundLock();
 #endif
     if (!portmidi_init_cnt) {
       if (UNLIKELY(Pm_Initialize() != pmNoError))
@@ -162,15 +162,15 @@ static int start_portmidi(CSOUND *csound)
     if (errMsg == NULL)
       portmidi_init_cnt++;
 #if !defined(WIN32)
-    csound_global_mutex_unlock();
+    csoundUnLock();
 #endif
     if (UNLIKELY(errMsg != NULL)) {
       csound->ErrorMsg(csound, Str(errMsg));
       return -1;
     }
-#if !defined(WIN32)
-    csound_global_mutex_unlock();
-#endif
+    //#if !defined(WIN32)
+    //csound_global_mutex_unlock();
+    //#endif
     return csound->RegisterResetCallback(csound, NULL, stop_portmidi);
 }
 

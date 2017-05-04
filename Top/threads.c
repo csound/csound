@@ -32,16 +32,12 @@
 #endif
 
 #include "csoundCore.h"
-#include "csGblMtx.h"
 
+#if defined(HAVE_PTHREAD)
 
 #if defined(WIN32)
 #include <windows.h>
 #include <process.h>
-
-#ifndef MSVC
-//void __stdcall GetSystemTimeAsFileTime(FILETIME*);
-#endif
 
 void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
    {
@@ -150,19 +146,11 @@ PUBLIC void csoundSleep(size_t milliseconds)
 #endif
 
 
-
-#if defined(LINUX) || defined(__MACH__) || defined(__HAIKU__) || \
-    defined(ANDROID) || defined(WIN32)
-
 #include <errno.h>
 #include <pthread.h>
 #include <time.h>
-#ifdef MSVC
-#include <time.h>
-#else
 #include <unistd.h>
 #include <sys/time.h>
-#endif
 
 #define BARRIER_SERIAL_THREAD (-1)
 
@@ -536,6 +524,263 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
 
 /* ------------------------------------------------------------------------ */
 
+
+PUBLIC void* csoundCreateCondVar()
+{
+  pthread_cond_t* condVar = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
+
+  if (condVar != NULL)
+    pthread_cond_init(condVar, NULL);
+  return (void*) condVar;
+}
+
+PUBLIC void csoundCondWait(void* condVar, void* mutex) {
+        pthread_cond_wait(condVar, mutex);
+}
+
+PUBLIC void csoundCondSignal(void* condVar) {
+        pthread_cond_signal(condVar);
+}
+
+/* ------------------------------------------------------------------------ */
+
+#elif defined(WIN32)
+#include <windows.h>
+#include <process.h>
+
+/* #undef NO_WIN9X_COMPATIBILITY */
+
+typedef struct {
+  uintptr_t   (*func)(void *);
+  void        *userdata;
+  HANDLE      threadLock;
+} threadParams;
+
+static unsigned int __stdcall threadRoutineWrapper(void *p)
+{
+  uintptr_t (*threadRoutine)(void *);
+  void      *userData;
+
+  threadRoutine = ((threadParams*) p)->func;
+  userData = ((threadParams*) p)->userdata;
+  SetEvent(((threadParams*) p)->threadLock);
+  return (unsigned int) threadRoutine(userData);
+}
+
+PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
+    void *userdata)
+{
+  threadParams  p;
+  void          *h;
+  unsigned int  threadID;
+
+  p.func = threadRoutine;
+  p.userdata = userdata;
+  p.threadLock = CreateEvent(0, 0, 0, 0);
+  if (p.threadLock == (HANDLE) 0)
+    return NULL;
+  h = (void*) _beginthreadex(NULL, (unsigned) 0, threadRoutineWrapper,
+      (void*) &p, (unsigned) 0, &threadID);
+  if (h != NULL)
+    WaitForSingleObject(p.threadLock, INFINITE);
+  CloseHandle(p.threadLock);
+  return h;
+}
+
+PUBLIC void *csoundGetCurrentThreadId(void)
+{
+  return (void*) GetCurrentThreadId();
+}
+
+PUBLIC uintptr_t csoundJoinThread(void *thread)
+{
+  DWORD   retval = (DWORD) 0;
+  WaitForSingleObject((HANDLE) thread, INFINITE);
+  GetExitCodeThread((HANDLE) thread, &retval);
+  CloseHandle((HANDLE) thread);
+  return (uintptr_t) retval;
+}
+
+PUBLIC void *csoundCreateThreadLock(void)
+{
+  HANDLE threadLock = CreateEvent(0, 0, TRUE, 0);
+  return (void*) threadLock;
+}
+
+PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
+{
+  return (int) WaitForSingleObject((HANDLE) lock, milliseconds);
+}
+
+PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
+{
+  WaitForSingleObject((HANDLE) lock, INFINITE);
+}
+
+PUBLIC void csoundNotifyThreadLock(void *lock)
+{
+  SetEvent((HANDLE) lock);
+}
+
+PUBLIC void csoundDestroyThreadLock(void *lock)
+{
+  CloseHandle((HANDLE) lock);
+}
+
+PUBLIC void csoundSleep(size_t milliseconds)
+{
+  Sleep((DWORD) milliseconds);
+}
+
+/**
+ * Creates and returns a mutex object, or NULL if not successful.
+ * Mutexes can be faster than the more general purpose monitor objects
+ * returned by csoundCreateThreadLock() on some platforms, and can also
+ * be recursive, but the result of unlocking a mutex that is owned by
+ * another thread or is not locked is undefined.
+ * If 'isRecursive' is non-zero, the mutex can be re-locked multiple
+ * times by the same thread, requiring an equal number of unlock calls;
+ * otherwise, attempting to re-lock the mutex results in undefined
+ * behavior.
+ * Note: the handles returned by csoundCreateThreadLock() and
+ * csoundCreateMutex() are not compatible.
+ */
+
+PUBLIC void *csoundCreateMutex(int isRecursive)
+{
+  CRITICAL_SECTION  *cs;
+
+  (void) isRecursive;
+  cs = (CRITICAL_SECTION*) malloc(sizeof(CRITICAL_SECTION));
+  if (cs != NULL)
+    InitializeCriticalSection((LPCRITICAL_SECTION) cs);
+  return (void*) cs;
+}
+
+/**
+ * Acquires the indicated mutex object; if it is already in use by
+ * another thread, the function waits until the mutex is released by
+ * the other thread.
+ */
+
+PUBLIC void csoundLockMutex(void *mutex_)
+{
+  EnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+}
+
+/**
+ * Acquires the indicated mutex object and returns zero, unless it is
+ * already in use by another thread, in which case a non-zero value is
+ * returned immediately, rather than waiting until the mutex becomes
+ * available.
+ * Note: this function may be unimplemented on Windows.
+ */
+
+PUBLIC int csoundLockMutexNoWait(void *mutex_)
+{
+#ifdef NO_WIN9X_COMPATIBILITY
+  BOOL    retval;
+  /* FIXME: may need to define _WIN32_WINNT before including windows.h */
+  retval = TryEnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+  return (retval == FALSE ? 1 : 0);
+#else
+  /* stub for compatibility with Windows 9x */
+  EnterCriticalSection((LPCRITICAL_SECTION) mutex_);
+  return 0;
+#endif
+}
+
+/**
+ * Releases the indicated mutex object, which should be owned by
+ * the current thread, otherwise the operation of this function is
+ * undefined. A recursive mutex needs to be unlocked as many times
+ * as it was locked previously.
+ */
+
+PUBLIC void csoundUnlockMutex(void *mutex_)
+{
+  LeaveCriticalSection((LPCRITICAL_SECTION) mutex_);
+}
+
+/**
+ * Destroys the indicated mutex object. Destroying a mutex that
+ * is currently owned by a thread results in undefined behavior.
+ */
+
+PUBLIC void csoundDestroyMutex(void *mutex_)
+{
+  if (mutex_ != NULL) {
+    DeleteCriticalSection((LPCRITICAL_SECTION) mutex_);
+    free(mutex_);
+  }
+}
+
+/**
+ * Runs an external command with the arguments specified in 'argv'.
+ * argv[0] is the name of the program to execute (if not a full path
+ * file name, it is searched in the directories defined by the PATH
+ * environment variable). The list of arguments should be terminated
+ * by a NULL pointer.
+ * If 'noWait' is zero, the function waits until the external program
+ * finishes, otherwise it returns immediately. In the first case, a
+ * non-negative return value is the exit status of the command (0 to
+ * 255), otherwise it is the PID of the newly created process.
+ * On error, a negative value is returned.
+ */
+
+PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
+{
+  long    retval;
+
+  if (argv == NULL || argv[0] == NULL)
+    return -1L;
+  retval = (long) _spawnvp((noWait ? (int) _P_NOWAIT : (int) _P_WAIT),
+      argv[0], argv);
+  if (!noWait && retval >= 0L)
+    retval &= 255L;
+  return retval;
+}
+
+PUBLIC void *csoundCreateBarrier(unsigned int max)
+{
+  SYNCHRONIZATION_BARRIER *barrier = (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
+
+  if (barrier != NULL)
+    InitializeSynchronizationBarrier(barrier, max, -1);
+  return (void*) barrier;
+}
+
+PUBLIC int csoundDestroyBarrier(void *barrier)
+{
+  DeleteSynchronizationBarrier(barrier);
+  return 0;
+}
+
+PUBLIC int csoundWaitBarrier(void *barrier)
+{
+  EnterSynchronizationBarrier(barrier, 0);
+  return 0;
+}
+
+PUBLIC void* csoundCreateCondVar()
+{
+  CONDITION_VARIABLE* condVar = (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
+
+  if (condVar != NULL)
+    InitializeConditionVariable(condVar);
+  return (void*) condVar;
+}
+
+PUBLIC void csoundCondWait(void* condVar, void* mutex) {
+        SleepConditionVariableCS(&condVar, &mutex, INFINITE);
+}
+
+PUBLIC void csoundCondSignal(void* condVar) {
+        WakeConditionVariable(&condVar);
+}
+
+/* ------------------------------------------------------------------------ */
+
 #else
 
 static CS_NOINLINE void notImplementedWarning_(const char *name)
@@ -636,35 +881,19 @@ PUBLIC int csoundWaitBarrier(void *barrier)
     return 0;
 }
 
-#endif
 
-/* internal functions for csound.c */
-
-void csoundLock(void)
+PUBLIC void* csoundCreateCondVar()
 {
-    csound_global_mutex_lock();
+  notImplementedWarning_("csoundCreateCondVar");
+  return NULL;
 }
 
-void csoundUnLock(void)
-{
-    csound_global_mutex_unlock();
+PUBLIC void csoundCondWait(void* condVar, void* mutex) {
+  notImplementedWarning_("csoundCreateCondWait");
 }
 
-#ifdef WIN32
-
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
-{
-    (void) hinstDLL;
-    (void) lpvReserved;
-    switch ((int) fdwReason) {
-    case (int) DLL_PROCESS_ATTACH:
-      csound_global_mutex_init_();
-      break;
-    case (int) DLL_PROCESS_DETACH:
-      csound_global_mutex_destroy_();
-      break;
-    }
-    return TRUE;
+PUBLIC void csoundCondSignal(void* condVar) {
+  notImplementedWarning_("csoundCreateCondSignal");
 }
 
 #endif

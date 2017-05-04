@@ -38,12 +38,10 @@ Csound pieces, but also for developing standalone applications that incorporate 
 It can be used, for example, to develop sound art installations, visual music, or kiosk-type
 applications.
 
-The `csound/examples/html/csound_editor` directory contains a NW.js application that
-can be used to edit and run Csound pieces. Such pieces can be either HTML files
-or Csound Structured Data (CSD) files. The `NW_Csound_Demo.html` piece is an example of
+The `NW_Csound_Demo.html` piece is an example of
 an HTML file that embeds not only Csound, but also a Csound orchestra and score. The
 `GameOfLife3D.csd` piece is an example of a CSD file that embeds a Web page in the
-`<html>` element of the CSD file.
+`<html>` element of the CSD file. See below for how to run these.
 
 The motivation for `csound.node` should be obvious. It works on all personal computer
 platforms, the build steps are simple, and the
@@ -114,27 +112,23 @@ export RAWWAVE_PATH=/usr/share/stk/rawwaves
 
 ## RUNNING
 
-There are several ways of running Csound pieces in NW.js with `csound.node`.
-
-1. Run the `nw` program, and drop an HTML file that embeds a Csound piece on the `nw`
-window.
-
-2. From the command line, execute `nw <directory>`, where the directory contains the
+From the command line, execute `nw <directory>`, where the directory contains the
 JSON-formatted manifest of a NW.js application based on an HTML file that embeds a
 Csound piece. See the NW.js documention for more information on the manifest and
-packaging NW.js applications. An example manifest (must be named package.json) for csound.node is:
+packaging NW.js applications. An example manifest (must be named package.json) for
+running "Scrims_node.html" with nw and csound.node is:
 
 <pre>
 {
-  "main": "Scrims_linux.html",
-  "name": "Scrims",
+  "main": "Scrims_node.html",
+  "name": "Scrims_node",
   "description": "Visual music for Csound and HTML5",
   "version": "0.1.0",
   "keywords": [ "Csound", "node-webkit" ],
   "nodejs": true,
   "node-remote": "http://<all-urls>/*",
   "window": {
-    "title": "Scrims",
+    "title": "Scrims_node",
     "icon": "link.png",
     "toolbar": false,
     "frame": false,
@@ -148,12 +142,10 @@ packaging NW.js applications. An example manifest (must be named package.json) f
 }
 </pre>
 
-3. Run the `csound_editor` application, either by executing `nw /csound/examples/html/csound_editor`,
-or by dropping the `/csound/examples/html/csound_editor/main.html` file on `nw`'s window. Then,
-click on the Open button to load either a HTML file embedding a Csound piece, or a CSD file
-embedding a Web page in the CSD file's `<html>` element. Click on the Run button to play the
-piece, and click on the Stop button to stop Csound. Csound will also stop if you close the
-window for the piece.
+To run your Csound pieces easily in nw, you can use a menu shortcut and script in
+your text editor to automate the construction and deployment
+of the manifest file, or you can use a template package.json and make a copy of your
+piece with the name given in the manifest every time you want to run the piece.
 
 [csound]: http://csound.github.io/
 [nwjs]: http://nwjs.io/

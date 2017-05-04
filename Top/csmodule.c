@@ -799,7 +799,7 @@ extern long hrtfreverb_localops_init(CSOUND *, void *);
 extern long hrtfearly_localops_init(CSOUND *, void *);
 extern long minmax_localops_init(CSOUND *, void *);
 
-extern long stackops_localops_init(CSOUND *, void *);
+//extern long stackops_localops_init(CSOUND *, void *);
 extern long vbap_localops_init(CSOUND *, void *);
 extern long vaops_localops_init(CSOUND *, void*);
 extern long ugakbari_localops_init(CSOUND *, void *);
@@ -823,6 +823,7 @@ extern long sockrecv_localops_init(CSOUND *, void *);
 extern long afilts_localops_init(CSOUND *, void *);
 extern long pinker_localops_init(CSOUND *, void *);
 extern long paulstretch_localops_init(CSOUND *, void *);
+extern long wpfilters_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -840,7 +841,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtferX_localops_init, loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
                                  phisem_localops_init, pvoc_localops_init,
-                                 stackops_localops_init, vbap_localops_init,
+                                 /*stackops_localops_init,*/ vbap_localops_init,
                                  ugakbari_localops_init, harmon_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
                                  shape_localops_init, tabsum_localops_init,
@@ -860,6 +861,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  gendy_localops_init,
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init,
+                                 wpfilters_localops_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);

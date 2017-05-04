@@ -22,7 +22,7 @@
 */
 
 #define LOWEST_ACCEPTABLE_WT FL(0.0)
-#define CHANNELS 64
+#define CHANNELS 128
 #define MIN_VOL_P_SIDE_LGTH FL(0.01)
 
 typedef struct {
@@ -195,6 +195,12 @@ typedef struct {
   MYFLT     *f[2*CHANNELS];
 } VBAP_LS_INIT;
 
+typedef struct {
+  OPDS      h;                  /* required header */
+  MYFLT     *dim, *ls_amount;
+  ARRAYDAT  *a;
+} VBAP_LS_INITA;
+
 /* A struct for a loudspeaker instance */
 typedef struct {
   CART_VEC coords;
@@ -211,19 +217,18 @@ typedef struct ls_triplet_chain {
 
 /* functions */
 
-void initialize( ls lss[CHANNELS]);
 void angle_to_cart_II( ANG_VEC *from,  CART_VEC *to);
-int lines_intersect(int i,int j,int k,int l, ls lss[CHANNELS]);
+int lines_intersect(int i,int j,int k,int l, ls lss[]);
 MYFLT vec_angle(CART_VEC v1, CART_VEC v2);
 void vec_mean(CART_VEC v1, CART_VEC v2, CART_VEC *v3);
 MYFLT angle_in_base(CART_VEC vb1,CART_VEC vb2,CART_VEC vec);
 void cross_prod(CART_VEC v1,CART_VEC v2,
                 CART_VEC *res) ;
-void sort_angles(MYFLT angles[CHANNELS], int sorted_angles[CHANNELS],
-                 int ls_amount);
-void remove_connections_in_plane(int i,int j,int k,int l,
-                                   ls  lss[CHANNELS],
-                                    int connections[CHANNELS][CHANNELS]);
+/* void sort_angles(MYFLT angles[], int sorted_angles[], */
+/*                  int ls_amount); */
+/* void remove_connections_in_planey(int i,int j,int k,int l, */
+/*                                    ls  lss[CHANNELS], */
+/*                                     int connections[CHANNELS][CHANNELS]); */
 int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4]);
 
 extern void cart_to_angle(CART_VEC cvec, ANG_VEC *avec);
@@ -236,7 +241,7 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
                    MYFLT *gains, int ls_amount,
                    CART_VEC cart_dir);
 void scale_angles(ANG_VEC *avec);
-MYFLT vol_p_side_lgth(int i, int j, int k, ls  lss[CHANNELS]);
+MYFLT vol_p_side_lgth(int i, int j, int k, ls  lss[]);
 
 void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir,
                     CART_VEC spread_base, MYFLT azi, MYFLT spread);
@@ -310,3 +315,4 @@ int     vbap1_moving_init(CSOUND *, VBAP1_MOVING *);
 int     vbap1_moving(CSOUND *, VBAP1_MOVING *);
 int     vbap1_moving_init_a(CSOUND *, VBAPA1_MOVING *);
 int     vbap1_moving_a(CSOUND *, VBAPA1_MOVING *);
+

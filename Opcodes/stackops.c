@@ -21,9 +21,27 @@
     02111-1307 USA
 */
 
-#include "csoundCore.h"
+#include "csdl.h"
 #include "interlocks.h"
 #include "pstream.h"
+
+static int STR_ARG_P(CSOUND *csound, void* arg) {
+    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    if(strcmp("S", cs_type->varTypeName) == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+static int ASIG_ARG_P(CSOUND *csound, void* arg) {
+    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    if(strcmp("a", cs_type->varTypeName) == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 typedef struct CsoundArgStack_s CsoundArgStack_t;
 
@@ -107,16 +125,16 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
     CSOUND  *csound;
 
     csound = ((OPDS*) p)->insdshead->csound;
-    if (UNLIKELY(csound->ids != NULL &&  ((OPDS*) p)->insdshead->pds == NULL)) {
-      csound->InitError(csound, "%s: %s", csound->GetOpcodeName(p), msg);
-      csound->LongJmp(csound, CSOUND_INITIALIZATION);
-    }
-    else if (UNLIKELY(csound->ids == NULL && ((OPDS*) p)->insdshead->pds != NULL)) {
-      csound->PerfError(csound, ((OPDS*)p)->insdshead,
-                        "%s: %s", csound->GetOpcodeName(p), msg);
-      csound->LongJmp(csound, CSOUND_PERFORMANCE);
-    }
-    else
+    /* if (UNLIKELY(csound->ids != NULL &&  ((OPDS*) p)->insdshead->pds == NULL)) { */
+    /*   csound->InitError(csound, "%s: %s", csound->GetOpcodeName(p), msg); */
+    /*   csound->LongJmp(csound, CSOUND_INITIALIZATION); */
+    /* } */
+    /* else if (UNLIKELY(csound->ids == NULL && ((OPDS*) p)->insdshead->pds != NULL)) { */
+    /*   csound->PerfError(csound, ((OPDS*)p)->insdshead, */
+    /*                     "%s: %s", csound->GetOpcodeName(p), msg); */
+    /*   csound->LongJmp(csound, CSOUND_PERFORMANCE); */
+    /* } */
+    /* else */
       csound->ErrorMsg(csound, "%s: %s", csound->GetOpcodeName(p), msg);
 
     return NOTOK;
@@ -206,11 +224,11 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
     argCnt_p = 0;
     for (i = 0; i < argCnt; i++) {
       int   maskVal = (1 << i);
-      if (IS_ASIG_ARG(args[i])) {
+      if (ASIG_ARG_P(csound, args[i])) {
         argMap[0] |= maskVal;
         argCnt_p++;
       }
-      else if (IS_STR_ARG(args[i])) {
+      else if (STR_ARG_P(csound, args[i])) {
         argCnt_i++;
       }
       else {
@@ -241,7 +259,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
       int   maskVal = (1 << i);
       if (argMap[0] & maskVal) {
         /* performance time types */
-        if (IS_ASIG_ARG(args[i])) {
+        if (ASIG_ARG_P(csound, args[i])) {
           argMap[i + 3] = (curOffs_p | CS_STACK_A);
           curOffs_p += ((int) sizeof(MYFLT) * CS_KSMPS);
         }
@@ -252,7 +270,7 @@ static CS_NOINLINE int csoundStack_CreateArgMap(PUSH_OPCODE *p, int *argMap,
       }
       else {
         /* init time types */
-        if (IS_STR_ARG(args[i])) {
+        if (STR_ARG_P(csound, args[i])) {
           argMap[i + 3] = (curOffs_i | CS_STACK_S);
           curOffs_i += (int) sizeof(STRINGDAT);
             /* curOffs_i = csoundStack_Align(curOffs_i);*/
@@ -361,6 +379,8 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
         if (!(p->argMap[0] & (1 << i))) {
           int   curOffs = p->argMap[i + 3];
           *(ofsp++) = curOffs;
+          /* printf("state: bp=%p, curOffs=%x, dataSpace=%p freeSpaceOffset=%x\n", */
+          /*        bp, curOffs, p->pp->dataSpace, p->pp->freeSpaceOffset); */
           switch (curOffs & (int) 0x7F000000) {
           case CS_STACK_I:
             *((MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF))) =
@@ -369,25 +389,16 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
           case CS_STACK_S:
             {
               char  *src;
-              STRINGDAT *dst;
+              STRINGDAT **ans, *dst;
               /* int   j, maxLen; */
               src = ((STRINGDAT*) p->args[i])->data;
-              dst = ((STRINGDAT*)(char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
-              if(dst->size <= (int) strlen(src)){
+              ans = ((STRINGDAT**)(char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
+              dst = (STRINGDAT*) csound->Malloc(csound, sizeof(STRINGDAT));
               dst->data = csound->Strdup(csound, src);
               dst->size = strlen(src) + 1;
-              } else {
-                strcpy(dst->data, src);
-              }
-              /* maxLen = ((STRINGDAT*) p->args[i])->size; */
-              /* for (j = 0; src[j] != (char) 0; j++) { */
-              /*   dst[j] = src[j]; */
-              /*   if (j >= maxLen) { */
-              /*     dst[j] = (char) 0; */
-              /*     csoundStack_LengthError(p); */
-              /*   } */
-              /* } */
-              /* dst[j] = (char) 0; */
+              *ans = dst;
+              /* printf("***dst = %p %p %d, \"%s\"\n", */
+              /*        ans, dst, dst->size, dst->data); */
             }
           }
         }
@@ -467,14 +478,35 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
           if (curOffs != *ofsp)
             csoundStack_TypeError(p);
           ofsp++;
+          /* printf("state: bp=%p, curOffs=%x, dataSpace=%p freeSpaceOffset=%x\n", */
+          /*        bp, curOffs, p->pp->dataSpace, p->pp->freeSpaceOffset); */
           switch (curOffs & (int) 0x7F000000) {
           case CS_STACK_I:
             *(p->args[i]) =
                 *((MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF)));
             break;
           case CS_STACK_S:
-            strcpy((char*) p->args[i],
-                   (char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
+            {
+              STRINGDAT **ans =
+                ((STRINGDAT**)(char*) bp + (int) (curOffs & (int) 0x00FFFFFF));
+              STRINGDAT *str = *ans;
+              STRINGDAT *dst = (STRINGDAT*)p->args[i];
+              /* printf("***string: %p\nbp=%p Off = %x\n", ans, bp, curOffs); */
+              /* printf("***string: %p->%s\n", str, dst->data); */
+              if (str==NULL)
+                return csound->InitError(csound, "pop of strings broken");
+              if (str->size>dst->size) {
+                csound->Free(csound,dst->data);
+                dst->data = csound->Strdup(csound, str->data);
+                dst->size = strlen(dst->data)+1;
+              }
+              else {
+                strcpy((char*) dst->data, str->data);
+              }
+              csound->Free(csound,str->data);
+              csound->Free(csound,str);
+              *ans = NULL;
+            }
             break;
           }
         }
@@ -624,7 +656,7 @@ static int pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
 
  /* ------------------------------------------------------------------------ */
 
-static OENTRY stackops_localops[] = {
+static OENTRY localops[] = {
   { "stack",  sizeof(STACK_OPCODE), SK|_QQ, 1,  "",   "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
   { "push",   sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "N",
@@ -638,5 +670,5 @@ static OENTRY stackops_localops[] = {
       (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL }
 };
 
-LINKAGE_BUILTIN(stackops_localops)
+LINKAGE
 

@@ -236,6 +236,8 @@ install_name_tool -change CsoundLib64.framework/Versions/6.0/CsoundLib64  /Libra
 install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Java/lib_jcsound6.jnilib
 
+# Python Library now needs to be re-set to /Library/Frameworks 
+install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python /Library/Frameworks/Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib

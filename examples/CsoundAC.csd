@@ -60,7 +60,7 @@ iampheadroom                    init                    ampdb(idbaheadroom)
                                 prints                  "Balance so the overall amps at the end of performance -6 dbfs.\n"
 
 #ifdef VST
-giPianoteq                      vstinit                 "C:\\utah\\opt\\pianoteq-3.5\\Pianoteq.dll", 0
+giPianoteq                      vstinit                 "C:/Program_Files/Steinberg/VSTPlugins/Pianoteq5_x64", 0
                                 vstinfo                 giPianoteq
 #endif
 
@@ -68,12 +68,8 @@ giPianoteq                      vstinit                 "C:\\utah\\opt\\pianoteq
 giFluidsynth		            fluidEngine		        0, 0
 giFluidSteinway		            fluidLoad		        "Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
                                 fluidProgramSelect	    giFluidsynth, 0, giFluidSteinway, 0, 1
-giFluidGM		                fluidLoad		        "63.3mg The Sound Site Album Bank V1.0.SF2", giFluidsynth, 1
+giFluidGM		                fluidLoad		        "sf_GMbank.sf2", giFluidsynth, 1
                                 fluidProgramSelect	    giFluidsynth, 1, giFluidGM, 0, 59
-giFluidMarimba		            fluidLoad		        "Marimba Moonman (414KB).SF2", giFluidsynth, 1
-                                fluidProgramSelect	    giFluidsynth, 2, giFluidMarimba, 0, 0
-giFluidOrgan		            fluidLoad		        "Organ Jeux V1.4 (3,674KB).SF2", giFluidsynth, 1
-                                fluidProgramSelect	    giFluidsynth, 3, giFluidOrgan, 0, 4
 #endif
 
 giFlatQ                         init                    sqrt(0.5)

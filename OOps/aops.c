@@ -429,10 +429,10 @@ int modak(CSOUND *csound, AOP *p)
 */
 #ifdef USE_SSE
 #include "emmintrin.h"
-#define AA_VEC(OPNAME,OP)	    \
+#define AA_VEC(OPNAME,OP)                   \
 int OPNAME(CSOUND *csound, AOP *p){ \
   MYFLT   *r, *a, *b; \
-  __m128d va, vb; \
+  __m128d va, vb;                    \
   uint32_t n, nsmps = CS_KSMPS, end; \
   if (LIKELY(nsmps!=1)) { \
   uint32_t offset = p->h.insdshead->ksmps_offset; \
@@ -443,19 +443,19 @@ int OPNAME(CSOUND *csound, AOP *p){ \
       nsmps -= early;   \
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));  \
   } \
-  end = nsmps/2; \
-  for (n=offset/2; n<end; n+=2) { \
-   va = _mm_load_pd(&a[n]); \
-   vb = _mm_load_pd(&b[n]); \
+  end = nsmps; \
+  for (n=offset; n<end; n+=2) { \
+   va = _mm_loadu_pd(&a[n]); \
+   vb = _mm_loadu_pd(&b[n]); \
    va = OP(va,vb);\
-   _mm_store_pd(&r[n],va); \
-  } 	\
+   _mm_storeu_pd(&r[n],va); \
+  }     \
   return OK; \
   } \
    else { \
      *p->r = *p->a + *p->b;\
       return OK; \
-   }		 \
+   }             \
 } \
 
 AA_VEC(addaa,_mm_add_pd)
@@ -1719,7 +1719,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
 
 int outs1(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp= csound->spraw, *ap1= p->asig;
+    MYFLT       *sp=  CS_SPOUT /*csound->spraw*/, *ap1= p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1756,7 +1756,7 @@ int och4(CSOUND *csound, OUTM *p) { OUTCN(4) }
 
 int outs2(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = csound->spraw, *ap2 = p->asig;
+    MYFLT       *sp =  CS_SPOUT /*csound->spraw*/, *ap2 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1783,7 +1783,7 @@ int outs2(CSOUND *csound, OUTM *p)
 
 int outq3(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = csound->spraw, *ap3 = p->asig;
+  MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap3 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1810,13 +1810,13 @@ int outq3(CSOUND *csound, OUTM *p)
 
 int outq4(CSOUND *csound, OUTM *p)
 {
-    MYFLT       *sp = csound->spraw, *ap4 = p->asig;
+  MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap4 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
     CSOUND_SPOUT_SPINLOCK
     if (!csound->spoutactive) {
-        memset(sp, '\0', 3*nsmps*sizeof(MYFLT));
+      memset(sp, '\0', 3*nsmps*sizeof(MYFLT));
       sp += 3*nsmps;
       if (offset) memset(sp, '\0', offset*sizeof(MYFLT));
       memcpy(&sp[offset], &ap4[offset], (early-offset)*sizeof(MYFLT));
@@ -1838,11 +1838,11 @@ int outq4(CSOUND *csound, OUTM *p)
 inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t nsmps =CS_KSMPS,  i, j, k=0;
-    MYFLT *spout = csound->spraw;
-    if (csound->oparms->sampleAccurate) {
-      uint32_t offset = p->h.insdshead->ksmps_offset;
-      uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
-
+    MYFLT *spout = CS_SPOUT; ///csound->spraw;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    //    if (UNLIKELY((offset|early))) {
+      early = nsmps - early;
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
         memset(spout, '\0', csound->nspout*sizeof(MYFLT));
@@ -1861,31 +1861,31 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
         }
       }
       CSOUND_SPOUT_SPINUNLOCK
-    }
-    else {
-      CSOUND_SPOUT_SPINLOCK
+        //    }
+    /* else { */
+    /*   CSOUND_SPOUT_SPINLOCK */
 
-      if (!csound->spoutactive) {
-        for (i=0; i<n; i++) {
-          memcpy(&spout[k], p->asig[i], nsmps*sizeof(MYFLT));
-          k += nsmps;
-        }
-        if (csound->nchnls>n+1) {
-          printf("nchnks, n = %d,%d\n", csound->nchnls, n);
-          memset(&spout[k], '\0', (nsmps*(csound->nchnls-n))*sizeof(MYFLT));
-        }
-        csound->spoutactive = 1;
-      }
-      else {
-        for (i=0; i<n; i++) {
-          for (j=0; j<nsmps; j++) {
-            spout[k + j] += p->asig[i][j];
-          }
-          k += nsmps;
-        }
-      }
-      CSOUND_SPOUT_SPINUNLOCK
-    }
+    /*   if (!csound->spoutactive) { */
+    /*     for (i=0; i<n; i++) { */
+    /*       memcpy(&spout[k], p->asig[i], nsmps*sizeof(MYFLT)); */
+    /*       k += nsmps; */
+    /*     } */
+    /*     if (csound->nchnls>n+1) { */
+    /*       printf("nchnks, n = %d,%d\n", csound->nchnls, n); */
+    /*       memset(&spout[k], '\0', (nsmps*(csound->nchnls-n))*sizeof(MYFLT)); */
+    /*     } */
+    /*     csound->spoutactive = 1; */
+    /*   } */
+    /*   else { */
+    /*     for (i=0; i<n; i++) { */
+    /*       for (j=0; j<nsmps; j++) { */
+    /*         spout[k + j] += p->asig[i][j]; */
+    /*       } */
+    /*       k += nsmps; */
+    /*     } */
+    /*   } */
+    /*   CSOUND_SPOUT_SPINUNLOCK */
+    /* } */
     return OK;
 }
 
@@ -1909,14 +1909,14 @@ int outarr(CSOUND *csound, OUTARRAY *p)
     uint32_t ksmps = nsmps;
     uint32_t n = p->tabin->sizes[0];
     MYFLT *data = p->tabin->data;
-    MYFLT *spout = csound->spraw;
+    MYFLT *spout = CS_SPOUT; //csound->spraw;
     if (csound->oparms->sampleAccurate) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
 
       CSOUND_SPOUT_SPINLOCK
       if (!csound->spoutactive) {
-        memset(spout, '\0', csound->nspout*sizeof(MYFLT)); 
+        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
         for (i=0; i<n; i++) {
           for (j=offset; j<early; j++) {
             spout[j+i*ksmps] = data[j+i*ksmps];
@@ -1962,7 +1962,7 @@ int outch(CSOUND *csound, OUTCH *p)
     uint32_t    count = p->INOCOUNT;
     MYFLT       **args = p->args;
     uint32_t    nchnls = csound->nchnls;
-    MYFLT *spout = csound->spraw;
+    MYFLT *spout = CS_SPOUT;
     CSOUND_SPOUT_SPINLOCK
     for (j = 0; j < count; j += 2) {
       ch = (int)(*args[j] + FL(0.5));
@@ -2032,7 +2032,7 @@ int is_infa(CSOUND *csound, ASSIGN *p)
 
 int error_fn(CSOUND *csound, ERRFN *p)
 {
-   IGN(p);
+    IGN(p);
     return csound->InitError(csound, Str("Unknown function called"));
 }
 

@@ -30,7 +30,9 @@
 
 #include "sysdep.h"
 #if !defined(EMSCRIPTEN) && !defined(CABBAGE)
+#if defined(HAVE_PTHREAD)
 #include <pthread.h>
+#endif
 #endif
 #include "cs_par_structs.h"
 #include <stdarg.h>
@@ -56,10 +58,12 @@
             (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
 #endif
 #else
+#ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0
 #define _MM_DENORMALS_ZERO_ON     0
 #define _MM_DENORMALS_ZERO_OFF    0
 #define _MM_SET_DENORMALS_ZERO_MODE(mode)
+#endif
 #endif
 #endif
 
@@ -72,6 +76,7 @@ extern "C" {
 #endif
 
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
+#include <pthread.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -936,6 +941,19 @@ typedef struct NAME__ {
 
 
   /**
+   * Nen FFT interface
+   */
+  typedef struct _FFT_SETUP{
+    int N, M;
+    void  *setup;
+    MYFLT *buffer;
+    int    lib;
+    int    d;
+    int  p2;
+  } CSOUND_FFT_SETUP;
+
+
+  /**
    * plugin module info
    */
   typedef struct {
@@ -1526,12 +1544,12 @@ typedef struct NAME__ {
     void         *init_pass_threadlock;
     void         *API_lock;
     #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t spoutlock, spinlock;
+    void *spoutlock, *spinlock;
 #else
     int           spoutlock, spinlock;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t memlock, spinlock1;
+    void *memlock, *spinlock1;
 #else
     int           memlock, spinlock1;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
@@ -1691,13 +1709,11 @@ typedef struct NAME__ {
     int            nchanif, nchanof;
     char           *chanif, *chanof;
     /* VL: internal yield callback */
-    void          *multiThreadedBarrier1;
-    void          *multiThreadedBarrier2;
     int           multiThreadedComplete;
     THREADINFO    *multiThreadedThreadInfo;
     struct dag_t        *multiThreadedDag;
-    pthread_barrier_t   *barrier1;
-    pthread_barrier_t   *barrier2;
+    void          *barrier1;
+    void          *barrier2;
     /* Statics from cs_par_dispatch; */
     struct global_var_lock_t *global_var_lock_root;
     struct global_var_lock_t **global_var_lock_cache;

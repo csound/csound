@@ -69,6 +69,7 @@
    Z       begins alternating kakaka...list (any count)    */
 
 /* outarg types include:
+ i, k, a, S as  above
  *       multiple out args of any-type
  m       multiple out aargs
  z       multiple out kargs
@@ -105,68 +106,33 @@ OENTRY opcodlst_1[] = {
     "****************************************************************"
     "****************************************************************", "",
     xinset,  NULL, NULL },*/
-  { "xout", S(XOUT_MAX),0,  1,  "",                 "*", xoutset, NULL, NULL },
-  { "setksmps", S(SETKSMPS),0,  1,  "",     "i",    setksmpsset, NULL, NULL  },
-  { "ctrlinit",S(CTLINIT),0,1,      "",     "im", ctrlinit, NULL, NULL, NULL},
-  { "massign",S(MASSIGN), 0,1,      "",     "iip",massign_p, NULL, NULL, NULL},
-  { "massign.iS",S(MASSIGNS), 0,1,      "",     "iSp",massign_S, NULL, NULL, NULL},
-  { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL },
-  { "turnon.S", S(TURNON),  0,1,      "",     "So", turnon_S, NULL, NULL, NULL},
-  { "remoteport", S(REMOTEPORT), 0,1, "",   "i",  remoteport, NULL, NULL, NULL},
+  { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL },
+  { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
+  { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
+  { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
+  { "massign.iS",S(MASSIGNS), 0,1,  "",  "iSp",massign_S, NULL, NULL, NULL},
+  { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL},
+  { "turnon.S", S(TURNON),  0,1,    "",     "So", turnon_S, NULL, NULL, NULL},
+  { "remoteport", S(REMOTEPORT), 0,1, "",  "i", remoteport, NULL, NULL, NULL},
   { "insremot",S(INSREMOT),0,1,     "",     "SSm",insremot, NULL, NULL, NULL},
   { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL},
   { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL},
   { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
-  /* //{ "=",      0,0,          0,      "",     "",   NULL, NULL, NULL, NULL}, */
-  /* { "init",   0xffff      /\* base names for later prefixes,suffixes *\/    }, */
-  /* { "betarand",0xffff,      0,0,      "",     "",   NULL, NULL, NULL, NULL }, */
-  /* { "bexprnd", 0xffff                                                     }, */
-  /* { "cauchy",  0xffff                                                     }, */
-  /* { "cauchyi", 0xffff                                                     }, */
-  /* { "chanctrl",0xffff                                                     }, */
-  /* { "cpsmidib",0xffff                                                     }, */
-  /* { "exprand", 0xffff                                                     }, */
-  /* { "exprandi",0xffff                                                     }, */
-  /* { "gauss" ,  0xffff                                                     }, */
-  /* { "gaussi" , 0xffff                                                     }, */
-  /* { "limit",   0xffff                                                     }, */
-  /* { "linrand", 0xffff                                                     }, */
-  /* { "midictrl",0xffff                                                     }, */
-  /* { "polyaft", 0xffff                                                     }, */
-  /* { "ntrpol",  0xffff                                                     }, */
-  /* { "octmidib",0xffff                                                     }, */
-  /* { "pcauchy", 0xffff                                                     }, */
-  /* { "pchbend", 0xffff                                                     }, */
-  /* { "pchmidib",0xffff                                                     }, */
-  /* { "poisson", 0xffff                                                     }, */
-  /* { "pow",     0xffff,                                                    }, */
-  /* { "tableng", 0xffff,  TR                                                }, */
-  /* { "taninv2", 0xffff                                                     }, */
-  /* { "timek",   0xffff,                                                    }, */
-  /* { "times",   0xffff,                                                    }, */
-  /* { "trirand", 0xffff                                                     }, */
-  /* { "unirand", 0xffff,                                                    }, */
-  /* { "weibull", 0xffff                                                     }, */
-  /* { "oscil",   0xfffe, TR                                                 }, */
-  /* { "oscil3",  0xfffe, TR                                                 }, */
-  /* { "oscili",  0xfffe, TR                                                 }, */
-  /* { "peak",    0xfffd                                                     }, */
-  /* { "rtclock", 0xffff                                                     }, */
-  /* { "ptablew",  0xfffe, TW                                                }, */
-  /* { "tablew",  0xfffe, TW                                                 }, */
-  /* { "tablewkt",0xfffe, TW                                                 }, */
-  { "ihold",  S(LINK),0,    1,      "",     "",     ihold                   },
-  { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff         },
+  { "ihold",  S(LINK),0,    1,      "",     "",     ihold, NULL, NULL, NULL  },
+  { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff, NULL, NULL },
   {  "=.S",   S(STRCPY_OP),0,   1,  "S",    "S",
-     (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL    },
+     (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL, NULL    },
   {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",
-     (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL                      },
-  { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign                 },
-  { "=.i",    S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
-  { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z", NULL, minit },
-  { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   gaassign },
-  { "=.l",    S(ASSIGN),0,  4,      "a",    "a",    NULL,   NULL,   laassign },
-  { "=.up",   S(UPSAMP),0,  4,      "a",    "k",    NULL,   NULL, (SUBR)upsamp },
+     (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 },
+  { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign, NULL, NULL, NULL },
+  { "=.i",    S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m",
+    minit, NULL, NULL, NULL  },
+  { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z",
+    NULL, minit, NULL, NULL },
+  { "=.a",    S(ASSIGN),0,  4,      "a",    "a",    NULL, NULL, gaassign, NULL },
+  { "=.l",    S(ASSIGN),0,  4,      "a",    "a",    NULL,
+   NULL,   laassign, NULL },
+  { "=.up",   S(UPSAMP),0,  4,      "a",    "k",  NULL, NULL, (SUBR)upsamp, NULL },
   { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   //  { "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },
   { "init.S", S(STRCPY_OP),0, 1,      "S", "S", (SUBR) strcpy_opcode_S  },

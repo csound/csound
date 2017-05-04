@@ -7,6 +7,7 @@ option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTER
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
 
+
 if(BUILD_CXX_INTERFACE)
     message(STATUS "Building C++ interface library.")
     set(libcsnd6_SRCS
@@ -36,15 +37,26 @@ if(BUILD_CXX_INTERFACE)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
+
+   if(APPLE)
+    add_compiler_flags("-std=c++11" TARGETS libcsnd6)
+   endif()
+
+
     if(${libcsnd6_CFLAGS})
         add_compiler_flags(${libcsnd6_CFLAGS} TARGETS libcsnd6)
     endif()
 
+
+
     install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
-
+else()
+ message(STATUS "NOT Building C++ interface library.")
 endif()
+
+
 
 
 # SWIG INTERFACES

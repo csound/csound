@@ -448,7 +448,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
     memset(p->delmeml.auxp, 0, (int)(sr * maxdeltime) * sizeof(MYFLT));
     memset(p->delmemr.auxp, 0, (int)(sr * maxdeltime) * sizeof(MYFLT));
 
-    if (!p->win.auxp && p->win.size < irlength * sizeof(MYFLT))
+    if (!p->win.auxp || p->win.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->win);
 
     win = (MYFLT *)p->win.auxp;
