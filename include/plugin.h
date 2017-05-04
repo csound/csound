@@ -161,7 +161,7 @@ public:
   bool is_asig(void *arg){
     return !std::strcmp(GetTypeForArg(arg)->varTypeName, "a");
   }
-    
+
   /** deinit registration for a given plugin class
    */
   template <typename T> void plugin_deinit(T *p) {
@@ -180,7 +180,7 @@ public:
     return Calloc(this, size);
   }
 
-  /** Csound memory re-allocation 
+  /** Csound memory re-allocation
    */
   void *realloc(void *p, size_t size) {
     return ReAlloc(this, p,size);
@@ -191,13 +191,13 @@ public:
   char *strdup(char *s) {
     return Strdup(this, s);
   }
-   
+
   /** Csound memory de-allocation
    */
   void free(void *p) {
     Free(this,p);
    }
-  
+
   /** FFT setup: real-to-complex and complex-to-real \n
       direction: FFT_FWD or FFT_INV \n
       returns a handle to the FFT setup.
@@ -641,7 +641,7 @@ public:
        end of the table
     */
   const_iterator cend() const { return ftable + flen; }
-  
+
   /** array subscript access operator (write)
    */
   MYFLT &operator[](int n) { return ftable[n]; }
@@ -758,7 +758,7 @@ public:
    */
   MYFLT *operator()(int n) { return ptrs[n]; }
 
-  /** @private: 
+  /** @private:
        same as operator()
    */
   MYFLT *data(int n) { return ptrs[n]; }
@@ -819,7 +819,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
     uint32_t early = insdshead->ksmps_no_end;
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
-    for(auto &arg : outargs) {  
+    for(auto &arg : outargs) {
     if (csound->is_asig(arg)) {
       if (UNLIKELY(offset))
         std::fill(arg, arg + offset, 0);
@@ -842,7 +842,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
   uint32_t in_count(){
     return (uint32_t) optext->t.inArgCount;
   }
-  
+
 };
 
 /** Fsig plugin template base class:
@@ -915,7 +915,7 @@ template <typename T, typename... Types> T *constr(T *p, Types... args) {
 
 template<typename T> void destr(T *p) {
   p->T::~T();
-}  
- 
+}
+
 }
 #endif

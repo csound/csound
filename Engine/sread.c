@@ -250,122 +250,307 @@ static int getscochar(CSOUND *csound, int expand)
 /* Read a score character, expanding macros if flag set */
     int     c;
 #ifdef never
-/*   top: */
-/*     c = corfile_getc(STA(str)->cf); */
-/*     if (c == EOF) { */
-/*       if (STA(str) == &STA(inputs)[0]) { */
-/*         corfile_putc('\n', STA(str)->cf);  /\* to ensure repeated EOF *\/ */
-/*         return EOF; */
-/*       } */
-/*       if (STA(str)->mac == 0) { */
-/*         corfile_rm(&(STA(str)->cf)); /\* No longer needed *\/ */
-/*       } */
-/*       else { */
-/*         corfile_rewind(STA(str)->cf); */
-/*       } */
-/*       STA(pop) += STA(str)->args; */
-/*       STA(str)--; STA(input_cnt)--; */
-/*       goto top; */
+/* top: */
+/*   c = corfile_getc(STA(str)->cf); */
+/*   if (c == EOF) { */
+/*     if (STA(str) == &STA(inputs)[0]) { */
+/*       corfile_putc('\n', STA(str)->cf);  /\* to ensure repeated EOF *\/ */
+/*       return EOF; */
 /*     } */
+/*     if (STA(str)->mac == 0) { */
+/*       corfile_rm(&(STA(str)->cf)); /\* No longer needed *\/ */
+/*     } */
+/*     else { */
+/*       corfile_rewind(STA(str)->cf); */
+/*     } */
+/*     STA(pop) += STA(str)->args; */
+/*     STA(str)--; STA(input_cnt)--; */
+/*     goto top; */
+/*   } */
 /* #ifdef MACDEBUG */
-/*     csound->DebugMsg(csound,"%s(%d): character = %c(%.2d)\n", */
-/*                      __FILE__, __LINE__, c, c); */
+/*   csound->DebugMsg(csound,"%s(%d): character = %c(%.2d)\n", */
+/*                    __FILE__, __LINE__, c, c); */
 /* #endif */
-/*     if (c == '\r') {    /\* can only occur in files, and not in macros *\/ */
-/*       if ((c = corfile_getc(STA(str)->cf)) != '\n') { */
-/*         if (c == EOF) */
-/*           goto top; */
-/*         corfile_ungetc(STA(str)->cf); */
+/*   if (c == '\r') {    /\* can only occur in files, and not in macros *\/ */
+/*     if ((c = corfile_getc(STA(str)->cf)) != '\n') { */
+/*       if (c == EOF) */
+/*         goto top; */
+/*       corfile_ungetc(STA(str)->cf); */
+/*     } */
+/*     c = '\n'; */
+/*   } */
+/*   if (c == '\n') { */
+/*     STA(str)->line++; STA(linepos) = -1; */
+/*   } */
+/*   else STA(linepos)++; */
+/*   if (STA(ingappop) && STA(pop)) { */
+/*     do { */
+/*       if (STA(macros) != NULL) { */
+/* #ifdef MACDEBUG */
+/*         csound->Message(csound,"popping %s\n", STA(macros)->name); */
+/* #endif */
+/*         undefine_score_macro(csound, STA(macros)->name); */
 /*       } */
-/*       c = '\n'; */
+/*       STA(pop)--; */
+/*     } while (STA(pop)); */
+/*   } */
+/*   if (c == '$' && expand) { */
+/*     char      name[100]; */
+/*     unsigned int i = 0; */
+/*     int       j; */
+/*     S_MACRO     *mm, *mm_save = NULL; */
+/*     STA(ingappop) = 0; */
+/*     while (isNameChar((c = getscochar(csound, 1)), (int) i)) { */
+/*       name[i++] = c; name[i] = '\0'; */
+/*       mm = STA(macros); */
+/*       while (mm != NULL) {    /\* Find the definition *\/ */
+/*         if (!(strcmp(name, mm->name))) { */
+/*           mm_save = mm;       /\* found a match, save it *\/ */
+/*           break; */
+/*         } */
+/*         mm = mm->next; */
+/*       } */
 /*     } */
-/*     if (c == '\n') { */
-/*       STA(str)->line++; STA(linepos) = -1; */
+/*     mm = mm_save; */
+/*     if (UNLIKELY(mm == NULL)) { */
+/*       if (!i) */
+/*         scorerr(csound, Str("Macro expansion symbol ($) without macro name")); */
+/*       else */
+/*         scorerr(csound, Str("Undefined macro: '%s'"), name); */
 /*     } */
-/*     else STA(linepos)++; */
-/*     if (STA(ingappop) && STA(pop)) { */
+/*     if (strlen(mm->name) != i) { */
+/*       int cnt = (int) i - (int) strlen(mm->name); */
+/*       csound->Warning(csound, Str("$%s matches macro name $%s"), */
+/*                               name, mm->name); */
 /*       do { */
-/*         if (STA(macros) != NULL) { */
-/* #ifdef MACDEBUG */
-/*           csound->Message(csound,"popping %s\n", STA(macros)->name); */
-/* #endif */
-/*           undefine_score_macro(csound, STA(macros)->name); */
-/*         } */
-/*         STA(pop)--; */
-/*       } while (STA(pop)); */
-/*     } */
-/*     if (c == '$' && expand) { */
-/*       char      name[100]; */
-/*       unsigned int i = 0; */
-/*       int       j; */
-/*       S_MACRO     *mm, *mm_save = NULL; */
-/*       STA(ingappop) = 0; */
-/*       while (isNameChar((c = getscochar(csound, 1)), (int) i)) { */
-/*         name[i++] = c; name[i] = '\0'; */
-/*         mm = STA(macros); */
-/*         while (mm != NULL) {    /\* Find the definition *\/ */
-/*           if (!(strcmp(name, mm->name))) { */
-/*             mm_save = mm;       /\* found a match, save it *\/ */
-/*             break; */
-/*           } */
-/*           mm = mm->next; */
-/*         } */
-/*       } */
-/*       mm = mm_save; */
-/*       if (UNLIKELY(mm == NULL)) { */
-/*         if (!i) */
-/*           scorerr(csound, Str("Macro expansion symbol ($) without macro name")); */
-/*         else */
-/*           scorerr(csound, Str("Undefined macro: '%s'"), name); */
-/*       } */
-/*       if (strlen(mm->name) != i) { */
-/*         int cnt = (int) i - (int) strlen(mm->name); */
-/*         csound->Warning(csound, Str("$%s matches macro name $%s"), */
-/*                                 name, mm->name); */
-/*         do { */
-/*           ungetscochar(csound, c); */
-/*           c = name[--i]; */
-/*         } while (cnt--); */
-/*       } */
-/*       else if (c != '.') */
 /*         ungetscochar(csound, c); */
+/*         c = name[--i]; */
+/*       } while (cnt--); */
+/*     } */
+/*     else if (c != '.') */
+/*       ungetscochar(csound, c); */
 /* #ifdef MACDEBUG */
-/*       csound->Message(csound, "Found macro %s required %d arguments\n", */
-/*                               mm->name, mm->acnt); */
+/*     csound->Message(csound, "Found macro %s required %d arguments\n", */
+/*                             mm->name, mm->acnt); */
 /* #endif */
-/*                                 /\* Should bind arguments here *\/ */
-/*                                 /\* How do I recognise entities?? *\/ */
-/*       if (mm->acnt) { */
-/*         if (UNLIKELY((c=getscochar(csound, 1)) != '(')) */
-/*           scorerr(csound, Str("Syntax error in macro call")); */
-/*         for (j = 0; j < mm->acnt; j++) { */
-/*           char term = (j == mm->acnt - 1 ? ')' : '\''); */
-/*           char trm1 = (j == mm->acnt - 1 ? ')' : '#'); */
-/*           S_MACRO* nn = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
-/*           nn->name = csound->Malloc(csound, strlen(mm->arg[j])+1); */
-/*           strcpy(nn->name, mm->arg[j]); */
+/*                               /\* Should bind arguments here *\/ */
+/*                               /\* How do I recognise entities?? *\/ */
+/*     if (mm->acnt) { */
+/*       if (UNLIKELY((c=getscochar(csound, 1)) != '(')) */
+/*         scorerr(csound, Str("Syntax error in macro call")); */
+/*       for (j = 0; j < mm->acnt; j++) { */
+/*         char term = (j == mm->acnt - 1 ? ')' : '\''); */
+/*         char trm1 = (j == mm->acnt - 1 ? ')' : '#'); */
+/*         S_MACRO* nn = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
+/*         nn->name = csound->Malloc(csound, strlen(mm->arg[j])+1); */
+/*         strcpy(nn->name, mm->arg[j]); */
 /* #ifdef MACDEBUG */
-/*           csound->Message(csound,"defining argument %s ", nn->name); */
+/*         csound->Message(csound,"defining argument %s ", nn->name); */
 /* #endif */
-/*           nn->body = corfile_create_w(); */
+/*         nn->body = corfile_create_w(); */
 /* #ifdef MACDEBUG */
-/*           csound->DebugMsg(csound,"%s(%d): creating\n", */
-/*                            __FILE__, __LINE__, nn->body); */
+/*         csound->DebugMsg(csound,"%s(%d): creating\n", */
+/*                          __FILE__, __LINE__, nn->body); */
 /* #endif */
-/*           while ((c = getscochar(csound, 1))!= term && c != trm1) { */
-/*             if (UNLIKELY(c==EOF)) */
-/*               scorerr(csound, Str("Syntax error in macro call")); */
-/*             corfile_putc(c, nn->body); */
-/*           } */
-/*           corfile_rewind(nn->body); */
-/* #ifdef MACDEBUG */
-/*           csound->Message(csound,"as...#%s#\n", corfile_body(nn->body)); */
-/* #endif */
-/*           nn->acnt = 0; /\* No arguments for arguments *\/ */
-/*           nn->next = STA(macros); */
-/*           STA(macros) = nn; */
+/*         while ((c = getscochar(csound, 1))!= term && c != trm1) { */
+/*           if (UNLIKELY(c==EOF)) */
+/*             scorerr(csound, Str("Syntax error in macro call")); */
+/*           corfile_putc(c, nn->body); */
 /*         } */
+/*         corfile_rewind(nn->body); */
+/* #ifdef MACDEBUG */
+/*         csound->Message(csound,"as...#%s#\n", corfile_body(nn->body)); */
+/* #endif */
+/*         nn->acnt = 0; /\* No arguments for arguments *\/ */
+/*         nn->next = STA(macros); */
+/*         STA(macros) = nn; */
 /*       } */
+/*     } */
+/*     STA(input_cnt)++; */
+/*     if (UNLIKELY(STA(input_cnt)>=STA(input_size))) { */
+/*       int old = STA(str)-STA(inputs); */
+/*       STA(input_size) += 20; */
+/*       STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size) */
+/*                                                 * sizeof(IN_STACK)); */
+/*       STA(str) = &STA(inputs)[old];     /\* In case it moves *\/ */
+/*     } */
+/*     STA(str)++; */
+/*     STA(str)->cf = mm->body; STA(str)->args = mm->acnt; */
+/*     STA(str)->is_marked_repeat = 0; */
+/*     STA(str)->mac = mm; STA(str)->line = 1; */
+/* #ifdef MACDEBUG */
+/*     csound->Message(csound, */
+/*                     "Macro %s definded as >>%s<<\n", */
+/*                     mm->name, corfile_body(mm->body)); */
+/* #endif */
+/*     STA(ingappop) = 1; */
+/*     goto top; */
+/*   } */
+/* /\* End of macro expander *\/ */
+/*   if (expand && c == '[') {           /\* Evaluable section *\/ */
+/*     char  stack[30]; */
+/*     MYFLT vv[30]; */
+/*     char  *op = stack - 1; */
+/*     MYFLT *pv = vv - 1; */
+/*     char  buffer[100]; */
+/*     int   i; */
+/*     int   type = 0;  /\* 1 -> expecting binary operator,')', or ']'; else 0 *\/ */
+/*     *++op = '['; */
+/*     c = getscochar(csound, 1); */
+/*     do { */
+/*       switch (c) { */
+/*       case '0': case '1': case '2': case '3': case '4': */
+/*       case '5': case '6': case '7': case '8': case '9': */
+/*       case '.': */
+/*         if (UNLIKELY(type)) { */
+/*           scorerr(csound, Str("illegal placement of number in [] " */
+/*                               "expression")); */
+/*         } */
+/*  parseNumber: */
+/*         i = 0; */
+/*         do { */
+/*           buffer[i++] = c; */
+/*           c = getscochar(csound, 1); */
+/*         } while (isdigit(c) || c == '.'); */
+/*         if (c == 'e' || c == 'E') { */
+/*           buffer[i++] = c; */
+/*           c = getscochar(csound, 1); */
+/*           if (c == '+' || c == '-') { */
+/*             buffer[i++] = c; */
+/*             c = getscochar(csound, 1); */
+/*           } */
+/*           while (isdigit(c)) { */
+/*             buffer[i++] = c; */
+/*             c = getscochar(csound, 1); */
+/*           } */
+/*         } */
+/*         buffer[i] = '\0'; */
+/*         *++pv = stof(csound, buffer); */
+/*         type = 1; */
+/*         break; */
+/*       case '~': */
+/*         if (UNLIKELY(type)) { */
+/*           scorerr(csound, Str("illegal placement of operator ~ in [] " */
+/*                               "expression")); */
+/*         } */
+/*         *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) */
+/*                 / FL(2147483645); */
+/*         type = 1; */
+/*         c = getscochar(csound, 1); */
+/*         break; */
+/*       case '@': */
+/*         if (UNLIKELY(type)) { */
+/*           scorerr(csound, Str("illegal placement of operator @ or @@ in" */
+/*                               " [] expression")); */
+/*         } */
+/*         { */
+/*           int n = 0; */
+/*           int k = 0;          /\* 0 or 1 depending on guard bit *\/ */
+/*           c = getscochar(csound, 1); */
+/*           if (c=='@') { k = 1; c = getscochar(csound, 1);} */
+/*           while (isdigit(c)) { */
+/*             n = 10*n + c - '0'; */
+/*             c = getscochar(csound, 1); */
+/*           } */
+/*           i = 1; */
+/*           while (i<=n-k && i< 0x4000000) i <<= 1; */
+/*           *++pv = (MYFLT)(i+k); */
+/*           type = 1; */
+/*         } */
+/*         break; */
+/*       case '+': case '-': */
+/*         if (!type) */
+/*           goto parseNumber; */
+/*         if (*op != '[' && *op != '(') { */
+/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
+/*           op--; pv--; */
+/*           *pv = v; */
+/*         } */
+/*         type = 0; */
+/*         *++op = c; c = getscochar(csound, 1); break; */
+/*       case '*': */
+/*       case '/': */
+/*       case '%': */
+/*         if (UNLIKELY(!type)) { */
+/*           scorerr(csound, Str("illegal placement of operator %c in [] " */
+/*                               "expression"), c); */
+/*         } */
+/*         if (*op == '*' || *op == '/' || *op == '%') { */
+/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
+/*           op--; pv--; */
+/*           *pv = v; */
+/*         } */
+/*         type = 0; */
+/*         *++op = c; c = getscochar(csound, 1); break; */
+/*       case '&': */
+/*       case '|': */
+/*       case '#': */
+/*         if (UNLIKELY(!type)) { */
+/*           scorerr(csound, Str("illegal placement of operator %c in [] " */
+/*                               "expression"), c); */
+/*         } */
+/*         if (*op == '|' || *op == '&' || *op == '#') { */
+/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
+/*           op--; pv--; */
+/*           *pv = v; */
+/*         } */
+/*         type = 0; */
+/*         *++op = c; c = getscochar(csound, 1); break; */
+/*       case '(': */
+/*         if (UNLIKELY(type)) { */
+/*           scorerr(csound, Str("illegal placement of '(' in [] expression")); */
+/*         } */
+/*         type = 0; */
+/*         *++op = c; c = getscochar(csound, 1); break; */
+/*       case ')': */
+/*         if (UNLIKELY(!type)) { */
+/*           scorerr(csound, Str("missing operand before ')' in [] expression")); */
+/*         } */
+/*         while (*op != '(') { */
+/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
+/*           op--; pv--; */
+/*           *pv = v; */
+/*         } */
+/*         type = 1; */
+/*         op--; c = getscochar(csound, 1); break; */
+/*       case '^': */
+/*         type = 0; */
+/*         *++op = c; c = getscochar(csound, 1); break; */
+/*       case ']': */
+/*         if (UNLIKELY(!type)) { */
+/*           scorerr(csound, Str("missing operand before closing bracket in []")); */
+/*         } */
+/*         while (*op != '[') { */
+/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
+/*           op--; pv--; */
+/*           *pv = v; */
+/*         } */
+/*         c = '$'; */
+/*         break; */
+/*       case '$': */
+/*         break; */
+/*       case ' ':               /\* Ignore spaces *\/ */
+/*         c = getscochar(csound, 1); */
+/*         continue; */
+/*       default: */
+/*         scorerr(csound, Str("illegal character %c(%.2x) in [] expression"), */
+/*                 c, c); */
+/*       } */
+/*     } while (c != '$'); */
+/*     /\* Make string macro or value *\/ */
+/*     CS_SPRINTF(buffer, "%f", *pv); */
+/*     { */
+/*       S_MACRO *nn = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
+/*       nn->name = csound->Malloc(csound, 2); */
+/*       strcpy(nn->name, "["); */
+/*       nn->body = corfile_create_r(buffer); */
+/* #ifdef MACDEBUG */
+/*       csound->DebugMsg(csound,"%s(%d): creating arg %p\n", */
+/*                        __FILE__, __LINE__, nn->body); */
+/* #endif */
+/*       nn->acnt = 0;   /\* No arguments for arguments *\/ */
+/*       nn->next = STA(macros); */
+/*       STA(macros) = nn; */
 /*       STA(input_cnt)++; */
 /*       if (UNLIKELY(STA(input_cnt)>=STA(input_size))) { */
 /*         int old = STA(str)-STA(inputs); */
@@ -375,202 +560,17 @@ static int getscochar(CSOUND *csound, int expand)
 /*         STA(str) = &STA(inputs)[old];     /\* In case it moves *\/ */
 /*       } */
 /*       STA(str)++; */
-/*       STA(str)->cf = mm->body; STA(str)->args = mm->acnt; */
+/*       STA(str)->cf = nn->body; STA(str)->args = 0; */
 /*       STA(str)->is_marked_repeat = 0; */
-/*       STA(str)->mac = mm; STA(str)->line = 1; */
+/*       STA(str)->mac = NULL; STA(str)->line = 1; */
 /* #ifdef MACDEBUG */
-/*       csound->Message(csound, */
-/*                       "Macro %s definded as >>%s<<\n", */
-/*                       mm->name, corfile_body(mm->body)); */
+/*       csound->Message(csound,"[] defined as >>%s<<\n", corfile_body(nn->body)); */
 /* #endif */
 /*       STA(ingappop) = 1; */
 /*       goto top; */
 /*     } */
-/* /\* End of macro expander *\/ */
-/*     if (expand && c == '[') {           /\* Evaluable section *\/ */
-/*       char  stack[30]; */
-/*       MYFLT vv[30]; */
-/*       char  *op = stack - 1; */
-/*       MYFLT *pv = vv - 1; */
-/*       char  buffer[100]; */
-/*       int   i; */
-/*       int   type = 0;  /\* 1 -> expecting binary operator,')', or ']'; else 0 *\/ */
-/*       *++op = '['; */
-/*       c = getscochar(csound, 1); */
-/*       do { */
-/*         switch (c) { */
-/*         case '0': case '1': case '2': case '3': case '4': */
-/*         case '5': case '6': case '7': case '8': case '9': */
-/*         case '.': */
-/*           if (UNLIKELY(type)) { */
-/*             scorerr(csound, Str("illegal placement of number in [] " */
-/*                                 "expression")); */
-/*           } */
-/*  parseNumber: */
-/*           i = 0; */
-/*           do { */
-/*             buffer[i++] = c; */
-/*             c = getscochar(csound, 1); */
-/*           } while (isdigit(c) || c == '.'); */
-/*           if (c == 'e' || c == 'E') { */
-/*             buffer[i++] = c; */
-/*             c = getscochar(csound, 1); */
-/*             if (c == '+' || c == '-') { */
-/*               buffer[i++] = c; */
-/*               c = getscochar(csound, 1); */
-/*             } */
-/*             while (isdigit(c)) { */
-/*               buffer[i++] = c; */
-/*               c = getscochar(csound, 1); */
-/*             } */
-/*           } */
-/*           buffer[i] = '\0'; */
-/*           *++pv = stof(csound, buffer); */
-/*           type = 1; */
-/*           break; */
-/*         case '~': */
-/*           if (UNLIKELY(type)) { */
-/*             scorerr(csound, Str("illegal placement of operator ~ in [] " */
-/*                                 "expression")); */
-/*           } */
-/*           *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) */
-/*                   / FL(2147483645); */
-/*           type = 1; */
-/*           c = getscochar(csound, 1); */
-/*           break; */
-/*         case '@': */
-/*           if (UNLIKELY(type)) { */
-/*             scorerr(csound, Str("illegal placement of operator @ or @@ in" */
-/*                                 " [] expression")); */
-/*           } */
-/*           { */
-/*             int n = 0; */
-/*             int k = 0;          /\* 0 or 1 depending on guard bit *\/ */
-/*             c = getscochar(csound, 1); */
-/*             if (c=='@') { k = 1; c = getscochar(csound, 1);} */
-/*             while (isdigit(c)) { */
-/*               n = 10*n + c - '0'; */
-/*               c = getscochar(csound, 1); */
-/*             } */
-/*             i = 1; */
-/*             while (i<=n-k && i< 0x4000000) i <<= 1; */
-/*             *++pv = (MYFLT)(i+k); */
-/*             type = 1; */
-/*           } */
-/*           break; */
-/*         case '+': case '-': */
-/*           if (!type) */
-/*             goto parseNumber; */
-/*           if (*op != '[' && *op != '(') { */
-/*             MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*             op--; pv--; */
-/*             *pv = v; */
-/*           } */
-/*           type = 0; */
-/*           *++op = c; c = getscochar(csound, 1); break; */
-/*         case '*': */
-/*         case '/': */
-/*         case '%': */
-/*           if (UNLIKELY(!type)) { */
-/*             scorerr(csound, Str("illegal placement of operator %c in [] " */
-/*                                 "expression"), c); */
-/*           } */
-/*           if (*op == '*' || *op == '/' || *op == '%') { */
-/*             MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*             op--; pv--; */
-/*             *pv = v; */
-/*           } */
-/*           type = 0; */
-/*           *++op = c; c = getscochar(csound, 1); break; */
-/*         case '&': */
-/*         case '|': */
-/*         case '#': */
-/*           if (UNLIKELY(!type)) { */
-/*             scorerr(csound, Str("illegal placement of operator %c in [] " */
-/*                                 "expression"), c); */
-/*           } */
-/*           if (*op == '|' || *op == '&' || *op == '#') { */
-/*             MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*             op--; pv--; */
-/*             *pv = v; */
-/*           } */
-/*           type = 0; */
-/*           *++op = c; c = getscochar(csound, 1); break; */
-/*         case '(': */
-/*           if (UNLIKELY(type)) { */
-/*             scorerr(csound, Str("illegal placement of '(' in [] expression")); */
-/*           } */
-/*           type = 0; */
-/*           *++op = c; c = getscochar(csound, 1); break; */
-/*         case ')': */
-/*           if (UNLIKELY(!type)) { */
-/*             scorerr(csound, Str("missing operand before ')' in [] expression")); */
-/*           } */
-/*           while (*op != '(') { */
-/*             MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*             op--; pv--; */
-/*             *pv = v; */
-/*           } */
-/*           type = 1; */
-/*           op--; c = getscochar(csound, 1); break; */
-/*         case '^': */
-/*           type = 0; */
-/*           *++op = c; c = getscochar(csound, 1); break; */
-/*         case ']': */
-/*           if (UNLIKELY(!type)) { */
-/*             scorerr(csound, Str("missing operand before closing bracket in []")); */
-/*           } */
-/*           while (*op != '[') { */
-/*             MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*             op--; pv--; */
-/*             *pv = v; */
-/*           } */
-/*           c = '$'; */
-/*           break; */
-/*         case '$': */
-/*           break; */
-/*         case ' ':               /\* Ignore spaces *\/ */
-/*           c = getscochar(csound, 1); */
-/*           continue; */
-/*         default: */
-/*           scorerr(csound, Str("illegal character %c(%.2x) in [] expression"), */
-/*                   c, c); */
-/*         } */
-/*       } while (c != '$'); */
-/*       /\* Make string macro or value *\/ */
-/*       CS_SPRINTF(buffer, "%f", *pv); */
-/*       { */
-/*         S_MACRO *nn = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
-/*         nn->name = csound->Malloc(csound, 2); */
-/*         strcpy(nn->name, "["); */
-/*         nn->body = corfile_create_r(buffer); */
-/* #ifdef MACDEBUG */
-/*         csound->DebugMsg(csound,"%s(%d): creating arg %p\n", */
-/*                          __FILE__, __LINE__, nn->body); */
-/* #endif */
-/*         nn->acnt = 0;   /\* No arguments for arguments *\/ */
-/*         nn->next = STA(macros); */
-/*         STA(macros) = nn; */
-/*         STA(input_cnt)++; */
-/*         if (UNLIKELY(STA(input_cnt)>=STA(input_size))) { */
-/*           int old = STA(str)-STA(inputs); */
-/*           STA(input_size) += 20; */
-/*           STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size) */
-/*                                                     * sizeof(IN_STACK)); */
-/*           STA(str) = &STA(inputs)[old];     /\* In case it moves *\/ */
-/*         } */
-/*         STA(str)++; */
-/*         STA(str)->cf = nn->body; STA(str)->args = 0; */
-/*         STA(str)->is_marked_repeat = 0; */
-/*         STA(str)->mac = NULL; STA(str)->line = 1; */
-/* #ifdef MACDEBUG */
-/*         csound->Message(csound,"[] defined as >>%s<<\n", corfile_body(nn->body)); */
-/* #endif */
-/*         STA(ingappop) = 1; */
-/*         goto top; */
-/*       } */
-/*    } */
-/*     return c; */
+/*  } */
+/*   return c; */
 #else
 /* Read a score character, expanding macros expanded */
     c = corfile_getc(csound->expanded_sco);
@@ -595,121 +595,121 @@ static int getscochar(CSOUND *csound, int expand)
 /* #ifdef never */
 /* static int nested_repeat(CSOUND *csound)                /\* gab A9*\/ */
 /* { */
-/*     STA(repeat_cnt_n)[STA(repeat_index)]--; */
-/*     if (STA(repeat_cnt_n)[STA(repeat_index)] == 0) {      /\* Expired *\/ */
-/*       if (STA(repeat_index) > 1) { */
-/*         char c[41]; */
-/*         int j; */
-/*         memset(c, '\0', 41); */
-/*         for (j = 0; j<STA(repeat_index); j++) { */
-/*           c[j]=' '; */
-/*           c[j+1]='\0'; */
-/*         } */
-/*         if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*           csound->Message(csound,Str("%s Nested LOOP terminated, level:%d\n"), */
-/*                           c,STA(repeat_index)); */
+/*   STA(repeat_cnt_n)[STA(repeat_index)]--; */
+/*   if (STA(repeat_cnt_n)[STA(repeat_index)] == 0) {      /\* Expired *\/ */
+/*     if (STA(repeat_index) > 1) { */
+/*       char c[41]; */
+/*       int j; */
+/*       memset(c, '\0', 41); */
+/*       for (j = 0; j<STA(repeat_index); j++) { */
+/*         c[j]=' '; */
+/*         c[j+1]='\0'; */
+/*       } */
+/*       if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
+/*         csound->Message(csound,Str("%s Nested LOOP terminated, level:%d\n"), */
+/*                         c,STA(repeat_index)); */
 
-/*       } */
-/*       else { */
-/*         if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*           csound->Message(csound,Str("External LOOP terminated, level:%d\n"), */
-/*                           STA(repeat_index)); */
-/*       } */
-/*       undefine_score_macro(csound, STA(repeat_name_n)[STA(repeat_index)]); */
-/*       STA(repeat_index)--; */
 /*     } */
 /*     else { */
-/*       int i; */
-/*       corfile_set(STA(str)->cf,STA(repeat_point_n)[STA(repeat_index)]); */
-/*       sscanf(corfile_current(STA(repeat_mm_n)[STA(repeat_index)]->body), */
-/*              "%d", &i); */
+/*       if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
+/*         csound->Message(csound,Str("External LOOP terminated, level:%d\n"), */
+/*                         STA(repeat_index)); */
+/*     } */
+/*     undefine_score_macro(csound, STA(repeat_name_n)[STA(repeat_index)]); */
+/*     STA(repeat_index)--; */
+/*   } */
+/*   else { */
+/*     int i; */
+/*     corfile_set(STA(str)->cf,STA(repeat_point_n)[STA(repeat_index)]); */
+/*     sscanf(corfile_current(STA(repeat_mm_n)[STA(repeat_index)]->body), */
+/*            "%d", &i); */
 /* #ifdef MACDEBUG */
-/*       csound->DebugMsg(csound,"%s(%d) reset point to %d\n", __FILE__, __LINE__, */
-/*              STA(repeat_point_n)[STA(repeat_index)], i); */
+/*     csound->DebugMsg(csound,"%s(%d) reset point to %d\n", __FILE__, __LINE__, */
+/*            STA(repeat_point_n)[STA(repeat_index)], i); */
+/*     csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__, */
+/*            STA(repeat_mm_n)[STA(repeat_index)]->body->body, */
+/*            STA(repeat_mm_n)[STA(repeat_index)]->body->p, */
+/*            STA(repeat_mm_n)[STA(repeat_index)]->body->len); */
+/* #endif */
+/*     i = i + STA(repeat_inc_n); */
+/*     { */
+/*       char buffer[128]; */
+/*       memset(buffer, '\0', 128); */
+/*       snprintf(buffer, 128, "%d", i); */
+/* #ifdef MACDEBUG */
+/*       csound->DebugMsg(csound,"%s(%d) new i = %s\n", */
+/*                        __FILE__, __LINE__,  buffer); */
+/* #endif */
+/*       corfile_reset(STA(repeat_mm_n)[STA(repeat_index)]->body); */
+/*       corfile_puts(buffer, STA(repeat_mm_n)[STA(repeat_index)]->body); */
+/*       corfile_rewind(STA(repeat_mm_n)[STA(repeat_index)]->body); */
+/* #ifdef MACDEBUG */
 /*       csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->body, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->p, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->len); */
 /* #endif */
-/*       i = i + STA(repeat_inc_n); */
-/*       { */
-/*         char buffer[128]; */
-/*         memset(buffer, '\0', 128); */
-/*         snprintf(buffer, 128, "%d", i); */
-/* #ifdef MACDEBUG */
-/*         csound->DebugMsg(csound,"%s(%d) new i = %s\n", */
-/*                          __FILE__, __LINE__,  buffer); */
-/* #endif */
-/*         corfile_reset(STA(repeat_mm_n)[STA(repeat_index)]->body); */
-/*         corfile_puts(buffer, STA(repeat_mm_n)[STA(repeat_index)]->body); */
-/*         corfile_rewind(STA(repeat_mm_n)[STA(repeat_index)]->body); */
-/* #ifdef MACDEBUG */
-/*         csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__, */
-/*                STA(repeat_mm_n)[STA(repeat_index)]->body->body, */
-/*                STA(repeat_mm_n)[STA(repeat_index)]->body->p, */
-/*                STA(repeat_mm_n)[STA(repeat_index)]->body->len); */
-/* #endif */
-/*       } */
-/*       if (STA(repeat_index) > 1) { */
-/*         char c[41]; */
-/*         int j; */
-/*          memset(c, '\0', 41); */
-/*         for (j = 0; j<STA(repeat_index); j++) { */
-/*           c[j]=' '; */
-/*           c[j+1]='\0'; */
-/*         } */
-/*         if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*           csound->Message(csound,Str("%s  Nested LOOP section (%d) Level:%d\n"), */
-/*                           c, i, STA(repeat_index)); */
-/*       } */
-/*       else { */
-/*         if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*           csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"), */
-/*                           i, STA(repeat_index)); */
-/*       } */
-/*       return 1; */
 /*     } */
-/*     return 0; */
+/*     if (STA(repeat_index) > 1) { */
+/*       char c[41]; */
+/*       int j; */
+/*        memset(c, '\0', 41); */
+/*       for (j = 0; j<STA(repeat_index); j++) { */
+/*         c[j]=' '; */
+/*         c[j+1]='\0'; */
+/*       } */
+/*       if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
+/*         csound->Message(csound,Str("%s  Nested LOOP section (%d) Level:%d\n"), */
+/*                         c, i, STA(repeat_index)); */
+/*     } */
+/*     else { */
+/*       if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
+/*         csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"), */
+/*                         i, STA(repeat_index)); */
+/*     } */
+/*     return 1; */
+/*   } */
+/*   return 0; */
 /* } */
 /* #endif */
 /* static int do_repeat(CSOUND *csound) */
 /* {                               /\* At end of section repeat if necessary *\/ */
-/*     STA(repeat_cnt)--; */
-/*     if (STA(repeat_cnt) == 0) {  /\* Expired *\/ */
-/*       /\* Delete macro (assuming there is any) *\/ */
-/*       if (csound->oparms->msglevel & TIMEMSG) */
-/*         csound->Message(csound, Str("Loop terminated\n")); */
-/*       if (STA(repeat_name)[0] != '\0') */
-/*         undefine_score_macro(csound, STA(repeat_name)); */
-/*       STA(repeat_name)[0] = '\0'; */
-/*     } */
-/*     else { */
-/*       int i, n; */
-/*       corfile_set(csound->expanded_sco, STA(repeat_point)); */
-/*       if (STA(repeat_name)[0] != '\0') { */
-/*         sscanf(corfile_current(STA(repeat_mm)->body), "%d%n", &i, &n); */
-/*         i = i + STA(repeat_inc); */
-/*         corfile_seek(STA(repeat_mm)->body, n, SEEK_CUR); */
-/*         { */
-/*           char buffer[128]; */
-/*           snprintf(buffer, 128, "%d", i); */
-/*           corfile_reset(STA(repeat_mm)->body); */
-/*           corfile_puts(buffer, STA(repeat_mm)->body); */
-/*           corfile_rewind(STA(repeat_mm)->body); */
-/*         } */
-/*         if (csound->oparms->msglevel & TIMEMSG) */
-/*           csound->Message(csound, Str("Repeat section (%d)\n"), i); */
+/*   STA(repeat_cnt)--; */
+/*   if (STA(repeat_cnt) == 0) {  /\* Expired *\/ */
+/*     /\* Delete macro (assuming there is any) *\/ */
+/*     if (csound->oparms->msglevel & TIMEMSG) */
+/*       csound->Message(csound, Str("Loop terminated\n")); */
+/*     if (STA(repeat_name)[0] != '\0') */
+/*       undefine_score_macro(csound, STA(repeat_name)); */
+/*     STA(repeat_name)[0] = '\0'; */
+/*   } */
+/*   else { */
+/*     int i, n; */
+/*     corfile_set(csound->expanded_sco, STA(repeat_point)); */
+/*     if (STA(repeat_name)[0] != '\0') { */
+/*       sscanf(corfile_current(STA(repeat_mm)->body), "%d%n", &i, &n); */
+/*       i = i + STA(repeat_inc); */
+/*       corfile_seek(STA(repeat_mm)->body, n, SEEK_CUR); */
+/*       { */
+/*         char buffer[128]; */
+/*         snprintf(buffer, 128, "%d", i); */
+/*         corfile_reset(STA(repeat_mm)->body); */
+/*         corfile_puts(buffer, STA(repeat_mm)->body); */
+/*         corfile_rewind(STA(repeat_mm)->body); */
 /*       } */
-/*       else */
-/*         csound->Message(csound, Str("Repeat section\n")); */
-/*       /\* replace 'e' or 'r' with 's' and end section *\/ */
-/*       STA(bp)->text[0] = 's'; */
-/*       STA(clock_base) = FL(0.0); */
-/*       STA(warp_factor) = FL(1.0); */
-/*       STA(prvp2) = -FL(1.0); */
-/*       return 1; */
+/*       if (csound->oparms->msglevel & TIMEMSG) */
+/*         csound->Message(csound, Str("Repeat section (%d)\n"), i); */
 /*     } */
-/*     return 0; */
+/*     else */
+/*       csound->Message(csound, Str("Repeat section\n")); */
+/*     /\* replace 'e' or 'r' with 's' and end section *\/ */
+/*     STA(bp)->text[0] = 's'; */
+/*     STA(clock_base) = FL(0.0); */
+/*     STA(warp_factor) = FL(1.0); */
+/*     STA(prvp2) = -FL(1.0); */
+/*     return 1; */
+/*   } */
+/*   return 0; */
 /* } */
 
 static void init_smacros(CSOUND *csound, NAMES *nn)
@@ -768,15 +768,15 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
 /* #if never */
 /* void sread_init(CSOUND *csound) */
 /* { */
-/*     /\* sread_alloc_globals(csound); *\/ */
-/*     STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK)); */
-/*     STA(input_size) = 20; */
-/*     STA(input_cnt) = 0; */
-/*     STA(str) = STA(inputs); */
-/*     STA(str)->cf = csound->scstr; */
-/*     STA(str)->is_marked_repeat = 0; */
-/*     STA(str)->line = 1; STA(str)->mac = NULL; */
-/*     init_smacros(csound, csound->smacros); */
+/*   /\* sread_alloc_globals(csound); *\/ */
+/*   STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK)); */
+/*   STA(input_size) = 20; */
+/*   STA(input_cnt) = 0; */
+/*   STA(str) = STA(inputs); */
+/*   STA(str)->cf = csound->scstr; */
+/*   STA(str)->is_marked_repeat = 0; */
+/*   STA(str)->line = 1; STA(str)->mac = NULL; */
+/*   init_smacros(csound, csound->smacros); */
 /* } */
 /* #endif */
 
@@ -960,171 +960,171 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         }
         return rtncod;
 /* #ifdef never */
-/*       case '}': */
-/*         { */
-/*           int temp; */
-/*           char *old_nxp = STA(nxp)-2; */
-/*           if ((temp=STA(repeat_cnt_n)[STA(repeat_index)])!=0) */
-/*             nested_repeat(csound); */
-/*           STA(op) = getop(csound); */
-/*           STA(nxp) = old_nxp; */
-/*           *STA(nxp)++ = STA(op); */
-/*           STA(nxp)++; */
-/*           goto again; */
+/*     case '}': */
+/*       { */
+/*         int temp; */
+/*         char *old_nxp = STA(nxp)-2; */
+/*         if ((temp=STA(repeat_cnt_n)[STA(repeat_index)])!=0) */
+/*           nested_repeat(csound); */
+/*         STA(op) = getop(csound); */
+/*         STA(nxp) = old_nxp; */
+/*         *STA(nxp)++ = STA(op); */
+/*         STA(nxp)++; */
+/*         goto again; */
+/*       } */
+/*     case '{': */
+/*       { */
+/*         char *old_nxp = STA(nxp)-2; */
+/*         int c, i; */
+/*         STA(repeat_index)++; */
+/*         if (UNLIKELY(STA(repeat_index) >= RPTDEPTH)) */
+/*           scorerr(csound, Str("Loops are nested too deeply")); */
+/*         STA(repeat_mm_n)[STA(repeat_index)] = */
+/*           (S_MACRO*)csound->Malloc(csound, sizeof(S_MACRO)); */
+/*         STA(repeat_cnt_n)[STA(repeat_index)] = 0; */
+/*         do { */
+/*           c = getscochar(csound, 1); */
+/*         } while(isblank(c)); */
+/*         while (isdigit(c)) { */
+/*           STA(repeat_cnt_n)[STA(repeat_index)] = */
+/*             10 * STA(repeat_cnt_n)[STA(repeat_index)] + c - '0'; */
+/*           c = getscochar(csound, 1); */
 /*         } */
-/*       case '{': */
-/*         { */
-/*           char *old_nxp = STA(nxp)-2; */
-/*           int c, i; */
-/*           STA(repeat_index)++; */
-/*           if (UNLIKELY(STA(repeat_index) >= RPTDEPTH)) */
-/*             scorerr(csound, Str("Loops are nested too deeply")); */
-/*           STA(repeat_mm_n)[STA(repeat_index)] = */
-/*             (S_MACRO*)csound->Malloc(csound, sizeof(S_MACRO)); */
-/*           STA(repeat_cnt_n)[STA(repeat_index)] = 0; */
-/*           do { */
-/*             c = getscochar(csound, 1); */
-/*           } while(isblank(c)); */
-/*           while (isdigit(c)) { */
-/*             STA(repeat_cnt_n)[STA(repeat_index)] = */
-/*               10 * STA(repeat_cnt_n)[STA(repeat_index)] + c - '0'; */
-/*             c = getscochar(csound, 1); */
+/*         if (UNLIKELY(STA(repeat_cnt_n)[STA(repeat_index)] <= 0 */
+/*                      || !isspace(c))) // != ' ' && c != '\t' && c != '\n'))) */
+/*           scorerr(csound, Str("{: invalid repeat count")); */
+/*         if (STA(repeat_index) > 1) { */
+/*           char st[41]; */
+/*           int j; */
+/*           for (j = 0; j < STA(repeat_index); j++) { */
+/*             st[j] = ' '; */
+/*             st[j+1] = '\0'; */
 /*           } */
-/*           if (UNLIKELY(STA(repeat_cnt_n)[STA(repeat_index)] <= 0 */
-/*                        || !isspace(c))) // != ' ' && c != '\t' && c != '\n'))) */
-/*             scorerr(csound, Str("{: invalid repeat count")); */
-/*           if (STA(repeat_index) > 1) { */
-/*             char st[41]; */
-/*             int j; */
-/*             for (j = 0; j < STA(repeat_index); j++) { */
-/*               st[j] = ' '; */
-/*               st[j+1] = '\0'; */
-/*             } */
-/*             if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*               csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"), */
-/*                               st, STA(repeat_cnt_n)[STA(repeat_index)], */
-/*                               STA(repeat_index)); */
-/*           } */
-/*           else { */
-/*             if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*               csound->Message(csound, Str("External LOOP=%d Level:%d\n"), */
-/*                               STA(repeat_cnt_n)[STA(repeat_index)], */
-/*                               STA(repeat_index)); */
-/*           } */
-/*           while (isblank(c)) { */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*           for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) { */
-/*             STA(repeat_name_n)[STA(repeat_index)][i] = c; */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*           STA(repeat_name_n)[STA(repeat_index)][i] = '\0'; */
-/*           ungetscochar(csound, c); */
-/*           /\* Define macro for counter *\/ */
-/*           STA(repeat_mm_n)[STA(repeat_index)]->name = */
-/*             csound->Malloc(csound, strlen(STA(repeat_name_n)[STA(repeat_index)])+1); */
-/*           strcpy(STA(repeat_mm_n)[STA(repeat_index)]->name, */
-/*                  STA(repeat_name_n)[STA(repeat_index)]); */
-/*           STA(repeat_mm_n)[STA(repeat_index)]->acnt = 0; */
-/*           STA(repeat_mm_n)[STA(repeat_index)]->body = corfile_create_r("0"); */
+/*           if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
+/*             csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"), */
+/*                             st, STA(repeat_cnt_n)[STA(repeat_index)], */
+/*                             STA(repeat_index)); */
+/*         } */
+/*         else { */
+/*           if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
+/*             csound->Message(csound, Str("External LOOP=%d Level:%d\n"), */
+/*                             STA(repeat_cnt_n)[STA(repeat_index)], */
+/*                             STA(repeat_index)); */
+/*         } */
+/*         while (isblank(c)) { */
+/*           c = getscochar(csound, 1); */
+/*         } */
+/*         for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) { */
+/*           STA(repeat_name_n)[STA(repeat_index)][i] = c; */
+/*           c = getscochar(csound, 1); */
+/*         } */
+/*         STA(repeat_name_n)[STA(repeat_index)][i] = '\0'; */
+/*         ungetscochar(csound, c); */
+/*         /\* Define macro for counter *\/ */
+/*         STA(repeat_mm_n)[STA(repeat_index)]->name = */
+/*           csound->Malloc(csound, strlen(STA(repeat_name_n)[STA(repeat_index)])+1); */
+/*         strcpy(STA(repeat_mm_n)[STA(repeat_index)]->name, */
+/*                STA(repeat_name_n)[STA(repeat_index)]); */
+/*         STA(repeat_mm_n)[STA(repeat_index)]->acnt = 0; */
+/*         STA(repeat_mm_n)[STA(repeat_index)]->body = corfile_create_r("0"); */
 /* #ifdef MACDEBUG */
-/*           csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n", __FILE__, __LINE__, */
-/*                  STA(repeat_name_n)[STA(repeat_index)], */
-/*                  STA(repeat_mm_n)[STA(repeat_index)]->body); */
+/*         csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n", __FILE__, __LINE__, */
+/*                STA(repeat_name_n)[STA(repeat_index)], */
+/*                STA(repeat_mm_n)[STA(repeat_index)]->body); */
 /* #endif */
-/*           STA(repeat_mm_n)[STA(repeat_index)]->next = STA(macros); */
-/*           STA(macros) = STA(repeat_mm_n)[STA(repeat_index)]; */
-/*           flushlin(csound);     /\* Ignore rest of line *\/ */
-/*           STA(repeat_point_n)[STA(repeat_index)] = */
-/*             corfile_tell(STA(str)->cf); */
+/*         STA(repeat_mm_n)[STA(repeat_index)]->next = STA(macros); */
+/*         STA(macros) = STA(repeat_mm_n)[STA(repeat_index)]; */
+/*         flushlin(csound);     /\* Ignore rest of line *\/ */
+/*         STA(repeat_point_n)[STA(repeat_index)] = */
+/*           corfile_tell(STA(str)->cf); */
 
-/*           /\* { does not start a new section - akozar *\/ */
-/*           /\* STA(clock_base) = FL(0.0); */
-/*           STA(warp_factor) = FL(1.0); */
-/*           STA(prvp2) = -FL(1.0); *\/ */
-/*           STA(op) = getop(csound); */
-/*           STA(nxp) = old_nxp; */
-/*           *STA(nxp)++ = STA(op); */
-/*           STA(nxp)++; */
-/*           goto again; */
-/*         } */
-/* #endif */
-/*       case 'r':                 /\* For now treat as s *\/ */
-/*                                 /\* First deal with previous section *\/ */
-/*         /\* If we are in a repeat of a marked section ('n' statement), */
-/*            we must pop those inputs before doing an 'r' repeat. *\/ */
-/*         if (STA(str)->is_marked_repeat) { */
-/*           while (STA(str)->is_marked_repeat && STA(input_cnt) > 0) { */
-/*             /\* close all marked repeat inputs *\/ */
-/*             //corfile_rm(&(STA(str)->cf)); */
-/*             STA(str)--; STA(input_cnt)--; */
-/*           } */
-/*           /\* last time thru an 'r', cleanup up 'r' before finishing 'n' *\/ */
-/*           if (STA(repeat_cnt) == 1)  do_repeat(csound); */
-/*           if (STA(repeat_cnt) == 0) { */
-/*             /\* replace with 's' and end section if no previous 'r' */
-/*                or just finished an 'r' loop *\/ */
-/*             STA(bp)->text[0] = 's'; */
-/*             STA(clock_base) = FL(0.0); */
-/*             STA(warp_factor) = FL(1.0); */
-/*             STA(prvp2) = -FL(1.0); */
-/*             return rtncod; */
-/*           } */
-/*         } */
-/*         if (STA(repeat_cnt) != 0) { */
-/*           if (do_repeat(csound)) */
-/*             return rtncod; */
-/*         } */
-/*         /\* Then remember this state *\/ */
-/*         *(STA(nxp)-2) = 's'; *STA(nxp)++ = LF; */
-/*         if (STA(nxp) >= STA(memend))              /\* if this memblk exhausted *\/ */
-/*           expand_nxp(csound); */
-/*         { */
-/*           int   c, i; */
-/*           STA(repeat_cnt) = 0; */
-/*           do { */
-/*             c = getscochar(csound, 1); */
-/*           } while (isblank(c)); */
-/*           while (isdigit(c)) { */
-/*             STA(repeat_cnt) = 10 * STA(repeat_cnt) + c - '0'; */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*           if (UNLIKELY(STA(repeat_cnt) <= 0 || !isspace(c))) */
-/*             //(c != ' ' && c != '\t' && c != '\n') */
-/*             scorerr(csound, Str("r: invalid repeat count")); */
-/*           if (csound->oparms->msglevel & TIMEMSG) */
-/*             csound->Message(csound, Str("Repeats=%d\n"), STA(repeat_cnt)); */
-/*           while (isblank(c)) { */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*           for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) { */
-/*             STA(repeat_name)[i] = c; */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*           STA(repeat_name)[i] = '\0'; */
-/*           ungetscochar(csound, c); */
-/*           flushlin(csound);     /\* Ignore rest of line *\/ */
-/*           if (i) { */
-/*             /\* Only if there is a name: define macro for counter *\/ */
-/*             STA(repeat_mm) = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
-/*             STA(repeat_mm)->name = csound->Malloc(csound, */
-/*                                                   strlen(STA(repeat_name)) + 1); */
-/*             strcpy(STA(repeat_mm)->name, STA(repeat_name)); */
-/*             STA(repeat_mm)->acnt = 0; */
-/*             STA(repeat_mm)->body = corfile_create_r("1"); */
-/* #ifdef MACDEBUG */
-/*             csound->DebugMsg(csound,"%s(%d): 1 %p\n", */
-/*                              __FILE__, __LINE__,STA(repeat_mm)->body); */
-/* #endif */
-/*             STA(repeat_mm)->next = STA(macros); */
-/*             STA(macros) = STA(repeat_mm); */
-/*           } */
-/*           STA(repeat_point) = corfile_tell(csound->expanded_sco); */
-/*         } */
-/*         STA(clock_base) = FL(0.0); */
+/*         /\* { does not start a new section - akozar *\/ */
+/*         /\* STA(clock_base) = FL(0.0); */
 /*         STA(warp_factor) = FL(1.0); */
-/*         STA(prvp2) = -FL(1.0); */
-/*         return rtncod; */
+/*         STA(prvp2) = -FL(1.0); *\/ */
+/*         STA(op) = getop(csound); */
+/*         STA(nxp) = old_nxp; */
+/*         *STA(nxp)++ = STA(op); */
+/*         STA(nxp)++; */
+/*         goto again; */
+/*       } */
+/* #endif */
+/*     case 'r':                 /\* For now treat as s *\/ */
+/*                               /\* First deal with previous section *\/ */
+/*       /\* If we are in a repeat of a marked section ('n' statement), */
+/*          we must pop those inputs before doing an 'r' repeat. *\/ */
+/*       if (STA(str)->is_marked_repeat) { */
+/*         while (STA(str)->is_marked_repeat && STA(input_cnt) > 0) { */
+/*           /\* close all marked repeat inputs *\/ */
+/*           //corfile_rm(&(STA(str)->cf)); */
+/*           STA(str)--; STA(input_cnt)--; */
+/*         } */
+/*         /\* last time thru an 'r', cleanup up 'r' before finishing 'n' *\/ */
+/*         if (STA(repeat_cnt) == 1)  do_repeat(csound); */
+/*         if (STA(repeat_cnt) == 0) { */
+/*           /\* replace with 's' and end section if no previous 'r' */
+/*              or just finished an 'r' loop *\/ */
+/*           STA(bp)->text[0] = 's'; */
+/*           STA(clock_base) = FL(0.0); */
+/*           STA(warp_factor) = FL(1.0); */
+/*           STA(prvp2) = -FL(1.0); */
+/*           return rtncod; */
+/*         } */
+/*       } */
+/*       if (STA(repeat_cnt) != 0) { */
+/*         if (do_repeat(csound)) */
+/*           return rtncod; */
+/*       } */
+/*       /\* Then remember this state *\/ */
+/*       *(STA(nxp)-2) = 's'; *STA(nxp)++ = LF; */
+/*       if (STA(nxp) >= STA(memend))              /\* if this memblk exhausted *\/ */
+/*         expand_nxp(csound); */
+/*       { */
+/*         int   c, i; */
+/*         STA(repeat_cnt) = 0; */
+/*         do { */
+/*           c = getscochar(csound, 1); */
+/*         } while (isblank(c)); */
+/*         while (isdigit(c)) { */
+/*           STA(repeat_cnt) = 10 * STA(repeat_cnt) + c - '0'; */
+/*           c = getscochar(csound, 1); */
+/*         } */
+/*         if (UNLIKELY(STA(repeat_cnt) <= 0 || !isspace(c))) */
+/*           //(c != ' ' && c != '\t' && c != '\n') */
+/*           scorerr(csound, Str("r: invalid repeat count")); */
+/*         if (csound->oparms->msglevel & TIMEMSG) */
+/*           csound->Message(csound, Str("Repeats=%d\n"), STA(repeat_cnt)); */
+/*         while (isblank(c)) { */
+/*           c = getscochar(csound, 1); */
+/*         } */
+/*         for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) { */
+/*           STA(repeat_name)[i] = c; */
+/*           c = getscochar(csound, 1); */
+/*         } */
+/*         STA(repeat_name)[i] = '\0'; */
+/*         ungetscochar(csound, c); */
+/*         flushlin(csound);     /\* Ignore rest of line *\/ */
+/*         if (i) { */
+/*           /\* Only if there is a name: define macro for counter *\/ */
+/*           STA(repeat_mm) = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
+/*           STA(repeat_mm)->name = csound->Malloc(csound, */
+/*                                                 strlen(STA(repeat_name)) + 1); */
+/*           strcpy(STA(repeat_mm)->name, STA(repeat_name)); */
+/*           STA(repeat_mm)->acnt = 0; */
+/*           STA(repeat_mm)->body = corfile_create_r("1"); */
+/* #ifdef MACDEBUG */
+/*           csound->DebugMsg(csound,"%s(%d): 1 %p\n", */
+/*                            __FILE__, __LINE__,STA(repeat_mm)->body); */
+/* #endif */
+/*           STA(repeat_mm)->next = STA(macros); */
+/*           STA(macros) = STA(repeat_mm); */
+/*         } */
+/*         STA(repeat_point) = corfile_tell(csound->expanded_sco); */
+/*       } */
+/*       STA(clock_base) = FL(0.0); */
+/*       STA(warp_factor) = FL(1.0); */
+/*       STA(prvp2) = -FL(1.0); */
+/*       return rtncod; */
       case 'm': /* Remember this place */
         {
           char  *old_nxp = STA(nxp)-2;
@@ -1605,243 +1605,243 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
       goto srch;
     }
 #ifdef never
-/*     if (c == '\\') {            /\* Deal with continuations and specials *\/ */
+/*   if (c == '\\') {            /\* Deal with continuations and specials *\/ */
 /*  again: */
-/*       c = getscochar(csound, 1); */
-/*       if (c==';') { */
-/*         while ((c=getscochar(csound, 1)!='\n') && c!=EOF); */
-/*         goto srch; */
-/*       } */
-/*       if (isblank(c)) goto again; */
-/*       if (c!='\n' && c!=EOF) { */
-/*         csound->Message(csound, Str("Improper \\")); */
-/*         while (c!='\n' && c!=EOF) c = getscochar(csound, 1); */
-/*       } */
+/*     c = getscochar(csound, 1); */
+/*     if (c==';') { */
+/*       while ((c=getscochar(csound, 1)!='\n') && c!=EOF); */
 /*       goto srch; */
 /*     } */
-/*     if (c == '/') {             /\* Could be a C-comment *\/ */
-/*       c = getscochar(csound, 1); */
-/*       if (c != '*') { */
-/*         ungetscochar(csound, c); */
-/*         c = '/'; */
-/*       } */
-/*       else {                    /\* It is a comment *\/ */
-/*       top:  /\* ignore comment chars *\/ */
+/*     if (isblank(c)) goto again; */
+/*     if (c!='\n' && c!=EOF) { */
+/*       csound->Message(csound, Str("Improper \\")); */
+/*       while (c!='\n' && c!=EOF) c = getscochar(csound, 1); */
+/*     } */
+/*     goto srch; */
+/*   } */
+/*   if (c == '/') {             /\* Could be a C-comment *\/ */
+/*     c = getscochar(csound, 1); */
+/*     if (c != '*') { */
+/*       ungetscochar(csound, c); */
+/*       c = '/'; */
+/*     } */
+/*     else {                    /\* It is a comment *\/ */
+/*     top:  /\* ignore comment chars *\/ */
+/*       c = getscochar(csound, 0); */
+/*       switch (c) { */
+/*       case '*': */
+/*       stars:  /\* is next char / ? *\/ */
 /*         c = getscochar(csound, 0); */
 /*         switch (c) { */
-/*         case '*': */
-/*         stars:  /\* is next char / ? *\/ */
-/*           c = getscochar(csound, 0); */
-/*           switch (c) { */
-/*           case '*': goto stars; */
-/*           default: goto top; */
-/*           case '/': goto srch; */
-/*           case EOF: return EOF; */
-/*           } */
-/*         case EOF: return EOF; */
+/*         case '*': goto stars; */
 /*         default: goto top; */
+/*         case '/': goto srch; */
+/*         case EOF: return EOF; */
 /*         } */
+/*       case EOF: return EOF; */
+/*       default: goto top; */
 /*       } */
 /*     } */
-/*     if (c == '#') { */
-/*       int mlen = 40; */
-/*       char  *mname  = csound->Malloc(csound, 40); /\* Start Macro definition *\/ */
-/*       int   i = 0; */
+/*   } */
+/*   if (c == '#') { */
+/*     int mlen = 40; */
+/*     char  *mname  = csound->Malloc(csound, 40); /\* Start Macro definition *\/ */
+/*     int   i = 0; */
+/*     while (isspace((c = getscochar(csound, 1)))); */
+/*     if (c == 'd') { */
+/*       int   arg = 0; */
+/*       S_MACRO *mm = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
+/*       mm->margs = MARGS; */
+/*       if (UNLIKELY(!check_preproc_name(csound, "define"))) { */
+/*         csound->Message(csound, Str("Not #define")); */
+/*         csound->Free(csound, mm); */
+/*         csound->Free(csound, mname); */
+/*         flushlin(csound); */
+/*         goto srch; */
+/*       } */
 /*       while (isspace((c = getscochar(csound, 1)))); */
-/*       if (c == 'd') { */
-/*         int   arg = 0; */
-/*         S_MACRO *mm = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
-/*         mm->margs = MARGS; */
-/*         if (UNLIKELY(!check_preproc_name(csound, "define"))) { */
-/*           csound->Message(csound, Str("Not #define")); */
-/*           csound->Free(csound, mm); */
-/*           csound->Free(csound, mname); */
+/*       while (isNameChar(c, i)) { */
+/*         char  *new; */
+/*         mname[i++] = c; */
+/*         if (i==mlen) { */
+/*           new = (char *) csound->ReAlloc(csound, mname, mlen+=40); */
+/*           if (new==NULL) { */
+/*             fprintf(stderr, "Out of Memory\n"); */
+/*             exit(7); */
+/*           } */
+/*           mname = new; */
+/*         } */
+/*         c = getscochar(csound, 1); */
+/*       } */
+/*       mname[i] = '\0'; */
+/*       if (csound->oparms->msglevel & TIMEMSG) */
+/*         csound->Message(csound, Str("Macro definition for %s\n"), mname); */
+/*       mm->name = csound->Malloc(csound, i + 1); */
+/*       strcpy(mm->name, mname); */
+/*       if (c == '(') { /\* arguments *\/ */
+/*         do { */
+/*           while (isspace((c = getscochar(csound, 1)))); */
+/*           i = 0; */
+/*           while (isNameChar(c, i)) { */
+/*             char *new; */
+/*             mname[i++] = c; */
+/*             if (i==mlen) { */
+/*               new = (char *)csound->ReAlloc(csound, mname, mlen+=40); */
+/*               if (new==NULL) { */
+/*                 fprintf(stderr, "Out of Memory\n"); */
+/*                 exit(7); */
+/*               } */
+/*               mname = new; */
+/*             } */
+/*             c = getscochar(csound, 1); */
+/*           } */
+/*           mname[i] = '\0'; */
+/*           mm->arg[arg] = csound->Malloc(csound, i+1); */
+/*           strcpy(mm->arg[arg++], mname); */
+/*           if (arg>=mm->margs) { */
+/*             mm = (S_MACRO*)csound->ReAlloc(csound, mm, */
+/*                                   sizeof(S_MACRO)+mm->margs*sizeof(char*)); */
+/*             mm->margs += MARGS; */
+/*           } */
+/*           while (isspace(c)) c = getscochar(csound, 1); */
+/*         } while (c=='\'' || c=='#'); */
+/*         if (UNLIKELY(c!=')')) { */
+/*           csound->Message(csound, Str("macro error\n")); */
 /*           flushlin(csound); */
+/*           csound->Free(csound, mname); */
 /*           goto srch; */
 /*         } */
-/*         while (isspace((c = getscochar(csound, 1)))); */
-/*         while (isNameChar(c, i)) { */
-/*           char  *new; */
-/*           mname[i++] = c; */
-/*           if (i==mlen) { */
-/*             new = (char *) csound->ReAlloc(csound, mname, mlen+=40); */
-/*             if (new==NULL) { */
-/*               fprintf(stderr, "Out of Memory\n"); */
-/*               exit(7); */
-/*             } */
-/*             mname = new; */
-/*           } */
-/*           c = getscochar(csound, 1); */
-/*         } */
-/*         mname[i] = '\0'; */
-/*         if (csound->oparms->msglevel & TIMEMSG) */
-/*           csound->Message(csound, Str("Macro definition for %s\n"), mname); */
-/*         mm->name = csound->Malloc(csound, i + 1); */
-/*         strcpy(mm->name, mname); */
-/*         if (c == '(') { /\* arguments *\/ */
-/*           do { */
-/*             while (isspace((c = getscochar(csound, 1)))); */
-/*             i = 0; */
-/*             while (isNameChar(c, i)) { */
-/*               char *new; */
-/*               mname[i++] = c; */
-/*               if (i==mlen) { */
-/*                 new = (char *)csound->ReAlloc(csound, mname, mlen+=40); */
-/*                 if (new==NULL) { */
-/*                   fprintf(stderr, "Out of Memory\n"); */
-/*                   exit(7); */
-/*                 } */
-/*                 mname = new; */
-/*               } */
-/*               c = getscochar(csound, 1); */
-/*             } */
-/*             mname[i] = '\0'; */
-/*             mm->arg[arg] = csound->Malloc(csound, i+1); */
-/*             strcpy(mm->arg[arg++], mname); */
-/*             if (arg>=mm->margs) { */
-/*               mm = (S_MACRO*)csound->ReAlloc(csound, mm, */
-/*                                     sizeof(S_MACRO)+mm->margs*sizeof(char*)); */
-/*               mm->margs += MARGS; */
-/*             } */
-/*             while (isspace(c)) c = getscochar(csound, 1); */
-/*           } while (c=='\'' || c=='#'); */
-/*           if (UNLIKELY(c!=')')) { */
-/*             csound->Message(csound, Str("macro error\n")); */
-/*             flushlin(csound); */
-/*             csound->Free(csound, mname); */
-/*             goto srch; */
-/*           } */
-/*         } */
-/*         mm->acnt = arg; */
-/*         while ((c = getscochar(csound, 1)) != '#') {   /\* Skip to next # *\/ */
-/*           if (UNLIKELY(c==EOF)) */
-/*             scorerr(csound, Str("Syntax error in macro definition")); */
-/*         } */
-/*         mm->body = corfile_create_w(); */
+/*       } */
+/*       mm->acnt = arg; */
+/*       while ((c = getscochar(csound, 1)) != '#') {   /\* Skip to next # *\/ */
+/*         if (UNLIKELY(c==EOF)) */
+/*           scorerr(csound, Str("Syntax error in macro definition")); */
+/*       } */
+/*       mm->body = corfile_create_w(); */
 /* #ifdef MACDEBUG */
-/*         csound->DebugMsg(csound,"%s(%d): macro %s %p\n", */
-/*                          __FILE__, __LINE__, mname, mm->body); */
+/*       csound->DebugMsg(csound,"%s(%d): macro %s %p\n", */
+/*                        __FILE__, __LINE__, mname, mm->body); */
 /* #endif */
-/*         while ((c = getscochar(csound, 0)) != '#') {  /\* Do not expand here!! *\/ */
-/*           if (UNLIKELY(c==EOF)) */
-/*             scorerr(csound, Str("Syntax error in macro definition")); */
-/*           corfile_putc(c, mm->body); */
-/*           if (c=='\\') { */
-/*             corfile_putc(getscochar(csound, 0), mm->body);    /\* Allow escaped # *\/ */
-/*           } */
-/*           if (c=='\n') STA(lincnt)++; */
+/*       while ((c = getscochar(csound, 0)) != '#') {  /\* Do not expand here!! *\/ */
+/*         if (UNLIKELY(c==EOF)) */
+/*           scorerr(csound, Str("Syntax error in macro definition")); */
+/*         corfile_putc(c, mm->body); */
+/*         if (c=='\\') { */
+/*           corfile_putc(getscochar(csound, 0), mm->body);    /\* Allow escaped # *\/ */
 /*         } */
-/*         corfile_rewind(mm->body); */
-/*         mm->next = STA(macros); */
-/*         STA(macros) = mm; */
+/*         if (c=='\n') STA(lincnt)++; */
+/*       } */
+/*       corfile_rewind(mm->body); */
+/*       mm->next = STA(macros); */
+/*       STA(macros) = mm; */
 /* #ifdef MACDEBUG */
-/*         csound->Message(csound, Str("Macro %s with %d arguments defined\n"), */
-/*                                 mm->name, mm->acnt); */
-/*         csound->Message(csound, "with body %s\n", corfile_body(mm->body)); */
+/*       csound->Message(csound, Str("Macro %s with %d arguments defined\n"), */
+/*                               mm->name, mm->acnt); */
+/*       csound->Message(csound, "with body %s\n", corfile_body(mm->body)); */
 /* #endif */
-/*         c = ' '; */
+/*       c = ' '; */
+/*       flushlin(csound); */
+/*       csound->Free(csound, mname); */
+/*       goto srch; */
+/*     } */
+/*     else if (c == 'i') { */
+/*       int delim; */
+/*       if (UNLIKELY(!check_preproc_name(csound, "include"))) { */
+/*         csound->Message(csound, Str("Not #include")); */
 /*         flushlin(csound); */
 /*         csound->Free(csound, mname); */
 /*         goto srch; */
 /*       } */
-/*       else if (c == 'i') { */
-/*         int delim; */
-/*         if (UNLIKELY(!check_preproc_name(csound, "include"))) { */
-/*           csound->Message(csound, Str("Not #include")); */
-/*           flushlin(csound); */
-/*           csound->Free(csound, mname); */
-/*           goto srch; */
-/*         } */
-/*         while (isspace((c = getscochar(csound, 1)))); */
-/*         delim = c; */
-/*         i = 0; */
-/*         while ((c=getscochar(csound, 1))!=delim) { */
-/*           char *new; */
-/*           mname[i++] = c; */
-/*           if (i==mlen) { */
-/*             new = (char *)realloc(mname, mlen+=40); */
-/*             if (new==NULL) { */
-/*               fprintf(stderr, "Out of Memory\n"); */
-/*               exit(7); */
-/*             } */
-/*             mname = new; */
+/*       while (isspace((c = getscochar(csound, 1)))); */
+/*       delim = c; */
+/*       i = 0; */
+/*       while ((c=getscochar(csound, 1))!=delim) { */
+/*         char *new; */
+/*         mname[i++] = c; */
+/*         if (i==mlen) { */
+/*           new = (char *)realloc(mname, mlen+=40); */
+/*           if (new==NULL) { */
+/*             fprintf(stderr, "Out of Memory\n"); */
+/*             exit(7); */
 /*           } */
+/*           mname = new; */
 /*         } */
-/*         mname[i]='\0'; */
-/*         while ((c=getscochar(csound, 1))!='\n'); */
-/*         STA(input_cnt)++; */
-/*         if (STA(input_cnt)>=STA(input_size)) { */
-/*           int old = STA(str)-STA(inputs); */
-/*           STA(input_size) += 20; */
-/*           STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size) */
-/*                                                     * sizeof(IN_STACK)); */
-/*           STA(str) = &STA(inputs)[old];     /\* In case it moves *\/ */
-/*         } */
-/*         STA(str)++; */
-/*         STA(str)->is_marked_repeat = 0; */
+/*       } */
+/*       mname[i]='\0'; */
+/*       while ((c=getscochar(csound, 1))!='\n'); */
+/*       STA(input_cnt)++; */
+/*       if (STA(input_cnt)>=STA(input_size)) { */
+/*         int old = STA(str)-STA(inputs); */
+/*         STA(input_size) += 20; */
+/*         STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size) */
+/*                                                   * sizeof(IN_STACK)); */
+/*         STA(str) = &STA(inputs)[old];     /\* In case it moves *\/ */
+/*       } */
+/*       STA(str)++; */
+/*       STA(str)->is_marked_repeat = 0; */
 /* #ifdef HAVE_CURL */
-/*         if (strstr(mname, "://")) */
-/*           STA(str)->cf = copy_url_corefile(csound, mname, 1); */
-/*         else */
+/*       if (strstr(mname, "://")) */
+/*         STA(str)->cf = copy_url_corefile(csound, mname, 1); */
+/*       else */
 /* #endif */
-/*           STA(str)->cf = copy_to_corefile(csound, mname, "INCDIR", 1); */
-/*         if (STA(str)->cf == NULL) { */
-/*           STA(str)--; */
-/*           STA(str)->line--; /\* include was one line earlier *\/ */
-/*           STA(linepos) = 0; */
-/*           scorerr(csound, Str("Cannot open #include'd file %s"), mname); */
-/*         } */
-/*         else { */
-/*           STA(str)->line = 1; */
-/*           csound->Free(csound, mname); */
-/*           goto srch; */
-/*         } */
+/*         STA(str)->cf = copy_to_corefile(csound, mname, "INCDIR", 1); */
+/*       if (STA(str)->cf == NULL) { */
+/*         STA(str)--; */
+/*         STA(str)->line--; /\* include was one line earlier *\/ */
+/*         STA(linepos) = 0; */
+/*         scorerr(csound, Str("Cannot open #include'd file %s"), mname); */
 /*       } */
-/*       else if (c == 'u') { */
-/*         if (UNLIKELY(!check_preproc_name(csound, "undef"))) { */
-/*           csound->Message(csound, Str("Not #undef")); */
-/*           flushlin(csound); */
-/*           csound->Free(csound, mname); */
-/*           goto srch; */
-/*         } */
-/*         while (isspace((c = getscochar(csound, 1)))); */
-/*         while (isNameChar(c, i)) { */
-/*           char *new; */
-/*           mname[i++] = c; */
-/*           if (i==mlen) { */
-/*             new = (char *)realloc(mname, mlen+=40); */
-/*             if (new==NULL) { */
-/*               fprintf(stderr, "Out of Memory\n"); */
-/*               exit(7); */
-/*             } */
-/*             mname = new; */
-/*           } */
-/*           c = getscochar(csound, 1); */
-/*         } */
-/*         mname[i] = '\0'; */
-/*         if (csound->oparms->msglevel & TIMEMSG) */
-/*           csound->Message(csound, Str("macro %s undefined\n"), mname); */
-/*         undefine_score_macro(csound, mname); */
-/*         while (c != '\n' && c != EOF) */
-/*           c = getscochar(csound, 1); /\* ignore rest of line *\/ */
-/*       } */
-/* #ifdef never */
-/*       else if (c=='e') { */
-/*         if (UNLIKELY(!check_preproc_name(csound, "exit"))) { */
-/*           csound->Message(csound, "Not #exit"); */
-/*           flushlin(csound); */
-/*           csound->Free(csound, mname); */
-/*           goto srch; */
-/*         } */
-/*         while (c != '\n' && c != EOF) */
-/*           c = getscochar(csound, 1); /\* ignore rest of line *\/ */
-/*       } */
-/* #endif */
 /*       else { */
-/*         sreaderr(csound, Str("unknown # option")); */
-/*         flushlin(csound); */
+/*         STA(str)->line = 1; */
+/*         csound->Free(csound, mname); */
+/*         goto srch; */
 /*       } */
-/*       csound->Free(csound, mname); */
+/*     } */
+/*     else if (c == 'u') { */
+/*       if (UNLIKELY(!check_preproc_name(csound, "undef"))) { */
+/*         csound->Message(csound, Str("Not #undef")); */
+/*         flushlin(csound); */
+/*         csound->Free(csound, mname); */
+/*         goto srch; */
+/*       } */
+/*       while (isspace((c = getscochar(csound, 1)))); */
+/*       while (isNameChar(c, i)) { */
+/*         char *new; */
+/*         mname[i++] = c; */
+/*         if (i==mlen) { */
+/*           new = (char *)realloc(mname, mlen+=40); */
+/*           if (new==NULL) { */
+/*             fprintf(stderr, "Out of Memory\n"); */
+/*             exit(7); */
+/*           } */
+/*           mname = new; */
+/*         } */
+/*         c = getscochar(csound, 1); */
+/*       } */
+/*       mname[i] = '\0'; */
+/*       if (csound->oparms->msglevel & TIMEMSG) */
+/*         csound->Message(csound, Str("macro %s undefined\n"), mname); */
+/*       undefine_score_macro(csound, mname); */
+/*       while (c != '\n' && c != EOF) */
+/*         c = getscochar(csound, 1); /\* ignore rest of line *\/ */
+/*     } */
+/* #ifdef never */
+/*     else if (c=='e') { */
+/*       if (UNLIKELY(!check_preproc_name(csound, "exit"))) { */
+/*         csound->Message(csound, "Not #exit"); */
+/*         flushlin(csound); */
+/*         csound->Free(csound, mname); */
+/*         goto srch; */
+/*       } */
+/*       while (c != '\n' && c != EOF) */
+/*         c = getscochar(csound, 1); /\* ignore rest of line *\/ */
+/*     } */
+/* #endif */
+/*     else { */
+/*       sreaderr(csound, Str("unknown # option")); */
+/*       flushlin(csound); */
+/*     } */
+/*     csound->Free(csound, mname); */
 /*       goto srch; */
 /*     } */
 #endif

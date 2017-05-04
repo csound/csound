@@ -18,7 +18,10 @@ ldd_globs = '*.exe *.dll *.so *.node *.pyd'
 ldd_filepath = r'D:\msys64\usr\bin\ldd'
 
 def exclude(filepath):
-    if fnmatch.fnmatch(filepath, '''*/examples/*'''):
+    # Wrong case!
+    if filepath.endswith('CSOUND64.dll'):
+        return True
+    if fnmatch.fnmatch(filepath, '''*/python27.dll'''):
         return True
     if fnmatch.fnmatch(filepath, '''*/android/*'''):
         return True
@@ -143,15 +146,17 @@ for dependency in dependencies:
     realpath = os.path.abspath(dependency)
     print 'realpath:', realpath
     # Fix up MSYS pathname confusion.
-    realpath = realpath.replace('''D:/c/''', '''C:/''')
-    realpath = realpath.replace('''D:/''', '''D:/msys64/''')
-    realpath = realpath.replace('''D:/msys64/msys64/''', '''D:/msys64/''')
+    realpath = realpath.replace('\\home\\restore\\', '\\msys64\\home\\restore\\')
+    realpath = realpath.replace('D:\\c\\', 'C:\\')
+    realpath = realpath.replace('D:\\', 'D:\\msys64\\')
+    realpath = realpath.replace('D:\\msys64\\msys64\\', 'D:\\msys64\\')
+    realpath = realpath.replace('D:\\msys64\\msys64\\', 'D:\\msys64\\')
     print 'fixed   :', realpath
     nonsystem_dependencies.add(realpath)
 nonsystem_dependencies = sorted(nonsystem_dependencies)
 with open('installer/windows/csound_targets_and_dependencies.iss', 'w') as f:
     for dependency in nonsystem_dependencies:
         if not exclude(dependency):
-            print dependency
+            print 'dependency:', dependency
             line = emit(dependency)
             f.write(line)

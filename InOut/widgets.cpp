@@ -2029,7 +2029,8 @@ extern "C"
             j--;
             if (widgetGlobals->fl_windows[j].is_subwindow == 0)
               delete widgetGlobals->fl_windows[j].panel;
-            widgetGlobals->fl_windows.pop_back(); // VL: this might leak memory, needs checking.
+            // VL: this might leak memory, needs checking.
+            widgetGlobals->fl_windows.pop_back();
           } while (j);
           Fl_wait_locked(csound, 0.0);
         }
@@ -2042,7 +2043,8 @@ extern "C"
           for (j = 0; j < ss; j++) {
             svec[j].fields.erase(svec[j].fields.begin(),
                                  svec[j].fields.end());
-            svec.resize(svec.size() + 1); // VL: probably leaks memory, needs checking.
+            // VL: probably leaks memory, needs checking.
+            svec.resize(svec.size() + 1);
           }
         }
         widgetGlobals->AddrSetValue.clear();  // VL: leaks memory, needs fixing.
