@@ -64,7 +64,15 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - dot calculates the dot product of two arrays
 
+- zero delay filters zdf_1pole_mode, zdf_2pole_mode, zdf_ladder,
+  zdf_1pole and zdf_2pole.xml, diode_ladder
+
+- product takes a numeric array (k or i-rate) and calculates its product.
+
+- supercollider ugens: sc_phasor, sc_lag, sc_lagud, sc_trig added
+
 ### New Gen and Macros
+
 
 
 -
@@ -221,7 +229,7 @@ commit 312136c7820333fc747a4d7945d675b1ceba304e
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Fri Apr 21 01:36:53 2017 +0100
 
-    product and sum
+    sum **** UNDOCUMENTED ****
 
 commit 680bc4a415a590e0d106982d42383e0c00a55d3c
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -229,47 +237,17 @@ Date:   Thu Apr 20 23:25:07 2017 +0100
 
     limit1 **** UNDOCUMENTED ****
 
-commit c2c1819e71aaf8516ceee980bc3d218b9bd0d063
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Wed Apr 19 20:32:24 2017 -0400
-
-    swapped zdf_1pole/zdf_1pole_mode and zdf_2pole/zdf_2pole_mode
-
-commit 74226c9d266c0b6e604fd842084047a45c21e546
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Tue Apr 18 15:57:23 2017 -0400
-
-    added zdf_1pole_mode filter that can switch between low-pass, high-pass, and allpass
-
-commit d5b694ae5a10163e351d0ceae2d20a571d692cbc
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Mon Apr 17 19:00:25 2017 -0400
-
-    added multi-mode version of zdf_2pole_mode that supports low-pass, high-pass, band-pass, unity-gain bandpass, notch, all-pass, and peak outputs
-
 commit 5401a742ac7fa13395fae86dd79dd552815dcc97
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Sat Apr 15 14:25:16 2017 -0400
 
     added k35_lpf and k35_hpf filters
 
-commit 428e8fca2b7edcb53b600e47e02ad05d3db934c7
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Thu Apr 13 19:50:12 2017 -0400
-
-    implemented zdf_2pole with low pass, band pass, and hi pass outputs; defined other structs to always use double for state values
-
 commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Apr 11 22:31:02 2017 +0100
 
     trying to set non-blocking mode on windows
-
-commit fd14e9437b6358a5927e3ce1d0f341438c65a3db
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Thu Apr 6 18:51:46 2017 -0400
-
-    added zdf_1pole filter
 
 commit 88b1db83f81655420375109302e7aa6ead4f8839
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -283,12 +261,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Apr 6 06:28:48 2017 +0100
 
     trying to deal with bundles again
-
-commit 8e391a1b0f5962a19dbec3ca5ca63363b802ad1a
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Wed Apr 5 19:00:04 2017 -0400
-
-    implemented diode_ladder, fixed skip handling for zdf_ladder
 
 commit 2fff5566ada754c47ad443c3b47d03ebe389eb95
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -403,12 +375,6 @@ Author: vlazzarini <victor.lazzarini@nuim.ie>
 Date:   Mon Jan 23 10:33:54 2017 +0000
 
     Own ugens and initial port of some supercollider ugens
-
-commit d227c15bea6c06da580a10ef8ee9d94c41b12a32
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Mon Jan 23 10:06:27 2017 +0100
-
-    -- beginning of scugens (supercollider ugens): phasor, lag, lagud, trig)
 
 commit 5b6178ea6fa1058cd7d5425598f67fbeadde09e5
 Author: Nikhil Singh <nsingh1@berklee.edu>
