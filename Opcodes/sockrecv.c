@@ -617,15 +617,16 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
         /* get address & types */
         if(n < sout->sizes[0]) {
           len = strlen(buf);
-	  // printf("len %d size %d incr %d\n", len, str[n].size, ((size_t) ceil((len+1)/4.)*4));
+          // printf("len %d size %d incr %d\n",
+          //        len, str[n].size, ((size_t) ceil((len+1)/4.)*4));
           if(len >= str[n].size) {
             str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
-	    memset(str[n].data,0,len+1);
+            memset(str[n].data,0,len+1);
             str[n].size  = len+1;
           }
           strncpy(str[n].data, buf, len);
-	  str[n].data[len] = '\0'; // explicitly terminate it.
-	  n++;
+          str[n].data[len] = '\0'; // explicitly terminate it.
+          n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
         }
         if (n < sout->sizes[0]) {
@@ -635,9 +636,9 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             str[n].size  = len+1;
           }
           strncpy(str[n].data, buf, len);
-	  str[n].data[str[n].size-1] = '\0'; // explicitly terminate it.
+          str[n].data[str[n].size-1] = '\0'; // explicitly terminate it.
           types = str[n].data;
-	  n++;
+          n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
         }
         j = 1;

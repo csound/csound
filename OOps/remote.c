@@ -339,9 +339,11 @@ static int SVopen(CSOUND *csound)
     else csound->Message(csound, Str("created socket \n"));
     /* set the addresse to be reusable */
 #if defined(WIN32) && !defined(__CYGWIN__)
-    if (UNLIKELY( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(opt)) < 0 ))
+    if (UNLIKELY( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR,
+                             (const char*)&opt, sizeof(opt)) < 0 ))
 #else
-    if (UNLIKELY( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0 ))
+    if (UNLIKELY( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR,
+                             &opt, sizeof(opt)) < 0 ))
 #endif
       return
         csound->InitError(csound,

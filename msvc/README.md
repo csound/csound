@@ -24,6 +24,9 @@ Some other dependencies may need to be installed to enable all features within C
     * https://www.python.org/downloads/release/python-2713/
 2. Java JDK
     * http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+3. NSIS Installer
+    * Only required if building the Csound Installer
+    * http://nsis.sourceforge.net/Download
 
 ## VCPKG 
 The package manager used for Windows is VCPKG. It is still in beta/preview so it is not as integrated into Visual Studio as would be desired. It is advised to install it before downloading dependencies as the folder can grow to a large size (gigabytes). This is due to the source and binaries being housed within this folder. It can also be used system wide rather than just Csound so it is worth setting up.
@@ -36,8 +39,11 @@ The official instructions are here: https://github.com/Microsoft/vcpkg. The loca
     * This should download all the required dependencies into the msvc folder (cache holds the downloaded files, deps is the extracted files, staging is for any manually built projects)
     * VCPKG will install it's packages in a specified folder elsewhere but it's CMAKE file will find them later
     * The first time downloading the packages with VCPKG can be very slow due to the number of packages and amount of building that occurs. It can take a few hours due to the large dependencies such as boost and GTK.
-3. Once this script has finished, the Visual Studio solution file should be produced and located in "Csound\msvc\csound-vs" folder.
-4. Open this solution file in Visual Studio and build as normal. Just build the "ALLBUILD" project to build everything.
+4  After this script has executed, execute the "generateProject.bat" script, which will invoke cmake with the proper settings to generate the solution.
+4. Once this script has finished, the Visual Studio solution file should be produced and located in "Csound\msvc\csound-vs" folder.
+5. Open this solution file in Visual Studio and build as normal. Just build the "ALLBUILD" project to build everything.
+
+Alternatively, execute the "build.bat" to do all of the above. This will also build a Release version of Csound.
 
 ## Development workflow
 Once this project has been successfully generated as shown above, it does not require much further maintenance. To work on the Csound source, you can update the source directory via git pull and just rebuild the solution file in Visual Studio. There is no need to re-run the CMake command or script. Visual Studio detects changes within the project and will re-run the cmake command internally. 
@@ -49,7 +55,9 @@ CMake GUI can be used on the "csound\msvc\csound-vs" folder to visually enable s
 ### Building 
 In VS, select the build configuration from the top combo box. Either Debug, Release, Release with debug symbols, minimum size release. Also there is the option of x86/x64 (32/64 bit). We only support 64 bit currently however. The default project is the "ALL_BUILD" project, this will compile everything if you select to build it. "Build Solution" achieves the same thing. 
 
-If a change to any of the cmakelists.txt occurs, VS will automatically run cmake and rebuild the solution. You should avoid running cmake externally while VS is open and just let it take care of it.
+If a change to any of the cmakelists.txt occurs, VS will automatically run cmake and rebuild the solution. You should avoid running cmake externally to generate the project while VS is open and just let VS take care of it.
+
+Optionally from the command line you can build by running "cmake --build ." in the csound-vs directory.
 
 ### Debugging 
 The project can be launched for debugging in two ways:

@@ -43,7 +43,6 @@ typedef struct  {
 typedef struct _CsoundObj
 {
 	CSOUND *csound;
-	uint32_t frameCount;
 	uint32_t zerodBFS;
 	MidiCallbackData *midiCallbackData;
 } CsoundObj;
@@ -51,7 +50,7 @@ typedef struct _CsoundObj
 CsoundObj *CsoundObj_new()
 {
 	CsoundObj *self = calloc(1, sizeof(CsoundObj));
-	self->frameCount = 256;
+	//self->frameCount = 256;
 	self->csound = csoundCreate(self);
 	csoundSetHostImplementedAudioIO(self->csound, 1, 0);
 
@@ -64,23 +63,12 @@ void CsoundObj_compileCSD(CsoundObj *self,
 		char *filePath,
 		uint32_t samplerate)
 {
-	char samplerateArgument[20] = {0};
-	char controlrateArgument[20] = {0};
-	char bufferSizeArgument[20] = {0};
-	double controlRate = (double)samplerate/(double)self->frameCount;
-	sprintf((char *)&samplerateArgument, "-r %d", samplerate);
-	sprintf((char *)&controlrateArgument, "-k %f", controlRate);
-	sprintf((char *)&bufferSizeArgument, "-b %d", 256);
-
-	char *argv[5] = {
+	char *argv[2] = {
 		"csound",
-		samplerateArgument,
-		controlrateArgument,
-		bufferSizeArgument,
 		filePath
 	};
 
-	int result = csoundCompile(self->csound, 5, argv);
+	int result = csoundCompile(self->csound, 2, argv);
 
 	if (result != 0) {
 

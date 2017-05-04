@@ -601,6 +601,8 @@
 ./include/float-version.h
 ./include/interlocks.h
 ./include/msg_attr.h
+./include/OpcodeBase.hpp
+./include/plugin.h
 ./include/pools.h
 ./include/pstream.h
 ./include/pvfileio.h
