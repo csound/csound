@@ -11,6 +11,9 @@ $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
 $vcpkgDir = ""
 
+# Add to path to call premake or other tools
+$env:Path += $depsDir
+
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
 $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
@@ -24,12 +27,12 @@ if ($systemVCPKG)
     cd $vcpkgDir 
 
     # Update and rebuild vcpkg
-    git pull
-    bootstrap-vcpkg.bat
+    #git pull
+    #bootstrap-vcpkg.bat
 
     # Remove any outdated packages (they will be installed again below)
-    vcpkg remove --outdated --recurse
-    vcpkg update # Not really functional it seems yet
+    #vcpkg remove --outdated --recurse
+    #vcpkg update # Not really functional it seems yet
 
     cd $currentDir
 }
@@ -44,12 +47,12 @@ elseif (Test-Path "..\..\vcpkg")
     echo "vcpkg already installed locally, updating"
     
     # Update and rebuild vcpkg
-    git pull
-    bootstrap-vcpkg.bat
+    #git pull
+    #bootstrap-vcpkg.bat
 
     # Remove any outdated packages (they will be installed again below)
-    vcpkg remove --outdated --recurse
-    vcpkg update
+    #vcpkg remove --outdated --recurse
+    #vcpkg update
     
     cd $currentDir
 }
@@ -78,7 +81,8 @@ echo "Downloading VC packages..."
 
 vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
 
-rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
+# Comment for testing to avoid extracting if already done so
+# rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 mkdir deps -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
@@ -88,13 +92,17 @@ mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
-"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
+"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip",
+"https://github.com/premake/premake-core/archive/4.4-beta3.zip",
+"http://www.mirrorservice.org/sites/sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="", 
 "win_flex_bison",
 "",
-""
+"",
+"",
+"pthreads"
 
 # Download list of files to cache folder
 for($i=0; $i -lt $uriList.Length; $i++) 
@@ -118,7 +126,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
     $fileName = Split-Path -Leaf $uriList[$i]
     $cachedFile = $cacheDir + $fileName
     $destDir = $depsDir + $destList[$i]
-    Expand-Archive $cachedFile -DestinationPath $destDir -Force
+    Expand-Archive $cachedFile -DestinationPath $destDir -Force -WhatIf
     echo "Extracted $fileName"
 }
 
@@ -145,6 +153,23 @@ cmake ..\portaudio -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release"
 cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
 copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
+
+# Liblo
+cd ..
+
+if (Test-Path $cachedFile -PathType Leaf)
+{
+    echo "Already downloaded liblo"
+}
+else
+{
+    $webclient.DownloadFile("https://github.com/radarsat1/liblo/archive/0.28.zip", "$cacheDir\liblo.zip");
+}
+
+Expand-Archive "$cacheDir\liblo.zip" -DestinationPath "$stageDir" -Force
+cd liblo-0.28\build
+premake4 vs2012
+#Build solution
 
 # Add deps bin directory to the system path if not already there
 # FIXME this is duplicating part of the path for some reason
