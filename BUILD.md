@@ -18,6 +18,8 @@ following operating systems
 
 -   [Windows (Mingw32)](#mingw32) 
 
+-   [Windows Visual Studio](#msvs)
+
 -   [Android](#android)  
 
 Instructions for RPI compiled by Dominic Melville contact via dcamelville at gmail.com
@@ -638,6 +640,10 @@ Download and install cmake
 Run cmake from the csound dir and configure Csound to build using MinGW Makefiles. For this minimal you'll need to disable quite a few features.
 Run generate.
 cd to csound build directory and run mingw32-make
+
+Windows Visual Studio <a name="msvs">
+--------------
+Instructions can be found [here](https://github.com/csound/csound/blob/develop/msvc).
 
 Android <a name="android">
 -------------- 
