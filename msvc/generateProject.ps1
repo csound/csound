@@ -42,9 +42,12 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DBUILD_LUA_INTERFACE=0 `
  -DBUILD_CSOUND_AC_LUA_INTERFACE=0 `
  -DBUILD_PD_CLASS=0 `
+ -DBUILD_OSC_OPCODES=1 `
  -DLIBSNDFILE_LIBRARY="..\deps\lib\libsndfile-1.lib" `
  -DSWIG_DIR="C:\msys64\mingw64\share\swig\3.0.6" `
  -DFLEX_EXECUTABLE="..\deps\win_flex_bison\win_flex.exe" `
  -DBISON_EXECUTABLE="..\deps\win_flex_bison\win_bison.exe" `
  -DPORTAUDIO_INCLUDE_PATH="..\staging\portaudio\include" `
- -DPORTAUDIO_LIBRARY="..\staging\portaudioBuild\Release\portaudio_x64.lib"
+ -DPORTAUDIO_LIBRARY="..\staging\portaudioBuild\Release\portaudio_x64.lib" `
+ -DOSC_HEADER="" `
+ -DLIBLO_LIBRARY=""
