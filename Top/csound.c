@@ -1512,9 +1512,9 @@ unsigned long kperfThread(void * cs)
 
       csound->WaitBarrier(csound->barrier1);
 
-      // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so, use some other
-      // kind of locking mechanism as it isn't clear why a global mutex would be necessary
-      // versus a per-CSOUND instance mutex
+      // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so,
+      // use some other kind of locking mechanism as it isn't clear why a
+      //global mutex would be necessary versus a per-CSOUND instance mutex
       /*csound_global_mutex_lock();*/
       if (csound->multiThreadedComplete == 1) {
         /*csound_global_mutex_unlock();*/
@@ -3176,10 +3176,14 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
     #ifdef HAVE_PTHREAD_SPIN_LOCK
-     pthread_spin_init((pthread_spinlock_t*)&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->memlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spoutlock,
+                       PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock,
+                       PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->memlock,
+                       PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock1,
+                       PTHREAD_PROCESS_PRIVATE);
     #endif
      if (O->odebug)
         csound->Message(csound,"init spinlocks\n");
