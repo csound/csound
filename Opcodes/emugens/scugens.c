@@ -462,7 +462,7 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
 
 static OENTRY localops[] = {
   { "sc_lag", S(LAG),   0, 3,   "k", "kko",
-    (SUBR)lagk_init, (SUBR)lagk_next, NULL, NLL },
+    (SUBR)lagk_init, (SUBR)lagk_next, NULL, NULL },
   { "sc_lag", S(LAG),   0, 5,   "a", "ako",
     (SUBR)laga_init, NULL, (SUBR)laga_next, NULL },
   { "sc_lagud",   S(LagUD), 0, 3,   "k", "kkko", (SUBR)lagud_init, (SUBR)lagud_k },
