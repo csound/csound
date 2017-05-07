@@ -464,6 +464,8 @@
 ./Opcodes/websockets/WebSocketOpcode.h
 ./Opcodes/wii_mac.h
 ./Opcodes/wiimote.c
+./Opcodes/wpfilters.c
+./Opcodes/wpfilters.h
 ./SDIF/sdif-mem.c
 ./SDIF/sdif-mem.h
 ./SDIF/sdif.c
@@ -599,6 +601,8 @@
 ./include/float-version.h
 ./include/interlocks.h
 ./include/msg_attr.h
+./include/OpcodeBase.hpp
+./include/plugin.h
 ./include/pools.h
 ./include/pstream.h
 ./include/pvfileio.h

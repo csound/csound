@@ -28,14 +28,6 @@
 #define LOG001 FL(-6.907755278982137)
 #define CALCSLOPE(next,prev,nsmps) ((next - prev)/nsmps)
 
-/* This use of pointer arithmetic is the wrong way to do it -- JPff */
-/* #define LOOP1(length, stmt)    \ */
-/*   {     int xxn = (length);    \ */
-/*         do {                   \ */
-/*           stmt;                \ */
-/*         } while (--xxn);       \ */
-/*   } */
-
 /* #define ZXP(z) (*(z)++) */
 
 static inline MYFLT zapgremlins(MYFLT x)
@@ -142,11 +134,6 @@ static int laga_next(CSOUND *csound, LAG *p) {
         y1 = y0 + b1 * (y1 - y0);
         out[n] = y1;
       }
-      /* LOOP1(nsmps, */
-      /*       y0 = *in; in++; */
-      /*       y1 = y0 + b1 * (y1 - y0); */
-      /*       *out = y1; out++; */
-      /*       ); */
       p->y1 = y1;
       return OK;
     } else {
@@ -160,12 +147,6 @@ static int laga_next(CSOUND *csound, LAG *p) {
         y1 = y0 + b1 * (y1 - y0);
         out[n] = y1;
       }
-      /* LOOP1(nsmps, */
-      /*       b1 += b1_slope; */
-      /*       y0 = *in; in++; */
-      /*       y1 = y0 + b1 * (y1 - y0); */
-      /*       *out = y1; out++; */
-      /*       ); */
       p->y1 = y1;
       return OK;
     }
@@ -200,14 +181,6 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
           y1 = y0 + b1d * (y1 - y0);
         out[n]= y1;
       }
-      /* LOOP1(nsmps, */
-      /*       MYFLT y0 = *in; in++; */
-      /*       if (y0 > y1) */
-      /*         y1 = y0 + b1u * (y1 - y0); */
-      /*       else */
-      /*         y1 = y0 + b1d * (y1 - y0); */
-      /*       *out = y1; out++; */
-      /*       ); */
     } else {
       MYFLT sr = csound->GetSr(csound);
       // faust uses tau2pole = exp(-1 / (lag*sr))
@@ -227,16 +200,6 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
           y1 = y0 + b1d * (y1-y0);
         out[n] = y1;
       }
-      /* LOOP1(nsmps, */
-      /*       b1u += b1u_slope; */
-      /*       b1d += b1d_slope; */
-      /*       MYFLT y0 = *in; in++; */
-      /*       if (y0 > y1) */
-      /*         y1 = y0 + b1u * (y1-y0); */
-      /*       else */
-      /*         y1 = y0 + b1d * (y1-y0); */
-      /*       *out = y1; out++; */
-      /*       ); */
     }
     p->y1 = zapgremlins(y1);
     return OK;
@@ -498,18 +461,28 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "sc_lag",     S(LAG),   0, 3,   "k", "kko", (SUBR)lagk_init, (SUBR)lagk_next },
-  { "sc_lag",     S(LAG),   0, 5,   "a", "ako", (SUBR)laga_init, NULL, (SUBR)laga_next },
+  { "sc_lag", S(LAG),   0, 3,   "k", "kko",
+    (SUBR)lagk_init, (SUBR)lagk_next, NULL, NULL },
+  { "sc_lag", S(LAG),   0, 5,   "a", "ako",
+    (SUBR)laga_init, NULL, (SUBR)laga_next, NULL },
   { "sc_lagud",   S(LagUD), 0, 3,   "k", "kkko", (SUBR)lagud_init, (SUBR)lagud_k },
-  { "sc_lagud",   S(LagUD), 0, 5,   "a", "akko", (SUBR)lagud_init, NULL, (SUBR)lagud_a },
+  { "sc_lagud",   S(LagUD), 0, 5,   "a", "akko",
+    (SUBR)lagud_init, NULL, (SUBR)lagud_a },
   { "sc_trig",    S(Trig),  0, 3,   "k", "kk", (SUBR)trig_init, (SUBR)trig_k },
-  { "sc_trig",    S(Trig),  0, 5,   "a", "ak", (SUBR)trig_init, NULL, (SUBR)trig_a },
-  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkkk", (SUBR)phasor_init, (SUBR)phasor_kk },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkkk", (SUBR)phasor_init, NULL, (SUBR)phasor_ak },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakkk", (SUBR)phasor_init, NULL, (SUBR)phasor_aa },
-  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkk", (SUBR)phasor_init0, (SUBR)phasor_kk },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkk", (SUBR)phasor_init0, NULL, (SUBR)phasor_ak },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakk", (SUBR)phasor_init0, NULL, (SUBR)phasor_aa }
+  { "sc_trig",    S(Trig),  0, 5,   "a", "ak",
+    (SUBR)trig_init, NULL, (SUBR)trig_a },
+  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkkk",
+    (SUBR)phasor_init, (SUBR)phasor_kk },
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkkk",
+    (SUBR)phasor_init, NULL, (SUBR)phasor_ak },
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakkk",
+    (SUBR)phasor_init, NULL, (SUBR)phasor_aa },
+  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkk",
+    (SUBR)phasor_init0, (SUBR)phasor_kk },
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkk",
+    (SUBR)phasor_init0, NULL, (SUBR)phasor_ak },
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakk",
+    (SUBR)phasor_init0, NULL, (SUBR)phasor_aa }
 };
 
 LINKAGE

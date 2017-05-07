@@ -25,59 +25,65 @@ require.config({
 
 	},
 	paths: {
-		ace: "ace",
-		"jquery" : "jquery",
+		"ace"       : "ace",
+		"jquery"    : "jquery",
 		"bootstrap" :  "bootstrap.min" ,
-		"libcsound":"libcsound"	
+		"libcsound" : "libcsound",
+        "CsoundObj" : "CsoundObj",
+        "FileList"  : "FileList"
 	}
 });
 
-require(["jquery", "bootstrap", "libcsound", "InputPanel", "ConsolePanel", "FileManager", "FilePanel", "HelpPanel", "EditorPanel"], main);
+require([], main);
 
+var Module = {};
 
 function main() {
-
-	var ConsolePanel = require('ConsolePanel');
-	var HelpPanel = require('HelpPanel');
-	var EditorPanel = require('EditorPanel');
-	var FilePanel = require('FilePanel');
-	var InputPanel = require('InputPanel');
 	Module['noExitRuntime'] = true;
-
 	Module['_main'] = function() {
+		require(["FileList", "InputPanel", "ConsolePanel", "FileManager", "FilePanel", "HelpPanel", "EditorPanel"], function () {
+			var ConsolePanel = require('ConsolePanel');
+			var HelpPanel = require('HelpPanel');
+			var EditorPanel = require('EditorPanel');
+			var FilePanel = require('FilePanel');
+			var InputPanel = require('InputPanel');
+			var consolePanel = new ConsolePanel();
+			consolePanel.print("Welcome to Csound Emscripten!");
 
-		var consolePanel = new ConsolePanel();
-		consolePanel.print("Welcome to Csound Emscripten!");
+//			Module['print'] = Module['printErr'] = consolePanel.print 
+			Module['print'] = Module['printErr'] = function (txt) { console.log(txt); };
+			const csound = new CsoundObj();
 
-		Module['print'] = Module['printErr'] = consolePanel.print 
-		const csound = new CsoundObj();
+			var inputPanel = new InputPanel(csound);
+			var allowedFileExtensions = ["csd", "wav", "orc"];
+			const fileManager = new FileManager(allowedFileExtensions, Module["print"]);
 
-		var inputPanel = new InputPanel(csound);
-		var allowedFileExtensions = ["csd", "wav", "orc"];
-		const fileManager = new FileManager(allowedFileExtensions, Module["print"]);
+			var editorPanel = new EditorPanel(csound, fileManager);
+			var filePanel = new FilePanel(fileManager, editorPanel.onClickFunction);
+			var fileUploadedCallback = function() {
 
-		var editorPanel = new EditorPanel(csound, fileManager);
-		var filePanel = new FilePanel(fileManager, editorPanel.onClickFunction);
-		var fileUploadedCallback = function() {
+				filePanel.populateList();
+			};
 
-			filePanel.populateList();
-		};
-
-		fileManager.fileUploadFromServer("controlInputTest.csd", fileUploadedCallback);
-		fileManager.fileUploadFromServer("test.orc", fileUploadedCallback);
-		fileManager.fileUploadFromServer("audioInputTest.csd", fileUploadedCallback);
-		fileManager.fileUploadFromServer("Boulanger-Trapped_in_Convert.csd", fileUploadedCallback);
+			fileManager.fileUploadFromServer("controlInputTest.csd", fileUploadedCallback);
+			fileManager.fileUploadFromServer("test.orc", fileUploadedCallback);
+			fileManager.fileUploadFromServer("audioInputTest.csd", fileUploadedCallback);
+			fileManager.fileUploadFromServer("Boulanger-Trapped_in_Convert.csd", fileUploadedCallback);
 		
-		fileUploadedCallback = function() {
+			fileUploadedCallback = function() {
 
-			filePanel.populateList();
-			filePanel.fileLinks[0].click();
-		};
+				filePanel.populateList();
+				filePanel.fileLinks[0].click();
+			};
 
-		fileManager.fileUploadFromServer("midiInputTest.csd", fileUploadedCallback);
+			fileManager.fileUploadFromServer("midiInputTest.csd", fileUploadedCallback);
 
 
-		var helpPanel = new HelpPanel(editorPanel.orcEditorDiv, editorPanel.scoEditorDiv, filePanel.fileNameDiv);
+			var helpPanel = new HelpPanel(editorPanel.orcEditorDiv, editorPanel.scoEditorDiv, filePanel.fileNameDiv);
+		});
 	};
+	require(["jquery", "bootstrap", "libcsound", "CsoundObj"], function () {
+		console.log("Csound loaded");
+	});
 };
 

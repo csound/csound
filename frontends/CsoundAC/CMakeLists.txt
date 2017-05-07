@@ -2,12 +2,13 @@
 
 include(CheckIncludeFiles)
 
+set (CMAKE_CXX_STANDARD 11)
+
 option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorithmic composition (needs C++ interface)" ON)
 option(BUILD_CSOUND_AC_PYTHON_INTERFACE "Build the Csound AC Python interface" ON)
 option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
 option(USE_SYSTEM_PORTSMF ON)
 
-find_package(Boost)
 find_library(MUSICXML_LIBRARY musicxml2)
 find_package(SWIG)
 find_package(PythonLibs)
@@ -22,14 +23,13 @@ find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
 find_library(PORTSMF_LIBRARY portSMF)
 
-check_deps(BUILD_CSOUND_AC Boost_INCLUDE_DIRS BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN3_INCLUDE_PATH)
+check_deps(BUILD_CSOUND_AC BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN3_INCLUDE_PATH)
 check_deps(BUILD_CSOUND_AC_PYTHON_INTERFACE SWIG_FOUND PYTHONLIBS_FOUND EIGEN3_INCLUDE_PATH)
 check_deps(BUILD_CSOUND_AC_LUA_INTERFACE SWIG_FOUND LUAJIT_LIBRARY LUA_H_PATH EIGEN3_INCLUDE_PATH)
 
 if(BUILD_CSOUND_AC)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
     include_directories(${EIGEN3_INCLUDE_PATH})
-    include_directories(${Boost_INCLUDE_DIRS})
     include_directories(${FLTK_INCLUDE_DIR})
     set(libcsoundac_SRCS
 	Cell.cpp

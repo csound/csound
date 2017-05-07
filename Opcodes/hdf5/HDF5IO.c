@@ -861,7 +861,8 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
            sizeof(hsize_t) * dataset->rank);
     chunkDimensions[0] = vectorSize;
 
-        memcpy (chunkDimensions, dataset->datasetSize, sizeof (hsize_t) * dataset->rank);
+        memcpy (chunkDimensions, dataset->datasetSize,
+                sizeof (hsize_t) * dataset->rank);
         chunkDimensions[dataset->rank - 1] = vectorSize;
 
         HDF5Read_readData (csound, self, dataset, dataset->offset,

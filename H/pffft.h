@@ -120,7 +120,8 @@ extern "C" {
 
      input and output may alias.
   */
-  void pffft_transform(PFFFT_Setup *setup, const float *input, float *output, float *work, pffft_direction_t direction);
+  void pffft_transform(PFFFT_Setup *setup, const float *input, float *output,
+                       float *work, pffft_direction_t direction);
 
   /*
      Similar to pffft_transform, but makes sure that the output is
@@ -129,7 +130,9 @@ extern "C" {
 
      input and output may alias.
   */
-  void pffft_transform_ordered(PFFFT_Setup *setup, const float *input, float *output, float *work, pffft_direction_t direction);
+  void pffft_transform_ordered(PFFFT_Setup *setup, const float *input,
+                               float *output, float *work,
+                               pffft_direction_t direction);
 
   /*
      call pffft_zreorder(.., PFFFT_FORWARD) after pffft_transform(...,
@@ -143,7 +146,8 @@ extern "C" {
 
      input and output should not alias.
   */
-  void pffft_zreorder(PFFFT_Setup *setup, const float *input, float *output, pffft_direction_t direction);
+  void pffft_zreorder(PFFFT_Setup *setup, const float *input, float *output,
+                      pffft_direction_t direction);
 
   /*
      Perform a multiplication of the frequency components of dft_a and
@@ -157,7 +161,8 @@ extern "C" {
 
      The dft_a, dft_b and dft_ab pointers may alias.
   */
-  void pffft_zconvolve_accumulate(PFFFT_Setup *setup, const float *dft_a, const float *dft_b, float *dft_ab, float scaling);
+  void pffft_zconvolve_accumulate(PFFFT_Setup *setup, const float *dft_a,
+                                  const float *dft_b, float *dft_ab, float scaling);
 
   /*
     the float buffers must have the correct alignment (16-byte boundary
@@ -167,8 +172,9 @@ extern "C" {
   void *pffft_aligned_malloc(size_t nb_bytes);
   void pffft_aligned_free(void *);
 
-  /* return 4 or 1 whether support SSE/Altivec instructions was enable when building pffft.c */
-  int pffft_simd_size();
+  /* return 4 or 1 whether support SSE/Altivec instructions was enable when
+     building pffft.c */
+  int pffft_simd_size(void);
 
 #ifdef __cplusplus
 }

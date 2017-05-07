@@ -1,3 +1,5 @@
 cache
-deps
 csound-vs
+deps
+staging
+vcpkg

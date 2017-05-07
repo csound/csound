@@ -719,6 +719,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'i':
+    case 'd':
       if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
         if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) == 0)) {
           printScoreError(csound, rtEvt,
@@ -729,6 +730,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
         if (insno<0) {
           evt->p[1] = insno; insno = -insno;
         }
+        else if (evt->opcod=='d') evt->p[1]=-insno;
         if ((rfd = getRemoteInsRfd(csound, insno))) {
           /* RM: if this note labeled as remote */
           if (rfd == GLOBAL_REMOT)
@@ -993,7 +995,7 @@ int sensevents(CSOUND *csound)
         case 'a':
           csound->nxtim = (double) e->p[2] + csound->timeOffs;
           csound->nxtbt = (double) e->p2orig + csound->beatOffs;
-          if (e->opcod=='i')
+          if (e->opcod=='i'||e->opcod=='d')
             if (UNLIKELY(csound->oparms->odebug))
               csound->Message(csound, "new event: %16.13lf %16.13lf\n",
                               csound->nxtim, csound->nxtbt);
@@ -1253,8 +1255,9 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
     case 'q':                         /* mute instrument */
       /* check for a valid instrument number or name */
       if (evt->opcod=='d') {
-        if (evt->strarg != NULL && csound->ISSTRCOD(p[1])){
+        if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
           i = (int) named_instr_find(csound, evt->strarg);
+          //printf("d opcode %s -> %d\n", evt->strarg, i);
           p[1] = -i;
         }
         else {

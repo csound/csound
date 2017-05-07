@@ -93,8 +93,22 @@ void csoundUnLock() {
 }
 #endif
 
+#else /* END WIN32 */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif /* END WIN32 */
+void csoundLock() {
+}
+
+void csoundUnLock() {
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
 
 
 #endif      /* CSOUND_CSGBLMTX_H */

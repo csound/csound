@@ -823,6 +823,7 @@ extern long sockrecv_localops_init(CSOUND *, void *);
 extern long afilts_localops_init(CSOUND *, void *);
 extern long pinker_localops_init(CSOUND *, void *);
 extern long paulstretch_localops_init(CSOUND *, void *);
+extern long wpfilters_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -860,6 +861,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  gendy_localops_init,
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init,
+                                 wpfilters_localops_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);

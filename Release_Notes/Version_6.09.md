@@ -24,7 +24,7 @@ Any valid HTML can also be used.
 A mixed bag of new opcodes and many fixes and improvements.
 
 Also as usual there are a number of internal changes, including many
-memory leaks fixed and more robust code. 
+memory leaks fixed and more robust code.
 
 -- The Developers
 
@@ -42,12 +42,12 @@ memory leaks fixed and more robust code.
 
 - pvstrace -- retain only the N loudest bins.
 
-- several new unary functions/opcodes for k-rate and i-time numeric arrays: ceil, floor, round, int,
-frac, powoftwo, abs, log2, log10, log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh,
-cbrt.
+- several new unary functions/opcodes for k-rate and i-time numeric
+arrays: ceil, floor, round, int, frac, powoftwo, abs, log2, log10,
+log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
-- several new binary functions/opcodes for k-rate and i-time numeric arrays: atan2, pow,hypot, fmod,
-fmax, fmin.
+- several new binary functions/opcodes for k-rate and i-time numeric
+  arrays: atan2, pow,hypot, fmod, fmax, fmin.
 
 - tvconv -- a time-varying convolution (FIR filter) opcode
 
@@ -55,8 +55,25 @@ fmax, fmin.
 
 - OSCsendA asynchronous version of OSCsend
 
+- OSCraw to listen for all OSC messages at a given port.
+
+- new implemetation of OSCsend not using liblo, with previous version
+  now called OSCsehd_lo
+
+- sorta and sortd to sort elements of an array
+
+- dot calculates the dot product of two arrays
+
+- zero delay filters zdf_1pole_mode, zdf_2pole_mode, zdf_ladder,
+  zdf_1pole and zdf_2pole.xml, diode_ladder
+
+- product takes a numeric array (k or i-rate) and calculates its product.
+
+- supercollider ugens: sc_phasor, sc_lag, sc_lagud, sc_trig added
 
 ### New Gen and Macros
+
+
 
 -
 
@@ -88,6 +105,11 @@ fmax, fmin.
 
 - p2 and p3 are now at higher precision and not truncated to 6 decimal places
 
+- new opcode d to switch off infinite otes (deote)l same as i wit egative p1
+
+- named instruments can be turned off with i if a - follows the "
+
+
 ### Options
 
 -
@@ -114,6 +136,9 @@ incompatible change)
 
 - sockrev now can read strings
 
+- vbap system can in some cases allow arbiary uber of speakers via
+  arrays (work in progress)
+
 ### Utilities
 
 - dnoise fixed
@@ -127,6 +152,7 @@ incompatible change)
 - csdebugger:
 
 - HTML5
+ - Removed HTML5 Csound editor which has quit working.
 
 - Emscripten:
 
@@ -150,6 +176,10 @@ incompatible change)
 
 - bug in soundin removed
 
+- losci/losci3 fixed i case of long tables
+
+-  inrg was broke for a wile
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
@@ -166,6 +196,8 @@ incompatible change)
 - added GetA4 function
 
 - New framework for plugin opcode development in C++.
+
+- added StrDup function
 
 ### Platform Specific
 
@@ -187,23 +219,78 @@ incompatible change)
 ========================================================================
 UNDOCUMENTED/UNDELETED
 
-commit 6305e51a33ce6c7ceb7a0cfe59e8d0f345745f46
-Author: jpff <jpff@codemist.co.uk>
-Date:   Tue Mar 28 14:08:56 2017 +0100
+commit 209e721fca961716ddb776ad475c8fc71de3ae89
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 26 10:52:42 2017 +0100
 
-    sockrec string version seems to be working
+    fixed bug in string copying
+
+commit 312136c7820333fc747a4d7945d675b1ceba304e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Fri Apr 21 01:36:53 2017 +0100
+
+    sum **** UNDOCUMENTED ****
+
+commit 680bc4a415a590e0d106982d42383e0c00a55d3c
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 20 23:25:07 2017 +0100
+
+    limit1 **** UNDOCUMENTED ****
+
+commit 5401a742ac7fa13395fae86dd79dd552815dcc97
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Sat Apr 15 14:25:16 2017 -0400
+
+    added k35_lpf and k35_hpf filters
+
+commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Apr 11 22:31:02 2017 +0100
+
+    trying to set non-blocking mode on windows
+
+commit 88b1db83f81655420375109302e7aa6ead4f8839
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 6 22:27:31 2017 +0100
+
+    D OSC type
+
+commit 193b3838dc14dd11ead838f89eb255260e790c65
+commit 6323888c28515c4365dd1ca429a968bf97862d38
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Apr 6 06:28:48 2017 +0100
+
+    trying to deal with bundles again
+
+commit 2fff5566ada754c47ad443c3b47d03ebe389eb95
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 5 21:45:11 2017 +0100
+
+    trying to deal with bundles
+
+commit 9526f92ac0a1908be632017dc9034a997f49d97e
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Wed Apr 5 18:33:47 2017 +0100
+
+    ignoring bundles 2
+
+commit 92de2b90b6ea260cef6a8d714e91921d99c17307
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Mon Apr 3 20:31:07 2017 +0100
+
+    G type fixed
+
+commit 3814b45a7c804b09ac1944f76eeac52615c7a88c
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Sat Apr 1 18:05:13 2017 -0400
+
+    fix for pmidi.c and csoundLock/UnLock: add include of csGblMtx.h, fix setting of HAVE_PTHREAD for all targets instead of just for libcsound64
 
 commit 58801753aabbd705ec8a32b89d8533003930ce6a
 Author: U-HF-31335\Administrator <obrandts@gmail.com>
 Date:   Fri Mar 24 15:16:05 2017 -0700
 
     fix partikkel channelmask panning curves
-
-commit eaca4bbc4616ac0294d6c9f550e11b84dcb44bd0
-Author: Michael Gogins <michael.gogins@gmail.com>
-Date:   Mon Mar 13 15:21:13 2017 +1100
-
-    Removing HTML5 Csound editor which has quit working.
 
 commit e048a670e9cd1f14c3cede68e5a86d1bfc5312db
 Author: Edward Costello <phasereset@gmail.com>
@@ -270,12 +357,6 @@ Date:   Sat Jan 28 18:08:28 2017 +0000
 
     added csd and support for arrays to CPOF
 
-commit 7263c82a9a9648adbc0d985e04c117df0b35f0d1
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sat Jan 28 17:47:33 2017 +0000
-
-    added a comment about divide by zero
-
 commit 1fb13a751927e4ffd1875eff8e9cd09e83a7a630
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Fri Jan 27 18:14:15 2017 +0000
@@ -294,12 +375,6 @@ Author: vlazzarini <victor.lazzarini@nuim.ie>
 Date:   Mon Jan 23 10:33:54 2017 +0000
 
     Own ugens and initial port of some supercollider ugens
-
-commit d227c15bea6c06da580a10ef8ee9d94c41b12a32
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Mon Jan 23 10:06:27 2017 +0100
-
-    -- beginning of scugens (supercollider ugens): phasor, lag, lagud, trig)
 
 commit 5b6178ea6fa1058cd7d5425598f67fbeadde09e5
 Author: Nikhil Singh <nsingh1@berklee.edu>
