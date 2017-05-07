@@ -783,7 +783,7 @@ msgid "r LOOP=%d\n"
 msgstr "r LOOP=%d\n"
 
 #: Engine/csound_prs.lex:1221
-#, fuzzy, c-format
+#, c-format
 msgid "define macro unexpected character %c(0x%.2x)awaiting #\n"
 msgstr "caractère %c(0x%.2x) inattendu dans define de macro à la place de #\n"
 
@@ -9748,19 +9748,17 @@ msgid "Expected %d got %d\n"
 msgstr "%d attendu, %d obtenu\n"
 
 #: Opcodes/socksend.c:418
-#, fuzzy
 msgid "insufficient number of arguments for OSC message types\n"
-msgstr "arguments insuffisants pour le format"
+msgstr "arguments insuffisants pour les types de message OSC\n"
 
 #: Opcodes/socksend.c:471
-#, fuzzy
 msgid "expecting a string argument\n"
-msgstr "utilisation d'arguments étendus\n"
+msgstr "argument chaîne de caractères attendu\n"
 
 #: Opcodes/socksend.c:504
-#, fuzzy, c-format
+#, c-format
 msgid "%c: data type not supported\n"
-msgstr "format fsig non supporté"
+msgstr "%c : type de donnée non supporté\n"
 
 #: Opcodes/socksend.c:756
 msgid "OSCsend2 failed"
