@@ -1331,12 +1331,15 @@ void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self)
       HDF5Dataset *currentDataset = &self->datasets[i];
       STRINGDAT *inputArgument =
         (STRINGDAT *)self->arguments[self->outputArgumentCount + i + 1];
-      currentDataset->datasetName = inputArgument->data;
+        
+        csound->AuxAlloc(csound, sizeof(char) * strlen(inputArgument->data), &currentDataset->datasetNameMemory);
+        currentDataset->datasetName = currentDataset->datasetNameMemory.auxp;
+        strcpy(currentDataset->datasetName, inputArgument->data);
 
-      if (inputArgument->data[strlen(inputArgument->data) - 1] == '*') {
+      if (currentDataset->datasetName[strlen(inputArgument->data) - 1] == '*') {
 
         currentDataset->readAll = true;
-        inputArgument->data[strlen(inputArgument->data) - 1] = '\0';
+        currentDataset->datasetName[strlen(inputArgument->data) - 1] = '\0';
       }
 
       currentDataset->readType =

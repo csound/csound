@@ -51,6 +51,7 @@ typedef struct _fft {
 typedef struct HDF5Dataset
 {
     char *datasetName;
+    AUXCH datasetNameMemory;
     void *argumentPointer;
     ArgumentType writeType;
     ArgumentType readType;
