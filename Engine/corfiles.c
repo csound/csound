@@ -86,7 +86,7 @@ void corfile_puts(const char *s, CORFIL *f)
     }
     if (n > 0) {
       /* put the extra NULL chars to the end */
-      while(--n >= 0) {
+      while (--n >= 0) {
         char *new;
         f->body[f->p++] = '\0';
         if (UNLIKELY(f->p >= f->len)) {
@@ -366,7 +366,7 @@ int main(void)
   res = curl_easy_perform(curl_handle);
 
   /* check for errors */
-  if(res != CURLE_OK) {
+  if (res != CURLE_OK) {
     fprintf(stderr, "curl_easy_perform() failed: %s\n",
             curl_easy_strerror(res));
   }
@@ -384,7 +384,7 @@ int main(void)
   /* cleanup curl stuff */
   curl_easy_cleanup(curl_handle);
 
-  if(chunk.memory)
+  if (chunk.memory)
     free(chunk.memory);
 
   /* we're done with libcurl, so clean it up */
