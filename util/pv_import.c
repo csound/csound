@@ -95,10 +95,10 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     }
     {
       int data1, data2, data3, data4;
-      if(10!=fscanf(inf, "%d,%d,%d,%d,%d,%d,%d,%d,%g,%g\n",
-                    &data1,&data2,&data3,&data4,&data.nAnalysisBins,
-                    &data.dwWinlen, &data.dwOverlap,&data.dwFrameAlign,
-                    &data.fAnalysisRate, &data.fWindowParam)) {
+      if (UNLIKELY(10!=fscanf(inf, "%d,%d,%d,%d,%d,%d,%d,%d,%g,%g\n",
+                              &data1,&data2,&data3,&data4,&data.nAnalysisBins,
+                              &data.dwWinlen, &data.dwOverlap,&data.dwFrameAlign,
+                              &data.fAnalysisRate, &data.fWindowParam))) {
         printf("Ill formed data\n");
         exit(1);
       }

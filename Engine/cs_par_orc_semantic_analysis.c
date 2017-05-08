@@ -395,8 +395,8 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
     TREE *current = root;
     TREE *temp;
 
-    while(current != NULL) {
-      switch(current->type) {
+    while (current != NULL) {
+      switch (current->type) {
       case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
 
@@ -428,7 +428,7 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
           csound->Message(csound,
                           "Statement: %s\n", current->value->lexeme);
 
-        if(current->left != NULL) {
+        if (current->left != NULL) {
           csp_orc_sa_global_read_write_add_list(csound,
               csp_orc_sa_globals_find(csound, current->left),
               csp_orc_sa_globals_find(csound, current->right));

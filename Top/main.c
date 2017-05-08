@@ -514,10 +514,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, const char **argv){
 
 PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
     CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
-    if(tt != NULL){
-    int res = csoundCompileCsdText(csound, tt->body);
-    corfile_rm(&tt);
-    return res;
+    if (LIKELY(tt != NULL)) {
+      int res = csoundCompileCsdText(csound, tt->body);
+      corfile_rm(&tt);
+      return res;
     }
     return CSOUND_ERROR;
 }
@@ -527,7 +527,7 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csd_text));
     if (res) {
-      if(csound->csdname != NULL) csound->Free(csound, csound->csdname);
+      if (csound->csdname != NULL) csound->Free(csound, csound->csdname);
       csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
       res = csoundCompileOrc(csound, NULL);
       if (res == CSOUND_SUCCESS){

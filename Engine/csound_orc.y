@@ -892,7 +892,7 @@ yyerror(char *s, ...)
   va_list ap;
   va_start(ap, s);
 
-  if(yylloc.first_line)
+  if (yylloc.first_line)
     fprintf(stderr, "%d.%d-%d.%d: error: ",
             yylloc.first_line, yylloc.first_column,
             yylloc.last_line, yylloc.last_column);
@@ -907,7 +907,7 @@ lyyerror(YYLTYPE t, char *s, ...)
   va_list ap;
   va_start(ap, s);
 
-  if(t.first_line)
+  if (t.first_line)
     fprintf(stderr, "%d.%d-%d.%d: error: ", t.first_line, t.first_column,
             t.last_line, t.last_column);
   vfprintf(stderr, s, ap);
