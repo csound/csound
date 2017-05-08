@@ -125,17 +125,7 @@ static CS_NOINLINE int csoundStack_Error(void *p, const char *msg)
     CSOUND  *csound;
 
     csound = ((OPDS*) p)->insdshead->csound;
-    /* if (UNLIKELY(csound->ids != NULL &&  ((OPDS*) p)->insdshead->pds == NULL)) { */
-    /*   csound->InitError(csound, "%s: %s", csound->GetOpcodeName(p), msg); */
-    /*   csound->LongJmp(csound, CSOUND_INITIALIZATION); */
-    /* } */
-    /* else if (UNLIKELY(csound->ids == NULL && ((OPDS*) p)->insdshead->pds != NULL)) { */
-    /*   csound->PerfError(csound, ((OPDS*)p)->insdshead, */
-    /*                     "%s: %s", csound->GetOpcodeName(p), msg); */
-    /*   csound->LongJmp(csound, CSOUND_PERFORMANCE); */
-    /* } */
-    /* else */
-      csound->ErrorMsg(csound, "%s: %s", csound->GetOpcodeName(p), msg);
+    csound->ErrorMsg(csound, "%s: %s", csound->GetOpcodeName(p), msg);
 
     return NOTOK;
 }
@@ -379,8 +369,6 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
         if (!(p->argMap[0] & (1 << i))) {
           int   curOffs = p->argMap[i + 3];
           *(ofsp++) = curOffs;
-          /* printf("state: bp=%p, curOffs=%x, dataSpace=%p freeSpaceOffset=%x\n", */
-          /*        bp, curOffs, p->pp->dataSpace, p->pp->freeSpaceOffset); */
           switch (curOffs & (int) 0x7F000000) {
           case CS_STACK_I:
             *((MYFLT*) ((char*) bp + (int) (curOffs & (int) 0x00FFFFFF))) =
@@ -478,8 +466,6 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
           if (curOffs != *ofsp)
             csoundStack_TypeError(p);
           ofsp++;
-          /* printf("state: bp=%p, curOffs=%x, dataSpace=%p freeSpaceOffset=%x\n", */
-          /*        bp, curOffs, p->pp->dataSpace, p->pp->freeSpaceOffset); */
           switch (curOffs & (int) 0x7F000000) {
           case CS_STACK_I:
             *(p->args[i]) =

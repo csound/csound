@@ -655,7 +655,7 @@ NM              [nm]
                   PARM->repeat_cnt_n[PARM->repeat_index] = 0;
                   do {
                     c = input(yyscanner);
-                  } while(isblank(c));
+                  } while (isblank(c));
                   while (isdigit(c)) {
                     PARM->repeat_cnt_n[PARM->repeat_index] =
                       10 * PARM->repeat_cnt_n[PARM->repeat_index] + c - '0';
@@ -790,7 +790,7 @@ NM              [nm]
            PARM->in_repeat_sect = 1; /* Mark as recording */
            do {
              c = input(yyscanner);
-           } while(isblank(c));
+           } while (isblank(c));
            while (isdigit(c)) {
              PARM->repeat_sect_cnt =
                10 * PARM->repeat_sect_cnt + c - '0';
