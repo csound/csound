@@ -451,8 +451,8 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
 
     /* associate the socket with the address and port */
     if (UNLIKELY(bind
-                 (p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr))
-                 < 0)) {
+                 (p->sock, (struct sockaddr *) &p->server_addr,
+                  sizeof(p->server_addr)) < 0)) {
       return csound->InitError(csound, Str("bind failed"));
     }
 
