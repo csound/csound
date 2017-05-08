@@ -10,8 +10,7 @@ if ($systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source)
 }
 else 
 {
-    echo "checking VCPKG dir in environmental variable"
-    #$vcpkgDir = $env:VCPKGDir
+    echo "using local VCPKG cmake file"
     $vcpkgCmake = "..\vcpkg\scripts\buildsystems\vcpkg.cmake"
 }
 
@@ -49,5 +48,5 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DBISON_EXECUTABLE="..\deps\win_flex_bison\win_bison.exe" `
  -DPORTAUDIO_INCLUDE_PATH="..\staging\portaudio\include" `
  -DPORTAUDIO_LIBRARY="..\staging\portaudioBuild\Release\portaudio_x64.lib" `
- -DOSC_HEADER="" `
- -DLIBLO_LIBRARY=""
+ -DOSC_HEADER="..\staging\liblo-0.28" `
+ -DLIBLO_LIBRARY="..\staging\liblo-0.28\lib\ReleaseDLL\liblo.lib"
