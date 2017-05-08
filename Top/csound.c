@@ -1116,11 +1116,11 @@ static void signal_handler(int sig)
 
       for (j = 0; j < nptrs; j++)
         printf("%s\n", strings[j]);
-      
+
       free(strings);
     }
 #endif
-    
+
 #if defined(SIGPIPE)
     if (sig == (int) SIGPIPE) {
 #ifdef ANDROID
