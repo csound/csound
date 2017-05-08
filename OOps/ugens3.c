@@ -236,7 +236,7 @@ int losset(CSOUND *csound, LOSC *p)
         p->end1 = *p->iend1;
         if (!p->beg1 && !p->end1)
           /* default to looping the whole sample */
-          p->end1 = (p->mod1 ? maxphs : ftp->flenfrms); /* These are the same!! */
+          p->end1 = (p->mod1 ? (MYFLT)maxphs : (MYFLT)ftp->flenfrms); /* These are the same!! */
         else if (UNLIKELY(p->beg1 < 0 ||
                           p->end1 > maxphs ||
                           p->beg1 >= p->end1)) {

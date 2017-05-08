@@ -70,6 +70,16 @@ static int zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
 
+    if (UNLIKELY(offset)) {
+      memset(p->outlp, '\0', offset*sizeof(MYFLT));
+      memset(p->outhp, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->outlp[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->outhp[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
     for (n = offset; n < nsmps; n++) {
 
       if (cutoff_arate) {
@@ -136,6 +146,13 @@ static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
 
+    if (UNLIKELY(offset)) {
+      memset(p->out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++) {
 
       if (cutoff_arate) {
@@ -225,6 +242,17 @@ static int zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
     MYFLT cutoff = *p->cutoff;
     MYFLT q = *p->q;
 
+    if (UNLIKELY(offset)) {
+      memset(p->outlp, '\0', offset*sizeof(MYFLT));
+      memset(p->outhp, '\0', offset*sizeof(MYFLT));
+      memset(p->outbp, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->outlp[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->outhp[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->outbp[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++) {
 
       if (cutoff_arate) {
@@ -311,6 +339,13 @@ static int zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
     MYFLT cutoff = *p->cutoff;
     MYFLT q = *p->q;
 
+    if (UNLIKELY(offset)) {
+      memset(p->out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++) {
 
       if (cutoff_arate) {
@@ -429,6 +464,13 @@ static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT q = q_arate ? 0.0 : *p->q;
 
+    if (UNLIKELY(offset)) {
+      memset(p->out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++) {
 
       if (cutoff_arate) {
@@ -589,6 +631,13 @@ static int diode_ladder_perf(CSOUND* csound,
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT k = k_arate ? 0.0 : *p->kval;
 
+    if (UNLIKELY(offset)) {
+      memset(p->out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++) {
       MYFLT in = p->in[n];
 
@@ -775,6 +824,13 @@ static int k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
     int nonlinear = MYFLT2LONG(*p->nonlinear);
     double saturation = *p->saturation;
 
+    if (UNLIKELY(offset)) {
+      memset(p->out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++) {
       MYFLT in = p->in[n];
 
@@ -830,7 +886,7 @@ static int k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
       double v3 = (y - z3) * G;
       double lp3 = v3 + z3;
       z3 = lp3 + v3;
-      double hp1 = y - lp3;
+      // double hp1 = y - lp3; /* FIXME: not used */
 
       S35 = (lpf2_beta * z2) + (hpf1_beta * z3);
       double out = (K > 0) ? (y / K) : y;
@@ -907,6 +963,13 @@ static int k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
     int nonlinear = MYFLT2LONG(*p->nonlinear);
     double saturation = *p->saturation;
 
+    if (UNLIKELY(offset)) {
+      memset(p->out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     for (n = offset; n < nsmps; n++) {
       MYFLT in = p->in[n];
 
