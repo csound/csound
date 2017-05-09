@@ -62,7 +62,7 @@ uintptr_t alloc_thread(void *p) {
   CSOUND *csound = pp->csound;
   AUXCH newm;
   char *ptr;
-  if(pp->auxchp->auxp == NULL) {
+  if (pp->auxchp->auxp == NULL) {
     /* Allocate new memory */
     newm.size = pp->nbytes;
     newm.auxp = csound->Calloc(csound, pp->nbytes);
@@ -74,7 +74,7 @@ uintptr_t alloc_thread(void *p) {
      just allocated in case the old memory was
      never swapped back.
      */
-    if(newm.auxp != NULL && newm.auxp != ptr)
+    if (newm.auxp != NULL && newm.auxp != ptr)
        csound->Free(csound, newm.auxp);
   } else {
     csoundAuxAlloc(csound,pp->nbytes,pp->auxchp);
@@ -96,7 +96,7 @@ int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
     as->auxchp = auxchp;
     as->notify = cb;
     as->userData = userData;
-    if(csoundCreateThread(alloc_thread, as) == NULL)
+    if (UNLIKELY(csoundCreateThread(alloc_thread, as) == NULL))
       return CSOUND_ERROR;
     else
       return CSOUND_SUCCESS;
