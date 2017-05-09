@@ -8,10 +8,17 @@ if ($systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source)
     $vcpkgDir = Split-Path -Parent $systemVCPKG
     $vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"
 }
-else 
+elseif (Test-Path "..\..\vcpkg")
 {
     echo "using local VCPKG cmake file"
-    $vcpkgCmake = "..\vcpkg\scripts\buildsystems\vcpkg.cmake"
+    $vcpkgCmake = "..\..\vcpkg\scripts\buildsystems\vcpkg.cmake"
+    $vcpkgCmake = [System.IO.Path]::GetFullPath($vcpkgCmake)
+}
+else 
+{
+    # VCPKG not installed globally or locally, abort
+    echo "Please run the 'downloadDependencies.bat' script first!"
+    exit
 }
 
 echo "VCPKG script: '$vcpkgCmake'"
@@ -43,10 +50,10 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DBUILD_PD_CLASS=0 `
  -DBUILD_OSC_OPCODES=1 `
  -DLIBSNDFILE_LIBRARY="..\deps\lib\libsndfile-1.lib" `
- -DSWIG_DIR="C:\msys64\mingw64\share\swig\3.0.6" `
+ -DSWIG_DIR="" `
  -DFLEX_EXECUTABLE="..\deps\win_flex_bison\win_flex.exe" `
  -DBISON_EXECUTABLE="..\deps\win_flex_bison\win_bison.exe" `
- -DPORTAUDIO_INCLUDE_PATH="..\staging\portaudio\include" `
- -DPORTAUDIO_LIBRARY="..\staging\portaudioBuild\Release\portaudio_x64.lib" `
+ -DPORTAUDIO_INCLUDE_PATH="..\deps\include" `
+ -DPORTAUDIO_LIBRARY="..\deps\lib\portaudio_x64.lib" `
  -DOSC_HEADER="..\staging\liblo-0.28" `
  -DLIBLO_LIBRARY="..\staging\liblo-0.28\lib\ReleaseDLL\liblo.lib"
