@@ -587,7 +587,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
   if (p->fdata.auxp == NULL || p->fdata.size < size)
     csound->AuxAlloc(csound, size, &p->fdata);
   p->indata[0] = p->fdata.auxp;
-  p->indata[1] = ((char*)p->fdata.auxp) + size/2;
+  p->indata[1] = (MYFLT *) (((char*)p->fdata.auxp) + size/2);
 
   memset(&(p->fdch), 0, sizeof(FDCH));
   p->fdch.fd = fd;
