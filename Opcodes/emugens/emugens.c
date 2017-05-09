@@ -166,7 +166,8 @@ static int pchtom(CSOUND *csound, PITCHCONV *p) {
 */
 
 
-#define INTERP_L(X, X0, X1, Y0, Y1) ((X) < (X0) ? (Y0) : (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0)))
+#define INTERP_L(X, X0, X1, Y0, Y1) ((X) < (X0) ? (Y0) : \
+                                     (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0)))
 
 inline MYFLT interpol_l(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1) {
     return x < x0 ? y0 : ((x-x0)/(x1-x0) * (y1-y0) + y0);

@@ -467,7 +467,7 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       rc = 1;
       goto error;
     }
-    if(displays)
+    if (displays)
     PVDisplay_Init(csound, &disp, (int) fftsize,
                    (int) (((long) p->getframes * chans / overlap)
                           / DISPFRAMES));
@@ -499,12 +499,12 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
             goto error;
           }
           blocks_written++;
-          if(displays) PVDisplay_Update(&disp, frame);
+          if (displays) PVDisplay_Update(&disp, frame);
           if ((blocks_written/chans) % 20 == 0) {
             csound->Message(csound, "%ld\n", blocks_written/chans);
+          }
+          if (displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
         }
-          if(displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
-      }
       }
       if (total_sampsread >= p->getframes*chans)
         break;
@@ -531,9 +531,9 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
           goto error;
         }
         blocks_written++;
-        if(displays) PVDisplay_Update(&disp, frame);
+        if (displays) PVDisplay_Update(&disp, frame);
       }
-      if(displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
+      if (displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
     }
     csound->Message(csound, Str("\n%ld %d-chan blocks written to %s\n"),
                     (long) blocks_written / (long) chans, (int) chans, fname);

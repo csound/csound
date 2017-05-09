@@ -764,7 +764,8 @@ PUBLIC int csoundWaitBarrier(void *barrier)
 
 PUBLIC void* csoundCreateCondVar()
 {
-  CONDITION_VARIABLE* condVar = (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
+  CONDITION_VARIABLE* condVar =
+    (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
 
   if (condVar != NULL)
     InitializeConditionVariable(condVar);
