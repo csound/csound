@@ -176,6 +176,9 @@ cmake ..\cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DT
 cmake --build . --config Release
 copy .\Release\lo.dll -Destination $depsBinDir -Force
 copy .\Release\lo.lib -Destination $depsLibDir -Force
+copy .\lo -Destination $depsIncDir -Force -Recurse
+copy ..\lo\* -Destination $depsIncDir\lor -Force -Include "*.h"
+robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
 
 # Add deps bin directory to the system path if not already there
 # FIXME this is duplicating part of the path for some reason
