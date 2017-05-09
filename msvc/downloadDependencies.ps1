@@ -9,6 +9,7 @@ $depsDir = $currentDir + "\deps\"
 $stageDir = $currentDir + "\staging\"
 $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
+$depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
 
 # Add to path to call premake or other tools
@@ -92,8 +93,7 @@ mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
-"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip",
-"https://github.com/premake/premake-core/archive/4.4-beta3.zip",
+#"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip",
 "http://www.mirrorservice.org/sites/sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.zip"
 
 # Appends this folder location to the 'deps' uri
@@ -126,7 +126,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
     $fileName = Split-Path -Leaf $uriList[$i]
     $cachedFile = $cacheDir + $fileName
     $destDir = $depsDir + $destList[$i]
-    Expand-Archive $cachedFile -DestinationPath $destDir -Force -WhatIf
+    Expand-Archive $cachedFile -DestinationPath $destDir -Force
     echo "Extracted $fileName"
 }
 
@@ -147,6 +147,7 @@ else
     git clone --depth=1 "https://git.assembla.com/portaudio.git"
 }
 
+copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
 mkdir portaudioBuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 cd portaudioBuild 
 cmake ..\portaudio -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
@@ -157,19 +158,24 @@ copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
 # Liblo
 cd ..
 
-if (Test-Path $cachedFile -PathType Leaf)
+if (Test-Path "liblo")
 {
-    echo "Already downloaded liblo"
+    cd liblo
+    git pull
+    cd ..
+    echo "Libo already downloaded, updated"
 }
 else
 {
-    $webclient.DownloadFile("https://github.com/radarsat1/liblo/archive/0.28.zip", "$cacheDir\liblo.zip");
+    git clone --depth=1 "https://github.com/radarsat1/liblo.git"
 }
 
-Expand-Archive "$cacheDir\liblo.zip" -DestinationPath "$stageDir" -Force
-cd liblo-0.28\build
-premake4 vs2012
-#Build solution
+mkdir liblo\cmakebuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+cd liblo\cmakebuild
+cmake ..\cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DTHREADING=0
+cmake --build . --config Release
+copy .\Release\lo.dll -Destination $depsBinDir -Force
+copy .\Release\lo.lib -Destination $depsLibDir -Force
 
 # Add deps bin directory to the system path if not already there
 # FIXME this is duplicating part of the path for some reason
@@ -192,4 +198,10 @@ else
 $endTime = (Get-Date).TimeOfDay
 $duration = $endTime - $startTime
 
+# Strip any unneeded files from the bin directory, this will be
+# copied directly into the Csound solution output directory
+cd $depsBinDir 
+rm *.exe
+cd $currentDir
+echo "Removed unnecessary files from dependency bin directory"
 echo "Finished in $($duration.TotalMinutes) minutes"
