@@ -55,5 +55,5 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DBISON_EXECUTABLE="..\deps\win_flex_bison\win_bison.exe" `
  -DPORTAUDIO_INCLUDE_PATH="..\deps\include" `
  -DPORTAUDIO_LIBRARY="..\deps\lib\portaudio_x64.lib" `
- -DOSC_HEADER="..\staging\liblo-0.28" `
- -DLIBLO_LIBRARY="..\staging\liblo-0.28\lib\ReleaseDLL\liblo.lib"
+ -DOSC_HEADER="..\deps\include" `
+ -DLIBLO_LIBRARY="..\deps\lib\lo.lib"
