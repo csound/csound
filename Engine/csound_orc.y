@@ -543,7 +543,9 @@ arrayexpr :  arrayexpr '[' iexp ']'
 
 ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
               {
+                  if ($2)
                   $$ = make_node(csound,$2->line, $2->locn, IF_TOKEN, $2, $3);
+                  else $$ = NULL;
                   $3->right = $5;
                   //print_tree(csound, "if-endif", $$);
               }
