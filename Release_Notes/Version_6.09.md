@@ -57,15 +57,15 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - OSCraw to listen for all OSC messages at a given port.
 
-- new implemetation of OSCsend not using liblo, with previous version
-  now called OSCsehd_lo
+- new implementation of OSCsend not using liblo, with previous version
+  now called OSCsend_lo
 
 - sorta and sortd to sort elements of an array
 
 - dot calculates the dot product of two arrays
 
 - zero delay filters zdf_1pole_mode, zdf_2pole_mode, zdf_ladder,
-  zdf_1pole and zdf_2pole.xml, diode_ladder, z35_pf ad K35_lpf
+  zdf_1pole and zdf_2pole.xml, diode_ladder, z35_hpf ad K35_lpf
 
 - product takes a numeric array (k or i-rate) and calculates its product.
 
@@ -79,7 +79,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 ### Orchestra
 
-- Including a directory of UDO files o longer fails if more than about 20 entries
+- Including a directory of UDO files no longer fails if more than about 20 entries
 
 - It was possible for kr, sr, and ksmps to be inconsistent in one case, no more
 
@@ -105,7 +105,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - p2 and p3 are now at higher precision and not truncated to 6 decimal places
 
-- new opcode d to switch off infinite otes (deote)l same as i wit egative p1
+- new opcode d to switch off infinite notes (denote); same as i with negative p1
 
 - named instruments can be turned off with i if a - follows the "
 
@@ -136,8 +136,11 @@ incompatible change)
 
 - sockrev now can read strings
 
-- vbap system can in some cases allow arbiary uber of speakers via
+- vbap system can in some cases allow arbitrary number of speakers via
   arrays (work in progress)
+
+- Websocket server can only accept one protocol output, so limiting
+  intype to just a single argument
 
 ### Utilities
 
@@ -156,7 +159,8 @@ incompatible change)
 
 - Emscripten:
 
-- CsoundQT:
+- CsoundQT:  CsoundQt 0.9.4 is announced:
+https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%200.9.4.md  
 
 ### General Usage
 
@@ -178,7 +182,9 @@ incompatible change)
 
 - losci/losci3 fixed i case of long tables
 
--  inrg was broke for a wile
+-  inrg was broke for a while
+
+- Partikkel channelmask panning laws had an indexing error, now fixed.
 
 ## SYSTEM LEVEL CHANGES
 
@@ -218,6 +224,15 @@ incompatible change)
 ==END==
 ========================================================================
 UNDOCUMENTED/UNDELETED
+
+commit e2ced003236636756a567ae84e50fa490f691085
+Author: jpff <jpff@codemist.co.uk>
+Date:   Sun May 7 15:54:43 2017 +0100
+
+    Bug in hdf5read where if two hdf5read opcodes were placed
+     in series in an instrument, the argument names of the second opcode instance
+     would be incorrect due to directly changing the last string character of the
+     first when reading an entire dataset.
 
 commit 209e721fca961716ddb776ad475c8fc71de3ae89
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -280,13 +295,6 @@ Date:   Sat Apr 1 18:05:13 2017 -0400
 
     fix for pmidi.c and csoundLock/UnLock: add include of csGblMtx.h, fix setting of HAVE_PTHREAD for all targets instead of just for libcsound64
 
-commit 58801753aabbd705ec8a32b89d8533003930ce6a
-Author: U-HF-31335\Administrator <obrandts@gmail.com>
-Date:   Fri Mar 24 15:16:05 2017 -0700
-
-    fix partikkel channelmask panning curves
-
-commit e048a670e9cd1f14c3cede68e5a86d1bfc5312db
 Author: Edward Costello <phasereset@gmail.com>
 Date:   Mon Mar 6 22:54:31 2017 +0000
 
@@ -387,20 +395,6 @@ Author: Francois PINOT <fggpinot@gmail.com>
 Date:   Thu Jan 12 19:31:02 2017 +0100
 
     Added getA4 to ctcsound.py
-
-commit 9a69a8554ee8e5bf112b8fb09a018be6e3e4f221
-commit 6d421193416a49f6b0acdaeadc97f9ab3ebd2ef9
-Author: Edward Costello <phasereset@gmail.com>
-Date:   Mon Dec 19 17:11:42 2016 +0000
-
-    Websocket server can only accept one protocol output, so limiting intype to just a single argument
-
-commit f14212cd25ca9893aa47805fea04b79eb00e87ec
-Merge: e8e6776 8a15d3c
-Author: vlazzarini <victor.lazzarini@nuim.ie>
-Date:   Tue Dec 13 16:42:38 2016 +0000
-
-    Overloaded pvs2tab and tab2pvs, update websocket opcode
 
 commit 95c84c040537fd5c637bf42d3ee76f4d07ce5e75
 Author: Edward Costello <phasereset@gmail.com>
