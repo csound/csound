@@ -1064,9 +1064,9 @@ static OENTRY wpfilters_localops[] =
       (SUBR)zdf_ladder_init,NULL,(SUBR)zdf_ladder_perf},
     { "diode_ladder", sizeof(DIODE_LADDER), 0,5,"a","axxOPo",
       (SUBR)diode_ladder_init,NULL,(SUBR)diode_ladder_perf},
-    { "k35_lpf", sizeof(K35_LPF), 0,5,"a","axxOPo",
+    { "K35_lpf", sizeof(K35_LPF), 0,5,"a","axxOPo",
       (SUBR)k35_lpf_init,NULL,(SUBR)k35_lpf_perf},
-    { "k35_hpf", sizeof(K35_LPF), 0,5,"a","axxOPo",(SUBR)
+    { "K35_hpf", sizeof(K35_LPF), 0,5,"a","axxOPo",(SUBR)
       k35_hpf_init,NULL,(SUBR)k35_hpf_perf},
   };
 
