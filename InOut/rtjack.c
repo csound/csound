@@ -307,7 +307,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     flags = (unsigned long) JackPortIsTerminal;
   if (p->inputEnabled) {
     /* register input ports */
-    for (i = 0; i < p->nChannels; i++) {
+    for (i = 0; i < p->nChannels_i; i++) {
       snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->inputPortName, i + 1);
       p->inPorts[i] = jack_port_register(p->client, &(portName[0]),
                                          JACK_DEFAULT_AUDIO_TYPE,
@@ -350,6 +350,10 @@ static void openJackStreams(RtJackGlobals *p)
   /* check consistency of parameters */
   if (UNLIKELY(p->nChannels < 1 || p->nChannels > 255))
     rtJack_Error(csound, -1, Str("invalid number of channels"));
+  if (p->inputEnabled) {
+ if (UNLIKELY(p->nChannels_i < 1 || p->nChannels > 255))
+    rtJack_Error(csound, -1, Str("invalid number of input channels"));
+  }
   if (UNLIKELY(p->sampleRate < 1000 || p->sampleRate > 768000))
     rtJack_Error(csound, -1, Str("invalid sample rate"));
   if (UNLIKELY(p->sampleRate != (int) jack_get_sample_rate(p->client))) {
@@ -383,12 +387,14 @@ static void openJackStreams(RtJackGlobals *p)
   for (i = 0; i < p->nBuffers; i++) {
     rtJack_TryLock(p->csound, &(p->bufs[i]->csndLock));
     rtJack_Unlock(p->csound, &(p->bufs[i]->jackLock));
-    for (j = 0; j < p->nChannels; j++) {
-      if (p->inputEnabled) {
+   if (p->inputEnabled) {
+    for (j = 0; j < p->nChannels_i; j++) {
         for (k = 0; k < p->bufSize; k++)
           p->bufs[i]->inBufs[j][k] = (jack_default_audio_sample_t) 0;
       }
-      if (p->outputEnabled) {
+   }
+   if (p->outputEnabled) {
+    for (j = 0; j < p->nChannels; j++) {
         for (k = 0; k < p->bufSize; k++)
           p->bufs[i]->outBufs[j][k] = (jack_default_audio_sample_t) 0;
       }
@@ -436,7 +442,7 @@ static void openJackStreams(RtJackGlobals *p)
                                                  JACK_DEFAULT_AUDIO_TYPE,
                                                  portFlags);
 
-      for (i = 0; i < p->nChannels; i++) {
+      for (i = 0; i < p->nChannels_i; i++) {
         if(portNames[num+i] != NULL){
           csound->Message(csound, Str("connecting channel %d to %s \n"),
                           i,portNames[num+i]);
@@ -573,7 +579,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p,
     }
     if (isOutput && p->inputEnabled) {
       /* full duplex audio I/O: check consistency of parameters */
-      if (UNLIKELY(p->nChannels != parm->nChannels ||
+      if (UNLIKELY(/*p->nChannels != parm->nChannels ||*/
                    (unsigned int)p->bufSize != parm->bufSamp_SW))
         rtJack_Error(csound, -1,
                      Str("input and output parameters are not consistent"));
@@ -586,7 +592,9 @@ static void rtJack_CopyDevParams(RtJackGlobals *p,
   p->sampleRate = (int) parm->sampleRate;
   if (UNLIKELY((float) p->sampleRate != parm->sampleRate))
     rtJack_Error(csound, -1, Str("sample rate must be an integer"));
-  p->nChannels = parm->nChannels;
+  if(isOutput) p->nChannels = parm->nChannels;
+  else p->nChannels_i = parm->nChannels;
+ 
   p->bufSize = parm->bufSamp_SW;
   p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
 
@@ -606,13 +614,13 @@ static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
   p->inputEnabled = 1;
   /* allocate pointers to input ports */
   p->inPorts = (jack_port_t**)
-    csound->Calloc(csound, (size_t) p->nChannels* sizeof(jack_port_t*));
+    csound->Calloc(csound, (size_t) p->nChannels_i* sizeof(jack_port_t*));
   if (UNLIKELY(p->inPorts == NULL))
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   /* allocate pointers to input port buffers */
   p->inPortBufs = (jack_default_audio_sample_t**)
     csound->Calloc(csound,
-                   (size_t) p->nChannels* sizeof(jack_default_audio_sample_t*));
+                   (size_t) p->nChannels_i * sizeof(jack_default_audio_sample_t*));
   if (UNLIKELY(p->inPortBufs == NULL))
     rtJack_Error(p->csound, CSOUND_MEMORY, Str("memory allocation failure"));
   return 0;
@@ -659,7 +667,7 @@ static int processCallback(jack_nframes_t nframes, void *arg)
   p = (RtJackGlobals*) arg;
   /* get pointers to port buffers */
   if (p->inputEnabled) {
-    for (i = 0; i < p->nChannels; i++)
+    for (i = 0; i < p->nChannels_i; i++)
       p->inPortBufs[i] = (jack_default_audio_sample_t*)
         jack_port_get_buffer(p->inPorts[i], nframes);
   }
@@ -689,15 +697,17 @@ static int processCallback(jack_nframes_t nframes, void *arg)
     k = (int) nframes - i;
     l = p->bufSize - p->jackBufPos;
     l = (l < k ? l : k);      /* number of frames to copy */
-    for (j = 0; j < p->nChannels; j++) {
-      if (p->inputEnabled) {
+   if (p->inputEnabled) {
+    for (j = 0; j < p->nChannels_i; j++) {
         jack_default_audio_sample_t   *srcp, *dstp;
         srcp = &(p->inPortBufs[j][i]);
         dstp = &(p->bufs[p->jackBufCnt]->inBufs[j][p->jackBufPos]);
         for (k = 0; k < l; k++)
           dstp[k] = srcp[k];
       }
-      if (p->outputEnabled) {
+    }
+    if (p->outputEnabled) {
+    for (j = 0; j < p->nChannels; j++) {
         jack_default_audio_sample_t   *srcp, *dstp;
         srcp = &(p->bufs[p->jackBufCnt]->outBufs[j][p->jackBufPos]);
         dstp = &(p->outPortBufs[j][i]);
@@ -757,7 +767,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
     else
       rtJack_Abort(csound, p->jackState);
   }
-  nframes = bytes_ / (p->nChannels * (int) sizeof(MYFLT));
+  nframes = bytes_ / (p->nChannels_i * (int) sizeof(MYFLT));
   bufpos = p->csndBufPos;
   bufcnt = p->csndBufCnt;
   for (i = j = 0; i < nframes; i++) {
@@ -777,7 +787,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
       }
     }
     /* copy audio data */
-    for (k = 0; k < p->nChannels; k++)
+    for (k = 0; k < p->nChannels_i; k++)
       inbuf_[j++] = (MYFLT) p->bufs[bufcnt]->inBufs[k][i];
     if (++bufpos >= p->bufSize) {
       bufpos = 0;
@@ -898,7 +908,7 @@ static CS_NOINLINE void rtclose_(CSOUND *csound)
     csound->Sleep((size_t) 50);
     /* unregister and free all ports */
     if (p.inPorts != NULL) {
-      for (i = 0; i < p.nChannels; i++) {
+      for (i = 0; i < p.nChannels_i; i++) {
         if (p.inPorts[i] != NULL && p.jackState != 2)
           jack_port_unregister(p.client, p.inPorts[i]);
       }
