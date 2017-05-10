@@ -65,7 +65,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 - dot calculates the dot product of two arrays
 
 - zero delay filters zdf_1pole_mode, zdf_2pole_mode, zdf_ladder,
-  zdf_1pole and zdf_2pole.xml, diode_ladder
+  zdf_1pole and zdf_2pole.xml, diode_ladder, z35_pf ad K35_lpf
 
 - product takes a numeric array (k or i-rate) and calculates its product.
 
@@ -236,12 +236,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Apr 20 23:25:07 2017 +0100
 
     limit1 **** UNDOCUMENTED ****
-
-commit 5401a742ac7fa13395fae86dd79dd552815dcc97
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Sat Apr 15 14:25:16 2017 -0400
-
-    added k35_lpf and k35_hpf filters
 
 commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
 Author: veplaini <victor.lazzarini@nuim.ie>
