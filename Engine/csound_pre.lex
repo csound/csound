@@ -305,7 +305,7 @@ QNAN            "qnan"[ \t]*\(
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
@@ -342,14 +342,18 @@ QNAN            "qnan"[ \t]*\(
                        csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                     while (1) {
+                       c = input(yyscanner);
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c == '\\') {
                          int newc = input(yyscanner);
                          if (newc == ')')
-                         nn->body[i++] = c;
+                           nn->body[i++] = c;
                          c = newc;
                        }
                        if (UNLIKELY(i > 98)) {
@@ -411,7 +415,7 @@ QNAN            "qnan"[ \t]*\(
 {MACRONAMEDA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                    yytext);
                    yytext[yyleng-2] = '\0';
@@ -448,8 +452,12 @@ QNAN            "qnan"[ \t]*\(
                        csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                     while (1) {
+                       c = input(yyscanner);
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c == '\\') {

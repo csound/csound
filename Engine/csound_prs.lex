@@ -248,7 +248,7 @@ NM              [nm]
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
@@ -285,8 +285,12 @@ NM              [nm]
                        csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                      while (1) {
+                       c = input(yyscanner);
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c == '\\') {
@@ -353,7 +357,7 @@ NM              [nm]
 {MACRONAMEDA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                    yytext);
                    yytext[yyleng-2] = '\0';
@@ -390,8 +394,12 @@ NM              [nm]
                        csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                      while (1) {
+                       c = input(yyscanner);
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c == '\\') {
