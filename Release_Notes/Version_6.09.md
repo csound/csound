@@ -142,6 +142,8 @@ incompatible change)
 - Websocket server can only accept one protocol output, so limiting
   intype to just a single argument
 
+- sum opcode will also sm elements of an array
+
 ### Utilities
 
 - dnoise fixed
@@ -239,12 +241,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Wed Apr 26 10:52:42 2017 +0100
 
     fixed bug in string copying
-
-commit 312136c7820333fc747a4d7945d675b1ceba304e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Apr 21 01:36:53 2017 +0100
-
-    sum **** UNDOCUMENTED ****
 
 commit 680bc4a415a590e0d106982d42383e0c00a55d3c
 Author: veplaini <victor.lazzarini@nuim.ie>
