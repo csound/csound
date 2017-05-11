@@ -83,7 +83,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - It was possible for kr, sr, and ksmps to be inconsistent in one case, no more
 
-- Macro names better policed
+- Macro names better policed and bracket matching
 
 - octal values as \000 can be in strings
 
@@ -101,7 +101,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - Use of the characters  e or s could lead to errors; now fixed
 
-- Macro names better policed
+- Macro names better policed, and bracket matching
 
 - p2 and p3 are now at higher precision and not truncated to 6 decimal places
 
@@ -142,6 +142,8 @@ incompatible change)
 - Websocket server can only accept one protocol output, so limiting
   intype to just a single argument
 
+- sum opcode will also sm elements of an array
+
 ### Utilities
 
 - dnoise fixed
@@ -164,7 +166,7 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 ### General Usage
 
--
+- i using jack te number of inputs and outputs no longer need to match
 
 ## Bugs Fixed
 
@@ -209,9 +211,15 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - iOS
 
+ - iPad portrait SplitView fix+animation, info popover resizing, stop
+   button fix in Soundfile Pitch Shifter. 
+ - Csound-iOS API updates; Examples cleaned up, enhanced/expanded, and reordered. 
+   Manual revised, expanded, updated. Updates to API and examples
+   support iOS 10 and Xcode 8. 
+
 - Android
 
-- Multichannel input and output allowed
+ - Multichannel input and output allowed
 
 - Windows
 
@@ -224,6 +232,12 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 ==END==
 ========================================================================
 UNDOCUMENTED/UNDELETED
+
+commit 365d22b0e9e250b695567fbe26e7aad68c18705d
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu May 11 08:50:45 2017 +0100
+
+    implementing jack MIDI dev list, issue 775
 
 commit e2ced003236636756a567ae84e50fa490f691085
 Author: jpff <jpff@codemist.co.uk>
@@ -239,12 +253,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Wed Apr 26 10:52:42 2017 +0100
 
     fixed bug in string copying
-
-commit 312136c7820333fc747a4d7945d675b1ceba304e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Apr 21 01:36:53 2017 +0100
-
-    sum **** UNDOCUMENTED ****
 
 commit 680bc4a415a590e0d106982d42383e0c00a55d3c
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -377,18 +385,6 @@ Author: vlazzarini <victor.lazzarini@nuim.ie>
 Date:   Mon Jan 23 10:33:54 2017 +0000
 
     Own ugens and initial port of some supercollider ugens
-
-commit 5b6178ea6fa1058cd7d5425598f67fbeadde09e5
-Author: Nikhil Singh <nsingh1@berklee.edu>
-Date:   Fri Jan 20 20:30:49 2017 -0500
-
-    iPad portrait SplitView fix+animation, info popover resizing, stop button fix in Soundfile Pitch Shifter.
-
-commit 548063327b8ccf8fbf3c76151c0659b1855ba88c
-Author: Nikhil Singh <nsingh1@berklee.edu>
-Date:   Fri Jan 20 15:13:12 2017 -0500
-
-    Csound-iOS API updates, deprecations+warnings addressed. Csound-iOS Examples cleaned up, enhanced/expanded, and reordered. Csound-iOS Manual revised, expanded, updated. Updates to API and examples support iOS 10 and Xcode 8.
 
 commit d5ca5b311fa7ef077d916b3087807ea4bd39e41b
 Author: Francois PINOT <fggpinot@gmail.com>
