@@ -211,9 +211,15 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - iOS
 
+ - iPad portrait SplitView fix+animation, info popover resizing, stop
+   button fix in Soundfile Pitch Shifter. 
+ - Csound-iOS API updates; Examples cleaned up, enhanced/expanded, and reordered. 
+   Manual revised, expanded, updated. Updates to API and examples
+   support iOS 10 and Xcode 8. 
+
 - Android
 
-- Multichannel input and output allowed
+ - Multichannel input and output allowed
 
 - Windows
 
@@ -373,18 +379,6 @@ Author: vlazzarini <victor.lazzarini@nuim.ie>
 Date:   Mon Jan 23 10:33:54 2017 +0000
 
     Own ugens and initial port of some supercollider ugens
-
-commit 5b6178ea6fa1058cd7d5425598f67fbeadde09e5
-Author: Nikhil Singh <nsingh1@berklee.edu>
-Date:   Fri Jan 20 20:30:49 2017 -0500
-
-    iPad portrait SplitView fix+animation, info popover resizing, stop button fix in Soundfile Pitch Shifter.
-
-commit 548063327b8ccf8fbf3c76151c0659b1855ba88c
-Author: Nikhil Singh <nsingh1@berklee.edu>
-Date:   Fri Jan 20 15:13:12 2017 -0500
-
-    Csound-iOS API updates, deprecations+warnings addressed. Csound-iOS Examples cleaned up, enhanced/expanded, and reordered. Csound-iOS Manual revised, expanded, updated. Updates to API and examples support iOS 10 and Xcode 8.
 
 commit d5ca5b311fa7ef077d916b3087807ea4bd39e41b
 Author: Francois PINOT <fggpinot@gmail.com>
