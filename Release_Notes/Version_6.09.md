@@ -83,7 +83,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - It was possible for kr, sr, and ksmps to be inconsistent in one case, no more
 
-- Macro names better policed
+- Macro names better policed and bracket matching
 
 - octal values as \000 can be in strings
 
@@ -101,7 +101,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - Use of the characters  e or s could lead to errors; now fixed
 
-- Macro names better policed
+- Macro names better policed, and bracket matching
 
 - p2 and p3 are now at higher precision and not truncated to 6 decimal places
 
@@ -166,7 +166,7 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 ### General Usage
 
--
+- i using jack te number of inputs and outputs no longer need to match
 
 ## Bugs Fixed
 
@@ -232,6 +232,12 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 ==END==
 ========================================================================
 UNDOCUMENTED/UNDELETED
+
+commit 365d22b0e9e250b695567fbe26e7aad68c18705d
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu May 11 08:50:45 2017 +0100
+
+    implementing jack MIDI dev list, issue 775
 
 commit e2ced003236636756a567ae84e50fa490f691085
 Author: jpff <jpff@codemist.co.uk>
