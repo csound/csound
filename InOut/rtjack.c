@@ -351,8 +351,8 @@ static void openJackStreams(RtJackGlobals *p)
   if (UNLIKELY(p->nChannels < 1 || p->nChannels > 255))
     rtJack_Error(csound, -1, Str("invalid number of channels"));
   if (p->inputEnabled) {
- if (UNLIKELY(p->nChannels_i < 1 || p->nChannels > 255))
-    rtJack_Error(csound, -1, Str("invalid number of input channels"));
+    if (UNLIKELY(p->nChannels_i < 1 || p->nChannels > 255))
+      rtJack_Error(csound, -1, Str("invalid number of input channels"));
   }
   if (UNLIKELY(p->sampleRate < 1000 || p->sampleRate > 768000))
     rtJack_Error(csound, -1, Str("invalid sample rate"));
@@ -594,7 +594,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p,
     rtJack_Error(csound, -1, Str("sample rate must be an integer"));
   if(isOutput) p->nChannels = parm->nChannels;
   else p->nChannels_i = parm->nChannels;
- 
+
   p->bufSize = parm->bufSamp_SW;
   p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
 
@@ -698,7 +698,7 @@ static int processCallback(jack_nframes_t nframes, void *arg)
     l = p->bufSize - p->jackBufPos;
     l = (l < k ? l : k);      /* number of frames to copy */
    if (p->inputEnabled) {
-    for (j = 0; j < p->nChannels_i; j++) {
+     for (j = 0; j < p->nChannels_i; j++) {
         jack_default_audio_sample_t   *srcp, *dstp;
         srcp = &(p->inPortBufs[j][i]);
         dstp = &(p->bufs[p->jackBufCnt]->inBufs[j][p->jackBufPos]);
