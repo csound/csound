@@ -1236,10 +1236,12 @@ static int midi_in_read(CSOUND *csound,
 
 static int midi_in_close(CSOUND *csound, void *userData){
   jackMidiDevice *dev = (jackMidiDevice *) userData;
+  if(dev != NULL) {
   jack_port_disconnect(dev->client, dev->port);
   jack_client_close(dev->client);
   csound->DestroyCircularBuffer(csound, dev->cb);
   csound->Free(csound, dev);
+  }
   return OK;
 }
 
@@ -1346,18 +1348,92 @@ static int midi_out_write(CSOUND *csound,
 
 static int midi_out_close(CSOUND *csound, void *userData){
   jackMidiDevice *dev = (jackMidiDevice *) userData;
+  if(dev != NULL) {
   jack_port_disconnect(dev->client, dev->port);
   jack_client_close(dev->client);
   csound->DestroyCircularBuffer(csound, dev->cb);
   csound->Free(csound, dev);
+  }
   return OK;
 }
 
 static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
                         int isOutput){
-  IGN(csound);
+  char            **portNames = (char**) NULL, port[64];
+  unsigned long   portFlags;
+  int             i, n, cnt=0;
+  jack_client_t *jackClient;
+  RtJackGlobals* p =
+    (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
+                                                        "_rtjackGlobals");
+  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
+
+  if(p->listclient == NULL)
+    p->listclient = jack_client_open("list", JackNoStartServer, NULL);
+
+  jackClient  = p->listclient;
+
+  if(jackClient == NULL) return 0;
+  portFlags = (isOutput ? (unsigned long) JackPortIsInput
+               : (unsigned long) JackPortIsOutput);
+
+  portNames = (char**) jack_get_ports(jackClient,
+                                      (char*) NULL,
+                                      JACK_DEFAULT_MIDI_TYPE,
+                                      portFlags);
+  if(portNames == NULL) {
+    jack_client_close(jackClient);
+    p->listclient = NULL;
+    return 0;
+  }
+
+  memset(port, '\0', 64);
+  for(i=0; portNames[i] != NULL; i++, cnt++) {
+    n = (int) strlen(portNames[i]);
+    strncpy(port, portNames[i], n);
+    port[n] = '\0';
+    if (list != NULL) {
+      strncpy(list[cnt].device_name, port, 63);
+      snprintf(list[cnt].device_id, 63, "%d", cnt);
+      list[cnt].isOutput = isOutput;
+      strcpy(list[i].interface_name, "");
+      strncpy(list[i].midi_module, drv, 63);
+    }
+  }
+  jack_free(portNames);
+  jack_client_close(jackClient);
+  p->listclient = NULL;
+  return cnt;
   return 0;
 }
+
+/*
+static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
+  int i, cnt;
+  PmDeviceInfo  *info;
+  char tmp[64];
+  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
+
+  if (UNLIKELY(start_portmidi(csound) != 0))
+      return 0;
+
+  cnt = portMidi_getDeviceCount(isOutput);
+  if (list == NULL) return cnt;
+  for (i = 0; i < cnt; i++) {
+      info = portMidi_getDeviceInfo(i, isOutput);
+      if(info->name != NULL)
+      strncpy(list[i].device_name, info->name, 63);
+      snprintf(tmp, 64, "%d", i);
+      strncpy(list[i].device_id, tmp, 63);
+      list[i].isOutput = isOutput;
+      if (info->interf != NULL)
+         strncpy(list[i].interface_name, info->interf, 63);
+      else strcpy(list[i].interface_name, "");
+     strncpy(list[i].midi_module, drv, 63);
+  }
+  return cnt;
+}
+*/
 
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
