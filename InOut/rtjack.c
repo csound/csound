@@ -1237,10 +1237,10 @@ static int midi_in_read(CSOUND *csound,
 static int midi_in_close(CSOUND *csound, void *userData){
   jackMidiDevice *dev = (jackMidiDevice *) userData;
   if(dev != NULL) {
-  jack_port_disconnect(dev->client, dev->port);
-  jack_client_close(dev->client);
-  csound->DestroyCircularBuffer(csound, dev->cb);
-  csound->Free(csound, dev);
+    jack_port_disconnect(dev->client, dev->port);
+    jack_client_close(dev->client);
+    csound->DestroyCircularBuffer(csound, dev->cb);
+    csound->Free(csound, dev);
   }
   return OK;
 }
