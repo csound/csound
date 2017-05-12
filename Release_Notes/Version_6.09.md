@@ -1,4 +1,4 @@
-!---
+d !---
 
 To maintain this document use the following markdown:
 
@@ -32,27 +32,27 @@ memory leaks fixed and more robust code.
 
 ### New opcodes
 
-- select -- sample-by-sample comparison of audio selecting the output
+- select -- sample-by-sample comparison of audio selecting the output.
 
 - midiarp opcode generates arpeggios based on currently held MIDI notes.
 
 - hilbert2 --  a DFT-based implementation of a Hilbert transformer.
 
-- Ableton Link opcodes for synchronizing tempo and beat across local area networks.
+- Ableton Link opcodes -- for synchronizing tempo and beat across local area networks.
 
 - pvstrace -- retain only the N loudest bins.
 
 - several new unary functions/opcodes for k-rate and i-time numeric
 arrays: ceil, floor, round, int, frac, powoftwo, abs, log2, log10,
 log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh,
-cbrt, limit1
+cbrt, limit1.
 
 - several new binary functions/opcodes for k-rate and i-time numeric
 arrays: atan2, pow,hypot, fmod, fmax, fmin.
 
-- limit -- numeric limiting within a given range (for arrays)
+- limit -- numeric limiting within a given range (for arrays).
 
-- tvconv -- a time-varying convolution (FIR filter) opcode
+- tvconv -- a time-varying convolution (FIR filter) opcode.
 
 - bpf, xyscale, ntom, mton (from SuperCollider?)
 
@@ -75,43 +75,41 @@ using liblo has been kept as OSCsend_lo.
 
 - product takes a numeric array (k or i-rate) and calculates its product.
 
-- supercollider ugens: sc_phasor, sc_lag, sc_lagud, sc_trig added
+- supercollider ugens: sc_phasor, sc_lag, sc_lagud, sc_trig added.
 
 ### New Gen and Macros
-
-
 
 -
 
 ### Orchestra
 
-- Including a directory of UDO files no longer fails if more than about 20 entries
+- Including a directory of UDO files no longer fails if more than about 20 entries.
 
-- It was possible for kr, sr, and ksmps to be inconsistent in one case, no more
+- It was possible for kr, sr, and ksmps to be inconsistent in one case, no more.
 
-- Macro names better policed and bracket matching
+- Macro names better policed and bracket matching.
 
-- octal values as \000 can be in strings
+- Octal values as \000 can be in strings
 
 ### Score
 
-- Improved line number reporting in r opcode and case with no macro implemented
+- Improved line number reporting in r opcode and case with no macro implemented.
 
 - m and n opcodes fixed
 
-- Expansion of [...] corrected and improved
+- Expansion of [...] corrected and improved.
 
 - Strings in scores improved
 
-- The ) character can be in a macro argument if it is escaped with \
+- The ) character can be in a macro argument if it is escaped with \.
 
-- Use of the characters  e or s could lead to errors; now fixed
+- Use of the characters  e or s could lead to errors; now fixed.
 
-- Macro names better policed, and bracket matching
+- Macro names better policed, and bracket matching.
 
 - p2 and p3 are now at higher precision and not truncated to 6 decimal places
 
-- new opcode d to switch off infinite notes (denote); same as i with negative p1
+- new opcode d to switch off infinite notes (denote); same as i with negative p1.
 
 - named instruments can be turned off with i if a - follows the "
 
@@ -126,35 +124,35 @@ using liblo has been kept as OSCsend_lo.
 - hdf5read opcode now reads entire data sets when dataset name string
   is suffixed with an asterisk
 
-- use of non power-of-two lengths now acceptable where before it was inconsistent
+- use of non power-of-two lengths now acceptable where before it was inconsistent.
 
-- ampmidid optionally can be aware of 0dbfs
+- ampmidid optionally can be aware of 0dbfs.
 
 - dust and dust2 at k-rate now conform to the manual (NOTE: this is an
 incompatible change)
 
 - In prints the format %% now prints one %
 
-- OSClisten can be used with no data outputs
+- OSClisten can be used with no data outputs.
 
-- GEN18 corrected to write to requested range
+- GEN18 corrected to write to requested range.
 
-- sockrev now can read strings
+- sockrev now can read strings.
 
 - vbap system can in some cases allow arbitrary number of speakers via
   arrays (work in progress)
 
 - Websocket server can only accept one protocol output, so limiting
-  intype to just a single argument
+  intype to just a single argument.
 
-- sum opcode will also sum elements of an array
+- sum opcode will also sum elements of an array.
 
 - Overloaded pvs2tab and tab2pvs now can create and use split
-magnitude and phase arrays
+magnitude and phase arrays.
 
 ### Utilities
 
-- dnoise fixed
+- dnoise fixed.
 
 ### Frontends
 
@@ -165,6 +163,7 @@ magnitude and phase arrays
 - csdebugger:
 
 - HTML5
+
  - Removed HTML5 Csound editor which has quit working.
 
 - Emscripten:
@@ -178,47 +177,49 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 ## Bugs Fixed
 
-- pwd works on OSX
+- pwd works on OSX.
 
-- fencepost error in sensLine fixed
+- Fencepost error in sensLine fixed.
 
-- OSCsend corrected for caching of host name
+- OSCsend corrected for caching of host name.
 
-- bug in push/pop opcodes fixed (this opcode is now a plugin and deprecated)
+- Bug in push/pop opcodes fixed (this opcode is now a plugin and deprecated).
 
-- bug in sprintf removed
+- Bug in sprintf removed.
 
-- bug in soundin removed
+- Bug in soundin removed.
 
-- losci/losci3 fixed i case of long tables
+- losci/losci3 fixed i case of long tables.
 
--  inrg was broke for a while
+- inrg was broke for a while.
 
 - Partikkel channelmask panning laws had an indexing error, now fixed.
 
-- jack audio module now allows for independent numbers of in and out
-channels
+- jack audio module now allows for independent numbers of in and out channels.
 
-- bug in string copying fixed.
+- Bug in string copying fixed.
 
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
 
-- soundin now uses the diskin2 code
+- soundin now uses the diskin2 code.
 
 - out family of opcodes reworked to reduce interleaving costs and to
   take proper regard if nchnls value.
 
 ### API
 
-- New `csound_threaded.hpp` header obviating need for `csPerfThread.cpp` object in some projects.
+- New `csound_threaded.hpp` header-only facility, obviating need for 
+`csPerfThread.cpp` object in some projects.
 
-- added GetA4 function
+- Added GetA4 function.
 
-- New framework for plugin opcode development in C++.
+- New framework for plugin opcode development in C++ using Csound's allocator.
 
-- added StrDup function
+- Added StrDup function.
+
+- Boost dependencies removed from Csound interfaces, CsoundAC, and CsoundVST.
 
 ### Platform Specific
 
@@ -226,17 +227,18 @@ channels
 
  - iPad portrait SplitView fix+animation, info popover resizing, stop
    button fix in Soundfile Pitch Shifter. 
+
  - Csound-iOS API updates; Examples cleaned up, enhanced/expanded, and reordered. 
    Manual revised, expanded, updated. Updates to API and examples
    support iOS 10 and Xcode 8. 
 
 - Android
 
- - Multichannel input and output allowed
+ - Multichannel input and output allowed.
 
 - Windows
 
- - csound64.lib import library added to Windows installer
+ - csound64.lib import library added to Windows installer.
 
 - OSX
 
