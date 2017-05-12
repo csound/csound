@@ -58,6 +58,7 @@ make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
 make_plugin(getftargs getftargs.c)
+make_plugin(liveconv liveconv.c)
 
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
