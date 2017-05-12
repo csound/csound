@@ -302,6 +302,7 @@
 ./Opcodes/linear_algebra.cpp
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h
+./Opcodes/liveconv.c
 ./Opcodes/locsig.c
 ./Opcodes/locsig.h
 ./Opcodes/loscilx.c
