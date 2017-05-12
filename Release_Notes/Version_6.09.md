@@ -44,16 +44,22 @@ memory leaks fixed and more robust code.
 
 - several new unary functions/opcodes for k-rate and i-time numeric
 arrays: ceil, floor, round, int, frac, powoftwo, abs, log2, log10,
-log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
+log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh,
+cbrt, limit1
 
 - several new binary functions/opcodes for k-rate and i-time numeric
-  arrays: atan2, pow,hypot, fmod, fmax, fmin.
+arrays: atan2, pow,hypot, fmod, fmax, fmin.
+
+- limit -- numeric limiting within a given range (for arrays)
 
 - tvconv -- a time-varying convolution (FIR filter) opcode
 
 - bpf, xyscale, ntom, mton (from SuperCollider?)
 
 - OSCsendA asynchronous version of OSCsend
+
+- OSCsend now implemented directly using system sockets. Old version
+using liblo has been kept as OSCsend_lo.
 
 - OSCraw to listen for all OSC messages at a given port.
 
@@ -109,10 +115,9 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh, cbrt.
 
 - named instruments can be turned off with i if a - follows the "
 
-
 ### Options
 
--
+- jack midi module now can report available devices under --midi-devices
 
 ### Modified Opcodes and Gens
 
@@ -142,7 +147,10 @@ incompatible change)
 - Websocket server can only accept one protocol output, so limiting
   intype to just a single argument
 
-- sum opcode will also sm elements of an array
+- sum opcode will also sum elements of an array
+
+- Overloaded pvs2tab and tab2pvs now can create and use split
+magnitude and phase arrays
 
 ### Utilities
 
@@ -187,6 +195,11 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 -  inrg was broke for a while
 
 - Partikkel channelmask panning laws had an indexing error, now fixed.
+
+- jack audio module now allows for independent numbers of in and out
+channels
+
+- bug in string copying fixed.
 
 ## SYSTEM LEVEL CHANGES
 
@@ -233,12 +246,6 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 ========================================================================
 UNDOCUMENTED/UNDELETED
 
-commit 365d22b0e9e250b695567fbe26e7aad68c18705d
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu May 11 08:50:45 2017 +0100
-
-    implementing jack MIDI dev list, issue 775
-
 commit e2ced003236636756a567ae84e50fa490f691085
 Author: jpff <jpff@codemist.co.uk>
 Date:   Sun May 7 15:54:43 2017 +0100
@@ -247,55 +254,6 @@ Date:   Sun May 7 15:54:43 2017 +0100
      in series in an instrument, the argument names of the second opcode instance
      would be incorrect due to directly changing the last string character of the
      first when reading an entire dataset.
-
-commit 209e721fca961716ddb776ad475c8fc71de3ae89
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Apr 26 10:52:42 2017 +0100
-
-    fixed bug in string copying
-
-commit 680bc4a415a590e0d106982d42383e0c00a55d3c
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Apr 20 23:25:07 2017 +0100
-
-    limit1 **** UNDOCUMENTED ****
-
-commit 9dd10ea83e7609e0d1d4ffb54106cbeb793796d5
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Apr 11 22:31:02 2017 +0100
-
-    trying to set non-blocking mode on windows
-
-commit 88b1db83f81655420375109302e7aa6ead4f8839
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Apr 6 22:27:31 2017 +0100
-
-    D OSC type
-
-commit 193b3838dc14dd11ead838f89eb255260e790c65
-commit 6323888c28515c4365dd1ca429a968bf97862d38
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Apr 6 06:28:48 2017 +0100
-
-    trying to deal with bundles again
-
-commit 2fff5566ada754c47ad443c3b47d03ebe389eb95
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Apr 5 21:45:11 2017 +0100
-
-    trying to deal with bundles
-
-commit 9526f92ac0a1908be632017dc9034a997f49d97e
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Apr 5 18:33:47 2017 +0100
-
-    ignoring bundles 2
-
-commit 92de2b90b6ea260cef6a8d714e91921d99c17307
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Apr 3 20:31:07 2017 +0100
-
-    G type fixed
 
 commit 3814b45a7c804b09ac1944f76eeac52615c7a88c
 Author: Steven Yi <stevenyi@gmail.com>
@@ -308,53 +266,6 @@ Date:   Mon Mar 6 22:54:31 2017 +0000
 
     Fixed HDF5 opcodes
 
-commit 424d9de6a90d742c99771ed50601e0f69b1d6377
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Mar 6 15:00:15 2017 +0000
-
-    reversed counts
-
-commit 1348e0c47a7ca69e400d9db93a357df2f45f5f94
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Mar 6 13:58:59 2017 +0000
-
-    argument counting for plugin class
-
-commit 40892fc005d6faa21d90dfcfaf4ffc67e1d336e6
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Feb 20 20:37:42 2017 +0000
-
-    const iterators
-
-commit 400c72d543a888795b0db175c7b6088d7efefd1c
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sun Feb 19 21:26:44 2017 +0000
-
-    support for audio sig vars
-
-commit a6ecadda14cf98b02d3faa4d0a95ad912765ff8b
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Feb 9 18:37:02 2017 +0000
-
-    pvs loops straightened
-
-commit 4ed3d0303f328744ae7226751f90ff476195317f
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Feb 6 09:49:28 2017 +0000
-
-    array offsets corrected for audio var iterator
-
-commit c66873d96b7334dc7648ee9ae05d46a0b4e7c4a4
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Feb 2 12:29:05 2017 +0000
-
-    added deinit support to plugin framework
-
-commit 8d91c2c4537099c315250d83f5f8dd7165c71dd5
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Mon Jan 30 12:46:06 2017 +0000
-
-    pvsbin methods
 
 commit 284a0a9e4852df4a2c20aa96bb2a54772f39298f
 Author: Michael Gogins <michael.gogins@gmail.com>
@@ -362,39 +273,10 @@ Date:   Sun Jan 29 15:38:11 2017 -0500
 
     Resolved difficulties with stopping and restarting in CsoundThreaded hosts.
 
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Jan 28 18:08:28 2017 +0000
-
-    added csd and support for arrays to CPOF
-
-commit 1fb13a751927e4ffd1875eff8e9cd09e83a7a630
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Jan 27 18:14:15 2017 +0000
-
-    AuxAllocAsync
-
 commit a7270c581be57ff61e6428003bde35a7907e43c2
 Author: Michael Gogins <michael.gogins@gmail.com>
 Date:   Thu Jan 26 19:14:34 2017 -0500
 
     Added CsoundThreaded class in csound_threaded.hpp.
 
-
-commit df523604caf36367f285a7c8e4c087a7e87d73f9
-Author: vlazzarini <victor.lazzarini@nuim.ie>
-Date:   Mon Jan 23 10:33:54 2017 +0000
-
-    Own ugens and initial port of some supercollider ugens
-
-commit d5ca5b311fa7ef077d916b3087807ea4bd39e41b
-Author: Francois PINOT <fggpinot@gmail.com>
-Date:   Thu Jan 12 19:31:02 2017 +0100
-
-    Added getA4 to ctcsound.py
-
-commit 95c84c040537fd5c637bf42d3ee76f4d07ce5e75
-Author: Edward Costello <phasereset@gmail.com>
-Date:   Wed Dec 7 00:27:47 2016 +0000
-
-    Overloaded pvs2tab and tab2pvs so they can create and use split magnitude and phase arrays
 
