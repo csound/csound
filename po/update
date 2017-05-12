@@ -20,6 +20,9 @@ mv new.po italian.po
 msgmerge es_CO.po /tmp/str -o new.po
 mv es_CO.po old_es_CO.po
 mv new.po es_CO.po
+msgmerge spanish.po /tmp/str -o new.po
+mv spanish.po old_spanish.po
+mv new.po spanish.po
 msgmerge russian.po /tmp/str -o new.po
 mv russian.po old_russian.po
 mv new.po russian.po

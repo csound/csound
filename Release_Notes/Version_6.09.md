@@ -173,7 +173,6 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 ### General Usage
 
-- i using jack te number of inputs and outputs no longer need to match
 
 ## Bugs Fixed
 
@@ -189,7 +188,7 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - Bug in soundin removed.
 
-- losci/losci3 fixed i case of long tables.
+- losci/losci3 fixed in case of long tables.
 
 - inrg was broke for a while.
 
@@ -198,6 +197,11 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 - jack audio module now allows for independent numbers of in and out channels.
 
 - Bug in string copying fixed.
+
+- Bug in hdf5read where if two hdf5read opcodes were placed in series
+  in an instrument, the argument names of the second opcode instance
+  would be incorrect due to directly changing the last string
+  character of the first when reading an entire dataset. 
 
 ## SYSTEM LEVEL CHANGES
 
@@ -248,37 +252,13 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 ========================================================================
 UNDOCUMENTED/UNDELETED
 
-commit e2ced003236636756a567ae84e50fa490f691085
 Author: jpff <jpff@codemist.co.uk>
 Date:   Sun May 7 15:54:43 2017 +0100
 
-    Bug in hdf5read where if two hdf5read opcodes were placed
-     in series in an instrument, the argument names of the second opcode instance
-     would be incorrect due to directly changing the last string character of the
-     first when reading an entire dataset.
 
 commit 3814b45a7c804b09ac1944f76eeac52615c7a88c
 Author: Steven Yi <stevenyi@gmail.com>
+
 Date:   Sat Apr 1 18:05:13 2017 -0400
 
     fix for pmidi.c and csoundLock/UnLock: add include of csGblMtx.h, fix setting of HAVE_PTHREAD for all targets instead of just for libcsound64
-
-Author: Edward Costello <phasereset@gmail.com>
-Date:   Mon Mar 6 22:54:31 2017 +0000
-
-    Fixed HDF5 opcodes
-
-
-commit 284a0a9e4852df4a2c20aa96bb2a54772f39298f
-Author: Michael Gogins <michael.gogins@gmail.com>
-Date:   Sun Jan 29 15:38:11 2017 -0500
-
-    Resolved difficulties with stopping and restarting in CsoundThreaded hosts.
-
-commit a7270c581be57ff61e6428003bde35a7907e43c2
-Author: Michael Gogins <michael.gogins@gmail.com>
-Date:   Thu Jan 26 19:14:34 2017 -0500
-
-    Added CsoundThreaded class in csound_threaded.hpp.
-
-
