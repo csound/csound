@@ -31,6 +31,8 @@ inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
 //extern
 inline MYFLT lim1(MYFLT f) { return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0); }
 
+inline MYFLT limx(MYFLT f, MYFLT v1, MYFLT v2) { return f > v1 ? (f < v2 ? f : v2) : v1; }
+
 /** i-time, k-rate operator
     kout[] op kin[]
  */
@@ -79,6 +81,59 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
                    inargs.myfltvec_data(1));
   }
 };
+
+/** i-time, k-rate binary operator with array and scalar
+    kout[] op kin1[], kin2
+ */
+template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
+
+  int process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT v) {
+    for(MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
+      *o = bop(*s, v);
+    return OK;
+  }
+
+  int init() {
+    csnd::myfltvec &out = outargs.myfltvec_data(0);
+    csnd::myfltvec &in = inargs.myfltvec_data(0);
+    MYFLT v = inargs[1];
+    out.init(csound, in.len());
+    return process(out, in, v);
+  }
+
+  int kperf() {
+    return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
+                   inargs[1]);
+  }
+};
+
+/** i-time, k-rate binary operator with array and two scalar
+    kout[] op kin1[], kin2, kin3
+ */
+template <MYFLT (*trop)(MYFLT, MYFLT, MYFLT)> struct ArrayOp4 : csnd::Plugin<1, 3> {
+
+  int process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT v1, MYFLT v2) {
+    for(MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
+      *o = trop(*s, v1, v2);
+    return OK;
+  }
+
+  int init() {
+    csnd::myfltvec &out = outargs.myfltvec_data(0);
+    csnd::myfltvec &in = inargs.myfltvec_data(0);
+    MYFLT v1 = inargs[1];
+    MYFLT v2 = inargs[2];
+    out.init(csound, in.len());
+    return process(out, in, v1, v2);
+  }
+
+  int kperf() {
+    return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
+                   inargs[1], inargs[2]);
+  }
+};
+
+
 
 /** i-time, k-rate operator
     kout[] sort[a,d] kin[]
@@ -271,4 +326,24 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "k", "k[]", csnd::thread::ik);
   csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "i", "i[]", csnd::thread::i);
   csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "i", "i[]", csnd::thread::i);
+  csnd::plugin<ArrayOp4<limx>>(csound, "limit", "i[]", "i[]ii",
+                                   csnd::thread::i);
+  csnd::plugin<ArrayOp4<limx>>(csound, "limit", "k[]", "k[]kk",
+                                   csnd::thread::ik);
+  csnd::plugin<ArrayOp3<std::pow>>(csound, "pow", "i[]", "i[]i",
+                                   csnd::thread::i);
+  csnd::plugin<ArrayOp3<std::pow>>(csound, "pow", "k[]", "k[]k",
+                                   csnd::thread::ik);
+  csnd::plugin<ArrayOp3<std::fmod>>(csound, "fmod", "i[]", "i[]i",
+                                    csnd::thread::i);
+  csnd::plugin<ArrayOp3<std::fmod>>(csound, "fmod", "k[]", "k[]k",
+                                    csnd::thread::ik);
+  csnd::plugin<ArrayOp3<std::fmax>>(csound, "fmax", "i[]", "i[]i",
+                                    csnd::thread::i);
+  csnd::plugin<ArrayOp3<std::fmax>>(csound, "fmax", "k[]", "k[]k",
+                                    csnd::thread::ik);
+  csnd::plugin<ArrayOp3<std::fmin>>(csound, "fmin", "i[]", "i[]i",
+                                    csnd::thread::i);
+  csnd::plugin<ArrayOp3<std::fmin>>(csound, "fmin", "k[]", "k[]k",
+                                    csnd::thread::ik);
 }
