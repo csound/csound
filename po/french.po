@@ -585,67 +585,67 @@ msgid "No number following instr\n"
 msgstr "Aucun numéro ne suit instr\n"
 
 #: Engine/csound_pre.lex:234 Engine/csound_pre.lex:272
-#: Engine/csound_pre.lex:314 Engine/csound_pre.lex:420
+#: Engine/csound_pre.lex:314 Engine/csound_pre.lex:424
 #: Engine/csound_prs.lex:161 Engine/csound_prs.lex:209
-#: Engine/csound_prs.lex:257 Engine/csound_prs.lex:362
+#: Engine/csound_prs.lex:257 Engine/csound_prs.lex:366
 #, c-format
 msgid "Undefined macro: '%s'"
 msgstr "Macro non définie : '%s'"
 
 #: Engine/csound_pre.lex:245 Engine/csound_pre.lex:283
 #: Engine/csound_pre.lex:327 Engine/csound_pre.lex:332
-#: Engine/csound_pre.lex:342 Engine/csound_pre.lex:364
-#: Engine/csound_pre.lex:382 Engine/csound_pre.lex:433
-#: Engine/csound_pre.lex:438 Engine/csound_pre.lex:448
-#: Engine/csound_pre.lex:469 Engine/csound_pre.lex:487
-#: Engine/csound_pre.lex:863 Engine/csound_pre.lex:897
-#: Engine/csound_pre.lex:903 Engine/csound_pre.lex:916
-#: Engine/csound_pre.lex:924 Engine/csound_pre.lex:932
-#: Engine/csound_pre.lex:943 Engine/csound_pre.lex:952
-#: Engine/csound_pre.lex:960 Engine/csound_pre.lex:1005
-#: Engine/csound_pre.lex:1017 Engine/csound_pre.lex:1031
-#: Engine/csound_pre.lex:1040 Engine/csound_pre.lex:1062
-#: Engine/csound_pre.lex:1070 Engine/csound_pre.lex:1105
-#: Engine/csound_pre.lex:1115 Engine/csound_pre.lex:1124
-#: Engine/csound_pre.lex:1181 Engine/csound_pre.lex:1324
-#: Engine/csound_pre.lex:1337 Engine/csound_pre.lex:1352
+#: Engine/csound_pre.lex:342 Engine/csound_pre.lex:368
+#: Engine/csound_pre.lex:386 Engine/csound_pre.lex:437
+#: Engine/csound_pre.lex:442 Engine/csound_pre.lex:452
+#: Engine/csound_pre.lex:477 Engine/csound_pre.lex:495
+#: Engine/csound_pre.lex:871 Engine/csound_pre.lex:905
+#: Engine/csound_pre.lex:911 Engine/csound_pre.lex:924
+#: Engine/csound_pre.lex:932 Engine/csound_pre.lex:940
+#: Engine/csound_pre.lex:951 Engine/csound_pre.lex:960
+#: Engine/csound_pre.lex:968 Engine/csound_pre.lex:1013
+#: Engine/csound_pre.lex:1025 Engine/csound_pre.lex:1039
+#: Engine/csound_pre.lex:1048 Engine/csound_pre.lex:1070
+#: Engine/csound_pre.lex:1078 Engine/csound_pre.lex:1113
+#: Engine/csound_pre.lex:1123 Engine/csound_pre.lex:1132
+#: Engine/csound_pre.lex:1189 Engine/csound_pre.lex:1332
+#: Engine/csound_pre.lex:1345 Engine/csound_pre.lex:1360
 #: Engine/csound_prs.lex:176 Engine/csound_prs.lex:225
 #: Engine/csound_prs.lex:270 Engine/csound_prs.lex:275
-#: Engine/csound_prs.lex:285 Engine/csound_prs.lex:306
-#: Engine/csound_prs.lex:324 Engine/csound_prs.lex:375
-#: Engine/csound_prs.lex:380 Engine/csound_prs.lex:390
-#: Engine/csound_prs.lex:411 Engine/csound_prs.lex:429
-#: Engine/csound_prs.lex:652 Engine/csound_prs.lex:699
-#: Engine/csound_prs.lex:737 Engine/csound_prs.lex:819
-#: Engine/csound_prs.lex:990 Engine/csound_prs.lex:1018
-#: Engine/csound_prs.lex:1024 Engine/csound_prs.lex:1037
-#: Engine/csound_prs.lex:1045 Engine/csound_prs.lex:1053
-#: Engine/csound_prs.lex:1064 Engine/csound_prs.lex:1073
-#: Engine/csound_prs.lex:1081 Engine/csound_prs.lex:1126
-#: Engine/csound_prs.lex:1138 Engine/csound_prs.lex:1152
-#: Engine/csound_prs.lex:1161 Engine/csound_prs.lex:1183
-#: Engine/csound_prs.lex:1191 Engine/csound_prs.lex:1227
-#: Engine/csound_prs.lex:1237 Engine/csound_prs.lex:1246
-#: Engine/csound_prs.lex:1303 Engine/csound_prs.lex:1409
-#: Engine/csound_prs.lex:1422 Engine/csound_prs.lex:1437
+#: Engine/csound_prs.lex:285 Engine/csound_prs.lex:310
+#: Engine/csound_prs.lex:328 Engine/csound_prs.lex:379
+#: Engine/csound_prs.lex:384 Engine/csound_prs.lex:394
+#: Engine/csound_prs.lex:419 Engine/csound_prs.lex:437
+#: Engine/csound_prs.lex:660 Engine/csound_prs.lex:707
+#: Engine/csound_prs.lex:745 Engine/csound_prs.lex:827
+#: Engine/csound_prs.lex:998 Engine/csound_prs.lex:1026
+#: Engine/csound_prs.lex:1032 Engine/csound_prs.lex:1045
+#: Engine/csound_prs.lex:1053 Engine/csound_prs.lex:1061
+#: Engine/csound_prs.lex:1072 Engine/csound_prs.lex:1081
+#: Engine/csound_prs.lex:1089 Engine/csound_prs.lex:1134
+#: Engine/csound_prs.lex:1146 Engine/csound_prs.lex:1160
+#: Engine/csound_prs.lex:1169 Engine/csound_prs.lex:1191
+#: Engine/csound_prs.lex:1199 Engine/csound_prs.lex:1235
+#: Engine/csound_prs.lex:1245 Engine/csound_prs.lex:1254
+#: Engine/csound_prs.lex:1311 Engine/csound_prs.lex:1417
+#: Engine/csound_prs.lex:1430 Engine/csound_prs.lex:1445
 msgid "Memory exhausted"
 msgstr "Plus de mémoire"
 
 #: Engine/csound_pre.lex:259 Engine/csound_pre.lex:297
-#: Engine/csound_pre.lex:404 Engine/csound_pre.lex:502
+#: Engine/csound_pre.lex:408 Engine/csound_pre.lex:510
 #: Engine/csound_prs.lex:190 Engine/csound_prs.lex:195
-#: Engine/csound_prs.lex:239 Engine/csound_prs.lex:346
-#: Engine/csound_prs.lex:448
+#: Engine/csound_prs.lex:239 Engine/csound_prs.lex:350
+#: Engine/csound_prs.lex:456
 msgid "macros/include nested too deep: "
 msgstr "Imbrication des macros/include trop profonde"
 
-#: Engine/csound_pre.lex:347 Engine/csound_pre.lex:453
-#: Engine/csound_prs.lex:290 Engine/csound_prs.lex:395
+#: Engine/csound_pre.lex:351 Engine/csound_pre.lex:461
+#: Engine/csound_prs.lex:294 Engine/csound_prs.lex:403
 msgid "Too few arguments to macro\n"
 msgstr "Trop peu d'arguments pour la macro\n"
 
-#: Engine/csound_pre.lex:357 Engine/csound_pre.lex:462
-#: Engine/csound_prs.lex:299 Engine/csound_prs.lex:404
+#: Engine/csound_pre.lex:361 Engine/csound_pre.lex:470
+#: Engine/csound_prs.lex:303 Engine/csound_prs.lex:412
 #, c-format
 msgid ""
 "Missing argument terminator\n"
@@ -654,135 +654,135 @@ msgstr ""
 "Le terminateur d'argument est manquant\n"
 "%.98s"
 
-#: Engine/csound_pre.lex:532
+#: Engine/csound_pre.lex:540
 msgid "unexpected EOF!"
 msgstr "EOF inattendu !"
 
-#: Engine/csound_pre.lex:607 Engine/csound_prs.lex:558
+#: Engine/csound_pre.lex:615 Engine/csound_prs.lex:566
 #, c-format
 msgid "Unexpected character %c(%.2x) line %d\n"
 msgstr "Caractère %c(%.2x) inattendu, ligne %d\n"
 
-#: Engine/csound_pre.lex:646 Engine/csound_prs.lex:597
+#: Engine/csound_pre.lex:654 Engine/csound_prs.lex:605
 msgid "#else without #if\n"
 msgstr "#else sans #if\n"
 
-#: Engine/csound_pre.lex:650 Engine/csound_pre.lex:1242
-#: Engine/csound_prs.lex:601 Engine/csound_prs.lex:1364
+#: Engine/csound_pre.lex:658 Engine/csound_pre.lex:1250
+#: Engine/csound_prs.lex:609 Engine/csound_prs.lex:1372
 msgid "#else after #else\n"
 msgstr "#else après un #else\n"
 
-#: Engine/csound_pre.lex:668 Engine/csound_prs.lex:619
+#: Engine/csound_pre.lex:676 Engine/csound_prs.lex:627
 msgid "Unmatched #end\n"
 msgstr "#end non apparié\n"
 
-#: Engine/csound_pre.lex:838 Engine/csound_prs.lex:443
-#: Engine/csound_prs.lex:963
+#: Engine/csound_pre.lex:846 Engine/csound_prs.lex:451
+#: Engine/csound_prs.lex:971
 msgid "Includes nested too deeply"
 msgstr "Imbrication des boucles trop profonde"
 
-#: Engine/csound_pre.lex:853 Engine/csound_prs.lex:980
+#: Engine/csound_pre.lex:861 Engine/csound_prs.lex:988
 #, c-format
 msgid "%s is a directory; not including"
 msgstr "%s est un répertoire ; pas inclus"
 
-#: Engine/csound_pre.lex:857 Engine/csound_prs.lex:984
+#: Engine/csound_pre.lex:865 Engine/csound_prs.lex:992
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr "Impossible d'ouvrir le fichier inclus (#include) %s\n"
 
-#: Engine/csound_pre.lex:969 Engine/csound_prs.lex:1090
+#: Engine/csound_pre.lex:977 Engine/csound_prs.lex:1098
 msgid "macro error\n"
 msgstr "erreur de macro\n"
 
-#: Engine/csound_pre.lex:974 Engine/csound_pre.lex:978
-#: Engine/csound_pre.lex:985 Engine/csound_pre.lex:990
-#: Engine/csound_pre.lex:1077 Engine/csound_pre.lex:1081
-#: Engine/csound_pre.lex:1088 Engine/csound_pre.lex:1093
-#: Engine/csound_prs.lex:1095 Engine/csound_prs.lex:1099
-#: Engine/csound_prs.lex:1106 Engine/csound_prs.lex:1111
-#: Engine/csound_prs.lex:1198 Engine/csound_prs.lex:1202
-#: Engine/csound_prs.lex:1209 Engine/csound_prs.lex:1214
+#: Engine/csound_pre.lex:982 Engine/csound_pre.lex:986
+#: Engine/csound_pre.lex:993 Engine/csound_pre.lex:998
+#: Engine/csound_pre.lex:1085 Engine/csound_pre.lex:1089
+#: Engine/csound_pre.lex:1096 Engine/csound_pre.lex:1101
+#: Engine/csound_prs.lex:1103 Engine/csound_prs.lex:1107
+#: Engine/csound_prs.lex:1114 Engine/csound_prs.lex:1119
+#: Engine/csound_prs.lex:1206 Engine/csound_prs.lex:1210
+#: Engine/csound_prs.lex:1217 Engine/csound_prs.lex:1222
 msgid "define macro runaway\n"
 msgstr "define de macro disparu\n"
 
-#: Engine/csound_pre.lex:997 Engine/csound_pre.lex:1100
-#: Engine/csound_prs.lex:1118
+#: Engine/csound_pre.lex:1005 Engine/csound_pre.lex:1108
+#: Engine/csound_prs.lex:1126
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr "caractère %c(0x%.2x) inattendu dans define de macro à la place de #\n"
 
-#: Engine/csound_pre.lex:1011 Engine/csound_prs.lex:1132
+#: Engine/csound_pre.lex:1019 Engine/csound_prs.lex:1140
 msgid "define macro with args: unexpected EOF"
 msgstr "define de macro avec args : EOF inattendu"
 
-#: Engine/csound_pre.lex:1110 Engine/csound_prs.lex:1232
+#: Engine/csound_pre.lex:1118 Engine/csound_prs.lex:1240
 msgid "define macro: unexpected EOF"
 msgstr "define de macro : EOF inattendu"
 
-#: Engine/csound_pre.lex:1145 Engine/csound_prs.lex:1267
+#: Engine/csound_pre.lex:1153 Engine/csound_prs.lex:1275
 #, c-format
 msgid "macro %s undefined\n"
 msgstr "la macro %s n'est pas définie\n"
 
-#: Engine/csound_pre.lex:1160 Engine/csound_prs.lex:1282 Engine/sread.c:218
+#: Engine/csound_pre.lex:1168 Engine/csound_prs.lex:1290 Engine/sread.c:218
 msgid "Undefining undefined macro"
 msgstr "Libération de la macro non définie"
 
-#: Engine/csound_pre.lex:1215 Engine/csound_prs.lex:1337
+#: Engine/csound_pre.lex:1223 Engine/csound_prs.lex:1345
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr "#if%sdef non apparié\n"
 
-#: Engine/csound_pre.lex:1317 Engine/csound_prs.lex:1402 Engine/sread.c:726
+#: Engine/csound_pre.lex:1325 Engine/csound_prs.lex:1410 Engine/sread.c:726
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr "Définition de macro pour %*s\n"
 
-#: Engine/csound_pre.lex:1320 Engine/csound_prs.lex:1405
+#: Engine/csound_pre.lex:1328 Engine/csound_prs.lex:1413
 msgid "Invalid macro name for --omacro"
 msgstr "Nom de macro non valide pour --omacro"
 
-#: Engine/csound_prs.lex:482
+#: Engine/csound_prs.lex:490
 msgid "unexpected EOF!!\n"
 msgstr "EOF inattendu !!\n"
 
-#: Engine/csound_prs.lex:648
+#: Engine/csound_prs.lex:656
 msgid "Loops are nested too deeply"
 msgstr "Imbrication des boucles trop profonde"
 
-#: Engine/csound_prs.lex:666
+#: Engine/csound_prs.lex:674
 msgid "{: invalid repeat count"
 msgstr "{: nombre de répétitions non valide"
 
-#: Engine/csound_prs.lex:675
+#: Engine/csound_prs.lex:683
 #, c-format
 msgid "%s Nested LOOP=%d Level:%d\n"
 msgstr "%s BOUCLE imbriquée=%d, Niveau : %d\n"
 
-#: Engine/csound_prs.lex:681
+#: Engine/csound_prs.lex:689
 #, c-format
 msgid "External LOOP=%d Level:%d\n"
 msgstr "BOUCLE externe=%d, Niveau : %d\n"
 
-#: Engine/csound_prs.lex:723
+#: Engine/csound_prs.lex:731
 msgid "unmatched } in score\n"
 msgstr "} non apparié dans la partition\n"
 
-#: Engine/csound_prs.lex:788
+#: Engine/csound_prs.lex:796
 msgid "Section loops cannot be nested"
 msgstr "Les boucles de section ne peuvent pas être imbriquées"
 
-#: Engine/csound_prs.lex:801
+#: Engine/csound_prs.lex:809
 msgid "r: invalid repeat count"
 msgstr "r : nombre de répétitions non valide"
 
-#: Engine/csound_prs.lex:803
+#: Engine/csound_prs.lex:811
 #, c-format
 msgid "r LOOP=%d\n"
 msgstr "r LOOP=%d\n"
 
-#: Engine/csound_prs.lex:1221
+#: Engine/csound_prs.lex:1229
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x)awaiting #\n"
 msgstr "caractère %c(0x%.2x) inattendu dans define de macro à la place de #\n"
@@ -3284,8 +3284,8 @@ msgstr "rtaudio : module AuHAL activé\n"
 msgid " *** WARNING: disabling --sched in freewheel mode\n"
 msgstr " *** AVERTISSEMENT : désactivation de --sched dans le mode freewheel\n"
 
-#: InOut/rtjack.c:240 InOut/rtjack.c:253 InOut/rtjack.c:258 InOut/rtjack.c:563
-#: InOut/rtjack.c:611 InOut/rtjack.c:617 InOut/rtjack.c:638 InOut/rtjack.c:644
+#: InOut/rtjack.c:240 InOut/rtjack.c:253 InOut/rtjack.c:258 InOut/rtjack.c:569
+#: InOut/rtjack.c:619 InOut/rtjack.c:625 InOut/rtjack.c:646 InOut/rtjack.c:652
 #: InOut/rtwinmm.c:107 InOut/rtwinmm.c:311 OOps/str_ops.c:430
 #: OOps/str_ops.c:456 OOps/str_ops.c:481 OOps/str_ops.c:498 Opcodes/ftgen.c:79
 msgid "memory allocation failure"
@@ -3307,57 +3307,62 @@ msgstr "impossible de se connecter au serveur JACK"
 msgid "invalid number of channels"
 msgstr "nombre de canaux non valide"
 
-#: InOut/rtjack.c:354
+#: InOut/rtjack.c:355
+#, fuzzy
+msgid "invalid number of input channels"
+msgstr "nombre de canaux non valide"
+
+#: InOut/rtjack.c:358
 msgid "invalid sample rate"
 msgstr "taux d'échantillonnage non valide"
 
-#: InOut/rtjack.c:356
+#: InOut/rtjack.c:360
 #, c-format
 msgid "sample rate %d does not match JACK sample rate %d"
 msgstr "taux d'échantillonnage %d pas conforme à celui de JACK %d"
 
-#: InOut/rtjack.c:362
+#: InOut/rtjack.c:366
 msgid "invalid period size (-b)"
 msgstr "taille de période non valide (-b)"
 
-#: InOut/rtjack.c:366
+#: InOut/rtjack.c:370
 msgid "invalid buffer size (-B)"
 msgstr "taille de tampon non valide (-B)"
 
-#: InOut/rtjack.c:369
+#: InOut/rtjack.c:373
 msgid "buffer size (-B) is too small"
 msgstr "taille de tampon (-B) trop petite"
 
-#: InOut/rtjack.c:406
+#: InOut/rtjack.c:412
 msgid "error setting sample rate callback"
 msgstr "erreur en fixant le callback du taux d'échantillonnage"
 
-#: InOut/rtjack.c:410
+#: InOut/rtjack.c:416
 msgid "error setting buffer size callback"
 msgstr "erreur en fixant le callback de la taille du tampon"
 
-#: InOut/rtjack.c:415
+#: InOut/rtjack.c:421
 msgid "error setting freewheel callback"
 msgstr "erreur en fixant le callback du freewheel"
 
-#: InOut/rtjack.c:418
+#: InOut/rtjack.c:424
 msgid "error setting xrun callback"
 msgstr "erreur en fixant le callback de xrun"
 
-#: InOut/rtjack.c:422
+#: InOut/rtjack.c:428
 msgid "error setting process callback"
 msgstr "erreur en fixant le callback de xrun"
 
-#: InOut/rtjack.c:426
+#: InOut/rtjack.c:432
 msgid "error activating JACK client"
 msgstr "erreur à l'activation du client JACK"
 
-#: InOut/rtjack.c:441 InOut/rtjack.c:465 InOut/rtjack.c:492 InOut/rtjack.c:516
+#: InOut/rtjack.c:447 InOut/rtjack.c:471 InOut/rtjack.c:498 InOut/rtjack.c:522
 #, c-format
 msgid "connecting channel %d to %s \n"
 msgstr "connexion du canal %d à %s\n"
 
-#: InOut/rtjack.c:445
+#: InOut/rtjack.c:451
 #, c-format
 msgid ""
 "failed autoconnecting input channel %d \n"
@@ -3366,7 +3371,7 @@ msgstr ""
 "pas de connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:449
+#: InOut/rtjack.c:455
 #, c-format
 msgid ""
 "jack port %d not valid \n"
@@ -3377,7 +3382,7 @@ msgstr ""
 "pas de connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:470
+#: InOut/rtjack.c:476
 #, c-format
 msgid ""
 "not autoconnecting input channel %d \n"
@@ -3386,11 +3391,11 @@ msgstr ""
 "pas de connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:476
+#: InOut/rtjack.c:482
 msgid "put port not connected\n"
 msgstr "port d'entrée non connecté\n"
 
-#: InOut/rtjack.c:496
+#: InOut/rtjack.c:502
 #, c-format
 msgid ""
 "failed autoconnecting output channel %d \n"
@@ -3399,7 +3404,7 @@ msgstr ""
 "pas de connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:500
+#: InOut/rtjack.c:506
 #, c-format
 msgid ""
 "jack port %d not valid \n"
@@ -3410,7 +3415,7 @@ msgstr ""
 "pas de connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:520
+#: InOut/rtjack.c:526
 #, c-format
 msgid ""
 "failed to autoconnect output channel %d \n"
@@ -3419,139 +3424,139 @@ msgstr ""
 "pas de connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
-#: InOut/rtjack.c:527
+#: InOut/rtjack.c:533
 msgid "output port not connected\n"
 msgstr "port de sortie non connecté\n"
 
-#: InOut/rtjack.c:579
+#: InOut/rtjack.c:585
 msgid "input and output parameters are not consistent"
 msgstr "les paramètres d'entrée et de sortie ne sont pas consistants"
 
-#: InOut/rtjack.c:583
+#: InOut/rtjack.c:589
 msgid "period size (-b) must be an integer multiple of ksmps"
 msgstr "la taille de la période (-b) doit être un multiple entier de ksmps"
 
-#: InOut/rtjack.c:588
+#: InOut/rtjack.c:594
 msgid "sample rate must be an integer"
 msgstr "le taux d'échantillonnage doit être entier"
 
-#: InOut/rtjack.c:725
+#: InOut/rtjack.c:735
 msgid "JACK sample rate changed"
 msgstr "le taux d'échantillonnage de JACK a changé"
 
-#: InOut/rtjack.c:728
+#: InOut/rtjack.c:738
 msgid "no connection to JACK server"
 msgstr "pas de connexion au serveur JACK"
 
-#: InOut/rtjack.c:736
+#: InOut/rtjack.c:746
 msgid " *** rtjack: connection to JACK server was lost, reconnecting..."
 msgstr ""
 " *** rtjack : la connexion au serveur JACK a été perdue, reconnexion..."
 
-#: InOut/rtjack.c:775
+#: InOut/rtjack.c:785
 msgid "rtjack: input audio timeout"
 msgstr "rtjack : dépassement de temps sur l'entrée audio"
 
-#: InOut/rtjack.c:801 InOut/rtjack.c:847
+#: InOut/rtjack.c:811 InOut/rtjack.c:857
 msgid "rtjack: xrun in real time audio"
 msgstr "rtjack : xrun en audio temps réel"
 
-#: InOut/rtjack.c:1011
+#: InOut/rtjack.c:1021
 msgid "JACK real-time audio module for Csound\n"
 msgstr "Module audio en temps réel JACK pour Csound\n"
 
-#: InOut/rtjack.c:1014
+#: InOut/rtjack.c:1024
 msgid " *** rtjack: error allocating globals"
 msgstr " *** rtjack : erreur d'allocation des variables globales"
 
-#: InOut/rtjack.c:1041
+#: InOut/rtjack.c:1051
 msgid "JACK client name (default: csound6)"
 msgstr "Nom du client JACK (par défaut : csound6)"
 
-#: InOut/rtjack.c:1050
+#: InOut/rtjack.c:1060
 msgid "JACK input port name prefix (default: input)"
 msgstr "Préfixe du nom du port d'entrée de JACK (par défaut : input)"
 
-#: InOut/rtjack.c:1059
+#: InOut/rtjack.c:1069
 msgid "JACK output port name prefix (default: output)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
-#: InOut/rtjack.c:1066
+#: InOut/rtjack.c:1076
 msgid "Deprecated"
 msgstr "Obsolète"
 
-#: InOut/rtjack.c:1073
+#: InOut/rtjack.c:1083
 msgid "JACK MIDI module for Csound\n"
 msgstr "Module JACK MIDI pour Csound\n"
 
-#: InOut/rtjack.c:1076
+#: InOut/rtjack.c:1086
 msgid " *** rtjack MIDI: error allocating globals"
 msgstr " *** rtjack MIDI : erreur d'allocation des variables globales"
 
-#: InOut/rtjack.c:1092
+#: InOut/rtjack.c:1102
 msgid "JACK MIDI client name prefix (default: csound6-midi)"
 msgstr "Préfixe du nom du client JACK MIDI (par défaut : csound6_midi)"
 
-#: InOut/rtjack.c:1103
+#: InOut/rtjack.c:1113
 msgid "JACK MIDI input port name(default: port)"
 msgstr "Nom du port d'entrée JACK MIDI (par défaut : port)"
 
-#: InOut/rtjack.c:1112
+#: InOut/rtjack.c:1122
 msgid "JACK MIDI output port name (default: port)"
 msgstr "Préfixe du nom du port de sortie de JACK (par défaut : output)"
 
-#: InOut/rtjack.c:1138
+#: InOut/rtjack.c:1148
 msgid "Jack MIDI module: buffer overflow"
 msgstr "Module MIDI Jack : dépassement de tampon"
 
-#: InOut/rtjack.c:1164
+#: InOut/rtjack.c:1174
 msgid "Jack MIDI module: failed to create client for input"
 msgstr "Module MIDI Jack : échec de la création du client en entrée"
 
-#: InOut/rtjack.c:1176
+#: InOut/rtjack.c:1186
 msgid "Jack MIDI module: failed to register input port"
 msgstr "Module MIDI Jack : échec de l'enregistrement du port d'entrée"
 
-#: InOut/rtjack.c:1195 InOut/rtjack.c:1303
+#: InOut/rtjack.c:1205 InOut/rtjack.c:1315
 msgid "Jack MIDI module: failed to set input process callback"
 msgstr ""
 "Module MIDI Jack : échec de la fixation du callbackdu processus d'entrée"
 
-#: InOut/rtjack.c:1205
+#: InOut/rtjack.c:1215
 msgid "Jack MIDI module: failed to activate input"
 msgstr "Module MIDI Jack : échec de l'activation de l'entrée"
 
-#: InOut/rtjack.c:1211
+#: InOut/rtjack.c:1221
 #, c-format
 msgid "Jack MIDI module: failed to connect to: %s"
 msgstr "Module MIDI Jack : échec de la connexion à : %s"
 
-#: InOut/rtjack.c:1248
+#: InOut/rtjack.c:1260
 msgid "Jack MIDI module: out buffer overflow"
 msgstr "Module MIDI Jack : dépassement du tampon de sortie"
 
-#: InOut/rtjack.c:1272
+#: InOut/rtjack.c:1284
 msgid "Jack MIDI module: failed to create client for output"
 msgstr "Module MIDI Jack : échec de la création du client en sortie"
 
-#: InOut/rtjack.c:1284
+#: InOut/rtjack.c:1296
 msgid "Jack MIDI module: failed to register output port"
 msgstr "Module MIDI Jack : échec de l'enregistrement du port de sortie"
 
-#: InOut/rtjack.c:1313
+#: InOut/rtjack.c:1325
 msgid "Jack MIDI module: failed to activate output"
 msgstr "Module MIDI Jack : échec de l'activation de la sortie"
 
-#: InOut/rtjack.c:1320
+#: InOut/rtjack.c:1332
 #, c-format
 msgid "Jack MIDI out module: failed to connect to: %s"
 msgstr "Module MIDI Jack : échec de la connexion à : %s"
 
-#: InOut/rtjack.c:1377
+#: InOut/rtjack.c:1463
 msgid "rtaudio: JACK module enabled\n"
 msgstr "rtaudio : module JACK activé\n"
 
-#: InOut/rtjack.c:1395
+#: InOut/rtjack.c:1481
 msgid "rtmidi: JACK module enabled\n"
 msgstr "rtmidi : module JACK activé\n"
 
@@ -6154,82 +6159,82 @@ msgstr "Durée de réverbération non positive\n"
 msgid "reverbx: not initialised"
 msgstr "reverbx : non initialisé"
 
-#: Opcodes/OSC.c:130
+#: Opcodes/OSC.c:132
 msgid "Too many arguments to OSCsend"
 msgstr "Trop d'arguments pour OSCsend"
 
-#: Opcodes/OSC.c:208
+#: Opcodes/OSC.c:210
 msgid "Failed to set multicast"
 msgstr "Echec du réglage de la multidiffusion"
 
-#: Opcodes/OSC.c:268
+#: Opcodes/OSC.c:270
 msgid "Time stamp is two values"
 msgstr "Le timestamp comprend deux valeurs"
 
-#: Opcodes/OSC.c:292
+#: Opcodes/OSC.c:294
 #, c-format
 msgid "ftable %.2f does not exist"
 msgstr "la ftable %.2f n'existe pas"
 
-#: Opcodes/OSC.c:328
+#: Opcodes/OSC.c:330
 #, c-format
 msgid "argument %d is not an array"
 msgstr "l'argument %d n'est pas un tableau"
 
-#: Opcodes/OSC.c:350
+#: Opcodes/OSC.c:352
 #, c-format
 msgid "Unknown OSC type %c\n"
 msgstr "Type OSC inconnu %c\n"
 
-#: Opcodes/OSC.c:411
+#: Opcodes/OSC.c:413
 msgid "OSC: failed to allocate globals"
 msgstr "OSC : échec de l'allocation des variables globales"
 
-#: Opcodes/OSC.c:559
+#: Opcodes/OSC.c:561
 msgid "OSC deinitiatised\n"
 msgstr "OSC dé-initialisé\n"
 
-#: Opcodes/OSC.c:582 Opcodes/OSC.c:618
+#: Opcodes/OSC.c:584 Opcodes/OSC.c:620
 #, c-format
 msgid "cannot start OSC listener on port %s\n"
 msgstr "impossible de démarrer l'écouteur OSC sur le port %s\n"
 
-#: Opcodes/OSC.c:591
+#: Opcodes/OSC.c:593
 #, c-format
 msgid "OSC listener #%d started on port %s\n"
 msgstr "Ecouteur OSC #%d démarré sur le port %s\n"
 
-#: Opcodes/OSC.c:628
+#: Opcodes/OSC.c:630
 #, c-format
 msgid "OSC multicast listener #%d started on port %s\n"
 msgstr "Ecouteur multidiffusion OSC #%d démarré sur le port %s\n"
 
-#: Opcodes/OSC.c:681
+#: Opcodes/OSC.c:683
 msgid "OSC not running"
 msgstr "OSC n'est pas actif"
 
-#: Opcodes/OSC.c:685
+#: Opcodes/OSC.c:687
 msgid "invalid handle"
 msgstr "descripteur non valide"
 
-#: Opcodes/OSC.c:693
+#: Opcodes/OSC.c:695
 msgid "invalid number of arguments"
 msgstr "nombre d'arguments non valide"
 
-#: Opcodes/OSC.c:719 Opcodes/OSC.c:724
+#: Opcodes/OSC.c:721 Opcodes/OSC.c:726
 msgid "argument list inconsistent with format string"
 msgstr "liste d'arguments inconsistante avec le format chaîne"
 
-#: Opcodes/OSC.c:728
+#: Opcodes/OSC.c:730
 msgid "invalid type"
 msgstr "type non valide"
 
-#: Opcodes/OSC.c:844
+#: Opcodes/OSC.c:846
 #, c-format
 msgid "Invalid ftable no. %d"
 msgstr "Numéro de ftable %d non valide."
 
-#: Opcodes/OSC.c:849
+#: Opcodes/OSC.c:851
 msgid "OSC internal error"
 msgstr "Erreur interne OSC"
 
@@ -6310,7 +6315,7 @@ msgstr "Le nombre de canaux de sortie ne correspond pas à la valeur de isetup."
 msgid "bformdec1 output array not initilised"
 msgstr "tableau de sortie de bformdec1 non initialisé"
 
-#: Opcodes/arrayops.cpp:72 Opcodes/arrayops.cpp:119
+#: Opcodes/arrayops.cpp:74 Opcodes/arrayops.cpp:174
 msgid "second input array is too short\n"
 msgstr "second tableau d'entrée trop petit\n"
 
@@ -8311,6 +8316,23 @@ msgstr "joystick linux : le lecteur %d ferme le joystick"
 msgid "unknown joystick event type %i"
 msgstr "type %i d'évènement de joystick inconnu"
 
+#: Opcodes/liveconv.c:235
+#, fuzzy
+msgid "liveconv: invalid impulse response partition length"
+msgstr "ftconv : longueur de partition de la réponse impulsionnelle non valide"
+
+#: Opcodes/liveconv.c:248
+#, fuzzy
+msgid "liveconv: invalid length, or insufficient IR data for convolution"
+msgstr ""
+"ftconv : longueur non valide, ou pas assez de données de RI pour la "
+"convolution"
+
+#: Opcodes/liveconv.c:475
+#, fuzzy
+msgid "liveconv: not initialised"
+msgstr "vco : non initialisé"
+
 #: Opcodes/locsig.c:42
 msgid "Wrong number of outputs in locsig; must be 2 or 4"
 msgstr "Nombre de sorties incorrect dans locsig ; doit valoir 2 ou 4"
@@ -8333,8 +8355,8 @@ msgstr "mode de boucle non valide : %d"
 msgid "loscilx: invalid number of output arguments"
 msgstr "loscilx : nombre d'arguments de sortie non valide"
 
-#: Opcodes/loscilx.c:211 Opcodes/loscilx.c:240 Opcodes/pvlock.c:173
-#: Opcodes/pvlock.c:399 Opcodes/pvsbasic.c:593
+#: Opcodes/loscilx.c:211 Opcodes/loscilx.c:240 Opcodes/pvlock.c:182
+#: Opcodes/pvlock.c:407 Opcodes/pvsbasic.c:593
 msgid ""
 "number of output arguments inconsistent with number of sound file channels"
 msgstr ""
@@ -8994,23 +9016,23 @@ msgstr "PVOC debuf : une trame est passée\n"
 msgid "pvcross: not initialised"
 msgstr "pvcross : non initialisé"
 
-#: Opcodes/pvlock.c:76 Opcodes/pvsbasic.c:505
+#: Opcodes/pvlock.c:85 Opcodes/pvsbasic.c:505
 msgid "invalid number of output arguments"
 msgstr "nombre d'arguments de sortie non valide"
 
-#: Opcodes/pvlock.c:576
+#: Opcodes/pvlock.c:584
 #, c-format
 msgid "filescal: mismatched channel numbers. %d outputs, %d inputs\n"
 msgstr "filescal : nombres de canaux différents. %d sorties, %d entrées\n"
 
-#: Opcodes/pvlock.c:872 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:714
+#: Opcodes/pvlock.c:880 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:714
 #: Opcodes/pvsbasic.c:1041 Opcodes/pvsbasic.c:1255 Opcodes/pvsbasic.c:1362
 #: Opcodes/pvsbasic.c:1607 Opcodes/pvsbasic.c:1831 Opcodes/pvsbasic.c:2004
 #: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:810
 msgid "Unsafe to have same fsig as in and out"
 msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
 
-#: Opcodes/pvlock.c:884
+#: Opcodes/pvlock.c:892
 msgid "pvsfreeze: signal format must be amp-freq."
 msgstr "pvsfreeze : le format de signal doit être amp-fréq."
 
@@ -11817,194 +11839,194 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr "Erreur lors de l'allocation de la liste d'opcodes"
 
-#: Top/csound.c:1500
+#: Top/csound.c:1529
 #, c-format
 msgid "Multithread performance: insno: %3d  thread %d of %d starting.\n"
 msgstr "Exécution multithread : insno : %3d  démarrage du thread %d sur %d.\n"
 
-#: Top/csound.c:1506
+#: Top/csound.c:1535
 msgid "Bad ThreadId"
 msgstr "Mauvais ThreadId"
 
-#: Top/csound.c:1990 Top/csound.c:2024 Top/csound.c:2053 Top/csound.c:2089
-#: Top/csound.c:4249
+#: Top/csound.c:2019 Top/csound.c:2053 Top/csound.c:2082 Top/csound.c:2118
+#: Top/csound.c:4278
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 "Csound n'est pas prêt pour l'exécution : csoundStart() n'a pas été appelée\n"
 
-#: Top/csound.c:2007
+#: Top/csound.c:2036
 #, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr "La partition est finie dans csoundPerformKsmps() avec %d.\n"
 
-#: Top/csound.c:2031 Top/csound.c:4256
+#: Top/csound.c:2060 Top/csound.c:4285
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr "Retour prématuré de csoundPerformKsmps().\n"
 
-#: Top/csound.c:2038
+#: Top/csound.c:2067
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
 msgstr "La partition est finie dans csoundPerformKsmpsInternal().\n"
 
-#: Top/csound.c:2060
+#: Top/csound.c:2089
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr "Retour prématuré de csoundPerformBuffer().\n"
 
-#: Top/csound.c:2098
+#: Top/csound.c:2127
 msgid "Early return from csoundPerform().\n"
 msgstr "Retour prématuré de csoundPerform().\n"
 
-#: Top/csound.c:2106
+#: Top/csound.c:2135
 msgid "Score finished in csoundPerform().\n"
 msgstr "La partition est finie dans csoundPerform().\n"
 
-#: Top/csound.c:2117
+#: Top/csound.c:2146
 msgid "csoundPerform(): stopped.\n"
 msgstr "csoundPerform() : arrêté.\n"
 
-#: Top/csound.c:2406
+#: Top/csound.c:2435
 msgid "WARNING: "
 msgstr "AVERTISSEMENT : "
 
-#: Top/csound.c:2547
+#: Top/csound.c:2576
 msgid "rtdummy: failed to allocate globals"
 msgstr "rtdummy : l'allocation des variables globales a échoué"
 
-#: Top/csound.c:2548
+#: Top/csound.c:2577
 msgid "rtaudio: dummy module enabled\n"
 msgstr "rtaudio : module factice activé\n"
 
-#: Top/csound.c:2577 Top/csound.c:2614
+#: Top/csound.c:2606 Top/csound.c:2643
 msgid " *** error: rtaudio module set to empty string"
 msgstr " *** erreur : le module rtaudio est fixé par une chaîne vide"
 
-#: Top/csound.c:2581 Top/csound.c:2618
+#: Top/csound.c:2610 Top/csound.c:2647
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr " module rtaudio inconnu : '%s', utilisation d'un module factice"
 
-#: Top/csound.c:2735
+#: Top/csound.c:2764
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 "AVERTISSEMENT : l'entrée midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
-#: Top/csound.c:2740 Top/csound.c:2774
+#: Top/csound.c:2769 Top/csound.c:2803
 msgid "error: -+rtmidi set to empty string"
 msgstr "erreur : -+rtmidi contient une chaîne vide"
 
-#: Top/csound.c:2743 Top/csound.c:2777
+#: Top/csound.c:2772 Top/csound.c:2806
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr "erreur : -+rtmidi='%s' : module inconnu"
 
-#: Top/csound.c:2769
+#: Top/csound.c:2798
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 "AVERTISSEMENT : la sortie midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
-#: Top/csound.c:2791
+#: Top/csound.c:2820
 msgid "Unknown MIDI error"
 msgstr "Erreur MIDI inconnue"
 
-#: Top/csound.c:2954
+#: Top/csound.c:2983
 msgid "Failed to allocate new opcode entry."
 msgstr "Echec de l'allocation d'une nouvelle entrée d'opcode."
 
-#: Top/csound.c:2976
+#: Top/csound.c:3005
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr "Echec de l'allocation d'une entrée d'opcode pour %s."
 
-#: Top/csound.c:3118 Top/main.c:376
+#: Top/csound.c:3147 Top/main.c:376
 msgid "setting dummy interface\n"
 msgstr "mise en place d'une interface factice\n"
 
-#: Top/csound.c:3200
+#: Top/csound.c:3229
 msgid "Failed during csoundInitEnv"
 msgstr "Echec dans csoundInitEnv"
 
-#: Top/csound.c:3225
+#: Top/csound.c:3254
 msgid "Failed during csoundInitStaticModules"
 msgstr "Echec dans csoundInitStaticModules"
 
-#: Top/csound.c:3241
+#: Top/csound.c:3270
 msgid "Failed during csoundLoadModules"
 msgstr "Echec dans csoundLoadModules"
 
-#: Top/csound.c:3282
+#: Top/csound.c:3311
 msgid "Real time audio module name"
 msgstr "Nom du module audio en temps réel"
 
-#: Top/csound.c:3307
+#: Top/csound.c:3336
 msgid "Real time MIDI module name"
 msgstr "Nom du module MIDI en temps réel"
 
-#: Top/csound.c:3312
+#: Top/csound.c:3341
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 "Ignorer les évènements (autres que les changements de tempo) dans les pistes "
 "définies par le modèle"
 
-#: Top/csound.c:3318
+#: Top/csound.c:3347
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr "Ne pas traiter les contrôleurs MIDI spéciaux (pédale sustain, etc)"
 
-#: Top/csound.c:3326
+#: Top/csound.c:3355
 msgid "Title tag in output soundfile (no spaces)"
 msgstr "Champ titre dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3332
+#: Top/csound.c:3361
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr "Champ copyright dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3337
+#: Top/csound.c:3366
 msgid "Short Copyright tag in output soundfile"
 msgstr "Champ copyright court dans le fichier son de sortie"
 
-#: Top/csound.c:3343
+#: Top/csound.c:3372
 msgid "Software tag in output soundfile (no spaces)"
 msgstr "Champ du logiciel dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3348
+#: Top/csound.c:3377
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr "Champ artiste dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3355
+#: Top/csound.c:3384
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr "Champ commentaire dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3360
+#: Top/csound.c:3389
 msgid "Date tag in output soundfile (no spaces)"
 msgstr "Champ date dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3370
+#: Top/csound.c:3399
 msgid "Enable message attributes (colors etc.)"
 msgstr "Activer les attributs de message (couleurs, etc)"
 
-#: Top/csound.c:3376
+#: Top/csound.c:3405
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 "Démarrer la restitution de la partition au temps spécifié, en ignorant les "
 "évènements antérieurs"
 
-#: Top/csound.c:3383
+#: Top/csound.c:3412
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr "Ignorer <CsOptions> dans les fichiers CSD (non par défaut)"
 
-#: Top/csound.c:3592
+#: Top/csound.c:3621
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr "Impossible d'ouvrir /proc/cpuinfo. RDTSC n'est pas supporté.\n"
 
-#: Top/csound.c:3622
+#: Top/csound.c:3651
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr "Aucune entrée de fréq CPU valide n'a été trouvée dans /proc/cpuinfo.\n"
 
-#: Top/csound.c:4144
+#: Top/csound.c:4173
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr "csoundDestroyMessageBuffer : tampon de message non alloué."
 
-#: Top/csound.c:4176
+#: Top/csound.c:4205
 msgid "csound: internal error: message buffer overflow\n"
 msgstr "csound : erreur interne : dépassement du tampon de messages\n"
 
