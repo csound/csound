@@ -69,66 +69,13 @@ You can pass in default arguments to the csound instance by right-clicking on "c
 ### Profiling
 Using the build configuration "Release" or "Release with debug info" will allow profilling of the project. The profilling tools may not appear if you have the community edition however, professional or enterprise might be required. By going to "Analyze" and "Performance Profiler", you will get a choice of profilling tools (cpu usage, memory etc).
 
-## Build status
-The table below indicates the current working state of the MSVC build. Over time this table will be fully filled out with all Windows relevant options running.
-
-|CMake Switch/feature               | Dependenecy       | Working? |
-|-----------------------------------|-------------------|----------|
-|BUILD_CHUA_OPCODES                 |                   |          |
-|BUILD_CSBEATS                      |                   |          |
-|BUILD_CSOUNDVST                    |                   |          |
-|BUILD_CSOUND_AC                    |                   |          |
-|BUILD_CSOUND_AC_LUA_INTERFACE      |                   |          |
-|BUILD_CSOUND_AC_PYTHON_INTERFACE   |                   |          |
-|BUILD_CXX_INTERFACE                |                   | Working |
-|BUILD_DSSI_OPCODES                 | Ladspa            | Disable? |
-|BUILD_FAUST_OPCODES                |                   |          |
-|BUILD_FLUID_OPCODES                |                   |          |
-|BUILD_IMAGE_OPCODES                |                   | Working |
-|BUILD_INSTALLER                    |                   |          |
-|BUILD_JACK_OPCODES                 |                   | Disabled |
-|BUILD_JAVA_INTERFACE               |                   | Working |
-|BUILD_LINEAR_ALGEBRA_OPCODES       | Eigen             | Enabled/Not being found |
-|BUILD_LUA_INTERFACE                |                   |          |
-|BUILD_LUA_OPCODES                  |                   |          |
-|BUILD_MULTI_CORE                   |                   |          |
-|BUILD_OSC_OPCODES                  | Liblo             | Enabled/Needs work |
-|BUILD_P5GLOVE_OPCODES              |                   |          |
-|BUILD_PYTHON_INTERFACE             |                   |          |
-|BUILD_PYTHON_OPCODES               |                   |          |
-|BUILD_RELEASE                      |                   | Working |
-|BUILD_SERIAL_OPCODES               |                   |          |
-|BUILD_STATIC_LIBRARY               |                   | Working |
-|BUILD_STK_OPCODES                  |                   |          |
-|BUILD_TESTS                        |                   | Enabled/Needs work |
-|BUILD_UTILITIES                    |                   | Working |
-|BUILD_VIRTUAL_KEYBOARD             | FLTK              | Enabled/Needs work |
-|BUILD_WIIMOTE_OPCODES              |                   |          |
-|BUILD_WINDSOUND                    |                   |          |
-|USE_ALSA                           |                   | Disabled |
-|USE_ATOMIC_BUILTIN                 |                   | Enable/Not working |
-|USE_AUDIOUNIT                      |                   | Disabled |
-|USE_COMPILER_OPTIMIZATIONS         |                   | Working |
-|USE_COREMIDI                       |                   | Disabled |
-|USE_DOUBLE                         | -                 | Working |
-|USE_FLTK                           |                   | Enabled/Not being found |
-|USE_GETTEXT                        | VCPKG             | Enabled/Not being found |
-|USE_IPMIDI                         |                   |          |
-|USE_JACK                           |                   | Disabled |
-|USE_LIB64                          |                   | Working |
-|USE_LRINT                          |                   | Disabled |
-|USE_OPEN_MP                        |                   |          |
-|USE_PORTAUDIO                      |                   | Working |
-|USE_PORTMIDI                       | Manual build      | Enabled/Needs work |
-|USE_PULSEAUDIO		                  |                   | Disabled |
-|USE_SYSTEM_PORTSMF                 |                   |          |
-
 ## Work in progress / work to do
 1. Python integration into build. Most likely user will need to install it via msi
 2. PortMIDI/SMF manual build script needs to be created
 3. FLTK not being fully found. Everything is found except fluid_executable
-4. Atomic builtins not being found, test program isn't working as expected but should
-5. Liblo (OSC) difficult build, needs premake on windows. Need to either prebuild or come up with build script
+4. [Partial] Atomic builtins not being found, test program isn't working as expected but should
+ * Fixed the cmake test but csound source assumes linux based atomics, needs more work
+5. [Fixed] Liblo (OSC) difficult build, needs premake on windows. Need to either prebuild or come up with build script
 6. SWIG, binaries to be downloaded manually and extracted
 7. STK, source downloaded manually and built
 8. LUAJIT, source downloaded manually and built using VS console
@@ -147,3 +94,9 @@ The table below indicates the current working state of the MSVC build. Over time
 21. Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
 22. Doxygen for documentation
 23. Installer needs work? Not tried
+
+## Investigate
+1. More usage of CMake instead of powershell scripts
+    * CMake can pull down git repos and build. Can be triggered if find_package fails
+    * Use of custom Find*.cmake modules to find dependencies, leads to cleaner cmake files
+2. Packaging build output, using NSIS or converting to something else
