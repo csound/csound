@@ -26,23 +26,6 @@ set(APIVERSION "6.0")
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
 
-option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
-if(USE_LIB64)
-    set(LIBRARY_INSTALL_DIR "lib64")
-else()
-    set(LIBRARY_INSTALL_DIR "lib")
-endif()
-message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
-
-if(USE_DOUBLE)
-   message(STATUS "Building with 64-bit floats")
-    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
-else()
-  message(STATUS "Building with 32-bit floats")
-    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
-endif()
-
-
 execute_process (
      COMMAND python -c
      "import site, sys; sys.stdout.write(site.getusersitepackages())"
@@ -214,6 +197,21 @@ endif()
 #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
 #endif()
 
+option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
+if(USE_LIB64)
+    set(LIBRARY_INSTALL_DIR "lib64")
+else()
+    set(LIBRARY_INSTALL_DIR "lib")
+endif()
+message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
+
+if(USE_DOUBLE)
+   message(STATUS "Building with 64-bit floats")
+    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
+else()
+  message(STATUS "Building with 32-bit floats")
+    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
+endif()
 
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
@@ -457,6 +455,7 @@ find_package(STK)
 find_package(SWIG)
 find_package(VSTSDK2X)
 
+# TODO should this work for MSVC also?
 if(WIN32 AND NOT MSVC)
   find_library(FLAC_LIB FLAC)
   find_library(OGG_LIB ogg)
