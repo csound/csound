@@ -34,7 +34,7 @@ memory leaks fixed and more robust code.
 
 - select -- sample-by-sample comparison of audio selecting the output.
 
-- midiarp opcode generates arpeggios based on currently held MIDI notes.
+- midiarp opcode -- generates arpeggios based on currently held MIDI notes.
 
 - hilbert2 --  a DFT-based implementation of a Hilbert transformer.
 
@@ -54,28 +54,28 @@ arrays: atan2, pow,hypot, fmod, fmax, fmin.
 
 - tvconv -- a time-varying convolution (FIR filter) opcode.
 
-- bpf, xyscale, ntom, mton (from SuperCollider?)
+- bpf, xyscale, ntom, mton -- (from SuperCollider?).
 
-- OSCsendA asynchronous version of OSCsend
+- OSCsendA -- asynchronous version of OSCsend,
 
-- OSCsend now implemented directly using system sockets. Old version
+- OSCsend -- now implemented directly using system sockets. Old version
 using liblo has been kept as OSCsend_lo.
 
-- OSCraw to listen for all OSC messages at a given port.
+- OSCraw -- to listen for all OSC messages at a given port.
 
-- new implementation of OSCsend not using liblo, with previous version
-  now called OSCsend_lo
+- New implementation of OSCsend not using liblo, with previous version
+  now called OSCsend_lo,
 
-- sorta and sortd to sort elements of an array
+- sorta and sortd -- sort elements of an array.
 
-- dot calculates the dot product of two arrays
+- dot -- calculates the dot product of two arrays.
 
-- zero delay filters zdf_1pole_mode, zdf_2pole_mode, zdf_ladder,
-  zdf_1pole and zdf_2pole.xml, diode_ladder, z35_hpf ad K35_lpf
+- zero delay filters -- zdf_1pole_mode, zdf_2pole_mode, zdf_ladder,
+  zdf_1pole and zdf_2pole.xml, diode_ladder, z35_hpf and K35_lpf.
 
-- product takes a numeric array (k or i-rate) and calculates its product.
+- product -- takes a numeric array (k or i-rate) and calculates its product.
 
-- supercollider ugens: sc_phasor, sc_lag, sc_lagud, sc_trig added.
+- supercollider ugens -- sc_phasor, sc_lag, sc_lagud, sc_trig added.
 
 - liveconv -- AWAITING DOCUMENTATION
 
@@ -97,7 +97,7 @@ using liblo has been kept as OSCsend_lo.
 
 - Improved line number reporting in r opcode and case with no macro implemented.
 
-- m and n opcodes fixed
+- m and n opcodes fixed.
 
 - Expansion of [...] corrected and improved.
 
@@ -109,7 +109,7 @@ using liblo has been kept as OSCsend_lo.
 
 - Macro names better policed, and bracket matching.
 
-- p2 and p3 are now at higher precision and not truncated to 6 decimal places
+- p2 and p3 are now at higher precision, no longer truncated to 6 decimal places.
 
 - new opcode d to switch off infinite notes (denote); same as i with negative p1.
 
@@ -117,23 +117,23 @@ using liblo has been kept as OSCsend_lo.
 
 ### Options
 
-- jack midi module now can report available devices under --midi-devices
+- jack midi module now can report available devices under --midi-devices.
 
 ### Modified Opcodes and Gens
 
-- ftgentmp improved string arguments
+- ftgentmp improved string arguments.
 
 - hdf5read opcode now reads entire data sets when dataset name string
-  is suffixed with an asterisk
+  is suffixed with an asterisk.
 
 - use of non power-of-two lengths now acceptable where before it was inconsistent.
 
 - ampmidid optionally can be aware of 0dbfs.
 
 - dust and dust2 at k-rate now conform to the manual (NOTE: this is an
-incompatible change)
+incompatible change).
 
-- In prints the format %% now prints one %
+- In prints the format %% now prints one %.
 
 - OSClisten can be used with no data outputs.
 
@@ -142,7 +142,7 @@ incompatible change)
 - sockrev now can read strings.
 
 - vbap system can in some cases allow arbitrary number of speakers via
-  arrays (work in progress)
+  arrays (work in progress).
 
 - Websocket server can only accept one protocol output, so limiting
   intype to just a single argument.
@@ -171,7 +171,9 @@ magnitude and phase arrays.
 - Emscripten:
 
 - CsoundQT:  CsoundQt 0.9.4 is announced:
-https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%200.9.4.md  
+https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%200.9.4.md.
+
+- Windows installer with CsoundQt includes PythonQt.
 
 ### General Usage
 
