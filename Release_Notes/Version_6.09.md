@@ -54,6 +54,8 @@ arrays: atan2, pow,hypot, fmod, fmax, fmin.
 
 - tvconv -- a time-varying convolution (FIR filter) opcode.
 
+- liveconv -- low-latency convolution with dynamically reloadable impulse response
+
 - bpf, xyscale, ntom, mton -- (from SuperCollider?).
 
 - OSCsendA -- asynchronous version of OSCsend,
