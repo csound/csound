@@ -80,7 +80,7 @@ if [ $? -ne 0 ]; then
     echo "Failed to uninstall Csound x64, but continuing."
 fi
 echo "Installing Csound x64..."
-./Setup_Csound6_x64_6.07.0.exe /SILENT
+./Setup_Csound6_x64_6.09.0.exe /SILENT
 if [ $? -ne 0 ]; then
     echo "Failed to install Csound x64."
     exit
