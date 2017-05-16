@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -f -h -+rtmidi=null -M0 -d -n -m7 --midi-key=4 --midi-velocity=5
+-f -h -+rtmidi=null -M0 -d -n -m7 --midi-key=4 --midi-velocity=5
 </CsOptions>
 <CsLicense>
 
@@ -46,7 +46,6 @@ nchnls                          =                       2
 
 
 #define FLUID #fluid#
-;#define VST #vst#
 iampdbfs                        init                    32768
                                 prints                  "Default amplitude at 0 dBFS:  %9.4f\n", iampdbfs
 idbafs                          init                    dbamp(iampdbfs)
@@ -59,16 +58,10 @@ iampheadroom                    init                    ampdb(idbaheadroom)
                                 prints                  "Amplitude at headroom:        %9.4f\n", iampheadroom
                                 prints                  "Balance so the overall amps at the end of performance -6 dbfs.\n"
 
-#ifdef VST
-giPianoteq                      vstinit                 "C:/Program_Files/Steinberg/VSTPlugins/Pianoteq5_x64", 0
-                                vstinfo                 giPianoteq
-#endif
 
 #ifdef FLUID
 giFluidsynth		            fluidEngine		        0, 0
-giFluidSteinway		            fluidLoad		        "Piano Steinway Grand Model C (21,738KB).sf2",  giFluidsynth, 1
-                                fluidProgramSelect	    giFluidsynth, 0, giFluidSteinway, 0, 1
-giFluidGM		                fluidLoad		        "sf_GMbank.sf2", giFluidsynth, 1
+giFluidGM		                fluidLoad		            "sf_GMbank.sf2", giFluidsynth, 1
                                 fluidProgramSelect	    giFluidsynth, 1, giFluidGM, 0, 59
 #endif
 
@@ -254,10 +247,6 @@ gkMasterLevel                   init                    1.5
                                 connect                 "Xing",                 "outright", "Reverberation",        "inright"
                                 connect                 "ZakianFlute",          "outleft", 	"Reverberation",        "inleft"
                                 connect                 "ZakianFlute",          "outright", "Reverberation",        "inright"
-
-#ifdef VST
-                                alwayson                "VstPianoteqAudio", 0, 1.5
-#endif
 
 #ifdef FLUID
                                 alwayson                "FluidAudio", 0, 32
@@ -2555,28 +2544,6 @@ aoutleft, aoutright		        pan2	                asignal * iamplitude * adeclic
                                 outleta                 "outright", aoutright
                                 endin
 
-#ifdef VST
-                                instr                   VstPianoteq
-                                //////////////////////////////////////////////
-                                // By Michael Gogins.
-                                //////////////////////////////////////////////
-i_instrument                    =                       p1
-i_time                          =                       p2
-i_duration                      =                       p3
-i_midikey                       =                       p4
-i_midivelocity                  =                       p5
-i_phase                         =                       p6
-i_pan                           =                       p7
-i_depth                         =                       p8
-i_height                        =                       p9
-i_pitchclassset                 =                       p10
-i_homogeneity                   =                       p11
-                                ; Use channel assigned in fluidLoad.
-ichannel                        =                       0
-                                vstnote                 giPianoteq, ichannel, i_midikey, i_midivelocity, i_duration
-                                endin
-#endif
-
                                 instr                   WaveguideGuitar
                                 //////////////////////////////////////////////////////
                                 // Original by Jeff Livingston.
@@ -3074,25 +3041,6 @@ aoutright			            =			            i_midivelocity * aoutright * 10000
                                 endin
 #endif
 
-#ifdef VST
-                                instr                   VstPianoteqAudio
-                                //////////////////////////////////////////////
-                                // By Michael Gogins.
-                                //////////////////////////////////////////////
-i_instrument                    =                       p1
-i_time                          =                       p2
-i_duration                      =                       p3
-i_midikey                       =                       p4
-i_midivelocity                  =                       p5
-ainleft                         init                    0.0
-ainright                        init                    0.0
-aoutleft, aoutright             vstaudiog               giPianoteq, ainleft, ainright
-aoutleft			            = 			            i_midivelocity * aoutleft
-aoutright			            =			            i_midivelocity * aoutright
-                                outleta                 "outleft", aoutleft
-                                outleta                 "outright", aoutright
-                                endin
-#endif
                                 instr                   Reverberation
                                 //////////////////////////////////////////////
                                 // By Michael Gogins.
