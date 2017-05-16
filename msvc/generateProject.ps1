@@ -8,11 +8,17 @@ if ($systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source)
     $vcpkgDir = Split-Path -Parent $systemVCPKG
     $vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"
 }
+elseif (Test-Path "..\..\vcpkg")
+{
+	echo "using local VCPKG cmake file"
+	$vcpkgCmake = "..\..\vcpkg\scripts\buildsystems\vcpkg.cmake"
+	$vcpkgCmake = [System.IO.Path]::GetFullPath($vcpkgCmake)
+}
 else 
 {
-    echo "checking VCPKG dir in environmental variable"
-    #$vcpkgDir = $env:VCPKGDir
-    $vcpkgCmake = "..\vcpkg\scripts\buildsystems\vcpkg.cmake"
+    # VCPKG not installed globally or locally, abort
+    echo "Please run the 'downloadDependencies.bat' script first!"
+    exit
 }
 
 echo "VCPKG script: '$vcpkgCmake'"
@@ -26,3 +32,4 @@ cmake ..\.. -G "Visual Studio 15 2017 Win64" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake"
+
