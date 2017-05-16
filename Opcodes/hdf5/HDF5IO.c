@@ -1331,7 +1331,7 @@ void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self)
       HDF5Dataset *currentDataset = &self->datasets[i];
       STRINGDAT *inputArgument =
         (STRINGDAT *)self->arguments[self->outputArgumentCount + i + 1];
-        
+
         csound->AuxAlloc(csound, sizeof(char) * strlen(inputArgument->data), &currentDataset->datasetNameMemory);
         currentDataset->datasetName = currentDataset->datasetNameMemory.auxp;
         strcpy(currentDataset->datasetName, inputArgument->data);
