@@ -95,7 +95,6 @@ $(CSOUND_SRC_ROOT)/OOps/ugrw2.c \
 $(CSOUND_SRC_ROOT)/OOps/vdelay.c \
 $(CSOUND_SRC_ROOT)/OOps/compile_ops.c \
 $(CSOUND_SRC_ROOT)/Opcodes/babo.c \
-$(CSOUND_SRC_ROOT)/Opcodes/exciter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/bilbar.c \
 $(CSOUND_SRC_ROOT)/Opcodes/compress.c \
 $(CSOUND_SRC_ROOT)/Opcodes/eqfil.c \
@@ -114,7 +113,6 @@ $(CSOUND_SRC_ROOT)/Opcodes/pan2.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/phisem.c \
 $(CSOUND_SRC_ROOT)/Opcodes/arrays.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfopcodes.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/stackops.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap1.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap_n.c  \
