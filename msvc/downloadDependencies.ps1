@@ -28,12 +28,12 @@ if ($systemVCPKG)
     cd $vcpkgDir 
 
     # Update and rebuild vcpkg
-    #git pull
-    #bootstrap-vcpkg.bat
+    git pull
+    bootstrap-vcpkg.bat
 
     # Remove any outdated packages (they will be installed again below)
-    #vcpkg remove --outdated --recurse
-    #vcpkg update # Not really functional it seems yet
+    vcpkg remove --outdated --recurse
+    vcpkg update # Not really functional it seems yet
 
     cd $currentDir
 }
@@ -48,12 +48,12 @@ elseif (Test-Path "..\..\vcpkg")
     echo "vcpkg already installed locally, updating"
     
     # Update and rebuild vcpkg
-    #git pull
-    #bootstrap-vcpkg.bat
+    git pull
+    bootstrap-vcpkg.bat
 
     # Remove any outdated packages (they will be installed again below)
-    #vcpkg remove --outdated --recurse
-    #vcpkg update
+    vcpkg remove --outdated --recurse
+    vcpkg update
     
     cd $currentDir
 }
@@ -83,7 +83,7 @@ echo "Downloading VC packages..."
 vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
 
 # Comment for testing to avoid extracting if already done so
-# rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
+rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 mkdir deps -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
@@ -93,16 +93,14 @@ mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
-#"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip",
-"http://www.mirrorservice.org/sites/sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.zip"
+#"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="", 
 "win_flex_bison",
 "",
 "",
-"",
-"pthreads"
+#""
 
 # Download list of files to cache folder
 for($i=0; $i -lt $uriList.Length; $i++) 
