@@ -897,4 +897,13 @@ PUBLIC void csoundCondSignal(void* condVar) {
   notImplementedWarning_("csoundCreateCondSignal");
 }
 
+PUBLIC long csoundRunCommand(const char * const *argv, int noWait) {
+  notImplementedWarning_("csoundRunCommand");
+}
+
+PUBLIC void csoundSleep(size_t milliseconds) {
+  notImplementedWarning_("csoundSleep");
+}
+
+
 #endif
