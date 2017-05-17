@@ -164,17 +164,17 @@ if (Test-Path "liblo")
 }
 else
 {
-    git clone --depth=1 "https://github.com/radarsat1/liblo.git"
+    git clone --depth=1 "https://github.com/stekyne/liblo.git"
 }
 
 mkdir liblo\cmakebuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 cd liblo\cmakebuild
-cmake ..\cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DTHREADING=0
+cmake ..\cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
 cmake --build . --config Release
 copy .\Release\lo.dll -Destination $depsBinDir -Force
 copy .\Release\lo.lib -Destination $depsLibDir -Force
 copy .\lo -Destination $depsIncDir -Force -Recurse
-copy ..\lo\* -Destination $depsIncDir\lor -Force -Include "*.h"
+copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
 robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
 
 # Add deps bin directory to the system path if not already there
