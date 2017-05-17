@@ -154,6 +154,8 @@ copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
 
 # Liblo
 cd ..
+# TEMP: seeing as the repo has changed, need to delete the old one first
+Remove-Item -Recurse -Force liblo
 
 if (Test-Path "liblo")
 {
