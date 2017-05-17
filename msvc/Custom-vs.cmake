@@ -78,7 +78,6 @@ set(FAIL_MISSING OFF) # Enable when packaging
 # TODO ideally find all of these on path
 set(FLEX_EXECUTABLE "../deps/win_flex_bison/win_flex.exe")
 set(BISON_EXECUTABLE "../deps/win_flex_bison/win_bison.exe")
-set(LIBSNDFILE_LIBRARY "../../deps/lib/libsndfile-1")
 set(SWIG_DIR "")
 set(PORTAUDIO_INCLUDE_PATH "../../deps/include")
 set(PORTAUDIO_LIBRARY "../../deps/lib/portaudio_x64")
