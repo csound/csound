@@ -231,7 +231,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
       csound->ErrorMsg(csound, Str("Null file name in copy_to_corefile"));
       csound->LongJmp(csound, 1);
     }
-#ifdef HAVE_CURL
+#ifdef USE_CURL && HAVE_CURL
     if (strstr(fname,"://")) {
       return copy_url_corefile(csound, fname, fromScore);
     }
@@ -271,7 +271,7 @@ void corfile_preputs(const char *s, CORFIL *f)
     free(body);
 }
 
-#ifdef HAVE_CURL
+#ifdef USE_CURL && HAVE_CURL
 
 #include <curl/curl.h>
 
