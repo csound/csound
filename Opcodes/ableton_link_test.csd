@@ -75,10 +75,10 @@ Ableton's minimum requirement of 3 milliseconds. This is approximately the
 accuracy of a really good performing musician.
 </CsLicense>
 <CsOptions>
--m0 -d -odac 
+-m0 -d -odac
 </CsOptions>
 <CsInstruments>
-sr = 96000
+sr = 44100
 ksmps = 10
 nchnls = 2
 
