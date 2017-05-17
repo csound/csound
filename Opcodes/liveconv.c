@@ -1,7 +1,7 @@
 /*
     liveconv.c:
 
-    Copyright (C) 2017 Sigurd Saue
+    Copyright (C) 2017 Sigurd Saue, Oeyvind Brandtsegg
 
     This file is part of Csound.
 
