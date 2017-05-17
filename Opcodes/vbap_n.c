@@ -626,6 +626,7 @@ int vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, INSDS *insdshead,
     for (i=0;i<cnt;i++) {
       p->updated_gains[i] /= sum;
     }
+    free(tmp_gains);
     return OK;
 }
 
