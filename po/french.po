@@ -3308,9 +3308,8 @@ msgid "invalid number of channels"
 msgstr "nombre de canaux non valide"
 
 #: InOut/rtjack.c:355
-#, fuzzy
 msgid "invalid number of input channels"
-msgstr "nombre de canaux non valide"
+msgstr "nombre de canaux d'entrée non valide"
 
 #: InOut/rtjack.c:358
 msgid "invalid sample rate"
@@ -8317,21 +8316,18 @@ msgid "unknown joystick event type %i"
 msgstr "type %i d'évènement de joystick inconnu"
 
 #: Opcodes/liveconv.c:235
-#, fuzzy
 msgid "liveconv: invalid impulse response partition length"
-msgstr "ftconv : longueur de partition de la réponse impulsionnelle non valide"
+msgstr "liveconv : longueur de partition de la réponse impulsionnelle non valide"
 
 #: Opcodes/liveconv.c:248
-#, fuzzy
 msgid "liveconv: invalid length, or insufficient IR data for convolution"
 msgstr ""
-"ftconv : longueur non valide, ou pas assez de données de RI pour la "
+"liveconv : longueur non valide, ou pas assez de données de RI pour la "
 "convolution"
 
 #: Opcodes/liveconv.c:475
-#, fuzzy
 msgid "liveconv: not initialised"
-msgstr "vco : non initialisé"
+msgstr "liveconv : non initialisé"
 
 #: Opcodes/locsig.c:42
 msgid "Wrong number of outputs in locsig; must be 2 or 4"
