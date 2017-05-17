@@ -649,13 +649,13 @@ int check_array_arg(char* found, char* required) {
     char* f = found;
     char* r = required;
 
-    while(*r == '[') r++;
+    while (*r == '[') r++;
 
     if (*r == '.' || *r == '?' || *r == '*') {
       return 1;
     }
 
-    while(*f == '[') f++;
+    while (*f == '[') f++;
 
     return (*f == *r);
 }
@@ -1294,7 +1294,7 @@ void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable) {
         CS_TYPE* varType;
         char* b = t + 1;
 
-        while(*b == '[') {
+        while (*b == '[') {
           b++;
           dimensions++;
         }
@@ -1588,7 +1588,7 @@ int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       //TREE *tempRight;
       TREE* current = root;
 
-      while(current != NULL) {
+      while (current != NULL) {
         //tempLeft = current->left;
         //tempRight = current->right;
 
@@ -1643,7 +1643,7 @@ int verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
      xin/xout statements exist if UDO in and out args are not 0 */
 int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     if(udoTree->right == NULL) {
-        return 1;
+      return 1;
     }
     TREE* outArgsTree = udoTree->left->left;
     TREE* inArgsTree = udoTree->left->right;
@@ -1655,39 +1655,39 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     unsigned int i;
 
     for (i = 0; i < strlen(inArgs);i++) {
-        if (inArgs[i] == 'K') {
-            inArgs[i] = 'k';
-        }
+      if (inArgs[i] == 'K') {
+        inArgs[i] = 'k';
+      }
     }
 
     for (i = 0; i < strlen(outArgs);i++) {
-        if (outArgs[i] == 'K') {
-            outArgs[i] = 'k';
-        }
+      if (outArgs[i] == 'K') {
+        outArgs[i] = 'k';
+      }
     }
 
-    while(current != NULL) {
-        if (current->value != NULL) {
-            if (strcmp("xin", current->value->lexeme) == 0) {
-                if(xinArgs != NULL) {
-                    synterr(csound,
-                            Str("Multiple xin statements found. "
-                                "Only one is allowed."));
-                    return 0;
-                }
-                xinArgs = current->left;
-            }
-            if (strcmp("xout", current->value->lexeme) == 0) {
-                if(xoutArgs != NULL) {
-                    synterr(csound,
-                            Str("Multiple xout statements found. "
-                                "Only one is allowed."));
-                    return 0;
-                }
-                xoutArgs = current->right;
-            }
+    while (current != NULL) {
+      if (current->value != NULL) {
+        if (strcmp("xin", current->value->lexeme) == 0) {
+          if(xinArgs != NULL) {
+            synterr(csound,
+                    Str("Multiple xin statements found. "
+                        "Only one is allowed."));
+            return 0;
+          }
+          xinArgs = current->left;
         }
-        current = current->next;
+        if (strcmp("xout", current->value->lexeme) == 0) {
+          if(xoutArgs != NULL) {
+            synterr(csound,
+                    Str("Multiple xout statements found. "
+                        "Only one is allowed."));
+            return 0;
+          }
+          xoutArgs = current->right;
+        }
+      }
+      current = current->next;
     }
 
     char* inArgsFound = get_arg_string_from_tree(csound, xinArgs, typeTable);
