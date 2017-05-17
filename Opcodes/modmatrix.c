@@ -1,5 +1,5 @@
 /*
-Partikkel - a granular synthesis module for Csound 5
+Modmatrix - modulation matrix
 Copyright (C) 2009 Øyvind Brandtsegg, Thom Johansen
 
 This library is free software; you can redistribute it and/or
