@@ -1,4 +1,4 @@
-d !---
+!---
 
 To maintain this document use the following markdown:
 
@@ -54,6 +54,8 @@ arrays: atan2, pow,hypot, fmod, fmax, fmin.
 
 - tvconv -- a time-varying convolution (FIR filter) opcode.
 
+- liveconv -- partitioned convolution with dynamically reloadable impulse response
+
 - bpf, xyscale, ntom, mton -- (from SuperCollider?).
 
 - OSCsendA -- asynchronous version of OSCsend,
@@ -76,6 +78,8 @@ using liblo has been kept as OSCsend_lo.
 - product -- takes a numeric array (k or i-rate) and calculates its product.
 
 - supercollider ugens -- sc_phasor, sc_lag, sc_lagud, sc_trig added.
+
+- liveconv -- AWAITING DOCUMENTATION
 
 ### New Gen and Macros
 
@@ -254,13 +258,6 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 ========================================================================
 UNDOCUMENTED/UNDELETED
 
+
 Author: jpff <jpff@codemist.co.uk>
 Date:   Sun May 7 15:54:43 2017 +0100
-
-
-commit 3814b45a7c804b09ac1944f76eeac52615c7a88c
-Author: Steven Yi <stevenyi@gmail.com>
-
-Date:   Sat Apr 1 18:05:13 2017 -0400
-
-    fix for pmidi.c and csoundLock/UnLock: add include of csGblMtx.h, fix setting of HAVE_PTHREAD for all targets instead of just for libcsound64
