@@ -407,6 +407,7 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
         p->ang_dir.ele = FL(0.0);
       }
       else {
+        free(tmp_gains);
         return csound->PerfError(csound, insdshead,
                                  Str("Missing fields in vbapmove\n"));
       }
