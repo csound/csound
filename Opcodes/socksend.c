@@ -457,8 +457,9 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       case 't':
         if(p->INOCOUNT < (unsigned int) p->type->size + 5)
           return csound->InitError(csound, "extra argument needed for type t\n");
-        bsize += 4;
-        iarg++;
+        bsize += 8;
+        iarg+=2;
+	break;
       case 'f':
       case 'i':
       case 'c':
@@ -656,7 +657,7 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
           }
           ldata = (int64_t) (*p->arg[i]+0.5);
           byteswap((char *) &ldata, 8);
-          memcpy(out+buffersize,&data, 8);
+          memcpy(out+buffersize,&ldata, 8);
           buffersize += 8;
           break;
         case 's':
