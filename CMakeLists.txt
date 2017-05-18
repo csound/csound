@@ -26,14 +26,14 @@ set(APIVERSION "6.0")
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
 
-execute_process (
-     COMMAND python -c
-     "import site, sys; sys.stdout.write(site.getusersitepackages())"
-     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
-   )
+option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
+if(USE_LIB64)
+    set(LIBRARY_INSTALL_DIR "lib64")
+else()
+    set(LIBRARY_INSTALL_DIR "lib")
+endif()
+message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
-set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
-set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
@@ -192,19 +192,6 @@ else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
 
-# VL this is breaking CUDA compilation. It's not necessary
-#if(APPLE)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
-#endif()
-
-option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
-if(USE_LIB64)
-    set(LIBRARY_INSTALL_DIR "lib64")
-else()
-    set(LIBRARY_INSTALL_DIR "lib")
-endif()
-message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
-
 if(USE_DOUBLE)
    message(STATUS "Building with 64-bit floats")
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
@@ -212,6 +199,20 @@ else()
   message(STATUS "Building with 32-bit floats")
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
+
+execute_process (
+     COMMAND python -c
+     "import site, sys; sys.stdout.write(site.getusersitepackages())"
+     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
+   )
+
+set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+
+# VL this is breaking CUDA compilation. It's not necessary
+#if(APPLE)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
+#endif()
 
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
