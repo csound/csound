@@ -96,7 +96,7 @@ typedef struct score_parm_s {
     SCOTOKEN        *arglist;
 } SCORE_PARM;
 
-uint32_t make_location(PRS_PARM *);
+uint64_t make_location(PRS_PARM *);
 extern uint8_t file_to_int(CSOUND*, const char*);
 
 #endif
