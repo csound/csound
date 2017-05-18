@@ -427,7 +427,7 @@ int loscil(CSOUND *csound, LOSC *p)
     }
  phschk:
     if (phs >= end && p->curmod != 3) {
-      //printf("****phs = %d end = %d\n", phs,end);
+      //printf("****phs = %f end = %d\n", phs,end);
       goto put0;
     }
     switch (p->curmod) {
@@ -437,7 +437,7 @@ int loscil(CSOUND *csound, LOSC *p)
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if ((phs += inc) >= end) {
-          printf("****phs, end = %d, %d\n", phs, end);
+          //printf("****phs, end = %f, %d\n", phs, end);
           goto nxtseg;
         }
       }
