@@ -76,7 +76,6 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>D:\msys64\home\restore\link_vs2015\include\ableton;D:\msys64\home\restore\link_vs2015\include;D:\msys64\home\restore\link_vs2015\modules\asio-standalone\asio\include;$(IncludePath)</IncludePath>
     <TargetName>ableton_link_opcodes</TargetName>
-    <OutDir>$(SolutionDir)\..</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -85,7 +84,6 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>D:\msys64\home\restore\link_vs2015\include\ableton;D:\msys64\home\restore\link_vs2015\include;D:\msys64\home\restore\link_vs2015\modules\asio-standalone\asio\include;$(IncludePath)</IncludePath>
     <TargetName>ableton_link_opcodes</TargetName>
-    <OutDir>$(SolutionDir)\..</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
