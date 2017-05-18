@@ -26,14 +26,6 @@ set(APIVERSION "6.0")
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
 
-option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
-if(USE_LIB64)
-    set(LIBRARY_INSTALL_DIR "lib64")
-else()
-    set(LIBRARY_INSTALL_DIR "lib")
-endif()
-message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
-
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
@@ -191,6 +183,14 @@ if(CUSTOM_CMAKE)
 else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
+
+option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
+if(USE_LIB64)
+    set(LIBRARY_INSTALL_DIR "lib64")
+else()
+    set(LIBRARY_INSTALL_DIR "lib")
+endif()
+message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
 if(USE_DOUBLE)
    message(STATUS "Building with 64-bit floats")
