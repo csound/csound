@@ -159,7 +159,9 @@ namespace csound
     virtual void clearProperties();
     virtual void createNoteOffEvent(Event &event) const;
     virtual Event &operator = (const Event &a);
+#if __cpplusplus >= 201103L
     virtual Event &operator = (Event &&a) = default;
+#endif
     virtual Event &operator = (const Eigen::VectorXd &a);
 #ifndef SWIG
     static int SORT_ORDER[];
