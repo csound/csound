@@ -602,8 +602,11 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
     int bytes =
-      recvfrom(p->sock, (void *)buf, MTU, 0, &from, &clilen);
+      recvfrom(p->sock, (void *)buf, MTU-1, 0, &from, &clilen);
     if(bytes < 0) bytes = 0;
+
+    // terminating string to satisfy coverity
+    buf[p->buffer.size-1] = '\0';
 
     if(bytes) {
       if(strncmp(buf,"#bundle",7) == 0) { // bundle
@@ -613,7 +616,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
         byteswap((char *)&size, 4);
         buf += 4;
       } else size = bytes;
-      while(size > 0)  {
+      while(size > 0 && size < MTU)  {
         /* get address & types */
         if(n < sout->sizes[0]) {
           len = strlen(buf);

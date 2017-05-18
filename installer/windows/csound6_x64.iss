@@ -168,6 +168,8 @@ Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.pdb"; DestDir: "{#APP
 Source: "{#MyNwJsDir}*.*"; DestDir: "{#APP_BIN}\"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#MyPackagesDir}portaudio_asio\src\mingw-w64-x86_64-portaudio\bin\.libs\pa_devs.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyPackagesDir}portaudio_asio\src\mingw-w64-x86_64-portaudio\bin\.libs\pa_minlat.exe"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MySourceDir}Opcodes\AbletonLinkOpcodes\x64\Release\*.dll"; DestDir: "{#APP_PLUGINS64}"; Components: core;
+
 
 Source: "{#MyMingw64Dir}\bin\luajit.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 

@@ -147,7 +147,7 @@ else
 copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
 mkdir portaudioBuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 cd portaudioBuild 
-cmake ..\portaudio -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
+cmake ..\portaudio -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
 copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force

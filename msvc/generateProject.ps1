@@ -26,7 +26,7 @@ echo "VCPKG script: '$vcpkgCmake'"
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -InformationAction SilentlyContinue
 
-cmake ..\.. -G "Visual Studio 15 2017 Win64" `
+cmake ..\.. -G "Visual Studio 14 2015 Win64" `
  -Wdev -Wdeprecated `
  -DCMAKE_BUILD_TYPE="Release" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
