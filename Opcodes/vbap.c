@@ -826,7 +826,7 @@ static void choose_ls_tuplets(CSOUND *csound,
       }
       csound->Message(csound, "\n\n");
     }
-    free(sorted_lss); free(exist);
+    free(sorted_lss); free(exist); free(inv_mat);
 }
 
 static void sort_2D_lss(ls lss[], int sorted_lss[],
