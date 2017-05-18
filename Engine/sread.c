@@ -46,11 +46,11 @@ static  void    salcblk(CSOUND *), flushlin(CSOUND *);
 static  int     getop(CSOUND *), getpfld(CSOUND *);
         MYFLT   stof(CSOUND *, char *);
 extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-extern void csound_prslex_init(void *);
+extern int csound_prslex_init(void *);
 extern void csound_prsset_extra(void *, void *);
 
-extern void csound_prslex(CSOUND*, void*);
-extern void csound_prslex_destroy(void *);
+extern int csound_prslex(CSOUND*, void*);
+extern int csound_prslex_destroy(void *);
 
 #define STA(x)  (csound->sreadStatics.x)
 
