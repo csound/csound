@@ -777,7 +777,7 @@ public:
     return (Vector<T> &)*ptrs[n];
   }
 
-  /** retunrs 1-D numeric array data
+  /** returns 1-D numeric array data
    */
   myfltvec &myfltvec_data(int n) { return (myfltvec &)*ptrs[n]; }
 };
