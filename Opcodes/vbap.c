@@ -601,6 +601,7 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
     }
     //ls_amount = (int)*p->ls_amount;
     if (UNLIKELY(count < dim)) {
+      free(lss);
       csound->ErrorMsg(csound, Str("Too few loudspeakers"));
       return NOTOK;
     }

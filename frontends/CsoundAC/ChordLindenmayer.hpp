@@ -109,6 +109,7 @@ namespace csound
       modality = other.modality;
       return *this;
     }
+    Turtle &operator = (Turtle &&other) = default;
     bool operator < (const Turtle &other) const
     {
       if (note < other.note) {
