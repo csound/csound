@@ -63,6 +63,7 @@ namespace csound
     Chunk(const Chunk &a);
     virtual ~Chunk();
     Chunk &operator = (const Chunk &a);
+    Chunk &operator = (Chunk &&a) = delete;
     virtual void read(std::istream &stream);
     virtual void write(std::ostream &stream);
     virtual void markChunkSize(std::ostream &stream);
@@ -80,6 +81,7 @@ namespace csound
     MidiHeader(const MidiHeader &a);
     virtual ~MidiHeader();
     MidiHeader &operator = (const MidiHeader &a);
+    MidiHeader &operator = (MidiHeader &&a) = default;
     virtual void clear();
     virtual void read(std::istream &stream);
     virtual void write(std::ostream &stream);
@@ -97,6 +99,7 @@ namespace csound
     MidiEvent(const MidiEvent &a);
     virtual ~MidiEvent();
     MidiEvent &operator = (const MidiEvent &a);
+    MidiEvent &operator = (MidiEvent &&a) = default;
     virtual void read(std::istream &stream, MidiFile &midiFile);
     virtual void write(std::ostream &stream, const MidiFile &midiFile, int lastTick) const;
     virtual int getStatus() const;
@@ -120,10 +123,12 @@ namespace csound
   {
   public:
     MidiTrack();
+    MidiTrack(const MidiTrack &other) = default;
     virtual ~MidiTrack();
     virtual void read(std::istream &stream, MidiFile &midiFile);
     virtual void write(std::ostream &stream, MidiFile &midiFile);
     MidiTrack &operator = (const MidiTrack &a);
+    MidiTrack &operator = (MidiTrack &&a) = default;
   };
 
   class SILENCE_PUBLIC TempoMap : public std::map<int, double>
