@@ -71,6 +71,7 @@ If you want all Csound plugins to be built with static linkage to all library de
 2. Install the following dependencies, which are not or should not be built with mingw64. The build system should be able to find them without manual configuration.
   * The Java SDK for x64 from [Oracle](http://www.oracle.com/technetwork/java/index.html).
   * Python for x64 from [Python.org](https://www.python.org/).
+  * The [Ableton Link software development kit](https://github.com/Ableton/link).
 
 3. Obtain from [Steinberg](http://www.steinberg.net/en/company/developers.html) the ASIO2 and VST 2.X SDKs and copy them into the mingw64/include directory.
 
@@ -86,13 +87,13 @@ If you want all Csound plugins to be built with static linkage to all library de
 
 9. Set an environment variable `XSL_BASE_PATH` in `~/.bash_profile` e.g. to `mingw64/share/xml/docbook/xsl-stylesheets-1.78.1`. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Execute `python csd2docbook.py -a` to build docbook versions of the example CSDs. Execute `mingw32-make html-dist` in the mingw64 shell to build the Csound Reference Manual.
 
-10. Execute the `csound/mingw64/find_csound_dependencies.py` script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
+10. Execute `./build-mkg.sh` in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
 
-11. Execute `./build-mkg.sh` in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
+11. Load the csound/Opcodes/AbletonLinkOpcodes/AbletonLinkOpcodes.sln solution in Visual Studio 2015 and build the release version of the project for x64. Mingw64 will build these opcodes but they don't work, Visual Studio will build a version that does work.
 
-12. Execute the VS2015 x64 native tools command prompt. Change to the csound/mingw64 directory and run the `make_import_library.cmd` script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
+11. Execute the VS2015 x64 native tools command prompt. Change to the csound/mingw64 directory and run the `make_import_library.cmd` script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
 
-13. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt `qcs.pro` project. Configure `config.user.pri` if necessary. Disable the shadow build option. Run qmake and rebuild the project. My `config.user.pri` is:
+12. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt `qcs.pro` project. Configure `config.user.pri` if necessary. Disable the shadow build option. Run qmake and rebuild the project. My `config.user.pri` is:
     ```qmake
     CONFIG *= perfThread_build
     CONFIG *= rtmidi
@@ -108,7 +109,7 @@ If you want all Csound plugins to be built with static linkage to all library de
     RTMIDI_DIR = D:/msys64/home/restore/rtmidi-2.1.1
     ```
 
-14. Run the node.js command prompt. Set the `CSOUND_HOME` environment variable to point to your Csound project root directory. Run `nw-gyp rebuild --target=0.18.8 --arch=x64`. If the script ends with "ok" it has succeeded.
+14. Run the node.js command prompt. Set the `CSOUND_HOME` environment variable to point to your Csound project root directory. Run `nw-gyp rebuild --target=0.22.3 --arch=x64`. If the script ends with "ok" it has succeeded.
 
 15. Run `csound/mingw64/build-mkg.sh` again. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. The build script should:
   * Run CMake.

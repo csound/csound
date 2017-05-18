@@ -601,6 +601,7 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
     }
     //ls_amount = (int)*p->ls_amount;
     if (UNLIKELY(count < dim)) {
+      free(lss);
       csound->ErrorMsg(csound, Str("Too few loudspeakers"));
       return NOTOK;
     }
@@ -825,7 +826,7 @@ static void choose_ls_tuplets(CSOUND *csound,
       }
       csound->Message(csound, "\n\n");
     }
-    free(sorted_lss); free(exist);
+    free(sorted_lss); free(exist); free(inv_mat);
 }
 
 static void sort_2D_lss(ls lss[], int sorted_lss[],

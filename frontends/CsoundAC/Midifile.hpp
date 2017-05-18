@@ -63,6 +63,7 @@ namespace csound
     Chunk(const Chunk &a);
     virtual ~Chunk();
     Chunk &operator = (const Chunk &a);
+    Chunk &operator = (Chunk &&a) = delete;
     virtual void read(std::istream &stream);
     virtual void write(std::ostream &stream);
     virtual void markChunkSize(std::ostream &stream);
@@ -80,6 +81,9 @@ namespace csound
     MidiHeader(const MidiHeader &a);
     virtual ~MidiHeader();
     MidiHeader &operator = (const MidiHeader &a);
+  #if __cpplusplus >= 201103L
+    MidiHeader &operator = (MidiHeader &&a) = default;
+  #endif
     virtual void clear();
     virtual void read(std::istream &stream);
     virtual void write(std::ostream &stream);
@@ -97,6 +101,9 @@ namespace csound
     MidiEvent(const MidiEvent &a);
     virtual ~MidiEvent();
     MidiEvent &operator = (const MidiEvent &a);
+#if __cpplusplus >= 201103L
+    MidiEvent &operator = (MidiEvent &&a) = default;
+#endif
     virtual void read(std::istream &stream, MidiFile &midiFile);
     virtual void write(std::ostream &stream, const MidiFile &midiFile, int lastTick) const;
     virtual int getStatus() const;
@@ -120,10 +127,16 @@ namespace csound
   {
   public:
     MidiTrack();
+#if __cpplusplus >= 201103L
+    MidiTrack(const MidiTrack &other) = default;
+#endif
     virtual ~MidiTrack();
     virtual void read(std::istream &stream, MidiFile &midiFile);
     virtual void write(std::ostream &stream, MidiFile &midiFile);
     MidiTrack &operator = (const MidiTrack &a);
+#if __cpplusplus >= 201103L
+    MidiTrack &operator = (MidiTrack &&a) = default;
+#endif
   };
 
   class SILENCE_PUBLIC TempoMap : public std::map<int, double>
