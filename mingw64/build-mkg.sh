@@ -33,7 +33,8 @@ cmake ../.. -G "MSYS Makefiles" \
 -DSTK_LIBRARY:FILEPATH=/mingw64/lib/libstk.a \
 -DLIBSNDFILE_LIBRARY:FILEPATH="C:\Program Files\Mega-Nerd\libsndfile\bin\libsndfile-1.dll" \
 -DSNDFILE_H_PATH:PATH="C:\Program Files\Mega-Nerd\libsndfile\include" \
--DBUILD_WEBSOCKET_OPCODE=0
+-DBUILD_WEBSOCKET_OPCODE=0 \
+-DMS_WIN64=1
 
 
 
