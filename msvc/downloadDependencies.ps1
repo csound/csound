@@ -11,6 +11,7 @@ $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
 $depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
+$vsGenerator = "Visual Studio 15 2017 Win64"
 
 # Add to path to call premake or other tools
 $env:Path += $depsDir
@@ -92,7 +93,8 @@ mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 # List of URIs to download and install
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
-"http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip"
+"http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
+"https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip"
 #"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
 
 # Appends this folder location to the 'deps' uri
@@ -129,7 +131,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
 
 # Manual building...
 # Portaudio
-cd staging
+cd $stageDir
 copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
 
 if (Test-Path "portaudio")
@@ -147,13 +149,41 @@ else
 copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
 mkdir portaudioBuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 cd portaudioBuild 
-cmake ..\portaudio -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
+cmake ..\portaudio -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
 copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
 
+# Portmidi
+cd $stageDir
+
+if (Test-Path "portmidi")
+{
+	cd portmidi
+	git pull
+	cd ..
+	echo "Portmidi already downloaded, updated"
+}
+else 
+{
+	svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
+}
+
+cd portmidi\portmidi\trunk
+mkdir build -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+cd build
+cmake .. -G $vsGenerator -DCMAKE_BUILD_TYPE="Release"
+cmake --build . --config Release
+copy .\Release\portmidi.dll -Destination $depsBinDir -Force
+copy .\Release\portmidi.lib -Destination $depsLibDir -Force
+copy .\Release\portmidi_s.lib -Destination $depsLibDir -Force
+copy .\Release\pmjni.dll -Destination $depsBinDir -Force
+copy .\Release\pmjni.lib -Destination $depsLibDir -Force
+copy ..\pm_common\portmidi.h -Destination $depsIncDir -Force
+copy ..\porttime\porttime.h -Destination $depsIncDir -Force
+
 # Liblo
-cd ..
+cd $stageDir
 # TEMP: seeing as the repo has changed, need to delete the old one first
 Remove-Item -Recurse -Force liblo
 
@@ -171,7 +201,7 @@ else
 
 mkdir liblo\cmakebuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
 cd liblo\cmakebuild
-cmake ..\cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
+cmake ..\cmake -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
 cmake --build . --config Release
 copy .\Release\lo.dll -Destination $depsBinDir -Force
 copy .\Release\lo.lib -Destination $depsLibDir -Force

@@ -434,7 +434,7 @@ find_package(OpenMP)
 find_library(LIBSNDFILE_LIBRARY sndfile)
 
 if(NOT LIBSNDFILE_LIBRARY AND WIN32)
-find_library(LIBSNDFILE_LIBRARY sndfile-1)
+find_library(LIBSNDFILE_LIBRARY libsndfile-1)
 endif()
 
 if(NOT LIBSNDFILE_LIBRARY)
