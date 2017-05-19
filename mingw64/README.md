@@ -62,7 +62,7 @@ If you want all Csound plugins to be built with static linkage to all library de
 
 6. If you wish to create an mingw64-compatible import library for the MSVS-built Python DLL, see the following [instructions here](http://ascend4.org/Setting_up_a_MinGW-w64_build_environment). Note that currently, gendef comes with the MSYS2 toolchain, and does not need to be built.
 
-7. Run `./build.sh in the mingw64 directory`. It will run CMake, run make, and then copy the targets into the "dist" directory. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. (You can skip this step if you are performing the installer build below).
+7. Run `./build.sh` in the mingw64 directory. It will run CMake, run make, and then copy the targets into the "dist" directory. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. (You can skip this step if you are performing the installer build below.)
 
 # Installer Build
 
