@@ -63,7 +63,9 @@ namespace csound
     Chunk(const Chunk &a);
     virtual ~Chunk();
     Chunk &operator = (const Chunk &a);
-    Chunk &operator = (Chunk &&a) = delete;
+#if __cpplusplus >= 201103L
+    Chunk &operator = (Chunk &&a) = default;
+#endif
     virtual void read(std::istream &stream);
     virtual void write(std::ostream &stream);
     virtual void markChunkSize(std::ostream &stream);
