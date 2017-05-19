@@ -579,7 +579,7 @@ public:
   /** returns a const iterator to the
        end of the frame
     */
-  const_iterator cend() const { return (const T *)frame.auxp + N / 2 + 1; }
+  const_iterator cend() const { return (const T *) (frame.auxp + N / 2 + 1); }
 
   /** array subscript access operator (write)
    */
