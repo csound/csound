@@ -22,6 +22,10 @@ if(BUILD_CXX_INTERFACE)
 
     if(WIN32 AND NOT MSVC)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
+      # mingw64 needs this to create a valid .pyd.
+      if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        add_definitions(-DMS_WIN64)
+      endif()
     endif()
 
     set(libcsnd6_CFLAGS "")

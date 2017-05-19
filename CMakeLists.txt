@@ -313,6 +313,7 @@ option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" ON)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
+option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
@@ -474,7 +475,7 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-if(NOT MSVC)
+if(NOT MSVC AND REQUIRE_PTHREADS)
   find_library(PTHREAD_LIBRARY pthread)
 
   if(NOT PTHREAD_LIBRARY)
@@ -565,7 +566,7 @@ include_directories(./Engine)
 include_directories(./)
 
 #checking pthread functions
-if(PTHREAD_LIBRARY)
+if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
 
   #list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
@@ -1118,7 +1119,7 @@ if(EMSCRIPTEN)
 endif()
 
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
-if(PTHREAD_LIBRARY)
+if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
   list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
 

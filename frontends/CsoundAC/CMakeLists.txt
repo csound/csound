@@ -3,7 +3,7 @@
 include(CheckIncludeFiles)
 
 set (CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorithmic composition (needs C++ interface)" ON)
 option(BUILD_CSOUND_AC_PYTHON_INTERFACE "Build the Csound AC Python interface" ON)
@@ -90,6 +90,10 @@ if(BUILD_CSOUND_AC)
         target_link_libraries(libCsoundAC ${PORTSMF_LIBRARY})
     endif()
     if(WIN32 AND NOT MSVC) # for MSYS2/mingw64
+        #  mingw64 needs this to create a valid .pyd.
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+          add_definitions(-DMS_WIN64)
+        endif()
         target_link_libraries(libCsoundAC jpeg png z)
     endif()
     if(HAVE_UNISTD_H)
