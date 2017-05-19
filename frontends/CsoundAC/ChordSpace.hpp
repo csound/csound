@@ -538,7 +538,9 @@ public:
 		}
 		return *this;
 	}
+#if __cpplusplus >= 201103L
     Chord &operator = (Chord &&other) = default;
+#endif
 	virtual ~Chord() {
 	}
 	virtual size_t voices() const {
