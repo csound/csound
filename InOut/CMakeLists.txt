@@ -26,7 +26,11 @@ if(USE_ALSA)
 endif()
 if(USE_PORTAUDIO)
     find_path(PORTAUDIO_INCLUDE_PATH portaudio.h)
-    find_library(PORTAUDIO_LIBRARY portaudio)
+    if(MSVC)
+        find_library(PORTAUDIO_LIBRARY portaudio_x64)
+    else ()
+        find_library(PORTAUDIO_LIBRARY portaudio)
+    endif()
     if(PORTAUDIO_INCLUDE_PATH AND PORTAUDIO_LIBRARY)
         try_run(PORTAUDIO_V19 PORTAUDIO_TEST_COMPILED
             ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/portaudio_test.c
