@@ -48,6 +48,7 @@ set(BUILD_VIRTUAL_KEYBOARD ON)
 set(BUILD_WEBSOCKET_OPCODE ON)
 set(BUILD_WIIMOTE_OPCODES OFF)
 set(BUILD_WINDSOUND ON)
+set(NEED_PORTTIME OFF)
 
 # Csound use features
 set(USE_ALSA 0) # N/A
@@ -73,16 +74,17 @@ set(USE_SYSTEM_PORTSMF 1)
 set(HAVE_BIG_ENDIAN 0)
 set(CMAKE_16BIT_TYPE "unsigned short")
 set(FAIL_MISSING OFF) # Enable when packaging
+set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/msvc/deps)
 
 # Explicit settings for locally downloaded dependencies
 # TODO ideally find all of these on path
 set(FLEX_EXECUTABLE "../deps/win_flex_bison/win_flex.exe")
 set(BISON_EXECUTABLE "../deps/win_flex_bison/win_bison.exe")
-set(SWIG_DIR "")
-set(PORTAUDIO_INCLUDE_PATH "../../deps/include")
-set(PORTAUDIO_LIBRARY "../../deps/lib/portaudio_x64")
-set(OSC_HEADER "../../deps/include")
-set(LIBLO_LIBRARY "../../deps/lib/lo")
+#set(SWIG_DIR "")
+#set(PORTAUDIO_INCLUDE_PATH "../../deps/include")
+#set(PORTAUDIO_LIBRARY "../../deps/lib/portaudio_x64")
+#set(OSC_HEADER "../../deps/include")
+#set(LIBLO_LIBRARY "../../deps/lib/lo")
 
 # Disable the following warnings in msvc
 # - C4244 loss of data in conversion
@@ -96,7 +98,7 @@ set(CMAKE_C_FLAGS "${CMAKE_CX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
 
 # FIXME this is supposedly a bad thing, figure out something else maybe
-list(APPEND CMAKE_SYSTEM_INCLUDE_PATH 
-  "${CMAKE_CURRENT_BINARY_DIR}/../deps/include")
-list(APPEND CMAKE_SYSTEM_LIBRARY_PATH
-  "${CMAKE_CURRENT_BINARY_DIR}/../deps/lib")
+#list(APPEND CMAKE_SYSTEM_INCLUDE_PATH 
+#  "${CMAKE_CURRENT_BINARY_DIR}/../deps/include")
+#list(APPEND CMAKE_SYSTEM_LIBRARY_PATH
+#  "${CMAKE_CURRENT_BINARY_DIR}/../deps/lib")
