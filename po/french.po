@@ -6482,9 +6482,8 @@ msgid "requested col is out of range\n"
 msgstr "colonne demandée hors limites\n"
 
 #: Opcodes/arrays.c:1996 Opcodes/arrays.c:2015
-#, fuzzy
 msgid "Error: index out of range\n"
-msgstr "erreur de code, ikind hors limites"
+msgstr "Erreur : index hors limites\n"
 
 #: Opcodes/arrays.c:2051
 msgid "input array too small\n"
