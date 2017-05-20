@@ -1992,13 +1992,8 @@ int set_rows_init(CSOUND *csound, FFT *p){
 
 int set_rows_perf(CSOUND *csound, FFT *p){
     int start = *((MYFLT *)p->in2);
-    
-    if (start < 0 || start >= p->out->sizes[0]) {
-        
-        csound->PerfError(csound, p->h.insdshead, Str("Error: index out of range\n"));
-        return OK;
-    }
-    
+    if (start < 0 || start >= p->out->sizes[0])    
+        return csound->PerfError(csound, p->h.insdshead, Str("Error: index out of range\n")); 
     int bytes =  p->in->sizes[0]*sizeof(MYFLT);
     start *= p->out->sizes[1];
     memcpy(p->out->data+start,p->in->data,bytes);
@@ -2016,11 +2011,9 @@ int set_cols_perf(CSOUND *csound, FFT *p){
     
     int start = *((MYFLT *)p->in2);
     
-    if (start < 0 || start >= p->out->sizes[1]) {
-        
-        csound->PerfError(csound, p->h.insdshead, Str("Error: index out of range\n"));
-        return OK;
-    }
+    if (start < 0 || start >= p->out->sizes[1])         
+        return csound->PerfError(csound, p->h.insdshead, Str("Error: index out of range\n"));
+
     
     int j,i,len =  p->out->sizes[0];
     for(j=0,i=start; j < len; i+=len, j++)
