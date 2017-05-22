@@ -175,7 +175,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        SWIG_ADD_MODULE(csnd6 python python_interface.i)
+        SWIG_ADD_MODULE(csnd6 java java_interface.i)
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
 
         ADD_CUSTOM_COMMAND(TARGET _jcsound6
