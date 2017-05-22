@@ -81,7 +81,8 @@ else
 $targetTriplet = "x64-windows"
 echo "Downloading VC packages..."
 
-vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
+#vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
+vcpkg --triplet $targetTriplet install eigen3 libflac libogg libvorbis zlib
 
 # Comment for testing to avoid extracting if already done so
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
