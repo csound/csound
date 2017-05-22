@@ -13,6 +13,11 @@ $depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
 $vsGenerator = "Visual Studio 15 2017 Win64"
 
+# Metrics
+$vcpkgTiming = 0
+$buildTiming = 0
+$cmakeTiming = 0
+
 # Add to path to call premake or other tools
 $env:Path += $depsDir
 
@@ -83,6 +88,8 @@ echo "Downloading VC packages..."
 
 #vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
 vcpkg --triplet $targetTriplet install eigen3 libflac libogg libvorbis zlib
+
+$vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
@@ -210,6 +217,8 @@ copy .\lo -Destination $depsIncDir -Force -Recurse
 copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
 robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
 
+$buildTiming = (Get-Date).TimeOfDay
+
 # Add deps bin directory to the system path if not already there
 # FIXME this is duplicating part of the path for some reason
 if ($env:Path.Contains($depsBinDir))
@@ -229,6 +238,8 @@ else
 }
 
 $endTime = (Get-Date).TimeOfDay
+$buildTiming = $buildTiming - $vcpkgTiming
+$vcpkgTiming = $vcpkgTiming - $startTime
 $duration = $endTime - $startTime
 
 # Strip any unneeded files from the bin directory, this will be
@@ -236,5 +247,9 @@ $duration = $endTime - $startTime
 cd $depsBinDir 
 rm *.exe
 cd $currentDir
+
 echo "Removed unnecessary files from dependency bin directory"
-echo "Finished in $($duration.TotalMinutes) minutes"
+echo " "
+echo "VCPKG duration: $($vcpkgTiming.TotalMinutes) minutes"
+echo "Build duration: $($buildTiming.TotalMinutes) minutes"
+echo "Total duration: $($duration.TotalMinutes) minutes"
