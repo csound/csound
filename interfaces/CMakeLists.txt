@@ -122,7 +122,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        SWIG_ADD_LIBRARY(csnd6 LANGUAGE python SOURCES python_interface.i)
+		SWIG_ADD_MODULE(csnd6 python python_interface.i)
         SWIG_LINK_LIBRARIES(csnd6 ${swigpython_LIBS})
 
         set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
@@ -175,7 +175,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        SWIG_ADD_LIBRARY(_jcsound6 LANGUAGE java SOURCES java_interface.i)
+        SWIG_ADD_MODULE(csnd6 python python_interface.i)
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
 
         ADD_CUSTOM_COMMAND(TARGET _jcsound6
