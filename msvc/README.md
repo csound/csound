@@ -72,30 +72,26 @@ You can pass in default arguments to the csound instance by right-clicking on "c
 Using the build configuration "Release" or "Release with debug info" will allow profilling of the project. The profilling tools may not appear if you have the community edition however, professional or enterprise might be required. By going to "Analyze" and "Performance Profiler", you will get a choice of profilling tools (cpu usage, memory etc).
 
 ## Work in progress / work to do
-1. [Fixed] Python integration into build. Most likely user will need to install it via msi
-2. [Fixed] PortMIDI/SMF manual build script needs to be created
-3. FLTK not being fully found. Everything is found except fluid_executable
-4. [Partial] Atomic builtins not being found, test program isn't working as expected but should
- * Fixed the cmake test but csound source assumes linux based atomics, needs more work
-5. [Fixed] Liblo (OSC) difficult build, needs premake on windows. Need to either prebuild or come up with build script
-6. [Fixed] SWIG, binaries to be downloaded manually and extracted
-7. STK, source downloaded manually and built
-8. LUAJIT, source downloaded manually and built using VS console
-9. PureData, source download and extract
-10. GetText, is in vcpkg but not being detected by cmake. (missing:  GETTEXT_MSGMERGE_EXECUTABLE GETTEXT_MSGFMT_EXECUTABLE)
-11. Eigen, is in vcpkg but include path isn't being found
-12. FluidSynth, hard to build. Is there a windows binary download?
-13. [Fixed] Explicitly disable non-windows orientated features in cmake. Jack/Ladspa/ALSA/coreaudiomidi etc
-14. WII opcodes, download source and build
-15. P5Glove, no idea about this
-16. Faust opcodes, need to investigate
-17. HDF5, need to investigate
-18. Websockets, need to investigate
-19. Csound AC 
-20. Csound~, needs max sdk
-21. Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
-22. Doxygen for documentation
-23. Installer needs work? Not tried
+[Partial] FLTK not being fully found. Everything is found except fluid_executable
+    * Is in VCPKG but missing fluid executable. Have a ticket open which will resolve this
+[Partial] Atomic builtins not being found, test program isn't working as expected but should
+   * Fixed the cmake test but csound source assumes linux based atomics, needs more work
+STK, source downloaded manually and built
+LUAJIT, source downloaded manually and built using VS console
+PureData, source download and extract
+GetText, is in vcpkg but not being detected by cmake. (missing:  GETTEXT_MSGMERGE_EXECUTABLE GETTEXT_MSGFMT_EXECUTABLE)
+Eigen, is in vcpkg but include path isn't being found
+FluidSynth, hard to build. Is there a windows binary download?
+WII opcodes, download source and build
+P5Glove, no idea about this
+Faust opcodes, need to investigate
+HDF5, need to investigate
+Websockets, need to investigate
+Csound AC 
+Csound~, needs max sdk
+Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
+Doxygen for documentation
+Installer needs work? Not tried
 
 ## Investigate
 1. More usage of CMake instead of powershell scripts
