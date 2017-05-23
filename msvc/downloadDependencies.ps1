@@ -21,7 +21,7 @@ if ($systemVCPKG)
 {
     echo "vcpkg already installed on system, updating"
     $vcpkgDir = Split-Path -Parent $systemVCPKG
-    cd $vcpkgDir 
+    cd $vcpkgDir
 
     # Update and rebuild vcpkg
     git pull
@@ -38,11 +38,11 @@ elseif (Test-Path "..\..\vcpkg")
     cd ..\..\vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
-    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, 
+    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
         [EnvironmentVariableTarget]::User)
 
     echo "vcpkg already installed locally, updating"
-    
+
     # Update and rebuild vcpkg
     git pull
     bootstrap-vcpkg.bat
@@ -50,19 +50,19 @@ elseif (Test-Path "..\..\vcpkg")
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
     vcpkg update
-    
+
     cd $currentDir
 }
-else 
+else
 {
-    cd ..\..    
+    cd ..\..
     echo "vcpkg missing, downloading and installing"
 
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
-    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, 
+    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
         [EnvironmentVariableTarget]::User)
 
     powershell -exec bypass scripts\bootstrap.ps1
@@ -79,9 +79,9 @@ echo "Downloading VC packages..."
 vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
 
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
-mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
-mkdir deps -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
-mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+mkdir cache -ErrorAction SilentlyContinue
+mkdir deps -ErrorAction SilentlyContinue
+mkdir staging -ErrorAction SilentlyContinue
 
 # Manual packages to download and install
 # List of URIs to download and install
@@ -91,13 +91,13 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
 
 # Appends this folder location to the 'deps' uri
-$destList="", 
+$destList="",
 "win_flex_bison",
 "",
 ""
 
 # Download list of files to cache folder
-for($i=0; $i -lt $uriList.Length; $i++) 
+for($i=0; $i -lt $uriList.Length; $i++)
 {
     $fileName = Split-Path -Leaf $uriList[$i]
     $cachedFile = $cacheDir + $fileName
@@ -105,7 +105,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
     {
         echo "Already downloaded file: $fileName"
     }
-    else 
+    else
     {
     	echo "Downloading: " $uriList[$i]
     	$webclient.DownloadFile($uriList[$i], $cachedFile)
@@ -113,7 +113,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
 }
 
 # Extract libs to deps directory
-for($i=0; $i -lt $uriList.Length; $i++) 
+for($i=0; $i -lt $uriList.Length; $i++)
 {
     $fileName = Split-Path -Leaf $uriList[$i]
     $cachedFile = $cacheDir + $fileName
@@ -139,8 +139,8 @@ else
     git clone --depth=1 "https://git.assembla.com/portaudio.git"
 }
 
-mkdir portaudioBuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
-cd portaudioBuild 
+mkdir portaudioBuild -ErrorAction SilentlyContinue
+cd portaudioBuild
 cmake ..\portaudio -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
@@ -158,10 +158,10 @@ else
     $env:Path += ";" + $depsBinDir
 
     # Permanently add to system path
-    [Environment]::SetEnvironmentVariable("Path", $env:Path, 
+    [Environment]::SetEnvironmentVariable("Path", $env:Path,
         [EnvironmentVariableTarget]::User)
 
-    echo "Added dependency bin dir to path: $depsBinDir" 
+    echo "Added dependency bin dir to path: $depsBinDir"
 }
 
 $endTime = (Get-Date).TimeOfDay
