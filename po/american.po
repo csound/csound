@@ -2219,51 +2219,58 @@ msgstr ""
 "sfinit: can't open fd %d\n"
 "%s"
 
-#: InOut/libsnd.c:786 InOut/libsnd.c:792
+#: InOut/libsnd.c:786
 #, c-format
 msgid "sfinit: cannot open %s"
 msgstr "sfinit: can't open %s"
 
-#: InOut/libsnd.c:863
+#: InOut/libsnd.c:790
+#, fuzzy, c-format
+msgid ""
+"sfinit: cannot open %s\n"
+"%s"
+msgstr "sfinit: can't open %s"
+
+#: InOut/libsnd.c:864
 #, c-format
 msgid "writing %d sample blks of %d-bit floats to %s \n"
 msgstr ""
 
-#: InOut/libsnd.c:866 util/srconv.c:506
+#: InOut/libsnd.c:867 util/srconv.c:506
 #, c-format
 msgid "writing %d-byte blks of %s to %s"
 msgstr ""
 
-#: InOut/libsnd.c:871 InOut/libsnd.c:946
+#: InOut/libsnd.c:872 InOut/libsnd.c:947
 msgid " (raw)\n"
 msgstr ""
 
-#: InOut/libsnd.c:937
+#: InOut/libsnd.c:938
 #, c-format
 msgid "%ld %d sample blks of %d-bit floats written to %s\n"
 msgstr ""
 
-#: InOut/libsnd.c:942
+#: InOut/libsnd.c:943
 #, c-format
 msgid "%ld %d sample blks of %s written to %s"
 msgstr ""
 
-#: InOut/libsnd.c:959
+#: InOut/libsnd.c:960
 #, c-format
 msgid "soundfile write returned bytecount of %d, not %d"
 msgstr ""
 
-#: InOut/libsnd.c:962
+#: InOut/libsnd.c:963
 msgid ""
 "(disk may be full...\n"
 " closing the file ...)"
 msgstr ""
 
-#: InOut/libsnd.c:965
+#: InOut/libsnd.c:966
 msgid "\t... closed\n"
 msgstr ""
 
-#: InOut/libsnd.c:971
+#: InOut/libsnd.c:972
 msgid "not writing to sound disk\n"
 msgstr ""
 
