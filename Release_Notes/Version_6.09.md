@@ -170,7 +170,9 @@ magnitude and phase arrays.
 
  - Removed HTML5 Csound editor which has quit working.
 
-- Emscripten:
+- Emscripten: Emscripten Csound (asm.js) now requires sourcing in CsoundObj.js and
+FileList.js separately from libcsound.js. This is to accommodate using the
+same JS API with either asm.js or wasm backends.
 
 - CsoundQT:  CsoundQt 0.9.4 is announced:
 https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%200.9.4.md.
