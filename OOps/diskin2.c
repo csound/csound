@@ -1055,7 +1055,7 @@ static int sndo1set_(CSOUND *csound, void *pp, int stringname)
 
     sfname = name;
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.frames = -1;
+    sfinfo.frames = 0;
     sfinfo.samplerate = (int) (csound->esr + FL(0.5));
     sfinfo.channels = nchns;
     switch ((int) (*iformat + FL(0.5))) {
