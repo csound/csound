@@ -1816,7 +1816,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     synth_buff = (double *) csound->Malloc(csound, frm_samps * sizeof(double));
     /* open output file */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.frames = (sf_count_t) - 1;
+    sfinfo.frames = (sf_count_t)0; /* was -1 */
     sfinfo.samplerate = file_sampling_rate;
     sfinfo.channels = 2;
     sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
