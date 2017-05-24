@@ -742,7 +742,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     }
     /* set format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.frames     = -1;
+    sfinfo.frames     = 0;
     sfinfo.samplerate = (int) (csound->esr + FL(0.5));
     sfinfo.channels   = csound->nchnls;
     sfinfo.format     = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
@@ -786,10 +786,11 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         csoundDie(csound, Str("sfinit: cannot open %s"), fName);
       STA(sfoutname) = fullName;
       STA(outfile)   = sf_open(fullName, SFM_WRITE, &sfinfo);
+      if (UNLIKELY(STA(outfile) == NULL))
+        csoundDie(csound, Str("sfinit: cannot open %s\n%s"),
+                  fullName, sf_strerror (NULL));
       sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
                  &O->quality, sizeof(double));
-      if (UNLIKELY(STA(outfile) == NULL))
-        csoundDie(csound, Str("sfinit: cannot open %s"), fullName);
       /* only notify the host if we opened a real file, not stdout or a pipe */
       csoundNotifyFileOpened(csound, fullName,
                               type2csfiletype(O->filetyp, O->outformat), 1, 0);

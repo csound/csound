@@ -6,7 +6,7 @@ These instructions come in two parts. The first is for building a "plain" Csound
 
 Note that MSYS2 can also be used to create 32bit binaries. Simply use the MinGW-w64 Win32 Shell instead of the Win64 Shell. See below for details.
 
-If you want all Csound plugins to be built with static linkage to all library dependencies, you must set STK_LIBRARY and PTHREAD_LIBRARY in your build.sh or build-mkg.sh to specify the full pathname to the static version of the respective library.
+If you want all Csound plugins to be built with static linkage to all library dependencies, you must set `STK_LIBRARY` and `PTHREAD_LIBRARY` in your `build.sh` or `build-mkg.sh` to specify the full pathname to the static version of the respective library.
 
 ## Plain Build
 
@@ -41,7 +41,7 @@ If you want all Csound plugins to be built with static linkage to all library de
 
 3. Open a MinGW-w64 Win64 Shell, which provides a terminal with all tools set up for mingw64 development.
 
-4. If necessary, modify the PATH environment variable in ~/.bash_profile so that executables which compete with MSYS2 cannot be loaded. Also ensure that the environment variable RAWWAVE_PATH is not set, or set to the STK source rawwaves directory. Other things may also need to be set. My ~/.bash_profile contains:
+4. If necessary, modify the PATH environment variable in `~/.bash_profile` so that executables which compete with MSYS2 cannot be loaded. Also ensure that the environment variable RAWWAVE_PATH is not set, or set to the STK source rawwaves directory. Other things may also need to be set. My `~/.bash_profile contains`:
     ```sh
     export CSOUND_HOME=/home/restore/csound/
     export CEF_HOME=D:/cef_binary_3.2556.1368.g535c4fb_windows64
@@ -55,14 +55,14 @@ If you want all Csound plugins to be built with static linkage to all library de
     export RAWWAVE_PATH=/home/restore/csound/mingw64/packages/stk/src/stk-4.5.1/rawwaves
     ```
 
-5. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use 'makepkg-mingw -f' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings. Failing that you can simply run this command from the package directory:
+5. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use `makepkg-mingw -f` to build the package. Use `pacman -U name-of-package.pkg.tar.xz` to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings. Failing that you can simply run this command from the package directory:
     ```sh
     sed -i 's/^M//' PKGBUILD
     ```
 
 6. If you wish to create an mingw64-compatible import library for the MSVS-built Python DLL, see the following [instructions here](http://ascend4.org/Setting_up_a_MinGW-w64_build_environment). Note that currently, gendef comes with the MSYS2 toolchain, and does not need to be built.
 
-7. Run `./build.sh in the mingw64 directory`. It will run CMake, run make, and then copy the targets into the "dist" directory. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. (You can skip this step if you are performing the installer build below).
+7. Run `./build.sh` in the mingw64 directory. It will run CMake, run make, and then copy the targets into the "dist" directory. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. (You can skip this step if you are performing the installer build below.)
 
 # Installer Build
 

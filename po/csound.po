@@ -2216,51 +2216,58 @@ msgid ""
 "%s"
 msgstr ""
 
-#: InOut/libsnd.c:786 InOut/libsnd.c:792
+#: InOut/libsnd.c:786
 #, c-format
 msgid "sfinit: cannot open %s"
 msgstr ""
 
-#: InOut/libsnd.c:863
+#: InOut/libsnd.c:790
+#, c-format
+msgid ""
+"sfinit: cannot open %s\n"
+"%s"
+msgstr ""
+
+#: InOut/libsnd.c:864
 #, c-format
 msgid "writing %d sample blks of %d-bit floats to %s \n"
 msgstr ""
 
-#: InOut/libsnd.c:866 util/srconv.c:506
+#: InOut/libsnd.c:867 util/srconv.c:506
 #, c-format
 msgid "writing %d-byte blks of %s to %s"
 msgstr ""
 
-#: InOut/libsnd.c:871 InOut/libsnd.c:946
+#: InOut/libsnd.c:872 InOut/libsnd.c:947
 msgid " (raw)\n"
 msgstr ""
 
-#: InOut/libsnd.c:937
+#: InOut/libsnd.c:938
 #, c-format
 msgid "%ld %d sample blks of %d-bit floats written to %s\n"
 msgstr ""
 
-#: InOut/libsnd.c:942
+#: InOut/libsnd.c:943
 #, c-format
 msgid "%ld %d sample blks of %s written to %s"
 msgstr ""
 
-#: InOut/libsnd.c:959
+#: InOut/libsnd.c:960
 #, c-format
 msgid "soundfile write returned bytecount of %d, not %d"
 msgstr ""
 
-#: InOut/libsnd.c:962
+#: InOut/libsnd.c:963
 msgid ""
 "(disk may be full...\n"
 " closing the file ...)"
 msgstr ""
 
-#: InOut/libsnd.c:965
+#: InOut/libsnd.c:966
 msgid "\t... closed\n"
 msgstr ""
 
-#: InOut/libsnd.c:971
+#: InOut/libsnd.c:972
 msgid "not writing to sound disk\n"
 msgstr ""
 
@@ -6234,23 +6241,27 @@ msgstr ""
 msgid "requested col is out of range\n"
 msgstr ""
 
-#: Opcodes/arrays.c:2043
+#: Opcodes/arrays.c:1996 Opcodes/arrays.c:2015
+msgid "Error: index out of range\n"
+msgstr ""
+
+#: Opcodes/arrays.c:2051
 msgid "input array too small\n"
 msgstr ""
 
-#: Opcodes/arrays.c:2093
+#: Opcodes/arrays.c:2101
 msgid "dct: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2099
+#: Opcodes/arrays.c:2107
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:2121
+#: Opcodes/arrays.c:2129
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2128
+#: Opcodes/arrays.c:2136
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
@@ -6377,13 +6388,13 @@ msgstr ""
 msgid "Unknown control %d"
 msgstr ""
 
-#: Opcodes/cpumeter.c:79
+#: Opcodes/cpumeter.c:80
 #, c-format
 msgid "Failed to open /proc/stat: %s"
 msgstr ""
 
-#: Opcodes/cpumeter.c:81 Opcodes/cpumeter.c:86 Opcodes/cpumeter.c:114
-#: Opcodes/cpumeter.c:155
+#: Opcodes/cpumeter.c:82 Opcodes/cpumeter.c:87 Opcodes/cpumeter.c:115
+#: Opcodes/cpumeter.c:156
 msgid "failed /proc/stat read"
 msgstr ""
 
@@ -7935,15 +7946,15 @@ msgstr ""
 msgid "unknown joystick event type %i"
 msgstr ""
 
-#: Opcodes/liveconv.c:235
+#: Opcodes/liveconv.c:238
 msgid "liveconv: invalid impulse response partition length"
 msgstr ""
 
-#: Opcodes/liveconv.c:248
+#: Opcodes/liveconv.c:251
 msgid "liveconv: invalid length, or insufficient IR data for convolution"
 msgstr ""
 
-#: Opcodes/liveconv.c:475
+#: Opcodes/liveconv.c:478
 msgid "liveconv: not initialised"
 msgstr ""
 
@@ -9340,16 +9351,16 @@ msgstr ""
 msgid "insufficient number of arguments for OSC message types\n"
 msgstr ""
 
-#: Opcodes/socksend.c:471
+#: Opcodes/socksend.c:472
 msgid "expecting a string argument\n"
 msgstr ""
 
-#: Opcodes/socksend.c:504
+#: Opcodes/socksend.c:505
 #, c-format
 msgid "%c: data type not supported\n"
 msgstr ""
 
-#: Opcodes/socksend.c:756
+#: Opcodes/socksend.c:757
 msgid "OSCsend2 failed"
 msgstr ""
 
@@ -9738,8 +9749,8 @@ msgid "No table for dconv"
 msgstr ""
 
 #: Opcodes/ugmoss.c:494 Opcodes/vbap1.c:189 Opcodes/vbap1.c:257
-#: Opcodes/vbap1.c:541 Opcodes/vbap1.c:616 Opcodes/vbap_n.c:287
-#: Opcodes/vbap_n.c:351 Opcodes/vbap_n.c:662 Opcodes/vbap_n.c:799
+#: Opcodes/vbap1.c:542 Opcodes/vbap1.c:617 Opcodes/vbap_n.c:287
+#: Opcodes/vbap_n.c:351 Opcodes/vbap_n.c:663 Opcodes/vbap_n.c:800
 #: Opcodes/vbap_zak.c:230 Opcodes/vbap_zak.c:542
 msgid "could not allocate memory"
 msgstr ""
@@ -9999,40 +10010,40 @@ msgstr ""
 msgid "Error in loudspeaker dimension."
 msgstr ""
 
-#: Opcodes/vbap.c:604
+#: Opcodes/vbap.c:605
 msgid "Too few loudspeakers"
 msgstr ""
 
-#: Opcodes/vbap.c:634
+#: Opcodes/vbap.c:635
 #, c-format
 msgid "Too little data speakers (%n)\n"
 msgstr ""
 
-#: Opcodes/vbap.c:657
+#: Opcodes/vbap.c:658
 msgid "Not valid 3-D configuration"
 msgstr ""
 
-#: Opcodes/vbap.c:704 Opcodes/vbap.c:813
+#: Opcodes/vbap.c:705 Opcodes/vbap.c:814
 msgid ""
 "\n"
 "Configured loudspeakers\n"
 msgstr ""
 
-#: Opcodes/vbap.c:706
+#: Opcodes/vbap.c:707
 #, c-format
 msgid "Triplet %d Loudspeakers: "
 msgstr ""
 
-#: Opcodes/vbap.c:756 Opcodes/vbap.c:771
+#: Opcodes/vbap.c:757 Opcodes/vbap.c:772
 #, c-format
 msgid "Pair of speakers at %f and %f ignored\n"
 msgstr ""
 
-#: Opcodes/vbap.c:776
+#: Opcodes/vbap.c:777
 msgid "insufficient valid speakers"
 msgstr ""
 
-#: Opcodes/vbap.c:815
+#: Opcodes/vbap.c:816
 #, c-format
 msgid "Pair %d Loudspeakers: "
 msgstr ""
@@ -10050,14 +10061,14 @@ msgstr ""
 msgid "could not find layout table no.%d"
 msgstr ""
 
-#: Opcodes/vbap1.c:185 Opcodes/vbap1.c:253 Opcodes/vbap1.c:536
-#: Opcodes/vbap1.c:611 Opcodes/vbap_n.c:283 Opcodes/vbap_n.c:658
+#: Opcodes/vbap1.c:185 Opcodes/vbap1.c:253 Opcodes/vbap1.c:537
+#: Opcodes/vbap1.c:612 Opcodes/vbap_n.c:283 Opcodes/vbap_n.c:659
 msgid ""
 "vbap system NOT configured. \n"
 "Missing vbaplsinit opcode in orchestra?"
 msgstr ""
 
-#: Opcodes/vbap1.c:366 Opcodes/vbap1.c:411 Opcodes/vbap_n.c:478
+#: Opcodes/vbap1.c:366 Opcodes/vbap1.c:412 Opcodes/vbap_n.c:478
 #: Opcodes/vbap_n.c:523
 msgid "Missing fields in vbapmove\n"
 msgstr ""
@@ -10066,32 +10077,32 @@ msgstr ""
 msgid "Warning: Ambiguous transition 180 degrees.\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:561 Opcodes/vbap1.c:636 Opcodes/vbap_n.c:682
-#: Opcodes/vbap_n.c:819
+#: Opcodes/vbap1.c:562 Opcodes/vbap1.c:637 Opcodes/vbap_n.c:683
+#: Opcodes/vbap_n.c:820
 #, c-format
 msgid "Have to have at least %d directions in vbapmove"
 msgstr ""
 
-#: Opcodes/vbap1.c:571 Opcodes/vbap1.c:646 Opcodes/vbap_n.c:692
-#: Opcodes/vbap_n.c:829 Opcodes/vbap_zak.c:572
+#: Opcodes/vbap1.c:572 Opcodes/vbap1.c:647 Opcodes/vbap_n.c:693
+#: Opcodes/vbap_n.c:830 Opcodes/vbap_zak.c:572
 msgid "Wrong dimension"
 msgstr ""
 
-#: Opcodes/vbap1.c:601
+#: Opcodes/vbap1.c:602
 msgid "Output array not initialised"
 msgstr ""
 
-#: Opcodes/vbap_n.c:347 Opcodes/vbap_n.c:795
+#: Opcodes/vbap_n.c:347 Opcodes/vbap_n.c:796
 msgid ""
 "vbap system NOT configured.\n"
 "Missing vbaplsinit opcode in orchestra?"
 msgstr ""
 
-#: Opcodes/vbap_n.c:650 Opcodes/vbap_n.c:786
+#: Opcodes/vbap_n.c:651 Opcodes/vbap_n.c:787
 msgid "could not find layout table no.0"
 msgstr ""
 
-#: Opcodes/vbap_n.c:779
+#: Opcodes/vbap_n.c:780
 msgid "Output array in vpabmove not initalised"
 msgstr ""
 

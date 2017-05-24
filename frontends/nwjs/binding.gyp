@@ -28,7 +28,12 @@
                ],
                ['OS=="win"',
                     {
-                        'libraries':
+                        'defines':
+                        [
+                          'FOO',
+                          'BAR=some_value',
+                        ],
+                       'libraries':
                         [
                             '-l$(CSOUND_HOME)/mingw64/csound64.lib',
                         ],
@@ -46,7 +51,12 @@
                                     {
                                         'WarningLevel': 4,
                                         'ExceptionHandling': 1,
-                                        'DisableSpecificWarnings': [4100, 4127, 4201, 4244, 4267, 4506, 4611, 4714]
+                                        'DisableSpecificWarnings': [4100, 4127, 4201, 4244, 4267, 4506, 4611, 4714],
+
+                                    },
+                                    'VCLinkerTool':
+                                    {
+                                        'AdditionalOptions': [ '/SubSystem:Console,"5.02"' ]
                                     }
                                 }
                             },
@@ -56,13 +66,20 @@
                                 {
                                     'VCCLCompilerTool':
                                     {
+                                    'PlatformToolset': 'v140_xp',
                                         'WarningLevel': 4,
                                         'ExceptionHandling': 1,
-                                        'DisableSpecificWarnings': [4100, 4127, 4201, 4244, 4267, 4506, 4611, 4714]
+                                        'DisableSpecificWarnings': [4100, 4127, 4201, 4244, 4267, 4506, 4611, 4714],
+
+                                    },
+                                    'VCLinkerTool':
+                                    {
+                                    'PlatformToolset': 'v140_xp',
+                                        'AdditionalOptions': [ '/SubSystem:Console,"5.02"' ]
                                     }
                                 }
                             }
-                        },
+                        }
                     }
                 ]
             ]
