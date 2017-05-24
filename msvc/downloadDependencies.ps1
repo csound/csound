@@ -31,7 +31,7 @@ if ($systemVCPKG)
 {
     echo "vcpkg already installed on system, updating"
     $vcpkgDir = Split-Path -Parent $systemVCPKG
-    cd $vcpkgDir 
+    cd $vcpkgDir
 
     # Update and rebuild vcpkg
     git pull
@@ -48,11 +48,11 @@ elseif (Test-Path "..\..\vcpkg")
     cd ..\..\vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
-    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, 
+    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
         [EnvironmentVariableTarget]::User)
 
     echo "vcpkg already installed locally, updating"
-    
+
     # Update and rebuild vcpkg
     git pull
     bootstrap-vcpkg.bat
@@ -60,19 +60,19 @@ elseif (Test-Path "..\..\vcpkg")
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
     vcpkg update
-    
+
     cd $currentDir
 }
-else 
+else
 {
-    cd ..\..    
+    cd ..\..
     echo "vcpkg missing, downloading and installing"
 
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
-    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, 
+    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
         [EnvironmentVariableTarget]::User)
 
     powershell -exec bypass scripts\bootstrap.ps1
@@ -93,9 +93,9 @@ $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
-mkdir cache -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
-mkdir deps -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
-mkdir staging -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+mkdir cache -ErrorAction SilentlyContinue
+mkdir deps -ErrorAction SilentlyContinue
+mkdir staging -ErrorAction SilentlyContinue
 
 # Manual packages to download and install
 # List of URIs to download and install
@@ -106,13 +106,13 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 #"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
 
 # Appends this folder location to the 'deps' uri
-$destList="", 
+$destList="",
 "win_flex_bison",
 "",
 ""
 
 # Download list of files to cache folder
-for($i=0; $i -lt $uriList.Length; $i++) 
+for($i=0; $i -lt $uriList.Length; $i++)
 {
     $fileName = Split-Path -Leaf $uriList[$i]
     $cachedFile = $cacheDir + $fileName
@@ -120,7 +120,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
     {
         echo "Already downloaded file: $fileName"
     }
-    else 
+    else
     {
     	echo "Downloading: " $uriList[$i]
     	$webclient.DownloadFile($uriList[$i], $cachedFile)
@@ -128,12 +128,20 @@ for($i=0; $i -lt $uriList.Length; $i++)
 }
 
 # Extract libs to deps directory
-for($i=0; $i -lt $uriList.Length; $i++) 
+for($i=0; $i -lt $uriList.Length; $i++)
 {
     $fileName = Split-Path -Leaf $uriList[$i]
     $cachedFile = $cacheDir + $fileName
     $destDir = $depsDir + $destList[$i]
-    Expand-Archive $cachedFile -DestinationPath $destDir -Force
+    if ($PSVersionTable.PSVersion.Major -gt 3)
+    {
+        Expand-Archive $cachedFile -DestinationPath $destDir -Force
+    }
+    else
+    {
+        New-Item $destDir -ItemType directory -Force
+        Expand-Archive $cachedFile -OutputPath $destDir -Force
+    }
     echo "Extracted $fileName"
 }
 
@@ -155,8 +163,8 @@ else
 }
 
 copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
-mkdir portaudioBuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
-cd portaudioBuild 
+mkdir portaudioBuild -ErrorAction SilentlyContinue
+cd portaudioBuild
 cmake ..\portaudio -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
@@ -172,13 +180,13 @@ if (Test-Path "portmidi")
 	cd ..
 	echo "Portmidi already downloaded, updated"
 }
-else 
+else
 {
 	svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
 }
 
 cd portmidi\portmidi\trunk
-mkdir build -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+mkdir build -ErrorAction SilentlyContinue
 cd build
 cmake .. -G $vsGenerator -DCMAKE_BUILD_TYPE="Release"
 cmake --build . --config Release
@@ -207,7 +215,7 @@ else
     git clone --depth=1 "https://github.com/stekyne/liblo.git"
 }
 
-mkdir liblo\cmakebuild -InformationAction SilentlyContinue -ErrorAction SilentlyContinue
+mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
 cd liblo\cmakebuild
 cmake ..\cmake -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
 cmake --build . --config Release
@@ -231,10 +239,10 @@ else
     $env:Path += ";" + $depsBinDir
 
     # Permanently add to system path
-    [Environment]::SetEnvironmentVariable("Path", $env:Path, 
+    [Environment]::SetEnvironmentVariable("Path", $env:Path,
         [EnvironmentVariableTarget]::User)
 
-    echo "Added dependency bin dir to path: $depsBinDir" 
+    echo "Added dependency bin dir to path: $depsBinDir"
 }
 
 $endTime = (Get-Date).TimeOfDay
@@ -244,7 +252,7 @@ $duration = $endTime - $startTime
 
 # Strip any unneeded files from the bin directory, this will be
 # copied directly into the Csound solution output directory
-cd $depsBinDir 
+cd $depsBinDir
 rm *.exe
 cd $currentDir
 
