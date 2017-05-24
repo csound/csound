@@ -70,6 +70,8 @@ define('EditorPanel', ["ORCSCOEditor", "CSDEditor"], function(ORCSCOEditor, CSDE
 		var resetButton = document.getElementById("ResetButton");
 		resetButton.onclick = function() {
 
+			var midiInputButton = document.getElementById("MidiInputButton");
+			midiInputButton.checked = false;
 			csound.reset();
 		};
 
