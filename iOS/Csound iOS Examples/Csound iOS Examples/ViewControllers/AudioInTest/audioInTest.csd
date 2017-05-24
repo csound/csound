@@ -1,12 +1,15 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -+rtaudio=null -d -+msg_color=0 -M0 -m0 -i adc
+-o dac
+-d
+-i adc
 </CsOptions>
 <CsInstruments>
-nchnls=2
-0dbfs=1
-ksmps=64
-sr = 44100
+
+sr        = 44100
+ksmps     = 64
+nchnls    = 2
+0dbfs	  = 1
 
 instr 1
 

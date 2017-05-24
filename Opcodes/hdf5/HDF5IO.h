@@ -35,9 +35,23 @@ typedef enum ArgumentType
     UNKNOWN
 } ArgumentType;
 
+typedef struct _fft {
+    OPDS h;
+    ARRAYDAT *out;
+    ARRAYDAT *in, *in2;
+    MYFLT *f;
+    MYFLT b;
+    int n;
+    void *setup;
+    AUXCH mem;
+} nFFT;
+
+
+
 typedef struct HDF5Dataset
 {
     char *datasetName;
+    AUXCH datasetNameMemory;
     void *argumentPointer;
     ArgumentType writeType;
     ArgumentType readType;
@@ -57,8 +71,7 @@ typedef struct HDF5Dataset
     MYFLT *sampleBuffer;
     AUXCH sampleBufferMemory;
 
-    AUXCH arraySizesMemory;
-    AUXCH arrayDataMemory;
+    bool readAll;
 
 } HDF5Dataset;
 

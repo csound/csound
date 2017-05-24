@@ -65,10 +65,10 @@ STSTR           \"
 ESCAPE          \\.
 XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-MACRONAME       "$"[a-zA-Z_][a-zA-Z0-9_]*
-MACRONAMED      "$"[a-zA-Z_][a-zA-Z0-9_]*\.
-MACRONAMEA      "$"[a-zA-Z_][a-zA-Z0-9_]*\(
-MACRONAMEDA     "$"[a-zA-Z_][a-zA-Z0-9_]*\.\(
+MACRONAME       "$"`?[a-zA-Z_][a-zA-Z0-9_`]*
+MACRONAMED      "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.
+MACRONAMEA      "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\(
+MACRONAMEDA     "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.\(
 MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
 MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -83,75 +83,75 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 RESET           "###\n"
 
 INT             "int"[ \t]*\(
-FRAC		"frac"[ \t]*\(
-ROUND		"round"[ \t]*\(
-FLOOR		"floor"[ \t]*\(
-CEIL		"ceil"[ \t]*\(
-RND		"rnd"[ \t]*\(
-BIRND		"birnd"[ \t]*\(
-ABS		"abs"[ \t]*\(
-EXP		"exp"[ \t]*\(
-LOG		"log"[ \t]*\(
-SQRT		"sqrt"[ \t]*\(
-SIN		"sin"[ \t]*\(
-COS		"cos"[ \t]*\(
-TAN		"tan"[ \t]*\(
-SININV		"sininv"[ \t]*\(
-COSINV		"cosinv"[ \t]*\(
-TANINV		"taninv"[ \t]*\(
-LOG10		"log10"[ \t]*\(
-LOG2		"log2"[ \t]*\(
-SINH		"sinh"[ \t]*\(
-COSH		"cosh"[ \t]*\(
-TANH		"tanh"[ \t]*\(
-AMPDB		"ampdb"[ \t]*\(
-AMPDBFS		"ampdbfs"[ \t]*\(
-DBAMP		"dbamp"[ \t]*\(
-DBFSAMP		"dbfsamp"[ \t]*\(
-FTCPS		"ftcps"[ \t]*\(
-FTLEN		"ftlen"[ \t]*\(
-FTSR		"ftsr"[ \t]*\(
-FTLPTIM		"ftlptim"[ \t]*\(
-FTCHNLS		"ftchnls"[ \t]*\(
-I		"i"[ \t]*\(
-K		"k"[ \t]*\(
-CPSOCT		"cpsoct"[ \t]*\(
-OCTPCH		"octpch"[ \t]*\(
-CPSPCH		"cpspch"[ \t]*\(
-PCHOCT		"pchoct"[ \t]*\(
-OCTCPS		"octcps"[ \t]*\(
-NSAMP		"nsamp"[ \t]*\(
-POWOFTWO	"powoftwo"[ \t]*\(
-LOGBTWO		"logbtwo"[ \t]*\(
-A		"a"[ \t]*\(
-TB0		"tb0"[ \t]*\(
-TB1		"tb1"[ \t]*\(
-TB2		"tb2"[ \t]*\(
-TB3		"tb3"[ \t]*\(
-TB4		"tb4"[ \t]*\(
-TB5		"tb5"[ \t]*\(
-TB6		"tb6"[ \t]*\(
-TB7		"tb7"[ \t]*\(
-TB8		"tb8"[ \t]*\(
-TB9		"tb9"[ \t]*\(
-TB10		"tb10"[ \t]*\(
-TB11		"tb11"[ \t]*\(
-TB12		"tb12"[ \t]*\(
-TB13		"tb13"[ \t]*\(
-TB14		"tb14"[ \t]*\(
-TB15		"tb15"[ \t]*\(
-URD		"urd"[ \t]*\(
-NOT		"not"[ \t]*\(
-CENT		"cent"[ \t]*\(
-OCTAVE		"octave"[ \t]*\(
-SEMITONE	"semitone"[ \t]*\(
-CPSMIDIN	"cpsmidinn"[ \t]*\(
-OCTMIDIN	"octmidinn"[ \t]*\(
-PCHMIDIN	"pchmidinn"[ \t]*\(
-DB		"db"[ \t]*\(
-P		"p"[ \t]*\(
-QINF		"qinf"[ \t]*\(
-QNAN		"qnan"[ \t]*\(
+FRAC            "frac"[ \t]*\(
+ROUND           "round"[ \t]*\(
+FLOOR           "floor"[ \t]*\(
+CEIL            "ceil"[ \t]*\(
+RND             "rnd"[ \t]*\(
+BIRND           "birnd"[ \t]*\(
+ABS             "abs"[ \t]*\(
+EXP             "exp"[ \t]*\(
+LOG             "log"[ \t]*\(
+SQRT            "sqrt"[ \t]*\(
+SIN             "sin"[ \t]*\(
+COS             "cos"[ \t]*\(
+TAN             "tan"[ \t]*\(
+SININV          "sininv"[ \t]*\(
+COSINV          "cosinv"[ \t]*\(
+TANINV          "taninv"[ \t]*\(
+LOG10           "log10"[ \t]*\(
+LOG2            "log2"[ \t]*\(
+SINH            "sinh"[ \t]*\(
+COSH            "cosh"[ \t]*\(
+TANH            "tanh"[ \t]*\(
+AMPDB           "ampdb"[ \t]*\(
+AMPDBFS         "ampdbfs"[ \t]*\(
+DBAMP           "dbamp"[ \t]*\(
+DBFSAMP         "dbfsamp"[ \t]*\(
+FTCPS           "ftcps"[ \t]*\(
+FTLEN           "ftlen"[ \t]*\(
+FTSR            "ftsr"[ \t]*\(
+FTLPTIM         "ftlptim"[ \t]*\(
+FTCHNLS         "ftchnls"[ \t]*\(
+I               "i"[ \t]*\(
+K               "k"[ \t]*\(
+CPSOCT          "cpsoct"[ \t]*\(
+OCTPCH          "octpch"[ \t]*\(
+CPSPCH          "cpspch"[ \t]*\(
+PCHOCT          "pchoct"[ \t]*\(
+OCTCPS          "octcps"[ \t]*\(
+NSAMP           "nsamp"[ \t]*\(
+POWOFTWO        "powoftwo"[ \t]*\(
+LOGBTWO         "logbtwo"[ \t]*\(
+A               "a"[ \t]*\(
+TB0             "tb0"[ \t]*\(
+TB1             "tb1"[ \t]*\(
+TB2             "tb2"[ \t]*\(
+TB3             "tb3"[ \t]*\(
+TB4             "tb4"[ \t]*\(
+TB5             "tb5"[ \t]*\(
+TB6             "tb6"[ \t]*\(
+TB7             "tb7"[ \t]*\(
+TB8             "tb8"[ \t]*\(
+TB9             "tb9"[ \t]*\(
+TB10            "tb10"[ \t]*\(
+TB11            "tb11"[ \t]*\(
+TB12            "tb12"[ \t]*\(
+TB13            "tb13"[ \t]*\(
+TB14            "tb14"[ \t]*\(
+TB15            "tb15"[ \t]*\(
+URD             "urd"[ \t]*\(
+NOT             "not"[ \t]*\(
+CENT            "cent"[ \t]*\(
+OCTAVE          "octave"[ \t]*\(
+SEMITONE        "semitone"[ \t]*\(
+CPSMIDIN        "cpsmidinn"[ \t]*\(
+OCTMIDIN        "octmidinn"[ \t]*\(
+PCHMIDIN        "pchmidinn"[ \t]*\(
+DB              "db"[ \t]*\(
+P               "p"[ \t]*\(
+QINF            "qinf"[ \t]*\(
+QNAN            "qnan"[ \t]*\(
 
 %X incl
 %x macro
@@ -305,7 +305,7 @@ QNAN		"qnan"[ \t]*\(
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
@@ -342,9 +342,19 @@ QNAN		"qnan"[ \t]*\(
                        csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                     while (1) {
+                       c = input(yyscanner);
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
+                       }
+                       if (c == '\\') {
+                         int newc = input(yyscanner);
+                         if (newc == ')')
+                           nn->body[i++] = c;
+                         c = newc;
                        }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
@@ -405,7 +415,7 @@ QNAN		"qnan"[ \t]*\(
 {MACRONAMEDA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                    yytext);
                    yytext[yyleng-2] = '\0';
@@ -442,9 +452,18 @@ QNAN		"qnan"[ \t]*\(
                        csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                     while (1) {
+                       c = input(yyscanner);
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
+                       }
+                       if (c == '\\') {
+                         int newc = input(yyscanner);
+                         if (newc != ')') nn->body[i++] = c;
+                         c = newc;
                        }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
@@ -555,8 +574,8 @@ QNAN		"qnan"[ \t]*\(
                   }
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound, "%s(%d): line now %d at %d\n",
-                                   __FILE__, __LINE__,
+                  csound->DebugMsg(csound, "csound_pe(%d): line now %d at %d\n",
+                                   __LINE__,
                                    csound_preget_lineno(yyscanner),
                                    PARM->macro_stack_ptr);
                   csound->DebugMsg(csound,
@@ -669,76 +688,76 @@ QNAN		"qnan"[ \t]*\(
                   }
 }
 {IDENT}         { corfile_puts(yytext,csound->expanded_orc); }
-{INT}     	{ do_function(yytext,csound->expanded_orc); }
-{FRAC}		{ do_function(yytext,csound->expanded_orc); }
-{ROUND}		{ do_function(yytext,csound->expanded_orc); }
-{FLOOR}		{ do_function(yytext,csound->expanded_orc); }
-{CEIL}		{ do_function(yytext,csound->expanded_orc); }
-{RND}		{ do_function(yytext,csound->expanded_orc); }
-{BIRND}		{ do_function(yytext,csound->expanded_orc); }
-{ABS}		{ do_function(yytext,csound->expanded_orc); }
-{EXP}		{ do_function(yytext,csound->expanded_orc); }
-{LOG}		{ do_function(yytext,csound->expanded_orc); }
-{SQRT}		{ do_function(yytext,csound->expanded_orc); }
-{SIN}		{ do_function(yytext,csound->expanded_orc); }
-{COS}		{ do_function(yytext,csound->expanded_orc); }
-{TAN}		{ do_function(yytext,csound->expanded_orc); }
-{SININV}	{ do_function(yytext,csound->expanded_orc); }
-{COSINV}	{ do_function(yytext,csound->expanded_orc); }
-{TANINV}	{ do_function(yytext,csound->expanded_orc); }
-{LOG10}		{ do_function(yytext,csound->expanded_orc); }
-{LOG2}		{ do_function(yytext,csound->expanded_orc); }
-{SINH}		{ do_function(yytext,csound->expanded_orc); }
-{COSH}		{ do_function(yytext,csound->expanded_orc); }
-{TANH}		{ do_function(yytext,csound->expanded_orc); }
-{AMPDB}		{ do_function(yytext,csound->expanded_orc); }
-{AMPDBFS}	{ do_function(yytext,csound->expanded_orc); }
-{DBAMP}		{ do_function(yytext,csound->expanded_orc); }
-{DBFSAMP}	{ do_function(yytext,csound->expanded_orc); }
-{FTCPS}		{ do_function(yytext,csound->expanded_orc); }
-{FTLEN}		{ do_function(yytext,csound->expanded_orc); }
-{FTSR}		{ do_function(yytext,csound->expanded_orc); }
-{FTLPTIM}	{ do_function(yytext,csound->expanded_orc); }
-{FTCHNLS}	{ do_function(yytext,csound->expanded_orc); }
-{I}		{ do_function(yytext,csound->expanded_orc); }
-{K}		{ do_function(yytext,csound->expanded_orc); }
-{CPSOCT}	{ do_function(yytext,csound->expanded_orc); }
-{OCTPCH}	{ do_function(yytext,csound->expanded_orc); }
-{CPSPCH}	{ do_function(yytext,csound->expanded_orc); }
-{PCHOCT}	{ do_function(yytext,csound->expanded_orc); }
-{OCTCPS}	{ do_function(yytext,csound->expanded_orc); }
-{NSAMP}		{ do_function(yytext,csound->expanded_orc); }
-{POWOFTWO}	{ do_function(yytext,csound->expanded_orc); }
-{LOGBTWO}	{ do_function(yytext,csound->expanded_orc); }
-{A}		{ do_function(yytext,csound->expanded_orc); }
-{TB0}		{ do_function(yytext,csound->expanded_orc); }
-{TB1}		{ do_function(yytext,csound->expanded_orc); }
-{TB2}		{ do_function(yytext,csound->expanded_orc); }
-{TB3}		{ do_function(yytext,csound->expanded_orc); }
-{TB4}		{ do_function(yytext,csound->expanded_orc); }
-{TB5}		{ do_function(yytext,csound->expanded_orc); }
-{TB6}		{ do_function(yytext,csound->expanded_orc); }
-{TB7}		{ do_function(yytext,csound->expanded_orc); }
-{TB8}		{ do_function(yytext,csound->expanded_orc); }
-{TB9}		{ do_function(yytext,csound->expanded_orc); }
-{TB10}		{ do_function(yytext,csound->expanded_orc); }
-{TB11}		{ do_function(yytext,csound->expanded_orc); }
-{TB12}		{ do_function(yytext,csound->expanded_orc); }
-{TB13}		{ do_function(yytext,csound->expanded_orc); }
-{TB14}		{ do_function(yytext,csound->expanded_orc); }
-{TB15}		{ do_function(yytext,csound->expanded_orc); }
-{URD}		{ do_function(yytext,csound->expanded_orc); }
-{NOT}		{ do_function(yytext,csound->expanded_orc); }
-{CENT}		{ do_function(yytext,csound->expanded_orc); }
-{OCTAVE}	{ do_function(yytext,csound->expanded_orc); }
-{SEMITONE}	{ do_function(yytext,csound->expanded_orc); }
-{CPSMIDIN}	{ do_function(yytext,csound->expanded_orc); }
-{OCTMIDIN}	{ do_function(yytext,csound->expanded_orc); }
-{PCHMIDIN}	{ do_function(yytext,csound->expanded_orc); }
-{DB}		{ do_function(yytext,csound->expanded_orc); }
-{P}		{ do_function(yytext,csound->expanded_orc); }
-{QINF}		{ do_function(yytext,csound->expanded_orc); }
-{QNAN}		{ do_function(yytext,csound->expanded_orc); }
+{INT}           { do_function(yytext,csound->expanded_orc); }
+{FRAC}          { do_function(yytext,csound->expanded_orc); }
+{ROUND}         { do_function(yytext,csound->expanded_orc); }
+{FLOOR}         { do_function(yytext,csound->expanded_orc); }
+{CEIL}          { do_function(yytext,csound->expanded_orc); }
+{RND}           { do_function(yytext,csound->expanded_orc); }
+{BIRND}         { do_function(yytext,csound->expanded_orc); }
+{ABS}           { do_function(yytext,csound->expanded_orc); }
+{EXP}           { do_function(yytext,csound->expanded_orc); }
+{LOG}           { do_function(yytext,csound->expanded_orc); }
+{SQRT}          { do_function(yytext,csound->expanded_orc); }
+{SIN}           { do_function(yytext,csound->expanded_orc); }
+{COS}           { do_function(yytext,csound->expanded_orc); }
+{TAN}           { do_function(yytext,csound->expanded_orc); }
+{SININV}        { do_function(yytext,csound->expanded_orc); }
+{COSINV}        { do_function(yytext,csound->expanded_orc); }
+{TANINV}        { do_function(yytext,csound->expanded_orc); }
+{LOG10}         { do_function(yytext,csound->expanded_orc); }
+{LOG2}          { do_function(yytext,csound->expanded_orc); }
+{SINH}          { do_function(yytext,csound->expanded_orc); }
+{COSH}          { do_function(yytext,csound->expanded_orc); }
+{TANH}          { do_function(yytext,csound->expanded_orc); }
+{AMPDB}         { do_function(yytext,csound->expanded_orc); }
+{AMPDBFS}       { do_function(yytext,csound->expanded_orc); }
+{DBAMP}         { do_function(yytext,csound->expanded_orc); }
+{DBFSAMP}       { do_function(yytext,csound->expanded_orc); }
+{FTCPS}         { do_function(yytext,csound->expanded_orc); }
+{FTLEN}         { do_function(yytext,csound->expanded_orc); }
+{FTSR}          { do_function(yytext,csound->expanded_orc); }
+{FTLPTIM}       { do_function(yytext,csound->expanded_orc); }
+{FTCHNLS}       { do_function(yytext,csound->expanded_orc); }
+{I}             { do_function(yytext,csound->expanded_orc); }
+{K}             { do_function(yytext,csound->expanded_orc); }
+{CPSOCT}        { do_function(yytext,csound->expanded_orc); }
+{OCTPCH}        { do_function(yytext,csound->expanded_orc); }
+{CPSPCH}        { do_function(yytext,csound->expanded_orc); }
+{PCHOCT}        { do_function(yytext,csound->expanded_orc); }
+{OCTCPS}        { do_function(yytext,csound->expanded_orc); }
+{NSAMP}         { do_function(yytext,csound->expanded_orc); }
+{POWOFTWO}      { do_function(yytext,csound->expanded_orc); }
+{LOGBTWO}       { do_function(yytext,csound->expanded_orc); }
+{A}             { do_function(yytext,csound->expanded_orc); }
+{TB0}           { do_function(yytext,csound->expanded_orc); }
+{TB1}           { do_function(yytext,csound->expanded_orc); }
+{TB2}           { do_function(yytext,csound->expanded_orc); }
+{TB3}           { do_function(yytext,csound->expanded_orc); }
+{TB4}           { do_function(yytext,csound->expanded_orc); }
+{TB5}           { do_function(yytext,csound->expanded_orc); }
+{TB6}           { do_function(yytext,csound->expanded_orc); }
+{TB7}           { do_function(yytext,csound->expanded_orc); }
+{TB8}           { do_function(yytext,csound->expanded_orc); }
+{TB9}           { do_function(yytext,csound->expanded_orc); }
+{TB10}          { do_function(yytext,csound->expanded_orc); }
+{TB11}          { do_function(yytext,csound->expanded_orc); }
+{TB12}          { do_function(yytext,csound->expanded_orc); }
+{TB13}          { do_function(yytext,csound->expanded_orc); }
+{TB14}          { do_function(yytext,csound->expanded_orc); }
+{TB15}          { do_function(yytext,csound->expanded_orc); }
+{URD}           { do_function(yytext,csound->expanded_orc); }
+{NOT}           { do_function(yytext,csound->expanded_orc); }
+{CENT}          { do_function(yytext,csound->expanded_orc); }
+{OCTAVE}        { do_function(yytext,csound->expanded_orc); }
+{SEMITONE}      { do_function(yytext,csound->expanded_orc); }
+{CPSMIDIN}      { do_function(yytext,csound->expanded_orc); }
+{OCTMIDIN}      { do_function(yytext,csound->expanded_orc); }
+{PCHMIDIN}      { do_function(yytext,csound->expanded_orc); }
+{DB}            { do_function(yytext,csound->expanded_orc); }
+{P}             { do_function(yytext,csound->expanded_orc); }
+{QINF}          { do_function(yytext,csound->expanded_orc); }
+{QNAN}          { do_function(yytext,csound->expanded_orc); }
 
 .               { corfile_putc(yytext[0], csound->expanded_orc); }
 
@@ -838,7 +857,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       corfile_puts(bb, csound->expanded_orc);
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
-    if(isDir(buffer))
+    if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (cf == NULL)
@@ -855,7 +874,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       /* csound->DebugMsg(csound, "alt_stack now %d long, \n", */
       /*                  PARM->macro_stack_size); */
     }
-    csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
+    csound->DebugMsg(csound,"cso_pre(%d): stacking line %d at %d\n", __LINE__,
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
@@ -896,7 +915,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     do {
       i = 0;
       q = name0;
-      mname[i++] = '_';
+      mname[i++] = '`';
       while ((c = *q++)) {
         mname[i++] = c;
         if (UNLIKELY(i==mlen))
@@ -906,7 +925,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
       }
-      mname[i++] = '_';
+      mname[i++] = '`';
       if (UNLIKELY(i==mlen)) {
         mname = (char *)realloc(mname, mlen+=40);
         if (UNLIKELY(mname == NULL)) {
@@ -914,7 +933,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
       }
-      mname[i++] = '_';
+      mname[i++] = '`';
       if (UNLIKELY(i==mlen)) {
         mname = (char *)realloc(mname, mlen+=40);
         if (UNLIKELY(mname == NULL)) {
@@ -1007,9 +1026,9 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
             csound->LongJmp(csound, 1);
           }
         }
-        mm->body[i] = '$'; mm->body[i+1] = '_';
+        mm->body[i] = '$'; mm->body[i+1] = '`';
         strcpy(&mm->body[i+2], name0);
-        mm->body[i + n - 2] = '_'; mm->body[i + n - 1] = '_';
+        mm->body[i + n - 2] = '`'; mm->body[i + n - 1] = '`';
         i+=n;
         continue;
       }
@@ -1399,8 +1418,8 @@ static MACRO *find_definition(MACRO *mmo, char *s)
       mm = mmo;
       s++;                      /* skip _ */
     looking:
-      while (*s++!='_') { if (*s=='\0') return NULL; }
-      if (*s++!='_') { s--; goto looking; }
+      while (*s++!='`') { if (*s=='\0') return NULL; }
+      if (*s++!='`') { s--; goto looking; }
       //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
         //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);

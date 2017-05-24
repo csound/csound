@@ -3,6 +3,7 @@
  SimpleTest1ViewController.m:
  
  Copyright (C) 2014 Steven Yi, Victor Lazzarini, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -35,7 +36,8 @@
 @implementation SimpleTest1ViewController
 
 -(void)viewDidLoad {
-    self.title = @"Simple Test 1";
+    self.title = @"01. Simple Test 1";
+    self.csound = NULL;
     [super viewDidLoad];
 }
 
@@ -47,27 +49,54 @@
         NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
         NSLog(@"FILE PATH: %@", csdFile);
         
-		[self.csound stop];
-        
+		//[self.csound stop];
+        if(self.csound == NULL){
         self.csound = [[CsoundObj alloc] init];
         [self.csound addListener:self];
         
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        [csoundUI setLabelPrecision:2];
         [csoundUI addLabel:uiLabel forChannelName:@"slider"];
         [csoundUI addSlider:uiSlider forChannelName:@"slider"];
         
         [self.csound play:csdFile];
+        }
         
 	} else {
         [self.csound stop];
+        self.csound = NULL;
     }
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(200, 100)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"Flip the switch to begin rendering Csound. Use the slider to control pitch.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[uiSwitch setOn:NO animated:YES];
-    uiLabel.text = @"";
+    [uiLabel performSelectorOnMainThread:@selector(setText:) withObject:@"" waitUntilDone:NO];
 }
 
 

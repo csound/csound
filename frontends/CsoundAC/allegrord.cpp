@@ -77,6 +77,9 @@ Alg_reader::Alg_reader(istream *a_file, Alg_seq_ptr new_seq)
     seq = new_seq;
     offset = 0.0;
     offset_found = false;
+    error_flag = 0;
+    line_parser.str = NULL;
+    line_parser.pos = 0;
 }
 
 

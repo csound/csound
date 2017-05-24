@@ -3,7 +3,6 @@
 # to be PRIVATE (eg, target_link_libraries(${CSOUNDLIB} PRIVATE ...) )
 # This silences a cmake warning about a variable name change
 set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
-
 cmake_minimum_required(VERSION 2.8.3)
 
 project(Csound)
@@ -16,8 +15,10 @@ endif()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
+if(NOT MSVC)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
 set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+endif()
 
 # Project definitions
 set(APIVERSION "6.0")
@@ -224,6 +225,10 @@ if(WIN32 AND NOT MSVC)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
+if(MSVC) 
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/msvc/include)
+endif()
+
 if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
@@ -263,17 +268,23 @@ if(WIN32)
         ws2_32
         wsock32)
 
-if(NOT MSVC)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
-set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
-
+if(MSVC)
+  # Experimented with flags but did not make change performance results
+  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
+else()
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
+  set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
 endif()
 
-
-
 endif(WIN32)
+
+if(APPLE)
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
+endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(LINUX YES)
@@ -286,8 +297,6 @@ option(USE_DOUBLE "Set to use double-precision floating point for audio samples.
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
 
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
-
-option(SCORE_PARSER "Enable building of alternative score parser" ON)
 
 option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
 
@@ -304,6 +313,7 @@ option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" ON)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
+option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 
@@ -443,7 +453,7 @@ find_package(LIBLO)
 find_package(LUAJIT)
 find_package(MUSICXML)
 find_package(PORTSMF)
-find_package(PythonLibs)
+find_package(PythonLibs 2.7)
 find_package(STK)
 find_package(SWIG)
 find_package(VSTSDK2X)
@@ -465,31 +475,17 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-find_library(PTHREAD_LIBRARY winpthread-1)
+if(NOT MSVC AND REQUIRE_PTHREADS)
+  find_library(PTHREAD_LIBRARY pthread)
 
-if(NOT PTHREAD_LIBRARY)
-    find_library(PTHREAD_LIBRARY pthread)
+  if(NOT PTHREAD_LIBRARY)
+      message(STATUS "Csound requires the pthread library")
+  endif()
+
+  set(CMAKE_REQUIRED_INCLUDES pthread.h)
+  set(CMAKE_REQUIRED_LIBRARIES pthread)
 endif()
 
-if(NOT PTHREAD_LIBRARY AND WIN32)
-    find_library(PTHREAD_LIBRARY pthreadGC2)
-endif()
-
-if(NOT PTHREAD_LIBRARY AND NOT EMSCRIPTEN)
-    message(FATAL_ERROR "Csound requires the pthread library")
-endif()
-
-#if(NOT EMSCRIPTEN)
-#  find_path(PTHREAD_H_PATH pthread.h)
-#  if(PTHREAD_H_PATH)
-#      include_directories(${PTHREAD_H_PATH})
-#  else()
-#      message(FATAL_ERROR "Could not find pthread.h")
-#  endif()
-#endif()
-
-set(CMAKE_REQUIRED_INCLUDES pthread.h)
-set(CMAKE_REQUIRED_LIBRARIES pthread)
 
 # Now, non required library searches #
 
@@ -509,7 +505,7 @@ endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
-check_include_file_cxx(eigen3/Eigen/Dense EIGEN3_HEADER)
+find_path(EIGEN3_INCLUDE_PATH eigen3/Eigen/Dense)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
 check_library_exists(m lrint "" HAVE_LRINT)
@@ -570,17 +566,21 @@ include_directories(./Engine)
 include_directories(./)
 
 #checking pthread functions
-if(PTHREAD_LIBRARY)
-check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
-check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
+if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
 
-if(PTHREAD_SPIN_LOCK_EXISTS)
-   list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_SPIN_LOCK)
-endif()
+  #list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
 
-if(PTHREAD_BARRIER_INIT_EXISTS)
-   list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
-endif()
+  check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
+  check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
+
+  if(PTHREAD_SPIN_LOCK_EXISTS)
+     list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_SPIN_LOCK)
+  endif()
+
+  if(PTHREAD_BARRIER_INIT_EXISTS)
+     list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
+  endif()
 endif()
 
 
@@ -708,7 +708,6 @@ set(libcsound_SRCS
     Opcodes/arrays.c
     Opcodes/phisem.c
     Opcodes/hrtfopcodes.c
-    Opcodes/stackops.c
     Opcodes/vbap.c
     Opcodes/vbap1.c
     Opcodes/vbap_n.c
@@ -745,6 +744,7 @@ set(libcsound_SRCS
     Opcodes/gendy.c
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
+    Opcodes/wpfilters.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
@@ -897,57 +897,60 @@ set_source_files_properties(${YACC_OUTH} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
 set_source_files_properties(${PRELEX_OUT} GENERATED)
 
-# Handling New Score Parser
-
-if(SCORE_PARSER)
-    message(STATUS "SCORE PARSER being built.")
-    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSCORE_PARSER")
-    list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
-
-    #set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
-    #set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
-    #set(YACC_SCOOUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.h)
-
-    #set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
-    #set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
-
-    set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
-    set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
-
-    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
-    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
-    ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
-
-    #add_custom_command(
-    #    OUTPUT ${LEX_SCOOUT}
-    #    DEPENDS ${LEX_SCOSRC}
-    #    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
-    #    )
-
-    add_custom_command(
-        OUTPUT ${PRELEX_SCOOUT}
-        DEPENDS ${PRELEX_SCOSRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
-        )
-
-    #add_custom_command(
-    #    OUTPUT ${YACC_SCOOUT} ${YACC_SCOOUTH}
-    #    DEPENDS ${YACC_SCOSRC} ${LEX_SCOOUT}
-    #    COMMAND ${BISON_EXECUTABLE}
-    #    ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
-    #    )
-
-    list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
-        #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
-
-    #set_source_files_properties(${YACC_SCOOUT} GENERATED)
-    #set_source_files_properties(${LEX_SCOOUT} GENERATED)
-    set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
-
-else()
-    message(STATUS "Not building with score parser.")
+if(MSVC) 
+  set_source_files_properties(${LEX_OUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+  set_source_files_properties(${PRELEX_OUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
 
+# Handling New Score Parser
+
+##list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
+
+#set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
+#set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
+#set(YACC_SCOOUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.h)
+
+#set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
+#set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
+
+set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
+set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
+
+##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
+##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
+##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
+
+#add_custom_command(
+#    OUTPUT ${LEX_SCOOUT}
+#    DEPENDS ${LEX_SCOSRC}
+#    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
+#    )
+
+add_custom_command(
+    OUTPUT ${PRELEX_SCOOUT}
+    DEPENDS ${PRELEX_SCOSRC}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
+    )
+
+#add_custom_command(
+#    OUTPUT ${YACC_SCOOUT} ${YACC_SCOOUTH}
+#    DEPENDS ${YACC_SCOSRC} ${LEX_SCOOUT}
+#    COMMAND ${BISON_EXECUTABLE}
+#    ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
+#    )
+
+list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
+    #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
+
+#set_source_files_properties(${YACC_SCOOUT} GENERATED)
+#set_source_files_properties(${LEX_SCOOUT} GENERATED)
+set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
+if(MSVC) 
+  set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
+    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
@@ -1113,12 +1116,11 @@ endif()
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
-  set(libcsound_LIBS
-    ${LIBSNDFILE_LIBRARY})
-else()
-  set(libcsound_LIBS
-    ${LIBSNDFILE_LIBRARY}
-    ${PTHREAD_LIBRARY})
+endif()
+
+set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
+  list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
 
 if(WIN32)
@@ -1346,3 +1348,15 @@ set (CPACK_PACKAGE_VERSION_MINOR "0")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
+# Documentation 
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
+          ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc ${DOXYGEN_EXECUTABLE}
+            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+     )
+ else()
+   message(STATUS "Not building documentation")
+endif(DOXYGEN_FOUND)

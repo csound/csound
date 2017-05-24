@@ -28,7 +28,7 @@
 @implementation MultiTouchXYViewController
 
 -(void)viewDidLoad {
-    self.title = @"MultiTouch XY";
+    self.title = @"15. MultiTouch XY Pad";
 	
 	for (int i = 0; i < 10; i++) {
 		touchIds[i] = 0;
@@ -36,10 +36,36 @@
 		touchY[i] = 0.0f;
 		touchArray[i] = nil;
 	}
+    
+    touchesCount = 0;
 		
     [super viewDidLoad];
 	
 
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 120)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"Multitouch XY Pad demonstrates a multitouch performance surface. Each touch is dynamically mapped to a unique instance of a Csound instrument.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 -(void)viewDidAppear:(BOOL)animated {
@@ -123,6 +149,12 @@
 			[self.csound sendScore:[NSString stringWithFormat:@"i1.%d 0 -2 %d", touchId, touchId, nil]];
 		}
 	}
+    touchesCount += touches.allObjects.count;
+    touchesLabel.text = [NSString stringWithFormat:@"Touches: %lu", touchesCount];
+    
+    if(touchesCount > [[event allTouches] count]) {
+        touchesCount = [[event allTouches] count];
+    }
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -135,33 +167,31 @@
 		}
 	}
 }
+
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
 	for (UITouch* touch in touches) {
 		int touchId = [self getTouchId:touch];
 		if (touchId != -1) {
 			touchIds[touchId] = 0;
-//			touchX[touchId] = 0;
-//			touchY[touchId] = 0;
 			touchArray[touchId] = nil;
 			[self.csound sendScore:[NSString stringWithFormat:@"i-1.%d 0 0 %d", touchId, touchId]];
 
 		}
 	}
-
+    touchesCount -= touches.allObjects.count;
+    touchesLabel.text = [NSString stringWithFormat:@"Touches: %lu", touchesCount];
 }
+
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
 	for (UITouch* touch in touches) {
 		int touchId = [self getTouchId:touch];
 		if (touchId != -1) {
 			touchIds[touchId] = 0;
-//			touchX[touchId] = 0;
-//			touchY[touchId] = 0;
 			touchArray[touchId] = nil;
 			[self.csound sendScore:[NSString stringWithFormat:@"i-1.%d 0 0", touchId, nil]];
 			
 		}
 	}
-
 }
 
 @end

@@ -12,6 +12,10 @@
 ./Engine/csound_orc_semantics.c
 ./Engine/csound_standard_types.c
 ./Engine/csound_type_system.c
+./Engine/csound_orc.lex
+./Engine/csound_orc.y
+./Engine/csound_pre.lex
+./Engine/csound_prs.lex
 ./Engine/entry1.c
 ./Engine/envvar.c
 ./Engine/extract.c
@@ -43,12 +47,14 @@
 ./H/corfile.h
 ./H/csGblMtx.h
 ./H/cs_jack.h
+./H/csmodule.h
+./H/csound_orc_expressions.h
+./H/csound_orc.h
+./H/csound_orc_semantics.h
 ./H/cs_par_base.h
 ./H/cs_par_dispatch.h
 ./H/cs_par_ops.h
 ./H/cs_par_orc_semantics.h
-./H/csmodule.h
-./H/csound_orc.h
 ./H/diskin2.h
 ./H/disprep.h
 ./H/dumpf.h
@@ -74,6 +80,7 @@
 ./H/new_opts.h
 ./H/oload.h
 ./H/oscils.h
+./H/pffft.h
 ./H/prototyp.h
 ./H/remote.h
 ./H/resize.h
@@ -93,8 +100,8 @@
 ./H/ugrw2.h
 ./H/ugtabs.h
 ./H/vdelay.h
-./H/winEPS.h
 ./H/windin.h
+./H/winEPS.h
 ./InOut/FL_graph.cpp
 ./InOut/circularbuffer.c
 ./InOut/cmidi.c
@@ -184,10 +191,12 @@
 ./Opcodes/LuaCsound.cpp
 ./Opcodes/OSC.c
 ./Opcodes/Vosim.c
+./Opcodes/ableton_link_opcodes.cpp
 ./Opcodes/afilters.c
 ./Opcodes/ambicode.c
 ./Opcodes/ambicode1.c
 ./Opcodes/ampmidid.cpp
+./Opcodes/arrayops.cpp
 ./Opcodes/arrays.c
 ./Opcodes/babo.c
 ./Opcodes/babo.h
@@ -230,6 +239,8 @@
 ./Opcodes/dssi4cs/src/ladspa.h
 ./Opcodes/dssi4cs/src/load.c
 ./Opcodes/dssi4cs/src/utils.h
+./Opcodes/emugens/emugens.c
+./Opcodes/emugens/scugens.c
 ./Opcodes/eqfil.c
 ./Opcodes/exciter.c
 ./Opcodes/fareygen.c
@@ -291,6 +302,7 @@
 ./Opcodes/linear_algebra.cpp
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h
+./Opcodes/liveconv.c
 ./Opcodes/locsig.c
 ./Opcodes/locsig.h
 ./Opcodes/loscilx.c
@@ -363,6 +375,7 @@
 ./Opcodes/pvsdemix.c
 ./Opcodes/pvsdemix.h
 ./Opcodes/pvsgendy.c
+./Opcodes/pvsops.cpp
 ./Opcodes/py/pycall.auto.c
 ./Opcodes/py/pycall.auto.h
 ./Opcodes/py/pythonhelper.h
@@ -379,6 +392,7 @@
 ./Opcodes/scansynx.c
 ./Opcodes/scoreline.c
 ./Opcodes/seqtime.c
+./Opcodes/select.c
 ./Opcodes/serial.c
 ./Opcodes/sf.h
 ./Opcodes/sfenum.h
@@ -451,6 +465,8 @@
 ./Opcodes/websockets/WebSocketOpcode.h
 ./Opcodes/wii_mac.h
 ./Opcodes/wiimote.c
+./Opcodes/wpfilters.c
+./Opcodes/wpfilters.h
 ./SDIF/sdif-mem.c
 ./SDIF/sdif-mem.h
 ./SDIF/sdif.c
@@ -586,6 +602,8 @@
 ./include/float-version.h
 ./include/interlocks.h
 ./include/msg_attr.h
+./include/OpcodeBase.hpp
+./include/plugin.h
 ./include/pools.h
 ./include/pstream.h
 ./include/pvfileio.h

@@ -3,6 +3,7 @@
  MasterViewController.m:
  
  Copyright (C) 2011 Steven Yi
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -55,8 +56,24 @@
             self.clearsSelectionOnViewWillAppear = NO;
             self.preferredContentSize = CGSizeMake(320.0, 600.0);
         }
-        testNames = [NSMutableArray arrayWithObjects:@"Simple Test 1", @"Simple Test 2", 
-                      @"Button Test", @"MIDI Test", @"Ping Pong Delay", @"Harmonizer", @"Hardware Test", @"Csound Haiku 4", @"Record Test", @"Multitouch XY", @"Waveview", @"Audio File Test", @"Console Output", @"Pitch Shifter", @"Trapped Generator",@"Instrument Editor", nil];
+        testNames = [NSMutableArray arrayWithObjects:
+                     @"01. Simple Test 1",
+                     @"02. Simple Test 2",
+                     @"03. Button Test",
+                     @"04. Play: Haiku IV",
+                     @"05. Render: Trapped in Convert",
+                     @"06. Render: Console Output",
+                     @"07. Instrument Tweaker",
+                     @"08. F-table Viewer",
+                     @"09. Soundfile: Pitch Shifter",
+                     @"10. Mic: Stereo Delay",
+                     @"11. Mic: Harmonizer",
+                     @"12. Mic: Recording",
+                     @"13. Hardware: MIDI Controller",
+                     @"14. Hardware: Motion Control",
+                     @"15. XY Pad: MultiTouch ",
+                     @"16. XY Pad: Mic PitchShift+Mix",
+                     nil];
     }
     return self;
 }
@@ -200,67 +217,59 @@
             controller = [[ButtonTestViewController alloc] initWithNibName:@"ButtonTestViewController" bundle:nil];
             break;
         case 3:
-		{
-			if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-				controller = [[MidiTestViewController alloc] initWithNibName:@"MidiTestViewController" bundle:nil];
-			} else {
-				controller = [[MidiTestViewController alloc] initWithNibName:@"MidiTestViewController_iPad" bundle:nil];
-			}
-			
-		}
-            
+            controller = [[CsoundHaiku4ViewController alloc] initWithNibName:@"CsoundHaiku4ViewController" bundle:nil];
             break;
         case 4:
-            controller = [[AudioInTestViewController alloc] initWithNibName:@"AudioInTestViewController" bundle:nil];
+            controller = [[TrappedGeneratorViewController alloc] initWithNibName:@"TrappedGeneratorViewController" bundle:nil];
             break;
         case 5:
-            controller = [[HarmonizerTest alloc] initWithNibName:@"HarmonizerTest" bundle:nil];
+            controller = [[ConsoleOutputViewController alloc] initWithNibName:@"ConsoleOutputViewController" bundle:nil];
             break;            
         case 6:
-            controller = [[HardwareTestViewController alloc] initWithNibName:@"HardwareTestViewController" bundle:nil];
+            controller = [[InstrumentEditorViewController  alloc] initWithNibName:@"InstrumentEditorViewController" bundle:nil];
             break;
 		case 7:
-			controller = [[CsoundHaiku4ViewController alloc] initWithNibName:@"CsoundHaiku4ViewController" bundle:nil];
+            controller = [[WaveviewViewController alloc] initWithNibName:@"WaveviewViewController" bundle:nil];
 			break;
         case 8:
-			controller = [[RecordTestViewController alloc] initWithNibName:@"RecordTestViewController" bundle:nil];
+            controller = [[AudioFileTestViewController alloc] initWithNibName:@"AudioFileTestViewController" bundle:nil];
 			break;
 		case 9:
-			controller = [[MultiTouchXYViewController alloc] initWithNibName:@"MultiTouchXYViewController" bundle:nil];
+            controller = [[AudioInTestViewController alloc] initWithNibName:@"AudioInTestViewController" bundle:nil];
 			break;
 		case 10:
-			controller = [[WaveviewViewController alloc] initWithNibName:@"WaveviewViewController" bundle:nil];
-			break;	
+            controller = [[HarmonizerTest alloc] initWithNibName:@"HarmonizerTest" bundle:nil];
+			break;
 		case 11:
-			controller = [[AudioFileTestViewController alloc] initWithNibName:@"AudioFileTestViewController" bundle:nil];
+            controller = [[RecordTestViewController alloc] initWithNibName:@"RecordTestViewController" bundle:nil];
 			break;
 		case 12:
-			controller = [[ConsoleOutputViewController alloc] initWithNibName:@"ConsoleOutputViewController" bundle:nil];
+            if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+                controller = [[MidiTestViewController alloc] initWithNibName:@"MidiTestViewController" bundle:nil];
+            } else {
+                controller = [[MidiTestViewController alloc] initWithNibName:@"MidiTestViewController_iPad" bundle:nil];
+            }
 			break;
 		case 13:
-			controller = [[PitchShifterViewController alloc] initWithNibName:@"PitchShifterViewController" bundle:nil];
+            controller = [[HardwareTestViewController alloc] initWithNibName:@"HardwareTestViewController" bundle:nil];
             break;
         case 14:
-			controller = [[TrappedGeneratorViewController alloc] initWithNibName:@"TrappedGeneratorViewController" bundle:nil];
+			controller = [[MultiTouchXYViewController alloc] initWithNibName:@"MultiTouchXYViewController" bundle:nil];
 			break;
         case 15:
-			controller = [[InstrumentEditorViewController  alloc] initWithNibName:@"InstrumentEditorViewController" bundle:nil];
+			controller = [[PitchShifterViewController alloc] initWithNibName:@"PitchShifterViewController" bundle:nil];
 			break;
 		default:
             break;
     }
 
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-//	    if (!self.detailViewController) {
-//	        self.detailViewController = [[[DetailViewController alloc] initWithNibName:@"DetailViewController_iPhone" bundle:nil] autorelease];
-//	    }
-//        [self.navigationController pushViewController:self.detailViewController animated:YES];
         [self.navigationController pushViewController:controller animated:YES];
         [(UITableView *)self.view deselectRowAtIndexPath:indexPath animated:YES];
         
     } else {
         
-        AppDelegate *appDelegate = [UIApplication sharedApplication].delegate;
+        AppDelegate *appDelegate = (AppDelegate *)([UIApplication sharedApplication].delegate);
         UISplitViewController *splitViewController = appDelegate.splitViewController;
         
         BaseCsoundViewController *currentDetail = (BaseCsoundViewController *)splitViewController.delegate;
@@ -276,6 +285,11 @@
         splitViewController.viewControllers = viewControllers;
         splitViewController.delegate = controller;
         
+        if ([[UIDevice currentDevice] orientation] == UIDeviceOrientationPortrait) {
+            [UIView animateWithDuration:0.2 animations:^{
+                splitViewController.preferredDisplayMode = UISplitViewControllerDisplayModePrimaryHidden;
+            }];
+        }
     }
 
     

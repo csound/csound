@@ -28,6 +28,18 @@ void process(char *name, int width)
       if (p!=NULL)
         printf("File=%s Line=%d extra space at %d\n%s\n",
                name, count, p-buffer, buffer);
+      p = strstr(buffer,"if(");
+      if (p!=NULL)
+        printf("File=%s Line=%d if( at %d\n%s\n",
+               name, count, p-buffer, buffer);
+      p = strstr(buffer,"while(");
+      if (p!=NULL)
+        printf("File=%s Line=%d while( at %d\n%s\n",
+               name, count, p-buffer, buffer);
+      p = strstr(buffer,"for(");
+      if (p!=NULL)
+        printf("File=%s Line=%d for( at %d\n%s\n",
+               name, count, p-buffer, buffer);
     }
     fclose(ff);
     return;

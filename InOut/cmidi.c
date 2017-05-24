@@ -28,7 +28,6 @@
 #include <CoreAudio/HostTime.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include "csdl.h"                               /*      CMIDI.C         */
-#include "csGblMtx.h"
 #include "midiops.h"
 
 
@@ -56,7 +55,8 @@ void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 {
     cdata *data = (cdata *)refcon;
     MIDIdata *mdata = data->mdata;
-    int *p = &data->p, i, j;
+    int *p = &data->p;
+    UInt32 i, j;
     MIDIPacket *packet = &((MIDIPacketList *)pktlist)->packet[0];
     Byte *curpack;
 
@@ -73,6 +73,7 @@ void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 
 }
 
+
 static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput)
 {
     int k, endpoints;
@@ -87,7 +88,7 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput)
     for(k=0; k < endpoints; k++) {
       endpoint = MIDIGetSource(k);
       MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-      char *sn = CFStringGetCStringPtr(name, defaultEncoding);
+      const char *sn = CFStringGetCStringPtr(name, defaultEncoding);
       if(sn != NULL)
        strncpy(list[k].device_name, sn, 63);
       snprintf(tmp, 64, "%d", k);
@@ -104,15 +105,15 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput)
 /* csound MIDI input open callback, sets the device for input */
 static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
-    int k, endpoints, dest;
+    int k, endpoints;
     CFStringRef name = NULL, cname = NULL, pname = NULL;
     CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
     MIDIClientRef mclient = (MIDIClientRef) 0;
     MIDIPortRef mport =  (MIDIPortRef) 0;
     MIDIEndpointRef endpoint;
-    MIDIdata *mdata = (MIDIdata *) malloc(DSIZE*sizeof(MIDIdata));
+    MIDIdata *mdata = (MIDIdata *) csound->Malloc(csound, DSIZE*sizeof(MIDIdata));
     OSStatus ret;
-    cdata *refcon = (cdata *) malloc(sizeof(cdata));
+    cdata *refcon = (cdata *) csound->Malloc(csound, sizeof(cdata));
     memset(mdata, 0, sizeof(MIDIdata)*DSIZE);
     refcon->mdata = mdata;
     refcon->p = 0;
@@ -233,8 +234,8 @@ static int MidiInDeviceClose(CSOUND *csound, void *userData)
     cdata * data = (cdata *)userData;
     if (data != NULL) {
       MIDIClientDispose(data->mclient);
-      free(data->mdata);
-      free(data);
+      csound->Free(csound, data->mdata);
+      csound->Free(csound, data);
     }
     return 0;
 }

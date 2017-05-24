@@ -137,7 +137,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     if (csound->delayederrormessages) {
       if (O->msglevel>8)
         csound->Warning(csound, "%s", csound->delayederrormessages);
-      free(csound->delayederrormessages);
+      csound->Free(csound, csound->delayederrormessages);
       csound->delayederrormessages = NULL;
     }
 
@@ -235,7 +235,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     if (csound->orchstr==NULL && csound->orchname) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
-      csound->orcLineOffset = 0;
+      csound->orcLineOffset = 1; /* Guess -- JPff */
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
       if (csound->orchstr==NULL)
         csound->Die(csound,
@@ -470,12 +470,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
 
     if (O->numThreads > 1) {
-      void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
+      void csp_barrier_alloc(CSOUND *, void **, int);
       int i;
       THREADINFO *current = NULL;
-
-      csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
-      csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
 
       csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
       csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
@@ -517,10 +514,10 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, const char **argv){
 
 PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
     CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
-    if(tt != NULL){
-    int res = csoundCompileCsdText(csound, tt->body);
-    corfile_rm(&tt);
-    return res;
+    if (LIKELY(tt != NULL)) {
+      int res = csoundCompileCsdText(csound, tt->body);
+      corfile_rm(&tt);
+      return res;
     }
     return CSOUND_ERROR;
 }
@@ -530,15 +527,25 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csd_text));
     if (res) {
-      csound->csdname = strdup("*string*"); /* Mark asfrom text */
+      if (csound->csdname != NULL) csound->Free(csound, csound->csdname);
+      csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
       res = csoundCompileOrc(csound, NULL);
       if (res == CSOUND_SUCCESS){
         csoundLockMutex(csound->API_lock);
         char *sc = scsortstr(csound, csound->scorestr);
-        if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          csoundInputMessageInternal(csound, (const char *) sc);
+        if (sc) {
+          if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+            csound->Message(csound,
+                            Str("\"Real-time\" performance (engineStatus: %d).\n"),
+                            csound->engineStatus);
+            csoundInputMessageInternal(csound, (const char *) sc);
+            csound->Free(csound, sc);
+          } else {
+            csound->Message(csound,
+                            Str("\"Non-real-time\" performance "
+                                "(engineStatus: %d).\n"), csound->engineStatus);
+          }
         }
-        //free(sc);
         csoundUnlockMutex(csound->API_lock);
       }
     }

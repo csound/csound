@@ -1,0 +1,39 @@
+image: Visual Studio 2015
+
+install:
+  - cd msvc
+  - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
+  - powershell -ExecutionPolicy ByPass -File generateProject.ps1
+  - cd ..
+
+platform: x64
+
+configuration: Release
+
+build:
+  parallel: true
+  project: msvc\csound-vs\Csound.sln
+
+after_build:
+  - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll
+
+artifacts:
+  - path: csound.zip
+    name: Csound
+    type: zip
+
+cache: 
+ - C:\projects\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
+
+#deploy:
+#  release: myproduct-v$(appveyor_build_version)
+#  description: 'Release description'
+#  provider: GitHub
+#  auth_token:
+#    secure: <your encrypted token> # your encrypted token from GitHub
+#  artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
+#  draft: false
+#  prerelease: false
+#  on:
+#    branch: master                 # release from master branch only
+#    appveyor_repo_tag: true        # deploy on tag push only

@@ -80,11 +80,11 @@ static int kill_wish(CSOUND *csound, CONTROL_GLOBALS *p)
 {
     csound->Message(csound, Str("Closing down wish(%d)\n"), p->wish_pid);
     kill(p->wish_pid, 9);
-    if (p->values != NULL)  free(p->values);
-    if (p->minvals != NULL) free(p->minvals);
-    if (p->maxvals != NULL) free(p->maxvals);
-    if (p->buttons != NULL) free(p->buttons);
-    if (p->checks != NULL)  free(p->checks);
+    if (p->values != NULL)  csound->Free(csound,p->values);
+    if (p->minvals != NULL) csound->Free(csound,p->minvals);
+    if (p->maxvals != NULL) csound->Free(csound,p->maxvals);
+    if (p->buttons != NULL) csound->Free(csound,p->buttons);
+    if (p->checks != NULL)  csound->Free(csound,p->checks);
     fclose(p->wish_cmd);
     fclose(p->wish_res);
     return OK;
@@ -132,11 +132,11 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
       return;
     };
     p->csound->Message(p->csound, "Wish %s\n", p->cmd);
-    p->values = (int*) calloc(8, sizeof(int));
-    p->minvals = (int*) calloc(8, sizeof(int));
-    p->maxvals = (int*) calloc(8, sizeof(int));
-    p->buttons = (int*) calloc(8, sizeof(int));
-    p->checks  = (int*) calloc(8, sizeof(int));
+    p->values = (int*) p->csound->Calloc(p->csound,8*sizeof(int));
+    p->minvals = (int*) p->csound->Calloc(p->csound,8* sizeof(int));
+    p->maxvals = (int*) p->csound->Calloc(p->csound,8* sizeof(int));
+    p->buttons = (int*) p->csound->Calloc(p->csound,8* sizeof(int));
+    p->checks  = (int*) p->csound->Calloc(p->csound,8* sizeof(int));
     p->max_sliders = 8;
     p->max_button = 8;
     p->max_check = 8;
@@ -153,9 +153,9 @@ static void ensure_slider(CONTROL_GLOBALS *p, int n)
       start_tcl_tk(p);
     if (n > p->max_sliders) {
       int i, nn = n + 1;
-      p->values  = (int*) realloc(p->values, nn * sizeof(int));
-      p->minvals = (int*) realloc(p->minvals, nn * sizeof(int));
-      p->maxvals = (int*) realloc(p->maxvals, nn * sizeof(int));
+      p->values  = (int*) p->csound->ReAlloc(p->csound,p->values, nn * sizeof(int));
+      p->minvals = (int*) p->csound->ReAlloc(p->csound,p->minvals,nn * sizeof(int));
+      p->maxvals = (int*) p->csound->ReAlloc(p->csound,p->maxvals,nn * sizeof(int));
       for (i = p->max_sliders + 1; i < nn; i++) {
         p->values[i] = 0; p->minvals[i] = 0; p->maxvals[i] = 127;
       }
@@ -265,7 +265,8 @@ static int button_set(CSOUND *csound, CNTRL *p)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_button) {
-      pp->buttons = (int*) realloc(pp->buttons, (n + 1) * sizeof(int));
+      pp->buttons = (int*) csound->ReAlloc(csound, pp->buttons,
+                                           (n + 1) * sizeof(int));
       do {
         pp->buttons[++(pp->max_button)] = 0;
       } while (pp->max_button < n);
@@ -292,7 +293,7 @@ static int check_set(CSOUND *csound, CNTRL *p)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_check) {
-      pp->checks = (int*) realloc(pp->checks, (n + 1) * sizeof(int));
+      pp->checks = (int*) csound->ReAlloc(csound,pp->checks, (n + 1) * sizeof(int));
       do {
         pp->checks[++(pp->max_check)] = 0;
       } while (pp->max_check < n);

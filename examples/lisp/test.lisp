@@ -236,7 +236,6 @@ i1 45.2 . . 10.06   ;F# octave above 1st one
 i1 45.3 . . 10.10   ;Bb next one up
 i1 45.4 . . 10.11   ;B
 i1 45.5 . . 11.04   ;E
-e
 </CsScore>
 </CsoundSynthesizer>
 ")
@@ -246,8 +245,8 @@ e
 (defparameter result 0)
 (setq cs (cffi:foreign-funcall "csoundCreate" :pointer (cffi:null-pointer) :pointer))
 (format t "csoundCreate returned: ~S~%" cs)
-(setq result (cffi:foreign-funcall "csoundCompileCsdText" :pointer cs :string csd :int))
-(format t "csoundCompileCsdText returned: ~D~%" result)
+(setq result (foreign-funcall "csoundCompileCsdText") :pointer cs :string csd :int))
+(format t "csoundCompileCsdText returned: ~S~%" result)
 (setq result (cffi:foreign-funcall "csoundStart" :pointer cs :int))
 (format t "csoundStart returned: ~D~%" result)
 (loop

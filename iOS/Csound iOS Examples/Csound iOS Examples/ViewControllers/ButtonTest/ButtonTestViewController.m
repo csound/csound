@@ -3,6 +3,7 @@
  ButtonTestViewController.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -27,7 +28,8 @@
 @implementation ButtonTestViewController
 
 -(void)viewDidLoad {
-    self.title = @"Button Test";
+    self.title = @"03. Button Test";
+    self.csound = NULL;
     [super viewDidLoad];
 }
 
@@ -46,8 +48,8 @@
         NSString *tempFile = [[NSBundle mainBundle] pathForResource:@"buttonTest" ofType:@"csd"];  
         NSLog(@"FILE PATH: %@", tempFile);
         
-		[self.csound stop];
-        
+		//[self.csound stop];
+        if(self.csound == NULL){
         self.csound = [[CsoundObj alloc] init];
         [self.csound addListener:self];
         
@@ -62,10 +64,36 @@
         [csoundUI addSlider:mReleaseSlider  forChannelName:@"release"];
         
         [self.csound play:tempFile];
+        }
         
 	} else {
         [self.csound stop];
+        self.csound = NULL;
     }
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 160)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"Uses a .csd based on SimpleTest 2, but depends on the user to press a button to trigger each note. One button uses a binding and the other sends a score message to CsoundObj.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 #pragma mark CsoundObjListener

@@ -5,6 +5,7 @@
  Copyright (C) 2011 Steven Yi
  
  This file is part of Csound iOS Examples.
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  The Csound for iOS Library is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
@@ -24,11 +25,26 @@
  */
 
 #import <UIKit/UIKit.h>
+#import <CoreMotion/CoreMotion.h>
 #import "BaseCsoundViewController.h"
 
 @interface HardwareTestViewController : BaseCsoundViewController<CsoundObjListener> {
     
     IBOutlet UISwitch *mSwitch;
+    
+    IBOutlet UILabel *accX;
+    IBOutlet UILabel *accY;
+    IBOutlet UILabel *accZ;
+    
+    IBOutlet UILabel *gyroX;
+    IBOutlet UILabel *gyroY;
+    IBOutlet UILabel *gyroZ;
+    
+    IBOutlet UILabel *roll;
+    IBOutlet UILabel *pitch;
+    IBOutlet UILabel *yaw;
+    
+    CMMotionManager *motionManager;
 }
 
 -(IBAction) toggleOnOff:(id)component;

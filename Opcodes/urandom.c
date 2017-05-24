@@ -24,6 +24,10 @@
 #include "csdl.h"
 //#include <ieee754.h>
 
+#ifdef MACOSX
+#include <unistd.h>
+#endif
+
 typedef struct {
     OPDS    h;
     MYFLT   *ar;                /* Output */

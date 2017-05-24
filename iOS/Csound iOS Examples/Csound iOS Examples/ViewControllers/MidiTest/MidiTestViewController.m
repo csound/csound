@@ -3,6 +3,7 @@
  MidiTestViewController.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -27,17 +28,17 @@
 @implementation MidiTestViewController
 
 -(void)viewDidLoad {
-    self.title = @"MIDI Test";
+    self.title = @"04. Hardware: MIDI Controller";
     
     widgetsManager = [[MidiWidgetsManager alloc] init];
     
-    [widgetsManager addSlider:mAttackSlider  forControllerNumber:11];
-    [widgetsManager addSlider:mDecaySlider   forControllerNumber:12];
-    [widgetsManager addSlider:mSustainSlider forControllerNumber:13];
-    [widgetsManager addSlider:mReleaseSlider forControllerNumber:14];
+    [widgetsManager addSlider:mAttackSlider  forControllerNumber:1];
+    [widgetsManager addSlider:mDecaySlider   forControllerNumber:2];
+    [widgetsManager addSlider:mSustainSlider forControllerNumber:3];
+    [widgetsManager addSlider:mReleaseSlider forControllerNumber:4];
     
-    [widgetsManager addSlider:mCutoffSlider    forControllerNumber:15];
-    [widgetsManager addSlider:mResonanceSlider forControllerNumber:16];
+    [widgetsManager addSlider:mCutoffSlider    forControllerNumber:5];
+    [widgetsManager addSlider:mResonanceSlider forControllerNumber:6];
     
     [widgetsManager openMidiIn];
     
@@ -88,6 +89,29 @@
     [self.csound sendScore:@"i\"allNotesOff\" 0 1"];
 }
 
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 110)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"This example demonstrate MIDI input from hardware, as well an on-screen (simulated) MIDI keyboard.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
+}
 
 
 #pragma mark CsoundObjListener

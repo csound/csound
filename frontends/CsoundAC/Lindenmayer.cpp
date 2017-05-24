@@ -21,7 +21,7 @@
 #include "Lindenmayer.hpp"
 #include <iostream>
 #include <iomanip>
-#include <boost/format.hpp>
+#include <ios>
 #include <sstream>
 #if defined(HAVE_IO_H)
 #ifdef LINUX
@@ -31,8 +31,6 @@
 #endif
 #endif
 #include <stdio.h>
-using boost::format;
-using boost::io::group;
 
 namespace csound
 {
@@ -131,6 +129,7 @@ namespace csound
   {
     try
       {
+        auto original_precision = std::cerr.precision();
         action = Conversions::trim(action);
           char command = action[0];
           switch(command)
@@ -184,7 +183,7 @@ namespace csound
                 std::cerr << "Orientation before rotation: " << std::endl;
                 for (int i = 0; i < turtleOrientation.size(); i++)
                   {
-                    std::cerr << format("%9.3f ") % turtleOrientation(i);
+                    std::cerr << std::setprecision(3) << turtleOrientation(i);
                   }
                 std::cerr << std::endl;
                 std::cerr << "Rotation for angle " << a << ":" << std::endl;
@@ -192,7 +191,7 @@ namespace csound
                   {
                     for (int j = 0; j < rotation.cols(); j++ )
                       {
-                        std::cerr << format("%9.3f ") % rotation(i, j);
+                        std::cerr << std::setprecision(3) << rotation(i, j);
                       }
                     std::cerr << std::endl;
                   }
@@ -200,7 +199,7 @@ namespace csound
                 std::cerr << "Orientation after rotation: " << std::endl;
                 for (int i = 0; i < turtleOrientation.size(); i++)
                   {
-                    std::cerr << format("%9.3f ") % turtleOrientation(i);
+                    std::cerr << std::setprecision(3) << turtleOrientation(i);
                   }
                 std::cerr << std::endl;
                 std::cerr << std::endl;
@@ -298,6 +297,7 @@ namespace csound
               }
               break;
             }
+            std::cerr.precision(original_precision);
       }
     catch(void *x)
       {

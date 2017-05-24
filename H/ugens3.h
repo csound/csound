@@ -36,10 +36,10 @@ typedef struct {
         MYFLT   *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
                 *imod2,*ibeg2,*iend2;
         MYFLT   cpscvt;
-        int32   lphs;
+        MYFLT   lphs;
         int16   mod1, mod2;
-        int32   beg1, beg2;
-        int32   end1, end2;
+        MYFLT   beg1, beg2;
+        MYFLT   end1, end2;
         int16   seg1, curmod, looping, stereo;
         FUNC    *ftp;
 } LOSC;

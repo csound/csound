@@ -97,13 +97,14 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
     /* pa_buffer_attr attr */
     int pulserror;
 
-    pulse = (pulse_params *) malloc(sizeof(pulse_params));
+    pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
     *(csound->GetRtPlayUserData(csound))  = (void *) pulse;
     pulse->spec.rate = csound->GetSr(csound);
     pulse->spec.channels = csound->GetNchnls(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
     pulse->buf =
-      (float *) malloc(sizeof(float)*parm->bufSamp_SW * pulse->spec.channels);
+      (float *) csound->Malloc(csound,
+                               sizeof(float)*parm->bufSamp_SW*pulse->spec.channels);
 
     /*
       attr.maxlength = parm->bufSamp_HW;
@@ -173,14 +174,14 @@ static void pulse_close(CSOUND *csound)
     if (pulse != NULL){
       pa_simple_drain(pulse->ps, &error);
       pa_simple_free(pulse->ps);
-      free(pulse->buf);
+      csound->Free(csound,pulse->buf);
     }
 
     pulse = (pulse_params*) *(csound->GetRtRecordUserData(csound)) ;
 
     if (pulse != NULL){
       pa_simple_free(pulse->ps);
-      free(pulse->buf);
+      csound->Free(csound,pulse->buf);
     }
     csound->DestroyGlobalVariable(csound, "pulse_globals");
 }
@@ -193,13 +194,14 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
     /*pa_buffer_attr attr;*/
     int pulserror;
 
-    pulse = (pulse_params *) malloc(sizeof(pulse_params));
+    pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
     *(csound->GetRtRecordUserData(csound))  = (void *) pulse;
     pulse->spec.rate = csound->GetSr(csound);
     pulse->spec.channels = csound->GetNchnls_i(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
     pulse->buf =
-      (float *) malloc(sizeof(float)* parm->bufSamp_SW * pulse->spec.channels);
+      (float *) csound->Malloc(csound,
+                               sizeof(float)*parm->bufSamp_SW*pulse->spec.channels);
 
     /*
       attr.maxlength = parm->bufSamp_HW;

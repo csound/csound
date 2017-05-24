@@ -1,14 +1,13 @@
-Csound Haiku - IV
-Iain McCurdy, 2011.
+;Csound Haiku - IV
+;Iain McCurdy, 2011.
 
 <CsoundSynthesizer>
-
 <CsOptions>
--odac -dm0 -+rtmidi=null -+rtaudio=null -+msg_color=0
+-odac
 </CsOptions>
-
 <CsInstruments>
-sr 		= 		44100
+
+sr          = 		44100
 ksmps 		= 		32
 nchnls 		= 		2
 0dbfs 		= 		1
@@ -18,9 +17,8 @@ gioctfn		ftgen		0, 0, 4096, -19, 1, 0.5, 270, 0.5
 gasendL		init		0
 gasendR		init		0
 ginotes		ftgen		0, 0, -100, -17, 0, 8.00, 10, 8.03, 15, 8.04, 25, 8.05, 50, 8.07, 60, 8.08, 73, 8.09, 82, 8.11
+
 		seed		0
-;		alwayson	"trigger_notes"
-;		alwayson	"reverb"
 
 		instr		trigger_notes
 krate		rspline		0.04, 0.15, 0.05, 0.1
@@ -74,14 +72,11 @@ aL, aR		reverbsc	gasendL, gasendR, 0.9, 10000
 		endin
 
 </CsInstruments>
-
 <CsScore>
 f 0 3600
 i "trigger_notes" 0 3600
 i "reverb" 0 3600
 
-
 e
 </CsScore>
-
 </CsoundSynthesizer>

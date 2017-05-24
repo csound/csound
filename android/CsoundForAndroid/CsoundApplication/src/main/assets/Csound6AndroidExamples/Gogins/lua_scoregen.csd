@@ -12,12 +12,10 @@ nchnls  = 2
 ; Lua code to generate a score in the orchestra header.
 lua_exec {{
 print (package.path)
-package.path = package.path .. ";/storage/emulated/0/silencio/?.lua"
 local ffi = require("ffi")
 local math = require("math")
 local string = require("string")
 
-local silencio = require ("Silencio")
 local csoundApi = ffi.load("csoundandroid")
 -- Declare the parts of the Csound API that we need.
 ffi.cdef[[

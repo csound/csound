@@ -32,6 +32,15 @@
 #pragma GCC diagnostic ignored "-fpermissive"
 #endif
 
+#ifdef __MACH__
+#include <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CFString.h>
+#include <CoreFoundation/CFBundle.h>
+#endif
+
+
+
+
 #ifdef MSVC
 #pragma warning(disable:4786) //gab
 #define round int
@@ -433,6 +442,7 @@ VSTPlugin::VSTPlugin(CSOUND *csound_)
     framesPerBlock(0)
 {
     memset(&vstTimeInfo, 0, sizeof(VstTimeInfo));
+    framesPerSecond = (float) csound->GetSr(csound);
     initializeOpcodes();
 }
 
@@ -547,7 +557,7 @@ int VSTPlugin::Instantiate(const char *libraryName_)
                                                    CFSTR("VSTPluginMain"));
     /* For VST SDK 2.3 and earlier. */
     if (!main) {
-      main = CFBundleGetFunctionPointerForName(vstBundle, CFSTR("main_macho"));
+      main = (PVSTMAIN)  CFBundleGetFunctionPointerForName(vstBundle, CFSTR("main_macho"));
     }
 #else
     /* For VST SDK 2.4 and later. */
@@ -656,9 +666,9 @@ void VSTPlugin::Init()
 {
     size_t i;
     Debug("VSTPlugin::Init.\n");
-    framesPerSecond = (size_t) ((long) (csound->GetSr(csound) + FL(0.5)));
+    framesPerSecond = (float) csound->GetSr(csound);
     framesPerBlock = csound->GetKsmps(csound);
-    Log("VSTPlugin::Init framesPerSecond %d framesPerBlock %d "
+    Log("VSTPlugin::Init framesPerSecond %f framesPerBlock %d "
         "channels %d in / %d out.\n",
         framesPerSecond, framesPerBlock, getNumInputs(), getNumOutputs());
     inputs_.resize((size_t) getNumInputs());
@@ -673,9 +683,10 @@ void VSTPlugin::Init()
     }
     Dispatch(effOpen        ,  0, 0, NULL, 0.0f);
     Dispatch(effSetProgram  ,  0, 0, NULL, 0.0f);
+    Dispatch(effSetSampleRate, 0, 0, NULL, framesPerSecond);
+    Dispatch(effSetBlockSize,  0, framesPerBlock, NULL, 0.0f);
     Dispatch(effMainsChanged,  0, 1, NULL, 0.0f);
-    Dispatch(effSetSampleRate, 0, 0, 0, (float) framesPerSecond );
-    Dispatch(effSetBlockSize,  0, framesPerBlock, NULL, 0.0f );
+    //Dispatch(effSetBlockSizeAndSampleRate, 0, framesPerBlock, NULL, (float) framesPerSecond);
 }
 
 bool VSTPlugin::SetParameter(int parameter, float value)
@@ -848,9 +859,9 @@ void VSTPlugin::Debug(const char *format, ...)
         csound->MessageV(csound, 0, format, args);
       }
     }
-    else {
-      vfprintf(stdout, format, args);
-    }
+    //else {
+    //  vfprintf(stdout, format, args);
+    //}
     va_end(args);
 }
 
@@ -1040,7 +1051,7 @@ VstIntPtr VSTPlugin::Master(AEffect *effect,
       if (plugin)
         return plugin->framesPerSecond;
       else
-        return 44100;
+        return ((size_t) (csound->GetSr(csound) + FL(0.5)));
     case audioMasterGetVendorString:
       strcpy((char *)ptr, "vst4cs");
       return 0;

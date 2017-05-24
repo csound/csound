@@ -38,12 +38,15 @@
 %ignore Counterpoint::message(const char*, va_list);
 %ignore csound::print(const char*, va_list);
 
+
 %module(directors="1") CsoundAC
 %{
         #include <algorithm>
         #include "Silence.hpp"
 %}
 %apply int { size_t };
+
+
 
 %typemap(in) char ** {
   /* Check if is a list */
@@ -87,5 +90,7 @@ sys.modules["__main__"].csound = csnd6.CppSound()
 sys.modules["__main__"].csound.thisown = 0
 sys.modules["__main__"].csound.setPythonMessageCallback()
 %}
+
+
 
 #endif

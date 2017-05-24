@@ -26,6 +26,8 @@
 #include <list>
 #include <vector>
 
+using namespace csound;
+
 /* ***************  does not deal with unaligned signals ************** */
 // Why not use the constants already defined?
 static MYFLT pi = std::atan(1.0) * MYFLT(4.0);

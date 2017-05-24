@@ -206,6 +206,7 @@ int musmon(CSOUND *csound)
     csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
     csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin * sizeof(MYFLT));
+    csound->spraw = (MYFLT *) csound->Calloc(csound, csound->nspout * sizeof(MYFLT));
     csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout * sizeof(MYFLT));
     csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin *sizeof(MYFLT));
     /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
@@ -356,15 +357,13 @@ int musmon(CSOUND *csound)
 #ifndef __EMSCRIPTEN__
     if (csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *init_pass_thread(void *);
-      pthread_attr_t attr;
       csound->init_pass_threadlock = csoundCreateMutex(0);
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 1;
       csoundUnlockMutex(csound->init_pass_threadlock);
-      csound->init_pass_loop = 1;
-      pthread_attr_init(&attr);
-      //pthread_attr_setstacksize(&attr, 1048576);
-      pthread_create(&csound->init_pass_thread,&attr,init_pass_thread, csound);
+      csound->init_pass_thread = csound->CreateThread(
+          (uintptr_t (*)(void*)) init_pass_thread,
+          (void*)csound);
 
     }
 #endif
@@ -391,7 +390,7 @@ static void delete_pending_rt_events(CSOUND *csound)
     while (ep != NULL) {
       EVTNODE *nxt = ep->nxt;
       if (ep->evt.strarg != NULL) {
-        free(ep->evt.strarg);
+        csound->Free(csound,ep->evt.strarg);
         ep->evt.strarg = NULL;
       }
       /* push to stack of free event nodes */
@@ -422,7 +421,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
       csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
-      free(p);
+      csound->Free(csound,p);
     }
 
     /* check if we have already cleaned up */
@@ -447,7 +446,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 0;
       csoundUnlockMutex(csound->init_pass_threadlock);
-      pthread_join(csound->init_pass_thread, NULL);
+      csound->JoinThread(csound->init_pass_thread);
       csoundDestroyMutex(csound->init_pass_threadlock);
       csound->init_pass_threadlock = 0;
     }
@@ -456,7 +455,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;
       csound->freeEvtNodes = ((EVTNODE*) p)->nxt;
-      free(p);
+      csound->Free(csound,p);
     }
 
     orcompact(csound);
@@ -467,6 +466,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     /* NOT SURE HOW   ************************** */
     {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
+      corfile_rm(&csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])
           csound->omaxamp[n] = csound->smaxamp[n];
@@ -693,7 +693,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
     case 'q':
       if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
-        if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
+        if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) == 0)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
                           evt->strarg);
@@ -719,13 +719,18 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
       break;
     case 'i':
+    case 'd':
       if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
-        if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) < 1)) {
+        if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) == 0)) {
           printScoreError(csound, rtEvt,
                           Str(" - note deleted. instr %s undefined"),
                           evt->strarg);
           break;
         }
+        if (insno<0) {
+          evt->p[1] = insno; insno = -insno;
+        }
+        else if (evt->opcod=='d') evt->p[1]=-insno;
         if ((rfd = getRemoteInsRfd(csound, insno))) {
           /* RM: if this note labeled as remote */
           if (rfd == GLOBAL_REMOT)
@@ -866,7 +871,7 @@ static int process_rt_event(CSOUND *csound, int sensType)
       csound->OrcTrigEvts = e->nxt;
       retval = process_score_event(csound, evt, 1);
       if (evt->strarg != NULL) {
-        free(evt->strarg);
+        csound->Free(csound, evt->strarg);
         evt->strarg = NULL;
       }
       /* push back to free alloc stack so it can be reused later */
@@ -912,7 +917,6 @@ int sensevents(CSOUND *csound)
     if (data && data->status == CSDEBUG_STATUS_STOPPED) {
         return 0; /* don't process events if we're in debug mode and stopped */
     }
-
     if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
       deactivate_all_notes(csound);
       csound->Message(csound, Str("terminating.\n"));
@@ -942,7 +946,6 @@ int sensevents(CSOUND *csound)
       else                                  /* this should only happen at */
         csound->cyclesRemaining = 0;        /* beginning of performance   */
     }
-
  retest:
     while (csound->cyclesRemaining <= 0) {   /* read each score event:     */
       if (e->opcod != '\0') {
@@ -987,11 +990,12 @@ int sensevents(CSOUND *csound)
           continue;                           /*   for this section     */
         case 'q':
         case 'i':
+        case 'd':
         case 'f':
         case 'a':
           csound->nxtim = (double) e->p[2] + csound->timeOffs;
           csound->nxtbt = (double) e->p2orig + csound->beatOffs;
-          if (e->opcod=='i')
+          if (e->opcod=='i'||e->opcod=='d')
             if (UNLIKELY(csound->oparms->odebug))
               csound->Message(csound, "new event: %16.13lf %16.13lf\n",
                               csound->nxtim, csound->nxtbt);
@@ -1008,8 +1012,6 @@ int sensevents(CSOUND *csound)
           continue;
         }
       }
-
-
       /* calculate the number of k-periods remaining until next event */
       if (!O->sampleAccurate) {
         if (O->Beatmode)
@@ -1038,15 +1040,10 @@ int sensevents(CSOUND *csound)
         }
       }
     }
-
-
-
-
     /* handle any real time events now: */
     /* FIXME: the initialisation pass of real time */
     /*   events is not sorted by instrument number */
     /*   (although it never was sorted anyway...)  */
-
     if (UNLIKELY(O->RTevents || getRemoteSocksIn(csound))) {
       int nrecvd;
       /* run all registered callback functions */
@@ -1112,7 +1109,6 @@ int sensevents(CSOUND *csound)
     }
     /* no score event at this time, return to continue performance */
     return 0;
-
  scode:
     /* end of section (retval == 1), score (retval == 2), */
     /* or lplay list (retval == 3) */
@@ -1135,7 +1131,6 @@ int sensevents(CSOUND *csound)
     }
     else{
       section_amps(csound, 0);
-
     }
     if (retval == 1) {                        /* if s code,        */
       orcompact(csound);                      /*   rtn inactiv spc */
@@ -1144,7 +1139,6 @@ int sensevents(CSOUND *csound)
       csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
       goto retest;                            /*   & back for more */
     }
-
     return 2;                   /* done with entire score */
 }
 
@@ -1192,7 +1186,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       csound->freeEvtNodes = e->nxt;
     }
     else {
-      e = (EVTNODE*) calloc((size_t) 1, sizeof(EVTNODE)); /* or alloc new one */
+      e = (EVTNODE*) csound->Calloc(csound, sizeof(EVTNODE)); /* or alloc new one */
       if (UNLIKELY(e == NULL))
         return CSOUND_MEMORY;
     }
@@ -1201,9 +1195,9 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       int n = evt->scnt;
       char *p = evt->strarg;
       while (n--) { p += strlen(p)+1; };
-      e->evt.strarg = (char*) malloc((size_t) (p-evt->strarg)+1);
+      e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (p-evt->strarg)+1);
       if (UNLIKELY(e->evt.strarg == NULL)) {
-        free(e);
+        csound->Free(csound, e);
         return CSOUND_MEMORY;
       }
       memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
@@ -1221,73 +1215,88 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
 
     /* check for required p-fields */
     switch (evt->opcod) {
-      case 'f':
-        if (UNLIKELY((evt->pcnt < 4) && (p[1]>0)))
-          goto pfld_err;
-        goto cont;
-      case 'i':
-      case 'q':
-      case 'a':
-        if (UNLIKELY(evt->pcnt < 3))
-          goto pfld_err;
+    case 'f':
+      if (UNLIKELY((evt->pcnt < 4) && (p[1]>0)))
+        goto pfld_err;
+      goto cont;
+    case 'i':
+    case 'q':
+    case 'a':
+      if (UNLIKELY(evt->pcnt < 3))
+        goto pfld_err;
+    case 'd':
     cont:
-        /* calculate actual start time in seconds and k-periods */
-        start_time = (double) p[2] + (double)time_ofs/csound->esr;
-        start_kcnt = time2kcnt(csound, start_time);
-        /* correct p2 value for section offset */
-        p[2] = (MYFLT) (start_time - st->timeOffs);
-        if (p[2] < FL(0.0))
-          p[2] = FL(0.0);
-        /* start beat: this is possibly wrong */
-        evt->p2orig = (MYFLT) (((start_time - st->icurTime/st->esr) /
-                                st->ibeatTime)
-                               + (st->curBeat - st->beatOffs));
-        if (evt->p2orig < FL(0.0))
-          evt->p2orig = FL(0.0);
-        evt->p3orig = p[3];
-        break;
-      default:
-        start_kcnt = 0UL;   /* compiler only */
+      /* calculate actual start time in seconds and k-periods */
+      start_time = (double) p[2] + (double)time_ofs/csound->esr;
+      start_kcnt = time2kcnt(csound, start_time);
+      /* correct p2 value for section offset */
+      p[2] = (MYFLT) (start_time - st->timeOffs);
+      if (p[2] < FL(0.0))
+        p[2] = FL(0.0);
+      /* start beat: this is possibly wrong */
+      evt->p2orig = (MYFLT) (((start_time - st->icurTime/st->esr) /
+                              st->ibeatTime)
+                             + (st->curBeat - st->beatOffs));
+      if (evt->p2orig < FL(0.0))
+        evt->p2orig = FL(0.0);
+      evt->p3orig = p[3];
+      break;
+    default:
+      start_kcnt = 0UL;   /* compiler only */
     }
 
     switch (evt->opcod) {
-      case 'i':                         /* note event */
-        /* calculate the length in beats */
-        if (evt->p3orig > FL(0.0))
-          evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
-        /* fall through required */
-      case 'q':                         /* mute instrument */
-        /* check for a valid instrument number or name */
-        if (evt->strarg != NULL && csound->ISSTRCOD(p[1]))
+    case 'i':                         /* note event */
+    case 'd':
+      /* calculate the length in beats */
+      if (evt->p3orig > FL(0.0))
+        evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
+      /* fall through required */
+    case 'q':                         /* mute instrument */
+      /* check for a valid instrument number or name */
+      if (evt->opcod=='d') {
+        if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
           i = (int) named_instr_find(csound, evt->strarg);
-        else
-          i = (int) fabs((double) p[1]);
-        if (UNLIKELY((unsigned int) (i - 1) >=
-                     (unsigned int) csound->engineState.maxinsno ||
-                     csound->engineState.instrtxtp[i] == NULL)) {
-          csoundMessage(csound, Str("insert_score_event(): invalid instrument "
-                                    "number or name %d\n" ), i);
-          goto err_return;
+          //printf("d opcode %s -> %d\n", evt->strarg, i);
+          p[1] = -i;
         }
-        break;
-      case 'a':                         /* advance score time */
-        /* calculate the length in beats */
-        evt->p3orig = (MYFLT) ((double) evt->p3orig *csound->esr/ st->ibeatTime);
-      case 'f':                         /* function table */
-        break;
-      case 'e':                         /* end of score, */
-      case 'l':                         /*   lplay list, */
-      case 's':                         /*   section:    */
-        start_time = (double)time_ofs/csound->esr;
-        if (evt->pcnt >= 2)
-          start_time += (double) p[2];
-        evt->pcnt = 0;
-        start_kcnt = time2kcnt(csound, start_time);
-        break;
-      default:
-        csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
-                              evt->opcod);
+        else {
+          i = (int) fabs((double) p[1]);
+          p[1] = -i;
+        }
+      }
+      else if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
+        i = (int) named_instr_find(csound, evt->strarg);
+        if (i<0) {p[1]=i; i= -i;}
+      }
+      else
+        i = (int) fabs((double) p[1]);
+      if (UNLIKELY((unsigned int) (i - 1) >=
+                   (unsigned int) csound->engineState.maxinsno ||
+                   csound->engineState.instrtxtp[i] == NULL)) {
+        csoundMessage(csound, Str("insert_score_event(): invalid instrument "
+                                  "number or name %d\n" ), i);
         goto err_return;
+      }
+      break;
+    case 'a':                         /* advance score time */
+      /* calculate the length in beats */
+      evt->p3orig = (MYFLT) ((double) evt->p3orig *csound->esr/ st->ibeatTime);
+    case 'f':                         /* function table */
+      break;
+    case 'e':                         /* end of score, */
+    case 'l':                         /*   lplay list, */
+    case 's':                         /*   section:    */
+      start_time = (double)time_ofs/csound->esr;
+      if (evt->pcnt >= 2)
+        start_time += (double) p[2];
+      evt->pcnt = 0;
+      start_kcnt = time2kcnt(csound, start_time);
+      break;
+    default:
+      csoundMessage(csound, Str("insert_score_event(): unknown opcode: %c\n"),
+                    evt->opcod);
+      goto err_return;
     }
     /* queue new event */
     e->start_kcnt = start_kcnt;
@@ -1312,7 +1321,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
  err_return:
     /* clean up */
     if (e->evt.strarg != NULL)
-      free(e->evt.strarg);
+      csound->Free(csound, e->evt.strarg);
     e->evt.strarg = NULL;
     e->nxt = csound->freeEvtNodes;
     csound->freeEvtNodes = e;
@@ -1380,13 +1389,13 @@ PUBLIC int csoundRegisterSenseEventCallback(CSOUND *csound,
     EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
 
     if (fp == NULL) {
-      fp = (EVT_CB_FUNC*) calloc((size_t) 1, sizeof(EVT_CB_FUNC));
+      fp = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
       csound->evtFuncChain = (void*) fp;
     }
     else {
       while (fp->nxt != NULL)
         fp = fp->nxt;
-      fp->nxt = (EVT_CB_FUNC*) calloc((size_t) 1, sizeof(EVT_CB_FUNC));
+      fp->nxt = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
       fp = fp->nxt;
     }
     if (UNLIKELY(fp == NULL))

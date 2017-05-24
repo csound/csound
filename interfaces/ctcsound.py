@@ -213,6 +213,8 @@ libcsound.csoundGetNchnlsInput.restype = c_uint32
 libcsound.csoundGetNchnlsInput.argtypes = [c_void_p]
 libcsound.csoundGet0dBFS.restype = MYFLT
 libcsound.csoundGet0dBFS.argtypes = [c_void_p]
+libcsound.csoundGetA4.restype = MYFLT
+libcsound.csoundGetA4.argtypes = [c_void_p]
 libcsound.csoundGetCurrentTimeSamples.restype = c_int64
 libcsound.csoundGetCurrentTimeSamples.argtypes = [c_void_p]
 libcsound.csoundGetHostData.restype = py_object
@@ -721,9 +723,15 @@ class Csound:
         return libcsound.csoundCompileArgs(self.cs, argc, argv)
     
     def start(self):
-        """Prepares Csound for performance after compilation.
+        """Prepares Csound for performance.
         
-        Using one or more of the above functions.
+        Normally called after compiling a csd file or an orc file, in which
+        case score preprocessing is performed and performance terminates
+        when the score terminates.
+        However, if called before compiling a csd file or an orc file, 
+        score preprocessing is not performed and "i" statements are dispatched 
+        as real-time events, the <CsOptions> tag is ignored, and performance 
+        continues indefinitely or until ended using the API.
         NB: this is called internally by compile_(), therefore
         it is only required if performance is started without
         a call to that function.
@@ -886,6 +894,10 @@ class Csound:
     def get0dBFS(self):
         """Return the 0dBFS level of the spin/spout buffers."""
         return libcsound.csoundGet0dBFS(self.cs)
+    
+    def A4(self):
+        """Return the A4 frequency reference."""
+        return libcsound.csoundGetA4(self.cs)
     
     def currentTimeSamples(self):
         """Return the current performance time in samples."""
@@ -1130,6 +1142,7 @@ class Csound:
         the Csound object and the start of performance will disable all default
         handling of sound I/O by the Csound library, allowing the host
         application to use the spin/spout/input/output buffers directly.
+        For applications using spin/spout, bufSize should be set to 0.
         If 'bufSize' is greater than zero, the buffer size (-b) will be
         set to the integer multiple of ksmps that is nearest to the value
         specified.

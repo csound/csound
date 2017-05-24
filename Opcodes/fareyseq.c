@@ -31,7 +31,7 @@
 #include <math.h>
 #include <time.h>
 
-const int MAX_PFACTOR = 16;
+#define MAX_PFACTOR 16
 const int MAX_PRIMES = 1229;
 const int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                       47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
@@ -215,8 +215,8 @@ int EulerPhi (int n);
 int FareyLength (int n);
 int PrimeFactors (int n, PFACTOR p[]);
 MYFLT Digest (int n);
-void float2frac (MYFLT in, int *p, int *q);
-void float_to_cfrac (double r, int n, int a[], int p[], int q[]);
+void float2frac (CSOUND *csound, MYFLT in, int *p, int *q);
+void float_to_cfrac (CSOUND *csound, double r, int n, int a[], int p[], int q[]);
 
 /* a filter and table copy opcode for filtering tables containing
    Farey Sequences generated with fateytable GEN */
@@ -388,7 +388,7 @@ static int dotablefilter (CSOUND *csound, TABFILT *p)
       case 1:
         { /* filter all above threshold */
           int p, q = 0;
-          float2frac (*ps, &p, &q);
+          float2frac (csound, *ps, &p, &q);
           if (Digest (q) > threshold) {
             indx2++;
           } else {
@@ -400,7 +400,7 @@ static int dotablefilter (CSOUND *csound, TABFILT *p)
       case 2:
         { /* filter all below threshold */
           int p, q = 0;
-          float2frac (*ps, &p, &q);
+          float2frac (csound, *ps, &p, &q);
           if (Digest (q) < threshold) {
             indx2++;
           } else {
@@ -503,7 +503,7 @@ static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     /* Now get the base address of the table. */
     bases = p->funcs->ftable;
 
-    temp = (MYFLT*) calloc (sourcelength, sizeof(MYFLT));
+    temp = (MYFLT*) csound->Calloc (csound, sourcelength* sizeof(MYFLT));
     memset (temp, 0, sizeof(MYFLT) * sourcelength);
 
     for (i = 0; i < sourcelength; i++) {
@@ -517,7 +517,7 @@ static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     }
 
     memcpy (bases, temp, sizeof(MYFLT) * sourcelength);
-    free (temp);
+    csound->Free (csound, temp);
     return OK;
 }
 
@@ -652,7 +652,7 @@ MYFLT Digest (int n)
    continued fraction expansion
    in order to convert a real number <in>
    into an integer fraction <num, denom> with an error less than 10^-5 */
-void float2frac (MYFLT in, int *num, int *denom)
+void float2frac (CSOUND *csound, MYFLT in, int *num, int *denom)
 {
 #define  N (10)
     int a[N+1];
@@ -661,7 +661,7 @@ void float2frac (MYFLT in, int *num, int *denom)
     int P = 0; int Q = 0;
     int i;
 
-    float_to_cfrac ((double)in, N, a, p, q);
+    float_to_cfrac (csound, (double)in, N, a, p, q);
 
     for (i=0; i <= N; i++) {
       double temp;
@@ -681,7 +681,7 @@ void float2frac (MYFLT in, int *num, int *denom)
 }
 
 /* continued fraction expansion */
-void float_to_cfrac (double r, int n, int a[], int p[], int q[])
+void float_to_cfrac (CSOUND *csound, double r, int n, int a[], int p[], int q[])
 {
     int i;
     double r_copy;
@@ -703,7 +703,7 @@ void float_to_cfrac (double r, int n, int a[], int p[], int q[])
       return;
     }
 
-    x = calloc(n+1, sizeof(double));
+    x = csound->Calloc(csound, (n+1)* sizeof(double));
 
     r_copy = fabs (r);
 
@@ -728,7 +728,7 @@ void float_to_cfrac (double r, int n, int a[], int p[], int q[])
       }
     }
 
-    free(x);
+    csound->Free(csound, x);
 }
 
 #define S sizeof

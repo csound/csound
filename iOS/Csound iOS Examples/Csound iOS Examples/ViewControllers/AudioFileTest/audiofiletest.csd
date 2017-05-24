@@ -1,12 +1,17 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -+rtaudio=null -d -+msg_color=0 -M0 -m0 -i adc
+-o dac
+-d
+-i adc
 </CsOptions>
 <CsInstruments>
+
 sr        = 44100
 ksmps     = 256
 nchnls    = 2
 0dbfs	  = 1
+
+maxalloc 2, 1
 
 	instr 1
 S_file strget p4
@@ -23,6 +28,12 @@ aL = aL
 aR = aR
 outs aL, aR
 	endin
+
+    instr 3
+
+    turnoff2 p4, 0, 1
+
+    endin
 
 
 </CsInstruments>

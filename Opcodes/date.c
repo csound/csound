@@ -23,6 +23,7 @@
 
 #include "csdl.h"
 #include <time.h>
+#include <errno.h>
 
 #if defined(__MACH__)
 #include <unistd.h>
@@ -103,7 +104,11 @@ typedef struct {
 
 static int getcurdir(CSOUND *csound, GETCWD *p)
 {
-    if (p->Scd->data == NULL) {
+  if (p->Scd->size < 1024) {
+    p->Scd->size = 1024;
+    p->Scd->data = csound->ReAlloc(csound,  p->Scd->data, p->Scd->size);
+  }
+  if (p->Scd->data == NULL) {
       p->Scd->size = 1024;
       p->Scd->data = csound->Calloc(csound, p->Scd->size);
     }
@@ -113,7 +118,12 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
 #else
     if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #endif
-      return csound->InitError(csound, Str("cannot determine current directory"));
+      {
+        strncpy(p->Scd->data, "**Unknown**", p->Scd->size-1);
+        return csound->InitError(csound,
+                                 Str("cannot determine current directory: %s\n"),
+                                 strerror(errno));
+      }
     return OK;
 }
 

@@ -29,24 +29,27 @@ typedef struct {
   MYFLT *ktrig;
   STRINGDAT *commandLine;
   MYFLT *nowait;
-
+  char *command;
   MYFLT prv_ktrig;
+  CSOUND *csound;
 } SYSTEM;
 
 #if defined(WIN32)
 
-static void threadroutine(void *command)
+static void threadroutine(void *p)
 {
-    system( (char *)command );
-    free( command );
+    SYSTEM *pp = (SYSTEM *) p;
+    system(pp->command);
+    pp->csound->Free(pp->csound,pp->command);
 }
 
 static int call_system(CSOUND *csound, SYSTEM *p)
 {
     _flushall();
     if ( (int)*p->nowait != 0 ) {
-      char *command = strdup(p->commandLine->data);
-      _beginthread( threadroutine, 0, command);
+       p->command = csound->Strdup(csound, p->commandLine->data);
+       p->csound = csound;
+      _beginthread( threadroutine, 0, p);
       *p->res = OK;
     }
     else {
