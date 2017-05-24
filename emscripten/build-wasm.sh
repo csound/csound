@@ -19,7 +19,6 @@ emcc -s LINKABLE=1 ../src/FileList.c -Iinclude -o FileList.bc
 
 
 # build_libcsound.js.sh
-# fails (-6) when run in script, succeeds when run in bash prompt...
 emcc -O3 -g4 -s WASM=1 -s "BINARYEN_METHOD='native-wasm'" -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s EXPORTED_FUNCTIONS="['_strlen', '_CsoundObj_new', '_CsoundObj_compileCSD', '_CsoundObj_compileOrcSco', '_CsoundObj_render', '_CsoundObj_evaluateCode', '_CsoundObj_start', '_CsoundObj_compileOrc', '_CsoundObj_readScore', '_CsoundObj_getOutputBuffer', '_CsoundObj_getControlChannel', '_CsoundObj_setControlChannel', '_CsoundObj_getInputBuffer', '_CsoundObj_getKsmps', '_CsoundObj_performKsmps' , '_CsoundObj_reset', '_CsoundObj_getInputChannelCount', '_CsoundObj_getOutputChannelCount', '_CsoundObj_getTableLength', '_CsoundObj_getTable','_CsoundObj_getZerodBFS', '_CsoundObj_pushMidiMessage', '_CsoundObj_setMidiCallbacks', '_CsoundObj_setOutputChannelCallback', '_FileList_getFileCount', '_FileList_getFileNameString']"  CsoundObj.bc FileList.bc libcsound.a ../deps/libsndfile-1.0.25/src/.libs/libsndfile.a -o libcsound.js
 
 cd ..
