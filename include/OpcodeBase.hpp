@@ -5,6 +5,7 @@
 #include <interlocks.h>
 #include <csdl.h>
 #include <cstdarg>
+#include <new>
 
 /**
  * Template base class, or pseudo-virtual base class,
@@ -24,6 +25,12 @@
  *     size_t state1;
  *     double state2;
  *     MYFLT state3;
+ *     // If the opcode shares data protect it by creating one or more void
+ *     // *mutex pointers:
+ *     void *mutex1;
+ *     void *mutex2;
+ *     // and initialize them in the init function using:
+ *     void *get_mutex(CSOUND*csound, const char *name);
  *     // Declare and implement only whichever of these are required:
  *     int init();
  *     int kontrol();
@@ -32,6 +39,20 @@
  *     void deinit();
  * };
  */
+
+namespace csound {
+
+inline void *get_mutex(CSOUND *csound, const char *mutex_name)
+{
+  void **mutex = (void **)csound->QueryGlobalVariable(csound, mutex_name);
+  if (mutex == 0) {
+    csound->CreateGlobalVariable(csound, mutex_name, sizeof(void**));
+    mutex = (void **)csound->QueryGlobalVariable(csound, mutex_name);
+    *mutex = csound->Create_Mutex(1);
+  }
+  return *mutex;
+}
+
 template<typename T>
 class OpcodeBase
 {
@@ -256,6 +277,8 @@ public:
     return reinterpret_cast<T *>(opcode)->noteoff(csound);
   }
   OPDS opds;
+};
+
 };
 
 #endif

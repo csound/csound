@@ -2,6 +2,7 @@
 
 flex -B -t ../../Engine/csound_orc.lex > jni/csound_orclex.c 
 flex -B ../../Engine/csound_pre.lex > jni/csound_prelex.c 
+flex -B ../../Engine/csound_prs.lex > jni/csound_prslex.c 
 bison -d -pcsound_orc --report=itemset -o jni/csound_orcparse.c ../../Engine/csound_orc.y
 
 rm -rf src/csnd6

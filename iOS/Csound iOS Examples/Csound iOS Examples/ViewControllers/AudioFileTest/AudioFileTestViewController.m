@@ -3,6 +3,7 @@
  AudioFileTestViewController.m:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -27,6 +28,19 @@
 
 @implementation AudioFileTestViewController
 
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    [self setTitle:@"10. Soundfile: Pitch Shifter"];
+    self.csound = [[CsoundObj alloc] init];
+    NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
+    [self.pitchKnob setMinimumValue:0.5f];
+    [self.pitchKnob setMaximumValue:2.0f];
+    [self.pitchKnob setValue:1.0f];
+    [self.csound addBinding:self.pitchKnob];
+    [self.csound play:csdPath];
+}
+
 - (IBAction)play:(UIButton *)sender
 {
 	NSString *audioFilePath = [[NSBundle mainBundle] pathForResource:@"testAudioFile"
@@ -40,16 +54,32 @@
 	[self.pitchLabel setText:[NSString stringWithFormat:@"%.2f", [sender value]]];
 }
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-	self.csound = [[CsoundObj alloc] init];
-	NSString *csdPath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"csd"];
-	[self.pitchKnob setMinimumValue:0.5f];
-	[self.pitchKnob setMaximumValue:2.0f];
-	[self.pitchKnob setValue:1.0f];
-	[self.csound addBinding:self.pitchKnob];
-	[self.csound play:csdPath];
+
+- (IBAction)stop:(UIButton *)sender {
+    [self.csound sendScore:@"i3 0 1 2"];
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 140)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"Soundfile PitchShifter uses the URL of a bundled AIFF file and playing it with Csound. Also demonstrated is a custom UI control knob widget, used to change playback pitch.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
 }
 
 - (void)viewDidUnload

@@ -50,6 +50,7 @@
         self.splitViewController = [[UISplitViewController alloc] init];
         self.splitViewController.delegate = detailViewController;
         self.splitViewController.viewControllers = [NSArray arrayWithObjects:masterNavigationController, detailNavigationController, nil];
+        detailViewController.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
         
         self.window.rootViewController = self.splitViewController;
     }

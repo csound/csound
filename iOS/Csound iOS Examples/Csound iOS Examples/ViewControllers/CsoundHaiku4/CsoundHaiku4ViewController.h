@@ -3,6 +3,7 @@
  CsoundHaiku4ViewController.h:
  
  Copyright (C) 2011 Steven Yi
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -25,6 +26,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BaseCsoundViewController.h"
+#import <SafariServices/SafariServices.h>
 
 @interface CsoundHaiku4ViewController : BaseCsoundViewController
 

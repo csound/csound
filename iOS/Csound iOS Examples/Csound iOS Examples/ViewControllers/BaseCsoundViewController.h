@@ -3,6 +3,7 @@
  BaseCsoundViewController.h:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -28,11 +29,11 @@
 #import "CsoundUI.h"
 #import "CsoundMotion.h"
 
-@interface BaseCsoundViewController : UIViewController <UISplitViewControllerDelegate>
+@interface BaseCsoundViewController : UIViewController <UISplitViewControllerDelegate, UIPopoverPresentationControllerDelegate>
 
 @property (nonatomic, strong) CsoundObj *csound;
 @property (strong, nonatomic) id detailItem;
 @property (strong, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
-@property (strong, nonatomic) UIPopoverController *masterPopoverController;
+@property (strong, nonatomic) UIViewController *masterPopoverController;
 
 @end

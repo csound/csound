@@ -159,4 +159,21 @@ typedef struct {
     int     watch1, watch2;
 } CTLIN;
 
+typedef struct {
+  OPDS    h;
+  MYFLT   *noteOut, *counter;
+  MYFLT   *arpRate, *arpMode;
+
+  int metroTick;
+  double  curphs;
+  int flag;
+  int status, chan, data1, data2,
+    noteCnt, noteIndex, maxNumNotes,
+    direction;
+  int notes[10];
+  int sortedNotes[10];
+  int     local_buf_index;
+} MIDIARP;
+
+
 #endif

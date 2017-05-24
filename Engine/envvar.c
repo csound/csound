@@ -729,8 +729,8 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     /* do we need to worry about ~/ on *nix systems ? */
     /* we have a relative path or just a filename */
     len = 32;
- again:
     cwd = csound->Malloc(csound, len);
+ again:
     if (UNLIKELY(getcwd(cwd, len)==NULL)) {
       // Should check ERANGE==errno
       //csoundDie(csound, Str("Current directory path name too long\n"));
@@ -1018,12 +1018,12 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     if (env == NULL) {
 #if defined(WIN32)
       /* To handle Widows errors in file name characters. */
-      size_t sz = MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, 0);
+      size_t sz = 2 * MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, 0);
       wchar_t *wfname = alloca(sz);
       wchar_t *wmode = 0;
 
       MultiByteToWideChar(CP_UTF8, 0, name, -1, wfname, sz);
-      sz = MultiByteToWideChar(CP_UTF8, 0, param, -1, NULL, 0);
+      sz = 2 * MultiByteToWideChar(CP_UTF8, 0, param, -1, NULL, 0);
       wmode = alloca(sz);
       MultiByteToWideChar(CP_UTF8, 0, param, -1, wmode, sz);
       if (type == CSFILE_STD) {
@@ -1260,7 +1260,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
 {
     CSFILE  *p = (CSFILE*) fd;
     int     retval = -1;
-   if(p->async_flag == ASYNC_GLOBAL) {
+    if (p->async_flag == ASYNC_GLOBAL) {
      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
      /* close file */
     switch (p->type) {
@@ -1331,7 +1331,7 @@ void close_all_files(CSOUND *csound)
       csoundFileClose(csound, csound->open_files);
     if (csound->file_io_start) {
 #ifndef __EMSCRIPTEN__
-        pthread_join(csound->file_io_thread, NULL);
+        csound->JoinThread(csound->file_io_thread);
 #endif
         if (csound->file_io_threadlock != NULL)
          csound->DestroyThreadLock(csound->file_io_threadlock);
@@ -1386,7 +1386,8 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
       csound->file_io_start = 1;
       csound->file_io_threadlock = csound->CreateThreadLock();
       csound->NotifyThreadLock(csound->file_io_threadlock);
-      pthread_create(&csound->file_io_thread,NULL, file_iothread, (void *) csound);
+      csound->file_io_thread =
+        csound->CreateThread((uintptr_t (*)(void *))file_iothread, (void *) csound);
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     p->async_flag = ASYNC_GLOBAL;

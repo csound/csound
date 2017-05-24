@@ -24,7 +24,7 @@
 #include "csdl.h"
 #include <math.h>
 
-static const int MAX_PFACTOR = 16;
+#define MAX_PFACTOR 16
 static const int MAX_PRIMES = 168; /* 168 primes < 1000 */
 static const int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37,
                              41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83,
@@ -121,7 +121,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
     pp2 = &(ff->e.p[6]);
     mode = (int) *pp2;
     farey_length = FareyLength(fareyseq);
-    flist = (RATIO*) calloc(farey_length, sizeof(RATIO));
+    flist = (RATIO*) csound->Calloc(csound, farey_length*sizeof(RATIO));
 
     GenerateFarey (fareyseq, flist, farey_length);
 
@@ -168,7 +168,7 @@ static int fareytable (FGDATA *ff, FUNC *ftp)
       }
       break;
     }
-    free(flist);
+    csound->Free(csound,flist);
     return OK;
 }
 

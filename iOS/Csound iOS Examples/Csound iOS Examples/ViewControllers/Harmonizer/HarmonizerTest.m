@@ -3,6 +3,7 @@
  HarmonizerTest.m:
  
  Copyright (C) 2011 Steven Yi
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -29,7 +30,7 @@
 @implementation HarmonizerTest
 
 -(void)viewDidLoad {
-    self.title = @"Harmonizer";
+    self.title = @"12. Mic: Harmonizer";
     [super viewDidLoad];
 }
 
@@ -58,6 +59,30 @@
 	} else {
         [self.csound stop];
     }
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 120)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"This examples uses Csound's streaming phase vocoder to create a harmonizer effect. A dry/wet balance control is provided.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 

@@ -367,7 +367,7 @@ static int phaser1set(CSOUND *csound, PHASER1 *p)
       void    *tmp1, *tmp2;
       size_t  oldSize1 = (size_t) p->auxx.size;
       size_t  oldSize2 = (size_t) p->auxy.size;
-      tmp1 = malloc(oldSize1 + oldSize2);
+      tmp1 = csound->Malloc(csound, oldSize1 + oldSize2);
       tmp2 = (char*) tmp1 + (int) oldSize1;
       memcpy(tmp1, p->auxx.auxp, oldSize1);
       memcpy(tmp2, p->auxy.auxp, oldSize2);
@@ -375,7 +375,7 @@ static int phaser1set(CSOUND *csound, PHASER1 *p)
       csound->AuxAlloc(csound, nBytes, &p->auxy);
       memcpy(p->auxx.auxp, tmp1, oldSize1);
       memcpy(p->auxy.auxp, tmp2, oldSize2);
-      free(tmp1);
+      csound->Free(csound, tmp1);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
       p->ynm1 = (MYFLT *) p->auxy.auxp;
     }

@@ -54,6 +54,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       sort(csound);
       twarp(csound);
       swritestr(csound, sco, first);
+      //printf("sorted: >>>%s<<<\n", sco->body);
       m++;
     }
     if (first) {
@@ -65,7 +66,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     sfree(csound);
     if (first) return sco->body;
     else {
-      char *str = strdup(sco->body);
+      char *str = cs_strdup(csound,sco->body);
       corfile_rm(&(sco));
       return str;
     }

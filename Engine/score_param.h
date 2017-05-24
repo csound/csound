@@ -59,7 +59,7 @@ typedef struct prs_parm_s {
     uint32_t        llocn;
     uint16_t        depth;
     uint16_t        lstack[1024];
-         /* Variable for repeat loops */
+         /* Variable for nested repeat loops */
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
     char    repeat_name_n[RPTDEPTH][NAMELEN];
@@ -69,6 +69,13 @@ typedef struct prs_parm_s {
     int     repeat_inc_n /* = 1 */;
     MACRO   *repeat_mm_n[RPTDEPTH];
     int     repeat_index;
+         /* Variables for section repeat */
+    int     in_repeat_sect;
+    int     repeat_sect_cnt;
+    int     repeat_sect_index;
+    int     repeat_sect_line;
+    CORFIL  *repeat_sect_cf;
+    MACRO   *repeat_sect_mm;
 } PRS_PARM;
 
 typedef struct scotoken_s {

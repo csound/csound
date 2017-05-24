@@ -286,7 +286,7 @@ public:
 
     const char *GetDescription(); // computes a text description of this event
     // the result is in a static buffer, not thread-safe, just for debugging.
-    Alg_event() { selected = false; }
+    Alg_event() { selected = false; type = time = key = chan = 0; }
     virtual ~Alg_event() {}
 } *Alg_event_ptr;
 
@@ -299,7 +299,9 @@ public:
     float loud;  // dynamic corresponding to MIDI velocity
     double dur;   // duration in seconds (normally to release point)
     Alg_parameters_ptr parameters; // attribute/value pair list
-    Alg_note() { type = 'n'; parameters = NULL; }
+    Alg_note() { type = 'n'; parameters = NULL;
+        pitch = loud = dur = 0;
+    }
     void show();
 } *Alg_note_ptr;
 
@@ -437,7 +439,7 @@ typedef class Alg_beat {
 public:
     Alg_beat(double t, double b) {
         time = t; beat = b; }
-    Alg_beat() {};
+    Alg_beat() { time = beat = 0; };
     double time;
     double beat;
 } *Alg_beat_ptr;
@@ -959,6 +961,8 @@ public:
         note_off_flag = note_off;
         maxlen = len = 0;
         pending_events = NULL;
+        offset = index = 0;
+        cookie = events_ptr = 0;
     }
     // Normally, iteration is over the events in the one sequence used
     // to instatiate the iterator (see above), but with this method, you
@@ -1019,6 +1023,8 @@ public:
     }
     Alg_seq() {
         basic_initialization();
+        pending = 0;
+        beat_x = 0;
     }
     // copy constructor -- if track is an Alg_seq, make a copy; if
     //    track is just an Alg_track, the track becomes track 0

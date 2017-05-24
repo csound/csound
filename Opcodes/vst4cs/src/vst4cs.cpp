@@ -51,7 +51,7 @@ std::vector<VSTPlugin*> &vstPlugins()
 
 
 extern "C" {
-  std::string version = "0.2beta";
+  std::string version = "0.2";
 #ifdef WIN32
   static void path_convert(char *in);
 #endif
@@ -555,7 +555,7 @@ extern "C" {
 
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
-    return 0;
+     return 0;
   }
 
   PUBLIC int csoundModuleInit(CSOUND *csound)

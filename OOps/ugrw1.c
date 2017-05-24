@@ -1066,8 +1066,8 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
       if (*fmt == '%') {
         if (*(fmt+1) == '%') {
           *outstring++ = *fmt++;
-          *outstring++ = *fmt++;
-          len-=2;
+          /* *outstring++ = */ fmt++;
+          len-=1;
         }
         else if (*(fmt+1) && isspace(*(fmt+1))) {
           *outstring++ = *fmt++;
@@ -1350,6 +1350,7 @@ int outz(CSOUND *csound, IOZ *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int     nchns = csound->nchnls;
+    MYFLT *spout = csound->spraw;
 
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
@@ -1358,24 +1359,24 @@ int outz(CSOUND *csound, IOZ *p)
     else {
       MYFLT *readloc;
       /* Now read from the array in za space and write to the output. */
-      readloc = csound->zastart + (indx * CS_KSMPS);
+      readloc = csound->zastart + (indx * nsmps);
       early = nsmps-early;
       if (!csound->spoutactive) {
-        for (i = 0; i < nchns; i++)
-          for (n = 0; n < nsmps; n++) {
-            CS_SPOUT[i * nsmps + n] = ((n>=offset && n<early) ?
-                                            *readloc : FL(0.0));
-            readloc++;
-          }
+        memset(spout, '\0', nchns*nsmps*sizeof(MYFLT));
+        for (i = 0; i < nchns; i++) {
+          memcpy(&spout[i * nsmps+offset], readloc+offset,
+                 (early-offset)*sizeof(MYFLT));
+          readloc += nsmps;
+        }
         csound->spoutactive = 1;
       }
       else {
-        for (i = 0; i < nchns; i++)
-          for (n = 0; n < nsmps; n++) {
-            CS_SPOUT[i * n + nsmps] += ((n>=offset && n<early) ?
-                                             *readloc : FL(0.0));
-            readloc++;
+        for (i = 0; i < nchns; i++) {
+          for (n = offset; n < nsmps-early; n++) {
+            spout[n + i*nsmps] += readloc[n];
           }
+          readloc += nsmps;
+        }
       }
     }
     return OK;

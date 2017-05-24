@@ -3,6 +3,7 @@
  ConsoleOutputViewController.h:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -25,12 +26,14 @@
 
 #import "BaseCsoundViewController.h"
 
-@interface ConsoleOutputViewController : BaseCsoundViewController
+@interface ConsoleOutputViewController : BaseCsoundViewController<UITableViewDelegate, UITableViewDataSource, CsoundObjListener>
 {
 	IBOutlet UITextView *mTextView;
 }
 
-@property (nonatomic, strong) NSString *currentMessage;
+@property (nonatomic) NSString *currentMessage;
+@property (nonatomic) UITableView *csdTable;
+@property (strong, nonatomic) IBOutlet UIButton *renderButton;
 
 - (IBAction)run:(UIButton *)sender;
 

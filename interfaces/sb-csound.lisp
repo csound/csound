@@ -131,33 +131,36 @@ performance, e.g.
 (setq my-thread (bt:make-thread (lambda () (render-with-csound cs csd 1 127 csound))))
 (sb-csound:csoundSetControlChannel csound 'mychannel' myvalue)
 (bt:join-thread my-thread)
+
 "
 
     (let
         ((score-list (list))
         (cs)
         (sco-text)
+        (result)
         (new-csd-text))
         (progn
             (format t "Building Csound score...~%")
             (defun curried-event-to-istatement (event)
                 (event-to-istatement event channel-offset velocity-scale))
-            (setf score-list (mapcar 'curried-event-to-istatement (subobjects sequence)))
-            (setf sco-text (format nil "~{~A~^ ~}" score-list))
+            (setq score-list (mapcar 'curried-event-to-istatement (subobjects sequence)))
+            (setq sco-text (format nil "~{~A~^ ~}" score-list))
             (if csound
-                (setf cs csound)
+                (setq cs csound)
                 (progn
-                    (setf cs (sb-csound:csoundCreate 0))
+                    (setq cs (sb-csound:csoundCreate 0))
                     (format t "csoundCreate returned: ~S.~%" cs)
                 )
             )
-            (setf new-csd-text (replace-all csd-text "</CsScore>" (concatenate 'string sco-text "</CsScore>")))
-            (setf result (sb-csound:csoundCompileCsdText cs new-csd-text))
+            (setq new-csd-text (replace-all csd-text "</CsScore>" (concatenate 'string sco-text "</CsScore>")))
+            (format t "new-csd-text: ~A~%" new-csd-text)
+            (setq result (sb-csound:csoundCompileCsdText cs new-csd-text))
             (format t "csoundCompileCsdText returned: ~D.~%" result)
-            (setf result (sb-csound:csoundStart cs))
+            (setq result (sb-csound:csoundStart cs))
             (format t "csoundStart returned: ~D.~%" result)
             (loop
-                (setf result (sb-csound:csoundPerformKsmps cs))
+                (setq result (sb-csound:csoundPerformKsmps cs))
                 (when (not (equal result 0))(return))
             )
             (setf result(sb-csound:csoundCleanup cs))

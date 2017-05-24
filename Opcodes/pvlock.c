@@ -1,24 +1,24 @@
 /*
-    pvlock.c:
+  pvlock.c:
 
-    Copyright (C) 2009 V Lazzarini
+  Copyright (C) 2009 V Lazzarini
 
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 
 #include "csoundCore.h"
@@ -30,7 +30,7 @@
 typedef struct dats{
   OPDS h;
   MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN,
-        *idecim, *konset, *offset, *dbthresh;
+    *idecim, *konset, *offset, *dbthresh;
   int cnt, hsize, curframe, N, decim,tscale;
   unsigned int nchans;
   double pos;
@@ -48,10 +48,19 @@ typedef struct dats{
 } DATASPACE;
 
 
+static inline int32 intpowint(int32 x, uint32 n) /* Binary +ve power function */
+{
+    int32 ans = 1;
+    while (n!=0) {
+      if (n&1) ans = ans * x;
+      n >>= 1;
+      x = x*x;
+    }
+    return ans;
+}
 
 static int sinit(CSOUND *csound, DATASPACE *p)
 {
-
     int N =  *p->iN, ui;
     unsigned int nchans, i;
     unsigned int size;
@@ -61,7 +70,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = (int) pow(2.0, i-1);
+      N = intpowint(2, i-1);  /* faster than pow fn */
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -72,33 +81,33 @@ static int sinit(CSOUND *csound, DATASPACE *p)
 
     nchans = p->nchans;
 
-  if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
+    if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
       csound->InitError(csound, Str("invalid number of output arguments"));
     p->nchans = nchans;
 
     for (i=0; i < nchans; i++){
 
-    size = (N+2)*sizeof(MYFLT);
-    if (p->fwin[i].auxp == NULL || p->fwin[i].size < size)
-      csound->AuxAlloc(csound, size, &p->fwin[i]);
-    if (p->bwin[i].auxp == NULL || p->bwin[i].size < size)
-      csound->AuxAlloc(csound, size, &p->bwin[i]);
-    if (p->prev[i].auxp == NULL || p->prev[i].size < size)
-      csound->AuxAlloc(csound, size, &p->prev[i]);
-    size = decim*sizeof(int);
-    if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
-      csound->AuxAlloc(csound, size, &p->framecount[i]);
-    {
-      int k=0;
-      for (k=0; k < decim; k++) {
-        ((int *)(p->framecount[i].auxp))[k] = k*N;
+      size = (N+2)*sizeof(MYFLT);
+      if (p->fwin[i].auxp == NULL || p->fwin[i].size < size)
+        csound->AuxAlloc(csound, size, &p->fwin[i]);
+      if (p->bwin[i].auxp == NULL || p->bwin[i].size < size)
+        csound->AuxAlloc(csound, size, &p->bwin[i]);
+      if (p->prev[i].auxp == NULL || p->prev[i].size < size)
+        csound->AuxAlloc(csound, size, &p->prev[i]);
+      size = decim*sizeof(int);
+      if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
+        csound->AuxAlloc(csound, size, &p->framecount[i]);
+      {
+        int k=0;
+        for (k=0; k < decim; k++) {
+          ((int *)(p->framecount[i].auxp))[k] = k*N;
+        }
       }
-    }
-    size = decim*sizeof(MYFLT)*N;
-    if (p->outframe[i].auxp == NULL || p->outframe[i].size < size)
-      csound->AuxAlloc(csound, size, &p->outframe[i]);
-    else
-      memset(p->outframe[i].auxp,0,size);
+      size = decim*sizeof(MYFLT)*N;
+      if (p->outframe[i].auxp == NULL || p->outframe[i].size < size)
+        csound->AuxAlloc(csound, size, &p->outframe[i]);
+      else
+        memset(p->outframe[i].auxp,0,size);
     }
     size = N*sizeof(MYFLT);
     if (p->win.auxp == NULL || p->win.size < size)
@@ -148,8 +157,8 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
     if (UNLIKELY(early)) {
       nsmps -= early;
       for (j=0; j < nchans; j++) {
-      out = p->out[j];
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+        out = p->out[j];
+        memset(&out[nsmps], '\0', early*sizeof(MYFLT));
       }
     }
     if (UNLIKELY(offset)) {
@@ -321,7 +330,6 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
     p->cnt = cnt;
     p->curframe = curframe;
     return OK;
-
 }
 
 static int sinit2(CSOUND *csound, DATASPACE *p)
@@ -331,8 +339,8 @@ static int sinit2(CSOUND *csound, DATASPACE *p)
     sinit(csound, p);
     size = p->N*sizeof(MYFLT);
     for (i=0; i < p->nchans; i++)
-    if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
-      csound->AuxAlloc(csound, size, &p->nwin[i]);
+      if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
+        csound->AuxAlloc(csound, size, &p->nwin[i]);
     p->pos = *p->offset*CS_ESR + p->hsize;
     p->tscale  = 0;
     p->accum = 0;
@@ -363,15 +371,15 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
     if (UNLIKELY(early)) {
       nsmps -= early;
       for (j=0; j < nchans; j++) {
-      out = p->out[j];
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+        out = p->out[j];
+        memset(&out[nsmps], '\0', early*sizeof(MYFLT));
       }
     }
     if (UNLIKELY(offset)) {
-     for (j=0; j < nchans; j++) {
-       out = p->out[j];
-       memset(out, '\0', offset*sizeof(MYFLT));
-     }
+      for (j=0; j < nchans; j++) {
+        out = p->out[j];
+        memset(out, '\0', offset*sizeof(MYFLT));
+      }
     }
 
     for (n=offset; n < nsmps; n++) {
@@ -564,7 +572,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
     void *fd;
     name = ((STRINGDAT *)p->knum)->data;
     fd  = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                         "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if(sfinfo.samplerate != CS_ESR)
       p->resamp = sfinfo.samplerate/CS_ESR;
     else
@@ -573,20 +581,21 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
 
     if(p->OUTOCOUNT != p->nchans)
       return csound->InitError(csound,
-              Str("filescal: mismatched channel numbers. %d outputs, %d inputs\n"),
-              p->OUTOCOUNT, p->nchans);
+                               Str("filescal: mismatched channel numbers. "
+                                   "%d outputs, %d inputs\n"),
+                               p->OUTOCOUNT, p->nchans);
 
     sinit(csound, p);
     size = p->N*sizeof(MYFLT);
     for (i=0; i < p->nchans; i++)
-    if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
-      csound->AuxAlloc(csound, size, &p->nwin[i]);
+      if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
+        csound->AuxAlloc(csound, size, &p->nwin[i]);
 
     size = p->N*sizeof(MYFLT)*BUFS;
     if (p->fdata.auxp == NULL || p->fdata.size < size)
       csound->AuxAlloc(csound, size, &p->fdata);
     p->indata[0] = p->fdata.auxp;
-    p->indata[1] = p->fdata.auxp + size/2;
+    p->indata[1] = (MYFLT *) (((char*)p->fdata.auxp) + size/2);
 
     memset(&(p->fdch), 0, sizeof(FDCH));
     p->fdch.fd = fd;
@@ -604,9 +613,9 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
 }
 
 /*
- this will read a buffer full of samples
- from disk position offset samps from the last
- call to fillbuf
+  this will read a buffer full of samples
+  from disk position offset samps from the last
+  call to fillbuf
 */
 
 void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
@@ -876,14 +885,14 @@ static int pvslockset(CSOUND *csound, PVSLOCK *p)
     p->fout->format = p->fin->format;
     p->fout->framecount = 1;
     p->lastframe = 0;
-   if (p->fout->frame.auxp == NULL ||
-       p->fout->frame.size < sizeof(float) * (N + 2))
-     csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-   if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ))
-     return csound->InitError(csound, Str("pvsfreeze: signal format "
-                                          "must be amp-freq."));
+    if (p->fout->frame.auxp == NULL ||
+        p->fout->frame.size < sizeof(float) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ))
+      return csound->InitError(csound, Str("pvsfreeze: signal format "
+                                           "must be amp-freq."));
 
-   return OK;
+    return OK;
 }
 
 
@@ -922,15 +931,198 @@ static int pvslockproc(CSOUND *csound, PVSLOCK *p)
     return OK;
 }
 
+typedef struct hilb {
+  OPDS h;
+  MYFLT *out[2], *in, *ifftsize, *ihopsize;
+  AUXCH fftdata, inframe, outframe;
+  AUXCH win, iframecnt, oframecnt;
+  int off, cnt, decim;
+  int N, hop;
+} HILB;
+
+static int hilbert_init(CSOUND *csound, HILB *p){
+    int N = (int) *p->ifftsize;
+    int h = (int) *p->ihopsize;
+    unsigned int size;
+    int *p1, *p2, i, decim;
+
+    if(h > N) h = N;
+
+    for (i=0; N; i++) {
+      N >>= 1;
+    }
+    N = intpowint(2, i-1);
+
+    for (i=0; h; i++) {
+      h >>= 1;
+    }
+    h = intpowint(2, i-1);
+    decim = N/h;
+
+    size = (N*decim)*sizeof(MYFLT);
+    if (p->inframe.auxp == NULL || p->inframe.size < size)
+      csound->AuxAlloc(csound, size, &p->inframe);
+    memset(p->inframe.auxp, 0, size);
+    size *= 2;
+    if (p->outframe.auxp == NULL || p->outframe.size < size)
+      csound->AuxAlloc(csound, size, &p->outframe);
+    memset(p->outframe.auxp, 0, size);
+    size /= decim;
+    if (p->fftdata.auxp == NULL || p->fftdata.size < size)
+      csound->AuxAlloc(csound, size, &p->fftdata);
+    memset(p->fftdata.auxp, 0, size);
+    size = (N/h)*sizeof(int);
+    if (p->iframecnt.auxp == NULL || p->iframecnt.size < size)
+      csound->AuxAlloc(csound, size, &p->iframecnt);
+    if (p->oframecnt.auxp == NULL || p->oframecnt.size < size)
+      csound->AuxAlloc(csound, size, &p->oframecnt);
+    p1 = (int *) p->iframecnt.auxp;
+    p2 = (int *) p->oframecnt.auxp;
+    for(i = 0; i < N/h; i++){
+      p1[i] = (decim - 1 - i)*h;
+      p2[i] = 2*(decim - 1 - i)*h;
+    }
+
+    size = N*sizeof(MYFLT);
+    if (p->win.auxp == NULL || p->win.size < size) {
+      MYFLT x = FL(2.0)*PI_F/N;
+      csound->AuxAlloc(csound, size, &p->win);
+      for (i=0; i < N; i++)
+        ((MYFLT *)p->win.auxp)[i] = FL(0.5) - FL(0.5)*COS((MYFLT)i*x);
+    }
+
+    p->cnt = 0;
+    p->off = 0;
+    p->N = N;
+    p->hop = h;
+    return OK;
+}
+
+static int hilbert_proc(CSOUND *csound, HILB *p){
+
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int n, nsmps = CS_KSMPS, off = p->off, decim = p->N/p->hop;
+    int hopsize = p->hop, fftsize = p->N;
+    int i,k,j, cnt = p->cnt;
+    int *iframecnt = (int *) p->iframecnt.auxp;
+    int *oframecnt = (int *) p->oframecnt.auxp;
+    MYFLT *fftdata = (MYFLT *) p->fftdata.auxp;
+    MYFLT *inframe = (MYFLT *) p->inframe.auxp;
+    MYFLT *outframe = (MYFLT *) p->outframe.auxp;
+    MYFLT *win = (MYFLT *) p->win.auxp;
+    MYFLT **out = p->out;
+    MYFLT *in = p->in;
+    MYFLT scal = decim < 4 ? 1 : 16./(3*decim);
+
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      for (j=0; j < 2; j++) {
+        memset(&out[j][nsmps], '\0', early*sizeof(MYFLT));
+      }
+    }
+    if (UNLIKELY(offset)) {
+      for (j=0; j < 2; j++) {
+        memset(out[j], '\0', offset*sizeof(MYFLT));
+      }
+    }
+
+    for (n=offset; n < nsmps; n++, cnt++) {
+      if(cnt == hopsize) {
+        cnt = 0;
+        for(i = j = 0; i < fftsize; i++, j+=2) {
+          fftdata[j] = inframe[i+off]*win[i];
+          fftdata[j+1] = FL(0.0);
+        }
+        csound->ComplexFFT(csound, fftdata, fftsize);
+        fftdata[0] *= 0.5;
+        fftdata[1] *= 0.5;
+        memset(fftdata+fftsize, 0, fftsize*sizeof(MYFLT));
+        csound->InverseComplexFFT(csound, fftdata, fftsize);
+        for(i = j = 0; i < fftsize; i++, j+=2) {
+          outframe[j+2*off] = fftdata[j]*win[i]*scal;
+          outframe[j+1+2*off] = fftdata[j+1]*win[i]*scal;
+        }
+        off += fftsize;
+        p->off = off = off%(fftsize*decim);
+      }
+      out[0][n] = out[1][n] = FL(0.0);
+      for (i = 0; i < decim; i++) {
+        inframe[iframecnt[i]+i*fftsize] = in[n];
+        iframecnt[i] = iframecnt[i] == fftsize-1 ? 0 : iframecnt[i]+1;
+        k = 2*i*fftsize;
+        out[0][n] += outframe[oframecnt[i]+k];
+        out[1][n] += outframe[oframecnt[i]+k+1];
+        oframecnt[i] = oframecnt[i] == 2*fftsize-2 ? 0 : oframecnt[i]+2;
+      }
+    }
+    p->cnt = cnt;
+    return OK;
+}
+
+typedef struct amfm {
+  OPDS h;
+  MYFLT *am, *fm;
+  MYFLT *re, *im;
+  double ph;
+  double scal;
+} AMFM;
+
+
+int am_fm_init(CSOUND *csound, AMFM *p) {
+    p->ph = FL(0.0);
+    p->scal = csound->GetSr(csound)/(2*PI);
+    return OK;
+}
+
+int am_fm(CSOUND *csound, AMFM *p){
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int n, nsmps = CS_KSMPS;
+    double oph = p->ph, f, ph;
+    MYFLT *fm = p->fm;
+    MYFLT *am = p->am;
+    MYFLT *re = p->re;
+    MYFLT *im = p->im;
+    MYFLT scal = p->scal;
+
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&am[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&fm[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    if (UNLIKELY(offset)) {
+      memset(&am[nsmps], '\0', offset*sizeof(MYFLT));
+      memset(&fm[nsmps], '\0', offset*sizeof(MYFLT));
+    }
+
+    for (n=offset; n < nsmps; n++) {
+      am[n] = SQRT(re[n]*re[n] + im[n]*im[n]);
+      ph = atan2(im[n], re[n]);
+      f = ph - oph;
+      oph = ph;
+      if(f >= PI) f -= 2*PI;
+      else if(f < -PI) f += 2*PI;
+      fm[n] = f*scal;
+    }
+    p->ph = oph;
+    return OK;
+}
+
+
 static OENTRY pvlock_localops[] = {
   {"mincer", sizeof(DATASPACE), 0, 5, "mm", "akkkkoo",
-                                               (SUBR)sinit1, NULL,(SUBR)sprocess1 },
+   (SUBR)sinit1, NULL,(SUBR)sprocess1 },
   {"temposcal", sizeof(DATASPACE), 0, 5, "mm", "kkkkkooPOP",
-                                               (SUBR)sinit2, NULL,(SUBR)sprocess2 },
+   (SUBR)sinit2, NULL,(SUBR)sprocess2 },
   {"filescal", sizeof(DATASPACE), 0, 5, "mm", "kkkSkooPOP",
-                                               (SUBR)sinit3, NULL,(SUBR)sprocess3 },
+   (SUBR)sinit3, NULL,(SUBR)sprocess3 },
+  {"hilbert2", sizeof(HILB), 0, 5, "aa", "aii", (SUBR) hilbert_init, NULL,
+   (SUBR) hilbert_proc},
+  {"fmanal", sizeof(AMFM), 0, 5, "aa", "aa", (SUBR) am_fm_init, NULL,
+   (SUBR) am_fm},
   {"pvslock", sizeof(PVSLOCK), 0, 3, "f", "fk", (SUBR) pvslockset,
-         (SUBR) pvslockproc},
+   (SUBR) pvslockproc},
 };
 
 LINKAGE_BUILTIN(pvlock_localops)

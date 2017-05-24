@@ -104,7 +104,7 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
       if (MYFLT2LRND(*p->isizes[i]) <= 0) {
         return
           csound->InitError(csound,
-                          Str("Error: sizes must be > 0 for array initialization"));
+                      Str("Error: sizes must be > 0 for array initialization"));
       }
     }
 
@@ -1340,26 +1340,23 @@ static int outa_set(CSOUND *csound, OUTA *p)
 
 static int outa(CSOUND *csound, OUTA *p)
 {
-    unsigned int n, m=0, nsmps = CS_KSMPS;
+    unsigned int n, nsmps = CS_KSMPS, nchns = csound->GetNchnls(csound);
     unsigned int l, pl = p->len;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;
-    MYFLT       *sp= CS_SPOUT;
+    MYFLT       *sp= csound->spraw;
     if (!csound->spoutactive) {
-      for (n=0; n<nsmps; n++) {
-        for (l=0; l<pl; l++) {
-          sp[m++] = (n>=offset && n<early ? data[l+n*nsmps] :FL(0.0)) ;
-        }
+      memset(sp, '\0', nsmps*nchns*sizeof(MYFLT));
+      for (l=0; l<pl; l++) {
+        memcpy(&sp[offset], &data[l*nsmps+offset], (early-offset)*sizeof(MYFLT));
       }
       csound->spoutactive = 1;
     }
     else {
-      for (n=0; n<nsmps; n++) {
-        for (l=0; l<p->len; l++) {
-          if (n>=offset && n<early)
-            sp[m] += data[l+n*nsmps];
-          m++;
+      for (l=0; l<p->len; l++) {
+        for (n=offset; n<early; n++) {
+          sp[n+l*nsmps] += data[n+l*nsmps];
         }
       }
     }
@@ -1412,7 +1409,7 @@ static int monitora_perf(CSOUND *csound, OUTA *p)
     ARRAYDAT *aa = p->tabin;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t i, j, k, l, nsmps = CS_KSMPS;
+    uint32_t i, j, l, nsmps = CS_KSMPS;
     MYFLT       *data = aa->data;
     MYFLT       *sp= CS_SPOUT;
     uint32_t len = (uint32_t)p->len;
@@ -1472,7 +1469,7 @@ typedef struct _fft {
 
 
 static unsigned int isPowerOfTwo (unsigned int x) {
-    return ((x != 0) && !(x & (x - 1)));
+  return x != 0  ? !(x & (x - 1)) : 0;
 }
 
 
@@ -1710,7 +1707,7 @@ int init_logarray(CSOUND *csound, FFT *p){
     if(*((MYFLT *)p->in2))
       p->b = 1/log(*((MYFLT *)p->in2));
     else
-      p->b = FL(0.0);
+      p->b = FL(1.0);
     return OK;
 }
 
@@ -1955,16 +1952,17 @@ int cols_init(CSOUND *csound, FFT *p){
 
 int cols_perf(CSOUND *csound, FFT *p){
     int start = *((MYFLT *)p->in2);
+
     if(start < p->in->sizes[1]) {
-      int j,i,len =  p->in->sizes[0];
-      for(j=0,i=start; j < len; i+=len, j++)
-        p->out->data[j] = p->in->data[i];
-      return OK;
+        int j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
+        for(j=0,i=start; j < len; i+=collen, j++) {
+            p->out->data[j] = p->in->data[i];
+        }
+        return OK;
     }
     else return csound->PerfError(csound,  p->h.insdshead,
                                   Str("requested col is out of range\n"));
 }
-
 static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p, int rows, int columns)
 {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -1994,6 +1992,8 @@ int set_rows_init(CSOUND *csound, FFT *p){
 
 int set_rows_perf(CSOUND *csound, FFT *p){
     int start = *((MYFLT *)p->in2);
+    if (start < 0 || start >= p->out->sizes[0])    
+        return csound->PerfError(csound, p->h.insdshead, Str("Error: index out of range\n")); 
     int bytes =  p->in->sizes[0]*sizeof(MYFLT);
     start *= p->out->sizes[1];
     memcpy(p->out->data+start,p->in->data,bytes);
@@ -2008,10 +2008,16 @@ int set_cols_init(CSOUND *csound, FFT *p){
 }
 
 int set_cols_perf(CSOUND *csound, FFT *p){
+    
     int start = *((MYFLT *)p->in2);
+    
+    if (start < 0 || start >= p->out->sizes[1])         
+        return csound->PerfError(csound, p->h.insdshead, Str("Error: index out of range\n"));
+
+    
     int j,i,len =  p->out->sizes[0];
     for(j=0,i=start; j < len; i+=len, j++)
-      p->out->data[i] = p->in->data[j];
+        p->out->data[i] = p->in->data[j];
     return OK;
 }
 
@@ -2371,9 +2377,9 @@ static OENTRY arrayvars_localops[] =
     {"##add.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiaadd },
     {"##sub.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
-     (SUBR)tabarithset1, (SUBR)tabiasub },
+     (SUBR)tabarithset1, (SUBR)tabaisub },
     {"##sub.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
-     (SUBR)tabarithset2, (SUBR)tabaisub },
+     (SUBR)tabarithset2, (SUBR)tabiasub },
     {"##mul.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
      (SUBR)tabarithset1, (SUBR)tabaimult },
     {"##mul.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
@@ -2499,7 +2505,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_mags, (SUBR) perf_pows, NULL},
     {"phs", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_mags, (SUBR) perf_phs, NULL},
-    {"log", sizeof(FFT), 0, 3, "k[]","k[]o",
+    {"log", sizeof(FFT), 0, 3, "k[]","k[]i",
      (SUBR) init_logarray, (SUBR) perf_logarray, NULL},
     {"r2c", sizeof(FFT), 0, 1, "i[]","i[]",
      (SUBR) rtoc_i, NULL, NULL},

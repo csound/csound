@@ -40,7 +40,8 @@ int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
 {
     int     n;
 
-    EXTRACT_STATICS* extractStatics = calloc(1, sizeof(EXTRACT_STATICS));
+    EXTRACT_STATICS* extractStatics =  csound->Calloc(csound,
+                                                      sizeof(EXTRACT_STATICS));
 
     csound->scoreout = NULL;
     csound->scorestr = scin;
@@ -57,6 +58,6 @@ int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
     }
     corfile_flush(csound->scstr);
     sfree(csound);              /* return all memory used */
-    free(extractStatics);
+    csound->Free(csound, extractStatics);
     return 0;
 }

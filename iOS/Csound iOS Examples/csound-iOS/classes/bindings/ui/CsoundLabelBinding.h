@@ -23,10 +23,13 @@
  
  */
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
 @interface CsoundLabelBinding : NSObject<CsoundBinding>
 
 -(instancetype)initLabel:(UILabel *)label channelName:(NSString *)channelName;
+
+@property int precision;
 
 @end

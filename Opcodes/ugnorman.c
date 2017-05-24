@@ -1079,7 +1079,7 @@ static void FetchADDNZbands(int ptls, int firstband, double *datastart,
 
 }
 
-static double freqs[25]= {
+static const double freqs[25]= {
   100.0, 100.0, 100.0, 100.0, 110.0, 120.0, 140.0, 150.0, 160.0, 190.0,
   210.0, 240.0, 280.0, 320.0, 380.0, 450.0, 550.0, 700.0, 900.0, 1100.0,
   1300.0, 1800.0, 2500.0, 3500.0, 4500.0};
@@ -1501,9 +1501,10 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
     double  **partialband;
     int     *bandnum;
 
-    partialband = (double **) malloc(sizeof(double*)
+    partialband = (double **) csound->Malloc(csound, sizeof(double*)
                                      * (int) p->atshead->npartials);
-    bandnum = (int *) malloc(sizeof(int) * (int) p->atshead->npartials);
+    bandnum = (int *) csound->Malloc(csound,
+                                     sizeof(int) * (int) p->atshead->npartials);
 
     for (i = 0; i < (int) p->atshead->nfrms; i++) {
       /* init sums */
@@ -1534,8 +1535,8 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
       curframe += p->frmInc;
     }
 
-    free(partialband);
-    free(bandnum);
+    csound->Free(csound,partialband);
+    csound->Free(csound,bandnum);
 }
 
 static void fetchSINNOIpartials(ATSSINNOI *, MYFLT);
@@ -2898,7 +2899,6 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
       amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG (oscphase[i]);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
-      nsmps = CS_KSMPS;
       inca = (amp-oldamps[i])/nsmps;
       /* put in * kfmod */
       inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);

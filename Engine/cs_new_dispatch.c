@@ -38,7 +38,11 @@
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#include "csGblMtx.h"
+
+#if defined(_MSC_VER)
+/* For InterlockedCompareExchange */
+#include <windows.h>
+#endif
 
 /* Used as an error value */
 //typedef int taskID;
@@ -300,7 +304,11 @@ void dag_reinit(CSOUND *csound)
 //#define ATOMIC_WRITE(x,v) __sync_fetch_and_and(&(x), v)
 #define ATOMIC_READ(x) x
 #define ATOMIC_WRITE(x,v) x = v;
+#if defined(_MSC_VER)
+#define ATOMIC_CAS(x,current,new)  InterlockedCompareExchange(x, current, new)
+#else
 #define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
+#endif
 
 taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
 {
@@ -361,7 +369,7 @@ taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
 }
 
 /* This static is OK as not written */
-static watchList DoNotRead = { INVALID, NULL};
+static const watchList DoNotRead = { INVALID, NULL};
 
 inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
                             watchList *t)

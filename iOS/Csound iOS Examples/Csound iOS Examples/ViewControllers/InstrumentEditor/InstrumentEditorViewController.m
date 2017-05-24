@@ -3,6 +3,7 @@
  InstrumentEditorViewController.m:
  
  Copyright (C) 2014 Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -32,7 +33,7 @@
 @implementation InstrumentEditorViewController
 
 -(void)viewDidLoad {
-    self.title = @"Instrument Editor";
+    self.title = @"08. Instrument Tweaker";
     [super viewDidLoad];
     NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"instrumentEditor" ofType:@"csd"];
     NSLog(@"FILE PATH: %@", csdFile);
@@ -46,6 +47,30 @@
     [self.csound updateOrchestra:self.orchestraTextView.text];
     NSString *score = @"i1 0 1";
     [self.csound sendScore:score];
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 120)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"This example allows the user to modify the contents of the .csd on-the-fly using the updateOrchestra method from CsoundObj.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 @end

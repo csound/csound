@@ -75,7 +75,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
     if (UNLIKELY(csound == NULL))
       return -1;
 
-    saved_exitjmp = (void*) malloc(sizeof(jmp_buf));
+    saved_exitjmp = (void*) csound->Malloc(csound, sizeof(jmp_buf));
     if (UNLIKELY(saved_exitjmp == NULL))
       return -1;
     memcpy((void*) saved_exitjmp, (void*) &(csound->exitjmp), sizeof(jmp_buf));
@@ -124,7 +124,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
     n = -1;
  err_return:
     memcpy((void*) &(csound->exitjmp), (void*) saved_exitjmp, sizeof(jmp_buf));
-    free((void*) saved_exitjmp);
+    csound->Free(csound, (void*) saved_exitjmp);
     return n;
 }
 
@@ -151,7 +151,7 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
     while (p != NULL)
       p = p->nxt, utilCnt++;
     /* allocate list */
-    lst = (char**) malloc(sizeof(char*) * (utilCnt + 1));
+    lst = (char**) csound->Malloc(csound, sizeof(char*) * (utilCnt + 1));
     if (UNLIKELY(lst == NULL))
       return NULL;
     /* store pointers to utility names */
@@ -173,9 +173,8 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
 
 PUBLIC void csoundDeleteUtilityList(CSOUND *csound, char **lst)
 {
-    (void) csound;
     if (lst != NULL)
-      free(lst);
+      csound->Free(csound, lst);
 }
 
 /**

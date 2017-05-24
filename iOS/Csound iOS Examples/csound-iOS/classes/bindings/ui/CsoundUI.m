@@ -52,6 +52,12 @@
     CsoundLabelBinding *labelBinding;
     labelBinding = [[CsoundLabelBinding alloc] initLabel:uiLabel
                                              channelName:channelName];
+    if(!_labelPrecision) {
+        _labelPrecision = 8;
+    }
+    
+    labelBinding.precision = _labelPrecision;
+    
     [csoundObj addBinding:labelBinding];
 }
 

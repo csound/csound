@@ -1,12 +1,13 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtaudio=null -dm0
+-o dac
 </CsOptions>
 <CsInstruments>
-nchnls=2
-0dbfs=1
-ksmps=64
-sr = 44100
+
+sr        = 44100
+ksmps     = 64
+nchnls    = 2
+0dbfs	  = 1
 
 instr 1
 
@@ -14,19 +15,14 @@ isl chnget "slider"
 ksl chnget "slider" 
 ksl port ksl, 0.01, isl 
 a2 expsegr 0.001,0.01,p4,p3-0.01, 0.001, 0.1, 0.001
-a1 oscili a2, p5*(1+ksl), 1
+a1 oscili a2, ksl, 1
 outs a1,a1
 endin
 
 </CsInstruments>
 <CsScore>
-f1 0 16384 10 1
-{ 10 CNT
-i1 [$CNT*0.2] 0.5 0.5 [440*(2^[$CNT/12])]
-}
-/*i 2 0.1 10000 
+f 1 0 16384 10 1
 
-i 3 0.1 10000*/
-
+i 1 0 36000 0.5
 </CsScore>
 </CsoundSynthesizer>
