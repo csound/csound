@@ -314,7 +314,14 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (O->sampleAccurate && !tie) {
       int64_t start_time_samps, start_time_kcycles;
       double duration_samps;
-      while(ip->init_done != 1) usleep(1);
+      while (ip->init_done != 1) {
+        // FIXME maybe just pass everything through csoundSleep?
+#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
+        usleep (1);
+#else
+        csoundSleep (1);
+#endif
+      }
       start_time_samps = (int64_t) (ip->p2.value * csound->esr);
       duration_samps =  ip->p3.value * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
@@ -1629,7 +1636,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
             CS_PDS = CS_PDS->insdshead->pds;
             CS_PDS->insdshead->pds = NULL;
           }
-        }while ((CS_PDS = CS_PDS->nxtp));
+        } while ((CS_PDS = CS_PDS->nxtp));
       }
       ip->kcounter++;
     }
@@ -1673,18 +1680,21 @@ int subinstr(CSOUND *csound, SUBINST *p)
     }
     /* copy outputs */
     for (chan = 0; chan < p->OUTOCOUNT; chan++) {
-      for (pbuf = ip->spout + chan, frame = 0;
+      for (pbuf = ip->spout + chan*nsmps, frame = 0;
            frame < nsmps; frame++) {
-        p->ar[chan][frame] = *pbuf;
+        p->ar[chan][frame] = pbuf[frame];
         //printf("%f \n", p->ar[chan][frame]);
-        pbuf += csound->nchnls;
+        //pbuf += csound->nchnls;
       }
     }
 
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
-    if (!p->ip)                                   /* loop to last opds */
-      while (CS_PDS->nxtp)CS_PDS = CS_PDS->nxtp;
+    if (!p->ip) {                                  /* loop to last opds */
+      while (CS_PDS->nxtp) {
+        CS_PDS = CS_PDS->nxtp;
+      }
+    }
     return OK;
 }
 
@@ -1940,7 +1950,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
           /* clear the end portion of outputs for sample accurate end */
           if (early) {
-            memset(out + g_ksmps, '\0', sizeof(MYFLT) * early);
+            memset((char*)out + g_ksmps, '\0', sizeof(MYFLT) * early);
           }
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
@@ -2068,7 +2078,9 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     CS_PDS = saved_pds;
     /* check if instrument was deactivated (e.g. by perferror) */
     if (!p->ip)  {                   /* loop to last opds */
-      while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
+      while (CS_PDS->nxtp) {
+        CS_PDS = CS_PDS->nxtp;
+      }
     }
     return OK;
 }

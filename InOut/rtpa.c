@@ -282,8 +282,9 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
         goto err_return;
       pabs->inBufSamples = pabs->inParm.bufSamp_SW
                            * (int) pabs->inputPaParameters.channelCount;
-      pabs->inputBuffer = (float*) calloc((size_t) pabs->inBufSamples,
-                                          sizeof(float));
+      pabs->inputBuffer = (float*) csound->Calloc(csound,
+                                                  (size_t) pabs->inBufSamples*
+                                                  sizeof(float));
       if (pabs->inputBuffer == NULL) {
         pa_PrintErrMsg(csound, Str("Memory allocation failure"));
         goto err_return;
@@ -295,8 +296,9 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
         goto err_return;
       pabs->outBufSamples = pabs->outParm.bufSamp_SW
                             * (int) pabs->outputPaParameters.channelCount;
-      pabs->outputBuffer = (float*) calloc((size_t) pabs->outBufSamples,
-                                           sizeof(float));
+      pabs->outputBuffer = (float*) csound->Calloc(csound,
+                                                   (size_t) pabs->outBufSamples*
+                                                   sizeof(float));
       if (pabs->outputBuffer == NULL) {
         pa_PrintErrMsg(csound, Str("Memory allocation failure"));
         goto err_return;
@@ -621,11 +623,11 @@ static void rtclose_(CSOUND *csound)
     }
 
     if (pabs->outputBuffer != NULL) {
-      free(pabs->outputBuffer);
+      csound->Free(csound,pabs->outputBuffer);
       pabs->outputBuffer = NULL;
     }
     if (pabs->inputBuffer != NULL) {
-      free(pabs->inputBuffer);
+      csound->Free(csound,pabs->inputBuffer);
       pabs->inputBuffer = NULL;
     }
     pabs->paStream = NULL;

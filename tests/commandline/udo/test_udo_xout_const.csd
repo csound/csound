@@ -1,27 +1,28 @@
+Test that using xout in a UDO with a constant works.
+
+
 <CsoundSynthesizer>
-;<CsOptions>
-;</CsOptions>
-; ==============================================
 <CsInstruments>
 
-sr	=	44100
+sr	=	48000
 ksmps	=	1
-;nchnls	=	2
+nchnls	=	2
 0dbfs	=	1
 
-opcode test_udo, k,0
- xout 0
+opcode testXoutConst, k, 0
+  xout 0.5 
 endop
 
 instr 1	
-  kval = test_udo()
-
+outc(vco2:a(testXoutConst(), 440))
 endin
 
 </CsInstruments>
 ; ==============================================
 <CsScore>
-i1 0 0.1
+i1 0 0.5
+
+
 </CsScore>
 </CsoundSynthesizer>
 

@@ -3,6 +3,7 @@
  PitchShifterViewController.m:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -44,6 +45,30 @@
 	}
 }
 
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 150)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"This example uses Csound's 'pvs' real-time spectral-processing opcodes to perform pitch-shifting on a live microphone input signal, controlled with a custom XY control pad.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
+}
+
 - (void)csoundObjCompleted:(CsoundObj *)csoundObj {
 	[mSwitch setOn:NO animated:YES];
 }
@@ -53,7 +78,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	self.title = @"Pitch Shifter";
+	self.title = @"16. Mic: XY PitchShift+Mix";
 	
 	[mXYControl setXValue:1.0f];
 	[mXYControl setYValue:0.5f];

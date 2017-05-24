@@ -7,6 +7,7 @@ option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTER
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
 
+
 if(BUILD_CXX_INTERFACE)
     message(STATUS "Building C++ interface library.")
     set(libcsnd6_SRCS
@@ -21,6 +22,10 @@ if(BUILD_CXX_INTERFACE)
 
     if(WIN32 AND NOT MSVC)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
+      # mingw64 needs this to create a valid .pyd.
+      if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        add_definitions(-DMS_WIN64)
+      endif()
     endif()
 
     set(libcsnd6_CFLAGS "")
@@ -36,15 +41,26 @@ if(BUILD_CXX_INTERFACE)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
+
+   if(APPLE)
+    add_compiler_flags("-std=c++11" TARGETS libcsnd6)
+   endif()
+
+
     if(${libcsnd6_CFLAGS})
         add_compiler_flags(${libcsnd6_CFLAGS} TARGETS libcsnd6)
     endif()
 
+
+
     install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
-
+else()
+ message(STATUS "NOT Building C++ interface library.")
 endif()
+
+
 
 
 # SWIG INTERFACES

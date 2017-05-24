@@ -3,6 +3,7 @@
  RecordTestViewController.m:
  
  Copyright (C) 2011 Thomas Hass
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -28,7 +29,7 @@
 @implementation RecordTestViewController
 
 -(void)viewDidLoad {
-    self.title = @"Record Test";
+    self.title = @"13. Mic: Recording";
     [super viewDidLoad];
 	self.mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
 	[self.mPlayer setDelegate:self];
@@ -78,6 +79,30 @@
 	[sender removeTarget:self action:@selector(stop:) forControlEvents:UIControlEventTouchUpInside];
 	[sender addTarget:self action:@selector(play:) forControlEvents:UIControlEventTouchUpInside];
 	[sender setTitle:@"Play" forState:UIControlStateNormal];
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 120)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"This example uses a custom level-meter widget, and demonstrates efficient use of concurrency for an audio application.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 - (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag

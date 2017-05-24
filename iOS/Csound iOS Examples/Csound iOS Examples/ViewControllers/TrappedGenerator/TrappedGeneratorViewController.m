@@ -3,6 +3,7 @@
  TrappedGeneratorViewController.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -25,15 +26,20 @@
 
 #import "TrappedGeneratorViewController.h"
 
-@interface TrappedGeneratorViewController ()
+@interface TrappedGeneratorViewController () {
+    BOOL hasRendered;
+    NSString *localFilePath;
+    AVAudioPlayer *player;
+}
 
 @end
 
 @implementation TrappedGeneratorViewController
 
 - (void)viewDidLoad {
-    self.title = @"Trapped Generator";
+    self.title = @"06. Render: Trapped in Convert";
     [super viewDidLoad];
+    hasRendered = NO;
 }
 
 - (IBAction)generateTrappedToDocumentsFolder:(id)sender {
@@ -41,7 +47,7 @@
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
-    NSString *localFilePath = [documentsDirectory stringByAppendingPathComponent:@"trapped.wav"];
+    localFilePath = [documentsDirectory stringByAppendingPathComponent:@"trapped.wav"];
     NSLog(@"OUTPUT: %@", localFilePath);
     
     [self.csound stop];
@@ -52,25 +58,65 @@
     [self.csound record:csdPath toFile:localFilePath];    
 }
 
-#pragma mark CsoundObjListener
-
-
-- (void)csoundObjStarted:(CsoundObj *)csoundObj {
+- (IBAction)play:(id)sender {
+    if(hasRendered) {
+        NSError *error;
+        player = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:localFilePath] error:&error];
+        
+        if(error != nil) NSLog(@"%@", [error localizedDescription]);
+        
+        [player prepareToPlay];
+        [player play];
+    } else {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Not Rendered" message:@"Please render the file before playing it." preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+        
+        [alert addAction:defaultAction];
+        [self presentViewController:alert animated:YES completion:nil];
+    }
 }
+
+- (IBAction)stop:(id)sender {
+    [player stop];
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 140)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"This example demonstrates creating a virtual Csound console, and implementing a method to update this virtual console with information accessed from CsoundObj.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
+}
+
+#pragma mark CsoundObjListener
 
 - (void)csoundObjCompleted:(CsoundObj *)csoundObj {
     
     NSString *title = @"Render Complete";
-    NSString *message = @"File generated as trapped.wav in application Documents Folder";
+    NSString *message = @"File generated as trapped.wav in application Documents Folder.";
     
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
-                                                    message:message
-                                                   delegate:nil
-                                          cancelButtonTitle:@"Dismiss"
-                                          otherButtonTitles:nil];
-                      
-    [alert performSelectorOnMainThread:@selector(show) withObject:nil waitUntilDone:NO];
-
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+    [alert addAction:defaultAction];
+    [self presentViewController:alert animated:YES completion:nil];
+    
+    hasRendered = YES;
 }
 
 

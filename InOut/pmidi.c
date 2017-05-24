@@ -131,7 +131,7 @@ static int stop_portmidi(CSOUND *csound, void *userData)
     (void) csound;
     (void) userData;
 #if !defined(WIN32)
-    csound_global_mutex_lock();
+    csoundLock();
 #endif
     if (portmidi_init_cnt) {
       if (--portmidi_init_cnt == 0UL) {
@@ -140,7 +140,7 @@ static int stop_portmidi(CSOUND *csound, void *userData)
       }
     }
 #if !defined(WIN32)
-    csound_global_mutex_unlock();
+    csoundUnLock();
 #endif
     return 0;
 }
@@ -150,7 +150,7 @@ static int start_portmidi(CSOUND *csound)
     const char  *errMsg = NULL;
 
 #if !defined(WIN32)
-    csound_global_mutex_lock();
+    csoundLock();
 #endif
     if (!portmidi_init_cnt) {
       if (UNLIKELY(Pm_Initialize() != pmNoError))
@@ -162,15 +162,15 @@ static int start_portmidi(CSOUND *csound)
     if (errMsg == NULL)
       portmidi_init_cnt++;
 #if !defined(WIN32)
-    csound_global_mutex_unlock();
+    csoundUnLock();
 #endif
     if (UNLIKELY(errMsg != NULL)) {
       csound->ErrorMsg(csound, Str(errMsg));
       return -1;
     }
-#if !defined(WIN32)
-    csound_global_mutex_unlock();
-#endif
+    //#if !defined(WIN32)
+    //csound_global_mutex_unlock();
+    //#endif
     return csound->RegisterResetCallback(csound, NULL, stop_portmidi);
 }
 
@@ -258,13 +258,13 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     for (i = 0; i < cntdev; i++) {
       if (devnum == i || devnum == -1) {
         if (opendevs == 0) {
-          data = (pmall_data *) malloc(sizeof(pmall_data));
+          data = (pmall_data *) csound->Malloc(csound, sizeof(pmall_data));
           next = data;
           data->next = NULL;
           opendevs++;
         }
         else {
-          next->next = (pmall_data *) malloc(sizeof(pmall_data));
+          next->next = (pmall_data *) csound->Malloc(csound, sizeof(pmall_data));
           next = next->next;
           next->next = NULL;
           opendevs++;
@@ -285,7 +285,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
           // Prevent leaking memory from "data"
           if (data) {
             next = data->next;
-            free(data);
+            csound->Free(csound, data);
           }
           return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
                                           i, Pm_GetErrorText(retval));
@@ -480,7 +480,7 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
       pmall_data* olddata;
       olddata = data;
       data = data->next;
-      free(olddata);
+      csound->Free(csound, olddata);
     }
     return 0;
 }

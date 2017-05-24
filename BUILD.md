@@ -18,6 +18,8 @@ following operating systems
 
 -   [Windows (Mingw32)](#mingw32) 
 
+-   [Windows Visual Studio](#msvs)
+
 -   [Android](#android)  
 
 Instructions for RPI compiled by Dominic Melville contact via dcamelville at gmail.com
@@ -397,16 +399,16 @@ options exist.
 by editing the top-level file Custom.cmake.ex, and saving it as
 Custom.cmake. In that file, the line
 
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2”)
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2")
 
    should be changed to
 
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon”)
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon")
 
 2. If step 1 fails, there might be no NEON support for your arm chip,
 in which case, you need to change the line above to
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE”)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE")
 
     in order to disable the vectorial code and use standard C scalar operations.
 
@@ -570,7 +572,7 @@ should get the help message.
 
 Windows 32/64 Bit (msys2) <a name="msys2">
 ---------------
-Csound for Windows can now be built using MSYS2. This is the recommeneded way to build Csound for Windows. Please follow the instruction posted [https://github.com/csound/csound/tree/develop/mingw64] here.
+Csound for Windows can now be built using MSYS2. This is the recommeneded way to build Csound for Windows. Please follow the instruction posted [here](https://github.com/csound/csound/tree/develop/mingw64).
 
 
 Windows 32 Bit (mingw32) <a name="mingw32">
@@ -638,6 +640,10 @@ Download and install cmake
 Run cmake from the csound dir and configure Csound to build using MinGW Makefiles. For this minimal you'll need to disable quite a few features.
 Run generate.
 cd to csound build directory and run mingw32-make
+
+Windows Visual Studio <a name="msvs">
+--------------
+Instructions can be found [here](https://github.com/csound/csound/blob/develop/msvc).
 
 Android <a name="android">
 -------------- 

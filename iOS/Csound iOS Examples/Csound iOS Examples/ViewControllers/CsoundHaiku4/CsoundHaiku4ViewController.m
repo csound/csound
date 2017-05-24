@@ -3,6 +3,7 @@
  CsoundHaiku4ViewController.m:
  
  Copyright (C) 2011 Steven Yi
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -27,7 +28,7 @@
 @implementation CsoundHaiku4ViewController
 
 -(void)viewDidLoad {
-    self.title = @"Csound Haiku 4";
+    self.title = @"05. Play: Haiku IV";
     [super viewDidLoad];
 }
 
@@ -42,6 +43,37 @@
 	self.csound = [[CsoundObj alloc] init];
 	
 	[self.csound play:tempFile];
+}
+
+-(IBAction)showSite:(UIButton *)sender {
+    NSURL *url = [NSURL URLWithString:@"http://iainmccurdy.org/csoundhaiku.html"];
+    SFSafariViewController *safariVC = [[SFSafariViewController alloc] initWithURL:url];
+    
+    [self presentViewController:safariVC animated:YES completion:nil];
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+   UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 180)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"Haiku IV is the fourth in a suite of nine generative Csound pieces by Iain McCurdy. Csound begins rendering the work when the view appears and stops when the view unloads and CsoundObj is deallocated.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
 }
 
 @end

@@ -1,8 +1,9 @@
-/* 
+/*
  
  BaseCsoundViewController.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -22,6 +23,7 @@
  02111-1307 USA
  
  */
+
 #import "BaseCsoundViewController.h"
 
 @interface BaseCsoundViewController ()
@@ -42,7 +44,7 @@
     }
     
     if (self.masterPopoverController != nil) {
-        [self.masterPopoverController dismissPopoverAnimated:YES];
+        [self.masterPopoverController dismissViewControllerAnimated:YES completion:nil];
     }        
 }
 
@@ -82,18 +84,30 @@
     return self;
 }
 
+-(UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller {
+    return UIModalPresentationNone;
+}
+
+-(UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller traitCollection:(UITraitCollection *)traitCollection {
+    return UIModalPresentationNone;
+}
+
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [segue destinationViewController].modalPresentationStyle = UIModalPresentationPopover;
+}
+
 #pragma mark - Split view
 
-- (void)splitViewController:(UISplitViewController *)splitController willHideViewController:(UIViewController *)viewController withBarButtonItem:(UIBarButtonItem *)barButtonItem forPopoverController:(UIPopoverController *)popoverController
+- (void)splitViewController:(UISplitViewController *)svc willChangeToDisplayMode:(UISplitViewControllerDisplayMode)displayMode
 {
-    barButtonItem.title = @"Csound for iOS";
-    [self.navigationItem setLeftBarButtonItem:barButtonItem animated:YES];
-    self.masterPopoverController = popoverController;
+    self.navigationItem.leftBarButtonItem = [self splitViewController].displayModeButtonItem;
+    self.navigationItem.leftBarButtonItem.title = @"Csound for iOS";
+    self.masterPopoverController = svc;
+    
 }
 
 - (void)splitViewController:(UISplitViewController *)splitController willShowViewController:(UIViewController *)viewController invalidatingBarButtonItem:(UIBarButtonItem *)barButtonItem
 {
-    // Called when the view is shown again in the split view, invalidating the button and popover controller.
     [self.navigationItem setLeftBarButtonItem:nil animated:YES];
     self.masterPopoverController = nil;
 }

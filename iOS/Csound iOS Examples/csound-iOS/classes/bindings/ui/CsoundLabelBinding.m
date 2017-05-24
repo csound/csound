@@ -61,7 +61,7 @@
 
 -(void)updateLabelText:(id)sender
 {
-    self.label.text = [NSString stringWithFormat:@"%f", *channelPtr];
+    self.label.text = [NSString stringWithFormat:@"%.*f", _precision, *channelPtr];
     [self.label setNeedsDisplay];
 }
 

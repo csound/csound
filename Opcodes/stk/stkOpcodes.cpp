@@ -111,8 +111,9 @@ using namespace stk;
 
 #define __BUILDING_LIBCSOUND
 #include <csoundCore.h>
-#include <csGblMtx.h>
 #include <OpcodeBase.hpp>
+
+using namespace csound;
 
 #include <cstdlib>
 #include <cstdio>
@@ -122,12 +123,7 @@ using namespace stk;
 #include <vector>
 
 using namespace std;
-
-static std::map<CSOUND *, std::vector<Instrmnt *> > &getStkInstances()
-{
-    static std::map<CSOUND *, std::vector<Instrmnt *> > stkInstances;
-    return stkInstances;
-}
+using namespace csound;
 
 template<typename T>
 class STKInstrumentAdapter : public OpcodeBase< STKInstrumentAdapter<T> >
@@ -181,7 +177,6 @@ public:
         {
           Stk::setSampleRate(csound->GetSr(csound));
           instrument = new T();
-          getStkInstances()[csound].push_back(instrument);
         }
       ksmps = OpcodeBase< STKInstrumentAdapter<T> >::opds.insdshead->ksmps;
       instrument->noteOn(*ifrequency, *igain);
@@ -327,7 +322,6 @@ public:
       if(!instrument) {
         Stk::setSampleRate(csound->GetSr(csound));
         instrument = new T((StkFloat) 10.0);
-        getStkInstances()[csound].push_back(instrument);
       }
       ksmps = OpcodeBase< STKInstrumentAdapter1<T> >::opds.insdshead->ksmps;
       instrument->noteOn(*ifrequency, *igain);
@@ -762,15 +756,18 @@ extern "C"
             path = std::getenv("RAWWAVE_PATH");
         }
 #endif
-#if !defined(WIN32)
-        csound_global_mutex_lock();
-#endif
+
+// FIXME:PTHREAD_WORK - need to check if this is necessary and, if so, use some other
+// kind of locking mechanism
+//#if !defined(WIN32)
+//        csound_global_mutex_lock();
+//#endif
         if (path != 0) {
             Stk::setRawwavePath(path);
         }
-#if !defined(WIN32)
-        csound_global_mutex_unlock();
-#endif
+//#if !defined(WIN32)
+//        csound_global_mutex_unlock();
+//#endif
         csound->DebugMsg(csound,
                          Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
       }
@@ -790,13 +787,6 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    if (getStkInstances().find(csound) != getStkInstances().end()) {
-      for(size_t i = 0, n = getStkInstances()[csound].size(); i < n; ++i) {
-        delete getStkInstances()[csound][i];
-      }
-      //getStkInstances()[csound].clear();
-      getStkInstances().erase(csound);
-    }
     return 0;
   }
 

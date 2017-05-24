@@ -3,6 +3,8 @@
 #include <vector>
 #include "interlocks.h"
 
+using namespace csound;
+
 // Define ENABLE_MIXER_IDEBUG to enable i-rate debug messages.
 //#define ENABLE_MIXER_IDEBUG
 

@@ -34,6 +34,7 @@ extern int csoundModuleInit_fractalnoise(CSOUND *);
 extern int csoundModuleInit_ftsamplebank(CSOUND *);
 extern int csoundModuleInit_mixer(CSOUND *);
 extern int csoundModuleInit_signalflowgraph(CSOUND *);
+# extern int csoundModuleInit_ableton_link_opcodes(CSOUND *);
 
 /**
  * Called from the beginning of csoundInitModules to initialize opcodes and 
@@ -61,5 +62,6 @@ int init_static_modules(CSOUND *csound)
     result |= csoundModuleInit_mixer(csound);
     result |= csoundModuleCreate_signalflowgraph(csound);
     result |= csoundModuleInit_signalflowgraph(csound);
+#    result |= csoundModuleInit_ableton_link_opcodes(csound);
     return result;
 }

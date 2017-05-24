@@ -341,12 +341,13 @@ static int pvsys_createFileHandle(CSOUND *csound)
       /* extend table */
       if (!csound->pvNumFiles) {
         csound->pvNumFiles = 8;
-        tmp = (PVOCFILE**) malloc(sizeof(PVOCFILE*) * csound->pvNumFiles);
+        tmp = (PVOCFILE**) csound->Malloc(csound,
+                                          sizeof(PVOCFILE*) * csound->pvNumFiles);
       }
       else {
         csound->pvNumFiles <<= 1;
-        tmp = (PVOCFILE**) realloc(csound->pvFileTable, sizeof(PVOCFILE*)
-                                                        * csound->pvNumFiles);
+        tmp = (PVOCFILE**) csound->ReAlloc(csound, csound->pvFileTable,
+                                           sizeof(PVOCFILE*) * csound->pvNumFiles);
       }
       if (tmp == NULL)
         return -1;
@@ -355,7 +356,7 @@ static int pvsys_createFileHandle(CSOUND *csound)
         PVFILETABLE[j] = (PVOCFILE*) NULL;
     }
     /* allocate new handle */
-    PVFILETABLE[i] = (PVOCFILE*) malloc(sizeof(PVOCFILE));
+    PVFILETABLE[i] = (PVOCFILE*) csound->Malloc(csound, sizeof(PVOCFILE));
     if (PVFILETABLE[i] == NULL)
       return -1;
     memset(PVFILETABLE[i], 0, sizeof(PVOCFILE));
@@ -486,7 +487,7 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
       csound->Free(csound, pname);
       if (p->customWindow)
         csound->Free(csound, p->customWindow);
-      free(p);
+      csound->Free(csound, p);
       PVFILETABLE[fd] = NULL;
       csound->pvErrorCode = -7;
       return -1;
@@ -499,7 +500,7 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
       csound->Free(csound, p->name);
       if (p->customWindow)
         csound->Free(csound, p->customWindow);
-      free(p);
+      csound->Free(csound, p);
       PVFILETABLE[fd] = NULL;
       return -1;
     }
@@ -535,7 +536,7 @@ int pvoc_openfile(CSOUND *csound,
                                    "rb", "SADIR", CSFTYPE_PVCEX, 0);
     if (UNLIKELY(p->fd == NULL)) {
       csound->pvErrorCode = -9;
-      free(p);
+      csound->Free(csound, p);
       PVFILETABLE[fd] = NULL;
       return -1;
     }
@@ -549,7 +550,7 @@ int pvoc_openfile(CSOUND *csound,
       csound->Free(csound, p->name);
       if (p->customWindow)
         csound->Free(csound, p->customWindow);
-      free(p);
+      csound->Free(csound, p);
       PVFILETABLE[fd] = NULL;
       return -1;
     }
@@ -863,7 +864,7 @@ int pvoc_closefile(CSOUND *csound, int ofd)
     }
     if (UNLIKELY(p->fd == NULL)) {
       csound->pvErrorCode = -37;
-      free(p);
+      csound->Free(csound, p);
       PVFILETABLE[ofd] = NULL;
       return 0;
     }
@@ -876,7 +877,7 @@ int pvoc_closefile(CSOUND *csound, int ofd)
       (void)remove(p->name);
     csound->Free(csound, p->name);
     csound->Free(csound, p->customWindow);
-    free(p);
+    csound->Free(csound, p);
     PVFILETABLE[ofd] = NULL;
 
     return rc;
@@ -1002,7 +1003,7 @@ int pvsys_release(CSOUND *csound)
       }
     }
     if (csound->pvNumFiles) {
-      free(csound->pvFileTable);
+      csound->Free(csound, csound->pvFileTable);
       csound->pvFileTable = NULL;
       csound->pvNumFiles = 0;
     }

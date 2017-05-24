@@ -35,7 +35,6 @@
 
 #include "csdl.h"
 #include "fluidOpcodes.h"
-#include "csGblMtx.h"
 #include "OpcodeBase.hpp"
 
 #include <map>
@@ -46,15 +45,15 @@
 #include <vector>
 #include <string>
 
+using namespace csound;
+
 /**
  * This may help avoid problems with the order of static initializations.
  */
-static std::map<CSOUND *, std::vector<fluid_synth_t *> >
-                &getFluidSynthsForCsoundInstances()
+static std::vector<fluid_synth_t *> &getFluidSynths()
 {
-    static std::map<CSOUND *, std::vector<fluid_synth_t *> >
-                fluidSynthsForCsoundInstances;
-    return fluidSynthsForCsoundInstances;
+    static std::vector<fluid_synth_t *> fluidSynths_;
+    return fluidSynths_;
 }
 
 /**
@@ -133,9 +132,6 @@ public:
             } else if (voiceCount > 4096) {
                 voiceCount = 4096;
             }
-#if !defined(WIN32)
-            //csound_global_mutex_lock();
-#endif
             fluidSettings = new_fluid_settings();
             if (fluidSettings != NULL) {
                 fluid_settings_setnum(fluidSettings,
@@ -147,9 +143,6 @@ public:
                         (char *)"synth.polyphony", voiceCount);
                 fluidSynth = new_fluid_synth(fluidSettings);
             }
-#if !defined(WIN32)
-            //csound_global_mutex_unlock();
-#endif
             if (!fluidSynth) {
                 if (fluidSettings) {
                     delete_fluid_settings(fluidSettings);
@@ -157,14 +150,8 @@ public:
                 result = csound->InitError(csound,
                                            Str("error allocating fluid engine\n"));
             } else {
-#if !defined(WIN32)
-                //csound_global_mutex_lock();
-#endif
                 fluid_synth_set_chorus_on(fluidSynth, chorusEnabled);
                 fluid_synth_set_reverb_on(fluidSynth, reverbEnabled);
-#if !defined(WIN32)
-                //csound_global_mutex_unlock();
-#endif
                 log(csound, "Created fluidEngine 0x%p with sampling rate = %f, "
                     "chorus %s, reverb %s, channels %d, voices %d.\n",
                     fluidSynth, (double) csound->GetSr(csound),
@@ -173,7 +160,7 @@ public:
                     channelCount,
                     voiceCount);
                 tof(fluidSynth, iFluidSynth);
-                getFluidSynthsForCsoundInstances()[csound].push_back(fluidSynth);
+                getFluidSynths().push_back(fluidSynth);
             }
         }
         return result;
@@ -467,8 +454,7 @@ public:
             memset(&aLeftOut[ksmps], '\0', early*sizeof(MYFLT));
             memset(&aRightOut[ksmps], '\0', early*sizeof(MYFLT));
           }
-          std::vector<fluid_synth_t *> &fluidSynths =
-            getFluidSynthsForCsoundInstances()[csound];
+          std::vector<fluid_synth_t *> &fluidSynths = getFluidSynths();
           for (frame = offset; frame < ksmps; frame++) {
             aLeftOut[frame] = FL(0.0);
             aRightOut[frame] = FL(0.0);
@@ -805,10 +791,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
 #pragma omp critical (critical_section_fluidopcodes)
     {
-      std::map<CSOUND *, std::vector<fluid_synth_t *> > &fluidEngines =
-                                      getFluidSynthsForCsoundInstances();
-      std::vector<fluid_synth_t *> &fluidSynths = fluidEngines[csound];
-
+      std::vector<fluid_synth_t *> &fluidSynths = getFluidSynths();
       for (size_t i = 0, n = fluidSynths.size(); i < n; i++) {
         fluid_synth_t *fluidSynth = fluidSynths[i];
         //csound->Message(csound, "deleting engine %p \n", fluidSynth);
@@ -817,7 +800,6 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
         delete_fluid_settings(fluidSettings);
       }
       fluidSynths.clear();
-      fluidEngines.erase(csound);
     }
     return 0;
 }

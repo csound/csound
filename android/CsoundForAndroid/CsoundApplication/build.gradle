@@ -10,13 +10,13 @@ android {
         }
     }
     compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    buildToolsVersion '25.0.0'
     defaultConfig {
         applicationId "com.csounds.Csound6"
         minSdkVersion 21
         targetSdkVersion 21
-        versionCode 4
-        versionName "6.08.0b"
+        versionCode 6
+        versionName '6.09.0beta'
     }
     buildTypes {
         release {
@@ -30,6 +30,8 @@ android {
 //            signingConfig signingConfigs.CsoundForAndroid
             debuggable true
         }
+    }
+    productFlavors {
     }
 }
 

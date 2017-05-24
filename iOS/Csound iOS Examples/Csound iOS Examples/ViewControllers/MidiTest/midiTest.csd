@@ -1,12 +1,15 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -+rtaudio=null -d -+msg_color=0 -M0 -m0
+-o dac
+-M0
+-d
 </CsOptions>
 <CsInstruments>
-nchnls=2
-0dbfs=1
-ksmps=64
-sr = 44100
+
+sr        = 44100
+ksmps     = 64
+nchnls    = 2
+0dbfs	  = 1
 
 massign 0, 1
 
@@ -34,12 +37,7 @@ kpch cpsmid p4
 iattack chnget "attack" 
 idecay chnget "decay" 
 isustain chnget "sustain" 
-irelease chnget "release" 
-
-;print iattack
-;print idecay
-;print isustain
-;print irelease
+irelease chnget "release"
 
 k2 linsegr 0, iattack, 1, idecay, isustain, irelease, 0
 a1 vco2 k2 * .2, kpch

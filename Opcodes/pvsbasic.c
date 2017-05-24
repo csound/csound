@@ -184,13 +184,13 @@ typedef struct {
   void *cb;
   int async;
 #ifndef __EMSCRIPTEN__
-  pthread_t thread;
+  void* thread;
 #endif
   int N;
   uint32 lastframe;
 }PVSFWRITE;
 
-void *pvs_io_thread(void *pp);
+uintptr_t pvs_io_thread(void *pp);
 
 static int pvsfwrite_destroy(CSOUND *csound, void *pp)
 {
@@ -198,7 +198,9 @@ static int pvsfwrite_destroy(CSOUND *csound, void *pp)
 #ifndef __EMSCRIPTEN__
   if (p->async){
     p->async = 0;
-    pthread_join(p->thread, NULL);
+    // PTHREAD: change
+    //pthread_join(p->thread, NULL);
+    csoundJoinThread (p->thread);
     csound->DestroyCircularBuffer(csound, p->cb);
   }
 #endif
@@ -246,7 +248,9 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->dframe);
     p->cb = csound->CreateCircularBuffer(csound, (N+2)*sizeof(float)*bufframes,
                                          sizeof(MYFLT));
-    pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
+    // PTHREAD: change
+    //pthread_create(&p->thread, NULL, pvs_io_thread, (void *) p);
+          p->thread = csoundCreateThread (pvs_io_thread, (void*)p);
     p->async = 1;
   } else
 #endif
@@ -269,7 +273,7 @@ static int pvsfwriteset_S(CSOUND *csound, PVSFWRITE *p){
 }
 
 
-void *pvs_io_thread(void *pp){
+uintptr_t pvs_io_thread(void *pp){
   PVSFWRITE *p = (PVSFWRITE *) pp;
   CSOUND *csound = p->csound;
   MYFLT  *buf = (MYFLT *) p->buf.auxp;
@@ -284,7 +288,7 @@ void *pvs_io_thread(void *pp){
       csound->PVOC_PutFrames(csound, p->pvfile, frame, 1);
     }
   }
-  return NULL;
+  return (uintptr_t)0;
 }
 
 
@@ -842,13 +846,14 @@ static int pvsoscset(CSOUND *csound, PVSOSC *p)
   else
     {
       float   *bframe;
+      int j;
       if (p->fout->frame.auxp == NULL ||
           p->fout->frame.size < sizeof(float) * (N + 2))
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
       bframe = (float *) p->fout->frame.auxp;
-      for (i = 0; i < N + 2; i += 2) {
+      for (i = j = 0; i < N + 2; i += 2, j++) {
         //bframe[i] = 0.0f;
-        bframe[i + 1] = (i / 2) * N * csound->onedsr;
+        bframe[i + 1] = j * N * csound->onedsr;
       }
       p->lastframe = 1;
       p->incr = (MYFLT)CS_KSMPS/p->fout->overlap;
@@ -933,8 +938,8 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
       cfbin = freq/w;
       cbin = (int)MYFLT2LRND(cfbin);
       if (cbin != 0)     {
-        for (i=cbin-1;i < cbin+3 &&i < framesize/2 ; i++) {
-          k = i<<1;
+        for (i=cbin-1,k = (cbin-1)<<1;i < cbin+3 &&i < framesize/2 ; i++, k+=2) {
+          //k = i<<1;
           if (i-cfbin == 0) a = 1;
           else a = sin(i-cfbin)/(i-cfbin);
           fout[k] = amp*a*a*a;
@@ -1370,7 +1375,7 @@ static int pvsscaleset(CSOUND *csound, PVSSCALE *p)
         csound->AuxAlloc(csound, sizeof(float) * (N + 2), &p->fout->frame);
     }
 
- if (p->ftmp.auxp == NULL ||
+  if (p->ftmp.auxp == NULL ||
       p->ftmp.size < sizeof(float) * (N+4))
     csound->AuxAlloc(csound, sizeof(float) * (N + 2), &p->ftmp);
 
@@ -1471,12 +1476,12 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
 
     if (keepform) {
       int cond = 1;
-      for (i=0; i < N; i+=2)
-        fenv[i/2] = log(ftmp[i] > 0.0 ? ftmp[i] : 1e-20);
+      int j;
+      for (i=j=0; i < N; i+=2, j++)
+        fenv[j] = LOG(ftmp[i] > 0.0 ? ftmp[i] : 1e-20);
 
 
       if (keepform > 2) { /* experimental mode 3 */
-        int j;
         int w = 5, w2  = w*2;
         for (i=0; i < w; i++) ceps[i] = fenv[i];
         for (i=w; i < N/2-w; i++) {
@@ -1486,15 +1491,15 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
           ceps[i] /= w2;
         }
         for (i=0; i<N/2; i++) {
-          fenv[i] = exp(ceps[i]);
+          fenv[i] = EXP(ceps[i]);
           max = max < fenv[i] ? fenv[i] : max;
         }
         if (max)
-          for (i=0; i<N; i+=2) {
-            fenv[i/2]/=max;
-            binf = (i/2)*sr/N;
-            if (fenv[i/2] && binf < pscal*sr/2 )
-              ftmp[i] /= fenv[i/2];
+          for (j=i=0; i<N; i+=2, j++) {
+            fenv[j]/=max;
+            binf = (j)*sr/N;
+            if (fenv[j] && binf < pscal*sr/2 )
+              ftmp[i] /= fenv[j];
           }
       }
       else {  /* new modes 1 & 2 */
@@ -1519,36 +1524,47 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
             if (keepform > 1) {
               if (fenv[i] < ceps[i])
                 fenv[i] = ceps[i];
-              if ((log(ftmp[j]) - ceps[i]) > 0.23) cond = 1;
+              if ((LOG(ftmp[j]) - ceps[i]) > FL(0.23)) cond = 1;
             }
             else
               {
-                fenv[i] = exp(ceps[i]);
+                fenv[i] = EXP(ceps[i]);
                 max = max < fenv[i] ? fenv[i] : max;
               }
           }
         }
         if (keepform > 1)
           for (i=0; i<N/2; i++) {
-            fenv[i] = exp(ceps[i]);
+            fenv[i] = EXP(ceps[i]);
             max = max < fenv[i] ? fenv[i] : max;
-         }
+          }
 
         if (max)
           for (i=j=2; i<N/2; i++, j+=2) {
             fenv[i]/=max;
             binf = (i)*sr/N;
             if (fenv[i] && binf < pscal*sr/2 )
-               ftmp[j] /= fenv[i];
+              ftmp[j] /= fenv[i];
           }
       }
     }
-    for (i = 2, chan = 1; i < N; chan++, i += 2) {
-      int newchan;
-      newchan  = (int) ((chan * pscal)+0.5) << 1;
-      if (newchan < N && newchan > 0) {
-        fout[newchan] = keepform ? ftmp[i]*fenv[newchan/2] : ftmp[i];
-        fout[newchan + 1] = (float) (ftmp[i + 1] * pscal);
+    if(keepform) {
+      for (i = 2, chan = 1; i < N; chan++, i += 2) {
+        int newchan;
+        newchan  = (int) ((chan * pscal)+0.5) << 1;
+        if (newchan < N && newchan > 0) {
+          fout[newchan] = ftmp[i]*fenv[newchan>>1];
+          fout[newchan + 1] = (float) (ftmp[i + 1] * pscal);
+        }
+      }
+    } else {
+      for (i = 2, chan = 1; i < N; chan++, i += 2) {
+        int newchan;
+        newchan  = (int) ((chan * pscal)+0.5) << 1;
+        if (newchan < N && newchan > 0) {
+          fout[newchan] = ftmp[i];
+          fout[newchan + 1] = (float) (ftmp[i + 1] * pscal);
+        }
       }
     }
 
@@ -1559,11 +1575,7 @@ static int pvsscale(CSOUND *csound, PVSSCALE *p)
       }
       else
         fout[i] *= g;
-      /*binf = (i/2)*sr/N;
-      if (fenv[i/2] && binf < pscal*sr/2 )
-        ftmp[i] *= fenv[i/2];*/
     }
-
     p->fout->framecount = p->lastframe = p->fin->framecount;
   }
   return OK;
@@ -1626,7 +1638,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
   else
     memset(p->fenv.auxp, 0, sizeof(MYFLT)*(N+2));
-   if (p->ftmp.auxp == NULL ||
+  if (p->ftmp.auxp == NULL ||
       p->ftmp.size < sizeof(float) * (N+4))
     csound->AuxAlloc(csound, sizeof(float) * (N + 2), &p->ftmp);
 
@@ -1695,15 +1707,15 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
     return OK;
   }
   if (p->lastframe < p->fin->framecount) {
-
+    int j;
     lowest = lowest ? (lowest > N / 2 ? N / 2 : lowest << 1) : 2;
 
     fout[0] = fin[0];
     fout[N] = fin[N];
     memcpy(ftmp, fin, sizeof(float)*(N+2));
 
-    for (i = 2; i < N; i += 2) {
-      fenv[i/2] = 0.0;
+    for (j = i = 2; i < N; i += 2, j++) {
+      fenv[j] = 0.0;
       if (i < lowest) {
         fout[i] = fin[i];
         fout[i + 1] = fin[i + 1];
@@ -1717,14 +1729,14 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
       int cond = 1;
       int tmp = N/2;
       tmp = tmp + tmp%2;
-      for (i=0; i < N; i+=2)
-        fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
+      for (i=j=0; i < N; i+=2, j++)
+        fenv[j] = LOG(fin[i] > FL(0.0) ? fin[i] : FL(1e-20));
       if (coefs < 1) coefs = 80;
       while(cond) {
         cond = 0;
-        for (i=0; i < N; i+=2) {
-          ceps[i] = fenv[i/2];
-          ceps[i+1] = 0.0;
+        for (j=i=0; i < N; i+=2, j++) {
+          ceps[i] = fenv[j];
+          ceps[i+1] = FL(0.0);
         }
         if (!(N & (N - 1)))
           csound->InverseComplexFFT(csound, ceps, N/2);
@@ -1735,42 +1747,50 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
           csound->ComplexFFT(csound, ceps, N/2);
         else
           csoundComplexFFTnp2(csound, ceps, tmp);
-        for (i=0; i < N; i+=2) {
+        for (i=j=0; i < N; i+=2, j++) {
           if (keepform > 1) {
-            if (fenv[i/2] < ceps[i])
-              fenv[i/2] = ceps[i];
-            if ((log(fin[i]) - ceps[i]) > 0.23) cond = 1;
+            if (fenv[j] < ceps[i])
+              fenv[j] = ceps[i];
+            if ((LOG(fin[i]) - ceps[i]) > 0.23) cond = 1;
           }
           else
             {
-              fenv[i/2] = exp(ceps[i]);
-              max = max < fenv[i/2] ? fenv[i/2] : max;
+              fenv[j] = EXP(ceps[i]);
+              max = max < fenv[j] ? fenv[j] : max;
             }
         }
       }
       if (keepform > 1)
         for (i=0; i<N/2; i++) {
-          fenv[i] = exp(fenv[i]);
+          fenv[i] = EXP(fenv[i]);
           max = max < fenv[i] ? fenv[i] : max;
         }
       if (max)
-        for (i=lowest; i<N; i+=2) {
-          fenv[i/2]/=max;
-          binf = (i/2)*sr/N;
-          if (fenv[i/2] && binf < sr/2+pshift )
-            ftmp[i] /= fenv[i/2];
+        for (j=i=lowest; i<N; i+=2, j++) {
+          fenv[j]/=max;
+          binf = (j)*sr/N;
+          if (fenv[j] && binf < sr/2+pshift )
+            ftmp[i] /= fenv[j];
         }
     }
 
-    for (i = lowest, chan = lowest >> 1; i < N; chan++, i += 2) {
-
-      newchan = (chan + cshift) << 1;
-
-      if (newchan < N && newchan > lowest) {
-        fout[newchan] = keepform ?
-          ftmp[i] * fenv[newchan/2] : ftmp[i];
-        fout[newchan + 1] = (float) (ftmp[i + 1] + pshift);
+    if(keepform) {
+      for (i = lowest, chan = lowest >> 1; i < N; chan++, i += 2) {
+        newchan = (chan + cshift) << 1;
+        if (newchan < N && newchan > lowest) {
+          fout[newchan] = ftmp[i] * fenv[newchan>>1];
+          fout[newchan + 1] = (float) (ftmp[i + 1] + pshift);
+        }
       }
+    } else {
+      for (i = lowest, chan = lowest >> 1; i < N; chan++, i += 2) {
+        newchan = (chan + cshift) << 1;
+        if (newchan < N && newchan > lowest) {
+          fout[newchan] = ftmp[i];
+          fout[newchan + 1] = (float) (ftmp[i + 1] + pshift);
+        }
+      }
+
     }
 
     for (i = lowest; i < N; i += 2) {
@@ -1778,8 +1798,6 @@ static int pvsshift(CSOUND *csound, PVSSHIFT *p)
         fout[i] = 0.0f;
       else
         fout[i] *= g;
-      /*binf = (i/2)*sr/N;
-        x  if (fenv[i/2] && binf < sr/2+pshift ) fin[i] *= fenv[i/2];*/
     }
 
     p->fout->framecount = p->lastframe = p->fin->framecount;
@@ -1843,7 +1861,7 @@ static int pvswarpset(CSOUND *csound, PVSWARP *p)
 
 static int pvswarp(CSOUND *csound, PVSWARP *p)
 {
-  int     i, chan, N = p->fout->N;
+  int     i,j, chan, N = p->fout->N;
   float   max = 0.0f;
   MYFLT   pscal = FABS(*p->kscal);
   MYFLT   pshift = (*p->kshift);
@@ -1875,11 +1893,10 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
 
     {
       int cond = 1;
-      for (i=0; i < N; i+=2) {
-        fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
+      for (j=i=0; i < N; i+=2, j++) {
+        fenv[j] = LOG(fin[i] > 0.0 ? fin[i] : 1e-20);
       }
       if (keepform > 2) { /* experimental mode 3 */
-        int j;
         int w = 5;
         for (i=0; i < w; i++) ceps[i] = fenv[i];
         for (i=w; i < N/2-w; i++) {
@@ -1889,15 +1906,15 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
           ceps[i]  /= 2*w;
         }
         for (i=0; i<N/2; i++) {
-          fenv[i] = exp(ceps[i]);
+          fenv[i] = EXP(ceps[i]);
           max = max < fenv[i] ? fenv[i] : max;
         }
         if (max)
-          for (i=lowest; i<N; i+=2) {
-            fenv[i/2]/=max;
-            binf = (i/2)*sr/N;
-            if (fenv[i/2] && binf < pscal*sr/2+pshift )
-              fin[i] /= fenv[i/2];
+          for (j=i=lowest; i<N; i+=2, j++) {
+            fenv[j]/=max;
+            binf = (j)*sr/N;
+            if (fenv[j] && binf < pscal*sr/2+pshift )
+              fin[i] /= fenv[j];
           }
       }
       else {  /* new modes 1 & 2 */
@@ -1906,8 +1923,8 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
         if (coefs < 1) coefs = 80;
         while(cond) {
           cond = 0;
-          for (i=0; i < N; i+=2) {
-            ceps[i] = fenv[i/2];
+          for (j=i=0; i < N; i+=2, j++) {
+            ceps[i] = fenv[j];
             ceps[i+1] = 0.0;
           }
           if (!(N & (N - 1)))
@@ -1919,48 +1936,48 @@ static int pvswarp(CSOUND *csound, PVSWARP *p)
             csound->ComplexFFT(csound, ceps, N/2);
           else
             csoundComplexFFTnp2(csound, ceps, tmp);
-          for (i=0; i < N; i+=2) {
+          for (j=i=0; i < N; i+=2, j++) {
             if (keepform > 1) {
-              if (fenv[i/2] < ceps[i])
-                fenv[i/2] = ceps[i];
-              if ((log(fin[i]) - ceps[i]) > 0.23) cond = 1;
+              if (fenv[j] < ceps[i])
+                fenv[j] = ceps[i];
+              if ((LOG(fin[i]) - ceps[i]) > 0.23) cond = 1;
             }
             else
               {
-                fenv[i/2] = exp(ceps[i]);
-                max = max < fenv[i/2] ? fenv[i/2] : max;
+                fenv[j] = EXP(ceps[i]);
+                max = max < fenv[j] ? fenv[j] : max;
               }
           }
         }
         if (keepform > 1)
-          for (i=0; i<N; i+=2) {
-            fenv[i/2] = exp(ceps[i]);
-            max = max < fenv[i/2] ? fenv[i/2] : max;
+          for (j=i=0; i<N; i+=2, j++) {
+            fenv[j] = EXP(ceps[i]);
+            max = max < fenv[j] ? fenv[j] : max;
           }
         if (max)
-          for (i=lowest; i<N; i+=2) {
-            fenv[i/2]/=max;
+          for (j=i=lowest; i<N; i+=2, j++) {
+            fenv[j]/=max;
             binf = (i/2)*sr/N;
-            if (fenv[i/2] && binf < pscal*sr/2+pshift )
-              fin[i] /= fenv[i/2];
+            if (fenv[j] && binf < pscal*sr/2+pshift )
+              fin[i] /= fenv[j];
           }
       }
     }
-    for (i = 2, chan = 1; i < N; chan++, i += 2) {
+    for (i = j = 2, chan = 1; i < N; chan++, i += 2, j++) {
       int newchan;
       newchan  = (int) ((chan * pscal + cshift)+0.5) << 1;
       if (i >= lowest) {
         if (newchan < N && newchan > 0)
-          fout[newchan] = fin[newchan]*fenv[i/2];
+          fout[newchan] = fin[newchan]*fenv[j];
       } else fout[i] = fin[i];
       fout[i + 1] = fin[i + 1];
     }
 
-    for (i = lowest; i < N; i += 2) {
+    for (i = j= lowest; i < N; i += 2, j++) {
       if (isnan(fout[i])) fout[i] = 0.0f;
       else fout[i] *= g;
-      binf = (i/2)*sr/N;
-      if (fenv[i/2] && binf < pscal*sr/2+pshift )
+      binf = (j)*sr/N;
+      if (fenv[j] && binf < pscal*sr/2+pshift )
         fin[i] *= fenv[i/2];
     }
 
@@ -2302,7 +2319,7 @@ static int pvsenvwset(CSOUND *csound, PVSENVW *p)
 
 static int pvsenvw(CSOUND *csound, PVSENVW *p)
 {
-  int     i, N = p->fin->N;
+  int     i,j, N = p->fin->N;
   float   max = 0.0f;
   int     keepform = (int) *p->keepform;
   float   g = (float) *p->gain;
@@ -2326,8 +2343,8 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
   if (p->lastframe < p->fin->framecount) {
     {
       int cond = 1;
-      for (i=0; i < N; i+=2) {
-        fenv[i/2] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
+      for (i=j=0; i < N; i+=2, j++) {
+        fenv[j] = LOG(fin[i] > 0.0 ? fin[i] : 1e-20);
       }
       if (keepform > 2) { /* experimental mode 3 */
         int j;
@@ -2340,7 +2357,7 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
           ceps[i]  /= 2*w;
         }
         for (i=0; i<N/2; i++) {
-          fenv[i] = exp(ceps[i]);
+          fenv[i] = EXP(ceps[i]);
           max = max < fenv[i] ? fenv[i] : max;
         }
         /* if (max)
@@ -2354,8 +2371,8 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
         if (coefs < 1) coefs = 80;
         while(cond) {
           cond = 0;
-          for (i=0; i < N; i+=2) {
-            ceps[i] = fenv[i/2];
+          for (j=i=0; i < N; i+=2, j++) {
+            ceps[i] = fenv[j];
             ceps[i+1] = 0.0;
           }
           if (!(N & (N - 1)))
@@ -2367,23 +2384,23 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
             csound->ComplexFFT(csound, ceps, N/2);
           else
             csoundComplexFFTnp2(csound, ceps, tmp);
-          for (i=0; i < N; i+=2) {
+          for (i=j=0; i < N; i+=2, j++) {
             if (keepform > 1) {
-              if (fenv[i/2] < ceps[i])
-                fenv[i/2] = ceps[i];
-              if ((log(fin[i]) - ceps[i]) > 0.23) cond = 1;
+              if (fenv[j] < ceps[i])
+                fenv[j] = ceps[i];
+              if ((LOG(fin[i]) - ceps[i]) > 0.23) cond = 1;
             }
             else
               {
-                fenv[i/2] = exp(ceps[i]);
-                max = max < fenv[i/2] ? fenv[i/2] : max;
+                fenv[j] = EXP(ceps[i]);
+                max = max < fenv[j] ? fenv[j] : max;
               }
           }
         }
         if (keepform > 1)
-          for (i=0; i<N; i+=2) {
-            fenv[i/2] = exp(ceps[i]);
-            max = max < fenv[i/2] ? fenv[i/2] : max;
+          for (j=i=0; i<N; i+=2, j++) {
+            fenv[j] = EXP(ceps[i]);
+            max = max < fenv[j] ? fenv[j] : max;
           }
         /* if (max)
            for (i=0; i<N/2; i++) fenv[i]/=max; */
@@ -2391,7 +2408,7 @@ static int pvsenvw(CSOUND *csound, PVSENVW *p)
     }
     for (i = 0; i < N/2 || i < size; i++) ftab[i] = fenv[i]*g;
     p->lastframe = p->fin->framecount;
-    *p->kflag = 1.0;
+    *p->kflag = FL(1.0);
   }
   return OK;
 
@@ -2424,6 +2441,43 @@ int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
   return OK;
 }
 
+typedef struct pvs2tabsplit_t {
+  OPDS h;
+  MYFLT *framecount;
+  ARRAYDAT *mags;
+  ARRAYDAT *freqs;
+  PVSDAT *fsig;
+} PVS2TABSPLIT_T;
+
+int pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
+{
+  if (UNLIKELY(!(p->fsig->format == PVS_AMP_FREQ) ||
+               (p->fsig->format == PVS_AMP_PHASE)))
+    return csound->InitError(csound, Str("pvs2tab: signal format "
+                                         "must be amp-phase or amp-freq."));
+
+  if (LIKELY(p->mags->data) && LIKELY(p->freqs->data))
+    return OK;
+
+  return csound->InitError(csound, Str("array-variable not initialised"));
+}
+
+int  pvs2tabsplit(CSOUND *csound, PVS2TABSPLIT_T *p){
+
+  int mags_size = p->mags->sizes[0], freqs_size = p->freqs->sizes[0],
+    N = p->fsig->N, i, j;
+  float *fsig = (float *) p->fsig->frame.auxp;
+  for(i = 0, j = 0; j < mags_size && i < N+2; i += 2, j++) {
+    p->mags->data[j] = (MYFLT) fsig[i];
+  }
+
+  for(i = 1, j = 0; j < freqs_size && i < N+2; i += 2, j++)
+    p->freqs->data[j] = (MYFLT) fsig[i];
+
+  *p->framecount = (MYFLT) p->fsig->framecount;
+  return OK;
+}
+
 typedef struct tab2pvs_t {
   OPDS h;
   PVSDAT *fout;
@@ -2435,49 +2489,105 @@ typedef struct tab2pvs_t {
 
 int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
 {
-    if (LIKELY(p->in->data)){
-      int N;
-      p->fout->N = N = p->in->sizes[0] - 2;
-      p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
-      p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
-      p->fout->wintype = (int32) *p->wintype;
-      p->fout->format = 0;
-      p->fout->framecount = 1;
-      p->lastframe = 0;
-      p->ktime = 0;
-      if (p->fout->frame.auxp == NULL ||
-          p->fout->frame.size < sizeof(float) * (N + 2)) {
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
-      }
-      else
-        memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
-      return OK;
+  if (LIKELY(p->in->data)){
+    int N;
+    p->fout->N = N = p->in->sizes[0] - 2;
+    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
+    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
+    p->fout->wintype = (int32) *p->wintype;
+    p->fout->format = 0;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+    p->ktime = 0;
+    if (p->fout->frame.auxp == NULL ||
+        p->fout->frame.size < sizeof(float) * (N + 2)) {
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     }
-    else return csound->InitError(csound, Str("array-variable not initialised"));
+    else
+      memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
+    return OK;
+  }
+  else return csound->InitError(csound, Str("array-variable not initialised"));
 }
 
 int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 {
-    int size = p->in->sizes[0], i;
-    float *fout = (float *) p->fout->frame.auxp;
+  int size = p->in->sizes[0], i;
+  float *fout = (float *) p->fout->frame.auxp;
 
-    p->ktime += CS_KSMPS;
-    if (p->ktime > (uint32) p->fout->overlap) {
-      p->fout->framecount++;
-      p->ktime -= p->fout->overlap;
+  p->ktime += CS_KSMPS;
+  if (p->ktime > (uint32) p->fout->overlap) {
+    p->fout->framecount++;
+    p->ktime -= p->fout->overlap;
+  }
+
+  if (p->lastframe < p->fout->framecount){
+    for (i = 0; i < size; i++){
+      fout[i] = (float) p->in->data[i];
     }
+    p->lastframe = p->fout->framecount;
+  }
 
-    if (p->lastframe < p->fout->framecount){
-      for (i = 0; i < size; i++){
-        fout[i] = (float) p->in->data[i];
-      }
-      p->lastframe = p->fout->framecount;
-    }
-
-    return OK;
+  return OK;
 }
 
+typedef struct tab2pvssplit_t {
+  OPDS h;
+  PVSDAT *fout;
+  ARRAYDAT *mags;
+  ARRAYDAT *freqs;
+  MYFLT  *olap, *winsize, *wintype, *format;
+  uint32 ktime;
+  uint32  lastframe;
+} TAB2PVSSPLIT_T;
 
+int tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
+{
+  if (LIKELY(p->mags->data) && LIKELY(p->freqs->data) &&
+      (p->mags->sizes[0] == p->freqs->sizes[0])) {
+    int N;
+    p->fout->N = N = (p->mags->sizes[0] * 2) - 2;
+    p->fout->overlap = (int32)(*p->olap ? *p->olap : N/4);
+    p->fout->winsize = (int32)(*p->winsize ? *p->winsize : N);
+    p->fout->wintype = (int32) *p->wintype;
+    p->fout->format = 0;
+    p->fout->framecount = 1;
+    p->lastframe = 0;
+    p->ktime = 0;
+    if (p->fout->frame.auxp == NULL ||
+        p->fout->frame.size < sizeof(float) * (N + 2)) {
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    }
+    else
+      memset(p->fout->frame.auxp, 0, sizeof(float)*(N+2));
+    return OK;
+  }
+  else return csound->InitError(csound,
+                                Str("magnitude and frequency arrays not "
+                                    "initialised, or are not the same size"));
+}
+
+int  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
+{
+  int size = p->mags->sizes[0], i;
+  float *fout = (float *) p->fout->frame.auxp;
+
+  p->ktime += CS_KSMPS;
+  if (p->ktime > (uint32) p->fout->overlap) {
+    p->fout->framecount++;
+    p->ktime -= p->fout->overlap;
+  }
+
+  if (p->lastframe < p->fout->framecount){
+    for (i = 0; i < size; i++){
+      fout[i * 2] = (float) p->mags->data[i];
+      fout[i * 2 + 1] = (float) p->freqs->data[i];
+    }
+    p->lastframe = p->fout->framecount;
+  }
+
+  return OK;
+}
 
 
 static OENTRY localops[] = {
@@ -2527,12 +2637,20 @@ static OENTRY localops[] = {
    (SUBR) pvsgainset, (SUBR) pvsgain, NULL},
   {"pvs2tab", sizeof(PVS2TAB_T), 0,3, "k", "k[]f",
    (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
+  {"pvs2tab", sizeof(PVS2TABSPLIT_T), 0,3, "k", "k[]k[]f",
+   (SUBR) pvs2tabsplit_init, (SUBR) pvs2tabsplit, NULL},
   {"tab2pvs", sizeof(TAB2PVS_T), 0, 3, "f", "k[]oop", (SUBR) tab2pvs_init,
    (SUBR) tab2pvs, NULL},
+  {"tab2pvs", sizeof(TAB2PVSSPLIT_T), 0, 3, "f", "k[]k[]oop",
+   (SUBR) tab2pvssplit_init, (SUBR) tab2pvssplit, NULL},
   {"pvs2array", sizeof(PVS2TAB_T), 0,3, "k", "k[]f",
    (SUBR) pvs2tab_init, (SUBR) pvs2tab, NULL},
+  {"pvs2array", sizeof(PVS2TABSPLIT_T), 0,3, "k", "k[]k[]f",
+   (SUBR) pvs2tabsplit_init, (SUBR) pvs2tabsplit, NULL},
   {"pvsfromarray", sizeof(TAB2PVS_T), 0, 3, "f", "k[]oop",
-   (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL}
+   (SUBR) tab2pvs_init, (SUBR) tab2pvs, NULL},
+  {"pvsfromarray", sizeof(TAB2PVSSPLIT_T), 0, 3, "f", "k[]k[]oop",
+   (SUBR) tab2pvssplit_init, (SUBR) tab2pvssplit, NULL}
 };
 
 int pvsbasic_init_(CSOUND *csound)

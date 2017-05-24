@@ -396,12 +396,13 @@ int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 int serialRead(CSOUND *csound, SERIALREAD *p)
 {
     unsigned char b = 0;
-    ssize_t bytes;
 #ifdef WIN32
+    size_t bytes;
     HANDLE port = get_port(csound, (int)*p->port);
     if (port==NULL) return NOTOK;
     ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
 #else
+    ssize_t bytes;
     bytes = read((int)*p->port, &b, 1);
 #endif
     if (bytes > 0)
@@ -415,12 +416,13 @@ int serialRead(CSOUND *csound, SERIALREAD *p)
 int serialPrint(CSOUND *csound, SERIALPRINT *p)
 {
     char str[32769];
-    ssize_t bytes;
 #ifdef WIN32
+    size_t bytes;
     HANDLE port = get_port(csound, (int)*p->port);
     if (port==NULL) return NOTOK;
     ReadFile(port, str, 32768, (PDWORD)&bytes, NULL);
 #else
+    ssize_t bytes;
     bytes  = read((int)*p->port, str, 32768);
 #endif
     if (bytes > 0) {

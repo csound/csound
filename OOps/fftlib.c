@@ -3353,15 +3353,6 @@ void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
   New FFT interface
   VL, 2016
 */
-typedef struct _FFT_SETUP{
-  int N, M;
-  void  *setup;
-  MYFLT *buffer;
-  int    lib;
-  int    d;
-} CSOUND_FFT_SETUP;
-
-
 static
 void pffft_execute(CSOUND_FFT_SETUP *setup,
                    MYFLT *sig) {
@@ -3448,6 +3439,10 @@ int setupDispose(CSOUND *csound, void *pp){
   return OK;
 }
 
+int isPowTwo(int N) {
+  return (N != 0) ? !(N & (N - 1)) : 0;
+}
+
 void *csoundRealFFT2Setup(CSOUND *csound,
                          int FFTsize,
                          int d){
@@ -3464,7 +3459,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   setup = (CSOUND_FFT_SETUP *)
     csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
   setup->N = FFTsize;
-
+  setup->p2 = isPowTwo(FFTsize);
   switch(lib){
 #if defined(__MACH__) && !defined(IOS)
   case VDSP_LIB:

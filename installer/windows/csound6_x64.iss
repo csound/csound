@@ -15,7 +15,7 @@
 ; DIRECTORY STRUCTURE
 ;
 ; C:\Program Files\Csound6
-;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, NW.js, and CEF binary trees here; but not Csound opcodes).
+;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, and NW.js binary trees here; but not Csound opcodes).
 ;     doc (copy tree)
 ;     examples (copy tree but exclude .wav files)
 ;     include
@@ -39,9 +39,9 @@
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.08.0-vst"
+#define MyAppMinVersion "6.09.0-vst"
 #else
-#define MyAppMinVersion "6.08.0"
+#define MyAppMinVersion "6.09.0"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
@@ -62,17 +62,17 @@
 ; If you are not Michael Gogins, change this to your CsoundQt repository directory.
 #define MyCsoundQtDir "C:\Users\restore\CsoundQt\"
 ; If you are not Michael Gogins, change this to your CsoundQt bin directory.
-#define MyCsoundQtBinDir "D:\msys64\home\restore\csound\mingw64\bin\"
+#define MyCsoundQtBinDir "C:\Users\restore\CsoundQt\bin\"
 ; If you are not Michael Gogins, change this to your Qt SDK directory.
 #define MyQtSdkDir "C:\Qt\"
 ; If you are not Michael Gogins, change this to your Qt SDK DLL directory.
-#define MyQtSdkBinDir "C:\Qt\Qt5.7.0\5.7\msvc2013_64\bin\"
-; If you are not Michael Gogins, change this to your unzipped Chromium Embedded Framework directory.
-#define MyCefHome "D:\cef_binary_3.2785.1474.g4a88e67_windows64\"
+#define MyQtSdkBinDir "C:\Qt\Qt5.8.0\5.8\msvc2015_64\bin\"
+; If you are not Michael Gogins, change this to your PythonQt DLL directory.
+#define MyPythonQtBinDir "C:\Users\restore\PythonQt3.1_tarmo\lib\"
 ; If you are not Michael Gogins, change this to your STK source directory.
 #define MyLibStkSourceDir "D:\msys64\home\restore\csound\mingw64\packages\stk\src\stk-4.5.1\"
 ; If you are not Michael Gogins, change this to your NW.js installation directory.
-#define MyNwJsDir "D:\nwjs-sdk-v0.17.1-win-x64\"
+#define MyNwJsDir "D:\nwjs-sdk-v0.22.3-win-x64\"
 ; If you are not Michael Gogins, change this to your Winpthreads installation directory.
 #define MyWinPthreadsDir "D:\msys64\home\restore\pthreads-w32-2-9-1-release\Pre-built.2\"
 #define MyPackagesDir "D:\msys64\home\restore\csound\mingw64\packages\"
@@ -162,20 +162,26 @@ Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x64\Micro
 #include "csound_targets_and_dependencies.iss"
 
 ; Some targets not identified by "find_csound_dependencies.py."
+Source: "{#MySourceDir}/mingw64/csound64.lib"; DestDir: "{app}\lib"; Components: core;
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.node"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MySourceDir}frontends/nwjs/build/Release/csound.pdb"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyNwJsDir}*.*"; DestDir: "{#APP_BIN}\"; Flags: ignoreversion recursesubdirs;  Components: core
-Source: "{#MySourceDir}mingw64/run_csound_editor.cmd"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyPackagesDir}portaudio_asio\src\mingw-w64-x86_64-portaudio\bin\.libs\pa_devs.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyPackagesDir}portaudio_asio\src\mingw-w64-x86_64-portaudio\bin\.libs\pa_minlat.exe"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MySourceDir}Opcodes\AbletonLinkOpcodes\x64\Release\*.dll"; DestDir: "{#APP_PLUGINS64}"; Components: core;
+
 
 Source: "{#MyMingw64Dir}\bin\luajit.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 ; NOTE: The .qml files are compiled into the resources of CsoundQt.
-Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyCsoundQtBinDir}CsoundQt-d-py-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyCsoundQtDir}examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#MyCsoundQtDir}src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 
+Source: "{#MyPythonQtBinDir}PythonQt.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyPythonQtBinDir}PythonQt_QtAll.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}libEGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}libGLESv2.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Network.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -183,17 +189,20 @@ Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components
 Source: "{#MyQtSdkBinDir}Qt5Qml.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Quick.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5QuickWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Sql.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5WebChannel.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5WebEngine.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5WebEngineCore.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5WebEngineWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5XmlPatterns.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\imageformats\*.dll"; DestDir: "{#APP_BIN}\plugins\imageformats"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\platforms\qwindows.dll"; DestDir: "{#APP_BIN}\platforms"; Components: core;
 Source: "{#MyQtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; DestDir: "{#APP_BIN}\plugins\printsupport"; Components: core;
 Source: "{#MyQtSdkBinDir}..\qml\QtQml\*.*"; DestDir: "{#APP_BIN}QtQml"; Flags: ignoreversion recursesubdirs;  Components: core;
 Source: "{#MyQtSdkBinDir}..\qml\QtQuick\*.*"; DestDir: "{#APP_BIN}QtQuick"; Flags: ignoreversion recursesubdirs;  Components: core;
 Source: "{#MyQtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Flags: ignoreversion recursesubdirs;  Components: core;
-
-Source: "{#MyCefHome}Resources\*.*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs; Components: core;
-Source: "{#MyCefHome}Release\*.*"; DestDir: "{#APP_BIN}"; Excludes: "*.lib"; Flags: ignoreversion; Components: core;
 
 Source: {#MyWinPthreadsDir}dll\x64\pthreadVC2.dll; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
@@ -203,6 +212,8 @@ Source: {#MyLibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile";
 Source: include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: H/pffft.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: interfaces/csPerfThread.*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: interfaces/*.py; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core
 Source: frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ignoreversion;  Components: core
 
 Source: {#MyManualSourceDir}html\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs;  Components: core
@@ -225,8 +236,7 @@ Source: "doc\csound_system_documentation\*.pdf"; DestDir:"{#APP_APIREF}"; Flags:
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#MyAppURL}";  Components: core;
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
-Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core
-Name: "{group}\NW.js"; Filename: "{#APP_BIN}run_csound_editor.cmd"; WorkingDir: "{#APP_BIN}";  Components: core
+Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-py-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core

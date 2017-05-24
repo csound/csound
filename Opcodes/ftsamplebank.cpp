@@ -30,6 +30,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace csound;
 
 /* this function will load all samples of supported types into function
    tables number 'index' and upwards.
@@ -48,7 +49,7 @@ public:
     // Inputs.
     STRINGDAT* sDirectory;
     MYFLT* index;
-    MYFLT* trigger;
+  //    MYFLT* trigger;
     MYFLT* skiptime;
     MYFLT* format;
     MYFLT* channel;
@@ -60,6 +61,8 @@ public:
       skiptime = 0;
       format = 0;
       index = 0;
+      numberOfFiles = 0;
+      sDirectory = NULL;
     }
 
     //init-pass
@@ -101,6 +104,7 @@ public:
       skiptime = 0;
       format = 0;
       index = 0;
+      trigger = 0;
     }
 
     //init-pass
@@ -351,7 +355,7 @@ extern "C" {
       return 0;
   }
 #endif
-  
+
   PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound)
   {
 

@@ -149,7 +149,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
 {
     FUNC    *ftp;
     int     i, j, k, n, nBytes, skipSamples;
-    MYFLT   FFTscale;
+    //MYFLT   FFTscale;
 
     /* check parameters */
     p->nChannels = (int) p->OUTOCOUNT;
@@ -210,7 +210,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     p->rbCnt = 0;
     /* calculate FFT of impulse response partitions, in reverse order */
     /* also apply FFT amplitude scale here */
-    FFTscale = csound->GetInverseRealFFTScale(csound, (p->partSize << 1));
+    //FFTscale = csound->GetInverseRealFFTScale(csound, (p->partSize << 1));
     p->fwdsetup = csound->RealFFT2Setup(csound,(p->partSize << 1), FFT_FWD);
     p->invsetup = csound->RealFFT2Setup(csound,(p->partSize << 1), FFT_INV);
     for (j = 0; j < p->nChannels; j++) {
@@ -219,7 +219,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
       do {
         for (k = 0; k < p->partSize; k++) {
           if (i >= 0 && i < (int) ftp->flen)
-            p->IR_Data[j][n + k] = ftp->ftable[i] * FFTscale;
+            p->IR_Data[j][n + k] = ftp->ftable[i];// * FFTscale;
           else
             p->IR_Data[j][n + k] = FL(0.0);
           i += p->nChannels;

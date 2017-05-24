@@ -24,6 +24,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "CsoundObj.h"
 
 @interface CsoundUI : NSObject
@@ -35,5 +36,7 @@
 - (void)addSlider:(UISlider *)uiSlider forChannelName:(NSString *)channelName;
 - (void)addSwitch:(UISwitch *)uiSwitch forChannelName:(NSString *)channelName;
 - (void)addMomentaryButton:(UIButton *)uiButton forChannelName:(NSString *)channelName;
+
+@property int labelPrecision;
 
 @end

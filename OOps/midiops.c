@@ -1,30 +1,31 @@
 /*
-    midiops.c:
+  midiops.c:
 
-    Copyright (C) 1995 Barry Vercoe, Gabriel Maldonado,
-                       Istvan Varga, John ffitch
+  Copyright (C) 1995 Barry Vercoe, Gabriel Maldonado,
+  Istvan Varga, John ffitch
 
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 
 #include "csoundCore.h"                                 /*      MIDIOPS.C   */
 #include "midiops.h"
 #include <math.h>
+#include <time.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 
 #define dv127   (FL(1.0)/FL(127.0))
@@ -36,11 +37,11 @@ extern int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls);
 
 #define MIDI_VALUE(m,field) ((m != (MCHNBLK *) NULL) ? m->field : FL(0.0))
 
-    /*
-     * m (=m_chnbp) can easily be NULL (the only place it gets set, as
-     * of 3.484, is in MIDIinsert) so we should check for validity
-     *                                  [added by nicb@axnet.it]
-     */
+/*
+ * m (=m_chnbp) can easily be NULL (the only place it gets set, as
+ * of 3.484, is in MIDIinsert) so we should check for validity
+ *                                  [added by nicb@axnet.it]
+ */
 
 /* This line has reverted to checking the null pointer as the code in oload
  * does leaves it null if there is no chanel.  The correct fix is to fix that
@@ -78,8 +79,8 @@ int massign_S(CSOUND *csound, MASSIGNS *p)
     int   resetCtls;
     int   retval = OK;
 
-   if (UNLIKELY((instno = strarg2insno(csound, p->insno->data, 1)) <= 0L))
-        return NOTOK;
+    if (UNLIKELY((instno = strarg2insno(csound, p->insno->data, 1)) <= 0L))
+      return NOTOK;
 
     resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
     if (--chnl >= 0)
@@ -166,7 +167,7 @@ int veloc(CSOUND *csound, MIDIMAP *p)           /* valid only at I-time */
 
 int pchmidi(CSOUND *csound, MIDIKMB *p)
 {
-   IGN(csound);
+    IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     double fract, oct, ioct;
     oct = lcurip->m_pitch / 12.0 + 3.0;
@@ -215,18 +216,18 @@ int octmidib(CSOUND *csound, MIDIKMB *p)
 
 int octmidib_i(CSOUND *csound, MIDIKMB *p)
 {
-  midibset(csound, p);
-  octmidib(csound, p);
-  return OK;
+    midibset(csound, p);
+    octmidib(csound, p);
+    return OK;
 }
 
 int cpsmidi(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
     int32  loct;
-/*    loct = (long)(((lcurip->m_pitch +
- *       pitchbend_value(lcurip->m_chnbp) * p->iscal)/ 12.0f + 3.0f) * OCTRES);
- */
+    /*    loct = (long)(((lcurip->m_pitch +
+     *       pitchbend_value(lcurip->m_chnbp) * p->iscal)/ 12.0f + 3.0f) * OCTRES);
+     */
     loct = (int32)((lcurip->m_pitch/ FL(12.0) + FL(3.0)) * OCTRES);
     *p->r = CPSOCTL(loct);
     return OK;
@@ -239,7 +240,7 @@ int icpsmidib(CSOUND *csound, MIDIKMB *p)
     MYFLT bend = pitchbend_value(lcurip->m_chnbp);
     p->prvbend = bend;
     loct = (int32)(((lcurip->m_pitch +
-                    bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
+                     bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
     *p->r = CPSOCTL(loct);
     return OK;
 }
@@ -257,12 +258,12 @@ int kcpsmidib(CSOUND *csound, MIDIKMB *p)
     MYFLT bend = pitchbend_value(lcurip->m_chnbp);
 
     if (bend == p->prvbend || lcurip->relesing)
-        *p->r = p->prvout;
+      *p->r = p->prvout;
     else {
       int32  loct;
       p->prvbend = bend;
       loct = (int32)(((lcurip->m_pitch +
-                      bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
+                       bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
       *p->r = p->prvout = CPSOCTL(loct);
     }
     return OK;
@@ -307,7 +308,7 @@ int midibset(CSOUND *csound, MIDIKMB *p)
 
 int aftset(CSOUND *csound, MIDIKMAP *p)
 {
-   IGN(csound);
+    IGN(csound);
     p->lo = *p->ilo;
     p->scale = (*p->ihi - p->lo) * dv127;
     return OK;
@@ -315,7 +316,7 @@ int aftset(CSOUND *csound, MIDIKMAP *p)
 
 int aftouch(CSOUND *csound, MIDIKMAP *p)
 {
-   IGN(csound);
+    IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     *p->r = p->lo + MIDI_VALUE(lcurip->m_chnbp, aftouch) * p->scale;
     return OK;
@@ -327,7 +328,7 @@ int imidictl(CSOUND *csound, MIDICTL *p)
     if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, ctl_val[ctlno])
-                 * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
+           * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
 }
 
@@ -358,7 +359,7 @@ int imidiaft(CSOUND *csound, MIDICTL *p)
     if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, polyaft[ctlno])
-                 * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
+           * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
 }
 
@@ -439,22 +440,22 @@ int pgmassign_(CSOUND *csound, PGMASSIGN *p, int instname)
 }
 
 int pgmassign_S(CSOUND *csound, PGMASSIGN *p){
-  return pgmassign_(csound,p,1);
+    return pgmassign_(csound,p,1);
 }
 
 int pgmassign(CSOUND *csound, PGMASSIGN *p){
-  return pgmassign_(csound,p,0);
+    return pgmassign_(csound,p,0);
 }
 
 int ichanctl(CSOUND *csound, CHANCTL *p)
 {
     int32  ctlno, chan = (int32)(*p->ichano - FL(1.0));
     if (UNLIKELY(chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL))
-        return csound->InitError(csound, Str("illegal channel number"));
+      return csound->InitError(csound, Str("illegal channel number"));
     if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
-        return csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = csound->m_chnbp[chan]->ctl_val[ctlno] * (*p->ihi - *p->ilo)
-                 * dv127 + *p->ilo;
+           * dv127 + *p->ilo;
     return OK;
 }
 
@@ -486,13 +487,13 @@ int ipchbend(CSOUND *csound, MIDIMAP *p)
 {
     IGN(csound);
     *p->r = *p->ilo + (*p->ihi - *p->ilo) *
-            pitchbend_value(p->h.insdshead->m_chnbp);
+      pitchbend_value(p->h.insdshead->m_chnbp);
     return OK;
 }
 
 int kbndset(CSOUND *csound, MIDIKMAP *p)
 {
-   IGN(csound);
+    IGN(csound);
     p->lo = *p->ilo;
     p->scale = *p->ihi - *p->ilo;
     return OK;
@@ -500,7 +501,7 @@ int kbndset(CSOUND *csound, MIDIKMAP *p)
 
 int kpchbend(CSOUND *csound, MIDIKMAP *p)
 {
-   IGN(csound);
+    IGN(csound);
     INSDS *lcurip = p->h.insdshead;
     *p->r = p->lo + pitchbend_value(lcurip->m_chnbp) * p->scale;
     return OK;
@@ -543,7 +544,7 @@ int pgmin(CSOUND *csound, PGMIN *p)
       st = *temp & (unsigned char) 0xf0;
       ch = (*temp & 0x0f) + 1;
       d1 = *++temp;
-/*       d2 = *++temp; */
+      /*       d2 = *++temp; */
       if (st == 0xC0 && (p->watch==0 || p->watch==ch)) {
         *p->pgm = (MYFLT)1+d1;
         *p->chn = (MYFLT)ch;
@@ -600,4 +601,154 @@ int ctlin(CSOUND *csound, CTLIN *p)
     }
     return OK;
 
+}
+
+
+/* MIDIARP by Rory Walsh, 2016
+ */
+
+int midiarp_set(CSOUND *csound, MIDIARP *p)
+/* MIDI Arp - Jan 2017 - RW */
+{
+    srand(time(NULL));
+    p->flag=1, *p->arpMode=0, p->direction=2, p->noteIndex=9;
+    p->maxNumNotes=10, p->noteCnt=0, p->status=0, p->chan=0;
+    p->data1=0, p->data2=0;
+
+    p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
+
+    int cnt;
+    for(cnt=0;cnt<10;cnt++)
+      p->notes[cnt] = 0;
+
+    return OK;
+}
+
+void sort_notes(int notes[], int n)
+{
+    int j,i,tmp;
+    for (i = 0; i < n; ++i){
+      for (j = i + 1; j < n; ++j){
+        if (notes[i] > notes[j]){
+          tmp =  notes[i];
+          notes[i] = notes[j];
+          notes[j] = tmp;
+        }
+      }
+    }
+}
+
+void zeroNoteFromArray(int notes[], int noteNumber, int size)
+{
+    int i;
+    for(i=0;i<size;i++){
+      if(notes[i]==noteNumber)
+        notes[i]=0;
+    }
+}
+
+int metroCounter(MIDIARP *p)
+{
+    double phs = p->curphs;
+    if (phs == 0.0 && p->flag) {
+      p->metroTick = FL(1.0);
+      p->flag = 0;
+    }
+    else if ((phs += *p->arpRate * CS_ONEDKR) >= 1.0) {
+      p->metroTick = FL(1.0);
+      phs -= 1.0;
+      p->flag = 0;
+    }
+    else
+      p->metroTick = FL(0.0);
+
+    p->curphs = phs;
+    return p->metroTick;
+}
+
+
+int midiarp(CSOUND *csound, MIDIARP *p)
+{
+    int i=0;
+    unsigned char *temp;
+    if  (p->local_buf_index != MGLOB(MIDIINbufIndex))
+      {
+        temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
+        p->local_buf_index &= MIDIINBUFMSK;
+        p->status = (MYFLT) (*temp & (unsigned char) 0xf0);
+        p->chan   = (MYFLT) ((*temp & 0x0f) + 1);
+        p->data1  = (MYFLT) *++temp;
+        p->data2  = (MYFLT) *++temp;
+
+        if(p->status==144 && p->data2>0){
+          p->notes[p->noteCnt] = p->data1;
+
+          for(i  = 0 ; i < p->maxNumNotes ; i++)
+            p->sortedNotes[i] = p->notes[i];
+
+          p->noteCnt = (p->noteCnt>p->maxNumNotes-1 ?
+                        p->maxNumNotes-1 : p->noteCnt+1);
+          sort_notes(p->sortedNotes, 10);
+
+        }
+        else if(p->status==128 || (p->status==144 && p->data2==0)){
+          zeroNoteFromArray(p->notes, p->data1, p->maxNumNotes);
+
+          for(i  = 0 ; i < p->maxNumNotes ; i++)
+            p->sortedNotes[i] = p->notes[i];
+
+          p->noteCnt = (p->noteCnt<0 ? 0 : p->noteCnt-1);
+          sort_notes(p->sortedNotes, p->maxNumNotes);
+        }
+      }
+    else p->status = FL(0.0);
+
+    if(p->noteCnt != 0) {
+      // only when some note/s are pressed
+      *p->counter = metroCounter(p);
+      if(*p->counter == 1){
+
+        if(p->noteIndex<p->maxNumNotes && p->sortedNotes[p->noteIndex]!=0)
+          *p->noteOut = p->sortedNotes[p->noteIndex];
+
+        if(*p->arpMode==0){
+          //up and down pattern
+          if(p->direction>0) {
+            p->noteIndex = (p->noteIndex < p->maxNumNotes-1
+                            ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
+            if(p->noteIndex==p->maxNumNotes-1)
+              p->direction = -2;
+          }
+          else{
+            p->noteIndex = (p->noteIndex > p->maxNumNotes - p->noteCnt
+                            ? p->noteIndex-1 : p->maxNumNotes-1);
+            if(p->noteIndex==p->maxNumNotes-p->noteCnt)
+              p->direction = 2;
+
+          }
+        }
+        else if(*p->arpMode==1) {
+          //up only pattern
+          p->noteIndex = (p->noteIndex < p->maxNumNotes-1
+                          ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
+        }else if(*p->arpMode==2) {
+          //down only pattern
+          p->noteIndex = (p->noteIndex > p->maxNumNotes - p->noteCnt
+                          ? p->noteIndex-1 : p->maxNumNotes-1);
+        }
+        else if(*p->arpMode==3) {
+          //random pattern
+          int randIndex = ((rand() % 100)/100.f)*(p->noteCnt);
+          p->noteIndex = p->maxNumNotes-randIndex-1;
+        }
+        else{
+          csound->Message(csound,
+                          Str("Invalid arp mode selected:"
+                              " %d. Valid modes are 0, 1, 2, and 3\n"),
+                          *p->arpMode);
+        }
+      }
+    }
+
+    return OK;
 }

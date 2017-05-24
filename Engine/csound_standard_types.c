@@ -70,18 +70,23 @@ void string_copy_value(void* csound, void* dest, void* src) {
         cs->Free(cs, sDest->data);
       }
       sDest->data = cs_strdup(csound, sSrc->data);
+      sDest->size = strlen(sDest->data)+1;
     } else {
       if (sDest->data == NULL) {
         sDest->data = cs_strdup(csound, sSrc->data);
+        sDest->size = strlen(sDest->data)+1;
       } else {//breaks here
-        //fprintf(stderr, " in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
-        //        sSrc, sSrc->size, sSrc->data, sDest->size, sDest->data);
+        //fprintf(stderr, "\n in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
+        //   sSrc->data, sSrc->size, sSrc->data, sDest->size, sDest->data);
         //memcpy(sDest->data, sSrc->data, sDest->size);
-        strcpy(sDest->data, sSrc->data);
+        //memset(sDest->data,0,sDest->size);
+        strncpy(sDest->data, sSrc->data, sDest->size-1);
+
         //cs->Free(cs, sDest->data); sDest->data = cs_strdup(csound, sSrc->data);
+        //sDest->size = strlen(sDest->data)+1;
       }
     }
-    sDest->size = sSrc->size;
+    //sDest->size = sSrc->size;
     //fprintf(stderr, "out:srcsize=%d >>>%s<<<dstsize=%d dst->data=%p\n",
     //        sSrc->size, sSrc->data, sDest->size, sDest->data);
 }
@@ -163,8 +168,8 @@ void arrayInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
 void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
     CSOUND* cs = (CSOUND*)csound;
-    str->data = cs_strdup(cs, "hello");
-    str->size = 6;
+    str->data = (char *) cs->Calloc(csound, 8);
+    str->size = 8;
     //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
 }
 

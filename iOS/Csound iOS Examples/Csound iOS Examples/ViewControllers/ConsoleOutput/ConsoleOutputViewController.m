@@ -3,6 +3,7 @@
  ConsoleOutputViewController.m:
  
  Copyright (C) 2014 Thomas Hass, Aurelius Prochazka
+ Updated in 2017 by Dr. Richard Boulanger, Nikhil Singh
  
  This file is part of Csound iOS Examples.
  
@@ -25,20 +26,114 @@
 
 #import "ConsoleOutputViewController.h"
 
+@interface ConsoleOutputViewController() {
+    NSArray *csdArray;
+    NSString *csdPath;
+    NSString *folderPath;
+    
+    UIViewController *csdListVC;
+}
+
+@end
+
 @implementation ConsoleOutputViewController
+
+- (void)viewDidLoad {
+    NSError *error;
+    folderPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"csdStorage/"];
+    csdArray = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:folderPath error:&error];
+    
+    if(error != nil) NSLog(@"%@", [error localizedDescription]);
+    
+    csdPath = [[NSBundle mainBundle] pathForResource:@"Yi - Countdown" ofType:@"csd" inDirectory:@"csdStorage"];
+    NSLog(@"%@", csdArray);
+}
+
+#pragma mark UITableView Methods
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    csdPath = [folderPath stringByAppendingPathComponent:[tableView cellForRowAtIndexPath:indexPath].textLabel.text];
+    [csdListVC dismissViewControllerAnimated:YES completion:nil];
+}
+
+-(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return csdArray.count;
+}
+
+-(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] init];
+    cell.textLabel.text = [csdArray objectAtIndex:indexPath.row];
+    return cell;
+}
+
+#pragma mark IBActions
 
 - (IBAction)run:(UIButton *)sender
 {
-	mTextView.text = @"";
-	
-	[self.csound stop];
-	self.csound = [[CsoundObj alloc] init];
-	
-	[self.csound setMessageCallback:@selector(messageCallback:) withListener:self];
-	
-	NSString *csdPath = nil;
-	csdPath = [[NSBundle mainBundle] pathForResource:@"consoleoutput" ofType:@"csd"];
-	[self.csound play:csdPath];
+    if(sender.isSelected == NO) {
+        mTextView.text = @"";
+        [sender setSelected:YES];
+        
+        [self.csound stop];
+        self.csound = [[CsoundObj alloc] init];
+        [self.csound setMessageCallback:@selector(messageCallback:) withListener:self];
+        [self.csound addListener:self];
+        [self.csound play:csdPath];
+    } else {
+        [self.csound stop];
+        [sender setSelected:NO];
+    }
+}
+
+- (IBAction)showCSDs:(UIButton *)sender {
+    csdListVC = [[UIViewController alloc] init];
+    csdListVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = csdListVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [csdListVC setPreferredContentSize:CGSizeMake(300, 600)];
+    
+    self.csdTable = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, csdListVC.preferredContentSize.width, csdListVC.preferredContentSize.height)];
+    self.csdTable.delegate = self;
+    self.csdTable.dataSource = self;
+    [csdListVC.view addSubview:self.csdTable];
+    
+    popover.delegate = self;
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:csdListVC animated:YES completion:nil];
+}
+
+- (IBAction)showInfo:(UIButton *)sender {
+    UIViewController *infoVC = [[UIViewController alloc] init];
+    infoVC.modalPresentationStyle = UIModalPresentationPopover;
+    
+    UIPopoverPresentationController *popover = infoVC.popoverPresentationController;
+    popover.sourceView = sender;
+    popover.sourceRect = sender.bounds;
+    [infoVC setPreferredContentSize:CGSizeMake(300, 160)];
+    
+    UITextView *infoText = [[UITextView alloc] initWithFrame:CGRectMake(0, 0, infoVC.preferredContentSize.width, infoVC.preferredContentSize.height)];
+    infoText.editable = NO;
+    infoText.selectable = NO;
+    NSString *description = @"Renders, by default, a simple 5-second 'countdown' csd and publishes information to a virtual Csound console every second. Click the CSD button on the right to select a different csd file.";
+    [infoText setAttributedText:[[NSAttributedString alloc] initWithString:description]];
+    infoText.font = [UIFont fontWithName:@"Menlo" size:16];
+    [infoVC.view addSubview:infoText];
+    popover.delegate = self;
+    
+    [popover setPermittedArrowDirections:UIPopoverArrowDirectionUp];
+    
+    [self presentViewController:infoVC animated:YES completion:nil];
+    
+}
+
+-(void)csoundObjCompleted:(CsoundObj *)csoundObj
+{
+    dispatch_async(dispatch_get_main_queue(), ^(void) {
+        [self.renderButton setSelected:NO];
+    });
 }
 
 - (void)updateUIWithNewMessage:(NSString *)newMessage
@@ -51,7 +146,7 @@
 - (void)messageCallback:(NSValue *)infoObj
 {
     @autoreleasepool {
-    
+
         Message info;
         [infoObj getValue:&info];
         char message[1024];
@@ -67,7 +162,7 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        self.title = @"Console Output";
+        self.title = @"07. Console Output";
     }
     return self;
 }
