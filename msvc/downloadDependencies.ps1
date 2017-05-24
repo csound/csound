@@ -11,7 +11,7 @@ $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
 $depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
-$vsGenerator = "Visual Studio 15 2017 Win64"
+$vsGenerator = "Visual Studio 14 2015 Win64"
 
 # Metrics
 $vcpkgTiming = 0
@@ -201,7 +201,7 @@ copy ..\porttime\porttime.h -Destination $depsIncDir -Force
 # Liblo
 cd $stageDir
 # TEMP: seeing as the repo has changed, need to delete the old one first
-Remove-Item -Recurse -Force liblo
+Remove-Item -Recurse -Force liblo -ErrorAction SilentlyContinue
 
 if (Test-Path "liblo")
 {
@@ -212,7 +212,7 @@ if (Test-Path "liblo")
 }
 else
 {
-    git clone --depth=1 "https://github.com/stekyne/liblo.git"
+    git clone --depth=1 "https://github.com/radarsat1/liblo.git"
 }
 
 mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
