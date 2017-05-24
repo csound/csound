@@ -174,8 +174,27 @@ if(APPLE)
     set(OSX_VERSION " ")
 endif()
 
+## USER OPTIONS ##
+# Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
+option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
+option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
+option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
+option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
+option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
+option(USE_GETTEXT "Use the Gettext internationalization library" ON)
+option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
+option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
+option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
+option(USE_CURL "Use CURL library" ON)
+option(BUILD_RELEASE "Build for release" ON)
+option(BUILD_INSTALLER "Build installer" OFF)
+option(BUILD_TESTS "Build tests" ON)
+option(USE_GIT_COMMIT "Show the git commit in version information" ON)
+option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
+
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
+# Also after user options so that the default values don't overwrite the custom files values
 find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
 if(CUSTOM_CMAKE)
     message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
@@ -290,32 +309,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 else()
     set(LINUX NO)
 endif()
-## USER OPTIONS ##
-
-option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
-option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
-
-option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
-
-option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
-
-option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
-
-option(USE_GETTEXT "Use the Gettext internationalization library" ON)
-
-option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
-
-option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
-option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
-option(USE_CURL "Use CURL library" ON)
-option(BUILD_RELEASE "Build for release" ON)
-option(BUILD_INSTALLER "Build installer" OFF)
-option(BUILD_TESTS "Build tests" ON)
-option(USE_GIT_COMMIT "Show the git commit in version information" ON)
-option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
-
-# Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
-
 
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 

@@ -27,7 +27,7 @@
 #define CSOUND_STR_OPS_C    1
 #include "str_ops.h"
 #include <ctype.h>
-#ifdef USE_CURL && HAVE_CURL
+#ifdef HAVE_CURL
 #include <curl/curl.h>
 #include "corfile.h"
 #endif
@@ -1106,7 +1106,7 @@ int strrindex_opcode(CSOUND *csound, STRINDEX_OP *p)
     return OK;
 }
 
-#ifdef USE_CURL && HAVE_CURL
+#ifdef HAVE_CURL
 int str_from_url(CSOUND *csound, STRCPY_OP *p)
 {
     char  *newVal = p->str->data;
