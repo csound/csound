@@ -163,6 +163,7 @@ else
 }
 
 copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
+rm -Path portaudioBuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir portaudioBuild -ErrorAction SilentlyContinue
 cd portaudioBuild
 cmake ..\portaudio -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
@@ -186,6 +187,7 @@ else
 }
 
 cd portmidi\portmidi\trunk
+rm -Path build -Force -Recurse -ErrorAction SilentlyContinue
 mkdir build -ErrorAction SilentlyContinue
 cd build
 cmake .. -G $vsGenerator -DCMAKE_BUILD_TYPE="Release"
@@ -216,6 +218,7 @@ else
 }
 
 mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
+rm -Path liblo\cmakebuild -Force -Recurse -ErrorAction SilentlyContinue
 cd liblo\cmakebuild
 cmake ..\cmake -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
 cmake --build . --config Release
