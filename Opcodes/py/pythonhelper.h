@@ -21,7 +21,13 @@
 #ifndef _pycsound_pythonhelper_h_
 #define _pycsound_pythonhelper_h_
 
-#include <Python.h>
+#ifdef _DEBUG
+# undef _DEBUG
+#  include <Python.h>
+# define _DEBUG
+#else
+# include <Python.h>
+#endif
 
 /*
   I do it because I can't #include <Python.h> in "csoundCore.h".

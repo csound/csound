@@ -21,7 +21,13 @@
 #ifndef _pycsound_pythonopcodes_h_
 #define _pycsound_pythonopcodes_h_
 
-#include <Python.h>
+#ifdef _DEBUG
+# undef _DEBUG
+#  include <Python.h>
+# define _DEBUG
+#else
+# include <Python.h>
+#endif
 #include "csdl.h"
 #include "pyx.auto.h"
 #include "pycall.auto.h"
