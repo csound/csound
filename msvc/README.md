@@ -9,6 +9,7 @@ The goal is to have as much of Csound build in a native Windows manner as possib
 1. Visual Studio 2017 x64 Community Edition (free) or greater 
     * Needs to have C++ tools installed, which isn't the detault
     * https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15
+    * In the installer, in the "Individual components" section. You should install "Python 2 64 bit", "VC++ 2015.3 toolset", "VC++ 2017 toolset", "Windows Universal CRT SDK", "Windows XP Support for C++", "Windows 10 SDK", "Windows 8.1 SDK" depending on the type of build you wish to create.
 2. CMake version 3.6.0 or higher
     * https://cmake.org/files/v3.8/cmake-3.8.0-rc4-win64-x64.msi
     * Ensure Cmake is available on the Windows path
@@ -59,7 +60,7 @@ In VS, select the build configuration from the top combo box. Either Debug, Rele
 
 If a change to any of the cmakelists.txt occurs, VS will automatically run cmake and rebuild the solution. You should avoid running cmake externally to generate the project while VS is open and just let VS take care of it.
 
-Optionally from the command line you can build by running "cmake --build ." in the csound-vs directory.
+Optionally from the command line you can build by running "cmake --build . --config Release" in the csound-vs directory.
 
 ### Debugging 
 The project can be launched for debugging in two ways:
@@ -69,29 +70,29 @@ The project can be launched for debugging in two ways:
 You can pass in default arguments to the csound instance by right-clicking on "csound-bin" and going to properties. Go to "Debugging" and then in the command arguments, you can pass in a csd file or any other args to csound. This is useful for debugging a particular issue or walking through the code and seeing how it works.
 
 ### Profiling
-Using the build configuration "Release" or "Release with debug info" will allow profilling of the project. The profilling tools may not appear if you have the community edition however, professional or enterprise might be required. By going to "Analyze" and "Performance Profiler", you will get a choice of profilling tools (cpu usage, memory etc).
+Using the build configuration "Release" or "Release with debug info" will allow profilling of the project. By going to "Analyze" and "Performance Profiler", you will get a choice of profilling tools (cpu usage, memory etc).
 
 ## Work in progress / work to do
-[Partial] FLTK not being fully found. Everything is found except fluid_executable
+1. [Partial] FLTK not being fully found. Everything is found except fluid_executable
     * Is in VCPKG but missing fluid executable. Have a ticket open which will resolve this
-[Partial] Atomic builtins not being found, test program isn't working as expected but should
+2. [Partial] Atomic builtins not being found, test program isn't working as expected but should
    * Fixed the cmake test but csound source assumes linux based atomics, needs more work
-STK, source downloaded manually and built
-LUAJIT, source downloaded manually and built using VS console
-PureData, source download and extract
-GetText, is in vcpkg but not being detected by cmake. (missing:  GETTEXT_MSGMERGE_EXECUTABLE GETTEXT_MSGFMT_EXECUTABLE)
-Eigen, is in vcpkg but include path isn't being found
-FluidSynth, hard to build. Is there a windows binary download?
-WII opcodes, download source and build
-P5Glove, no idea about this
-Faust opcodes, need to investigate
-HDF5, need to investigate
-Websockets, need to investigate
-Csound AC 
-Csound~, needs max sdk
-Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
-Doxygen for documentation
-Installer needs work? Not tried
+3. STK, source downloaded manually and built
+4. LUAJIT, source downloaded manually and built using VS console
+5. PureData, source download and extract
+6. GetText, is in vcpkg but not being detected by cmake. (missing:  GETTEXT_MSGMERGE_EXECUTABLE GETTEXT_MSGFMT_EXECUTABLE)
+7. Eigen, is in vcpkg but include path isn't being found
+8. FluidSynth, hard to build. Is there a windows binary download?
+9. WII opcodes, download source and build
+10. P5Glove, no idea about this
+11. Faust opcodes, need to investigate
+12. HDF5, need to investigate
+13. Websockets, need to investigate
+14. Csound AC 
+15. Csound~, needs max sdk
+16. Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
+17. Doxygen for documentation
+18. Installer needs work? Not tried
 
 ## Investigate
 1. More usage of CMake instead of powershell scripts
