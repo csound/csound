@@ -26,31 +26,6 @@ set(APIVERSION "6.0")
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
 
-option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
-if(USE_LIB64)
-    set(LIBRARY_INSTALL_DIR "lib64")
-else()
-    set(LIBRARY_INSTALL_DIR "lib")
-endif()
-message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
-
-if(USE_DOUBLE)
-   message(STATUS "Building with 64-bit floats")
-    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
-else()
-  message(STATUS "Building with 32-bit floats")
-    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
-endif()
-
-
-execute_process (
-     COMMAND python -c
-     "import site, sys; sys.stdout.write(site.getusersitepackages())"
-     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
-   )
-
-set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
-set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
@@ -199,8 +174,27 @@ if(APPLE)
     set(OSX_VERSION " ")
 endif()
 
+## USER OPTIONS ##
+# Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
+option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
+option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
+option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
+option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
+option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
+option(USE_GETTEXT "Use the Gettext internationalization library" ON)
+option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
+option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
+option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
+option(USE_CURL "Use CURL library" ON)
+option(BUILD_RELEASE "Build for release" ON)
+option(BUILD_INSTALLER "Build installer" OFF)
+option(BUILD_TESTS "Build tests" ON)
+option(USE_GIT_COMMIT "Show the git commit in version information" ON)
+option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
+
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
+# Also after user options so that the default values don't overwrite the custom files values
 find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
 if(CUSTOM_CMAKE)
     message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
@@ -209,11 +203,35 @@ else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
 
+option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
+if(USE_LIB64)
+    set(LIBRARY_INSTALL_DIR "lib64")
+else()
+    set(LIBRARY_INSTALL_DIR "lib")
+endif()
+message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
+
+if(USE_DOUBLE)
+   message(STATUS "Building with 64-bit floats")
+    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
+else()
+  message(STATUS "Building with 32-bit floats")
+    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
+endif()
+
+execute_process (
+     COMMAND python -c
+     "import site, sys; sys.stdout.write(site.getusersitepackages())"
+     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
+   )
+
+set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+
 # VL this is breaking CUDA compilation. It's not necessary
 #if(APPLE)
 #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
 #endif()
-
 
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
@@ -291,32 +309,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 else()
     set(LINUX NO)
 endif()
-## USER OPTIONS ##
-
-option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
-option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
-
-option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
-
-option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
-
-option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
-
-option(USE_GETTEXT "Use the Gettext internationalization library" ON)
-
-option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
-
-option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
-option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
-option(USE_CURL "Use CURL library" ON)
-option(BUILD_RELEASE "Build for release" ON)
-option(BUILD_INSTALLER "Build installer" OFF)
-option(BUILD_TESTS "Build tests" ON)
-option(USE_GIT_COMMIT "Show the git commit in version information" ON)
-option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
-
-# Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
-
 
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -433,11 +425,7 @@ SET(BUILD_SHARED_LIBS ON)
 find_package(OpenMP)
 
 # First, required stuff
-find_library(LIBSNDFILE_LIBRARY sndfile)
-
-if(NOT LIBSNDFILE_LIBRARY AND WIN32)
-find_library(LIBSNDFILE_LIBRARY sndfile-1)
-endif()
+find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1 HINTS ${PROJECT_SOURCE_DIR}/msvc/deps/lib)
 
 if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
@@ -458,6 +446,7 @@ find_package(STK)
 find_package(SWIG)
 find_package(VSTSDK2X)
 
+# TODO should this work for MSVC also?
 if(WIN32 AND NOT MSVC)
   find_library(FLAC_LIB FLAC)
   find_library(OGG_LIB ogg)

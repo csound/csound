@@ -24,6 +24,7 @@ artifacts:
 
 cache: 
  - C:\projects\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
+ - C:\projects\csound\msvc\cache
 
 #deploy:
 #  release: myproduct-v$(appveyor_build_version)
