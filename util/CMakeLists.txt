@@ -46,7 +46,7 @@ if(BUILD_UTILITIES)
     make_utility(srconv      srconv_main.c)
 
 
-    find_library(LIBSNDFILE_LIBRARY sndfile)
+    find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
     find_library(LIBSAMPLERATE_LIBRARY samplerate)
 
     if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)

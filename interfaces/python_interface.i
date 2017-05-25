@@ -42,6 +42,12 @@
 %array_class(float, floatArray);
 %array_class(double, doubleArray)
 
+%begin %{
+#ifdef _MSC_VER
+#define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
+%}
+
 %feature("autodoc", "1");
 %{
     #include <cmath>

@@ -9,7 +9,17 @@ $depsDir = $currentDir + "\deps\"
 $stageDir = $currentDir + "\staging\"
 $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
+$depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
+$vsGenerator = "Visual Studio 14 2015 Win64"
+
+# Metrics
+$vcpkgTiming = 0
+$buildTiming = 0
+$cmakeTiming = 0
+
+# Add to path to call premake or other tools
+$env:Path += $depsDir
 
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
@@ -76,8 +86,12 @@ else
 $targetTriplet = "x64-windows"
 echo "Downloading VC packages..."
 
-vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
+#vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
+vcpkg --triplet $targetTriplet install eigen3 libflac libogg libvorbis zlib
 
+$vcpkgTiming = (Get-Date).TimeOfDay
+
+# Comment for testing to avoid extracting if already done so
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 mkdir cache -ErrorAction SilentlyContinue
 mkdir deps -ErrorAction SilentlyContinue
@@ -88,7 +102,8 @@ mkdir staging -ErrorAction SilentlyContinue
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
-"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
+"https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip"
+#"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="",
@@ -118,13 +133,21 @@ for($i=0; $i -lt $uriList.Length; $i++)
     $fileName = Split-Path -Leaf $uriList[$i]
     $cachedFile = $cacheDir + $fileName
     $destDir = $depsDir + $destList[$i]
-    Expand-Archive $cachedFile -DestinationPath $destDir -Force
+    if ($PSVersionTable.PSVersion.Major -gt 3)
+    {
+        Expand-Archive $cachedFile -DestinationPath $destDir -Force
+    }
+    else
+    {
+        New-Item $destDir -ItemType directory -Force
+        Expand-Archive $cachedFile -OutputPath $destDir -Force
+    }
     echo "Extracted $fileName"
 }
 
 # Manual building...
 # Portaudio
-cd staging
+cd $stageDir
 copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
 
 if (Test-Path "portaudio")
@@ -139,12 +162,70 @@ else
     git clone --depth=1 "https://git.assembla.com/portaudio.git"
 }
 
+copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
 mkdir portaudioBuild -ErrorAction SilentlyContinue
 cd portaudioBuild
-cmake ..\portaudio -G "Visual Studio 14 2015 Win64" -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
+cmake ..\portaudio -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
 copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
+
+# Portmidi
+cd $stageDir
+
+if (Test-Path "portmidi")
+{
+	cd portmidi
+	git pull
+	cd ..
+	echo "Portmidi already downloaded, updated"
+}
+else
+{
+	svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
+}
+
+cd portmidi\portmidi\trunk
+mkdir build -ErrorAction SilentlyContinue
+cd build
+cmake .. -G $vsGenerator -DCMAKE_BUILD_TYPE="Release"
+cmake --build . --config Release
+copy .\Release\portmidi.dll -Destination $depsBinDir -Force
+copy .\Release\portmidi.lib -Destination $depsLibDir -Force
+copy .\Release\portmidi_s.lib -Destination $depsLibDir -Force
+copy .\Release\pmjni.dll -Destination $depsBinDir -Force
+copy .\Release\pmjni.lib -Destination $depsLibDir -Force
+copy ..\pm_common\portmidi.h -Destination $depsIncDir -Force
+copy ..\porttime\porttime.h -Destination $depsIncDir -Force
+
+# Liblo
+cd $stageDir
+# TEMP: seeing as the repo has changed, need to delete the old one first
+Remove-Item -Recurse -Force liblo -ErrorAction SilentlyContinue
+
+if (Test-Path "liblo")
+{
+    cd liblo
+    git pull
+    cd ..
+    echo "Libo already downloaded, updated"
+}
+else
+{
+    git clone --depth=1 "https://github.com/radarsat1/liblo.git"
+}
+
+mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
+cd liblo\cmakebuild
+cmake ..\cmake -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
+cmake --build . --config Release
+copy .\Release\lo.dll -Destination $depsBinDir -Force
+copy .\Release\lo.lib -Destination $depsLibDir -Force
+copy .\lo -Destination $depsIncDir -Force -Recurse
+copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
+robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
+
+$buildTiming = (Get-Date).TimeOfDay
 
 # Add deps bin directory to the system path if not already there
 # FIXME this is duplicating part of the path for some reason
@@ -165,6 +246,18 @@ else
 }
 
 $endTime = (Get-Date).TimeOfDay
+$buildTiming = $buildTiming - $vcpkgTiming
+$vcpkgTiming = $vcpkgTiming - $startTime
 $duration = $endTime - $startTime
 
-echo "Finished in $($duration.TotalMinutes) minutes"
+# Strip any unneeded files from the bin directory, this will be
+# copied directly into the Csound solution output directory
+cd $depsBinDir
+rm *.exe
+cd $currentDir
+
+echo "Removed unnecessary files from dependency bin directory"
+echo " "
+echo "VCPKG duration: $($vcpkgTiming.TotalMinutes) minutes"
+echo "Build duration: $($buildTiming.TotalMinutes) minutes"
+echo "Total duration: $($duration.TotalMinutes) minutes"
