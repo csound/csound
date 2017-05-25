@@ -2291,11 +2291,11 @@ msgid "sfinit: cannot open %s"
 msgstr "sfinit : impossible d'ouvrir %s"
 
 #: InOut/libsnd.c:790
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "sfinit: cannot open %s\n"
 "%s"
-msgstr "sfinit : impossible d'ouvrir %s"
+msgstr "sfinit : impossible d'ouvrir %s\n%s"
 
 #: InOut/libsnd.c:864
 #, c-format
