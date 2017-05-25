@@ -217,8 +217,8 @@ else
     git clone --depth=1 "https://github.com/radarsat1/liblo.git"
 }
 
-mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
 rm -Path liblo\cmakebuild -Force -Recurse -ErrorAction SilentlyContinue
+mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
 cd liblo\cmakebuild
 cmake ..\cmake -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
 cmake --build . --config Release
