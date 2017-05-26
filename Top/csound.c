@@ -1438,7 +1438,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
         opstart = (OPDS*)task_map[which_task];
         if (insds->ksmps == csound->ksmps) {
         insds->spin = csound->spin;
-        insds->spout = csound->spout;
+        insds->spout = csound->spraw;
         insds->kcounter =  csound->kcounter;
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
@@ -1454,7 +1454,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
           int early = insds->ksmps_no_end;
           OPDS  *opstart;
           insds->spin = csound->spin;
-          insds->spout = csound->spout;
+          insds->spout = csound->spraw;
           insds->kcounter =  csound->kcounter*csound->ksmps;
 
           /* we have to deal with sample-accurate code

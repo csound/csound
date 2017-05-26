@@ -1844,6 +1844,7 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
     //    if (UNLIKELY((offset|early))) {
       early = nsmps - early;
       CSOUND_SPOUT_SPINLOCK
+	
       if (!csound->spoutactive) {
         memset(spout, '\0', csound->nspout*sizeof(MYFLT));
         for (i=0; i<n; i++) {
