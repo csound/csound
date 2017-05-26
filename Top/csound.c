@@ -1360,8 +1360,9 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
 #else
       // FIXME - need to verify this works...
       if (threadId == current->threadId)
-        return index;
 #endif
+        return index;
+
       index++;
       current = current->next;
     }
