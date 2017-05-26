@@ -377,7 +377,7 @@ extern "C" {
                                      0,
                                      1,
                                      (char*)"i",
-                                     (char*)"Siiiii",
+                                     (char*)"Siiii",
                                      (int (*)(CSOUND*,void*)) iftsamplebank::init_,
                                      (int (*)(CSOUND*,void*)) 0,
                                      (int (*)(CSOUND*,void*)) 0);
