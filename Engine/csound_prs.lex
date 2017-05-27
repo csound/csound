@@ -287,12 +287,12 @@ NM              [nm]
                      }
                       while (1) {
                        c = input(yyscanner);
-                       if (c=='(') cnt++;
-                       if (c==')') cnt--;
                        if (cnt==0 && ( c==term || c==trm1)) break;
                        if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
                        if (c == '\\') {
                          int newc = input(yyscanner);
                          if (newc != ')') nn ->body[i++] = c;
@@ -1481,7 +1481,7 @@ static void csound_prs_line(CORFIL* cf, void *yyscanner)
 static MACRO *find_definition(MACRO *mmo, char *s)
 {
     MACRO *mm = mmo;
-    printf("****Looking for %s\n", s);
+    //printf("****Looking for %s\n", s);
     while (mm != NULL) {  /* Find the definition */
       //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
       if (!(strcmp(s, mm->name))) break;
@@ -1493,14 +1493,14 @@ static MACRO *find_definition(MACRO *mmo, char *s)
     looking:
       while (*s++!='`') { if (*s=='\0') return NULL; }
       if (*s++!='`') { s--; goto looking; }
-      printf("now try looking for %s\n", s);
+      //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
-        printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
+        //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
         if (!(strcmp(s, mm->name))) break;
         mm = mm->next;
       }
     }
-    if (mm) printf("found body #%s#%c\n****\n", mm->body, mm->acnt?'X':' ');
+    //if (mm) printf("found body #%s#%c\n****\n", mm->body, mm->acnt?'X':' ');
     return mm;
 }
 
