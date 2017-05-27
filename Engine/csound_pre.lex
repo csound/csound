@@ -344,11 +344,11 @@ QNAN            "qnan"[ \t]*\(
                      }
                      while (1) {
                        c = input(yyscanner);
-                       if (c=='(') cnt++;
                        if (cnt==0 && ( c==term || c==trm1)) break;
                        if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
+                       if (c=='(') cnt++;
                        if (c==')') cnt--;
                        if (c == '\\') {
                          int newc = input(yyscanner);
