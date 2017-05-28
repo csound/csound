@@ -459,7 +459,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
           return csound->InitError(csound, "extra argument needed for type t\n");
         bsize += 8;
         iarg+=2;
-	break;
+        break;
       case 'f':
       case 'i':
       case 'c':
