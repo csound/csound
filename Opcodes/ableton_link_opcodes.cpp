@@ -554,7 +554,7 @@ public:
         *r0_beat = timeline.beatAtTime(at_time_microseconds, *p1_quantum);
         *r1_phase = timeline.phaseAtTime(at_time_microseconds, *p1_quantum);
         *r2_seconds = std::chrono::duration_cast<floating_point_seconds>(at_time_microseconds).count();
-		return OK;
+        return OK;
     }
 };
 
@@ -653,7 +653,7 @@ public:
             prior_at_time_seconds = *p2_at_time_seconds;
             prior_quantum = *p3_quantum;
         }
-		return OK;
+        return OK;
     }
 };
 
@@ -703,7 +703,7 @@ public:
             prior_at_time_seconds = *p2_at_time_seconds;
             prior_quantum = *p3_quantum;
         }
-		return OK;
+        return OK;
     }
 };
 

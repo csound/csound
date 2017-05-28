@@ -1842,26 +1842,26 @@ inline static int outn(CSOUND *csound, uint32_t n, OUTX *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     //    if (UNLIKELY((offset|early))) {
-      early = nsmps - early;
-      CSOUND_SPOUT_SPINLOCK
-	
-      if (!csound->spoutactive) {
-        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
-        for (i=0; i<n; i++) {
-          memcpy(&spout[k+offset], p->asig[i]+offset, (early-offset)*sizeof(MYFLT));
-          k += nsmps;
-        }
-        csound->spoutactive = 1;
+    early = nsmps - early;
+    CSOUND_SPOUT_SPINLOCK
+
+    if (!csound->spoutactive) {
+      memset(spout, '\0', csound->nspout*sizeof(MYFLT));
+      for (i=0; i<n; i++) {
+        memcpy(&spout[k+offset], p->asig[i]+offset, (early-offset)*sizeof(MYFLT));
+        k += nsmps;
       }
-      else {
-        for (i=0; i<n; i++) {
-          for (j=offset; j<early; j++) {
-            spout[k + j] += p->asig[i][j];
-          }
-          k += nsmps;
+      csound->spoutactive = 1;
+    }
+    else {
+      for (i=0; i<n; i++) {
+        for (j=offset; j<early; j++) {
+          spout[k + j] += p->asig[i][j];
         }
+        k += nsmps;
       }
-      CSOUND_SPOUT_SPINUNLOCK
+    }
+    CSOUND_SPOUT_SPINUNLOCK
         //    }
     /* else { */
     /*   CSOUND_SPOUT_SPINLOCK */
