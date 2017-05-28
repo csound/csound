@@ -29,7 +29,16 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
-set(CS_FRAMEWORK_DEST "~/Library/Frameworks")
+if(APPLE)
+	# Install frameworks in Homebrew's default path
+	set(HOMEBREW_PREFIX "/usr/local")
+	set(HOMEBREW_FRAMEWORK "${HOMEBREW_PREFIX}/Frameworks")
+	set(CS_FRAMEWORK_DEST "${HOMEBREW_FRAMEWORK}")
+	# Add Homebrew's path to the rpath
+	set(CMAKE_MACOSX_RPATH ON)
+	set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_RPATH} ${HOMEBREW_FRAMEWORK})
+endif(APPLE) 
+
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
