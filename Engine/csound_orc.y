@@ -164,11 +164,11 @@
     extern void print_tree(CSOUND *, char *msg, TREE *);
     extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *,
                                 TREE**, const char*);
-    extern void add_udo_definition(CSOUND*, char *, char *, char *);
+    extern int add_udo_definition(CSOUND*, char *, char *, char *);
     extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
-    extern int csound_orcget_locn(void *);
+    extern uint64_t csound_orcget_locn(void *);
     extern int csound_orcget_lineno(void *);
     extern ORCTOKEN *make_string(CSOUND *, char *);
 %}
