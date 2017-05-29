@@ -47,18 +47,18 @@ extern void csound_orcrestart(FILE*, void *);
 extern int csound_orcdebug;
 
 extern void print_csound_predata(void *);
-extern void csound_prelex_init(void *);
+extern int csound_prelex_init(void *);
 extern void csound_preset_extra(void *, void *);
 
-extern void csound_prelex(CSOUND*, void*);
-extern void csound_prelex_destroy(void *);
+extern int csound_prelex(CSOUND*, void*);
+extern int csound_prelex_destroy(void *);
 
 extern void csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
-extern void csound_orclex_init(void *);
+extern int csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
 extern void csound_orcset_lineno(int, void*);
-extern void csound_orclex_destroy(void *);
+extern int csound_orclex_destroy(void *);
 extern void init_symbtab(CSOUND*);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);

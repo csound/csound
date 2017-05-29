@@ -38,7 +38,7 @@
 char *csound_orcget_text ( void *scanner );
 int is_label(char* ident, CONS_CELL* labelList);
 
-extern int csound_orcget_locn(void *);
+extern uint64_t csound_orcget_locn(void *);
 extern  char argtyp2(char*);
 extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
@@ -1851,7 +1851,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
 
 /* BISON PARSER FUNCTION */
-int csound_orcwrap()
+int csound_orcwrap(void* dummy)
 {
 #ifdef DEBUG
     printf("\n === END OF INPUT ===\n");
