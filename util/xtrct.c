@@ -281,7 +281,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     csound->SetUtilSr(csound, (MYFLT)xtrc.p->sr);
     csound->SetUtilNchnls(csound, xtrc.outputs);
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.frames = 0/*was -1*/;
+    //sfinfo.frames = 0/*was -1*/;
     sfinfo.samplerate = (int) ((MYFLT)xtrc.p->sr + FL(0.5));
     sfinfo.channels = xtrc.outputs;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
