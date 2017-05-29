@@ -47,6 +47,8 @@ def exclude(filepath):
         return True
     if fnmatch.fnmatch(filepath, '''*/csound-msvs/*'''):
         return True
+    if fnmatch.fnmatch(filepath, '''*/msvc/deps/*'''):
+        return True
     if fnmatch.fnmatch(filepath, '''*/???'''):
         return True
     return False
@@ -117,7 +119,7 @@ with open('mingw64/csound_ldd.txt', 'w') as f:
             for match in matches:
                 filepath = os.path.join(dirpath, match)
                 print 'filepath:', filepath
-                if filepath.find('Setup_Csound6_') == -1:
+                if (filepath.find('Setup_Csound6_') == -1) and (filepath.find('msvc') == -1):
                     targets.add(filepath)
     for target in sorted(targets):
         dependencies.add(target)

@@ -12,7 +12,7 @@ rm -rf dist
 
 cmake ../.. -G "MSYS Makefiles" \
 -DABLETON_LINK_HOME:PATH="D:\msys64\home\restore\link" \
--DBUILD_ABLETON_LINK_OPCODES:BOOL=No \
+-DBUILD_ABLETON_LINK_OPCODES:BOOL=0 \
 -DBUILD_CSOUNDVST=1 \
 -DBUILD_PD_CLASS=0 \
 -DBUILD_STATIC_LIBRARY=1 \
@@ -21,7 +21,7 @@ cmake ../.. -G "MSYS Makefiles" \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_VERBOSE_MAKEFILE=1 \
 -DMUSICXML_LIBRARY:FILEPATH=/mingw64/bin/libmusicxml2.dll \
--DNEED_PORTTIME=0 \
+-DNEED_PORTTIME=1 \
 -DPTHREAD_LIBRARY:FILEPATH=/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
@@ -35,8 +35,6 @@ cmake ../.. -G "MSYS Makefiles" \
 -DSNDFILE_H_PATH:PATH="C:\Program Files\Mega-Nerd\libsndfile\include" \
 -DBUILD_WEBSOCKET_OPCODE=0 \
 -DMS_WIN64=1
-
-
 
 if [ $? -ne 0 ]; then
     echo "Failed to run CMake."
