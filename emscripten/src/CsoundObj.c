@@ -63,7 +63,7 @@ void CsoundObj_compileCSD(CsoundObj *self,
 		char *filePath,
 		uint32_t samplerate)
 {
-	char *argv[2] = {
+	const char *argv[2] = {
 		"csound",
 		filePath
 	};
