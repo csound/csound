@@ -742,7 +742,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     }
     /* set format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.frames     = 0;
+    //sfinfo.frames     = 0;
     sfinfo.samplerate = (int) (csound->esr + FL(0.5));
     sfinfo.channels   = csound->nchnls;
     sfinfo.format     = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
