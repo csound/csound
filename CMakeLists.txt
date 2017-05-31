@@ -244,6 +244,7 @@ if(WIN32 AND NOT MSVC)
 endif()
 
 if(MSVC) 
+  include_directories(${PROJECT_SOURCE_DIR}/msvc/include)
   set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}/msvc/include)
 endif()
 
