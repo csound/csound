@@ -74,7 +74,7 @@ set(USE_SYSTEM_PORTSMF 1)
 set(HAVE_BIG_ENDIAN 0)
 set(CMAKE_16BIT_TYPE "unsigned short")
 set(FAIL_MISSING OFF) # Enable when packaging
-set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/msvc/deps;${PROJECT_SOURCE_DIR}/msvc/deps/swigwin-3.0.12)
+set(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}\\msvc\\deps;${PROJECT_SOURCE_DIR}\\msvc\\deps\\swigwin-3.0.12;${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison")
 
 # Explicit settings for locally downloaded dependencies
 # TODO ideally find all of these on path
