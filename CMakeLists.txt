@@ -466,7 +466,7 @@ else()
 endif()
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
-  find_library(PTHREAD_LIBRARY pthread)
+  find_library(PTHREAD_LIBRARY winpthread-1 pthread pthreadGC2)
 
   if(NOT PTHREAD_LIBRARY)
       message(STATUS "Csound requires the pthread library")
