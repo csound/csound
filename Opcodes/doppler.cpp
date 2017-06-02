@@ -119,9 +119,6 @@ public:
   }
 };
 
-static std::list<RCLowpassFilter *> smoothingFilterInstances;
-static std::list<DelayLine *> delayLineInstances;
-
 class Doppler : public OpcodeNoteoffBase<Doppler>
 {
 public:
@@ -317,7 +314,7 @@ extern "C"
   {
     return 0;
   }
-  
+
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
       return csoundModuleInit_doppler(csound);
@@ -325,23 +322,6 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    //csound->Message(csound, "Deleting C++ objects from doppler...\n");
-    if (smoothingFilterInstances.size() > 0) {
-      for (std::list<RCLowpassFilter *>::iterator it=smoothingFilterInstances.begin();
-           it != smoothingFilterInstances.end();
-           ++it) {
-        delete *it;
-      }
-      smoothingFilterInstances.clear();
-    }
-    if (delayLineInstances.size() > 0) {
-      for (std::list<DelayLine *>::iterator it = delayLineInstances.begin();
-           it != delayLineInstances.end();
-           ++it) {
-        delete *it;
-      }
-      delayLineInstances.clear();
-  }
     return 0;
   }
 #endif
