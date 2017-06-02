@@ -123,10 +123,7 @@
 
 using namespace csound;
 
-#undef CS_KSMPS
-#define CS_KSMPS     (opds.insdshead->ksmps)
-
-class ChuasOscillatorCubic : public OpcodeBase<ChuasOscillatorCubic>
+class ChuasOscillatorCubic : public OpcodeNoteoffBase<ChuasOscillatorCubic>
 {
 public:
   // OUTPUTS
@@ -240,7 +237,7 @@ public:
     // to preserve the clarity of the original code.
     uint32_t offset = opds.insdshead->ksmps_offset;
     uint32_t early  = opds.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t n, nsmps = opds.insdshead->ksmps;
     if (UNLIKELY(offset)) {
       memset(I3, '\0', offset*sizeof(MYFLT));
       memset(V1, '\0', offset*sizeof(MYFLT));
@@ -383,7 +380,7 @@ public:
 //     i=i+1;
 // end
 
-class ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
+class ChuasOscillatorPiecewise : public OpcodeNoteoffBase<ChuasOscillatorPiecewise>
 {
 public:
   // OUTPUTS
