@@ -48,18 +48,6 @@ using namespace csound;
 static std::vector<fluid_synth_t *> *fluid_synths = 0;
 static void *fluid_synths_mutex = 0;
 
-struct LockGuard {
-    LockGuard(CSOUND *csound_, void *mutex_) : csound(csound_), mutex(mutex_)
-    {
-        csound->LockMutex(mutex);
-    }
-    ~LockGuard() {
-        csound->UnlockMutex(mutex);
-    }
-    CSOUND *csound;
-    void *mutex;
-};
-
 /**
  * Template union for safely and efficiently
  * typecasting the value of a MYFLT variable
@@ -765,14 +753,14 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     fluid_synths = new std::vector<fluid_synth_t *>();
-    printf("csoundModuleCreate: csound: %p fluid_synths: %p\n", csound, fluid_synths);
+    //printf("csoundModuleCreate: csound: %p fluid_synths: %p\n", csound, fluid_synths);
     fluid_synths_mutex = csound->Create_Mutex(0);
     return 0;
 }
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
-    printf("csoundModuleInit: %p \n", csound);
+    //printf("csoundModuleInit: %p \n", csound);
     OENTRY  *ep;
     int     err = 0;
 
@@ -799,11 +787,11 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
  */
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
-    printf("csoundModuleDestroy: %p \n", csound);
+    //printf("csoundModuleDestroy: %p \n", csound);
     csound->LockMutex(fluid_synths_mutex);
     for (size_t i = 0, n = fluid_synths->size(); i < n; i++) {
         fluid_synth_t *fluidSynth = (*fluid_synths)[i];
-        printf("deleting engine: %p \n", fluidSynth);
+        //printf("deleting engine: %p \n", fluidSynth);
         fluid_settings_t *fluidSettings = fluid_synth_get_settings(fluidSynth);
         delete_fluid_synth(fluidSynth);
         delete_fluid_settings(fluidSettings);

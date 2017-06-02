@@ -29,15 +29,13 @@
 using namespace csound;
 
 /* ***************  does not deal with unaligned signals ************** */
-// Why not use the constants already defined?
-static MYFLT pi = std::atan(1.0) * MYFLT(4.0);
 
 class RCLowpassFilter
 {
 public:
   void initialize(MYFLT sampleRate, MYFLT cutoffHz, MYFLT initialValue)
   {
-    MYFLT tau = MYFLT(1.0) / (MYFLT(2.0) * pi * cutoffHz);
+    MYFLT tau = MYFLT(1.0) / (MYFLT(2.0) * M_PI * cutoffHz);
     alpha = MYFLT(1.0) / (MYFLT(1.0) + (tau * sampleRate));
     value = initialValue;
   }
@@ -193,7 +191,7 @@ public:
                                   smoothingFilterCutoff, targetPosition);
       warn(csound, "Doppler::kontrol: sizeof(MYFLT):         %10d\n",
                     sizeof(MYFLT));
-      warn(csound, "Doppler::kontrol: PI:                    %10.3f\n", pi);
+      warn(csound, "Doppler::kontrol: PI:                    %10.3f\n", M_PI);
       warn(csound, "Doppler::kontrol: this:                  %10p\n", this);
       warn(csound, "Doppler::kontrol: sampleRate:            %10.3f\n", sampleRate);
       warn(csound, "Doppler::kontrol: blockSize:             %10.3f\n", blockSize);

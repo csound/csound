@@ -757,17 +757,9 @@ extern "C"
         }
 #endif
 
-// FIXME:PTHREAD_WORK - need to check if this is necessary and, if so, use some other
-// kind of locking mechanism
-//#if !defined(WIN32)
-//        csound_global_mutex_lock();
-//#endif
-        if (path != 0) {
+       if (path != 0) {
             Stk::setRawwavePath(path);
         }
-//#if !defined(WIN32)
-//        csound_global_mutex_unlock();
-//#endif
         csound->DebugMsg(csound,
                          Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
       }
