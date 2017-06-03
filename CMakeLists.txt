@@ -183,7 +183,6 @@ option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NE
 option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
 option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
-option(USE_OPEN_MP "Use OpenMP for Parallel Performance" ON)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(USE_CURL "Use CURL library" ON)
 option(BUILD_RELEASE "Build for release" ON)
@@ -423,7 +422,6 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
-find_package(OpenMP)
 
 # First, required stuff
 find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1 HINTS ${PROJECT_SOURCE_DIR}/msvc/deps/lib)
@@ -578,18 +576,6 @@ if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
   if(PTHREAD_BARRIER_INIT_EXISTS)
      list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
   endif()
-endif()
-
-
-check_deps(USE_OPEN_MP OPENMP_FOUND PTHREAD_BARRIER_INIT_EXISTS)
-if(USE_OPEN_MP)
-   list(APPEND libcsound_CFLAGS -DUSE_OPENMP)
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-
-   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-   set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-
 endif()
 
 
