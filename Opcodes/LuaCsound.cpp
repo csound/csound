@@ -23,7 +23,6 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
-#include <pthread.h>
 #include <string>
 #include <vector>
 
