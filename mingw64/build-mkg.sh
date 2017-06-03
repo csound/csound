@@ -26,7 +26,6 @@ cmake ../.. -G "MSYS Makefiles" \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
 -DUSE_GETTEXT=0 \
--DUSE_OPEN_MP=0 \
 -D_WIN32=1 \
 -DPYTHON_INCLUDE_DIRS:PATH="C:/Program Files/Anaconda2/include" \
 -DPYTHON_LIBRARIES:FILEPATH="C:/Program Files/Anaconda2/libs/python27.a" \
