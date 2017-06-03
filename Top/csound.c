@@ -64,10 +64,6 @@
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
 
-#if defined(USE_OPENMP)
-#include <omp.h>
-#endif /* USE_OPENMP */
-
 #include "csound_standard_types.h"
 
 #include "csdebug.h"

@@ -33,10 +33,6 @@
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
 
-#if defined(USE_OPENMP)
-#include <omp.h>
-#endif
-
 extern int UDPServerStart(CSOUND *csound, int port);
 extern  void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, const char **);
