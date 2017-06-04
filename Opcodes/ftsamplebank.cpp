@@ -195,8 +195,8 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
               //csound->MessageS(csound, CSOUNDMSG_ORCH, statement.str().c_str());
               csound->InputMessage(csound, statement.str().c_str());
             }
-			
-		    closedir(dir);
+
+          closedir(dir);
         }
       else
         {
@@ -204,7 +204,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
                           Str("Cannot load file. Error opening directory: %s\n"),
                           directory);
         }
-        
+
       //return number of files
       return noOfFiles;
     }
