@@ -44,8 +44,8 @@ endfunction(make_cuda_plugin)
  # target_link_libraries(cudaop2 ${CUFFT})
  #target_link_libraries(cudaop5 ${CUFFT})
  else()
-SET(CUDA_NVCC_FLAGS  "-ccbin /usr/bin/clang -arch=sm_30 -Xcompiler
-  -stdlib=libstdc++ -use_fast_math" CACHE STRING "nvcc flags" FORCE)
+SET(CUDA_NVCC_FLAGS  "-ccbin /usr/bin/clang -arch=sm_30 
+ -Xcompiler  -stdlib=libstdc++ -use_fast_math" CACHE STRING "nvcc flags" FORCE)
   make_cuda_plugin(cudaop1 adsyn.cu)
   make_cuda_plugin(cudaop2 pvsops.cu)
   make_cuda_plugin(cudaop3 slidingm.cu)
