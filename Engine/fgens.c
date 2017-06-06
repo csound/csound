@@ -301,7 +301,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       /* printf("size = %d -> %d ftp->args = %p\n", */
       /*        size, sizeof(MYFLT)*size, ftp->args); */
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size); /* is this right? */
-      /*for(k=0; k < size; k++)
+      /*for (k=0; k < size; k++)
         csound->Message(csound, "%f \n", ftp->args[k]);*/
     }
     return 0;
