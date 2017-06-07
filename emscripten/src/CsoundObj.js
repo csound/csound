@@ -186,7 +186,7 @@ var CsoundObj = function() {
 		var outputChannelCount = _getOutputChannelCount(_self);
 		var audioProcessNode = audioContext.createScriptProcessor(0, inputChannelCount, outputChannelCount);
 		bufferSize = audioProcessNode.bufferSize;
-console.error("bufferSize = " + bufferSize);
+// console.error("bufferSize = " + bufferSize);
 		audioProcessNode.inputCount = inputChannelCount;
 		audioProcessNode.outputCount = outputChannelCount;
 		return audioProcessNode;
@@ -194,7 +194,7 @@ console.error("bufferSize = " + bufferSize);
 
 	this.start = function() {
 		var ksmps = _getKsmps(_self);
-console.error("ksmps = " + ksmps);
+// console.error("ksmps = " + ksmps);
 		var audioProcessNode = getAudioProcessNode();
 		var inputChannelCount = audioProcessNode.inputCount;
 		var outputChannelCount = audioProcessNode.outputCount;
