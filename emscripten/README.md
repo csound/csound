@@ -27,3 +27,24 @@ At this point, the two js files in the dist folder are all that are necessary to
 2. Run `sh ./update_example_libs_from_dist.sh`
 3. Update CS_VERSION in build.sh if necessary
 4. Run `sh ./release.sh`
+
+# Csound for WASM
+
+## Introduction
+
+## Requirements
+
+* [Emscripten SDK](https://github.com/kripken/emscripten)
+
+## Build Instructions
+
+1. First you will need to build libsndfile.  Use the download_and_build_libsndfile.sh script. Be sure to be in the emscripten folder and type `sh ./download_and_build_libsndfile_wasm.sh`. This will create a deps folder, download libsndfile 1.0.25, unarchive the tarball, and then compile libsndfile with Emscripten.
+2. Run the build-wasm.sh script using `sh ./build-wasm.sh`.  This will
+   create a build folder, run cmake from there with the Csound source,
+   then compile Csound with Emscripten for WASM.  The script will copy
+   the required files into a dist-wasm folder for distribution.
+3. The WASM build works generally as a drop-in replacement for the
+   Emscripten version.
+
+
+
