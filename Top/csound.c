@@ -1089,7 +1089,7 @@ static void psignal_(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-#if defined(LINUX) && !defined(ANDROID)
+#if defined(LINUX) && !defined(ANDROID) && !defined(NACL)
     #include <execinfo.h>
 
     {
