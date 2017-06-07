@@ -78,7 +78,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     if ((c = bp->text[0]) != 'w'
         && c != 's' && c != 'e') {      /*   if no warp stmnt but real data,  */
       /* create warp-format indicator */
-      if(first) corfile_puts("w 0 60\n", sco);
+      if (first) corfile_puts("w 0 60\n", sco);
       lincnt++;
     }
  nxtlin:
