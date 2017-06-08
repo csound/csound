@@ -41,18 +41,20 @@ var Module = {};
 function main() {
 	Module['noExitRuntime'] = true;
 	Module['_main'] = function() {
-		require(["FileList", "InputPanel", "ConsolePanel", "FileManager", "FilePanel", "HelpPanel", "EditorPanel"], function () {
+	    require(["FileList", "InputPanel", "ConsolePanel", "FileManager", "FilePanel", "HelpPanel", "EditorPanel"], function () {
 			var ConsolePanel = require('ConsolePanel');
 			var HelpPanel = require('HelpPanel');
 			var EditorPanel = require('EditorPanel');
 			var FilePanel = require('FilePanel');
 			var InputPanel = require('InputPanel');
 			var consolePanel = new ConsolePanel();
-			consolePanel.print("Welcome to Csound Emscripten!");
+			consolePanel.print("Welcome to Wasm Csound !");
 
-//			Module['print'] = Module['printErr'] = consolePanel.print 
-			Module['print'] = Module['printErr'] = function (txt) { console.log(txt); };
-			const csound = new CsoundObj();
+			Module['print'] = Module['printErr'] = consolePanel.print 
+		//	Module['print'] = Module['printErr'] = function (txt) { console.log(txt); };
+		const csound = new CsoundObj();
+		console.log("Csound instantiated");
+		    consolePanel.print("Csound Started !");
 
 			var inputPanel = new InputPanel(csound);
 			var allowedFileExtensions = ["csd", "wav", "orc"];
