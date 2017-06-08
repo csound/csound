@@ -40,11 +40,15 @@ typedef struct  {
 
 #define MIDI_QUEUE_SIZE 1024
 
+enum { CS_RESET_STATUS = 0,
+       CS_STARTED_STATUS };
+
 typedef struct _CsoundObj
 {
 	CSOUND *csound;
 	uint32_t zerodBFS;
 	MidiCallbackData *midiCallbackData;
+        uint32_t status;
 } CsoundObj;
 
 CsoundObj *CsoundObj_new()
@@ -56,6 +60,7 @@ CsoundObj *CsoundObj_new()
 
 	self->midiCallbackData = calloc(1, sizeof(MidiCallbackData));
 	self->midiCallbackData->midiData = calloc(MIDI_QUEUE_SIZE, sizeof(MidiData));
+	self->status = CS_RESET_STATUS;
 	return self;
 }
 
@@ -74,7 +79,16 @@ void CsoundObj_compileCSD(CsoundObj *self,
 
 		printf("compilation failed\n");
 	}
+	else self->status = CS_STARTED_STATUS;
 }
+
+uint32_t CsoundObj_compileOrc(CsoundObj *self, const char *string)
+{
+	int returnValue = csoundCompileOrc(self->csound, (char *) string);
+	if(self->status == CS_RESET_STATUS) csoundStart(self->csound);
+	return returnValue;
+}
+
 
 void CsoundObj_render(CsoundObj *self) 
 {
@@ -141,6 +155,7 @@ void CsoundObj_reset(CsoundObj *self)
 {
 	csoundCleanup(self->csound);
 	csoundReset(self->csound);
+	self->status = CS_RESET_STATUS;
 }
 
 int CsoundObj_getInputChannelCount(CsoundObj *self)
