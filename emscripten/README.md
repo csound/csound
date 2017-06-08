@@ -1,6 +1,6 @@
 # Csound for Emscripten and Web Assembly
 
-Authors: Edward Costello, Steven Yi
+Authors: Edward Costello, Steven Yi, Henri Manson
 
 ## Introduction
 
