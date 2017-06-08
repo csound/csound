@@ -50,8 +50,9 @@ function main() {
 			var consolePanel = new ConsolePanel();
 			consolePanel.print("Welcome to Wasm Csound !");
 
-			Module['print'] = Module['printErr'] = consolePanel.print 
-		//	Module['print'] = Module['printErr'] = function (txt) { console.log(txt); };
+		//	Module['print'] = Module['printErr'] = consolePanel.print 
+			Module['print'] = Module['printErr'] = function (txt) {
+		            console.log(txt); consolePanel.print(txt) };
 		const csound = new CsoundObj();
 		console.log("Csound instantiated");
 		    consolePanel.print("Csound Started !");
