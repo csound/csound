@@ -4,6 +4,13 @@ Authors: Edward Costello, Steven Yi, Henri Manson
 
 ## Introduction
 
+These are the sources for Web-based Csound. They were first developed
+to use the emscripten compiler toolchain to produce a pure javascript
+version of Csound through asm.js. With the introduction of Web
+Assembly (WASM), we are now able to produce a version of this build
+targetting that API. WASM code runs roughly twice as fast as pure
+javascript.
+
 ## Requirements
 
 * [Emscripten SDK/toolchain](https://github.com/kripken/emscripten): install the
