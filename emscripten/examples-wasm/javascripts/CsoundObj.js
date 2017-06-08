@@ -35,7 +35,8 @@ var CsoundObj = function() {
 	var _getZerodBFS = cwrap('CsoundObj_getZerodBFS', ['number'], ['number']);
 	var _setMidiCallbacks = cwrap('CsoundObj_setMidiCallbacks', null, ['number']);
 	var _pushMidiMessage = cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']);
-    var _setOutputChannelCallback = cwrap('CsoundObj_setOutputChannelCallback', null, ['number', 'number']);
+        var _setOutputChannelCallback = cwrap('CsoundObj_setOutputChannelCallback', null, ['number', 'number']);
+        var _compileOrc = cwrap('CsoundObj_compileOrc', 'number', ['number', 'string']);
 	var bufferSize;
 	var _self = _new();
 
@@ -130,6 +131,13 @@ var CsoundObj = function() {
 
 		_compileCSD(_self, filePath, samplerate);
 		compiled = true;
+	};
+
+        this.compileOrc = function(orcString)
+	{
+	    _compileOrc(_self, orcString);
+	    compiled = true;
+		
 	};
 
 	this.render = function(filePath) {
