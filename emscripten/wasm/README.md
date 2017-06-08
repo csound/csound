@@ -9,3 +9,7 @@ a simple local web server for this purpose.
 * [Random note generator](https://github.com/csound/csound/blob/develop/emscripten/wasm/RandomGenerator.html):
 This example demonstrates how to load the WASM Csound library and use the CsoundObj class to compile and perform 
 simple synthesis code that is embedded in the HTML page.
+
+* [Sliders](https://github.com/csound/csound/blob/develop/emscripten/wasm/Sliders.html):
+This example demonstrates how to use channels to send control data into Csound from HTML 5
+sliders.
