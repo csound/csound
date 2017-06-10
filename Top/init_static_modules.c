@@ -27,6 +27,7 @@
 /* Do not declare these in header files; just define them in the module file 
  * as extern "C", and declare them here as extern. 
  */
+extern int csoundModuleCreate_mixer(CSOUND *csound);
 extern int csoundModuleCreate_signalflowgraph(CSOUND *csound);
 extern int csoundModuleInit_ampmidid(CSOUND *);
 extern int csoundModuleInit_doppler(CSOUND *);
@@ -60,6 +61,7 @@ int init_static_modules(CSOUND *csound)
     result |= csoundModuleInit_doppler(csound);    
     result |= csoundModuleInit_fractalnoise(csound);
     result |= csoundModuleInit_ftsamplebank(csound);    
+    result |= csoundModuleCreate_mixer(csound);
     result |= csoundModuleInit_mixer(csound);
     result |= csoundModuleCreate_signalflowgraph(csound);
     result |= csoundModuleInit_signalflowgraph(csound);
