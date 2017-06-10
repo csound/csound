@@ -347,6 +347,13 @@ extern "C"
         { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
     };
 
+    PUBLIC int csoundModuleCreate_mixer(CSOUND *csound)
+    {
+        busses = new std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > >;
+        matrix = new std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > >;
+        return OK;
+    }
+
     PUBLIC int csoundModuleInit_mixer(CSOUND *csound)
     {
         OENTRY  *ep = (OENTRY*) &(localops[0]);
@@ -363,21 +370,7 @@ extern "C"
         }
         return err;
     }
-
-#ifndef PNACL
-    PUBLIC int csoundModuleCreate(CSOUND *csound)
-    {
-        busses = new std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > >;
-        matrix = new std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > >;
-        return OK;
-    }
-
-    PUBLIC int csoundModuleInit(CSOUND *csound)
-    {
-        return csoundModuleInit_mixer(csound);
-    }
-
-
+    
     /*
      * The mixer busses are laid out:
      * busses[csound][bus][channel][frame].
@@ -386,7 +379,7 @@ extern "C"
      * matrix[csound][send][bus].
      * std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
      */
-    PUBLIC int csoundModuleDestroy(CSOUND *csound)
+    PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound)
     {
         for(std::map<size_t,
                 std::vector< std::vector<MYFLT> > >::iterator
@@ -410,6 +403,23 @@ extern "C"
         delete matrix;
         matrix = 0;
         return OK;
+    }
+    
+
+#ifndef INIT_STATIC_MODULES
+    PUBLIC int csoundModuleCreate(CSOUND *csound)
+    {
+        return csoundModuleCreate_mixer(csound);
+    }
+
+    PUBLIC int csoundModuleInit(CSOUND *csound)
+    {
+        return csoundModuleInit_mixer(csound);
+    }
+
+    PUBLIC int csoundModuleDestroy(CSOUND *csound)
+    {
+        return csoundModuleDestroy_mixer(csound);
     }
 #endif
 }   // END EXTERN C

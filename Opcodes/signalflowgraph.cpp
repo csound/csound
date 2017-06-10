@@ -267,6 +267,7 @@ struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph> {
         kidoutletVectors->clear();
         connections->clear();
         functionTablesForEvtblks->clear();
+        return OK;
     };
 };
 
@@ -1728,12 +1729,6 @@ extern "C"
         kidoutletVectors = new std::vector< std::vector< std::vector<Outletkid *> *> * >;
         return 0;
     }
-#ifndef PNACL
-    PUBLIC int csoundModuleCreate(CSOUND *csound)
-    {
-        return csoundModuleCreate_signalflowgraph(csound);
-    }
-#endif
 
     PUBLIC int csoundModuleInit_signalflowgraph(CSOUND *csound)
     {
@@ -1757,7 +1752,12 @@ extern "C"
         }
         return err;
     }
-#ifndef PNACL
+#ifndef INIT_STATIC_MODULES
+    PUBLIC int csoundModuleCreate(CSOUND *csound)
+    {
+        return csoundModuleCreate_signalflowgraph(csound);
+    }
+
     PUBLIC int csoundModuleInit(CSOUND *csound)
     {
         return csoundModuleInit_signalflowgraph(csound);
