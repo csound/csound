@@ -142,13 +142,6 @@ public:
 
 extern "C" {
 
-#ifndef PNACL
-  PUBLIC int csoundModuleCreate(CSOUND *csound)
-  {
-      return 0;
-  }
-#endif
-
   PUBLIC int csoundModuleInit_ampmidid(CSOUND *csound)
   {
       int status = csound->AppendOpcode(csound,
@@ -184,12 +177,16 @@ extern "C" {
       return status;
   }
 
-#ifndef PNACL
+#ifndef INIT_STATIC_MODULES
+  PUBLIC int csoundModuleCreate(CSOUND *csound)
+  {
+      return 0;
+  }
+
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
       return csoundModuleInit_ampmidid(csound);
   }
-
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
