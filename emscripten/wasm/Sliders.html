@@ -21,7 +21,10 @@ function moduleDidLoad() {
   SetParam("freq", 'Hz', 1., 440.);
   attachListeners();
   csound.start();
-
+  window.addEventListener("unload", function(e){
+	if(csound != null)
+            csound.destroy();
+    }, false);
 }
 
 // attach callbacks to sliders
@@ -31,7 +34,7 @@ function attachListeners() {
    document.getElementById("amp").
        addEventListener("input",SetAmp);
    document.getElementById("cf").
-       addEventListener("input",SetCf);
+       addEventListener("input",SetCf);   
 }
 
 // clear console
@@ -76,6 +79,7 @@ function SetParam(name, label, scal, off) {
 }
 
 Module["onRuntimeInitialized"] = moduleDidLoad;
+
 </script>
 </head>
 <body>
