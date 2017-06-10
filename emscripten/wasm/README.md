@@ -13,3 +13,7 @@ simple synthesis code that is embedded in the HTML page.
 * [Sliders](https://github.com/csound/csound/blob/develop/emscripten/wasm/Sliders.html):
 This example demonstrates how to use channels to send control data into Csound from HTML 5
 sliders.
+
+* [Minimal](https://github.com/csound/csound/blob/develop/emscripten/wasm/minimal.html):
+This example demonstrates the csound.js javascript frontend that can
+be used to port PNaCl Csound examples more conveniently. 

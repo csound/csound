@@ -59,6 +59,10 @@ var CsoundObj = function() {
 		microphoneNode = null;
 	}
 
+        this.midiMessage = function(byte1, byte2, byte3) {
+              _pushMidiMessage(_self, byte1, byte2, byte3);
+       }
+    
 	this.enableAudioInput = function(audioInputCallback) {
 
 		window.navigator = window.navigator || {};
