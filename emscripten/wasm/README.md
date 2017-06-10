@@ -17,3 +17,6 @@ sliders.
 * [Minimal](https://github.com/csound/csound/blob/develop/emscripten/wasm/minimal.html):
 This example demonstrates the csound.js javascript frontend that can
 be used to port PNaCl Csound examples more conveniently. 
+
+* [Canvas](https://github.com/csound/csound/blob/develop/emscripten/wasm/canvas.html):
+Canvas widget example ported from the PNaCl Csound collection.
