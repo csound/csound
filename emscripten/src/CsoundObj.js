@@ -58,10 +58,13 @@ var CsoundObj = function() {
 	}
     };
 
+    this.setMidiCallbacks = function() {
+	_setMidiCallbacks(_self);
+    }
+    
     var microphoneNode = null;
 
     this.disableAudioInput = function (){
-
 	microphoneNode = null;
     }
 
