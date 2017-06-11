@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2015-05-06 14:15+0100\n"
+"PO-Revision-Date: 2017-06-11 15:41+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -455,11 +455,13 @@ msgstr ""
 "ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:370
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Unable to verify arg types for expression '%s'\n"
 "Line %d\n"
-msgstr "Vérification des types d'arg impossible pour l'expression '%s'\n"
+msgstr ""
+"Vérification des types d'arg impossible pour l'expression '%s'\n"
+"Ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:395
 #, c-format
@@ -470,12 +472,13 @@ msgstr ""
 "ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:427
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Unable to verify arg types for boolean expression '%s'\n"
 "Line %d\n"
 msgstr ""
-"Impossible de vérifier les types d'arg dans l'expression booléenne '%s'\n"
+"Impossible de vérifier les types d'arg dans l'expression booléenne'%s'\n"
+"Ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:449
 #, c-format
@@ -485,11 +488,13 @@ msgstr ""
 "%d\n"
 
 #: Engine/csound_orc_semantics.c:527 Engine/csound_orc_semantics.c:1254
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Variable '%s' used before defined\n"
 "Line %d\n"
-msgstr "Variable '%s' utilisée avant d'être définie\n"
+msgstr ""
+"Variable '%s' utilisée avant d'être définie\n"
+"Lige %d\n"
 
 #: Engine/csound_orc_semantics.c:568
 #, c-format
@@ -502,11 +507,13 @@ msgid "Variable type for %s could not be determined.\n"
 msgstr "Impossible de déterminer le type de la variable %s.\n"
 
 #: Engine/csound_orc_semantics.c:1231
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Variable '%s' used before defined\n"
-"lie %d"
-msgstr "Variable '%s' utilisée avant d'être définie\n"
+"line %d"
+msgstr ""
+"Variable '%s' utilisée avant d'être définie\n"
+"Lige %d\n"
 
 #: Engine/csound_orc_semantics.c:1459
 #, c-format

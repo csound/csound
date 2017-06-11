@@ -1228,7 +1228,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                                varName);
             if(var == NULL) {
               synterr(csound,
-                      Str("Variable '%s' used before defined\nlie %d"),
+                      Str("Variable '%s' used before defined\nline %d"),
                       varName, tree->line);
               do_baktrace(csound, tree->locn);
               return 0;
