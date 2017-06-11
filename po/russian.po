@@ -480,7 +480,7 @@ msgstr ""
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
-"lie %d"
+"line %d"
 msgstr ""
 
 #: Engine/csound_orc_semantics.c:1459
