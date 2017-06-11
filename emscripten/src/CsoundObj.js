@@ -44,6 +44,7 @@ var CsoundObj = function() {
     var bufferSize;
     var _self = _new();
     var _destroy = cwrap('CsoundObj_destroy', null, ['number']);
+    var running;
 
     var getAudioContext = function() {
 
@@ -222,7 +223,9 @@ var CsoundObj = function() {
 	return audioProcessNode;
     };
 
+    
     this.start = function() {
+	if(that.running == true)  return;
 	var ksmps = _getKsmps(_self);
 	// console.error("ksmps = " + ksmps);
 	var audioProcessNode = getAudioProcessNode();
@@ -234,11 +237,11 @@ var CsoundObj = function() {
 	var csoundInputBuffer = new Float32Array(Module.HEAP8.buffer, inputPointer, ksmps * inputChannelCount);
 	var zerodBFS = _getZerodBFS(_self);
 	var offset = ksmps;
+	that.running = true;
 	var processBuffers = function (e, sample_count, src_offset, dst_offset) {
 	    var i, j;
 	    var contextOutputBuffer;
 	    var contextInputBuffer;
-
 	    if (microphoneNode !== null) {
 		for (i = 0; i < inputChannelCount; ++i) {
 		    contextInputBuffer = e.inputBuffer.getChannelData(i);
@@ -279,46 +282,43 @@ var CsoundObj = function() {
 		processBuffers(e, sample_count, offset, 0);
 		idx += sample_count;
 	    }
-	    while (idx < bufferSize) {
-		var result = _performKsmps(_self);
-
-		if (result != 0) {
-
-		    compiled = false;
-		    that.stop();	
+		while (idx < bufferSize) {		
+		    var result = _performKsmps(_self);
+		    if (result != 0) {
+			compiled = false;
+			that.stop();	
+		    }
+		    if (isNaN(csoundOutputBuffer[0])) {
+			console.error("NaN! outputPointer = " + outputPointer);
+		    }
+		    sample_count = Math.min(ksmps, bufferSize - idx);
+		    //console.error("2: sample_count = " + sample_count);
+		    processBuffers(e, sample_count, 0, idx);
+		    idx += sample_count;
 		}
-		if (isNaN(csoundOutputBuffer[0])) {
-		    console.error("NaN! outputPointer = " + outputPointer);
-		}
-		sample_count = Math.min(ksmps, bufferSize - idx);
-		//console.error("2: sample_count = " + sample_count);
-		processBuffers(e, sample_count, 0, idx);
-		idx += sample_count;
-	    }
-	    offset = sample_count;
+		offset = sample_count;
 	    //console.error("3: offset = " + offset);
-	};
+        };
 
 	that.stop = function() {
 
 	    if (microphoneNode !== null) {
-
 		microphoneNode.disconnect();
 	    }
 
 	    audioProcessNode.disconnect();
 	    audioProcessNode.onaudioprocess = null;
+	    that.running = false;
 	};
-    };
+   };
 
     this.reset = function() {
-
 	_reset(_self);		
 	compiled = false;
     };
 
     this.destroy = function() {
         _destroy(self);
-    }
+    };
 };  
 

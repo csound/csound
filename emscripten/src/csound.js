@@ -95,12 +95,16 @@ var csound = (function() {
 	}
     }
 
+    var started = false;
     /**
      * Starts audio playback.
      */
     function Play() {
-	csound.Csound.compileOrc("nchnls=2\n 0dbfs=1\n");
-	csound.Csound.start();
+	if(csound.started == false) {
+	 csound.Csound.compileOrc("nchnls=2\n 0dbfs=1\n");
+	 csound.Csound.start();
+	 csound.started = true;   
+	} else csound.Csound.start();    
     } 
 
     /**
@@ -114,7 +118,7 @@ var csound = (function() {
      * Pauses audio playback.
      */
     function Pause() {
-	
+	csound.Csound.stop();
     }
     
     /**
@@ -135,7 +139,6 @@ var csound = (function() {
     }
 
     function loadCSD(url, callback) {
-	console.log("loading csd: " + url);
 	var xmlHttpRequest = new XMLHttpRequest();
 	xmlHttpRequest.onload = function () {
 	    var data = new Uint8Array(xmlHttpRequest.response);
@@ -147,7 +150,6 @@ var csound = (function() {
 	xmlHttpRequest.open("get", url, true);
 	xmlHttpRequest.responseType = "arraybuffer";
 	xmlHttpRequest.send(null);
-	console.log("loading csd: " + url);
     }
     
     /**
@@ -158,9 +160,9 @@ var csound = (function() {
      */
     function PlayCsd(s) {
 	loadCSD(s, function () {
-	    console.log(s);
             csound.Csound.compileCSD(s);
-	    csound.Csound.start(); });
+	    csound.Csound.start();
+	    started = true; });
     }
 
     /**
