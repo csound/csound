@@ -367,8 +367,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
           synterr(csound,
-                  Str("Unable to verify arg types for expression '%s'\n"),
-                  opname);
+                  Str("Unable to verify arg types for expression '%s'\n"
+                      "Line %d\n"),
+                  opname, tree->line);
           do_baktrace(csound, tree->locn);
           return NULL;
         }
@@ -423,8 +424,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
         synterr(csound,
-                Str("Unable to verify arg types for boolean expression '%s'\n"),
-                opname);
+                Str("Unable to verify arg types for boolean expression '%s'\n"
+                    "Line %d\n"),
+                opname, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -522,8 +524,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                          tree->value->lexeme);
 
       if (UNLIKELY(var == NULL)) {
-        synterr(csound, Str("Variable '%s' used before defined\n"),
-                tree->value->lexeme);
+        synterr(csound, Str("Variable '%s' used before defined\n"
+                            "Line %d\n"),
+                tree->value->lexeme, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -1225,7 +1228,8 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                                varName);
             if(var == NULL) {
               synterr(csound,
-                      Str("Variable '%s' used before defined\n"), varName);
+                      Str("Variable '%s' used before defined\nlie %d"),
+                      varName, tree->line);
               do_baktrace(csound, tree->locn);
               return 0;
             }
@@ -1247,7 +1251,9 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                                varName);
             if (var == NULL) {
               synterr(csound,
-                      Str("Variable '%s' used before defined\n"), varName);
+                      Str("Variable '%s' used before defined\nLine %d\n"),
+                      varName, current->left->line);
+              do_baktrace(csound, current->left->locn);
              return 0;
             }
           }
