@@ -22,7 +22,12 @@ be used to port PNaCl Csound examples more conveniently.
 Canvas widget example ported from the PNaCl Csound collection.
 
 * [Trapped](https://github.com/csound/csound/blob/develop/emscripten/wasm/trapped.html):
-Trapped In Convert CSD performance example ported from the PNaCl Csound collection.
+Trapped In Convert by R Boulanger CSD performance example ported from the PNaCl
+Csound collection.
+
+* [Stria](https://github.com/csound/csound/blob/develop/emscripten/wasm/stria.html):
+Stria by J Chowning CSD performance example ported from the PNaCl
+Csound collection.
 
 * [Render](https://github.com/csound/csound/blob/develop/emscripten/wasm/render.html):
 Offline render example ported from the PNaCl Csound collection.

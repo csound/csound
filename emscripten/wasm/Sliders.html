@@ -40,7 +40,9 @@ function attachListeners() {
 // clear console
 function clear_console() {
   var element = document.getElementById('console');
-  element.value = ' ';
+element.value = ' ';
+document.getElementById('pause').
+       addEventListener('click', pause);
 }
 
 // print to console
@@ -78,6 +80,21 @@ function SetParam(name, label, scal, off) {
   console.log(name + ": " + val + " " + label);
 }
 
+var paused = false;
+function pause() {
+if(paused == false) {
+ csound.stop();
+ console.log("pause");
+ document.getElementById('pause').
+       innerText = 'play';
+ paused = true;
+} else {
+  csound.start();
+ document.getElementById('pause').
+innerText = 'pause';
+paused = false;
+}
+}
 Module["onRuntimeInitialized"] = moduleDidLoad;
 
 </script>
@@ -95,7 +112,9 @@ Module["onRuntimeInitialized"] = moduleDidLoad;
   min="880" max="3000"> filter frequency</p>
   <textarea class="console" cols="55" rows="16" id="console"
 value="">loading...</textarea>
-
+<p>
+<button type="button" id="pause"> pause </button>
+</p>
 <textarea class="code" id="instruments" hidden>
 /* this is the synthesis code
    for this example
