@@ -502,7 +502,7 @@ msgstr "argomento in input '%s' usato prima di essere definito"
 #, fuzzy, c-format
 msgid ""
 "Variable '%s' used before defined\n"
-"lie %d"
+"line %d"
 msgstr "argomento in input '%s' usato prima di essere definito"
 
 #: Engine/csound_orc_semantics.c:1459
