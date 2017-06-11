@@ -53,6 +53,7 @@ var csound = (function() {
              Module["onRuntimeInitialized"] = function() {
 		console.log("loaded WASM runtime");    
 		csound.Csound = new CsoundObj();
+		csound.Csound.setMidiCallbacks(); 
 		csound.module = true;
 		if(typeof window.handleMessage !== 'undefined') { 
 		    console.log = console.warn = function(mess) {
@@ -218,10 +219,7 @@ var csound = (function() {
         if(byte1 < 128 || byte1 > 255) return;
         if(byte2 < 0 || byte2 > 127) return;
 	if(byte3 < 0 || byte3 > 127) return;
-	var mess1 = 'midi:' + byte1;
-	var mess2 = ':' + byte2;
-	var mess3 = ':' + byte3;
-        csound.Csound.midiMessage(mess1, mess2, mess3); 
+	csound.Csound.midiMessage(byte1,byte2,byte3);
     }
     
     /**
@@ -257,7 +255,7 @@ var csound = (function() {
      */ 
     function PolyAftertouch(channel,number,aftertouch){
 	if(channel > 0 && channel < 17)
-	    csound.Csound.midiMessage(160+channel, number, aftertouch);
+	    csound.Csound.midiMessage(159+channel, number, aftertouch);
     }
     
     /**
@@ -269,7 +267,7 @@ var csound = (function() {
      */ 
     function ControlChange(channel,control,amount){
 	if(channel > 0 && channel < 17)
-	    csound.Csound.midiMessage(176+channel, control, amount);
+	    csound.Csound.midiMessage(175+channel, control, amount);
     }
     
     /**
@@ -280,7 +278,7 @@ var csound = (function() {
      */ 
     function ProgramChange(channel,control){
 	if(channel > 0 && channel < 17)
-	    csound.Csound.midiMessage(192+channel, control, 0);
+	    csound.Csound.midiMessage(191+channel, control, 0);
     }
     
     /**
@@ -291,7 +289,7 @@ var csound = (function() {
      */ 
     function Aftertouch(channel,amount){
 	if(channel > 0 && channel < 17)
-	    csound.Csound.midiMessage(208+channel,amount,0);
+	    csound.Csound.midiMessage(207+channel,amount,0);
     }    
 
     /**
@@ -303,7 +301,7 @@ var csound = (function() {
      */ 
     function PitchBend(channel,fine,coarse){
 	if(channel > 0 && channel < 17)
-	    csound.Csound.midiMessage(224+channel, fine, coarse);
+	    csound.Csound.midiMessage(223+channel, fine, coarse);
     }
 
     /**
