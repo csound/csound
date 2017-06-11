@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2017-06-11 15:41+0100\n"
+"PO-Revision-Date: 2017-06-11 16:47+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -507,13 +507,13 @@ msgid "Variable type for %s could not be determined.\n"
 msgstr "Impossible de déterminer le type de la variable %s.\n"
 
 #: Engine/csound_orc_semantics.c:1231
-#, c-format
+#, c-format, fuzzy
 msgid ""
 "Variable '%s' used before defined\n"
 "line %d"
 msgstr ""
 "Variable '%s' utilisée avant d'être définie\n"
-"Lige %d\n"
+"Ligne %d"
 
 #: Engine/csound_orc_semantics.c:1459
 #, c-format
