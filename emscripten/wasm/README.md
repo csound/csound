@@ -21,6 +21,9 @@ be used to port PNaCl Csound examples more conveniently.
 * [Canvas](https://github.com/csound/csound/blob/develop/emscripten/wasm/canvas.html):
 Canvas widget example ported from the PNaCl Csound collection.
 
+* [MIDIPlayer](https://github.com/csound/csound/blob/develop/emscripten/wasm/midiplayer.html):
+GM MIDI file player ported from the PNaCl Csound collection.
+
 * [Trapped](https://github.com/csound/csound/blob/develop/emscripten/wasm/trapped.html):
 Trapped In Convert by R Boulanger CSD performance example ported from the PNaCl
 Csound collection.
