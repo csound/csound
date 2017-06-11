@@ -471,7 +471,7 @@ var csound = (function() {
 document.addEventListener('DOMContentLoaded', function() {
     csound.updateStatus('page loaded');
     if (csound.module == false) {
-        csound.updateStatus('Loading csound module.');
+        csound.updateStatus('Loading WASM Csound module.\nThis might take a little while.');
         csound.createModule();
     } else {
 	csound.updateStatus('Not ready.');
