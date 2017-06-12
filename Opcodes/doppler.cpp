@@ -22,7 +22,6 @@
  */
 #include <OpcodeBase.hpp>
 #include <cmath>
-#include <iostream>
 #include <list>
 #include <vector>
 
