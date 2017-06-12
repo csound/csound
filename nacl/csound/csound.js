@@ -466,6 +466,7 @@ function GetScoreTime() {
    function input_fail(e) {
         csound.logMessage("Input audio error: " + e);
    }
+    
    function message(text) {
        csound.updateStatus(text);
    }

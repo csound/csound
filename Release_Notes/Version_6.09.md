@@ -210,6 +210,8 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
   in an instrument, the argument names of the second opcode instance
   would be incorrect due to directly changing the last string
   character of the first when reading an entire dataset. 
+  
+- Memory leaks fixed in some plugin opcodes.
 
 ## SYSTEM LEVEL CHANGES
 
