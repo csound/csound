@@ -38,6 +38,11 @@ function main() {
     var csound = new CsoundObj();
     csound.compileOrc(document.getElementById('instruments').value);
     csound.start();
+     window.addEventListener("unload", function(e){
+	if(csound != null)
+            csound.destroy();
+    }, false);
+
   };
 }
 

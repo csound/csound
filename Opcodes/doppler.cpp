@@ -306,7 +306,7 @@ extern "C"
       }
     return status;
   }
-#ifndef PNACL
+#ifndef INIT_STATIC_MODULES
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
     return 0;

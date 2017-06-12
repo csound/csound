@@ -828,12 +828,20 @@ set(mp3in_SRCS
     InOut/libmpadec/tables.c
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
-
-
+    
 list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
 
-
-
+if(INIT_STATIC_MODULES)
+    set(static_modules_SRCS
+        Top/init_static_modules.c
+        Opcodes/ampmidid.cpp
+        Opcodes/doppler.cpp
+        Opcodes/tl/fractalnoise.cpp
+        Opcodes/mixer.cpp
+        Opcodes/signalflowgraph.cpp)
+    set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
+    list(APPEND libcsound_SRCS ${static_modules_SRCS})
+endif()
 
 # Handling New Parser
 
