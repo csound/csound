@@ -5,7 +5,6 @@
 #include <interlocks.h>
 #include <csdl.h>
 #include <cstdarg>
-#include <new>
 
 /**
  * Template base class, or pseudo-virtual base class,
@@ -26,12 +25,12 @@
  *     double state2;
  *     MYFLT state3;
  *     // If the opcode shares data protect it by creating one or more void
- *     // *mutex pointers:
+ *     // *mutex member pointers:
  *     void *mutex1;
  *     void *mutex2;
- *     // and initialize them in the init function using:
- *     void *get_mutex(CSOUND*csound, const char *name);
- *     // Declare and implement only whichever of these are required:
+ *     // and create them usind csound->Create_Mutex() in csoundModuleCreate
+ *     // and destroy them  using csound->DeleteMutex(mutex)
+ *     // csoundModuleDestroy, and lock them using LockGuard guard(mutex).
  *     int init();
  *     int kontrol();
  *     int audio;
@@ -42,17 +41,6 @@
 
 namespace csound
 {
-
-inline void *get_mutex(CSOUND *csound, const char *mutex_name)
-{
-    void **mutex = (void **)csound->QueryGlobalVariable(csound, mutex_name);
-    if (mutex == 0) {
-        csound->CreateGlobalVariable(csound, mutex_name, sizeof(void**));
-        mutex = (void **)csound->QueryGlobalVariable(csound, mutex_name);
-        *mutex = csound->Create_Mutex(1);
-    }
-    return *mutex;
-}
 
 /**
  * Use this to guard against data races in opcode functions. The mutex should

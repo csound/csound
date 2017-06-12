@@ -267,6 +267,7 @@ struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph> {
         kidoutletVectors->clear();
         connections->clear();
         functionTablesForEvtblks->clear();
+		return 0;
     };
 };
 
