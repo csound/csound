@@ -14,7 +14,7 @@ elseif (Test-Path "..\..\vcpkg")
 	$vcpkgCmake = "..\..\vcpkg\scripts\buildsystems\vcpkg.cmake"
 	$vcpkgCmake = [System.IO.Path]::GetFullPath($vcpkgCmake)
 }
-else 
+else
 {
     # VCPKG not installed globally or locally, abort
     echo "Please run the 'downloadDependencies.bat' script first!"
@@ -24,7 +24,7 @@ else
 echo "VCPKG script: '$vcpkgCmake'"
 
 mkdir csound-vs -ErrorAction SilentlyContinue
-cd csound-vs -InformationAction SilentlyContinue
+cd csound-vs -ErrorAction SilentlyContinue
 
 cmake ..\.. -G "Visual Studio 14 2015 Win64" `
  -Wdev -Wdeprecated `
