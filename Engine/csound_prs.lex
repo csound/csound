@@ -849,7 +849,7 @@ NM              [nm]
         }
 {SEND}  {
           if (!PARM->isString) {
-            corfile_putc(yytext[0], PARM->cf);
+            corfile_putc('s', PARM->cf);
             corfile_putc('\n', PARM->cf);
             //printf("section end %d %c\n%s\n",
             //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
@@ -890,7 +890,7 @@ NM              [nm]
               }
             }
             else
-              corfile_putc(yytext[0], PARM->cf);
+              corfile_putc('s'/*yytext[0]*/, PARM->cf);
           }
           else corfile_putc(yytext[0], PARM->cf);
         }
