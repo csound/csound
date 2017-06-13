@@ -381,6 +381,7 @@ extern "C"
      */
     PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound)
     {
+      if(busses) {
         for(std::map<size_t,
                 std::vector< std::vector<MYFLT> > >::iterator
                 busi = (*busses)[csound].begin(); busi != (*busses)[csound].end(); ++busi) {
@@ -394,6 +395,8 @@ extern "C"
         busses->clear();
         delete busses;
         busses = 0;
+      }
+      if(matrix) {
         // std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > >
         for(std::map<size_t, std::map<size_t, MYFLT> >::iterator
                 matrixi = (*matrix)[csound].begin(); matrixi != (*matrix)[csound].end(); ++matrixi) {
@@ -402,6 +405,7 @@ extern "C"
         matrix->clear();
         delete matrix;
         matrix = 0;
+      }
         return OK;
     }
     

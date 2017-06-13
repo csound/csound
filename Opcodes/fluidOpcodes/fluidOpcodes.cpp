@@ -788,7 +788,9 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
     //printf("csoundModuleDestroy: %p \n", csound);
-    csound->LockMutex(fluid_synths_mutex);
+  if(fluid_synths_mutex)
+     csound->LockMutex(fluid_synths_mutex);
+  if(fluid_synths) {
     for (size_t i = 0, n = fluid_synths->size(); i < n; i++) {
         fluid_synth_t *fluidSynth = (*fluid_synths)[i];
         //printf("deleting engine: %p \n", fluidSynth);
@@ -799,8 +801,11 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
     fluid_synths->clear();
     delete fluid_synths;
     fluid_synths = 0;
+  }
+  if(fluid_synths_mutex) {
     csound->UnlockMutex(fluid_synths_mutex);
     csound->DestroyMutex(fluid_synths_mutex);
+  }
     fluid_synths_mutex = 0;
     return 0;
 }
