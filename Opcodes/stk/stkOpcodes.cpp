@@ -760,8 +760,8 @@ extern "C"
        if (path.size() == 0) {
             Stk::setRawwavePath(path.c_str());
         }
-        csound->DebugMsg(csound,
-                         Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
+       //csound->DebugMsg(csound,
+       //                Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
       }
     int status = 0;
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
