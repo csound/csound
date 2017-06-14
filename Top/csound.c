@@ -2212,6 +2212,18 @@ PUBLIC MYFLT *csoundGetSpin(CSOUND *csound)
     return csound->spin;
 }
 
+PUBLIC void csoundSetSpinSample(CSOUND *csound, int frame,
+                                int channel, MYFLT sample)
+{
+    int index = (frame * csound->inchnls) + channel;
+    csound->spin[index] = sample;
+}
+
+PUBLIC void csoundClearSpin(CSOUND *csound) {
+  
+  memset(csound->spin, 0, sizeof(MYFLT)*csound->ksmps*csound->nchnls);
+}
+      
 PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame,
                                 int channel, MYFLT sample)
 {
