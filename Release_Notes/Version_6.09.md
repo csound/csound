@@ -117,6 +117,8 @@ using liblo has been kept as OSCsend_lo.
 
 - named instruments can be turned off with i if a - follows the "
 
+-(from 6.091) if an r-opcode section eded in e-opcode it used to sop early.
+
 ### Options
 
 - jack midi module now can report available devices under --midi-devices.
@@ -209,8 +211,8 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 - Bug in hdf5read where if two hdf5read opcodes were placed in series
   in an instrument, the argument names of the second opcode instance
   would be incorrect due to directly changing the last string
-  character of the first when reading an entire dataset. 
-  
+  character of the first when reading an entire dataset.
+
 - Memory leaks fixed in some plugin opcodes.
 
 ## SYSTEM LEVEL CHANGES
@@ -224,7 +226,7 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 ### API
 
-- New `csound_threaded.hpp` header-only facility, obviating need for 
+- New `csound_threaded.hpp` header-only facility, obviating need for
 `csPerfThread.cpp` object in some projects.
 
 - Added GetA4 function.
@@ -235,16 +237,18 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - Boost dependencies removed from Csound interfaces, CsoundAC, and CsoundVST.
 
+- (from 6.09.1) Two new API fnctin, csoundSetspinSample and csoundClearSpin.
+
 ### Platform Specific
 
 - iOS
 
  - iPad portrait SplitView fix+animation, info popover resizing, stop
-   button fix in Soundfile Pitch Shifter. 
+   button fix in Soundfile Pitch Shifter.
 
- - Csound-iOS API updates; Examples cleaned up, enhanced/expanded, and reordered. 
+ - Csound-iOS API updates; Examples cleaned up, enhanced/expanded, and reordered.
    Manual revised, expanded, updated. Updates to API and examples
-   support iOS 10 and Xcode 8. 
+   support iOS 10 and Xcode 8.
 
 - Android
 
