@@ -485,7 +485,7 @@ NM              [nm]
                                    YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
-                  if (UNLIKELY(PARM->depth > 1024)){
+                  if (UNLIKELY(PARM->depth > 1024)) {
                     //csound->Die(csound, Str("unexpected EOF!!"));
                     csound->Message(csound, Str("unexpected EOF!!\n"));
                     csound->LongJmp(csound, 1);
@@ -720,7 +720,7 @@ NM              [nm]
                                    PARM->repeat_mm_n[PARM->repeat_index]->body);
                   PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
                   PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
-                  while (input(yyscanner)!='\n'){}
+                  while (input(yyscanner)!='\n') {}
                   PARM->cf_stack[PARM->repeat_index] = PARM->cf;
                   PARM->cf = corfile_create_w();
         }

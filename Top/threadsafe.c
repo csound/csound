@@ -76,7 +76,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
       MYFLT_INT_TYPE i;
     } x;
     x.d = FL(0.0);
-    if(strlen(name) == 0) return FL(.0); 
+    if(strlen(name) == 0) return FL(.0);
     if ((err_ = csoundGetChannelPtr(csound, &pval, name,
                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
          == CSOUND_SUCCESS) {
@@ -119,7 +119,7 @@ void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 {
 
     MYFLT  *psamples;
-    if(strlen(name) == 0) return;   
+    if(strlen(name) == 0) return;
     if (csoundGetChannelPtr(csound, &psamples, name,
                            CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL)
             == CSOUND_SUCCESS) {
