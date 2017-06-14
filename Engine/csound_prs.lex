@@ -849,11 +849,11 @@ NM              [nm]
         }
 {SEND}  {
           if (!PARM->isString) {
-            corfile_putc('s', PARM->cf);
-            corfile_putc('\n', PARM->cf);
             //printf("section end %d %c\n%s\n",
             //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
+              corfile_putc(yytext[0], PARM->cf);
+              corfile_putc('\n', PARM->cf);
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
@@ -871,6 +871,8 @@ NM              [nm]
               //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
               PARM->repeat_sect_index++;
               if (PARM->repeat_sect_index<PARM->repeat_sect_cnt) {
+                corfile_putc('s', PARM->cf);
+                corfile_putc('\n', PARM->cf);
                 if (PARM->repeat_sect_mm) {
                   snprintf(PARM->repeat_sect_mm->body, 16, "%d",
                            PARM->repeat_sect_index);
@@ -882,6 +884,8 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
+                corfile_putc(yytext[0], PARM->cf);
+                corfile_putc('\n', PARM->cf);
                 //printf("end of loop\n");
                 PARM->in_repeat_sect=0;
                 corfile_rm(&PARM->repeat_sect_cf);
@@ -890,7 +894,7 @@ NM              [nm]
               }
             }
             else
-              corfile_putc('s'/*yytext[0]*/, PARM->cf);
+              corfile_putc(yytext[0], PARM->cf);
           }
           else corfile_putc(yytext[0], PARM->cf);
         }
