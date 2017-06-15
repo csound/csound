@@ -370,7 +370,7 @@ extern "C"
         }
         return err;
     }
-    
+
     /*
      * The mixer busses are laid out:
      * busses[csound][bus][channel][frame].
@@ -408,7 +408,7 @@ extern "C"
       }
         return OK;
     }
-    
+
 
 #ifndef INIT_STATIC_MODULES
     PUBLIC int csoundModuleCreate(CSOUND *csound)
