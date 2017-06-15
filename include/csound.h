@@ -1119,12 +1119,27 @@ extern "C" {
    */
   PUBLIC MYFLT *csoundGetSpin(CSOUND *);
 
+   /**
+   * Clears the input buffer (spin).
+   */
+  PUBLIC void csoundClearSpin(CSOUND *);
+  
   /**
-   * Adds the indicated sample into the audio input woriing buffer (spin);
+   * Adds the indicated sample into the audio input woriking buffer (spin);
+   * this only ever makes sense before calling csoundPerformKsmps().
+   * The frame and channel must be in bounds relative to ksmps and nchnls.
+   * NB: the spin buffer needs to be cleared at every k-cycle by calling 
+   * csoundClearSpinBuffer().
+   */
+  PUBLIC void csoundAddSpinSample(CSOUND *csound,
+                                  int frame, int channel, MYFLT sample);
+
+   /**
+   * Sets the audio input working buffer (spin) to the indicated sample
    * this only ever makes sense before calling csoundPerformKsmps().
    * The frame and channel must be in bounds relative to ksmps and nchnls.
    */
-  PUBLIC void csoundAddSpinSample(CSOUND *csound,
+  PUBLIC void csoundSetSpinSample(CSOUND *csound,
                                   int frame, int channel, MYFLT sample);
 
   /**

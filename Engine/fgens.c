@@ -529,18 +529,18 @@ static int gen05(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(*valp == 0)) goto gn5er2;
     do {
       amp1 = *valp++;
-      if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])) {
         valp = &(ff->e.c.extra[1]);
         nsw  = 0;
       }
       if (!(seglen = (int)*valp++)) {
-        if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])) {
           valp = &(ff->e.c.extra[1]);
           nsw  = 0;
         }
         continue;
       }
-      if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && valp>&ff->e.p[PMAX])) {
         valp = &(ff->e.c.extra[1]);
         nsw  = 0;
       }
@@ -613,17 +613,17 @@ static int gen06(FGDATA *ff, FUNC *ftp)
     pntinc = 1;
     for (segp = &ff->e.p[3], segptsp = &ff->e.p[4]; nsegs > 0; nsegs--) {
       segp += 1;
-      if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])) {
           segp = &(ff->e.c.extra[1]);
           nsw  = 0;
         }
       segp += 1;
-      if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])) {
           segp = &(ff->e.c.extra[1]);
           nsw  = 0;
         }
       segptsp = segp + 1;
-      if (UNLIKELY(nsw && segptsp>&ff->e.p[PMAX])){
+      if (UNLIKELY(nsw && segptsp>&ff->e.p[PMAX])) {
           segptsp = &(ff->e.c.extra[1]);
         }
       if (UNLIKELY((npts = (int)*segptsp) < 0)) {
@@ -632,11 +632,11 @@ static int gen06(FGDATA *ff, FUNC *ftp)
       if (pntinc > 0) {
         pntno   = 0;
         inflexp = segp + 1;
-        if (UNLIKELY(nsw && inflexp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && inflexp>&ff->e.p[PMAX])) {
           inflexp = &(ff->e.c.extra[1]);
         }
         inflexp++;
-        if (UNLIKELY(nsw && inflexp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && inflexp>&ff->e.p[PMAX])) {
           inflexp = &(ff->e.c.extra[1]);
         }
         extremp = segp;
@@ -645,11 +645,11 @@ static int gen06(FGDATA *ff, FUNC *ftp)
         pntno   = npts;
         inflexp = segp;
         extremp = segp + 1;
-        if (UNLIKELY(nsw && extremp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && extremp>&ff->e.p[PMAX])) {
           extremp = &(ff->e.c.extra[1]);
         }
         extremp++;
-        if (UNLIKELY(nsw && extremp>&ff->e.p[PMAX])){
+        if (UNLIKELY(nsw && extremp>&ff->e.p[PMAX])) {
           extremp = &(ff->e.c.extra[1]);
         }
       }
@@ -661,12 +661,12 @@ static int gen06(FGDATA *ff, FUNC *ftp)
       pntinc = -pntinc;
     }
     segp += 1;
-    if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])){
+    if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])) {
       segp = &(ff->e.c.extra[1]);
       nsw  = 0;
     }
     segp += 1;
-    if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])){
+    if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])) {
       segp = &(ff->e.c.extra[1]);
       nsw  = 0;
     }
@@ -1250,7 +1250,7 @@ static int gen20(FGDATA *ff, FUNC *ftp)
       if ( nargs < 2 ) xarg = 1.0;
     }
 
-    if (nargs > 2){
+    if (nargs > 2) {
       beta = (double) ff->e.p[7];
       varian = (double) ff->e.p[7];
     }
@@ -2660,7 +2660,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     if (p->channel == 0)                      /* snd is chan 1,2,..8 or all */
       p->channel = ALLCHNLS;
     p->analonly = 0;
-    if (UNLIKELY(ff->flen == 0 && (csound->oparms->msglevel & 7))){
+    if (UNLIKELY(ff->flen == 0 && (csound->oparms->msglevel & 7))) {
       csoundMessage(csound, Str("deferred alloc for %s\n"), p->sfname);
     }
     if (UNLIKELY((fd = sndgetset(csound, p))==NULL)) {
@@ -3352,7 +3352,7 @@ int allocgen(CSOUND *csound, char *s, GEN fn)
 }
 
 
-int csoundIsNamedGEN(CSOUND *csound, int num){
+int csoundIsNamedGEN(CSOUND *csound, int num) {
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
     while (n != NULL) {
       if (n->genum == abs(num))
@@ -3362,7 +3362,7 @@ int csoundIsNamedGEN(CSOUND *csound, int num){
     return 0;
 }
 
-void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len){
+void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len) {
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
     while (n != NULL) {
       if (n->genum == abs(num))
