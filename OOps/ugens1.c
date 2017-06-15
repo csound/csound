@@ -145,7 +145,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     /* VL: 29.05.17 allocating one extra empty segment
        so that the breakpoint version of this opcode
-       can work properly without a fencepost bug */ 
+       can work properly without a fencepost bug */
     if (UNLIKELY((p->cursegp = (SEG *) p->auxch.auxp) == NULL ||
                  (nsegs+1)*sizeof(SEG) < (unsigned int)p->auxch.size)) {
       csound->AuxAlloc(csound, (int32)(nsegs+1)*sizeof(SEG), &p->auxch);
