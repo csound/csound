@@ -2220,10 +2220,10 @@ PUBLIC void csoundSetSpinSample(CSOUND *csound, int frame,
 }
 
 PUBLIC void csoundClearSpin(CSOUND *csound) {
-  
+
   memset(csound->spin, 0, sizeof(MYFLT)*csound->ksmps*csound->nchnls);
 }
-      
+
 PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame,
                                 int channel, MYFLT sample)
 {
