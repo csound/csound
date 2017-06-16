@@ -859,7 +859,7 @@ static int process_rt_event(CSOUND *csound, int sensType)
       EVTNODE *e = csound->OrcTrigEvts;
       /* RM: Events are sorted on insertion, so just check the first */
       evt = &(e->evt);
-      insno = (int)(evt->p[1]);
+      insno = MYFLT2LONG(evt->p[1]);
       if ((rfd = getRemoteInsRfd(csound, insno))) {
         if (rfd == GLOBAL_REMOT)
           insGlobevt(csound, evt);       /* RM: do a global send and allow local */
