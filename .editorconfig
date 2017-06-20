@@ -2,7 +2,11 @@ root = true
 
 [*]
 insert_final_newline = true
-
-#[*.{py,h,hh,hpp,c,cc,cpp}]
+trim_trailing_whitespace = true
+end_of_line = lf
 indent_style = space
 indent_size = 4
+
+#[*.{py,h,hh,hpp,c,cc,cpp}]
+#indent_style = space
+#indent_size = 4
