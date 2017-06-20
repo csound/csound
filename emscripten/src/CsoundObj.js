@@ -41,6 +41,10 @@ var CsoundObj = function() {
     var _prepareRT = cwrap('CsoundObj_prepareRT', null, ['number']);
     var _getScoreTime = cwrap('CsoundObj_getScoreTime', null, ['number']);
     var _setTable = cwrap('CsoundObj_setTable', null, ['number', 'number', 'number', 'number']);
+    var _openAudioOut = cwrap('CsoundObj_openAudioOut', null, ['number']);
+    var _closeAudioOut = cwrap('CsoundObj_closeAudioOut', null, ['number']);
+    var _play = cwrap('CsoundObj_play', null, ['number']);
+    var _paude = cwrap('CsoundObj_pause', null, ['number']);
     var bufferSize;
     var _self = _new();
     var _destroy = cwrap('CsoundObj_destroy', null, ['number']);
@@ -321,7 +325,23 @@ var CsoundObj = function() {
     };
 
     this.destroy = function() {
-        _destroy(self);
+        _destroy(_self);
     };
+
+    this.openAudioOut = function() {
+        _openAudioOut(_self);
+    }
+
+    this.closeAudioOut = function() {
+        _closeAudioOut(_self);
+    }
+
+    this.play = function() {
+        _play(_self);
+     }
+
+     this.stop = function() {
+        _openAudioOut(_self);
+    }
 };  
 
