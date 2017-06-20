@@ -72,20 +72,40 @@ void CsoundObj_destroy(CsoundObj *self)
 }
 
 void CsoundObj_compileCSD(CsoundObj *self,
-			  char *filePath)
+			  char *csd)
 {
-  const char *argv[2] = {
-    "csound",
-    filePath
-  };
-
-  int result = csoundCompile(self->csound, 2, argv);
-
-  if (result != 0) {
-
-    printf("compilation failed\n");
-  }
-  else self->status = CS_STARTED_STATUS;
+    csoundMessage(self->csound, "CsoundObj_compileCSD...\n");
+    int result = 0;
+    if (csd == 0) {
+        csoundMessage(self->csound, "Error: Null CSD.\n");
+        return;
+    }
+    // See if this is a filename or the text of a CSD.
+    char *csd_start_tag = strstr(csd, "<CsoundSynthesizer>");
+    char *csd_end_tag =  strstr(csd, "</CsoundSynthesizer>");
+    if (csd_start_tag && csd_end_tag) {
+        csoundMessage(self->csound, "csoundCompileCsdText...\n");
+        result = csoundCompileCsdText(self->csound, csd);
+        result != csoundStart(self->csound);
+        if (result != 0) {
+             csoundMessage(self->csound, "Failed to compile CSD text.\n");
+        } else {
+            self->status = CS_STARTED_STATUS;
+        }
+        return;
+    } else {
+        csoundMessage(self->csound, "csoundCompile...\n");
+        const char *argv[2] = {
+            "csound",
+            csd
+        };
+        result = csoundCompile(self->csound, 2, argv);
+        if (result != 0) {
+             csoundMessage(self->csound, "Failed to compile CSD file.\n");
+        } else {
+            self->status = CS_STARTED_STATUS;
+        }
+    }
 }
 
 void CsoundObj_prepareRT(CsoundObj *self) {

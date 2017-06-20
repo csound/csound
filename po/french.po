@@ -507,7 +507,7 @@ msgid "Variable type for %s could not be determined.\n"
 msgstr "Impossible de déterminer le type de la variable %s.\n"
 
 #: Engine/csound_orc_semantics.c:1231
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Variable '%s' used before defined\n"
 "line %d"

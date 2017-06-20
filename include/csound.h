@@ -1123,12 +1123,12 @@ extern "C" {
    * Clears the input buffer (spin).
    */
   PUBLIC void csoundClearSpin(CSOUND *);
-  
+
   /**
-   * Adds the indicated sample into the audio input woriking buffer (spin);
+   * Adds the indicated sample into the audio input working buffer (spin);
    * this only ever makes sense before calling csoundPerformKsmps().
    * The frame and channel must be in bounds relative to ksmps and nchnls.
-   * NB: the spin buffer needs to be cleared at every k-cycle by calling 
+   * NB: the spin buffer needs to be cleared at every k-cycle by calling
    * csoundClearSpinBuffer().
    */
   PUBLIC void csoundAddSpinSample(CSOUND *csound,
