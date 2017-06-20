@@ -55,12 +55,6 @@ var csound = (function() {
 		csound.Csound = new CsoundObj();
 		csound.Csound.setMidiCallbacks(); 
 		csound.module = true;
-		if(typeof window.handleMessage !== 'undefined') { 
-		    console.log = console.warn = function(mess) {
-			mess += "\n";
-			window.handleMessage(mess);
-		    }
-		}
 		if(typeof window.moduleDidLoad !== 'undefined') 
                     window.moduleDidLoad();
 		if(typeof window.attachListeners !== 'undefined') 
@@ -102,10 +96,12 @@ var csound = (function() {
      */
     function Play() {
 	if(csound.started == false) {
-	 csound.Csound.compileOrc("nchnls=2\n 0dbfs=1\n");
-	 csound.Csound.start();
-	 csound.started = true;   
-	} else csound.Csound.start();    
+        csound.Csound.compileOrc("nchnls=2\n 0dbfs=1\n");
+        csound.Csound.start();
+        csound.started = true;   
+	} else { 
+        csound.Csound.start();    
+    }
     } 
 
     /**
@@ -160,10 +156,22 @@ var csound = (function() {
      * @param {string} s A string containing the pathname to the CSD.
      */
     function PlayCsd(s) {
-	loadCSD(s, function () {
+        loadCSD(s, function () {
             csound.Csound.compileCSD(s);
-	    csound.Csound.start();
-	    started = true; });
+            csound.Csound.start();
+            started = true; });
+    }
+
+    /**
+     * Compiles a CSD passed as a string of text.
+     *
+     * @param {string} s A string containing the complete text of the CSD.
+     */
+    function CompileCsdText(s) {
+        // This function internally discriminates between CSD text 
+        // and CSD pathnames.
+        csound.Csound.compileCSD(s);
+        started = true;
     }
 
     /**
@@ -408,6 +416,9 @@ var csound = (function() {
 	csound.updateStatus(text);
     }
 
+    function start() {
+        csound.Csound.start();
+    }
     /**
      * Start default audio input.
      *
@@ -426,8 +437,8 @@ var csound = (function() {
         Aftertouch : Aftertouch,
         CompileOrc: CompileOrc,
         compileOrc: CompileOrc,
-        CompileCsdText: PlayCsd,
-        compileCsdText: PlayCsd,
+        CompileCsdText: CompileCsdText,
+        compileCsdText: CompileCsdText,
         ControlChange : ControlChange,
         CopyToLocal: CopyToLocal,
         CopyUrlToLocal: CopyUrlToLocal,
@@ -460,7 +471,8 @@ var csound = (function() {
         setStringChannel: SetStringChannel,
         SetTable : SetTable,
         StartInputAudio: StartInputAudio,
-        start: Play,
+        start: start,
+        Start: Play,
         stop: Stop,
         updateStatus: updateStatus
     };
