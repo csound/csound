@@ -14,13 +14,14 @@
  */
 
 
-#import <csound.h>
-#import <csdl.h>
-#import <stdlib.h>
-#import <string.h>
-#import <stdio.h>
-#import <stdbool.h>
-#import <emscripten.h>
+#include <csound.h>
+#include <csdl.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <emscripten.h>
+#include <SDL/SDL_audio.h>
 
 typedef struct {
 
@@ -49,6 +50,8 @@ typedef struct _CsoundObj
   uint32_t zerodBFS;
   MidiCallbackData *midiCallbackData;
   uint32_t status;
+  SDL_AudioSpec spec;
+  int cnt;
 } CsoundObj;
 
 
@@ -317,4 +320,57 @@ void CsoundObj_setMidiCallbacks(CsoundObj *self)
   csoundSetExternalMidiInOpenCallback(self->csound, CsoundObj_midiInOpen);
   csoundSetExternalMidiReadCallback(self->csound, CsoundObj_midiDataRead);
   csoundSetExternalMidiInCloseCallback(self->csound, CsoundObj_midiInClose);
+}
+
+/* SDL Audio implementation 
+   VL, June 2017
+ */
+void playback(void*  userdata,
+              Uint8* stream,
+	      int    len){
+
+  CsoundObj *self = ((CsoundObj *) userdata);
+  CSOUND *csound = self->csound;
+  short *samples = (short *)stream;
+  MYFLT *data = csoundGetSpout(csound);
+  int i, n = len/sizeof(short);
+  MYFLT scal = csoundGet0dBFS(csound);
+  int ksmps = csoundGetKsmps(csound)*csoundGetNchnls(csound);
+
+  for(i = 0; i < n; i++) {
+    if(self->cnt == ksmps) {
+      csoundPerformKsmps(csound);
+      self->cnt = 0;
+    }
+    samples[i] = data[self->cnt++]*32768/scal;
+  }
+}
+  
+int CsoundObj_openAudioOut(CsoundObj *self) {
+ SDL_AudioSpec inSpec;
+ inSpec.freq = csoundGetSr(self->csound);
+ inSpec.format = AUDIO_S16;
+ inSpec.channels = csoundGetNchnls(self->csound);
+ inSpec.samples =  csoundGetOutputBufferSize(self->csound);
+ inSpec.callback = playback;
+ inSpec.userdata = (void *) self;
+ int res = SDL_OpenAudio(&inSpec, &(self->spec));
+ if (res == 0) {
+    printf("Failed to open audio: %s", SDL_GetError());
+    return CSOUND_ERROR;
+ }
+ self->cnt = csoundGetKsmps(self->csound)*csoundGetNchnls(self->csound);
+ return 0;
+}
+
+void CsoundObj_play(CsoundObj *self) {
+   SDL_PauseAudio(0);
+}
+
+void CsoundObj_pause(CsoundObj *self) {
+   SDL_PauseAudio(1);
+}
+
+void CsoundObj_closeAudioOut(CsoundObj *self) {
+  SDL_CloseAudio();
 }
