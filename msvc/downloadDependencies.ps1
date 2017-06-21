@@ -11,14 +11,15 @@ $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
 $depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
-$vsGenerator = "Visual Studio 14 2015 Win64"
+#$vsGenerator = "Visual Studio 14 2015 Win64"
+$vsGenerator = "Visual Studio 15 2017 Win64"
 
 # Metrics
 $vcpkgTiming = 0
 $buildTiming = 0
 $cmakeTiming = 0
 
-# Add to path to call premake or other tools
+# Add to path to call tools
 $env:Path += $depsDir
 
 # Find VCPKG from path if it already exists
@@ -87,7 +88,7 @@ $targetTriplet = "x64-windows"
 echo "Downloading VC packages..."
 
 #vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
-vcpkg --triplet $targetTriplet install eigen3 libflac libogg libvorbis zlib
+vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib lua
 
 $vcpkgTiming = (Get-Date).TimeOfDay
 
