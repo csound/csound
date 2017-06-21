@@ -124,7 +124,7 @@ int UDPServerClose(CSOUND *csound)
 	//                    sizeof(mess)+1,0,to,sizeof(p->server_addr));
       //} while(ret != -1);
       
-      csoundJoinThread(p->thrid);
+      //csoundJoinThread(p->thrid);
       csound->DestroyGlobalVariable(csound,"::UDPCOM");
     }
     return OK;
