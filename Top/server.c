@@ -110,18 +110,20 @@ int UDPServerClose(CSOUND *csound)
     UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
 
     if (p != NULL) {
+      close(p->sock);
       if(p->thrid != NULL) {
       //ssize_t ret;
-      const char *mess = "!!close!!";
-      const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+      //const char *mess = "!!close!!";
+      //const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
       //do{
-      /* ret = */(void)sendto(p->sock,mess,
-                              sizeof(mess)+1,0,to,sizeof(p->server_addr));
+      /* ret = */
+	//(void)sendto(p->sock,mess,
+	//                    sizeof(mess)+1,0,to,sizeof(p->server_addr));
       //} while(ret != -1);
       
       csoundJoinThread(p->thrid);
 #ifndef WIN32
-      close(p->sock);
+      //close(p->sock);
 #else
       closesocket(p->sock);
 #endif
