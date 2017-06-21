@@ -60,7 +60,8 @@ static uintptr_t udp_recv(void *pdata)
     while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
       if (csound->oparms->odebug)
         csound->Message(csound, "orchestra: \n%s\n", orchestra);
-      if (strncmp("##close##",orchestra,9)==0) break;
+      if (strncmp("!!close!!",orchestra,9)==0 ||
+	  strncmp("##close##",orchestra,9)==0) break;
       csoundCompileOrc(csound, orchestra);
       memset(orchestra,0, MAXSTR);
     }
@@ -109,7 +110,7 @@ int UDPServerClose(CSOUND *csound)
 
     if (p != NULL) {
       //ssize_t ret;
-      const char *mess = "##close##";
+      const char *mess = "!!close!!";
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
       //do{
       /* ret = */(void)sendto(p->sock,mess,
