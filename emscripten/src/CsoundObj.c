@@ -83,7 +83,7 @@ void CsoundObj_compileCSD(CsoundObj *self,
     if (csd_start_tag && csd_end_tag) {
         csoundMessage(self->csound, "csoundCompileCsdText...\n");
         result = csoundCompileCsdText(self->csound, csd);
-        result != csoundStart(self->csound);
+        result |= csoundStart(self->csound);
         if (result != 0) {
              csoundMessage(self->csound, "Failed to compile CSD text.\n");
         } else {
