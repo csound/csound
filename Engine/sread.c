@@ -790,7 +790,7 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     STA(str) = STA(inputs);
     STA(str)->is_marked_repeat = 0;
     STA(str)->line = 1; STA(str)->mac = NULL;
-    init_smacros(csound, csound->smacros);
+    //init_smacros(csound, csound->smacros);
     {
       PRS_PARM  qq;
       memset(&qq, '\0', sizeof(PRS_PARM));
