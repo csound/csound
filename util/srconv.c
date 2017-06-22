@@ -382,7 +382,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       (void) csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
       if (UNLIKELY(fscanf(tvfp, "%d", &tvlen) != 1))
         csound->Message(csound, Str("Read failure\n"));
-      if(tvlen <= 0) {
+      if (UNLKELY(tvlen <= 0)) {
             strncpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
             goto err_rtn_msg;
        }

@@ -24,7 +24,9 @@
 #include "csdl.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+    #include <unistd.h>
+#endif
 #include <lo/lo.h>
 #include <ctype.h>
 
@@ -331,8 +333,8 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
             {
               void *dd = csound->Malloc(csound, len+sizeof(int)*(1+ss->dimensions));
               memcpy(dd, &ss->dimensions, sizeof(int));
-              memcpy(dd+sizeof(int), ss->sizes, sizeof(int)*ss->dimensions);
-              memcpy(dd+sizeof(int)*(1+ss->dimensions), ss->data, len);
+              memcpy((char*)dd+sizeof(int), ss->sizes, sizeof(int)*ss->dimensions);
+              memcpy((char*)dd+sizeof(int)*(1+ss->dimensions), ss->data, len);
       /* printf("dd length = %d dimensions = %d, %d %d %.8x %.8x %.8x %.8x\n", */
       /*        len+sizeof(int)*(1+ss->dimensions), ss->dimensions, */
       /*        ((int*)dd)[0], ((int*)dd)[1], ((int*)dd)[2], ((int*)dd)[3], */

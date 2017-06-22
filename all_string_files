@@ -302,6 +302,7 @@
 ./Opcodes/linear_algebra.cpp
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h
+./Opcodes/liveconv.c
 ./Opcodes/locsig.c
 ./Opcodes/locsig.h
 ./Opcodes/loscilx.c
@@ -467,7 +468,7 @@
 ./Opcodes/wpfilters.c
 ./Opcodes/wpfilters.h
 ./SDIF/sdif-mem.c
-./OSDIF/sdif-mem.h
+./SDIF/sdif-mem.h
 ./SDIF/sdif.c
 ./SDIF/sdif.h
 ./SDIF/sdif2adsyn.c

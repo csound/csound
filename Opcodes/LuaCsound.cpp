@@ -23,7 +23,6 @@
 #include <cstdio>
 #include <cstring>
 #include <map>
-#include <pthread.h>
 #include <string>
 #include <vector>
 
@@ -44,11 +43,11 @@ extern "C"
 #if defined(__ANDROID__)
 extern "C"
 {
-    #undef stdin
+#undef stdin
     FILE *stdin  = &__sF[0];
-    #undef stdout
+#undef stdout
     FILE *stdout = &__sF[1];
-    #undef stderr
+#undef stderr
     FILE *stderr = &__sF[2];
     volatile int * __errno_location(void)
     {
@@ -88,8 +87,7 @@ extern "C"
  * Stores Lua references to opcode subroutines for greater efficiency of
  * calling.
  */
-struct keys_t
-{
+struct keys_t {
     keys_t() : init_key(0), kontrol_key(0), audio_key(0), noteoff_key(0) {}
     int init_key;
     int kontrol_key;
@@ -97,56 +95,44 @@ struct keys_t
     int noteoff_key;
 };
 
-static pthread_mutex_t &get_refkey()
-{
-    static pthread_mutex_t lc_getrefkey = PTHREAD_MUTEX_INITIALIZER;
-    return lc_getrefkey;
-}
-
-static pthread_mutex_t &get_manageLuaState()
-{
-    static pthread_mutex_t lc_manageLuaState = PTHREAD_MUTEX_INITIALIZER;
-    return lc_manageLuaState;
-}
-
-struct CriticalSection
-{
-    CriticalSection(pthread_mutex_t &mutex_) : mutex(mutex_), status(-1)
-    {
-        status = pthread_mutex_lock(&mutex);
-    }
-    ~CriticalSection()
-    {
-        if (status >= 0) {
-            pthread_mutex_unlock(&mutex);
-        }
-    }
-    pthread_mutex_t &mutex;
-    int status;
+struct LuaStateForThread {
+    void *thread;
+    lua_State *L;
 };
+
+bool operator == (const LuaStateForThread& a, const LuaStateForThread &b)
+{
+    if (a.thread == b.thread) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static void *lua_states_mutex = 0;
+static std::vector<LuaStateForThread> *luaStatesForThreads = 0;
+static void *reference_keys_mutex = 0;
+static std::map<const lua_State *,
+       std::map<std::string, keys_t> > *luaReferenceKeys = 0;
 
 /**
  * Thread-safe storage for Lua references to opcode subroutines.
  */
-keys_t &manageLuaReferenceKeys(const lua_State *L,
+keys_t &manageLuaReferenceKeys(CSOUND *csound,
+                               const lua_State *L,
                                const std::string &opcode, char operation)
 {
-    static std::map<const lua_State *,
-                    std::map<std::string, keys_t> > luaReferenceKeys;
     keys_t *keys = 0;
     {
-        CriticalSection criticalSection(get_refkey());
-        switch(operation)
-        {
-        case 'O':
-        {
-            keys = &luaReferenceKeys[L][opcode];
+        LockGuard criticalSection(csound, reference_keys_mutex);
+        switch(operation) {
+        case 'O': {
+            keys = &(*luaReferenceKeys)[L][opcode];
         }
         break;
-        case 'C':
-        {
+        case 'C': {
 
-            luaReferenceKeys.erase(L);
+            luaReferenceKeys->erase(L);
         }
         break;
         }
@@ -154,60 +140,38 @@ keys_t &manageLuaReferenceKeys(const lua_State *L,
     return *keys;
 }
 
-
-struct LuaStateForThread
-{
-    pthread_t thread;
-    lua_State *L;
-};
-
-bool operator == (const LuaStateForThread& a, const LuaStateForThread &b)
-{
-    if (pthread_equal(a.thread, b.thread)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 /**
  * Thread-safe storage for Lua states (virtual machines). There is one Lua state
  * per thread, rather than per instance of Csound, in case one instance of Csound
  * is running multiple threads with multiple instances of a Lua opcode.
  */
-lua_State *manageLuaState(char operation)
+lua_State *manageLuaState(CSOUND * csound, char operation)
 {
-    static std::vector<LuaStateForThread> luaStatesForThreads;
-    CriticalSection criticalSection(get_manageLuaState());
+    LockGuard criticalSection(csound, lua_states_mutex);
     LuaStateForThread luaStateForThread;
-    luaStateForThread.thread = pthread_self();
+    luaStateForThread.thread = csound->GetCurrentThreadID();
     std::vector<LuaStateForThread>::iterator it =
-      std::find(luaStatesForThreads.begin(),
-                luaStatesForThreads.end(),
-                luaStateForThread);
+        std::find(luaStatesForThreads->begin(),
+                  luaStatesForThreads->end(),
+                  luaStateForThread);
     lua_State *L = 0;
-    switch(operation)
-    {
-    case 'O':
-    {
-        if (it == luaStatesForThreads.end())
-        {
+    switch(operation) {
+    case 'O': {
+        if (it == luaStatesForThreads->end()) {
             luaStateForThread.L = lua_open();
             luaL_openlibs(luaStateForThread.L);
-            luaStatesForThreads.push_back(luaStateForThread);
+            luaStatesForThreads->push_back(luaStateForThread);
             L = luaStateForThread.L;
-        }
-        else
-        {
+        } else {
             L = it->L;
         }
     }
     break;
-    case 'C':
-    {
-        if (it != luaStatesForThreads.end()) {
-            manageLuaReferenceKeys(it->L, "", 'C');
-            luaStatesForThreads.erase(it);
+    case 'C': {
+        if (it != luaStatesForThreads->end()) {
+            manageLuaReferenceKeys(csound, it->L, "", 'C');
+            lua_close(it->L);
+            luaStatesForThreads->erase(it);
         }
     }
     break;
@@ -231,7 +195,7 @@ public:
     int init(CSOUND *csound)
     {
         int result = OK;
-        lua_State *L = manageLuaState('O');
+        lua_State *L = manageLuaState(csound, 'O');
         /* Ensure that Csound is available in the global environment. */
         lua_pushlightuserdata(L, csound);
         lua_setfield(L, LUA_GLOBALSINDEX, "csound");
@@ -239,12 +203,9 @@ public:
         log(csound, "Executing (L: 0x%p) Lua code.\n", L);
         warn(csound, "\n%s\n", luacode);
         result = luaL_dostring(L, luacode);
-        if (result == 0)
-        {
+        if (result == 0) {
             //log(csound, "Result: %d\n", result);
-        }
-        else
-        {
+        } else {
             log(csound, "luaL_dostring failed with: %d\n%s\n",
                 result, lua_tostring(L, -1));
         }
@@ -315,14 +276,13 @@ public:
     {
         int result = OK;
         opcodename = ((STRINGDAT *)opcodename_)->data;
-        lua_State *L = manageLuaState('O');
-        keys_t &keys = manageLuaReferenceKeys(L, opcodename, 'O');
+        lua_State *L = manageLuaState(csound, 'O');
+        keys_t &keys = manageLuaReferenceKeys(csound, L, opcodename, 'O');
         lua_rawgeti(L, LUA_REGISTRYINDEX, keys.init_key);
         lua_pushlightuserdata(L, csound);
         lua_pushlightuserdata(L, this);
         lua_pushlightuserdata(L, &arguments);
-        if (lua_pcall(L, 3, 1, 0) != 0)
-        {
+        if (lua_pcall(L, 3, 1, 0) != 0) {
             log(csound, "Lua error in \"%s_init\": %s.\n",
                 opcodename, lua_tostring(L, -1));
         }
@@ -334,14 +294,13 @@ public:
     int kontrol(CSOUND *csound)
     {
         int result = OK;
-        lua_State *L = manageLuaState('O');
-        keys_t &keys = manageLuaReferenceKeys(L, opcodename, 'O');
+        lua_State *L = manageLuaState(csound, 'O');
+        keys_t &keys = manageLuaReferenceKeys(csound, L, opcodename, 'O');
         lua_rawgeti(L, LUA_REGISTRYINDEX, keys.kontrol_key);
         lua_pushlightuserdata(L, csound);
         lua_pushlightuserdata(L, this);
         lua_pushlightuserdata(L, &arguments);
-        if (lua_pcall(L, 3, 1, 0) != 0)
-        {
+        if (lua_pcall(L, 3, 1, 0) != 0) {
             log(csound, "Lua error in \"%s_kontrol\": %s.\n",
                 opcodename, lua_tostring(L, -1));
         }
@@ -353,14 +312,13 @@ public:
     int audio(CSOUND *csound)
     {
         int result = OK;
-        lua_State *L = manageLuaState('O');
-        keys_t &keys = manageLuaReferenceKeys(L, opcodename, 'O');
+        lua_State *L = manageLuaState(csound, 'O');
+        keys_t &keys = manageLuaReferenceKeys(csound, L, opcodename, 'O');
         lua_rawgeti(L, LUA_REGISTRYINDEX, keys.audio_key);
         lua_pushlightuserdata(L, csound);
         lua_pushlightuserdata(L, this);
         lua_pushlightuserdata(L, arguments);
-        if (lua_pcall(L, 3, 1, 0) != 0)
-        {
+        if (lua_pcall(L, 3, 1, 0) != 0) {
             log(csound, "Lua error in \"%s_audio\": %s.\n",
                 opcodename, lua_tostring(L, -1));
         }
@@ -439,14 +397,13 @@ public:
     {
         int result = OK;
         opcodename = ((STRINGDAT *)opcodename_)->data;
-        lua_State *L = manageLuaState('O');
-        keys_t &keys = manageLuaReferenceKeys(L, opcodename, 'O');
+        lua_State *L = manageLuaState(csound, 'O');
+        keys_t &keys = manageLuaReferenceKeys(csound, L, opcodename, 'O');
         lua_rawgeti(L, LUA_REGISTRYINDEX, keys.init_key);
         lua_pushlightuserdata(L, csound);
         lua_pushlightuserdata(L, this);
         lua_pushlightuserdata(L, &arguments);
-        if (lua_pcall(L, 3, 1, 0) != 0)
-        {
+        if (lua_pcall(L, 3, 1, 0) != 0) {
             log(csound, "Lua error in \"%s_init\": %s.\n",
                 opcodename, lua_tostring(L, -1));
         }
@@ -458,14 +415,13 @@ public:
     int kontrol(CSOUND *csound)
     {
         int result = OK;
-        lua_State *L = manageLuaState('O');
-        keys_t &keys = manageLuaReferenceKeys(L, opcodename, 'O');
+        lua_State *L = manageLuaState(csound, 'O');
+        keys_t &keys = manageLuaReferenceKeys(csound, L, opcodename, 'O');
         lua_rawgeti(L, LUA_REGISTRYINDEX, keys.kontrol_key);
         lua_pushlightuserdata(L, csound);
         lua_pushlightuserdata(L, this);
         lua_pushlightuserdata(L, &arguments);
-        if (lua_pcall(L, 3, 1, 0) != 0)
-        {
+        if (lua_pcall(L, 3, 1, 0) != 0) {
             log(csound, "Lua error in \"%s_kontrol\": %s.\n",
                 opcodename, lua_tostring(L, -1));
         }
@@ -477,14 +433,13 @@ public:
     int audio(CSOUND *csound)
     {
         int result = OK;
-        lua_State *L = manageLuaState('O');
-        keys_t &keys = manageLuaReferenceKeys(L, opcodename, 'O');
+        lua_State *L = manageLuaState(csound, 'O');
+        keys_t &keys = manageLuaReferenceKeys(csound, L, opcodename, 'O');
         lua_rawgeti(L, LUA_REGISTRYINDEX, keys.audio_key);
         lua_pushlightuserdata(L, csound);
         lua_pushlightuserdata(L, this);
         lua_pushlightuserdata(L, arguments);
-        if (lua_pcall(L, 3, 1, 0) != 0)
-        {
+        if (lua_pcall(L, 3, 1, 0) != 0) {
             log(csound, "Lua error in \"%s_audio\": %s.\n",
                 opcodename, lua_tostring(L, -1));
         }
@@ -496,19 +451,16 @@ public:
     int noteoff(CSOUND *csound)
     {
         int result = OK;
-        lua_State *L = manageLuaState('O');
-        keys_t &keys = manageLuaReferenceKeys(L, opcodename, 'O');
+        lua_State *L = manageLuaState(csound, 'O');
+        keys_t &keys = manageLuaReferenceKeys(csound, L, opcodename, 'O');
         lua_rawgeti(L, LUA_REGISTRYINDEX, keys.noteoff_key);
         lua_pushlightuserdata(L, csound);
         lua_pushlightuserdata(L, this);
         lua_pushlightuserdata(L, arguments);
-        if (lua_pcall(L, 3, 1, 0) != 0)
-        {
+        if (lua_pcall(L, 3, 1, 0) != 0) {
             log(csound, "Lua error in \"%s_noteoff\": %s.\n",
                 opcodename, lua_tostring(L, -1));
-        }
-        else
-        {
+        } else {
             log(csound, "Lua called \"%s_noteoff\": %s.\n",
                 opcodename, lua_tostring(L, -1));
         }
@@ -563,7 +515,7 @@ public:
     int init(CSOUND *csound)
     {
         int result = OK;
-        lua_State *L = manageLuaState('O');
+        lua_State *L = manageLuaState(csound, 'O');
         /* Ensure that Csound is available in the global environment. */
         lua_pushlightuserdata(L, csound);
         lua_setfield(L, LUA_GLOBALSINDEX, "csound");
@@ -571,50 +523,43 @@ public:
         const char *luacode = ((STRINGDAT *)luacode_)->data;
         //log(csound, "Executing Lua code:\n%s\n", luacode);
         result = luaL_dostring(L, luacode);
-        if (result == 0)
-        {
-            keys_t &keys = manageLuaReferenceKeys(L, opcodename, 'O');
+        if (result == 0) {
+            keys_t &keys = manageLuaReferenceKeys(csound, L, opcodename, 'O');
             log(csound, "Opcode: %s\n", opcodename);
             log(csound, "Result: %d\n", result);
             char init_function[0x100];
             snprintf(init_function, 0x100,
-                          "%s_init", opcodename); //h.optext->t.opcod);
+                     "%s_init", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, init_function);
-            if (!lua_isnil(L, 1))
-            {
+            if (!lua_isnil(L, 1)) {
                 keys.init_key = luaL_ref(L, LUA_REGISTRYINDEX);
                 lua_pop(L, 1);
             }
             char kontrol_function[0x100];
             snprintf(kontrol_function, 0x100,
-                          "%s_kontrol", opcodename); //h.optext->t.opcod);
+                     "%s_kontrol", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, kontrol_function);
-            if (!lua_isnil(L, 1))
-            {
+            if (!lua_isnil(L, 1)) {
                 keys.kontrol_key = luaL_ref(L, LUA_REGISTRYINDEX);
                 lua_pop(L, 1);
             }
             char audio_function[0x100];
             snprintf(audio_function, 0x100,
-                          "%s_audio", opcodename); //h.optext->t.opcod);
+                     "%s_audio", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, audio_function);
-            if (!lua_isnil(L, 1))
-            {
+            if (!lua_isnil(L, 1)) {
                 keys.audio_key = luaL_ref(L, LUA_REGISTRYINDEX);
                 lua_pop(L, 1);
             }
             char noteoff_function[0x100];
             snprintf(noteoff_function, 0x100,
-                          "%s_noteoff", opcodename); //h.optext->t.opcod);
+                     "%s_noteoff", opcodename); //h.optext->t.opcod);
             lua_getglobal(L, noteoff_function);
-            if (!lua_isnil(L, 1))
-            {
+            if (!lua_isnil(L, 1)) {
                 keys.noteoff_key = luaL_ref(L, LUA_REGISTRYINDEX);
                 lua_pop(L, 1);
             }
-        }
-        else
-        {
+        } else {
             log(csound, "luaL_dostring failed with: %d\n", result);
         }
         return result;
@@ -629,8 +574,7 @@ extern "C"
      * for a C opcode. The user must take care to define, in Lua, the opcode
      * routines required by that specific "thread."
      */
-    OENTRY oentries[] =
-    {
+    OENTRY oentries[] = {
         {
             (char*)"lua_exec",
             sizeof(cslua_exec),
@@ -758,14 +702,17 @@ extern "C"
 
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
+        lua_states_mutex = csound->Create_Mutex(0);
+        luaStatesForThreads = new std::vector<LuaStateForThread>;
+        reference_keys_mutex = csound->Create_Mutex(0);
+        luaReferenceKeys = new std::map<const lua_State *, std::map<std::string, keys_t> >;
         return 0;
     }
 
     PUBLIC int csoundModuleInit(CSOUND *csound)
     {
         int status = 0;
-        for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
-        {
+        for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) {
             status |= csound->AppendOpcode(csound,
                                            oentry->opname,
                                            oentry->dsblksiz,
@@ -777,13 +724,29 @@ extern "C"
                                            (int (*)(CSOUND*,void*)) oentry->kopadr,
                                            (int (*)(CSOUND*,void*)) oentry->aopadr);
         }
-        manageLuaState('O');
+        manageLuaState(csound, 'O');
         return status;
     }
 
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
-        manageLuaState('C');
+        if (lua_states_mutex != 0) {
+            csound->LockMutex(lua_states_mutex);
+            for (std::vector<LuaStateForThread>::iterator it = luaStatesForThreads->begin(); it != luaStatesForThreads->end(); ++it) {
+                lua_close(it->L);
+            }
+            luaStatesForThreads->clear();
+            csound->UnlockMutex(lua_states_mutex);
+            csound->DestroyMutex(lua_states_mutex);
+            lua_states_mutex = 0;
+        }
+        if (reference_keys_mutex != 0) {
+            csound->LockMutex(reference_keys_mutex);
+            luaReferenceKeys->clear();
+            csound->UnlockMutex(reference_keys_mutex);
+            csound->DestroyMutex(reference_keys_mutex);
+            reference_keys_mutex = 0;
+        }
         return OK;
     }
 }

@@ -6,7 +6,7 @@ These instructions come in two parts. The first is for building a "plain" Csound
 
 Note that MSYS2 can also be used to create 32bit binaries. Simply use the MinGW-w64 Win32 Shell instead of the Win64 Shell. See below for details.
 
-If you want all Csound plugins to be built with static linkage to all library dependencies, you must set STK_LIBRARY and PTHREAD_LIBRARY in your build.sh or build-mkg.sh to specify the full pathname to the static version of the respective library.
+If you want all Csound plugins to be built with static linkage to all library dependencies, you must set `STK_LIBRARY` and `PTHREAD_LIBRARY` in your `build.sh` or `build-mkg.sh` to specify the full pathname to the static version of the respective library.
 
 ## Plain Build
 
@@ -41,7 +41,7 @@ If you want all Csound plugins to be built with static linkage to all library de
 
 3. Open a MinGW-w64 Win64 Shell, which provides a terminal with all tools set up for mingw64 development.
 
-4. If necessary, modify the PATH environment variable in ~/.bash_profile so that executables which compete with MSYS2 cannot be loaded. Also ensure that the environment variable RAWWAVE_PATH is not set, or set to the STK source rawwaves directory. Other things may also need to be set. My ~/.bash_profile contains:
+4. If necessary, modify the PATH environment variable in `~/.bash_profile` so that executables which compete with MSYS2 cannot be loaded. Also ensure that the environment variable RAWWAVE_PATH is not set, or set to the STK source rawwaves directory. Other things may also need to be set. My `~/.bash_profile contains`:
     ```sh
     export CSOUND_HOME=/home/restore/csound/
     export CEF_HOME=D:/cef_binary_3.2556.1368.g535c4fb_windows64
@@ -55,14 +55,14 @@ If you want all Csound plugins to be built with static linkage to all library de
     export RAWWAVE_PATH=/home/restore/csound/mingw64/packages/stk/src/stk-4.5.1/rawwaves
     ```
 
-5. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use 'makepkg-mingw -f' to build the package. Use 'pacman -U name-of-package.pkg.tar.xz' to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings. Failing that you can simply run this command from the package directory:
+5. Build and install packages for dependencies not currently in MSYS2's repositories. The formulas are included in the packages folder. Note that the purpose of these packages is simply to get dependencies installed for the Csound build system to find, not to replicate existing packages, so PKGBUILD files may be simplified. Also note that some packages contain patches that may need to be updated when source files are updated. Cd into each directory and use `makepkg-mingw -f` to build the package. Use `pacman -U name-of-package.pkg.tar.xz` to install the package. If there is a 'devel' package in the package directory, install that also. If there are any errors about line endings, simply run dos2unix on the file(s) to change the line endings. Failing that you can simply run this command from the package directory:
     ```sh
     sed -i 's/^M//' PKGBUILD
     ```
 
 6. If you wish to create an mingw64-compatible import library for the MSVS-built Python DLL, see the following [instructions here](http://ascend4.org/Setting_up_a_MinGW-w64_build_environment). Note that currently, gendef comes with the MSYS2 toolchain, and does not need to be built.
 
-7. Run `./build.sh in the mingw64 directory`. It will run CMake, run make, and then copy the targets into the "dist" directory. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. (You can skip this step if you are performing the installer build below).
+7. Run `./build.sh` in the mingw64 directory. It will run CMake, run make, and then copy the targets into the "dist" directory. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. (You can skip this step if you are performing the installer build below.)
 
 # Installer Build
 
@@ -71,6 +71,7 @@ If you want all Csound plugins to be built with static linkage to all library de
 2. Install the following dependencies, which are not or should not be built with mingw64. The build system should be able to find them without manual configuration.
   * The Java SDK for x64 from [Oracle](http://www.oracle.com/technetwork/java/index.html).
   * Python for x64 from [Python.org](https://www.python.org/).
+  * The [Ableton Link software development kit](https://github.com/Ableton/link).
 
 3. Obtain from [Steinberg](http://www.steinberg.net/en/company/developers.html) the ASIO2 and VST 2.X SDKs and copy them into the mingw64/include directory.
 
@@ -86,13 +87,13 @@ If you want all Csound plugins to be built with static linkage to all library de
 
 9. Set an environment variable `XSL_BASE_PATH` in `~/.bash_profile` e.g. to `mingw64/share/xml/docbook/xsl-stylesheets-1.78.1`. Clone or update the Csound manual repository from git@github.com:csound/manual.git. Execute `python csd2docbook.py -a` to build docbook versions of the example CSDs. Execute `mingw32-make html-dist` in the mingw64 shell to build the Csound Reference Manual.
 
-10. Execute the `csound/mingw64/find_csound_dependencies.py` script to reflect paths for tools and resources it requires. This may need to be edited if your paths differ from mine.
+10. Execute `./build-mkg.sh` in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
 
-11. Execute `./build-mkg.sh` in the mingw64 directory. It may be necessary to edit this script to reflect options or paths it requires. The first time you run this script, it should build Csound and then fail because some targets must be built with MSVS.
+11. Load the csound/Opcodes/AbletonLinkOpcodes/AbletonLinkOpcodes.sln solution in Visual Studio 2015 and build the release version of the project for x64. Mingw64 will build these opcodes but they don't work, Visual Studio will build a version that does work.
 
-12. Execute the VS2015 x64 native tools command prompt. Change to the csound/mingw64 directory and run the `make_import_library.cmd` script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
+11. Execute the VS2015 x64 native tools command prompt. Change to the csound/mingw64 directory and run the `make_import_library.cmd` script. This will create a Microsoft-compatible import library for the mingw64-built Csound DLL. This import library is required to build csound.node and CsoundQt.
 
-13. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt `qcs.pro` project. Configure `config.user.pri` if necessary. Disable the shadow build option. Run qmake and rebuild the project. My `config.user.pri` is:
+12. Clone the CsoundQt [repository](https://github.com/CsoundQt/CsoundQt). Run QtCreator and open the CsoundQt `qcs.pro` project. Configure `config.user.pri` if necessary. Disable the shadow build option. Run qmake and rebuild the project. My `config.user.pri` is:
     ```qmake
     CONFIG *= perfThread_build
     CONFIG *= rtmidi
@@ -108,7 +109,7 @@ If you want all Csound plugins to be built with static linkage to all library de
     RTMIDI_DIR = D:/msys64/home/restore/rtmidi-2.1.1
     ```
 
-14. Run the node.js command prompt. Set the `CSOUND_HOME` environment variable to point to your Csound project root directory. Run `nw-gyp rebuild --target=0.18.8 --arch=x64`. If the script ends with "ok" it has succeeded.
+14. Run the node.js command prompt. Set the `CSOUND_HOME` environment variable to point to your Csound project root directory. Run `nw-gyp rebuild --target=0.22.3 --arch=x64`. If the script ends with "ok" it has succeeded.
 
 15. Run `csound/mingw64/build-mkg.sh` again. For a truly clean build, first delete the `csound-mingw64` directory and all of its contents. The build script should:
   * Run CMake.

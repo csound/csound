@@ -248,7 +248,7 @@ NM              [nm]
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
@@ -285,10 +285,14 @@ NM              [nm]
                        csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                      while (1) {
+                       c = input(yyscanner);
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
                        if (c == '\\') {
                          int newc = input(yyscanner);
                          if (newc != ')') nn ->body[i++] = c;
@@ -353,7 +357,7 @@ NM              [nm]
 {MACRONAMEDA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                    yytext);
                    yytext[yyleng-2] = '\0';
@@ -390,8 +394,12 @@ NM              [nm]
                        csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                      while (1) {
+                       c = input(yyscanner);
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c == '\\') {
@@ -477,7 +485,7 @@ NM              [nm]
                                    YY_CURRENT_BUFFER);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
-                  if (UNLIKELY(PARM->depth > 1024)){
+                  if (UNLIKELY(PARM->depth > 1024)) {
                     //csound->Die(csound, Str("unexpected EOF!!"));
                     csound->Message(csound, Str("unexpected EOF!!\n"));
                     csound->LongJmp(csound, 1);
@@ -655,7 +663,7 @@ NM              [nm]
                   PARM->repeat_cnt_n[PARM->repeat_index] = 0;
                   do {
                     c = input(yyscanner);
-                  } while(isblank(c));
+                  } while (isblank(c));
                   while (isdigit(c)) {
                     PARM->repeat_cnt_n[PARM->repeat_index] =
                       10 * PARM->repeat_cnt_n[PARM->repeat_index] + c - '0';
@@ -712,7 +720,7 @@ NM              [nm]
                                    PARM->repeat_mm_n[PARM->repeat_index]->body);
                   PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
                   PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
-                  while (input(yyscanner)!='\n'){}
+                  while (input(yyscanner)!='\n') {}
                   PARM->cf_stack[PARM->repeat_index] = PARM->cf;
                   PARM->cf = corfile_create_w();
         }
@@ -790,7 +798,7 @@ NM              [nm]
            PARM->in_repeat_sect = 1; /* Mark as recording */
            do {
              c = input(yyscanner);
-           } while(isblank(c));
+           } while (isblank(c));
            while (isdigit(c)) {
              PARM->repeat_sect_cnt =
                10 * PARM->repeat_sect_cnt + c - '0';
@@ -841,11 +849,11 @@ NM              [nm]
         }
 {SEND}  {
           if (!PARM->isString) {
-            corfile_putc(yytext[0], PARM->cf);
-            corfile_putc('\n', PARM->cf);
             //printf("section end %d %c\n%s\n",
             //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
+              corfile_putc(yytext[0], PARM->cf);
+              corfile_putc('\n', PARM->cf);
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
@@ -863,6 +871,8 @@ NM              [nm]
               //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
               PARM->repeat_sect_index++;
               if (PARM->repeat_sect_index<PARM->repeat_sect_cnt) {
+                corfile_putc('s', PARM->cf);
+                corfile_putc('\n', PARM->cf);
                 if (PARM->repeat_sect_mm) {
                   snprintf(PARM->repeat_sect_mm->body, 16, "%d",
                            PARM->repeat_sect_index);
@@ -874,6 +884,8 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
+                corfile_putc(yytext[0], PARM->cf);
+                corfile_putc('\n', PARM->cf);
                 //printf("end of loop\n");
                 PARM->in_repeat_sect=0;
                 corfile_rm(&PARM->repeat_sect_cf);
@@ -1402,7 +1414,7 @@ void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
         csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {
-        csound->Die(csound, Str("Invalid macro name for --omacro"));
+        csound->Die(csound, Str("Invalid macro name for --smacro"));
       }
       mname = (char*) csound->Malloc(csound, (p - s) + 1);
       if (UNLIKELY(mname == NULL)) {
@@ -1473,7 +1485,7 @@ static void csound_prs_line(CORFIL* cf, void *yyscanner)
 static MACRO *find_definition(MACRO *mmo, char *s)
 {
     MACRO *mm = mmo;
-    printf("****Looking for %s\n", s);
+    //printf("****Looking for %s\n", s);
     while (mm != NULL) {  /* Find the definition */
       //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
       if (!(strcmp(s, mm->name))) break;
@@ -1485,14 +1497,14 @@ static MACRO *find_definition(MACRO *mmo, char *s)
     looking:
       while (*s++!='`') { if (*s=='\0') return NULL; }
       if (*s++!='`') { s--; goto looking; }
-      printf("now try looking for %s\n", s);
+      //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
-        printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
+        //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
         if (!(strcmp(s, mm->name))) break;
         mm = mm->next;
       }
     }
-    if (mm) printf("found body #%s#%c\n****\n", mm->body, mm->acnt?'X':' ');
+    //if (mm) printf("found body #%s#%c\n****\n", mm->body, mm->acnt?'X':' ');
     return mm;
 }
 

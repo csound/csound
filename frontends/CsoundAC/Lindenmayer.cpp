@@ -129,6 +129,7 @@ namespace csound
   {
     try
       {
+        auto original_precision = std::cerr.precision();
         action = Conversions::trim(action);
           char command = action[0];
           switch(command)
@@ -296,6 +297,7 @@ namespace csound
               }
               break;
             }
+            std::cerr.precision(original_precision);
       }
     catch(void *x)
       {

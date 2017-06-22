@@ -386,7 +386,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
 #endif
     csound->SetUtilSr(csound, (MYFLT)mixin[0].p->sr);
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.frames = -1;
+    //sfinfo.frames = 0/*was -1*/;
     sfinfo.samplerate = mixin[0].p->sr;
     sfinfo.channels /*= csound->nchnls*/ = (int) mixin[0].p->nchanls;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
@@ -458,7 +458,7 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
       if (newpoint->x1 == newpoint->x0) {
         MYFLT div = (MYFLT)(tt->x1 - tt->x0);
         tt->y1 = y;
-        if(div)
+        if (LIKELY(div))
           tt->yr = (y - tt->y0)/div;
         else  tt->yr = y;
         csound->Free(csound, newpoint);

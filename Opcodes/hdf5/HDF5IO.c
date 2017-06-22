@@ -861,7 +861,8 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
            sizeof(hsize_t) * dataset->rank);
     chunkDimensions[0] = vectorSize;
 
-        memcpy (chunkDimensions, dataset->datasetSize, sizeof (hsize_t) * dataset->rank);
+        memcpy (chunkDimensions, dataset->datasetSize,
+                sizeof (hsize_t) * dataset->rank);
         chunkDimensions[dataset->rank - 1] = vectorSize;
 
         HDF5Read_readData (csound, self, dataset, dataset->offset,
@@ -1330,12 +1331,15 @@ void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self)
       HDF5Dataset *currentDataset = &self->datasets[i];
       STRINGDAT *inputArgument =
         (STRINGDAT *)self->arguments[self->outputArgumentCount + i + 1];
-      currentDataset->datasetName = inputArgument->data;
 
-      if (inputArgument->data[strlen(inputArgument->data) - 1] == '*') {
+        csound->AuxAlloc(csound, sizeof(char) * strlen(inputArgument->data), &currentDataset->datasetNameMemory);
+        currentDataset->datasetName = currentDataset->datasetNameMemory.auxp;
+        strcpy(currentDataset->datasetName, inputArgument->data);
+
+      if (currentDataset->datasetName[strlen(inputArgument->data) - 1] == '*') {
 
         currentDataset->readAll = true;
-        inputArgument->data[strlen(inputArgument->data) - 1] = '\0';
+        currentDataset->datasetName[strlen(inputArgument->data) - 1] = '\0';
       }
 
       currentDataset->readType =

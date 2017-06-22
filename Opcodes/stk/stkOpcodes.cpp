@@ -736,12 +736,12 @@ extern "C"
 
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
-      const char *path = csound->GetEnv(csound, "RAWWAVE_PATH");
+      const char* path = csound->GetEnv(csound, "RAWWAVE_PATH");
 #ifdef DEFAULT_RAWWAVE_PATH
     if(!path)
         path = DEFAULT_RAWWAVE_PATH;
 #endif
-    if(!path)
+    if(path == NULL)
       {
         csound->Warning(csound,
                         Str("STK opcodes not available: define environment "
@@ -752,24 +752,16 @@ extern "C"
     else
       {
 #if !defined(MACOSX)
-        if (std::strlen(path) == 0) {
+        if (path) {
             path = std::getenv("RAWWAVE_PATH");
         }
 #endif
 
-// FIXME:PTHREAD_WORK - need to check if this is necessary and, if so, use some other
-// kind of locking mechanism
-//#if !defined(WIN32)
-//        csound_global_mutex_lock();
-//#endif
-        if (path != 0) {
+       if (path != NULL && strlen(path) != 0) {
             Stk::setRawwavePath(path);
         }
-//#if !defined(WIN32)
-//        csound_global_mutex_unlock();
-//#endif
-        csound->DebugMsg(csound,
-                         Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
+       //csound->DebugMsg(csound,
+       //                Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
       }
     int status = 0;
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)

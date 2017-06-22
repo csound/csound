@@ -99,7 +99,7 @@ extern void graphs_reset(CSOUND *csound);
 
 int widget_reset(CSOUND *csound, void *pp)
 {
-    IGN(pp);
+    (void) pp;
     WIDGET_GLOBALS *widgetGlobals =
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (widgetGlobals != NULL) {

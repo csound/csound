@@ -223,6 +223,15 @@ function GetScoreTime() {
   }
 
   /**
+   * Compiles a CSD passed in the form of a string of text.
+   *
+   * @param {string} s A string containing text of the CSD.
+   */
+  function CompileCsdText(s) {
+   if (csound.module !== null) csound.module.postMessage('csd:' + s);
+  }
+
+  /**
    * Starts file rendering with a CSD (no real-time audio). The variable can contain 
    * a filepath or the literal text of a CSD.
    *
@@ -466,6 +475,7 @@ function GetScoreTime() {
    function input_fail(e) {
         csound.logMessage("Input audio error: " + e);
    }
+    
    function message(text) {
        csound.updateStatus(text);
    }
@@ -486,8 +496,8 @@ function GetScoreTime() {
         attachDefaultListeners: attachDefaultListeners,
         CompileOrc: CompileOrc,
         compileOrc: CompileOrc,
-        CompileCsdText: PlayCsd,
-        compileCsdText: PlayCsd,
+        CompileCsdText: CompileCsdText,
+        compileCsdText: CompileCsdText,
         ControlChange : ControlChange,
         CopyToLocal: CopyToLocal,
         CopyUrlToLocal: CopyUrlToLocal,

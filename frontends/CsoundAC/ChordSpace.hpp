@@ -527,7 +527,7 @@ public:
 	Chord(const Chord &other) {
 		*this = other;
 	}
-	virtual Chord &operator=(const Chord &other) {
+	virtual Chord &operator = (const Chord &other) {
 		if (this != &other) {
 			resizeLike(other);
 			for (int i = 0, n = rows(); i < n; ++i) {
@@ -538,6 +538,9 @@ public:
 		}
 		return *this;
 	}
+#if __cpplusplus >= 201103L
+    Chord &operator = (Chord &&other) = default;
+#endif
 	virtual ~Chord() {
 	}
 	virtual size_t voices() const {
@@ -2989,10 +2992,10 @@ inline std::string Chord::information() const {
 	}
 
 inline SILENCE_PUBLIC Chord octavewiseRevoicing(const Chord &chord, int revoicingNumber_, double range, bool debug) {
-    int revoicingN = octavewiseRevoicings(chord, range); 
+    int revoicingN = octavewiseRevoicings(chord, range);
     if (revoicingN == 0) {
         revoicingN = 1;
-    }        
+    }
     int revoicingNumber = revoicingNumber_ % revoicingN;
     Chord origin = csound::normalize<EQUIVALENCE_RELATION_RP>(chord, OCTAVE(), 1.0);
     Chord revoicing = origin;

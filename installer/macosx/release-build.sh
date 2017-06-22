@@ -19,7 +19,7 @@ export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
 export DMG_DIR="Csound${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX-universal.dmg"
 
-export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/
+export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
 export TARGET=10.7
 export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
@@ -292,7 +292,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-0.9.3-OSX.dmg .
+cp  ../../../DmgResources/CsoundQt-0.9.4-OSX.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..

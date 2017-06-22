@@ -83,7 +83,7 @@ int main(int argc, char **argv)
       exit(1);
     }
     str = (char *)malloc((size_t)(hdr.headersize-sizeof(LPHEADER)+4));
-    if( str == NULL) exit(1);
+    if (UNLIKELY(str == NULL)) exit(1);
     if (UNLIKELY(fread(&str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4)){

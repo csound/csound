@@ -22,6 +22,10 @@ if(BUILD_CXX_INTERFACE)
 
     if(WIN32 AND NOT MSVC)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
+      # mingw64 needs this to create a valid .pyd.
+      if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        add_definitions(-DMS_WIN64)
+      endif()
     endif()
 
     set(libcsnd6_CFLAGS "")
@@ -102,7 +106,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
           if(NOT MSVC)
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} ${PYTHON_LIBRARY} libcsnd6)
           else()
-            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd)
+            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
           endif()
         else()
             # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
@@ -118,7 +122,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        SWIG_ADD_MODULE(csnd6 python python_interface.i)
+		SWIG_ADD_MODULE(csnd6 python python_interface.i)
         SWIG_LINK_LIBRARIES(csnd6 ${swigpython_LIBS})
 
         set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES

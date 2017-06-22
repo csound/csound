@@ -64,10 +64,6 @@
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
 
-#if defined(USE_OPENMP)
-#include <omp.h>
-#endif /* USE_OPENMP */
-
 #include "csound_standard_types.h"
 
 #include "csdebug.h"
@@ -147,13 +143,13 @@ static void free_opcode_table(CSOUND* csound) {
     CONS_CELL* head;
 
     for (i = 0; i < HASH_SIZE; i++) {
-        bucket = csound->opcodes->buckets[i];
+      bucket = csound->opcodes->buckets[i];
 
-        while(bucket != NULL) {
-            head = bucket->value;
-            cs_cons_free_complete(csound, head);
-            bucket = bucket->next;
-        }
+      while (bucket != NULL) {
+        head = bucket->value;
+        cs_cons_free_complete(csound, head);
+        bucket = bucket->next;
+      }
     }
 
     cs_hash_table_free(csound, csound->opcodes);
@@ -164,7 +160,7 @@ static void create_opcode_table(CSOUND *csound)
     int err;
 
     if (csound->opcodes != NULL) {
-        free_opcode_table(csound);
+      free_opcode_table(csound);
     }
     csound->opcodes = cs_hash_table_create(csound);
 
@@ -182,7 +178,7 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
       (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
     if (modules != NULL){
      int i = 0;
-     while(modules[i] != NULL && i < MAX_MODULES){
+     while (modules[i] != NULL && i < MAX_MODULES) {
        if (!strcmp(modules[i]->module, drv)) return;
        i++;
      }
@@ -946,6 +942,7 @@ static void destroy_all_instances(void)
 #if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
                          !defined(__HAIKU__) && !defined(__BEOS__) && \
                          !defined(__MACH__) && !defined(__EMSCRIPTEN__))
+
 static char *signal_to_string(int sig)
 {
     switch(sig) {
@@ -1092,6 +1089,34 @@ static void psignal_(int sig, char *str)
 
 static void signal_handler(int sig)
 {
+#if defined(LINUX) && !defined(ANDROID) && !defined(NACL)
+    #include <execinfo.h>
+
+    {
+      int j, nptrs;
+#define SIZE 100
+      void *buffer[100];
+      char **strings;
+
+      nptrs = backtrace(buffer, SIZE);
+      printf("backtrace() returned %d addresses\n", nptrs);
+
+      /* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
+         would produce similar output to the following: */
+
+      strings = backtrace_symbols(buffer, nptrs);
+      if (strings == NULL) {
+        perror("backtrace_symbols");
+        exit(EXIT_FAILURE);
+      }
+
+      for (j = 0; j < nptrs; j++)
+        printf("%s\n", strings[j]);
+
+      free(strings);
+    }
+#endif
+
 #if defined(SIGPIPE)
     if (sig == (int) SIGPIPE) {
 #ifdef ANDROID
@@ -1325,14 +1350,15 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
       return -1;
     }
 
-    while(current != NULL) {
+    while (current != NULL) {
 #ifdef HAVE_PTHREAD
       if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
 #else
       // FIXME - need to verify this works...
-      if(threadId == current->threadId)
-        return index;
+      if (threadId == current->threadId)
 #endif
+        return index;
+
       index++;
       current = current->next;
     }
@@ -1344,7 +1370,7 @@ static int getNumActive(INSDS *start, INSDS *end)
 {
     INSDS *current = start;
     int counter = 1;
-    while(((current = current->nxtact) != NULL) && current != end) {
+    while (((current = current->nxtact) != NULL) && current != end) {
       counter++;
     }
     return counter;
@@ -1386,7 +1412,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     int next_task = INVALID;
     IGN(index);
 
-    while(1) {
+    while (1) {
       int done;
       which_task = dag_get_task(csound, index, numThreads, next_task);
       //printf("******** Select task %d\n", which_task);
@@ -1408,7 +1434,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
         opstart = (OPDS*)task_map[which_task];
         if (insds->ksmps == csound->ksmps) {
         insds->spin = csound->spin;
-        insds->spout = csound->spout;
+        insds->spout = csound->spraw;
         insds->kcounter =  csound->kcounter;
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
@@ -1424,14 +1450,14 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
           int early = insds->ksmps_no_end;
           OPDS  *opstart;
           insds->spin = csound->spin;
-          insds->spout = csound->spout;
+          insds->spout = csound->spraw;
           insds->kcounter =  csound->kcounter*csound->ksmps;
 
           /* we have to deal with sample-accurate code
              whole CS_KSMPS blocks are offset here, the
              remainder is left to each opcode to deal with.
           */
-          while(offset >= lksmps) {
+          while (offset >= lksmps) {
             offset -= lksmps;
             start += csound->nchnls;
           }
@@ -1512,9 +1538,9 @@ unsigned long kperfThread(void * cs)
 
       csound->WaitBarrier(csound->barrier1);
 
-      // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so, use some other
-      // kind of locking mechanism as it isn't clear why a global mutex would be necessary
-      // versus a per-CSOUND instance mutex
+      // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so,
+      // use some other kind of locking mechanism as it isn't clear why a
+      //global mutex would be necessary versus a per-CSOUND instance mutex
       /*csound_global_mutex_lock();*/
       if (csound->multiThreadedComplete == 1) {
         /*csound_global_mutex_unlock();*/
@@ -1625,7 +1651,7 @@ int kperf_nodebug(CSOUND *csound)
                    whole CS_KSMPS blocks are offset here, the
                    remainder is left to each opcode to deal with.
                 */
-                while(offset >= lksmps) {
+                while (offset >= lksmps) {
                   offset -= lksmps;
                   start += csound->nchnls;
                 }
@@ -1903,17 +1929,17 @@ int kperf_debug(CSOUND *csound)
                    whole CS_KSMPS blocks are offset here, the
                    remainder is left to each opcode to deal with.
                 */
-                while(offset >= lksmps) {
-                  offset -= lksmps;
-                  start += csound->nchnls;
-                }
-                ip->ksmps_offset = offset;
-                if (early){
-                  n -= (early*csound->nchnls);
-                  ip->ksmps_no_end = early % lksmps;
-                  }
+              while (offset >= lksmps) {
+                offset -= lksmps;
+                start += csound->nchnls;
+              }
+              ip->ksmps_offset = offset;
+              if (early){
+                n -= (early*csound->nchnls);
+                ip->ksmps_no_end = early % lksmps;
+              }
 
-               for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+              for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opcode_perf_debug(csound, data, ip);
                   ip->kcounter++;
                 }
@@ -2184,6 +2210,18 @@ PUBLIC long csoundGetOutputBufferSize(CSOUND *csound)
 PUBLIC MYFLT *csoundGetSpin(CSOUND *csound)
 {
     return csound->spin;
+}
+
+PUBLIC void csoundSetSpinSample(CSOUND *csound, int frame,
+                                int channel, MYFLT sample)
+{
+    int index = (frame * csound->inchnls) + channel;
+    csound->spin[index] = sample;
+}
+
+PUBLIC void csoundClearSpin(CSOUND *csound) {
+
+  memset(csound->spin, 0, sizeof(MYFLT)*csound->ksmps*csound->nchnls);
 }
 
 PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame,
@@ -3176,10 +3214,14 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
     #ifdef HAVE_PTHREAD_SPIN_LOCK
-     pthread_spin_init((pthread_spinlock_t*)&csound->spoutlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->memlock, PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock1, PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spoutlock,
+                       PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock,
+                       PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->memlock,
+                       PTHREAD_PROCESS_PRIVATE);
+     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock1,
+                       PTHREAD_PROCESS_PRIVATE);
     #endif
      if (O->odebug)
         csound->Message(csound,"init spinlocks\n");

@@ -61,7 +61,7 @@ TREE* tree_tail(TREE* node) {
     if (t == NULL) {
         return NULL;
     }
-    while(t->next != NULL) {
+    while (t->next != NULL) {
         t = t->next;
     }
     return t;
@@ -393,7 +393,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     memset(op, 0, 80);
     current = root->left;
     newArgList = NULL;
-    while(current != NULL) {
+    while (current != NULL) {
       if (is_expression_node(current)) {
         TREE* newArg;
 
@@ -417,7 +417,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
     current = root->right;
     newArgList = NULL;
-    while(current != NULL) {
+    while (current != NULL) {
       if (is_expression_node(current)) {
         TREE* newArg;
 

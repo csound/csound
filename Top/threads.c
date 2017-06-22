@@ -190,6 +190,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     void *threadRoutineReturnValue = NULL;
     int pthreadReturnValue;
     pthread_t *pthread = (pthread_t *)thread;
+    if(thread == NULL) return 0;
     pthreadReturnValue = pthread_join(*pthread,
                                       &threadRoutineReturnValue);
     if (pthreadReturnValue) {
@@ -546,6 +547,7 @@ PUBLIC void csoundCondSignal(void* condVar) {
 
 #elif defined(WIN32)
 #include <windows.h>
+#include <synchapi.h>
 #include <process.h>
 
 /* #undef NO_WIN9X_COMPATIBILITY */
@@ -764,7 +766,8 @@ PUBLIC int csoundWaitBarrier(void *barrier)
 
 PUBLIC void* csoundCreateCondVar()
 {
-  CONDITION_VARIABLE* condVar = (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
+  CONDITION_VARIABLE* condVar =
+    (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
 
   if (condVar != NULL)
     InitializeConditionVariable(condVar);
@@ -895,5 +898,14 @@ PUBLIC void csoundCondWait(void* condVar, void* mutex) {
 PUBLIC void csoundCondSignal(void* condVar) {
   notImplementedWarning_("csoundCreateCondSignal");
 }
+
+PUBLIC long csoundRunCommand(const char * const *argv, int noWait) {
+  notImplementedWarning_("csoundRunCommand");
+}
+
+PUBLIC void csoundSleep(size_t milliseconds) {
+  notImplementedWarning_("csoundSleep");
+}
+
 
 #endif

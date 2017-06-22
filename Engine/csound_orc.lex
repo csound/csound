@@ -445,13 +445,15 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 
 
 \"              { /* String decode by c-code not rexp */
-                  char buff[200]; /* should be variable */
+                  int cnt = 80;
+                  char *buff = malloc(cnt);
                   int n = 1;
                   int ch;
                   buff[0] = '"';
                   for (;;) {
                     ch = input(yyscanner);
                     if (ch=='"') {
+                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                       buff[n++] = ch;
                       buff[n] = '\0';
                       break;
@@ -461,19 +463,23 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                       switch (ch) {
                       case 'a': case 'b': case 'n': case 'r':
                       case 't': case '\\':
+                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                         buff[n++] = '\\'; buff[n++]= ch;
                         break;
                         /* VL - 21-1-17 fix for octals in strings */
                       case '0':case '1':case '2':case '3':
                       case '4':case '5':case '6':case '7':
+                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                         buff[n++] = '\\'; buff[n++]= ch;
                         break;
                       default:
+                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                         buff[n++] = ch;
                         break;
                       }
                     }
                     else if (ch=='\n') {
+                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                       buff[n++] = '"';
                       buff[n] = '\0';
                       csound->Message(csound,
@@ -481,9 +487,13 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                                       csound_orcget_lineno(yyscanner), buff);
                       break;
                     }
-                    else buff[n++] = ch;
+                    else {
+                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
+                      buff[n++] = ch;
+                    }
                   }
                   *lvalp = make_string(csound, buff);
+                  free(buff);
                   return (STRING_TOKEN);
                 }
 
@@ -571,7 +581,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
     int len;
     char *ps = s;
-    while(*ps != ':') ps++;
+    while (*ps != ':') ps++;
     *(ps+1) = '\0';
     len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len);

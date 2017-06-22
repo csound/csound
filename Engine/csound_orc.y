@@ -164,11 +164,11 @@
     extern void print_tree(CSOUND *, char *msg, TREE *);
     extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *,
                                 TREE**, const char*);
-    extern void add_udo_definition(CSOUND*, char *, char *, char *);
+    extern int add_udo_definition(CSOUND*, char *, char *, char *);
     extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
-    extern int csound_orcget_locn(void *);
+    extern uint64_t csound_orcget_locn(void *);
     extern int csound_orcget_lineno(void *);
     extern ORCTOKEN *make_string(CSOUND *, char *);
 %}
@@ -543,7 +543,9 @@ arrayexpr :  arrayexpr '[' iexp ']'
 
 ifthen    : IF_TOKEN bexpr then NEWLINE statementlist ENDIF_TOKEN NEWLINE
               {
+                  if ($2)
                   $$ = make_node(csound,$2->line, $2->locn, IF_TOKEN, $2, $3);
+                  else $$ = NULL;
                   $3->right = $5;
                   //print_tree(csound, "if-endif", $$);
               }
@@ -892,7 +894,7 @@ yyerror(char *s, ...)
   va_list ap;
   va_start(ap, s);
 
-  if(yylloc.first_line)
+  if (yylloc.first_line)
     fprintf(stderr, "%d.%d-%d.%d: error: ",
             yylloc.first_line, yylloc.first_column,
             yylloc.last_line, yylloc.last_column);
@@ -907,7 +909,7 @@ lyyerror(YYLTYPE t, char *s, ...)
   va_list ap;
   va_start(ap, s);
 
-  if(t.first_line)
+  if (t.first_line)
     fprintf(stderr, "%d.%d-%d.%d: error: ", t.first_line, t.first_column,
             t.last_line, t.last_column);
   vfprintf(stderr, s, ap);

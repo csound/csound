@@ -12,7 +12,7 @@ rm -rf dist
 
 cmake ../.. -G "MSYS Makefiles" \
 -DABLETON_LINK_HOME:PATH="D:\msys64\home\restore\link" \
--DBUILD_ABLETON_LINK_OPCODES:BOOL=Yes \
+-DBUILD_ABLETON_LINK_OPCODES:BOOL=0 \
 -DBUILD_CSOUNDVST=1 \
 -DBUILD_PD_CLASS=0 \
 -DBUILD_STATIC_LIBRARY=1 \
@@ -21,21 +21,19 @@ cmake ../.. -G "MSYS Makefiles" \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_VERBOSE_MAKEFILE=1 \
 -DMUSICXML_LIBRARY:FILEPATH=/mingw64/bin/libmusicxml2.dll \
--DNEED_PORTTIME=0 \
+-DNEED_PORTTIME=1 \
 -DPTHREAD_LIBRARY:FILEPATH=/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
 -DUSE_GETTEXT=0 \
--DUSE_OPEN_MP=0 \
 -D_WIN32=1 \
 -DPYTHON_INCLUDE_DIRS:PATH="C:/Program Files/Anaconda2/include" \
 -DPYTHON_LIBRARIES:FILEPATH="C:/Program Files/Anaconda2/libs/python27.a" \
 -DSTK_LIBRARY:FILEPATH=/mingw64/lib/libstk.a \
 -DLIBSNDFILE_LIBRARY:FILEPATH="C:\Program Files\Mega-Nerd\libsndfile\bin\libsndfile-1.dll" \
 -DSNDFILE_H_PATH:PATH="C:\Program Files\Mega-Nerd\libsndfile\include" \
--DBUILD_WEBSOCKET_OPCODE=0
-
-
+-DBUILD_WEBSOCKET_OPCODE=0 \
+-DMS_WIN64=1
 
 if [ $? -ne 0 ]; then
     echo "Failed to run CMake."
@@ -80,7 +78,7 @@ if [ $? -ne 0 ]; then
     echo "Failed to uninstall Csound x64, but continuing."
 fi
 echo "Installing Csound x64..."
-./Setup_Csound6_x64_6.07.0.exe /SILENT
+./Setup_Csound6_x64_6.09.1-vst.exe /SILENT
 if [ $? -ne 0 ]; then
     echo "Failed to install Csound x64."
     exit
