@@ -117,11 +117,16 @@ using liblo has been kept as OSCsend_lo.
 
 - named instruments can be turned off with i if a - follows the "
 
--(from 6.091) if an r-opcode section eded in e-opcode it used to sop early.
+-(from 6.09.1) if an r-opcode section eded in e-opcode it used to sop early.
 
 ### Options
 
 - jack midi module now can report available devices under --midi-devices.
+
+-(from 6.09.1) defining smacros and omacros on command line only happens once.
+
+-(from 6.09.1) defining smacros  from command line now works.
+ 
 
 ### Modified Opcodes and Gens
 
@@ -223,6 +228,9 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - out family of opcodes reworked to reduce interleaving costs and to
   take proper regard if nchnls value.
+
+-(from 6.09.1) a crash on Linux i386 removed relating to server mode.
+
 
 ### API
 

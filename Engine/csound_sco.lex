@@ -76,7 +76,6 @@ CPPX            "PP^"${INTGR}
 
 %x line
 %x src
-%x xstr
 
 %%
 "\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
