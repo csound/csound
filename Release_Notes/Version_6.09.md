@@ -95,6 +95,9 @@ using liblo has been kept as OSCsend_lo.
 
 - Octal values as \000 can be in strings
 
+- (6.09.1) In a UDO the out opcodes now work, where before it was
+working only sometimes.
+
 ### Score
 
 - Improved line number reporting in r opcode and case with no macro implemented.
