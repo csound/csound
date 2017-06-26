@@ -46,7 +46,7 @@ escapeinside={\%*}{*)},          % if you want to add a comment within your code
          framexbottommargin=4pt
 }
 
-\author{\textbf{Victor Lazzarini, Steven Yi and Richard Boulanger}}
+\author{\textbf{Victor Lazzarini, Steven Yi, and Richard Boulanger}}
 %\date{2011.11.xx}
 \date{\today}
 \title{\textbf{Csound for iOS}}
@@ -60,7 +60,7 @@ Welcome to Csound for iOS! This document will discuss the details about using Cs
 
 \subsection{Regarding the Csound for iOS Examples Project}
 
-This documentation covers discussion of the Csound for iOS API.  Users interested in diving in to see how the API is used may want to download the Csound for iOS Examples Project which contains a set of examples that cover different use cases of the API. The code for each example may be useful in getting you a jump-start into building your own applications.
+This documentation covers discussion of the Csound for iOS API.  Users interested in diving in to see how the API is used may want to download the Csound for iOS Examples Projects which contains a set of examples, in both Objective-C and in Swift, that cover different use cases of the API. The code for each example may be useful in getting you a jump-start into building your own applications.
 
 \subsection{Regarding the LGPL License}
 
@@ -77,16 +77,17 @@ You can locate and download the latest version of The Csound for iOS library in 
 \begin{itemize}
 \item Statically compiled libcsound.a and libsndfile.a, compiled as universal binaries for armv6, armv7, armv7f, arm64 and i386 CPU architectures (to work with both iOS devices and simulators)
 \item C Headers for the Csound C API
-\item Objective-C CsoundObj API source
+\item CsoundObj Objective-C API Source
 \item Documentation
-\item The Csound for iOS Examples
+\item The Csound for iOS Obj-C Examples
+\item The Csound for iOS Swift Examples
 \end{itemize}
 
 \subsection{Getting Started with the Examples}
 
 Csound for iOS was chosen to be delivered as pre-compiled libraries and headers for easy inclusion into projects.  
 
-To launch Xcode and get started with the Csound for iOS examples, double-click on the file \textit{Csound iOS Examples.xcodeproj}. Once Xcode is running, choose an appropriate iOS Simulator, or choose your connected iPhone or iPad to run the examples on your hardware. In the Project Navigator section of the Xcode IDE, select the Csound iOS Examples folder.  In the Main Editor, select the General Tab, and under the Signing section select "automatically manage signing", and set the team appropriately (typically your Apple ID).  To run the examples under the Scheme you have chosen above, click on the Run Button in the upper left corner of the Xcode IDE  This will Build and Run the examples project.  Now that they are running on the simulator or your hardware, you can select from the list of examples in the sidebar to explore some of the ways you can use Csound. To see how each example is realized, click on the triangle in the Project Navigator and you will open the folder and reveal any files or folders contained therein. It is there that you will find the source code for each of the examples in the \textit{ViewControllers} folder located in the Xcode Navigator section.
+To launch Xcode and get started with the Csound for iOS examples, double-click on the file \textit{Csound iOS Examples.xcodeproj}. Once Xcode is running, choose an appropriate iOS Simulator, or choose your connected iPhone or iPad to run the examples on your hardware. In the Project Navigator section of the Xcode IDE, select either of the Csound iOS Examples folders (Obj-C or Swift).  In the Main Editor, select the General Tab, and under the Signing section select "automatically manage signing", and set the team appropriately (typically your Apple ID).  To run the examples under the scheme you have chosen above, click on the Run Button in the upper left corner of the Xcode IDE. This will Build and run the examples project. Now that they are running on the simulator or your hardware, you can select from the list of examples in the sidebar to explore some of the ways you can use Csound. To see how each example is realized, expand the project and then the ViewControllers folder in the project navigator. In this folder, you will find the sources for each example.
 
 \subsection{Getting Started with Your Own Project}
 
@@ -102,9 +103,10 @@ To get started using the Csound for iOS API in a project of your own, you need t
 \item To make this a Csound for iOS project, you need to Right-click your project folder in the Project Navigator, and from the context menu choose ``Add Files to [project name]''
 \item In the file dialog that opens, navigate to the folder containing the csound-iOS folder and select the csound-iOS folder. Keep the default settings of ``Create groups for any added folders''.  You will want to select ``Copy items into destination group's folder (if needed)'' so that all the files you are using are contained in this project.
 \item Make sure that csound-iOS is added to all of your targets for your project.
+\item If working in Swift, you must include a 'Bridging' Header that contains your Objective-C \#import statements. This is as simple as adding a .h file to your project, filling in the import statements, and then identifying it as your Bridging header in the project build settings.
 \end{enumerate}
 
-After selecting ``Add files'' the csound-iOS folders should now be a part of your project.  You will now be able to reference both the standard Csound C API as well as the Objective-C CsoundObj API from your project code.
+After selecting ``Add files'', the csound-iOS folders should now be a part of your project.  You will now be able to reference both the standard Csound C API as well as the Objective-C CsoundObj API from your project code.
 
 %======
 
@@ -129,7 +131,7 @@ Csound will use the CsOptions you provide, and it will default to \textit{-o dac
 
 If the CSD in your app responds to MIDI messages from keyboard or other controller (such as the Arturia MINIlab mkII or the Korg NanoKontrol),  you will need to set the {\tt -M0} flag. 
 
-If the CSD in your app processes audio input, you will need to set the ``{\tt -iadc}'' flag. And when you do use the Microphone Data Class, Apple requires you to modify the \textit{.plist} file and include the Privacy-Microphone Usage Description as described in this technical document: \url{https://developer.apple.com/library/content/qa/qa1937/}
+If the CSD in your app processes audio input, you will need to set the ``{\tt -iadc}'' flag, as well as the useAudioInput property of your CsoundObj instance to be 'true' (or 'YES' in Objective-C). And when you do use the microphone, Apple requires you to modify the \textit{Info.plist} file and include the "Privacy - Microphone Usage Description" key-value pair as described in this technical document: \url{https://developer.apple.com/library/content/qa/qa1937/}
 
 
 \subsection{CsoundBinding for Communicating with Csound}
@@ -181,7 +183,7 @@ These methods allow for easy binding of UILabels, UISliders, UISwitches, and UIB
 \section{Interfacing with Hardware}
 \subsection{Audio Input and Output}
 
-CsoundObj has been designed to connect everything necessary for audio input and output from Csound to CoreAudio.  Enabling input and output depends on what commandline arguments are given when running Csound.  The commandline arguments should be supplied as part of the CSD \textbf{CsOptions} section.  To enable audio output, use \textbf{-o dac} and to enable audio input, use \textbf{-i adc}. (Note that by default, Csound assumes -o dac and it does not need to be specified explicitly, whereas if you plan to use the microphone or audio input, you do need to specify -i adc.)
+CsoundObj has been designed to connect everything necessary for audio input and output from Csound to CoreAudio.  Enabling input and output depends on what commandline arguments are given when running Csound.  The commandline arguments should be supplied as part of the CSD \textbf{CsOptions} section.  To enable audio output, use \textbf{-o dac} and to enable audio input, use \textbf{-i adc} as well as your CsoundObj's useAudioInput value to true or YES. (Note that by default, Csound assumes -o dac and it does not need to be specified explicitly, whereas if you plan to use the microphone or audio input, you do need to specify -i adc.)
 
 
 \subsection{MIDI Hardware Input}
@@ -250,12 +252,12 @@ The Examples \textit{xcodeproj} contains a number of simple examples that illust
 
 \emph{Simple Test 1} is an example that plays ascending notes.  The pitch of the notes can be altered by using the slider.  Also, a UISwitch is used to turn on/off the rendering of Csound.  In the code, you'll find that the callback that is connected to the UISwitch shows the basic usage of CsoundObj to render a CSD that is included as a resource for the project:
 
-\begin{lstlisting}[caption=Example code showing configuring and starting a CsoundObj]
--(IBAction) toggleOnOff:(id)component {
-  UISwitch *uiswitch = (UISwitch *)component;
-  NSLog(@"Status: %d", [uiswitch isOn]);
+\begin{lstlisting}[caption=Example code showing configuring and starting a CsoundObj in Objective-C]
+-(IBAction) toggleOnOff:(UISwitch *)sender {
 
-  if(uiswitch.on) {
+  NSLog(@"Status: %d", [sender isOn]);
+
+  if(sender.on) {
 
         NSString *csdFile = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"csd"];
         NSLog(@"FILE PATH: %@", csdFile);
@@ -266,6 +268,7 @@ The Examples \textit{xcodeproj} contains a number of simple examples that illust
         [self.csound addListener:self];
 
         CsoundUI *csoundUI = [[CsoundUI alloc] initWithCsoundObj:self.csound];
+        csoundUI.labelPrecision = 2;
         [csoundUI addSlider:mSlider forChannelName:@"slider"];
 
         [self.csound play:csdFile];
@@ -275,6 +278,30 @@ The Examples \textit{xcodeproj} contains a number of simple examples that illust
     }
 }
 
+\end{lstlisting}
+
+\pagebreak
+\begin{lstlisting}[caption=Example code showing configuring and starting a CsoundObj in Swift 3]
+  @IBAction func toggleOnOff(_ sender: UISwitch) {
+        print("Status: \(sender.isOn)")
+        
+        if sender.isOn {
+            let csdFile = Bundle.main.path(forResource: "test", ofType: "csd")
+            
+            csound = CsoundObj()
+            csound.add(self)
+            
+            let csoundUI = CsoundUI(csoundObj: csound)
+            csoundUI?.labelPrecision = 2
+            
+            csoundUI?.add(uiLabel, forChannelName: "slider")
+            csoundUI?.add(uiSlider, forChannelName: "slider")
+            
+            csound.play(csdFile)
+        } else {
+            csound.stop()
+        }
+  }
 \end{lstlisting}
 
 \subsection{Simple Test 2}
@@ -298,6 +325,13 @@ The Examples \textit{xcodeproj} contains a number of simple examples that illust
 }
 \end{lstlisting}
 
+\begin{lstlisting}[caption=Equivalent example in Swift 3]
+@IBAction func eventButtonHit(_ sender: UIButton) {
+        let score = "i2 0 \(mDurationSlider.value)"
+        csound.sendScore(score)
+}
+\end{lstlisting}
+
 Note that the second method will read the value from the duration slider when creating the note, while the first method handles reading the duration from the channel within the CSD code.
 
 \subsection{Play: Haiku IV}
@@ -316,7 +350,11 @@ Note that the second method will read the value from the duration slider when cr
     [self.csound setMessageCallback:@selector(messageCallback:) withListener:self];
 \end{lstlisting}
 
-The message callback selector handles formatting the Csound message using typical C code one will find when using message callbacks with Csound:
+\begin{lstlisting}[caption=Equivalent example in Swift 3]
+csound.setMessageCallback(#selector(messageCallback(_:)), withListener: self)
+\end{lstlisting}
+
+The message callback selector handles formatting the Csound message using typical C code (or Swift equivalents/wrappers) one will find when using message callbacks with Csound:
 
 \begin{lstlisting}[caption=Message Callback Selector Code]
 - (void)messageCallback:(NSValue *)infoObj
@@ -334,7 +372,22 @@ The message callback selector handles formatting the Csound message using typica
 }
 \end{lstlisting}
 
-Note: after the message is formatted and converted into an Objective-C NSString from a C char*, a \textbf{performSelectorOnMainThread} is used to update the UI with the message text.  The callback from Csound will not be on the main thread. This step is therefore required as all modifications to the user interface must be done on the main thread.
+\begin{lstlisting}[caption=Message Callback Selector Code in Swift 3]
+    func messageCallback(_ infoObj: NSValue) {
+        var info = Message()
+        infoObj.getValue(&info)
+        let message = UnsafeMutablePointer<Int8>.allocate(capacity: 1024)
+        let va_ptr: CVaListPointer = CVaListPointer(_fromUnsafeMutablePointer: &(info.valist))
+        vsnprintf(message, 1024, info.format, va_ptr)
+        let output = String(cString: message)
+        
+        DispatchQueue.main.async { [unowned self] in
+            self.updateUIWithNewMessage(output)
+        }
+    }
+\end{lstlisting}
+
+Note: after the message is formatted and converted into an Objective-C NSString from a C char*, a \textbf{performSelectorOnMainThread} or a closure dispatched on the main thread is used to update the UI with the message text.  The callback from Csound will not be on the main thread. This step is therefore required as all modifications to the user interface must be done on the main thread.
 
 \subsection{Instrument Tweaker}
 
@@ -368,7 +421,25 @@ Note: after the message is formatted and converted into an Objective-C NSString 
 }
 \end{lstlisting}
 
-This example shows how to off-loads calculations in a background thread using \textbf{performSelectorInBackground}, then posts to the main thread to update the user interface.
+\pagebreak
+\begin{lstlisting}[caption=Equivalent example in Swift 3]
+func updateValuesFromCsound() {
+    if !tableLoaded {
+        let cs = csObj.getCsound()
+        tableLength = Int(csoundTableLength(cs, Int32(fTableNumber)))
+        if tableLength > 0 {
+            table = UnsafeMutablePointer<Float>.allocate(capacity: tableLength)
+                csoundGetTable(cs, &table, Int32(fTableNumber))
+            tableLoaded = true
+        }
+        DispatchQueue.global(qos: .background).async { [unowned self] in
+            self.updateDisplayData()
+        }
+    }
+}
+\end{lstlisting}
+
+This example shows how to off-loads calculations in a background thread using \textbf{performSelectorInBackground} or a closure dispatched in the background, then posts to the main thread to update the user interface.
 
 \subsection{Soundfile: Pitch Shifter}
 
@@ -388,6 +459,23 @@ This example shows how to off-loads calculations in a background thread using \t
 }
 \end{lstlisting}
 
+\begin{lstlisting}[caption=CsoundObj Swift 3 setup code]
+override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    title = "10. Soundfile: Pitch Shifter"
+    csound = CsoundObj()
+    let csdPath = Bundle.main.path(forResource: "audiofiletest", ofType: "csd")
+    
+    pitchKnob.minimumValue = 0.5
+    pitchKnob.maximumValue = 2.0
+    pitchKnob.value = 1.0
+        
+    csound.addBinding(self.pitchKnob)
+    csound.play(csdPath)
+}
+\end{lstlisting}
+
 The ControlKnob widget is custom UIView that is also a CsoundBinding.  It uses a hardcoded Csound channel called "pitch".  After the CsoundObj object is setup and started, performance of the audio file is done in the callback to the Play button press:
 
 \begin{lstlisting}[caption=Play button callback code]
@@ -396,6 +484,16 @@ The ControlKnob widget is custom UIView that is also a CsoundBinding.  It uses a
     NSString *audioFilePath = [[NSBundle mainBundle] pathForResource:@"audiofiletest" ofType:@"aif"];
     NSString *score = [NSString stringWithFormat:@"i1 0 1 \"%@\"", audioFilePath];
     [self.csound sendScore:score];
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Play button Swift 3 callback code]
+@IBAction func play(_ sender: UIButton) {
+    let audioFilePath = Bundle.main.path(forResource: "testAudioFile", ofType: "aif")
+    if audioFilePath != nil {
+        let score = "i1 0 1 \"\(audioFilePath!)\""
+        csound.sendScore(score)
+    }
 }
 \end{lstlisting}
 
@@ -440,5 +538,5 @@ For those interested in making virtual instruments, this example may be useful t
 
 \section{Conclusion}
 
-We hope that this document has helped you to become familiar with the design and usage of the Csound for iOS API. The example Objective-C and Csound CSD code should hopefully give you a good starting point for your own musical projects, and we encourage you to take these examples and run with it.  We look forward to hearing your questions and feedback on this API, and most of all, we look forward to seeing and using your Apps, and hearing the music and sounds that you create with them.
+We hope that this document has helped you to become familiar with the design and usage of the Csound for iOS API. The example Objective-C, Swift, and Csound CSD code should hopefully give you a good starting point for your own musical projects, and we encourage you to take these examples and run with it.  We look forward to hearing your questions and feedback on this API, and most of all, we look forward to seeing and using your Apps, and hearing the music and sounds that you create with them.
 \end{document}
