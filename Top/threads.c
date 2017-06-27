@@ -190,6 +190,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     void *threadRoutineReturnValue = NULL;
     int pthreadReturnValue;
     pthread_t *pthread = (pthread_t *)thread;
+    if(thread == NULL) return 0;
     pthreadReturnValue = pthread_join(*pthread,
                                       &threadRoutineReturnValue);
     if (pthreadReturnValue) {
