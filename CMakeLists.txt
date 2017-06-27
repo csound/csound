@@ -244,7 +244,7 @@ endif()
 
 if(MSVC) 
   include_directories(${PROJECT_SOURCE_DIR}/msvc/include)
-  set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}/msvc/include)
+  set(CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/msvc/include;${PROJECT_SOURCE_DIR}/msvc/deps/include")
 endif()
 
 if(WIN32)
@@ -477,6 +477,7 @@ if(NOT MSVC AND REQUIRE_PTHREADS)
       message(STATUS "Csound requires the pthread library")
   endif()
 
+  #FIXME this variable is for required include directories, possible bug
   set(CMAKE_REQUIRED_INCLUDES pthread.h)
   set(CMAKE_REQUIRED_LIBRARIES pthread)
 endif()
