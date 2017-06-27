@@ -31,5 +31,6 @@ cmake ..\.. -G "Visual Studio 14 2015 Win64" `
  -DCMAKE_BUILD_TYPE="Release" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
  -DCMAKE_INSTALL_PREFIX=dist `
- -DCUSTOM_CMAKE="..\Custom-vs.cmake"
+ -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
+ -DCMAKE_REQUIRED_INCLUDES="..\deps\include"
 
