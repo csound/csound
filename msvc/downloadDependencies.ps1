@@ -251,6 +251,7 @@ else
 {
     #Switch to offical branch when PR is merged in
     git clone --depth=1 "https://github.com/stekyne/fluidsynth.git"
+    git checkout master
 }
 
 rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
