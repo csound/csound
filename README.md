@@ -32,7 +32,7 @@ of built-in examples that show off Csound's capabilities. Many musicians make
 CsoundQt their main Csound environment, although there are other excellent
 environments. CsoundQt runs not only Csound code, but also Python scripts.
 
-The examples directory and its subdirectories contains numerous working 
+The examples directory and its subdirectories contain numerous working 
 Csound orchestras and even complete pieces. 
 
 The Csound Reference Manual may be found online at 
@@ -40,7 +40,7 @@ http://csound.github.io/docs/manual/indexframes.html, or it may be installed wit
 Csound in a location that varies by operating system.
 
 This version of Csound is programmable in C, C++, JavaScript, Python, Java, Lua, 
-and Common Lisp, and scores can be generated in these languages.
+and Common Lisp and scores can be generated in these languages.
 
 The Csound API application programming interfaces reference 
 may be found online at http://csound.github.io/docs/api/index.html, or it may be 
