@@ -1,6 +1,6 @@
 echo "Generating Csound VS project..."
-#$vsGenerator = "Visual Studio 14 2015 Win64"
-$vsGenerator = "Visual Studio 15 2017 Win64"
+$vsGenerator = "Visual Studio 14 2015 Win64"
+#$vsGenerator = "Visual Studio 15 2017 Win64"
 $vcpkgCmake = ""
 
 # Read in VCPKG directory from env variable
