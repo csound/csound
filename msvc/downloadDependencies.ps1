@@ -11,8 +11,8 @@ $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
 $depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
-#$vsGenerator = "Visual Studio 14 2015 Win64"
-$vsGenerator = "Visual Studio 15 2017 Win64"
+$vsGenerator = "Visual Studio 14 2015 Win64"
+#$vsGenerator = "Visual Studio 15 2017 Win64"
 
 # Metrics
 $vcpkgTiming = 0
