@@ -14,6 +14,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "memory.h"
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 using namespace std;
@@ -2433,14 +2434,14 @@ void Alg_time_sigs::paste(double start, Alg_seq *seq)
     double measures = (start - beat_after_splice) / beats_per_measure;
     // Measures might be slightly negative due to rounding. Use max()
     // to eliminate any negative rounding error:
-    int imeasures = int(max(measures, 0.0));
+    int imeasures = int((std::max)(measures, 0.0));
     double old_bar_loc = beat_after_splice + (imeasures * beats_per_measure);
     if (old_bar_loc < start) old_bar_loc += beats_per_measure;
     // now old_bar_loc is the original first bar position after start
     // Do similar calculation for position after end after the insertion:
     // beats_per_measure already calculated because signatures match
     measures = (start + dur - beat_of_insert) / beats_per_measure;
-    imeasures = int(max(measures, 0.0));
+    imeasures = int((std::max)(measures, 0.0));
     double new_bar_loc = beat_of_insert + (imeasures * beats_per_measure);
     if (new_bar_loc < start + dur) new_bar_loc += beats_per_measure;
     // old_bar_loc should be shifted by dur:
