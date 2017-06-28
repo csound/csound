@@ -2,6 +2,11 @@
 # GLOBAL
 
 find_package(FLTK REQUIRED)
+find_package(Java)
+find_package(JNI)
+find_package(PythonLibs)
+find_package(SWIG REQUIRED)
+
 # TODO: Get this to work.
 # find_package(VSTSDK2X)
 
