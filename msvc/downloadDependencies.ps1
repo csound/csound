@@ -87,7 +87,7 @@ $targetTriplet = "x64-windows"
 echo "Downloading VC packages..."
 
 #vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
-vcpkg --triplet $targetTriplet install eigen3 libflac libogg libvorbis zlib
+vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib
 
 $vcpkgTiming = (Get-Date).TimeOfDay
 
@@ -246,7 +246,7 @@ if (Test-Path "fluidsynth")
     cd ..
     echo "Fluidsynth already downloaded, updated"
 }
-else 
+else
 {
     #Switch to offical branch when PR is merged in
     git clone --depth=1 "https://github.com/stekyne/fluidsynth.git"
