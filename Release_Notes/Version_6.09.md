@@ -38,7 +38,8 @@ memory leaks fixed and more robust code.
 
 - hilbert2 --  a DFT-based implementation of a Hilbert transformer.
 
-- Ableton Link opcodes -- for synchronizing tempo and beat across local area networks.
+- Ableton Link opcodes -- for synchronizing tempo and beat across
+  local area networks.
 
 - pvstrace -- retain only the N loudest bins.
 
@@ -48,7 +49,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh,
 cbrt, limit1.
 
 - several new binary functions/opcodes for k-rate and i-time numeric
-arrays: atan2, pow,hypot, fmod, fmax, fmin.
+  arrays: atan2, pow,  hypot, fmod, fmax, fmin.
 
 - limit -- numeric limiting within a given range (for arrays).
 
@@ -61,7 +62,7 @@ arrays: atan2, pow,hypot, fmod, fmax, fmin.
 - OSCsendA -- asynchronous version of OSCsend,
 
 - OSCsend -- now implemented directly using system sockets. Old version
-using liblo has been kept as OSCsend_lo.
+  using liblo has been kept as OSCsend_lo.
 
 - OSCraw -- to listen for all OSC messages at a given port.
 
@@ -77,9 +78,7 @@ using liblo has been kept as OSCsend_lo.
 
 - product -- takes a numeric array (k or i-rate) and calculates its product.
 
-- supercollider ugens -- sc_phasor, sc_lag, sc_lagud, sc_trig added.
-
-- liveconv -- AWAITING DOCUMENTATION
+- supercollider ugens -- sc_phasor, sc_lag, sc_lagud, sc_trig
 
 ### New Gen and Macros
 
@@ -94,6 +93,9 @@ using liblo has been kept as OSCsend_lo.
 - Macro names better policed and bracket matching.
 
 - Octal values as \000 can be in strings
+
+- (from 6.09.1) In a UDO the out* opcodes now work, where before it was
+working only sometimes.
 
 ### Score
 
@@ -117,11 +119,16 @@ using liblo has been kept as OSCsend_lo.
 
 - named instruments can be turned off with i if a - follows the "
 
--(from 6.091) if an r-opcode section eded in e-opcode it used to sop early.
+-(from 6.09.1) if an r-opcode section eded in e-opcode it used to sop early.
 
 ### Options
 
 - jack midi module now can report available devices under --midi-devices.
+
+-(from 6.09.1) defining smacros and omacros on command line only happens once.
+
+-(from 6.09.1) defining smacros  from command line now works.
+
 
 ### Modified Opcodes and Gens
 
@@ -130,7 +137,8 @@ using liblo has been kept as OSCsend_lo.
 - hdf5read opcode now reads entire data sets when dataset name string
   is suffixed with an asterisk.
 
-- use of non power-of-two lengths now acceptable where before it was inconsistent.
+- use of non power-of-two lengths in gens now acceptable where before
+  it was inconsistent.
 
 - ampmidid optionally can be aware of 0dbfs.
 
@@ -224,10 +232,13 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 - out family of opcodes reworked to reduce interleaving costs and to
   take proper regard if nchnls value.
 
+-(from 6.09.1) a crash on Linux i386 removed relating to server mode.
+
+
 ### API
 
-- New `csound_threaded.hpp` header-only facility, obviating need for
-`csPerfThread.cpp` object in some projects.
+- New `csound_threaded.hpp' header-only facility, obviating need for
+`csPerfThread.cpp' object in some projects.
 
 - Added GetA4 function.
 
@@ -237,7 +248,7 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - Boost dependencies removed from Csound interfaces, CsoundAC, and CsoundVST.
 
-- (from 6.09.1) Two new API fnctin, csoundSetspinSample and csoundClearSpin.
+- (from 6.09.1) Two new API function, csoundSetspinSample and csoundClearSpin.
 
 ### Platform Specific
 
@@ -263,9 +274,3 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 - GNU/Linux
 
 ==END==
-========================================================================
-UNDOCUMENTED/UNDELETED
-
-
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sun May 7 15:54:43 2017 +0100
