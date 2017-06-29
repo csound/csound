@@ -737,23 +737,10 @@ namespace csound
       }
   }
 
-  bool operator < (const MidiEvent &a, const MidiEvent &b)
+  inline bool operator < (const MidiEvent &a, const MidiEvent &b)
   {
-    if (a.ticks < b.ticks) {
-      return true;
-    }
-    if (a.size() <= 0 && b.size() <= 0) {
-      return false;
-    }
-    size_t n = std::min(a.size(), b.size());
-    for (size_t i = 0; i < n; i++) {
-      if (a[i] < b[i]) {
-        return true;
-      }
-    }
-    if (a.size() < b.size()) {
-      return true;
-    }
-    return false;
-  }
+	  MidiEventComparator comparator;
+	  return comparator(a, b);
+  };
+
 }

@@ -87,7 +87,7 @@ $targetTriplet = "x64-windows"
 echo "Downloading VC packages..."
 
 #vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
-vcpkg --triplet $targetTriplet install eigen3 libflac libogg libvorbis zlib
+vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib
 
 $vcpkgTiming = (Get-Date).TimeOfDay
 
@@ -102,14 +102,24 @@ mkdir staging -ErrorAction SilentlyContinue
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
-"https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip"
-#"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip"
+"https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip",
+#"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip",
+"http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
+"http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/pkg-config_0.23-2_win64.zip",
+"http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
+"http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
+"http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="",
 "win_flex_bison",
 "",
-""
+"",
+"fluidsynthdeps",
+"fluidsynthdeps",
+"fluidsynthdeps",
+"fluidsynthdeps",
+"fluidsynthdeps"
 
 # Download list of files to cache folder
 for($i=0; $i -lt $uriList.Length; $i++)
@@ -202,8 +212,6 @@ copy ..\porttime\porttime.h -Destination $depsIncDir -Force
 
 # Liblo
 cd $stageDir
-# TEMP: seeing as the repo has changed, need to delete the old one first
-Remove-Item -Recurse -Force liblo -ErrorAction SilentlyContinue
 
 if (Test-Path "liblo")
 {
@@ -227,6 +235,34 @@ copy .\Release\lo.lib -Destination $depsLibDir -Force
 copy .\lo -Destination $depsIncDir -Force -Recurse
 copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
 robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
+
+# Fluidsynth
+cd $stageDir
+
+if (Test-Path "fluidsynth")
+{
+    cd fluidsynth
+    git pull
+    cd ..
+    echo "Fluidsynth already downloaded, updated"
+}
+else
+{
+    #Switch to offical branch when PR is merged in
+    git clone --depth=1 "https://github.com/stekyne/fluidsynth.git"
+}
+
+rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
+mkdir fluidsynthbuild -ErrorAction SilentlyContinue
+cd fluidsynthbuild
+cmake ..\fluidsynth\fluidsynth -G $vsGenerator -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
+cmake --build . --config Release
+copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
+copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
+copy .\src\Release\libfluidsynth.dll -Destination $depsBinDir -Force
+copy ..\fluidsynth\fluidsynth\include\fluidsynth.h -Destination $depsIncDir
+robocopy ..\fluidsynth\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
+copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth
 
 $buildTiming = (Get-Date).TimeOfDay
 
@@ -257,7 +293,6 @@ $duration = $endTime - $startTime
 # copied directly into the Csound solution output directory
 cd $depsBinDir
 rm *.exe
-cd $currentDir
 
 echo "Removed unnecessary files from dependency bin directory"
 echo " "

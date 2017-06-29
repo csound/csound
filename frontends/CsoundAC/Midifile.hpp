@@ -251,8 +251,6 @@ namespace csound
     virtual void dump(std::ostream &stream);
   };
 
-  bool SILENCE_PUBLIC operator < (const MidiEvent &a, const MidiEvent &b);
-
   struct SILENCE_PUBLIC MidiEventComparator
   {
     bool operator()(const MidiEvent &a, const MidiEvent &b)
@@ -276,6 +274,6 @@ namespace csound
     }
   };
 
-
 }
+
 #endif
