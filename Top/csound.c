@@ -1523,10 +1523,10 @@ unsigned long kperfThread(void * cs)
     numThreads = csound->oparms->numThreads;
     //start = NULL;
     csound->Message(csound,
-                    Str("Multithread performance: insno: %3d  thread %d of "
+                    Str("Multithread performance:thread %d of "
                         "%d starting.\n"),
-                    /* start ? start->insno : */ -1,
-                    index,
+                    /* start ? start->insno : */
+                    index+1,
                     numThreads);
     if (index < 0) {
       csound->Die(csound, Str("Bad ThreadId"));

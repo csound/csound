@@ -1,5 +1,5 @@
 #!/bin/sh
-export RELEASE_DIR=csound-iOS-6.07.0
+export RELEASE_DIR=csound-iOS-6.09.1
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
@@ -17,8 +17,9 @@ cp ../docs/csound_ios_manual.pdf .
 
 # COPYING HEADERS
 
-cp -R ../Csound\ iOS\ Examples .
-cp Csound\ iOS\ Examples/LICENSE.TXT .
+cp -R ../Csound\ iOS\ Obj-C\ Examples .
+cp -R ../Csound\ iOS\ Swift\ Examples .
+cp Csound\ iOS\ Obj-C\ Examples/LICENSE.TXT .
 cp ../CHANGELOG .
 
 cd ..

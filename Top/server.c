@@ -60,7 +60,8 @@ static uintptr_t udp_recv(void *pdata)
     while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
       if (csound->oparms->odebug)
         csound->Message(csound, "orchestra: \n%s\n", orchestra);
-      if (strncmp("##close##",orchestra,9)==0) break;
+      if (strncmp("!!close!!",orchestra,9)==0 ||
+	  strncmp("##close##",orchestra,9)==0) break;
       csoundCompileOrc(csound, orchestra);
       memset(orchestra,0, MAXSTR);
     }
@@ -95,6 +96,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) < 0)) {
       csound->Warning(csound, Str("bind failed"));
+      p->thrid = NULL;
       return NOTOK;
     }
     /* create thread */
@@ -108,19 +110,21 @@ int UDPServerClose(CSOUND *csound)
     UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
 
     if (p != NULL) {
-      //ssize_t ret;
-      const char *mess = "##close##";
-      const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-      //do{
-      /* ret = */(void)sendto(p->sock,mess,
-                              sizeof(mess)+1,0,to,sizeof(p->server_addr));
-      //} while(ret != -1);
-      csoundJoinThread(p->thrid);
 #ifndef WIN32
       close(p->sock);
 #else
       closesocket(p->sock);
 #endif
+      //ssize_t ret;
+      //const char *mess = "!!close!!";
+      //const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+      //do{
+      /* ret = */
+	//(void)sendto(p->sock,mess,
+	//                    sizeof(mess)+1,0,to,sizeof(p->server_addr));
+      //} while(ret != -1);
+      
+      //csoundJoinThread(p->thrid);
       csound->DestroyGlobalVariable(csound,"::UDPCOM");
     }
     return OK;
