@@ -195,7 +195,7 @@ public:
     /**
      *  Prints a message.
      */
-#if defined(MSVC)
+#if defined(_MSC_VER)
     static void message(const char *format, va_list valist);
 #else
     PUBLIC static void message(const char *format, va_list valist);

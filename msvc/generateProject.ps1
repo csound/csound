@@ -30,9 +30,10 @@ cd csound-vs -ErrorAction SilentlyContinue
 
 cmake ..\.. -G $vsGenerator `
  -Wdev -Wdeprecated `
- -DCMAKE_BUILD_TYPE="Release" `
+ -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
- -DCMAKE_REQUIRED_INCLUDES="..\deps\include"
+ -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
+ -DEIGEN3_INCLUDE_PATH:PATH=$vcpkgDir\packages\eigen3_x64-windows\include
 
