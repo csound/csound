@@ -24,7 +24,7 @@
 
 using namespace std;
 
-#if defined(WIN32) && !defined(MSVC)
+#if defined(WIN32) && !defined(_MSC_VER)
 extern "C"
 {
     extern __stdcall void OutputDebugStringA(const char *text);
