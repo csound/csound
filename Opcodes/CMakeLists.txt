@@ -21,7 +21,7 @@ option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 
 message(STATUS "## Building Opcodes ##")
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+#find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 include(CheckIncludeFiles)
 check_include_file(ladspa.h LADSPA_H)
 check_include_file(fluidsynth.h FLUIDSYNTH_H)
