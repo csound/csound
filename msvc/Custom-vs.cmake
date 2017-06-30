@@ -12,7 +12,7 @@ find_package(SWIG REQUIRED)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 # set(Eigen3_DIR "D:\\msys64\\home\\restore\\vcpkg\\packages\\eigen3_x64-windows\\share\\eigen3")
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 # Csound build options for MSVC
 set(BUILD_BUCHLA_OPCODES ON)
