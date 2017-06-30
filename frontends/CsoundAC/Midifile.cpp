@@ -739,8 +739,8 @@ namespace csound
 
   inline bool operator < (const MidiEvent &a, const MidiEvent &b)
   {
-	  MidiEventComparator comparator;
-	  return comparator(a, b);
+      MidiEventComparator comparator;
+      return comparator(a, b);
   };
 
 }
