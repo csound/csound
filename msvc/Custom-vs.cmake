@@ -11,6 +11,8 @@ find_package(SWIG REQUIRED)
 # find_package(VSTSDK2X)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
+# set(Eigen3_DIR "D:\\msys64\\home\\restore\\vcpkg\\packages\\eigen3_x64-windows\\share\\eigen3")
+# find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 # Csound build options for MSVC
 set(BUILD_BUCHLA_OPCODES ON)
@@ -88,8 +90,8 @@ set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}\\msvc\\deps\\include)
 
 # Explicit settings for locally downloaded dependencies
 # TODO ideally find all of these on path
-set(FLEX_EXECUTABLE "../deps/win_flex_bison/win_flex.exe")
-set(BISON_EXECUTABLE "../deps/win_flex_bison/win_bison.exe")
+set(FLEX_EXECUTABLE "${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison\\win_flex.exe")
+set(BISON_EXECUTABLE "${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison\\win_bison.exe")
 
 # Disable the following warnings in msvc
 # - C4244 loss of data in conversion
