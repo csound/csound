@@ -68,8 +68,18 @@ namespace csound
    * but they are always real-time score statements at time 0, suitable
    * for use with Csound's -L or line event option.
    */
-  class SILENCE_PUBLIC Event :
-    public Eigen::VectorXd
+
+//template class __declspec(dllexport) std::allocator<double>;
+//template class __declspec(dllexport) std::vector<double>;
+//template class __declspec(dllexport) std::allocator<char>;
+//template class __declspec(dllexport) std::basic_string<char>;
+//template class __declspec(dllexport) Eigen::Matrix< double, Eigen::Dynamic, 1 >;
+//template class __declspec(dllexport) Eigen::Matrix< double, Eigen::Dynamic, Eigen::Dynamic >;
+//template class __declspec(dllexport) Eigen::Matrix< double, 13, 1 >;
+//template class __declspec(dllexport) Eigen::Matrix< double, 13, 13 >;
+
+class SILENCE_PUBLIC Event :
+	public Eigen::VectorXd
   {
   public:
     typedef enum

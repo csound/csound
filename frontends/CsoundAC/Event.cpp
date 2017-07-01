@@ -20,6 +20,7 @@
 #if defined(_MSC_VER) && !defined(__GNUC__)
 #pragma warning (disable:4786)
 #endif
+#ifdef _MSC_VER
 #include "Event.hpp"
 #include "Midifile.hpp"
 
@@ -297,14 +298,14 @@ namespace csound
 
   Event &Event::operator = (const Event &a)
   {
-    Eigen::VectorXd::operator=(a);
+	  Eigen::VectorXd::operator=(a);
     properties = a.properties;
     return *this;
   }
 
   Event &Event::operator = (const Eigen::VectorXd &a)
   {
-    Eigen::VectorXd::operator=(a);
+	  Eigen::VectorXd::operator=(a);
     return *this;
   }
 
@@ -559,3 +560,14 @@ namespace csound
     event.setDuration(0.0);
   }
 }
+#else
+#include "Platform.hpp"
+#include <eigen3/Eigen/Dense>
+
+
+namespace csound {
+	class Dummy : public
+		Eigen::VectorXd {
+	};
+};
+#endif
