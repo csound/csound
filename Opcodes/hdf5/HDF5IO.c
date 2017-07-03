@@ -1278,7 +1278,9 @@ void HDF5Read_initialiseScalarOutput(CSOUND *csound, HDF5Read *self,
 
     if (dataset->readType == ARATE_VAR
         ||
-        dataset->readType == KRATE_VAR) {
+        dataset->readType == KRATE_VAR
+        ||
+        dataset->readType == IRATE_VAR) {
 
       csound->AuxAlloc(csound, sizeof(hsize_t) * dataset->rank,
                        &dataset->datasetSizeMemory);
@@ -1300,13 +1302,16 @@ void HDF5Read_initialiseScalarOutput(CSOUND *csound, HDF5Read *self,
         dataset->sampleBuffer = dataset->sampleBufferMemory.auxp;
         dataset->elementCount = 1;
       }
-    } else {
-
-      hsize_t arrayDimensions[1] = {1};
-      hsize_t offset[1] = {0};
-      HDF5Read_readData(csound, self, dataset, offset, arrayDimensions,
-                        dataset->argumentPointer);
+        
+        if (dataset->readType == IRATE_VAR) {
+            
+            hsize_t arrayDimensions[1] = {1};
+            hsize_t offset[1] = {0};
+            HDF5Read_readData(csound, self, dataset, offset, arrayDimensions,
+                              dataset->argumentPointer);
+        }
     }
+    
 }
 
 // Open the datasets in an hdf5 file for reading
