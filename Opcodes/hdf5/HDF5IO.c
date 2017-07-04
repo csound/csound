@@ -861,12 +861,12 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
            sizeof(hsize_t) * dataset->rank);
     chunkDimensions[0] = vectorSize;
 
-        memcpy (chunkDimensions, dataset->datasetSize,
-                sizeof (hsize_t) * dataset->rank);
-        chunkDimensions[dataset->rank - 1] = vectorSize;
+    memcpy (chunkDimensions, dataset->datasetSize,
+            sizeof (hsize_t) * dataset->rank);
+    chunkDimensions[dataset->rank - 1] = vectorSize;
 
-        HDF5Read_readData (csound, self, dataset, dataset->offset,
-                chunkDimensions, dataPointer);
+    HDF5Read_readData (csound, self, dataset, dataset->offset,
+                       chunkDimensions, dataPointer);
 
     if (vectorSize != self->ksmps) {
 
@@ -878,7 +878,7 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
     dataset->offset[0] += vectorSize;
 
 #ifdef MSVC
-        free (chunkDimensions);
+    free (chunkDimensions);
 #endif
 }
 
@@ -1302,16 +1302,16 @@ void HDF5Read_initialiseScalarOutput(CSOUND *csound, HDF5Read *self,
         dataset->sampleBuffer = dataset->sampleBufferMemory.auxp;
         dataset->elementCount = 1;
       }
-        
+
         if (dataset->readType == IRATE_VAR) {
-            
+
             hsize_t arrayDimensions[1] = {1};
             hsize_t offset[1] = {0};
             HDF5Read_readData(csound, self, dataset, offset, arrayDimensions,
                               dataset->argumentPointer);
         }
     }
-    
+
 }
 
 // Open the datasets in an hdf5 file for reading
@@ -1337,9 +1337,10 @@ void HDF5Read_openDatasets(CSOUND *csound, HDF5Read *self)
       STRINGDAT *inputArgument =
         (STRINGDAT *)self->arguments[self->outputArgumentCount + i + 1];
 
-        csound->AuxAlloc(csound, sizeof(char) * strlen(inputArgument->data), &currentDataset->datasetNameMemory);
-        currentDataset->datasetName = currentDataset->datasetNameMemory.auxp;
-        strcpy(currentDataset->datasetName, inputArgument->data);
+      csound->AuxAlloc(csound, sizeof(char) * strlen(inputArgument->data),
+                       &currentDataset->datasetNameMemory);
+      currentDataset->datasetName = currentDataset->datasetNameMemory.auxp;
+      strcpy(currentDataset->datasetName, inputArgument->data);
 
       if (currentDataset->datasetName[strlen(inputArgument->data) - 1] == '*') {
 
