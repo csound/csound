@@ -8,7 +8,9 @@
 /* CHANGE LOG:
 04 apr 03 -- fixed bug in add_track that caused infinite loop
 */
-
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
 #include "assert.h"
 #include "stdlib.h"
 #include "stdio.h"
