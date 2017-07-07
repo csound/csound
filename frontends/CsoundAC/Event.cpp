@@ -20,7 +20,6 @@
 #if defined(_MSC_VER) && !defined(__GNUC__)
 #pragma warning (disable:4786)
 #endif
-#ifdef _MSC_VER
 #include "Event.hpp"
 #include "Midifile.hpp"
 
@@ -560,14 +559,3 @@ namespace csound
     event.setDuration(0.0);
   }
 }
-#else
-#include "Platform.hpp"
-#include <eigen3/Eigen/Dense>
-
-
-namespace csound {
-	class Dummy : public
-		Eigen::VectorXd {
-	};
-};
-#endif
