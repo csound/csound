@@ -19,7 +19,7 @@ To maintain this document use the following markdown:
 Any valid HTML can also be used.
 
 --->
-# CSOUND VERSION 6.09 RELEASE NOTES
+# CSOUND VERSION 6.09.1 RELEASE NOTES
 
 A mixed bag of new opcodes and many fixes and improvements.
 
@@ -117,17 +117,17 @@ working only sometimes.
 
 - new opcode d to switch off infinite notes (denote); same as i with negative p1.
 
-- named instruments can be turned off with i if a - follows the "
+- named instruments can be turned off with i if a - follows the ".
 
--(from 6.09.1) if an r-opcode section eded in e-opcode it used to sop early.
+- (from 6.09.1) if an r-opcode section eded in e-opcode it used to sop early.
 
 ### Options
 
 - jack midi module now can report available devices under --midi-devices.
 
--(from 6.09.1) defining smacros and omacros on command line only happens once.
+- (from 6.09.1) defining smacros and omacros on command line only happens once.
 
--(from 6.09.1) defining smacros  from command line now works.
+- (from 6.09.1) defining smacros from command line now works.
 
 
 ### Modified Opcodes and Gens
@@ -187,7 +187,7 @@ same JS API with either asm.js or wasm backends.
 - CsoundQT:  CsoundQt 0.9.4 is announced:
 https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%200.9.4.md.
 
-- Windows installer with CsoundQt includes PythonQt.
+- (from 6.09.1) Windows installer with CsoundQt does not include PythonQt.
 
 ### General Usage
 
@@ -232,7 +232,7 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 - out family of opcodes reworked to reduce interleaving costs and to
   take proper regard if nchnls value.
 
--(from 6.09.1) a crash on Linux i386 removed relating to server mode.
+- (from 6.09.1) a crash on Linux i386 removed relating to server mode.
 
 
 ### API
@@ -248,7 +248,7 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - Boost dependencies removed from Csound interfaces, CsoundAC, and CsoundVST.
 
-- (from 6.09.1) Two new API function, csoundSetspinSample and csoundClearSpin.
+- (from 6.09.1) Two new API functions, csoundSetSpinSample and csoundClearSpin.
 
 ### Platform Specific
 
