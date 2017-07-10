@@ -119,7 +119,7 @@ working only sometimes.
 
 - named instruments can be turned off with i if a - follows the "
 
--(from 6.09.1) if an r-opcode section eded in e-opcode it used to sop early.
+-(from 6.09.1) if an r-opcode section ended in e-opcode it used to stop early.
 
 ### Options
 
