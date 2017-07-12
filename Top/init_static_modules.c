@@ -27,6 +27,7 @@
 /* Do not declare these in header files; just define them in the module file 
  * as extern "C", and declare them here as extern. 
  */
+extern int csoundModuleCreate_mixer(CSOUND *csound);
 extern int csoundModuleCreate_signalflowgraph(CSOUND *csound);
 extern int csoundModuleInit_ampmidid(CSOUND *);
 extern int csoundModuleInit_doppler(CSOUND *);
@@ -34,7 +35,8 @@ extern int csoundModuleInit_fractalnoise(CSOUND *);
 extern int csoundModuleInit_ftsamplebank(CSOUND *);
 extern int csoundModuleInit_mixer(CSOUND *);
 extern int csoundModuleInit_signalflowgraph(CSOUND *);
-# extern int csoundModuleInit_ableton_link_opcodes(CSOUND *);
+//# extern int csoundModuleInit_ableton_link_opcodes(CSOUND *);
+
 
 /**
  * Called from the beginning of csoundInitModules to initialize opcodes and 
@@ -59,9 +61,10 @@ int init_static_modules(CSOUND *csound)
     result |= csoundModuleInit_doppler(csound);    
     result |= csoundModuleInit_fractalnoise(csound);
     result |= csoundModuleInit_ftsamplebank(csound);    
+    result |= csoundModuleCreate_mixer(csound);
     result |= csoundModuleInit_mixer(csound);
     result |= csoundModuleCreate_signalflowgraph(csound);
     result |= csoundModuleInit_signalflowgraph(csound);
-#    result |= csoundModuleInit_ableton_link_opcodes(csound);
+    //#    result |= csoundModuleInit_ableton_link_opcodes(csound);
     return result;
 }

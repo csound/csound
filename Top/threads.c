@@ -190,6 +190,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     void *threadRoutineReturnValue = NULL;
     int pthreadReturnValue;
     pthread_t *pthread = (pthread_t *)thread;
+    if(thread == NULL) return 0;
     pthreadReturnValue = pthread_join(*pthread,
                                       &threadRoutineReturnValue);
     if (pthreadReturnValue) {
@@ -390,7 +391,7 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
 #else
   pthread_barrier_t *barrier =
     (pthread_barrier_t *) malloc(sizeof(pthread_barrier_t));
-  int status = pthread_barrier_init(barrier, 0, max-1);
+  int status = pthread_barrier_init(barrier, 0, max);
   fprintf(stderr, "Create barrier %d => %p (%d)\n", max, barrier, status);
   if (status) return 0;
   return barrier;
@@ -546,6 +547,7 @@ PUBLIC void csoundCondSignal(void* condVar) {
 
 #elif defined(WIN32)
 #include <windows.h>
+#include <synchapi.h>
 #include <process.h>
 
 /* #undef NO_WIN9X_COMPATIBILITY */

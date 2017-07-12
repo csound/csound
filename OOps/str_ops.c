@@ -1132,7 +1132,7 @@ int str_from_url(CSOUND *csound, STRCPY_OP *p)
 }
 #endif
 
-#if !defined(HAVE_STRLCAT) && !defined(strlcat)
+#if !defined(HAVE_STRLCAT) && !defined(strlcat) && !defined(EMSCRIPTEN)
 /* Direct from BSD sources */
 size_t
 strlcat(char *dst, const char *src, size_t siz)

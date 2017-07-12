@@ -4,6 +4,7 @@ compiler:
 #      - clang
 sudo: required
 dist: trusty
+group: deprecated-2017Q2
 env:
       global:
            - secure: "pOICMBtfwljj450Vht1D2/XvtUm07edkbiUI0+PCnfuwiwBFJyqY919whZu+CrplQvkVS+RzvxT3wpgkVccflo0uvNJ7NwfKksRqrUKwTp59nGIwjUsnDjI3YkxOQyxIdIPsSm3bUxXVy/Jge0v6vzvbbPXKxyAxKsupnUBYOwM="

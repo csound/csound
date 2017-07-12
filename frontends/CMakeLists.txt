@@ -47,6 +47,15 @@ if(LINUX)
   target_link_libraries(csound-bin m)
 endif()
 
+# Post build dependencies copy for MSVC
+if(MSVC)
+	add_custom_command(TARGET csound-bin
+					   POST_BUILD
+					   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/msvc/deps/bin
+						$<TARGET_FILE_DIR:csound-bin>
+					   COMMENT "Running copy dependencies script...")
+endif()
+
 message(STATUS "Building csLadspa.")
 
 make_plugin_frontend(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}")
