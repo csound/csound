@@ -195,6 +195,8 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
               //csound->MessageS(csound, CSOUNDMSG_ORCH, statement.str().c_str());
               csound->InputMessage(csound, statement.str().c_str());
             }
+
+          closedir(dir);
         }
       else
         {
@@ -203,7 +205,6 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
                           directory);
         }
 
-        closedir(dir);
       //return number of files
       return noOfFiles;
     }
@@ -349,13 +350,6 @@ std::vector<std::string> searchDir(CSOUND *csound, char* directory, char* extens
 
 extern "C" {
 
-#ifndef PNACL
-  PUBLIC int csoundModuleCreate(CSOUND *csound)
-  {
-      return 0;
-  }
-#endif
-
   PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound)
   {
 
@@ -377,7 +371,7 @@ extern "C" {
                                      0,
                                      1,
                                      (char*)"i",
-                                     (char*)"Siiiii",
+                                     (char*)"Siiii",
                                      (int (*)(CSOUND*,void*)) iftsamplebank::init_,
                                      (int (*)(CSOUND*,void*)) 0,
                                      (int (*)(CSOUND*,void*)) 0);
@@ -406,7 +400,12 @@ extern "C" {
       return status;
   }
 
- #ifndef PNACL
+#ifndef INIT_STATIC_MODULES
+  PUBLIC int csoundModuleCreate(CSOUND *csound)
+  {
+      return 0;
+  }
+
   PUBLIC int csoundModuleInit(CSOUND *csound)
   {
       return csoundModuleInit_ftsamplebank(csound);

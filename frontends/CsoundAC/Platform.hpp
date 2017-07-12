@@ -20,8 +20,8 @@
 #ifndef SILENCE_PLATFORM_HPP
 #define SILENCE_PLATFORM_HPP
 
-#if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
-#  define SILENCE_PUBLIC        __declspec(dllexport)
+#if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG) && !defined(_MSC_VER)
+#  define SILENCE_PUBLIC __declspec(dllexport)
 #elif defined(__GNUC__) && (__GNUC__ >= 4) /* && !defined(__MACH__) */
 #  define SILENCE_PUBLIC        __attribute__ ( (visibility("default")) )
 #else

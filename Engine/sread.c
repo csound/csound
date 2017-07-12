@@ -46,11 +46,12 @@ static  void    salcblk(CSOUND *), flushlin(CSOUND *);
 static  int     getop(CSOUND *), getpfld(CSOUND *);
         MYFLT   stof(CSOUND *, char *);
 extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-extern void csound_prslex_init(void *);
+extern int csound_prslex_init(void *);
 extern void csound_prsset_extra(void *, void *);
 
-extern void csound_prslex(CSOUND*, void*);
-extern void csound_prslex_destroy(void *);
+extern int csound_prslex(CSOUND*, void*);
+extern int csound_prslex_destroy(void *);
+extern void cs_init_smacros(CSOUND*, PRS_PARM*, NAMES*);
 
 #define STA(x)  (csound->sreadStatics.x)
 
@@ -722,8 +723,8 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
 
       if (p == NULL)
         p = s + strlen(s);
-      if (csound->oparms->msglevel & 7)
-        csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
+      //if (csound->oparms->msglevel & 7)
+      //sound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p))
         csound->Die(csound, Str("Invalid macro name for --smacro"));
@@ -789,11 +790,12 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     STA(str) = STA(inputs);
     STA(str)->is_marked_repeat = 0;
     STA(str)->line = 1; STA(str)->mac = NULL;
-    init_smacros(csound, csound->smacros);
+    //init_smacros(csound, csound->smacros);
     {
       PRS_PARM  qq;
       memset(&qq, '\0', sizeof(PRS_PARM));
       csound_prslex_init(&qq.yyscanner);
+      cs_init_smacros(csound, &qq, csound->smacros);
       csound_prsset_extra(&qq, qq.yyscanner);
       csound->expanded_sco = corfile_create_w();
       /* printf("Input:\n%s<<<\n", */
