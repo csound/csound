@@ -51,8 +51,8 @@ static int linlink(CSOUND *csound, LINLINK *p) {
     MYFLT x1 = *p->kx1;
     if (UNLIKELY(x0 == x1))
       return csound->PerfError(csound, p->h.insdshead,
-                               Str("linlin.k:Divisio by zero"));
-    *p->kout = (x - x0) / (*(p->kx1) -x0) * (*(p->ky1) - y0) + y0;
+                               Str("linlin.k: Division by zero"));
+    *p->kout = (x - x0) / (x1 -x0) * (*(p->ky1) - y0) + y0;
     return OK;
 }
 
