@@ -6874,6 +6874,10 @@ msgstr "caractère a attendu entre A et G, mais %c obtenu\n"
 msgid "format not understood\n"
 msgstr "format non compris\n"
 
+#: Opcodes/emugens/emugens.c:429
+msgid "cmp: operator not understood. Expecting <, <=, >, >=, ==\n"
+msgstr ""
+
 #: Opcodes/fareygen.c:116
 msgid "insufficient arguments for fareytable"
 msgstr "arguments insuffisants pour une table de Farey"
