@@ -6861,9 +6861,8 @@ msgstr ""
 "plugin \"%s\"."
 
 #: Opcodes/emugens/emugens.c:54
-#, fuzzy
 msgid "linlin.k: Division by zero"
-msgstr "Division par zéro"
+msgstr "linlin.k : division par zéro"
 
 #: Opcodes/emugens/emugens.c:288
 #, c-format
@@ -11869,9 +11868,9 @@ msgid "Error allocating opcode list"
 msgstr "Erreur lors de l'allocation de la liste d'opcodes"
 
 #: Top/csound.c:1526
-#, fuzzy, c-format
+#, c-format
 msgid "Multithread performance:thread %d of %d starting.\n"
-msgstr "Exécution multithread : insno : %3d  démarrage du thread %d sur %d.\n"
+msgstr "Exécution multithread : démarrage du thread %d sur %d.\n"
 
 #: Top/csound.c:1532
 msgid "Bad ThreadId"
