@@ -250,7 +250,9 @@ libcsound.csoundGetOutputBuffer.restype = POINTER(MYFLT)
 libcsound.csoundGetOutputBuffer.argtypes = [c_void_p]
 libcsound.csoundGetSpin.restype = POINTER(MYFLT)
 libcsound.csoundGetSpin.argtypes = [c_void_p]
+libcsound.csoundClearSpin.argtypes = [c_void_p]
 libcsound.csoundAddSpinSample.argtypes = [c_void_p, c_int, c_int, MYFLT]
+libcsound.csoundSetSpinSample.argtypes = [c_void_p, c_int, c_int, MYFLT]
 libcsound.csoundGetSpout.restype = POINTER(MYFLT)
 libcsound.csoundGetSpout.argtypes = [c_void_p]
 libcsound.csoundGetSpoutSample.restype = MYFLT
@@ -1099,13 +1101,27 @@ class Csound:
         p = cast(buf, arrayType)
         return np.ctypeslib.as_array(p)
     
+    def clearSpin(self):
+        """Clear the input buffer (spin)."""
+        libcsound.csoundClearSpin(self.cs)
+    
     def addSpinSample(self, frame, channel, sample):
         """Add the indicated sample into the audio input working buffer (spin).
         
         This only ever makes sense before calling performKsmps(). The frame
         and channel must be in bounds relative to ksmps and nchnlsInput.
+        NB: the spin buffer needs to be cleared at every k-cycle by calling 
+        clearSpin().
         """
         libcsound.csoundAddSpinSample(self.cs, frame, channel, sample)
+    
+    def setSpinSample(self, frame, channel, sample):
+        """Set the audio input working buffer (spin) to the indicated sample.
+        
+        This only ever makes sense before calling performKsmps(). The frame
+        and channel must be in bounds relative to ksmps and nchnlsInput.
+        """
+        libcsound.csoundSetSpinSample(self.cs, frame, channel, sample)
     
     def spout(self):
         """Return the address of the Csound audio output working buffer (spout).

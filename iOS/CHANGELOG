@@ -2,6 +2,13 @@ Csound for iOS ChangeLog
 
 This ChangeLog shows changes specific to Csound for iOS. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
+6.09.1 - 2017-06-26
+
+* API Change
+  Exposed CMMotionManager instance from CsoundMotion.
+
+* Added Swift examples: replicated all Obj-C examples in Swift.
+
 6.08.0 - 2017-01-21
 
 * API Change

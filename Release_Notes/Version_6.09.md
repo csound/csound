@@ -19,7 +19,7 @@ To maintain this document use the following markdown:
 Any valid HTML can also be used.
 
 --->
-# CSOUND VERSION 6.09 RELEASE NOTES
+# CSOUND VERSION 6.09.1 RELEASE NOTES
 
 A mixed bag of new opcodes and many fixes and improvements.
 
@@ -38,7 +38,8 @@ memory leaks fixed and more robust code.
 
 - hilbert2 --  a DFT-based implementation of a Hilbert transformer.
 
-- Ableton Link opcodes -- for synchronizing tempo and beat across local area networks.
+- Ableton Link opcodes -- for synchronizing tempo and beat across
+  local area networks.
 
 - pvstrace -- retain only the N loudest bins.
 
@@ -48,7 +49,7 @@ log, exp, sqrt, cos, sin, tan, acos, asin, atan, sinh, cosh, tanh,
 cbrt, limit1.
 
 - several new binary functions/opcodes for k-rate and i-time numeric
-arrays: atan2, pow,hypot, fmod, fmax, fmin.
+  arrays: atan2, pow,  hypot, fmod, fmax, fmin.
 
 - limit -- numeric limiting within a given range (for arrays).
 
@@ -61,7 +62,7 @@ arrays: atan2, pow,hypot, fmod, fmax, fmin.
 - OSCsendA -- asynchronous version of OSCsend,
 
 - OSCsend -- now implemented directly using system sockets. Old version
-using liblo has been kept as OSCsend_lo.
+  using liblo has been kept as OSCsend_lo.
 
 - OSCraw -- to listen for all OSC messages at a given port.
 
@@ -77,9 +78,7 @@ using liblo has been kept as OSCsend_lo.
 
 - product -- takes a numeric array (k or i-rate) and calculates its product.
 
-- supercollider ugens -- sc_phasor, sc_lag, sc_lagud, sc_trig added.
-
-- liveconv -- AWAITING DOCUMENTATION
+- supercollider ugens -- sc_phasor, sc_lag, sc_lagud, sc_trig
 
 ### New Gen and Macros
 
@@ -94,6 +93,9 @@ using liblo has been kept as OSCsend_lo.
 - Macro names better policed and bracket matching.
 
 - Octal values as \000 can be in strings
+
+- (from 6.09.1) In a UDO the out* opcodes now work, where before it was
+working only sometimes.
 
 ### Score
 
@@ -115,11 +117,18 @@ using liblo has been kept as OSCsend_lo.
 
 - new opcode d to switch off infinite notes (denote); same as i with negative p1.
 
-- named instruments can be turned off with i if a - follows the "
+- named instruments can be turned off with i if a - follows the ".
+
+- (from 6.09.1) if an r-opcode section eded in e-opcode it used to sop early.
 
 ### Options
 
 - jack midi module now can report available devices under --midi-devices.
+
+- (from 6.09.1) defining smacros and omacros on command line only happens once.
+
+- (from 6.09.1) defining smacros from command line now works.
+
 
 ### Modified Opcodes and Gens
 
@@ -128,7 +137,8 @@ using liblo has been kept as OSCsend_lo.
 - hdf5read opcode now reads entire data sets when dataset name string
   is suffixed with an asterisk.
 
-- use of non power-of-two lengths now acceptable where before it was inconsistent.
+- use of non power-of-two lengths in gens now acceptable where before
+  it was inconsistent.
 
 - ampmidid optionally can be aware of 0dbfs.
 
@@ -177,7 +187,7 @@ same JS API with either asm.js or wasm backends.
 - CsoundQT:  CsoundQt 0.9.4 is announced:
 https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%200.9.4.md.
 
-- Windows installer with CsoundQt includes PythonQt.
+- (from 6.09.1) Windows installer with CsoundQt does not include PythonQt.
 
 ### General Usage
 
@@ -209,7 +219,9 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 - Bug in hdf5read where if two hdf5read opcodes were placed in series
   in an instrument, the argument names of the second opcode instance
   would be incorrect due to directly changing the last string
-  character of the first when reading an entire dataset. 
+  character of the first when reading an entire dataset.
+
+- Memory leaks fixed in some plugin opcodes.
 
 ## SYSTEM LEVEL CHANGES
 
@@ -220,10 +232,13 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 - out family of opcodes reworked to reduce interleaving costs and to
   take proper regard if nchnls value.
 
+- (from 6.09.1) a crash on Linux i386 removed relating to server mode.
+
+
 ### API
 
-- New `csound_threaded.hpp` header-only facility, obviating need for 
-`csPerfThread.cpp` object in some projects.
+- New `csound_threaded.hpp' header-only facility, obviating need for
+`csPerfThread.cpp' object in some projects.
 
 - Added GetA4 function.
 
@@ -233,16 +248,18 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - Boost dependencies removed from Csound interfaces, CsoundAC, and CsoundVST.
 
+- (from 6.09.1) Two new API functions, csoundSetSpinSample and csoundClearSpin.
+
 ### Platform Specific
 
 - iOS
 
  - iPad portrait SplitView fix+animation, info popover resizing, stop
-   button fix in Soundfile Pitch Shifter. 
+   button fix in Soundfile Pitch Shifter.
 
- - Csound-iOS API updates; Examples cleaned up, enhanced/expanded, and reordered. 
+ - Csound-iOS API updates; Examples cleaned up, enhanced/expanded, and reordered.
    Manual revised, expanded, updated. Updates to API and examples
-   support iOS 10 and Xcode 8. 
+   support iOS 10 and Xcode 8.
 
 - Android
 
@@ -257,9 +274,3 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 - GNU/Linux
 
 ==END==
-========================================================================
-UNDOCUMENTED/UNDELETED
-
-
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sun May 7 15:54:43 2017 +0100

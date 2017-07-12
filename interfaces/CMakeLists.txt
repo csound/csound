@@ -64,10 +64,10 @@ endif()
 
 
 # SWIG INTERFACES
-FIND_PACKAGE(SWIG 2.0)
-FIND_PACKAGE(PythonLibs)
-FIND_PACKAGE(JNI)
-FIND_PACKAGE(Java)
+find_package(SWIG 2.0)
+find_package(PythonLibs)
+find_package(JNI)
+find_package(Java)
 
 find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
@@ -78,58 +78,46 @@ if(NOT LUAJIT_LIBRARY AND WIN32)
 endif()
 find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
-MESSAGE(STATUS "PYTHON_LIBRARY: " ${PYTHON_LIBRARY})
+message(STATUS "PYTHON_LIBRARY: " ${PYTHON_LIBRARY})
 
 check_deps(BUILD_PYTHON_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE PYTHONLIBS_FOUND)
 check_deps(BUILD_JAVA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE JNI_FOUND JAVA_FOUND)
 check_deps(BUILD_LUA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE  LUAJIT_LIBRARY LUA_H_PATH)
 
 if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
-
+    message(STATUS "SWIG_USE_FILE: " ${SWIG_USE_FILE})
     include(${SWIG_USE_FILE})
-
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
     set(CMAKE_SWIG_FLAGS ${libcsound_CFLAGS})
     list(APPEND CMAKE_SWIG_FLAGS "-includeall" "-verbose")
-
     if(USE_DOUBLE)
         list(APPEND CMAKE_SWIG_FLAGS "-DUSE_DOUBLE")
     endif(USE_DOUBLE)
-
     set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
-
     if(BUILD_PYTHON_INTERFACE)
         INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
-
         if(WIN32)
           if(NOT MSVC)
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} ${PYTHON_LIBRARY} libcsnd6)
           else()
-            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd)
+            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
           endif()
         else()
             # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
         endif()
-# Had:     	    SWIG_FLAGS "-threads"
-
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME csnd6)
-
         set(SWIG_MODULE_csnd6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
-
-        SWIG_ADD_MODULE(csnd6 python python_interface.i)
-        SWIG_LINK_LIBRARIES(csnd6 ${swigpython_LIBS})
-
+		swig_add_module(csnd6 python python_interface.i)
+        swig_link_libraries(csnd6 ${swigpython_LIBS})
         set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
-
 	if(APPLE)
 	    set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")

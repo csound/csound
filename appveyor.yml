@@ -24,6 +24,7 @@ artifacts:
 
 cache: 
  - C:\projects\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
+ - C:\projects\csound\msvc\cache
 
 #deploy:
 #  release: myproduct-v$(appveyor_build_version)
@@ -37,3 +38,18 @@ cache:
 #  on:
 #    branch: master                 # release from master branch only
 #    appveyor_repo_tag: true        # deploy on tag push only
+
+notifications:
+  - provider: Email
+    to:
+      - CSOUND-DEV@listserv.heanet.ie
+    subject: 'Build {{status}}'     # optional    
+    on_build_success: false
+    on_build_failure: true
+    on_build_status_changed: false
+
+#  - provider: Slack
+#    auth_token:
+#      secure: kBl9BlxvRMr9liHmnBs14A==
+#    channel: development
+#    template: "{{template_variable_1}}, {{template_variable_2}}, ..."

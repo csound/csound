@@ -236,7 +236,7 @@ static int liveconv_init(CSOUND *csound, liveconv_t *p)
   p->partSize = MYFLT2LRND(*(p->iPartLen));
   if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {  // Must be a power of 2 at least as large as 4
     return csound->InitError(csound, Str("liveconv: invalid impulse response "
-					 "partition length"));
+                                         "partition length"));
   }
 
   /* Find and assign the function table numbered iFTNum */
@@ -248,8 +248,8 @@ static int liveconv_init(CSOUND *csound, liveconv_t *p)
   n = (int) ftp->flen;
   if (UNLIKELY(n <= 0)) {
     return csound->InitError(csound,
-			     Str("liveconv: invalid length, or insufficient"
-				 " IR data for convolution"));
+                             Str("liveconv: invalid length, or insufficient"
+                                 " IR data for convolution"));
   }
 
   // Compute the number of partitions (total length / partition size)
@@ -371,7 +371,7 @@ static int liveconv_perf(CSOUND *csound, liveconv_t *p)
 
       /* Special case: At a partition border: Make the temporary buffer head position */
       if (p->cnt == 0)
-	p->loader.head = load_ptr;
+        p->loader.head = load_ptr;
     }
   }
 
@@ -395,35 +395,35 @@ static int liveconv_perf(CSOUND *csound, liveconv_t *p)
       cnt = load_ptr->pos;
       if (load_ptr->status == LOADING) {
 
-	nPart = cnt / nSamples + 1;
-	n = (nSamples << 1) * (p->nPartitions - nPart);  /* IR write position, starting with the last! */
+        nPart = cnt / nSamples + 1;
+        n = (nSamples << 1) * (p->nPartitions - nPart);  /* IR write position, starting with the last! */
 
-	/* Iterate over IR partitions in reverse order */
-	for (k = 0; k < nSamples; k++) {
-	  /* Fill IR_Data with scaled IR data, or zero if outside the IR buffer */
-	  p->IR_Data[n + k] = (cnt < (int)ftp->flen) ? ftp->ftable[cnt] : FL(0.0);
-	  cnt++;
-	}
+        /* Iterate over IR partitions in reverse order */
+        for (k = 0; k < nSamples; k++) {
+          /* Fill IR_Data with scaled IR data, or zero if outside the IR buffer */
+          p->IR_Data[n + k] = (cnt < (int)ftp->flen) ? ftp->ftable[cnt] : FL(0.0);
+          cnt++;
+        }
 
-	/* pad second half of IR to zero */
-	for (k = nSamples; k < (nSamples << 1); k++)
-	  p->IR_Data[n + k] = FL(0.0);
+        /* pad second half of IR to zero */
+        for (k = nSamples; k < (nSamples << 1); k++)
+          p->IR_Data[n + k] = FL(0.0);
 
-	/* calculate FFT (replace in the same buffer) */
-	csound->RealFFT2(csound, p->fwdsetup, &(p->IR_Data[n]));
+        /* calculate FFT (replace in the same buffer) */
+        csound->RealFFT2(csound, p->fwdsetup, &(p->IR_Data[n]));
 
       }
       else if (load_ptr->status == UNLOADING) {
 
-	nPart = cnt / nSamples + 1;
-	n = (nSamples << 1) * (p->nPartitions - nPart);  /* IR write position, starting with the last! */
-	memset(p->IR_Data + n, 0, (nSamples << 1)*sizeof(MYFLT));
+        nPart = cnt / nSamples + 1;
+        n = (nSamples << 1) * (p->nPartitions - nPart);  /* IR write position, starting with the last! */
+        memset(p->IR_Data + n, 0, (nSamples << 1)*sizeof(MYFLT));
       }
 
       // Update load buffer and move to the next buffer
       load_ptr->pos += nSamples;
       if (load_ptr->pos >= p->nPartitions * nSamples) {
-	load_ptr->status = NO_LOAD;
+        load_ptr->status = NO_LOAD;
       }
 
       load_ptr = next_load(&p->loader, load_ptr);

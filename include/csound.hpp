@@ -721,6 +721,7 @@ public:
   {
     MYFLT *tmp;
     int   retval;
+    if(strlen(name) == 0) return CSOUND_ERROR;
     retval = csoundGetChannelPtr(csound, &tmp, name, type);
     p = tmp;
     return retval;

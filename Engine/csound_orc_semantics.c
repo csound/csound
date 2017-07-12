@@ -38,7 +38,7 @@
 char *csound_orcget_text ( void *scanner );
 int is_label(char* ident, CONS_CELL* labelList);
 
-extern int csound_orcget_locn(void *);
+extern uint64_t csound_orcget_locn(void *);
 extern  char argtyp2(char*);
 extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
@@ -367,8 +367,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
           synterr(csound,
-                  Str("Unable to verify arg types for expression '%s'\n"),
-                  opname);
+                  Str("Unable to verify arg types for expression '%s'\n"
+                      "Line %d\n"),
+                  opname, tree->line);
           do_baktrace(csound, tree->locn);
           return NULL;
         }
@@ -423,8 +424,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
         synterr(csound,
-                Str("Unable to verify arg types for boolean expression '%s'\n"),
-                opname);
+                Str("Unable to verify arg types for boolean expression '%s'\n"
+                    "Line %d\n"),
+                opname, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -522,8 +524,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                          tree->value->lexeme);
 
       if (UNLIKELY(var == NULL)) {
-        synterr(csound, Str("Variable '%s' used before defined\n"),
-                tree->value->lexeme);
+        synterr(csound, Str("Variable '%s' used before defined\n"
+                            "Line %d\n"),
+                tree->value->lexeme, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -1225,7 +1228,8 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                                varName);
             if(var == NULL) {
               synterr(csound,
-                      Str("Variable '%s' used before defined\n"), varName);
+                      Str("Variable '%s' used before defined\nline %d"),
+                      varName, tree->line);
               do_baktrace(csound, tree->locn);
               return 0;
             }
@@ -1247,7 +1251,9 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                                varName);
             if (var == NULL) {
               synterr(csound,
-                      Str("Variable '%s' used before defined\n"), varName);
+                      Str("Variable '%s' used before defined\nLine %d\n"),
+                      varName, current->left->line);
+              do_baktrace(csound, current->left->locn);
              return 0;
             }
           }
@@ -1851,7 +1857,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
 
 /* BISON PARSER FUNCTION */
-int csound_orcwrap()
+int csound_orcwrap(void* dummy)
 {
 #ifdef DEBUG
     printf("\n === END OF INPUT ===\n");

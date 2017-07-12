@@ -20,7 +20,6 @@
  *
  * O P C O D E S
  *
- *
  * JackoInit -- Initializes Csound as a Jack client.
  *
  * Description
@@ -1610,13 +1609,10 @@ extern "C"
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
     int result = OK;
-#pragma omp critical
-    {
         if (jackoState != 0) {
             delete jackoState;
             jackoState = 0;
         }
-    }
     return result;
   }
 }

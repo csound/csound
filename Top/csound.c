@@ -64,10 +64,6 @@
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
 
-#if defined(USE_OPENMP)
-#include <omp.h>
-#endif /* USE_OPENMP */
-
 #include "csound_standard_types.h"
 
 #include "csdebug.h"
@@ -1093,7 +1089,7 @@ static void psignal_(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-#if defined(LINUX) && !defined(ANDROID)
+#if defined(LINUX) && !defined(ANDROID) && !defined(NACL)
     #include <execinfo.h>
 
     {
@@ -1360,8 +1356,9 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
 #else
       // FIXME - need to verify this works...
       if (threadId == current->threadId)
-        return index;
 #endif
+        return index;
+
       index++;
       current = current->next;
     }
@@ -1437,7 +1434,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
         opstart = (OPDS*)task_map[which_task];
         if (insds->ksmps == csound->ksmps) {
         insds->spin = csound->spin;
-        insds->spout = csound->spout;
+        insds->spout = csound->spraw;
         insds->kcounter =  csound->kcounter;
         while ((opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
@@ -1453,7 +1450,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
           int early = insds->ksmps_no_end;
           OPDS  *opstart;
           insds->spin = csound->spin;
-          insds->spout = csound->spout;
+          insds->spout = csound->spraw;
           insds->kcounter =  csound->kcounter*csound->ksmps;
 
           /* we have to deal with sample-accurate code
@@ -1526,10 +1523,10 @@ unsigned long kperfThread(void * cs)
     numThreads = csound->oparms->numThreads;
     //start = NULL;
     csound->Message(csound,
-                    Str("Multithread performance: insno: %3d  thread %d of "
+                    Str("Multithread performance:thread %d of "
                         "%d starting.\n"),
-                    /* start ? start->insno : */ -1,
-                    index,
+                    /* start ? start->insno : */
+                    index+1,
                     numThreads);
     if (index < 0) {
       csound->Die(csound, Str("Bad ThreadId"));
@@ -2213,6 +2210,18 @@ PUBLIC long csoundGetOutputBufferSize(CSOUND *csound)
 PUBLIC MYFLT *csoundGetSpin(CSOUND *csound)
 {
     return csound->spin;
+}
+
+PUBLIC void csoundSetSpinSample(CSOUND *csound, int frame,
+                                int channel, MYFLT sample)
+{
+    int index = (frame * csound->inchnls) + channel;
+    csound->spin[index] = sample;
+}
+
+PUBLIC void csoundClearSpin(CSOUND *csound) {
+
+  memset(csound->spin, 0, sizeof(MYFLT)*csound->ksmps*csound->nchnls);
 }
 
 PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame,

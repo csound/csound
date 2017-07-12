@@ -31,9 +31,9 @@ typedef void *locale_t;
 #endif
 #endif
 
+#include <limits.h>
 /* this checks for 64BIT builds */
 #if defined(__MACH__) || defined(LINUX)
-#include <limits.h>
 #if ( __WORDSIZE == 64 ) || defined(__x86_64__) || defined(__amd64__)
 #define B64BIT
 #endif
@@ -337,19 +337,24 @@ typedef unsigned long       uintptr_t;
 
 #ifdef USE_LRINT
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) ((int32) lrintf((float) (x)))
-#    define MYFLT2LRND(x) ((int32) lrintf((float) (x)))
+#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? (int32) lrintf((float) (x)) : 0)
+#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? (int32) lrintf((float) (x)) : 0)
 #  else
-#    define MYFLT2LONG(x) ((int32) lrint((double) (x)))
-#    define MYFLT2LRND(x) ((int32) lrint((double) (x)))
+#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? (int32) lrint((double) (x)) : 0)
+#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? (int32) lrint((double) (x)) : 0)
 #  endif
 #elif defined(MSVC)
 #include <emmintrin.h>
 #  ifndef USE_DOUBLE
 // From Agner Fog optimisation manuals p.144
 static inline int MYFLT2LONG (float const x) {
-    return _mm_cvtss_si32 (_mm_load_ss (&x));}static inline int MYFLT2LRND (float const x) {
-    return _mm_cvtss_si32 (_mm_load_ss (&x));}
+    return _mm_cvtss_si32 (_mm_load_ss (&x));
+}
+
+static inline int MYFLT2LRND (float const x) {
+    return _mm_cvtss_si32 (_mm_load_ss (&x));
+}
+
 #  else
 static inline int MYFLT2LONG (double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));

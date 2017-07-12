@@ -28,6 +28,10 @@
 #ifndef CSOUNDCORE_H
 #define CSOUNDCORE_H
 
+#if defined(__EMSCRIPTEN__) && !defined(EMSCRIPTEN)
+#define EMSCRIPTEN
+#endif
+
 #include "sysdep.h"
 #if !defined(EMSCRIPTEN) && !defined(CABBAGE)
 #if defined(HAVE_PTHREAD)

@@ -18,7 +18,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  */
 
-#include <Python.h>
+#ifdef _DEBUG
+# undef _DEBUG
+#  include <Python.h>
+# define _DEBUG
+#else
+# include <Python.h>
+#endif
 #include <sysdep.h>
 #include "csdl.h"
 #include "pythonopcodes.h"
