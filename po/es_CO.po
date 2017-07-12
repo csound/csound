@@ -6724,6 +6724,10 @@ msgstr ""
 msgid "format not understood\n"
 msgstr "Nombre %s no encontrado"
 
+#: Opcodes/emugens/emugens.c:429
+msgid "cmp: operator not understood. Expecting <, <=, >, >=, ==\n"
+msgstr ""
+
 #: Opcodes/fareygen.c:116
 #, fuzzy
 msgid "insufficient arguments for fareytable"

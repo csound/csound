@@ -22,7 +22,6 @@
     02111-1307 USA
 */
 
-// #include <math.h>
 #include <csdl.h>
 
 /*
@@ -425,8 +424,9 @@ static int cmp_init(CSOUND *csound, Cmp *p) {
     } else if (op[0] == '=') {
       p->mode = 4;
     } else {
-      printf("cmp: operator not understood. Expecting <, <=, >, >=, ==\n");
-      return NOTOK;
+      return
+        csound->InitError(csound, Str("cmp: operator not understood. "
+                                      "Expecting <, <=, >, >=, ==\n"));
     }
     return OK;
 }
