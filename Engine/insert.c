@@ -1713,8 +1713,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
     early = p->h.insdshead->ksmps_no_end;
     offset = p->h.insdshead->ksmps_offset;
-    this_instr->spin = csound->spin;
-    this_instr->spout = csound->spout;
+    p->ip->spin = p->parent_ip->spin;
+    p->ip->spout = p->parent_ip->spout;
     inm = p->buf->opcode_info;
 
     /* global ksmps is the caller instr ksmps minus sample-accurate end */
@@ -2006,8 +2006,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     CS_VARIABLE* current;
     int i;
 
-    p->ip->spin = csound->spin;
-    p->ip->spout = csound->spout;
+    p->ip->spin = p->parent_ip->spin;
+    p->ip->spout = p->parent_ip->spout;
 
     if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
       goto endop; /* no perf code */

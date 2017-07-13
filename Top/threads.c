@@ -391,7 +391,7 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
 #else
   pthread_barrier_t *barrier =
     (pthread_barrier_t *) malloc(sizeof(pthread_barrier_t));
-  int status = pthread_barrier_init(barrier, 0, max-1);
+  int status = pthread_barrier_init(barrier, 0, max);
   fprintf(stderr, "Create barrier %d => %p (%d)\n", max, barrier, status);
   if (status) return 0;
   return barrier;

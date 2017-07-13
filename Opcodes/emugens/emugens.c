@@ -49,8 +49,11 @@ static int linlink(CSOUND* csound, LINLINK* p)
     MYFLT x0 = *p->kx0;
     MYFLT y0 = *p->ky0;
     MYFLT x = *p->kx;
-    /* if x0 == *(p->kx1) this crashes */
-    *p->kout = (x - x0) / (*(p->kx1) - x0) * (*(p->ky1) - y0) + y0;
+    MYFLT x1 = *p->kx1;
+    if (UNLIKELY(x0 == x1))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("linlin.k: Division by zero"));
+    *p->kout = (x - x0) / (x1 -x0) * (*(p->ky1) - y0) + y0;
     return OK;
 }
 
@@ -113,7 +116,6 @@ static int xyscale(CSOUND* csound, XYSCALE* p)
 
 midi to frequency conversion
 
-kfreq = mtof(69, 442)  ; A4 is optional, default=440
 kfreq = mtof(69)
 
 */
@@ -172,21 +174,23 @@ static int pchtom(CSOUND* csound, PITCHCONV* p)
 
 */
 
-#define INTERP_L(X, X0, X1, Y0, Y1) ((X) < (X0) ? (Y0) : (((X) - (X0)) / ((X1) - (X0)) * ((Y1) - (Y0)) + (Y0)))
+#define INTERP_L(X, X0, X1, Y0, Y1) ((X) < (X0) ? (Y0) : \
+                                     (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0)))
 
 inline MYFLT interpol_l(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1)
 {
     return x < x0 ? y0 : ((x - x0) / (x1 - x0) * (y1 - y0) + y0);
 }
 
-#define INTERP_R(X, X0, X1, Y0, Y1) ((X) > (X1) ? (Y1) : (((X) - (X0)) / ((X1) - (X0)) * ((Y1) - (Y0)) + (Y0)))
+#define INTERP_R(X, X0, X1, Y0, Y1) ((X) > (X1) ? (Y1) : \
+                                     (((X) - (X0)) / ((X1) - (X0)) * ((Y1) - (Y0)) + (Y0)))
 
 inline MYFLT interpol_r(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1)
 {
     return x > x1 ? y0 : ((x - x0) / (x1 - x0) * (y1 - y0) + y0);
 }
 
-#define INTERP_M(X, X0, X1, Y0, Y1) (((X) - (X0)) / ((X1) - (X0)) * ((Y1) - (Y0)) + (Y0))
+#define INTERP_M(X, X0, X1, Y0, Y1) (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0))
 
 inline MYFLT interpol_m(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1)
 {
@@ -346,7 +350,7 @@ typedef struct {
     MYFLT* kmidi;
 } MTON;
 
-//               C  C# D D#  E  F  F# G G# A Bb B
+//                C  C# D D#  E  F  F# G  G# A  Bb B
 int _pc2idx[] = { 2, 2, 3, 3, 4, 5, 5, 6, 6, 0, 1, 1 };
 int _pc2alt[] = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2, 0 };
 char _alts[] = " #b";
@@ -538,7 +542,9 @@ table consisting of parallel streams of data.
 
 A such 2D table would consist of multiple rows
 where each row collects multiple streams sampled
-at a regular time period. 
+at a regular time period. For example, a table
+consisting of 3 streams, A, B, C, where each stream
+has itself three channels of information
 
 t0 -> [A0 A1 A2 B0 B1 B2 C0 C1 C2]
 t1 -> [A0 A1 A2 B0 B1 B2 C0 C1 C2]
@@ -586,12 +592,11 @@ Example 2: read table sequentially
     istreambeg = 4
     istreamend = istreambeg + 4
 */
+
 typedef struct {
     OPDS h;
-    // MYFLT   *krow, *ifnsource, *ifndest, *inumstreams, *iheader, *inumch, *ich;
     MYFLT *krow, *ifnsrc, *ifndest, *inumstreams, *ioffset, *inumchans, *ichan, \
           *istreambeg, *istreamend;
-
     MYFLT* tabsource;
     MYFLT* tabdest;
     int tabsourcelen;
@@ -601,7 +606,7 @@ typedef struct {
 
 // krow, ifnsrc, ifndest, inumstreams, ioffset=0, inumchans=1, ichan=0, istreambeg=0, istreamend=0
 // k     i          i        i            0          1            0        0               0
-// k     i          i        i            o          p            o        o               o              
+// k     i          i        i            o          p            o        o               o
 // kiiiopooo
 // idx = ioffset + row*irowsize + stream*inumchans + ichan
 
@@ -620,11 +625,17 @@ static int tabrowcopy_init(CSOUND* csound, TABROW* p)
     p->tabdestlen = ftp->flen;
 
     int streamend = *p->istreamend;
-    streamend = streamend == 0 ? *p->inumstreams : streamend;
+    streamend = streamend > 0 ? streamend : *p->inumstreams;
     if (streamend <= *p->istreambeg) {
-        return csound->InitError(csound, Str("tabrowcopy: streamend should be higher thatn streambegin, no streams to read"));
+        return csound->InitError(csound, Str("tabrowcopy: streamend should be higher than streambegin."));
     }
     p->streamend = streamend;
+    
+    int streams_to_copy = streamend - *p->istreambeg;
+    if (streams_to_copy > p->tabdestlen) {
+        return csound->PerfError(csound, p->h.insdshead, Str("tabrowcopy: destination table too small"));
+    }
+
     return OK;
 }
 
@@ -648,13 +659,9 @@ static int tabrowcopyk(CSOUND* csound, TABROW* p)
     int streamend = p->streamend;
     // check bounds
     i = idx0 + rowlen;
-    if (i > p->tabsourcelen || i < 0) {
-        return csound->PerfError(csound, p->h.insdshead, Str("tab off end %i"), i);
+    if (UNLIKELY(i > p->tabsourcelen || i < 0)) {
+        return csound->PerfError(csound, p->h.insdshead, Str("tabrowcopyk: tab off end %i"), i);
     }
-    if (numstreams > p->tabdestlen) {
-        return csound->PerfError(csound, p->h.insdshead, Str("tab off end %i"), numstreams);
-    }
-
 
     if (LIKELY(delta != 0)) {
         for (i = *p->istreambeg; i < streamend; i++) {
