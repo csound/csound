@@ -1,25 +1,12 @@
 # CUSTOM PROPERTIES TO SET
 # GLOBAL
 
-find_package(FLTK REQUIRED)
-find_package(Java)
-find_package(JNI)
-find_package(PythonLibs)
-find_package(SWIG REQUIRED)
-
-# TODO: Get this to work.
-# find_package(VSTSDK2X)
-
-set(CMAKE_VERBOSE_MAKEFILE ON)
-# set(Eigen3_DIR "D:\\msys64\\home\\restore\\vcpkg\\packages\\eigen3_x64-windows\\share\\eigen3")
-# find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
 # Csound build options for MSVC
 set(BUILD_BUCHLA_OPCODES ON)
 set(BUILD_CHUA_OPCODES ON)
 set(BUILD_CSBEATS ON)
 set(BUILD_CSOUNDVST ON)
-set(BUILD_CSOUND_AC ON)
+set(BUILD_CSOUND_AC OFF)
 set(BUILD_CSOUND_AC_LUA_INTERFACE OFF)
 set(BUILD_CSOUND_AC_PYTHON_INTERFACE ON)
 set(BUILD_CUDA_OPCODES OFF)
@@ -83,6 +70,7 @@ set(USE_SYSTEM_PORTSMF 1)
 
 # Misc build options
 set(HAVE_BIG_ENDIAN 0)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_16BIT_TYPE "unsigned short")
 set(FAIL_MISSING OFF) # Enable when packaging
 set(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}\\msvc\\deps;${PROJECT_SOURCE_DIR}\\msvc\\deps\\swigwin-3.0.12;${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison;${PROJECT_SOURCE_DIR}\\msvc\\deps\\fluidsynthdeps")
@@ -103,6 +91,3 @@ set(BISON_EXECUTABLE "${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison\\win_bis
 # - C4477 format string type differences
 set(CMAKE_C_FLAGS "${CMAKE_CX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
-
-find_path(SYSTEM_INCLUDE_DIR zlib.h)
-include_directories(${SYSTEM_INCLUDE_DIR})
