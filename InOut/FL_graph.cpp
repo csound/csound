@@ -28,7 +28,7 @@
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Button.H>
 
-#ifdef MSVC
+#ifdef _MSC_VER
 #include <math.h>
 #endif
 #include "csdl.h"
