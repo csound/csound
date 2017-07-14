@@ -135,8 +135,8 @@ struct TVConv : csnd::Plugin<1, 6> {
     bool inc2 = csound->is_asig(frz2);
 
     for (auto &s : outsig) {
-      if(*frz1 > 0) in[pp] = *inp;
-      if(*frz2 > 0) ir[pp] = *irp;
+      if(*frz1 > 0) in[pp + n] = *inp;
+      if(*frz2 > 0) ir[pp + n] = *irp;
 
       s = out[n] + saved[n];
       saved[n] = out[n + pars];

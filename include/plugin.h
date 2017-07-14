@@ -559,9 +559,11 @@ public:
    */
   operator pv_frame &() { return reinterpret_cast<pv_frame &>(*this); }
 
+#ifdef USE_DOUBLE
   /** convert to spv_frame ref
    */
   operator spv_frame &() { return reinterpret_cast<spv_frame &>(*this); }
+#endif
 };
 
 /**  Container class for a Phase Vocoder
