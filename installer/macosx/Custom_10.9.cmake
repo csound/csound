@@ -52,8 +52,8 @@ list(APPEND CMAKE_SYSTEM_INCLUDE_PATH "/Users/stevenyi/work/csound/dependencies/
 
 #add_definitions(-I/usr/local/include -I/usr/include)
 
-set(CMAKE_C_FLAGS "-I/usr/local/include -I/usr/include")
-set(CMAKE_CXX_FLAGS "-I/usr/local/include -I/usr/include")
+set(CMAKE_C_FLAGS "-I/usr/local/include -I/usr/include  -Wno-nullability-completeness")
+set(CMAKE_CXX_FLAGS "-I/usr/local/include -I/usr/include -Wno-nullability-completeness")
 #list(APPEND CMAKE_REQUIRED_DEFINITIONS "-I/usr/include")
 #list(APPEND CMAKE_SYSTEM_INCLUDE_PATH "/usr/local/include/luajit-2.0")
 list(APPEND CMAKE_SYSTEM_INCLUDE_PATH "/Applications/Pd-extended.app/Contents/Resources/include")
