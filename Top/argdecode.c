@@ -854,7 +854,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
      */
     else if (UNLIKELY(!(strncmp (s, "tempo=", 6)))) {
       s += 6;
-      O->cmdTempo = atoi(s);
+      O->cmdTempo = atof(s);
       O->Beatmode = 1;                  /* on uninterpreted Beats */
       return 1;
     }
