@@ -21,6 +21,19 @@ Any valid HTML can also be used.
 --->
 # CSOUND VERSION 6.09.1 RELEASE NOTES
 
+This is mostly a bugfix release of version 6.09 addressing a number of
+issues, including a bug in multicore performance. The Web Assembly
+platform is introduced in this release, as well as support for Swift
+development on iOS. Some DLLs that were missing from the Windows
+installer also have been added to it. Following Google's deprecation
+of PNaCl, this platform has been dropped from the release and will not
+be further developed.
+
+These notes include the changes in 6.09 (for completeness) and 6.09.1
+
+-- The Developers
+
+### (For 6.09)
 A mixed bag of new opcodes and many fixes and improvements.
 
 Also as usual there are a number of internal changes, including many
@@ -208,7 +221,7 @@ https://github.com/CsoundQt/CsoundQt/blob/develop/release_notes/Release%20notes%
 
 - losci/losci3 fixed in case of long tables.
 
-- inrg was broke for a while.
+- inrg was broken for a while.
 
 - Partikkel channelmask panning laws had an indexing error, now fixed.
 

@@ -139,7 +139,13 @@ if(BUILD_WINSOUND)
     set(WINSOUND_H ${CMAKE_CURRENT_BINARY_DIR}/winsound.h)
     set_source_files_properties(${WINSOUND_CXX} GENERATED)
     set_source_files_properties(${WINSOUND_H} GENERATED)
-    add_custom_target(winsound_fl COMMAND fluid -c -o ${WINSOUND_CXX} -h  ${WINSOUND_H} ${WINSOUND_FL})
+	
+	find_program(FLUID_BIN NAMES fluid)
+	if(FLUID_BIN)
+		add_custom_target(winsound_fl COMMAND ${FLUID_BIN} -c -o ${WINSOUND_CXX} -h  ${WINSOUND_H} ${WINSOUND_FL})
+	else()
+		message(STATUS "Could not find fluid executable")
+	endif()
 
     set(WINSOUND_SRCS ${WINSOUND_CXX} winsound/main.cxx)
 
@@ -149,8 +155,6 @@ if(BUILD_WINSOUND)
     include_directories(${FLTK_INCLUDE_DIR})
     include_directories(${CMAKE_CURRENT_BINARY_DIR})
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/winsound)
-
-
 endif()
 
 # debugger command line app
