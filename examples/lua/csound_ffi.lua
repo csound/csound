@@ -1,17 +1,16 @@
 print [[
 
-U S I N G   C S O U N D   6   V I A   L U A J I T   F F I
+U S I N G   C S O U N D   6   V I A   L U A   F F I
 
 Copyright (C) 2013 by Michael Gogins.
 
 This software is licensed under the terms of the
 GNU Lesser General Public License.
 
-This script requires LuaJIT from luajit.org.
-This script demonstrates how to generate a Csound score in 
-Lua, and then realize the score using Csound 6 via the 
-Csound API accessed through LuaJIT's foreign function 
-interface (FFI). 
+This script requires either LuaJIT from luajit.org, or regular Lua with the 
+luaffi module. The script demonstrates how to generate a Csound score in Lua, 
+and then realize the score using Csound 6 via the Csound API accessed through 
+the  foreign function interface (FFI). 
 
 The code prints comments to explain every step.
 
@@ -53,10 +52,9 @@ print 'Creating an instance of Csound...'
 local csound = csoundApi.csoundCreate(voidptr)
 print 'Configuring Csound for performance (change output filename as required)...'
 csoundApi.csoundSetOption(csound, '--sample-accurate')
-csoundApi.csoundSetOption(csound, '--output=dac7')
+csoundApi.csoundSetOption(csound, '--output=dac')
 csoundApi.csoundSetOption(csound, '--format=float')
 csoundApi.csoundSetOption(csound, '--nodisplays')
-csoundApi.csoundSetOption(csound, '--num-threads=4')
 print 'Compiling the Csound orchestra (note multi-line text in double brackets)...'
 result = csoundApi.csoundCompileOrc(csound, [[
 sr = 48000

@@ -42,9 +42,9 @@ typedef struct {
   int offset;
 } PINKER;
 
-#define PINK_BIAS   440.0f
+#define PINK_BIAS   FL(440.0)
 
-static int instance_cnt = 0;
+static int instance_cnt = 0;    /* Is tis thread-safe? */
 
 // Let preprocessor and compiler calculate two lookup tables for 12-tap
 // FIR filter with these coefficients:

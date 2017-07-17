@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -80,7 +81,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
     MenuItem aboutItem = null;
     JSCsoundObj csound = null;
     CsoundUI csoundUI = null;
-    File csd = null;
+    File csound_file = null;
     Button pad = null;
     WebView htmlView = null;
     LinearLayout channelsLayout = null;
@@ -113,13 +114,6 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 
     static {
         int result = 0;
-        try {
-            java.lang.System.loadLibrary("gnustl_shared");
-        } catch (Throwable e) {
-            java.lang.System.err
-                    .println("Csound6: gnustl_shared native code library failed to load.\n");
-            java.lang.System.err.println(e.toString());
-        }
         try {
             java.lang.System.loadLibrary("sndfile");
         } catch (Throwable e) {
@@ -168,7 +162,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         File root = Environment.getExternalStorageDirectory();
         try {
             if (root.canWrite()) {
-                FileWriter filewriter = new FileWriter(csd);
+                FileWriter filewriter = new FileWriter(csound_file);
                 BufferedWriter out = new BufferedWriter(filewriter);
                 out.write(csdTemplate);
                 out.close();
@@ -216,6 +210,38 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         }
     }
 
+    public void setEnv(String variable, String value) {
+        try {
+            Class<?> libcore = Class.forName("libcore.io.Libcore");
+            if (libcore == null) {
+                Log.w("Csound6", "Cannot find libcore.os.Libcore;");
+                //                return;
+            } else {
+                final Object os = Class.forName("libcore.io.Libcore").getField("os").get(null);
+                Method method = os.getClass().getMethod("setenv", String.class, String.class, boolean.class);
+                method.invoke(os, variable, value, true);
+            }
+        } catch ( Exception e) {
+            Log.w("Csound6", Log.getStackTraceString(e));
+            Log.w("Csound6", e.getMessage());
+        }
+    }
+
+    private void copyRawwaves() {
+        try {
+            String[] files = getAssets().list("rawwaves");
+            for (int i = 0; i < files.length; i++) {
+                String file = files[i];
+                copyAsset("rawwaves/" + file.toString());
+            }
+            File externalStoragePublicDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+            String rawwavePath = externalStoragePublicDirectory.toString() + "/rawwaves/";
+            setEnv("RAWWAVE_PATH", rawwavePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -241,6 +267,9 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                 return true;
             case R.id.itemAbout:
                 goToUrl("http://csound.github.io/");
+                return true;
+            case R.id.itemPrivacy:
+                goToUrl("http://csound.github.io/csound_for_android_privacy.html");
                 return true;
             case R.id.itemSettings:
                 Intent intent = new Intent(this, SettingsActivity.class);
@@ -341,6 +370,34 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                 return true;
             }
             case R.id.itemLindenmayerCanvas: {
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/Silencio.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/ChordSpace.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/tinycolor.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/canvas_wrapper.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/numeric.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/sprintf.js");
+                if (outFile == null){
+                    return true;
+                }
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/js/canvas_wrapper.js");
+                if (outFile == null){
+                    return true;
+                }
                 outFile = copyAsset("Csound6AndroidExamples/Gogins/LindenmayerCanvas.csd");
                 if (outFile != null){
                     OnFileChosen(outFile);
@@ -388,7 +445,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                 if (outFile == null){
                     return true;
                 }
-                outFile = copyAsset("Csound6AndroidExamples/Gogins/Poustinia.csd");
+                outFile = copyAsset("Csound6AndroidExamples/Gogins/Poustinia.csound_file");
                 if (outFile != null){
                     OnFileChosen(outFile);
                 }
@@ -465,7 +522,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     protected void parseWebLayout() {
         try {
-            FileReader in = new FileReader(csd);
+            FileReader in = new FileReader(csound_file);
             StringBuilder contents = new StringBuilder();
             char[] buffer = new char[4096];
             int read = 0;
@@ -495,7 +552,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                         settings.setJavaScriptEnabled(true);
                     }
-                    File basePath = csd.getParentFile();
+                    File basePath = csound_file.getParentFile();
                     baseUrl = basePath.toURI().toURL();
                     htmlView.loadDataWithBaseURL(baseUrl.toString(),
                             html5Page, "text/html", "utf-8", null);
@@ -548,8 +605,8 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
 
     private void OnFileChosen(File file) {
         Log.d("FILE CHOSEN", file.getAbsolutePath());
-        csd = file;
-        setTitle(csd.getName());
+        csound_file = file;
+        setTitle(csound_file.getName());
         parseWebLayout();
     }
 
@@ -614,6 +671,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                 postMessage(e.toString() + "\n");
             }
         }
+        copyRawwaves();
         csdTemplate = "<CsoundSynthesizer>\n" + "<CsLicense>\n"
                 + "</CsLicense>\n" + "<CsOptions>\n" + "</CsOptions>\n"
                 + "<CsInstruments>\n" + "</CsInstruments>\n" + "<CsScore>\n"
@@ -635,11 +693,11 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                                 String value = input.getText().toString();
                                 File root = Environment
                                         .getExternalStorageDirectory();
-                                csd = new File(root, value);
+                                csound_file = new File(root, value);
                                 writeTemplateFile();
                                 Intent intent = new Intent(Intent.ACTION_VIEW);
                                 Uri uri = Uri.parse("file://"
-                                        + csd.getAbsolutePath());
+                                        + csound_file.getAbsolutePath());
                                 intent.setDataAndType(uri, "text/plain");
                                 startActivity(intent);
                             }
@@ -669,8 +727,8 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                             }
                         }
                 );
-                if (csd != null) {
-                    fileOpenDialog.default_file_name = csd.getAbsolutePath();
+                if (csound_file != null) {
+                    fileOpenDialog.default_file_name = csound_file.getAbsolutePath();
                 } else {
                     fileOpenDialog.default_file_name = Environment.getExternalStorageDirectory().getAbsolutePath();
                 }
@@ -694,7 +752,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                                     chosenDir = chosenDir.substring(index + 1);
                                 }
                                 File newFile = new File(chosenDir);
-                                if (csd.equals(newFile)) {
+                                if (csound_file.equals(newFile)) {
                                     Context context = getApplicationContext();
                                     CharSequence text = "'Save as' aborted; the new file is the same as the old file!";
                                     int duration = Toast.LENGTH_SHORT;
@@ -702,7 +760,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                                     toast.show();
                                 } else {
                                     try {
-                                        FileInputStream in = new FileInputStream(csd);
+                                        FileInputStream in = new FileInputStream(csound_file);
                                         FileOutputStream out = new FileOutputStream(newFile);
                                         copyFile(in, out);
                                         in.close();
@@ -718,8 +776,8 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                             }
                         }
                 );
-                if (csd != null) {
-                    fileOpenDialog.default_file_name = csd.getParent();
+                if (csound_file != null) {
+                    fileOpenDialog.default_file_name = csound_file.getParent();
                 } else {
                     fileOpenDialog.default_file_name = Environment.getExternalStorageDirectory().getAbsolutePath();
                 }
@@ -729,9 +787,9 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         editButton = (Button) findViewById(R.id.editButton);
         editButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                if (csd != null) {
+                if (csound_file != null) {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
-                    Uri uri = Uri.parse("file://" + csd.getAbsolutePath());
+                    Uri uri = Uri.parse("file://" + csound_file.getAbsolutePath());
                     intent.setDataAndType(uri, "text/plain");
                     startActivity(intent);
                 }
@@ -764,7 +822,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         startStopButton = (ToggleButton) findViewById(R.id.runButton);
         startStopButton.setOnClickListener(new OnClickListener() {
             public synchronized void onClick(View v) {
-                if (csd == null) {
+                if (csound_file == null) {
                     startStopButton.toggle();
                     return;
                 }
@@ -799,9 +857,8 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                     htmlView.addJavascriptInterface(CsoundAppActivity.this,
                             "csoundApp");
                     // Csound will not be in scope of any JavaScript on the page
-                    // until
-                    // the page is reloaded. Also, we want to show any edits to
-                    // the page.
+                    // until the page is reloaded. Also, we want to show any edits
+                    // to the page.
                     parseWebLayout();
                     postMessageClear("Csound is starting...\n");
                     String framesPerBuffer = audioManager
@@ -835,7 +892,13 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                     CsoundMotion motion = new CsoundMotion(csound);
                     motion.enableAccelerometer(CsoundAppActivity.this);
                     csound.addListener(CsoundAppActivity.this);
-                    csound.startCsound(csd);
+                    // If the Csound file is a CSD, start Csound;
+                    // otherwise, do not start Csound, assume the
+                    // file is HTML with JavaScript that will call
+                    // csound.perform() as in csound.node().
+                    if (csound_file.toString().toLowerCase().endsWith(".csd")) {
+                        csound.startCsound(csound_file);
+                    }
                     // Make sure these are still set after starting.
                     String getOPCODE6DIR = csnd6.csndJNI.csoundGetEnv(0,
                             "OPCODE6DIR");
@@ -861,8 +924,8 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                                     Intent intent) {
         try {
             if (requestCode == R.id.newButton && intent != null) {
-                csd = new File(intent.getData().getPath());
-                setTitle(csd.getName());
+                csound_file = new File(intent.getData().getPath());
+                setTitle(csound_file.getName());
             }
         } catch (Exception e) {
             Log.e("error", e.toString());

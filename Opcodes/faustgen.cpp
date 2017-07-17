@@ -35,7 +35,8 @@
 
 */
 #include "csdl.h"
-#include "faust/llvm-dsp.h"
+#include <pthread.h>
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/UI.h"
 #if defined(MACOSX) || defined(linux) || defined(HAIKU)
 #include <unistd.h>
@@ -181,7 +182,7 @@ struct faustcompile {
   pthread_mutex_t *lock;
 };
 
-char **parse_cmd(char *str, int *argc){
+char **parse_cmd(CSOUND *csound, char *str, int *argc){
   char **argv; int i = 0, n=0, end = strlen(str);
   while(str[i] == ' ') i++;
   if(str[i] != '\0') *argc = 1;
@@ -193,7 +194,7 @@ char **parse_cmd(char *str, int *argc){
     }
     i++;
   }
-  argv = (char **) calloc(sizeof(char *), *argc);
+  argv = (char **) csound->Calloc(csound, sizeof(char *)*(*argc));
   i = 0;
   while(str[i] == ' ') i++;
   for(n=0; n < *argc && i < end; n++) {
@@ -242,14 +243,14 @@ void *init_faustcompile_thread(void *pp) {
   llvm_dsp_factory *factory;
   int argc = 0;
   std::string err_msg;
-  char *cmd = (char *) malloc(p->args->size + 8);
+  char *cmd = (char *) csound->Malloc(csound, p->args->size + 8);
   int ret;
 
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
   strcat(cmd, " -double");
 #endif
-  const char **argv = (const char **) parse_cmd(cmd, &argc);
+  const char **argv = (const char **) parse_cmd(csound, cmd, &argc);
   const char* varname = "::factory";
 
   //Need to protect this
@@ -267,9 +268,9 @@ void *init_faustcompile_thread(void *pp) {
                     Str("\nFaust compilation problem:\nline %s\n"),
                     err_msg.c_str());
     *(p->hptr) = FL(-2.0); // error code.
-    free(argv);
-    free(cmd);
-    free(pp);
+    csound->Free(csound, argv);
+    csound->Free(csound, cmd);
+    csound->Free(csound, pp);
     ret = -1;
     pthread_exit(&ret);
   }
@@ -297,9 +298,9 @@ void *init_faustcompile_thread(void *pp) {
   p->factory = factory;
   *p->hptr = (MYFLT) ffactory->cnt;
   csound->RegisterResetCallback(csound, p, delete_faustcompile);
-  free(argv);
-  free(cmd);
-  free(pp);
+  csound->Free(csound,argv);
+  csound->Free(csound,cmd);
+  csound->Free(csound,pp);
 
   return NULL;
 }
@@ -308,7 +309,7 @@ void *init_faustcompile_thread(void *pp) {
 int init_faustcompile(CSOUND *csound, faustcompile *p){
   pthread_t thread;
   pthread_attr_t attr;
-  hdata *data = (hdata *) malloc(sizeof(hdata));
+  hdata *data = (hdata *) csound->Malloc(csound, sizeof(hdata));
   data->csound = csound;
   data->p = p;
   *p->hptr = -1;
@@ -382,7 +383,7 @@ int delete_faustgen(CSOUND *csound, void *p) {
       if(*pfobj == fobj) *pfobj = fobj->nxt;
       csound->Free(csound, fobj);
       delete pp->ctls;
-      deleteDSPInstance(pp->engine);
+      delete pp->engine;
     } else
    csound->Warning(csound,
                       Str("could not find DSP %p for deletion"), pp->engine);
@@ -426,7 +427,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
                                Str("factory not found %d\n"), (int) factory);
   }
 
-  dsp = createDSPInstance((llvm_dsp_factory *)fobj->obj);
+  dsp = ((llvm_dsp_factory *)fobj->obj)->createDSPInstance();
   if(dsp == NULL)
     return csound->InitError(csound, Str("Faust instantiation problem \n"));
 
@@ -469,11 +470,11 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
   p->engine->init(csound->GetSr(csound));
 
   if(p->engine->getNumInputs() != p->INCOUNT-1) {
-    deleteDSPInstance(p->engine);
+    delete p->engine;
     return csound->InitError(csound, Str("wrong number of input args\n"));
   }
   if(p->engine->getNumOutputs() != p->OUTCOUNT-1){
-    deleteDSPInstance(p->engine);
+    delete p->engine;
     return csound->InitError(csound, Str("wrong number of output args\n"));
   }
 
@@ -525,14 +526,14 @@ void *init_faustgen_thread(void *pp){
     int ret = csound->InitError(csound,
                                 Str("Faust compilation problem: %s\n"),
                                 err_msg.c_str());
-    free(pp);
+    csound->Free(csound, pp);
     pthread_exit(&ret);
   }
 
-  dsp = createDSPInstance(p->factory);
+  dsp = p->factory->createDSPInstance();
   if(dsp == NULL) {
     int ret = csound->InitError(csound, Str("Faust instantiation problem \n"));
-    free(pp);
+    csound->Free(csound, pp);
     pthread_exit(&ret);
   }
 
@@ -566,18 +567,18 @@ void *init_faustgen_thread(void *pp){
   dsp->init(csound->GetSr(csound));
   if(p->engine->getNumInputs() != p->INCOUNT-1) {
     int ret;
-    deleteDSPInstance(p->engine);
+    delete p->engine;
     deleteDSPFactory(p->factory);
-    free(pp);
+    csound->Free(csound, pp);
     ret  =csound->InitError(csound, Str("wrong number of input args\n"));
     p->engine = NULL;
     pthread_exit(&ret);
   }
   if(p->engine->getNumOutputs() != p->OUTCOUNT-1){
     int ret;
-    deleteDSPInstance(p->engine);
+    delete p->engine;
     deleteDSPFactory(p->factory);
-    free(pp);
+    csound->Free(csound, pp);
     ret = csound->InitError(csound, Str("wrong number of output args\n"));
     p->engine = NULL;
     pthread_exit(&ret);
@@ -599,7 +600,7 @@ void *init_faustgen_thread(void *pp){
   p->ctls = ctls;
   *p->ohptr = (MYFLT) fdsp->cnt;
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
-  free(pp);
+  csound->Free(csound, pp);
   return NULL;
 }
 
@@ -607,7 +608,7 @@ int init_faustgen(CSOUND *csound, faustgen *p){
   pthread_t thread;
   pthread_attr_t attr;
   int *ret;
-  hdata2 *data = (hdata2 *) malloc(sizeof(hdata2));
+  hdata2 *data = (hdata2 *) csound->Malloc(csound, sizeof(hdata2));
   data->csound = csound;
   data->p = p;
   pthread_attr_init(&attr);

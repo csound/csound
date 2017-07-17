@@ -272,7 +272,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
-    name = strdup(name); // JPff:  leaks: necessary??
+  name = cs_strdup(csound, name); // JPff:  leaks: necessary??
     //printf("csp_orc_sa_instr_add name=%s\n", name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
@@ -292,7 +292,7 @@ void csp_orc_sa_instr_add(CSOUND *csound, char *name)
       csound->instCurr = prev->next;
     }
     else {
-      printf("othercase\n");
+      //printf("othercase\n");
       csound->instCurr->next = instr_semantics_alloc(csound, name);
       csound->instCurr = csound->instCurr->next;
     }
@@ -395,8 +395,8 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
     TREE *current = root;
     TREE *temp;
 
-    while(current != NULL) {
-      switch(current->type) {
+    while (current != NULL) {
+      switch (current->type) {
       case INSTR_TOKEN:
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
 
@@ -428,7 +428,7 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
           csound->Message(csound,
                           "Statement: %s\n", current->value->lexeme);
 
-        if(current->left != NULL) {
+        if (current->left != NULL) {
           csp_orc_sa_global_read_write_add_list(csound,
               csp_orc_sa_globals_find(csound, current->left),
               csp_orc_sa_globals_find(csound, current->right));

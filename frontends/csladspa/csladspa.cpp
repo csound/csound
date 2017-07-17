@@ -116,7 +116,7 @@ CsoundPlugin::CsoundPlugin(const char *csd,
   cmdl[4] = (char*) kr_override.c_str();
 
   csound =  new Csound;
-  result = csound->Compile(5,cmdl);
+  result = csound->Compile(5,(const char **)cmdl);
   spout = csound->GetSpout();
   spin  = csound->GetSpin();
   memset(ctl, 0, sizeof(LADSPA_Data *)*MAXPORTS);
@@ -423,17 +423,13 @@ unsigned int CountCSD(char **csdnames)
   char *src = NULL;
 
 #ifdef MACOSX
-  src = strdup("/Library/Audio/Plug-Ins/LADSPA");
+  strcpy(ladspa_path, "/Library/Audio/Plug-Ins/LADSPA");
 #else
   src = getenv("LADSPA_PATH");
   if (src)
-    src = strdup(src);
-#endif
-
-  if (src) {
     strncpy(ladspa_path, src, 1023);
-    ladspa_path[1023] = '\0';
-  }
+  ladspa_path[1023] = '\0';
+#endif
 
   // if no LADSPA_PATH attempt to open
   // current directory
@@ -470,6 +466,10 @@ unsigned int CountCSD(char **csdnames)
           }
           else name = temp;
           if(i < MAXPLUGINS) {
+            if (name.length()>1024) {
+              closedir(dip);
+              return 0;
+            }
             csdnames[i] =  new char[name.length()+1];
             strcpy(csdnames[i], (char*)name.c_str());
             i++;
@@ -477,7 +477,6 @@ unsigned int CountCSD(char **csdnames)
         }
     }
   closedir(dip);
-  free(src);
   return i;
 }
 

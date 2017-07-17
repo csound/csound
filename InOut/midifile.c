@@ -476,14 +476,14 @@ static void sortEventLists(CSOUND *csound)
       nbytes = (size_t) MF(nEvents) * sizeof(midiEvent_t);
       if (((size_t) MF(nTempo) * sizeof(tempoEvent_t)) > nbytes)
         nbytes = (size_t) MF(nTempo) * sizeof(tempoEvent_t);
-      tmp = malloc(nbytes);
+      tmp = csound->Malloc(csound, nbytes);
       if (MF(nEvents) > 1)
         midiEvent_sort(MF(eventList), (midiEvent_t *) tmp,
                        (size_t) MF(nEvents));
       if (MF(nTempo) > 1)
         tempoEvent_sort(MF(tempoList), (tempoEvent_t *) tmp,
                         (size_t) MF(nTempo));
-      free(tmp);
+      csound->Free(csound, tmp);
     }
     if (MF(timeCode) > 0.0) {
       /* tick values are in fractions of a beat */
@@ -558,6 +558,7 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     /* open file */
     if (name == NULL || name[0] == '\0')
       return -1;
+    //if (*name==3) name++;       /* Because of ETX added bt readOptions */
     if (strcmp(name, "stdin") == 0)
       f = stdin;
     else {

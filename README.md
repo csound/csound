@@ -1,5 +1,5 @@
 # CSOUND
-Version 6.06.0
+Version 6.09 beta
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg)
@@ -32,19 +32,21 @@ of built-in examples that show off Csound's capabilities. Many musicians make
 CsoundQt their main Csound environment, although there are other excellent
 environments. CsoundQt runs not only Csound code, but also Python scripts.
 
-The examples directory contains numerous working Csound orchestras and
-even complete pieces. The examples/Boulanger_Examples directory contains
-hundreds of working Csound orchestras.
+The examples directory and its subdirectories contains numerous working 
+Csound orchestras and even complete pieces. 
 
-The doc/manual/html/indexframes.html file is the front page to the
-Csound Reference Manual.
+The Csound Reference Manual may be found online at 
+http://csound.github.io/docs/manual/indexframes.html, or it may be installed with 
+Csound in a location that varies by operating system.
 
-This version of Csound is programmable in Python, Java, Lua, and LISP,
-and scores can be generated in these languages.
+This version of Csound is programmable in C, C++, JavaScript, Python, Java, Lua, 
+and Common Lisp, and scores can be generated in these languages.
 
-The doc/manual/api/index.html file is the front page to the C/C++
-Csound and Csound API application programming interfaces reference,
-but it is also helpful when programming Csound in other languages.
+The Csound API application programming interfaces reference 
+may be found online at http://csound.github.io/docs/api/index.html, or it may be 
+installed with Csound in a location that varies by operating system. The API 
+reference is generated from and for the C and C++ API, but it is also helpful when 
+programming Csound in other languages.
 
 # CONTRIBUTORS
 

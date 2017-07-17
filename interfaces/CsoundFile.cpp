@@ -21,15 +21,18 @@
 #pragma warning(disable: 4786)
 #endif
 #include "CsoundFile.hpp"
-#include <boost/algorithm/string.hpp>
-#include <string.h>
-#include <ctime>
-#include <cctype>
 #include <algorithm>
+#include <cctype>
+#include <ctime>
+#include <iterator>
 #include <sstream>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <csound.h>
+#include <sstream>
+#include <string>
+#include <string.h>
+#include <vector>
 
 #if defined(HAVE_MUSICXML2)
 #include "elements.h"
@@ -59,7 +62,7 @@ void PUBLIC gatherArgs(int argc, const char **argv, std::string &commandLine)
     }
 }
 
-void PUBLIC scatterArgs(const std::string buffer,
+void PUBLIC scatterArgs(const std::string line,
                         std::vector<std::string> &args, std::vector<char *> &argv)
 {
   args.clear();
@@ -70,11 +73,14 @@ void PUBLIC scatterArgs(const std::string buffer,
       }
   }
   argv.clear();
-  boost::split(args, buffer, boost::is_any_of(" \t\n\r"), boost::token_compress_on);
-  for (int i = 0; i < args.size(); ++i) {
-      argv.push_back(const_cast<char *>(strdup(args[i].c_str())));
+  std::stringstream stream(line);
+  std::string token;
+  while (std::getline(stream, token, ' ')) {
+    if (!token.empty()) {
+      args.push_back(token);
+      argv.push_back(strdup(token.c_str()));
+    }
   }
-  argv.push_back(0);
 }
 
 std::string PUBLIC &trim(std::string &value)
@@ -1237,10 +1243,15 @@ bool CsoundFile::loadOrcLibrary(const char *filename)
     }
   else
     {
-      std::string orcLibraryFilename = getenv("CSOUND_HOME");
-      orcLibraryFilename.append("/");
-      orcLibraryFilename.append("library.orc");
-      stream.open(orcLibraryFilename.c_str(), std::fstream::in | std::ios::binary);
+        const char *filename_ = getenv("CSOUND_HOME");
+        if (filename_ != 0) {
+            std::string orcLibraryFilename = filename_;
+            orcLibraryFilename.append("/");
+            orcLibraryFilename.append("library.orc");
+            stream.open(orcLibraryFilename.c_str(), std::fstream::in | std::ios::binary);
+        } else {
+            return false;
+        }
     }
   if(stream.good())
     {

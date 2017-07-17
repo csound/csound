@@ -162,11 +162,15 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     out_args = splitArgs(csound, inm->outtypes);
 
     if (in_args == NULL) {
-      synterr(csound, Str("invalid input argument types found for opcode %s: %s\n"), inm->name, intypes);
+      synterr(csound,
+              Str("invalid input argument types found for opcode %s: %s\n"),
+              inm->name, intypes);
       err++;
     }
     if (out_args == NULL) {
-      synterr(csound, Str("invalid output argument types found for opcode %s: %s\n"), inm->name, inm->outtypes);
+      synterr(csound,
+              Str("invalid output argument types found for opcode %s: %s\n"),
+              inm->name, inm->outtypes);
       err++;
     }
 
@@ -405,9 +409,10 @@ int add_udo_definition(CSOUND *csound, char *opname,
     if (len == 1 && *intypes == '0') {
       opc = find_opcode_exact(csound, opname, outtypes, "o");
     } else {
-    char* adjusted_intypes = malloc(sizeof(char) * (len + 2));
+      char* adjusted_intypes = csound->Malloc(csound, sizeof(char) * (len + 2));
       sprintf(adjusted_intypes, "%so", intypes);
       opc = find_opcode_exact(csound, opname, outtypes, adjusted_intypes);
+      csound->Free(csound, adjusted_intypes);
     }
 
     /* check if opcode is already defined */

@@ -99,6 +99,7 @@ static  void    hamming(MYFLT *, int, int);
 
 static int writebuffer(CSOUND *, SNDFILE *, MYFLT *, int, int *, OPARMS *);
 
+#if 0
 static void fast(CSOUND *csound, MYFLT *b, int N)
 {
   /* The DC term is returned in location b[0] with b[1] set to 0.
@@ -115,8 +116,10 @@ static void fast(CSOUND *csound, MYFLT *b, int N)
     b[1] = b[N + 1] = FL(0.0);
 }
 
+
 static void fsst(CSOUND *csound, MYFLT *b, int N)
 {
+
   /* This subroutine synthesizes the real vector b[k] for k=0, 1,
      ..., N-1 from the fourier coefficients stored in the b
      array of size N+2.  The DC term is in location b[0] with
@@ -136,12 +139,22 @@ static void fsst(CSOUND *csound, MYFLT *b, int N)
       b[i] *= scaleVal;
     csound->InverseRealFFT(csound, b, N);
 }
+#endif
+
+static inline void fast2(CSOUND *csound, void *setup, MYFLT *b)
+{
+    csound->RealFFT2(csound, setup, b);
+}
+
+static inline void fsst2(CSOUND *csound, void *setup, MYFLT *b)
+{
+    csound->RealFFT2(csound, setup, b);
+}
+
 
 static int dnoise(CSOUND *csound, int argc, char **argv)
 {
-     OPARMS  O;
-     csound->GetOParms(csound, &O);
-
+    OPARMS  O;
     MYFLT   beg = -FL(1.0), end = -FL(1.0);
     long    Beg = 0, End = 99999999;
 
@@ -204,8 +217,6 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
 
     MYFLT
         Ninv,       /* 1. / N */
-      //RoverTwoPi, /* R/D divided by 2*Pi */
-      //TwoPioverR, /* 2*Pi divided by R/I */
         sum,        /* scale factor for renormalizing windows */
       //rIn,        /* decimated sampling rate */
       //rOut,       /* pre-interpolated sampling rate */
@@ -251,6 +262,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     const char  *envoutyp = NULL;
     unsigned int  outbufsiz = 0U;
     int         nrecs = 0;
+    csound->GetOParms(csound, &O);
+
 
     /* audio is now normalised after call to getsndin  */
     /* csound->e0dbfs = csound->dbfs_to_float = FL(1.0); */
@@ -533,6 +546,11 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       csound->Message(csound,
                       Str("dnoise: warning - N not a valid power of two; "
                           "revised N = %d\n"),i);
+    //FFT setup
+    //printf("NNN %d \n", N);
+    void *fftsetup_fwd =  csound->RealFFT2Setup(csound,N,FFT_FWD);
+    void *fftsetup_inv =  csound->RealFFT2Setup(csound,N,FFT_INV);
+
     N = i;
     N2 = N / 2;
     Np2 = N + 2;
@@ -799,19 +817,18 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       fbuf[N] = FL(0.0);
       fbuf[N + 1] = FL(0.0);
 
-      fast(csound, fbuf, N);
+      //fast(csound, fbuf, N);
+      fast2(csound, fftsetup_fwd, fbuf);
 
-      f = fbuf;
-      for (i = 0; i <= N+1; i++, f++)
-        *f  *= Ninv;
+      for (i = 0; i <= N+1; i++)
+        fbuf[i]  *= Ninv;
 
-      f = nref;
       i0 = fbuf;
       i1 = i0 + 1;
-      for (i = 0; i <= N2; i++, f++, i0 += 2, i1 += 2) {
-        fac = *i0 * *i0;        /* fac = fbuf[2*i] * fbuf[2*i]; */
-        fac += *i1 * *i1;       /* fac += fbuf[2*i+1] * fbuf[2*i+1]; */
-        *f += fac;              /* nref[i] += fac; */
+      for (i = 0; i <= N2; i++, i0 += 2, i1 += 2) {
+        fac = fbuf[2*i] * fbuf[2*i];
+        fac += fbuf[2*i+1] * fbuf[2*i+1];
+        nref[i] += fac;
       }
       k++;
     }
@@ -819,18 +836,18 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
       ERR(Str("dnoise: not enough samples of noise reference\n"));
     }
     fac = th * th / k;
-    f = nref;
-    for (i = 0; i <= N2; i++, f++)
-      *f *= fac;                   /* nref[i] *= fac; */
+    for (i = 0; i <= N2; i++)
+      nref[i] *= fac;                   /* nref[i] *= fac; */
 
     /* initialization: input time starts negative so that the rightmost
         edge of the analysis filter just catches the first non-zero
         input samples; output time equals input time. */
 
     /* zero ibuf1 to start */
-    f = ibuf1;
-    for (i = 0; i < ibuflen; i++, f++)
-      *f = FL(0.0);
+    memset(ibuf1, '\0', ibuflen*sizeof(MYFLT));
+    /* f = ibuf1; */
+    /* for (i = 0; i < ibuflen; i++, f++) */
+    /*   *f = FL(0.0); */
     if (!csound->CheckEvents(csound))
       csound->LongJmp(csound, 1);
     /* fill ibuf2 to start */
@@ -840,9 +857,10 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
     for(i=0; i < nread; i++)
         ibuf2[i] *= 1.0/csound->Get0dBFS(csound);
     lnread = nread;
-    f = ibuf2 + nread;
-    for (i = nread; i < ibuflen; i++, f++)
-      *f = FL(0.0);
+    memset(ibuf2+nread, '\0', (ibuflen-nread)*sizeof(MYFLT));
+    /* f = ibuf2 + nread; */
+    /* for (i = nread; i < ibuflen; i++, f++) */
+    /*   *f = FL(0.0); */
 
     //rIn = ((MYFLT) R / D);
     //rOut = ((MYFLT) R / I);
@@ -888,11 +906,12 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
           /* fill ib2 */
           nread = csound->getsndin(csound, inf, ib2, ibuflen, p);
           for(i=0; i < nread; i++)
-               ibuf2[i] *= 1.0/csound->Get0dBFS(csound);
+               ib2[i] *= 1.0/csound->Get0dBFS(csound);
           lnread += nread;
-          f = ib2 + nread;
-          for (i = nread; i < ibuflen; i++, f++)
-            *f = FL(0.0);
+          memset(ib2+nread, '\0', (ibuflen-nread)*sizeof(MYFLT));
+        /*   f = ib2 + nread; */
+        /*   for (i = nread; i < ibuflen; i++, f++) */
+        /*     *f = FL(0.0); */
         }
         ibc = ibs + chan;
         ibp = ib1 + ibs + chan;
@@ -912,9 +931,10 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
             }
           }
           /* zero ob1 */
-          f = ob1;
-          for (i = 0; i < obuflen; i++, f++)
-            *f = FL(0.0);
+          memset(ob1, '\0', ibuflen*sizeof(MYFLT));
+          /* f = ob1; */
+          /* for (i = 0; i < obuflen; i++, f++) */
+          /*   *f = FL(0.0); */
           /* swap buffers */
           ob0 = ob1;
           ob1 = ob2;
@@ -935,9 +955,10 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         channels.   The subroutine fast implements an
         efficient FFT call for a real input sequence.  */
 
-        f = fbuf;
-        for (i = 0; i < N+2; i++, f++)
-          *f = FL(0.0);
+        memset(fbuf, '\0', (N+2)*sizeof(MYFLT));
+        /* f = fbuf; */
+        /* for (i = 0; i < N+2; i++, f++) */
+        /*   *f = FL(0.0); */
 
         lk = nI - (long) aLen - 1;            /*time shift*/
         while ((long) lk < 0L)
@@ -960,7 +981,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
           *f += *w * *ibp;
         }
 
-        fast(csound, fbuf, N);
+        //fast(csound, fbuf, N);
+        fast2(csound, fftsetup_fwd, fbuf);
 
         /* noise reduction: for each bin, calculate average magnitude-squared
             and calculate corresponding gain.  Apply this gain to delayed
@@ -977,7 +999,7 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
           for (i = 0; i <= N2;
                i++, f++, i0+=2, i1+=2, f0+=2, f1+=2, j0+=2, j1+=2) {
             /*
-             *  ii0 = 2 * i;
+             *  ii0 = 2 * i; // better as in by 2 or shift?
              *  ii1 = ii0 + 1;
              *
              *  rsum[i] -= mbuf[mp + ii0] * mbuf[mp + ii0];
@@ -1070,7 +1092,8 @@ static int dnoise(CSOUND *csound, int argc, char **argv)
         phase vocoder channel outputs at time n are inverse Fourier
         transformed, windowed, and added into the output array. */
 
-        fsst(csound, fbuf, N);
+        fsst2(csound, fftsetup_inv, fbuf);
+        //fsst(csound, fbuf, N);
 
         lk = nO - (long) sLen - 1;            /*time shift*/
         while (lk < 0)
@@ -1188,7 +1211,7 @@ static void sndwrterr(CSOUND *csound, int nret, int nput)
     csound->Message(csound, Str("(disk may be full...\n"
                                 " closing the file ...)\n"));
     /* FIXME: should clean up */
-    csound->Die(csound, Str("\t... closed\n"));
+    //csound->Die(csound, Str("\t... closed\n"));
 }
 
 static int writebuffer(CSOUND *csound, SNDFILE *outfd,
@@ -1199,6 +1222,7 @@ static int writebuffer(CSOUND *csound, SNDFILE *outfd,
     if (outfd == NULL) return 0;
     n = sf_write_MYFLT(outfd, outbuf, nsmps);
     if (n < nsmps) {
+      sf_close(outfd);
       sndwrterr(csound, n, nsmps);
       return -1;
     }

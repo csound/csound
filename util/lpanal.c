@@ -680,9 +680,9 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 #ifdef TRACE_FILTER
           csound->Message(csound, "filterCoef: %f\n", filterCoef[i]);
 #endif
-          if (filterCoef[i]-polyReal[poleCount-i]>1e-10)
+          if (filterCoef[i]-polyReal[lpc.poleCount-i]>1e-10)
             csound->Message(csound, Str("Error in coef %d : %f <> %f \n"),
-                                    i, filterCoef[i], polyReal[poleCount-i]);
+                                    i, filterCoef[i], polyReal[lpc.poleCount-i]);
         }
         csound->Message(csound,".");
         InvertPoles(lpc.poleCount,polePart1,polePart2);
@@ -726,7 +726,11 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
       if (new_format) {
         unsigned int i, j;
         for (i=0, j=0; i<osiz; i+=sizeof(MYFLT), j++)
-          fprintf(oFd, "%a\n", coef[j]);
+          #if defined(USE_DOUBLE)
+          fprintf(oFd, "%.17lg\n", coef[j]);
+          #else
+          fprintf(oFd, "%.9f\n", coef[j]);
+          #endif
       }
       else
         if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
@@ -1211,8 +1215,8 @@ static void ptable(CSOUND *csound,
     int   i, n;
     MYFLT omega, fstep, tpidsrd10;
 
-    if ((n = HWIN * 20) != MAXWINDIN)
-      csound->Die(csound, Str("LPTRKFNS: inconsistent MAXWindow defines"));
+    /* if ((n = HWIN * 20) != MAXWINDIN) */
+    /*   csound->Die(csound, Str("LPTRKFNS: inconsistent MAXWindow defines")); */
     lpg->NYQ10   = sr/FL(20.0);
     lpg->Windsiz = windsiz;              /* current windin size */
     lpg->Windsiz2 = windsiz/2;           /* half of that        */

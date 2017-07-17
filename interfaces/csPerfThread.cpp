@@ -131,8 +131,8 @@ extern "C" {
     MYFLT buf[bufsize];
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     while (recordData->running) {
-        pthread_mutex_lock(&recordData->mutex);
-        pthread_cond_wait(&recordData->condvar, &recordData->mutex);
+                csoundLockMutex (recordData->mutex);
+        csoundCondWait(recordData->condvar, recordData->mutex);
         int sampsread;
         do {
             sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf,
@@ -145,7 +145,7 @@ extern "C" {
                            buf, sampsread);
 #endif
         } while(sampsread != 0);
-        pthread_mutex_unlock(&recordData->mutex);
+                csoundUnlockMutex (recordData->mutex);
     }
     return (uintptr_t) ((unsigned int) retval);
   }
@@ -447,7 +447,7 @@ int CsoundPerformanceThread::Perform()
               csoundMessage(csound, "perfThread record buffer overrun.\n");
           }
       }
-      pthread_cond_signal(&recordData.condvar); // Needs to be outside the if
+      csoundCondSignal(recordData.condvar); // Needs to be outside the if
                               // for the case where stop record was requested
     } while (!retval);
  endOfPerf:
@@ -540,8 +540,8 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     recordData.thread = NULL;
     recordData.running = false;
 
-    pthread_mutex_init(&recordData.mutex, NULL);
-    pthread_cond_init(&recordData.condvar, NULL);
+        recordData.mutex = csoundCreateMutex (0);
+        recordData.condvar = csoundCreateCondVar();
 
     perfThread = csoundCreateThread(csoundPerformanceThread_, (void*) this);
     if (perfThread) {
@@ -593,6 +593,7 @@ CsoundPerformanceThread::~CsoundPerformanceThread()
     }
     if (recordLock) {
         csoundDestroyMutex(recordLock);
+
     }
 }
 
@@ -679,7 +680,7 @@ int CsoundPerformanceThread::Join()
     }
     if (recordData.running) {
         recordData.running = false;
-        pthread_cond_signal(&recordData.condvar);
+        csoundCondSignal(recordData.condvar);
         csoundJoinThread(recordData.thread);
     }
 

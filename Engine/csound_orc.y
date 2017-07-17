@@ -144,7 +144,7 @@
 #define csp_orc_sa_globals_find(a,b)
 #define csp_orc_sa_global_read_write_add_list1(a,b,c)
 #define csp_orc_sa_interlocks(a, b)
-#define csp_orc_sa_global_read_add_list(a,b) 
+#define csp_orc_sa_global_read_add_list(a,b)
 #endif
 
 #define namedInstrFlag csound->parserNamedInstrFlag
@@ -152,12 +152,13 @@
     extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
     extern int csound_orclex(TREE**, CSOUND *, void *);
     extern void print_tree(CSOUND *, char *msg, TREE *);
-    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *, TREE**, const char*);
-    extern void add_udo_definition(CSOUND*, char *, char *, char *);
+    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *,
+                                TREE**, const char*);
+    extern int add_udo_definition(CSOUND*, char *, char *, char *);
     extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
-    extern int csound_orcget_locn(void *);
+    extern uint64_t csound_orcget_locn(void *);
     extern int csound_orcget_lineno(void *);
     extern ORCTOKEN *make_string(CSOUND *, char *);
     extern char* UNARY_PLUS;
@@ -292,7 +293,6 @@ out_type : identifier
 /* Opcode and Function calls */
 
 /* opcall is an ambiguous rule.  We use it to catch no out-arg function calls, as well as old-style opcode line calls. While ambiguous, it *should* only match valid code. The ambiguity is resolved by the semantic analyzer.  */
-
 opcall  : identifier NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
             $$->left = $1; 
@@ -668,10 +668,10 @@ yyerror(char *s, ...)
   va_list ap;
   va_start(ap, s);
 
-  if(yylloc.first_line)
+  if (yylloc.first_line)
     fprintf(stderr, "%d.%d-%d.%d: error: ",
             yylloc.first_line, yylloc.first_column,
-	    yylloc.last_line, yylloc.last_column);
+            yylloc.last_line, yylloc.last_column);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
 
@@ -683,12 +683,11 @@ lyyerror(YYLTYPE t, char *s, ...)
   va_list ap;
   va_start(ap, s);
 
-  if(t.first_line)
+  if (t.first_line)
     fprintf(stderr, "%d.%d-%d.%d: error: ", t.first_line, t.first_column,
-	    t.last_line, t.last_column);
+            t.last_line, t.last_column);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
 }
 
 #endif
-

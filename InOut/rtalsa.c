@@ -29,6 +29,10 @@
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200112L
 #endif
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE 1
+#endif
+/* _BSD_SOURCE definition can be dropped once support for glibc < 2.19 is dropped */
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE 1
 #endif
@@ -494,7 +498,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* allocate memory for sample conversion buffer */
     n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
-    dev->buf = (void*) malloc((size_t) n);
+    dev->buf = (void*) csound->Malloc(csound, (size_t) n);
     if (dev->buf == NULL) {
       strncpy(msg, Str("Memory allocation failure"),MSGLEN);
       goto err_return_msg;
@@ -515,8 +519,8 @@ static void list_devices(CSOUND *csound)
     /*file presents this format:
       02-00: Analog PCM : Mona : playback 6 : capture 4*/
     char *line, *line_;
-    line = (char *) calloc (128, sizeof(char));
-    line_ = (char *) calloc (128, sizeof(char));
+    line = (char *) csound->Calloc (csound, 128* sizeof(char));
+    line_ = (char *) csound->Calloc (csound, 128* sizeof(char));
     char card_[] = "  ";
     char num_[] = "  ";
     char *temp;
@@ -539,8 +543,8 @@ static void list_devices(CSOUND *csound)
       }
       fclose(f);
     }
-    free(line);
-    free(line_);
+    csound->Free(csound, line);
+    csound->Free(csound, line_);
 }
 
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
@@ -560,17 +564,26 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       while (fgets(line, 128, f))  {   /* Read one line*/
         strcpy(line_, line);
         temp = strtok_r (line, "-", &th);
-        if (temp==NULL) return 0;
+        if (temp==NULL) {
+          fclose(f);
+          return 0;
+        }
         strncpy (card_, temp, 2);
         temp = strtok_r (NULL, ":", &th);
-        if (temp==NULL) return 0;
+        if (temp==NULL) {
+          fclose(f);
+          return 0;
+        }
         strncpy (num_, temp, 2);
         int card = atoi (card_);
         int num = atoi (num_);
         temp = strchr (line_, ':');
-        if (temp)
+        if (temp) {
           temp = temp + 2;
-        else return 0;
+        } else {
+          fclose(f);
+          return 0;
+        }
         if (list != NULL) {
           /* for some reason, there appears to be a memory
              problem if we try to copy more than 10 chars,
@@ -606,7 +619,7 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
       return -1;
     }
     /* allocate structure */
-    dev = (DEVPARAMS*) malloc(sizeof(DEVPARAMS));
+    dev = (DEVPARAMS*) csound->Malloc(csound, sizeof(DEVPARAMS));
     if (dev == NULL) {
       csound->ErrorMsg(csound, Str(" *** ALSA: %s: memory allocation failure"),
                        (play ? "playopen" : "recopen"));
@@ -630,7 +643,7 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
     /* open device */
     retval = set_device_params(csound, dev, play);
     if (retval != 0) {
-      free(dev);
+      csound->Free(csound,dev);
       *userDataPtr = NULL;
     }
     return retval;
@@ -759,8 +772,8 @@ static void rtclose_(CSOUND *csound)
       if (dev->handle != NULL)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)
-        free(dev->buf);
-      free(dev);
+        csound->Free(csound, dev->buf);
+      csound->Free(csound,dev);
     }
     dev = (DEVPARAMS*) (*(csound->GetRtPlayUserData(csound)));
     if (dev != NULL) {
@@ -768,8 +781,8 @@ static void rtclose_(CSOUND *csound)
       if (dev->handle != NULL)
         snd_pcm_close(dev->handle);
       if (dev->buf != NULL)
-        free(dev->buf);
-      free(dev);
+        csound->Free(csound, dev->buf);
+      csound->Free(csound,dev);
     }
 }
 
@@ -778,7 +791,7 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
     int         err;
     alsaMidiInputDevice *dev;
 
-    dev = (alsaMidiInputDevice*) malloc(sizeof(alsaMidiInputDevice));
+    dev = (alsaMidiInputDevice*) csound->Malloc(csound, sizeof(alsaMidiInputDevice));
     if (dev == NULL) {
       csound->ErrorMsg(csound, Str("ALSA MIDI: memory allocation failure"));
       return dev;
@@ -788,7 +801,7 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
     if (err != 0) {
       csound->ErrorMsg(csound,
                        Str("ALSA: error opening MIDI input device: '%s'"), s);
-      free(dev);
+      csound->Free(csound,dev);
       return NULL;
     }
     csound->Message(csound, Str("ALSA: opened MIDI input device '%s'\n"), s);
@@ -805,7 +818,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     snd_ctl_t *ctl;
     char* name;
     int numdevs = 0;
-    name = (char *) calloc(32, sizeof(char));
+    name = (char *) csound->Calloc(csound, 32* sizeof(char));
 
     (*userData) = NULL;
     olddev = NULL;
@@ -858,12 +871,12 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     else if (devName[0] != '\0') {
       dev = open_midi_device(csound, devName);
       if (dev == NULL) {
-        free(name);
+        csound->Free(csound, name);
         return -1;
       }
       numdevs = 1;
     }
-    free(name);
+    csound->Free(csound, name);
     if (numdevs == 0) {
       csound->ErrorMsg(csound, Str("ALSA midi: No devices found.\n"));
       *userData = NULL;
@@ -946,7 +959,7 @@ static int midi_in_close(CSOUND *csound, void *userData)
       }
       olddev = dev;
       dev = dev->next;
-      free(olddev);
+      csound->Free(csound,olddev);
       if (retval != -1)
         retval = ret;
     }
@@ -1361,7 +1374,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
     char             *client_name;
 
     *userData = NULL;
-    amidi = (alsaseqMidi*) malloc(sizeof(alsaseqMidi));
+    amidi = (alsaseqMidi*) csound->Malloc(csound, sizeof(alsaseqMidi));
     if (UNLIKELY(amidi == NULL)) {
       csound->ErrorMsg(csound, Str("ALSASEQ input: memory allocation failure"));
       return -1;
@@ -1372,7 +1385,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
     if (UNLIKELY(err < 0)) {
       csound->ErrorMsg(csound, Str("ALSASEQ: error opening sequencer (%s)"),
                        snd_strerror(err));
-      free(amidi);
+      csound->Free(csound,amidi);
       return -1;
     }
     csound->Message(csound, Str("ALSASEQ: opened MIDI input sequencer\n"));
@@ -1383,7 +1396,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot set client name '%s' (%s)"),
                        client_name, snd_strerror(err));
       snd_seq_close(amidi->seq);
-      free(amidi);
+      csound->Free(csound,amidi);
       return -1;
     }
     err = snd_seq_create_simple_port(amidi->seq, client_name,
@@ -1395,7 +1408,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot create input port (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
-      free(amidi);
+      csound->Free(csound,amidi);
       return -1;
     }
     client_id = snd_seq_client_id(amidi->seq);
@@ -1407,7 +1420,7 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot create midi event (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
-      free(amidi);
+      csound->Free(csound,amidi);
       return -1;
     }
     snd_midi_event_init(amidi->mev);
@@ -1440,7 +1453,7 @@ static int alsaseq_in_close(CSOUND *csound, void *userData)
     if (amidi != NULL) {
       snd_midi_event_free(amidi->mev);
       snd_seq_close(amidi->seq);
-      free(amidi);
+      csound->Free(csound,amidi);
     }
     return OK;
 }
@@ -1453,7 +1466,7 @@ static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName
     char             *client_name;
 
     *userData = NULL;
-    amidi = (alsaseqMidi*) malloc(sizeof(alsaseqMidi));
+    amidi = (alsaseqMidi*) csound->Malloc(csound, sizeof(alsaseqMidi));
     if (UNLIKELY(amidi == NULL)) {
       csound->ErrorMsg(csound, Str("ALSASEQ output: memory allocation failure"));
       return -1;
@@ -1464,7 +1477,7 @@ static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName
     if (UNLIKELY(err < 0)) {
       csound->ErrorMsg(csound, Str("ALSASEQ: error opening sequencer (%s)"),
                        snd_strerror(err));
-      free(amidi);
+      csound->Free(csound, amidi);
       return -1;
     }
     csound->Message(csound, Str("ALSASEQ: opened MIDI output sequencer\n"));
@@ -1475,7 +1488,7 @@ static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot set client name '%s' (%s)"),
                        client_name, snd_strerror(err));
       snd_seq_close(amidi->seq);
-      free(amidi);
+      csound->Free(csound, amidi);
       return -1;
     }
     err = snd_seq_create_simple_port(amidi->seq, client_name,
@@ -1487,7 +1500,7 @@ static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot create output port (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
-      free(amidi);
+      csound->Free(csound,amidi);
       return -1;
     }
     client_id = snd_seq_client_id(amidi->seq);
@@ -1499,7 +1512,7 @@ static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName
       csound->ErrorMsg(csound, Str("ALSASEQ: cannot create midi event (%s)"),
                        snd_strerror(err));
       snd_seq_close(amidi->seq);
-      free(amidi);
+      csound->Free(csound,amidi);
       return -1;
     }
     snd_midi_event_init(amidi->mev);
@@ -1536,7 +1549,7 @@ static int alsaseq_out_close(CSOUND *csound, void *userData)
       snd_seq_drain_output(amidi->seq);
       snd_midi_event_free(amidi->mev);
       snd_seq_close(amidi->seq);
-      free(amidi);
+      csound->Free(csound,amidi);
     }
     return OK;
 }
@@ -1558,7 +1571,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                         Str("RT scheduler priority, alsa module"),
                                         NULL);
     maxlen = 64;
-    alsaseq_client = (char*) calloc(maxlen, sizeof(char));
+    alsaseq_client = (char*) csound->Calloc(csound, maxlen*sizeof(char));
     strcpy(alsaseq_client, "Csound");
     csound->CreateConfigurationVariable(csound, "alsaseq_client",
                                     (void*) alsaseq_client, CSOUNDCFG_STRING,
@@ -1887,7 +1900,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 
     cfg = csound->QueryConfigurationVariable(csound, "alsaseq_client");
     if (cfg != NULL && cfg->s.p != NULL)
-      free(cfg->s.p);
+      csound->Free(csound, cfg->s.p);
     return OK;
 }
 

@@ -31,7 +31,6 @@ class CsPerfThread_PerformScore;
 %include <std_string.i>
 #else
 #include <string>
-#include <pthread.h>
 #endif
 
 /**
@@ -92,10 +91,12 @@ int main(int argc, char *argv[])
             (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
  #endif
 #else
+#if !defined(_MM_SET_DENORMALS_ZERO_MODE)
   #define _MM_DENORMALS_ZERO_MASK   0
   #define _MM_DENORMALS_ZERO_ON     0
   #define _MM_DENORMALS_ZERO_OFF    0
   #define _MM_SET_DENORMALS_ZERO_MODE(mode)
+#endif
 #endif
 
 
@@ -111,8 +112,8 @@ typedef struct {
     void *sfile;
     void *thread;
     bool running;
-    pthread_cond_t condvar;
-    pthread_mutex_t mutex;
+    void* condvar;
+    void* mutex;
 } recordData_t;
 
 class PUBLIC CsoundPerformanceThread {

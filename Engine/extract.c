@@ -28,9 +28,9 @@
 extern  int     realtset(CSOUND *, SRTBLK *);
 extern  MYFLT   realt(CSOUND *, MYFLT);
 
-static  void    include(CSOUND *, EXTRACT_STATICS*, SRTBLK *);
+static  void    include(EXTRACT_STATICS*, SRTBLK *);
 
-#define STA(x)   (extractStatics->x)
+//#define STA(x)   (extractStatics->x)
 
 static  const   SRTBLK a0 = {
     NULL, NULL, 0, 3, FL(0.0), FL(0.0), FL(0.0), FL(0.0), FL(0.0),
@@ -47,15 +47,11 @@ static  const   SRTBLK e = {
     0, SP, "e\n"
 };
 
-static void alloc_globals(CSOUND *csound, EXTRACT_STATICS* extractStatics)
+static void alloc_globals(EXTRACT_STATICS* extractStatics)
 {
-/* if (csound->extractGlobals == NULL) { */
-/*   csound->extractGlobals = csound->Calloc(csound, sizeof(EXTRACT_GLOBALS)); */
-      /* STA(onbeat) = STA(offbeat) = FL(0.0); */
-      /* STA(ontime) = STA(offtime) = FL(0.0); */
-      memcpy(&STA(a0), &a0, sizeof(SRTBLK));
-      memcpy(&STA(f0), &f0, sizeof(SRTBLK));
-      memcpy(&STA(e), &e, sizeof(SRTBLK));
+    memcpy(&extractStatics->a0, &a0, sizeof(SRTBLK));
+    memcpy(&extractStatics->f0, &f0, sizeof(SRTBLK));
+    memcpy(&extractStatics->e, &e, sizeof(SRTBLK));
     /* } */
 }
 
@@ -65,11 +61,12 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     int  flag, all;
     char s[82];
 
-    alloc_globals(csound, extractStatics);
+    alloc_globals(extractStatics);
     all = 1;
     flag = 'i';                                 /* default -i flag supplied */
-    STA(onsect) = 1;     STA(onbeat) = FL(0.0);   /* other default vals   */
-    STA(offsect) = 999;  STA(offbeat) = FL(0.0);
+    extractStatics->onsect = 1;
+    extractStatics->onbeat = FL(0.0);   /* other default vals   */
+    extractStatics->offsect = 999;  extractStatics->offbeat = FL(0.0);
     //    while (fscanf(xfp, s) != EOF) {
      while (fscanf(xfp, "%.81s", s) != EOF) {
        //while (fgets(s, 82, xfp) != NULL) {
@@ -88,33 +85,36 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         case 'i':
           sscanf(s, "%d", &i);
           //printf("%s %d\n", s, i);
-          if (i>=0 && i < INSMAX) STA(inslst)[i] = 1;
-          else csound->Die(csound, Str("instrument number out of range"));
+          if (i>=0 && i < INSMAX) extractStatics->inslst[i] = 1;
+          else csound->Message(csound, Str("instrument number out of range"));
           all = 0;
           break;
         case 'f':
 #if defined(USE_DOUBLE)
-          CS_SSCANF(s, "%d:%lf", &STA(onsect), &STA(onbeat));
+          CS_SSCANF(s, "%d:%lf", &extractStatics->onsect, &extractStatics->onbeat);
 #else
-          CS_SSCANF(s, "%d:%f", &STA(onsect), &STA(onbeat));
+          CS_SSCANF(s, "%d:%f", &extractStatics->onsect, &extractStatics->onbeat);
 #endif
           break;
         case 't':
-          STA(offsect) = STA(onsect);       /* default offsect */
+          extractStatics->offsect = extractStatics->onsect; /* default offsect */
 #if defined(USE_DOUBLE)
-          CS_SSCANF(s, "%d:%lf", &STA(offsect), &STA(offbeat));
+          CS_SSCANF(s, "%d:%lf", &extractStatics->offsect,&extractStatics->offbeat);
 #else
-          CS_SSCANF(s, "%d:%f", &STA(offsect), &STA(offbeat));
+          CS_SSCANF(s, "%d:%f", &extractStatics->offsect, &extractStatics->offbeat);
 #endif
         }
       }
     }
     if (all) {
       char *ip;
-      for (ip = &STA(inslst)[0]; ip < &STA(inslst)[INSMAX]; *ip++ = 1);
+      for (ip = &extractStatics->inslst[0];
+           ip < &extractStatics->inslst[INSMAX]; *ip++ = 1);
     }
-    STA(ontime) = STA(a0).newp3 = STA(a0).p3val = STA(onbeat);
-    STA(offtime) = STA(f0).newp2 = STA(f0).p2val = STA(offbeat);
+    extractStatics->ontime = extractStatics->a0.newp3 =
+      extractStatics->a0.p3val = extractStatics->onbeat;
+    extractStatics->offtime = extractStatics->f0.newp2 =
+      extractStatics->f0.p2val = extractStatics->offbeat;
 }
 
 void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
@@ -124,27 +124,29 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
     MYFLT   turnoff, anticip;
     int     warped;
 
-    alloc_globals(csound, extractStatics);
+    alloc_globals(extractStatics);
 
     if ((bp = csound->frstbp) == NULL)      /* if null file         */
       return;
-    if (++STA(sectno) > STA(offsect)) {       /* or later section,    */
+    if (++extractStatics->sectno > extractStatics->offsect) {
+      /* or later section,    */
       csound->frstbp = NULL;
       return;                               /*      return          */
     }
 
-    STA(frstout) = STA(prvout) = NULL;
-    if (STA(sectno) < STA(onsect)) {          /* for sects preceding, */
+    extractStatics->frstout = extractStatics->prvout = NULL;
+    if (extractStatics->sectno < extractStatics->onsect) {
+      /* for sects preceding, */
       do {
         switch (bp->text[0]) {
         case 'f':                           /* include f's at time 0 */
           bp->p2val = bp->newp2 = FL(1.0);  /* time 1 for now!!     */
-          include(csound, extractStatics, bp);
+          include(extractStatics, bp);
           break;
         case 'w':
         case 's':
         case 'e':
-          include(csound, extractStatics, bp); /*   incl w,s,e verbatim  */
+          include(extractStatics, bp); /*   incl w,s,e verbatim  */
           break;
         case 't':
         case 'i':
@@ -158,83 +160,89 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
         switch(bp->text[0]) {
         case 'w':
           warped = realtset(csound, bp);
-          if (STA(sectno) == STA(onsect) && warped)
-            STA(ontime) = STA(a0).newp3 = realt(csound, STA(onbeat));
-          if (STA(sectno) == STA(offsect) && warped)
-            STA(offtime) = STA(f0).newp2 = realt(csound, STA(offbeat));
-          include(csound, extractStatics, bp);
+          if (extractStatics->sectno == extractStatics->onsect && warped)
+            extractStatics->ontime = extractStatics->a0.newp3 =
+              realt(csound, extractStatics->onbeat);
+          if (extractStatics->sectno == extractStatics->offsect && warped)
+            extractStatics->offtime = extractStatics->f0.newp2 =
+              realt(csound, extractStatics->offbeat);
+          include(extractStatics, bp);
           break;
         case 't':
-          include(csound, extractStatics, bp);
+          include(extractStatics, bp);
           break;
         case 'f':
-        casef: if (STA(sectno) == STA(onsect) && bp->newp2 < STA(ontime))
-          bp->newp2 = STA(ontime);
-        else if (STA(sectno) == STA(offsect) && bp->newp2 > STA(offtime))
+        casef: if (extractStatics->sectno == extractStatics->onsect &&
+                   bp->newp2 < extractStatics->ontime)
+          bp->newp2 = extractStatics->ontime;
+        else if (extractStatics->sectno == extractStatics->offsect &&
+                 bp->newp2 > extractStatics->offtime)
           break;
-        if (STA(sectno) == STA(onsect) && !STA(a0done)) {
-          if (STA(onbeat) > 0)
-            include(csound, extractStatics, &STA(a0));
-          STA(a0done)++;
+        if (extractStatics->sectno == extractStatics->onsect &&
+            !extractStatics->a0done) {
+          if (extractStatics->onbeat > 0)
+            include(extractStatics, &extractStatics->a0);
+          extractStatics->a0done++;
         }
-        include(csound, extractStatics, bp);
+        include(extractStatics, bp);
         break;
         case 'i':
-          if (!STA(inslst)[bp->insno])   /* skip insnos not required */
+          if (!extractStatics->inslst[bp->insno])   /* skip insnos not required */
             break;
           if (bp->newp3 < 0)            /* treat indef dur like f */
             goto casef;
         case 'a':turnoff = bp->newp2 + bp->newp3;   /* i and a: */
-          if (STA(sectno) == STA(onsect)) {
-            if (turnoff < STA(ontime))
+          if (extractStatics->sectno == extractStatics->onsect) {
+            if (turnoff < extractStatics->ontime)
               break;
-            if ((anticip = STA(ontime) - bp->newp2) > 0) {
+            if ((anticip = extractStatics->ontime - bp->newp2) > 0) {
               if ((bp->newp3 -= anticip) < FL(0.001))
                 break;
-              bp->p3val -= STA(onbeat) - bp->p2val;
-              bp->newp2 = STA(ontime);
-              bp->p2val = STA(onbeat);
+              bp->p3val -= extractStatics->onbeat - bp->p2val;
+              bp->newp2 = extractStatics->ontime;
+              bp->p2val = extractStatics->onbeat;
             }
           }
-          if (STA(sectno) == STA(offsect)) {
-            if (bp->newp2 >= STA(offtime))
+          if (extractStatics->sectno == extractStatics->offsect) {
+            if (bp->newp2 >= extractStatics->offtime)
               break;
-            if (turnoff > STA(offtime)) {
-              bp->newp3 = STA(offtime) - bp->newp2;
-              bp->p3val = STA(offbeat) - bp->p2val;
+            if (turnoff > extractStatics->offtime) {
+              bp->newp3 = extractStatics->offtime - bp->newp2;
+              bp->p3val = extractStatics->offbeat - bp->p2val;
             }
           }
-          if (STA(sectno) == STA(onsect) && !STA(a0done)) {
-            if (STA(onbeat) > 0)
-              include(csound, extractStatics, &STA(a0));
-            STA(a0done)++;
+          if (extractStatics->sectno == extractStatics->onsect &&
+              !extractStatics->a0done) {
+            if (extractStatics->onbeat > 0)
+              include(extractStatics, &extractStatics->a0);
+            extractStatics->a0done++;
           }
-          include(csound, extractStatics, bp);
+          include(extractStatics, bp);
           break;
         case 's':
         case 'e':
-          if (STA(sectno) == STA(offsect)) {
-            include(csound, extractStatics, &STA(f0));
-            include(csound, extractStatics, &STA(e));
+          if (extractStatics->sectno == extractStatics->offsect) {
+            include(extractStatics, &extractStatics->f0);
+            include(extractStatics, &extractStatics->e);
           }
-          else include(csound, extractStatics, bp);
+          else include(extractStatics, bp);
           break;
         }
       } while ((bp = bp->nxtblk) != NULL);
     }
-    csound->frstbp = STA(frstout);
-    if (STA(prvout) != NULL)
-      STA(prvout)->nxtblk = NULL;
+    csound->frstbp = extractStatics->frstout;
+    if (extractStatics->prvout != NULL)
+      extractStatics->prvout->nxtblk = NULL;
 }
 
 /* wire a srtblk into the outlist */
 
-static void include(CSOUND *csound, EXTRACT_STATICS* extractStatics, SRTBLK *bp)
+static void include(EXTRACT_STATICS* extractStatics, SRTBLK *bp)
 {
-    if (STA(frstout) == NULL)                /* first one is special */
-      STA(frstout) = bp;
-    else STA(prvout)->nxtblk = bp;           /* others just add onto list */
-    bp->prvblk = STA(prvout);                /* maintain the backptr      */
-    STA(prvout) = bp;                        /* and get ready for next    */
+    if (extractStatics->frstout == NULL)      /* first one is special */
+      extractStatics->frstout = bp;
+    else extractStatics->prvout->nxtblk = bp; /* others just add onto list */
+    bp->prvblk = extractStatics->prvout;      /* maintain the backptr      */
+    extractStatics->prvout = bp;              /* and get ready for next    */
 }
 

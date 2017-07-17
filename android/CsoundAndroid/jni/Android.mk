@@ -6,8 +6,13 @@ LIBSNDFILE_SRC_DIR := $(NDK_MODULE_PATH)/libsndfile-android/jni/
 
 LOCAL_MODULE   := csoundandroid
 LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(HOME)/include $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces 
-LOCAL_CFLAGS := -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC -mllvm -unroll-allow-partial -mllvm -unroll-runtime -funsafe-math-optimizations -ffast-math -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
-#LOCAL_CPPFLAGS := $(LOCAL_CFLAGS)
+
+ifeq ($(NDK_TOOLCHAIN_VERSION),clang)
+LOCAL_CFLAGS := -std=c99 -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC -mllvm -unroll-allow-partial -mllvm -unroll-runtime -funsafe-math-optimizations -ffast-math -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
+else
+LOCAL_CFLAGS := -std=c99 -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC -unroll-allow-partial -unroll-runtime -funsafe-math-optimizations -ffast-math -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize -DPFFFT_SIMD_DISABLE
+endif 
+
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(NDK_MODULE_PATH)/luajit-2.0/src -L$(LIBSNDFILE_SRC_DIR)
 
@@ -90,7 +95,6 @@ $(CSOUND_SRC_ROOT)/OOps/ugrw2.c \
 $(CSOUND_SRC_ROOT)/OOps/vdelay.c \
 $(CSOUND_SRC_ROOT)/OOps/compile_ops.c \
 $(CSOUND_SRC_ROOT)/Opcodes/babo.c \
-$(CSOUND_SRC_ROOT)/Opcodes/exciter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/bilbar.c \
 $(CSOUND_SRC_ROOT)/Opcodes/compress.c \
 $(CSOUND_SRC_ROOT)/Opcodes/eqfil.c \
@@ -109,7 +113,6 @@ $(CSOUND_SRC_ROOT)/Opcodes/pan2.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/phisem.c \
 $(CSOUND_SRC_ROOT)/Opcodes/arrays.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfopcodes.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/stackops.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap1.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap_n.c  \
@@ -225,6 +228,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/pvread.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/ugens8.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vpvoc.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvoc.c \
+$(CSOUND_SRC_ROOT)/Opcodes/wpfilters.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \
@@ -245,6 +249,7 @@ $(CSOUND_SRC_ROOT)/InOut/libmpadec/mpadec.c \
 $(CSOUND_SRC_ROOT)/InOut/libmpadec/mp3dec.c \
 csound_orclex.c \
 csound_prelex.c \
+csound_prslex.c \
 csound_orcparse.c \
 rtopensl.c \
 AndroidCsound.cpp \

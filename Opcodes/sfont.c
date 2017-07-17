@@ -142,7 +142,7 @@ static int compare(presetType * elem1, presetType *elem2)
         ihandle SfLoad "filename"
 */
 
-static char *Gfname;
+static char *Gfname;            /* NOT THREAD SAFE */
 
 static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
                                        /* open a file and return its handle */
@@ -172,9 +172,10 @@ static int SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
     csound->Free(csound,fname);
     if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
       globals->maxSFndx += 5;
-      globals->sfArray = (SFBANK *)realloc(globals->sfArray,
-                                           globals->maxSFndx*sizeof(SFBANK));
+      globals->sfArray = (SFBANK *)csound->ReAlloc(csound, globals->sfArray,
+                    /* JPff fix */        globals->maxSFndx*sizeof(SFBANK));
       csound->Warning(csound, Str("Extending soundfonts"));
+      if (globals->sfArray  == NULL) return NOTOK;
     }
     return OK;
 }
@@ -2001,12 +2002,16 @@ static int chunk_read(CSOUND *csound, FILE *fil, CHUNK *chunk)
 {
     if (UNLIKELY(4 != fread(chunk->ckID,1,4, fil)))
       return 0;
-    if (UNLIKELY(1 != fread(&chunk->ckSize,4,1,fil)))
+    if (UNLIKELY(1 != fread(&chunk->ckSize,4,1,fil))) {
+      chunk->ckSize = 0;
       return 0;
+    }
+    //if (UNLIKELY(chunk->ckSize>0x8fffff00)) return 0;
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
     chunk->ckDATA = (BYTE *) csound->Malloc(csound, chunk->ckSize);
     if (chunk->ckDATA==NULL)
       return 0;
+    if (chunk->ckSize>0x8fffff00) return 0;
     return fread(chunk->ckDATA,1,chunk->ckSize,fil);
 }
 
@@ -2605,7 +2610,7 @@ int sfont_ModuleCreate(CSOUND *csound)
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
-      globals->pitches[j] = (MYFLT) (440.0 * pow(2.0, (double)(j- 69)/12.0));
+      globals->pitches[j] = (MYFLT) (csound->A4 * pow(2.0, (double)(j- 69)/12.0));
     }
 
    return OK;

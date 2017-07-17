@@ -65,10 +65,10 @@ STSTR           \"
 ESCAPE          \\.
 XSTR            \{\{([^}]|\}[^}])*\}\}
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-MACRONAME       "$"[a-zA-Z_][a-zA-Z0-9_]*
-MACRONAMED      "$"[a-zA-Z_][a-zA-Z0-9_]*\.
-MACRONAMEA      "$"[a-zA-Z_][a-zA-Z0-9_]*\(
-MACRONAMEDA     "$"[a-zA-Z_][a-zA-Z0-9_]*\.\(
+MACRONAME       "$"`?[a-zA-Z_][a-zA-Z0-9_`]*
+MACRONAMED      "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.
+MACRONAMEA      "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\(
+MACRONAMEDA     "$"`?[a-zA-Z_][a-zA-Z0-9_`]*\.\(
 MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
 MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -83,75 +83,75 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 RESET           "###\n"
 
 INT             "int"[ \t]*\(
-FRAC		"frac"[ \t]*\(
-ROUND		"round"[ \t]*\(
-FLOOR		"floor"[ \t]*\(
-CEIL		"ceil"[ \t]*\(
-RND		"rnd"[ \t]*\(
-BIRND		"birnd"[ \t]*\(
-ABS		"abs"[ \t]*\(
-EXP		"exp"[ \t]*\(
-LOG		"log"[ \t]*\(
-SQRT		"sqrt"[ \t]*\(
-SIN		"sin"[ \t]*\(
-COS		"cos"[ \t]*\(
-TAN		"tan"[ \t]*\(
-SININV		"sininv"[ \t]*\(
-COSINV		"cosinv"[ \t]*\(
-TANINV		"taninv"[ \t]*\(
-LOG10		"log10"[ \t]*\(
-LOG2		"log2"[ \t]*\(
-SINH		"sinh"[ \t]*\(
-COSH		"cosh"[ \t]*\(
-TANH		"tanh"[ \t]*\(
-AMPDB		"ampdb"[ \t]*\(
-AMPDBFS		"ampdbfs"[ \t]*\(
-DBAMP		"dbamp"[ \t]*\(
-DBFSAMP		"dbfsamp"[ \t]*\(
-FTCPS		"ftcps"[ \t]*\(
-FTLEN		"ftlen"[ \t]*\(
-FTSR		"ftsr"[ \t]*\(
-FTLPTIM		"ftlptim"[ \t]*\(
-FTCHNLS		"ftchnls"[ \t]*\(
-I		"i"[ \t]*\(
-K		"k"[ \t]*\(
-CPSOCT		"cpsoct"[ \t]*\(
-OCTPCH		"octpch"[ \t]*\(
-CPSPCH		"cpspch"[ \t]*\(
-PCHOCT		"pchoct"[ \t]*\(
-OCTCPS		"octcps"[ \t]*\(
-NSAMP		"nsamp"[ \t]*\(
-POWOFTWO	"powoftwo"[ \t]*\(
-LOGBTWO		"logbtwo"[ \t]*\(
-A		"a"[ \t]*\(
-TB0		"tb0"[ \t]*\(
-TB1		"tb1"[ \t]*\(
-TB2		"tb2"[ \t]*\(
-TB3		"tb3"[ \t]*\(
-TB4		"tb4"[ \t]*\(
-TB5		"tb5"[ \t]*\(
-TB6		"tb6"[ \t]*\(
-TB7		"tb7"[ \t]*\(
-TB8		"tb8"[ \t]*\(
-TB9		"tb9"[ \t]*\(
-TB10		"tb10"[ \t]*\(
-TB11		"tb11"[ \t]*\(
-TB12		"tb12"[ \t]*\(
-TB13		"tb13"[ \t]*\(
-TB14		"tb14"[ \t]*\(
-TB15		"tb15"[ \t]*\(
-URD		"urd"[ \t]*\(
-NOT		"not"[ \t]*\(
-CENT		"cent"[ \t]*\(
-OCTAVE		"octave"[ \t]*\(
-SEMITONE	"semitone"[ \t]*\(
-CPSMIDIN	"cpsmidinn"[ \t]*\(
-OCTMIDIN	"octmidinn"[ \t]*\(
-PCHMIDIN	"pchmidinn"[ \t]*\(
-DB		"db"[ \t]*\(
-P		"p"[ \t]*\(
-QINF		"qinf"[ \t]*\(
-QNAN		"qnan"[ \t]*\(
+FRAC            "frac"[ \t]*\(
+ROUND           "round"[ \t]*\(
+FLOOR           "floor"[ \t]*\(
+CEIL            "ceil"[ \t]*\(
+RND             "rnd"[ \t]*\(
+BIRND           "birnd"[ \t]*\(
+ABS             "abs"[ \t]*\(
+EXP             "exp"[ \t]*\(
+LOG             "log"[ \t]*\(
+SQRT            "sqrt"[ \t]*\(
+SIN             "sin"[ \t]*\(
+COS             "cos"[ \t]*\(
+TAN             "tan"[ \t]*\(
+SININV          "sininv"[ \t]*\(
+COSINV          "cosinv"[ \t]*\(
+TANINV          "taninv"[ \t]*\(
+LOG10           "log10"[ \t]*\(
+LOG2            "log2"[ \t]*\(
+SINH            "sinh"[ \t]*\(
+COSH            "cosh"[ \t]*\(
+TANH            "tanh"[ \t]*\(
+AMPDB           "ampdb"[ \t]*\(
+AMPDBFS         "ampdbfs"[ \t]*\(
+DBAMP           "dbamp"[ \t]*\(
+DBFSAMP         "dbfsamp"[ \t]*\(
+FTCPS           "ftcps"[ \t]*\(
+FTLEN           "ftlen"[ \t]*\(
+FTSR            "ftsr"[ \t]*\(
+FTLPTIM         "ftlptim"[ \t]*\(
+FTCHNLS         "ftchnls"[ \t]*\(
+I               "i"[ \t]*\(
+K               "k"[ \t]*\(
+CPSOCT          "cpsoct"[ \t]*\(
+OCTPCH          "octpch"[ \t]*\(
+CPSPCH          "cpspch"[ \t]*\(
+PCHOCT          "pchoct"[ \t]*\(
+OCTCPS          "octcps"[ \t]*\(
+NSAMP           "nsamp"[ \t]*\(
+POWOFTWO        "powoftwo"[ \t]*\(
+LOGBTWO         "logbtwo"[ \t]*\(
+A               "a"[ \t]*\(
+TB0             "tb0"[ \t]*\(
+TB1             "tb1"[ \t]*\(
+TB2             "tb2"[ \t]*\(
+TB3             "tb3"[ \t]*\(
+TB4             "tb4"[ \t]*\(
+TB5             "tb5"[ \t]*\(
+TB6             "tb6"[ \t]*\(
+TB7             "tb7"[ \t]*\(
+TB8             "tb8"[ \t]*\(
+TB9             "tb9"[ \t]*\(
+TB10            "tb10"[ \t]*\(
+TB11            "tb11"[ \t]*\(
+TB12            "tb12"[ \t]*\(
+TB13            "tb13"[ \t]*\(
+TB14            "tb14"[ \t]*\(
+TB15            "tb15"[ \t]*\(
+URD             "urd"[ \t]*\(
+NOT             "not"[ \t]*\(
+CENT            "cent"[ \t]*\(
+OCTAVE          "octave"[ \t]*\(
+SEMITONE        "semitone"[ \t]*\(
+CPSMIDIN        "cpsmidinn"[ \t]*\(
+OCTMIDIN        "octmidinn"[ \t]*\(
+PCHMIDIN        "pchmidinn"[ \t]*\(
+DB              "db"[ \t]*\(
+P               "p"[ \t]*\(
+QINF            "qinf"[ \t]*\(
+QNAN            "qnan"[ \t]*\(
 
 %X incl
 %x macro
@@ -241,6 +241,10 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     if (UNLIKELY(PARM->alt_stack == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
                      /*                  PARM->macro_stack_size); */
                    }
@@ -250,6 +254,11 @@ QNAN		"qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
+                   if (PARM->depth>1022) {
+                     csound->Message(csound,
+                                     Str("macros/include nested too deep: "));
+                     csound->LongJmp(csound, 1);
+                   }
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
@@ -270,6 +279,10 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     if (UNLIKELY(PARM->alt_stack == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
                      /*                  PARM->macro_stack_size); */
                    }
@@ -279,6 +292,11 @@ QNAN		"qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
+                   if (PARM->depth>1022) {
+                     csound->Message(csound,
+                                     Str("macros/include nested too deep: "));
+                     csound->LongJmp(csound, 1);
+                   }
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
                    yy_scan_string(mm->body, yyscanner);
@@ -287,7 +305,7 @@ QNAN		"qnan"[ \t]*\(
 {MACRONAMEA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
@@ -305,16 +323,38 @@ QNAN		"qnan"[ \t]*\(
                      char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
                      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
+                     if (UNLIKELY(nn == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
+                     if (UNLIKELY(nn->name == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
                      i = 0;
                      nn->body = (char*) csound->Malloc(csound, 100);
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                     if (UNLIKELY(nn->body == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
+                     while (1) {
+                       c = input(yyscanner);
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
+                       }
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (c == '\\') {
+                         int newc = input(yyscanner);
+                         if (newc == ')')
+                           nn->body[i++] = c;
+                         c = newc;
                        }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
@@ -322,8 +362,13 @@ QNAN		"qnan"[ \t]*\(
                                      nn->body);
                        }
                        nn->body[i++] = c;
-                       if (UNLIKELY(i >= size))
+                       if (UNLIKELY(i >= size)) {
                          nn->body = csound->ReAlloc(csound, nn->body, size += 100);
+                         if (UNLIKELY(nn->body == NULL)) {
+                           csound->Message(csound, Str("Memory exhausted"));
+                           csound->LongJmp(csound, 1);
+                         }
+                       }
                      }
                      nn->body[i] = '\0';
                      csound->Message(csound, "as...#%s#\n", nn->body);
@@ -337,6 +382,10 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     if (UNLIKELY(PARM->alt_stack == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      /* csound->DebugMsg(csound, */
                      /*        "macro_stack extends alt_stack to %d long\n", */
                      /*                  PARM->macro_stack_size); */
@@ -354,6 +403,11 @@ QNAN		"qnan"[ \t]*\(
                    //csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
+                   if (PARM->depth>1022) {
+                     csound->Message(csound,
+                                     Str("macros/include nested too deep: "));
+                     csound->LongJmp(csound, 1);
+                   }
                    PARM->lstack[++PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
                    yy_scan_string(mm->body, yyscanner);
@@ -361,7 +415,7 @@ QNAN		"qnan"[ \t]*\(
 {MACRONAMEDA}    {
                    MACRO     *mm = PARM->macros;
                    char      *mname;
-                   int c, i, j;
+                   int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                    yytext);
                    yytext[yyleng-2] = '\0';
@@ -379,16 +433,37 @@ QNAN		"qnan"[ \t]*\(
                      char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
                      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
                      int   size = 100;
+                     if (UNLIKELY(nn == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
+                     if (UNLIKELY(mm->name == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      //csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                      strcpy(nn->name, mm->arg[j]);
                      csound->Message(csound, "defining argument %s ",
                                         nn->name);
                      i = 0;
                      nn->body = (char*) csound->Malloc(csound, 100);
-                     while ((c = input(yyscanner))!= term && c!=trm1) {
-                       if (c == ')') {
+                     if (UNLIKELY(nn->body == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
+                     while (1) {
+                       c = input(yyscanner);
+                       if (cnt==0 && ( c==term || c==trm1)) break;
+                       if (cnt==0 && c == ')') {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
+                       }
+                       if (c=='(') cnt++;
+                       if (c==')') cnt--;
+                       if (c == '\\') {
+                         int newc = input(yyscanner);
+                         if (newc != ')') nn->body[i++] = c;
+                         c = newc;
                        }
                        if (UNLIKELY(i > 98)) {
                          csound->Die(csound,
@@ -396,8 +471,13 @@ QNAN		"qnan"[ \t]*\(
                                      nn->body);
                        }
                        nn->body[i++] = c;
-                       if (UNLIKELY(i >= size))
+                       if (UNLIKELY(i >= size)) {
                          nn->body = csound->ReAlloc(csound, nn->body, size += 100);
+                         if (UNLIKELY(nn->body == NULL)) {
+                           csound->Message(csound, Str("Memory exhausted"));
+                           csound->LongJmp(csound, 1);
+                         }
+                       }
                      }
                      nn->body[i] = '\0';
                      csound->Message(csound, "as...#%s#\n", nn->body);
@@ -411,6 +491,10 @@ QNAN		"qnan"[ \t]*\(
                        (MACRON*)
                        csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                     if (UNLIKELY(PARM->alt_stack == NULL)) {
+                       csound->Message(csound, Str("Memory exhausted"));
+                       csound->LongJmp(csound, 1);
+                     }
                      /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
                      /*                  PARM->macro_stack_size); */
                    }
@@ -421,10 +505,11 @@ QNAN		"qnan"[ \t]*\(
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   if (PARM->depth++>1024) {
-                     csound->Die(csound, Str("Includes nested too deeply"));
+                   if (PARM->depth++>1022) {
+                     csound->Message(csound,
+                                     Str("macros/include nested too deep: "));
+                     csound->LongJmp(csound, 1);
                    }
-                   csound_preset_lineno(1, yyscanner);
                    PARM->lstack[PARM->depth] =
                      (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
                    yy_scan_string(mm->body, yyscanner);
@@ -452,7 +537,7 @@ QNAN		"qnan"[ \t]*\(
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   if (UNLIKELY(PARM->depth > 1024))
-                    csound->Die(csound, Str("unexpected EOF"));
+                    csound->Die(csound, Str("unexpected EOF!"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
                   /* csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n", */
                   /*                  __FILE__, __LINE__, */
@@ -489,8 +574,8 @@ QNAN		"qnan"[ \t]*\(
                   }
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound, "%s(%d): line now %d at %d\n",
-                                   __FILE__, __LINE__,
+                  csound->DebugMsg(csound, "csound_pe(%d): line now %d at %d\n",
+                                   __LINE__,
                                    csound_preget_lineno(yyscanner),
                                    PARM->macro_stack_ptr);
                   csound->DebugMsg(csound,
@@ -603,76 +688,76 @@ QNAN		"qnan"[ \t]*\(
                   }
 }
 {IDENT}         { corfile_puts(yytext,csound->expanded_orc); }
-{INT}     	{ do_function(yytext,csound->expanded_orc); }
-{FRAC}		{ do_function(yytext,csound->expanded_orc); }
-{ROUND}		{ do_function(yytext,csound->expanded_orc); }
-{FLOOR}		{ do_function(yytext,csound->expanded_orc); }
-{CEIL}		{ do_function(yytext,csound->expanded_orc); }
-{RND}		{ do_function(yytext,csound->expanded_orc); }
-{BIRND}		{ do_function(yytext,csound->expanded_orc); }
-{ABS}		{ do_function(yytext,csound->expanded_orc); }
-{EXP}		{ do_function(yytext,csound->expanded_orc); }
-{LOG}		{ do_function(yytext,csound->expanded_orc); }
-{SQRT}		{ do_function(yytext,csound->expanded_orc); }
-{SIN}		{ do_function(yytext,csound->expanded_orc); }
-{COS}		{ do_function(yytext,csound->expanded_orc); }
-{TAN}		{ do_function(yytext,csound->expanded_orc); }
-{SININV}	{ do_function(yytext,csound->expanded_orc); }
-{COSINV}	{ do_function(yytext,csound->expanded_orc); }
-{TANINV}	{ do_function(yytext,csound->expanded_orc); }
-{LOG10}		{ do_function(yytext,csound->expanded_orc); }
-{LOG2}		{ do_function(yytext,csound->expanded_orc); }
-{SINH}		{ do_function(yytext,csound->expanded_orc); }
-{COSH}		{ do_function(yytext,csound->expanded_orc); }
-{TANH}		{ do_function(yytext,csound->expanded_orc); }
-{AMPDB}		{ do_function(yytext,csound->expanded_orc); }
-{AMPDBFS}	{ do_function(yytext,csound->expanded_orc); }
-{DBAMP}		{ do_function(yytext,csound->expanded_orc); }
-{DBFSAMP}	{ do_function(yytext,csound->expanded_orc); }
-{FTCPS}		{ do_function(yytext,csound->expanded_orc); }
-{FTLEN}		{ do_function(yytext,csound->expanded_orc); }
-{FTSR}		{ do_function(yytext,csound->expanded_orc); }
-{FTLPTIM}	{ do_function(yytext,csound->expanded_orc); }
-{FTCHNLS}	{ do_function(yytext,csound->expanded_orc); }
-{I}		{ do_function(yytext,csound->expanded_orc); }
-{K}		{ do_function(yytext,csound->expanded_orc); }
-{CPSOCT}	{ do_function(yytext,csound->expanded_orc); }
-{OCTPCH}	{ do_function(yytext,csound->expanded_orc); }
-{CPSPCH}	{ do_function(yytext,csound->expanded_orc); }
-{PCHOCT}	{ do_function(yytext,csound->expanded_orc); }
-{OCTCPS}	{ do_function(yytext,csound->expanded_orc); }
-{NSAMP}		{ do_function(yytext,csound->expanded_orc); }
-{POWOFTWO}	{ do_function(yytext,csound->expanded_orc); }
-{LOGBTWO}	{ do_function(yytext,csound->expanded_orc); }
-{A}		{ do_function(yytext,csound->expanded_orc); }
-{TB0}		{ do_function(yytext,csound->expanded_orc); }
-{TB1}		{ do_function(yytext,csound->expanded_orc); }
-{TB2}		{ do_function(yytext,csound->expanded_orc); }
-{TB3}		{ do_function(yytext,csound->expanded_orc); }
-{TB4}		{ do_function(yytext,csound->expanded_orc); }
-{TB5}		{ do_function(yytext,csound->expanded_orc); }
-{TB6}		{ do_function(yytext,csound->expanded_orc); }
-{TB7}		{ do_function(yytext,csound->expanded_orc); }
-{TB8}		{ do_function(yytext,csound->expanded_orc); }
-{TB9}		{ do_function(yytext,csound->expanded_orc); }
-{TB10}		{ do_function(yytext,csound->expanded_orc); }
-{TB11}		{ do_function(yytext,csound->expanded_orc); }
-{TB12}		{ do_function(yytext,csound->expanded_orc); }
-{TB13}		{ do_function(yytext,csound->expanded_orc); }
-{TB14}		{ do_function(yytext,csound->expanded_orc); }
-{TB15}		{ do_function(yytext,csound->expanded_orc); }
-{URD}		{ do_function(yytext,csound->expanded_orc); }
-{NOT}		{ do_function(yytext,csound->expanded_orc); }
-{CENT}		{ do_function(yytext,csound->expanded_orc); }
-{OCTAVE}	{ do_function(yytext,csound->expanded_orc); }
-{SEMITONE}	{ do_function(yytext,csound->expanded_orc); }
-{CPSMIDIN}	{ do_function(yytext,csound->expanded_orc); }
-{OCTMIDIN}	{ do_function(yytext,csound->expanded_orc); }
-{PCHMIDIN}	{ do_function(yytext,csound->expanded_orc); }
-{DB}		{ do_function(yytext,csound->expanded_orc); }
-{P}		{ do_function(yytext,csound->expanded_orc); }
-{QINF}		{ do_function(yytext,csound->expanded_orc); }
-{QNAN}		{ do_function(yytext,csound->expanded_orc); }
+{INT}           { do_function(yytext,csound->expanded_orc); }
+{FRAC}          { do_function(yytext,csound->expanded_orc); }
+{ROUND}         { do_function(yytext,csound->expanded_orc); }
+{FLOOR}         { do_function(yytext,csound->expanded_orc); }
+{CEIL}          { do_function(yytext,csound->expanded_orc); }
+{RND}           { do_function(yytext,csound->expanded_orc); }
+{BIRND}         { do_function(yytext,csound->expanded_orc); }
+{ABS}           { do_function(yytext,csound->expanded_orc); }
+{EXP}           { do_function(yytext,csound->expanded_orc); }
+{LOG}           { do_function(yytext,csound->expanded_orc); }
+{SQRT}          { do_function(yytext,csound->expanded_orc); }
+{SIN}           { do_function(yytext,csound->expanded_orc); }
+{COS}           { do_function(yytext,csound->expanded_orc); }
+{TAN}           { do_function(yytext,csound->expanded_orc); }
+{SININV}        { do_function(yytext,csound->expanded_orc); }
+{COSINV}        { do_function(yytext,csound->expanded_orc); }
+{TANINV}        { do_function(yytext,csound->expanded_orc); }
+{LOG10}         { do_function(yytext,csound->expanded_orc); }
+{LOG2}          { do_function(yytext,csound->expanded_orc); }
+{SINH}          { do_function(yytext,csound->expanded_orc); }
+{COSH}          { do_function(yytext,csound->expanded_orc); }
+{TANH}          { do_function(yytext,csound->expanded_orc); }
+{AMPDB}         { do_function(yytext,csound->expanded_orc); }
+{AMPDBFS}       { do_function(yytext,csound->expanded_orc); }
+{DBAMP}         { do_function(yytext,csound->expanded_orc); }
+{DBFSAMP}       { do_function(yytext,csound->expanded_orc); }
+{FTCPS}         { do_function(yytext,csound->expanded_orc); }
+{FTLEN}         { do_function(yytext,csound->expanded_orc); }
+{FTSR}          { do_function(yytext,csound->expanded_orc); }
+{FTLPTIM}       { do_function(yytext,csound->expanded_orc); }
+{FTCHNLS}       { do_function(yytext,csound->expanded_orc); }
+{I}             { do_function(yytext,csound->expanded_orc); }
+{K}             { do_function(yytext,csound->expanded_orc); }
+{CPSOCT}        { do_function(yytext,csound->expanded_orc); }
+{OCTPCH}        { do_function(yytext,csound->expanded_orc); }
+{CPSPCH}        { do_function(yytext,csound->expanded_orc); }
+{PCHOCT}        { do_function(yytext,csound->expanded_orc); }
+{OCTCPS}        { do_function(yytext,csound->expanded_orc); }
+{NSAMP}         { do_function(yytext,csound->expanded_orc); }
+{POWOFTWO}      { do_function(yytext,csound->expanded_orc); }
+{LOGBTWO}       { do_function(yytext,csound->expanded_orc); }
+{A}             { do_function(yytext,csound->expanded_orc); }
+{TB0}           { do_function(yytext,csound->expanded_orc); }
+{TB1}           { do_function(yytext,csound->expanded_orc); }
+{TB2}           { do_function(yytext,csound->expanded_orc); }
+{TB3}           { do_function(yytext,csound->expanded_orc); }
+{TB4}           { do_function(yytext,csound->expanded_orc); }
+{TB5}           { do_function(yytext,csound->expanded_orc); }
+{TB6}           { do_function(yytext,csound->expanded_orc); }
+{TB7}           { do_function(yytext,csound->expanded_orc); }
+{TB8}           { do_function(yytext,csound->expanded_orc); }
+{TB9}           { do_function(yytext,csound->expanded_orc); }
+{TB10}          { do_function(yytext,csound->expanded_orc); }
+{TB11}          { do_function(yytext,csound->expanded_orc); }
+{TB12}          { do_function(yytext,csound->expanded_orc); }
+{TB13}          { do_function(yytext,csound->expanded_orc); }
+{TB14}          { do_function(yytext,csound->expanded_orc); }
+{TB15}          { do_function(yytext,csound->expanded_orc); }
+{URD}           { do_function(yytext,csound->expanded_orc); }
+{NOT}           { do_function(yytext,csound->expanded_orc); }
+{CENT}          { do_function(yytext,csound->expanded_orc); }
+{OCTAVE}        { do_function(yytext,csound->expanded_orc); }
+{SEMITONE}      { do_function(yytext,csound->expanded_orc); }
+{CPSMIDIN}      { do_function(yytext,csound->expanded_orc); }
+{OCTMIDIN}      { do_function(yytext,csound->expanded_orc); }
+{PCHMIDIN}      { do_function(yytext,csound->expanded_orc); }
+{DB}            { do_function(yytext,csound->expanded_orc); }
+{P}             { do_function(yytext,csound->expanded_orc); }
+{QINF}          { do_function(yytext,csound->expanded_orc); }
+{QNAN}          { do_function(yytext,csound->expanded_orc); }
 
 .               { corfile_putc(yytext[0], csound->expanded_orc); }
 
@@ -733,6 +818,16 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
       goto TOP;
     }
 }
+#ifndef WIN32
+int isDir(char *path) {
+   struct stat statbuf;
+   if (stat(path, &statbuf) != 0)
+       return 0;
+   return S_ISDIR(statbuf.st_mode);
+}
+#else
+int isDir(char *path) { return 0;}
+#endif
 
 void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
@@ -762,6 +857,8 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       corfile_puts(bb, csound->expanded_orc);
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
+    if (UNLIKELY(isDir(buffer)))
+      csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (cf == NULL)
       csound->Die(csound,
@@ -770,10 +867,14 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
                                   sizeof(MACRON)*(PARM->macro_stack_size+=10));
+      if (UNLIKELY(PARM->alt_stack == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
       /* csound->DebugMsg(csound, "alt_stack now %d long, \n", */
       /*                  PARM->macro_stack_size); */
     }
-    csound->DebugMsg(csound,"%s(%d): stacking line %d at %d\n", __FILE__, __LINE__,
+    csound->DebugMsg(csound,"cso_pre(%d): stacking line %d at %d\n", __LINE__,
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
@@ -799,38 +900,74 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     int mlen = 40;
     char *q = name0;
     char *mname = malloc(mlen);
+
+    if (UNLIKELY(mm == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     mm->margs = MARGS;    /* Initial size */
     mm->name = (char*)csound->Malloc(csound, strlen(name0) + 1);
+    if (UNLIKELY(mm->name == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     strcpy(mm->name, name0);
     do {
       i = 0;
       q = name0;
-      mname[i++] = '_';
+      mname[i++] = '`';
       while ((c = *q++)) {
         mname[i++] = c;
         if (UNLIKELY(i==mlen))
           mname = (char *)realloc(mname, mlen+=40);
+        if (UNLIKELY(mname == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
       }
-      mname[i++] = '_';
-      if (UNLIKELY(i==mlen))
-          mname = (char *)realloc(mname, mlen+=40);
-      mname[i++] = '_';
-      if (UNLIKELY(i==mlen))
-          mname = (char *)realloc(mname, mlen+=40);
+      mname[i++] = '`';
+      if (UNLIKELY(i==mlen)) {
+        mname = (char *)realloc(mname, mlen+=40);
+        if (UNLIKELY(mname == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+      }
+      mname[i++] = '`';
+      if (UNLIKELY(i==mlen)) {
+        mname = (char *)realloc(mname, mlen+=40);
+        if (UNLIKELY(mname == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+      }
       while (isspace((c = input(yyscanner))));
 
       while (isNameChar(c, i)) {
         mname[i++] = c;
-        if (UNLIKELY(i==mlen))
+        if (UNLIKELY(i==mlen)) {
           mname = (char *)realloc(mname, mlen+=40);
+          if (UNLIKELY(mname == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+        }
         c = input(yyscanner);
       }
       mname[i] = '\0';
       mm->arg[arg] = csound->Malloc(csound, i + 1);
+      if (UNLIKELY(mm->arg[arg] == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
       strcpy(mm->arg[arg++], mname);
       if (UNLIKELY(arg >= mm->margs)) {
         mm = (MACRO*) csound->ReAlloc(csound, mm, sizeof(MACRO)
                                + mm->margs * sizeof(char*));
+        if (UNLIKELY(mm == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
         mm->margs += MARGS;
       }
       while (isspace(c))
@@ -872,26 +1009,46 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     mm->acnt = arg;
     i = 0;
     mm->body = (char*) csound->Malloc(csound, 100);
+    if (UNLIKELY(mm->body == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
+
     while ((c = input(yyscanner)) != '#') { /* read body */
       if (UNLIKELY(c == EOF))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
         int n = strlen(name0)+4;
-        if (UNLIKELY(i+n >= size))
+        if (UNLIKELY(i+n >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
-        mm->body[i] = '$'; mm->body[i+1] = '_';
+          if (UNLIKELY(mm->body == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+        }
+        mm->body[i] = '$'; mm->body[i+1] = '`';
         strcpy(&mm->body[i+2], name0);
-        mm->body[i + n - 2] = '_'; mm->body[i + n - 1] = '_';
+        mm->body[i + n - 2] = '`'; mm->body[i + n - 1] = '`';
         i+=n;
         continue;
       }
       mm->body[i++] = c=='\r'?'\n':c;
-      if (UNLIKELY(i >= size))
+      if (UNLIKELY(i >= size)) {
         mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+        if (UNLIKELY(mm->body == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+      }
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input(yyscanner);
-        if (UNLIKELY(i >= size))
+        if (UNLIKELY(i >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+          if (UNLIKELY(mm->body == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+        }
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
@@ -909,9 +1066,18 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
     int   i, c;
     int   size = 100;
+    if (UNLIKELY(mm == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
+
     mm->margs = MARGS;    /* Initial size */
     csound->DebugMsg(csound,"Macro definition for %s\n", name0);
     mm->name = (char*)csound->Malloc(csound, strlen(name0) + 1);
+    if (UNLIKELY(mm->name == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     strcpy(mm->name, name0);
     mm->acnt = 0;
     i = 0;
@@ -943,16 +1109,30 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
                     c, c);
     }
     mm->body = (char*) csound->Malloc(csound, 100);
+    if (UNLIKELY(mm->body == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     while ((c = input(yyscanner)) != '#') {
       if (UNLIKELY(c == EOF || c==0))
         csound->Die(csound, Str("define macro: unexpected EOF"));
       mm->body[i++] = c=='\r'?'\n':c;
-      if (UNLIKELY(i >= size))
+      if (UNLIKELY(i >= size)) {
         mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+        if (UNLIKELY(mm->body == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+      }
       if (c == '\\') {                    /* allow escaped # */
         mm->body[i++] = c = input(yyscanner);
-        if (UNLIKELY(i >= size))
+        if (UNLIKELY(i >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+          if (UNLIKELY(mm->body == NULL)) {
+            csound->Message(csound, Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+          }
+        }
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
@@ -1005,6 +1185,10 @@ static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
     MACRO *mm;
     IFDEFSTACK *pp;
     pp = (IFDEFSTACK*) csound->Calloc(csound, sizeof(IFDEFSTACK));
+    if (UNLIKELY(pp == NULL)) {
+      csound->Message(csound, Str("Memory exhausted"));
+      csound->LongJmp(csound, 1);
+    }
     pp->prv = PARM->ifdefStack;
     pp->isDef = PARM->isIfndef;
     for (mm = PARM->macros; mm != NULL; mm = mm->next) {
@@ -1024,9 +1208,13 @@ static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
 static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
 {
     int i, c, nested_ifdef = 0;
-    char *buf;
+    char buf[8];
     IFDEFSTACK *pp;
-    buf = (char*)malloc(8*sizeof(char));
+    /* buf = (char*)malloc(8*sizeof(char)); */
+    /* if (UNLIKELY(buf == NULL)) { */
+    /*   csound->Message(csound, Str("Memory exhausted")); */
+    /*   csound->LongJmp(csound, 1); */
+    /* } */
     pp = PARM->ifdefStack;
     c = input(yyscanner);
     for (;;) {
@@ -1067,7 +1255,6 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
         }
       }
     }
-    free(buf);
     while (c != '\n' && c != EOF && c != '\r') c = input(yyscanner);
 }
 
@@ -1141,6 +1328,10 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
         csound->Die(csound, Str("Invalid macro name for --omacro"));
       }
       mname = (char*) csound->Malloc(csound, (p - s) + 1);
+      if (UNLIKELY(mname == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
       strncpy(mname, s, p - s);
       mname[p - s] = '\0';
       /* check if macro is already defined */
@@ -1150,6 +1341,10 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
       }
       if (mm == NULL) {
         mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
+        if (UNLIKELY(mm  == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
         mm->name = mname;
         mm->next = qq->macros;
         qq->macros = mm;
@@ -1161,6 +1356,10 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
       if (*p != '\0')
         p++;
       mm->body = (char*) csound->Malloc(csound, strlen(p) + 1);
+      if (UNLIKELY(mm->body == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
       strcpy(mm->body, p);
       nn = nn->next;
     }
@@ -1219,8 +1418,8 @@ static MACRO *find_definition(MACRO *mmo, char *s)
       mm = mmo;
       s++;                      /* skip _ */
     looking:
-      while (*s++!='_') { if (*s=='\0') return NULL; }
-      if (*s++!='_') { s--; goto looking; }
+      while (*s++!='`') { if (*s=='\0') return NULL; }
+      if (*s++!='`') { s--; goto looking; }
       //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
         //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);

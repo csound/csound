@@ -431,12 +431,13 @@ extern "C"
       { 0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
 
+#ifndef INIT_STATIC_MODULES
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
         return OK;
     }
-
-    PUBLIC int csoundModuleInit(CSOUND *csound)
+#endif
+    PUBLIC int csoundModuleInit_fractalnoise(CSOUND *csound)
     {
         int status = 0;
         for(OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
@@ -453,9 +454,16 @@ extern "C"
         }
         return status;
     }
+#ifndef INIT_STATIC_MODULES
+    PUBLIC int csoundModuleInit(CSOUND *csound)
+    {
+        return csoundModuleInit_fractalnoise(csound);
+    }
+
 
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
         return OK;
     }
+  #endif
 }

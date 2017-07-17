@@ -61,7 +61,6 @@
 #include "pffft.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include <assert.h>
 
 /* detect compiler flavour */
@@ -70,6 +69,11 @@
 #elif defined(__GNUC__)
 #  define COMPILER_GCC
 #endif
+
+#ifdef COMPILER_MSVC 
+#define _USE_MATH_DEFINES
+#endif
+#include <math.h>
 
 #if defined(COMPILER_GCC)
 #  define ALWAYS_INLINE(return_type) inline return_type __attribute__ ((always_inline))
@@ -1767,8 +1771,6 @@ void pffft_zconvolve_accumulate(PFFFT_Setup *s, const float *a, const float *b, 
     ((v4sf_union*)vab)[1].f[0] = abi + ai*bi*scaling;
   }
 }
-
-
 #else // defined(PFFFT_SIMD_DISABLE)
 
 // standard routine using scalar floats, without SIMD stuff.

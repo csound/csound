@@ -65,7 +65,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       if (tmp >= 0) {
         mp3->stream_size = tmp;
         tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
-        // if (tmp<0) fprintf(stderr, "seek failure im mp3\n");
+        if (tmp<0) fprintf(stderr, "seek failure im mp3\n");
       } else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
     }
     if (mp3->stream_size > mp3->stream_offset) {
@@ -135,18 +135,18 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
         while(r == 7) { /* NO SYNC, read more data */
           int32_t n = sizeof(mp3->in_buffer);
           if (mp3->stream_size && (n > mp3->stream_size))
-             n = (int32_t)mp3->stream_size;
-             n = read(fd, mp3->in_buffer, n);
-             if (n <= 0){ n = 0; break; } /* EOF */
-             mp3->stream_position = mp3->in_buffer_used = n;
-             r = mpadec_decode(mp3->mpadec, mp3->in_buffer,
-                               mp3->in_buffer_used,
-                        NULL, 0, &mp3->in_buffer_offset, NULL);
-             mp3->in_buffer_used -= mp3->in_buffer_offset;
+            n = (int32_t)mp3->stream_size;
+          n = read(fd, mp3->in_buffer, n);
+          if (n <= 0){ n = 0; break; } /* EOF */
+          mp3->stream_position = mp3->in_buffer_used = n;
+          r = mpadec_decode(mp3->mpadec, mp3->in_buffer,
+                            mp3->in_buffer_used,
+                            NULL, 0, &mp3->in_buffer_offset, NULL);
+          mp3->in_buffer_used -= mp3->in_buffer_offset;
         }
         if (r != MPADEC_RETCODE_OK) {
-        mp3dec_reset(mp3);
-        return MP3DEC_RETCODE_NOT_MPEG_STREAM;
+          mp3dec_reset(mp3);
+          return MP3DEC_RETCODE_NOT_MPEG_STREAM;
         }
       }
     }
@@ -322,7 +322,7 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
       mp3->out_buffer_offset = mp3->out_buffer_used = 0;
     } else if (units == MP3DEC_SEEK_SAMPLES) {
-      MYFLT fsize = 
+      MYFLT fsize =
         (MYFLT)(125.0*mp3->mpainfo.bitrate*mp3->mpainfo.decoded_frame_samples)/
         (MYFLT)mp3->mpainfo.decoded_frequency;
 
@@ -337,7 +337,6 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
       mp3->stream_position = newpos - mp3->stream_offset;
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
       mp3->out_buffer_offset = mp3->out_buffer_used = 0;
-           
       {
         uint8_t temp[8*1152];
         mp3dec_decode(mp3, temp, (uint32_t)pos, NULL);

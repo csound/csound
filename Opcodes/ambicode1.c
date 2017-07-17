@@ -883,7 +883,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
       }
       break;
     case 4: /* Octagon: */
-      if (dim == 4) {
+      if (p->tabin->sizes[0] == 4) {
         /* First order 'in-phase' decode: */
         if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
@@ -916,7 +916,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
           tabout[7*ksmps+sampleIndex] = w + x * FL(0.11548) - y * FL(0.04783);
         }
       }
-      else if (dim == 9) {
+      else if (p->tabin->sizes[0] == 9) {
         /* Second order 'in-phase' / 'controlled opposites' decode: */
         if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
@@ -960,6 +960,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
         }
       }
       else {
+        assert(p->tabin->sizes[0]==16);
         if (UNLIKELY(offset))
           for (sampleIndex = 0; sampleIndex<8; sampleIndex++)
             memset(&tabout[ksmps*sampleIndex], '\0', offset*sizeof(MYFLT));

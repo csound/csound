@@ -54,6 +54,7 @@ public class JSCsoundObj extends CsoundObj {
 
 	CsoundUI csoundUI = new CsoundUI(this);
 	CsoundMotion csoundMotion = new CsoundMotion(this);
+	Object message_callback = null;
 
 	public JSCsoundObj() {
 		super(false);
@@ -68,10 +69,24 @@ public class JSCsoundObj extends CsoundObj {
 		return super.isAudioInEnabled();
 	}
 
+	/**
+	 * Currently this method is a dummy because only elementary types can be passed through
+	 * JavascriptInterface methods. But this method does allow code that uses it to run without
+	 * throwing an exception. If the parameter were at least an Object with a name or a String, then
+	 * this could be used: WebKit.loadUrl("javascript:%s(%s);", message_callback, message_text);
+	 *
+	 * @param message_callback_
+     */
+	@JavascriptInterface
+	public void setMessageCallback(Object message_callback_) {
+		message_callback = message_callback_;
+	}
+
 	@JavascriptInterface
 	public void setAudioInEnabled(boolean audioInEnabled) {
 		super.setAudioInEnabled(audioInEnabled);
 	}
+
 
 	@JavascriptInterface
 	public boolean isMessageLoggingEnabled() {
@@ -162,6 +177,17 @@ public class JSCsoundObj extends CsoundObj {
 	}
 
 	@JavascriptInterface
+	public void start() {
+		super.getCsound().Start();
+	}
+
+	@JavascriptInterface
+	public void perform() {
+		File empty_file = new java.io.File("");
+		super.startCsound(empty_file);
+	}
+
+	@JavascriptInterface
 	public void startCsound(final File csdFile) {
 		super.startCsound(csdFile);
 	}
@@ -179,6 +205,11 @@ public class JSCsoundObj extends CsoundObj {
 	@JavascriptInterface
 	public void play() {
 		super.play();
+	}
+
+	@JavascriptInterface
+	public synchronized void stop() {
+		super.stop();
 	}
 
 	@JavascriptInterface
@@ -243,4 +274,10 @@ public class JSCsoundObj extends CsoundObj {
     public void compileCsdText(String csd_text) {
         super.compileCsdText(csd_text);
     }
+
+	@JavascriptInterface
+	public void setOption(String option) {
+		super.SetOption(option);
+	}
+
 }

@@ -73,9 +73,20 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
     fprintf(outf, "%d,%d,%d,%d,%f,%f,%f",
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
-    if (UNLIKELY(hdr.npoles<=0)) { fclose(outf); fclose(inf); return 1;}
-    str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
-    if (UNLIKELY(fread(&hdr, sizeof(char),
+    if (UNLIKELY(hdr.npoles<=0 ||
+                 hdr.headersize>0x40000000 ||
+                 hdr.headersize<sizeof(LPHEADER))) {
+      fclose(outf);
+      fclose(inf);
+      return 1;
+    }
+    str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+8);
+    if (UNLIKELY(str==NULL)) {
+      fclose(outf);
+      fclose(inf);
+      return 1;
+      }
+    if (UNLIKELY(fread(str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4))
       csound->Message(csound, Str("Read failure\n"));

@@ -25,7 +25,6 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
-#include <boost/format.hpp>
 #include <sstream>
 #if defined(HAVE_IO_H)
 #ifdef LINUX
@@ -35,8 +34,6 @@
 #endif
 #endif
 #include <stdio.h>
-using boost::format;
-using boost::io::group;
 
 namespace csound
 {
@@ -257,7 +254,7 @@ namespace csound
             scalar =  Conversions::stringToDouble(command.substr(4));
           }
         }
-      } else if ((target == 'N') or (target == 'S')) {
+      } else if ((target == 'N') || (target == 'S')) {
         equivalenceClass = command[2];
         dimension = getDimension(command[3]);
         if (command.length() > 4) {

@@ -70,18 +70,23 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
         cs->Free(cs, sDest->data);
       }
       sDest->data = cs_strdup(csound, sSrc->data);
+      sDest->size = strlen(sDest->data)+1;
     } else {
       if (sDest->data == NULL) {
         sDest->data = cs_strdup(csound, sSrc->data);
+        sDest->size = strlen(sDest->data)+1;
       } else {//breaks here
-        //fprintf(stderr, " in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
-        //        sSrc, sSrc->size, sSrc->data, sDest->size, sDest->data);
+        //fprintf(stderr, "\n in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
+        //   sSrc->data, sSrc->size, sSrc->data, sDest->size, sDest->data);
         //memcpy(sDest->data, sSrc->data, sDest->size);
-        strcpy(sDest->data, sSrc->data);
+        //memset(sDest->data,0,sDest->size);
+        strncpy(sDest->data, sSrc->data, sDest->size-1);
+
         //cs->Free(cs, sDest->data); sDest->data = cs_strdup(csound, sSrc->data);
+        //sDest->size = strlen(sDest->data)+1;
       }
     }
-    sDest->size = sSrc->size;
+    //sDest->size = sSrc->size;
     //fprintf(stderr, "out:srcsize=%d >>>%s<<<dstsize=%d dst->data=%p\n",
     //        sSrc->size, sSrc->data, sDest->size, sDest->data);
 }
@@ -148,29 +153,35 @@ void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
 
 /* MEM SIZE UPDATING FUNCTIONS */
 
-void updateAsigMemBlock(void* csound, CS_VARIABLE* var) {
-    CSOUND* cs = (CSOUND*)csound;
-    int ksmps = cs->ksmps;
+void updateAsigMemBlock(CSOUND* csound, CS_VARIABLE* var) {
+    int ksmps = csound->ksmps;
     var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
 }
 
-void varInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     memset(memblock, 0, var->memBlockSize);
 }
 
-void arrayInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
     dat->arrayType = var->subType;
 }
 
-void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
-    CSOUND* cs = (CSOUND*)csound;
-    str->data = cs_strdup(cs, "");
-    str->size = 1;
+    str->data = (char *) csound->Calloc(csound, 8);
+    str->size = 8;
+    //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
 }
+
+void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    PVSDAT *fsig = (PVSDAT *)memblock;
+    IGN(csound);
+    memset(fsig, 0, sizeof(PVSDAT));  /* VL: clear memory for now */
+}
+
 
 /* CREATE VAR FUNCTIONS */
 
@@ -179,7 +190,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     IGN(p);
 
-    //FIXME - this needs to take into account local ksmps, once
+   //FIXME - this needs to take into account local ksmps, once
     //context work is complete
 //    if (instr != NULL) {
 //      OPDS* p = (OPDS*)instr;
@@ -227,9 +238,10 @@ CS_VARIABLE* createFsig(void* cs, void* p) {
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(PVSDAT));
-    var->initializeVariableMemory = &varInitMemory;
+    var->initializeVariableMemory = &varInitMemoryFsig;
     return var;
 }
+
 
 CS_VARIABLE* createString(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;

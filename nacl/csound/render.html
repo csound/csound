@@ -37,7 +37,7 @@
 
   window.URL = window.webkitURL || window.URL;
   const MIME_TYPE = 'application/octet-stream';
-  var bb = new Blob([csound.GetFileData()], { type: MIME_TYPE});
+  var bb = new Blob([csound.GetFileData()],{type: MIME_TYPE});
   var a = document.createElement('a'); 
   a.download =  "test.wav";
   a.href = window.URL.createObjectURL(bb);

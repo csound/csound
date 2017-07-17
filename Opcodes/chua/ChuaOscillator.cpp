@@ -117,15 +117,13 @@
 //     d = sys_variables(12);
 //     gnor = a*(x.^3) + b*(x.^2) + c*x + d;
 
+#include <eigen3/Eigen/Dense>
 #include <OpcodeBase.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-using namespace boost::numeric;
 #include <cmath>
 
-#undef CS_KSMPS
-#define CS_KSMPS     (opds.insdshead->ksmps)
+using namespace csound;
 
-class ChuasOscillatorCubic : public OpcodeBase<ChuasOscillatorCubic>
+class ChuasOscillatorCubic : public OpcodeNoteoffBase<ChuasOscillatorCubic>
 {
 public:
   // OUTPUTS
@@ -160,12 +158,12 @@ public:
   MYFLT h2;
   MYFLT h6;
   // Runge-Kutta slopes.
-  ublas::vector<MYFLT> k1;
-  ublas::vector<MYFLT> k2;
-  ublas::vector<MYFLT> k3;
-  ublas::vector<MYFLT> k4;
+  Eigen::VectorXd k1;
+  Eigen::VectorXd k2;
+  Eigen::VectorXd k3;
+  Eigen::VectorXd k4;
   // Temporary value.
-  ublas::vector<MYFLT> M;
+  Eigen::VectorXd M;
   // Polynomial for nonlinear element.
   MYFLT a;
   MYFLT b;
@@ -233,13 +231,13 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
-    // NOTE: MATLAB code goes into ublas C++ code pretty straightforwardly,
+    // NOTE: MATLAB code goes into eigen3 C++ code pretty straightforwardly,
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
     uint32_t offset = opds.insdshead->ksmps_offset;
     uint32_t early  = opds.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t n, nsmps = opds.insdshead->ksmps;
     if (UNLIKELY(offset)) {
       memset(I3, '\0', offset*sizeof(MYFLT));
       memset(V1, '\0', offset*sizeof(MYFLT));
@@ -382,7 +380,7 @@ public:
 //     i=i+1;
 // end
 
-class ChuasOscillatorPiecewise : public OpcodeBase<ChuasOscillatorPiecewise>
+class ChuasOscillatorPiecewise : public OpcodeNoteoffBase<ChuasOscillatorPiecewise>
 {
 public:
   // OUTPUTS
@@ -415,12 +413,12 @@ public:
   MYFLT h2;
   MYFLT h6;
   // Runge-Kutta slopes.
-  ublas::vector<MYFLT> k1;
-  ublas::vector<MYFLT> k2;
-  ublas::vector<MYFLT> k3;
-  ublas::vector<MYFLT> k4;
+  Eigen::VectorXd k1;
+  Eigen::VectorXd k2;
+  Eigen::VectorXd k3;
+  Eigen::VectorXd k4;
   // Temporary value.
-  ublas::vector<MYFLT> M;
+  Eigen::VectorXd M;
   // Other variables.
   MYFLT step_size;
   MYFLT anor;
@@ -462,10 +460,10 @@ public:
     M(3) = *I3_ / (*E_ * *G_);
     ksmps = opds.insdshead->ksmps;
     warn(csound, "ChuasOscillatorPiecewise::init: L: %f  R0: %f  C2: %f  G: "
-         "%f  Ga: %f  Gb: %f  E: %f  C1: %f  M(1): %f  M(2):"
-         " %f  M(3): %f step: %f\n",
+         "%f  Ga: %f  Gb: %f  E: %f  C1: %f  iI3: %f  iV2:"
+         " %f  iV1: %f step: %f\n",
          *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_,
-         M(1), M(2), M(3), step_size);
+        *I3_, *V2_, *V1_, step_size);
     return OK;
   }
   int noteoff(CSOUND *csound)
@@ -484,7 +482,7 @@ public:
   }
  int kontrol(CSOUND *csound)
   {
-    // NOTE: MATLAB code goes into ublas C++ code pretty straightforwardly,
+    // NOTE: MATLAB code goes into eigen3 C++ code pretty straightforwardly,
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.

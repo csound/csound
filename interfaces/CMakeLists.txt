@@ -7,6 +7,7 @@ option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTER
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
 
+
 if(BUILD_CXX_INTERFACE)
     message(STATUS "Building C++ interface library.")
     set(libcsnd6_SRCS
@@ -21,6 +22,10 @@ if(BUILD_CXX_INTERFACE)
 
     if(WIN32 AND NOT MSVC)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
+      # mingw64 needs this to create a valid .pyd.
+      if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        add_definitions(-DMS_WIN64)
+      endif()
     endif()
 
     set(libcsnd6_CFLAGS "")
@@ -36,22 +41,33 @@ if(BUILD_CXX_INTERFACE)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
+
+   if(APPLE)
+    add_compiler_flags("-std=c++11" TARGETS libcsnd6)
+   endif()
+
+
     if(${libcsnd6_CFLAGS})
         add_compiler_flags(${libcsnd6_CFLAGS} TARGETS libcsnd6)
     endif()
 
+
+
     install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
-
+else()
+ message(STATUS "NOT Building C++ interface library.")
 endif()
 
 
+
+
 # SWIG INTERFACES
-FIND_PACKAGE(SWIG 2.0)
-FIND_PACKAGE(PythonLibs)
-FIND_PACKAGE(JNI)
-FIND_PACKAGE(Java)
+find_package(SWIG 2.0)
+find_package(PythonLibs)
+find_package(JNI)
+find_package(Java)
 
 find_library(LUAJIT_LIBRARY luajit)
 if(NOT LUAJIT_LIBRARY)
@@ -62,30 +78,24 @@ if(NOT LUAJIT_LIBRARY AND WIN32)
 endif()
 find_path(LUA_H_PATH lua.h PATH_SUFFIXES luajit-2.0)
 
-MESSAGE(STATUS "PYTHON_LIBRARY: " ${PYTHON_LIBRARY})
+message(STATUS "PYTHON_LIBRARY: " ${PYTHON_LIBRARY})
 
 check_deps(BUILD_PYTHON_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE PYTHONLIBS_FOUND)
 check_deps(BUILD_JAVA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE JNI_FOUND JAVA_FOUND)
 check_deps(BUILD_LUA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE  LUAJIT_LIBRARY LUA_H_PATH)
 
 if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
-
+    message(STATUS "SWIG_USE_FILE: " ${SWIG_USE_FILE})
     include(${SWIG_USE_FILE})
-
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
     set(CMAKE_SWIG_FLAGS ${libcsound_CFLAGS})
     list(APPEND CMAKE_SWIG_FLAGS "-includeall" "-verbose")
-
     if(USE_DOUBLE)
         list(APPEND CMAKE_SWIG_FLAGS "-DUSE_DOUBLE")
     endif(USE_DOUBLE)
-
     set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
-
     if(BUILD_PYTHON_INTERFACE)
         INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
-
         if(WIN32)
           if(NOT MSVC)
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} ${PYTHON_LIBRARY} libcsnd6)
@@ -96,24 +106,18 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
         endif()
-# Had:     	    SWIG_FLAGS "-threads"
-
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME csnd6)
-
         set(SWIG_MODULE_csnd6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
-
-        SWIG_ADD_MODULE(csnd6 python python_interface.i)
-        SWIG_LINK_LIBRARIES(csnd6 ${swigpython_LIBS})
-
+		swig_add_module(csnd6 python python_interface.i)
+        swig_link_libraries(csnd6 ${swigpython_LIBS})
         set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
-
 	if(APPLE)
 	    set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")

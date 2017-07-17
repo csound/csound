@@ -41,6 +41,8 @@ void    mfreeDebug(CSOUND *, void *, char*, int);
 char    *cs_strdup(CSOUND*, char*);
 char    *cs_strndup(CSOUND*, char*, size_t);
 void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
+int     csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
+                            AUXASYNC *, aux_cb , void *);
 void    fdrecord(CSOUND *, FDCH *), fdclose(CSOUND *, FDCH *);
 void    fdchclose(CSOUND *, INSDS *);
 CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
@@ -78,7 +80,7 @@ int     readOptions_file(CSOUND *, FILE *, int);
 #else
 int     readOptions(CSOUND *, CORFIL *, int);
 #endif
-int     argdecode(CSOUND *, int, char **);
+PUBLIC int     argdecode(CSOUND *, int, const char **);
 void    remove_tmpfiles(CSOUND *);
 void    add_tmpfile(CSOUND *, char *);
 void    xturnoff(CSOUND *, INSDS *);

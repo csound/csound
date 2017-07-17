@@ -70,7 +70,8 @@ class CsoundParams(Structure):
                 ("nchnls_i_override", c_int), # overriding number of in channels
                 ("e0dbfs_override", MYFLT),   # overriding 0dbfs
                 ("daemon", c_int),            # daemon mode
-                ("ksmps_override", c_int)]    # ksmps override
+                ("ksmps_override", c_int),    # ksmps override
+                ("FFT_library", c_int)]       # fft_lib
 
 string64 = c_char * 64
 
@@ -212,6 +213,8 @@ libcsound.csoundGetNchnlsInput.restype = c_uint32
 libcsound.csoundGetNchnlsInput.argtypes = [c_void_p]
 libcsound.csoundGet0dBFS.restype = MYFLT
 libcsound.csoundGet0dBFS.argtypes = [c_void_p]
+libcsound.csoundGetA4.restype = MYFLT
+libcsound.csoundGetA4.argtypes = [c_void_p]
 libcsound.csoundGetCurrentTimeSamples.restype = c_int64
 libcsound.csoundGetCurrentTimeSamples.argtypes = [c_void_p]
 libcsound.csoundGetHostData.restype = py_object
@@ -226,6 +229,7 @@ libcsound.csoundSetDebug.argtypes = [c_void_p, c_int]
 libcsound.csoundGetOutputName.restype = c_char_p
 libcsound.csoundGetOutputName.argtypes = [c_void_p]
 libcsound.csoundSetOutput.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
+libcsound.csoundGetOutputFormat.argtypes = [c_void_p, c_char_p, c_char_p]
 libcsound.csoundSetInput.argtypes = [c_void_p, c_char_p]
 libcsound.csoundSetMIDIInput.argtypes = [c_void_p, c_char_p]
 libcsound.csoundSetMIDIFileInput.argtypes = [c_void_p, c_char_p]
@@ -246,7 +250,9 @@ libcsound.csoundGetOutputBuffer.restype = POINTER(MYFLT)
 libcsound.csoundGetOutputBuffer.argtypes = [c_void_p]
 libcsound.csoundGetSpin.restype = POINTER(MYFLT)
 libcsound.csoundGetSpin.argtypes = [c_void_p]
+libcsound.csoundClearSpin.argtypes = [c_void_p]
 libcsound.csoundAddSpinSample.argtypes = [c_void_p, c_int, c_int, MYFLT]
+libcsound.csoundSetSpinSample.argtypes = [c_void_p, c_int, c_int, MYFLT]
 libcsound.csoundGetSpout.restype = POINTER(MYFLT)
 libcsound.csoundGetSpout.argtypes = [c_void_p]
 libcsound.csoundGetSpoutSample.restype = MYFLT
@@ -304,6 +310,7 @@ libcsound.csoundSetCscoreCallback.argtypes = [c_void_p, CSCOREFUNC]
 
 libcsound.csoundMessage.argtypes = [c_void_p, c_char_p, c_char_p]
 libcsound.csoundMessageS.argtypes = [c_void_p, c_int, c_char_p, c_char_p]
+libcsound.csoundGetMessageLevel.argtypes = [c_void_p]
 libcsound.csoundSetMessageLevel.argtypes = [c_void_p, c_int]
 libcsound.csoundCreateMessageBuffer.argtypes = [c_void_p, c_int]
 libcsound.csoundGetFirstMessage.restype = c_char_p
@@ -474,6 +481,7 @@ CSOUNDMSG_ERROR = 0x1000         # error message (initerror, perferror, etc.)
 CSOUNDMSG_ORCH = 0x2000          # orchestra opcodes (e.g. printks)
 CSOUNDMSG_REALTIME = 0x3000      # for progress display and heartbeat characters
 CSOUNDMSG_WARNING = 0x4000       # warning messages
+CSOUNDMSG_STDOUT = 0x5000
 
 # format attributes (colors etc.), use the bitwise OR of any of these:
 CSOUNDMSG_FG_BLACK = 0x0100
@@ -514,6 +522,10 @@ CSOUND_SIGNAL = -5               # Termination requested by SIGINT or SIGTERM.
 # Flags for csoundInitialize().
 CSOUNDINIT_NO_SIGNAL_HANDLER = 1
 CSOUNDINIT_NO_ATEXIT = 2
+
+# Types for keyboard callbacks set in registerKeyboardCallback()
+CSOUND_CALLBACK_KBD_EVENT = 1
+CSOUND_CALLBACK_KBD_TEXT = 2
 
 # Constants used by the bus interface (csoundGetChannelPtr() etc.).
 CSOUND_CONTROL_CHANNEL = 1
@@ -713,9 +725,15 @@ class Csound:
         return libcsound.csoundCompileArgs(self.cs, argc, argv)
     
     def start(self):
-        """Prepares Csound for performance after compilation.
+        """Prepares Csound for performance.
         
-        Using one or more of the above functions.
+        Normally called after compiling a csd file or an orc file, in which
+        case score preprocessing is performed and performance terminates
+        when the score terminates.
+        However, if called before compiling a csd file or an orc file, 
+        score preprocessing is not performed and "i" statements are dispatched 
+        as real-time events, the <CsOptions> tag is ignored, and performance 
+        continues indefinitely or until ended using the API.
         NB: this is called internally by compile_(), therefore
         it is only required if performance is started without
         a call to that function.
@@ -879,6 +897,10 @@ class Csound:
         """Return the 0dBFS level of the spin/spout buffers."""
         return libcsound.csoundGet0dBFS(self.cs)
     
+    def A4(self):
+        """Return the A4 frequency reference."""
+        return libcsound.csoundGetA4(self.cs)
+    
     def currentTimeSamples(self):
         """Return the current performance time in samples."""
         return libcsound.csoundGetCurrentTimeSamples(self.cs)
@@ -963,6 +985,13 @@ class Csound:
         f = cstring(format)
         libcsound.csoundSetOutput(self.cs, n, t, f)
     
+    def outputFormat(self):
+        """Get output type and format."""
+        type_ = create_string_buffer(6)
+        format = create_string_buffer(8)
+        libcsound.csoundGetOutputFormat(self.cs, type_, format)
+        return pstring(string_at(type_)), pstring(string_at(format))
+
     def setInput(self, name):
         """Set input source."""
         libcsound.csoundSetInput(self.cs, cstring(name))
@@ -996,7 +1025,8 @@ class Csound:
         Pass NULL to disable the callback.
         This callback is retained after a csoundReset() call.
         """
-        libcsound.csoundSetFileOpenCallback(self.cs, FILEOPENFUNC(function))
+        self.fileOpenCbRef = FILEOPENFUNC(function)
+        libcsound.csoundSetFileOpenCallback(self.cs, self.fileOpenCbRef)
 
     #Realtime Audio I/O
     def setRTAudioModule(self, module):
@@ -1071,13 +1101,27 @@ class Csound:
         p = cast(buf, arrayType)
         return np.ctypeslib.as_array(p)
     
+    def clearSpin(self):
+        """Clear the input buffer (spin)."""
+        libcsound.csoundClearSpin(self.cs)
+    
     def addSpinSample(self, frame, channel, sample):
         """Add the indicated sample into the audio input working buffer (spin).
         
         This only ever makes sense before calling performKsmps(). The frame
         and channel must be in bounds relative to ksmps and nchnlsInput.
+        NB: the spin buffer needs to be cleared at every k-cycle by calling 
+        clearSpin().
         """
         libcsound.csoundAddSpinSample(self.cs, frame, channel, sample)
+    
+    def setSpinSample(self, frame, channel, sample):
+        """Set the audio input working buffer (spin) to the indicated sample.
+        
+        This only ever makes sense before calling performKsmps(). The frame
+        and channel must be in bounds relative to ksmps and nchnlsInput.
+        """
+        libcsound.csoundSetSpinSample(self.cs, frame, channel, sample)
     
     def spout(self):
         """Return the address of the Csound audio output working buffer (spout).
@@ -1114,6 +1158,7 @@ class Csound:
         the Csound object and the start of performance will disable all default
         handling of sound I/O by the Csound library, allowing the host
         application to use the spin/spout/input/output buffers directly.
+        For applications using spin/spout, bufSize should be set to 0.
         If 'bufSize' is greater than zero, the buffer size (-b) will be
         set to the integer multiple of ksmps that is nearest to the value
         specified.
@@ -1145,23 +1190,28 @@ class Csound:
 
     def setPlayOpenCallback(self, function):
         """Set a callback for opening real-time audio playback."""
-        libcsound.csoundSetPlayopenCallback(self.cs, PLAYOPENFUNC(function))
+        self.playOpenCbRef = PLAYOPENFUNC(function)
+        libcsound.csoundSetPlayopenCallback(self.cs, self.playOpenCbRef)
 
     def setRtPlayCallback(self, function):
         """Set a callback for performing real-time audio playback."""
-        libcsound.csoundSetRtplayCallback(self.cs, RTPLAYFUNC(function))
+        self.rtPlayCbRef = RTPLAYFUNC(function)
+        libcsound.csoundSetRtplayCallback(self.cs, self.rtPlayCbRef)
   
     def setRecordOpenCallback(self, function):
         """Set a callback for opening real-time audio recording."""
-        libcsound.csoundSetRecopenCallback(self.cs, RECORDOPENFUNC(function))
+        self.recordOpenCbRef = RECORDOPENFUNC(function)
+        libcsound.csoundSetRecopenCallback(self.cs, self.recordOpenCbRef)
 
     def setRtRecordCallback(self, function):
         """Set a callback for performing real-time audio recording."""
-        libcsound.csoundSetRtrecordCallback(self.cs, RTRECORDFUNC(function))
+        self.rtRecordCbRef = RTRECORDFUNC(function)
+        libcsound.csoundSetRtrecordCallback(self.cs, self.rtRecordCbRef)
     
     def setRtCloseCallback(self, function):
         """Set a callback for closing real-time audio playback and recording."""
-        libcsound.csoundSetRtcloseCallback(self.cs, RTCLOSEFUNC(function))
+        self.rtCloseCbRef = RTCLOSEFUNC(function)
+        libcsound.csoundSetRtcloseCallback(self.cs, self.rtCloseCbRef)
     
     def setAudioDevListCallback(self, function):
         """Set a callback for obtaining a list of audio devices.
@@ -1169,7 +1219,8 @@ class Csound:
         This should be set by rtaudio modules and should not be set by hosts.
         (See audioDevList()).
         """
-        libcsound.csoundSetAudioDeviceListCallback(self.cs, AUDIODEVLISTFUNC(function))
+        self.audioDevListCbRef = AUDIODEVLISTFUNC(function)
+        libcsound.csoundSetAudioDeviceListCallback(self.cs, self.audioDevListCbRef)
     
     #Realtime MIDI I/O
     def setMIDIModule(self, module):
@@ -1205,31 +1256,38 @@ class Csound:
 
     def setExternalMidiInOpenCallback(self, function):
         """Set a callback for opening real-time MIDI input."""
-        libcsound.csoundSetExternalMidiInOpenCallback(self.cs, MIDIINOPENFUNC(function))
+        self.extMidiInOpenCbRef = MIDIINOPENFUNC(function)
+        libcsound.csoundSetExternalMidiInOpenCallback(self.cs, self.extMidiInOpenCbRef)
 
     def setExternalMidiReadCallback(self, function):
         """Set a callback for reading from real time MIDI input."""
-        libcsound.csoundSetExternalMidiReadCallback(self.cs, MIDIREADFUNC(function))
+        self.extMidiReadCbRef = MIDIREADFUNC(function)
+        libcsound.csoundSetExternalMidiReadCallback(self.cs, self.extMidiReadCbRef)
     
-    def setExternalMidiInCloseCallback(self, function):
+    def setExternalMidiInCloseCallback(self, function):                
         """Set a callback for closing real time MIDI input."""
-        libcsound.csoundSetExternalMidiInCloseCallback(self.cs, MIDIINCLOSEFUNC(function))
+        self.extMidiInCloseCbRef = MIDIINCLOSEFUNC(function)
+        libcsound.csoundSetExternalMidiInCloseCallback(self.cs, self.extMidiInCloseCbRef)
     
     def setExternalMidiOutOpenCallback(self, function):
         """Set a callback for opening real-time MIDI input."""
-        libcsound.csoundSetExternalMidiOutOpenCallback(self.cs, MIDIOUTOPENFUNC(function))
+        self.extMidiOutOpenCbRef = MIDIOUTOPENFUNC(function)
+        libcsound.csoundSetExternalMidiOutOpenCallback(self.cs, self.extMidiOutOpenCbRef)
 
     def setExternalMidiWriteCallback(self, function):
         """Set a callback for reading from real time MIDI input."""
-        libcsound.csoundSetExternalMidiWriteCallback(self.cs, MIDIWRITEFUNC(function))
+        self.extMidiWriteCbRef = MIDIWRITEFUNC(function)
+        libcsound.csoundSetExternalMidiWriteCallback(self.cs, self.extMidiWriteCbRef)
     
     def setExternalMidiOutCloseCallback(self, function):
         """Set a callback for closing real time MIDI input."""
-        libcsound.csoundSetExternalMidiOutCloseCallback(self.cs, MIDIOUTCLOSEFUNC(function))
+        self.extMidiOutCloseCbRef = MIDIOUTCLOSEFUNC(function)
+        libcsound.csoundSetExternalMidiOutCloseCallback(self.cs, self.extMidiOutCloseCbRef)
 
     def setExternalMidiErrorStringCallback(self, function):
         """ Set a callback for converting MIDI error codes to strings."""
-        libcsound.csoundSetExternalMidiErrorStringCallback(self.cs, MIDIERRORFUNC(function))
+        self.extMidiErrStrCbRef = MIDIERRORFUNC(function)
+        libcsound.csoundSetExternalMidiErrorStringCallback(self.cs, self.extMidiErrStrCbRef)
     
     def setMidiDevListCallback(self, function):
         """Set a callback for obtaining a list of MIDI devices.
@@ -1237,7 +1295,8 @@ class Csound:
         This should be set by IO plugins and should not be set by hosts.
         (See midiDevList()).
         """
-        libcsound.csoundSetMIDIDeviceListCallback(self.cs, MIDIDEVLISTFUNC(function))
+        self.midiDevListCbRef = MIDIDEVLISTFUNC(function)
+        libcsound.csoundSetMIDIDeviceListCallback(self.cs, self.midiDevListCbRef)
 
     #Score Handling
     def readScore(self, sco):
@@ -1306,7 +1365,8 @@ class Csound:
         Pass None to reset to the internal cscore() function (which does
         nothing). This callback is retained after a reset() call.
         """
-        libcsound.csoundSetCscoreCallback(self.cs, CSCOREFUNC(function))
+        self.cscoreCbRef = CSCOREFUNC(function)
+        libcsound.csoundSetCscoreCallback(self.cs, self.cscoreCbRef)
     
     #def scoreSort(self, inFile, outFile):
     
@@ -1346,6 +1406,10 @@ class Csound:
     #def setDefaultMessageCallback():
     
     #def setMessageCallback():
+    
+    def messageLevel(self):
+        """Return the Csound message level (from 0 to 231)."""
+        return libcsound.csoundGetMessageLevel(self.cs)
     
     def setMessageLevel(self, messageLevel):
         """Set the Csound message level (from 0 to 231)."""
@@ -1587,11 +1651,13 @@ class Csound:
 
     def setInputChannelCallback(self, function):
         """Set the function to call whenever the invalue opcode is used."""
-        libcsound.csoundSetInputChannelCallback(self.cs, CHANNELFUNC(function))
+        self.inputChannelCbRef = CHANNELFUNC(function)
+        libcsound.csoundSetInputChannelCallback(self.cs, self.inputChannelCbRef)
     
     def setOutputChannelCallback(self, function):
         """Set the function to call whenever the outvalue opcode is used."""
-        libcsound.csoundSetOutputChannelCallback(self.cs, CHANNELFUNC(function))
+        self.outputChannelCbRef = CHANNELFUNC(function)
+        libcsound.csoundSetOutputChannelCallback(self.cs, self.outputChannelCbRef)
 
     def setPvsChannel(self, fin, name):
         """Send a PvsdatExt fin to the pvsin opcode (f-rate) for channel 'name'.
@@ -1668,7 +1734,8 @@ class Csound:
         The callbacks are cleared on cleanup().
         Return zero on success.
         """
-        return libcsound.csoundRegisterSenseEventCallback(self.cs, SENSEFUNC(function), py_object(userData))
+        self.senseEventCbRef = SENSEFUNC(function)
+        return libcsound.csoundRegisterSenseEventCallback(self.cs, self.senseEventCbRef, py_object(userData))
     
     def keyPress(self, c):
         """Set the ASCII code of the most recent key pressed.
@@ -1717,6 +1784,10 @@ class Csound:
         positive if the callback was ignored (for example because the type is
         not known).
         """
+        if type_ == CSOUND_CALLBACK_KBD_EVENT:
+            self.keyboardCbEventRef = KEYBOARDFUNC(function)
+        else:
+            self.keyboardCbTextRef = KEYBOARDFUNC(function)
         return libcsound.csoundRegisterKeyboardCallback(self.cs, KEYBOARDFUNC(function), py_object(userData), c_uint(type_))
     
     def removeKeyboardCallback(self, function):
@@ -1809,7 +1880,7 @@ class Csound:
         """
         s = create_string_buffer(nameLen)
         libcsound.csoundGetNamedGEN(self.cs, num, s, nameLen)
-        return pstring(s)
+        return pstring(string_at(s, nameLen))
     
     #Function Table Display
     def setIsGraphable(self, isGraphable):
@@ -1822,19 +1893,23 @@ class Csound:
     
     def setMakeGraphCallback(self, function):
         """Called by external software to set Csound's MakeGraph function."""
-        libcsound.csoundSetMakeGraphCallback(self.cs, MAKEGRAPHFUNC(function))
+        self.makeGraphCbRef = MAKEGRAPHFUNC(function)
+        libcsound.csoundSetMakeGraphCallback(self.cs, self.makeGraphCbRef)
         
     def setDrawGraphCallback(self, function):
         """Called by external software to set Csound's DrawGraph function."""
-        libcsound.csoundSetDrawGraphCallback(self.cs, DRAWGRAPHFUNC(function))
+        self.drawGraphCbRef = DRAWGRAPHFUNC(function)
+        libcsound.csoundSetDrawGraphCallback(self.cs, self.drawGraphCbRef)
     
     def setKillGraphCallback(self, function):
         """Called by external software to set Csound's KillGraph function."""
-        libcsound.csoundSetKillGraphCallback(self.cs, KILLGRAPHFUNC(function))
-    
+        self.killGraphCbRef = KILLGRAPHFUNC(function)
+        libcsound.csoundSetKillGraphCallback(self.cs, self.killGraphCbRef)
+                                                              
     def setExitGraphCallback(self, function):
         """Called by external software to set Csound's ExitGraph function."""
-        libcsound.csoundSetExitGraphCallback(self.cs, EXITGRAPHFUNC(function))
+        self.exitGraphCbRef = EXITGRAPHFUNC(function)
+        libcsound.csoundSetExitGraphCallback(self.cs, self.exitGraphCbRef)
     
     #Opcodes
     def namedGens(self):
@@ -1895,7 +1970,8 @@ class Csound:
         this function to do any kind of updating during the operation.
         Returns an 'OK to continue' boolean.
         """
-        libcsound.csoundSetYieldCallback(self.cs, YIELDFUNC(function))
+        self.yieldCbRef = YIELDFUNC(function)
+        libcsound.csoundSetYieldCallback(self.cs, self.yieldCbRef)
 
     def createThread(self, function, userdata):
         """Create and start a new thread of execution.

@@ -58,8 +58,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <eigen3/Eigen/Dense>
-#include <boost/random.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <random>
 %}
 #else
 #include <string>
@@ -67,8 +66,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <eigen3/Eigen/Dense>
-#include <boost/random.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <random>
 #include "Random.hpp"
 #endif
 
@@ -332,8 +330,8 @@ public:
   void toCsoundScore(std::string filename, double secondsPerPulse);
   void winners(int v1, int *data, int *best, int *best1, int *best2, int *durs);
 #if !defined(SWIG)
-  static boost::mt19937 mersenneTwister;
-  boost::variate_generator<boost::mt19937, boost::uniform_real<> > *uniform_real_generator;
+  static std::mt19937 mersenneTwister;
+  std::normal_distribution<> uniform_real_generator;
 #endif
 };
 

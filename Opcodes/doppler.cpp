@@ -22,20 +22,23 @@
  */
 #include <OpcodeBase.hpp>
 #include <cmath>
-#include <iostream>
 #include <list>
 #include <vector>
 
+#ifndef M_PI
+# define M_PI 3.14159265358979323846
+#endif
+
+using namespace csound;
+
 /* ***************  does not deal with unaligned signals ************** */
-// Why not use the constants already defined?
-static MYFLT pi = std::atan(1.0) * MYFLT(4.0);
 
 class RCLowpassFilter
 {
 public:
   void initialize(MYFLT sampleRate, MYFLT cutoffHz, MYFLT initialValue)
   {
-    MYFLT tau = MYFLT(1.0) / (MYFLT(2.0) * pi * cutoffHz);
+    MYFLT tau = MYFLT(1.0) / (MYFLT(2.0) * M_PI * cutoffHz);
     alpha = MYFLT(1.0) / (MYFLT(1.0) + (tau * sampleRate));
     value = initialValue;
   }
@@ -117,9 +120,6 @@ public:
   }
 };
 
-static std::list<RCLowpassFilter *> smoothingFilterInstances;
-static std::list<DelayLine *> delayLineInstances;
-
 class Doppler : public OpcodeNoteoffBase<Doppler>
 {
 public:
@@ -194,7 +194,7 @@ public:
                                   smoothingFilterCutoff, targetPosition);
       warn(csound, "Doppler::kontrol: sizeof(MYFLT):         %10d\n",
                     sizeof(MYFLT));
-      warn(csound, "Doppler::kontrol: PI:                    %10.3f\n", pi);
+      warn(csound, "Doppler::kontrol: PI:                    %10.3f\n", M_PI);
       warn(csound, "Doppler::kontrol: this:                  %10p\n", this);
       warn(csound, "Doppler::kontrol: sampleRate:            %10.3f\n", sampleRate);
       warn(csound, "Doppler::kontrol: blockSize:             %10.3f\n", blockSize);
@@ -294,12 +294,8 @@ extern "C"
       }
     };
 
-  PUBLIC int csoundModuleCreate(CSOUND *csound)
-  {
-    return 0;
-  }
 
-  PUBLIC int csoundModuleInit(CSOUND *csound)
+  PUBLIC int csoundModuleInit_doppler(CSOUND *csound)
   {
     int status = 0;
     for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
@@ -314,26 +310,20 @@ extern "C"
       }
     return status;
   }
+#ifndef INIT_STATIC_MODULES
+  PUBLIC int csoundModuleCreate(CSOUND *csound)
+  {
+    return 0;
+  }
+
+  PUBLIC int csoundModuleInit(CSOUND *csound)
+  {
+      return csoundModuleInit_doppler(csound);
+  }
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
-    //csound->Message(csound, "Deleting C++ objects from doppler...\n");
-    if (smoothingFilterInstances.size() > 0) {
-      for (std::list<RCLowpassFilter *>::iterator it=smoothingFilterInstances.begin();
-           it != smoothingFilterInstances.end();
-           ++it) {
-        delete *it;
-      }
-      smoothingFilterInstances.clear();
-    }
-    if (delayLineInstances.size() > 0) {
-      for (std::list<DelayLine *>::iterator it = delayLineInstances.begin();
-           it != delayLineInstances.end();
-           ++it) {
-        delete *it;
-      }
-      delayLineInstances.clear();
-  }
     return 0;
   }
+#endif
 }

@@ -61,7 +61,7 @@ TREE* tree_tail(TREE* node) {
     if (t == NULL) {
         return NULL;
     }
-    while(t->next != NULL) {
+    while (t->next != NULL) {
         t = t->next;
     }
     return t;
@@ -410,7 +410,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
     memset(op, 0, 80);
     current = root->left;
     newArgList = NULL;
-    while(current != NULL) {
+    while (current != NULL) {
       if (is_expression_node(current)) {
         TREE* newArg;
 
@@ -434,7 +434,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
     current = root->right;
     newArgList = NULL;
-    while(current != NULL) {
+    while (current != NULL) {
       if (is_expression_node(current)) {
         TREE* newArg;
 
@@ -883,7 +883,7 @@ void collapse_last_assigment(CSOUND* csound, TREE* anchor, TYPE_TABLE* typeTable
     }
     char *tmp1 = get_arg_type2(csound, b->left, typeTable);
     char *tmp2 = get_arg_type2(csound, b->right, typeTable);
-    if (b->type == '=' &&
+    if ((b->type == '=') &&
         !strcmp(a->left->value->lexeme, b->right->value->lexeme) &&
          tmp1 == tmp2) {
         a->left = b->left;

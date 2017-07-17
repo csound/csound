@@ -33,13 +33,9 @@
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
 
-#if defined(USE_OPENMP)
-#include <omp.h>
-#endif
-
 extern int UDPServerStart(CSOUND *csound, int port);
 extern  void    dieu(CSOUND *, char *, ...);
-extern  int     argdecode(CSOUND *, int, char **);
+extern  int     argdecode(CSOUND *, int, const char **);
 extern  int     init_pvsys(CSOUND *);
 //extern  char    *get_sconame(CSOUND *);
 extern  void    print_benchmark_info(CSOUND *, const char *);
@@ -104,7 +100,7 @@ static void checkOptions(CSOUND *csound)
 }
 
 
-PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
+PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
@@ -137,7 +133,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csound->delayederrormessages) {
       if (O->msglevel>8)
         csound->Warning(csound, "%s", csound->delayederrormessages);
-      free(csound->delayederrormessages);
+      csound->Free(csound, csound->delayederrormessages);
       csound->delayederrormessages = NULL;
     }
 
@@ -171,7 +167,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
       if (csound->orchname != NULL) {
       csound->csdname = csound->orchname; /* save original CSD name */
-#ifndef OLD
       {
         CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
         if (cf == NULL) {
@@ -183,12 +178,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
         }
         /* cf is deleted in read_unified_file4 */
       }
-#else
-      if (!read_unified_file(csound, &(csound->orchname),
-                                       &(csound->scorename))) {
-        csound->Die(csound, Str("Reading CSD failed ... stopping"));
-      }
-#endif
       csdFound = 1;
       }
     }
@@ -211,7 +200,11 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
 
     if (csound->scorename == NULL && csound->scorestr==NULL) {
       /* No scorename yet */
-      csound->scorestr = corfile_create_r("f0 800000000000.0\n");
+      csound->Message(csound, "scoreless operation\n");
+      // csound->scorestr = corfile_create_r("f0 800000000000.0 \n");
+      // VL 21-09-2016: it looks like #exit is needed for the
+      // new score parser to work.
+      csound->scorestr = corfile_create_r("\n#exit\n");
       corfile_flush(csound->scorestr);
       if (O->RTevents)
         csound->Message(csound, Str("realtime performance using dummy "
@@ -238,7 +231,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (csound->orchstr==NULL && csound->orchname) {
       /*  does not deal with search paths */
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
-      csound->orcLineOffset = 0;
+      csound->orcLineOffset = 1; /* Guess -- JPff */
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
       if (csound->orchstr==NULL)
         csound->Die(csound,
@@ -282,6 +275,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
     if (!csoundYield(csound))
       return -1;
     /* IV - Oct 31 2002: now we can read and sort the score */
+
     if (csound->scorename != NULL &&
         (n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
         (!strcmp(csound->scorename + (n - 4), ".srt") ||
@@ -299,6 +293,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, char **argv)
           csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }
       csound->Message(csound, Str("sorting score ...\n"));
+      //printf("score:\n%s", corfile_current(csound->scorestr));
       scsortstr(csound, csound->scorestr);
       if (csound->keep_tmp) {
         FILE *ff = fopen("score.srt", "w");
@@ -471,12 +466,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
 
     if (O->numThreads > 1) {
-      void csp_barrier_alloc(CSOUND *, pthread_barrier_t **, int);
+      void csp_barrier_alloc(CSOUND *, void **, int);
       int i;
       THREADINFO *current = NULL;
-
-      csound->multiThreadedBarrier1 = csound->CreateBarrier(O->numThreads);
-      csound->multiThreadedBarrier2 = csound->CreateBarrier(O->numThreads);
 
       csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
       csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
@@ -508,7 +500,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     return musmon(csound);
 }
 
-PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
+PUBLIC int csoundCompile(CSOUND *csound, int argc, const char **argv){
 
     int result = csoundCompileArgs(csound,argc,argv);
 
@@ -516,68 +508,42 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, char **argv){
     else return result;
 }
 
-PUBLIC int csoundCompileCsd(CSOUND *csound, char *str) {
-#ifndef OLD
+PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
     CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
-    if(tt != NULL){
-    int res = csoundCompileCsdText(csound, tt->body);
-    corfile_rm(&tt);
-    return res;
-    }
-    return CSOUND_ERROR;
-#else
-    if ((csound->engineStatus & CS_STATE_COMP) == 0) {
-      char *argv[2] = { "csound", (char *) str };
-      int argc = 2;
-      return csoundCompile(csound, argc, argv);
-    }
-    else {
-      int res = read_unified_file2(csound, (char *) str);
-      if (res) {
-        res = csoundCompileOrc(csound, NULL);
-        if (res == CSOUND_SUCCESS){
-          csoundLockMutex(csound->API_lock);
-          char *sc = scsortstr(csound, csound->scorestr);
-          csoundInputMessageInternal(csound, (const char *) sc);
-          free(sc);
-          csoundUnlockMutex(csound->API_lock);
-          return CSOUND_SUCCESS;
-        }
-      }
+    if (LIKELY(tt != NULL)) {
+      int res = csoundCompileCsdText(csound, tt->body);
+      corfile_rm(&tt);
       return res;
     }
-#endif
+    return CSOUND_ERROR;
 }
 
 PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
-#ifndef OLD
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csd_text));
     if (res) {
-      csound->csdname = strdup("*string*"); /* Mark asfrom text */
+      if (csound->csdname != NULL) csound->Free(csound, csound->csdname);
+      csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
       res = csoundCompileOrc(csound, NULL);
       if (res == CSOUND_SUCCESS){
         csoundLockMutex(csound->API_lock);
         char *sc = scsortstr(csound, csound->scorestr);
-        if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          csoundInputMessageInternal(csound, (const char *) sc);
+        if (sc) {
+          if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+            csound->Message(csound,
+                            Str("\"Real-time\" performance (engineStatus: %d).\n"),
+                            csound->engineStatus);
+            csoundInputMessageInternal(csound, (const char *) sc);
+            csound->Free(csound, sc);
+          } else {
+            csound->Message(csound,
+                            Str("\"Non-real-time\" performance "
+                                "(engineStatus: %d).\n"), csound->engineStatus);
+          }
         }
-        //free(sc);
         csoundUnlockMutex(csound->API_lock);
       }
     }
     return res;
-#else
-    FILE *temporary_file;
-    char temporary_filename[L_tmpnam];
-    int result = CSOUND_SUCCESS;
-    tmpnam(temporary_filename);
-    temporary_file = fopen(temporary_filename, "w+");
-    fwrite(csd_text, sizeof(char), strlen(csd_text), temporary_file);
-    fclose(temporary_file);
-    result = csoundCompileCsd(csound, temporary_filename);
-    remove(temporary_filename);
-    return result;
-#endif
 }

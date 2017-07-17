@@ -47,18 +47,18 @@ extern void csound_orcrestart(FILE*, void *);
 extern int csound_orcdebug;
 
 extern void print_csound_predata(void *);
-extern void csound_prelex_init(void *);
+extern int csound_prelex_init(void *);
 extern void csound_preset_extra(void *, void *);
 
-extern void csound_prelex(CSOUND*, void*);
-extern void csound_prelex_destroy(void *);
+extern int csound_prelex(CSOUND*, void*);
+extern int csound_prelex_destroy(void *);
 
 extern void csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
-extern void csound_orclex_init(void *);
+extern int csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
 extern void csound_orcset_lineno(int, void*);
-extern void csound_orclex_destroy(void *);
+extern int csound_orclex_destroy(void *);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
@@ -89,7 +89,7 @@ uint64_t make_location(PRE_PARM *qq)
 }
 
 // Code to add #includes of UDOs
-void add_include_udo_dir(CORFIL *xx)
+static void add_include_udo_dir(CORFIL *xx)
 {
 #if defined(HAVE_DIRENT_H)
     char *dir = getenv("CS_UDO_DIR");
@@ -106,7 +106,7 @@ void add_include_udo_dir(CORFIL *xx)
           int n = (int)strlen(fname);
           //printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
-            strcpy(buff, "#include \"");
+            strlcat(buff, "#include \"", 1024);
             strlcat(buff, dir, 1024);
             strlcat(buff, "/", 1024);
             strlcat(buff, fname, 1024);
@@ -215,14 +215,14 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //printf("%p \n", astTree);
       err = csound_orcparse(&pp, pp.yyscanner, csound, &astTree);
       //printf("%p \n", astTree);
-      // print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
+      //print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
       corfile_rm(&csound->expanded_orc);
       /*if (csound->oparms->odebug) csp_orc_sa_print_list(csound);*/
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
-        if(csound->oparms->odebug) csound->Message(csound,
-                                                   Str("Parsing successful!\n"));
+        if (csound->oparms->odebug) csound->Message(csound,
+                                                    Str("Parsing successful!\n"));
       }
       else {
         if (err == 1){
@@ -300,7 +300,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
 
       astTree = csound_orc_optimize(csound, astTree);
-
+      //print_tree(csound, "AST after optmize", astTree);
       // small hack: use an extra node as head of tree list to hold the
       // typeTable, to be used during compilation
       newRoot = make_leaf(csound, 0, 0, 0, NULL);

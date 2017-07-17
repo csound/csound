@@ -143,18 +143,25 @@ int lsgset(CSOUND *csound, LINSEG *p)
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
-    if (UNLIKELY((segp = (SEG *) p->auxch.auxp) == NULL ||
-                 nsegs*sizeof(SEG) < (unsigned int)p->auxch.size)) {
-      csound->AuxAlloc(csound, (int32)nsegs*sizeof(SEG), &p->auxch);
-      p->cursegp = segp = (SEG *) p->auxch.auxp;
+    /* VL: 29.05.17 allocating one extra empty segment
+       so that the breakpoint version of this opcode
+       can work properly without a fencepost bug */
+    if (UNLIKELY((p->cursegp = (SEG *) p->auxch.auxp) == NULL ||
+                 (nsegs+1)*sizeof(SEG) < (unsigned int)p->auxch.size)) {
+      csound->AuxAlloc(csound, (int32)(nsegs+1)*sizeof(SEG), &p->auxch);
+      p->cursegp = (SEG *) p->auxch.auxp;
+      segp = p->cursegp + 1; /* point to first seg */
+      p->cursegp->cnt = 0;   /* zero duration of segment 0  */
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
-    }
+    } else segp = p->cursegp + 1; /* point to first seg */
     argp = p->argums;
     val = (double)**argp++;
     if (UNLIKELY(**argp <= FL(0.0)))  return OK;    /* if idur1 <= 0, skip init  */
     p->curval = val;
     p->curcnt = 0;
-    p->cursegp = segp - 1;          /* else setup null seg0 */
+    /* VL: 29.05.17 this was causing a fencepost error in
+       the breakpoint version (linsegb) */
+    //p->cursegp = segp - 1;          /* else setup null seg0 */
     p->segsrem = nsegs + 1;
     do {                                /* init each seg ..  */
       double dur = (double)**argp++;
@@ -959,7 +966,7 @@ int mxdsrset(CSOUND *csound, EXPSEG *p)
     segp[3].cnt = (int32) (rel*CS_EKR + FL(0.5));
     segp[3].acnt = (int32) (rel*CS_ESR + FL(0.5));
     relestim = (int)(p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = (int32)(*argp[5] * CS_EKR + FL(0.5));     /* Release time?? */
+    p->xtra = relestim;//(int32)(*argp[5] * CS_EKR + FL(0.5)); /* Release time?? */
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = relestim;
     return OK;

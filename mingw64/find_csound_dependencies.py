@@ -14,10 +14,16 @@ import subprocess
 do_copy = False
 csound_directory = r'D:\msys64\home\restore\csound'
 globs = '*.exe *.dll *.so *.node *.pyd *.py *.pdb *.jar'
+ldd_globs = '*.exe *.dll *.so *.node *.pyd'
 ldd_filepath = r'D:\msys64\usr\bin\ldd'
 
 def exclude(filepath):
-    if fnmatch.fnmatch(filepath, '''*/examples/*'''):
+    # Wrong case!
+    if filepath.endswith('CSOUND64.dll'):
+        return True
+    if fnmatch.fnmatch(filepath, '''*/python27.dll'''):
+        return True
+    if fnmatch.fnmatch(filepath, '''*/android/*'''):
         return True
     if fnmatch.fnmatch(filepath, '''*/frontends/*'''):
         return True
@@ -40,6 +46,8 @@ def exclude(filepath):
     if fnmatch.fnmatch(filepath, '''*/Windows/*'''):
         return True
     if fnmatch.fnmatch(filepath, '''*/csound-msvs/*'''):
+        return True
+    if fnmatch.fnmatch(filepath, '''*/msvc/deps/*'''):
         return True
     if fnmatch.fnmatch(filepath, '''*/???'''):
         return True
@@ -104,27 +112,33 @@ targets = set()
 dependencies = set()
 # In order to identify what file some dependency is for.
 with open('mingw64/csound_ldd.txt', 'w') as f:
+    print 'f:', f
     for dirpath, dirnames, files in os.walk('.'):
         for glob in globs.split(' '):
             matches = fnmatch.filter(files, glob)
             for match in matches:
                 filepath = os.path.join(dirpath, match)
-                if filepath.find('Setup_Csound6_') == -1:
+                print 'filepath:', filepath
+                if (filepath.find('Setup_Csound6_') == -1) and (filepath.find('msvc') == -1):
                     targets.add(filepath)
-        dependencies = set()
     for target in sorted(targets):
         dependencies.add(target)
-        popen = subprocess.Popen([ldd_filepath, target], stdout = subprocess.PIPE)
-        output = popen.communicate()[0]
-        f.write(target + '\n')
-        if len(output) > 1:
-            f.write(output + '\n')
-        for line in output.split('\n'):
-            parts = line.split()
-            if len(parts) > 2:
-                dependencies.add(parts[2])
-            elif len(parts) > 0:
-                dependencies.add(parts[0])
+        print 'target:', target
+        for ldd_glob in ldd_globs.split():
+            if fnmatch.fnmatch(target, ldd_glob):
+                print 'match: ', target
+                popen = subprocess.Popen([ldd_filepath, target], stdout = subprocess.PIPE)
+                output = popen.communicate()[0]
+                print 'output:', output
+                f.write(target + '\n')
+                if len(output) > 1:
+                    f.write(output + '\n')
+                for line in output.split('\n'):
+                    parts = line.split()
+                    if len(parts) > 2:
+                        dependencies.add(parts[2])
+                    elif len(parts) > 0:
+                        dependencies.add(parts[0])
 print
 print 'CSOUND TARGETS AND DEPENDENCIES'
 print
@@ -132,14 +146,19 @@ dependencies = sorted(dependencies)
 nonsystem_dependencies = set()
 for dependency in dependencies:
     realpath = os.path.abspath(dependency)
+    print 'realpath:', realpath
     # Fix up MSYS pathname confusion.
-    realpath = realpath.replace('''D:/''', '''D:/msys64/''')
-    realpath = realpath.replace('''D:/msys64/msys64/''', '''D:/msys64/''')
+    realpath = realpath.replace('\\home\\restore\\', '\\msys64\\home\\restore\\')
+    realpath = realpath.replace('D:\\c\\', 'C:\\')
+    realpath = realpath.replace('D:\\', 'D:\\msys64\\')
+    realpath = realpath.replace('D:\\msys64\\msys64\\', 'D:\\msys64\\')
+    realpath = realpath.replace('D:\\msys64\\msys64\\', 'D:\\msys64\\')
+    print 'fixed   :', realpath
     nonsystem_dependencies.add(realpath)
 nonsystem_dependencies = sorted(nonsystem_dependencies)
 with open('installer/windows/csound_targets_and_dependencies.iss', 'w') as f:
     for dependency in nonsystem_dependencies:
         if not exclude(dependency):
-            print dependency
+            print 'dependency:', dependency
             line = emit(dependency)
             f.write(line)

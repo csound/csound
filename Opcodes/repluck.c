@@ -95,7 +95,7 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
 
                                 /* Set initial shape */
     if (plk != FL(0.0)) {
-      initial_shape = (MYFLT*) malloc(rail_len*sizeof(MYFLT));
+      initial_shape = (MYFLT*) csound->Malloc(csound, rail_len*sizeof(MYFLT));
       if (pickpt < 1) pickpt = 1;       /* Place for pluck, in range (0,1.0) */
       upslope = FL(1.0)/(MYFLT)pickpt; /* Slightly faster to precalculate */
       downslope = FL(1.0)/(MYFLT)(rail_len - pickpt - 1);
@@ -107,7 +107,7 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
         upper_rail->data[i] = FL(0.5) * initial_shape[i];
       for (i=0; i<rail_len; i++)
         lower_rail->data[i] = FL(0.5) * initial_shape[i];
-      free(initial_shape);
+      csound->Free(csound,initial_shape);
     }
     else {
       memset(upper_rail->data, 0, rail_len*sizeof(MYFLT));

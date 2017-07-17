@@ -8,21 +8,26 @@ else
   echo "Using branch: $BRANCH_NAME"
 fi
 
+if [ $# -gt 1 ]; then
+  export CS_VERSION=$2
+else
+  export CS_VERSION="6"
+fi
+echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
-export CS_VERSION="6.07"
 export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
-export DMG_DIR="Csound ${CS_VERSION}"
+export DMG_DIR="Csound${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-OSX-universal.dmg"
 
-export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/
+export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
 export TARGET=10.7
 export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
 
-if [ $# -gt 1 ]; then
-	cd $2
-	echo "Using directory $2 `pwd`"
+if [ $# -gt 2 ]; then
+	cd $3
+	echo "Using directory $3 `pwd`"
         export INSTALLER_DIR=`pwd`/installer
         rm -rf installer 
 	rm -rf csound6/build/dist
@@ -49,8 +54,8 @@ mkdir build
 cd build
 export BUILD_DIR=`pwd`
 # RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/faust/libfaust.a  -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/faust/libfaust.a -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a  -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_CSOUND_AC=1 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1
 make -j6 install
 
 cd ../..
@@ -146,7 +151,7 @@ cp $DEPS_BASE/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libpng16.16.dylib $SUPPORT_LIBS_DIR
-cp $DEPS_BASE/lib/libFLAC.8.2.0.dylib $SUPPORT_LIBS_DIR
+cp $DEPS_BASE/lib/libFLAC.8.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
@@ -167,7 +172,7 @@ install_name_tool -id libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
 install_name_tool -id libportaudio.2.dylib $SUPPORT_LIBS_DIR/libportaudio.2.dylib
 install_name_tool -id libportmidi.dylib $SUPPORT_LIBS_DIR/libportmidi.dylib
 install_name_tool -id libpng16.16.dylib $SUPPORT_LIBS_DIR/libpng16.16.dylib
-install_name_tool -id libFLAC.8.2.0.dylib $SUPPORT_LIBS_DIR/libFLAC.8.2.0.dylib
+install_name_tool -id libFLAC.8.dylib $SUPPORT_LIBS_DIR/libFLAC.8.dylib
 install_name_tool -id libvorbisenc.2.dylib $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 install_name_tool -id libvorbis.0.dylib $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -id libogg.0.dylib $SUPPORT_LIBS_DIR/libogg.0.dylib
@@ -191,10 +196,10 @@ install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libsndfile
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 
-export OLD_FLAC_LIB=/usr/local/lib/libFLAC.8.2.0.dylib
-export NEW_FLAC_LIB=@loader_path/libFLAC.8.2.0.dylib
+export OLD_FLAC_LIB=/usr/local/lib/libFLAC.8.dylib
+export NEW_FLAC_LIB=@loader_path/libFLAC.8.dylib
 install_name_tool -change $OLD_FLAC_LIB $NEW_FLAC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.8.2.0.dylib
+install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.8.dylib
 
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
@@ -211,8 +216,8 @@ install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/.
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
 
 # absolute path in _csnd6.so
-install_name_tool -change libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
-install_name_tool -change libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framewok/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
+install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
+install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framewok/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
 install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
@@ -231,6 +236,8 @@ install_name_tool -change CsoundLib64.framework/Versions/6.0/CsoundLib64  /Libra
 install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Java/lib_jcsound6.jnilib
 
+# Python Library now needs to be re-set to /Library/Frameworks 
+install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python /Library/Frameworks/Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
@@ -285,7 +292,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-d-py-cs6-0.9.2.1.dmg .
+cp  ../../../DmgResources/CsoundQt-0.9.4-OSX.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..

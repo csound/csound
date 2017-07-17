@@ -421,10 +421,11 @@ static int fouta_flush_callback(CSOUND *csound, void *p_)
     return OK;
 }
 
-static int outfile_set_(CSOUND *csound, OUTFILE *p, int istring)
+static int outfile_set_S(CSOUND *csound, OUTFILE *p/*, int istring*/)
 {
     SF_INFO sfinfo;
     int     format_, n, buf_reqd;
+    int istring = 1;
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     format_ = (int) MYFLT2LRND(*p->iflag);
@@ -468,13 +469,13 @@ static int outfile_set_(CSOUND *csound, OUTFILE *p, int istring)
     return OK;
 }
 
-static int outfile_set(CSOUND *csound, OUTFILE *p){
-  return outfile_set_(csound,p,0);
-}
+/* static int outfile_set(CSOUND *csound, OUTFILE *p){ */
+/*   return outfile_set_(csound,p,0); */
+/* } */
 
-static int outfile_set_S(CSOUND *csound, OUTFILE *p){
-  return outfile_set_(csound,p,1);
-}
+/* static int outfile_set_S(CSOUND *csound, OUTFILE *p){ */
+/*   return outfile_set_(csound,p,1); */
+/* } */
 
 static int outfile_set_A(CSOUND *csound, OUTFILEA *p)
 {
@@ -1553,8 +1554,8 @@ static OENTRY localops[] = {
         (SUBR) outfile_set_S,     (SUBR) NULL,        (SUBR) outfile, NULL},
     { "fout.A",     S(OUTFILEA),    0, 5,  "",     "Sia[]",
         (SUBR) outfile_set_A,     (SUBR) NULL,        (SUBR) outfile_array, NULL},
-    { "fout.i",       S(OUTFILE),     0, 5,  "",     "iiy",
-        (SUBR) outfile_set,     (SUBR) NULL,        (SUBR) outfile, NULL},
+    /* { "fout.i",       S(OUTFILE),     0, 5,  "",     "iiy", */
+    /*     (SUBR) outfile_set,     (SUBR) NULL,        (SUBR) outfile, NULL}, */
     { "foutk",      S(KOUTFILE),    0, 3,  "",     "Siz",
         (SUBR) koutfile_set_S,    (SUBR) koutfile,    (SUBR) NULL, NULL },
         { "foutk.i",      S(KOUTFILE),    0, 3,  "",     "iiz",

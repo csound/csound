@@ -315,18 +315,18 @@ static int delete_channel_db(CSOUND *csound, void *p)
 
     if (head != NULL) {
       while(values != NULL) {
-          CHNENTRY* entry = values->value;
+        CHNENTRY* entry = values->value;
 
-          if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
-            csound->Free(csound, entry->hints.attributes);
-          }
-          /* SY - 2014.07.14 - Don't free entry->data and rely on Csound memory db
-            to free it; fixes issue with RTTI and chnexport of a global var, which
-            maps to the CS_VAR_MEM's memblock, which is not what is allocated; other
+        if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
+          csound->Free(csound, entry->hints.attributes);
+        }
+        /* SY - 2014.07.14 - Don't free entry->data and rely on Csound memory db
+           to free it; fixes issue with RTTI and chnexport of a global var, which
+           maps to the CS_VAR_MEM's memblock, which is not what is allocated; other
            vars will be freed since they were Calloc'd */
-/*          csound->Free(csound, entry->data); */
-          entry->datasize = 0;
-          values = values->next;
+        /*          csound->Free(csound, entry->data); */
+        entry->datasize = 0;
+        values = values->next;
       }
       cs_cons_free(csound, head);
     }
@@ -339,7 +339,7 @@ static int delete_channel_db(CSOUND *csound, void *p)
 static inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
 {
     if (csound->chn_db != NULL && name[0]) {
-        return (CHNENTRY*) cs_hash_table_get(csound, csound->chn_db, (char*) name);
+      return (CHNENTRY*) cs_hash_table_get(csound, csound->chn_db, (char*) name);
     }
     return NULL;
 }
@@ -358,19 +358,19 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
     CHNENTRY      *pp;
     int           dsize = 0;
     switch (type & CSOUND_CHANNEL_TYPE_MASK) {
-      case CSOUND_CONTROL_CHANNEL:
-        dsize = sizeof(MYFLT);
-        break;
-      case CSOUND_AUDIO_CHANNEL:
-        dsize = ((int)sizeof(MYFLT) * csound->ksmps);
-        break;
-      case CSOUND_STRING_CHANNEL:
-        dsize = (sizeof(STRINGDAT));
-        break;
-      case CSOUND_PVS_CHANNEL:
-        dsize = (sizeof(PVSDATEXT));
-        break;
-      }
+    case CSOUND_CONTROL_CHANNEL:
+      dsize = sizeof(MYFLT);
+      break;
+    case CSOUND_AUDIO_CHANNEL:
+      dsize = ((int)sizeof(MYFLT) * csound->ksmps);
+      break;
+    case CSOUND_STRING_CHANNEL:
+      dsize = (sizeof(STRINGDAT));
+      break;
+    case CSOUND_PVS_CHANNEL:
+      dsize = (sizeof(PVSDATEXT));
+      break;
+    }
     pp = (CHNENTRY *) csound->Calloc(csound,
                                      (size_t) sizeof(CHNENTRY) + strlen(name) + 1);
     if (pp == NULL) return (CHNENTRY*) NULL;
@@ -508,8 +508,10 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
       return 0;
 
     /* create list, initially in unsorted order */
-    // TODO - should this be malloc or csound->Malloc?
-    *lst = (controlChannelInfo_t*) malloc(n * sizeof(controlChannelInfo_t));
+    //  csound->Malloc and the caller has to free it.
+    // if not, it will be freed on reset
+    *lst = (controlChannelInfo_t*) csound->Malloc(csound,
+                                                  n * sizeof(controlChannelInfo_t));
     if (UNLIKELY(*lst == NULL))
       return CSOUND_MEMORY;
 
@@ -531,8 +533,8 @@ PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
 
 PUBLIC void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
 {
-    (void) csound;
-    if (lst != NULL) free(lst);
+  //(void) csound;
+    if (lst != NULL) csound->Free(csound, lst);
 }
 
 PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
@@ -1342,7 +1344,7 @@ int sensekey_perf(CSOUND *csound, KSENSE *p)
             return NOTOK;
           }
           //if n==0 then EOF which we treat as empty
-          else ch = '\0';
+          if(n==0) ch = '\0';
           keyCode = (int)((unsigned char) ch);
           /* FD_ISSET(0, &rfds) will be true. */
         }

@@ -40,7 +40,7 @@ char *csound_orcget_text ( void *scanner );
 int is_label(char* ident, CONS_CELL* labelList);
 int is_reserved(char* varName);
 
-extern int csound_orcget_locn(void *);
+extern uint64_t csound_orcget_locn(void *);
 extern  char argtyp2(char*);
 extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
@@ -288,7 +288,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           } else if (var->varType == &CS_VAR_TYPE_A) {
             return cs_strdup(csound, "k");
           }
-            
           synterr(csound,
                   Str("invalid array type %s line %d\n"), var->varType->varTypeName, tree->line);
           return NULL;
@@ -334,7 +333,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       }
 
-      // Deal with odd case if i(expressions)
+      // Deal with odd case of i(expressions)
       if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
         //print_tree(csound, "i()", tree);
         if (tree->right->type == T_ARRAY &&
@@ -403,8 +402,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
           synterr(csound,
-                  Str("Unable to verify arg types for expression '%s'\n"),
-                  opname);
+                  Str("Unable to verify arg types for expression '%s'\n"
+                      "Line %d\n"),
+                  opname, tree->line);
           do_baktrace(csound, tree->locn);
           return NULL;
         }
@@ -416,7 +416,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         len1 = strlen(argTypeLeft);
         len2 = strlen(argTypeRight);
-        inArgTypes = malloc(len1 + len2 + 1);
+        inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
         strncpy(inArgTypes, argTypeLeft, len1);
         strncpy(inArgTypes + len1, argTypeRight, len2);
@@ -431,14 +431,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                               "types %s not found, line %d \n"),
                   opname, inArgTypes, tree->line);
           do_baktrace(csound, tree->locn);
-          free(inArgTypes);
+          csound->Free(csound, inArgTypes);
           return NULL;
         }
 
         csound->Free(csound, argTypeLeft);
         csound->Free(csound, argTypeRight);
-          
-        free(inArgTypes);
+        csound->Free(csound, inArgTypes);
         return cs_strdup(csound, out);
 
       } else {
@@ -459,8 +458,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
         synterr(csound,
-                Str("Unable to verify arg types for boolean expression '%s'\n"),
-                opname);
+                Str("Unable to verify arg types for boolean expression '%s'\n"
+                    "Line %d\n"),
+                opname, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -469,7 +469,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       len1 = strlen(argTypeLeft);
       len2 = strlen(argTypeRight);
-      inArgTypes = malloc(len1 + len2 + 1);
+      inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
       strncpy(inArgTypes, argTypeLeft, len1);
       strncpy(inArgTypes + len1, argTypeRight, len2);
@@ -484,13 +484,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                             "types %s not found, line %d \n"),
                 opname, inArgTypes, tree->line);
         do_baktrace(csound, tree->locn);
-        free(inArgTypes);
+        csound->Free(csound, inArgTypes);
         return NULL;
       }
 
       csound->Free(csound, argTypeLeft);
       csound->Free(csound, argTypeRight);
-      free(inArgTypes);
+      csound->Free(csound, inArgTypes);
       return cs_strdup(csound, out);
 
     }
@@ -552,8 +552,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                          tree->value->lexeme);
 
       if (UNLIKELY(var == NULL)) {
-        synterr(csound, Str("Variable '%s' used before defined\n"),
-                tree->value->lexeme);
+        synterr(csound, Str("Variable '%s' used before defined\n"
+                            "Line %d\n"),
+                tree->value->lexeme, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -718,13 +719,13 @@ int check_array_arg(char* found, char* required) {
     char* f = found;
     char* r = required;
 
-    while(*r == '[') r++;
+    while (*r == '[') r++;
 
     if (*r == '.' || *r == '?' || *r == '*') {
       return 1;
     }
 
-    while(*f == '[') f++;
+    while (*f == '[') f++;
 
     return (*f == *r);
 }
@@ -1038,8 +1039,8 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
     int i;
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
-        if (!strcmp(inArgTypes, temp->intypes) &&
-            !strcmp(outArgTypes, temp->outypes)) {
+        if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
+            temp->outypes != NULL && !strcmp(outArgTypes, temp->outypes)) {
             return temp;
         }
     }
@@ -1350,7 +1351,8 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                                varName);
             if(var == NULL) {
               synterr(csound,
-                      Str("Variable '%s' used before defined\n"), varName);
+                      Str("Variable '%s' used before defined\nline %d"),
+                      varName, tree->line);
               do_baktrace(csound, tree->locn);
               return 0;
             }
@@ -1372,7 +1374,9 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                                varName);
             if (var == NULL) {
               synterr(csound,
-                      Str("Variable '%s' used before defined\n"), varName);
+                      Str("Variable '%s' used before defined\nLine %d\n"),
+                      varName, current->left->line);
+              do_baktrace(csound, current->left->locn);
              return 0;
             }
           }
@@ -1843,7 +1847,18 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csound->Free(csound, entries);
 
       return 0;
-    } else {
+    }
+    else {
+      if (csound->oparms->sampleAccurate &&
+          (strcmp(oentry->opname, "=.a")==0) &&
+          left->value->lexeme[0]=='a') { /* Deal with sampe accurate assigns */
+        int i = 0;
+        while (strcmp(entries->entries[i]->opname, "=.l")) {
+          printf("not %d %s\n",i, entries->entries[i]->opname);
+          i++;
+        }
+        oentry = entries->entries[i];
+      }
       root->markup = oentry;
     }
     csound->Free(csound, leftArgString);
@@ -1947,7 +1962,7 @@ int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       //TREE *tempRight;
       TREE* current = root;
 
-      while(current != NULL) {
+      while (current != NULL) {
         //tempLeft = current->left;
         //tempRight = current->right;
 
@@ -2165,7 +2180,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
      xin/xout statements exist if UDO in and out args are not 0 */
 int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     if(udoTree->right == NULL) {
-        return 1;
+      return 1;
     }
     TREE* outArgsTree = udoTree->left->left;
     TREE* inArgsTree = udoTree->left->right;
@@ -2177,39 +2192,39 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     unsigned int i;
 
     for (i = 0; i < strlen(inArgs);i++) {
-        if (inArgs[i] == 'K') {
-            inArgs[i] = 'k';
-        }
+      if (inArgs[i] == 'K') {
+        inArgs[i] = 'k';
+      }
     }
 
     for (i = 0; i < strlen(outArgs);i++) {
-        if (outArgs[i] == 'K') {
-            outArgs[i] = 'k';
-        }
+      if (outArgs[i] == 'K') {
+        outArgs[i] = 'k';
+      }
     }
 
-    while(current != NULL) {
-        if (current->value != NULL) {
-            if (strcmp("xin", current->value->lexeme) == 0) {
-                if(xinArgs != NULL) {
-                    synterr(csound,
-                            Str("Multiple xin statements found. "
-                                "Only one is allowed."));
-                    return 0;
-                }
-                xinArgs = current->left;
-            }
-            if (strcmp("xout", current->value->lexeme) == 0) {
-                if(xoutArgs != NULL) {
-                    synterr(csound,
-                            Str("Multiple xout statements found. "
-                                "Only one is allowed."));
-                    return 0;
-                }
-                xoutArgs = current->right;
-            }
+    while (current != NULL) {
+      if (current->value != NULL) {
+        if (strcmp("xin", current->value->lexeme) == 0) {
+          if(xinArgs != NULL) {
+            synterr(csound,
+                    Str("Multiple xin statements found. "
+                        "Only one is allowed."));
+            return 0;
+          }
+          xinArgs = current->left;
         }
-        current = current->next;
+        if (strcmp("xout", current->value->lexeme) == 0) {
+          if(xoutArgs != NULL) {
+            synterr(csound,
+                    Str("Multiple xout statements found. "
+                        "Only one is allowed."));
+            return 0;
+          }
+          xoutArgs = current->right;
+        }
+      }
+      current = current->next;
     }
 
     char* inArgsFound = get_arg_string_from_tree(csound, xinArgs, typeTable);
@@ -2225,7 +2240,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
       }
     }
 
-    if (!check_out_args(csound, outArgsFound, outArgs)) {
+    if (!check_in_args(csound, outArgsFound, outArgs)) {
       if (!(strcmp("0", outArgs) == 0 && xoutArgs == NULL)) {
         synterr(csound,
                 Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
@@ -2251,7 +2266,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     typeTable->labelList = get_label_list(csound, root);
 
     //if(root->value)
-    //printf("verify %p %p (%s) \n", root, root->value, root->value->lexeme);
+    //printf("###verify %p %p (%s) \n", root, root->value, root->value->lexeme);
 
     if (PARSER_DEBUG) csound->Message(csound, "Verifying AST\n");
 
@@ -2408,7 +2423,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if(!verify_opcode(csound, current, typeTable)) {
           return 0;
         }
-
+        //print_tree(csound, "verify_tree", current);
         if (is_statement_expansion_required(current)) {
           current = expand_statement(csound, current, typeTable);
             
@@ -2441,7 +2456,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
 
 /* BISON PARSER FUNCTION */
-int csound_orcwrap()
+int csound_orcwrap(void* dummy)
 {
 #ifdef DEBUG
     printf("\n === END OF INPUT ===\n");
@@ -2604,7 +2619,8 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     ans->markup = NULL;
     //if(ans->value)
     // printf("make leaf %p %p (%s) \n", ans, ans->value, ans->value->lexeme);
-    csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
+    csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
+                     __LINE__, line);
     return ans;
 }
 
@@ -2974,8 +2990,8 @@ void handle_optional_args(CSOUND *csound, TREE *l)
       char** inArgParts = NULL;
 
       if (UNLIKELY(ep==NULL)) { /* **** FIXME **** */
-        printf("THIS SHOULD NOT HAPPEN -- ep NULL %s(%d)\n",
-               __FILE__, __LINE__);
+        printf("THIS SHOULD NOT HAPPEN -- ep NULL csound_orc-semantics(%d)\n",
+               __LINE__);
       }
       if (ep->intypes != NULL) {
         nreqd = argsRequired(ep->intypes);

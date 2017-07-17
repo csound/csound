@@ -135,12 +135,16 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
     }
     if (new_format) {
 
-        ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "w",
+      ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "w",
                                      "SFDIR", CSFTYPE_CVANAL, 0);
       if (ofd_handle == NULL) {                   /* open the output CV file */
         return quit(csound, Str("cannot create output file"));
       }                                           /* & wrt hdr into the file */
-      fprintf(ofd, "CVANAL\n%d %d %d %a %d %d %d %d\n",
+      #if defined(USE_DOUBLE)
+      fprintf(ofd, "CVANAL\n%d %d %d %.17lg %d %d %d %d\n",
+      #else
+      fprintf(ofd, "CVANAL\n%d %d %d %.9g %d %d %d %d\n",
+      #endif
               cvh->headBsize,              /* total number of bytes of data */
               cvh->dataBsize,              /* total number of bytes of data */
               cvh->dataFormat,             /* (int) format specifier */
@@ -215,7 +219,13 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
       if (nf) {
         int32 i, l;
         l = (cvh->dataBsize/nchanls)/sizeof(MYFLT);
-        for (i=0; i<l; i++) fprintf(ofd, "%a\n", (double)outbuf[i]);
+        for (i=0; i<l; i++) {
+            #if defined(USE_DOUBLE)
+            fprintf(ofd, "%.17lg\n", (double)outbuf[i]);
+            #else
+            fprintf(ofd, "%.9g\n", (double)outbuf[i]);
+            #endif
+        }
       }
       else
         if (UNLIKELY(1!=fwrite(outbuf, cvh->dataBsize/nchanls, 1, ofd)))

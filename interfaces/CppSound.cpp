@@ -28,7 +28,7 @@
 #include <cstring>
 #include <ctime>
 
-extern "C" int argdecode(CSOUND *csound, int argc, char **argv_);
+extern "C" int argdecode(CSOUND *csound, int argc, const char **argv_);
 
 /*CppSound::CppSound() : Csound(),
                        go(false),
@@ -45,7 +45,7 @@ CppSound::~CppSound()
 {
 }
 
-int CppSound::compile(int argc, char **argv_)
+int CppSound::compile(int argc, const char **argv_)
 {
   Message("BEGAN CppSound::compile(%d, %p)...\n", argc, argv_);
   int returnValue = 0;
@@ -53,15 +53,11 @@ int CppSound::compile(int argc, char **argv_)
   csound->orcname_mode = 1;
   // Changed to use only internally stored Csound orchestra and score.
   returnValue = csoundCompileOrc(csound, getOrchestra().c_str());
-  returnValue = csoundReadScore(csound, const_cast<char *>(getScore().c_str()));
+  returnValue = csoundReadScore(csound, getScore().c_str());
   for (int i = 0; i < argv.size(); ++i) {
       Message("arg %3d: %s\n", i, argv[i]);
+      csoundSetOption(csound, argv[i]);
   }
-  // Csound assumes in argdecode:
-  // argc is the number of command line arguments NOT INCLUDING THE NAME OF THE PROGRAM ITSELF.
-  // argv contains first the NAME OF THE PROGRAM ITSELF, then each command line argument, and finally is terminated with a NULL POINTER.
-  // Hence argc is the number of elements in argv minus 2.
-  returnValue = argdecode(csound, argv.size() - 2, &argv.front());
   returnValue = csoundStart(csound);
   spoutSize = GetKsmps() * GetNchnls() * sizeof(MYFLT);
   if(returnValue)
@@ -90,16 +86,12 @@ int CppSound::compile()
       return 0;
     }
   scatterArgs(getCommand(), const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
-  // Csound assumes in argdecode:
-  // argc is the number of command line arguments NOT INCLUDING THE NAME OF THE PROGRAM ITSELF.
-  // argv contains first the NAME OF THE PROGRAM ITSELF, then each command line argument, and finally is terminated with a NULL POINTER.
-  // Hence argc is the number of elements in argv minus 2.
-  int returnValue = compile(argv.size() - 2, &argv.front());
+  int returnValue = compile(argv.size(), (const char **) &argv.front());
   Message("ENDED CppSound::compile.\n");
   return returnValue;
 }
 
-int CppSound::perform(int argc, char **argv_)
+int CppSound::perform(int argc,  const char **argv_)
 {
   double beganAt = double(std::clock()) / double(CLOCKS_PER_SEC);
   isCompiled = false;
@@ -136,12 +128,12 @@ int CppSound::perform()
   if(command.find("-") == 0)
     {
       const char *argv_[] = {"csound", getFilename().c_str(), 0};
-      returnValue = perform(2, (char **)argv_);
+      returnValue = perform(2, argv_);
     }
   else
     {
       scatterArgs(command, const_cast< std::vector<std::string> & >(args), const_cast< std::vector<char *> &>(argv));
-      returnValue = perform(args.size(), &argv.front());
+      returnValue = perform(args.size(), (const char **)&argv.front());
     }
   return returnValue;
 }

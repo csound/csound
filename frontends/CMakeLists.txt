@@ -47,6 +47,15 @@ if(LINUX)
   target_link_libraries(csound-bin m)
 endif()
 
+# Post build dependencies copy for MSVC
+if(MSVC)
+	add_custom_command(TARGET csound-bin
+					   POST_BUILD
+					   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/msvc/deps/bin
+						$<TARGET_FILE_DIR:csound-bin>
+					   COMMENT "Running copy dependencies script...")
+endif()
+
 message(STATUS "Building csLadspa.")
 
 make_plugin_frontend(csladspa "csladspa/csladspa.cpp" "${CSOUNDLIB}")
@@ -68,11 +77,18 @@ if(BUILD_CSBEATS)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/beats)
 
     set(csbeats_SRCS
-	${CMAKE_CURRENT_SOURCE_DIR}/beats/main.c
+    	${CMAKE_CURRENT_SOURCE_DIR}/beats/main.c
         ${FLEX_csbeats_SCANNER_OUTPUTS}
         ${BISON_csbeats_PARSER_OUTPUTS})
+    
 
-    make_executable(csbeats "${csbeats_SRCS}" "m")
+    if(MSVC)
+        set_source_files_properties(${FLEX_csbeats_SCANNER_OUTPUTS} PROPERTIES
+        COMPILE_FLAGS -DYY_NO_UNISTD_H)
+      make_executable(csbeats "${csbeats_SRCS}" "")
+    else()
+      make_executable(csbeats "${csbeats_SRCS}" "m")
+    endif()
 
 endif()
 

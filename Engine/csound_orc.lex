@@ -56,7 +56,7 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 /*       result = YY_NULL; \ */
 /*     } */
 
-#define YY_USER_INIT 
+#define YY_USER_INIT
 
 struct yyguts_t;
 ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
@@ -76,7 +76,7 @@ IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
-NUMBER          [0-9]+\.?[0-9]*(e[-+]?[0-9]+)?|\.[0-9]+(e[-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
+NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
 WHITE           [ \t]+
 OPTWHITE        [ \t]*
 CONT            \\[ \t]*(;.*)?\n
@@ -127,7 +127,7 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 "|"             { return '|'; }
 "&"             { return '&'; }
 "#"             { return '#'; }
-"¬"             { return '~'; }
+"¬"             { return '~'; } /* \xC2?\xAC */
 "~"             { return '~'; }
                      
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
@@ -186,6 +186,9 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 "struct"        {
                   return STRUCT_TOKEN;
                 }
+ /*"A4"            { *lvalp = make_token(csound, yytext);*/
+                  /*(*lvalp)->type = A4_TOKEN;*/
+                  /*return A4_TOKEN; }*/
 "instr"         {
                   namedInstrFlag = 1;
                   return INSTR_TOKEN;
@@ -286,13 +289,15 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 
 
 \"              { /* String decode by c-code not rexp */
-                  char buff[200]; /* should be variable */
+                  int cnt = 80;
+                  char *buff = malloc(cnt);
                   int n = 1;
                   int ch;
                   buff[0] = '"';
                   for (;;) {
                     ch = input(yyscanner);
                     if (ch=='"') {
+                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                       buff[n++] = ch;
                       buff[n] = '\0';
                       break;
@@ -302,14 +307,23 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
                       switch (ch) {
                       case 'a': case 'b': case 'n': case 'r':
                       case 't': case '\\':
+                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
+                        buff[n++] = '\\'; buff[n++]= ch;
+                        break;
+                        /* VL - 21-1-17 fix for octals in strings */
+                      case '0':case '1':case '2':case '3':
+                      case '4':case '5':case '6':case '7':
+                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                         buff[n++] = '\\'; buff[n++]= ch;
                         break;
                       default:
+                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                         buff[n++] = ch;
                         break;
                       }
                     }
                     else if (ch=='\n') {
+                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                       buff[n++] = '"';
                       buff[n] = '\0';
                       csound->Message(csound,
@@ -317,9 +331,13 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
                                       csound_orcget_lineno(yyscanner), buff);
                       break;
                     }
-                    else buff[n++] = ch;
+                    else {
+                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
+                      buff[n++] = ch;
+                    }
                   }
                   *lvalp = make_string(csound, buff);
+                  free(buff);
                   return (STRING_TOKEN);
                 }
 
@@ -403,7 +421,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
     int len;
     char *ps = s;
-    while(*ps != ':') ps++;
+    while (*ps != ':') ps++;
     *(ps+1) = '\0';
     len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len);
@@ -497,7 +515,7 @@ uint64_t csound_orcget_ilocn(void *yyscanner)
 {STRCONSTe}     { *lvalp = make_string(csound, yytext);
                   csound->Message(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
-                          csound_orcget_lineno(yyscanner), 
+                          csound_orcget_lineno(yyscanner),
                           yytext);
                   return (STRING_TOKEN); }
 STRCONSTe \"(\.|[^\"])$

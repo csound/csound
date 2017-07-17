@@ -17,6 +17,8 @@ cp -f $PLUGINLIBS/LuaCsound/libs/armeabi/*.so $JNILIBS/armeabi/
 cp -f $PLUGINLIBS/libscansyn/libs/armeabi/*.so $JNILIBS/armeabi/
 cp -f $PLUGINLIBS/libOSC/libs/armeabi/*.so $JNILIBS/armeabi/
 cp -f $PLUGINLIBS/doppler/libs/armeabi/*.so $JNILIBS/armeabi/
+cp -f $PLUGINLIBS/stk-csound/libs/armeabi/*.so $JNILIBS/armeabi/
+cp -f $PLUGINLIBS/ableton_link_opcodes/libs/armeabi/*.so $JNILIBS/armeabi/
 
 cp -f $PLUGINLIBS/libfluidsynth/libs/armeabi-v7a/libfluidOpcodes.so $JNILIBS/armeabi-v7a/
 cp -f $PLUGINLIBS/libstdutil/libs/armeabi-v7a/libstdutil.so $JNILIBS/armeabi-v7a/
@@ -25,13 +27,17 @@ cp -f $PLUGINLIBS/LuaCsound/libs/armeabi-v7a/libLuaCsound.so $JNILIBS/armeabi-v7
 cp -f $PLUGINLIBS/libscansyn/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
 cp -f $PLUGINLIBS/libOSC/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
 cp -f $PLUGINLIBS/doppler/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
+cp -f $PLUGINLIBS/stk-csound/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
+cp -f $PLUGINLIBS/ableton_link_opcodes/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
 
 rm -f $JNILIBS/armeabi/libsndfile.so
 rm -f $JNILIBS/armeabi-v7a/libsndfile.so
 rm -f $JNILIBS/armeabi/libgnustl_shared.so
 rm -f $JNILIBS/armeabi-v7a/libgnustl_shared.so
 
-find . -name "*.so"
+echo "These are the built and copied libs for the Csound for Android app:"
+find ../../CsoundAndroid/libs -name "*.so" -ls
+find $JNILIBS -name "*.so" -ls
 
 # Also copy other resources used by Csound opcodes.
 

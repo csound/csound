@@ -8,8 +8,10 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     ../SDIF/sdif.c)
 
-
-if(WIN32 AND NOT MSVC)
+if(MSVC) 
+  make_plugin(stdutil "${stdutil_SRCS}" )
+  target_link_libraries(stdutil ${LIBSNDFILE_LIBRARY})
+elseif(WIN32)
   make_plugin(stdutil "${stdutil_SRCS}" m
     ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
 else()
@@ -44,7 +46,7 @@ if(BUILD_UTILITIES)
     make_utility(srconv      srconv_main.c)
 
 
-    find_library(LIBSNDFILE_LIBRARY sndfile)
+    find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
     find_library(LIBSAMPLERATE_LIBRARY samplerate)
 
     if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)

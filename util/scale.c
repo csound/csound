@@ -149,7 +149,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
     sc.end_table = &sc.scale_table;
 
     O.filetyp = O.outformat = 0;
-    O.heartbeat = 0;
+    O.ringbell = O.heartbeat = 0;
     /* Check arguments */
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
@@ -272,7 +272,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
       csound->SetUtilNchnls(csound, sc.p->nchanls);
 
       memset(&sfinfo, 0, sizeof(SF_INFO));
-      sfinfo.frames = -1;
+      //sfinfo.frames = 0/*was -1*/;
       sfinfo.samplerate = (int) MYFLT2LRND( sc.p->sr);
       sfinfo.channels = sc.p->nchanls;
       sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);

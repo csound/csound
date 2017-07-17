@@ -174,7 +174,7 @@ if (typeof(Storage) == "undefined" ) {
 else {
   csound.message("Both localStorage and sessionStorage support are present.\n");
 }
-var title = 'Drone-HTML7';
+var title = 'Lindenmayer_Canvas';
 var saveChannel = function(id) {
   localStorage[title + id] = document.getElementById(id).value;
 }

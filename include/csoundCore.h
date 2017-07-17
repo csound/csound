@@ -28,9 +28,15 @@
 #ifndef CSOUNDCORE_H
 #define CSOUNDCORE_H
 
+#if defined(__EMSCRIPTEN__) && !defined(EMSCRIPTEN)
+#define EMSCRIPTEN
+#endif
+
 #include "sysdep.h"
-#ifndef EMSCRIPTEN
+#if !defined(EMSCRIPTEN) && !defined(CABBAGE)
+#if defined(HAVE_PTHREAD)
 #include <pthread.h>
+#endif
 #endif
 #include "cs_par_structs.h"
 #include <stdarg.h>
@@ -56,10 +62,12 @@
             (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
 #endif
 #else
+#ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0
 #define _MM_DENORMALS_ZERO_ON     0
 #define _MM_DENORMALS_ZERO_OFF    0
 #define _MM_SET_DENORMALS_ZERO_MODE(mode)
+#endif
 #endif
 #endif
 
@@ -72,6 +80,7 @@ extern "C" {
 #endif
 
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
+#include <pthread.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -170,7 +179,8 @@ extern int ISSTRCOD(MYFLT);
 #define MAXOCTS         8
 #define MAXCHAN         16      /* 16 MIDI channels; only one port for now */
 
-#define ONEPT           1.02197486              /* A440 tuning factor */
+         /* A440 tuning factor */
+#define ONEPT           (csound->A4/430.5389646099018460319362438314060262605)
 #define LOG10D20        0.11512925              /* for db to ampfac   */
 #define DV32768         FL(0.000030517578125)
 
@@ -215,12 +225,12 @@ typedef struct CORFIL {
     int     informat, outformat;
     int     sfsampsize;
     int     displays, graphsoff, postscript, msglevel;
-    int     Beatmode, cmdTempo, oMaxLag;
+    int     Beatmode, oMaxLag;
     int     usingcscore, Linein;
     int     RTevents, Midiin, FMidiin, RMidiin;
     int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
-    //    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
+    double  cmdTempo;
     float   sr_override, kr_override;
     int     nchnls_override, nchnls_i_override;
     char    *infilename, *outfilename;
@@ -366,6 +376,24 @@ typedef struct CORFIL {
     size_t  size;
     void    *auxp, *endp;
   } AUXCH;
+
+  /**  this callback is used to notify the
+       availability of new storage in AUXCH *.
+       It can be used to swap the old storage
+       for the new one and return it for deallocation.
+  */
+  typedef AUXCH* (*aux_cb)(CSOUND *, void *, AUXCH *);
+
+  /**
+   * AuxAllocAsync data
+   */
+  typedef struct {
+    CSOUND *csound;
+    size_t nbytes;
+    AUXCH *auxchp;
+    void *userData;
+    aux_cb notify;
+  } AUXASYNC;
 
   typedef struct {
     int      dimensions;
@@ -865,17 +893,17 @@ typedef struct S_MACRO {          /* To store active macros */
 typedef struct in_stack_s {     /* Stack of active inputs */
     int16       is_marked_repeat;     /* 1 if this input created by 'n' stmnt */
     int16       args;                 /* Argument count for macro */
-    CORFIL      *cf;                  /* In core file */
-    void        *fd;                  /* for closing stream */
+  //CORFIL      *cf;                  /* In core file */
+  //void        *fd;                  /* for closing stream */
     S_MACRO       *mac;
     int         line;
+    int32       oposit;
 } IN_STACK;
 
 typedef struct marked_sections {
     char        *name;
     int32       posit;
     int         line;
-    char        *file;
 } MARKED_SECTIONS;
 
 typedef struct namelst {
@@ -918,12 +946,26 @@ typedef struct NAME__ {
 
 
   /**
+   * Nen FFT interface
+   */
+  typedef struct _FFT_SETUP{
+    int N, M;
+    void  *setup;
+    MYFLT *buffer;
+    int    lib;
+    int    d;
+    int  p2;
+  } CSOUND_FFT_SETUP;
+
+
+  /**
    * plugin module info
    */
   typedef struct {
     char module[12];
     char type[12];
   } MODULE_INFO;
+
 
   /**
    * Contains all function pointers, data, and data pointers required
@@ -1307,11 +1349,15 @@ typedef struct NAME__ {
                            int d);
     void (*RealFFT2)(CSOUND *csound,
                      void *p, MYFLT *sig);
+    int  (*ftError)(const FGDATA *, const char *, ...);
+    MYFLT (*GetA4)(CSOUND *csound);
+    int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
+                         AUXASYNC *, aux_cb, void *);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[40];
+    SUBR dummyfn_2[38];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1436,6 +1482,7 @@ typedef struct NAME__ {
     char          **strsets;
     MYFLT         *spin;
     MYFLT         *spout;
+    MYFLT         *spraw;
     int           nspin;
     int           nspout;
     MYFLT         *auxspin;
@@ -1451,6 +1498,7 @@ typedef struct NAME__ {
     int           reinitflag;
     int           tieflag;
     MYFLT         e0dbfs, dbfs_to_float;
+    double        A4;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
     jmp_buf       exitjmp;
@@ -1492,21 +1540,21 @@ typedef struct NAME__ {
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    pthread_t    file_io_thread;
+    void         *file_io_thread;
     int          file_io_start;
     void         *file_io_threadlock;
     int          realtime_audio_flag;
-    pthread_t    init_pass_thread;
+    void         *init_pass_thread;
     int          init_pass_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
     #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t spoutlock, spinlock;
+    void *spoutlock, *spinlock;
 #else
     int           spoutlock, spinlock;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
 #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t memlock, spinlock1;
+    void *memlock, *spinlock1;
 #else
     int           memlock, spinlock1;
 #endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
@@ -1525,7 +1573,7 @@ typedef struct NAME__ {
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
       S_MACRO   *macros;
-      int     next_name /* = -1 */;
+      int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;
       int     pop;                    /* Number of macros to pop              */
@@ -1546,6 +1594,7 @@ typedef struct NAME__ {
       int32   repeat_point;
       int     repeat_inc /* = 1 */;
       S_MACRO   *repeat_mm;
+      int     nocarry;
     } sreadStatics;
     struct onefileStatics__ {
       NAMELST *toremove;
@@ -1665,13 +1714,11 @@ typedef struct NAME__ {
     int            nchanif, nchanof;
     char           *chanif, *chanof;
     /* VL: internal yield callback */
-    void          *multiThreadedBarrier1;
-    void          *multiThreadedBarrier2;
     int           multiThreadedComplete;
     THREADINFO    *multiThreadedThreadInfo;
     struct dag_t        *multiThreadedDag;
-    pthread_barrier_t   *barrier1;
-    pthread_barrier_t   *barrier2;
+    void          *barrier1;
+    void          *barrier2;
     /* Statics from cs_par_dispatch; */
     struct global_var_lock_t *global_var_lock_root;
     struct global_var_lock_t **global_var_lock_cache;

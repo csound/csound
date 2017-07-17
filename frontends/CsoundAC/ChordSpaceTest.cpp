@@ -333,7 +333,7 @@ void testRPIStuff(const csound::Chord &chord)
     test(inverseRPinverseRP == chordRP, "chordRP must equal inverseRPinverseRP.");
 }
 
-int main(int argc, const char **argv) {
+int main(int argc, char **argv) {
     csound::print("C H O R D S P A C E   U N I T   T E S T S\n\n");
 #if defined(USE_OLD_EQUIVALENCES)
     csound::print("Using OLD implementation of equivalence relations.\n\n");

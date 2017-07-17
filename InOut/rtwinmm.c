@@ -21,14 +21,9 @@
     02111-1307 USA
 */
 
-#ifdef MSVC
 #include <windows.h>
-#endif
 #include "csdl.h"
 #include "soundio.h"
-#ifndef MSVC
-#include <windows.h>
-#endif
 
 #ifdef MAXBUFFERS
 #undef MAXBUFFERS
@@ -311,7 +306,7 @@ static int open_device(CSOUND *csound,
     }
     p = (rtWinMMGlobals*)
           csound->QueryGlobalVariable(csound, "_rtwinmm_globals");
-    dev = (rtWinMMDevice*) malloc(sizeof(rtWinMMDevice));
+    dev = (rtWinMMDevice*) csound->Malloc(csound, sizeof(rtWinMMDevice));
     if (UNLIKELY(dev == NULL))
       return err_msg(csound, Str("memory allocation failure"));
     memset(dev, 0, sizeof(rtWinMMDevice));
@@ -395,7 +390,7 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 
 static int rtrecord_(CSOUND *csound, MYFLT *inBuf, int nbytes)
 {
-    rtWinMMDevice   *dev = (rtWinMMDevice*) *(csound->GetRtRecordUserData(csound)) ;
+    rtWinMMDevice   *dev = (rtWinMMDevice*) *(csound->GetRtRecordUserData(csound));
     WAVEHDR         *buf = &(dev->buffers[dev->cur_buf]);
     volatile DWORD  *dwFlags = &(buf->dwFlags);
 
@@ -456,7 +451,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outBuf, int nbytes)
     timeWait = dev->bufTime;
     timeWait *= (((float) nbufs / (float) dev->nBuffers) * 0.25f + 0.875f);
     timeWait -= timeDiff;
-    i = (int) MYFLT2LRND((MYFLT) timeWait);
+    i = MYFLT2LRND(timeWait);
     if (i > 0)
       Sleep((DWORD) i);
 }
@@ -486,7 +481,7 @@ static void rtclose_(CSOUND *csound)
         GlobalFree((HGLOBAL) inDev->buffers[i].lpData);
       }
       waveInClose(inDev->inDev);
-      free(inDev);
+      csound->Free(csound,inDev);
     }
     if (outDev != NULL) {
       volatile DWORD  *dwFlags = &(outDev->buffers[outDev->cur_buf].dwFlags);
@@ -501,7 +496,7 @@ static void rtclose_(CSOUND *csound)
         GlobalFree((HGLOBAL) outDev->buffers[i].lpData);
       }
       waveOutClose(outDev->outDev);
-      free(outDev);
+      csound->Free(csound,outDev);
     }
 }
 
@@ -555,7 +550,8 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
                        Str("rtmidi: input device number is out of range"));
       return -1;
     }
-    p = (RTMIDI_MME_GLOBALS*) calloc((size_t) 1, sizeof(RTMIDI_MME_GLOBALS));
+    p = (RTMIDI_MME_GLOBALS*) csound->Calloc(csound,
+                                             (size_t) sizeof(RTMIDI_MME_GLOBALS));
     if (UNLIKELY(p == NULL)) {
       csound->ErrorMsg(csound, Str("rtmidi: memory allocation failure"));
       return -1;
@@ -623,14 +619,14 @@ static int midi_in_close(CSOUND *csound, void *userData)
       midiInClose(p->inDev);
     }
     DeleteCriticalSection(&(p->threadLock));
-    free(p);
+    csound->Free(csound,p);
 
     return 0;
 }
 
 static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
 {
-  int         i, ndev, devnum = 0;
+    int         i, ndev, devnum = 0;
     MIDIOUTCAPS caps;
     HMIDIOUT    outDev = (HMIDIOUT) 0;
 

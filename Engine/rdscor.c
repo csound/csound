@@ -31,15 +31,18 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     char *ss;
     INSDS* ip = csound->ids->insdshead;
     while (ip->opcod_iobufs != NULL) {
-        ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
+      ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
     }
     ss = ip->strarg;  /* look at this instr's strarg */
+
     union {
       MYFLT d;
       int32 i;
     } ch;
     ch.d = p; n = ch.i&0xffff;
-    while (n-- > 0) ss += strlen(ss)+1;
+    while (n-- > 0) {
+      ss += strlen(ss)+1;
+    }
     return ss;
 }
 
@@ -183,7 +186,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       default:                                /* WARPED scorefile:       */
         if (!csound->warped) goto unwarped;
         e->opcod = c;                                       /* opcod */
-        free(e->c.extra);
+        csound->Free(csound, e->c.extra);
         e->c.extra = NULL;
         pp = &e->p[0];
         plim = &e->p[PMAX];
@@ -207,7 +210,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       csound->DebugMsg(csound, "Extra p-fields (%d %d %d %d)\n",
                                        (int)e->p[1],(int)e->p[2],
                                        (int)e->p[3],(int)e->p[4]);
-                      new = (MYFLT*)malloc(sizeof(MYFLT)*PMAX);
+                      new = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*PMAX);
                       if (new==NULL) {
                         fprintf(stderr, Str("Out of Memory\n"));
                         exit(7);
@@ -228,7 +231,9 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                            (int)sizeof(MYFLT)*
                                                    ((int)e->c.extra[0]+PMAX));
                           new =
-                            (MYFLT *)realloc(e->c.extra, sizeof(MYFLT)*size);
+                            (MYFLT *) csound->ReAlloc(csound,
+                                                      e->c.extra,
+                                                      sizeof(MYFLT)*size);
                           if (new==NULL) {
                             fprintf(stderr, "Out of Memory\n");
                             exit(7);

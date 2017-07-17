@@ -56,6 +56,53 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
       auxchprint(csound, csound->curip);
 }
 
+
+uintptr_t alloc_thread(void *p) {
+  AUXASYNC *pp = (AUXASYNC *) p;
+  CSOUND *csound = pp->csound;
+  AUXCH newm;
+  char *ptr;
+  if (pp->auxchp->auxp == NULL) {
+    /* Allocate new memory */
+    newm.size = pp->nbytes;
+    newm.auxp = csound->Calloc(csound, pp->nbytes);
+    newm.endp = (char*) newm.auxp + pp->nbytes;
+    ptr = (char *) newm.auxp;
+    newm  = *(pp->notify(csound, pp->userData, &newm));
+    /* check that the returned pointer is not
+     NULL and that is not the memory we have
+     just allocated in case the old memory was
+     never swapped back.
+     */
+    if (newm.auxp != NULL && newm.auxp != ptr)
+       csound->Free(csound, newm.auxp);
+  } else {
+    csoundAuxAlloc(csound,pp->nbytes,pp->auxchp);
+    pp->notify(csound, pp->userData, pp->auxchp);
+  }
+  return 0;
+}
+
+
+
+/* Allocate an auxds asynchronously and
+   pass the newly allocated memory via a
+   callback, where it can be swapped if necessary.
+*/
+int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
+                        AUXASYNC *as, aux_cb cb, void *userData) {
+    as->csound = csound;
+    as->nbytes = nbytes;
+    as->auxchp = auxchp;
+    as->notify = cb;
+    as->userData = userData;
+    if (UNLIKELY(csoundCreateThread(alloc_thread, as) == NULL))
+      return CSOUND_ERROR;
+    else
+      return CSOUND_SUCCESS;
+}
+
+
 /* put fdchp into chain of fd's for this instr */
 /*      call only from init (xxxset) modules   */
 
@@ -172,4 +219,3 @@ static CS_NOINLINE void fdchprint(CSOUND *csound, INSDS *ip)
       csoundMessage(csound, Str("  fd %p in %p"), curchp->fd, curchp);
     csoundMessage(csound, "\n");
 }
-

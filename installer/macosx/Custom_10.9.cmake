@@ -5,7 +5,6 @@
 #set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(BUILD_STATIC_LIBRARY ON)
-set(USE_OPEN_MP OFF)
 set(TCL_VERSION 8.5)
 ##set(BUILD_CSOUND_AC OFF)
 ##set(BUILD_CSOUND_AC_PYTHON_INTERFACE OFF)
@@ -53,8 +52,8 @@ list(APPEND CMAKE_SYSTEM_INCLUDE_PATH "/Users/stevenyi/work/csound/dependencies/
 
 #add_definitions(-I/usr/local/include -I/usr/include)
 
-set(CMAKE_C_FLAGS "-I/usr/local/include -I/usr/include")
-set(CMAKE_CXX_FLAGS "-I/usr/local/include -I/usr/include")
+set(CMAKE_C_FLAGS "-I/usr/local/include -I/usr/include  -Wno-nullability-completeness")
+set(CMAKE_CXX_FLAGS "-I/usr/local/include -I/usr/include -Wno-nullability-completeness")
 #list(APPEND CMAKE_REQUIRED_DEFINITIONS "-I/usr/include")
 #list(APPEND CMAKE_SYSTEM_INCLUDE_PATH "/usr/local/include/luajit-2.0")
 list(APPEND CMAKE_SYSTEM_INCLUDE_PATH "/Applications/Pd-extended.app/Contents/Resources/include")

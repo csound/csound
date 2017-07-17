@@ -37,7 +37,6 @@
 #include <errno.h>
 
 #include "csdl.h"                               /*      IPMIDI.C         */
-#include "csGblMtx.h"
 #include "midiops.h"
 #include "oload.h"
 
@@ -47,6 +46,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     int status;
     struct sockaddr_in saddr;
     struct ip_mreq mreq;
+    //const char *dummy = 0;
 
 #ifdef WIN32
     WSADATA wsaData;
@@ -77,7 +77,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       printf("WSAGetLastError() = %d\n", WSAGetLastError());
 #else
       char buff[128];
-      strerror_r(errno, buff, 128);
+      /* dummy = */ (void)strerror_r(errno, buff, 128);
 #endif
 
         csound->ErrorMsg(csound, Str("Error binding socket to interface: %s"),
@@ -97,7 +97,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
         return -1;
 #else
       char buff[128];
-      strerror_r(errno, buff, 128);
+      /* dummy = */ (void)strerror_r(errno, buff, 128);
 
         csound->ErrorMsg(csound, Str("Error adding membership to interface: %s"),
                           buff);

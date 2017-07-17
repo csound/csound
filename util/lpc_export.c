@@ -78,8 +78,14 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
     if (UNLIKELY(hdr.npoles<=0)) { fclose(inf); fclose(outf); return 1; }
+    // to keep coverity happy
+    if (hdr.headersize>0x40000000 ||
+        hdr.headersize<sizeof(LPHEADER) ||
+        hdr.npoles+hdr.nvals > 0x10000000) { fclose(inf); fclose(outf); return 2;}
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
-    if (UNLIKELY(fread(&hdr, sizeof(char),
+    if (UNLIKELY(str==NULL)) {
+        fclose(inf); fclose(outf); return 2;}
+    if (UNLIKELY(fread(str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4))
       csound->Message(csound, Str("Read failure\n"));
@@ -87,6 +93,8 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
       putc(str[i],outf);
     putc('\n', outf);
     coef = (MYFLT *)csound->Malloc(csound,(hdr.npoles+hdr.nvals)*sizeof(MYFLT));
+    if (UNLIKELY(coef==NULL)) {
+      fclose(inf); fclose(outf); csound->Free(csound,str); return 3;}
     for (i = 0; i<(unsigned int)floor(hdr.framrate*hdr.duration); i++) {
       if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf)!=hdr.npoles))
         csound->Message(csound, Str("Read failure\n"));

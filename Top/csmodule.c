@@ -114,6 +114,10 @@ int             closedir(DIR*);
 
 extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
 
+#if defined(INIT_STATIC_MODULES)
+extern int init_static_modules(CSOUND *);
+#endif
+
 /* module interface function names */
 
 static  const   char    *opcode_init_Name =   "csound_opcode_init";
@@ -255,15 +259,15 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
                libraryPath, err);
  #endif
       if (csound->delayederrormessages == NULL) {
-        csound->delayederrormessages = malloc(strlen(ERRSTR)+1);
+        csound->delayederrormessages = csound->Malloc(csound, strlen(ERRSTR)+1);
         strcpy(csound->delayederrormessages, ERRSTR);
       }
       else {
         char *new =
-          realloc(csound->delayederrormessages,
-                  strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
+          csound->ReAlloc(csound, csound->delayederrormessages,
+                          strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
         if (new==NULL) {
-          free(csound->delayederrormessages);
+          csound->Free(csound, csound->delayederrormessages);
           return CSOUND_ERROR;
         }
         csound->delayederrormessages = new;
@@ -319,7 +323,8 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     }
     /* set up module info structure */
     /* (note: space for NUL character is already included in size of struct) */
-    p = (void*) malloc(sizeof(csoundModule_t) + (size_t) strlen(fname));
+    p = (void*) csound->Malloc(csound,
+                               sizeof(csoundModule_t) + (size_t) strlen(fname));
     if (UNLIKELY(p == NULL)) {
       csoundCloseLibrary(h);
       csound->ErrorMsg(csound,
@@ -354,7 +359,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     return CSOUND_SUCCESS;
 }
 
-static int csoundCheckOpcodeDeny(const char *fname)
+static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
 {
     /* Check to see if the fname is on the do-not-load list */
     char buff[256];
@@ -366,19 +371,19 @@ static int csoundCheckOpcodeDeny(const char *fname)
     if (list==NULL) return 0;
     strncpy(buff, fname, 255); buff[255]='\0';
     strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
-    p = strdup(list);
+    p = cs_strdup(csound, list);
     deny = cs_strtok_r(p, ",", &th);
     /* printf("DEBUG %s(%d): check buff=%s\n", __FILE__, __LINE__, deny); */
     while (deny) {
       /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
       if (strcmp(deny, buff)==0) {
-        free(p);
+        csound->Free(csound, p);
         /* printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); */
         return 1;
       }
       deny = cs_strtok_r(NULL, ",", &th);
     }
-    free(p);
+    csound->Free(csound, p);
     /* printf("DEBUG %s(%d): not found\n", __FILE__, __LINE__); */
     return 0;
 }
@@ -466,7 +471,7 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       }
       /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
-      if (csoundCheckOpcodeDeny(fname)) {
+      if (csoundCheckOpcodeDeny(csound, fname)) {
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
@@ -509,7 +514,7 @@ int csoundLoadExternals(CSOUND *csound)
       if (s[i] == ',')
         cnt++;
     } while (s[++i] != '\0');
-    lst = (char**) malloc(sizeof(char*) * cnt);
+    lst = (char**) csound->Malloc(csound, sizeof(char*) * cnt);
     i = cnt = 0;
     lst[cnt++] = s;
     do {
@@ -531,7 +536,7 @@ int csoundLoadExternals(CSOUND *csound)
       }
     } while (++i < cnt);
     /* file list is no longer needed */
-    free(lst);
+    csound->Free(csound, lst);
     csound->Free(csound, s);
     return 0;
 }
@@ -591,7 +596,14 @@ int csoundInitModules(CSOUND *csound)
 {
     csoundModule_t  *m;
     int             i, retval = CSOUND_SUCCESS;
-
+    /* For regular Csound, init_static_modules is not compiled or called.
+     * For some builds of Csound, e.g. for PNaCl, init_static_modules is
+     * compiled and called to initialize statically linked opcodes and other
+     * plugins that are dynamically loaded on other platforms.
+     */
+#if defined(INIT_STATIC_MODULES)
+    retval = init_static_modules(csound);
+#endif
     /* call init functions */
     for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
       i = csoundInitModule(csound, m);
@@ -656,7 +668,7 @@ int csoundDestroyModules(CSOUND *csound)
       csoundCloseLibrary(m->h);
       csound->csmodule_db = (void*) m->nxt;
       /* free memory used by database */
-      free((void*) m);
+      csound->Free(csound, (void*) m);
 
     }
     sfont_ModuleDestroy(csound);
@@ -693,6 +705,8 @@ PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
       int len = (int) strlen(libraryPath);
       /* ugly hack to fix importing modules in Python opcodes */
       if (len >= 9 && strcmp(&(libraryPath[len - 9]), "/libpy.so") == 0)
+        flg |= RTLD_GLOBAL;
+      if (len >= 12 && strcmp(&(libraryPath[len - 12]), "/libpy.dylib") == 0)
         flg |= RTLD_GLOBAL;
     }
     *library = (void*) dlopen(libraryPath, flg);
@@ -785,7 +799,7 @@ extern long hrtfreverb_localops_init(CSOUND *, void *);
 extern long hrtfearly_localops_init(CSOUND *, void *);
 extern long minmax_localops_init(CSOUND *, void *);
 
-extern long stackops_localops_init(CSOUND *, void *);
+//extern long stackops_localops_init(CSOUND *, void *);
 extern long vbap_localops_init(CSOUND *, void *);
 extern long vaops_localops_init(CSOUND *, void*);
 extern long ugakbari_localops_init(CSOUND *, void *);
@@ -809,6 +823,7 @@ extern long sockrecv_localops_init(CSOUND *, void *);
 extern long afilts_localops_init(CSOUND *, void *);
 extern long pinker_localops_init(CSOUND *, void *);
 extern long paulstretch_localops_init(CSOUND *, void *);
+extern long wpfilters_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -826,7 +841,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtferX_localops_init, loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
                                  phisem_localops_init, pvoc_localops_init,
-                                 stackops_localops_init, vbap_localops_init,
+                                 /*stackops_localops_init,*/ vbap_localops_init,
                                  ugakbari_localops_init, harmon_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
                                  shape_localops_init, tabsum_localops_init,
@@ -846,6 +861,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  gendy_localops_init,
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init,
+                                 wpfilters_localops_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);

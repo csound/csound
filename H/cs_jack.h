@@ -23,6 +23,7 @@ typedef struct RtJackGlobals_ {
     char    *outDevName;                /* device name for -o dac           */
     int     sampleRate;                 /* sample rate in Hz                */
     int     nChannels;                  /* number of channels               */
+    int     nChannels_i;                /* number of in channels            */
     int     bufSize;                    /* buffer size in sample frames     */
     int     nBuffers;                   /* number of buffers (>= 2)         */
     int     inputEnabled;               /* non-zero if capture (adc) is on  */
@@ -39,4 +40,5 @@ typedef struct RtJackGlobals_ {
     RtJackBuffer    **bufs;             /* 'nBuffers' I/O buffers           */
     int     xrunFlag;                   /* non-zero if an xrun has occured  */
     jack_client_t   *listclient;
+    int outDevNum, inDevNum;            /* select devs by number */
 } RtJackGlobals;
