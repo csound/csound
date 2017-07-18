@@ -653,7 +653,7 @@ msgstr "Speicher ausgelastet"
 msgid "macros/include nested too deep: "
 msgstr "macros/include zu tief verschachtelt "
 
-#: Engine/csound_pre.lex:349 Engine/csound_pre.lex:461
+#: Engine/csound_pre.lex:349 Engine/csound_pre.lex:459
 #: Engine/csound_prs.lex:292 Engine/csound_prs.lex:403
 #, fuzzy
 msgid "Too few arguments to macro\n"
@@ -3778,304 +3778,304 @@ msgstr ""
 msgid "Error registering opcode '%s'"
 msgstr ""
 
-#: InOut/widgets.cpp:1122
+#: InOut/widgets.cpp:1124
 msgid ""
 "Invalid snapshot. Perhaps you modified orchestra widget code after you saved "
 "the snapshot bank."
 msgstr ""
 
-#: InOut/widgets.cpp:1315
+#: InOut/widgets.cpp:1317
 #, fuzzy
 msgid "No name for FLbutbank"
 msgstr "Keine Tabelle für Flute"
 
-#: InOut/widgets.cpp:1569
+#: InOut/widgets.cpp:1571
 #, fuzzy
 msgid "FLsetsnap: invalid table"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:1574
+#: InOut/widgets.cpp:1576
 msgid "setsnap saving\n"
 msgstr ""
 
-#: InOut/widgets.cpp:1610
+#: InOut/widgets.cpp:1612
 msgid ""
 "Saving could overwrite the old file.\n"
 "Are you sure to save ?"
 msgstr ""
 
-#: InOut/widgets.cpp:1611
+#: InOut/widgets.cpp:1613
 msgid "Warning"
 msgstr ""
 
-#: InOut/widgets.cpp:1622
+#: InOut/widgets.cpp:1624
 msgid ""
 "Saving could overwrite the old file.\n"
 "Are you sure you want to save ?"
 msgstr ""
 
-#: InOut/widgets.cpp:1624
+#: InOut/widgets.cpp:1626
 msgid "No"
 msgstr ""
 
-#: InOut/widgets.cpp:1624
+#: InOut/widgets.cpp:1626
 msgid "Yes"
 msgstr ""
 
-#: InOut/widgets.cpp:1634
+#: InOut/widgets.cpp:1636
 msgid "FLsavesnap: cannot open file"
 msgstr ""
 
-#: InOut/widgets.cpp:1691
+#: InOut/widgets.cpp:1693
 msgid "FLloadsnap: cannot open file"
 msgstr ""
 
-#: InOut/widgets.cpp:1737
+#: InOut/widgets.cpp:1739
 msgid ""
 "unmatched widget, probably due to a modified orchestra. Modifying an "
 "orchestra makes it incompatible with old snapshot files"
 msgstr ""
 
-#: InOut/widgets.cpp:2129
+#: InOut/widgets.cpp:2131
 msgid "end of widget thread\n"
 msgstr ""
 
-#: InOut/widgets.cpp:2156
+#: InOut/widgets.cpp:2158
 msgid "FLrun was already called"
 msgstr ""
 
-#: InOut/widgets.cpp:2159
+#: InOut/widgets.cpp:2161
 #, fuzzy
 msgid "FL_run: memory allocation failure"
 msgstr "*** Speicherallozierungausfall\n"
 
-#: InOut/widgets.cpp:2266 InOut/widgets.cpp:2288
+#: InOut/widgets.cpp:2268 InOut/widgets.cpp:2290
 msgid "Error: Unable to fork process\n"
 msgstr ""
 
-#: InOut/widgets.cpp:2700
+#: InOut/widgets.cpp:2702
 msgid "FLpanel_end: invalid stack pointer: verify its placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2704
+#: InOut/widgets.cpp:2706
 msgid ""
 "FLpanel_end: invalid stack count: verify FLpanel/FLpanel_end count and "
 "placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2734 InOut/widgets.cpp:2771
+#: InOut/widgets.cpp:2736 InOut/widgets.cpp:2773
 msgid "FLscroll_end: invalid stack pointer: verify its placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2738
+#: InOut/widgets.cpp:2740
 msgid ""
 "FLscroll_end: invalid stack count: verify FLscroll/FLscroll_end count and "
 "placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2775
+#: InOut/widgets.cpp:2777
 msgid ""
 "FLtabs_end: invalid stack count: verify FLtabs/FLtabs_end count and placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2824
+#: InOut/widgets.cpp:2826
 msgid "FLgroup_end: invalid stack pointer: verify its placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2828
+#: InOut/widgets.cpp:2830
 msgid ""
 "FLgroup_end: invalid stack count: verify FLgroup/FLgroup_end count and "
 "placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2868
+#: InOut/widgets.cpp:2870
 msgid "FLpack_end: invalid stack pointer: verify its placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2872
+#: InOut/widgets.cpp:2874
 msgid ""
 "FLpack_end: invalid stack count: verify FLpack/FLpack_end count and placement"
 msgstr ""
 
-#: InOut/widgets.cpp:2959
+#: InOut/widgets.cpp:2961
 msgid "System error: value() method called from non-valuator object"
 msgstr ""
 
-#: InOut/widgets.cpp:3034
+#: InOut/widgets.cpp:3036
 msgid "FLvalue cannot be set by FLsetVal.\n"
 msgstr ""
 
-#: InOut/widgets.cpp:3052
+#: InOut/widgets.cpp:3054
 #, c-format
 msgid "(fl_setWidgetValuei): not fully implemented yet; exp=%d"
 msgstr ""
 
-#: InOut/widgets.cpp:3073
+#: InOut/widgets.cpp:3075
 msgid "FLvalue cannot be set by FLsetVal\n"
 msgstr ""
 
-#: InOut/widgets.cpp:3091
+#: InOut/widgets.cpp:3093
 #, c-format
 msgid "(fl_setWidgetValue_set): not fully implemented yet; exp=%d"
 msgstr ""
 
-#: InOut/widgets.cpp:3479 InOut/widgets.cpp:4979
+#: InOut/widgets.cpp:3481 InOut/widgets.cpp:4981
 msgid "FLslider exponential, using non-labeled slider"
 msgstr ""
 
-#: InOut/widgets.cpp:3502
+#: InOut/widgets.cpp:3504
 #, fuzzy
 msgid "FLslider: invalid slider type"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:3515 InOut/widgets.cpp:4360
+#: InOut/widgets.cpp:3517 InOut/widgets.cpp:4362
 msgid "FLslider: zero is illegal in exponential operations"
 msgstr ""
 
-#: InOut/widgets.cpp:3581 InOut/widgets.cpp:4715 InOut/widgets.cpp:4941
-#: InOut/widgets.cpp:5133
+#: InOut/widgets.cpp:3583 InOut/widgets.cpp:4717 InOut/widgets.cpp:4943
+#: InOut/widgets.cpp:5135
 msgid "invalid ZAK space allocation"
 msgstr ""
 
-#: InOut/widgets.cpp:3696
+#: InOut/widgets.cpp:3698
 msgid "FLslidBnk: zero is illegal in exponential operations"
 msgstr ""
 
-#: InOut/widgets.cpp:3805 InOut/widgets.cpp:3839
+#: InOut/widgets.cpp:3807 InOut/widgets.cpp:3841
 msgid "FLjoy X axe: zero is illegal in exponential operations"
 msgstr ""
 
-#: InOut/widgets.cpp:3936
+#: InOut/widgets.cpp:3938
 #, fuzzy
 msgid "FLknob: invalid knob type"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:3952
+#: InOut/widgets.cpp:3954
 msgid "FLknob: zero is illegal in exponential operations"
 msgstr ""
 
-#: InOut/widgets.cpp:4057 InOut/widgets.cpp:4190
+#: InOut/widgets.cpp:4059 InOut/widgets.cpp:4192
 #, c-format
 msgid "FLbutton \"%s\" ignoring snapshot capture retrieve"
 msgstr ""
 
-#: InOut/widgets.cpp:4099
+#: InOut/widgets.cpp:4101
 msgid "FLbutton: invalid button type"
 msgstr ""
 
-#: InOut/widgets.cpp:4135
+#: InOut/widgets.cpp:4137
 msgid "FLcloseButton: invalid stack pointer: verify its placement"
 msgstr ""
 
-#: InOut/widgets.cpp:4157
+#: InOut/widgets.cpp:4159
 #, c-format
 msgid "Command Found: %s\n"
 msgstr ""
 
-#: InOut/widgets.cpp:4160
+#: InOut/widgets.cpp:4162
 msgid "About"
 msgstr ""
 
-#: InOut/widgets.cpp:4233
+#: InOut/widgets.cpp:4235
 msgid "FLbuttonBank: invalid button type"
 msgstr ""
 
-#: InOut/widgets.cpp:4273
+#: InOut/widgets.cpp:4275
 #, c-format
 msgid "FLcount \"%s\" ignoring snapshot capture retrieve"
 msgstr ""
 
-#: InOut/widgets.cpp:4346
+#: InOut/widgets.cpp:4348
 #, fuzzy
 msgid "FLroller: invalid roller type"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:4556
+#: InOut/widgets.cpp:4558
 msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
 msgstr ""
 
-#: InOut/widgets.cpp:4608
+#: InOut/widgets.cpp:4610
 #, fuzzy
 msgid "FLkeyIn: invalid table number"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:4612
+#: InOut/widgets.cpp:4614
 msgid "FLkeyIn: table too short!"
 msgstr ""
 
-#: InOut/widgets.cpp:4839
+#: InOut/widgets.cpp:4841
 msgid "FLvslidBnk: zero is illegal in exponential operations"
 msgstr ""
 
-#: InOut/widgets.cpp:5030 InOut/widgets.cpp:5223
+#: InOut/widgets.cpp:5032 InOut/widgets.cpp:5225
 msgid "FLsliderBank: zero is illegal in exponential operations"
 msgstr ""
 
-#: InOut/widgets.cpp:5172
+#: InOut/widgets.cpp:5174
 msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
 msgstr ""
 
-#: InOut/widgets.cpp:5319 InOut/widgets.cpp:5388
+#: InOut/widgets.cpp:5321 InOut/widgets.cpp:5390
 #, fuzzy
 msgid "FLsldBnkSet: invalid table number"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:5324 InOut/widgets.cpp:5393
+#: InOut/widgets.cpp:5326 InOut/widgets.cpp:5395
 msgid "FLslidBnkSet: table too short!"
 msgstr ""
 
-#: InOut/widgets.cpp:5333 InOut/widgets.cpp:5402
+#: InOut/widgets.cpp:5335 InOut/widgets.cpp:5404
 #, fuzzy
 msgid "FLsldBnkSet: invalid outable number"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:5338 InOut/widgets.cpp:5408
+#: InOut/widgets.cpp:5340 InOut/widgets.cpp:5410
 msgid "FLslidBnkSet: too many sliders to reset!"
 msgstr ""
 
-#: InOut/widgets.cpp:5362
+#: InOut/widgets.cpp:5364
 msgid "FLslidBnkSet: function mapping not available"
 msgstr ""
 
-#: InOut/widgets.cpp:5436 InOut/widgets.cpp:5530 InOut/widgets.cpp:5623
+#: InOut/widgets.cpp:5438 InOut/widgets.cpp:5532 InOut/widgets.cpp:5625
 msgid ""
 "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range "
 "for input"
 msgstr ""
 
-#: InOut/widgets.cpp:5468
+#: InOut/widgets.cpp:5470
 #, fuzzy
 msgid "FLsldBnkSetk: invalid table number"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:5473 InOut/widgets.cpp:5566
+#: InOut/widgets.cpp:5475 InOut/widgets.cpp:5568
 msgid "FLslidBnkSetk: table too short!"
 msgstr ""
 
-#: InOut/widgets.cpp:5482
+#: InOut/widgets.cpp:5484
 #, fuzzy
 msgid "FLsldBnkSetk: invalid outable number"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:5488 InOut/widgets.cpp:5581
+#: InOut/widgets.cpp:5490 InOut/widgets.cpp:5583
 msgid "FLslidBnkSetk: too many sliders to reset!"
 msgstr ""
 
-#: InOut/widgets.cpp:5561
+#: InOut/widgets.cpp:5563
 #, fuzzy
 msgid "FLslidBnkSetk: invalid table number"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:5575
+#: InOut/widgets.cpp:5577
 #, fuzzy
 msgid "FLslidBnkSetk: invalid outable number"
 msgstr "unzulässiger Name für Instrument"
 
-#: InOut/widgets.cpp:5656
+#: InOut/widgets.cpp:5658
 msgid "FLxyin: none of X limits can be zero in exponential mode!"
 msgstr ""
 
-#: InOut/widgets.cpp:5683
+#: InOut/widgets.cpp:5685
 msgid "FLxyin: none of Y limits can be zero in exponential mode!"
 msgstr ""
 
@@ -4172,23 +4172,23 @@ msgstr ""
 msgid "Excess channels ignored\n"
 msgstr ""
 
-#: OOps/aops.c:2037
+#: OOps/aops.c:2038
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:2070
+#: OOps/aops.c:2071
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:2099
+#: OOps/aops.c:2100
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 
-#: OOps/aops.c:2132
+#: OOps/aops.c:2133
 msgid "number of hardware output channels not currently available"
 msgstr ""
 
-#: OOps/aops.c:2137
+#: OOps/aops.c:2138
 msgid "number of hardware input channels not currently available"
 msgstr ""
 
@@ -5256,7 +5256,7 @@ msgstr ""
 msgid "a-rate argument not allowed"
 msgstr ""
 
-#: OOps/str_ops.c:372 Opcodes/stackops.c:211 Top/argdecode.c:1469
+#: OOps/str_ops.c:372 Opcodes/stackops.c:211 Top/argdecode.c:1471
 #: util/envext.c:99 util/scale.c:249
 msgid "too many arguments"
 msgstr "zu viele Argumente"
@@ -6683,13 +6683,22 @@ msgstr ""
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:286
+#: Opcodes/emugens/emugens.c:54
+#, fuzzy
+msgid "linlin.k: Division by zero"
+msgstr "Abteilung durch null"
+
+#: Opcodes/emugens/emugens.c:288
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:312
+#: Opcodes/emugens/emugens.c:314
 msgid "format not understood\n"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:429
+msgid "cmp: operator not understood. Expecting <, <=, >, >=, ==\n"
 msgstr ""
 
 #: Opcodes/fareygen.c:116
@@ -11055,210 +11064,210 @@ msgstr ""
 msgid "Csound Command ERROR:\t"
 msgstr ""
 
-#: Top/argdecode.c:524
+#: Top/argdecode.c:526
 #, c-format
 msgid "unknown output format: '%s'"
 msgstr ""
 
-#: Top/argdecode.c:542 Top/argdecode.c:1229
+#: Top/argdecode.c:544 Top/argdecode.c:1231
 msgid "no iobufsamps"
 msgstr ""
 
-#: Top/argdecode.c:549 Top/argdecode.c:1236
+#: Top/argdecode.c:551 Top/argdecode.c:1238
 msgid "no hardware bufsamps"
 msgstr ""
 
-#: Top/argdecode.c:577 Top/argdecode.c:1337
+#: Top/argdecode.c:579 Top/argdecode.c:1339
 msgid "no midifile name"
 msgstr ""
 
-#: Top/argdecode.c:581 Top/argdecode.c:1342
+#: Top/argdecode.c:583 Top/argdecode.c:1344
 msgid "-F: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:594
+#: Top/argdecode.c:596
 msgid "no midi output file name"
 msgstr ""
 
-#: Top/argdecode.c:624
+#: Top/argdecode.c:626
 msgid "invalid python variable definition syntax"
 msgstr ""
 
-#: Top/argdecode.c:631 Top/argdecode.c:1197
+#: Top/argdecode.c:633 Top/argdecode.c:1199
 msgid "no infilename"
 msgstr ""
 
-#: Top/argdecode.c:634 Top/argdecode.c:1201
+#: Top/argdecode.c:636 Top/argdecode.c:1203
 msgid "input cannot be stdout"
 msgstr ""
 
-#: Top/argdecode.c:638 Top/argdecode.c:1205
+#: Top/argdecode.c:640 Top/argdecode.c:1207
 msgid "stdin audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:669 Top/argdecode.c:1269
+#: Top/argdecode.c:671 Top/argdecode.c:1271
 msgid "no control rate"
 msgstr ""
 
-#: Top/argdecode.c:675
+#: Top/argdecode.c:677
 msgid "no ksmps"
 msgstr ""
 
-#: Top/argdecode.c:690 Top/argdecode.c:1311
+#: Top/argdecode.c:692 Top/argdecode.c:1313
 msgid "no Linein score device_name"
 msgstr ""
 
-#: Top/argdecode.c:706 Top/argdecode.c:712 Top/argdecode.c:1277
+#: Top/argdecode.c:708 Top/argdecode.c:714 Top/argdecode.c:1279
 msgid "no message level"
 msgstr ""
 
-#: Top/argdecode.c:719
+#: Top/argdecode.c:721
 msgid "no message amps"
 msgstr ""
 
-#: Top/argdecode.c:728
+#: Top/argdecode.c:730
 msgid "no message range"
 msgstr ""
 
-#: Top/argdecode.c:737
+#: Top/argdecode.c:739
 msgid "no message warnings"
 msgstr ""
 
-#: Top/argdecode.c:746
+#: Top/argdecode.c:748
 msgid "no message raw"
 msgstr ""
 
-#: Top/argdecode.c:755
+#: Top/argdecode.c:757
 msgid "no message dB"
 msgstr ""
 
-#: Top/argdecode.c:764
+#: Top/argdecode.c:766
 msgid "no message colours"
 msgstr ""
 
-#: Top/argdecode.c:773
+#: Top/argdecode.c:775
 msgid "no benchmark level"
 msgstr ""
 
-#: Top/argdecode.c:781
+#: Top/argdecode.c:783
 msgid "no value for --csd-line-nums"
 msgstr ""
 
-#: Top/argdecode.c:791 Top/argdecode.c:1322
+#: Top/argdecode.c:793 Top/argdecode.c:1324
 msgid "no midi device_name"
 msgstr ""
 
-#: Top/argdecode.c:796 Top/argdecode.c:1327
+#: Top/argdecode.c:798 Top/argdecode.c:1329
 msgid "-M: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:817 Top/argdecode.c:1213 util/envext.c:84 util/mixer.c:206
+#: Top/argdecode.c:819 Top/argdecode.c:1215 util/envext.c:84 util/mixer.c:206
 #: util/scale.c:174 util/srconv.c:252 util/xtrct.c:120
 msgid "no outfilename"
 msgstr ""
 
-#: Top/argdecode.c:820 Top/argdecode.c:1217 util/scale.c:178 util/srconv.c:256
+#: Top/argdecode.c:822 Top/argdecode.c:1219 util/scale.c:178 util/srconv.c:256
 #: util/xtrct.c:124
 msgid "-o cannot be stdin"
 msgstr ""
 
-#: Top/argdecode.c:824 Top/argdecode.c:1221 util/scale.c:181 util/srconv.c:261
+#: Top/argdecode.c:826 Top/argdecode.c:1223 util/scale.c:181 util/srconv.c:261
 msgid "stdout audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:834 Top/argdecode.c:1420 util/hetro.c:235
+#: Top/argdecode.c:836 Top/argdecode.c:1422 util/hetro.c:235
 msgid "no log file"
 msgstr ""
 
-#: Top/argdecode.c:868
+#: Top/argdecode.c:870
 msgid "option expresson-opt has no affect\n"
 msgstr ""
 
-#: Top/argdecode.c:873
+#: Top/argdecode.c:875
 msgid "option no-expresson-opt has no affect\n"
 msgstr ""
 
-#: Top/argdecode.c:895 Top/argdecode.c:1176
+#: Top/argdecode.c:897 Top/argdecode.c:1178
 msgid "no utility name"
 msgstr ""
 
-#: Top/argdecode.c:914 Top/argdecode.c:1291
+#: Top/argdecode.c:916 Top/argdecode.c:1293
 msgid "no xfilename"
 msgstr ""
 
-#: Top/argdecode.c:1029
+#: Top/argdecode.c:1031
 msgid "realtime mode enabled\n"
 msgstr ""
 
-#: Top/argdecode.c:1141
+#: Top/argdecode.c:1143
 #, c-format
 msgid "unknown long option: '--%s'"
 msgstr ""
 
-#: Top/argdecode.c:1264
+#: Top/argdecode.c:1266
 msgid "no sample rate"
 msgstr ""
 
-#: Top/argdecode.c:1296
+#: Top/argdecode.c:1298
 msgid "no tempo value"
 msgstr ""
 
-#: Top/argdecode.c:1301
+#: Top/argdecode.c:1303
 msgid "illegal tempo"
 msgstr ""
 
-#: Top/argdecode.c:1352
+#: Top/argdecode.c:1354
 msgid "no MIDI output device"
 msgstr ""
 
-#: Top/argdecode.c:1400
+#: Top/argdecode.c:1402
 msgid "No indirection file"
 msgstr ""
 
-#: Top/argdecode.c:1407
+#: Top/argdecode.c:1409
 #, c-format
 msgid "Cannot open indirection file %s\n"
 msgstr ""
 
-#: Top/argdecode.c:1441
+#: Top/argdecode.c:1443
 #, fuzzy
 msgid "no number of threads"
 msgstr "unzulässiger Name für Instrument"
 
-#: Top/argdecode.c:1452 util/envext.c:94 util/mixer.c:316 util/scale.c:242
+#: Top/argdecode.c:1454 util/envext.c:94 util/mixer.c:316 util/scale.c:242
 #: util/xtrct.c:239
 #, c-format
 msgid "unknown flag -%c"
 msgstr ""
 
-#: Top/argdecode.c:1459
+#: Top/argdecode.c:1461
 msgid "error: orchestra and score name not allowed in .csound6rc"
 msgstr ""
 
-#: Top/argdecode.c:1617
+#: Top/argdecode.c:1619
 msgid "stdout not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:1678 Top/argdecode.c:1698 Top/argdecode.c:1718
+#: Top/argdecode.c:1680 Top/argdecode.c:1700 Top/argdecode.c:1720
 msgid "stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:1755
+#: Top/argdecode.c:1757
 #, c-format
 msgid "%d audio output devices \n"
 msgstr ""
 
-#: Top/argdecode.c:1758
+#: Top/argdecode.c:1760
 #, c-format
 msgid "%d audio input devices \n"
 msgstr ""
 
-#: Top/argdecode.c:1773
+#: Top/argdecode.c:1775
 #, c-format
 msgid "%d MIDI output devices \n"
 msgstr ""
 
-#: Top/argdecode.c:1776
+#: Top/argdecode.c:1778
 #, c-format
 msgid "%d MIDI input devices \n"
 msgstr ""
@@ -11436,7 +11445,7 @@ msgstr ""
 
 #: Top/csound.c:1526
 #, c-format
-msgid "Multithread performance: insno: %3d  thread %d of %d starting.\n"
+msgid "Multithread performance:thread %d of %d starting.\n"
 msgstr ""
 
 #: Top/csound.c:1532
