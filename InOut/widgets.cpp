@@ -22,7 +22,10 @@
 */
 
 #if defined(WIN32)
-#include <FL/Fl_Output.H>
+# include <FL/Fl_Output.H>
+#endif
+#ifndef _MSC_VER
+# include <unistd.h>
 #endif
 #if !defined(_MSC_VER)
 #include <unistd.h>

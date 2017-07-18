@@ -297,14 +297,14 @@ namespace csound
 
   Event &Event::operator = (const Event &a)
   {
-	  Eigen::VectorXd::operator=(a);
+      Eigen::VectorXd::operator=(a);
     properties = a.properties;
     return *this;
   }
 
   Event &Event::operator = (const Eigen::VectorXd &a)
   {
-	  Eigen::VectorXd::operator=(a);
+      Eigen::VectorXd::operator=(a);
     return *this;
   }
 

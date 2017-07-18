@@ -331,7 +331,7 @@ void test_line_breakpoint_orc_file(void)
 
     csoundCreateMessageBuffer(csound, 0);
     const char* argv[] = {"csound", "debug.orc", "debug.sco"};
-    csoundCompile(csound, 3, (char **) argv);
+    csoundCompile(csound, 3, argv);
 
     csoundDebuggerInit(csound);
     int line = 5;
