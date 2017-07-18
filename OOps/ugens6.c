@@ -260,7 +260,7 @@ int delset(CSOUND *csound, DELAY *p)
       p->npts = npts;
     }
     else if (!(*p->istor)) {                    /* else if requested */
-      memset(auxp, 0, npts*sizeof(MYFLT));
+      memset(auxp, '\0', npts*sizeof(MYFLT));
     }
     p->curp = (MYFLT *) auxp;
 
@@ -390,8 +390,8 @@ int delay(CSOUND *csound, DELAY *p)
 
     return OK;
  err1:
-      return csound->PerfError(csound, p->h.insdshead,
-                               Str("delay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("delay: not initialised"));
 }
 
 int delayr(CSOUND *csound, DELAYR *p)

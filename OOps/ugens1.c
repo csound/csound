@@ -136,7 +136,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
     MYFLT       **argp;
     double val;
 
-    if(!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)){
       csound->InitError(csound, "incomplete number of input arguments");
       return NOTOK;
     }
@@ -387,7 +387,7 @@ int madsrset(CSOUND *csound, LINSEG *p)
 int lsgrset(CSOUND *csound, LINSEG *p)
 {
     int32 relestim;
-    if(lsgset(csound,p) == OK){
+    if (lsgset(csound,p) == OK){
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
     p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr
                             releases in an instr => xtratim
@@ -489,7 +489,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
     MYFLT       d, **argp, val, dur, nxtval;
     int         n=0;
 
-    if(!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)) {
       csound->InitError(csound, "incomplete number of input arguments");
       return NOTOK;
     }
@@ -544,7 +544,7 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
     int         n=0;
 
 
-    if(!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)){
       csound->InitError(csound, "incomplete number of input arguments");
       return NOTOK;
     }
@@ -605,7 +605,7 @@ int xsgset2b(CSOUND *csound, EXPSEG2 *p)
     int         n;
 
 
-    if(!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)){
       csound->InitError(csound, "incomplete number of input arguments");
       return NOTOK;
     }
@@ -667,7 +667,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
     int         n;
 
 
-    if(!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)){
       csound->InitError(csound, "incomplete number of input arguments");
       return NOTOK;
     }
@@ -882,7 +882,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
     MYFLT   **argp, prvpt;
 
 
-    if(!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)){
       csound->InitError(csound, "incomplete number of input arguments");
       return NOTOK;
     }
@@ -1153,7 +1153,8 @@ int linen(CSOUND *csound, LINEN *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t flag=0, n, nsmps = CS_KSMPS;
     MYFLT *rs,*sg,val;
-
+    int    asgsg = IS_ASIG_ARG(p->sig);
+    
     val = p->val;
     rs = p->rslt;
     sg = p->sig;
@@ -1190,13 +1191,13 @@ int linen(CSOUND *csound, LINEN *p)
 
 
     if (flag) {
-      if (IS_ASIG_ARG(p->sig))
+      if (asgsg)
           rs[n] = sg[n] * val;
       else
           rs[n] = *sg * val;
       }
     else {
-      if (IS_ASIG_ARG(p->sig))
+      if (asgsg)
         rs[n] = sg[n];
       else rs[n] = *sg;
       }
@@ -1277,7 +1278,7 @@ int linenr(CSOUND *csound, LINENR *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t flag=0, n, nsmps = CS_KSMPS;
     MYFLT *rs,*sg,val;
-
+    int    asgsg = IS_ASIG_ARG(p->sig);
     val = p->val;
     rs = p->rslt;
     sg = p->sig;
@@ -1300,13 +1301,13 @@ int linenr(CSOUND *csound, LINENR *p)
       p->val2 *= p->mlt2;
     }
     if (flag) {
-      if (IS_ASIG_ARG(p->sig))
+      if (asgsg)
           rs[n] = sg[n] * val;
       else
           rs[n] = *sg * val;
       }
     else {
-      if (IS_ASIG_ARG(p->sig)) rs[n] = sg[n];
+      if (asgsg) rs[n] = sg[n];
       else rs[n] = *sg;
       }
     }
@@ -1511,7 +1512,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
     uint32_t n, nsmps = CS_KSMPS;
     long pos, lobits, lomask;
     MYFLT      fact, *xamp, *rslt, val, asym, mlt, mlt2, v1, fract, *ftab, lodiv;
-
+    int        asgsg = IS_ASIG_ARG(p->xamp);
     xamp = p->xamp;
     rslt = p->rslt;
     val  = p->val;
@@ -1563,7 +1564,7 @@ int envlpx(CSOUND *csound, ENVLPX *p)
       }
       else val *= mlt2;
     }
-    if (IS_ASIG_ARG(p->xamp))
+    if (asgsg)
         rslt[n] = xamp[n] * fact;
     else
         rslt[n] = *xamp * fact;
@@ -1740,6 +1741,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
     int32  rlscnt;
     long lobits, lomask, pos, phs = p->phs;
     MYFLT fact, *xamp, *rslt, val, asym, mlt, v1, fract, *ftab, lodiv;
+    int    asgsg = IS_ASIG_ARG(p->xamp);
 
     xamp = p->xamp;
     rslt = p->rslt;
@@ -1800,7 +1802,7 @@ int envlpxr(CSOUND *csound, ENVLPR *p)
       else
         fact = val *= p->mlt2;     /* else do seg 3 decay  */
 
-      if (IS_ASIG_ARG(p->xamp))
+      if (asgsg)
         rslt[n] = xamp[n] * fact;
       else
         rslt[n] = *xamp * fact;
@@ -1817,7 +1819,7 @@ int csgset(CSOUND *csound, COSSEG *p)
     double val, y1, y2;
 
 
-    if(!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)){
       csound->InitError(csound, "incomplete number of input arguments");
       return NOTOK;
     }
@@ -1879,7 +1881,7 @@ int csgset_bkpt(CSOUND *csound, COSSEG *p)
     cnt = p->curcnt;
     nsegs = p->segsrem-1;
     segp = p->cursegp;
-    if(IS_ASIG_ARG(p->rslt))
+    if (IS_ASIG_ARG(p->rslt))
     do {
       if (UNLIKELY(cnt > segp->acnt))
         return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
@@ -1906,7 +1908,7 @@ int csgset_bkpt(CSOUND *csound, COSSEG *p)
 int csgrset(CSOUND *csound, COSSEG *p)
 {
     int32 relestim;
-    if(csgset(csound,p) != 0) return NOTOK;
+    if (csgset(csound,p) != 0) return NOTOK;
     relestim = (p->cursegp + p->segsrem-2)->cnt;
     p->xtra = relestim;
     if (relestim > p->h.insdshead->xtratim)
@@ -2039,7 +2041,7 @@ int cossegr(CSOUND *csound, COSSEG *p)
           //      p->segsrem, segp, segp->cnt,val1, segp->nxtpt);
           goto newi;                          /*   and set new curinc */
         }
-        if(p->segsrem == 1 && !p->h.insdshead->relesing) {
+        if (p->segsrem == 1 && !p->h.insdshead->relesing) {
           goto putk;
         }
         if (--p->curcnt <= 0) {             /*  if done cur segment */
@@ -2170,7 +2172,7 @@ int kcssegr(CSOUND *csound, COSSEG *p)
         p->y1 = val1 = val;
         goto newi;                         /*   and set new curinc */
       }
-      if(p->segsrem == 1 && !p->h.insdshead->relesing) {
+      if (p->segsrem == 1 && !p->h.insdshead->relesing) {
        goto putk;
       }
       if (--p->curcnt <= 0) {             /*  if done cur segment */
