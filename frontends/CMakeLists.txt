@@ -93,7 +93,7 @@ if(BUILD_CSBEATS)
 endif()
 
 #PD Interface
-if(WIN_32)
+if(WIN32)
     check_deps(BUILD_PD_CLASS PD_HEADER_PATH PD_LIBRARY)
 else()
     check_deps(BUILD_PD_CLASS PD_HEADER_PATH)
