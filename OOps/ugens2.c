@@ -94,11 +94,11 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         b *= R;
         if (UNLIKELY(phase >= 1.0)) {
           phase -= 1.0;
-          b = pow(R, 1+phase);
+          b = pow(R, 1.0+phase);
         }
         else if (UNLIKELY(phase < 0.0)) {
           phase += 1.0;
-          b = pow(R, 1+phase);
+          b = pow(R, 1.0+phase);
         }
       }
     }
@@ -111,11 +111,11 @@ int ephsor(CSOUND *csound, EPHSOR *p)
         b *= R;
         if (UNLIKELY(phase >= 1.0)) {
           phase -= 1.0;
-          b =  pow(R, 1+phase);
+          b =  pow(R, 1.0+phase);
         }
         else if (UNLIKELY(phase < 0.0)) {
           phase += 1.0;
-          b = pow(R, 1+phase);
+          b = pow(R, 1.0+phase);
         }
       }
     }
@@ -158,11 +158,11 @@ int phsor(CSOUND *csound, PHSOR *p)
         incr = (double)(cps[n] * onedsr);
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (UNLIKELY((MYFLT)phase >= 1.0)) /* VL convert to MYFLT
-                                              to avoid rounded output
-                                              exceeding 1.0 on float version */
+        if (UNLIKELY((MYFLT)phase >= FL(1.0))) /* VL convert to MYFLT
+                                                  to avoid rounded output
+                                                  exceeding 1.0 on float version */
           phase -= 1.0;
-        else if (UNLIKELY((MYFLT)phase < 0.0))
+        else if (UNLIKELY((MYFLT)phase < FL(0.0)))
           phase += 1.0;
       }
     }
@@ -171,10 +171,10 @@ int phsor(CSOUND *csound, PHSOR *p)
       for (n=offset; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
-        if (UNLIKELY((MYFLT)phase >= 1.0)){
+        if (UNLIKELY((MYFLT)phase >= FL(1.0))) {
           phase -= 1.0;
         }
-        else if (UNLIKELY((MYFLT)phase < 0.0))
+        else if (UNLIKELY((MYFLT)phase < FL(0.0)))
           phase += 1.0;
       }
     }
@@ -421,7 +421,7 @@ int ktable(CSOUND *csound, TABLE   *p)
      * - already denormalised - by tblchk().
      * xbmul = 1 or table length depending on state of ixmode.  */
 
-    ndx = ( ndx * p->xbmul) + p->offset;
+    ndx = (ndx * p->xbmul) + p->offset;
 
     /* ndx now includes the offset and is ready to address the table.
      *

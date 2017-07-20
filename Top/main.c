@@ -544,6 +544,6 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
         }
         csoundUnlockMutex(csound->API_lock);
       }
-    }
-    return res;
+      return res;
+    } else return CSOUND_ERROR;
 }
