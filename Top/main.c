@@ -116,7 +116,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 
     if (csound->engineStatus & CS_STATE_COMP) {
       csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
-                                  "before starting again \n"));
+                                  "before starting again.\n"));
       return CSOUND_ERROR;
     }
 
@@ -360,7 +360,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
     if (csound->engineStatus & CS_STATE_COMP){
       csound->Message(csound, "Csound is already started, call csoundReset()\n"
-                      "before starting again \n");
+                      "before starting again.\n");
       return CSOUND_ERROR;
     }
 
