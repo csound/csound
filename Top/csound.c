@@ -527,7 +527,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL,
           0,
           NULL,
-          0,0,0},
+          0,0},
         0,0,0,
         0,
         NULL,
