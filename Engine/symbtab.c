@@ -39,6 +39,10 @@
 #define PARSER_DEBUG (0)
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+# define strtok_r strtok_s
+#endif
+
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern int csound_orcget_lineno(void*);
