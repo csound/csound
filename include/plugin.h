@@ -473,7 +473,7 @@ public:
 
 /** Phase Vocoder bin */
 typedef Pvbin<float> pv_bin;
- 
+
 /** Sliding Phase Vocoder bin */
 typedef Pvbin<MYFLT> spv_bin;
 

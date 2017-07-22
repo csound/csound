@@ -84,7 +84,8 @@
  *
  * \li The <CsOptions> section of the CSD file is processed.
  *
- * \li csoundStart must be called after csoundCompileCsd or csoundReadScore.
+ * \li Either csoundStart must be called after csoundCompileCsd or csoundReadScore,
+ *     or csoundReadScore must be called before csoundCompile.
  *
  * \li The score is pre-processed, and events are dispatched as regular score
  *     events. "f", "s", and "e" events are permitted in the score.
