@@ -22,7 +22,6 @@
     02111-1307 USA
 */
 
-// #include <math.h>
 #include <csdl.h>
 
 /*
@@ -48,8 +47,11 @@ static int linlink(CSOUND *csound, LINLINK *p) {
     MYFLT x0 = *p->kx0;
     MYFLT y0 = *p->ky0;
     MYFLT x = *p->kx;
-    /* if x0 == *(p->kx1) this crashes */
-    *p->kout = (x - x0) / (*(p->kx1) -x0) * (*(p->ky1) - y0) + y0;
+    MYFLT x1 = *p->kx1;
+    if (UNLIKELY(x0 == x1))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("linlin.k: Division by zero"));
+    *p->kout = (x - x0) / (x1 -x0) * (*(p->ky1) - y0) + y0;
     return OK;
 }
 
@@ -110,7 +112,6 @@ static int xyscale(CSOUND *csound, XYSCALE *p) {
 
 midi to frequency conversion
 
-kfreq = mtof(69, 442)  ; A4 is optional, default=440
 kfreq = mtof(69)
 
 */
@@ -423,8 +424,9 @@ static int cmp_init(CSOUND *csound, Cmp *p) {
     } else if (op[0] == '=') {
       p->mode = 4;
     } else {
-      printf("cmp: operator not understood. Expecting <, <=, >, >=, ==\n");
-      return NOTOK;
+      return
+        csound->InitError(csound, Str("cmp: operator not understood. "
+                                      "Expecting <, <=, >, >=, ==\n"));
     }
     return OK;
 }

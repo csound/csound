@@ -853,6 +853,7 @@ static int statevar_process(CSOUND *csound,statevar *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
+    int      asgfr = IS_ASIG_ARG(p->freq), asgrs = IS_ASIG_ARG(p->res);
 
     if (UNLIKELY(offset)) {
       memset(outhp, '\0', offset*sizeof(MYFLT));
@@ -871,8 +872,8 @@ static int statevar_process(CSOUND *csound,statevar *p)
     f = p->oldf;
 
     for (i=offset; i<nsmps; i++) {
-      MYFLT fr = (IS_ASIG_ARG(p->freq) ? freq[i] : *freq);
-      MYFLT rs = (IS_ASIG_ARG(p->res) ? res[i] : *res);
+      MYFLT fr = (asgfr ? freq[i] : *freq);
+      MYFLT rs = (asgrs ? res[i] : *res);
       if (p->oldfreq != fr|| p->oldres != rs) {
         f = 2.0*sin(fr*(double)csound->pidsr/ostimes);
         q = 1.0/rs;
@@ -931,6 +932,8 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT lfrq = -FL(1.0), lrs = -FL(1.0), ldc = -FL(1.0);
+    int   asgfr = IS_ASIG_ARG(p->freq) , asgrs = IS_ASIG_ARG(p->ris);
+    int   asgdc = IS_ASIG_ARG(p->dec);
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -938,9 +941,9 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (i=offset;i<nsmps;i++) {
-      MYFLT frq = IS_ASIG_ARG(p->freq) ? freq[i] : *freq;
-      MYFLT rs = IS_ASIG_ARG(p->ris) ? ris[i] : *ris;
-      MYFLT dc = IS_ASIG_ARG(p->dec) ? dec[i] : *dec;
+      MYFLT frq = asgfr ? freq[i] : *freq;
+      MYFLT rs = asgrs ? ris[i] : *ris;
+      MYFLT dc = asgdc ? dec[i] : *dec;
       if (frq != lfrq || rs != lrs || dc != ldc) {
         lfrq = frq; lrs = rs; ldc = dc;
         ang = (double)csound->tpidsr*frq;         /* pole angle */
