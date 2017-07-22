@@ -1,11 +1,11 @@
 # CUSTOM PROPERTIES TO SET
 # GLOBAL
 
-find_package(FLTK REQUIRED)
-find_package(Java)
-find_package(JNI)
-find_package(PythonLibs)
-find_package(SWIG REQUIRED)
+#find_package(FLTK REQUIRED)
+#find_package(Java)
+#find_package(JNI)
+#find_package(PythonLibs)
+#find_package(SWIG REQUIRED)
 
 # TODO: Get this to work.
 # find_package(VSTSDK2X)
@@ -19,7 +19,7 @@ set(BUILD_BUCHLA_OPCODES ON)
 set(BUILD_CHUA_OPCODES ON)
 set(BUILD_CSBEATS ON)
 set(BUILD_CSOUNDVST ON)
-set(BUILD_CSOUND_AC ON)
+set(BUILD_CSOUND_AC OFF)
 set(BUILD_CSOUND_AC_LUA_INTERFACE OFF)
 set(BUILD_CSOUND_AC_PYTHON_INTERFACE ON)
 set(BUILD_CUDA_OPCODES OFF)
@@ -103,5 +103,5 @@ set(BISON_EXECUTABLE "${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison\\win_bis
 set(CMAKE_C_FLAGS "${CMAKE_CX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
 
-find_path(SYSTEM_INCLUDE_DIR zlib.h)
-include_directories(${SYSTEM_INCLUDE_DIR})
+#find_path(SYSTEM_INCLUDE_DIR zlib.h)
+#include_directories(${SYSTEM_INCLUDE_DIR})
