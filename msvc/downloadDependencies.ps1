@@ -12,13 +12,14 @@ $depsLibDir = $depsDir + "lib\"
 $depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
 $vsGenerator = "Visual Studio 14 2015 Win64"
+#$vsGenerator = "Visual Studio 15 2017 Win64"
 
 # Metrics
 $vcpkgTiming = 0
 $buildTiming = 0
 $cmakeTiming = 0
 
-# Add to path to call premake or other tools
+# Add to path to call tools
 $env:Path += $depsDir
 
 # Find VCPKG from path if it already exists

@@ -5,11 +5,13 @@
  */
 #include "csound.h"
 #include "winsound.h"
+#ifndef _MSC_VER
+# include <unistd.h>
+#endif
 #include <errno.h>
 #include <stdarg.h>
-#include <unistd.h>
 #if defined(WIN32)
-#include <direct.h>
+# include <direct.h>
 #endif
 #include <FL/Fl_Preferences.H>
 extern int do_exit;
