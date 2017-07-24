@@ -7,7 +7,7 @@ Version 6.09 beta
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
 
-Csound is copyright (c) 1991 Barry Vercoe, John ffitch.
+Csound is copyright (c) 1991 Barry Vercoe, John Ffitch.
 
 Csound is free software; you can redistribute them
 and/or modify them under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@ http://csound.github.io/docs/manual/indexframes.html, or it may be installed wit
 Csound in a location that varies by operating system.
 
 This version of Csound is programmable in C, C++, JavaScript, Python, Java, Lua, 
-and Common Lisp, and scores can be generated in these languages.
+and Common Lisp and scores can be generated in these languages.
 
 The Csound API application programming interfaces reference 
 may be found online at http://csound.github.io/docs/api/index.html, or it may be 
@@ -64,7 +64,7 @@ from around the world. They include (but are not limited to):
 * Hans Mikelson
 * Istvan Varga
 * Jean Piché
-* John ffitch
+* John Ffitch
 * John Ramsdell
 * Marc Resibois
 * Mark Dolson
