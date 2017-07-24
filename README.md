@@ -7,7 +7,7 @@ Version 6.09 beta
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
 
-Csound is copyright (c) 1991 Barry Vercoe, John Fitch.
+Csound is copyright (c) 1991 Barry Vercoe, John Ffitch.
 
 Csound is free software; you can redistribute them
 and/or modify them under the terms of the GNU Lesser General Public
@@ -64,7 +64,7 @@ from around the world. They include (but are not limited to):
 * Hans Mikelson
 * Istvan Varga
 * Jean Piché
-* John Fitch
+* John Ffitch
 * John Ramsdell
 * Marc Resibois
 * Mark Dolson
