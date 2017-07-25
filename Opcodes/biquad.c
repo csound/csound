@@ -1523,6 +1523,7 @@ static int mode(CSOUND *csound, MODE *p)
 
     double xn, yn, a0=p->a0, a1=p->a1, a2=p->a2,d=p->d;
     double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
+    int    asgfr = IS_ASIG_ARG(p->kfreq), asgq = IS_ASIG_ARG(p->kq);
 
     if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1530,8 +1531,8 @@ static int mode(CSOUND *csound, MODE *p)
       memset(&p->aout[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (IS_ASIG_ARG(p->kfreq)) kfq = p->kfreq[n];
-      if (IS_ASIG_ARG(p->kq)) kq = p->kq[n];
+      if (asgfr) kfq = p->kfreq[n];
+      if (asgq) kq = p->kq[n];
       //MYFLT kfq = IS_ASIG_ARG(p->kfreq) ? p->kfreq[n] : *p->kfreq;
       //MYFLT kq  = IS_ASIG_ARG(p->kq) ? p->kq[n] : *p->kq;
       if (lfq != kfq || lq != kq) {
