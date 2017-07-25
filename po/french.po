@@ -5937,9 +5937,8 @@ msgid "revlpsiz inconsistent\n"
 msgstr "revlpsiz incohérent\n"
 
 #: OOps/ugens6.c:1176
-#, fuzzy
 msgid "reverb: not initialised"
-msgstr "reverbx : non initialisé"
+msgstr "reverb : non initialisé"
 
 #: OOps/ugens6.c:1250
 msgid "pan: not initialised"
@@ -6876,7 +6875,7 @@ msgstr "format non compris\n"
 
 #: Opcodes/emugens/emugens.c:428
 msgid "cmp: operator not understood. Expecting <, <=, >, >=, ==\n"
-msgstr ""
+msgstr "cmp : opérateur incompris. <, <=, >, >= ou == attendu \n"
 
 #: Opcodes/fareygen.c:116
 msgid "insufficient arguments for fareytable"

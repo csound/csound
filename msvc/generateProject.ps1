@@ -35,5 +35,5 @@ cmake ..\.. -G $vsGenerator `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
- -DEIGEN3_INCLUDE_PATH:PATH=$vcpkgDir\packages\eigen3_x64-windows\include
-
+ -DEIGEN3_INCLUDE_PATH:PATH=$vcpkgDir\packages\eigen3_x64-windows\include `
+ -DBUILD_CSOUND_AC=OFF
