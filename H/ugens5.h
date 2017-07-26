@@ -41,6 +41,7 @@ typedef struct {
         MYFLT   *ar, *asig, *kcf, *kbw, *iscl, *istor;
         int     scale;
         double  c1, c2, c3, yt1, yt2, cosf, prvcf, prvbw;
+        int     asigf, asigw;
 } RESON;
 
 typedef struct {
