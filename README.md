@@ -32,7 +32,7 @@ of built-in examples that show off Csound's capabilities. Many musicians make
 CsoundQt their main Csound environment, although there are other excellent
 environments. CsoundQt runs not only Csound code, but also Python scripts.
 
-The examples directory and its subdirectories contains numerous working 
+The examples directory and its subdirectories contain numerous working 
 Csound orchestras and even complete pieces. 
 
 The Csound Reference Manual may be found online at 
