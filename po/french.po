@@ -3835,7 +3835,7 @@ msgstr "virtual_keyboard.cpp : erreur lors de l'allocation des options FLTK"
 msgid "Error registering opcode '%s'"
 msgstr "Erreur en enregistrant l'opcode '%s'"
 
-#: InOut/widgets.cpp:1124
+#: InOut/widgets.cpp:1127
 msgid ""
 "Invalid snapshot. Perhaps you modified orchestra widget code after you saved "
 "the snapshot bank."
@@ -3843,19 +3843,19 @@ msgstr ""
 "Instantané non valide. Peut-être avez-vous modifié le code d'un widget de "
 "l'orchestre après avoir sauvegardé la banque d'instantanés."
 
-#: InOut/widgets.cpp:1317
+#: InOut/widgets.cpp:1320
 msgid "No name for FLbutbank"
 msgstr "Pas de nom pour FLbutbank"
 
-#: InOut/widgets.cpp:1571
+#: InOut/widgets.cpp:1574
 msgid "FLsetsnap: invalid table"
 msgstr "FLsetsnap : table non valide"
 
-#: InOut/widgets.cpp:1576
+#: InOut/widgets.cpp:1579
 msgid "setsnap saving\n"
 msgstr "setsnap enregistre\n"
 
-#: InOut/widgets.cpp:1612
+#: InOut/widgets.cpp:1615
 msgid ""
 "Saving could overwrite the old file.\n"
 "Are you sure to save ?"
@@ -3863,11 +3863,11 @@ msgstr ""
 "La sauvegarde écrasera l'ancien fichier.\n"
 " Etes-vous sûr ?"
 
-#: InOut/widgets.cpp:1613
+#: InOut/widgets.cpp:1616
 msgid "Warning"
 msgstr "Avertissement"
 
-#: InOut/widgets.cpp:1624
+#: InOut/widgets.cpp:1627
 msgid ""
 "Saving could overwrite the old file.\n"
 "Are you sure you want to save ?"
@@ -3875,23 +3875,23 @@ msgstr ""
 "La sauvegarde écrasera l'ancien fichier\n"
 "Etes-vous certain de vouloir sauvegarder ?"
 
-#: InOut/widgets.cpp:1626
+#: InOut/widgets.cpp:1629
 msgid "No"
 msgstr "Non"
 
-#: InOut/widgets.cpp:1626
+#: InOut/widgets.cpp:1629
 msgid "Yes"
 msgstr "Oui"
 
-#: InOut/widgets.cpp:1636
+#: InOut/widgets.cpp:1639
 msgid "FLsavesnap: cannot open file"
 msgstr "FLsavesnap : impossible d'ouvrir le fichier"
 
-#: InOut/widgets.cpp:1693
+#: InOut/widgets.cpp:1696
 msgid "FLloadsnap: cannot open file"
 msgstr "FLloadsnap : impossible d'ouvrir le fichier"
 
-#: InOut/widgets.cpp:1739
+#: InOut/widgets.cpp:1742
 msgid ""
 "unmatched widget, probably due to a modified orchestra. Modifying an "
 "orchestra makes it incompatible with old snapshot files"
@@ -3900,27 +3900,27 @@ msgstr ""
 "La modification d'un orchestre le rend incompatible avec les anciens "
 "fichiers d'instantanés"
 
-#: InOut/widgets.cpp:2131
+#: InOut/widgets.cpp:2134
 msgid "end of widget thread\n"
 msgstr "fin du thread de widget\n"
 
-#: InOut/widgets.cpp:2158
+#: InOut/widgets.cpp:2161
 msgid "FLrun was already called"
 msgstr "FLrun a déjà été appelé"
 
-#: InOut/widgets.cpp:2161
+#: InOut/widgets.cpp:2164
 msgid "FL_run: memory allocation failure"
 msgstr "FL_run : échec de l'allocation mémoire"
 
-#: InOut/widgets.cpp:2268 InOut/widgets.cpp:2290
+#: InOut/widgets.cpp:2271 InOut/widgets.cpp:2293
 msgid "Error: Unable to fork process\n"
 msgstr "Erreur : Impossible de lancer le processus\n"
 
-#: InOut/widgets.cpp:2702
+#: InOut/widgets.cpp:2705
 msgid "FLpanel_end: invalid stack pointer: verify its placement"
 msgstr "FLpanel_end : pointeur de pile non valide : vérifier sa position"
 
-#: InOut/widgets.cpp:2706
+#: InOut/widgets.cpp:2709
 msgid ""
 "FLpanel_end: invalid stack count: verify FLpanel/FLpanel_end count and "
 "placement"
@@ -3928,11 +3928,11 @@ msgstr ""
 "FLpanel_end : compte de la pile non valide : vérifier le nombre de FLpanel/"
 "FLpanel_end et leurs positions"
 
-#: InOut/widgets.cpp:2736 InOut/widgets.cpp:2773
+#: InOut/widgets.cpp:2739 InOut/widgets.cpp:2776
 msgid "FLscroll_end: invalid stack pointer: verify its placement"
 msgstr "FLscroll_end : pointeur de pile non valide : vérifier sa position"
 
-#: InOut/widgets.cpp:2740
+#: InOut/widgets.cpp:2743
 msgid ""
 "FLscroll_end: invalid stack count: verify FLscroll/FLscroll_end count and "
 "placement"
@@ -3940,18 +3940,18 @@ msgstr ""
 "FLscroll_end : compte de la pile non valide : vérifier le nombre de FLscroll/"
 "FLscroll_end et leurs positions"
 
-#: InOut/widgets.cpp:2777
+#: InOut/widgets.cpp:2780
 msgid ""
 "FLtabs_end: invalid stack count: verify FLtabs/FLtabs_end count and placement"
 msgstr ""
 "FLtabs_end : pointeur de pile non valide : vérifier le nombre de FLtabs/"
 "FLtabs_end et leurs positions"
 
-#: InOut/widgets.cpp:2826
+#: InOut/widgets.cpp:2829
 msgid "FLgroup_end: invalid stack pointer: verify its placement"
 msgstr "FLgroup_end : pointeur de pile non valide : vérifier sa position"
 
-#: InOut/widgets.cpp:2830
+#: InOut/widgets.cpp:2833
 msgid ""
 "FLgroup_end: invalid stack count: verify FLgroup/FLgroup_end count and "
 "placement"
@@ -3959,154 +3959,154 @@ msgstr ""
 "FLgroup_end : compte de la pile non valide : verifier le nombre de FLgroup/"
 "FLgroup_end et leurs positions"
 
-#: InOut/widgets.cpp:2870
+#: InOut/widgets.cpp:2873
 msgid "FLpack_end: invalid stack pointer: verify its placement"
 msgstr "FLpack_end : pointeur de pile non valide : vérifier sa position"
 
-#: InOut/widgets.cpp:2874
+#: InOut/widgets.cpp:2877
 msgid ""
 "FLpack_end: invalid stack count: verify FLpack/FLpack_end count and placement"
 msgstr ""
 "FLpack_end : compte de la pile non valide : vérifier le nombre de FLpack/"
 "FLpack_end et leurs positions"
 
-#: InOut/widgets.cpp:2961
+#: InOut/widgets.cpp:2964
 msgid "System error: value() method called from non-valuator object"
 msgstr "Erreur système : méthode value() appelée depuis un objet non-valueur"
 
-#: InOut/widgets.cpp:3036
+#: InOut/widgets.cpp:3039
 msgid "FLvalue cannot be set by FLsetVal.\n"
 msgstr "FLvalue ne peut pas être rempli par FLsetVal.\n"
 
-#: InOut/widgets.cpp:3054
+#: InOut/widgets.cpp:3057
 #, c-format
 msgid "(fl_setWidgetValuei): not fully implemented yet; exp=%d"
 msgstr "(fl_setWidgetValuei) : pas encore totalement implémenté ; exp=%d"
 
-#: InOut/widgets.cpp:3075
+#: InOut/widgets.cpp:3078
 msgid "FLvalue cannot be set by FLsetVal\n"
 msgstr "FLvalue ne peut pas être rempli par FLsetVal\n"
 
-#: InOut/widgets.cpp:3093
+#: InOut/widgets.cpp:3096
 #, c-format
 msgid "(fl_setWidgetValue_set): not fully implemented yet; exp=%d"
 msgstr "(fl_setWidgetValue_set) : pas encore totalement implémenté ; exp=%d"
 
-#: InOut/widgets.cpp:3481 InOut/widgets.cpp:4981
+#: InOut/widgets.cpp:3484 InOut/widgets.cpp:4984
 msgid "FLslider exponential, using non-labeled slider"
 msgstr "FLslider exponentiel, utilisation d'une règlette sans étiquette"
 
-#: InOut/widgets.cpp:3504
+#: InOut/widgets.cpp:3507
 msgid "FLslider: invalid slider type"
 msgstr "FLslider : type de règlette non valide"
 
-#: InOut/widgets.cpp:3517 InOut/widgets.cpp:4362
+#: InOut/widgets.cpp:3520 InOut/widgets.cpp:4365
 msgid "FLslider: zero is illegal in exponential operations"
 msgstr "FLslider : zéro est interdit dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:3583 InOut/widgets.cpp:4717 InOut/widgets.cpp:4943
-#: InOut/widgets.cpp:5135
+#: InOut/widgets.cpp:3586 InOut/widgets.cpp:4720 InOut/widgets.cpp:4946
+#: InOut/widgets.cpp:5138
 msgid "invalid ZAK space allocation"
 msgstr "espace d'allocation ZAK non valide"
 
-#: InOut/widgets.cpp:3698
+#: InOut/widgets.cpp:3701
 msgid "FLslidBnk: zero is illegal in exponential operations"
 msgstr "FLslidBnk : zéro est interdit dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:3807 InOut/widgets.cpp:3841
+#: InOut/widgets.cpp:3810 InOut/widgets.cpp:3844
 msgid "FLjoy X axe: zero is illegal in exponential operations"
 msgstr "FLjoy axe X : zéro est interdit dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:3938
+#: InOut/widgets.cpp:3941
 msgid "FLknob: invalid knob type"
 msgstr "FLknob : type de bouton rotatif non valide"
 
-#: InOut/widgets.cpp:3954
+#: InOut/widgets.cpp:3957
 msgid "FLknob: zero is illegal in exponential operations"
 msgstr "FLknob : zéro est interdit dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:4059 InOut/widgets.cpp:4192
+#: InOut/widgets.cpp:4062 InOut/widgets.cpp:4195
 #, c-format
 msgid "FLbutton \"%s\" ignoring snapshot capture retrieve"
 msgstr "FLbutton \"%s\" ignore les instantanés de capture et de restitution"
 
-#: InOut/widgets.cpp:4101
+#: InOut/widgets.cpp:4104
 msgid "FLbutton: invalid button type"
 msgstr "FLbutton : type de bouton non valide"
 
-#: InOut/widgets.cpp:4137
+#: InOut/widgets.cpp:4140
 msgid "FLcloseButton: invalid stack pointer: verify its placement"
 msgstr "FLcloseButton : pointeur de pile non valide : vérifier sa position"
 
-#: InOut/widgets.cpp:4159
+#: InOut/widgets.cpp:4162
 #, c-format
 msgid "Command Found: %s\n"
 msgstr "Commande trouvée : %s\n"
 
-#: InOut/widgets.cpp:4162
+#: InOut/widgets.cpp:4165
 msgid "About"
 msgstr "A propos"
 
-#: InOut/widgets.cpp:4235
+#: InOut/widgets.cpp:4238
 msgid "FLbuttonBank: invalid button type"
 msgstr "FLbuttonBank : type de bouton non valide"
 
-#: InOut/widgets.cpp:4275
+#: InOut/widgets.cpp:4278
 #, c-format
 msgid "FLcount \"%s\" ignoring snapshot capture retrieve"
 msgstr "FLcount \"%s\" ignore les instantanés de capture et de restitution"
 
-#: InOut/widgets.cpp:4348
+#: InOut/widgets.cpp:4351
 msgid "FLroller: invalid roller type"
 msgstr "FLroller : type de molette non valide"
 
-#: InOut/widgets.cpp:4558
+#: InOut/widgets.cpp:4561
 msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
 msgstr ""
 "FLhvsBox : une surface carrée doit être délimitée par au moins 2 lignes"
 
-#: InOut/widgets.cpp:4610
+#: InOut/widgets.cpp:4613
 msgid "FLkeyIn: invalid table number"
 msgstr "FLkeyIn : numéro de table non valide"
 
-#: InOut/widgets.cpp:4614
+#: InOut/widgets.cpp:4617
 msgid "FLkeyIn: table too short!"
 msgstr "FLkeyIn : table trop courte !"
 
-#: InOut/widgets.cpp:4841
+#: InOut/widgets.cpp:4844
 msgid "FLvslidBnk: zero is illegal in exponential operations"
 msgstr "FLvslidBnk : zéro est illégal dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:5032 InOut/widgets.cpp:5225
+#: InOut/widgets.cpp:5035 InOut/widgets.cpp:5228
 msgid "FLsliderBank: zero is illegal in exponential operations"
 msgstr "FLsliderBank : zéro est illégal dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:5174
+#: InOut/widgets.cpp:5177
 msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
 msgstr ""
 "FLslidBnk2 : FLslider exponentiel, utilisant une règlette sans étiquette"
 
-#: InOut/widgets.cpp:5321 InOut/widgets.cpp:5390
+#: InOut/widgets.cpp:5324 InOut/widgets.cpp:5393
 msgid "FLsldBnkSet: invalid table number"
 msgstr "FLsldBnkSet : numéro de table non valide"
 
-#: InOut/widgets.cpp:5326 InOut/widgets.cpp:5395
+#: InOut/widgets.cpp:5329 InOut/widgets.cpp:5398
 msgid "FLslidBnkSet: table too short!"
 msgstr "FLslidBnkSetk : table trop courte !"
 
-#: InOut/widgets.cpp:5335 InOut/widgets.cpp:5404
+#: InOut/widgets.cpp:5338 InOut/widgets.cpp:5407
 msgid "FLsldBnkSet: invalid outable number"
 msgstr "FLsldBnkSet : numéro de outable non valide"
 
-#: InOut/widgets.cpp:5340 InOut/widgets.cpp:5410
+#: InOut/widgets.cpp:5343 InOut/widgets.cpp:5413
 msgid "FLslidBnkSet: too many sliders to reset!"
 msgstr "FLslidBnkSet : trop de règlettes à réinitialiser !"
 
-#: InOut/widgets.cpp:5364
+#: InOut/widgets.cpp:5367
 msgid "FLslidBnkSet: function mapping not available"
 msgstr "FLslidBnkSet : type de fonction (lin. ou exp.) non disponible"
 
-#: InOut/widgets.cpp:5438 InOut/widgets.cpp:5532 InOut/widgets.cpp:5625
+#: InOut/widgets.cpp:5441 InOut/widgets.cpp:5535 InOut/widgets.cpp:5628
 msgid ""
 "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range "
 "for input"
@@ -4114,36 +4114,36 @@ msgstr ""
 "FLslidBnk2Setk : valeur hors limites : le mappage de fonction nécessite en "
 "entrée l'intervalle de 0 à 1"
 
-#: InOut/widgets.cpp:5470
+#: InOut/widgets.cpp:5473
 msgid "FLsldBnkSetk: invalid table number"
 msgstr "FLslidBnkSetk : numéro de table non valide"
 
-#: InOut/widgets.cpp:5475 InOut/widgets.cpp:5568
+#: InOut/widgets.cpp:5478 InOut/widgets.cpp:5571
 msgid "FLslidBnkSetk: table too short!"
 msgstr "FLslidBnkSetk : table trop courte !"
 
-#: InOut/widgets.cpp:5484
+#: InOut/widgets.cpp:5487
 msgid "FLsldBnkSetk: invalid outable number"
 msgstr "FLslidBnkSetk : numéro de outable non valide"
 
-#: InOut/widgets.cpp:5490 InOut/widgets.cpp:5583
+#: InOut/widgets.cpp:5493 InOut/widgets.cpp:5586
 msgid "FLslidBnkSetk: too many sliders to reset!"
 msgstr "FLslidBnkSetk : trop de règlettes à réinitialiser !"
 
-#: InOut/widgets.cpp:5563
+#: InOut/widgets.cpp:5566
 msgid "FLslidBnkSetk: invalid table number"
 msgstr "FLslidBnkSetk : numéro de table non valide"
 
-#: InOut/widgets.cpp:5577
+#: InOut/widgets.cpp:5580
 msgid "FLslidBnkSetk: invalid outable number"
 msgstr "FLslidBnkSetk : numéro de outable non valide"
 
-#: InOut/widgets.cpp:5658
+#: InOut/widgets.cpp:5661
 msgid "FLxyin: none of X limits can be zero in exponential mode!"
 msgstr ""
 "FLxyin : aucune des limites de X ne peut être zéro en mode exponentiel !"
 
-#: InOut/widgets.cpp:5685
+#: InOut/widgets.cpp:5688
 msgid "FLxyin: none of Y limits can be zero in exponential mode!"
 msgstr ""
 "FLxyin : aucune des limites de Y ne peut être zéro en mode exponentiel !"
@@ -4204,64 +4204,64 @@ msgstr "pas supporté sur ce terminal"
 msgid "Cannot be more In arguments than Out in init (%d,%d)"
 msgstr "Il ne peut y avoir plus d'arguments In que Out dans init (%d,%d)"
 
-#: OOps/aops.c:243 OOps/aops.c:360 OOps/aops.c:373 util1/scot/scot.c:1302
+#: OOps/aops.c:243 OOps/aops.c:359 OOps/aops.c:372 util1/scot/scot.c:1302
 #: util1/scot/scot.c:1317 util1/scot/scot.c:1371
 msgid "Division by zero"
 msgstr "Division par zéro"
 
-#: OOps/aops.c:958
+#: OOps/aops.c:947
 msgid "non-looping sample"
 msgstr "son échantillonné sans boucle"
 
-#: OOps/aops.c:1109 OOps/aops.c:1137
+#: OOps/aops.c:1098 OOps/aops.c:1126
 #, c-format
 msgid "No tuning table %d"
 msgstr "Pas de table d'accordage %d"
 
-#: OOps/aops.c:1182 OOps/aops.c:1220
+#: OOps/aops.c:1171 OOps/aops.c:1209
 msgid "cpstun: invalid table"
 msgstr "cpstun : table non valide"
 
-#: OOps/aops.c:1619 OOps/aops.c:1667
+#: OOps/aops.c:1606 OOps/aops.c:1654
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr "Canal d'entrée %d trop grand ; ignoré"
 
-#: OOps/aops.c:1625 OOps/aops.c:1673
+#: OOps/aops.c:1612 OOps/aops.c:1660
 #, c-format
 msgid "Input channel %d is invalid; ignored"
 msgstr "Canal d'entrée %d non valide ; ignoré"
 
-#: OOps/aops.c:1662
+#: OOps/aops.c:1649
 msgid "Input and output argument count differs in inch"
 msgstr "Les nombres d'arguments d'entrée et de sortie différent dans inch"
 
-#: OOps/aops.c:1750
+#: OOps/aops.c:1737
 msgid "Channel greater than nchnls"
 msgstr "Canal supérieur à nchnls"
 
-#: OOps/aops.c:1897
+#: OOps/aops.c:1884
 msgid "Excess channels ignored\n"
 msgstr "Canaux en excès ignorés\n"
 
-#: OOps/aops.c:2038
+#: OOps/aops.c:2025
 msgid "Unknown function called"
 msgstr "Appel de fonction inconnue"
 
-#: OOps/aops.c:2071
+#: OOps/aops.c:2058
 msgid "number of arguments != nchnls"
 msgstr "nombre d'arguments != nchnls"
 
-#: OOps/aops.c:2100
+#: OOps/aops.c:2087
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 "outrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
 
-#: OOps/aops.c:2133
+#: OOps/aops.c:2120
 msgid "number of hardware output channels not currently available"
 msgstr "nombre de canaux matériels en sortie non disponible"
 
-#: OOps/aops.c:2138
+#: OOps/aops.c:2126
 msgid "number of hardware input channels not currently available"
 msgstr "nombre de canaux matériels en entrée non disponible"
 
@@ -5480,7 +5480,7 @@ msgstr "arg2 vaut zéro"
 msgid "unlike signs"
 msgstr "signes différents"
 
-#: OOps/ugens1.c:193 OOps/ugens1.c:1885 OOps/ugens1.c:1895
+#: OOps/ugens1.c:193 OOps/ugens1.c:1887 OOps/ugens1.c:1897
 #, c-format
 msgid "Breakpoint %d not valid"
 msgstr "Point charnière %d non valide"
@@ -5531,40 +5531,40 @@ msgstr "expseg (taux-a) : non initialisé"
 msgid "p3 too short in linen"
 msgstr "p3 trop court dans linen"
 
-#: OOps/ugens1.c:1223 OOps/ugens1.c:1246 OOps/ugens1.c:1379 OOps/ugens1.c:1495
-#: OOps/ugens1.c:1626 OOps/ugens1.c:1685
+#: OOps/ugens1.c:1224 OOps/ugens1.c:1247 OOps/ugens1.c:1380 OOps/ugens1.c:1496
+#: OOps/ugens1.c:1627 OOps/ugens1.c:1686
 msgid "non-positive iatdec"
 msgstr "iatdec non positif"
 
-#: OOps/ugens1.c:1334 OOps/ugens1.c:1449 OOps/ugens1.c:1588 OOps/ugens1.c:1647
+#: OOps/ugens1.c:1335 OOps/ugens1.c:1450 OOps/ugens1.c:1589 OOps/ugens1.c:1648
 msgid "ixmod out of range."
 msgstr "ixmod hors limites"
 
-#: OOps/ugens1.c:1353 OOps/ugens1.c:1469
+#: OOps/ugens1.c:1354 OOps/ugens1.c:1470
 msgid "p3 too short in envlpx"
 msgstr "p3 trop court dans envlpx"
 
-#: OOps/ugens1.c:1364 OOps/ugens1.c:1480 OOps/ugens1.c:1616 OOps/ugens1.c:1675
+#: OOps/ugens1.c:1365 OOps/ugens1.c:1481 OOps/ugens1.c:1617 OOps/ugens1.c:1676
 msgid "rise func ends with zero"
 msgstr "la fonction d'attaque se termine par zéro"
 
-#: OOps/ugens1.c:1408 OOps/ugens1.c:1531 OOps/ugens1.c:1760
+#: OOps/ugens1.c:1409 OOps/ugens1.c:1532 OOps/ugens1.c:1762
 msgid "envlpx rise func ends with zero"
 msgstr "la fonction d'attaque de envlpx se termine zéro"
 
-#: OOps/ugens1.c:1430 OOps/ugens1.c:1524 OOps/ugens1.c:1753
+#: OOps/ugens1.c:1431 OOps/ugens1.c:1525 OOps/ugens1.c:1755
 msgid "envlpx(krate): not initialised"
 msgstr "envlpx(taux-k) : non initialisé"
 
-#: OOps/ugens1.c:1957 OOps/ugens1.c:2208
+#: OOps/ugens1.c:1959 OOps/ugens1.c:2210
 msgid "cosseg not initialised (krate)\n"
 msgstr "cosseg non initialisé (taux-k)\n"
 
-#: OOps/ugens1.c:2012
+#: OOps/ugens1.c:2014
 msgid "cosseg: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
-#: OOps/ugens1.c:2083 OOps/ugens1.c:2150
+#: OOps/ugens1.c:2085 OOps/ugens1.c:2152
 msgid "cossegr: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
@@ -5748,116 +5748,116 @@ msgstr "pluck : kcps supérieur au taux d'échantillonnage"
 msgid "Seeding from current time %lu\n"
 msgstr "Graine à partir de l'horloge %lu\n"
 
-#: OOps/ugens5.c:286 OOps/ugens5.c:399 Opcodes/gab/gab.c:52 Opcodes/ugsc.c:213
+#: OOps/ugens5.c:286 OOps/ugens5.c:404 Opcodes/gab/gab.c:52 Opcodes/ugsc.c:213
 #, c-format
 msgid "illegal reson iscl value, %f"
 msgstr "valeur illégale de iscl dans reson, %f"
 
-#: OOps/ugens5.c:622
+#: OOps/ugens5.c:627
 #, c-format
 msgid "LPREAD cannot load %s"
 msgstr "LPREAD ne peut pas charger %s"
 
-#: OOps/ugens5.c:633
+#: OOps/ugens5.c:638
 #, c-format
 msgid "Using %s type of file.\n"
 msgstr "Utilisation du type de fichier %s.\n"
 
-#: OOps/ugens5.c:634
+#: OOps/ugens5.c:639
 msgid "pole"
 msgstr "pôle"
 
-#: OOps/ugens5.c:634
+#: OOps/ugens5.c:639
 msgid "filter coefficient"
 msgstr "coefficient du filtre"
 
-#: OOps/ugens5.c:639
+#: OOps/ugens5.c:644
 msgid "lpheader overriding inputs"
 msgstr "l'en-tête du fichier prend le pas sur les paramètres"
 
-#: OOps/ugens5.c:643
+#: OOps/ugens5.c:648
 msgid "lpfile srate != orch sr"
 msgstr "taux d'échantillonnage du fichier != sr de l'orch"
 
-#: OOps/ugens5.c:651
+#: OOps/ugens5.c:656
 #, c-format
 msgid "file %s bytes are in wrong order"
 msgstr "dans le fichier %s les octets ne sont pas dans le bon ordre"
 
-#: OOps/ugens5.c:661
+#: OOps/ugens5.c:666
 msgid "insufficient args and no file header"
 msgstr "nombre d'arguments insuffisant et pas d'en-tête de fichier"
 
-#: OOps/ugens5.c:676
+#: OOps/ugens5.c:681
 #, c-format
 msgid "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"
 msgstr "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"
 
-#: OOps/ugens5.c:701 util/lpanal.c:329
+#: OOps/ugens5.c:706 util/lpanal.c:329
 #, c-format
 msgid "magnitude: %f   Phase: %f\n"
 msgstr "magnitude : %f   Phase : %f\n"
 
-#: OOps/ugens5.c:704 util/lpanal.c:332
+#: OOps/ugens5.c:709 util/lpanal.c:332
 #, c-format
 msgid "Real: %f   Imag: %f\n"
 msgstr "Partie réelle : %f   Partie imaginaire : %f\n"
 
-#: OOps/ugens5.c:759
+#: OOps/ugens5.c:764
 msgid "Cannot handle uneven pole count yet \n"
 msgstr "Impossible de traiter actuellement un nombre impair de pôles\n"
 
-#: OOps/ugens5.c:876
+#: OOps/ugens5.c:881
 msgid "lpread: not initialised"
 msgstr "lpread : non initialisé"
 
-#: OOps/ugens5.c:882
+#: OOps/ugens5.c:887
 msgid "lpread timpnt < 0"
 msgstr "lpread : timpnt < 0"
 
-#: OOps/ugens5.c:888
+#: OOps/ugens5.c:893
 msgid "lpread ktimpnt truncated to last frame"
 msgstr "lpread : ktimpnt tronqué à la dernière trame"
 
-#: OOps/ugens5.c:919 OOps/ugens5.c:1434
+#: OOps/ugens5.c:924 OOps/ugens5.c:1439
 msgid "Interpolation failed"
 msgstr "L'interpolation a échoué"
 
-#: OOps/ugens5.c:979
+#: OOps/ugens5.c:984
 msgid "this opcode only works with LPC pole analysis type (-a)\n"
 msgstr ""
 "cet opcode ne fonctionne qu'avec le type d'analyse de pôle par CPL (-a)\n"
 
-#: OOps/ugens5.c:1115
+#: OOps/ugens5.c:1120
 msgid "Pole file not supported for this opcode !"
 msgstr "Fichier de pôles non supporté par cet opcode !"
 
-#: OOps/ugens5.c:1145
+#: OOps/ugens5.c:1150
 #, c-format
 msgid "illegal frqratio, %5.2f"
 msgstr "frqratio illégal, %5.2f"
 
-#: OOps/ugens5.c:1355
+#: OOps/ugens5.c:1360
 msgid "lpslot number should be positive"
 msgstr "le numéro de lpslot doit être positif"
 
-#: OOps/ugens5.c:1375
+#: OOps/ugens5.c:1380
 msgid "LPC slot is not allocated"
 msgstr "le slot LPC n'est pas alloué"
 
-#: OOps/ugens5.c:1383
+#: OOps/ugens5.c:1388
 msgid "lpinterpol works only with poles files.."
 msgstr "lpinterpol ne travaille qu'avec des fichiers de pôles.."
 
-#: OOps/ugens5.c:1387
+#: OOps/ugens5.c:1392
 msgid "The poles files have different pole count"
 msgstr "Les fichiers de pôles ont un nombre de pôles différent"
 
-#: OOps/ugens5.c:1393
+#: OOps/ugens5.c:1398
 msgid "padding error"
 msgstr "erreur de padding"
 
-#: OOps/ugens5.c:1418
+#: OOps/ugens5.c:1423
 msgid "lpinterpol: not initialised"
 msgstr "lpinterpol : non initialisé"
 
@@ -5936,11 +5936,11 @@ msgstr "alpass : non initialisé"
 msgid "revlpsiz inconsistent\n"
 msgstr "revlpsiz incohérent\n"
 
-#: OOps/ugens6.c:1175
-msgid "reverb: not intialised"
+#: OOps/ugens6.c:1176
+msgid "reverb: not initialised"
 msgstr "reverb : non initialisé"
 
-#: OOps/ugens6.c:1249
+#: OOps/ugens6.c:1250
 msgid "pan: not initialised"
 msgstr "pan : non initialisé"
 
@@ -6860,22 +6860,22 @@ msgstr ""
 "Impossible de trouver l'étiquette \"%s\" dans le fichier de bibliothèque de "
 "plugin \"%s\"."
 
-#: Opcodes/emugens/emugens.c:54
+#: Opcodes/emugens/emugens.c:53
 msgid "linlin.k: Division by zero"
 msgstr "linlin.k : division par zéro"
 
-#: Opcodes/emugens/emugens.c:288
+#: Opcodes/emugens/emugens.c:287
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
 msgstr "caractère a attendu entre A et G, mais %c obtenu\n"
 
-#: Opcodes/emugens/emugens.c:314
+#: Opcodes/emugens/emugens.c:313
 msgid "format not understood\n"
 msgstr "format non compris\n"
 
-#: Opcodes/emugens/emugens.c:429
+#: Opcodes/emugens/emugens.c:428
 msgid "cmp: operator not understood. Expecting <, <=, >, >=, ==\n"
-msgstr ""
+msgstr "cmp : opérateur incompris. <, <=, >, >= ou == attendu \n"
 
 #: Opcodes/fareygen.c:116
 msgid "insufficient arguments for fareytable"
@@ -14568,6 +14568,9 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "reverb: not intialised"
+#~ msgstr "reverb : non initialisé"
 
 #~ msgid "RAWWAVE_PATH: %s\n"
 #~ msgstr "RAWWAVE_PATH : %s\n"

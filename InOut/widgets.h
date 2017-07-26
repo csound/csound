@@ -1,7 +1,7 @@
 /*
     widgets.h:
 
-    Copyright (C) 1002 Gabriel Maldonado
+    Copyright (C) 2002 Gabriel Maldonado
 
     This file is part of Csound.
 
