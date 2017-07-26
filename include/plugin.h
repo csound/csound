@@ -233,6 +233,11 @@ public:
       ComplexFFT(this, fdata, setup->N);
     return reinterpret_cast<std::complex<MYFLT> *>(fdata);
   }
+
+  /** Sleep 
+   */
+  void sleep(int ms) { Sleep(ms); }
+  
 };
 
 /**
@@ -241,6 +246,7 @@ public:
 class Thread {
   void *thread;
   static uintptr_t thrdRun(void *t) { return ((Thread *)t)->run(); }
+  virtual uintptr_t run() = 0;
 
 protected:
   Csound *csound;
@@ -250,7 +256,7 @@ public:
     CSOUND *p = (CSOUND *)csound;
     thread = p->CreateThread(thrdRun, (void *)this);
   }
-  virtual uintptr_t run() = 0;
+  
   uintptr_t join() {
     CSOUND *p = (CSOUND *)csound;
     return p->JoinThread(thread);
