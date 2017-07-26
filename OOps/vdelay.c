@@ -31,7 +31,8 @@
 #include <math.h>
 #include "vdelay.h"
 
-#define ESR     (csound->esr/FL(1000.0))
+//#define ESR     (csound->esr/FL(1000.0))
+#define ESR     (csound->esr*FL(0.001))
 
 int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
@@ -42,7 +43,7 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {     /*    make sure buffer is empty       */
-        memset(p->aux.auxp, 0, n*sizeof(MYFLT));
+        memset(p->aux.auxp, '\0', n*sizeof(MYFLT));
       }
       p->left = 0;
     }
