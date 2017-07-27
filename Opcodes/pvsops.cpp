@@ -265,7 +265,7 @@ struct TVConv : csnd::Plugin<1, 6> {
   }
 };
 
-
+/*
 class PrintThread : public csnd::Thread {
   std::atomic_bool splock;
   std::atomic_bool on;
@@ -311,7 +311,7 @@ public:
   
 };
 
-/*
+
 struct TPrint : csnd::Plugin<0, 1> {
   static constexpr char const *otypes = "";
   static constexpr char const *itypes = "S";
