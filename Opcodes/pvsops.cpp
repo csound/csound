@@ -265,6 +265,78 @@ struct TVConv : csnd::Plugin<1, 6> {
   }
 };
 
+/*
+class PrintThread : public csnd::Thread {
+  std::atomic_bool splock;
+  std::atomic_bool on;
+  std::string message;
+
+  void lock() {
+    bool tmp = false;
+    while(!splock.compare_exchange_weak(tmp,true))
+      tmp = false;
+  }
+  
+  void unlock() {
+    splock = false;
+  }
+
+  uintptr_t run() {
+    std::string old;
+    while(on) {
+      lock();
+      if(old.compare(message)) {
+       csound->message(message.c_str());
+       old = message;
+      } 
+      unlock(); 
+    }
+    return 0;
+  }
+  
+public:
+  PrintThread(csnd::Csound *csound)
+    : Thread(csound), splock(false), on(true), message("") {};
+
+  ~PrintThread(){
+    on = false;
+    join();
+  }
+   
+  void set_message(const char *m) {
+    lock();
+    message = m;
+    unlock(); 
+  }
+  
+};
+
+
+struct TPrint : csnd::Plugin<0, 1> {
+  static constexpr char const *otypes = "";
+  static constexpr char const *itypes = "S";
+  PrintThread t;
+
+  int init() {
+    csound->plugin_deinit(this);
+    csnd::constr(&t, csound);
+    return OK;
+  }
+
+  int deinit() {
+    csnd::destr(&t);
+    return OK;
+  }
+
+  int kperf() {
+    t.set_message(inargs.str_data(0).data);
+    return OK;
+  }
+};
+*/
+
+
+
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
