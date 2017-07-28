@@ -370,18 +370,35 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
     char  *p;
     CORFIL *incore = corfile_create_w();
     char  buffer[CSD_MAX_LINE_LEN];
+    int comm = 0;
 
     csound->orcLineOffset = STA(csdlinecount)+1;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       p = buffer;
       while (isblank(*p)) p++;
-      if (strstr(p, "</CsInstruments>") == p) {
+      if(*p == '/' && *(p+1) == '*') {
+	//csound->Message(csound, "comment start\n");
+	comm = 1; p += 2;
+      }
+
+      if (comm == 0 &&
+	  strstr(p, "</CsInstruments>") == p) {
+	//csound->Message(csound, "closing tag\n");
         //corfile_flush(incore);
         corfile_puts("\n#exit\n", incore);
         corfile_putc('\0', incore);
         corfile_putc('\0', incore);
         csound->orchstr = incore;
         return TRUE;
+      } else if (comm) {
+        while(p < buffer + CSD_MAX_LINE_LEN){
+	  if(*p == '*' && *(p+1) == '/') {
+           comm = 0;
+	   // csound->Message(csound, "comment end\n");
+	   break;
+          } else p++;
+	}
+	corfile_puts(buffer, incore);
       }
       else
         corfile_puts(buffer, incore);
@@ -828,6 +845,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
       char *p = buffer;
       while (isblank(*p)) p++;
+      
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         csoundMessage(csound, Str("STARTING FILE\n"));
