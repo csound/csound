@@ -65,7 +65,7 @@ from around the world. They include (but are not limited to):
 * Gabriel Maldonado
 * Greg Sullivan
 * Hans Mikelson
-* Heni Manson
+* Henri Manson
 * Ian McCurdy
 * Istvan Varga
 * Jean Piché
