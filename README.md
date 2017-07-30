@@ -54,18 +54,23 @@ Csound contains contributions from musicians, scientists, and programmers
 from around the world. They include (but are not limited to):
 
 * Allan Lee
+* Andres Cabrera
 * Bill Gardner
 * Bill Verplank
 * Dan Ellis
 * David Macintyre
 * Eli Breder
+* Fabio P. Bertolotti
+* Felipe Sataler
 * Gabriel Maldonado
 * Greg Sullivan
 * Hans Mikelson
+* Henri Manson
+* Ian McCurdy
 * Istvan Varga
 * Jean Piché
-* John ffitch
 * John Ramsdell
+* John ffitch
 * Marc Resibois
 * Mark Dolson
 * Matt Ingalls
@@ -88,6 +93,3 @@ from around the world. They include (but are not limited to):
 * Tom Erbe
 * Victor Lazzarini
 * Ville Pulkki
-* Andres Cabrera
-* Felipe Sataler
-* Ian McCurdy
