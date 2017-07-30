@@ -339,9 +339,17 @@ var CsoundObj = function() {
     this.play = function() {
         _play(_self);
      }
+     
+    /**
+     * This is a stub to enable cross-platform compatibility of the core Csound API
+     * across WASM, csound.node, CsoundQt, and Csound for Android.
+     */
+    this.perform = function() {
+        console.log("CsoundObj.perform()...");
+        return 0;
+    }
 
-     this.stop = function() {
+    this.stop = function() {
         _openAudioOut(_self);
     }
 };  
-
