@@ -187,7 +187,7 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     STA(toremove) = tmp;
 }
 
-static int blank_buffer(CSOUND *csound, char *buffer)
+static int blank_buffer(/*CSOUND *csound,*/ char *buffer)
 {
     const char *s;
     for (s = &(buffer[0]); *s != '\0' && *s != '\n'; s++) {
@@ -365,6 +365,90 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
 
 
 
+#if 1
+static int all_blank(char* start, char* end)
+{
+    while (start != end) {
+      if (!isblank(*start)) return 0;
+      start++;
+    }
+    return 1;
+}
+
+static int createOrchestra(CSOUND *csound, CORFIL *cf)
+{
+    char  *p, *q;
+    CORFIL *incore = corfile_create_w();
+    char  buffer[CSD_MAX_LINE_LEN];
+    int state = 0;
+
+    csound->orcLineOffset = STA(csdlinecount)+1;
+ nxt:
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int c;
+      p = buffer;
+
+      if (state == 0 &&
+	  (q = strstr(p, "</CsInstruments>")) &&
+          all_blank(buffer,q)) {
+	csound->Message(csound, "closing tag\n");
+        //corfile_flush(incore);
+        corfile_puts("\n#exit\n", incore);
+        corfile_putc('\0', incore);
+        corfile_putc('\0', incore);
+        csound->orchstr = incore;
+        return TRUE;
+      }
+    top:
+      if (*p == '\0') continue;
+      if (state==0) {
+        while (c = *p++) {
+          if (c=='"') { corfile_putc(c,incore); state = 1; goto top;}
+          else if (c=='/' && *p=='*') {
+            corfile_putc(c,incore); corfile_putc(*p++,incore); state = 2; goto top;
+          }
+          else if (c == ';'|| (c=='/' && *p=='/')) {
+            corfile_puts(p-1, incore); goto nxt;
+          }
+          else if (c=='{' && *p=='{') {
+            corfile_putc(c,incore); corfile_putc(*p++,incore); state = 3; goto top;
+          }
+          corfile_putc(c, incore);
+        }
+      }
+      else if (state == 1) {    /* string */
+        while (c=*p++) {
+          corfile_putc(c, incore);
+          if (c=='"') { state =  0; goto top;}
+        }
+        csoundErrorMsg(csound, Str("missing \" to terminate string"));
+        corfile_rm(&incore);
+        return FALSE;
+      }
+      else if (state == 2) {    /* multiline comment */
+        while ( c = *p++) {
+          if (c=='*' && *p=='/') {
+            corfile_putc(c,incore); corfile_putc(*p++,incore); state = 0; goto top;
+          }
+          corfile_putc(c, incore);
+        }
+        goto nxt;
+      }
+      else if (state == 3) {    /* extended string */
+        while ( c = *p++) {
+          if (c=='}' && *p=='}') {
+            corfile_putc(c,incore); corfile_putc(*p++,incore); state = 0; goto top;
+          }
+          corfile_putc(c, incore);
+        }
+        goto nxt;
+      }
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
+    corfile_rm(&incore);
+    return FALSE;
+}
+#else
 static int createOrchestra(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
@@ -407,7 +491,7 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
     corfile_rm(&incore);
     return FALSE;
 }
-
+#endif
 
 
 static int createScore(CSOUND *csound, CORFIL *cf)
@@ -943,7 +1027,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
         r = checkShortLicence(csound, cf);
         result = r && result;
       }
-      else if (blank_buffer(csound, buffer)) continue;
+      else if (blank_buffer(/*csound,*/ buffer)) continue;
       else if (started && strchr(p, '<') == buffer){
         csoundMessage(csound, Str("unknown CSD tag: %s\n"), buffer);
       }
