@@ -419,7 +419,8 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
       else if (state == 1) {    /* string */
         while (c=*p++) {
           corfile_putc(c, incore);
-          if (c=='"') { state =  0; goto top;}
+          if (c=='\\') { corfile_putc(*p++, incore);}
+          else if (c=='"') { state =  0; goto top;}
         }
         csoundErrorMsg(csound, Str("missing \" to terminate string"));
         corfile_rm(&incore);
@@ -533,7 +534,8 @@ static int createScore(CSOUND *csound, CORFIL *cf)
       else if (state == 1) {    /* string */
         while (c=*p++) {
           corfile_putc(c, csound->scorestr);
-          if (c=='"') { state =  0; goto top;}
+          if (c=='\\') { corfile_putc(*p++, csound->scorestr);}
+          else if (c=='"') { state =  0; goto top;}
         }
         csoundErrorMsg(csound, Str("missing \" to terminate string"));
         corfile_rm(&csound->scorestr);
