@@ -493,7 +493,67 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
 }
 #endif
 
+#if 1
+static int createScore(CSOUND *csound, CORFIL *cf)
+{
+    char   *p, *q;
+    int    state = 0;
+    char   buffer[CSD_MAX_LINE_LEN];
 
+    if (csound->scorestr == NULL)
+      csound->scorestr = corfile_create_w();
+    csound->scoLineOffset = STA(csdlinecount);
+ nxt:
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int c;
+      p = buffer;
+      if (state == 0 &&
+	  (q = strstr(p, "</CsScore>")) &&
+          all_blank(buffer,q)) {
+        corfile_puts("\n#exit\n", csound->scorestr);
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+        return TRUE;
+      }
+    top:
+      if (*p == '\0') continue;
+      if (state==0) {
+        while (c = *p++) {
+          if (c=='"') { corfile_putc(c,csound->scorestr); state = 1; goto top;}
+          else if (c=='/' && *p=='*') {
+            corfile_putc(c,csound->scorestr); corfile_putc(*p++,csound->scorestr);
+            state = 2; goto top;
+          }
+          else if (c == ';'|| (c=='/' && *p=='/')) {
+            corfile_puts(p-1, csound->scorestr); goto nxt;
+          }
+          corfile_putc(c, csound->scorestr);
+        }
+      }
+      else if (state == 1) {    /* string */
+        while (c=*p++) {
+          corfile_putc(c, csound->scorestr);
+          if (c=='"') { state =  0; goto top;}
+        }
+        csoundErrorMsg(csound, Str("missing \" to terminate string"));
+        corfile_rm(&csound->scorestr);
+        return FALSE;
+      }
+      else if (state == 2) {    /* multiline comment */
+        while ( c = *p++) {
+          if (c=='*' && *p=='/') {
+            corfile_putc(c,csound->scorestr); corfile_putc(*p++,csound->scorestr);
+            state = 0; goto top;
+          }
+          corfile_putc(c, csound->scorestr);
+        }
+        goto nxt;
+      }
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    return FALSE;
+}
+#else
 static int createScore(CSOUND *csound, CORFIL *cf)
 {
     char   *p;
@@ -519,7 +579,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;
 }
-
+#endif
 
 static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
 {
