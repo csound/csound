@@ -402,7 +402,7 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
     top:
       if (*p == '\0') continue;
       if (state==0) {
-        while (c = *p++) {
+        while ((c = *p++)) {
           if (c=='"') { corfile_putc(c,incore); state = 1; goto top;}
           else if (c=='/' && *p=='*') {
             corfile_putc(c,incore); corfile_putc(*p++,incore); state = 2; goto top;
@@ -417,9 +417,12 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
         }
       }
       else if (state == 1) {    /* string */
-        while (c=*p++) {
+        while (((c=*p++))) {
           corfile_putc(c, incore);
-          if (c=='\\') { corfile_putc(*p++, incore);}
+          if (c=='\\') {
+            corfile_putc(*p++, incore);
+            if (*p=='\0') goto top;
+          }
           else if (c=='"') { state =  0; goto top;}
         }
         csoundErrorMsg(csound, Str("missing \" to terminate string"));
@@ -427,7 +430,7 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
         return FALSE;
       }
       else if (state == 2) {    /* multiline comment */
-        while ( c = *p++) {
+        while ( (c = *p++)) {
           if (c=='*' && *p=='/') {
             corfile_putc(c,incore); corfile_putc(*p++,incore); state = 0; goto top;
           }
@@ -436,7 +439,7 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
         goto nxt;
       }
       else if (state == 3) {    /* extended string */
-        while ( c = *p++) {
+        while ( (c = *p++)) {
           if (c=='}' && *p=='}') {
             corfile_putc(c,incore); corfile_putc(*p++,incore); state = 0; goto top;
           }
@@ -519,7 +522,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
     top:
       if (*p == '\0') continue;
       if (state==0) {
-        while (c = *p++) {
+        while ((c = *p++)) {
           if (c=='"') { corfile_putc(c,csound->scorestr); state = 1; goto top;}
           else if (c=='/' && *p=='*') {
             corfile_putc(c,csound->scorestr); corfile_putc(*p++,csound->scorestr);
@@ -532,9 +535,12 @@ static int createScore(CSOUND *csound, CORFIL *cf)
         }
       }
       else if (state == 1) {    /* string */
-        while (c=*p++) {
+        while (((c=*p++))) {
           corfile_putc(c, csound->scorestr);
-          if (c=='\\') { corfile_putc(*p++, csound->scorestr);}
+          if (c=='\\') {
+            corfile_putc(*p++, csound->scorestr);
+            if (*p=='\0') goto top;
+          }
           else if (c=='"') { state =  0; goto top;}
         }
         csoundErrorMsg(csound, Str("missing \" to terminate string"));
@@ -542,7 +548,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
         return FALSE;
       }
       else if (state == 2) {    /* multiline comment */
-        while ( c = *p++) {
+        while ( (c = *p++)) {
           if (c=='*' && *p=='/') {
             corfile_putc(c,csound->scorestr); corfile_putc(*p++,csound->scorestr);
             state = 0; goto top;
