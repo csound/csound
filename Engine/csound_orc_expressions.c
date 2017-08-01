@@ -186,9 +186,11 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       strncpy(op, "cigoto", 8);
       break;
     case ITHEN_TOKEN:
+    icase:
       strncpy(op, "cingoto", 8);
       break;
     case THEN_TOKEN:
+      if (type==0) goto icase;
     case KTHEN_TOKEN:
       strncpy(op, "cngoto", 8);
       break;
