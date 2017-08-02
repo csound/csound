@@ -464,6 +464,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     double A4 = 0.0;
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
 
+    csound->inZero = 1;
     addGlobalVariable(csound, engineState, rType, "sr", NULL);
     addGlobalVariable(csound, engineState, rType, "kr", NULL);
     addGlobalVariable(csound, engineState, rType, "ksmps", NULL);
@@ -664,6 +665,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         }
       }
 
+      csound->inZero = 0;
       /* chk consistency one more time */
       {
         char  s[256];
