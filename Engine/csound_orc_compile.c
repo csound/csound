@@ -719,6 +719,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     OPTXT *op;
     TREE *current;
 
+    csound->inZero = 1;
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) csound->Calloc(csound, sizeof(INSTRTXT));
@@ -766,7 +767,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     }
 
     close_instrument(csound, engineState, ip);
-
+    csound->inZero = 0;
     return ip;
 }
 
