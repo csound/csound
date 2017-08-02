@@ -71,6 +71,13 @@ void CsoundObj_destroy(CsoundObj *self)
   free(self);
 }
 
+
+void CsoundObj_setOption(CsoundObj *self, const char *option)
+{
+  csoundSetOption(self->csound, option);
+}
+
+
 void CsoundObj_compileCSD(CsoundObj *self,
 			  char *csd)
 {
