@@ -464,7 +464,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     double A4 = 0.0;
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
 
-    csound->inZero = 1;
+    ..csound->inZero = 1;
     addGlobalVariable(csound, engineState, rType, "sr", NULL);
     addGlobalVariable(csound, engineState, rType, "kr", NULL);
     addGlobalVariable(csound, engineState, rType, "ksmps", NULL);
@@ -665,7 +665,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         }
       }
 
-      csound->inZero = 0;
+      //csound->inZero = 0;
       /* chk consistency one more time */
       {
         char  s[256];
@@ -719,7 +719,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     OPTXT *op;
     TREE *current;
 
-    csound->inZero = 1;
+    //csound->inZero = 1;
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) csound->Calloc(csound, sizeof(INSTRTXT));
@@ -767,7 +767,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     }
 
     close_instrument(csound, engineState, ip);
-    csound->inZero = 0;
+    //csound->inZero = 0;
     return ip;
 }
 
