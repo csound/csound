@@ -158,7 +158,7 @@ if(BUILD_CHUA_OPCODES)
     make_plugin(chua chua/ChuaOscillator.cpp)
 endif()
 
-check_deps(BUILD_DSSI_OPCODES LADSPA_H)
+check_deps(BUILD_DSSI_OPCODES LINUX)
 if(BUILD_DSSI_OPCODES)
     set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
