@@ -1714,9 +1714,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                      (!thread && bp->t.pftype != 'b'))) {
           csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                            bp->t.opcod, thread, bp->t.pftype);
-          synterr(csound,
+          /* synterr(csound,
                   Str("perf-pass statements illegal in header blk (%s)\n"),
-                  oentry->opname);
+                  oentry->opname);*/
+	  csound->Warning(csound, Str("%s: perf-time code in global space, ignored"),
+			  oentry->opname);
         }
       }
 
