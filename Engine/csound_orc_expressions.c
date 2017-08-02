@@ -190,7 +190,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       strncpy(op, "cingoto", 8);
       break;
     case THEN_TOKEN:
-      if (csound->inZero) goto icase;
+      //if (csound->inZero) goto icase;
     case KTHEN_TOKEN:
       strncpy(op, "cngoto", 8);
       break;
