@@ -464,6 +464,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     double A4 = 0.0;
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
 
+    csound->inZero = 1;
     addGlobalVariable(csound, engineState, rType, "sr", NULL);
     addGlobalVariable(csound, engineState, rType, "kr", NULL);
     addGlobalVariable(csound, engineState, rType, "ksmps", NULL);
@@ -664,6 +665,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         }
       }
 
+      csound->inZero = 0;
       /* chk consistency one more time */
       {
         char  s[256];
@@ -717,6 +719,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     OPTXT *op;
     TREE *current;
 
+    csound->inZero = 1;
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) csound->Calloc(csound, sizeof(INSTRTXT));
@@ -764,7 +767,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     }
 
     close_instrument(csound, engineState, ip);
-
+    csound->inZero = 0;
     return ip;
 }
 
@@ -1714,9 +1717,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                      (!thread && bp->t.pftype != 'b'))) {
           csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                            bp->t.opcod, thread, bp->t.pftype);
-          synterr(csound,
+          /* synterr(csound,
                   Str("perf-pass statements illegal in header blk (%s)\n"),
-                  oentry->opname);
+                  oentry->opname);*/
+	  csound->Warning(csound, Str("%s: perf-time code in global space, ignored"),
+			  oentry->opname);
         }
       }
 
