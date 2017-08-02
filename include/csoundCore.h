@@ -1762,6 +1762,7 @@ typedef struct NAME__ {
     int           score_parser;
     CS_HASH_TABLE* symbtab;
     int           tseglen;
+    int           inZero;       /* flag compilation of instr0 */
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
