@@ -20,7 +20,7 @@ function moduleDidLoad() {
   "endin");
   document.getElementById("tit").innerHTML = "Click on the page below to play";
  }
- function attachListeners() {
+function attachListeners() {
    document.getElementById("mess").
        addEventListener("click",Play);
  }
@@ -30,7 +30,7 @@ function moduleDidLoad() {
   }
 
  // click handler
- function Play() {
+function Play() {
    csound.Event("i 1 0 5");
  }
  </script>
@@ -39,7 +39,7 @@ function moduleDidLoad() {
   <H1> WASM Csound Example </H1>
   <div id="console"></div>
    <h3 id="tit"> </h3>
-  <div id="mess">
+  <div id="mess"> </div>
     
 </body>
 </html>
