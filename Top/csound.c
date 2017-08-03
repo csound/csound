@@ -898,7 +898,9 @@ static const CSOUND cenviron_ = {
     0,              /* csdebug_data */
     kperf_nodebug,  /* current kperf function - nodebug by default */
     0,              /* which score parser */
-    0               /* inZero */
+    NULL,           /* symbtab */
+    0,              /* tseglen */
+    1               /* inZero */
     /*, NULL */           /* self-reference */
 };
 
