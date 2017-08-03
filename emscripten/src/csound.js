@@ -52,10 +52,17 @@ var csound = (function() {
                     csound.Csound = new CsoundObj();
                     csound.Csound.setMidiCallbacks();
                     csound.module = true;
+		    if(typeof window.handleMessage !== 'undefined') { 
+		      console.log = console.warn = function(mess) {
+			mess += "\n";
+			window.handleMessage(mess);
+		      }
+		    }
                     if (typeof window.moduleDidLoad !== 'undefined')
                         window.moduleDidLoad();
-                    if (typeof window.attachListeners !== 'undefined')
+                    if (typeof window.attachListeners !== 'undefined') 
                         window.attachListeners();
+	            
                 };
             });
         });
@@ -93,10 +100,10 @@ var csound = (function() {
      * Starts audio playback.
      */
     function Play() {
-        if (csound.started == false) {
+        if (started == false) {
             csound.Csound.compileOrc("nchnls=2\n 0dbfs=1\n");
             csound.Csound.start();
-            csound.started = true;
+            started = true;
         } else {
             csound.Csound.start();
         }
