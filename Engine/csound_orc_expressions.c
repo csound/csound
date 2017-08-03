@@ -190,7 +190,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       strncpy(op, "cingoto", 8);
       break;
     case THEN_TOKEN:
-      if (type==0) goto icase;
+      if (csound->inZero) goto icase;
     case KTHEN_TOKEN:
       strncpy(op, "cngoto", 8);
       break;
@@ -199,7 +199,8 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
       case 1: strncpy(op, "ckgoto", 8); break;
       case 0x8001: strncpy(op, "cnkgoto", 8); break;
       case 0: strncpy(op, "cggoto", 8); break;
-      case 0x8000: strncpy(op, "cngoto", 8); break;
+      case 0x8000:
+        strncpy(op,csound->inZero?"cingoto":"cngoto", 8); break;
       default: printf("Whooops %d\n", type);
       }
     }
@@ -224,6 +225,7 @@ TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
     char* op = (char *)csound->Calloc(csound, 6);
     TREE * opTree;
     char *gt[3] = {"kgoto", "igoto", "goto"};
+    if (csound->inZero && type==2) type = 1;
     strncpy(op, gt[type],6);       /* kgoto, igoto, goto ?? */
     opTree = create_opcode_token(csound, op);
     opTree->left = NULL;
