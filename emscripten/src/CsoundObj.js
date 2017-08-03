@@ -38,6 +38,7 @@ var CsoundObj = function() {
     var _pushMidiMessage = cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']);
     var _setOutputChannelCallback = cwrap('CsoundObj_setOutputChannelCallback', null, ['number', 'number']);
     var _compileOrc = cwrap('CsoundObj_compileOrc', 'number', ['number', 'string']);
+    var _setOption = cwrap('CsoundObj_setOption', null, ['number', 'string']);
     var _prepareRT = cwrap('CsoundObj_prepareRT', null, ['number']);
     var _getScoreTime = cwrap('CsoundObj_getScoreTime', null, ['number']);
     var _setTable = cwrap('CsoundObj_setTable', null, ['number', 'number', 'number', 'number']);
@@ -156,6 +157,11 @@ var CsoundObj = function() {
 	_compileOrc(_self, orcString);
 	compiled = true;
 	
+    };
+
+    this.setOption = function(option)
+    {
+	_setOption(_self, option);
     };
 
     this.render = function(filePath) {
