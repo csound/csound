@@ -1740,6 +1740,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     while (current != NULL) {
       switch(current->type) {
       case INSTR_TOKEN:
+        csound->inZero = 0;
         if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
         typeTable->localPool = csoundCreateVarPool(csound);
         current->markup = typeTable->localPool;
@@ -1821,6 +1822,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case LABEL_TOKEN:
         break;
 
+      case ENDIN_TOKEN:
+        csound->inZero = 1;
       default:
         if(!verify_opcode(csound, current, typeTable)) {
           return 0;
