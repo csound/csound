@@ -83,7 +83,7 @@ else
 }
 
 # Generate VCPKG AlwaysAllowDownloads file if needed
-copy /y NUL $vcpkgDir\downloads\AlwaysAllowDownloads
+New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction SilentlyContinue | Out-Null
 
 # Download all vcpkg packages available
 echo "Downloading VC packages..."
