@@ -82,14 +82,14 @@ else
     cd $currentDir
 }
 
+# Generate VCPKG AlwaysAllowDownloads file if needed
+New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction SilentlyContinue | Out-Null
+
 # Download all vcpkg packages available
+echo "Downloading VC packages..."
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows"
-echo "Downloading VC packages..."
-
-#vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
 vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib
-
 $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
