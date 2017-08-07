@@ -39,9 +39,9 @@
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
 #ifdef CSOUNDVST
-#define MyAppMinVersion "6.09.2beta-vst"
+#define MyAppMinVersion "6.09.2beta2-vst"
 #else
-#define MyAppMinVersion "6.09.2beta"
+#define MyAppMinVersion "6.09.2beta2"
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
@@ -175,7 +175,7 @@ Source: "{#MySourceDir}Opcodes\AbletonLinkOpcodes\x64\Release\*.dll"; DestDir: "
 Source: "{#MyMingw64Dir}\bin\luajit.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 ; NOTE: The .qml files are compiled into the resources of CsoundQt.
-Source: "{#MyCsoundQtBinDir}CsoundQt-d-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyCsoundQtBinDir}CsoundQt-d-html-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyCsoundQtDir}examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#MyCsoundQtDir}src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 
@@ -189,6 +189,7 @@ Source: "{#MyQtSdkBinDir}Qt5Multimedia.dll"; DestDir: "{#APP_BIN}"; Components: 
 Source: "{#MyQtSdkBinDir}Qt5MultimediaWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Network.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5OpenGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}Qt5Positioning.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Qml.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Quick.dll"; DestDir: "{#APP_BIN}"; Components: core;
@@ -241,7 +242,7 @@ Source: "doc\csound_system_documentation\*.pdf"; DestDir:"{#APP_APIREF}"; Flags:
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#MyAppURL}";  Components: core;
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
-Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core
+Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-html-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core
 Name: "{group}\LuaJIT"; Filename: "{#APP_BIN}luajit.exe"; WorkingDir: "{#APP_BIN}";  Components: core
 Name: "{group}\Audio device information"; Filename: "cmd"; Parameters: "/K pa_devs.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
 Name: "{group}\Audio device latency"; Filename: "cmd"; Parameters: "/K pa_minlat.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
