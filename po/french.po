@@ -381,7 +381,7 @@ msgstr "%d erreurs de syntaxe dans l'orchestre. Compilation non valide\n"
 #: Engine/csound_orc_compile.c:1723
 #, c-format
 msgid "%s: perf-time code in global space, ignored"
-msgstr ""
+msgstr "%s : code d'exécution dans l'espace global, ignoré"
 
 #: Engine/csound_orc_compile.c:1915
 msgid "i[fixme] pset args != pmax"
@@ -12283,9 +12283,8 @@ msgid "Missing end tag </CsOptions>"
 msgstr "La balise fermante </CsOptions> est absente"
 
 #: Top/one_file.c:428 Top/one_file.c:546
-#, fuzzy
 msgid "missing \" to terminate string"
-msgstr "argument manquant ou en trop"
+msgstr "\" manquant à la fin de la chaîne de caractères"
 
 #: Top/one_file.c:451 Top/one_file.c:494
 msgid "Missing end tag </CsInstruments>"
