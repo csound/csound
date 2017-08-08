@@ -1095,6 +1095,7 @@ static int tabcopy1(CSOUND *csound, TABCPY *p)
     for (i = 0; i < arrayTotalSize; i++) {
       int index = (i * memMyfltSize);
       p->dst->arrayType->copyValue(csound,
+                                   p->dst->arrayType,
                                    (void*)(p->dst->data + index),
                                    (void*)(p->src->data + index));
     }
