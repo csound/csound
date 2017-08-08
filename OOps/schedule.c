@@ -22,17 +22,16 @@
     02111-1307 USA
 */
 
-/* Keep Microsoft's schedule.h from being used instead of our schedule.h. */
-#ifdef _MSC_VER
-#define _SCHEDULE_H_
-#endif
-
 #include <math.h>
 #include "csoundCore.h"
 #include "namedins.h"
 #include "linevent.h"
+/* Keep Microsoft's schedule.h from being used instead of our schedule.h. */
+#ifdef _MSC_VER
+#include "H/schedule.h"
+#else
 #include "schedule.h"
-
+#endif
 
 int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int s, char p1);
 int eventOpcode_(CSOUND *csound, LINEVENT *p, int s, char p1);
