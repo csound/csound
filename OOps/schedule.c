@@ -31,7 +31,7 @@
 #include "csoundCore.h"
 #include "namedins.h"
 #include "linevent.h"
-#include <schedule_.h>
+#include "schedule.h"
 
 
 int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int s, char p1);
