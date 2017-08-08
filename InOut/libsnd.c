@@ -205,20 +205,22 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int     n;
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
+    int    dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-
+    dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   tmp = ((STA(dither) * 15625) + 1) & 0xFFFF;
+      int   tmp = ((dith * 15625) + 1) & 0xFFFF;
       int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
       MYFLT result;
-      STA(dither) = rnd;
+      dith = rnd;
       rnd = (rnd+tmp)>>1;           /* triangular distribution */
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7fff);
       buf[n] += result;
     }
+    STA(dither) = dith;
     n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
@@ -257,20 +259,22 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int     n;
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
+    int dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-
+    dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   tmp = ((STA(dither) * 15625) + 1) & 0xFFFF;
+      int   tmp = ((dith * 15625) + 1) & 0xFFFF;
       int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
       MYFLT result;
-      STA(dither) = rnd;
+      dith = rnd;
       rnd = (rnd+tmp)>>1;           /* triangular distribution */
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7f);
       buf[n] += result;
     }
+    STA(dither) = dith;
     n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
@@ -309,18 +313,20 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int     n;
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
+    int dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-
+    dith = STA(dither);
     for (n=0; n<m; n++) {
-        int   rnd = ((STA(dither) * 15625) + 1) & 0xFFFF;
-        MYFLT result;
-        STA(dither) = rnd;
-        result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
-        result /= ((MYFLT) 0x7fff);
-        buf[n] += result;
+      int   rnd = ((dith * 15625) + 1) & 0xFFFF;
+      MYFLT result;
+      dith =  rnd;
+      result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
+      result /= ((MYFLT) 0x7fff);
+      buf[n] += result;
     }
+    STA(dither) = dith;
     n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
@@ -359,18 +365,20 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int     n;
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
+    int dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-
+    dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   rnd = ((STA(dither) * 15625) + 1) & 0xFFFF;
+      int   rnd = ((dith * 15625) + 1) & 0xFFFF;
       MYFLT result;
       STA(dither) = rnd;
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7f);
       buf[n] += result;
     }
+    STA(dither) = dith;
     n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))

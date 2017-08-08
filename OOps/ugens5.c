@@ -422,6 +422,8 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     MYFLT       *ar;
     double      c3p1, c3t4, omc3, c2sqr;
     double      *yt1, *yt2, c1,c2,c3;
+    int asgf = IS_ASIG_ARG(p->kcf);
+    int asgw = IS_ASIG_ARG(p->kbw);
 
     ar   = p->ar;
     c1   = p->c1;
@@ -439,8 +441,8 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     for (j=0; j< p->loop; j++) {
       for (n=offset; n<nsmps; n++) {
         double x;
-        MYFLT cf = IS_ASIG_ARG(p->kcf) ? p->kcf[n] : *p->kcf;
-        MYFLT bw = IS_ASIG_ARG(p->kbw) ? p->kbw[n] : *p->kbw;
+        MYFLT cf = asgf ? p->kcf[n] : *p->kcf;
+        MYFLT bw = asgw ? p->kbw[n] : *p->kbw;
         if (cf != (MYFLT)p->prvcf) {
           p->prvcf = (double)cf;
           p->cosf = cos(cf * (double)(csound->tpidsr));

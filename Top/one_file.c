@@ -187,7 +187,7 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     STA(toremove) = tmp;
 }
 
-static int blank_buffer(CSOUND *csound, char *buffer)
+static int blank_buffer(/*CSOUND *csound,*/ char *buffer)
 {
     const char *s;
     for (s = &(buffer[0]); *s != '\0' && *s != '\n'; s++) {
@@ -365,23 +365,128 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
 
 
 
+#if 1
+static int all_blank(char* start, char* end)
+{
+    while (start != end) {
+      if (!isblank(*start)) return 0;
+      start++;
+    }
+    return 1;
+}
+
 static int createOrchestra(CSOUND *csound, CORFIL *cf)
 {
-    char  *p;
+    char  *p, *q;
     CORFIL *incore = corfile_create_w();
     char  buffer[CSD_MAX_LINE_LEN];
+    int state = 0;
 
     csound->orcLineOffset = STA(csdlinecount)+1;
+ nxt:
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int c;
       p = buffer;
-      while (isblank(*p)) p++;
-      if (strstr(p, "</CsInstruments>") == p) {
+
+      if (state == 0 &&
+	  (q = strstr(p, "</CsInstruments>")) &&
+          all_blank(buffer,q)) {
+	csound->Message(csound, "closing tag\n");
         //corfile_flush(incore);
         corfile_puts("\n#exit\n", incore);
         corfile_putc('\0', incore);
         corfile_putc('\0', incore);
         csound->orchstr = incore;
         return TRUE;
+      }
+    top:
+      if (*p == '\0') continue;
+      if (state==0) {
+        while ((c = *p++)) {
+          if (c=='"') { corfile_putc(c,incore); state = 1; goto top;}
+          else if (c=='/' && *p=='*') {
+            corfile_putc(c,incore); corfile_putc(*p++,incore); state = 2; goto top;
+          }
+          else if (c == ';'|| (c=='/' && *p=='/')) {
+            corfile_puts(p-1, incore); goto nxt;
+          }
+          else if (c=='{' && *p=='{') {
+            corfile_putc(c,incore); corfile_putc(*p++,incore); state = 3; goto top;
+          }
+          corfile_putc(c, incore);
+        }
+      }
+      else if (state == 1) {    /* string */
+        while (((c=*p++))) {
+          corfile_putc(c, incore);
+          if (c=='\\') {
+            corfile_putc(*p++, incore);
+            if (*p=='\0') goto top;
+          }
+          else if (c=='"') { state =  0; goto top;}
+        }
+        csoundErrorMsg(csound, Str("missing \" to terminate string"));
+        corfile_rm(&incore);
+        return FALSE;
+      }
+      else if (state == 2) {    /* multiline comment */
+        while ( (c = *p++)) {
+          if (c=='*' && *p=='/') {
+            corfile_putc(c,incore); corfile_putc(*p++,incore); state = 0; goto top;
+          }
+          corfile_putc(c, incore);
+        }
+        goto nxt;
+      }
+      else if (state == 3) {    /* extended string */
+        while ( (c = *p++)) {
+          if (c=='}' && *p=='}') {
+            corfile_putc(c,incore); corfile_putc(*p++,incore); state = 0; goto top;
+          }
+          corfile_putc(c, incore);
+        }
+        goto nxt;
+      }
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
+    corfile_rm(&incore);
+    return FALSE;
+}
+#else
+static int createOrchestra(CSOUND *csound, CORFIL *cf)
+{
+    char  *p;
+    CORFIL *incore = corfile_create_w();
+    char  buffer[CSD_MAX_LINE_LEN];
+    int comm = 0;
+
+    csound->orcLineOffset = STA(csdlinecount)+1;
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      p = buffer;
+      while (isblank(*p)) p++;
+      if(*p == '/' && *(p+1) == '*') {
+	//csound->Message(csound, "comment start\n");
+	comm = 1; p += 2;
+      }
+
+      if (comm == 0 &&
+	  strstr(p, "</CsInstruments>") == p) {
+	//csound->Message(csound, "closing tag\n");
+        //corfile_flush(incore);
+        corfile_puts("\n#exit\n", incore);
+        corfile_putc('\0', incore);
+        corfile_putc('\0', incore);
+        csound->orchstr = incore;
+        return TRUE;
+      } else if (comm) {
+        while(p < buffer + CSD_MAX_LINE_LEN){
+	  if(*p == '*' && *(p+1) == '/') {
+           comm = 0;
+	   // csound->Message(csound, "comment end\n");
+	   break;
+          } else p++;
+	}
+	corfile_puts(buffer, incore);
       }
       else
         corfile_puts(buffer, incore);
@@ -390,9 +495,73 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
     corfile_rm(&incore);
     return FALSE;
 }
+#endif
 
+#if 1
+static int createScore(CSOUND *csound, CORFIL *cf)
+{
+    char   *p, *q;
+    int    state = 0;
+    char   buffer[CSD_MAX_LINE_LEN];
 
-
+    if (csound->scorestr == NULL)
+      csound->scorestr = corfile_create_w();
+    csound->scoLineOffset = STA(csdlinecount);
+ nxt:
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int c;
+      p = buffer;
+      if (state == 0 &&
+	  (q = strstr(p, "</CsScore>")) &&
+          all_blank(buffer,q)) {
+        corfile_puts("\n#exit\n", csound->scorestr);
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+        corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
+        return TRUE;
+      }
+    top:
+      if (*p == '\0') continue;
+      if (state==0) {
+        while ((c = *p++)) {
+          if (c=='"') { corfile_putc(c,csound->scorestr); state = 1; goto top;}
+          else if (c=='/' && *p=='*') {
+            corfile_putc(c,csound->scorestr); corfile_putc(*p++,csound->scorestr);
+            state = 2; goto top;
+          }
+          else if (c == ';'|| (c=='/' && *p=='/')) {
+            corfile_puts(p-1, csound->scorestr); goto nxt;
+          }
+          corfile_putc(c, csound->scorestr);
+        }
+      }
+      else if (state == 1) {    /* string */
+        while (((c=*p++))) {
+          corfile_putc(c, csound->scorestr);
+          if (c=='\\') {
+            corfile_putc(*p++, csound->scorestr);
+            if (*p=='\0') goto top;
+          }
+          else if (c=='"') { state =  0; goto top;}
+        }
+        csoundErrorMsg(csound, Str("missing \" to terminate string"));
+        corfile_rm(&csound->scorestr);
+        return FALSE;
+      }
+      else if (state == 2) {    /* multiline comment */
+        while ( (c = *p++)) {
+          if (c=='*' && *p=='/') {
+            corfile_putc(c,csound->scorestr); corfile_putc(*p++,csound->scorestr);
+            state = 0; goto top;
+          }
+          corfile_putc(c, csound->scorestr);
+        }
+        goto nxt;
+      }
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    return FALSE;
+}
+#else
 static int createScore(CSOUND *csound, CORFIL *cf)
 {
     char   *p;
@@ -418,7 +587,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     return FALSE;
 }
-
+#endif
 
 static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
 {
@@ -828,6 +997,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
       char *p = buffer;
       while (isblank(*p)) p++;
+      
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         csoundMessage(csound, Str("STARTING FILE\n"));
@@ -925,7 +1095,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
         r = checkShortLicence(csound, cf);
         result = r && result;
       }
-      else if (blank_buffer(csound, buffer)) continue;
+      else if (blank_buffer(/*csound,*/ buffer)) continue;
       else if (started && strchr(p, '<') == buffer){
         csoundMessage(csound, Str("unknown CSD tag: %s\n"), buffer);
       }

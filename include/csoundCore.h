@@ -1761,6 +1761,7 @@ typedef struct NAME__ {
                                and nodebug function */
     int           score_parser;
     int           tseglen;
+    int           inZero;       /* flag compilation of instr0 */
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

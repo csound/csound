@@ -32,7 +32,7 @@ of built-in examples that show off Csound's capabilities. Many musicians make
 CsoundQt their main Csound environment, although there are other excellent
 environments. CsoundQt runs not only Csound code, but also Python scripts.
 
-The examples directory and its subdirectories contains numerous working 
+The examples directory and its subdirectories contain numerous working 
 Csound orchestras and even complete pieces. 
 
 The Csound Reference Manual may be found online at 
@@ -54,18 +54,23 @@ Csound contains contributions from musicians, scientists, and programmers
 from around the world. They include (but are not limited to):
 
 * Allan Lee
+* Andres Cabrera
 * Bill Gardner
 * Bill Verplank
 * Dan Ellis
 * David Macintyre
 * Eli Breder
+* Fabio P. Bertolotti
+* Felipe Sataler
 * Gabriel Maldonado
 * Greg Sullivan
 * Hans Mikelson
+* Henri Manson
+* Ian McCurdy
 * Istvan Varga
 * Jean Piché
-* John ffitch
 * John Ramsdell
+* John ffitch
 * Marc Resibois
 * Mark Dolson
 * Matt Ingalls
@@ -88,6 +93,3 @@ from around the world. They include (but are not limited to):
 * Tom Erbe
 * Victor Lazzarini
 * Ville Pulkki
-* Andres Cabrera
-* Felipe Sataler
-* Ian McCurdy

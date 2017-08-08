@@ -525,6 +525,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     double A4 = 0.0;
     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
 
+    //csound->inZero = 1;
     addGlobalVariable(csound, engineState, rType, "sr", NULL);
     addGlobalVariable(csound, engineState, rType, "kr", NULL);
     addGlobalVariable(csound, engineState, rType, "ksmps", NULL);
@@ -646,7 +647,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       CSOUND    *p = (CSOUND*) csound;
       char      err_msg[128];
       CS_SPRINTF(err_msg, "sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:",
-              sr, kr, ksmps);
+                 sr, kr, ksmps);
       if (UNLIKELY(sr <= FL(0.0)))
         synterr(p, Str("%s invalid sample rate"), err_msg);
       if (UNLIKELY(kr <= FL(0.0)))
@@ -721,15 +722,16 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           csound->ekr = O->kr_override;
         }
         else {
-         csound->ekr = csound->esr / csound->ksmps;
+          csound->ekr = csound->esr / csound->ksmps;
         }
       }
 
+      //csound->inZero = 0;
       /* chk consistency one more time */
       {
         char  s[256];
         CS_SPRINTF(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
-                csound->esr, csound->ekr, ensmps);
+                   csound->esr, csound->ekr, ensmps);
         if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps)))
           csoundDie(csound, Str("%s invalid ksmps value"), s);
         if (UNLIKELY(csound->esr <= FL(0.0)))
@@ -765,19 +767,20 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 }
 
 /**
-This global instrument replaces instr 0 in
-subsequent compilations. It does not allow the
-setting of system parameters such as ksmps etc,
-but it allows i-time code to be compiled and run.
+   This global instrument replaces instr 0 in
+   subsequent compilations. It does not allow the
+   setting of system parameters such as ksmps etc,
+   but it allows i-time code to be compiled and run.
 **/
 INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
-                             ENGINE_STATE *engineState,
-                             CS_VAR_POOL* varPool)
+                                   ENGINE_STATE *engineState,
+                                   CS_VAR_POOL* varPool)
 {
     INSTRTXT *ip;
     OPTXT *op;
     TREE *current;
 
+    //csound->inZero = 1;
     myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
 
     ip = (INSTRTXT *) csound->Calloc(csound, sizeof(INSTRTXT));
@@ -817,15 +820,15 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
             && strcmp(oentry->opname, "=.r") == 0)
           csound->Warning(csound, Str("system constants can only be set once\n"));
         else {
-        op->nxtop = create_opcode(csound, current, ip, engineState);
-        op = last_optxt(op);
+          op->nxtop = create_opcode(csound, current, ip, engineState);
+          op = last_optxt(op);
         }
       }
       current = current->next;
     }
 
     close_instrument(csound, engineState, ip);
-
+    //csound->inZero = 0;
     return ip;
 }
 
@@ -879,14 +882,14 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
     ip->t.inlist->count = 1;
 
     /* create local ksmps variable */
-     CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
-     CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+    CS_TYPE* rType = (CS_TYPE*)&CS_VAR_TYPE_R;
+    CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                             rType, "ksmps", NULL);
-     csoundAddVariable(csound, ip->varPool, var);
-     /* same for kr */
-     var = csoundCreateVariable(csound, csound->typePool,
-                                            rType, "kr", NULL);
-     csoundAddVariable(csound, ip->varPool, var);
+    csoundAddVariable(csound, ip->varPool, var);
+    /* same for kr */
+    var = csoundCreateVariable(csound, csound->typePool,
+                               rType, "kr", NULL);
+    csoundAddVariable(csound, ip->varPool, var);
 
     /* Maybe should do this assignment at end when instr is setup?
      * Note: look into how "instr 4,5,6,8" is handled, i.e. if copies
@@ -1740,9 +1743,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
                      (!thread && bp->t.pftype != 'b'))) {
           csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                            bp->t.opcod, thread, bp->t.pftype);
-          synterr(csound,
+          /* synterr(csound,
                   Str("perf-pass statements illegal in header blk (%s)\n"),
-                  oentry->opname);
+                  oentry->opname);*/
+	  csound->Warning(csound, Str("%s: perf-time code in global space, ignored"),
+			  oentry->opname);
         }
       }
 
