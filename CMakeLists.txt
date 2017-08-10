@@ -221,11 +221,13 @@ endif()
 execute_process (
      COMMAND python -c
      "import site, sys; sys.stdout.write(site.getusersitepackages())"
-     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
+     OUTPUT_VARIABLE PYTHON_USER_SITE_PACKAGES
    )
 
-set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
-set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_USER_SITE_PACKAGES} CACHE PATH "Python module install dir")
+
+set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Java module install dir")
+set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Lua module install dir")
 
 # VL this is breaking CUDA compilation. It's not necessary
 #if(APPLE)
@@ -242,7 +244,7 @@ if(WIN32 AND NOT MSVC)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
-if(MSVC) 
+if(MSVC)
   include_directories(${PROJECT_SOURCE_DIR}/msvc/include)
   set(CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/msvc/include;${PROJECT_SOURCE_DIR}/msvc/deps/include")
 endif()
@@ -347,7 +349,7 @@ message(STATUS "Building for OSX")
     set(VECLIB_PATH "/System/Library/Frameworks/")
   endif()
  endif()
-   
+
 endif()
 
 if(USE_DOUBLE)
@@ -466,7 +468,7 @@ endif()
 if(NOT MSVC AND REQUIRE_PTHREADS)
   # Use ladder of if's to support older CMake versions (i.e., travis)
   find_library(PTHREAD_LIBRARY winpthread-1)
-  if(NOT PTHREAD_LIBRARY) 
+  if(NOT PTHREAD_LIBRARY)
     find_library(PTHREAD_LIBRARY pthread)
   endif()
   if(NOT PTHREAD_LIBRARY)
@@ -829,7 +831,7 @@ set(mp3in_SRCS
     InOut/libmpadec/tables.c
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
-    
+
 list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
 
 if(INIT_STATIC_MODULES)
@@ -889,7 +891,7 @@ set_source_files_properties(${YACC_OUTH} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
 set_source_files_properties(${PRELEX_OUT} GENERATED)
 
-if(MSVC) 
+if(MSVC)
   set_source_files_properties(${LEX_OUT} PROPERTIES
     COMPILE_FLAGS -DYY_NO_UNISTD_H)
   set_source_files_properties(${PRELEX_OUT} PROPERTIES
@@ -939,7 +941,7 @@ list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
 #set_source_files_properties(${YACC_SCOOUT} GENERATED)
 #set_source_files_properties(${LEX_SCOOUT} GENERATED)
 set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
-if(MSVC) 
+if(MSVC)
   set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
     COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
@@ -1340,7 +1342,7 @@ set (CPACK_PACKAGE_VERSION_MINOR "0")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
-# Documentation 
+# Documentation
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
