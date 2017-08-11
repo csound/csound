@@ -1,6 +1,0 @@
-message(STATUS "Custom.cmake has been included...")
-include_directories("C:\\Program\ Files\ (x86)\\Windows Kits\\10\\Include\\10.0.15063.0\\shared")
-include_directories("C:\\Program\ Files\ (x86)\\Windows Kits\\10\\Include\\10.0.15063.0\\um")
-include_directories("D:\\msys64\\home\\restore\\csound\\H")
-include("D:\\msys64\\home\\restore\\csound\\msvc\\Custom-vs.cmake")
-message(STATUS "Custom-vs.cmake has been included...")

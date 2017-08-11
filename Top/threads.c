@@ -33,6 +33,13 @@
 
 #include "csoundCore.h"
 
+static CS_NOINLINE void notImplementedWarning_(const char *name)
+{
+#ifndef __EMSCRIPTEN__
+  fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
+#endif
+}
+
 #if defined(HAVE_PTHREAD)
 
 #if defined(WIN32)
@@ -547,7 +554,7 @@ PUBLIC void csoundCondSignal(void* condVar) {
 
 #elif defined(WIN32)
 #include <windows.h>
-#include <SynchAPI.h>
+#include <synchapi.h>
 #include <process.h>
 
 /* #undef NO_WIN9X_COMPATIBILITY */
@@ -745,23 +752,38 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
+#if defined(_USING_V110_SDK71_)
+    notImplementedWarning_("csoundCreateBarrier");
+    return 0;
+#else
   SYNCHRONIZATION_BARRIER *barrier = (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
 
   if (barrier != NULL)
     InitializeSynchronizationBarrier(barrier, max, -1);
   return (void*) barrier;
+#endif
 }
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
+#if defined(_USING_V110_SDK71_)
+    notImplementedWarning_("csoundDestroyBarrier");
+    return 0;
+#else
   DeleteSynchronizationBarrier(barrier);
   return 0;
+#endif
 }
 
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
+#if defined(_USING_V110_SDK71_)
+    notImplementedWarning_("csoundWaitBarrier");
+    return 0;
+#else
   EnterSynchronizationBarrier(barrier, 0);
   return 0;
+#endif
 }
 
 PUBLIC void* csoundCreateCondVar()
@@ -785,13 +807,6 @@ PUBLIC void csoundCondSignal(void* condVar) {
 /* ------------------------------------------------------------------------ */
 
 #else
-
-static CS_NOINLINE void notImplementedWarning_(const char *name)
-{
-#ifndef __EMSCRIPTEN__
-  fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
-#endif
-}
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
