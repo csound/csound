@@ -82,7 +82,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
     nchans = p->nchans;
 
     if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
-      csound->InitError(csound, Str("invalid number of output arguments"));
+      return csound->InitError(csound, Str("invalid number of output arguments"));
     p->nchans = nchans;
 
     for (i=0; i < nchans; i++){

@@ -87,7 +87,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->ff = (int)(*p->format);
     p->bsize = bsize = (int) *p->buffersize;
@@ -236,7 +236,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
     p->ff = (int)(*p->format);
@@ -335,7 +335,7 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
@@ -422,7 +422,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {

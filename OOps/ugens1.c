@@ -137,14 +137,13 @@ int lsgset(CSOUND *csound, LINSEG *p)
     double val;
 
     if (!(p->INCOUNT & 1)){
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     /* VL: 29.05.17 allocating one extra empty segment
-       so that the breakpoint version of this opcode
+       so that the breakpoint version of this opcode 
        can work properly without a fencepost bug */
     if (UNLIKELY((p->cursegp = (SEG *) p->auxch.auxp) == NULL ||
                  (nsegs+1)*sizeof(SEG) < (unsigned int)p->auxch.size)) {
@@ -490,8 +489,7 @@ int xsgset(CSOUND *csound, EXXPSEG *p)
     int         n=0;
 
     if (!(p->INCOUNT & 1)) {
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
@@ -545,8 +543,7 @@ int xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
 
 
     if (!(p->INCOUNT & 1)){
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
@@ -606,8 +603,7 @@ int xsgset2b(CSOUND *csound, EXPSEG2 *p)
 
 
     if (!(p->INCOUNT & 1)){
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
@@ -668,8 +664,7 @@ int xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 
 
     if (!(p->INCOUNT & 1)){
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
@@ -883,8 +878,7 @@ int xsgrset(CSOUND *csound, EXPSEG *p)
 
 
     if (!(p->INCOUNT & 1)){
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     //p->xtra = -1;
@@ -1820,8 +1814,7 @@ int csgset(CSOUND *csound, COSSEG *p)
 
 
     if (!(p->INCOUNT & 1)){
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
