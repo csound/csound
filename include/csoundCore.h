@@ -588,7 +588,7 @@ typedef struct CORFIL {
 #define CS_ESR       (csound->esr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
-#define CS_SPOUT      (p->h.insdshead->spout)
+#define CS_SPOUT     (p->h.insdshead->spout)
 
   typedef int (*SUBR)(CSOUND *, void *);
 

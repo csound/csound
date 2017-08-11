@@ -43,8 +43,8 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
     if(size==0) {
       fclose(fp);
       *p->res = (MYFLT)(CSOUND_ERROR);
-      csound->InitError(csound, Str("compileorc: could not read %s\n"), name);
-      return NOTOK;
+      return
+        csound->InitError(csound, Str("compileorc: could not read %s\n"), name);
     }
 
     orc = (char *) csound->Calloc(csound, size+1);
