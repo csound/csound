@@ -832,8 +832,7 @@ static int adset_(CSOUND *csound, ADSYN *p, int stringname)
       /* readfile if reqd */
       if (UNLIKELY((mfp = ldmemfile2withCB(csound, filnam,
                                            CSFTYPE_HETRO, NULL)) == NULL)) {
-        csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
-        return NOTOK;
+        return csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
       }
       p->mfp = mfp;                         /*   & record         */
     }
@@ -862,8 +861,7 @@ static int adset_(CSOUND *csound, ADSYN *p, int stringname)
           ptlfp->phs = 0;                /*  and clr the phase */
           break;
         default:
-          csound->InitError(csound, Str("illegal code %d encountered"), val);
-          return NOTOK;
+          return csound->InitError(csound, Str("illegal code %d encountered"), val);
         }
       }
     } while (adp < endata);
