@@ -47,7 +47,6 @@ set(BUILD_VIRTUAL_KEYBOARD ON)
 set(BUILD_WEBSOCKET_OPCODE ON)
 set(BUILD_WIIMOTE_OPCODES OFF)
 set(BUILD_WINSOUND ON)
-# TODO: Change vst4cs to use native Windows threads.
 set(BUILD_VST4CS_OPCODES ON)
 
 # Csound use features
