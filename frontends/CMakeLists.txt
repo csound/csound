@@ -80,7 +80,7 @@ if(BUILD_CSBEATS)
     	${CMAKE_CURRENT_SOURCE_DIR}/beats/main.c
         ${FLEX_csbeats_SCANNER_OUTPUTS}
         ${BISON_csbeats_PARSER_OUTPUTS})
-    
+
 
     if(MSVC)
         set_source_files_properties(${FLEX_csbeats_SCANNER_OUTPUTS} PROPERTIES
@@ -139,12 +139,12 @@ if(BUILD_WINSOUND)
     set(WINSOUND_H ${CMAKE_CURRENT_BINARY_DIR}/winsound.h)
     set_source_files_properties(${WINSOUND_CXX} GENERATED)
     set_source_files_properties(${WINSOUND_H} GENERATED)
-	
+
 	find_program(FLUID_BIN NAMES fluid)
 	if(FLUID_BIN)
 		add_custom_target(winsound_fl COMMAND ${FLUID_BIN} -c -o ${WINSOUND_CXX} -h  ${WINSOUND_H} ${WINSOUND_FL})
 	else()
-		message(STATUS "Could not find fluid executable")
+		message(WARNING "Could not find fluid executable")
 	endif()
 
     set(WINSOUND_SRCS ${WINSOUND_CXX} winsound/main.cxx)
