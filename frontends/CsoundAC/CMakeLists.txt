@@ -3,7 +3,6 @@
 include(CheckIncludeFiles)
 
 set(CMAKE_CXX_STANDARD 11)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 option(BUILD_CSOUND_AC "Build CsoundAC extension module for Csound with algorithmic composition (needs C++ interface)" OFF)
 option(BUILD_CSOUND_AC_PYTHON_INTERFACE "Build the Csound AC Python interface" ON)
@@ -11,8 +10,6 @@ option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
 option(USE_SYSTEM_PORTSMF ON)
 
 find_library(MUSICXML_LIBRARY musicxml2)
-find_package(FLTK REQUIRED)
-message(STATUS "${FLTK_LIBRARIES}")
 # find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(SWIG)
 find_package(PythonLibs)
@@ -75,7 +72,11 @@ if(BUILD_CSOUND_AC)
             trace.cpp)
     endif()
 
-    add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
+    if (MSVC)
+        add_library(libCsoundAC STATIC ${libcsoundac_SRCS})
+    else()
+        add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
+    endif()
 
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
     include_directories(${EIGEN3_INCLUDE_PATH})

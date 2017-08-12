@@ -41,6 +41,14 @@ include(CheckCXXCompilerFlag)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# Utility to munge with items in a list.
+#
+macro(LIST_REPLACE LIST INDEX NEWVALUE)
+    list(INSERT ${LIST} ${INDEX} ${NEWVALUE})
+    MATH(EXPR __INDEX "${INDEX} + 1")
+    list (REMOVE_AT ${LIST} ${__INDEX})
+endmacro(LIST_REPLACE)
+
 # Utility function to make executables. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
 # and adds an appropriate install target
@@ -435,7 +443,16 @@ endif()
 find_package(Boost)
 find_package(CURL)
 set(FLTK_SKIP_OPENGL true)
-find_package(FLTK)
+find_package(FLTK )
+if (FLTK_FOUND)
+    # It is necessary to use the "SHARED" versions of the FLTK vcpkg libraries.
+    if (MSVC)
+        LIST_REPLACE(FLTK_LIBRARIES 0 "fltk_SHARED")
+        LIST_REPLACE(FLTK_LIBRARIES 1 "fltk_forms_SHARED")
+        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
+    endif()
+endif()
+message(STATUS "*** FLTK_LIBRARIES *** ${FLTK_LIBRARIES}")
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
