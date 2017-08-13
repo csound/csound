@@ -1,6 +1,14 @@
+param
+(
+    $vsGenerator = "Visual Studio 14 2015 Win64",
+    $vsToolset = "v140_xp"
+)
+
 echo "Downloading Csound dependencies..."
 
 $startTime = (Get-Date).TimeOfDay
+
+Install-Module -Scope CurrentUser 7Zip4Powershell
 
 $webclient = New-Object System.Net.WebClient
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
@@ -11,8 +19,6 @@ $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
 $depsIncDir = $depsDir + "include\"
 $vcpkgDir = ""
-$vsGenerator = "Visual Studio 14 2015 Win64"
-#$vsGenerator = "Visual Studio 15 2017 Win64"
 
 # Metrics
 $vcpkgTiming = 0
@@ -109,7 +115,9 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/pkg-config_0.23-2_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
-"http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip"
+"http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
+"https://github.com/thestk/stk/archive/master.zip",
+"http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.2.tar.gz"
 
 # Appends this folder location to the 'deps' uri
 $destList="",
@@ -155,6 +163,8 @@ for($i=0; $i -lt $uriList.Length; $i++)
     }
     echo "Extracted $fileName"
 }
+Expand-7Zip -ArchiveFileName ($depsDir + "gmm-5.2.tar") -TargetPath $destDir
+
 
 # Manual building...
 # Portaudio
@@ -177,7 +187,7 @@ copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
 rm -Path portaudioBuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir portaudioBuild -ErrorAction SilentlyContinue
 cd portaudioBuild
-cmake ..\portaudio -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
+cmake ..\portaudio -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
 copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
@@ -201,7 +211,7 @@ cd portmidi\portmidi\trunk
 rm -Path build -Force -Recurse -ErrorAction SilentlyContinue
 mkdir build -ErrorAction SilentlyContinue
 cd build
-cmake .. -G $vsGenerator -DCMAKE_BUILD_TYPE="Release"
+cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
 cmake --build . --config Release
 copy .\Release\portmidi.dll -Destination $depsBinDir -Force
 copy .\Release\portmidi.lib -Destination $depsLibDir -Force
@@ -229,7 +239,7 @@ else
 rm -Path liblo\cmakebuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
 cd liblo\cmakebuild
-cmake ..\cmake -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
+cmake ..\cmake -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
 cmake --build . --config Release
 copy .\Release\lo.dll -Destination $depsBinDir -Force
 copy .\Release\lo.lib -Destination $depsLibDir -Force
@@ -256,7 +266,7 @@ else
 rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir fluidsynthbuild -ErrorAction SilentlyContinue
 cd fluidsynthbuild
-cmake ..\fluidsynth\fluidsynth -G $vsGenerator -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
+cmake ..\fluidsynth\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
 cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
