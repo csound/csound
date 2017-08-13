@@ -1,6 +1,10 @@
+param
+(
+    $vsGenerator = "Visual Studio 14 2015 Win64",
+    $vsToolset = "v140_xp"
+)
+
 echo "Generating Csound VS project..."
-$vsGenerator = "Visual Studio 14 2015 Win64"
-#$vsGenerator = "Visual Studio 15 2017 Win64"
 $vcpkgCmake = ""
 
 # Read in VCPKG directory from env variable
@@ -8,7 +12,7 @@ if ($systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source)
 {
     echo "vcpkg already installed on system, finding directory"
     $vcpkgDir = Split-Path -Parent $systemVCPKG
-    $vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"    
+    $vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"
 }
 elseif (Test-Path "..\..\vcpkg")
 {
@@ -28,7 +32,7 @@ echo "VCPKG script: '$vcpkgCmake'"
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 
-cmake ..\.. -G $vsGenerator `
+cmake ..\.. -G $vsGenerator -T $vsToolset `
  -Wdev -Wdeprecated `
  -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
