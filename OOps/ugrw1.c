@@ -1241,8 +1241,8 @@ int peaka(CSOUND *csound, PEAK *p)
     pp = *peak;
     if (UNLIKELY(early)) nsmps -= early;
     for (n=offset;n<nsmps;n++) {
-      if (pp < FABS(asigin[n]))
-        pp = FABS(asigin[n]);
+      MYFLT x = FABS(asigin[n]);
+      if (pp < x) pp = x;
     }
     *peak = pp;
     return OK;
