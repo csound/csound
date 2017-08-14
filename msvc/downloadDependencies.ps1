@@ -18,6 +18,7 @@ $stageDir = $currentDir + "\staging\"
 $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
 $depsIncDir = $depsDir + "include\"
+$csoundDir = $currentDir + "\.."
 $vcpkgDir = ""
 
 # Metrics
@@ -164,8 +165,10 @@ for($i=0; $i -lt $uriList.Length; $i++)
     echo "Extracted $fileName"
 }
 Expand-7Zip -ArchiveFileName ($depsDir + "gmm-5.2.tar") -TargetPath $destDir
-
-
+Copy-Item ($destDir + "gmm-5.2\include\gmm") $depsIncDir -recurse -force
+echo "Copied header-only GMM library to deps."
+Copy-Item ($destDir + "stk-master\*") ($csoundDir + "\Opcodes\stk") -recurse -force
+echo "Copied STK sources to Csound opcodes directory."
 # Manual building...
 # Portaudio
 cd $stageDir
