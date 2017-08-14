@@ -388,7 +388,7 @@ int loscil(CSOUND *csound, LOSC *p)
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     MYFLT    phs;
-    int32    inc, beg, end;
+    MYFLT    inc, beg, end;
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
@@ -397,7 +397,7 @@ int loscil(CSOUND *csound, LOSC *p)
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
-    if ((inc = (int32)(*p->kcps * p->cpscvt)) < 0)
+    if ((inc = (*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
     xamp = p->xamp;
     xx = *xamp;
@@ -599,7 +599,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     MYFLT    phs;
-    int32    inc, beg, end;
+    MYFLT    inc, beg, end;
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
@@ -608,7 +608,7 @@ int loscil3(CSOUND *csound, LOSC *p)
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
-    if ((inc = (int32)(*p->kcps * p->cpscvt)) < 0)
+    if ((inc = (*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
     xamp = p->xamp;
     xx = *xamp;
