@@ -1,7 +1,7 @@
 param
 (
-    $vsGenerator = "Visual Studio 14 2015 Win64",
-    $vsToolset = "v140_xp"
+    $vsGenerator = "Visual Studio 15 2017 Win64",
+    $vsToolset = "v141"
 )
 
 echo "Generating Csound VS project..."
