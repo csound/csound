@@ -1,14 +1,14 @@
 param
 (
-    $vsGenerator = "Visual Studio 15 2017 Win64",
-    $vsToolset = "v141"
+    [string]$vsGenerator="Visual Studio 15 2017 Win64",
+    [string]$vsToolset="v141"
 )
-
 echo "Downloading Csound dependencies..."
 
-$startTime = (Get-Date).TimeOfDay
+echo "vsGenerator: $vsGenerator"
+echo "vsToolset:   $vsToolset"
 
-Install-Module -Scope CurrentUser 7Zip4Powershell
+$startTime = (Get-Date).TimeOfDay
 
 $webclient = New-Object System.Net.WebClient
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
@@ -117,8 +117,7 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
-"https://github.com/thestk/stk/archive/master.zip",
-"http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.2.tar.gz"
+"https://github.com/thestk/stk/archive/master.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="",
@@ -164,22 +163,35 @@ for($i=0; $i -lt $uriList.Length; $i++)
     }
     echo "Extracted $fileName"
 }
-Expand-7Zip -ArchiveFileName ($depsDir + "gmm-5.2.tar") -TargetPath $destDir
-Copy-Item ($destDir + "gmm-5.2\include\gmm") $depsIncDir -recurse -force
-echo "Copied header-only GMM library to deps."
+
 Copy-Item ($destDir + "stk-master\*") ($csoundDir + "\Opcodes\stk") -recurse -force
 echo "Copied STK sources to Csound opcodes directory."
-# Manual building...
-# Portaudio
+
+echo "Local builds and installations..."
+
 cd $stageDir
 copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
+
+if (Test-Path "getfem")
+{
+    cd getfem
+    git pull
+    cd ..
+    echo "GetFEM already downloaded, updated now."
+}
+else
+{
+    git clone "https://git.savannah.nongnu.org/git/getfem.git"
+}
+Copy-Item ($stageDir +"\getfem\src\gmm") -Destination $depsIncDir -Force -Recurse
+echo "Copied header-only GMM library to deps."
 
 if (Test-Path "portaudio")
 {
     cd portaudio
     git pull
     cd ..
-    echo "Portaudio already downloaded, updated"
+    echo "Portaudio already downloaded, updated."
 }
 else
 {
