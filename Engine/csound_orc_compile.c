@@ -1720,8 +1720,9 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
           /* synterr(csound,
                   Str("perf-pass statements illegal in header blk (%s)\n"),
                   oentry->opname);*/
-	  csound->Warning(csound, Str("%s: perf-time code in global space, ignored"),
-			  oentry->opname);
+          csound->Warning(csound,
+                          Str("%s: perf-time code in global space, ignored"),
+                          oentry->opname);
         }
       }
 

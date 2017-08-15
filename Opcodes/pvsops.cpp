@@ -187,37 +187,37 @@ struct TVConv : csnd::Plugin<1, 6> {
     bool inc2 = csound->is_asig(frz2);
 
     for (auto &s : outsig) {
-      if(*frz1 > 0) 
-	in[pp + n + pars] = *inp;
+      if(*frz1 > 0)
+        in[pp + n + pars] = *inp;
       if(*frz2 > 0)
        ir[pp + n] = *irp;
 
       s = out[n+pars];
-      
+
       if (++n == pars) {
         cmplx *ins, *irs, *ous = to_cmplx(out.data());
-	uint32_t po = pp;
+        uint32_t po = pp;
         std::copy(in.begin() + pp, in.begin() + pp + ffts, insp.begin() + pp);
-	std::copy(ir.begin() + pp, ir.begin() + pp + ffts, irsp.begin() + pp);
+        std::copy(ir.begin() + pp, ir.begin() + pp + ffts, irsp.begin() + pp);
         std::fill(out.begin(), out.end(), 0.);
         // FFT
         csound->rfft(fwd, insp.data() + pp);
-	csound->rfft(fwd, irsp.data() + pp);
+        csound->rfft(fwd, irsp.data() + pp);
         pp += ffts;
-	if (pp == fils) pp = 0;
+        if (pp == fils) pp = 0;
         // spectral delay line
         for (uint32_t k = 0, kp = pp; k < nparts; k++, kp += ffts) {
-	 if (kp == fils) kp = 0;
+         if (kp == fils) kp = 0;
          ins = to_cmplx(insp.data() + kp);
          irs = to_cmplx(irsp.data() + (nparts - k - 1) * ffts);
           // spectral product
           for (uint32_t i = 1; i < pars; i++)
             ous[i] += ins[i] * irs[i];
           ous[0] += real_prod(ins[0], irs[0]);
-	 }
+         }
         // IFFT
         csound->rfft(inv, out.data());
-	std::copy(in.begin() + po + pars, in.begin() + po + ffts, in.begin() + pp);
+        std::copy(in.begin() + po + pars, in.begin() + po + ffts, in.begin() + pp);
         n = 0;
       }
       frz1 += inc1;
@@ -276,7 +276,7 @@ class PrintThread : public csnd::Thread {
     while(!splock.compare_exchange_weak(tmp,true))
       tmp = false;
   }
-  
+
   void unlock() {
     splock = false;
   }
@@ -288,12 +288,12 @@ class PrintThread : public csnd::Thread {
       if(old.compare(message)) {
        csound->message(message.c_str());
        old = message;
-      } 
-      unlock(); 
+      }
+      unlock();
     }
     return 0;
   }
-  
+
 public:
   PrintThread(csnd::Csound *csound)
     : Thread(csound), splock(false), on(true), message("") {};
@@ -302,13 +302,13 @@ public:
     on = false;
     join();
   }
-   
+
   void set_message(const char *m) {
     lock();
     message = m;
-    unlock(); 
+    unlock();
   }
-  
+
 };
 
 
