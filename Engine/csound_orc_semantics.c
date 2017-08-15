@@ -1763,6 +1763,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         break;
       case UDO_TOKEN:
+        csound->inZero = 0;
         if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
 
         typeTable->localPool = csoundCreateVarPool(csound);
@@ -1823,6 +1824,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
 
       case ENDIN_TOKEN:
+      case UDOEND_TOKEN:
         csound->inZero = 1;
       default:
         if (!verify_opcode(csound, current, typeTable)) {
