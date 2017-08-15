@@ -201,3 +201,4 @@ emscripten/examples/javascripts/libcsound.js
 *.bz2
 tests/soak/CheckSums
 tests/soak/Output
+Opcodes/stk/
