@@ -364,7 +364,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
         csound->InitError(csound, Str("DSSI4CS: No run() funtion in: %s"),
                           LDescriptor->Name);
       PortCount = DSSIPlugin_->Descriptor->PortCount;
-       dlclose(PluginLibrary);
+      dlclose(PluginLibrary);
       return NOTOK;
       }
     }
@@ -906,8 +906,7 @@ int dssictls_dummy(CSOUND * csound, DSSICTLS * p)
 int dssisynth_init(CSOUND * csound, DSSISYNTH * p)
 {
     /* TODO docs: dssisynth only for DSSI plugs */
-    csound->InitError(csound, "DSSI4CS: dssisynth not implemented yet.");
-    return NOTOK;
+    return csound->InitError(csound, "DSSI4CS: dssisynth not implemented yet.");
 }
 
 int dssisynth(CSOUND * csound, DSSISYNTH * p)
@@ -920,8 +919,7 @@ int dssisynth(CSOUND * csound, DSSISYNTH * p)
 *****************************************************************************/
 int dssinote_init(CSOUND * csound, DSSINOTE * p)
 {
-    csound->InitError(csound, Str("DSSI4CS: dssinote not implemented yet."));
-    return NOTOK;
+    return csound->InitError(csound, Str("DSSI4CS: dssinote not implemented yet."));
 }
 
 int dssinote(CSOUND * csound, DSSINOTE * p)
@@ -931,8 +929,8 @@ int dssinote(CSOUND * csound, DSSINOTE * p)
 
 int dssievent_init(CSOUND * csound, DSSINOTEON * p)
 {
-    csound->InitError(csound, Str("DSSI4CS: dssievent not implemented yet."));
-    return NOTOK;
+    return
+      csound->InitError(csound, Str("DSSI4CS: dssievent not implemented yet."));
 }
 
 int dssievent(CSOUND * csound, DSSINOTEON * p)

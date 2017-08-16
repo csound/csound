@@ -79,7 +79,7 @@ int cpupercent_init(CSOUND *csound, CPUMETER* p)
         csound->InitError(csound,
                           Str("Failed to open /proc/stat: %s"), strerror(errno));
     if (!fgets(buf, sizeof(buf), p->fp))
-      csound->InitError(csound, Str("failed /proc/stat read"));
+      return csound->InitError(csound, Str("failed /proc/stat read"));
     num = sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                  &u, &n, &s, &i, &w, &x, &y, &z);
     for (k = 0; ; k++) {

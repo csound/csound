@@ -124,10 +124,9 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     /* load memfile */
     if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,
                                                   CSFTYPE_ATS, NULL)) == NULL)) {
-      csound->InitError(csound,
-                        Str("%s: Ats file %s not read (does it exist?)"),
-                        opname, fname);
-      return -1;
+      return  csound->InitError(csound,
+                                Str("%s: Ats file %s not read (does it exist?)"),
+                                opname, fname);
     }
     atsh = (ATSSTRUCT*) (*mfp)->beginp;
 
