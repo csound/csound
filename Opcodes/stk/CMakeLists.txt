@@ -3,7 +3,10 @@ option(BUILD_STK_OPCODES "Build the stk opcodes" ON)
 if(WIN32)
     cmake_policy(SET CMP0060 NEW)
 endif()
-find_package(STK)
+
+if(NOT STK_LOCAL)
+    find_package(STK)
+endif()
 
 if(BUILD_STK_OPCODES)
     if(DEFAULT_STK_RAWWAVE_PATH)
@@ -37,7 +40,7 @@ if(BUILD_STK_OPCODES)
         set(stk_remove_srcs
             src/InetWvIn.cpp    src/InetWvOut.cpp
             src/Mutex.cpp       src/RtAudio.cpp
-            src/RtMidi.cpp
+            src/RtMidi.cpp      src/Messager.cpp
             src/RtWvIn.cpp      src/RtWvOut.cpp
             src/Socket.cpp      src/TcpClient.cpp
             src/TcpServer.cpp   src/Thread.cpp

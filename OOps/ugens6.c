@@ -1081,7 +1081,7 @@ int rvbset(CSOUND *csound, REVERB *p)
       p->adr5 = p->p5 = p->adr4 + *sizp++;
       p->adr6 = p->p6 = p->adr5 + *sizp++;
       if (UNLIKELY(p->adr6 + *sizp != (MYFLT *) p->auxch.endp)) {
-        csound->InitError(csound, Str("revlpsiz inconsistent\n"));
+        return csound->InitError(csound, Str("revlpsiz inconsistent\n"));
       }
       p->prvt = FL(0.0);
     }

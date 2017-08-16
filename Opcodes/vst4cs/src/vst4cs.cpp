@@ -58,13 +58,13 @@ extern "C" {
         *p->iVSThandle = (MYFLT) vstPlugins->size();
         vstPlugins->push_back(plugin);
         if ((int) vstPlugins->size() == 1) {
-            plugin->Log("============================================================\n");
-            plugin->Log("vst4cs version %s by Andres Cabrera and Michael Gogins\n",
+          plugin->Log("============================================================\n");
+          plugin->Log("vst4cs version %s by Andres Cabrera and Michael Gogins\n",
                         version.c_str());
-            plugin->Log("Using code from H. Seib's VstHost and T. Grill's vst~ object\n");
-            plugin->Log("VST is a trademark of Steinberg Media Technologies GmbH\n");
-            plugin->Log("VST Plug-In Technology by Steinberg\n");
-            plugin->Log("============================================================\n");
+          plugin->Log("Using code from H. Seib's VstHost and T. Grill's vst~ object\n");
+          plugin->Log("VST is a trademark of Steinberg Media Technologies GmbH\n");
+          plugin->Log("VST Plug-In Technology by Steinberg\n");
+          plugin->Log("============================================================\n");
         }
         char vstplugname[0x100];
         strncpy(vstplugname,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
@@ -72,12 +72,12 @@ extern "C" {
         path_convert(vstplugname);
 #endif
         if (plugin->Instantiate(vstplugname)) {
-            csound->InitError(csound, "vstinit: Error loading effect.");
-            csound->LongJmp(csound, 1);
+          return csound->InitError(csound, Str("vstinit: Error loading effect."));
+          csound->LongJmp(csound, 1);
         }
         plugin->Init();
         if (*p->iverbose) {
-            plugin->Info();
+          plugin->Info();
         }
         return OK;
     }
@@ -96,7 +96,7 @@ extern "C" {
 
         p->opcodeInChannels = (size_t) (csound->GetInputArgCnt(data) - 1);
         if (p->opcodeInChannels > 32) {
-            csound->InitError(csound, "vstaudio: too many input args");
+          return csound->InitError(csound, Str("vstaudio: too many input args"));
         }
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
         plugin->Debug("vstaudio_init.\n");
@@ -134,7 +134,8 @@ extern "C" {
                             p->framesPerBlock);
             for (j = 0; j < p->pluginOutChannels && j < p->opcodeOutChannels; j++)
                 for (i = offset; i < p->framesPerBlock; i++) {
-                    p->aouts[j][i] = (MYFLT) plugin->outputs_[j][i] * csound->Get0dBFS(csound);
+                    p->aouts[j][i] =
+                      (MYFLT) plugin->outputs_[j][i] * csound->Get0dBFS(csound);
                 }
             for ( ; j < p->opcodeOutChannels; j++)
                 for (i = 0; i < p->framesPerBlock; i++) {
@@ -178,7 +179,8 @@ extern "C" {
                         p->framesPerBlock);
         for (j = 0; j < p->pluginOutChannels && j < p->opcodeOutChannels; j++)
             for (i = offset; i < p->framesPerBlock; i++) {
-                p->aouts[j][i] = (MYFLT) plugin->outputs_[j][i] * csound->Get0dBFS(csound);
+                p->aouts[j][i] =
+                  (MYFLT) plugin->outputs_[j][i] * csound->Get0dBFS(csound);
             }
         for ( ; j < p->opcodeOutChannels; j++)
             for (i = 0; i < p->framesPerBlock; i++) {
@@ -293,19 +295,19 @@ extern "C" {
                          0, 0, (VstPatchChunkInfo *) fxBank.GetChunk(), 0);
         if (plugin->Dispatch(effBeginLoadBank,
                              0, 0, (VstPatchChunkInfo *) fxBank.GetChunk(), 0)) {
-            csound->InitError(csound, "Error: BeginLoadBank.");
-            return NOTOK;
+          return csound->InitError(csound, Str("Error: BeginLoadBank."));
         }
         if (fxBank.IsLoaded()) {
-            if (plugin->aeffect->uniqueID != fxBank.GetFxID()) {
-                csound->InitError(csound, "Loaded bank ID doesn't match plug-in ID.");
-                return NOTOK;
+          if (plugin->aeffect->uniqueID != fxBank.GetFxID()) {
+            return
+              csound->InitError(csound,
+                                Str("Loaded bank ID doesn't match plug-in ID."));
             }
             if (fxBank.IsChunk()) {
-                if (!(plugin->aeffect->flags & effFlagsProgramChunks)) {
-                    csound->InitError(csound, "Loaded bank contains a chunk format "
-                                      "that the effect cannot handle.");
-                    return NOTOK;
+              if (!(plugin->aeffect->flags & effFlagsProgramChunks)) {
+                return csound->InitError(csound,
+                                         Str("Loaded bank contains a chunk format "
+                                             "that the effect cannot handle."));
                 }
                 plugin->Dispatch(effSetChunk, 0, fxBank.GetChunkSize(),
                                  fxBank.GetChunk(), 0); // isPreset = 0
@@ -325,8 +327,9 @@ extern "C" {
                 plugin->Dispatch(effSetProgram, 0, cProg, dummyPointer, 0);
             }
         } else {
-            csound->InitError(csound, "Problem loading bank.");
-            return NOTOK;           /* check if error loading */
+          return
+            csound->InitError(csound,
+                              Str("Problem loading bank.")); /* check if error loading */
         }
         plugin->Log("Bank loaded OK.\n");
         return OK;
@@ -339,7 +342,8 @@ extern "C" {
         int program = (int)*p->iprogram;
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
         if (program<=0) {
-            csound->Message(csound, "VSTprogset: Program %d treated as 1\n", program);
+          csound->Message(csound,
+                          Str("VSTprogset: Program %d treated as 1\n"), program);
             program = 1;
         }
         plugin->SetCurrentProgram(program);
@@ -396,8 +400,8 @@ extern "C" {
                     plugin->EffGetProgramName(szName);
                     b.SetProgramName(i, szName);
                     for (j = 0; j < nParms; j++)
-                        b.SetProgParm(i, j,
-                                      plugin->aeffect->getParameter(plugin->aeffect,j));
+                      b.SetProgParm(i, j,
+                                    plugin->aeffect->getParameter(plugin->aeffect,j));
                 }
                 plugin->EffSetProgram(cProg);
             }
@@ -463,7 +467,8 @@ extern "C" {
             // In case of real-time performance with indefinite p3...
         } else if (*p->iDuration == FL(0.0)) {
             if (csound->GetDebug(csound)) {
-                csound->Message(csound, "vstnote_init: not scheduling 0 duration note.\n");
+              csound->Message(csound,
+                              Str("vstnote_init: not scheduling 0 duration note.\n"));
             }
             return OK;
         } else {
