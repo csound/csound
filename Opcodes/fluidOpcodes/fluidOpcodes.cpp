@@ -210,8 +210,8 @@ public:
         }
         *iInstrumentNumber = (MYFLT) soundFontId;
         if (soundFontId < 0) {
-            csound->InitError(csound,
-                              Str("fluid: unable to load %s"), filename);
+            return csound->InitError(csound,
+                                     Str("fluid: unable to load %s"), filename);
         }
         csound->NotifyFileOpened(csound, filepath, CSFTYPE_SOUNDFONT, 0, 0);
         if (soundFontId < 0) {
@@ -606,22 +606,20 @@ class FluidSetInterpMethod : public OpcodeBase<FluidSetInterpMethod>
 public:
     int init(CSOUND *csound)
     {
-        int result = OK;
         LockGuard guard(csound, mutex);
         toa(iFluidSynth, fluidSynth);
         channel = (int) *iChannelNumber;
         interpolationMethod = (int) *iInterpMethod;
         if (interpolationMethod != 0 && interpolationMethod != 1 &&
                 interpolationMethod != 4 && interpolationMethod != 7) {
-            csound->InitError(csound,
-                              Str("Illegal Interpolation Method: Must be "
-                                  "either 0, 1, 4, or 7.\n"));
-            result = NOTOK;
+          return csound->InitError(csound,
+                                   Str("Illegal Interpolation Method: Must be "
+                                       "either 0, 1, 4, or 7.\n"));
         } else {
             fluid_synth_set_interp_method(fluidSynth, channel,
                                           interpolationMethod);
         }
-        return result;
+        return OK;
     }
 };
 
