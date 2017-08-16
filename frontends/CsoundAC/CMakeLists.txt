@@ -10,6 +10,8 @@ option(BUILD_CSOUND_AC_LUA_INTERFACE "Build the Csound AC Lua interface" ON)
 option(USE_SYSTEM_PORTSMF ON)
 
 find_library(MUSICXML_LIBRARY musicxml2)
+find_package(FLTK REQUIRED)
+find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(SWIG)
 find_package(PythonLibs)
 find_library(PORTSMF_LIBRARY portSMF)
