@@ -12,7 +12,7 @@ option(USE_SYSTEM_PORTSMF ON)
 
 find_library(MUSICXML_LIBRARY musicxml2)
 #find_package(FLTK REQUIRED)
-#find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+#find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(SWIG)
 find_package(PythonLibs)
 find_library(PORTSMF_LIBRARY portSMF)
