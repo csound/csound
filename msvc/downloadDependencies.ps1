@@ -107,7 +107,7 @@ mkdir staging -ErrorAction SilentlyContinue
 
 # Manual packages to download and install
 # List of URIs to download and install
-$uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
+$uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
 "https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip",
