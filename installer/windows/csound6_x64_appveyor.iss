@@ -8,24 +8,20 @@
 ;
 ; This file is for building the Csound NSIS installer with AppVeyor and
 ; assumes that the build has been created by running "build.bat" from
-; csound/msvc in the AppVeyor environment.
+; csound/msvc in the AppVeyor environment. 
 ;
 ; DIRECTORY STRUCTURE
 ;
 ; C:\Program Files\Csound6
-;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, and NW.js binary trees here; but not Csound opcodes).
+;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, and NW.js binary trees here including runtime 
+;     libraries and dependency libraries; but not Csound opcodes)
 ;     doc (copy tree)
 ;     examples (copy tree but exclude .wav files)
 ;     include
 ;         csound (copy include and interfaces dirs *.h and *.hpp)
 ;         csoundac (copy dir *.hpp)
-;         luajit (copy dir *.h)
-;         sndfile (copy dir *.h)
 ;     plugins64 (all Csound plugin opcodes)
 ;     samples (copy tree)
-;
-; At this time the following features are not included in the installer:
-; faustgen, csound~.
 ;
 ; USAGE
 ;
@@ -43,9 +39,10 @@
 #endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
-; If you are not Michael Gogins, change this to your msys64 directory.
+
+; Paths are all relative.
+
 #define MyMsys64Dir "D:\msys64\"
-; If you are not Michael Gogins, change this to your mingw64 directory.
 #define MyMingw64Dir "D:\msys64\mingw64\"
 ; If you are not Michael Gogins, change this to your Csound build directory.
 #define MySourceDir "D:\msys64\home\restore\csound\"

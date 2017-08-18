@@ -117,7 +117,9 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
-"https://github.com/thestk/stk/archive/master.zip"
+"http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
+"https://github.com/thestk/stk/archive/master.zip",
+"https://github.com/CsoundQt/CsoundQt/archive/0.9.5-beta.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="",
@@ -167,24 +169,18 @@ for($i=0; $i -lt $uriList.Length; $i++)
 Copy-Item ($destDir + "stk-master\*") ($csoundDir + "\Opcodes\stk") -recurse -force
 echo "Copied STK sources to Csound opcodes directory."
 
+cd $cacheDir
+7z e -y "gmm-5.1.tar.gz"
+7z x -y "gmm-5.1.tar"
+cd ..
+copy ($cacheDir + "gmm-5.1\include\gmm\") -Destination ($depsIncDir + "gmm\") -Force -Recurse
+echo "Copied v5.1 gmm headers to deps include directory. Please note, verson 5.1 is REQUIRED, "
+echo "later versions do not function as stand-alone, header-file-only libraries."
+
 echo "Local builds and installations..."
 
 cd $stageDir
 copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
-
-if (Test-Path "getfem")
-{
-    cd getfem
-    git pull
-    cd ..
-    echo "GetFEM already downloaded, updated now."
-}
-else
-{
-    git clone "https://git.savannah.nongnu.org/git/getfem.git"
-}
-Copy-Item ($stageDir +"\getfem\src\gmm") -Destination $depsIncDir -Force -Recurse
-echo "Copied header-only GMM library to deps."
 
 if (Test-Path "portaudio")
 {
