@@ -15,7 +15,8 @@ build:
   project: msvc\csound-vs\Csound.sln
 
 after_build:
-  - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll
+  - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py
+  - 7z l csound.zip 
 
 artifacts:
   - path: csound.zip
@@ -23,7 +24,7 @@ artifacts:
     type: zip
 
 cache: 
- - C:\projects\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
+ - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
 
 #deploy:
