@@ -118,7 +118,8 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
 "http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
-"https://github.com/thestk/stk/archive/master.zip"
+"https://github.com/thestk/stk/archive/master.zip",
+"https://github.com/CsoundQt/CsoundQt/archive/0.9.5-beta.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="",
