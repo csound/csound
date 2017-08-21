@@ -5482,9 +5482,8 @@ msgstr "signes différents"
 #: OOps/ugens1.c:140 OOps/ugens1.c:492 OOps/ugens1.c:546 OOps/ugens1.c:606
 #: OOps/ugens1.c:667 OOps/ugens1.c:881 OOps/ugens1.c:1817
 #: Opcodes/gab/vectorial.c:2198 Opcodes/vpvoc.c:41
-#, fuzzy
 msgid "incomplete number of input arguments"
-msgstr "Nombre incorrect d'arguments en entrée"
+msgstr "nombre incorrect d'arguments en entrée"
 
 #: OOps/ugens1.c:192 OOps/ugens1.c:1880 OOps/ugens1.c:1890
 #, c-format
@@ -10654,39 +10653,37 @@ msgid "vpvoc: not initialised"
 msgstr "vpvoc : non initialisé"
 
 #: Opcodes/vst4cs/src/vst4cs.cpp:75
-#, fuzzy
 msgid "vstinit: Error loading effect."
-msgstr "cvanal : erreur d'allocation de l'en-tête\n"
+msgstr "vstinit : erreur lors du chargement de l'effet."
 
 #: Opcodes/vst4cs/src/vst4cs.cpp:99
-#, fuzzy
 msgid "vstaudio: too many input args"
-msgstr "trop d'arguments en entrée"
+msgstr "vstaudio : trop d'arguments en entrée"
 
 #: Opcodes/vst4cs/src/vst4cs.cpp:298
 msgid "Error: BeginLoadBank."
-msgstr ""
+msgstr "Erreur : BeginLoadBank."
 
 #: Opcodes/vst4cs/src/vst4cs.cpp:304
 msgid "Loaded bank ID doesn't match plug-in ID."
-msgstr ""
+msgstr "L'ID de la banque chargée ne correspond pas à l'ID du greffon."
 
 #: Opcodes/vst4cs/src/vst4cs.cpp:309
 msgid "Loaded bank contains a chunk format that the effect cannot handle."
-msgstr ""
+msgstr "La banque chargée contient un format de chunk que l'effet ne gère pas."
 
 #: Opcodes/vst4cs/src/vst4cs.cpp:332
 msgid "Problem loading bank."
-msgstr ""
+msgstr "Problème au chargement de la banque."
 
 #: Opcodes/vst4cs/src/vst4cs.cpp:346
 #, c-format
 msgid "VSTprogset: Program %d treated as 1\n"
-msgstr ""
+msgstr "VSTprogset : programme %d traité comme 1\n"
 
 #: Opcodes/vst4cs/src/vst4cs.cpp:471
 msgid "vstnote_init: not scheduling 0 duration note.\n"
-msgstr ""
+msgstr "vstnote_init : pas de programmation de note à durée nulle.\n"
 
 #: Opcodes/wave-terrain.c:42
 msgid "wterrain: ftable not found"
@@ -12117,7 +12114,6 @@ msgid "Reading options from local directory .csound6rc \n"
 msgstr "Lecture des options depuis le .csound6rc du répertoire local\n"
 
 #: Top/main.c:118 Top/main.c:362
-#, fuzzy
 msgid ""
 "Csound is already started, call csoundReset()\n"
 "before starting again.\n"
