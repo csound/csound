@@ -105,7 +105,8 @@ mkdir cache -ErrorAction SilentlyContinue
 mkdir deps -ErrorAction SilentlyContinue
 mkdir staging -ErrorAction SilentlyContinue
 
-# Manual packages to download and install
+echo "Downloading and installing non-VCPKG packages..."
+
 # List of URIs to download and install
 $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
@@ -118,8 +119,7 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28-w64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
 "http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
-"https://github.com/thestk/stk/archive/master.zip",
-"https://github.com/CsoundQt/CsoundQt/archive/0.9.5-beta.zip"
+"https://github.com/thestk/stk/archive/master.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="",
@@ -167,7 +167,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
 }
 
 Copy-Item ($destDir + "stk-master\*") ($csoundDir + "\Opcodes\stk") -recurse -force
-echo "Copied STK sources to Csound opcodes directory."
+echo "STK: Copied sources to Csound opcodes directory."
 
 cd $cacheDir
 7z e -y "gmm-5.1.tar.gz"
@@ -177,11 +177,11 @@ copy ($cacheDir + "gmm-5.1\include\gmm\") -Destination ($depsIncDir + "gmm\") -F
 echo "Copied v5.1 gmm headers to deps include directory. Please note, verson 5.1 is REQUIRED, "
 echo "later versions do not function as stand-alone, header-file-only libraries."
 
-echo "Local builds and installations..."
-
 cd $stageDir
 copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
+echo "ASIOSDK2.3: Copied sources to deps."
 
+echo "PortAudio..."
 if (Test-Path "portaudio")
 {
     cd portaudio
@@ -203,7 +203,7 @@ cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
 copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
 
-# Portmidi
+echo "PortMidi..."
 cd $stageDir
 
 if (Test-Path "portmidi")
@@ -232,7 +232,7 @@ copy .\Release\pmjni.lib -Destination $depsLibDir -Force
 copy ..\pm_common\portmidi.h -Destination $depsIncDir -Force
 copy ..\porttime\porttime.h -Destination $depsIncDir -Force
 
-# Liblo
+echo "LibLo..."
 cd $stageDir
 
 if (Test-Path "liblo")
@@ -258,7 +258,7 @@ copy .\lo -Destination $depsIncDir -Force -Recurse
 copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
 robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
 
-# Fluidsynth
+echo "FluidSynth..."
 cd $stageDir
 
 if (Test-Path "fluidsynth")
@@ -285,6 +285,25 @@ copy .\src\Release\libfluidsynth.dll -Destination $depsBinDir -Force
 copy ..\fluidsynth\fluidsynth\include\fluidsynth.h -Destination $depsIncDir
 robocopy ..\fluidsynth\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
 copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth
+
+echo "CsoundQt..."
+cd $stageDir
+
+if (Test-Path "CsoundQt")
+{
+    cd CsoundQt
+    git pull
+    echo "CsoundQt already downloaded, updated"
+}
+else
+{
+    git clone "https://github.com/CsoundQt/CsoundQt.git"
+    cd CsoundQt
+}
+git checkout tags/0.9.5-beta
+cd ..
+
+# Do not build CsoundQt until Csound has been built!
 
 $buildTiming = (Get-Date).TimeOfDay
 
