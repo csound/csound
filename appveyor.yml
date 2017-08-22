@@ -1,5 +1,8 @@
 image: Visual Studio 2017
 
+environment:
+  - QTDIR: C:\Qt\5.9\msvc2017_64
+
 install:
   - cd msvc
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
@@ -16,7 +19,6 @@ build:
 
 after_build:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
-  - set QTDIR=C:\Qt\5.9.1\msvc2017_64
   - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
   - build_csoundqt.bat
