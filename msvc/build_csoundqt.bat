@@ -1,5 +1,5 @@
 cd staging\CsoundQt
-qmake.exe qcs.pro -spec win32-msvc2015 ^
+qmake.exe qcs.pro -spec win32-msvc2017 ^
     CONFIG+=html_webengine ^
     CONFIG+=perfThread_build ^
     CSOUND_API_INCLUDE_DIR=%~dp0/"../include" ^
