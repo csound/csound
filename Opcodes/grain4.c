@@ -99,23 +99,23 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     if ( *p->ipshift !=FL(0.0) ) {
       if (UNLIKELY(*p->ipitch1 < FL(0.0) )) {
         return
-          csound->InitError(csound, Str(
-                        "granule_set: ipitch1 must be greater then zero"));
+          csound->InitError(csound,
+                            Str("granule_set: ipitch1 must be greater then zero"));
       }
       if (UNLIKELY(*p->ipitch2 < FL(0.0) )) {
         return
-          csound->InitError(csound, Str(
-                        "granule_set: ipitch2 must be greater then zero"));
+          csound->InitError(csound,
+                            Str("granule_set: ipitch2 must be greater then zero"));
       }
       if (UNLIKELY(*p->ipitch3 < FL(0.0) )) {
         return
-          csound->InitError(csound, Str(
-                        "granule_set: ipitch3 must be greater then zero"));
+          csound->InitError(csound,
+                            Str("granule_set: ipitch3 must be greater then zero"));
       }
       if (UNLIKELY(*p->ipitch4 < FL(0.0) )) {
         return
-          csound->InitError(csound, Str(
-                        "granule_set: ipitch4 must be greater then zero"));
+          csound->InitError(csound,
+                            Str("granule_set: ipitch4 must be greater then zero"));
       }
     }
 
@@ -150,8 +150,9 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
     if (UNLIKELY((*p->iatt < FL(0.0)) || (*p->idec < 0.0) ||
                  ((*p->iatt + *p->idec) > FL(100.0)))) {
-      return csound->InitError(csound, Str(
-                           "granule_set: Illegal value of iatt and/or idec"));
+      return
+        csound->InitError(csound,
+                          Str("granule_set: Illegal value of iatt and/or idec"));
     } /* end if */
 
     /* Initialize random number generator */
@@ -296,7 +297,7 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
    /* *** Start the loop .... *** */
-   for (n=offset; n<nsmps; n++) {                         /* while (--nsmps) */
+   for (n=offset; n<nsmps; n++) {
                                 /* Optimisations */
      int32      *fpnt = p->fpnt, *cnt = p->cnt, *gskip = p->gskip;
      int32      *gap = p->gap, *gsize = p->gsize;
@@ -412,9 +413,9 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
            if (*p->igsize_os != 0)
              *gsize += (int32)((*gsize * p->gsize_os) * grand(p));
 
-             *stretch = *gsize + *gap;
+           *stretch = *gsize + *gap;
 
-         }
+       }
        fpnt++; cnt++; gskip++; gap++; gsize++;
        stretch++; mode++; pshift++; phs++;
      }

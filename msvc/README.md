@@ -73,29 +73,13 @@ You can pass in default arguments to the csound instance by right-clicking on "c
 Using the build configuration "Release" or "Release with debug info" will allow profilling of the project. By going to "Analyze" and "Performance Profiler", you will get a choice of profilling tools (cpu usage, memory etc).
 
 ## Work in progress / work to do
-1. [Partial] FLTK not being fully found. Everything is found except fluid_executable
-    * Is in VCPKG but missing fluid executable. Have a ticket open which will resolve this
-2. [Partial] Atomic builtins not being found, test program isn't working as expected but should
+ - [Partial] Atomic builtins not being found, test program isn't working as expected but should
    * Fixed the cmake test but csound source assumes linux based atomics, needs more work
-3. STK, source downloaded manually and built
-4. LUAJIT, source downloaded manually and built using VS console
-5. PureData, source download and extract
-6. GetText, is in vcpkg but not being detected by cmake. (missing:  GETTEXT_MSGMERGE_EXECUTABLE GETTEXT_MSGFMT_EXECUTABLE)
-7. Eigen, is in vcpkg but include path isn't being found
-8. FluidSynth, hard to build. Is there a windows binary download?
-9. WII opcodes, download source and build
-10. P5Glove, no idea about this
-11. Faust opcodes, need to investigate
-12. HDF5, need to investigate
-13. Websockets, need to investigate
-14. Csound AC 
-15. Csound~, needs max sdk
-16. Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
-17. Doxygen for documentation
-18. Installer needs work? Not tried
-
-## Investigate
-1. More usage of CMake instead of powershell scripts
-    * CMake can pull down git repos and build. Can be triggered if find_package fails
-    * Use of custom Find*.cmake modules to find dependencies, leads to cleaner cmake files
-2. Packaging build output, using NSIS or converting to something else
+ - PureData, source download and extract
+ - Faust opcodes, need to investigate
+ - HDF5, need to investigate
+ - Websockets, need to investigate
+ - Csound~, needs max sdk
+ - Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
+ - Doxygen for documentation
+ - Installer, currently being re-written

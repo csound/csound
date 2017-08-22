@@ -54,7 +54,7 @@ class SILENCE_PUBLIC WaitCursor
   void *cursor;
 public:
   WaitCursor();
-  virtual ~WaitCursor();
+  ~WaitCursor();
 };
 
 class CsoundVstFltk :

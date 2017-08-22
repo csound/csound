@@ -588,7 +588,7 @@ typedef struct CORFIL {
 #define CS_ESR       (csound->esr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
-#define CS_SPOUT      (p->h.insdshead->spout)
+#define CS_SPOUT     (p->h.insdshead->spout)
 
   typedef int (*SUBR)(CSOUND *, void *);
 
@@ -1762,7 +1762,7 @@ typedef struct NAME__ {
     int           score_parser;
     CS_HASH_TABLE* symbtab;
     int           tseglen;
-    int           inZero;       /* flag compilation of instr0 not currently used */
+    int           inZero;       /* flag compilation of instr0 */
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

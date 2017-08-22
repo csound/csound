@@ -165,7 +165,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
     p->cs = csound;
@@ -175,8 +175,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError
-        (csound, Str("creating socket"));
+      return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -222,7 +221,7 @@ static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
     p->cs = csound;
@@ -232,8 +231,7 @@ static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError
-        (csound, Str("creating socket"));
+      return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -338,7 +336,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
     p->cs = csound;
@@ -422,7 +420,7 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -533,7 +531,7 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
     WSADATA wsaData = {0};
     int err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
@@ -545,8 +543,7 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
        return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError
-        (csound, Str("creating socket"));
+      return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));

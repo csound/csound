@@ -1210,17 +1210,17 @@ typedef struct _check {
 
 
 static int check_init(CSOUND *csound, CHECK *p){
-  if(p->pp->data != NULL &&
-     p->pp->size != sizeof(MP3SCAL2)) {
-    p->p = (MP3SCAL2 *) p->pp->data;
-  }
-  else return csound->InitError(csound, "invalid handle \n");
-  return OK;
+    if(p->pp->data != NULL &&
+       p->pp->size != sizeof(MP3SCAL2)) {
+      p->p = (MP3SCAL2 *) p->pp->data;
+    }
+    else return csound->InitError(csound, "invalid handle \n");
+    return OK;
 }
 
 static int check_play(CSOUND *csound, CHECK *p){
-  *p->res = p->p->init;
-  return OK;
+    *p->res = p->p->init;
+    return OK;
 }
 
 #ifdef HAVE_NEON
