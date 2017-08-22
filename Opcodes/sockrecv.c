@@ -520,8 +520,10 @@ static int destroy_raw_osc(CSOUND *csound, void *pp) {
   RAWOSC *p = (RAWOSC *) pp;
 #ifndef WIN32
   close(p->sock);
+  csound->Message(csound, "OSCraw: Closing socket\n");
 #else
   closesocket(p->sock);
+  csound->Message(csound, "OSCraw: Closing socket\n");
 #endif
   return OK;
 }
