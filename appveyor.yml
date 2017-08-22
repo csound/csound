@@ -1,7 +1,7 @@
 image: Visual Studio 2017
 
 environment:
-  - QTDIR: C:\Qt\5.9\msvc2017_64
+  QTDIR: C:\Qt\5.9\msvc2017_64
 
 install:
   - cd msvc
