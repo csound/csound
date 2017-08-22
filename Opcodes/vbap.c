@@ -773,8 +773,10 @@ static void choose_ls_tuplets(CSOUND *csound,
                           lss[sorted_lss[ls_amount-1]].angles.azi*FL(180.0)/PI_F,
                           lss[sorted_lss[0]].angles.azi*FL(180.0)/PI_F);
 
-    if (UNLIKELY(amount==0))
+    if (UNLIKELY(amount==0)) {
       csound->InitError(csound, Str("insufficient valid speakers"));
+      return;
+    }
 
 #if 0
     if ( amount*6 + 6 <= 16) ftable_size = 16;

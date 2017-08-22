@@ -37,9 +37,8 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     FUNC    *nxtfunc, *curfunc;
     int32    flength;
 
-    if (!(p->INCOUNT & 1)){
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+    if (!(p->INCOUNT & 1)) {
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     {

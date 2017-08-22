@@ -1,4 +1,12 @@
+param
+(
+    [string]$vsGenerator="Visual Studio 15 2017 Win64",
+    [string]$vsToolset="v141"
+)
 echo "Downloading Csound dependencies..."
+
+echo "vsGenerator: $vsGenerator"
+echo "vsToolset:   $vsToolset"
 
 $startTime = (Get-Date).TimeOfDay
 
@@ -10,9 +18,8 @@ $stageDir = $currentDir + "\staging\"
 $depsBinDir = $depsDir + "bin\"
 $depsLibDir = $depsDir + "lib\"
 $depsIncDir = $depsDir + "include\"
+$csoundDir = $currentDir + "\.."
 $vcpkgDir = ""
-$vsGenerator = "Visual Studio 14 2015 Win64"
-#$vsGenerator = "Visual Studio 15 2017 Win64"
 
 # Metrics
 $vcpkgTiming = 0
@@ -82,14 +89,14 @@ else
     cd $currentDir
 }
 
+# Generate VCPKG AlwaysAllowDownloads file if needed
+New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction SilentlyContinue | Out-Null
+
 # Download all vcpkg packages available
+echo "Downloading VC packages..."
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows"
-echo "Downloading VC packages..."
-
-#vcpkg --triplet $targetTriplet install curl eigen3 fltk libflac lua libogg libvorbis zlib
 vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib
-
 $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
@@ -98,9 +105,10 @@ mkdir cache -ErrorAction SilentlyContinue
 mkdir deps -ErrorAction SilentlyContinue
 mkdir staging -ErrorAction SilentlyContinue
 
-# Manual packages to download and install
+echo "Downloading and installing non-VCPKG packages..."
+
 # List of URIs to download and install
-$uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
+$uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28-w64.zip",
 "https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
 "https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip",
@@ -109,7 +117,9 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.27-w64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/pkg-config_0.23-2_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
-"http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip"
+"http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
+"http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
+"https://github.com/thestk/stk/archive/master.zip"
 
 # Appends this folder location to the 'deps' uri
 $destList="",
@@ -156,17 +166,28 @@ for($i=0; $i -lt $uriList.Length; $i++)
     echo "Extracted $fileName"
 }
 
-# Manual building...
-# Portaudio
+Copy-Item ($destDir + "stk-master\*") ($csoundDir + "\Opcodes\stk") -recurse -force
+echo "STK: Copied sources to Csound opcodes directory."
+
+cd $cacheDir
+7z e -y "gmm-5.1.tar.gz"
+7z x -y "gmm-5.1.tar"
+cd ..
+copy ($cacheDir + "gmm-5.1\include\gmm\") -Destination ($depsIncDir + "gmm\") -Force -Recurse
+echo "Copied v5.1 gmm headers to deps include directory. Please note, verson 5.1 is REQUIRED, "
+echo "later versions do not function as stand-alone, header-file-only libraries."
+
 cd $stageDir
 copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
+echo "ASIOSDK2.3: Copied sources to deps."
 
+echo "PortAudio..."
 if (Test-Path "portaudio")
 {
     cd portaudio
     git pull
     cd ..
-    echo "Portaudio already downloaded, updated"
+    echo "Portaudio already downloaded, updated."
 }
 else
 {
@@ -177,12 +198,12 @@ copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
 rm -Path portaudioBuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir portaudioBuild -ErrorAction SilentlyContinue
 cd portaudioBuild
-cmake ..\portaudio -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
+cmake ..\portaudio -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
 cmake --build . --config Release
 copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
 copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
 
-# Portmidi
+echo "PortMidi..."
 cd $stageDir
 
 if (Test-Path "portmidi")
@@ -201,7 +222,7 @@ cd portmidi\portmidi\trunk
 rm -Path build -Force -Recurse -ErrorAction SilentlyContinue
 mkdir build -ErrorAction SilentlyContinue
 cd build
-cmake .. -G $vsGenerator -DCMAKE_BUILD_TYPE="Release"
+cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
 cmake --build . --config Release
 copy .\Release\portmidi.dll -Destination $depsBinDir -Force
 copy .\Release\portmidi.lib -Destination $depsLibDir -Force
@@ -211,7 +232,7 @@ copy .\Release\pmjni.lib -Destination $depsLibDir -Force
 copy ..\pm_common\portmidi.h -Destination $depsIncDir -Force
 copy ..\porttime\porttime.h -Destination $depsIncDir -Force
 
-# Liblo
+echo "LibLo..."
 cd $stageDir
 
 if (Test-Path "liblo")
@@ -229,7 +250,7 @@ else
 rm -Path liblo\cmakebuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
 cd liblo\cmakebuild
-cmake ..\cmake -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
+cmake ..\cmake -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
 cmake --build . --config Release
 copy .\Release\lo.dll -Destination $depsBinDir -Force
 copy .\Release\lo.lib -Destination $depsLibDir -Force
@@ -237,7 +258,7 @@ copy .\lo -Destination $depsIncDir -Force -Recurse
 copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
 robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
 
-# Fluidsynth
+echo "FluidSynth..."
 cd $stageDir
 
 if (Test-Path "fluidsynth")
@@ -256,7 +277,7 @@ else
 rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir fluidsynthbuild -ErrorAction SilentlyContinue
 cd fluidsynthbuild
-cmake ..\fluidsynth\fluidsynth -G $vsGenerator -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
+cmake ..\fluidsynth\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
 cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
@@ -264,6 +285,25 @@ copy .\src\Release\libfluidsynth.dll -Destination $depsBinDir -Force
 copy ..\fluidsynth\fluidsynth\include\fluidsynth.h -Destination $depsIncDir
 robocopy ..\fluidsynth\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
 copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth
+
+echo "CsoundQt..."
+cd $stageDir
+
+if (Test-Path "CsoundQt")
+{
+    cd CsoundQt
+    git pull
+    echo "CsoundQt already downloaded, updated"
+}
+else
+{
+    git clone "https://github.com/CsoundQt/CsoundQt.git"
+    cd CsoundQt
+}
+git checkout tags/0.9.5-beta
+cd ..
+
+# Do not build CsoundQt until Csound has been built!
 
 $buildTiming = (Get-Date).TimeOfDay
 
