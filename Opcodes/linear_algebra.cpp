@@ -349,6 +349,11 @@ extern "C"
 
 using namespace csound;
 
+#ifndef GMM_HAS_VECTOR_OSTREAM
+  template <typename T> std::ostream &operator <<
+  (std::ostream &o, const std::vector<T>& m) { gmm::write(o,m); return o; }
+#endif
+
 /**
  * Template union for safely and efficiently
  * typecasting the value of a MYFLT variable
