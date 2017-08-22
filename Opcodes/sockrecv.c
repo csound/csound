@@ -518,6 +518,13 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
     }
 }
 
+static int destroy_raw_osc(CSOUND *csound, void *pp) {
+  RAWOSC *p = (RAWOSC *) pp;   
+  close(p->sock);
+  return OK;
+}
+
+
 
 static int init_raw_osc(CSOUND *csound, RAWOSC *p)
 {
@@ -559,7 +566,9 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
       memset(buf, 0, MTU);
     }
 
+  csound->RegisterDeinitCallback(csound, (void *) p, destroy_raw_osc);
   tabensure(csound, p->sout,2);
+  
   return OK;
 }
 
