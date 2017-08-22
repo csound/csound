@@ -1,6 +1,8 @@
 image: Visual Studio 2017
 
 install:
+  - set QTDIR=C:\Qt\5.9.1\msvc2017_64
+  - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1
@@ -15,15 +17,18 @@ build:
   project: msvc\csound-vs\Csound.sln
 
 after_build:
-  - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py
-  - 7z l csound.zip 
+  - cd msvc
+  - build_csoundqt.bat
+  - cd ..
+  - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
+  - 7z l csound.zip
 
 artifacts:
   - path: csound.zip
     name: Csound
     type: zip
 
-cache: 
+cache:
  - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
 
@@ -44,7 +49,7 @@ notifications:
   - provider: Email
     to:
       - CSOUND-DEV@listserv.heanet.ie
-    subject: 'Build {{status}}'     # optional    
+    subject: 'Build {{status}}'     # optional
     on_build_success: false
     on_build_failure: true
     on_build_status_changed: false
