@@ -8,26 +8,6 @@ find_path(GMM_INCLUDE_DIR gmm/gmm.h)
 
 set(GMM_INCLUDE_DIRS ${GMM_INCLUDE_DIR})
 
-include(CMakePushCheckState)
-
-cmake_push_check_state(RESET)
-
-list(APPEND CMAKE_REQUIRED_INCLUDES ${GMM_INCLUDE_DIR})
-
-check_cxx_source_compiles("
-#include <gmm/gmm.h>
-#include <sstream>
-
-int main() {
-    std::ostringstream stream;
-    std::vector<double> vec;
-    stream << vec << std::endl;
-    return 0;
-}
-" GMM_HAS_VECTOR_OSTREAM)
-
-cmake_pop_check_state()
-
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GMM_FOUND to TRUE
 # if all listed variables are TRUE
