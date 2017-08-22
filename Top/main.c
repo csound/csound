@@ -531,14 +531,16 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
         char *sc = scsortstr(csound, csound->scorestr);
         if (sc) {
           if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+	    if(csound->oparms->odebug)
             csound->Message(csound,
-                            Str("\"Real-time\" performance (engineStatus: %d).\n"),
+                            Str("RT score events (engineStatus: %d).\n"),
                             csound->engineStatus);
             csoundInputMessageInternal(csound, (const char *) sc);
             csound->Free(csound, sc);
           } else {
+	    if(csound->oparms->odebug)
             csound->Message(csound,
-                            Str("\"Non-real-time\" performance "
+                            Str("Compiled score "
                                 "(engineStatus: %d).\n"), csound->engineStatus);
           }
         }
