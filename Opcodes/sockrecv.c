@@ -517,8 +517,12 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 }
 
 static int destroy_raw_osc(CSOUND *csound, void *pp) {
-  RAWOSC *p = (RAWOSC *) pp;   
+  RAWOSC *p = (RAWOSC *) pp;
+#ifndef WIN32
   close(p->sock);
+#else
+  closesocket(p->sock);
+#endif
   return OK;
 }
 
