@@ -234,10 +234,10 @@ public:
     return reinterpret_cast<std::complex<MYFLT> *>(fdata);
   }
 
-  /** Sleep 
+  /** Sleep
    */
   void sleep(int ms) { Sleep(ms); }
-  
+
 };
 
 /**
@@ -256,7 +256,7 @@ public:
     CSOUND *p = (CSOUND *)csound;
     thread = p->CreateThread(thrdRun, (void *)this);
   }
-  
+
   uintptr_t join() {
     CSOUND *p = (CSOUND *)csound;
     return p->JoinThread(thread);
