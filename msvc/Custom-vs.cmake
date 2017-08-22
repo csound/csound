@@ -6,7 +6,7 @@ set(BUILD_BUCHLA_OPCODES ON)
 set(BUILD_CHUA_OPCODES ON)
 set(BUILD_CSBEATS ON)
 set(BUILD_CSOUNDVST ON)
-set(BUILD_CSOUND_AC OFF)
+set(BUILD_CSOUND_AC ON)
 set(BUILD_CSOUND_AC_LUA_INTERFACE OFF)
 set(BUILD_CSOUND_AC_PYTHON_INTERFACE ON)
 set(BUILD_CUDA_OPCODES OFF)
@@ -47,7 +47,7 @@ set(BUILD_VIRTUAL_KEYBOARD ON)
 set(BUILD_WEBSOCKET_OPCODE ON)
 set(BUILD_WIIMOTE_OPCODES OFF)
 set(BUILD_WINSOUND ON)
-set(BUILD_VST4CS_OPCODES OFF)
+set(BUILD_VST4CS_OPCODES ON)
 
 # Csound use features
 set(USE_ALSA 0) # N/A
@@ -89,5 +89,6 @@ set(BISON_EXECUTABLE "${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison\\win_bis
 # - C4047 levels of indirection difference (int and void*)
 # - C4090 different const qualifiers
 # - C4477 format string type differences
-set(CMAKE_C_FLAGS "${CMAKE_CX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
+
