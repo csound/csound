@@ -997,7 +997,6 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
       char *p = buffer;
       while (isblank(*p)) p++;
-      
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         csoundMessage(csound, Str("STARTING FILE\n"));
