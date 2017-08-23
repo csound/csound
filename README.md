@@ -3,6 +3,7 @@ Version 6.09 beta
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg)
+[![Build status](https://ci.appveyor.com/api/projects/status/1qamc986774rsbjq/branch/develop?svg=true)](https://ci.appveyor.com/project/csound/csound/branch/develop)
 
 A user-programmable and user-extensible sound processing language
 and software synthesizer.
