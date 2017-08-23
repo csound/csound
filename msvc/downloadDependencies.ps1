@@ -96,7 +96,7 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 echo "Downloading VC packages..."
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows"
-vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib
+vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib libsndfile
 $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
@@ -108,8 +108,7 @@ mkdir staging -ErrorAction SilentlyContinue
 echo "Downloading and installing non-VCPKG packages..."
 
 # List of URIs to download and install
-$uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28-w64.zip",
-"https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
+$uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
 "https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip",
 #"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip",
@@ -122,8 +121,7 @@ $uriList="http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28-w64.zip",
 "https://github.com/thestk/stk/archive/master.zip"
 
 # Appends this folder location to the 'deps' uri
-$destList="",
-"win_flex_bison",
+$destList="win_flex_bison",
 "",
 "",
 "fluidsynthdeps",
@@ -297,7 +295,7 @@ if (Test-Path "CsoundQt")
 }
 else
 {
-    git clone "https://github.com/CsoundQt/CsoundQt.git"
+    git clone --depth=1 "https://github.com/CsoundQt/CsoundQt.git" 
     cd CsoundQt
 }
 git checkout tags/0.9.5-beta
