@@ -1,4 +1,5 @@
 cd staging\CsoundQt
+echo "CSOUND_LIBRARY_DIR:" %~dp0csound-vs/Release
 qmake.exe qcs.pro ^
     CONFIG+=html_webengine ^
     CONFIG+=perfThread_build ^
