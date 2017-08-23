@@ -11,5 +11,6 @@ qmake.exe qcs.pro ^
     CSOUND_LIBRARY=csound64.lib ^
     LIBS+=%~dp0/deps/lib/libsndfile-1.lib ^
     INCLUDEPATH+="%~dp0deps\include"
-nmake.exe   
+nmake.exe
+move "bin\CsoundQt*.*" "../../csound-vs/Release/"
 cd ..\..

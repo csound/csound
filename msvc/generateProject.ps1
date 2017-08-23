@@ -41,7 +41,7 @@ cd csound-vs -ErrorAction SilentlyContinue
 cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -Wdev -Wdeprecated `
  -DSTK_LOCAL:BOOL="ON" `
- -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
+ -DCMAKE_BUILD_TYPE="Release" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
