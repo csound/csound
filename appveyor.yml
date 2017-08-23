@@ -21,6 +21,7 @@ after_build:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
   - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
+  # Report qmake version to make sure we are using the Qt libraries we need.
   - qmake -v
   - build_csoundqt.bat
   - cd ..
