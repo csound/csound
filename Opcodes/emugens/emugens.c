@@ -25,6 +25,8 @@
 // #include <math.h>
 #include <csdl.h>
 
+#define INITERR(m) (csound->InitError(csound, Str(m)))
+
 /*
 
 linlin
@@ -202,20 +204,13 @@ typedef struct {
     MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2;
 } BPF3;
 
-static int bpf3(CSOUND* csound, BPF3* p)
-{
-    MYFLT x = *p->x;
-    MYFLT n, m;
-    if (x < *p->x1) {
-        m = *p->x0;
-        n = *p->y0;
-        *p->r = INTERP_L(x, m, *p->x1, n, *p->y1);
-    }
-    else {
-        m = *p->x1;
-        n = *p->y1;
-        *p->r = INTERP_R(x, m, *p->x2, n, *p->y2);
-    }
+static int bpf3(CSOUND* csound, BPF3* p) {
+    MYFLT r, x = *p->x;
+    if (x < *p->x1) 
+        r = INTERP_L(x, *p->x0, *p->y0, *p->x1, *p->y1);
+    else 
+        r = INTERP_R(x, *p->x1, *p->x2, *p->y1, *p->y2);
+    *p->r = r;
     return OK;
 }
 
@@ -224,25 +219,15 @@ typedef struct {
     MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3;
 } BPF4;
 
-static int bpf4(CSOUND* csound, BPF4* p)
-{
-    MYFLT x = *p->x;
-    MYFLT m, n;
-    if (x < (*p->x1)) {
-        m = *p->x0;
-        n = *p->y0;
-        *p->r = INTERP_L(x, m, *p->x1, n, *p->y1);
-    }
-    else if (x < (*p->x2)) {
-        m = *p->x1;
-        n = *p->y1;
-        *p->r = INTERP_M(x, m, *p->x2, n, *p->y2);
-    }
-    else {
-        m = *p->x2;
-        n = *p->y2;
-        *p->r = INTERP_R(x, m, *p->x3, n, *p->y3);
-    }
+static int bpf4(CSOUND* csound, BPF4* p) {
+    MYFLT r, x = *p->x;
+    if (x < (*p->x1)) 
+        r = INTERP_L(x, *p->x0, *p->y0, *p->x1, *p->y1);
+    else if (x < (*p->x2))
+        r = INTERP_M(x, *p->x1, *p->y1, *p->x2, *p->y2);
+    else 
+        r = INTERP_R(x, *p->x2, *p->y2, *p->x3, *p->y3);
+    *p->r = r;
     return OK;
 }
 
@@ -251,23 +236,102 @@ typedef struct {
     MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3, *x4, *y4;
 } BPF5;
 
-static int bpf5(CSOUND* csound, BPF5* p)
+static int bpf5(CSOUND* csound, BPF5* p) {
+    MYFLT x = *p->x;
+    MYFLT r;
+    if (x < (*p->x2)) {
+        if (x < (*p->x1))
+            r = INTERP_L(x, *p->x0, *p->x1, *p->y0, *p->y1);
+        else
+            r = INTERP_M(x, *p->x1, *p->x2, *p->y1, *p->y2);
+    }
+    else if (x < (*p->x3))
+        r = INTERP_M(x, *p->x2, *p->x3, *p->y2, *p->y3);
+    else 
+        r = INTERP_R(x, *p->x3, *p->x4, *p->y3, *p->y4);
+    *p->r = r;
+    return OK;
+}
+
+typedef struct {
+    OPDS h;
+    MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3, *x4, *y4, *x5, *y5;
+} BPF6;
+
+static int bpf6(CSOUND* csound, BPF6* p) {
+    MYFLT x = *p->x;
+    MYFLT r;
+    if (x < (*p->x2)) {
+        if (x < (*p->x1)) 
+            r = INTERP_L(x, *p->x0, *p->x1, *p->y0, *p->y1);
+        else 
+            r = INTERP_M(x, *p->x1, *p->x2, *p->y1, *p->y2);
+    }
+    else if (x < (*p->x3))
+        r = INTERP_M(x, *p->x2, *p->x3, *p->y2, *p->y3);
+    else if (x < (*p->x4)) 
+        r = INTERP_M(x, *p->x3, *p->x4, *p->y3, *p->y4);
+    else 
+        r = INTERP_R(x, *p->x4, *p->x5, *p->y4, *p->y5);
+    *p->r = r;
+    return OK;
+}
+
+typedef struct {
+    OPDS h;
+    MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3, *x4, *y4, *x5, *y5, *x6, *y6;
+} BPF7;
+
+static int bpf7(CSOUND* csound, BPF7* p)
 {
     MYFLT x = *p->x;
-    if (x < (*p->x2)) {
-        if (x < (*p->x1)) {
-            *p->r = INTERP_L(x, *p->x0, *p->x1, *p->y0, *p->y1);
-        }
-        else {
-            *p->r = INTERP_M(x, *p->x1, *p->x2, *p->y1, *p->y2);
-        }
+    MYFLT r;
+    if (x < (*p->x3)) {
+        if (x < (*p->x1)) 
+            r = INTERP_L(x, *p->x0, *p->x1, *p->y0, *p->y1);
+        else if (x < *p->x2 )
+            r = INTERP_M(x, *p->x1, *p->x2, *p->y1, *p->y2);
+        else
+            r = INTERP_M(x, *p->x2, *p->x3, *p->y2, *p->y3);
     }
-    else if (x < (*p->x3)) {
-        *p->r = INTERP_M(x, *p->x2, *p->x3, *p->y2, *p->y3);
-    }
-    else {
-        *p->r = INTERP_R(x, *p->x3, *p->x4, *p->y3, *p->y4);
-    }
+    else if (x < (*p->x4))
+        r = INTERP_M(x, *p->x3, *p->x4, *p->y3, *p->y4);
+    else if (x < (*p->x5)) 
+        r = INTERP_M(x, *p->x4, *p->x5, *p->y4, *p->y5);
+    else 
+        r = INTERP_R(x, *p->x5, *p->x6, *p->y5, *p->y6);
+    *p->r = r;
+    return OK;
+}
+
+typedef struct {
+    OPDS h;
+    MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3, \
+                  *x4, *y4, *x5, *y5, *x6, *y6, *x7, *y7;
+} BPF8;
+
+static int bpf8(CSOUND* csound, BPF8* p)
+{
+    MYFLT x = *p->x;
+    MYFLT r;
+    if (x < *p->x4) {
+        if (x < (*p->x2)) {
+            if (x < (*p->x1)) 
+                r = INTERP_L(x, *p->x0, *p->x1, *p->y0, *p->y1);
+            else 
+                r = INTERP_M(x, *p->x1, *p->x2, *p->y1, *p->y2);
+        } else if (x < *p->x3)
+            r = INTERP_M(x, *p->x2, *p->x3, *p->y2, *p->y3);
+        else
+            r = INTERP_M(x, *p->x3, *p->x4, *p->y3, *p->y4);
+    } else if (x < *p->x6) {
+        if (x < *p->x5) 
+            r = INTERP_M(x, *p->x4, *p->x5, *p->y4, *p->y5);
+        else
+            r = INTERP_M(x, *p->x5, *p->x6, *p->y5, *p->y6);
+    } else 
+        r = INTERP_R(x, *p->x6, *p->x7, *p->y6, *p->y7);
+    *p->r = r;
     return OK;
 }
 
@@ -442,29 +506,25 @@ typedef struct {
     int mode;
 } Cmp;
 
-static int cmp_init(CSOUND* csound, Cmp* p)
-{
+static int cmp_init(CSOUND* csound, Cmp* p) {
     char* op = (char*)p->op->data;
     int opsize = p->op->size - 1;
 
-    if (op[0] == '>') {
+    if (op[0] == '>')
         p->mode = (opsize == 1) ? 0 : 1;
-    }
-    else if (op[0] == '<') {
+    else if (op[0] == '<') 
         p->mode = (opsize == 1) ? 2 : 3;
-    }
-    else if (op[0] == '=') {
+    else if (op[0] == '=')
         p->mode = 4;
-    }
+    else if (op[0] == '!' && op[1] == '=')
+        p->mode = 5;
     else {
-        printf("cmp: operator not understood. Expecting <, <=, >, >=, ==\n");
-        return NOTOK;
+        return INITERR("cmp: operator not understood. Expecting <, <=, >, >=, ==, !=");
     }
     return OK;
 }
 
-static int cmp_aa(CSOUND* csound, Cmp* p)
-{
+static int cmp_aa(CSOUND* csound, Cmp* p) {
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT* out = p->out;
     MYFLT* a0 = p->a0;
@@ -495,12 +555,16 @@ static int cmp_aa(CSOUND* csound, Cmp* p)
             out[n] = a0[n] == a1[n];
         }
         break;
+    case 5:
+        for (n = 0; n < nsmps; n++) {
+            out[n] = a0[n] != a1[n];
+        }
+        break;
     }
     return OK;
 }
 
-static int cmp_ak(CSOUND* csound, Cmp* p)
-{
+static int cmp_ak(CSOUND* csound, Cmp* p) {
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT* out = p->out;
     MYFLT* a0 = p->a0;
@@ -531,13 +595,44 @@ static int cmp_ak(CSOUND* csound, Cmp* p)
             out[n] = a0[n] == a1;
         }
         break;
+    case 5:
+        for (n = 0; n < nsmps; n++) {
+            out[n] = a0[n] != a1;
+        }
+        break;
     }
     return OK;
 }
 
+/*
+
+typedef struct {
+    OPDS h;
+    MYFLT *y, *x;
+} PURE1;
+
+
+
+static int nextpow2(CSOUND* csound, PURE1* p) {
+    // taken from http://bits.stephan-brumme.com/roundUpToNextPowerOfTwo.html
+
+    uint32_t x = *p->x;
+    x--;
+    x |= x >> 1;  // handle  2 bit numbers
+    x |= x >> 2;  // handle  4 bit numbers
+    x |= x >> 4;  // handle  8 bit numbers
+    x |= x >> 8;  // handle 16 bit numbers
+    x |= x >> 16; // handle 32 bit numbers
+    x++;
+    *p->y = (MYFLT)x;
+    return OK;
+}
+
+*/
+
 ///////////////////////////////////////////
 /*
-General purpose routing to copy data from a 2D
+General purpose routine to copy data from a 2D
 table consisting of parallel streams of data.
 
 A such 2D table would consist of multiple rows
@@ -554,35 +649,44 @@ Each stream can consist of multiple channels, representing
 different dimensions of the stream. For example, a stream can 
 be a partial with 2 channels: frequency and amplitude. Multiple
 partials are sampled at a regular time period and the data
-is put together in a table. This routing can then copy one
-row of this table (for example, all frequencies) and copy the
-results to a secondary 1D-table. If a fractional row is given,
+is collected in a table. This routine can then copy one
+row of this table (for example, all frequencies) and put the
+results in a secondary 1D-table. If a fractional row is given,
 linear interpolation is performed between the corresponding
 values of two rows.
 
-krow: the (fractional) row to read from
-ifnsource: the source table to read from (a 2D table)
-ifndest: the table to write to. If should be at least (istreamend - istreambegin)
-inumstreams: the number of streams in the table
-ioffset: the place where the data begins. This foresees the case where 
-       the table has a header with values indicating some metadata
-       of the table, like dimensions of the data, sampling period, etc.
-inumchans: number of channels per stream
-ichan: channel to read from each stream
-istreambeg, istreamend: stream=streambeg; stream<streamend; stream++
+krow        : The (fractional) row to read from
+ifnsource   : The source table to read from (a 2D table)
+ifndest     : The table to write to. If should be at least (istreamend - istreambegin)
+inumstreams : The number of streams in the table
+ioffset     : The place where the data begins. This foresees the case where 
+              the table has a header with values indicating some metadata
+              of the table, like dimensions of the data, sampling period, etc.
+inumchans   : Number of channels per stream
+ichan       : Channel to read from each stream
+istreambeg, 
+istreamend  : The streams to read (stream=streambeg; stream<streamend; stream++)
 
-Example 1: read first channel of all streams, each stream has 3 channels
+Example 1
+=========
+
+Read first channel of all streams, each stream has 3 channels, there
+are 4 streams in total (x indicates the columns read)
+
+start=0, end=0, step=3
 
     x--x--x--x--
 
-    inumstreams = 4   -> this needs to be set because a table is 1D, 
-                         we don't know the dimensions of the matrix
-    inumchans = 3
-    ich = 0
-    istreambeg = 0
-    istreamend = 0  -> will be set to all streams
+    inumstreams = 4    This needs to be set because a table is 1D
+    inumchans = 3      3 channels per stream
+    ich = 0            Which channel to read
+    istreambeg = 0     Read all streams (from 0 to end)
+    istreamend = 0
 
-Example 2: read table sequentially
+Example 2
+=========
+
+Read part of table sequentially
 
     ----xxxx--
 
@@ -593,6 +697,7 @@ Example 2: read table sequentially
     istreamend = istreambeg + 4
 */
 
+
 typedef struct {
     OPDS h;
     MYFLT *krow, *ifnsrc, *ifndest, *inumstreams, *ioffset, *inumchans, *ichan, \
@@ -602,7 +707,7 @@ typedef struct {
     int tabsourcelen;
     int tabdestlen;
     int streamend;
-} TABROW;
+} TABROW0;
 
 // krow, ifnsrc, ifndest, inumstreams, ioffset=0, inumchans=1, ichan=0, istreambeg=0, istreamend=0
 // k     i          i        i            0          1            0        0               0
@@ -610,7 +715,7 @@ typedef struct {
 // kiiiopooo
 // idx = ioffset + row*irowsize + stream*inumchans + ichan
 
-static int tabrowcopy_init(CSOUND* csound, TABROW* p)
+static int tabrowcopy_init0(CSOUND* csound, TABROW0* p)
 {
     FUNC* ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifnsrc)) == NULL)) {
@@ -640,7 +745,7 @@ static int tabrowcopy_init(CSOUND* csound, TABROW* p)
 }
 
 
-static int tabrowcopyk(CSOUND* csound, TABROW* p)
+static int tabrowcopyk0(CSOUND* csound, TABROW0* p)
 {
     int i;
     MYFLT row = *p->krow;
@@ -681,6 +786,7 @@ static int tabrowcopyk(CSOUND* csound, TABROW* p)
     return OK;
 }
 
+
 #define S(x) sizeof(x)
 
 /*
@@ -715,13 +821,18 @@ static OENTRY localops[] = {
     { "bpf", S(BPF3), 0, 3, "k", "kkkkkkk", (SUBR)bpf3, (SUBR)bpf3 },
     { "bpf", S(BPF4), 0, 3, "k", "kkkkkkkkk", (SUBR)bpf4, (SUBR)bpf4 },
     { "bpf", S(BPF5), 0, 3, "k", "kkkkkkkkkkk", (SUBR)bpf5, (SUBR)bpf5 },
+    { "bpf", S(BPF6), 0, 3, "k", "kkkkkkkkkkkkk", (SUBR)bpf6, (SUBR)bpf6 },
+    { "bpf", S(BPF7), 0, 3, "k", "kkkkkkkkkkkkkkk", (SUBR)bpf7, (SUBR)bpf7 },
+    { "bpf", S(BPF8), 0, 3, "k", "kkkkkkkkkkkkkkkkk", (SUBR)bpf8, (SUBR)bpf8 },
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
     { "ntom", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },
     { "mton", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
     { "mton", S(MTON), 0, 1, "S", "i", (SUBR)mton },
     { "cmp", S(Cmp), 0, 5, "a", "aSa", (SUBR)cmp_init, NULL, (SUBR)cmp_aa },
     { "cmp", S(Cmp), 0, 5, "a", "aSk", (SUBR)cmp_init, NULL, (SUBR)cmp_ak },
-    { "tabrowcopy", S(TABROW), 0, 3, "", "kiiiopooo", (SUBR)tabrowcopy_init, (SUBR)tabrowcopyk }
+    // { "nextpow2", S(PURE1), 0, 1, "i", "i", (SUBR)nextpow2 },
+    // { "nextpow2", S(PURE1), 0, 2, "k", "k", NULL, (SUBR)nextpow2 }
+    // { "tabrowcopy", S(TABROW), 0, 3, "", "kiiiopooo", (SUBR)tabrowcopy_init, (SUBR)tabrowcopyk }
 };
 
 LINKAGE
