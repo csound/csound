@@ -103,6 +103,9 @@ $vcpkgTiming = (Get-Date).TimeOfDay
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 mkdir cache -ErrorAction SilentlyContinue
 mkdir deps -ErrorAction SilentlyContinue
+mkdir deps\lib -ErrorAction SilentlyContinue
+mkdir deps\bin -ErrorAction SilentlyContinue
+mkdir deps\include -ErrorAction SilentlyContinue
 mkdir staging -ErrorAction SilentlyContinue
 
 echo "Downloading and installing non-VCPKG packages..."
@@ -295,10 +298,10 @@ if (Test-Path "CsoundQt")
 }
 else
 {
-    git clone --depth=1 "https://github.com/CsoundQt/CsoundQt.git" 
+    git clone -b tags/0.9.5-beta --depth=1 "https://github.com/CsoundQt/CsoundQt.git" 
     cd CsoundQt
 }
-git checkout tags/0.9.5-beta
+
 cd ..
 
 # Do not build CsoundQt until Csound has been built!
