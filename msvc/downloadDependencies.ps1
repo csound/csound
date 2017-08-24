@@ -103,9 +103,9 @@ $vcpkgTiming = (Get-Date).TimeOfDay
 rm -Path deps -Force -Recurse -ErrorAction SilentlyContinue
 mkdir cache -ErrorAction SilentlyContinue
 mkdir deps -ErrorAction SilentlyContinue
-mkdir deps\lib -ErrorAction SilentlyContinue
-mkdir deps\bin -ErrorAction SilentlyContinue
-mkdir deps\include -ErrorAction SilentlyContinue
+mkdir $depsLibDir -ErrorAction SilentlyContinue
+mkdir $depsBinDir -ErrorAction SilentlyContinue
+mkdir $depsIncDir -ErrorAction SilentlyContinue
 mkdir staging -ErrorAction SilentlyContinue
 
 echo "Downloading and installing non-VCPKG packages..."
