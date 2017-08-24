@@ -103,6 +103,7 @@ struct TVConv : csnd::Plugin<1, 6> {
     if (pars > 1) {
       pars = rpow2(pars);
       fils = rpow2(fils);
+      std::cout << "fils: " << fils << " pars: " << pars << std::endl;
       ffts = pars * 2;
       fwd = csound->fft_setup(ffts, FFT_FWD);
       inv = csound->fft_setup(ffts, FFT_INV);
@@ -158,7 +159,7 @@ struct TVConv : csnd::Plugin<1, 6> {
           ins = to_cmplx(insp.data() + kp);
           irs = to_cmplx(irsp.data() + (nparts - k - 1) * ffts);
           // spectral product
-          for (uint32_t i = 1; i < pars; i++)
+          for (uint32_t i = 1; i < pars/2; i++)
             ous[i] += ins[i] * irs[i];
           ous[0] += real_prod(ins[0], irs[0]);
         }
