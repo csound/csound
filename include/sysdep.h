@@ -102,7 +102,9 @@ typedef uint_least16_t uint16;
 #include <AvailabilityMacros.h>
 #endif
 
+#if !defined(USE_DOUBLE)
 #include "float-version.h"
+#endif
 
 #ifdef USE_DOUBLE
 /* Defined here as Android does not have log2 functions */
