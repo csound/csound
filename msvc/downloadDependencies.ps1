@@ -179,7 +179,7 @@ echo "Copied v5.1 gmm headers to deps include directory. Please note, verson 5.1
 echo "later versions do not function as stand-alone, header-file-only libraries."
 
 cd $stageDir
-copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue
+copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue -Force
 echo "ASIOSDK2.3: Copied sources to deps."
 
 echo "PortAudio..."
@@ -283,9 +283,9 @@ cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
 copy .\src\Release\libfluidsynth.dll -Destination $depsBinDir -Force
-copy ..\fluidsynth\fluidsynth\include\fluidsynth.h -Destination $depsIncDir
+copy ..\fluidsynth\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
 robocopy ..\fluidsynth\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
-copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth
+copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth -Force
 
 echo "CsoundQt..."
 cd $stageDir
