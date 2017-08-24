@@ -1,8 +1,9 @@
 image: Visual Studio 2017
 
+environment:
+  QTDIR: C:\Qt\5.9.1\msvc2017_64
+
 install:
-  - set QTDIR=C:\Qt\5.9.1\msvc2017_64
-  - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1
@@ -17,9 +18,14 @@ build:
   project: msvc\csound-vs\Csound.sln
 
 after_build:
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
+  # Report qmake version to make sure we are using the Qt libraries we need.
+  - qmake -v
   - build_csoundqt.bat
   - cd ..
+  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\installed\x64-windows\bin\ /dQtSdkBinDir=%QTDIR%\bin\ installer\windows\csound6_x64_appveyor.iss /o msvc\
   - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
   - 7z l csound.zip
 
@@ -27,6 +33,9 @@ artifacts:
   - path: csound.zip
     name: Csound
     type: zip
+  - path: msvc/Setup_Csound_x64_6.09.2beta3.exe
+    name: Csound Installer
+    type: exe
 
 cache:
  - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1

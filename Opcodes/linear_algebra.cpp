@@ -349,6 +349,16 @@ extern "C"
 
 using namespace csound;
 
+static std::ostream &operator <<(std::ostream &o, const std::vector<double>& m)
+{
+  gmm::write(o,m); return o;
+}
+
+static std::ostream &operator <<(std::ostream &o, const std::vector< std::complex<double> >& m)
+{
+  gmm::write(o,m); return o;
+}
+
 /**
  * Template union for safely and efficiently
  * typecasting the value of a MYFLT variable
