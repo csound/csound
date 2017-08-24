@@ -8,6 +8,7 @@ install:
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1
   - cd ..
+  - choco install innosetup
 
 platform: x64
 
