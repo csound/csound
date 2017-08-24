@@ -533,7 +533,7 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
           if ((csound->engineStatus & CS_STATE_COMP) != 0) {
 	    if(csound->oparms->odebug)
             csound->Message(csound,
-                            Str("RT score events (engineStatus: %d).\n"),
+                            Str("Real-time score events (engineStatus: %d).\n"),
                             csound->engineStatus);
             csoundInputMessageInternal(csound, (const char *) sc);
             csound->Free(csound, sc);
