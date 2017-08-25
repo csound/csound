@@ -517,15 +517,15 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 }
 
 static int destroy_raw_osc(CSOUND *csound, void *pp) {
-  RAWOSC *p = (RAWOSC *) pp;
+    RAWOSC *p = (RAWOSC *) pp;
 #ifndef WIN32
-  close(p->sock);
-  csound->Message(csound, "OSCraw: Closing socket\n");
+    close(p->sock);
+    csound->Message(csound, Str("OSCraw: Closing socket\n"));
 #else
-  closesocket(p->sock);
-  csound->Message(csound, "OSCraw: Closing socket\n");
+    closesocket(p->sock);
+    csound->Message(csound, Str("OSCraw: Closing socket\n"));
 #endif
-  return OK;
+    return OK;
 }
 
 
@@ -569,8 +569,8 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
       memset(buf, 0, MTU);
     }
 
-  csound->RegisterDeinitCallback(csound, (void *) p, destroy_raw_osc);
-  tabensure(csound, p->sout,2);
+    csound->RegisterDeinitCallback(csound, (void *) p, destroy_raw_osc);
+    tabensure(csound, p->sout,2);
 
   return OK;
 }
