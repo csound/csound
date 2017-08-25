@@ -12,9 +12,9 @@ qmake.exe qcs.pro ^
     DEFAULT_CSOUND_LIBS=csound64.lib ^
     CSOUND_LIBRARY=csound64.lib ^
     LIBS+="%VCPKGDir%\installed\x64-windows\lib\libsndfile-1.lib" ^
-    INCLUDEPATH+="%~dp0deps\include" ^
-    INCLUDEPATH+="%APPVEYOR_BUILD_FOLDER%\deps\include" ^
-    DEFAULT_LIBSNDFILE_INCLUDE_DIRS+="%VCPKGDir%\installed\x64-windows\include"
+    CSOUND_INTERFACES_INCLUDE_DIR+="%~dp0deps\include" ^
+    CSOUND_INTERFACES_INCLUDE_DIR+="%APPVEYOR_BUILD_FOLDER%\deps\include" ^
+    CSOUND_INTERFACES_INCLUDE_DIR+="%VCPKGDir%\installed\x64-windows\include" ^
     INCLUDEPATH+="%VCPKGDir%\installed\x64-windows\include"
 nmake.exe
 move "bin\CsoundQt*.*" "../../csound-vs/Release/"
