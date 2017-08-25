@@ -27,9 +27,6 @@ after_build:
   # Report qmake version to make sure we are using the Qt libraries we need.
   - qmake -v
   - build_csoundqt.bat
-  - echo "INCLUDE:" %INCLUDE%
-  - set INCLUDE=%INCLUDE%;"%VCPKGDir%\installed\x64-windows\include"
-  - echo "INCLUDE:" %INCLUDE%
   - cd ..
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
   - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\installed\x64-windows\bin\ /dQtSdkBinDir=%QTDIR%\bin\ /omsvc installer\windows\csound6_x64_appveyor.iss 
