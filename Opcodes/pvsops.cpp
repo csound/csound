@@ -108,15 +108,15 @@ struct TVConv : csnd::Plugin<1, 6> {
       ffts = pars * 2;
       fwd = csound->fft_setup(ffts, FFT_FWD);
       inv = csound->fft_setup(ffts, FFT_INV);
-      out.allocate(csound, 2 * pars);
-      insp.allocate(csound, 2 * fils);
-      irsp.allocate(csound, 2 * fils);
+      out.allocate(csound, ffts);
+      insp.allocate(csound, fils);
+      irsp.allocate(csound, fils);
       saved.allocate(csound, pars);
-      ir.allocate(csound, 2 * fils);
-      in.allocate(csound, 2 * fils);
+      ir.allocate(csound, fils);
+      in.allocate(csound, fils);
       itnsp = insp.begin();
       itrsp = insp.begin();
-       n = 0;
+      n = 0;
     } else {
       ir.allocate(csound, fils);
       in.allocate(csound, fils);
