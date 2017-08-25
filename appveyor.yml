@@ -4,6 +4,7 @@ environment:
   QTDIR: C:\Qt\5.9.1\msvc2017_64
 
 install:
+  - set
   - cd msvc
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1
