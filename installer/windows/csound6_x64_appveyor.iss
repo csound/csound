@@ -112,7 +112,7 @@ Source: "..\..\*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 ; Microsoft C/C++ runtime libraries.
-Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x64\Microsoft.VC120.CRT\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x64\Microsoft.VC120.CRT\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs skipifsourcedoesntexist; Components: core;
 Source: "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
 Source: "..\..\emscripten\examples-wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -150,12 +150,12 @@ Source: "..\..\msvc\csound-vs\Release\atsa.exe"; DestDir: "{#APP_BIN}"; Flags: i
 Source: "..\..\msvc\csound-vs\Release\buchla.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\cellular.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;; Source: "..\..\msvc\csound-vs\Release\cs.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\cs.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\cs_date.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csanalyze.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-;; Source: "..\..\msvc\csound-vs\Release\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-;; Source: "..\..\msvc\csound-vs\Release\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\Release\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
+Source: "..\..\msvc\csound-vs\Release\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
+Source: "..\..\msvc\csound-vs\Release\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csladspa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -190,8 +190,8 @@ Source: "..\..\msvc\csound-vs\Release\liveconv.dll"; DestDir: "{#APP_PLUGINS64}"
 Source: "..\..\msvc\csound-vs\Release\lpanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\lpc_export.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\lpc_import.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-;; Source: "..\..\msvc\csound-vs\Release\luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-;; Source: "..\..\msvc\csound-vs\Release\makecsd.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
+Source: "..\..\msvc\csound-vs\Release\makecsd.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\mixer.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\mixer.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\osc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -208,7 +208,7 @@ Source: "..\..\msvc\csound-vs\Release\rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Fl
 Source: "..\..\msvc\csound-vs\Release\rtwinmm.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\scale.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\scansyn.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;; Source: "..\..\msvc\csound-vs\Release\scot.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\scot.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\scsort.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\scugens.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\sdif2ad.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -231,7 +231,7 @@ Source: "..\..\msvc\deps\fluidsynthdeps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags
 
 
 ; NOTE: The .qml files are compiled into the resources of CsoundQt.
-Source: "..\..\msvc\csound-vs\Release\CsoundQt-d-html-cs6.exe"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "..\..\msvc\csound-vs\Release\CsoundQt-d-html-cs6.exe"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\staging\CsoundQt\examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "..\..\msvc\staging\CsoundQt\src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 
@@ -268,7 +268,7 @@ Source: "{#QtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Fl
 Source: "{#VcpkgInstalledBinDir}*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
 
 Source: "..\..\msvc\csound-vs\Release\libsndfile-1.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-; Source: {#LibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion; Components: core;
+;; Source: {#LibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 
 Source: ../../include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../H/pffft.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
