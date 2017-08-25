@@ -70,12 +70,14 @@ struct TVConv : csnd::Plugin<1, 6> {
   csnd::AuxMem<MYFLT> irsp;
   csnd::AuxMem<MYFLT> out;
   csnd::AuxMem<MYFLT> saved;
+  csnd::AuxMem<MYFLT>::iterator itn;
+  csnd::AuxMem<MYFLT>::iterator itr;
+  csnd::AuxMem<MYFLT>::iterator itnsp;
+  csnd::AuxMem<MYFLT>::iterator itrsp;
   uint32_t n;
   uint32_t fils;
   uint32_t pars;
   uint32_t ffts;
-  uint32_t nparts;
-  uint32_t pp;
   csnd::fftp fwd, inv;
   typedef std::complex<MYFLT> cmplx;
 
@@ -102,7 +104,7 @@ struct TVConv : csnd::Plugin<1, 6> {
       std::swap(pars, fils);
     if (pars > 1) {
       pars = rpow2(pars);
-      fils = rpow2(fils);
+      fils = rpow2(fils) * 2;
       ffts = pars * 2;
       fwd = csound->fft_setup(ffts, FFT_FWD);
       inv = csound->fft_setup(ffts, FFT_INV);
@@ -112,14 +114,15 @@ struct TVConv : csnd::Plugin<1, 6> {
       saved.allocate(csound, pars);
       ir.allocate(csound, 2 * fils);
       in.allocate(csound, 2 * fils);
-      nparts = fils / pars;
-      fils *= 2;
+      itnsp = insp.begin();
+      itrsp = insp.begin();
+       n = 0;
     } else {
       ir.allocate(csound, fils);
       in.allocate(csound, fils);
     }
-    n = 0;
-    pp = 0;
+    itn = in.begin();
+    itr = ir.begin();   
     return OK;
   }
 
@@ -129,34 +132,43 @@ struct TVConv : csnd::Plugin<1, 6> {
     csnd::AudioSig outsig(this, outargs(0));
     auto irp = irsig.begin();
     auto inp = insig.begin();
-    MYFLT *frz1 = inargs(2);
-    MYFLT *frz2 = inargs(3);
-    bool inc1 = csound->is_asig(frz1);
-    bool inc2 = csound->is_asig(frz2);
+    auto *frz1 = inargs(2);
+    auto *frz2 = inargs(3);
+    auto inc1 = csound->is_asig(frz1);
+    auto inc2 = csound->is_asig(frz2);
 
     for (auto &s : outsig) {
-      if(*frz1 > 0) in[pp + n] = *inp;
-      if(*frz2 > 0) ir[pp + n] = *irp;
+      if(*frz1 > 0) itn[n] = *inp;
+      if(*frz2 > 0) itr[n] = *irp;
 
       s = out[n] + saved[n];
       saved[n] = out[n + pars];
       if (++n == pars) {
         cmplx *ins, *irs, *ous = to_cmplx(out.data());
-        std::copy(in.begin() + pp, in.begin() + pp + ffts, insp.begin() + pp);
-        std::copy(ir.begin() + pp, ir.begin() + pp + ffts, irsp.begin() + pp);
+        std::copy(itn, itn + ffts, itnsp);
+        std::copy(itr, itr + ffts, itrsp);
         std::fill(out.begin(), out.end(), 0.);
         // FFT
-        csound->rfft(fwd, insp.data() + pp);
-        csound->rfft(fwd, irsp.data() + pp);
-        pp += ffts;
-        if (pp == fils)
-          pp = 0;
+        csound->rfft(fwd, itnsp);
+        csound->rfft(fwd, itrsp);
+	// increment iterators
+        itnsp += ffts;
+        itrsp += ffts;
+	itn += ffts;
+	itr += ffts;
+        if (itnsp == insp.end()) {
+          itnsp = insp.begin();
+          itrsp = irsp.begin();
+	  itn = in.begin();
+	  itr = ir.begin();
+	}
         // spectral delay line
-        for (uint32_t k = 0, kp = pp; k < nparts; k++, kp += ffts) {
-          if (kp == fils)
-            kp = 0;
-          ins = to_cmplx(insp.data() + kp);
-          irs = to_cmplx(irsp.data() + (nparts - k - 1) * ffts);
+        for (csnd::AuxMem<MYFLT>::iterator it1 = itnsp,
+	     it2 = irsp.end() - ffts; it2 >= irsp.begin();
+	     it1 += ffts, it2 -= ffts) {
+	  if (it1 == insp.end()) it1 = insp.begin();
+	  ins =  to_cmplx(it1);
+          irs =  to_cmplx(it2);
           // spectral product
           for (uint32_t i = 1; i < pars; i++)
             ous[i] += ins[i] * irs[i];
@@ -174,80 +186,28 @@ struct TVConv : csnd::Plugin<1, 6> {
     return OK;
   }
 
-
-  int pconv_ols() {
+ int dconv() {
     csnd::AudioSig insig(this, inargs(0));
     csnd::AudioSig irsig(this, inargs(1));
     csnd::AudioSig outsig(this, outargs(0));
     auto irp = irsig.begin();
     auto inp = insig.begin();
-    MYFLT *frz1 = inargs(2);
-    MYFLT *frz2 = inargs(3);
-    bool inc1 = csound->is_asig(frz1);
-    bool inc2 = csound->is_asig(frz2);
+    auto frz1 = inargs(2);
+    auto frz2 = inargs(3);
+    auto inc1 = csound->is_asig(frz1);
+    auto inc2 = csound->is_asig(frz2);
 
-    for (auto &s : outsig) {
-      if(*frz1 > 0) 
-	in[pp + n + pars] = *inp;
-      if(*frz2 > 0)
-       ir[pp + n] = *irp;
-
-      s = out[n+pars];
-      
-      if (++n == pars) {
-        cmplx *ins, *irs, *ous = to_cmplx(out.data());
-	uint32_t po = pp;
-        std::copy(in.begin() + pp, in.begin() + pp + ffts, insp.begin() + pp);
-	std::copy(ir.begin() + pp, ir.begin() + pp + ffts, irsp.begin() + pp);
-        std::fill(out.begin(), out.end(), 0.);
-        // FFT
-        csound->rfft(fwd, insp.data() + pp);
-	csound->rfft(fwd, irsp.data() + pp);
-        pp += ffts;
-	if (pp == fils) pp = 0;
-        // spectral delay line
-        for (uint32_t k = 0, kp = pp; k < nparts; k++, kp += ffts) {
-	 if (kp == fils) kp = 0;
-         ins = to_cmplx(insp.data() + kp);
-         irs = to_cmplx(irsp.data() + (nparts - k - 1) * ffts);
-          // spectral product
-          for (uint32_t i = 1; i < pars; i++)
-            ous[i] += ins[i] * irs[i];
-          ous[0] += real_prod(ins[0], irs[0]);
-	 }
-        // IFFT
-        csound->rfft(inv, out.data());
-	std::copy(in.begin() + po + pars, in.begin() + po + ffts, in.begin() + pp);
-        n = 0;
-      }
-      frz1 += inc1;
-      frz2 += inc2;
-      irp++;
-      inp++;
-    }
-    return OK;
-  }
-
-
-  int dconv() {
-    csnd::AudioSig insig(this, inargs(0));
-    csnd::AudioSig irsig(this, inargs(1));
-    csnd::AudioSig outsig(this, outargs(0));
-    auto irp = irsig.begin();
-    auto inp = insig.begin();
-    MYFLT *frz1 = inargs(2);
-    MYFLT *frz2 = inargs(3);
-    bool inc1 = csound->is_asig(frz1);
-    bool inc2 = csound->is_asig(frz2);
-    for (auto &s : outsig) {
-      if(*frz1 > 0) in[pp] = *inp;
-      if(*frz2 > 0) ir[pp] = *irp;
-      pp = pp != fils - 1 ? pp + 1 : 0;
+     for (auto &s : outsig) {
+      if(*frz1 > 0) *itn++ = *inp;
+      if(*frz2 > 0) *itr++ = *irp;
+      if(itn == in.end()) itn = in.begin();
+      if(itr == ir.end()) itr = ir.begin();
       s = 0.;
-      for (uint32_t k = 0, kp = pp; k < fils; k++, kp++) {
-        if (kp == fils)
-          kp = 0;
-        s += in[kp] * ir[fils - k - 1];
+      for (csnd::AuxMem<MYFLT>::iterator it1 = itn,
+	   it2 = ir.end() - 1; it2 >= ir.begin();
+	   it1++, it2--) {
+	if(it1 == in.end()) it1  = in.begin();
+        s += *it1 * *it2;
       }
       frz1 += inc1;
       frz2 += inc2;
