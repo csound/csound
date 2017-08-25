@@ -268,7 +268,7 @@ Source: "{#QtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Fl
 Source: "{#VcpkgInstalledBinDir}*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
 
 Source: "..\..\msvc\csound-vs\Release\libsndfile-1.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: {#LibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
+;; Source: {#LibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 
 Source: ../../include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../H/pffft.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
