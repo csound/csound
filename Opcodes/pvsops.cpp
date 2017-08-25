@@ -188,6 +188,46 @@ struct TVConv : csnd::Plugin<1, 6> {
     csnd::AudioSig outsig(this, outargs(0));
     auto irp = irsig.begin();
     auto inp = insig.begin();
+<<<<<<< HEAD
+    MYFLT *frz1 = inargs(2);
+    MYFLT *frz2 = inargs(3);
+    bool inc1 = csound->is_asig(frz1);
+    bool inc2 = csound->is_asig(frz2);
+
+    for (auto &s : outsig) {
+      if(*frz1 > 0)
+        in[pp + n + pars] = *inp;
+      if(*frz2 > 0)
+       ir[pp + n] = *irp;
+
+      s = out[n+pars];
+
+      if (++n == pars) {
+        cmplx *ins, *irs, *ous = to_cmplx(out.data());
+        uint32_t po = pp;
+        std::copy(in.begin() + pp, in.begin() + pp + ffts, insp.begin() + pp);
+        std::copy(ir.begin() + pp, ir.begin() + pp + ffts, irsp.begin() + pp);
+        std::fill(out.begin(), out.end(), 0.);
+        // FFT
+        csound->rfft(fwd, insp.data() + pp);
+        csound->rfft(fwd, irsp.data() + pp);
+        pp += ffts;
+        if (pp == fils) pp = 0;
+        // spectral delay line
+        for (uint32_t k = 0, kp = pp; k < nparts; k++, kp += ffts) {
+         if (kp == fils) kp = 0;
+         ins = to_cmplx(insp.data() + kp);
+         irs = to_cmplx(irsp.data() + (nparts - k - 1) * ffts);
+          // spectral product
+          for (uint32_t i = 1; i < pars; i++)
+            ous[i] += ins[i] * irs[i];
+          ous[0] += real_prod(ins[0], irs[0]);
+         }
+        // IFFT
+        csound->rfft(inv, out.data());
+        std::copy(in.begin() + po + pars, in.begin() + po + ffts, in.begin() + pp);
+        n = 0;
+=======
     auto frz1 = inargs(2);
     auto frz2 = inargs(3);
     auto inc1 = csound->is_asig(frz1);
@@ -200,6 +240,7 @@ struct TVConv : csnd::Plugin<1, 6> {
       if(itn == in.end()) {
 	 itn = in.begin();
          itr = ir.begin();
+>>>>>>> ee9c18f59f7bd16d745701f7e10648daa6493609
       }
       s = 0.;
       for (csnd::AuxMem<MYFLT>::iterator it1 = itn,
@@ -233,7 +274,7 @@ class PrintThread : public csnd::Thread {
     while(!splock.compare_exchange_weak(tmp,true))
       tmp = false;
   }
-  
+
   void unlock() {
     splock = false;
   }
@@ -245,12 +286,12 @@ class PrintThread : public csnd::Thread {
       if(old.compare(message)) {
        csound->message(message.c_str());
        old = message;
-      } 
-      unlock(); 
+      }
+      unlock();
     }
     return 0;
   }
-  
+
 public:
   PrintThread(csnd::Csound *csound)
     : Thread(csound), splock(false), on(true), message("") {};
@@ -259,13 +300,13 @@ public:
     on = false;
     join();
   }
-   
+
   void set_message(const char *m) {
     lock();
     message = m;
-    unlock(); 
+    unlock();
   }
-  
+
 };
 
 

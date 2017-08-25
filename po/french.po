@@ -5668,42 +5668,42 @@ msgstr "pas de fréquence de base légale"
 msgid "loscil: sustain defers to non-looping source"
 msgstr "loscil : entretien différé à une source sans boucle"
 
-#: OOps/ugens3.c:286
+#: OOps/ugens3.c:287
 msgid "mono loscil cannot read from stereo ftable"
 msgstr "un loscil mono ne peut pas lire à partir d'une ftable stéréo"
 
-#: OOps/ugens3.c:292
+#: OOps/ugens3.c:293
 msgid "stereo loscil cannot read from mono ftable"
 msgstr "un loscil stéréo ne peut pas lire à partir d'une ftable mono"
 
-#: OOps/ugens3.c:299
+#: OOps/ugens3.c:300
 msgid "illegal sustain loop data"
 msgstr "données de boucle d'entretien illégales"
 
-#: OOps/ugens3.c:301
+#: OOps/ugens3.c:302
 msgid "illegal release loop data"
 msgstr "données de boucle de relâchement illégales"
 
-#: OOps/ugens3.c:835
+#: OOps/ugens3.c:836
 #, c-format
 msgid "ADSYN cannot load %s"
 msgstr "ADSYN ne peut pas charger %s"
 
-#: OOps/ugens3.c:864
+#: OOps/ugens3.c:865
 #, c-format
 msgid "illegal code %d encountered"
 msgstr "code %d illégal rencontré"
 
-#: OOps/ugens3.c:869
+#: OOps/ugens3.c:870
 #, c-format
 msgid "%d amp tracks, %d freq tracks"
 msgstr "%d pistes d'amp, %d pistes de fréq"
 
-#: OOps/ugens3.c:879
+#: OOps/ugens3.c:880
 msgid "partial count exceeds MAXPTLS"
 msgstr "le nombre de partiels dépasse MAXPTLS"
 
-#: OOps/ugens3.c:907
+#: OOps/ugens3.c:908
 msgid "adsyn: not initialised"
 msgstr "adsyn : non initialisé"
 
@@ -6101,11 +6101,6 @@ msgstr "outz : index > isizea. Pas de sortie."
 #: OOps/ugrw1.c:1388 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
 msgid "outz index < 0. No output."
 msgstr "outz : index < 0. Pas de sortie."
-
-#: OOps/ugrw2.c:273
-#, c-format
-msgid "Illegal resonk iscl value, %f"
-msgstr "La valeur iscl de resonk est illégale, %f"
 
 #: OOps/ugtabs.c:39 OOps/ugtabs.c:78 OOps/ugtabs.c:161 OOps/ugtabs.c:274
 #: OOps/ugtabs.c:436 OOps/ugtabs.c:453 OOps/ugtabs.c:469 OOps/ugtabs.c:486
@@ -12492,7 +12487,7 @@ msgstr "Erreur lors de la création de la liste d'opcodes"
 msgid "%d opcodes\n"
 msgstr "%d opcodes\n"
 
-#: Top/threads.c:792
+#: Top/threads.c:39
 #, c-format
 msgid "%s() is not implemented on this platform.\n"
 msgstr "%s() n'est pas implémenté sur cette plateforme.\n"
@@ -14605,6 +14600,9 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "Illegal resonk iscl value, %f"
+#~ msgstr "La valeur iscl de resonk est illégale, %f"
 
 #~ msgid "Table write offset %f < 0 or > tablelength"
 #~ msgstr "Décalage d'écriture dans la table %f < 0 ou > longueur de la table"

@@ -5498,42 +5498,42 @@ msgstr ""
 msgid "loscil: sustain defers to non-looping source"
 msgstr ""
 
-#: OOps/ugens3.c:286
+#: OOps/ugens3.c:287
 msgid "mono loscil cannot read from stereo ftable"
 msgstr ""
 
-#: OOps/ugens3.c:292
+#: OOps/ugens3.c:293
 msgid "stereo loscil cannot read from mono ftable"
 msgstr ""
 
-#: OOps/ugens3.c:299
+#: OOps/ugens3.c:300
 msgid "illegal sustain loop data"
 msgstr ""
 
-#: OOps/ugens3.c:301
+#: OOps/ugens3.c:302
 msgid "illegal release loop data"
 msgstr ""
 
-#: OOps/ugens3.c:835
+#: OOps/ugens3.c:836
 #, c-format
 msgid "ADSYN cannot load %s"
 msgstr ""
 
-#: OOps/ugens3.c:864
+#: OOps/ugens3.c:865
 #, c-format
 msgid "illegal code %d encountered"
 msgstr ""
 
-#: OOps/ugens3.c:869
+#: OOps/ugens3.c:870
 #, c-format
 msgid "%d amp tracks, %d freq tracks"
 msgstr ""
 
-#: OOps/ugens3.c:879
+#: OOps/ugens3.c:880
 msgid "partial count exceeds MAXPTLS"
 msgstr ""
 
-#: OOps/ugens3.c:907
+#: OOps/ugens3.c:908
 msgid "adsyn: not initialised"
 msgstr "adsyn: nicht initialisiert"
 
@@ -5931,11 +5931,6 @@ msgstr ""
 
 #: OOps/ugrw1.c:1388 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
 msgid "outz index < 0. No output."
-msgstr ""
-
-#: OOps/ugrw2.c:273
-#, c-format
-msgid "Illegal resonk iscl value, %f"
 msgstr ""
 
 #: OOps/ugtabs.c:39 OOps/ugtabs.c:78 OOps/ugtabs.c:161 OOps/ugtabs.c:274
@@ -12052,7 +12047,7 @@ msgstr ""
 msgid "%d opcodes\n"
 msgstr ""
 
-#: Top/threads.c:792
+#: Top/threads.c:39
 #, c-format
 msgid "%s() is not implemented on this platform.\n"
 msgstr ""
