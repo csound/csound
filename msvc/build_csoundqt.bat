@@ -1,6 +1,6 @@
 cd staging\CsoundQt
 echo "INCLUDE:" %INCLUDE%
-set INCLUDE=%INCLUDE%;"%VCPKGDir%\installed\x64-windows\include"
+set INCLUDE=%INCLUDE%%VCPKGDir%\installed\x64-windows\include;
 echo "INCLUDE:" %INCLUDE%
 echo "CSOUND_LIBRARY_DIR:" %~dp0csound-vs\Release
 dir %~dp0csound-vs\Release
