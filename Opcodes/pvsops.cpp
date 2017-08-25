@@ -152,10 +152,8 @@ struct TVConv : csnd::Plugin<1, 6> {
         csound->rfft(fwd, itnsp);
         csound->rfft(fwd, itrsp);
 	// increment iterators
-        itnsp += ffts;
-        itrsp += ffts;
-	itn += ffts;
-	itr += ffts;
+        itnsp += ffts, itrsp += ffts;
+	itn += ffts, itr += ffts;
         if (itnsp == insp.end()) {
           itnsp = insp.begin();
           itrsp = irsp.begin();
@@ -178,10 +176,8 @@ struct TVConv : csnd::Plugin<1, 6> {
         csound->rfft(inv, out.data());
         n = 0;
       }
-      frz1 += inc1;
-      frz2 += inc2;
-      irp++;
-      inp++;
+      frz1 += inc1, frz2 += inc2;
+      irp++, inp++;
     }
     return OK;
   }
@@ -198,10 +194,13 @@ struct TVConv : csnd::Plugin<1, 6> {
     auto inc2 = csound->is_asig(frz2);
 
      for (auto &s : outsig) {
-      if(*frz1 > 0) *itn++ = *inp;
-      if(*frz2 > 0) *itr++ = *irp;
-      if(itn == in.end()) itn = in.begin();
-      if(itr == ir.end()) itr = ir.begin();
+      if(*frz1 > 0) *itn = *inp;
+      if(*frz2 > 0) *itr = *irp;
+      itn++, itr++;
+      if(itn == in.end()) {
+	 itn = in.begin();
+         itr = ir.begin();
+      }
       s = 0.;
       for (csnd::AuxMem<MYFLT>::iterator it1 = itn,
 	   it2 = ir.end() - 1; it2 >= ir.begin();
@@ -209,10 +208,8 @@ struct TVConv : csnd::Plugin<1, 6> {
 	if(it1 == in.end()) it1  = in.begin();
         s += *it1 * *it2;
       }
-      frz1 += inc1;
-      frz2 += inc2;
-      inp++;
-      irp++;
+      frz1 += inc1, frz2 += inc2;
+      inp++, irp++;
     }
     return OK;
   }
