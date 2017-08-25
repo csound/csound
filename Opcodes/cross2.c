@@ -314,8 +314,8 @@ static int Xsynthset(CSOUND *csound, CON *p)
     MYFLT       ovlp = *p->ovlp;
 
     flen = (int32)*p->len;
-    if (flen<1) return csound->PerfError(csound, p->h.insdshead,
-                                         Str("cross2: length must be at least 1"));
+    if (UNLIKELY(flen<1))
+      return csound->InitError(csound, Str("cross2: length must be at least 1"));
     p->m = plog2(flen);
     flen = 1L << p->m;
 

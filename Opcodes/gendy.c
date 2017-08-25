@@ -113,9 +113,9 @@ static int gendyset(CSOUND *csound, GENDY *p)
     p->phase   = FL(1.0);
     p->speed   = FL(100.0);
     p->index   = 0;
-    if (*p->initcps < FL(1.0))
+    if (UNLIKELY(*p->initcps < FL(1.0)))
       p->points = 12;
-    else if (*p->initcps > GENDYMAXCPS)
+    else if (UNLIKELY(*p->initcps > GENDYMAXCPS))
       p->points = GENDYMAXCPS;
     else
       p->points = (int32)*p->initcps;
@@ -245,9 +245,9 @@ static int gendyxset(CSOUND *csound, GENDYX *p)
     p->phase   = FL(1.0);
     p->speed   = FL(100.0);
     p->index   = 0;
-    if (*p->initcps < FL(1.0))
+    if (UNLIKELY(*p->initcps < FL(1.0)))
       p->points = 12;
-    else if (*p->initcps > GENDYMAXCPS)
+    else if (UNLIKELY(*p->initcps > GENDYMAXCPS))
       p->points = GENDYMAXCPS;
     else
       p->points = (int32)*p->initcps;
@@ -388,9 +388,9 @@ static int gendycset(CSOUND *csound, GENDYC *p)
     p->curve   = FL(0.0);
     p->phase   = 0;
     p->index   = 0;
-    if (*p->initcps < FL(1.0))
+    if (UNLIKELY(*p->initcps < FL(1.0)))
       p->points = 12;
-    else if (*p->initcps > GENDYMAXCPS)
+    else if (UNLIKELY(*p->initcps > GENDYMAXCPS))
       p->points = GENDYMAXCPS;
     else
       p->points = (int32)*p->initcps;
