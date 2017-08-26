@@ -298,7 +298,7 @@ if (Test-Path "CsoundQt")
 }
 else
 {
-    git clone -b qthtml2 --depth=1 --single-branch "https://github.com/CsoundQt/CsoundQt.git"
+    git clone -b develop --depth=1 --single-branch "https://github.com/CsoundQt/CsoundQt.git"
     cd CsoundQt
 }
 
