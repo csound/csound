@@ -8,6 +8,7 @@ dir %~dp0csound-vs\Release
 qmake.exe qcs.pro ^
     CONFIG+=html_webengine ^
     CONFIG+=thread ^
+    CONFIG+=perfThread_build ^
     CONFIG+=csound6 ^
     CONFIG+=build64 ^
     CONFIG+=QCS_QT59 ^
