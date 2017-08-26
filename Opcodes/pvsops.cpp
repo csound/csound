@@ -122,7 +122,7 @@ struct TVConv : csnd::Plugin<1, 6> {
       in.allocate(csound, fils);
     }
     itn = in.begin();
-    itr = ir.begin();   
+    itr = ir.begin();
     return OK;
   }
 
@@ -151,21 +151,21 @@ struct TVConv : csnd::Plugin<1, 6> {
         // FFT
         csound->rfft(fwd, itnsp);
         csound->rfft(fwd, itrsp);
-	// increment iterators
+        // increment iterators
         itnsp += ffts, itrsp += ffts;
-	itn += ffts, itr += ffts;
+        itn += ffts, itr += ffts;
         if (itnsp == insp.end()) {
           itnsp = insp.begin();
           itrsp = irsp.begin();
-	  itn = in.begin();
-	  itr = ir.begin();
-	}
+          itn = in.begin();
+          itr = ir.begin();
+        }
         // spectral delay line
         for (csnd::AuxMem<MYFLT>::iterator it1 = itnsp,
-	     it2 = irsp.end() - ffts; it2 >= irsp.begin();
-	     it1 += ffts, it2 -= ffts) {
-	  if (it1 == insp.end()) it1 = insp.begin();
-	  ins =  to_cmplx(it1);
+             it2 = irsp.end() - ffts; it2 >= irsp.begin();
+             it1 += ffts, it2 -= ffts) {
+          if (it1 == insp.end()) it1 = insp.begin();
+          ins =  to_cmplx(it1);
           irs =  to_cmplx(it2);
           // spectral product
           for (uint32_t i = 1; i < pars; i++)
@@ -198,14 +198,14 @@ struct TVConv : csnd::Plugin<1, 6> {
       if(*frz2 > 0) *itr = *irp;
       itn++, itr++;
       if(itn == in.end()) {
-	 itn = in.begin();
+         itn = in.begin();
          itr = ir.begin();
       }
       s = 0.;
       for (csnd::AuxMem<MYFLT>::iterator it1 = itn,
-	   it2 = ir.end() - 1; it2 >= ir.begin();
-	   it1++, it2--) {
-	if(it1 == in.end()) it1  = in.begin();
+           it2 = ir.end() - 1; it2 >= ir.begin();
+           it1++, it2--) {
+        if(it1 == in.end()) it1  = in.begin();
         s += *it1 * *it2;
       }
       frz1 += inc1, frz2 += inc2;
