@@ -204,12 +204,12 @@ Source: "..\..\msvc\csound-vs\Release\pvlook.exe"; DestDir: "{#APP_BIN}"; Flags:
 Source: "..\..\msvc\csound-vs\Release\pvsops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\py.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\Release\quadbezier.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\Release\rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\rtwinmm.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\scale.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\scansyn.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\scot.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
-Source: "..\..\msvc\csound-vs\Release\scsort.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\scsort.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\scugens.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\sdif2ad.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\select.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -228,7 +228,6 @@ Source: "..\..\msvc\csound-vs\Release\vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; 
 Source: "..\..\msvc\csound-vs\Release\widgets.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\deps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\deps\fluidsynthdeps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-
 
 ; NOTE: The .qml files are compiled into the resources of CsoundQt.
 Source: "..\..\msvc\csound-vs\Release\CsoundQt-d-html-cs6.exe"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
