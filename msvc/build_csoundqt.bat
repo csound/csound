@@ -1,3 +1,4 @@
+echo TODO: This is a mess. The CsoundQt build system needs some work and then this should be brought into appveyor.yaml.
 cd staging\CsoundQt
 echo "INCLUDE:" %INCLUDE%
 set INCLUDE=%INCLUDE%%VCPKGDir%\installed\x64-windows\include;
@@ -25,5 +26,5 @@ qmake.exe qcs.pro ^
     CSOUND_INTERFACES_INCLUDE_DIR+="%VCPKGDir%\\installed\\x64-windows\\include" ^
     INCLUDEPATH+="%VCPKGDir%\\installed\\x64-windows\\include"
 nmake.exe
-move "bin\\CsoundQt*.*" "..\\..\\csound-vs\\Release\\"
+copy "bin\\CsoundQt*.*" "..\\..\\csound-vs\\Release\\"
 cd ..\..
