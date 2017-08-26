@@ -24,6 +24,7 @@ qmake.exe qcs.pro ^
     LCSOUND=%APPVEYOR_BUILD_FOLDER%\\msvc\\csound-vs\\Release\\csound64.lib ^
     LIBS+="%VCPKGDir%\\installed\\x64-windows\\lib\\libsndfile-1.lib" ^
     LIBS+="%APPVEYOR_BUILD_FOLDER%\\msvc\\csound-vs\\Release\\csound64.lib" ^
+    LIBS+="Ole32.lib" ^
     CSOUND_INTERFACES_INCLUDE_DIR+="%~dp0deps\\include" ^
     CSOUND_INTERFACES_INCLUDE_DIR+="%APPVEYOR_BUILD_FOLDER%\\deps\\include" ^
     CSOUND_INTERFACES_INCLUDE_DIR+="%VCPKGDir%\\installed\\x64-windows\\include" ^
