@@ -531,17 +531,17 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
         char *sc = scsortstr(csound, csound->scorestr);
         if (sc) {
           if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-	    if(csound->oparms->odebug)
-            csound->Message(csound,
-                            Str("Real-time score events (engineStatus: %d).\n"),
-                            csound->engineStatus);
+            if(csound->oparms->odebug)
+              csound->Message(csound,
+                              Str("Real-time score events (engineStatus: %d).\n"),
+                              csound->engineStatus);
             csoundInputMessageInternal(csound, (const char *) sc);
             csound->Free(csound, sc);
           } else {
-	    if(csound->oparms->odebug)
-            csound->Message(csound,
-                            Str("Compiled score "
-                                "(engineStatus: %d).\n"), csound->engineStatus);
+            if(csound->oparms->odebug)
+              csound->Message(csound,
+                              Str("Compiled score "
+                                  "(engineStatus: %d).\n"), csound->engineStatus);
           }
         }
         csoundUnlockMutex(csound->API_lock);
