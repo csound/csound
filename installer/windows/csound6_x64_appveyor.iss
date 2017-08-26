@@ -1,4 +1,4 @@
-; C S O U N D   6   N U L L S O F T   S E T U P   S C R I P T
+; C S O U N D   6   I N N O   S E T U P   S C R I P T
 ;
 ; Copyright (C) 2013 by Michael Gogins.
 ; This software is licensed under the terms of the
@@ -39,7 +39,7 @@
 #endif
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
-#define QtSdkBinDir "C:\Qt\Qt5.8.0\5.8\msvc2015_64\bin\"
+#define QtSdkBinDir "C:\Qt\5.9.1\msvc2017_64\bin\"
 #define LibStkSourceDir "..\..\msvc\deps\stk-master\"
 
 [Components]
