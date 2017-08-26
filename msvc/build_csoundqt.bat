@@ -7,8 +7,10 @@ dir %~dp0csound-vs\Release
 qmake.exe qcs.pro ^
     CONFIG+=html_webengine ^
     CONFIG+=perfThread_build ^
+    CONFIG+=QCS_QT59 ^
     QT+=xml ^
     DEFINES+="USE_DOUBLE=1" ^
+    DEFINES+="USE_QT_GT_59=1" ^
     CSOUND_API_INCLUDE_DIR="%APPVEYOR_BUILD_FOLDER%\\include" ^
     CSOUND_INTERFACES_INCLUDE_DIR="%APPVEYOR_BUILD_FOLDER%\\interfaces" ^
     CSOUND_LIBRARY_DIR=%APPVEYOR_BUILD_FOLDER%\\msvc\\csound-vs\\Release" ^
