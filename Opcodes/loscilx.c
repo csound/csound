@@ -352,13 +352,13 @@ static inline void init_sine_gen(double a, double f, double p, double c,
                                  double *x, double *v)
 {
     double  y0, y1;             /* these should be doubles */
-
+    double xx, vv;
     y0 = sin(p);
     y1 = sin(p + f);
-    *x = y0;
-    *v = y1 - (c * y0) - y0;
+    xx = y0;
+    vv = y1 - (c * y0) - y0;
     /* amp. scale */
-    *x *= a; *v *= a;
+    *x = xx*a; *v = vv*a;
 }
 
 static int loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
