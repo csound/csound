@@ -39,7 +39,7 @@
 #endif
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
-#define QtSdkBinDir "C:\Qt\5.9.1\msvc2017_64\bin\"
+;#define QtSdkBinDir "C:\Qt\5.9.1\msvc2017_64\bin\"
 #define LibStkSourceDir "..\..\msvc\deps\stk-master\"
 
 [Components]
