@@ -1,4 +1,3 @@
-echo TODO: This is a mess. The CsoundQt build system needs some work and then this should be brought into appveyor.yaml.
 cd staging\CsoundQt
 qmake.exe qcs.pro ^
     CONFIG+=html_webengine ^
