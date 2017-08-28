@@ -2,7 +2,7 @@ image: Visual Studio 2015
 
 environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
-  APPVEYOR_RDP_PASSWORD: vercoe123
+  APPVEYOR_RDP_PASSWORD: Vercoe123
   QTDIR: C:\Qt\5.9.1\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
   
