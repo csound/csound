@@ -1,4 +1,4 @@
-image: Visual Studio 2015
+image: Visual Studio 2017
 
 environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
