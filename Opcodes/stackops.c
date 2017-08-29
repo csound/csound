@@ -27,19 +27,19 @@
 
 static int STR_ARG_P(CSOUND *csound, void* arg) {
     CS_TYPE *cs_type = csound->GetTypeForArg(arg);
-    if(strcmp("S", cs_type->varTypeName) == 0) {
-        return 1;
+    if (strcmp("S", cs_type->varTypeName) == 0) {
+      return 1;
     } else {
-        return 0;
+      return 0;
     }
 }
 
 static int ASIG_ARG_P(CSOUND *csound, void* arg) {
     CS_TYPE *cs_type = csound->GetTypeForArg(arg);
-    if(strcmp("a", cs_type->varTypeName) == 0) {
-        return 1;
+    if (strcmp("a", cs_type->varTypeName) == 0) {
+      return 1;
     } else {
-        return 0;
+      return 0;
     }
 }
 
