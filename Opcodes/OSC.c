@@ -187,7 +187,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     else
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
-    if (UNLIKEY(*hh=='\0')) hh = NULL;
+    if (UNLIKELY(*hh=='\0')) hh = NULL;
     /*
        can this be done at init time?
        It was note that this could be creating

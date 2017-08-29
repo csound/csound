@@ -112,7 +112,7 @@ Source: "..\..\*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 ; Microsoft C/C++ runtime libraries.
-Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x64\Microsoft.VC120.CRT\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs skipifsourcedoesntexist; Components: core;
+; Source: "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\redist\x64\Microsoft.VC120.CRT\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs skipifsourcedoesntexist; Components: core;
 Source: "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsoft.VC140.CRT\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
 Source: "..\..\emscripten\examples-wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
