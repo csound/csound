@@ -52,18 +52,18 @@ cache:
  - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
 
-#deploy:
-#  release: Csound-v$(appveyor_build_version)
-#  description: 'Csound Windows installer.'
-#  provider: GitHub
-#  auth_token:
-#    secure: puEAPJVkwT2mZwhobSNpk5LhUEP+61K9j6T66qIXKFk=
-#  artifact: msvc/Setup_Csound*.exe         
-#  draft: true
-#  prerelease: true
-#  on:
-#    branch: develop                 
-#    appveyor_repo_tag: true        # deploy on tag push only
+deploy:
+  release: Csound-v$(appveyor_build_version)
+  description: 'Csound Windows installer.'
+  provider: GitHub
+  auth_token:
+    secure: puEAPJVkwT2mZwhobSNpk5LhUEP+61K9j6T66qIXKFk=
+  artifact: msvc/Setup_Csound*.exe
+  draft: true
+  prerelease: true
+  on:
+    branch: develop
+    appveyor_repo_tag: true        # deploy on tag push only
 
 notifications:
   - provider: Email
