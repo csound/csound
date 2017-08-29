@@ -124,7 +124,7 @@ int clarinset(CSOUND *csound, CLARIN *p)
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq)
         p->length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
-      else if (*p->frequency)
+      else if (LIKELY(*p->frequency))
         p->length = (int32) (CS_ESR / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound, Str("No base frequency for clarinet "

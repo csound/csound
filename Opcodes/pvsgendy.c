@@ -42,7 +42,7 @@ static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 
-    if (p->fin->sliding) {
+    if (UNLIKELY(p->fin->sliding)) {
       if (p->fout->frame.auxp==NULL ||
           CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
         csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);

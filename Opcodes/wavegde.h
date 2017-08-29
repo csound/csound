@@ -59,9 +59,6 @@ typedef struct {
   MYFLT* pointer;          /* pointer to current position in data */
 } circularBuffer;
 
-/* circular buffer member functions */
-static void circularBufferCircularBuffer(CSOUND *,
-                                         circularBuffer*,len_t);/* constructor */
 /* class filter -- recursive filter implementation class */
 typedef struct {
   circularBuffer buffer; /* The filter's delay line */
