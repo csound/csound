@@ -71,15 +71,15 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     MYFLT *tmp = p->tmp;
     for (i = 0; i < windowsize; i++) {
       pos = istart_pos + i;
-      if (pos < p->ft->flen) {
+      if (LIKELY(pos < p->ft->flen)) {
         tmp[i] = tbl[pos] * window[i];
       } else {
-        tmp[i] = 0;
+        tmp[i] = FL(0.0);
       }
     }
     /* re-order bins and take FFT */
     tmp[p->windowsize] = tmp[1];
-    tmp[p->windowsize + 1] = 0.0;
+    tmp[p->windowsize + 1] = FL(0.0);
     csoundRealFFTnp2(csound, tmp, p->windowsize);
 
     /* randomize phase */
@@ -125,7 +125,7 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
       return csound->InitError(csound, Str("paulstretch: table not found"));
 
     p->ft = ftp;
-    p->windowsize = (uint32_t)floor((CS_ESR * *p->winsize));
+    p->windowsize = (uint32_t)FLOOR((CS_ESR * *p->winsize));
     if (p->windowsize < 16) {
       p->windowsize = 16;
     }

@@ -60,8 +60,6 @@ MYFLT Noise_tick(CSOUND *csound, Noise *n)
 
 void make_DLineL(CSOUND *csound, DLineL *p, int32 max_length)
 {
-/*     int i; */
-
     p->length = max_length;
     csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
     p->outPoint = 0;
@@ -71,9 +69,7 @@ void make_DLineL(CSOUND *csound, DLineL *p, int32 max_length)
 
 void DLineL_setDelay(DLineL *p, MYFLT lag)
 {
-    MYFLT outputPointer;
-
-    outputPointer = p->inPoint - lag; /* read chases write, + 1 for interp. */
+    MYFLT outputPointer = p->inPoint - lag; /* read chases write, +1 for interp. */
     while (outputPointer<FL(0.0))
       outputPointer += (MYFLT)p->length;           /* modulo maximum length */
     while (outputPointer>=(MYFLT)p->length)
