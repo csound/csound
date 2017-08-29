@@ -169,7 +169,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
     if (frIndx > p->maxFr) {  /* not past last one */
       frIndx = (MYFLT)p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
         csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
       }
@@ -201,7 +201,7 @@ int pvoc(CSOUND *csound, PVOC *p)
     addToCircBuf(buf2, p->outBuf, p->opBpos, nsmps, circBufSize);
     writeClrFromCircBuf(p->outBuf, ar, p->opBpos, nsmps, circBufSize);
     p->opBpos += nsmps;
-    if (p->opBpos > circBufSize)
+    if (UNLIKELY(p->opBpos > circBufSize))
       p->opBpos -= circBufSize;
     addToCircBuf(buf2 + nsmps, p->outBuf,
                  p->opBpos, buf2Size - nsmps, circBufSize);

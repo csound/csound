@@ -30,7 +30,6 @@
 #include "pitch.h"
 #include "uggab.h"
 
-#define FZERO   (FL(0.0))
 #define LOGTWO  (0.69314718056)
 
 void DOWNset(CSOUND *p, DOWNDAT *downdp, int32 npts)
@@ -72,7 +71,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
     Q = *p->iq;
     hanning = (*p->ihann) ? 1 : 0;
     p->dbout = (int)*p->idbout;
-    if ((p->disprd = (int)(CS_EKR * *p->idisprd)) < 0)
+    if (UNLIKELY((p->disprd = (int)(CS_EKR * *p->idisprd)) < 0))
       p->disprd = 0;
 
     if (UNLIKELY(p->timcount <= 0))
