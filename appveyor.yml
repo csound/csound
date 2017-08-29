@@ -53,16 +53,16 @@ cache:
  - C:\projects\csound\msvc\cache
 
 #deploy:
-#  release: myproduct-v$(appveyor_build_version)
-#  description: 'Release description'
+#  release: Csound-v$(appveyor_build_version)
+#  description: 'Csound Windows installer.'
 #  provider: GitHub
 #  auth_token:
-#    secure: <your encrypted token> # your encrypted token from GitHub
-#  artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
-#  draft: false
-#  prerelease: false
+#    secure: puEAPJVkwT2mZwhobSNpk5LhUEP+61K9j6T66qIXKFk=
+#  artifact: msvc/Setup_Csound*.exe         
+#  draft: true
+#  prerelease: true
 #  on:
-#    branch: master                 # release from master branch only
+#    branch: develop                 
 #    appveyor_repo_tag: true        # deploy on tag push only
 
 notifications:
