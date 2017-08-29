@@ -56,7 +56,7 @@ typedef struct {
 
 int mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
-    if (p->mpa != NULL)
+    if (LIKELY(p->mpa != NULL))
       mp3dec_uninit(p->mpa);
     return OK;
 }
@@ -377,7 +377,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = (int) pow(2.0, i-1);
+      N = (int) pow(2.0, i-1);  /* could be a shift? */
     } else N = 2048;
     if (decim == 0) decim = 4;
 

@@ -289,6 +289,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
 
       if (npeak > numpks) npeak = numpks;
       for (i = 0; i < maxbin; i++) histogram[i] = 0;
+      //or memset(histogram, '\0', maxbin*sizeof(MYFLT));
       for (i = 0; i < npeak; i++) {
         MYFLT pit = (MYFLT)(BPEROOVERLOG2 * LOG(peaklist[i].pfreq) - 96.0);
         MYFLT binbandwidth = FACTORTOBINS * peaklist[i].pwidth/peaklist[i].pfreq;

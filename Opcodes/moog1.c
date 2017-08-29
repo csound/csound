@@ -225,7 +225,7 @@ int Moog1(CSOUND *csound, MOOG1 *p)
     for (n = offset; n<nsmps; n++) {
       MYFLT     temp;
       MYFLT     output;
-      int32      itemp;
+      int32     itemp;
       MYFLT     temp_time, alpha;
 
       if (vib != FL(0.0)) {

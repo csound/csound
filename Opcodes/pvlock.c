@@ -191,8 +191,8 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
         */
         spos  = hsize*(long)((time[n])*CS_ESR/hsize);
         sizefrs = size/nchans;
-        while(spos > sizefrs) spos -= sizefrs;
-        while(spos <= 0)  spos += sizefrs;
+        while (spos > sizefrs) spos -= sizefrs;
+        while (spos <= 0)  spos += sizefrs;
 
         for (j = 0; j < nchans; j++) {
           pos = spos;
@@ -213,7 +213,7 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
             post += j;
             while (post < 0) post += size;
             while (post >= size) post -= size;
-            if(post+nchans <  size)
+            if (post+nchans <  size)
               in = tab[post] + frac*(tab[post+nchans] - tab[post]);
             else in = tab[post];
 
@@ -222,9 +222,9 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
             post = (int) (pos - hsize*pitch);
             post *= nchans;
             post += j;
-            while(post < 0) post += size;
-            while(post >= size) post -= size;
-            if(post+nchans <  size)
+            while (post < 0) post += size;
+            while (post >= size) post -= size;
+            if (post+nchans <  size)
               in = tab[post] + frac*(tab[post+nchans] - tab[post]);
             else in = tab[post];
             bwin[i] = in * win[i];  /* window it */
@@ -409,8 +409,8 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
                                        "sound file channels"));
 
         sizefrs = size/nchans;
-        while(spos > sizefrs) spos -= sizefrs;
-        while(spos <= 0)  spos += sizefrs;
+        while (spos > sizefrs) spos -= sizefrs;
+        while (spos <= 0)  spos += sizefrs;
 
 
         for (j = 0; j < nchans; j++) {
@@ -428,9 +428,9 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
             post *= nchans;
             post += j;
 
-            while(post < 0) post += size;
-            while(post >= size) post -= size;
-            if(post+nchans <  size)
+            while (post < 0) post += size;
+            while (post >= size) post -= size;
+            if (post+nchans <  size)
               in = tab[post] + frac*(tab[post+nchans] - tab[post]);
             else in = tab[post];
 
@@ -439,10 +439,10 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
             post = (int) (pos - hsize*pitch);
             post *= nchans;
             post += j;
-            while(post < 0) post += size;
-            while(post >= size) post -= size;
+            while (post < 0) post += size;
+            while (post >= size) post -= size;
             //if (post >= 0 && post < size)
-            if(post+nchans <  size)
+            if (post+nchans <  size)
               in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
             else in = tab[post];
             //else in =  (MYFLT) 0;
@@ -451,9 +451,9 @@ static int sprocess2(CSOUND *csound, DATASPACE *p)
             post = (int) pos + hsize;
             post *= nchans;
             post += j;
-            while(post < 0) post += size;
-            while(post >= size) post -= size;
-            if(post+nchans <  size)
+            while (post < 0) post += size;
+            while (post >= size) post -= size;
+            if (post+nchans <  size)
               in = tab[post] + frac*(tab[post+nchans] - tab[post]);
             else in = tab[post];
             nwin[i] = in * win[i];
@@ -573,13 +573,13 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
     name = ((STRINGDAT *)p->knum)->data;
     fd  = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
-    if(sfinfo.samplerate != CS_ESR)
+    if (sfinfo.samplerate != CS_ESR)
       p->resamp = sfinfo.samplerate/CS_ESR;
     else
       p->resamp = 1;
     p->nchans = sfinfo.channels;
 
-    if(p->OUTOCOUNT != p->nchans)
+    if (p->OUTOCOUNT != p->nchans)
       return csound->InitError(csound,
                                Str("filescal: mismatched channel numbers. "
                                    "%d outputs, %d inputs\n"),
@@ -624,7 +624,7 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
     // fill p->curbuf
     sampsread = sf_read_MYFLT(p->sf, p->indata[p->curbuf],
                               nsmps);
-    if(sampsread < nsmps)
+    if (sampsread < nsmps)
       memset(p->indata[p->curbuf]+sampsread, 0,
              sizeof(MYFLT)*(nsmps-sampsread));
     // point to the other
@@ -652,7 +652,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
     int decim = p->decim;
     double tstamp = p->tstamp, incrt = p->incr;
 
-    if(time < 0) /* negative tempo is not possible */
+    if (time < 0) /* negative tempo is not possible */
       time = 0.0;
     time *= p->resamp;
 
@@ -697,10 +697,10 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
           }
           sizefrs = size/nchans;
 
-          while(spos > sizefrs) {
+          while (spos > sizefrs) {
             spos -= sizefrs;
           }
-          while(spos <= 0) {
+          while (spos <= 0) {
             spos += sizefrs;
           }
 
@@ -738,18 +738,18 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
               post = (int) (pos - hsize*pitch);
               post *= nchans;
               post += j;
-              while(post < 0) post += size;
-              while(post >= size) post -= size;
-              if(post+nchans <  size)
+              while (post < 0) post += size;
+              while (post >= size) post -= size;
+              if (post+nchans <  size)
                 in = tab[post] + frac*(tab[post+nchans] - tab[post]);
               else in = tab[post];
               bwin[i] = in * win[i];
               post = (int) pos + hsize;
               post *= nchans;
               post += j;
-              while(post < 0) post += size;
-              while(post >= size) post -= size;
-              if(post+nchans <  size)
+              while (post < 0) post += size;
+              while (post >= size) post -= size;
+              if (post+nchans <  size)
                 in = tab[post] + frac*(tab[post+nchans] - tab[post]);
               else in = tab[post];
               nwin[i] = in * win[i];
@@ -946,7 +946,7 @@ static int hilbert_init(CSOUND *csound, HILB *p){
     unsigned int size;
     int *p1, *p2, i, decim;
 
-    if(h > N) h = N;
+    if (h > N) h = N;
 
     for (i=0; N; i++) {
       N >>= 1;
@@ -1028,7 +1028,7 @@ static int hilbert_proc(CSOUND *csound, HILB *p){
     }
 
     for (n=offset; n < nsmps; n++, cnt++) {
-      if(cnt == hopsize) {
+      if (cnt == hopsize) {
         cnt = 0;
         for(i = j = 0; i < fftsize; i++, j+=2) {
           fftdata[j] = inframe[i+off]*win[i];
@@ -1101,8 +1101,8 @@ int am_fm(CSOUND *csound, AMFM *p){
       ph = atan2(im[n], re[n]);
       f = ph - oph;
       oph = ph;
-      if(f >= PI) f -= 2*PI;
-      else if(f < -PI) f += 2*PI;
+      if (f >= PI) f -= 2*PI;
+      else if (f < -PI) f += 2*PI;
       fm[n] = f*scal;
     }
     p->ph = oph;
