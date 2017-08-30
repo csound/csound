@@ -316,7 +316,7 @@ static int flooper_init(CSOUND *csound, flooper *p)
     tab = p->sfunc->ftable,  /* func table pointer */
     len = p->sfunc->flen;    /* function table length */
     nchnls = p->sfunc->nchanls;
-    if(nchnls != p->OUTCOUNT){
+    if (UNLIKELY(nchnls != p->OUTCOUNT)) {
      return
        csound->InitError(csound,
                          Str("function table channel count does not match output"));
@@ -619,7 +619,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
             (loop_end < loop_start ? loop_start : loop_end);
           loopsize = loop_end - loop_start;
           if(*p->crossfade > 0.0)
-           crossfade = (int) (*p->crossfade*sr);
+            crossfade = (int) (*p->crossfade*sr);
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
           ndx[0] = ndx[1];
           ndx[1] =  (double)loop_end;
@@ -712,7 +712,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           frac1 = ndx[1] - tndx1;
           tndx1 *= nchnls;
           out[0] = amp*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
-         if(onchnls == 2){
+          if(onchnls == 2){
             tndx1 += 1;
             out[1] += amp*(tab[tndx1] + frac1*(tab[tndx1+nchnls] - tab[tndx1]));
           }
@@ -730,7 +730,7 @@ static int flooper2_process(CSOUND *csound, flooper2 *p)
           tndx1 *= nchnls;
           out[0] += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+nchnls]
                                                      - tab[tndx1]));
-         if(onchnls == 2){
+          if(onchnls == 2){
             tndx1 += 1;
             out[1] += amp*fadeout*(tab[tndx1] + frac1*(tab[tndx1+nchnls]
                                                         - tab[tndx1]));
