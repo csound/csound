@@ -112,9 +112,9 @@ Source: "..\..\*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 ; Microsoft C/C++ runtime libraries.
-Source: "VCREDIST_CRT_DIR%\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
-Source: "VCREDIST_CXXAMP_DIR%\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
-Source: "VCREDIST_OPENMP_DIR%\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
 Source: "..\..\emscripten\examples-wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\emscripten\examples\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
