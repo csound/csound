@@ -18,7 +18,7 @@ install:
   - echo "Qt SDK configuration files:"
   - dir "%QTDIR%\\mkspecs"
   - echo "Redistributable runtime libraries:"
-  - dir "Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC"
+  - dir "%VCINSTALLDIR%\\Redist"
   - dir "Program Files (x86)\Microsoft Visual Studio 14.0\VC\Redist"
   - cd msvc
   # This is for compatibility with Windows 8.
