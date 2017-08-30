@@ -18,7 +18,7 @@ install:
   - echo "Qt SDK configuration files:"
   - dir "%QTDIR%\\mkspecs"
   - echo "Redistributable runtime libraries:"
-  - dir "%VCINSTALLDIR%\\Redist\\MSVC\\14.11.25415\x64"
+  - dir /S "%VCINSTALLDIR%\\Redist\\MSVC"
   - cd msvc
   # This is for compatibility with Windows 8.
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
