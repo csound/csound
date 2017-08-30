@@ -195,8 +195,9 @@ int vbap1_init(CSOUND *csound, VBAP1 *p)
       for (j=0 ; j < p->q.dim ; j++) {
         ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
       }
-      for (j=0 ; j < 9; j++)
-        ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
+      memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT)); // initial setting
+      /* for (j=0 ; j < 9; j++) */
+      /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\*initial setting*\/ */
       for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
         ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
       }
@@ -263,8 +264,7 @@ int vbap1_init_a(CSOUND *csound, VBAPA1 *p)
       for (j=0 ; j < p->q.dim ; j++) {
         ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
       }
-      for (j=0 ; j < 9; j++)
-        ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
+      memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));  /*initial setting*/
       for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
         ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
       }
@@ -305,7 +305,7 @@ int vbap1_moving(CSOUND *csound, VBAP1_MOVING *p)
 
 int vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
 {                               /* during note performance:   */
-    int j;
+    //    int j;
     int cnt = p->q.number;
 
     vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
@@ -313,9 +313,10 @@ int vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
 
     /* write audio to resulting audio streams weighted
        with gain factors*/
-    for (j=0; j<cnt ;j++) {
-      p->tabout->data[j] = p->q.gains[j];
-    }
+    memcpy(p->tabout->data, p->q.gains, cnt*sizeof(MYFLT));
+    /* for (j=0; j<cnt ;j++) { */
+    /*   p->tabout->data[j] = p->q.gains[j]; */
+    /* } */
     return OK;
 }
 
@@ -331,9 +332,9 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
     MYFLT coeff, angle;
     int cnt = p->number;
     MYFLT *tmp_gains=malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
-
+#ifdef JPFF
     printf("cnt=%d dim=%d\n", cnt, p->dim);
-
+#endif
     if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
       csound->Warning(csound,
                       Str("Warning: truncating elevation to 2-D plane\n"));
@@ -598,7 +599,7 @@ int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
 
-    if (p->tabout->data == NULL || p->tabout->dimensions!=1)
+    if (UNLIKELY(p->tabout->data == NULL || p->tabout->dimensions!=1))
       return csound->InitError(csound, Str("Output array not initialised"));
     p->q.number = p->tabout->sizes[0];
     ls_table =
@@ -608,7 +609,7 @@ int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     p->q.ls_am     = (int)ls_table[1];
     p->q.ls_set_am = (int)ls_table[2];
     ptr = &(ls_table[3]);
-    if (!p->q.ls_set_am)
+    if (UNLIKELY(!p->q.ls_set_am))
       return csound->InitError(csound, Str("vbap system NOT configured. \n"
                                            "Missing vbaplsinit opcode"
                                            " in orchestra?"));

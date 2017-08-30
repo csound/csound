@@ -548,8 +548,9 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
       for (j=0 ; j < p->dim ; j++) {
         ls_set_ptr[i].ls_nos[j] = (int) *(ptr++);
       }
-      for (j=0 ; j < 9; j++)
-        ls_set_ptr[i].ls_mx[j] = FL(0.0);  /* initial setting */
+      memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));
+      /* for (j=0 ; j < 9; j++) */
+      /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\* initial setting *\/ */
       for (j=0 ; j < (p->dim) * (p->dim); j++) {
         ls_set_ptr[i].ls_mx[j] = (MYFLT) *(ptr++);
       }
