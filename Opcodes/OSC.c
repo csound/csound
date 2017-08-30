@@ -697,7 +697,7 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       return csound->InitError(csound, Str("invalid number of arguments"));
     if (UNLIKELY((int) strlen((char*) p->type->data) != n))
       return csound->InitError(csound,
-                               Str("argument list inconsistent with"
+                               Str("argument list inconsistent with "
                                    "format string"));
     strcpy(p->saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
