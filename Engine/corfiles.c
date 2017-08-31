@@ -227,7 +227,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     void *fd;
     int n;
     char buffer[1024];
-    if (fname==NULL) {
+    if (UNLIKELY(fname==NULL)) {
       csound->ErrorMsg(csound, Str("Null file name in copy_to_corefile"));
       csound->LongJmp(csound, 1);
     }
