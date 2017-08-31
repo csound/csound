@@ -52,7 +52,6 @@ static void alloc_globals(EXTRACT_STATICS* extractStatics)
     memcpy(&extractStatics->a0, &a0, sizeof(SRTBLK));
     memcpy(&extractStatics->f0, &f0, sizeof(SRTBLK));
     memcpy(&extractStatics->e, &e, sizeof(SRTBLK));
-    /* } */
 }
 
 void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
@@ -85,7 +84,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         case 'i':
           sscanf(s, "%d", &i);
           //printf("%s %d\n", s, i);
-          if (i>=0 && i < INSMAX) extractStatics->inslst[i] = 1;
+          if (LIKELY(i>=0 && i < INSMAX)) extractStatics->inslst[i] = 1;
           else csound->Message(csound, Str("instrument number out of range"));
           all = 0;
           break;
