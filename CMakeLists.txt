@@ -261,13 +261,89 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
+
+if(NOT MSVC)
     set(CSOUND_WINDOWS_LIBRARIES
+        msvcrt
         advapi32
         comctl32
         comdlg32
         glu32
         kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32
+        advapi32
+        comctl32
+        comdlg32
+        glu32
         msvcrt
+        kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32)
+else()
+    if(MSVC_VERSION LESS 1900)
+    set(CSOUND_WINDOWS_LIBRARIES
+        msvcrt
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        msvcrt
+        kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32)
+    else()
+    set(CSOUND_WINDOWS_LIBRARIES
+        ucrt
+        vcruntime
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        kernel32
         odbc32
         odbccp32
         ole32
@@ -295,6 +371,8 @@ if(WIN32)
         winspool
         ws2_32
         wsock32)
+    endif()
+endif()
 
 if(MSVC)
   # Experimented with flags but did not make change performance results
