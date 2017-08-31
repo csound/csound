@@ -43,8 +43,6 @@ addons:
               - liblo-dev
               - fluid
               - ladspa-sdk
-              - libboost-dev
-              - libboost-serialization-dev
               - libpng-dev
               - dssi-dev
               - libstk0-dev
