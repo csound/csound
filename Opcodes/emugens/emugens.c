@@ -26,7 +26,7 @@
 
 #define INITERR(m) (csound->InitError(csound, Str(m)))
 
-/* from Opcodes/arrays.c, original name: arrayensure */
+/* from Opcodes/arrays.c, original name: tabensure */
 static inline void arrayensure(CSOUND *csound, ARRAYDAT *p, int size)
 {
     if (p->data==NULL || p->dimensions == 0 || (p->dimensions==1 && p->sizes[0] < size)) {
