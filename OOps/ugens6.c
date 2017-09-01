@@ -260,7 +260,7 @@ int delset(CSOUND *csound, DELAY *p)
       p->npts = npts;
     }
     else if (!(*p->istor)) {                    /* else if requested */
-      memset(auxp, 0, npts*sizeof(MYFLT));
+      memset(auxp, '\0', npts*sizeof(MYFLT));
     }
     p->curp = (MYFLT *) auxp;
 
@@ -390,8 +390,8 @@ int delay(CSOUND *csound, DELAY *p)
 
     return OK;
  err1:
-      return csound->PerfError(csound, p->h.insdshead,
-                               Str("delay: not initialised"));
+    return csound->PerfError(csound, p->h.insdshead,
+                             Str("delay: not initialised"));
 }
 
 int delayr(CSOUND *csound, DELAYR *p)
@@ -1081,7 +1081,7 @@ int rvbset(CSOUND *csound, REVERB *p)
       p->adr5 = p->p5 = p->adr4 + *sizp++;
       p->adr6 = p->p6 = p->adr5 + *sizp++;
       if (UNLIKELY(p->adr6 + *sizp != (MYFLT *) p->auxch.endp)) {
-        csound->InitError(csound, Str("revlpsiz inconsistent\n"));
+        return csound->InitError(csound, Str("revlpsiz inconsistent\n"));
       }
       p->prvt = FL(0.0);
     }
@@ -1107,7 +1107,7 @@ int reverb(CSOUND *csound, REVERB *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
-    if (p->prvt != *p->krvt) {
+    if (UNLIKELY(p->prvt != *p->krvt)) {          /* People rarely change rvt */
       const MYFLT *lptimp = revlptimes;
       MYFLT       logdrvt = log001 / *p->krvt;
       c1=p->c1 = EXP(logdrvt * *lptimp++);
@@ -1116,6 +1116,7 @@ int reverb(CSOUND *csound, REVERB *p)
       c4=p->c4 = EXP(logdrvt * *lptimp++);
       c5=p->c5 = EXP(logdrvt * *lptimp++);
       c6=p->c6 = EXP(logdrvt * *lptimp++);
+      p->prvt = *p->krvt;       /* JPff optimisation?? */
     }
     else {
       c1=p->c1;
@@ -1172,7 +1173,7 @@ int reverb(CSOUND *csound, REVERB *p)
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
-                             Str("reverb: not intialised"));
+                             Str("reverb: not initialised"));
 }
 
 int panset(CSOUND *csound, PAN *p)

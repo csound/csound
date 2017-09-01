@@ -91,7 +91,6 @@ $(CSOUND_SRC_ROOT)/OOps/ugens5.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens6.c \
 $(CSOUND_SRC_ROOT)/OOps/ugtabs.c \
 $(CSOUND_SRC_ROOT)/OOps/ugrw1.c \
-$(CSOUND_SRC_ROOT)/OOps/ugrw2.c \
 $(CSOUND_SRC_ROOT)/OOps/vdelay.c \
 $(CSOUND_SRC_ROOT)/OOps/compile_ops.c \
 $(CSOUND_SRC_ROOT)/Opcodes/babo.c \

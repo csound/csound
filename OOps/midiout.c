@@ -85,7 +85,7 @@ int mclock_set(CSOUND *csound, MCLOCK *p)
 
 int mclock(CSOUND *csound, MCLOCK *p)
 {
-    if (p->beginning_flag) {    /* first time */
+    if (UNLIKELY(p->beginning_flag)) {    /* first time */
       send_midi_message(csound, 0xF8, 0, 0);    /* clock message */
       p->beginning_flag=FALSE;
       return OK;
@@ -116,7 +116,7 @@ int mrtmsg(CSOUND *csound, MRT *p)
       send_midi_message(csound, 0xFE, 0, 0); /* active_sensing */
       break;
     default:
-      csound->InitError(csound, Str("illegal mrtmsg argument"));
+      return csound->InitError(csound, Str("illegal mrtmsg argument"));
     }
     return OK;
 }

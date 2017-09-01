@@ -49,10 +49,10 @@ int buzz(CSOUND *csound, BUZZ *p)
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
     int32       phs, inc, lobits, dwnphs, tnp1, lenmask;
     MYFLT       sicvt2, over2n, scal, num, denom;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32    nn;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    int32       nn;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */

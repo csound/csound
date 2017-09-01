@@ -71,6 +71,13 @@ void CsoundObj_destroy(CsoundObj *self)
   free(self);
 }
 
+
+void CsoundObj_setOption(CsoundObj *self, const char *option)
+{
+  csoundSetOption(self->csound, option);
+}
+
+
 void CsoundObj_compileCSD(CsoundObj *self,
 			  char *csd)
 {
@@ -115,7 +122,10 @@ void CsoundObj_prepareRT(CsoundObj *self) {
 uint32_t CsoundObj_compileOrc(CsoundObj *self, const char *string)
 {
   int returnValue = csoundCompileOrc(self->csound, (char *) string);
-  if(self->status == CS_RESET_STATUS) csoundStart(self->csound);
+  if(self->status == CS_RESET_STATUS) {
+   csoundStart(self->csound);
+   self->status = CS_STARTED_STATUS;
+  }
   return returnValue;
 }
 

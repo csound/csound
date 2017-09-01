@@ -158,20 +158,20 @@ PUBLIC int csoundSetGlobalEnv(const char *name, const char *value)
 {
     int   i;
 
-    if (name == NULL || name[0] == '\0' || (int) strlen(name) >= 32)
+    if (UNLIKELY(name == NULL || name[0] == '\0' || (int) strlen(name) >= 32))
       return -1;                        /* invalid name             */
     for (i = 0; i < 16; i++) {
       if ((value != NULL && globalEnvVarName(i)[0] == '\0') ||
           strcmp(name, globalEnvVarName(i)) == 0)
         break;
     }
-    if (i >= 16)                        /* not found / no free slot */
+    if (UNLIKELY(i >= 16))              /* not found / no free slot */
       return -1;
     if (value == NULL) {
       globalEnvVarName(i)[0] = '\0';    /* delete existing variable */
       return 0;
     }
-    if (strlen(value) >= 480)
+    if (UNLIKELY(strlen(value) >= 480))
       return -1;                        /* string value is too long */
     strcpy(globalEnvVarName(i), name);
     strcpy(globalEnvVarValue(i), value);
@@ -205,14 +205,14 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
 
     oldValue = cs_hash_table_get(csound, csound->envVarDB, (char*)name);
     if (oldValue != NULL) {
-        csound->Free(csound, oldValue);
+      csound->Free(csound, oldValue);
     }
 
     cs_hash_table_put(csound, csound->envVarDB,
                       (char*)name, cs_strdup(csound, (char*)value));
 
     /* print debugging info if requested */
-    if (csound->oparms->odebug) {
+    if (UNLIKELY(csound->oparms->odebug)) {
       csoundMessage(csound, Str("Environment variable '%s' has been set to "),
                               name);
       if (value == NULL)
@@ -494,7 +494,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     strcpy(p->name, envList);
     s += ((int) strlen(envList) + 1);
     p->nxt = (searchPathCacheEntry_t*) csound->searchPathCache;
-    if (csound->oparms->odebug)
+    if (UNLIKELY(csound->oparms->odebug))
       csound->DebugMsg(csound, Str("Creating search path cache for '%s':"),
                                p->name);
     for (i = 0; (i < pathCnt) && (path_lst != NULL); i++) {
@@ -504,7 +504,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
       nxt = path_lst->nxt;
       csound->Free(csound, path_lst);
       path_lst = nxt;
-      if (csound->oparms->odebug)
+      if (UNLIKELY(csound->oparms->odebug))
         csound->DebugMsg(csound, "%5d: \"%s\"", (i + 1), p->lst[i]);
     }
     p->lst[i] = NULL;
@@ -735,7 +735,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
       // Should check ERANGE==errno
       //csoundDie(csound, Str("Current directory path name too long\n"));
       len =len+len; cwd = csound->ReAlloc(csound, cwd, len);
-      if (len>1024*1024)
+      if (UNLIKELY(len>1024*1024))
         csoundDie(csound, Str("Current directory path name too long\n"));
       goto again;
     }
@@ -1028,7 +1028,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       MultiByteToWideChar(CP_UTF8, 0, param, -1, wmode, sz);
       if (type == CSFILE_STD) {
         tmp_f = _wfopen(wfname, wmode);
-        if (tmp_f == NULL) {
+        if (UNLIKELY(tmp_f == NULL)) {
           /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */
           /*                name, strerror(errno)); */
           goto err_return;
@@ -1039,7 +1039,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       if (type == CSFILE_STD) {
         fullName = (char*) name;
         tmp_f = fopen(fullName, (char*) param);
-        if (tmp_f == NULL) {
+        if (UNLIKELY(tmp_f == NULL)) {
           /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */
           /*                name, strerror(errno)); */
           goto err_return;

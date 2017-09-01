@@ -84,7 +84,8 @@ static const int ind[] = {     0, 0x0800, 0x0400, 0x0800,
                           0x0100, 0x0800, 0x0400, 0x0800,
                           0x0200, 0x0800, 0x0400, 0x0800};
 
-static int pink_perf(CSOUND* csound, PINKER *p) /* generate samples of pink noise */
+ /* generate samples of pink noise */
+static int pink_perf(CSOUND* csound, PINKER *p)
 {
     int inc    =   p->inc;
     int dec    =   p->dec;
@@ -100,8 +101,8 @@ static int pink_perf(CSOUND* csound, PINKER *p) /* generate samples of pink nois
     MYFLT *out = p->ar;
     int loffset = p->offset;
     if (UNLIKELY(early)) {
-        nsmps -= early;
-      }
+      nsmps -= early;
+    }
     for (n=offset, nn=loffset; n<nsmps; n++, nn++) {
       int k = nn%16;   /* algorithm is in 16 sample chunks */
 

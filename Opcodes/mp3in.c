@@ -56,7 +56,7 @@ typedef struct {
 
 int mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
-    if (p->mpa != NULL)
+    if (LIKELY(p->mpa != NULL))
       mp3dec_uninit(p->mpa);
     return OK;
 }
@@ -377,7 +377,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = (int) pow(2.0, i-1);
+      N = (int) pow(2.0, i-1);  /* could be a shift? */
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -1210,17 +1210,17 @@ typedef struct _check {
 
 
 static int check_init(CSOUND *csound, CHECK *p){
-  if(p->pp->data != NULL &&
-     p->pp->size != sizeof(MP3SCAL2)) {
-    p->p = (MP3SCAL2 *) p->pp->data;
-  }
-  else return csound->InitError(csound, "invalid handle \n");
-  return OK;
+    if(p->pp->data != NULL &&
+       p->pp->size != sizeof(MP3SCAL2)) {
+      p->p = (MP3SCAL2 *) p->pp->data;
+    }
+    else return csound->InitError(csound, "invalid handle \n");
+    return OK;
 }
 
 static int check_play(CSOUND *csound, CHECK *p){
-  *p->res = p->p->init;
-  return OK;
+    *p->res = p->p->init;
+    return OK;
 }
 
 #ifdef HAVE_NEON

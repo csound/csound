@@ -116,7 +116,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 
     if (csound->engineStatus & CS_STATE_COMP) {
       csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
-                                  "before starting again \n"));
+                                  "before starting again.\n"));
       return CSOUND_ERROR;
     }
 
@@ -359,8 +359,8 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
           checkOptions(csound);
 
     if (csound->engineStatus & CS_STATE_COMP){
-      csound->Message(csound, "Csound is already started, call csoundReset()\n"
-                      "before starting again \n");
+      csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
+                                  "before starting again.\n"));
       return CSOUND_ERROR;
     }
 
@@ -531,19 +531,21 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
         char *sc = scsortstr(csound, csound->scorestr);
         if (sc) {
           if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-            csound->Message(csound,
-                            Str("\"Real-time\" performance (engineStatus: %d).\n"),
-                            csound->engineStatus);
+            if(csound->oparms->odebug)
+              csound->Message(csound,
+                              Str("Real-time score events (engineStatus: %d).\n"),
+                              csound->engineStatus);
             csoundInputMessageInternal(csound, (const char *) sc);
             csound->Free(csound, sc);
           } else {
-            csound->Message(csound,
-                            Str("\"Non-real-time\" performance "
-                                "(engineStatus: %d).\n"), csound->engineStatus);
+            if(csound->oparms->odebug)
+              csound->Message(csound,
+                              Str("Compiled score "
+                                  "(engineStatus: %d).\n"), csound->engineStatus);
           }
         }
         csoundUnlockMutex(csound->API_lock);
       }
-    }
-    return res;
+      return res;
+    } else return CSOUND_ERROR;
 }

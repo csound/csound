@@ -22,8 +22,7 @@
     02111-1307 USA
 */
 
-#include "/usr/local/include/csound/csdl.h"
-// #include <csdl.h>
+#include <csdl.h>
 
 #define INITERR(m) (csound->InitError(csound, Str(m)))
 
@@ -890,8 +889,9 @@ static int tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     }
     int numitems = (int)ceil((end - start) / (float)step);
     if(numitems < 0) {
-        return csound->PerfError(csound, p->h.insdshead,
-                                 Str("tab2array: asked to copy a negative number of items"));
+        return csound->PerfError(
+                    csound, p->h.insdshead,
+                    Str("tab2array: asked to copy a negative number of items"));
     }
     arrayensure(csound, p->out, numitems);
     p->numitems = numitems;
@@ -908,8 +908,9 @@ static int tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
     }
     int numitems = (int)ceil((end - start) / (float)step);
     if(numitems < 0) {
-        return csound->PerfError(csound, p->h.insdshead,
-                                 Str("tab2array: asked to copy a negative number of items"));
+        return csound->PerfError(
+                    csound, p->h.insdshead,
+                    Str("tab2array: asked to copy a negative number of items"));
     }
     if(numitems > p->numitems) {
         arrayensure(csound, p->out, numitems);
@@ -1049,7 +1050,7 @@ static int arrayview_init(CSOUND *csound, ARRAYVIEW *p) {
     int end = *p->iend;
     int start = *p->istart;
     if(p->in->dimensions > 1) {
-        return INITERR("A view can only be taken from a 1-dimensional array");
+        return INITERR("A view can only be taken from a 1D array");
     }
     if(p->out->data == NULL) {
         CS_VARIABLE* var = p->out->arrayType->createVariable(csound, NULL);
@@ -1085,7 +1086,7 @@ static int arrayslice(CSOUND *csound, ARRAYSLICE *p) {
     }
     int numitems = (int)ceil((end - start) / (float)step);
     if(numitems < 1) {
-        return INITERR("arrayslice: num. items to slice should be at least 1");
+        return INITERR("arrayslice: num. items to slice should be >= 1");
     }
     arrayensure(csound, p->out, numitems);
     MYFLT *out = p->out->data;

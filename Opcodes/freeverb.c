@@ -154,6 +154,7 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
       k = calc_nsamples(p, allpass_delays[i >> 1][i & 1]);
       allpassp->nSamples = k;
       allpassp->bufPos = 0;
+      //memset(allpassp->buf, '\0', k*sizeof(MYFLT));
       for (j = 0; j < k; j++)
         allpassp->buf[j] = FL(0.0);
       nbytes += allpass_nbytes(p, allpass_delays[i >> 1][i & 1]);

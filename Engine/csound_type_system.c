@@ -151,24 +151,22 @@ CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
                                   CS_TYPE* type, char* name, void* typeArg)
 {
     CS_TYPE_ITEM* current = pool->head;
-    if(type != NULL)
-    while (current != NULL) {
-      if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-        CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
-        var->varType = type;
-        var->varName = cs_strdup(csound, name);
-        return var;
+    if (LIKELY(type != NULL))
+      while (current != NULL) {
+        if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
+          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
+          var->varType = type;
+          var->varName = cs_strdup(csound, name);
+          return var;
+        }
+        current = current->next;
       }
-      current = current->next;
-    }
     else ((CSOUND *)csound)->ErrorMsg(csound,
                                       Str("cannot create variable %s: NULL type"),
                                       name);
     return NULL;
 }
 
-//CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
-//                                        const char* name) {
 CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
                                         const char* name)
 {

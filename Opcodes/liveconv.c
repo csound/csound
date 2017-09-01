@@ -60,11 +60,11 @@ void init_load(rbload_t *buffer, int size)
 static inline
 load_t* next_load(const rbload_t *buffer, load_t* const now)
 {
-  load_t *temp = now + 1;
-  if (temp == buffer->end) {
-    temp = buffer->begin;
-  }
-  return temp;
+    load_t *temp = now + 1;
+    if (UNLIKELY(temp == buffer->end)) {
+      temp = buffer->begin;
+    }
+    return temp;
 }
 
 static inline
@@ -89,7 +89,7 @@ typedef struct {
   MYFLT   *iFTNum;                // impulse respons table
   MYFLT   *iPartLen;              // length of impulse response partitions (latency <-> CPU usage)
 
-  MYFLT     *kUpdate;                                                             // Control variable for updating the IR buffer (+1 is start load, -1 is start unload)
+  MYFLT     *kUpdate;             // Control variable for updating the IR buffer (+1 is start load, -1 is start unload)
   MYFLT           *kClear;                                                                // Clear output buffers
 
   /*
@@ -210,6 +210,7 @@ static inline int buf_bytes_alloc(int partSize, int nPartitions)
 
   return nSmps;
 }
+
 static void set_buf_pointers(liveconv_t *p, int partSize, int nPartitions)
 {
   MYFLT *ptr;
@@ -309,15 +310,15 @@ static int liveconv_perf(CSOUND *csound, liveconv_t *p)
   FUNC        *ftp;       // function table
   int         i, k, n, nSamples, rBufPos, updateIR, clearBuf, nPart, cnt;
 
-  load_t                  *load_ptr;
+  load_t      *load_ptr;
   // uint32_t                numLoad = p->nPartitions + 1;
 
-  uint32_t          offset = p->h.insdshead->ksmps_offset;
+  uint32_t      offset = p->h.insdshead->ksmps_offset;
   uint32_t      early  = p->h.insdshead->ksmps_no_end;
   uint32_t      nn, nsmps = CS_KSMPS;
 
   /* Only continue if initialized */
-  if (p->initDone <= 0) goto err1;
+  if (UNLIKELY(p->initDone <= 0)) goto err1;
 
   ftp = csound->FTnp2Find(csound, p->iFTNum);
   nSamples = p->partSize;   /* Length of partition */
