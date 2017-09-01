@@ -419,7 +419,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       evt.p[1] *= -1;
     }
 
-    if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
+    if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("event: error creating '%c' event"),
                                opcod);

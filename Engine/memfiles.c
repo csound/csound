@@ -61,7 +61,7 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
       }
       buffer[p]='\0';
       /* Expand as necessary */
-      if (i>=length-4) all = csound->ReAlloc(csound, all, length+=1024);
+      if (UNLIKELY(i>=length-4)) all = csound->ReAlloc(csound, all, length+=1024);
       x = atoi(buffer);
       memcpy(&all[i], &x, sizeof(int16));
     }
@@ -136,7 +136,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     /* dummy =*/ (void)fgets(buff, 120, f); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
     p = fgets(buff, 120, f);
-    if (p==NULL) {
+    if (UNLIKELY(p==NULL)) {
       fclose(f);
       return csoundInitError(csound, Str("Ill-formed CV file\n"));
     }
@@ -158,7 +158,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     /* Read data until end, pack as MYFLTs */
     for (i=sizeof(CVSTRUCT);;i+=sizeof(MYFLT)) {
       /* Expand as necessary */
-      if (i>=length-sizeof(MYFLT)-4) {
+      if (UNLIKELY(i>=length-sizeof(MYFLT)-4)) {
         //printf("expanding from %p[%d] to\n", all, length);
         all = csound->ReAlloc(csound, all, length+=4096);
         //printf("i=%d                     %p[%d]\n", i, all, length);
@@ -191,8 +191,8 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_LPC, 0, 0);
     all = (char *)csound->Malloc(csound, (size_t) length);
     for (i=0; i<6; i++) fgetc(f); /* Skip LPANAL */
-    if (4!=fscanf(f, "%d %d %d %d\n",
-                  &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals)) {
+    if (UNLIKELY(4!=fscanf(f, "%d %d %d %d\n",
+                       &lph.headersize, &lph.lpmagic, &lph.npoles, &lph.nvals))) {
       fclose(f);
       return csound->InitError(csound, Str("Ill-formed LPC file\n"));
     }
@@ -217,7 +217,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
     /* Read data until end, pack as MYFLTs */
     for (i=lph.headersize;;i+=sizeof(MYFLT)) {
       /* Expand as necessary */
-      if (i>=length-sizeof(MYFLT)-8) {
+      if (UNLIKELY(i>=length-sizeof(MYFLT)-8)) {
         //printf("expanding from %p[%d] to\n", all, length);
         all = csound->ReAlloc(csound, all, length+=4096);
         //printf("i=%d                     %p[%d]\n", i, all, length);
@@ -517,7 +517,7 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
                                      "after %d frames"), fname, i);
     }
     pp->srate = (MYFLT) fmt.nSamplesPerSec;
-    if (pp->srate != csound->esr) {             /* & chk the data */
+    if (UNLIKELY(pp->srate != csound->esr)) {             /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               fname, pp->srate, csound->esr);
     }
@@ -654,8 +654,8 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
         p->scaleFac = pow(10.0, (double) lpd.gain * 0.05);
       }
     }
-    if ((size_t) sf_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
-        != p->nFrames) {
+    if (UNLIKELY((size_t) sf_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
+                 != p->nFrames)) {
       csound->FileClose(csound, fd);
       csound->Free(csound, p->name);
       csound->Free(csound, p->fullName);
