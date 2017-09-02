@@ -60,7 +60,7 @@ static int follow(CSOUND *csound, FOL *p)
     for (n=offset; n<nsmps; n++) {
       MYFLT sig = FABS(in[n]);
       if (sig > max) max = sig;
-      if (--count == 0L) {
+      if (UNLIKELY(--count == 0L)) {
         p->wgh = max;
         max = FL(0.0);
         count = p->length;

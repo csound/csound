@@ -73,7 +73,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         snprintf(device, 256, "/dev/input/js%i", stick->dev);
         stick->devFD = open(device, O_RDONLY, O_NONBLOCK);
       }
-      if (stick->devFD > 0) {
+      if (LIKELY(stick->devFD > 0)) {
         fcntl(stick->devFD, F_SETFL, fcntl(stick->devFD, F_GETFL, 0)|O_NONBLOCK);
         ioctl(stick->devFD, JSIOCGAXES, &stick->numk);
         ioctl(stick->devFD, JSIOCGBUTTONS, &stick->numb);
@@ -108,7 +108,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       if (read_size == -1 && errno == EAGAIN ) {
         getmore = 0;
       }
-      else if (read_size < 1) {
+      else if (UNLIKELY(read_size < 1)) {
         csound->Warning(csound, Str("linuxjoystick: read %d closing joystick"),
                         read_size);
         close(stick->devFD);

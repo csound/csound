@@ -79,7 +79,7 @@ namespace csound
 //template class __declspec(dllexport) Eigen::Matrix< double, 13, 13 >;
 
 class SILENCE_PUBLIC Event :
-	public Eigen::VectorXd
+        public Eigen::VectorXd
   {
   public:
     typedef enum

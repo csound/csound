@@ -51,7 +51,7 @@ static int tabsum(CSOUND *csound, TABSUM *p)
     FUNC  *ftp = p->ftp;
     MYFLT *t;
 
-    if (ftp==NULL)
+    if (UNLIKELY(ftp==NULL))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("tabsum: Not initialised"));
     t = p->ftp->ftable;

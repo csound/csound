@@ -211,8 +211,8 @@ static int convolve(CSOUND *csound, CONVOLVE *p)
     ar[2] = p->ar3;
     ar[3] = p->ar4;
 
-    if (p->auxch.auxp==NULL) goto err1;
-  /* First dump as much pre-existing audio in output buffer as possible */
+    if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
+    /* First dump as much pre-existing audio in output buffer as possible */
     if (outcnt > 0) {
       if (outcnt <= (int)CS_KSMPS)
         i = outcnt;
@@ -568,7 +568,7 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
             dest[n + 1] += (h[n + 1] * src[n + 0]) + (h[n + 0] * src[n + 1]);
           }
           h += n; dest += n;
-          if (dest == (MYFLT*)p->convBuf.endp)
+          if (UNLIKELY(dest == (MYFLT*)p->convBuf.endp))
             dest = (MYFLT*)p->convBuf.auxp;
         }
 

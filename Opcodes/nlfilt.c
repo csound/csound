@@ -237,7 +237,7 @@ int pinit(CSOUND *csound, PINIT *p)
     int    pargs = csound->currevent->pcnt;
     int    start = (int)(*p->start);
     /* Should check that inits exist> */
-    if (nargs>pargs)
+    if (UNLIKELY(nargs>pargs))
       csound->Warning(csound, Str("More arguments than p fields"));
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
       if (csound->ISSTRCOD(csound->currevent->p[n+start])) {
