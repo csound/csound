@@ -48,8 +48,8 @@ extern char* get_array_sub_type(CSOUND* csound, char*);
 extern char* convert_external_to_internal(CSOUND* csound, char* arg);
 
 
-TREE* create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
-TREE * create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
+static TREE *create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
+static TREE *create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 
@@ -108,7 +108,7 @@ char * get_boolean_arg(CSOUND *csound, TYPE_TABLE* typeTable, int type)
     return s;
 }
 
-TREE *create_empty_token(CSOUND *csound)
+static TREE *create_empty_token(CSOUND *csound)
 {
     TREE *ans;
     ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
@@ -129,7 +129,7 @@ TREE *create_empty_token(CSOUND *csound)
     return ans;
 }
 
-TREE *create_minus_token(CSOUND *csound)
+static TREE *create_minus_token(CSOUND *csound)
 {
     TREE *ans;
     ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
@@ -148,7 +148,7 @@ TREE *create_minus_token(CSOUND *csound)
     return ans;
 }
 
-TREE * create_opcode_token(CSOUND *csound, char* op)
+static TREE * create_opcode_token(CSOUND *csound, char* op)
 {
     TREE *ans = create_empty_token(csound);
 
@@ -159,7 +159,7 @@ TREE * create_opcode_token(CSOUND *csound, char* op)
     return ans;
 }
 
-TREE * create_ans_token(CSOUND *csound, char* var)
+static TREE * create_ans_token(CSOUND *csound, char* var)
 {
     TREE *ans = create_empty_token(csound);
 
@@ -171,7 +171,7 @@ TREE * create_ans_token(CSOUND *csound, char* var)
 
 }
 
-TREE * create_goto_token(CSOUND *csound, char * booleanVar,
+static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
                          TREE * gotoNode, int type)
 {
     /*     TREE *ans = create_empty_token(csound); */
@@ -220,7 +220,7 @@ TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 
 /* THIS PROBABLY NEEDS TO CHANGE TO RETURN DIFFERENT GOTO
    TYPES LIKE IGOTO, ETC */
-TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
+static TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
 {
     char* op = (char *)csound->Calloc(csound, 6);
     TREE * opTree;
@@ -353,8 +353,8 @@ static TREE *create_cond_expression(CSOUND *csound,
     return anchor;
 }
 
-char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
-                                    TREE* right, TYPE_TABLE* typeTable) {
+static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
+                                           TREE* right, TYPE_TABLE* typeTable) {
     char* outType;
 
     OENTRIES* opentries = find_opcode2(csound, op);
@@ -372,7 +372,7 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     csound->Free(csound, rightArgType);
     csound->Free(csound, opentries);
 
-    if(outType == NULL) return NULL;
+    if (outType == NULL) return NULL;
 
     outType = convert_external_to_internal(csound, outType);
     return create_out_arg(csound, outType,
@@ -383,8 +383,8 @@ char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
  */
-TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
-                         TYPE_TABLE* typeTable)
+static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
+                               TYPE_TABLE* typeTable)
 {
     char op[80], *outarg = NULL;
     TREE *anchor = NULL, *last;
@@ -484,7 +484,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
           csound->Message(csound, "Found OP: %s\n", op);
 
         opentries = find_opcode2(csound, root->value->lexeme);
-        if (opentries->count == 0) {
+        if (UNLIKELY(opentries->count == 0)) {
           csound->Warning(csound,
                           Str("error: function %s not found, "
                               "line %d \n"),
@@ -505,7 +505,7 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
         csound->Free(csound, opentries);
 
-        if (outtype == NULL) {
+        if (UNLIKELY(outtype == NULL)) {
           csound->Warning(csound,
                           Str("error: opcode %s with output type %s not found, "
                               "line %d"),
@@ -660,8 +660,8 @@ TREE * create_expression(CSOUND *csound, TREE *root, int line, int locn,
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
  */
-TREE * create_boolean_expression(CSOUND *csound, TREE *root, int line, int locn,
-                                 TYPE_TABLE* typeTable)
+static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
+                                       int line, int locn, TYPE_TABLE* typeTable)
 {
     char *op, *outarg;
     TREE *anchor = NULL, *last;
@@ -819,7 +819,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
     return make_leaf(csound, -1, 0, T_IDENT, token);
 }
 
-TREE *create_synthetic_label(CSOUND *csound, int32 count)
+static TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
     ORCTOKEN *token;
@@ -831,7 +831,8 @@ TREE *create_synthetic_label(CSOUND *csound, int32 count)
     return make_leaf(csound, -1, 0, LABEL_TOKEN, token);
 }
 
-void handle_negative_number(CSOUND* csound, TREE* root) {
+void handle_negative_number(CSOUND* csound, TREE* root)
+{
   if (root->type == S_UMINUS &&
       (root->right->type == INTEGER_TOKEN || root->right->type == NUMBER_TOKEN)) {
     int len = strlen(root->right->value->lexeme);
@@ -847,7 +848,9 @@ void handle_negative_number(CSOUND* csound, TREE* root) {
 }
 
 
-void collapse_last_assigment(CSOUND* csound, TREE* anchor, TYPE_TABLE* typeTable) {
+static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
+                                    TYPE_TABLE* typeTable)
+{
     TREE *a, *b, *temp;
     temp = anchor;
 
@@ -882,7 +885,8 @@ void collapse_last_assigment(CSOUND* csound, TREE* anchor, TYPE_TABLE* typeTable
    expressions into statements prior to the original statement line,
    and LHS expressions (array sets) after the original statement
    line */
-TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
+TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
+{
      /* This is WRONG in optional argsq */
     TREE* anchor = NULL;
     TREE* originalNext = current->next;
@@ -893,16 +897,16 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
     current->next = NULL;
 
     if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "Found Statement.\n");
+      csound->Message(csound, "Found Statement.\n");
     while (currentArg != NULL) {
-        TREE* last;
-        TREE *nextArg;
-        TREE *newArgTree;
-        TREE *expressionNodes;
-        int is_bool = 0;
-        handle_negative_number(csound, currentArg);
-        if (is_expression_node(currentArg) ||
-            (is_bool = is_boolean_expression_node(currentArg))) {
+      TREE* last;
+      TREE *nextArg;
+      TREE *newArgTree;
+      TREE *expressionNodes;
+      int is_bool = 0;
+      handle_negative_number(csound, currentArg);
+      if (is_expression_node(currentArg) ||
+          (is_bool = is_boolean_expression_node(currentArg))) {
             char * newArg;
             if (UNLIKELY(PARSER_DEBUG))
               csound->Message(csound, "Found Expression.\n");
@@ -964,7 +968,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
     if (strcmp("init", current->value->lexeme)==0) {
       //print_tree(csound, "init",current);
       init = 1;
-      }
+    }
     while (currentArg != NULL) {
       TREE* temp;
 
@@ -1089,9 +1093,9 @@ TREE* expand_if_statement(CSOUND* csound,
       last->next = gotoToken;
       gotoToken->next = current->next;
     }
-    else if (right->type == THEN_TOKEN ||
-             right->type == ITHEN_TOKEN ||
-             right->type == KTHEN_TOKEN) {
+    else if (LIKELY(right->type == THEN_TOKEN ||
+                    right->type == ITHEN_TOKEN ||
+                    right->type == KTHEN_TOKEN)) {
       int endLabelCounter = -1;
       TREE *tempLeft;
       TREE *tempRight;

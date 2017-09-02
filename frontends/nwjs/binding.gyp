@@ -41,45 +41,6 @@
                         [
                             '$(CSOUND_HOME)/include',
                         ],
-                        'configurations':
-                        {
-                            'Debug':
-                            {
-                                'msvs_settings':
-                                {
-                                    'VCCLCompilerTool':
-                                    {
-                                        'WarningLevel': 4,
-                                        'ExceptionHandling': 1,
-                                        'DisableSpecificWarnings': [4100, 4127, 4201, 4244, 4267, 4506, 4611, 4714],
-
-                                    },
-                                    'VCLinkerTool':
-                                    {
-                                        'AdditionalOptions': [ '/SubSystem:Console,"5.02"' ]
-                                    }
-                                }
-                            },
-                            'Release':
-                            {
-                                'msvs_settings':
-                                {
-                                    'VCCLCompilerTool':
-                                    {
-                                    'PlatformToolset': 'v140_xp',
-                                        'WarningLevel': 4,
-                                        'ExceptionHandling': 1,
-                                        'DisableSpecificWarnings': [4100, 4127, 4201, 4244, 4267, 4506, 4611, 4714],
-
-                                    },
-                                    'VCLinkerTool':
-                                    {
-                                    'PlatformToolset': 'v140_xp',
-                                        'AdditionalOptions': [ '/SubSystem:Console,"5.02"' ]
-                                    }
-                                }
-                            }
-                        }
                     }
                 ]
             ]

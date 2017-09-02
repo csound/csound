@@ -185,12 +185,7 @@ NM              [nm]
                      PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                      yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                      csound_prsset_lineno(1, yyscanner);
-                     if (PARM->depth>1022) {
-                       csound->Message(csound,
-                                       Str("macros/include nested too deep: "));
-                       csound->LongJmp(csound, 1);
-                     }
-                     if (PARM->depth>1022) {
+                     if (UNLIKELY(PARM->depth>1022)) {
                        csound->Message(csound,
                                        Str("macros/include nested too deep: "));
                        csound->LongJmp(csound, 1);
@@ -234,7 +229,7 @@ NM              [nm]
                      PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                      yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                      csound_prsset_lineno(1, yyscanner);
-                     if (PARM->depth>1022) {
+                     if (UNLIKELY(PARM->depth>1022)) {
                        csound->Message(csound,
                                        Str("macros/include nested too deep: "));
                        csound->LongJmp(csound, 1);
@@ -288,7 +283,7 @@ NM              [nm]
                       while (1) {
                        c = input(yyscanner);
                        if (cnt==0 && ( c==term || c==trm1)) break;
-                       if (cnt==0 && c == ')') {
+                       if (UNLIKELY(cnt==0 && c == ')')) {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c=='(') cnt++;
@@ -345,7 +340,7 @@ NM              [nm]
                    //csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_prsset_lineno(1, yyscanner);
-                   if (PARM->depth>1022) {
+                   if (UNLIKELY(PARM->depth>1022)) {
                      csound->Message(csound,
                                      Str("macros/include nested too deep: "));
                      csound->LongJmp(csound, 1);
@@ -399,7 +394,7 @@ NM              [nm]
                        if (c=='(') cnt++;
                        if (c==')') cnt--;
                        if (cnt==0 && ( c==term || c==trm1)) break;
-                       if (cnt==0 && c == ')') {
+                       if (UNLIKELY(cnt==0 && c == ')')) {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c == '\\') {
@@ -447,11 +442,11 @@ NM              [nm]
                      csound_prsget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   if (PARM->depth++>1024) {
+                   if (UNLIKELY(PARM->depth++>1024)) {
                      csound->Die(csound, Str("Includes nested too deeply"));
                    }
                    csound_prsset_lineno(1, yyscanner);
-                   if (PARM->depth>1022) {
+                   if (UNLIKELY(PARM->depth>1022)) {
                      csound->Message(csound,
                                      Str("macros/include nested too deep: "));
                      csound->LongJmp(csound, 1);
@@ -601,11 +596,11 @@ NM              [nm]
                 }
 {ELSE}          {
                   if (PARM->isString != 1) {
-                    if (PARM->ifdefStack == NULL) {
+                    if (UNLIKELY(PARM->ifdefStack == NULL)) {
                       csound->Message(csound, Str("#else without #if\n"));
                       csound->LongJmp(csound, 1);
                     }
-                    else if (PARM->ifdefStack->isElse) {
+                    else if (UNLIKELY(PARM->ifdefStack->isElse)) {
                       csound->Message(csound, Str("#else after #else\n"));
                       csound->LongJmp(csound, 1);
                     }
@@ -679,13 +674,13 @@ NM              [nm]
                       st[j] = ' ';
                       st[j+1] = '\0';
                     }
-                    if (csound->oparms->odebug)
+                    if (UNLIKELY(csound->oparms->odebug))
                       csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"),
                                       st, PARM->repeat_cnt_n[PARM->repeat_index],
                               PARM->repeat_index);
                   }
                   else {
-                    if (csound->oparms->odebug)
+                    if (UNLIKELY(csound->oparms->odebug))
                       csound->Message(csound, Str("External LOOP=%d Level:%d\n"),
                               PARM->repeat_cnt_n[PARM->repeat_index],
                               PARM->repeat_index);
@@ -727,7 +722,7 @@ NM              [nm]
 "}"     {
           int temp;
           CORFIL *bdy = PARM->cf;
-          if ((temp=PARM->repeat_cnt_n[PARM->repeat_index])==0) {
+          if (UNLIKELY((temp=PARM->repeat_cnt_n[PARM->repeat_index])==0)) {
             csound->Message(csound, Str("unmatched } in score\n"));
             csound->LongJmp(csound, 1);
           }
@@ -792,7 +787,7 @@ NM              [nm]
            char buff[120];
            corfile_putc('s', PARM->cf);
            //printf("r detected\n");
-           if (PARM->in_repeat_sect)
+           if (UNLIKELY(PARM->in_repeat_sect))
              csound->Die(csound, Str("Section loops cannot be nested"));
            PARM->repeat_sect_cnt = 0;
            PARM->in_repeat_sect = 1; /* Mark as recording */
@@ -807,7 +802,7 @@ NM              [nm]
            if (UNLIKELY(PARM->repeat_sect_cnt <= 0
                         || !isspace(c)))
              csound->Die(csound, Str("r: invalid repeat count"));
-           if (csound->oparms->odebug)
+           if (UNLIKELY(csound->oparms->odebug))
              csound->Message(csound, Str("r LOOP=%d\n"), PARM->repeat_sect_cnt);
            while (isblank(c)) {
              c = input(yyscanner);
@@ -906,14 +901,14 @@ static void comment(yyscan_t yyscanner)              /* Skip until nextline */
     char c;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c = input(yyscanner)) != '\n' && c != '\r') { /* skip */
-      if ((int)c == EOF) {
+      if (UNLIKELY((int)c == EOF)) {
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
           YY_BUFFER_EOF_PENDING;
         return;
       }
     }
     if (c == '\r' && (c = input(yyscanner)) != '\n') {
-      if ((int)c != EOF)
+      if (LIKELY((int)c != EOF))
         unput(c);
       else
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
@@ -971,7 +966,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     buffer[p] = '\0';
     while ((c=input(yyscanner))!='\n');
-    if (PARM->depth++>=1024) {
+    if (UNLIKELY(PARM->depth++>=1024)) {
       csound->Die(csound, Str("Includes nested too deeply"));
     }
     csound_prsset_lineno(1+csound_prsget_lineno(yyscanner), yyscanner);
@@ -988,10 +983,10 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 #endif
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
-    if (isDir(buffer))
+    if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
-    if (cf == NULL)
+    if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
     if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
@@ -1104,28 +1099,29 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     free(mname);
     c = input(yyscanner);
     while (c!='#') {
-      if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+      if (UNLIKELY(c==EOF)) csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
         while ((c=input(yyscanner))!= '\n')
-          if (c==EOF) {
+          if (UNLIKELY(c==EOF)) {
             csound->Die(csound, Str("define macro runaway\n"));
           }
       }
       else if (c=='/') {
         if ((c=input(yyscanner))=='/') {
           while ((c=input(yyscanner))!= '\n')
-            if (c==EOF)
+            if (UNLIKELY(c==EOF))
               csound->Die(csound, Str("define macro runaway\n"));
         }
         else if (c=='*') {
           while ((c=input(yyscanner))!='*') {
           again:
-            if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+            if (UNLIKELY(c==EOF))
+              csound->Die(csound, Str("define macro runaway\n"));
           }
           if ((c=input(yyscanner))!='/') goto again;
         }
       }
-      else if (!isspace(c))
+      else if (UNLIKELY(!isspace(c)))
         csound->Die(csound,
                Str("define macro unexpected character %c(0x%.2x) awaiting #\n"),
                     c, c);
@@ -1207,28 +1203,29 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     mm->acnt = 0;
     i = 0;
     while ((c = input(yyscanner)) != '#') {
-      if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+      if (UNLIKELY(c==EOF)) csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
         while ((c=input(yyscanner))!= '\n')
-          if (c==EOF) {
+          if (UNLIKELY(c==EOF)) {
             csound->Die(csound, Str("define macro runaway\n"));
           }
       }
       else if (c=='/') {
         if ((c=input(yyscanner))=='/') {
           while ((c=input(yyscanner))!= '\n')
-            if (c==EOF)
+            if (UNLIKELY(c==EOF))
               csound->Die(csound, Str("define macro runaway\n"));
         }
         else if (c=='*') {
           while ((c=input(yyscanner))!='*') {
           again:
-            if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+            if (UNLIKELY(c==EOF))
+              csound->Die(csound, Str("define macro runaway\n"));
           }
           if ((c=input(yyscanner))!='/') goto again;
         }
       }
-      else if (!isspace(c))
+      else if (UNLIKELY(!isspace(c)))
         csound->Die(csound,
                     Str("define macro unexpected character %c(0x%.2x)"
                         "awaiting #\n"),
@@ -1372,7 +1369,7 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
           nested_ifdef++;
         }
         else if (strcmp("else", buf) == 0 && nested_ifdef == 0) {
-          if (pp->isElse) {
+          if (UNLIKELY(pp->isElse)) {
             csound->Message(csound, Str("#else after #else\n"));
             csound->LongJmp(csound, 1);
           }
@@ -1410,7 +1407,7 @@ void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
 
       if (p == NULL)
         p = s + strlen(s);
-      if (csound->oparms->msglevel & 7)
+      if (UNLIKELY(csound->oparms->msglevel & 7))
         csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {

@@ -220,7 +220,7 @@ int losset(CSOUND *csound, LOSC *p)
         p->cpscvt = FL(261.62561); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
-      ///printf("****cpscvt = %g\n", p->cpscvt);
+      //printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
           csound->Warning(csound, Str("loscil: sustain defers to "
@@ -236,7 +236,8 @@ int losset(CSOUND *csound, LOSC *p)
         p->end1 = *p->iend1;
         if (!p->beg1 && !p->end1)
           /* default to looping the whole sample */
-          p->end1 = (p->mod1 ? (MYFLT)maxphs : (MYFLT)ftp->flenfrms); /* These are the same!! */
+          p->end1 =            /* These are the same!! */
+            (p->mod1 ? (MYFLT)maxphs : (MYFLT)ftp->flenfrms);
         else if (UNLIKELY(p->beg1 < 0 ||
                           p->end1 > maxphs ||
                           p->beg1 >= p->end1)) {
@@ -505,8 +506,8 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout:
     p->lphs = phs;
 put0:
-    printf("****put0\n");
-     memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
+    //printf("****put0\n");
+    memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 
  phsck2:

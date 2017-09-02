@@ -389,9 +389,9 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
       p = buffer;
 
       if (state == 0 &&
-	  (q = strstr(p, "</CsInstruments>")) &&
+          (q = strstr(p, "</CsInstruments>")) &&
           all_blank(buffer,q)) {
-	csound->Message(csound, "closing tag\n");
+        csound->Message(csound, "closing tag\n");
         //corfile_flush(incore);
         corfile_puts("\n#exit\n", incore);
         corfile_putc('\0', incore);
@@ -465,13 +465,13 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
       p = buffer;
       while (isblank(*p)) p++;
       if(*p == '/' && *(p+1) == '*') {
-	//csound->Message(csound, "comment start\n");
-	comm = 1; p += 2;
+        //csound->Message(csound, "comment start\n");
+        comm = 1; p += 2;
       }
 
       if (comm == 0 &&
-	  strstr(p, "</CsInstruments>") == p) {
-	//csound->Message(csound, "closing tag\n");
+          strstr(p, "</CsInstruments>") == p) {
+        //csound->Message(csound, "closing tag\n");
         //corfile_flush(incore);
         corfile_puts("\n#exit\n", incore);
         corfile_putc('\0', incore);
@@ -480,13 +480,13 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
         return TRUE;
       } else if (comm) {
         while(p < buffer + CSD_MAX_LINE_LEN){
-	  if(*p == '*' && *(p+1) == '/') {
+          if(*p == '*' && *(p+1) == '/') {
            comm = 0;
-	   // csound->Message(csound, "comment end\n");
-	   break;
+           // csound->Message(csound, "comment end\n");
+           break;
           } else p++;
-	}
-	corfile_puts(buffer, incore);
+        }
+        corfile_puts(buffer, incore);
       }
       else
         corfile_puts(buffer, incore);
@@ -512,7 +512,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
       int c;
       p = buffer;
       if (state == 0 &&
-	  (q = strstr(p, "</CsScore>")) &&
+          (q = strstr(p, "</CsScore>")) &&
           all_blank(buffer,q)) {
         corfile_puts("\n#exit\n", csound->scorestr);
         corfile_putc('\0', csound->scorestr);     /* For use in bison/flex */
@@ -997,7 +997,6 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
       char *p = buffer;
       while (isblank(*p)) p++;
-      
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         csoundMessage(csound, Str("STARTING FILE\n"));

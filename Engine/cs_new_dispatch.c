@@ -154,7 +154,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
       current_instr =
         csp_orc_sa_instr_get_by_name(csound,
            csound->engineState.instrtxtp[insno]->insname);
-      if (current_instr == NULL)
+      if (UNLIKELY(current_instr == NULL))
         csound->Die(csound,
                     Str("Failed to find semantic information"
                         " for instrument '%i'"),

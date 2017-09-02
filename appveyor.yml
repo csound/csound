@@ -1,13 +1,33 @@
 image: Visual Studio 2017
 
 environment:
+  APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
+  APPVEYOR_RDP_PASSWORD: Vercoe123
   QTDIR: C:\Qt\5.9.1\msvc2017_64
+  VCPKGDir: C:\Tools\vcpkg
+  VSGENERATOR: Visual Studio 15 2017 Win64
+  # This is for compatibility with Windows 8.
+  VSTOOLSET: v141_xp
+
+init:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+  - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2015" call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\vcvars64.bat"
+  - set VCREDIST_CRT_DIR=%VCINSTALLDIR%\\Redist\\MSVC\\14.11.25325\\x64\\Microsoft.VC141.CRT
+  - set VCREDIST_CXXAMP_DIR=%VCINSTALLDIR%\\Redist\\MSVC\\14.11.25325\\x64\\Microsoft.VC141.CXXAMP
+  - set VCREDIST_OPENMP_DIR=%VCINSTALLDIR%\\Redist\\MSVC\\14.11.25325\\x64\\Microsoft.VC141.OpenMP
+  - set
+  - echo "Qt SDK configuration files:"
+  - dir "%QTDIR%\\mkspecs"
+  - echo "Redistributable runtime libraries:"
+  - dir /B /S "%VCREDIST_CRT_DIR%"
+  - dir /B /S "%VCREDIST_CXXAMP_DIR%"
+  - dir /B /S "%VCREDIST_OPENMP_DIR%"
 
 install:
-  - set
   - cd msvc
-  - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
-  - powershell -ExecutionPolicy ByPass -File generateProject.ps1
+  - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
+  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - cd ..
 
 platform: x64
@@ -19,14 +39,15 @@ build:
   project: msvc\csound-vs\Csound.sln
 
 after_build:
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - dir "%VCPKGDir%\installed\x64-windows\include"
   - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
   # Report qmake version to make sure we are using the Qt libraries we need.
   - qmake -v
   - build_csoundqt.bat
   - cd ..
-  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\installed\x64-windows\bin\ /dQtSdkBinDir=%QTDIR%\bin\ installer\windows\csound6_x64_appveyor.iss /o msvc\
+  - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
+  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
   - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
   - 7z l csound.zip
 
@@ -42,18 +63,18 @@ cache:
  - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
 
-#deploy:
-#  release: myproduct-v$(appveyor_build_version)
-#  description: 'Release description'
-#  provider: GitHub
-#  auth_token:
-#    secure: <your encrypted token> # your encrypted token from GitHub
-#  artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
-#  draft: false
-#  prerelease: false
-#  on:
-#    branch: master                 # release from master branch only
-#    appveyor_repo_tag: true        # deploy on tag push only
+deploy:
+  release: Csound-v$(appveyor_build_version)
+  description: 'Csound Windows installer.'
+  provider: GitHub
+  auth_token:
+    secure: puEAPJVkwT2mZwhobSNpk5LhUEP+61K9j6T66qIXKFk=
+  artifact: msvc/Setup_Csound*.exe
+  draft: true
+  prerelease: true
+  on:
+    branch: develop
+    appveyor_repo_tag: true        # deploy on tag push only
 
 notifications:
   - provider: Email

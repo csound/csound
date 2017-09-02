@@ -164,7 +164,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
-    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
@@ -220,7 +220,7 @@ static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
-    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
@@ -273,7 +273,7 @@ static int send_recv_k(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *ksig = p->ptr1;
     *ksig = FL(0.0);
-    if(p->outsamps >= p->rcvsamps){
+    if (p->outsamps >= p->rcvsamps){
       p->outsamps =  0;
       p->rcvsamps =
         csound->ReadCircularBuffer(csound, p->cb, p->buf, p->buffsize);
@@ -315,7 +315,7 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
     if (UNLIKELY(early)) nsmps -= early;
 
     for(i=offset; i < nsmps ; i++){
-      if(outsamps >= rcvsamps){
+      if (outsamps >= rcvsamps){
         outsamps =  0;
         rcvsamps = csound->ReadCircularBuffer(csound, p->cb, buf, p->buffsize);
       }
@@ -399,7 +399,7 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
 
     if (UNLIKELY(early)) nsmps -= early;
     for(i=offset; i < nsmps ; i++){
-      if(outsamps >= rcvsamps){
+      if (outsamps >= rcvsamps){
         outsamps =  0;
         rcvsamps = csound->ReadCircularBuffer(csound, p->cb, buf, p->buffsize);
       }
@@ -517,15 +517,15 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 }
 
 static int destroy_raw_osc(CSOUND *csound, void *pp) {
-  RAWOSC *p = (RAWOSC *) pp;
+    RAWOSC *p = (RAWOSC *) pp;
 #ifndef WIN32
-  close(p->sock);
-  csound->Message(csound, "OSCraw: Closing socket\n");
+    close(p->sock);
+    csound->Message(csound, Str("OSCraw: Closing socket\n"));
 #else
-  closesocket(p->sock);
-  csound->Message(csound, "OSCraw: Closing socket\n");
+    closesocket(p->sock);
+    csound->Message(csound, Str("OSCraw: Closing socket\n"));
 #endif
-  return OK;
+    return OK;
 }
 
 
@@ -569,9 +569,9 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
       memset(buf, 0, MTU);
     }
 
-  csound->RegisterDeinitCallback(csound, (void *) p, destroy_raw_osc);
-  tabensure(csound, p->sout,2);
-  
+    csound->RegisterDeinitCallback(csound, (void *) p, destroy_raw_osc);
+    tabensure(csound, p->sout,2);
+
   return OK;
 }
 
@@ -584,7 +584,7 @@ static inline char le_test(){
 }
 
 static inline char *byteswap(char *p, int N){
-    if(le_test()) {
+    if (le_test()) {
       char tmp;
       int j ;
       for(j = 0; j < N/2; j++) {
@@ -599,7 +599,7 @@ static inline char *byteswap(char *p, int N){
 static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 
     ARRAYDAT *sout = p->sout;
-    if(sout->sizes[0] < 2 ||
+    if (sout->sizes[0] < 2 ||
        sout->dimensions > 1)
       return
         csound->PerfError(csound, p->h.insdshead, Str("output array too small\n"));
@@ -615,13 +615,13 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     socklen_t clilen = sizeof(from);
     int bytes =
       recvfrom(p->sock, (void *)buf, MTU-1, 0, &from, &clilen);
-    if(bytes < 0) bytes = 0;
+    if (bytes < 0) bytes = 0;
 
     // terminating string to satisfy coverity
     buf[p->buffer.size-1] = '\0';
 
-    if(bytes) {
-      if(strncmp(buf,"#bundle",7) == 0) { // bundle
+    if (bytes) {
+      if (strncmp(buf,"#bundle",7) == 0) { // bundle
         buf += 8;
         buf += 8;
         size = *((uint32_t *) buf);
@@ -630,11 +630,11 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
       } else size = bytes;
       while(size > 0 && size < MTU)  {
         /* get address & types */
-        if(n < sout->sizes[0]) {
+        if (n < sout->sizes[0]) {
           len = strlen(buf);
           // printf("len %d size %d incr %d\n",
           //        len, str[n].size, ((size_t) ceil((len+1)/4.)*4));
-          if(len >= str[n].size) {
+          if (len >= str[n].size) {
             str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
             memset(str[n].data,0,len+1);
             str[n].size  = len+1;
@@ -646,7 +646,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
         }
         if (n < sout->sizes[0]) {
           len = strlen(buf);
-          if(len >= str[n].size) {
+          if (len >= str[n].size) {
             str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
             str[n].size  = len+1;
           }
@@ -659,10 +659,10 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
         j = 1;
         // parse data
         while((c = types[j++]) != '\0' && n < sout->sizes[0]){
-          if(c == 'f') {
+          if (c == 'f') {
             float f = *((float *) buf);
             byteswap((char*)&f,4);
-            if(str[n].size < 32) {
+            if (str[n].size < 32) {
               str[n].data = csound->ReAlloc(csound, str[n].data, 32);
               str[n].size  = 32;
             }
@@ -671,7 +671,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
           } else if (c == 'i') {
             int d = *((int32_t *) buf);
             byteswap((char*) &d,4);
-            if(str[n].size < 32) {
+            if (str[n].size < 32) {
               str[n].data = csound->ReAlloc(csound, str[n].data, 32);
               str[n].size  = 32;
             }
@@ -679,7 +679,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             buf += 4;
           } else if (c == 's') {
             len = strlen(buf);
-            if(len > str[n].size) {
+            if (len > str[n].size) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
@@ -691,7 +691,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             len = *((uint32_t *) buf);
             byteswap((char*)&len,4);
             len = ceil((len)/4.)*4;
-            if(len > str[n].size) {
+            if (len > str[n].size) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
