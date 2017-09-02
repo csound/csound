@@ -110,10 +110,17 @@ static int and_aa(CSOUND *csound, AOP *p)
     MYFLT *r    = p->r;
     MYFLT *in1  = p->a;
     MYFLT *in2  = p->b;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     int   n, nsmps = CS_KSMPS;
     int32  input1, input2;
 
-    for (n = 0; n < nsmps; n++) {
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n = offset; n < nsmps; n++) {
       input1 = MYFLT2LRND(in1[n]);
       input2 = MYFLT2LRND(in2[n]);
       r[n] = (MYFLT) (input1 & input2);

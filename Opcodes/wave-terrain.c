@@ -225,7 +225,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
 
 /* CALCULATE NEW POSITIONS
  *
- * fill in newloc and newvel arrays with caluclated values
+ * fill in newloc and newvel arrays with calculated values
  * this is the string updating function
  *
  * a mass of zero means immovable, so as to allow fixed points
@@ -244,7 +244,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
         last = (int)p->size - 1;
       }
 
-      if (fmass->ftable[i] == 0) {
+      if (UNLIKELY(fmass->ftable[i] == 0)) {
         /* if the mass is zero... */
         p->newloc[i] = fpoint->ftable[i];
         p->newvel[i] = 0;
@@ -273,7 +273,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
       aout[i] = fpoint->ftable[(int)pos] * amp;
 
       pos += inc /* p->size * *(p->kpch) * csound->onedsr */;
-      if (pos > p->size) {
+      if (UNLIKELY(pos > p->size)) {
         pos -= p->size;
       }
     }
@@ -284,10 +284,12 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
      * replace current values with new ones
      */
     /* Could use memcpy here?? */
-    for (i=0; i<p->size; i++) {
-      fpoint->ftable[i] = p->newloc[i];
-      fvel->ftable[i]   = p->newvel[i];
-    }
+    memcpy(fpoint->ftable, p->newloc, p->size*sizeof(MYFLT));
+    memcpy(fvel->ftable, p->newvel, p->size*sizeof(MYFLT));
+    /* for (i=0; i<p->size; i++) { */
+    /*   fpoint->ftable[i] = p->newloc[i]; */
+    /*   fvel->ftable[i]   = p->newvel[i]; */
+    /* } */
     return OK;
 }
 

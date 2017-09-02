@@ -86,7 +86,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
-    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->ff = (int)(*p->format);
@@ -211,7 +211,7 @@ static int send_send_Str(CSOUND *csound, SOCKSENDT *p)
     char    *q = p->str->data;
     int     len = p->str->size;
 
-    if (len>=buffersize) {
+    if (UNLIKELY(len>=buffersize)) {
       csound->Warning(csound, Str("string truncated in socksend"));
       len = buffersize-1;
     }
@@ -235,7 +235,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
-    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
@@ -334,7 +334,7 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
-    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
@@ -365,8 +365,8 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     p->server_addr.sin_port = htons((int) *p->port);
 
  again:
-    if (connect(p->sock, (struct sockaddr *) &p->server_addr,
-                sizeof(p->server_addr)) < 0) {
+    if (UNLIKELY(connect(p->sock, (struct sockaddr *) &p->server_addr,
+                         sizeof(p->server_addr)) < 0)) {
 #ifdef ECONNREFUSED
       if (errno == ECONNREFUSED)
         goto again;
@@ -383,7 +383,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
 
-    if (n != write(p->sock, &p->asig[offset], n)) {
+    if (UNLIKELY(n != write(p->sock, &p->asig[offset], n))) {
       csound->Message(csound, Str("Expected %d got %d\n"),
                       (int) (sizeof(MYFLT) * CS_KSMPS), n);
       return csound->PerfError(csound, p->h.insdshead,
@@ -413,7 +413,7 @@ typedef struct {
 static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     unsigned int     bsize;
-    if(p->INOCOUNT < (unsigned int) p->type->size + 4)
+    if (UNLIKELY(p->INOCOUNT < (unsigned int) p->type->size + 4))
       return csound->InitError(csound,
                                Str("insufficient number of arguments for "
                                    "OSC message types\n"));
@@ -421,7 +421,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
-    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -455,7 +455,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     for(i=0; i < p->type->size-1; i++) {
       switch(p->type->data[i]){
       case 't':
-        if(p->INOCOUNT < (unsigned int) p->type->size + 5)
+        if (UNLIKELY(p->INOCOUNT < (unsigned int) p->type->size + 5))
           return csound->InitError(csound, "extra argument needed for type t\n");
         bsize += 8;
         iarg+=2;
@@ -468,7 +468,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 's':
-        if(!IS_STR_ARG(p->arg[i]))
+        if (UNLIKELY(!IS_STR_ARG(p->arg[i])))
           return csound->InitError(csound, Str("expecting a string argument\n"));
         s = (STRINGDAT *)p->arg[i];
         bsize += strlen(s->data) + 64;

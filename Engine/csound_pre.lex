@@ -254,7 +254,7 @@ QNAN            "qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
-                   if (PARM->depth>1022) {
+                   if (UNLIKELY(PARM->depth>1022)) {
                      csound->Message(csound,
                                      Str("macros/include nested too deep: "));
                      csound->LongJmp(csound, 1);
@@ -292,7 +292,7 @@ QNAN            "qnan"[ \t]*\(
                    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
-                   if (PARM->depth>1022) {
+                   if (UNLIKELY(PARM->depth>1022)) {
                      csound->Message(csound,
                                      Str("macros/include nested too deep: "));
                      csound->LongJmp(csound, 1);
@@ -345,7 +345,7 @@ QNAN            "qnan"[ \t]*\(
                      while (1) {
                        c = input(yyscanner);
                        if (cnt==0 && ( c==term || c==trm1)) break;
-                       if (cnt==0 && c == ')') {
+                       if (UNLIKELY(cnt==0 && c == ')')) {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c=='(') cnt++;
@@ -403,7 +403,7 @@ QNAN            "qnan"[ \t]*\(
                    //csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                    csound_preset_lineno(1, yyscanner);
-                   if (PARM->depth>1022) {
+                   if (UNLIKELY(PARM->depth>1022)) {
                      csound->Message(csound,
                                      Str("macros/include nested too deep: "));
                      csound->LongJmp(csound, 1);
@@ -455,7 +455,7 @@ QNAN            "qnan"[ \t]*\(
                      while (1) {
                        c = input(yyscanner);
                        if (cnt==0 && ( c==term || c==trm1)) break;
-                       if (cnt==0 && c == ')') {
+                       if (UNLIKELY(cnt==0 && c == ')')) {
                          csound->Die(csound, Str("Too few arguments to macro\n"));
                        }
                        if (c=='(') cnt++;
@@ -505,7 +505,7 @@ QNAN            "qnan"[ \t]*\(
                      csound_preget_lineno(yyscanner);
                    PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                    yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                   if (PARM->depth++>1022) {
+                   if (UNLIKELY(PARM->depth++>1022)) {
                      csound->Message(csound,
                                      Str("macros/include nested too deep: "));
                      csound->LongJmp(csound, 1);
@@ -767,14 +767,14 @@ void comment(yyscan_t yyscanner)              /* Skip until nextline */
     char c;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c = input(yyscanner)) != '\n' && c != '\r') { /* skip */
-      if ((int)c == EOF) {
+      if (UNLIKELY((int)c == EOF)) {
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
           YY_BUFFER_EOF_PENDING;
         return;
       }
     }
     if (c == '\r' && (c = input(yyscanner)) != '\n') {
-      if ((int)c != EOF)
+      if (LIKELY((int)c != EOF))
         unput(c);
       else
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
@@ -842,7 +842,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     buffer[p] = '\0';
     while ((c=input(yyscanner))!='\n');
-    if (PARM->depth++>=1024) {
+    if (UNLIKELY(PARM->depth++>=1024)) {
       csound->Die(csound, Str("Includes nested too deeply"));
     }
     csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
@@ -860,7 +860,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
-    if (cf == NULL)
+    if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
     if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
@@ -979,28 +979,29 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     free(mname);
     c = input(yyscanner);
     while (c!='#') {
-      if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+      if (UNLIKELY(c==EOF)) csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
         while ((c=input(yyscanner))!= '\n')
-          if (c==EOF) {
+          if (UNLIKELY(c==EOF)) {
             csound->Die(csound, Str("define macro runaway\n"));
           }
       }
       else if (c=='/') {
         if ((c=input(yyscanner))=='/') {
           while ((c=input(yyscanner))!= '\n')
-            if (c==EOF)
+            if (UNLIKELY(c==EOF))
               csound->Die(csound, Str("define macro runaway\n"));
         }
         else if (c=='*') {
           while ((c=input(yyscanner))!='*') {
           again:
-            if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+            if (UNLIKELY(c==EOF))
+              csound->Die(csound, Str("define macro runaway\n"));
           }
           if ((c=input(yyscanner))!='/') goto again;
         }
       }
-      else if (!isspace(c))
+      else if (UNLIKELY(!isspace(c)))
         csound->Die(csound,
                Str("define macro unexpected character %c(0x%.2x) awaiting #\n"),
                     c, c);
@@ -1082,30 +1083,32 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     mm->acnt = 0;
     i = 0;
     while ((c = input(yyscanner)) != '#') {
-      if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+      if (UNLIKELY(c==EOF)) csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
         while ((c=input(yyscanner))!= '\n')
-          if (c==EOF) {
+          if (UNLIKELY(c==EOF)) {
             csound->Die(csound, Str("define macro runaway\n"));
           }
       }
       else if (c=='/') {
         if ((c=input(yyscanner))=='/') {
           while ((c=input(yyscanner))!= '\n')
-            if (c==EOF)
+            if (UNLIKELY(c==EOF))
               csound->Die(csound, Str("define macro runaway\n"));
         }
         else if (c=='*') {
           while ((c=input(yyscanner))!='*') {
           again:
-            if (c==EOF) csound->Die(csound, Str("define macro runaway\n"));
+            if (UNLIKELY(c==EOF))
+              csound->Die(csound, Str("define macro runaway\n"));
           }
           if ((c=input(yyscanner))!='/') goto again;
         }
       }
-      else if (!isspace(c))
+      else if (UNLIKELY(!isspace(c)))
         csound->Die(csound,
-                    Str("define macro unexpected character %c(0x%.2x) awaiting #\n"),
+                    Str("define macro unexpected character %c(0x%.2x)"
+                        " awaiting #\n"),
                     c, c);
     }
     mm->body = (char*) csound->Malloc(csound, 100);
@@ -1225,7 +1228,7 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
         c = input(yyscanner);
-    }
+      }
       csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                            yyscanner);
       corfile_putc('\n', csound->expanded_orc);
@@ -1246,7 +1249,7 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
           nested_ifdef++;
         }
         else if (strcmp("else", buf) == 0 && nested_ifdef == 0) {
-          if (pp->isElse) {
+          if (UNLIKELY(pp->isElse)) {
             csound->Message(csound, Str("#else after #else\n"));
             csound->LongJmp(csound, 1);
           }
@@ -1378,13 +1381,13 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
     if (cf->p>0 && cf->body[cf->p-1]=='\n') {
       uint64_t locn = PARM->locn;
       uint64_t llocn = PARM->llocn;
-      if (locn != llocn) {
+      if (UNLIKELY(locn != llocn)) {
         char bb[80];
         sprintf(bb, "#source %llu\n", locn);
         corfile_puts(bb, cf);
       }
       PARM->llocn = locn;
-      if (n!=PARM->line+1) {
+      if (UNLIKELY(n!=PARM->line+1)) {
         char bb[80];
         sprintf(bb, "#line   %d\n", n);
         //printf("#line %d\n", n);

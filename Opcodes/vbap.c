@@ -130,13 +130,13 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
     }
 
 
-        if (sets[j].set_gains[0]<=FL(0.0) &&
+    if (sets[j].set_gains[0]<=FL(0.0) &&
         sets[j].set_gains[1]<=FL(0.0) &&
         sets[j].set_gains[2]<=FL(0.0)) {
       sets[j].set_gains[0] = FL(1.0);
       sets[j].set_gains[1] = FL(1.0);
       sets[j].set_gains[2] = FL(1.0);
-      }
+    }
 
     memset(gains, 0, ls_amount*sizeof(MYFLT));
 
@@ -168,7 +168,7 @@ void normalize_wts(OUT_WTS *wts)
      /* performs equal-power normalization to gain factors*/
 {
     double tmp;
-
+    MYFLT tmp1;
     if (wts->wt1 < 0) wts->wt1 = FL(0.0);
     if (wts->wt2 < 0) wts->wt2 = FL(0.0);
     if (wts->wt3 < 0) wts->wt3 = FL(0.0);
@@ -178,10 +178,10 @@ void normalize_wts(OUT_WTS *wts)
     tmp += (double)wts->wt3 * wts->wt3;
 
     tmp = sqrt(tmp);
-    tmp = FL(1.0) / (MYFLT)tmp;
-    wts->wt1 *= (MYFLT)tmp;
-    wts->wt2 *= (MYFLT)tmp;
-    wts->wt3 *= (MYFLT)tmp;
+    tmp1 = (MYFLT)(1.0 / tmp);
+    wts->wt1 *= tmp1;
+    wts->wt2 *= tmp1;
+    wts->wt3 *= tmp1;
 }
 
 void angle_to_cart(ANG_VEC avec, CART_VEC *cvec)
@@ -248,7 +248,7 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[] )
     lgth =    FABS(vec_angle(lss[i].coords,lss[j].coords))
             + FABS(vec_angle(lss[i].coords,lss[k].coords))
             + FABS(vec_angle(lss[j].coords,lss[k].coords));
-    if (lgth>FL(0.00001))
+    if (LIKELY(lgth>FL(0.00001)))
       return volper / lgth;
     else
       return FL(0.0);
@@ -631,7 +631,7 @@ int vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
     int i, n = (int)*p->ls_amount;
     /* if (n>CHANNELS) */
     /*   return csound->InitError(csound, Str("Too many speakers (%n)\n"), n); */
-    if (n>p->a->sizes[0])
+    if (UNLIKELY(n>p->a->sizes[0]))
       return csound->InitError(csound, Str("Too little data speakers (%n)\n"),
                               n>p->a->sizes[0]);
     MYFLT  **f = csound->Malloc(csound, 2*sizeof(MYFLT*)*n);
