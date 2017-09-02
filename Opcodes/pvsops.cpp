@@ -193,7 +193,7 @@ struct TVConv : csnd::Plugin<1, 6> {
     auto inc1 = csound->is_asig(frz1);
     auto inc2 = csound->is_asig(frz2);
 
-     for (auto &s : outsig) {
+    for (auto &s : outsig) {
       if(*frz1 > 0) *itn = *inp;
       if(*frz2 > 0) *itr = *irp;
       itn++, itr++;
