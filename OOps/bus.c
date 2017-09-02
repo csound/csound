@@ -845,6 +845,17 @@ int chnget_opcode_perf_S(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
+ if(strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)){
+    int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if(err == 0) {
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
+    strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
+    }
+    else
+      print_chn_err_perf(p, err);
+  }
+
 #ifdef HAVE_ATOMIC_BUILTIN
     union {
       MYFLT d;
