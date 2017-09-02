@@ -145,10 +145,10 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       if (str==NULL) {
         char bb[80];
 
-        if (csound->orchstr==NULL && !csound->oparms->daemon)
+        if (UNLIKELY(csound->orchstr==NULL && !csound->oparms->daemon))
           csound->Die(csound,
                       Str("Failed to open input file %s\n"), csound->orchname);
-        else if(csound->orchstr==NULL && csound->oparms->daemon)  return NULL;
+        else if (csound->orchstr==NULL && csound->oparms->daemon)  return NULL;
 
         add_include_udo_dir(csound->orchstr);
         if (csound->orchname==NULL ||
@@ -222,7 +222,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
       corfile_rm(&csound->expanded_orc);
-      if (csound->oparms->odebug) csp_orc_sa_print_list(csound);
+      if (UNLIKELY(csound->oparms->odebug)) csp_orc_sa_print_list(csound);
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
         if (csound->oparms->odebug) csound->Message(csound,

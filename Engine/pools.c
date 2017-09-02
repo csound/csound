@@ -37,10 +37,10 @@ MYFLT_POOL* myflt_pool_create(CSOUND* csound) {
 }
 
 void myflt_pool_free(CSOUND *csound, MYFLT_POOL *pool){
-  if (pool != NULL) {
-    csound->Free(csound, pool->values);
-    csound->Free(csound, pool);
-  }
+    if (pool != NULL) {
+      csound->Free(csound, pool->values);
+      csound->Free(csound, pool);
+    }
 }
 
 int myflt_pool_indexof(MYFLT_POOL* pool, MYFLT value) {
@@ -48,7 +48,7 @@ int myflt_pool_indexof(MYFLT_POOL* pool, MYFLT value) {
     int i;
 
     for (i = 0; i < pool->count; i++) {
-      if(pool->values[i].value == value) {
+      if (pool->values[i].value == value) {
         retVal = i;
         break;
       }
@@ -62,7 +62,7 @@ int myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
 
     if (index == -1) {
 
-      if (pool->count > 0 && pool->count % POOL_SIZE == 0) {
+      if (UNLIKELY(pool->count > 0 && pool->count % POOL_SIZE == 0)) {
         pool->max += POOL_SIZE;
         pool->values = csound->ReAlloc(csound, pool->values,
                                        pool->max * sizeof
