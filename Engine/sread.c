@@ -233,7 +233,7 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
 static inline int isNameChar(int c, int pos)
 {
     //c = (int) ((unsigned char) c);
-    if (c<0) return 0;
+    if (UNLIKELY(c<0)) return 0;
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
