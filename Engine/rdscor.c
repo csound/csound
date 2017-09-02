@@ -35,13 +35,15 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     }
     ss = ip->strarg;  /* look at this instr's strarg */
 
-    union {
-      MYFLT d;
-      int32 i;
-    } ch;
-    ch.d = p; n = ch.i&0xffff;
-    while (n-- > 0) {
-      ss += strlen(ss)+1;
+    {
+      union {
+        MYFLT d;
+        int32 i;
+      } ch;
+      ch.d = p; n = ch.i&0xffff;
+      while (n-- > 0) {
+        ss += strlen(ss)+1;
+      }
     }
     return ss;
 }
@@ -62,7 +64,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
     while ((c = corfile_getc(csound->scstr)) == ' ' ||
            c == '\t')  /* skip leading white space */
         ;
-    if (c == ';') {             /* Comments terminate line */
+    if (UNLIKELY(c == ';')) {             /* Comments terminate line */
       flushline(csound);
       return 0;
     }
@@ -211,7 +213,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                        (int)e->p[1],(int)e->p[2],
                                        (int)e->p[3],(int)e->p[4]);
                       new = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*PMAX);
-                      if (new==NULL) {
+                      if (UNLIKELY(new==NULL)) {
                         fprintf(stderr, Str("Out of Memory\n"));
                         exit(7);
                       }
@@ -256,7 +258,8 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
           return 1;
         }
         e->pcnt = pp - &e->p[0];                   /* count the pfields */
-        if (e->pcnt>=PMAX) e->pcnt += e->c.extra[0]; /* and overflow fields */
+        if (UNLIKELY(e->pcnt>=PMAX))
+          e->pcnt += e->c.extra[0];                /* and overflow fields */
         if (csound->sstrlen) {        /* if string arg present, save it */
           e->strarg = csound->Malloc(csound, csound->sstrlen); /* FIXME:       */
           memcpy(e->strarg, csound->sstrbuf, csound->sstrlen); /* leaks memory */
