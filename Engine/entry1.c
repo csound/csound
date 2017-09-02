@@ -638,6 +638,7 @@ OENTRY opcodlst_1[] = {
   { "mclock", S(MCLOCK),0,  3,      "",     "i",    mclock_set, mclock,   NULL },
   { "mrtmsg", S(XTRADUR),0, 1,      "",     "i",    mrtmsg,     NULL,     NULL },
   { "midiout",S(MIDIOUT),0,  2,     "",     "kkkk", NULL, midiout,   NULL      },
+  { "midiout_i",S(MIDIOUT), 0,  1,     "",     "iiii", midiout,   NULL, NULL     },
   { "midion2", S(KON2),0,    3,     "",     "kkkk", kon2_set, kon2,   NULL     },
   { "nrpn",   S(NRPN),0,     2,     "",     "kkk",  NULL,  nrpn ,NULL          },
   { "mdelay", S(MDELAY),0,   3,     "",     "kkkkk",mdelay_set, mdelay,   NULL },
