@@ -7,70 +7,30 @@ beadsynt - Bandwidth enhanced oscillator bank for additive synthesis
 
 (C) 2017 Eduardo Moguillansky
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License version 2 as published by
-the Free Software Foundation.
- 
-This program is distributed in the hope that it will be useful,
+The beosc library is free software; you can redistribute it
+and/or modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+The gab library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
- 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
-*/
+GNU Lesser General Public License for more details.
 
-/*
- 
-Loris UGens adapted from Loris 1.8
+You should have received a copy of the GNU Lesser General Public
+License along with the gab library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+02111-1307 USA
+
+
+beosc and beadsynt are based on the algorithm implemented by
+Loris.
 
 Loris is Copyright (c) 1999-2016 by Kelly Fitz and Lippold Haken
 
-Loris is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY, without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-file COPYING or the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-loris@cerlsoundgroup.org
-http://www.cerlsoundgroup.org/Loris/
- 
 */
 
-/*
- 
-BEASTmulch UGens - Supercollider
-Copyright (C) 2009 Scott Wilson
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License version 2 as published by
-the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA 
-
-http://www.beast.bham.ac.uk/research/mulch.shtml
-beastmulch-info@contacts.bham.ac.uk
-
-*/
-
-#include <math.h>
-// #include "/usr/local/include/csound/csdl.h"
 #include "csdl.h"
 
 // -------------------------------------------------------------------------
@@ -105,15 +65,13 @@ p->inerr = 1; \
 return csound->InitError(csound, Str(m)) \
 
 
-// -------------------------------------------------------------------------
-
 /*
-
-    fast log
-
+ * Helpters
+ *
 */
 
-inline float fastlog2 (float x) {
+static inline float
+fastlog2 (float x) {
     union { float f; uint32_t i; } vx = { x };
     union { uint32_t i; float f; } mx = { (vx.i & 0x007FFFFF) | 0x3f000000 };
     float y = vx.i;
@@ -124,19 +82,20 @@ inline float fastlog2 (float x) {
            - 1.72587999f / (0.3520887068f + mx.f);
 }
 
-inline float fastlogf (float x) {
+static inline float
+fastlogf (float x) {
     return 0.69314718f * fastlog2 (x);
 }
 
-inline MYFLT fastlog(MYFLT x) {
+static inline MYFLT
+fastlog(MYFLT x) {
     return FL(0.6931471805599453) * fastlog2(x);
 }
 
 
-// uniform noise
-
-inline MYFLT FastRandFloat(uint32_t *seedptr) {
-    // taken from csoundRand31, gives floats between 0-1
+// uniform noise, taken from csoundRand31, returns floats between 0-1
+static inline MYFLT
+FastRandFloat(uint32_t *seedptr) {
     uint64_t  tmp1;
     uint32_t  tmp2;
     /* x = (742938285 * x) % 0x7FFFFFFF */
@@ -148,12 +107,11 @@ inline MYFLT FastRandFloat(uint32_t *seedptr) {
     return (MYFLT)(tmp2 - 1) / FL(2147483648.0);
 } 
 
-
 /*
-
-Gaussian noise
-
-*/
+ *
+ * Gaussian Noise
+ *
+ */
 
 typedef struct {
     MYFLT gset;
@@ -162,7 +120,8 @@ typedef struct {
 } GaussianState;
 
 
-inline MYFLT gaussian_normal(GaussianState *gs) {
+static inline MYFLT
+gaussian_normal(GaussianState *gs) {
     if(gs->iset) {
         gs->iset = 0;
         return gs->gset;
@@ -186,27 +145,38 @@ static MYFLT* gaussians = NULL;
 // #define GAUSSIANS_SIZE 65536
 #define GAUSSIANS_SIZE 32768
 
-void gaussians_init(uint32_t seed) {
-    if(gaussians != NULL)
-        return;
-    int size = GAUSSIANS_SIZE;
-    unsigned int i;
-    GaussianState gs = { .gset=0, .iset=0, .seed=seed };
-    MYFLT *g = malloc(sizeof(MYFLT)*size);
-    for(i=0; i<size; i++) {
-        g[i] = gaussian_normal(&gs);
+static void
+gaussians_init(uint32_t seed) {
+    GaussianState gs;
+    if(gaussians == NULL) {
+        int size = GAUSSIANS_SIZE;
+        unsigned int i;
+        gs.gset = 0;
+        gs.iset = 0;
+        gs.seed = seed;
+        MYFLT *g = malloc(sizeof(MYFLT)*size);
+        for(i=0; i<size; i++) {
+            g[i] = gaussian_normal(&gs);
+        }
+        gaussians = g;
     }
-    gaussians = g;
 }
 
+/*
 inline MYFLT gaussians_get(uint32_t *seedp) {
     const int maxidx = GAUSSIANS_SIZE - 1;
     unsigned int idx = (unsigned int)(FastRandFloat(seedp) * maxidx);
     return gaussians[idx];
 }
+*/
+#define gaussians_get(seed)  gaussians[(unsigned int)(FastRandFloat(seed) * (GAUSSIANS_SIZE-1))]
 
-/* from Opcodes/arrays.c, original name: tabensure */
-static inline void arrayensure(CSOUND *csound, ARRAYDAT *p, int size)
+
+/* from Opcodes/arrays.c, original name: tabensure. This should
+   be part of the API.
+*/
+static inline void
+arrayensure(CSOUND *csound, ARRAYDAT *p, int size)
 {
     if (p->data==NULL || p->dimensions == 0 || (p->dimensions==1 && p->sizes[0] < size)) {
         size_t ss;
@@ -230,26 +200,30 @@ static inline void arrayensure(CSOUND *csound, ARRAYDAT *p, int size)
 /*
 
 Integer phase oscillator with/without interpolation,
-adapted from Supercollider
+adapted from Supercollider. Not used now, included as
+as reference
 
 */
 
 #define xlobits 14
 #define xlobits1 13
 
-inline float PhaseFrac(uint32_t inPhase) {
+static inline float
+PhaseFrac(uint32_t inPhase) {
     union { uint32_t itemp; float ftemp; } u;
     u.itemp = 0x3F800000 | (0x007FFF80 & ((inPhase)<<7));
     return u.ftemp - 1.f;
 }
 
-inline float PhaseFrac1(uint32_t inPhase) {
+static inline float
+PhaseFrac1(uint32_t inPhase) {
     union { uint32_t itemp; float ftemp; } u;
     u.itemp = 0x3F800000 | (0x007FFF80 & ((inPhase)<<7));
     return u.ftemp;
 }
 
-inline MYFLT lookupi1(const MYFLT* table0, const MYFLT* table1, 
+static inline MYFLT
+lookupi1(const MYFLT* table0, const MYFLT* table1,
                       int32_t pphase, int32_t lomask) {
     MYFLT pfrac = PhaseFrac(pphase);
     uint32_t index = ((pphase >> xlobits1) & lomask);
@@ -259,12 +233,13 @@ inline MYFLT lookupi1(const MYFLT* table0, const MYFLT* table1,
     return out;
 }
 
-inline MYFLT lookup(const MYFLT *table, int32_t phase, int32_t mask) {
+static inline MYFLT
+lookup(const MYFLT *table, int32_t phase, int32_t mask) {
     uint32_t index = ((phase >> xlobits1) & mask);
     return  *(const MYFLT*)((const char*)table + index);
 }
 
-inline MYFLT 
+static inline MYFLT
 cs_lookupi(const MYFLT* ftbl, int32_t phs, int32_t lobits, int32_t lomask, MYFLT lodiv) {
     MYFLT fract = (MYFLT)((phs & lomask) * lodiv);
     const MYFLT* ftbl0 = ftbl + (phs >> lobits);
@@ -560,7 +535,7 @@ typedef struct {
     MYFLT y1, y2, y3;
 } FILTCOEFS;
 
-void befilter_init(FILTCOEFS *filt) {
+static void befilter_init(FILTCOEFS *filt) {
     filt->x1 = 0;
     filt->x2 = 0;
     filt->x3 = 0;
@@ -587,6 +562,7 @@ typedef struct {
     AUXCH   pfreq;
     MYFLT cpstoinc;
     uint32_t seed;
+    int updatearrays;
 } BEADSYNT;
 
 static int beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
@@ -692,6 +668,38 @@ static int beadsynt_init(CSOUND *csound, BEADSYNT *p) {
         RET_INITERR("beadsynt: partial count is greater than bandwidthe size!");
     }
     p->bws = ftp->ftable;
+    p->updatearrays = 0;
+
+    return beadsynt_init_common(csound, p);
+}
+
+
+static int beadsynt_init_array(CSOUND *csound, BEADSYNT *p) {
+    FUNC *ftp;
+    unsigned int count = (unsigned int)*p->icnt;
+
+    p->ftp = ftp = csound->FTFind(csound, p->ifn);
+    if (ftp == NULL) {
+        RET_INITERR("beadsynt: wavetable not found!");
+    }
+
+    ARRAYDAT *ampsarr  = (ARRAYDAT *)p->iamptbl;
+    ARRAYDAT *freqsarr = (ARRAYDAT *)p->ifreqtbl;
+    ARRAYDAT *bwsarr   = (ARRAYDAT *)p->ibwtbl;
+
+    // check sizes and dimensions
+    if(ampsarr->dimensions != 1 || freqsarr->dimensions != 1 || bwsarr->dimensions != 1) {
+        return INITERR("The arrays should have 1 dimension");
+    }
+    if(ampsarr->sizes[0] < count || freqsarr->sizes[0] < count || bwsarr->sizes[0] < count) {
+        return INITERR("The arrays should hold at least icnt items");
+    }
+
+    p->amps = ampsarr->data;
+    p->freqs = freqsarr->data;
+    p->bws = bwsarr->data;
+
+    p->updatearrays = 1;
 
     return beadsynt_init_common(csound, p);
 }
@@ -731,11 +739,17 @@ static int beadsynt_perf(CSOUND *csound, BEADSYNT *p) {
     count    = p->count;
     out      = p->out;
     flags    = (int)*p->iflags;
-    
-    freqs = p->freqs;
-    amps  = p->amps;
-    bws   = p->bws;
-    
+
+    if(p->updatearrays) {
+        freqs = ((ARRAYDAT *)p->ifreqtbl)->data;
+        amps  = ((ARRAYDAT *)p->iamptbl)->data;
+        bws   = ((ARRAYDAT *)p->ibwtbl)->data;
+    } else {
+        freqs = p->freqs;
+        amps  = p->amps;
+        bws   = p->bws;
+    }
+
     lphs      = (int32*)p->lphs.auxp;
     prevamps  = (MYFLT*)p->pamp.auxp;
     prevfreqs = (MYFLT*)p->pfreq.auxp;
@@ -980,7 +994,8 @@ static int beadsynt_perf(CSOUND *csound, BEADSYNT *p) {
 
 typedef struct {
     OPDS h;
-    MYFLT *krow, *ifnsrc, *ifndest, *inumcols, *ioffset, *istart, *iend, *istep, *iclip;
+    MYFLT *krow, *ifnsrc, *ifndest, *inumcols, *ioffset, *istart, *iend, *istep;
+
     MYFLT* tabsource;
     MYFLT* tabdest;
     MYFLT maxrow;
@@ -1070,6 +1085,82 @@ static int tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
 }
 
 
+typedef struct {
+    OPDS h;
+    // kOut[] rowlin kMtrx[], krow, kstart=0, kend=0, kstep=1
+    ARRAYDAT *outarr, *inarr;
+    MYFLT *krow, *kstart, *kend, *kstep;
+    int numitems;
+} GETROWLIN;
+
+
+static int getrowlin_init(CSOUND *csound, GETROWLIN *p) {
+    // a->sizes[0] = numrows;
+    // a->sizes[1] = numcols;
+    int start = (int)*p->kstart;
+    int end = (int)*p->kend;
+    int step = (int)*p->kstep;
+    if (end < 1) {
+        end = p->inarr->sizes[1];
+    }
+    int numitems = (int)ceil((end - start) / (float)step);
+
+    arrayensure(csound, p->outarr, numitems);
+    p->numitems = numitems;
+}
+
+
+static int getrowlin_k(CSOUND *csound, GETROWLIN *p) {
+    if(p->inarr->dimensions != 2) {
+        return PERFERROR("The input array should be a 2D array");
+    }
+    int start = (int)*p->kstart;
+    int end = (int)*p->kend;
+    int step = (int)*p->kstep;
+    if (end < 1) {
+        end = p->inarr->sizes[1];
+    }
+    int numitems = (int)ceil((end - start) / (float)step);
+    int numcols = p->inarr->sizes[1];
+    if(numitems > numcols) {
+        return PERFERROR("Asked to read too many items from a row");
+    }
+    if(numitems > p->numitems) {
+        arrayensure(csound, p->outarr, numitems);
+        p->numitems = numitems;
+    }
+    MYFLT row = *p->krow;
+    if(UNLIKELY(row < 0)) {
+        return PERFERROR("getrowlin: krow can't be negative");
+    }
+    if(UNLIKELY(row > p->inarr->sizes[0] - 2)) {
+        return PERFERROR("getrowlin: exceeded maximum row");
+    }
+    int row0 = (int)row;
+    MYFLT delta = row - row0;
+
+    MYFLT *out = p->outarr->data;
+    MYFLT *in  = p->inarr->data;
+
+    int idx0 = numcols * row0 + start;
+    int idx1 = idx0 + numitems;
+    MYFLT x0, x1;
+    int i, j = 0;
+    if (LIKELY(delta != 0)) {
+        for (i=idx0; i<idx1; i+=step) {
+            x0 = in[i];
+            x1 = in[i + numcols];
+            out[j++] = x0 + (x1-x0)*delta;
+        }
+    } else {
+        for (i=idx0; i<idx1; i+=step) {
+            out[j++] = in[i];
+        }
+    }
+    return OK;
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
@@ -1100,10 +1191,13 @@ static OENTRY localops[] = {
     {"beadsynt", S(BEADSYNT), 0, 5, "a", "kkiiiijjp", (SUBR)beadsynt_init, NULL, (SUBR)beadsynt_perf },
 
     // aout beadsynt kfreq, kbw, kFreq[], kAmp[], kBw[], inumosc, ifn=-1, iphs=-1, iflags=0
-    // {"beadsynt", S(BEADSYNT), 0, 5, "a", "kkk[]k[]k[]ijjp", (SUBR)beadsynt_init, NULL, (SUBR)beadsynt_perf },
+    {"beadsynt", S(BEADSYNT), 0, 5, "a", "kkk[]k[]k[]ijjp", (SUBR)beadsynt_init_array, NULL, (SUBR)beadsynt_perf },
 
     // tabrowlin krow, ifnsrc, ifndest, inumcols, ioffset=0, istart=0, iend=0, istep=1
     {"tabrowlin", S(TABROWCOPY), 0, 3, "",  "kiiiooop",  (SUBR)tabrowcopy_init, (SUBR)tabrowcopyk },
+
+    // kOut[] rowlin kMtrx[], krow, kstart=0, kend=0, kstep=1
+    {"getrowlin", S(TABROWCOPY), 0, 3, "k[]",  "k[]kOOP",  (SUBR)getrowlin_init, (SUBR)getrowlin_k },
 
 };
 

@@ -24,6 +24,15 @@
 
 #include <csdl.h>
 
+#define SAMPLE_ACCURATE \
+uint32_t offset = p->h.insdshead->ksmps_offset;                   \
+uint32_t early  = p->h.insdshead->ksmps_no_end;                   \
+if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));    \
+if (UNLIKELY(early)) {                                            \
+    nsmps -= early;                                               \
+    memset(&out[nsmps], '\0', early*sizeof(MYFLT));               \
+}                                                                 \
+
 #define INITERR(m) (csound->InitError(csound, Str(m)))
 
 /* from Opcodes/arrays.c, original name: tabensure */
@@ -659,34 +668,37 @@ static int cmp_aa(CSOUND* csound, Cmp* p) {
     MYFLT* out = p->out;
     MYFLT* a0 = p->a0;
     MYFLT* a1 = p->a1;
+
+    SAMPLE_ACCURATE
+
     switch (p->mode) {
     case 0:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] > a1[n];
         }
         break;
     case 1:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] >= a1[n];
         }
         break;
     case 2:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] < a1[n];
         }
         break;
     case 3:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] <= a1[n];
         }
         break;
     case 4:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] == a1[n];
         }
         break;
     case 5:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] != a1[n];
         }
         break;
@@ -699,34 +711,37 @@ static int cmp_ak(CSOUND* csound, Cmp* p) {
     MYFLT* out = p->out;
     MYFLT* a0 = p->a0;
     MYFLT a1 = *(p->a1);
+
+    SAMPLE_ACCURATE
+
     switch (p->mode) {
     case 0:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] > a1;
         }
         break;
     case 1:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] >= a1;
         }
         break;
     case 2:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] < a1;
         }
         break;
     case 3:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] <= a1;
         }
         break;
     case 4:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] == a1;
         }
         break;
     case 5:
-        for (n = 0; n < nsmps; n++) {
+        for (n=offset; n<nsmps; n++) {
             out[n] = a0[n] != a1;
         }
         break;
@@ -865,73 +880,10 @@ static int cmparray2_i(CSOUND* csound, Cmp_array2* p) {
 }
 
 
-typedef struct {
-    OPDS h;
-    ARRAYDAT *out;
-    MYFLT *ifn, *kstart, *kend, *kstep;
-    FUNC *ftp;
-    int numitems;
-} TAB2ARRAY;
-
-
-static int tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
-    FUNC        *ftp;
-    ftp = csound->FTFind(csound, p->ifn);
-    if (UNLIKELY(ftp == NULL)) {
-        return NOTOK;
-    }
-    p->ftp = ftp;
-    int start = (int)*p->kstart;
-    int end = (int)*p->kend;
-    int step = (int)*p->kstep;
-    if (end < 1) {
-        end = ftp->flen;
-    }
-    int numitems = (int)ceil((end - start) / (float)step);
-    if(numitems < 0) {
-        return csound->PerfError(
-                    csound, p->h.insdshead,
-                    Str("tab2array: asked to copy a negative number of items"));
-    }
-    arrayensure(csound, p->out, numitems);
-    p->numitems = numitems;
-    return OK;
-}
-
-static int tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
-    FUNC *ftp = p->ftp;
-    int start = (int)*p->kstart;
-    int end = (int)*p->kend;
-    int step = (int)*p->kstep;
-    if (end < 1) {
-        end = ftp->flen;
-    }
-    int numitems = (int)ceil((end - start) / (float)step);
-    if(numitems < 0) {
-        return csound->PerfError(
-                    csound, p->h.insdshead,
-                    Str("tab2array: asked to copy a negative number of items"));
-    }
-    if(numitems > p->numitems) {
-        arrayensure(csound, p->out, numitems);
-        p->numitems = numitems;
-    }
-    MYFLT *out = p->out->data;
-    MYFLT *table = ftp->ftable;
-
-    int i, j=0;
-    for(i=start; i<end; i+=step) {
-        out[j++] = table[i];
-    }
-    return OK;
-}
-
-static int tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
-    if(tab2array_init(csound, p) == OK) {
-        return tab2array_k(csound, p);
-    }
-}
-
+/*
+ * tabslice
+ *
+ */
 
 typedef struct {
     OPDS h;
@@ -979,128 +931,10 @@ static int tabslice_k(CSOUND *csound, TABSLICE *p) {
     }
 }
 
-
-// --------------------------------------------------------------
-
-typedef struct {
-    OPDS h;
-    ARRAYDAT *out;
-    MYFLT *ifn, *istart, *iend;
-    FUNC *ftp;
-    int size;
-} TABALIAS;
-
-static int tabalias_init(CSOUND *csound, TABALIAS *p) {
-    FUNC *ftp;
-    ftp = csound->FTFind(csound, p->ifn);
-    if (UNLIKELY(ftp == NULL)) {
-        return NOTOK;
-    }
-    p->ftp = ftp;
-    int start = *p->istart;
-    int end = *p->iend;
-    if(end == 0)
-        end = ftp->flen;
-    if(p->out->data == NULL) {
-        CS_VARIABLE* var = p->out->arrayType->createVariable(csound, NULL);
-        p->out->arrayMemberSize = var->memBlockSize;
-    }
-    if(p->out->sizes == NULL) {
-        p->out->sizes = (int*)csound->Malloc(csound, sizeof(int));
-    }
-    p->out->data = ftp->ftable + start;
-    p->out->dimensions = 1;
-    p->out->sizes[0] = p->size = end - start;
-    return OK;
-}
-
-static int tabalias_perf(CSOUND *csound, TABALIAS *p) {
-    p->out->data = p->ftp->ftable;
-    p->out->sizes[0] = p->size;
-    return OK;
-}
-
-typedef struct {
-    OPDS h;
-    ARRAYDAT *arrs[64];
-} ARRAYUNALIAS;
-
-
-static int arrayunalias(CSOUND *csound, ARRAYUNALIAS *p) {
-    int i;
-    int numargs = p->INOCOUNT;
-    ARRAYDAT *arr;
-    for(i=0;i<numargs;i++) {
-        arr = p->arrs[i];
-        arr->data = NULL;
-        arr->sizes[0] = 0;
-    }
-    return OK;
-}
-
-typedef struct {
-    OPDS h;
-    ARRAYDAT *out, *in;
-    MYFLT *istart, *iend;
-    MYFLT *dataptr;
-    int size;
-} ARRAYVIEW;
-
-static int arrayview_init(CSOUND *csound, ARRAYVIEW *p) {
-    int end = *p->iend;
-    int start = *p->istart;
-    if(p->in->dimensions > 1) {
-        return INITERR("A view can only be taken from a 1D array");
-    }
-    if(p->out->data == NULL) {
-        CS_VARIABLE* var = p->out->arrayType->createVariable(csound, NULL);
-        p->out->arrayMemberSize = var->memBlockSize;
-    }
-    if(end == 0) {
-        end = p->in->sizes[0];
-    }
-    p->out->data = p->dataptr = p->in->data + start;
-    p->out->dimensions = 1;
-    p->out->sizes = (int*)csound->Malloc(csound, sizeof(int));
-    p->out->sizes[0] = p->size = end - start;
-    return OK;
-}
-
-static int arrayview_k(CSOUND *csound, ARRAYVIEW *p) {
-    p->out->data = p->dataptr;
-    p->out->sizes[0] = p->size;
-}
-
-typedef struct {
-    OPDS h;
-    ARRAYDAT *out, *in;
-    MYFLT *start, *end, *step;
-} ARRAYSLICE;
-
-static int arrayslice(CSOUND *csound, ARRAYSLICE *p) {
-    int start = (int)*p->start;
-    int end = (int)*p->end;
-    int step = (int)*p->step;
-    if (end < 1) {
-        end = p->in->sizes[0];
-    }
-    int numitems = (int)ceil((end - start) / (float)step);
-    if(numitems < 1) {
-        return INITERR("arrayslice: num. items to slice should be >= 1");
-    }
-    arrayensure(csound, p->out, numitems);
-    MYFLT *out = p->out->data;
-    MYFLT *in = p->in->data;
-    int i, j=start;
-    for(i=0; i<numitems; i++) {
-        out[i] = in[j];
-        j += step;
-    }
-    p->out->sizes[0] = numitems;
-    p->out->dimensions = 1;
-    return OK;
-}
-
+/*
+ * reshapearray
+ *
+ */
 
 typedef struct {
     OPDS h;
@@ -1130,6 +964,11 @@ static int arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     a->sizes[0] = numrows;
     a->sizes[1] = numcols;
 }
+
+/*
+ * printarray
+ *
+ */
 
 typedef struct {
     OPDS h;
@@ -1178,6 +1017,11 @@ static int arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
     arrayprint_init(csound, p);
     return arrayprint_perf(csound, p);
 }
+
+/*
+ * bit | and & for array
+ *
+ */
 
 typedef struct {
     OPDS h;
@@ -1282,31 +1126,17 @@ static OENTRY localops[] = {
     { "cmp", S(Cmp_array2), 0, 1, "i[]", "i[]Si[]", (SUBR)cmparray2_i },
     { "cmp", S(Cmp2_array1), 0, 3, "k[]", "kSk[]Sk", (SUBR)cmp2array1_init, (SUBR)cmp2array1_k },
 
-    { "##or", S(BINOP_AAA), 0, 3, "k[]", "k[]k[]", (SUBR)array_binop_init, (SUBR)array_or},
+    { "##or",  S(BINOP_AAA), 0, 3, "k[]", "k[]k[]", (SUBR)array_binop_init, (SUBR)array_or},
     { "##and", S(BINOP_AAA), 0, 3, "k[]", "k[]k[]", (SUBR)array_binop_init, (SUBR)array_and},
 
-    { "arrayview",  S(TABALIAS), 0,  3, "k[]", "ioo", (SUBR)tabalias_init, (SUBR)tabalias_perf},
-    { "aview",  S(TABALIAS), 0,  3, "k[]", "ioo", (SUBR)tabalias_init, (SUBR)tabalias_perf},
-
-    { "arrayview",  S(ARRAYVIEW), 0,  3, "k[]", ".[]oo", (SUBR)arrayview_init, (SUBR)arrayview_k},
-    { "aview",  S(ARRAYVIEW), 0,  3, "k[]", ".[]oo", (SUBR)arrayview_init, (SUBR)arrayview_k},
-
-    { "arrayviewend",  S(ARRAYUNALIAS), 0,  2, "", "*", NULL, (SUBR)arrayunalias},
-    { "aviewend",  S(ARRAYUNALIAS), 0,  2, "", "*", NULL, (SUBR)arrayunalias},
-
-    { "arrayreshape", S(ARRAYRESHAPE), 0, 1, "", "k[]ii", (SUBR)arrayreshape},
-    { "arrayreshape", S(ARRAYRESHAPE), 0, 1, "", "i[]ii", (SUBR)arrayreshape},
-    { "arrayreshape", S(ARRAYRESHAPE), 0, 2, "", ".[]ii", NULL, (SUBR)arrayreshape},
-
-    { "arrayslice", S(TAB2ARRAY), 0, 3, "k[]", "iOOP", (SUBR)tab2array_init, (SUBR)tab2array_k},
-    { "arrayslice", S(TAB2ARRAY), 0, 1, "i[]", "ioop", (SUBR)tab2array_i},
-    { "arrayslice", S(ARRAYSLICE), 0, 1, "i[]", "i[]oop", (SUBR)arrayslice},
-    { "arrayslice", S(ARRAYSLICE), 0, 2, ".[]", ".[]OOP", NULL, (SUBR)arrayslice},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "k[]ii", (SUBR)arrayreshape},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]ii", (SUBR)arrayreshape},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]ii", NULL, (SUBR)arrayreshape},
 
     { "ftslice", S(TABSLICE),  0, 3, "", "iiOOP", (SUBR)tabslice_init, (SUBR)tabslice_k},
 
-    { "arrayprint", S(ARRAYPRINT), 0, 3, "", "k[]P", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
-    { "arrayprint", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
+    { "printarray", S(ARRAYPRINT), 0, 3, "", "k[]P", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
 
 };
 
