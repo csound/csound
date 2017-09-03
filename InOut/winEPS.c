@@ -131,7 +131,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     strlcat(pathnam, ".eps", 1024);
     pp->psfd = csound->FileOpen2(csound, &(pp->psFile), CSFILE_STD, pathnam,
                                    "w", "SFDIR", CSFTYPE_POSTSCRIPT, 0);
-    if (pp->psfd == NULL) {
+    if (UNLIKELY(pp->psfd == NULL)) {
       csound->Message(csound, Str("** Warning **  PostScript file %s "
                                   "cannot be opened\n"), pathnam);
       csound->winEPS_globals = NULL;

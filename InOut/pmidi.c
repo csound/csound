@@ -181,21 +181,21 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
   char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
 
   if (UNLIKELY(start_portmidi(csound) != 0))
-      return 0;
+    return 0;
 
   cnt = portMidi_getDeviceCount(isOutput);
   if (list == NULL) return cnt;
   for (i = 0; i < cnt; i++) {
-      info = portMidi_getDeviceInfo(i, isOutput);
-      if(info->name != NULL)
+    info = portMidi_getDeviceInfo(i, isOutput);
+    if (info->name != NULL)
       strncpy(list[i].device_name, info->name, 63);
-      snprintf(tmp, 64, "%d", i);
-      strncpy(list[i].device_id, tmp, 63);
-      list[i].isOutput = isOutput;
-      if (info->interf != NULL)
-         strncpy(list[i].interface_name, info->interf, 63);
-      else strcpy(list[i].interface_name, "");
-     strncpy(list[i].midi_module, drv, 63);
+    snprintf(tmp, 64, "%d", i);
+    strncpy(list[i].device_id, tmp, 63);
+    list[i].isOutput = isOutput;
+    if (info->interf != NULL)
+      strncpy(list[i].interface_name, info->interf, 63);
+    else strcpy(list[i].interface_name, "");
+    strncpy(list[i].midi_module, drv, 63);
   }
   return cnt;
 }
@@ -224,7 +224,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     pmall_data *next = NULL;
 
 
-    if (start_portmidi(csound) != 0)
+    if (UNLIKELY(start_portmidi(csound) != 0))
       return -1;
     /* check if there are any devices available */
     cntdev = portMidi_getDeviceCount(0);
@@ -290,7 +290,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
           return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
                                           i, Pm_GetErrorText(retval));
         }
-          /* only interested in channel messages (note on, control change, etc.) */
+        /* only interested in channel messages (note on, control change, etc.) */
         /* GAB: fixed for portmidi v.23Aug06 */
         Pm_SetFilter(next->midistream, (PM_FILT_ACTIVE | PM_FILT_SYSEX));
         /* empty the buffer after setting filter */
@@ -346,7 +346,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
     retval = Pm_OpenOutput(&midistream,
                            (PmDeviceID) portMidi_getRealDeviceID(devnum, 1),
                            NULL, 512L, (PmTimeProcPtr) NULL, NULL, 0L);
-    if (retval != pmNoError) {
+    if (UNLIKELY(retval != pmNoError)) {
       return portMidiErrMsg(csound, Str("error opening output device %d: %s"),
                                     devnum, Pm_GetErrorText(retval));
     }
