@@ -49,8 +49,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
       csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
                                   "by Victor Lazzarini\n"));
 
-    if (csound->CreateGlobalVariable(csound, "_pulse_globals",
-                                     sizeof(pulse_globals)) != 0) {
+    if (UNLIKELY(csound->CreateGlobalVariable(csound, "_pulse_globals",
+                                              sizeof(pulse_globals)) != 0)) {
       csound->ErrorMsg(csound, Str(" *** rtpulse: error allocating globals"));
       return -1;
     }
@@ -137,7 +137,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
                                &pulserror
                                ) ;
 
-    if (pulse->ps){
+    if (LIKELY(pulse->ps)){
       csound->Message(csound, Str("pulseaudio output open\n"));
       return 0;
     }
@@ -233,7 +233,7 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
                                /*&attr*/ NULL,
                                &pulserror );
 
-    if (pulse->ps) return 0;
+    if (LIKELY(pulse->ps)) return 0;
     else {
       csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));
