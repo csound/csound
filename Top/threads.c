@@ -758,7 +758,8 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
     notImplementedWarning_("csoundCreateBarrier");
     return 0;
 #else
-  SYNCHRONIZATION_BARRIER *barrier = (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
+  SYNCHRONIZATION_BARRIER *barrier =
+    (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
 
   if (barrier != NULL)
     InitializeSynchronizationBarrier(barrier, max, -1);
@@ -772,8 +773,8 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
     notImplementedWarning_("csoundDestroyBarrier");
     return 0;
 #else
-  DeleteSynchronizationBarrier(barrier);
-  return 0;
+    DeleteSynchronizationBarrier(barrier);
+    return 0;
 #endif
 }
 
@@ -783,27 +784,27 @@ PUBLIC int csoundWaitBarrier(void *barrier)
     notImplementedWarning_("csoundWaitBarrier");
     return 0;
 #else
-  EnterSynchronizationBarrier(barrier, 0);
-  return 0;
+    EnterSynchronizationBarrier(barrier, 0);
+    return 0;
 #endif
 }
 
 PUBLIC void* csoundCreateCondVar()
 {
-  CONDITION_VARIABLE* condVar =
-    (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
+    CONDITION_VARIABLE* condVar =
+      (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
 
-  if (condVar != NULL)
-    InitializeConditionVariable(condVar);
-  return (void*) condVar;
+    if (condVar != NULL)
+      InitializeConditionVariable(condVar);
+    return (void*) condVar;
 }
 
 PUBLIC void csoundCondWait(void* condVar, void* mutex) {
-        SleepConditionVariableCS(&condVar, &mutex, INFINITE);
+    SleepConditionVariableCS(&condVar, &mutex, INFINITE);
 }
 
 PUBLIC void csoundCondSignal(void* condVar) {
-        WakeConditionVariable(&condVar);
+    WakeConditionVariable(&condVar);
 }
 
 /* ------------------------------------------------------------------------ */

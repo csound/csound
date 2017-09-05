@@ -137,7 +137,7 @@ static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
     if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
     do {
       int ch = getc(stream);
-      if (ch == EOF) {                       /* error or EOF       */
+      if (UNLIKELY(ch == EOF)) {             /* error or EOF       */
         if (s == a) return NULL;             /* no chars -> leave  */
         if (ferror(stream)) a = NULL;
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
@@ -167,7 +167,7 @@ void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
       csoundMessage(csound, Str("Removing temporary file %s ...\n"),
                             STA(toremove)->name);
 #endif
-      if (remove(STA(toremove)->name))
+      if (UNLIKELY(remove(STA(toremove)->name)))
         csoundMessage(csound, Str("WARNING: could not remove %s\n"),
                               STA(toremove)->name);
       csound->Free(csound, STA(toremove)->name);
@@ -207,7 +207,7 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int n, CORFIL *stream)
     if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
     do {
       int ch = corfile_getc(stream);
-      if (ch == EOF) {                       /* error or EOF       */
+      if (UNLIKELY(ch == EOF)) {             /* error or EOF       */
         if (s == a) return NULL;             /* no chars -> leave  */
         break;
       }
@@ -274,7 +274,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
           while (isblank(*p)) p++;
 
           if (*p== '"') {
-            if (argc == CSD_MAX_ARGS)
+            if (UNLIKELY(argc == CSD_MAX_ARGS))
               csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
                         CSD_MAX_ARGS);
             argv[++argc] = ++p;
@@ -479,7 +479,7 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
         csound->orchstr = incore;
         return TRUE;
       } else if (comm) {
-        while(p < buffer + CSD_MAX_LINE_LEN){
+        while (p < buffer + CSD_MAX_LINE_LEN){
           if(*p == '*' && *(p+1) == '/') {
            comm = 0;
            // csound->Message(csound, "comment end\n");
@@ -924,8 +924,8 @@ static int checkVersion(CSOUND *csound, CORFIL *cf)
       }
       else if (sscanf(p, "%d.%d", &major, &minor) == 2) {
         if (UNLIKELY(version <= ((major * 1000) + (minor*10)))) {
-          csoundDie(csound, Str("This CSD file requires a version of "
-                                "Csound after %d.%02d"), major, minor);
+          csoundDie(csound, Str("This CSD file requires a version "
+                                "%d.%02d of Csound"), major, minor);
           result = FALSE;
         }
       }

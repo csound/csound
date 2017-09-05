@@ -77,7 +77,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
-    if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
+    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->cs = csound;
