@@ -62,14 +62,14 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
         continue;
       }
       fname = csound->FindInputFile(csound, infilnam, "SFDIR;SSDIR");
-      if (fname == NULL) {
+      if (UNLIKELY(fname == NULL)) {
         csound->Message(csound, Str("%s:\n\tcould not find\n"), infilnam);
         retval = -1;
         continue;
       }
       memset(&sf_info, 0, sizeof(SF_INFO));
       hndl = sf_open(fname, SFM_READ, &sf_info);
-      if (hndl == NULL) {
+      if (UNLIKELY(hndl == NULL)) {
         csound->Message(csound, Str("%s: Not a sound file\n"), fname);
         csound->Free(csound, fname);
         retval = -1;

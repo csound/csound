@@ -112,13 +112,14 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
       csound->SetConfigurationVariable(csound, "msg_color", (void*) &tmp);
     }
 
-    if (argc < 2) {
+    if (UNLIKELY(argc < 2)) {
       for (i = 0; pvlook_usage_txt[i] != NULL; i++)
         csound->Message(csound, "%s\n", Str(pvlook_usage_txt[i]));
       return -1;
     }
 
-    if ((fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt)) < 0) {
+    if (UNLIKELY((fp = csound->PVOC_OpenFile(csound, argv[argc - 1],
+                                             &data, &fmt)) < 0)) {
       csound->ErrorMsg(csound, Str("pvlook: Unable to open '%s'\n Does it exist?"),
                                argv[argc - 1]);
       return -1;

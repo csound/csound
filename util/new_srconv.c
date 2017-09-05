@@ -63,6 +63,14 @@
 
 #define Str_noop(x) x
 
+#if !(defined(__MACH__) && (__GNUC__ == 3) && (__GNUC_MINOR__ < 2))
+#  define LIKELY(x)     __builtin_expect(!!(x),1)
+#  define UNLIKELY(x)   __builtin_expect(!!(x),0)
+#else
+#  define LIKELY(x)     x
+#  define UNLIKELY(x)   x
+#endif
+
 static int rewrt_hdr = 0, heartbeat = 0, ringbell = 0, peaks = SF_TRUE;
 static int filetyp, outformat;
 static char* outfilename = NULL;
@@ -70,7 +78,7 @@ static int block = 0;
 #define FIND(MSG)                                                   \
 {                                                                   \
     if (*s == '\0')                                                 \
-      if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) {    \
+      if (UNLIKELY(!(--argc) || (((s = *argv++) != NULL) && *s == '-'))) { \
         dieu(MSG); return -1;                                       \
       }                                                             \
 }
@@ -109,7 +117,7 @@ static void heartbeater(void)
 
 static char set_output_format(char c, char outformch, int *outformat)
 {
-    if (outformat) {
+    if (UNLIKELY(outformat)) {
       fprintf(stderr, Str("Sound format -%c has been overruled by -%c"),
               outformch, c);
     }
@@ -213,7 +221,7 @@ int main(int argc, char **argv)
             FIND(Str("no outfilename"))
             outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (strcmp(outfilename, "stdin") == 0) {
+            if (UNLIKELY(strcmp(outfilename, "stdin") == 0)) {
               fprintf(stderr, Str("-o cannot be stdin"));
               return -1;
             }
@@ -295,7 +303,7 @@ int main(int argc, char **argv)
         return -1;
       }
     }
-    if (infile == NULL) {
+    if (UNLIKELY(infile == NULL)) {
       fprintf(stderr, Str("No input given\n"));
       usage();
       return -1;
@@ -319,12 +327,12 @@ int main(int argc, char **argv)
       break;
     }
 
-    if ((P != 0.0) && (Rout != 0.0)) {
+    if (UNLIKELY((P != 0.0) && (Rout != 0.0))) {
       strncpy(err_msg, Str("srconv: cannot specify both -r and -P"), 299);
       goto err_rtn_msg;
     }
 
-    if ((inf = sf_open(infile, SFM_READ, &sfinfo)) == NULL) {
+    if (UNLIKELY((inf = sf_open(infile, SFM_READ, &sfinfo)) == NULL)) {
       fprintf(stderr, Str("error while opening %s"), infile);
       return -1;
     }
@@ -340,24 +348,24 @@ int main(int argc, char **argv)
     //printf("P=%f, Rin=%f, Rout=%f\n", P, Rin, Rout);
 
     if (tvflg) {
-      if ((tvfp = fopen(bfile, "r")) == NULL) {
+      if (UNLIKELY((tvfp = fopen(bfile, "r")) == NULL)) {
         strncpy(err_msg,
                 Str("srconv: cannot open time-vary function file"), 299);
         goto err_rtn_msg1;
       }
-      if (fscanf(tvfp, "%d", &tvlen) != 1) {
+      if (UNLIKELY(fscanf(tvfp, "%d", &tvlen) != 1)) {
         strncpy(err_msg, Str("Read failure of warp file\n"), 299);
         fclose(tvfp);
         goto err_rtn_msg1;
       }
-      if (tvlen <= 0) {
+      if (UNLIKELY(tvlen <= 0)) {
         fclose(tvfp);
         strncpy(err_msg, Str("srconv: tvlen <= 0 "), 299);
         goto err_rtn_msg1;
       }
       warp = (WARP*) calloc((tvlen+2), sizeof(WARP));
       for (i = 0; i < tvlen; i++) {
-        if (fscanf(tvfp, "%lf %lf", &warp[i].time, &warp[i].ratio) != 2) {
+        if (UNLIKELY(fscanf(tvfp, "%lf %lf", &warp[i].time, &warp[i].ratio) != 2)) {
           strncpy(err_msg, Str("srconv: too few x-y pairs "
                                 "in time-vary function file"), 299);
           fclose(tvfp);
@@ -368,7 +376,7 @@ int main(int argc, char **argv)
       warp[tvlen].ratio = warp[tvlen-1].ratio;
       warp[tvlen].frame = flen; warp[tvlen].time = flen/Rin;
       tvlen++;
-      if (warp[0].frame != 0.0) {
+      if (UNLIKELY(warp[0].frame != 0.0)) {
         strncpy(err_msg, Str("srconv: first frame value "
                              "in time-vary function must be 0"), 299);
         goto err_rtn_msg1;
@@ -400,7 +408,7 @@ int main(int argc, char **argv)
     //printf("filetyp=%x outformat=%x\n", filetyp, outformat);
     sfinfo.format = filetyp | outformat;
     outf = sf_open(outfilename, SFM_WRITE, &sfinfo);
-    if (outf == NULL) {
+    if (UNLIKELY(outf == NULL)) {
       snprintf(err_msg, 299, Str("cannot open %s."), outfilename);
       goto err_rtn_msg1;
     }
@@ -423,7 +431,7 @@ int main(int argc, char **argv)
 
       if (C==0) C=1;            /* avoid silly value for buffer sizes */
       state = src_new(Q, Chans, &err); /* initialise */
-      if (state==NULL) {
+      if (UNLIKELY(state==NULL)) {
         fprintf(stderr,
                 "Error: failed to initialise SRC -- %s\n", src_strerror(err));
         sf_close(inf); sf_close(outf);
@@ -463,12 +471,12 @@ int main(int argc, char **argv)
           CC += data.input_frames; countin += data.input_frames;
         }
         err = src_process(state, &data);
-        if (err) {
+        if (UNLIKELY(err)) {
           fprintf(stderr, "srconv: error: %s\n", src_strerror(err));
           sf_close(inf); sf_close(outf);
           exit(1);
         }
-        if (data.end_of_input && data.output_frames_gen == 0) break;
+        if (UNLIKELY(data.end_of_input && data.output_frames_gen == 0)) break;
         sf_writef_float(outf, output, data.output_frames_gen);
         if (rewrt_hdr)
           sf_command(outf, SFC_UPDATE_HEADER_NOW, NULL, 0);
@@ -494,7 +502,7 @@ int main(int argc, char **argv)
       int count = 0;
 
       state = src_new(Q, Chans, &err);
-      if (state==NULL) {
+      if (UNLIKELY(state==NULL)) {
         fprintf(stderr,
                 "Error: failed to initialise SRC -- %s\n", src_strerror(err));
         sf_close(inf); sf_close(outf);
@@ -514,16 +522,16 @@ int main(int argc, char **argv)
           data.data_in = input;
         }
         err = src_process(state, &data);
-        if (err) {
+        if (UNLIKELY(err)) {
           fprintf(stderr, "srconv: error: %s\n", src_strerror(err));
           sf_close(inf); sf_close(outf); free(input); free(output);
           exit(1);
         }
-        if (data.end_of_input && data.output_frames_gen == 0) break;
+        if (UNLIKELY(data.end_of_input && data.output_frames_gen == 0)) break;
         sf_writef_float(outf, output, data.output_frames_gen);
-        if (rewrt_hdr)
+        if (UNLIKELY(rewrt_hdr))
           sf_command(outf, SFC_UPDATE_HEADER_NOW, NULL, 0);
-        if (heartbeat) heartbeater();
+        if (UNLIKELY(heartbeat)) heartbeater();
         count += data.output_frames_gen;
         data.data_in += data.input_frames_used * Chans;
         data.input_frames -= data.input_frames_used;
