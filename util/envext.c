@@ -37,7 +37,7 @@
 
 #define SHORTMAX 32767.0
 #define FIND(MSG)   if (*s == '\0')  \
-    if (!(--argc) || ((s = *++argv) && *s == '-')) {     \
+    if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-'))) {          \
       csound->Message(csound, MSG); csound->LongJmp(csound, 1); }
 
 /* Static function prototypes */
@@ -73,7 +73,7 @@ static int envext(CSOUND *csound, int argc, char **argv)
     memset(&OO, 0, sizeof(OO));
 
     /* Check arguments */
-    if (!(--argc))
+    if (UNLIKELY(!(--argc)))
       envext_usage(csound, Str("Insufficient arguments"));
     do {
       s = *++argv;
@@ -93,7 +93,7 @@ static int envext(CSOUND *csound, int argc, char **argv)
           default:
             envext_usage(csound, Str("unknown flag -%c"), c);
           }
-      else if (inputfile == NULL) {
+      else if (LIKELY(inputfile == NULL)) {
         inputfile = --s;
       }
       else envext_usage(csound, Str("too many arguments"));

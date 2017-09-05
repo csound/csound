@@ -139,8 +139,8 @@ static  int     quit(CSOUND *, char *msg);
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
 #define FIND(MSG)   if (*s == '\0')  \
-                        if (!(--argc) || ((s = *++argv) && *s == '-'))  \
-                            return quit(csound, MSG);
+    if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
+      return quit(csound, MSG);
 
 #define MAXPVXCHANS     (8)
 #define DEFAULT_BUFLEN  (8192)  /* per channel */
@@ -166,92 +166,92 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     int displays = 0;
 
 
-    if (!(--argc))
+    if (UNLIKELY(!(--argc)))
       return quit(csound, Str("insufficient arguments"));
-      do {
-        char *s = *++argv;
-        if (*s++ == '-')
-          switch (*s++) {
-          case 's': FIND(Str("no sampling rate"));
+    do {
+      char *s = *++argv;
+      if (*s++ == '-')
+        switch (*s++) {
+        case 's': FIND(Str("no sampling rate"));
 #if defined(USE_DOUBLE)
-            csound->sscanf(s, "%lf", &sr);
+          csound->sscanf(s, "%lf", &sr);
 #else
-            csound->sscanf(s, "%f", &sr);
+          csound->sscanf(s, "%f", &sr);
 #endif
-            break;
-          case 'c':  FIND(Str("no channel"));
-            sscanf(s, "%d", &channel);
-            break;
-          case 'b':  FIND(Str("no begin time"));
+          break;
+        case 'c':  FIND(Str("no channel"));
+          sscanf(s, "%d", &channel);
+          break;
+        case 'b':  FIND(Str("no begin time"));
 #if defined(USE_DOUBLE)
-            csound->sscanf(s, "%lf", &beg_time);
+          csound->sscanf(s, "%lf", &beg_time);
 #else
-            csound->sscanf(s, "%f", &beg_time);
+          csound->sscanf(s, "%f", &beg_time);
 #endif
-            break;
-          case 'd':  FIND(Str("no duration time"));
+          break;
+        case 'd':  FIND(Str("no duration time"));
 #if defined(USE_DOUBLE)
-            csound->sscanf(s, "%lf", &input_dur);
+          csound->sscanf(s, "%lf", &input_dur);
 #else
-            csound->sscanf(s, "%f", &input_dur);
+          csound->sscanf(s, "%f", &input_dur);
 #endif
-            break;
-          case 'H':
-            WindowType = PVOC_HAMMING;
-            break;
-          case 'K':
-            WindowType = PVOC_KAISER;
-            break;
-          case 'B':
-            FIND(Str("no beta given"));
+          break;
+        case 'H':
+          WindowType = PVOC_HAMMING;
+          break;
+        case 'K':
+          WindowType = PVOC_KAISER;
+          break;
+        case 'B':
+          FIND(Str("no beta given"));
             csound->sscanf(s, "%lf", &beta);
             break;
-          case 'n':  FIND(Str("no framesize"));
-            sscanf(s, "%ld", &frameSize);
-            if (frameSize < MINFRMPTS || frameSize > MAXFRMPTS) {
-              snprintf(err_msg, 512, Str("frameSize must be between %d and %d"),
-                               MINFRMPTS, MAXFRMPTS);
-              return quit(csound, err_msg);
-            }
-            if (frameSize & 1L)
-              return quit(csound, Str("pvanal: frameSize must be even"));
-            break;
-          case 'w':  FIND(Str("no windfact"));
-            sscanf(s, "%d", &ovlp);
-            break;
-          case 'h':  FIND(Str("no hopsize"));
-            sscanf(s, "%ld", &frameIncr);
-            break;
-          case 'g':  displays = 1;
-            break;
-          case 'G':  FIND(Str("no latch"));
-            sscanf(s, "%d", &latch);
-            displays = 1;
-            break;
-          case 'V':  FIND(Str("no output file for trace"));
-            {
-              void  *dummy = csound->FileOpen2(csound, &trfil, CSFILE_STD, s,
-                                       "w", NULL, CSFTYPE_OTHER_TEXT, 0);
-              if (dummy == NULL)
-                return quit(csound, Str("Failed to open text file"));
-              csound->Message(csound, Str("Writing text form to file %s\n"), s);
-            }
-          default:
-            return quit(csound, Str("unrecognised switch option"));
+        case 'n':  FIND(Str("no framesize"));
+          sscanf(s, "%ld", &frameSize);
+          if (UNLIKELY(frameSize < MINFRMPTS || frameSize > MAXFRMPTS)) {
+            snprintf(err_msg, 512, Str("frameSize must be between %d and %d"),
+                     MINFRMPTS, MAXFRMPTS);
+            return quit(csound, err_msg);
           }
-        else break;
-      } while (--argc);
+          if (UNLIKELY(frameSize & 1L))
+            return quit(csound, Str("pvanal: frameSize must be even"));
+          break;
+        case 'w':  FIND(Str("no windfact"));
+          sscanf(s, "%d", &ovlp);
+          break;
+        case 'h':  FIND(Str("no hopsize"));
+          sscanf(s, "%ld", &frameIncr);
+          break;
+        case 'g':  displays = 1;
+            break;
+        case 'G':  FIND(Str("no latch"));
+          sscanf(s, "%d", &latch);
+          displays = 1;
+          break;
+        case 'V':  FIND(Str("no output file for trace"));
+          {
+            void  *dummy = csound->FileOpen2(csound, &trfil, CSFILE_STD, s,
+                                             "w", NULL, CSFTYPE_OTHER_TEXT, 0);
+            if (UNLIKELY(dummy == NULL))
+              return quit(csound, Str("Failed to open text file"));
+            csound->Message(csound, Str("Writing text form to file %s\n"), s);
+          }
+        default:
+          return quit(csound, Str("unrecognised switch option"));
+        }
+      else break;
+    } while (--argc);
 
-      if (argc != 2)
-        return quit(csound, Str("illegal number of filenames"));
-      infilnam = *argv++;
-      outfilnam = *argv;
+    if (UNLIKELY(argc != 2))
+      return quit(csound, Str("illegal number of filenames"));
+    infilnam = *argv++;
+    outfilnam = *argv;
 
-    if (ovlp && frameIncr)
+    if (UNLIKELY(ovlp && frameIncr))
       return quit(csound, Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
-    if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
-                                    &input_dur, &sr, channel)) == NULL) {
+    if (UNLIKELY((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+                                             &input_dur, &sr, channel)) == NULL)) {
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
     }
@@ -273,7 +273,7 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
       ovlp = frameSize/frameIncr;
     else frameIncr = frameSize/ovlp;
 
-    if (ovlp < 2 || ovlp > 64) {
+    if (UNLIKELY(ovlp < 2 || ovlp > 64)) {
       csound->Message(csound,
                       Str("WARNING: pvanal: %d might be a bad window "
                           "overlap index\n"),
@@ -288,19 +288,19 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
                             (long) oframeEst);
 
     /* even for old pvoc file, is absence of extension OK? */
-    if (p->nchanls > MAXPVXCHANS) {
+    if (UNLIKELY(p->nchanls > MAXPVXCHANS)) {
       csound->Message(csound, Str("pvxanal - source has too many channels: "
                                   "Maxchans = %d.\n"), MAXPVXCHANS);
       return -1;
     }
     csound->Message(csound, Str("pvanal: creating pvocex file\n"));
     /* handle all messages in here, for now */
-    if (displays)
+    if (UNLIKELY(displays))
         csound->dispinit(csound);
-    if (pvxanal(csound, p, infd, outfilnam, p->sr,
+    if (UNLIKELY(pvxanal(csound, p, infd, outfilnam, p->sr,
                         ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
-                WindowType, beta, displays) != 0) {
+                         WindowType, beta, displays) != 0)) {
       csound->Message(csound, Str("error generating pvocex file.\n"));
       return -1;
     }
@@ -460,7 +460,7 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
     pvfile  = csound->PVOC_CreateFile(csound, fname, fftsize, overlap, chans,
                                               PVOC_AMP_FREQ, srate, stype,
                                               wintype, 0.0f, NULL, winsize);
-    if (pvfile < 0) {
+    if (UNLIKELY(pvfile < 0)) {
       csound->Message(csound,
                       Str("pvxanal: unable to create analysis file: %s"),
                       csound->PVOC_ErrorString(csound));
@@ -488,10 +488,10 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
         for (k = 0; k < chans; k++) {
           frame = frame_c[k];
           chanbuf = inbuf_c[k];
-          if (!csound->CheckEvents(csound))
+          if (UNLIKELY(!csound->CheckEvents(csound)))
             csound->LongJmp(csound, 1);
           generate_frame(csound, pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
-          if (!csound->PVOC_PutFrames(csound, pvfile, frame, 1)) {
+          if (UNLIKELY(!csound->PVOC_PutFrames(csound, pvfile, frame, 1))) {
             csound->Message(csound,
                             Str("pvxanal: error writing analysis frames: %s\n"),
                             csound->PVOC_ErrorString(csound));
@@ -523,7 +523,7 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
         if (!csound->CheckEvents(csound))
           csound->LongJmp(csound, 1);
         generate_frame(csound,pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
-        if (!csound->PVOC_PutFrames(csound, pvfile, frame, 1)) {
+        if (UNLIKELY(!csound->PVOC_PutFrames(csound, pvfile, frame, 1))) {
           csound->Message(csound,
                           Str("pvxanal: error writing analysis frames: %s\n"),
                           csound->PVOC_ErrorString(csound));
@@ -575,11 +575,11 @@ static int init(CSOUND *csound,
     M = winsize;
     D = overlap;
 
-    if (N <= 0)
+    if (UNLIKELY(N <= 0))
       return 1;
-    if (D < 0)
+    if (UNLIKELY(D < 0))
       return 1;
-    if (M < 0)
+    if (UNLIKELY(M < 0))
       return 1;
 
     thispvx->isr         = srate;

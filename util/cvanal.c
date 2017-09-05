@@ -43,8 +43,8 @@ static int CVAlloc(CSOUND*, CVSTRUCT**, long, int, MYFLT,
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
 #define FIND(MSG)   if (*s == '\0')  \
-                        if (!(--argc) || ((s = *++argv) && *s == '-'))  \
-                            return quit(csound,MSG);
+                      if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
+                        return quit(csound,MSG);
 
 static int cvanal(CSOUND *csound, int argc, char **argv)
 {
@@ -63,7 +63,7 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
     int new_format = 0;
 
     /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0); */
-    if (!(--argc)) {
+    if (UNLIKELY(!(--argc))) {
       return quit(csound, Str("insufficient arguments"));
     }
     do {
@@ -81,7 +81,7 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
         case 'c':
           FIND(Str("no channel"))
             sscanf(s, "%d", &channel);
-          if ((channel < 1) || (channel > 4))
+          if (UNLIKELY((channel < 1) || (channel > 4)))
             return quit(csound, Str("channel must be in the range 1 to 4"));
           break;
         case 'b':
@@ -108,12 +108,13 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
       else break;
     } while (--argc);
 
-    if (argc !=  2) return quit(csound, Str("illegal number of filenames"));
+    if (UNLIKELY(argc !=  2))
+      return quit(csound, Str("illegal number of filenames"));
     infilnam = *argv++;
     outfilnam = *argv;
 
-    if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
-                                    &input_dur, &sr, channel)) == NULL) {
+    if (UNLIKELY((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+                                             &input_dur, &sr, channel)) == NULL)) {
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
     }
@@ -128,8 +129,8 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
       Estdatasiz *= p->nchanls;
 
     /* alloc & fill CV hdrblk */
-    if ((err = CVAlloc(csound, &cvh, Estdatasiz, CVMYFLT, sr,
-                       p->nchanls, channel, Hlen, CVRECT, 4))) {
+    if (UNLIKELY((err = CVAlloc(csound, &cvh, Estdatasiz, CVMYFLT, sr,
+                                p->nchanls, channel, Hlen, CVRECT, 4)))) {
       csound->Message(csound, Str("cvanal: Error allocating header\n"));
       return -1;
     }
@@ -137,14 +138,11 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
 
       ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "w",
                                      "SFDIR", CSFTYPE_CVANAL, 0);
-      if (ofd_handle == NULL) {                   /* open the output CV file */
+      if (UNLIKELY(ofd_handle == NULL)) {         /* open the output CV file */
         return quit(csound, Str("cannot create output file"));
       }                                           /* & wrt hdr into the file */
-      #if defined(USE_DOUBLE)
+#if defined(USE_DOUBLE)
       fprintf(ofd, "CVANAL\n%d %d %d %.17lg %d %d %d %d\n",
-      #else
-      fprintf(ofd, "CVANAL\n%d %d %d %.9g %d %d %d %d\n",
-      #endif
               cvh->headBsize,              /* total number of bytes of data */
               cvh->dataBsize,              /* total number of bytes of data */
               cvh->dataFormat,             /* (int) format specifier */
@@ -153,14 +151,25 @@ static int cvanal(CSOUND *csound, int argc, char **argv)
               cvh->channel,                /* requested channel(s) */
               cvh->Hlen,                   /* length of impulse reponse */
               cvh->Format);                /* (int) how words are org'd in frm */
+#else
+      fprintf(ofd, "CVANAL\n%d %d %d %.9g %d %d %d %d\n",
+              cvh->headBsize,              /* total number of bytes of data */
+              cvh->dataBsize,              /* total number of bytes of data */
+              cvh->dataFormat,             /* (int) format specifier */
+              (double)cvh->samplingRate,   /* of original sample */
+              cvh->src_chnls,              /* no. of channels in source */
+              cvh->channel,                /* requested channel(s) */
+              cvh->Hlen,                   /* length of impulse reponse */
+              cvh->Format);                /* (int) how words are org'd in frm */
+#endif
     }
     else {
       ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "wb",
                                      "SFDIR", CSFTYPE_CVANAL, 0);
-      if (ofd_handle == NULL) {                   /* open the output CV file */
+      if (UNLIKELY(ofd_handle == NULL)) {           /* open the output CV file */
         return quit(csound, Str("cannot create output file"));
       }                                           /* & wrt hdr into the file */
-      if ((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize) {
+      if (UNLIKELY((long) fwrite(cvh, 1, cvh->headBsize, ofd) < cvh->headBsize)) {
         return quit(csound, Str("cannot write header"));
       }
     }
@@ -190,7 +199,7 @@ static int takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
     j = (int) (Hlen * nchanls);
     inbuf = fp1 = (MYFLT *) csound->Malloc(csound, j * sizeof(MYFLT));
-    if ((read_in = csound->getsndin(csound, infd, inbuf, j, p)) < j) {
+    if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf, j, p)) < j)) {
       csound->Message(csound, Str("less sound than expected!\n"));
       return -1;
     }
