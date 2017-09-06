@@ -28,6 +28,16 @@
 #define LOG001 FL(-6.907755278982137)
 #define CALCSLOPE(next,prev,nsmps) ((next - prev)/nsmps)
 
+
+#define SAMPLE_ACCURATE \
+uint32_t offset = p->h.insdshead->ksmps_offset;                   \
+uint32_t early  = p->h.insdshead->ksmps_no_end;                   \
+if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));    \
+if (UNLIKELY(early)) {                                            \
+    nsmps -= early;                                               \
+    memset(&out[nsmps], '\0', early*sizeof(MYFLT));               \
+}                                                                 \
+
 /* #define ZXP(z) (*(z)++) */
 
 static inline MYFLT zapgremlins(MYFLT x)
@@ -128,8 +138,11 @@ static int laga_next(CSOUND *csound, LAG *p) {
     MYFLT y1 = p->y1;
     MYFLT b1 = p->b1;
     MYFLT y0;
+
+    SAMPLE_ACCURATE
+
     if (lag == p->lag) {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         y0 = in[n];
         y1 = y0 + b1 * (y1 - y0);
         out[n] = y1;
@@ -141,7 +154,7 @@ static int laga_next(CSOUND *csound, LAG *p) {
       p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
       MYFLT b1_slope = CALCSLOPE(p->b1, b1, nsmps);
       p->lag = lag;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         b1 += b1_slope;
         y0 = in[n];
         y1 = y0 + b1 * (y1 - y0);
@@ -172,8 +185,10 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
 
     uint32_t n, nsmps = CS_KSMPS;
 
+    SAMPLE_ACCURATE
+
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         MYFLT y0 = in[n];
         if (y0 > y1)
           y1 = y0 + b1u * (y1 - y0);
@@ -190,7 +205,7 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
       p->b1d = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
       MYFLT b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps);
       p->lagd = lagd;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         MYFLT y0 = in[n];
         b1u += b1u_slope;
         b1d += b1d_slope;
@@ -273,7 +288,10 @@ static int trig_a(CSOUND *csound, Trig *p) {
       level = p->level;
     unsigned long counter = p->counter;
     uint32_t n, nsmps = CS_KSMPS;
-    for(n=0; n<nsmps; n++) {
+
+    SAMPLE_ACCURATE
+
+    for(n=offset; n<nsmps; n++) {
       MYFLT curtrig = in[n];
       MYFLT zout;
       if (counter > 0) {
@@ -365,34 +383,29 @@ static int trig_init(CSOUND *csound, Trig *p) {
 typedef struct {
   OPDS    h;
   MYFLT   *out, *trig, *rate, *start, *end, *resetPos;
-  MYFLT   level, previn, resetk;
+  MYFLT   level, previn;
 } Phasor;
 
 static int phasor_init(CSOUND *csound, Phasor *p) {
     p->previn = 0;
     p->level = 0;
-    p->resetk = 1;
     return OK;
 }
 
-static int phasor_init0(CSOUND *csound, Phasor *p) {
-    p->previn = 0;
-    p->level = 0;
-    p->resetk = 0;
-    return OK;
-}
-
-static int phasor_aa(CSOUND *csound, Phasor *p) {
+static int phasor_a_aa(CSOUND *csound, Phasor *p) {
     MYFLT *out  = p->out;
     MYFLT *in = p->trig;
     MYFLT *rate = p->rate;
     MYFLT start = *p->start;
     MYFLT end   = *p->end;
-    MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+    MYFLT resetPos = *p->resetPos;
     MYFLT previn = p->previn;
     MYFLT level = p->level;
     uint32_t n, nsmps = CS_KSMPS;
-    for(n=0; n<nsmps; n++) {
+
+    SAMPLE_ACCURATE
+
+    for(n=offset; n<nsmps; n++) {
       MYFLT curin = in[n];
       MYFLT zrate = rate[n];
       if (previn <= FL(0.0) && curin > FL(0.0)) {
@@ -409,18 +422,20 @@ static int phasor_aa(CSOUND *csound, Phasor *p) {
     return OK;
 }
 
-static int phasor_ak(CSOUND *csound, Phasor *p) {
+static int phasor_a_ak(CSOUND *csound, Phasor *p) {
     MYFLT *out  = p->out;
     MYFLT *in   = p->trig;
     MYFLT rate  = *p->rate;
     MYFLT start = *p->start;
     MYFLT end   = *p->end;
-    // MYFLT resetPos = *p->resetPos;
-    MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+    MYFLT resetPos = *p->resetPos;
     MYFLT previn = p->previn;
     MYFLT level = p->level;
     uint32_t n, nsmps = CS_KSMPS;
-    for(n=0; n<nsmps; n++) {
+
+    SAMPLE_ACCURATE
+
+    for(n=offset; n<nsmps; n++) {
       MYFLT curin = in[n];
       if (previn <= FL(0.0) && curin > FL(0.0)) {
         MYFLT frac = FL(1.0) - previn/(curin-previn);
@@ -436,13 +451,40 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
     return OK;
 }
 
-static int phasor_kk(CSOUND *csound, Phasor *p) {
+static int phasor_a_kk(CSOUND *csound, Phasor *p) {
+    MYFLT *out  = p->out;
     MYFLT curin = *p->trig;
     MYFLT rate  = *p->rate;
     MYFLT start = *p->start;
     MYFLT end   = *p->end;
-    // MYFLT resetPos = *p->resetPos;
-    MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+    MYFLT resetPos = *p->resetPos;
+    MYFLT previn = p->previn;
+    MYFLT level = p->level;
+    int trig = (previn <= FL(0.0)) && (curin > FL(0.0));
+    MYFLT frac = FL(1.0) - previn/(curin-previn);
+    uint32_t n, nsmps = CS_KSMPS;
+
+    SAMPLE_ACCURATE
+
+    for(n=offset; n<nsmps; n++) {
+      if (trig) {
+        level = resetPos + frac * rate;
+      }
+      out[n] = level;
+      level += rate;
+      level = sc_wrap(level, start, end);
+    }
+    p->previn = curin;
+    p->level = level;
+    return OK;
+}
+
+static int phasor_k_kk(CSOUND *csound, Phasor *p) {
+    MYFLT curin = *p->trig;
+    MYFLT rate  = *p->rate;
+    MYFLT start = *p->start;
+    MYFLT end   = *p->end;
+    MYFLT resetPos = *p->resetPos;
     MYFLT previn = p->previn;
     MYFLT level = p->level;
 
@@ -461,28 +503,16 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "sc_lag", S(LAG),   0, 3,   "k", "kko",
-    (SUBR)lagk_init, (SUBR)lagk_next, NULL, NULL },
-  { "sc_lag", S(LAG),   0, 5,   "a", "ako",
-    (SUBR)laga_init, NULL, (SUBR)laga_next, NULL },
+  { "sc_lag", S(LAG),   0, 3,   "k", "kko", (SUBR)lagk_init, (SUBR)lagk_next, NULL, NULL },
+  { "sc_lag", S(LAG),   0, 5,   "a", "ako", (SUBR)laga_init, NULL, (SUBR)laga_next, NULL },
   { "sc_lagud",   S(LagUD), 0, 3,   "k", "kkko", (SUBR)lagud_init, (SUBR)lagud_k },
-  { "sc_lagud",   S(LagUD), 0, 5,   "a", "akko",
-    (SUBR)lagud_init, NULL, (SUBR)lagud_a },
+  { "sc_lagud",   S(LagUD), 0, 5,   "a", "akko", (SUBR)lagud_init, NULL, (SUBR)lagud_a },
   { "sc_trig",    S(Trig),  0, 3,   "k", "kk", (SUBR)trig_init, (SUBR)trig_k },
-  { "sc_trig",    S(Trig),  0, 5,   "a", "ak",
-    (SUBR)trig_init, NULL, (SUBR)trig_a },
-  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkkk",
-    (SUBR)phasor_init, (SUBR)phasor_kk },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkkk",
-    (SUBR)phasor_init, NULL, (SUBR)phasor_ak },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakkk",
-    (SUBR)phasor_init, NULL, (SUBR)phasor_aa },
-  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkk",
-    (SUBR)phasor_init0, (SUBR)phasor_kk },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkk",
-    (SUBR)phasor_init0, NULL, (SUBR)phasor_ak },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakk",
-    (SUBR)phasor_init0, NULL, (SUBR)phasor_aa }
+  { "sc_trig",    S(Trig),  0, 5,   "a", "ak", (SUBR)trig_init, NULL, (SUBR)trig_a },
+  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkkO", (SUBR)phasor_init, (SUBR)phasor_k_kk },
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkkO", (SUBR)phasor_init, NULL, (SUBR)phasor_a_ak },
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakkO", (SUBR)phasor_init, NULL, (SUBR)phasor_a_aa },
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "kkkkO", (SUBR)phasor_init, NULL, (SUBR)phasor_a_kk }
 };
 
 LINKAGE
