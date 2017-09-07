@@ -243,7 +243,7 @@ static int lagud_k(CSOUND *csound, LagUD *p) {
       p->b1d = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
       p->lagd = lagd;
       MYFLT y0 = *in;
-vv      if (y0 > y1)
+      if (y0 > y1)
         y1 = y0 + p->b1u * (y1 - y0);
       else
         y1 = y0 + p->b1d * (y1 - y0);
