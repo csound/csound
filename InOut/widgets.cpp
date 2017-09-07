@@ -1348,7 +1348,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 
 int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 {
-    if (is_empty == 1) {
+    if (UNLIKELY(is_empty == 1)) {
       /*  FIXME: should have CSOUND* pointer here */
       /*  return csound->InitError(csound, Str("empty snapshot")); */
       return -1;
@@ -3544,8 +3544,8 @@ extern "C" {
             o->callback((Fl_Callback*)fl_callbackTableSlider,(void *) p);
         }
       }
-      widgetGlobals->AddrSetValue.push_back(ADDR_SET_VALUE(iexp, *p->imin, *p->imax,
-                                                (void *) o, (void*) p));
+      widgetGlobals->AddrSetValue.push_back(ADDR_SET_VALUE(iexp, *p->imin,
+                                                *p->imax, (void *) o, (void*) p));
       /*widgetGlobals->currentSnapGroup;*/
       *p->ihandle = widgetGlobals->AddrSetValue.size()-1;
       return OK;

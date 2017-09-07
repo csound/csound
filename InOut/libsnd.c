@@ -716,7 +716,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         parm.sampleRate   = (float) csound->esr;
         csound->spoutran  = spoutsf;
         /* open devaudio for output */
-        if (csound->playopen_callback(csound, &parm) != 0)
+        if (UNLIKELY(csound->playopen_callback(csound, &parm) != 0))
           csoundDie(csound, Str("Failed to initialise real time audio output"));
         /*  & redirect audio puts  */
         csound->audtran = csound->rtplay_callback;
@@ -763,14 +763,14 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       if (STA(outfile) == NULL) {
         char fmt_name[6];
         if (O->sfsampsize == 8) {
-          if (O->filetyp == TYP_AU)
+          if (UNLIKELY(O->filetyp == TYP_AU))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                       sf_strerror(NULL));
           strcpy(fmt_name, "AU");
           O->filetyp = TYP_AU;
         }
         else {
-          if (O->filetyp == TYP_IRCAM)
+          if (UNLIKELY(O->filetyp == TYP_IRCAM))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                       sf_strerror(NULL));
           strcpy(fmt_name, "IRCAM");

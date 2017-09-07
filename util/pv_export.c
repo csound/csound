@@ -53,14 +53,14 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
       return 1;
     }
     inf = csound->PVOC_OpenFile(csound, argv[1], &data, &fmt);
-    if (inf<0) {
+    if (UNLIKELY(inf<0)) {
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
     if (strcmp(argv[2], "-")==0) outf=stdout;
     else
       outf = fopen(argv[2], "w");
-    if (outf == NULL) {
+    if (UNLIKELY(outf == NULL)) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
       csound->PVOC_CloseFile(csound, inf);
       return 1;

@@ -8621,13 +8621,13 @@ msgid "Unknown panning type"
 msgstr "Type de panoramique inconnu"
 
 #: Opcodes/partials.c:178
-#, fuzzy
 msgid "partials: first input not in AMP_FREQ format \n"
-msgstr "trmix : la première entrée n'est pas au format TRACKS\n"
+msgstr "partials : la première entrée n'est pas au format AMP_FREQ\n"
 
 #: Opcodes/partials.c:183
 msgid "partials: no phase input, tracks will contain amp & freq only\n"
 msgstr ""
+"partials : pas d'entrée de phase, les pistes ne contiendront que amp & fréq\n"
 
 #: Opcodes/partikkel.c:26 Opcodes/partikkel.c:27 Opcodes/partikkel.c:28
 msgid "partikkel: "
@@ -8882,9 +8882,8 @@ msgid "Missing output table or too short"
 msgstr "Table de sortie manquante ou trop courte !"
 
 #: Opcodes/pluck.c:156
-#, fuzzy
 msgid "wgpluck:Could not allocate for initial shape"
-msgstr "Impossible d'allouer la forme initiale"
+msgstr "wgpluck : impossible d'allouer la forme initiale"
 
 #: Opcodes/psynth.c:97 Opcodes/psynth.c:264
 msgid "psynth: first input not in TRACKS format\n"
@@ -9780,9 +9779,8 @@ msgid "read from socket failed"
 msgstr "la lecture depuis le socket a échoué"
 
 #: Opcodes/sockrecv.c:523 Opcodes/sockrecv.c:526
-#, fuzzy
 msgid "OSCraw: Closing socket\n"
-msgstr "création du socket\n"
+msgstr "OSCraw : fermeture du socket\n"
 
 #: Opcodes/sockrecv.c:605
 msgid "output array too small\n"
@@ -12207,14 +12205,14 @@ msgid "%s not a recognised SFOUTYP env setting"
 msgstr "%s n'est pas un réglage d'env SFOUTYP reconnu"
 
 #: Top/main.c:536
-#, fuzzy, c-format
+#, c-format
 msgid "Real-time score events (engineStatus: %d).\n"
-msgstr "Exécution en \"temps réel\" (engineStatus : %d).\n"
+msgstr "Evènements de partition en temps réel (engineStatus : %d).\n"
 
 #: Top/main.c:543
-#, fuzzy, c-format
+#, c-format
 msgid "Compiled score (engineStatus: %d).\n"
-msgstr "Exécution en \"temps réel\" (engineStatus : %d).\n"
+msgstr "Partition compilée (engineStatus : %d).\n"
 
 #: Top/new_opts.c:58
 msgid "<integer>"

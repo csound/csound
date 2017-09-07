@@ -34,7 +34,7 @@
 #include "cs_par_dispatch.h"
 
 extern int UDPServerStart(CSOUND *csound, int port);
-extern  void    dieu(CSOUND *, char *, ...);
+extern  CS_NORETURN void    dieu(CSOUND *, char *, ...);
 extern  int     argdecode(CSOUND *, int, const char **);
 extern  int     init_pvsys(CSOUND *);
 //extern  char    *get_sconame(CSOUND *);
@@ -60,7 +60,7 @@ static void checkOptions(CSOUND *csound)
     if (csrcname != NULL && csrcname[0] != '\0') {
       fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                              CSFTYPE_OPTIONS, 0);
-      if (fd == NULL)
+      if (UNLIKELY(fd == NULL))
         csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
                       csrcname);
       else
@@ -114,18 +114,18 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
 
-    if (csound->engineStatus & CS_STATE_COMP) {
+    if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
       csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
                                   "before starting again.\n"));
       return CSOUND_ERROR;
     }
 
-    if (--argc <= 0) {
+    if (UNLIKELY(--argc <= 0)) {
       dieu(csound, Str("insufficient arguments"));
     }
     /* command line: allow orc/sco/csd name */
     csound->orcname_mode = 0;   /* 0: normal, 1: ignore, 2: fail */
-    if (argdecode(csound, argc, argv) == 0)
+    if (UNLIKELY(argdecode(csound, argc, argv) == 0))
       csound->LongJmp(csound, 1);
     /* do not allow orc/sco/csd name in .csound6rc */
     csound->orcname_mode = 2;
@@ -143,7 +143,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
         csound->info_message_request = 0;
         csound->LongJmp(csound, 1);
       }
-      else if (csound->oparms->daemon == 0)
+      else if (UNLIKELY(csound->oparms->daemon == 0))
          dieu(csound, Str("no orchestra name"));
 
     }
@@ -166,14 +166,14 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       }
 
       if (csound->orchname != NULL) {
-      csound->csdname = csound->orchname; /* save original CSD name */
+        csound->csdname = csound->orchname; /* save original CSD name */
       {
         CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
-        if (cf == NULL) {
+        if (UNLIKELY(cf == NULL)) {
           csound->Die(csound, Str("Reading CSD failed ... stopping"));
         }
         corfile_rewind(cf);
-        if (!read_unified_file4(csound, cf)) {
+        if (UNLIKELY(!read_unified_file4(csound, cf))) {
           csound->Die(csound, Str("Reading CSD failed ... stopping"));
         }
         /* cf is deleted in read_unified_file4 */
@@ -188,12 +188,12 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     csound->orcname_mode = 1;           /* ignore orc/sco name */
     argdecode(csound, argc, argv);      /* should not fail this time */
     /* some error checking */
-    if (csound->stdin_assign_flg &&
-        (csound->stdin_assign_flg & (csound->stdin_assign_flg - 1)) != 0) {
+    if (UNLIKELY(csound->stdin_assign_flg &&
+         (csound->stdin_assign_flg & (csound->stdin_assign_flg - 1)) != 0)) {
       csound->Die(csound, Str("error: multiple uses of stdin"));
     }
-    if (csound->stdout_assign_flg &&
-        (csound->stdout_assign_flg & (csound->stdout_assign_flg - 1)) != 0) {
+    if (UNLIKELY(csound->stdout_assign_flg &&
+       (csound->stdout_assign_flg & (csound->stdout_assign_flg - 1)) != 0)) {
       csound->Die(csound, Str("error: multiple uses of stdout"));
     }
     /* done parsing csound6rc, CSD, and command line options */
@@ -233,7 +233,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       csound->Message(csound, Str("orchname:  %s\n"), csound->orchname);
       csound->orcLineOffset = 1; /* Guess -- JPff */
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
-      if (csound->orchstr==NULL)
+      if (UNLIKELY(csound->orchstr==NULL))
         csound->Die(csound,
                     Str("Failed to open input file - %s\n"), csound->orchname);
       corfile_puts("\n#exit\n", csound->orchstr);
@@ -249,18 +249,18 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
      /* VL: added this also to csoundReset() in csound.c   */
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
-     if (csoundCompileOrc(csound, NULL) != 0){
-       if (csound->oparms->daemon == 0)
-         csoundDie(csound, Str("cannot compile orchestra"));
-       else {
-         /* VL -- 21-10-13 Csound does not need to die on
-          failure to compile. It can carry on, because new
-          instruments can be compiled again */
-       csound->Warning(csound, Str("cannot compile orchestra.\n"
-                                   "Csound will start with no instruments"));
+    if (UNLIKELY(csoundCompileOrc(csound, NULL) != 0)){
+      if (csound->oparms->daemon == 0)
+        csoundDie(csound, Str("cannot compile orchestra"));
+      else {
+        /* VL -- 21-10-13 Csound does not need to die on
+           failure to compile. It can carry on, because new
+           instruments can be compiled again */
+        csound->Warning(csound, Str("cannot compile orchestra.\n"
+                                    "Csound will start with no instruments"));
        }
-     }
-     csound->modules_loaded = 1;
+    }
+    csound->modules_loaded = 1;
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     if (csound->enableHostImplementedMIDIIO == 1) {
@@ -272,7 +272,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of orchestra compile"));
-    if (!csoundYield(csound))
+    if (UNLIKELY(!csoundYield(csound)))
       return -1;
     /* IV - Oct 31 2002: now we can read and sort the score */
 
@@ -289,7 +289,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       //sortedscore = NULL;
       if (csound->scorestr==NULL) {
         csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
-        if (csound->scorestr==NULL)
+        if (UNLIKELY(csound->scorestr==NULL))
           csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }
       csound->Message(csound, Str("sorting score ...\n"));
@@ -302,7 +302,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       }
     }
     if (csound->xfilename != NULL) {            /* optionally extract */
-      if (!(xfile = fopen(csound->xfilename, "r")))
+      if (UNLIKELY(!(xfile = fopen(csound->xfilename, "r"))))
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
       csoundNotifyFileOpened(csound, csound->xfilename,
                              CSFTYPE_EXTRACT_PARMS, 0, 0);
@@ -358,7 +358,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     if (csound->csdname == NULL)
           checkOptions(csound);
 
-    if (csound->engineStatus & CS_STATE_COMP){
+    if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)){
       csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
                                   "before starting again.\n"));
       return CSOUND_ERROR;
