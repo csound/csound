@@ -172,7 +172,7 @@ PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int nslots)
     int   needsiz = sizeof(EVLIST) + nslots * sizeof(EVENT *);
     int   minfreesiz = needsiz + sizeof(CSHDR);
 
-    if (minfreesiz > MAXALLOC) {
+    if (UNLIKELY(minfreesiz > MAXALLOC)) {
       csound->Message(csound, Str("Not enough memory\n"));
       exit(1);
     }
@@ -203,7 +203,7 @@ PUBLIC EVENT * cscoreCreateEvent(CSOUND *csound, int pcnt)
     int   needsiz = sizeof(EVENT) + pcnt * sizeof(MYFLT);
     int   minfreesiz = needsiz + sizeof(CSHDR);
 
-    if (minfreesiz > MAXALLOC) {
+    if (UNLIKELY(minfreesiz > MAXALLOC)) {
       csound->Message(csound, Str("Not enough memory\n"));
       exit(1);
     }
@@ -279,7 +279,7 @@ PUBLIC EVENT * cscoreDefineEvent(CSOUND *csound, char *s)
         s++;
       while (*s == ' ')
         s++;
-      if (p > q && *s != '\0')  {           /* too many ? */
+      if (UNLIKELY(p > q && *s != '\0'))  {           /* too many ? */
         p++;
         csound->Message(csound,
                         Str("PMAX exceeded, string event truncated.\n"));
@@ -398,7 +398,7 @@ PUBLIC EVLIST * cscoreListGetSection(CSOUND *csound)
 
     a = cscoreListCreate(csound, NSLOTS);
     p = &a->e[1];
-    if (csound->scstr == NULL || csound->scstr->body[0] == '\0')
+    if (UNLIKELY(csound->scstr == NULL || csound->scstr->body[0] == '\0'))
       return a;
     while ((e = cscoreGetEvent(csound)) != NULL) {
       if (e->op == 's' || e->op == 'e')

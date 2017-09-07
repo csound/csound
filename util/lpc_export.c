@@ -52,23 +52,23 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
     char *str;
     MYFLT *coef;
 
-    if (argc!= 3) {
+    if (UNLIKELY(argc!= 3)) {
       lpc_export_usage(csound);
       return 1;
     }
     inf = fopen(argv[1], "rb");
-    if (inf == NULL) {
+    if (UNLIKELY(inf == NULL)) {
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
     outf = fopen(argv[2], "w");
-    if (outf == NULL) {
+    if (UNLIKELY(outf == NULL)) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
       fclose(inf);
       return 1;
     }
-    if (fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
-        (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2)) {
+    if (UNLIKELY(fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
+                 (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2))) {
       csound->Message(csound, Str("Failed to read LPC header\n"));
       fclose(inf);
       fclose(outf);
@@ -79,9 +79,11 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
             hdr.framrate, hdr.srate, hdr.duration);
     if (UNLIKELY(hdr.npoles<=0)) { fclose(inf); fclose(outf); return 1; }
     // to keep coverity happy
-    if (hdr.headersize>0x40000000 ||
+    if (UNLIKELY(hdr.headersize>0x40000000 ||
         hdr.headersize<sizeof(LPHEADER) ||
-        hdr.npoles+hdr.nvals > 0x10000000) { fclose(inf); fclose(outf); return 2;}
+                 hdr.npoles+hdr.nvals > 0x10000000)) {
+      fclose(inf); fclose(outf); return 2;
+    }
     str = (char *)csound->Malloc(csound,hdr.headersize-sizeof(LPHEADER)+4);
     if (UNLIKELY(str==NULL)) {
         fclose(inf); fclose(outf); return 2;}
