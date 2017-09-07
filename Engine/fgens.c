@@ -3201,8 +3201,10 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     obuf[npts] = FL(0.0);               /* clear guard point */
     if (wbuf != NULL && !(mode & 4))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 0);
-    if (!(mode & 1))
+    if (!(mode & 1)) {
+      csound->Message(csound, "linear-phase output \n");
       return;
+    }
     /* ---- minimum phase impulse response ---- */
     scaleFac = csound->GetInverseRealFFTScale(csound, npts2);
     buf1 = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (size_t) npts2);
@@ -3260,6 +3262,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       obuf[i] = buf2[i];
     csound->Free(csound, buf2);
     csound->Free(csound, buf1);
+     csound->Message(csound, "minimum-phase output\n");
     if (wbuf != NULL && !(mode & 8))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 1);
 }
@@ -3293,7 +3296,7 @@ static int gen53(FGDATA *ff, FUNC *ftp)
     }
     if (UNLIKELY((!(mode & 2) && srcflen != (dstflen >> 1)) ||
                  ((mode & 2) && srcflen != dstflen))) {
-      return fterror(ff, Str("GEN53: invalid source table length"));
+      return fterror(ff, Str("GEN53: invalid source table length:"));
     }
     if (winftno) {
       winflen = csoundGetTable(csound, &winftp, winftno);
@@ -3313,13 +3316,17 @@ static int gen53(FGDATA *ff, FUNC *ftp)
         tmpft[j] = SQRT(((dstftp[i] * dstftp[i])
                          + (dstftp[i + 1] * dstftp[i + 1])));
       tmpft[j] = dstftp[1];
+      csound->Message(csound, "GEN 53: impulse response input, ");
       gen53_freq_response_to_ir(csound, dstftp, tmpft, winftp,
                                         dstflen, winflen, mode);
       csound->Free(csound, tmpft);
+      
     }
-    else                /* input is frequency response: */
+    else  {              /* input is frequency response: */
+      csound->Message(csound, "GEN 53: frequency response input, ");
       gen53_freq_response_to_ir(csound, dstftp, srcftp, winftp,
                                         dstflen, winflen, mode);
+    }
     return OK;
 }
 
