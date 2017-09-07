@@ -433,10 +433,13 @@ static int outfile_set_S(CSOUND *csound, OUTFILE *p/*, int istring*/)
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     format_ = (int) MYFLT2LRND(*p->iflag);
-    if ((unsigned int) format_ >= (unsigned int) 51)
+    if (format_ >= 51)
       sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
-    else
-      sfinfo.format = fout_format_table[format_];
+    else if (format_ < 0) {
+      sfinfo.format = FORMAT2SF(csound->oparms->outformat);
+      sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
+    }
+    else sfinfo.format = fout_format_table[format_];
     if (!SF2FORMAT(sfinfo.format))
       sfinfo.format |= FORMAT2SF(csound->oparms->outformat);
     if (!SF2TYPE(sfinfo.format))
@@ -489,8 +492,12 @@ static int outfile_set_A(CSOUND *csound, OUTFILEA *p)
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     format_ = (int) MYFLT2LRND(*p->iflag);
-    if ((unsigned int) format_ >= (unsigned int) 51)
+     if (format_ >=  51)
       sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+    else if (format_ < 0) {
+      sfinfo.format = FORMAT2SF(csound->oparms->outformat);
+      sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
+    }
     else
       sfinfo.format = fout_format_table[format_];
     if (!SF2FORMAT(sfinfo.format))
