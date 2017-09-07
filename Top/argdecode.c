@@ -328,7 +328,7 @@ static void longusage(CSOUND *p)
     // p->LongJmp(p, 0);
 }
 
-void dieu(CSOUND *csound, char *s, ...)
+CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
 {
     va_list args;
 
