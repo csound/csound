@@ -268,6 +268,7 @@ Source: "{#QtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; DestD
 Source: "{#QtSdkBinDir}..\qml\QtQml\*.*"; DestDir: "{#APP_BIN}QtQml"; Flags: ignoreversion recursesubdirs;  Components: core;
 Source: "{#QtSdkBinDir}..\qml\QtQuick\*.*"; DestDir: "{#APP_BIN}QtQuick"; Flags: ignoreversion recursesubdirs;  Components: core;
 Source: "{#QtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Flags: ignoreversion recursesubdirs;  Components: core;
+Source: "{#QtSdkBinDir}..\resources\*.*"; DestDir: "{#APP_BIN}resources; Flags: ignoreversion recursesubdirs;  Components: core;
 
 Source: "{#VcpkgInstalledBinDir}*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
 
