@@ -922,9 +922,17 @@ static int checkVersion(CSOUND *csound, CORFIL *cf)
           result = FALSE;
         }
       }
+      else if (strstr(p, "Later") != NULL) {
+        sscanf(p, "Later %d.%d", &major, &minor);
+        if (UNLIKELY(version < ((major * 1000) + (minor*10)))) {
+          csoundDie(csound, Str("This CSD file requires version "
+                                 "Csound %d.%02d or later"), major, minor);
+          result = FALSE;
+        }
+      }
       else if (sscanf(p, "%d.%d", &major, &minor) == 2) {
         if (UNLIKELY(version <= ((major * 1000) + (minor*10)))) {
-          csoundDie(csound, Str("This CSD file requires a version "
+          csoundDie(csound, Str("This CSD file requires version "
                                 "%d.%02d of Csound"), major, minor);
           result = FALSE;
         }
