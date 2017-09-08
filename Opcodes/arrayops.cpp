@@ -70,7 +70,7 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in1 = inargs.myfltvec_data(0);
     csnd::myfltvec &in2 = inargs.myfltvec_data(1);
-    if (in2.len() < in1.len())
+    if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str("second input array is too short\n"));
     out.init(csound, in1.len());
     return process(out, in1, in2);
@@ -170,7 +170,7 @@ struct Dot : csnd::Plugin<1, 2> {
   int init() {
     csnd::myfltvec &in1 = inargs.myfltvec_data(0);
     csnd::myfltvec &in2 = inargs.myfltvec_data(1);
-    if (in2.len() < in1.len())
+    if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str("second input array is too short\n"));
     outargs[0] = process(in1, in2);
     return OK;
