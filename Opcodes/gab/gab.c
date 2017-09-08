@@ -358,7 +358,7 @@ static void printi(CSOUND *csound, PRINTI *p)
 
 static int nlalp_set(CSOUND *csound, NLALP *p)
 {
-   if (!(*p->istor)) {
+    if (LIKELY(!(*p->istor))) {
      p->m0 = 0.0;
      p->m1 = 0.0;
    }

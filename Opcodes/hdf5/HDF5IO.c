@@ -25,7 +25,8 @@
 #include <unistd.h>
 #endif
 
-#define HDF5ERROR(x) if ((x) == -1) {csound->Die(csound, #x" error\nExiting\n");}
+#define HDF5ERROR(x) if (UNLIKELY((x) == -1)) \
+    {csound->Die(csound, #x" error\nExiting\n");}
 #pragma mark - Common -
 
 // Type strings to match the enum types
