@@ -36,7 +36,7 @@ typedef struct {
 static int  mtable1_set(CSOUND *csound, MTABLE1 *p)      /* mtab by G.Maldonado */
 {
     FUNC *ftp;
-    if ((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
       return csound->InitError(csound, Str("vtable1: incorrect table number"));
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-1;
@@ -51,7 +51,7 @@ static int  mtable1_k(CSOUND *csound, MTABLE1 *p)
     MYFLT *table;
     if (p->pfn != (long)*p->xfn) {
       FUNC *ftp;
-      if ( (ftp = csound->FTFindP(csound, p->xfn) ) == NULL)
+      if (UNLIKELY( (ftp = csound->FTFindP(csound, p->xfn) ) == NULL))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("vtable1: incorrect table number"));
       p->pfn = (long)*p->xfn;
@@ -352,7 +352,7 @@ static int inRange_i(CSOUND *csound, INRANGE *p)
 {
     p->narg = p->INOCOUNT-1;
 /*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; */
-    if (!csound->oparms->sfread)
+    if (UNLIKELY(!csound->oparms->sfread))
       return csound->InitError(csound, Str("inrg: audio input is not enabled"));
     p->numChans = csound->GetNchnls(csound);
     return OK;
@@ -369,7 +369,7 @@ static int inRange(CSOUND *csound, INRANGE *p)
     MYFLT *sp = csound->spin + startChan;
     int narg = p->narg, numchans = p->numChans;
 
-    if (startChan < 0)
+    if (UNLIKELY(startChan < 0))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("inrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
@@ -399,7 +399,7 @@ static int lposc_set(CSOUND *csound, LPOSC *p)
     MYFLT  loop, end, looplength;
     if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
       return csound->InitError(csound, Str("invalid function"));
-    if (!(p->fsr=ftp->gen01args.sample_rate)){
+    if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))){
        csound->Message(csound,
                        Str("lposc: no sample rate stored in function;"
                            " assuming=sr\n"));
@@ -471,9 +471,9 @@ static int lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 {
     FUNC *ftp;
     double  loop, end, looplength, fsr;
-    if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
       return csound->InitError(csound, Str("invalid function"));
-    if (!(fsr = ftp->gen01args.sample_rate)) {
+    if (UNLIKELY(!(fsr = ftp->gen01args.sample_rate))) {
       csound->Message(csound, Str("lposcil: no sample rate stored in function;"
                                   " assuming=sr\n"));
       p->fsr=CS_ESR;

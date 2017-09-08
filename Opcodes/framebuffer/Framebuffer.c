@@ -131,7 +131,7 @@ int Framebuffer_process(CSOUND *csound, Framebuffer *self)
 
 void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 {
-    if ((uint32_t)self->elementCount < csound->GetKsmps(csound)) {
+    if (UNLIKELY((uint32_t)self->elementCount < csound->GetKsmps(csound))) {
 
       csound->Die(csound, Str("framebuffer: Error, specified element "
                               "count less than ksmps value, Exiting"));
@@ -139,15 +139,15 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
     if (self->inputType == ARATE_VAR) {
 
-        if (self->outputType != KRATE_ARRAY) {
+      if (UNLIKELY(self->outputType != KRATE_ARRAY)) {
 
           csound->Die(csound, Str("framebuffer: Error, only k-rate arrays "
                                   "allowed for a-rate var inputs, Exiting"));
         }
     }
-    else if (self->inputType == KRATE_ARRAY) {
+    else if (LIKELY(self->inputType == KRATE_ARRAY)) {
 
-        if (self->outputType != ARATE_VAR) {
+      if (UNLIKELY(self->outputType != ARATE_VAR)) {
 
           csound->Die(csound, Str("framebuffer: Error, only a-rate vars "
                                   "allowed for k-rate array inputs, Exiting"));
@@ -155,13 +155,13 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
         ARRAYDAT *array = (ARRAYDAT *) self->inputArgument;
 
-        if (array->dimensions != 1) {
+        if (UNLIKELY(array->dimensions != 1)) {
 
           csound->Die(csound, Str("framebuffer: Error, k-rate array input "
                                   "must be one dimensional, Exiting"));
         }
 
-        if (array->sizes[0] > self->elementCount) {
+        if (UNLIKELY(array->sizes[0] > self->elementCount)) {
 
           csound->Die(csound, Str("framebuffer: Error, k-rate array input "
                                   "element count must be less than \nor equal "
