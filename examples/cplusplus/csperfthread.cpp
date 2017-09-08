@@ -1,5 +1,6 @@
 #include "csound.hpp"
 #include "csPerfThread.hpp"
+#include "csPerfThread.cpp"
 
 int useThreads = true;
 
