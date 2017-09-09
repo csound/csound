@@ -5,7 +5,7 @@ environment:
   APPVEYOR_RDP_PASSWORD: Vercoe123
   QTDIR: C:\Qt\5.9.1\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
-  VCPKGBinDir: %VCPKGDir%\installed\x64-windows\bin
+  VCPKGBinDir: C:\Tools\vcpkg\installed\x64-windows\bin
   VSGENERATOR: Visual Studio 15 2017 Win64
   # This is for compatibility with Windows 8.
   VSTOOLSET: v141_xp
