@@ -34,7 +34,8 @@ init:
 
 install:
   - cd msvc
-  - npm install nw-gyp
+  #- npm install -g nw-gyp
+  #- nodevars
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - cd ..
@@ -46,7 +47,7 @@ build:
 after_build:
   - dir "%VCPKGDir%\installed\x64-windows\include"
   - cd frontends\nwjs
-  - nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2017 --platform_toolset=%VSTOOLSET%
+  #- nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2017 --platform_toolset=%VSTOOLSET%
   - cd ..\..
   - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
