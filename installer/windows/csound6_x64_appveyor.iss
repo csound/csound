@@ -170,6 +170,7 @@ Source: "..\..\msvc\csound-vs\Release\csound64.dll"; DestDir: "{#APP_BIN}"; Flag
 #ifdef CSOUNDVST
 Source: "..\..\msvc\csound-vs\Release\csoundvstmain.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: vst;
 #endif
+Source: "..\..\frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\cvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\dnoise.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
