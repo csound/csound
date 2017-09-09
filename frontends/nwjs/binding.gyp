@@ -28,12 +28,7 @@
                ],
                ['OS=="win"',
                     {
-                        'defines':
-                        [
-                          'FOO',
-                          'BAR=some_value',
-                        ],
-                       'libraries':
+                        'libraries':
                         [
                             '-l$(CSOUND_HOME)/mingw64/csound64.lib',
                         ],
