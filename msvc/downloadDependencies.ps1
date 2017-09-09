@@ -35,7 +35,11 @@ $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
 
 # Test if VCPKG is already installed on system
 # Download locally to csound msvc folder if not
-if ($systemVCPKG)
+if (Test-Path Env:\APPVEYOR)
+{
+    # Don't update or will trigger a full rebuild of VCPKGs
+}
+elseif ($systemVCPKG)
 {
     echo "vcpkg already installed on system, updating"
     $vcpkgDir = Split-Path -Parent $systemVCPKG
