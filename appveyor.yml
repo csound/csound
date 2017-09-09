@@ -14,6 +14,9 @@ platform: x64
 configuration: Release
 
 init:
+  # This is so nw-gyp can build csound.node.
+  - set CSOUND_HOME=%APPVEYOR_BUILD_FOLDER%
+  - set PYTHON=C:\Python27-x64\python.exe
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2015" call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\vcvars64.bat"
@@ -31,6 +34,7 @@ init:
 
 install:
   - cd msvc
+  - npm install nw-gyp
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - cd ..
@@ -41,6 +45,9 @@ build:
 
 after_build:
   - dir "%VCPKGDir%\installed\x64-windows\include"
+  - cd frontends\nwjs
+  - nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2017 --platform_toolset=%VSTOOLSET%
+  - cd ..\..
   - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
   # Report qmake version to make sure we are using the Qt libraries we need.
