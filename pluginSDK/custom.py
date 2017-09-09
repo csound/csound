@@ -72,11 +72,6 @@ elif sys.platform[:3] == 'win':
     customCPPPATH.append('D:/utah/opt/Tcl/include')
     customLIBPATH.append('D:/utah/opt/Tcl/bin')
     ################################################################
-    # If you want to build CsoundVST you need boost.
-    # If it is not in a standard lcoation add it here
-    # (you do NOT need to build it first):
-    customCPPPATH.append('D:/utah/opt/boost/')
-    ################################################################
     # If you want to build the FluidSynth opcodes
     # you need FluidSynth. If it is not a standard location,
     # add it here (you do NOT need to build it first):

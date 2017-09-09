@@ -60,13 +60,13 @@ static int hvs1_set(CSOUND *csound, HVS1 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No out table"));
     p->outTable = ftp->ftable;
-    if ((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No positions table"));
     p->posTable = ftp->ftable;
-    if ((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No snap table"));
     p->snapTable = ftp->ftable;
     if (UNLIKELY(*p->inumPointsX < 2 ))
@@ -76,7 +76,7 @@ static int hvs1_set(CSOUND *csound, HVS1 *p)
     if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if ((ftp = csound->FTnp2Find(csound, p->iConfigTab)) == NULL)
+      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iConfigTab)) == NULL))
         return csound->InitError(csound, Str("hvs: no config table"));
       p->outTable = ftp->ftable;
       p->iconfFlag = 1;
@@ -146,13 +146,13 @@ static int hvs2_set(CSOUND *csound, HVS2 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No out table"));
     p->outTable = ftp->ftable;
-    if ((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No positions table"));
     p->posTable = ftp->ftable;
-    if ((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No snap table"));
     p->snapTable = ftp->ftable;
     if (UNLIKELY(*p->inumlinesX < 2 || *p->inumlinesY < 2))
@@ -162,7 +162,7 @@ static int hvs2_set(CSOUND *csound, HVS2 *p)
     if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if ((ftp = csound->FTnp2Find(csound, p->iConfigTab)) == NULL)
+      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iConfigTab)) == NULL))
         return csound->InitError(csound, Str("hvs: no config table"));
       p->outTable = ftp->ftable;
       p->iconfFlag = 1;
@@ -245,13 +245,13 @@ static int hvs3_set(CSOUND *csound, HVS3 *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No out table"));
     p->outTable = ftp->ftable;
-    if ((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No positions table"));
     p->posTable = ftp->ftable;
-    if ((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL)
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL))
       return csound->InitError(csound, Str("hvs: No snap table"));
     p->snapTable = ftp->ftable;
     if (UNLIKELY(*p->inumlinesX < 2 || *p->inumlinesY < 2))
@@ -259,7 +259,7 @@ static int hvs3_set(CSOUND *csound, HVS3 *p)
                                            "delimited by 2 lines at least"));
 
 
-    if (*p->iConfigTab == 0)
+    if (LIKELY(*p->iConfigTab == 0))
       p->iconfFlag = 0;
     else {
       if ((ftp = csound->FTnp2Find(csound, p->iConfigTab)) == NULL)
