@@ -5,9 +5,13 @@ environment:
   APPVEYOR_RDP_PASSWORD: Vercoe123
   QTDIR: C:\Qt\5.9.1\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
+  CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   VSGENERATOR: Visual Studio 15 2017 Win64
   # This is for compatibility with Windows 8.
   VSTOOLSET: v141_xp
+
+platform: x64
+configuration: Release
 
 init:
   # This is so nw-gyp can build csound.node.
@@ -26,6 +30,7 @@ init:
   - dir /B /S "%VCREDIST_CRT_DIR%"
   - dir /B /S "%VCREDIST_CXXAMP_DIR%"
   - dir /B /S "%VCREDIST_OPENMP_DIR%"
+  - set PATH=%PATH%;%CsoundDepsDir%
 
 install:
   - cd msvc
@@ -33,10 +38,6 @@ install:
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - cd ..
-
-platform: x64
-
-configuration: Release
 
 build:
   parallel: true
@@ -57,6 +58,9 @@ after_build:
   - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
   - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
   - 7z l csound.zip
+
+# Tests
+# TODO
 
 artifacts:
   - path: csound.zip
