@@ -1201,7 +1201,6 @@ msgid "GEN53: mode must be in the range 0 to 15"
 msgstr "GEN53 : le mode doit être compris entre 0 et 15"
 
 #: Engine/fgens.c:3299
-#, fuzzy
 msgid "GEN53: invalid source table length:"
 msgstr "GEN53 : longueur de la table source non valide"
 
@@ -12420,14 +12419,14 @@ msgid "This CSD file requires a version of Csound after %d.%02d"
 msgstr "Ce fichier CSD nécessite une version de Csound ultérieure à la %d.%02d"
 
 #: Top/one_file.c:928
-#, fuzzy, c-format
+#, c-format
 msgid "This CSD file requires version Csound %d.%02d or later"
-msgstr "Ce fichier CSD nécessite une version de Csound ultérieure à la %d.%02d"
+msgstr "Ce fichier CSD nécessite Csound version %d.%02d ou ultérieure"
 
 #: Top/one_file.c:935
-#, fuzzy, c-format
+#, c-format
 msgid "This CSD file requires version %d.%02d of Csound"
-msgstr "Ce fichier CSD nécessite une version de Csound ultérieure à la %d.%02d"
+msgstr "Ce fichier CSD nécessite la version %d.%02d de Csound"
 
 #: Top/one_file.c:941
 msgid "Missing end tag </CsVersion>"
