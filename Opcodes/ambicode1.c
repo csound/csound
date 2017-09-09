@@ -112,7 +112,7 @@ static int ibformenc(CSOUND * csound, AMBIC * p)
 
 static int ibformenc_a(CSOUND * csound, AMBICA * p)
 {
-    if (p->tabout->data==NULL || p->tabout->dimensions!=1)
+    if (UNLIKELY(p->tabout->data==NULL || p->tabout->dimensions!=1))
       return csound->InitError(csound,
                                Str("array not initialised in ambibformenc1"));
 

@@ -209,7 +209,7 @@ public:
                 fluidSynth, soundFontId);
         }
         *iInstrumentNumber = (MYFLT) soundFontId;
-        if (soundFontId < 0) {
+        if (UNLIKELY(soundFontId < 0)) {
             return csound->InitError(csound,
                                      Str("fluid: unable to load %s"), filename);
         }
@@ -610,8 +610,8 @@ public:
         toa(iFluidSynth, fluidSynth);
         channel = (int) *iChannelNumber;
         interpolationMethod = (int) *iInterpMethod;
-        if (interpolationMethod != 0 && interpolationMethod != 1 &&
-                interpolationMethod != 4 && interpolationMethod != 7) {
+        if (UNLIKELY(interpolationMethod != 0 && interpolationMethod != 1 &&
+                     interpolationMethod != 4 && interpolationMethod != 7)) {
           return csound->InitError(csound,
                                    Str("Illegal Interpolation Method: Must be "
                                        "either 0, 1, 4, or 7.\n"));

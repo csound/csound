@@ -518,7 +518,6 @@ if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
 endif()
 
-find_package(Boost)
 find_package(CURL)
 set(FLTK_SKIP_OPENGL true)
 find_package(FLTK )
