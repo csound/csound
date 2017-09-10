@@ -420,7 +420,7 @@ int CsoundPerformanceThread::Perform()
         // if error or end of score, return now
         if (retval)
           goto endOfPerf;
-	// fprintf(stderr, "Error or end of score, returning now.");
+        // fprintf(stderr, "Error or end of score, returning now.");
         // if paused, wait until a new message is received, then loop back
         if (!paused)
           break;
