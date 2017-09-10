@@ -410,7 +410,7 @@ int HDF5Write_finish(CSOUND *csound, void *inReference)
 {
     HDF5Write *self = inReference;
 
-    if (LIKELY((self->datasets != NULL)) {
+    if (LIKELY(self->datasets != NULL)) {
       int i;
       for (i = 0; i < self->inputArgumentCount; ++i) {
 
