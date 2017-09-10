@@ -48,7 +48,8 @@ after_build:
   - dir "%VCPKGDir%\installed\x64-windows\include"
   - cd frontends\nwjs
   - npm config set msvs_version 2017 --global
-  - nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2017 --platform_toolset=%VSTOOLSET%
+  #- nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2017 --platform_toolset=%VSTOOLSET%
+  - nw-gyp rebuild --target=0.23.5 --arch=x64
   - cd ..\..
   - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
