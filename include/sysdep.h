@@ -103,7 +103,9 @@ typedef uint_least16_t uint16;
 #endif
 
 #if !defined(USE_DOUBLE)
+#if !defined(_MSC_VER)
 #include "float-version.h"
+#endif
 #endif
 
 #ifdef USE_DOUBLE
