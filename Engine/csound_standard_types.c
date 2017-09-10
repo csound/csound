@@ -291,7 +291,7 @@ void array_free_var_mem(void* csnd, void* p) {
             for (i = 1; i < dat->dimensions; i++) {
                 size *= dat->sizes[i];
             }
-            size = MYFLT2LRND(size);
+            //size = MYFLT2LRND(size); // size is not a float  but int
             for (i = 0; i < size; i++) {
                 arrayType->freeVariableMemory(csound,
                                               mem+ (i * memMyfltSize));
@@ -301,7 +301,7 @@ void array_free_var_mem(void* csnd, void* p) {
         csound->Free(csound, dat->data);
     }
 
-    if(dat->sizes != NULL) {
+    if (dat->sizes != NULL) {
         csound->Free(csound, dat->sizes);
     }
 }
