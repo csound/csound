@@ -242,15 +242,12 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 
 static int stresonset(CSOUND *csound, STRES *p)
 {
-    int n;
     p->size = (int) (CS_ESR/20);   /* size of delay line */
     csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->aux);
     p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
     p->wpointer = p->rpointer = 0; /* reset the read/write pointers */
     memset(p->Cdelay, '\0', p->size*sizeof(MYFLT));
-    /* for (n = 0; n < p->size; n++) */
-    /*   p->Cdelay[n] = FL(0.0); */
     return OK;
 }
 

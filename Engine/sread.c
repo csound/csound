@@ -713,6 +713,7 @@ static int getscochar(CSOUND *csound, int expand)
 /*   return 0; */
 /* } */
 
+#if 0
 static void init_smacros(CSOUND *csound, NAMES *nn)
 {
     S_MACRO *mm;
@@ -765,6 +766,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
     mm->next = STA(macros);
     STA(macros) = mm;
 }
+#edif
 
 /* #if never */
 /* void sread_init(CSOUND *csound) */
