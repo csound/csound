@@ -1670,7 +1670,7 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = table[(int32)(randGab) * flen)];
+      out[n] = table[(int32)(randGab) * flen];
     }
     return OK;
  err1:
