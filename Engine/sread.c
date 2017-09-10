@@ -766,7 +766,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
     mm->next = STA(macros);
     STA(macros) = mm;
 }
-#edif
+#endif
 
 /* #if never */
 /* void sread_init(CSOUND *csound) */
