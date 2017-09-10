@@ -35,7 +35,7 @@ init:
 install:
   - cd msvc
   - npm install -g nw-gyp
-  - "C:\\Program Files\\nodejs\\nodevars.bat"
+  - "C:/Program Files/nodejs/nodevars.bat"
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - cd ..
