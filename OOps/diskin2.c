@@ -1725,8 +1725,10 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                         "DISKIN_THREAD_START_ARRAY")) == 0) {
         uintptr_t diskin_io_thread_array(void *p);
         // TOFIX: this variable (thread) is not referenced
+        #if 0
         void **thread = csound->QueryGlobalVariable(csound,
                                                        "DISKIN_PTHREAD_ARRAY");
+        #endif
         *start = 1;
         csound->CreateThread(diskin_io_thread_array, *top);
       }
