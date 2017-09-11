@@ -41,6 +41,7 @@ typedef enum ArgumentType
     UNKNOWN
 } ArgumentType;
 
+
 struct OpcodeArgument{
 
     void *dataPointer;
@@ -52,8 +53,8 @@ struct OpcodeArgument{
     char *name;
     void *readBuffer;
     int itemsCount;
-    int bytesCount;
-    int bytesWritten;
+    unsigned int bytesCount;
+    unsigned int bytesWritten;
     bool iRateVarSent;
 };
 
