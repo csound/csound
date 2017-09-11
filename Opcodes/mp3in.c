@@ -503,19 +503,23 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
       clock_gettime(CLOCK_MONOTONIC, &ts);
       dtime = ts.tv_sec + 1e-9*ts.tv_nsec;*/
 
+    {
+    char *ps;
     sinit(csound, p);
     size = p->N*sizeof(MYFLT)*BUFS;
     if (p->fdata[0].auxp == NULL || p->fdata[0].size < size)
       csound->AuxAlloc(csound, size, &p->fdata[0]);
-    p->indataL[0] = p->fdata[0].auxp;
-    p->indataL[1] = (MYFLT*)((char*)p->fdata[0].auxp) + size/2;
+    ps = (char *) p->fdata[0].auxp;
+    p->indataL[0] = (MYFLT*) ps;
+    p->indataL[1] = (MYFLT*) (ps + size/2);
     if (p->fdata[1].auxp == NULL || p->fdata[1].size < size)
       csound->AuxAlloc(csound, size, &p->fdata[1]);
-    p->indataR[0] = p->fdata[1].auxp;
-    p->indataR[1] = (MYFLT*)((char*)p->fdata[1].auxp) + size/2;
+    ps = (char *) p->fdata[1].auxp;
+    p->indataR[0] = (MYFLT*) ps;
+    p->indataR[1] = (MYFLT*) (ps + size/2);
     if (p->buffer.auxp == NULL || p->buffer.size < size)
       csound->AuxAlloc(csound, size, &p->buffer);
-
+    }
     /*
       memset(&(p->fdch), 0, sizeof(FDCH));
       p->fdch.fd = fd;
