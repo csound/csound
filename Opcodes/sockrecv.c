@@ -610,7 +610,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     char c;
     memset(buf, 0, p->buffer.size);
     uint32_t size = 0;
-    char *types;
+    char *types  = NULL;
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
     int bytes =
@@ -655,8 +655,6 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
           types = str[n].data;
           n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
-        }
-        else {                  /* types may be uninitalised */
         }
         j = 1;
         // parse data
