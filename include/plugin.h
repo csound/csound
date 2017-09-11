@@ -35,6 +35,9 @@
 
 namespace csnd {
 
+/* constants */
+const double twopi = TWOPI;
+
 /** opcode threads: i-time, k-perf and/or a-perf
 */
 enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
@@ -881,12 +884,12 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
     for(auto &arg : outargs) {
-    if (csound->is_asig(arg)) {
-      if (UNLIKELY(offset))
+      if (csound->is_asig(arg)) {
+       if (UNLIKELY(offset))
         std::fill(arg, arg + offset, 0);
-      if (UNLIKELY(early))
+       if (UNLIKELY(early))
         std::fill(arg + nsmps, arg + nsmps + early, 0);
-     }
+      }
     }
   }
 
