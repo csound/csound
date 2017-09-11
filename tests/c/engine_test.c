@@ -17,13 +17,13 @@ int clean_suite1(void)
 void test_udp_server(void)
 {
     CSOUND  *csound;
-    int     result, compile_again=0;
+    //int     result;
 
     csound = csoundCreate(NULL);
     csoundSetIsGraphable(csound, 1);
     csoundSetOption(csound,"-odac");
     csoundSetOption(csound,"--port=12345");
-    result = csoundStart(csound);
+    /*result =*/(void) csoundStart(csound);
     sleep(1);
     /* delete Csound instance */
     csoundStop(csound);
