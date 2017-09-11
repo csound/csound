@@ -27,7 +27,6 @@
 
 #define HDF5ERROR(x) if (UNLIKELY((x) == -1)) \
     {csound->Die(csound, #x" error\nExiting\n");}
-#pragma mark - Common -
 
 // Type strings to match the enum types
 static const char typeStrings[8][12] = {
@@ -139,7 +138,7 @@ ArgumentType HDF5IO_getArgumentTypeFromString(CSOUND *csound, const char *string
 // create the file
 // If it exists, open the file for appending
 // Find out what size the MYFLT floating point type is and assign the correct
-//hdf5 type to it
+// hdf5 type to it
 // Return the pointer to the hdf5 file struct
 
 HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
@@ -152,9 +151,9 @@ HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
 
     int fileExists = access(hdf5File->fileName, 0);
 
-    if (fileExists == -1) {
+    if (UNLIKELY(fileExists == -1)) {
 
-      if (openForWriting == true) {
+      if (LIKELY(openForWriting == true)) {
 
         hdf5File->fileHandle = H5Fcreate(hdf5File->fileName, H5F_ACC_TRUNC,
                                          H5P_DEFAULT, H5P_DEFAULT);
@@ -171,18 +170,15 @@ HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
       HDF5ERROR(hdf5File->fileHandle);
     }
 
-    if (sizeof(MYFLT) == sizeof(double)) {
-
+#ifdef USE_DOUBLE
       hdf5File->floatSize = H5T_NATIVE_DOUBLE;
-    }
-    else if (sizeof(MYFLT) == sizeof(float)) {
-
+#else
       hdf5File->floatSize = H5T_NATIVE_FLOAT;
-    }
-    else {
+#endif
+      //else {
 
-      csound->Die(csound, "HDF5IO: Illegal size for floating point type, exiting");
-    }
+      //csound->Die(csound,"HDF5IO: Illegal size for floating point type, exiting");
+      //}
 
     return hdf5File;
 }
@@ -259,8 +255,6 @@ bool HDF5IO_getSampleAccurate(CSOUND *csound)
 }
 
 
-#pragma mark - HDF5Write -
-
 // Set everything up so datasets can be written from the opcodes input variables,
 // i-rate datasets are written at initialisation all others are written on the
 // performance pass.
@@ -330,7 +324,7 @@ void HDF5Write_writeAudioData(CSOUND *csound, HDF5Write *self,
 
     int vectorSize = (int)(self->ksmps - offset - early);
 
-    if (vectorSize == 0) {
+    if (UNLIKELY(vectorSize == 0)) {
       return;
     }
 
@@ -416,7 +410,7 @@ int HDF5Write_finish(CSOUND *csound, void *inReference)
 {
     HDF5Write *self = inReference;
 
-    if (self->datasets != NULL) {
+    if (LIKELY(self->datasets != NULL)) {
       int i;
       for (i = 0; i < self->inputArgumentCount; ++i) {
 
@@ -465,7 +459,7 @@ void HDF5Write_checkArgumentSanity(CSOUND *csound, const HDF5Write *self)
     ArgumentType type = HDF5IO_getArgumentTypeFromArgument(csound,
                                                            self->arguments[0]);
 
-    if (type != STRING_VAR) {
+    if (UNLIKELY(type != STRING_VAR)) {
 
       csound->Die(csound, Str("hdf5write: Error, first argument does not "
                               "appear to be a string, exiting"));
@@ -475,9 +469,9 @@ void HDF5Write_checkArgumentSanity(CSOUND *csound, const HDF5Write *self)
 
       type = HDF5IO_getArgumentTypeFromArgument(csound, self->arguments[i + 1]);
 
-      if (type == STRING_VAR
-          ||
-          type == UNKNOWN) {
+      if (UNLIKELY(type == STRING_VAR
+                   ||
+                   type == UNKNOWN)) {
 
         csound->Die(csound, Str("hdf5write: Error, unable to identify type "
                                 "of argument %zd"), i);
@@ -728,8 +722,6 @@ void HDF5Write_createDatasets(CSOUND *csound, HDF5Write *self)
     }
 }
 
-#pragma mark - HDF5Read -
-
 // Open datasets in a hdf5 file so they can be read by the opcode
 //
 // Get the amount of samples in a control pass
@@ -878,7 +870,7 @@ void HDF5Read_readAudioData(CSOUND *csound, HDF5Read *self,
 
     dataset->offset[0] += vectorSize;
 
-#ifdef MSVC
+#ifdef _MSC_VER
     free (chunkDimensions);
 #endif
 }
@@ -914,7 +906,7 @@ void HDF5Read_readControlData(CSOUND *csound, HDF5Read *self,
     HDF5Read_readData(csound, self, dataset, dataset->offset,
                       chunkDimensions, dataPointer);
     dataset->offset[0]++;
-#ifdef MSVC
+#ifdef _MSC_VER
     free (chunkDimensions);
 #endif
 
@@ -1002,7 +994,7 @@ int HDF5Read_finish(CSOUND *csound, void *inReference)
 void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
 {
     int i;
-    if (self->inputArgumentCount != self->outputArgumentCount) {
+    if (UNLIKELY(self->inputArgumentCount != self->outputArgumentCount)) {
 
       if (self->inputArgumentCount > self->outputArgumentCount) {
 
@@ -1024,23 +1016,23 @@ void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
       ArgumentType outputType =
         HDF5IO_getArgumentTypeFromArgument(csound, self->arguments[i]);
 
-      if (inputType != STRING_VAR) {
+      if (UNLIKELY(inputType != STRING_VAR)) {
 
         csound->Die(csound, Str("hdf5read: Error, input argument %zd does not "
                                 "appear to be a string, exiting"), i + 1);
       }
-      else if (inputType == UNKNOWN) {
+      else if (UNLIKELY(inputType == UNKNOWN)) {
 
         csound->Die(csound, Str("hdf5read: Error, input argument %zd type "
                                 "is unknown, exiting"), i + 1);
       }
 
-      if (outputType == STRING_VAR) {
+      if (UNLIKELY(outputType == STRING_VAR)) {
 
         csound->Die(csound, Str("hdf5read: Error, output argument %zd appears "
                                 "to be a string, exiting"), i + 1);
       }
-      else if (outputType == UNKNOWN) {
+      else if (UNLIKELY(outputType == UNKNOWN)) {
 
         csound->Die(csound, Str("hdf5read: Error, output argument %zd type "
                                 "is unknown, exiting"), i + 1);
@@ -1059,7 +1051,7 @@ void HDF5Read_initialiseHDF5Dataset(CSOUND *csound, HDF5Read *self,
     htri_t result = H5Lexists(self->hdf5File->fileHandle,
                               dataset->datasetName, H5P_DEFAULT);
 
-    if (result <= 0) {
+    if (UNLIKELY(result <= 0)) {
 
       csound->Die(csound, Str("hdf5read: Error, dataset does not exist or "
                               "cannot be found in file"));
@@ -1304,13 +1296,13 @@ void HDF5Read_initialiseScalarOutput(CSOUND *csound, HDF5Read *self,
         dataset->elementCount = 1;
       }
 
-        if (dataset->readType == IRATE_VAR) {
+      if (dataset->readType == IRATE_VAR) {
 
-            hsize_t arrayDimensions[1] = {1};
-            hsize_t offset[1] = {0};
-            HDF5Read_readData(csound, self, dataset, offset, arrayDimensions,
-                              dataset->argumentPointer);
-        }
+        hsize_t arrayDimensions[1] = {1};
+        hsize_t offset[1] = {0};
+        HDF5Read_readData(csound, self, dataset, offset, arrayDimensions,
+                          dataset->argumentPointer);
+      }
     }
 
 }

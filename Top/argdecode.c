@@ -335,10 +335,13 @@ CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
     va_start(args, s);
     csound->ErrMsgV(csound, Str("Csound Command ERROR:    "), s, args);
     va_end(args);
-    if (csound->info_message_request == 0){
+    //***FIXME This code makes no sense
+    if (csound->info_message_request == 0) {
       csound->info_message_request = 0;
-    csound->LongJmp(csound, 1);
+      csound->LongJmp(csound, 1);
     }
+    //Added longjump -- JPff
+    csound->LongJmp(csound, 1);
 }
 
 void set_output_format(OPARMS *O, char c)
