@@ -297,7 +297,7 @@ void WebSocketOpcode_initialiseArgumentsArray(CSOUND *csound,
                                               MYFLT **arguments,
                                               bool areInputArguments)
 {
-    int i;
+    unsigned int i;
     for (i = 0; i < argumentsCount; ++i) {
 
       OpcodeArgument *argumentArrayItem = &argumentsArray[i];
@@ -381,6 +381,7 @@ void WebSocketOpcode_writeFragments(WebSocketOpcode *self,
     unsigned char *inputData =
       &((unsigned char *)inputArgument->readBuffer)[inputArgument->bytesWritten];
 
+    // *** FIXME *** signed/usigned comparison
     if (inputArgument->bytesWritten + writeBufferBytesCount <
         inputArgument->bytesCount) {
 
@@ -477,6 +478,7 @@ void WebSocketOpcode_handleReceive(struct lws *websocket, WebSocketOpcode *self,
       return;
     }
 
+    // *** FIXME *** signed/unsigned comparison
     if (UNLIKELY(argument->bytesCount != inputDataSize
                  &&
                  argument->argumentType != STRING_VAR)) {

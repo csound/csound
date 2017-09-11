@@ -508,11 +508,11 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
     if (p->fdata[0].auxp == NULL || p->fdata[0].size < size)
       csound->AuxAlloc(csound, size, &p->fdata[0]);
     p->indataL[0] = p->fdata[0].auxp;
-    p->indataL[1] = ((char*)p->fdata[0].auxp) + size/2;
+    p->indataL[1] = ((char*)p->fdata[0].auxp) + size/2; /* ***wrong types*** */
     if (p->fdata[1].auxp == NULL || p->fdata[1].size < size)
       csound->AuxAlloc(csound, size, &p->fdata[1]);
     p->indataR[0] = p->fdata[1].auxp;
-    p->indataR[1] = ((char*)p->fdata[1].auxp) + size/2;
+    p->indataR[1] = ((char*)p->fdata[1].auxp) + size/2; /* ***wrong types*** */
     if (p->buffer.auxp == NULL || p->buffer.size < size)
       csound->AuxAlloc(csound, size, &p->buffer);
 
