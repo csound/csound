@@ -1635,7 +1635,7 @@ static int kDiscreteUserRand(CSOUND *csound, DURAND *p)
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
-    *p->out = p->ftp->ftable[(int32)(randGab * MYFLT2LONG(p->ftp->flen))];
+    *p->out = p->ftp->ftable[(int32)(randGab * p->ftp->flen)];
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
@@ -1670,7 +1670,7 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = table[(int32)(randGab) * MYFLT2LONG(flen)];
+      out[n] = table[(int32)(randGab) * flen];
     }
     return OK;
  err1:
@@ -1688,7 +1688,7 @@ static int kContinuousUserRand(CSOUND *csound, CURAND *p)
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
-    findx = (MYFLT) (randGab * MYFLT2LONG(p->ftp->flen));
+    findx = (MYFLT) (randGab * p->ftp->flen);
     indx = (int32) findx;
     fract = findx - indx;
     v1 = *(p->ftp->ftable + indx);
@@ -1740,7 +1740,7 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      findx = (MYFLT) (randGab * MYFLT2LONG(flen));
+      findx = (MYFLT) (randGab * flen);
       indx = (int32) findx;
       fract = findx - indx;
       v1 = table[indx];

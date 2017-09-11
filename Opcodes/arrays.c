@@ -115,12 +115,11 @@ static int array_init(CSOUND *csound, ARRAYINIT *p)
     }
 
     size = arrayDat->sizes[0];
-
     if (inArgCount > 1) {
       for (i = 1; i < inArgCount; i++) {
         size *= arrayDat->sizes[i];
       }
-      size = MYFLT2LRND(size);
+      //size = MYFLT2LRND(size); // size is an int not float
     }
 
     {
