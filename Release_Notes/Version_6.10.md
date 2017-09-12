@@ -52,7 +52,7 @@ This is mostly a bugfix release
 
 ### Options
 
-- the --tempo option now can be fractional; wascpreviously limited to an integer.
+- the --tempo option now can be fractional; was previously limited to an integer.
 
 ### Modified Opcodes and Gens
 
