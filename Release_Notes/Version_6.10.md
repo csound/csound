@@ -43,7 +43,7 @@ are here, as well as many small internal improvements.
 
 ### Orchestra
 
-- Incorrect use of  k-rate if..the.. in instrument 0 is now treated as i-rate.
+- Incorrect use of k-rate if..the.. in instrument 0 is now treated as i-rate.
 
 - incorrect use of k-rate operations in instrument 0 are no longer
   treated as an error but a warning
@@ -89,12 +89,12 @@ are here, as well as many small internal improvements.
 
 - csdebugger:
 
-- HTML5
+- HTML5: Now available in CsoundQt.
 
+- Emscripten: Now compiled as WebAssembly (runs in all major browsers). API now 
+  somewhat more conformed to other HTML5 APIs.
 
-- Emscripten:
-
-- CsoundQT:
+- CsoundQT: Now built with HTML5 support.
 
 ### General Usage
 
@@ -129,7 +129,9 @@ are here, as well as many small internal improvements.
 
 - Windows
 
- - Now compiled with MSVC
+ - Now compiled with MSVC.
+ 
+ - Continuous integration for Windows with AppVeyor.
 
 - OSX
 
