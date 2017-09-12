@@ -1225,7 +1225,7 @@ static int ftab2tab(CSOUND *csound, TABCOPY *p)
 typedef struct {
   OPDS h;
   ARRAYDAT *tab, *tabin;
-  MYFLT *start, *end;
+  MYFLT *start, *end, *inc;
   int    len;
 } TABSLICE;
 
@@ -1235,8 +1235,9 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
     MYFLT *tabin = p->tabin->data;
     int start = (int) *p->start;
     int end   = (int) *p->end;
-    int size = end - start + 1;
-    int i;
+    int inc   = (int) *p->inc;
+    int size = (end - start)/inc + 1;
+    int i, destIndex;
     int memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
 
     if (UNLIKELY(size < 0))
@@ -1245,10 +1246,11 @@ static int tabslice(CSOUND *csound, TABSLICE *p){
       //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
       return csound->InitError(csound, Str("slice larger than original size"));
     }
+    if (UNLIKELY(inc<=0))
+      return csound->InitError(csound, Str("slice increment must be positive"));
     tabensure(csound, p->tab, size);
 
-    for (i = start; i < end + 1; i++) {
-      int destIndex = i - start;
+    for (i = start, destIndex = 0; i < end + 1; i+=inc, destIndex++) {
       p->tab->arrayType->copyValue(csound,
                                    p->tab->data + (destIndex * memMyfltSize),
                                    tabin + (memMyfltSize * i));
@@ -2500,12 +2502,12 @@ static OENTRY arrayvars_localops[] =
     { "maparray.i", sizeof(TABMAP), 0, 1, "i[]", "i[]S", (SUBR) tabmap_set },
     /*  { "maparray.s", sizeof(TABMAP), 0, 3, "S[]", "S[]S", (SUBR) tabmap_set, */
     /*                                               (SUBR) tabmap_perf     }, */
-    { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]ii",
+    { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]iip",
       NULL, (SUBR) tabslice, NULL },
 
-    { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]ii",
+    { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]iip",
       (SUBR) tabslice, NULL, NULL },
-    { "slicearray.x", sizeof(TABSLICE), 0, 3, ".[]", ".[]ii",
+    { "slicearray.x", sizeof(TABSLICE), 0, 3, ".[]", ".[]iip",
       (SUBR) tabslice, (SUBR) tabslice, NULL },
     //    { "slicearray.s", sizeof(TABSLICE), 0, 3, "S[]", "[]ii",
     //                                  (SUBR) tabsliceS, (SUBR) tabsliceS, NULL },
