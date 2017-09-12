@@ -3,7 +3,7 @@ option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and libs." OFF)
 option(BUILD_CSOUND_VST "Build the CsoundVST frontend. Requires the Steinberg VST SDK 2.3." OFF)
 
-if (not MSVC)
+if (NOT MSVC)
     find_package(FLEX)
     find_package(BISON)
 endif()
