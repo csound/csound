@@ -37,6 +37,7 @@ install:
   - npm install -g nw-gyp
   - nodevars.bat
   - appveyor DownloadFile "https://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip" -FileName "hdf5.zip"
+  - 7z l hdf5.zip -y
   - 7z x hdf5.zip -y
   - dir hdf5
   - ps: Start-Process -FilePath msiexec -ArgumentList /i, "hdf5\HDF5-1.8.16-win64.msi", /quiet -Wait
