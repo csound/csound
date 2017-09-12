@@ -21,7 +21,9 @@ Any valid HTML can also be used.
 --->
 # CSOUND VERSION 6.10 RELEASE NOTES
 
-This is mostly a bugfix release
+This is mostly a bugfix release, including a major bug introduced in
+loscil recently.  New ad improved opcodes and a long orphaned gen (53)
+are here, as well as many small internal improvements.
 
 -- The Developers
 
@@ -50,7 +52,7 @@ This is mostly a bugfix release
   leading to truncated orchestras.  This is now fixed.
 
 - Arrays can be assigned from i-rate and k-rate to krate and i-rate;
-  previouly rates had to match.
+  previously rates had to match.
 
 ### Score
 
@@ -73,7 +75,7 @@ This is mostly a bugfix release
 - fout can now generate ogg format, as well as accepting -1 to mean the
   same format as -o uses.
 
-- bitwise and opcode (&) i a-rate corrected for sample-accrate mode.
+- bitwise and opcode (&) at a-rate corrected for sample-accurate mode.
 
 ### Utilities
 
@@ -113,7 +115,7 @@ This is mostly a bugfix release
 
 ### API
 
-- CompileCsdText now always return sa value indicating success/failure.
+- CompileCsdText now always returns a value indicating success/failure.
 
 ### Platform Specific
 
@@ -127,7 +129,7 @@ This is mostly a bugfix release
 
 - Windows
 
- -
+ - Now compiled with MSVC
 
 - OSX
 
