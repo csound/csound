@@ -3,8 +3,10 @@ option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and libs." OFF)
 option(BUILD_CSOUND_VST "Build the CsoundVST frontend. Requires the Steinberg VST SDK 2.3." OFF)
 
-find_package(FLEX)
-find_package(BISON)
+if (not MSVC)
+    find_package(FLEX)
+    find_package(BISON)
+endif()
 
 find_path(PD_HEADER_PATH m_pd.h)
 find_library(PD_LIBRARY pd.dll)
