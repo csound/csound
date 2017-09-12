@@ -36,8 +36,9 @@ install:
   - cd msvc
   - npm install -g nw-gyp
   - nodevars.bat
-  - appveyor DownloadFile "http://www.hdfgroup.org/ftp/HDF5/current/bin/windows/extra/hdf5-1.8.16-win64-vs2015-shared.zip" -FileName "hdf5.zip"
+  - appveyor DownloadFile "https://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip" -FileName "hdf5.zip"
   - 7z x hdf5.zip -y
+  - dir hdf5
   - ps: Start-Process -FilePath msiexec -ArgumentList /i, "hdf5\HDF5-1.8.16-win64.msi", /quiet -Wait
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
