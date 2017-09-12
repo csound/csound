@@ -44,15 +44,25 @@ This is mostly a bugfix release
 - Incorrect use of  k-rate if..the.. in instrument 0 is now treated as i-rate.
 
 - incorrect use of k-rate operations in instrument 0 are no longer
-  treated as an error but a warning.
+  treated as an error but a warning
+
+- In a csd file commented-out tags were acted upon in some cases,
+  leading to truncated orchestras.  This is now fixed.
+
+- Arrays can be assigned from i-rate and k-rate to krate and i-rate;
+  previouly rates had to match.
 
 ### Score
+
+- In a csd file commented-out tags were acted upon in some cases,
+  leading to truncated scores.  This is now fixed.
 
 -
 
 ### Options
 
-- the --tempo option now can be fractional; was previously limited to an integer.
+- the --tempo (and -t) option now can be fractional; was previously
+  limited to an integer.
 
 ### Modified Opcodes and Gens
 
@@ -93,6 +103,8 @@ This is mostly a bugfix release
 
 - Freezing in dconv fixed
 
+- looptseg no longer crashes if presented with too few arguments.
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
@@ -101,7 +113,7 @@ This is mostly a bugfix release
 
 ### API
 
-- 
+- CompileCsdText now always return sa value indicating success/failure.
 
 ### Platform Specific
 
@@ -141,12 +153,6 @@ Date:   Sat Sep 2 11:00:15 2017 +0100
 
     chnset now can have variable channel names
 
-commit 3055f0357f41ed13055136f099cf08dc6bda7318
-Author: jpff <jpff@codemist.co.uk>
-Date:   Tue Aug 29 23:07:01 2017 +0100
-
-    fix to looptseg
-
 commit a5b29e123ba910934989a2491b83ad70bdcf97dc
 Author: Michael Gogins <michael.gogins@gmail.com>
 Date:   Sat Aug 26 07:43:09 2017 -0400
@@ -177,46 +183,16 @@ Date:   Wed Aug 2 18:01:00 2017 +0100
 
     added setOption to CsoundObj.js
 
-commit dc2f6b5775567f9521494b223c6a6c8864dcee43
-Author: jpff <jpff@codemist.co.uk>
-Date:   Mon Jul 31 12:33:40 2017 +0100
-
-    and createScore
-
-commit ad366d35d391cd342b633a4c2d0aa990dc80d2ff
-Author: jpff <jpff@codemist.co.uk>
-Date:   Sun Jul 30 21:57:21 2017 +0100
-
-    Better version of createOrchestra
-
 commit a3c647e5695563b6b7a630782157c59da48989be
 Author: Michael Gogins <michael.gogins@gmail.com>
 Date:   Sat Jul 29 13:25:25 2017 -0400
 
     A little API compatibility for WASM.
 
-commit b8762fead9e492d52bed75c1131386c4d36816b9
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Jul 26 23:18:26 2017 +0100
-
-    dealing with comments in CSD orchestra tag
-
-commit 95e7894b3ce12e8bab5054a549f50c033b129a27
-Author: jpff <jpff@codemist.co.uk>
-Date:   Fri Jul 21 21:43:29 2017 +0100
-
-    experimental array assigment
-
 commit 73db533a551dec4616c6f3195467b231eaeb033c
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Jul 18 11:52:38 2017 +0100
 
     interrupt handler in CLI csound fixed
-
-commit 04a785def13e94cf0d92d9401e11b02dda96fd82
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jul 18 11:07:10 2017 +0100
-
-    csoundCompileCsdText return value
 
 
