@@ -100,7 +100,7 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 echo "Downloading VC packages..."
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows"
-vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib libsndfile msmpi hdf5
+vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib libsndfile msmpi
 $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
@@ -111,6 +111,10 @@ mkdir $depsLibDir -ErrorAction SilentlyContinue
 mkdir $depsBinDir -ErrorAction SilentlyContinue
 mkdir $depsIncDir -ErrorAction SilentlyContinue
 mkdir staging -ErrorAction SilentlyContinue
+
+# Must run MPI installer before building hdf5 package.
+C:/Tools/vcpkg/downloads/MSMpiSetup-8.1.exe /quit /norestart
+vcpkg --triplet $targetTriplet install hdf5
 
 echo "Downloading and installing non-VCPKG packages..."
 
