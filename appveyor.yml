@@ -36,6 +36,7 @@ install:
   - cd msvc
   - npm install -g nw-gyp
   - nodevars.bat
+  - ps: [Net.ServicePointManager]::SecurityProtocol = 'Ssl3, Tls, Tls11, Tls12'  
   - ps: Invoke-WebRequest "http://www.hdfgroup.org/ftp/HDF5/current/bin/windows/extra/hdf5-1.8.16-win64-vs2015-shared.zip" -OutFile hdf5.zip
   - 7z x hdf5.zip -y
   - ps: Start-Process -FilePath msiexec -ArgumentList /i, "hdf5\HDF5-1.8.16-win64.msi", /quiet -Wait
