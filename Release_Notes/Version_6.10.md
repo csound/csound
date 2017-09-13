@@ -77,6 +77,8 @@ are here, as well as many small internal improvements.
 
 - bitwise and opcode (&) at a-rate corrected for sample-accurate mode.
 
+- slicearray as an optional additional argument to give a stride to the slice.
+
 ### Utilities
 
 - 
