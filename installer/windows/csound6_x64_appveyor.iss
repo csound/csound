@@ -26,13 +26,12 @@
 ; USAGE
 ;
 ; Can run from the command line with "/S /D installation directory".
-;
-; Uncomment the following line to build CsoundVST and vst4cs:
-; #define CSOUNDVST
+; #define InstallCsoundVst
 
+[setup]
 #define AppName "Csound_x64"
 #define AppVersion "6"
-#ifdef CSOUNDVST
+#ifdef InstallCsoundVst
 #define AppMinVersion "6.09.2beta3-vst"
 #else
 #define AppMinVersion "6.09.2beta3"
@@ -45,7 +44,7 @@
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full;
-#ifdef CSOUNDVST
+#if InstallCsoundVst=1
 Name: "vst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: full;
 #endif
 
@@ -144,8 +143,8 @@ Source: "..\..\examples\python\shapes.py"; DestDir: "{#APP_BIN}"; Flags: ignorev
 Source: "..\..\examples\python\vu.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\examples\python\wxController.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\interfaces\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-#ifdef CSOUNDVST
-Source: "..\..\msvc\csound-vs\Release\CsoundVST.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: vst;
+#if InstallCsoundVst=1
+Source: "..\..\msvc\csound-vs\Release\CsoundVst.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: vst;
 #endif
 Source: "..\..\msvc\csound-vs\Release\_csnd6.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\Release\_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -167,7 +166,7 @@ Source: "..\..\msvc\csound-vs\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreve
 Source: "..\..\msvc\csound-vs\csnd6.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\Release\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-#ifdef CSOUNDVST
+#if InstallCsoundVst=1
 Source: "..\..\msvc\csound-vs\Release\csoundvstmain.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: vst;
 #endif
 Source: "..\..\frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -228,7 +227,7 @@ Source: "..\..\msvc\csound-vs\Release\stdutil.dll"; DestDir: "{#APP_PLUGINS64}";
 Source: "..\..\msvc\csound-vs\Release\stkops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\system_call.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\virtual.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-#ifdef CSOUNDVST
+#if InstallCsoundVst=1
 Source: "..\..\msvc\csound-vs\Release\vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: vst;
 #endif
 Source: "..\..\msvc\csound-vs\Release\widgets.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;

@@ -117,6 +117,7 @@ if(BUILD_CSOUND_AC)
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 
     if(SWIG_FOUND)
+        message(STATUS "SWIG_USE_FILE: " ${SWIG_USE_FILE})
         include(${SWIG_USE_FILE})
         set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
         include_directories(${CMAKE_CURRENT_SOURCE_DIR})

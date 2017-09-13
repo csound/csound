@@ -6,6 +6,7 @@ option(BUILD_CXX_INTERFACE "Build the C++ interface library" ON)
 option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
+find_package(SWIG)
 
 
 if(BUILD_CXX_INTERFACE)
