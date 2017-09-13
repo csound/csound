@@ -63,7 +63,7 @@ after_build:
   - build_csoundqt.bat
   - cd ..
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
-  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
+  - iscc /VcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /QtSdkBinDir=%QTDIR%\\bin\\ /InstallCsoundVst=0 /omsvc installer\\windows\\csound6_x64_appveyor.iss
   - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
   - 7z l csound.zip
 

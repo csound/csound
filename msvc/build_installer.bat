@@ -1,1 +1,1 @@
-"C:\Program Files (x86)\Inno Setup 5\iscc.exe" /o. /dQtSdkBinDir=%1 /dVcpkgInstalledBinDir=%2 "..\installer\windows\csound6_x64_appveyor.iss"
+"C:\Program Files (x86)\Inno Setup 5\iscc.exe" /o. /dQtSdkBinDir="C:\\Qt\\Qt5.9.1\\5.9.1\\msvc2015_64\\bin\\" /dVcpkgInstalledBinDir="D:\\msys64\\home\\restore\\vcpkg\\installed\\x64-windows\\bin\\" /dInstallCsoundVst=1 "..\installer\windows\csound6_x64_appveyor.iss"
