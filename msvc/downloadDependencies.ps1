@@ -29,6 +29,14 @@ $cmakeTiming = 0
 # Add to path to call tools
 $env:Path += $depsDir
 
+#Invoke-WebRequest -Uri "http://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip" -OutFile hdf5.zip
+7z l hdf5.zip -y
+7z x hdf5.zip -y
+dir hdf
+Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /qn /li /norestart'
+echo "Installed HDF5..."
+
+
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
 $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
@@ -111,10 +119,6 @@ mkdir $depsLibDir -ErrorAction SilentlyContinue
 mkdir $depsBinDir -ErrorAction SilentlyContinue
 mkdir $depsIncDir -ErrorAction SilentlyContinue
 mkdir staging -ErrorAction SilentlyContinue
-
-# Must run MPI installer before building hdf5 package.
-C:/Tools/vcpkg/downloads/MSMpiSetup-8.1.exe /quit /norestart
-vcpkg --triplet $targetTriplet install hdf5
 
 echo "Downloading and installing non-VCPKG packages..."
 

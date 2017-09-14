@@ -41,7 +41,7 @@ mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 
 cmake ..\.. -G $vsGenerator -T $vsToolset  `
- -Wdev -Wdeprecated `
+ -Wno-dev -Wdeprecated `
  -DSTK_LOCAL:BOOL="ON" `
  -DCMAKE_BUILD_TYPE="Release" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
@@ -50,5 +50,5 @@ cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
  -DEIGEN3_INCLUDE_PATH:PATH="$vcpkgDir\packages\eigen3_x64-windows\include" `
  -DVSTSDK2X_INCLUDE_DIR:PATH="$vstSdkHome" `
- -DBUILD_CSOUND_VST=1 `
- -DBUILD_VST4CS_OPCODES=1
+ -DBUILD_CSOUND_VST:BOOL=ON`
+ -DBUILD_VST4CS_OPCODES:BOOL=ON

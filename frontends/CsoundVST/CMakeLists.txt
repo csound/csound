@@ -2,14 +2,14 @@
 
 include(CheckIncludeFiles)
 
-option(BUILD_CSOUNDVST "Build CsoundVST plugin (needs C++ interface, FLTK, VST SDK)" OFF)
+option(BUILD_CSOUND_VST "Build CsoundVST plugin (needs C++ interface, FLTK, VST SDK)" OFF)
 IF(APPLE)
 find_library(FLTK libfltk)
 ENDIF(APPLE)
 
-check_deps(BUILD_CSOUNDVST BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN3_INCLUDE_PATH VSTSDK2X_FOUND)
-message(STATUS "BUILD_CSOUNDVST: ${BUILD_CSOUNDVST}.")
-if(BUILD_CSOUNDVST)
+check_deps(BUILD_CSOUND_VST BUILD_CXX_INTERFACE FLTK_FOUND LIBSNDFILE_LIBRARY EIGEN3_INCLUDE_PATH VSTSDK2X_FOUND)
+message(STATUS "BUILD_CSOUND_VST: ${BUILD_CSOUND_VST}.")
+if(BUILD_CSOUND_VST)
     include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
     include_directories(${CMAKE_HOME_DIRECTORY}/frontends/CsoundVST)
     include_directories(${EIGEN3_INCLUDE_PATH})

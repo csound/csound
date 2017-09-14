@@ -14,7 +14,6 @@ platform: x64
 configuration: Release
 
 init:
-  # This is so nw-gyp can build csound.node.
   - set CSOUND_HOME=%APPVEYOR_BUILD_FOLDER%
   - set PYTHON=C:\Python27-x64\python.exe
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
@@ -34,13 +33,9 @@ init:
 
 install:
   - cd msvc
+  # This is so nw-gyp can build csound.node.
   - npm install -g nw-gyp
   - nodevars.bat
-  #- appveyor DownloadFile "https://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip" -FileName "hdf5.zip"
-  #- 7z l hdf5.zip -y
-  #- 7z x hdf5.zip -y
-  #- dir hdf
-  #- ps: Start-Process -FilePath msiexec -ArgumentList /i, "hdf\hdf\HDF5-1.8.19-win64.msi", /quiet -Wait
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - cd ..
