@@ -2,7 +2,7 @@ param
 (
     [string]$vsGenerator="Visual Studio 15 2017 Win64",
     [string]$vsToolset="v141",
-    [string]$vstSdkHome="D:\\msys64\\mingw64\\include\\vstsdk2.4"
+    [string]$vstSdkHome=""
 )
 echo "Generating Csound VS project..."
 
