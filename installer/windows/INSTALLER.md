@@ -21,10 +21,12 @@ The Windows installer for Csound comes with:
 
 1. The Csound shared library, which contains Csound's core functionality.
 2. A number of programming language interfaces to Csound:
+
 3.1. C and C++, along with header files and libraries for embedding and calling Csound.
 3.2. Python (both running Csound from Python, and running Python from Csound).
 3.3. Java.
 3.4. Common Lisp.
+
 4. Command-line programs, including Csound itself and a variety of utility programs.
 5. The CsoundQt editor for Csound, including the ability to define custom user interfaces in Csound, or even to run local Web pages that embed Csound and give Csound access to all the capabilities of HTML5 including JavaScript, WebGL, local data store, math typesetting, and on and on.
 6. Csound.node, which embeds Csound in NW.js, with much the same results as running HTML5 code in CsoundQt, but with less overhead. NW.js must be installed separately. Be sure to install a recent version of NW.js for 64 bit CPU architecture, and select the SDK version of NW.js to get the JavaScript debugger.
