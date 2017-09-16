@@ -50,5 +50,5 @@ cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
  -DEIGEN3_INCLUDE_PATH:PATH="$vcpkgDir\packages\eigen3_x64-windows\include" `
  -DVSTSDK2X_INCLUDE_DIR:PATH="$vstSdkHome" `
- -DBUILD_CSOUND_VST:BOOL=ON`
+ -DBUILD_CSOUND_VST:BOOL=ON `
  -DBUILD_VST4CS_OPCODES:BOOL=ON
