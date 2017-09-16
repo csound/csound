@@ -3,9 +3,10 @@ image: Visual Studio 2017
 environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
+  CsoundDepsDir: C:\projects\csound\msvc\deps\bin
+  HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
   QTDIR: C:\Qt\5.9.1\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
-  CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   VSGENERATOR: Visual Studio 15 2017 Win64
   # This is for compatibility with Windows 8.
   VSTOOLSET: v141_xp
@@ -48,7 +49,6 @@ after_build:
   - dir "%VCPKGDir%\installed\x64-windows\include"
   - cd frontends\nwjs
   - npm config set msvs_version 2017 --global
-  #- nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2017 --platform_toolset=%VSTOOLSET%
   - nw-gyp rebuild --target=0.23.5 --arch=x64
   - cd ..\..
   - set PATH=%QTDIR%\bin;%PATH%
