@@ -108,6 +108,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "..\..\*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
+Source: "..\..\installer\windows\INSTALLER.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 ; Microsoft C/C++ runtime libraries.

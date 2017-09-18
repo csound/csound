@@ -1,6 +1,7 @@
 image: Visual Studio 2017
 
 environment:
+  ABLETON_LINK_HOME: C:\projects\csound\msvc\deps\link
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
