@@ -179,6 +179,7 @@ else
     echo "Ableton Link downloaded."
 }
 mkdir build
+cd build
 cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
 cmake --build .
 
