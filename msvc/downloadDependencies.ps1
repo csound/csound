@@ -29,13 +29,6 @@ $cmakeTiming = 0
 # Add to path to call tools
 $env:Path += $depsDir
 
-Invoke-WebRequest -Uri "http://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip" -OutFile hdf5.zip
-7z l hdf5.zip -y
-7z x hdf5.zip -y
-dir hdf
-Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /qn /li /norestart'
-echo "Installed HDF5..."
-
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
 $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
@@ -51,15 +44,12 @@ elseif ($systemVCPKG)
     echo "vcpkg already installed on system, updating"
     $vcpkgDir = Split-Path -Parent $systemVCPKG
     cd $vcpkgDir
-
     # Update and rebuild vcpkg
     git pull
     bootstrap-vcpkg.bat
-
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
     vcpkg update # Not really functional it seems yet
-
     cd $currentDir
 }
 elseif (Test-Path "..\..\vcpkg")
@@ -69,34 +59,27 @@ elseif (Test-Path "..\..\vcpkg")
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
         [EnvironmentVariableTarget]::User)
-
     echo "vcpkg already installed locally, updating"
-
     # Update and rebuild vcpkg
     git pull
     bootstrap-vcpkg.bat
-
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
     vcpkg update
-
     cd $currentDir
 }
 else
 {
     cd ..\..
-    echo "vcpkg missing, downloading and installing"
-
+    echo "vcpkg missing, downloading and installing..."
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
         [EnvironmentVariableTarget]::User)
-
     powershell -exec bypass scripts\bootstrap.ps1
     vcpkg integrate install
-
     cd $currentDir
 }
 
@@ -132,6 +115,7 @@ $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
 "http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
+"http://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip",
 "https://github.com/thestk/stk/archive/master.zip"
 
 # Appends this folder location to the 'deps' uri
@@ -177,6 +161,33 @@ for($i=0; $i -lt $uriList.Length; $i++)
     }
     echo "Extracted $fileName"
 }
+
+cd $depsDir
+echo "Ableton Link..."
+if (Test-Path "link")
+{
+    cd link
+    git pull
+    git submodule update --recursive
+    echo "Ableton Link already downloaded, updated."
+}
+else
+{
+    git clone "https://github.com/Ableton/link.git"
+    cd link
+    git submodule update --init --recursive
+    echo "Ableton Link downloaded."
+}
+mkdir build
+cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
+cmake --build .
+
+cd $depsDir
+dir hdf
+Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /qn /li /norestart'
+echo "Installed HDF5..."
+
+cd $depsDir
 
 Copy-Item ($destDir + "stk-master\*") ($csoundDir + "\Opcodes\stk") -recurse -force
 echo "STK: Copied sources to Csound opcodes directory."
