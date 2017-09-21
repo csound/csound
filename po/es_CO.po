@@ -1193,7 +1193,15 @@ msgstr "GEN53: tamaño inválido de la tabla fuente"
 msgid "GEN53: invalid window table"
 msgstr "GEN53: tabla de ventana inválida"
 
-#: Engine/fgens.c:3429
+#: Engine/fgens.c:3319
+msgid "GEN 53: impulse response input, "
+msgstr ""
+
+#: Engine/fgens.c:3325
+msgid "GEN 53: frequency response input, "
+msgstr ""
+
+#: Engine/fgens.c:3428
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr "Falló la carga diferida de '%s'"
@@ -2225,7 +2233,7 @@ msgstr ""
 msgid "error: no input file name"
 msgstr "error: hay nombre del archivo de entrada"
 
-#: InOut/libsnd.c:508 InOut/rtpa.c:486
+#: InOut/libsnd.c:508 InOut/rtpa.c:487
 msgid "Failed to initialise real time audio input"
 msgstr "No se puede iniciar la entrada de audio en tiempo real"
 
@@ -2970,7 +2978,7 @@ msgstr ""
 msgid "Error setting software parameters for real-time audio"
 msgstr ""
 
-#: InOut/rtalsa.c:505 InOut/rtpa.c:292 InOut/rtpa.c:306 util/scale.c:289
+#: InOut/rtalsa.c:505 InOut/rtpa.c:293 InOut/rtpa.c:307 util/scale.c:289
 #: util/xtrct.c:297
 msgid "Memory allocation failure"
 msgstr ""
@@ -2986,7 +2994,7 @@ msgstr ""
 msgid " *** ALSA: %s: memory allocation failure"
 msgstr ""
 
-#: InOut/rtalsa.c:701 InOut/rtpa.c:774
+#: InOut/rtalsa.c:701 InOut/rtpa.c:775
 msgid "Buffer overrun in real-time audio input"
 msgstr ""
 
@@ -2999,7 +3007,7 @@ msgstr "Modulo MME en tiempo real para audio y MIDI por Istvan Varga\n"
 msgid "Error reading data from audio input device"
 msgstr "Error leyendo datos del dispositivo de entrada de audio"
 
-#: InOut/rtalsa.c:746 InOut/rtpa.c:797
+#: InOut/rtalsa.c:746 InOut/rtpa.c:798
 msgid "Buffer underrun in real-time audio output"
 msgstr ""
 
@@ -3550,69 +3558,69 @@ msgstr ""
 msgid " *** PortAudio: error: "
 msgstr ""
 
-#: InOut/rtpa.c:204
+#: InOut/rtpa.c:205
 #, c-format
 msgid "%s device number %d is out of range"
 msgstr ""
 
-#: InOut/rtpa.c:205 InOut/rtpa.c:222
+#: InOut/rtpa.c:206 InOut/rtpa.c:223
 msgid "output"
 msgstr "salida"
 
-#: InOut/rtpa.c:205 InOut/rtpa.c:222
+#: InOut/rtpa.c:206 InOut/rtpa.c:223
 msgid "input"
 msgstr "entrada"
 
-#: InOut/rtpa.c:221
+#: InOut/rtpa.c:222
 #, c-format
 msgid "PortAudio: selected %s device '%s'\n"
 msgstr ""
 
-#: InOut/rtpa.c:230
+#: InOut/rtpa.c:231
 msgid "PortAudio: failed to obtain device info.\n"
 msgstr ""
 
-#: InOut/rtpa.c:243 InOut/rtpa.c:658 InOut/rtwinmm.c:262
+#: InOut/rtpa.c:244 InOut/rtpa.c:659 InOut/rtwinmm.c:262
 msgid "Must specify a device number, not a name"
 msgstr "Se debe especificar un número de dispositivo, no un nombre"
 
-#: InOut/rtpa.c:278
+#: InOut/rtpa.c:279
 msgid "No sound device is available"
 msgstr "No hay dispositivos de sonido disponibles"
 
-#: InOut/rtpa.c:312
+#: InOut/rtpa.c:313
 msgid "Inconsistent full-duplex buffer sizes"
 msgstr ""
 
-#: InOut/rtpa.c:316
+#: InOut/rtpa.c:317
 msgid "Inconsistent full-duplex sample rates"
 msgstr ""
 
-#: InOut/rtpa.c:323
+#: InOut/rtpa.c:324
 msgid ""
 "WARNING: buffer size should be an integer multiple of ksmps in full-duplex "
 "mode\n"
 msgstr ""
 
-#: InOut/rtpa.c:593 InOut/rtpa.c:806
+#: InOut/rtpa.c:594 InOut/rtpa.c:807
 #, fuzzy
 msgid "closing device\n"
 msgstr "error cerrando el dispositivo de entrada"
 
-#: InOut/rtpa.c:662
+#: InOut/rtpa.c:663
 #, c-format
 msgid "PortAudio: using ALSA device '%s'\n"
 msgstr "PortAudio: usando dispositivo ALSA '%s'\n"
 
-#: InOut/rtpa.c:855
+#: InOut/rtpa.c:856
 msgid "rtaudio: PortAudio module enabled ... \n"
 msgstr ""
 
-#: InOut/rtpa.c:863
+#: InOut/rtpa.c:864
 msgid "using blocking interface\n"
 msgstr ""
 
-#: InOut/rtpa.c:872
+#: InOut/rtpa.c:873
 msgid "using callback interface\n"
 msgstr ""
 
