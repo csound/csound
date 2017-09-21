@@ -3316,14 +3316,13 @@ static int gen53(FGDATA *ff, FUNC *ftp)
         tmpft[j] = SQRT(((dstftp[i] * dstftp[i])
                          + (dstftp[i + 1] * dstftp[i + 1])));
       tmpft[j] = dstftp[1];
-      csound->Message(csound, "GEN 53: impulse response input, ");
+      csound->Message(csound,Str("GEN 53: impulse response input, "));
       gen53_freq_response_to_ir(csound, dstftp, tmpft, winftp,
                                         dstflen, winflen, mode);
       csound->Free(csound, tmpft);
-      
     }
     else  {              /* input is frequency response: */
-      csound->Message(csound, "GEN 53: frequency response input, ");
+      csound->Message(csound, Str("GEN 53: frequency response input, "));
       gen53_freq_response_to_ir(csound, dstftp, srcftp, winftp,
                                         dstflen, winflen, mode);
     }

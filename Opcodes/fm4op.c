@@ -79,7 +79,7 @@ MYFLT Wave_tick(MYFLT *vTime, int len, MYFLT *data, MYFLT rate, MYFLT phase)
     MYFLT   alpha;
     MYFLT   lastOutput;
     MYFLT   vvTime = *vTime;
-    
+
     vvTime += rate;            /*  Update current time    */
     while (vvTime >= len)      /*  Check for end of sound */
       vvTime -= len;           /*  loop back to beginning */
