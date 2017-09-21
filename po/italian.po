@@ -1219,7 +1219,15 @@ msgstr "GEN53: numero di source table non valido"
 msgid "GEN53: invalid window table"
 msgstr "GEN53: window table non valida"
 
-#: Engine/fgens.c:3429
+#: Engine/fgens.c:3319
+msgid "GEN 53: impulse response input, "
+msgstr ""
+
+#: Engine/fgens.c:3325
+msgid "GEN 53: frequency response input, "
+msgstr ""
+
+#: Engine/fgens.c:3428
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr "fallito caricamento differito di '%s'"
@@ -2274,7 +2282,7 @@ msgstr "rtmidi: PortMIDI modulo abilitato\n"
 msgid "error: no input file name"
 msgstr "errore: manca il nome del file di input"
 
-#: InOut/libsnd.c:508 InOut/rtpa.c:486
+#: InOut/libsnd.c:508 InOut/rtpa.c:487
 msgid "Failed to initialise real time audio input"
 msgstr "Fallita inizializzazione dell'input audio in tempo reale"
 
@@ -3027,7 +3035,7 @@ msgstr "ALSA %s: totale dimensione buffer: %d, dimensione periodo: %d\n"
 msgid "Error setting software parameters for real-time audio"
 msgstr ""
 
-#: InOut/rtalsa.c:505 InOut/rtpa.c:292 InOut/rtpa.c:306 util/scale.c:289
+#: InOut/rtalsa.c:505 InOut/rtpa.c:293 InOut/rtpa.c:307 util/scale.c:289
 #: util/xtrct.c:297
 msgid "Memory allocation failure"
 msgstr "Allocazione di memoria fallita"
@@ -3043,7 +3051,7 @@ msgstr ""
 msgid " *** ALSA: %s: memory allocation failure"
 msgstr " *** ALSA: %s: allocazione di memoria fallita"
 
-#: InOut/rtalsa.c:701 InOut/rtpa.c:774
+#: InOut/rtalsa.c:701 InOut/rtpa.c:775
 msgid "Buffer overrun in real-time audio input"
 msgstr "Buffer overrun nell'input audio in tempo reale"
 
@@ -3056,7 +3064,7 @@ msgstr "PortAudio modulo audio in tempo reale per Csound\n"
 msgid "Error reading data from audio input device"
 msgstr "Errore in lettura dati dal dispositivo di input audio"
 
-#: InOut/rtalsa.c:746 InOut/rtpa.c:797
+#: InOut/rtalsa.c:746 InOut/rtpa.c:798
 msgid "Buffer underrun in real-time audio output"
 msgstr "Buffer underrun nell'output audio in tempo reale"
 
@@ -3621,45 +3629,45 @@ msgstr "rtaudio: modulo JACK abilitato\n"
 msgid " *** PortAudio: error: "
 msgstr " *** PortAudio: errore: "
 
-#: InOut/rtpa.c:204
+#: InOut/rtpa.c:205
 #, c-format
 msgid "%s device number %d is out of range"
 msgstr "%s dispositivo numero %d fuori range"
 
-#: InOut/rtpa.c:205 InOut/rtpa.c:222
+#: InOut/rtpa.c:206 InOut/rtpa.c:223
 msgid "output"
 msgstr "output"
 
-#: InOut/rtpa.c:205 InOut/rtpa.c:222
+#: InOut/rtpa.c:206 InOut/rtpa.c:223
 msgid "input"
 msgstr "input"
 
-#: InOut/rtpa.c:221
+#: InOut/rtpa.c:222
 #, c-format
 msgid "PortAudio: selected %s device '%s'\n"
 msgstr "PortAudio: selezionato %s dispositivo '%s'\n"
 
-#: InOut/rtpa.c:230
+#: InOut/rtpa.c:231
 msgid "PortAudio: failed to obtain device info.\n"
 msgstr "PortAudio: fallito ottenimento info dispositivo.\n"
 
-#: InOut/rtpa.c:243 InOut/rtpa.c:658 InOut/rtwinmm.c:262
+#: InOut/rtpa.c:244 InOut/rtpa.c:659 InOut/rtwinmm.c:262
 msgid "Must specify a device number, not a name"
 msgstr "Si deve specificare un numero di dispositivo, non un nome"
 
-#: InOut/rtpa.c:278
+#: InOut/rtpa.c:279
 msgid "No sound device is available"
 msgstr "Nessun dispositivo di suono disponibile"
 
-#: InOut/rtpa.c:312
+#: InOut/rtpa.c:313
 msgid "Inconsistent full-duplex buffer sizes"
 msgstr "Dimensione buffer full-duplex incompatibile"
 
-#: InOut/rtpa.c:316
+#: InOut/rtpa.c:317
 msgid "Inconsistent full-duplex sample rates"
 msgstr "Frequenza di campionamento full-duplex incompatibile"
 
-#: InOut/rtpa.c:323
+#: InOut/rtpa.c:324
 msgid ""
 "WARNING: buffer size should be an integer multiple of ksmps in full-duplex "
 "mode\n"
@@ -3667,26 +3675,26 @@ msgstr ""
 "ATTENZIONE: la dimensione del buffer deve essere un multiplo intero di ksmps "
 "in full-duplex mode\n"
 
-#: InOut/rtpa.c:593 InOut/rtpa.c:806
+#: InOut/rtpa.c:594 InOut/rtpa.c:807
 #, fuzzy
 msgid "closing device\n"
 msgstr "errore chiusura disositivo di input"
 
-#: InOut/rtpa.c:662
+#: InOut/rtpa.c:663
 #, c-format
 msgid "PortAudio: using ALSA device '%s'\n"
 msgstr "PortAudio: uso del dispositivo ALSA '%s'\n"
 
-#: InOut/rtpa.c:855
+#: InOut/rtpa.c:856
 #, fuzzy
 msgid "rtaudio: PortAudio module enabled ... \n"
 msgstr "rtaudio: modulo PortAudio abilitato ... "
 
-#: InOut/rtpa.c:863
+#: InOut/rtpa.c:864
 msgid "using blocking interface\n"
 msgstr ""
 
-#: InOut/rtpa.c:872
+#: InOut/rtpa.c:873
 msgid "using callback interface\n"
 msgstr "uso dell'interfaccia callback\n"
 

@@ -102,7 +102,7 @@ static int initPortAudio(CSOUND *csound)
 /* list available input or output devices; returns the number of devices */
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     PaDeviceInfo  *dev_info;
-	PaHostApiInfo *api_info;
+    PaHostApiInfo *api_info;
     int           i, j, ndev;
     char          tmp[256], *s;
 
@@ -123,11 +123,12 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     if(list!=NULL) {
       for (i = j = 0; i < ndev; i++) {
         dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) i);
-		api_info = (PaHostApiInfo*) Pa_GetHostApiInfo(dev_info->hostApi);
+        api_info = (PaHostApiInfo*) Pa_GetHostApiInfo(dev_info->hostApi);
         if ((isOutput && dev_info->maxOutputChannels > 0) ||
             (!isOutput && dev_info->maxInputChannels > 0)) {
           //strncpy(list[j].device_name, dev_info->name, 63);
-			snprintf(list[j].device_name, 63, "%s [%s]", dev_info->name, api_info->name);
+          snprintf(list[j].device_name, 63, "%s [%s]",
+                   dev_info->name, api_info->name);
           if (isOutput) {
             snprintf(tmp, 256, "dac%d", j);
           } else {
