@@ -22,7 +22,7 @@ Any valid HTML can also be used.
 # CSOUND VERSION 6.10 RELEASE NOTES
 
 This is mostly a bugfix release, including a major bug introduced in
-loscil recently.  New ad improved opcodes and a long orphaned gen (53)
+loscil recently.  New and improved opcodes and a long orphaned gen (53)
 are here, as well as many small internal improvements.
 
 -- The Developers

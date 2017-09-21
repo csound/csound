@@ -19,7 +19,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
 
     char   *pcBuffer;
     const char *pcEnd;
-          char *pcLADSPAPath = NULL;
+    char *pcLADSPAPath = NULL;
     char *pcDSSIPath = NULL;
     const char *pcStart;
     int     iEndsInSO;
