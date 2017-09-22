@@ -31,7 +31,7 @@ are here, as well as many small internal improvements.
 
 ### New opcodes
 
-- midiout_i which is like midiout but works at i-rate
+- midiout_i which is like midiout, but works at i-rate.
 
 ### New Gen and Macros
 
@@ -45,8 +45,8 @@ are here, as well as many small internal improvements.
 
 - Incorrect use of k-rate if..the.. in instrument 0 is now treated as i-rate.
 
-- incorrect use of k-rate operations in instrument 0 are no longer
-  treated as an error but a warning
+- Incorrect use of k-rate operations in instrument 0 are no longer
+  treated as an error but a warning.
 
 - In a csd file commented-out tags were acted upon in some cases,
   leading to truncated orchestras.  This is now fixed.
@@ -57,7 +57,7 @@ are here, as well as many small internal improvements.
 ### Score
 
 - In a csd file commented-out tags were acted upon in some cases,
-  leading to truncated scores.  This is now fixed.
+  leading to truncated scores. This is now fixed.
 
 -
 
@@ -91,8 +91,6 @@ are here, as well as many small internal improvements.
 
 - csdebugger:
 
-- HTML5: Now available in CsoundQt.
-
 - Emscripten: Now compiled as WebAssembly (runs in all major browsers). API now 
   somewhat more conformed to other HTML5 APIs.
 
@@ -105,7 +103,7 @@ are here, as well as many small internal improvements.
 
 - The optionality of the last argument in sc_phasor now works.
 
-- Freezing in dconv fixed
+- Freezing in dconv fixed.
 
 - looptseg no longer crashes if presented with too few arguments.
 
