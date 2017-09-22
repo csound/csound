@@ -1872,11 +1872,11 @@ msgid "Parsing failed due to %d semantic error%s!\n"
 msgstr ""
 
 #: Engine/new_orc_parser.c:273
-msgid "Parsing failed to syntax errors\n"
+msgid "Parsing failed due to syntax errors\n"
 msgstr ""
 
 #: Engine/new_orc_parser.c:275
-msgid "Parsing failed due no input!\n"
+msgid "Parsing failed due to no input!\n"
 msgstr ""
 
 #: Engine/new_orc_parser.c:291
