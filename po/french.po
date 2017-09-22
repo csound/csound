@@ -1886,11 +1886,13 @@ msgid "Parsing failed due to %d semantic error%s!\n"
 msgstr "Echec de l'analyse, %d erreurs sémantiques %s !\n"
 
 #: Engine/new_orc_parser.c:273
-msgid "Parsing failed to syntax errors\n"
+#, fuzzy
+msgid "Parsing failed due to syntax errors\n"
 msgstr "Echec de l'analyse à cause d'erreurs de syntaxe\n"
 
 #: Engine/new_orc_parser.c:275
-msgid "Parsing failed due no input!\n"
+#, fuzzy
+msgid "Parsing failed due to no input!\n"
 msgstr "Echec de l'analyse par manque d'entrée !\n"
 
 #: Engine/new_orc_parser.c:291
