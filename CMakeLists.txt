@@ -512,7 +512,12 @@ SET(BUILD_SHARED_LIBS ON)
 ## HEADER/LIBRARY/OTHER CHECKS ##
 
 # First, required stuff
-find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1 HINTS ${PROJECT_SOURCE_DIR}/msvc/deps/lib)
+if (MSVC) 
+  find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1 HINTS ${PROJECT_SOURCE_DIR}/msvc/deps/lib)
+else()
+  find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
+endif()
+
 
 if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
