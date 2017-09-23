@@ -28,12 +28,11 @@ The Windows installer for Csound comes with:
 4. Command-line programs, including Csound itself and a variety of utility programs.
 5. The CsoundQt editor for Csound, including the ability to define custom user interfaces in Csound, or even to run local Web pages that embed Csound and give Csound access to all the capabilities of HTML5 including JavaScript, WebGL, local data store, math typesetting, and on and on.
 6. Csound.node, which embeds Csound in NW.js, with much the same results as running HTML5 code in CsoundQt, but with less overhead. NW.js must be installed separately. Be sure to install a recent version of NW.js for 64 bit CPU architecture, and select the SDK version of NW.js to get the JavaScript debugger.
-7. A variety of unit generators, see the Csound Reference Manual for a listing. Not all are available on Windows.
+7. A variety of unit generators, see the Csound Reference Manual for a listing. Not all are available on Windows. The vst4cs opcodes, which enable Csound to host VST plugins, are included.
+8. CsoundVST, which enables Csound to be used as a VST plugin in VST hosts.
 
 All programs and libraries contained in the Windows installer are built with Microsoft Visual Studio 2017 for 64 bit CPU architecture, and thus C++ components and interfaces of Csound are binary compatible with all other software built with MSVS 2017 for 64 bit CPU architecture.
 
-Another version of the Windows installer which is identical to the above, but also comes with CsoundVST for running Csound as a VST plugin in VST hosts and the vst4cs opcodes for running VST plugins in Csound, is available from Michael Gogins at https://michaelgogins.tumblr.com/CsoundVST, along with other Csound resources.
-    
 # SELECTED CSOUND RESOURCES
 
 Csound home page (including Csound for other operating systems) at http://csound.github.io/index.html. Contains links to many more resources!

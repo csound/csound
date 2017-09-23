@@ -132,6 +132,12 @@ are here, as well as many small internal improvements.
  - Now compiled with MSVC.
  
  - Continuous integration for Windows with AppVeyor.
+ 
+ - The AppVeyor build and installer now includes CsoundVST and the vst4cs 
+   opcodes that enable hosting VST plugins in Csound. The LGPL v2.1 
+   license for that code has been modified, with permission of Hermann 
+   Seib the original author of the VSTHost code, to permit use with 
+   the separately downloaded VST2 SDK from Steinberg.
 
 - OSX
 
