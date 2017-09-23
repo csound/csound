@@ -220,6 +220,10 @@ RELATN(le,<=)
 RELATN(eq,==)
 RELATN(ne,!=)
 
+int b_not(CSOUND *csound, RELAT *p)
+{
+    IGN(csound); *p->rbool = !(*p->a) ? 1 : 0; return OK; }
+
 #define LOGCLX(OPNAME,OP)                                       \
   int OPNAME(CSOUND *csound, LOGCL *p)                          \
   {  IGN(csound);*p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
