@@ -1210,11 +1210,11 @@ msgstr "GEN53 : table de fenêtre non valide"
 
 #: Engine/fgens.c:3319
 msgid "GEN 53: impulse response input, "
-msgstr ""
+msgstr "GEN53 : réponse impulsionnelle en entrée, "
 
 #: Engine/fgens.c:3325
 msgid "GEN 53: frequency response input, "
-msgstr ""
+msgstr "GEN53 : réponse fréquentielle en entrée, "
 
 #: Engine/fgens.c:3428
 #, c-format
@@ -1886,12 +1886,10 @@ msgid "Parsing failed due to %d semantic error%s!\n"
 msgstr "Echec de l'analyse, %d erreurs sémantiques %s !\n"
 
 #: Engine/new_orc_parser.c:273
-#, fuzzy
 msgid "Parsing failed due to syntax errors\n"
 msgstr "Echec de l'analyse à cause d'erreurs de syntaxe\n"
 
 #: Engine/new_orc_parser.c:275
-#, fuzzy
 msgid "Parsing failed due to no input!\n"
 msgstr "Echec de l'analyse par manque d'entrée !\n"
 
@@ -6460,7 +6458,6 @@ msgid "slice larger than original size"
 msgstr "intervalle plus grand que la taille d'origine"
 
 #: Opcodes/arrays.c:1250
-#, fuzzy
 msgid "slice increment must be positive"
 msgstr "le paramètre de coupure doit être positif"
 
@@ -6727,25 +6724,25 @@ msgid "No lapspa descriptor\n"
 msgstr "Pas de descripteur ladspa\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:322
-#, fuzzy
+#, c-format
 msgid ""
 "DSSI4CS: Unable to find ladspa_descriptor(%d) function or\n"
-"dssi_descriptor(%) function in plugin file \"%s\": %s.\n"
+"dssi_descriptor() function in plugin file \"%s\": %s.\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
-"DSSI4CS : impossible de trouver la fonction ladspa_descriptor() ou\n"
+"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%d) ou\n"
 "la fonction dssi_descriptor() dans le fichier de greffon \"%s\" : %s.\n"
 "Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:331
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "DSSI4CS: Unable to find ladspa_descriptor(%d) function or\n"
 "dssi_descriptor(%d) function in plugin file \"%s\".\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
-"DSSI4CS : impossible de trouver la fonction ladspa_descriptor() ou\n"
-"la fonction dssi_descriptor() dans le fichier de greffon \"%s\".\n"
+"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%d) ou\n"
+"la fonction dssi_descriptor(%d) dans le fichier de greffon \"%s\".\n"
 "Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:343
@@ -10846,815 +10843,692 @@ msgid "Error opening log file '%s': %s\n"
 msgstr "Erreur en ouvrant le fichier journal '%s' : %s\n"
 
 #: Top/argdecode.c:124
-#, fuzzy
 msgid "--help      print long usage options"
-msgstr "--help\taffiche les noms d'option longs "
+msgstr "--help      affiche les noms d'option longs "
 
 #: Top/argdecode.c:125
-#, fuzzy
 msgid "--version   print version details"
-msgstr "--version\taffiche les détails de version"
+msgstr "--version   affiche les détails de version"
 
 #: Top/argdecode.c:126
-#, fuzzy
 msgid "-U unam     run utility program unam"
-msgstr "-U unam\tlance l'utilitaire unam"
+msgstr "-U unam     lance l'utilitaire unam"
 
 #: Top/argdecode.c:127
-#, fuzzy
 msgid "-C          use Cscore processing of scorefile"
-msgstr "-C\tutilisation du traitement de partition Cscore"
+msgstr "-C          utilisation du traitement de partition Cscore"
 
 #: Top/argdecode.c:128
-#, fuzzy
 msgid "-j N        use N threads in performance"
-msgstr "-j N\tutiliser N threads pendant l'exécution"
+msgstr "-j N        utiliser N threads pendant l'exécution"
 
 #: Top/argdecode.c:129
-#, fuzzy
 msgid "-I          I-time only orch run"
-msgstr "-I\tn'exécuter que la passe de temps-I de l'orchestre"
+msgstr "-I          n'exécuter que la passe de temps-I de l'orchestre"
 
 #: Top/argdecode.c:130
-#, fuzzy
 msgid "-n          no sound onto disk"
-msgstr "-n\tpas de son vers le disque"
+msgstr "-n          pas de son vers le disque"
 
 #: Top/argdecode.c:131
-#, fuzzy
 msgid "-i fnam     sound input filename"
-msgstr "-i fnam\tnom du fichier son en entrée"
+msgstr "-i fnam     nom du fichier son en entrée"
 
 #: Top/argdecode.c:132
-#, fuzzy
 msgid "-o fnam     sound output filename"
-msgstr "-o fnam\tnom du fichier son en sortie"
+msgstr "-o fnam     nom du fichier son en sortie"
 
 #: Top/argdecode.c:133
-#, fuzzy
 msgid "-b N        sample frames (or -kprds) per software sound I/O buffer"
 msgstr ""
-"-b N\tnombre de trames d'échantillonnage (ou -kprds) par tampon logiciel d'E/"
-"S"
+"-b N        nombre de trames d'échantillonnage (ou -kprds) par tampon "
+"logiciel d'E/S"
 
 #: Top/argdecode.c:134
-#, fuzzy
 msgid "-B N        samples per hardware sound I/O buffer"
-msgstr "-B N\tnombre d'échantillons par tampon physique d'E/S"
+msgstr "-B N        nombre d'échantillons par tampon physique d'E/S"
 
 #: Top/argdecode.c:135
-#, fuzzy
 msgid "-A          create an AIFF format output soundfile"
-msgstr "-A\tcréation d'un fichier de sortie au format AIFF"
+msgstr "-A          création d'un fichier de sortie au format AIFF"
 
 #: Top/argdecode.c:136
-#, fuzzy
 msgid "-W          create a WAV format output soundfile"
-msgstr "-W\tcréation d'un fichier de sortie au format WAV"
+msgstr "-W          création d'un fichier de sortie au format WAV"
 
 #: Top/argdecode.c:137
-#, fuzzy
 msgid "-J          create an IRCAM format output soundfile"
-msgstr "-J\tcréation d'un fichier de sortie au format IRCAM"
+msgstr "-J          création d'un fichier de sortie au format IRCAM"
 
 #: Top/argdecode.c:138
-#, fuzzy
 msgid "-h          no header on output soundfile"
-msgstr "-h\tpas d'en-tête dans le fichier de sortie"
+msgstr "-h          pas d'en-tête dans le fichier de sortie"
 
 #: Top/argdecode.c:139
-#, fuzzy
 msgid "-c          8-bit signed_char sound samples"
-msgstr "-c\téchantillons en caractères signés sur 8 bit"
+msgstr "-c          échantillons en caractères signés sur 8 bit"
 
 #: Top/argdecode.c:141
-#, fuzzy
 msgid "-a          alaw sound samples"
-msgstr "-a\téchantillons alaw"
+msgstr "-a          échantillons alaw"
 
 #: Top/argdecode.c:143
-#, fuzzy
 msgid "-8          8-bit unsigned_char sound samples"
-msgstr "-8\téchantillons en caractères non signés sur 8 bit"
+msgstr "-8          échantillons en caractères non signés sur 8 bit"
 
 #: Top/argdecode.c:144
-#, fuzzy
 msgid "-u          ulaw sound samples"
-msgstr "-u\téchantillons ulaw"
+msgstr "-u          échantillons ulaw"
 
 #: Top/argdecode.c:145
-#, fuzzy
 msgid "-s          short_int sound samples"
-msgstr "-s\téchantillons en entiers courts"
+msgstr "-s          échantillons en entiers courts"
 
 #: Top/argdecode.c:146
-#, fuzzy
 msgid "-l          long_int sound samples"
-msgstr "-l\téchantillons en entiers longs"
+msgstr "-l           échantillons en entiers longs"
 
 #: Top/argdecode.c:147
-#, fuzzy
 msgid "-f          float sound samples"
-msgstr "-f\téchantillons en nombres flottants"
+msgstr "-f          échantillons en nombres flottants"
 
 #: Top/argdecode.c:148
-#, fuzzy
 msgid "-3          24bit sound samples"
-msgstr "-3\téchantillons sur 24 bit"
+msgstr "-3          échantillons sur 24 bit"
 
 #: Top/argdecode.c:149
-#, fuzzy
 msgid "-r N        orchestra srate override"
-msgstr "-r N\tredéfinition du srate de l'orchestre"
+msgstr "-r N        redéfinition du srate de l'orchestre"
 
 #: Top/argdecode.c:150
-#, fuzzy
 msgid "-k N        orchestra krate override"
-msgstr "-k N\tredéfinition du krate de l'orchestre"
+msgstr "-k N        redéfinition du krate de l'orchestre"
 
 #: Top/argdecode.c:151
-#, fuzzy
 msgid "-K          do not generate PEAK chunks"
-msgstr "-K\tNe générer aucun bloc PEAK"
+msgstr "-K          ne générer aucun bloc PEAK"
 
 #: Top/argdecode.c:152
-#, fuzzy
 msgid "-v          verbose orch translation"
-msgstr "-v\ttraduction détaillée de l'orchestre"
+msgstr "-v          traduction détaillée de l'orchestre"
 
 #: Top/argdecode.c:153
-#, fuzzy
 msgid "-m N        tty message level. Sum of:"
-msgstr "-m N\tniveau de message du tty. Somme de :"
+msgstr "-m N        niveau de message du tty. Somme de :"
 
 #: Top/argdecode.c:154
-#, fuzzy
 msgid "              1=note amps, 2=out-of-range msg, 4=warnings"
-msgstr "\t\t1=amp des notes, 2=msg dépassement limites, 4=avertissements"
+msgstr "              1=amp des notes, 2=msg dépassement limites, 4=avertissements"
 
 #: Top/argdecode.c:155
-#, fuzzy
 msgid "              0/32/64/96=note amp format (raw,dB,colors)"
-msgstr "\t\t0/32/64/96=format d'amp de note (brut, dB, couleurs)"
+msgstr "              0/32/64/96=format d'amp de note (brut, dB, couleurs)"
 
 #: Top/argdecode.c:156
-#, fuzzy
 msgid "              128=print benchmark information"
-msgstr "\t\t128=affichage de tests de performance"
+msgstr "              128=affichage de tests de performance"
 
 #: Top/argdecode.c:157
-#, fuzzy
 msgid "-d          suppress all displays"
-msgstr "-d\taucun affichage"
+msgstr "-d          aucun affichage"
 
 #: Top/argdecode.c:158
-#, fuzzy
 msgid "-g          suppress graphics, use ascii displays"
-msgstr "-g\tpas de graphiques, affichage ascii"
+msgstr "-g          pas de graphiques, affichage ascii"
 
 #: Top/argdecode.c:159
-#, fuzzy
 msgid "-G          suppress graphics, use Postscript displays"
-msgstr "-G\tpas de graphiques, affichage PostScript"
+msgstr "-G          pas de graphiques, affichage PostScript"
 
 #: Top/argdecode.c:160
-#, fuzzy
 msgid "-x fnam     extract from score.srt using extract file 'fnam'"
-msgstr "-x nomfic\textraire les données de score.srt dans le fichier 'nomfic'"
+msgstr "-x nomfic     extraire les données de score.srt dans le fichier 'nomfic'"
 
 #: Top/argdecode.c:161
-#, fuzzy
 msgid "-t N        use uninterpreted beats of the score, initially at tempo N"
 msgstr ""
-"-t N\tutiliser les pulsations non interprétées de la partition, au tempo "
+"-t N        utiliser les pulsations non interprétées de la partition, au tempo "
 "initial N"
 
 #: Top/argdecode.c:162
-#, fuzzy
 msgid "-t 0        use score.srt for sorted score rather than a temporary"
 msgstr ""
-"-t 0\tutiliser score.srt pour la partition triée au lieu d'un fichier "
+"-t 0        utiliser score.srt pour la partition triée au lieu d'un fichier "
 "temporaire"
 
 #: Top/argdecode.c:163
-#, fuzzy
 msgid "-L dnam     read Line-oriented realtime score events from device 'dnam'"
 msgstr ""
-"-L dnam\tLire des évènements de partition en temps-réel à partir du "
+"-L dnam     Lire des évènements de partition en temps-réel à partir du "
 "périphérique d'entrée en ligne 'dnam'"
 
 #: Top/argdecode.c:164
-#, fuzzy
 msgid "-M dnam     read MIDI realtime events from device 'dnam'"
 msgstr ""
-"-M dnam\tlire des évènements MIDI en temps-réel à partir du périphérique "
+"-M dnam     lire des évènements MIDI en temps-réel à partir du périphérique "
 "'dnam'"
 
 #: Top/argdecode.c:165
-#, fuzzy
 msgid "-F fnam     read MIDIfile event stream from file 'fnam'"
-msgstr "-F nomfic\tlire un flux d'évènements MIDI à partir du fichier 'nomfic'"
+msgstr "-F nomfic     lire un flux d'évènements MIDI à partir du fichier 'nomfic'"
 
 #: Top/argdecode.c:167
-#, fuzzy
 msgid ""
 "-R          continually rewrite header while writing soundfile (WAV/AIFF)"
 msgstr ""
-"-R\tréécrire l'en-tête continuellement lors de l'écriture d'un fichier son "
-"(WAV/AIFF)"
+"-R           réécrire l'en-tête continuellement lors de l'écriture d'un "
+"fichier son (WAV/AIFF)"
 
 #: Top/argdecode.c:168
-#, fuzzy
 msgid "-H#         print heartbeat style 1, 2 or 3 at each soundfile write"
 msgstr ""
-"-H#\taffiche une pulsation de style 1, 2 ou 3 à chaque écriture dans le "
-"fichier son"
+"-H#         affiche une pulsation de style 1, 2 ou 3 à chaque écriture dans "
+"le fichier son"
 
 #: Top/argdecode.c:169
-#, fuzzy
 msgid "-N          notify (ring the bell) when score or miditrack is done"
 msgstr ""
-"-N\tavertir (par un beep) quand la partition ou la piste MIDI est terminée"
+"-N          avertir (par un beep) quand la partition ou la piste MIDI est "
+"terminée"
 
 #: Top/argdecode.c:170
-#, fuzzy
 msgid "-T          terminate the performance when miditrack is done"
-msgstr "-T\tterminer l'exécution quand la fin du fichier MIDI est atteinte"
+msgstr ""
+"-T          terminer l'exécution quand la fin du fichier MIDI est atteinte"
 
 #: Top/argdecode.c:171
-#, fuzzy
 msgid "-D          defer GEN01 soundfile loads until performance time"
 msgstr ""
-"-D\tdifférer le chargement de fichier son par GEN01 jusqu'au moment de "
-"l'exécution"
+"-D          différer le chargement de fichier son par GEN01 jusqu'au moment "
+"de l'exécution"
 
 #: Top/argdecode.c:172
-#, fuzzy
 msgid "-Q dnam     select MIDI output device"
-msgstr "-Q dnam\tsélectionner le périphérique de sortie MIDI"
+msgstr "-Q dnam     sélectionner le périphérique de sortie MIDI"
 
 #: Top/argdecode.c:173
-#, fuzzy
 msgid "-z          list opcodes in this version"
-msgstr "-z\tLister les opcodes de cette version"
+msgstr "-z          lister les opcodes de cette version"
 
 #: Top/argdecode.c:174
-#, fuzzy
 msgid "-Z          dither output"
-msgstr "-Z\tSortie avec dithering"
+msgstr "-Z          sortie avec dithering"
 
 #: Top/argdecode.c:176
 msgid "--sched     set real-time priority and lock memory"
 msgstr "--sched     fixer la priorité au temps-réel et verrouiller la mémoire"
 
 #: Top/argdecode.c:177 Top/argdecode.c:179
-#, fuzzy
 msgid "              (requires -d and real time audio (-iadc/-odac))"
-msgstr "            (nécessite -d et l'audio en temps-réel (-iadc/-odac))"
+msgstr "              (nécessite -d et l'audio en temps-réel (-iadc/-odac))"
 
 #: Top/argdecode.c:178
 msgid "--sched=N   set specified scheduling priority, and lock memory"
 msgstr "--sched=N   fixer une priorité spécifique, et verrouiller la mémoire"
 
 #: Top/argdecode.c:188
-#, fuzzy
 msgid "  Set output file format"
-msgstr "\t\t\tFixer le format du fichier de sortie"
+msgstr "  Fixer le format du fichier de sortie"
 
 #: Top/argdecode.c:189
-#, fuzzy
 msgid "--aiff                  set AIFF format"
-msgstr "--aiff\t\t\tFixer le format AIFF"
+msgstr "--aiff                  fixer le format AIFF"
 
 #: Top/argdecode.c:190
 msgid "--au                    set AU format"
-msgstr ""
+msgstr "--au                    fixer le format AU"
 
 #: Top/argdecode.c:191
-#, fuzzy
 msgid "--wave                  set WAV format"
-msgstr "--wave\t\t\tFixer le format WAV"
+msgstr "--wave                  fixer le format WAV"
 
 #: Top/argdecode.c:192
-#, fuzzy
 msgid "--ircam                 set IRCAM format"
-msgstr "--ircam\t\t\tFixer le format IRCAM"
+msgstr "--ircam                 fixer le format IRCAM"
 
 #: Top/argdecode.c:193
-#, fuzzy
 msgid "--ogg                   set OGG/VORBIS format"
-msgstr "--ogg                   Fixer le format OGG/VORBIS"
+msgstr "--ogg                   fixer le format OGG/VORBIS"
 
 #: Top/argdecode.c:194
-#, fuzzy
 msgid "--noheader              raw format"
-msgstr "--noheader\t\tFormat brut"
+msgstr "--noheader              format brut"
 
 #: Top/argdecode.c:195
-#, fuzzy
 msgid "--nopeaks               do not write peak information"
-msgstr "--nopeaks\t\tNe pas écrire d'information de crête"
+msgstr "--nopeaks               ne pas écrire d'information de crête"
 
 #: Top/argdecode.c:197
-#, fuzzy
 msgid "--displays              use graphic displays"
-msgstr "--displays\t\tUtilisation des affichages graphiques"
+msgstr "--displays              utilisation des affichages graphiques"
 
 #: Top/argdecode.c:198
-#, fuzzy
 msgid "--nodisplays            suppress all displays"
-msgstr "--nodisplays\t\tsuppression de tout affichage"
+msgstr "--nodisplays            suppression de tout affichage"
 
 #: Top/argdecode.c:199
-#, fuzzy
 msgid "--asciidisplay          suppress graphics, use ascii displays"
-msgstr "--asciidisplay\t\tpas de graphiques, affichage ascii"
+msgstr "--asciidisplay          pas de graphiques, affichage ascii"
 
 #: Top/argdecode.c:200
-#, fuzzy
 msgid "--postscriptdisplay     suppress graphics, use Postscript displays"
-msgstr "--postscriptdisplay\tpas de graphiques, affichage PostScript"
+msgstr "--postscriptdisplay     pas de graphiques, affichage PostScript"
 
 #: Top/argdecode.c:202
-#, fuzzy
 msgid ""
 "--defer-gen1            defer GEN01 soundfile loads until performance time"
 msgstr ""
-"--defer-gen1\t\tdifférer le chargement de fichier son par GEN01 jusqu'au "
-"moment de l'exécution"
+"--defer-gen1            différer le chargement de fichier son par GEN01 "
+"jusqu'au moment de l'exécution"
 
 #: Top/argdecode.c:203
-#, fuzzy
 msgid ""
 "--iobufsamps=N          sample frames (or -kprds) per software sound I/O "
 "buffer"
 msgstr ""
-"--iobufsamps=N\t\tnombre de trames d'échantillon (ou -kprds) par tampon "
+"--iobufsamps=N          nombre de trames d'échantillon (ou -kprds) par tampon "
 "logiciel d'E/S"
 
 #: Top/argdecode.c:205
-#, fuzzy
 msgid "--hardwarebufsamps=N    samples per hardware sound I/O buffer"
-msgstr "--hardwarebufsamps=N\tnombre d'échantillons par tampon physique d'E/S"
+msgstr "--hardwarebufsamps=N    nombre d'échantillons par tampon physique d'E/S"
 
 #: Top/argdecode.c:206
-#, fuzzy
 msgid "--cscore                use Cscore processing of scorefile"
-msgstr "--cscore\t\ttraitement du fichier de partition par Cscore"
+msgstr "--cscore                traitement du fichier de partition par Cscore"
 
 #: Top/argdecode.c:207
-#, fuzzy
 msgid "--orc                   use orchfile without scorefile"
 msgstr ""
 "--orc                   Utilisation d'un fichier orchestre sans partition"
 
 #: Top/argdecode.c:209
-#, fuzzy
 msgid "--midifile=FNAME        read MIDIfile event stream from file"
-msgstr "--midifile=FNAME\tlire un flot d'évènements MIDI depuis un fichier"
+msgstr "--midifile=FNAME        lire un flot d'évènements MIDI depuis un fichier"
 
 #: Top/argdecode.c:210
-#, fuzzy
 msgid "--midioutfile=FNAME     write MIDI output to file FNAME"
-msgstr "--midioutfile=NOMFIC\técrire la sortie MIDI dans le fichier NOMFIC"
+msgstr "--midioutfile=NOMFIC    écrire la sortie MIDI dans le fichier NOMFIC"
 
 #: Top/argdecode.c:211
-#, fuzzy
 msgid "--midi-device=FNAME     read MIDI realtime events from device"
 msgstr ""
-"--midi-device=DNAME\tlire les évènements MIDI temps-réel depuis le "
+"--midi-device=DNAME     lire les évènements MIDI temps-réel depuis le "
 "périphérique"
 
 #: Top/argdecode.c:212
-#, fuzzy
 msgid ""
 "--terminate-on-midi     terminate the performance when miditrack is done"
 msgstr ""
-"--terminate-on-midi\tterminer l'exécution lorsque la fin de la piste MIDI "
+"--terminate-on-midi     terminer l'exécution lorsque la fin de la piste MIDI "
 "est atteinte"
 
 #: Top/argdecode.c:214
-#, fuzzy
 msgid ""
 "--heartbeat=N           print a heartbeat style 1, 2 or 3 at each soundfile "
 "write"
 msgstr ""
-"--heartbeat=N\t\taffiche un battement de coeur de style 1, 2 ou 3 à chaque "
-"écriture dans le fichier son"
+"--heartbeat=N           affiche un battement de coeur de style 1, 2 ou 3 à "
+"chaque écriture dans le fichier son"
 
 #: Top/argdecode.c:216
-#, fuzzy
 msgid ""
 "--notify                notify (ring the bell) when score or miditrack is "
 "done"
 msgstr ""
-"--notify\t\tavertir (par un beep) quand la partition ou la piste MIDI est "
-"terminée"
+"--notify                avertir (par un beep) quand la partition ou la piste "
+"MIDI est terminée"
 
 #: Top/argdecode.c:217
-#, fuzzy
 msgid ""
 "--rewrite               continually rewrite header while writing soundfile "
 "(WAV/AIFF)"
 msgstr ""
-"--rewrite\t\tréécrire l'en-tête continuellement lors de l'écriture d'un "
-"fichier son (WAV/AIFF)"
+"--rewrite               réécrire l'en-tête continuellement lors de l'écriture "
+"d'un fichier son (WAV/AIFF)"
 
 #: Top/argdecode.c:220
-#, fuzzy
 msgid "--input=FNAME           sound input filename"
-msgstr "--input=FNAME\t\tnom du fichier son en entrée"
+msgstr "--input=FNAME           nom du fichier son en entrée"
 
 #: Top/argdecode.c:221
-#, fuzzy
 msgid "--output=FNAME          sound output filename"
-msgstr "--output=FNAME\t\tnom du fichier son en sortie"
+msgstr "--output=FNAME          nom du fichier son en sortie"
 
 #: Top/argdecode.c:222
-#, fuzzy
 msgid "--logfile=FNAME         log output to file"
-msgstr "--logfile=FNAME\t\tcompte-rendu en sortie dans un fichier"
+msgstr "--logfile=FNAME         compte-rendu en sortie dans un fichier"
 
 #: Top/argdecode.c:224
-#, fuzzy
 msgid "--nosound               no sound onto disk or device"
-msgstr "--nosound\t\tpas de son en sortie disque ou périphérique"
+msgstr "--nosound               pas de son en sortie disque ou périphérique"
 
 #: Top/argdecode.c:225
-#, fuzzy
 msgid ""
 "--tempo=N               use uninterpreted beats of the score, initially at "
 "tempo N"
 msgstr ""
-"--tempo=N\t\tutiliser les pulsations non interprétées de la partition, au "
-"tempo initial N"
+"--tempo=N               utiliser les pulsations non interprétées de la "
+"partition, au tempo initial N"
 
 #: Top/argdecode.c:227
-#, fuzzy
 msgid "--i-only                I-time only orch run"
-msgstr "--i-only\t\tn'exécute que la passe de temps-I de l'orchestre"
+msgstr "--i-only                n'exécute que la passe de temps-I de l'orchestre"
 
 #: Top/argdecode.c:228
-#, fuzzy
 msgid "--syntax-check-only     stop after checking orchestra and score syntax"
 msgstr ""
-"--syntax-check-only\tarrêt après vérification de la syntaxe de l'orchestre "
+"--syntax-check-only     arrêt après vérification de la syntaxe de l'orchestre "
 "et de la partition"
 
 #: Top/argdecode.c:229
-#, fuzzy
 msgid "--control-rate=N        orchestra krate override"
-msgstr "--control-rate=N\tredéfinition du krate de l'orchestre"
+msgstr "--control-rate=N        redéfinition du krate de l'orchestre"
 
 #: Top/argdecode.c:230
-#, fuzzy
 msgid "--sample-rate=N         orchestra srate override"
-msgstr "--sample-rate=N\t\tredéfinition du srate de l'orchestre"
+msgstr "--sample-rate=N         redéfinition du srate de l'orchestre"
 
 #: Top/argdecode.c:231
-#, fuzzy
 msgid ""
 "--score-in=FNAME        read line-oriented realtime score events from device"
 msgstr ""
-"--score-in=DNAME\tLire des évènements de partition en temps-réel à partir du "
+"--score-in=DNAME        lire des évènements de partition en temps-réel à partir du "
 "périphérique d'entrée en ligne"
 
 #: Top/argdecode.c:233
-#, fuzzy
 msgid "--messagelevel=N        tty message level, sum of:"
-msgstr "--messagelevel=N\tniveau de message tty, somme de :"
+msgstr "--messagelevel=N        niveau de message tty, somme de :"
 
 #: Top/argdecode.c:234
-#, fuzzy
 msgid "--messageolevel=O       tty message level in octal, of:"
-msgstr "--messageolevel=O\tniveau de message tty en octal, de :"
+msgstr "--messageolevel=O       niveau de message tty en octal, de :"
 
 #: Top/argdecode.c:235
-#, fuzzy
 msgid "                          1=note amps, 2=out-of-range msg, 4=warnings,"
-msgstr "\t\t1=amp des notes, 2=msg dépassement limites, 4=avertissements"
+msgstr ""
+"1=amp des notes, 2=msg hors limites, 4=avertissements"
 
 #: Top/argdecode.c:236
-#, fuzzy
 msgid "                          0/32/64/96=note amp format (raw,dB,colors),"
-msgstr "\t\t0/32/64/96=format d'amp de note (brut, dB, couleurs)"
+msgstr ""
+"0/32/64/96=format d'amp de note (brut, dB, couleurs)"
 
 #: Top/argdecode.c:237
-#, fuzzy
 msgid "                          128=print benchmark information"
-msgstr "\t\t128=affichage de tests de performance"
+msgstr "                          128=affichage de tests de performance"
 
 #: Top/argdecode.c:239
-#, fuzzy
 msgid "--m-amps=[01]           messages on note amps"
-msgstr "--m-amps=[01]\tmessages sur les amps de note"
+msgstr "--m-amps=[01]           messages sur les amps de note"
 
 #: Top/argdecode.c:240
-#, fuzzy
 msgid "--m-range=[01]          messages on range errors"
-msgstr "--m-range=[01]\tmessages sur les erreurs de dépassement"
+msgstr "--m-range=[01]          messages sur les erreurs de dépassement"
 
 #: Top/argdecode.c:241
-#, fuzzy
 msgid "--m-warnings=[01]       mesage on warnings"
-msgstr "--m-warnings=[01]\tmessages d'avertissement"
+msgstr "--m-warnings=[01]       messages d'avertissement"
 
 #: Top/argdecode.c:242
-#, fuzzy
 msgid "--m-raw=[01]            raw amp messages"
-msgstr "--m-raw=[01]\tmessages d'amp brute"
+msgstr "--m-raw=[01]            messages d'amp brute"
 
 #: Top/argdecode.c:243
-#, fuzzy
 msgid "--m-dB=[01]             amp messages in dB"
-msgstr "--m-dB=[01]\tmessages d'amp en dB"
+msgstr "--m-dB=[01]             messages d'amp en dB"
 
 #: Top/argdecode.c:244
-#, fuzzy
 msgid "--m-colours=[01]        colour amp messages"
-msgstr "--m-colours=[01]\tmessages d'amp en couleur"
+msgstr "--m-colours=[01]        messages d'amp en couleur"
 
 #: Top/argdecode.c:245
-#, fuzzy
 msgid "--m-benchmarks=[01]     print benchmark information"
-msgstr "--m-benchmarks=[01]\taffichage de tests de performance"
+msgstr "--m-benchmarks=[01]     affichage de tests de performance"
 
 #: Top/argdecode.c:246
-#, fuzzy
 msgid "--csd-line-nums=[01]    controls how error line numbers are printed:"
 msgstr ""
-"--csd-line-nums=[01]\tcontrôle comment les numéros de ligne des erreurs sont "
-"affichés"
+"--csd-line-nums=[01]    contrôle comment les numéros de ligne des erreurs "
+"sont affichés"
 
 #: Top/argdecode.c:247
-#, fuzzy
 msgid ""
 "                          1=use CSD line #s (default), 0=use ORC/SCO-"
 "relative line #s"
 msgstr ""
-"\t\t\t1=numéros de ligne CSD (par défaut), 0=numéros de ligne relatifs ORC/"
-"SCO"
+"                          1=numéros de ligne CSD (par défaut), 0=numéros de "
+"ligne relatifs ORC/SCO"
 
 #: Top/argdecode.c:248
-#, fuzzy
 msgid "--extract-score=FNAME   extract from score.srt using extract file"
-msgstr "--extract-score=NOMFIC\textraire à partir de score.srt vers le fichier"
+msgstr "--extract-score=NOMFIC  extraire à partir de score.srt vers le fichier"
 
 #: Top/argdecode.c:249
 msgid "--keep-sorted-score"
 msgstr "--keep-sorted-score"
 
 #: Top/argdecode.c:250
-#, fuzzy
 msgid "--env:NAME=VALUE        set environment variable NAME to VALUE"
-msgstr "--env:NOM=VALEUR\técrire VALEUR dans la variable d'environnement NOM"
+msgstr ""
+"--env:NOM=VALEUR        écrire VALEUR dans la variable d'environnement NOM"
 
 #: Top/argdecode.c:251
-#, fuzzy
 msgid "--env:NAME+=VALUE       append VALUE to environment variable NAME"
-msgstr "--env:NOM+=VALEUR\tajouter VALEUR à la variable d'environnement NAME"
+msgstr ""
+"--env:NOM+=VALEUR       ajouter VALEUR à la variable d'environnement NAME"
 
 #: Top/argdecode.c:252
-#, fuzzy
 msgid "--strsetN=VALUE         set strset table at index N to VALUE"
-msgstr "--strsetN=VALEUR\t\técrire VALEUR à la position N de la table strset"
+msgstr "--strsetN=VALEUR        écrire VALEUR à la position N de la table strset"
 
 #: Top/argdecode.c:253
-#, fuzzy
 msgid "--utility=NAME          run utility program"
-msgstr "--utility=NOM\t\texécuter un programme utilitaire"
+msgstr "--utility=NOM           exécuter un programme utilitaire"
 
 #: Top/argdecode.c:254
-#, fuzzy
 msgid "--verbose               verbose orch translation"
-msgstr "--verbose\t\ttraduction détaillée de l'orchestre"
+msgstr "--verbose               traduction détaillée de l'orchestre"
 
 #: Top/argdecode.c:255
-#, fuzzy
 msgid "--list-opcodes          list opcodes in this version"
-msgstr "--list-opcodes\t\tLister les opcodes de cette version"
+msgstr "--list-opcodes          lister les opcodes de cette version"
 
 #: Top/argdecode.c:256
-#, fuzzy
 msgid "--list-opcodesN         list opcodes in style N in this version"
-msgstr "--list-opcodesN\t\tListe au format N des opcodes de cette version"
+msgstr "--list-opcodesN         liste au format N des opcodes de cette version"
 
 #: Top/argdecode.c:257
-#, fuzzy
 msgid "--dither                dither output"
-msgstr "--dither\t\tSortie avec dithering"
+msgstr "--dither                sortie avec dithering"
 
 #: Top/argdecode.c:258
-#, fuzzy
 msgid "--dither-triangular     dither output with triangular distribution"
 msgstr ""
-"--dither-triangular\t\tDithering en sortie avec une distribution triangulaire"
+"--dither-triangular     dithering en sortie avec une distribution triangulaire"
 
 #: Top/argdecode.c:259
-#, fuzzy
 msgid "--dither-uniform        dither output with rectanular distribution"
 msgstr ""
-"--dither-uniform\t\tDithering en sortie avec une distribution rectangulaire"
+"--dither-uniform        dithering en sortie avec une distribution rectangulaire"
 
 #: Top/argdecode.c:260
-#, fuzzy
 msgid ""
 "--sched                 set real-time scheduling priority and lock memory"
 msgstr ""
-"--sched\t\t\tfixer la priorité du partage temps-réel et verrouiller la "
-"mémoire"
+"--sched                 fixer la priorité du partage temps-réel et "
+"verrouiller la mémoire"
 
 #: Top/argdecode.c:261
-#, fuzzy
 msgid "--sched=N               set priority to N and lock memory"
-msgstr "--sched=N\t\tfixer la priorité N et verrouiller la mémoire"
+msgstr "--sched=N               fixer la priorité N et verrouiller la mémoire"
 
 #: Top/argdecode.c:262
-#, fuzzy
 msgid "--opcode-lib=NAMES      dynamic libraries to load"
-msgstr "--opcode-lib=NOMS\tBibliothèques dynamiques à charger"
+msgstr "--opcode-lib=NOMS       bibliothèques dynamiques à charger"
 
 #: Top/argdecode.c:263
-#, fuzzy
 msgid "--opcode-omit=NAMES     dynamic libraries not to load"
-msgstr "--opcode-omit=NOMS\tBibliothèques dynamiques à ne pas charger"
+msgstr "--opcode-omit=NOMS      bibliothèques dynamiques à ne pas charger"
 
 #: Top/argdecode.c:264
-#, fuzzy
 msgid "--omacro:XXX=YYY        set orchestra macro XXX to value YYY"
-msgstr "--omacro:XXX=YYY\tFixer la macro de l'orchestre XXX à la valeur YYY"
+msgstr ""
+"--omacro:XXX=YYY        fixer la macro de l'orchestre XXX à la valeur YYY"
 
 #: Top/argdecode.c:265
-#, fuzzy
 msgid "--smacro:XXX=YYY        set score macro XXX to value YYY"
-msgstr "--smacro:XXX=YYY\tFixer la macro de la partition XXX à la valeur YYY"
+msgstr ""
+"--smacro:XXX=YYY        fixer la macro de la partition XXX à la valeur YYY"
 
 #: Top/argdecode.c:266
-#, fuzzy
 msgid "--midi-key=N            route MIDI note on message"
-msgstr "--midi-key=N\t\tLire un message MIDI note on"
+msgstr "--midi-key=N            router un message MIDI note on"
 
 #: Top/argdecode.c:267
-#, fuzzy
 msgid "                          key number to pfield N as MIDI value [0-127]"
-msgstr "\t\t\tnuméro de touche vers le p-champ N comme valeur MIDI [0-127]"
+msgstr ""
+"numéro de touche vers le p-champ N comme valeur MIDI [0-127]"
 
 #: Top/argdecode.c:268
-#, fuzzy
 msgid "--midi-key-cps=N        route MIDI note on message"
-msgstr "--midi-key-cps=N\tLire un message MIDI note on"
+msgstr "--midi-key-cps=N        router un message MIDI note on"
 
 #: Top/argdecode.c:269
-#, fuzzy
 msgid "                          key number to pfield N as cycles per second"
-msgstr "\t\t\tnuméro de touche vers le p-champ N en cycles par seconde"
+msgstr ""
+"numéro de touche vers le p-champ N en cycles par seconde"
 
 #: Top/argdecode.c:270
-#, fuzzy
 msgid "--midi-key-oct=N        route MIDI note on message"
-msgstr "--midi-key-oct=N\tLire un message MIDI note on"
+msgstr "--midi-key-oct=N        router un message MIDI note on"
 
 #: Top/argdecode.c:271
-#, fuzzy
 msgid "                          key number to pfield N as linear octave"
-msgstr "\t\t\tnuméro de touche vers le p-champ N en octave linéaire"
+msgstr ""
+"numéro de touche vers le p-champ N en octave linéaire"
 
 #: Top/argdecode.c:272
-#, fuzzy
 msgid "--midi-key-pch=N        route MIDI note on message"
-msgstr "--midi-key-pch=N\tLire un message MIDI note on"
+msgstr "--midi-key-pch=N        router un message MIDI note on"
 
 #: Top/argdecode.c:273
-#, fuzzy
 msgid "                          key number to pfield N as oct.pch"
-msgstr "\t\t\tnuméro de touche vers le p-champ N en oct.pch"
+msgstr ""
+"numéro de touche vers le p-champ N en oct.pch"
 
 #: Top/argdecode.c:274
-#, fuzzy
 msgid "--midi-velocity=N       route MIDI note on message"
-msgstr "--midi-velocity=N\tLire un message MIDI note on"
+msgstr "--midi-velocity=N       router un message MIDI note on"
 
 #: Top/argdecode.c:275
-#, fuzzy
 msgid ""
 "                          velocity number to pfield N as MIDI value [0-127]"
-msgstr "\t\t\t vélocité vers le p-champ N comme valeur MIDI [0-127]"
+msgstr ""
+"                          vélocité vers le p-champ N comme valeur MIDI [0-127]"
 
 #: Top/argdecode.c:276
-#, fuzzy
 msgid "--midi-velocity-amp=N   route MIDI note on message"
-msgstr "--midi-velocity-amp=N\tLire un message MIDI note on"
+msgstr "--midi-velocity-amp=N   router un message MIDI note on"
 
 #: Top/argdecode.c:277
-#, fuzzy
 msgid "                          velocity number to pfield N as amplitude"
-msgstr "\t\t\t vélocité vers le p-champ N comme amplitude"
+msgstr "                          vélocité vers le p-champ N comme amplitude"
 
 #: Top/argdecode.c:278
-#, fuzzy
 msgid "--no-default-paths      turn off relative paths from CSD/ORC/SCO"
-msgstr "--no-default-paths\tdésactiver les chemins relatifs depuis CSD/ORC/SCO"
+msgstr ""
+"--no-default-paths      désactiver les chemins relatifs depuis CSD/ORC/SCO"
 
 #: Top/argdecode.c:279
-#, fuzzy
 msgid "--sample-accurate       use sample-accurate timing of score events"
 msgstr ""
-"--sample-accurate\t\tutiliser une précision de sample-accurate pour les "
+"--sample-accurate       utiliser une précision de sample-accurate pour les "
 "évènements de partition"
 
 #: Top/argdecode.c:280
-#, fuzzy
 msgid "--realtime              realtime priority mode"
-msgstr "--realtime \t\tmode temps réel prioriataire"
+msgstr "--realtime              mode temps réel prioriataire"
 
 #: Top/argdecode.c:281
-#, fuzzy
 msgid "--nchnls=N              override number of audio channels"
-msgstr "--nchnls=N\t\t écrase le nombre de canaux audio"
+msgstr "--nchnls=N              remplace le nombre de canaux audio"
 
 #: Top/argdecode.c:282
-#, fuzzy
 msgid "--nchnls_i=N            override number of input audio channels"
-msgstr "--nchnls_i=N\t\t écrase le nombre de canaux audio en entrée"
+msgstr "--nchnls_i=N            remplace le nombre de canaux audio en entrée"
 
 #: Top/argdecode.c:283
-#, fuzzy
 msgid "--0dbfs=N               override 0dbfs (max positive signal amplitude)"
-msgstr "--Odbfs=N\t\t écrase 0dbfs (amplitude positive max du signal)"
+msgstr "--Odbfs=N               remplace 0dbfs (amplitude positive max du signal)"
 
 #: Top/argdecode.c:284
-#, fuzzy
 msgid "--sinesize              length of internal sine table"
-msgstr "--sinesize\t\tlongueur de la table de sinus interne"
+msgstr "--sinesize              longueur de la table de sinus interne"
 
 #: Top/argdecode.c:285
-#, fuzzy
 msgid ""
 "--daemon                daemon mode: do not exit if CSD/orchestra is not "
 "given, is empty or does not compile"
 msgstr ""
-"--daemon\t\t daemon mode : n'existe pas si un CSD/orchestre n'est pas donné, "
-"est vide ou ne compile pas"
+"--daemon                daemon mode : n'existe pas si un CSD/orchestre n'est "
+"pas donné, est vide ou ne compile pas"
 
 #: Top/argdecode.c:287
-#, fuzzy
 msgid ""
 "--port=N                listen to UDP port N for instruments/orchestra code "
 "(implies --daemon)"
 msgstr ""
-"--port=N\t\t écoute sur le port UDP N pour du code d'instruments/orchestre "
-"(implique --daemon)"
+"--port=N                écoute sur le port UDP N pour du code "
+"d'instruments/orchestre (implique --daemon)"
 
 #: Top/argdecode.c:289
-#, fuzzy
 msgid "--vbr-quality=Ft        set quality of variable bit0rate compression"
 msgstr ""
-"--vbr-quality=Ft\t fixe la qualité du taux variable de compression bit0rate"
+"--vbr-quality=Ft        fixe la qualité du taux variable de compression "
+"bit0rate"
 
 #: Top/argdecode.c:290
-#, fuzzy
 msgid "--devices[=in|out]      list available MIDI devices and exit"
 msgstr ""
-"--devices[=in|out] \t\t liste les périphériques MIDI disponibles et termine"
+"--devices[=in|out]      liste les périphériques MIDI disponibles et termine"
 
 #: Top/argdecode.c:291
-#, fuzzy
 msgid "--midi-devices[=in|out] list available audio devices and exit"
 msgstr ""
-"--midi-devices[=in|out] \t\t liste les périphériques disponibles et termine"
+"--midi-devices[=in|out] liste les périphériques disponibles et termine"
 
 #: Top/argdecode.c:292
-#, fuzzy
 msgid "--get-system-sr         print system sr and exit"
-msgstr "--get-system-sr \t\t affiche le sr du système et termine"
+msgstr "--get-system-sr         affiche le sr du système et termine"
 
 #: Top/argdecode.c:293
-#, fuzzy
 msgid "--ksmps=N               override ksmps"
-msgstr "--ksmps=N \t\t écrase ksmps"
+msgstr "--ksmps=N               remplace ksmps"
 
 #: Top/argdecode.c:294
-#, fuzzy
 msgid ""
 "--fftlib=N              actual FFT lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"
 msgstr ""
-"-fftlib=N \t\t bib de TFR réelle à utiliser (FFTLIB=0, PFFFT = 1, vDSP =2)"
+"--fftlib=N              bib de TFR réelle à utiliser (FFTLIB=0, PFFFT = 1, "
+"vDSP =2)"
 
 #: Top/argdecode.c:296
 msgid "--help                  long help"
-msgstr ""
+msgstr "--help                  aide détaillée"
 
 #: Top/argdecode.c:311
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "flag defaults: csound -s -otest -b%d -B%d -m%d\n"
 "\n"
-msgstr "options par défaut : csound -s -otest -b%d -B%d -m%d\n"
+msgstr ""
+"options par défaut : csound -s -otest -b%d -B%d -m%d\n"
+"\n"
 
 #: Top/argdecode.c:318
-#, fuzzy
 msgid "Usage:     csound [-flags] orchfile scorefile\n"
-msgstr "Utilisation : \tcsound [-options] fichierorch fichierpartition\n"
+msgstr "Utilisation :     csound [-options] fichierorch fichierpartition\n"
 
 #: Top/argdecode.c:319 Top/argdecode.c:333 util/envext.c:53 util/xtrct.c:67
 msgid "Legal flags are:\n"
@@ -11669,7 +11543,6 @@ msgstr ""
 "\n"
 
 #: Top/argdecode.c:324
-#, fuzzy
 msgid ""
 "\n"
 "Short format:\n"
@@ -11677,16 +11550,15 @@ msgid ""
 msgstr ""
 "\n"
 "Format court :\n"
+"\n"
 
 #: Top/argdecode.c:332
-#, fuzzy
 msgid "Usage:      csound [-flags] orchfile scorefile\n"
-msgstr "Utilisation : \tcsound [-options] fichierorch fichierpartition\n"
+msgstr "Utilisation :      csound [-options] fichierorch fichierpartition\n"
 
 #: Top/argdecode.c:336
-#, fuzzy
 msgid "Csound Command ERROR:    "
-msgstr "ERREUR de la commande csound :\t"
+msgstr "ERREUR de la commande csound :    "
 
 #: Top/argdecode.c:526
 #, c-format
