@@ -149,6 +149,8 @@ char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
       return "&&";
     case S_OR:
       return "||";
+    case S_UNOT:
+      return "!";
     }
     csound->Warning(csound,
                     Str("Unknown boolean expression type found: %d\n"),
@@ -2087,6 +2089,9 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     case S_EQ:
       csound->Message(csound,"S_EQ:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
+    case S_UNOT:
+      csound->Message(csound,"S_UNOT:(%d:%s)\n",
+                      l->line, csound->filedir[(l->locn)&0xff]); break;
     case S_GT:
       csound->Message(csound,"S_GT:(%d:%s)\n",
                       l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -2252,12 +2257,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"S_LE\""); break;
     case S_EQ:
       csound->Message(csound,"name=\"S_EQ\""); break;
-//    case S_TASSIGN:
-//      csound->Message(csound,"name=\"S_TASSIGN\""); break;
-//    case S_TABRANGE:
-//      csound->Message(csound,"name=\"S_TABRANGE\""); break;
-//    case S_TABREF:
-//      csound->Message(csound,"name=\"S_TABREF\""); break;
+    case S_UNOT:
+      csound->Message(csound,"name=\"S_UNOT\""); break;
     case S_GT:
       csound->Message(csound,"name=\"S_GT\""); break;
     case S_GE:
