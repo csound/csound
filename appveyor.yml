@@ -71,7 +71,7 @@ artifacts:
   - path: csound.zip
     name: Csound
     type: zip
-  - path: msvc/Setup_Csound_x64_6.09.2beta3.exe
+  - path: msvc/Setup_Csound_x64_6.09.2beta4-vst.exe
     name: Csound Installer
     type: exe
 
