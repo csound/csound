@@ -415,6 +415,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 
     if (is_boolean_expression_node(tree)) {
+      if (tree->type == S_UNOT) {
+        printf("Boolean ! (not) found\n");
+        return get_arg_type2(csound, tree->left, typeTable);
+      }
+      else {
       char* argTypeLeft = get_arg_type2(csound, tree->left, typeTable);
       char* argTypeRight = get_arg_type2(csound, tree->right, typeTable);
 
@@ -461,6 +466,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       csound->Free(csound, inArgTypes);
       return cs_strdup(csound, out);
 
+    }
     }
 
     switch(tree->type) {
