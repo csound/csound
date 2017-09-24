@@ -279,6 +279,7 @@ int is_boolean_expression_node(TREE *node)
     case S_LT:
     case S_AND:
     case S_OR:
+    case S_UNOT:
       return 1;
     }
     return 0;
@@ -745,6 +746,9 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
     op = csound->Calloc(csound, 80);
     switch(root->type) {
+    case S_UNOT:
+      strncpy(op, "!", 80);
+      break;
     case S_EQ:
       strncpy(op, "==", 80);
       break;
@@ -771,18 +775,28 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
       break;
     }
 
-    if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "Operator Found: %s (%c %c)\n", op,
-                      argtyp2( root->left->value->lexeme),
-                      argtyp2( root->right->value->lexeme));
-
-    outarg = get_boolean_arg(
-                 csound,
-                 typeTable,
-                 argtyp2( root->left->value->lexeme) =='k' ||
-                 argtyp2( root->right->value->lexeme)=='k' ||
-                 argtyp2( root->left->value->lexeme) =='B' ||
-                 argtyp2( root->right->value->lexeme)=='B');
+    if (UNLIKELY(PARSER_DEBUG)) {
+      if (root->type == S_UNOT)
+        csound->Message(csound, "Operator Found: %s (%c)\n", op,
+                        argtyp2( root->left->value->lexeme));
+      else
+        csound->Message(csound, "Operator Found: %s (%c %c)\n", op,
+                        argtyp2( root->left->value->lexeme),
+                        argtyp2( root->right->value->lexeme));
+    }
+    if (root->type == S_UNOT) {
+      outarg = get_boolean_arg(csound,
+                               typeTable,
+                               argtyp2( root->left->value->lexeme) =='k' ||
+                               argtyp2( root->left->value->lexeme) =='B');
+    }
+    else 
+      outarg = get_boolean_arg(csound,
+                               typeTable,
+                               argtyp2( root->left->value->lexeme) =='k' ||
+                               argtyp2( root->right->value->lexeme)=='k' ||
+                               argtyp2( root->left->value->lexeme) =='B' ||
+                               argtyp2( root->right->value->lexeme)=='B');
 
     add_arg(csound, outarg, typeTable);
     opTree = create_opcode_token(csound, op);
