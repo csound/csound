@@ -122,6 +122,7 @@ $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-
 $destList="win_flex_bison",
 "",
 "",
+"",
 "fluidsynthdeps",
 "fluidsynthdeps",
 "fluidsynthdeps",
@@ -159,7 +160,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
         New-Item $destDir -ItemType directory -Force
         Expand-Archive $cachedFile -OutputPath $destDir -Force
     }
-    echo "Extracted $fileName"
+    echo "Extracted $fileName to $destDir"
 }
 
 cd $depsDir

@@ -32,9 +32,9 @@
 #define AppName "Csound_x64"
 #define AppVersion "6"
 #ifdef InstallCsoundVst
-#define AppMinVersion "6.09.2beta3-vst"
+#define AppMinVersion "6.09.2beta4-vst"
 #else
-#define AppMinVersion "6.09.2beta3"
+#define AppMinVersion "6.09.2beta4"
 #endif
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
