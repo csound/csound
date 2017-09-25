@@ -416,7 +416,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     if (is_boolean_expression_node(tree)) {
       if (tree->type == S_UNOT) {
-        printf("Boolean ! (not) found\n");
         return get_arg_type2(csound, tree->left, typeTable);
       }
       else {
