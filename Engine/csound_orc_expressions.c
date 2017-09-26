@@ -790,7 +790,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                                argtyp2( root->left->value->lexeme) =='k' ||
                                argtyp2( root->left->value->lexeme) =='B');
     }
-    else 
+    else
       outarg = get_boolean_arg(csound,
                                typeTable,
                                argtyp2( root->left->value->lexeme) =='k' ||
@@ -1211,7 +1211,7 @@ TREE* expand_if_statement(CSOUND* csound,
     }
     else {
       csound->Message(csound,
-                      "ERROR: Neither if-goto or if-then found on line %d!!!",
+                      Str("ERROR: Neither if-goto or if-then found on line %d!!!"),
                       right->line);
     }
 

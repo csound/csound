@@ -640,4 +640,3 @@ void ScoreGeneratorVst::logv(char *format,...)
   log(buffer);
   va_end(marker);
 }
-

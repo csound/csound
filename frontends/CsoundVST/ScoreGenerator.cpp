@@ -73,4 +73,3 @@ void ScoreGenerator::score(csound::Score *score)
         }
     }
 }
-
