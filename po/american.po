@@ -389,14 +389,19 @@ msgstr ""
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr ""
 
-#: Engine/csound_orc_expressions.c:489
+#: Engine/csound_orc_expressions.c:490
 #, c-format
 msgid "error: function %s not found, line %d \n"
 msgstr ""
 
-#: Engine/csound_orc_expressions.c:510
+#: Engine/csound_orc_expressions.c:511
 #, c-format
 msgid "error: opcode %s with output type %s not found, line %d"
+msgstr ""
+
+#: Engine/csound_orc_expressions.c:1214
+#, c-format
+msgid "ERROR: Neither if-goto or if-then found on line %d!!!"
 msgstr ""
 
 #: Engine/csound_orc_semantics.c:129
@@ -404,150 +409,150 @@ msgstr ""
 msgid "Unknown function type found: %d [%c]\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:154
+#: Engine/csound_orc_semantics.c:156
 #, c-format
 msgid "Unknown boolean expression type found: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:265
+#: Engine/csound_orc_semantics.c:267
 #, c-format
 msgid "unable to find array operator for types %s line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:285
+#: Engine/csound_orc_semantics.c:287
 #, c-format
 msgid "non-boolean expression found for ternary operator, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:303
+#: Engine/csound_orc_semantics.c:305
 #, c-format
 msgid "unable to find ternary operator for types '%s ? %s : %s' line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:328
+#: Engine/csound_orc_semantics.c:330
 #, c-format
 msgid "Use of i() with expression not permitted on line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:345
+#: Engine/csound_orc_semantics.c:347
 #, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:370
+#: Engine/csound_orc_semantics.c:372
 #, c-format
 msgid ""
 "Unable to verify arg types for expression '%s'\n"
 "Line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:395
+#: Engine/csound_orc_semantics.c:397
 #, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d \n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:427
+#: Engine/csound_orc_semantics.c:433
 #, c-format
 msgid ""
 "Unable to verify arg types for boolean expression '%s'\n"
 "Line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:449
+#: Engine/csound_orc_semantics.c:455
 #, c-format
 msgid "error: boolean expression '%s' with arg types %s not found, line %d \n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:527 Engine/csound_orc_semantics.c:1254
+#: Engine/csound_orc_semantics.c:534 Engine/csound_orc_semantics.c:1261
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
 "Line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:568
+#: Engine/csound_orc_semantics.c:575
 #, c-format
 msgid "Unknown arg type: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1209
+#: Engine/csound_orc_semantics.c:1216
 #, fuzzy, c-format
 msgid "Variable type for %s could not be determined.\n"
 msgstr "Variable type for %s couldn't be determined.\n"
 
-#: Engine/csound_orc_semantics.c:1231
+#: Engine/csound_orc_semantics.c:1238
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
 "line %d"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1459
+#: Engine/csound_orc_semantics.c:1466
 #, c-format
 msgid "Unable to find opcode with name: %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1477
+#: Engine/csound_orc_semantics.c:1484
 #, c-format
 msgid "Unable to find opcode entry for '%s' with matching argument types:\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1480
+#: Engine/csound_orc_semantics.c:1487
 #, c-format
 msgid "Found: %s %s %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1482
+#: Engine/csound_orc_semantics.c:1489
 #, c-format
 msgid "Line: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1637
+#: Engine/csound_orc_semantics.c:1644
 #, c-format
 msgid ""
 "expression for until/while statement not a boolean expression, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1680
+#: Engine/csound_orc_semantics.c:1687
 msgid "Multiple xin statements found. Only one is allowed."
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1689
+#: Engine/csound_orc_semantics.c:1696
 msgid "Multiple xout statements found. Only one is allowed."
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1706
+#: Engine/csound_orc_semantics.c:1713
 #, c-format
 msgid "invalid xin statement for UDO: defined '%s', found '%s'\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1715
+#: Engine/csound_orc_semantics.c:1722
 #, c-format
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1888
+#: Engine/csound_orc_semantics.c:1895
 #, c-format
 msgid ""
 "\n"
 "error: %s  (token \"%s\")"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1891
+#: Engine/csound_orc_semantics.c:1898
 #, c-format
 msgid ""
 " line %d:\n"
 ">>>"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1910
+#: Engine/csound_orc_semantics.c:1917
 #, c-format
 msgid " from file %s (%d)\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:2492
+#: Engine/csound_orc_semantics.c:2498
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr ""
@@ -4072,63 +4077,63 @@ msgstr ""
 msgid "Cannot be more In arguments than Out in init (%d,%d)"
 msgstr "Can't be more In arguments than Out in init (%d,%d)"
 
-#: OOps/aops.c:243 OOps/aops.c:359 OOps/aops.c:372 util1/scot/scot.c:1302
+#: OOps/aops.c:248 OOps/aops.c:364 OOps/aops.c:377 util1/scot/scot.c:1302
 #: util1/scot/scot.c:1317 util1/scot/scot.c:1371
 msgid "Division by zero"
 msgstr ""
 
-#: OOps/aops.c:947
+#: OOps/aops.c:952
 msgid "non-looping sample"
 msgstr ""
 
-#: OOps/aops.c:1098 OOps/aops.c:1126
+#: OOps/aops.c:1103 OOps/aops.c:1131
 #, c-format
 msgid "No tuning table %d"
 msgstr ""
 
-#: OOps/aops.c:1171 OOps/aops.c:1209
+#: OOps/aops.c:1176 OOps/aops.c:1214
 msgid "cpstun: invalid table"
 msgstr ""
 
-#: OOps/aops.c:1606 OOps/aops.c:1654
+#: OOps/aops.c:1611 OOps/aops.c:1659
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr ""
 
-#: OOps/aops.c:1612 OOps/aops.c:1660
+#: OOps/aops.c:1617 OOps/aops.c:1665
 #, c-format
 msgid "Input channel %d is invalid; ignored"
 msgstr ""
 
-#: OOps/aops.c:1649
+#: OOps/aops.c:1654
 msgid "Input and output argument count differs in inch"
 msgstr ""
 
-#: OOps/aops.c:1737
+#: OOps/aops.c:1742
 msgid "Channel greater than nchnls"
 msgstr ""
 
-#: OOps/aops.c:1884
+#: OOps/aops.c:1889
 msgid "Excess channels ignored\n"
 msgstr ""
 
-#: OOps/aops.c:2025
+#: OOps/aops.c:2030
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:2058
+#: OOps/aops.c:2063
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:2087
+#: OOps/aops.c:2092
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr "outrg: channel number can't be < 1 (1 is the first channel)"
 
-#: OOps/aops.c:2120
+#: OOps/aops.c:2125
 msgid "number of hardware output channels not currently available"
 msgstr ""
 
-#: OOps/aops.c:2126
+#: OOps/aops.c:2131
 msgid "number of hardware input channels not currently available"
 msgstr ""
 
@@ -10189,36 +10194,36 @@ msgstr "VPVOC can't load %s"
 msgid "vpvoc: not initialised"
 msgstr "vpvoc: not initialized"
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:75
+#: Opcodes/vst4cs/src/vst4cs.cpp:98
 msgid "vstinit: Error loading effect."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:99
+#: Opcodes/vst4cs/src/vst4cs.cpp:122
 msgid "vstaudio: too many input args"
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:298
+#: Opcodes/vst4cs/src/vst4cs.cpp:321
 msgid "Error: BeginLoadBank."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:304
+#: Opcodes/vst4cs/src/vst4cs.cpp:327
 msgid "Loaded bank ID doesn't match plug-in ID."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:309
+#: Opcodes/vst4cs/src/vst4cs.cpp:332
 msgid "Loaded bank contains a chunk format that the effect cannot handle."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:332
+#: Opcodes/vst4cs/src/vst4cs.cpp:355
 msgid "Problem loading bank."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:346
+#: Opcodes/vst4cs/src/vst4cs.cpp:369
 #, c-format
 msgid "VSTprogset: Program %d treated as 1\n"
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:471
+#: Opcodes/vst4cs/src/vst4cs.cpp:494
 msgid "vstnote_init: not scheduling 0 duration note.\n"
 msgstr ""
 
