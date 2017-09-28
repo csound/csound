@@ -414,7 +414,7 @@ msgstr "erreur : opcode %s sans type de retour %s introuvable, ligne %d"
 #: Engine/csound_orc_expressions.c:1214
 #, c-format
 msgid "ERROR: Neither if-goto or if-then found on line %d!!!"
-msgstr ""
+msgstr "ERREUR : ni if-goto ni if-then n'ont été trouvés ligne %d !!!"
 
 #: Engine/csound_orc_semantics.c:129
 #, c-format
@@ -6729,14 +6729,14 @@ msgid "No lapspa descriptor\n"
 msgstr "Pas de descripteur ladspa\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:322
-#, fuzzy
+#, c-format
 msgid ""
 "DSSI4CS: Unable to find ladspa_descriptor(%d) function or\n"
 "dssi_descriptor(%) function in plugin file \"%s\": %s.\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
 "DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%d) ou\n"
-"la fonction dssi_descriptor() dans le fichier de greffon \"%s\" : %s.\n"
+"la fonction dssi_descriptor(%) dans le fichier de greffon \"%s\" : %s.\n"
 "Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:331
