@@ -827,6 +827,31 @@ iIARRAY(tabiadivi,tabiadiv)
 iIARRAY(tabiaremi,tabiarem)
 iIARRAY(tabiapowi,tabiapow)
 
+static int tabaadd(CSOUND *csound, TABARITH *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->left;
+    ARRAYDAT *r   = p->right;
+    int size    = ans->sizes[0];
+    int i, n, nsmps = CS_KSMPS;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+                 p->left->data==NULL || p->right->data==NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (r->sizes[0]<size) size = r->sizes[0];
+    for (i=0; i<size; i++) {
+      MYFLT *a,*b,*aa;
+      a = (MYFLT*)&(l->data[i]); b = (MYFLT*)&(r->data[i]);
+      aa = (MYFLT*)&(ans->data[i]);
+      for (n=0; n<nsmps; n++)
+       aa[n] = a[n] + b[n];
+    }
+    return OK;
+}
+
 
 
 
@@ -2371,6 +2396,8 @@ static OENTRY arrayvars_localops[] =
     { "i.Ak", sizeof(ARRAY_GET),0, 1,      "i",    "k[]z", (SUBR)array_get  },
 #endif
     /* ******************************************** */
+    {"##add.[s]", sizeof(TABARITH), 0, 3, "a[]", "a[]a[]",
+     (SUBR)tabarithset, (SUBR)tabaadd},
     {"##add.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset, (SUBR)tabadd},
     {"##add.[i]", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
