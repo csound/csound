@@ -84,6 +84,9 @@ were previously the parser accepted it but did not use it.
 
 - chnset now can have variable channel names.
 
+- a-rate arrays may be added, subtracted, multiplied and scaled.  This
+  is a start on a-rate array arithmetic.
+
 ### Utilities
 
 -
