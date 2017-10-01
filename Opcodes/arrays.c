@@ -833,6 +833,43 @@ static int tabaadd(CSOUND *csound, TABARITH *p)
     ARRAYDAT *l   = p->left;
     ARRAYDAT *r   = p->right;
     int size    = ans->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int i, n, nsmps = CS_KSMPS;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+                 p->left->data==NULL || p->right->data==NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (r->sizes[0]<size) size = r->sizes[0];
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+    }
+    for (i=0; i<size; i++) {
+      MYFLT *a,*b,*aa;
+      a = (MYFLT*)&(l->data[i]); b = (MYFLT*)&(r->data[i]);
+      aa = (MYFLT*)&(ans->data[i]);
+      if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      for (n=offset; n<nsmps; n++)
+        aa[n] = a[n] + b[n];
+    }
+    return OK;
+}
+
+
+static int tabasub(CSOUND *csound, TABARITH *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->left;
+    ARRAYDAT *r   = p->right;
+    int size    = ans->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     int i, n, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->ans->data == NULL ||
@@ -846,11 +883,77 @@ static int tabaadd(CSOUND *csound, TABARITH *p)
       MYFLT *a,*b,*aa;
       a = (MYFLT*)&(l->data[i]); b = (MYFLT*)&(r->data[i]);
       aa = (MYFLT*)&(ans->data[i]);
+      if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
+      }
       for (n=0; n<nsmps; n++)
-       aa[n] = a[n] + b[n];
+        aa[n] = a[n] - b[n];
     }
     return OK;
 }
+
+static int tabamul(CSOUND *csound, TABARITH *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *l   = p->left;
+    ARRAYDAT *r   = p->right;
+    int size    = ans->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int i, n, nsmps = CS_KSMPS;
+
+    if (UNLIKELY(p->ans->data == NULL ||
+                 p->left->data==NULL || p->right->data==NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (l->sizes[0]<size) size = l->sizes[0];
+    if (r->sizes[0]<size) size = r->sizes[0];
+    for (i=0; i<size; i++) {
+      MYFLT *a,*b,*aa;
+      a = (MYFLT*)&(l->data[i]); b = (MYFLT*)&(r->data[i]);
+      aa = (MYFLT*)&(ans->data[i]);
+      if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      for (n=0; n<nsmps; n++)
+        aa[n] = a[n] * b[n];
+    }
+    return OK;
+}
+
+static int tabkamult(CSOUND *csound, TABARITH2 *p)
+{
+    ARRAYDAT *ans = p->ans;
+    MYFLT l       = *p->left;
+    ARRAYDAT *r   = p->right;
+    int size    = ans->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int i, n, nsmps = CS_KSMPS;
+
+    if (UNLIKELY(p->ans->data == NULL || p->right->data==NULL))
+      return csound->PerfError(csound, p->h.insdshead,
+                               Str("array-variable not initialised"));
+
+    if (r->sizes[0]<size) size = r->sizes[0];
+    for (i=0; i<size; i++) {
+      MYFLT *b,*aa;
+      b = (MYFLT*)&(r->data[i]);
+      aa = (MYFLT*)&(ans->data[i]);
+      if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      for (n=0; n<nsmps; n++)
+        aa[n] = l * b[n];
+    }
+    return OK;
+}
+
+
 
 
 
@@ -2403,12 +2506,16 @@ static OENTRY arrayvars_localops[] =
     {"##add.[i]", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
      (SUBR)tabaddi},
     /* ******************************************** */
+    {"##sub.[a]", sizeof(TABARITH), 0, 3, "a[]", "a[]a[]",
+     (SUBR)tabarithset, (SUBR)tabasub},
     {"##sub.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset, (SUBR)tabsub},
     {"##sub.[i]", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
      (SUBR)tabsubi},
     //    {"##neg.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]",
     //                                         (SUBR)tabarithset1, (SUBR)tabneg},
+    {"##mul.[a]", sizeof(TABARITH), 0, 3, "a[]", "a[]a[]",
+     (SUBR)tabarithset,(SUBR)tabamul},
     {"##mul.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset,(SUBR)tabmult},
     {"##mul.[i]", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
@@ -2462,6 +2569,8 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabaimult },
     {"##mul.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiamult },
+    {"##mul.k[a", sizeof(TABARITH2), 0, 3, "a[]", "ka[]",
+     (SUBR)tabarithset2, (SUBR)tabkamult },
     {"##div.[k",  sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
      (SUBR)tabarithset1, (SUBR)tabaidiv },
     {"##div.k[",  sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
