@@ -6182,11 +6182,13 @@ msgstr ""
 #: Opcodes/arrays.c:389 Opcodes/arrays.c:409 Opcodes/arrays.c:446
 #: Opcodes/arrays.c:467 Opcodes/arrays.c:492 Opcodes/arrays.c:513
 #: Opcodes/arrays.c:550 Opcodes/arrays.c:588 Opcodes/arrays.c:608
-#: Opcodes/arrays.c:625 Opcodes/arrays.c:666 Opcodes/arrays.c:689
-#: Opcodes/arrays.c:712 Opcodes/arrays.c:732 Opcodes/arrays.c:760
-#: Opcodes/arrays.c:787 Opcodes/arrays.c:836 Opcodes/arrays.c:842
-#: Opcodes/arrays.c:853 Opcodes/arrays.c:884 Opcodes/arrays.c:915
-#: Opcodes/arrays.c:936 Opcodes/arrays.c:1008 Opcodes/arrays.c:1054
+#: Opcodes/arrays.c:625 Opcodes/arrays.c:666 Opcodes/arrays.c:686
+#: Opcodes/arrays.c:713 Opcodes/arrays.c:733 Opcodes/arrays.c:761
+#: Opcodes/arrays.c:788 Opcodes/arrays.c:844 Opcodes/arrays.c:879
+#: Opcodes/arrays.c:910 Opcodes/arrays.c:941 Opcodes/arrays.c:976
+#: Opcodes/arrays.c:1005 Opcodes/arrays.c:1030 Opcodes/arrays.c:1036
+#: Opcodes/arrays.c:1047 Opcodes/arrays.c:1078 Opcodes/arrays.c:1109
+#: Opcodes/arrays.c:1130 Opcodes/arrays.c:1202 Opcodes/arrays.c:1248
 #: Opcodes/pvsbasic.c:2431 Opcodes/pvsbasic.c:2462 Opcodes/pvsbasic.c:2510
 #, fuzzy
 msgid "array-variable not initialised"
@@ -6196,141 +6198,146 @@ msgstr "%s: не выступлено с иничиативой"
 msgid "Dimension does not match in array arithmetic"
 msgstr ""
 
-#: Opcodes/arrays.c:477 Opcodes/arrays.c:740
+#: Opcodes/arrays.c:477 Opcodes/arrays.c:741
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:522 Opcodes/arrays.c:769 Opcodes/arrays.c:796
+#: Opcodes/arrays.c:522 Opcodes/arrays.c:770 Opcodes/arrays.c:797
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:663 Opcodes/arrays.c:686 Opcodes/arrays.c:709
+#: Opcodes/arrays.c:663 Opcodes/arrays.c:693 Opcodes/arrays.c:710
 msgid "division by zero in array-var"
 msgstr ""
 
-#: Opcodes/arrays.c:918
+#: Opcodes/arrays.c:956
+#, c-format
+msgid "division by zero in array-var at index %d/%d"
+msgstr ""
+
+#: Opcodes/arrays.c:1112
 #, fuzzy
 msgid "array-variable not a vector"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:1012 Opcodes/arrays.c:1057
+#: Opcodes/arrays.c:1206 Opcodes/arrays.c:1251
 #, fuzzy
 msgid "array-variable dimensions do not match"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:1014
+#: Opcodes/arrays.c:1208
 #, fuzzy
 msgid "array-variable types do not match"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:1106 Opcodes/arrays.c:1127 Opcodes/arrays.c:1306
-#: Opcodes/arrays.c:1342 Opcodes/arrays.c:1345
+#: Opcodes/arrays.c:1300 Opcodes/arrays.c:1321 Opcodes/arrays.c:1500
+#: Opcodes/arrays.c:1536 Opcodes/arrays.c:1539
 #, fuzzy
 msgid "array-var not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:1109 Opcodes/arrays.c:1129 Opcodes/arrays.c:1187
-#: Opcodes/arrays.c:1209
+#: Opcodes/arrays.c:1303 Opcodes/arrays.c:1323 Opcodes/arrays.c:1381
+#: Opcodes/arrays.c:1403
 msgid "No table for copy2ftab"
 msgstr ""
 
-#: Opcodes/arrays.c:1159
+#: Opcodes/arrays.c:1353
 msgid "inconsistent start, end and increment parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:1244
+#: Opcodes/arrays.c:1438
 msgid "inconsistent start, end parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:1247
+#: Opcodes/arrays.c:1441
 msgid "slice larger than original size"
 msgstr ""
 
-#: Opcodes/arrays.c:1250
+#: Opcodes/arrays.c:1444
 msgid "slice increment must be positive"
 msgstr ""
 
-#: Opcodes/arrays.c:1319
+#: Opcodes/arrays.c:1513
 #, c-format
 msgid "%s not found"
 msgstr ""
 
-#: Opcodes/arrays.c:1350
+#: Opcodes/arrays.c:1544
 msgid "map fn not found at k rate"
 msgstr ""
 
-#: Opcodes/arrays.c:1527
+#: Opcodes/arrays.c:1721
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:1560
+#: Opcodes/arrays.c:1754
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:1591
+#: Opcodes/arrays.c:1785
 #, fuzzy
 msgid "array sizes do not match\n"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:1615
+#: Opcodes/arrays.c:1809
 msgid "fft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:1642
+#: Opcodes/arrays.c:1836
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:1703
+#: Opcodes/arrays.c:1897
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1874 Opcodes/arrays.c:1914 Opcodes/arrays.c:1946
+#: Opcodes/arrays.c:2068 Opcodes/arrays.c:2108 Opcodes/arrays.c:2140
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1907
+#: Opcodes/arrays.c:2101
 msgid "FFT size too small (min 64 samples)\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1974 Opcodes/arrays.c:1997
+#: Opcodes/arrays.c:2168 Opcodes/arrays.c:2191
 msgid "in array not 2-dimensional\n"
 msgstr ""
 
-#: Opcodes/arrays.c:1986
+#: Opcodes/arrays.c:2180
 #, fuzzy
 msgid "requested row is out of range\n"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/arrays.c:2011
+#: Opcodes/arrays.c:2205
 #, fuzzy
 msgid "requested col is out of range\n"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/arrays.c:2044 Opcodes/arrays.c:2064
+#: Opcodes/arrays.c:2238 Opcodes/arrays.c:2258
 #, fuzzy
 msgid "Error: index out of range\n"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/arrays.c:2100
+#: Opcodes/arrays.c:2294
 msgid "input array too small\n"
 msgstr ""
 
-#: Opcodes/arrays.c:2150
+#: Opcodes/arrays.c:2344
 msgid "dct: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2157
+#: Opcodes/arrays.c:2351
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:2179
+#: Opcodes/arrays.c:2373
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2187
+#: Opcodes/arrays.c:2381
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
