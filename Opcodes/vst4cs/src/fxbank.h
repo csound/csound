@@ -1,4 +1,4 @@
-/  vst4cs: VST HOST OPCODES FOR CSOUND
+//  vst4cs: VST HOST OPCODES FOR CSOUND
 //
 //  Uses code by Hermann Seib from his VSTHost program and from the vst~
 //  object by Thomas Grill (no license), which in turn borrows from the Psycle
