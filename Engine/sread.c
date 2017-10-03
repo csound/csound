@@ -2002,6 +2002,7 @@ static MYFLT read_expression(CSOUND *csound)
           type = 0;
           *++op = c; c = getscochar(csound, 1); break;
         case '(':
+        case '[':
           if (UNLIKELY(type)) {
             scorerr(csound, Str("illegal placement of '(' in [] expression"));
           }
