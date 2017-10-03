@@ -54,6 +54,9 @@ are here, as well as many small internal improvements.
 - Arrays can be assigned from i-rate and k-rate to krate and i-rate;
   previously rates had to match.
 
+- The use of ! as a Boolean operation (meaning negation) is now supported,
+were previously the parser accepted it but did not use it.
+
 ### Score
 
 - In a csd file commented-out tags were acted upon in some cases,
@@ -79,9 +82,14 @@ are here, as well as many small internal improvements.
 
 - slicearray as an optional additional argument to give a stride to the slice.
 
+- chnset now can have variable channel names.
+
+- a-rate arrays may be added, subtracted, multiplied and scaled.  This
+  is a start on a-rate array arithmetic.
+
 ### Utilities
 
-- 
+-
 
 ### Frontends
 
@@ -91,7 +99,7 @@ are here, as well as many small internal improvements.
 
 - csdebugger:
 
-- Emscripten: Now compiled as WebAssembly (runs in all major browsers). API now 
+- Emscripten: Now compiled as WebAssembly (runs in all major browsers). API now
   somewhat more conformed to other HTML5 APIs.
 
 - CsoundQT: Now built with HTML5 support.
@@ -111,7 +119,7 @@ are here, as well as many small internal improvements.
 
 ### System Changes
 
-- 
+-
 
 ### API
 
@@ -130,13 +138,13 @@ are here, as well as many small internal improvements.
 - Windows
 
  - Now compiled with MSVC.
- 
+
  - Continuous integration for Windows with AppVeyor.
- 
- - The AppVeyor build and installer now includes CsoundVST and the vst4cs 
-   opcodes that enable hosting VST plugins in Csound. The LGPL v2.1 
-   license for that code has been modified, with permission of Hermann 
-   Seib the original author of the VSTHost code, to permit use with 
+
+ - The AppVeyor build and installer now includes CsoundVST and the vst4cs
+   opcodes that enable hosting VST plugins in Csound. The LGPL v2.1
+   license for that code has been modified, with permission of Hermann
+   Seib the original author of the VSTHost code, to permit use with
    the separately downloaded VST2 SDK from Steinberg.
 
 - OSX
@@ -150,30 +158,6 @@ are here, as well as many small internal improvements.
 commit b8a71c9be032c9db150e2aed63614ca2469ecc20
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Mon Sep 11 15:14:49 2017 +0100
-
-commit d952e764cc2513ca49b5c934dacef69608b3cd1c
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Sat Sep 2 11:06:26 2017 -0400
-
-    added ALLOW_MEMORY_GROWTH=1 to address issue with sample memory limits
-
-commit 78a91450fc97681864dcc39e39354bd7501b68c3
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Sep 2 11:00:15 2017 +0100
-
-    chnset now can have variable channel names
-
-commit a5b29e123ba910934989a2491b83ad70bdcf97dc
-Author: Michael Gogins <michael.gogins@gmail.com>
-Date:   Sat Aug 26 07:43:09 2017 -0400
-
-    Configure for Qt SDK version 5.9.
-
-commit d40519bd2fe50a159b0e869ec82f1cb8eb2ea1db
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Aug 25 12:08:11 2017 +0100
-
-    updated tvconv code
 
 commit 6dde38f56df76ac06ad92b1a0988fdc57515a84e
 Author: Felipe Sateler <fsateler@gmail.com>
@@ -193,16 +177,8 @@ Date:   Wed Aug 2 18:01:00 2017 +0100
 
     added setOption to CsoundObj.js
 
-commit a3c647e5695563b6b7a630782157c59da48989be
-Author: Michael Gogins <michael.gogins@gmail.com>
-Date:   Sat Jul 29 13:25:25 2017 -0400
-
-    A little API compatibility for WASM.
-
 commit 73db533a551dec4616c6f3195467b231eaeb033c
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Jul 18 11:52:38 2017 +0100
 
     interrupt handler in CLI csound fixed
-
-
