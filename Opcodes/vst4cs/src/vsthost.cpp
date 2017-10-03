@@ -1,7 +1,7 @@
 //  vst4cs: VST HOST OPCODES FOR CSOUND
 //
-//  Uses code by Hermann Seib from his VSTHost program and from the vst~ 
-//  object by Thomas Grill (no license), which in turn borrows from the Psycle 
+//  Uses code by Hermann Seib from his VSTHost program and from the vst~
+//  object by Thomas Grill (no license), which in turn borrows from the Psycle
 //  tracker (also based on VSTHost).
 //
 //  VST is a trademark of Steinberg Media Technologies GmbH.
@@ -28,14 +28,14 @@
 //  combined work based on vst4cs. Thus, the terms and conditions of the GNU
 //  Lesser General Public License cover the whole combination.
 //
-//  In addition, as a special exception, the copyright holders of vst4cs, 
-//  including the Csound developers and Hermann Seib, the original author of 
-//  VSTHost, give you permission to combine vst4cs with free software programs 
-//  or libraries that are released under the GNU LGPL and with code included 
-//  in the standard release of the VST SDK version 2 under the terms of the 
-//  license stated in the VST SDK version 2 files. You may copy and distribute 
-//  such a system following the terms of the GNU LGPL for vst4cs and the 
-//  licenses of the other code concerned. The source code for the VST SDK 
+//  In addition, as a special exception, the copyright holders of vst4cs,
+//  including the Csound developers and Hermann Seib, the original author of
+//  VSTHost, give you permission to combine vst4cs with free software programs
+//  or libraries that are released under the GNU LGPL and with code included
+//  in the standard release of the VST SDK version 2 under the terms of the
+//  license stated in the VST SDK version 2 files. You may copy and distribute
+//  such a system following the terms of the GNU LGPL for vst4cs and the
+//  licenses of the other code concerned. The source code for the VST SDK
 //  version 2 is available in the VST SDK hosted at
 //  https://github.com/steinbergmedia/vst3sdk.
 //

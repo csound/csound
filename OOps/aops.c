@@ -211,7 +211,8 @@ int asignum(CSOUND *csound, ASSIGN *p)
 
 #define RELATN(OPNAME,OP)                               \
   int OPNAME(CSOUND *csound, RELAT *p)                  \
-  { IGN(csound); *p->rbool = (*p->a OP *p->b) ? 1 : 0;  return OK; }
+  {   IGN(csound); *p->rbool = (*p->a OP *p->b) ? 1 : 0; \
+       return OK; }
 
 RELATN(gt,>)
 RELATN(ge,>=)
@@ -220,9 +221,13 @@ RELATN(le,<=)
 RELATN(eq,==)
 RELATN(ne,!=)
 
+int b_not(CSOUND *csound, LOGCL *p)
+{
+    IGN(csound); *p->rbool = (*p->ibool) ? 0 : 1; return OK; }
+
 #define LOGCLX(OPNAME,OP)                                       \
   int OPNAME(CSOUND *csound, LOGCL *p)                          \
-  {  IGN(csound);*p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
+  { IGN(csound);*p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
 
 LOGCLX(and,&&)
 LOGCLX(or,||)

@@ -26,13 +26,13 @@
 //  combined work based on CsoundVST. Thus, the terms and conditions of the GNU
 //  Lesser General Public License cover the whole combination.
 //
-//  In addition, as a special exception, the copyright holders of CsoundVST 
-//  give you permission to combine CsoundVST with free software programs 
-//  or libraries that are released under the GNU LGPL and with code included 
-//  in the standard release of the VST SDK version 2 under the terms of the 
-//  license stated in the VST SDK version 2 files. You may copy and distribute 
-//  such a system following the terms of the GNU LGPL for CsoundVST and the 
-//  licenses of the other code concerned. The source code for the VST SDK 
+//  In addition, as a special exception, the copyright holders of CsoundVST
+//  give you permission to combine CsoundVST with free software programs
+//  or libraries that are released under the GNU LGPL and with code included
+//  in the standard release of the VST SDK version 2 under the terms of the
+//  license stated in the VST SDK version 2 files. You may copy and distribute
+//  such a system following the terms of the GNU LGPL for CsoundVST and the
+//  licenses of the other code concerned. The source code for the VST SDK
 //  version 2 is available in the VST SDK hosted at
 //  https://github.com/steinbergmedia/vst3sdk.
 //
@@ -144,4 +144,3 @@ public:
 };
 
 #endif
-

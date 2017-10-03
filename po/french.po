@@ -401,51 +401,56 @@ msgstr "**non enregistré**"
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr "L'opcode \"%s\" est obsolète\n"
 
-#: Engine/csound_orc_expressions.c:489
+#: Engine/csound_orc_expressions.c:490
 #, c-format
 msgid "error: function %s not found, line %d \n"
 msgstr "erreur : fonction %s introuvable, ligne %d\n"
 
-#: Engine/csound_orc_expressions.c:510
+#: Engine/csound_orc_expressions.c:511
 #, c-format
 msgid "error: opcode %s with output type %s not found, line %d"
 msgstr "erreur : opcode %s sans type de retour %s introuvable, ligne %d"
+
+#: Engine/csound_orc_expressions.c:1214
+#, c-format
+msgid "ERROR: Neither if-goto or if-then found on line %d!!!"
+msgstr "ERREUR : ni if-goto ni if-then n'ont été trouvés ligne %d !!!"
 
 #: Engine/csound_orc_semantics.c:129
 #, c-format
 msgid "Unknown function type found: %d [%c]\n"
 msgstr "Type de fonction inconnue détecté : %d [%c]\n"
 
-#: Engine/csound_orc_semantics.c:154
+#: Engine/csound_orc_semantics.c:156
 #, c-format
 msgid "Unknown boolean expression type found: %d\n"
 msgstr "Type d'expression booléenne inconnue détecté : %d\n"
 
-#: Engine/csound_orc_semantics.c:265
+#: Engine/csound_orc_semantics.c:267
 #, c-format
 msgid "unable to find array operator for types %s line %d\n"
 msgstr ""
 "impossible de trouver un opérateur de tableau pour les types '%s ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:285
+#: Engine/csound_orc_semantics.c:287
 #, c-format
 msgid "non-boolean expression found for ternary operator, line %d\n"
 msgstr ""
 "expression non-booléenne détectée dans un opérateur ternaire, ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:303
+#: Engine/csound_orc_semantics.c:305
 #, c-format
 msgid "unable to find ternary operator for types '%s ? %s : %s' line %d\n"
 msgstr ""
 "impossible de trouver un opérateur ternaire pour les types '%s ? %s : %s' "
 "ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:328
+#: Engine/csound_orc_semantics.c:330
 #, c-format
 msgid "Use of i() with expression not permitted on line %d\n"
 msgstr "L'utilisation de i() dans une expression est interdite, ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:345
+#: Engine/csound_orc_semantics.c:347
 #, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d\n"
@@ -453,7 +458,7 @@ msgstr ""
 "erreur : opcode '%s' dans l'expression avec types d'arg %s introuvable, "
 "ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:370
+#: Engine/csound_orc_semantics.c:372
 #, c-format
 msgid ""
 "Unable to verify arg types for expression '%s'\n"
@@ -462,7 +467,7 @@ msgstr ""
 "Vérification des types d'arg impossible pour l'expression '%s'\n"
 "Ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:395
+#: Engine/csound_orc_semantics.c:397
 #, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d \n"
@@ -470,7 +475,7 @@ msgstr ""
 "erreur : opcode '%s' dans l'expression avec types d'arg %s introuvable, "
 "ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:427
+#: Engine/csound_orc_semantics.c:433
 #, c-format
 msgid ""
 "Unable to verify arg types for boolean expression '%s'\n"
@@ -479,14 +484,14 @@ msgstr ""
 "Impossible de vérifier les types d'arg dans l'expression booléenne'%s'\n"
 "Ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:449
+#: Engine/csound_orc_semantics.c:455
 #, c-format
 msgid "error: boolean expression '%s' with arg types %s not found, line %d \n"
 msgstr ""
 "erreur : expression booléenne '%s' avec types d'arg %s introuvable, ligne "
 "%d\n"
 
-#: Engine/csound_orc_semantics.c:527 Engine/csound_orc_semantics.c:1254
+#: Engine/csound_orc_semantics.c:534 Engine/csound_orc_semantics.c:1261
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
@@ -495,17 +500,17 @@ msgstr ""
 "Variable '%s' utilisée avant d'être définie\n"
 "Lige %d\n"
 
-#: Engine/csound_orc_semantics.c:568
+#: Engine/csound_orc_semantics.c:575
 #, c-format
 msgid "Unknown arg type: %d\n"
 msgstr "Type d'arg inconnu : %d\n"
 
-#: Engine/csound_orc_semantics.c:1209
+#: Engine/csound_orc_semantics.c:1216
 #, c-format
 msgid "Variable type for %s could not be determined.\n"
 msgstr "Impossible de déterminer le type de la variable %s.\n"
 
-#: Engine/csound_orc_semantics.c:1231
+#: Engine/csound_orc_semantics.c:1238
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
@@ -514,53 +519,53 @@ msgstr ""
 "Variable '%s' utilisée avant d'être définie\n"
 "Ligne %d"
 
-#: Engine/csound_orc_semantics.c:1459
+#: Engine/csound_orc_semantics.c:1466
 #, c-format
 msgid "Unable to find opcode with name: %s\n"
 msgstr "Opcode nommé %s introuvable\n"
 
-#: Engine/csound_orc_semantics.c:1477
+#: Engine/csound_orc_semantics.c:1484
 #, c-format
 msgid "Unable to find opcode entry for '%s' with matching argument types:\n"
 msgstr ""
 "Aucune entrée pour l'opcode '%s' avec les types d'argument correspondants :\n"
 
-#: Engine/csound_orc_semantics.c:1480
+#: Engine/csound_orc_semantics.c:1487
 #, c-format
 msgid "Found: %s %s %s\n"
 msgstr "Trouvé : %s %s %s\n"
 
-#: Engine/csound_orc_semantics.c:1482
+#: Engine/csound_orc_semantics.c:1489
 #, c-format
 msgid "Line: %d\n"
 msgstr "Ligne : %d\n"
 
-#: Engine/csound_orc_semantics.c:1637
+#: Engine/csound_orc_semantics.c:1644
 #, c-format
 msgid ""
 "expression for until/while statement not a boolean expression, line %d\n"
 msgstr ""
 "l'expression de l'instruction until/while n'est pas booléenne, ligne %d\n"
 
-#: Engine/csound_orc_semantics.c:1680
+#: Engine/csound_orc_semantics.c:1687
 msgid "Multiple xin statements found. Only one is allowed."
 msgstr "Plusieurs instructions xin trouvées. Une seule est permise."
 
-#: Engine/csound_orc_semantics.c:1689
+#: Engine/csound_orc_semantics.c:1696
 msgid "Multiple xout statements found. Only one is allowed."
 msgstr "Plusieurs instructions xout trouvées. Une seule est permise."
 
-#: Engine/csound_orc_semantics.c:1706
+#: Engine/csound_orc_semantics.c:1713
 #, c-format
 msgid "invalid xin statement for UDO: defined '%s', found '%s'\n"
 msgstr "instruction xin non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 
-#: Engine/csound_orc_semantics.c:1715
+#: Engine/csound_orc_semantics.c:1722
 #, c-format
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr "instruction xout non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 
-#: Engine/csound_orc_semantics.c:1888
+#: Engine/csound_orc_semantics.c:1895
 #, c-format
 msgid ""
 "\n"
@@ -569,7 +574,7 @@ msgstr ""
 "\n"
 "erreur : %s (symbole \"%s\")"
 
-#: Engine/csound_orc_semantics.c:1891
+#: Engine/csound_orc_semantics.c:1898
 #, c-format
 msgid ""
 " line %d:\n"
@@ -578,12 +583,12 @@ msgstr ""
 " ligne %d :\n"
 ">>>"
 
-#: Engine/csound_orc_semantics.c:1910
+#: Engine/csound_orc_semantics.c:1917
 #, c-format
 msgid " from file %s (%d)\n"
 msgstr " depuis le fichier %s (%d)\n"
 
-#: Engine/csound_orc_semantics.c:2492
+#: Engine/csound_orc_semantics.c:2498
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr "arguments requis manquants pour l'opcode %s ligne %d :\n"
@@ -4210,64 +4215,64 @@ msgstr "pas supporté sur ce terminal"
 msgid "Cannot be more In arguments than Out in init (%d,%d)"
 msgstr "Il ne peut y avoir plus d'arguments In que Out dans init (%d,%d)"
 
-#: OOps/aops.c:243 OOps/aops.c:359 OOps/aops.c:372 util1/scot/scot.c:1302
+#: OOps/aops.c:248 OOps/aops.c:364 OOps/aops.c:377 util1/scot/scot.c:1302
 #: util1/scot/scot.c:1317 util1/scot/scot.c:1371
 msgid "Division by zero"
 msgstr "Division par zéro"
 
-#: OOps/aops.c:947
+#: OOps/aops.c:952
 msgid "non-looping sample"
 msgstr "son échantillonné sans boucle"
 
-#: OOps/aops.c:1098 OOps/aops.c:1126
+#: OOps/aops.c:1103 OOps/aops.c:1131
 #, c-format
 msgid "No tuning table %d"
 msgstr "Pas de table d'accordage %d"
 
-#: OOps/aops.c:1171 OOps/aops.c:1209
+#: OOps/aops.c:1176 OOps/aops.c:1214
 msgid "cpstun: invalid table"
 msgstr "cpstun : table non valide"
 
-#: OOps/aops.c:1606 OOps/aops.c:1654
+#: OOps/aops.c:1611 OOps/aops.c:1659
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr "Canal d'entrée %d trop grand ; ignoré"
 
-#: OOps/aops.c:1612 OOps/aops.c:1660
+#: OOps/aops.c:1617 OOps/aops.c:1665
 #, c-format
 msgid "Input channel %d is invalid; ignored"
 msgstr "Canal d'entrée %d non valide ; ignoré"
 
-#: OOps/aops.c:1649
+#: OOps/aops.c:1654
 msgid "Input and output argument count differs in inch"
 msgstr "Les nombres d'arguments d'entrée et de sortie différent dans inch"
 
-#: OOps/aops.c:1737
+#: OOps/aops.c:1742
 msgid "Channel greater than nchnls"
 msgstr "Canal supérieur à nchnls"
 
-#: OOps/aops.c:1884
+#: OOps/aops.c:1889
 msgid "Excess channels ignored\n"
 msgstr "Canaux en excès ignorés\n"
 
-#: OOps/aops.c:2025
+#: OOps/aops.c:2030
 msgid "Unknown function called"
 msgstr "Appel de fonction inconnue"
 
-#: OOps/aops.c:2058
+#: OOps/aops.c:2063
 msgid "number of arguments != nchnls"
 msgstr "nombre d'arguments != nchnls"
 
-#: OOps/aops.c:2087
+#: OOps/aops.c:2092
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 "outrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
 
-#: OOps/aops.c:2120
+#: OOps/aops.c:2125
 msgid "number of hardware output channels not currently available"
 msgstr "nombre de canaux matériels en sortie non disponible"
 
-#: OOps/aops.c:2126
+#: OOps/aops.c:2131
 msgid "number of hardware input channels not currently available"
 msgstr "nombre de canaux matériels en entrée non disponible"
 
@@ -6396,11 +6401,13 @@ msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 #: Opcodes/arrays.c:389 Opcodes/arrays.c:409 Opcodes/arrays.c:446
 #: Opcodes/arrays.c:467 Opcodes/arrays.c:492 Opcodes/arrays.c:513
 #: Opcodes/arrays.c:550 Opcodes/arrays.c:588 Opcodes/arrays.c:608
-#: Opcodes/arrays.c:625 Opcodes/arrays.c:666 Opcodes/arrays.c:689
-#: Opcodes/arrays.c:712 Opcodes/arrays.c:732 Opcodes/arrays.c:760
-#: Opcodes/arrays.c:787 Opcodes/arrays.c:836 Opcodes/arrays.c:842
-#: Opcodes/arrays.c:853 Opcodes/arrays.c:884 Opcodes/arrays.c:915
-#: Opcodes/arrays.c:936 Opcodes/arrays.c:1008 Opcodes/arrays.c:1054
+#: Opcodes/arrays.c:625 Opcodes/arrays.c:666 Opcodes/arrays.c:686
+#: Opcodes/arrays.c:713 Opcodes/arrays.c:733 Opcodes/arrays.c:761
+#: Opcodes/arrays.c:788 Opcodes/arrays.c:844 Opcodes/arrays.c:879
+#: Opcodes/arrays.c:910 Opcodes/arrays.c:941 Opcodes/arrays.c:976
+#: Opcodes/arrays.c:1005 Opcodes/arrays.c:1030 Opcodes/arrays.c:1036
+#: Opcodes/arrays.c:1047 Opcodes/arrays.c:1078 Opcodes/arrays.c:1109
+#: Opcodes/arrays.c:1130 Opcodes/arrays.c:1202 Opcodes/arrays.c:1248
 #: Opcodes/pvsbasic.c:2431 Opcodes/pvsbasic.c:2462 Opcodes/pvsbasic.c:2510
 msgid "array-variable not initialised"
 msgstr "tableau : non initialisé"
@@ -6409,133 +6416,138 @@ msgstr "tableau : non initialisé"
 msgid "Dimension does not match in array arithmetic"
 msgstr "La dimension ne correspond pas dans l'arithmétique des tableaux"
 
-#: Opcodes/arrays.c:477 Opcodes/arrays.c:740
+#: Opcodes/arrays.c:477 Opcodes/arrays.c:741
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr "division par zéro dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:522 Opcodes/arrays.c:769 Opcodes/arrays.c:796
+#: Opcodes/arrays.c:522 Opcodes/arrays.c:770 Opcodes/arrays.c:797
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr "puissance indéfinie dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:663 Opcodes/arrays.c:686 Opcodes/arrays.c:709
+#: Opcodes/arrays.c:663 Opcodes/arrays.c:693 Opcodes/arrays.c:710
 msgid "division by zero in array-var"
 msgstr "division par zéro dans le tableau"
 
-#: Opcodes/arrays.c:918
+#: Opcodes/arrays.c:956
+#, fuzzy, c-format
+msgid "division by zero in array-var at index %d/%d"
+msgstr "division par zéro dans le tableau à l'indice %d"
+
+#: Opcodes/arrays.c:1112
 msgid "array-variable not a vector"
 msgstr "tableau pas un vecteur"
 
-#: Opcodes/arrays.c:1012 Opcodes/arrays.c:1057
+#: Opcodes/arrays.c:1206 Opcodes/arrays.c:1251
 msgid "array-variable dimensions do not match"
 msgstr "les dimensions du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:1014
+#: Opcodes/arrays.c:1208
 msgid "array-variable types do not match"
 msgstr "les types du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:1106 Opcodes/arrays.c:1127 Opcodes/arrays.c:1306
-#: Opcodes/arrays.c:1342 Opcodes/arrays.c:1345
+#: Opcodes/arrays.c:1300 Opcodes/arrays.c:1321 Opcodes/arrays.c:1500
+#: Opcodes/arrays.c:1536 Opcodes/arrays.c:1539
 msgid "array-var not initialised"
 msgstr "tableau non initialisée"
 
-#: Opcodes/arrays.c:1109 Opcodes/arrays.c:1129 Opcodes/arrays.c:1187
-#: Opcodes/arrays.c:1209
+#: Opcodes/arrays.c:1303 Opcodes/arrays.c:1323 Opcodes/arrays.c:1381
+#: Opcodes/arrays.c:1403
 msgid "No table for copy2ftab"
 msgstr "Pas de table pour copy2ftab"
 
-#: Opcodes/arrays.c:1159
+#: Opcodes/arrays.c:1353
 msgid "inconsistent start, end and increment parameters"
 msgstr "paramètres début, fin et incrément inconstistants"
 
-#: Opcodes/arrays.c:1244
+#: Opcodes/arrays.c:1438
 msgid "inconsistent start, end parameters"
 msgstr "paramètres début, fin inconsistants"
 
-#: Opcodes/arrays.c:1247
+#: Opcodes/arrays.c:1441
 msgid "slice larger than original size"
 msgstr "intervalle plus grand que la taille d'origine"
 
-#: Opcodes/arrays.c:1250
+#: Opcodes/arrays.c:1444
 msgid "slice increment must be positive"
 msgstr "le paramètre de coupure doit être positif"
 
-#: Opcodes/arrays.c:1319
+#: Opcodes/arrays.c:1513
 #, c-format
 msgid "%s not found"
 msgstr "%s non trouvé"
 
-#: Opcodes/arrays.c:1350
+#: Opcodes/arrays.c:1544
 msgid "map fn not found at k rate"
 msgstr "fn de map introuvable au taux-k"
 
-#: Opcodes/arrays.c:1527
+#: Opcodes/arrays.c:1721
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr "rfft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:1560
+#: Opcodes/arrays.c:1754
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr "rifft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:1591
+#: Opcodes/arrays.c:1785
 msgid "array sizes do not match\n"
 msgstr "les tailles de tableau ne correspondent pas\n"
 
-#: Opcodes/arrays.c:1615
+#: Opcodes/arrays.c:1809
 msgid "fft: only one-dimensional arrays allowed"
 msgstr "fft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:1642
+#: Opcodes/arrays.c:1836
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr "fftinv : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:1703
+#: Opcodes/arrays.c:1897
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr "dans array les tailles ne correspondent pas : %d et %d\n"
 
-#: Opcodes/arrays.c:1874 Opcodes/arrays.c:1914 Opcodes/arrays.c:1946
+#: Opcodes/arrays.c:2068 Opcodes/arrays.c:2108 Opcodes/arrays.c:2140
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr "non puissance de deux pas encore implémentée\n"
 
-#: Opcodes/arrays.c:1907
+#: Opcodes/arrays.c:2101
 msgid "FFT size too small (min 64 samples)\n"
 msgstr "Taille de TFR trop petite (min 64 échantillons)\n"
 
-#: Opcodes/arrays.c:1974 Opcodes/arrays.c:1997
+#: Opcodes/arrays.c:2168 Opcodes/arrays.c:2191
 msgid "in array not 2-dimensional\n"
 msgstr "dans array pas de 2-dimension\n"
 
-#: Opcodes/arrays.c:1986
+#: Opcodes/arrays.c:2180
 msgid "requested row is out of range\n"
 msgstr "ligne demandée hors limites\n"
 
-#: Opcodes/arrays.c:2011
+#: Opcodes/arrays.c:2205
 msgid "requested col is out of range\n"
 msgstr "colonne demandée hors limites\n"
 
-#: Opcodes/arrays.c:2044 Opcodes/arrays.c:2064
+#: Opcodes/arrays.c:2238 Opcodes/arrays.c:2258
 msgid "Error: index out of range\n"
 msgstr "Erreur : index hors limites\n"
 
-#: Opcodes/arrays.c:2100
+#: Opcodes/arrays.c:2294
 msgid "input array too small\n"
 msgstr "tableau d'entrée trop petit\n"
 
-#: Opcodes/arrays.c:2150
+#: Opcodes/arrays.c:2344
 msgid "dct: only one-dimensional arrays allowed"
 msgstr "dct : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2157
+#: Opcodes/arrays.c:2351
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr "dct : tailles non puissance de deux pas encore implémentées"
 
-#: Opcodes/arrays.c:2179
+#: Opcodes/arrays.c:2373
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr "dctinv : seul les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2187
+#: Opcodes/arrays.c:2381
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv : tailles non puissance de deux pas encore implémentées"
 
@@ -6724,14 +6736,13 @@ msgid "No lapspa descriptor\n"
 msgstr "Pas de descripteur ladspa\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:322
-#, c-format
 msgid ""
 "DSSI4CS: Unable to find ladspa_descriptor(%d) function or\n"
-"dssi_descriptor() function in plugin file \"%s\": %s.\n"
+"dssi_descriptor(%) function in plugin file \"%s\": %s.\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
 "DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%d) ou\n"
-"la fonction dssi_descriptor() dans le fichier de greffon \"%s\" : %s.\n"
+"la fonction dssi_descriptor(%) dans le fichier de greffon \"%s\" : %s.\n"
 "Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:331
@@ -10662,36 +10673,36 @@ msgstr "VPVOC ne peut pas charger %s"
 msgid "vpvoc: not initialised"
 msgstr "vpvoc : non initialisé"
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:75
+#: Opcodes/vst4cs/src/vst4cs.cpp:98
 msgid "vstinit: Error loading effect."
 msgstr "vstinit : erreur lors du chargement de l'effet."
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:99
+#: Opcodes/vst4cs/src/vst4cs.cpp:122
 msgid "vstaudio: too many input args"
 msgstr "vstaudio : trop d'arguments en entrée"
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:298
+#: Opcodes/vst4cs/src/vst4cs.cpp:321
 msgid "Error: BeginLoadBank."
 msgstr "Erreur : BeginLoadBank."
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:304
+#: Opcodes/vst4cs/src/vst4cs.cpp:327
 msgid "Loaded bank ID doesn't match plug-in ID."
 msgstr "L'ID de la banque chargée ne correspond pas à l'ID du greffon."
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:309
+#: Opcodes/vst4cs/src/vst4cs.cpp:332
 msgid "Loaded bank contains a chunk format that the effect cannot handle."
 msgstr "La banque chargée contient un format de chunk que l'effet ne gère pas."
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:332
+#: Opcodes/vst4cs/src/vst4cs.cpp:355
 msgid "Problem loading bank."
 msgstr "Problème au chargement de la banque."
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:346
+#: Opcodes/vst4cs/src/vst4cs.cpp:369
 #, c-format
 msgid "VSTprogset: Program %d treated as 1\n"
 msgstr "VSTprogset : programme %d traité comme 1\n"
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:471
+#: Opcodes/vst4cs/src/vst4cs.cpp:494
 msgid "vstnote_init: not scheduling 0 duration note.\n"
 msgstr "vstnote_init : pas de programmation de note à durée nulle.\n"
 
@@ -10958,7 +10969,8 @@ msgstr "-m N        niveau de message du tty. Somme de :"
 
 #: Top/argdecode.c:154
 msgid "              1=note amps, 2=out-of-range msg, 4=warnings"
-msgstr "              1=amp des notes, 2=msg dépassement limites, 4=avertissements"
+msgstr ""
+"              1=amp des notes, 2=msg dépassement limites, 4=avertissements"
 
 #: Top/argdecode.c:155
 msgid "              0/32/64/96=note amp format (raw,dB,colors)"
@@ -10982,13 +10994,14 @@ msgstr "-G          pas de graphiques, affichage PostScript"
 
 #: Top/argdecode.c:160
 msgid "-x fnam     extract from score.srt using extract file 'fnam'"
-msgstr "-x nomfic     extraire les données de score.srt dans le fichier 'nomfic'"
+msgstr ""
+"-x nomfic     extraire les données de score.srt dans le fichier 'nomfic'"
 
 #: Top/argdecode.c:161
 msgid "-t N        use uninterpreted beats of the score, initially at tempo N"
 msgstr ""
-"-t N        utiliser les pulsations non interprétées de la partition, au tempo "
-"initial N"
+"-t N        utiliser les pulsations non interprétées de la partition, au "
+"tempo initial N"
 
 #: Top/argdecode.c:162
 msgid "-t 0        use score.srt for sorted score rather than a temporary"
@@ -11010,7 +11023,8 @@ msgstr ""
 
 #: Top/argdecode.c:165
 msgid "-F fnam     read MIDIfile event stream from file 'fnam'"
-msgstr "-F nomfic     lire un flux d'évènements MIDI à partir du fichier 'nomfic'"
+msgstr ""
+"-F nomfic     lire un flux d'évènements MIDI à partir du fichier 'nomfic'"
 
 #: Top/argdecode.c:167
 msgid ""
@@ -11126,12 +11140,13 @@ msgid ""
 "--iobufsamps=N          sample frames (or -kprds) per software sound I/O "
 "buffer"
 msgstr ""
-"--iobufsamps=N          nombre de trames d'échantillon (ou -kprds) par tampon "
-"logiciel d'E/S"
+"--iobufsamps=N          nombre de trames d'échantillon (ou -kprds) par "
+"tampon logiciel d'E/S"
 
 #: Top/argdecode.c:205
 msgid "--hardwarebufsamps=N    samples per hardware sound I/O buffer"
-msgstr "--hardwarebufsamps=N    nombre d'échantillons par tampon physique d'E/S"
+msgstr ""
+"--hardwarebufsamps=N    nombre d'échantillons par tampon physique d'E/S"
 
 #: Top/argdecode.c:206
 msgid "--cscore                use Cscore processing of scorefile"
@@ -11144,7 +11159,8 @@ msgstr ""
 
 #: Top/argdecode.c:209
 msgid "--midifile=FNAME        read MIDIfile event stream from file"
-msgstr "--midifile=FNAME        lire un flot d'évènements MIDI depuis un fichier"
+msgstr ""
+"--midifile=FNAME        lire un flot d'évènements MIDI depuis un fichier"
 
 #: Top/argdecode.c:210
 msgid "--midioutfile=FNAME     write MIDI output to file FNAME"
@@ -11184,8 +11200,8 @@ msgid ""
 "--rewrite               continually rewrite header while writing soundfile "
 "(WAV/AIFF)"
 msgstr ""
-"--rewrite               réécrire l'en-tête continuellement lors de l'écriture "
-"d'un fichier son (WAV/AIFF)"
+"--rewrite               réécrire l'en-tête continuellement lors de "
+"l'écriture d'un fichier son (WAV/AIFF)"
 
 #: Top/argdecode.c:220
 msgid "--input=FNAME           sound input filename"
@@ -11213,13 +11229,14 @@ msgstr ""
 
 #: Top/argdecode.c:227
 msgid "--i-only                I-time only orch run"
-msgstr "--i-only                n'exécute que la passe de temps-I de l'orchestre"
+msgstr ""
+"--i-only                n'exécute que la passe de temps-I de l'orchestre"
 
 #: Top/argdecode.c:228
 msgid "--syntax-check-only     stop after checking orchestra and score syntax"
 msgstr ""
-"--syntax-check-only     arrêt après vérification de la syntaxe de l'orchestre "
-"et de la partition"
+"--syntax-check-only     arrêt après vérification de la syntaxe de "
+"l'orchestre et de la partition"
 
 #: Top/argdecode.c:229
 msgid "--control-rate=N        orchestra krate override"
@@ -11233,8 +11250,8 @@ msgstr "--sample-rate=N         redéfinition du srate de l'orchestre"
 msgid ""
 "--score-in=FNAME        read line-oriented realtime score events from device"
 msgstr ""
-"--score-in=DNAME        lire des évènements de partition en temps-réel à partir du "
-"périphérique d'entrée en ligne"
+"--score-in=DNAME        lire des évènements de partition en temps-réel à "
+"partir du périphérique d'entrée en ligne"
 
 #: Top/argdecode.c:233
 msgid "--messagelevel=N        tty message level, sum of:"
@@ -11246,13 +11263,11 @@ msgstr "--messageolevel=O       niveau de message tty en octal, de :"
 
 #: Top/argdecode.c:235
 msgid "                          1=note amps, 2=out-of-range msg, 4=warnings,"
-msgstr ""
-"1=amp des notes, 2=msg hors limites, 4=avertissements"
+msgstr "1=amp des notes, 2=msg hors limites, 4=avertissements"
 
 #: Top/argdecode.c:236
 msgid "                          0/32/64/96=note amp format (raw,dB,colors),"
-msgstr ""
-"0/32/64/96=format d'amp de note (brut, dB, couleurs)"
+msgstr "0/32/64/96=format d'amp de note (brut, dB, couleurs)"
 
 #: Top/argdecode.c:237
 msgid "                          128=print benchmark information"
@@ -11320,7 +11335,8 @@ msgstr ""
 
 #: Top/argdecode.c:252
 msgid "--strsetN=VALUE         set strset table at index N to VALUE"
-msgstr "--strsetN=VALEUR        écrire VALEUR à la position N de la table strset"
+msgstr ""
+"--strsetN=VALEUR        écrire VALEUR à la position N de la table strset"
 
 #: Top/argdecode.c:253
 msgid "--utility=NAME          run utility program"
@@ -11345,12 +11361,14 @@ msgstr "--dither                sortie avec dithering"
 #: Top/argdecode.c:258
 msgid "--dither-triangular     dither output with triangular distribution"
 msgstr ""
-"--dither-triangular     dithering en sortie avec une distribution triangulaire"
+"--dither-triangular     dithering en sortie avec une distribution "
+"triangulaire"
 
 #: Top/argdecode.c:259
 msgid "--dither-uniform        dither output with rectanular distribution"
 msgstr ""
-"--dither-uniform        dithering en sortie avec une distribution rectangulaire"
+"--dither-uniform        dithering en sortie avec une distribution "
+"rectangulaire"
 
 #: Top/argdecode.c:260
 msgid ""
@@ -11387,8 +11405,7 @@ msgstr "--midi-key=N            router un message MIDI note on"
 
 #: Top/argdecode.c:267
 msgid "                          key number to pfield N as MIDI value [0-127]"
-msgstr ""
-"numéro de touche vers le p-champ N comme valeur MIDI [0-127]"
+msgstr "numéro de touche vers le p-champ N comme valeur MIDI [0-127]"
 
 #: Top/argdecode.c:268
 msgid "--midi-key-cps=N        route MIDI note on message"
@@ -11396,8 +11413,7 @@ msgstr "--midi-key-cps=N        router un message MIDI note on"
 
 #: Top/argdecode.c:269
 msgid "                          key number to pfield N as cycles per second"
-msgstr ""
-"numéro de touche vers le p-champ N en cycles par seconde"
+msgstr "numéro de touche vers le p-champ N en cycles par seconde"
 
 #: Top/argdecode.c:270
 msgid "--midi-key-oct=N        route MIDI note on message"
@@ -11405,8 +11421,7 @@ msgstr "--midi-key-oct=N        router un message MIDI note on"
 
 #: Top/argdecode.c:271
 msgid "                          key number to pfield N as linear octave"
-msgstr ""
-"numéro de touche vers le p-champ N en octave linéaire"
+msgstr "numéro de touche vers le p-champ N en octave linéaire"
 
 #: Top/argdecode.c:272
 msgid "--midi-key-pch=N        route MIDI note on message"
@@ -11414,8 +11429,7 @@ msgstr "--midi-key-pch=N        router un message MIDI note on"
 
 #: Top/argdecode.c:273
 msgid "                          key number to pfield N as oct.pch"
-msgstr ""
-"numéro de touche vers le p-champ N en oct.pch"
+msgstr "numéro de touche vers le p-champ N en oct.pch"
 
 #: Top/argdecode.c:274
 msgid "--midi-velocity=N       route MIDI note on message"
@@ -11425,7 +11439,8 @@ msgstr "--midi-velocity=N       router un message MIDI note on"
 msgid ""
 "                          velocity number to pfield N as MIDI value [0-127]"
 msgstr ""
-"                          vélocité vers le p-champ N comme valeur MIDI [0-127]"
+"                          vélocité vers le p-champ N comme valeur MIDI "
+"[0-127]"
 
 #: Top/argdecode.c:276
 msgid "--midi-velocity-amp=N   route MIDI note on message"
@@ -11460,7 +11475,8 @@ msgstr "--nchnls_i=N            remplace le nombre de canaux audio en entrée"
 
 #: Top/argdecode.c:283
 msgid "--0dbfs=N               override 0dbfs (max positive signal amplitude)"
-msgstr "--Odbfs=N               remplace 0dbfs (amplitude positive max du signal)"
+msgstr ""
+"--Odbfs=N               remplace 0dbfs (amplitude positive max du signal)"
 
 #: Top/argdecode.c:284
 msgid "--sinesize              length of internal sine table"
@@ -11479,8 +11495,8 @@ msgid ""
 "--port=N                listen to UDP port N for instruments/orchestra code "
 "(implies --daemon)"
 msgstr ""
-"--port=N                écoute sur le port UDP N pour du code "
-"d'instruments/orchestre (implique --daemon)"
+"--port=N                écoute sur le port UDP N pour du code d'instruments/"
+"orchestre (implique --daemon)"
 
 #: Top/argdecode.c:289
 msgid "--vbr-quality=Ft        set quality of variable bit0rate compression"
@@ -11495,8 +11511,7 @@ msgstr ""
 
 #: Top/argdecode.c:291
 msgid "--midi-devices[=in|out] list available audio devices and exit"
-msgstr ""
-"--midi-devices[=in|out] liste les périphériques disponibles et termine"
+msgstr "--midi-devices[=in|out] liste les périphériques disponibles et termine"
 
 #: Top/argdecode.c:292
 msgid "--get-system-sr         print system sr and exit"
