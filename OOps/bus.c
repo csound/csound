@@ -1038,8 +1038,10 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     // size = csoundGetChannelDatasize(csound, p->iname->data);
-    if (UNLIKELY(err))
+    if (UNLIKELY(err)) {
       return print_chn_err(p, err);
+
+    }
 
     if (s==NULL) return NOTOK;
     p->lock = lock =
@@ -1050,12 +1052,13 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
         csound->Free(csound, ((STRINGDAT *)p->fp)->data);
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
+      
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
     else if(((STRINGDAT *)p->fp)->data != NULL)
             strcpy(((STRINGDAT *)p->fp)->data, s);
     csoundSpinUnLock(lock);
-
+    
     return OK;
 }
 
@@ -1083,9 +1086,10 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
+      //printf("p: %s: %s \n", p->iname->data, ((STRINGDAT *)p->fp)->data);
     }
     else if(((STRINGDAT *)p->fp)->data != NULL)
-            strcpy(((STRINGDAT *)p->fp)->data, s);
+        strcpy(((STRINGDAT *)p->fp)->data, s);
     csoundSpinUnLock(lock);
     //printf("%s \n", (char *)p->fp);
     return OK;
