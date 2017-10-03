@@ -883,14 +883,13 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
     uint32_t early = insdshead->ksmps_no_end;
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
-    for(auto &arg : outargs) {
+    if(UNLIKELY(offset || early))
+     for(auto &arg : outargs) {
       if (csound->is_asig(arg)) {
-       if (UNLIKELY(offset))
         std::fill(arg, arg + offset, 0);
-       if (UNLIKELY(early))
         std::fill(arg + nsmps, arg + nsmps + early, 0);
       }
-    }
+     }
   }
 
   /** returns the number of output arguments
@@ -934,7 +933,7 @@ template <typename T> int kperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   return p->kperf();
 }
-
+ 
 /**
   @private
   opcode thread function template (a-rate)

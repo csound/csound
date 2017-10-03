@@ -217,12 +217,13 @@ install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../.
 
 # absolute path in _csnd6.so
 install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
-install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framewok/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
+install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
 install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
 
 install_name_tool -change $BUILD_DIR/CsoundLib64.framework/Versions/6.0/CsoundLib64 /Library/Frameworks/CsoundLib64.framework/Versions/6.0/CsoundLib64 $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so
+install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_CsoundAC.so 
 
 # absolute path in _csnd6.so
 install_name_tool -change $BUILD_DIR/CsoundLib64.framework/Versions/6.0/CsoundLib64 /Library/Frameworks/CsoundLib64.framework/Versions/6.0/CsoundLib64 $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
@@ -234,6 +235,7 @@ install_name_tool -change CsoundLib64.framework/Versions/6.0/CsoundLib64  /Libra
 #install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
 
 install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
+
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Java/lib_jcsound6.jnilib
 
 # Python Library now needs to be re-set to /Library/Frameworks 
@@ -253,8 +255,7 @@ install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../..
 install_name_tool -change $DEPS_BASE/lib/libfluidsynth.1.dylib @loader_path/../../../../libs/libfluidsynth.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libfluidOpcodes.dylib
 install_name_tool -change /usr/local/lib/libportmidi.dylib @loader_path/../../../../libs/libportmidi.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libpmidi.dylib
 
-
-install_name_tool -change libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib $CSOUND_AC_PYLIB
+install_name_tool -change  $BUILD_DIR/libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib $CSOUND_AC_PYLIB
 
 install_name_tool -change $DEPS_BASE/lib/libluajit-5.1.2.dylib @loader_path/../../../../libs/libluajit-5.1.2.0.2.dylib  $FRAMEWORK64_DIR/$LUA_DIR/luaCsnd6.so 
 install_name_tool -change $DEPS_BASE/lib/libluajit-5.1.2.dylib @loader_path/../../../../libs/libluajit-5.1.2.0.2.dylib  $FRAMEWORK64_DIR/$LUA_DIR/luaCsoundAC.so
