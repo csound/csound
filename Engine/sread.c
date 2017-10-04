@@ -943,7 +943,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         /* If we are in a repeat of a marked section ('n' statement),
            we must pop those inputs before doing an 'r' repeat. */
         if (STA(str)->is_marked_repeat) {
-          printf("end of n; return to %d\n", STA(str)->oposit);
+          //printf("end of n; return to %d\n", STA(str)->oposit);
           corfile_set(csound->expanded_sco, STA(str)->oposit);
           STA(str)--;
           return rtncod;
@@ -1903,6 +1903,7 @@ static MYFLT read_expression(CSOUND *csound)
       *++op = '[';
       c = getscochar(csound, 1);
       do {
+        //printf("read_expression: c=%c\n", c);
         switch (c) {
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
@@ -2002,7 +2003,6 @@ static MYFLT read_expression(CSOUND *csound)
           type = 0;
           *++op = c; c = getscochar(csound, 1); break;
         case '(':
-        case '[':
           if (UNLIKELY(type)) {
             scorerr(csound, Str("illegal placement of '(' in [] expression"));
           }
@@ -2022,6 +2022,22 @@ static MYFLT read_expression(CSOUND *csound)
         case '^':
           type = 0;
           *++op = c; c = getscochar(csound, 1); break;
+        case '[':
+          if (UNLIKELY(type)) {
+            scorerr(csound, Str("illegal placement of '[' in [] expression"));
+          }
+          type = 1;
+          {
+            int i;
+            MYFLT x;
+            //for (i=0;i<=pv-vv;i++) printf(" %lf ", vv[i]);
+            //printf("| %d\n", pv-vv);
+            x = read_expression(csound);
+            *++pv = x;
+            //printf("recursion gives %lf (%lf)\n", x,*(pv-1));
+            //for (i=0;i<pv-vv;i++) printf(" %lf ", vv[i]); printf("| %d\n", pv-vv);
+            c = getscochar(csound, 1); break;
+          }
         case ']':
           if (UNLIKELY(!type)) {
             scorerr(csound, Str("missing operand before closing bracket in []"));
@@ -2031,8 +2047,9 @@ static MYFLT read_expression(CSOUND *csound)
             op--; pv--;
             *pv = v;
           }
-          c = '$';
-          break;
+          //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
+          //getscochar(csound, 1);
+          c = '$'; return *pv;
         case '$':
           break;
         case ' ':               /* Ignore spaces */
