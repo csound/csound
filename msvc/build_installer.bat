@@ -1,6 +1,6 @@
 @echo off
 echo Must call vcvars64.bat first!
-set ABLETON_LINK_HOME=ABLETON_LINK_HOME: C:/projects/csound/msvc/deps/link
+set ABLETON_LINK_HOME=D:\\msys64\\home\\restore\\csound\\msvc\\deps\\link\\
 set CSOUND_HOME=D:\\msys64\\home\\restore\\csound\\
 set PYTHON=C:\Program_Files\Anaconda2\python.exe
 set APPVEYOR_BUILD_FOLDER=D:\\msys64\\home\\restore\\csound\\
@@ -8,7 +8,7 @@ set VCREDIST_CRT_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CRT
 set VCREDIST_CXXAMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CXXAMP
 set VCREDIST_OPENMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.OpenMP
 set HDF5_HOME=C:\\Program Files\\HDF_Group\\HDF5\\1.8.19
-set VST_SDK2_HOME=D:\\msys64\\home\\restore\\csound\\deps\\VST_SDK\\VST2_SDK
+set VST_SDK2_HOME=D:/msys64/home/restore/csound/msvc/deps/VST_SDK/VST2_SDK
 rem powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
 powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp" -vstSdkHome "%VST_SDK2_HOME%"
 cmake --build csound-vs --config Release
