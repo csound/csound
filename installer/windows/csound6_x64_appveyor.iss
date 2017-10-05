@@ -52,6 +52,9 @@ Name: "vst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: full;
 ; ALL programs and shared libraries (except opcodes and other Csound modules) go here.
 Name: "{app}\bin"; Permissions: users-modify
 #define APP_BIN "{app}\bin\"
+; ALL static and import libraries for the Csound and CsoundAC SDKs go here.
+Name: "{app}\lib"; Permissions: users-modify
+#define APP_LIB "{app}\lib\"
 ; ALL Csound opcodes and other Csound modules go here.
 Name: "{app}\plugins64"; Permissions: users-modify
 #define APP_PLUGINS64 "{app}\plugins64\"
@@ -172,6 +175,8 @@ Source: "..\..\msvc\csound-vs\CsoundAC.py"; DestDir: "{#APP_BIN}"; Flags: ignore
 Source: "..\..\msvc\csound-vs\csnd6.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\Release\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\CsoundAC.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "..\..\frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\cvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\dnoise.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;

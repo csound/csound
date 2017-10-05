@@ -374,7 +374,7 @@ if(BUILD_ABLETON_LINK_OPCODES)
         if(WIN32)
             if(MSVC)
                 include_directories($ENV{INCLUDE})
-                include(${ABLETON_LINK_HOME}/AbletonLinkConfig.cmake)
+                include(${ABLETON_LINK_HOME}\\AbletonLinkConfig.cmake)
                 target_link_libraries(ableton_link_opcodes Ableton::Link)
             else()
                 set_target_properties(ableton_link_opcodes PROPERTIES COMPILE_FLAGS "-std=gnu++11 -Wno-multichar -DLINK_PLATFORM_WINDOWS=1"
