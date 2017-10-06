@@ -933,7 +933,7 @@ template <typename T> int kperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   return p->kperf();
 }
- 
+
 /**
   @private
   opcode thread function template (a-rate)
