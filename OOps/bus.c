@@ -1052,13 +1052,13 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
         csound->Free(csound, ((STRINGDAT *)p->fp)->data);
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
-      
+
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
     else if(((STRINGDAT *)p->fp)->data != NULL)
             strcpy(((STRINGDAT *)p->fp)->data, s);
     csoundSpinUnLock(lock);
-    
+
     return OK;
 }
 
