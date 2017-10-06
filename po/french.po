@@ -2063,9 +2063,8 @@ msgid "missing operand before ')' in [] expression"
 msgstr "il manque un opérande avant ')' dans l'expression []"
 
 #: Engine/sread.c:2027
-#, fuzzy
 msgid "illegal placement of '[' in [] expression"
-msgstr "placement illégal de '(' dans l'expression []"
+msgstr "placement illégal de '[' dans l'expression []"
 
 #: Engine/sread.c:2043
 msgid "missing operand before closing bracket in []"
@@ -6440,9 +6439,9 @@ msgid "division by zero in array-var"
 msgstr "division par zéro dans le tableau"
 
 #: Opcodes/arrays.c:949 Opcodes/arrays.c:1164
-#, fuzzy, c-format
+#, c-format
 msgid "division by zero in array-var at index %d/%d"
-msgstr "division par zéro dans le tableau à l'indice %d"
+msgstr "division par zéro dans le tableau à l'indice %d/%d"
 
 #: Opcodes/arrays.c:1329
 msgid "array-variable not a vector"
