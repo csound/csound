@@ -634,13 +634,16 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
 
     retVal->count = cs_cons_length(head);
+    #ifdef JPFF
+    if (retVal->count>19) printf("****TROUBLE IN ETRIES****\n");
+    #endif
     while (head != NULL) {
-        retVal->entries[i++] = head->value;
-        head = head->next;
+      retVal->entries[i++] = head->value;
+      head = head->next;
     }
 
     if (shortName != opname) {
-        csound->Free(csound, shortName);
+      csound->Free(csound, shortName);
     }
 
     return retVal;

@@ -287,7 +287,7 @@ typedef struct CORFIL {
     // has space for 16 matches and next pointer in case more are found
     // (unlikely though)
     typedef struct oentries {
-        OENTRY* entries[16];
+        OENTRY* entries[20];
 //        int opnum[16];
         int count;
         char *opname;
