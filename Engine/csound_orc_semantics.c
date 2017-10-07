@@ -635,7 +635,7 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
 
     retVal->count = cs_cons_length(head);
     #ifdef JPFF
-    if (retVal->count>19) printf("****TROUBLE IN ETRIES****\n");
+    if (retVal->count>19) printf("****TROUBLE IN ENTRIES****\n");
     #endif
     while (head != NULL) {
       retVal->entries[i++] = head->value;
