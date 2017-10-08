@@ -283,18 +283,6 @@ typedef struct CORFIL {
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 
-    // holds matching oentries from opcodeList
-    // has space for 16 matches and next pointer in case more are found
-    // (unlikely though)
-    typedef struct oentries {
-        OENTRY* entries[20];
-//        int opnum[16];
-        int count;
-        char *opname;
-        int prvnum;
-        struct oentries* next;
-    } OENTRIES;
-
   /**
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
