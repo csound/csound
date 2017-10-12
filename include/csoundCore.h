@@ -212,6 +212,11 @@ extern int ISSTRCOD(MYFLT);
 enum {FFT_LIB=0, PFFT_LIB, VDSP_LIB};
 enum {FFT_FWD=0, FFT_INV};
 
+/* advance declaration for
+  API  message queue struct
+*/
+struct _message_queue;
+
 typedef struct CORFIL {
     char    *body;
     unsigned int     len;
@@ -1763,6 +1768,9 @@ typedef struct NAME__ {
     CS_HASH_TABLE* symbtab;
     int           tseglen;
     int           inZero;       /* flag compilation of instr0 */
+    struct _message_queue *msg_queue;
+    uint32_t msg_queue_wp;
+    uint32_t msg_queue_rp;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

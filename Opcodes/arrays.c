@@ -2798,7 +2798,7 @@ static OENTRY arrayvars_localops[] =
     //    {"##neg.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]",
     //                                         (SUBR)tabarithset1, (SUBR)tabneg},
     {"##mul.[a]", sizeof(TABARITH), 0, 3, "a[]", "a[]a[]",
-     (SUBR)tabarithset,(SUBR)tabamul},
+    (SUBR)tabarithset,(SUBR)tabamul},
     {"##mul.[]", sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset,(SUBR)tabmult},
     {"##mul.[i]", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",

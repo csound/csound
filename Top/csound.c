@@ -82,7 +82,7 @@ static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void reset(CSOUND *);
 static int  csoundPerformKsmpsInternal(CSOUND *csound);
-static void csoundTableSetInternal(CSOUND *csound, int table, int index,
+void csoundTableSetInternal(CSOUND *csound, int table, int index,
                                    MYFLT value);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 uint64_t csoundGetKcounter(CSOUND *csound);
@@ -900,7 +900,10 @@ static const CSOUND cenviron_ = {
     0,              /* which score parser */
     NULL,           /* symbtab */
     0,              /* tseglen */
-    1               /* inZero */
+    1,              /* inZero */
+    NULL,           /* msg_queue */
+    0,              /* msg_queue_wp */
+    0               /* msg_queue_rp */
     /*, NULL */           /* self-reference */
 };
 
@@ -1979,15 +1982,13 @@ int kperf_debug(CSOUND *csound)
 }
 
 
-PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
+int csoundReadScoreInternal(CSOUND *csound, const char *str)
 {
     OPARMS  *O = csound->oparms;
-    csoundLockMutex(csound->API_lock);
      /* protect resource */
     if (csound->scorestr != NULL &&
        csound->scorestr->body != NULL)
       corfile_rewind(csound->scorestr);
-
     csound->scorestr = corfile_create_w();
     corfile_puts((char *)str, csound->scorestr);
     //#ifdef SCORE_PARSER
@@ -2005,7 +2006,6 @@ PUBLIC int csoundReadScore(CSOUND *csound, const char *str)
       csound->Free(csound, sc);
       corfile_rm(&(csound->scorestr));
     }
-    csoundUnlockMutex(csound->API_lock);
     return CSOUND_SUCCESS;
 }
 
@@ -3446,21 +3446,36 @@ PUBLIC MYFLT csoundTableGet(CSOUND *csound, int table, int index)
     return csound->flist[table]->ftable[index];
 }
 
-static void csoundTableSetInternal(CSOUND *csound,
+void csoundTableSetInternal(CSOUND *csound,
                                    int table, int index, MYFLT value)
 {
+    if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     csound->flist[table]->ftable[index] = value;
+    if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
 }
 
-PUBLIC void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
-{
+void csoundTableCopyOutInternal(CSOUND *csound, int table, MYFLT *ptable){
+    int len;
+    MYFLT *ftab;
     /* in realtime mode init pass is executed in a separate thread, so
-     we need to protect it */
-    csoundLockMutex(csound->API_lock);
-   if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
-    csound->flist[table]->ftable[index] = value;
-   if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
-    csoundUnlockMutex(csound->API_lock);
+       we need to protect it */
+    if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
+    len = csoundGetTable(csound, &ftab, table);
+    if (UNLIKELY(len>0x08ffffff)) len = 0x08ffffff; // As coverity is unhappy
+    memcpy(ptable, ftab, (size_t) (len*sizeof(MYFLT)));
+    if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+}
+
+void csoundTableCopyInInternal(CSOUND *csound, int table, MYFLT *ptable){
+    int len;
+    MYFLT *ftab;
+    /* in realtime mode init pass is executed in a separate thread, so
+       we need to protect it */
+    if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
+    len = csoundGetTable(csound, &ftab, table);
+    if (UNLIKELY(len>0x08ffffff)) len = 0x08ffffff; // As coverity is unhappy
+    memcpy(ftab, ptable, (size_t) (len*sizeof(MYFLT)));
+    if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
 }
 
 static int csoundDoCallback_(CSOUND *csound, void *p, unsigned int type)
