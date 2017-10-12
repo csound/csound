@@ -41,7 +41,7 @@ int csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
 void set_channel_data_ptr(CSOUND *csound, const char *name,
                                  void *ptr, int newSize);
 
-enum {INPUT_MESSAGE, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
+enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
       TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET};
 
 #define API_MAX_QUEUE 64
@@ -132,10 +132,12 @@ void message_dequeue(CSOUND *csound) {
       csoundTableSetInternal(csound, table, index, value);
       }
       break;
+     
     }
+      csound->msg_queue[rp].message = 0;
       rp = rp != API_MAX_QUEUE ? rp + 1 : 0;
   }
-   csound->msg_queue_wp = wp;
+   csound->msg_queue_rp = rp;
   }
 }
 
