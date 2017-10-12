@@ -208,7 +208,7 @@ static inline int csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
     memcpy(args+1, &pfields, sizeof(MYFLT *));
     memcpy(args+1+sizeof(MYFLT), &numFields, sizeof(long));
     memcpy(args+1+sizeof(MYFLT)+sizeof(long), &time_ofs, sizeof(double));
-    message_enqueue(csound,SCORE_EVENT, args, argsize);
+    message_enqueue(csound,SCORE_EVENT_ABS, args, argsize);
     /* VL: ignore return value for now */
     return OK;
 }
