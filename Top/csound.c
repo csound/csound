@@ -101,6 +101,7 @@ extern int fterror(const FGDATA *ff, const char *s, ...);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
+void message_dequeue(CSOUND *csound);
 
 extern OENTRY opcodlst_1[];
 
@@ -1594,6 +1595,9 @@ int kperf_nodebug(CSOUND *csound)
     memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
     ip = csound->actanchor.nxtact;
 
+    /* call message_dequeue to run API calls */
+    message_dequeue(csound);
+
     if (ip != NULL) {
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
@@ -1784,6 +1788,10 @@ int kperf_debug(CSOUND *csound)
 {
     INSDS *ip;
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
+
+    /* call message_dequeue to run API calls */
+    message_dequeue(csound);
+    
     if (!data || data->status != CSDEBUG_STATUS_STOPPED) {
       /* update orchestra time */
       csound->kcounter = ++(csound->global_kcounter);
