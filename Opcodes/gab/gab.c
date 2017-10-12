@@ -55,8 +55,6 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
     if (LIKELY(!(*p->istor))) {
       memset(p->yt1, 0, p->loop*sizeof(MYFLT));
       memset(p->yt2, 0, p->loop*sizeof(MYFLT));
-      /* int j; */
-      /* for (j=0; j< p->loop; j++) p->yt1[j] = p->yt2[j] = FL(0.0); */
     }
     p->prvcf = p->prvbw = -FL(100.0);
     return OK;
@@ -139,9 +137,10 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     if (UNLIKELY(early)) nsmps -= early;
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;   /* load once */
+      int len = p->tablen;
       for (n=offset; n<nsmps; n++)  { /* for loops compile better */
         int i = (int)(ndx[n]*xbmul);
-        if (UNLIKELY(i > p->tablen || i<0)) {
+        if (UNLIKELY(i > len || i<0)) {
           csound->Message(csound, "ndx: %f \n", ndx[n]);
           return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
         }
@@ -149,9 +148,10 @@ static int fastabw(CSOUND *csound, FASTAB *p)
       }
     }
     else {
+      int len = p->tablen;
       for (n=offset; n<nsmps; n++) {
         int i = ndx[n];
-        if (UNLIKELY(i > p->tablen || i<0)) {
+        if (UNLIKELY(i > len || i<0)) {
           return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
         }
         tab[i] = rslt[n];
@@ -243,18 +243,20 @@ static int fastab(CSOUND *csound, FASTAB *p)
     }
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;
+      int len = p->tablen;
       for (i=offset; i<nsmps; i++) {
         int n = (int) (ndx[i] * xbmul);
-        if (UNLIKELY(n > p->tablen || n<0)) {
+        if (UNLIKELY(n > len || n<0)) {
           return csound->PerfError(csound, p->h.insdshead, Str("tab off end %d"),n);
         }
         rslt[i] = tab[n];
       }
     }
     else {
+      int len = p->tablen;
       for (i=offset; i<nsmps; i++) {
         int n = (int) ndx[i];
-        if (UNLIKELY(n > p->tablen || n<0)) {
+        if (UNLIKELY(n > len || n<0)) {
           return csound->PerfError(csound, p->h.insdshead, Str("tab off end %d"),n);
         }
         rslt[i] = tab[n];
@@ -326,31 +328,6 @@ TAB_MACRO(tab12_init, tab12_i_tmp, tab12_k_tmp, 12)
 TAB_MACRO(tab13_init, tab13_i_tmp, tab13_k_tmp, 13)
 TAB_MACRO(tab14_init, tab14_i_tmp, tab14_k_tmp, 14)
 TAB_MACRO(tab15_init, tab15_i_tmp, tab15_k_tmp, 15)
-
-/************************************************************* */
-/* Opcodes from Peter Neubaeker                                */
-/* *********************************************************** */
-
-#if 0
-static void printi(CSOUND *csound, PRINTI *p)
-{
-    char    *sarg;
-
-    if (UNLIKELY((*p->ifilcod != sstrcod) || (*p->STRARG == 0))) {
-      return csound->InitError(csound, Str("printi parameter was not "
-                                           "a \"quoted string\""));
-    }
-    else {
-      sarg = p->STRARG;
-      do {
-        putchar(*sarg);
-      } while (*++sarg != 0);
-      putchar(10);
-      putchar(13);
-    }
-    return OK;
-}
-#endif
 
 /* ====================== */
 /* opcodes from Jens Groh */
@@ -524,7 +501,9 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(p->inerr)) {
+    /* I believe this can never happen as InitError will remove instance */
+    /* The check should be on p->amptp and p->freqtp  -- JPff            */
+    if (UNLIKELY(p->inerr || p->amptp==NULL || p->freqtp==NULL)) {
       return csound->InitError(csound, Str("adsynt2: not initialised"));
     }
     ftp = p->ftp;

@@ -101,7 +101,7 @@ static int hvs1(CSOUND *csound, HVS1 *p)
     int j;
 
     if (p->iconfFlag) {
-      for ( j =0; j< noc; j++) {
+      for (j =0; j< noc; j++) {
         switch ((int) p->confTable[j]) {
         case -1: // ignore parameter
           break;
