@@ -28,12 +28,17 @@
 #  define MYFLT_INT_TYPE int32_t
 #endif
 
-extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
-extern int csoundReadScoreInternal(CSOUND *csound, const char *message);
-extern void csoundTableCopyOutInternal(CSOUND *csound, int table, MYFLT *ptable);
-extern void csoundTableCopyInInternal(CSOUND *csound, int table, MYFLT *ptable);
-extern void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
-extern void set_channel_data_ptr(CSOUND *csound, const char *name,
+void csoundInputMessageInternal(CSOUND *csound, const char *message);
+int csoundReadScoreInternal(CSOUND *csound, const char *message);
+void csoundTableCopyOutInternal(CSOUND *csound, int table, MYFLT *ptable);
+void csoundTableCopyInInternal(CSOUND *csound, int table, MYFLT *ptable);
+void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
+int csoundScoreEventInternal(CSOUND *csound, char type,
+			     const MYFLT *pfields, long numFields);
+int csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
+                                    const MYFLT *pfields, long numFields,
+                                    double time_ofs);
+void set_channel_data_ptr(CSOUND *csound, const char *name,
                                  void *ptr, int newSize);
 
 enum {INPUT_MESSAGE, READ_SCORE, TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET};
@@ -132,6 +137,26 @@ void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
     csoundUnlockMutex(csound->API_lock);
 }
 
+int csoundScoreEvent(CSOUND *csound, char type,
+                            const MYFLT *pfields, long numFields)
+{
+    
+    csoundLockMutex(csound->API_lock);
+    csoundScoreEventInternal(csound, type, pfields, numFields);
+    csoundUnlockMutex(csound->API_lock);
+  
+}
+
+int csoundScoreEventAbsolute(CSOUND *csound, char type,
+                                    const MYFLT *pfields, long numFields,
+                                    double time_ofs)
+{
+    
+    csoundLockMutex(csound->API_lock);
+    csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields, time_ofs);
+    csoundUnlockMutex(csound->API_lock);
+  
+}
 
 /* VL: the following do not depend on API_lock
    therefore do not need to be in the message queue
