@@ -53,14 +53,6 @@ typedef struct {
     MYFLT   *ifn;
 } TB_INIT;
 
-/*  ************************************************************ */
-/*  Opcodes from Peter Neubaeker                                 */
-/*  ************************************************************ */
-/*  typedef struct { */
-/*      OPDS    h; */
-/*      MYFLT   *ifilcod; */
-/*  } PRINTI;  */
-
 /* ====================== */
 /* opcodes from Jens Groh */
 /* ====================== */

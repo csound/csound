@@ -612,12 +612,18 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
     return retVal;
 }
 
+static OENTRIES* get_entries(CSOUND* csound, int count)
+{
+    OENTRIES* x = csound->Calloc(csound, sizeof(OENTRIES*)+sizeof(OENTRY*)*count);
+    x->count = count;
+    return x;
+}
 
 /* Finds OENTRIES that match the given opcode name.  May return multiple
  * OENTRY*'s for each entry in a polyMorphic opcode.
  */
-OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
-
+OENTRIES* find_opcode2(CSOUND* csound, char* opname)
+{
     int i = 0;
     char *shortName;
     CONS_CELL *head;
@@ -627,20 +633,16 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname) {
       return NULL;
     }
 
-    retVal = csound->Calloc(csound, sizeof(OENTRIES));
-
     shortName = get_opcode_short_name(csound, opname);
-
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
-
-    retVal->count = cs_cons_length(head);
+    retVal = get_entries(csound, cs_cons_length(head));
     while (head != NULL) {
-        retVal->entries[i++] = head->value;
-        head = head->next;
+      retVal->entries[i++] = head->value;
+      head = head->next;
     }
 
     if (shortName != opname) {
-        csound->Free(csound, shortName);
+      csound->Free(csound, shortName);
     }
 
     return retVal;
