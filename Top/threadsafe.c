@@ -217,6 +217,13 @@ static inline int csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
 
 /*  VL: These functions are slated to
     be converted to message enqueueing
+    NB: this can be done by replacing the code with
+    the relevant *_enqueue() call e.g.
+    
+    void csoundInputMessage(CSOUND *csound, const char *message){
+         csoundInputMessage_enqueue(csound, message);
+     }
+
 */
 void csoundInputMessage(CSOUND *csound, const char *message){
     csoundLockMutex(csound->API_lock);
