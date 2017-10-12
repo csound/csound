@@ -274,7 +274,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->init_done = 1;
 #endif
     if (O->Beatmode)
-    ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
+      ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
     ip->offtim       = (double) ip->p3.value;         /* & duplicate p3 for now */
     ip->m_chnbp      = (MCHNBLK*) NULL;
     ip->xtratim      = 0;
@@ -290,8 +290,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 #endif
 
     if (csound->realtime_audio_flag == 0) {
-     csound->curip    = ip;
-     csound->ids      = (OPDS *)ip;
+      csound->curip    = ip;
+      csound->ids      = (OPDS *)ip;
       /* do init pass for this instr */
       while ((csound->ids = csound->ids->nxti) != NULL) {
         if (UNLIKELY(O->odebug))
@@ -392,9 +392,9 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, Str("instr %d now active:\n"), insno);
       showallocs(csound);
     }
-     if (newevtp->pinstance != NULL) {
-       *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
-     }
+    if (newevtp->pinstance != NULL) {
+      *((MYFLT *)newevtp->pinstance) = (MYFLT) ((long) ip);
+    }
     return 0;
 }
 
@@ -501,15 +501,14 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->p1.value     = (MYFLT) insno;     /* set these required p-fields */
     ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
     ip->p3.value     = FL(-1.0);
-    ip->ksmps = csound->ksmps;
-    ip->ekr = csound->ekr;
-    ip->kcounter = csound->kcounter;
-    ip->onedksmps = csound->onedksmps;
-    ip->onedkr = csound->onedkr;
-    ip->kicvt = csound->kicvt;
-    //#endif
-    ip->pds = NULL;
-    pfields = (CS_VAR_MEM*)&ip->p0;
+    ip->ksmps        = csound->ksmps;
+    ip->ekr          = csound->ekr;
+    ip->kcounter     = csound->kcounter;
+    ip->onedksmps    = csound->onedksmps;
+    ip->onedkr       = csound->onedkr;
+    ip->kicvt        = csound->kicvt;
+    ip->pds          = NULL;
+    pfields          = (CS_VAR_MEM*)&ip->p0;
 
     if (tp->psetdata != NULL) {
       int i;
@@ -606,11 +605,11 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       }
       if (pmax < pfield_index) pmax = pfield_index;
     }
-    if (pmax > 0){
+    if (pmax > 0) {
       int i;
-      if (csound->currevent == NULL){
-       evt = (EVTBLK *) csound->Calloc(csound, sizeof(EVTBLK));
-       csound->currevent = evt;
+      if (csound->currevent == NULL) {
+        evt = (EVTBLK *) csound->Calloc(csound, sizeof(EVTBLK));
+        csound->currevent = evt;
       }
       else evt = csound->currevent;
       evt->pcnt = pmax+1;
@@ -625,7 +624,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 #endif
     csound->curip    = ip;
     if (csound->realtime_audio_flag == 0) {
-     csound->ids      = (OPDS *)ip;
+      csound->ids      = (OPDS *)ip;
       /* do init pass for this instr  */
       while ((csound->ids = csound->ids->nxti) != NULL) {
         if (UNLIKELY(O->odebug))
