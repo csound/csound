@@ -51,8 +51,7 @@ typedef struct _message_queue {
   char args[128];   /* space for 128 bytes of args */
 } message_queue_t;
 
-/* enqueue should be called by the relevant API
-   function */
+/* enqueue should be called by the relevant API function */
 void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
   uint32_t wp = csound->msg_queue_wp;
   if(csound->msg_queue == NULL)
@@ -68,8 +67,7 @@ void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
 #endif
 }
 
-/* dequeue should be called in between
-   perfKsmps calls
+/* dequeue should be called in between perfKsmps calls
 */
 void message_dequeue(CSOUND *csound) {
   if(csound->msg_queue != NULL) {
@@ -140,10 +138,9 @@ void message_dequeue(CSOUND *csound) {
   }
 }
 
-/* these are the message enqueueing functions
-   for each relevant API function
-*/
-static inline void csoundInputMessage_enqueue(CSOUND *csound, const char *message){
+/* these are the message enqueueing functions for each relevant API function */
+static inline void csoundInputMessage_enqueue(CSOUND *csound,
+					      const char *message){
     int argsize = sizeof(char *);
     char args[argsize];
     memcpy(args, &message, sizeof(char *));
@@ -159,7 +156,8 @@ static inline int csoundReadScore_enqueue(CSOUND *csound, const char *message){
     return OK;
 }
 
-static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int table, MYFLT *ptable){
+static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int table,
+					      MYFLT *ptable){
     int argsize = sizeof(int)+sizeof(MYFLT *);
     char args[argsize];
     memcpy(args, &table, sizeof(int));
@@ -167,7 +165,8 @@ static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int table, MYFLT *
     message_enqueue(csound,TABLE_COPY_OUT, args, argsize);
 }
 
-static inline void csoundTableCopyIn_enqueue(CSOUND *csound, int table, MYFLT *ptable){
+static inline void csoundTableCopyIn_enqueue(CSOUND *csound, int table,
+					     MYFLT *ptable){
     int argsize = sizeof(int)+sizeof(MYFLT *);
     char args[argsize];
     memcpy(args, &table, sizeof(int));
@@ -175,7 +174,8 @@ static inline void csoundTableCopyIn_enqueue(CSOUND *csound, int table, MYFLT *p
     message_enqueue(csound,TABLE_COPY_IN, args, argsize);
 }
 
-static inline void csoundTableSet_enqueue(CSOUND *csound, int table, int index, MYFLT value)
+static inline void csoundTableSet_enqueue(CSOUND *csound, int table, int index,
+					  MYFLT value)
 {
     int argsize = 2*sizeof(int)+sizeof(MYFLT);
     char args[argsize];
