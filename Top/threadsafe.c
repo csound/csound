@@ -240,14 +240,14 @@ static inline int csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
   return OK;
 }
 
-static inline csoundCompileOrc_enqueue(CSOUND *csound, const char *orc) {
+static inline void csoundCompileOrc_enqueue(CSOUND *csound, const char *orc) {
   int argsize = sizeof(char *);
   char args[argsize];
   memcpy(args, &orc, sizeof(char *));
   message_enqueue(csound,COMPILE,args,argsize); 
 }
 
-static inline csoundKillInstance_enqueue(CSOUND *csound, MYFLT instr,
+static inline void csoundKillInstance_enqueue(CSOUND *csound, MYFLT instr,
 					 char *instrName, int mode,
 					 int allow_release) {
   int argsize = sizeof(MYFLT) + sizeof(char *) + 2*sizeof(int);
@@ -326,7 +326,17 @@ int csoundScoreEventAbsolute(CSOUND *csound, char type,
   
 }
 
+/* These are new API functions for asynchronously compiling
+   and killing instances
+*/
+void csoundCompileOrcAsync(CSOUND *csound, const char *orc) {
+  csoundCompileOrc_enqueue(csound, orc);
+}
 
+void csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
+			     int mode, int allow_release) {
+  csoundKillInstance_enqueue(csound, instr, instrName, mode, allow_release); 
+}
 
 /* VL: the following do not depend on API_lock
    therefore do not need to be in the message queue
