@@ -75,7 +75,7 @@ int compile_str_i(CSOUND *csound, COMPILE *p){
 }
 
 int read_score_i(CSOUND *csound, COMPILE *p){
-    *p->res = (MYFLT)(csoundReadScore(csound, ((STRINGDAT *)p->str)->data));
+    *p->res = (MYFLT)(csoundReadScoreInternal(csound, ((STRINGDAT *)p->str)->data));
     return OK;
 }
 
