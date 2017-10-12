@@ -29,8 +29,74 @@
 #endif
 
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
+extern int csoundReadScoreInternal(CSOUND *csound, const char *message);
+extern void csoundTableCopyOutInternal(CSOUND *csound, int table, MYFLT *ptable);
+extern void csoundTableCopyInInternal(CSOUND *csound, int table, MYFLT *ptable);
+extern void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
 extern void set_channel_data_ptr(CSOUND *csound, const char *name,
                                  void *ptr, int newSize);
+
+enum {INPUT_MESSAGE, READ_SCORE, TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET};
+
+#define API_MAX_QUEUE 64
+/* Message queue structure */
+typedef struct _message_queue {
+  int32_t message;  /* message id */
+  char args[128];   /* space for 128 bytes of args */
+} message_queue_t;
+
+
+void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
+  uint32_t wp = csound->msg_queue_wp;
+  if(csound->msg_queue == NULL)
+    csound->msg_queue = (message_queue_t *)
+      csound->Calloc(csound, sizeof(message_queue_t)*API_MAX_QUEUE);
+  csound->msg_queue[wp].message = message;
+  memcpy(csound->msg_queue[wp].args, args, argsiz);
+  // this might need to be atomic
+  csound->msg_queue_wp = wp == API_MAX_QUEUE ? wp + 1 : 0;
+}
+
+void message_dequeue(CSOUND *csound) {
+  if(csound->msg_queue != NULL) {
+  uint32_t rp = csound->msg_queue_rp;
+  uint32_t wp = csound->msg_queue_wp;
+  int table, index;
+  MYFLT *ptable, value; 
+  while(rp != wp) {
+    switch(csound->msg_queue[rp].message) {
+    case INPUT_MESSAGE:
+      csoundInputMessageInternal(csound, (char *) csound->msg_queue[rp].args);
+      break;
+    case READ_SCORE:
+      csoundReadScoreInternal(csound, (char *) csound->msg_queue[rp].args);
+      break;
+    case TABLE_COPY_OUT:
+      table = *((int *) csound->msg_queue[rp].args);
+      ptable =  *((MYFLT **)(csound->msg_queue[rp].args + sizeof(int)));
+      csoundTableCopyOutInternal(csound, table, ptable);
+      break;
+    case TABLE_COPY_IN:
+      table = *((int *) (csound->msg_queue[rp].args));
+      ptable =  *((MYFLT **)(csound->msg_queue[rp].args + sizeof(int)));
+      csoundTableCopyInInternal(csound, table, ptable);
+      break;
+     case TABLE_SET:
+      table = *((int *) (csound->msg_queue[rp].args));
+      index = *((int *)(csound->msg_queue[rp].args + sizeof(int)));
+      value = *((MYFLT *)(csound->msg_queue[rp].args + 2*sizeof(int)));
+      csoundTableSetInternal(csound, table, index, value);
+      break;
+    }
+    rp = rp == API_MAX_QUEUE ? rp + 1 : 0;
+  }
+   csound->msg_queue_wp = wp;
+  }
+}
+
+/*  VL: These functions are slated to
+    be converted to message enqueueing
+*/
 
 void csoundInputMessage(CSOUND *csound, const char *message){
     csoundLockMutex(csound->API_lock);
@@ -38,34 +104,38 @@ void csoundInputMessage(CSOUND *csound, const char *message){
     csoundUnlockMutex(csound->API_lock);
 }
 
+int csoundReadScore(CSOUND *csound, const char *message){
+    int res;
+    csoundLockMutex(csound->API_lock);
+    res = csoundReadScoreInternal(csound, message);
+    csoundUnlockMutex(csound->API_lock);
+    return res;
+}
+
 void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *ptable){
-    int len;
-    MYFLT *ftab;
 
     csoundLockMutex(csound->API_lock);
-    /* in realtime mode init pass is executed in a separate thread, so
-       we need to protect it */
-    if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
-    len = csoundGetTable(csound, &ftab, table);
-    if (UNLIKELY(len>0x08ffffff)) len = 0x08ffffff; // As coverity is unhappy
-    memcpy(ptable, ftab, (size_t) (len*sizeof(MYFLT)));
-    if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+    csoundTableCopyOutInternal(csound, table, ptable);
     csoundUnlockMutex(csound->API_lock);
 }
 
 void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable){
-    int len;
-    MYFLT *ftab;
-    csoundLockMutex(csound->API_lock);
-    /* in realtime mode init pass is executed in a separate thread, so
-       we need to protect it */
     if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
-    len = csoundGetTable(csound, &ftab, table);
-    if (UNLIKELY(len>0x08ffffff)) len = 0x08ffffff; // As coverity is unhappy
-    memcpy(ftab, ptable, (size_t) (len*sizeof(MYFLT)));
+      csoundTableCopyInInternal(csound, table, ptable);
     if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
+}
+
+void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
+{
+    csoundLockMutex(csound->API_lock);
+    csoundTableSetInternal(csound, table, index, value);
     csoundUnlockMutex(csound->API_lock);
 }
+
+
+/* VL: the following do not depend on API_lock
+   therefore do not need to be in the message queue
+*/
 
 MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
 {
