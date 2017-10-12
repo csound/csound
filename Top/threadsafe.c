@@ -61,7 +61,7 @@ void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
   csound->msg_queue[wp].message = message;
   memcpy(csound->msg_queue[wp].args, args, argsiz);
 #ifdef HAVE_ATOMIC_BUILTIN
-  __atomic_store(&csound->msg_queue_wp,  wp != API_MAX_QUEUE ? wp + 1 : 0,
+  __atomic_store_n(&csound->msg_queue_wp,  wp != API_MAX_QUEUE ? wp + 1 : 0,
 		 __ATOMIC_RELEASE);
 #else
   csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
