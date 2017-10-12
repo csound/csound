@@ -67,7 +67,8 @@ void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
 #endif
 }
 
-/* dequeue should be called in between perfKsmps calls
+/* dequeue should be called by kperf_*() 
+   NB: these calls are already in place
 */
 void message_dequeue(CSOUND *csound) {
   if(csound->msg_queue != NULL) {
