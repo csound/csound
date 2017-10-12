@@ -2532,7 +2532,7 @@ csoundSetOutputChannelCallback(CSOUND *csound,
     csound->OutputChannelCallback_ = outputChannelCalback;
 }
 
-PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
+int csoundScoreEventInternal(CSOUND *csound, char type,
                             const MYFLT *pfields, long numFields)
 {
     EVTBLK  evt;
@@ -2545,13 +2545,11 @@ PUBLIC int csoundScoreEvent(CSOUND *csound, char type,
     evt.pcnt = (int16) numFields;
     for (i = 0; i < (int) numFields; i++)
       evt.p[i + 1] = pfields[i];
-    csoundLockMutex(csound->API_lock);
     ret = insert_score_event_at_sample(csound, &evt, csound->icurTime);
-    csoundUnlockMutex(csound->API_lock);
     return ret;
 }
 
-PUBLIC int csoundScoreEventAbsolute(CSOUND *csound, char type,
+int csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
                                     const MYFLT *pfields, long numFields,
                                     double time_ofs)
 {
@@ -2565,9 +2563,7 @@ PUBLIC int csoundScoreEventAbsolute(CSOUND *csound, char type,
     evt.pcnt = (int16) numFields;
     for (i = 0; i < (int) numFields; i++)
       evt.p[i + 1] = pfields[i];
-   csoundLockMutex(csound->API_lock);
     ret = insert_score_event(csound, &evt, time_ofs);
-   csoundUnlockMutex(csound->API_lock);
     return ret;
 }
 
