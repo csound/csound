@@ -60,8 +60,12 @@ void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
       csound->Calloc(csound, sizeof(message_queue_t)*API_MAX_QUEUE);
   csound->msg_queue[wp].message = message;
   memcpy(csound->msg_queue[wp].args, args, argsiz);
-  // this might need to be atomic
+#ifdef HAVE_ATOMIC_BUILTIN
+  __atomic_store(&csound->msg_queue_wp,  wp != API_MAX_QUEUE ? wp + 1 : 0,
+		 __ATOMIC_RELEASE);
+#else
   csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
+#endif
 }
 
 /* dequeue should be called in between
@@ -70,7 +74,11 @@ void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
 void message_dequeue(CSOUND *csound) {
   if(csound->msg_queue != NULL) {
   uint32_t rp = csound->msg_queue_rp;
+#ifdef HAVE_ATOMIC_BUILTIN
+  uint32_t wp = __atomic_load_n(&csound->msg_queue_wp, __ATOMIC_ACQUIRE);
+#else
   uint32_t wp = csound->msg_queue_wp;
+#endif
   while(rp != wp) {
     switch(csound->msg_queue[rp].message) {
     case INPUT_MESSAGE:
@@ -82,7 +90,7 @@ void message_dequeue(CSOUND *csound) {
     case READ_SCORE:
       {
       const char *str = *((char **)csound->msg_queue[rp].args);
-      csoundReadScoreInternal(csound, (const char *) csound->msg_queue[rp].args);
+      csoundReadScoreInternal(csound, str);
       }
       break;
     case SCORE_EVENT:
@@ -132,7 +140,7 @@ void message_dequeue(CSOUND *csound) {
   }
 }
 
-/* these are the message enqueueing 
+/* these are the message enqueueing functions
    for each relevant API function
 */
 static inline void csoundInputMessage_enqueue(CSOUND *csound, const char *message){
