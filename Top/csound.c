@@ -1791,7 +1791,7 @@ int kperf_debug(CSOUND *csound)
 
     /* call message_dequeue to run API calls */
     message_dequeue(csound);
-    
+
     if (!data || data->status != CSDEBUG_STATUS_STOPPED) {
       /* update orchestra time */
       csound->kcounter = ++(csound->global_kcounter);

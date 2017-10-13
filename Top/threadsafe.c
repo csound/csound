@@ -34,7 +34,7 @@ void csoundTableCopyOutInternal(CSOUND *csound, int table, MYFLT *ptable);
 void csoundTableCopyInInternal(CSOUND *csound, int table, MYFLT *ptable);
 void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
 int csoundScoreEventInternal(CSOUND *csound, char type,
-			     const MYFLT *pfields, long numFields);
+                             const MYFLT *pfields, long numFields);
 int csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
                                     const MYFLT *pfields, long numFields,
                                     double time_ofs);
@@ -61,13 +61,13 @@ void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
   memcpy(csound->msg_queue[wp].args, args, argsiz);
 #ifdef HAVE_ATOMIC_BUILTIN
   __atomic_store_n(&csound->msg_queue_wp,  wp != API_MAX_QUEUE ? wp + 1 : 0,
-		 __ATOMIC_SEQ_CST);
+                 __ATOMIC_SEQ_CST);
 #else
   csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
 #endif
 }
 
-/* dequeue should be called by kperf_*() 
+/* dequeue should be called by kperf_*()
    NB: these calls are already in place
 */
 void message_dequeue(CSOUND *csound) {
@@ -94,19 +94,19 @@ void message_dequeue(CSOUND *csound) {
       break;
     case SCORE_EVENT:
       {
-	char type = csound->msg_queue[rp].args[0];
-	const MYFLT *pfields = *((MYFLT **)&csound->msg_queue[rp].args[1]);
+        char type = csound->msg_queue[rp].args[0];
+        const MYFLT *pfields = *((MYFLT **)&csound->msg_queue[rp].args[1]);
         long numFields = *((long *)(&csound->msg_queue[rp].args[1] + sizeof(MYFLT *)));
         csoundScoreEventInternal(csound, type, pfields, numFields);
       }
       break;
       case SCORE_EVENT_ABS:
       {
-	char type = csound->msg_queue[rp].args[0];
-	const MYFLT *pfields = *((MYFLT **)&csound->msg_queue[rp].args[1]);
+        char type = csound->msg_queue[rp].args[0];
+        const MYFLT *pfields = *((MYFLT **)&csound->msg_queue[rp].args[1]);
         long numFields = *((long *)(&csound->msg_queue[rp].args[1] + sizeof(MYFLT *)));
-	double ofs = *((double *)(&csound->msg_queue[rp].args[1] + sizeof(MYFLT *) +
-				  sizeof(long)));
+        double ofs = *((double *)(&csound->msg_queue[rp].args[1] + sizeof(MYFLT *) +
+                                  sizeof(long)));
         csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields, ofs);
       }
       break;
@@ -132,7 +132,7 @@ void message_dequeue(CSOUND *csound) {
       csoundTableSetInternal(csound, table, index, value);
       }
       break;
-     
+
     }
       csound->msg_queue[rp].message = 0;
       rp = rp != API_MAX_QUEUE ? rp + 1 : 0;
@@ -143,7 +143,7 @@ void message_dequeue(CSOUND *csound) {
 
 /* these are the message enqueueing functions for each relevant API function */
 static inline void csoundInputMessage_enqueue(CSOUND *csound,
-					      const char *message){
+                                              const char *message){
     int argsize = sizeof(char *);
     char args[argsize];
     memcpy(args, &message, sizeof(char *));
@@ -160,7 +160,7 @@ static inline int csoundReadScore_enqueue(CSOUND *csound, const char *message){
 }
 
 static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int table,
-					      MYFLT *ptable){
+                                              MYFLT *ptable){
     int argsize = sizeof(int)+sizeof(MYFLT *);
     char args[argsize];
     memcpy(args, &table, sizeof(int));
@@ -169,7 +169,7 @@ static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int table,
 }
 
 static inline void csoundTableCopyIn_enqueue(CSOUND *csound, int table,
-					     MYFLT *ptable){
+                                             MYFLT *ptable){
     int argsize = sizeof(int)+sizeof(MYFLT *);
     char args[argsize];
     memcpy(args, &table, sizeof(int));
@@ -178,7 +178,7 @@ static inline void csoundTableCopyIn_enqueue(CSOUND *csound, int table,
 }
 
 static inline void csoundTableSet_enqueue(CSOUND *csound, int table, int index,
-					  MYFLT value)
+                                          MYFLT value)
 {
     int argsize = 2*sizeof(int)+sizeof(MYFLT);
     char args[argsize];
@@ -221,7 +221,7 @@ static inline int csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
     be converted to message enqueueing
     NB: this can be done by replacing the code with
     the relevant *_enqueue() call e.g.
-    
+
     void csoundInputMessage(CSOUND *csound, const char *message){
          csoundInputMessage_enqueue(csound, message);
      }
@@ -264,22 +264,22 @@ void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
 int csoundScoreEvent(CSOUND *csound, char type,
                             const MYFLT *pfields, long numFields)
 {
-    
+
     csoundLockMutex(csound->API_lock);
     csoundScoreEventInternal(csound, type, pfields, numFields);
     csoundUnlockMutex(csound->API_lock);
-  
+
 }
 
 int csoundScoreEventAbsolute(CSOUND *csound, char type,
                                     const MYFLT *pfields, long numFields,
                                     double time_ofs)
 {
-    
+
     csoundLockMutex(csound->API_lock);
     csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields, time_ofs);
     csoundUnlockMutex(csound->API_lock);
-  
+
 }
 
 
