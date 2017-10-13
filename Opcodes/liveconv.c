@@ -100,7 +100,8 @@ typedef struct {
   int     initDone;       /* flag to indicate initialization */
   int     cnt;            /* buffer position, 0 to partSize - 1       */
   int     nPartitions;    /* number of convolve partitions            */
-  int     partSize;       /* partition length in sample frames (= iPartLen as integer) */
+  int     partSize;       /* partition length in sample frames
+                             (= iPartLen as integer) */
   int     rbCnt;          /* ring buffer index, 0 to nPartitions - 1  */
 
   /* The following pointer point into the auxData buffer */
@@ -128,18 +129,21 @@ typedef struct {
 **                        last filled partition)
 */
 static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf, MYFLT *IR_Data,
-                                 int partSize, int nPartitions, int ringBuf_startPos)
+                                 int partSize, int nPartitions,
+                                 int ringBuf_startPos)
 {
     MYFLT   re, im, re1, re2, im1, im2;
     MYFLT   *rbPtr, *irPtr, *outBufPtr, *outBufEndPm2, *rbEndP;
 
     /* note: partSize must be at least 2 samples */
     partSize <<= 1; /* locale partsize is twice the size of the partition size */
-    outBufEndPm2 = (MYFLT*) outBuf + (int) (partSize - 2);  /* Finding the index of the last sample pair in the output buffer */
-    rbEndP = (MYFLT*) ringBuf + (int) (partSize * nPartitions);   /* The end of the ring buffer */
-    rbPtr = &(ringBuf[ringBuf_startPos]);                         /* Initialize ring buffer pointer */
-    irPtr = IR_Data;                                              /* Initialize impulse data pointer */
-    outBufPtr = outBuf;                                           /* Initialize output buffer pointer */
+             /* Finding the index of the last sample pair in the output buffer */
+    outBufEndPm2 = (MYFLT*) outBuf + (int) (partSize - 2);
+                                                 /* The end of the ring buffer */
+    rbEndP = (MYFLT*) ringBuf + (int) (partSize * nPartitions);
+    rbPtr = &(ringBuf[ringBuf_startPos]);    /* Initialize ring buffer pointer */
+    irPtr = IR_Data;                        /* Initialize impulse data pointer */
+    outBufPtr = outBuf;                    /* Initialize output buffer pointer */
 
     /* clear output buffer to zero */
     memset(outBuf, 0, sizeof(MYFLT)*partSize);
@@ -153,8 +157,8 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf, MYFLT *IR_Data,
       if (rbPtr >= rbEndP)
         rbPtr = ringBuf;
       outBufPtr = outBuf;
-      *(outBufPtr++) += *(rbPtr++) * *(irPtr++);    /* convolve DC - real part only */
-      *(outBufPtr++) += *(rbPtr++) * *(irPtr++);    /* convolve Nyquist - real part only */
+      *(outBufPtr++) += *(rbPtr++) * *(irPtr++); /* convolve DC - real part only */
+      *(outBufPtr++) += *(rbPtr++) * *(irPtr++); /* convolve Nyquist - real part only */
       re1 = *(rbPtr++);
       im1 = *(rbPtr++);
       re2 = *(irPtr++);
@@ -204,13 +208,13 @@ static inline int buf_bytes_alloc(int partSize, int nPartitions)
 {
     int nSmps;
 
-    nSmps = (partSize << 1);                                /* tmpBuf     */
-    nSmps += ((partSize << 1) * nPartitions);               /* ringBuf    */
-    nSmps += ((partSize << 1) * nPartitions);               /* IR_Data    */
-    nSmps += ((partSize << 1));                             /* outBuf */
-    nSmps *= (int) sizeof(MYFLT);                           /* Buffer type MYFLT */
+    nSmps = (partSize << 1);                            /* tmpBuf     */
+    nSmps += ((partSize << 1) * nPartitions);           /* ringBuf    */
+    nSmps += ((partSize << 1) * nPartitions);           /* IR_Data    */
+    nSmps += ((partSize << 1));                         /* outBuf */
+    nSmps *= (int) sizeof(MYFLT);                       /* Buffer type MYFLT */
 
-    nSmps += (nPartitions+1) * (int) sizeof(load_t);        /* Load/unload structure */
+    nSmps += (nPartitions+1) * (int) sizeof(load_t);    /* Load/unload structure */
     /* One load/unload pr. partitions and an extra for buffering is sufficient */
 
     return nSmps;
@@ -240,7 +244,8 @@ static int liveconv_init(CSOUND *csound, liveconv_t *p)
 
     /* set p->partSize to the initial partition length, iPartLen */
     p->partSize = MYFLT2LRND(*(p->iPartLen));
-    if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {  // Must be a power of 2 at least as large as 4
+    if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
+      // Must be a power of 2 at least as large as 4
       return csound->InitError(csound, Str("liveconv: invalid impulse response "
                                            "partition length"));
     }
@@ -406,7 +411,8 @@ static int liveconv_perf(CSOUND *csound, liveconv_t *p)
         if (load_ptr->status == LOADING) {
 
           nPart = cnt / nSamples + 1;
-          n = (nSamples << 1) * (p->nPartitions - nPart);  /* IR write position, starting with the last! */
+          /* IR write position, starting with the last! */
+          n = (nSamples << 1) * (p->nPartitions - nPart);
 
           /* Iterate over IR partitions in reverse order */
           for (k = 0; k < nSamples; k++) {
@@ -426,7 +432,8 @@ static int liveconv_perf(CSOUND *csound, liveconv_t *p)
         else if (load_ptr->status == UNLOADING) {
 
           nPart = cnt / nSamples + 1;
-          n = (nSamples << 1) * (p->nPartitions - nPart);  /* IR write position, starting with the last! */
+          /* IR write position, starting with the last! */
+          n = (nSamples << 1) * (p->nPartitions - nPart);
           memset(p->IR_Data + n, 0, (nSamples << 1)*sizeof(MYFLT));
         }
 
