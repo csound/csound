@@ -44,11 +44,13 @@ void set_channel_data_ptr(CSOUND *csound, const char *name,
 enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
       TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET, COMPILE, KILL_INSTANCE};
 
-#define API_MAX_QUEUE 64
+#define API_MAX_QUEUE 1024
+#define ARG_ALIGN 8
+
 /* Message queue structure */
 typedef struct _message_queue {
   int32_t message;  /* message id */
-  char args[128];   /* space for 128 bytes of args */
+  char args[128];   /* space for 128 bytes of args, up to 16 8-byte-aligned */
 } message_queue_t;
 
 /* enqueue should be called by the relevant API function */
