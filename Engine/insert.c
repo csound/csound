@@ -2425,36 +2425,14 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     return NOTOK;
 }
 
-PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
-                              int mode, int allow_release)
-{
-    INSDS *ip, *ip2, *nip;
-    int   insno;
 
-    csoundLockMutex(csound->API_lock);
-    if (instrName) {
-      insno = named_instr_find(csound, instrName);
-      instr = (MYFLT) insno;
-    } else insno = instr;
+void killInstance_enqueue(CSOUND *csound, MYFLT instr, int insno,
+					INSDS *ip, int mode,
+			  int allow_release);
 
-    if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
-                 csound->engineState.instrtxtp[insno] == NULL)) {
-      csoundUnlockMutex(csound->API_lock);
-      return CSOUND_ERROR;
-    }
-
-    if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
-      csoundUnlockMutex(csound->API_lock);
-      return CSOUND_ERROR;
-    }
-    ip = &(csound->actanchor);
-    ip2 = NULL;
-
-    while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
-    if (UNLIKELY(ip == NULL)) {
-      csoundUnlockMutex(csound->API_lock);
-      return CSOUND_ERROR;
-    }
+void killInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip, 
+                         int mode, int allow_release) {
+   INSDS *ip2 = NULL, *nip;
     do {                        /* This loop does not terminate in mode=0 */
       nip = ip->nxtact;
       if (((mode & 8) && ip->offtim >= 0.0) ||
@@ -2479,6 +2457,7 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
       }
       ip = nip;
     } while (ip != NULL && (int) ip->insno == insno);
+    
     if (ip2 != NULL) {
       if (allow_release) {
         xturnoff(csound, ip2);
@@ -2487,9 +2466,46 @@ PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
         xturnoff_now(csound, ip2);
       }
     }
-    csoundUnlockMutex(csound->API_lock);
-    return CSOUND_SUCCESS;
 }
+
+int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
+			       int mode, int allow_release, int async)
+{
+  INSDS *ip;
+  int   insno;
+    
+  if (instrName) {
+    insno = named_instr_find(csound, instrName);
+    instr = (MYFLT) insno;
+  } else insno = instr;
+
+  if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
+	       csound->engineState.instrtxtp[insno] == NULL)) {
+    return CSOUND_ERROR;
+  }
+
+  if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
+    csoundUnlockMutex(csound->API_lock);
+    return CSOUND_ERROR;
+  }
+  ip = &(csound->actanchor);
+
+  while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
+  if (UNLIKELY(ip == NULL)) {
+    return CSOUND_ERROR;
+  }
+
+  if(async) {
+   csoundLockMutex(csound->API_lock);
+   killInstance(csound, instr, insno, ip, mode, allow_release);
+   csoundUnlockMutex(csound->API_lock);
+  }
+  else
+    killInstance_enqueue(csound, instr, insno, ip, mode, allow_release);
+  return CSOUND_SUCCESS;
+}
+
+
 
 
 

@@ -904,7 +904,8 @@ static const CSOUND cenviron_ = {
     1,              /* inZero */
     NULL,           /* msg_queue */
     0,              /* msg_queue_wp */
-    0               /* msg_queue_rp */
+    0,              /* msg_queue_rp */
+    0               /* state_merge_flag */
     /*, NULL */           /* self-reference */
 };
 

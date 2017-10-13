@@ -45,7 +45,7 @@ static  void    lgbuild(CSOUND *, INSTRTXT *, char *,
                         int inarg, ENGINE_STATE *engineState);
 int     pnum(char *s) ;
 static void     unquote_string(char *, const char *);
-extern void     print_tree(CSOUND *, char *, TREE *);
+void     print_tree(CSOUND *, char *, TREE *);
 void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT * ip);
 char argtyp2(char *s);
 void debugPrintCsound(CSOUND* csound);
@@ -54,7 +54,8 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState, int merge);
 int check_instr_name(char *s);
-extern void free_instr_var_memory(CSOUND*, INSDS*);
+void free_instr_var_memory(CSOUND*, INSDS*);
+void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids);
 
 extern const char* SYNTHESIZED_ARG;
 
@@ -116,7 +117,7 @@ static int argCount(ARG* arg)
 */
 
 /* convert string constant */
-static void unquote_string(char *dst, const char *src)
+void unquote_string(char *dst, const char *src)
 {
     int i, j, n = (int) strlen(src) - 1;
     for (i = 1, j = 0; i < n; i++) {
@@ -165,7 +166,7 @@ int tree_arg_list_count(TREE * root)
     }
     return count;
 }
-
+ 
 /**
  * Returns last OPTXT of OPTXT chain optxt
  */
@@ -1435,6 +1436,24 @@ static char *node2string(int type)
     }
 }
 
+/** Merge and Dispose of engine state and type table,
+   and run global i-time code 
+*/
+void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
+		 TYPE_TABLE* typetable, OPDS *ids) {
+   if (csound->init_pass_threadlock)
+       csoundLockMutex(csound->init_pass_threadlock);
+    engineState_merge(csound, engineState);
+    engineState_free(csound, engineState);
+    free_typetable(csound, typetable);
+    /* run global i-time code */
+    init0(csound);
+    csound->ids = ids;
+   if (csound->init_pass_threadlock)
+       csoundUnlockMutex(csound->init_pass_threadlock);
+}
+
+
 /**
  * Compile the given TREE node into structs
 
@@ -1451,13 +1470,16 @@ static char *node2string(int type)
    3) Creates other instruments
    4) Calls engineState_merge() and engineState_free()
 
+    async determines asynchronous operation of the
+    merge stage.
+
   VL 20-12-12
 
  * ASSUMES: TREE has been validated prior to compilation
  *
  *
  */
-PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
+int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
 {
     INSTRTXT    *instrtxt = NULL;
     INSTRTXT    *ip = NULL;
@@ -1680,24 +1702,20 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       return CSOUND_ERROR;
     }
 
+    
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound,engineState);
-
-    /* lock to ensure thread-safety */
-    csoundLockMutex(csound->API_lock);
-    if (csound->init_pass_threadlock)
-      csoundLockMutex(csound->init_pass_threadlock);
     if (engineState != &csound->engineState) {
       OPDS *ids = csound->ids;
       /* any compilation other than the first one */
       /* merge ENGINE_STATE */
-      engineState_merge(csound, engineState);
-      /* delete ENGINE_STATE  */
-      engineState_free(csound, engineState);
-      /* run global i-time code */
-      init0(csound);
-      csound->ids = ids;
-      free_typetable(csound, typeTable);
+      /* lock to ensure thread-safety */
+      if(!async) {
+      csoundLockMutex(csound->API_lock);
+      merge_state(csound, engineState, typeTable, ids);
+      csoundUnlockMutex(csound->API_lock);
+      } else
+	mergeState_enqueue(csound, engineState, typeTable, ids);
     }
     else {
       /* first compilation */
@@ -1748,29 +1766,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var = csoundFindVariableWithName(csound, engineState->varPool, "A4");
       var->memBlock->value = csound->A4;
     }
-    if (csound->init_pass_threadlock)
-      csoundUnlockMutex(csound->init_pass_threadlock);
-    /* notify API lock  */
-    csoundUnlockMutex(csound->API_lock);
+
+
     return CSOUND_SUCCESS;
 }
 
-/**
-    Parse and compile an orchestra given on an string,
-    evaluating any global space code (i-time only).
-    On SUCCESS it returns a value passed to the
-    'return' opcode in global space
-*/
-PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str)
-{
-    if (str && csoundCompileOrc(csound,str) == CSOUND_SUCCESS)
-      return csound->instr0->instance[0].retval;
-#ifdef NAN
-    else return NAN;
-#else
-    else return 0;
-#endif
-}
 
 #ifdef EMSCRIPTEN
 void sanitize(CSOUND *csound) {}
@@ -1783,8 +1783,10 @@ extern void sanitize(CSOUND *csound);
     if str is NULL the string is taken from the internal corfile
     containing the initial orchestra file passed to Csound.
     Also evaluates any global space code.
+    async determines asynchronous operation of the
+    merge stage.
 */
-PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
+int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async)
 {
     TREE *root;
     int retVal=1;
@@ -1798,7 +1800,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     //retVal = 1;
     root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
-      retVal = csoundCompileTree(csound, root);
+      retVal = csoundCompileTreeInternal(csound, root, async);
       // Sanitise semantic sets here
       sanitize(csound);
       csoundDeleteTree(csound, root);
@@ -1814,6 +1816,8 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     return retVal;
 }
+
+
 
 
 /* prep an instr template for efficient allocs  */
