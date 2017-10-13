@@ -60,24 +60,47 @@ enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
 
 /* Message queue structure */
 typedef struct _message_queue {
-  int32_t message;  /* message id */
+  int64_t message;  /* message id */
   char args[128];   /* space for 128 bytes of args, up to 16 8-byte-aligned */
+  int64_t rtn;  /* return value */
 } message_queue_t;
 
+static inline int check_dequeued(CSOUND *csound) {
+#ifdef HAVE_ATOMIC_BUILTIN
+  return __atomic_load_n(&csound->msg_queue_flag, __ATOMIC_SEQ_CST);
+#else
+  return csound->msg_queue_flag;
+#endif
+}
+
+static inline int get_rtn_code(int64_t *rtn) {
+#ifdef HAVE_ATOMIC_BUILTIN
+  return (int) __atomic_load_n(rtn, __ATOMIC_SEQ_CST);
+#else
+  return (int) *rtn;
+#endif
+}
+
+
 /* enqueue should be called by the relevant API function */
-void message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
+void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
   uint32_t wp = csound->msg_queue_wp;
+  int64_t *rtn;
   if(csound->msg_queue == NULL)
     csound->msg_queue = (message_queue_t *)
       csound->Calloc(csound, sizeof(message_queue_t)*API_MAX_QUEUE);
   csound->msg_queue[wp].message = message;
   memcpy(csound->msg_queue[wp].args, args, argsiz);
+  rtn = &csound->msg_queue[wp].rtn;
 #ifdef HAVE_ATOMIC_BUILTIN
   __atomic_store_n(&csound->msg_queue_wp,  wp != API_MAX_QUEUE ? wp + 1 : 0,
-                   __ATOMIC_SEQ_CST);
+		   __ATOMIC_SEQ_CST);
+  __atomic_store_n(&csound->msg_queue_flag, 0, __ATOMIC_SEQ_CST);
 #else
+  csound->msg_queue_flag = 0;
   csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
 #endif
+  return (void *) rtn;
 }
 
 /* dequeue should be called by kperf_*() 
@@ -91,7 +114,7 @@ void message_dequeue(CSOUND *csound) {
 #else
     uint32_t wp = csound->msg_queue_wp;
 #endif
-  
+    int64_t rtn;
     while(rp != wp) {
       switch(csound->msg_queue[rp].message) {
       case INPUT_MESSAGE:
@@ -101,41 +124,44 @@ void message_dequeue(CSOUND *csound) {
         }
         break;
       case READ_SCORE:
-        {
-          const char *str = *((char **)csound->msg_queue[rp].args);
-          csoundReadScoreInternal(csound, str);
-        }
-        break;
+	{
+	  const char *str = *((char **)csound->msg_queue[rp].args);
+	  rtn =
+	    csoundReadScoreInternal(csound, str);
+	}
+	break;
       case SCORE_EVENT:
         {
           char type;
           const MYFLT *pfields;
-          long numFields;
-          type = csound->msg_queue[rp].args[0];
-          memcpy(&pfields, csound->msg_queue[rp].args + ARG_ALIGN,
-                 sizeof(MYFLT *));
-          memcpy(&numFields, csound->msg_queue[rp].args + ARG_ALIGN*2,
-                 sizeof(long));
-          csoundScoreEventInternal(csound, type, pfields, numFields);
-        }
-        break;
+	  long numFields;
+	  type = csound->msg_queue[rp].args[0];
+	  memcpy(&pfields, csound->msg_queue[rp].args + ARG_ALIGN,
+		 sizeof(MYFLT *));
+	  memcpy(&numFields, csound->msg_queue[rp].args + ARG_ALIGN*2,
+		 sizeof(long));
+	  rtn =
+	    csoundScoreEventInternal(csound, type, pfields, numFields);
+	}
+	break;
       case SCORE_EVENT_ABS:
         {
           char type;
           const MYFLT *pfields;
-          long numFields;
-          double ofs;
-          type = csound->msg_queue[rp].args[0];
-          memcpy(&pfields, csound->msg_queue[rp].args + ARG_ALIGN,
-                 sizeof(MYFLT *));
-          memcpy(&numFields, csound->msg_queue[rp].args + ARG_ALIGN*2,
-                 sizeof(long));
-          memcpy(&ofs, csound->msg_queue[rp].args + ARG_ALIGN*3,
-                 sizeof(double));
-          csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields,
-                                           ofs);
-        }
-        break;
+	  long numFields;
+	  double ofs;
+	  type = csound->msg_queue[rp].args[0];
+	  memcpy(&pfields, csound->msg_queue[rp].args + ARG_ALIGN,
+		 sizeof(MYFLT *));
+	  memcpy(&numFields, csound->msg_queue[rp].args + ARG_ALIGN*2,
+		 sizeof(long));
+	  memcpy(&ofs, csound->msg_queue[rp].args + ARG_ALIGN*3,
+		 sizeof(double));
+	  rtn =
+	    csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields,
+					     ofs);
+	}
+	break;
       case TABLE_COPY_OUT:
         {
           int table;
@@ -169,24 +195,18 @@ void message_dequeue(CSOUND *csound) {
         }
         break;
       case MERGE_STATE:
-        {
-          ENGINE_STATE *e;
-          TYPE_TABLE *t;
-          OPDS *ids;
-          memcpy(&e, csound->msg_queue[rp].args, sizeof(ENGINE_STATE *));
-          memcpy(&t, csound->msg_queue[rp].args + ARG_ALIGN,
-                 sizeof(TYPE_TABLE *));
-          memcpy(&ids, csound->msg_queue[rp].args + 2*ARG_ALIGN,
-                 sizeof(OPDS *));
-          merge_state(csound, e, t, ids);
-#ifdef HAVE_ATOMIC_BUILTIN
-          __atomic_store_n(&csound->state_merge_flag, 1,
-                           __ATOMIC_SEQ_CST);
-#else
-          csound->state_merge_flag = 1;
-#endif
-        }
-        break;
+	{
+	  ENGINE_STATE *e;
+	  TYPE_TABLE *t;
+	  OPDS *ids;
+	  memcpy(&e, csound->msg_queue[rp].args, sizeof(ENGINE_STATE *));
+	  memcpy(&t, csound->msg_queue[rp].args + ARG_ALIGN,
+		 sizeof(TYPE_TABLE *));
+	  memcpy(&ids, csound->msg_queue[rp].args + 2*ARG_ALIGN,
+		 sizeof(OPDS *));
+ 	  merge_state(csound, e, t, ids);
+	}
+	break;
       case KILL_INSTANCE:
         {
           MYFLT instr;
@@ -206,10 +226,21 @@ void message_dequeue(CSOUND *csound) {
         break;  
       }
       csound->msg_queue[rp].message = 0;
+#ifdef HAVE_ATOMIC_BUILTIN
+      __atomic_store_n(&csound->msg_queue[rp].rtn, rtn,
+		       __ATOMIC_SEQ_CST);
+#else
+      csound->msg_queue[rp].rtn = rtn;
+#endif
       rp = rp != API_MAX_QUEUE ? rp + 1 : 0;
     }
     csound->msg_queue_rp = rp;
   }
+#ifdef HAVE_ATOMIC_BUILTIN
+  __atomic_store_n(&csound->msg_queue_flag, 1, __ATOMIC_SEQ_CST);
+#else
+  csound->msg_queue_flag = 1;
+#endif
 }
 
 /* these are the message enqueueing functions for each relevant API function */
@@ -221,13 +252,11 @@ static inline void csoundInputMessage_enqueue(CSOUND *csound,
   message_enqueue(csound,INPUT_MESSAGE,args,argsize);
 }
 
-static inline int csoundReadScore_enqueue(CSOUND *csound, const char *message){
+static inline int64_t *csoundReadScore_enqueue(CSOUND *csound, const char *message){
   const int argsize = ARG_ALIGN;
   char args[ARG_ALIGN];
   memcpy(args, &message, sizeof(char *));
-  message_enqueue(csound, READ_SCORE, args, argsize);
-  /* VL: ignore return value for now */
-  return OK;
+  return message_enqueue(csound, READ_SCORE, args, argsize);
 }
 
 static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int table,
@@ -259,23 +288,23 @@ static inline void csoundTableSet_enqueue(CSOUND *csound, int table, int index,
   message_enqueue(csound,TABLE_SET, args, argsize);
 }
 
-static inline int csoundScoreEvent_enqueue(CSOUND *csound, char type,
-                                           const MYFLT *pfields, long numFields)
+
+static inline int64_t *csoundScoreEvent_enqueue(CSOUND *csound, char type,
+						const MYFLT *pfields, long numFields)
 {
   const int argsize = ARG_ALIGN*3;
   char args[ARG_ALIGN*3];
   args[0] = type;
   memcpy(args+ARG_ALIGN, &pfields, sizeof(MYFLT *));
   memcpy(args+2*ARG_ALIGN, &numFields, sizeof(long));
-  message_enqueue(csound,SCORE_EVENT, args, argsize);
-  /* VL: ignore return value for now */
-  return OK;
+  return message_enqueue(csound,SCORE_EVENT, args, argsize);
 }
 
-static inline int csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
-                                                   const MYFLT *pfields,
-                                                   long numFields,
-                                                   double time_ofs)
+
+static inline int64_t *csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
+							const MYFLT *pfields,
+							long numFields,
+							double time_ofs)
 {
   const int argsize = ARG_ALIGN*4;
   char args[ARG_ALIGN*4];
@@ -283,9 +312,7 @@ static inline int csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
   memcpy(args+ARG_ALIGN, &pfields, sizeof(MYFLT *));
   memcpy(args+2*ARG_ALIGN, &numFields, sizeof(long));
   memcpy(args+3*ARG_ALIGN, &time_ofs, sizeof(double));
-  message_enqueue(csound,SCORE_EVENT_ABS, args, argsize);
-  /* VL: ignore return value for now */
-  return OK;
+  return message_enqueue(csound,SCORE_EVENT_ABS, args, argsize);
 }
 
 /* this is to be called from 
@@ -405,13 +432,14 @@ MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 /** Async versions of the functions above
     To be removed once everything is made async
 */
-
 void csoundInputMessageAsync(CSOUND *csound, const char *message){
   csoundInputMessage_enqueue(csound, message);
 }
 
-void csoundReadScoreAsync(CSOUND *csound, const char *message){
-  csoundReadScore_enqueue(csound, message);
+int csoundReadScoreAsync(CSOUND *csound, const char *message){
+  int64_t *rtn = csoundReadScore_enqueue(csound, message);
+  while(!check_dequeued(csound)) csoundSleep(1);
+  return get_rtn_code(rtn);
 }
 
 void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *ptable){
@@ -427,17 +455,22 @@ void csoundTableSetAsync(CSOUND *csound, int table, int index, MYFLT value)
   csoundTableSet_enqueue(csound, table, index, value);
 }
 
-void csoundScoreEventAsync(CSOUND *csound, char type,
-                           const MYFLT *pfields, long numFields)
+int csoundScoreEventAsync(CSOUND *csound, char type,
+			   const MYFLT *pfields, long numFields)
 {
-  csoundScoreEvent_enqueue(csound, type, pfields, numFields);;
+  int64_t *rtn = csoundScoreEvent_enqueue(csound, type, pfields, numFields);
+  while(!check_dequeued(csound)) csoundSleep(1);
+  return get_rtn_code(rtn);
 }
 
-void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
-                                   const MYFLT *pfields, long numFields,
-                                   double time_ofs)
+int csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
+				   const MYFLT *pfields, long numFields,
+				   double time_ofs)
 {
-  csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
+  
+  int64_t *rtn = csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
+  while(!check_dequeued(csound)) csoundSleep(1);
+  return get_rtn_code(rtn);
 }
 
 int csoundCompileTreeAsync(CSOUND *csound, TREE *root) {
@@ -453,25 +486,15 @@ int csoundCompileOrcAsync(CSOUND *csound, const char *str) {
 int csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
                             int mode, int allow_release){
   int async = 1;
-  csoundKillInstanceInternal(csound, instr, instrName, mode, allow_release, async);
+  return csoundKillInstanceInternal(csound, instr, instrName, mode, allow_release, async);
 }
 
 MYFLT csoundEvalCodeAsync(CSOUND *csound, const char *str)
 {
   int async = 1;
-#ifdef HAVE_ATOMIC_BUILTIN
-  __atomic_store_n(&csound->state_merge_flag, 0,
-                   __ATOMIC_SEQ_CST);
-#else
-  csound->state_merge_flag = 0;
-#endif
   if (str && csoundCompileOrcInternal(csound,str,async) == CSOUND_SUCCESS) {
-#ifdef HAVE_ATOMIC_BUILTIN
-    while(__atomic_load_n(&csound->state_merge_flag,__ATOMIC_SEQ_CST) != 1)      
-#else
-      while(csound->state_merge_flag != 1);
-#endif
-    csoundSleep(1);
+    while(check_dequeued(csound))
+      csoundSleep(1);
     return csound->instr0->instance[0].retval;
   }      
 #ifdef NAN
