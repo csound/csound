@@ -1759,6 +1759,7 @@ typedef struct NAME__ {
     struct _message_queue *msg_queue;
     uint32_t msg_queue_wp;
     uint32_t msg_queue_rp;
+    uint32_t state_merge_flag;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
