@@ -67,10 +67,12 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     extractStatics->onbeat = FL(0.0);   /* other default vals   */
     extractStatics->offsect = 999;  extractStatics->offbeat = FL(0.0);
     //    while (fscanf(xfp, s) != EOF) {
-     while (fscanf(xfp, "%.81s", s) != EOF) {
-       //while (fgets(s, 82, xfp) != NULL) {
+    //  while (fscanf(xfp, "%.81s", s) != EOF) {
+    while (fscanf(xfp, "%s", s) > 0) {
+    //  while (fgets(s, 82, xfp) > 0) {
       char *c = s;
       int i;
+      //printf("string: %s\n", s);
       switch (*c) {
       case 'i':
         all = 0;
@@ -81,14 +83,15 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         break;
       default:
         switch (flag) {
-        case 'i':
+        case 'i':	 
           sscanf(s, "%d", &i);
-          //printf("%s %d\n", s, i);
+          //printf("i: %d\n", i);
           if (LIKELY(i>=0 && i < INSMAX)) extractStatics->inslst[i] = 1;
           else csound->Message(csound, Str("instrument number out of range"));
           all = 0;
           break;
         case 'f':
+	  //printf("f: %s\n", s);
 #if defined(USE_DOUBLE)
           CS_SSCANF(s, "%d:%lf", &extractStatics->onsect, &extractStatics->onbeat);
 #else
@@ -96,6 +99,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
 #endif
           break;
         case 't':
+	  //printf("t: %s\n");
           extractStatics->offsect = extractStatics->onsect; /* default offsect */
 #if defined(USE_DOUBLE)
           CS_SSCANF(s, "%d:%lf", &extractStatics->offsect,&extractStatics->offbeat);

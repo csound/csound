@@ -1440,12 +1440,16 @@ static char *node2string(int type)
 */
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
 		 TYPE_TABLE* typetable, OPDS *ids) {
+   if (csound->init_pass_threadlock)
+       csoundLockMutex(csound->init_pass_threadlock);
     engineState_merge(csound, engineState);
     engineState_free(csound, engineState);
     free_typetable(csound, typetable);
     /* run global i-time code */
     init0(csound);
     csound->ids = ids;
+   if (csound->init_pass_threadlock)
+       csoundUnlockMutex(csound->init_pass_threadlock);
 }
 
 
@@ -1471,7 +1475,7 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
  *
  *
  */
-PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
+int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
 {
     INSTRTXT    *instrtxt = NULL;
     INSTRTXT    *ip = NULL;
@@ -1702,13 +1706,11 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       /* any compilation other than the first one */
       /* merge ENGINE_STATE */
       /* lock to ensure thread-safety */
+      if(!async) {
       csoundLockMutex(csound->API_lock);
-      if (csound->init_pass_threadlock)
-       csoundLockMutex(csound->init_pass_threadlock);
       merge_state(csound, engineState, typeTable, ids);
-      if (csound->init_pass_threadlock)
-       csoundUnlockMutex(csound->init_pass_threadlock);
       csoundUnlockMutex(csound->API_lock);
+      }
     }
     else {
       /* first compilation */
@@ -1793,7 +1795,7 @@ extern void sanitize(CSOUND *csound);
     containing the initial orchestra file passed to Csound.
     Also evaluates any global space code.
 */
-PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
+int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async)
 {
     TREE *root;
     int retVal=1;
@@ -1807,7 +1809,7 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     //retVal = 1;
     root = csoundParseOrc(csound, str);
     if (LIKELY(root != NULL)) {
-      retVal = csoundCompileTree(csound, root);
+      retVal = csoundCompileTreeInternal(csound, root, async);
       // Sanitise semantic sets here
       sanitize(csound);
       csoundDeleteTree(csound, root);
@@ -1823,6 +1825,8 @@ PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str)
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     return retVal;
 }
+
+
 
 
 /* prep an instr template for efficient allocs  */

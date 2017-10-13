@@ -29,6 +29,8 @@
 #  define MYFLT_INT_TYPE int32_t
 #endif
 
+int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async);
+int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
 		 TYPE_TABLE* typetable, OPDS *ids);
 void KillInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip,
@@ -366,6 +368,19 @@ int csoundScoreEventAbsolute(CSOUND *csound, char type,
   csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields, time_ofs);
   csoundUnlockMutex(csound->API_lock);
   return OK;
+}
+
+int csoundCompileTree(CSOUND *csound, TREE *root) {
+  /* Async mode needs to be set to 1 
+     for this to use the lock_free queue
+  */
+  int async = 0;
+  return csoundCompileTreeInternal(csound, root, async);
+}
+
+int csoundCompileOrc(CSOUND *csound, const char *str) {
+  int async = 0;
+  return csoundCompileOrcInternal(csound, str, async);
 }
 
 
