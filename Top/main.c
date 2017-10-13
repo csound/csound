@@ -249,7 +249,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
      /* VL: added this also to csoundReset() in csound.c   */
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
-    if (UNLIKELY(csoundCompileOrc(csound, NULL) != 0)){
+    if (UNLIKELY(csoundCompileOrcInternal(csound, NULL, 0) != 0)){
       if (csound->oparms->daemon == 0)
         csoundDie(csound, Str("cannot compile orchestra"));
       else {
@@ -413,7 +413,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     }
     if (csound->instr0 == NULL) { /* compile dummy instr0 to allow csound to
                                      start with no orchestra */
-      csoundCompileOrc(csound, "idummy = 0 \n");
+      csoundCompileOrcInternal(csound, "idummy = 0 \n", 0);
     }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
@@ -525,7 +525,7 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
     if (LIKELY(res)) {
       if (csound->csdname != NULL) csound->Free(csound, csound->csdname);
       csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
-      res = csoundCompileOrc(csound, NULL);
+      res = csoundCompileOrcInternal(csound, NULL, 0);
       if (res == CSOUND_SUCCESS){
 	if ((csound->engineStatus & CS_STATE_COMP) != 0) {
           char *sc = scsortstr(csound, csound->scorestr);
