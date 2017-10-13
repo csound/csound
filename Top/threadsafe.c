@@ -29,11 +29,13 @@
 #  define MYFLT_INT_TYPE int32_t
 #endif
 
+int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
+			       int mode, int allow_release, int async);
 int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async);
 int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
 		 TYPE_TABLE* typetable, OPDS *ids);
-void KillInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip,
+void killInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip,
 		  int mode, int allow_release);
 void csoundInputMessageInternal(CSOUND *csound, const char *message);
 int csoundReadScoreInternal(CSOUND *csound, const char *message);
@@ -176,7 +178,13 @@ void message_dequeue(CSOUND *csound) {
 		 sizeof(TYPE_TABLE *));
 	  memcpy(&ids, csound->msg_queue[rp].args + 2*ARG_ALIGN,
 		 sizeof(OPDS *));
-	  merge_state(csound, e, t, ids);
+ 	  merge_state(csound, e, t, ids);
+#ifdef HAVE_ATOMIC_BUILTIN
+          __atomic_store_n(&csound->state_merge_flag, 1,
+			   __ATOMIC_SEQ_CST);
+#else
+	  csound->state_merge_flag = 1;
+#endif
 	}
 	break;
       case KILL_INSTANCE:
@@ -193,7 +201,7 @@ void message_dequeue(CSOUND *csound) {
 		 sizeof(int));
 	  memcpy(&rls, csound->msg_queue[rp].args  + ARG_ALIGN*4,
 		 sizeof(int));
-	  KillInstance(csound, instr, insno, ip, mode, rls);
+	  killInstance(csound, instr, insno, ip, mode, rls);
 	}
 	break;  
       }
@@ -280,9 +288,12 @@ static inline int csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
   return OK;
 }
 
-static inline void KillInstance_enqueue(CSOUND *csound, MYFLT instr, int insno,
-					INSDS *ip, int mode,
-					int allow_release) {
+/* this is to be called from 
+   csoundKillInstanceInternal() in insert.c
+*/
+void killInstance_enqueue(CSOUND *csound, MYFLT instr, int insno,
+			  INSDS *ip, int mode,
+			  int allow_release) {
   const int argsize = ARG_ALIGN*5;
   char args[ARG_ALIGN*5];
   memcpy(args, &instr, sizeof(int));
@@ -294,9 +305,9 @@ static inline void KillInstance_enqueue(CSOUND *csound, MYFLT instr, int insno,
 }
 
 /* this is to be called from 
-   csoundCompileTree() in csound_orc_compile.c
+   csoundCompileTreeInternal() in csound_orc_compile.c
 */
-void MergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids) {
+void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids) {
   const int argsize = ARG_ALIGN*3;
   char args[ARG_ALIGN*3];
   memcpy(args, &e, sizeof(ENGINE_STATE *));
@@ -307,12 +318,6 @@ void MergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *id
 
 /*  VL: These functions are slated to
     be converted to message enqueueing
-    NB: this can be done by replacing the code with
-    the relevant *_enqueue() call e.g.
-   
-    void csoundInputMessage(CSOUND *csound, const char *message){
-    csoundInputMessage_enqueue(csound, message);
-    }
 */ 
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);
@@ -363,17 +368,19 @@ int csoundScoreEventAbsolute(CSOUND *csound, char type,
 			     const MYFLT *pfields, long numFields,
 			     double time_ofs)
 {
-    
   csoundLockMutex(csound->API_lock);
   csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields, time_ofs);
   csoundUnlockMutex(csound->API_lock);
   return OK;
 }
 
+int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
+		       int mode, int allow_release){
+  int async = 0;
+  return csoundKillInstanceInternal(csound, instr, instrName, mode, allow_release, async);
+}
+
 int csoundCompileTree(CSOUND *csound, TREE *root) {
-  /* Async mode needs to be set to 1 
-     for this to use the lock_free queue
-  */
   int async = 0;
   return csoundCompileTreeInternal(csound, root, async);
 }
@@ -383,45 +390,96 @@ int csoundCompileOrc(CSOUND *csound, const char *str) {
   return csoundCompileOrcInternal(csound, str, async);
 }
 
-
-int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
-		       int mode, int allow_release)
+MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 {
-  INSDS *ip, *ip2, *nip;
-  int   insno;
-    
-  if (instrName) {
-    insno = named_instr_find(csound, instrName);
-    instr = (MYFLT) insno;
-  } else insno = instr;
-
-  if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
-	       csound->engineState.instrtxtp[insno] == NULL)) {
-    return CSOUND_ERROR;
-  }
-
-  if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
-    csoundUnlockMutex(csound->API_lock);
-    return CSOUND_ERROR;
-  }
-  ip = &(csound->actanchor);
-  ip2 = NULL;
-
-  while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
-  if (UNLIKELY(ip == NULL)) {
-    return CSOUND_ERROR;
-  }
-  csoundLockMutex(csound->API_lock);
-  KillInstance(csound, instr, insno, ip, mode, allow_release);
-  csoundUnlockMutex(csound->API_lock);
-  return CSOUND_SUCCESS;
+  int async = 0;
+  if (str && csoundCompileOrcInternal(csound,str,async) == CSOUND_SUCCESS)
+    return csound->instr0->instance[0].retval;
+#ifdef NAN
+  else return NAN;
+#else
+  else return 0;
+#endif
 }
 
+/** Async versions of the functions above
+    To be removed once everything is made async
+*/
 
+void csoundInputMessageAsync(CSOUND *csound, const char *message){
+  csoundInputMessage_enqueue(csound, message);
+}
 
+void csoundReadScoreAsync(CSOUND *csound, const char *message){
+  csoundReadScore_enqueue(csound, message);
+}
 
+void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *ptable){
+  csoundTableCopyOut_enqueue(csound, table, ptable);
+}
 
+void csoundTableCopyInAsync(CSOUND *csound, int table, MYFLT *ptable){
+  csoundTableCopyIn_enqueue(csound, table, ptable);
+}
 
+void csoundTableSetAsync(CSOUND *csound, int table, int index, MYFLT value)
+{
+  csoundTableSet_enqueue(csound, table, index, value);
+}
+
+void csoundScoreEventAsync(CSOUND *csound, char type,
+			   const MYFLT *pfields, long numFields)
+{
+  csoundScoreEvent_enqueue(csound, type, pfields, numFields);;
+}
+
+void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
+				   const MYFLT *pfields, long numFields,
+				   double time_ofs)
+{
+  csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
+}
+
+int csoundCompileTreeAsync(CSOUND *csound, TREE *root) {
+  int async = 1;
+  return csoundCompileTreeInternal(csound, root, async);
+}
+
+int csoundCompileOrcAsync(CSOUND *csound, const char *str) {
+  int async = 1;
+  return csoundCompileOrcInternal(csound, str, async);
+}
+
+int csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
+			    int mode, int allow_release){
+  int async = 1;
+  csoundKillInstanceInternal(csound, instr, instrName, mode, allow_release, async);
+}
+
+MYFLT csoundEvalCodeAsync(CSOUND *csound, const char *str)
+{
+  int async = 1;
+#ifdef HAVE_ATOMIC_BUILTIN
+  __atomic_store_n(&csound->state_merge_flag, 0,
+		   __ATOMIC_SEQ_CST);
+#else
+  csound->state_merge_flag = 0;
+#endif
+  if (str && csoundCompileOrcInternal(csound,str,async) == CSOUND_SUCCESS) {
+#ifdef HAVE_ATOMIC_BUILTIN
+    while(__atomic_load_n(&csound->state_merge_flag,__ATOMIC_SEQ_CST) != 1)      
+#else
+      while(csound->state_merge_flag != 1);
+#endif
+    csoundSleep(1);
+    return csound->instr0->instance[0].retval;
+  }	 
+#ifdef NAN
+  else return NAN;
+#else
+  else return 0;
+#endif
+}
 
 /* VL: the following do not depend on API_lock
    therefore do not need to be in the message queue
