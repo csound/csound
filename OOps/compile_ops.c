@@ -22,7 +22,9 @@
 
 #include "compile_ops.h"
 #include <stdio.h>
-
+int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
+int csoundReadScoreInternal(CSOUND *csound, const char *str);
+  
 int compile_orc_i(CSOUND *csound, COMPILE *p){
     FILE *fp;
     size_t size=0;
@@ -54,7 +56,7 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
       csound->Free(csound,orc);
       return NOTOK;
     }
-    *p->res = (MYFLT)(csoundCompileOrc(csound, orc));
+    *p->res = (MYFLT)(csoundCompileOrcInternal(csound, orc, 0));
     fclose(fp);
     csound->Free(csound,orc);
     return OK;
@@ -66,9 +68,9 @@ int compile_csd_i(CSOUND *csound, COMPILE *p){
 }
 
 int compile_str_i(CSOUND *csound, COMPILE *p){
-    void csp_orc_sa_print_list(CSOUND*);
+  //void csp_orc_sa_print_list(CSOUND*);
     //printf("START\n");
-    *p->res = (MYFLT)(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
+    *p->res = (MYFLT)(csoundCompileOrcInternal(csound, ((STRINGDAT *)p->str)->data, 0));
     //printf("END\n");
     //csp_orc_sa_print_list(csound);
     return OK;

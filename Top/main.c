@@ -249,7 +249,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
      /* VL: added this also to csoundReset() in csound.c   */
     if (csoundInitModules(csound) != 0)
       csound->LongJmp(csound, 1);
-    if (UNLIKELY(csoundCompileOrc(csound, NULL) != 0)){
+    if (UNLIKELY(csoundCompileOrcInternal(csound, NULL, 0) != 0)){
       if (csound->oparms->daemon == 0)
         csoundDie(csound, Str("cannot compile orchestra"));
       else {
@@ -413,7 +413,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     }
     if (csound->instr0 == NULL) { /* compile dummy instr0 to allow csound to
                                      start with no orchestra */
-      csoundCompileOrc(csound, "idummy = 0 \n");
+      csoundCompileOrcInternal(csound, "idummy = 0 \n", 0);
     }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
@@ -522,30 +522,28 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csd_text));
-    if (LIKELY(res)){
+    if (LIKELY(res)) {
       if (csound->csdname != NULL) csound->Free(csound, csound->csdname);
       csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
-      res = csoundCompileOrc(csound, NULL);
+      res = csoundCompileOrcInternal(csound, NULL, 0);
       if (res == CSOUND_SUCCESS){
-        csoundLockMutex(csound->API_lock);
-        char *sc = scsortstr(csound, csound->scorestr);
-        if (sc) {
-          if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+	if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+          char *sc = scsortstr(csound, csound->scorestr);
+          if (sc) {   
             if(csound->oparms->odebug)
               csound->Message(csound,
                               Str("Real-time score events (engineStatus: %d).\n"),
                               csound->engineStatus);
-            csoundInputMessageInternal(csound, (const char *) sc);
-            csound->Free(csound, sc);
-          } else {
+            csoundInputMessage(csound, (const char *) sc);
+          }
+	} else {
+	    scsortstr(csound, csound->scorestr);
             if(csound->oparms->odebug)
               csound->Message(csound,
                               Str("Compiled score "
                                   "(engineStatus: %d).\n"), csound->engineStatus);
           }
         }
-        csoundUnlockMutex(csound->API_lock);
-      }
-      return res;
+       return res;
     } else return CSOUND_ERROR;
 }
