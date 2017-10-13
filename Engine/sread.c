@@ -1229,17 +1229,21 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           goto again;
         }
       case 'x':                         /* Skip section */
+        //printf("***skipping section\n");
+        flushlin(csound);
         while (1) {
           switch (STA(op) = getop(csound)) {
           case 's':
           case 'r':
           case 'm':
           case 'e':
+            //printf("***skip ending with %c\n", STA(op));
             salcblk(csound);            /* place op, blank into text    */
             goto again;
           case EOF:
             goto ending;
           default:
+            //printf("***ignoring %c\n", STA(op));
             flushlin(csound);
           }
         }
@@ -1425,7 +1429,7 @@ static void ifa(CSOUND *csound)
          (!STA(bp)->pcnt && (prvbp = STA(bp)->prvblk) != NULL &&
           prvbp->text[0] == 'i')) &&
         (n = prvbp->pcnt - STA(bp)->pcnt) > 0) {
-      printf("carrying p-fields\n");
+      //printf("carrying p-fields\n");
       pcopy(csound, (int) STA(bp)->pcnt + 1, n, prvbp);
       STA(bp)->pcnt += n;
     }
@@ -2028,7 +2032,7 @@ static MYFLT read_expression(CSOUND *csound)
           }
           type = 1;
           {
-            int i;
+            //int i;
             MYFLT x;
             //for (i=0;i<=pv-vv;i++) printf(" %lf ", vv[i]);
             //printf("| %d\n", pv-vv);
