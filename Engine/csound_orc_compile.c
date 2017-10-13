@@ -1435,6 +1435,20 @@ static char *node2string(int type)
     }
 }
 
+/** Merge and Dispose of engine state and type table,
+   and run global i-time code 
+*/
+void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
+		 TYPE_TABLE* typetable, OPDS *ids) {
+    engineState_merge(csound, engineState);
+    engineState_free(csound, engineState);
+    free_typetable(csound, typetable);
+    /* run global i-time code */
+    init0(csound);
+    csound->ids = ids;
+}
+
+
 /**
  * Compile the given TREE node into structs
 
@@ -1680,24 +1694,21 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       return CSOUND_ERROR;
     }
 
+    
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound,engineState);
-
-    /* lock to ensure thread-safety */
-    csoundLockMutex(csound->API_lock);
-    if (csound->init_pass_threadlock)
-      csoundLockMutex(csound->init_pass_threadlock);
     if (engineState != &csound->engineState) {
       OPDS *ids = csound->ids;
       /* any compilation other than the first one */
       /* merge ENGINE_STATE */
-      engineState_merge(csound, engineState);
-      /* delete ENGINE_STATE  */
-      engineState_free(csound, engineState);
-      /* run global i-time code */
-      init0(csound);
-      csound->ids = ids;
-      free_typetable(csound, typeTable);
+      /* lock to ensure thread-safety */
+      csoundLockMutex(csound->API_lock);
+      if (csound->init_pass_threadlock)
+       csoundLockMutex(csound->init_pass_threadlock);
+      merge_state(csound, engineState, typeTable, ids);
+      if (csound->init_pass_threadlock)
+       csoundUnlockMutex(csound->init_pass_threadlock);
+      csoundUnlockMutex(csound->API_lock);
     }
     else {
       /* first compilation */
@@ -1748,10 +1759,8 @@ PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root)
       var = csoundFindVariableWithName(csound, engineState->varPool, "A4");
       var->memBlock->value = csound->A4;
     }
-    if (csound->init_pass_threadlock)
-      csoundUnlockMutex(csound->init_pass_threadlock);
-    /* notify API lock  */
-    csoundUnlockMutex(csound->API_lock);
+
+
     return CSOUND_SUCCESS;
 }
 
