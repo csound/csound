@@ -109,6 +109,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         }
       }
     }
+    //printf("extract read\n");
     if (all) {
       char *ip;
       for (ip = &extractStatics->inslst[0];
