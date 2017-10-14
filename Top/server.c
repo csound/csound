@@ -50,6 +50,7 @@ typedef struct {
 
 int csoundCompileOrcAsync(CSOUND *, const char *);
 int csoundInputMessageAsync(CSOUND *, const char *);
+int csoundReadScoreAsync(CSOUND *, const char *);
 
 static uintptr_t udp_recv(void *pdata){
   struct sockaddr from;
@@ -65,7 +66,10 @@ static uintptr_t udp_recv(void *pdata){
     if (csound->oparms->odebug)
       csound->Message(csound, "orchestra: \n%s\n", orchestra);
     if (strncmp("!!close!!",orchestra,9)==0 ||
-	strncmp("##close##",orchestra,9)==0) break;
+	strncmp("##close##",orchestra,9)==0) {
+      csoundInputMessageAsync(csound, "e 0 0");
+      break;
+    }
     if(*orchestra == '$') {
       csoundReadScoreAsync(csound, orchestra+1);
     }
