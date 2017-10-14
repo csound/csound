@@ -14,6 +14,7 @@ endin
 
 schedule(2, 1, 1, {{ This is also a "string"
 }})
+schedule(2, 0.5, 1, "This is simple \"string\" with escaped string inside\n")
 
 </CsInstruments>
 <CsScore>
