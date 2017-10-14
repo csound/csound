@@ -106,6 +106,7 @@ def runTest():
 	["test_string.csd", "test string assignment and printing"],
 	["test_sprintf.csd", "test string assignment and printing"],
 	["test_sprintf2.csd", "test string assignment and printing that causes reallocation"],
+	["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
 	["test_label_within_if_block.csd", "test label within if block"],
 
 	["test_arrays.csd", "test k-array with single dimension, assignment to expression value"],
