@@ -46,7 +46,7 @@ typedef struct {
 } UDPCOM;
 
 #define MAXSTR 1048576 /* 1MB */
-
+#define MAXLNS 1024
 
 int csoundCompileOrcAsync(CSOUND *, const char *);
 int csoundInputMessageAsync(CSOUND *, const char *);
@@ -58,20 +58,27 @@ static uintptr_t udp_recv(void *pdata){
   UDPCOM *p = (UDPCOM *) pdata;
   CSOUND *csound = p->cs;
   int port = p->port;
-  char *orchestra = csound->Malloc(csound, MAXSTR);
+  char *orchestra = csound->Calloc(csound, MAXSTR);
+  char *scoreline[MAXLNS];
+  memset(scoreline, 0, sizeof(char *)*MAXLNS);
+  int cnt = 0;
 
   csound->Message(csound, "UDP server started on port %d \n",port);
   while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
     if(strlen(orchestra) < 2) continue;
     if (csound->oparms->odebug)
-      csound->Message(csound, "orchestra: \n%s\n", orchestra);
+      csound->Message(csound, "message: \n%s\n", orchestra);
     if (strncmp("!!close!!",orchestra,9)==0 ||
 	strncmp("##close##",orchestra,9)==0) {
       csoundInputMessageAsync(csound, "e 0 0");
       break;
     }
     if(*orchestra == '$') {
-      csoundReadScoreAsync(csound, orchestra+1);
+      if(scoreline[cnt] != NULL)
+	csound->Free(csound, scoreline[cnt]);
+      scoreline[cnt] = cs_strdup(csound, orchestra+1);
+      csoundInputMessageAsync(csound, scoreline[cnt]);
+      cnt = cnt != MAXLNS+1 ? cnt + 1 : 0;
     }
     else if(*orchestra == '@') {
       char chn[128];
@@ -91,7 +98,6 @@ static uintptr_t udp_recv(void *pdata){
     else {
       csoundCompileOrcAsync(csound, orchestra);
     }
-    memset(orchestra,0, MAXSTR);
   }
   csound->Message(csound, "UDP server on port %d stopped\n",port);
   csound->Free(csound, orchestra);
