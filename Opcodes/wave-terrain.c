@@ -118,8 +118,8 @@ static int scanhinit(CSOUND *csound, SCANHAMMER *p)
   FUNC *fdst = csound->FTnp2Find(csound, p->idst); /* Destination table */
 
   if (UNLIKELY(fsrc->flen > fdst->flen)) {
-    return csound->InitError(csound, Str(
-                  "Source table must be same size or smaller than dest table\n"));
+    return csound->InitError(csound, Str("Source table must be same size or "
+                                         "smaller than dest table\n"));
   }
 
   for (srcpos=0; srcpos<fsrc->flen; srcpos++) {
@@ -237,10 +237,10 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
       /* set up conditions for end-points */
       last = i - 1;
       next = i + 1;
-      if (i == p->size - 1) {
+      if (UNLIKELY(i == p->size - 1)) {
         next = 0;
       }
-      else if (i == 0) {
+      else if (UNLIKELY(i == 0)) {
         last = (int)p->size - 1;
       }
 
@@ -283,13 +283,8 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
      *
      * replace current values with new ones
      */
-    /* Could use memcpy here?? */
     memcpy(fpoint->ftable, p->newloc, p->size*sizeof(MYFLT));
     memcpy(fvel->ftable, p->newvel, p->size*sizeof(MYFLT));
-    /* for (i=0; i<p->size; i++) { */
-    /*   fpoint->ftable[i] = p->newloc[i]; */
-    /*   fvel->ftable[i]   = p->newvel[i]; */
-    /* } */
     return OK;
 }
 

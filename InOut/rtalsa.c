@@ -1445,7 +1445,7 @@ static int alsaseq_in_read(CSOUND *csound,
       return 0;
     else
       err = snd_midi_event_decode(amidi->mev, buf, nbytes, ev);
-    return err;
+    return (err==-ENOENT) ? 0 : err;
 }
 
 static int alsaseq_in_close(CSOUND *csound, void *userData)
