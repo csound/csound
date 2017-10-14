@@ -157,6 +157,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
         corfile_putc(c, sco);
       corfile_putc(LF, sco);
       break;
+    case 'x':
     case 'y':
     case -1:
       break;
