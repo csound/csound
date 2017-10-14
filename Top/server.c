@@ -68,7 +68,7 @@ static uintptr_t udp_recv(void *pdata){
 	strncmp("##close##",orchestra,9)==0) break;
     if(*orchestra == '$') {
       //printf("event: %s", orchestra+1);
-      csoundInputMessageAsync(csound, orchestra+1);
+      csoundReadScoreAsync(csound, orchestra+1);
     }
     else if(*orchestra == '@') {
       char chn[128];
@@ -77,6 +77,15 @@ static uintptr_t udp_recv(void *pdata){
       val = atof(orchestra+1+strlen(chn));
       //printf("chn:%s val:%f \n", chn, val);
       csoundSetControlChannel(csound, chn, val);
+    }
+   else if(*orchestra == '%') {
+      char chn[128];
+      char *str;
+      sscanf(orchestra+1, "%s", chn);
+      str = cs_strdup(csound, orchestra+1+strlen(chn));
+      printf("chn:%s val:%s \n", chn, str);
+      csoundSetStringChannel(csound, chn, str);
+      csound->Free(csound, str);
     }
     else {
       //printf("orch:\n%s", orchestra);
