@@ -47,6 +47,7 @@ extern  uintptr_t  kperfThread(void * cs);
 extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
+extern int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 
 static void checkOptions(CSOUND *csound)
 {
