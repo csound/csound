@@ -119,15 +119,15 @@ void message_dequeue(CSOUND *csound) {
       switch(csound->msg_queue[rp].message) {
       case INPUT_MESSAGE:
         {
-          const char *str = *((char **)csound->msg_queue[rp].args);
+          const char *str = csound->msg_queue[rp].args;
           csoundInputMessageInternal(csound, str);
         }
+	
         break;
       case READ_SCORE:
 	{
-	  const char *str = *((char **)csound->msg_queue[rp].args);
-	  rtn =
-	    csoundReadScoreInternal(csound, str);
+	  const char *str = csound->msg_queue[rp].args;
+	  rtn = csoundReadScoreInternal(csound, str);
 	}
 	break;
       case SCORE_EVENT:
@@ -246,17 +246,11 @@ void message_dequeue(CSOUND *csound) {
 /* these are the message enqueueing functions for each relevant API function */
 static inline void csoundInputMessage_enqueue(CSOUND *csound,
                                               const char *message){
-  const int argsize = ARG_ALIGN;
-  char args[ARG_ALIGN];
-  memcpy(args, &message, sizeof(char *));
-  message_enqueue(csound,INPUT_MESSAGE,args,argsize);
+  message_enqueue(csound,INPUT_MESSAGE,message,ARG_ALIGN);
 }
 
 static inline int64_t *csoundReadScore_enqueue(CSOUND *csound, const char *message){
-  const int argsize = ARG_ALIGN;
-  char args[ARG_ALIGN];
-  memcpy(args, &message, sizeof(char *));
-  return message_enqueue(csound, READ_SCORE, args, argsize);
+  return message_enqueue(csound, READ_SCORE, message,ARG_ALIGN);
 }
 
 static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int table,

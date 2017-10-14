@@ -1572,6 +1572,9 @@ int kperf_nodebug(CSOUND *csound)
     csound->icurTime += csound->ksmps;
     csound->curBeat += csound->curBeat_inc;
 
+   /* call message_dequeue to run API calls */
+    message_dequeue(csound);
+
 
     /* if skipping time on request by 'a' score statement: */
     if (UNLIKELY(UNLIKELY(csound->advanceCnt))) {
@@ -1596,9 +1599,6 @@ int kperf_nodebug(CSOUND *csound)
     memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
     memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
     ip = csound->actanchor.nxtact;
-
-    /* call message_dequeue to run API calls */
-    message_dequeue(csound);
 
     if (ip != NULL) {
       /* There are 2 partitions of work: 1st by inso,
