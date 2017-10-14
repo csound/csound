@@ -45,98 +45,113 @@ typedef struct {
   struct sockaddr_in server_addr;
 } UDPCOM;
 
-#define MAXSTR 1048576 /* 1MB */
+#define MAXSTR 1024// 1048576 /* 1MB */
 
-static uintptr_t udp_recv(void *pdata)
-{
-    struct sockaddr from;
-    socklen_t clilen = sizeof(from);
-    UDPCOM *p = (UDPCOM *) pdata;
-    CSOUND *csound = p->cs;
-    int port = p->port;
-    char   *orchestra = csound->Malloc(csound, MAXSTR);
 
-    csound->Message(csound, "UDP server started on port %d \n",port);
-    while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
-      if (csound->oparms->odebug)
-        csound->Message(csound, "orchestra: \n%s\n", orchestra);
-      if (strncmp("!!close!!",orchestra,9)==0 ||
-          strncmp("##close##",orchestra,9)==0) break;
-      csoundCompileOrc(csound, orchestra);
-      memset(orchestra,0, MAXSTR);
+int csoundCompileOrcAsync(CSOUND *, const char *);
+int csoundInputMessageAsync(CSOUND *, const char *);
+
+static uintptr_t udp_recv(void *pdata){
+  struct sockaddr from;
+  socklen_t clilen = sizeof(from);
+  UDPCOM *p = (UDPCOM *) pdata;
+  CSOUND *csound = p->cs;
+  int port = p->port;
+  char *orchestra = csound->Malloc(csound, MAXSTR);
+
+  csound->Message(csound, "UDP server started on port %d \n",port);
+  while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
+    printf("received %s:\n", orchestra);
+    if (csound->oparms->odebug)
+      csound->Message(csound, "orchestra: \n%s\n", orchestra);
+    if (strncmp("!!close!!",orchestra,9)==0 ||
+	strncmp("##close##",orchestra,9)==0) break;
+    if(*orchestra == '$')
+      csoundInputMessageAsync(csound, orchestra+1);
+    else if(*orchestra == '@') {
+      char chn[128];
+      MYFLT val;
+      sscanf(orchestra, "%s %f", chn, &val);
+      csoundSetControlChannel(csound, chn, val);
     }
-    csound->Message(csound, "UDP server on port %d stopped\n",port);
-    csound->Free(csound, orchestra);
-    // csound->Message(csound, "orchestra dealloc\n");
-    return (uintptr_t) 0;
+    else {
+      printf("%s", orchestra);
+      csoundCompileOrcAsync(csound, orchestra);
+    }
+    memset(orchestra,0, MAXSTR);
+  }
+  csound->Message(csound, "UDP server on port %d stopped\n",port);
+  csound->Free(csound, orchestra);
+  // csound->Message(csound, "orchestra dealloc\n");
+  return (uintptr_t) 0;
 
 }
 
 static int udp_start(CSOUND *csound, UDPCOM *p)
 {
 #if defined(WIN32) && !defined(__CYGWIN__)
-    WSADATA wsaData = {0};
-    int err;
-    if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+  WSADATA wsaData = {0};
+  int err;
+  if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
+    csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
-    p->cs = csound;
-    p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError
-        (csound, Str("creating socket"));
-    }
-    /* create server address: where we want to send to and clear it out */
-    memset(&p->server_addr, 0, sizeof(p->server_addr));
-    p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-    p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  p->cs = csound;
+  p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+  if (UNLIKELY(p->sock < 0)) {
+    return csound->InitError
+      (csound, Str("creating socket"));
+  }
+  /* create server address: where we want to send to and clear it out */
+  memset(&p->server_addr, 0, sizeof(p->server_addr));
+  p->server_addr.sin_family = AF_INET;    /* it is an INET address */
+  p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    p->server_addr.sin_port = htons((int) p->port);    /* the port */
-    /* associate the socket with the address and port */
-    if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0)) {
-      csound->Warning(csound, Str("bind failed"));
-      p->thrid = NULL;
-      return NOTOK;
-    }
-    /* create thread */
-    p->thrid = csoundCreateThread(udp_recv, (void *) p);
+  p->server_addr.sin_port = htons((int) p->port);    /* the port */
+  /* associate the socket with the address and port */
+  if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
+		    sizeof(p->server_addr)) < 0)) {
+    csound->Warning(csound, Str("bind failed"));
+    p->thrid = NULL;
+    return NOTOK;
+  }
+  /* create thread */
+  p->thrid = csoundCreateThread(udp_recv, (void *) p);
 
-    return OK;
+  return OK;
 }
 
 int UDPServerClose(CSOUND *csound)
 {
-    UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
+  UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
 
-    if (p != NULL) {
+  if (p != NULL) {
 #ifndef WIN32
-      close(p->sock);
+    close(p->sock);
 #else
-      closesocket(p->sock);
+    closesocket(p->sock);
 #endif
-      //ssize_t ret;
-      //const char *mess = "!!close!!";
-      //const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-      //do{
-      /* ret = */
-        //(void)sendto(p->sock,mess,
-        //                    sizeof(mess)+1,0,to,sizeof(p->server_addr));
-      //} while(ret != -1);
+    //ssize_t ret;
+    //const char *mess = "!!close!!";
+    //const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
+    //do{
+    /* ret = */
+    //(void)sendto(p->sock,mess,
+    //                    sizeof(mess)+1,0,to,sizeof(p->server_addr));
+    //} while(ret != -1);
 
-      //csoundJoinThread(p->thrid);
-      csound->DestroyGlobalVariable(csound,"::UDPCOM");
-    }
-    return OK;
+    //csoundJoinThread(p->thrid);
+    csound->DestroyGlobalVariable(csound,"::UDPCOM");
+  }
+  return OK;
 }
 
 int UDPServerStart(CSOUND *csound, int port){
-    UDPCOM *connection;
-    csound->CreateGlobalVariable(csound, "::UDPCOM", sizeof(UDPCOM));
-    connection = (UDPCOM *) csound->QueryGlobalVariable(csound, "::UDPCOM");
-    if (connection != NULL){
-      connection->port = port;
-      return udp_start(csound, connection);
-    }
-    else return NOTOK;
+  UDPCOM *connection;
+  csound->CreateGlobalVariable(csound, "::UDPCOM", sizeof(UDPCOM));
+  connection = (UDPCOM *) csound->QueryGlobalVariable(csound, "::UDPCOM");
+  if (connection != NULL){
+    connection->port = port;
+    return udp_start(csound, connection);
+  }
+  else return NOTOK;
 }
