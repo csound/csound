@@ -56,7 +56,7 @@ int schedule(CSOUND *csound, SCHED *p)
 
 static void add_string_arg(char *s, const char *arg) {
   int offs = strlen(s) ;
-  char *c = s;
+  //char *c = s;
   s += offs;
   *s++ = ' ';
 
@@ -105,6 +105,7 @@ int schedule_SN(CSOUND *csound, SCHED *p)
 	   add_string_arg(s, ((STRINGDAT *)arg)->data);
          else sprintf(s, "%s %f", s,  *arg);
     }
+    //printf("%s\n", s);
     csoundInputMessage(csound, s);
     return OK;
 }
