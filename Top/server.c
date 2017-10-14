@@ -45,7 +45,7 @@ typedef struct {
   struct sockaddr_in server_addr;
 } UDPCOM;
 
-#define MAXSTR 1024// 1048576 /* 1MB */
+#define MAXSTR 1048576 /* 1MB */
 
 
 int csoundCompileOrcAsync(CSOUND *, const char *);
@@ -61,21 +61,25 @@ static uintptr_t udp_recv(void *pdata){
 
   csound->Message(csound, "UDP server started on port %d \n",port);
   while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
-    printf("received %s:\n", orchestra);
+    //printf("received %s:\n", orchestra);
     if (csound->oparms->odebug)
       csound->Message(csound, "orchestra: \n%s\n", orchestra);
     if (strncmp("!!close!!",orchestra,9)==0 ||
 	strncmp("##close##",orchestra,9)==0) break;
-    if(*orchestra == '$')
+    if(*orchestra == '$') {
+      //printf("event: %s", orchestra+1);
       csoundInputMessageAsync(csound, orchestra+1);
+    }
     else if(*orchestra == '@') {
       char chn[128];
       MYFLT val;
-      sscanf(orchestra, "%s %f", chn, &val);
+      sscanf(orchestra+1, "%s", chn);
+      val = atof(orchestra+1+strlen(chn));
+      //printf("chn:%s val:%f \n", chn, val);
       csoundSetControlChannel(csound, chn, val);
     }
     else {
-      printf("%s", orchestra);
+      //printf("orch:\n%s", orchestra);
       csoundCompileOrcAsync(csound, orchestra);
     }
     memset(orchestra,0, MAXSTR);
