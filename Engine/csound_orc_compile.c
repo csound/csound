@@ -166,7 +166,7 @@ int tree_arg_list_count(TREE * root)
     }
     return count;
 }
- 
+
 /**
  * Returns last OPTXT of OPTXT chain optxt
  */
@@ -1437,10 +1437,10 @@ static char *node2string(int type)
 }
 
 /** Merge and Dispose of engine state and type table,
-   and run global i-time code 
+   and run global i-time code
 */
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
-		 TYPE_TABLE* typetable, OPDS *ids) {
+                 TYPE_TABLE* typetable, OPDS *ids) {
    if (csound->init_pass_threadlock)
        csoundLockMutex(csound->init_pass_threadlock);
     engineState_merge(csound, engineState);
@@ -1702,7 +1702,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
       return CSOUND_ERROR;
     }
 
-    
+
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound,engineState);
     if (engineState != &csound->engineState) {
@@ -1715,7 +1715,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
       merge_state(csound, engineState, typeTable, ids);
       csoundUnlockMutex(csound->API_lock);
       } else
-	mergeState_enqueue(csound, engineState, typeTable, ids);
+        mergeState_enqueue(csound, engineState, typeTable, ids);
     }
     else {
       /* first compilation */

@@ -2766,7 +2766,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
 
     if (UNLIKELY(p->audrem > 0 && !truncmsg && p->framesrem > ff->flen)) {
       /* Reduce msg */
-      csound->Warning(csound, Str("GEN1: aiff file truncated by ftable size"));
+      csound->Warning(csound, Str("GEN1: file truncated by ftable size"));
       csound->Warning(csound, Str("\taudio samps %d exceeds ftsize %d"),
                               (int32) p->framesrem, (int32) ff->flen);
       needsiz(csound, ff, p->framesrem);     /* ????????????  */
