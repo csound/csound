@@ -83,7 +83,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         break;
       default:
         switch (flag) {
-        case 'i':	 
+        case 'i':
           sscanf(s, "%d", &i);
           //printf("i: %d\n", i);
           if (LIKELY(i>=0 && i < INSMAX)) extractStatics->inslst[i] = 1;
@@ -91,7 +91,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
           all = 0;
           break;
         case 'f':
-	  //printf("f: %s\n", s);
+          //printf("f: %s\n", s);
 #if defined(USE_DOUBLE)
           CS_SSCANF(s, "%d:%lf", &extractStatics->onsect, &extractStatics->onbeat);
 #else
@@ -99,7 +99,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
 #endif
           break;
         case 't':
-	  //printf("t: %s\n");
+          //printf("t: %s\n");
           extractStatics->offsect = extractStatics->onsect; /* default offsect */
 #if defined(USE_DOUBLE)
           CS_SSCANF(s, "%d:%lf", &extractStatics->offsect,&extractStatics->offbeat);
@@ -249,4 +249,3 @@ static void include(EXTRACT_STATICS* extractStatics, SRTBLK *bp)
     bp->prvblk = extractStatics->prvout;      /* maintain the backptr      */
     extractStatics->prvout = bp;              /* and get ready for next    */
 }
-
