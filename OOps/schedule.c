@@ -66,7 +66,7 @@ static void add_string_arg(char *s, const char *arg) {
       *s++ = '\\';
     *s++ = *arg++;
   }
-  
+
   *s++ = '\"';
   *s = '\0';
   //printf("%s \n", c);
@@ -82,11 +82,11 @@ int schedule_N(CSOUND *csound, SCHED *p)
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
        if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S) {
-	   add_string_arg(s, ((STRINGDAT *)arg)->data);
+           add_string_arg(s, ((STRINGDAT *)arg)->data);
            //sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
        }
          else sprintf(s, "%s %f", s,  *arg);
-       
+
     }
     csoundInputMessage(csound, s);
     return OK;
@@ -102,7 +102,7 @@ int schedule_SN(CSOUND *csound, SCHED *p)
        MYFLT *arg = p->argums[i-4];
          if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
            //sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
-	   add_string_arg(s, ((STRINGDAT *)arg)->data);
+           add_string_arg(s, ((STRINGDAT *)arg)->data);
          else sprintf(s, "%s %f", s,  *arg);
     }
     //printf("%s\n", s);
