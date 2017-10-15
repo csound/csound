@@ -61,7 +61,7 @@ enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
 /* Message queue structure */
 typedef struct _message_queue {
   int64_t message;  /* message id */
-  char args[128];   /* space for 128 bytes of args, up to 16 8-byte-aligned */
+  char *args;   /* args, arg pointers */
   int64_t rtn;  /* return value */
 } message_queue_t;
 
@@ -97,6 +97,10 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
     csound->msg_queue = (message_queue_t *)
       csound->Calloc(csound, sizeof(message_queue_t)*API_MAX_QUEUE);
   csound->msg_queue[wp].message = message;
+  if(csound->msg_queue[wp].args != NULL)
+    csound->Free(csound, csound->msg_queue[wp].args);
+  csound->msg_queue[wp].args = (char *)
+      csound->Calloc(csound, argsiz);
   memcpy(csound->msg_queue[wp].args, args, argsiz);
   rtn = &csound->msg_queue[wp].rtn;
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -121,13 +125,12 @@ void message_dequeue(CSOUND *csound) {
 #else
     uint32_t wp = csound->msg_queue_wp;
 #endif
-    int64_t rtn;
+    int64_t rtn = 0;
     while(rp != wp) {
       switch(csound->msg_queue[rp].message) {
       case INPUT_MESSAGE:
         {
-          const char *str = *((char **)csound->msg_queue[rp].args);
-	  csound->Message(csound, "%s\n", str);
+          const char *str = csound->msg_queue[rp].args;
           csoundInputMessageInternal(csound, str);
 	  set_dequeue_flag(csound);
         }
@@ -135,7 +138,7 @@ void message_dequeue(CSOUND *csound) {
         break;
       case READ_SCORE:
 	{
-	  const char *str = *((char **)csound->msg_queue[rp].args);
+	  const char *str = csound->msg_queue[rp].args;
 	  rtn = csoundReadScoreInternal(csound, str);
 	  set_dequeue_flag(csound);
 	}
@@ -259,16 +262,12 @@ void message_dequeue(CSOUND *csound) {
 
 /* these are the message enqueueing functions for each relevant API function */
 static inline void csoundInputMessage_enqueue(CSOUND *csound,
-                                              const char *message){
-  char args[ARG_ALIGN];
-  memcpy(args, &message, sizeof(char *));
-  message_enqueue(csound,INPUT_MESSAGE, args, ARG_ALIGN);
+                                              const char *str){
+  message_enqueue(csound,INPUT_MESSAGE, (char *) str, strlen(str)+1);
 }
 
-static inline int64_t *csoundReadScore_enqueue(CSOUND *csound, const char *message){
-  char args[ARG_ALIGN];
-  memcpy(args, &message, sizeof(char *));
-  return message_enqueue(csound, READ_SCORE, args,ARG_ALIGN);
+static inline int64_t *csoundReadScore_enqueue(CSOUND *csound, const char *str){
+  return message_enqueue(csound, READ_SCORE, (char *) str, strlen(str)+1);
 }
 
 static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int table,
