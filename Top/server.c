@@ -46,7 +46,6 @@ typedef struct {
 } UDPCOM;
 
 #define MAXSTR 1048576 /* 1MB */
-#define MAXLNS 1024
 
 int csoundCompileOrcAsync(CSOUND *, const char *);
 int csoundInputMessageAsync(CSOUND *, const char *);
@@ -59,9 +58,7 @@ static uintptr_t udp_recv(void *pdata){
   CSOUND *csound = p->cs;
   int port = p->port;
   char *orchestra = csound->Calloc(csound, MAXSTR);
-  char *scoreline[MAXLNS];
-  memset(scoreline, 0, sizeof(char *)*MAXLNS);
-  int cnt = 0;
+
 
   csound->Message(csound, "UDP server started on port %d \n",port);
   while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
@@ -74,11 +71,7 @@ static uintptr_t udp_recv(void *pdata){
       break;
     }
     if(*orchestra == '$') {
-      if(scoreline[cnt] != NULL)
-	csound->Free(csound, scoreline[cnt]);
-      scoreline[cnt] = cs_strdup(csound, orchestra+1);
-      csoundInputMessageAsync(csound, scoreline[cnt]);
-      cnt = cnt != MAXLNS+1 ? cnt + 1 : 0;
+      csoundInputMessageAsync(csound, orchestra+1);
     }
     else if(*orchestra == '@') {
       char chn[128];
