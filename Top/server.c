@@ -69,7 +69,7 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr, int port, 
    }
     server_addr.sin_family = AF_INET;    /* it is an INET address */
 #if defined(WIN32) && !defined(__CYGWIN__)
-    sserver_addr.sin_addr.S_un.S_addr = inet_addr(addr);
+    server_addr.sin_addr.S_un.S_addr = inet_addr(addr);
 #else
     inet_aton(addr, &server_addr.sin_addr);    /* the server IP address */
 #endif
