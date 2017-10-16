@@ -34,8 +34,6 @@ typedef unsigned int u_int32_t;
 #include <arpa/inet.h>
 #endif
 
-
-
 typedef struct {
   int port;
   int     sock;
@@ -76,8 +74,6 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr, int port, 
           csound->Warning(csound,  Str("UDP: sock end failed"));
    }
 }
-
-
 
 
 static uintptr_t udp_recv(void *pdata){
