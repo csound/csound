@@ -24,7 +24,7 @@
 #include <stdio.h>
 int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 int csoundReadScoreInternal(CSOUND *csound, const char *str);
-  
+
 int compile_orc_i(CSOUND *csound, COMPILE *p){
     FILE *fp;
     size_t size=0;
