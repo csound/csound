@@ -2427,10 +2427,10 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
 
 
 void killInstance_enqueue(CSOUND *csound, MYFLT instr, int insno,
-					INSDS *ip, int mode,
-			  int allow_release);
+                          INSDS *ip, int mode,
+                          int allow_release);
 
-void killInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip, 
+void killInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip,
                          int mode, int allow_release) {
    INSDS *ip2 = NULL, *nip;
     do {                        /* This loop does not terminate in mode=0 */
@@ -2457,7 +2457,7 @@ void killInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip,
       }
       ip = nip;
     } while (ip != NULL && (int) ip->insno == insno);
-    
+
     if (ip2 != NULL) {
       if (allow_release) {
         xturnoff(csound, ip2);
@@ -2469,18 +2469,18 @@ void killInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip,
 }
 
 int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
-			       int mode, int allow_release, int async)
+                               int mode, int allow_release, int async)
 {
   INSDS *ip;
   int   insno;
-    
+
   if (instrName) {
     insno = named_instr_find(csound, instrName);
     instr = (MYFLT) insno;
   } else insno = instr;
 
   if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
-	       csound->engineState.instrtxtp[insno] == NULL)) {
+               csound->engineState.instrtxtp[insno] == NULL)) {
     return CSOUND_ERROR;
   }
 

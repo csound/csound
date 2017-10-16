@@ -528,17 +528,17 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
       csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
       res = csoundCompileOrcInternal(csound, NULL, 0);
       if (res == CSOUND_SUCCESS){
-	if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+        if ((csound->engineStatus & CS_STATE_COMP) != 0) {
           char *sc = scsortstr(csound, csound->scorestr);
-          if (sc) {   
+          if (sc) {
             if(csound->oparms->odebug)
               csound->Message(csound,
                               Str("Real-time score events (engineStatus: %d).\n"),
                               csound->engineStatus);
             csoundInputMessage(csound, (const char *) sc);
           }
-	} else {
-	    scsortstr(csound, csound->scorestr);
+        } else {
+            scsortstr(csound, csound->scorestr);
             if(csound->oparms->odebug)
               csound->Message(csound,
                               Str("Compiled score "
