@@ -33,6 +33,9 @@ are here, as well as many small internal improvements.
 
 - midiout_i which is like midiout, but works at i-rate.
 
+- chngetks and chnsetks -- versions of chnget and chnset for string
+channels that **only** run at perf-time.
+
 ### New Gen and Macros
 
 - gen53 (which has been in the code but not documented for years) is
@@ -120,15 +123,33 @@ were previously the parser accepted it but did not use it.
 
 - looptseg no longer crashes if presented with too few arguments.
 
+- schedule etc now work correctly with double-quoted strings within {{
+}} strings.
+
+- problem with CLI frontend interrupt handler fixed.
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
 
--
+- UDP Server now accepts some new commands, which are
+prefixed by an opcode. These include support for
+events (&<event>) and scores ($<score>); setting control channels
+(@<channel> <value>); setting string channels (%<channel> <string>));
+getting control channel values via UDP (:@<channel> <dest-address>
+<dest-port>) and string channel contents (:%<channel> <dest-address>
+<dest-port>).
 
 ### API
 
-- CompileCsdText now always returns a value indicating success/failure.
+- CompileCsdText now always returns a value indicating
+success/failure.
+
+- Eight new asynchronous versions of API functions now available:
+csoundCompileTreeAsync(), csoundCompileOrcAsync(),
+csoundReadScoreAsync(), csoundInputMessageAsync(),
+csoundScoreEventAsync(), csoundScoreEventAbsoluteAsync(),
+csoundTableCopyOutAsync(), and csoundTableCopyInAsync()
 
 ### Platform Specific
 
@@ -155,64 +176,12 @@ were previously the parser accepted it but did not use it.
 - OSX
 
 - GNU/Linux
+  ALSA MIDI backend now ignores some spurious -ENOENT error codes.
 
 ==END==
 
 
 ========================================================================
-commit 1191a12cf38048437286295297b55f9997e101e0 (HEAD -> develop, origin/develop)
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Oct 14 12:30:28 2017 +0100
-
-    server commands
-
-commit 6a708242f7f5061145bdb35b184f9d00a76d7f35
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Sat Oct 14 10:14:17 2017 +0100
-
-    faust opcodes build
-
-
-commit 418fd15f591d5333958c0bddf6417d02cd5a1316
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Fri Oct 13 16:15:06 2017 -0400
-
-    applied Albert Graef's change for ignoring of -ENOENT error code
-
-commit 321f81f7a8a763bf32b16690caae921785292474
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Oct 13 16:14:03 2017 +0100
-
-    return value from async functions
-
-commit 135361d543605efff197afd26531b932c2e90a58
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Oct 13 13:39:58 2017 +0100
-
-    lock free code completed, not fully tested, Async API functions also supplied
-
-commit 7a417d79b7aa4b1a8181f7eb524c36956456e6e7
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Oct 13 09:37:29 2017 +0100
-
-    asynchronous mechanism for compile and kill instance in place
-
-commit cb96b4e8f179be941398856d10587ae16e381249
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Oct 12 14:12:40 2017 +0100
-
-    async API functions
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Oct 12 11:43:42 2017 +0100
-
-    memory model for atomic in queue
-
-commit 9eaeecf51c3ef9d80e340cb1576d48f50e9089e4
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Oct 3 11:44:44 2017 +0100
-
-    chnget/set with k strings
 
 commit e39f570503b5628bf77034de9a3590fbf87bcd5c
 Author: gogins <michael.gogins@gmail.com>
@@ -238,8 +207,3 @@ Date:   Wed Aug 2 18:01:00 2017 +0100
 
     added setOption to CsoundObj.js
 
-commit 73db533a551dec4616c6f3195467b231eaeb033c
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jul 18 11:52:38 2017 +0100
-
-    interrupt handler in CLI csound fixed
