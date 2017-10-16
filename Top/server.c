@@ -47,10 +47,6 @@ typedef struct {
 
 #define MAXSTR 1048576 /* 1MB */
 
-int csoundCompileOrcAsync(CSOUND *, const char *);
-int csoundInputMessageAsync(CSOUND *, const char *);
-int csoundReadScoreAsync(CSOUND *, const char *);
-
 static void udp_socksend(CSOUND *csound, int *sock, const char *addr, int port, const char *msg) {
    struct sockaddr_in server_addr;
    if(*sock <= 0) {

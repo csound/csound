@@ -65,6 +65,7 @@ typedef struct _message_queue {
   int64_t rtn;  /* return value */
 } message_queue_t;
 
+/*
 static inline int check_dequeued(CSOUND *csound) {
 #ifdef HAVE_ATOMIC_BUILTIN
   return __atomic_load_n(&csound->msg_queue_flag, __ATOMIC_SEQ_CST);
@@ -80,6 +81,7 @@ static inline int get_rtn_code(int64_t *rtn) {
   return (int) *rtn;
 #endif
 }
+*/
 
 static inline void set_dequeue_flag(CSOUND *csound) {
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -447,10 +449,12 @@ void csoundInputMessageAsync(CSOUND *csound, const char *message){
   csoundInputMessage_enqueue(csound, message);
 }
 
-int csoundReadScoreAsync(CSOUND *csound, const char *message){
+void csoundReadScoreAsync(CSOUND *csound, const char *message){
   int64_t *rtn = csoundReadScore_enqueue(csound, message);
-  while(!check_dequeued(csound)) csoundSleep(1);
-  return get_rtn_code(rtn);
+  /* 
+   while(!check_dequeued(csound)) csoundSleep(1);
+     return get_rtn_code(rtn);
+  */
 }
 
 void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *ptable){
@@ -466,22 +470,26 @@ void csoundTableSetAsync(CSOUND *csound, int table, int index, MYFLT value)
   csoundTableSet_enqueue(csound, table, index, value);
 }
 
-int csoundScoreEventAsync(CSOUND *csound, char type,
+void csoundScoreEventAsync(CSOUND *csound, char type,
 			   const MYFLT *pfields, long numFields)
 {
   int64_t *rtn = csoundScoreEvent_enqueue(csound, type, pfields, numFields);
+  /*
   while(!check_dequeued(csound)) csoundSleep(1);
   return get_rtn_code(rtn);
+  */
 }
 
-int csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
+void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
 				   const MYFLT *pfields, long numFields,
 				   double time_ofs)
 {
   
   int64_t *rtn = csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
+  /*
   while(!check_dequeued(csound)) csoundSleep(1);
   return get_rtn_code(rtn);
+  */
 }
 
 int csoundCompileTreeAsync(CSOUND *csound, TREE *root) {
@@ -500,6 +508,7 @@ int csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
   return csoundKillInstanceInternal(csound, instr, instrName, mode, allow_release, async);
 }
 
+/*
 MYFLT csoundEvalCodeAsync(CSOUND *csound, const char *str)
 {
   int async = 1;
@@ -514,6 +523,7 @@ MYFLT csoundEvalCodeAsync(CSOUND *csound, const char *str)
   else return 0;
 #endif
 }
+*/
 
 /* VL: the following do not depend on API_lock
    therefore do not need to be in the message queue
