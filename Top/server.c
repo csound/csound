@@ -135,7 +135,7 @@ static uintptr_t udp_recv(void *pdata){
      if(*(orchestra+1) == '@') {
      val = csoundGetControlChannel(csound, chn, &err);
      msg = (char *) csound->Calloc(csound, strlen(chn) + 32);
-     sprintf(msg, "%s:%f", chn, val);
+     sprintf(msg, "%s::%f", chn, val);
      }
      else if (*(orchestra+1) == '%') {
       MYFLT  *pstring;
@@ -148,7 +148,7 @@ static uintptr_t udp_recv(void *pdata){
         msg = (char *) csound->Calloc(csound, strlen(chn) + size);
        if (lock != NULL)
           csoundSpinLock(lock);
-        sprintf(msg, "%s:%s", chn, stringdat->data);
+        sprintf(msg, "%s::%s", chn, stringdat->data);
        if (lock != NULL)
          csoundSpinUnLock(lock);
       } else err = -1;
