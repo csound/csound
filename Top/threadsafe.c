@@ -65,6 +65,7 @@ typedef struct _message_queue {
   int64_t rtn;  /* return value */
 } message_queue_t;
 
+/*
 static inline int check_dequeued(CSOUND *csound) {
 #ifdef HAVE_ATOMIC_BUILTIN
   return __atomic_load_n(&csound->msg_queue_flag, __ATOMIC_SEQ_CST);
@@ -80,6 +81,7 @@ static inline int get_rtn_code(int64_t *rtn) {
   return (int) *rtn;
 #endif
 }
+*/
 
 static inline void set_dequeue_flag(CSOUND *csound) {
 #ifdef HAVE_ATOMIC_BUILTIN
@@ -93,9 +95,20 @@ static inline void set_dequeue_flag(CSOUND *csound) {
 void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
   uint32_t wp = csound->msg_queue_wp;
   int64_t *rtn;
+  uint32_t items;
   if(csound->msg_queue == NULL)
     csound->msg_queue = (message_queue_t *)
       csound->Calloc(csound, sizeof(message_queue_t)*API_MAX_QUEUE);
+  
+  /* block if queue is full */
+  do {
+  #ifdef HAVE_ATOMIC_BUILTIN
+    items = __atomic_load_n (&csound->msg_queue_items, __ATOMIC_SEQ_CST);
+ #else
+    items = csound->msg_queue_items;
+#endif
+  } while(items >= API_MAX_QUEUE);
+    
   csound->msg_queue[wp].message = message;
   if(csound->msg_queue[wp].args != NULL)
     csound->Free(csound, csound->msg_queue[wp].args);
@@ -103,14 +116,15 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
       csound->Calloc(csound, argsiz);
   memcpy(csound->msg_queue[wp].args, args, argsiz);
   rtn = &csound->msg_queue[wp].rtn;
+  
 #ifdef HAVE_ATOMIC_BUILTIN
-  __atomic_store_n(&csound->msg_queue_wp,  wp != API_MAX_QUEUE ? wp + 1 : 0,
-		   __ATOMIC_SEQ_CST);
+  __atomic_add_fetch(&csound->msg_queue_items, 1, __ATOMIC_SEQ_CST);
   __atomic_store_n(&csound->msg_queue_flag, 0, __ATOMIC_SEQ_CST);
 #else
+  csound->msg_queue_items++;
   csound->msg_queue_flag = 0;
-  csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
 #endif
+  csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
   return (void *) rtn;
 }
 
@@ -120,13 +134,14 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
 void message_dequeue(CSOUND *csound) {
   if(csound->msg_queue != NULL) {
     uint32_t rp = csound->msg_queue_rp;
-#ifdef HAVE_ATOMIC_BUILTIN
-    uint32_t wp = __atomic_load_n(&csound->msg_queue_wp, __ATOMIC_SEQ_CST);
-#else
-    uint32_t wp = csound->msg_queue_wp;
-#endif
     int64_t rtn = 0;
-    while(rp != wp) {
+    uint32_t items;
+#ifdef HAVE_ATOMIC_BUILTIN
+    items = __atomic_load_n (&csound->msg_queue_items, __ATOMIC_SEQ_CST);
+ #else
+    items = csound->msg_queue_items;
+#endif
+    while(items) {
       switch(csound->msg_queue[rp].message) {
       case INPUT_MESSAGE:
         {
@@ -246,13 +261,16 @@ void message_dequeue(CSOUND *csound) {
         break;  
       }
       csound->msg_queue[rp].message = 0;
+      rp = rp != API_MAX_QUEUE ? rp + 1 : 0;
 #ifdef HAVE_ATOMIC_BUILTIN
       __atomic_store_n(&csound->msg_queue[rp].rtn, rtn,
 		       __ATOMIC_SEQ_CST);
+      items = __atomic_sub_fetch(&csound->msg_queue_items, 1,
+      __ATOMIC_SEQ_CST);
 #else
       csound->msg_queue[rp].rtn = rtn;
-#endif
-      rp = rp != API_MAX_QUEUE ? rp + 1 : 0;
+      items = --csound->msg_queue_items;
+#endif      
     }
     csound->msg_queue_rp = rp;
   }
@@ -447,10 +465,12 @@ void csoundInputMessageAsync(CSOUND *csound, const char *message){
   csoundInputMessage_enqueue(csound, message);
 }
 
-int csoundReadScoreAsync(CSOUND *csound, const char *message){
-  int64_t *rtn = csoundReadScore_enqueue(csound, message);
-  while(!check_dequeued(csound)) csoundSleep(1);
-  return get_rtn_code(rtn);
+void csoundReadScoreAsync(CSOUND *csound, const char *message){
+  csoundReadScore_enqueue(csound, message);
+  /* 
+   while(!check_dequeued(csound)) csoundSleep(1);
+     return get_rtn_code(rtn);
+  */
 }
 
 void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *ptable){
@@ -466,22 +486,26 @@ void csoundTableSetAsync(CSOUND *csound, int table, int index, MYFLT value)
   csoundTableSet_enqueue(csound, table, index, value);
 }
 
-int csoundScoreEventAsync(CSOUND *csound, char type,
+void csoundScoreEventAsync(CSOUND *csound, char type,
 			   const MYFLT *pfields, long numFields)
 {
-  int64_t *rtn = csoundScoreEvent_enqueue(csound, type, pfields, numFields);
+  csoundScoreEvent_enqueue(csound, type, pfields, numFields);
+  /*
   while(!check_dequeued(csound)) csoundSleep(1);
   return get_rtn_code(rtn);
+  */
 }
 
-int csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
+void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
 				   const MYFLT *pfields, long numFields,
 				   double time_ofs)
 {
   
-  int64_t *rtn = csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
+  csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
+  /*
   while(!check_dequeued(csound)) csoundSleep(1);
   return get_rtn_code(rtn);
+  */
 }
 
 int csoundCompileTreeAsync(CSOUND *csound, TREE *root) {
@@ -500,6 +524,7 @@ int csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
   return csoundKillInstanceInternal(csound, instr, instrName, mode, allow_release, async);
 }
 
+/*
 MYFLT csoundEvalCodeAsync(CSOUND *csound, const char *str)
 {
   int async = 1;
@@ -514,6 +539,7 @@ MYFLT csoundEvalCodeAsync(CSOUND *csound, const char *str)
   else return 0;
 #endif
 }
+*/
 
 /* VL: the following do not depend on API_lock
    therefore do not need to be in the message queue
