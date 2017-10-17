@@ -1330,7 +1330,7 @@ class Csound:
     
     def readScoreAsync(self, sco):
         """Asynchronous version of readScore()."""
-        return libcsound.csoundReadScoreAsync(self.cs, cstring(sco))
+        libcsound.csoundReadScoreAsync(self.cs, cstring(sco))
     
     def scoreTime(self):
         """Returns the current score time.
@@ -1719,7 +1719,7 @@ class Csound:
         p = np.array(pFields).astype(MYFLT)
         ptr = p.ctypes.data_as(POINTER(MYFLT))
         numFields = c_long(p.size)
-        return libcsound.csoundScoreEventAsync(self.cs, cchar(type_), ptr, numFields)
+        libcsound.csoundScoreEventAsync(self.cs, cchar(type_), ptr, numFields)
     
     def scoreEventAbsolute(self, type_, pFields, timeOffset):
         """Like scoreEvent(), this function inserts a score event.
@@ -1737,7 +1737,7 @@ class Csound:
         p = np.array(pFields).astype(MYFLT)
         ptr = p.ctypes.data_as(POINTER(MYFLT))
         numFields = c_long(p.size)
-        return libcsound.csoundScoreEventAbsoluteAsync(self.cs, cchar(type_), ptr, numFields, c_double(timeOffset))
+        libcsound.csoundScoreEventAbsoluteAsync(self.cs, cchar(type_), ptr, numFields, c_double(timeOffset))
     
     def inputMessage(self, message):
         """Input a NULL-terminated string (as if from a console).
