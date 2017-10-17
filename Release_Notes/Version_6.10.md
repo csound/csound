@@ -124,7 +124,11 @@ were previously the parser accepted it but did not use it.
 
 ### System Changes
 
--
+- The GNU Lesser General Public License, version 2.1, for CsoundVST
+and the vst4cs opcodes has been modified to grant an exception for
+compiling and linking with the VST2 SDK, which is available from
+[https://github.com/steinbergmedia/vst3sdk]. For more information, see
+[https://github.com/csound/csound/blob/develop/Opcodes/vst4cs/licensing_considerations_for_csoundvst_and_vst4cs.md].
 
 ### API
 
@@ -172,7 +176,6 @@ Date:   Sat Oct 14 10:14:17 2017 +0100
 
     faust opcodes build
 
-
 commit 418fd15f591d5333958c0bddf6417d02cd5a1316
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Fri Oct 13 16:15:06 2017 -0400
@@ -213,12 +216,6 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Tue Oct 3 11:44:44 2017 +0100
 
     chnget/set with k strings
-
-commit e39f570503b5628bf77034de9a3590fbf87bcd5c
-Author: gogins <michael.gogins@gmail.com>
-Date:   Sat Sep 23 21:29:08 2017 -0400
-
-    Trying to get VST features building on AppVeyor (#793).
 
 commit da9dfebca45abfc80b41260725bd4ff17becfcce
 Author: Michael Gogins <michael.gogins@gmail.com>
