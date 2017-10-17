@@ -95,9 +95,20 @@ static inline void set_dequeue_flag(CSOUND *csound) {
 void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
   uint32_t wp = csound->msg_queue_wp;
   int64_t *rtn;
+  uint32_t items;
   if(csound->msg_queue == NULL)
     csound->msg_queue = (message_queue_t *)
       csound->Calloc(csound, sizeof(message_queue_t)*API_MAX_QUEUE);
+  
+  /* block if queue is full */
+  do {
+  #ifdef HAVE_ATOMIC_BUILTIN
+    items = __atomic_load_n (&csound->msg_queue_items, __ATOMIC_SEQ_CST);
+ #else
+    items = csound->msg_queue_items;
+#endif
+  } while(items >= API_MAX_QUEUE);
+    
   csound->msg_queue[wp].message = message;
   if(csound->msg_queue[wp].args != NULL)
     csound->Free(csound, csound->msg_queue[wp].args);
@@ -105,14 +116,15 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
       csound->Calloc(csound, argsiz);
   memcpy(csound->msg_queue[wp].args, args, argsiz);
   rtn = &csound->msg_queue[wp].rtn;
+  
 #ifdef HAVE_ATOMIC_BUILTIN
-  __atomic_store_n(&csound->msg_queue_wp,  wp != API_MAX_QUEUE ? wp + 1 : 0,
-		   __ATOMIC_SEQ_CST);
+  __atomic_add_fetch(&csound->msg_queue_items, 1, __ATOMIC_SEQ_CST);
   __atomic_store_n(&csound->msg_queue_flag, 0, __ATOMIC_SEQ_CST);
 #else
+  csound->msg_queue_items++;
   csound->msg_queue_flag = 0;
-  csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
 #endif
+  csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
   return (void *) rtn;
 }
 
@@ -122,15 +134,14 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
 void message_dequeue(CSOUND *csound) {
   if(csound->msg_queue != NULL) {
     uint32_t rp = csound->msg_queue_rp;
-
     int64_t rtn = 0;
-    while(rp !=
+    uint32_t items;
 #ifdef HAVE_ATOMIC_BUILTIN
-    __atomic_load_n(&csound->msg_queue_wp, __ATOMIC_SEQ_CST)
-#else
-    csound->msg_queue_wp
+    items = __atomic_load_n (&csound->msg_queue_items, __ATOMIC_SEQ_CST);
+ #else
+    items = csound->msg_queue_items;
 #endif
-	  ) {
+    while(items) {
       switch(csound->msg_queue[rp].message) {
       case INPUT_MESSAGE:
         {
@@ -250,13 +261,16 @@ void message_dequeue(CSOUND *csound) {
         break;  
       }
       csound->msg_queue[rp].message = 0;
+      rp = rp != API_MAX_QUEUE ? rp + 1 : 0;
 #ifdef HAVE_ATOMIC_BUILTIN
       __atomic_store_n(&csound->msg_queue[rp].rtn, rtn,
 		       __ATOMIC_SEQ_CST);
+      items = __atomic_sub_fetch(&csound->msg_queue_items, 1,
+      __ATOMIC_SEQ_CST);
 #else
       csound->msg_queue[rp].rtn = rtn;
-#endif
-      rp = rp != API_MAX_QUEUE ? rp + 1 : 0;
+      items = --csound->msg_queue_items;
+#endif      
     }
     csound->msg_queue_rp = rp;
   }
@@ -452,7 +466,7 @@ void csoundInputMessageAsync(CSOUND *csound, const char *message){
 }
 
 void csoundReadScoreAsync(CSOUND *csound, const char *message){
-  int64_t *rtn = csoundReadScore_enqueue(csound, message);
+  csoundReadScore_enqueue(csound, message);
   /* 
    while(!check_dequeued(csound)) csoundSleep(1);
      return get_rtn_code(rtn);
@@ -475,7 +489,7 @@ void csoundTableSetAsync(CSOUND *csound, int table, int index, MYFLT value)
 void csoundScoreEventAsync(CSOUND *csound, char type,
 			   const MYFLT *pfields, long numFields)
 {
-  int64_t *rtn = csoundScoreEvent_enqueue(csound, type, pfields, numFields);
+  csoundScoreEvent_enqueue(csound, type, pfields, numFields);
   /*
   while(!check_dequeued(csound)) csoundSleep(1);
   return get_rtn_code(rtn);
@@ -487,7 +501,7 @@ void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
 				   double time_ofs)
 {
   
-  int64_t *rtn = csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
+  csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
   /*
   while(!check_dequeued(csound)) csoundSleep(1);
   return get_rtn_code(rtn);
