@@ -122,13 +122,15 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
 void message_dequeue(CSOUND *csound) {
   if(csound->msg_queue != NULL) {
     uint32_t rp = csound->msg_queue_rp;
-#ifdef HAVE_ATOMIC_BUILTIN
-    uint32_t wp = __atomic_load_n(&csound->msg_queue_wp, __ATOMIC_SEQ_CST);
-#else
-    uint32_t wp = csound->msg_queue_wp;
-#endif
+
     int64_t rtn = 0;
-    while(rp != wp) {
+    while(rp !=
+#ifdef HAVE_ATOMIC_BUILTIN
+    __atomic_load_n(&csound->msg_queue_wp, __ATOMIC_SEQ_CST)
+#else
+    csound->msg_queue_wp
+#endif
+	  ) {
       switch(csound->msg_queue[rp].message) {
       case INPUT_MESSAGE:
         {
