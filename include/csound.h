@@ -690,6 +690,12 @@ extern "C" {
   PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
 
   /**
+   * Asynchronous version of csoundCompileTree()
+   */
+  PUBLIC int csoundCompileTreeAsync(CSOUND *csound, TREE *root);
+
+
+  /**
    * Free the resources associated with the TREE *tree
    * This function should be called whenever the TREE was
    * created with csoundParseOrc and memory can be deallocated.
@@ -706,6 +712,14 @@ extern "C" {
    * /endcode
    */
   PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
+
+   /**
+   *  Async version of csoundCompileOrc(). The code is parsed and
+   *  compiled, then placed on a queue for 
+   *  asynchronous merge into the running engine, and evaluation.
+   *  The function returns following parsing and compilation.
+   */
+  PUBLIC int csoundCompileOrcAsync(CSOUND *csound, const char *str);
 
   /**
    *   Parse and compile an orchestra given on an string,
@@ -1352,6 +1366,11 @@ extern "C" {
    */
   PUBLIC int csoundReadScore(CSOUND *csound, const char *str);
 
+   /**
+   *  Asynchronous version of csoundReadScore(). 
+   */
+  PUBLIC void csoundReadScoreAsync(CSOUND *csound, const char *str);
+
   /**
    * Returns the current score time in seconds
    * since the beginning of performance.
@@ -1709,6 +1728,12 @@ extern "C" {
                               char type, const MYFLT *pFields, long numFields);
 
   /**
+   *  Asynchronous version of csoundScoreEvent(). 
+   */
+  PUBLIC void csoundScoreEventAsync(CSOUND *,
+                              char type, const MYFLT *pFields, long numFields);
+
+  /**
    * Like csoundScoreEvent(), this function inserts a score event, but
    * at absolute time with respect to the start of performance, or from an
    * offset set with time_ofs
@@ -1717,11 +1742,21 @@ extern "C" {
                  char type, const MYFLT *pfields, long numFields, double time_ofs);
 
   /**
+   *  Asynchronous version of csoundScoreEventAbsolute(). 
+   */
+  PUBLIC void csoundScoreEventAbsoluteAsync(CSOUND *,
+                 char type, const MYFLT *pfields, long numFields, double time_ofs);
+  /**
    * Input a NULL-terminated string (as if from a console),
    * used for line events.
    */
   PUBLIC void csoundInputMessage(CSOUND *, const char *message);
 
+  /**
+   * Asynchronous version of csoundInputMessage().
+   */
+  PUBLIC void csoundInputMessageAsync(CSOUND *, const char *message);
+ 
   /**
    * Kills off one or more running instances of an instrument identified
    * by instr (number) or instrName (name). If instrName is NULL, the
@@ -1839,12 +1874,21 @@ extern "C" {
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *dest);
 
+  /** 
+   * Asynchronous version of csoundTableCopyOut()
+   */
+  PUBLIC void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *dest);
   /**
    * Copy the contents of an array *src into a given function table
    * The table number is assumed to be valid, and the table needs to
    * have sufficient space to receive all the array contents.
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
+
+  /** 
+   * Asynchronous version of csoundTableCopyIn()
+   */
+  PUBLIC void csoundTableCopyInAsync(CSOUND *csound, int table, MYFLT *src);
 
   /**
    * Stores pointer to function table 'tableNum' in *tablePtr,
