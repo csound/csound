@@ -182,8 +182,10 @@ libcsound.csoundParseOrc.restype = c_void_p
 libcsound.csoundParseOrc.argtypes = [c_void_p, c_char_p]
 
 libcsound.csoundCompileTree.argtypes = [c_void_p, c_void_p]
+libcsound.csoundCompileTreeAsync.argtypes = [c_void_p, c_void_p]
 libcsound.csoundDeleteTree.argtypes = [c_void_p, c_void_p]
 libcsound.csoundCompileOrc.argtypes = [c_void_p, c_char_p]
+libcsound.csoundCompileOrcAsync.argtypes = [c_void_p, c_char_p]
 
 libcsound.csoundEvalCode.restype = MYFLT
 libcsound.csoundEvalCode.argtypes = [c_void_p, c_char_p]
@@ -297,6 +299,7 @@ MIDIDEVLISTFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(CsoundMidiDevice), c_int)
 libcsound.csoundSetMIDIDeviceListCallback.argtypes = [c_void_p, MIDIDEVLISTFUNC]
 
 libcsound.csoundReadScore.argtypes = [c_void_p, c_char_p]
+libcsound.csoundReadScoreAsync.argtypes = [c_void_p, c_char_p]
 libcsound.csoundGetScoreTime.restype = c_double
 libcsound.csoundGetScoreTime.argtypes = [c_void_p]
 libcsound.csoundIsScorePending.argtypes = [c_void_p]
@@ -341,8 +344,11 @@ libcsound.csoundSetOutputChannelCallback.argtypes = [c_void_p, CHANNELFUNC]
 libcsound.csoundSetPvsChannel.argtypes = [c_void_p, POINTER(PvsdatExt), c_char_p]
 libcsound.csoundGetPvsChannel.argtypes = [c_void_p, POINTER(PvsdatExt), c_char_p]
 libcsound.csoundScoreEvent.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long]
+libcsound.csoundScoreEventAsync.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long]
 libcsound.csoundScoreEventAbsolute.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long, c_double]
+libcsound.csoundScoreEventAbsoluteAsync.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long, c_double]
 libcsound.csoundInputMessage.argtypes = [c_void_p, c_char_p]
+libcsound.csoundInputMessageAsync.argtypes = [c_void_p, c_char_p]
 libcsound.csoundKillInstance.argtypes = [c_void_p, MYFLT, c_char_p, c_int, c_int]
 SENSEFUNC = CFUNCTYPE(None, c_void_p, py_object)
 libcsound.csoundRegisterSenseEventCallback.argtypes = [c_void_p, SENSEFUNC, py_object]
@@ -356,7 +362,9 @@ libcsound.csoundTableGet.restype = MYFLT
 libcsound.csoundTableGet.argtypes = [c_void_p, c_int, c_int]
 libcsound.csoundTableSet.argtypes = [c_void_p, c_int, c_int, MYFLT]
 libcsound.csoundTableCopyOut.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
+libcsound.csoundTableCopyOutAsync.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
 libcsound.csoundTableCopyIn.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
+libcsound.csoundTableCopyInAsync.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
 libcsound.csoundGetTable.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_int]
 libcsound.csoundGetTableArgs.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_int]
 libcsound.csoundIsNamedGEN.argtypes = [c_void_p, c_int]
@@ -682,6 +690,10 @@ class Csound:
         """
         return libcsound.csoundCompileTree(self.cs, tree)
     
+    def compileTreeAsync(self, tree):
+        """Asynchronous version of compileTree()."""
+        return libcsound.csoundCompileTreeAsync(self.cs, tree)
+    
     def deleteTree(self, tree):
         """Free the resources associated with the TREE tree.
         
@@ -700,6 +712,15 @@ class Csound:
             cs.compileOrc(orc)
         """
         return libcsound.csoundCompileOrc(self.cs, cstring(orc))
+    
+    def compileOrcAsync(self, orc):
+        """Async version of compileOrc().
+        
+        The code is parsed and compiled, then placed on a queue for
+        asynchronous merge into the running engine, and evaluation.
+        The function returns following parsing and compilation.
+        """
+        return libcsound.csoundCompileOrcAsync(self.cs, cstring(orc))
     
     def evalCode(self, code):
         """Parse and compile an orchestra given on an string.
@@ -1307,6 +1328,10 @@ class Csound:
         """
         return libcsound.csoundReadScore(self.cs, cstring(sco))
     
+    def readScoreAsync(self, sco):
+        """Asynchronous version of readScore()."""
+        return libcsound.csoundReadScoreAsync(self.cs, cstring(sco))
+    
     def scoreTime(self):
         """Returns the current score time.
         
@@ -1689,6 +1714,13 @@ class Csound:
         numFields = c_long(p.size)
         return libcsound.csoundScoreEvent(self.cs, cchar(type_), ptr, numFields)
     
+    def scoreEventAsync(self, type_, pFields):
+        """Asynchronous version of scoreEvent()."""
+        p = np.array(pFields).astype(MYFLT)
+        ptr = p.ctypes.data_as(POINTER(MYFLT))
+        numFields = c_long(p.size)
+        return libcsound.csoundScoreEventAsync(self.cs, cchar(type_), ptr, numFields)
+    
     def scoreEventAbsolute(self, type_, pFields, timeOffset):
         """Like scoreEvent(), this function inserts a score event.
         
@@ -1700,12 +1732,23 @@ class Csound:
         numFields = c_long(p.size)
         return libcsound.csoundScoreEventAbsolute(self.cs, cchar(type_), ptr, numFields, c_double(timeOffset))
     
+    def scoreEventAbsoluteAsync(self, type_, pFields, timeOffset):
+        """Asynchronous version of scoreEventAbsolute()."""
+        p = np.array(pFields).astype(MYFLT)
+        ptr = p.ctypes.data_as(POINTER(MYFLT))
+        numFields = c_long(p.size)
+        return libcsound.csoundScoreEventAbsoluteAsync(self.cs, cchar(type_), ptr, numFields, c_double(timeOffset))
+    
     def inputMessage(self, message):
         """Input a NULL-terminated string (as if from a console).
         
         Used for line events.
         """
         libcsound.csoundInputMessage(self.cs, cstring(message))
+    
+    def inputMessageAsync(self, message):
+        """Asynchronous version of inputMessage()."""
+        libcsound.csoundInputMessageAsync(self.cs, cstring(message))
     
     def killInstance(self, instr, instrName, mode, allowRelease):
         """Kills off one or more running instances of an instrument.
@@ -1826,6 +1869,11 @@ class Csound:
         ptr = dest.ctypes.data_as(POINTER(MYFLT))
         libcsound.csoundTableCopyOut(self.cs, table, ptr)
     
+    def tableCopyOutAsync(self, table, dest):
+        """Asynchronous version of tableCopyOut()."""
+        ptr = dest.ctypes.data_as(POINTER(MYFLT))
+        libcsound.csoundTableCopyOutAsync(self.cs, table, ptr)
+    
     def tableCopyIn(self, table, src):
         """Copy the contents of an ndarray src into a given function table.
         
@@ -1834,6 +1882,11 @@ class Csound:
         """
         ptr = src.ctypes.data_as(POINTER(MYFLT))
         libcsound.csoundTableCopyIn(self.cs, table, ptr)
+    
+    def tableCopyInAsync(self, table, src):
+        """Asynchronous version of tableCopyIn()."""
+        ptr = src.ctypes.data_as(POINTER(MYFLT))
+        libcsound.csoundTableCopyInAsync(self.cs, table, ptr)
     
     def table(self, tableNum):
         """Return a pointer to function table 'tableNum' as an ndarray.
