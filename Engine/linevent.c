@@ -281,9 +281,9 @@ static void sensLine(CSOUND *csound, void *userData)
               //  csound->ErrorMsg(csound, Str("unmatched quotes"));
               //  goto Lerr;
               //}
-	      if(c == '\\') { cp++; c = *cp;}
+              if(c == '\\') { cp++; c = *cp;}
               sstrp[n++] = c;                   /*   save in private strbuf */
-	      
+
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
                 e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
                 sstrp = e.strarg+n;
@@ -299,7 +299,7 @@ static void sensLine(CSOUND *csound, void *userData)
               e.p[pcnt] = ch.d;           /* set as string with count */
             }
             e.scnt = scnt;
-	    //printf("string: %s \n", sstrp);
+            //printf("string: %s \n", sstrp);
             continue;
           }
           if (UNLIKELY(!(isdigit(c) || c == '+' || c == '-' || c == '.')))
