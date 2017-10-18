@@ -903,11 +903,11 @@ static const CSOUND cenviron_ = {
     0,              /* tseglen */
     1,              /* inZero */
     NULL,           /* msg_queue */
-    0,              /* msg_queue_wp */
-    0,              /* msg_queue_rp */
-    0,              /* msg_queue_flag */
+    0,              /* msg_queue_wget */
+    0,              /* msg_queue_wput */
+    0,              /* msg_queue_rstart */
+    0,              /* msg_queue_rend */
     0,              /* msg_queue_items */
-    0               /* state_merge_flag */
     /*, NULL */           /* self-reference */
 };
 
