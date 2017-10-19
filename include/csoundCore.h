@@ -1756,12 +1756,12 @@ typedef struct NAME__ {
     CS_HASH_TABLE* symbtab;
     int           tseglen;
     int           inZero;       /* flag compilation of instr0 */
-    struct _message_queue *msg_queue;
-    uint32_t msg_queue_wp;
-    uint32_t msg_queue_rp;
-    uint32_t msg_queue_flag;
-    uint32_t msg_queue_items;
-    uint32_t state_merge_flag;
+    struct _message_queue **msg_queue;
+    volatile long msg_queue_wget; /* Writer - Get index */
+    volatile long msg_queue_wput; /* Writer - Put Index */
+    volatile long msg_queue_rstart; /* Reader - start index */
+    volatile long msg_queue_rend; /* Reader - end index */
+    volatile long msg_queue_items;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
