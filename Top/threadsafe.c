@@ -66,6 +66,7 @@ typedef struct _message_queue {
 } message_queue_t;
 
 
+
 static long atomicGetAndIncrementWithModulus(volatile long* val, long mod) {
 
   volatile long oldVal, newVal; 
@@ -74,8 +75,10 @@ static long atomicGetAndIncrementWithModulus(volatile long* val, long mod) {
     newVal = (oldVal + 1) % mod;
 #ifdef HAVE_ATOMIC_BUILTIN
   } while (!__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST));
-#else
+#elif defined(MSVC)
 } while (InterlockedCompareExchange(val, newVal, oldVal) != oldVal);
+#else /* FIXME: no atomics, what to do? */
+} while (newVal != oldVal);
 #endif
 
 return oldVal;
@@ -131,7 +134,6 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
 #else
     csound->msg_queue_items++;
 #endif
-    //  csound->msg_queue_wp = wp != API_MAX_QUEUE ? wp + 1 : 0;
     return (void *) rtn;
   }
   else return NULL;
@@ -281,8 +283,6 @@ void message_dequeue(CSOUND *csound) {
     }
     csound->msg_queue_rstart = rp % API_MAX_QUEUE;
   }
-  
-
 }
 
 /* these are the message enqueueing functions for each relevant API function */
