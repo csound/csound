@@ -45,7 +45,8 @@ typedef struct {
 
 #define MAXSTR 1048576 /* 1MB */
 
-static void udp_socksend(CSOUND *csound, int *sock, const char *addr, int port, const char *msg) {
+static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
+                         int port, const char *msg) {
    struct sockaddr_in server_addr;
    if(*sock <= 0) {
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -69,9 +70,10 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr, int port, 
 #endif
    server_addr.sin_port = htons((int) port);    /* the port */
 
-   if (UNLIKELY(sendto(*sock, (void*) msg, strlen(msg)+1, 0, (const struct sockaddr *) &server_addr,
-                            sizeof(server_addr)) < 0)) {
-          csound->Warning(csound,  Str("UDP: sock end failed"));
+   if (UNLIKELY(sendto(*sock, (void*) msg, strlen(msg)+1, 0,
+                       (const struct sockaddr *) &server_addr,
+                       sizeof(server_addr)) < 0)) {
+     csound->Warning(csound,  Str("UDP: sock end failed"));
    }
 }
 
@@ -86,13 +88,13 @@ static uintptr_t udp_recv(void *pdata){
   int sock = 0;
 
 
-  csound->Message(csound, "UDP server started on port %d \n",port);
+  csound->Message(csound, Str("UDP server started on port %d \n"),port);
   while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
     if(strlen(orchestra) < 2) continue;
     if (csound->oparms->odebug)
       csound->Message(csound, "message: \n%s\n", orchestra);
     if (strncmp("!!close!!",orchestra,9)==0 ||
-	strncmp("##close##",orchestra,9)==0) {
+        strncmp("##close##",orchestra,9)==0) {
       csoundInputMessageAsync(csound, "e 0 0");
       break;
     }
@@ -109,7 +111,7 @@ static uintptr_t udp_recv(void *pdata){
       val = atof(orchestra+1+strlen(chn));
       csoundSetControlChannel(csound, chn, val);
     }
-   else if(*orchestra == '%') {
+    else if(*orchestra == '%') {
       char chn[128];
       char *str;
       sscanf(orchestra+1, "%s", chn);
@@ -117,48 +119,52 @@ static uintptr_t udp_recv(void *pdata){
       csoundSetStringChannel(csound, chn, str);
       csound->Free(csound, str);
     }
-   else if(*orchestra == ':') {
-     char addr[128], chn[128], *msg;
-     int sport, err;
-     MYFLT val;
-     sscanf(orchestra+2, "%s", chn);
-     sscanf(orchestra+2+strlen(chn), "%s", addr);
-     sport = atoi(orchestra+3+strlen(addr)+strlen(chn));
-     if(*(orchestra+1) == '@') {
-     val = csoundGetControlChannel(csound, chn, &err);
-     msg = (char *) csound->Calloc(csound, strlen(chn) + 32);
-     sprintf(msg, "%s::%f", chn, val);
-     }
-     else if (*(orchestra+1) == '%') {
-      MYFLT  *pstring;
-      if (csoundGetChannelPtr(csound, &pstring, chn,
-                          CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
-          == CSOUND_SUCCESS) {
-        STRINGDAT* stringdat = (STRINGDAT*) pstring;
-        int size = stringdat->size;
-	int *lock = csoundGetChannelLock(csound, (char*) chn);
-        msg = (char *) csound->Calloc(csound, strlen(chn) + size);
-       if (lock != NULL)
-          csoundSpinLock(lock);
-        sprintf(msg, "%s::%s", chn, stringdat->data);
-       if (lock != NULL)
-         csoundSpinUnLock(lock);
-      } else err = -1;
-     }
-     else err = -1;
-     if(!err) udp_socksend(csound, &sock, addr, sport,msg);
-     else csound->Warning(csound, "csould not retrieve channel %s", chn);
-     csound->Free(csound, msg);
-   }
+    else if(*orchestra == ':') {
+      char addr[128], chn[128], *msg;
+      int sport, err;
+      MYFLT val;
+      sscanf(orchestra+2, "%s", chn);
+      sscanf(orchestra+2+strlen(chn), "%s", addr);
+      sport = atoi(orchestra+3+strlen(addr)+strlen(chn));
+      if(*(orchestra+1) == '@') {
+        val = csoundGetControlChannel(csound, chn, &err);
+        msg = (char *) csound->Calloc(csound, strlen(chn) + 32);
+        sprintf(msg, "%s::%f", chn, val);
+      }
+      else if (*(orchestra+1) == '%') {
+        MYFLT  *pstring;
+        if (csoundGetChannelPtr(csound, &pstring, chn,
+                                CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+            == CSOUND_SUCCESS) {
+          STRINGDAT* stringdat = (STRINGDAT*) pstring;
+          int size = stringdat->size;
+          int *lock = csoundGetChannelLock(csound, (char*) chn);
+          msg = (char *) csound->Calloc(csound, strlen(chn) + size);
+          if (lock != NULL)
+            csoundSpinLock(lock);
+          sprintf(msg, "%s::%s", chn, stringdat->data);
+          if (lock != NULL)
+            csoundSpinUnLock(lock);
+        } else err = -1;
+      }
+      else err = -1;
+      if(!err) {
+        udp_socksend(csound, &sock, addr, sport,msg);
+        csound->Free(csound, msg);
+      }
+      else
+        csound->Warning(csound, Str("csould not retrieve channel %s"), chn);
+
+    }
     else {
       csoundCompileOrcAsync(csound, orchestra);
     }
   }
-  csound->Message(csound, "UDP server on port %d stopped\n",port);
+  csound->Message(csound, Str("UDP server on port %d stopped\n"),port);
   csound->Free(csound, orchestra);
   // csound->Message(csound, "orchestra dealloc\n");
   if(sock > 0)
-    #ifndef WIN32
+#ifndef WIN32
     close(p->sock);
 #else
     closesocket(p->sock);
@@ -189,7 +195,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   p->server_addr.sin_port = htons((int) p->port);    /* the port */
   /* associate the socket with the address and port */
   if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-		    sizeof(p->server_addr)) < 0)) {
+                    sizeof(p->server_addr)) < 0)) {
     csound->Warning(csound, Str("bind failed"));
     p->thrid = NULL;
     return NOTOK;
