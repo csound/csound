@@ -33,21 +33,22 @@
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
 
-extern int UDPServerStart(CSOUND *csound, int port);
-extern  CS_NORETURN void    dieu(CSOUND *, char *, ...);
-extern  int     argdecode(CSOUND *, int, const char **);
-extern  int     init_pvsys(CSOUND *);
-//extern  char    *get_sconame(CSOUND *);
-extern  void    print_benchmark_info(CSOUND *, const char *);
-extern  void    openMIDIout(CSOUND *);
-extern  int     read_unified_file(CSOUND *, char **, char **);
-extern  int     read_unified_file2(CSOUND *csound, char *csd);
-extern  int     read_unified_file4(CSOUND *csound, CORFIL *csd);
-extern  uintptr_t  kperfThread(void * cs);
-extern void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
-extern void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
-extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
-extern int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
+void allocate_message_queue(CSOUND *csound); 
+int UDPServerStart(CSOUND *csound, int port);
+CS_NORETURN void    dieu(CSOUND *, char *, ...);
+  int     argdecode(CSOUND *, int, const char **);
+  int     init_pvsys(CSOUND *);
+//  char    *get_sconame(CSOUND *);
+  void    print_benchmark_info(CSOUND *, const char *);
+  void    openMIDIout(CSOUND *);
+  int     read_unified_file(CSOUND *, char **, char **);
+  int     read_unified_file2(CSOUND *csound, char *csd);
+  int     read_unified_file4(CSOUND *csound, CORFIL *csd);
+  uintptr_t  kperfThread(void * cs);
+ void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
+ void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
+ void csoundInputMessageInternal(CSOUND *csound, const char *message);
+ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 
 static void checkOptions(CSOUND *csound)
 {
@@ -497,7 +498,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     if (csound->oparms->daemon > 1)
       UDPServerStart(csound,csound->oparms->daemon);
 
-
+    allocate_message_queue(csound); /* if de-alloc by reset */
     return musmon(csound);
 }
 
