@@ -69,6 +69,7 @@
 #include "csdebug.h"
 #include <time.h>
 
+void allocate_message_queue(CSOUND *csound); 
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
@@ -1238,6 +1239,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
+    allocate_message_queue(csound);
     /* NB: as suggested by F Pinot, keep the
        address of the pointer to CSOUND inside
        the struct, so it can be cleared later */

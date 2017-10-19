@@ -146,9 +146,13 @@ static uintptr_t udp_recv(void *pdata){
       } else err = -1;
      }
      else err = -1;
-     if(!err) udp_socksend(csound, &sock, addr, sport,msg);
-     else csound->Warning(csound, "csould not retrieve channel %s", chn);
-     csound->Free(csound, msg);
+     if(!err) {
+       udp_socksend(csound, &sock, addr, sport,msg);
+       csound->Free(csound, msg);
+     }
+     else
+       csound->Warning(csound, "csould not retrieve channel %s", chn);
+     
    }
     else {
       csoundCompileOrcAsync(csound, orchestra);
