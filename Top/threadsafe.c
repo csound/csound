@@ -66,15 +66,15 @@ typedef struct _message_queue {
 } message_queue_t;
 
 
-
-static long atomicGetAndIncrementWithModulus(volatile long* val, long mod) {
-
+/* atomicGetAndIncrementWithModulus */
+static long atomicGet_Incr_Mod(volatile long* val, long mod) {
   volatile long oldVal, newVal; 
   do {
     oldVal = *val;
     newVal = (oldVal + 1) % mod;
 #ifdef HAVE_ATOMIC_BUILTIN
-  } while (!__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST));
+  } while (!__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,
+				      __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST));
 #elif defined(MSVC)
 } while (InterlockedCompareExchange(val, newVal, oldVal) != oldVal);
 #else /* FIXME: no atomics, what to do? */
@@ -103,7 +103,8 @@ void allocate_message_queue(CSOUND *csound) {
 
 
 /* enqueue should be called by the relevant API function */
-void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
+void *message_enqueue(CSOUND *csound, int32_t message, char *args,
+		      int argsiz) {
   if(csound->msg_queue != NULL) {
     int64_t *rtn;
     volatile long items;
@@ -117,15 +118,18 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args, int argsiz) {
 #endif
     } while(items >= API_MAX_QUEUE);
 
-    message_queue_t* msg = csound->msg_queue[atomicGetAndIncrementWithModulus(&csound->msg_queue_wget, API_MAX_QUEUE)];
+    message_queue_t* msg =
+      csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wget,
+					   API_MAX_QUEUE)];
     msg->message = message;
     if(msg->args != NULL)
       csound->Free(csound, msg->args);
     msg->args = (char *)csound->Calloc(csound, argsiz);
     memcpy(msg->args, args, argsiz);
     rtn = &msg->rtn;
-    csound->msg_queue[atomicGetAndIncrementWithModulus(&csound->msg_queue_wput, API_MAX_QUEUE)] = msg;
-    atomicGetAndIncrementWithModulus(&csound->msg_queue_rend, API_MAX_QUEUE);
+    csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wput,
+					 API_MAX_QUEUE)] = msg;
+    atomicGet_Incr_Mod(&csound->msg_queue_rend, API_MAX_QUEUE);
 
 #ifdef MSVC
     InterlockedIncrement(&csound->msg_queue_items);
@@ -152,12 +156,7 @@ void message_dequeue(CSOUND *csound) {
 
     if (rend < rp) rend = rp + API_MAX_QUEUE;
 
-#ifdef HAVE_ATOMIC_BUILTIN
-    items = __atomic_load_n (&csound->msg_queue_items, __ATOMIC_SEQ_CST);
-#else
-    items = csound->msg_queue_items;
-#endif
-
+    items = rend - rp;
     while(rp < rend) {
       message_queue_t* msg = csound->msg_queue[rp % API_MAX_QUEUE];
       switch(msg->message) {
@@ -270,17 +269,15 @@ void message_dequeue(CSOUND *csound) {
         break;  
       }
       msg->message = 0;
-      rp += 1;
-
-#ifdef MSVC
-      InterlockedDecrement(&csound->msg_queue_items);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-      items = __atomic_sub_fetch(&csound->msg_queue_items, 1,
-				 __ATOMIC_SEQ_CST);
-#else
-      items = --csound->msg_queue_items;
-#endif      
+      rp += 1;      
     }
+#ifdef MSVC
+    InterlockedExchangeSubtract(&csound->msg_queue_items, items);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    __atomic_sub_fetch(&csound->msg_queue_items, items, __ATOMIC_SEQ_CST);
+#else
+     csound->msg_queue_items--;
+#endif
     csound->msg_queue_rstart = rp % API_MAX_QUEUE;
   }
 }
@@ -326,7 +323,8 @@ static inline void csoundTableSet_enqueue(CSOUND *csound, int table, int index,
 
 
 static inline int64_t *csoundScoreEvent_enqueue(CSOUND *csound, char type,
-						const MYFLT *pfields, long numFields)
+						const MYFLT *pfields,
+						long numFields)
 {
   const int argsize = ARG_ALIGN*3;
   char args[ARG_ALIGN*3];
@@ -381,6 +379,7 @@ void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *id
 
 /*  VL: These functions are slated to
     be converted to message enqueueing
+    in the next API revision.
 */ 
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);
@@ -440,7 +439,8 @@ int csoundScoreEventAbsolute(CSOUND *csound, char type,
 int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
                        int mode, int allow_release){
   int async = 0;
-  return csoundKillInstanceInternal(csound, instr, instrName, mode, allow_release, async);
+  return csoundKillInstanceInternal(csound, instr, instrName, mode,
+				    allow_release, async);
 }
 
 int csoundCompileTree(CSOUND *csound, TREE *root) {
@@ -474,10 +474,6 @@ void csoundInputMessageAsync(CSOUND *csound, const char *message){
 
 void csoundReadScoreAsync(CSOUND *csound, const char *message){
   csoundReadScore_enqueue(csound, message);
-  /* 
-     while(!check_dequeued(csound)) csoundSleep(1);
-     return get_rtn_code(rtn);
-  */
 }
 
 void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *ptable){
@@ -497,10 +493,6 @@ void csoundScoreEventAsync(CSOUND *csound, char type,
 			   const MYFLT *pfields, long numFields)
 {
   csoundScoreEvent_enqueue(csound, type, pfields, numFields);
-  /*
-    while(!check_dequeued(csound)) csoundSleep(1);
-    return get_rtn_code(rtn);
-  */
 }
 
 void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
@@ -509,10 +501,6 @@ void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
 {
   
   csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
-  /*
-    while(!check_dequeued(csound)) csoundSleep(1);
-    return get_rtn_code(rtn);
-  */
 }
 
 int csoundCompileTreeAsync(CSOUND *csound, TREE *root) {
@@ -528,25 +516,10 @@ int csoundCompileOrcAsync(CSOUND *csound, const char *str) {
 int csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
                             int mode, int allow_release){
   int async = 1;
-  return csoundKillInstanceInternal(csound, instr, instrName, mode, allow_release, async);
+  return csoundKillInstanceInternal(csound, instr, instrName, mode,
+				    allow_release, async);
 }
 
-/*
-  MYFLT csoundEvalCodeAsync(CSOUND *csound, const char *str)
-  {
-  int async = 1;
-  if (str && csoundCompileOrcInternal(csound,str,async) == CSOUND_SUCCESS) {
-  while(check_dequeued(csound))
-  csoundSleep(1);
-  return csound->instr0->instance[0].retval;
-  }      
-  #ifdef NAN
-  else return NAN;
-  #else
-  else return 0;
-  #endif
-  }
-*/
 
 /* VL: the following do not depend on API_lock
    therefore do not need to be in the message queue
