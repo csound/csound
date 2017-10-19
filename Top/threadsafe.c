@@ -78,7 +78,7 @@ static long atomicGetAndIncrementWithModulus(volatile long* val, long mod) {
 #elif defined(MSVC)
 } while (InterlockedCompareExchange(val, newVal, oldVal) != oldVal);
 #else /* FIXME: no atomics, what to do? */
-} while (newVal != oldVal);
+} while ((*val = newVal) != newVal);
 #endif
 
 return oldVal;
