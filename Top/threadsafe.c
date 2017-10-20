@@ -267,7 +267,7 @@ void message_dequeue(CSOUND *csound) {
       rp += 1;
     }
 #ifdef MSVC
-    InterlockedExchangeSubtract(&csound->msg_queue_items, items);
+    InterlockedExchangeAdd(&csound->msg_queue_items, -items);
 #elif defined(HAVE_ATOMIC_BUILTIN)
     __atomic_sub_fetch(&csound->msg_queue_items, items, __ATOMIC_SEQ_CST);
 #else
