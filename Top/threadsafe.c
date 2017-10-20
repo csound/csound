@@ -54,7 +54,7 @@ enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
       TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET, MERGE_STATE, KILL_INSTANCE};
 
 /* MAX QUEUE SIZE */
-#define API_MAX_QUEUE 1024
+#define API_MAX_QUEUE 1024 
 /* ARG LIST ALIGNMENT */
 #define ARG_ALIGN 8
 
@@ -129,8 +129,6 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args,
     rtn = &msg->rtn;
     csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wput,
 					 API_MAX_QUEUE)] = msg;
-    atomicGet_Incr_Mod(&csound->msg_queue_rend, API_MAX_QUEUE);
-
 #ifdef MSVC
     InterlockedIncrement(&csound->msg_queue_items);
 #elif defined(HAVE_ATOMIC_BUILTIN)
@@ -149,14 +147,11 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args,
 void message_dequeue(CSOUND *csound) {
   if(csound->msg_queue != NULL) {
     long rp = csound->msg_queue_rstart;
-    long rend = csound->msg_queue_rend;
+    long items = csound->msg_queue_items;
+    long rend = rp + items;
 
     int64_t rtn = 0;
-    long items;
 
-    if (rend < rp) rend = rp + API_MAX_QUEUE;
-
-    items = rend - rp;
     while(rp < rend) {
       message_queue_t* msg = csound->msg_queue[rp % API_MAX_QUEUE];
       switch(msg->message) {
@@ -276,7 +271,7 @@ void message_dequeue(CSOUND *csound) {
 #elif defined(HAVE_ATOMIC_BUILTIN)
     __atomic_sub_fetch(&csound->msg_queue_items, items, __ATOMIC_SEQ_CST);
 #else
-     csound->msg_queue_items--;
+    csound->msg_queue_items -= items;
 #endif
     csound->msg_queue_rstart = rp % API_MAX_QUEUE;
   }
