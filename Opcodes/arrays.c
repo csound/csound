@@ -1440,7 +1440,7 @@ static int tabcopy(CSOUND *csound, TABCPY *p)
         p->dst->data = csound->Calloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
       } else {
-        csound->ReAlloc(csound, p->dst->data,
+        p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
@@ -1485,7 +1485,7 @@ static int tabcopy1(CSOUND *csound, TABCPY *p)
         p->dst->data = csound->Calloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
       } else {
-        csound->ReAlloc(csound, p->dst->data,
+        p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
