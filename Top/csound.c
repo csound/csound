@@ -907,7 +907,6 @@ static const CSOUND cenviron_ = {
     0,              /* msg_queue_wget */
     0,              /* msg_queue_wput */
     0,              /* msg_queue_rstart */
-    0,              /* msg_queue_rend */
     0,              /* msg_queue_items */
     /*, NULL */           /* self-reference */
 };
