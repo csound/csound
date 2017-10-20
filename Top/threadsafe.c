@@ -54,7 +54,7 @@ enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
       TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET, MERGE_STATE, KILL_INSTANCE};
 
 /* MAX QUEUE SIZE */
-#define API_MAX_QUEUE 1024 
+#define API_MAX_QUEUE 1024
 /* ARG LIST ALIGNMENT */
 #define ARG_ALIGN 8
 
@@ -68,13 +68,13 @@ typedef struct _message_queue {
 
 /* atomicGetAndIncrementWithModulus */
 static long atomicGet_Incr_Mod(volatile long* val, long mod) {
-  volatile long oldVal, newVal; 
+  volatile long oldVal, newVal;
   do {
     oldVal = *val;
     newVal = (oldVal + 1) % mod;
 #ifdef HAVE_ATOMIC_BUILTIN
   } while (!__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,
-				      __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST));
+                                      __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST));
 #elif defined(MSVC)
 } while (InterlockedCompareExchange(val, newVal, oldVal) != oldVal);
 #else /* FIXME: no atomics, what to do? */
@@ -104,7 +104,7 @@ void allocate_message_queue(CSOUND *csound) {
 
 /* enqueue should be called by the relevant API function */
 void *message_enqueue(CSOUND *csound, int32_t message, char *args,
-		      int argsiz) {
+                      int argsiz) {
   if(csound->msg_queue != NULL) {
     int64_t *rtn;
     volatile long items;
@@ -120,7 +120,7 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args,
 
     message_queue_t* msg =
       csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wget,
-					   API_MAX_QUEUE)];
+                                           API_MAX_QUEUE)];
     msg->message = message;
     if(msg->args != NULL)
       csound->Free(csound, msg->args);
@@ -128,7 +128,7 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args,
     memcpy(msg->args, args, argsiz);
     rtn = &msg->rtn;
     csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wput,
-					 API_MAX_QUEUE)] = msg;
+                                         API_MAX_QUEUE)] = msg;
 #ifdef MSVC
     InterlockedIncrement(&csound->msg_queue_items);
 #elif defined(HAVE_ATOMIC_BUILTIN)
@@ -264,7 +264,7 @@ void message_dequeue(CSOUND *csound) {
         break;
       }
       msg->message = 0;
-      rp += 1;      
+      rp += 1;
     }
 #ifdef MSVC
     InterlockedExchangeSubtract(&csound->msg_queue_items, items);
@@ -318,8 +318,8 @@ static inline void csoundTableSet_enqueue(CSOUND *csound, int table, int index,
 
 
 static inline int64_t *csoundScoreEvent_enqueue(CSOUND *csound, char type,
-						const MYFLT *pfields,
-						long numFields)
+                                                const MYFLT *pfields,
+                                                long numFields)
 {
   const int argsize = ARG_ALIGN*3;
   char args[ARG_ALIGN*3];
@@ -375,7 +375,7 @@ void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *id
 /*  VL: These functions are slated to
     be converted to message enqueueing
     in the next API revision.
-*/ 
+*/
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);
   csoundInputMessageInternal(csound, message);
@@ -435,7 +435,7 @@ int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
                        int mode, int allow_release){
   int async = 0;
   return csoundKillInstanceInternal(csound, instr, instrName, mode,
-				    allow_release, async);
+                                    allow_release, async);
 }
 
 int csoundCompileTree(CSOUND *csound, TREE *root) {
@@ -512,7 +512,7 @@ int csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
                             int mode, int allow_release){
   int async = 1;
   return csoundKillInstanceInternal(csound, instr, instrName, mode,
-				    allow_release, async);
+                                    allow_release, async);
 }
 
 

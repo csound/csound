@@ -146,6 +146,15 @@ getting control channel values via UDP (:@<channel> <dest-address>
 <dest-port>) and string channel contents (:%<channel> <dest-address>
 <dest-port>).
 
+### Translations
+
+- As ever the French translatios are complete.
+
+- The Italian translations of messages are greatly improved in scope;
+about a half of error and warning messages are now done.
+
+- Some progress as been made in German translations.
+
 ### API
 
 - CompileCsdText now always returns a value indicating
@@ -155,7 +164,7 @@ success/failure.
 csoundCompileTreeAsync(), csoundCompileOrcAsync(),
 csoundReadScoreAsync(), csoundInputMessageAsync(),
 csoundScoreEventAsync(), csoundScoreEventAbsoluteAsync(),
-csoundTableCopyOutAsync(), and csoundTableCopyInAsync()
+csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 
 ### Platform Specific
 
