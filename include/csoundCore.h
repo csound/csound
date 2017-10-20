@@ -1760,7 +1760,6 @@ typedef struct NAME__ {
     volatile long msg_queue_wget; /* Writer - Get index */
     volatile long msg_queue_wput; /* Writer - Put Index */
     volatile long msg_queue_rstart; /* Reader - start index */
-    volatile long msg_queue_rend; /* Reader - end index */
     volatile long msg_queue_items;
     /*struct CSOUND_ **self;*/
     /**@}*/
