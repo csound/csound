@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 6.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2017-10-18 08:00+0200\n"
+"PO-Revision-Date: 2017-10-20 13:55+0100\n"
 "Last-Translator: francesco <ilterzouomo@fastwebnet.it>\n"
 "Language-Team: csound6\n"
 "Language: it\n"
@@ -7862,9 +7862,8 @@ msgid "tablexseg: not initialised"
 msgstr "tablexseg: non inizializzato"
 
 #: Opcodes/gab/vectorial.c:2443
-#, fuzzy
 msgid "vdelayk: not initialised"
-msgstr "delayk: non inizializzato"
+msgstr "vdelayk: non inizializzato"
 
 #: Opcodes/gab/vectorial.c:2476 Opcodes/gab/vectorial.c:2482
 #, fuzzy
@@ -8296,9 +8295,8 @@ msgid "liveconv: invalid length, or insufficient IR data for convolution"
 msgstr ""
 
 #: Opcodes/liveconv.c:479
-#, fuzzy
 msgid "liveconv: not initialised"
-msgstr "vco: non inizializzato"
+msgstr "liveconv: non inizializzato"
 
 #: Opcodes/locsig.c:42
 msgid "Wrong number of outputs in locsig; must be 2 or 4"
@@ -8424,9 +8422,8 @@ msgid "nlfilt: not initialised"
 msgstr "nlfilt: non inizializzato"
 
 #: Opcodes/nlfilt.c:206
-#, fuzzy
 msgid "nlfilt2: not initialised"
-msgstr "nlfilt: non inizializzato"
+msgstr "nlfilt2: non inizializzato"
 
 #: Opcodes/nlfilt.c:241
 msgid "More arguments than p fields"
@@ -8572,9 +8569,9 @@ msgid "partikkelsync: could not find opcode id"
 msgstr ""
 
 #: Opcodes/partikkel.c:882
-#, fuzzy, c-format
+#, c-format
 msgid "%s: partikkel not initialized"
-msgstr "spat3di: non inizializzato"
+msgstr "%s: partikkel non inizializzato"
 
 #: Opcodes/partikkel.c:890
 #, fuzzy, c-format
@@ -8748,11 +8745,8 @@ msgid "Incorrect argument count in transegb"
 msgstr ""
 
 #: Opcodes/pitch.c:1788 Opcodes/pitch.c:1947
-#, fuzzy
 msgid "Error: transeg not initialised (krate)\n"
-msgstr ""
-"\n"
-"Error: transeg non inizializzato (krate)"
+msgstr "Error: transeg non inizializzato (krate)\n"
 
 #: Opcodes/pitch.c:1826 Opcodes/pitch.c:2006
 msgid "transeg: not initialised (arate)\n"
@@ -8763,9 +8757,8 @@ msgid "Incorrect argument count in transegr"
 msgstr ""
 
 #: Opcodes/pitch.c:2320
-#, fuzzy
 msgid "median: not initialised (arate)\n"
-msgstr "linseg: non inizializzato (arate)\n"
+msgstr "median: non inizializzato (arate)\n"
 
 #: Opcodes/pitch.c:2324 Opcodes/pitch.c:2377
 #, c-format
@@ -8773,9 +8766,8 @@ msgid "median: window (%d)larger than maximum(%d); truncated"
 msgstr ""
 
 #: Opcodes/pitch.c:2373
-#, fuzzy
 msgid "median: not initialised (krate)\n"
-msgstr "linseg non inizializzato (krate)\n"
+msgstr "median: non inizializzato (krate)\n"
 
 #: Opcodes/pitch0.c:44 Opcodes/pitch0.c:62
 #, c-format
@@ -9074,9 +9066,8 @@ msgid "pvshift: not initialised"
 msgstr "pvshift: non inizializzato"
 
 #: Opcodes/pvsbasic.c:1989
-#, fuzzy
 msgid "pvswarp: not initialised"
-msgstr "pvsarp: non inizializzato\n"
+msgstr "pvswarp: non inizializzato"
 
 #: Opcodes/pvsbasic.c:2006
 msgid "pvsblur does not work sliding yet"
@@ -9152,12 +9143,11 @@ msgstr ""
 #: Opcodes/pvsdemix.c:182
 #, fuzzy
 msgid "pvsdemix : not initialised \n"
-msgstr "pvsmaska: non inizializzato\n"
+msgstr "pvsdemix: non inizializzato\n"
 
 #: Opcodes/pvsgendy.c:113
-#, fuzzy
 msgid "pvsgendy: not initialised"
-msgstr "pvsband: non inizializzato"
+msgstr "pvsgendy: non inizializzato"
 
 #: Opcodes/pvsops.cpp:32
 msgid "sliding not supported"
@@ -9883,9 +9873,8 @@ msgid "specscal: not initialised"
 msgstr "specscal: non inizializzato"
 
 #: Opcodes/spectra.c:1095
-#, fuzzy
 msgid "spechist: local buffers not initialised"
-msgstr "specfilt: local buffers non inizializzato"
+msgstr "spechist: local buffers non inizializzato"
 
 #: Opcodes/spectra.c:1128
 msgid "spechist: not initialised"
@@ -9972,9 +9961,8 @@ msgid "tabsum: No table"
 msgstr ""
 
 #: Opcodes/tabsum.c:56
-#, fuzzy
 msgid "tabsum: Not initialised"
-msgstr "table: non inizializzato"
+msgstr "tabsum: non inizializzato"
 
 #: Opcodes/ugens7.c:46 Opcodes/ugensa.c:49
 msgid "illegal value for iolaps"
@@ -10086,15 +10074,13 @@ msgstr "GEN30: source ftable non trovata"
 
 #: Opcodes/uggab.c:261 Opcodes/uggab.c:292 Opcodes/uggab.c:329
 #: Opcodes/uggab.c:366
-#, fuzzy
 msgid "poscil: not initialised"
-msgstr "oscil: non inizializzato"
+msgstr "poscil: non inizializzato"
 
 #: Opcodes/uggab.c:421 Opcodes/uggab.c:476 Opcodes/uggab.c:532
 #: Opcodes/uggab.c:589
-#, fuzzy
 msgid "poscil3: not initialised"
-msgstr "oscil3: non inizializzato"
+msgstr "poscil3: non inizializzato"
 
 #: Opcodes/uggab.c:675
 msgid "losc: no sample rate stored in function assuming=sr\n"
@@ -14053,9 +14039,9 @@ msgid "srconv: invalid x values in time-vary function"
 msgstr ""
 
 #: util/srconv.c:486
-#, fuzzy, c-format
+#, c-format
 msgid "libsndfile error: %s\n"
-msgstr "%s: errore: %s\n"
+msgstr "libsndfile errore: %s\n"
 
 #: util/srconv.c:760
 msgid "Do not use srconv but the src_conv program\n"
