@@ -358,6 +358,7 @@ if(BUILD_VST4CS_OPCODES)
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
 
+check_deps(BUILD_ABLETON_LINK_OPCODES ${ABLETON_LINK_HOME})
 if(BUILD_ABLETON_LINK_OPCODES)
     message(STATUS "Ableton Link home: ${ABLETON_LINK_HOME}")
     include_directories(${ABLETON_LINK_HOME}/include)
