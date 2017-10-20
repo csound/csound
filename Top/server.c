@@ -86,10 +86,11 @@ static uintptr_t udp_recv(void *pdata){
   int port = p->port;
   char *orchestra = csound->Calloc(csound, MAXSTR);
   int sock = 0;
-
+  int received;
 
   csound->Message(csound, Str("UDP server started on port %d \n"),port);
-  while (recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen) > 0) {
+  while ((received = recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) > 0) {
+    orchestra[received] = 0; // terminate string
     if(strlen(orchestra) < 2) continue;
     if (csound->oparms->odebug)
       csound->Message(csound, "message: \n%s\n", orchestra);
