@@ -14,7 +14,7 @@ gkbase		12		72		-		12		linear		base offset for random pitch choice for new notes
 </CsOptions>
 
 <CsInstruments>
-sr 		= 		48000
+sr 		    = 		48000
 ksmps 		= 		48
 nchnls 		= 		2
 0dbfs 		= 		1
