@@ -161,7 +161,10 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = "/tmp/csound_test_output.txt"
+    if(os.name == 'nt'):
+    	tempfile = "/csound_test_output.txt"
+    else:
+    	tempfile = "/tmp/csound_test_output.txt"
     if(os.sep == '/' and os.name == 'nt'):
         tempfile = 'csound_test_output.txt'
     counter = 1
@@ -177,7 +180,7 @@ def runTest():
         expectedResult = (len(t) == 3) and 1 or 0
 
         if(os.sep == '\\' or os.name == 'nt'):
-            executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
+            executable = (csoundExecutable == "") and "csound.exe" or csoundExecutable
             command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
             print command
             retVal = os.system(command)
