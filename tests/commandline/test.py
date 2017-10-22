@@ -161,9 +161,7 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = "/tmp/csound_test_output.txt"
-    if(os.sep == '/' and os.name == 'nt'):
-        tempfile = 'csound_test_output.txt'
+    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
     counter = 1
 
     retVals = []
