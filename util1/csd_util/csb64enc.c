@@ -58,7 +58,7 @@ int main(int argc, char **argv)
           exit(-1);
         }
         i++;
-        stle = atoi(argv[i]);
+        style = atoi(argv[i]);
       }
       else {                                    /* input file name */
         if (*(argv[i]) == '-') {
