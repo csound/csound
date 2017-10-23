@@ -122,7 +122,7 @@ static uintptr_t udp_recv(void *pdata){
     }
     else if(*orchestra == ':') {
       char addr[128], chn[128], *msg;
-      int sport, err;
+      int sport, err = 0;
       MYFLT val;
       sscanf(orchestra+2, "%s", chn);
       sscanf(orchestra+2+strlen(chn), "%s", addr);

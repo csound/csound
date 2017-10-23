@@ -393,3 +393,18 @@ int main(void)
   return 0;
 }
 #endif
+
+typedef struct dir {
+  char       *name;
+  CORFIL     *corfile;
+  struct dir *next;
+} CORDIR;
+
+void add_corfile(CSOUND* csound, CORFIL *smpf, char *filename)
+{
+    CORDIR *entry = csound->Malloc(csound, sizeof(CORDIR));
+    entry->name = cs_strdup(csound, filename);
+    entry->corfile = smpf;
+    entry->next = (CORDIR *)csound->directory;
+    csound->directory = entry;
+}
