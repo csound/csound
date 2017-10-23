@@ -102,6 +102,7 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
     int i;
     int wintype = MYFLT2LRND(*p->wintype);
 
+    if (N<=0) return csound->InitError(csound, Str("Invalid window size");
     /* deal with iinit and iformat later on! */
 
     N = N + N%2;               /* Make N even */

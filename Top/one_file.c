@@ -730,6 +730,64 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
       csoundDie(csound, Str("Truncated byte at end of base64 stream"));
     }
 }
+#ifdef JPFF
+static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
+{
+    int c;
+    int n, nbits;
+
+    n = nbits = 0;
+    while ((c = corfile_getc(in)) != '=' && c != '<') {
+      while (isspace(c)) {
+        if (c == '\n') {               /* count lines */
+          ++(STA(csdlinecount));
+          c = corfile_getc(in);
+        }
+        else if (c == '\r') {
+          ++(STA(csdlinecount));
+          c = corfile_getc(in);
+          if (c == '\n') c = corfile_getc(in); /* DOS format */
+        }
+        else c = corfile_getc(in);
+      }
+      if (c == '=' || c == '<' || c == EOF)
+        break;
+      n <<= 6;
+      nbits += 6;
+      if (isupper(c))
+        c -= 'A';
+      else if (islower(c))
+        c -= ((int) 'a' - 26);
+      else if (isdigit(c))
+        c -= ((int) '0' - 52);
+      else if (c == '+')
+        c = 62;
+      else if (c == '/')
+        c = 63;
+      else {
+        csoundDie(csound, Str("Non base64 character %c(%2x)"), c, c);
+      }
+      n |= (c & 0x3F);
+      if (nbits >= 8) {
+        nbits -= 8;
+        c = (n >> nbits) & 0xFF;
+        n &= ((1 << nbits) - 1);
+        corfile_putc(c, out);
+      }
+    }
+    if (c == '<')
+      corfile_ungetc(in);
+    if (nbits >= 8) {
+      nbits -= 8;
+      c = (n >> nbits) & 0xFF;
+      n &= ((1 << nbits) - 1);
+      corfile_putc(c, out);
+    }
+    if (UNLIKELY(nbits > 0 && n != 0)) {
+      csoundDie(csound, Str("Truncated byte at end of base64 stream"));
+    }
+}
+#endif
 
 static int createMIDI2(CSOUND *csound, CORFIL *cf)
 {
@@ -848,6 +906,48 @@ static int createFile(CSOUND *csound, char *buffer, CORFIL *cf)
     csoundErrorMsg(csound, Str("Missing end tag </CsFileB>"));
     return FALSE;
 }
+
+#ifdef JPFF
+static int createCorfile(CSOUND *csound, char *buffer, CORFIL *cf)
+{
+    CORFIL  *smpf;
+    char  filename[256];
+    char *p = buffer, *q;
+
+    filename[0] = '\0';
+
+    p += 18;    /* 18== strlen("<CsFileC filename=  ") */
+    if (*p=='"') {
+      p++; q = strchr(p, '"');
+    }
+    else
+      q = strchr(p, '>');
+    if (q) *q='\0';
+    //  printf("p=>>%s<<\n", p);
+    strncpy(filename, p, 255); filename[255]='\0';
+//sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
+//    if (filename[0] != '\0' &&
+//       filename[strlen(filename) - 1] == '>' &&
+//       filename[strlen(filename) - 2] == '"')
+//    filename[strlen(filename) - 2] = '\0';
+    smpf = corfile_create_w();
+    read_base64_2cor(csound, cf, smpf);
+    corfile_rewind(smpf);
+    add_corfile(csound, smpf, filename);
+
+    while (TRUE) {
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+        char *p = buffer;
+        while (isblank(*p)) p++;
+        if (strstr(p, "</CsFileC>") == p) {
+          return TRUE;
+        }
+      }
+    }
+    csoundErrorMsg(csound, Str("Missing end tag </CsFileC>"));
+    return FALSE;
+}
+#endif
 
 static int createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
 {
@@ -1082,6 +1182,12 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
         r = createFile(csound, buffer, cf);
         result = r && result;
       }
+#ifdef JPFF
+      else if (strstr(p, "<CsFileC filename=") == p) {
+        r = createCorfile(csound, buffer, cf);
+        result = r && result;
+      }
+#endif
       else if (strstr(p, "<CsFile filename=") == p) {
         csoundMessage(csound,
                       Str("CsFile is deprecated and may not work; use CsFileB\n"));

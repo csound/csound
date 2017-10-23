@@ -1761,6 +1761,7 @@ typedef struct NAME__ {
     volatile long msg_queue_wput; /* Writer - Put Index */
     volatile long msg_queue_rstart; /* Reader - start index */
     volatile long msg_queue_items;
+    void     *directory;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
