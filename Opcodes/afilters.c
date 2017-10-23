@@ -642,7 +642,7 @@ static int bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     if (UNLIKELY(p->kbw[0] <= FL(0.0)))     {
-      memmove(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
+      memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
       return OK;
     }
 
