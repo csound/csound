@@ -591,7 +591,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         synterr(p, Str("%s invalid sample rate"), err_msg);
       if (UNLIKELY(kr <= FL(0.0)))
         synterr(p, Str("%s invalid control rate"), err_msg);
-      if (UNLIKELY(ksmp <= FL(0.0)))
+      if (UNLIKELY(ksmps <= FL(0.0)))
         synterr(p, Str("%s invalid number of samples"), err_msg);
       else if (UNLIKELY(ksmps < FL(0.75) ||
                         FLOAT_COMPARE(ksmps,
