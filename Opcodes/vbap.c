@@ -775,6 +775,7 @@ static void choose_ls_tuplets(CSOUND *csound,
 
     if (UNLIKELY(amount==0)) {
       csound->InitError(csound, Str("insufficient valid speakers"));
+      free(sorted_lss); free(exist); free(inv_mat);
       return;
     }
 

@@ -908,6 +908,7 @@ static const CSOUND cenviron_ = {
     0,              /* msg_queue_wput */
     0,              /* msg_queue_rstart */
     0,              /* msg_queue_items */
+    NULL,           /* directory for corfiles */
     /*, NULL */           /* self-reference */
 };
 
@@ -3469,7 +3470,7 @@ void csoundTableCopyOutInternal(CSOUND *csound, int table, MYFLT *ptable){
        we need to protect it */
     if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     len = csoundGetTable(csound, &ftab, table);
-    if (UNLIKELY(len>0x08ffffff)) len = 0x08ffffff; // As coverity is unhappy
+    if (UNLIKELY(len>0x00ffffff)) len = 0x00ffffff; // As coverity is unhappy
     memcpy(ptable, ftab, (size_t) (len*sizeof(MYFLT)));
     if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
 }
@@ -3481,7 +3482,7 @@ void csoundTableCopyInInternal(CSOUND *csound, int table, MYFLT *ptable){
        we need to protect it */
     if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     len = csoundGetTable(csound, &ftab, table);
-    if (UNLIKELY(len>0x08ffffff)) len = 0x08ffffff; // As coverity is unhappy
+    if (UNLIKELY(len>0x00ffffff)) len = 0x00ffffff; // As coverity is unhappy
     memcpy(ftab, ptable, (size_t) (len*sizeof(MYFLT)));
     if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
 }

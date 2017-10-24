@@ -67,7 +67,7 @@ were previously the parser accepted it but did not use it.
 
 - The evauation form [..] can now be nested.
 
-- The extraxt feature (-x from command line) now works
+- The extract feature (-x from command line) now works
 
 - Use of the score opcode x could case spurious error messages which are
   now suppressed.
@@ -110,7 +110,7 @@ were previously the parser accepted it but did not use it.
 - Emscripten: Now compiled as WebAssembly (runs in all major browsers). API now
   somewhat more conformed to other HTML5 APIs.
 
-- CsoundQT: Now built with HTML5 support.
+- CsoundQt: Now built with HTML5 support.
 
 ### General Usage
 
@@ -148,7 +148,7 @@ getting control channel values via UDP (:@<channel> <dest-address>
 
 ### Translations
 
-- As ever the French translatios are complete.
+- As ever the French translations are complete.
 
 - The Italian translations of messages are greatly improved in scope;
 about a half of error and warning messages are now done.

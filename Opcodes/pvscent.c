@@ -386,6 +386,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
         f0Cand = PeakFreq[0]/Partial;
         /* Average frequency between partials */
         for (i=0; i<numPeaks; i++) {
+          //f0Cand cannot be zero unless PeakFreq is zero which cannot be
           Freq += PeakFreq[i] / RoundNum(PeakFreq[i]/f0Cand);
         }
         Freq /= numPeaks;
