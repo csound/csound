@@ -42,7 +42,7 @@ cd csound-vs -ErrorAction SilentlyContinue
 dir ..\deps
 cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -Wno-dev -Wdeprecated `
- -DABLETON_LINK_HOME="$env:ABLETON_LINK_HOME" `
+ -DABLETON_LINK_HOME="..\deps\link" `
  -DBUILD_ABLETON_LINK_OPCODES:BOOL=On `
  -DSTK_LOCAL:BOOL="ON" `
  -DCMAKE_BUILD_TYPE="Release" `
