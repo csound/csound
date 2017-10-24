@@ -3482,7 +3482,7 @@ void csoundTableCopyInInternal(CSOUND *csound, int table, MYFLT *ptable){
        we need to protect it */
     if (csound->oparms->realtime) csoundLockMutex(csound->init_pass_threadlock);
     len = csoundGetTable(csound, &ftab, table);
-    if (UNLIKELY(len>0x08ffffff)) len = 0x08ffffff; // As coverity is unhappy
+    if (UNLIKELY(len>0x00ffffff)) len = 0x00ffffff; // As coverity is unhappy
     memcpy(ftab, ptable, (size_t) (len*sizeof(MYFLT)));
     if (csound->oparms->realtime) csoundUnlockMutex(csound->init_pass_threadlock);
 }
