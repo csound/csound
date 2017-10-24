@@ -320,18 +320,18 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       /* csound->Free(csound, DSSIPlugin_->Descriptor); */
       if (pcError)
         csound->InitError(csound, Str("DSSI4CS: Unable to find "
-                                      "ladspa_descriptor(%d) function or\n"
-                                      "dssi_descriptor(%d) function in plugin file "
-                                      "\"%s\": %s.\n"
+                                      "ladspa_descriptor(%ul) function or\n"
+                                      "dssi_descriptor(%ul) function in plugin "
+                                      "file \"%s\": %s.\n"
                                       "Are you sure this is a LADSPA or "
                                       "DSSI plugin file ?"),
                           PluginIndex, PluginIndex,
                           dssiFilename, pcError);
       else
         csound->InitError(csound, Str("DSSI4CS: Unable to find "
-                                      "ladspa_descriptor(%d) function or\n"
-                                      "dssi_descriptor(%d) function in plugin file "
-                                      "\"%s\".\n"
+                                      "ladspa_descriptor(%ul) function or\n"
+                                      "dssi_descriptor(%ul) function in plugin "
+                                      "file "%s\".\n"
                                       "Are you sure this is a LADSPA or "
                                       "DSSI plugin file ?"),
                           PluginIndex, PluginIndex,
