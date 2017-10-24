@@ -46,7 +46,7 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_HETRO, 0, 0);
     all = (char *)csound->Malloc(csound, (size_t) length);
-    for (i=0; i<6; i++) fgetc(f); /* Skip HETRO */
+    for (i=0; i<6; i++) getc(f); /* Skip HETRO */
     /*dummy =*/ (void)fgets(buffer, 10, f);         /* number of partials */
     x = atoi(buffer);
     memcpy(&all[0], &x, sizeof(int16));
