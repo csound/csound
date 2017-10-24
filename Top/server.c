@@ -166,9 +166,9 @@ static uintptr_t udp_recv(void *pdata){
   // csound->Message(csound, "orchestra dealloc\n");
   if(sock > 0)
 #ifndef WIN32
-    close(p->sock);
+    close(sock);
 #else
-    closesocket(p->sock);
+    closesocket(sock);
 #endif
   return (uintptr_t) 0;
 
