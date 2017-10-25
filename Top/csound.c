@@ -69,7 +69,7 @@
 #include "csdebug.h"
 #include <time.h>
 
-void allocate_message_queue(CSOUND *csound); 
+void allocate_message_queue(CSOUND *csound);
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
