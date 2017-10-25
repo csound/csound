@@ -34,7 +34,7 @@ msgstr ""
 
 #: Engine/auxfd.c:201
 #, c-format
-msgid "\tauxch at %p: size %ld, auxp %p, endp %p\n"
+msgid "\tauxch at %p: size %zu, auxp %p, endp %p\n"
 msgstr ""
 
 #: Engine/auxfd.c:213
@@ -276,7 +276,7 @@ msgstr ""
 
 #: Engine/csound_orc_compile.c:847
 #, c-format
-msgid "create_instrument: instr num %ld\n"
+msgid "create_instrument: instr num %d\n"
 msgstr ""
 
 #: Engine/csound_orc_compile.c:964
@@ -295,7 +295,7 @@ msgstr ""
 
 #: Engine/csound_orc_compile.c:1045 Engine/csound_orc_compile.c:1201
 #, c-format
-msgid "instr %ld redefined, replacing previous definition"
+msgid "instr %d redefined, replacing previous definition"
 msgstr ""
 
 #: Engine/csound_orc_compile.c:1072
@@ -1191,12 +1191,12 @@ msgstr ""
 
 #: Engine/insert.c:116
 #, c-format
-msgid "activating instr %s at %d\n"
+msgid "activating instr %s at %lld\n"
 msgstr ""
 
 #: Engine/insert.c:119
 #, c-format
-msgid "activating instr %d at %d\n"
+msgid "activating instr %d at %lld\n"
 msgstr ""
 
 #: Engine/insert.c:127
@@ -1497,7 +1497,7 @@ msgstr ""
 
 #: Engine/memalloc.c:58
 #, c-format
-msgid "memory allocate failure for %lu"
+msgid "memory allocate failure for %zu"
 msgstr ""
 
 #: Engine/memfiles.c:141
@@ -1523,7 +1523,7 @@ msgstr ""
 msgid "error processing file %s\n"
 msgstr ""
 
-#: Engine/memfiles.c:366 Engine/memfiles.c:548
+#: Engine/memfiles.c:366
 #, c-format
 msgid "file %s (%ld bytes) loaded into memory\n"
 msgstr ""
@@ -1574,6 +1574,11 @@ msgstr ""
 msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr ""
 
+#: Engine/memfiles.c:548
+#, c-format
+msgid "file %s (%d bytes) loaded into memory\n"
+msgstr ""
+
 #: Engine/memfiles.c:612
 #, c-format
 msgid "csoundLoadSoundFile(): failed to open '%s'"
@@ -1587,7 +1592,7 @@ msgstr ""
 #: Engine/memfiles.c:669
 #, c-format
 msgid ""
-"File '%s' (sr = %d Hz, %d channel(s), %lu sample frames) loaded into memory\n"
+"File '%s' (sr = %d Hz, %d channel(s), %d sample frames) loaded into memory\n"
 msgstr ""
 
 #: Engine/musmon.c:72
@@ -1917,7 +1922,7 @@ msgstr ""
 
 #: Engine/sread.c:1161
 #, c-format
-msgid "%d: %s position %ld\n"
+msgid "%d: %s position %d\n"
 msgstr ""
 
 #: Engine/sread.c:1191
@@ -2277,12 +2282,12 @@ msgstr ""
 
 #: InOut/libsnd.c:946
 #, c-format
-msgid "%ld %d sample blks of %d-bit floats written to %s\n"
+msgid "%d %d sample blks of %d-bit floats written to %s\n"
 msgstr ""
 
 #: InOut/libsnd.c:951
 #, c-format
-msgid "%ld %d sample blks of %s written to %s"
+msgid "%d %d sample blks of %s written to %s"
 msgstr ""
 
 #: InOut/libsnd.c:968
@@ -4211,7 +4216,7 @@ msgstr ""
 msgid "NaN in pow\n"
 msgstr ""
 
-#: OOps/cmath.c:85
+#: OOps/cmath.c:85 OOps/ugens4.c:472 OOps/ugens4.c:583 OOps/ugens4.c:689
 #, c-format
 msgid "Seeding from current time %u\n"
 msgstr ""
@@ -4258,14 +4263,14 @@ msgstr ""
 #, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
-"         %d Hz, %d channel(s), %ld sample frames\n"
+"         %d Hz, %d channel(s), %d sample frames\n"
 msgstr ""
 
 #: OOps/diskin2.c:482 OOps/diskin2.c:1756
 #, c-format
 msgid ""
 "diskin2: opened '%s':\n"
-"         %d Hz, %d channel(s), %ld sample frames\n"
+"         %d Hz, %d channel(s), %d sample frames\n"
 msgstr ""
 
 #: OOps/diskin2.c:563 OOps/diskin2.c:749 OOps/diskin2.c:945
@@ -5518,11 +5523,6 @@ msgstr ""
 msgid "pluck: kcps more than sample rate"
 msgstr ""
 
-#: OOps/ugens4.c:472 OOps/ugens4.c:583 OOps/ugens4.c:689
-#, c-format
-msgid "Seeding from current time %lu\n"
-msgstr ""
-
 #: OOps/ugens5.c:286 OOps/ugens5.c:404 Opcodes/gab/gab.c:52 Opcodes/ugsc.c:214
 #, c-format
 msgid "illegal reson iscl value, %f"
@@ -5565,7 +5565,7 @@ msgstr ""
 
 #: OOps/ugens5.c:683
 #, c-format
-msgid "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"
+msgid "npoles %d, nvals %d, totvals %d, lastfram16 = %x\n"
 msgstr ""
 
 #: OOps/ugens5.c:708 util/lpanal.c:329
@@ -6334,7 +6334,7 @@ msgstr ""
 
 #: Opcodes/bowedbar.c:53
 #, c-format
-msgid "DLineN: Delay length too big ... setting to maximum length of %ld.\n"
+msgid "DLineN: Delay length too big ... setting to maximum length of %d.\n"
 msgstr ""
 
 #: Opcodes/bowedbar.c:98
@@ -6643,9 +6643,9 @@ msgstr ""
 msgid "Farey: Table no. < 1 dft=%.2f  sft=%.2f"
 msgstr ""
 
-#: Opcodes/fareyseq.c:257
+#: Opcodes/fareyseq.c:257 Opcodes/fareyseq.c:307
 #, c-format
-msgid "Farey: Filter type < 1 dft=%.2f  sft=%.2f"
+msgid "Farey: Filter type < 1 ftype=%.2f"
 msgstr ""
 
 #: Opcodes/fareyseq.c:272 Opcodes/fareyseq.c:320
@@ -6656,10 +6656,6 @@ msgstr ""
 #: Opcodes/fareyseq.c:283 Opcodes/fareyseq.c:331
 #, c-format
 msgid "Farey: Source sft table %.2f not found."
-msgstr ""
-
-#: Opcodes/fareyseq.c:307
-msgid "Farey: Filter type < 1"
 msgstr ""
 
 #: Opcodes/fareyseq.c:446 Opcodes/fareyseq.c:467
@@ -6902,8 +6898,8 @@ msgstr ""
 msgid "ftgen string arg not allowed"
 msgstr ""
 
-#: Opcodes/ftgen.c:158 Opcodes/ftgen.c:668 Opcodes/oscbnk.c:1838
-#: Opcodes/oscbnk.c:1862
+#: Opcodes/ftgen.c:158 Opcodes/ftgen.c:668 Opcodes/oscbnk.c:1839
+#: Opcodes/oscbnk.c:1863
 msgid "ftgen error"
 msgstr ""
 
@@ -7510,7 +7506,7 @@ msgstr ""
 
 #: Opcodes/gab/vectorial.c:1907
 #, c-format
-msgid "vrandh: Seeding from current time %lu\n"
+msgid "vrandh: Seeding from current time %u\n"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:1920
@@ -7527,7 +7523,7 @@ msgstr ""
 
 #: Opcodes/gab/vectorial.c:2007
 #, c-format
-msgid "vrandi: Seeding from current time %lu\n"
+msgid "vrandi: Seeding from current time %u\n"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:2019
@@ -8157,93 +8153,93 @@ msgstr ""
 msgid "grain3: invalid grain density"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1021
+#: Opcodes/oscbnk.c:1022
 msgid "grain3: not initialised"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1024
+#: Opcodes/oscbnk.c:1025
 msgid "grain3 needs more overlaps"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1097 Opcodes/oscbnk.c:1142
+#: Opcodes/oscbnk.c:1098 Opcodes/oscbnk.c:1143
 msgid "rnd31: not initialised"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1703
+#: Opcodes/oscbnk.c:1704
 #, c-format
 msgid "redefined table array for waveform %d\n"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1788
+#: Opcodes/oscbnk.c:1789
 #, c-format
 msgid "vco2init: invalid waveform number: %f"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1796
+#: Opcodes/oscbnk.c:1797
 msgid "vco2init: invalid base ftable number"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1807
+#: Opcodes/oscbnk.c:1808
 msgid "vco2init: invalid partial number multiplier"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1816
+#: Opcodes/oscbnk.c:1817
 msgid "vco2init: invalid min table size"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1824
+#: Opcodes/oscbnk.c:1825
 msgid "vco2init: invalid max table size"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1846
+#: Opcodes/oscbnk.c:1847
 msgid "vco2init: invalid source ftable"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1889
+#: Opcodes/oscbnk.c:1890
 msgid "vco2ft: table array not found for this waveform"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1961
+#: Opcodes/oscbnk.c:1962
 msgid "vco2ft: not initialised"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1981
+#: Opcodes/oscbnk.c:1982
 msgid "vco2: too many input arguments"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1991
+#: Opcodes/oscbnk.c:1992
 msgid "vco2: insufficient required arguments"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2009
+#: Opcodes/oscbnk.c:2010
 msgid "vco2: table array not found for user defined waveform"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2058
+#: Opcodes/oscbnk.c:2059
 msgid "vco2: not initialised"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2222
+#: Opcodes/oscbnk.c:2223
 msgid "delayk: invalid delay time (must be >= 0)"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2240
+#: Opcodes/oscbnk.c:2241
 msgid "delayk: not initialised"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2263
+#: Opcodes/oscbnk.c:2264
 msgid "vdel_k: invalid max delay time (must be >= 0)"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2282
+#: Opcodes/oscbnk.c:2283
 msgid "vdel_k: not initialised"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2288
+#: Opcodes/oscbnk.c:2289
 msgid "vdel_k: invalid delay time (must be >= 0)"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2562
+#: Opcodes/oscbnk.c:2563
 msgid "rbjeq: invalid filter type"
 msgstr ""
 
@@ -8442,8 +8438,7 @@ msgstr ""
 #: Opcodes/pitch.c:1422
 #, c-format
 msgid ""
-"pinkish: Gardner method requires 4-%d bands. Default %ld substituted for "
-"%d.\n"
+"pinkish: Gardner method requires 4-%d bands. Default %d substituted for %d.\n"
 msgstr ""
 
 #: Opcodes/pitch.c:1685
@@ -8571,7 +8566,7 @@ msgstr ""
 
 #: Opcodes/pvadd.c:226
 #, c-format
-msgid "PV frame %ld seems too small in %s"
+msgid "PV frame %d seems too small in %s"
 msgstr ""
 
 #: Opcodes/pvadd.c:231 Opcodes/pvread.c:129 Opcodes/ugens8.c:255
@@ -9466,7 +9461,7 @@ msgstr ""
 
 #: Opcodes/spectra.c:189
 #, c-format
-msgid "\t%d oct analysis window delay = %ld samples (%d msecs)\n"
+msgid "\t%d oct analysis window delay = %d samples (%d msecs)\n"
 msgstr ""
 
 #: Opcodes/spectra.c:197
@@ -9697,7 +9692,7 @@ msgstr ""
 
 #: Opcodes/ugens9.c:63
 #, c-format
-msgid "%s not a CONVOLVE file (magic %ld)"
+msgid "%s not a CONVOLVE file (magic %d)"
 msgstr ""
 
 #: Opcodes/ugens9.c:74 Opcodes/ugens9.c:82
@@ -9710,7 +9705,7 @@ msgstr ""
 
 #: Opcodes/ugens9.c:109
 #, c-format
-msgid "unsupported CONVOLVE data format %ld in %s"
+msgid "unsupported CONVOLVE data format %d in %s"
 msgstr ""
 
 #: Opcodes/ugens9.c:367
@@ -10066,7 +10061,7 @@ msgstr ""
 
 #: Opcodes/vbap.c:635
 #, c-format
-msgid "Too little data speakers (%n)\n"
+msgid "Too little data speakers (%d)\n"
 msgstr ""
 
 #: Opcodes/vbap.c:658
