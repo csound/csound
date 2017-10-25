@@ -12214,7 +12214,7 @@ msgstr ""
 
 #: Top/server.c:157
 #, fuzzy, c-format
-msgid "csould not retrieve channel %s"
+msgid "could not retrieve channel %s"
 msgstr "soundin: número inválido de canales"
 
 #: Top/server.c:164

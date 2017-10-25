@@ -11961,7 +11961,7 @@ msgstr ""
 
 #: Top/server.c:157
 #, c-format
-msgid "csould not retrieve channel %s"
+msgid "could not retrieve channel %s"
 msgstr ""
 
 #: Top/server.c:164
