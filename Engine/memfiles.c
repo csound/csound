@@ -545,7 +545,7 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
 
     /* link into PVOC-EX memfile chain */
     csound->pvx_memfiles = pp;
-    csound->Message(csound, Str("file %s (%ld bytes) loaded into memory\n"),
+    csound->Message(csound, Str("file %s (%d bytes) loaded into memory\n"),
                             fname, (int32) mem_wanted);
 
     memcpy(p, pp, sizeof(PVOCEX_MEMFILE));
@@ -666,11 +666,11 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     p->data[p->nFrames] = 0.0f;
     csound->FileClose(csound, fd);
-    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %lu "
+    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %d "
                                 "sample frames) loaded into memory\n"),
                             p->fullName, (int) sfinfo->samplerate,
                             (int) sfinfo->channels,
-                            (uint32) sfinfo->frames);
+                            sfinfo->frames);
 
     /* link into database */
     cs_hash_table_put(csound, csound->sndmemfiles, (char*)fileName, p);

@@ -113,10 +113,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (UNLIKELY(O->odebug)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
-        csound->Message(csound, Str("activating instr %s at %d\n"),
+        csound->Message(csound, Str("activating instr %s at %lld\n"),
                         name, csound->icurTime);
       else
-        csound->Message(csound, Str("activating instr %d at %d\n"),
+        csound->Message(csound, Str("activating instr %d at %lld\n"),
                         insno, csound->icurTime);
     }
     csound->inerrcnt = 0;
