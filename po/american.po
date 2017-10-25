@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 6.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-30 08:53+0100\n"
-"PO-Revision-Date: 2017-08-30 20:19+0100\n"
+"PO-Revision-Date: 2017-10-25 21:34+0100\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (US)\n"
 "Language: en-GB\n"
@@ -483,7 +483,7 @@ msgid "Unknown arg type: %d\n"
 msgstr ""
 
 #: Engine/csound_orc_semantics.c:1218
-#, fuzzy, c-format
+#, c-format
 msgid "Variable type for %s could not be determined.\n"
 msgstr "Variable type for %s couldn't be determined.\n"
 
@@ -761,7 +761,7 @@ msgstr ""
 #: Engine/csound_prs.lex:791
 #, fuzzy
 msgid "Section loops cannot be nested"
-msgstr "input can't be stdout"
+msgstr "Section loops can't be nested"
 
 #: Engine/csound_prs.lex:804
 msgid "r: invalid repeat count"
@@ -2263,11 +2263,13 @@ msgid "sfinit: cannot open %s"
 msgstr "sfinit: can't open %s"
 
 #: InOut/libsnd.c:798
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "sfinit: cannot open %s\n"
 "%s"
-msgstr "sfinit: can't open %s"
+msgstr ""
+"sfinit: can't open %s\n"
+"%s"
 
 #: InOut/libsnd.c:872
 #, c-format
@@ -5270,9 +5272,8 @@ msgstr ""
 #: OOps/ugens1.c:140 OOps/ugens1.c:492 OOps/ugens1.c:546 OOps/ugens1.c:606
 #: OOps/ugens1.c:667 OOps/ugens1.c:881 OOps/ugens1.c:1817
 #: Opcodes/gab/vectorial.c:2198 Opcodes/vpvoc.c:41
-#, fuzzy
 msgid "incomplete number of input arguments"
-msgstr "The number of input arguments isn't valid."
+msgstr "incomplete number of input arguments"
 
 #: OOps/ugens1.c:192 OOps/ugens1.c:1880 OOps/ugens1.c:1890
 #, c-format
@@ -5720,9 +5721,8 @@ msgid "revlpsiz inconsistent\n"
 msgstr ""
 
 #: OOps/ugens6.c:1176
-#, fuzzy
 msgid "reverb: not initialised"
-msgstr "reverbx: not initialized"
+msgstr "reverb: not initialized"
 
 #: OOps/ugens6.c:1250
 msgid "pan: not initialised"
@@ -6482,9 +6482,9 @@ msgid "readi failed to initialise"
 msgstr "readi failed to initialize"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:245
-#, fuzzy, c-format
+#, c-format
 msgid "DSSI4CS: Failed to load %s."
-msgstr "fluid: unable to load %s"
+msgstr "DSSI4CS: Failed to load %s."
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:250
 msgid "Error creating global variable '$DSSI4CS'"
@@ -6572,9 +6572,9 @@ msgid "DSSI4CS: Audio Rate control ports not implemented yet."
 msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:857
-#, fuzzy, c-format
+#, c-format
 msgid "DSSI4CS: Port %lu from '%s' does not exist."
-msgstr "channel '%s' doesn't exist"
+msgstr "DSSI4CS: Port %lu from '%s' doesn't exist."
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:865
 #, c-format
@@ -6919,9 +6919,8 @@ msgid "Invalid table number: %d"
 msgstr ""
 
 #: Opcodes/ftgen.c:304
-#, fuzzy
 msgid "table length too long"
-msgstr "Table lengths don't agree!!"
+msgstr "table length too long"
 
 #: Opcodes/ftgen.c:431
 msgid "ftload: error allocating ftable"
@@ -8529,9 +8528,8 @@ msgid "Missing output table or too short"
 msgstr ""
 
 #: Opcodes/pluck.c:156
-#, fuzzy
 msgid "wgpluck:Could not allocate for initial shape"
-msgstr "Couldn't allocate for initial shape"
+msgstr "wgpluck:Couldn't allocate for initial shape"
 
 #: Opcodes/psynth.c:97 Opcodes/psynth.c:264
 msgid "psynth: first input not in TRACKS format\n"
@@ -8876,9 +8874,8 @@ msgid "sliding not supported"
 msgstr ""
 
 #: Opcodes/pvsops.cpp:36
-#, fuzzy
 msgid "fsig format not supported"
-msgstr " *** MIDI file format %d isn't supported\n"
+msgstr "fsig format not supported"
 
 #: Opcodes/repluck.c:164
 #, c-format
@@ -9405,9 +9402,8 @@ msgid "OSCraw: Closing socket\n"
 msgstr ""
 
 #: Opcodes/sockrecv.c:605
-#, fuzzy
 msgid "output array too small\n"
-msgstr "Output array not initialized"
+msgstr "output array too small\n"
 
 #: Opcodes/socksend.c:149 Opcodes/socksend.c:186 Opcodes/socksend.c:223
 #: Opcodes/socksend.c:302
@@ -9437,9 +9433,9 @@ msgid "expecting a string argument\n"
 msgstr ""
 
 #: Opcodes/socksend.c:505
-#, fuzzy, c-format
+#, c-format
 msgid "%c: data type not supported\n"
-msgstr " *** MIDI file format %d isn't supported\n"
+msgstr "%c: data type not supported\n"
 
 #: Opcodes/socksend.c:757
 msgid "OSCsend2 failed"
@@ -10484,9 +10480,8 @@ msgid "-k N        orchestra krate override"
 msgstr ""
 
 #: Top/argdecode.c:151
-#, fuzzy
 msgid "-K          do not generate PEAK chunks"
-msgstr "-K\tDon't generate PEAK chunks"
+msgstr "-K          don't generate PEAK chunks"
 
 #: Top/argdecode.c:152
 msgid "-v          verbose orch translation"
@@ -10590,9 +10585,8 @@ msgid "--sched=N   set specified scheduling priority, and lock memory"
 msgstr ""
 
 #: Top/argdecode.c:188
-#, fuzzy
 msgid "  Set output file format"
-msgstr "can't create output file"
+msgstr "  Set output file format"
 
 #: Top/argdecode.c:189
 msgid "--aiff                  set AIFF format"
@@ -10619,9 +10613,8 @@ msgid "--noheader              raw format"
 msgstr ""
 
 #: Top/argdecode.c:195
-#, fuzzy
 msgid "--nopeaks               do not write peak information"
-msgstr "--nopeaks\t\tDon't write peak information"
+msgstr "--nopeaks               don't write peak information"
 
 #: Top/argdecode.c:197
 msgid "--displays              use graphic displays"
@@ -12005,9 +11998,9 @@ msgid "UDP server started on port %d \n"
 msgstr ""
 
 #: Top/server.c:157
-#, fuzzy, c-format
-msgid "csould not retrieve channel %s"
-msgstr "Couldn't retrieve max number of channels"
+#, c-format
+msgid "could not retrieve channel %s"
+msgstr "couldn't retrieve channel %s"
 
 #: Top/server.c:164
 #, c-format

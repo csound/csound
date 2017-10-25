@@ -12607,7 +12607,7 @@ msgstr "Ecouteur OSC #%d démarré sur le port %s\n"
 
 #: Top/server.c:157
 #, fuzzy, c-format
-msgid "csould not retrieve channel %s"
+msgid "could not retrieve channel %s"
 msgstr "Impossible de retrouver le nombre max de canaux"
 
 #: Top/server.c:164

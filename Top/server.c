@@ -154,7 +154,7 @@ static uintptr_t udp_recv(void *pdata){
         csound->Free(csound, msg);
       }
       else
-        csound->Warning(csound, Str("csould not retrieve channel %s"), chn);
+        csound->Warning(csound, Str("could not retrieve channel %s"), chn);
 
     }
     else {

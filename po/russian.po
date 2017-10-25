@@ -12077,7 +12077,7 @@ msgstr ""
 
 #: Top/server.c:157
 #, fuzzy, c-format
-msgid "csould not retrieve channel %s"
+msgid "could not retrieve channel %s"
 msgstr "неправильный число аргументов"
 
 #: Top/server.c:164
