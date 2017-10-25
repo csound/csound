@@ -745,7 +745,7 @@ int midiarp(CSOUND *csound, MIDIARP *p)
           csound->Message(csound,
                           Str("Invalid arp mode selected:"
                               " %d. Valid modes are 0, 1, 2, and 3\n"),
-                          *p->arpMode);
+                          (int)*p->arpMode);
         }
       }
     }

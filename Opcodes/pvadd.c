@@ -223,8 +223,8 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
                                fname, (int) pp.fftsize);
     }
     if (UNLIKELY(pp.fftsize < 128)) {
-      return csound->InitError(csound, Str("PV frame %ld seems too small in %s"),
-                               (int32) pp.fftsize, fname);
+      return csound->InitError(csound, Str("PV frame %d seems too small in %s"),
+                               pp.fftsize, fname);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (UNLIKELY(pp.chans > 1)) {

@@ -1904,7 +1904,7 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
           p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
         }
         csound->Message(csound,
-                        Str("vrandh: Seeding from current time %lu\n"),
+                        Str("vrandh: Seeding from current time %u\n"),
                         seed);
       }
       else {
@@ -2004,7 +2004,7 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
           p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
         }
         csound->Message(csound,
-                        Str("vrandi: Seeding from current time %lu\n"), seed);
+                        Str("vrandi: Seeding from current time %u\n"), seed);
       }
       else {
         if (*p->isize == 0)
