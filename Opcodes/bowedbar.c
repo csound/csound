@@ -51,7 +51,7 @@ static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int lag)
 {
     if (UNLIKELY(lag > p->length-1)) {                   /* if delay is too big, */
       csound->Warning(csound, Str("DLineN: Delay length too big ... setting to "
-                                  "maximum length of %ld.\n"), p->length - 1);
+                                  "maximum length of %d.\n"), p->length - 1);
       p->outPoint = p->inPoint + 1;            /* force delay to max_length */
     }
     else

@@ -632,7 +632,7 @@ int vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
     /* if (n>CHANNELS) */
     /*   return csound->InitError(csound, Str("Too many speakers (%n)\n"), n); */
     if (UNLIKELY(n>p->a->sizes[0]))
-      return csound->InitError(csound, Str("Too little data speakers (%n)\n"),
+      return csound->InitError(csound, Str("Too little data speakers (%d)\n"),
                               n>p->a->sizes[0]);
     MYFLT  **f = csound->Malloc(csound, 2*sizeof(MYFLT*)*n);
     // Transfer values to pointers
