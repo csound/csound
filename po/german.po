@@ -12143,7 +12143,7 @@ msgstr ""
 
 #: Top/server.c:157
 #, fuzzy, c-format
-msgid "csould not retrieve channel %s"
+msgid "could not retrieve channel %s"
 msgstr "unzulässiger Name für Instrument"
 
 #: Top/server.c:164
