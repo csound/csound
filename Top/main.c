@@ -33,7 +33,7 @@
 #include "cs_par_orc_semantics.h"
 #include "cs_par_dispatch.h"
 
-void allocate_message_queue(CSOUND *csound); 
+void allocate_message_queue(CSOUND *csound);
 int UDPServerStart(CSOUND *csound, int port);
 CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     argdecode(CSOUND *, int, const char **);

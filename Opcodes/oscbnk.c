@@ -940,6 +940,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
       f = w_frq_f / x_frq_f;
       g_frq = (f > FL(0.99999) ? OSCBNK_PHSMAX : OSCBNK_PHS2INT(f));
       /* initial window phase */
+      // COVERITY: g_frq is not zero, as it is derived from 1/sr
       g_ph = OSCBNK_PHSMAX % g_frq;
       if (g_ph < (OSCBNK_PHSMAX >> 16)) g_ph += g_frq;
       g_ph = OSCBNK_PHSMAX - g_ph;

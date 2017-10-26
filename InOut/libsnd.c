@@ -943,12 +943,12 @@ void sfcloseout(CSOUND *csound)
  report:
     if (STA(pipdevout) == 2) {
       csound->Message(csound,
-                      Str("%ld %d sample blks of %d-bit floats written to %s\n"),
+                      Str("%d %d sample blks of %d-bit floats written to %s\n"),
                       csound->nrecs, O->outbufsamps,
                       sizeof(MYFLT)*8, STA(sfoutname));
     }
     else {
-      csound->Message(csound, Str("%ld %d sample blks of %s written to %s"),
+      csound->Message(csound, Str("%d %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
                       getstrformat(O->outformat), STA(sfoutname));
       if (O->sfheader == 0)

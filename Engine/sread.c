@@ -1158,7 +1158,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(names)[j].line = STA(str)->line;
           //printf("line-%d\n",STA(names)[j].line);
           if (csound->oparms->msglevel & TIMEMSG)
-            csound->Message(csound,Str("%d: %s position %ld\n"),
+            csound->Message(csound,Str("%d: %s position %d\n"),
                             j, STA(names)[j].name,
                             STA(names)[j].posit);
           STA(op) = getop(csound);
