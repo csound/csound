@@ -93,8 +93,8 @@ static uintptr_t udp_recv(void *pdata){
   while ((received = recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) > 0) {
     orchestra[received] = '\0'; // terminate string
     if(strlen(orchestra) < 2) continue;
-    //if (csound->oparms->odebug)
-      csound->Message(csound, "%c", *orchestra);
+    if (csound->oparms->odebug)
+      csound->Message(csound, "%s", orchestra);
     if (strncmp("!!close!!",orchestra,9)==0 ||
         strncmp("##close##",orchestra,9)==0) {
       csoundInputMessageAsync(csound, "e 0 0");
