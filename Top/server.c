@@ -86,14 +86,15 @@ static uintptr_t udp_recv(void *pdata){
   int port = p->port;
   char *orchestra = csound->Calloc(csound, MAXSTR);
   int sock = 0;
-  int received;
+  int received, cont = 0;
+  char *start = orchestra;
 
   csound->Message(csound, Str("UDP server started on port %d \n"),port);
   while ((received = recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) > 0) {
-    orchestra[received] = 0; // terminate string
+    orchestra[received] = '\0'; // terminate string
     if(strlen(orchestra) < 2) continue;
     if (csound->oparms->odebug)
-      csound->Message(csound, "message: \n%s\n", orchestra);
+      csound->Message(csound, "%s", orchestra);
     if (strncmp("!!close!!",orchestra,9)==0 ||
         strncmp("##close##",orchestra,9)==0) {
       csoundInputMessageAsync(csound, "e 0 0");
@@ -157,12 +158,32 @@ static uintptr_t udp_recv(void *pdata){
         csound->Warning(csound, Str("csould not retrieve channel %s"), chn);
 
     }
+    if(*orchestra == '{' || cont) {
+      if(orchestra[received-1] == '}') {
+          orchestra[received-1] = '\0';
+          cont = 0;
+      } else if (orchestra[received-2] == '}') {
+	 /* in case there is newline in file */
+          orchestra[received-2] = '\0';
+	  cont = 0;
+      } else {
+	 orchestra += received;
+         cont = 1;
+      }
+      if(!cont) {
+	orchestra = start;
+	csound->Message(csound, "%s \n", orchestra+1);
+	csoundCompileOrcAsync(csound, orchestra+1);
+      }
+    }
     else {
+      csound->Message(csound, "%s \n", orchestra);
       csoundCompileOrcAsync(csound, orchestra);
     }
+    
   }
   csound->Message(csound, Str("UDP server on port %d stopped\n"),port);
-  csound->Free(csound, orchestra);
+  csound->Free(csound, start);
   // csound->Message(csound, "orchestra dealloc\n");
   if(sock > 0)
 #ifndef WIN32
