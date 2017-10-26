@@ -1236,6 +1236,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
     instno = inm->instno;
     tp = csound->engineState.instrtxtp[instno];
+    if (tp == NULL) return csound->InitError(csound, "Can't find instr %d (UDO %s)\n", instno, inm->name);
     /* set local ksmps if defined by user */
     n = p->OUTOCOUNT + p->INCOUNT - 1;
 
