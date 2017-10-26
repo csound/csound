@@ -15,7 +15,7 @@ endif()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
-if(NOT MSVC)
+if(NOT MSVC AND NOT WASM)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
 set(CMAKE_C_FLAGS_RELEASE "-O3 ")
 endif()

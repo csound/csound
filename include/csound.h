@@ -715,7 +715,7 @@ extern "C" {
 
    /**
    *  Async version of csoundCompileOrc(). The code is parsed and
-   *  compiled, then placed on a queue for 
+   *  compiled, then placed on a queue for
    *  asynchronous merge into the running engine, and evaluation.
    *  The function returns following parsing and compilation.
    */
@@ -1367,7 +1367,7 @@ extern "C" {
   PUBLIC int csoundReadScore(CSOUND *csound, const char *str);
 
    /**
-   *  Asynchronous version of csoundReadScore(). 
+   *  Asynchronous version of csoundReadScore().
    */
   PUBLIC void csoundReadScoreAsync(CSOUND *csound, const char *str);
 
@@ -1728,7 +1728,7 @@ extern "C" {
                               char type, const MYFLT *pFields, long numFields);
 
   /**
-   *  Asynchronous version of csoundScoreEvent(). 
+   *  Asynchronous version of csoundScoreEvent().
    */
   PUBLIC void csoundScoreEventAsync(CSOUND *,
                               char type, const MYFLT *pFields, long numFields);
@@ -1742,7 +1742,7 @@ extern "C" {
                  char type, const MYFLT *pfields, long numFields, double time_ofs);
 
   /**
-   *  Asynchronous version of csoundScoreEventAbsolute(). 
+   *  Asynchronous version of csoundScoreEventAbsolute().
    */
   PUBLIC void csoundScoreEventAbsoluteAsync(CSOUND *,
                  char type, const MYFLT *pfields, long numFields, double time_ofs);
@@ -1756,7 +1756,7 @@ extern "C" {
    * Asynchronous version of csoundInputMessage().
    */
   PUBLIC void csoundInputMessageAsync(CSOUND *, const char *message);
- 
+
   /**
    * Kills off one or more running instances of an instrument identified
    * by instr (number) or instrName (name). If instrName is NULL, the
@@ -1874,7 +1874,7 @@ extern "C" {
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *dest);
 
-  /** 
+  /**
    * Asynchronous version of csoundTableCopyOut()
    */
   PUBLIC void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *dest);
@@ -1885,7 +1885,7 @@ extern "C" {
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
 
-  /** 
+  /**
    * Asynchronous version of csoundTableCopyIn()
    */
   PUBLIC void csoundTableCopyInAsync(CSOUND *csound, int table, MYFLT *src);

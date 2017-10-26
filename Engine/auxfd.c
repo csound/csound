@@ -198,7 +198,7 @@ static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
     /* chain through auxlocs */
     for (curchp = ip->auxchp; curchp != NULL; curchp = curchp->nxtchp)
       csoundMessage(csound,
-                      Str("\tauxch at %p: size %ld, auxp %p, endp %p\n"),
+                      Str("\tauxch at %p: size %zu, auxp %p, endp %p\n"),
                       curchp, curchp->size, curchp->auxp, curchp->endp);
 }
 

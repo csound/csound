@@ -60,7 +60,7 @@ static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
     cvh = (CVSTRUCT *)mfp->beginp;
     if (UNLIKELY(cvh->magic != CVMAGIC)) {
       return csound->InitError(csound,
-                               Str("%s not a CONVOLVE file (magic %ld)"),
+                               Str("%s not a CONVOLVE file (magic %d)"),
                                cvfilnam, cvh->magic);
     }
 
@@ -107,7 +107,7 @@ static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
     if (UNLIKELY(cvh->dataFormat != CVMYFLT)) {
       return csound->InitError(csound,
                                Str("unsupported CONVOLVE data "
-                                   "format %ld in %s"),
+                                   "format %d in %s"),
                                cvh->dataFormat, cvfilnam);
     }
 
