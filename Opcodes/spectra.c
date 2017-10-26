@@ -187,7 +187,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         octp->endp = fltp;  minr *= 2;
       }
       csound->Warning(csound, Str("\t%d oct analysis window "
-                                  "delay = %ld samples (%d msecs)\n"),
+                                  "delay = %d samples (%d msecs)\n"),
                               nocts, bufsiz, (int)(bufsiz*1000/dwnp->srate));
       if (p->disprd) {                      /* if display requested, */
         totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
