@@ -1261,7 +1261,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
           while (++i <= engineState->maxopcno) engineState->instrtxtp[i] = NULL;
         }
         inm->instno = num;
-        //csound->Message(csound, Str("UDO INSTR NUM: %d\n"), num);
+        csound->Message(csound, Str("UDO INSTR NUM: %d\n"), num);
         engineState->instrtxtp[num] = inm->ip;
         inm = inm->prv;
       }
@@ -1351,7 +1351,11 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     }
 
     /* merge opcodinfo */
+    
+    /* VL probably not the right place, since instr list 
+       might grow
     insert_opcodes(csound, csound->opcodeInfo, current_state);
+    */
     old_instr0 = current_state->instrtxtp[0];
     insert_instrtxt(csound,engineState->instrtxtp[0],0,current_state,1);
     for (i=1; i < end; i++) {
@@ -1375,7 +1379,10 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     }
     /* merges all named instruments */
     //printf("assign numbers; %p\n", current_state);
-    named_instr_assign_numbers(csound,current_state);
+    named_instr_assign_numbers(csound,current_state);\
+    /* VL MOVED here after all instruments are merged so
+       that we get the correct number */
+    insert_opcodes(csound, csound->opcodeInfo, current_state);
     /* this needs to be called in a separate loop
        in case of multiple instr numbers, so insprep() is called only once */
     current = (&(engineState->instxtanchor));//->nxtinstxt;
