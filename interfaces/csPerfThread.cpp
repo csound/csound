@@ -261,7 +261,8 @@ class CsPerfThreadMsg_Stop : public CsoundPerformanceThreadMessage {
     CsPerfThreadMsg_Stop(CsoundPerformanceThread *pt)
     : CsoundPerformanceThreadMessage(pt)
     {
-      CsoundPerformanceThreadMessage::QueueMessage(new CsPerfThreadMsg_StopRecord(pt));
+      CsoundPerformanceThreadMessage::QueueMessage(
+                                         new CsPerfThreadMsg_StopRecord(pt));
     }
     int run()
     {

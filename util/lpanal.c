@@ -541,8 +541,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
                                      outfilnam, "w", "", CSFTYPE_LPC, 0) == NULL))
         quit(csound, Str("cannot create output file"));
     }
-    else if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W,
-                                        outfilnam, NULL, "", CSFTYPE_LPC, 0) == NULL))
+    else if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W, outfilnam,
+                                        NULL, "", CSFTYPE_LPC, 0) == NULL))
       quit(csound, Str("cannot create output file"));
 
     /* Prepare header */
