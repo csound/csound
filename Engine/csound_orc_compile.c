@@ -1351,8 +1351,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     }
 
     /* merge opcodinfo */
-    
-    /* VL probably not the right place, since instr list 
+
+    /* VL probably not the right place, since instr list
        might grow
     insert_opcodes(csound, csound->opcodeInfo, current_state);
     */
