@@ -163,24 +163,24 @@ static uintptr_t udp_recv(void *pdata){
           orchestra[received-1] = '\0';
           cont = 0;
       } else if (orchestra[received-2] == '}') {
-	 /* in case there is newline in file */
+         /* in case there is newline in file */
           orchestra[received-2] = '\0';
-	  cont = 0;
+          cont = 0;
       } else {
-	 orchestra += received;
+         orchestra += received;
          cont = 1;
       }
       if(!cont) {
-	orchestra = start;
-	//csound->Message(csound, "%s \n", orchestra+1);
-	csoundCompileOrcAsync(csound, orchestra+1);
+        orchestra = start;
+        //csound->Message(csound, "%s \n", orchestra+1);
+        csoundCompileOrcAsync(csound, orchestra+1);
       }
     }
     else {
       //csound->Message(csound, "%s \n", orchestra);
       csoundCompileOrcAsync(csound, orchestra);
     }
-    
+
   }
   csound->Message(csound, Str("UDP server on port %d stopped\n"),port);
   csound->Free(csound, start);
