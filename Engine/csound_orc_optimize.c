@@ -123,6 +123,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
 
 TREE* constant_fold(CSOUND *csound, TREE* root)
 {
+    extern MYFLT MOD(MYFLT, MYFLT);
     TREE* current = root;
     while (current) {
       switch (current->type) {
