@@ -147,12 +147,14 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
             (current->right->type == INTEGER_TOKEN ||
              current->right->type == NUMBER_TOKEN)) {
           MYFLT lval, rval;
+          char buf[64];
           lval = (current->left->type == INTEGER_TOKEN ?
                   (double)current->left->value->value :
                   current->left->value->fvalue);
           rval = (current->right->type == INTEGER_TOKEN ?
                   (double)current->right->value->value :
                   current->right->value->fvalue);
+          //printf("lval = %g  rval = %g\n", lval, rval);
           switch (current->type) {
           case '+':
             lval = lval + rval;
@@ -182,15 +184,20 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
             lval = (MYFLT)(((int)lval)^((int)rval));
             break;
           case S_BITSHIFT_LEFT:
+
             lval = (MYFLT)(((int)lval)<<((int)rval));
             break;
           case S_BITSHIFT_RIGHT:
             lval = (MYFLT)(((int)lval)>>((int)rval));
             break;
           }
+          //printf("ans = %g\n", lval);
           current->value = current->left->value;
           current->type = NUMBER_TOKEN;
           current->value->fvalue = lval;
+          snprintf(buf, 60, "%.20g", lval);
+          csound->Free(csound, current->value->lexeme);
+          current->value->lexeme = cs_strdup(csound, buf);
           csound->Free(csound, current->left);
           csound->Free(csound, current->right->value);
           csound->Free(csound, current->right);
@@ -204,6 +211,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
         if (current->right->type == INTEGER_TOKEN ||
              current->right->type == NUMBER_TOKEN) {
           MYFLT lval;
+          char buf[64];
           lval = (current->right->type == INTEGER_TOKEN ?
                   (double)current->right->value->value :
                   current->right->value->fvalue);
@@ -211,6 +219,9 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           current->value = current->right->value;
           current->type = NUMBER_TOKEN;
           current->value->fvalue = lval;
+          snprintf(buf, 60, "%.20g", lval);
+          csound->Free(csound, current->value->lexeme);
+          current->value->lexeme = cs_strdup(csound, buf);
           csound->Free(csound, current->right);
           current->right = NULL;
         }
