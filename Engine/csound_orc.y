@@ -177,14 +177,14 @@
 
 orcfile           : rootstatement
                         {
-                          if ($1 != NULL)
-                            *astTree = ((TREE *)$1);
                           csound->synterrcnt = csound_orcnerrs;
                           if (UNLIKELY(csound->oparms->odebug))
                             print_tree(csound, "ALL", $1);
                           $1 = constant_fold(csound, $1);
                           if (UNLIKELY(csound->oparms->odebug))
                             print_tree(csound, "Folded", $1);
+                          if ($1 != NULL)
+                            *astTree = ((TREE *)$1);
                         }
                   ;
 
