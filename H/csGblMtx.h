@@ -72,7 +72,7 @@ void csoundLock() {
     CRITICAL_SECTION* cs;
 
     status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, &cs);
-    if(status) {
+    if (status) {
       EnterCriticalSection(cs);
     }
 }
@@ -83,7 +83,7 @@ void csoundUnLock() {
     CRITICAL_SECTION* cs;
 
     status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, &cs);
-    if(status) {
+    if (status) {
       LeaveCriticalSection(cs);
     }
 }

@@ -28,7 +28,7 @@
 #include "csound_orc.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#include "cs_par_dispatch.h"
+//#include "cs_par_dispatch.h"
 
 #include "cs_par_ops.h"
 #include "cs_par_structs.h"
@@ -131,7 +131,7 @@ static struct global_var_lock_t
     }
 }
 
-TREE *csp_locks_insert(CSOUND *csound, TREE *root)
+static TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
     csound->Message(csound,
                     Str("Inserting Parallelism Constructs into AST\n"));

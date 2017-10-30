@@ -64,7 +64,7 @@ extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
 extern TREE* csound_orc_optimize(CSOUND *, TREE *);
-extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
+//extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
 extern void csp_orc_sa_print_list(CSOUND*);
 
 #if 0
@@ -291,10 +291,10 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
           csoundFreeVarPool(csound, typeTable->globalPool);
-          if(typeTable->instr0LocalPool != NULL) {
+          if (typeTable->instr0LocalPool != NULL) {
             csoundFreeVarPool(csound, typeTable->instr0LocalPool);
           }
-          if(typeTable->localPool != typeTable->instr0LocalPool) {
+          if (typeTable->localPool != typeTable->instr0LocalPool) {
             csoundFreeVarPool(csound, typeTable->localPool);
           }
           csound->Free(csound, typeTable);
@@ -310,13 +310,13 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       newRoot->markup = typeTable;
       newRoot->next = astTree;
 
-      /* if(str!=NULL){ */
+      /* if (str!=NULL){ */
       /*        if (typeTable != NULL) { */
       /*     csoundFreeVarPool(csound, typeTable->globalPool); */
-      /*     if(typeTable->instr0LocalPool != NULL) { */
+      /*     if (typeTable->instr0LocalPool != NULL) { */
       /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
       /*     } */
-      /*     if(typeTable->localPool != typeTable->instr0LocalPool) { */
+      /*     if (typeTable->localPool != typeTable->instr0LocalPool) { */
       /*       csoundFreeVarPool(csound, typeTable->localPool); */
       /*     } */
       /*     csound->Free(csound, typeTable); */

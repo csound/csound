@@ -976,7 +976,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt)
 {
     /* check current items in deadpool to see if they need deleting */
     int i;
-    for(i=0; i < csound->dead_instr_no; i++) {
+    for (i=0; i < csound->dead_instr_no; i++) {
       if (csound->dead_instr_pool[i] != NULL) {
         INSDS *active = csound->dead_instr_pool[i]->instance;
         while (active != NULL) {
@@ -1719,10 +1719,10 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
       /* any compilation other than the first one */
       /* merge ENGINE_STATE */
       /* lock to ensure thread-safety */
-      if(!async) {
-      csoundLockMutex(csound->API_lock);
-      merge_state(csound, engineState, typeTable, ids);
-      csoundUnlockMutex(csound->API_lock);
+      if (!async) {
+        csoundLockMutex(csound->API_lock);
+        merge_state(csound, engineState, typeTable, ids);
+        csoundUnlockMutex(csound->API_lock);
       } else
         mergeState_enqueue(csound, engineState, typeTable, ids);
     }
@@ -1966,7 +1966,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           csound->Message(csound, "\n");
         }
         //printf("delete %p \n", argStringParts);
-        for(n=0; argStringParts[n] != NULL; n++) {
+        for (n=0; argStringParts[n] != NULL; n++) {
           //printf("delete %p \n", argStringParts[n]);
           csound->Free(csound, argStringParts[n]);
         }
@@ -2152,9 +2152,10 @@ void debugPrintCsound(CSOUND* csound)
     }
     csound->Message(csound, "Constants Pool:\n");
     count = 0;
-    for(count = 0; count < csound->engineState.constantsPool->count; count++) {
+    for (count = 0; count < csound->engineState.constantsPool->count; count++) {
       csound->Message(csound, "    %d) %f\n",
-                      count, csound->engineState.constantsPool->values[count].value);
+                      count,
+                      csound->engineState.constantsPool->values[count].value);
     }
 
     csound->Message(csound, "Global Variables:\n");
