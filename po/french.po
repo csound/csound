@@ -6924,7 +6924,7 @@ msgstr "Farey : No de table < 1 dft=%.2f  sft=%.2f"
 #: Opcodes/fareyseq.c:257 Opcodes/fareyseq.c:307
 #, c-format
 msgid "Farey: Filter type < 1 ftype=%.2f"
-msgstr "Farey : Type de filtre < 1 dft=%.2f  sft=%.2f"
+msgstr "Farey : type de filtre < 1 ftype=%.2f"
 
 #: Opcodes/fareyseq.c:272 Opcodes/fareyseq.c:320
 #, c-format
@@ -12603,7 +12603,7 @@ msgstr "Serveur UDP démarré sur le port %d\n"
 #: Top/server.c:157
 #, c-format
 msgid "could not retrieve channel %s"
-msgstr "Impossible de retrouver le cana %s"
+msgstr "Impossible de retrouver le canal %s"
 
 #: Top/server.c:164
 #, c-format
