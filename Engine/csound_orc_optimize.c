@@ -65,10 +65,10 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
       }
       break;
     default:                         /* i(A op B) -> i(A) op i(B) */
-      if(root->right->left != NULL)
+      if (root->right->left != NULL)
         root->right->left = create_fun_token(csound,
                                              root->right->left, "i");
-      if(root->right->right != NULL)
+      if (root->right->right != NULL)
         root->right->right = create_fun_token(csound,
                                               root->right->right, "i");
       root->right->next = root->next;
@@ -80,11 +80,10 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
 }
 
 /** Verifies and optimise; constant fold and opcodes and args are correct*/
-/* The wrong place to fold constants -- JPff */
+/* The wrong place to fold constants so done in parser -- JPff */
 static TREE * verify_tree1(CSOUND *csound, TREE *root)
 {
     TREE *ans, *last;
-    double lval, rval;
     //print_tree(csound, "Verify", root);
     if (root->right && root->right->type != T_INSTLIST) {
       if (root->type == T_OPCODE || root->type == T_OPCODE0) {
@@ -138,8 +137,6 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
       case '#':
       case S_BITSHIFT_LEFT:
       case S_BITSHIFT_RIGHT:
-        // ^ % | & # bitshift_eft bitshift_right
-        //print_tree(csound, "Folding case?\n", current);
         current->left = constant_fold(csound, current->left);
         current->right = constant_fold(csound, current->right);
         //print_tree(csound, "Folding case??\n", current);
@@ -185,7 +182,6 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
             lval = (MYFLT)(((int)lval)^((int)rval));
             break;
           case S_BITSHIFT_LEFT:
-
             lval = (MYFLT)(((int)lval)<<((int)rval));
             break;
           case S_BITSHIFT_RIGHT:

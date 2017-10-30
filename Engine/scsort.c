@@ -42,9 +42,9 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     CORFIL *sco;
 
     csound->scoreout = NULL;
-    if(csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
-       first = 1;
-       sco = csound->scstr = corfile_create_w();
+    if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
+      first = 1;
+      sco = csound->scstr = corfile_create_w();
     }
     else sco = corfile_create_w();
     csound->sectcnt = 0;
