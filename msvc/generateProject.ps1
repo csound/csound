@@ -40,9 +40,10 @@ echo "VCPKG script: '$vcpkgCmake'"
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 dir ..\deps
+$linkPath = Resolve-Path -Path "..\deps\link"
 cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -Wno-dev -Wdeprecated `
- -DABLETON_LINK_HOME="..\deps\link" `
+ -DABLETON_LINK_HOME="$linkPath" `
  -DBUILD_ABLETON_LINK_OPCODES:BOOL=On `
  -DSTK_LOCAL:BOOL="ON" `
  -DCMAKE_BUILD_TYPE="Release" `
