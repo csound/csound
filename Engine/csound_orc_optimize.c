@@ -83,7 +83,7 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
 /* The wrong place to fold constants so done in parser -- JPff */
 static TREE * verify_tree1(CSOUND *csound, TREE *root)
 {
-    TREE *ans, *last;
+    TREE *last;
     //print_tree(csound, "Verify", root);
     if (root->right && root->right->type != T_INSTLIST) {
       if (root->type == T_OPCODE || root->type == T_OPCODE0) {
@@ -202,6 +202,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
         }
         break;
       case S_UMINUS:
+      case '~':
         //print_tree(csound, "Folding case?\n", current);
         current->right = constant_fold(csound, current->right);
         //print_tree(csound, "Folding case??\n", current);
@@ -212,7 +213,14 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           lval = (current->right->type == INTEGER_TOKEN ?
                   (double)current->right->value->value :
                   current->right->value->fvalue);
-          lval = -lval;
+          switch (current->type) {
+          case S_UMINUS:
+            lval = -lval;
+            break;
+          case '~':
+            lval = (MYFLT)(~(int)lval);
+            break;
+          }
           current->value = current->right->value;
           current->type = NUMBER_TOKEN;
           current->value->fvalue = lval;
