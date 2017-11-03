@@ -261,8 +261,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         if (UNLIKELY(e->pcnt>=PMAX))
           e->pcnt += e->c.extra[0];                /* and overflow fields */
         if (csound->sstrlen) {        /* if string arg present, save it */
-          e->strarg = csound->Malloc(csound, csound->sstrlen); /* FIXME:       */
-          memcpy(e->strarg, csound->sstrbuf, csound->sstrlen); /* leaks memory */
+          e->strarg = csound->sstrbuf; csound->sstrbuf = NULL;
           e->scnt = csound->scnt;
           csound->sstrlen = 0;
         }

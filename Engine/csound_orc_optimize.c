@@ -1,5 +1,5 @@
  /*
-    csound_orc_optimizee.c:
+    csound_orc_optimize.c:
 
     Copyright (C) 2006
     Steven Yi
@@ -65,10 +65,10 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
       }
       break;
     default:                         /* i(A op B) -> i(A) op i(B) */
-      if(root->right->left != NULL)
+      if (root->right->left != NULL)
         root->right->left = create_fun_token(csound,
                                              root->right->left, "i");
-      if(root->right->right != NULL)
+      if (root->right->right != NULL)
         root->right->right = create_fun_token(csound,
                                               root->right->right, "i");
       root->right->next = root->next;
@@ -80,11 +80,10 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
 }
 
 /** Verifies and optimise; constant fold and opcodes and args are correct*/
+/* The wrong place to fold constants so done in parser -- JPff */
 static TREE * verify_tree1(CSOUND *csound, TREE *root)
 {
-    TREE *ans, *last;
-    double lval, rval;
-    //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
+    TREE *last;
     //print_tree(csound, "Verify", root);
     if (root->right && root->right->type != T_INSTLIST) {
       if (root->type == T_OPCODE || root->type == T_OPCODE0) {
@@ -116,106 +115,131 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
           root->left = optimize_ifun(csound, root->left);
         }
         root->left= verify_tree1(csound, root->left);
-        if ((root->left->type  == INTEGER_TOKEN ||
-             root->left->type  == NUMBER_TOKEN) &&
-            (root->right->type == INTEGER_TOKEN ||
-             root->right->type == NUMBER_TOKEN)) {
-          //print_tree(csound, "numerical case\n", root);
-          lval = (root->left->type == INTEGER_TOKEN ?
-                  (double)root->left->value->value :
-                  root->left->value->fvalue);
-          rval = (root->right->type == INTEGER_TOKEN ?
-                  (double)root->right->value->value :
-                  root->right->value->fvalue);
-          ans = root->left;
-          /* **** Something wrong here --
-             subtraction confuses memory **** */
-          switch (root->type) {
-          case '+':
-            ans->type = ans->value->type = NUMBER_TOKEN;
-            ans->value->fvalue = lval+rval;
-            ans->value->lexeme =
-              (char*)csound->
-              ReAlloc(csound, ans->value->lexeme, 24);
-            CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
-            ans->next = root->next;
-            //Memory leak!!
-            //csound->Free(csound, root); mfree(csound root->right);
-            return ans;
-          case '-':
-            ans->type = ans->value->type = NUMBER_TOKEN;
-            ans->value->fvalue = lval-rval;
-            ans->value->lexeme =
-              (char*)csound->
-              ReAlloc(csound, ans->value->lexeme, 24);
-            CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
-            ans->next = root->next;
-            //Memory leak!!
-            //csound->Free(csound, root); mfree(csound, root->right);
-            return ans;
-          case '*':
-            ans->type = ans->value->type = NUMBER_TOKEN;
-            ans->value->fvalue = lval*rval;
-            ans->value->lexeme =
-              (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
-            CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
-            ans->next = root->next;
-            //Memory leak!!
-            //csound->Free(csound, root); mfree(csound, root->right);
-            return ans;
-          case '/':
-            ans->type = ans->value->type = NUMBER_TOKEN;
-            ans->value->fvalue = lval/rval;
-            ans->value->lexeme =
-              (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
-            CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
-            ans->next = root->next;
-            //Memory leak!!
-            //csound->Free(csound, root); mfree(csound, root->right);
-            return ans;
-            /* case S_NEQ: */
-            /*   break; */
-            /* case S_AND: */
-            /*   break; */
-            /* case S_OR: */
-            /*   break; */
-            /* case S_LT: */
-            /*   break; */
-            /* case S_LE: */
-            /*   break; */
-            /* case S_EQ: */
-            /*   break; */
-            /* case S_GT: */
-            /*   break; */
-            /* case S_GE: */
-            /*   break; */
-          default: break;
-          }
-        }
-      }
-      else if (root->right->type == INTEGER_TOKEN ||
-               root->right->type == NUMBER_TOKEN) {
-        switch (root->type) {
-        case S_UMINUS:
-          /*print_tree(csound, "root", root);*/
-          ans = root->right;
-          ans->value->fvalue =
-            -(ans->type==INTEGER_TOKEN ? (double)ans->value->value
-              : ans->value->fvalue);
-          ans->value->lexeme =
-            (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
-          CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
-          ans->type = ans->value->type = NUMBER_TOKEN;
-          //print_tree(csound, "ans", ans);
-          ans->next = root->next;
-          return ans;
-        default:
-          break;
-        }
       }
     }
     return root;
 }
+
+TREE* constant_fold(CSOUND *csound, TREE* root)
+{
+    extern MYFLT MOD(MYFLT, MYFLT);
+    TREE* current = root;
+    while (current) {
+      switch (current->type) {
+      case '+':
+      case '-':
+      case '*':
+      case '/':
+      case '^':
+      case '%':
+      case '|':
+      case '&':
+      case '#':
+      case S_BITSHIFT_LEFT:
+      case S_BITSHIFT_RIGHT:
+        current->left = constant_fold(csound, current->left);
+        current->right = constant_fold(csound, current->right);
+        //print_tree(csound, "Folding case??\n", current);
+        if ((current->left->type == INTEGER_TOKEN ||
+             current->left->type == NUMBER_TOKEN) &&
+            (current->right->type == INTEGER_TOKEN ||
+             current->right->type == NUMBER_TOKEN)) {
+          MYFLT lval, rval;
+          char buf[64];
+          lval = (current->left->type == INTEGER_TOKEN ?
+                  (double)current->left->value->value :
+                  current->left->value->fvalue);
+          rval = (current->right->type == INTEGER_TOKEN ?
+                  (double)current->right->value->value :
+                  current->right->value->fvalue);
+          //printf("lval = %g  rval = %g\n", lval, rval);
+          switch (current->type) {
+          case '+':
+            lval = lval + rval;
+            break;
+          case '-':
+            lval = lval - rval;
+            break;
+          case '*':
+            lval = lval * rval;
+            break;
+          case '/':
+            lval = lval / rval;
+            break;
+          case '^':
+            lval = POWER(lval,rval);
+            break;
+          case '%':
+            lval = MOD(lval,rval);
+            break;
+          case '|':
+            lval = (MYFLT)(((int)lval)|((int)rval));
+            break;
+          case '&':
+            lval = (MYFLT)(((int)lval)&((int)rval));
+            break;
+          case '#':
+            lval = (MYFLT)(((int)lval)^((int)rval));
+            break;
+          case S_BITSHIFT_LEFT:
+            lval = (MYFLT)(((int)lval)<<((int)rval));
+            break;
+          case S_BITSHIFT_RIGHT:
+            lval = (MYFLT)(((int)lval)>>((int)rval));
+            break;
+          }
+          //printf("ans = %g\n", lval);
+          current->value = current->left->value;
+          current->type = NUMBER_TOKEN;
+          current->value->fvalue = lval;
+          snprintf(buf, 60, "%.20g", lval);
+          csound->Free(csound, current->value->lexeme);
+          current->value->lexeme = cs_strdup(csound, buf);
+          csound->Free(csound, current->left);
+          csound->Free(csound, current->right->value);
+          csound->Free(csound, current->right);
+          current->right = current->left = NULL;
+        }
+        break;
+      case S_UMINUS:
+      case '~':
+        //print_tree(csound, "Folding case?\n", current);
+        current->right = constant_fold(csound, current->right);
+        //print_tree(csound, "Folding case??\n", current);
+        if (current->right->type == INTEGER_TOKEN ||
+             current->right->type == NUMBER_TOKEN) {
+          MYFLT lval;
+          char buf[64];
+          lval = (current->right->type == INTEGER_TOKEN ?
+                  (double)current->right->value->value :
+                  current->right->value->fvalue);
+          switch (current->type) {
+          case S_UMINUS:
+            lval = -lval;
+            break;
+          case '~':
+            lval = (MYFLT)(~(int)lval);
+            break;
+          }
+          current->value = current->right->value;
+          current->type = NUMBER_TOKEN;
+          current->value->fvalue = lval;
+          snprintf(buf, 60, "%.20g", lval);
+          csound->Free(csound, current->value->lexeme);
+          current->value->lexeme = cs_strdup(csound, buf);
+          csound->Free(csound, current->right);
+          current->right = NULL;
+        }
+        break;
+      default:
+        current->left = constant_fold(csound, current->left);
+        current->right = constant_fold(csound, current->right);
+      }
+      current = current->next;
+    }
+    return root;
+}
+
 
 /* Optimizes tree (expressions, etc.) */
 TREE * csound_orc_optimize(CSOUND *csound, TREE *root)

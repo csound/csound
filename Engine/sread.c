@@ -33,7 +33,6 @@
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
 
-//#define MARGS   (3)
 //#define MACDEBUG (1)
 
 static void print_input_backtrace(CSOUND *csound, int needLFs,

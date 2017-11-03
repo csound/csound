@@ -34,9 +34,9 @@ msgid "auxlist for instr %d (%p):\n"
 msgstr "auxlist pour l'instr %d (%p) :\n"
 
 #: Engine/auxfd.c:201
-#, fuzzy, c-format
+#, c-format
 msgid "\tauxch at %p: size %zu, auxp %p, endp %p\n"
-msgstr "\tauxch à %p : taille %ld, auxp %p, endp %p\n"
+msgstr "\tauxch à %p : taille %zu, auxp %p, endp %p\n"
 
 #: Engine/auxfd.c:213
 #, c-format
@@ -237,9 +237,9 @@ msgid "%s invalid control rate"
 msgstr "%s taux de contrôle non valide"
 
 #: Engine/csound_orc_compile.c:595
-#, fuzzy, c-format
+#, c-format
 msgid "%s invalid number of samples"
-msgstr "nombre d'arguments non valide"
+msgstr "%s nombre d'échantillons non valide"
 
 #: Engine/csound_orc_compile.c:599 Engine/csound_orc_compile.c:676
 #, c-format
@@ -287,9 +287,9 @@ msgid "system constants can only be set once\n"
 msgstr "les constantes du système ne peuvent être fixées qu'une fois\n"
 
 #: Engine/csound_orc_compile.c:847
-#, fuzzy, c-format
+#, c-format
 msgid "create_instrument: instr num %d\n"
-msgstr "create_instrument : numéro d'instrument %ld\n"
+msgstr "create_instrument : numéro d'instrument %d\n"
 
 #: Engine/csound_orc_compile.c:964
 msgid "-- deleted instr from deadpool \n"
@@ -306,9 +306,9 @@ msgid " -- added to deadpool slot %d \n"
 msgstr " -- ajout du slot %d au deadpool \n"
 
 #: Engine/csound_orc_compile.c:1045 Engine/csound_orc_compile.c:1201
-#, fuzzy, c-format
+#, c-format
 msgid "instr %d redefined, replacing previous definition"
-msgstr "instr %ld redéfini, précédente définition remplacée"
+msgstr "instr %d redéfini, précédente définition remplacée"
 
 #: Engine/csound_orc_compile.c:1072
 msgid "no active instances \n"
@@ -1156,9 +1156,8 @@ msgid "GEN1 read error"
 msgstr "GEN1 erreur de lecture"
 
 #: Engine/fgens.c:2769
-#, fuzzy
 msgid "GEN1: file truncated by ftable size"
-msgstr "GEN1 : le fichier aiff a été tronqué à la taille de la table"
+msgstr "GEN1 : le fichier a été tronqué à la taille de la table"
 
 #: Engine/fgens.c:2770
 #, c-format
@@ -1233,14 +1232,14 @@ msgid "Deferred load of '%s' failed"
 msgstr "Le chargement différé de '%s' a échoué"
 
 #: Engine/insert.c:116
-#, fuzzy, c-format
+#, c-format
 msgid "activating instr %s at %lld\n"
-msgstr "activation de l'instrument %s à %d\n"
+msgstr "activation de l'instrument %s à %lld\n"
 
 #: Engine/insert.c:119
-#, fuzzy, c-format
+#, c-format
 msgid "activating instr %d at %lld\n"
-msgstr "activation de l'instrument %d à %d\n"
+msgstr "activation de l'instrument %d à %lld\n"
 
 #: Engine/insert.c:127
 #, c-format
@@ -1552,9 +1551,9 @@ msgid "instance: error creating event"
 msgstr "instance : erreur en créant l'évènement"
 
 #: Engine/memalloc.c:58
-#, fuzzy, c-format
+#, c-format
 msgid "memory allocate failure for %zu"
-msgstr "échec de l'allocation de mémoire pour %lu"
+msgstr "échec de l'allocation de mémoire pour %zu"
 
 #: Engine/memfiles.c:141
 msgid "Ill-formed CV file\n"
@@ -1633,9 +1632,9 @@ msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr "srate de %s = %8.0f, srate de l'orchestre = %8.0f"
 
 #: Engine/memfiles.c:548
-#, fuzzy, c-format
+#, c-format
 msgid "file %s (%d bytes) loaded into memory\n"
-msgstr "le fichier %s (%ld octets) a été chargé en mémoire\n"
+msgstr "le fichier %s (%d octets) a été chargé en mémoire\n"
 
 #: Engine/memfiles.c:612
 #, c-format
@@ -1648,11 +1647,11 @@ msgid "csoundLoadSoundFile(): error reading '%s'"
 msgstr "csoundLoadSoundFile() : erreur de lecture sur '%s'"
 
 #: Engine/memfiles.c:669
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "File '%s' (sr = %d Hz, %d channel(s), %d sample frames) loaded into memory\n"
 msgstr ""
-"Le fichier '%s' (sr = %d Hz, %d voix, %lu trames d'échantillons) a été "
+"Le fichier '%s' (sr = %d Hz, %d voix, %d trames d'échantillons) a été "
 "chargé en mémoire\n"
 
 #: Engine/musmon.c:72
@@ -1987,9 +1986,9 @@ msgid "m Named section >>>%s<<<\n"
 msgstr "m section nommée >>>%s<<<\n"
 
 #: Engine/sread.c:1161
-#, fuzzy, c-format
+#, c-format
 msgid "%d: %s position %d\n"
-msgstr "%d : %s position %ld\n"
+msgstr "%d : %s position %d\n"
 
 #: Engine/sread.c:1191
 #, c-format
@@ -2359,14 +2358,14 @@ msgid " (raw)\n"
 msgstr " (raw)\n"
 
 #: InOut/libsnd.c:946
-#, fuzzy, c-format
+#, c-format
 msgid "%d %d sample blks of %d-bit floats written to %s\n"
-msgstr "%ld %d blocs d'échantillons de flottants sur %d bit écrits vers %s\n"
+msgstr "%d %d blocs d'échantillons de flottants sur %d bit écrits vers %s\n"
 
 #: InOut/libsnd.c:951
-#, fuzzy, c-format
+#, c-format
 msgid "%d %d sample blks of %s written to %s"
-msgstr "%ld %d blocs d'échantillons de %s écrits vers %s"
+msgstr "%d %d blocs d'échantillons de %s écrits vers %s"
 
 #: InOut/libsnd.c:968
 #, c-format
@@ -4407,22 +4406,22 @@ msgstr ""
 "de l'orchestre\n"
 
 #: OOps/diskin2.c:468 OOps/diskin2.c:1742
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
 "         %d Hz, %d channel(s), %d sample frames\n"
 msgstr ""
 "diskin2 : '%s' ouvert (asynchrone) :\n"
-"          %d Hz, %d voix, %ld trames d'échantillons\n"
+"          %d Hz, %d voix, %d trames d'échantillons\n"
 
 #: OOps/diskin2.c:482 OOps/diskin2.c:1756
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "diskin2: opened '%s':\n"
 "         %d Hz, %d channel(s), %d sample frames\n"
 msgstr ""
 "diskin2 : '%s' ouvert :\n"
-"          %d Hz, %d voix, %ld trames d'échantillons\n"
+"          %d Hz, %d voix, %d trames d'échantillons\n"
 
 #: OOps/diskin2.c:563 OOps/diskin2.c:749 OOps/diskin2.c:945
 #: OOps/diskin2.c:1350 OOps/diskin2.c:1788 OOps/diskin2.c:1981
@@ -5217,9 +5216,8 @@ msgid "ftable for window not found"
 msgstr "la ftable de la fenêtre n'a pas été trouvée"
 
 #: OOps/pvsanal.c:105
-#, fuzzy
 msgid "Invalid window size"
-msgstr "type de fenêtre non valide"
+msgstr "Taille de fenêtre non valide"
 
 #: OOps/pvsanal.c:180
 msgid "pvsanal: fftsize of 32 is too small!\n"
@@ -5816,9 +5814,9 @@ msgid "insufficient args and no file header"
 msgstr "nombre d'arguments insuffisant et pas d'en-tête de fichier"
 
 #: OOps/ugens5.c:683
-#, fuzzy, c-format
+#, c-format
 msgid "npoles %d, nvals %d, totvals %d, lastfram16 = %x\n"
-msgstr "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"
+msgstr "npoles %d, nvals %d, totvals %d, lastfram16 = %x\n"
 
 #: OOps/ugens5.c:708 util/lpanal.c:329
 #, c-format
@@ -6591,11 +6589,11 @@ msgid "vco: not initialised"
 msgstr "vco : non initialisé"
 
 #: Opcodes/bowedbar.c:53
-#, fuzzy, c-format
+#, c-format
 msgid "DLineN: Delay length too big ... setting to maximum length of %d.\n"
 msgstr ""
 "DLineN : longueur de délai trop grande ... réglée à la longueur maximale de "
-"%ld.\n"
+"%d.\n"
 
 #: Opcodes/bowedbar.c:98
 msgid "unknown lowest frequency for bowed bar -- assuming 50Hz\n"
@@ -6755,25 +6753,25 @@ msgid "No lapspa descriptor\n"
 msgstr "Pas de descripteur ladspa\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:322
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "DSSI4CS: Unable to find ladspa_descriptor(%ul) function or\n"
 "dssi_descriptor(%ul) function in plugin file \"%s\": %s.\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
-"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%d) ou\n"
-"la fonction dssi_descriptor(%) dans le fichier de greffon \"%s\" : %s.\n"
+"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%ul) ou\n"
+"la fonction dssi_descriptor(%ul) dans le fichier de greffon \"%s\" : %s.\n"
 "Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:331
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "DSSI4CS: Unable to find ladspa_descriptor(%ul) function or\n"
-"dssi_descriptor(%ul) function in plugin file %s\".\n"
+"dssi_descriptor(%ul) function in plugin file \"%s\".\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
-"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%d) ou\n"
-"la fonction dssi_descriptor(%d) dans le fichier de greffon \"%s\".\n"
+"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%ul) ou\n"
+"la fonction dssi_descriptor(%ul) dans le fichier de greffon \"%s\".\n"
 "Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:343
@@ -6924,9 +6922,9 @@ msgid "Farey: Table no. < 1 dft=%.2f  sft=%.2f"
 msgstr "Farey : No de table < 1 dft=%.2f  sft=%.2f"
 
 #: Opcodes/fareyseq.c:257 Opcodes/fareyseq.c:307
-#, fuzzy, c-format
+#, c-format
 msgid "Farey: Filter type < 1 ftype=%.2f"
-msgstr "Farey : Type de filtre < 1 dft=%.2f  sft=%.2f"
+msgstr "Farey : type de filtre < 1 ftype=%.2f"
 
 #: Opcodes/fareyseq.c:272 Opcodes/fareyseq.c:320
 #, c-format
@@ -7836,9 +7834,9 @@ msgid "vport: invalid init table"
 msgstr "vport : table non valide"
 
 #: Opcodes/gab/vectorial.c:1907
-#, fuzzy, c-format
+#, c-format
 msgid "vrandh: Seeding from current time %u\n"
-msgstr "vrandh : graine à partir de l'horloge %lu\n"
+msgstr "vrandh : graine à partir de l'horloge %u\n"
 
 #: Opcodes/gab/vectorial.c:1920
 msgid "vrandh: Invalid table."
@@ -7853,9 +7851,9 @@ msgid "randh: Table length exceeded, last elements discarded."
 msgstr "randh : longeur de la table dépassée, derniers éléments ignoré."
 
 #: Opcodes/gab/vectorial.c:2007
-#, fuzzy, c-format
+#, c-format
 msgid "vrandi: Seeding from current time %u\n"
-msgstr "vrandi : graine à partir de l'horloge %lu\n"
+msgstr "vrandi : graine à partir de l'horloge %u\n"
 
 #: Opcodes/gab/vectorial.c:2019
 msgid "vrandi: Invalid table."
@@ -8845,12 +8843,12 @@ msgstr ""
 "pinkish : la méthode de filtrage nécessite une entrée (bruit) de taux-a"
 
 #: Opcodes/pitch.c:1422
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "pinkish: Gardner method requires 4-%d bands. Default %d substituted for %d.\n"
 msgstr ""
 "pinkish : la méthode de Gardner nécessitre 4-%d bandes. La valeur par défaut "
-"%ld a été substituée à %d.\n"
+"%d a été substituée à %d.\n"
 
 #: Opcodes/pitch.c:1685
 msgid "Incorrect argument count in transeg"
@@ -8977,9 +8975,9 @@ msgid "pvoc-ex file %s: FFT size %d too large for Csound"
 msgstr "pvoc-ex fichier %s : la taille de TFR %d est trop grande pour Csound"
 
 #: Opcodes/pvadd.c:226
-#, fuzzy, c-format
+#, c-format
 msgid "PV frame %d seems too small in %s"
-msgstr "La trame PV %ld semble trop petite dans %s"
+msgstr "La trame PV %d semble trop petite dans %s"
 
 #: Opcodes/pvadd.c:231 Opcodes/pvread.c:129 Opcodes/ugens8.c:255
 #, c-format
@@ -9905,10 +9903,10 @@ msgid "spectrum windowed sines:"
 msgstr "spectrum : sinus fenêtrées : "
 
 #: Opcodes/spectra.c:189
-#, fuzzy, c-format
+#, c-format
 msgid "\t%d oct analysis window delay = %d samples (%d msecs)\n"
 msgstr ""
-"\tle délai de la fenêtre d'analyse de l'oct %d est égal à %ld échantillons "
+"\tle délai de la fenêtre d'analyse de l'oct %d est égal à %d échantillons "
 "(%d ms)\n"
 
 #: Opcodes/spectra.c:197
@@ -10147,9 +10145,9 @@ msgid "CONVOLVE cannot load %s"
 msgstr "CONVOLVE ne peut pas charger %s"
 
 #: Opcodes/ugens9.c:63
-#, fuzzy, c-format
+#, c-format
 msgid "%s not a CONVOLVE file (magic %d)"
-msgstr "%s n'est pas un fichier CONVOLVE (magic %ld)"
+msgstr "%s n'est pas un fichier CONVOLVE (magic %d)"
 
 #: Opcodes/ugens9.c:74 Opcodes/ugens9.c:82
 msgid "CONVOLVE: output channels not equal to number of channels in source"
@@ -10162,9 +10160,9 @@ msgstr ""
 "CONVOLVE : nombre de canaux supérieur au nombre de canaux dans la source"
 
 #: Opcodes/ugens9.c:109
-#, fuzzy, c-format
+#, c-format
 msgid "unsupported CONVOLVE data format %d in %s"
-msgstr "format de données CONVOLVE %ld dans %s non supporté"
+msgstr "format de données CONVOLVE %d dans %s non supporté"
 
 #: Opcodes/ugens9.c:367
 msgid "convolve: not initialised"
@@ -10560,9 +10558,9 @@ msgid "Too few loudspeakers"
 msgstr "Trop peu de haut-parleurs"
 
 #: Opcodes/vbap.c:635
-#, fuzzy, c-format
+#, c-format
 msgid "Too little data speakers (%d)\n"
-msgstr "Trop peu de données de haut-parleurs (%n)\n"
+msgstr "Trop peu de données de haut-parleurs (%d)\n"
 
 #: Opcodes/vbap.c:658
 msgid "Not valid 3-D configuration"
@@ -12485,9 +12483,8 @@ msgid "Missing end tag </CsFileB>"
 msgstr "La balise fermante </CsFileB> est absente"
 
 #: Top/one_file.c:947
-#, fuzzy
 msgid "Missing end tag </CsFileC>"
-msgstr "La balise fermante </CsFile> est absente"
+msgstr "La balise fermante </CsFileC> est absente"
 
 #: Top/one_file.c:990
 msgid "Missing end tag </CsFile>"
@@ -12586,34 +12583,32 @@ msgid "%d opcodes\n"
 msgstr "%d opcodes\n"
 
 #: Top/server.c:56
-#, fuzzy, c-format
+#, c-format
 msgid "UDP: Winsock2 failed to start: %d"
-msgstr "Le démarrage de winsock2 a échoué : %d"
+msgstr "UDP : le démarrage de winsock2 a échoué : %d"
 
 #: Top/server.c:61
-#, fuzzy
 msgid "UDP: error creating socket"
-msgstr "Erreur lors de la création du socket"
+msgstr "UDP: erreur lors de la création du socket"
 
 #: Top/server.c:76
-#, fuzzy
 msgid "UDP: sock end failed"
-msgstr "CLsend a échoué"
+msgstr "UDP : la fin du socket a échoué"
 
 #: Top/server.c:91
-#, fuzzy, c-format
+#, c-format
 msgid "UDP server started on port %d \n"
-msgstr "Ecouteur OSC #%d démarré sur le port %s\n"
+msgstr "Serveur UDP démarré sur le port %d\n"
 
 #: Top/server.c:157
-#, fuzzy, c-format
+#, c-format
 msgid "could not retrieve channel %s"
-msgstr "Impossible de retrouver le nombre max de canaux"
+msgstr "Impossible de retrouver le canal %s"
 
 #: Top/server.c:164
 #, c-format
 msgid "UDP server on port %d stopped\n"
-msgstr ""
+msgstr "Serveur UDP sur le port %d arrêté\n"
 
 #: Top/threads.c:39
 #, c-format

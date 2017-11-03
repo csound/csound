@@ -117,7 +117,7 @@ static void dag_print_state(CSOUND *csound)
 }
 
 /* For now allocate a fixed maximum number of tasks; FIXME */
-void create_dag(CSOUND *csound)
+static void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
@@ -128,7 +128,7 @@ void create_dag(CSOUND *csound)
     csound->dag_wlmm = (watchList *)csound->Calloc(csound, sizeof(watchList)*max);
 }
 
-void recreate_dag(CSOUND *csound)
+static void recreate_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
@@ -522,7 +522,7 @@ void initialiseWatch (watchList **w, taskID id) {
   *w = &(wlmm[id].s);
 }
 
-watchList * getWatches(taskID id) {
+inline watchList * getWatches(taskID id) {
 
     return __sync_lock_test_and_set (&(watch[id]), doNotAdd);
 }
@@ -556,7 +556,7 @@ void appendToWL (taskID id, watchList *l) {
 
 }
 
-void deleteWatch (watchList *t) {
+inline void deleteWatch (watchList *t) {
   wlmm[t->id].used = FALSE;
 }
 
