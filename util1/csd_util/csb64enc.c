@@ -90,7 +90,8 @@ int main(int argc, char **argv)
       fprintf(stderr,
               "    -o <fname>  output file name (default: stdout)\n");
       fprintf(stderr,
-              "    -s <n>      output style to 0 (CsFileB default) or 2 (CsFileC)\n");
+              "    -s <n>      output style to 0 (CsFileB default)\n"
+              "                or 2 (CsFileC) or 1 (MIDI)\n");
       exit(-1);
     }
     /* open output file */
