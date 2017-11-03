@@ -433,7 +433,7 @@ static int partials_process(CSOUND * csound, _PARTS * p)
     double  *bins = p->bins.auxp;
     int    *trndx = p->trndx.auxp;
     double   frac, a, b;
-
+    int maxtracks = (p->mtracks < numbins ? p->mtracks : numbins);
     end = numbins * 4;
 
     if (p->lastframe < p->fin1->framecount) {
@@ -443,7 +443,7 @@ static int partials_process(CSOUND * csound, _PARTS * p)
       Analysis(csound, p);
       /* fout holds [amp, freq, pha, ID] */
       tracks = p->tracks;
-      for (i = k = 0; i < end; i += 4, k++) {
+      for (i = k = 0; i < end && k < maxtracks; i += 4, k++) {
         if (k < tracks) {
           /* magnitudes */
           ndx = (int) bins[k];
