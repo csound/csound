@@ -1832,6 +1832,42 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case LABEL_TOKEN:
         break;
 
+      case '+':
+      case '-':
+      case '*':
+      case '/':
+        printf("Folding case?\n");
+        current->left = verify_tree(csound, current->left, typeTable);
+        current->right = verify_tree(csound, current->right, typeTable);
+        if ((current->left->type == INTEGER_TOKEN ||
+             current->left->type == NUMBER_TOKEN) &&
+            (current->right->type == INTEGER_TOKEN ||
+             current->right->type == NUMBER_TOKEN)) {
+          MYFLT lval, rval;
+          lval = (current->left->type == INTEGER_TOKEN ?
+                  (double)current->left->value->value :
+                  current->left->value->fvalue);
+          rval = (current->right->type == INTEGER_TOKEN ?
+                  (double)current->right->value->value :
+                  current->right->value->fvalue);
+          switch (current->type) {
+          case '+':
+            lval = lval + rval;
+            break;
+          case '-':
+            lval = lval - rval;
+            break;
+          case '*':
+            lval = lval * rval;
+            break;
+          case '/':
+            lval = lval / rval;
+            break;
+          }
+          current->type = NUMBER_TOKEN;
+          current->value->fvalue = lval;
+          csound->Free(csound, current->left); csound->Free(csound, current->right);
+        }
       case ENDIN_TOKEN:
       case UDOEND_TOKEN:
         csound->inZero = 1;

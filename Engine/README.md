@@ -32,7 +32,8 @@ Engine: files for internal engine operation
 * musmon.c: performance control and event scheduling
 * namedins.c: functions for named instrument system
 * new_orc_parser.c: csound language parser control
-* parse_param.h: macro parameters parsing structures and prototypes
+* parse_param.h: macro parameters orchestra parsing structures and prototypes
+* score_param.h: macro parameters score parsing structures and prototypes
 * scsort.c: score sorting
 * scxtract.c: score extraction
 * sort.c: sorting functions

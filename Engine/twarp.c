@@ -176,10 +176,6 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       tp += ((TSEG*)csound->tseg - oldtseg);
       csound->tplim = ((char*)csound->tseg) + csound->tseglen-1;
       csound->tpsave = csound->tseg;
-      /* printf("%p\n", csound->tseg); */
-      /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
-      /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
-      //goto error3;
     }
     tp->betbas = FL(9223372036854775807.0);   /* and cap with large betval */
     return(1);
@@ -190,9 +186,6 @@ int realtset(CSOUND *csound, SRTBLK *bp)
  error2:
     csound->Message(csound,Str("twarp: t has non-positive tempo\n"));
     return(0);
- /* error3: */
- /*    csound->Message(csound,Str("twarp: t segments exceed twarp array\n")); */
- /*    return(0); */
 }
 
 MYFLT realt(CSOUND *csound, MYFLT srctim)

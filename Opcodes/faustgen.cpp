@@ -86,6 +86,7 @@ public:
   virtual void openHorizontalBox(const char* label) {};
   virtual void openVerticalBox(const char* label) {};
   virtual void closeBox() {};
+  virtual void addSoundfile(const char* label, Soundfile** sf_zone) {};
 
   virtual void addButton(const char* label, FAUSTFLOAT* zone) {
     addctl(label, zone, 0, 0);

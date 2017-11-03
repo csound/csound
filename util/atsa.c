@@ -2192,7 +2192,8 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       anargs->min_seg_SMR = ATSA_MSEGSMR;
     }
     /* last peak contribution */
-    if (UNLIKELY(!(anargs->last_peak_cont >= 0.0 && anargs->last_peak_cont <= 1.0))) {
+    if (UNLIKELY(!(anargs->last_peak_cont >= 0.0 &&
+                   anargs->last_peak_cont <= 1.0))) {
       csound->Warning(csound, Str("last peak contribution %f out of bounds, "
                                   "should be >= 0.0 and <= 1.0, "
                                   "forced to default: %f"),
