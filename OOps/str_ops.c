@@ -1126,7 +1126,7 @@ int str_from_url(CSOUND *csound, STRCPY_OP *p)
       }
       else strcpy((char*) p->r->data, corfile_body(mm));
     cleanup:
-      corfile_rm(&mm);
+      corfile_rm(csound, &mm);
       return OK;
     }
 }

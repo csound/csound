@@ -44,9 +44,9 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     csound->scoreout = NULL;
     if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
       first = 1;
-      sco = csound->scstr = corfile_create_w();
+      sco = csound->scstr = corfile_create_w(csound);
     }
-    else sco = corfile_create_w();
+    else sco = corfile_create_w(csound);
     csound->sectcnt = 0;
     sread_initstr(csound, scin);
 
@@ -59,15 +59,15 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     }
     if (first) {
       if (m==0)
-        corfile_puts("f0 800000000000.0\ne\n", sco); /* ~25367 years */
-      else corfile_puts("e\n", sco);
+        corfile_puts(csound, "f0 800000000000.0\ne\n", sco); /* ~25367 years */
+      else corfile_puts(csound, "e\n", sco);
     }
-    corfile_flush(sco);
+    corfile_flush(csound, sco);
     sfree(csound);
     if (first) return sco->body;
     else {
       char *str = cs_strdup(csound,sco->body);
-      corfile_rm(&(sco));
+      corfile_rm(csound, &(sco));
       return str;
     }
 }

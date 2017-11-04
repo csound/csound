@@ -297,7 +297,7 @@ int musmon(CSOUND *csound)
       else
         sfnopenout(csound);
     }
-    if (O->playscore!=NULL) corfile_flush(O->playscore);
+    if (O->playscore!=NULL) corfile_flush(csound, O->playscore);
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
       if (STA(lsect) == NULL) {
@@ -326,12 +326,12 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot reopen cscore.out"));
       }
       else {
-        CORFIL *inf = corfile_create_w();
+        CORFIL *inf = corfile_create_w(csound);
         int c;
-        while ((c=getc(csound->scfp))!=EOF) corfile_putc(c, inf);
+        while ((c=getc(csound->scfp))!=EOF) corfile_putc(csound, c, inf);
         corfile_rewind(inf);
         csound->scorestr = inf;
-        corfile_rm(&csound->scstr);
+        corfile_rm(csound, &csound->scstr);
       }
       csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
       /* write to cscore.srt */
@@ -460,13 +460,13 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 
     orcompact(csound);
 
-    corfile_rm(&csound->scstr);
+    corfile_rm(csound, &csound->scstr);
 
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
     {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
-      corfile_rm(&csound->expanded_sco);
+      corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])
           csound->omaxamp[n] = csound->smaxamp[n];

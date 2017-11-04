@@ -58,6 +58,7 @@ int mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
     if (LIKELY(p->mpa != NULL))
       mp3dec_uninit(p->mpa);
+    free(p->mpa); p->mpa = NULL;
     return OK;
 }
 
@@ -99,7 +100,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
 
 
     /* FIXME: name can overflow with very long string */
-    if(stringname==0){
+    if (stringname==0){
       if (csound->ISSTRCOD(*p->iFileCode))
         strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);

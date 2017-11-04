@@ -198,7 +198,7 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
     if (strcmp(name, STA(macros)->name) == 0) {
       mm = STA(macros)->next;
       if (strcmp(STA(macros)->name, "[") != 0)
-        corfile_rm(&(STA(macros)->body));
+        corfile_rm(csound, &(STA(macros)->body));
       csound->Free(csound, STA(macros)->name);
  #ifdef MACDEBUG
       csound->DebugMsg(csound,"%s(%d): corfile is %p\n",
@@ -220,7 +220,7 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
         }
       }
       csound->Free(csound, nn->name);
-      corfile_rm(&nn->body);
+      corfile_rm(csound, &nn->body);
       for (i = 0; i < nn->acnt; i++)
         csound->Free(csound, nn->arg[i]);
       mm->next = nn->next;
@@ -798,14 +798,14 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
       csound_prslex_init(&qq.yyscanner);
       cs_init_smacros(csound, &qq, csound->smacros);
       csound_prsset_extra(&qq, qq.yyscanner);
-      csound->expanded_sco = corfile_create_w();
+      csound->expanded_sco = corfile_create_w(csound);
       /* printf("Input:\n%s<<<\n", */
       /*        corfile_body(csound->sreadStatics.str->cf)); */
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
       csound_prslex_destroy(qq.yyscanner);
-      corfile_rm(&csound->scorestr);
+      corfile_rm(csound, &csound->scorestr);
       corfile_rewind(csound->expanded_sco);
     }
 }
@@ -1573,7 +1573,7 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
       //corfile_rm(&(STA(str)->cf));
       STA(str)--;
     }
-    corfile_rm(&(csound->scorestr));
+    corfile_rm(csound, &(csound->scorestr));
 }
 
 static void flushlin(CSOUND *csound)

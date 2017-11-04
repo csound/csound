@@ -140,7 +140,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound_prelex_init(&qq.yyscanner);
       csound_preset_extra(&qq, qq.yyscanner);
       qq.line = csound->orcLineOffset;
-      csound->expanded_orc = corfile_create_w();
+      csound->expanded_orc = corfile_create_w(csound);
       file_to_int(csound, "**unknown**");
       if (str==NULL) {
         char bb[80];
@@ -156,23 +156,23 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         /* We know this is the start so stack is empty so far */
         snprintf(bb, 80, "#source %d\n",
                 qq.lstack[0] = file_to_int(csound, csound->orchname));
-        corfile_puts(bb, csound->expanded_orc);
+        corfile_puts(csound, bb, csound->expanded_orc);
         snprintf(bb, 80, "#line %d\n", csound->orcLineOffset);
-        corfile_puts(bb, csound->expanded_orc);
+        corfile_puts(csound, bb, csound->expanded_orc);
       }
       else {
         char bb[80];
         if (csound->orchstr == NULL ||
             corfile_body(csound->orchstr) == NULL)
-          csound->orchstr = corfile_create_w();
+          csound->orchstr = corfile_create_w(csound);
         else
           corfile_reset(csound->orchstr);
         snprintf(bb, 80, "#line %d\n", csound->orcLineOffset);
-        corfile_puts(bb, csound->orchstr);
-        corfile_puts(str, csound->orchstr);
-        corfile_puts("\n#exit\n", csound->orchstr);
-        corfile_putc('\0', csound->orchstr);
-        corfile_putc('\0', csound->orchstr);
+        corfile_puts(csound, bb, csound->orchstr);
+        corfile_puts(csound, str, csound->orchstr);
+        corfile_puts(csound, "\n#exit\n", csound->orchstr);
+        corfile_putc(csound, '\0', csound->orchstr);
+        corfile_putc(csound, '\0', csound->orchstr);
       }
 
       csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n",
@@ -190,7 +190,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       csound_prelex_destroy(qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_orc));
-      corfile_rm(&csound->orchstr);
+      corfile_rm(csound, &csound->orchstr);
 
     }
     {
@@ -221,7 +221,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //printf("%p \n", astTree);
       //print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
-      corfile_rm(&csound->expanded_orc);
+      corfile_rm(csound, &csound->expanded_orc);
       if (UNLIKELY(csound->oparms->odebug)) csp_orc_sa_print_list(csound);
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
