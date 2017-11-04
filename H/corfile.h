@@ -25,12 +25,12 @@
 
 #define __corfil
 
-CORFIL *corfile_create_w(void);
-CORFIL *corfile_create_r(const char *text);
-void corfile_putc(int c, CORFIL *f);
-void corfile_puts(const char *s, CORFIL *f);
-void corfile_flush(CORFIL *f);
-void corfile_rm(CORFIL **ff);
+CORFIL *corfile_create_w(CSOUND*);
+CORFIL *corfile_create_r(CSOUND*,const char *text);
+void corfile_putc(CSOUND*,int c, CORFIL *f);
+void corfile_puts(CSOUND*,const char *s, CORFIL *f);
+void corfile_flush(CSOUND*,CORFIL *f);
+void corfile_rm(CSOUND*,CORFIL **ff);
 int corfile_getc(CORFIL *f);
 void corfile_ungetc(CORFIL *f);
 char *corfile_fgets(char *b, int len, CORFIL *f);

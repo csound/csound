@@ -2002,12 +2002,12 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
     if (csound->scorestr != NULL &&
        csound->scorestr->body != NULL)
       corfile_rewind(csound->scorestr);
-    csound->scorestr = corfile_create_w();
-    corfile_puts((char *)str, csound->scorestr);
+    csound->scorestr = corfile_create_w(csound);
+    corfile_puts(csound, (char *)str, csound->scorestr);
     //#ifdef SCORE_PARSER
-    corfile_puts("\n#exit\n", csound->scorestr);
+    corfile_puts(csound, "\n#exit\n", csound->scorestr);
     //#endif
-    corfile_flush(csound->scorestr);
+    corfile_flush(csound, csound->scorestr);
     /* copy sorted score name */
     if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
       scsortstr(csound, csound->scorestr);
@@ -2017,7 +2017,7 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
       char *sc = scsortstr(csound, csound->scorestr);
       csoundInputMessageInternal(csound, (const char *) sc);
       csound->Free(csound, sc);
-      corfile_rm(&(csound->scorestr));
+      corfile_rm(csound, &(csound->scorestr));
     }
     return CSOUND_SUCCESS;
 }
