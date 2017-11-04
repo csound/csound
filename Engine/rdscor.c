@@ -269,6 +269,6 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         return 1;
       }
     }
-    corfile_rm(&(csound->scstr));
+    corfile_rm(csound, &(csound->scstr));
     return 0;
 }

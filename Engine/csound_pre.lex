@@ -38,9 +38,9 @@ static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
 static void do_ifdef(CSOUND *, char *, yyscan_t);
 static void do_ifdef_skip_code(CSOUND *, yyscan_t);
-static void do_function(char *, CORFIL*);
+static void do_function(CSOUND*, char *, CORFIL*);
 //static void print_csound_predata(CSOUND *,char *,yyscan_t);
-static void csound_pre_line(CORFIL*, yyscan_t);
+ static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
  static void delete_macros(CSOUND*, yyscan_t);
 #include "parse_param.h"
 
@@ -169,33 +169,33 @@ QNAN            "qnan"[ \t]*\(
                                        yyscanner);
                   if (PARM->isString==0) {
                     sprintf(bb, "#sline %d ", csound_preget_lineno(yyscanner));
-                    corfile_puts(bb, csound->expanded_orc);
+                    corfile_puts(csound, bb, csound->expanded_orc);
                   }
                 }
 {NEWLINE}       {
-                  corfile_putc('\n', csound->expanded_orc);
+                  corfile_putc(csound, '\n', csound->expanded_orc);
                   csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
-                  csound_pre_line(csound->expanded_orc, yyscanner);
+                  csound_pre_line(csound, csound->expanded_orc, yyscanner);
                 }
 "//"            {
                   if (PARM->isString != 1) {
                     comment(yyscanner);
-                    corfile_putc('\n', csound->expanded_orc);
-                    csound_pre_line(csound->expanded_orc, yyscanner);
+                    corfile_putc(csound, '\n', csound->expanded_orc);
+                    csound_pre_line(csound, csound->expanded_orc, yyscanner);
                   }
                   else {
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                   }
                 }
 ";"             {
                   if (PARM->isString != 1) {
                     comment(yyscanner);
-                    corfile_putc('\n', csound->expanded_orc);
-                    csound_pre_line(csound->expanded_orc, yyscanner);
+                    corfile_putc(csound, '\n', csound->expanded_orc);
+                    csound_pre_line(csound, csound->expanded_orc, yyscanner);
                   }
                   else {
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                   }
                   //corfile_putline(csound_preget_lineno(yyscanner),
                   //                csound->expanded_orc);
@@ -204,11 +204,11 @@ QNAN            "qnan"[ \t]*\(
                   if (PARM->isString != 1)
                     do_comment(yyscanner);
                   else
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                 }
-{ESCAPE}        { corfile_puts(yytext, csound->expanded_orc); }
+{ESCAPE}        { corfile_puts(csound, yytext, csound->expanded_orc); }
 {STSTR}         {
-                  corfile_putc('"', csound->expanded_orc);
+                  corfile_putc(csound, '"', csound->expanded_orc);
                   PARM->isString = !PARM->isString;
                 }
 {XSTR}          {
@@ -225,7 +225,7 @@ QNAN            "qnan"[ \t]*\(
                     default: break;
                     }
                   }
-                  corfile_puts(yytext, csound->expanded_orc);
+                  corfile_puts(csound, yytext, csound->expanded_orc);
                 }
 {MACRONAME}     {
                    MACRO     *mm = PARM->macros;
@@ -518,18 +518,18 @@ QNAN            "qnan"[ \t]*\(
                   if (PARM->isString != 1)
                     BEGIN(incl);
                   else
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                 }
 <incl>[ \t]*     /* eat the whitespace */
 <incl>.         { /* got the include file name */
                   do_include(csound, yytext[0], yyscanner);
                   BEGIN(INITIAL);
                 }
-#exit           { corfile_putc('\0', csound->expanded_orc);
-                  corfile_putc('\0', csound->expanded_orc);
+#exit           { corfile_putc(csound, '\0', csound->expanded_orc);
+                  corfile_putc(csound, '\0', csound->expanded_orc);
                   delete_macros(csound, yyscanner);
                   return 0;}
-<<EOF>>         {
+<<EOF>>         { 
                   MACRO *x, *y=NULL;
                   int n;
                   /* csound->DebugMsg(csound,"*********Leaving buffer %p\n", */
@@ -545,7 +545,7 @@ QNAN            "qnan"[ \t]*\(
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   csound->DebugMsg(csound,"End of input; popping to %p\n",
                           YY_CURRENT_BUFFER);
-                  csound_pre_line(csound->expanded_orc, yyscanner);
+                  csound_pre_line(csound, csound->expanded_orc, yyscanner);
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   /* printf("lineno on stack is %llu\n", */
                   /*        PARM->alt_stack[PARM->macro_stack_ptr].line); */
@@ -584,14 +584,14 @@ QNAN            "qnan"[ \t]*\(
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
                   //print_csound_predata(csound,"Before pre_line", yyscanner);
-                  csound_pre_line(csound->orchstr, yyscanner);
+                  csound_pre_line(csound, csound->orchstr, yyscanner);
                   //print_csound_predata(csound,"After pre_line", yyscanner);
                 }
 {DEFINE}        {
                   if (PARM->isString != 1)
                     BEGIN(macro);
                   else
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                 }
 <macro>[ \t]*    /* eat the whitespace */
 <macro>{MACROB} {
@@ -621,7 +621,7 @@ QNAN            "qnan"[ \t]*\(
                   if (PARM->isString != 1)
                     BEGIN(umacro);
                   else
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                 }
 <umacro>[ \t]*    /* eat the whitespace */
 <umacro>{MACRO}  {
@@ -635,12 +635,12 @@ QNAN            "qnan"[ \t]*\(
                     PARM->isIfndef = (yytext[3] == 'n');  /* #ifdef or #ifndef */
                     csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                          yyscanner);
-                    corfile_putc('\n', csound->expanded_orc);
-                    csound_pre_line(csound->expanded_orc, yyscanner);
+                    corfile_putc(csound, '\n', csound->expanded_orc);
+                    csound_pre_line(csound, csound->expanded_orc, yyscanner);
                     BEGIN(ifdef);
                   }
                   else {
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                   }
                 }
 <ifdef>[ \t]*     /* eat the whitespace */
@@ -661,12 +661,12 @@ QNAN            "qnan"[ \t]*\(
                     PARM->ifdefStack->isElse = 1;
                     csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                          yyscanner);
-                    corfile_putc('\n', csound->expanded_orc);
-                    csound_pre_line(csound->expanded_orc, yyscanner);
+                    corfile_putc(csound, '\n', csound->expanded_orc);
+                    csound_pre_line(csound, csound->expanded_orc, yyscanner);
                     do_ifdef_skip_code(csound, yyscanner);
                   }
                   else {
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                   }
                 }
 {END}           {
@@ -679,87 +679,87 @@ QNAN            "qnan"[ \t]*\(
                     PARM->ifdefStack = pp->prv;
                     csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                          yyscanner);
-                    corfile_putc('\n', csound->expanded_orc);
-                    csound_pre_line(csound->expanded_orc, yyscanner);
+                    corfile_putc(csound, '\n', csound->expanded_orc);
+                    csound_pre_line(csound, csound->expanded_orc, yyscanner);
                     mfree(csound, pp);
                   }
                   else {
-                    corfile_puts(yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, csound->expanded_orc);
                   }
 }
-{IDENT}         { corfile_puts(yytext,csound->expanded_orc); }
-{INT}           { do_function(yytext,csound->expanded_orc); }
-{FRAC}          { do_function(yytext,csound->expanded_orc); }
-{ROUND}         { do_function(yytext,csound->expanded_orc); }
-{FLOOR}         { do_function(yytext,csound->expanded_orc); }
-{CEIL}          { do_function(yytext,csound->expanded_orc); }
-{RND}           { do_function(yytext,csound->expanded_orc); }
-{BIRND}         { do_function(yytext,csound->expanded_orc); }
-{ABS}           { do_function(yytext,csound->expanded_orc); }
-{EXP}           { do_function(yytext,csound->expanded_orc); }
-{LOG}           { do_function(yytext,csound->expanded_orc); }
-{SQRT}          { do_function(yytext,csound->expanded_orc); }
-{SIN}           { do_function(yytext,csound->expanded_orc); }
-{COS}           { do_function(yytext,csound->expanded_orc); }
-{TAN}           { do_function(yytext,csound->expanded_orc); }
-{SININV}        { do_function(yytext,csound->expanded_orc); }
-{COSINV}        { do_function(yytext,csound->expanded_orc); }
-{TANINV}        { do_function(yytext,csound->expanded_orc); }
-{LOG10}         { do_function(yytext,csound->expanded_orc); }
-{LOG2}          { do_function(yytext,csound->expanded_orc); }
-{SINH}          { do_function(yytext,csound->expanded_orc); }
-{COSH}          { do_function(yytext,csound->expanded_orc); }
-{TANH}          { do_function(yytext,csound->expanded_orc); }
-{AMPDB}         { do_function(yytext,csound->expanded_orc); }
-{AMPDBFS}       { do_function(yytext,csound->expanded_orc); }
-{DBAMP}         { do_function(yytext,csound->expanded_orc); }
-{DBFSAMP}       { do_function(yytext,csound->expanded_orc); }
-{FTCPS}         { do_function(yytext,csound->expanded_orc); }
-{FTLEN}         { do_function(yytext,csound->expanded_orc); }
-{FTSR}          { do_function(yytext,csound->expanded_orc); }
-{FTLPTIM}       { do_function(yytext,csound->expanded_orc); }
-{FTCHNLS}       { do_function(yytext,csound->expanded_orc); }
-{I}             { do_function(yytext,csound->expanded_orc); }
-{K}             { do_function(yytext,csound->expanded_orc); }
-{CPSOCT}        { do_function(yytext,csound->expanded_orc); }
-{OCTPCH}        { do_function(yytext,csound->expanded_orc); }
-{CPSPCH}        { do_function(yytext,csound->expanded_orc); }
-{PCHOCT}        { do_function(yytext,csound->expanded_orc); }
-{OCTCPS}        { do_function(yytext,csound->expanded_orc); }
-{NSAMP}         { do_function(yytext,csound->expanded_orc); }
-{POWOFTWO}      { do_function(yytext,csound->expanded_orc); }
-{LOGBTWO}       { do_function(yytext,csound->expanded_orc); }
-{A}             { do_function(yytext,csound->expanded_orc); }
-{TB0}           { do_function(yytext,csound->expanded_orc); }
-{TB1}           { do_function(yytext,csound->expanded_orc); }
-{TB2}           { do_function(yytext,csound->expanded_orc); }
-{TB3}           { do_function(yytext,csound->expanded_orc); }
-{TB4}           { do_function(yytext,csound->expanded_orc); }
-{TB5}           { do_function(yytext,csound->expanded_orc); }
-{TB6}           { do_function(yytext,csound->expanded_orc); }
-{TB7}           { do_function(yytext,csound->expanded_orc); }
-{TB8}           { do_function(yytext,csound->expanded_orc); }
-{TB9}           { do_function(yytext,csound->expanded_orc); }
-{TB10}          { do_function(yytext,csound->expanded_orc); }
-{TB11}          { do_function(yytext,csound->expanded_orc); }
-{TB12}          { do_function(yytext,csound->expanded_orc); }
-{TB13}          { do_function(yytext,csound->expanded_orc); }
-{TB14}          { do_function(yytext,csound->expanded_orc); }
-{TB15}          { do_function(yytext,csound->expanded_orc); }
-{URD}           { do_function(yytext,csound->expanded_orc); }
-{NOT}           { do_function(yytext,csound->expanded_orc); }
-{CENT}          { do_function(yytext,csound->expanded_orc); }
-{OCTAVE}        { do_function(yytext,csound->expanded_orc); }
-{SEMITONE}      { do_function(yytext,csound->expanded_orc); }
-{CPSMIDIN}      { do_function(yytext,csound->expanded_orc); }
-{OCTMIDIN}      { do_function(yytext,csound->expanded_orc); }
-{PCHMIDIN}      { do_function(yytext,csound->expanded_orc); }
-{DB}            { do_function(yytext,csound->expanded_orc); }
-{P}             { do_function(yytext,csound->expanded_orc); }
-{QINF}          { do_function(yytext,csound->expanded_orc); }
-{QNAN}          { do_function(yytext,csound->expanded_orc); }
+{IDENT}         { corfile_puts(csound, yytext,csound->expanded_orc); }
+{INT}           { do_function(csound, yytext,csound->expanded_orc); }
+{FRAC}          { do_function(csound, yytext,csound->expanded_orc); }
+{ROUND}         { do_function(csound, yytext,csound->expanded_orc); }
+{FLOOR}         { do_function(csound, yytext,csound->expanded_orc); }
+{CEIL}          { do_function(csound, yytext,csound->expanded_orc); }
+{RND}           { do_function(csound, yytext,csound->expanded_orc); }
+{BIRND}         { do_function(csound, yytext,csound->expanded_orc); }
+{ABS}           { do_function(csound, yytext,csound->expanded_orc); }
+{EXP}           { do_function(csound, yytext,csound->expanded_orc); }
+{LOG}           { do_function(csound, yytext,csound->expanded_orc); }
+{SQRT}          { do_function(csound, yytext,csound->expanded_orc); }
+{SIN}           { do_function(csound, yytext,csound->expanded_orc); }
+{COS}           { do_function(csound, yytext,csound->expanded_orc); }
+{TAN}           { do_function(csound, yytext,csound->expanded_orc); }
+{SININV}        { do_function(csound, yytext,csound->expanded_orc); }
+{COSINV}        { do_function(csound, yytext,csound->expanded_orc); }
+{TANINV}        { do_function(csound, yytext,csound->expanded_orc); }
+{LOG10}         { do_function(csound, yytext,csound->expanded_orc); }
+{LOG2}          { do_function(csound, yytext,csound->expanded_orc); }
+{SINH}          { do_function(csound, yytext,csound->expanded_orc); }
+{COSH}          { do_function(csound, yytext,csound->expanded_orc); }
+{TANH}          { do_function(csound, yytext,csound->expanded_orc); }
+{AMPDB}         { do_function(csound, yytext,csound->expanded_orc); }
+{AMPDBFS}       { do_function(csound, yytext,csound->expanded_orc); }
+{DBAMP}         { do_function(csound, yytext,csound->expanded_orc); }
+{DBFSAMP}       { do_function(csound, yytext,csound->expanded_orc); }
+{FTCPS}         { do_function(csound, yytext,csound->expanded_orc); }
+{FTLEN}         { do_function(csound, yytext,csound->expanded_orc); }
+{FTSR}          { do_function(csound, yytext,csound->expanded_orc); }
+{FTLPTIM}       { do_function(csound, yytext,csound->expanded_orc); }
+{FTCHNLS}       { do_function(csound, yytext,csound->expanded_orc); }
+{I}             { do_function(csound, yytext,csound->expanded_orc); }
+{K}             { do_function(csound, yytext,csound->expanded_orc); }
+{CPSOCT}        { do_function(csound, yytext,csound->expanded_orc); }
+{OCTPCH}        { do_function(csound, yytext,csound->expanded_orc); }
+{CPSPCH}        { do_function(csound, yytext,csound->expanded_orc); }
+{PCHOCT}        { do_function(csound, yytext,csound->expanded_orc); }
+{OCTCPS}        { do_function(csound, yytext,csound->expanded_orc); }
+{NSAMP}         { do_function(csound, yytext,csound->expanded_orc); }
+{POWOFTWO}      { do_function(csound, yytext,csound->expanded_orc); }
+{LOGBTWO}       { do_function(csound, yytext,csound->expanded_orc); }
+{A}             { do_function(csound, yytext,csound->expanded_orc); }
+{TB0}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB1}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB2}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB3}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB4}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB5}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB6}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB7}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB8}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB9}           { do_function(csound, yytext,csound->expanded_orc); }
+{TB10}          { do_function(csound, yytext,csound->expanded_orc); }
+{TB11}          { do_function(csound, yytext,csound->expanded_orc); }
+{TB12}          { do_function(csound, yytext,csound->expanded_orc); }
+{TB13}          { do_function(csound, yytext,csound->expanded_orc); }
+{TB14}          { do_function(csound, yytext,csound->expanded_orc); }
+{TB15}          { do_function(csound, yytext,csound->expanded_orc); }
+{URD}           { do_function(csound, yytext,csound->expanded_orc); }
+{NOT}           { do_function(csound, yytext,csound->expanded_orc); }
+{CENT}          { do_function(csound, yytext,csound->expanded_orc); }
+{OCTAVE}        { do_function(csound, yytext,csound->expanded_orc); }
+{SEMITONE}      { do_function(csound, yytext,csound->expanded_orc); }
+{CPSMIDIN}      { do_function(csound, yytext,csound->expanded_orc); }
+{OCTMIDIN}      { do_function(csound, yytext,csound->expanded_orc); }
+{PCHMIDIN}      { do_function(csound, yytext,csound->expanded_orc); }
+{DB}            { do_function(csound, yytext,csound->expanded_orc); }
+{P}             { do_function(csound, yytext,csound->expanded_orc); }
+{QINF}          { do_function(csound, yytext,csound->expanded_orc); }
+{QNAN}          { do_function(csound, yytext,csound->expanded_orc); }
 
-.               { corfile_putc(yytext[0], csound->expanded_orc); }
+.               { corfile_putc(csound, yytext[0], csound->expanded_orc); }
 
 %%
 void comment(yyscan_t yyscanner)              /* Skip until nextline */
@@ -854,7 +854,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->lstack[PARM->depth] = n;
       sprintf(bb, "#source %llu\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
-      corfile_puts(bb, csound->expanded_orc);
+      corfile_puts(csound, bb, csound->expanded_orc);
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
@@ -881,7 +881,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);
-    corfile_rm(&cf);
+    corfile_rm(csound, &cf);
     csound->DebugMsg(csound,"Set line number to 1\n");
     csound_preset_lineno(1, yyscanner);
 }
@@ -1053,8 +1053,8 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
-        corfile_putc('\n', csound->expanded_orc);
-        csound_pre_line(csound->expanded_orc, yyscanner);
+        corfile_putc(csound, '\n', csound->expanded_orc);
+        csound_pre_line(csound, csound->expanded_orc, yyscanner);
       }
     }
     mm->body[i] = '\0';
@@ -1139,8 +1139,8 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
-        corfile_putc('\n', csound->expanded_orc);
-        csound_pre_line(csound->expanded_orc, yyscanner);
+        corfile_putc(csound, '\n', csound->expanded_orc);
+        csound_pre_line(csound, csound->expanded_orc, yyscanner);
       }
     }
     mm->body[i] = '\0';
@@ -1231,8 +1231,8 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
       }
       csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                            yyscanner);
-      corfile_putc('\n', csound->expanded_orc);
-      csound_pre_line(csound->expanded_orc, yyscanner);
+      corfile_putc(csound, '\n', csound->expanded_orc);
+      csound_pre_line(csound, csound->expanded_orc, yyscanner);
       while (isblank(c = input(yyscanner)));  /* eat the whitespace */
       if (c == '#') {
         for (i=0; islower(c = input(yyscanner)) && i < 7; i++)
@@ -1373,7 +1373,7 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
 /*     return 1; */
 /* } */
 
-void csound_pre_line(CORFIL* cf, void *yyscanner)
+void csound_pre_line(CSOUND *csound, CORFIL* cf, void *yyscanner)
 {
     int n = csound_preget_lineno(yyscanner);
     //printf("line number %d\n", n);
@@ -1384,25 +1384,25 @@ void csound_pre_line(CORFIL* cf, void *yyscanner)
       if (UNLIKELY(locn != llocn)) {
         char bb[80];
         sprintf(bb, "#source %llu\n", locn);
-        corfile_puts(bb, cf);
+        corfile_puts(csound, bb, cf);
       }
       PARM->llocn = locn;
       if (UNLIKELY(n!=PARM->line+1)) {
         char bb[80];
         sprintf(bb, "#line   %d\n", n);
         //printf("#line %d\n", n);
-        corfile_puts(bb, cf);
+        corfile_puts(csound, bb, cf);
       }
     }
     PARM->line = n;
 }
 
-void do_function(char *text, CORFIL *cf)
+void do_function(CSOUND *csound, char *text, CORFIL *cf)
 {
     char *p = text;
     //printf("do_function on >>%s<<\n", text);
     while (*p != '\0') {
-      if (!isspace(*p)) corfile_putc(*p, cf);
+      if (!isspace(*p)) corfile_putc(csound, *p, cf);
       p++;
     }
     return;

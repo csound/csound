@@ -83,7 +83,7 @@ static void checkOptions(CSOUND *csound)
       CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
       corfile_rewind(cf);
       readOptions(csound, cf, 0);
-      corfile_rm(&cf);
+      corfile_rm(csound, &cf);
       csound->FileClose(csound, fd);
       csound->Free(csound, s);
     }
@@ -96,7 +96,7 @@ static void checkOptions(CSOUND *csound)
       readOptions(csound, cf, 0);
       csound->Message(csound,
                       Str("Reading options from local directory .csound6rc \n"));
-      corfile_rm(&cf);
+      corfile_rm(csound, &cf);
       csound->FileClose(csound, fd);
     }
 }
@@ -206,8 +206,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       // csound->scorestr = corfile_create_r("f0 800000000000.0 \n");
       // VL 21-09-2016: it looks like #exit is needed for the
       // new score parser to work.
-      csound->scorestr = corfile_create_r("\n#exit\n");
-      corfile_flush(csound->scorestr);
+      csound->scorestr = corfile_create_r(csound, "\n#exit\n");
+      corfile_flush(csound, csound->scorestr);
       if (O->RTevents)
         csound->Message(csound, Str("realtime performance using dummy "
                                     "numeric scorefile\n"));
@@ -238,9 +238,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       if (UNLIKELY(csound->orchstr==NULL))
         csound->Die(csound,
                     Str("Failed to open input file - %s\n"), csound->orchname);
-      corfile_puts("\n#exit\n", csound->orchstr);
-      corfile_putc('\0', csound->orchstr);
-      corfile_putc('\0', csound->orchstr);
+      corfile_puts(csound, "\n#exit\n", csound->orchstr);
+      corfile_putc(csound, '\0', csound->orchstr);
+      corfile_putc(csound, '\0', csound->orchstr);
       corfile_rewind(csound->orchstr);
       //csound->orchname = NULL;
     }
@@ -514,7 +514,7 @@ PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
     CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
     if (LIKELY(tt != NULL)) {
       int res = csoundCompileCsdText(csound, tt->body);
-      corfile_rm(&tt);
+      corfile_rm(csound, &tt);
       return res;
     }
     return CSOUND_ERROR;
@@ -523,7 +523,7 @@ PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
 PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
-    int res = read_unified_file4(csound, corfile_create_r(csd_text));
+    int res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
     if (LIKELY(res)) {
       if (csound->csdname != NULL) csound->Free(csound, csound->csdname);
       csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
