@@ -27,14 +27,12 @@
 #undef CS_KSMPS
 #define CS_KSMPS     (csound->GetKsmps(csound))
 
-#ifdef BETA
 #define DEBUG 1
-#endif
+
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
 #if !defined(HAVE_STRLCAT) && !defined(strlcat)
-size_t
-strlcat(char *dst, const char *src, size_t siz)
+size_t strlcat(char *dst, const char *src, size_t siz)
 {
     char *d = dst;
     const char *s = src;
@@ -363,12 +361,12 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
 
       }
       if (UNLIKELY(!DSSIPlugin_->Descriptor->run)) {
-        csound->InitError(csound, Str("DSSI4CS: No run() funtion in: %s"),
-                          LDescriptor->Name);
+        return csound->InitError(csound, Str("DSSI4CS: No run() funtion in: %s"),
+                                 LDescriptor->Name);
+      }
       PortCount = DSSIPlugin_->Descriptor->PortCount;
       dlclose(PluginLibrary);
-      return NOTOK;
-      }
+      //return NOTOK;
     }
     else {
       if (UNLIKELY(!
@@ -418,13 +416,13 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
 
     DSSIPlugin_->control =
         (LADSPA_Data **) csound->Calloc(csound, ConnectedControlPorts
-                                                * sizeof(LADSPA_Data *));
+                                              * sizeof(LADSPA_Data *));
     DSSIPlugin_->audio =
         (LADSPA_Data **) csound->Calloc(csound, ConnectedAudioPorts
-                                                * sizeof(LADSPA_Data *));
-    if (p->iverbose != 0) {
+                                               * sizeof(LADSPA_Data *));
+    //    if (p->iverbose != 0) {
       csound->Message(csound, "DSSI4CS: Created port array.\n");
-    }
+      //    }
 
     ConnectedControlPorts = 0;
     ConnectedAudioPorts = 0;
@@ -495,7 +493,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSIPlugin_->EventCount = 0;
     if (p->iverbose != 0) {
       csound->Message(csound, "DSSI4CS: Init Done.\n");
-      if (*p->iverbose != 0)
+      //if (p->iverbose != 0)
         info(csound, DSSIPlugin_);
     }
     dlclose(PluginLibrary);
@@ -776,9 +774,10 @@ int dssiaudio(CSOUND * csound, DSSIAUDIO * p)
 
     if (p->DSSIPlugin_->Active == 1) {
       for (j = 0; j < icnt; j++) {
-        for (i = 0; i < Ksmps; i++)
+        for (i = 0; i < Ksmps; i++) {
           p->DSSIPlugin_->audio[p->InputPorts[j]][i] =
             p->ain[j][i] * (1.0/csound->Get0dBFS(csound));
+        }
       }
       Descriptor->run(p->DSSIPlugin_->Handle, Ksmps);
       for (j = 0; j < ocnt; j++) {

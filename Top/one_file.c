@@ -122,7 +122,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
       /* if the file already exists, try again */
     } while (stat(lbuf, &tmp) == 0);
 #endif
-    return strdup(lbuf);
+return cs_strdup(csound, lbuf);
 }
 
 static inline void alloc_globals(CSOUND *csound)
@@ -627,7 +627,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
 #endif
     if (UNLIKELY(fd == NULL)) {
-      free(extname);
+      csound->Free(csound, extname);
       return FALSE;
     }
 
@@ -642,7 +642,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
           csoundErrorMsg(csound, Str("External generation failed"));
           if (UNLIKELY(remove(extname) || remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove"));
-          free(extname);
+          csound->Free(csound, extname);
           return FALSE;
         }
        if (UNLIKELY(remove(extname)))
@@ -656,7 +656,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
           csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
           if (UNLIKELY(remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
-          free(extname);
+          csound->Free(csound, extname);
           return FALSE;
         }
         csoundMessage(csound, Str("opened %s\n"), STA(sconame));
@@ -670,13 +670,13 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
         corfile_putc(csound, '\0', csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr);
         //corfile_rewind(csound->scorestr); /* necessary? */
-        free(extname); //27363
+        csound->Free(csound, extname); //27363
         return TRUE;
       }
       else fputs(buffer, scof);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
-    free(extname);
+    csound->Free(csound, extname);
     return FALSE;
 }
 
