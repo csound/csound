@@ -90,7 +90,7 @@ uint64_t make_location(PRE_PARM *qq)
 }
 
 // Code to add #includes of UDOs
-static void add_include_udo_dir(CORFIL *xx)
+static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 {
 #if defined(HAVE_DIRENT_H)
     char *dir = getenv("CS_UDO_DIR");
@@ -113,14 +113,14 @@ static void add_include_udo_dir(CORFIL *xx)
             strlcat(buff, fname, 1024);
             strlcat(buff, "\"\n", 1024);
             if (strlen(buff)>768) {
-              corfile_preputs(buff, xx);
+              corfile_preputs(csound, buff, xx);
               buff[0] ='\0';
             }
           }
         }
         closedir(udo);
         strlcat(buff, "###\n", 1024);
-        corfile_preputs(buff, xx);
+        corfile_preputs(csound, buff, xx);
       }
     }
     //printf("Giving\n%s", corfile_body(xx));
@@ -150,7 +150,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                       Str("Failed to open input file %s\n"), csound->orchname);
         else if (csound->orchstr==NULL && csound->oparms->daemon)  return NULL;
 
-        add_include_udo_dir(csound->orchstr);
+        add_include_udo_dir(csound, csound->orchstr);
         if (csound->orchname==NULL ||
             csound->orchname[0]=='\0') csound->orchname = csound->csdname;
         /* We know this is the start so stack is empty so far */
