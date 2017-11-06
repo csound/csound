@@ -67,6 +67,10 @@ after_build:
 # Tests
 # TODO
 
+test_script:
+  - cmake --build msvc\csound-vs --config Release --target csdtests
+   
+
 artifacts:
   - path: csound.zip
     name: Csound
