@@ -52,17 +52,16 @@ var csound = (function() {
                     csound.Csound = new CsoundObj();
                     csound.Csound.setMidiCallbacks();
                     csound.module = true;
-		    if(typeof window.handleMessage !== 'undefined') { 
-		      console.log = console.warn = function(mess) {
-			mess += "\n";
-			window.handleMessage(mess);
-		      }
-		    }
+                    if (typeof window.handleMessage !== 'undefined') { 
+                        console.log = console.warn = function(mess) {
+                            mess += "\n";
+                            window.handleMessage(mess);
+                            }
+                    }
                     if (typeof window.moduleDidLoad !== 'undefined')
                         window.moduleDidLoad();
                     if (typeof window.attachListeners !== 'undefined') 
                         window.attachListeners();
-	            
                 };
             });
         });
