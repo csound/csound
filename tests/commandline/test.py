@@ -137,6 +137,7 @@ def runTest():
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
+        ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
