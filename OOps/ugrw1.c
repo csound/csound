@@ -959,7 +959,12 @@ int printksset_S(CSOUND *csound, PRINTKS *p){
 }
 
 int printksset(CSOUND *csound, PRINTKS *p){
-    return printksset_(csound, p, get_arg_string(csound, *p->ifilcod));
+    char* arg_string = get_arg_string(csound, *p->ifilcod);
+
+    if (arg_string == NULL) {
+        return csoundInitError(csound, Str("null string\n"));
+    }
+    return printksset_(csound, p, arg_string);
 }
 
 
