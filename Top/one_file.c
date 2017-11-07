@@ -597,6 +597,10 @@ static int createScore(CSOUND *csound, CORFIL *cf)
 
 static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
 {
+#ifdef IOS
+  csoundErrorMsg(csound, "system() not supported on iOS");
+  return FALSE;
+#else
     char *extname;
     char *q;
     char prog[256];
@@ -678,6 +682,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
     csound->Free(csound, extname);
     return FALSE;
+#endif
 }
 
 static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
