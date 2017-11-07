@@ -47,7 +47,7 @@ var CsoundObj = function() {
     var _setStringChannel = cwrap('CsoundObj_setStringChannel', null, ['number', 'string', 'string']);
     var _setTable = cwrap('CsoundObj_setTable', null, ['number', 'number', 'number', 'number']);
     // End of exports.
-    var _self = _new();
+    var csound_obj_ = _new();
     var bufferFrameCount;
     var running;
 
@@ -61,7 +61,7 @@ var CsoundObj = function() {
     };
 
     this.setMidiCallbacks = function() {
-        _setMidiCallbacks(_self);
+        _setMidiCallbacks(csound_obj_);
     };
 
     var microphoneNode = null;
@@ -71,7 +71,7 @@ var CsoundObj = function() {
     };
 
     this.midiMessage = function(byte1, byte2, byte3) {
-        _pushMidiMessage(_self, byte1, byte2, byte3);
+        _pushMidiMessage(csound_obj_, byte1, byte2, byte3);
     };
 
     this.enableAudioInput = function(audioInputCallback) {
@@ -98,7 +98,7 @@ var CsoundObj = function() {
 
     this.enableMidiInput = function(midiInputCallback) {
         var handleMidiInput = function(event) {
-            _pushMidiMessage(_self, event.data[0], event.data[1], event.data[2]);
+            _pushMidiMessage(csound_obj_, event.data[0], event.data[1], event.data[2]);
         };
         var midiSuccess = function(midiInterface) {
             var inputs = midiInterface.inputs.values();
@@ -106,7 +106,7 @@ var CsoundObj = function() {
                 input = input.value;
                 input.onmidimessage = handleMidiInput;
             }
-            _setMidiCallbacks(_self);
+            _setMidiCallbacks(csound_obj_);
             midiInputCallback(true);
         };
         var midiFail = function(error) {
@@ -126,45 +126,45 @@ var CsoundObj = function() {
     var compiled = false;
 
     this.compileCSD = function(filePath) {
-        _prepareRT(_self);
-        _compileCSD(_self, filePath);
+        _prepareRT(csound_obj_);
+        _compileCSD(csound_obj_, filePath);
         compiled = true;
     };
 
     this.compileOrc = function(orcString) {
-        _prepareRT(_self);
-        _compileOrc(_self, orcString);
+        _prepareRT(csound_obj_);
+        _compileOrc(csound_obj_, orcString);
         compiled = true;
     };
 
     this.setOption = function(option) {
-        _setOption(_self, option);
+        _setOption(csound_obj_, option);
     };
 
     this.render = function(filePath) {
-        _compileCSD(_self, filePath);
-        _render(_self);
+        _compileCSD(csound_obj_, filePath);
+        _render(csound_obj_);
         compiled = false;
     };
 
     this.evaluateCode = function(codeString) {
-        _evaluateCode(_self, codeString);
+        _evaluateCode(csound_obj_, codeString);
     };
 
     this.readScore = function(scoreString) {
-        _readScore(_self, scoreString);
+        _readScore(csound_obj_, scoreString);
     };
 
     this.setControlChannel = function(channelName, value) {
-        _setControlChannel(_self, channelName, value);
+        _setControlChannel(csound_obj_, channelName, value);
     };
 
     this.getControlChannel = function(channelName) {
-        return _getControlChannel(_self, channelName);
+        return _getControlChannel(csound_obj_, channelName);
     };
 
     this.setStringChannel = function(channelName, value) {
-        _setStringChannel(_self, channelName, value);
+        _setStringChannel(csound_obj_, channelName, value);
     };
 
     this.setOutputChannelCallback = function(callback) {
@@ -174,27 +174,27 @@ var CsoundObj = function() {
             callback(string, value);
         };
         var functionPointer = Runtime.addFunction(csoundCallback);
-        _setOutputChannelCallback(_self, functionPointer);
+        _setOutputChannelCallback(csound_obj_, functionPointer);
     };
 
     this.getTable = function(tableNumber) {
-        var tableLength = _getTableLength(_self, tableNumber);
-        var tablePointer = _getTable(_self, tableNumber);
+        var tableLength = _getTableLength(csound_obj_, tableNumber);
+        var tablePointer = _getTable(csound_obj_, tableNumber);
         var table = new Float32Array(Module.HEAP8.buffer, tablePointer, tableLength);
         return table;
     };
 
     this.setTable = function(num, index, val) {
-        _setTable(_self, num, index, val);
+        _setTable(csound_obj_, num, index, val);
     };
 
     this.getScoreTime = function() {
-        _getScoreTime(_self);
+        _getScoreTime(csound_obj_);
     };
 
     var getAudioProcessNode = function() {
-        var inputChannelCount = _getInputChannelCount(_self);
-        var outputChannelCount = _getOutputChannelCount(_self);
+        var inputChannelCount = _getInputChannelCount(csound_obj_);
+        var outputChannelCount = _getOutputChannelCount(csound_obj_);
         var audioProcessNode = audioContext.createScriptProcessor(0, inputChannelCount, outputChannelCount);
         bufferFrameCount = audioProcessNode.bufferSize;
         // console.error("bufferFrameCount = " + bufferFrameCount);
@@ -203,43 +203,103 @@ var CsoundObj = function() {
         return audioProcessNode;
     };
 
+    //~ this.start = function() {
+        //~ if (that.running == true) {
+            //~ return;
+        //~ }
+        //~ var ksmps = _getKsmps(csound_obj_);
+        //~ // console.error("ksmps = " + ksmps);
+        //~ var audioProcessNode = getAudioProcessNode();
+        //~ var inputChannelCount = audioProcessNode.inputCount;
+        //~ var outputChannelCount = audioProcessNode.outputCount;
+        //~ var spout = _getOutputBuffer(csound_obj_);
+        //~ var spoutBuffer = new Float32Array(Module.HEAP8.buffer, spout, ksmps * outputChannelCount);
+        //~ var spin = _getInputBuffer(csound_obj_);
+        //~ var spinBuffer = new Float32Array(Module.HEAP8.buffer, spin, ksmps * inputChannelCount);
+        //~ var zerodBFS = _getZerodBFS(csound_obj_);
+        //~ var offset = ksmps;
+        //~ that.running = true;
+        //~ var processBuffers = function(e, sample_count, src_offset, dst_offset) {
+            //~ var i, j;
+            //~ var contextOutputBuffer;
+            //~ var contextInputBuffer;
+            //~ if (microphoneNode !== null) {
+                //~ for (i = 0; i < inputChannelCount; ++i) {
+                    //~ contextInputBuffer = e.inputBuffer.getChannelData(i);
+                    //~ for (j = 0; j < sample_count; ++j) {
+                        //~ spinBuffer[src_offset + j] = contextInputBuffer[(dst_offset + j) * inputChannelCount + i] * zerodBFS;
+                    //~ }
+                //~ }
+            //~ }
+            //~ for (i = 0; i < outputChannelCount; ++i) {
+                //~ contextOutputBuffer = e.outputBuffer.getChannelData(i);
+                //~ for (j = 0; j < sample_count; ++j) {
+                    //~ contextOutputBuffer[dst_offset + j] = spoutBuffer[(src_offset + j) * outputChannelCount + i] / zerodBFS;
+                //~ }
+            //~ }
+        //~ };
+        //~ if (microphoneNode !== null) {
+            //~ if (inputChannelCount >= microphoneNode.numberOfInputs) {
+                //~ microphoneNode.connect(audioProcessNode);
+            //~ } else {
+                //~ alert("Csound nchnls_i does not match microphoneNode.numberOfInputs.");
+                //~ return;
+            //~ }
+        //~ }
+        //~ audioProcessNode.connect(audioContext.destination);
+        //~ audioProcessNode.onaudioprocess = function(e) {
+            //~ var idx = 0;
+            //~ var sample_count;
+            //~ sample_count = ksmps - offset;
+            //~ //console.error("1: sample_count = " + sample_count);
+            //~ if (sample_count > 0) {
+                //~ processBuffers(e, sample_count, offset, 0);
+                //~ idx += sample_count;
+            //~ }
+            //~ while (idx < bufferFrameCount) {
+                //~ var result = _performKsmps(csound_obj_);
+                //~ if (result != 0) {
+                    //~ compiled = false;
+                    //~ that.stop();
+                //~ }
+                //~ if (isNaN(spoutBuffer[0])) {
+                    //~ console.error("NaN! spout = " + spout);
+                //~ }
+                //~ sample_count = Math.min(ksmps, bufferFrameCount - idx);
+                //~ //console.error("2: sample_count = " + sample_count);
+                //~ processBuffers(e, sample_count, 0, idx);
+                //~ idx += sample_count;
+            //~ }
+            //~ offset = sample_count;
+            //~ //console.error("3: offset = " + offset);
+        //~ };
+        //~ that.stop = function() {
+            //~ if (microphoneNode !== null) {
+                //~ microphoneNode.disconnect();
+            //~ }
+            //~ audioProcessNode.disconnect();
+            //~ audioProcessNode.onaudioprocess = null;
+            //~ that.running = false;
+        //~ };
+    //~ };
+
     this.start = function() {
         if (that.running == true) {
             return;
         }
-        var ksmps = _getKsmps(_self);
-        // console.error("ksmps = " + ksmps);
+        var ksmps = _getKsmps(csound_obj_);
         var audioProcessNode = getAudioProcessNode();
-        var inputChannelCount = audioProcessNode.inputCount;
-        var outputChannelCount = audioProcessNode.outputCount;
-        var spout = _getOutputBuffer(_self);
-        var csoundOutputBuffer = new Float32Array(Module.HEAP8.buffer, spout, ksmps * outputChannelCount);
-        var spin = _getInputBuffer(_self);
-        var csoundInputBuffer = new Float32Array(Module.HEAP8.buffer, spin, ksmps * inputChannelCount);
-        var zerodBFS = _getZerodBFS(_self);
-        var offset = ksmps;
+        var inputChannelN = audioProcessNode.inputCount;
+        var outputChannelN = audioProcessNode.outputCount;
+        var spin = _getInputBuffer(csound_obj_);
+        var spinBuffer = new Float32Array(Module.HEAP8.buffer, spin, ksmps * inputChannelN);
+        var spout = _getOutputBuffer(csound_obj_);
+        var spoutBuffer = new Float32Array(Module.HEAP8.buffer, spout, ksmps * outputChannelN);
+        var zerodBFS = _getZerodBFS(csound_obj_);
         that.running = true;
-        var processBuffers = function(e, sample_count, src_offset, dst_offset) {
-            var i, j;
-            var contextOutputBuffer;
-            var contextInputBuffer;
-            if (microphoneNode !== null) {
-                for (i = 0; i < inputChannelCount; ++i) {
-                    contextInputBuffer = e.inputBuffer.getChannelData(i);
-                    for (j = 0; j < sample_count; ++j) {
-                        csoundInputBuffer[src_offset + j] = contextInputBuffer[(dst_offset + j) * inputChannelCount + i] * zerodBFS;
-                    }
-                }
-            }
-            for (i = 0; i < outputChannelCount; ++i) {
-                contextOutputBuffer = e.outputBuffer.getChannelData(i);
-                for (j = 0; j < sample_count; ++j) {
-                    contextOutputBuffer[dst_offset + j] = csoundOutputBuffer[(src_offset + j) * outputChannelCount + i] / zerodBFS;
-                }
-            }
-        };
+        var csoundFrameI = 0;
         if (microphoneNode !== null) {
-            if (inputChannelCount >= microphoneNode.numberOfInputs) {
+            if (inputChannelN >= microphoneNode.numberOfInputs) {
                 microphoneNode.connect(audioProcessNode);
             } else {
                 alert("Csound nchnls_i does not match microphoneNode.numberOfInputs.");
@@ -247,31 +307,31 @@ var CsoundObj = function() {
             }
         }
         audioProcessNode.connect(audioContext.destination);
-        audioProcessNode.onaudioprocess = function(e) {
-            var idx = 0;
-            var sample_count;
-            sample_count = ksmps - offset;
-            //console.error("1: sample_count = " + sample_count);
-            if (sample_count > 0) {
-                processBuffers(e, sample_count, offset, 0);
-                idx += sample_count;
-            }
-            while (idx < bufferFrameCount) {
-                var result = _performKsmps(_self);
-                if (result != 0) {
-                    compiled = false;
-                    that.stop();
+        audioProcessNode.onaudioprocess = function(audioProcessEvent) {
+            var inputBuffer = audioProcessEvent.inputBuffer;
+            var outputBuffer = audioProcessEvent.outputBuffer;
+            var hostFrameN = outputBuffer.length;
+            var result = 0;
+            for (var hostFrameI = 0; hostFrameI < hostFrameN; hostFrameI++) {
+                for (var inputChannelI = 0; inputChannelI < inputChannelN; inputChannelI++) {
+                    var inputChannelBuffer = inputBuffer.getChannelData(inputChannelI);
+                    spinBuffer[(csoundFrameI * inputChannelN) + inputChannelI] = inputChannelBuffer[hostFrameI] * zerodBFS;
                 }
-                if (isNaN(csoundOutputBuffer[0])) {
-                    console.error("NaN! spout = " + spout);
+                for (var outputChannelI = 0; outputChannelI < outputChannelN; outputChannelI++) {
+                    var outputChannelBuffer = outputBuffer.getChannelData(outputChannelI);
+                    outputChannelBuffer[hostFrameI] = spoutBuffer[(csoundFrameI * outputChannelN) + outputChannelI] / zerodBFS;
+                    spoutBuffer[(csoundFrameI * outputChannelN) + outputChannelI] = 0.0;
                 }
-                sample_count = Math.min(ksmps, bufferFrameCount - idx);
-                //console.error("2: sample_count = " + sample_count);
-                processBuffers(e, sample_count, 0, idx);
-                idx += sample_count;
+                csoundFrameI++
+                if (csoundFrameI === ksmps) {
+                    csoundFrameI = 0;
+                    result = _performKsmps(csound_obj_);
+                    if (result !== 0) {
+                        compiled = false;
+                        that.stop();
+                    }
+                }
             }
-            offset = sample_count;
-            //console.error("3: offset = " + offset);
         };
         that.stop = function() {
             if (microphoneNode !== null) {
@@ -284,24 +344,24 @@ var CsoundObj = function() {
     };
 
     this.reset = function() {
-        _reset(_self);
+        _reset(csound_obj_);
         compiled = false;
     };
 
     this.destroy = function() {
-        _destroy(_self);
+        _destroy(csound_obj_);
     };
 
     this.openAudioOut = function() {
-        _openAudioOut(_self);
+        _openAudioOut(csound_obj_);
     };
 
     this.closeAudioOut = function() {
-        _closeAudioOut(_self);
+        _closeAudioOut(csound_obj_);
     };
 
     this.play = function() {
-        _play(_self);
+        _play(csound_obj_);
     };
 
     /**
@@ -314,6 +374,6 @@ var CsoundObj = function() {
     };
 
     this.stop = function() {
-        _openAudioOut(_self);
+        _openAudioOut(csound_obj_);
     };
 };
