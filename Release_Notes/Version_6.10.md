@@ -21,8 +21,8 @@ Any valid HTML can also be used.
 --->
 # CSOUND VERSION 6.10 RELEASE NOTES
 
-This is mostly a bugfix release, including a major bug introduced in
-loscil recently.  New and improved opcodes and a long orphaned gen
+This is mostly a bugfix release, including a major bug recently introduced in
+loscil.  New and improved opcodes and a long orphaned gen
 (53) are here, as well as many small internal improvements.  Internal
 changes have removed a number of memory leaks.
 
@@ -47,7 +47,7 @@ channels that **only** run at perf-time.
 
 ### Orchestra
 
-- Incorrect use of k-rate if..the.. in instrument 0 is now treated as i-rate.
+- Incorrect use of k-rate if..then.. in instrument 0 is now treated as i-rate.
 
 - Incorrect use of k-rate operations in instrument 0 are no longer
   treated as an error but a warning.
@@ -59,9 +59,9 @@ channels that **only** run at perf-time.
   previously rates had to match.
 
 - The use of ! as a Boolean operation (meaning negation) is now supported,
-were previously the parser accepted it but did not use it.
+  where previously the parser accepted it but did not use it.
 
-- Constant folding now implemented on a wide raange of arithmetic
+- Constant folding now implemented on a wide raange of arithmetic.
 
 ### Score
 
@@ -120,7 +120,6 @@ were previously the parser accepted it but did not use it.
 - CsoundQt: Now built with HTML5 support.
 
 ### General Usage
-
 
 ## Bugs Fixed
 
