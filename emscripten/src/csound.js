@@ -437,6 +437,10 @@ var csound = (function() {
             else csound.updateStatus("failed to enable audio input\n");
         });
     }
+    
+    function reset() {
+        csound.Csound.reset();
+    }
 
     return {
         module: false,
@@ -473,6 +477,7 @@ var csound = (function() {
         RequestChannel: RequestChannel,
         RequestFileFromLocal: RequestFileFromLocal,
         RequestTable: RequestTable,
+        reset: reset,
         SetChannel: SetChannel,
         setControlChannel: SetChannel,
         SetStringChannel: SetStringChannel,
