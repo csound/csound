@@ -22,8 +22,9 @@ Any valid HTML can also be used.
 # CSOUND VERSION 6.10 RELEASE NOTES
 
 This is mostly a bugfix release, including a major bug introduced in
-loscil recently.  New and improved opcodes and a long orphaned gen (53)
-are here, as well as many small internal improvements.
+loscil recently.  New and improved opcodes and a long orphaned gen
+(53) are here, as well as many small internal improvements.  Internal
+changes have removed a number of memory leaks.
 
 -- The Developers
 
@@ -60,6 +61,8 @@ channels that **only** run at perf-time.
 - The use of ! as a Boolean operation (meaning negation) is now supported,
 were previously the parser accepted it but did not use it.
 
+- Constant folding now implemented on a wide raange of arithmetic
+
 ### Score
 
 - In a csd file commented-out tags were acted upon in some cases,
@@ -94,6 +97,10 @@ were previously the parser accepted it but did not use it.
 
 - a-rate arrays may be added, subtracted, multiplied and scaled.  This
   is a start on a-rate array arithmetic.
+
+- dssiinit improved removing some crashes.
+
+- partials improved to remove a fencepost issue.
 
 ### Utilities
 
@@ -197,6 +204,21 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 
 
 ========================================================================
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Mon Nov 6 16:53:08 2017 -0500
+
+    added NULL check for prints opcode to prevent crash when number given as initial arg
+
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Mon Nov 6 15:55:40 2017 -0500
+
+    added test for prints to not crash if number given (should just report error)
+
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Thu Oct 26 23:56:20 2017 +0100
+
+    support for longer orcs
+
 commit d51c9346336cc2e77b01644281c706d99cfe5818
 Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Thu Aug 3 15:43:44 2017 +0100
