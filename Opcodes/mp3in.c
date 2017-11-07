@@ -58,9 +58,10 @@ int mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
     if (LIKELY(p->mpa != NULL))
       mp3dec_uninit(p->mpa);
-    free(p->mpa); p->mpa = NULL;
+    p->mpa = NULL;
     return OK;
 }
+
 
 int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
 {
@@ -185,7 +186,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     //if(!skip)
     //mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
     p->r = r;
-    if(p->initDone == -1)
+    if (p->initDone == 0)
       csound->RegisterDeinitCallback(csound, p,
                                      (int (*)(CSOUND*, void*)) mp3in_cleanup);
     /* done initialisation */
