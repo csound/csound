@@ -197,7 +197,7 @@ var CsoundObj = function() {
         var outputChannelCount = _getOutputChannelCount(csound_obj_);
         var audioProcessNode = audioContext.createScriptProcessor(0, inputChannelCount, outputChannelCount);
         bufferFrameCount = audioProcessNode.bufferSize;
-        // console.error("bufferFrameCount = " + bufferFrameCount);
+        console.info("audioProcessNode.bufferSize (WebAudio frames per buffer): " +  bufferFrameCount);
         audioProcessNode.inputCount = inputChannelCount;
         audioProcessNode.outputCount = outputChannelCount;
         return audioProcessNode;
