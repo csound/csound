@@ -215,6 +215,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     int     SampleRate = (int) MYFLT2LRND(csound->GetSr(csound));
     int     Ksmps = csound->GetKsmps(csound);
     unsigned long     i;
+    int     verbose = (int)*p->iverbose;
     LADSPA_Descriptor_Function pfDescriptorFunction;
     DSSI_Descriptor_Function pfDSSIDescriptorFunction;
     LADSPA_Descriptor *LDescriptor;
@@ -254,13 +255,13 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       DSSIPlugin->PluginCount = (int *) csound->Malloc(csound, sizeof(int));
       *DSSIPlugin->PluginCount = 1;
       DSSIPlugin_ = DSSIPlugin;
-      if (p->iverbose != 0) {
+      if (verbose != 0) {
         csound->Message(csound, Str("DSSI4CS: Loading first instance.\n"));
       }
     }
     else {
       DSSIPlugin_ = LocatePlugin(*DSSIPlugin->PluginCount - 1, csound);
-      if (p->iverbose != 0) {
+      if (verbose != 0) {
         csound->Message(csound, "DSSI4CS: Located plugin: %i.\n",
                         DSSIPlugin_->PluginNumber);
       }
@@ -272,7 +273,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       *DSSIPlugin_->PluginCount = (*DSSIPlugin_->PluginCount) + 1;
     }
     *p->iDSSIHandle = DSSIPlugin_->PluginNumber;
-    if (p->iverbose != 0) {
+    if (verbose != 0) {
       csound->Message(csound, "DSSI4CS: About to load descriptor function "
                       "for plugin %i of %i.\n",
                       DSSIPlugin_->PluginNumber, *DSSIPlugin_->PluginCount);
@@ -287,7 +288,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       LDescriptor =
           (LADSPA_Descriptor *) DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
       DSSIPlugin_->Type = DSSI;
-      if (p->iverbose != 0) {
+      if (verbose != 0) {
         csound->Message(csound, "DSSI4CS: DSSI Plugin detected.\n");
       }
     }
@@ -297,7 +298,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
                                              "ladspa_descriptor");
       if (pfDescriptorFunction==NULL) {
         dlclose(PluginLibrary);
-        return csound->InitError(csound, Str("No lapspa descriptor\n"));
+        return csound->InitError(csound, Str("No ladspa descriptor\n"));
       }
       DSSIPlugin_->Descriptor =
           (LADSPA_Descriptor *) csound->Calloc(csound,
@@ -306,7 +307,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
           (LADSPA_Descriptor *) pfDescriptorFunction(PluginIndex);
       LDescriptor = (LADSPA_Descriptor *) DSSIPlugin_->Descriptor;
       DSSIPlugin_->Type = LADSPA;
-      if (p->iverbose != 0) {
+      if (verbose != 0) {
         csound->Message(csound, "DSSI4CS: LADSPA Plugin Detected\n");
       }
     }
@@ -343,7 +344,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       dlclose(PluginLibrary);
       return NOTOK;
     }
-    if (p->iverbose != 0) {
+    if (verbose != 0) {
       csound->Message(csound, "DSSI4CS: About to instantiate plugin.\n");
     }
 
@@ -389,7 +390,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
                                              DSSI4CS_MAX_NUM_EVENTS
                                              * sizeof(snd_seq_event_t));
     }
-    if (p->iverbose != 0) {
+    if (verbose != 0) {
       if (DSSIPlugin_->Handle)
         csound->Message(csound, "DSSI4CS: Plugin instantiated.\n");
       else
@@ -407,7 +408,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       if (LADSPA_IS_PORT_AUDIO(PortDescriptor))
         ConnectedAudioPorts++;
     }
-    if (p->iverbose != 0) {
+    if (verbose != 0) {
       csound->Message(csound, "DSSI4CS: Found %lu control ports for: '%s'\n",
                       ConnectedControlPorts, LDescriptor->Name);
       csound->Message(csound, "DSSI4CS: Found %lu audio ports for: '%s'\n",
@@ -420,7 +421,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSIPlugin_->audio =
         (LADSPA_Data **) csound->Calloc(csound, ConnectedAudioPorts
                                                * sizeof(LADSPA_Data *));
-    //    if (p->iverbose != 0) {
+    //    if (verbose != 0) {
       csound->Message(csound, "DSSI4CS: Created port array.\n");
       //    }
 
@@ -431,7 +432,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
           (DSSIPlugin_->Type ==
            LADSPA ? DSSIPlugin_->Descriptor->PortDescriptors[i]
            : DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->PortDescriptors[i]);
-      if (p->iverbose != 0) {
+      if (verbose != 0) {
         csound->Message(csound, "DSSI4CS: Queried port descriptor.\n");
       }
 
@@ -449,7 +450,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
               DSSIPlugin_->Handle, i,
               (LADSPA_Data *) DSSIPlugin_->control[ConnectedControlPorts]);
         }
-        if (p->iverbose != 0) {
+        if (verbose != 0) {
           csound->Message(csound,
                           "DSSI4CS: Created internal control port "
                           "%lu for Port %lu.\n",
@@ -470,7 +471,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
           DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->connect_port(
               DSSIPlugin_->Handle, i,
               (LADSPA_Data *) DSSIPlugin_->audio[ConnectedAudioPorts]);
-        if (p->iverbose != 0) {
+        if (verbose != 0) {
           csound->Message(csound,
                           "DSSI4CS: Created internal audio port"
                           " %lu for Port %lu.\n",
@@ -482,7 +483,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
 
     }
     /* All ports must be connected before calling run() */
-    if (p->iverbose != 0) {
+    if (verbose != 0) {
       csound->Message(csound, "DSSI4CS: Created %lu control ports for: '%s'\n",
                       ConnectedControlPorts, LDescriptor->Name);
       csound->Message(csound, "DSSI4CS: Created %lu audio ports for: '%s'\n",
@@ -491,10 +492,9 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
 
     DSSIPlugin_->Active = 0;
     DSSIPlugin_->EventCount = 0;
-    if (p->iverbose != 0) {
+    if (verbose != 0) {
       csound->Message(csound, "DSSI4CS: Init Done.\n");
-      //if (p->iverbose != 0)
-        info(csound, DSSIPlugin_);
+      info(csound, DSSIPlugin_);
     }
     dlclose(PluginLibrary);
     return OK;
