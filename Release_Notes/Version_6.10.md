@@ -61,7 +61,7 @@ channels that **only** run at perf-time.
 - The use of ! as a Boolean operation (meaning negation) is now supported,
   where previously the parser accepted it but did not use it.
 
-- Constant folding now implemented on a wide raange of arithmetic.
+- Constant folding now implemented on a wide range of arithmetic.
 
 ### Score
 
