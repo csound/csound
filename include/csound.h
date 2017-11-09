@@ -901,6 +901,29 @@ extern "C" {
    */
   PUBLIC void csoundReset(CSOUND *);
 
+   /** @}*/
+   /** @defgroup SERVER UDP server
+   *
+   *  @{ */
+
+  /**
+   * Starts the UDP server on a supplied port number
+   * returns CSOUND_SUCCESS if server has been started successfully,
+   * otherwise, CSOUND_ERROR.
+   */
+  PUBLIC int csoundUDPServerStart(CSOUND *csound, unsigned int port);
+
+  /** returns the port number on which the server is running, or
+   *  CSOUND_ERROR if the server is not running.
+   */
+  PUBLIC int csoundUDPServerStatus(CSOUND *csound);
+
+  /** 
+   * Closes the UDP server, returning CSOUND_SUCCESS if the
+   * running server was successfully closed, CSOUND_ERROR otherwise.
+   */
+  PUBLIC int csoundUDPServerClose(CSOUND *csound);
+
   /** @}*/
   /** @defgroup ATTRIBUTES Attributes
    *

@@ -69,7 +69,8 @@
 #include "csdebug.h"
 #include <time.h>
 
-void allocate_message_queue(CSOUND *csound);
+void allocate_message_queue(CSOUND *csound
+			    );
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
@@ -2012,9 +2013,12 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
     if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
       scsortstr(csound, csound->scorestr);
       O->playscore = csound->scstr;
+      corfile_rm(&(csound->scorestr));
+      //printf("%s\n", O->playscore->body);
     }
     else {
       char *sc = scsortstr(csound, csound->scorestr);
+      //printf("%s \n", sc);
       csoundInputMessageInternal(csound, (const char *) sc);
       csound->Free(csound, sc);
       corfile_rm(&(csound->scorestr));
