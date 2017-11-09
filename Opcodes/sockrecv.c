@@ -185,9 +185,9 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
       u_long argp = 1;
       err = ioctlsocket(p->sock, FIONBIO, &argp);
       if (UNLIKELY(err != NO_ERROR))
-	return csound->InitError(csound, Str("Cannot set nonblock"));
+        return csound->InitError(csound, Str("Cannot set nonblock"));
     }
-#endif 
+#endif
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
