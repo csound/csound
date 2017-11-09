@@ -944,6 +944,7 @@ if(INIT_STATIC_MODULES)
         Opcodes/ampmidid.cpp
         Opcodes/doppler.cpp
         Opcodes/tl/fractalnoise.cpp
+        Opcodes/ftsamplebank.cpp
         Opcodes/mixer.cpp
         Opcodes/signalflowgraph.cpp)
     set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
