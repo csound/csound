@@ -52,7 +52,7 @@ graphics, and much more. For a full list of capabilities currently implemented i
 
 ## BUILDING
 
-Currently, there is an issue with a nw-gyp error in recent versions of NW.js. See See nwjs/nw.js#5960 for how to patch the nw-gyp configuration.
+Currently, there is an issue with a nw-gyp error in recent versions of NW.js. See https://github.com/nwjs/nw.js/issues/5960 for how to fix this by patching the nw-gyp configuration.
 
 ### Windows
 
