@@ -52,7 +52,11 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
         csound->Message(csound,
                         Str("DSSI4CS: LADSPA_PATH environment "
                             "variable not set.\n"));
+#ifdef LIB64
+        pcLADSPAPath = strdup("/usr/lib64/ladspa/");
+#else
         pcLADSPAPath = strdup("/usr/lib/ladspa/");
+#endif
       }
       if (pcDSSIPath) {
         int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
@@ -84,8 +88,8 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
 
           csound->Free(csound, pcBuffer);
           if (pvResult != NULL) {
-            if(pcLADSPAPath) free(pcLADSPAPath);
-            if(pcDSSIPath) free(pcDSSIPath);
+            if (pcLADSPAPath) free(pcLADSPAPath);
+            if (pcDSSIPath) free(pcDSSIPath);
             return pvResult;
           }
           pcStart = pcEnd;
@@ -94,8 +98,8 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
         }
       }
     }
-    if(pcLADSPAPath) free(pcLADSPAPath);
-    if(pcDSSIPath) free(pcDSSIPath);
+    if (pcLADSPAPath) free(pcLADSPAPath);
+    if (pcDSSIPath) free(pcDSSIPath);
     /* As a last ditch effort, check if filename does not end with
        ".so". In this case, add this suffix and recurse. */
     iEndsInSO = 0;
