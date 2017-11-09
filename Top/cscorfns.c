@@ -827,9 +827,9 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
     EVENT  *next;
 
     if (insco != NULL) {
-      CORFIL *inf = corfile_create_w();
+      CORFIL *inf = corfile_create_w(csound);
       int c;
-      while ((c=getc(insco))!=EOF) corfile_putc(c, inf);
+      while ((c=getc(insco))!=EOF) corfile_putc(csound, c, inf);
       corfile_rewind(inf);
       csound->scstr = inf;
     }
@@ -914,12 +914,12 @@ PUBLIC FILE *cscoreFileGetCurrent(CSOUND *csound)
 PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 {
     if (fp != NULL) {
-      CORFIL *inf = corfile_create_w();
+      CORFIL *inf = corfile_create_w(csound);
       int c;
       fseek(fp, 0, SEEK_SET);
-      while ((c=getc(fp))!=EOF) corfile_putc(c, inf);
+      while ((c=getc(fp))!=EOF) corfile_putc(csound, c, inf);
       corfile_rewind(inf);
-      corfile_rm(&csound->scstr);
+      corfile_rm(csound, &csound->scstr);
       csound->scstr = inf;
       nxtevt->op = '\0';
       atEOF = 0;
