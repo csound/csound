@@ -2785,7 +2785,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       int size=ftp->argcnt;
       //if (size>=PMAX) size=PMAX; // Coverity 96615 says this overflows
       memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
-      /* for(k=0; k < size; k++)
+      /* for (k=0; k < size; k++)
          csound->Message(csound, "%f \n", ftp->args[k]);*/
     }
     return OK;
