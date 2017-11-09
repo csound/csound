@@ -111,12 +111,12 @@ NM              [nm]
 #ifdef SCORE_PARSER
                   if (PARM->isString==0) {
                     sprintf(bb, "#sline %d ", csound_prsget_lineno(yyscanner));
-                    corfile_puts(bb, PARM->cf);
+                    corfile_puts(csound, bb, PARM->cf);
                   }
 #endif
                 }
 {NEWLINE}       {
-                  corfile_putc('\n', PARM->cf);
+                  corfile_putc(csound, '\n', PARM->cf);
                   csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
                                        yyscanner);
                   csound_prs_line(PARM->cf, yyscanner);
@@ -124,21 +124,21 @@ NM              [nm]
 "//"            {
                   if (PARM->isString != 1) {
                     comment(yyscanner);
-                    corfile_putc('\n', PARM->cf);
+                    corfile_putc(csound, '\n', PARM->cf);
                     csound_prs_line(PARM->cf, yyscanner);
                   }
                   else {
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                   }
                 }
 ";"             {
                   if (PARM->isString != 1) {
                     comment(yyscanner);
-                    corfile_putc('\n', PARM->cf);
+                    corfile_putc(csound, '\n', PARM->cf);
                     csound_prs_line(PARM->cf, yyscanner);
                   }
                   else {
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                   }
                   //corfile_putline(csound_prsget_lineno(yyscanner),
                   //                PARM->cf);
@@ -147,11 +147,11 @@ NM              [nm]
                   if (PARM->isString != 1)
                     do_comment(yyscanner);
                   else
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                 }
-{ESCAPE}        { corfile_puts(yytext, PARM->cf); }
+{ESCAPE}        { corfile_puts(csound, yytext, PARM->cf); }
 {STSTR}         {
-                  corfile_putc('"', PARM->cf);
+                  corfile_putc(csound, '"', PARM->cf);
                   PARM->isString = !PARM->isString;
                 }
 {MACRONAME}     {
@@ -164,7 +164,7 @@ NM              [nm]
                    /* Need to read from macro definition */
                    /* ??fiddle with buffers I guess */
                    if (mm->acnt<0) { /* Macro inhibitted */
-                     corfile_puts(yytext, PARM->cf);
+                     corfile_puts(csound, yytext, PARM->cf);
                    }
                    else {
                      if (UNLIKELY(PARM->macro_stack_ptr>=PARM->macro_stack_size)) {
@@ -206,7 +206,7 @@ NM              [nm]
                      }
                    if (mm->acnt<0) { /* macro inhibitted */
                      yytext[yyleng-1] = '.';
-                     corfile_puts(yytext, PARM->cf);
+                     corfile_puts(csound, yytext, PARM->cf);
                    }
                    else {
                      /* Need to read from macro definition */
@@ -459,7 +459,7 @@ NM              [nm]
                   if (PARM->isString != 1)
                     BEGIN(incl);
                   else
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                 }
 <incl>[ \t]*     /* eat the whitespace */
 <incl>.         { /* got the include file name */
@@ -468,8 +468,8 @@ NM              [nm]
                 }
 {EXIT}          {
                   //printf("exit found: >>>%s<<<\n", PARM->cf->body);
-                  corfile_putc('\0', PARM->cf);
-                  corfile_putc('\0', PARM->cf);
+                  corfile_putc(csound, '\0', PARM->cf);
+                  corfile_putc(csound, '\0', PARM->cf);
                   delete_macros(csound, yyscanner);
                   return 0;
                 }
@@ -537,7 +537,7 @@ NM              [nm]
                   if (PARM->isString != 1)
                     BEGIN(macro);
                   else
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                 }
 <macro>[ \t]*    /* eat the whitespace */
 <macro>{MACROB} {
@@ -567,7 +567,7 @@ NM              [nm]
                   if (PARM->isString != 1)
                     BEGIN(umacro);
                   else
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                 }
 <umacro>[ \t]*    /* eat the whitespace */
 <umacro>{MACRO}  {
@@ -581,12 +581,12 @@ NM              [nm]
                     PARM->isIfndef = (yytext[3] == 'n');  /* #ifdef or #ifndef */
                     csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
                                          yyscanner);
-                    corfile_putc('\n', PARM->cf);
+                    corfile_putc(csound, '\n', PARM->cf);
                     csound_prs_line(PARM->cf, yyscanner);
                     BEGIN(ifdef);
                   }
                   else {
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                   }
                 }
 <ifdef>[ \t]*     /* eat the whitespace */
@@ -607,12 +607,12 @@ NM              [nm]
                     PARM->ifdefStack->isElse = 1;
                     csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
                                          yyscanner);
-                    corfile_putc('\n', PARM->cf);
+                    corfile_putc(csound, '\n', PARM->cf);
                     csound_prs_line(PARM->cf, yyscanner);
                     do_ifdef_skip_code(csound, yyscanner);
                   }
                   else {
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                   }
                 }
 {END}           {
@@ -625,22 +625,22 @@ NM              [nm]
                     PARM->ifdefStack = pp->prv;
                     csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
                                          yyscanner);
-                    corfile_putc('\n', PARM->cf);
+                    corfile_putc(csound, '\n', PARM->cf);
                     csound_prs_line(PARM->cf, yyscanner);
                     mfree(csound, pp);
                   }
                   else {
-                    corfile_puts(yytext, PARM->cf);
+                    corfile_puts(csound, yytext, PARM->cf);
                   }
                 }
 {NM}            {
-                  corfile_putc(yytext[0], PARM->cf);
+                  corfile_putc(csound, yytext[0], PARM->cf);
                   if (!PARM->isString) BEGIN(lname);
                 }
 <lname>[ \t]*     /* eat the whitespace */
 <lname>{IDENT}   {
-                  corfile_putc(' ', PARM->cf);
-                  corfile_puts(yytext, PARM->cf);
+                  corfile_putc(csound, ' ', PARM->cf);
+                  corfile_puts(csound, yytext, PARM->cf);
                   BEGIN(INITIAL);
                 }
 
@@ -717,7 +717,7 @@ NM              [nm]
                   PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
                   while (input(yyscanner)!='\n') {}
                   PARM->cf_stack[PARM->repeat_index] = PARM->cf;
-                  PARM->cf = corfile_create_w();
+                  PARM->cf = corfile_create_w(csound);
         }
 "}"     {
           int temp;
@@ -726,9 +726,9 @@ NM              [nm]
             csound->Message(csound, Str("unmatched } in score\n"));
             csound->LongJmp(csound, 1);
           }
-          corfile_puts("#loop", PARM->cf);
-          corfile_putc('\0', PARM->cf);
-          corfile_putc('\0', PARM->cf);
+          corfile_puts(csound, "#loop", PARM->cf);
+          corfile_putc(csound, '\0', PARM->cf);
+          corfile_putc(csound, '\0', PARM->cf);
           PARM->cf = PARM->cf_stack[PARM->repeat_index];
           //printf("****Repeat body\n>>>%s<<<\n", bdy->body);
           PARM->repeat_mm_n[PARM->repeat_index]->acnt = 0; /* uninhibit */
@@ -776,16 +776,16 @@ NM              [nm]
           else {
             //printf("*** end loop\n");
             //printf(">>%s<<\n", PARM->cf->body);
-            corfile_rm(&PARM->cf_stack[PARM->repeat_index]);
+            corfile_rm(csound, &PARM->cf_stack[PARM->repeat_index]);
             PARM->repeat_index--;
           }
        }
 "r"    {
-         if (PARM->isString) corfile_putc('r', PARM->cf);
+         if (PARM->isString) corfile_putc(csound, 'r', PARM->cf);
          else {
            int c, i;
            char buff[120];
-           corfile_putc('s', PARM->cf);
+           corfile_putc(csound, 's', PARM->cf);
            //printf("r detected\n");
            if (UNLIKELY(PARM->in_repeat_sect))
              csound->Die(csound, Str("Section loops cannot be nested"));
@@ -839,7 +839,7 @@ NM              [nm]
            PARM->repeat_sect_index = 0;
            while (input(yyscanner)!='\n') {}
            PARM->repeat_sect_cf = PARM->cf;
-           PARM->cf = corfile_create_w();
+           PARM->cf = corfile_create_w(csound);
          }
         }
 {SEND}  {
@@ -847,8 +847,8 @@ NM              [nm]
             //printf("section end %d %c\n%s\n",
             //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
-              corfile_putc(yytext[0], PARM->cf);
-              corfile_putc('\n', PARM->cf);
+              corfile_putc(csound, yytext[0], PARM->cf);
+              corfile_putc(csound, '\n', PARM->cf);
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
@@ -866,8 +866,8 @@ NM              [nm]
               //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
               PARM->repeat_sect_index++;
               if (PARM->repeat_sect_index<PARM->repeat_sect_cnt) {
-                corfile_putc('s', PARM->cf);
-                corfile_putc('\n', PARM->cf);
+                corfile_putc(csound, 's', PARM->cf);
+                corfile_putc(csound, '\n', PARM->cf);
                 if (PARM->repeat_sect_mm) {
                   snprintf(PARM->repeat_sect_mm->body, 16, "%d",
                            PARM->repeat_sect_index);
@@ -879,21 +879,21 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
-                corfile_putc(yytext[0], PARM->cf);
-                corfile_putc('\n', PARM->cf);
+                corfile_putc(csound, yytext[0], PARM->cf);
+                corfile_putc(csound, '\n', PARM->cf);
                 //printf("end of loop\n");
                 PARM->in_repeat_sect=0;
-                corfile_rm(&PARM->repeat_sect_cf);
+                corfile_rm(csound, &PARM->repeat_sect_cf);
                 //csound->Free(csound, PARM->repeat_sect_mm->body);
                 //PARM->repeat_sect_mm->body = NULL;
               }
             }
             else
-              corfile_putc(yytext[0], PARM->cf);
+              corfile_putc(csound, yytext[0], PARM->cf);
           }
-          else corfile_putc(yytext[0], PARM->cf);
+          else corfile_putc(csound, yytext[0], PARM->cf);
         }
-.       { corfile_putc(yytext[0], PARM->cf); }
+.       { corfile_putc(csound, yytext[0], PARM->cf); }
 
 %%
 static void comment(yyscan_t yyscanner)              /* Skip until nextline */
@@ -979,7 +979,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       //sprintf(bb, "#source %llu\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
 #ifdef SCORE_PARSER
-      //corfile_puts(bb, PARM->cf);
+      //corfile_puts(csound, bb, PARM->cf);
 #endif
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
@@ -1007,7 +1007,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_prs_scan_string(cf->body, yyscanner);
-    corfile_rm(&cf);
+    corfile_rm(csound, &cf);
     csound->DebugMsg(csound,"Set line number to 1\n");
     csound_prsset_lineno(1, yyscanner);
 }
@@ -1173,7 +1173,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
-        corfile_putc('\n', PARM->cf);
+        corfile_putc(csound, '\n', PARM->cf);
         csound_prs_line(PARM->cf, yyscanner);
       }
     }
@@ -1259,7 +1259,7 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
       if (UNLIKELY(c == '\n' || c == '\r')) {
         csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
-        corfile_putc('\n', PARM->cf);
+        corfile_putc(csound, '\n', PARM->cf);
         csound_prs_line(PARM->cf, yyscanner);
       }
     }
@@ -1351,7 +1351,7 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     }
       csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
                            yyscanner);
-      corfile_putc('\n', PARM->cf);
+      corfile_putc(csound, '\n', PARM->cf);
       csound_prs_line(PARM->cf, yyscanner);
       while (isblank(c = input(yyscanner)));  /* eat the whitespace */
       if (c == '#') {

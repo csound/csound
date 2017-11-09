@@ -58,8 +58,10 @@ int mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
     if (LIKELY(p->mpa != NULL))
       mp3dec_uninit(p->mpa);
+    p->mpa = NULL;
     return OK;
 }
+
 
 int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
 {
@@ -99,7 +101,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
 
 
     /* FIXME: name can overflow with very long string */
-    if(stringname==0){
+    if (stringname==0){
       if (csound->ISSTRCOD(*p->iFileCode))
         strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
@@ -184,7 +186,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     //if(!skip)
     //mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
     p->r = r;
-    if(p->initDone == -1)
+    if (p->initDone == 0)
       csound->RegisterDeinitCallback(csound, p,
                                      (int (*)(CSOUND*, void*)) mp3in_cleanup);
     /* done initialisation */

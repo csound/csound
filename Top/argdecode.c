@@ -1411,7 +1411,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
               else {
                 CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
                 readOptions(csound, cf, 0);
-                corfile_rm(&cf);
+                corfile_rm(csound, &cf);
                 csound->FileClose(csound, fd);
               }
               while (*s++) {};
