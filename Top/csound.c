@@ -2013,7 +2013,7 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
     if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
       scsortstr(csound, csound->scorestr);
       O->playscore = csound->scstr;
-      corfile_rm(&(csound->scorestr));
+      //corfile_rm(csound, &(csound->scorestr));
       //printf("%s\n", O->playscore->body);
     }
     else {
