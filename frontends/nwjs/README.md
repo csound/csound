@@ -52,6 +52,8 @@ graphics, and much more. For a full list of capabilities currently implemented i
 
 ## BUILDING
 
+Currently, there is an issue with a nw-gyp error in recent versions of NW.js. See See nwjs/nw.js#5960 for how to patch the nw-gyp configuration.
+
 ### Windows
 
 Currently, on Windows, there is no need to build `csound.node`, it is distributed in the
