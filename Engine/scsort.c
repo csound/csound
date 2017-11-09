@@ -64,7 +64,9 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     }
     corfile_flush(sco);
     sfree(csound);
-    if (first) return sco->body;
+    if (first) {
+      return sco->body;
+    }
     else {
       char *str = cs_strdup(csound,sco->body);
       corfile_rm(&(sco));

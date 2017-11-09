@@ -134,6 +134,14 @@ static int deinit_udpRecv_S(CSOUND *csound, void *pdata)
 
     p->threadon = 0;
     csound->JoinThread(p->thrid);
+
+#ifndef WIN32
+    close(p->sock);
+    csound->Message(csound, Str("OSCraw: Closing socket\n"));
+#else
+    closesocket(p->sock);
+    csound->Message(csound, Str("OSCraw: Closing socket\n"));
+#endif
     return OK;
 }
 
@@ -167,13 +175,19 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
-
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
-#endif
+#else
+    {
+      u_long argp = 1;
+      err = ioctlsocket(p->sock, FIONBIO, &argp);
+      if (UNLIKELY(err != NO_ERROR))
+	return csound->InitError(csound, Str("Cannot set nonblock"));
+    }
+#endif 
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }

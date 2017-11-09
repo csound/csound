@@ -406,7 +406,6 @@ static inline void cs_beep(CSOUND *csound)
     csound->Message(csound, Str("%c\tbeep!\n"), '\a');
 }
 
-extern int UDPServerClose(CSOUND *csound);
 PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
@@ -416,7 +415,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 
     csoundLockMutex(csound->API_lock);
     if (csound->QueryGlobalVariable(csound,"::UDPCOM")
-       != NULL) UDPServerClose(csound);
+       != NULL) csoundUDPServerClose(csound);
 
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
