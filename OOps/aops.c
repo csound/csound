@@ -1765,6 +1765,7 @@ int outs2(CSOUND *csound, OUTM *p)
       csound->spoutactive = 1;
     }
     else {
+      sp +=nsmps;
       for (n=offset; n<early; n++) {
         sp[n] += ap2[n];
       }
