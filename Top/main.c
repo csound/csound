@@ -34,7 +34,6 @@
 //#include "cs_par_dispatch.h"
 
 void allocate_message_queue(CSOUND *csound);
-int UDPServerStart(CSOUND *csound, int port);
 CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     argdecode(CSOUND *, int, const char **);
   int     init_pvsys(CSOUND *);
@@ -496,7 +495,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     }
     csound->engineStatus |= CS_STATE_COMP;
     if (csound->oparms->daemon > 1)
-      UDPServerStart(csound,csound->oparms->daemon);
+      csoundUDPServerStart(csound,csound->oparms->daemon);
 
     allocate_message_queue(csound); /* if de-alloc by reset */
     return musmon(csound);
