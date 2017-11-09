@@ -1094,14 +1094,14 @@ int dssilist(CSOUND * csound, DSSILIST * p)
     const char *src;
 
     src = getenv("LADSPA_PATH");
-    if(src)
+    if (src)
       pcLADSPAPath = strndup(src, 1024);
     else
       pcLADSPAPath = NULL;
 
     pcDSSIPath = getenv("DSSI_PATH");
     src = getenv("DSSI_PATH");
-    if(src)
+    if (src)
       pcDSSIPath = strndup(src, 1024);
     else
       pcDSSIPath = NULL;
