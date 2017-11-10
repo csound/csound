@@ -44,7 +44,6 @@ channels that **only** run at perf-time.
   impulse response table from a source table containing a frequency
   response or an impulse response.
 
-
 ### Orchestra
 
 - Incorrect use of k-rate if..then.. in instrument 0 is now treated as i-rate.
@@ -70,7 +69,7 @@ channels that **only** run at perf-time.
 
 - The evauation form [..] can now be nested.
 
-- The extract feature (-x from command line) now works
+- The extract feature (-x from command line) now works.
 
 - Use of the score opcode x could case spurious error messages which are
   now suppressed.
@@ -195,9 +194,8 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
  - Continuous integration for Windows with AppVeyor.
 
  - The AppVeyor build and installer now includes CsoundVST and the vst4cs
-   opcodes that enable hosting VST plugins in Csound. The LGPL v2.1
-
-license for that code has been modified, with permission of Hermann
+   opcodes that enable hosting VST plugins in Csound. The LGPL v2.1 
+   license for that code has been modified, with permission of Hermann
    Seib the original author of the VSTHost code, to permit use with
    the separately downloaded VST2 SDK from Steinberg.
 
