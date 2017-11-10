@@ -228,7 +228,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
     }
  #endif 
   if (UNLIKELY(p->sock < 0)) {
-    csound->Warning(csound, Str("creating socket"));
+    csound->Warning(csound, Str("error creating socket"));
     return CSOUND_ERROR;
   }
   /* create server address: where we want to send to and clear it out */
@@ -294,7 +294,10 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
       else return CSOUND_SUCCESS;	
     }
   }
-  else return CSOUND_ERROR;
+  else {
+    csound->Warning(csound,  Str("UDP Server: could not start"));
+    return CSOUND_ERROR;
+  }
 }
 
 int csoundUDPServerStatus(CSOUND *csound) {
