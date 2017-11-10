@@ -221,10 +221,11 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
     {
       u_long argp = 1;
       err = ioctlsocket(p->sock, FIONBIO, &argp);
-      if (UNLIKELY(err != NO_ERROR))
+      if (UNLIKELY(err != NO_ERROR)) {
 	csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
-      closesocket(p->sock);
-      return CSOUND_ERROR;
+        closesocket(p->sock);
+        return CSOUND_ERROR;
+      }
     }
  #endif 
   if (UNLIKELY(p->sock < 0)) {
