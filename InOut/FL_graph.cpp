@@ -203,10 +203,10 @@ void graph_box::draw()
         fl_line_style(FL_DOT);
         fl_line(win_x+w()/2, win_y, win_x+w()/2, win_y+win_h);
       }
-      if(pol != NEGPOL)
-      sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->oabsmax);
+      if (pol != NEGPOL)
+        sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->oabsmax);
       else
-      sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->max);
+        sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->max);
 
       ST(form)->label(string);
     }
@@ -231,13 +231,13 @@ void add_graph(CSOUND *csound, WINDAT *wdptr)
 
 
     for (m = 0; m < NUMOFWINDOWS; m++) {  // If text the same use slot
-      if(ST(menu) != NULL) {
-       if (ST(menu)[m].text != NULL && wdptr->caption != NULL){
-        if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
-        replacing = 1;
-        goto replace;
+      if (ST(menu) != NULL) {
+        if (ST(menu)[m].text != NULL && wdptr->caption != NULL){
+          if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
+            replacing = 1;
+            goto replace;
+          }
         }
-       }
       }
     }
     // Use a new slot, cycling round
@@ -305,7 +305,8 @@ void makeWindow(CSOUND *csound, char *name)
 }
 
 void graphs_reset(CSOUND * csound){
-  //if(csound->flgraphGlobals != NULL)csound->Free(csound, csound->flgraphGlobals);
+  //if (csound->flgraphGlobals != NULL)
+  //  csound->Free(csound, csound->flgraphGlobals);
 }
 
 extern "C" {
@@ -391,10 +392,10 @@ extern "C" {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
         if (n)
           kill_graph(csound, (uintptr_t) ((void*) n));
-          }
-       if(ST(menu)){
-             delete[] ST(menu);
-             ST(menu) = (Fl_Menu_Item *) 0;
+       }
+       if (ST(menu)){
+         delete[] ST(menu);
+         ST(menu) = (Fl_Menu_Item *) 0;
        }
 
 
