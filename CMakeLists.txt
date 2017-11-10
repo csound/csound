@@ -213,6 +213,7 @@ endif()
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
     set(LIBRARY_INSTALL_DIR "lib64")
+    add_definitions("-DLIB64")
 else()
     set(LIBRARY_INSTALL_DIR "lib")
 endif()
@@ -943,6 +944,7 @@ if(INIT_STATIC_MODULES)
         Opcodes/ampmidid.cpp
         Opcodes/doppler.cpp
         Opcodes/tl/fractalnoise.cpp
+        Opcodes/ftsamplebank.cpp
         Opcodes/mixer.cpp
         Opcodes/signalflowgraph.cpp)
     set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
