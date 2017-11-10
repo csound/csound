@@ -613,7 +613,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       }
       else evt = csound->currevent;
       evt->pcnt = pmax+1;
-      for(i =0; i < evt->pcnt; i++){
+      for (i =0; i < evt->pcnt; i++) {
         evt->p[i] = pfields[i].value;
       }
     }
@@ -859,7 +859,8 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
     while (current != NULL) {
         CS_TYPE* varType = current->varType;
         if (varType->freeVariableMemory != NULL) {
-            varType->freeVariableMemory(csound, ip->lclbas + current->memBlockIndex);
+            varType->freeVariableMemory(csound,
+                                        ip->lclbas + current->memBlockIndex);
         }
         current = current->next;
     }
@@ -917,7 +918,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
     /* check current items in deadpool to see if they need deleting */
     {
       int i;
-      for(i=0; i < csound->dead_instr_no; i++){
+      for (i=0; i < csound->dead_instr_no; i++) {
         if (csound->dead_instr_pool[i] != NULL) {
           INSDS *active = csound->dead_instr_pool[i]->instance;
           while (active != NULL) {
@@ -1127,12 +1128,12 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     int str_cnt = 0, len = 0;
     char *argstr;
     for (n = 1; (unsigned int) n < p->INOCOUNT; n++){
-      if(IS_STR_ARG(p->ar[inarg_ofs + n])){
+      if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
         ch.d = SSTRCOD;
         ch.i = str_cnt & 0xffff;
         (pfield + n)->value = ch.d;
         argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
-        if(str_cnt == 0)
+        if (str_cnt == 0)
           p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
         else
           p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
@@ -1236,7 +1237,9 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
     instno = inm->instno;
     tp = csound->engineState.instrtxtp[instno];
-    if (tp == NULL) return csound->InitError(csound, "Can't find instr %d (UDO %s)\n", instno, inm->name);
+    if (tp == NULL)
+      return csound->InitError(csound, "Can't find instr %d (UDO %s)\n",
+                               instno, inm->name);
     /* set local ksmps if defined by user */
     n = p->OUTOCOUNT + p->INCOUNT - 1;
 
@@ -2397,7 +2400,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       }
 #if 0
       if (active->opcod_iobufs && active->insno > csound->engineState.maxinsno)
-        csound->Free(csound, active->opcod_iobufs);            /* IV - Nov 10 2002 */
+        csound->Free(csound, active->opcod_iobufs);        /* IV - Nov 10 2002 */
 #endif
       if (active->fdchp != NULL)
         fdchclose(csound, active);
@@ -2496,10 +2499,10 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
     return CSOUND_ERROR;
   }
 
-  if(async) {
-   csoundLockMutex(csound->API_lock);
-   killInstance(csound, instr, insno, ip, mode, allow_release);
-   csoundUnlockMutex(csound->API_lock);
+  if (async) {
+    csoundLockMutex(csound->API_lock);
+    killInstance(csound, instr, insno, ip, mode, allow_release);
+    csoundUnlockMutex(csound->API_lock);
   }
   else
     killInstance_enqueue(csound, instr, insno, ip, mode, allow_release);
