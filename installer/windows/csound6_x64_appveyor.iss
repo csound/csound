@@ -26,15 +26,15 @@
 ; USAGE
 ;
 ; Can run from the command line with "/S /D installation directory".
-; #define InstallCsoundVst
+#define InstallCsoundVst
 
 [setup]
 #define AppName "Csound_x64"
 #define AppVersion "6"
 #ifdef InstallCsoundVst
-#define AppMinVersion "6.09.2beta4-vst"
+#define AppMinVersion "6.10.0rc-vst"
 #else
-#define AppMinVersion "6.09.2beta4"
+#define AppMinVersion "6.10.0rc"
 #endif
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
