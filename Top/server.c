@@ -89,12 +89,15 @@ static uintptr_t udp_recv(void *pdata){
   int sock = 0;
   int received, cont = 0;
   char *start = orchestra;
+  size_t timout = (size_t) lround(1000/csound->GetKr(csound));
 
   csound->Message(csound, Str("UDP server started on port %d \n"),port);
   while (p->status) {
     if ((received =
-	 recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0)
-	continue;
+	 recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0) {
+      csoundSleep(timout ? timout : 1);
+      continue;
+      }
       else {
 	orchestra[received] = '\0'; // terminate string
 	if(strlen(orchestra) < 2) continue;
@@ -289,6 +292,7 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
     else {
       int res = udp_start(csound, connection);
       if (res  != CSOUND_SUCCESS) {
+	csound->Warning(csound,  Str("UDP Server: could not start"));
         csound->DestroyGlobalVariable(csound,"::UDPCOM");
 	return CSOUND_ERROR;
       }
@@ -296,7 +300,7 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
     }
   }
   else {
-    csound->Warning(csound,  Str("UDP Server: could not start"));
+    csound->Warning(csound,  Str("UDP Server: failed to allocate memory"));
     return CSOUND_ERROR;
   }
 }
