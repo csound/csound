@@ -89,12 +89,15 @@ static uintptr_t udp_recv(void *pdata){
   int sock = 0;
   int received, cont = 0;
   char *start = orchestra;
+  size_t timout = (size_t) lround(1000/csound->GetKr(csound));
 
   csound->Message(csound, Str("UDP server started on port %d \n"),port);
   while (p->status) {
     if ((received =
-         recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0)
-        continue;
+	 recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0) {
+      csoundSleep(timout ? timout : 1);
+      continue;
+      }
       else {
         orchestra[received] = '\0'; // terminate string
         if(strlen(orchestra) < 2) continue;
@@ -221,14 +224,15 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
     {
       u_long argp = 1;
       err = ioctlsocket(p->sock, FIONBIO, &argp);
-      if (UNLIKELY(err != NO_ERROR))
-        csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
-      closesocket(p->sock);
-      return CSOUND_ERROR;
+      if (UNLIKELY(err != NO_ERROR)) {
+	csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+        closesocket(p->sock);
+        return CSOUND_ERROR;
+      }
     }
  #endif 
   if (UNLIKELY(p->sock < 0)) {
-    csound->Warning(csound, Str("creating socket"));
+    csound->Warning(csound, Str("error creating socket"));
     return CSOUND_ERROR;
   }
   /* create server address: where we want to send to and clear it out */
@@ -288,13 +292,17 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
     else {
       int res = udp_start(csound, connection);
       if (res  != CSOUND_SUCCESS) {
+	csound->Warning(csound,  Str("UDP Server: could not start"));
         csound->DestroyGlobalVariable(csound,"::UDPCOM");
         return CSOUND_ERROR;
       }
       else return CSOUND_SUCCESS;       
     }
   }
-  else return CSOUND_ERROR;
+  else {
+    csound->Warning(csound,  Str("UDP Server: failed to allocate memory"));
+    return CSOUND_ERROR;
+  }
 }
 
 int csoundUDPServerStatus(CSOUND *csound) {
