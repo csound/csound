@@ -72,8 +72,8 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
   server_addr.sin_port = htons((int) port);    /* the port */
 
   if (UNLIKELY(sendto(*sock, (void*) msg, strlen(msg)+1, 0,
-		      (const struct sockaddr *) &server_addr,
-		      sizeof(server_addr)) < 0)) {
+                      (const struct sockaddr *) &server_addr,
+                      sizeof(server_addr)) < 0)) {
     csound->Warning(csound,  Str("UDP: sock end failed"));
   }
 }
@@ -93,97 +93,97 @@ static uintptr_t udp_recv(void *pdata){
   csound->Message(csound, Str("UDP server started on port %d \n"),port);
   while (p->status) {
     if ((received =
-	 recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0)
-	continue;
+         recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0)
+        continue;
       else {
-	orchestra[received] = '\0'; // terminate string
-	if(strlen(orchestra) < 2) continue;
-	if (csound->oparms->odebug)
-	  csound->Message(csound, "%s", orchestra);
-	if (strncmp("!!close!!",orchestra,9)==0 ||
-	    strncmp("##close##",orchestra,9)==0) {
-	  csoundInputMessageAsync(csound, "e 0 0");
-	  break;
-	}
-	if(*orchestra == '&') {
-	  csoundInputMessageAsync(csound, orchestra+1);
-	}
-	else if(*orchestra == '$') {
-	  csoundReadScoreAsync(csound, orchestra+1);
-	}
-	else if(*orchestra == '@') {
-	  char chn[128];
-	  MYFLT val;
-	  sscanf(orchestra+1, "%s", chn);
-	  val = atof(orchestra+1+strlen(chn));
-	  csoundSetControlChannel(csound, chn, val);
-	}
-	else if(*orchestra == '%') {
-	  char chn[128];
-	  char *str;
-	  sscanf(orchestra+1, "%s", chn);
-	  str = cs_strdup(csound, orchestra+1+strlen(chn));
-	  csoundSetStringChannel(csound, chn, str);
-	  csound->Free(csound, str);
-	}
-	else if(*orchestra == ':') {
-	  char addr[128], chn[128], *msg;
-	  int sport, err = 0;
-	  MYFLT val;
-	  sscanf(orchestra+2, "%s", chn);
-	  sscanf(orchestra+2+strlen(chn), "%s", addr);
-	  sport = atoi(orchestra+3+strlen(addr)+strlen(chn));
-	  if(*(orchestra+1) == '@') {
-	    val = csoundGetControlChannel(csound, chn, &err);
-	    msg = (char *) csound->Calloc(csound, strlen(chn) + 32);
-	    sprintf(msg, "%s::%f", chn, val);
-	  }
-	  else if (*(orchestra+1) == '%') {
-	    MYFLT  *pstring;
-	    if (csoundGetChannelPtr(csound, &pstring, chn,
-				    CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
-		== CSOUND_SUCCESS) {
-	      STRINGDAT* stringdat = (STRINGDAT*) pstring;
-	      int size = stringdat->size;
-	      int *lock = csoundGetChannelLock(csound, (char*) chn);
-	      msg = (char *) csound->Calloc(csound, strlen(chn) + size);
-	      if (lock != NULL)
-		csoundSpinLock(lock);
-	      sprintf(msg, "%s::%s", chn, stringdat->data);
-	      if (lock != NULL)
-		csoundSpinUnLock(lock);
-	    } else err = -1;
-	  }
-	  else err = -1;
-	  if(!err) {
-	    udp_socksend(csound, &sock, addr, sport,msg);
-	    csound->Free(csound, msg);
-	  }
-	  else
-	    csound->Warning(csound, Str("could not retrieve channel %s"), chn);
-	}
-	else if(*orchestra == '{' || cont) {
-	  if(orchestra[received-1] == '}') {
-	    orchestra[received-1] = '\0';
-	    cont = 0;
-	  } else if (orchestra[received-2] == '}') {
-	    /* in case there is newline in file */
-	    orchestra[received-2] = '\0';
-	    cont = 0;
-	  } else {
-	    orchestra += received;
-	    cont = 1;
-	  }
-	  if(!cont) {
-	    orchestra = start;
-	    //csound->Message(csound, "%s \n", orchestra+1);
-	    csoundCompileOrcAsync(csound, orchestra+1);
-	  }
-	}
-	else {
-	  //csound->Message(csound, "%s \n", orchestra);
-	  csoundCompileOrcAsync(csound, orchestra);
-	}
+        orchestra[received] = '\0'; // terminate string
+        if(strlen(orchestra) < 2) continue;
+        if (csound->oparms->odebug)
+          csound->Message(csound, "%s", orchestra);
+        if (strncmp("!!close!!",orchestra,9)==0 ||
+            strncmp("##close##",orchestra,9)==0) {
+          csoundInputMessageAsync(csound, "e 0 0");
+          break;
+        }
+        if(*orchestra == '&') {
+          csoundInputMessageAsync(csound, orchestra+1);
+        }
+        else if(*orchestra == '$') {
+          csoundReadScoreAsync(csound, orchestra+1);
+        }
+        else if(*orchestra == '@') {
+          char chn[128];
+          MYFLT val;
+          sscanf(orchestra+1, "%s", chn);
+          val = atof(orchestra+1+strlen(chn));
+          csoundSetControlChannel(csound, chn, val);
+        }
+        else if(*orchestra == '%') {
+          char chn[128];
+          char *str;
+          sscanf(orchestra+1, "%s", chn);
+          str = cs_strdup(csound, orchestra+1+strlen(chn));
+          csoundSetStringChannel(csound, chn, str);
+          csound->Free(csound, str);
+        }
+        else if(*orchestra == ':') {
+          char addr[128], chn[128], *msg;
+          int sport, err = 0;
+          MYFLT val;
+          sscanf(orchestra+2, "%s", chn);
+          sscanf(orchestra+2+strlen(chn), "%s", addr);
+          sport = atoi(orchestra+3+strlen(addr)+strlen(chn));
+          if(*(orchestra+1) == '@') {
+            val = csoundGetControlChannel(csound, chn, &err);
+            msg = (char *) csound->Calloc(csound, strlen(chn) + 32);
+            sprintf(msg, "%s::%f", chn, val);
+          }
+          else if (*(orchestra+1) == '%') {
+            MYFLT  *pstring;
+            if (csoundGetChannelPtr(csound, &pstring, chn,
+                                    CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+                == CSOUND_SUCCESS) {
+              STRINGDAT* stringdat = (STRINGDAT*) pstring;
+              int size = stringdat->size;
+              int *lock = csoundGetChannelLock(csound, (char*) chn);
+              msg = (char *) csound->Calloc(csound, strlen(chn) + size);
+              if (lock != NULL)
+                csoundSpinLock(lock);
+              sprintf(msg, "%s::%s", chn, stringdat->data);
+              if (lock != NULL)
+                csoundSpinUnLock(lock);
+            } else err = -1;
+          }
+          else err = -1;
+          if(!err) {
+            udp_socksend(csound, &sock, addr, sport,msg);
+            csound->Free(csound, msg);
+          }
+          else
+            csound->Warning(csound, Str("could not retrieve channel %s"), chn);
+        }
+        else if(*orchestra == '{' || cont) {
+          if(orchestra[received-1] == '}') {
+            orchestra[received-1] = '\0';
+            cont = 0;
+          } else if (orchestra[received-2] == '}') {
+            /* in case there is newline in file */
+            orchestra[received-2] = '\0';
+            cont = 0;
+          } else {
+            orchestra += received;
+            cont = 1;
+          }
+          if(!cont) {
+            orchestra = start;
+            //csound->Message(csound, "%s \n", orchestra+1);
+            csoundCompileOrcAsync(csound, orchestra+1);
+          }
+        }
+        else {
+          //csound->Message(csound, "%s \n", orchestra);
+          csoundCompileOrcAsync(csound, orchestra);
+        }
       }
     }
   csound->Message(csound, Str("UDP server on port %d stopped\n"),port);
@@ -222,7 +222,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
       u_long argp = 1;
       err = ioctlsocket(p->sock, FIONBIO, &argp);
       if (UNLIKELY(err != NO_ERROR))
-	csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+        csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
       closesocket(p->sock);
       return CSOUND_ERROR;
     }
@@ -289,9 +289,9 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
       int res = udp_start(csound, connection);
       if (res  != CSOUND_SUCCESS) {
         csound->DestroyGlobalVariable(csound,"::UDPCOM");
-	return CSOUND_ERROR;
+        return CSOUND_ERROR;
       }
-      else return CSOUND_SUCCESS;	
+      else return CSOUND_SUCCESS;       
     }
   }
   else return CSOUND_ERROR;
@@ -300,7 +300,7 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
 int csoundUDPServerStatus(CSOUND *csound) {
       UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
       if (p != NULL) {
-	return p->port;
+        return p->port;
       }
       else return CSOUND_ERROR;
 }

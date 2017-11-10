@@ -210,6 +210,11 @@ license for that code has been modified, with permission of Hermann
 
 
 ========================================================================
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Nov 9 12:27:38 2017 +0000
+
+    support for lib64 systems
+
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Mon Nov 6 16:53:08 2017 -0500
 
