@@ -288,7 +288,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
   size_t realsize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
   CSOUND *csound = mem->cs;
-  
+
   mem->memory = csound->ReAlloc(csound, mem->memory, mem->size + realsize + 1);
   if (UNLIKELY(mem->memory == NULL)) {
     /* out of memory! */
@@ -310,7 +310,7 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
     CORFIL *mm = corfile_create_w(csound);
     struct MemoryStruct chunk;
 
-    chunk.memory = csound->Malloc(csound, 1);  /* will be grown as needed by the realloc above */
+    chunk.memory = csound->Malloc(csound, 1);  /* will grown */
     chunk.size = 0;    /* no data at this point */
     chunk.cs = csound;
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -339,61 +339,62 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
 #if 0
 int main(void)
 {
-  CURL *curl_handle;
-  CURLcode res;
+    CURL *curl_handle;
+    CURLcode res;
 
-  struct MemoryStruct chunk;
+    struct MemoryStruct chunk;
 
-  chunk.memory = csound->Malloc(csound, 1);  /* will be grown as needed by the realloc above */
-  chunk.size = 0;    /* no data at this point */
+    /* will grown as needed by the realloc above */
+    chunk.memory = csound->Malloc(csound, 1);
+    chunk.size = 0;    /* no data at this point */
 
-  curl_global_init(CURL_GLOBAL_ALL);
+    curl_global_init(CURL_GLOBAL_ALL);
 
-  /* init the curl session */
-  curl_handle = curl_easy_init();
+    /* init the curl session */
+    curl_handle = curl_easy_init();
 
-  /* specify URL to get */
-  curl_easy_setopt(curl_handle, CURLOPT_URL, "http://www.example.com/");
+    /* specify URL to get */
+    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://www.example.com/");
 
-  /* send all data to this function  */
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    /* send all data to this function  */
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 
-  /* we pass our 'chunk' struct to the callback function */
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
+    /* we pass our 'chunk' struct to the callback function */
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
 
-  /* some servers don't like requests that are made without a user-agent
-     field, so we provide one */
-  curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    /* some servers don't like requests that are made without a user-agent
+       field, so we provide one */
+    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
-  /* get it! */
-  res = curl_easy_perform(curl_handle);
+    /* get it! */
+    res = curl_easy_perform(curl_handle);
 
-  /* check for errors */
-  if (res != CURLE_OK) {
-    fprintf(stderr, "curl_easy_perform() failed: %s\n",
-            curl_easy_strerror(res));
-  }
-  else {
-    /*
-     * Now, our chunk.memory points to a memory block that is chunk.size
-     * bytes big and contains the remote file.
-     *
-     * Do something nice with it!
-     */
+    /* check for errors */
+    if (res != CURLE_OK) {
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(res));
+    }
+    else {
+      /*
+       * Now, our chunk.memory points to a memory block that is chunk.size
+       * bytes big and contains the remote file.
+       *
+       * Do something nice with it!
+       */
 
-    printf("%lu bytes retrieved\n", (long)chunk.size);
-  }
+      printf("%lu bytes retrieved\n", (long)chunk.size);
+    }
 
-  /* cleanup curl stuff */
-  curl_easy_cleanup(curl_handle);
+    /* cleanup curl stuff */
+    curl_easy_cleanup(curl_handle);
 
-  if (chunk.memory)
-    free(chunk.memory);
+    if (chunk.memory)
+      free(chunk.memory);
 
-  /* we're done with libcurl, so clean it up */
-  curl_global_cleanup();
+    /* we're done with libcurl, so clean it up */
+    curl_global_cleanup();
 
-  return 0;
+    return 0;
 }
 #endif
 
