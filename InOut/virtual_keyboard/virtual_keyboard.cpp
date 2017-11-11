@@ -413,7 +413,7 @@ const OENTRY widgetOpcodes_[] = {
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
-    csound->Message(csound, "virtual_keyboard real time MIDI plugin for Csound\n");
+    //csound->Message(csound, "virtual_keyboard real time MIDI plugin for Csound\n");
     return 0;
 }
 
