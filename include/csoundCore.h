@@ -1604,6 +1604,8 @@ typedef struct NAME__ {
       EVTBLK  prve;
       char    *Linebuf;
       int     linebufsiz;
+      char *orchestra, orchestrab[1024];
+      int   oflag;
     } lineventStatics;
     struct musmonStatics__ {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
