@@ -101,7 +101,7 @@ static uintptr_t udp_recv(void *pdata){
       else {
 	orchestra[received] = '\0'; // terminate string
 	if(strlen(orchestra) < 2) continue;
-	if (csound->oparms->odebug)
+	if (csound->oparms->echo)
 	  csound->Message(csound, "%s", orchestra);
 	if (strncmp("!!close!!",orchestra,9)==0 ||
 	    strncmp("##close##",orchestra,9)==0) {
