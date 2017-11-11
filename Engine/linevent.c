@@ -64,6 +64,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
+    STA(orchestra) = STA(orchestrab);
     STA(linebufsiz) = LBUFSIZ1;
     STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     STA(prve).opcod = ' ';
@@ -218,10 +219,11 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 static void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
-    int     c, n, pcnt;
+    int     c, n, pcnt, oflag = STA(oflag);
     IGN(userData);
 
     while (1) {
+      if(STA(oflag) > oflag) break;
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
         n = read(csound->Linefd, Linend, STA(Linebufend) - Linend);
@@ -246,6 +248,43 @@ static void sensLine(CSOUND *csound, void *userData)
           Linestart = (++cp);
           continue;
         }
+ 
+	/* new orchestra input 
+	 */
+	if(c == '{') {
+          STA(oflag) = 1;
+          csound->Message(csound, "::reading orchestra, use '}' to terminate::\n");
+	  cp++;
+	  continue;
+	}
+	
+	if(STA(oflag)) {
+          if(c == '}') {
+            STA(oflag) = 0;
+	    STA(orchestra) = STA(orchestrab);
+	    csoundCompileOrc(csound, STA(orchestrab));
+	    csound->Message(csound, "::compiling orchestra::\n");
+	    Linestart = (++cp);
+	    continue;
+	  }
+	  else {
+	    char *pc;
+	    memcpy(STA(orchestra), Linestart, Linend - Linestart);
+	    STA(orchestra) += (Linend - Linestart);
+	    *STA(orchestra) = '\0';
+	    STA(oflag)++;
+            if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
+	      *pc = '\0';
+	      cp = strrchr(Linestart, '}');
+	    }
+	    else {
+	      Linestart = Linend;
+	    }
+	    continue;
+	  }
+        }
+
+	
         switch (c) {                    /* look for legal opcode    */
         case 'e':                       /* Quit realtime            */
         case 'i':
@@ -368,6 +407,7 @@ static void sensLine(CSOUND *csound, void *userData)
         break;
       STA(Linep) = Linend;                       /* accum the chars          */
     }
+    
 }
 
 /* send a lineevent from the orchestra -matt 2001/12/07 */
