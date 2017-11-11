@@ -259,7 +259,12 @@ static void sensLine(CSOUND *csound, void *userData)
  
 	/* new orchestra input 
 	 */
-
+        if(c == '{') {
+          STA(oflag) = 1;
+          csound->Message(csound, "::reading orchestra, use '}' to terminate::\n");
+	  cp++;
+	  continue;
+	}
 	
 	if(STA(oflag)) {
           if(c == '}' && cm1 != '}' && cpp1 != '}') {
@@ -277,27 +282,18 @@ static void sensLine(CSOUND *csound, void *userData)
 	    *STA(orchestra) = '\0';
 	    STA(oflag)++;
             if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
-	      // if(*(pc-1) != '}'){
+	      if(*(pc-1) != '}') { 
 	      *pc = '\0';
-	      cp = strrchr(Linestart, '}');
-	      //}
-	      //else {
-	      //cp = strrchr(Linestart, '}');
-		//*cp = *(cp-1) = ' ';
-		//Linestart = Linend;
-	      //}
-	    }
-	    else {
+	       cp = strrchr(Linestart, '}');
+	      } else {
+	       Linestart = Linend;
+	      }
+	      } else {
 	      Linestart = Linend;
 	    }
 	    continue;
 	  }
-        } else if(c == '{') {
-          STA(oflag) = 1;
-          csound->Message(csound, "::reading orchestra, use '}' to terminate::\n");
-	  cp++;
-	  continue;
-	}
+        } 
 
 	
         switch (c) {                    /* look for legal opcode    */
