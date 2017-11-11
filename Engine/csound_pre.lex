@@ -312,7 +312,7 @@ QNAN            "qnan"[ \t]*\(
                    mm = find_definition(PARM->macros, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
-                     csound->LongJmp(csound, 1);
+		     csound->LongJmp(csound, 1);
                    }
                    mname = yytext;
                    /* Need to read from macro definition */
@@ -329,7 +329,7 @@ QNAN            "qnan"[ \t]*\(
                      }
                      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
                      if (UNLIKELY(nn->name == NULL)) {
-                       csound->Message(csound, Str("Memory exhausted"));
+                      csound->Message(csound, Str("Memory exhausted"));
                        csound->LongJmp(csound, 1);
                      }
                      csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
