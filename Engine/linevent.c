@@ -57,6 +57,7 @@
 static void sensLine(CSOUND *csound, void *userData);
 
 #define STA(x)   (csound->lineventStatics.x)
+#define MAXSTR 1048576 /* 1MB */
 
 void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 {                                   /*     callable once from musmon.c        */
@@ -64,9 +65,11 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
-    STA(orchestra) = STA(orchestrab);
+    
     STA(linebufsiz) = LBUFSIZ1;
     STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
+    STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
+    STA(orchestra) = STA(orchestrab);
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
@@ -126,6 +129,7 @@ void RTclose(CSOUND *csound)
             csoundDie(csound, Str("Failed to set file status\n"));
 #endif
       }
+    
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
@@ -255,12 +259,7 @@ static void sensLine(CSOUND *csound, void *userData)
  
 	/* new orchestra input 
 	 */
-	if(c == '{') {
-          STA(oflag) = 1;
-          csound->Message(csound, "::reading orchestra, use '}' to terminate::\n");
-	  cp++;
-	  continue;
-	}
+
 	
 	if(STA(oflag)) {
           if(c == '}' && cm1 != '}' && cpp1 != '}') {
@@ -293,7 +292,12 @@ static void sensLine(CSOUND *csound, void *userData)
 	    }
 	    continue;
 	  }
-        }
+        } else if(c == '{') {
+          STA(oflag) = 1;
+          csound->Message(csound, "::reading orchestra, use '}' to terminate::\n");
+	  cp++;
+	  continue;
+	}
 
 	
         switch (c) {                    /* look for legal opcode    */
