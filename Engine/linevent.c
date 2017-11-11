@@ -57,6 +57,7 @@
 static void sensLine(CSOUND *csound, void *userData);
 
 #define STA(x)   (csound->lineventStatics.x)
+#define MAXSTR 1048576 /* 1MB */
 
 void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 {                                   /*     callable once from musmon.c        */
@@ -64,8 +65,11 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
+    
     STA(linebufsiz) = LBUFSIZ1;
     STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
+    STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
+    STA(orchestra) = STA(orchestrab);
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
@@ -93,6 +97,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     else
       if (UNLIKELY((csound->Linefd=open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
         csoundDie(csound, Str("Cannot open %s"), O->Linename);
+    if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
@@ -107,6 +112,7 @@ void RTclose(CSOUND *csound)
     if (csound->oparms->Linein == 0)
       return;
     csound->oparms->Linein = 0;
+    if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
 #ifdef PIPES
@@ -123,6 +129,7 @@ void RTclose(CSOUND *csound)
             csoundDie(csound, Str("Failed to set file status\n"));
 #endif
       }
+    
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
@@ -218,10 +225,11 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 static void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
-    int     c, n, pcnt;
+    int     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
 
     while (1) {
+      if(STA(oflag) > oflag) break;
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
         n = read(csound->Linefd, Linend, STA(Linebufend) - Linend);
@@ -240,12 +248,54 @@ static void sensLine(CSOUND *csound, void *userData)
         memset(&e, 0, sizeof(EVTBLK));
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
+	cm1 = *(cp-1);
+	cpp1 = *(cp+1);
         while (isblank(c))              /* skip initial white space */
           c = *(++cp);
         if (c == LF) {                  /* if null line, bugout     */
           Linestart = (++cp);
           continue;
         }
+ 
+	/* new orchestra input 
+	 */
+        if(c == '{') {
+          STA(oflag) = 1;
+          csound->Message(csound, "::reading orchestra, use '}' to terminate::\n");
+	  cp++;
+	  continue;
+	}
+	
+	if(STA(oflag)) {
+          if(c == '}' && cm1 != '}' && cpp1 != '}') {
+            STA(oflag) = 0;
+	    STA(orchestra) = STA(orchestrab);
+	    csoundCompileOrc(csound, STA(orchestrab));
+	    csound->Message(csound, "::compiling orchestra::\n");
+	    Linestart = (++cp);
+	    continue;
+	  }
+	  else {
+	    char *pc;
+	    memcpy(STA(orchestra), Linestart, Linend - Linestart);
+	    STA(orchestra) += (Linend - Linestart);
+	    *STA(orchestra) = '\0';
+	    STA(oflag)++;
+            if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
+	      if(*(pc-1) != '}') { 
+	      *pc = '\0';
+	       cp = strrchr(Linestart, '}');
+	      } else {
+	       Linestart = Linend;
+	      }
+	      } else {
+	      Linestart = Linend;
+	    }
+	    continue;
+	  }
+        } 
+
+	
         switch (c) {                    /* look for legal opcode    */
         case 'e':                       /* Quit realtime            */
         case 'i':
@@ -368,6 +418,7 @@ static void sensLine(CSOUND *csound, void *userData)
         break;
       STA(Linep) = Linend;                       /* accum the chars          */
     }
+    
 }
 
 /* send a lineevent from the orchestra -matt 2001/12/07 */
