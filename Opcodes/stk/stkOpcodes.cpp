@@ -743,6 +743,7 @@ extern "C"
 #endif
     if(path == NULL)
       {
+	if(csound->GetDebug(csound))
         csound->Warning(csound,
                         Str("STK opcodes not available: define environment "
                             "variable RAWWAVE_PATH\n"
