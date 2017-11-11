@@ -94,7 +94,7 @@ static uintptr_t udp_recv(void *pdata){
   csound->Message(csound, Str("UDP server started on port %d \n"),port);
   while (p->status) {
     if ((received =
-	 recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0) {
+         recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0) {
       csoundSleep(timout ? timout : 1);
       continue;
       }
@@ -228,7 +228,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
       u_long argp = 1;
       err = ioctlsocket(p->sock, FIONBIO, &argp);
       if (UNLIKELY(err != NO_ERROR)) {
-	csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+        csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
         closesocket(p->sock);
         return CSOUND_ERROR;
       }
@@ -295,7 +295,7 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
     else {
       int res = udp_start(csound, connection);
       if (res  != CSOUND_SUCCESS) {
-	csound->Warning(csound,  Str("UDP Server: could not start"));
+        csound->Warning(csound,  Str("UDP Server: could not start"));
         csound->DestroyGlobalVariable(csound,"::UDPCOM");
         return CSOUND_ERROR;
       }
