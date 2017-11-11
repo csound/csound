@@ -221,7 +221,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 static void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
-    int     c, n, pcnt, oflag = STA(oflag);
+    int     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
 
     while (1) {
@@ -244,6 +244,8 @@ static void sensLine(CSOUND *csound, void *userData)
         memset(&e, 0, sizeof(EVTBLK));
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
+	cm1 = *(cp-1);
+	cpp1 = *(cp+1);
         while (isblank(c))              /* skip initial white space */
           c = *(++cp);
         if (c == LF) {                  /* if null line, bugout     */
@@ -261,7 +263,7 @@ static void sensLine(CSOUND *csound, void *userData)
 	}
 	
 	if(STA(oflag)) {
-          if(c == '}') {
+          if(c == '}' && cm1 != '}' && cpp1 != '}') {
             STA(oflag) = 0;
 	    STA(orchestra) = STA(orchestrab);
 	    csoundCompileOrc(csound, STA(orchestrab));
@@ -276,8 +278,15 @@ static void sensLine(CSOUND *csound, void *userData)
 	    *STA(orchestra) = '\0';
 	    STA(oflag)++;
             if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
+	      // if(*(pc-1) != '}'){
 	      *pc = '\0';
 	      cp = strrchr(Linestart, '}');
+	      //}
+	      //else {
+	      //cp = strrchr(Linestart, '}');
+		//*cp = *(cp-1) = ' ';
+		//Linestart = Linend;
+	      //}
 	    }
 	    else {
 	      Linestart = Linend;
