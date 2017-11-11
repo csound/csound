@@ -70,14 +70,16 @@ int compile_csd_i(CSOUND *csound, COMPILE *p){
 int compile_str_i(CSOUND *csound, COMPILE *p){
   //void csp_orc_sa_print_list(CSOUND*);
     //printf("START\n");
-    *p->res = (MYFLT)(csoundCompileOrcInternal(csound, ((STRINGDAT *)p->str)->data, 0));
+    *p->res = (MYFLT)(csoundCompileOrcInternal(csound,
+                                               ((STRINGDAT *)p->str)->data, 0));
     //printf("END\n");
     //csp_orc_sa_print_list(csound);
     return OK;
 }
 
 int read_score_i(CSOUND *csound, COMPILE *p){
-    *p->res = (MYFLT)(csoundReadScoreInternal(csound, ((STRINGDAT *)p->str)->data));
+    *p->res = (MYFLT)(csoundReadScoreInternal(csound,
+                                              ((STRINGDAT *)p->str)->data));
     return OK;
 }
 

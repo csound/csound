@@ -303,9 +303,11 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       DSSIPlugin_->Descriptor =
           (LADSPA_Descriptor *) csound->Calloc(csound,
                                                sizeof(LADSPA_Descriptor));
-      DSSIPlugin_->Descriptor =
-          (LADSPA_Descriptor *) pfDescriptorFunction(PluginIndex);
+      /* DSSIPlugin_->Descriptor = */
+      /*     (LADSPA_Descriptor *) pfDescriptorFunction(PluginIndex); */
       LDescriptor = (LADSPA_Descriptor *) DSSIPlugin_->Descriptor;
+      memcpy(LDescriptor,
+             pfDescriptorFunction(PluginIndex), sizeof(LADSPA_Descriptor));
       DSSIPlugin_->Type = LADSPA;
       if (verbose != 0) {
         csound->Message(csound, "DSSI4CS: LADSPA Plugin Detected\n");
