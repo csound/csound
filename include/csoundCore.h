@@ -257,6 +257,7 @@ typedef struct CORFIL {
     double  quality;        /* for ogg encoding */
     int     ksmps_override;
     int     fft_lib;
+    int     echo;
   } OPARMS;
 
   typedef struct arglst {
