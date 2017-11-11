@@ -292,6 +292,7 @@ static const char *longUsageList[] = {
   Str_noop("--get-system-sr         print system sr and exit"),
   Str_noop("--ksmps=N               override ksmps"),
   Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"),
+  Str_noop("--udp-echo              echo UDP commands on terminal"),
   " ",
   Str_noop("--help                  long help"),
   NULL
@@ -1072,6 +1073,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp(s, "port=",5))) {
       s += 5;
       O->daemon = atoi(s);
+      return 1;
+    }
+    else if (!(strncmp(s, "udp-echo",8))) {
+      s += 8;
+      O->echo = 1;
       return 1;
     }
     else if (!(strncmp(s, "fftlib=",7))) {
