@@ -258,14 +258,7 @@ static void sensLine(CSOUND *csound, void *userData)
         }
  
 	/* new orchestra input 
-	 */
-        if(c == '{') {
-          STA(oflag) = 1;
-          csound->Message(csound, "::reading orchestra, use '}' to terminate::\n");
-	  cp++;
-	  continue;
-	}
-	
+	 */	
 	if(STA(oflag)) {
           if(c == '}' && cm1 != '}' && cpp1 != '}') {
             STA(oflag) = 0;
@@ -293,8 +286,13 @@ static void sensLine(CSOUND *csound, void *userData)
 	    }
 	    continue;
 	  }
-        } 
-
+        } else if(c == '{') {
+          STA(oflag) = 1;
+          csound->Message(csound,
+			  "::reading orchestra, use '}' to terminate::\n");
+	  cp++;
+	  continue;
+	} 
 	
         switch (c) {                    /* look for legal opcode    */
         case 'e':                       /* Quit realtime            */
