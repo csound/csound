@@ -94,6 +94,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     else
       if (UNLIKELY((csound->Linefd=open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
         csoundDie(csound, Str("Cannot open %s"), O->Linename);
+    if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
@@ -108,6 +109,7 @@ void RTclose(CSOUND *csound)
     if (csound->oparms->Linein == 0)
       return;
     csound->oparms->Linein = 0;
+    if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
 #ifdef PIPES
