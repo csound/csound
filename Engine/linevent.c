@@ -248,24 +248,17 @@ static void sensLine(CSOUND *csound, void *userData)
         memset(&e, 0, sizeof(EVTBLK));
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
-        cm1 = *(cp-1);
-        cpp1 = *(cp+1);
         while (isblank(c))              /* skip initial white space */
           c = *(++cp);
         if (c == LF) {                  /* if null line, bugout     */
           Linestart = (++cp);
           continue;
         }
+        cm1 = *(cp-1);
+        cpp1 = *(cp+1);
 
         /* new orchestra input
          */
-        if(c == '{') {
-          STA(oflag) = 1;
-          csound->Message(csound, "::reading orchestra, use '}' to terminate::\n");
-          cp++;
-          continue;
-        }
-
         if(STA(oflag)) {
           if(c == '}' && cm1 != '}' && cpp1 != '}') {
             STA(oflag) = 0;
@@ -282,6 +275,7 @@ static void sensLine(CSOUND *csound, void *userData)
             *STA(orchestra) = '\0';
             STA(oflag)++;
             if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
+
               if(*(pc-1) != '}') {
               *pc = '\0';
                cp = strrchr(Linestart, '}');
@@ -293,8 +287,13 @@ static void sensLine(CSOUND *csound, void *userData)
             }
             continue;
           }
+        } else if(c == '{') {
+          STA(oflag) = 1;
+          csound->Message(csound,
+                          "::reading orchestra, use '}' to terminate::\n");
+          cp++;
+          continue;
         }
-
 
         switch (c) {                    /* look for legal opcode    */
         case 'e':                       /* Quit realtime            */
