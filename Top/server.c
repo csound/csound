@@ -101,7 +101,7 @@ static uintptr_t udp_recv(void *pdata){
       else {
         orchestra[received] = '\0'; // terminate string
         if(strlen(orchestra) < 2) continue;
-        if (csound->oparms->odebug)
+        if (csound->oparms->echo)
           csound->Message(csound, "%s", orchestra);
         if (strncmp("!!close!!",orchestra,9)==0 ||
             strncmp("##close##",orchestra,9)==0) {
@@ -166,14 +166,17 @@ static uintptr_t udp_recv(void *pdata){
             csound->Warning(csound, Str("could not retrieve channel %s"), chn);
         }
         else if(*orchestra == '{' || cont) {
-          if(orchestra[received-1] == '}') {
-            orchestra[received-1] = '\0';
-            cont = 0;
-          } else if (orchestra[received-2] == '}') {
-            /* in case there is newline in file */
-            orchestra[received-2] = '\0';
-            cont = 0;
-          } else {
+	  char *cp;
+	  if((cp = strrchr(orchestra, '}')) != NULL) { 
+	    if(*(cp-1) != '}') {
+               *cp = '\0';
+	       cont = 0;
+	    }  else {
+            orchestra += received;
+            cont = 1;
+          }
+	  }
+	  else {
             orchestra += received;
             cont = 1;
           }
