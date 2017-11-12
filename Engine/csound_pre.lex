@@ -277,7 +277,7 @@ QNAN            "qnan"[ \t]*\(
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      //csound->LongJmp(csound, 1);
-                      corfile_puts(csound, "$error", csound->expanded_orc);
+                     corfile_puts(csound, "$error", csound->expanded_orc);
                    }
                    else {
                      mname = yytext;
@@ -406,7 +406,7 @@ QNAN            "qnan"[ \t]*\(
                   corfile_putc(csound, '\0', csound->expanded_orc);
                   delete_macros(csound, yyscanner);
                   return 0;}
-<<EOF>>         { 
+<<EOF>>         {
                   MACRO *x, *y=NULL;
                   int n;
                   /* csound->DebugMsg(csound,"*********Leaving buffer %p\n", */

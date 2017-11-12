@@ -62,6 +62,8 @@ channels that **only** run at perf-time.
 
 - Constant folding now implemented on a wide range of arithmetic.
 
+- Attempts to use an undefined macro produce a syntax error now.
+
 ### Score
 
 - In a csd file commented-out tags were acted upon in some cases,
@@ -73,6 +75,8 @@ channels that **only** run at perf-time.
 
 - Use of the score opcode x could case spurious error messages which are
   now suppressed.
+
+- After calling a undefined macro the rest of the line is ignored.
 
 ### Options
 
