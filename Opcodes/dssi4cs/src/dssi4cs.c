@@ -844,6 +844,13 @@ int dssictls_init(CSOUND * csound, DSSICTLS * p)
     else {
       Descriptor = p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
     }
+
+    if (PortIndex >= Descriptor->PortCount) {
+      return
+        csound->InitError(csound,
+                          Str("DSSI4CS: Port %lu from '%s' does not exist."),
+                          PortIndex, Descriptor->Name);
+    }
     p->HintSampleRate =
         (LADSPA_IS_HINT_SAMPLE_RATE
          (Descriptor->PortRangeHints[PortIndex].HintDescriptor) ? Sr : 1);
@@ -852,12 +859,6 @@ int dssictls_init(CSOUND * csound, DSSICTLS * p)
                     "DSSI4CS: Port %lu multiplier (HintSampleRate): %i.\n",
                     PortIndex, p->HintSampleRate);
 #endif
-
-    if (PortIndex > Descriptor->PortCount) {
-      csound->InitError(csound, Str("DSSI4CS: Port %lu from '%s' does not exist."),
-                                PortIndex, Descriptor->Name);
-      return NOTOK;
-    }
     LADSPA_PortDescriptor PortDescriptor =
         Descriptor->PortDescriptors[PortIndex];
     if (LADSPA_IS_PORT_OUTPUT(PortDescriptor))
