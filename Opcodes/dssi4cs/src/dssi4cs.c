@@ -368,7 +368,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
                                  LDescriptor->Name);
       }
       PortCount = DSSIPlugin_->Descriptor->PortCount;
-      dlclose(PluginLibrary);
+      //dlclose(PluginLibrary);
       //return NOTOK;
     }
     else {
@@ -498,7 +498,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       csound->Message(csound, "DSSI4CS: Init Done.\n");
       info(csound, DSSIPlugin_);
     }
-    dlclose(PluginLibrary);
+    //dlclose(PluginLibrary);
     return OK;
 }
 
@@ -839,11 +839,10 @@ int dssictls_init(CSOUND * csound, DSSICTLS * p)
       return csound->InitError(csound, "DSSI4CS: Invalid plugin handle.");
     }
     if (p->DSSIPlugin_->Type == LADSPA) {
-      Descriptor = (LADSPA_Descriptor *) p->DSSIPlugin_->Descriptor;
+      Descriptor = p->DSSIPlugin_->Descriptor;
     }
     else {
-      Descriptor =
-          (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
+      Descriptor = p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
     }
     p->HintSampleRate =
         (LADSPA_IS_HINT_SAMPLE_RATE
