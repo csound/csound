@@ -139,6 +139,8 @@ channels that **only** run at perf-time.
 
 - outs2 was broken (always wrote to channel 1 like outs1).
 
+- Various errors in the DSSI/ladspa system fixed.
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes

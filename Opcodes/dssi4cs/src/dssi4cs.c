@@ -27,7 +27,7 @@
 #undef CS_KSMPS
 #define CS_KSMPS     (csound->GetKsmps(csound))
 
-#define DEBUG 1
+//#define DEBUG 1
 
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
