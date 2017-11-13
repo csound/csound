@@ -71,7 +71,6 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
           pcEnd = pcStart;
           while (*pcEnd != ':' && *pcEnd != '\0')
             pcEnd++;
-
           pcBuffer = csound->Malloc(csound,
                                     iFilenameLength + 2 + (pcEnd - pcStart));
           if (pcEnd > pcStart)
