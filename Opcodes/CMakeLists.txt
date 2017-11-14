@@ -365,8 +365,8 @@ if(BUILD_ABLETON_LINK_OPCODES)
     include_directories(${ABLETON_LINK_HOME}/modules/asio-standalone/asio/include)
     if(APPLE)
       make_plugin(ableton_link_opcodes ableton_link_opcodes.cpp)
-      set_target_properties(ableton_link_opcodes PROPERTIES COMPILE_FLAGS "-std=gnu++11 -stdlib=libc++ -Wno-multichar -DLINK_PLATFORM_MACOSX=1"
-        LINK_FLAGS "-std=gnu++11 -stdlib=libc++")
+      set_target_properties(ableton_link_opcodes PROPERTIES COMPILE_FLAGS "-std=c++11 -stdlib=libc++ -Wno-multichar -DLINK_PLATFORM_MACOSX=1"
+        LINK_FLAGS "-std=c++11 -stdlib=libc++")
     elseif(LINUX)
         include(CheckCXXCompilerFlag)
         CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_CXX11)
