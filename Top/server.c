@@ -233,7 +233,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
         return CSOUND_ERROR;
       }
     }
- #endif 
+ #endif
   if (UNLIKELY(p->sock < 0)) {
     csound->Warning(csound, Str("error creating socket"));
     return CSOUND_ERROR;
@@ -299,7 +299,7 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
         csound->DestroyGlobalVariable(csound,"::UDPCOM");
         return CSOUND_ERROR;
       }
-      else return CSOUND_SUCCESS;       
+      else return CSOUND_SUCCESS;
     }
   }
   else {
@@ -315,4 +315,3 @@ int csoundUDPServerStatus(CSOUND *csound) {
       }
       else return CSOUND_ERROR;
 }
-

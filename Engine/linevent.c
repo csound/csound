@@ -65,7 +65,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
-    
+
     STA(linebufsiz) = LBUFSIZ1;
     STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
@@ -129,7 +129,7 @@ void RTclose(CSOUND *csound)
             csoundDie(csound, Str("Failed to set file status\n"));
 #endif
       }
-    
+
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
@@ -254,46 +254,47 @@ static void sensLine(CSOUND *csound, void *userData)
           Linestart = (++cp);
           continue;
         }
-	cm1 = *(cp-1);
-	cpp1 = *(cp+1);
-         
-	/* new orchestra input 
-	 */	
-	if(STA(oflag)) {
+        cm1 = *(cp-1);
+        cpp1 = *(cp+1);
+
+        /* new orchestra input
+         */
+        if(STA(oflag)) {
           if(c == '}' && cm1 != '}' && cpp1 != '}') {
             STA(oflag) = 0;
-	    STA(orchestra) = STA(orchestrab);
-	    csoundCompileOrc(csound, STA(orchestrab));	    
-	    csound->Message(csound, "::compiling orchestra::\n");
-	    Linestart = (++cp);
-	    continue;
-	  }
-	  else {
-	    char *pc;
-	    memcpy(STA(orchestra), Linestart, Linend - Linestart);
-	    STA(orchestra) += (Linend - Linestart);
-	    *STA(orchestra) = '\0';
-	    STA(oflag)++;
-            if((pc = strrchr(STA(orchestrab), '}')) != NULL) {    
-	      if(*(pc-1) != '}') { 
-	      *pc = '\0';
-	       cp = strrchr(Linestart, '}');
-	      } else {
-	       Linestart = Linend;
-	      }
-	      } else {
-	      Linestart = Linend;
-	    }
-	    continue;
-	  }
+            STA(orchestra) = STA(orchestrab);
+            csoundCompileOrc(csound, STA(orchestrab));
+            csound->Message(csound, "::compiling orchestra::\n");
+            Linestart = (++cp);
+            continue;
+          }
+          else {
+            char *pc;
+            memcpy(STA(orchestra), Linestart, Linend - Linestart);
+            STA(orchestra) += (Linend - Linestart);
+            *STA(orchestra) = '\0';
+            STA(oflag)++;
+            if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
+
+              if(*(pc-1) != '}') {
+              *pc = '\0';
+               cp = strrchr(Linestart, '}');
+              } else {
+               Linestart = Linend;
+              }
+              } else {
+              Linestart = Linend;
+            }
+            continue;
+          }
         } else if(c == '{') {
           STA(oflag) = 1;
           csound->Message(csound,
-			  "::reading orchestra, use '}' to terminate::\n");
-	  cp++;
-	  continue;
-	} 
-	
+                          "::reading orchestra, use '}' to terminate::\n");
+          cp++;
+          continue;
+        }
+
         switch (c) {                    /* look for legal opcode    */
         case 'e':                       /* Quit realtime            */
         case 'i':
@@ -416,7 +417,7 @@ static void sensLine(CSOUND *csound, void *userData)
         break;
       STA(Linep) = Linend;                       /* accum the chars          */
     }
-    
+
 }
 
 /* send a lineevent from the orchestra -matt 2001/12/07 */
