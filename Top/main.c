@@ -33,7 +33,7 @@
 #include "cs_par_orc_semantics.h"
 //#include "cs_par_dispatch.h"
 
-void allocate_message_queue(CSOUND *csound);
+extern void allocate_message_queue(CSOUND *csound);
 CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     argdecode(CSOUND *, int, const char **);
   int     init_pvsys(CSOUND *);
@@ -257,9 +257,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
         /* VL -- 21-10-13 Csound does not need to die on
            failure to compile. It can carry on, because new
            instruments can be compiled again */
-	if(csound->oparms->daemon == 0)
-        csound->Warning(csound, Str("cannot compile orchestra.\n"
-                                    "Csound will start with no instruments"));
+        if (csound->oparms->daemon == 0)
+          csound->Warning(csound, Str("cannot compile orchestra.\n"
+                                      "Csound will start with no instruments"));
        }
     }
     csound->modules_loaded = 1;
