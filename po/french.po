@@ -6736,7 +6736,6 @@ msgid "DSSI4CS: Loading first instance.\n"
 msgstr "DSSI4CS : chargement de la première instance.\n"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:301
-#, fuzzy
 msgid "No ladspa descriptor\n"
 msgstr "Pas de descripteur ladspa\n"
 
@@ -11496,11 +11495,9 @@ msgstr ""
 "orchestre (implique --daemon)"
 
 #: Top/argdecode.c:289
-#, fuzzy
 msgid "--vbr-quality=Ft        set quality of variable bit-rate compression"
 msgstr ""
-"--vbr-quality=Ft        fixe la qualité du taux variable de compression "
-"bit0rate"
+"--vbr-quality=Ft        fixe la qualité de compression du débit binaire variable"
 
 #: Top/argdecode.c:290
 msgid "--devices[=in|out]      list available MIDI devices and exit"
@@ -11528,7 +11525,7 @@ msgstr ""
 
 #: Top/argdecode.c:295
 msgid "--udp-echo              echo UDP commands on terminal"
-msgstr ""
+msgstr "--udp-echo              affiche les commandes UPD en écho sur le terminal"
 
 #: Top/argdecode.c:297
 msgid "--help                  long help"
@@ -12604,28 +12601,24 @@ msgid "UDP server on port %d stopped\n"
 msgstr "Serveur UDP sur le port %d arrêté\n"
 
 #: Top/server.c:222 Top/server.c:231
-#, fuzzy
 msgid "UDP Server: Cannot set nonblock"
-msgstr "Impossible de positionner nonblock"
+msgstr "Serveur UDP : impossible de positionner nonblock"
 
 #: Top/server.c:238
-#, fuzzy
 msgid "error creating socket"
-msgstr "Erreur lors de la création du socket"
+msgstr "erreur lors de la création du socket"
 
 #: Top/server.c:292
-#, fuzzy
 msgid "UDP Server: already running"
-msgstr "OSCrecv s'exécute déjà"
+msgstr "Serveur UDP : s'exécute déjà"
 
 #: Top/server.c:298
 msgid "UDP Server: could not start"
-msgstr ""
+msgstr "Serveur UDP : n'a pas pu démarrer"
 
 #: Top/server.c:306
-#, fuzzy
 msgid "UDP Server: failed to allocate memory"
-msgstr "OSC : échec de l'allocation des variables globales"
+msgstr "Serveur UDP : échec de l'allocation mémoire"
 
 #: Top/threads.c:39
 #, c-format
