@@ -598,7 +598,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
 static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
 {
 #ifdef IOS
-  csoundErrorMsg(csound, "system() not supported on iOS");
+  csoundErrorMsg(csound, "External scores not supported on iOS");
   return FALSE;
 #else
     char *extname;

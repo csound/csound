@@ -918,7 +918,7 @@ extern "C" {
    */
   PUBLIC int csoundUDPServerStatus(CSOUND *csound);
 
-  /** 
+  /**
    * Closes the UDP server, returning CSOUND_SUCCESS if the
    * running server was successfully closed, CSOUND_ERROR otherwise.
    */
