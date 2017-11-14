@@ -136,7 +136,7 @@ static int split_trig(CSOUND *csound, SPLIT_TRIG *p)
 
     }
 
-    else {
+    else { // Maybe a memset?
       for(j =0; j< numouts; j++)
         *outargs[j] = FL(0.0);
     }

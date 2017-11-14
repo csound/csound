@@ -286,7 +286,7 @@ static const char *longUsageList[] = {
                                     "not given, is empty or does not compile"),
   Str_noop("--port=N                listen to UDP port N for instruments/orchestra "
                                     "code (implies --daemon)"),
-  Str_noop("--vbr-quality=Ft        set quality of variable bit0rate compression"),
+  Str_noop("--vbr-quality=Ft        set quality of variable bit-rate compression"),
   Str_noop("--devices[=in|out]      list available MIDI devices and exit"),
   Str_noop("--midi-devices[=in|out] list available audio devices and exit"),
   Str_noop("--get-system-sr         print system sr and exit"),

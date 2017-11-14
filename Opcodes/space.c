@@ -77,6 +77,7 @@ static int space(CSOUND *csound, SPACE *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    MYFLT revb = *p->reverbamount;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
       if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
@@ -125,11 +126,10 @@ static int space(CSOUND *csound, SPACE *p)
       }
     }
 
-    if (distance < FL(1.0)) distance = FL(1.0);
+    if (UNLIKELY(distance < FL(1.0))) distance = FL(1.0);
 
     distr=(FL(1.0) / distance);
     distrsq = FL(1.0)/SQRT(distance);
-
     xndx = (xndx+FL(1.0))*FL(0.5);
     yndx = (yndx+FL(1.0))*FL(0.5);
 
@@ -162,7 +162,7 @@ static int space(CSOUND *csound, SPACE *p)
     }
     for (n=offset; n<nsmps; n++) {
       direct = sigp[n] * distr;
-      torev = sigp[n] * distrsq * *p->reverbamount;
+      torev = sigp[n] * distrsq * revb;
       globalrev = torev * distr;
       localrev = torev * (FL(1.0) - distr);
       r1[n] = direct * ch1;

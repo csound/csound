@@ -203,6 +203,10 @@ libcsound.csoundStop.argtypes = [c_void_p]
 libcsound.csoundCleanup.argtypes = [c_void_p]
 libcsound.csoundReset.argtypes = [c_void_p]
 
+libcsound.csoundUDPServerStart.argtypes = [c_void_p, c_uint]
+libcsound.csoundUDPServerStatus.argtypes = [c_void_p]
+libcsound.csoundUDPServerClose.argtypes = [c_void_p]
+    
 libcsound.csoundGetSr.restype = MYFLT
 libcsound.csoundGetSr.argtypes = [c_void_p]
 libcsound.csoundGetKr.restype = MYFLT
@@ -866,7 +870,7 @@ class Csound:
         Note that it is not guaranteed that perform() has already stopped
         when this function returns.
         """
-        return libcsound.csoundStop(self.cs)
+        libcsound.csoundStop(self.cs)
     
     def cleanup(self):
         """Print information and closes audio and MIDI devices.
@@ -884,8 +888,32 @@ class Csound:
         Enable external software to run successive Csound performances
         without reloading Csound. Implies cleanup(), unless already called.
         """
-        return libcsound.csoundReset(self.cs)
-    
+        libcsound.csoundReset(self.cs)
+
+    #UDP server
+    def UDPServerStart(self, port):
+        """Starts the UDP server on a supplied port number.
+        
+        Returns CSOUND_SUCCESS if server has been started successfully,
+        otherwise, CSOUND_ERROR.
+        """
+        return libcsound.csoundUDPServerStart(self.cs, c_uint(port))
+
+    def UDPServerStatus(self):
+        """Returns the port number on which the server is running.
+        
+        If the server is not running, CSOUND_ERROR is returned.
+        """
+        return libcsound.csoundUDPServerStatus(self.cs)
+
+    def UDPServerClose(self):
+        """Closes the UDP server.
+        
+        Returns CSOUND_SUCCESS if the running server was successfully closed,
+        CSOUND_ERROR otherwise.
+        """
+        return libcsound.csoundUDPServerClose(self.cs)
+
     #Attributes
     def sr(self):
         """Return the number of audio sample frames per second."""
@@ -2167,6 +2195,10 @@ class Csound:
     def waitBarrier(self, barrier):
         """Wait on the thread barrier."""
         return libcsound.csoundWaitBarrier(barrier)
+
+    #def createCondVar(self):
+    #def condWait(self, condVar, mutex):
+    #def condSignal(self, condVar):
     
     def sleep(self, milliseconds):
         """Wait for at least the specified number of milliseconds.
@@ -2480,7 +2512,7 @@ class Csound:
     
     def closeLibrary(self, library):
         """Platform-independent function to unload a shared library."""
-        libcsound.csoundCloseLibrary(library)
+        return libcsound.csoundCloseLibrary(library)
     
     def getLibrarySymbol(self, library, symbolName):
         """Platform-independent function to get a symbol address in a shared library."""

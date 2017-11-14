@@ -27,7 +27,7 @@
 #undef CS_KSMPS
 #define CS_KSMPS     (csound->GetKsmps(csound))
 
-#define DEBUG 1
+//#define DEBUG 1
 
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
@@ -368,7 +368,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
                                  LDescriptor->Name);
       }
       PortCount = DSSIPlugin_->Descriptor->PortCount;
-      dlclose(PluginLibrary);
+      //dlclose(PluginLibrary);
       //return NOTOK;
     }
     else {
@@ -498,7 +498,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
       csound->Message(csound, "DSSI4CS: Init Done.\n");
       info(csound, DSSIPlugin_);
     }
-    dlclose(PluginLibrary);
+    //dlclose(PluginLibrary);
     return OK;
 }
 
@@ -839,11 +839,17 @@ int dssictls_init(CSOUND * csound, DSSICTLS * p)
       return csound->InitError(csound, "DSSI4CS: Invalid plugin handle.");
     }
     if (p->DSSIPlugin_->Type == LADSPA) {
-      Descriptor = (LADSPA_Descriptor *) p->DSSIPlugin_->Descriptor;
+      Descriptor = p->DSSIPlugin_->Descriptor;
     }
     else {
-      Descriptor =
-          (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
+      Descriptor = p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
+    }
+
+    if (PortIndex >= Descriptor->PortCount) {
+      return
+        csound->InitError(csound,
+                          Str("DSSI4CS: Port %lu from '%s' does not exist."),
+                          PortIndex, Descriptor->Name);
     }
     p->HintSampleRate =
         (LADSPA_IS_HINT_SAMPLE_RATE
@@ -853,12 +859,6 @@ int dssictls_init(CSOUND * csound, DSSICTLS * p)
                     "DSSI4CS: Port %lu multiplier (HintSampleRate): %i.\n",
                     PortIndex, p->HintSampleRate);
 #endif
-
-    if (PortIndex > Descriptor->PortCount) {
-      csound->InitError(csound, Str("DSSI4CS: Port %lu from '%s' does not exist."),
-                                PortIndex, Descriptor->Name);
-      return NOTOK;
-    }
     LADSPA_PortDescriptor PortDescriptor =
         Descriptor->PortDescriptors[PortIndex];
     if (LADSPA_IS_PORT_OUTPUT(PortDescriptor))

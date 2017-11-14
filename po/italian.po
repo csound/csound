@@ -35,8 +35,8 @@ msgid "auxlist for instr %d (%p):\n"
 msgstr "auxlist per strumento %d (%p):\n"
 
 #: Engine/auxfd.c:201
-#, c-format
-msgid "\tauxch at %p: size %ld, auxp %p, endp %p\n"
+#, fuzzy, c-format
+msgid "\tauxch at %p: size %zu, auxp %p, endp %p\n"
 msgstr "\tauxch a %p: dimensione %ld, auxp %p, endp %p\n"
 
 #: Engine/auxfd.c:213
@@ -111,11 +111,11 @@ msgstr "memoria insufficiente\n"
 msgid "Null file name in copy_to_corefile"
 msgstr "Nome di file nullo in copy_to_corefile"
 
-#: Engine/corfiles.c:293
+#: Engine/corfiles.c:295
 msgid "not enough memory (realloc returned NULL)\n"
 msgstr "memoria insufficiente (realloc restituisce NULL)\n"
 
-#: Engine/corfiles.c:319
+#: Engine/corfiles.c:322
 #, c-format
 msgid "curl_easy_perform() failed: %s\n"
 msgstr "curl_easy_perform() fallita: %s\n"
@@ -183,7 +183,7 @@ msgstr "Inserimento costrutti del parallelismo in AST\n"
 msgid "Instr %d needs locks"
 msgstr "Strumento %d necessita di locks"
 
-#: Engine/cs_par_dispatch.c:240
+#: Engine/cs_par_dispatch.c:239
 msgid "[End Inserting Parallelism Constructs into AST]\n"
 msgstr "[Fine inserimento costrutti del parallelismo in AST]\n"
 
@@ -216,46 +216,51 @@ msgstr "opcode deprecato"
 msgid "Not a proper list of ints"
 msgstr "Non e' una lista di interi"
 
-#: Engine/csound_orc_compile.c:242
+#: Engine/csound_orc_compile.c:243
 msgid "ERROR: Unmatched bracket found in arrayargument type specification\n"
 msgstr ""
 "ERRORE: Parentesi non bilanciate nel tipo specificato di arrayargument\n"
 
-#: Engine/csound_orc_compile.c:414
+#: Engine/csound_orc_compile.c:415
 #, c-format
 msgid "create_opcode: No rule to handle statement of type %d\n"
 msgstr "create_opcode: Non c'?? regola d'uso per dichiarazione di tipo %d\n"
 
-#: Engine/csound_orc_compile.c:590 Engine/csound_orc_compile.c:675
+#: Engine/csound_orc_compile.c:591 Engine/csound_orc_compile.c:678
 #, c-format
 msgid "%s invalid sample rate"
 msgstr "%s frequenza di campionamento (sr) non valida"
 
-#: Engine/csound_orc_compile.c:592 Engine/csound_orc_compile.c:677
+#: Engine/csound_orc_compile.c:593 Engine/csound_orc_compile.c:680
 #, c-format
 msgid "%s invalid control rate"
 msgstr "%s frequenza dei segnali di controllo (kr) non valida"
 
-#: Engine/csound_orc_compile.c:596 Engine/csound_orc_compile.c:673
+#: Engine/csound_orc_compile.c:595
+#, fuzzy, c-format
+msgid "%s invalid number of samples"
+msgstr "numero di argomenti non valido"
+
+#: Engine/csound_orc_compile.c:599 Engine/csound_orc_compile.c:676
 #, c-format
 msgid "%s invalid ksmps value"
 msgstr "%s valore di ksmps non valido"
 
-#: Engine/csound_orc_compile.c:598
+#: Engine/csound_orc_compile.c:601
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps\n"
 msgstr "%s sr, kr e ksmps sono incongruenti\n"
 
-#: Engine/csound_orc_compile.c:600
+#: Engine/csound_orc_compile.c:603
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps \n"
 msgstr "%s sr, kr e ksmps sono incongruenti\n"
 
-#: Engine/csound_orc_compile.c:620
+#: Engine/csound_orc_compile.c:623
 msgid "bad value for 0dbfs: must be positive. Setting default value."
 msgstr "valore sbagliato per 0dbfs: deve essere positivo."
 
-#: Engine/csound_orc_compile.c:670
+#: Engine/csound_orc_compile.c:673
 #, c-format
 msgid ""
 "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
@@ -264,185 +269,190 @@ msgstr ""
 "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 "errore:"
 
-#: Engine/csound_orc_compile.c:679
+#: Engine/csound_orc_compile.c:682
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps"
 msgstr "%s sr, kr e ksmps sono incongruenti"
 
-#: Engine/csound_orc_compile.c:681
+#: Engine/csound_orc_compile.c:684
 #, c-format
 msgid "sample rate overrides: esr = %7.4f, ekr = %7.4f, ksmps = %d\n"
 msgstr ""
 "frequenza di campionamento (sr) ridefinita: esr = %7.4f, ekr = %7.4f, ksmps "
 "= %d\n"
 
-#: Engine/csound_orc_compile.c:758
+#: Engine/csound_orc_compile.c:761
 msgid "system constants can only be set once\n"
 msgstr "le costanti di sistema possono essere impostate una sola volta\n"
 
-#: Engine/csound_orc_compile.c:844
-#, c-format
-msgid "create_instrument: instr num %ld\n"
+#: Engine/csound_orc_compile.c:847
+#, fuzzy, c-format
+msgid "create_instrument: instr num %d\n"
 msgstr "create_instrument: strumento num %ld\n"
 
-#: Engine/csound_orc_compile.c:961
+#: Engine/csound_orc_compile.c:964
 msgid "-- deleted instr from deadpool \n"
 msgstr "-- strumento cancellato da deadpool \n"
 
-#: Engine/csound_orc_compile.c:989
+#: Engine/csound_orc_compile.c:992
 #, c-format
 msgid " -- free instr def %p %p \n"
 msgstr " -- libero instr def %p %p \n"
 
-#: Engine/csound_orc_compile.c:1003 Engine/csound_orc_compile.c:1014
+#: Engine/csound_orc_compile.c:1006 Engine/csound_orc_compile.c:1017
 #, c-format
 msgid " -- added to deadpool slot %d \n"
 msgstr " -- aggiunto allo slot di deadpool %d \n"
 
-#: Engine/csound_orc_compile.c:1042 Engine/csound_orc_compile.c:1198
-#, c-format
-msgid "instr %ld redefined, replacing previous definition"
+#: Engine/csound_orc_compile.c:1045 Engine/csound_orc_compile.c:1201
+#, fuzzy, c-format
+msgid "instr %d redefined, replacing previous definition"
 msgstr "strumento %ld ridefinito, rimpiazzo la precedente definizione"
 
-#: Engine/csound_orc_compile.c:1069
+#: Engine/csound_orc_compile.c:1072
 msgid "no active instances \n"
 msgstr "nessuna istanza attiva \n"
 
-#: Engine/csound_orc_compile.c:1147
+#: Engine/csound_orc_compile.c:1150
 #, c-format
 msgid "instr %s uses instrument number %d\n"
 msgstr "lo strumento %s usa il numero di strumento %d\n"
 
-#: Engine/csound_orc_compile.c:1195
+#: Engine/csound_orc_compile.c:1198
 #, c-format
 msgid "instr %d redefined\n"
 msgstr "strumento %d ridefinito\n"
 
-#: Engine/csound_orc_compile.c:1228
+#: Engine/csound_orc_compile.c:1231
 #, c-format
 msgid "no active instances of instr %d \n"
 msgstr "nessuna istanza attiva dello strumento %d\n"
 
-#: Engine/csound_orc_compile.c:1274
+#: Engine/csound_orc_compile.c:1277
 msgid "!!! csound->opcodeInfo is NULL !!!\n"
 msgstr "!!! csound->opcodeInfo e' NULL !!!\n"
 
-#: Engine/csound_orc_compile.c:1310
+#: Engine/csound_orc_compile.c:1313
 #, c-format
 msgid " merging constants %d) %f\n"
 msgstr " unione delle costanti %d) %f\n"
 
-#: Engine/csound_orc_compile.c:1320
+#: Engine/csound_orc_compile.c:1323
 #, c-format
 msgid " merging %p %d) %s:%s\n"
 msgstr " unione di %p %d) %s:%s\n"
 
-#: Engine/csound_orc_compile.c:1336
+#: Engine/csound_orc_compile.c:1339
 #, c-format
 msgid " adding %p %d) %s:%s\n"
 msgstr " aggiungo %p %d) %s:%s\n"
 
-#: Engine/csound_orc_compile.c:1359
+#: Engine/csound_orc_compile.c:1366
 #, c-format
 msgid "merging instr %d \n"
 msgstr "unione instr %d \n"
 
-#: Engine/csound_orc_compile.c:1367
+#: Engine/csound_orc_compile.c:1374
 #, c-format
 msgid "merging instr %s \n"
 msgstr "unione instr %s \n"
 
-#: Engine/csound_orc_compile.c:1560 Engine/csound_orc_compile.c:1595
-#: Engine/csound_orc_compile.c:1618
+#: Engine/csound_orc_compile.c:1591 Engine/csound_orc_compile.c:1626
+#: Engine/csound_orc_compile.c:1649
 msgid "invalid name for instrument"
 msgstr "nome dello strumento non valido"
 
-#: Engine/csound_orc_compile.c:1600 Engine/csound_orc_compile.c:1623
+#: Engine/csound_orc_compile.c:1631 Engine/csound_orc_compile.c:1654
 #, c-format
 msgid "instr %s redefined"
 msgstr "strumento %s ridefinito"
 
-#: Engine/csound_orc_compile.c:1645
+#: Engine/csound_orc_compile.c:1676
 #, c-format
 msgid "ERROR: Could not find OPCODINFO for opname: %s\n"
 msgstr "ERRORE: non trovo OPCODINFO per l'opname: %s\n"
 
-#: Engine/csound_orc_compile.c:1667
+#: Engine/csound_orc_compile.c:1698
 #, c-format
 msgid "Unknown TREE node of type %d (%s) found in root.\n"
 msgstr "Nodo sconosciuto di tipo %d (%s) trovato in root.\n"
 
-#: Engine/csound_orc_compile.c:1676
+#: Engine/csound_orc_compile.c:1707
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
 msgstr "%d errori di sintassi nell'orchestra.  Compilazione non valida\n"
 
-#: Engine/csound_orc_compile.c:1723
+#: Engine/csound_orc_compile.c:1750
 #, c-format
 msgid "%s: perf-time code in global space, ignored"
 msgstr "%s: codice perf-time nello spazio globale, ignorato"
 
-#: Engine/csound_orc_compile.c:1915
+#: Engine/csound_orc_compile.c:1928
 msgid "i[fixme] pset args != pmax"
 msgstr "i[fixme] pset args != pmax"
 
-#: Engine/csound_orc_compile.c:2059
+#: Engine/csound_orc_compile.c:2072
 #, c-format
 msgid "Missing local arg: %s\n"
 msgstr "manca un argomento locale: %s\n"
 
-#: Engine/csound_orc_compile.c:2119
+#: Engine/csound_orc_compile.c:2132
 msgid "**unrecorded**"
 msgstr "**non registrato**"
 
-#: Engine/csound_orc_compile.c:2192
+#: Engine/csound_orc_compile.c:2206
 #, c-format
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr "L'opcode \"%s\" e' deprecato\n"
 
-#: Engine/csound_orc_expressions.c:489
+#: Engine/csound_orc_expressions.c:490
 #, c-format
 msgid "error: function %s not found, line %d \n"
 msgstr "errore: non trovo la funzione %s alla linea %d\n"
 
-#: Engine/csound_orc_expressions.c:510
+#: Engine/csound_orc_expressions.c:511
 #, c-format
 msgid "error: opcode %s with output type %s not found, line %d"
 msgstr "errore: opcode %s con tipo output %s non trovato, alla linea %d"
+
+#: Engine/csound_orc_expressions.c:1214
+#, c-format
+msgid "ERROR: Neither if-goto or if-then found on line %d!!!"
+msgstr ""
 
 #: Engine/csound_orc_semantics.c:129
 #, c-format
 msgid "Unknown function type found: %d [%c]\n"
 msgstr "trovato tipo di funzione sconosciuto: %d [%c]\n"
 
-#: Engine/csound_orc_semantics.c:154
+#: Engine/csound_orc_semantics.c:156
 #, c-format
 msgid "Unknown boolean expression type found: %d\n"
 msgstr "Tipo di espressione booleana sconosciuta: %d\n"
 
-#: Engine/csound_orc_semantics.c:265
+#: Engine/csound_orc_semantics.c:267
 #, c-format
 msgid "unable to find array operator for types %s line %d\n"
 msgstr "non trovo l'operatore array per i tipi %s alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:285
+#: Engine/csound_orc_semantics.c:287
 #, c-format
 msgid "non-boolean expression found for ternary operator, line %d\n"
 msgstr ""
 "trovata espressione non booleana per l'operatore ternario, alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:303
+#: Engine/csound_orc_semantics.c:305
 #, c-format
 msgid "unable to find ternary operator for types '%s ? %s : %s' line %d\n"
 msgstr ""
 "non trovo l'operatore ternario per i tipi '%s ? %s : %s' alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:328
+#: Engine/csound_orc_semantics.c:330
 #, c-format
 msgid "Use of i() with expression not permitted on line %d\n"
 msgstr "Uso di i() in espressione non permesso alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:345
+#: Engine/csound_orc_semantics.c:347
 #, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d\n"
@@ -450,7 +460,7 @@ msgstr ""
 "errore: opcode '%s' per l'espressione con tipi di argomento %s non trovata, "
 "alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:370
+#: Engine/csound_orc_semantics.c:372
 #, c-format
 msgid ""
 "Unable to verify arg types for expression '%s'\n"
@@ -459,7 +469,7 @@ msgstr ""
 "Non riesco a verificare i tipi di arg per l'espressione '%s'\n"
 "Alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:395
+#: Engine/csound_orc_semantics.c:397
 #, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s not found, line %d \n"
@@ -467,7 +477,7 @@ msgstr ""
 "errore: non trovo l'opcode '%s' per l'espressione con tipo di arg %s, alla "
 "linea %d \n"
 
-#: Engine/csound_orc_semantics.c:427
+#: Engine/csound_orc_semantics.c:433
 #, c-format
 msgid ""
 "Unable to verify arg types for boolean expression '%s'\n"
@@ -477,14 +487,14 @@ msgstr ""
 "'%s'\n"
 "Linea %d\n"
 
-#: Engine/csound_orc_semantics.c:449
+#: Engine/csound_orc_semantics.c:455
 #, c-format
 msgid "error: boolean expression '%s' with arg types %s not found, line %d \n"
 msgstr ""
 "errore: espressione booleana '%s' con tipi di arg %s non trovata, alla linea "
 "%d \n"
 
-#: Engine/csound_orc_semantics.c:527 Engine/csound_orc_semantics.c:1254
+#: Engine/csound_orc_semantics.c:534 Engine/csound_orc_semantics.c:1263
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
@@ -493,17 +503,17 @@ msgstr ""
 "Variabile '%s' usata prima di essere definita\n"
 "Alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:568
+#: Engine/csound_orc_semantics.c:575
 #, c-format
 msgid "Unknown arg type: %d\n"
 msgstr "tipo di argomento sconosciuto: %d\n"
 
-#: Engine/csound_orc_semantics.c:1209
+#: Engine/csound_orc_semantics.c:1218
 #, c-format
 msgid "Variable type for %s could not be determined.\n"
 msgstr "Tipo di variabile per %s non pu?? essere determinata.\n"
 
-#: Engine/csound_orc_semantics.c:1231
+#: Engine/csound_orc_semantics.c:1240
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
@@ -512,27 +522,27 @@ msgstr ""
 "Variabile '%s' usata prima di essere definita\n"
 "all linea %d"
 
-#: Engine/csound_orc_semantics.c:1459
+#: Engine/csound_orc_semantics.c:1468
 #, c-format
 msgid "Unable to find opcode with name: %s\n"
 msgstr "Non trovo l'opcode con nome: %s\n"
 
-#: Engine/csound_orc_semantics.c:1477
+#: Engine/csound_orc_semantics.c:1486
 #, c-format
 msgid "Unable to find opcode entry for '%s' with matching argument types:\n"
 msgstr "Non trovo l'opcode per '%s' che combaci con il tipo di argomenti:\n"
 
-#: Engine/csound_orc_semantics.c:1480
+#: Engine/csound_orc_semantics.c:1489
 #, c-format
 msgid "Found: %s %s %s\n"
 msgstr "Trovato: %s %s %s\n"
 
-#: Engine/csound_orc_semantics.c:1482
+#: Engine/csound_orc_semantics.c:1491
 #, c-format
 msgid "Line: %d\n"
 msgstr "Linea: %d\n"
 
-#: Engine/csound_orc_semantics.c:1637
+#: Engine/csound_orc_semantics.c:1646
 #, c-format
 msgid ""
 "expression for until/while statement not a boolean expression, line %d\n"
@@ -540,25 +550,25 @@ msgstr ""
 "l'espressione per dichiarazione until/while non ?? un'espressione booleana, "
 "alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:1680
+#: Engine/csound_orc_semantics.c:1689
 msgid "Multiple xin statements found. Only one is allowed."
 msgstr "Trovate pi?? dichiarazioni xin. Ne ?? permessa solo una."
 
-#: Engine/csound_orc_semantics.c:1689
+#: Engine/csound_orc_semantics.c:1698
 msgid "Multiple xout statements found. Only one is allowed."
 msgstr "Trovate pi?? dichiarazioni xout. Ne ?? permessa solo una."
 
-#: Engine/csound_orc_semantics.c:1706
+#: Engine/csound_orc_semantics.c:1715
 #, c-format
 msgid "invalid xin statement for UDO: defined '%s', found '%s'\n"
 msgstr "dichiarazione xin nell'UDO non valida: definita '%s', trovo '%s'\n"
 
-#: Engine/csound_orc_semantics.c:1715
+#: Engine/csound_orc_semantics.c:1724
 #, c-format
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr "dichiarazione xout nell'UDO non valida: definita '%s', trovo '%s'\n"
 
-#: Engine/csound_orc_semantics.c:1888
+#: Engine/csound_orc_semantics.c:1933
 #, c-format
 msgid ""
 "\n"
@@ -567,7 +577,7 @@ msgstr ""
 "\n"
 "errore: %s  (token \"%s\")"
 
-#: Engine/csound_orc_semantics.c:1891
+#: Engine/csound_orc_semantics.c:1936
 #, c-format
 msgid ""
 " line %d:\n"
@@ -576,12 +586,12 @@ msgstr ""
 " linea %d:\n"
 ">>>"
 
-#: Engine/csound_orc_semantics.c:1910
+#: Engine/csound_orc_semantics.c:1955
 #, c-format
 msgid " from file %s (%d)\n"
 msgstr " da file %s (%d)\n"
 
-#: Engine/csound_orc_semantics.c:2492
+#: Engine/csound_orc_semantics.c:2536
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr ""
@@ -597,72 +607,60 @@ msgstr "non posso creare la variabile %s: tipo NULL"
 msgid "unterminated string found on line %d >>%s<<\n"
 msgstr "stringa non terminata trovata alla linea %d >>%s<<\n"
 
-#: Engine/csound_orc.y:248
+#: Engine/csound_orc.y:252
 #, fuzzy
 msgid "No number following instr\n"
 msgstr "instr non ?? seguito da nessun numero\n"
 
-#: Engine/csound_pre.lex:234 Engine/csound_pre.lex:272
-#: Engine/csound_pre.lex:314 Engine/csound_pre.lex:424
-#: Engine/csound_prs.lex:161 Engine/csound_prs.lex:204
-#: Engine/csound_prs.lex:252 Engine/csound_prs.lex:361
+#: Engine/csound_pre.lex:234 Engine/csound_pre.lex:278
+#: Engine/csound_prs.lex:161 Engine/csound_prs.lex:212
 #, c-format
 msgid "Undefined macro: '%s'"
 msgstr "macro non definita: '%s'"
 
-#: Engine/csound_pre.lex:245 Engine/csound_pre.lex:283
-#: Engine/csound_pre.lex:327 Engine/csound_pre.lex:332
-#: Engine/csound_pre.lex:342 Engine/csound_pre.lex:368
-#: Engine/csound_pre.lex:386 Engine/csound_pre.lex:437
-#: Engine/csound_pre.lex:442 Engine/csound_pre.lex:452
-#: Engine/csound_pre.lex:477 Engine/csound_pre.lex:495
-#: Engine/csound_pre.lex:871 Engine/csound_pre.lex:905
-#: Engine/csound_pre.lex:911 Engine/csound_pre.lex:924
-#: Engine/csound_pre.lex:932 Engine/csound_pre.lex:940
-#: Engine/csound_pre.lex:951 Engine/csound_pre.lex:960
-#: Engine/csound_pre.lex:968 Engine/csound_pre.lex:1014
-#: Engine/csound_pre.lex:1026 Engine/csound_pre.lex:1040
-#: Engine/csound_pre.lex:1049 Engine/csound_pre.lex:1071
-#: Engine/csound_pre.lex:1079 Engine/csound_pre.lex:1116
-#: Engine/csound_pre.lex:1126 Engine/csound_pre.lex:1135
-#: Engine/csound_pre.lex:1192 Engine/csound_pre.lex:1335
-#: Engine/csound_pre.lex:1348 Engine/csound_pre.lex:1363
-#: Engine/csound_prs.lex:176 Engine/csound_prs.lex:220
-#: Engine/csound_prs.lex:265 Engine/csound_prs.lex:270
-#: Engine/csound_prs.lex:280 Engine/csound_prs.lex:305
-#: Engine/csound_prs.lex:323 Engine/csound_prs.lex:374
-#: Engine/csound_prs.lex:379 Engine/csound_prs.lex:389
-#: Engine/csound_prs.lex:414 Engine/csound_prs.lex:432
-#: Engine/csound_prs.lex:655 Engine/csound_prs.lex:702
-#: Engine/csound_prs.lex:740 Engine/csound_prs.lex:822
-#: Engine/csound_prs.lex:997 Engine/csound_prs.lex:1025
-#: Engine/csound_prs.lex:1031 Engine/csound_prs.lex:1044
-#: Engine/csound_prs.lex:1052 Engine/csound_prs.lex:1060
-#: Engine/csound_prs.lex:1071 Engine/csound_prs.lex:1080
-#: Engine/csound_prs.lex:1088 Engine/csound_prs.lex:1134
-#: Engine/csound_prs.lex:1146 Engine/csound_prs.lex:1160
-#: Engine/csound_prs.lex:1169 Engine/csound_prs.lex:1191
-#: Engine/csound_prs.lex:1199 Engine/csound_prs.lex:1236
-#: Engine/csound_prs.lex:1246 Engine/csound_prs.lex:1255
-#: Engine/csound_prs.lex:1312 Engine/csound_prs.lex:1418
-#: Engine/csound_prs.lex:1431 Engine/csound_prs.lex:1446
+#: Engine/csound_pre.lex:247 Engine/csound_pre.lex:293
+#: Engine/csound_pre.lex:298 Engine/csound_pre.lex:308
+#: Engine/csound_pre.lex:339 Engine/csound_pre.lex:359
+#: Engine/csound_pre.lex:748 Engine/csound_pre.lex:782
+#: Engine/csound_pre.lex:788 Engine/csound_pre.lex:801
+#: Engine/csound_pre.lex:809 Engine/csound_pre.lex:817
+#: Engine/csound_pre.lex:828 Engine/csound_pre.lex:837
+#: Engine/csound_pre.lex:845 Engine/csound_pre.lex:891
+#: Engine/csound_pre.lex:903 Engine/csound_pre.lex:917
+#: Engine/csound_pre.lex:926 Engine/csound_pre.lex:948
+#: Engine/csound_pre.lex:956 Engine/csound_pre.lex:993
+#: Engine/csound_pre.lex:1003 Engine/csound_pre.lex:1012
+#: Engine/csound_pre.lex:1069 Engine/csound_pre.lex:1212
+#: Engine/csound_pre.lex:1225 Engine/csound_pre.lex:1240
+#: Engine/csound_prs.lex:178 Engine/csound_prs.lex:227
+#: Engine/csound_prs.lex:232 Engine/csound_prs.lex:242
+#: Engine/csound_prs.lex:272 Engine/csound_prs.lex:292
+#: Engine/csound_prs.lex:524 Engine/csound_prs.lex:571
+#: Engine/csound_prs.lex:609 Engine/csound_prs.lex:691
+#: Engine/csound_prs.lex:866 Engine/csound_prs.lex:894
+#: Engine/csound_prs.lex:900 Engine/csound_prs.lex:913
+#: Engine/csound_prs.lex:921 Engine/csound_prs.lex:929
+#: Engine/csound_prs.lex:940 Engine/csound_prs.lex:949
+#: Engine/csound_prs.lex:957 Engine/csound_prs.lex:1003
+#: Engine/csound_prs.lex:1015 Engine/csound_prs.lex:1029
+#: Engine/csound_prs.lex:1038 Engine/csound_prs.lex:1060
+#: Engine/csound_prs.lex:1068 Engine/csound_prs.lex:1105
+#: Engine/csound_prs.lex:1115 Engine/csound_prs.lex:1124
+#: Engine/csound_prs.lex:1181 Engine/csound_prs.lex:1287
+#: Engine/csound_prs.lex:1300 Engine/csound_prs.lex:1315
 msgid "Memory exhausted"
 msgstr "Memoria finita"
 
-#: Engine/csound_pre.lex:259 Engine/csound_pre.lex:297
-#: Engine/csound_pre.lex:408 Engine/csound_pre.lex:510
-#: Engine/csound_prs.lex:190 Engine/csound_prs.lex:234
-#: Engine/csound_prs.lex:345 Engine/csound_prs.lex:451
+#: Engine/csound_pre.lex:259 Engine/csound_pre.lex:381
+#: Engine/csound_prs.lex:192 Engine/csound_prs.lex:314
 msgid "macros/include nested too deep: "
 msgstr "macros/include innestate troppo in profondit??:"
 
-#: Engine/csound_pre.lex:349 Engine/csound_pre.lex:459
-#: Engine/csound_prs.lex:287 Engine/csound_prs.lex:398
+#: Engine/csound_pre.lex:316 Engine/csound_prs.lex:250
 msgid "Too few arguments to macro\n"
 msgstr "Pochi argomenti alla macro\n"
 
-#: Engine/csound_pre.lex:361 Engine/csound_pre.lex:470
-#: Engine/csound_prs.lex:298 Engine/csound_prs.lex:407
+#: Engine/csound_pre.lex:330 Engine/csound_prs.lex:263
 #, c-format
 msgid ""
 "Missing argument terminator\n"
@@ -671,141 +669,140 @@ msgstr ""
 "Manca argomento conclusivo\n"
 "%.98s"
 
-#: Engine/csound_pre.lex:540
+#: Engine/csound_pre.lex:417
 msgid "unexpected EOF!"
 msgstr "inaspettato EOF!"
 
-#: Engine/csound_pre.lex:615 Engine/csound_prs.lex:561
+#: Engine/csound_pre.lex:492 Engine/csound_prs.lex:430
 #, c-format
 msgid "Unexpected character %c(%.2x) line %d\n"
 msgstr "Carattere inatteso %c(%.2x) alla linea %d\n"
 
-#: Engine/csound_pre.lex:654 Engine/csound_prs.lex:600
+#: Engine/csound_pre.lex:531 Engine/csound_prs.lex:469
 msgid "#else without #if\n"
 msgstr "#else senza #if\n"
 
-#: Engine/csound_pre.lex:658 Engine/csound_pre.lex:1253
-#: Engine/csound_prs.lex:604 Engine/csound_prs.lex:1373
+#: Engine/csound_pre.lex:535 Engine/csound_pre.lex:1130
+#: Engine/csound_prs.lex:473 Engine/csound_prs.lex:1242
 msgid "#else after #else\n"
 msgstr "#else dopo #else\n"
 
-#: Engine/csound_pre.lex:676 Engine/csound_prs.lex:622
+#: Engine/csound_pre.lex:553 Engine/csound_prs.lex:491
 msgid "Unmatched #end\n"
 msgstr "#end senza corrispondenza\n"
 
-#: Engine/csound_pre.lex:846 Engine/csound_prs.lex:446
-#: Engine/csound_prs.lex:970
+#: Engine/csound_pre.lex:723 Engine/csound_prs.lex:839
 msgid "Includes nested too deeply"
 msgstr "inclusioni (include)  innestate troppo in profondit??"
 
-#: Engine/csound_pre.lex:861 Engine/csound_prs.lex:987
+#: Engine/csound_pre.lex:738 Engine/csound_prs.lex:856
 #, c-format
 msgid "%s is a directory; not including"
 msgstr "%s ?? una directory; non la includo"
 
-#: Engine/csound_pre.lex:865 Engine/csound_prs.lex:991
+#: Engine/csound_pre.lex:742 Engine/csound_prs.lex:860
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr "Impossibile aprire il file #include %s\n"
 
-#: Engine/csound_pre.lex:977 Engine/csound_prs.lex:1097
+#: Engine/csound_pre.lex:854 Engine/csound_prs.lex:966
 msgid "macro error\n"
 msgstr "errore macro\n"
 
-#: Engine/csound_pre.lex:982 Engine/csound_pre.lex:986
-#: Engine/csound_pre.lex:993 Engine/csound_pre.lex:999
-#: Engine/csound_pre.lex:1086 Engine/csound_pre.lex:1090
-#: Engine/csound_pre.lex:1097 Engine/csound_pre.lex:1103
-#: Engine/csound_prs.lex:1102 Engine/csound_prs.lex:1106
-#: Engine/csound_prs.lex:1113 Engine/csound_prs.lex:1119
-#: Engine/csound_prs.lex:1206 Engine/csound_prs.lex:1210
-#: Engine/csound_prs.lex:1217 Engine/csound_prs.lex:1223
+#: Engine/csound_pre.lex:859 Engine/csound_pre.lex:863
+#: Engine/csound_pre.lex:870 Engine/csound_pre.lex:876
+#: Engine/csound_pre.lex:963 Engine/csound_pre.lex:967
+#: Engine/csound_pre.lex:974 Engine/csound_pre.lex:980
+#: Engine/csound_prs.lex:971 Engine/csound_prs.lex:975
+#: Engine/csound_prs.lex:982 Engine/csound_prs.lex:988
+#: Engine/csound_prs.lex:1075 Engine/csound_prs.lex:1079
+#: Engine/csound_prs.lex:1086 Engine/csound_prs.lex:1092
 msgid "define macro runaway\n"
 msgstr "definizione macro fuori controllo\n"
 
-#: Engine/csound_pre.lex:1006 Engine/csound_pre.lex:1110
-#: Engine/csound_prs.lex:1126
+#: Engine/csound_pre.lex:883 Engine/csound_pre.lex:987
+#: Engine/csound_prs.lex:995
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr ""
 "carattere inaspettato %c(0x%.2x) nella definizione macro, in attesa #\n"
 
-#: Engine/csound_pre.lex:1020 Engine/csound_prs.lex:1140
+#: Engine/csound_pre.lex:897 Engine/csound_prs.lex:1009
 msgid "define macro with args: unexpected EOF"
 msgstr "definizione della macro con argomenti: inaspettato EOF"
 
-#: Engine/csound_pre.lex:1121 Engine/csound_prs.lex:1241
+#: Engine/csound_pre.lex:998 Engine/csound_prs.lex:1110
 msgid "define macro: unexpected EOF"
 msgstr "definizione macro: inaspettato EOF"
 
-#: Engine/csound_pre.lex:1156 Engine/csound_prs.lex:1276
+#: Engine/csound_pre.lex:1033 Engine/csound_prs.lex:1145
 #, c-format
 msgid "macro %s undefined\n"
 msgstr "macro %s non definita\n"
 
-#: Engine/csound_pre.lex:1171 Engine/csound_prs.lex:1291 Engine/sread.c:219
+#: Engine/csound_pre.lex:1048 Engine/csound_prs.lex:1160 Engine/sread.c:218
 msgid "Undefining undefined macro"
 msgstr "Libero la macro non definita"
 
-#: Engine/csound_pre.lex:1226 Engine/csound_prs.lex:1346
+#: Engine/csound_pre.lex:1103 Engine/csound_prs.lex:1215
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr "#if%sdef senza corrispondenza\n"
 
-#: Engine/csound_pre.lex:1328 Engine/csound_prs.lex:1411
+#: Engine/csound_pre.lex:1205 Engine/csound_prs.lex:1280
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr "Definizione di macro per %*s\n"
 
-#: Engine/csound_pre.lex:1331
+#: Engine/csound_pre.lex:1208
 msgid "Invalid macro name for --omacro"
 msgstr "Nome di macro non valido per --omacro"
 
-#: Engine/csound_prs.lex:485
+#: Engine/csound_prs.lex:354
 msgid "unexpected EOF!!\n"
 msgstr "inatteso EOF!!\n"
 
-#: Engine/csound_prs.lex:651
+#: Engine/csound_prs.lex:520
 msgid "Loops are nested too deeply"
 msgstr "Loops eccessivamente innestati"
 
-#: Engine/csound_prs.lex:669
+#: Engine/csound_prs.lex:538
 msgid "{: invalid repeat count"
 msgstr "{: conteggio delle ripetizioni non valido"
 
-#: Engine/csound_prs.lex:678
+#: Engine/csound_prs.lex:547
 #, c-format
 msgid "%s Nested LOOP=%d Level:%d\n"
 msgstr "%s LOOP innestato=%d Livello:%d\n"
 
-#: Engine/csound_prs.lex:684
+#: Engine/csound_prs.lex:553
 #, c-format
 msgid "External LOOP=%d Level:%d\n"
 msgstr "LOOP esterno=%d Livello:%d\n"
 
-#: Engine/csound_prs.lex:726
+#: Engine/csound_prs.lex:595
 msgid "unmatched } in score\n"
 msgstr "} senza corrispondenza nella score\n"
 
-#: Engine/csound_prs.lex:791
+#: Engine/csound_prs.lex:660
 msgid "Section loops cannot be nested"
 msgstr "Sezioni del loop non possono essere innestati"
 
-#: Engine/csound_prs.lex:804
+#: Engine/csound_prs.lex:673
 msgid "r: invalid repeat count"
 msgstr "r: conteggio delle ripetizioni non valido"
 
-#: Engine/csound_prs.lex:806
+#: Engine/csound_prs.lex:675
 #, c-format
 msgid "r LOOP=%d\n"
 msgstr "r LOOP=%d\n"
 
-#: Engine/csound_prs.lex:1230
+#: Engine/csound_prs.lex:1099
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x)awaiting #\n"
 msgstr "definizione macro carattere inaspettato %c(0x%.2x)in attesa #\n"
 
-#: Engine/csound_prs.lex:1414 Engine/sread.c:731
+#: Engine/csound_prs.lex:1283 Engine/sread.c:730
 msgid "Invalid macro name for --smacro"
 msgstr "Nome di macro non valido per --smacro"
 
@@ -853,7 +850,7 @@ msgstr "errore interno: csoundFileOpen(): tipo non valido: %d"
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
 msgstr "errore interno: csoundCreateFileHandle(): tipo non valido: %d"
 
-#: Engine/extract.c:88
+#: Engine/extract.c:90
 msgid "instrument number out of range"
 msgstr "Numero dello strumento fuori intervallo"
 
@@ -909,11 +906,11 @@ msgstr ""
 "         gli strumenti attivi potrebbero esserne disturbati"
 
 #: Engine/fgens.c:402 Engine/fgens.c:523 Engine/fgens.c:607 Engine/fgens.c:688
-#: Engine/fgens.c:763 Engine/fgens.c:812 Engine/fgens.c:933 Engine/fgens.c:1011
-#: Engine/fgens.c:1113 Engine/fgens.c:1157 Engine/fgens.c:1208
-#: Engine/fgens.c:1479 Engine/fgens.c:1541 Engine/fgens.c:1780
-#: Engine/fgens.c:1863 Engine/fgens.c:2223 Engine/fgens.c:3066
-#: Engine/fgens.c:3109
+#: Engine/fgens.c:763 Engine/fgens.c:812 Engine/fgens.c:933
+#: Engine/fgens.c:1011 Engine/fgens.c:1113 Engine/fgens.c:1157
+#: Engine/fgens.c:1208 Engine/fgens.c:1479 Engine/fgens.c:1541
+#: Engine/fgens.c:1780 Engine/fgens.c:1863 Engine/fgens.c:2223
+#: Engine/fgens.c:3066 Engine/fgens.c:3109
 msgid "using extended arguments\n"
 msgstr "uso di argomenti estesi\n"
 
@@ -928,7 +925,7 @@ msgstr "intervallo di x non consentito"
 #: Engine/fgens.c:460 Engine/fgens.c:609 Engine/fgens.c:690 Engine/fgens.c:935
 #: Engine/fgens.c:1436 Engine/fgens.c:2561 Engine/fgens.c:2898
 #: Engine/fgens.c:3039 Opcodes/ftest.c:131 Opcodes/quadbezier.c:64
-#: Top/main.c:124 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
+#: Top/main.c:125 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "argomenti insufficienti"
 
@@ -1081,7 +1078,7 @@ msgid "replacing previous ftable %d"
 msgstr "sostituisco la precedente ftable %d"
 
 #: Engine/fgens.c:2395 Engine/fgens.c:2511 Engine/fgens.c:2539
-#: Engine/fgens.c:2546 Opcodes/gab/gab.c:593 Opcodes/gab/gab.c:648
+#: Engine/fgens.c:2546 Opcodes/gab/gab.c:572 Opcodes/gab/gab.c:627
 #: Opcodes/midiops2.c:233 Opcodes/midiops2.c:388 Opcodes/midiops2.c:470
 #: Opcodes/uggab.c:1642 Opcodes/uggab.c:1678 Opcodes/uggab.c:1700
 #: Opcodes/uggab.c:1753
@@ -1149,7 +1146,8 @@ msgid "GEN1 read error"
 msgstr "GEN1 errore in lettura"
 
 #: Engine/fgens.c:2769
-msgid "GEN1: aiff file truncated by ftable size"
+#, fuzzy
+msgid "GEN1: file truncated by ftable size"
 msgstr "GEN1: file aiff troncato dalla dimensione della ftable"
 
 #: Engine/fgens.c:2770
@@ -1174,8 +1172,8 @@ msgstr "numero di canale non consentito"
 msgid "ftable size too small"
 msgstr "dimensione della ftable troppo piccola"
 
-#: Engine/fgens.c:2938 Opcodes/mp3in.c:91 Opcodes/mp3in.c:272
-#: Opcodes/mp3in.c:454 Top/cscorfns.c:176 Top/cscorfns.c:207
+#: Engine/fgens.c:2938 Opcodes/mp3in.c:93 Opcodes/mp3in.c:274
+#: Opcodes/mp3in.c:456 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr "emoria insufficiente\n"
 
@@ -1225,13 +1223,13 @@ msgid "Deferred load of '%s' failed"
 msgstr "fallito caricamento differito di '%s'"
 
 #: Engine/insert.c:116
-#, c-format
-msgid "activating instr %s at %d\n"
+#, fuzzy, c-format
+msgid "activating instr %s at %lld\n"
 msgstr "strumento %s attivato a %d\n"
 
 #: Engine/insert.c:119
-#, c-format
-msgid "activating instr %d at %d\n"
+#, fuzzy, c-format
+msgid "activating instr %d at %lld\n"
 msgstr "strumento %d attivato a %d\n"
 
 #: Engine/insert.c:127
@@ -1275,12 +1273,12 @@ msgstr "lo strumento %s usa %d p-fields ma gliene sono stati dati %d"
 msgid "instr %d uses %d p-fields but is given %d"
 msgstr "lo strumento %d usa %d p-fields ma gliene sono stati dati %d"
 
-#: Engine/insert.c:390 Engine/insert.c:648
+#: Engine/insert.c:390 Engine/insert.c:647
 #, c-format
 msgid "instr %s now active:\n"
 msgstr "strumento %s ora attivo:\n"
 
-#: Engine/insert.c:392 Engine/insert.c:650
+#: Engine/insert.c:392 Engine/insert.c:649
 #, c-format
 msgid "instr %d now active:\n"
 msgstr "strumento %d ora attivo:\n"
@@ -1310,17 +1308,17 @@ msgstr "nuova allocazione MIDI per lo strumento %d:\n"
 msgid "MIDI note overlaps with key %d on same channel"
 msgstr "La nota MIDI si sovrappone alla key %d sullo stesso canale"
 
-#: Engine/insert.c:758
+#: Engine/insert.c:757
 #, c-format
 msgid "removed instance of instr %s\n"
 msgstr "rimossa l'istanza dello strumento %s\n"
 
-#: Engine/insert.c:760
+#: Engine/insert.c:759
 #, c-format
 msgid "removed instance of instr %d\n"
 msgstr "rimossa l'istanza dello strumento %d\n"
 
-#: Engine/insert.c:780
+#: Engine/insert.c:779
 msgid "instance not valid \n"
 msgstr "istanza non valida %d\n"
 
@@ -1384,26 +1382,26 @@ msgstr ""
 msgid "subinstr: too many p-fields"
 msgstr "subinstr: troppi p-fields"
 
-#: Engine/insert.c:1247
+#: Engine/insert.c:1250
 #, c-format
 msgid "%s: invalid local ksmps value: %d"
 msgstr "%s: valore locale di ksmps non valido: %d"
 
-#: Engine/insert.c:1398 OOps/bus.c:622 Opcodes/stackops.c:298
+#: Engine/insert.c:1401 OOps/bus.c:622 Opcodes/stackops.c:298
 #, c-format
 msgid "%s: not initialised"
 msgstr "%s: non inizializzato"
 
-#: Engine/insert.c:1479
+#: Engine/insert.c:1482
 #, c-format
 msgid "setksmps: invalid ksmps value: %d, original: %d"
 msgstr "setksmps: valore di ksmps non valido: %d, originale: %d"
 
-#: Engine/insert.c:1619
+#: Engine/insert.c:1622
 msgid "subinstr: not initialised"
 msgstr "subinstr: non inizializzato"
 
-#: Engine/insert.c:2183
+#: Engine/insert.c:2186
 #, c-format
 msgid ""
 "instr %d allocated at %p\n"
@@ -1412,48 +1410,48 @@ msgstr ""
 "strumento %d allocato a %p\n"
 "\tlclbas %p, opds %p\n"
 
-#: Engine/insert.c:2210
+#: Engine/insert.c:2213
 #, c-format
 msgid "op (%s) allocated at %p\n"
 msgstr "op (%s) allocato a %p\n"
 
-#: Engine/insert.c:2235
+#: Engine/insert.c:2238
 msgid "null iopadr"
 msgstr "iopadr nullo"
 
-#: Engine/insert.c:2246
+#: Engine/insert.c:2249
 msgid "null opadr"
 msgstr "opadr nullo"
 
-#: Engine/insert.c:2269
+#: Engine/insert.c:2272
 #, c-format
 msgid "FIXME: Unhandled out-arg type: %d\n"
 msgstr "FIXME: tipo di out-arg non gestito: %d\n"
 
-#: Engine/insert.c:2309
+#: Engine/insert.c:2312
 #, c-format
 msgid "FIXME: instance unexpected arg: %d\n"
 msgstr "FIXME: arg inatteso in istanza: %d\n"
 
-#: Engine/insert.c:2333
+#: Engine/insert.c:2336
 msgid "inconsistent opds total"
 msgstr "totale opds inconsistente"
 
-#: Engine/insert.c:2393
+#: Engine/insert.c:2396
 #, c-format
 msgid "Instrument %s is still active"
 msgstr "Strumento %s ancora attivo"
 
-#: Engine/insert.c:2396
+#: Engine/insert.c:2399
 #, c-format
 msgid "Instrument %d is still active"
 msgstr "Strumento %d ancora attivo"
 
-#: Engine/linevent.c:79
+#: Engine/linevent.c:83
 msgid "-L stdin fcntl failed"
 msgstr "-L stdin fcntl fallito"
 
-#: Engine/linevent.c:89 Engine/linevent.c:95 OOps/dumpf.c:56 OOps/dumpf.c:85
+#: Engine/linevent.c:93 Engine/linevent.c:99 OOps/dumpf.c:56 OOps/dumpf.c:85
 #: OOps/dumpf.c:110 OOps/dumpf.c:138 OOps/dumpf.c:164 OOps/dumpf.c:193
 #: OOps/dumpf.c:218 OOps/dumpf.c:245 OOps/dumpf.c:394 OOps/dumpf.c:420
 #: OOps/dumpf.c:446 OOps/dumpf.c:474 OOps/dumpf.c:500 OOps/dumpf.c:528
@@ -1463,51 +1461,51 @@ msgstr "-L stdin fcntl fallito"
 msgid "Cannot open %s"
 msgstr "Impossibile aprire %s"
 
-#: Engine/linevent.c:96 Engine/linevent.c:110
+#: Engine/linevent.c:101 Engine/linevent.c:116
 #, c-format
 msgid "stdmode = %.8x Linefd = %d\n"
 msgstr "stdmode = %.8x Linefd = %d\n"
 
-#: Engine/linevent.c:123
+#: Engine/linevent.c:129
 msgid "Failed to set file status\n"
 msgstr "Fallita impostazione dello stato del file\n"
 
-#: Engine/linevent.c:187
+#: Engine/linevent.c:194
 #, c-format
 msgid "input message kcount, %d, %d.%06d\n"
 msgstr "messaggio in input kcount, %d, %d.%06d\n"
 
-#: Engine/linevent.c:201
+#: Engine/linevent.c:208
 msgid "LineBuffer Overflow - Input Data has been Lost"
 msgstr "LineBuffer Overflow - I dati in input sono stati persi"
 
-#: Engine/linevent.c:258
+#: Engine/linevent.c:307
 #, c-format
 msgid "unknown opcode %c"
 msgstr "opcode sconosciuto %c"
 
-#: Engine/linevent.c:307
+#: Engine/linevent.c:360
 msgid "dot carry has no reference"
 msgstr "il punto per riporto valore (carry) non ha riferimenti"
 
-#: Engine/linevent.c:312
+#: Engine/linevent.c:365
 msgid "cannot carry string p-field"
 msgstr "impossibile riportare un p-field stringa"
 
-#: Engine/linevent.c:323
+#: Engine/linevent.c:376
 #, c-format
 msgid "too few pfields (%d)"
 msgstr "troppi pochi pfields (%d)"
 
-#: Engine/linevent.c:327
+#: Engine/linevent.c:380
 msgid "-L with negative p2 illegal"
 msgstr "-L con p2 negativo illecito"
 
-#: Engine/linevent.c:338
+#: Engine/linevent.c:391
 msgid "too many pfields"
 msgstr "troppi pfields"
 
-#: Engine/linevent.c:350
+#: Engine/linevent.c:403
 #, c-format
 msgid ""
 "illegal RT scoreline:\n"
@@ -1518,33 +1516,33 @@ msgstr ""
 "%s\n"
 "%*s"
 
-#: Engine/linevent.c:372
+#: Engine/linevent.c:426
 msgid "event: param 1 must be \"a\", \"i\", \"q\", \"f\", \"d\", or \"e\""
 msgstr ""
 "event: parametro 1 deve essere \"a\", \"i\", \"q\", \"f\", \"d\", oppure \"e"
 "\""
 
-#: Engine/linevent.c:374
+#: Engine/linevent.c:428
 msgid "event: string name is allowed only for \"i\", \"d\", and \"q\" events"
 msgstr "event: nome stringa permesso solo per eventi \"i\", \"d\", e \"q\""
 
-#: Engine/linevent.c:424
+#: Engine/linevent.c:478
 #, c-format
 msgid "event: error creating '%c' event"
 msgstr "event: errore nella creazione dell'evento '%c'"
 
-#: Engine/linevent.c:494
+#: Engine/linevent.c:548
 #, c-format
 msgid "event_i: error creating '%c' event"
 msgstr "event_i: errore nella creazione dell'evento '%c'"
 
-#: Engine/linevent.c:540
+#: Engine/linevent.c:594
 msgid "instance: error creating event"
 msgstr "istanza: errore nella creazione dell'evento"
 
 #: Engine/memalloc.c:58
-#, c-format
-msgid "memory allocate failure for %lu"
+#, fuzzy, c-format
+msgid "memory allocate failure for %zu"
 msgstr "allocazione di memoria fallita per %lu"
 
 #: Engine/memfiles.c:141
@@ -1570,7 +1568,7 @@ msgstr "impossibile caricare %s, oppure SADIR non definita\n"
 msgid "error processing file %s\n"
 msgstr "errore nel processamento del file %s\n"
 
-#: Engine/memfiles.c:366 Engine/memfiles.c:548
+#: Engine/memfiles.c:366
 #, c-format
 msgid "file %s (%ld bytes) loaded into memory\n"
 msgstr "file %s (%ld bytes) caricato in memoria\n"
@@ -1623,6 +1621,11 @@ msgstr "errore in lettura del file pvoc-ex %s dopo %d frames"
 msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr "%s's srate = %8.0f, orch's srate = %8.0f"
 
+#: Engine/memfiles.c:548
+#, fuzzy, c-format
+msgid "file %s (%d bytes) loaded into memory\n"
+msgstr "file %s (%ld bytes) caricato in memoria\n"
+
 #: Engine/memfiles.c:612
 #, c-format
 msgid "csoundLoadSoundFile(): failed to open '%s'"
@@ -1634,9 +1637,9 @@ msgid "csoundLoadSoundFile(): error reading '%s'"
 msgstr "csoundLoadSoundFile(): errore in lettura di '%s'"
 
 #: Engine/memfiles.c:669
-#, c-format
+#, fuzzy, c-format
 msgid ""
-"File '%s' (sr = %d Hz, %d channel(s), %lu sample frames) loaded into memory\n"
+"File '%s' (sr = %d Hz, %d channel(s), %d sample frames) loaded into memory\n"
 msgstr ""
 "File '%s' (sr = %d Hz, %d canale\\\\i, %lu sample frames) caricati in "
 "memoria\n"
@@ -1691,7 +1694,7 @@ msgstr "impossibile raprire cscore.srt"
 msgid "sorting cscore.out ..\n"
 msgstr "ordino cscore.out ..\n"
 
-#: Engine/musmon.c:347 Top/main.c:314
+#: Engine/musmon.c:347 Top/main.c:316
 msgid "\t... done\n"
 msgstr "\t... fatto\n"
 
@@ -1699,8 +1702,8 @@ msgstr "\t... fatto\n"
 msgid "playing from cscore.srt\n"
 msgstr "suono da cscore.srt\n"
 
-#: Engine/musmon.c:352 Engine/musmon.c:516 Engine/musmon.c:1139
-#: Engine/musmon.c:1365
+#: Engine/musmon.c:352 Engine/musmon.c:515 Engine/musmon.c:1138
+#: Engine/musmon.c:1364
 #, c-format
 msgid "SECTION %d:\n"
 msgstr "SEZIONE %d:\n"
@@ -1710,11 +1713,11 @@ msgstr "SEZIONE %d:\n"
 msgid "%c\tbeep!\n"
 msgstr "%c\tbeep!\n"
 
-#: Engine/musmon.c:468
+#: Engine/musmon.c:467
 msgid "end of score.\t\t   overall amps:"
 msgstr "fine della score.\t\t   ampiezza totale:"
 
-#: Engine/musmon.c:480
+#: Engine/musmon.c:479
 msgid ""
 "\n"
 "\t   overall samples out of range:"
@@ -1722,7 +1725,7 @@ msgstr ""
 "\n"
 "\t   numero di campioni fuori dall'intervallo (range):"
 
-#: Engine/musmon.c:484
+#: Engine/musmon.c:483
 #, c-format
 msgid ""
 "\n"
@@ -1731,109 +1734,109 @@ msgstr ""
 "\n"
 "%d errori nell'esecuzione\n"
 
-#: Engine/musmon.c:486
+#: Engine/musmon.c:485
 msgid "end of performance"
 msgstr "fine dell'esecuzione"
 
-#: Engine/musmon.c:499
+#: Engine/musmon.c:498
 msgid "no sound written to disk\n"
 msgstr "nessun suono scritto sul disco\n"
 
-#: Engine/musmon.c:592 Engine/musmon.c:638
+#: Engine/musmon.c:591 Engine/musmon.c:637
 msgid "\t number of samples out of range:"
 msgstr "\t numero di campioni fuori dall'intervallo:"
 
-#: Engine/musmon.c:631
+#: Engine/musmon.c:630
 #, c-format
 msgid "end of section %d\t sect peak amps:"
 msgstr "fine della sezione %d\t picchi d'ampiezza della sezione:"
 
-#: Engine/musmon.c:633
+#: Engine/musmon.c:632
 msgid "end of lplay event list\t      peak amps:"
 msgstr "fine lista eventi di lplay\t      picco d'ampiezza:"
 
-#: Engine/musmon.c:698 Engine/musmon.c:726
+#: Engine/musmon.c:697 Engine/musmon.c:725
 #, c-format
 msgid " - note deleted. instr %s undefined"
 msgstr " - nota cancellata. strumento %s non definito"
 
-#: Engine/musmon.c:702
+#: Engine/musmon.c:701
 #, c-format
 msgid "Setting instrument %s %s\n"
 msgstr "Fisso lo strumento %s %s\n"
 
-#: Engine/musmon.c:703 Engine/musmon.c:717
+#: Engine/musmon.c:702 Engine/musmon.c:716
 msgid "off"
 msgstr "off"
 
-#: Engine/musmon.c:703 Engine/musmon.c:717
+#: Engine/musmon.c:702 Engine/musmon.c:716
 msgid "on"
 msgstr "on"
 
-#: Engine/musmon.c:712 Engine/musmon.c:759
+#: Engine/musmon.c:711 Engine/musmon.c:758
 #, c-format
 msgid " - note deleted. instr %d(%d) undefined"
 msgstr " - nota cancellata. strumento %d(%d) non definito"
 
-#: Engine/musmon.c:716
+#: Engine/musmon.c:715
 #, c-format
 msgid "Setting instrument %d %s\n"
 msgstr "Fisso lo strumento %d %s\n"
 
-#: Engine/musmon.c:749
+#: Engine/musmon.c:748
 #, c-format
 msgid " - note deleted.  i%d (%s) had %d init errors"
 msgstr " - nota cancellata.  i%d (%s) ha %d errori di inizializzazione"
 
-#: Engine/musmon.c:780
+#: Engine/musmon.c:779
 #, c-format
 msgid " - note deleted.  i%d had %d init errors"
 msgstr " - nota cancellata.  i%d ha %d errori di inizializzazione"
 
-#: Engine/musmon.c:801
+#: Engine/musmon.c:800
 #, c-format
 msgid "time advanced %5.3f beats by score request\n"
 msgstr "avanzamento del tempo di %5.3f beats su richiesta della score\n"
 
-#: Engine/musmon.c:819
+#: Engine/musmon.c:818
 #, c-format
 msgid "\t\t   T%7.3f - note deleted. "
 msgstr "\t\t   T%7.3f - nota cancellata. "
 
-#: Engine/musmon.c:823
+#: Engine/musmon.c:822
 #, c-format
 msgid "instr %s had %d init errors\n"
 msgstr "lo strumento %s ha %d errori di inizializzazione\n"
 
-#: Engine/musmon.c:826
+#: Engine/musmon.c:825
 #, c-format
 msgid "instr %d had %d init errors\n"
 msgstr "lo strumento %d ha %d errori di inizializzazione\n"
 
-#: Engine/musmon.c:922
+#: Engine/musmon.c:921
 msgid "terminating.\n"
 msgstr "finito.\n"
 
-#: Engine/musmon.c:1009
+#: Engine/musmon.c:1008
 #, c-format
 msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr "errore nella score.  opcode illecito %c (ASCII %d)\n"
 
-#: Engine/musmon.c:1277
+#: Engine/musmon.c:1276
 #, c-format
 msgid "insert_score_event(): invalid instrument number or name %d\n"
 msgstr "insert_score_event(): numero o nome dello strumento non valido %d\n"
 
-#: Engine/musmon.c:1297
+#: Engine/musmon.c:1296
 #, c-format
 msgid "insert_score_event(): unknown opcode: %c\n"
 msgstr "insert_score_event(): opcode sconosciuto: %c\n"
 
-#: Engine/musmon.c:1320
+#: Engine/musmon.c:1319
 msgid "insert_score_event(): insufficient p-fields\n"
 msgstr "insert_score_event(): p-fields insufficienti\n"
 
-#: Engine/musmon.c:1374
+#: Engine/musmon.c:1373
 msgid "cannot rewind score: no score in memory \n"
 msgstr "non posso riavvolgere la score: nessuna score in memoria \n"
 
@@ -1882,20 +1885,20 @@ msgstr "Analisi fallita per esaurimento memoria!\n"
 msgid "Parsing failed due to %d syntax error%s!\n"
 msgstr "Analisi fallita a causa di %d errori di sintassi %s !\n"
 
-#: Engine/new_orc_parser.c:270
+#: Engine/new_orc_parser.c:269
 #, c-format
 msgid "Parsing failed due to %d semantic error%s!\n"
 msgstr "Analisi fallita a causa di %d errori semantici %s !\n"
 
-#: Engine/new_orc_parser.c:273
+#: Engine/new_orc_parser.c:272
 msgid "Parsing failed due to syntax errors\n"
 msgstr "Analisi fallita a causa di errori di sintassi\n"
 
-#: Engine/new_orc_parser.c:275
+#: Engine/new_orc_parser.c:274
 msgid "Parsing failed due to no input!\n"
 msgstr "Analisi fallita a causa di nessun input!\n"
 
-#: Engine/new_orc_parser.c:291
+#: Engine/new_orc_parser.c:290
 msgid "Stopping on parser failure"
 msgstr "Stop per fallimento analisi"
 
@@ -1916,200 +1919,205 @@ msgstr ""
 msgid "ERROR: too many pfields: "
 msgstr "ERRORE: troppi pfields: "
 
-#: Engine/sort.c:268
+#: Engine/sort.c:271
 #, c-format
 msgid "sort: illegal opcode %c(%.2x)\n"
 msgstr "sort: opcode illecito %c(%.2x)\n"
 
-#: Engine/sread.c:66
+#: Engine/sread.c:65
 #, fuzzy
 msgid "sread:  text space overrun, increase MARGIN"
 msgstr "sread:  lo spazio del testo eccede, incremento del MARGINE"
 
-#: Engine/sread.c:111
+#: Engine/sread.c:110
 msgid "sread: "
 msgstr "sread: "
 
-#: Engine/sread.c:126
+#: Engine/sread.c:125
 msgid "score error:  "
 msgstr "errore nella score:  "
 
-#: Engine/sread.c:140
+#: Engine/sread.c:139
 #, c-format
 msgid "  section %d:  at position %d%s"
 msgstr "  sezione %d:  alla posizione %d%s"
 
-#: Engine/sread.c:146
+#: Engine/sread.c:145
 msgid "Internal error in print_input_backtrace()"
 msgstr "Errore interno in print_input_backtrace()"
 
-#: Engine/sread.c:150
+#: Engine/sread.c:149
 #, c-format
 msgid "  included from line %d of macro %s%s"
 msgstr "  incluso dalla linea %d della macro %s%s"
 
-#: Engine/sread.c:151
+#: Engine/sread.c:150
 #, c-format
 msgid "  called from line %d of macro %s%s"
 msgstr "  chiamata dalla linea %d della macro %s%s"
 
-#: Engine/sread.c:153
+#: Engine/sread.c:152
 #, c-format
 msgid "  in line %d of macro %s%s"
 msgstr "  alla linea %d della macro %s%s"
 
-#: Engine/sread.c:188
+#: Engine/sread.c:187
 #, c-format
 msgid "Internal error op=%c"
 msgstr "Errore interno op=%c"
 
-#: Engine/sread.c:898
+#: Engine/sread.c:897
 #, c-format
 msgid "Clockbase = %f\n"
 msgstr "Clockbase = %f\n"
 
-#: Engine/sread.c:1146
+#: Engine/sread.c:1145
 #, c-format
 msgid "m Named section >>>%s<<<\n"
 msgstr "m Sezione con nome >>>%s<<<\n"
 
-#: Engine/sread.c:1161
-#, c-format
-msgid "%d: %s position %ld\n"
+#: Engine/sread.c:1160
+#, fuzzy, c-format
+msgid "%d: %s position %d\n"
 msgstr "%d: %s posizione %ld\n"
 
-#: Engine/sread.c:1191
+#: Engine/sread.c:1190
 #, c-format
 msgid "Name %s not found"
 msgstr "Nome %s non trovato"
 
-#: Engine/sread.c:1223
+#: Engine/sread.c:1222
 #, c-format
 msgid "Warp_factor = %f\n"
 msgstr "Warp_factor = %f\n"
 
-#: Engine/sread.c:1251
+#: Engine/sread.c:1254
 #, c-format
 msgid "sread is confused on legal opcodes %c(%.2x)\n"
 msgstr "sread ?? confuso sugli opcodes leciti %c(%.2x)\n"
 
-#: Engine/sread.c:1314
+#: Engine/sread.c:1317
 msgid "No previous event for ^"
 msgstr "Non c'?? l'evento precedente per ^"
 
-#: Engine/sread.c:1319
+#: Engine/sread.c:1322
 #, c-format
 msgid "illegal space following %s, zero substituted"
 msgstr "spazio illecito seguente %s, sostituito con zero"
 
-#: Engine/sread.c:1349
+#: Engine/sread.c:1352
 #, c-format
 msgid "ignoring '%s' in '%c' event"
 msgstr "ignorato '%s' nell'evento '%c'"
 
-#: Engine/sread.c:1352
+#: Engine/sread.c:1355
 msgid "! invalid in p1, p2, or p3"
 msgstr "! non valido in p1, p2, or p3"
 
-#: Engine/sread.c:1353 Engine/sread.c:1358 Engine/sread.c:1886
-#: Engine/sread.c:2072 Engine/sread.c:2086
+#: Engine/sread.c:1356 Engine/sread.c:1361 Engine/sread.c:1889
+#: Engine/sread.c:2093 Engine/sread.c:2107
 msgid "      remainder of line flushed\n"
 msgstr "      resto della linea ignorato\n"
 
-#: Engine/sread.c:1357
+#: Engine/sread.c:1360
 #, c-format
 msgid "illegal character after !: '%c'"
 msgstr "carattere illecito dopo !: '%c'"
 
-#: Engine/sread.c:1451
+#: Engine/sread.c:1454
 #, c-format
 msgid "WARNING: instr %s not found, assuming insno = -1\n"
 msgstr "ATTENZIONE: strumento %s non trovato, insno = -1\n"
 
-#: Engine/sread.c:1472
+#: Engine/sread.c:1475
 msgid "sread: illegal use of carry,   0 substituted\n"
 msgstr "sread: uso illecito del riporto,   sostituito 0\n"
 
-#: Engine/sread.c:1885
+#: Engine/sread.c:1888
 #, c-format
 msgid "illegal opcode %c"
 msgstr "opcode illecito %c"
 
-#: Engine/sread.c:1911
+#: Engine/sread.c:1915
 msgid "illegal placement of number in [] expression"
 msgstr "piazzamento illecito di numero in espressione []"
 
-#: Engine/sread.c:1938
+#: Engine/sread.c:1942
 msgid "illegal placement of operator ~ in [] expression"
 msgstr "piazzamento illecito dell'operatore ~ in espressione []"
 
-#: Engine/sread.c:1948
+#: Engine/sread.c:1952
 msgid "illegal placement of operator @ or @@ in [] expression"
 msgstr "piazzamento illecito dell'operatore @ o @@ in espressione []"
 
-#: Engine/sread.c:1980 Engine/sread.c:1994
+#: Engine/sread.c:1984 Engine/sread.c:1998
 #, c-format
 msgid "illegal placement of operator %c in [] expression"
 msgstr "piazzamento illecito dell'operatore %c in espressione []"
 
-#: Engine/sread.c:2006
+#: Engine/sread.c:2010
 msgid "illegal placement of '(' in [] expression"
 msgstr "piazzamento illecito di '(' in espressione []"
 
-#: Engine/sread.c:2012
+#: Engine/sread.c:2016
 msgid "missing operand before ')' in [] expression"
 msgstr "manca l'operando dopo ')' in espressione []"
 
-#: Engine/sread.c:2026
+#: Engine/sread.c:2030
+#, fuzzy
+msgid "illegal placement of '[' in [] expression"
+msgstr "piazzamento illecito di '(' in espressione []"
+
+#: Engine/sread.c:2046
 msgid "missing operand before closing bracket in []"
 msgstr "manca l'operando dopo la chiusura della parentesi in []"
 
-#: Engine/sread.c:2041
+#: Engine/sread.c:2062
 #, c-format
 msgid "illegal character %c(%.2x) in [] expression"
 msgstr "carattere illecito %c(%.2x) in espressione []"
 
-#: Engine/sread.c:2071
+#: Engine/sread.c:2092
 #, c-format
 msgid "unexpected char %c"
 msgstr "carattere inatteso %c"
 
-#: Engine/sread.c:2085
+#: Engine/sread.c:2106
 msgid "illegally placed string"
 msgstr "stringa piazzata illecitamente"
 
-#: Engine/sread.c:2092
+#: Engine/sread.c:2113
 msgid "unmatched quote"
 msgstr "virgolette senza corrispondenza"
 
-#: Engine/sread.c:2135
+#: Engine/sread.c:2156
 msgid "sread: illegal number format:  "
 msgstr "sread: formato numerico illecito:  "
 
-#: Engine/sread.c:2141
+#: Engine/sread.c:2162
 msgid "   zero substituted.\n"
 msgstr "   sostituito zero.\n"
 
-#: Engine/swritestr.c:165
+#: Engine/swritestr.c:166
 #, c-format
 msgid "swrite: unexpected opcode %c, section %d line %d\n"
 msgstr "swrite: opcode %c inatteso, sezione %d alla linea %d\n"
 
-#: Engine/swritestr.c:253 Engine/swritestr.c:294
+#: Engine/swritestr.c:254 Engine/swritestr.c:295
 #, c-format
 msgid "swrite: output, sect%d line%d p%d makes illegal reference to "
 msgstr "swrite: output, sez%d linea%d p%d fa illecito riferimento a "
 
-#: Engine/swritestr.c:260 Engine/swritestr.c:300
+#: Engine/swritestr.c:261 Engine/swritestr.c:301
 msgid "   Zero substituted\n"
 msgstr "   sostituito zero\n"
 
-#: Engine/swritestr.c:359
+#: Engine/swritestr.c:360
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal ramp symbol\n"
 msgstr "swrite: output, sez%d linea%d p%d ha illecito simbolo ramp\n"
 
-#: Engine/swritestr.c:363
+#: Engine/swritestr.c:364
 #, c-format
 msgid ""
 "swrite: output, sect%d line%d p%d ramp has illegal forward or backward ref\n"
@@ -2117,12 +2125,12 @@ msgstr ""
 "swrite: output, sez%d linea%d p%d ramp fa riferimento a precedente o "
 "successivo illecito\n"
 
-#: Engine/swritestr.c:427 Engine/swritestr.c:492
+#: Engine/swritestr.c:428 Engine/swritestr.c:493
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal expramp symbol\n"
 msgstr "swrite: output, sez%d linea%d p%d ha simbolo expramp illecito\n"
 
-#: Engine/swritestr.c:432 Engine/swritestr.c:497
+#: Engine/swritestr.c:433 Engine/swritestr.c:498
 #, c-format
 msgid ""
 "swrite: output, sect%d line%d p%d expramp has illegal forward or backward "
@@ -2131,18 +2139,18 @@ msgstr ""
 "swrite: output, sez%d linea%d p%d expramp fa riferimento illecito a "
 "precedente o sucessivo\n"
 
-#: Engine/swritestr.c:513
+#: Engine/swritestr.c:514
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegally terminated string   "
 msgstr ""
 "swrite: output, sez%d linea%d p%d ha stringa terminante illecitamente   "
 
-#: Engine/swritestr.c:565
+#: Engine/swritestr.c:566
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal number  "
 msgstr "swrite: output, sez%d linea%d p%d ha numero illecito  "
 
-#: Engine/swritestr.c:572
+#: Engine/swritestr.c:573
 msgid "    String truncated\n"
 msgstr "    Stringa troncata\n"
 
@@ -2193,11 +2201,11 @@ msgstr "errore:"
 msgid "twarp: illegal opcode\n"
 msgstr "twarp: opcode illecito\n"
 
-#: Engine/twarp.c:188
+#: Engine/twarp.c:184
 msgid "twarp: t has extra or disordered beat value\n"
 msgstr "twarp: t con valore di beat extra o disordinato\n"
 
-#: Engine/twarp.c:191
+#: Engine/twarp.c:187
 msgid "twarp: t has non-positive tempo\n"
 msgstr "twarp: t con tempo non positivo\n"
 
@@ -2339,13 +2347,13 @@ msgid " (raw)\n"
 msgstr " (raw)\n"
 
 #: InOut/libsnd.c:946
-#, c-format
-msgid "%ld %d sample blks of %d-bit floats written to %s\n"
+#, fuzzy, c-format
+msgid "%d %d sample blks of %d-bit floats written to %s\n"
 msgstr "%ld %d blocchi-campione di %d-byte floats scritti su %s\n"
 
 #: InOut/libsnd.c:951
-#, c-format
-msgid "%ld %d sample blks of %s written to %s"
+#, fuzzy, c-format
+msgid "%d %d sample blks of %s written to %s"
 msgstr "%ld %d blocchi-campione %s scritti su %s"
 
 #: InOut/libsnd.c:968
@@ -3095,7 +3103,7 @@ msgstr "ALSA: aperto il dispositivo di output MIDI '%s'\n"
 msgid "-M stdin fcntl failed"
 msgstr "-M stdin fcntl fallito"
 
-#: InOut/rtalsa.c:1035 Top/one_file.c:650
+#: InOut/rtalsa.c:1035 Top/one_file.c:660
 #, c-format
 msgid "cannot open %s"
 msgstr "Impossibile aprire %s"
@@ -3315,8 +3323,8 @@ msgstr "rtaudio: modulo coreaaudio-AuHAL abilitato\n"
 msgid " *** WARNING: disabling --sched in freewheel mode\n"
 msgstr " *** ATTENZIONE: disabilito --sched in modo freewheel\n"
 
-#: InOut/rtjack.c:240 InOut/rtjack.c:253 InOut/rtjack.c:258 InOut/rtjack.c:569
-#: InOut/rtjack.c:619 InOut/rtjack.c:625 InOut/rtjack.c:646 InOut/rtjack.c:652
+#: InOut/rtjack.c:240 InOut/rtjack.c:253 InOut/rtjack.c:258 InOut/rtjack.c:571
+#: InOut/rtjack.c:622 InOut/rtjack.c:628 InOut/rtjack.c:649 InOut/rtjack.c:655
 #: InOut/rtwinmm.c:107 InOut/rtwinmm.c:311 OOps/str_ops.c:430
 #: OOps/str_ops.c:456 OOps/str_ops.c:481 OOps/str_ops.c:498 Opcodes/ftgen.c:79
 msgid "memory allocation failure"
@@ -3387,12 +3395,12 @@ msgstr "errore impostazione processo callback"
 msgid "error activating JACK client"
 msgstr "errore attivazione JACK client"
 
-#: InOut/rtjack.c:447 InOut/rtjack.c:471 InOut/rtjack.c:498 InOut/rtjack.c:522
+#: InOut/rtjack.c:447 InOut/rtjack.c:472 InOut/rtjack.c:499 InOut/rtjack.c:524
 #, c-format
 msgid "connecting channel %d to %s \n"
 msgstr "connessione canale %d a %s \n"
 
-#: InOut/rtjack.c:451
+#: InOut/rtjack.c:452
 #, c-format
 msgid ""
 "failed autoconnecting input channel %d \n"
@@ -3401,7 +3409,7 @@ msgstr ""
 "fallita l autoconnessione del canale input %d \n"
 "(?? necessaria la connessione manuale)"
 
-#: InOut/rtjack.c:455
+#: InOut/rtjack.c:456
 #, c-format
 msgid ""
 "jack port %d not valid \n"
@@ -3412,7 +3420,7 @@ msgstr ""
 "fallita autoconnessione del canale d'input %d \n"
 "(?? necessaria la connessione manuale)"
 
-#: InOut/rtjack.c:476
+#: InOut/rtjack.c:477
 #, c-format
 msgid ""
 "not autoconnecting input channel %d \n"
@@ -3421,11 +3429,11 @@ msgstr ""
 "canale d'input non autoconnesso %d \n"
 "(?? necessaria la connessione manuale)"
 
-#: InOut/rtjack.c:482
+#: InOut/rtjack.c:483
 msgid "put port not connected\n"
 msgstr "put port non connessa\n"
 
-#: InOut/rtjack.c:502
+#: InOut/rtjack.c:504
 #, c-format
 msgid ""
 "failed autoconnecting output channel %d \n"
@@ -3434,7 +3442,7 @@ msgstr ""
 "fallita autoconnessione del canale d'output %d \n"
 "(?? necessaria la connessione manuale)"
 
-#: InOut/rtjack.c:506
+#: InOut/rtjack.c:508
 #, c-format
 msgid ""
 "jack port %d not valid \n"
@@ -3445,7 +3453,7 @@ msgstr ""
 "fallita autoconnessione del canale d'output %d \n"
 "(?? necessaria la connessione manuale)"
 
-#: InOut/rtjack.c:526
+#: InOut/rtjack.c:528
 #, c-format
 msgid ""
 "failed to autoconnect output channel %d \n"
@@ -3454,138 +3462,138 @@ msgstr ""
 "fallita autoconnessione del canale d'output %d \n"
 "(?? necessaria la connessione manuale)"
 
-#: InOut/rtjack.c:533
+#: InOut/rtjack.c:535
 msgid "output port not connected\n"
 msgstr "porta d'output non connessa\n"
 
-#: InOut/rtjack.c:585
+#: InOut/rtjack.c:587
 msgid "input and output parameters are not consistent"
 msgstr "parametri di input e di output incompatibili"
 
-#: InOut/rtjack.c:589
+#: InOut/rtjack.c:591
 msgid "period size (-b) must be an integer multiple of ksmps"
 msgstr "period size (-b) deve essere un multiplo intero di ksmps"
 
-#: InOut/rtjack.c:594
+#: InOut/rtjack.c:597
 msgid "sample rate must be an integer"
 msgstr "la frequenza di campionamento deve essere un intero"
 
-#: InOut/rtjack.c:735
+#: InOut/rtjack.c:738
 msgid "JACK sample rate changed"
 msgstr "frequenza di campionamento di JACK cambiata"
 
-#: InOut/rtjack.c:738
+#: InOut/rtjack.c:741
 msgid "no connection to JACK server"
 msgstr "nessuna connessione al server JACK"
 
-#: InOut/rtjack.c:746
+#: InOut/rtjack.c:749
 msgid " *** rtjack: connection to JACK server was lost, reconnecting..."
 msgstr " *** rtjack: connessione al server JACK persa, riconnessione..."
 
-#: InOut/rtjack.c:785
+#: InOut/rtjack.c:788
 msgid "rtjack: input audio timeout"
 msgstr "rtjack: timeout dell'input audio"
 
-#: InOut/rtjack.c:811 InOut/rtjack.c:857
+#: InOut/rtjack.c:814 InOut/rtjack.c:860
 msgid "rtjack: xrun in real time audio"
 msgstr "rtjack: xrun in real time audio"
 
-#: InOut/rtjack.c:1021
+#: InOut/rtjack.c:1024
 msgid "JACK real-time audio module for Csound\n"
 msgstr "modulo JACK audio in tempo reale per Csound\n"
 
-#: InOut/rtjack.c:1024
+#: InOut/rtjack.c:1027
 msgid " *** rtjack: error allocating globals"
 msgstr " *** rtjack: errore allocazione globali"
 
-#: InOut/rtjack.c:1051
+#: InOut/rtjack.c:1054
 msgid "JACK client name (default: csound6)"
 msgstr "JACK nome cliente (default: csound6)"
 
-#: InOut/rtjack.c:1060
+#: InOut/rtjack.c:1063
 msgid "JACK input port name prefix (default: input)"
 msgstr "prefisso nome porta d'input JACK (default: input)"
 
-#: InOut/rtjack.c:1069
+#: InOut/rtjack.c:1072
 msgid "JACK output port name prefix (default: output)"
 msgstr "prefisso nome porta d'output JACK (default: output)"
 
-#: InOut/rtjack.c:1076
+#: InOut/rtjack.c:1079
 msgid "Deprecated"
 msgstr "Obsoleto"
 
-#: InOut/rtjack.c:1083
+#: InOut/rtjack.c:1086
 msgid "JACK MIDI module for Csound\n"
 msgstr "modulo JACK MIDI per Csound\n"
 
-#: InOut/rtjack.c:1086
+#: InOut/rtjack.c:1089
 msgid " *** rtjack MIDI: error allocating globals"
 msgstr " *** rtjack MIDI: errore allocazione globali"
 
-#: InOut/rtjack.c:1102
+#: InOut/rtjack.c:1105
 msgid "JACK MIDI client name prefix (default: csound6-midi)"
 msgstr "JACK MIDI prefisso nome cliente (default: csound6-midi)"
 
-#: InOut/rtjack.c:1113
+#: InOut/rtjack.c:1116
 msgid "JACK MIDI input port name(default: port)"
 msgstr "JACK MIDI nome porta d'input (default: port)"
 
-#: InOut/rtjack.c:1122
+#: InOut/rtjack.c:1125
 msgid "JACK MIDI output port name (default: port)"
 msgstr "JACK MIDI nome porta d'output (default: port)"
 
-#: InOut/rtjack.c:1148
+#: InOut/rtjack.c:1151
 msgid "Jack MIDI module: buffer overflow"
 msgstr "modulo Jack MIDI: buffer overflow"
 
-#: InOut/rtjack.c:1174
+#: InOut/rtjack.c:1178
 msgid "Jack MIDI module: failed to create client for input"
 msgstr "modulo Jack MIDI: fallita creazione del cliente per l'input"
 
-#: InOut/rtjack.c:1186
+#: InOut/rtjack.c:1190
 msgid "Jack MIDI module: failed to register input port"
 msgstr "modulo Jack MIDI: fallita registrazione della porta d' input"
 
-#: InOut/rtjack.c:1205 InOut/rtjack.c:1315
+#: InOut/rtjack.c:1209 InOut/rtjack.c:1321
 msgid "Jack MIDI module: failed to set input process callback"
 msgstr ""
 "modulo Jack MIDI: fallita impostazione del processo di callback dell'input"
 
-#: InOut/rtjack.c:1215
+#: InOut/rtjack.c:1219
 msgid "Jack MIDI module: failed to activate input"
 msgstr "modulo Jack MIDI: fallita l'attivazione dell'input"
 
-#: InOut/rtjack.c:1221
+#: InOut/rtjack.c:1226
 #, c-format
 msgid "Jack MIDI module: failed to connect to: %s"
 msgstr "modulo Jack MIDI: fallita la connessione a: %s"
 
-#: InOut/rtjack.c:1260
+#: InOut/rtjack.c:1265
 msgid "Jack MIDI module: out buffer overflow"
 msgstr "modulo Jack MIDI: buffer overflow dell'out"
 
-#: InOut/rtjack.c:1284
+#: InOut/rtjack.c:1290
 msgid "Jack MIDI module: failed to create client for output"
 msgstr "modulo Jack MIDI: fallita creazione del cliente per l'output"
 
-#: InOut/rtjack.c:1296
+#: InOut/rtjack.c:1302
 msgid "Jack MIDI module: failed to register output port"
 msgstr "modulo Jack MIDI: fallita registrazione della porta d'output"
 
-#: InOut/rtjack.c:1325
+#: InOut/rtjack.c:1331
 msgid "Jack MIDI module: failed to activate output"
 msgstr "modulo Jack MIDI: fallita attivazione dell'output"
 
-#: InOut/rtjack.c:1332
+#: InOut/rtjack.c:1339
 #, c-format
 msgid "Jack MIDI out module: failed to connect to: %s"
 msgstr "modulo out Jack MIDI: fallita connessione a: %s"
 
-#: InOut/rtjack.c:1463
+#: InOut/rtjack.c:1470
 msgid "rtaudio: JACK module enabled\n"
 msgstr "rtaudio: modulo JACK abilitato\n"
 
-#: InOut/rtjack.c:1481
+#: InOut/rtjack.c:1488
 msgid "rtmidi: JACK module enabled\n"
 msgstr "rtmidi: modulo JACK abilitato\n"
 
@@ -4211,63 +4219,63 @@ msgstr "non supportato su questo terminale"
 msgid "Cannot be more In arguments than Out in init (%d,%d)"
 msgstr "Non possono esserci pi?? argomenti In che Out in init (%d,%d)"
 
-#: OOps/aops.c:243 OOps/aops.c:359 OOps/aops.c:372 util1/scot/scot.c:1302
+#: OOps/aops.c:248 OOps/aops.c:364 OOps/aops.c:377 util1/scot/scot.c:1302
 #: util1/scot/scot.c:1317 util1/scot/scot.c:1371
 msgid "Division by zero"
 msgstr "Divisione per zero"
 
-#: OOps/aops.c:947
+#: OOps/aops.c:952
 msgid "non-looping sample"
 msgstr ""
 
-#: OOps/aops.c:1098 OOps/aops.c:1126
+#: OOps/aops.c:1103 OOps/aops.c:1131
 #, c-format
 msgid "No tuning table %d"
 msgstr ""
 
-#: OOps/aops.c:1171 OOps/aops.c:1209
+#: OOps/aops.c:1176 OOps/aops.c:1214
 msgid "cpstun: invalid table"
 msgstr "cpstun: tavola non valida"
 
-#: OOps/aops.c:1606 OOps/aops.c:1654
+#: OOps/aops.c:1611 OOps/aops.c:1659
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr "canale d'input %d troppo grande; ignorato"
 
-#: OOps/aops.c:1612 OOps/aops.c:1660
+#: OOps/aops.c:1617 OOps/aops.c:1665
 #, c-format
 msgid "Input channel %d is invalid; ignored"
 msgstr "canale d'input %d non valido; ignorato"
 
-#: OOps/aops.c:1649
+#: OOps/aops.c:1654
 msgid "Input and output argument count differs in inch"
 msgstr "Il conto degli argomenti di input e output sono differenti in inch"
 
-#: OOps/aops.c:1737
+#: OOps/aops.c:1742
 msgid "Channel greater than nchnls"
 msgstr "Canale maggiore di nchnls"
 
-#: OOps/aops.c:1884
+#: OOps/aops.c:1890
 msgid "Excess channels ignored\n"
 msgstr "Canali in eccesso ignorati\n"
 
-#: OOps/aops.c:2025
+#: OOps/aops.c:2031
 msgid "Unknown function called"
 msgstr "Chiamata una funzione sconosciuta"
 
-#: OOps/aops.c:2058
+#: OOps/aops.c:2064
 msgid "number of arguments != nchnls"
 msgstr "numero di argomenti != nchnls"
 
-#: OOps/aops.c:2087
+#: OOps/aops.c:2093
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr "outrg: il numero di canale non pu?? essere < 1 (1 ?? il primo canale)"
 
-#: OOps/aops.c:2120
+#: OOps/aops.c:2126
 msgid "number of hardware output channels not currently available"
 msgstr "il numero di canali hardware d'output non ?? attualmente disponibile"
 
-#: OOps/aops.c:2126
+#: OOps/aops.c:2132
 msgid "number of hardware input channels not currently available"
 msgstr "il numero di canali hardware d'input non ?? attualmente disponibile"
 
@@ -4303,35 +4311,35 @@ msgstr "pvsout: indice non valido"
 msgid "pvsout error %d:channel not found or not right type"
 msgstr "errore pvsout %d:canale non trovato o del tipo sbagliato"
 
-#: OOps/bus.c:1107 OOps/bus.c:1156 OOps/bus.c:1177 OOps/bus.c:1224
+#: OOps/bus.c:1111 OOps/bus.c:1160 OOps/bus.c:1181 OOps/bus.c:1228
 msgid "invalid mode parameter"
 msgstr "parametro mode non valido"
 
-#: OOps/bus.c:1144 OOps/bus.c:1265
+#: OOps/bus.c:1148 OOps/bus.c:1269
 msgid "invalid channel parameters"
 msgstr "parametro channel non valido"
 
-#: OOps/bus.c:1232
+#: OOps/bus.c:1236
 msgid "channel already exists"
 msgstr "il canale ?? gia esistente"
 
-#: OOps/bus.c:1268
+#: OOps/bus.c:1272
 msgid "invalid export variable"
 msgstr ""
 
-#: OOps/bus.c:1354
+#: OOps/bus.c:1358
 msgid "read failure in sensekey\n"
 msgstr "lettura fallita in sensekey\n"
 
-#: OOps/bus.c:1362
+#: OOps/bus.c:1366
 msgid "sensekey error:"
 msgstr "errore sensekey:"
 
-#: OOps/bus.c:1465 OOps/bus.c:1491 OOps/bus.c:1532 OOps/bus.c:1559
+#: OOps/bus.c:1469 OOps/bus.c:1495 OOps/bus.c:1536 OOps/bus.c:1563
 msgid "InputChannelCallback not set."
 msgstr "InputChannelCallback non impostato."
 
-#: OOps/bus.c:1610 OOps/bus.c:1636 OOps/bus.c:1664 OOps/bus.c:1690
+#: OOps/bus.c:1614 OOps/bus.c:1640 OOps/bus.c:1668 OOps/bus.c:1694
 msgid "OutputChannelCallback not set."
 msgstr "OutputChannelCallback non impostato."
 
@@ -4339,7 +4347,7 @@ msgstr "OutputChannelCallback non impostato."
 msgid "NaN in pow\n"
 msgstr "NaN in pow\n"
 
-#: OOps/cmath.c:85
+#: OOps/cmath.c:85 OOps/ugens4.c:472 OOps/ugens4.c:583 OOps/ugens4.c:689
 #, c-format
 msgid "Seeding from current time %u\n"
 msgstr "Seme dal tempo attuale %u\n"
@@ -4349,12 +4357,12 @@ msgstr "Seme dal tempo attuale %u\n"
 msgid "Seeding with %u\n"
 msgstr "Seme da %u\n"
 
-#: OOps/compile_ops.c:35
+#: OOps/compile_ops.c:37
 #, c-format
 msgid "compileorc: could not open %s\n"
 msgstr "compileorc: non riesco ad aprire %s\n"
 
-#: OOps/compile_ops.c:47
+#: OOps/compile_ops.c:49
 #, c-format
 msgid "compileorc: could not read %s\n"
 msgstr "compileorc: non riesco a leggere %s\n"
@@ -4385,25 +4393,25 @@ msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr "diskin2: attenzione: sample rate del file (%d) != orchestra sr (%d)\n"
 
 #: OOps/diskin2.c:468 OOps/diskin2.c:1742
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
-"         %d Hz, %d channel(s), %ld sample frames\n"
+"         %d Hz, %d channel(s), %d sample frames\n"
 msgstr ""
 "diskin2: aperto (asincronicamente) '%s':\n"
 "         %d Hz, %d canale/i, %ld sample frames\n"
 
 #: OOps/diskin2.c:482 OOps/diskin2.c:1756
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "diskin2: opened '%s':\n"
-"         %d Hz, %d channel(s), %ld sample frames\n"
+"         %d Hz, %d channel(s), %d sample frames\n"
 msgstr ""
 "diskin2: aperto '%s':\n"
 "         %d Hz, %d canale/i, %ld sample frames\n"
 
-#: OOps/diskin2.c:563 OOps/diskin2.c:749 OOps/diskin2.c:945 OOps/diskin2.c:1350
-#: OOps/diskin2.c:1788 OOps/diskin2.c:1981
+#: OOps/diskin2.c:563 OOps/diskin2.c:749 OOps/diskin2.c:945
+#: OOps/diskin2.c:1350 OOps/diskin2.c:1788 OOps/diskin2.c:1981
 msgid "diskin2: not initialised"
 msgstr "diskin2: non inizializzato"
 
@@ -5179,31 +5187,36 @@ msgstr "tipo di window non valida"
 msgid "ftable for window not found"
 msgstr "non trovo la ftable per la finestra ( window)"
 
-#: OOps/pvsanal.c:179
+#: OOps/pvsanal.c:105
+#, fuzzy
+msgid "Invalid window size"
+msgstr "tipo di window non valida"
+
+#: OOps/pvsanal.c:180
 msgid "pvsanal: fftsize of 32 is too small!\n"
 msgstr "pvsanal: fftsize di 32 ?? troppo piccola!\n"
 
-#: OOps/pvsanal.c:184
+#: OOps/pvsanal.c:185
 msgid "pvsanal: window size too small for fftsize"
 msgstr "pvsanal: dimensione della window troppo piccola per fftsize"
 
-#: OOps/pvsanal.c:189
+#: OOps/pvsanal.c:190
 msgid "pvsanal: overlap too big for fft size\n"
 msgstr "pvsanal: overlap troppo grande per la dimensione di fft\n"
 
-#: OOps/pvsanal.c:193
+#: OOps/pvsanal.c:194
 msgid "pvsanal: overlap must be >= ksmps\n"
 msgstr "pvsanal: overlap deve essere >= ksmps\n"
 
-#: OOps/pvsanal.c:470 OOps/pvsanal.c:683
+#: OOps/pvsanal.c:471 OOps/pvsanal.c:684
 msgid "pvsanal: Not Initialised.\n"
 msgstr "pvsanal: Non Inizializzato.\n"
 
-#: OOps/pvsanal.c:535
+#: OOps/pvsanal.c:536
 msgid "Unknown window type; replaced by rectangular\n"
 msgstr "Tipo sconosciuto di window; rimpiazzata da rettangolare\n"
 
-#: OOps/pvsanal.c:1053
+#: OOps/pvsanal.c:1054
 msgid "pvsynth: Not Initialised.\n"
 msgstr "pvsynth: Non Inizializzato.\n"
 
@@ -5275,17 +5288,17 @@ msgstr "socket creato\n"
 msgid "setting socket option to reuse the address\n"
 msgstr "impostazione dell'opzione del socket per riutilizzo dell'indirizzo\n"
 
-#: OOps/remote.c:368 Opcodes/sockrecv.c:188 Opcodes/sockrecv.c:244
-#: Opcodes/sockrecv.c:359 Opcodes/sockrecv.c:454 Opcodes/sockrecv.c:562
-#: Top/server.c:98
+#: OOps/remote.c:368 Opcodes/sockrecv.c:202 Opcodes/sockrecv.c:258
+#: Opcodes/sockrecv.c:373 Opcodes/sockrecv.c:468 Opcodes/sockrecv.c:576
+#: Top/server.c:249
 msgid "bind failed"
 msgstr "collegamento fallito"
 
-#: OOps/remote.c:373 Opcodes/sockrecv.c:459
+#: OOps/remote.c:373 Opcodes/sockrecv.c:473
 msgid "listen failed"
 msgstr "ascolto fallito"
 
-#: OOps/remote.c:379 Opcodes/sockrecv.c:465
+#: OOps/remote.c:379 Opcodes/sockrecv.c:479
 msgid "accept failed"
 msgstr "accetazione fallita"
 
@@ -5352,21 +5365,21 @@ msgstr ""
 "*** Questa versione di Csound non ?? stata compilata con il supporto di "
 "remote event ***\n"
 
-#: OOps/schedule.c:170 OOps/schedule.c:189 OOps/schedule.c:253
+#: OOps/schedule.c:194 OOps/schedule.c:213 OOps/schedule.c:277
 #, c-format
 msgid "LFO: unknown oscilator type %d"
 msgstr "LFO: tipo di oscillatore sconosciuto %d"
 
-#: OOps/schedule.c:383
+#: OOps/schedule.c:407
 #, c-format
 msgid "schedkwhen ignored. Instrument %d undefined\n"
 msgstr "schedkwhen ?? stato ignorato. Lo strumento %d non ?? definito\n"
 
-#: OOps/schedule.c:467
+#: OOps/schedule.c:491
 msgid "schedkwhen warning: negative kwhen reset to zero"
 msgstr ""
 
-#: OOps/schedule.c:492 OOps/schedule.c:515
+#: OOps/schedule.c:516 OOps/schedule.c:539
 msgid "trigseq: incorrect table number"
 msgstr "trigseq: numero di tavola non corretto"
 
@@ -5418,7 +5431,7 @@ msgstr "stringa NULL \n"
 msgid "a-rate argument not allowed"
 msgstr "argomento a-rate non consentito"
 
-#: OOps/str_ops.c:372 Opcodes/stackops.c:211 Top/argdecode.c:1471
+#: OOps/str_ops.c:372 Opcodes/stackops.c:211 Top/argdecode.c:1477
 #: util/envext.c:99 util/scale.c:249
 msgid "too many arguments"
 msgstr "troppi argomenti"
@@ -5730,11 +5743,6 @@ msgstr "pluck: non inizializzato"
 msgid "pluck: kcps more than sample rate"
 msgstr "pluck: kcps maggiore della frequenza di campionamento (sr)"
 
-#: OOps/ugens4.c:472 OOps/ugens4.c:583 OOps/ugens4.c:689
-#, c-format
-msgid "Seeding from current time %lu\n"
-msgstr "Seme dal tempo attuale %lu\n"
-
 #: OOps/ugens5.c:286 OOps/ugens5.c:404 Opcodes/gab/gab.c:52 Opcodes/ugsc.c:214
 #, c-format
 msgid "illegal reson iscl value, %f"
@@ -5776,8 +5784,8 @@ msgid "insufficient args and no file header"
 msgstr "argomenti insufficienti e nessun header del file"
 
 #: OOps/ugens5.c:683
-#, c-format
-msgid "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"
+#, fuzzy, c-format
+msgid "npoles %d, nvals %d, totvals %d, lastfram16 = %x\n"
 msgstr "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"
 
 #: OOps/ugens5.c:708 util/lpanal.c:329
@@ -6059,32 +6067,32 @@ msgstr "printk: non inizializzato"
 msgid "time %11.5f: "
 msgstr "tempo %11.5f: "
 
-#: OOps/ugrw1.c:956 OOps/ugrw1.c:1143
+#: OOps/ugrw1.c:956 OOps/ugrw1.c:965 OOps/ugrw1.c:1148
 msgid "null string\n"
 msgstr "stringa nulla\n"
 
-#: OOps/ugrw1.c:1153
+#: OOps/ugrw1.c:1158
 msgid "printks not initialised"
 msgstr "printks: non inizializzato"
 
-#: OOps/ugrw1.c:1207
+#: OOps/ugrw1.c:1212
 #, c-format
 msgid "Formatting string too long: %s"
 msgstr "Stringa di formattazione troppo lunga: %s"
 
-#: OOps/ugrw1.c:1338
+#: OOps/ugrw1.c:1343
 msgid "inz index > isizea. Not writing."
 msgstr "inz index > isizea. Nessuna scrittura."
 
-#: OOps/ugrw1.c:1341
+#: OOps/ugrw1.c:1346
 msgid "inz index < 0. Not writing."
 msgstr "inz index < 0. Nessuna scrittura."
 
-#: OOps/ugrw1.c:1385 Opcodes/vbap_zak.c:208 Opcodes/vbap_zak.c:520
+#: OOps/ugrw1.c:1390 Opcodes/vbap_zak.c:208 Opcodes/vbap_zak.c:520
 msgid "outz index > isizea. No output"
 msgstr "outz index > isizea. Nessun output"
 
-#: OOps/ugrw1.c:1388 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
+#: OOps/ugrw1.c:1393 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
 msgid "outz index < 0. No output."
 msgstr "outz index < 0. Nessun output."
 
@@ -6297,7 +6305,8 @@ msgstr "Numero di setup non supportato!"
 
 #: Opcodes/ambicode1.c:109 Opcodes/ambicode1.c:127
 msgid "The numbers of input and output arguments are not valid."
-msgstr "Il numero degli argomenti di input e di output arguments non ?? valido."
+msgstr ""
+"Il numero degli argomenti di input e di output arguments non ?? valido."
 
 #: Opcodes/ambicode1.c:117
 msgid "array not initialised in ambibformenc1"
@@ -6370,15 +6379,20 @@ msgid "Dimensions do not match in array arithmetic"
 msgstr "Le dimensioni non combaciano nell'aritmetica dell'array"
 
 #: Opcodes/arrays.c:332 Opcodes/arrays.c:357 Opcodes/arrays.c:375
-#: Opcodes/arrays.c:389 Opcodes/arrays.c:409 Opcodes/arrays.c:446
-#: Opcodes/arrays.c:467 Opcodes/arrays.c:492 Opcodes/arrays.c:513
-#: Opcodes/arrays.c:550 Opcodes/arrays.c:588 Opcodes/arrays.c:608
-#: Opcodes/arrays.c:625 Opcodes/arrays.c:666 Opcodes/arrays.c:689
-#: Opcodes/arrays.c:712 Opcodes/arrays.c:732 Opcodes/arrays.c:760
-#: Opcodes/arrays.c:787 Opcodes/arrays.c:836 Opcodes/arrays.c:842
-#: Opcodes/arrays.c:853 Opcodes/arrays.c:884 Opcodes/arrays.c:915
-#: Opcodes/arrays.c:936 Opcodes/arrays.c:1008 Opcodes/arrays.c:1054
-#: Opcodes/pvsbasic.c:2431 Opcodes/pvsbasic.c:2462 Opcodes/pvsbasic.c:2510
+#: Opcodes/arrays.c:388 Opcodes/arrays.c:407 Opcodes/arrays.c:443
+#: Opcodes/arrays.c:463 Opcodes/arrays.c:487 Opcodes/arrays.c:507
+#: Opcodes/arrays.c:544 Opcodes/arrays.c:582 Opcodes/arrays.c:602
+#: Opcodes/arrays.c:619 Opcodes/arrays.c:660 Opcodes/arrays.c:680
+#: Opcodes/arrays.c:707 Opcodes/arrays.c:727 Opcodes/arrays.c:755
+#: Opcodes/arrays.c:782 Opcodes/arrays.c:838 Opcodes/arrays.c:872
+#: Opcodes/arrays.c:903 Opcodes/arrays.c:934 Opcodes/arrays.c:970
+#: Opcodes/arrays.c:1000 Opcodes/arrays.c:1030 Opcodes/arrays.c:1060
+#: Opcodes/arrays.c:1090 Opcodes/arrays.c:1120 Opcodes/arrays.c:1150
+#: Opcodes/arrays.c:1185 Opcodes/arrays.c:1220 Opcodes/arrays.c:1247
+#: Opcodes/arrays.c:1253 Opcodes/arrays.c:1264 Opcodes/arrays.c:1295
+#: Opcodes/arrays.c:1326 Opcodes/arrays.c:1347 Opcodes/arrays.c:1419
+#: Opcodes/arrays.c:1465 Opcodes/pvsbasic.c:2431 Opcodes/pvsbasic.c:2462
+#: Opcodes/pvsbasic.c:2510
 msgid "array-variable not initialised"
 msgstr "array-variable non inizializzata"
 
@@ -6386,133 +6400,139 @@ msgstr "array-variable non inizializzata"
 msgid "Dimension does not match in array arithmetic"
 msgstr "La dimensione non combacia nell'aritmetica dell'array"
 
-#: Opcodes/arrays.c:477 Opcodes/arrays.c:740
+#: Opcodes/arrays.c:473 Opcodes/arrays.c:735
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr "divisione per zero in array-var all'indice %d"
 
-#: Opcodes/arrays.c:522 Opcodes/arrays.c:769 Opcodes/arrays.c:796
+#: Opcodes/arrays.c:516 Opcodes/arrays.c:764 Opcodes/arrays.c:791
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr "potenza non definita in array-var all'indice %d"
 
-#: Opcodes/arrays.c:663 Opcodes/arrays.c:686 Opcodes/arrays.c:709
+#: Opcodes/arrays.c:657 Opcodes/arrays.c:687 Opcodes/arrays.c:704
+#: Opcodes/arrays.c:1188
 msgid "division by zero in array-var"
 msgstr "divisione per zero in array-var"
 
-#: Opcodes/arrays.c:918
+#: Opcodes/arrays.c:949 Opcodes/arrays.c:1164
+#, fuzzy, c-format
+msgid "division by zero in array-var at index %d/%d"
+msgstr "divisione per zero in array-var all'indice %d"
+
+#: Opcodes/arrays.c:1329
 msgid "array-variable not a vector"
 msgstr "array-variable non un vettore"
 
-#: Opcodes/arrays.c:1012 Opcodes/arrays.c:1057
+#: Opcodes/arrays.c:1423 Opcodes/arrays.c:1468
 msgid "array-variable dimensions do not match"
 msgstr "array-variable le dimensioni non combaciano"
 
-#: Opcodes/arrays.c:1014
+#: Opcodes/arrays.c:1425
 msgid "array-variable types do not match"
 msgstr "array-variable i tipi non combaciano"
 
-#: Opcodes/arrays.c:1106 Opcodes/arrays.c:1127 Opcodes/arrays.c:1306
-#: Opcodes/arrays.c:1342 Opcodes/arrays.c:1345
+#: Opcodes/arrays.c:1517 Opcodes/arrays.c:1538 Opcodes/arrays.c:1717
+#: Opcodes/arrays.c:1753 Opcodes/arrays.c:1756
 msgid "array-var not initialised"
 msgstr "array-var non inizializzato"
 
-#: Opcodes/arrays.c:1109 Opcodes/arrays.c:1129 Opcodes/arrays.c:1187
-#: Opcodes/arrays.c:1209
+#: Opcodes/arrays.c:1520 Opcodes/arrays.c:1540 Opcodes/arrays.c:1598
+#: Opcodes/arrays.c:1620
 msgid "No table for copy2ftab"
 msgstr "Nessuna tavola per copy2ftab"
 
-#: Opcodes/arrays.c:1159
+#: Opcodes/arrays.c:1570
 msgid "inconsistent start, end and increment parameters"
 msgstr "parametri di inizio, fine e incremento inconsistenti"
 
-#: Opcodes/arrays.c:1244
+#: Opcodes/arrays.c:1655
 msgid "inconsistent start, end parameters"
 msgstr "parametri di inizio, fine incongruenti"
 
-#: Opcodes/arrays.c:1247
+#: Opcodes/arrays.c:1658
 msgid "slice larger than original size"
 msgstr "slice ?? maggiore della dimensione originale"
 
-#: Opcodes/arrays.c:1250
+#: Opcodes/arrays.c:1661
 msgid "slice increment must be positive"
 msgstr "l'incremento di slice deve essere positivo"
 
-#: Opcodes/arrays.c:1319
+#: Opcodes/arrays.c:1730
 #, c-format
 msgid "%s not found"
 msgstr "%s non trovato"
 
-#: Opcodes/arrays.c:1350
+#: Opcodes/arrays.c:1761
 msgid "map fn not found at k rate"
 msgstr "map fn non trovata a k rate"
 
-#: Opcodes/arrays.c:1527
+#: Opcodes/arrays.c:1938
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr "rfft: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:1560
+#: Opcodes/arrays.c:1971
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr "rifft: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:1591
+#: Opcodes/arrays.c:2002
 msgid "array sizes do not match\n"
 msgstr "le dimensioni dell'array non combaciano\n"
 
-#: Opcodes/arrays.c:1615
+#: Opcodes/arrays.c:2026
 msgid "fft: only one-dimensional arrays allowed"
 msgstr "fft: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:1642
+#: Opcodes/arrays.c:2053
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr "fftinv: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:1703
+#: Opcodes/arrays.c:2114
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr "in array le dimensioni non combaciano: %d e %d\n"
 
-#: Opcodes/arrays.c:1874 Opcodes/arrays.c:1914 Opcodes/arrays.c:1946
+#: Opcodes/arrays.c:2285 Opcodes/arrays.c:2325 Opcodes/arrays.c:2357
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr "caso di non potenza di due non ancora implementato\n"
 
-#: Opcodes/arrays.c:1907
+#: Opcodes/arrays.c:2318
 msgid "FFT size too small (min 64 samples)\n"
 msgstr "dimensione FFT troppo piccola (min 64 campioni)\n"
 
-#: Opcodes/arrays.c:1974 Opcodes/arrays.c:1997
+#: Opcodes/arrays.c:2385 Opcodes/arrays.c:2408
 msgid "in array not 2-dimensional\n"
 msgstr "l'array in non ?? bidimensionale\n"
 
-#: Opcodes/arrays.c:1986
+#: Opcodes/arrays.c:2397
 msgid "requested row is out of range\n"
 msgstr "la riga richiesta ?? fuori intervallo\n"
 
-#: Opcodes/arrays.c:2011
+#: Opcodes/arrays.c:2422
 msgid "requested col is out of range\n"
 msgstr "la colonna richiesta ?? fuori intervallo\n"
 
-#: Opcodes/arrays.c:2044 Opcodes/arrays.c:2064
+#: Opcodes/arrays.c:2455 Opcodes/arrays.c:2475
 msgid "Error: index out of range\n"
 msgstr "Errore: indice fuori intervallo\n"
 
-#: Opcodes/arrays.c:2100
+#: Opcodes/arrays.c:2511
 msgid "input array too small\n"
 msgstr "array d'input troppo piccolo\n"
 
-#: Opcodes/arrays.c:2150
+#: Opcodes/arrays.c:2561
 msgid "dct: only one-dimensional arrays allowed"
 msgstr "dct: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:2157
+#: Opcodes/arrays.c:2568
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr "dct: dimensioni non potenza di due non ancora implementate"
 
-#: Opcodes/arrays.c:2179
+#: Opcodes/arrays.c:2590
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr "dctinv: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:2187
+#: Opcodes/arrays.c:2598
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv: dimensioni non potenza di due non ancora implementate"
 
@@ -6538,7 +6558,7 @@ msgstr "vco: non inizializzato"
 
 #: Opcodes/bowedbar.c:53
 #, c-format
-msgid "DLineN: Delay length too big ... setting to maximum length of %ld.\n"
+msgid "DLineN: Delay length too big ... setting to maximum length of %d.\n"
 msgstr ""
 
 #: Opcodes/bowedbar.c:98
@@ -6675,55 +6695,57 @@ msgstr "readf: lettura fallita"
 msgid "readi failed to initialise"
 msgstr "readi fallita inizializzazione"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:245
+#: Opcodes/dssi4cs/src/dssi4cs.c:244
 #, c-format
 msgid "DSSI4CS: Failed to load %s."
 msgstr "DSSI4CS: Fallito caricamento di %s."
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:250
+#: Opcodes/dssi4cs/src/dssi4cs.c:249
 msgid "Error creating global variable '$DSSI4CS'"
 msgstr "Errore nella creazione della variabile globale '$DSSI4CS'"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:260
+#: Opcodes/dssi4cs/src/dssi4cs.c:259
 msgid "DSSI4CS: Loading first instance.\n"
 msgstr "DSSI4CS: Caricamento della prima istanza.\n"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:302
-msgid "No lapspa descriptor\n"
+#: Opcodes/dssi4cs/src/dssi4cs.c:301
+#, fuzzy
+msgid "No ladspa descriptor\n"
 msgstr "Nessun descrittore lapspa\n"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:322
+#: Opcodes/dssi4cs/src/dssi4cs.c:323
+#, fuzzy, c-format
 msgid ""
-"DSSI4CS: Unable to find ladspa_descriptor(%d) function or\n"
-"dssi_descriptor(%) function in plugin file \"%s\": %s.\n"
+"DSSI4CS: Unable to find ladspa_descriptor(%ul) function or\n"
+"dssi_descriptor(%ul) function in plugin file \"%s\": %s.\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
 "DSSI4CS: Non trovo la funzione ladspa_descriptor(%d) o\n"
 "la funzione dssi_descriptor(%d) nel file plugin \"%s\": %s.\n"
 "Sicuri che questo sia un file plugin LADSPA o DSSI ?"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:331
-#, c-format
+#: Opcodes/dssi4cs/src/dssi4cs.c:332
+#, fuzzy, c-format
 msgid ""
-"DSSI4CS: Unable to find ladspa_descriptor(%d) function or\n"
-"dssi_descriptor(%d) function in plugin file \"%s\".\n"
+"DSSI4CS: Unable to find ladspa_descriptor(%ul) function or\n"
+"dssi_descriptor(%ul) function in plugin file \"%s\".\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
 "DSSI4CS: Non trovo la funzione ladspa_descriptor(%d) o\n"
 "la funzione dssi_descriptor(%d) nel file plugin \"%s\".\n"
 "Sicuri che questo sia un file plugin LADSPA o DSSI ?"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:343
+#: Opcodes/dssi4cs/src/dssi4cs.c:344
 #, c-format
 msgid "DSSI4CS: No plugin index %lu in %s"
 msgstr "DSSI4CS: Nessun indice %lu nel plugin in %s"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:359 Opcodes/dssi4cs/src/dssi4cs.c:380
+#: Opcodes/dssi4cs/src/dssi4cs.c:360 Opcodes/dssi4cs/src/dssi4cs.c:381
 #, c-format
 msgid "DSSI4CS: Could not instantiate plugin: %s"
 msgstr "DSSI4CS: Non riesco ad istanziare il plugin: %s"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:366 Opcodes/dssi4cs/src/dssi4cs.c:385
+#: Opcodes/dssi4cs/src/dssi4cs.c:367 Opcodes/dssi4cs/src/dssi4cs.c:386
 #, c-format
 msgid "DSSI4CS: No run() funtion in: %s"
 msgstr "DSSI4CS: Nessuna funzione run() in: %s"
@@ -6762,52 +6784,52 @@ msgstr "DSSI4CS: Plugin '%s' ha %i porte audio input."
 msgid "DSSI4CS: Plugin '%s' has %i audio output ports."
 msgstr "DSSI4CS: Plugin '%s' ha %i porte audio output."
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:807
+#: Opcodes/dssi4cs/src/dssi4cs.c:808
 #, fuzzy
 msgid "DSSI4CS: Invalid plugin handle."
 msgstr "nome di variabile non valido"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:818
+#: Opcodes/dssi4cs/src/dssi4cs.c:819
 msgid "DSSI4CS: Audio Rate control ports not implemented yet."
 msgstr ""
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:857
+#: Opcodes/dssi4cs/src/dssi4cs.c:851
 #, c-format
 msgid "DSSI4CS: Port %lu from '%s' does not exist."
 msgstr "DSSI4CS: La porta %lu da '%s' non esiste."
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:865
+#: Opcodes/dssi4cs/src/dssi4cs.c:866
 #, c-format
 msgid "DSSI4CS: Port %lu from '%s' is an output port."
 msgstr "DSSI4CS: La porta %lu da '%s' ?? una porta d'output."
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:900
+#: Opcodes/dssi4cs/src/dssi4cs.c:901
 msgid "DSSI4CS: Not initialised or wrong argument types."
 msgstr "DSSI4CS: non inizializzato or wrong argument types."
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:924
+#: Opcodes/dssi4cs/src/dssi4cs.c:925
 msgid "DSSI4CS: dssinote not implemented yet."
 msgstr "DSSI4CS: dssinote non ancora implementato."
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:935
+#: Opcodes/dssi4cs/src/dssi4cs.c:936
 msgid "DSSI4CS: dssievent not implemented yet."
 msgstr "DSSI4CS: dssievent non ancora implementato."
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:1027 Opcodes/dssi4cs/src/dssi4cs.c:1113
+#: Opcodes/dssi4cs/src/dssi4cs.c:1028 Opcodes/dssi4cs/src/dssi4cs.c:1114
 #: Opcodes/dssi4cs/src/load.c:53
 msgid "DSSI4CS: LADSPA_PATH environment variable not set.\n"
 msgstr "DSSI4CS: variabile d'ambiente LADSPA_PATH non impostata.\n"
 
-#: Opcodes/dssi4cs/src/dssi4cs.c:1036 Opcodes/dssi4cs/src/dssi4cs.c:1117
+#: Opcodes/dssi4cs/src/dssi4cs.c:1037 Opcodes/dssi4cs/src/dssi4cs.c:1118
 msgid "DSSI4CS: DSSI_PATH environment variable not set.\n"
 msgstr "DSSI4CS: variabile d'ambiente DSSI_PATH non impostata.\n"
 
-#: Opcodes/dssi4cs/src/load.c:137
+#: Opcodes/dssi4cs/src/load.c:140
 #, c-format
 msgid "Failed to load plugin \"%s\": %s"
 msgstr "Fallito caricamento del plugin \"%s\": %s"
 
-#: Opcodes/dssi4cs/src/load.c:172
+#: Opcodes/dssi4cs/src/load.c:175
 #, c-format
 msgid ""
 "Unable to find ladspa_descriptor() function in plugin library file \"%s\": "
@@ -6815,14 +6837,14 @@ msgid ""
 "Are you sure this is a LADSPA plugin file ?"
 msgstr ""
 
-#: Opcodes/dssi4cs/src/load.c:178
+#: Opcodes/dssi4cs/src/load.c:181
 #, c-format
 msgid ""
 "Unable to find ladspa_descriptor() function in plugin library file \"%s\".\n"
 "Are you sure this is a LADSPA plugin file ?"
 msgstr ""
 
-#: Opcodes/dssi4cs/src/load.c:193
+#: Opcodes/dssi4cs/src/load.c:196
 #, c-format
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
@@ -6853,9 +6875,9 @@ msgstr "argomenti insufficienti per fareytable"
 msgid "Farey: Table no. < 1 dft=%.2f  sft=%.2f"
 msgstr "Farey: Tavola no. < 1 dft=%.2f  sft=%.2f"
 
-#: Opcodes/fareyseq.c:257
-#, c-format
-msgid "Farey: Filter type < 1 dft=%.2f  sft=%.2f"
+#: Opcodes/fareyseq.c:257 Opcodes/fareyseq.c:307
+#, fuzzy, c-format
+msgid "Farey: Filter type < 1 ftype=%.2f"
 msgstr "Farey:  tipo filtro < 1 dft=%.2f  sft=%.2f"
 
 #: Opcodes/fareyseq.c:272 Opcodes/fareyseq.c:320
@@ -6868,10 +6890,6 @@ msgstr "Farey: Tavola %.2f di destinazione dft non trovata."
 msgid "Farey: Source sft table %.2f not found."
 msgstr "Farey: Tavola %.2f sorgente sft non trovata."
 
-#: Opcodes/fareyseq.c:307
-msgid "Farey: Filter type < 1"
-msgstr "Farey: tipo filtro < 1"
-
 #: Opcodes/fareyseq.c:446 Opcodes/fareyseq.c:467
 #, c-format
 msgid "Table no. < 1 sft=%.2f"
@@ -6882,7 +6900,7 @@ msgstr "Tavola no. < 1 sft=%.2f"
 msgid "Source sft table %.2f not found."
 msgstr ""
 
-#: Opcodes/faustgen.cpp:268
+#: Opcodes/faustgen.cpp:269
 #, c-format
 msgid ""
 "\n"
@@ -6893,54 +6911,54 @@ msgstr ""
 "problema di compilazione Faust:\n"
 "linea %s\n"
 
-#: Opcodes/faustgen.cpp:389
+#: Opcodes/faustgen.cpp:390
 #, c-format
 msgid "could not find DSP %p for deletion"
 msgstr "non riesco a trovare DSP %p per la cancellazione"
 
-#: Opcodes/faustgen.cpp:415
+#: Opcodes/faustgen.cpp:416
 msgid ""
 "Faust code did not compile properly.\n"
 "Check above messages for Faust compiler errors\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:421
+#: Opcodes/faustgen.cpp:422
 #, fuzzy
 msgid "no factory available\n"
 msgstr "nessun dispositivo di output disponibile"
 
-#: Opcodes/faustgen.cpp:427
+#: Opcodes/faustgen.cpp:428
 #, fuzzy, c-format
 msgid "factory not found %d\n"
 msgstr "strumento %s non trovato"
 
-#: Opcodes/faustgen.cpp:432 Opcodes/faustgen.cpp:535
+#: Opcodes/faustgen.cpp:433 Opcodes/faustgen.cpp:536
 msgid "Faust instantiation problem \n"
 msgstr "problema istanziamento Faust \n"
 
-#: Opcodes/faustgen.cpp:474 Opcodes/faustgen.cpp:573
+#: Opcodes/faustgen.cpp:475 Opcodes/faustgen.cpp:574
 msgid "wrong number of input args\n"
 msgstr "numero di argomenti in input sbagliato\n"
 
-#: Opcodes/faustgen.cpp:478 Opcodes/faustgen.cpp:582
+#: Opcodes/faustgen.cpp:479 Opcodes/faustgen.cpp:583
 msgid "wrong number of output args\n"
 msgstr "numero di argomenti d'output sbagliato\n"
 
-#: Opcodes/faustgen.cpp:527
+#: Opcodes/faustgen.cpp:528
 #, c-format
 msgid "Faust compilation problem: %s\n"
 msgstr "problema di compilazione Faust: %s\n"
 
-#: Opcodes/faustgen.cpp:688
+#: Opcodes/faustgen.cpp:689
 msgid "no dsp instances available\n"
 msgstr "nessuna istanza dsp disponibile\n"
 
-#: Opcodes/faustgen.cpp:695
+#: Opcodes/faustgen.cpp:696
 #, c-format
 msgid "dsp instance not found %d\n"
 msgstr "istanza dsp non trovata %d\n"
 
-#: Opcodes/faustgen.cpp:700
+#: Opcodes/faustgen.cpp:701
 #, c-format
 msgid "dsp control %s not found\n"
 msgstr "controllo dsp %s non trovato\n"
@@ -7120,8 +7138,8 @@ msgstr "Errore cancellazione ftable %d"
 msgid "ftgen string arg not allowed"
 msgstr "ftgen argomento stringa non permesso"
 
-#: Opcodes/ftgen.c:158 Opcodes/ftgen.c:668 Opcodes/oscbnk.c:1838
-#: Opcodes/oscbnk.c:1862
+#: Opcodes/ftgen.c:158 Opcodes/ftgen.c:668 Opcodes/oscbnk.c:1839
+#: Opcodes/oscbnk.c:1863
 msgid "ftgen error"
 msgstr "errore ftgen"
 
@@ -7186,11 +7204,11 @@ msgstr "Errore: il secondo parametro alla directory deve essere una stringa"
 msgid "Cannot find directory. Error opening directory: %s\n"
 msgstr "Non riesco a trovare la directory. Errore apertura directory: %s\n"
 
-#: Opcodes/gab/gab.c:116
+#: Opcodes/gab/gab.c:114
 msgid "fastab: incorrect table number"
 msgstr "fastab: numero di tavola non corretto"
 
-#: Opcodes/gab/gab.c:146 Opcodes/gab/gab.c:155 Opcodes/gab/gab.c:185
+#: Opcodes/gab/gab.c:145 Opcodes/gab/gab.c:155 Opcodes/gab/gab.c:185
 msgid "tabw off end"
 msgstr ""
 
@@ -7216,46 +7234,42 @@ msgstr "tabw_i: numero di tavola non corretto"
 msgid "tabw_i off end"
 msgstr ""
 
-#: Opcodes/gab/gab.c:249 Opcodes/gab/gab.c:258
+#: Opcodes/gab/gab.c:250 Opcodes/gab/gab.c:260
 #, c-format
 msgid "tab off end %d"
 msgstr "tab off end %d"
 
-#: Opcodes/gab/gab.c:271
+#: Opcodes/gab/gab.c:273
 msgid "tab_init: incorrect table number"
 msgstr "tab_init: numero di tavola non corretto"
 
-#: Opcodes/gab/gab.c:340
-msgid "printi parameter was not a \"quoted string\""
-msgstr "parametro di printi non ?? una \"stringa quotata\""
-
-#: Opcodes/gab/gab.c:453
+#: Opcodes/gab/gab.c:430
 msgid "adsynt2: wavetable not found!"
 msgstr "adsynt2: wavetable non trovata!"
 
-#: Opcodes/gab/gab.c:465
+#: Opcodes/gab/gab.c:442
 msgid "adsynt2: freqtable not found!"
 msgstr "adsynt2: freqtable non trovata!"
 
-#: Opcodes/gab/gab.c:470
+#: Opcodes/gab/gab.c:447
 msgid "adsynt2: partial count is greater than freqtable size!"
 msgstr ""
 "adsynt2: il conto delle parziali ?? maggiore della dimensione di freqtable!"
 
-#: Opcodes/gab/gab.c:479
+#: Opcodes/gab/gab.c:456
 msgid "adsynt2: amptable not found!"
 msgstr "adsynt2: amptable non trovata!"
 
-#: Opcodes/gab/gab.c:484
+#: Opcodes/gab/gab.c:461
 msgid "adsynt2: partial count is greater than amptable size!"
 msgstr ""
 "adsynt2: il conto delle parziali ?? maggiore della dimensione di amptable!"
 
-#: Opcodes/gab/gab.c:528
+#: Opcodes/gab/gab.c:507
 msgid "adsynt2: not initialised"
 msgstr "adsynt2: non inizializzato"
 
-#: Opcodes/gab/gab.c:809
+#: Opcodes/gab/gab.c:788
 msgid "max_k: invalid imaxflag value"
 msgstr "max_k: valore di imaxflag non valido"
 
@@ -7739,9 +7753,9 @@ msgid "vport: invalid init table"
 msgstr "vport: tavola init non valida"
 
 #: Opcodes/gab/vectorial.c:1907
-#, c-format
-msgid "vrandh: Seeding from current time %lu\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "vrandh: Seeding from current time %u\n"
+msgstr "Seme dal tempo attuale %u\n"
 
 #: Opcodes/gab/vectorial.c:1920
 msgid "vrandh: Invalid table."
@@ -7756,9 +7770,9 @@ msgid "randh: Table length exceeded, last elements discarded."
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:2007
-#, c-format
-msgid "vrandi: Seeding from current time %lu\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "vrandi: Seeding from current time %u\n"
+msgstr "Seme dal tempo attuale %u\n"
 
 #: Opcodes/gab/vectorial.c:2019
 msgid "vrandi: Invalid table."
@@ -7994,8 +8008,8 @@ msgstr ""
 msgid "hdf5read: Unable to read saved type of dataset, exiting"
 msgstr ""
 
-#: Opcodes/hrtfearly.c:301 Opcodes/hrtfopcodes.c:262 Opcodes/hrtfopcodes.c:1447
-#: Opcodes/hrtfreverb.c:283
+#: Opcodes/hrtfearly.c:301 Opcodes/hrtfopcodes.c:262
+#: Opcodes/hrtfopcodes.c:1447 Opcodes/hrtfreverb.c:283
 #, c-format
 msgid ""
 "\n"
@@ -8005,8 +8019,9 @@ msgid ""
 "\n"
 msgstr ""
 
-#: Opcodes/hrtfearly.c:326 Opcodes/hrtfopcodes.c:289 Opcodes/hrtfopcodes.c:1474
-#: Opcodes/hrtfopcodes.c:2096 Opcodes/hrtfreverb.c:326
+#: Opcodes/hrtfearly.c:326 Opcodes/hrtfopcodes.c:289
+#: Opcodes/hrtfopcodes.c:1474 Opcodes/hrtfopcodes.c:2096
+#: Opcodes/hrtfreverb.c:326
 msgid ""
 "\n"
 "\n"
@@ -8015,8 +8030,9 @@ msgid ""
 "\n"
 msgstr ""
 
-#: Opcodes/hrtfearly.c:333 Opcodes/hrtfopcodes.c:296 Opcodes/hrtfopcodes.c:1481
-#: Opcodes/hrtfopcodes.c:2103 Opcodes/hrtfreverb.c:332
+#: Opcodes/hrtfearly.c:333 Opcodes/hrtfopcodes.c:296
+#: Opcodes/hrtfopcodes.c:1481 Opcodes/hrtfopcodes.c:2103
+#: Opcodes/hrtfreverb.c:332
 msgid ""
 "\n"
 "\n"
@@ -8228,15 +8244,15 @@ msgstr ""
 msgid "unknown joystick event type %i"
 msgstr ""
 
-#: Opcodes/liveconv.c:239
+#: Opcodes/liveconv.c:249
 msgid "liveconv: invalid impulse response partition length"
 msgstr ""
 
-#: Opcodes/liveconv.c:252
+#: Opcodes/liveconv.c:262
 msgid "liveconv: invalid length, or insufficient IR data for convolution"
 msgstr ""
 
-#: Opcodes/liveconv.c:479
+#: Opcodes/liveconv.c:500
 msgid "liveconv: not initialised"
 msgstr "liveconv: non inizializzato"
 
@@ -8344,17 +8360,17 @@ msgstr ""
 msgid "modmatrix: "
 msgstr "modmatrix: "
 
-#: Opcodes/mp3in.c:114 Opcodes/mp3in.c:290
+#: Opcodes/mp3in.c:116 Opcodes/mp3in.c:292
 #, c-format
 msgid "mp3in: %s: failed to open file"
 msgstr ""
 
-#: Opcodes/mp3in.c:162
+#: Opcodes/mp3in.c:164
 #, c-format
 msgid "mp3in: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: Opcodes/mp3in.c:466
+#: Opcodes/mp3in.c:468
 #, c-format
 msgid "mp3scale: %s: failed to open file"
 msgstr "mp3scale: %s: fallita apertura file"
@@ -8387,93 +8403,93 @@ msgstr "grain3: durata grain non valida"
 msgid "grain3: invalid grain density"
 msgstr "grain3: densit?? grain non valida"
 
-#: Opcodes/oscbnk.c:1021
+#: Opcodes/oscbnk.c:1022
 msgid "grain3: not initialised"
 msgstr "grain3: non inizializzato"
 
-#: Opcodes/oscbnk.c:1024
+#: Opcodes/oscbnk.c:1025
 msgid "grain3 needs more overlaps"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1097 Opcodes/oscbnk.c:1142
+#: Opcodes/oscbnk.c:1098 Opcodes/oscbnk.c:1143
 msgid "rnd31: not initialised"
 msgstr "rnd31: non inizializzato"
 
-#: Opcodes/oscbnk.c:1703
+#: Opcodes/oscbnk.c:1704
 #, c-format
 msgid "redefined table array for waveform %d\n"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1788
+#: Opcodes/oscbnk.c:1789
 #, c-format
 msgid "vco2init: invalid waveform number: %f"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1796
+#: Opcodes/oscbnk.c:1797
 msgid "vco2init: invalid base ftable number"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1807
+#: Opcodes/oscbnk.c:1808
 msgid "vco2init: invalid partial number multiplier"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1816
+#: Opcodes/oscbnk.c:1817
 msgid "vco2init: invalid min table size"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1824
+#: Opcodes/oscbnk.c:1825
 msgid "vco2init: invalid max table size"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1846
+#: Opcodes/oscbnk.c:1847
 msgid "vco2init: invalid source ftable"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1889
+#: Opcodes/oscbnk.c:1890
 msgid "vco2ft: table array not found for this waveform"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1961
+#: Opcodes/oscbnk.c:1962
 msgid "vco2ft: not initialised"
 msgstr "vco2ft: non inizializzato"
 
-#: Opcodes/oscbnk.c:1981
+#: Opcodes/oscbnk.c:1982
 msgid "vco2: too many input arguments"
 msgstr ""
 
-#: Opcodes/oscbnk.c:1991
+#: Opcodes/oscbnk.c:1992
 msgid "vco2: insufficient required arguments"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2009
+#: Opcodes/oscbnk.c:2010
 msgid "vco2: table array not found for user defined waveform"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2058
+#: Opcodes/oscbnk.c:2059
 msgid "vco2: not initialised"
 msgstr "vco2: non inizializzato"
 
-#: Opcodes/oscbnk.c:2222
+#: Opcodes/oscbnk.c:2223
 msgid "delayk: invalid delay time (must be >= 0)"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2240
+#: Opcodes/oscbnk.c:2241
 msgid "delayk: not initialised"
 msgstr "delayk: non inizializzato"
 
-#: Opcodes/oscbnk.c:2263
+#: Opcodes/oscbnk.c:2264
 msgid "vdel_k: invalid max delay time (must be >= 0)"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2282
+#: Opcodes/oscbnk.c:2283
 msgid "vdel_k: not initialised"
 msgstr "vdel_k: non inizializzato"
 
-#: Opcodes/oscbnk.c:2288
+#: Opcodes/oscbnk.c:2289
 msgid "vdel_k: invalid delay time (must be >= 0)"
 msgstr ""
 
-#: Opcodes/oscbnk.c:2562
+#: Opcodes/oscbnk.c:2563
 msgid "rbjeq: invalid filter type"
 msgstr ""
 
@@ -8672,8 +8688,7 @@ msgstr ""
 #: Opcodes/pitch.c:1422
 #, c-format
 msgid ""
-"pinkish: Gardner method requires 4-%d bands. Default %ld substituted for "
-"%d.\n"
+"pinkish: Gardner method requires 4-%d bands. Default %d substituted for %d.\n"
 msgstr ""
 
 #: Opcodes/pitch.c:1685
@@ -8802,7 +8817,7 @@ msgstr ""
 
 #: Opcodes/pvadd.c:226
 #, c-format
-msgid "PV frame %ld seems too small in %s"
+msgid "PV frame %d seems too small in %s"
 msgstr ""
 
 #: Opcodes/pvadd.c:231 Opcodes/pvread.c:129 Opcodes/ugens8.c:255
@@ -9586,35 +9601,35 @@ msgstr ""
 msgid "sndwarpst: not initialised"
 msgstr "sndwarpst: non inizializzato"
 
-#: Opcodes/sockrecv.c:168 Opcodes/sockrecv.c:224 Opcodes/sockrecv.c:339
-#: Opcodes/sockrecv.c:423 Opcodes/sockrecv.c:540 Opcodes/socksend.c:90
+#: Opcodes/sockrecv.c:140 Opcodes/sockrecv.c:143 Opcodes/sockrecv.c:537
+#: Opcodes/sockrecv.c:540
+msgid "OSCraw: Closing socket\n"
+msgstr ""
+
+#: Opcodes/sockrecv.c:176 Opcodes/sockrecv.c:238 Opcodes/sockrecv.c:353
+#: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:554 Opcodes/socksend.c:90
 #: Opcodes/socksend.c:239 Opcodes/socksend.c:338 Opcodes/socksend.c:425
-#: Top/server.c:81
+#: Top/server.c:214
 #, c-format
 msgid "Winsock2 failed to start: %d"
 msgstr ""
 
-#: Opcodes/sockrecv.c:175 Opcodes/sockrecv.c:231 Opcodes/sockrecv.c:346
-#: Opcodes/sockrecv.c:545 Opcodes/sockrecv.c:549
+#: Opcodes/sockrecv.c:182 Opcodes/sockrecv.c:188 Opcodes/sockrecv.c:245
+#: Opcodes/sockrecv.c:360 Opcodes/sockrecv.c:559 Opcodes/sockrecv.c:563
 msgid "Cannot set nonblock"
 msgstr ""
 
-#: Opcodes/sockrecv.c:178 Opcodes/sockrecv.c:234 Opcodes/sockrecv.c:349
-#: Opcodes/sockrecv.c:429 Opcodes/sockrecv.c:552 Opcodes/socksend.c:104
+#: Opcodes/sockrecv.c:192 Opcodes/sockrecv.c:248 Opcodes/sockrecv.c:363
+#: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:566 Opcodes/socksend.c:104
 #: Opcodes/socksend.c:254 Opcodes/socksend.c:345 Opcodes/socksend.c:429
-#: Top/server.c:87
 msgid "creating socket"
 msgstr ""
 
-#: Opcodes/sockrecv.c:476
+#: Opcodes/sockrecv.c:490
 msgid "read from socket failed"
 msgstr ""
 
-#: Opcodes/sockrecv.c:523 Opcodes/sockrecv.c:526
-msgid "OSCraw: Closing socket\n"
-msgstr ""
-
-#: Opcodes/sockrecv.c:605
+#: Opcodes/sockrecv.c:619
 msgid "output array too small\n"
 msgstr "array d'output troppo piccolo\n"
 
@@ -9701,7 +9716,7 @@ msgstr ""
 
 #: Opcodes/spectra.c:189
 #, c-format
-msgid "\t%d oct analysis window delay = %ld samples (%d msecs)\n"
+msgid "\t%d oct analysis window delay = %d samples (%d msecs)\n"
 msgstr ""
 
 #: Opcodes/spectra.c:197
@@ -9853,7 +9868,7 @@ msgstr ""
 msgid "stdopcod.c: error: globals already allocated"
 msgstr ""
 
-#: Opcodes/stk/stkOpcodes.cpp:747
+#: Opcodes/stk/stkOpcodes.cpp:748
 msgid ""
 "STK opcodes not available: define environment variable RAWWAVE_PATH\n"
 "(points to rawwaves directory) to use STK opcodes."
@@ -9932,7 +9947,7 @@ msgstr ""
 
 #: Opcodes/ugens9.c:63
 #, c-format
-msgid "%s not a CONVOLVE file (magic %ld)"
+msgid "%s not a CONVOLVE file (magic %d)"
 msgstr ""
 
 #: Opcodes/ugens9.c:74 Opcodes/ugens9.c:82
@@ -9945,7 +9960,7 @@ msgstr ""
 
 #: Opcodes/ugens9.c:109
 #, c-format
-msgid "unsupported CONVOLVE data format %ld in %s"
+msgid "unsupported CONVOLVE data format %d in %s"
 msgstr ""
 
 #: Opcodes/ugens9.c:367
@@ -10301,14 +10316,14 @@ msgstr ""
 
 #: Opcodes/vbap.c:635
 #, c-format
-msgid "Too little data speakers (%n)\n"
+msgid "Too little data speakers (%d)\n"
 msgstr ""
 
 #: Opcodes/vbap.c:658
 msgid "Not valid 3-D configuration"
 msgstr ""
 
-#: Opcodes/vbap.c:705 Opcodes/vbap.c:816
+#: Opcodes/vbap.c:705 Opcodes/vbap.c:817
 msgid ""
 "\n"
 "Configured loudspeakers\n"
@@ -10328,7 +10343,7 @@ msgstr ""
 msgid "insufficient valid speakers"
 msgstr "speakers validi insufficienti"
 
-#: Opcodes/vbap.c:818
+#: Opcodes/vbap.c:819
 #, c-format
 msgid "Pair %d Loudspeakers: "
 msgstr ""
@@ -10418,36 +10433,36 @@ msgstr ""
 msgid "vpvoc: not initialised"
 msgstr "vpvoc: non inizializzato"
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:75
+#: Opcodes/vst4cs/src/vst4cs.cpp:98
 msgid "vstinit: Error loading effect."
 msgstr "vstinit: Errore nel caricare l'effetto."
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:99
+#: Opcodes/vst4cs/src/vst4cs.cpp:122
 msgid "vstaudio: too many input args"
 msgstr "vstaudio: troppi argomenti in input"
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:298
+#: Opcodes/vst4cs/src/vst4cs.cpp:321
 msgid "Error: BeginLoadBank."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:304
+#: Opcodes/vst4cs/src/vst4cs.cpp:327
 msgid "Loaded bank ID doesn't match plug-in ID."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:309
+#: Opcodes/vst4cs/src/vst4cs.cpp:332
 msgid "Loaded bank contains a chunk format that the effect cannot handle."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:332
+#: Opcodes/vst4cs/src/vst4cs.cpp:355
 msgid "Problem loading bank."
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:346
+#: Opcodes/vst4cs/src/vst4cs.cpp:369
 #, c-format
 msgid "VSTprogset: Program %d treated as 1\n"
 msgstr ""
 
-#: Opcodes/vst4cs/src/vst4cs.cpp:471
+#: Opcodes/vst4cs/src/vst4cs.cpp:494
 msgid "vstnote_init: not scheduling 0 duration note.\n"
 msgstr ""
 
@@ -10455,7 +10470,7 @@ msgstr ""
 msgid "wterrain: ftable not found"
 msgstr ""
 
-#: Opcodes/wave-terrain.c:122
+#: Opcodes/wave-terrain.c:121
 msgid "Source table must be same size or smaller than dest table\n"
 msgstr ""
 
@@ -11158,7 +11173,7 @@ msgid ""
 msgstr ""
 
 #: Top/argdecode.c:289
-msgid "--vbr-quality=Ft        set quality of variable bit0rate compression"
+msgid "--vbr-quality=Ft        set quality of variable bit-rate compression"
 msgstr ""
 
 #: Top/argdecode.c:290
@@ -11182,249 +11197,253 @@ msgid ""
 "--fftlib=N              actual FFT lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"
 msgstr ""
 
-#: Top/argdecode.c:296
+#: Top/argdecode.c:295
+msgid "--udp-echo              echo UDP commands on terminal"
+msgstr ""
+
+#: Top/argdecode.c:297
 msgid "--help                  long help"
 msgstr ""
 
-#: Top/argdecode.c:311
+#: Top/argdecode.c:312
 #, c-format
 msgid ""
 "flag defaults: csound -s -otest -b%d -B%d -m%d\n"
 "\n"
 msgstr ""
 
-#: Top/argdecode.c:318
+#: Top/argdecode.c:319
 msgid "Usage:     csound [-flags] orchfile scorefile\n"
 msgstr ""
 
-#: Top/argdecode.c:319 Top/argdecode.c:333 util/envext.c:53 util/xtrct.c:67
+#: Top/argdecode.c:320 Top/argdecode.c:334 util/envext.c:53 util/xtrct.c:67
 msgid "Legal flags are:\n"
 msgstr ""
 
-#: Top/argdecode.c:320
+#: Top/argdecode.c:321
 msgid ""
 "Long format:\n"
 "\n"
 msgstr ""
 
-#: Top/argdecode.c:324
+#: Top/argdecode.c:325
 msgid ""
 "\n"
 "Short format:\n"
 "\n"
 msgstr ""
 
-#: Top/argdecode.c:332
+#: Top/argdecode.c:333
 msgid "Usage:      csound [-flags] orchfile scorefile\n"
 msgstr ""
 
-#: Top/argdecode.c:336
+#: Top/argdecode.c:337
 msgid "Csound Command ERROR:    "
 msgstr ""
 
-#: Top/argdecode.c:526
+#: Top/argdecode.c:527
 #, c-format
 msgid "unknown output format: '%s'"
 msgstr ""
 
-#: Top/argdecode.c:544 Top/argdecode.c:1231
+#: Top/argdecode.c:545 Top/argdecode.c:1237
 msgid "no iobufsamps"
 msgstr ""
 
-#: Top/argdecode.c:551 Top/argdecode.c:1238
+#: Top/argdecode.c:552 Top/argdecode.c:1244
 msgid "no hardware bufsamps"
 msgstr ""
 
-#: Top/argdecode.c:579 Top/argdecode.c:1339
+#: Top/argdecode.c:580 Top/argdecode.c:1345
 msgid "no midifile name"
 msgstr ""
 
-#: Top/argdecode.c:583 Top/argdecode.c:1344
+#: Top/argdecode.c:584 Top/argdecode.c:1350
 msgid "-F: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:596
+#: Top/argdecode.c:597
 msgid "no midi output file name"
 msgstr ""
 
-#: Top/argdecode.c:626
+#: Top/argdecode.c:627
 msgid "invalid python variable definition syntax"
 msgstr ""
 
-#: Top/argdecode.c:633 Top/argdecode.c:1199
+#: Top/argdecode.c:634 Top/argdecode.c:1205
 msgid "no infilename"
 msgstr ""
 
-#: Top/argdecode.c:636 Top/argdecode.c:1203
+#: Top/argdecode.c:637 Top/argdecode.c:1209
 msgid "input cannot be stdout"
 msgstr ""
 
-#: Top/argdecode.c:640 Top/argdecode.c:1207
+#: Top/argdecode.c:641 Top/argdecode.c:1213
 msgid "stdin audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:671 Top/argdecode.c:1271
+#: Top/argdecode.c:672 Top/argdecode.c:1277
 msgid "no control rate"
 msgstr ""
 
-#: Top/argdecode.c:677
+#: Top/argdecode.c:678
 msgid "no ksmps"
 msgstr ""
 
-#: Top/argdecode.c:692 Top/argdecode.c:1313
+#: Top/argdecode.c:693 Top/argdecode.c:1319
 msgid "no Linein score device_name"
 msgstr ""
 
-#: Top/argdecode.c:708 Top/argdecode.c:714 Top/argdecode.c:1279
+#: Top/argdecode.c:709 Top/argdecode.c:715 Top/argdecode.c:1285
 msgid "no message level"
 msgstr ""
 
-#: Top/argdecode.c:721
+#: Top/argdecode.c:722
 msgid "no message amps"
 msgstr ""
 
-#: Top/argdecode.c:730
+#: Top/argdecode.c:731
 msgid "no message range"
 msgstr ""
 
-#: Top/argdecode.c:739
+#: Top/argdecode.c:740
 msgid "no message warnings"
 msgstr ""
 
-#: Top/argdecode.c:748
+#: Top/argdecode.c:749
 msgid "no message raw"
 msgstr ""
 
-#: Top/argdecode.c:757
+#: Top/argdecode.c:758
 msgid "no message dB"
 msgstr ""
 
-#: Top/argdecode.c:766
+#: Top/argdecode.c:767
 msgid "no message colours"
 msgstr ""
 
-#: Top/argdecode.c:775
+#: Top/argdecode.c:776
 msgid "no benchmark level"
 msgstr ""
 
-#: Top/argdecode.c:783
+#: Top/argdecode.c:784
 msgid "no value for --csd-line-nums"
 msgstr ""
 
-#: Top/argdecode.c:793 Top/argdecode.c:1324
+#: Top/argdecode.c:794 Top/argdecode.c:1330
 msgid "no midi device_name"
 msgstr ""
 
-#: Top/argdecode.c:798 Top/argdecode.c:1329
+#: Top/argdecode.c:799 Top/argdecode.c:1335
 msgid "-M: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:819 Top/argdecode.c:1215 util/envext.c:84 util/mixer.c:206
+#: Top/argdecode.c:820 Top/argdecode.c:1221 util/envext.c:84 util/mixer.c:206
 #: util/scale.c:174 util/srconv.c:252 util/xtrct.c:120
 msgid "no outfilename"
 msgstr ""
 
-#: Top/argdecode.c:822 Top/argdecode.c:1219 util/scale.c:178 util/srconv.c:256
+#: Top/argdecode.c:823 Top/argdecode.c:1225 util/scale.c:178 util/srconv.c:256
 #: util/xtrct.c:124
 msgid "-o cannot be stdin"
 msgstr ""
 
-#: Top/argdecode.c:826 Top/argdecode.c:1223 util/scale.c:181 util/srconv.c:261
+#: Top/argdecode.c:827 Top/argdecode.c:1229 util/scale.c:181 util/srconv.c:261
 msgid "stdout audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:836 Top/argdecode.c:1422 util/hetro.c:235
+#: Top/argdecode.c:837 Top/argdecode.c:1428 util/hetro.c:235
 msgid "no log file"
 msgstr ""
 
-#: Top/argdecode.c:870
+#: Top/argdecode.c:871
 msgid "option expresson-opt has no affect\n"
 msgstr ""
 
-#: Top/argdecode.c:875
+#: Top/argdecode.c:876
 msgid "option no-expresson-opt has no affect\n"
 msgstr ""
 
-#: Top/argdecode.c:897 Top/argdecode.c:1178
+#: Top/argdecode.c:898 Top/argdecode.c:1184
 msgid "no utility name"
 msgstr ""
 
-#: Top/argdecode.c:916 Top/argdecode.c:1293
+#: Top/argdecode.c:917 Top/argdecode.c:1299
 msgid "no xfilename"
 msgstr ""
 
-#: Top/argdecode.c:1031
+#: Top/argdecode.c:1032
 msgid "realtime mode enabled\n"
 msgstr "abilitata modalit?? tempo reale\n"
 
-#: Top/argdecode.c:1143
+#: Top/argdecode.c:1149
 #, c-format
 msgid "unknown long option: '--%s'"
 msgstr ""
 
-#: Top/argdecode.c:1266
+#: Top/argdecode.c:1272
 msgid "no sample rate"
 msgstr ""
 
-#: Top/argdecode.c:1298
+#: Top/argdecode.c:1304
 msgid "no tempo value"
 msgstr ""
 
-#: Top/argdecode.c:1303
+#: Top/argdecode.c:1309
 msgid "illegal tempo"
 msgstr ""
 
-#: Top/argdecode.c:1354
+#: Top/argdecode.c:1360
 msgid "no MIDI output device"
 msgstr ""
 
-#: Top/argdecode.c:1402
+#: Top/argdecode.c:1408
 msgid "No indirection file"
 msgstr ""
 
-#: Top/argdecode.c:1409
+#: Top/argdecode.c:1415
 #, c-format
 msgid "Cannot open indirection file %s\n"
 msgstr ""
 
-#: Top/argdecode.c:1443
+#: Top/argdecode.c:1449
 msgid "no number of threads"
 msgstr "nessun numero di threads"
 
-#: Top/argdecode.c:1454 util/envext.c:94 util/mixer.c:316 util/scale.c:242
+#: Top/argdecode.c:1460 util/envext.c:94 util/mixer.c:316 util/scale.c:242
 #: util/xtrct.c:239
 #, c-format
 msgid "unknown flag -%c"
 msgstr ""
 
-#: Top/argdecode.c:1461
+#: Top/argdecode.c:1467
 msgid "error: orchestra and score name not allowed in .csound6rc"
 msgstr ""
 
-#: Top/argdecode.c:1619
+#: Top/argdecode.c:1625
 msgid "stdout not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:1680 Top/argdecode.c:1700 Top/argdecode.c:1720
+#: Top/argdecode.c:1686 Top/argdecode.c:1706 Top/argdecode.c:1726
 msgid "stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:1757
+#: Top/argdecode.c:1763
 #, c-format
 msgid "%d audio output devices \n"
 msgstr "%d dispositivi audio d'output \n"
 
-#: Top/argdecode.c:1760
+#: Top/argdecode.c:1766
 #, c-format
 msgid "%d audio input devices \n"
 msgstr "%d dispositivi audio d'input \n"
 
-#: Top/argdecode.c:1775
+#: Top/argdecode.c:1781
 #, c-format
 msgid "%d MIDI output devices \n"
 msgstr "%d dispositivi MIDI d'output \n"
 
-#: Top/argdecode.c:1778
+#: Top/argdecode.c:1784
 #, c-format
 msgid "%d MIDI input devices \n"
 msgstr "%d dispositivi MIDI d'input \n"
@@ -11568,7 +11587,7 @@ msgstr ""
 msgid "Error de-initialising module '%s'"
 msgstr ""
 
-#: Top/csound.c:115
+#: Top/csound.c:117
 #, c-format
 msgid ""
 "--Csound version %s beta (double samples) %s \n"
@@ -11577,7 +11596,7 @@ msgstr ""
 "--versione Csound %s beta (double samples) %s \n"
 "[commit: %s]\n"
 
-#: Top/csound.c:120
+#: Top/csound.c:122
 #, c-format
 msgid ""
 "--Csound version %s (double samples) %s \n"
@@ -11586,7 +11605,7 @@ msgstr ""
 "--versione Csound %s (double samples) %s \n"
 "[commit: %s]\n"
 
-#: Top/csound.c:127
+#: Top/csound.c:129
 #, c-format
 msgid ""
 "--Csound version %s beta (float samples) %s \n"
@@ -11595,7 +11614,7 @@ msgstr ""
 "--versione Csound %s beta (float samples) %s \n"
 "[commit: %s]\n"
 
-#: Top/csound.c:132
+#: Top/csound.c:134
 #, c-format
 msgid ""
 "--Csound version %s (float samples) %s \n"
@@ -11604,303 +11623,303 @@ msgstr ""
 "--versione Csound %s (float samples) %s \n"
 "[commit: %s]\n"
 
-#: Top/csound.c:171
+#: Top/csound.c:173
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1529
+#: Top/csound.c:1538
 #, c-format
 msgid "Multithread performance:thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1535
+#: Top/csound.c:1544
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:2019 Top/csound.c:2053 Top/csound.c:2082 Top/csound.c:2118
-#: Top/csound.c:4290
+#: Top/csound.c:2035 Top/csound.c:2069 Top/csound.c:2098 Top/csound.c:2134
+#: Top/csound.c:4317
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:2036
+#: Top/csound.c:2052
 #, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr ""
 
-#: Top/csound.c:2060 Top/csound.c:4297
+#: Top/csound.c:2076 Top/csound.c:4324
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:2067
+#: Top/csound.c:2083
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
 msgstr ""
 
-#: Top/csound.c:2089
+#: Top/csound.c:2105
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:2127
+#: Top/csound.c:2143
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2135
+#: Top/csound.c:2151
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2146
+#: Top/csound.c:2162
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2447
+#: Top/csound.c:2463
 msgid "WARNING: "
 msgstr "ATTENZIONE: "
 
-#: Top/csound.c:2588
+#: Top/csound.c:2600
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2589
+#: Top/csound.c:2601
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2618 Top/csound.c:2655
+#: Top/csound.c:2630 Top/csound.c:2667
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2622 Top/csound.c:2659
+#: Top/csound.c:2634 Top/csound.c:2671
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2776
+#: Top/csound.c:2788
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2781 Top/csound.c:2815
+#: Top/csound.c:2793 Top/csound.c:2827
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2784 Top/csound.c:2818
+#: Top/csound.c:2796 Top/csound.c:2830
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2810
+#: Top/csound.c:2822
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2832
+#: Top/csound.c:2844
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:2995
+#: Top/csound.c:3007
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:3017
+#: Top/csound.c:3029
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3159 Top/main.c:372
+#: Top/csound.c:3171 Top/main.c:374
 #, fuzzy
 msgid "setting dummy interface\n"
 msgstr "uso dell'interfaccia callback\n"
 
-#: Top/csound.c:3241
+#: Top/csound.c:3253
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3266
+#: Top/csound.c:3278
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3282
+#: Top/csound.c:3294
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3323
+#: Top/csound.c:3335
 msgid "Real time audio module name"
 msgstr "Nome modulo audio per tempo reale"
 
-#: Top/csound.c:3348
+#: Top/csound.c:3360
 msgid "Real time MIDI module name"
 msgstr "Nome modulo MIDI per tempo reale"
 
-#: Top/csound.c:3353
+#: Top/csound.c:3365
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3359
+#: Top/csound.c:3371
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3367
+#: Top/csound.c:3379
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3373
+#: Top/csound.c:3385
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3378
+#: Top/csound.c:3390
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3384
+#: Top/csound.c:3396
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3389
+#: Top/csound.c:3401
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3396
+#: Top/csound.c:3408
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3401
+#: Top/csound.c:3413
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3411
+#: Top/csound.c:3423
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3417
+#: Top/csound.c:3429
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3424
+#: Top/csound.c:3436
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3633
+#: Top/csound.c:3660
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3663
+#: Top/csound.c:3690
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4185
+#: Top/csound.c:4212
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4217
+#: Top/csound.c:4244
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
-#: Top/main.c:64
+#: Top/main.c:65
 #, c-format
 msgid "WARNING: cannot open csound6rc file %s\n"
 msgstr "ATTENZIONE: non posso aprire il file csound6rc %s\n"
 
-#: Top/main.c:67
+#: Top/main.c:68
 #, c-format
 msgid "Reading options from $CSOUND6RC: %s \n"
 msgstr ""
 
-#: Top/main.c:76
+#: Top/main.c:77
 msgid "Reading options from $HOME/.csound6rc\n"
 msgstr ""
 
-#: Top/main.c:96
+#: Top/main.c:97
 msgid "Reading options from local directory .csound6rc \n"
 msgstr ""
 
-#: Top/main.c:118 Top/main.c:362
+#: Top/main.c:119 Top/main.c:364
 msgid ""
 "Csound is already started, call csoundReset()\n"
 "before starting again.\n"
 msgstr ""
 
-#: Top/main.c:147
+#: Top/main.c:148
 msgid "no orchestra name"
 msgstr ""
 
-#: Top/main.c:173 Top/main.c:177
+#: Top/main.c:174 Top/main.c:178
 msgid "Reading CSD failed ... stopping"
 msgstr ""
 
-#: Top/main.c:193
+#: Top/main.c:194
 msgid "error: multiple uses of stdin"
 msgstr ""
 
-#: Top/main.c:197
+#: Top/main.c:198
 msgid "error: multiple uses of stdout"
 msgstr ""
 
-#: Top/main.c:210
+#: Top/main.c:211
 msgid "realtime performance using dummy numeric scorefile\n"
 msgstr ""
 
-#: Top/main.c:233
+#: Top/main.c:234
 #, c-format
 msgid "orchname:  %s\n"
 msgstr ""
 
-#: Top/main.c:238
+#: Top/main.c:239
 #, c-format
 msgid "Failed to open input file - %s\n"
 msgstr "Fallita apertura del file d'input - %s\n"
 
-#: Top/main.c:254
+#: Top/main.c:255
 msgid "cannot compile orchestra"
 msgstr "non posso compilare l'orchestra"
 
-#: Top/main.c:259
+#: Top/main.c:261
 msgid ""
 "cannot compile orchestra.\n"
 "Csound will start with no instruments"
 msgstr ""
 
-#: Top/main.c:274
+#: Top/main.c:276
 msgid "end of orchestra compile"
 msgstr ""
 
-#: Top/main.c:283
+#: Top/main.c:285
 #, c-format
 msgid "using previous %s\n"
 msgstr ""
 
-#: Top/main.c:293
+#: Top/main.c:295
 #, c-format
 msgid "cannot open scorefile %s"
 msgstr ""
 
-#: Top/main.c:295
+#: Top/main.c:297
 msgid "sorting score ...\n"
 msgstr ""
 
-#: Top/main.c:306
+#: Top/main.c:308
 #, c-format
 msgid "cannot open extract file %s"
 msgstr ""
 
-#: Top/main.c:309
+#: Top/main.c:311
 msgid "  ... extracting ...\n"
 msgstr ""
 
-#: Top/main.c:318
+#: Top/main.c:320
 msgid "end of score sort"
 msgstr ""
 
-#: Top/main.c:320
+#: Top/main.c:322
 msgid "Syntax check completed.\n"
 msgstr ""
 
-#: Top/main.c:439 util/dnoise.c:279
+#: Top/main.c:441 util/dnoise.c:279
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr ""
 
-#: Top/main.c:536
+#: Top/main.c:537
 #, c-format
 msgid "Real-time score events (engineStatus: %d).\n"
 msgstr ""
 
-#: Top/main.c:543
+#: Top/main.c:545
 #, c-format
 msgid "Compiled score (engineStatus: %d).\n"
 msgstr ""
@@ -11999,182 +12018,186 @@ msgstr ""
 msgid "Invalid arguments in .csoundrc or -@ file: %s"
 msgstr ""
 
-#: Top/one_file.c:362 Top/one_file.c:1036
+#: Top/one_file.c:362 Top/one_file.c:1147
 msgid "Missing end tag </CsOptions>"
 msgstr ""
 
-#: Top/one_file.c:428 Top/one_file.c:546
+#: Top/one_file.c:430 Top/one_file.c:551
 msgid "missing \" to terminate string"
 msgstr "manca \" per finire la stringa"
 
-#: Top/one_file.c:451 Top/one_file.c:494
+#: Top/one_file.c:455 Top/one_file.c:498
 msgid "Missing end tag </CsInstruments>"
 msgstr ""
 
-#: Top/one_file.c:561 Top/one_file.c:587 Top/one_file.c:672
+#: Top/one_file.c:567 Top/one_file.c:593 Top/one_file.c:682
 msgid "Missing end tag </CsScore>"
 msgstr ""
 
-#: Top/one_file.c:603 Top/one_file.c:608
+#: Top/one_file.c:613 Top/one_file.c:618
 msgid "Missing program in tag <CsScore>"
 msgstr ""
 
-#: Top/one_file.c:621
+#: Top/one_file.c:631
 #, c-format
 msgid "Creating %s (%p)\n"
 msgstr ""
 
-#: Top/one_file.c:636
+#: Top/one_file.c:646
 msgid "External generation failed"
 msgstr ""
 
-#: Top/one_file.c:638
+#: Top/one_file.c:648
 msgid "and cannot remove"
 msgstr "e non riesco a rimuovere"
 
-#: Top/one_file.c:643 Top/one_file.c:652
+#: Top/one_file.c:653 Top/one_file.c:662
 #, c-format
 msgid "and cannot remove %s"
 msgstr "e non riesco a rimuovere %s"
 
-#: Top/one_file.c:656
+#: Top/one_file.c:666
 #, c-format
 msgid "opened %s\n"
 msgstr "aperto %s\n"
 
-#: Top/one_file.c:659
+#: Top/one_file.c:669
 #, c-format
 msgid "closing %s\n"
 msgstr "chiusura %s\n"
 
-#: Top/one_file.c:662
+#: Top/one_file.c:672
 #, c-format
 msgid "and cannot remove %s\n"
 msgstr "e non riesco a rimuovere %s\n"
 
-#: Top/one_file.c:711
+#: Top/one_file.c:722 Top/one_file.c:779
 #, c-format
 msgid "Non base64 character %c(%2x)"
 msgstr ""
 
-#: Top/one_file.c:730
+#: Top/one_file.c:741 Top/one_file.c:798
 msgid "Truncated byte at end of base64 stream"
 msgstr ""
 
-#: Top/one_file.c:747
+#: Top/one_file.c:816
 #, c-format
 msgid "Cannot open temporary file (%s) for MIDI subfile"
 msgstr ""
 
-#: Top/one_file.c:764
+#: Top/one_file.c:833
 msgid "Missing end tag </CsMidifileB>"
 msgstr ""
 
-#: Top/one_file.c:780 Top/one_file.c:828 Top/one_file.c:874
+#: Top/one_file.c:849 Top/one_file.c:897 Top/one_file.c:985
 #, c-format
 msgid "File %s already exists"
 msgstr ""
 
-#: Top/one_file.c:785
+#: Top/one_file.c:854
 #, c-format
 msgid "Cannot open sample file (%s) subfile"
 msgstr ""
 
-#: Top/one_file.c:799
+#: Top/one_file.c:868
 msgid "Missing end tag </CsSampleB>"
 msgstr ""
 
-#: Top/one_file.c:833 Top/one_file.c:879
+#: Top/one_file.c:902 Top/one_file.c:990
 #, c-format
 msgid "Cannot open file (%s) subfile"
 msgstr ""
 
-#: Top/one_file.c:848
+#: Top/one_file.c:917
 msgid "Missing end tag </CsFileB>"
 msgstr ""
 
-#: Top/one_file.c:890
+#: Top/one_file.c:958
+msgid "Missing end tag </CsFileC>"
+msgstr ""
+
+#: Top/one_file.c:1001
 msgid "Missing end tag </CsFile>"
 msgstr ""
 
-#: Top/one_file.c:912
+#: Top/one_file.c:1023
 #, c-format
 msgid "This CSD file requires a version of Csound before %d.%02d"
 msgstr ""
 
-#: Top/one_file.c:920
+#: Top/one_file.c:1031
 #, c-format
 msgid "This CSD file requires a version of Csound after %d.%02d"
 msgstr ""
 
-#: Top/one_file.c:928
+#: Top/one_file.c:1039
 #, c-format
 msgid "This CSD file requires version Csound %d.%02d or later"
 msgstr ""
 
-#: Top/one_file.c:935
+#: Top/one_file.c:1046
 #, c-format
 msgid "This CSD file requires version %d.%02d of Csound"
 msgstr ""
 
-#: Top/one_file.c:941
+#: Top/one_file.c:1052
 msgid "Missing end tag </CsVersion>"
 msgstr ""
 
-#: Top/one_file.c:951 Top/one_file.c:977
+#: Top/one_file.c:1062 Top/one_file.c:1088
 msgid "**** Licence Information ****\n"
 msgstr ""
 
-#: Top/one_file.c:957
+#: Top/one_file.c:1068
 msgid "**** End of Licence Information ****\n"
 msgstr ""
 
-#: Top/one_file.c:968
+#: Top/one_file.c:1079
 msgid "Missing end tag </CsLicence>"
 msgstr ""
 
-#: Top/one_file.c:986
+#: Top/one_file.c:1097
 msgid "Missing end tag </CsShortLicence>"
 msgstr ""
 
-#: Top/one_file.c:1010
+#: Top/one_file.c:1121
 msgid "STARTING FILE\n"
 msgstr ""
 
-#: Top/one_file.c:1026
+#: Top/one_file.c:1137
 msgid "Creating options\n"
 msgstr ""
 
-#: Top/one_file.c:1032
+#: Top/one_file.c:1143
 msgid "Skipping <CsOptions>\n"
 msgstr ""
 
-#: Top/one_file.c:1046
+#: Top/one_file.c:1157
 msgid "Creating orchestra\n"
 msgstr ""
 
-#: Top/one_file.c:1051
+#: Top/one_file.c:1162
 msgid "Creating score\n"
 msgstr ""
 
-#: Top/one_file.c:1064
+#: Top/one_file.c:1175
 msgid "Skipping <CsMidifileB>\n"
 msgstr ""
 
-#: Top/one_file.c:1068
+#: Top/one_file.c:1179
 msgid "Missing end tag </CsMidiFileB>"
 msgstr ""
 
-#: Top/one_file.c:1087
+#: Top/one_file.c:1204
 msgid "CsFile is deprecated and may not work; use CsFileB\n"
 msgstr ""
 
-#: Top/one_file.c:1107
+#: Top/one_file.c:1224
 #, c-format
 msgid "unknown CSD tag: %s\n"
 msgstr ""
 
-#: Top/one_file.c:1112
+#: Top/one_file.c:1229
 msgid "Could not find <CsoundSynthesizer> tag in CSD file.\n"
 msgstr ""
 
@@ -12186,6 +12209,58 @@ msgstr ""
 #, c-format
 msgid "%d opcodes\n"
 msgstr ""
+
+#: Top/server.c:57
+#, c-format
+msgid "UDP: Winsock2 failed to start: %d"
+msgstr ""
+
+#: Top/server.c:62
+#, fuzzy
+msgid "UDP: error creating socket"
+msgstr "Errore nella creazione del socket"
+
+#: Top/server.c:77
+#, fuzzy
+msgid "UDP: sock end failed"
+msgstr "CLsend fallito"
+
+#: Top/server.c:94
+#, fuzzy, c-format
+msgid "UDP server started on port %d \n"
+msgstr "OSC ascoltatore #%d avviato sulla porta %s\n"
+
+#: Top/server.c:166
+#, fuzzy, c-format
+msgid "could not retrieve channel %s"
+msgstr "Non posso recuperare il numero massimo di canali"
+
+#: Top/server.c:195
+#, c-format
+msgid "UDP server on port %d stopped\n"
+msgstr ""
+
+#: Top/server.c:222 Top/server.c:231
+msgid "UDP Server: Cannot set nonblock"
+msgstr ""
+
+#: Top/server.c:238
+#, fuzzy
+msgid "error creating socket"
+msgstr "Errore nella creazione del socket"
+
+#: Top/server.c:292
+msgid "UDP Server: already running"
+msgstr ""
+
+#: Top/server.c:298
+msgid "UDP Server: could not start"
+msgstr ""
+
+#: Top/server.c:306
+#, fuzzy
+msgid "UDP Server: failed to allocate memory"
+msgstr "OSC: fallita allocazione delle globali"
 
 #: Top/threads.c:39
 #, c-format
@@ -12221,8 +12296,8 @@ msgstr ""
 msgid "saving ATS data..."
 msgstr ""
 
-#: util/atsa.c:546 util/atsa.c:2368 util/atsa.c:2382 util/atsa.c:2404
-#: util/atsa.c:2584 util/atsa.c:2647 util/atsa.c:2735
+#: util/atsa.c:546 util/atsa.c:2369 util/atsa.c:2383 util/atsa.c:2405
+#: util/atsa.c:2585 util/atsa.c:2648 util/atsa.c:2736
 msgid "done!\n"
 msgstr ""
 
@@ -12464,53 +12539,53 @@ msgid ""
 "default: %f"
 msgstr ""
 
-#: util/atsa.c:2196
+#: util/atsa.c:2197
 #, c-format
 msgid ""
 "last peak contribution %f out of bounds, should be >= 0.0 and <= 1.0, forced "
 "to default: %f"
 msgstr ""
 
-#: util/atsa.c:2204
+#: util/atsa.c:2205
 #, c-format
 msgid ""
 "SMR contribution %f out of bounds, should be >= 0.0 and <= 1.0, forced to "
 "default: %f"
 msgstr ""
 
-#: util/atsa.c:2349
+#: util/atsa.c:2350
 msgid "Initializing ATS data..."
 msgstr ""
 
-#: util/atsa.c:2379
+#: util/atsa.c:2380
 msgid "Computing residual..."
 msgstr ""
 
-#: util/atsa.c:2398 util/atsa.c:2401
+#: util/atsa.c:2399 util/atsa.c:2402
 msgid "Analysing residual..."
 msgstr ""
 
-#: util/atsa.c:2406
+#: util/atsa.c:2407
 msgid "tracking completed.\n"
 msgstr ""
 
-#: util/atsa.c:2514
+#: util/atsa.c:2515
 msgid "Filling sound gaps..."
 msgstr ""
 
-#: util/atsa.c:2602
+#: util/atsa.c:2603
 msgid "Trimming short partials..."
 msgstr ""
 
-#: util/atsa.c:2698
+#: util/atsa.c:2699
 msgid "Computing averages..."
 msgstr ""
 
-#: util/atsa.c:2749
+#: util/atsa.c:2750
 msgid "No partials to track -- stopping\n"
 msgstr ""
 
-#: util/atsa.c:2849
+#: util/atsa.c:2850
 msgid "Soundfile analysis for ATS opcodes"
 msgstr ""
 
@@ -14268,6 +14343,15 @@ msgstr ""
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot: %d errori.\n"
+
+#~ msgid "Seeding from current time %lu\n"
+#~ msgstr "Seme dal tempo attuale %lu\n"
+
+#~ msgid "Farey: Filter type < 1"
+#~ msgstr "Farey: tipo filtro < 1"
+
+#~ msgid "printi parameter was not a \"quoted string\""
+#~ msgstr "parametro di printi non ?? una \"stringa quotata\""
 
 #~ msgid "Error: %s, %s"
 #~ msgstr "Errore: %s, %s"
