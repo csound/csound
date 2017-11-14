@@ -274,8 +274,7 @@ static void sensLine(CSOUND *csound, void *userData)
 	    STA(orchestra) += (Linend - Linestart);
 	    *STA(orchestra) = '\0';
 	    STA(oflag)++;
-            if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
-	      
+            if((pc = strrchr(STA(orchestrab), '}')) != NULL) {    
 	      if(*(pc-1) != '}') { 
 	      *pc = '\0';
 	       cp = strrchr(Linestart, '}');
