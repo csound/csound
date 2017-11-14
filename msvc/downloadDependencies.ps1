@@ -319,7 +319,7 @@ if (Test-Path "CsoundQt")
 {
     cd CsoundQt
     git pull
-    git checkout develop
+    git checkout master
     git pull
     git branch
     echo "CsoundQt already downloaded, updated"
