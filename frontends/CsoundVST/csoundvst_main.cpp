@@ -47,6 +47,9 @@
 #include <CsoundVstFltk.hpp>
 #include <cstdio>
 #include <cstdlib>
+#if defined(__linux__)
+#include <dlfcn.h>
+#endif
 
 extern "C" void RunCsoundVST(const char *);
 
@@ -63,7 +66,6 @@ int main(int argc, char **argv)
   }
   void (*RunCsoundVST_)(const char *) =  (void (*)(const char *)) GetProcAddress(lib, "RunCsoundVST");
   RunCsoundVST_(filename);
-#else
-  RunCsoundVST(filename);
 #endif
+  RunCsoundVST(filename);
 }

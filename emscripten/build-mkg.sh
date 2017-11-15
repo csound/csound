@@ -2,7 +2,7 @@ clear
 echo "Building Csound for WebAssembly..."
 echo "Updating the Emscripten toolchain..."
 cd ~/emsdk
-./emsdk install sdk-incoming-64bit binaryen-master-64bit
+./emsdk install sdk-incoming-64bit binaryen-master-64bit -j1
 ./emsdk activate sdk-incoming-64bit binaryen-master-64bit
 source ./emsdk_env.sh
 export EMSCRIPTEN_ROOT=$EMSCRIPTEN
