@@ -19,7 +19,7 @@ if(BUILD_CSOUND_VST)
     include_directories(${FLTK_INCLUDE_DIR})
     add_definitions(-DVST_FORCE_DEPRECATED=0)
     set(CSOUNDVST_SRCS
-        CsoundVst.cpp
+        CsoundVST.cpp
         CsoundVstFltk.cpp
         CsoundVstUi.cpp
         ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
@@ -51,12 +51,11 @@ if(BUILD_CSOUND_VST)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
-    target_link_libraries(csoundvstmain ${CsoundVST} libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
+    target_link_libraries(csoundvstmain CsoundVST libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
 
     if(MUSICXML_LIBRARY)
         target_link_libraries(csoundvstmain ${CsoundVST} libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
     endif()
-
 
     install(TARGETS CsoundVST
         RUNTIME DESTINATION ${LIBRARY_INSTALL_DIR}
