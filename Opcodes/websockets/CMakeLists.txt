@@ -14,16 +14,16 @@ else()
   find_library (websockets_library NAMES websockets)
 
 if(APPLE)
-FIND_LIBRARY ( ssl_library ssl
+FIND_LIBRARY (ssl_library NAMES ssl.a
       /usr/local/lib
       /usr/lib
   )
-   find_library (crypto_library NAMES crypto)
-   FIND_LIBRARY ( crypto_library crypto
+   #find_library (crypto_library NAMES crypto.a
+   FIND_LIBRARY ( crypto_library NAMES crypto.a
       /usr/local/lib
       /usr/lib
   )
-   find_library (crypto_library NAMES crypto)
+   #find_library (crypto_library NAMES crypto)
 endif()
 
 endif()
@@ -42,7 +42,7 @@ if(BUILD_WEBSOCKET_OPCODE)
  	target_link_libraries(websocketIO ${websockets_library} ${CSOUNDLIB})
 
   if(APPLE)
-   target_link_libraries(websocketIO ${ssl_library} ${crypto_library}  z)
+   target_link_libraries(websocketIO /usr/local/lib/libssl.a /usr/local/lib/libcrypto.a  z)
   endif()
   
   if(WIN32 AND NOT MSVC) 
