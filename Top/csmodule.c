@@ -805,6 +805,7 @@ extern long vaops_localops_init(CSOUND *, void*);
 extern long ugakbari_localops_init(CSOUND *, void *);
 extern long harmon_localops_init(CSOUND *, void *);
 extern long pitchtrack_localops_init(CSOUND *, void *);
+extern long squinewave_localops_init(CSOUND *, void *);
 
 extern long partikkel_localops_init(CSOUND *, void *);
 extern long shape_localops_init(CSOUND *, void *);
@@ -849,7 +850,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
                                  vaops_localops_init, pvsgendy_localops_init,
-                                 paulstretch_localops_init,
+                                 paulstretch_localops_init, squinewave_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
