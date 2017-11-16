@@ -266,13 +266,13 @@ NM              [nm]
                            err = 1; break;
                          }
                          nn->body[i++] = c;
-                         if (UNLIKELY(i >= size)) {
-                           nn->body = csound->ReAlloc(csound, nn->body, size += 100);
-                           if (UNLIKELY(nn->body == NULL)) {
-                             csound->Message(csound, Str("Memory exhausted"));
-                             csound->LongJmp(csound, 1);
-                           }
-                         }
+                         /* if (UNLIKELY(i >= size)) { */
+                         /*   nn->body = csound->ReAlloc(csound, nn->body, size += 100); */
+                         /*   if (UNLIKELY(nn->body == NULL)) { */
+                         /*     csound->Message(csound, Str("Memory exhausted")); */
+                         /*     csound->LongJmp(csound, 1); */
+                         /*   } */
+                         /* } */
                        }
                        nn->body[i] = '\0';
                        csound->Message(csound, "as...#%s#\n", nn->body);

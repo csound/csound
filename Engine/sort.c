@@ -264,6 +264,7 @@ void sort(CSOUND *csound)
         break;
       case 'x':
         n--;
+        break;
       case -1:
       case 'y':
         break;
