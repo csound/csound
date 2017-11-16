@@ -326,7 +326,8 @@ if (Test-Path "CsoundQt")
 }
 else
 {
-    git clone -b master --depth=1 "https://github.com/CsoundQt/CsoundQt.git"
+    git clone "https://github.com/CsoundQt/CsoundQt.git"
+    git checkout master
     git branch
 }
 
