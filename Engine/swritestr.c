@@ -93,6 +93,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
       break;
     case 'f':
       isntAfunc = 0;
+      /* fall through */
     case 'q':
     case 'i':
     case 'd':
