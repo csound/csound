@@ -37,6 +37,9 @@ changes have removed a number of memory leaks.
 - chngetks and chnsetks -- versions of chnget and chnset for string
 channels that **only** run at perf-time.
 
+- squinewave is a mostly bandlimited shape-shifting
+  square-pulse-saw-sinewave oscillator with hardsync. 
+
 ### New Gen and Macros
 
 - gen53 (which has been in the code but not documented for years) is
