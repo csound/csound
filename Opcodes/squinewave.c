@@ -129,7 +129,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
     double warped_phase = p->warped_phase;
 
     double hardsync_phase = p->hardsync_phase;
-    double hardsync_inc = p->hardsync_phase;
+    double hardsync_inc = p->hardsync_inc;
     int32_t sync = find_sync(p->sync_sig, ksmps_offset, ksmps_end);
 
     // Set main phase so it matches warp
@@ -189,6 +189,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
 		if (sync == n) {
             p->phase = phase;
+			p->hardsync_phase = hardsync_phase;
             p->hardsync_inc = hardsync_inc;
             hardsync_init(p, freq, warped_phase);
             phase = p->phase;
@@ -328,7 +329,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
         }
     }
 
-    p->phase = phase;
+	p->phase = phase;
     p->warped_phase = warped_phase;
     p->hardsync_phase = hardsync_phase;
     p->hardsync_inc = hardsync_inc;
