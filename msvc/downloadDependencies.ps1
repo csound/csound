@@ -319,17 +319,14 @@ if (Test-Path "CsoundQt")
 {
     cd CsoundQt
     git pull
-    git checkout master
-    git pull
-    git branch
     echo "CsoundQt already downloaded, updated"
 }
 else
 {
-    git clone "https://github.com/CsoundQt/CsoundQt.git"
-    git checkout master
-    git branch
+    git clone -b develop --depth=1 --single-branch "https://github.com/CsoundQt/CsoundQt.git"
+    cd CsoundQt
 }
+
 
 cd ..
 
