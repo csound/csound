@@ -134,7 +134,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
     // Set main phase so it matches warp
     if (p->init_phase) {
-        const double freq = max(freq_sig[0], 0.0);
+        const double freq = fmax(freq_sig[0], 0.0);
         const double phase_inc = Maxphase_By_sr * freq;
         const double min_sweep = phase_inc * Min_Sweep;
         const double skew = 1.0 - Clamp(skew_sig[0], -1.0, 1.0);
@@ -152,7 +152,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
         // Select segment and scale within 
         if (warped_phase < 1.0) {
-            const double sweep_length = max(clip * midpoint, min_sweep);
+            const double sweep_length = fmax(clip * midpoint, min_sweep);
             if (warped_phase < 0.5) {
                 phase = sweep_length * (warped_phase * 2.0);
                 warped_phase *= 2.0;
@@ -164,7 +164,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
             }
         }
         else {
-            const double sweep_length = max(clip * (2.0 - midpoint), min_sweep);
+            const double sweep_length = fmax(clip * (2.0 - midpoint), min_sweep);
             if (warped_phase < 1.5) {
                 phase = midpoint + sweep_length * ((warped_phase - 1.0) * 2.0);
                 warped_phase = 1.0 + (warped_phase - 1.0) * 2.0;
@@ -185,7 +185,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
     for (uint32_t n = ksmps_offset; n < ksmps_end; ++n)
     {
-        double freq = max(freq_sig[n], 0.0);
+        double freq = fmax(freq_sig[n], 0.0);
 
         if (sync == n) {
             p->phase = phase;
@@ -228,10 +228,10 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
             if (warped_phase < 1.0 || (warped_phase == 1.0 && phase < midpoint))
             {
                 if (warped_phase < 1.0) {
-                    const double sweep_length = max(clip * midpoint, min_sweep);
+                    const double sweep_length = fmax(clip * midpoint, min_sweep);
 
                     *aout++ = cos(PI * warped_phase);
-                    warped_phase += min(phase_inc / sweep_length, Max_Warp);
+                    warped_phase += fmin(phase_inc / sweep_length, Max_Warp);
 
                     // Handle fractional warped_phase overshoot after sweep ends
                     if (warped_phase > 1.0) {
@@ -252,7 +252,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                             // if so it will be corrected in 2nd half (since warped == 1.0)
                         }
                         else {
-                            const double next_sweep_length = max(clip * (2.0 - midpoint), min_sweep);
+                            const double next_sweep_length = fmax(clip * (2.0 - midpoint), min_sweep);
                             warped_phase = 1.0 + (phase_overshoot - flat_length) / next_sweep_length;
                         }
                     }
@@ -266,13 +266,13 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
             // 2nd half: Sweep up to cos(warped_phase <= 2.Pi) then flat +1 until phase >= 2
             else {
                 if (warped_phase < 2.0) {
-                    const double sweep_length = max(clip * (2.0 - midpoint), min_sweep);
+                    const double sweep_length = fmax(clip * (2.0 - midpoint), min_sweep);
                     if (warped_phase == 1.0) {
                         // warped_phase overshoot after flat part
-                        warped_phase = 1.0 + min( min(phase - midpoint, phase_inc) / sweep_length, Max_Warp);
+                        warped_phase = 1.0 + fmin( fmin(phase - midpoint, phase_inc) / sweep_length, Max_Warp);
                     }
                     *aout++ = cos(PI * warped_phase);
-                    warped_phase += min(phase_inc / sweep_length, Max_Warp);
+                    warped_phase += fmin(phase_inc / sweep_length, Max_Warp);
 
                     if (warped_phase > 2.0) {
                         const double flat_length = 2.0 - (midpoint + sweep_length);
@@ -285,7 +285,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                             warped_phase = 2.0;
                         }
                         else {
-                            const double next_sweep_length = max(clip * midpoint, min_sweep);
+                            const double next_sweep_length = fmax(clip * midpoint, min_sweep);
                             warped_phase = 2.0 + (phase_overshoot - flat_length) / next_sweep_length;
                         }
                     }
@@ -316,8 +316,8 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                     const double skew = 1.0 - Clamp(skew_sig[n], -1.0, 1.0);
                     const double clip = 1.0 - Clamp(clip_sig[n], 0.0, 1.0);
                     const double midpoint = Clamp(skew, min_sweep, 2.0 - min_sweep);
-                    const double next_sweep_length = max(clip * midpoint, min_sweep);
-                    warped_phase = min(phase / next_sweep_length, Max_Warp);
+                    const double next_sweep_length = fmax(clip * midpoint, min_sweep);
+                    warped_phase = fmin(phase / next_sweep_length, Max_Warp);
                 }
                 else
                     warped_phase = phase;
