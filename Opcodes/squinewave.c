@@ -3,6 +3,26 @@
 * This code is released under the Csound license,
 * GNU Lesser General Public License version 2.1.
 */
+/*
+    Copyright (C) 2017 rasmus ekman 2017
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
 
 #include <math.h>
 
@@ -60,7 +80,7 @@ static void hardsync_init(SQUINEWAVE *p, double freq, double warped_phase)
         return;
 
     p->hardsync_inc = (PI / p->Min_Sweep);
-    p->hardsync_phase = p->hardsync_inc * 0.5; 
+    p->hardsync_phase = p->hardsync_inc * 0.5;
 }
 
 
@@ -86,8 +106,9 @@ int squinewave_init(CSOUND* csound, SQUINEWAVE *p)
     if (p->Min_Sweep < 4.0 || p->Min_Sweep > sr * 0.01) {
         const int32_t minsweep_default = (int32_t)Clamp(sr / 3000.0, 8.0, sr * 0.01);
         if (p->Min_Sweep != 0.0) {
-            csound->Warning(csound,
-                Str("squinewave iminsweep range 4 to sr/100. Set to default %d"), minsweep_default);
+          csound->Warning(csound,
+                          Str("squinewave iminsweep range 4 to sr/100. "
+                              "Set to default %d"), minsweep_default);
         }
         p->Min_Sweep = minsweep_default;
     }
@@ -96,7 +117,7 @@ int squinewave_init(CSOUND* csound, SQUINEWAVE *p)
     p->Max_Warp_Freq = sr / (2.0 * p->Min_Sweep);
 
     p->sync_sig = IS_ASIG_ARG(p->async_in) ? p->async_in : 0;
-    
+
     return OK;
 }
 
@@ -150,7 +171,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
         if (warped_phase > 2.0)
             warped_phase = fmod(warped_phase, 2.0);
 
-        // Select segment and scale within 
+        // Select segment and scale within
         if (warped_phase < 1.0) {
             const double sweep_length = fmax(clip * midpoint, min_sweep);
             if (warped_phase < 0.5) {
@@ -236,7 +257,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                     // Handle fractional warped_phase overshoot after sweep ends
                     if (warped_phase > 1.0) {
                         /* Tricky here: phase and warped may disagree where we are in waveform (due to FM + skew/clip changes).
-                         * Warped dominates to keep waveform stable, waveform (flat part) decides where we are. 
+                         * Warped dominates to keep waveform stable, waveform (flat part) decides where we are.
                          */
                         const double flat_length = midpoint - sweep_length;
                         // warp overshoot normalized to main phase rate
