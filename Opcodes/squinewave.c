@@ -187,9 +187,9 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
     {
         double freq = max(freq_sig[n], 0.0);
 
-		if (sync == n) {
+        if (sync == n) {
             p->phase = phase;
-			p->hardsync_phase = hardsync_phase;
+            p->hardsync_phase = hardsync_phase;
             p->hardsync_inc = hardsync_inc;
             hardsync_init(p, freq, warped_phase);
             phase = p->phase;
@@ -201,7 +201,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
         if (hardsync_phase) {
             const double syncsweep = 0.5 * (1.0 - cos(hardsync_phase));
-			freq += syncsweep * ((2.0 * Max_Warp_Freq) - freq);
+            freq += syncsweep * ((2.0 * Max_Warp_Freq) - freq);
             hardsync_phase += hardsync_inc;
             if (hardsync_phase > PI) {
                 hardsync_phase = PI;
@@ -236,28 +236,28 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                     warped_phase += min(phase_inc / sweep_length, Max_Warp);
 
                     // Handle fractional warped_phase overshoot after sweep ends
-					if (warped_phase > 1.0) {
-						/* Tricky here: phase and warped may disagree where we are in waveform (due to FM + skew/clip changes).
-						 * Warped dominates to keep waveform stable, waveform (flat part) decides where we are. 
-						 */
-						const double flat_length = midpoint - sweep_length;
-						// warp overshoot normalized to main phase rate
-						const double phase_overshoot = (warped_phase - 1.0) * sweep_length;
+                    if (warped_phase > 1.0) {
+                        /* Tricky here: phase and warped may disagree where we are in waveform (due to FM + skew/clip changes).
+                         * Warped dominates to keep waveform stable, waveform (flat part) decides where we are. 
+                         */
+                        const double flat_length = midpoint - sweep_length;
+                        // warp overshoot normalized to main phase rate
+                        const double phase_overshoot = (warped_phase - 1.0) * sweep_length;
 
-						// phase matches shape
-						phase = midpoint - flat_length + phase_overshoot - phase_inc;
+                        // phase matches shape
+                        phase = midpoint - flat_length + phase_overshoot - phase_inc;
 
-						// Flat if next samp still not at midpoint
-						if (flat_length >= phase_overshoot) {
-							warped_phase = 1.0;
-							// phase may be > midpoint here (which means actually no flat part),
-							// if so it will be corrected in 2nd half (since warped == 1.0)
-						}
-						else {
-							const double next_sweep_length = max(clip * (2.0 - midpoint), min_sweep);
-							warped_phase = 1.0 + (phase_overshoot - flat_length) / next_sweep_length;
-						}
-					}
+                        // Flat if next samp still not at midpoint
+                        if (flat_length >= phase_overshoot) {
+                            warped_phase = 1.0;
+                            // phase may be > midpoint here (which means actually no flat part),
+                            // if so it will be corrected in 2nd half (since warped == 1.0)
+                        }
+                        else {
+                            const double next_sweep_length = max(clip * (2.0 - midpoint), min_sweep);
+                            warped_phase = 1.0 + (phase_overshoot - flat_length) / next_sweep_length;
+                        }
+                    }
                 }
                 else {
                     // flat up to midpoint
@@ -272,24 +272,24 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                     if (warped_phase == 1.0) {
                         // warped_phase overshoot after flat part
                         warped_phase = 1.0 + min( min(phase - midpoint, phase_inc) / sweep_length, Max_Warp);
-					}
+                    }
                     *aout++ = cos(PI * warped_phase);
                     warped_phase += min(phase_inc / sweep_length, Max_Warp);
 
                     if (warped_phase > 2.0) {
-						const double flat_length = 2.0 - (midpoint + sweep_length);
-						const double end_length = (2.0 - phase) / phase_inc;
-						const double phase_overshoot = (warped_phase - 2.0) * sweep_length;
+                        const double flat_length = 2.0 - (midpoint + sweep_length);
+                        const double end_length = (2.0 - phase) / phase_inc;
+                        const double phase_overshoot = (warped_phase - 2.0) * sweep_length;
 
-						phase = 2.0 - flat_length + phase_overshoot - phase_inc;
+                        phase = 2.0 - flat_length + phase_overshoot - phase_inc;
 
-						if (flat_length >= phase_overshoot) {
-							warped_phase = 2.0;
-						}
-						else {
-							const double next_sweep_length = max(clip * midpoint, min_sweep);
-							warped_phase = 2.0 + (phase_overshoot - flat_length) / next_sweep_length;
-						}
+                        if (flat_length >= phase_overshoot) {
+                            warped_phase = 2.0;
+                        }
+                        else {
+                            const double next_sweep_length = max(clip * midpoint, min_sweep);
+                            warped_phase = 2.0 + (phase_overshoot - flat_length) / next_sweep_length;
+                        }
                     }
                 }
                 else {
@@ -329,7 +329,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
         }
     }
 
-	p->phase = phase;
+    p->phase = phase;
     p->warped_phase = warped_phase;
     p->hardsync_phase = hardsync_phase;
     p->hardsync_inc = hardsync_inc;
@@ -349,8 +349,10 @@ static OENTRY squinewave_localops[] = {
 
 /* To make Csound 6.x see this, add a declaration in /Top/csmodule.c:
 extern long squinewave_localops_init(CSOUND *, void *);
-* and in the staticmodules[] list, add
+ * and in the staticmodules[] list, add
 squinewave_localops_init,
-*/
+ * To build, add to top-level CMakeLists.txt, in list of opcodes:
+ Opcodes/squinewave.c
+ */
 
 LINKAGE_BUILTIN(squinewave_localops)
