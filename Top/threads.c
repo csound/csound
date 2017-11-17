@@ -600,7 +600,9 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 
 PUBLIC void *csoundGetCurrentThreadId(void)
 {
-  return (void*) GetCurrentThreadId();
+    DWORD* d = malloc(sizeof(DWORD));
+    *d = GetCurrentThreadId();
+    return (void*) d;
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
