@@ -1365,6 +1365,9 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     while (current != NULL) {
 #ifdef HAVE_PTHREAD
       if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
+#elif defined(WIN32)
+      DWORD* d = (DWORD*)threadId;
+      if (*d == GetThreadId((HANDLE)current->threadId))
 #else
       // FIXME - need to verify this works...
       if (threadId == current->threadId)
