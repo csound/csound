@@ -1543,14 +1543,14 @@ msgid "memory allocate failure for %zu"
 msgstr "échec de l'allocation de mémoire pour %zu"
 
 #: Engine/memfiles.c:48
-#, fuzzy, c-format
+#, c-format
 msgid "failed to open file %s\n"
-msgstr "L'ouverture du fichier %s a échoué"
+msgstr "L'ouverture du fichier %s a échoué\n"
 
 #: Engine/memfiles.c:54
-#, fuzzy, c-format
+#, c-format
 msgid "failed to read file %s\n"
-msgstr "sfont : impossible de lire le fichier\n"
+msgstr "impossible de lire le fichier %s\n"
 
 #: Engine/memfiles.c:149
 msgid "Ill-formed CV file\n"
@@ -10034,7 +10034,7 @@ msgstr "specfilt : non initialisé"
 #: Opcodes/squinewave.c:110
 #, c-format
 msgid "squinewave iminsweep range 4 to sr/100. Set to default %d"
-msgstr ""
+msgstr "squinewave iminsweep compris entre 4 et sr/100. Mis à %d par défaut"
 
 #: Opcodes/stackops.c:99
 msgid "fsig = : source signal is not initialised"
