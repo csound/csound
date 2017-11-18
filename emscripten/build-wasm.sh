@@ -33,4 +33,4 @@ mkdir dist-wasm
 cp build-wasm/libcsound.js dist-wasm/
 cp src/*.js dist-wasm/
 cp build-wasm/libcsound.wasm dist-wasm/
-cp build-wasm/libcsound.js.map dist-wasm/
+cp build-wasm/libcsound.wasm.map dist-wasm/
