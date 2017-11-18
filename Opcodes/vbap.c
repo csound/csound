@@ -36,6 +36,9 @@ Re-written to take flexible number of outputs by JPff 2012 */
 #include <stdlib.h>
 #include "interlocks.h"
 
+#define MATSIZE (4)
+#define ATORAD  (TWOPI_F / FL(360.0))
+
 /* static void choose_ls_triplets(CSOUND *csound, ls *lss, */
 /*                                ls_triplet_chain **ls_triplets, */
 /*                                int ls_amount, int channels); */
@@ -188,19 +191,19 @@ void angle_to_cart(ANG_VEC avec, CART_VEC *cvec)
      /* conversion */
 {
     /* length unattended */
-    MYFLT atorad = (TWOPI_F / FL(360.0));
-    cvec->x = (MYFLT) (cos((double) (avec.azi * atorad)) *
-                       cos((double) (avec.ele * atorad)));
-    cvec->y = (MYFLT) (sin((double) (avec.azi * atorad)) *
-                       cos((double) (avec.ele * atorad)));
-    cvec->z = (MYFLT) (sin((double) (avec.ele * atorad)));
+    //MYFLT atorad = (TWOPI_F / FL(360.0));
+    cvec->x = (MYFLT) (cos((double) (avec.azi * ATORAD)) *
+                       cos((double) (avec.ele * ATORAD)));
+    cvec->y = (MYFLT) (sin((double) (avec.azi * ATORAD)) *
+                       cos((double) (avec.ele * ATORAD)));
+    cvec->z = (MYFLT) (sin((double) (avec.ele * ATORAD)));
 }
 
 void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
      /* conversion */
 {
     MYFLT tmp, tmp2, tmp3, tmp4;
-    MYFLT atorad = (TWOPI_F / FL(360.0));
+    //MYFLT atorad = (TWOPI_F / FL(360.0));
 
     tmp3 = SQRT(FL(1.0) - cvec.z*cvec.z);
     if (FABS(tmp3) > FL(0.001)) {
@@ -219,11 +222,11 @@ void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
     tmp *= tmp2;
     if (FABS(tmp) <= PI_F) {
       avec->azi =  tmp;
-      avec->azi /= atorad;
+      avec->azi /= ATORAD;
     }
     avec->ele = ASIN(cvec.z);
     avec->length = SQRT(cvec.x * cvec.x + cvec.y * cvec.y + cvec.z * cvec.z);
-    avec->ele /= atorad;
+    avec->ele /= ATORAD;
 }
 
 void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
@@ -575,9 +578,11 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
     int i=0,j;
 
     //dim = (int) *p->dim;
-    csound->Warning(csound, "dim : %d\n",dim);
+    csound->Message(csound, "dim : %d\n",dim);
     if (UNLIKELY(!((dim==2) || (dim == 3)))) {
-      csound->ErrorMsg(csound, Str("Error in loudspeaker dimension."));
+      csound->ErrorMsg(csound,
+                       Str("Error in loudspeaker dimension. %d not permitted"),
+                       dim);
       return NOTOK;
     }
     //count = (int) *p->ls_amount;
@@ -597,6 +602,8 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
       lss[i].angles.azi = a_vector.azi;
       lss[i].angles.ele = a_vector.ele;
       lss[i].angles.length = FL(1.0);
+      /* printf("**** lss[%d]: (%g %g %g) %g %g\n", i, lss[i].coords.x, */
+      /*        lss[i].coords.y, lss[i].coords.z, a_vector.azi, a_vector.ele); */
       i++;
     }
     //ls_amount = (int)*p->ls_amount;
@@ -607,11 +614,11 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
     }
 
     if (dim == 3) {
-      choose_ls_triplets(csound, lss, &ls_triplets,count);
-      calculate_3x3_matrixes(csound, ls_triplets,lss,count, layout);
+      choose_ls_triplets(csound, lss, &ls_triplets, count);
+      calculate_3x3_matrixes(csound, ls_triplets, lss, count, layout);
     }
     else if (dim ==2) {
-      choose_ls_tuplets(csound, lss, &ls_triplets,count, layout);
+      choose_ls_tuplets(csound, lss, &ls_triplets, count, layout);
     }
     free(lss);
     return OK;
@@ -730,26 +737,22 @@ static void choose_ls_tuplets(CSOUND *csound,
     int *sorted_lss = (int*)malloc(sizeof(int)*ls_amount);
     int *exist = (int*)calloc(1,sizeof(int)*ls_amount);
     int amount = 0;
-    MYFLT *inv_mat = (MYFLT*)malloc(4*sizeof(MYFLT)*ls_amount), *ls_table, *ptr;
+    MYFLT *inv_mat = (MYFLT*)malloc(MATSIZE*sizeof(MYFLT)*ls_amount), *ls_table, *ptr;
     //int ftable_size;
-
-    /* for (i=0;i<CHANNELS;i++) { */
-    /*   exist[i]=0; */
-    /* } */
 
     /* sort loudspeakers according their aximuth angle */
     sort_2D_lss(lss,sorted_lss,ls_amount);
 
     /* adjacent loudspeakers are the loudspeaker pairs to be used.*/
     for (i=0;i<(ls_amount-1);i++) {
-      /*csound->Message(csound, "%d %d %f %f\n",sorted_lss[i],sorted_lss[i+1],
-        lss[sorted_lss[i]].angles.azi,
-        lss[sorted_lss[i+1]].angles.azi);*/
+      csound->Message(csound, "***%d %d %f %f\n",sorted_lss[i],sorted_lss[i+1],
+                      lss[sorted_lss[i]].angles.azi,
+                      lss[sorted_lss[i+1]].angles.azi);
       if (LIKELY((lss[sorted_lss[i+1]].angles.azi -
                   lss[sorted_lss[i]].angles.azi) <= (PI - 0.0175))) {
         if (LIKELY(calc_2D_inv_tmatrix( lss[sorted_lss[i]].angles.azi,
                                         lss[sorted_lss[i+1]].angles.azi,
-                                        &inv_mat[4*i]) != 0)) {
+                                        &inv_mat[MATSIZE*i]) != 0)) {
           exist[i]=1;
           amount++;
         }
@@ -761,10 +764,10 @@ static void choose_ls_tuplets(CSOUND *csound,
 
     if (LIKELY(((TWOPI_F - lss[sorted_lss[ls_amount-1]].angles.azi)
                 +lss[sorted_lss[0]].angles.azi) < (PI - 0.0175))) {
-      //printf("less than PI type 2- 0.175\n");
+      //printf("**less than PI type 2- 0.175\n");
       if (LIKELY(calc_2D_inv_tmatrix(lss[sorted_lss[ls_amount-1]].angles.azi,
                                      lss[sorted_lss[0]].angles.azi,
-                                     &inv_mat[4*(ls_amount-1)]) != 0)) {
+                                     &inv_mat[MATSIZE*(ls_amount-1)]) != 0)) {
         exist[ls_amount-1]=1;
         amount++;
       }
@@ -789,7 +792,7 @@ static void choose_ls_tuplets(CSOUND *csound,
     csound->Message(csound,
                     "Loudspeaker matrices calculated with configuration : ");
     for (i=0; i< ls_amount; i++)
-      csound->Message(csound, "%.1f ", lss[i].angles.azi / atorad);
+      csound->Message(csound, "%.1f ", lss[i].angles.azi / ATORAD);
     csound->Message(csound, "\n");
 #endif
     ls_table = create_ls_table(csound, amount * 6 + 3 + 100, ind);
@@ -801,30 +804,33 @@ static void choose_ls_tuplets(CSOUND *csound,
       if (exist[i] == 1) {
         *(ptr++) = (MYFLT)sorted_lss[i]+1;
         *(ptr++) = (MYFLT)sorted_lss[i+1]+1;
-        for (j=0;j<4;j++) {
-          *(ptr++) = inv_mat[i*ls_amount+j];
+        for (j=0;j<MATSIZE;j++) {
+          /*printf("iv_mat i=%d a=%d [%d] %f\n",
+            i, ls_amount, i*MATSIZE+j, inv_mat[i*ls_amount+j]); */
+          *(ptr++) = inv_mat[i*MATSIZE+j];
         }
       }
     }
     if (exist[ls_amount-1] == 1) {
       *(ptr++) = (MYFLT)sorted_lss[ls_amount-1]+1;
       *(ptr++) = (MYFLT)sorted_lss[0]+1;
-      for (j=0;j<4;j++) {
-        *(ptr++) = inv_mat[ls_amount*(ls_amount-1)+j];
+      for (j=0;j<MATSIZE;j++) {
+/*         printf("iv_mat[%d] %f\n", (ls_amount-1)*MATSIZE+j, */
+/*                inv_mat[(ls_amount-1)*MATSIZE+j]); */
+        *(ptr++) = inv_mat[(ls_amount-1)*MATSIZE+j];
       }
     }
     k=3;
-    csound->Warning(csound, Str("\nConfigured loudspeakers\n"));
+    csound->Message(csound, Str("\nConfigured loudspeakers\n"));
     for (i=0; i < amount; i++) {
-      csound->Warning(csound, Str("Pair %d Loudspeakers: "), i);
+      csound->Message(csound, Str("Pair %d Loudspeakers: "), i);
       for (j=0; j < 2; j++) {
-        csound->Warning(csound, "%d ", (int) ls_table[k++]);
+        csound->Message(csound, "%d ", (int) ls_table[k++]);
       }
-      csound->Warning(csound, "\n");
 
-    csound->Message(csound, "\nMatrix ");
-      for (j=0; j < 4; j++) {
-      csound->Message(csound, "%f ", ls_table[k]);
+      csound->Message(csound, "\nMatrix ");
+      for (j=0; j < MATSIZE; j++) {
+        csound->Message(csound, "%f ", ls_table[k]);
         k++;
       }
       csound->Message(csound, "\n\n");
@@ -847,7 +853,7 @@ static void sort_2D_lss(ls lss[], int sorted_lss[],
       else
         tmp = lss[i].coords.y / FABS(lss[i].coords.y);
       lss[i].angles.azi *= tmp;
-      /*printf("tulos %f",    lss[i].angles.azi);*/
+      //printf("***tulos %f\n",    lss[i].angles.azi);
     }
     for (i=0;i<ls_amount;i++) {
       tmp = FL(2000.0);
@@ -867,7 +873,7 @@ static void sort_2D_lss(ls lss[], int sorted_lss[],
     }
 }
 
-int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
+int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[MATSIZE])
 {
     MYFLT x1,x2,x3,x4; /* x1 x3 */
     MYFLT det;
@@ -877,7 +883,7 @@ int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
     x4 = SIN(azi2 );
     det = (x1 * x4) - ( x3 * x2 );
     if (FABS(det) <= FL(0.001)) {
-      /*printf("unusable pair, det %f\n",det);*/
+      //printf("unusable*** pair, det %f\n",det);
       inv_mat[0] = FL(0.0);
       inv_mat[1] = FL(0.0);
       inv_mat[2] = FL(0.0);
@@ -885,6 +891,7 @@ int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
       return 0;
     }
     else {
+      //printf("***inv x (%f,%f,%f,%f): det=%f\n", x4, -x3, -x2, x1, det);
       inv_mat[0] =  (x4 / det);
       inv_mat[1] =  (-x3 / det);
       inv_mat[2] =  (-x2 / det);
@@ -958,12 +965,17 @@ static OENTRY vbap_localops[] = {
   { "vbap.A",      S(VBAPA), TR, 5,  "a[]",    "akOOo",
     (SUBR) vbap_init_a,          (SUBR) NULL,    (SUBR) vbap_a               },
   { "vbap4",      S(VBAP),
-    TR|_QQ, 5,  "aaaa",  "akOOo", (SUBR) vbap_init, (SUBR) NULL, (SUBR) vbap },
+    TR|_QQ, 5,  "aaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "akOOo", (SUBR) vbap_init, (SUBR) NULL, (SUBR) vbap },
   { "vbap8",      S(VBAP),
-    TR|_QQ, 5,  "aaaaaaaa", "akOOo",
+    TR|_QQ, 5,  "aaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "akOOo",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
   { "vbap16",      S(VBAP),
-    TR|_QQ, 5,  "aaaaaaaaaaaaaaaa", "akOOo",
+    TR|_QQ, 5,  "aaaaaaaaaaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "akOOo",
     (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
   { "vbapg.a",      S(VBAP1),             TR, 3,
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
