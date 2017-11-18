@@ -305,9 +305,15 @@ void dag_reinit(CSOUND *csound)
 #define ATOMIC_READ(x) x
 #define ATOMIC_WRITE(x,v) x = v;
 #if defined(_MSC_VER)
-#define ATOMIC_CAS(x,current,new)  InterlockedCompareExchange(x, current, new)
+#define ATOMIC_CAS(x,current,new)  (current == InterlockedCompareExchange(x, new, current))
 #else
 #define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
+#endif
+
+#if defined(_MSC_VER)
+#define ATOMIC_CAS_PTR(x,current,new)  (current == InterlockedCompareExchangePointer(x, new, current))
+#else
+#define ATOMIC_CAS_PTR(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
 #endif
 
 taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
@@ -385,7 +391,7 @@ inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
         return 0;//was no & earlier
       }
       else t->next = local;
-    } while (!ATOMIC_CAS(w,local,t));
+    } while (!ATOMIC_CAS_PTR(w,local,t));
     //dag_print_state(csound);
     //printf("moveWatch done\n");
     return 1;
@@ -409,7 +415,7 @@ taskID dag_end_task(CSOUND *csound, taskID i)
     {                                      /* ATOMIC_SWAP */
       do {
         to_notify = ATOMIC_READ(task_watch[i]);
-      } while (!ATOMIC_CAS(&task_watch[i],to_notify,&DoNotRead));
+      } while (!ATOMIC_CAS_PTR(&task_watch[i],to_notify,&DoNotRead));
     } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
     next = to_notify;
