@@ -52,6 +52,7 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
     all = (char *)csound->Malloc(csound, (size_t) length);
     if (6!=fread(buffer, 1, 6, f)) { /* Skip HETRO */
       csound->Warning(csound, Str("failed to read file %s\n"), filnam);
+      fclose(f);
       return NOTOK;
     }
     //for (i=0; i<6; i++) getc(f); /* Skip HETRO */
