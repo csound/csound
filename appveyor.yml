@@ -51,6 +51,13 @@ after_build:
   - dir "%VCPKGDir%\installed\x64-windows\include"
   - cd frontends\nwjs
   - npm config set msvs_version 2017 --global
+  #- set PYTHON=C:\Python27-x64\python.exe
+  - set npm_config_target=0.23.5
+  - set npm_config_arch=x64
+  - set npm_config_runtime=node-webkit
+  - set npm_config_build_from_source=true
+  - set npm_config_node_gyp=C:\Users\appveyor\AppData\Roaming\npm\node_modules\nw-gyp\bin\nw-gyp.js
+  - npm install --msvs_version=2017
   - nw-gyp rebuild --target=0.23.5 --arch=x64
   - cd ..\..
   - set PATH=%QTDIR%\bin;%PATH%
