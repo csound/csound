@@ -52,10 +52,11 @@ typedef struct {
 
 /* ================================================================== */
 
-static inline int32_t find_sync(MYFLT* sync_sig, uint32_t first, uint32_t last)
+static inline int32_t find_sync(const MYFLT* sync_sig, const uint32_t first, const uint32_t last)
 {
     if (sync_sig == 0)
         return -1;
+
     for (uint32_t i = first; i < last; ++i) {
         if (sync_sig[i] >= (MYFLT)1)
             return i;
@@ -65,7 +66,7 @@ static inline int32_t find_sync(MYFLT* sync_sig, uint32_t first, uint32_t last)
 
 /* ================================================================== */
 
-static void hardsync_init(SQUINEWAVE *p, double freq, double warped_phase)
+static void hardsync_init(SQUINEWAVE *p, const double freq, const double warped_phase)
 {
     if (p->hardsync_phase)
         return;
@@ -86,7 +87,7 @@ static void hardsync_init(SQUINEWAVE *p, double freq, double warped_phase)
 
 /* ================================================================== */
 
-static inline MYFLT Clamp(MYFLT x, MYFLT minval, MYFLT maxval) {
+static inline MYFLT Clamp(const MYFLT x, const MYFLT minval, const MYFLT maxval) {
     return (x < minval) ? minval : (x > maxval) ? maxval : x;
 }
 
@@ -260,7 +261,7 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                          * Warped dominates to keep waveform stable, waveform (flat part) decides where we are.
                          */
                         const double flat_length = midpoint - sweep_length;
-                        // warp overshoot normalized to main phase rate
+                        // warp overshoot scaled to main phase rate
                         const double phase_overshoot = (warped_phase - 1.0) * sweep_length;
 
                         // phase matches shape
@@ -297,7 +298,6 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
                     if (warped_phase > 2.0) {
                         const double flat_length = 2.0 - (midpoint + sweep_length);
-                        const double end_length = (2.0 - phase) / phase_inc;
                         const double phase_overshoot = (warped_phase - 2.0) * sweep_length;
 
                         phase = 2.0 - flat_length + phase_overshoot - phase_inc;
@@ -324,7 +324,8 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
             if (hardsync_phase) {
                 warped_phase = phase = 0.0;
                 hardsync_phase = hardsync_inc = 0.0;
-                sync = find_sync(p->sync_sig, n+1, ksmps_end);
+
+                sync = find_sync(p->sync_sig, n + 1, ksmps_end);
             }
             else {
                 phase -= 2.0;
