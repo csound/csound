@@ -37,7 +37,7 @@ init:
 install:
   - cd msvc
   # This is so nw-gyp can build csound.node.
-  ps: Install-Product node 6.2.1 x64
+  - ps: Install-Product node 6.2.1 x64
   - npm install -g nw-gyp
   - nodevars.bat
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
