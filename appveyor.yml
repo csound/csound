@@ -6,7 +6,7 @@ environment:
   APPVEYOR_RDP_PASSWORD: Vercoe123
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
-  QTDIR: C:\Qt\5.9.1\msvc2017_64
+  QTDIR: C:\Qt\5.9.2\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 15 2017 Win64
   # This is for compatibility with Windows 8.
