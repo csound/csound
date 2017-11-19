@@ -144,6 +144,8 @@ channels that **only** run at perf-time.
 
 - Various errors in the DSSI/ladspa system fixed.
 
+- vbap was broken in all cases except 4-speakers, now corrected.
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
