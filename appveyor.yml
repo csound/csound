@@ -57,7 +57,7 @@ after_build:
   - cd msvc
   # Report qmake version to make sure we are using the Qt libraries we need.
   - qmake -v
-  - build_csoundqt.bat
+  - build-csoundqt.bat
   - cd ..
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
   - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\  /dInstallCsoundVst /omsvc installer\\windows\\csound6_x64_appveyor.iss
@@ -69,7 +69,7 @@ after_build:
 
 test_script:
   - cmake --build msvc\csound-vs --config Release --target csdtests
-   
+
 
 artifacts:
   - path: csound.zip
