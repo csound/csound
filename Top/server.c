@@ -220,7 +220,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   #ifndef WIN32
   if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0)) {
       csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
-      close(p->sock);
+      if (p->sock>=0) close(p->sock);
       return CSOUND_ERROR;
   }
   #else
