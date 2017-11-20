@@ -21,9 +21,9 @@
             ],
             ['OS=="win"',
                 {
-                    'msbuild_toolset': 'v140_xp',
+                    'msbuild_toolset': 'v141_xp',
                     'libraries': [#'-l$(CSOUND_HOME)/mingw64/csound64.lib',
-                        '-l$(CSOUND_HOME)/msvc/csound-vs/Release/csound64.lib',
+                        '-l$(CSOUND_HOME)/msvc/csound-vs/RelWithDebInfo/csound64.lib',
                     ],
                     'include_dirs': [
                         '$(CSOUND_HOME)/include',
