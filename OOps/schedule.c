@@ -88,7 +88,8 @@ int schedule_N(CSOUND *csound, SCHED *p)
          else sprintf(s, "%s %f", s,  *arg);
 
     }
-    csoundInputMessage(csound, s);
+    
+    csoundInputMessageInternal(csound, s);
     return OK;
 }
 
@@ -106,7 +107,7 @@ int schedule_SN(CSOUND *csound, SCHED *p)
          else sprintf(s, "%s %f", s,  *arg);
     }
     //printf("%s\n", s);
-    csoundInputMessage(csound, s);
+    csoundInputMessageInternal(csound, s);
     return OK;
 }
 
