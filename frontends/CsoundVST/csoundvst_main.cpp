@@ -51,7 +51,9 @@
 #include <dlfcn.h>
 #endif
 
+#if !defined(WIN32)
 extern "C" void RunCsoundVST(const char *);
+#endif
 
 int main(int argc, char **argv)
 {
@@ -66,6 +68,7 @@ int main(int argc, char **argv)
   }
   void (*RunCsoundVST_)(const char *) =  (void (*)(const char *)) GetProcAddress(lib, "RunCsoundVST");
   RunCsoundVST_(filename);
-#endif
+#else
   RunCsoundVST(filename);
+#endif
 }
