@@ -756,39 +756,24 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
 
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
-#if defined(_USING_V110_SDK71_)
-    notImplementedWarning_("csoundCreateBarrier");
-    return 0;
-#else
   SYNCHRONIZATION_BARRIER *barrier =
     (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
 
   if (barrier != NULL)
     InitializeSynchronizationBarrier(barrier, max, -1);
   return (void*) barrier;
-#endif
 }
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
-#if defined(_USING_V110_SDK71_)
-    notImplementedWarning_("csoundDestroyBarrier");
-    return 0;
-#else
     DeleteSynchronizationBarrier(barrier);
     return 0;
-#endif
 }
 
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
-#if defined(_USING_V110_SDK71_)
-    notImplementedWarning_("csoundWaitBarrier");
-    return 0;
-#else
     EnterSynchronizationBarrier(barrier, 0);
     return 0;
-#endif
 }
 
 PUBLIC void* csoundCreateCondVar()
