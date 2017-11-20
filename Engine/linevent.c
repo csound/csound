@@ -149,20 +149,28 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
 {
     volatile jmp_buf tmpExitJmp;
     int         err;
+    unsigned int tmp;
 
     if (reallocsize > 0) {
+      /* VL 20-11-17 need to record the STA(Linep) offset
+	 in relation to STA(Linebuf) */
+      tmp = (STA(Linep) - STA(Linebuf));
       STA(Linebuf) = (char *) csound->ReAlloc(csound,
                                               (void *) STA(Linebuf), reallocsize);
+      
       STA(linebufsiz) = reallocsize;
-      // csound->Message(csound, "realloc: %d\n", reallocsize);
       STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
-      STA(Linep) = STA(Linebuf);
+      /* VL 20-11-17 so we can place it in the correct position
+         after reallocation */
+      STA(Linep) =  STA(Linebuf) + tmp;
     } else if (STA(Linebuf)==NULL) {
        STA(linebufsiz) = LBUFSIZ1;
        STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     }
-    if (STA(Linebuf) == NULL) return 1;
-
+    if (STA(Linebuf) == NULL) {
+       return 1;
+    }
+    //csound->Message(csound, "1. realloc: %d\n", reallocsize);
     if (STA(Linep)) return 0;
     csound->Linefd = -1;
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
@@ -171,12 +179,14 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
       //csound->lineventGlobals = NULL;
       return -1;
     }
+
+
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
-
+    
     return 0;
 }
 
@@ -188,17 +198,12 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int32  size = (int32) strlen(message);
     int n;
 
-#if 0
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    csound->Message(csound, Str("input message kcount, %d, %d.%06d\n"),
-                    csound->kcounter,ts.tv_sec,ts.tv_nsec/1000);
-#endif
-
     if ((n=linevent_alloc(csound, 0)) != 0) return;
+    
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int extralloc = STA(Linep) + size - STA(Linebufend);
+      csound->Message(csound, "realloc %d\n", extralloc);
       // csound->Message(csound, "extralloc: %d %d %d\n",
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
       // FIXME -- Coverity points out that this test is always false
@@ -211,8 +216,10 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
       }
 #else
       n = linevent_alloc(csound, (STA(linebufsiz) + extralloc));
+      
 #endif
     }
+    //csound->Message(csound, "%u = %u\n", (STA(Linep) + size),  STA(Linebufend) );
     memcpy(STA(Linep), message, size);
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';
@@ -227,6 +234,7 @@ static void sensLine(CSOUND *csound, void *userData)
     char    *cp, *Linestart, *Linend;
     int     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
+    
 
     while (1) {
       if(STA(oflag) > oflag) break;
@@ -239,7 +247,7 @@ static void sensLine(CSOUND *csound, void *userData)
         break;
       Linestart = STA(Linebuf);
       cp = Linestart;
-
+      
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
         char    *sstrp = NULL;
@@ -472,7 +480,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       evt.opcod = 'i';
       evt.p[1] *= -1;
     }
-
+    
     if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("event: error creating '%c' event"),
@@ -537,7 +545,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       evt.opcod = 'i';
       evt.p[1] *= -1;
     }
-
+   
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
       err = csound->hfgens(csound, &dummyftp, &evt, 0);
