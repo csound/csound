@@ -719,6 +719,7 @@ NM              [nm]
             if (PARM->in_repeat_sect==1) {
               corfile_putc(csound, yytext[0], PARM->cf);
               corfile_putc(csound, '\n', PARM->cf);
+              unput(yytext[0]);
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
