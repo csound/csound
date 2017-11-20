@@ -60,7 +60,7 @@ after_build:
   #- npm install --msvs_version=2017
   #- npm config set msvs_version 2017 --global
   - npm configure --version=0.23.5
-  #- nw-gyp rebuild --target=0.23.5 --arch=x64
+  - nw-gyp rebuild --target=0.23.5 --arch=x64 && exit=0
   - cd ..\..
   - set PATH=%QTDIR%\bin;%PATH%
   - cd msvc
