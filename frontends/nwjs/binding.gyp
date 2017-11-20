@@ -22,7 +22,7 @@
             ['OS=="win"',
                 {
                     'msbuild_toolset': 'v140',
-                    'libraries': [#'-l$(CSOUND_HOME)/mingw64/csound64.lib',
+                    'libraries': [
                         '-l$(CSOUND_HOME)/msvc/csound-vs/RelWithDebInfo/csound64.lib',
                     ],
                     'include_dirs': [
