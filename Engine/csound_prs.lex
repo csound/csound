@@ -655,6 +655,7 @@ NM              [nm]
            int c, i;
            char buff[120];
            corfile_putc(csound, 's', PARM->cf);
+           corfile_putc(csound, '\n', PARM->cf);
            //printf("r detected\n");
            if (UNLIKELY(PARM->in_repeat_sect))
              csound->Die(csound, Str("Section loops cannot be nested"));
@@ -748,17 +749,26 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
+                int c;
                 corfile_putc(csound, yytext[0], PARM->cf);
                 corfile_putc(csound, '\n', PARM->cf);
-                //printf("end of loop\n");
+                printf("end of loop\n");
                 PARM->in_repeat_sect=0;
                 corfile_rm(csound, &PARM->repeat_sect_cf);
                 //csound->Free(csound, PARM->repeat_sect_mm->body);
                 //PARM->repeat_sect_mm->body = NULL;
               }
             }
-            else
+            else {
               corfile_putc(csound, yytext[0], PARM->cf);
+                /* while (1) { */
+                /*   int c = input(yyscanner); */
+                /*   printf("**copy %.2x(%c)\n", c, c); */
+                /*   corfile_putc(csound, c, PARM->cf); */
+                /*   if (c=='\n') break; */
+                /*   if (c=='\0') break; */
+                /* } */
+            }
           }
           else corfile_putc(csound, yytext[0], PARM->cf);
         }
