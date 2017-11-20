@@ -1555,35 +1555,35 @@ msgstr "Fallita apertura del file %s"
 msgid "failed to read file %s\n"
 msgstr "sfont: fallita lettura file\n"
 
-#: Engine/memfiles.c:149
+#: Engine/memfiles.c:150
 msgid "Ill-formed CV file\n"
 msgstr "file CV non conforme\n"
 
-#: Engine/memfiles.c:205
+#: Engine/memfiles.c:206
 msgid "Ill-formed LPC file\n"
 msgstr "file LPC non conforme\n"
 
-#: Engine/memfiles.c:350
+#: Engine/memfiles.c:351
 #, c-format
 msgid "cannot load %s\n"
 msgstr "impossibile caricare %s\n"
 
-#: Engine/memfiles.c:356
+#: Engine/memfiles.c:357
 #, c-format
 msgid "cannot load %s, or SADIR undefined\n"
 msgstr "impossibile caricare %s, oppure SADIR non definita\n"
 
-#: Engine/memfiles.c:368
+#: Engine/memfiles.c:369
 #, c-format
 msgid "error processing file %s\n"
 msgstr "errore nel processamento del file %s\n"
 
-#: Engine/memfiles.c:374
+#: Engine/memfiles.c:375
 #, c-format
 msgid "file %s (%ld bytes) loaded into memory\n"
 msgstr "file %s (%ld bytes) caricato in memoria\n"
 
-#: Engine/memfiles.c:437
+#: Engine/memfiles.c:438
 msgid ""
 "PVOCEX_LoadFile(): error:\n"
 "    "
@@ -1591,62 +1591,62 @@ msgstr ""
 "PVOCEX_LoadFile(): errore:\n"
 "    "
 
-#: Engine/memfiles.c:454
+#: Engine/memfiles.c:455
 msgid "Empty or NULL file name"
 msgstr "nome di file vuoto o NULL"
 
-#: Engine/memfiles.c:472
+#: Engine/memfiles.c:473
 #, c-format
 msgid "unable to open pvocex file %s: %s"
 msgstr "non riesco ad aprire il file pvocex %s: %s"
 
-#: Engine/memfiles.c:478
+#: Engine/memfiles.c:479
 #, c-format
 msgid "pvoc-ex file %s is not 32bit floats"
 msgstr "il file pvoc-ex %s non ?? 32bit floats"
 
-#: Engine/memfiles.c:484
+#: Engine/memfiles.c:485
 #, c-format
 msgid "pvoc-ex file %s not in AMP_FREQ format"
 msgstr "il file pvoc-ex %s non ?? nel formato AMP_FREQ"
 
-#: Engine/memfiles.c:490
+#: Engine/memfiles.c:491
 #, c-format
 msgid "pvoc-ex file %s is empty!"
 msgstr "il file pvoc-ex %s ?? vuoto!"
 
-#: Engine/memfiles.c:520
+#: Engine/memfiles.c:521
 #, c-format
 msgid "error reading pvoc-ex file %s"
 msgstr "errore in lettura del file pvoc-ex %s"
 
-#: Engine/memfiles.c:524
+#: Engine/memfiles.c:525
 #, c-format
 msgid "error reading pvoc-ex file %s after %d frames"
 msgstr "errore in lettura del file pvoc-ex %s dopo %d frames"
 
-#: Engine/memfiles.c:529 Opcodes/pvinterp.c:77 Opcodes/pvinterp.c:193
+#: Engine/memfiles.c:530 Opcodes/pvinterp.c:77 Opcodes/pvinterp.c:193
 #: Opcodes/pvinterp.c:384 Opcodes/ugens9.c:104 Opcodes/vpvoc.c:216
 #, c-format
 msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr "%s's srate = %8.0f, orch's srate = %8.0f"
 
-#: Engine/memfiles.c:556
+#: Engine/memfiles.c:557
 #, fuzzy, c-format
 msgid "file %s (%d bytes) loaded into memory\n"
 msgstr "file %s (%ld bytes) caricato in memoria\n"
 
-#: Engine/memfiles.c:620
+#: Engine/memfiles.c:621
 #, c-format
 msgid "csoundLoadSoundFile(): failed to open '%s'"
 msgstr "csoundLoadSoundFile(): fallita l'apertura di '%s'"
 
-#: Engine/memfiles.c:671
+#: Engine/memfiles.c:672
 #, c-format
 msgid "csoundLoadSoundFile(): error reading '%s'"
 msgstr "csoundLoadSoundFile(): errore in lettura di '%s'"
 
-#: Engine/memfiles.c:677
+#: Engine/memfiles.c:678
 #, fuzzy, c-format
 msgid ""
 "File '%s' (sr = %d Hz, %d channel(s), %d sample frames) loaded into memory\n"
@@ -6726,8 +6726,8 @@ msgstr "Nessun descrittore lapspa\n"
 #: Opcodes/dssi4cs/src/dssi4cs.c:323
 #, fuzzy, c-format
 msgid ""
-"DSSI4CS: Unable to find ladspa_descriptor(%ul) function or\n"
-"dssi_descriptor(%ul) function in plugin file \"%s\": %s.\n"
+"DSSI4CS: Unable to find ladspa_descriptor(%lu) function or\n"
+"dssi_descriptor(%lu) function in plugin file \"%s\": %s.\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
 "DSSI4CS: Non trovo la funzione ladspa_descriptor(%d) o\n"
@@ -6737,8 +6737,8 @@ msgstr ""
 #: Opcodes/dssi4cs/src/dssi4cs.c:332
 #, fuzzy, c-format
 msgid ""
-"DSSI4CS: Unable to find ladspa_descriptor(%ul) function or\n"
-"dssi_descriptor(%ul) function in plugin file \"%s\".\n"
+"DSSI4CS: Unable to find ladspa_descriptor(%lu) function or\n"
+"dssi_descriptor(%lu) function in plugin file \"%s\".\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
 "DSSI4CS: Non trovo la funzione ladspa_descriptor(%d) o\n"
@@ -10311,54 +10311,55 @@ msgstr ""
 msgid "Out of range in vaset (%d)"
 msgstr ""
 
-#: Opcodes/vbap.c:72
+#: Opcodes/vbap.c:75
 msgid "vbap: error allocating loudspeaker table"
 msgstr ""
 
-#: Opcodes/vbap.c:278
+#: Opcodes/vbap.c:281
 msgid ""
 "Number of loudspeakers is zero\n"
 "Exiting"
 msgstr ""
 
-#: Opcodes/vbap.c:580
-msgid "Error in loudspeaker dimension."
+#: Opcodes/vbap.c:584
+#, c-format
+msgid "Error in loudspeaker dimension. %d not permitted"
 msgstr ""
 
-#: Opcodes/vbap.c:605
+#: Opcodes/vbap.c:612
 msgid "Too few loudspeakers"
 msgstr ""
 
-#: Opcodes/vbap.c:635
+#: Opcodes/vbap.c:642
 #, c-format
 msgid "Too little data speakers (%d)\n"
 msgstr ""
 
-#: Opcodes/vbap.c:658
+#: Opcodes/vbap.c:665
 msgid "Not valid 3-D configuration"
 msgstr ""
 
-#: Opcodes/vbap.c:705 Opcodes/vbap.c:817
+#: Opcodes/vbap.c:712 Opcodes/vbap.c:824
 msgid ""
 "\n"
 "Configured loudspeakers\n"
 msgstr ""
 
-#: Opcodes/vbap.c:707
+#: Opcodes/vbap.c:714
 #, c-format
 msgid "Triplet %d Loudspeakers: "
 msgstr ""
 
-#: Opcodes/vbap.c:757 Opcodes/vbap.c:772
+#: Opcodes/vbap.c:760 Opcodes/vbap.c:775
 #, c-format
 msgid "Pair of speakers at %f and %f ignored\n"
 msgstr ""
 
-#: Opcodes/vbap.c:777
+#: Opcodes/vbap.c:780
 msgid "insufficient valid speakers"
 msgstr "speakers validi insufficienti"
 
-#: Opcodes/vbap.c:819
+#: Opcodes/vbap.c:826
 #, c-format
 msgid "Pair %d Loudspeakers: "
 msgstr ""
@@ -11642,186 +11643,186 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1538
+#: Top/csound.c:1541
 #, c-format
 msgid "Multithread performance:thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1544
+#: Top/csound.c:1547
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:2035 Top/csound.c:2069 Top/csound.c:2098 Top/csound.c:2134
-#: Top/csound.c:4317
+#: Top/csound.c:2038 Top/csound.c:2072 Top/csound.c:2101 Top/csound.c:2137
+#: Top/csound.c:4320
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 
-#: Top/csound.c:2052
+#: Top/csound.c:2055
 #, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr ""
 
-#: Top/csound.c:2076 Top/csound.c:4324
+#: Top/csound.c:2079 Top/csound.c:4327
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:2083
+#: Top/csound.c:2086
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
 msgstr ""
 
-#: Top/csound.c:2105
+#: Top/csound.c:2108
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:2143
+#: Top/csound.c:2146
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2151
+#: Top/csound.c:2154
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2162
+#: Top/csound.c:2165
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2463
+#: Top/csound.c:2466
 msgid "WARNING: "
 msgstr "ATTENZIONE: "
 
-#: Top/csound.c:2600
+#: Top/csound.c:2603
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2601
+#: Top/csound.c:2604
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2630 Top/csound.c:2667
+#: Top/csound.c:2633 Top/csound.c:2670
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2634 Top/csound.c:2671
+#: Top/csound.c:2637 Top/csound.c:2674
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2788
+#: Top/csound.c:2791
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2793 Top/csound.c:2827
+#: Top/csound.c:2796 Top/csound.c:2830
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2796 Top/csound.c:2830
+#: Top/csound.c:2799 Top/csound.c:2833
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2822
+#: Top/csound.c:2825
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2844
+#: Top/csound.c:2847
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:3007
+#: Top/csound.c:3010
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:3029
+#: Top/csound.c:3032
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3171 Top/main.c:374
+#: Top/csound.c:3174 Top/main.c:374
 #, fuzzy
 msgid "setting dummy interface\n"
 msgstr "uso dell'interfaccia callback\n"
 
-#: Top/csound.c:3253
+#: Top/csound.c:3256
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3278
+#: Top/csound.c:3281
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3294
+#: Top/csound.c:3297
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3335
+#: Top/csound.c:3338
 msgid "Real time audio module name"
 msgstr "Nome modulo audio per tempo reale"
 
-#: Top/csound.c:3360
+#: Top/csound.c:3363
 msgid "Real time MIDI module name"
 msgstr "Nome modulo MIDI per tempo reale"
 
-#: Top/csound.c:3365
+#: Top/csound.c:3368
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3371
+#: Top/csound.c:3374
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3379
+#: Top/csound.c:3382
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3385
+#: Top/csound.c:3388
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3390
+#: Top/csound.c:3393
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3396
+#: Top/csound.c:3399
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3401
+#: Top/csound.c:3404
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3408
+#: Top/csound.c:3411
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3413
+#: Top/csound.c:3416
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3423
+#: Top/csound.c:3426
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3429
+#: Top/csound.c:3432
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3436
+#: Top/csound.c:3439
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3660
+#: Top/csound.c:3663
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3690
+#: Top/csound.c:3693
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4212
+#: Top/csound.c:4215
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4244
+#: Top/csound.c:4247
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
