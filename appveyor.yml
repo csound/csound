@@ -59,6 +59,8 @@ after_build:
   - set npm_config_build_from_source=true
   - set npm_config_node_gyp=C:\Users\appveyor\AppData\Roaming\npm\node_modules\nw-gyp\bin\nw-gyp.js
   #- npm install --msvs_version=2017
+  #- npm config set msvs_version 2017 --global
+  - npm configure --version=0.23.5
   - nw-gyp rebuild --target=0.23.5 --arch=x64
   - cd ..\..
   - set PATH=%QTDIR%\bin;%PATH%
