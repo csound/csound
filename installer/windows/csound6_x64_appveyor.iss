@@ -177,7 +177,7 @@ Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound.exe"; DestDir: "{#APP_BIN}";
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundAC.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
-Source: "..\..\frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\cvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\dnoise.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
