@@ -37,6 +37,9 @@ changes have removed a number of memory leaks.
 - chngetks and chnsetks -- versions of chnget and chnset for string
 channels that **only** run at perf-time.
 
+- squinewave is a mostly bandlimited shape-shifting
+  square-pulse-saw-sinewave oscillator with hardsync. 
+
 ### New Gen and Macros
 
 - gen53 (which has been in the code but not documented for years) is
@@ -94,7 +97,7 @@ channels that **only** run at perf-time.
 
 - bitwise and opcode (&) at a-rate corrected for sample-accurate mode.
 
-- slicearray as an optional additional argument to give a stride to the slice.
+- slicearray has an optional additional argument to give a stride to the slice.
 
 - chnset now can have variable channel names.
 
@@ -140,6 +143,8 @@ channels that **only** run at perf-time.
 - outs2 was broken (always wrote to channel 1 like outs1).
 
 - Various errors in the DSSI/ladspa system fixed.
+
+- vbap was broken in all cases except 4-speakers, now corrected.
 
 ## SYSTEM LEVEL CHANGES
 

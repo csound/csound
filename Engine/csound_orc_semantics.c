@@ -1836,7 +1836,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       case '-':
       case '*':
       case '/':
-        printf("Folding case?\n");
+        //printf("Folding case?\n");
         current->left = verify_tree(csound, current->left, typeTable);
         current->right = verify_tree(csound, current->right, typeTable);
         if ((current->left->type == INTEGER_TOKEN ||
@@ -1868,9 +1868,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           current->value->fvalue = lval;
           csound->Free(csound, current->left); csound->Free(csound, current->right);
         }
+        break;
       case ENDIN_TOKEN:
       case UDOEND_TOKEN:
         csound->inZero = 1;
+        /* fall through */
       default:
         if (!verify_opcode(csound, current, typeTable)) {
           return 0;

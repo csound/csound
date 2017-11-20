@@ -102,7 +102,7 @@ msgid "(unknown error)"
 msgstr "(erreur inconnue)"
 
 #: Engine/corfiles.c:60 Engine/corfiles.c:81 Engine/corfiles.c:95
-#: Engine/corfiles.c:111 Engine/fgens.c:1633 Engine/rdscor.c:217
+#: Engine/corfiles.c:111 Engine/fgens.c:1633 Engine/rdscor.c:216
 msgid "Out of Memory\n"
 msgstr "Pas assez de mémoire\n"
 
@@ -570,7 +570,7 @@ msgstr "instruction xin non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr "instruction xout non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 
-#: Engine/csound_orc_semantics.c:1933
+#: Engine/csound_orc_semantics.c:1935
 #, c-format
 msgid ""
 "\n"
@@ -579,7 +579,7 @@ msgstr ""
 "\n"
 "erreur : %s (symbole \"%s\")"
 
-#: Engine/csound_orc_semantics.c:1936
+#: Engine/csound_orc_semantics.c:1938
 #, c-format
 msgid ""
 " line %d:\n"
@@ -588,12 +588,12 @@ msgstr ""
 " ligne %d :\n"
 ">>>"
 
-#: Engine/csound_orc_semantics.c:1955
+#: Engine/csound_orc_semantics.c:1957
 #, c-format
 msgid " from file %s (%d)\n"
 msgstr " depuis le fichier %s (%d)\n"
 
-#: Engine/csound_orc_semantics.c:2536
+#: Engine/csound_orc_semantics.c:2538
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr "arguments requis manquants pour l'opcode %s ligne %d :\n"
@@ -634,20 +634,20 @@ msgstr "Macro non définie : '%s'"
 #: Engine/csound_pre.lex:1225 Engine/csound_pre.lex:1240
 #: Engine/csound_prs.lex:178 Engine/csound_prs.lex:227
 #: Engine/csound_prs.lex:232 Engine/csound_prs.lex:242
-#: Engine/csound_prs.lex:272 Engine/csound_prs.lex:292
-#: Engine/csound_prs.lex:524 Engine/csound_prs.lex:571
-#: Engine/csound_prs.lex:609 Engine/csound_prs.lex:691
-#: Engine/csound_prs.lex:866 Engine/csound_prs.lex:894
-#: Engine/csound_prs.lex:900 Engine/csound_prs.lex:913
-#: Engine/csound_prs.lex:921 Engine/csound_prs.lex:929
-#: Engine/csound_prs.lex:940 Engine/csound_prs.lex:949
-#: Engine/csound_prs.lex:957 Engine/csound_prs.lex:1003
-#: Engine/csound_prs.lex:1015 Engine/csound_prs.lex:1029
-#: Engine/csound_prs.lex:1038 Engine/csound_prs.lex:1060
-#: Engine/csound_prs.lex:1068 Engine/csound_prs.lex:1105
-#: Engine/csound_prs.lex:1115 Engine/csound_prs.lex:1124
-#: Engine/csound_prs.lex:1181 Engine/csound_prs.lex:1287
-#: Engine/csound_prs.lex:1300 Engine/csound_prs.lex:1315
+#: Engine/csound_prs.lex:292 Engine/csound_prs.lex:524
+#: Engine/csound_prs.lex:571 Engine/csound_prs.lex:609
+#: Engine/csound_prs.lex:691 Engine/csound_prs.lex:866
+#: Engine/csound_prs.lex:894 Engine/csound_prs.lex:900
+#: Engine/csound_prs.lex:913 Engine/csound_prs.lex:921
+#: Engine/csound_prs.lex:929 Engine/csound_prs.lex:940
+#: Engine/csound_prs.lex:949 Engine/csound_prs.lex:957
+#: Engine/csound_prs.lex:1003 Engine/csound_prs.lex:1015
+#: Engine/csound_prs.lex:1029 Engine/csound_prs.lex:1038
+#: Engine/csound_prs.lex:1060 Engine/csound_prs.lex:1068
+#: Engine/csound_prs.lex:1105 Engine/csound_prs.lex:1115
+#: Engine/csound_prs.lex:1124 Engine/csound_prs.lex:1181
+#: Engine/csound_prs.lex:1287 Engine/csound_prs.lex:1300
+#: Engine/csound_prs.lex:1315
 msgid "Memory exhausted"
 msgstr "Plus de mémoire"
 
@@ -1542,35 +1542,45 @@ msgstr "instance : erreur en créant l'évènement"
 msgid "memory allocate failure for %zu"
 msgstr "échec de l'allocation de mémoire pour %zu"
 
-#: Engine/memfiles.c:141
+#: Engine/memfiles.c:48
+#, c-format
+msgid "failed to open file %s\n"
+msgstr "L'ouverture du fichier %s a échoué\n"
+
+#: Engine/memfiles.c:54
+#, c-format
+msgid "failed to read file %s\n"
+msgstr "impossible de lire le fichier %s\n"
+
+#: Engine/memfiles.c:150
 msgid "Ill-formed CV file\n"
 msgstr "Fichier CV non conforme\n"
 
-#: Engine/memfiles.c:197
+#: Engine/memfiles.c:206
 msgid "Ill-formed LPC file\n"
 msgstr "Fichier LPC non conforme\n"
 
-#: Engine/memfiles.c:342
+#: Engine/memfiles.c:351
 #, c-format
 msgid "cannot load %s\n"
 msgstr "impossible de charger %s\n"
 
-#: Engine/memfiles.c:348
+#: Engine/memfiles.c:357
 #, c-format
 msgid "cannot load %s, or SADIR undefined\n"
 msgstr "impossible de charger %s, ou SADIR n'est pas défini\n"
 
-#: Engine/memfiles.c:360
+#: Engine/memfiles.c:369
 #, c-format
 msgid "error processing file %s\n"
 msgstr "erreur en traitant le fichier %s\n"
 
-#: Engine/memfiles.c:366
+#: Engine/memfiles.c:375
 #, c-format
 msgid "file %s (%ld bytes) loaded into memory\n"
 msgstr "le fichier %s (%ld octets) a été chargé en mémoire\n"
 
-#: Engine/memfiles.c:429
+#: Engine/memfiles.c:438
 msgid ""
 "PVOCEX_LoadFile(): error:\n"
 "    "
@@ -1578,62 +1588,62 @@ msgstr ""
 "PVOCEX_LoadFile() : erreur :\n"
 "    "
 
-#: Engine/memfiles.c:446
+#: Engine/memfiles.c:455
 msgid "Empty or NULL file name"
 msgstr "Nom de fichier vide ou NULL"
 
-#: Engine/memfiles.c:464
+#: Engine/memfiles.c:473
 #, c-format
 msgid "unable to open pvocex file %s: %s"
 msgstr "impossible d'ouvrir le fichier pvocex %s : %s"
 
-#: Engine/memfiles.c:470
+#: Engine/memfiles.c:479
 #, c-format
 msgid "pvoc-ex file %s is not 32bit floats"
 msgstr "le fichier pvoc-ex %s n'est pas au format floats sur 32 bit"
 
-#: Engine/memfiles.c:476
+#: Engine/memfiles.c:485
 #, c-format
 msgid "pvoc-ex file %s not in AMP_FREQ format"
 msgstr "le fichier pvoc-ex %s n'est pas au format AMP_FREQ"
 
-#: Engine/memfiles.c:482
+#: Engine/memfiles.c:491
 #, c-format
 msgid "pvoc-ex file %s is empty!"
 msgstr "le fichier pvoc-ex %s est vide !"
 
-#: Engine/memfiles.c:512
+#: Engine/memfiles.c:521
 #, c-format
 msgid "error reading pvoc-ex file %s"
 msgstr "erreur de lecture sur le fichier pvoc-ex %s"
 
-#: Engine/memfiles.c:516
+#: Engine/memfiles.c:525
 #, c-format
 msgid "error reading pvoc-ex file %s after %d frames"
 msgstr "erreur de lecture sur le fichier pvoc-ex %s après %d trames"
 
-#: Engine/memfiles.c:521 Opcodes/pvinterp.c:77 Opcodes/pvinterp.c:193
+#: Engine/memfiles.c:530 Opcodes/pvinterp.c:77 Opcodes/pvinterp.c:193
 #: Opcodes/pvinterp.c:384 Opcodes/ugens9.c:104 Opcodes/vpvoc.c:216
 #, c-format
 msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr "srate de %s = %8.0f, srate de l'orchestre = %8.0f"
 
-#: Engine/memfiles.c:548
+#: Engine/memfiles.c:557
 #, c-format
 msgid "file %s (%d bytes) loaded into memory\n"
 msgstr "le fichier %s (%d octets) a été chargé en mémoire\n"
 
-#: Engine/memfiles.c:612
+#: Engine/memfiles.c:621
 #, c-format
 msgid "csoundLoadSoundFile(): failed to open '%s'"
 msgstr "csoundLoadSoundFile() : l'ouverture de '%s' a échoué"
 
-#: Engine/memfiles.c:663
+#: Engine/memfiles.c:672
 #, c-format
 msgid "csoundLoadSoundFile(): error reading '%s'"
 msgstr "csoundLoadSoundFile() : erreur de lecture sur '%s'"
 
-#: Engine/memfiles.c:669
+#: Engine/memfiles.c:678
 #, c-format
 msgid ""
 "File '%s' (sr = %d Hz, %d channel(s), %d sample frames) loaded into memory\n"
@@ -1916,7 +1926,7 @@ msgstr ""
 msgid "ERROR: too many pfields: "
 msgstr "ERREUR : trop de p-champs"
 
-#: Engine/sort.c:271
+#: Engine/sort.c:272
 #, c-format
 msgid "sort: illegal opcode %c(%.2x)\n"
 msgstr "sort : opcode illégal %c(%.2x)\n"
@@ -2093,27 +2103,27 @@ msgstr "sread : format de nombre illégal :"
 msgid "   zero substituted.\n"
 msgstr "   remplacé par zéro.\n"
 
-#: Engine/swritestr.c:166
+#: Engine/swritestr.c:167
 #, c-format
 msgid "swrite: unexpected opcode %c, section %d line %d\n"
 msgstr "swrite : opcode inattendu %c, sect %d ligne %d\n"
 
-#: Engine/swritestr.c:254 Engine/swritestr.c:295
+#: Engine/swritestr.c:255 Engine/swritestr.c:296
 #, c-format
 msgid "swrite: output, sect%d line%d p%d makes illegal reference to "
 msgstr ""
 "swrite : la sortie, sect %d ligne %d p%d fait illégalement référence à "
 
-#: Engine/swritestr.c:261 Engine/swritestr.c:301
+#: Engine/swritestr.c:262 Engine/swritestr.c:302
 msgid "   Zero substituted\n"
 msgstr "   Remplacé par zéro\n"
 
-#: Engine/swritestr.c:360
+#: Engine/swritestr.c:361
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal ramp symbol\n"
 msgstr "swrite : sortie, sect %d ligne %d p%d a un symbole de rampe illégal\n"
 
-#: Engine/swritestr.c:364
+#: Engine/swritestr.c:365
 #, c-format
 msgid ""
 "swrite: output, sect%d line%d p%d ramp has illegal forward or backward ref\n"
@@ -2121,14 +2131,14 @@ msgstr ""
 "swrite : sortie, sect %d ligne %d p%d, la rampe a une réf avant ou arrière "
 "illégale\n"
 
-#: Engine/swritestr.c:428 Engine/swritestr.c:493
+#: Engine/swritestr.c:429 Engine/swritestr.c:494
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal expramp symbol\n"
 msgstr ""
 "swrite : sortie, sect %d ligne %d p%d a un symbole de rampe exponentielle "
 "illégal\n"
 
-#: Engine/swritestr.c:433 Engine/swritestr.c:498
+#: Engine/swritestr.c:434 Engine/swritestr.c:499
 #, c-format
 msgid ""
 "swrite: output, sect%d line%d p%d expramp has illegal forward or backward "
@@ -2137,18 +2147,18 @@ msgstr ""
 "swrite : sortie, sect %d ligne %d p%d, la rampe exponentielle a une réf "
 "avant ou arrière illégale\n"
 
-#: Engine/swritestr.c:514
+#: Engine/swritestr.c:515
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegally terminated string   "
 msgstr ""
 "swrite : sortie, sect %d ligne %d p%d a une chaîne terminée illégalement   "
 
-#: Engine/swritestr.c:566
+#: Engine/swritestr.c:567
 #, c-format
 msgid "swrite: output, sect%d line%d p%d has illegal number  "
 msgstr "swrite : sortie, sect %d ligne %d p%d a un numéro illégal  "
 
-#: Engine/swritestr.c:573
+#: Engine/swritestr.c:574
 msgid "    String truncated\n"
 msgstr "    Chaîne tronquée\n"
 
@@ -6742,23 +6752,23 @@ msgstr "Pas de descripteur ladspa\n"
 #: Opcodes/dssi4cs/src/dssi4cs.c:323
 #, c-format
 msgid ""
-"DSSI4CS: Unable to find ladspa_descriptor(%ul) function or\n"
-"dssi_descriptor(%ul) function in plugin file \"%s\": %s.\n"
+"DSSI4CS: Unable to find ladspa_descriptor(%lu) function or\n"
+"dssi_descriptor(%lu) function in plugin file \"%s\": %s.\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
-"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%ul) ou\n"
-"la fonction dssi_descriptor(%ul) dans le fichier de greffon \"%s\" : %s.\n"
+"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%lu) ou\n"
+"la fonction dssi_descriptor(%lu) dans le fichier de greffon \"%s\" : %s.\n"
 "Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:332
 #, c-format
 msgid ""
-"DSSI4CS: Unable to find ladspa_descriptor(%ul) function or\n"
-"dssi_descriptor(%ul) function in plugin file \"%s\".\n"
+"DSSI4CS: Unable to find ladspa_descriptor(%lu) function or\n"
+"dssi_descriptor(%lu) function in plugin file \"%s\".\n"
 "Are you sure this is a LADSPA or DSSI plugin file ?"
 msgstr ""
-"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%ul) ou\n"
-"la fonction dssi_descriptor(%ul) dans le fichier de greffon \"%s\".\n"
+"DSSI4CS : impossible de trouver la fonction ladspa_descriptor(%lu) ou\n"
+"la fonction dssi_descriptor(%lu) dans le fichier de greffon \"%s\".\n"
 "Etes-vous sûr que c'est un fichier de greffon LADSPA ou DSSI ?"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:344
@@ -6933,7 +6943,7 @@ msgstr "Numéro de table < 1 sft=%.2f"
 msgid "Source sft table %.2f not found."
 msgstr "La table %.2f de la source sft n'a pas été trouvée"
 
-#: Opcodes/faustgen.cpp:269
+#: Opcodes/faustgen.cpp:273
 #, c-format
 msgid ""
 "\n"
@@ -6944,12 +6954,12 @@ msgstr ""
 "Problème de compilation de Faust : \n"
 "ligne %s\n"
 
-#: Opcodes/faustgen.cpp:390
+#: Opcodes/faustgen.cpp:394
 #, c-format
 msgid "could not find DSP %p for deletion"
 msgstr "impossible de trouver le DSP %p pour suppression"
 
-#: Opcodes/faustgen.cpp:416
+#: Opcodes/faustgen.cpp:420
 msgid ""
 "Faust code did not compile properly.\n"
 "Check above messages for Faust compiler errors\n"
@@ -6957,42 +6967,42 @@ msgstr ""
 "Le code Faust n'a pas été compilé proprement.\n"
 "Verifier ci-dessus les messages d'erreur du compilateur Faust\n"
 
-#: Opcodes/faustgen.cpp:422
+#: Opcodes/faustgen.cpp:426
 msgid "no factory available\n"
 msgstr "aucune fabrique n'est disponible\n"
 
-#: Opcodes/faustgen.cpp:428
+#: Opcodes/faustgen.cpp:432
 #, c-format
 msgid "factory not found %d\n"
 msgstr "fabrique non trouvée %d\n"
 
-#: Opcodes/faustgen.cpp:433 Opcodes/faustgen.cpp:536
+#: Opcodes/faustgen.cpp:437 Opcodes/faustgen.cpp:540
 msgid "Faust instantiation problem \n"
 msgstr "Problème d'instanciation de Faust\n"
 
-#: Opcodes/faustgen.cpp:475 Opcodes/faustgen.cpp:574
+#: Opcodes/faustgen.cpp:479 Opcodes/faustgen.cpp:578
 msgid "wrong number of input args\n"
 msgstr "nombre incorrect d'arguments en entrée\n"
 
-#: Opcodes/faustgen.cpp:479 Opcodes/faustgen.cpp:583
+#: Opcodes/faustgen.cpp:483 Opcodes/faustgen.cpp:587
 msgid "wrong number of output args\n"
 msgstr "nombre incorrect d'arguments en sortie\n"
 
-#: Opcodes/faustgen.cpp:528
+#: Opcodes/faustgen.cpp:532
 #, c-format
 msgid "Faust compilation problem: %s\n"
 msgstr "Problème de compilation de Faust : %s\n"
 
-#: Opcodes/faustgen.cpp:689
+#: Opcodes/faustgen.cpp:693
 msgid "no dsp instances available\n"
 msgstr "aucune iinstance de DSP n'est disponible\n"
 
-#: Opcodes/faustgen.cpp:696
+#: Opcodes/faustgen.cpp:700
 #, c-format
 msgid "dsp instance not found %d\n"
 msgstr "instance de DSP introuvable %d\n"
 
-#: Opcodes/faustgen.cpp:701
+#: Opcodes/faustgen.cpp:705
 #, c-format
 msgid "dsp control %s not found\n"
 msgstr "contrôle de DSP %s introuvable\n"
@@ -10021,6 +10031,11 @@ msgstr "intervalle de coef : %6.3f - %6.3f\n"
 msgid "specfilt: not initialised"
 msgstr "specfilt : non initialisé"
 
+#: Opcodes/squinewave.c:110
+#, c-format
+msgid "squinewave iminsweep range 4 to sr/100. Set to default %d"
+msgstr "squinewave iminsweep compris entre 4 et sr/100. Mis à %d par défaut"
+
 #: Opcodes/stackops.c:99
 msgid "fsig = : source signal is not initialised"
 msgstr "fsig = : le signal source n'est pas initialisé"
@@ -10524,11 +10539,11 @@ msgstr "Hors limites dans vaget (%d)"
 msgid "Out of range in vaset (%d)"
 msgstr "Hors limites dans vaset (%d)"
 
-#: Opcodes/vbap.c:72
+#: Opcodes/vbap.c:75
 msgid "vbap: error allocating loudspeaker table"
 msgstr "vbap : erreur lors de l'allocation de la table de haut-parleurs"
 
-#: Opcodes/vbap.c:278
+#: Opcodes/vbap.c:281
 msgid ""
 "Number of loudspeakers is zero\n"
 "Exiting"
@@ -10536,24 +10551,25 @@ msgstr ""
 "Le nombre de haut-parleurs est zéro\n"
 "Fin du traitement"
 
-#: Opcodes/vbap.c:580
-msgid "Error in loudspeaker dimension."
+#: Opcodes/vbap.c:584
+#, fuzzy, c-format
+msgid "Error in loudspeaker dimension. %d not permitted"
 msgstr "Erreur dans la dimension de haut-parleur."
 
-#: Opcodes/vbap.c:605
+#: Opcodes/vbap.c:612
 msgid "Too few loudspeakers"
 msgstr "Trop peu de haut-parleurs"
 
-#: Opcodes/vbap.c:635
+#: Opcodes/vbap.c:642
 #, c-format
 msgid "Too little data speakers (%d)\n"
 msgstr "Trop peu de données de haut-parleurs (%d)\n"
 
-#: Opcodes/vbap.c:658
+#: Opcodes/vbap.c:665
 msgid "Not valid 3-D configuration"
 msgstr "Non valide en configuration 3-D"
 
-#: Opcodes/vbap.c:705 Opcodes/vbap.c:817
+#: Opcodes/vbap.c:712 Opcodes/vbap.c:824
 msgid ""
 "\n"
 "Configured loudspeakers\n"
@@ -10561,21 +10577,21 @@ msgstr ""
 "\n"
 "Haut-parleurs configurés\n"
 
-#: Opcodes/vbap.c:707
+#: Opcodes/vbap.c:714
 #, c-format
 msgid "Triplet %d Loudspeakers: "
 msgstr "Haut-parleurs triplet %d : "
 
-#: Opcodes/vbap.c:757 Opcodes/vbap.c:772
+#: Opcodes/vbap.c:760 Opcodes/vbap.c:775
 #, c-format
 msgid "Pair of speakers at %f and %f ignored\n"
 msgstr "La paire de haut-parleurs en %f et %f est ignorée\n"
 
-#: Opcodes/vbap.c:777
+#: Opcodes/vbap.c:780
 msgid "insufficient valid speakers"
 msgstr "nombre de haut-parleurs insuffisant"
 
-#: Opcodes/vbap.c:819
+#: Opcodes/vbap.c:826
 #, c-format
 msgid "Pair %d Loudspeakers: "
 msgstr "Haut-parleurs Paire %d : "
@@ -11497,7 +11513,8 @@ msgstr ""
 #: Top/argdecode.c:289
 msgid "--vbr-quality=Ft        set quality of variable bit-rate compression"
 msgstr ""
-"--vbr-quality=Ft        fixe la qualité de compression du débit binaire variable"
+"--vbr-quality=Ft        fixe la qualité de compression du débit binaire "
+"variable"
 
 #: Top/argdecode.c:290
 msgid "--devices[=in|out]      list available MIDI devices and exit"
@@ -11525,7 +11542,8 @@ msgstr ""
 
 #: Top/argdecode.c:295
 msgid "--udp-echo              echo UDP commands on terminal"
-msgstr "--udp-echo              affiche les commandes UPD en écho sur le terminal"
+msgstr ""
+"--udp-echo              affiche les commandes UPD en écho sur le terminal"
 
 #: Top/argdecode.c:297
 msgid "--help                  long help"
@@ -11970,194 +11988,194 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr "Erreur lors de l'allocation de la liste d'opcodes"
 
-#: Top/csound.c:1538
+#: Top/csound.c:1541
 #, c-format
 msgid "Multithread performance:thread %d of %d starting.\n"
 msgstr "Exécution multithread : démarrage du thread %d sur %d.\n"
 
-#: Top/csound.c:1544
+#: Top/csound.c:1547
 msgid "Bad ThreadId"
 msgstr "Mauvais ThreadId"
 
-#: Top/csound.c:2035 Top/csound.c:2069 Top/csound.c:2098 Top/csound.c:2134
-#: Top/csound.c:4317
+#: Top/csound.c:2038 Top/csound.c:2072 Top/csound.c:2101 Top/csound.c:2137
+#: Top/csound.c:4320
 msgid "Csound not ready for performance: csoundStart() has not been called \n"
 msgstr ""
 "Csound n'est pas prêt pour l'exécution : csoundStart() n'a pas été appelée\n"
 
-#: Top/csound.c:2052
+#: Top/csound.c:2055
 #, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr "La partition est finie dans csoundPerformKsmps() avec %d.\n"
 
-#: Top/csound.c:2076 Top/csound.c:4324
+#: Top/csound.c:2079 Top/csound.c:4327
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr "Retour prématuré de csoundPerformKsmps().\n"
 
-#: Top/csound.c:2083
+#: Top/csound.c:2086
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
 msgstr "La partition est finie dans csoundPerformKsmpsInternal().\n"
 
-#: Top/csound.c:2105
+#: Top/csound.c:2108
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr "Retour prématuré de csoundPerformBuffer().\n"
 
-#: Top/csound.c:2143
+#: Top/csound.c:2146
 msgid "Early return from csoundPerform().\n"
 msgstr "Retour prématuré de csoundPerform().\n"
 
-#: Top/csound.c:2151
+#: Top/csound.c:2154
 msgid "Score finished in csoundPerform().\n"
 msgstr "La partition est finie dans csoundPerform().\n"
 
-#: Top/csound.c:2162
+#: Top/csound.c:2165
 msgid "csoundPerform(): stopped.\n"
 msgstr "csoundPerform() : arrêté.\n"
 
-#: Top/csound.c:2463
+#: Top/csound.c:2466
 msgid "WARNING: "
 msgstr "AVERTISSEMENT : "
 
-#: Top/csound.c:2600
+#: Top/csound.c:2603
 msgid "rtdummy: failed to allocate globals"
 msgstr "rtdummy : l'allocation des variables globales a échoué"
 
-#: Top/csound.c:2601
+#: Top/csound.c:2604
 msgid "rtaudio: dummy module enabled\n"
 msgstr "rtaudio : module factice activé\n"
 
-#: Top/csound.c:2630 Top/csound.c:2667
+#: Top/csound.c:2633 Top/csound.c:2670
 msgid " *** error: rtaudio module set to empty string"
 msgstr " *** erreur : le module rtaudio est fixé par une chaîne vide"
 
-#: Top/csound.c:2634 Top/csound.c:2671
+#: Top/csound.c:2637 Top/csound.c:2674
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr " module rtaudio inconnu : '%s', utilisation d'un module factice"
 
-#: Top/csound.c:2788
+#: Top/csound.c:2791
 msgid "WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 "AVERTISSEMENT : l'entrée midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
-#: Top/csound.c:2793 Top/csound.c:2827
+#: Top/csound.c:2796 Top/csound.c:2830
 msgid "error: -+rtmidi set to empty string"
 msgstr "erreur : -+rtmidi contient une chaîne vide"
 
-#: Top/csound.c:2796 Top/csound.c:2830
+#: Top/csound.c:2799 Top/csound.c:2833
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr "erreur : -+rtmidi='%s' : module inconnu"
 
-#: Top/csound.c:2822
+#: Top/csound.c:2825
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 "AVERTISSEMENT : la sortie midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
-#: Top/csound.c:2844
+#: Top/csound.c:2847
 msgid "Unknown MIDI error"
 msgstr "Erreur MIDI inconnue"
 
-#: Top/csound.c:3007
+#: Top/csound.c:3010
 msgid "Failed to allocate new opcode entry."
 msgstr "Echec de l'allocation d'une nouvelle entrée d'opcode."
 
-#: Top/csound.c:3029
+#: Top/csound.c:3032
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr "Echec de l'allocation d'une entrée d'opcode pour %s."
 
-#: Top/csound.c:3171 Top/main.c:374
+#: Top/csound.c:3174 Top/main.c:374
 msgid "setting dummy interface\n"
 msgstr "mise en place d'une interface factice\n"
 
-#: Top/csound.c:3253
+#: Top/csound.c:3256
 msgid "Failed during csoundInitEnv"
 msgstr "Echec dans csoundInitEnv"
 
-#: Top/csound.c:3278
+#: Top/csound.c:3281
 msgid "Failed during csoundInitStaticModules"
 msgstr "Echec dans csoundInitStaticModules"
 
-#: Top/csound.c:3294
+#: Top/csound.c:3297
 msgid "Failed during csoundLoadModules"
 msgstr "Echec dans csoundLoadModules"
 
-#: Top/csound.c:3335
+#: Top/csound.c:3338
 msgid "Real time audio module name"
 msgstr "Nom du module audio en temps réel"
 
-#: Top/csound.c:3360
+#: Top/csound.c:3363
 msgid "Real time MIDI module name"
 msgstr "Nom du module MIDI en temps réel"
 
-#: Top/csound.c:3365
+#: Top/csound.c:3368
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 "Ignorer les évènements (autres que les changements de tempo) dans les pistes "
 "définies par le modèle"
 
-#: Top/csound.c:3371
+#: Top/csound.c:3374
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr "Ne pas traiter les contrôleurs MIDI spéciaux (pédale sustain, etc)"
 
-#: Top/csound.c:3379
+#: Top/csound.c:3382
 msgid "Title tag in output soundfile (no spaces)"
 msgstr "Champ titre dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3385
+#: Top/csound.c:3388
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr "Champ copyright dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3390
+#: Top/csound.c:3393
 msgid "Short Copyright tag in output soundfile"
 msgstr "Champ copyright court dans le fichier son de sortie"
 
-#: Top/csound.c:3396
+#: Top/csound.c:3399
 msgid "Software tag in output soundfile (no spaces)"
 msgstr "Champ du logiciel dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3401
+#: Top/csound.c:3404
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr "Champ artiste dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3408
+#: Top/csound.c:3411
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr "Champ commentaire dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3413
+#: Top/csound.c:3416
 msgid "Date tag in output soundfile (no spaces)"
 msgstr "Champ date dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3423
+#: Top/csound.c:3426
 msgid "Enable message attributes (colors etc.)"
 msgstr "Activer les attributs de message (couleurs, etc)"
 
-#: Top/csound.c:3429
+#: Top/csound.c:3432
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 "Démarrer la restitution de la partition au temps spécifié, en ignorant les "
 "évènements antérieurs"
 
-#: Top/csound.c:3436
+#: Top/csound.c:3439
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr "Ignorer <CsOptions> dans les fichiers CSD (non par défaut)"
 
-#: Top/csound.c:3660
+#: Top/csound.c:3663
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr "Impossible d'ouvrir /proc/cpuinfo. RDTSC n'est pas supporté.\n"
 
-#: Top/csound.c:3690
+#: Top/csound.c:3693
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr "Aucune entrée de fréq CPU valide n'a été trouvée dans /proc/cpuinfo.\n"
 
-#: Top/csound.c:4212
+#: Top/csound.c:4215
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr "csoundDestroyMessageBuffer : tampon de message non alloué."
 
-#: Top/csound.c:4244
+#: Top/csound.c:4247
 msgid "csound: internal error: message buffer overflow\n"
 msgstr "csound : erreur interne : dépassement du tampon de messages\n"
 

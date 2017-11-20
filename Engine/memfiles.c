@@ -44,9 +44,18 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
     char buffer[16];
     //void *dummy = 0;
     f = fopen(filnam, "r");
+    if (f==NULL) {
+      csound->Warning(csound, Str("failed to open file %s\n"), filnam);
+      return NOTOK;
+    }
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_HETRO, 0, 0);
     all = (char *)csound->Malloc(csound, (size_t) length);
-    for (i=0; i<6; i++) getc(f); /* Skip HETRO */
+    if (6!=fread(buffer, 1, 6, f)) { /* Skip HETRO */
+      csound->Warning(csound, Str("failed to read file %s\n"), filnam);
+      fclose(f);
+      return NOTOK;
+    }
+    //for (i=0; i<6; i++) getc(f); /* Skip HETRO */
     /*dummy =*/ (void)fgets(buffer, 10, f);         /* number of partials */
     x = atoi(buffer);
     memcpy(&all[0], &x, sizeof(int16));

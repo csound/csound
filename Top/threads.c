@@ -600,7 +600,9 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 
 PUBLIC void *csoundGetCurrentThreadId(void)
 {
-  return (void*) GetCurrentThreadId();
+    DWORD* d = malloc(sizeof(DWORD));
+    *d = GetCurrentThreadId();
+    return (void*) d;
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
@@ -800,11 +802,14 @@ PUBLIC void* csoundCreateCondVar()
 }
 
 PUBLIC void csoundCondWait(void* condVar, void* mutex) {
-    SleepConditionVariableCS(&condVar, &mutex, INFINITE);
+    CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)condVar;
+    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)mutex;
+    SleepConditionVariableCS(cv, cs, INFINITE);
 }
 
 PUBLIC void csoundCondSignal(void* condVar) {
-    WakeConditionVariable(&condVar);
+    CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)condVar;
+    WakeConditionVariable(cv);
 }
 
 /* ------------------------------------------------------------------------ */
