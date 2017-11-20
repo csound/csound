@@ -9,8 +9,7 @@ environment:
   QTDIR: C:\Qt\5.9.2\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 15 2017 Win64
-  # This is for compatibility with Windows 8.
-  VSTOOLSET: v141_xp
+  VSTOOLSET: v141
   VST_SDK2_HOME:  C:\projects\csound\msvc\deps\VST_SDK\VST2_SDK
 
 platform: x64

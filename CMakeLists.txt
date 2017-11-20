@@ -345,6 +345,7 @@ else()
         comdlg32
         glu32
         kernel32
+        mincore
         odbc32
         odbccp32
         ole32
@@ -521,7 +522,7 @@ SET(BUILD_SHARED_LIBS ON)
 ## HEADER/LIBRARY/OTHER CHECKS ##
 
 # First, required stuff
-if (MSVC) 
+if (MSVC)
   find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1 HINTS ${PROJECT_SOURCE_DIR}/msvc/deps/lib)
 else()
   find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
