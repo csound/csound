@@ -413,6 +413,7 @@
 ./Opcodes/spat3d.h
 ./Opcodes/spectra.c
 ./Opcodes/spectra.h
+./Opcodes/squinewave.c
 ./Opcodes/stackops.c
 ./Opcodes/stdopcod.c
 ./Opcodes/stdopcod.h

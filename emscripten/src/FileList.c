@@ -22,7 +22,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <emscripten.h>
 
+EMSCRIPTEN_KEEPALIVE 
 size_t FileList_getFileCount(const char *directoryPath)
 {
 	struct dirent *directoryEntry;
@@ -51,6 +53,7 @@ size_t FileList_getFileCount(const char *directoryPath)
 }
 
 
+EMSCRIPTEN_KEEPALIVE 
 char *FileList_getFileNameString(const char *directoryPath, size_t fileNumber)
 {
 	if (fileNumber >= FileList_getFileCount(directoryPath)) {

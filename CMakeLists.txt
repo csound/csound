@@ -410,6 +410,14 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
+check_c_compiler_flag(-std=gnu99 HAS_GNU99)
+if (HAS_GNU99)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+endif()
+if (HAS_CXX_VISIBILITY_HIDDEN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+endif()
+
 if(APPLE)
 if(IOS)
 message(STATUS "Building for iOS.")
@@ -784,6 +792,7 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
+    Opcodes/squinewave.c
     Opcodes/pinker.c
     Opcodes/pitch.c
     Opcodes/pitch0.c

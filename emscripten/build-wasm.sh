@@ -7,7 +7,7 @@ if [ -z "${EMSCRIPTEN_ROOT+xxx}" ]; then
 fi
 
 echo "Using EMSCRIPTEN_ROOT: $EMSCRIPTEN_ROOT"
-export EMCC_DEBUG=1
+#export EMCC_DEBUG=1
 
 mkdir -p build-wasm
 cd build-wasm
@@ -16,8 +16,8 @@ cmake -DUSE_COMPILER_OPTIMIZATIONS=0 -DWASM=1 -DINIT_STATIC_MODULES=1 -DUSE_DOUB
 
 emmake make csound-static -j6 
 
-emcc -O2 -g4 ../src/FileList.c -s LINKABLE=1  -s ASSERTIONS=1 -Iinclude -o FileList.bc
-emcc -O2 -g4 ../src/CsoundObj.c -s LINKABLE=1 -s ASSERTIONS=1 -I../../include -Iinclude -o CsoundObj.bc
+emcc -s LINKABLE=1 -s ASSERTIONS=1 ../src/FileList.c -Iinclude -o FileList.bc
+emcc -s LINKABLE=1 -s ASSERTIONS=1 ../src/CsoundObj.c -I../../include -Iinclude -o CsoundObj.bc
 
 # Total memory for a WebAssembly module must be a multiple of 64 KB so...
 # 1024 * 64 = 65536 is 64 KB
@@ -33,4 +33,4 @@ mkdir dist-wasm
 cp build-wasm/libcsound.js dist-wasm/
 cp src/*.js dist-wasm/
 cp build-wasm/libcsound.wasm dist-wasm/
-cp build-wasm/libcsound.js.map dist-wasm/
+cp build-wasm/libcsound.wasm.map dist-wasm/
