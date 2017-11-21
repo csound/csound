@@ -81,6 +81,8 @@ channels that **only** run at perf-time.
 
 - After calling a undefined macro the rest of the line is ignored.
 
+- A couple of bugs in repeated sections (r opcode) have been removed.
+
 ### Options
 
 - the --tempo (and -t) option now can be fractional; was previously
