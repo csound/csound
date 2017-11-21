@@ -750,10 +750,9 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
-                int c;
-                corfile_putc(csound, yytext[0], PARM->cf);
-                corfile_putc(csound, '\n', PARM->cf);
-                printf("end of loop\n");
+                /* corfile_putc(csound, yytext[0], PARM->cf); */
+                /* corfile_putc(csound, '\n', PARM->cf); */
+                //printf("end of loop\n");
                 PARM->in_repeat_sect=0;
                 corfile_rm(csound, &PARM->repeat_sect_cf);
                 //csound->Free(csound, PARM->repeat_sect_mm->body);
