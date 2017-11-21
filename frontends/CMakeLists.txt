@@ -152,9 +152,9 @@ if(BUILD_WINSOUND)
     make_executable(winsound "${WINSOUND_SRCS}" "${FLTK_LIBRARIES}")
     target_link_libraries (winsound ${CSOUNDLIB})
     add_dependencies(winsound winsound_fl)
-    target_include_directories(winsound ${FLTK_INCLUDE_DIR})
-    target_include_directories(winsound ${CMAKE_CURRENT_BINARY_DIR})
-    target_include_directories(winsound ${CMAKE_CURRENT_SOURCE_DIR}/winsound)
+    target_include_directories(winsound PRIVATE ${FLTK_INCLUDE_DIR})
+    target_include_directories(winsound PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(winsound PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/winsound)
 endif()
 
 # debugger command line app
