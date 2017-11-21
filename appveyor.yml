@@ -13,7 +13,7 @@ environment:
   VST_SDK2_HOME:  C:\projects\csound\msvc\deps\VST_SDK\VST2_SDK
 
 platform: x64
-configuration: Release
+configuration: RelWithDebInfo
 
 init:
   - set CSOUND_HOME=%APPVEYOR_BUILD_FOLDER%
@@ -77,7 +77,7 @@ after_build:
 # TODO
 
 test_script:
-  - cmake --build msvc\csound-vs --config Release --target csdtests
+  - cmake --build msvc\csound-vs --config RelWithDebInfo --target csdtests
 
 
 artifacts:
