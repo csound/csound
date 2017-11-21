@@ -222,7 +222,7 @@ NM              [nm]
                        /* Compatability */
                        char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
                        MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
-                       int   size = 100;
+                       //int   size = 100;
                        if (UNLIKELY(nn == NULL)) {
                          csound->Message(csound, Str("Memory exhausted"));
                          csound->LongJmp(csound, 1);
@@ -717,7 +717,13 @@ NM              [nm]
             //printf("section end %d %c\n%s\n",
             //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
-              corfile_putc(csound, yytext[0], PARM->cf);
+              corfile_putc(csound, 's', PARM->cf);
+              while (1) {
+                int c = input(yyscanner);
+                if (c=='\n') break;
+                if (!isspace(c)&&!isdigit(c)) { unput(c); break;}
+                corfile_putc(csound, c, PARM->cf);
+              }
               corfile_putc(csound, '\n', PARM->cf);
               unput(yytext[0]);
               PARM->in_repeat_sect=2;
@@ -731,14 +737,19 @@ NM              [nm]
               PARM->line = PARM->repeat_sect_line;
             }
             else if (PARM->in_repeat_sect==2) {
+              corfile_putc(csound, 's', PARM->cf);
+              while (1) {
+                int c = input(yyscanner);
+                if (c=='\n') break;
+                corfile_putc(csound, c, PARM->cf);
+              }
+              corfile_putc(csound, '\n', PARM->cf);
               yypop_buffer_state(yyscanner);
               PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
               //printf("repeat section %d %d\n",
               //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
               PARM->repeat_sect_index++;
               if (PARM->repeat_sect_index<PARM->repeat_sect_cnt) {
-                corfile_putc(csound, 's', PARM->cf);
-                corfile_putc(csound, '\n', PARM->cf);
                 if (PARM->repeat_sect_mm) {
                   snprintf(PARM->repeat_sect_mm->body, 16, "%d",
                            PARM->repeat_sect_index);
