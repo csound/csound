@@ -23,18 +23,15 @@
 ;     plugins64 (all Csound plugin opcodes)
 ;     samples (copy tree)
 ;
-; USAGE
-;
-; Can run from the command line with "/S /D installation directory".
 #define InstallCsoundVst
 
 [setup]
 #define AppName "Csound_x64"
 #define AppVersion "6"
 #ifdef InstallCsoundVst
-#define AppMinVersion "6.10.0rc-vst"
+#define AppMinVersion GetEnv("APPVEYOR_BUILD_VERSION")
 #else
-#define AppMinVersion "6.10.0rc"
+#define AppMinVersion GetEnv("APPVEYOR_BUILD_VERSION")
 #endif
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
