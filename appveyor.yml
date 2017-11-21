@@ -57,8 +57,6 @@ after_build:
   - set npm_config_runtime=node-webkit
   - set npm_config_build_from_source=true
   - set npm_config_node_gyp=C:\Users\appveyor\AppData\Roaming\npm\node_modules\nw-gyp\bin\nw-gyp.js
-  #- npm install --msvs_version=2017
-  #- npm config set msvs_version 2017 --global
   - npm configure --version=0.23.5
   - nw-gyp rebuild --target=0.23.5 --arch=x64 && exit=0
   - cd ..\..
@@ -70,18 +68,16 @@ after_build:
   - cd ..
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
   - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\  /dInstallCsoundVst /omsvc installer\\windows\\csound6_x64_appveyor.iss
-  - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
-  - 7z l csound.zip
+  - 7z a csound.%APPVEYOR_BUILD_VERSION%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
+  - 7z l csound.%APPVEYOR_BUILD_VERSION%.zip
 
 # Tests
-# TODO
 
 test_script:
   - cmake --build msvc\csound-vs --config RelWithDebInfo --target csdtests
 
-
 artifacts:
-  - path: csound.zip
+  - path: csound.%APPVEYOR_BUILD_VERSION%.zip
     name: Csound
     type: zip
   - path: msvc/Setup_Csound_x64*.exe
