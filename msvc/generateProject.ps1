@@ -46,7 +46,7 @@ cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -DABLETON_LINK_HOME="$linkPath" `
  -DBUILD_ABLETON_LINK_OPCODES:BOOL=On `
  -DSTK_LOCAL:BOOL="ON" `
- -DCMAKE_BUILD_TYPE="Release" `
+ -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
