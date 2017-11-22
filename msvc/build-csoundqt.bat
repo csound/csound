@@ -23,6 +23,6 @@ qmake.exe qcs.pro ^
     CSOUND_INTERFACES_INCLUDE_DIR+="%APPVEYOR_BUILD_FOLDER%\\deps\\include" ^
     CSOUND_INTERFACES_INCLUDE_DIR+="%VCPKGDir%\\installed\\x64-windows\\include" ^
     INCLUDEPATH+="%VCPKGDir%\\installed\\x64-windows\\include"
-nmake.exe
+nmake.exe /A
 move "bin\\CsoundQt*.*" "..\\..\\csound-vs\\RelWithDebInfo\\"
 cd ..\..
