@@ -153,11 +153,11 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
 
     if (reallocsize > 0) {
       /* VL 20-11-17 need to record the STA(Linep) offset
-	 in relation to STA(Linebuf) */
+         in relation to STA(Linebuf) */
       tmp = (STA(Linep) - STA(Linebuf));
       STA(Linebuf) = (char *) csound->ReAlloc(csound,
                                               (void *) STA(Linebuf), reallocsize);
-      
+
       STA(linebufsiz) = reallocsize;
       STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
       /* VL 20-11-17 so we can place it in the correct position
@@ -186,7 +186,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
-    
+
     return 0;
 }
 
@@ -199,7 +199,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int n;
 
     if ((n=linevent_alloc(csound, 0)) != 0) return;
-    
+
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int extralloc = STA(Linep) + size - STA(Linebufend);
@@ -216,7 +216,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
       }
 #else
       n = linevent_alloc(csound, (STA(linebufsiz) + extralloc));
-      
+
 #endif
     }
     //csound->Message(csound, "%u = %u\n", (STA(Linep) + size),  STA(Linebufend) );
@@ -234,7 +234,7 @@ static void sensLine(CSOUND *csound, void *userData)
     char    *cp, *Linestart, *Linend;
     int     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
-    
+
 
     while (1) {
       if(STA(oflag) > oflag) break;
@@ -247,7 +247,7 @@ static void sensLine(CSOUND *csound, void *userData)
         break;
       Linestart = STA(Linebuf);
       cp = Linestart;
-      
+
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
         char    *sstrp = NULL;
@@ -480,7 +480,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       evt.opcod = 'i';
       evt.p[1] *= -1;
     }
-    
+
     if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("event: error creating '%c' event"),
@@ -545,7 +545,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       evt.opcod = 'i';
       evt.p[1] *= -1;
     }
-   
+
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
       err = csound->hfgens(csound, &dummyftp, &evt, 0);

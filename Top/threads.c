@@ -763,14 +763,14 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
     InitializeSynchronizationBarrier(barrier, max, -1);
   return (void*) barrier;
 #else
-	return 0;
+  return 0;
 #endif
 }
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
 #if (_WIN32_WINNT >= 0x603)
-	DeleteSynchronizationBarrier(barrier);
+    DeleteSynchronizationBarrier(barrier);
 #endif
     return 0;
 }
