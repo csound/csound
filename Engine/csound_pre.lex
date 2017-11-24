@@ -229,6 +229,7 @@ QNAN            "qnan"[ \t]*\(
                 }
 {MACRONAME}|{MACRONAMED}     {
                    MACRO     *mm = PARM->macros;
+                   //printf("macro name >>%s<<\n", yytext);
                    mm = find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
@@ -1288,9 +1289,12 @@ void do_function(CSOUND *csound, char *text, CORFIL *cf)
 static MACRO *find_definition(MACRO *mmo, char *s)
 {
     MACRO *mm = mmo;
-    //printf("****Looking for %s\n", s);
+    if (s[strlen(s)-1]=='.') s[strlen(s)-1]='\0';
+    else if (s[strlen(s)-2]=='.' && s[strlen(s)-1]=='(') {
+      s[strlen(s)-2] = '('; s[strlen(s)-1] = '\0'; }
+    // printf("****Looking for %s strlen=%d\n", s, strlen(s), s[strlen(s)-1]);
     while (mm != NULL) {  /* Find the definition */
-      //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
+      printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
       if (!(strcmp(s, mm->name))) break;
       mm = mm->next;
     }

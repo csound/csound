@@ -1372,6 +1372,9 @@ static void csound_prs_line(CORFIL* cf, void *yyscanner)
 static MACRO *find_definition(MACRO *mmo, char *s)
 {
     MACRO *mm = mmo;
+    if (s[strlen(s)-1]=='.') s[strlen(s)-1]='\0';
+    else if (s[strlen(s)-2]=='.' && s[strlen(s)-1]=='(') {
+      s[strlen(s)-2] = '('; s[strlen(s)-1] = '\0'; }
     //printf("****Looking for %s\n", s);
     while (mm != NULL) {  /* Find the definition */
       //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
