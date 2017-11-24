@@ -38,7 +38,7 @@ changes have removed a number of memory leaks.
 channels that **only** run at perf-time.
 
 - squinewave is a mostly bandlimited shape-shifting
-  square-pulse-saw-sinewave oscillator with hardsync. 
+  square-pulse-saw-sinewave oscillator with hardsync.
 
 ### New Gen and Macros
 
@@ -125,7 +125,7 @@ channels that **only** run at perf-time.
 - Emscripten: Now compiled as WebAssembly (runs in all major browsers). API now
   somewhat more conformed to other HTML5 APIs.
 
-- CsoundQt: Now built with HTML5 support.
+- CsoundQt: Now built with HTML5 support (only available in develop builds for now).
 
 ### General Usage
 
@@ -202,12 +202,12 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 
 - Windows
 
- - Now compiled with MSVC.
+ - Now compiled with Microsoft Visual Studio 2015 or later.
 
  - Continuous integration for Windows with AppVeyor.
 
  - The AppVeyor build and installer now includes CsoundVST and the vst4cs
-   opcodes that enable hosting VST plugins in Csound. The LGPL v2.1 
+   opcodes that enable hosting VST plugins in Csound. The LGPL v2.1
    license for that code has been modified, with permission of Hermann
    Seib the original author of the VSTHost code, to permit use with
    the separately downloaded VST2 SDK from Steinberg.

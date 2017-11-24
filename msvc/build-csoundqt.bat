@@ -1,4 +1,5 @@
 cd staging\CsoundQt
+dir
 qmake.exe qcs.pro ^
     CONFIG+=html_webengine ^
     CONFIG+=thread ^
