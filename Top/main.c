@@ -236,7 +236,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       csound->orchstr = copy_to_corefile(csound, csound->orchname, NULL, 0);
       if (UNLIKELY(csound->orchstr==NULL))
         csound->Die(csound,
-                    Str("Failed to open input file - %s\n"), csound->orchname);
+                    Str("main: failed to open input file - %s\n"), csound->orchname);
       corfile_puts(csound, "\n#exit\n", csound->orchstr);
       corfile_putc(csound, '\0', csound->orchstr);
       corfile_putc(csound, '\0', csound->orchstr);
