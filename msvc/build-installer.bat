@@ -1,18 +1,21 @@
 @echo off
 echo Must call vcvars64.bat first!
+cls
+set PATH=C:\Qt\Qt5.9.1\5.9.1\msvc2015_64\bin;%PATH%
 set ABLETON_LINK_HOME=D:\\msys64\\home\\restore\\csound\\msvc\\deps\\link\\
 set CSOUND_HOME=D:\\msys64\\home\\restore\\csound\\
 set PYTHON=C:\Program_Files\Anaconda2\python.exe
 set APPVEYOR_BUILD_FOLDER=D:\\msys64\\home\\restore\\csound\\
+set APPVEYOR_BUILD_VERSION=6.10rc
 set VCREDIST_CRT_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CRT
 set VCREDIST_CXXAMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CXXAMP
 set VCREDIST_OPENMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.OpenMP
 set HDF5_HOME=C:\\Program Files\\HDF_Group\\HDF5\\1.8.19
 set VST_SDK2_HOME=D:/msys64/home/restore/csound/msvc/deps/VST_SDK/VST2_SDK
-rem powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
-powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp" -vstSdkHome "%VST_SDK2_HOME%"
-cmake --build csound-vs --config Release
-call build_csoundqt.bat
+rem powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140"
+rem powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140" -vstSdkHome "%VST_SDK2_HOME%" -winVer "0x0602"
+rem cmake --build csound-vs --config RelWithDebInfo
+call build-csoundqt.bat
 cd %APPVEYOR_BUILD_FOLDER%\\frontends\\nwjs
 call C:\Program_Files\nodejs\nodevars.bat
 call nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2015

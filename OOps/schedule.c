@@ -85,10 +85,10 @@ int schedule_N(CSOUND *csound, SCHED *p)
            add_string_arg(s, ((STRINGDAT *)arg)->data);
            //sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
        }
-         else sprintf(s, "%s %f", s,  *arg);
+       else sprintf(s, "%s %f", s,  *arg);
 
     }
-    
+
     csoundInputMessageInternal(csound, s);
     return OK;
 }
