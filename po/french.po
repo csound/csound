@@ -10547,9 +10547,9 @@ msgstr ""
 "Fin du traitement"
 
 #: Opcodes/vbap.c:584
-#, fuzzy, c-format
+#, c-format
 msgid "Error in loudspeaker dimension. %d not permitted"
-msgstr "Erreur dans la dimension de haut-parleur."
+msgstr "Erreur dans la dimension de haut-parleur, %d est interdit."
 
 #: Opcodes/vbap.c:612
 msgid "Too few loudspeakers"
