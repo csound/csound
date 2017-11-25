@@ -222,7 +222,7 @@ NM              [nm]
                        /* Compatability */
                        char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
                        MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
-                       int   size = 100;
+                       //int   size = 100;
                        if (UNLIKELY(nn == NULL)) {
                          csound->Message(csound, Str("Memory exhausted"));
                          csound->LongJmp(csound, 1);
@@ -655,6 +655,7 @@ NM              [nm]
            int c, i;
            char buff[120];
            corfile_putc(csound, 's', PARM->cf);
+           corfile_putc(csound, '\n', PARM->cf);
            //printf("r detected\n");
            if (UNLIKELY(PARM->in_repeat_sect))
              csound->Die(csound, Str("Section loops cannot be nested"));
@@ -716,8 +717,15 @@ NM              [nm]
             //printf("section end %d %c\n%s\n",
             //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
-              corfile_putc(csound, yytext[0], PARM->cf);
+              corfile_putc(csound, 's', PARM->cf);
+              while (1) {
+                int c = input(yyscanner);
+                if (c=='\n') break;
+                if (!isspace(c)&&!isdigit(c)) { unput(c); break;}
+                corfile_putc(csound, c, PARM->cf);
+              }
               corfile_putc(csound, '\n', PARM->cf);
+              unput(yytext[0]);
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
@@ -729,14 +737,19 @@ NM              [nm]
               PARM->line = PARM->repeat_sect_line;
             }
             else if (PARM->in_repeat_sect==2) {
+              corfile_putc(csound, 's', PARM->cf);
+              while (1) {
+                int c = input(yyscanner);
+                if (c=='\n') break;
+                corfile_putc(csound, c, PARM->cf);
+              }
+              corfile_putc(csound, '\n', PARM->cf);
               yypop_buffer_state(yyscanner);
               PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
               //printf("repeat section %d %d\n",
               //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
               PARM->repeat_sect_index++;
               if (PARM->repeat_sect_index<PARM->repeat_sect_cnt) {
-                corfile_putc(csound, 's', PARM->cf);
-                corfile_putc(csound, '\n', PARM->cf);
                 if (PARM->repeat_sect_mm) {
                   snprintf(PARM->repeat_sect_mm->body, 16, "%d",
                            PARM->repeat_sect_index);
@@ -748,8 +761,8 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
-                corfile_putc(csound, yytext[0], PARM->cf);
-                corfile_putc(csound, '\n', PARM->cf);
+                /* corfile_putc(csound, yytext[0], PARM->cf); */
+                /* corfile_putc(csound, '\n', PARM->cf); */
                 //printf("end of loop\n");
                 PARM->in_repeat_sect=0;
                 corfile_rm(csound, &PARM->repeat_sect_cf);
@@ -757,8 +770,16 @@ NM              [nm]
                 //PARM->repeat_sect_mm->body = NULL;
               }
             }
-            else
+            else {
               corfile_putc(csound, yytext[0], PARM->cf);
+                /* while (1) { */
+                /*   int c = input(yyscanner); */
+                /*   printf("**copy %.2x(%c)\n", c, c); */
+                /*   corfile_putc(csound, c, PARM->cf); */
+                /*   if (c=='\n') break; */
+                /*   if (c=='\0') break; */
+                /* } */
+            }
           }
           else corfile_putc(csound, yytext[0], PARM->cf);
         }
@@ -1351,6 +1372,9 @@ static void csound_prs_line(CORFIL* cf, void *yyscanner)
 static MACRO *find_definition(MACRO *mmo, char *s)
 {
     MACRO *mm = mmo;
+    if (s[strlen(s)-1]=='.') s[strlen(s)-1]='\0';
+    else if (s[strlen(s)-2]=='.' && s[strlen(s)-1]=='(') {
+      s[strlen(s)-2] = '('; s[strlen(s)-1] = '\0'; }
     //printf("****Looking for %s\n", s);
     while (mm != NULL) {  /* Find the definition */
       //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);

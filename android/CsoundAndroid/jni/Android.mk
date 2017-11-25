@@ -84,7 +84,6 @@ $(CSOUND_SRC_ROOT)/OOps/sndinfUG.c \
 $(CSOUND_SRC_ROOT)/OOps/str_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens1.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens2.c \
-$(CSOUND_SRC_ROOT)/OOps/ugens2a.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens3.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens4.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens5.c \
@@ -147,6 +146,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/hrtfreverb.c \
 $(CSOUND_SRC_ROOT)/Opcodes/cpumeter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gendy.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/sc_noise.c \
+$(CSOUND_SRC_ROOT)/Opcodes/squinewave.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
 $(CSOUND_SRC_ROOT)/Top/csdebug.c \
 $(CSOUND_SRC_ROOT)/Top/cscore_internal.c \

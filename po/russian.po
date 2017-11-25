@@ -600,18 +600,18 @@ msgstr ""
 #: Engine/csound_prs.lex:232 Engine/csound_prs.lex:242
 #: Engine/csound_prs.lex:292 Engine/csound_prs.lex:524
 #: Engine/csound_prs.lex:571 Engine/csound_prs.lex:609
-#: Engine/csound_prs.lex:691 Engine/csound_prs.lex:866
-#: Engine/csound_prs.lex:894 Engine/csound_prs.lex:900
-#: Engine/csound_prs.lex:913 Engine/csound_prs.lex:921
-#: Engine/csound_prs.lex:929 Engine/csound_prs.lex:940
-#: Engine/csound_prs.lex:949 Engine/csound_prs.lex:957
-#: Engine/csound_prs.lex:1003 Engine/csound_prs.lex:1015
-#: Engine/csound_prs.lex:1029 Engine/csound_prs.lex:1038
-#: Engine/csound_prs.lex:1060 Engine/csound_prs.lex:1068
-#: Engine/csound_prs.lex:1105 Engine/csound_prs.lex:1115
-#: Engine/csound_prs.lex:1124 Engine/csound_prs.lex:1181
-#: Engine/csound_prs.lex:1287 Engine/csound_prs.lex:1300
-#: Engine/csound_prs.lex:1315
+#: Engine/csound_prs.lex:692 Engine/csound_prs.lex:887
+#: Engine/csound_prs.lex:915 Engine/csound_prs.lex:921
+#: Engine/csound_prs.lex:934 Engine/csound_prs.lex:942
+#: Engine/csound_prs.lex:950 Engine/csound_prs.lex:961
+#: Engine/csound_prs.lex:970 Engine/csound_prs.lex:978
+#: Engine/csound_prs.lex:1024 Engine/csound_prs.lex:1036
+#: Engine/csound_prs.lex:1050 Engine/csound_prs.lex:1059
+#: Engine/csound_prs.lex:1081 Engine/csound_prs.lex:1089
+#: Engine/csound_prs.lex:1126 Engine/csound_prs.lex:1136
+#: Engine/csound_prs.lex:1145 Engine/csound_prs.lex:1202
+#: Engine/csound_prs.lex:1308 Engine/csound_prs.lex:1321
+#: Engine/csound_prs.lex:1336
 msgid "Memory exhausted"
 msgstr ""
 
@@ -645,7 +645,7 @@ msgid "#else without #if\n"
 msgstr ""
 
 #: Engine/csound_pre.lex:535 Engine/csound_pre.lex:1130
-#: Engine/csound_prs.lex:473 Engine/csound_prs.lex:1242
+#: Engine/csound_prs.lex:473 Engine/csound_prs.lex:1263
 msgid "#else after #else\n"
 msgstr ""
 
@@ -653,21 +653,21 @@ msgstr ""
 msgid "Unmatched #end\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:723 Engine/csound_prs.lex:839
+#: Engine/csound_pre.lex:723 Engine/csound_prs.lex:860
 msgid "Includes nested too deeply"
 msgstr ""
 
-#: Engine/csound_pre.lex:738 Engine/csound_prs.lex:856
+#: Engine/csound_pre.lex:738 Engine/csound_prs.lex:877
 #, c-format
 msgid "%s is a directory; not including"
 msgstr ""
 
-#: Engine/csound_pre.lex:742 Engine/csound_prs.lex:860
+#: Engine/csound_pre.lex:742 Engine/csound_prs.lex:881
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:854 Engine/csound_prs.lex:966
+#: Engine/csound_pre.lex:854 Engine/csound_prs.lex:987
 msgid "macro error\n"
 msgstr ""
 
@@ -675,42 +675,42 @@ msgstr ""
 #: Engine/csound_pre.lex:870 Engine/csound_pre.lex:876
 #: Engine/csound_pre.lex:963 Engine/csound_pre.lex:967
 #: Engine/csound_pre.lex:974 Engine/csound_pre.lex:980
-#: Engine/csound_prs.lex:971 Engine/csound_prs.lex:975
-#: Engine/csound_prs.lex:982 Engine/csound_prs.lex:988
-#: Engine/csound_prs.lex:1075 Engine/csound_prs.lex:1079
-#: Engine/csound_prs.lex:1086 Engine/csound_prs.lex:1092
+#: Engine/csound_prs.lex:992 Engine/csound_prs.lex:996
+#: Engine/csound_prs.lex:1003 Engine/csound_prs.lex:1009
+#: Engine/csound_prs.lex:1096 Engine/csound_prs.lex:1100
+#: Engine/csound_prs.lex:1107 Engine/csound_prs.lex:1113
 msgid "define macro runaway\n"
 msgstr ""
 
 #: Engine/csound_pre.lex:883 Engine/csound_pre.lex:987
-#: Engine/csound_prs.lex:995
+#: Engine/csound_prs.lex:1016
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:897 Engine/csound_prs.lex:1009
+#: Engine/csound_pre.lex:897 Engine/csound_prs.lex:1030
 msgid "define macro with args: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:998 Engine/csound_prs.lex:1110
+#: Engine/csound_pre.lex:998 Engine/csound_prs.lex:1131
 msgid "define macro: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1033 Engine/csound_prs.lex:1145
+#: Engine/csound_pre.lex:1033 Engine/csound_prs.lex:1166
 #, c-format
 msgid "macro %s undefined\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1048 Engine/csound_prs.lex:1160 Engine/sread.c:218
+#: Engine/csound_pre.lex:1048 Engine/csound_prs.lex:1181 Engine/sread.c:218
 msgid "Undefining undefined macro"
 msgstr ""
 
-#: Engine/csound_pre.lex:1103 Engine/csound_prs.lex:1215
+#: Engine/csound_pre.lex:1103 Engine/csound_prs.lex:1236
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1205 Engine/csound_prs.lex:1280
+#: Engine/csound_pre.lex:1205 Engine/csound_prs.lex:1301
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr ""
@@ -745,25 +745,25 @@ msgstr ""
 msgid "unmatched } in score\n"
 msgstr ""
 
-#: Engine/csound_prs.lex:660
+#: Engine/csound_prs.lex:661
 msgid "Section loops cannot be nested"
 msgstr ""
 
-#: Engine/csound_prs.lex:673
+#: Engine/csound_prs.lex:674
 msgid "r: invalid repeat count"
 msgstr ""
 
-#: Engine/csound_prs.lex:675
+#: Engine/csound_prs.lex:676
 #, c-format
 msgid "r LOOP=%d\n"
 msgstr ""
 
-#: Engine/csound_prs.lex:1099
+#: Engine/csound_prs.lex:1120
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x)awaiting #\n"
 msgstr ""
 
-#: Engine/csound_prs.lex:1283 Engine/sread.c:730
+#: Engine/csound_prs.lex:1304 Engine/sread.c:730
 msgid "Invalid macro name for --smacro"
 msgstr ""
 
@@ -1421,42 +1421,37 @@ msgstr ""
 msgid "Failed to set file status\n"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Engine/linevent.c:194
-#, c-format
-msgid "input message kcount, %d, %d.%06d\n"
-msgstr ""
-
-#: Engine/linevent.c:208
+#: Engine/linevent.c:213
 msgid "LineBuffer Overflow - Input Data has been Lost"
 msgstr ""
 
-#: Engine/linevent.c:307
+#: Engine/linevent.c:315
 #, c-format
 msgid "unknown opcode %c"
 msgstr ""
 
-#: Engine/linevent.c:360
+#: Engine/linevent.c:368
 msgid "dot carry has no reference"
 msgstr ""
 
-#: Engine/linevent.c:365
+#: Engine/linevent.c:373
 msgid "cannot carry string p-field"
 msgstr ""
 
-#: Engine/linevent.c:376
+#: Engine/linevent.c:384
 #, c-format
 msgid "too few pfields (%d)"
 msgstr ""
 
-#: Engine/linevent.c:380
+#: Engine/linevent.c:388
 msgid "-L with negative p2 illegal"
 msgstr ""
 
-#: Engine/linevent.c:391
+#: Engine/linevent.c:399
 msgid "too many pfields"
 msgstr ""
 
-#: Engine/linevent.c:403
+#: Engine/linevent.c:411
 #, c-format
 msgid ""
 "illegal RT scoreline:\n"
@@ -1464,25 +1459,25 @@ msgid ""
 "%*s"
 msgstr ""
 
-#: Engine/linevent.c:426
+#: Engine/linevent.c:434
 msgid "event: param 1 must be \"a\", \"i\", \"q\", \"f\", \"d\", or \"e\""
 msgstr ""
 
-#: Engine/linevent.c:428
+#: Engine/linevent.c:436
 msgid "event: string name is allowed only for \"i\", \"d\", and \"q\" events"
 msgstr ""
 
-#: Engine/linevent.c:478
+#: Engine/linevent.c:486
 #, c-format
 msgid "event: error creating '%c' event"
 msgstr ""
 
-#: Engine/linevent.c:548
+#: Engine/linevent.c:556
 #, c-format
 msgid "event_i: error creating '%c' event"
 msgstr ""
 
-#: Engine/linevent.c:594
+#: Engine/linevent.c:602
 msgid "instance: error creating event"
 msgstr ""
 
@@ -5165,21 +5160,21 @@ msgid ""
 "*** This version of Csound was not compiled with remote event support ***\n"
 msgstr ""
 
-#: OOps/schedule.c:194 OOps/schedule.c:213 OOps/schedule.c:277
+#: OOps/schedule.c:195 OOps/schedule.c:214 OOps/schedule.c:278
 #, c-format
 msgid "LFO: unknown oscilator type %d"
 msgstr ""
 
-#: OOps/schedule.c:407
+#: OOps/schedule.c:408
 #, c-format
 msgid "schedkwhen ignored. Instrument %d undefined\n"
 msgstr ""
 
-#: OOps/schedule.c:491
+#: OOps/schedule.c:492
 msgid "schedkwhen warning: negative kwhen reset to zero"
 msgstr ""
 
-#: OOps/schedule.c:516 OOps/schedule.c:539
+#: OOps/schedule.c:517 OOps/schedule.c:540
 msgid "trigseq: incorrect table number"
 msgstr ""
 
@@ -9687,7 +9682,7 @@ msgstr ""
 msgid "specfilt: not initialised"
 msgstr ""
 
-#: Opcodes/squinewave.c:110
+#: Opcodes/squinewave.c:111
 #, c-format
 msgid "squinewave iminsweep range 4 to sr/100. Set to default %d"
 msgstr ""

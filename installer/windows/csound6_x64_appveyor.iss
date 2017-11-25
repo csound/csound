@@ -23,18 +23,15 @@
 ;     plugins64 (all Csound plugin opcodes)
 ;     samples (copy tree)
 ;
-; USAGE
-;
-; Can run from the command line with "/S /D installation directory".
 #define InstallCsoundVst
 
 [setup]
 #define AppName "Csound_x64"
 #define AppVersion "6"
 #ifdef InstallCsoundVst
-#define AppMinVersion "6.10.0rc-vst"
+#define AppMinVersion GetEnv("APPVEYOR_BUILD_VERSION")
 #else
-#define AppMinVersion "6.10.0rc"
+#define AppMinVersion GetEnv("APPVEYOR_BUILD_VERSION")
 #endif
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
@@ -152,9 +149,9 @@ Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundVst.dll"; DestDir: "{#APP_BIN
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csoundvstmain.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: vst;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion skipifsourcedoesntexist; Components: vst;
 #endif
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\_CsoundAC.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\_csnd6.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\RelWithDebInfo\*CsoundAC.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+Source: "..\..\msvc\csound-vs\RelWithDebInfo\*csnd6.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+Source: "..\..\msvc\csound-vs\RelWithDebInfo\*jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\ableton_link_opcodes.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\arrayops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -177,7 +174,7 @@ Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound.exe"; DestDir: "{#APP_BIN}";
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundAC.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
-Source: "..\..\frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\cvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\dnoise.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -240,8 +237,8 @@ Source: "..\..\msvc\deps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion
 Source: "..\..\msvc\deps\fluidsynthdeps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 ; NOTE: The .qml files are compiled into the resources of CsoundQt.
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundQt-d-cs6*.exe"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\*.pdbc"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
+Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundQt-d-cs6.*"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
+Source: "..\..\msvc\csound-vs\RelWithDebInfo\*.pdb"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\staging\CsoundQt\examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "..\..\msvc\staging\CsoundQt\src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 

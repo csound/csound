@@ -78,29 +78,27 @@ if(BUILD_CSOUND_AC)
         add_library(libCsoundAC SHARED ${libcsoundac_SRCS})
     endif()
 
-    include_directories(${CMAKE_HOME_DIRECTORY}/interfaces)
-    include_directories(${EIGEN3_INCLUDE_PATH})
-    include_directories(${FLTK_INCLUDE_DIR})
+    target_include_directories(libCsoundAC PRIVATE ${EIGEN3_INCLUDE_PATH})
+    target_include_directories(libCsoundAC PRIVATE ${FLTK_INCLUDE_DIR})
 
     set_target_properties(libCsoundAC PROPERTIES
-        LINK_INTERFACE_LIBRARIES ""
         SOVERSION ${APIVERSION}
         OUTPUT_NAME CsoundAC
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
-    target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
+    target_link_libraries(libCsoundAC PRIVATE libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY})
     if(USE_SYSTEM_PORTSMF)
-        target_link_libraries(libCsoundAC ${PORTSMF_LIBRARY})
+        target_link_libraries(libCsoundAC PRIVATE ${PORTSMF_LIBRARY})
     endif()
 
     if(WIN32 AND NOT MSVC) # for MSYS2/mingw64
         #  mingw64 needs this to create a valid .pyd.
         if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-          add_definitions(-DMS_WIN64)
+            target_compile_definitions(libCsoundAC PRIVATE -DMS_WIN64)
         endif()
-        target_link_libraries(libCsoundAC jpeg png z)
+        target_link_libraries(libCsoundAC PRIVATE jpeg png z)
     endif()
 
     if(HAVE_UNISTD_H)
@@ -109,7 +107,7 @@ if(BUILD_CSOUND_AC)
     endif()
 
     if(MUSICXML_LIBRARY)
-        target_link_libraries(libCsoundAC libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
+        target_link_libraries(libCsoundAC PRIVATE libcsnd6 ${CSOUNDLIB} ${FLTK_LIBRARIES} ${LIBSNDFILE_LIBRARY} ${MUSICXML_LIBRARY})
     endif()
 
     install(TARGETS libCsoundAC
@@ -159,7 +157,6 @@ if(BUILD_CSOUND_AC)
 
     if(BUILD_CSOUND_AC_LUA_INTERFACE)
         message(STATUS "Building CsoundAC Lua interface.")
-        include_directories(${LUA_H_PATH})
 
         SET_SOURCE_FILES_PROPERTIES(luaCsoundAC.i
             PROPERTIES CPLUSPLUS ON
@@ -175,6 +172,7 @@ if(BUILD_CSOUND_AC)
             set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
        	endif()
+        target_include_directories(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PRIVATE ${LUA_H_PATH})
 
         set_target_properties(${SWIG_MODULE_luaCsoundAC_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
@@ -188,3 +186,4 @@ if(BUILD_CSOUND_AC)
     endif()
 
 endif()
+
