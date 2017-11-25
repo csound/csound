@@ -1080,6 +1080,28 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->echo = 1;
       return 1;
     }
+    else if (!(strncmp(s, "udp-console=",12))) {
+      char *ports; 
+      s += 12;
+      ports = strchr(s, ':');
+      if(s != NULL && ports != NULL) {
+	*ports = '\0';
+	csoundUDPConsole(csound, s, atoi(ports+1),0);
+      } else
+	csound->Warning(csound, "UDP console: needs address and port\n");
+      return 1;
+    }
+    else if (!(strncmp(s, "udp-mirror-console=",19))) {
+      char *ports; 
+      s += 19;
+      ports = strchr(s, ':');
+      if(s != NULL && ports != NULL) {
+	*ports = '\0';
+	csoundUDPConsole(csound, s, atoi(ports+1),1);
+      } else
+	csound->Warning(csound, "UDP console: needs address and port\n");
+      return 1;
+    }
     else if (!(strncmp(s, "fftlib=",7))) {
       s += 7;
       O->fft_lib = atoi(s);

@@ -924,6 +924,22 @@ extern "C" {
    */
   PUBLIC int csoundUDPServerClose(CSOUND *csound);
 
+  /**
+   * Turns on the transmission of console messages to UDP on address addr
+   * port port. If mirror is one, the messages will continue to be
+   * sent to the usual destination (see csoundSetMessaggeCallback())
+   * as well as to UDP.
+   * returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
+   * could not be set up.
+   */
+  PUBLIC int csoundUDPConsole(CSOUND *csound, const char *addr,
+			      int port, int mirror);
+
+  /**
+   * Stop transmitting console messages via UDP
+   */
+  PUBLIC void csoundStopUDPConsole(CSOUND *csound);
+  
   /** @}*/
   /** @defgroup ATTRIBUTES Attributes
    *
