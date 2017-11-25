@@ -1294,7 +1294,7 @@ static MACRO *find_definition(MACRO *mmo, char *s)
       s[strlen(s)-2] = '('; s[strlen(s)-1] = '\0'; }
     // printf("****Looking for %s strlen=%d\n", s, strlen(s), s[strlen(s)-1]);
     while (mm != NULL) {  /* Find the definition */
-      printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
+      //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
       if (!(strcmp(s, mm->name))) break;
       mm = mm->next;
     }
