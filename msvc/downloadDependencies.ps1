@@ -318,15 +318,16 @@ cd $stageDir
 if (Test-Path "CsoundQt")
 {
     cd CsoundQt
-    git pull
-    echo "CsoundQt already downloaded, updated"
+    # It is actually a mistake to pull CsoundQt from within the Csound tree.
+    # git pull
+    # echo "CsoundQt already downloaded, updated"
+    echo "CsoundQt already downloaded..."
 }
 else
 {
     git clone -b master --depth=1 --single-branch "https://github.com/CsoundQt/CsoundQt.git"
     cd CsoundQt
 }
-
 
 cd ..
 
