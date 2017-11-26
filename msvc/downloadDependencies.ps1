@@ -3,8 +3,8 @@ param
     [string]$vsGenerator="Visual Studio 15 2017 Win64",
     [string]$vsToolset="v141"
 )
-echo "Downloading Csound dependencies..."
 
+echo "Downloading Csound dependencies..."
 echo "vsGenerator: $vsGenerator"
 echo "vsToolset:   $vsToolset"
 
@@ -35,11 +35,6 @@ $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
 
 # Test if VCPKG is already installed on system
 # Download locally to csound msvc folder if not
-#if (Test-Path Env:\APPVEYOR)
-#{
-#    # Don't update or will trigger a full rebuild of VCPKGs
-#}
-#elseif ($systemVCPKG)
 if ($systemVCPKG)
 {
     echo "vcpkg already installed on system, updating"
@@ -311,27 +306,6 @@ copy .\src\Release\libfluidsynth.dll -Destination $depsBinDir -Force
 copy ..\fluidsynth\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
 robocopy ..\fluidsynth\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
 copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth -Force
-
-echo "CsoundQt..."
-cd $stageDir
-
-if (Test-Path "CsoundQt")
-{
-    cd CsoundQt
-    # It is actually a mistake to pull CsoundQt from within the Csound tree.
-    # git pull
-    # echo "CsoundQt already downloaded, updated"
-    echo "CsoundQt already downloaded..."
-}
-else
-{
-    git clone -b master --depth=1 --single-branch "https://github.com/CsoundQt/CsoundQt.git"
-    cd CsoundQt
-}
-
-cd ..
-
-# Do not build CsoundQt until Csound has been built!
 
 $buildTiming = (Get-Date).TimeOfDay
 
