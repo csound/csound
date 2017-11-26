@@ -369,7 +369,6 @@ static int udp_console_stop(CSOUND *csound, void *pp) {
 #else
     closesocket(p->sock);
 #endif
-    p->sock = 0;
     csound->DestroyGlobalVariable(csound,"::UDPCONS");
   }
   return CSOUND_SUCCESS;
