@@ -86,7 +86,14 @@ channels that **only** run at perf-time.
 ### Options
 
 - the --tempo (and -t) option now can be fractional; was previously
-  limited to an integer.
+limited to an integer.
+
+- new option: --udp-console=address:port   redirects console to a remote address:port
+
+- new option: --udp-mirror-console=address:port  mirrors the console
+to a remote address:port
+
+- new option: --udp-echo echoes messages sent to the UDP server
 
 ### Modified Opcodes and Gens
 
