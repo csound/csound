@@ -632,16 +632,16 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     scal = 2.0*csound->pidsr;
 
     /* check for muted input & bypass */
-    if(ksmps > 1){
-    for(i=0; i < ksmps; i++){
-      if(asig[i] != 0.0 && asig[i] != itmp) {
+    if (ksmps > 1){
+    for (i=0; i < ksmps; i++) {
+      if (asig[i] != 0.0 && asig[i] != itmp) {
         itest = 1;
         break;
       }
       itmp = asig[i];
     }
-    if(!itest) return OK;
-    } else if(*asig == 0.0) return OK;
+    if (!itest)  return OK;
+    } else if (*asig == 0.0) return OK;
 
 
     if (*p->klpf == 0) klpf = 20.0;
@@ -678,9 +678,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
       p->klpf_o = klpf; p->klpfQ_o = klpfQ;
     }
 
-
-
-    for(k=0; k < 6; k++) {
+    for (k=0; k < 6; k++) {
       a0[k] = biquad[k].a0;
       a1[k] = biquad[k].a1;
       a2[k] = biquad[k].a2;
