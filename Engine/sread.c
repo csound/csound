@@ -394,7 +394,7 @@ static int getscochar(CSOUND *csound, int expand)
 /*     MYFLT *pv = vv - 1; */
 /*     char  buffer[100]; */
 /*     int   i; */
-/*     int   type = 0;  /\* 1 -> expecting binary operator,')', or ']'; else 0 *\/ */
+/*     int   type = 0; // 1 -> expecting binary operator,')', or ']'; else 0 */
 /*     *++op = '['; */
 /*     c = getscochar(csound, 1); */
 /*     do { */
@@ -518,7 +518,8 @@ static int getscochar(CSOUND *csound, int expand)
 /*         *++op = c; c = getscochar(csound, 1); break; */
 /*       case ']': */
 /*         if (UNLIKELY(!type)) { */
-/*           scorerr(csound, Str("missing operand before closing bracket in []")); */
+/*           scorerr(csound, */
+/*                   Str("missing operand before closing bracket in []")); */
 /*         } */
 /*         while (*op != '[') { */
 /*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
@@ -564,7 +565,8 @@ static int getscochar(CSOUND *csound, int expand)
 /*       STA(str)->is_marked_repeat = 0; */
 /*       STA(str)->mac = NULL; STA(str)->line = 1; */
 /* #ifdef MACDEBUG */
-/*       csound->Message(csound,"[] defined as >>%s<<\n", corfile_body(nn->body)); */
+/*       csound->Message(csound,"[] defined as >>%s<<\n", */
+/*                       corfile_body(nn->body)); */
 /* #endif */
 /*       STA(ingappop) = 1; */
 /*       goto top; */
@@ -644,7 +646,8 @@ static int getscochar(CSOUND *csound, int expand)
 /*       corfile_puts(buffer, STA(repeat_mm_n)[STA(repeat_index)]->body); */
 /*       corfile_rewind(STA(repeat_mm_n)[STA(repeat_index)]->body); */
 /* #ifdef MACDEBUG */
-/*       csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__, */
+/*       csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", */
+/*                        __FILE__, __LINE__, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->body, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->p, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->len); */
@@ -1025,13 +1028,15 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
 /*         ungetscochar(csound, c); */
 /*         /\* Define macro for counter *\/ */
 /*         STA(repeat_mm_n)[STA(repeat_index)]->name = */
-/*           csound->Malloc(csound, strlen(STA(repeat_name_n)[STA(repeat_index)])+1); */
+/*           csound->Malloc(csound, */
+/*                          strlen(STA(repeat_name_n)[STA(repeat_index)])+1); */
 /*         strcpy(STA(repeat_mm_n)[STA(repeat_index)]->name, */
 /*                STA(repeat_name_n)[STA(repeat_index)]); */
 /*         STA(repeat_mm_n)[STA(repeat_index)]->acnt = 0; */
 /*         STA(repeat_mm_n)[STA(repeat_index)]->body = corfile_create_r("0"); */
 /* #ifdef MACDEBUG */
-/*         csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n", __FILE__, __LINE__, */
+/*         csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n", */
+/*                           __FILE__, __LINE__, */
 /*                STA(repeat_name_n)[STA(repeat_index)], */
 /*                STA(repeat_mm_n)[STA(repeat_index)]->body); */
 /* #endif */
@@ -1080,7 +1085,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
 /*       } */
 /*       /\* Then remember this state *\/ */
 /*       *(STA(nxp)-2) = 's'; *STA(nxp)++ = LF; */
-/*       if (STA(nxp) >= STA(memend))              /\* if this memblk exhausted *\/ */
+/*       if (STA(nxp) >= STA(memend))     /\* if this memblk exhausted *\/ */
 /*         expand_nxp(csound); */
 /*       { */
 /*         int   c, i; */
@@ -1398,8 +1403,9 @@ static void ifa(CSOUND *csound)
       }
       switch (STA(bp)->pcnt) {               /* newp2, newp3:   */
       case 2: if (STA(warpin)) {             /* for warpin,     */
-          getpfld(csound);                    /*   newp2 follows */
-          STA(bp)->newp2 = STA(warp_factor) * stof(csound, STA(sp)) + STA(clock_base);
+          getpfld(csound);                   /*   newp2 follows */
+          STA(bp)->newp2 = STA(warp_factor) * stof(csound, STA(sp)) +
+            STA(clock_base);
           STA(nxp) = STA(sp);                   /*    (skip text)  */
         }
         else STA(bp)->newp2 = STA(bp)->p2val;   /* else use p2val  */
@@ -1729,12 +1735,12 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 /*       csound->DebugMsg(csound,"%s(%d): macro %s %p\n", */
 /*                        __FILE__, __LINE__, mname, mm->body); */
 /* #endif */
-/*       while ((c = getscochar(csound, 0)) != '#') {  /\* Do not expand here!! *\/ */
+/*       while ((c = getscochar(csound, 0)) != '#') { // Do not expand here!! */
 /*         if (UNLIKELY(c==EOF)) */
 /*           scorerr(csound, Str("Syntax error in macro definition")); */
 /*         corfile_putc(c, mm->body); */
 /*         if (c=='\\') { */
-/*           corfile_putc(getscochar(csound, 0), mm->body);    /\* Allow escaped # *\/ */
+/*           corfile_putc(getscochar(csound, 0), mm->body); // Allow escaped # */
 /*         } */
 /*         if (c=='\n') STA(lincnt)++; */
 /*       } */

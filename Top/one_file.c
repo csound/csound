@@ -527,7 +527,8 @@ static int createScore(CSOUND *csound, CORFIL *cf)
       if (*p == '\0') continue;
       if (state==0) {
         while ((c = *p++)) {
-          if (c=='"') { corfile_putc(csound, c,csound->scorestr); state = 1; goto top;}
+          if (c=='"') {
+            corfile_putc(csound, c,csound->scorestr); state = 1; goto top;}
           else if (c=='/' && *p=='*') {
             corfile_putc(csound, c,csound->scorestr);
             corfile_putc(csound, *p++,csound->scorestr);

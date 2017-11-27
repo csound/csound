@@ -2294,7 +2294,7 @@ static int vexpseg(CSOUND *csound,VSEG *p)
     nxttab = segp->nxtfunction->ftable;
     upcnt = (int32)segp->d-segp->cnt;
     if (upcnt > 0) cntoverdur = upcnt/ segp->d;
-    while(--segp->cnt < 0)
+    while (--segp->cnt < 0)
       p->cursegp = ++segp;
     flength = p->elements;
     vector = p->vector;

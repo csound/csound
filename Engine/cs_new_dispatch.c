@@ -305,13 +305,15 @@ void dag_reinit(CSOUND *csound)
 #define ATOMIC_READ(x) x
 #define ATOMIC_WRITE(x,v) x = v;
 #if defined(_MSC_VER)
-#define ATOMIC_CAS(x,current,new)  (current == InterlockedCompareExchange(x, new, current))
+#define ATOMIC_CAS(x,current,new) \
+  (current == InterlockedCompareExchange(x, new, current))
 #else
 #define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
 #endif
 
 #if defined(_MSC_VER)
-#define ATOMIC_CAS_PTR(x,current,new)  (current == InterlockedCompareExchangePointer(x, new, current))
+#define ATOMIC_CAS_PTR(x,current,new) \
+  (current == InterlockedCompareExchangePointer(x, new, current))
 #else
 #define ATOMIC_CAS_PTR(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
 #endif
