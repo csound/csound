@@ -62,7 +62,9 @@ typedef struct _stateWithPadding {
 typedef struct _watchList {
   taskID id;
   struct _watchList *next;
-  uint8_t padding [(CONCURRENTPADDING - (sizeof(taskID) + sizeof(struct _watchList *))) / sizeof(uint8_t)];
+  uint8_t padding [(CONCURRENTPADDING -
+                    (sizeof(taskID) +
+                     sizeof(struct _watchList *))) / sizeof(uint8_t)];
 } watchList;
 
 #endif

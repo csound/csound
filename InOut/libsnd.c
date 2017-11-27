@@ -612,6 +612,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       case TYP_WAV:
       case TYP_W64:
       case TYP_WAVEX:
+      case TYP_RF64:
         O->outfilename = "test.wav";
         break;
       case TYP_AIFF:
@@ -620,18 +621,18 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       case TYP_AU:
         O->outfilename = "test.au";
         break;
-      /* case TYP_PAF: */
-      /*   O->outfilename = ""; */
-      /*   break;   */
-      /* case TYP_SVX: */
-      /*   O->outfilename = ""; */
-      /*   break;   */
-      /* case TYP_NIST: */
-      /*   O->outfilename = ""; */
-      /*   break;  */
-      /* case TYP_VOC: */
-      /*   O->outfilename = ""; */
-      /*   break;   */
+      case TYP_PAF:
+        O->outfilename = "test.paf";
+        break;
+      case TYP_SVX:
+        O->outfilename = "test.svx";
+        break;
+      case TYP_NIST:
+        O->outfilename = "test.sph";
+        break;
+      case TYP_VOC:
+        O->outfilename = "test.voc";
+        break;
       /* case TYP_IRCAM: */
       /*   O->outfilename = ""; */
       /*   break; */
@@ -644,17 +645,18 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       /* case TYP_PVF: */
       /*   O->outfilename = ""; */
       /*   break;   */
-      /* case TYP_XI: */
-      /*   O->outfilename = ""; */
-      /*   break;    */
+      case TYP_XI:
+        O->outfilename = "test.xi";
+        break;
       /* case TYP_HTK: */
       /*   O->outfilename = ""; */
       /*   break;   */
       /* case TYP_SDS: */
-      /*   O->outfilename = ""; */
+      /*   O->outfilename = "test.sds"; */
       /*   break;   */
-      /* case TYP_AVR: */
-      /*   O->outfilename = ""; */
+      case TYP_AVR:
+        O->outfilename = "test.avr";
+        break;
       case TYP_SD2:
         O->outfilename = "test.sd2";
         break;
@@ -670,9 +672,6 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       /* case TYP_MPC2K: */
       /*   O->outfilename = ""; */
       /*   break; */
-      /* case TYP_RF64: */
-      /*   O->outfilename = ""; */
-      /*   break;  */
       default:
         O->outfilename = "test";
         break;
@@ -722,7 +721,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         csound->audtran = csound->rtplay_callback;
         STA(outbufrem)  = parm.bufSamp_SW * parm.nChannels;
         STA(pipdevout)  = 2;      /* no backward seeks !   */
-        if(O->realtime == 1)      /* set realtime priority mode */
+        if (O->realtime == 1)     /* set realtime priority mode */
           csound->realtime_audio_flag = 1;
         goto outset;              /* no header needed      */
       }
