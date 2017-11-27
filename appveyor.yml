@@ -5,6 +5,7 @@ environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
+  CSOUND_VERSION: 6.10.0-rc2
   HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
   QTDIR: C:\Qt\5.9.2\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
@@ -68,8 +69,8 @@ after_build:
   - cd ..
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
   - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\  /dInstallCsoundVst /omsvc installer\\windows\\csound6_x64_appveyor.iss
-  - 7z a csound.%APPVEYOR_BUILD_VERSION%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
-  - 7z l csound.%APPVEYOR_BUILD_VERSION%.zip
+  - 7z a csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
+  - 7z l csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
 # Tests
 
@@ -77,10 +78,10 @@ test_script:
   - cmake --build msvc\csound-vs --config RelWithDebInfo --target csdtests
 
 artifacts:
-  - path: csound.%APPVEYOR_BUILD_VERSION%.zip
-    name: Csound
+  - path: csound-windows-x64-*.zip
+    name: Csound Binaries
     type: zip
-  - path: msvc/Setup_Csound_x64*.exe
+  - path: msvc/csound-windows-x64-*.exe
     name: Csound Installer
     type: exe
 
@@ -89,12 +90,12 @@ cache:
  - C:\projects\csound\msvc\cache
 
 deploy:
-  release: Csound-v$(appveyor_build_version)
+  release: csound-$(csound_version)
   description: 'Csound Windows installer.'
   provider: GitHub
   auth_token:
     secure: puEAPJVkwT2mZwhobSNpk5LhUEP+61K9j6T66qIXKFk=
-  artifact: msvc/Setup_Csound*.exe
+  artifact: msvc/csound-windows-x64*.exe
   draft: true
   prerelease: true
   on:

@@ -26,13 +26,10 @@
 #define InstallCsoundVst
 
 [setup]
-#define AppName "Csound_x64"
+#define AppName "csound-windows-x64"
 #define AppVersion "6"
-#ifdef InstallCsoundVst
-#define AppMinVersion GetEnv("APPVEYOR_BUILD_VERSION")
-#else
-#define AppMinVersion GetEnv("APPVEYOR_BUILD_VERSION")
-#endif
+#define AppMinVersion GetEnv("CSOUND_VERSION")
+#define AppveyorBuildNumber GetEnv("APPVEYOR_BUILD_NUMBER")
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
 ;#define QtSdkBinDir "C:\Qt\5.9.1\msvc2017_64\bin\"
@@ -89,7 +86,7 @@ ChangesEnvironment=yes
 AppId={{180B4E5B-9A2F-4DA8-8692-97A174ACB74E}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName={#AppName} {#AppMinVersion}
+;AppVerName={#AppName}-{AppMinVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}
@@ -99,7 +96,7 @@ DefaultGroupName=Csound
 AllowNoIcons=yes
 LicenseFile=..\..\README.md
 OutputDir=installer\windows
-OutputBaseFilename=Setup_{#AppName}_{#AppMinVersion}
+OutputBaseFilename={#AppName}-{#AppMinVersion}-{#AppveyorBuildNumber}
 Compression=lzma
 SolidCompression=yes
 
