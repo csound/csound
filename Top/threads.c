@@ -754,35 +754,6 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
   return retval;
 }
 
-PUBLIC void *csoundCreateBarrier(unsigned int max)
-{
-#if (_WIN32_WINNT >= 0x603)
-  SYNCHRONIZATION_BARRIER *barrier =
-    (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
-  if (barrier != NULL)
-    InitializeSynchronizationBarrier(barrier, max, -1);
-  return (void*) barrier;
-#else
-  return 0;
-#endif
-}
-
-PUBLIC int csoundDestroyBarrier(void *barrier)
-{
-#if (_WIN32_WINNT >= 0x603)
-    DeleteSynchronizationBarrier(barrier);
-#endif
-    return 0;
-}
-
-PUBLIC int csoundWaitBarrier(void *barrier)
-{
-#if (_WIN32_WINNT >= 0x603)
-    EnterSynchronizationBarrier(barrier, 0);
-#endif
-    return 0;
-}
-
 PUBLIC void* csoundCreateCondVar()
 {
     CONDITION_VARIABLE* condVar =
@@ -803,6 +774,76 @@ PUBLIC void csoundCondSignal(void* condVar) {
     CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)condVar;
     WakeConditionVariable(cv);
 }
+
+// REMOVE FOLLOWING BARRIER DEFINITION WINDOWS SUPPORT LIMITED to WIN 8.1+
+typedef struct barrier {
+    CRITICAL_SECTION* mut;
+    CONDITION_VARIABLE* cond;
+    unsigned int count, max, iteration;
+} win_barrier_t;
+
+PUBLIC void *csoundCreateBarrier(unsigned int max)
+{
+  win_barrier_t *barrier =
+    (win_barrier_t*)malloc(sizeof(win_barrier_t));
+
+  barrier->cond = (CONDITION_VARIABLE*)csoundCreateCondVar();
+  barrier->mut = (CRITICAL_SECTION*)csoundCreateMutex(0);
+  barrier->count = 0;
+  barrier->iteration = 0;
+  barrier->max = max;
+
+  return (void*) barrier;
+
+  // REPLACE ABOVE WITH FOLLOWING ONCE WINDOWS SUPPORT LIMITED to WIN 8.1+
+  //SYNCHRONIZATION_BARRIER *barrier =
+  //  (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
+
+  //if (barrier != NULL)
+  //  InitializeSynchronizationBarrier(barrier, max, -1);
+  //return (void*) barrier;
+}
+
+PUBLIC int csoundDestroyBarrier(void *barrier)
+{
+    
+  win_barrier_t *winb = (win_barrier_t*)barrier;
+  free(winb->cond);
+  csoundDestroyMutex(winb->mut);
+  free(winb);
+  return 0;
+    // REPLACE ABOVE WITH FOLLOWING ONCE WINDOWS SUPPORT LIMITED to WIN 8.1+
+    //DeleteSynchronizationBarrier(barrier);
+    //return 0;
+}
+
+PUBLIC int csoundWaitBarrier(void *barrier)
+{
+    int ret;
+    unsigned int it;
+  win_barrier_t *winb = (win_barrier_t*)barrier;
+  csoundLockMutex(winb->mut);
+  winb->count++;
+  it = winb->iteration;
+  if (winb->count >= winb->max) {
+      winb->count = 0;
+      winb->iteration++;
+      WakeAllConditionVariable(winb->cond);
+      ret = 1;
+  }
+  else {
+      while(it == winb->iteration) {
+        csoundCondWait(winb->cond, winb->mut);
+      }
+      ret = 0;
+  }
+  csoundUnlockMutex(winb->mut);
+  return ret;
+    // REPLACE ABOVE WITH FOLLOWING ONCE WINDOWS SUPPORT LIMITED to WIN 8.1+
+    //EnterSynchronizationBarrier(barrier, 0);
+    //return 0;
+}
+
 
 /* ------------------------------------------------------------------------ */
 
