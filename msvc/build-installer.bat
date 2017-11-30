@@ -24,7 +24,7 @@ powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "
 )
 
 if %BUILD_CSOUND%==1 (
-powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140" -vstSdkHome "%VST_SDK2_HOME%" -winVer "0x0602"
+powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140" -vstSdkHome "%VST_SDK2_HOME%"
 cmake --build csound-vs --config RelWithDebInfo
 )
 

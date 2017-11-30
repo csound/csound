@@ -92,18 +92,3 @@ set(BISON_EXECUTABLE "${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison\\win_bis
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477 /wd4251")
 
-# Compile for a specific lower version of Windows (will still run on higher versions).
-if(WINVER)
-    message(STATUS "Defining Windows version...")
-    add_definitions(-D_WIN32_WINNT=${WINVER})
-    add_definitions(-DWINVER=${WINVER})
-else()
-    message(STATUS "Not defining Windows version...")
-endif()
-
-message(STATUS "WINVER:                                   " ${WINVER})
-message(STATUS "CMAKE_SYSTEM_VERSION:                     " ${CMAKE_SYSTEM_VERSION})
-message(STATUS "CMAKE_SYSTEM_PROCESSOR:                   " ${CMAKE_SYSTEM_PROCESSOR})
-message(STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION: " ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
-message(STATUS "CMAKE_HOST_SYSTEM_VERSION:                " ${CMAKE_HOST_SYSTEM_VERSION})
-message(STATUS "Custom-vs.cmake has been processed...")
