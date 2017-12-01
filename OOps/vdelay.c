@@ -47,6 +47,7 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
       }
       p->left = 0;
     }
+    p->maxd = n;
     return OK;
 }
 
@@ -63,7 +64,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     MYFLT esr = ESR;
 
     if (UNLIKELY(buf==NULL)) goto err1;        /* RWD fix */
-    maxd = (uint32) (1+*p->imaxd * ESR);
+    maxd = p->maxd;
     indx = p->left;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
