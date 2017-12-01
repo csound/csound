@@ -38,6 +38,7 @@ typedef struct {
         MYFLT   *sr1, *sr2, *sr3, *sr4;
         MYFLT   *ain1, *ain2, *ain3, *ain4, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2, aux3, aux4;
+        uint32 maxd;
         int     interp_size;
         int32   left;
 } VDELXQ;
@@ -46,6 +47,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr1, *sr2, *ain1, *ain2, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2;
+        uint32 maxd;
         int     interp_size;
         int32   left;
 } VDELXS;
@@ -54,6 +56,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr1, *ain1, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1;
+        uint32 maxd;
         int     interp_size;
         int32   left;
 } VDELX;
