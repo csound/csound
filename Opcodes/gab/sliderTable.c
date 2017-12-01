@@ -55,7 +55,7 @@ typedef struct {
         FUNC *outftp, **ftp = p->ftp;                                   \
         MYFLT *chanblock = (MYFLT *)  csound->m_chnbp[chan]->ctl_val;   \
                                                                         \
-        if((outftp = csound->FTnp2Find(csound, p->ioutfn)) != NULL)     \
+        if ((outftp = csound->FTnp2Find(csound, p->ioutfn)) != NULL)    \
           p->outTable = outftp->ftable;                                 \
         while (j < 8) {                                                 \
             int t = (int) *sld->ifn;                                    \

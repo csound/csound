@@ -155,7 +155,6 @@ void csp_barrier_alloc(CSOUND *csound, void **barrier,
     }
 }
 
-// PTHREAD: change
 void csp_barrier_dealloc(CSOUND *csound, void **barrier)
 {
     if (UNLIKELY(barrier == NULL || *barrier == NULL))
@@ -165,102 +164,6 @@ void csp_barrier_dealloc(CSOUND *csound, void **barrier)
 }
 
 
-/***********************************************************************
- * semaphore
- */
-
-//void csp_semaphore_alloc(CSOUND *csound, sem_t **sem, int max_threads)
-//{
-//    if (UNLIKELY(sem == NULL))
-//      csound->Die(csound, "Invalid NULL Parameter sem");
-//    if (*sem != NULL) {
-//      int val;
-//      sem_getvalue(*sem, &val);
-//      csound->DebugMsg(csound, "Already a semaphore: %d %p\n", val, *sem);
-//      sem_destroy(*sem);
-//      csound->Free(csound, *sem);
-//    }
-//
-//    *sem = csound->Malloc(csound, sizeof(sem_t));
-//    if (UNLIKELY(*sem == NULL)) {
-//      csound->Die(csound, "Failed to allocate semaphore");
-//    }
-//    sem_init(*sem, 0, 1);
-//}
-//
-//void csp_semaphore_dealloc(CSOUND *csound, sem_t **sem)
-//{
-//    if (UNLIKELY(sem == NULL || *sem == NULL))
-//      csound->Die(csound, "Invalid NULL Parameter sem");
-//    sem_destroy(*sem);
-//    csound->Free(csound, *sem);
-//    *sem = NULL;
-//}
-//
-//void csp_semaphore_wait(CSOUND *csound, sem_t *sem)
-//{
-//    if (UNLIKELY(sem == NULL))
-//       csound->Die(csound, "Invalid NULL Parameter sem");
-//
-//    TRACE_1("[%i] wait:\n", csp_thread_index_get(csound));
-//    {
-//      /* int val, res; */
-//      /* res = sem_getvalue(sem, &val); */
-//      /* csound->DebugMsg(csound, "before sem_wait: %d %i:\t", val, */
-//      /*         csp_thread_index_get(csound)); */
-//      sem_wait(sem);
-//      /* res = sem_getvalue(sem, &val); */
-//      /* csound->DebugMsg(csound, "after sem_wait: %d %i\n", val, */
-//      /*         csp_thread_index_get(csound)); */
-//    }
-//    TRACE_1("[%i] continue:\n", csp_thread_index_get(csound));
-//}
-//
-//void csp_semaphore_grow(CSOUND *csound, sem_t *sem)
-//{
-//    /* int val, res; */
-//    /* res = sem_getvalue(sem, &val); */
-//    /* csound->DebugMsg(csound, "before sem_grow: %d %i\t",
-//               val, csp_thread_index_get(csound)); */
-//    sem_post(sem);
-//    /* res = sem_getvalue(sem, &val); */
-//    /* csound->DebugMsg(csound, "after sem_grow: %d %i\n",
-//               val, csp_thread_index_get(csound)); */
-//}
-//
-//void csp_semaphore_release(CSOUND *csound, sem_t *sem)
-//{
-//    /* TRACE_2("[%i] post:\n", csp_thread_index_get(csound)); */
-//    /* { */
-//    /*   int val, res; */
-//    /*   res = sem_getvalue(sem, &val); */
-//    /*   csound->DebugMsg(csound, "before sem_release: %d %i\n", */
-//    /*           val, csp_thread_index_get(csound)); */
-//    /* } */
-//}
-//
-//void csp_semaphore_release_end(CSOUND *csound, sem_t *sem)
-//{
-//    /* int val, res; */
-//    /* res = sem_getvalue(sem, &val); */
-//    /* csound->DebugMsg(csound, "before sem_release_end: %d %i\t", */
-//    /*         val, csp_thread_index_get(csound)); */
-//    sem_post(sem);
-//    /* res = sem_getvalue(sem, &val); */
-//    /* csound->DebugMsg(csound, "after sem_release_end: %d %i\n", */
-//    /*         val, csp_thread_index_get(csound)); */
-//}
-//
-//void csp_semaphore_release_print(CSOUND *csound, sem_t *sem)
-//{
-//    int val, res;
-//    if (UNLIKELY(sem == NULL))
-//      csound->Die(csound, "Invalid NULL Parameter sem");
-//    res = sem_getvalue(sem, &val);
-//    csound->DebugMsg(csound, "sem_release_print: %d %p\n",
-//            val, csp_thread_index_get(csound));
-//}
-//
 
 /***********************************************************************
  * set data structure
