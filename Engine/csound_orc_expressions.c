@@ -606,6 +606,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
           char* rightArgType = get_arg_string_from_tree(csound, root->right,
                                                         typeTable);
 
+          leftArgType =csound->ReAlloc(csound, leftArgType, strlen(leftArgType) +
+                                       strlen(rightArgType) + 1);
+
           char* argString = strcat(leftArgType, rightArgType);
 
           char* outype = resolve_opcode_get_outarg(csound, opentries,
