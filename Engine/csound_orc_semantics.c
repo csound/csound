@@ -254,8 +254,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         else {
           char* rightArgType = get_arg_string_from_tree(csound, tree->right,
                                                         typeTable);
+<<<<<<< HEAD
           
           leftArgType =csound->ReAlloc(csound, leftArgType, strlen(leftArgType) + strlen(rightArgType) + 1);
+=======
+>>>>>>> a08b70fa0eb00f177c2afa705944abc2b4f7aa6b
           char* argString = strcat(leftArgType, rightArgType);
 
           OENTRIES* opentries = find_opcode2(csound, "##array_get");
