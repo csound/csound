@@ -33,8 +33,10 @@
 #include "schedule.h"
 #endif
 
+extern void csoundInputMessageInternal(CSOUND *, const char *);
 int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int s, char p1);
 int eventOpcode_(CSOUND *csound, LINEVENT *p, int s, char p1);
+
 
 int schedule(CSOUND *csound, SCHED *p)
 {

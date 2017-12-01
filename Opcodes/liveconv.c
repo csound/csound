@@ -157,8 +157,10 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf, MYFLT *IR_Data,
       if (rbPtr >= rbEndP)
         rbPtr = ringBuf;
       outBufPtr = outBuf;
-      *(outBufPtr++) += *(rbPtr++) * *(irPtr++); /* convolve DC - real part only */
-      *(outBufPtr++) += *(rbPtr++) * *(irPtr++); /* convolve Nyquist - real part only */
+      *(outBufPtr++) +=
+        *(rbPtr++) * *(irPtr++); /* convolve DC - real part only */
+      *(outBufPtr++) +=
+        *(rbPtr++) * *(irPtr++); /* convolve Nyquist - real part only */
       re1 = *(rbPtr++);
       im1 = *(rbPtr++);
       re2 = *(irPtr++);

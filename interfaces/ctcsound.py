@@ -206,7 +206,9 @@ libcsound.csoundReset.argtypes = [c_void_p]
 libcsound.csoundUDPServerStart.argtypes = [c_void_p, c_uint]
 libcsound.csoundUDPServerStatus.argtypes = [c_void_p]
 libcsound.csoundUDPServerClose.argtypes = [c_void_p]
-    
+libcsound.csoundUDPConsole.argtypes = [c_void_p, c_char_p, c_uint, c_uint]
+libcsound.csoundStopUDPConsole.argtypes = [c_void_p]
+
 libcsound.csoundGetSr.restype = MYFLT
 libcsound.csoundGetSr.argtypes = [c_void_p]
 libcsound.csoundGetKr.restype = MYFLT
@@ -913,6 +915,20 @@ class Csound:
         CSOUND_ERROR otherwise.
         """
         return libcsound.csoundUDPServerClose(self.cs)
+
+    def UDPConsole(self, addr, port, mirror):
+        """Turns on the transmission of console messages to UDP on addr:port.
+        
+        If mirror is one, the messages will continue to be sent to the usual
+        destination (see setMessaggeCallback()) as well as to UDP.
+        Returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
+        could not be set up.
+        """
+        return libcsound.csoundUDPConsole(self.cs, cstring(addr), c_uint(port), c_uint(mirror))
+
+    def stopUDPConsole(self):
+        """Stop transmitting console messages via UDP."""
+        libcsound.csoundStopUDPConsole(self.cs)
 
     #Attributes
     def sr(self):

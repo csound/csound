@@ -39,6 +39,22 @@
 static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);
 static MYFLT *pluckShape(CSOUND*, WGPLUCK*);     /* pluck shape function */
 
+/* ***** class filter3 -- JPff ****** */
+
+/* ::set -- set the coefficients */
+static inline void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
+{
+    filt->a0 = a0;
+    filt->a1 = a1;
+    filt->x1 = filt->x2 = FL(0.0);
+#ifdef WG_VERBOSE
+    csound->Message(csound, "c[0]=%f; c[1]=%f; c[2]=\n", a0, a1, a0);
+    csound->Message(csound, "Zeros at %f, %f\n",
+                            (-a1-sqrt(a1*a1-4.0*a0*a0))/(2.0*a0),
+                            (-a1+sqrt(a1*a1-4.0*a0*a0))/(2.0*a0));
+#endif
+}
+
 /* ***** plucked string class member function definitions ***** */
 
 /* pluck::excite -- excitation function for plucked string */
@@ -247,27 +263,11 @@ static inline int circularBufferCircularBuffer(CSOUND *csound,
 static MYFLT guideRailAccess(guideRail* gr, len_t pos)
 {
     MYFLT *s = gr->pointer - pos;
-    while(s < gr->data)
+    while (s < gr->data)
       s += gr->size;
-    while(s > gr->endPoint)
+    while (s > gr->endPoint)
       s -= gr->size;
     return *s;
-}
-
-/* ***** class filter3 -- JPff ****** */
-
-/* ::set -- set the coefficients */
-static void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
-{
-    filt->a0 = a0;
-    filt->a1 = a1;
-    filt->x1 = filt->x2 = FL(0.0);
-#ifdef WG_VERBOSE
-    csound->Message(csound, "c[0]=%f; c[1]=%f; c[2]=\n", a0, a1, a0);
-    csound->Message(csound, "Zeros at %f, %f\n",
-                            (-a1-sqrt(a1*a1-4.0*a0*a0))/(2.0*a0),
-                            (-a1+sqrt(a1*a1-4.0*a0*a0))/(2.0*a0));
-#endif
 }
 
 /* ::FIR -- direct convolution filter routine */

@@ -1,4 +1,6 @@
-cd staging\CsoundQt
+cd staging
+git clone -b master --depth=1 --single-branch "https://github.com/CsoundQt/CsoundQt.git"
+cd CsoundQt
 dir
 qmake.exe qcs.pro ^
     CONFIG+=html_webengine ^

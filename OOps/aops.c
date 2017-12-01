@@ -1960,7 +1960,7 @@ int outch(CSOUND *csound, OUTCH *p)
     CSOUND_SPOUT_SPINLOCK
     for (j = 0; j < count; j += 2) {
       ch = (int)(*args[j] + FL(0.5));
-      if(ch < 1) ch = 1;
+      if (ch < 1) ch = 1;
       apn = args[j + 1];
       if (ch > nchnls) continue;
       if (!csound->spoutactive) {

@@ -158,13 +158,16 @@ static const char *shortUsageList[] = {
   Str_noop("-g          suppress graphics, use ascii displays"),
   Str_noop("-G          suppress graphics, use Postscript displays"),
   Str_noop("-x fnam     extract from score.srt using extract file 'fnam'"),
-  Str_noop("-t N        use uninterpreted beats of the score, initially at tempo N"),
+  Str_noop("-t N        use uninterpreted beats of the score, "
+                       "initially at tempo N"),
   Str_noop("-t 0        use score.srt for sorted score rather than a temporary"),
-  Str_noop("-L dnam     read Line-oriented realtime score events from device 'dnam'"),
+  Str_noop("-L dnam     read Line-oriented realtime score events from "
+                       "device 'dnam'"),
   Str_noop("-M dnam     read MIDI realtime events from device 'dnam'"),
   Str_noop("-F fnam     read MIDIfile event stream from file 'fnam'"),
   /* Str_noop("-P N        MIDI sustain pedal threshold (0 - 128)"), */
-  Str_noop("-R          continually rewrite header while writing soundfile (WAV/AIFF)"),
+  Str_noop("-R          continually rewrite header while writing soundfile "
+                       "(WAV/AIFF)"),
   Str_noop("-H#         print heartbeat style 1, 2 or 3 at each soundfile write"),
   Str_noop("-N          notify (ring the bell) when score or miditrack is done"),
   Str_noop("-T          terminate the performance when miditrack is done"),
@@ -199,7 +202,8 @@ static const char *longUsageList[] = {
   Str_noop("--asciidisplay          suppress graphics, use ascii displays"),
   Str_noop("--postscriptdisplay     suppress graphics, use Postscript displays"),
   " ",
-  Str_noop("--defer-gen1            defer GEN01 soundfile loads until performance time"),
+  Str_noop("--defer-gen1            defer GEN01 soundfile loads until "
+                                   "performance time"),
   Str_noop("--iobufsamps=N          sample frames (or -kprds) per software "
                                     "sound I/O buffer"),
   Str_noop("--hardwarebufsamps=N    samples per hardware sound I/O buffer"),
@@ -209,11 +213,13 @@ static const char *longUsageList[] = {
   Str_noop("--midifile=FNAME        read MIDIfile event stream from file"),
   Str_noop("--midioutfile=FNAME     write MIDI output to file FNAME"),
   Str_noop("--midi-device=FNAME     read MIDI realtime events from device"),
-  Str_noop("--terminate-on-midi     terminate the performance when miditrack is done"),
+  Str_noop("--terminate-on-midi     terminate the performance when miditrack "
+           "is done"),
   " ",
   Str_noop("--heartbeat=N           print a heartbeat style 1, 2 or 3 at "
                                     "each soundfile write"),
-  Str_noop("--notify                notify (ring the bell) when score or miditrack is done"),
+  Str_noop("--notify                notify (ring the bell) when score or "
+           "miditrack is done"),
   Str_noop("--rewrite               continually rewrite header while writing "
                                     "soundfile (WAV/AIFF)"),
   " ",
@@ -222,10 +228,11 @@ static const char *longUsageList[] = {
   Str_noop("--logfile=FNAME         log output to file"),
   " ",
   Str_noop("--nosound               no sound onto disk or device"),
-  Str_noop("--tempo=N               use uninterpreted beats of the score, initially "
-                                    "at tempo N"),
+  Str_noop("--tempo=N               use uninterpreted beats of the score, "
+                                   "initially at tempo N"),
   Str_noop("--i-only                I-time only orch run"),
-  Str_noop("--syntax-check-only     stop after checking orchestra and score syntax"),
+  Str_noop("--syntax-check-only     stop after checking orchestra and "
+                                    "score syntax"),
   Str_noop("--control-rate=N        orchestra krate override"),
   Str_noop("--sample-rate=N         orchestra srate override"),
   Str_noop("--score-in=FNAME        read line-oriented realtime score events "
@@ -244,7 +251,8 @@ static const char *longUsageList[] = {
   Str_noop("--m-colours=[01]        colour amp messages"),
   Str_noop("--m-benchmarks=[01]     print benchmark information"),
   Str_noop("--csd-line-nums=[01]    controls how error line numbers are printed:"),
-  Str_noop("                          1=use CSD line #s (default), 0=use ORC/SCO-relative line #s"),
+  Str_noop("                          1=use CSD line #s (default), 0=use "
+                                   "ORC/SCO-relative line #s"),
   Str_noop("--extract-score=FNAME   extract from score.srt using extract file"),
   Str_noop("--keep-sorted-score"),
   Str_noop("--env:NAME=VALUE        set environment variable NAME to VALUE"),
@@ -253,18 +261,20 @@ static const char *longUsageList[] = {
   Str_noop("--utility=NAME          run utility program"),
   Str_noop("--verbose               verbose orch translation"),
   Str_noop("--list-opcodes          list opcodes in this version"),
-  Str_noop("--list-opcodesN         list opcodes in style N in this version"),
+   Str_noop("--list-opcodesN         list opcodes in style N in this version"),
   Str_noop("--dither                dither output"),
   Str_noop("--dither-triangular     dither output with triangular distribution"),
   Str_noop("--dither-uniform        dither output with rectanular distribution"),
-  Str_noop("--sched                 set real-time scheduling priority and lock memory"),
+  Str_noop("--sched                 set real-time scheduling priority and "
+                                   "lock memory"),
   Str_noop("--sched=N               set priority to N and lock memory"),
   Str_noop("--opcode-lib=NAMES      dynamic libraries to load"),
   Str_noop("--opcode-omit=NAMES     dynamic libraries not to load"),
   Str_noop("--omacro:XXX=YYY        set orchestra macro XXX to value YYY"),
   Str_noop("--smacro:XXX=YYY        set score macro XXX to value YYY"),
   Str_noop("--midi-key=N            route MIDI note on message"),
-  Str_noop("                          key number to pfield N as MIDI value [0-127]"),
+  Str_noop("                          key number to pfield N as "
+                                   "MIDI value [0-127]"),
   Str_noop("--midi-key-cps=N        route MIDI note on message"),
   Str_noop("                          key number to pfield N as cycles per second"),
   Str_noop("--midi-key-oct=N        route MIDI note on message"),
@@ -272,7 +282,8 @@ static const char *longUsageList[] = {
   Str_noop("--midi-key-pch=N        route MIDI note on message"),
   Str_noop("                          key number to pfield N as oct.pch"),
   Str_noop("--midi-velocity=N       route MIDI note on message"),
-  Str_noop("                          velocity number to pfield N as MIDI value [0-127]"),
+  Str_noop("                          velocity number to pfield N as MIDI "
+                                   "value [0-127]"),
   Str_noop("--midi-velocity-amp=N   route MIDI note on message"),
   Str_noop("                          velocity number to pfield N as amplitude"),
   Str_noop("--no-default-paths      turn off relative paths from CSD/ORC/SCO"),
@@ -291,7 +302,8 @@ static const char *longUsageList[] = {
   Str_noop("--midi-devices[=in|out] list available audio devices and exit"),
   Str_noop("--get-system-sr         print system sr and exit"),
   Str_noop("--ksmps=N               override ksmps"),
-  Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, PFFFT = 1, vDSP =2)"),
+  Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, "
+                                   "PFFFT = 1, vDSP =2)"),
   Str_noop("--udp-echo              echo UDP commands on terminal"),
   " ",
   Str_noop("--help                  long help"),
@@ -1081,25 +1093,25 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp(s, "udp-console=",12))) {
-      char *ports; 
+      char *ports;
       s += 12;
       ports = strchr(s, ':');
       if(s != NULL && ports != NULL) {
-	*ports = '\0';
-	csoundUDPConsole(csound, s, atoi(ports+1),0);
+        *ports = '\0';
+        csoundUDPConsole(csound, s, atoi(ports+1),0);
       } else
-	csound->Warning(csound, "UDP console: needs address and port\n");
+        csound->Warning(csound, "UDP console: needs address and port\n");
       return 1;
     }
     else if (!(strncmp(s, "udp-mirror-console=",19))) {
-      char *ports; 
+      char *ports;
       s += 19;
       ports = strchr(s, ':');
       if(s != NULL && ports != NULL) {
-	*ports = '\0';
-	csoundUDPConsole(csound, s, atoi(ports+1),1);
+        *ports = '\0';
+        csoundUDPConsole(csound, s, atoi(ports+1),1);
       } else
-	csound->Warning(csound, "UDP console: needs address and port\n");
+        csound->Warning(csound, "UDP console: needs address and port\n");
       return 1;
     }
     else if (!(strncmp(s, "fftlib=",7))) {

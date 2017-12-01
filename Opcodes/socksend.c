@@ -477,6 +477,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       case 'l':
       case 'h': /* OSC-accepted type name for 64bit int */
         p->type->data[i] = 'h';
+        /* fall through */
       case 'd':
         bsize += 8;
         iarg++;
