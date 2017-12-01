@@ -933,13 +933,13 @@ extern "C" {
    * could not be set up.
    */
   PUBLIC int csoundUDPConsole(CSOUND *csound, const char *addr,
-			      int port, int mirror);
+                              int port, int mirror);
 
   /**
    * Stop transmitting console messages via UDP
    */
   PUBLIC void csoundStopUDPConsole(CSOUND *csound);
-  
+
   /** @}*/
   /** @defgroup ATTRIBUTES Attributes
    *

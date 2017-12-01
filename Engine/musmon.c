@@ -1223,6 +1223,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
     case 'a':
       if (UNLIKELY(evt->pcnt < 3))
         goto pfld_err;
+      /* fall through */
     case 'd':
     cont:
       /* calculate actual start time in seconds and k-periods */
@@ -1250,7 +1251,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       /* calculate the length in beats */
       if (evt->p3orig > FL(0.0))
         evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
-      /* fall through required */
+      /* fall through */
     case 'q':                         /* mute instrument */
       /* check for a valid instrument number or name */
       if (evt->opcod=='d') {
@@ -1281,6 +1282,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
     case 'a':                         /* advance score time */
       /* calculate the length in beats */
       evt->p3orig = (MYFLT) ((double) evt->p3orig *csound->esr/ st->ibeatTime);
+      /* fall through */
     case 'f':                         /* function table */
       break;
     case 'e':                         /* end of score, */
