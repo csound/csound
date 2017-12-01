@@ -28,6 +28,7 @@
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *ain, *adel, *imaxd, *istod;
+        uint32 maxd;
         AUXCH   aux;
         int32   left;
 } VDEL;
