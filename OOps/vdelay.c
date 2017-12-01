@@ -275,6 +275,7 @@ int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
       p->interp_size = (p->interp_size < 4 ? 4 : p->interp_size);
       p->interp_size = (p->interp_size > 1024 ? 1024 : p->interp_size);
     }
+    p->maxd = (uint32) n;
     return OK;
 }
 
@@ -300,6 +301,7 @@ int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
       p->interp_size = (p->interp_size < 4 ? 4 : p->interp_size);
       p->interp_size = (p->interp_size > 1024 ? 1024 : p->interp_size);
     }
+    p->maxd = (uint32) n;
     return OK;
 }
 
@@ -333,6 +335,7 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
       p->interp_size = (p->interp_size < 4 ? 4 : p->interp_size);
       p->interp_size = (p->interp_size > 1024 ? 1024 : p->interp_size);
     }
+    p->maxd = (uint32) n;
     return OK;
 }
 
@@ -351,7 +354,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
     int32   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd = p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -422,7 +425,7 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     int32   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -494,7 +497,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1; /* RWD fix */
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -572,7 +575,7 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     int32   i, i2, xpos;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1;     /* RWD fix */
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -656,7 +659,7 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
                  (buf3 == NULL) || (buf4 == NULL))) goto err1;
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -751,7 +754,7 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
                  (buf3 == NULL) || (buf4 == NULL))) goto err1;
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
