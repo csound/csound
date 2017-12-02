@@ -1320,7 +1320,6 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     //cs_hash_table_merge(csound,
     //                current_state->stringPool, engineState->stringPool);
 
-
     cs_hash_table_merge(csound, current_state->constantsPool, engineState->constantsPool);
    /* for (count = 0; count < engineState->constantsPool->count; count++) {
       if (UNLIKELY(csound->oparms->odebug))
@@ -1436,7 +1435,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 {
 
     csound->Free(csound, engineState->instrumentNames);
-    //cs_hash_table_free(csound, engineState->constantsPool);
+    cs_hash_table_free(csound, engineState->constantsPool);
+    //cs_hash_table_free(csound, engineState->stringPool);
     csoundFreeVarPool(csound, engineState->varPool);
     csound->Free(csound, engineState->instrtxtp);
     csound->Free(csound, engineState);
