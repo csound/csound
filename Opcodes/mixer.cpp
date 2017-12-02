@@ -256,16 +256,17 @@ struct MixerClear : public OpcodeBase<MixerClear> {
 #endif
         for(std::map<size_t,
                 std::vector< std::vector<MYFLT> > >::iterator
-                busi = (*busses)[csound].begin(); busi != (*busses)[csound].end(); ++busi) {
-            for(std::vector< std::vector<MYFLT> >::iterator
-                    channeli = busi->second.begin();
-                    channeli != busi->second.end(); ++channeli) {
-                for(std::vector<MYFLT>::iterator
-                        framei = (*channeli).begin();
-                        framei != (*channeli).end(); ++framei) {
-                    *framei = 0;
-                }
+                busi = (*busses)[csound].begin();
+            busi != (*busses)[csound].end(); ++busi) {
+          for(std::vector< std::vector<MYFLT> >::iterator
+                channeli = busi->second.begin();
+              channeli != busi->second.end(); ++channeli) {
+            for(std::vector<MYFLT>::iterator
+                  framei = (*channeli).begin();
+                framei != (*channeli).end(); ++framei) {
+              *framei = 0;
             }
+          }
         }
 #ifdef ENABLE_MIXER_KDEBUG
         warn(csound, "MixerClear::audio\n")
@@ -349,8 +350,10 @@ extern "C"
 
     PUBLIC int csoundModuleCreate_mixer(CSOUND *csound)
     {
-        busses = new std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > >;
-        matrix = new std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > >;
+        busses = new std::map<CSOUND *,
+                              std::map<size_t, std::vector< std::vector<MYFLT> > >>;
+        matrix = new std::map<CSOUND *,
+                              std::map<size_t, std::map<size_t, MYFLT> > >;
         return OK;
     }
 
@@ -374,7 +377,8 @@ extern "C"
     /*
      * The mixer busses are laid out:
      * busses[csound][bus][channel][frame].
-     * std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses = 0;
+     * std::map<CSOUND *, std::map<size_t,
+     *          std::vector< std::vector<MYFLT> > > > *busses = 0;
      * The mixer send matrix is laid out:
      * matrix[csound][send][bus].
      * std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
@@ -383,14 +387,15 @@ extern "C"
     {
       if(busses) {
         for(std::map<size_t,
-                std::vector< std::vector<MYFLT> > >::iterator
-                busi = (*busses)[csound].begin(); busi != (*busses)[csound].end(); ++busi) {
-            for(std::vector< std::vector<MYFLT> >::iterator
-                    channeli = busi->second.begin();
-                    channeli != busi->second.end(); ++channeli) {
-                channeli->resize(0);
-            }
-            busi->second.clear();
+              std::vector< std::vector<MYFLT> > >::iterator
+              busi = (*busses)[csound].begin();
+            busi != (*busses)[csound].end(); ++busi) {
+          for(std::vector< std::vector<MYFLT> >::iterator
+                channeli = busi->second.begin();
+              channeli != busi->second.end(); ++channeli) {
+            channeli->resize(0);
+          }
+          busi->second.clear();
         }
         busses->clear();
         delete busses;
@@ -399,8 +404,9 @@ extern "C"
       if(matrix) {
         // std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > >
         for(std::map<size_t, std::map<size_t, MYFLT> >::iterator
-                matrixi = (*matrix)[csound].begin(); matrixi != (*matrix)[csound].end(); ++matrixi) {
-             matrixi->second.clear();
+              matrixi = (*matrix)[csound].begin();
+            matrixi != (*matrix)[csound].end(); ++matrixi) {
+          matrixi->second.clear();
         }
         matrix->clear();
         delete matrix;

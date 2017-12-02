@@ -351,12 +351,13 @@ using namespace csound;
 
 static std::ostream &operator <<(std::ostream &o, const std::vector<double>& m)
 {
-  gmm::write(o,m); return o;
+    gmm::write(o,m); return o;
 }
 
-static std::ostream &operator <<(std::ostream &o, const std::vector< std::complex<double> >& m)
+static std::ostream &operator <<(std::ostream &o,
+                                 const std::vector< std::complex<double> >& m)
 {
-  gmm::write(o,m); return o;
+    gmm::write(o,m); return o;
 }
 
 /**

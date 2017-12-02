@@ -150,7 +150,7 @@ void message_dequeue(CSOUND *csound) {
     long items = csound->msg_queue_items;
     long rend = rp + items;
 
-    int64_t rtn = 0;
+    int64_t rtn = 0;            /* This value is not used */
 
     while(rp < rend) {
       message_queue_t* msg = csound->msg_queue[rp % API_MAX_QUEUE];

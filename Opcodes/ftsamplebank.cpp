@@ -163,22 +163,23 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
           for(int i=0;i<fileExtensions.size();i++)
           {
             std::string fname = ent->d_name;
-            if (fname.find(fileExtensions[i], (fname.length() - fileExtensions[i].length())) != std::string::npos)
+            if (fname.find(fileExtensions[i],
+                           (fname.length() - fileExtensions[i].length())) !=
+                std::string::npos)
             {
-                if(strlen(directory)>2)
-                  {
+              if(strlen(directory)>2)
+                {
 #if defined(WIN32)
-                    fullFileName << directory << "\\" << ent->d_name;
+                  fullFileName << directory << "\\" << ent->d_name;
 #else
-                    fullFileName << directory << "/" << ent->d_name;
+                  fullFileName << directory << "/" << ent->d_name;
 #endif
-                  }
-                else
-                  fullFileName << ent->d_name;
+                }
+              else
+                fullFileName << ent->d_name;
 
-
-                noOfFiles++;
-                fileNames.push_back(fullFileName.str());
+              noOfFiles++;
+              fileNames.push_back(fullFileName.str());
             }
           }
         }
