@@ -131,6 +131,7 @@ static struct global_var_lock_t
     }
 }
 
+#if 0
 static TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
     csound->Message(csound,
@@ -240,6 +241,7 @@ static TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 
     return anchor;
 }
+#endif
 
 void csp_locks_cache_build(CSOUND *csound)
 {

@@ -380,7 +380,8 @@ public:
 
   /** vector end
    */
-  const_iterator cend() const { return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
+  const_iterator cend() const {
+      return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
 
   /** vector beginning
    */
@@ -388,7 +389,8 @@ public:
 
   /** vector end
    */
-  const_iterator end() const { return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
+  const_iterator end() const {
+      return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
 
   /** array subscript access (write)
    */
