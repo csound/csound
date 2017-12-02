@@ -2287,8 +2287,7 @@ static void instance(CSOUND *csound, int insno)
       for (; arg != NULL; n++, arg = arg->next) {
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         if (arg->type == ARG_CONSTANT) {
-          CS_VAR_MEM *varMem =
-            &csound->engineState.constantsPool->values[arg->index];
+          CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
           argpp[n] = &varMem->value;
         }
         else if (arg->type == ARG_STRING) {
