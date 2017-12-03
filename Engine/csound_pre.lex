@@ -720,6 +720,10 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     CORFIL *cf;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c=input(yyscanner))!=term) {
+      if (c=='\n' || c==EOF) {
+        csound->Warning(csound, Str("Ill formed #include ignored"));
+        return;
+      }
       buffer[p] = c;
       p++;
     }
