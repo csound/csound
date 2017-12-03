@@ -737,7 +737,8 @@ static void choose_ls_tuplets(CSOUND *csound,
     int *sorted_lss = (int*)malloc(sizeof(int)*ls_amount);
     int *exist = (int*)calloc(1,sizeof(int)*ls_amount);
     int amount = 0;
-    MYFLT *inv_mat = (MYFLT*)malloc(MATSIZE*sizeof(MYFLT)*ls_amount), *ls_table, *ptr;
+    MYFLT *inv_mat = (MYFLT*)malloc(MATSIZE*sizeof(MYFLT)*ls_amount),
+          *ls_table, *ptr;
     //int ftable_size;
 
     /* sort loudspeakers according their aximuth angle */

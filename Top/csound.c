@@ -519,7 +519,7 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  orchstr, *scorestr  */
     (OPDS*) NULL,   /*  ids                 */
     { (CS_VAR_POOL*)NULL,
-      (MYFLT_POOL *) NULL,
+      (CS_HASH_TABLE *) NULL,
       (CS_HASH_TABLE *) NULL,
       -1,
       (INSTRTXT**)NULL,
@@ -3260,7 +3260,7 @@ PUBLIC void csoundReset(CSOUND *csound)
 
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
-    csound->engineState.constantsPool = myflt_pool_create(csound);
+    csound->engineState.constantsPool = cs_hash_table_create(csound);
     if (csound->symbtab != NULL)
       cs_hash_table_mfree_complete(csound, csound->symbtab);
     csound->symbtab = NULL;
