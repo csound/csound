@@ -18,8 +18,5 @@ echo "Updating the Csound examples for WebAssembly..."
 sh update_example_libs_from_dist_wasm.sh
 echo "Creating a release directory (dist-wasm) for Csound for WebAssembly..."
 sh release-wasm.sh
-echo "Copying dist-wasm files to gogins.github.io..."
-sh copy_wasm_to_gogins_github_io.sh
 echo "Finished building Csound for WebAssembly."
-ls -ll /tmp/emscripten_temp
-ls -ll build-wasm
+ls -ll dist-wasm
