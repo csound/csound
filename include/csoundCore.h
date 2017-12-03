@@ -928,8 +928,8 @@ typedef struct NAME__ {
    */
   typedef struct engine_state {
     CS_VAR_POOL    *varPool;  /* global variable pool */
-    MYFLT_POOL*   constantsPool;
-    CS_HASH_TABLE*  stringPool;
+    CS_HASH_TABLE  *constantsPool;
+    CS_HASH_TABLE  *stringPool;
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor;
