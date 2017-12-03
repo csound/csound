@@ -235,7 +235,6 @@ static void sensLine(CSOUND *csound, void *userData)
     int     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
 
-    
     while (1) {
       if(STA(oflag) > oflag) break;
       Linend = STA(Linep);

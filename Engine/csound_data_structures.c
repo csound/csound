@@ -282,6 +282,7 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
         csound->Free(csound, item);
         item = next;
       }
+      source->buckets[i] = NULL;
     }
 
 }
