@@ -53,9 +53,9 @@ uintptr_t instance_thread(void *p) {
   int insno = ((INST_DATA *) p)->insno;
   instance(csound, insno);
 #if defined(HAVE_ATOMIC_BUILTIN)
-    __atomic_add_fetch(&((INST_DATA *) p)->done, 1, __ATOMIC_SEQ_CST);
+  __atomic_add_fetch(&(((INST_DATA *) p)->done), 1, __ATOMIC_SEQ_CST);
 #else
-  &((INST_DATA *) p)->done = 1;
+  ((INST_DATA *) p)->done = 1;
 #endif
   return (uintptr_t) NULL;
 }
