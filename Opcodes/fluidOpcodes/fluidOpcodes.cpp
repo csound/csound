@@ -751,7 +751,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     fluid_synths = new std::vector<fluid_synth_t *>();
-    //printf("csoundModuleCreate: csound: %p fluid_synths: %p\n", csound, fluid_synths);
+    //printf("csoundModuleCreate: csound: %p fluid_synths: %p\n",
+    //        csound, fluid_synths);
     fluid_synths_mutex = csound->Create_Mutex(0);
     return 0;
 }

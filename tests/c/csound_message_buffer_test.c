@@ -18,7 +18,7 @@ void test_create_buffer(void)
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
     int argc = 2;
-    char *argv[] = {"csound", "-v"};
+    const char *argv[] = {"csound", "-v"};
     csoundCreateMessageBuffer(csound, 0);
     int result = csoundCompile(csound, argc, argv);
 

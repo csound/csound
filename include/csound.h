@@ -1113,7 +1113,8 @@ extern "C" {
    * This callback is retained after a csoundReset() call.
    */
   PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
-                                        void (*func)(CSOUND*, const char*, int, int, int));
+                                        void (*func)(CSOUND*, const char*,
+                                                     int, int, int));
 #endif
 
   /** @}*/
@@ -1265,9 +1266,10 @@ extern "C" {
    * Sets a function to be called by Csound for opening real-time
    * audio playback.
    */
-  PUBLIC void csoundSetPlayopenCallback(CSOUND *,
-                                        int (*playopen__)(CSOUND *,
-                                                          const csRtAudioParams *parm));
+  PUBLIC void
+  csoundSetPlayopenCallback(CSOUND *,
+                            int (*playopen__)(CSOUND *,
+                                              const csRtAudioParams *parm));
 
   /**
    * Sets a function to be called by Csound for performing real-time
@@ -1275,15 +1277,16 @@ extern "C" {
    */
   PUBLIC void csoundSetRtplayCallback(CSOUND *,
                                       void (*rtplay__)(CSOUND *,
-                                                       const MYFLT *outBuf, int nbytes));
+                                                       const MYFLT *outBuf,
+                                                       int nbytes));
 
   /**
    * Sets a function to be called by Csound for opening real-time
    * audio recording.
    */
   PUBLIC void csoundSetRecopenCallback(CSOUND *,
-                                       int (*recopen_)(CSOUND *,
-                                                       const csRtAudioParams *parm));
+                                     int (*recopen_)(CSOUND *,
+                                                     const csRtAudioParams *parm));
 
   /**
    * Sets a function to be called by Csound for performing real-time
@@ -1291,7 +1294,8 @@ extern "C" {
    */
   PUBLIC void csoundSetRtrecordCallback(CSOUND *,
                                         int (*rtrecord__)(CSOUND *,
-                                                          MYFLT *inBuf, int nbytes));
+                                                          MYFLT *inBuf,
+                                                          int nbytes));
 
   /**
    * Sets a function to be called by Csound for closing real-time
@@ -1305,7 +1309,9 @@ extern "C" {
    * (See csoundGetAudioDevList())
    */
   PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-                                               int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+                                               int (*audiodevlist__)(CSOUND *,
+                                                   CS_AUDIODEVICE *list,
+                                                   int isOutput));
 
   /** @}*/
   /** @defgroup RTMIDI Realtime Midi I/O
@@ -1343,39 +1349,49 @@ extern "C" {
    * Sets callback for opening real time MIDI input.
    */
   PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
-                                                  int (*func)(CSOUND *, void **userData, const char *devName));
+                                                  int (*func)(CSOUND *,
+                                                              void **userData,
+                                                              const char *devName));
 
   /**
    * Sets callback for reading from real time MIDI input.
    */
   PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
-                                                int (*func)(CSOUND *, void *userData,
-                                                            unsigned char *buf, int nBytes));
+                                                int (*func)(CSOUND *,
+                                                            void *userData,
+                                                            unsigned char *buf,
+                                                            int nBytes));
 
   /**
    * Sets callback for closing real time MIDI input.
    */
   PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
-                                                   int (*func)(CSOUND *, void *userData));
+                                                   int (*func)(CSOUND *,
+                                                               void *userData));
 
   /**
    * Sets callback for opening real time MIDI output.
    */
   PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
-                                                   int (*func)(CSOUND *, void **userData, const char *devName));
+                                                   int (*func)(CSOUND *,
+                                                               void **userData,
+                                                               const char *devName));
 
   /**
    * Sets callback for writing to real time MIDI output.
    */
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-                                                 int (*func)(CSOUND *, void *userData,
-                                                             const unsigned char *buf, int nBytes));
+                                                 int (*func)(CSOUND *,
+                                                             void *userData,
+                                                             const unsigned char *buf,
+                                                             int nBytes));
 
   /**
    * Sets callback for closing real time MIDI output.
    */
   PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *,
-                                                    int (*func)(CSOUND *, void *userData));
+                                                    int (*func)(CSOUND *,
+                                                                void *userData));
 
   /**
    * Sets callback for converting MIDI error codes to strings.
@@ -1391,7 +1407,8 @@ extern "C" {
    */
   PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
                                               int (*mididevlist__)(CSOUND *,
-                                                                   CS_MIDIDEVICE *list, int isOutput));
+                                                              CS_MIDIDEVICE *list,
+                                                              int isOutput));
 
   /** @}*/
   /** @defgroup SCOREHANDLING Score Handling
@@ -1503,20 +1520,20 @@ extern "C" {
   PUBLIC void csoundMessageV(CSOUND *,
                              int attr, const char *format, va_list args);
 
-  PUBLIC void csoundSetDefaultMessageCallback(
-                                              void (*csoundMessageCallback_)(CSOUND *,
-                                                                             int attr,
-                                                                             const char *format,
-                                                                             va_list valist));
+  PUBLIC void csoundSetDefaultMessageCallback(void (*csoundMessageCallback_)(
+                                           CSOUND *,
+                                           int attr,
+                                           const char *format,
+                                           va_list valist));
 
   /**
    * Sets a function to be called by Csound to print an informational message.
    */
   PUBLIC void csoundSetMessageCallback(CSOUND *,
-                                       void (*csoundMessageCallback_)(CSOUND *,
-                                                                      int attr,
-                                                                      const char *format,
-                                                                      va_list valist));
+                                   void (*csoundMessageCallback_)(CSOUND *,
+                                                                  int attr,
+                                                                  const char *format,
+                                                                  va_list valist));
 
   /**
    * Returns the Csound message level (from 0 to 231).
@@ -2464,13 +2481,14 @@ extern "C" {
 #include "version.h"
 
   /**
-   * Create circular buffer with numelem number of elements. The element's size is set
-   * from elemsize. It should be used like:
+   * Create circular buffer with numelem number of elements. The
+   * element's size is set from elemsize. It should be used like:
    *@code
    * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
    *@endcode
    */
-  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize);
+  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound,
+                                          int numelem, int elemsize);
 
   /**
    * Read from circular buffer
@@ -2573,8 +2591,8 @@ extern "C" {
    */
   PUBLIC void csoundSetInputValueCallback(CSOUND *,
                                           void (*inputValueCalback_)(CSOUND *,
-                                                                     const char *channelName,
-                                                                     MYFLT *value));
+                                                         const char *channelName,
+                                                         MYFLT *value));
 
   /**
    * Called by external software to set a function for Csound to
@@ -2587,8 +2605,8 @@ extern "C" {
    */
   PUBLIC void csoundSetOutputValueCallback(CSOUND *,
                                            void (*outputValueCalback_)(CSOUND *,
-                                                                       const char *channelName,
-                                                                       MYFLT value));
+                                                           const char *channelName,
+                                                           MYFLT value));
 
   /**
    * Sets callback function to be called by the opcodes 'chnsend' and

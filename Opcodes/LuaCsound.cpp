@@ -705,7 +705,8 @@ extern "C"
         lua_states_mutex = csound->Create_Mutex(0);
         luaStatesForThreads = new std::vector<LuaStateForThread>;
         reference_keys_mutex = csound->Create_Mutex(0);
-        luaReferenceKeys = new std::map<const lua_State *, std::map<std::string, keys_t> >;
+        luaReferenceKeys = new std::map<const lua_State *,
+                                        std::map<std::string, keys_t> >;
         return 0;
     }
 
@@ -732,7 +733,9 @@ extern "C"
     {
         if (lua_states_mutex != 0) {
             csound->LockMutex(lua_states_mutex);
-            for (std::vector<LuaStateForThread>::iterator it = luaStatesForThreads->begin(); it != luaStatesForThreads->end(); ++it) {
+            for (std::vector<LuaStateForThread>::iterator it =
+                   luaStatesForThreads->begin();
+                 it != luaStatesForThreads->end(); ++it) {
                 lua_close(it->L);
             }
             luaStatesForThreads->clear();

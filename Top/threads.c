@@ -33,12 +33,14 @@
 
 #include "csoundCore.h"
 
+#if 0
 static CS_NOINLINE void notImplementedWarning_(const char *name)
 {
 #ifndef __EMSCRIPTEN__
   fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
 #endif
 }
+#endif
 
 #if defined(HAVE_PTHREAD)
 
@@ -806,12 +808,11 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
-    
-  win_barrier_t *winb = (win_barrier_t*)barrier;
-  free(winb->cond);
-  csoundDestroyMutex(winb->mut);
-  free(winb);
-  return 0;
+    win_barrier_t *winb = (win_barrier_t*)barrier;
+    free(winb->cond);
+    csoundDestroyMutex(winb->mut);
+    free(winb);
+    return 0;
     // REPLACE ABOVE WITH FOLLOWING ONCE WINDOWS SUPPORT LIMITED to WIN 8.1+
     //DeleteSynchronizationBarrier(barrier);
     //return 0;
