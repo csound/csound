@@ -351,7 +351,7 @@ extern "C"
     PUBLIC int csoundModuleCreate_mixer(CSOUND *csound)
     {
         busses = new std::map<CSOUND *,
-                              std::map<size_t, std::vector< std::vector<MYFLT> > >>;
+                              std::map<size_t, std::vector< std::vector<MYFLT> > > >;
         matrix = new std::map<CSOUND *,
                               std::map<size_t, std::map<size_t, MYFLT> > >;
         return OK;
