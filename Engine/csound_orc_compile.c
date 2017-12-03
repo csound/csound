@@ -444,6 +444,17 @@ void addGlobalVariable(CSOUND *csound,
     }
 }
 
+void* find_or_add_constant(CSOUND* csound, CS_HASH_TABLE* constantsPool, const char* name, MYFLT value) {
+    void* retVal = cs_hash_table_get(csound, constantsPool, name);
+    if (retVal == NULL) {
+        CS_VAR_MEM *memValue = csound->Calloc(csound, sizeof(CS_VAR_MEM));
+        memValue->varType = (CS_TYPE*)&CS_VAR_TYPE_C;
+        memValue->value = value;
+        cs_hash_table_put(csound, constantsPool, name, memValue);
+        retVal = cs_hash_table_get(csound, constantsPool, name);
+    }
+    return retVal;
+}
 
 /**
  * NB - instr0 to be created only once, in the first compilation
@@ -476,7 +487,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     addGlobalVariable(csound, engineState, rType, "$kr", NULL);
     addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
 
-    myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
+    find_or_add_constant(csound, engineState->constantsPool, "0", 0.0);
 
     ip = (INSTRTXT *) csound->Calloc(csound, sizeof(INSTRTXT));
     ip->varPool = varPool;
@@ -526,7 +537,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                                         NULL);
           // systems constants get set here and are not
           // compiled into i-time code
-          myflt_pool_find_or_add(csound, csound->engineState.constantsPool, val);
+          find_or_add_constant(csound, csound->engineState.constantsPool,
+              (const char*) current->right->value->lexeme, val);
 
           /* modify otran defaults*/
           /* removed assignments to csound->tran_* */
@@ -721,7 +733,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     TREE *current;
 
     //csound->inZero = 1;
-    myflt_pool_find_or_add(csound, engineState->constantsPool, 0);
+    find_or_add_constant(csound, engineState->constantsPool, "0", 0);
 
     ip = (INSTRTXT *) csound->Calloc(csound, sizeof(INSTRTXT));
     ip->varPool = varPool;
@@ -1303,18 +1315,19 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     int i, end = engineState->maxinsno;
     ENGINE_STATE *current_state = &csound->engineState;
     INSTRTXT *current, *old_instr0;
-    int count;
+    int count = 0;
 
     //cs_hash_table_merge(csound,
     //                current_state->stringPool, engineState->stringPool);
 
-    for (count = 0; count < engineState->constantsPool->count; count++) {
+    cs_hash_table_merge(csound, current_state->constantsPool, engineState->constantsPool);
+   /* for (count = 0; count < engineState->constantsPool->count; count++) {
       if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound, Str(" merging constants %d) %f\n"),
                         count, engineState->constantsPool->values[count].value);
       myflt_pool_find_or_add(csound, current_state->constantsPool,
                              engineState->constantsPool->values[count].value);
-    }
+    }*/
 
     CS_VARIABLE* gVar = engineState->varPool->head;
     while (gVar != NULL) {
@@ -1422,7 +1435,8 @@ int engineState_free(CSOUND *csound, ENGINE_STATE *engineState)
 {
 
     csound->Free(csound, engineState->instrumentNames);
-    myflt_pool_free(csound, engineState->constantsPool);
+    cs_hash_table_free(csound, engineState->constantsPool);
+    //cs_hash_table_free(csound, engineState->stringPool);
     csoundFreeVarPool(csound, engineState->varPool);
     csound->Free(csound, engineState->instrtxtp);
     csound->Free(csound, engineState);
@@ -1519,7 +1533,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
       engineState->stringPool = csound->engineState.stringPool;
                                 //cs_hash_table_create(csound);
-      engineState->constantsPool = myflt_pool_create(csound);
+      engineState->constantsPool = cs_hash_table_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
       engineState->instrtxtp =
@@ -1936,7 +1950,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             switch (inArgs->type) {
               case ARG_CONSTANT:
 
-                *fp1++ = engineState->constantsPool->values[inArgs->index].value;
+                *fp1++ = ((CS_VAR_MEM*)inArgs->argPtr)->value;
                 break;
 
 //                      case ARG_LOCAL:
@@ -1991,7 +2005,9 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s,
     /* must trap 0dbfs as name starts with a digit! */
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
-      myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
+        if (cs_hash_table_get(csound, csound->engineState.constantsPool, s) == NULL) {
+            find_or_add_constant(csound, engineState->constantsPool, s, cs_strtod(s, NULL));
+        }
     } else if (c == '"') {
       temp = csound->Calloc(csound, strlen(s) + 1);
       //csound->Message(csound, "%c \n", s[1]);
@@ -2024,7 +2040,10 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
       arg->type = ARG_CONSTANT;
       //printf("create constant %p: %c \n", arg, c);
-      arg->index = myflt_pool_find_or_addc(csound, engineState->constantsPool, s);
+
+      if ((arg->argPtr = cs_hash_table_get(csound, csound->engineState.constantsPool, s)) != NULL) {
+        arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, s, cs_strtod(s, NULL));
+      }
     } else if (c == '"') {
       size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
       CS_VAR_MEM* varMem = csound->Calloc(csound, memSize);
@@ -2142,6 +2161,7 @@ void debugPrintCsound(CSOUND* csound)
 {
     INSTRTXT    *current;
     CONS_CELL* val = cs_hash_table_keys(csound, csound->engineState.stringPool);
+    CONS_CELL* const_val = cs_hash_table_values(csound, csound->engineState.constantsPool);
     int count = 0;
     csound->Message(csound, "Compile State:\n");
     csound->Message(csound, "String Pool:\n");
@@ -2150,12 +2170,13 @@ void debugPrintCsound(CSOUND* csound)
       csound->Message(csound, "    %d) %s\n", count++, (char *)val->value);
       val = val->next;
     }
+
     csound->Message(csound, "Constants Pool:\n");
-    count = 0;
-    for (count = 0; count < csound->engineState.constantsPool->count; count++) {
-      csound->Message(csound, "    %d) %f\n",
-                      count,
-                      csound->engineState.constantsPool->values[count].value);
+    while (const_val != NULL) {
+      CS_VAR_MEM* mem = (CS_VAR_MEM*)const_val->value;
+      csound->Message(csound, "  %d) %f\n", count++,
+                      mem->value);
+      const_val = const_val->next;
     }
 
     csound->Message(csound, "Global Variables:\n");
