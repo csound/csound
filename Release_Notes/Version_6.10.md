@@ -92,10 +92,10 @@ channels that **only** run at perf-time.
 - the --tempo (and -t) option now can be fractional; was previously
 limited to an integer.
 
-- new option: --udp-console=address:port   redirects console to a remote address:port
+- new option: --udp-console=address:port  redirects console to a remote address:port.
 
 - new option: --udp-mirror-console=address:port  mirrors the console
-to a remote address:port
+to a remote address:port.
 
 - new option: --udp-echo echoes messages sent to the UDP server
 
@@ -121,7 +121,7 @@ to a remote address:port
 
 - partials improved to remove a fencepost issue.
 
-- vco2ift fixed when an existing table is used
+- vco2ift fixed when an existing table is used.
 
 ### Utilities
 
@@ -138,7 +138,7 @@ to a remote address:port
 - Emscripten: Now compiled as WebAssembly (runs in all major browsers). API now
   somewhat more conformed to other HTML5 APIs.
 
-- CsoundQt: Now built with HTML5 support (only available in develop builds for now).
+- CsoundQt: Now built from master branch for improved stability.
 
 ### General Usage
 
@@ -202,7 +202,6 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 - For server use, three new API functions: csoundUDPServerStart,
   csoundUDPServerStatus and csoundUDPServerClose.
 
-
 ### Platform Specific
 
 - iOS
@@ -215,7 +214,7 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 
 - Windows
 
- - Now compiled with Microsoft Visual Studio 2015 or later.
+ - Now compiled with Microsoft Visual Studio 2017 or later.
 
  - Continuous integration for Windows with AppVeyor.
 
