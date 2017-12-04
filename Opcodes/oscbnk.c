@@ -1554,7 +1554,7 @@ static void vco2_calculate_table(CSOUND *csound,
 {
     MYFLT   scaleFac;
     MYFLT   *fftbuf;
-    int     i, minh;
+    int     i, minh;    
 
     /* allocate memory for FFT */
     fftbuf = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (table->size + 2));
