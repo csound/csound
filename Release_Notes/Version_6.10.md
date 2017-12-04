@@ -121,6 +121,8 @@ to a remote address:port
 
 - partials improved to remove a fencepost issue.
 
+- vco2ift fixed when an existing table is used
+
 ### Utilities
 
 -
