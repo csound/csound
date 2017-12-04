@@ -29,9 +29,11 @@
 inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
 
 //extern
-inline MYFLT lim1(MYFLT f) { return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0); }
+inline MYFLT lim1(MYFLT f)
+{ return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0); }
 
-inline MYFLT limx(MYFLT f, MYFLT v1, MYFLT v2) { return f > v1 ? (f < v2 ? f : v2) : v1; }
+inline MYFLT limx(MYFLT f, MYFLT v1, MYFLT v2)
+{ return f > v1 ? (f < v2 ? f : v2) : v1; }
 
 /** i-time, k-rate operator
     kout[] op kin[]
@@ -322,10 +324,14 @@ void csnd::on_load(Csound *csound) {
                                     csnd::thread::ik);
   csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
   csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::ik);
-  csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "k", "k[]", csnd::thread::ik);
-  csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "k", "k[]", csnd::thread::ik);
-  csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "i", "i[]", csnd::thread::i);
-  csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "i", "i[]", csnd::thread::i);
+  csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "k", "k[]",
+                                                csnd::thread::ik);
+  csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "k", "k[]",
+                                          csnd::thread::ik);
+  csnd::plugin<Accum<std::multiplies<MYFLT>,1>>(csound, "product", "i", "i[]",
+                                                csnd::thread::i);
+  csnd::plugin<Accum<std::plus<MYFLT>,0>>(csound, "sum", "i", "i[]",
+                                          csnd::thread::i);
   csnd::plugin<ArrayOp4<limx>>(csound, "limit", "i[]", "i[]ii",
                                    csnd::thread::i);
   csnd::plugin<ArrayOp4<limx>>(csound, "limit", "k[]", "k[]kk",
