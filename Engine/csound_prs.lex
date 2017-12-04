@@ -173,7 +173,7 @@ NM              [nm]
                          PARM->alt_stack =
                            (MACRON*)
                            csound->ReAlloc(csound, PARM->alt_stack,
-                                           sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                   sizeof(MACRON)*(PARM->macro_stack_size+=10));
                          if (UNLIKELY(PARM->alt_stack == NULL)) {
                            csound->Message(csound, Str("Memory exhausted"));
                            csound->LongJmp(csound, 1);
@@ -267,7 +267,8 @@ NM              [nm]
                          }
                          nn->body[i++] = c;
                          /* if (UNLIKELY(i >= size)) { */
-                         /*   nn->body = csound->ReAlloc(csound, nn->body, size += 100); */
+                         /*   nn->body = csound->ReAlloc(csound, nn->body, */
+                         /*   size += 100); */
                          /*   if (UNLIKELY(nn->body == NULL)) { */
                          /*     csound->Message(csound, Str("Memory exhausted")); */
                          /*     csound->LongJmp(csound, 1); */
@@ -287,7 +288,7 @@ NM              [nm]
                          PARM->alt_stack =
                            (MACRON*)
                            csound->ReAlloc(csound, PARM->alt_stack,
-                                           sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                   sizeof(MACRON)*(PARM->macro_stack_size+=10));
                          if (UNLIKELY(PARM->alt_stack == NULL)) {
                            csound->Message(csound, Str("Memory exhausted"));
                            csound->LongJmp(csound, 1);
@@ -296,7 +297,8 @@ NM              [nm]
                          /*        "macro_stack extends alt_stack to %d long\n", */
                          /*                  PARM->macro_stack_size); */
                        }
-                       PARM->alt_stack[PARM->macro_stack_ptr].n = PARM->macros->acnt;
+                       PARM->alt_stack[PARM->macro_stack_ptr].n =
+                         PARM->macros->acnt;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_prsget_lineno(yyscanner);
                        PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
@@ -304,9 +306,11 @@ NM              [nm]
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_prsget_lineno(yyscanner);
                        /* printf("stacked line = %llu at %d\n", */
-                       /*  csound_prsget_lineno(yyscanner), PARM->macro_stack_ptr-1); */
+                       /*  csound_prsget_lineno(yyscanner), */
+                       /*                       PARM->macro_stack_ptr-1); */
                        PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
-                       //csound->DebugMsg(csound,"Push %p macro stack\n",PARM->macros);
+                       //csound->DebugMsg(csound,"Push %p macro stack\n",
+                       //                 PARM->macros);
                        yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                        csound_prsset_lineno(1, yyscanner);
                        if (UNLIKELY(PARM->depth>1022)) {

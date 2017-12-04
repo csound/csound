@@ -24,7 +24,7 @@
 ;===========================================================
 
 
-gScoName = "/Users/matt/Desktop/schottstaedt.sco"     ; the name of the file to be generated
+gScoName = "schottstaedt.sco"     ; the name of the file to be generated
 
     sr    =    100     ; this defines our temporal resolution,
                 ; an sr of 100 means we will generate p2 and p3 values
