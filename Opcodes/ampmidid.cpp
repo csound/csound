@@ -86,7 +86,8 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
-      *kamplitude = dbfs * std::pow( (im * (*kvelocity + ib) ), MYFLT(2.0) ) * onedrms;
+      *kamplitude = dbfs * std::pow( (im * (*kvelocity + ib) ),
+                                     MYFLT(2.0) ) * onedrms;
       return OK;
   }
 };
@@ -131,7 +132,8 @@ public:
       if (*iuse0dbfs != FL(0.0)) {
           dbfs = csound->Get0dBFS(csound);
       }
-      *iamplitude = dbfs * std::pow( (im * (*ivelocity + ib) ), MYFLT(2.0) ) * onedrms;
+      *iamplitude = dbfs * std::pow( (im * (*ivelocity + ib) ),
+                                     MYFLT(2.0) ) * onedrms;
       return OK;
   }
   int noteoff(CSOUND *)
