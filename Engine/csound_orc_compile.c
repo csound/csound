@@ -444,7 +444,8 @@ void addGlobalVariable(CSOUND *csound,
     }
 }
 
-void* find_or_add_constant(CSOUND* csound, CS_HASH_TABLE* constantsPool, const char* name, MYFLT value) {
+void* find_or_add_constant(CSOUND* csound, CS_HASH_TABLE* constantsPool,
+                           const char* name, MYFLT value) {
     void* retVal = cs_hash_table_get(csound, constantsPool, name);
     if (retVal == NULL) {
         CS_VAR_MEM *memValue = csound->Calloc(csound, sizeof(CS_VAR_MEM));
@@ -1320,7 +1321,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     //cs_hash_table_merge(csound,
     //                current_state->stringPool, engineState->stringPool);
 
-    cs_hash_table_merge(csound, current_state->constantsPool, engineState->constantsPool);
+    cs_hash_table_merge(csound, current_state->constantsPool,
+                        engineState->constantsPool);
    /* for (count = 0; count < engineState->constantsPool->count; count++) {
       if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound, Str(" merging constants %d) %f\n"),
@@ -2005,8 +2007,10 @@ static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s,
     /* must trap 0dbfs as name starts with a digit! */
     if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
         (c == '0' && strcmp(s, "0dbfs") != 0)) {
-        if (cs_hash_table_get(csound, csound->engineState.constantsPool, s) == NULL) {
-            find_or_add_constant(csound, engineState->constantsPool, s, cs_strtod(s, NULL));
+        if (cs_hash_table_get(csound,
+                              csound->engineState.constantsPool, s) == NULL) {
+            find_or_add_constant(csound, engineState->constantsPool,
+                                 s, cs_strtod(s, NULL));
         }
     } else if (c == '"') {
       temp = csound->Calloc(csound, strlen(s) + 1);
@@ -2041,8 +2045,11 @@ static ARG* createArg(CSOUND *csound, INSTRTXT* ip,
       arg->type = ARG_CONSTANT;
       //printf("create constant %p: %c \n", arg, c);
 
-      if ((arg->argPtr = cs_hash_table_get(csound, csound->engineState.constantsPool, s)) != NULL) {
-        arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, s, cs_strtod(s, NULL));
+      if ((arg->argPtr =
+           cs_hash_table_get(csound,
+                             csound->engineState.constantsPool, s)) != NULL) {
+        arg->argPtr = find_or_add_constant(csound, engineState->constantsPool,
+                                           s, cs_strtod(s, NULL));
       }
     } else if (c == '"') {
       size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
@@ -2161,7 +2168,8 @@ void debugPrintCsound(CSOUND* csound)
 {
     INSTRTXT    *current;
     CONS_CELL* val = cs_hash_table_keys(csound, csound->engineState.stringPool);
-    CONS_CELL* const_val = cs_hash_table_values(csound, csound->engineState.constantsPool);
+    CONS_CELL* const_val = cs_hash_table_values(csound,
+                                                csound->engineState.constantsPool);
     int count = 0;
     csound->Message(csound, "Compile State:\n");
     csound->Message(csound, "String Pool:\n");
