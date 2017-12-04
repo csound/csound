@@ -513,6 +513,7 @@ put0:
  phsck2:
     /*VL increment for stereo */
     inc *= 2;
+    end *= 2;
     if (phs >= end && p->curmod != 3)
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
@@ -724,6 +725,7 @@ int loscil3(CSOUND *csound, LOSC *p)
  phsck2:
     /*VL increment for stereo */
     inc *= 2;
+    end *= 2;
     if (UNLIKELY(phs >= end && p->curmod != 3))
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
