@@ -164,7 +164,8 @@ PUBLIC void csoundSleep(size_t milliseconds)
 #define BARRIER_SERIAL_THREAD (-1)
 
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID) && !defined(NACL) && !defined(__CYGWIN__)
+#if !defined( __MACH__)&&!defined(__HAIKU__)&&!defined(ANDROID)&& \
+    !defined(NACL)&&!defined(__CYGWIN__)
 
 typedef struct barrier {
     pthread_mutex_t mut;
