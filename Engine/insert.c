@@ -41,22 +41,31 @@ void    beatexpire(CSOUND *, double);
 void    timexpire(CSOUND *, double);
 static  void    instance(CSOUND *, int);
 extern int argsRequired(char* argString);
+int insert(CSOUND *csound, int insno, EVTBLK *newevtp);
+
+static int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
+	     INSTRTXT  *tp, INSDS *ip);
 
 typedef struct _inst_ {
   CSOUND *csound;
   int insno;
+  EVTBLK *blk;
+  INSTRTXT  *tp;
   volatile unsigned char done;
 } INST_DATA;
 
 uintptr_t instance_thread(void *p) {
-  CSOUND *csound = ((INST_DATA *) p)->csound;
-  int insno = ((INST_DATA *) p)->insno;
-  instance(csound, insno);
+  INST_DATA inst;
+  EVTBLK evt;
+  memcpy(&inst, p, sizeof(INST_DATA));
+  memcpy(&evt, inst.blk, sizeof(EVTBLK)); 
 #if defined(HAVE_ATOMIC_BUILTIN)
   __atomic_add_fetch(&(((INST_DATA *) p)->done), 1, __ATOMIC_SEQ_CST);
 #else
-  ((INST_DATA *) p)->done = 1;
-#endif
+  ((INST_DATA *) p)->done++;
+#endif	 
+  instance(inst.csound, inst.insno);
+  activate(inst.csound, inst.insno, &evt, inst.tp, inst.tp->act_instance);
   return (uintptr_t) NULL;
 }
 
@@ -114,18 +123,18 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
     ip->relesing = 1;
     csound->engineState.instrtxtp[ip->insno]->pending_release++;
 }
-
+ 
 /* insert an instr copy into active list */
 /*      then run an init pass            */
 
 int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 {
     INSTRTXT  *tp;
-    INSDS     *ip, *prvp, *nxtp;
-    OPARMS    *O = csound->oparms;
-    CS_VAR_MEM *pfields = NULL;        /* *** was uninitialised *** */
-    int tie=0, i;
-    INST_DATA instance_data = { csound, 0, 0 };
+    INSDS     *ip;
+    OPARMS    *O = csound->oparms;    
+    int tie=0;
+    INST_DATA instance_data = { csound, insno, newevtp, 0 };
+
 
     if (UNLIKELY(csound->advanceCnt))
       return 0;
@@ -179,11 +188,12 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->tieflag++;
         ip->tieflag = 1;
         tie = 1;
-        goto init;                      /*     continue that event */
+        return activate(csound, insno, newevtp, tp, ip);  /*     continue that event */
       }
     }
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
+      
       if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
@@ -193,52 +203,29 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       }
       
       if(csound->oparms->realtime) {
-	instance_data.insno = insno;
+	instance_data.tp = tp;
 	csound->CreateThread(instance_thread, &instance_data);
+	tp->isNew=0;
 	int done = instance_data.done;
 	while(!done) done = instance_data.done;
+	return  0;
       }
       else instance(csound, insno);
       tp->isNew=0;
     }
+    return activate(csound, insno, newevtp, tp, tp->act_instance);
+}
 
-     /* pop from free instance chain */
-    if (UNLIKELY(csound->oparms->odebug))
-      csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
-    ip = tp->act_instance;
-    tp->act_instance = ip->nxtact;
-    ip->insno = (int16) insno;
-    ip->ksmps = csound->ksmps;
-    ip->ekr = csound->ekr;
-    ip->kcounter = csound->kcounter;
-    ip->onedksmps = csound->onedksmps;
-    ip->onedkr = csound->onedkr;
-    ip->kicvt = csound->kicvt;
-    ip->pds = NULL;
-    /* Add an active instrument */
-    tp->active++;
-    tp->instcnt++;
-    csound->dag_changed++;      /* Need to remake DAG */
-    //printf("**** dag changed by insert\n");
-    nxtp = &(csound->actanchor);    /* now splice into activ lst */
-    while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
-      if (nxtp->insno > insno ||
-          (nxtp->insno == insno && nxtp->p1.value > newevtp->p[1])) {
-        nxtp->prvact = ip;
-        break;
-      }
-    }
-    ip->nxtact = nxtp;
-    ip->prvact = prvp;
-    prvp->nxtact = ip;
-    ip->actflg++;                   /*    and mark the instr active */
+int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
+	     INSTRTXT  *tp, INSDS *ip) {
 
-
+    INSDS     *prvp, *nxtp;
+    OPARMS    *O = csound->oparms;
+    CS_VAR_MEM *pfields = NULL;       
+    int tie=0, i;
     {
       int    n;
       MYFLT  *flp, *fep;
-
-    init:
 
       pfields = (CS_VAR_MEM*)&ip->p0;
       if (tp->psetdata) {
@@ -293,6 +280,20 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         csound->Message(csound, "   ending at %p\n", (void*) flp);
     }
 
+    /* pop from free instance chain */
+    if (UNLIKELY(csound->oparms->odebug))
+      csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
+    //ip = tp->act_instance;
+    tp->act_instance = ip->nxtact;
+    ip->insno = (int16) insno;
+    ip->ksmps = csound->ksmps;
+    ip->ekr = csound->ekr;
+    ip->kcounter = csound->kcounter;
+    ip->onedksmps = csound->onedksmps;
+    ip->onedkr = csound->onedkr;
+    ip->kicvt = csound->kicvt;
+    ip->pds = NULL;
+    
 #ifdef HAVE_ATOMIC_BUILTIN
     __sync_lock_test_and_set((int*)&ip->init_done,1);
 #else
@@ -313,7 +314,24 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 #else
     ip->init_done = 0;
 #endif
-
+     /* Add an active instrument */
+    tp->active++;
+    tp->instcnt++;
+    csound->dag_changed++;      /* Need to remake DAG */
+    //printf("**** dag changed by insert\n");
+    nxtp = &(csound->actanchor);    /* now splice into activ lst */
+    while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
+      if (nxtp->insno > insno ||
+          (nxtp->insno == insno && nxtp->p1.value > newevtp->p[1])) {
+        nxtp->prvact = ip;
+        break;
+      }
+    }
+    ip->nxtact = nxtp;
+    ip->prvact = prvp;
+    prvp->nxtact = ip;
+    ip->actflg++;                   /*    and mark the instr active */
+    
     if (csound->realtime_audio_flag == 0) {
       csound->curip    = ip;
       csound->ids      = (OPDS *)ip;
