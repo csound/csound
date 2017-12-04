@@ -1556,6 +1556,11 @@ static void vco2_calculate_table(CSOUND *csound,
     MYFLT   *fftbuf;
     int     i, minh;
 
+    if(table->ftable == NULL) {
+      csound->InitError(csound, "function table is NULL, check that ibasfn is available\n");
+      return;
+    }
+
     /* allocate memory for FFT */
     fftbuf = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (table->size + 2));
     if (tp->waveform >= 0) {                        /* no DC offset for   */
