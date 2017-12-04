@@ -67,6 +67,8 @@ channels that **only** run at perf-time.
 
 - Attempts to use an undefined macro produce a syntax error now.
 
+- Missing " (or other terminator) in #include is noticed and the #include is ignored.
+
 ### Score
 
 - In a csd file commented-out tags were acted upon in some cases,
@@ -82,6 +84,8 @@ channels that **only** run at perf-time.
 - After calling a undefined macro the rest of the line is ignored.
 
 - A couple of bugs in repeated sections (r opcode) have been removed.
+
+- Missing " (or other terminator) in #include is noticed and the #include is ignored.
 
 ### Options
 
