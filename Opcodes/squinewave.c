@@ -104,7 +104,6 @@ int squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 
     // Skip setting phase only if we have been inited at least once
     p->init_phase = (*p->iphase < 0 && p->Min_Sweep > 1.0) ? 0 : 1;
-    
     p->Min_Sweep = *p->iminsweep;
 
     // Allow range 4-sr/100
@@ -315,7 +314,8 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                 warped_phase += fmin(phase_inc / sweep_length, Max_Warp);
                 if (warped_phase > 2.0) {
                   const double flat_length = 2.0 - (midpoint + sweep_length);
-                  const double phase_overshoot = (warped_phase - 2.0) * sweep_length;
+                  const double phase_overshoot =
+                    (warped_phase - 2.0) * sweep_length;
 
                   phase = 2.0 - flat_length + phase_overshoot - phase_inc;
 
@@ -323,8 +323,10 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
                     warped_phase = 2.0;
                   }
                   else {
-                    const double next_sweep_length = fmax(clip * midpoint, min_sweep);
-                    warped_phase = 2.0 + (phase_overshoot - flat_length) / next_sweep_length;
+                    const double next_sweep_length =
+                      fmax(clip * midpoint, min_sweep);
+                    warped_phase =
+                      2.0 + (phase_overshoot - flat_length) / next_sweep_length;
                   }
                 }
               }
