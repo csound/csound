@@ -63,9 +63,15 @@ uintptr_t new_alloc_thread(void *p) {
 #elif defined(HAVE_ATOMIC_BUILTIN)
     items = __atomic_load_n(&csound->alloc_queue_items, __ATOMIC_SEQ_CST);
 #else
-    csound->msg_queue_items = items;
+    items = csound->msg_queue_items;
 #endif
-    while(items) {
+    if(items == 0)
+      //#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
+      //usleep(10*wakeup);
+      //#else
+    csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
+    //#endif
+    else while(items) {
       tp = inst[rp].tp;
       if (tp->act_instance == NULL || tp->isNew){
 	if (UNLIKELY(csound->oparms->msglevel & RNGEMSG)) {
@@ -102,9 +108,6 @@ uintptr_t new_alloc_thread(void *p) {
       items--;
       rp = rp + 1 < MAX_ALLOC_QUEUE ? rp + 1 : 0;
     }
-    #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
-      usleep(10*wakeup);
-    #endif
   }
   return (uintptr_t) NULL;
 }
@@ -241,7 +244,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 #elif defined(HAVE_ATOMIC_BUILTIN)
       __atomic_add_fetch(&csound->alloc_queue_items, 1, __ATOMIC_SEQ_CST);
 #else
-      csound->alloc_queue_item += 1;
+      csound->alloc_queue_items += 1;
 #endif      
       return 0;
     } else if (tp->act_instance == NULL || tp->isNew) {
