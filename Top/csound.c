@@ -1444,7 +1444,9 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
             /* this is the last cycle of performance */
             insds->ksmps_no_end = insds->no_end;
           }
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+        done = InterlockedExchangeAdd(&insds->init_done, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
         done = __sync_fetch_and_add((int *) &insds->init_done, 0);
 #else
         done = insds->init_done;
@@ -1641,7 +1643,10 @@ int kperf_nodebug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-#ifdef HAVE_ATOMIC_BUILTIN
+
+#if defined(MSVC)
+        done = InterlockedExchangeAdd(&ip->init_done, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
           done = __sync_fetch_and_add((int *) &ip->init_done, 0);
 #else
           done = ip->init_done;
@@ -1895,7 +1900,9 @@ int kperf_debug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+        done = InterlockedExchangeAdd(&ip->init_done, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
           done = __sync_fetch_and_add((int *) &ip->init_done, 0);
 #else
           done = ip->init_done;
