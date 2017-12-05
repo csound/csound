@@ -351,7 +351,7 @@ if(BUILD_VST4CS_OPCODES)
         endif()
     endif()
     install(TARGETS vst4cs
-        LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
+        LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
 
@@ -387,9 +387,9 @@ if(BUILD_ABLETON_LINK_OPCODES)
     endif()
     target_include_directories(ableton_link_opcodes PRIVATE ${ABLETON_LINK_HOME}/include)
     target_include_directories(ableton_link_opcodes PRIVATE ${ABLETON_LINK_HOME}/modules/asio-standalone/asio/include)
-    #install(TARGETS ableton_link_opcodes
-    #    LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
-    #    ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
+    install(TARGETS ableton_link_opcodes
+        LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
 
 add_subdirectory(stk)
