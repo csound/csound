@@ -391,7 +391,7 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
 #if defined(MSVC)
     InterlockedExchange(&ip->init_done, 1);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-    _sync_lock_test_and_set((int*)&ip->init_done,1);
+    __sync_lock_test_and_set((int*)&ip->init_done,1);
 #else
 	ip->init_done = 1;
 #endif
