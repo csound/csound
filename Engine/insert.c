@@ -99,11 +99,9 @@ uintptr_t new_alloc_thread(void *p) {
       items--;
       rp = rp + 1 < MAX_ALLOC_QUEUE ? rp + 1 : 0;
     }
-#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
-    usleep(10*wakeup);
-#else
-    csoundSleep(((int)wakeup > 0) ? wakeup : 1);
-#endif
+    #if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
+      usleep(10*wakeup);
+    #endif
   }
   return (uintptr_t) NULL;
 }
@@ -396,7 +394,6 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
     xturnoff_now(csound, ip);
     return csound->inerrcnt;
   }
-
   /* new code for sample-accurate timing, not for tied notes */
   if (O->sampleAccurate && !tie) {
     int64_t start_time_samps, start_time_kcycles;
