@@ -161,6 +161,10 @@ to a remote address:port.
 
 - vbap was broken in all cases except 4-speakers, now corrected.
 
+- Live evalution of Csound Orchestra code code could result in hard to
+  diagnose, odd errors (e.g., crashes, division by zeros, NaNs). This was due
+  to a bug in merging of newly found constants into the global constant pool. 
+
 ## SYSTEM LEVEL CHANGES
 
 ### System Changes
