@@ -42,24 +42,6 @@ void    timexpire(CSOUND *, double);
 static  void    instance(CSOUND *, int);
 extern int argsRequired(char* argString);
 
-typedef struct _inst_ {
-  CSOUND *csound;
-  int insno;
-  volatile unsigned char done;
-} INST_DATA;
-
-uintptr_t instance_thread(void *p) {
-  CSOUND *csound = ((INST_DATA *) p)->csound;
-  int insno = ((INST_DATA *) p)->insno;
-  instance(csound, insno);
-#if defined(HAVE_ATOMIC_BUILTIN)
-  __atomic_add_fetch(&(((INST_DATA *) p)->done), 1, __ATOMIC_SEQ_CST);
-#else
-  ((INST_DATA *) p)->done = 1;
-#endif
-  return (uintptr_t) NULL;
-}
-
 int init0(CSOUND *csound)
 {
     INSTRTXT  *tp = csound->engineState.instrtxtp[0];
@@ -125,7 +107,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     OPARMS    *O = csound->oparms;
     CS_VAR_MEM *pfields = NULL;        /* *** was uninitialised *** */
     int tie=0, i;
-    INST_DATA instance_data = { csound, 0, 0 };
+    
 
     if (UNLIKELY(csound->advanceCnt))
       return 0;
@@ -191,14 +173,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         else
           csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
       }
-
-      if(csound->oparms->realtime) {
-        instance_data.insno = insno;
-        csound->CreateThread(instance_thread, &instance_data);
-        int done = instance_data.done;
-        while(!done) done = instance_data.done;
-      }
-      else instance(csound, insno);
+      instance(csound, insno);
       tp->isNew=0;
     }
 
