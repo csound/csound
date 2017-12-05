@@ -201,7 +201,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
         else
           csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
       }
-      
+
       if(csound->oparms->realtime) {
 	instance_data.tp = tp;
 	csound->CreateThread(instance_thread, &instance_data);
