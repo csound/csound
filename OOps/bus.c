@@ -672,7 +672,14 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
       print_chn_err_perf(p, err);
   }
 
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+    volatile union {
+    MYFLT d;
+    MYFLT_INT_TYPE i;
+    } x;
+    x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *) p->fp, 0);
+    *(p->arg) = x.d;
+#elif defined(HAVE_ATOMIC_BUILTIN)
     volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
@@ -734,7 +741,16 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+    {
+    union {
+        MYFLT d;
+        MYFLT_INT_TYPE i;
+    } x;
+    x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)p->fp, 0);
+    *(p->arg) = x.d;
+    }
+#elif defined(HAVE_ATOMIC_BUILTIN)
     {
     union {
     MYFLT d;
@@ -856,7 +872,14 @@ static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
       print_chn_err_perf(p, err);
   }
 
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+    volatile union {
+      MYFLT d;
+      MYFLT_INT_TYPE i;
+    } x;
+    x.d = *(p->arg);
+    InterlockedExchange64((MYFLT_INT_TYPE *) p->fp, x.i);
+#elif defined(HAVE_ATOMIC_BUILTIN)
     union {
       MYFLT d;
       MYFLT_INT_TYPE i;
@@ -942,7 +965,14 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
       return print_chn_err(p, err);
 
 
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+    volatile union {
+      MYFLT d;
+      MYFLT_INT_TYPE i;
+    } x;
+    x.d = *(p->arg);
+    InterlockedExchange64((MYFLT_INT_TYPE *) p->fp, x.i);
+#elif defined(HAVE_ATOMIC_BUILTIN)
     union {
       MYFLT d;
       MYFLT_INT_TYPE i;
