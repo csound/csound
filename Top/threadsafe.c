@@ -72,11 +72,12 @@ static long atomicGet_Incr_Mod(volatile long* val, long mod) {
   do {
     oldVal = *val;
     newVal = (oldVal + 1) % mod;
-#ifdef HAVE_ATOMIC_BUILTIN
+
+#if defined(MSVC)
+  } while (InterlockedCompareExchange(val, newVal, oldVal) != oldVal);
+#elif defined(HAVE_ATOMIC_BUILTIN)
   } while (!__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,
                                       __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST));
-#elif defined(MSVC)
-} while (InterlockedCompareExchange(val, newVal, oldVal) != oldVal);
 #else /* FIXME: no atomics, what to do? */
 } while ((*val = newVal) != newVal);
 #endif
@@ -111,7 +112,9 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args,
 
     /* block if queue is full */
     do {
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+      items = InterlockedExchangeAdd(&csound->msg_queue_items, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
       items = __atomic_load_n (&csound->msg_queue_items, __ATOMIC_SEQ_CST);
 #else
       items = csound->msg_queue_items;
@@ -534,7 +537,9 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
   if ((err_ = csoundGetChannelPtr(csound, &pval, name,
                                   CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL))
       == CSOUND_SUCCESS) {
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+    x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)pval, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
     x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *)pval, 0);
 #else
     x.d = *pval;
@@ -556,7 +561,10 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
   if (csoundGetChannelPtr(csound, &pval, name,
                           CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL)
       == CSOUND_SUCCESS)
-#ifdef HAVE_ATOMIC_BUILTIN
+
+#if defined(MSVC)
+    InterlockedExchange64((MYFLT_INT_TYPE *)pval, x.i);
+#elif defined(HAVE_ATOMIC_BUILTIN)
     __sync_lock_test_and_set((MYFLT_INT_TYPE *)pval,x.i);
 #else
   {
