@@ -79,7 +79,10 @@ uintptr_t new_alloc_thread(void *p) {
          instance(csound, inst[rp].insno);
       }
       ip = tp->act_instance;
-        #ifdef HAVE_ATOMIC_BUILTIN
+
+        #if defined(MSVC)
+            InterlockedExchange(&ip->init_done, 0);
+        #elif defined(HAVE_ATOMIC_BUILTIN)
            __sync_lock_test_and_set((int*)&ip->init_done,0);
         #else
            ip->init_done = 0;
@@ -256,7 +259,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
     tp->isNew=0;
   }
    ip = tp->act_instance; 
-  #ifdef HAVE_ATOMIC_BUILTIN
+
+#if defined(MSVC)
+  InterlockedExchange(&ip->init_done, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
   __sync_lock_test_and_set((int*)&ip->init_done,0);
 #else
   ip->init_done = 0;
@@ -381,8 +387,11 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
       (*csound->ids->iopadr)(csound, csound->ids);
     }
   csoundUnlockMutex(csound->init_pass_threadlock);
-#ifdef HAVE_ATOMIC_BUILTIN
-	__sync_lock_test_and_set((int*)&ip->init_done,1);
+
+#if defined(MSVC)
+    InterlockedExchange(&ip->init_done, 1);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    _sync_lock_test_and_set((int*)&ip->init_done,1);
 #else
 	ip->init_done = 1;
 #endif
@@ -401,7 +410,10 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
   if (O->sampleAccurate && !tie) {
     int64_t start_time_samps, start_time_kcycles;
     double duration_samps;
-#ifdef HAVE_ATOMIC_BUILTIN
+
+#if defined(MSVC)
+    int done = InterlockedExchangeAdd(&ip->init_done, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
     int done = __sync_fetch_and_add((int *) &ip->init_done, 0);
 #else
     int done = ip->init_done;
@@ -709,7 +721,10 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
       evt->p[i] = pfields[i].value;
     }
   }
-#ifdef HAVE_ATOMIC_BUILTIN
+
+#if defined(MSVC)
+    InterlockedExchange(&ip->init_done, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
   __sync_lock_test_and_set((int*)&ip->init_done,0);
 #else
   ip->init_done = 0;
