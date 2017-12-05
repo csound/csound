@@ -369,8 +369,8 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
   ip->prvact = prvp;
   prvp->nxtact = ip;
   ip->actflg++;                   /*    and mark the instr active */
-    
-  //if (csound->realtime_audio_flag == 0) {
+   
+  csoundLockMutex(csound->init_pass_threadlock);
     csound->curip    = ip;
     csound->ids      = (OPDS *)ip;
     /* do init pass for this instr */
@@ -380,15 +380,17 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
 			csound->ids->optext->t.oentry->opname);
       (*csound->ids->iopadr)(csound, csound->ids);
     }
+  csoundUnlockMutex(csound->init_pass_threadlock);
 #ifdef HAVE_ATOMIC_BUILTIN
 	__sync_lock_test_and_set((int*)&ip->init_done,1);
 #else
 	ip->init_done = 1;
 #endif
+    
     ip->tieflag  = 0;
     ip->reinitflag = 0;
     csound->tieflag = csound->reinitflag = 0;
-    //}
+ 
 
   if (UNLIKELY(csound->inerrcnt || ip->p3.value == FL(0.0))) {
     xturnoff_now(csound, ip);
@@ -2599,63 +2601,3 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
 
 
 
-/**
-   In realtime mode, this function takes care of the init pass in a
-   separate thread.
-   Any new instances will have their init-pass code executed here.
-   This thread is started by musmon() and killed by csoundCleanup()
-*/
-void *init_pass_thread(void *p){
-  CSOUND *csound = (CSOUND *) p;
-  INSDS *ip;
-  int done;
-  float wakeup = (1000*csound->ksmps/csound->esr);
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-
-  while (csound->init_pass_loop) {
-
-#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
-    usleep(10*wakeup);
-#else
-    csoundSleep(((int)wakeup > 0) ? wakeup : 1);
-#endif
-    ip = csound->actanchor.nxtact;
-    /* do init pass for this instr */
-    csoundLockMutex(csound->init_pass_threadlock);
-    while (ip != NULL){
-      INSDS *nxt = ip->nxtact;
-#ifdef HAVE_ATOMIC_BUILTIN
-      done = __sync_fetch_and_add((int *) &ip->init_done, 0);
-#else
-      done = ip->init_done;
-#endif
-      if (done == 0) {
-
-	csound->ids = (OPDS *) (ip->nxti);
-	csound->curip = ip;
-	while (csound->ids != NULL) {
-	  if (UNLIKELY(csound->oparms->odebug))
-	    csound->Message(csound, "init %s:\n",
-			    csound->ids->optext->t.oentry->opname);
-	  (*csound->ids->iopadr)(csound, csound->ids);
-	  csound->ids = csound->ids->nxti;
-	}
-	ip->tieflag = 0;
-#ifdef HAVE_ATOMIC_BUILTIN
-	__sync_lock_test_and_set((int*)&ip->init_done,1);
-#else
-	ip->init_done = 1;
-#endif
-	if (ip->reinitflag==1) {
-	  ip->reinitflag = 0;
-	}
-
-      }
-      ip = nxt;
-
-    }
-    csoundUnlockMutex(csound->init_pass_threadlock);
-  }
-
-  return NULL;
-}
