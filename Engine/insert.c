@@ -44,6 +44,8 @@ extern int argsRequired(char* argString);
 int insert(CSOUND *csound, int insno, EVTBLK *newevtp);
 static int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
 		    INSTRTXT  *tp, INSDS *ip);
+static int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn,
+		       MEVENT *mep);
 
 /*
   creates a thread to process instance allocations
@@ -68,6 +70,10 @@ uintptr_t new_alloc_thread(void *p) {
     if(items == 0)
       csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
     else while(items) {
+	if(inst[rp].isMidi) {
+	  insert_midi(csound, inst[rp].insno, &inst[rp].chn, &inst[rp].mep);
+	}	      
+	else {
 	tp = inst[rp].tp;
 	if (tp->act_instance == NULL || tp->isNew){
 	if (UNLIKELY(csound->oparms->msglevel & RNGEMSG)) {
@@ -81,7 +87,6 @@ uintptr_t new_alloc_thread(void *p) {
 	instance(csound, inst[rp].insno);
       }
 	ip = tp->act_instance;
-
 #if defined(MSVC)
 	InterlockedExchange(&ip->init_done, 0);
 #elif defined(HAVE_ATOMIC_BUILTIN)
@@ -91,8 +96,10 @@ uintptr_t new_alloc_thread(void *p) {
 #endif
 	activate(csound, inst[rp].insno,
 	     &inst[rp].blk,
-xc	     tp,
+	     tp,
 	     ip);
+
+	}
 	// decrement the value of items_to_alloc  
 #ifdef MSVC
 	InterlockedExchangeAdd(&csound->alloc_queue_items, -1);
@@ -106,7 +113,7 @@ xc	     tp,
       }
       }
 	return (uintptr_t) NULL;
-      }
+}
 
 	int init0(CSOUND *csound)
 	{
@@ -234,6 +241,7 @@ xc	     tp,
 	csound->alloc_queue[wp].insno = insno;
 	csound->alloc_queue[wp].tp = tp;
 	csound->alloc_queue[wp].blk = *newevtp;
+	csound->alloc_queue[wp].isMidi = 0;
 	csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
 #ifdef MSVC
 	InterlockedExchangeAdd(&csound->alloc_queue_items, 1);
@@ -502,8 +510,30 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
 
 /* insert a MIDI instr copy into active list */
 /*  then run an init pass                    */
+int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep) {
 
-int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
+  if(csound->oparms->realtime) {
+   	unsigned long wp = csound->alloc_queue_wp;
+	csound->alloc_queue[wp].insno = insno;
+	csound->alloc_queue[wp].tp = csound->engineState.instrtxtp[insno];
+	csound->alloc_queue[wp].chn = *chn;
+	csound->alloc_queue[wp].mep= *mep;
+	csound->alloc_queue[wp].isMidi = 1;
+	csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
+#ifdef MSVC
+	InterlockedExchangeAdd(&csound->alloc_queue_items, 1);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+	__atomic_add_fetch(&csound->alloc_queue_items, 1, __ATOMIC_SEQ_CST);
+#else
+	csound->alloc_queue_items += 1;
+#endif      
+	return 0;
+  }
+  else return insert_midi(csound, insno, chn, mep);
+
+}
+
+int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 {
   INSTRTXT  *tp;
   INSDS     *ip, **ipp, *prvp, *nxtp;
@@ -558,8 +588,6 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     tp->isNew = 0;
   }
   /* pop from free instance chain */
-  /* **** COVERITY: note that call to instance fills in structure to
-**** which tp points.  This is a false positive **** */
   ip = tp->act_instance;
   tp->act_instance = ip->nxtact;
   ip->insno = (int16) insno;
