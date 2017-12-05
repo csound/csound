@@ -53,6 +53,8 @@ uintptr_t new_alloc_thread(void *p) {
   ALLOC_DATA *inst = csound->alloc_queue;
   float wakeup = (1000*csound->ksmps/csound->esr);
   unsigned long rp = 0, items;
+      INSTRTXT *tp;
+    INSDS *ip;
   
   while(csound->init_pass_loop) {
     // get the value of items_to_alloc
@@ -63,13 +65,29 @@ uintptr_t new_alloc_thread(void *p) {
 #else
     csound->msg_queue_items = items;
 #endif
-    while(items) {  
-      instance(csound, inst[rp].insno);
-      inst[rp].tp->isNew = 0;
+    while(items) {
+      tp = inst[rp].tp;
+      if (tp->act_instance == NULL || tp->isNew){
+	if (UNLIKELY(csound->oparms->msglevel & RNGEMSG)) {
+      char *name = csound->engineState.instrtxtp[inst[rp].insno]->insname;
+      if (UNLIKELY(name))
+	csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+      else
+	csound->Message(csound, Str("new alloc for instr %d:\n"), inst[rp].insno);
+        }
+	 tp->isNew = 0;
+         instance(csound, inst[rp].insno);
+      }
+      ip = tp->act_instance;
+        #ifdef HAVE_ATOMIC_BUILTIN
+           __sync_lock_test_and_set((int*)&ip->init_done,0);
+        #else
+           ip->init_done = 0;
+        #endif
       activate(csound, inst[rp].insno,
 	       &inst[rp].blk,
-	       inst[rp].tp,
-	       inst[rp].tp->act_instance);
+	       tp,
+	       ip);
       // decrement the value of items_to_alloc  
 #ifdef MSVC
       InterlockedExchangeAdd(&csound->alloc_queue_items, -1);
@@ -210,17 +228,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       return activate(csound, insno, newevtp, tp, ip);  /*     continue that event */
     }
   }
-  /* alloc new dspace if needed */
-  if (tp->act_instance == NULL || tp->isNew) {    
-    if (UNLIKELY(O->msglevel & RNGEMSG)) {
-      char *name = csound->engineState.instrtxtp[insno]->insname;
-      if (UNLIKELY(name))
-	csound->Message(csound, Str("new alloc for instr %s:\n"), name);
-      else
-	csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
-    }
 
-    if(csound->oparms->realtime) {
+   if(csound->oparms->realtime) {
      unsigned long wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp].insno = insno;
     csound->alloc_queue[wp].tp = tp;
@@ -234,25 +243,29 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
       csound->alloc_queue_item += 1;
 #endif      
       return 0;
+    } else if (tp->act_instance == NULL || tp->isNew) {
+      /* alloc new dspace if needed */
+    if (UNLIKELY(O->msglevel & RNGEMSG)) {
+      char *name = csound->engineState.instrtxtp[insno]->insname;
+      if (UNLIKELY(name))
+	csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+      else
+	csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
     }
-    else instance(csound, insno);
+  instance(csound, insno);
     tp->isNew=0;
   }
-  return activate(csound, insno, newevtp, tp, tp->act_instance);
+   ip = tp->act_instance; 
+  #ifdef HAVE_ATOMIC_BUILTIN
+  __sync_lock_test_and_set((int*)&ip->init_done,0);
+#else
+  ip->init_done = 0;
+#endif
+  return activate(csound, insno, newevtp, tp, ip);
 }
 
 int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
 	     INSTRTXT  *tp, INSDS *ip) {
-
-  //if(ip == NULL) {
-  //csound->Warning(csound, "ip NULL \n");
-  //  return 0;
-  //}
-  #ifdef HAVE_ATOMIC_BUILTIN
-   __sync_lock_test_and_set((int*)&ip->init_done,1);
-  #else
-   ip->init_done = 1;
-  #endif
   
   INSDS     *prvp, *nxtp;
   OPARMS    *O = csound->oparms;
@@ -339,11 +352,6 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
   ip->nxtolap      = NULL;
   ip->opcod_iobufs = NULL;
   ip->strarg       = newevtp->strarg;  /* copy strarg so it does not get lost */
-#ifdef HAVE_ATOMIC_BUILTIN
-  __sync_lock_test_and_set((int*)&ip->init_done,0);
-#else
-  ip->init_done = 0;
-#endif
   /* Add an active instrument */
   tp->active++;
   tp->instcnt++;
@@ -362,7 +370,7 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
   prvp->nxtact = ip;
   ip->actflg++;                   /*    and mark the instr active */
     
-  if (csound->realtime_audio_flag == 0) {
+  //if (csound->realtime_audio_flag == 0) {
     csound->curip    = ip;
     csound->ids      = (OPDS *)ip;
     /* do init pass for this instr */
@@ -372,11 +380,15 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
 			csound->ids->optext->t.oentry->opname);
       (*csound->ids->iopadr)(csound, csound->ids);
     }
-    ip->init_done = 1;
+#ifdef HAVE_ATOMIC_BUILTIN
+	__sync_lock_test_and_set((int*)&ip->init_done,1);
+#else
+	ip->init_done = 1;
+#endif
     ip->tieflag  = 0;
     ip->reinitflag = 0;
     csound->tieflag = csound->reinitflag = 0;
-  }
+    //}
 
   if (UNLIKELY(csound->inerrcnt || ip->p3.value == FL(0.0))) {
     xturnoff_now(csound, ip);
@@ -1433,7 +1445,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 
   /* do init pass for this instr */
-  INSDS *pip = p->ip;
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
   
