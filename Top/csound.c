@@ -1901,7 +1901,7 @@ int kperf_debug(CSOUND *csound)
             ip->ksmps_no_end = ip->no_end;
           }
 #if defined(MSVC)
-        done = InterlockedExchangeAdd(&ip->init_done, 0);
+          done = InterlockedExchangeAdd(&ip->init_done, 0);
 #elif defined(HAVE_ATOMIC_BUILTIN)
           done = __sync_fetch_and_add((int *) &ip->init_done, 0);
 #else
