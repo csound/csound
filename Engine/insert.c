@@ -244,7 +244,15 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
 	     INSTRTXT  *tp, INSDS *ip) {
 
-  if(ip == NULL) return 0;
+  //if(ip == NULL) {
+  //csound->Warning(csound, "ip NULL \n");
+  //  return 0;
+  //}
+  #ifdef HAVE_ATOMIC_BUILTIN
+   __sync_lock_test_and_set((int*)&ip->init_done,1);
+  #else
+   ip->init_done = 1;
+  #endif
   
   INSDS     *prvp, *nxtp;
   OPARMS    *O = csound->oparms;
@@ -321,11 +329,6 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
   ip->kicvt = csound->kicvt;
   ip->pds = NULL;
     
-#ifdef HAVE_ATOMIC_BUILTIN
-  __sync_lock_test_and_set((int*)&ip->init_done,1);
-#else
-  ip->init_done = 1;
-#endif
   if (O->Beatmode)
     ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
   ip->offtim       = (double) ip->p3.value;         /* & duplicate p3 for now */
@@ -1225,13 +1228,11 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 		   (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
 
   /* do init pass for this instr */
-  csound->curip = p->ip;
   csound->ids = (OPDS *)p->ip;
   p->ip->init_done = 0;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     (*csound->ids->iopadr)(csound, csound->ids);
   }
-  p->ip->init_done = 1;
 
   /* copy length related parameters back to caller instr */
   saved_curip->xtratim = csound->curip->xtratim;
@@ -1433,7 +1434,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
   /* do init pass for this instr */
   INSDS *pip = p->ip;
-  pip->init_done = 0;
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
   
@@ -1441,13 +1441,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     (*csound->ids->iopadr)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
-  //if(pip) {
-#ifdef HAVE_ATOMIC_BUILTIN
-	__sync_lock_test_and_set((int*)&pip->init_done,1);
-#else
-	pip->init_done = 1;
-#endif
-	// }
   /* copy length related parameters back to caller instr */
   parent_ip->relesing = lcurip->relesing;
   parent_ip->offbet = lcurip->offbet;
