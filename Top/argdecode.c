@@ -1096,7 +1096,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       char *ports;
       s += 12;
       ports = strchr(s, ':');
-      if(s != NULL && ports != NULL) {
+      if(*s != '\0' && ports != NULL) {
         *ports = '\0';
         csoundUDPConsole(csound, s, atoi(ports+1),0);
       } else
@@ -1107,7 +1107,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       char *ports;
       s += 19;
       ports = strchr(s, ':');
-      if(s != NULL && ports != NULL) {
+      if(*s != '\0' && ports != NULL) {
         *ports = '\0';
         csoundUDPConsole(csound, s, atoi(ports+1),1);
       } else

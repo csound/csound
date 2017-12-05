@@ -67,6 +67,8 @@ channels that **only** run at perf-time.
 
 - Attempts to use an undefined macro produce a syntax error now.
 
+- Missing " (or other terminator) in #include is noticed and the #include is ignored.
+
 ### Score
 
 - In a csd file commented-out tags were acted upon in some cases,
@@ -83,15 +85,17 @@ channels that **only** run at perf-time.
 
 - A couple of bugs in repeated sections (r opcode) have been removed.
 
+- Missing " (or other terminator) in #include is noticed and the #include is ignored.
+
 ### Options
 
 - the --tempo (and -t) option now can be fractional; was previously
 limited to an integer.
 
-- new option: --udp-console=address:port   redirects console to a remote address:port
+- new option: --udp-console=address:port  redirects console to a remote address:port.
 
 - new option: --udp-mirror-console=address:port  mirrors the console
-to a remote address:port
+to a remote address:port.
 
 - new option: --udp-echo echoes messages sent to the UDP server
 
@@ -117,6 +121,8 @@ to a remote address:port
 
 - partials improved to remove a fencepost issue.
 
+- vco2ift fixed when an existing table is used.
+
 ### Utilities
 
 -
@@ -132,7 +138,7 @@ to a remote address:port
 - Emscripten: Now compiled as WebAssembly (runs in all major browsers). API now
   somewhat more conformed to other HTML5 APIs.
 
-- CsoundQt: Now built with HTML5 support (only available in develop builds for now).
+- CsoundQt: Now built from master branch for improved stability.
 
 ### General Usage
 
@@ -154,6 +160,10 @@ to a remote address:port
 - Various errors in the DSSI/ladspa system fixed.
 
 - vbap was broken in all cases except 4-speakers, now corrected.
+
+- Live evalution of Csound Orchestra code code could result in hard to
+  diagnose, odd errors (e.g., crashes, division by zeros, NaNs). This was due
+  to a bug in merging of newly found constants into the global constant pool. 
 
 ## SYSTEM LEVEL CHANGES
 
@@ -196,7 +206,6 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 - For server use, three new API functions: csoundUDPServerStart,
   csoundUDPServerStatus and csoundUDPServerClose.
 
-
 ### Platform Specific
 
 - iOS
@@ -209,7 +218,7 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 
 - Windows
 
- - Now compiled with Microsoft Visual Studio 2015 or later.
+ - Now compiled with Microsoft Visual Studio 2017 or later.
 
  - Continuous integration for Windows with AppVeyor.
 
