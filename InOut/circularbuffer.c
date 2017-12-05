@@ -83,7 +83,9 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items)
           rp = 0;
         }
       }
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
       __sync_lock_test_and_set(&((circular_buffer *)p)->rp,rp);
 #else
       ((circular_buffer *)p)->rp = rp;
@@ -131,7 +133,9 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
         rp++;
         if(rp == numelem) rp = 0;
     }
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
       __sync_lock_test_and_set(&((circular_buffer *)p)->rp,rp);
 #else
       ((circular_buffer *)p)->rp = rp;
@@ -157,7 +161,9 @@ int csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int items
                 ((char *) in) + (i * elemsize),  elemsize);
         if(wp == numelem) wp = 0;
     }
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->wp, wp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
       __sync_lock_test_and_set(&((circular_buffer *)p)->wp,wp);
 #else
       ((circular_buffer *)p)->wp = wp;
