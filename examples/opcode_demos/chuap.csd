@@ -8,7 +8,7 @@ ksmps           =           100
 nchnls          =           2
 0dbfs           =           10000
 
-gibuzztable     ftgen       1, 0, 16384, 10, 1
+gibuzztable     ftgen       1, 0, 65536, 10, 1
 
                 instr 1
                 ; sys_variables = system_vars(5:12); % L,R0,C2,G,Ga,Gb,E,C1 or p8:p15

@@ -90,7 +90,6 @@ uintptr_t new_alloc_thread(void *p) {
   return (uintptr_t) NULL;
 }
 
-    
 int init0(CSOUND *csound)
 {
   INSTRTXT  *tp = csound->engineState.instrtxtp[0];
@@ -245,6 +244,8 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
 	     INSTRTXT  *tp, INSDS *ip) {
 
+  if(ip == NULL) return 0;
+  
   INSDS     *prvp, *nxtp;
   OPARMS    *O = csound->oparms;
   CS_VAR_MEM *pfields = NULL;       
@@ -1431,14 +1432,22 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
 
 
   /* do init pass for this instr */
-  p->ip->init_done = 0;
+  INSDS *pip = p->ip;
+  pip->init_done = 0;
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
+  
   while (csound->ids != NULL) {
     (*csound->ids->iopadr)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
-  p->ip->init_done = 1;
+  //if(pip) {
+#ifdef HAVE_ATOMIC_BUILTIN
+	__sync_lock_test_and_set((int*)&pip->init_done,1);
+#else
+	pip->init_done = 1;
+#endif
+	// }
   /* copy length related parameters back to caller instr */
   parent_ip->relesing = lcurip->relesing;
   parent_ip->offbet = lcurip->offbet;

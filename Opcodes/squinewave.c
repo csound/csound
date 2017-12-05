@@ -59,7 +59,7 @@ static inline int32_t find_sync(const MYFLT* sync_sig, const uint32_t first,
     uint32_t i;
     if (sync_sig == 0)
         return -1;
-    
+
     for (i = first; i < last; ++i) {
         if (sync_sig[i] >= (MYFLT)1)
             return i;
