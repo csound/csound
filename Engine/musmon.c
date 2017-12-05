@@ -353,11 +353,10 @@ int musmon(CSOUND *csound)
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
-
+     csound->init_pass_threadlock = csoundCreateMutex(0);
 #ifndef __EMSCRIPTEN__
     if (csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *new_alloc_thread(void *);
-      csound->init_pass_threadlock = csoundCreateMutex(0);
       csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 1;
       csoundUnlockMutex(csound->init_pass_threadlock);
