@@ -378,6 +378,7 @@ int activate(CSOUND *csound, int insno, EVTBLK *newevtp,
   ip->actflg++;                   /*    and mark the instr active */
    
   csoundLockMutex(csound->init_pass_threadlock);
+    csound->currevent = newevtp;
     csound->curip    = ip;
     csound->ids      = (OPDS *)ip;
     /* do init pass for this instr */
