@@ -960,6 +960,15 @@ typedef struct NAME__ {
   } MODULE_INFO;
 
 
+#define MAX_ALLOC_QUEUE 1024
+  typedef struct _alloc_data_ {
+  int insno;
+  EVTBLK blk;
+  INSTRTXT  *tp;
+} ALLOC_DATA;
+
+
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1763,8 +1772,12 @@ typedef struct NAME__ {
     volatile long msg_queue_wget; /* Writer - Get index */
     volatile long msg_queue_wput; /* Writer - Put Index */
     volatile long msg_queue_rstart; /* Reader - start index */
-    volatile long msg_queue_items;
+    volatile long msg_queue_items;    
     void     *directory;
+    ALLOC_DATA *alloc_queue;
+    volatile unsigned long alloc_queue_items;
+    unsigned long alloc_queue_wp;
+    void *new_alloc_thread;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
