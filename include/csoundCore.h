@@ -963,8 +963,11 @@ typedef struct NAME__ {
 #define MAX_ALLOC_QUEUE 1024
   typedef struct _alloc_data_ {
   int insno;
+  int isMidi;
   EVTBLK blk;
-  INSTRTXT  *tp;
+  MCHNBLK chn;
+  MEVENT mep;
+  INSTRTXT  *tp; 
 } ALLOC_DATA;
 
 
