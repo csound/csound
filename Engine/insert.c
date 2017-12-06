@@ -66,13 +66,12 @@ uintptr_t new_alloc_thread(void *p) {
     items = __atomic_load_n(&csound->alloc_queue_items, __ATOMIC_SEQ_CST);
 #else
     items = csound->msg_queue_items;
-    #error NO ATOMICS!!!
 #endif
     if(items == 0)
       csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
     else while(items) {
 	if(inst[rp].isMidi) {
-	  insert_midi(csound, inst[rp].insno, &inst[rp].chn, &inst[rp].mep);
+	  insert_midi(csound, inst[rp].insno, inst[rp].chn, &inst[rp].mep);
 	}	      
 	else {	  
 	  tp = inst[rp].tp;
@@ -514,8 +513,8 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep) {
     unsigned long wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp].insno = insno;
     csound->alloc_queue[wp].tp = csound->engineState.instrtxtp[insno];
-    csound->alloc_queue[wp].chn = *chn;
-    csound->alloc_queue[wp].mep= *mep;
+    csound->alloc_queue[wp].chn = chn;
+    csound->alloc_queue[wp].mep = *mep;
     csound->alloc_queue[wp].isMidi = 1;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
 #ifdef MSVC
@@ -754,7 +753,9 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ip->init_done = 0;
 #endif
   csound->curip    = ip;
-  if (csound->realtime_audio_flag == 0) {
+  csoundLockMutex(csound->init_pass_threadlock);
+  //if (csound->realtime_audio_flag == 0) {
+  //csound->Message(csound, "init-pass for instr %d \n", insno);
     csound->ids      = (OPDS *)ip;
     /* do init pass for this instr  */
     while ((csound->ids = csound->ids->nxti) != NULL) {
@@ -766,8 +767,8 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     ip->init_done = 1;
     ip->tieflag = ip->reinitflag = 0;
     csound->tieflag = csound->reinitflag = 0;
-  }
-
+  //}
+    csoundUnlockMutex(csound->init_pass_threadlock);
   if (UNLIKELY(csound->inerrcnt)) {
     xturnoff_now(csound, ip);
     return csound->inerrcnt;
@@ -917,7 +918,7 @@ int kill_instance(CSOUND *csound, KILLOP *p) {
 void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
 {                                         /* called by inexclus on ctrl 111 */
   MCHNBLK *chn;
-
+  
   if (UNLIKELY(ip->relesing))
     return;                             /* already releasing: nothing to do */
 
