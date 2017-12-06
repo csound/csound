@@ -16,20 +16,20 @@ To build and install the VST features on Linux:
 ```
 #elif defined(__GNUC__)
 ```
-
 to 
-
 ```
 #elif defined(__MINGW32__)
 ```
 
-4. Now you can build Csound with the VST features included. In your Csound build directory:
+4. Do a fresh pull from the Csound GitHub repository.
 
- 1. Configure CMake to build Csound with the VST features. Delete your `CMakeCache.txt` file. On the cmake command line, add: `-DVSTSDK2X_INCLUDE_DIR:PATH=~/VST_SDK/VST2_SDK -DBUILD_CSOUND_VST=1 -DBUILD_VST4CS_OPCODES=1`. You can also configure this using cmake-gui.  Run cmake to regenerate your makefiles.
+5. Now you can build Csound with the VST features included. In your Csound build directory:
 
- 2. Run `make`.
+   1. Configure CMake to build Csound with the VST features. Delete your `CMakeCache.txt` file. On the cmake command line, add: `-DVSTSDK2X_INCLUDE_DIR:PATH=~/VST_SDK/VST2_SDK -DBUILD_CSOUND_VST=1 -DBUILD_VST4CS_OPCODES=1`. You can also configure this using cmake-gui.  Run cmake to regenerate your makefiles.
 
- 3. Run `sudo make install.`
+   2. Run `make`.
+
+   3. Run `sudo make install.`
 
 
 
