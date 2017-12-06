@@ -57,7 +57,7 @@ uintptr_t new_alloc_thread(void *p) {
   unsigned long rp = 0, items;
   INSTRTXT *tp;
   INSDS *ip;
-  
+
   while(csound->init_pass_loop) {
     // get the value of items_to_alloc
 #ifdef MSVC
@@ -73,7 +73,7 @@ uintptr_t new_alloc_thread(void *p) {
 	if(inst[rp].isMidi) {
 	  insert_midi(csound, inst[rp].insno, &inst[rp].chn, &inst[rp].mep);
 	}	      
-	else {
+	else {	  
 	  tp = inst[rp].tp;
 	  if (tp->act_instance == NULL || tp->isNew){
 	  if (UNLIKELY(csound->oparms->msglevel & RNGEMSG)) {
@@ -176,7 +176,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
   INSDS     *ip;
   OPARMS    *O = csound->oparms;    
   int tie=0;
-
+  
   if (UNLIKELY(csound->advanceCnt))
     return 0;
   if (UNLIKELY(O->odebug)) {
