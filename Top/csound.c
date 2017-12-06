@@ -2057,12 +2057,12 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       if (UNLIKELY((returnValue = setjmp(csound->exitjmp))))
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    if(csound->oparms->realtime) // no API lock in realtime mode
+    if(!csound->oparms->realtime) // no API lock in realtime mode
       csoundLockMutex(csound->API_lock);
     do {
       done = sensevents(csound);
       if (UNLIKELY(done)) {
-	if(csound->oparms->realtime) // no API lock in realtime mode
+	if(!csound->oparms->realtime) // no API lock in realtime mode
          csoundUnlockMutex(csound->API_lock);
         csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
@@ -2070,7 +2070,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
         return done;
       }
     } while (csound->kperf(csound));
-    if(csound->oparms->realtime) // no API lock in realtime mode
+    if(!csound->oparms->realtime) // no API lock in realtime mode
        csoundUnlockMutex(csound->API_lock);
     return 0;
 }
@@ -2125,16 +2125,16 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     }
     csound->sampsNeeded += csound->oparms_.outbufsamps;
     while (csound->sampsNeeded > 0) {
-     if(csound->oparms->realtime) // no API lock in realtime mode
+     if(!csound->oparms->realtime) // no API lock in realtime mode
       csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))){
-	  if(csound->oparms->realtime) // no API lock in realtime mode
+	  if(!csound->oparms->realtime) // no API lock in realtime mode
             csoundUnlockMutex(csound->API_lock);
           return done;
         }
       } while (csound->kperf(csound));
-      if(csound->oparms->realtime) // no API lock in realtime mode
+      if(!csound->oparms->realtime) // no API lock in realtime mode
        csoundUnlockMutex(csound->API_lock);
       csound->sampsNeeded -= csound->nspout;
     }
@@ -2165,10 +2165,12 @@ PUBLIC int csoundPerform(CSOUND *csound)
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     do {
+        if(!csound->oparms->realtime)
            csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
+	  if(!csound->oparms->realtime)
           csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
             csound->multiThreadedComplete = 1;
@@ -2177,6 +2179,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
           return done;
         }
       } while (csound->kperf(csound));
+      if(!csound->oparms->realtime)
       csoundUnlockMutex(csound->API_lock);
     } while ((unsigned char) csound->performState == (unsigned char) '\0');
     csoundMessage(csound, Str("csoundPerform(): stopped.\n"));
