@@ -357,14 +357,16 @@ int musmon(CSOUND *csound)
 #ifndef __EMSCRIPTEN__
     if (csound->realtime_audio_flag && csound->init_pass_loop == 0){
       extern void *new_alloc_thread(void *);
-      csoundLockMutex(csound->init_pass_threadlock);
+      //csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 1;
-      csoundUnlockMutex(csound->init_pass_threadlock);
+      //csoundUnlockMutex(csound->init_pass_threadlock);
       csound->alloc_queue = (ALLOC_DATA *)
 	csound->Calloc(csound, sizeof(ALLOC_DATA)*MAX_ALLOC_QUEUE);
       csound->new_alloc_thread = csound->CreateThread(
           (uintptr_t (*)(void*)) new_alloc_thread,
           (void*)csound);
+      csound->Message(csound, "Starting realtime mode queue: %p thread: %p\n",
+		      csound->alloc_queue, csound->new_alloc_thread );
     }
 #endif
 
@@ -442,12 +444,12 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 
 #ifndef __EMSCRIPTEN__
     if (csound->init_pass_loop == 1) {
-      csoundLockMutex(csound->init_pass_threadlock);
+      //csoundLockMutex(csound->init_pass_threadlock);
       csound->init_pass_loop = 0;
-      csoundUnlockMutex(csound->init_pass_threadlock);
+      //csoundUnlockMutex(csound->init_pass_threadlock);
       csound->JoinThread(csound->new_alloc_thread);
       csoundDestroyMutex(csound->init_pass_threadlock);
-      csound->init_pass_threadlock = 0;
+      csound->new_alloc_thread = 0;
     }
 #endif
 
@@ -829,6 +831,7 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
       }
     }
     else {                                          /* else midi note OFF:    */
+      
       INSDS *ip = chn->kinsptr[mep->dat1];
       if (ip == NULL)                               /*  if already off, done  */
         csound->Mxtroffs++;
