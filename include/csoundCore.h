@@ -967,7 +967,6 @@ typedef struct NAME__ {
   EVTBLK blk;
   MCHNBLK *chn;
   MEVENT mep;
-  INSTRTXT  *tp; 
 } ALLOC_DATA;
 
 
@@ -1549,8 +1548,8 @@ typedef struct NAME__ {
     int          file_io_start;
     void         *file_io_threadlock;
     int          realtime_audio_flag;
-    void         *init_pass_thread;
-    int          init_pass_loop;
+    void         *event_insert_thread;
+    int          event_insert_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
     #if defined(HAVE_PTHREAD_SPIN_LOCK)
@@ -1780,7 +1779,6 @@ typedef struct NAME__ {
     ALLOC_DATA *alloc_queue;
     volatile unsigned long alloc_queue_items;
     unsigned long alloc_queue_wp;
-    void *new_alloc_thread;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
