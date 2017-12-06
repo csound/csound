@@ -235,6 +235,10 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 
   if(csound->oparms->realtime) {
     unsigned long wp = csound->alloc_queue_wp;
+    if(csound->alloc_queue == NULL) {
+      csound->Warning(csound, "realtime queue not allocated, cannot process event\n");
+      return 0;
+    }
     csound->alloc_queue[wp].insno = insno;
     csound->alloc_queue[wp].tp = tp;
     csound->alloc_queue[wp].blk = *newevtp;
@@ -754,7 +758,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 #endif
   csound->curip    = ip;
   csoundLockMutex(csound->init_pass_threadlock);
-  //if (csound->realtime_audio_flag == 0) {
+  //if (csound->oparms->realtime == 0) {
   //csound->Message(csound, "init-pass for instr %d \n", insno);
     csound->ids      = (OPDS *)ip;
     /* do init pass for this instr  */
