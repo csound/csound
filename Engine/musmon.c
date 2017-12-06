@@ -910,7 +910,7 @@ int sensevents(CSOUND *csound)
     EVTBLK  *e;
     OPARMS  *O = csound->oparms;
     int     retval, sensType;
-    int     conn, *sinp;
+    int     conn, *sinp, end_check=1;
 
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
@@ -1138,6 +1138,12 @@ int sensevents(CSOUND *csound)
       csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
       goto retest;                            /*   & back for more */
     }
+    
+    if(csound->oparms->realtime && end_check) {
+      csoundSleep(5); // wait for 5ms for any first events to go through
+      end_check = 0;  // reset first time check 
+      goto retest;    // loop back
+     }
     return 2;                   /* done with entire score */
 }
 
