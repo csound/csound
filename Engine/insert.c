@@ -349,7 +349,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->nxtolap      = NULL;
     ip->opcod_iobufs = NULL;
     ip->strarg       = newevtp->strarg;  /* copy strarg so it does not get lost */
-
+    if(csound->oparms->realtime)
   csoundLockMutex(csound->init_pass_threadlock);
   // current event needs to be reset here
   csound->currevent = newevtp;
@@ -362,6 +362,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
 		      csound->ids->optext->t.oentry->opname);
     (*csound->ids->iopadr)(csound, csound->ids);
   }
+  if(csound->oparms->realtime)
   csoundUnlockMutex(csound->init_pass_threadlock);
 
 #if defined(MSVC)
@@ -712,6 +713,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
   }
 
+  if(csound->oparms->realtime)
   csoundLockMutex(csound->init_pass_threadlock);
   csound->curip    = ip;
   csound->ids      = (OPDS *)ip;
@@ -731,6 +733,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 #endif
     ip->tieflag = ip->reinitflag = 0;
     csound->tieflag = csound->reinitflag = 0;
+    if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
 
     
