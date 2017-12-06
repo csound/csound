@@ -413,7 +413,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
     memset(p->buf, 0, n*sizeof(MYFLT));
 
     // create circular buffer, on fail set mode to synchronous
-    if (csound->realtime_audio_flag==1 && p->fforceSync==0 &&
+    if (csound->oparms->realtime==1 && p->fforceSync==0 &&
         (p->cb = csound->CreateCircularBuffer(csound,
                                               p->bufSize*p->nChannels*2,
                                               sizeof(MYFLT))) != NULL){
@@ -1675,7 +1675,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
     memset(p->buf, 0, n*sizeof(MYFLT));
 
     // create circular buffer, on fail set mode to synchronous
-    if (csound->realtime_audio_flag==1 && p->fforceSync==0 &&
+    if (csound->oparms->realtime==1 && p->fforceSync==0 &&
         (p->cb = csound->CreateCircularBuffer(csound,
                                               p->bufSize*p->nChannels*2,
                                               sizeof(MYFLT))) != NULL){
@@ -2052,7 +2052,7 @@ static void soundin_read_buffer(CSOUND *csound, SOUNDIN_ *p, int bufReadPos)
         nsmps = (lsmps < (int_least64_t) p->bufSize ? (int) lsmps : p->bufSize);
         /* convert sample count to mono samples and read file */
         nsmps *= (int) p->nChannels;
-        if (csound->realtime_audio_flag==0){
+        if (csound->oparms->realtime==0){
           sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
           i = (int) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
         }
@@ -2137,7 +2137,7 @@ static int sndinset_(CSOUND *csound, SOUNDIN_ *p, int stringname)
     }
     else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
-    if (csound->realtime_audio_flag==0)
+    if (csound->oparms->realtime==0)
       fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     else
@@ -2197,7 +2197,7 @@ static int sndinset_(CSOUND *csound, SOUNDIN_ *p, int stringname)
     else
       p->bufStartPos = -((int_least64_t) p->bufSize);
     /* done initialisation */
-    if (csound->realtime_audio_flag) {
+    if (csound->oparms->realtime) {
       csound->FSeekAsync(csound,p->fdch.fd, p->read_pos, SEEK_SET);
       // csound->Message(csound, "using async code \n");
     }

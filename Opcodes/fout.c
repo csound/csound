@@ -183,7 +183,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
       if (fileType == CSFILE_SND_W) {
         do_scale = ((SF_INFO*) fileParams)->format;
         csFileType = csound->sftype2csfiletype(do_scale);
-        if (csound->realtime_audio_flag == 0 || forceSync == 1) {
+        if (csound->oparms->realtime == 0 || forceSync == 1) {
           fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
                                 "SFDIR", csFileType, 0);
           p->async = 0;
@@ -198,7 +198,7 @@ static CS_NOINLINE int fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
         p->nchnls = ((SF_INFO*) fileParams)->channels;
       }
       else {
-        if (csound->realtime_audio_flag == 0 || forceSync == 1) {
+        if (csound->oparms->realtime == 0 || forceSync == 1) {
           fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
                                  "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
           p->async = 0;
