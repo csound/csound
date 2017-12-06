@@ -66,6 +66,7 @@ uintptr_t new_alloc_thread(void *p) {
     items = __atomic_load_n(&csound->alloc_queue_items, __ATOMIC_SEQ_CST);
 #else
     items = csound->msg_queue_items;
+    #error NO ATOMICS!!!
 #endif
     if(items == 0)
       csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
