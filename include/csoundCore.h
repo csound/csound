@@ -965,7 +965,7 @@ typedef struct NAME__ {
   int insno;
   int isMidi;
   EVTBLK blk;
-  MCHNBLK chn;
+  MCHNBLK *chn;
   MEVENT mep;
   INSTRTXT  *tp; 
 } ALLOC_DATA;
