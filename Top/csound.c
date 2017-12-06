@@ -2057,18 +2057,21 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       if (UNLIKELY((returnValue = setjmp(csound->exitjmp))))
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    csoundLockMutex(csound->API_lock);
+    if(csound->oparms->realtime) // no API lock in realtime mode
+      csoundLockMutex(csound->API_lock);
     do {
       done = sensevents(csound);
       if (UNLIKELY(done)) {
-        csoundUnlockMutex(csound->API_lock);
+	if(csound->oparms->realtime) // no API lock in realtime mode
+         csoundUnlockMutex(csound->API_lock);
         csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
                       done);
         return done;
       }
     } while (csound->kperf(csound));
-    csoundUnlockMutex(csound->API_lock);
+    if(csound->oparms->realtime) // no API lock in realtime mode
+       csoundUnlockMutex(csound->API_lock);
     return 0;
 }
 
@@ -2122,14 +2125,17 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     }
     csound->sampsNeeded += csound->oparms_.outbufsamps;
     while (csound->sampsNeeded > 0) {
+     if(csound->oparms->realtime) // no API lock in realtime mode
       csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))){
-          csoundUnlockMutex(csound->API_lock);
+	  if(csound->oparms->realtime) // no API lock in realtime mode
+            csoundUnlockMutex(csound->API_lock);
           return done;
         }
       } while (csound->kperf(csound));
-      csoundUnlockMutex(csound->API_lock);
+      if(csound->oparms->realtime) // no API lock in realtime mode
+       csoundUnlockMutex(csound->API_lock);
       csound->sampsNeeded -= csound->nspout;
     }
     return 0;
