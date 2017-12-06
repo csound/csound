@@ -2631,10 +2631,10 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
     return CSOUND_ERROR;
   }
 
-  if (async) {
-    csoundLockMutex(csound->API_lock);
+  if (!async) {
+     csoundLockMutex(csound->API_lock);
     killInstance(csound, instr, insno, ip, mode, allow_release);
-    csoundUnlockMutex(csound->API_lock);
+     csoundUnlockMutex(csound->API_lock);
   }
   else
     killInstance_enqueue(csound, instr, insno, ip, mode, allow_release);
