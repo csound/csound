@@ -16,9 +16,7 @@ To build and install the VST features on Linux:
 ```
 #elif defined(__GNUC__)
 ```
-
-    to 
-
+to 
 ```
 #elif defined(__MINGW32__)
 ```
