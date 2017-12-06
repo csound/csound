@@ -911,8 +911,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* directory for corfiles */
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
-    0,              /* alloc_queue_wp */
-    NULL             /* new_alloc_thread */
+    0               /* alloc_queue_wp */
     /*, NULL */           /* self-reference */
 };
 

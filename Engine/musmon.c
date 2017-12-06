@@ -353,20 +353,19 @@ int musmon(CSOUND *csound)
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
-     csound->init_pass_threadlock = csoundCreateMutex(0);
+     
 #ifndef __EMSCRIPTEN__
-    if (csound->oparms->realtime && csound->init_pass_loop == 0){
-      extern void *new_alloc_thread(void *);
-      //csoundLockMutex(csound->init_pass_threadlock);
-      csound->init_pass_loop = 1;
-      //csoundUnlockMutex(csound->init_pass_threadlock);
+    if (csound->oparms->realtime && csound->event_insert_loop == 0){
+      extern void *event_insert_thread(void *);
+      csound->init_pass_threadlock = csoundCreateMutex(0);
+      csound->event_insert_loop = 1;
       csound->alloc_queue = (ALLOC_DATA *)
 	csound->Calloc(csound, sizeof(ALLOC_DATA)*MAX_ALLOC_QUEUE);
-      csound->new_alloc_thread = csound->CreateThread(
-          (uintptr_t (*)(void*)) new_alloc_thread,
+      csound->event_insert_thread = csound->CreateThread(
+          (uintptr_t (*)(void*)) event_insert_thread,
           (void*)csound);
       csound->Message(csound, "Starting realtime mode queue: %p thread: %p\n",
-		      csound->alloc_queue, csound->new_alloc_thread );
+		      csound->alloc_queue, csound->event_insert_thread );
     }
 #endif
 
@@ -443,13 +442,11 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     delete_pending_rt_events(csound);
 
 #ifndef __EMSCRIPTEN__
-    if (csound->init_pass_loop == 1) {
-      //csoundLockMutex(csound->init_pass_threadlock);
-      csound->init_pass_loop = 0;
-      //csoundUnlockMutex(csound->init_pass_threadlock);
-      csound->JoinThread(csound->new_alloc_thread);
+    if (csound->event_insert_loop == 1) {
+      csound->event_insert_loop = 0;
+      csound->JoinThread(csound->event_insert_thread);
       csoundDestroyMutex(csound->init_pass_threadlock);
-      csound->new_alloc_thread = 0;
+      csound->event_insert_thread = 0;
     }
 #endif
 
