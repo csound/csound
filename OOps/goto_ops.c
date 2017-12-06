@@ -122,7 +122,7 @@ int reinit(CSOUND *csound, GOTO *p)
     csound->reinitflag = p->h.insdshead->reinitflag = 1;
     csound->curip = p->h.insdshead;
     csound->ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
-    if (csound->realtime_audio_flag == 0) {
+    if (csound->oparms->realtime == 0) {
       while ((csound->ids = csound->ids->nxti) != NULL &&
              (csound->ids->iopadr != (SUBR) rireturn))
         (*csound->ids->iopadr)(csound, csound->ids);

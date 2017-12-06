@@ -237,7 +237,7 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
                              Str("pvsfwrite: could not open file %s\n"),
                              fname);
 #ifndef __EMSCRIPTEN__
-  if (csound->realtime_audio_flag) {
+  if (csound->oparms->realtime) {
     int bufframes = 16;
     p->csound = csound;
     if (p->frame.auxp == NULL || p->frame.size < sizeof(MYFLT) * (N + 2))
