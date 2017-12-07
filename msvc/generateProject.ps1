@@ -48,10 +48,11 @@ cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -DSTK_LOCAL:BOOL="ON" `
  -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
+ -DVCPKG_TARGET_TRIPLET=x64-windows-static `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
- -DEIGEN3_INCLUDE_PATH:PATH="$vcpkgDir\packages\eigen3_x64-windows\include" `
+ -DEIGEN3_INCLUDE_PATH:PATH="$vcpkgDir\packages\eigen3_x64-windows-static\include" `
  -DVSTSDK2X_INCLUDE_DIR:PATH="$vstSdkHome" `
  -DBUILD_CSOUND_VST:BOOL=ON `
  -DBUILD_PADSYNTH_OPCODES:BOOL=ON `
