@@ -322,6 +322,17 @@ if(MSVC)
   # Experimented with flags but did not make change performance results
   #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
+  #set(CompilerFlags
+  #  CMAKE_CXX_FLAGS
+  #  CMAKE_CXX_FLAGS_DEBUG
+  #  CMAKE_CXX_FLAGS_RELEASE
+  #  CMAKE_C_FLAGS
+  #  CMAKE_C_FLAGS_DEBUG
+  #  CMAKE_C_FLAGS_RELEASE
+  #  )
+  #foreach(CompilerFlag ${CompilerFlags})
+  #  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+  #endforeach()
 else()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
@@ -464,7 +475,7 @@ SET(BUILD_SHARED_LIBS ON)
 
 # First, required stuff
 if (MSVC)
-  find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1 HINTS ${PROJECT_SOURCE_DIR}/msvc/deps/lib)
+  find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 else()
   find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
 endif()
@@ -502,7 +513,7 @@ find_package(SWIG)
 find_package(VSTSDK2X)
 
 # TODO should this work for MSVC also?
-if(WIN32 AND NOT MSVC)
+if(WIN32)
   find_library(FLAC_LIB FLAC)
   find_library(OGG_LIB ogg)
   find_library(SPEEX_LIB speex)

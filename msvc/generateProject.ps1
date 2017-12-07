@@ -47,8 +47,8 @@ cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -DBUILD_ABLETON_LINK_OPCODES:BOOL=On `
  -DSTK_LOCAL:BOOL="ON" `
  -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
- -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
  -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+ -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
