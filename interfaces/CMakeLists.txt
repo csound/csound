@@ -22,10 +22,11 @@ if(BUILD_CXX_INTERFACE)
     add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
     set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
 
-    if(WIN32 AND NOT MSVC)
+    if(WIN32)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
       # mingw64 needs this to create a valid .pyd.
-      if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+
+      if(NOT MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         target_compile_definitions(libcsnd6 PRIVATE -DMS_WIN64)
       endif()
     endif()
@@ -97,11 +98,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
     if(BUILD_PYTHON_INTERFACE)
         if(WIN32)
-          if(NOT MSVC)
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} ${PYTHON_LIBRARY} libcsnd6)
-          else()
-            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${PYTHON_LIBRARY} libcsnd6)
-          endif()
         else()
             # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
             set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
@@ -141,13 +138,8 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
        message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}.")
 
       	if(WIN32)
-          if(NOT MSVC)
              set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
                ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} libcsnd6)
-          else()
-             set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
-               ${LIBSNDFILE_LIBRARY} libcsnd6)
-          endif()
         elseif(APPLE)
              set(swigjava_LIBS  ${JAVA_VM_LIBRARY} ${CSOUNDLIB}
 	             ${LIBSNDFILE_LIBRARY} libcsnd6)
