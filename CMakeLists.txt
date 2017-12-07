@@ -514,13 +514,16 @@ find_package(VSTSDK2X)
 
 # TODO should this work for MSVC also?
 if(WIN32)
-  find_library(FLAC_LIB FLAC)
+  find_library(FLAC_LIB NAMES FLAC flac)
   find_library(OGG_LIB ogg)
   find_library(SPEEX_LIB speex)
   find_library(VORBIS_LIB vorbis)
   find_library(VORBISENC_LIB vorbisenc)
-  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${SPEEX_LIB} ${FLAC_LIB} ${OGG_LIB}
-)
+  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${FLAC_LIB} ${OGG_LIB})
+  if(SPEEX_LIB) 
+    list(APPEND LIBSNDFILE_SUPPORT_LIBS ${SPEEX_LIB} )
+  endif()
+  #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
 endif()
 
 find_path(SNDFILE_H_PATH sndfile.h)
@@ -1183,9 +1186,7 @@ endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
-    if(NOT MSVC)
-      list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
-    endif()
+    list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
 else()
 endif()
 
