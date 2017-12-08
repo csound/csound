@@ -688,7 +688,7 @@ msgstr "#end non apparié\n"
 
 #: Engine/csound_pre.lex:724 Engine/csound_prs.lex:859
 msgid "Ill formed #include ignored"
-msgstr ""
+msgstr "#include incorrect ignoré"
 
 #: Engine/csound_pre.lex:733 Engine/csound_prs.lex:868
 msgid "Includes nested too deeply"
@@ -1861,9 +1861,9 @@ msgid "** found CS_UDO_DIR=%s\n"
 msgstr "** trouvé CS_USO_DIR=%s\n"
 
 #: Engine/new_orc_parser.c:149
-#, fuzzy, c-format
+#, c-format
 msgid "parser: failed to open input file %s\n"
-msgstr "L'ouverture du fichier de sortie %s a échoué\n"
+msgstr "parser : l'ouverture du fichier d'entrée %s a échoué\n"
 
 #: Engine/new_orc_parser.c:187
 msgid "Unmatched #ifdef\n"
@@ -12227,9 +12227,9 @@ msgid "orchname:  %s\n"
 msgstr "nom de l'orchestre :   %s\n"
 
 #: Top/main.c:239
-#, fuzzy, c-format
+#, c-format
 msgid "main: failed to open input file - %s\n"
-msgstr "L'ouverture du fichier d'entrée %s a échoué\n"
+msgstr "main : l'ouverture du fichier d'entrée %s a échoué\n"
 
 #: Top/main.c:255
 msgid "cannot compile orchestra"
