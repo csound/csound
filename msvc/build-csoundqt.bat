@@ -19,6 +19,11 @@ qmake.exe qcs.pro ^
     CSOUND_LIBRARY=csound64.lib ^
     LCSOUND=%APPVEYOR_BUILD_FOLDER%\\msvc\\csound-vs\\RelWithDebInfo\\csound64.lib ^
     LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\libsndfile.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\flac.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\ogg.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\vorbis.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\vorbisenc.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\vorbisfile.lib" ^
     LIBS+="%APPVEYOR_BUILD_FOLDER%\\msvc\\csound-vs\\RelWithDebInfo\\csound64.lib" ^
     LIBS+="Ole32.lib" ^
     -after ^
