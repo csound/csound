@@ -593,6 +593,8 @@ struct JackoState
         jackInitialized = false;
         jackActive = false;
         result = jack_deactivate(jackClient);
+        csound->Message(csound, Str("Jack client deactivated.\n"));
+        /* Jack documentation says deactivating the client does the following also:
         for (std::map<std::string, jack_port_t *>
                ::iterator it = audioInPorts.begin();
              it != audioInPorts.end();
@@ -617,7 +619,10 @@ struct JackoState
              ++it) {
           result = jack_port_unregister(jackClient, it->second);
         }
-        result |= jack_client_close(jackClient);
+        cound->Message(csound, Str("Jack ports unregistered.\n"));
+        */;
+        //result |= jack_client_close(jackClient);
+        //csound->Message(csound, Str("Jack client closed.\n"));
         result |= pthread_cond_destroy(&csoundCondition);
         result |= pthread_cond_destroy(&closeCondition);
         result |= pthread_mutex_destroy(&conditionMutex);
@@ -629,7 +634,7 @@ struct JackoState
       csound->Message(csound, Str("ENDED JackoState::close().\n"));
       return result;
   }
-  int processJack(jack_nframes_t frames)
+  int JackProcessCallback(jack_nframes_t frames)
   {
       // We must call PerformKsmps here ONLY after the original
       // Csound performance thread is waiting on its condition.
@@ -667,7 +672,8 @@ struct JackoState
         result = csound->PerformKsmps(csound);
         // We break here when the Csound performance is complete,
         // and signal the original Csound performance thread to continue.
-        if (result && jackActive) {
+        if (result /* && jackActive */) {
+          csound->Message(csound, Str("Jacko performance finished.\n"));
           csoundActive = true;
           jackActive = false;
           pthread_mutex_lock(&conditionMutex);
@@ -678,7 +684,7 @@ struct JackoState
       }
       return result;
   }
-  int processCsound()
+  int SenseEventCallback()
   {
       int result = 0;
       // Here we must wait once and only once, in order to put
@@ -690,9 +696,12 @@ struct JackoState
         // While Jack is processing, wait here.
         // The Jack process callback will then call csoundPerformKsmps
         // until the Csound performance is complete.
+        csound->Message(csound, Str("Jacko is now driving Csound performance...\n"));
         result |= pthread_mutex_lock(&conditionMutex);
         result |= pthread_cond_wait(&csoundCondition, &conditionMutex);
         result |= pthread_mutex_unlock(&conditionMutex);
+        csound->Message(csound, Str("Jacko has quit driving Csound performance.\n"));
+        
       }
       if (jackActive) {
         return 1;
@@ -705,7 +714,7 @@ struct JackoState
         result = pthread_mutex_lock(&conditionMutex);
         result |= pthread_cond_signal(&closeCondition);
         result |= pthread_mutex_unlock(&conditionMutex);
-        return result;
+        return 1;
       }
   }
   void *closeRoutine()
@@ -756,13 +765,13 @@ struct JackoState
 static int JackProcessCallback_(jack_nframes_t frames,
                                 void *data)
 {
-    return ((JackoState *)data)->processJack(frames);
+    return ((JackoState *)data)->JackProcessCallback(frames);
 }
 
 static void SenseEventCallback_(CSOUND * csound,
                                 void *data)
 {
-    ((JackoState *)data)->processCsound();
+    ((JackoState *)data)->SenseEventCallback();
 }
 
 static int midiDeviceOpen_(CSOUND *csound,
