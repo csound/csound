@@ -443,4 +443,65 @@ static inline double csoundUndenormalizeDouble(double x)
 size_t strlcat(char *dst, const char *src, size_t siz);
 #endif
 
+/* atomics */
+#if defined(MSVC)
+#define ATOMIC_SET(var, val)  InterlockedExchange(&var, val);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SET(var, val) __sync_lock_test_and_set(&var, val);
+#else
+#define ATOMIC_SET(var, val) var = val;
+#endif
+
+#ifdef MSVC
+#define ATOMIC_GET(var) InterlockedExchangeAdd(&var, 0)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_GET(var) __atomic_load_n(&var, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_GET(var) var
+#endif
+
+#ifdef MSVC
+#define ATOMIC_DECR(var) InterlockedExchangeAdd(&var, -1)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_DECR(var) __atomic_sub_fetch(&var, 1, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_DECR(var) var -= 1
+#endif
+
+#ifdef MSVC
+#define ATOMIC_INCR(var) InterlockedExchangeAdd(&var, 1)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_INCR(var) __atomic_add_fetch(&var, 1, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_INCR(var) var += 1
+#endif
+
+#ifdef MSVC
+#define ATOMIC_SUB(var, val) InterlockedExchangeAdd(&var, -val)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SUB(var, val) __atomic_sub_fetch(&var, val, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_SUB(var, val) var -= val
+#endif
+
+#ifdef MSVC
+#define ATOMIC_ADD(var, val) InterlockedExchangeAdd(&var, val)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_ADD(var, val) __atomic_add_fetch(&var, val, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_ADD(var, val) var += val
+#endif
+
+#if defined(MSVC)
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  (InterlockedCompareExchange(val, newVal, oldVal) != oldVal)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  !(__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,	\
+			      __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+#else /* FIXME: no atomics, what to do? */
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) ((*val = newVal) != oldVal))
+#endif
+
+
 #endif  /* CSOUND_SYSDEP_H */
