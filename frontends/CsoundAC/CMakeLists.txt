@@ -16,6 +16,10 @@ find_package(SWIG)
 find_package(PythonLibs)
 find_library(PORTSMF_LIBRARY portSMF)
 find_library(LUAJIT_LIBRARY luajit)
+find_library(JPEG_LIBRARY jpeg)
+find_library(PNG_LIBRARY NAMES png png16 libpng16)
+find_library(Z_LIBRARY NAMES z zlib)
+
 if(NOT LUAJIT_LIBRARY)
     find_library(LUAJIT_LIBRARY luajit-5.1)
 endif()
@@ -93,12 +97,12 @@ if(BUILD_CSOUND_AC)
         target_link_libraries(libCsoundAC PRIVATE ${PORTSMF_LIBRARY})
     endif()
 
-    if(WIN32 AND NOT MSVC) # for MSYS2/mingw64
+    if(WIN32) # for MSYS2/mingw64
         #  mingw64 needs this to create a valid .pyd.
-        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        if(NOT MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8)
             target_compile_definitions(libCsoundAC PRIVATE -DMS_WIN64)
         endif()
-        target_link_libraries(libCsoundAC PRIVATE jpeg png z)
+        target_link_libraries(libCsoundAC PRIVATE ${JPEG_LIBRARY} ${PNG_LIBRARY} ${Z_LIBRARY})
     endif()
 
     if(HAVE_UNISTD_H)

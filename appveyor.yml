@@ -49,7 +49,7 @@ build:
   project: msvc\csound-vs\Csound.sln
 
 after_build:
-  - dir "%VCPKGDir%\installed\x64-windows\include"
+  - dir "%VCPKGDir%\installed\x64-windows-static\include"
   - cd frontends\nwjs
   - npm config set msvs_version 2017 --global
   #- set PYTHON=C:\Python27-x64\python.exe

@@ -10,7 +10,7 @@ set(stdutil_SRCS
 
 if(MSVC) 
   make_plugin(stdutil "${stdutil_SRCS}" )
-  target_link_libraries(stdutil ${LIBSNDFILE_LIBRARY})
+  target_link_libraries(stdutil ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
 elseif(WIN32)
   make_plugin(stdutil "${stdutil_SRCS}" m
     ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
