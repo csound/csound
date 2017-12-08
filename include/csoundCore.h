@@ -961,12 +961,11 @@ typedef struct NAME__ {
 
 
 #define MAX_ALLOC_QUEUE 1024
-  typedef struct _alloc_data_ {
+ typedef struct _alloc_data_ {
+  int type;
   int insno;
-  int isMidi;
-  EVTBLK blk;
-  MCHNBLK *chn;
-  MEVENT mep;
+  INSDS *ip;
+  EVTBLK evt;
 } ALLOC_DATA;
 
 
@@ -1779,6 +1778,7 @@ typedef struct NAME__ {
     ALLOC_DATA *alloc_queue;
     volatile unsigned long alloc_queue_items;
     unsigned long alloc_queue_wp;
+    int alloc_spinlock;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

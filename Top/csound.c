@@ -911,7 +911,8 @@ static const CSOUND cenviron_ = {
     NULL,           /* directory for corfiles */
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
-    0               /* alloc_queue_wp */
+    0,               /* alloc_queue_wp */
+    0
     /*, NULL */           /* self-reference */
 };
 
@@ -1578,6 +1579,7 @@ unsigned long kperfThread(void * cs)
 int kperf_nodebug(CSOUND *csound)
 {
     INSDS *ip;
+    ip = csound->actanchor.nxtact;
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
     csound->icurTime += csound->ksmps;
@@ -1609,7 +1611,7 @@ int kperf_nodebug(CSOUND *csound)
     /* clear spout */
     memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
     memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
-    ip = csound->actanchor.nxtact;
+
 
     if (ip != NULL) {
       /* There are 2 partitions of work: 1st by inso,
@@ -1651,17 +1653,20 @@ int kperf_nodebug(CSOUND *csound)
           done = ip->init_done;
 #endif
 
-          if (done == 1) {/* if init-pass has been done */
-            OPDS  *opstart = (OPDS*) ip;
+          if (done == 1) {/* if init-pass has been done */	
+            OPDS  *opstart;
+
+	    opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
-              while ((opstart = opstart->nxtp) != NULL) {
+              while (opstart && (opstart = opstart->nxtp) != NULL) {
                 opstart->insdshead->pds = opstart;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
+	      
             } else {
               int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
@@ -2042,6 +2047,7 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
 PUBLIC int csoundPerformKsmps(CSOUND *csound)
 {
     int done;
+
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
@@ -2059,7 +2065,10 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     if(!csound->oparms->realtime) // no API lock in realtime mode
       csoundLockMutex(csound->API_lock);
     do {
-      done = sensevents(csound);
+
+	  done = sensevents(csound);
+
+      
       if (UNLIKELY(done)) {
 	if(!csound->oparms->realtime) // no API lock in realtime mode
          csoundUnlockMutex(csound->API_lock);
@@ -2071,6 +2080,8 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     } while (csound->kperf(csound));
     if(!csound->oparms->realtime) // no API lock in realtime mode
        csoundUnlockMutex(csound->API_lock);
+
+
     return 0;
 }
 
@@ -2144,7 +2155,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
 
 PUBLIC int csoundPerform(CSOUND *csound)
 {
-    int done;
+    int done = 0;
     int returnValue;
 
    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
@@ -2167,7 +2178,10 @@ PUBLIC int csoundPerform(CSOUND *csound)
         if(!csound->oparms->realtime)
            csoundLockMutex(csound->API_lock);
       do {
-        if (UNLIKELY((done = sensevents(csound)))) {
+	if(csound->oparms->realtime) csoundSpinLock(&csound->alloc_spinlock);
+	  done = sensevents(csound);
+       if(csound->oparms->realtime) csoundSpinUnLock(&csound->alloc_spinlock);
+        if (UNLIKELY(done)) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
 	  if(!csound->oparms->realtime)
           csoundUnlockMutex(csound->API_lock);
