@@ -44,6 +44,39 @@ extern int argsRequired(char* argString);
 static int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn,
 		       MEVENT *mep);
 static int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp);
+
+#if defined(MSVC)
+#define ATOMIC_SET(var, val)  InterlockedExchange(&var, val);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SET(var, val) __sync_lock_test_and_set(&var, val);
+#else
+#define ATOMIC_SET(var, val) var = val;
+#endif
+
+#ifdef MSVC
+#define ATOMIC_GET(var) InterlockedExchangeAdd(&var, 0)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_GET(var) __atomic_load_n(&var, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_GET(var) var
+#endif
+
+#ifdef MSVC
+#define ATOMIC_DECR(var) InterlockedExchangeAdd(&var, -1)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_DECR(var) __atomic_sub_fetch(&var, 1, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_DECR(var) var -= 1
+#endif
+
+#ifdef MSVC
+#define ATOMIC_INCR(var) InterlockedExchangeAdd(&var, 1)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_INCR(var) __atomic_add_fetch(&var, 1, __ATOMIC_SEQ_CST);
+#else
+#define ATOMIC_INCR(var) var += 1;
+#endif 
+
 /*
   creates a thread to process instance allocations
 */
@@ -55,13 +88,7 @@ uintptr_t event_insert_thread(void *p) {
 
   while(csound->event_insert_loop) {
     // get the value of items_to_alloc
-#ifdef MSVC
-    items = InterlockedExchangeAdd(&csound->alloc_queue_items, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    items = __atomic_load_n(&csound->alloc_queue_items, __ATOMIC_SEQ_CST);
-#else
-    items = csound->msg_queue_items;
-#endif
+    items = ATOMIC_GET(csound->alloc_queue_items);
     if(items == 0)
       csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
     else while(items) {
@@ -72,13 +99,7 @@ uintptr_t event_insert_thread(void *p) {
 	  insert_event(csound, inst[rp].insno, &inst[rp].blk);
 	}
 	// decrement the value of items_to_alloc  
-#ifdef MSVC
-	InterlockedExchangeAdd(&csound->alloc_queue_items, -1);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-	__atomic_sub_fetch(&csound->alloc_queue_items, 1, __ATOMIC_SEQ_CST);
-#else
-	csound->alloc_queue_items -= 1;
-#endif
+        ATOMIC_DECR(csound->alloc_queue_items);
 	items--;
 	rp = rp + 1 < MAX_ALLOC_QUEUE ? rp + 1 : 0;
       }
@@ -151,13 +172,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp) {
     csound->alloc_queue[wp].blk =  *newevtp;
     csound->alloc_queue[wp].isMidi = 0;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-#ifdef MSVC
-    InterlockedExchangeAdd(&csound->alloc_queue_items, 1);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    __atomic_add_fetch(&csound->alloc_queue_items, 1, __ATOMIC_SEQ_CST);
-#else
-    csound->alloc_queue_items += 1;
-#endif      
+    ATOMIC_INCR(csound->alloc_queue_items);
     return 0;
   }
   else return insert_event(csound, insno, newevtp);
@@ -247,13 +262,9 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     if (UNLIKELY(csound->oparms->odebug))
       csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
     ip = tp->act_instance;
-#if defined(MSVC)
-  InterlockedExchange(&ip->init_done, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-  __sync_lock_test_and_set((int*)&ip->init_done,0);
-#else
-  ip->init_done = 0;
-#endif
+  ATOMIC_SET(ip->init_done, 0);
+  if(csound->oparms->realtime)
+    csoundSpinLock(&csound->alloc_spinlock);
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
     ip->ksmps = csound->ksmps;
@@ -280,6 +291,8 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->prvact = prvp;
     prvp->nxtact = ip;
     ip->actflg++;                   /*    and mark the instr active */
+    if(csound->oparms->realtime)
+      csoundSpinUnLock(&csound->alloc_spinlock);
     {
       int    n;
       MYFLT  *flp, *fep;
@@ -365,13 +378,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if(csound->oparms->realtime)
   csoundUnlockMutex(csound->init_pass_threadlock);
 
-#if defined(MSVC)
-  InterlockedExchange(&ip->init_done, 1);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-  __sync_lock_test_and_set((int*)&ip->init_done,1);
-#else
-  ip->init_done = 1;
-#endif
+ATOMIC_SET(ip->init_done, 1);
 
     if (UNLIKELY(csound->inerrcnt || ip->p3.value == FL(0.0))) {
       xturnoff_now(csound, ip);
@@ -478,13 +485,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep) {
     csound->alloc_queue[wp].mep = *mep;
     csound->alloc_queue[wp].isMidi = 1;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-#ifdef MSVC
-    InterlockedExchangeAdd(&csound->alloc_queue_items, 1);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    __atomic_add_fetch(&csound->alloc_queue_items, 1, __ATOMIC_SEQ_CST);
-#else
-    csound->alloc_queue_items += 1;
-#endif      
+    ATOMIC_INCR(csound->alloc_queue_items);   
     return 0;
   }
   else return insert_midi(csound, insno, chn, mep);
@@ -547,13 +548,10 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   }
   /* pop from free instance chain */
   ip = tp->act_instance;
-#if defined(MSVC)
-  InterlockedExchange(&ip->init_done, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-  __sync_lock_test_and_set((int*)&ip->init_done,0);
-#else
-  ip->init_done = 0;
-#endif  
+  ATOMIC_SET(ip->init_done, 0);
+
+ if(csound->oparms->realtime)
+    csoundSpinLock(&csound->alloc_spinlock);
   tp->act_instance = ip->nxtact;
   ip->insno = (int16) insno;
 
@@ -604,6 +602,8 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ip->kicvt        = csound->kicvt;
   ip->pds          = NULL;
   pfields          = (CS_VAR_MEM*)&ip->p0;
+    if(csound->oparms->realtime)
+    csoundSpinUnLock(&csound->alloc_spinlock);
 
   if (tp->psetdata != NULL) {
     int i;
@@ -724,13 +724,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
 			csound->ids->optext->t.oentry->opname);
       (*csound->ids->iopadr)(csound, csound->ids);
     }
-#if defined(MSVC)
-  InterlockedExchange(&ip->init_done, 1);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-  __sync_lock_test_and_set((int*)&ip->init_done,1);
-#else
-  ip->init_done = 1;
-#endif
+    ATOMIC_SET(ip->init_done, 1);
     ip->tieflag = ip->reinitflag = 0;
     csound->tieflag = csound->reinitflag = 0;
     if(csound->oparms->realtime)
@@ -832,24 +826,36 @@ static void deact(CSOUND *csound, INSDS *ip)
   if (ip->nxtd != NULL)
     csoundDeinitialiseOpcodes(csound, ip);
   /* remove an active instrument */
+  if(csound->oparms->realtime)
+    csoundSpinLock(&csound->alloc_spinlock);
   csound->engineState.instrtxtp[ip->insno]->active--;
   if (ip->xtratim > 0)
     csound->engineState.instrtxtp[ip->insno]->pending_release--;
   csound->cpu_power_busy -= csound->engineState.instrtxtp[ip->insno]->cpuload;
+  if(csound->oparms->realtime)
+    csoundSpinUnLock(&csound->alloc_spinlock);
   /* IV - Sep 8 2002: free subinstr instances */
   /* that would otherwise result in a memory leak */
   if (ip->opcod_deact) {
     UOPCODE *p = (UOPCODE*) ip->opcod_deact;          /* IV - Oct 26 2002 */
     deact(csound, p->ip);     /* deactivate */
+    if(csound->oparms->realtime)
+     csoundSpinLock(&csound->alloc_spinlock);
     p->ip = NULL;
     /* IV - Oct 26 2002: set perf routine to "not initialised" */
     p->h.opadr = (SUBR) useropcd;
     ip->opcod_deact = NULL;
+      if(csound->oparms->realtime)
+      csoundSpinUnLock(&csound->alloc_spinlock);
   }
   if (ip->subins_deact) {
     deact(csound, ((SUBINST*) ip->subins_deact)->ip); /* IV - Oct 24 2002 */
+    if(csound->oparms->realtime)
+    csoundSpinLock(&csound->alloc_spinlock);
     ((SUBINST*) ip->subins_deact)->ip = NULL;
     ip->subins_deact = NULL;
+    if(csound->oparms->realtime)
+       csoundSpinUnLock(&csound->alloc_spinlock);
   }
   if (UNLIKELY(csound->oparms->odebug)) {
     char *name = csound->engineState.instrtxtp[ip->insno]->insname;
@@ -859,6 +865,8 @@ static void deact(CSOUND *csound, INSDS *ip)
       csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
   }
   /* IV - Oct 24 2002: ip->prvact may be NULL, so need to check */
+  if(csound->oparms->realtime)
+    csoundSpinLock(&csound->alloc_spinlock);
   if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL)
     nxtp->prvact = ip->prvact;
   ip->actflg = 0;
@@ -871,6 +879,9 @@ static void deact(CSOUND *csound, INSDS *ip)
   if (ip->fdchp != NULL)
     fdchclose(csound, ip);
   csound->dag_changed++;
+    if(csound->oparms->realtime)
+    csoundSpinUnLock(&csound->alloc_spinlock);
+  
   //printf("**** dag changed by deact\n");
 }
 
@@ -1155,6 +1166,8 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
   if (!(pip->reinitflag | pip->tieflag)) {
     /* get instance */
+    if(csound->oparms->realtime)
+     csoundSpinLock(&csound->alloc_spinlock);
     if (csound->engineState.instrtxtp[instno]->act_instance == NULL)
       instance(csound, instno);
     p->ip = csound->engineState.instrtxtp[instno]->act_instance;
@@ -1173,6 +1186,8 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     p->ip->opcod_deact = NULL;
     saved_curip->subins_deact = (void*) p;
     p->parent_ip = p->buf.parent_ip = saved_curip;
+   if(csound->oparms->realtime)
+     csoundSpinUnLock(&csound->alloc_spinlock);
   }
 
   /* set the local ksmps values */
@@ -1352,12 +1367,15 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
   }
 
   if (!p->ip) {
+    
     /* search for already allocated, but not active instance */
     /* if none was found, allocate a new instance */
     if (!tp->act_instance)
       instance(csound, instno);
     /* **** COVERITY: note that call to instance fills in structure to
   **** which tp points.  This is a false positive **** */
+    if(csound->oparms->realtime)
+     csoundSpinLock(&csound->alloc_spinlock);
     lcurip = tp->act_instance;            /* use free intance, and  */
     tp->act_instance = lcurip->nxtact;    /* remove from chain      */
     lcurip->actflg++;                     /*    and mark the instr active */
@@ -1367,6 +1385,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     lcurip->opcod_deact = parent_ip->opcod_deact;
     lcurip->subins_deact = NULL;
     parent_ip->opcod_deact = (void*) p;
+    if(csound->oparms->realtime)
+     csoundSpinUnLock(&csound->alloc_spinlock);
     p->ip = lcurip;
     /* IV - Nov 10 2002: set up pointers to I/O buffers */
     buf = p->buf = (OPCOD_IOBUFS*) lcurip->opcod_iobufs;
@@ -1378,11 +1398,9 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     buf->iobufp_ptrs[6] = buf->iobufp_ptrs[7] = NULL;
     buf->iobufp_ptrs[8] = buf->iobufp_ptrs[9] = NULL;
     buf->iobufp_ptrs[10] = buf->iobufp_ptrs[11] = NULL;
-
     /* store parameters of input and output channels, and parent ip */
     buf->uopcode_struct = (void*) p;
     buf->parent_ip = p->parent_ip = parent_ip;
-
   }
 
   /* copy parameters from the caller instrument into our subinstrument */
