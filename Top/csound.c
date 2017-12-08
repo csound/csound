@@ -912,7 +912,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
     0,               /* alloc_queue_wp */
-    0
+    0               /* alloc_spinlock */
     /*, NULL */           /* self-reference */
 };
 
@@ -1579,7 +1579,6 @@ unsigned long kperfThread(void * cs)
 int kperf_nodebug(CSOUND *csound)
 {
     INSDS *ip;
-    ip = csound->actanchor.nxtact;
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
     csound->icurTime += csound->ksmps;
@@ -1611,7 +1610,7 @@ int kperf_nodebug(CSOUND *csound)
     /* clear spout */
     memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
     memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
-
+    ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
       /* There are 2 partitions of work: 1st by inso,
@@ -1644,29 +1643,18 @@ int kperf_nodebug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-
-#if defined(MSVC)
-        done = InterlockedExchangeAdd(&ip->init_done, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
-#else
-          done = ip->init_done;
-#endif
-
-          if (done == 1) {/* if init-pass has been done */	
-            OPDS  *opstart;
-
-	    opstart = (OPDS*) ip;
+	  done = ATOMIC_GET(ip->init_done);
+          if (done == 1) {/* if init-pass has been done */
+            OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
-              while (opstart && (opstart = opstart->nxtp) != NULL) {
+              while ((opstart = opstart->nxtp) != NULL) {
                 opstart->insdshead->pds = opstart;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
-	      
             } else {
               int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
@@ -1889,7 +1877,7 @@ int kperf_debug(CSOUND *csound)
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
         csound->multiThreadedDag = NULL;
-      }
+      } 
       else {
         int done;
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
@@ -1904,14 +1892,7 @@ int kperf_debug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-#if defined(MSVC)
-          done = InterlockedExchangeAdd(&ip->init_done, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
-#else
-          done = ip->init_done;
-#endif
-
+	  done = ATOMIC_GET(ip->init_done);
           if (done == 1) {/* if init-pass has been done */
             /* check if next command pending and we are on the
                first instrument in the chain */
@@ -2047,7 +2028,6 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
 PUBLIC int csoundPerformKsmps(CSOUND *csound)
 {
     int done;
-
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
@@ -2065,10 +2045,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     if(!csound->oparms->realtime) // no API lock in realtime mode
       csoundLockMutex(csound->API_lock);
     do {
-
-	  done = sensevents(csound);
-
-      
+      done = sensevents(csound);
       if (UNLIKELY(done)) {
 	if(!csound->oparms->realtime) // no API lock in realtime mode
          csoundUnlockMutex(csound->API_lock);
@@ -2080,8 +2057,6 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     } while (csound->kperf(csound));
     if(!csound->oparms->realtime) // no API lock in realtime mode
        csoundUnlockMutex(csound->API_lock);
-
-
     return 0;
 }
 
@@ -2155,7 +2130,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
 
 PUBLIC int csoundPerform(CSOUND *csound)
 {
-    int done = 0;
+    int done;
     int returnValue;
 
    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
@@ -2178,10 +2153,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
         if(!csound->oparms->realtime)
            csoundLockMutex(csound->API_lock);
       do {
-	if(csound->oparms->realtime) csoundSpinLock(&csound->alloc_spinlock);
-	  done = sensevents(csound);
-       if(csound->oparms->realtime) csoundSpinUnLock(&csound->alloc_spinlock);
-        if (UNLIKELY(done)) {
+        if (UNLIKELY((done = sensevents(csound)))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
 	  if(!csound->oparms->realtime)
           csoundUnlockMutex(csound->API_lock);
