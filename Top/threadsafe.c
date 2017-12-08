@@ -72,17 +72,8 @@ static long atomicGet_Incr_Mod(volatile long* val, long mod) {
   do {
     oldVal = *val;
     newVal = (oldVal + 1) % mod;
-
-#if defined(MSVC)
-  } while (InterlockedCompareExchange(val, newVal, oldVal) != oldVal);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-  } while (!__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,
-                                      __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST));
-#else /* FIXME: no atomics, what to do? */
-} while ((*val = newVal) != newVal);
-#endif
-
-return oldVal;
+  } while (ATOMIC_CMP_XCH(val, newVal, oldVal));
+  return oldVal;
 }
 
 /* called by csoundCreate() at the start
@@ -112,13 +103,7 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args,
 
     /* block if queue is full */
     do {
-#if defined(MSVC)
-      items = InterlockedExchangeAdd(&csound->msg_queue_items, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-      items = __atomic_load_n (&csound->msg_queue_items, __ATOMIC_SEQ_CST);
-#else
-      items = csound->msg_queue_items;
-#endif
+      items = ATOMIC_GET(csound->msg_queue_items);
     } while(items >= API_MAX_QUEUE);
 
     message_queue_t* msg =
@@ -132,13 +117,7 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args,
     rtn = &msg->rtn;
     csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wput,
                                          API_MAX_QUEUE)] = msg;
-#ifdef MSVC
-    InterlockedIncrement(&csound->msg_queue_items);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    __atomic_add_fetch(&csound->msg_queue_items, 1, __ATOMIC_SEQ_CST);
-#else
-    csound->msg_queue_items++;
-#endif
+    ATOMIC_INCR(csound->msg_queue_items);
     return (void *) rtn;
   }
   else return NULL;
@@ -269,13 +248,7 @@ void message_dequeue(CSOUND *csound) {
       msg->message = 0;
       rp += 1;
     }
-#ifdef MSVC
-    InterlockedExchangeAdd(&csound->msg_queue_items, -items);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    __atomic_sub_fetch(&csound->msg_queue_items, items, __ATOMIC_SEQ_CST);
-#else
-    csound->msg_queue_items -= items;
-#endif
+    ATOMIC_SUB(csound->msg_queue_items, items);
     csound->msg_queue_rstart = rp % API_MAX_QUEUE;
   }
 }
