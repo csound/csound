@@ -10,6 +10,10 @@ echo "vsToolset:   $vsToolset"
 
 $startTime = (Get-Date).TimeOfDay
 
+# Add different protocols to get download working for HDF5 site
+# ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Ssl3;
+[System.Net.ServicePointManager]::SecurityProtocol =  [System.Net.SecurityProtocolType]::Tls12;
+
 $webclient = New-Object System.Net.WebClient
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
@@ -86,7 +90,10 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 echo "Downloading VC packages..."
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows"
-vcpkg --triplet $targetTriplet install eigen3 fltk libflac libogg libvorbis zlib libsndfile
+$targetTripletStatic = "x64-windows-static"
+#vcpkg --triplet $targetTriplet install eigen3 fltk zlib 
+#vcpkg --triplet $targetTripletStatic install libflac libogg libvorbis libsndfile
+vcpkg --triplet $targetTripletStatic install eigen3 fltk zlib libflac libogg libvorbis libsndfile
 $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
@@ -114,6 +121,9 @@ $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-
 "http://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip",
 "https://github.com/thestk/stk/archive/master.zip"
 
+# commenting out 1.8.20 for now
+#"https://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.20-Std-win7_64-vs14.zip",
+
 # Appends this folder location to the 'deps' uri
 $destList="win_flex_bison",
 "",
@@ -123,7 +133,10 @@ $destList="win_flex_bison",
 "fluidsynthdeps",
 "fluidsynthdeps",
 "fluidsynthdeps",
-"fluidsynthdeps"
+"fluidsynthdeps",
+"",
+"",
+""
 
 # Download list of files to cache folder
 for($i=0; $i -lt $uriList.Length; $i++)
@@ -136,8 +149,8 @@ for($i=0; $i -lt $uriList.Length; $i++)
     }
     else
     {
-    	echo "Downloading: " $uriList[$i]
-    	$webclient.DownloadFile($uriList[$i], $cachedFile)
+      echo "Downloading: " $uriList[$i]
+      $webclient.DownloadFile($uriList[$i], $cachedFile)
     }
 }
 
@@ -180,10 +193,19 @@ cd build
 cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
 cmake --build .
 
-cd $depsDir
-dir hdf
-Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /qn /li /norestart'
-echo "Installed HDF5..."
+
+# disable 1.8.20 for time being
+# cd $depsDir    
+# cd hdf5-1.8.20-Std-win7_64-vs14
+# dir hdf   
+# Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.20-win64.msi /quiet /qn /li /norestart'   
+# echo "Installed HDF5..."    
+
+cd $depsDir    
+dir hdf   
+Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /qn /li /norestart'   
+echo "Installed HDF5..."    
+
 
 cd $depsDir
 
@@ -229,14 +251,14 @@ cd $stageDir
 
 if (Test-Path "portmidi")
 {
-	cd portmidi
-	git pull
-	cd ..
-	echo "Portmidi already downloaded, updated"
+  cd portmidi
+  svn update  
+  cd ..
+  echo "Portmidi already downloaded, updated"
 }
 else
 {
-	svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
+  svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
 }
 
 cd portmidi\portmidi\trunk
