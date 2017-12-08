@@ -1779,6 +1779,7 @@ typedef struct NAME__ {
     ALLOC_DATA *alloc_queue;
     volatile unsigned long alloc_queue_items;
     unsigned long alloc_queue_wp;
+    int alloc_spinlock;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
