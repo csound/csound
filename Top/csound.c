@@ -1643,15 +1643,7 @@ int kperf_nodebug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-
-#if defined(MSVC)
-        done = InterlockedExchangeAdd(&ip->init_done, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
-#else
-          done = ip->init_done;
-#endif
-
+	  done = ATOMIC_GET(ip->init_done);
           if (done == 1) {/* if init-pass has been done */
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
@@ -1900,14 +1892,7 @@ int kperf_debug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-#if defined(MSVC)
-          done = InterlockedExchangeAdd(&ip->init_done, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
-#else
-          done = ip->init_done;
-#endif
-
+	  done = ATOMIC_GET(ip->init_done);
           if (done == 1) {/* if init-pass has been done */
             /* check if next command pending and we are on the
                first instrument in the chain */

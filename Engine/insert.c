@@ -45,38 +45,6 @@ static int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn,
 		       MEVENT *mep);
 static int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp);
 
-#if defined(MSVC)
-#define ATOMIC_SET(var, val)  InterlockedExchange(&var, val);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_SET(var, val) __sync_lock_test_and_set(&var, val);
-#else
-#define ATOMIC_SET(var, val) var = val;
-#endif
-
-#ifdef MSVC
-#define ATOMIC_GET(var) InterlockedExchangeAdd(&var, 0)
-#elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_GET(var) __atomic_load_n(&var, __ATOMIC_SEQ_CST)
-#else
-#define ATOMIC_GET(var) var
-#endif
-
-#ifdef MSVC
-#define ATOMIC_DECR(var) InterlockedExchangeAdd(&var, -1)
-#elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_DECR(var) __atomic_sub_fetch(&var, 1, __ATOMIC_SEQ_CST)
-#else
-#define ATOMIC_DECR(var) var -= 1
-#endif
-
-#ifdef MSVC
-#define ATOMIC_INCR(var) InterlockedExchangeAdd(&var, 1)
-#elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_INCR(var) __atomic_add_fetch(&var, 1, __ATOMIC_SEQ_CST);
-#else
-#define ATOMIC_INCR(var) var += 1;
-#endif 
-
 /*
   creates a thread to process instance allocations
 */
@@ -176,11 +144,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp) {
     return 0;
   }
   else return insert_event(csound, insno, newevtp);
-
-
 }
-
-
 
 int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
 {
@@ -389,14 +353,6 @@ ATOMIC_SET(ip->init_done, 1);
     if (O->sampleAccurate && !tie) {
       int64_t start_time_samps, start_time_kcycles;
       double duration_samps;
-      while (ip->init_done != 1) {
-        // FIXME maybe just pass everything through csoundSleep?
-#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
-        usleep (1);
-#else
-        csoundSleep (1);
-#endif
-      }
       start_time_samps = (int64_t) (ip->p2.value * csound->esr);
       duration_samps =  ip->p3.value * csound->esr;
       start_time_kcycles = start_time_samps/csound->ksmps;
@@ -1266,7 +1222,6 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 
   /* do init pass for this instr */
   csound->ids = (OPDS *)p->ip;
-  p->ip->init_done = 0;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     (*csound->ids->iopadr)(csound, csound->ids);
   }
