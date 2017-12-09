@@ -1736,11 +1736,18 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
       /* merge ENGINE_STATE */
       /* lock to ensure thread-safety */
       if (!async) {
+       if(!csound->oparms->realtime)
         csoundLockMutex(csound->API_lock);
         merge_state(csound, engineState, typeTable, ids);
+       if(!csound->oparms->realtime)
         csoundUnlockMutex(csound->API_lock);
-      } else
+      } else {
+	if(csound->oparms->realtime)
+           csoundSpinLock(&csound->alloc_spinlock);
         mergeState_enqueue(csound, engineState, typeTable, ids);
+        if(csound->oparms->realtime)
+          csoundSpinUnLock(&csound->alloc_spinlock);
+      }
     }
     else {
       /* first compilation */
