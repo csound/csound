@@ -177,7 +177,7 @@ void midi_ctl_reset(CSOUND *csound, int16 chan)
     OPARMS  *O = csound->oparms;
     MCHNBLK *chn;
     int     i;
-    int     aftouchInit
+    int     aftouchInit;
 
     chn = csound->m_chnbp[chan];
     for (i = 1; i <= 135; i++)                  /* from ctlr 1 to ctlr 128 */
