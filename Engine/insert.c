@@ -61,10 +61,14 @@ uintptr_t event_insert_thread(void *p) {
       csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
     else while(items) {
 	if(inst[rp].isMidi) {
+	  csoundSpinLock(&csound->alloc_spinlock);
 	  insert_midi(csound, inst[rp].insno, inst[rp].chn, &inst[rp].mep);
+	  csoundSpinUnLock(&csound->alloc_spinlock);
 	}	      
-	else {	  
+	else {
+	  csoundSpinLock(&csound->alloc_spinlock);
 	  insert_event(csound, inst[rp].insno, &inst[rp].blk);
+	  csoundSpinUnLock(&csound->alloc_spinlock);
 	}
 	// decrement the value of items_to_alloc  
         ATOMIC_DECR(csound->alloc_queue_items);
@@ -169,8 +173,6 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   }
   csound->inerrcnt = 0;
     
-  if(csound->oparms->realtime)
-    csoundSpinLock(&csound->alloc_spinlock);
     
   tp = csound->engineState.instrtxtp[insno];
   if (UNLIKELY(tp->muted == 0)) {
@@ -251,8 +253,6 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     prvp->nxtact = ip;
     ip->actflg++;                   /*    and mark the instr active */
   }
-  if(csound->oparms->realtime)
-    csoundSpinUnLock(&csound->alloc_spinlock);
 
   /* init: */
   pfields = (CS_VAR_MEM*)&ip->p0;
@@ -319,7 +319,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if(csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   // current event needs to be reset here
-  csound->currevent = newevtp;
+  csound->init_event = newevtp;
   csound->curip    = ip;
   csound->ids      = (OPDS *)ip;
   /* do init pass for this instr */
@@ -440,9 +440,6 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     return 0;
   if (UNLIKELY(insno <= 0 || csound->engineState.instrtxtp[insno]->muted == 0))
     return 0;     /* muted */
-
-  if(csound->oparms->realtime)
-    csoundSpinLock(&csound->alloc_spinlock);
   
   tp = csound->engineState.instrtxtp[insno];
   if (tp->cpuload > FL(0.0)) {
@@ -537,9 +534,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ip->kicvt        = csound->kicvt;
   ip->pds          = NULL;
   pfields          = (CS_VAR_MEM*)&ip->p0;
-  if(csound->oparms->realtime)
-    csoundSpinUnLock(&csound->alloc_spinlock);
-
+  
   if (tp->psetdata != NULL) {
     int i;
     MYFLT *pdat = tp->psetdata + 2;
@@ -652,6 +647,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip    = ip;
   csound->ids      = (OPDS *)ip;
+  csound->init_event = csound->currevent;
   /* do init pass for this instr  */
   while ((csound->ids = csound->ids->nxti) != NULL) {
     if (UNLIKELY(O->odebug))
@@ -664,8 +660,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   csound->tieflag = csound->reinitflag = 0;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
-
-    
+  
   if (UNLIKELY(csound->inerrcnt)) {
     xturnoff_now(csound, ip);
     return csound->inerrcnt;
@@ -761,36 +756,24 @@ static void deact(CSOUND *csound, INSDS *ip)
   if (ip->nxtd != NULL)
     csoundDeinitialiseOpcodes(csound, ip);
   /* remove an active instrument */
-  if(csound->oparms->realtime)
-    csoundSpinLock(&csound->alloc_spinlock);
   csound->engineState.instrtxtp[ip->insno]->active--;
   if (ip->xtratim > 0)
     csound->engineState.instrtxtp[ip->insno]->pending_release--;
   csound->cpu_power_busy -= csound->engineState.instrtxtp[ip->insno]->cpuload;
-  if(csound->oparms->realtime)
-    csoundSpinUnLock(&csound->alloc_spinlock);
   /* IV - Sep 8 2002: free subinstr instances */
   /* that would otherwise result in a memory leak */
   if (ip->opcod_deact) {
     UOPCODE *p = (UOPCODE*) ip->opcod_deact;          /* IV - Oct 26 2002 */
     deact(csound, p->ip);     /* deactivate */
-    if(csound->oparms->realtime)
-      csoundSpinLock(&csound->alloc_spinlock);
     p->ip = NULL;
     /* IV - Oct 26 2002: set perf routine to "not initialised" */
     p->h.opadr = (SUBR) useropcd;
     ip->opcod_deact = NULL;
-    if(csound->oparms->realtime)
-      csoundSpinUnLock(&csound->alloc_spinlock);
   }
   if (ip->subins_deact) {
     deact(csound, ((SUBINST*) ip->subins_deact)->ip); /* IV - Oct 24 2002 */
-    if(csound->oparms->realtime)
-      csoundSpinLock(&csound->alloc_spinlock);
     ((SUBINST*) ip->subins_deact)->ip = NULL;
     ip->subins_deact = NULL;
-    if(csound->oparms->realtime)
-      csoundSpinUnLock(&csound->alloc_spinlock);
   }
   if (UNLIKELY(csound->oparms->odebug)) {
     char *name = csound->engineState.instrtxtp[ip->insno]->insname;
@@ -800,8 +783,6 @@ static void deact(CSOUND *csound, INSDS *ip)
       csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
   }
   /* IV - Oct 24 2002: ip->prvact may be NULL, so need to check */
-  if(csound->oparms->realtime)
-    csoundSpinLock(&csound->alloc_spinlock);
   if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL)
     nxtp->prvact = ip->prvact;
   ip->actflg = 0;
@@ -814,9 +795,8 @@ static void deact(CSOUND *csound, INSDS *ip)
   if (ip->fdchp != NULL)
     fdchclose(csound, ip);
   csound->dag_changed++;
-  if(csound->oparms->realtime)
-    csoundSpinUnLock(&csound->alloc_spinlock);
 }
+
 
 int kill_instance(CSOUND *csound, KILLOP *p) {
   if (LIKELY(*p->inst)) xturnoff(csound, (INSDS *) ((long)*p->inst));
@@ -1093,8 +1073,6 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
   if (!(pip->reinitflag | pip->tieflag)) {
     /* get instance */
-    if(csound->oparms->realtime)
-      csoundSpinLock(&csound->alloc_spinlock);
     if (csound->engineState.instrtxtp[instno]->act_instance == NULL)
       instance(csound, instno);
     p->ip = csound->engineState.instrtxtp[instno]->act_instance;
@@ -1113,8 +1091,6 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     p->ip->opcod_deact = NULL;
     saved_curip->subins_deact = (void*) p;
     p->parent_ip = p->buf.parent_ip = saved_curip;
-    if(csound->oparms->realtime)
-      csoundSpinUnLock(&csound->alloc_spinlock);
   }
 
   p->ip->ksmps = CS_KSMPS;
@@ -1256,7 +1232,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
   OPCOD_IOBUFS *buf = NULL;
   MYFLT ksmps_scale;
   unsigned int local_ksmps;
-
   /* default ksmps */
   local_ksmps = CS_KSMPS;
   ksmps_scale = 1;
@@ -1281,14 +1256,11 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
   }
 
   if (!p->ip) {
-    if(csound->oparms->realtime)
-      csoundSpinLock(&csound->alloc_spinlock); 
+
     /* search for already allocated, but not active instance */
     /* if none was found, allocate a new instance */
     tp = csound->engineState.instrtxtp[instno];
     if (tp == NULL) {
-      if(csound->oparms->realtime)
-        csoundSpinUnLock(&csound->alloc_spinlock);
       return csound->InitError(csound, "Can't find instr %d (UDO %s)\n",
 			       instno, inm->name);
     }
@@ -1303,8 +1275,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     lcurip->opcod_deact = parent_ip->opcod_deact;
     lcurip->subins_deact = NULL;
     parent_ip->opcod_deact = (void*) p;
-    if(csound->oparms->realtime)
-      csoundSpinUnLock(&csound->alloc_spinlock);
     p->ip = lcurip;
     /* IV - Nov 10 2002: set up pointers to I/O buffers */
     buf = p->buf = (OPCOD_IOBUFS*) lcurip->opcod_iobufs;
@@ -1606,7 +1576,7 @@ void beatexpire(CSOUND *csound, double beat)
 void timexpire(CSOUND *csound, double time)
 {
   INSDS  *ip;
-
+ 
  strt:
   if ((ip = csound->frstoff) != NULL && ip->offtim <= time) {
     do {
@@ -1620,10 +1590,12 @@ void timexpire(CSOUND *csound, double time)
 	  csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
 #endif
 	schedofftim(csound, ip);
+
 	goto strt;                    /* and start again */
       }
-      else
+      else {
 	deact(csound, ip);    /* IV - Sep 5 2002: use deact() as it also */
+      }
     }                         /* deactivates subinstrument instances */
     while ((ip = ip->nxtoff) != NULL && ip->offtim <= time);
     csound->frstoff = ip;

@@ -128,7 +128,7 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
 {
     int   indx;
     if (csound->ISSTRCOD(*(p->indx))) {
-      char *ss = csound->currevent->strarg;
+      char *ss = csound->init_event->strarg;
       if (ss == NULL)
         return OK;
       ss = get_arg_string(csound, *p->indx);

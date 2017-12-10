@@ -1780,6 +1780,7 @@ typedef struct _alloc_data_ {
     volatile unsigned long alloc_queue_items;
     unsigned long alloc_queue_wp;
     int alloc_spinlock;
+    EVTBLK *init_event;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
