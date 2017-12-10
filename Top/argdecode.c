@@ -1179,6 +1179,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->info_message_request = 1;
       return 1;
     }
+    else if (!(strcmp(s, "aft-zero"))){
+      O->aft_zero = 1;
+      return 1;
+    }
 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
