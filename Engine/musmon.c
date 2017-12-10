@@ -922,6 +922,8 @@ int sensevents(CSOUND *csound)
       return 1;                         /* abort with perf incomplete */
     }
     /* if turnoffs pending, remove any expired instrs */
+    if(csound->oparms->realtime)
+     csoundSpinLock(&csound->alloc_spinlock);
     if (UNLIKELY(csound->frstoff != NULL)) {
       double  tval;
       /* the following comparisons must match those in schedofftim() */
@@ -931,9 +933,12 @@ int sensevents(CSOUND *csound)
       }
       else {
         tval = ((double)csound->icurTime + csound->ksmps * 0.505)/csound->esr;
-        if (csound->frstoff->offtim <= tval) timexpire(csound, tval);
+        if (csound->frstoff->offtim <= tval)
+	  timexpire(csound, tval);
       }
     }
+    if(csound->oparms->realtime)
+      csoundSpinUnLock(&csound->alloc_spinlock);
     e = &(csound->evt);
     if (--(csound->cyclesRemaining) <= 0) { /* if done performing score segment: */
       if (!csound->cyclesRemaining) {
@@ -945,6 +950,7 @@ int sensevents(CSOUND *csound)
       else                                  /* this should only happen at */
         csound->cyclesRemaining = 0;        /* beginning of performance   */
     }
+    
  retest:
     while (csound->cyclesRemaining <= 0) {   /* read each score event:     */
       if (e->opcod != '\0') {
@@ -1159,6 +1165,7 @@ static inline uint64_t time2kcnt(CSOUND *csound, double tval)
     }
     return 0UL;
 }
+
 
 /* Schedule new score event to be played. 'time_ofs' is the amount of */
 /* time in seconds to add to evt->p[2] to get the actual start time   */

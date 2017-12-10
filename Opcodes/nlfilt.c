@@ -214,18 +214,18 @@ static int nlfilt2(CSOUND *csound, NLFILT *p)
 /*     ival    pfld indx */
 int pcount(CSOUND *csound, PFIELD *p)
 {
-    *p->ians = (MYFLT) csound->currevent->pcnt;
+    *p->ians = (MYFLT) csound->init_event->pcnt;
     return OK;
 }
 
 int pvalue(CSOUND *csound, PFIELD *p)
 {
     int n = (int)(*p->index);
-    if (UNLIKELY(csound->currevent==NULL || n<1 || n>csound->currevent->pcnt)) {
+    if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
       *p->ians = FL(0.0);       /* For tidyness */
       return NOTOK;             /* Should this be an error?? */
     }
-    *p->ians = csound->currevent->p[n];
+    *p->ians = csound->init_event->p[n];
     return OK;
 }
 
@@ -234,19 +234,19 @@ int pinit(CSOUND *csound, PINIT *p)
     int n;
     int x = 1;
     int    nargs = p->OUTOCOUNT;
-    int    pargs = csound->currevent->pcnt;
+    int    pargs = csound->init_event->pcnt;
     int    start = (int)(*p->start);
     /* Should check that inits exist> */
     if (UNLIKELY(nargs>pargs))
       csound->Warning(csound, Str("More arguments than p fields"));
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
-      if (csound->ISSTRCOD(csound->currevent->p[n+start])) {
+      if (csound->ISSTRCOD(csound->init_event->p[n+start])) {
         ((STRINGDAT *)p->inits[n])->data =
-          cs_strdup(csound, get_arg_string(csound, csound->currevent->p[n+start]));
+          cs_strdup(csound, get_arg_string(csound, csound->init_event->p[n+start]));
         ((STRINGDAT *)p->inits[n])->size =
           strlen(((STRINGDAT *)p->inits[n])->data)+1;
       }
-      else  *p->inits[n] = csound->currevent->p[n+start];
+      else  *p->inits[n] = csound->init_event->p[n+start];
       x <<= 1;
     }
     return OK;
