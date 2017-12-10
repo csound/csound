@@ -46,7 +46,7 @@ def showHelp():
     print message
 
 def runTest():
-    runArgs = "-Wdo test.wav"
+    runArgs = "-n" # VL: best not to write audio when testing, can be disabled if needed
 
     if (parserType == "--old-parser"):
         print "Testing with old parser"
