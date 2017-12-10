@@ -188,9 +188,9 @@ int pfun(CSOUND *csound, PFUN *p)
     int n = (int)MYFLT2LONG(*p->pnum);
     MYFLT ans;
     if (n<1) ans = FL(0.0);
-    else if (n<PMAX) ans = csound->currevent->p[n];
-    else if (csound->currevent->c.extra && n<PMAX+csound->currevent->c.extra[0])
-      ans = csound->currevent->c.extra[n-PMAX+1];
+    else if (n<PMAX) ans = csound->init_event->p[n];
+    else if (csound->init_event->c.extra && n<PMAX+csound->init_event->c.extra[0])
+      ans = csound->init_event->c.extra[n-PMAX+1];
     else ans = FL(0.0);
     /*csound->Message(csound, "p(%d) %f\n", n,ans);*/
     *p->ans = ans;
@@ -202,13 +202,13 @@ int pfunk_init(CSOUND *csound, PFUNK *p)
     int i, n = (int)MYFLT2LONG(*p->pnum);
     MYFLT ans, *pfield;
     if (n<1 || n>PMAX) ans = FL(0.0);
-    else ans = csound->currevent->p[n];
+    else ans = csound->init_event->p[n];
     /* save the pfields of the current event */
     csound->AuxAlloc(csound,
-                     (csound->currevent->pcnt+1)*sizeof(MYFLT), &p->pfield);
+                     (csound->init_event->pcnt+1)*sizeof(MYFLT), &p->pfield);
     pfield = p->pfield.auxp;
-    for (i=1; i<=csound->currevent->pcnt; i++)
-      pfield[i] = csound->currevent->p[i];
+    for (i=1; i<=csound->init_event->pcnt; i++)
+      pfield[i] = csound->init_event->p[i];
     *p->ans = ans;
     return OK;
 }
