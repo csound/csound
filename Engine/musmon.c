@@ -680,6 +680,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     csound->currevent = evt;
     switch (evt->opcod) {                       /* scorevt or Linevt:     */
     case 'e':           /* quit realtime */
+      csound->event_insert_loop = 0;
     case 'l':
     case 's':
       while (csound->frstoff != NULL) {
@@ -1115,6 +1116,8 @@ int sensevents(CSOUND *csound)
     /* no score event at this time, return to continue performance */
     return 0;
  scode:
+    /* get out here in realtime mode */
+    if(csound->oparms->realtime && retval == 2) return retval;
     /* end of section (retval == 1), score (retval == 2), */
     /* or lplay list (retval == 3) */
     if (getRemoteInsRfdCount(csound))
