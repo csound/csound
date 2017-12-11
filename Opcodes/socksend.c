@@ -414,10 +414,10 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     unsigned int     bsize;
     
-    //if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (unsigned int) p->type->size + 4))
-    //return csound->InitError(csound,
-    //                         Str("insufficient number of arguments for "
-    //                             "OSC message types\n"));
+    if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (unsigned int) p->type->size + 4))
+       return csound->InitError(csound,
+                             Str("insufficient number of arguments for "
+                                 "OSC message types\n"));
 
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
