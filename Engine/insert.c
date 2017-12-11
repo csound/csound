@@ -388,6 +388,9 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
 		      "Calling schedofftim line %d; offtime= %lf (%lf)\n",
 		      __LINE__, ip->offtim, ip->offtim*csound->ekr);
 #endif
+    if(csound->oparms->realtime) // compensate for possible late starts
+      ip->offtim += (csound->icurTime/csound->esr -  ip->p2.value);
+    //printf("%lf \n",   );
     schedofftim(csound, ip);                  /*   put in turnoff list */
   }
   else {
