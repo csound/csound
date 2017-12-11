@@ -1765,6 +1765,7 @@ typedef struct NAME__ {
     volatile long msg_queue_rstart; /* Reader - start index */
     volatile long msg_queue_items;
     void     *directory;
+    int      aftouch;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

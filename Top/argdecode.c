@@ -305,6 +305,7 @@ static const char *longUsageList[] = {
   Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, "
                                    "PFFFT = 1, vDSP =2)"),
   Str_noop("--udp-echo              echo UDP commands on terminal"),
+  Str_noop("--aft-zero              set atftertouch to zero, not 127 (default)"),
   " ",
   Str_noop("--help                  long help"),
   NULL
@@ -1179,7 +1180,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->info_message_request = 1;
       return 1;
     }
-
+    else if (!(strcmp(s, "aft-zero"))){
+      csound->aftouch = 0;
+      return 1;
+    }
+ 
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }
