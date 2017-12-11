@@ -192,9 +192,9 @@ void midi_ctl_reset(CSOUND *csound, int16 chan)
     chn->pbensens = FL(2.0);                    /*   pitch bend range */
     chn->datenabl = 0;
     /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
-    chn->aftouch = FL(127.0);
+    chn->aftouch = csound->aftouch;
     for (i = 0; i < 128; i++)
-      chn->polyaft[i] = FL(127.0);
+      chn->polyaft[i] = csound->aftouch;
     /* controller 64 has just been set to zero: terminate any held notes */
     if (chn->ksuscnt && !MGLOB(rawControllerMode))
       sustsoff(csound, chn);
