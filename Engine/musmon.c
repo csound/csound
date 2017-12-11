@@ -358,6 +358,10 @@ int musmon(CSOUND *csound)
     if (csound->oparms->realtime && csound->event_insert_loop == 0){
       extern void *event_insert_thread(void *);
       csound->init_pass_threadlock = csoundCreateMutex(0);
+      #ifdef HAVE_PTHREAD_SPIN_LOCK
+     pthread_spin_init((pthread_spinlock_t*)&csound->alloc_spinlock,
+                       PTHREAD_PROCESS_PRIVATE);
+     #endif
       csound->event_insert_loop = 1;
       csound->alloc_queue = (ALLOC_DATA *)
 	csound->Calloc(csound, sizeof(ALLOC_DATA)*MAX_ALLOC_QUEUE);
