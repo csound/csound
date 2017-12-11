@@ -532,10 +532,33 @@ NM              [nm]
                   do {
                     c = input(yyscanner);
                   } while (isblank(c));
-                  while (isdigit(c)) {
+                  if (c=='$') { // macro to yield count
+                    char buf[256];
+                    int i=0;
+                    MACRO* mm;
+                    //printf("*** macro count\n");
+                    while (!isblank(c=input(yyscanner)) && c!='.') {
+                      buf[i++] = c;
+                    }
+                    if (c=='.') c = input(yyscanner);
+                    buf[i] = '\0';
+                    //printf("*** lookup macro %s\n", buf);
+                    if ((mm = find_definition(PARM->macros, buf))==NULL) {
+                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
+                     //csound->LongJmp(csound, 1);
+                     corfile_puts(csound, "$error", PARM->cf);
+                     PARM->repeat_cnt_n[PARM->repeat_index] = 0;
+                    }
+                   else
                     PARM->repeat_cnt_n[PARM->repeat_index] =
+                      atoi(mm->body);
+                  }
+                  else {
+                    while (isdigit(c)) {
+                      PARM->repeat_cnt_n[PARM->repeat_index] =
                       10 * PARM->repeat_cnt_n[PARM->repeat_index] + c - '0';
-                    c = input(yyscanner);
+                      c = input(yyscanner);
+                    }
                   }
                   if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0
                                || !isspace(c)))
