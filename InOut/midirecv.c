@@ -174,8 +174,10 @@ static void sustsoff(CSOUND *csound, MCHNBLK *chn)
 
 void midi_ctl_reset(CSOUND *csound, int16 chan)
 {
+    OPARMS  *O = csound->oparms;
     MCHNBLK *chn;
     int     i;
+    int     aftouchInit;
 
     chn = csound->m_chnbp[chan];
     for (i = 1; i <= 135; i++)                  /* from ctlr 1 to ctlr 128 */
@@ -192,9 +194,13 @@ void midi_ctl_reset(CSOUND *csound, int16 chan)
     chn->pbensens = FL(2.0);                    /*   pitch bend range */
     chn->datenabl = 0;
     /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
-    chn->aftouch = FL(127.0);
+    if (O->aft_zero)
+      aftouchInit = 0;
+    else
+      aftouchInit = 127;
+    chn->aftouch = FL(aftouchInit);
     for (i = 0; i < 128; i++)
-      chn->polyaft[i] = FL(127.0);
+      chn->polyaft[i] = FL(aftouchInit);
     /* controller 64 has just been set to zero: terminate any held notes */
     if (chn->ksuscnt && !MGLOB(rawControllerMode))
       sustsoff(csound, chn);
