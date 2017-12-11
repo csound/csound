@@ -413,10 +413,11 @@ typedef struct {
 static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     unsigned int     bsize;
-    if (UNLIKELY(p->INOCOUNT < (unsigned int) p->type->size + 4))
-      return csound->InitError(csound,
-                               Str("insufficient number of arguments for "
-                                   "OSC message types\n"));
+    
+    //if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (unsigned int) p->type->size + 4))
+    //return csound->InitError(csound,
+    //                         Str("insufficient number of arguments for "
+    //                             "OSC message types\n"));
 
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
@@ -440,11 +441,12 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 #endif
     p->server_addr.sin_port = htons((int) *p->port);    /* the port */
 
-    if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
+    if(p->INCOUNT > 4) {
+              if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
       /* allocate space for the types buffer */
       csound->AuxAlloc(csound, strlen(p->type->data), &p->types);
     memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
-
+      
     // todo: parse type to allocate memory
     int i, iarg = 0;
     STRINGDAT *s;
@@ -517,6 +519,18 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       memset(p->aux.auxp, 0, bsize);
     }
     p->iargs = iarg;
+    } else {
+      bsize = strlen(p->dest->data)+1;
+      bsize = ceil(bsize/4.)*4;;
+    if (p->aux.auxp == NULL || bsize > p->aux.size)
+      /* allocate space for the buffer */
+      csound->AuxAlloc(csound, bsize, &p->aux);
+    else {
+      memset(p->aux.auxp, 0, bsize);
+    }
+
+    }
+      
     p->last = FL(0.0);
     return OK;
 }
@@ -564,6 +578,7 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
       memcpy(out,p->dest->data,size);
       size = ceil(size/4.)*4;
       buffersize += size;
+      if(p->INCOUNT > 4) {
       /* package type in a 4-byte zero-padded block;
          add a comma to the beginning of the type string.
       */
@@ -753,6 +768,7 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         }
       }
+      }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
         return csound->PerfError(csound, p->h.insdshead, Str("OSCsend2 failed"));
@@ -779,7 +795,7 @@ static OENTRY socksend_localops[] = {
     (SUBR) send_sendS },
   { "stsend", S(SOCKSEND), 0, 5, "", "aSi", (SUBR) init_ssend, NULL,
     (SUBR) send_ssend },
-  { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init,
+  { "OSCsend", S(OSCSEND2), 0, 3, "", "kSk*", (SUBR)osc_send2_init,
     (SUBR)osc_send2 }
 };
 
