@@ -99,6 +99,8 @@ to a remote address:port.
 
 - new option: --udp-echo echoes messages sent to the UDP server
 
+- new option: --aft-zero sets initial after-touch value to zero rather than 127
+
 ### Modified Opcodes and Gens
 
 - loscil/loscil3 accept floating point increment.
