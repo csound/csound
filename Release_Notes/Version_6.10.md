@@ -94,12 +94,11 @@ limited to an integer.
 
 - new option: --udp-console=address:port  redirects console to a remote address:port.
 
-- new option: --udp-mirror-console=address:port  mirrors the console
-to a remote address:port.
+- new option: --udp-mirror-console=address:port  mirrors the console to a remote address:port.
 
 - new option: --udp-echo echoes messages sent to the UDP server
 
-- new option: --aft-zero sets initial after-touch value to zero rather than 127
+- new option: --aft-zero sets initial after-touch value to zero rather than 127.
 
 ### Modified Opcodes and Gens
 
@@ -220,9 +219,9 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 
 - Windows
 
- - Now compiled with Microsoft Visual Studio 2017 or later.
+ - Now compiles with Microsoft Visual Studio 2015 or later.
 
- - Continuous integration for Windows with AppVeyor.
+ - Continuous integration for Windows with AppVeyor (Visual Studio 2017).
 
  - The AppVeyor build and installer now includes CsoundVST and the vst4cs
    opcodes that enable hosting VST plugins in Csound. The LGPL v2.1
@@ -233,6 +232,7 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 - OSX
 
 - GNU/Linux
+
   ALSA MIDI backend now ignores some spurious -ENOENT error codes.
 
 ==END==
