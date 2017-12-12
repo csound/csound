@@ -71,10 +71,11 @@
 
 void VSTPlugin::initializeOpcodes()
 {
-    if (opcodeRefCount()) {
-      opcodeRefCount()++;
-      return;
+    static bool opcodes_initialized = false;
+    if (opcodes_initialized) {
+        return;
     }
+    opcodes_initialized = true;
     dispatchOpcodes().insert(std::pair<long,
                              std::string>((long) effOpen, "effOpen"));
     dispatchOpcodes().insert(std::pair<long,
@@ -446,7 +447,6 @@ void VSTPlugin::initializeOpcodes()
                            std::string>((long)audioMasterGetInputSpeakerArrangement,
                                         "audioMasterGetInputSpeakerArrangement"));
 
-    opcodeRefCount()++;
 }
 
 VSTPlugin::VSTPlugin(CSOUND *csound_)
@@ -472,7 +472,6 @@ VSTPlugin::VSTPlugin(CSOUND *csound_)
 VSTPlugin::~VSTPlugin()
 {
     Free();
-    opcodeRefCount()--;
 }
 
 bool VSTPlugin::AddMIDI(int data, int deltaFrames, int detune)

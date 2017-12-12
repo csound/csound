@@ -64,6 +64,41 @@ struct LockGuard {
     void *mutex;
 };
 
+/**
+ * Use this to store a pointer to a global heap-allocated object, e.g. one 
+ * used to manage state between opcode instances.
+ */
+
+template<typename T> int CreateGlobalPointer(CSOUND *csound, const char *name, T *pointer)
+{
+    T **pointer_to_pointer = 0;
+    int result = csound->CreateGlobalVariable(csound, name, sizeof(pointer_to_pointer));
+    pointer_to_pointer = static_cast<T **>(csound->QueryGlobalVariable(csound, name));
+    *pointer_to_pointer = pointer;
+    return result;
+}
+
+/**
+ * Retrieve a pointer to a global heap-allocated object, e.g. one 
+ * used to manage state between opcode instances.
+ */
+template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*& pointer)
+{
+    T **pointer_to_pointer = static_cast<T **>(csound->QueryGlobalVariableNoCheck(csound, name));
+    pointer = *pointer_to_pointer;
+    return pointer;
+}
+
+/**
+ * Release a pointer to a global heap-allocated object, e.g. one used to 
+ * manage state between opcode instances. The object should first have been deleted.
+ */
+template<typename T> void DestroyGlobalVariable(CSOUND *csound, const char *name, T *pointer)
+{
+    int result = csound->DestroyGlobalVariable(csound, name);
+    delete pointer;
+}
+
 template<typename T>
 class OpcodeBase
 {
