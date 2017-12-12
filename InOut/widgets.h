@@ -166,9 +166,15 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-  STRINGDAT  *itext;
-  MYFLT *ihandle;
+    STRINGDAT  *itext;
+    MYFLT   *ihandle;
 } FL_SET_TEXT;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ndx;
+    MYFLT   *ihandle;
+} FL_SET_TEXTi;
 
 typedef struct {
     OPDS    h;
