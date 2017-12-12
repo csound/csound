@@ -8309,7 +8309,7 @@ msgstr "DEBUT de JackoState::close()...\n"
 
 #: Opcodes/jacko.cpp:596
 msgid "Jack client deactivated.\n"
-msgstr ""
+msgstr "Client Jack désactivé.\n"
 
 #: Opcodes/jacko.cpp:634
 msgid "ENDED JackoState::close().\n"
@@ -8317,15 +8317,15 @@ msgstr "FIN de JackoState::close().\n"
 
 #: Opcodes/jacko.cpp:676
 msgid "Jacko performance finished.\n"
-msgstr ""
+msgstr "Exécution de jacko terminée.\n"
 
 #: Opcodes/jacko.cpp:699
 msgid "Jacko is now driving Csound performance...\n"
-msgstr ""
+msgstr "Jacko conduit maintenant l'exécution de Csound...\n"
 
 #: Opcodes/jacko.cpp:703
 msgid "Jacko has quit driving Csound performance.\n"
-msgstr ""
+msgstr "Jacko ne conduit plus l'exécution de Csound.\n"
 
 #: Opcodes/jacko.cpp:894
 #, c-format
@@ -11557,8 +11557,8 @@ msgstr ""
 "--udp-echo              affiche les commandes UPD en écho sur le terminal"
 
 #: Top/argdecode.c:308
-msgid "--aft-zero              set atftertouch to zero, not 127 (default)"
-msgstr ""
+msgid "--aft-zero              set aftertouch to zero, not 127 (default)"
+msgstr "--aft-zero              fixe l'aftertouch à 0, pas 127 (par défaut)"
 
 #: Top/argdecode.c:310
 msgid "--help                  long help"
