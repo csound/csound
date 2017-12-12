@@ -3222,9 +3222,9 @@ extern "C" {
       return OK;
   }
 
-  static int fl_box_(CSOUND *csound, FL_BOX *p)
+  static int fl_box_(CSOUND *csound, FL_BOX *p, char *text)
   {
-      char *text = p->itext->data;
+      //char *text = p->itext->data;
       Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
                               (int)*p->iwidth, (int)*p->iheight, text);
       widget_attributes(csound, o);
@@ -3290,6 +3290,19 @@ extern "C" {
       return OK;
   }
 
+  static int fl_box_s(CSOUND *csound, FL_BOX *p)
+  {
+    return fl_box_(csound, p, p->itext->data);
+  }
+  static int fl_box_i(CSOUND *csound, FL_BOX *p)
+  {
+    int i = (int)*((MYFLT*)p->itext);
+    char* text;
+    if (i<0 || i>csound->GetStrsmax(csound)) text = "???";
+    else if ((text=csound->GetStrsets(csound,i))==NULL) text = "???";
+    return fl_box_(csound, p, text);
+  }
+
   static int fl_setText(CSOUND *csound, FL_SET_TEXT *p)
   {
       WIDGET_GLOBALS *widgetGlobals =
@@ -3297,6 +3310,20 @@ extern "C" {
       char *text = p->itext->data;
       ADDR_SET_VALUE v = widgetGlobals->AddrSetValue[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
+      o->label(text);
+      return OK;
+  }
+
+  static int fl_setTexti(CSOUND *csound, FL_SET_TEXTi *p)
+  {
+      WIDGET_GLOBALS *widgetGlobals =
+        (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+      int i = (int)(*p->ndx);
+      char *text ;
+      ADDR_SET_VALUE v = widgetGlobals->AddrSetValue[(int) *p->ihandle];
+      Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
+      if (i<0 || i>csound->GetStrsmax(csound)) text = "???";
+      else if ((text=csound->GetStrsets(csound,i))==NULL) text = "???";
       o->label(text);
       return OK;
   }
@@ -5956,8 +5983,10 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR) fl_setFont,              (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLsetTextType", S(FL_SET_FONT), 0, 1,  (char*)"",     (char*)"ii",
     (SUBR) fl_setTextType,          (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLsetText",   S(FL_SET_TEXT),  0, 1,  (char*)"",     (char*)"Ti",
+  { (char*)"FLsetText",   S(FL_SET_TEXT),  0, 1,  (char*)"",     (char*)"Si",
     (SUBR) fl_setText,              (SUBR) NULL,              (SUBR) NULL },
+  { (char*)"FLsetText",   S(FL_SET_TEXTi),  0, 1,  (char*)"",     (char*)"ii",
+    (SUBR) fl_setTexti,              (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLsetSize",   S(FL_SET_SIZE),  0, 1,  (char*)"",     (char*)"iii",
     (SUBR) fl_setSize,              (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLsetPosition", S(FL_SET_POSITION), 0, 1,  (char*)"", (char*)"iii",
@@ -5971,7 +6000,9 @@ const OENTRY widgetOpcodes_[] = {
   { (char*)"FLsetAlign",  S(FL_TALIGN),    0, 1,  (char*)"",     (char*)"ii",
     (SUBR) fl_align,                (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLbox",       S(FL_BOX),       0, 1,  (char*)"i", (char*)"Siiiiiii",
-    (SUBR) fl_box_,                  (SUBR) NULL,              (SUBR) NULL },
+    (SUBR) fl_box_s,                  (SUBR) NULL,              (SUBR) NULL },
+  { (char*)"FLbox",       S(FL_BOX),       0, 1,  (char*)"i", (char*)"iiiiiiii",
+    (SUBR) fl_box_i,                  (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLvalue",     S(FLVALUE),      0, 1,  (char*)"i",    (char*)"Sjjjj",
     (SUBR) fl_value,                (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLpanel",     S(FLPANEL),      0, 1,  (char*)"",  (char*)"Sjjjoooo",

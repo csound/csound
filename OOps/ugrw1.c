@@ -1063,7 +1063,8 @@ int printksset(CSOUND *csound, PRINTKS *p){
 /* VL - rewritten 1/16
    escaping %% correctly now.
  */
-static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
+static int sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
+{
     char tmp[8],cc;
     int j = 0;
     int len = 8192;
@@ -1093,6 +1094,7 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
           tmp[n] = *(fmt+n);
           tmp[n+1] = '\0';
           n++;
+          if (j>=numVals) return NOTOK;
           switch (check) {
           case 'd':
           case 'i':
@@ -1126,6 +1128,7 @@ static void sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals){
         len--;
       }
     }
+    return OK;
 }
 
 
@@ -1170,7 +1173,10 @@ int printks(CSOUND *csound, PRINTKS *p)
       /* Do the print cycle. */
       //string[0]='\0';           /* incase of empty string */
       memset(string,0,8192);
-      sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2);
+      if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)==NOTOK)
+        return
+          csound->PerfError(csound,  p->h.insdshead,
+                            Str("Insufficient arguments in formatted printing"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     }
     return OK;
@@ -1188,7 +1194,10 @@ int printsset(CSOUND *csound, PRINTS *p)
     pk.ptime = &ptime;
     printksset(csound, &pk);
     memset(string,0,8192);
-    sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
+    if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)==NOTOK)
+        return
+          csound->PerfError(csound,  p->h.insdshead,
+                            Str("Insufficient arguments in formatted printing"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
 }
@@ -1205,7 +1214,10 @@ int printsset_S(CSOUND *csound, PRINTS *p)
     printksset_S(csound, &pk);
     if (strlen(pk.txtstring) < 8191){
       memset(string,0,8192);
-    sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1);
+    if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)==NOTOK)
+        return
+          csound->PerfError(csound,  p->h.insdshead,
+                            Str("Insufficient arguments in formatted printing"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     } else {
       csound->Warning(csound,
@@ -1307,7 +1319,10 @@ int printk3(CSOUND *csound, PRINTK3 *p)
       MYFLT *vv[1];
       vv[0] = &value;
       buff[0] = '\0';
-      sprints(buff, p->sarg, vv, 1);
+      if (sprints(buff, p->sarg, vv, 1)==NOTOK)
+        return
+          csound->PerfError(csound,  p->h.insdshead,
+                            Str("Insufficient arguments in formatted printing"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buff);
       p->oldvalue = value;
     }

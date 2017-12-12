@@ -4009,121 +4009,121 @@ msgstr "FLvalue ne peut pas être rempli par FLsetVal\n"
 msgid "(fl_setWidgetValue_set): not fully implemented yet; exp=%d"
 msgstr "(fl_setWidgetValue_set) : pas encore totalement implémenté ; exp=%d"
 
-#: InOut/widgets.cpp:3484 InOut/widgets.cpp:4984
+#: InOut/widgets.cpp:3511 InOut/widgets.cpp:5011
 msgid "FLslider exponential, using non-labeled slider"
 msgstr "FLslider exponentiel, utilisation d'une règlette sans étiquette"
 
-#: InOut/widgets.cpp:3507
+#: InOut/widgets.cpp:3534
 msgid "FLslider: invalid slider type"
 msgstr "FLslider : type de règlette non valide"
 
-#: InOut/widgets.cpp:3520 InOut/widgets.cpp:4365
+#: InOut/widgets.cpp:3547 InOut/widgets.cpp:4392
 msgid "FLslider: zero is illegal in exponential operations"
 msgstr "FLslider : zéro est interdit dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:3586 InOut/widgets.cpp:4720 InOut/widgets.cpp:4946
-#: InOut/widgets.cpp:5138
+#: InOut/widgets.cpp:3613 InOut/widgets.cpp:4747 InOut/widgets.cpp:4973
+#: InOut/widgets.cpp:5165
 msgid "invalid ZAK space allocation"
 msgstr "espace d'allocation ZAK non valide"
 
-#: InOut/widgets.cpp:3701
+#: InOut/widgets.cpp:3728
 msgid "FLslidBnk: zero is illegal in exponential operations"
 msgstr "FLslidBnk : zéro est interdit dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:3810 InOut/widgets.cpp:3844
+#: InOut/widgets.cpp:3837 InOut/widgets.cpp:3871
 msgid "FLjoy X axe: zero is illegal in exponential operations"
 msgstr "FLjoy axe X : zéro est interdit dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:3941
+#: InOut/widgets.cpp:3968
 msgid "FLknob: invalid knob type"
 msgstr "FLknob : type de bouton rotatif non valide"
 
-#: InOut/widgets.cpp:3957
+#: InOut/widgets.cpp:3984
 msgid "FLknob: zero is illegal in exponential operations"
 msgstr "FLknob : zéro est interdit dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:4062 InOut/widgets.cpp:4195
+#: InOut/widgets.cpp:4089 InOut/widgets.cpp:4222
 #, c-format
 msgid "FLbutton \"%s\" ignoring snapshot capture retrieve"
 msgstr "FLbutton \"%s\" ignore les instantanés de capture et de restitution"
 
-#: InOut/widgets.cpp:4104
+#: InOut/widgets.cpp:4131
 msgid "FLbutton: invalid button type"
 msgstr "FLbutton : type de bouton non valide"
 
-#: InOut/widgets.cpp:4140
+#: InOut/widgets.cpp:4167
 msgid "FLcloseButton: invalid stack pointer: verify its placement"
 msgstr "FLcloseButton : pointeur de pile non valide : vérifier sa position"
 
-#: InOut/widgets.cpp:4162
+#: InOut/widgets.cpp:4189
 #, c-format
 msgid "Command Found: %s\n"
 msgstr "Commande trouvée : %s\n"
 
-#: InOut/widgets.cpp:4165
+#: InOut/widgets.cpp:4192
 msgid "About"
 msgstr "A propos"
 
-#: InOut/widgets.cpp:4238
+#: InOut/widgets.cpp:4265
 msgid "FLbuttonBank: invalid button type"
 msgstr "FLbuttonBank : type de bouton non valide"
 
-#: InOut/widgets.cpp:4278
+#: InOut/widgets.cpp:4305
 #, c-format
 msgid "FLcount \"%s\" ignoring snapshot capture retrieve"
 msgstr "FLcount \"%s\" ignore les instantanés de capture et de restitution"
 
-#: InOut/widgets.cpp:4351
+#: InOut/widgets.cpp:4378
 msgid "FLroller: invalid roller type"
 msgstr "FLroller : type de molette non valide"
 
-#: InOut/widgets.cpp:4561
+#: InOut/widgets.cpp:4588
 msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
 msgstr ""
 "FLhvsBox : une surface carrée doit être délimitée par au moins 2 lignes"
 
-#: InOut/widgets.cpp:4613
+#: InOut/widgets.cpp:4640
 msgid "FLkeyIn: invalid table number"
 msgstr "FLkeyIn : numéro de table non valide"
 
-#: InOut/widgets.cpp:4617
+#: InOut/widgets.cpp:4644
 msgid "FLkeyIn: table too short!"
 msgstr "FLkeyIn : table trop courte !"
 
-#: InOut/widgets.cpp:4844
+#: InOut/widgets.cpp:4871
 msgid "FLvslidBnk: zero is illegal in exponential operations"
 msgstr "FLvslidBnk : zéro est illégal dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:5035 InOut/widgets.cpp:5228
+#: InOut/widgets.cpp:5062 InOut/widgets.cpp:5255
 msgid "FLsliderBank: zero is illegal in exponential operations"
 msgstr "FLsliderBank : zéro est illégal dans les opérations exponentielles"
 
-#: InOut/widgets.cpp:5177
+#: InOut/widgets.cpp:5204
 msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
 msgstr ""
 "FLslidBnk2 : FLslider exponentiel, utilisant une règlette sans étiquette"
 
-#: InOut/widgets.cpp:5324 InOut/widgets.cpp:5393
+#: InOut/widgets.cpp:5351 InOut/widgets.cpp:5420
 msgid "FLsldBnkSet: invalid table number"
 msgstr "FLsldBnkSet : numéro de table non valide"
 
-#: InOut/widgets.cpp:5329 InOut/widgets.cpp:5398
+#: InOut/widgets.cpp:5356 InOut/widgets.cpp:5425
 msgid "FLslidBnkSet: table too short!"
 msgstr "FLslidBnkSetk : table trop courte !"
 
-#: InOut/widgets.cpp:5338 InOut/widgets.cpp:5407
+#: InOut/widgets.cpp:5365 InOut/widgets.cpp:5434
 msgid "FLsldBnkSet: invalid outable number"
 msgstr "FLsldBnkSet : numéro de outable non valide"
 
-#: InOut/widgets.cpp:5343 InOut/widgets.cpp:5413
+#: InOut/widgets.cpp:5370 InOut/widgets.cpp:5440
 msgid "FLslidBnkSet: too many sliders to reset!"
 msgstr "FLslidBnkSet : trop de règlettes à réinitialiser !"
 
-#: InOut/widgets.cpp:5367
+#: InOut/widgets.cpp:5394
 msgid "FLslidBnkSet: function mapping not available"
 msgstr "FLslidBnkSet : type de fonction (lin. ou exp.) non disponible"
 
-#: InOut/widgets.cpp:5441 InOut/widgets.cpp:5535 InOut/widgets.cpp:5628
+#: InOut/widgets.cpp:5468 InOut/widgets.cpp:5562 InOut/widgets.cpp:5655
 msgid ""
 "FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range "
 "for input"
@@ -4131,36 +4131,36 @@ msgstr ""
 "FLslidBnk2Setk : valeur hors limites : le mappage de fonction nécessite en "
 "entrée l'intervalle de 0 à 1"
 
-#: InOut/widgets.cpp:5473
+#: InOut/widgets.cpp:5500
 msgid "FLsldBnkSetk: invalid table number"
 msgstr "FLslidBnkSetk : numéro de table non valide"
 
-#: InOut/widgets.cpp:5478 InOut/widgets.cpp:5571
+#: InOut/widgets.cpp:5505 InOut/widgets.cpp:5598
 msgid "FLslidBnkSetk: table too short!"
 msgstr "FLslidBnkSetk : table trop courte !"
 
-#: InOut/widgets.cpp:5487
+#: InOut/widgets.cpp:5514
 msgid "FLsldBnkSetk: invalid outable number"
 msgstr "FLslidBnkSetk : numéro de outable non valide"
 
-#: InOut/widgets.cpp:5493 InOut/widgets.cpp:5586
+#: InOut/widgets.cpp:5520 InOut/widgets.cpp:5613
 msgid "FLslidBnkSetk: too many sliders to reset!"
 msgstr "FLslidBnkSetk : trop de règlettes à réinitialiser !"
 
-#: InOut/widgets.cpp:5566
+#: InOut/widgets.cpp:5593
 msgid "FLslidBnkSetk: invalid table number"
 msgstr "FLslidBnkSetk : numéro de table non valide"
 
-#: InOut/widgets.cpp:5580
+#: InOut/widgets.cpp:5607
 msgid "FLslidBnkSetk: invalid outable number"
 msgstr "FLslidBnkSetk : numéro de outable non valide"
 
-#: InOut/widgets.cpp:5661
+#: InOut/widgets.cpp:5688
 msgid "FLxyin: none of X limits can be zero in exponential mode!"
 msgstr ""
 "FLxyin : aucune des limites de X ne peut être zéro en mode exponentiel !"
 
-#: InOut/widgets.cpp:5688
+#: InOut/widgets.cpp:5715
 msgid "FLxyin: none of Y limits can be zero in exponential mode!"
 msgstr ""
 "FLxyin : aucune des limites de Y ne peut être zéro en mode exponentiel !"
@@ -4239,46 +4239,46 @@ msgstr "Pas de table d'accordage %d"
 msgid "cpstun: invalid table"
 msgstr "cpstun : table non valide"
 
-#: OOps/aops.c:1611 OOps/aops.c:1659
+#: OOps/aops.c:1634 OOps/aops.c:1682
 #, c-format
 msgid "Input channel %d too large; ignored"
 msgstr "Canal d'entrée %d trop grand ; ignoré"
 
-#: OOps/aops.c:1617 OOps/aops.c:1665
+#: OOps/aops.c:1640 OOps/aops.c:1688
 #, c-format
 msgid "Input channel %d is invalid; ignored"
 msgstr "Canal d'entrée %d non valide ; ignoré"
 
-#: OOps/aops.c:1654
+#: OOps/aops.c:1677
 msgid "Input and output argument count differs in inch"
 msgstr "Les nombres d'arguments d'entrée et de sortie différent dans inch"
 
-#: OOps/aops.c:1742
+#: OOps/aops.c:1769
 msgid "Channel greater than nchnls"
 msgstr "Canal supérieur à nchnls"
 
-#: OOps/aops.c:1890
+#: OOps/aops.c:1917
 msgid "Excess channels ignored\n"
 msgstr "Canaux en excès ignorés\n"
 
-#: OOps/aops.c:2031
+#: OOps/aops.c:2058
 msgid "Unknown function called"
 msgstr "Appel de fonction inconnue"
 
-#: OOps/aops.c:2064
+#: OOps/aops.c:2091
 msgid "number of arguments != nchnls"
 msgstr "nombre d'arguments != nchnls"
 
-#: OOps/aops.c:2093
+#: OOps/aops.c:2120
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 "outrg : le numéro de canal ne peut pas être < 1 (1 est le premier canal)"
 
-#: OOps/aops.c:2126
+#: OOps/aops.c:2153
 msgid "number of hardware output channels not currently available"
 msgstr "nombre de canaux matériels en sortie non disponible"
 
-#: OOps/aops.c:2132
+#: OOps/aops.c:2159
 msgid "number of hardware input channels not currently available"
 msgstr "nombre de canaux matériels en entrée non disponible"
 
@@ -6090,32 +6090,37 @@ msgstr "printk n'est pas initialisé"
 msgid "time %11.5f: "
 msgstr "temps %11.5f :"
 
-#: OOps/ugrw1.c:956 OOps/ugrw1.c:965 OOps/ugrw1.c:1148
+#: OOps/ugrw1.c:956 OOps/ugrw1.c:965 OOps/ugrw1.c:1151
 msgid "null string\n"
 msgstr "chaîne nulle\n"
 
-#: OOps/ugrw1.c:1158
+#: OOps/ugrw1.c:1161
 msgid "printks not initialised"
 msgstr "printks : non initialisé"
 
-#: OOps/ugrw1.c:1212
+#: OOps/ugrw1.c:1179 OOps/ugrw1.c:1200 OOps/ugrw1.c:1220 OOps/ugrw1.c:1325
+#, fuzzy
+msgid "Insufficient arguments in formatted printing"
+msgstr "arguments insuffisants pour le format"
+
+#: OOps/ugrw1.c:1224
 #, c-format
 msgid "Formatting string too long: %s"
 msgstr "Chaîne de formatage trop longue : %s"
 
-#: OOps/ugrw1.c:1343
+#: OOps/ugrw1.c:1358
 msgid "inz index > isizea. Not writing."
 msgstr "inz : index > isizea. Pas d'écriture."
 
-#: OOps/ugrw1.c:1346
+#: OOps/ugrw1.c:1361
 msgid "inz index < 0. Not writing."
 msgstr "inz : index < 0. Pas d'écriture."
 
-#: OOps/ugrw1.c:1390 Opcodes/vbap_zak.c:208 Opcodes/vbap_zak.c:520
+#: OOps/ugrw1.c:1405 Opcodes/vbap_zak.c:208 Opcodes/vbap_zak.c:520
 msgid "outz index > isizea. No output"
 msgstr "outz : index > isizea. Pas de sortie."
 
-#: OOps/ugrw1.c:1393 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
+#: OOps/ugrw1.c:1408 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
 msgid "outz index < 0. No output."
 msgstr "outz : index < 0. Pas de sortie."
 
@@ -9800,7 +9805,7 @@ msgstr "OSCraw : fermeture du socket\n"
 
 #: Opcodes/sockrecv.c:176 Opcodes/sockrecv.c:238 Opcodes/sockrecv.c:353
 #: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:554 Opcodes/socksend.c:90
-#: Opcodes/socksend.c:239 Opcodes/socksend.c:338 Opcodes/socksend.c:425
+#: Opcodes/socksend.c:239 Opcodes/socksend.c:338 Opcodes/socksend.c:426
 #: Top/server.c:232
 #, c-format
 msgid "Winsock2 failed to start: %d"
@@ -9813,7 +9818,7 @@ msgstr "Impossible de positionner nonblock"
 
 #: Opcodes/sockrecv.c:192 Opcodes/sockrecv.c:248 Opcodes/sockrecv.c:363
 #: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:566 Opcodes/socksend.c:104
-#: Opcodes/socksend.c:254 Opcodes/socksend.c:345 Opcodes/socksend.c:429
+#: Opcodes/socksend.c:254 Opcodes/socksend.c:345 Opcodes/socksend.c:430
 msgid "creating socket"
 msgstr "création du socket"
 
@@ -9844,20 +9849,20 @@ msgstr "la connexion a échoué (%d)"
 msgid "Expected %d got %d\n"
 msgstr "%d attendu, %d obtenu\n"
 
-#: Opcodes/socksend.c:418
+#: Opcodes/socksend.c:419
 msgid "insufficient number of arguments for OSC message types\n"
 msgstr "arguments insuffisants pour les types de message OSC\n"
 
-#: Opcodes/socksend.c:472
+#: Opcodes/socksend.c:474
 msgid "expecting a string argument\n"
 msgstr "argument chaîne de caractères attendu\n"
 
-#: Opcodes/socksend.c:506
+#: Opcodes/socksend.c:508
 #, c-format
 msgid "%c: data type not supported\n"
 msgstr "%c : type de donnée non supporté\n"
 
-#: Opcodes/socksend.c:758
+#: Opcodes/socksend.c:774
 msgid "OSCsend2 failed"
 msgstr "OSCsend2 a échoué"
 
