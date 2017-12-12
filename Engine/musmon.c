@@ -935,7 +935,7 @@ int sensevents(CSOUND *csound)
 #else
     csoundSpinLock(&csound->alloc_spinlock);
 #endif
-  if(trylock != 0) {
+  if(trylock == 0) {
   if (UNLIKELY(csound->frstoff != NULL)) {
     double  tval;
     /* the following comparisons must match those in schedofftim() */
