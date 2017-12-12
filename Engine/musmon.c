@@ -359,6 +359,7 @@ int musmon(CSOUND *csound)
     extern void *event_insert_thread(void *);
     csound->init_pass_threadlock = csoundCreateMutex(0);
 #ifdef HAVE_PTHREAD_SPIN_LOCK
+    csound->Message(csound, "Initialising spinlock...\n");
     pthread_spin_init((pthread_spinlock_t*)&csound->alloc_spinlock,
 		      PTHREAD_PROCESS_PRIVATE);
 #endif
@@ -916,6 +917,7 @@ int sensevents(CSOUND *csound)
   OPARMS  *O = csound->oparms;
   int     retval =  0, sensType;
   int     conn, *sinp, end_check=1;
+  int trylock = 0;
 
   csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
@@ -928,7 +930,12 @@ int sensevents(CSOUND *csound)
   }
   /* if turnoffs pending, remove any expired instrs */
   if(csound->oparms->realtime)
+#ifdef HAVE_PTHREAD_SPIN_LOCK
+    trylock = pthread_spin_trylock(&csound->alloc_spinlock);
+#else
     csoundSpinLock(&csound->alloc_spinlock);
+#endif
+  if(trylock != 0) {
   if (UNLIKELY(csound->frstoff != NULL)) {
     double  tval;
     /* the following comparisons must match those in schedofftim() */
@@ -944,6 +951,7 @@ int sensevents(CSOUND *csound)
   }
   if(csound->oparms->realtime)
     csoundSpinUnLock(&csound->alloc_spinlock);
+  }
   e = &(csound->evt);
   if (--(csound->cyclesRemaining) <= 0) { /* if done performing score segment: */
     if (!csound->cyclesRemaining) {
