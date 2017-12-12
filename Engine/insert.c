@@ -61,22 +61,12 @@ uintptr_t event_insert_thread(void *p) {
       csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
     else while(items) {
 	if(inst[rp].isMidi) {
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-          while (pthread_spin_trylock(&csound->alloc_spinlock))
-	     csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
-#else
 	  csoundSpinLock(&csound->alloc_spinlock);
-#endif
 	  insert_midi(csound, inst[rp].insno, inst[rp].chn, &inst[rp].mep);
 	  csoundSpinUnLock(&csound->alloc_spinlock);
 	}	      
 	else {
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-          while (pthread_spin_trylock(&csound->alloc_spinlock))
-	     csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
-#else
 	  csoundSpinLock(&csound->alloc_spinlock);
-#endif
 	  insert_event(csound, inst[rp].insno, &inst[rp].blk);
 	  csoundSpinUnLock(&csound->alloc_spinlock);
 	}
