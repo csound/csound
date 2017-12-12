@@ -365,7 +365,10 @@ extern "C" {
   {
       FLGRAPH_GLOBALS *flgraphGlobals =
          (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
-                                                         "FLGRAPH_GLOBALS");
+                                                        "FLGRAPH_GLOBALS");
+      if (flgraphGlobals == 0) {
+          return OK;
+      }
       if (ST(form) && ST(graph_created) == 1) {
 
         if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
