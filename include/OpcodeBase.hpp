@@ -85,7 +85,11 @@ template<typename T> int CreateGlobalPointer(CSOUND *csound, const char *name, T
 template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*& pointer)
 {
     T **pointer_to_pointer = static_cast<T **>(csound->QueryGlobalVariableNoCheck(csound, name));
-    pointer = *pointer_to_pointer;
+    if (pointer_to_pointer != 0) {
+        pointer = *pointer_to_pointer;
+    } else {
+        pointer = 0;
+    }
     return pointer;
 }
 
