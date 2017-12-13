@@ -203,11 +203,6 @@ class VSTPlugin {
     static std::map<long, std::string> dispatchOpcodes_;
     return dispatchOpcodes_;
   }
-  static size_t &opcodeRefCount()
-  {
-    static size_t opcodeRefCount_ = 0;
-    return opcodeRefCount_;
-  }
 };
 
 inline VstIntPtr VSTPlugin::Dispatch(VstInt32 opCode,
