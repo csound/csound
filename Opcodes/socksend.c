@@ -413,7 +413,7 @@ typedef struct {
 static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     unsigned int     bsize;
-    
+
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (unsigned int) p->type->size + 4))
        return csound->InitError(csound,
                              Str("insufficient number of arguments for "
@@ -446,7 +446,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       /* allocate space for the types buffer */
       csound->AuxAlloc(csound, strlen(p->type->data), &p->types);
     memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
-      
+
     // todo: parse type to allocate memory
     int i, iarg = 0;
     STRINGDAT *s;
@@ -530,7 +530,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     }
 
     }
-      
+
     p->last = FL(0.0);
     return OK;
 }
