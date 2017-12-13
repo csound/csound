@@ -1196,7 +1196,7 @@ int printsset(CSOUND *csound, PRINTS *p)
     memset(string,0,8192);
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)==NOTOK)
         return
-          csound->PerfError(csound,  p->h.insdshead,
+          csound->InitError(csound,
                             Str("Insufficient arguments in formatted printing"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
@@ -1216,7 +1216,7 @@ int printsset_S(CSOUND *csound, PRINTS *p)
       memset(string,0,8192);
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)==NOTOK)
         return
-          csound->PerfError(csound,  p->h.insdshead,
+          csound->InitError(csound,
                             Str("Insufficient arguments in formatted printing"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     } else {
