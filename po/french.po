@@ -6099,9 +6099,8 @@ msgid "printks not initialised"
 msgstr "printks : non initialisé"
 
 #: OOps/ugrw1.c:1179 OOps/ugrw1.c:1200 OOps/ugrw1.c:1220 OOps/ugrw1.c:1325
-#, fuzzy
 msgid "Insufficient arguments in formatted printing"
-msgstr "arguments insuffisants pour le format"
+msgstr "Arguments insuffisants dans l'impression formatée"
 
 #: OOps/ugrw1.c:1224
 #, c-format
