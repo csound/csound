@@ -23,6 +23,15 @@ New opcodes should not have names that start with the letters i, k, f
 or a.  This is to avoid name clashes with existing orchestras; and yes
 it has happened in the past.
 
+Coding
+------
+
+Please follow the general style; it is important not to have any static
+variables, while static fuctions are encouraged.  Any use of external
+libraries which introduces new dependencies is a potential problem and
+may be best discussed with the core team.
+
+
 Formatting/Indentation
 ----------------------
 
