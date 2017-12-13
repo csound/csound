@@ -27,9 +27,9 @@ init:
   # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.MFC
   # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.MFCLOC
   # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.OpenMP
-  - set VCREDIST_CRT_DIR=%VCToolsRedistDir%\\MSVC\\14.12.25810\\x64\\Microsoft.VC141.CRT
-  - set VCREDIST_CXXAMP_DIR=%VCINSTALLDIR%\\MSVC\\14.12.25810\\x64\\Microsoft.VC141.CXXAMP
-  - set VCREDIST_OPENMP_DIR=%VCINSTALLDIR%\\MSVC\\14.12.25810\\x64\\Microsoft.VC141.OpenMP
+  - set VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CRT
+  - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CXXAMP
+  - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.OpenMP
   - set
   - echo "Qt SDK configuration files:"
   - dir "%QTDIR%\\mkspecs"
