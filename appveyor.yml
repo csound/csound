@@ -29,6 +29,7 @@ init:
   - echo "Qt SDK configuration files:"
   - dir "%QTDIR%\\mkspecs"
   - echo "Redistributable runtime libraries:"
+  - dir /B /S "%VCToolsRedistDir%"
   - dir /B /S "%VCREDIST_CRT_DIR%"
   - dir /B /S "%VCREDIST_CXXAMP_DIR%"
   - dir /B /S "%VCREDIST_OPENMP_DIR%"
