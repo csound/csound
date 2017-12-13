@@ -644,8 +644,6 @@ extern "C" {
         #endif
         
         int result = 0;
-        //~ vstPlugEditors_t *vstPlugEditors = new vstPlugEditors_t;
-        //~ result = csound::CreateGlobalPointer (csound, "vstPlugEditors", vstPlugEditors);
         vstPlugins_t *vstPlugins = new vstPlugins_t;
         result = csound::CreateGlobalPointer (csound, "vstPlugins", vstPlugins);
         return 0;
