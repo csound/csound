@@ -95,12 +95,23 @@ template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*&
 
 /**
  * Release a pointer to a global heap-allocated object, e.g. one used to 
- * manage state between opcode instances. The object should first have been deleted.
+ * manage state between opcode instances.
  */
-template<typename T> void DestroyGlobalVariable(CSOUND *csound, const char *name, T *pointer)
+void DestroyGlobalPointer(CSOUND *csound, const char *name)
 {
     int result = csound->DestroyGlobalVariable(csound, name);
-    delete pointer;
+}
+
+/**
+ * Release a pointer to a global heap-allocated object, e.g. one used to 
+ * manage state between opcode instances. If a non-null pointer is passed, it is deleted.
+ */
+template<typename T> void DestroyGlobalPointer(CSOUND *csound, const char *name, T *pointer)
+{
+    int result = csound->DestroyGlobalVariable(csound, name);
+    if (pointer != 0) {
+        delete pointer;
+    }
 }
 
 template<typename T>
