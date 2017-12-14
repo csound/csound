@@ -54,7 +54,7 @@ extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 #define RT_SPIN_TRYLOCK { int trylock; \
   if(csound->oparms->realtime)					\
   trylock = pthread_spin_trylock(&csound->alloc_spinlock);	\
-  if(trylock = 0) {    
+  if(trylock == 0) {    
 #else
 #define RT_SPIN_TRYLOCK csoundSpinLock(&csound->alloc_spinlock);
 #endif
