@@ -49,6 +49,24 @@ extern  void    MidiClose(CSOUND *);
 extern  void    RTclose(CSOUND *);
 extern  void    remote_Cleanup(CSOUND *);
 extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
+
+#ifdef HAVE_PTHREAD_SPIN_LOCK 
+#define RT_SPIN_TRYLOCK { if(csound->oparms->realtime)		\
+  int trylock = pthread_spin_trylock(&csound->allo_spinlock);	\
+  if(trylock = 0) {    
+#else
+#define RT_SPIN_TRYLOCK csoundSpinLock(&csound->alloc_spinlock);
+#endif
+
+#ifdef HAVE_PTHREAD_SPIN_LOCK 
+#define RT_SPIN_UNLOCK \
+if(csound->oparms->realtime) \
+  csoundSpinUnLock(&csound->alloc_spinlock); \
+trylock = 0; } }
+#else
+#define RT_SPIN_UNLOCK csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+
 /* extern  void    initialize_instrument0(CSOUND *); */
 
 typedef struct evt_cb_func {
@@ -422,6 +440,8 @@ PUBLIC int csoundCleanup(CSOUND *csound)
   csoundLockMutex(csound->API_lock);
   if (csound->QueryGlobalVariable(csound,"::UDPCOM")
       != NULL) csoundUDPServerClose(csound);
+
+
 
   while (csound->evtFuncChain != NULL) {
     p = (void*) csound->evtFuncChain;
@@ -910,14 +930,12 @@ extern  int     sensMidi(CSOUND *);
 /*   0: continue performance                */
 /*   1: terminate (e.g. end of MIDI file)   */
 /*   2: normal end of score                 */
-
 int sensevents(CSOUND *csound)
 {
   EVTBLK  *e;
   OPARMS  *O = csound->oparms;
   int     retval =  0, sensType;
   int     conn, *sinp, end_check=1;
-  int trylock = 0;
 
   csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
@@ -929,13 +947,7 @@ int sensevents(CSOUND *csound)
     return 1;                         /* abort with perf incomplete */
   }
   /* if turnoffs pending, remove any expired instrs */
-  if(csound->oparms->realtime)
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-    trylock = pthread_spin_trylock(&csound->alloc_spinlock);
-#else
-    csoundSpinLock(&csound->alloc_spinlock);
-#endif
-  if(trylock == 0) {
+  RT_SPIN_TRYLOCK
   if (UNLIKELY(csound->frstoff != NULL)) {
     double  tval;
     /* the following comparisons must match those in schedofftim() */
@@ -949,9 +961,8 @@ int sensevents(CSOUND *csound)
 	timexpire(csound, tval);
     }
   }
-  if(csound->oparms->realtime)
-    csoundSpinUnLock(&csound->alloc_spinlock);
-  }
+  RT_SPIN_UNLOCK
+
   e = &(csound->evt);
   if (--(csound->cyclesRemaining) <= 0) { /* if done performing score segment: */
     if (!csound->cyclesRemaining) {
@@ -975,8 +986,10 @@ int sensevents(CSOUND *csound)
 	if (csound->frstoff != NULL) {    /* if still have notes
 					     with finite length, wait
 					     until all are turned off */
+	  RT_SPIN_TRYLOCK
 	  csound->nxtim = csound->frstoff->offtim;
 	  csound->nxtbt = csound->frstoff->offbet;
+	  RT_SPIN_UNLOCK
 	  break;
 	}
 	/* end of: 1: section, 2: score, 3: lplay list */
@@ -1164,10 +1177,12 @@ int sensevents(CSOUND *csound)
     section_amps(csound, 0);
   }
   if (retval == 1) {                        /* if s code,        */
+    RT_SPIN_TRYLOCK
     orcompact(csound);                      /*   rtn inactiv spc */
     if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
       rlsmemfiles(csound);                  /*    purge memfiles */
     csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */
   }
   return 2;                   /* done with entire score */

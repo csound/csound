@@ -912,7 +912,12 @@ static const CSOUND cenviron_ = {
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
     0,               /* alloc_queue_wp */
-    0               /* alloc_spinlock */
+    0,               /* alloc_spinlock */
+    NULL,            /* message string callback */
+    NULL,             /* message_string */
+    0,               /* message_string_queue_items */
+    0,               /* message_string_queue_wp */
+    NULL              /* message_string_queue */
     /*, NULL */           /* self-reference */
 };
 
@@ -2417,6 +2422,22 @@ PUBLIC void csoundSetDefaultMessageCallback(
     }
 }
 
+
+
+PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
+	      void (*csoundMessageStrCallback)(CSOUND *csound,
+					    int attr,
+					    const char *str)) {
+
+  if (csoundMessageStrCallback) {
+    if(csound->message_string == NULL)
+      csound->message_string = (char *) csound->Calloc(csound, MAX_MESSAGE_STR);
+  csound->csoundMessageStringCallback = csoundMessageStrCallback;
+  csound->csoundMessageCallback_ = NULL;
+  }
+
+}
+
 PUBLIC void csoundSetMessageCallback(CSOUND *csound,
             void (*csoundMessageCallback)(CSOUND *csound,
                                           int attr,
@@ -2434,14 +2455,24 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
 {
+  if(csound->csoundMessageCallback_) {
     csound->csoundMessageCallback_(csound, attr, format, args);
+  } else {
+    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+    csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+  }
 }
 
 PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
+    if(csound->csoundMessageCallback_) 
     csound->csoundMessageCallback_(csound, 0, format, args);
+    else {
+    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+    csound->csoundMessageStringCallback(csound, 0, csound->message_string);
+    }
     va_end(args);
 }
 
@@ -2449,7 +2480,12 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-    csound->csoundMessageCallback_(csound, attr, format, args);
+    if(csound->csoundMessageCallback_) 
+    csound->csoundMessageCallback_(csound, 0, format, args);
+    else {
+    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+    csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+    }
     va_end(args);
 }
 
@@ -2470,7 +2506,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...)
       return;
     csoundMessageS(csound, CSOUNDMSG_WARNING, Str("WARNING: "));
     va_start(args, msg);
-    csound->csoundMessageCallback_(csound, CSOUNDMSG_WARNING, msg, args);
+    csoundMessageV(csound, CSOUNDMSG_WARNING, msg, args);
     va_end(args);
     csoundMessageS(csound, CSOUNDMSG_WARNING, "\n");
 }
@@ -2481,7 +2517,7 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
     if (!(csound->oparms_.odebug))
       return;
     va_start(args, msg);
-    csound->csoundMessageCallback_(csound, 0, msg, args);
+    csoundMessageV(csound, 0, msg, args);
     va_end(args);
     csoundMessage(csound, "\n");
 }
@@ -2490,7 +2526,7 @@ void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
 {
     va_list args;
     va_start(args, msg);
-    csound->csoundMessageCallback_(csound, CSOUNDMSG_ERROR, msg, args);
+    csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
@@ -2500,7 +2536,7 @@ void csoundErrMsgV(CSOUND *csound,
 {
     if (hdr != NULL)
       csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
-    csound->csoundMessageCallback_(csound, CSOUNDMSG_ERROR, msg, args);
+    csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
 
