@@ -970,6 +970,12 @@ typedef struct _alloc_data_ {
   MEVENT mep;
 } ALLOC_DATA;
 
+#define MAX_MESSAGE_STR 1024
+typedef struct _message_queue_t_ {
+    int attr;
+    char str[MAX_MESSAGE_STR];
+} message_string_queue_t;
+  
 
   /**
    * Contains all function pointers, data, and data pointers required
@@ -1781,6 +1787,13 @@ typedef struct _alloc_data_ {
     unsigned long alloc_queue_wp;
     int alloc_spinlock;
     EVTBLK *init_event;
+    void (*csoundMessageStringCallback)(CSOUND *csound,
+					    int attr,
+				     const char *str);
+    char* message_string;
+    volatile unsigned long message_string_queue_items;
+    unsigned long message_string_queue_wp;
+    message_string_queue_t *message_string_queue;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
