@@ -755,6 +755,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     return -1;
 }
 #else
+#include <unistd.h>
 static int srconv(CSOUND *csound, int argc, char **argv)
 {
     csound->Message(csound, Str("Do not use srconv but the src_conv program\n"));

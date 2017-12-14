@@ -78,6 +78,7 @@ static inline void csp_locks_unlock(CSOUND * csound, int global_index)
     /*         csound->global_var_lock_cache[global_index]->name); */
 }
 
+#if 0
 static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
                                                        char *name, int index)
 {
@@ -97,6 +98,8 @@ static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
 
     return ret;
 }
+
+
 
 static struct global_var_lock_t
   *global_var_lock_find(CSOUND *csound, char *name)
@@ -131,7 +134,6 @@ static struct global_var_lock_t
     }
 }
 
-#if 0
 static TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
     csound->Message(csound,
