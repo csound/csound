@@ -117,7 +117,8 @@ int barrier_destroy(barrier_t *b)
 /* when barrier is passed, all threads except one return 0 */
 int barrier_wait(barrier_t *b)
 {
-    int ret, it;
+  int ret;
+  unsigned int it;
 
     pthread_mutex_lock(&b->mut);
     b->count++;

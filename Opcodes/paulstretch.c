@@ -93,7 +93,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
       // TODO - Double check this is equivalent to non-windows complex definition
           _Fcomplex ph = { cos(x), sin(x) };
 #else
-      complex ph =  cos(x) + I*sin(x);
+      complex double ph =  cos(x) + I*sin(x);
 #endif
       tmp[i] = mag * (MYFLT)crealf(ph);
       tmp[i + 1] = mag * (MYFLT)cimagf(ph);
