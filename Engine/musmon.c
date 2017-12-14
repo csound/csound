@@ -51,8 +51,9 @@ extern  void    remote_Cleanup(CSOUND *);
 extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK 
-#define RT_SPIN_TRYLOCK { if(csound->oparms->realtime)		\
-  int trylock = pthread_spin_trylock(&csound->allo_spinlock);	\
+#define RT_SPIN_TRYLOCK { int trylock; \
+  if(csound->oparms->realtime)					\
+  trylock = pthread_spin_trylock(&csound->alloc_spinlock);	\
   if(trylock = 0) {    
 #else
 #define RT_SPIN_TRYLOCK csoundSpinLock(&csound->alloc_spinlock);
