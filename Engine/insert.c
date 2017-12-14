@@ -45,6 +45,53 @@ static int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn,
 		       MEVENT *mep);
 static int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp);
 
+static void print_messages(CSOUND *csound, int attr, const char *str){
+#if defined(WIN32)
+    switch (attr & CSOUNDMSG_TYPE_MASK) {
+    case CSOUNDMSG_ERROR:
+    case CSOUNDMSG_WARNING:
+    case CSOUNDMSG_REALTIME:
+      fprintf(stderr, str);
+      break;
+    default:
+      fprintf(stdout, str);
+    }
+#else
+    FILE *fp = stderr;
+    if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_STDOUT)
+      fp = stdout;
+    if (!attr || !csound->enableMsgAttr) {
+      fprintf(fp, str);
+      return;
+    }
+    if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
+      if (attr & CSOUNDMSG_BG_COLOR_MASK)
+        fprintf(fp, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
+    if (attr & CSOUNDMSG_FG_ATTR_MASK) {
+      if (attr & CSOUNDMSG_FG_BOLD)
+        fprintf(fp, "\033[1m");
+      if (attr & CSOUNDMSG_FG_UNDERLINE)
+        fprintf(fp, "\033[4m");
+    }
+    if (attr & CSOUNDMSG_FG_COLOR_MASK)
+      fprintf(fp, "\033[3%cm", (attr & 7) + '0');
+    fprintf(fp, str);
+    fprintf(fp, "\033[m");
+#endif
+}
+
+#define QUEUESIZ 64
+
+void message_string_enqueue(CSOUND *csound, int attr,
+    const char *str) {
+    unsigned long wp = csound->message_string_queue_wp;
+    csound->message_string_queue[wp].attr = attr;
+    strncpy(csound->message_string_queue[wp].str, str, MAX_MESSAGE_STR);
+    csound->message_string_queue_wp = wp + 1 < QUEUESIZ ? wp + 1 : 0;
+    ATOMIC_INCR(csound->message_string_queue_items);
+}
+
+  
 /*
  * creates a thread to process instance allocations
  */
@@ -52,13 +99,30 @@ uintptr_t event_insert_thread(void *p) {
   CSOUND *csound = (CSOUND *) p;
   ALLOC_DATA *inst = csound->alloc_queue;
   float wakeup = (1000*csound->ksmps/csound->esr);
-  unsigned long rp = 0, items;
-
+  unsigned long rp = 0, items, rpm = 0;
+  message_string_queue_t *mess;
+  void (*csoundMessageStringCallback)(CSOUND *csound,
+					    int attr,
+				      const char *str);
+  void (*csoundMessageCallback)(CSOUND *csound,
+                                          int attr,
+                                          const char *format,
+				va_list args)
+                       = csound->csoundMessageCallback_;
+  if(csound->message_string_queue == NULL)
+    csound->message_string_queue = (message_string_queue_t *)
+      csound->Calloc(csound, QUEUESIZ*sizeof(message_string_queue_t));
+  mess = csound->message_string_queue;
+  if(csound->csoundMessageStringCallback)
+    csoundMessageStringCallback = csound->csoundMessageStringCallback;
+  else csoundMessageStringCallback = print_messages;
+  csoundSetMessageStringCallback(csound, message_string_enqueue);
+  
   while(csound->event_insert_loop) {
     // get the value of items_to_alloc
     items = ATOMIC_GET(csound->alloc_queue_items);
     if(items == 0)
-      csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
+       csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
     else while(items) {
 	if(inst[rp].isMidi) {
 	  csoundSpinLock(&csound->alloc_spinlock);
@@ -75,7 +139,16 @@ uintptr_t event_insert_thread(void *p) {
 	items--;
 	rp = rp + 1 < MAX_ALLOC_QUEUE ? rp + 1 : 0;
       }
+     items = ATOMIC_GET(csound->message_string_queue_items);
+     while(items) {
+     if(mess != NULL)
+      csoundMessageStringCallback(csound, mess[rpm].attr,  mess[rpm].str);
+      ATOMIC_DECR(csound->message_string_queue_items);
+      items--;
+      rpm = rpm + 1 < QUEUESIZ ? rpm + 1 : 0;
+    }
   }
+  csoundSetMessageCallback(csound, csoundMessageCallback);
   return (uintptr_t) NULL;
 }
 
@@ -389,7 +462,10 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
 		      __LINE__, ip->offtim, ip->offtim*csound->ekr);
 #endif
     if(csound->oparms->realtime) // compensate for possible late starts
-      ip->offtim += (csound->icurTime/csound->esr -  ip->p2.value);
+      {
+	double p2 = (double) ip->p2.value + csound->timeOffs;
+	ip->offtim += (csound->icurTime/csound->esr - p2);
+      }
     //printf("%lf \n",   );
     schedofftim(csound, ip);                  /*   put in turnoff list */
   }
