@@ -1,3 +1,27 @@
+/*
+    OpcodeBase.hpp:
+
+    Copyright (C) 2005, 2009, 2017 by Istva Varga, Victor Lazzarini and
+                                      Michael Gogins
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 #ifndef OPCODE_BASE_H
 #define OPCODE_BASE_H
 
@@ -65,7 +89,7 @@ struct LockGuard {
 };
 
 /**
- * Use this to store a pointer to a global heap-allocated object, e.g. one 
+ * Use this to store a pointer to a global heap-allocated object, e.g. one
  * used to manage state between opcode instances.
  */
 
@@ -79,7 +103,7 @@ template<typename T> int CreateGlobalPointer(CSOUND *csound, const char *name, T
 }
 
 /**
- * Retrieve a pointer to a global heap-allocated object, e.g. one 
+ * Retrieve a pointer to a global heap-allocated object, e.g. one
  * used to manage state between opcode instances.
  */
 template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*& pointer)
@@ -94,7 +118,7 @@ template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*&
 }
 
 /**
- * Release a pointer to a global heap-allocated object, e.g. one used to 
+ * Release a pointer to a global heap-allocated object, e.g. one used to
  * manage state between opcode instances.
  */
 void DestroyGlobalPointer(CSOUND *csound, const char *name)
@@ -103,7 +127,7 @@ void DestroyGlobalPointer(CSOUND *csound, const char *name)
 }
 
 /**
- * Release a pointer to a global heap-allocated object, e.g. one used to 
+ * Release a pointer to a global heap-allocated object, e.g. one used to
  * manage state between opcode instances. If a non-null pointer is passed, it is deleted.
  */
 template<typename T> void DestroyGlobalPointer(CSOUND *csound, const char *name, T *pointer)
