@@ -439,7 +439,7 @@ static inline unsigned int ppp2(int num);
 static inline double amp2db(double amp);
 static inline double db2amp(double db);
 static inline double amp2db_spl(double amp);
-static inline double db2amp_spl(double db_spl);
+// static inline double db2amp_spl(double db_spl);
 
 /* optimize_sound
  * ==============
@@ -2453,11 +2453,12 @@ static inline double amp2db_spl(double amp)
     return (amp2db(amp) + ATSA_MAX_DB_SPL);
 }
 
+/*
 static inline double db2amp_spl(double db_spl)
 {
     return (db2amp(db_spl - ATSA_MAX_DB_SPL));
 }
-
+*/
 /* ppp2
  * ====
  * returns the closest power of two

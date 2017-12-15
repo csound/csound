@@ -328,6 +328,18 @@ public:
    */
   const MYFLT &operator[](int n) const { return sig[n]; }
 
+  /** get early exit sample position
+   */
+  uint32_t GetEarly() { return early;}
+  
+  /** get early exit sample offset
+   */
+  uint32_t GetOffset() { return offset;}
+
+  /** get number of samples to process
+  */
+  uint32_t GetNsmps() { return nsmps; }
+
 };
 
 /** One-dimensional array container
@@ -513,13 +525,13 @@ public:
     NB = nb;
     sliding = sl;
     if (!sliding) {
-      int bytes = (n + 2) * sizeof(float);
+      size_t bytes = (n + 2) * sizeof(float);
       if (frame.auxp == nullptr || frame.size < bytes) {
         csound->AuxAlloc(csound, bytes, &frame);
         std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0);
       }
     } else {
-      int bytes = (n + 2) * sizeof(MYFLT) * nsmps;
+      size_t  bytes = (n + 2) * sizeof(MYFLT) * nsmps;
       if (frame.auxp == NULL || frame.size < bytes)
         csound->AuxAlloc(csound, bytes, &frame);
     }
@@ -718,7 +730,7 @@ public:
   /** allocate memory for the container
    */
   void allocate(Csound *csound, int n) {
-    int bytes = n * sizeof(T);
+    size_t bytes = n * sizeof(T);
     if (auxp == nullptr || size < bytes) {
       csound->AuxAlloc(csound, bytes, (AUXCH *)this);
       std::fill((char *)auxp, (char *)endp, 0);
