@@ -154,6 +154,7 @@ static int alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *data,
                                        int st, int d1, int d2)
 {
     midiEvent_t *tmp;
+    IGN(data);
     /* expand array if necessary */
     if (MF(nEvents) >= MF(maxEvents)) {
       MF(maxEvents) += (MF(maxEvents) >> 3);

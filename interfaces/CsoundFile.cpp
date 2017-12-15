@@ -66,7 +66,7 @@ void PUBLIC scatterArgs(const std::string line,
                         std::vector<std::string> &args, std::vector<char *> &argv)
 {
   args.clear();
-  for (int i = 0; i < argv.size(); ++i) {
+  for (int i = 0; (size_t) i < argv.size(); ++i) {
       char *arg = argv[i];
       if (arg) {
           free(arg);

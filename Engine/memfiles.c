@@ -675,7 +675,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     p->data[p->nFrames] = 0.0f;
     csound->FileClose(csound, fd);
-    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %d "
+    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %lld "
                                 "sample frames) loaded into memory\n"),
                             p->fullName, (int) sfinfo->samplerate,
                             (int) sfinfo->channels,

@@ -473,7 +473,7 @@ class Fl_Spin : public Fl_Valuator {
 class Fl_Value_Input_Spin : public Fl_Valuator {
  private:
     CSOUND * csound;
-    int ix, iy, drag, indrag, sldrag;
+    int ix, iy, drag;
     int delta, deltadir;
     char soft_;
     uchar mouseobj;

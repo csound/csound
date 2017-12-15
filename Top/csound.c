@@ -547,7 +547,8 @@ static const CSOUND cenviron_ = {
         NULL,
         NULL,
         0,
-        0
+        0,
+	0
       },
       NULL,
       MAXINSNO,     /* engineState          */
@@ -639,8 +640,56 @@ static const CSOUND cenviron_ = {
     NULL,           /*  frstbp              */
     0,              /*  sectcnt             */
     0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
-    /* {NULL}, */   /*  instxtanchor  in engineState */
-    {NULL},         /*  actanchor           */
+    /* {NULL}, */   /*  instxtanchor  in engineState */            
+    {   /*  actanchor           */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    0,
+    NULL,
+    NULL,
+    0,
+    NULL,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0,
+    0.0,
+    NULL,
+    NULL,
+    0,
+    0,
+    FL(0.0),
+    FL(0.0), FL(0.0), FL(0.0),
+    NULL,
+    {FL(0.0), FL(0.0), FL(0.0), FL(0.0)},
+   NULL,
+   NULL,NULL,
+   NULL,
+    0,
+    0,
+    0,
+    NULL,
+    NULL,
+   0,
+   0,
+   0,
+    FL(0.0),
+    NULL,
+    NULL,
+    {NULL, FL(0.0)},
+   {NULL, FL(0.0)},
+   {NULL, FL(0.0)},
+   {NULL, FL(0.0)}
+    },
     {0L },          /*  rngcnt              */
     0, 0,           /*  rngflg, multichan   */
     NULL,           /*  evtFuncChain        */
@@ -716,6 +765,7 @@ static const CSOUND cenviron_ = {
       "",          /*  repeat_name[NAMELEN] */
       0,0,1,        /*  repeat_cnt, repeat_point, repeat_inc */
       NULL,         /*  repeat_mm */
+      0
     },
     {
       NULL,
@@ -730,7 +780,9 @@ static const CSOUND cenviron_ = {
         {NULL},
       },            /* EVTBLK  prve         */
       NULL,        /* Linebuf              */
-      0            /* linebufsiz */
+      0,            /* linebufsiz */
+      NULL, NULL,
+      0
     },
     {
       {0,0}, {0,0},  /* srngcnt, orngcnt    */
@@ -848,7 +900,8 @@ static const CSOUND cenviron_ = {
       0,            /*    no exit on compile error */
       0.4,          /*    vbr quality  */
       0,            /*    ksmps_override */
-      0             /*    fft_lib */
+      0,             /*    fft_lib */
+      0
     },
 
     {0, 0, {0}}, /* REMOT_BUF */

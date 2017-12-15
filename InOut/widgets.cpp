@@ -1942,7 +1942,6 @@ public:
   }
   virtual int handle(int evt)
   {
-      CSOUND* csound = csound_; //gab
       switch (evt) {
       case FL_FOCUS:
         Fl::focus(this);
@@ -3298,8 +3297,8 @@ extern "C" {
   {
     int i = (int)*((MYFLT*)p->itext);
     char* text;
-    if (i<0 || i>csound->GetStrsmax(csound)) text = "???";
-    else if ((text=csound->GetStrsets(csound,i))==NULL) text = "???";
+    if (i<0 || i>csound->GetStrsmax(csound)) text = (char *) "???";
+    else if ((text=csound->GetStrsets(csound,i))==NULL) text = (char *) "???";
     return fl_box_(csound, p, text);
   }
 
@@ -3322,8 +3321,8 @@ extern "C" {
       char *text ;
       ADDR_SET_VALUE v = widgetGlobals->AddrSetValue[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
-      if (i<0 || i>csound->GetStrsmax(csound)) text = "???";
-      else if ((text=csound->GetStrsets(csound,i))==NULL) text = "???";
+      if (i<0 || i>csound->GetStrsmax(csound)) text = (char *) "???";
+      else if ((text=csound->GetStrsets(csound,i))==NULL) text = (char *) "???";
       o->label(text);
       return OK;
   }
@@ -5351,7 +5350,7 @@ extern "C" {
                                  Str("FLsldBnkSet: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
-      if (UNLIKELY( ftp->flen < startInd + numslid)) {
+      if (UNLIKELY( (int) ftp->flen < startInd + numslid)) {
         return csound->InitError(csound,
                                  Str("FLslidBnkSet: table too short!"));
       }
@@ -5420,7 +5419,7 @@ extern "C" {
                                  Str("FLsldBnkSet: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
-      if (UNLIKELY( ftp->flen < startInd + numslid)) {
+      if (UNLIKELY((int) ftp->flen < startInd + numslid)) {
         return csound->InitError(csound,
                                  Str("FLslidBnkSet: table too short!"));
       }
@@ -5500,7 +5499,7 @@ extern "C" {
                                   Str("FLsldBnkSetk: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
-      if (UNLIKELY( ftp->flen < p->startind + p->numslid)) {
+      if (UNLIKELY( (int) ftp->flen < p->startind + p->numslid)) {
         return csound->InitError(csound,
                                  Str("FLslidBnkSetk: table too short!"));
       }
@@ -5593,7 +5592,7 @@ extern "C" {
                                  Str("FLslidBnkSetk: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
-      if (UNLIKELY( ftp->flen < p->startind + p->numslid)) {
+      if (UNLIKELY( (int) ftp->flen < p->startind + p->numslid)) {
         return csound->InitError(csound,
                                  Str("FLslidBnkSetk: table too short!"));
       }
@@ -5620,8 +5619,7 @@ extern "C" {
 
   static int fl_slider_bank_setVal_k(CSOUND *csound, FLSLDBNK_SETK *p)
   {
-      WIDGET_GLOBALS *widgetGlobals =
-        (WIDGET_GLOBALS *) csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+      
       if (*p->kflag) {
         FLSLIDERBANK *q = p->q;
         MYFLT *table=p->table;

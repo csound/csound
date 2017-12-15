@@ -99,7 +99,7 @@ template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*&
  */
 void DestroyGlobalPointer(CSOUND *csound, const char *name)
 {
-    int result = csound->DestroyGlobalVariable(csound, name);
+    csound->DestroyGlobalVariable(csound, name);
 }
 
 /**
@@ -108,7 +108,7 @@ void DestroyGlobalPointer(CSOUND *csound, const char *name)
  */
 template<typename T> void DestroyGlobalPointer(CSOUND *csound, const char *name, T *pointer)
 {
-    int result = csound->DestroyGlobalVariable(csound, name);
+    csound->DestroyGlobalVariable(csound, name);
     if (pointer != 0) {
         delete pointer;
     }
