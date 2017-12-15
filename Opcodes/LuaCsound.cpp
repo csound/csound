@@ -1,4 +1,9 @@
 /*
+
+  LuaCsound.cpp:
+
+  Copyright (C) 2011 by Micael Gogins
+
   This file is part of Csound.
 
   The Csound Library is free software; you can redistribute it
