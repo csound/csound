@@ -108,6 +108,7 @@ static unsigned int cs_name_hash(char *s)
 
 PUBLIC void* cs_hash_table_get(CSOUND* csound,
                                CS_HASH_TABLE* hashTable, char* key) {
+    IGN(csound);
     unsigned int index;
     CS_HASH_TABLE_ITEM* item;
 
@@ -132,6 +133,7 @@ PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key) {
     unsigned int index;
     CS_HASH_TABLE_ITEM* item;
+    IGN(csound);
 
     if (key == NULL) {
       return NULL;

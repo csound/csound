@@ -352,7 +352,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp)
 #ifdef BETA
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "In insert:  %d %lf %lf\n",
-                      __LINE__, ip->p3, ip->offtim); /* *********** */
+                      __LINE__, ip->p3.value, ip->offtim); /* *********** */
 #endif
     if (ip->p3.value > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
       double p2 = (double) ip->p2.value + csound->timeOffs;
@@ -704,7 +704,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
       }
 #ifdef BETA
       if (UNLIKELY(csound->oparms->odebug))
-        csound->Message(csound,"schedofftim: %lf %lf\n", ip->offtim,
+        csound->Message(csound,"schedofftim: %lf %lf %lf\n", ip->offtim,
                         (csound->icurTime + (0.505 * csound->ksmps))/csound->esr,
                         csound->ekr*((csound->icurTime +
                                       (0.505 * csound->ksmps))/csound->esr));
@@ -2092,6 +2092,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
     OPTXT* optxt = (OPTXT*) ip;
     int offset = 0;
+    IGN(csound);
 
     while ((optxt = optxt->nxtop) != NULL) {
       TEXT* t = &optxt->t;

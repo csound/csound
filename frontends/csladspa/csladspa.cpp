@@ -403,7 +403,6 @@ static LADSPA_Descriptor *init_descriptor(char *csdname, int plugindex)
   // and return NULL
   delete desc;
   delete[] PortNames;
-  delete[] ctlchn;
   delete[] PortDescriptors;
   delete[] PortRangeHints;
   cerr << "PLUGIN NOT LOADED: probably missing csLADSPA section\n";

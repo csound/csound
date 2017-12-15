@@ -249,6 +249,7 @@ static int getscochar(CSOUND *csound, int expand)
 {
 /* Read a score character, expanding macros if flag set */
     int     c;
+    IGN(expand);
 #ifdef never
 /* top: */
 /*   c = corfile_getc(STA(str)->cf); */
@@ -788,6 +789,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
 void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
+    IGN(sco);
     STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
     STA(input_size) = 20;
     STA(input_cnt) = 0;
@@ -1590,7 +1592,7 @@ static void flushlin(CSOUND *csound)
     STA(linpos) = 0;
     STA(lincnt)++;
 }
-
+/* unused at the moment
 static inline int check_preproc_name(CSOUND *csound, const char *name)
 {
     int   i;
@@ -1602,7 +1604,7 @@ static inline int check_preproc_name(CSOUND *csound, const char *name)
     }
     return 1;
 }
-
+*/
 static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 {
     int c;

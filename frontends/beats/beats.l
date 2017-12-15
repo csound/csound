@@ -38,6 +38,8 @@ int yyline = 0;
  extern int pnum;
 %}
 
+%option nounput
+
 INTGR           [0-9]+
 FLOAT           [[0-9]+\.([0-9]*)?
 WHITE           [ \t+]

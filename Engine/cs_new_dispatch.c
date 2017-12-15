@@ -417,7 +417,7 @@ taskID dag_end_task(CSOUND *csound, taskID i)
     {                                      /* ATOMIC_SWAP */
       do {
         to_notify = ATOMIC_READ(task_watch[i]);
-      } while (!ATOMIC_CAS_PTR(&task_watch[i],to_notify,&DoNotRead));
+      } while (!ATOMIC_CAS_PTR(&task_watch[i],to_notify,(watchList *) &DoNotRead));
     } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
     next = to_notify;

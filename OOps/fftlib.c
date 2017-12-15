@@ -3419,6 +3419,7 @@ void *align_alloc(CSOUND *csound, size_t nb_bytes){
 }
 
 int setupDispose(CSOUND *csound, void *pp){
+  IGN(csound);
   CSOUND_FFT_SETUP *setup =(CSOUND_FFT_SETUP *) pp;
   switch(setup->lib){
 #if defined(__MACH__)
@@ -3536,6 +3537,7 @@ void *csoundDCTSetup(CSOUND *csound,
 
 void pffft_DCT_execute(CSOUND *csound,
                      void *p, MYFLT *sig){
+  IGN(csound);
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   int i,j, N= setup->N;
@@ -3581,6 +3583,7 @@ void pffft_DCT_execute(CSOUND *csound,
 #if defined(__MACH__)
 void vDSP_DCT_execute(CSOUND *csound,
                      void *p, MYFLT *sig){
+  IGN(csound);
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   int i,j, N= setup->N;

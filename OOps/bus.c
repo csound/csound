@@ -306,7 +306,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
 static int delete_channel_db(CSOUND *csound, void *p)
 {
     CONS_CELL *head, *values;
-
+    IGN(p);
     if (csound->chn_db == NULL) {
       return 0;
     }
@@ -929,6 +929,7 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 {
     uint32_t n = 0;
+    IGN(csound);
     uint32_t nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -947,6 +948,7 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
     /* Need lock for the channel */
+    IGN(csound);
     csoundSpinLock(p->lock);
     memset(p->fp, 0, CS_KSMPS*sizeof(MYFLT)); /* Should this leave start? */
     csoundSpinUnLock(p->lock);

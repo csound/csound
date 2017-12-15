@@ -467,7 +467,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
         csound->Message(csound, Str("diskin2: opened (asynchronously) '%s':\n"
                                     "         %d Hz, %d channel(s), "
-                                    "%d sample frames\n"),
+                                    "%lld sample frames\n"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
                         sfinfo.frames);
@@ -481,7 +481,7 @@ static int diskin2_init_(CSOUND *csound, DISKIN2 *p, int stringname)
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
         csound->Message(csound, Str("diskin2: opened '%s':\n"
                                     "         %d Hz, %d channel(s), "
-                                    "%d sample frames\n"),
+                                    "%lld sample frames\n"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
                         sfinfo.frames);
@@ -1741,7 +1741,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
         csound->Message(csound, Str("diskin2: opened (asynchronously) '%s':\n"
                                     "         %d Hz, %d channel(s), "
-                                    "%d sample frames\n"),
+                                    "%lld sample frames\n"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
                         sfinfo.frames);
@@ -1755,7 +1755,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
         csound->Message(csound, Str("diskin2: opened '%s':\n"
                                     "         %d Hz, %d channel(s), "
-                                    "%d sample frames\n"),
+                                    "%lld sample frames\n"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
                         sfinfo.frames);
