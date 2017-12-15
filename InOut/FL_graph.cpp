@@ -232,7 +232,7 @@ void add_graph(CSOUND *csound, WINDAT *wdptr)
 
     for (m = 0; m < NUMOFWINDOWS; m++) {  // If text the same use slot
       if (ST(menu) != NULL) {
-        if (ST(menu)[m].text != NULL && wdptr->caption != NULL){
+        if (ST(menu)[m].text != NULL && strlen(wdptr->caption) == 0){
           if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
             replacing = 1;
             goto replace;

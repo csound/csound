@@ -86,6 +86,7 @@ int oscils_set(CSOUND *csound, OSCILS *p)
 
 int oscils(CSOUND *csound, OSCILS *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -141,6 +142,7 @@ int lphasor_set(CSOUND *csound, LPHASOR *p)
 
 int lphasor(CSOUND *csound, LPHASOR *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;

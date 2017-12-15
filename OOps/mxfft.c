@@ -842,6 +842,7 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int n, int isn)
   /* See IEEE book for a long comment here on usage */
 
 {
+    IGN(csound);
     int inc,
       j,
       k,
