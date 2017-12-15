@@ -1583,7 +1583,7 @@ static int inn(CSOUND *csound, INALL *p, uint32_t n)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t m, nsmps =CS_KSMPS, i;
-     if(csound->inchnls != n)
+    if(csound->inchnls != (int) n)
       return csound->PerfError(csound,
                                p->h.insdshead,
                                "Wrong numnber of input channels\n");
@@ -1712,7 +1712,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
     uint32_t    i,j = 0, k = 0, nsmps = CS_KSMPS;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT *spin = CS_SPIN;
-     if(csound->inchnls != n)
+    if(csound->inchnls != (int) n)
       return csound->PerfError(csound,
                                p->h.insdshead,
                                "Wrong numnber of input channels\n");

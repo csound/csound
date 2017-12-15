@@ -426,7 +426,8 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-    int ret, it;
+  int ret;
+  unsigned int it;
     barrier_t *b = (barrier_t *)barrier;
     pthread_mutex_lock(&b->mut);
     b->count++;

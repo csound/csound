@@ -555,12 +555,13 @@ FNAME           [a-zA-Z0-9/:.+-_]+
                 }
 
 %%
-
+  /* unused at the moment
 static inline int isNameChar(int c, int pos)
 {
     c = (int) ((unsigned char) c);
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
+  */
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
 {

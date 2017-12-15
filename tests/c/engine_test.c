@@ -24,7 +24,7 @@ void test_udp_server(void)
     csoundSetOption(csound,"-odac");
     csoundSetOption(csound,"--port=12345");
     /*result =*/(void) csoundStart(csound);
-    sleep(1);
+    csoundSleep(1000);
     /* delete Csound instance */
     csoundStop(csound);
     csoundDestroy(csound);
