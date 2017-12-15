@@ -920,7 +920,7 @@ static OENTRY localops[] = {
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
   { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS",
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
-  { "OSCsendA", S(OSCSEND), 0, 3, "", "kSkSS*",
+  { "OSCsendA", S(OSCSEND), _QQ, 3, "", "kSkSS*",
     (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL }
 };
 
