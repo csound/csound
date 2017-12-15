@@ -1590,7 +1590,7 @@ static void flushlin(CSOUND *csound)
     STA(linpos) = 0;
     STA(lincnt)++;
 }
-
+/* unused at the moment
 static inline int check_preproc_name(CSOUND *csound, const char *name)
 {
     int   i;
@@ -1602,7 +1602,7 @@ static inline int check_preproc_name(CSOUND *csound, const char *name)
     }
     return 1;
 }
-
+*/
 static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 {
     int c;
