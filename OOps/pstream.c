@@ -836,6 +836,7 @@ int pvsftr(CSOUND *csound, PVSFTR *p)
 
 int pvsinfo(CSOUND *csound, PVSINFO *p)
 {
+   IGN(csound);
 #ifdef _DEBUG
     /* init stage opcode : this should always be a proper fsig */
     assert(p->fsrc->frame.auxp != NULL);

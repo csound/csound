@@ -446,13 +446,13 @@ void addGlobalVariable(CSOUND *csound,
 
 void* find_or_add_constant(CSOUND* csound, CS_HASH_TABLE* constantsPool,
                            const char* name, MYFLT value) {
-    void* retVal = cs_hash_table_get(csound, constantsPool, name);
+  void* retVal = cs_hash_table_get(csound, constantsPool, (char *) name);
     if (retVal == NULL) {
         CS_VAR_MEM *memValue = csound->Calloc(csound, sizeof(CS_VAR_MEM));
         memValue->varType = (CS_TYPE*)&CS_VAR_TYPE_C;
         memValue->value = value;
-        cs_hash_table_put(csound, constantsPool, name, memValue);
-        retVal = cs_hash_table_get(csound, constantsPool, name);
+        cs_hash_table_put(csound, constantsPool, (char *) name, memValue);
+        retVal = cs_hash_table_get(csound, constantsPool, (char *) name);
     }
     return retVal;
 }

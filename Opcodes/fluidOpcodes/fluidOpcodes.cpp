@@ -90,8 +90,8 @@ class FluidEngine : public OpcodeBase<FluidEngine>
         MYFLT *iChannelCount;
         MYFLT *iVoiceCount;
         // State.
-        fluid_synth_t *fluidSynth;
-        fluid_settings_t *fluidSettings;
+        //fluid_synth_t *fluidSynth;
+        //fluid_settings_t *fluidSettings;
         int chorusEnabled;
         int reverbEnabled;
         int channelCount;

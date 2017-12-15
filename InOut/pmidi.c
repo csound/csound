@@ -165,7 +165,7 @@ static int start_portmidi(CSOUND *csound)
     csoundUnLock();
 #endif
     if (UNLIKELY(errMsg != NULL)) {
-      csound->ErrorMsg(csound, Str(errMsg));
+      csound->ErrorMsg(csound, "%s", Str(errMsg));
       return -1;
     }
     //#if !defined(WIN32)
