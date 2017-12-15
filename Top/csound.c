@@ -1703,7 +1703,7 @@ int kperf_nodebug(CSOUND *csound)
             ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
-              while ((opstart = opstart->nxtp) != NULL) {
+              while ((opstart = opstart->nxtp) != NULL  && ip->actflg) {
                 opstart->insdshead->pds = opstart;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
