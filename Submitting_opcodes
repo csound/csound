@@ -26,10 +26,11 @@ it has happened in the past.
 Coding
 ------
 
-Please follow the general style; it is important not to have any static
-variables, while static fuctions are encouraged.  Any use of external
-libraries which introduces new dependencies is a potential problem and
-may be best discussed with the core team.
+Please follow the general style; it is important not to have any
+static variables which are not constant, while static fuctions are
+encouraged.  Any use of external libraries which introduces new
+dependencies is a potential problem and may be best discussed with the
+core team.
 
 
 Formatting/Indentation
@@ -86,9 +87,10 @@ utility.
 Documentation
 -------------
 
-All new opcodes or gens need a manual page, if only a minimal one. Even
-better if it includes an example .csd file.  There is a template in the
-manual tree opcodes/template.xml
+All new opcodes or gens need a manual page, if only a minimal
+one. Even better if it includes an example .csd file.  There is a
+template in the manual tree opcodes/template.xml, and example files in
+the examples directory.
 
 
 Submission
@@ -97,3 +99,4 @@ Submission
 Probably easiest as a pull request on github, but direct mail to the
 developers' mailing list or direct contact with a core developer are OK.
 
+==JPff 2017 Dec 14
