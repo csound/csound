@@ -548,7 +548,7 @@ static const CSOUND cenviron_ = {
         NULL,
         0,
         0,
-	0
+        0
       },
       NULL,
       MAXINSNO,     /* engineState          */
@@ -640,7 +640,7 @@ static const CSOUND cenviron_ = {
     NULL,           /*  frstbp              */
     0,              /*  sectcnt             */
     0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
-    /* {NULL}, */   /*  instxtanchor  in engineState */            
+    /* {NULL}, */   /*  instxtanchor  in engineState */
     {   /*  actanchor           */
     NULL,
     NULL,
