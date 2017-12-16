@@ -5619,7 +5619,6 @@ extern "C" {
 
   static int fl_slider_bank_setVal_k(CSOUND *csound, FLSLDBNK_SETK *p)
   {
-      
       if (*p->kflag) {
         FLSLIDERBANK *q = p->q;
         MYFLT *table=p->table;

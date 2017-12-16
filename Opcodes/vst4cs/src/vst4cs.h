@@ -53,8 +53,8 @@
 
 class VSTPlugin;
 
-// In all of these, sizeof(MYFLT) is not necessarily equal to or greater than 
-// sizeof(VSTPlugin *), hence type casting can not be used and a table of 
+// In all of these, sizeof(MYFLT) is not necessarily equal to or greater than
+// sizeof(VSTPlugin *), hence type casting can not be used and a table of
 // handles must be used.
 
 typedef struct VSTINIT_ {
@@ -63,7 +63,7 @@ typedef struct VSTINIT_ {
     MYFLT   *iVSThandle;
     MYFLT   *iplugin;
     MYFLT   *iverbose;
-    // State. 
+    // State.
     VSTPlugin *vstplugin;
 } VSTINIT;
 
