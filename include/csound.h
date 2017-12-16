@@ -1228,7 +1228,7 @@ extern "C" {
    * handling of sound I/O by the Csound library, allowing the host
    * application to use the spin/spout/input/output buffers directly.
    * For applications using spin/spout, bufSize should be set to 0.
-   * If 'bufSize' is greater than zero, the buffer size (-b) will be
+   * If 'bufSize' is greater than zero, the buffer size (-b) in frames will be
    * set to the integer multiple of ksmps that is nearest to the value
    * specified.
    */
