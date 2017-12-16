@@ -995,9 +995,9 @@ int sensevents(CSOUND *csound)
 	}
 	/* end of: 1: section, 2: score, 3: lplay list */
 	retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
-	if(csound->oparms->realtime && end_check) {
+	if(csound->oparms->realtime && end_check == 1) {
 	  csoundSleep(5); // wait for 5ms for any first events to go through
-	  end_check = 0;  // reset first time check 
+	  end_check = 0;  // reset first time check
 	  goto retest;    // loop back
 	}
 	goto scode;
@@ -1152,8 +1152,7 @@ int sensevents(CSOUND *csound)
   /* no score event at this time, return to continue performance */
   return 0;
  scode:
-  /* get out here in realtime mode */
-    
+  /* get out here in realtime mode */ 
   if(csound->oparms->realtime && retval == 2) return retval;
   /* end of section (retval == 1), score (retval == 2), */
   /* or lplay list (retval == 3) */

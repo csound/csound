@@ -1,3 +1,7 @@
+/* This is an alternative frontend, 
+   running csound on a separate thread
+*/
+
 #include <Bela.h>
 #include <csound/csound.hpp>
 #include <csound/csPerfThread.hpp>
