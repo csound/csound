@@ -331,7 +331,7 @@ public:
   /** get early exit sample position
    */
   uint32_t GetEarly() { return early;}
-  
+
   /** get early exit sample offset
    */
   uint32_t GetOffset() { return offset;}

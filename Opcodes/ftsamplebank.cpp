@@ -188,7 +188,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
         std::sort(fileNames.begin(), fileNames.end() );
 
         // push statements to score, starting with table number 'index'
-	for(int y = 0; (size_t) y < fileNames.size(); y++)
+        for(int y = 0; (size_t) y < fileNames.size(); y++)
             {
               std::ostringstream statement;
               statement << "f" << index+y << " 0 0 1 \"" << fileNames[y] <<

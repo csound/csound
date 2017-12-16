@@ -165,7 +165,7 @@ struct ADDR_SET_VALUE { /*: ADDR*/
                    void *new_WidgAddress, void *new_opcode,  int grp = 0) :
         exponential(new_exponential),min(new_min), max(new_max),
         WidgAddress(new_WidgAddress),opcode(new_opcode),
-	  widg_type(FL_WIDG), joy(FL_JOY), group(grp) {}
+        widg_type(FL_WIDG), joy(FL_JOY), group(grp) {}
     ADDR_SET_VALUE()
     {
         exponential=LIN_;

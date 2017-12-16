@@ -88,7 +88,7 @@ extern "C" {
         VSTINIT *p = (VSTINIT *) data;
         VSTPlugin *plugin = new VSTPlugin(csound);
         vstPlugins_t *vstPlugins = 0;
-        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);        
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         *p->iVSThandle = (MYFLT) vstPlugins->size();
         vstPlugins->push_back(plugin);
         if ((int) vstPlugins->size() == 1) {
@@ -642,7 +642,7 @@ extern "C" {
         #if defined(CSOUND_LIFECYCLE_DEBUG)
         csound->Message(csound, "csoundModuleCreate: csound: %p thread: %d\n", csound, syscall(SYS_gettid));
         #endif
-        
+
         int result = 0;
         vstPlugins_t *vstPlugins = new vstPlugins_t;
         result = csound::CreateGlobalPointer (csound, "vstPlugins", vstPlugins);
