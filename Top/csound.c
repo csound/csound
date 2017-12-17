@@ -1651,18 +1651,21 @@ int kperf_nodebug(CSOUND *csound)
           }
 	  done = ATOMIC_GET(ip->init_done);
           if (done == 1) {/* if init-pass has been done */
+	    int error = 0;
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
-              while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
+              while (error == 0 &&
+		     (opstart = opstart->nxtp) != NULL && ip->actflg) {
                 opstart->insdshead->pds = opstart;
-                (*opstart->opadr)(csound, opstart); /* run each opcode */
+                error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
             } else {
-              int i, n = csound->nspout, start = 0;
+	        int error = 0;
+                int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
                 int incr = csound->nchnls*lksmps;
                 int offset =  ip->ksmps_offset;
@@ -1688,9 +1691,10 @@ int kperf_nodebug(CSOUND *csound)
 
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
-                  while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
+                  while (error ==  0 && (opstart = opstart->nxtp) != NULL
+			 && ip->actflg) {
                     opstart->insdshead->pds = opstart;
-                    (*opstart->opadr)(csound, opstart); /* run each opcode */
+                    error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
                   ip->kcounter++;

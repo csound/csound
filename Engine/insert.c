@@ -93,7 +93,26 @@ static void message_string_enqueue(CSOUND *csound, int attr,
 
 static void no_op(CSOUND *csound, int attr,
 		  const char *format, va_list args) { };
-  
+
+ /* do init pass for this instr */
+static int init_pass(CSOUND *csound, INSDS *ip) {
+  int error = 0;
+  if(csound->oparms->realtime)
+    csoundLockMutex(csound->init_pass_threadlock);
+  csound->curip = ip;
+  csound->ids = (OPDS *)ip;
+  while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
+    if (UNLIKELY(csound->oparms->odebug))
+      csound->Message(csound, "init %s:\n",
+		      csound->ids->optext->t.oentry->opname);
+    error = (*csound->ids->iopadr)(csound, csound->ids);
+  }
+  if(csound->oparms->realtime)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+  return error;
+}
+
+
 /*
  * creates a thread to process instance allocations
  */
@@ -129,7 +148,15 @@ uintptr_t event_insert_thread(void *p) {
     if(items == 0)
        csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
     else while(items) {
-	if(inst[rp].isMidi) {
+	if (inst[rp].type == 2)  {
+	  INSDS *ip = inst[rp].ip;
+	  ATOMIC_SET(ip->init_done, 0);
+          csoundSpinLock(&csound->alloc_spinlock);
+          init_pass(csound, ip);
+	  csoundSpinUnLock(&csound->alloc_spinlock);
+	  ATOMIC_SET(ip->init_done, 1);
+	}
+	else if(inst[rp].type == 1) {
 	  csoundSpinLock(&csound->alloc_spinlock);
 	  insert_midi(csound, inst[rp].insno, inst[rp].chn, &inst[rp].mep);
 	  csoundSpinUnLock(&csound->alloc_spinlock);
@@ -220,7 +247,7 @@ int insert(CSOUND *csound, int insno, EVTBLK *newevtp) {
     unsigned long wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp].insno = insno;
     csound->alloc_queue[wp].blk =  *newevtp;
-    csound->alloc_queue[wp].isMidi = 0;
+    csound->alloc_queue[wp].type = 0;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
     ATOMIC_INCR(csound->alloc_queue_items);
     return 0;
@@ -235,7 +262,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   OPARMS    *O = csound->oparms;
   CS_VAR_MEM *pfields = NULL;        /* *** was uninitialised *** */
   int tie=0, i;
-  int    n;
+  int  n, error = 0;
   MYFLT  *flp, *fep;
     
   if (UNLIKELY(csound->advanceCnt))
@@ -394,24 +421,11 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   ip->opcod_iobufs = NULL;
   ip->strarg       = newevtp->strarg;  /* copy strarg so it does not get lost */
   
-  if(csound->oparms->realtime)
-    csoundLockMutex(csound->init_pass_threadlock);
   // current event needs to be reset here
   csound->init_event = newevtp;
-  csound->curip    = ip;
-  csound->ids      = (OPDS *)ip;
-  /* do init pass for this instr */
-  while ((csound->ids = csound->ids->nxti) != NULL) {
-    if (UNLIKELY(O->odebug))
-      csound->Message(csound, "init %s:\n",
-		      csound->ids->optext->t.oentry->opname);
-    (*csound->ids->iopadr)(csound, csound->ids);
-  }
-  if(csound->oparms->realtime)
-    csoundUnlockMutex(csound->init_pass_threadlock);
-
-  ATOMIC_SET(ip->init_done, 1);
-
+  error = init_pass(csound, ip);
+  if(error == 0)
+    ATOMIC_SET(ip->init_done, 1);
   if (UNLIKELY(csound->inerrcnt || ip->p3.value == FL(0.0))) {
     xturnoff_now(csound, ip);
     return csound->inerrcnt;
@@ -502,7 +516,7 @@ int MIDIinsert(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep) {
     csound->alloc_queue[wp].insno = insno;
     csound->alloc_queue[wp].chn = chn;
     csound->alloc_queue[wp].mep = *mep;
-    csound->alloc_queue[wp].isMidi = 1;
+    csound->alloc_queue[wp].type = 1;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
     ATOMIC_INCR(csound->alloc_queue_items);   
     return 0;
@@ -518,7 +532,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   OPARMS    *O = csound->oparms;
   CS_VAR_MEM *pfields;
   EVTBLK  *evt;
-  int pmax = 0;
+  int pmax = 0, error = 0;
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
@@ -727,28 +741,18 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     }
   }
 
-  if(csound->oparms->realtime)
-    csoundLockMutex(csound->init_pass_threadlock);
-  csound->curip    = ip;
-  csound->ids      = (OPDS *)ip;
   csound->init_event = csound->currevent;
-  /* do init pass for this instr  */
-  while ((csound->ids = csound->ids->nxti) != NULL) {
-    if (UNLIKELY(O->odebug))
-      csound->Message(csound, "init %s:\n",
-		      csound->ids->optext->t.oentry->opname);
-    (*csound->ids->iopadr)(csound, csound->ids);
-  }
-  ATOMIC_SET(ip->init_done, 1);
-  ip->tieflag = ip->reinitflag = 0;
-  csound->tieflag = csound->reinitflag = 0;
-  if(csound->oparms->realtime)
-    csoundUnlockMutex(csound->init_pass_threadlock);
+  error = init_pass(csound, ip);
+  if(error == 0)
+    ATOMIC_SET(ip->init_done, 1);
   
   if (UNLIKELY(csound->inerrcnt)) {
     xturnoff_now(csound, ip);
     return csound->inerrcnt;
   }
+  ip->tieflag = ip->reinitflag = 0;
+  csound->tieflag = csound->reinitflag = 0;
+  
   if (UNLIKELY(O->odebug)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
@@ -1719,15 +1723,16 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
   /*  run each opcode  */
   if (csound->ksmps == ip->ksmps) {
+    int error = 0;
     if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
       CS_PDS->insdshead->pds = NULL;
       do {
-	(*CS_PDS->opadr)(csound, CS_PDS);
+	error = (*CS_PDS->opadr)(csound, CS_PDS);
 	if (CS_PDS->insdshead->pds != NULL) {
 	  CS_PDS = CS_PDS->insdshead->pds;
 	  CS_PDS->insdshead->pds = NULL;
 	}
-      } while ((CS_PDS = CS_PDS->nxtp));
+      } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
     }
     ip->kcounter++;
   }
@@ -1756,14 +1761,15 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
     for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
       if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
+	int error = 0;
 	CS_PDS->insdshead->pds = NULL;
 	do {
-	  (*CS_PDS->opadr)(csound, CS_PDS);
+	  error = (*CS_PDS->opadr)(csound, CS_PDS);
 	  if (CS_PDS->insdshead->pds != NULL) {
 	    CS_PDS = CS_PDS->insdshead->pds;
 	    CS_PDS->insdshead->pds = NULL;
 	  }
-	} while ((CS_PDS = CS_PDS->nxtp));
+	} while (error == 0 && (CS_PDS = CS_PDS->nxtp));
       }
       ip->kcounter++;
     }
@@ -1865,15 +1871,16 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
       }
 
       if ((CS_PDS = (OPDS *) (this_instr->nxtp)) != NULL) {
+	int error = 0;
 	CS_PDS->insdshead->pds = NULL;
 	do {
-	  (*CS_PDS->opadr)(csound, CS_PDS);
+	  error = (*CS_PDS->opadr)(csound, CS_PDS);
 	  if (CS_PDS->insdshead->pds != NULL &&
 	      CS_PDS->insdshead->pds->insdshead) {
 	    CS_PDS = CS_PDS->insdshead->pds;
 	    CS_PDS->insdshead->pds = NULL;
 	  }
-	} while ((CS_PDS = CS_PDS->nxtp));
+	} while (error == 0 && (CS_PDS = CS_PDS->nxtp));
       }
 
       /* copy a-sig outputs, accounting for offset */
@@ -1973,15 +1980,16 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
       /*  run each opcode  */
       if ((CS_PDS = (OPDS *) (this_instr->nxtp)) != NULL) {
+	int error = 0;
 	CS_PDS->insdshead->pds = NULL;
 	do {
-	  (*CS_PDS->opadr)(csound, CS_PDS);
+	  error = (*CS_PDS->opadr)(csound, CS_PDS);
 	  if (CS_PDS->insdshead->pds != NULL &&
 	      CS_PDS->insdshead->pds->insdshead) {
 	    CS_PDS = CS_PDS->insdshead->pds;
 	    CS_PDS->insdshead->pds = NULL;
 	  }
-	}while ((CS_PDS = CS_PDS->nxtp));
+	}while (error == 0 && (CS_PDS = CS_PDS->nxtp));
       }
 
       /* copy a-sig outputs, accounting for offset */
@@ -2132,16 +2140,18 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   }
 
   /*  run each opcode  */
+  {
+  int error = 0;
   CS_PDS->insdshead->pds = NULL;
   do {
-    (*CS_PDS->opadr)(csound, CS_PDS);
+    error = (*CS_PDS->opadr)(csound, CS_PDS);
     if (CS_PDS->insdshead->pds != NULL &&
 	CS_PDS->insdshead->pds->insdshead) {
       CS_PDS = CS_PDS->insdshead->pds;
       CS_PDS->insdshead->pds = NULL;
     }
-  } while ((CS_PDS = CS_PDS->nxtp));
-
+  } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
+  }
   this_instr->kcounter++;
 
   /* copy outputs */
