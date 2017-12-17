@@ -61,7 +61,7 @@ static void print_messages(CSOUND *csound, int attr, const char *str){
     if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_STDOUT)
       fp = stdout;
     if (!attr || !csound->enableMsgAttr) {
-      fprintf(fp, str);
+      fprintf(fp, "%s", str);
       return;
     }
     if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
@@ -75,14 +75,14 @@ static void print_messages(CSOUND *csound, int attr, const char *str){
     }
     if (attr & CSOUNDMSG_FG_COLOR_MASK)
       fprintf(fp, "\033[3%cm", (attr & 7) + '0');
-    fprintf(fp, str);
+    fprintf(fp, "%s", str);
     fprintf(fp, "\033[m");
 #endif
 }
 
 #define QUEUESIZ 64
 
-void message_string_enqueue(CSOUND *csound, int attr,
+static void message_string_enqueue(CSOUND *csound, int attr,
     const char *str) {
     unsigned long wp = csound->message_string_queue_wp;
     csound->message_string_queue[wp].attr = attr;
@@ -91,6 +91,8 @@ void message_string_enqueue(CSOUND *csound, int attr,
     ATOMIC_INCR(csound->message_string_queue_items);
 }
 
+static void no_op(CSOUND *csound, int attr,
+		  const char *format, va_list args) { };
   
 /*
  * creates a thread to process instance allocations
@@ -109,6 +111,7 @@ uintptr_t event_insert_thread(void *p) {
                                           const char *format,
 				va_list args)
                        = csound->csoundMessageCallback_;
+ if(csound->oparms_.msglevel){
   if(csound->message_string_queue == NULL)
     csound->message_string_queue = (message_string_queue_t *)
       csound->Calloc(csound, QUEUESIZ*sizeof(message_string_queue_t));
@@ -117,6 +120,8 @@ uintptr_t event_insert_thread(void *p) {
     csoundMessageStringCallback = csound->csoundMessageStringCallback;
   else csoundMessageStringCallback = print_messages;
   csoundSetMessageStringCallback(csound, message_string_enqueue);
+ } else
+  csoundSetMessageCallback(csound, no_op);
   
   while(csound->event_insert_loop) {
     // get the value of items_to_alloc
@@ -439,7 +444,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
 #ifdef BETA
   if (UNLIKELY(O->odebug))
     csound->Message(csound, "In insert:  %d %lf %lf\n",
-		    __LINE__, ip->p3, ip->offtim); /* *********** */
+		    __LINE__, ip->p3.value, ip->offtim); /* *********** */
 #endif
   if (ip->p3.value > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
     double p2 = (double) ip->p2.value + csound->timeOffs;
@@ -808,7 +813,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
     }
 #ifdef BETA
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound,"schedofftim: %lf %lf\n", ip->offtim,
+      csound->Message(csound,"schedofftim: %lf %lf %lf \n", ip->offtim,
 		      (csound->icurTime + (0.505 * csound->ksmps))/csound->esr,
 		      csound->ekr*((csound->icurTime +
 				    (0.505 * csound->ksmps))/csound->esr));
