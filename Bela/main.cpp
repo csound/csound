@@ -6,6 +6,7 @@
 #include <Bela.h>
 #include <csound/csound.hpp>
 #include <unistd.h>
+#include <cstring>
 
 struct csData{
   Csound *csound;
@@ -17,10 +18,13 @@ struct csData{
 
 int main(int argc, const char *argv[]) {
   csData CsData;
-  const option opt = {"csd", required_argument, &(CsData.csd), 0};
+  const option opt[] = {{"csd", required_argument, NULL, 0},
+			{NULL, 0, NULL, 0}};
   BelaInitSettings settings;
   Bela_defaultSettings(&settings);
-  if(Bela_getopt_long(argc, argv, "", &opt, &settings) == 0) {
+  if(Bela_getopt_long(argc, argv, "", opt, &settings) == 0) {
+    csData.csd = new char[strlen(optarg)+1];
+    std::strcpy(csData.csd,optarg);
     bool res = Bela_initAudio(&settings, &CsData);
     if(res){
        Bela_startAudio();
