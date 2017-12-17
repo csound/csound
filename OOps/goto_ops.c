@@ -129,7 +129,11 @@ int reinit(CSOUND *csound, GOTO *p)
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
     }
     else {
-      csound->curip->init_done = 0;
+    unsigned long wp = csound->alloc_queue_wp;
+    csound->alloc_queue[wp].ip = csound->ids;
+    csound->alloc_queue[wp].type = 2;
+    csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
+    ATOMIC_INCR(csound->alloc_queue_items);
     }
     return OK;
 }
