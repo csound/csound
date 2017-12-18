@@ -93,6 +93,7 @@ EXIT            #exit
 CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 SEND            ^[ \t]*[es]
 ROP             ^[ \t]*r
+
 NM              [nm]
 
 %X incl
@@ -698,8 +699,10 @@ NM              [nm]
              c = input(yyscanner);
            }
            if (UNLIKELY(PARM->repeat_sect_cnt <= 0
-                        || !isspace(c)))
-             csound->Die(csound, Str("r: invalid repeat count"));
+                        || !isspace(c))) {
+             csound->Message(csound, Str("r: invalid repeat count"));
+             csound->LongJmp(csound, 1);
+           }
            if (UNLIKELY(csound->oparms->odebug))
              csound->Message(csound, Str("r LOOP=%d\n"), PARM->repeat_sect_cnt);
            while (isblank(c)) {
