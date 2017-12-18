@@ -58,7 +58,7 @@ void render(BelaContext *context, void *Data)
     /* this is where Csound is called */
     for(n = 0; n < context->audioFrames; n++){
       if(frame == blocksize) {
-	if((res = userData->csound->PerformBuffer()) == 0) j = 0;
+	if((res = userData->csound->PerformBuffer()) == 0) frame = 0;
 	else {
 	  frame = -1;
 	  break;

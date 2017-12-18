@@ -1079,7 +1079,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;  /* Try new parser */
     }
     else if (!(strcmp(s, "daemon"))) {
-      O->daemon = 1;
+      if(O->daemon == 0) O->daemon = 1;
       return 1;
     }
     else if (!(strncmp(s, "port=",5))) {
