@@ -91,7 +91,8 @@ END             #end(if)?[ \t]*(;.*)?(\n|\r\n?)
 LOOP            #loop
 EXIT            #exit
 CONT            \\[ \t]*(;.*)?(\n|\r\n?)
-SEND            [es]
+SEND            ^[ \t]*[es]
+ROP             ^[ \t]*r
 NM              [nm]
 
 %X incl
@@ -676,8 +677,8 @@ NM              [nm]
             PARM->repeat_index--;
           }
        }
-"r"    {
-         if (PARM->isString) corfile_putc(csound, 'r', PARM->cf);
+{ROP}  {
+         if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
          else {
            int c, i;
            char buff[120];
@@ -741,8 +742,9 @@ NM              [nm]
         }
 {SEND}  {
           if (!PARM->isString) {
-            //printf("section end %d %c\n%s\n",
-            //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
+            int op = yytext[strlen(yytext)-1];
+            printf("section end %d %c\n%s\n",
+                   PARM->in_repeat_sect, op, PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
               corfile_putc(csound, 's', PARM->cf);
               while (1) {
@@ -752,7 +754,7 @@ NM              [nm]
                 corfile_putc(csound, c, PARM->cf);
               }
               corfile_putc(csound, '\n', PARM->cf);
-              unput(yytext[0]);
+              unput(op);
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
@@ -788,7 +790,7 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
-                /* corfile_putc(csound, yytext[0], PARM->cf); */
+                /* corfile_putc(csound, op, PARM->cf); */
                 /* corfile_putc(csound, '\n', PARM->cf); */
                 //printf("end of loop\n");
                 PARM->in_repeat_sect=0;
@@ -798,7 +800,7 @@ NM              [nm]
               }
             }
             else {
-              corfile_putc(csound, yytext[0], PARM->cf);
+              corfile_putc(csound, op, PARM->cf);
                 /* while (1) { */
                 /*   int c = input(yyscanner); */
                 /*   printf("**copy %.2x(%c)\n", c, c); */
@@ -808,7 +810,7 @@ NM              [nm]
                 /* } */
             }
           }
-          else corfile_putc(csound, yytext[0], PARM->cf);
+          else corfile_puts(csound, yytext, PARM->cf);
         }
 .       { corfile_putc(csound, yytext[0], PARM->cf); }
 
