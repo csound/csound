@@ -975,9 +975,14 @@ int sensevents(CSOUND *csound)
     else                                  /* this should only happen at */
       csound->cyclesRemaining = 0;        /* beginning of performance   */
   }
-    
+  
  retest:
-  while (csound->cyclesRemaining <= 0) {   /* read each score event:     */
+  /* in daemon mode, we will ignore the end of
+     the score, but allow for a realtime event 
+     to stop Csound */
+    while (csound->cyclesRemaining <= 0 &&
+           (e->opcod != 'e' || !csound->oparms->daemon)){
+      /* read each score event:     */
     if (e->opcod != '\0') {
       /* if there is a pending score event, handle it now */
       switch (e->opcod) {
@@ -1016,9 +1021,12 @@ int sensevents(CSOUND *csound)
 	else                                /* else lcode   */
 	  memcpy((void*) e, (void*) &(STA(lsect)->strarg), sizeof(EVTBLK));
       } else
-	if (!(rdscor(csound, e)))           /* or rd nxt evt from scstr */
+	if (!(rdscor(csound, e))){
+	  /* or rd nxt evt from scstr */
 	  e->opcod = 'e';
+	}
       csound->currevent = e;
+      
       switch (e->opcod) {
       case 'w':
 	if (!O->Beatmode)                   /* Not beatmode: read 'w' */
@@ -1048,7 +1056,6 @@ int sensevents(CSOUND *csound)
 	continue;
       }
     }
-      
     /* calculate the number of k-periods remaining until next event */
     if (!O->sampleAccurate) {
       if (O->Beatmode)
@@ -1098,8 +1105,9 @@ int sensevents(CSOUND *csound)
 	   csound->OrcTrigEvts->start_kcnt <=
 	   (uint32) csound->global_kcounter) {
 	
-      if ((retval = process_rt_event(csound, 4)) != 0) 
+      if ((retval = process_rt_event(csound, 4)) != 0){
 	goto scode;
+      }
     }
     /* RM */
     if ((sinp = getRemoteSocksIn(csound))) {
@@ -1142,18 +1150,18 @@ int sensevents(CSOUND *csound)
 	}
       }
     }
+
     /* MIDI note messages */
     if (O->Midiin || O->FMidiin)
       while ((sensType = sensMidi(csound)) != 0)
-	if ((retval = process_rt_event(csound, sensType)) != 0)
-	    
+	if ((retval = process_rt_event(csound, sensType)) != 0) {
 	  goto scode;
+	}
   }
   /* no score event at this time, return to continue performance */
+     
   return 0;
  scode:
-  /* get out here in realtime mode */ 
-  if(csound->oparms->realtime && retval == 2) return retval;
   /* end of section (retval == 1), score (retval == 2), */
   /* or lplay list (retval == 3) */
   if (getRemoteInsRfdCount(csound))
@@ -1185,7 +1193,8 @@ int sensevents(CSOUND *csound)
     RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */
   }
-  return 2;                   /* done with entire score */
+  
+  return retval;                   /* done with entire score */
 }
 
 static inline uint64_t time2kcnt(CSOUND *csound, double tval)

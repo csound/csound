@@ -22,7 +22,7 @@ int main(int argc, const char *argv[]) {
 			{NULL, 0, NULL, 0}};
   BelaInitSettings settings;
   Bela_defaultSettings(&settings);
-  if(Bela_getopt_long(argc, argv, "", opt, &settings) == 0) {
+  if(Bela_getopt_long(argc, argv, "", opt, &settings) != -1) {
     csData.csd = new char[strlen(optarg)+1];
     std::strcpy(csData.csd,optarg);
     bool res = Bela_initAudio(&settings, &CsData);
@@ -81,7 +81,7 @@ void render(BelaContext *context, void *userData)
     /* this is where Csound is called */
     for(n = 0; n < context->audioFrames; n++){
       if(frame == blocksize) {
-	if((res = userData->csound->PerformBuffer()) == 0) j = 0;
+	if((res = userData->csound->PerformBuffer()) == 0) frame = 0;
 	else {
 	  frame = -1;
 	  break;
