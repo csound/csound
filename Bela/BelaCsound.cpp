@@ -28,7 +28,7 @@ struct csData{
 
 struct CsMIDI {
   Midi midi;
-}
+};
   
 csData* gCsData;
 
