@@ -87,19 +87,8 @@ void render(BelaContext *context, void *Data)
     int an_chans = context->analogInChannels;
     count = gCsData.count;
     blocksize = gCsData.blocksize;
-    
-
-    /* this is called when Csound is not running */
-    if(count < 0) {
-      for(n = 0; n < context->audioFrames; n++){
-	for(i = 0; i < context->audioOutChannels; i++){
-	  audioWrite(context,n,i,0.f);
-	}
-      }
-      return;
-    }
-   
-    /* this is where Csound is called */
+      
+    /* processing loop */
     for(n = 0; n < context->audioFrames; n++, frm+=incr, count+=nchnls){
       if(count == blocksize) {
 	/* set the channels */
@@ -109,10 +98,7 @@ void render(BelaContext *context, void *Data)
 	}
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
-	else {
-	  count = -1;
-	  break;
-	}
+	else break;
       }
       /* read/write audio data */
       for(i = 0; i < chns; i++){
