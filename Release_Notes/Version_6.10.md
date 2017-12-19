@@ -69,7 +69,8 @@ channels that **only** run at perf-time.
 
 - Attempts to use an undefined macro produce a syntax error now.
 
-- Missing " (or other terminator) in #include is noticed and the #include is ignored.
+- Missing " (or other terminator) in #include is noticed and the #include is 
+  ignored.
 
 ### Score
 
@@ -80,19 +81,20 @@ channels that **only** run at perf-time.
 
 - The extract feature (-x from command line) now works.
 
-- Use of the score opcode x could case spurious error messages which are
-  now suppressed.
+- Use of the score opcode x could case spurious error messages which are now 
+  suppressed.
 
 - After calling a undefined macro the rest of the line is ignored.
 
 - A couple of bugs in repeated sections (r opcode) have been removed.
 
-- Missing " (or other terminator) in #include is noticed and the #include is ignored.
+- Missing " (or other terminator) in #include is noticed and the #include is 
+  ignored.
 
 ### Options
 
 - the --tempo (and -t) option now can be fractional; was previously
-limited to an integer.
+  limited to an integer.
 
 - new option: --udp-console=address:port redirects console to a remote
   address:port.
@@ -163,7 +165,7 @@ limited to an integer.
 - looptseg no longer crashes if presented with too few arguments.
 
 - schedule etc now work correctly with double-quoted strings within {{
-}} strings.
+  }} strings.
 
 - problem with CLI frontend interrupt handler fixed.
 
@@ -200,20 +202,19 @@ getting control channel values via UDP (:@<channel> <dest-address>
 - As ever the French translations are complete.
 
 - The Italian translations of messages are greatly improved in scope;
-about a half of error and warning messages are now done.
+  about a half of error and warning messages are now done.
 
 - Some progress as been made in German translations.
 
 ### API
 
-- CompileCsdText now always returns a value indicating
-success/failure.
+- CompileCsdText now always returns a value indicating success/failure.
 
 - Eight new asynchronous versions of API functions now available:
-csoundCompileTreeAsync(), csoundCompileOrcAsync(),
-csoundReadScoreAsync(), csoundInputMessageAsync(),
-csoundScoreEventAsync(), csoundScoreEventAbsoluteAsync(),
-csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
+  csoundCompileTreeAsync(), csoundCompileOrcAsync(),
+  csoundReadScoreAsync(), csoundInputMessageAsync(),
+  csoundScoreEventAsync(), csoundScoreEventAbsoluteAsync(),
+  csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 
 - For server use, three new API functions: csoundUDPServerStart,
   csoundUDPServerStatus and csoundUDPServerClose.
