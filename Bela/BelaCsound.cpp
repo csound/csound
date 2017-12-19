@@ -32,17 +32,19 @@ struct csMIDI {
   
 csData* gCsData;
 
+
 bool setup(BelaContext *context, void *userData)
 {
   Csound *csound = new Csound();
   const char *csdfile = "my.csd"; /* CSD name */
+  const char *midiDev = "-Mhw:1,0,0"; /* MIDI device */
   int numArgs = 8;
   const char *args[] = { "csound", csdfile, "-iadc", "-odac", "-+rtaudio=null",
-		   "--realtime", "--daemon", "-Mhw:1,0,0"};
+		   "--realtime", "--daemon", midiDev};
   
   gCsData  = new csData;
   csound->SetHostImplementedAudioIO(1,0);
-  csound>SetHostImplementedMIDIIO(1);
+  csound->SetHostImplementedMIDIIO(1);
   csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
   csound->SetExternalMidiReadCallback(ReadMidiData);
   csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
