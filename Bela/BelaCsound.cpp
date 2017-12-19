@@ -32,10 +32,11 @@ bool setup(BelaContext *context, void *userData)
 		   "--realtime", "--daemon"};
   
   gCsData  = new csData;
-  csound->SetHostImplementedAudioIO(1,32);
+  csound->SetHostImplementedAudioIO(1,0);
   gCsData->res = csound->Compile(numArgs, args);
   gCsData->csound = csound;
-  gCsData->blocksize = csound->GetOutputBufferSize();
+  gCsData->blocksize =
+    csound->GetKsmps()*userData->csound->GetNchnls();
   gCsData->count = 0;
   
   /* set up the channels */
@@ -54,8 +55,8 @@ void render(BelaContext *context, void *Data)
   if(gCsData->res == 0) {
     int n,i,k,count, frmcount,blocksize,res;
     MYFLT scal = userData->csound->Get0dBFS();
-    MYFLT* audioIn = userData->csound->GetInputBuffer();
-    MYFLT* audioOut = userData->csound->GetOutputBuffer();
+    MYFLT* audioIn = userData->csound->GetSpin();
+    MYFLT* audioOut = userData->csound->GetSpout();
     int nchnls = userData->csound->GetNchnls();
     int chns = nchnls;
     int an_chns = context->analogInChannels;
@@ -87,7 +88,7 @@ void render(BelaContext *context, void *Data)
           csound->SetChannel(channel[i].name.str().c_str(),
 			     &(channel[i].data[0]));
 	}
-	if((res = userData->csound->PerformBuffer()) == 0) count = 0;
+	if((res = userData->csound->PerformKsmps()) == 0) count = 0;
 	else {
 	  count = -1;
 	  break;
