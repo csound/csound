@@ -1,4 +1,4 @@
-!---
+<!---
 
 To maintain this document use the following markdown:
 
@@ -40,6 +40,8 @@ channels that **only** run at perf-time.
 - squinewave is a mostly bandlimited shape-shifting
   square-pulse-saw-sinewave oscillator with hardsync.
 
+- The experimental opcode OSCsendA has been removed; use OSCsend instead.
+
 ### New Gen and Macros
 
 - gen53 (which has been in the code but not documented for years) is
@@ -74,7 +76,7 @@ channels that **only** run at perf-time.
 - In a csd file commented-out tags were acted upon in some cases,
   leading to truncated scores. This is now fixed.
 
-- The evauation form [..] can now be nested.
+- The evaluation form [..] can now be nested.
 
 - The extract feature (-x from command line) now works.
 
@@ -92,9 +94,11 @@ channels that **only** run at perf-time.
 - the --tempo (and -t) option now can be fractional; was previously
 limited to an integer.
 
-- new option: --udp-console=address:port  redirects console to a remote address:port.
+- new option: --udp-console=address:port redirects console to a remote
+  address:port.
 
-- new option: --udp-mirror-console=address:port  mirrors the console to a remote address:port.
+- new option: --udp-mirror-console=address:port mirrors the console to
+  a remote address:port.
 
 - new option: --udp-echo echoes messages sent to the UDP server
 
@@ -123,6 +127,13 @@ limited to an integer.
 - partials improved to remove a fencepost issue.
 
 - vco2ift fixed when an existing table is used.
+
+- The formatted printing opcodes now check for insufficient provided arguments.
+
+- FLbox and FLsetText again accept an ivar as first argument to give a
+  string via strset (as a alternative to a string).
+
+- Better checking in prints should stop some crashes.
 
 ### Utilities
 
@@ -162,7 +173,7 @@ limited to an integer.
 
 - vbap was broken in all cases except 4-speakers, now corrected.
 
-- Live evalution of Csound Orchestra code code could result in hard to
+- Live evaluation of Csound Orchestra code code could result in hard to
   diagnose, odd errors (e.g., crashes, division by zeros, NaNs). This was due
   to a bug in merging of newly found constants into the global constant pool. 
 
@@ -223,12 +234,13 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 
  - Continuous integration for Windows with AppVeyor (Visual Studio 2017).
 
- - The AppVeyor build and installer now includes CsoundVST and the vst4cs
+<!---
+- The AppVeyor build and installer now includes CsoundVST and the vst4cs
    opcodes that enable hosting VST plugins in Csound. The LGPL v2.1
    license for that code has been modified, with permission of Hermann
    Seib the original author of the VSTHost code, to permit use with
    the separately downloaded VST2 SDK from Steinberg.
-
+--->
 - OSX
 
 - GNU/Linux
@@ -242,8 +254,6 @@ csoundTableCopyOutAsync(), and csoundTableCopyInAsync().
 Author: jpff <jpff@codemist.co.uk>
 Date:   Thu Nov 9 12:27:38 2017 +0000
 
-    support for lib64 systems
-
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Mon Nov 6 16:53:08 2017 -0500
 
@@ -253,21 +263,4 @@ Author: Steven Yi <stevenyi@gmail.com>
 Date:   Mon Nov 6 15:55:40 2017 -0500
 
     added test for prints to not crash if number given (should just report error)
-
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Oct 26 23:56:20 2017 +0100
-
-    support for longer orcs
-
-commit d51c9346336cc2e77b01644281c706d99cfe5818
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Aug 3 15:43:44 2017 +0100
-
-    fixed csound.js putting the handleMessage message handling setting back into place
-
-commit 8b21e6dcc6eea69c14bf96861d9a37d2657a0e24
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Aug 2 18:01:00 2017 +0100
-
-    added setOption to CsoundObj.js
 
