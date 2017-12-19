@@ -41,7 +41,7 @@ bool setup(BelaContext *context, void *Data)
   int numArgs = (int) (sizeof(args)/sizeof(char *));
 
   if(context->audioInChannels != context->audioOutChannels) {
-    printf("Number of audio inputs != number of audio outputs.\n");
+    printf("Error: number of audio inputs != number of audio outputs.\n");
     return false;
   }
 
@@ -91,7 +91,7 @@ void render(BelaContext *context, void *Data)
     if(count < 0) {
       for(n = 0; n < context->audioFrames; n++){
 	for(i = 0; i < context->audioOutChannels; i++){
-	  audioWrite(context,n,i,0);
+	  audioWrite(context,n,i,0.f);
 	}
       }
       return;
@@ -119,7 +119,7 @@ void render(BelaContext *context, void *Data)
       }
  
       /* read analogue data 
-         analogue frame pos gets incremented according to the
+         analogue frame pos frm gets incremented according to the
          ratio analogFrames/audioFrames.
       */
       frmcount = count/nchnls;
@@ -153,7 +153,7 @@ int CloseMidiInDevice(CSOUND *csound, void *userData) {
 
 int ReadMidiData(CSOUND *csound, void *userData,
 		 unsigned char *mbuf, int nbytes) {
-  int n = 0;
+  int n = 0, byte;
   Midi midi = (Midi *) userData;
   
   while((byte = midi->getInput()) >= 0) {
