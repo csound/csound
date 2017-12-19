@@ -1,8 +1,25 @@
-/*******************************************************************************/
-/* Bela Csound Rendering functions                                             */
-/*                                                                             */
-/*******************************************************************************/
+/*
+    BelaCsound.cpp:
 
+    Copyright (C) 2017 V Lazzarini
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
 #include <Bela.h>
 #include <Midi.h>
 #include <csound/csound.hpp>
@@ -54,7 +71,7 @@ bool setup(BelaContext *context, void *Data)
   csound->SetExternalMidiReadCallback(ReadMidiData);
   csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
   if((gCsData.res = csound->Compile(numArgs, args)) != 0) {
-     printf("Error: Csound could not compile CSD file.\n");
+    printf("Error: Csound could not compile CSD file.\n");
     return false;
   }
   gCsData.blocksize = csound->GetKsmps()*csound->GetNchnls();
@@ -66,7 +83,7 @@ bool setup(BelaContext *context, void *Data)
     gCsData.channel[i].name << "analogue" << i+1;
   }
   
- return true;
+  return true;
 }
 
 void render(BelaContext *context, void *Data)
@@ -83,8 +100,7 @@ void render(BelaContext *context, void *Data)
     int an_chns = context->analogInChannels > ANCHNS ?
       ANCHNS : context->analogInChannels;
     CsChan *channel = &(gCsData.channel[0]);
-    float frm = 0, incr = ((float) context->analogFrames)/context->audioFrames;
-    int an_chans = context->analogInChannels;
+    float frm = 0.f, incr = ((float) context->analogFrames)/context->audioFrames;
     count = gCsData.count;
     blocksize = gCsData.blocksize;
       
@@ -105,7 +121,6 @@ void render(BelaContext *context, void *Data)
 	audioIn[count+i] = audioRead(context,n,i);
 	audioWrite(context,n,i,audioOut[count+i]/scal);
       }
- 
       /* read analogue data 
          analogue frame pos frm gets incremented according to the
          ratio analogFrames/audioFrames.
