@@ -29,7 +29,7 @@ struct CsData {
   CsChan channel[ANCHNS];
 };
   
-CsData gCsData;
+static CsData gCsData;
 
 bool setup(BelaContext *context, void *Data)
 {
