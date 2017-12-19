@@ -4,6 +4,7 @@
 /*******************************************************************************/
 
 #include <Bela.h>
+#include <Midi.h>
 #include <csound/csound.hpp>
 #include <vector>
 #include <sstream>
@@ -51,7 +52,7 @@ bool setup(BelaContext *context, void *userData)
   gCsData->res = csound->Compile(numArgs, args);
   gCsData->csound = csound;
   gCsData->blocksize =
-    csound->GetKsmps()*userData->csound->GetNchnls();
+    csound->GetKsmps()*csound->GetNchnls();
   gCsData->count = 0;
   
   /* set up the channels */
@@ -70,7 +71,7 @@ void render(BelaContext *context, void *Data)
   csData *userData = gCsData;
   if(gCsData->res == 0) {
     int n,i,k,count, frmcount,blocksize,res;
-    CSOUND *csound = userData->csound;
+    Csound *csound = userData->csound;
     MYFLT scal = csound->Get0dBFS();
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
