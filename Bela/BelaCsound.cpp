@@ -157,7 +157,7 @@ int ReadMidiData(CSOUND *csound, void *userData,
   CsMIDI *midiData = (CsMIDI *) userData;
   Midi &midi = midiData->midi;
   
-  while((byte = midi.getInput()) > 0) {
+  while((byte = midi.getInput()) >= 0) {
     *mbuf++ = (unsigned char) byte;
     if(++n == nbytes) break;
   }
