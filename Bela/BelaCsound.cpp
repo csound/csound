@@ -31,7 +31,7 @@ struct csMIDI {
   Midi midi;
 };
   
-csData* gCsData;
+csData gCsData;
 
 
 bool setup(BelaContext *context, void *userData)
@@ -42,47 +42,45 @@ bool setup(BelaContext *context, void *userData)
   int numArgs = 8;
   const char *args[] = { "csound", csdfile, "-iadc", "-odac", "-+rtaudio=null",
 		   "--realtime", "--daemon", midiDev};
-  
-  gCsData  = new csData;
+ 
   csound->SetHostImplementedAudioIO(1,0);
   csound->SetHostImplementedMIDIIO(1);
   csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
   csound->SetExternalMidiReadCallback(ReadMidiData);
   csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
-  gCsData->res = csound->Compile(numArgs, args);
-  gCsData->csound = csound;
-  gCsData->blocksize =
+  gCsData.res = csound->Compile(numArgs, args);
+  gCsData.csound = csound;
+  gCsData.blocksize =
     csound->GetKsmps()*csound->GetNchnls();
-  gCsData->count = 0;
+  gCsData.count = 0;
   
   /* set up the channels */
-  gCsData->channel.resize(context->analogInChannels);
+  gCsData.channel.resize(context->analogInChannels);
   for(int i; i < context->analogInChannels; i++) {
-    gCsData->channel[i].data.resize(csound->GetKsmps());
-    gCsData->channel[i].name << "analogue" << i+1;
+    gCsData.channel[i].data.resize(csound->GetKsmps());
+    gCsData.channel[i].name << "analogue" << i+1;
   }
   
-  if(gCsData->res != 0) return false;
+  if(gCsData.res != 0) return false;
   else return true;
 }
 
 void render(BelaContext *context, void *Data)
 {
-  csData *userData = gCsData;
-  if(gCsData->res == 0) {
+  if(gCsData.res == 0) {
     int n,i,k,count, frmcount,blocksize,res;
-    Csound *csound = userData->csound;
+    Csound *csound = gCsData.csound;
     MYFLT scal = csound->Get0dBFS();
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
     int nchnls = csound->GetNchnls();
     int chns = nchnls;
     int an_chns = context->analogInChannels;
-    csChan *channel = &(userData->channel[0]);
+    csChan *channel = &(gCsData.channel[0]);
     float frm = 0, incr = ((float) context->analogFrames)/context->audioFrames;
     int an_chans = context->analogInChannels;
-    count = userData->count;
-    blocksize = userData->blocksize;
+    count = gCsData.count;
+    blocksize = gCsData.blocksize;
     
 
     /* this is called when Csound is not running */
@@ -129,22 +127,20 @@ void render(BelaContext *context, void *Data)
         channel[i].data[frmcount] = analogRead(context,k,i);
       }	
     }
-    gCsData->res = res;
-    userData->count = count;
+    gCsData.res = res;
+    gCsData.count = count;
   }
 }
 
 void cleanup(BelaContext *context, void *Data)
 {
-  csData *userData = gCsData;
-  delete userData->csound;
-  delete userData;
+  delete gCsData.csound;
 }
 
 /** MIDI Input functions 
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
-  csMIDI *midiData = new CsMIDI;
+  csMIDI *midiData = new csMIDI;
   Midi &midi = midiData->midi;
   midi.readFrom(dev);
   midi.enableParser(false);
