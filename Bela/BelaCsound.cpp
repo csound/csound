@@ -41,7 +41,7 @@ bool setup(BelaContext *context, void *userData)
   /* set up the channels */
   for(int i; i < context->analogInChannels; i++) {
     gCsData.channel[i].data.resize(context->analogFrames);
-    gCsData.channel[i].name << "analogue" << i;
+    gCsData.channel[i].name << "analogue" << i+1;
   }
   
   if(gCsData->res != 0) return false;
