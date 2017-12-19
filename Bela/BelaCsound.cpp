@@ -1,7 +1,7 @@
-/*********************************************************/
-/* Bela Csound Rendering functions                       */
-/*                                                       */
-/*********************************************************/
+/*******************************************************************************/
+/* Bela Csound Rendering functions                                             */
+/*                                                                             */
+/*******************************************************************************/
 
 #include <Bela.h>
 #include <csound/csound.hpp>
@@ -18,10 +18,13 @@ csData* gCsData;
 bool setup(BelaContext *context, void *userData)
 {
   Csound *csound = new Csound();
-  gCsData  = new csData;	
+  const char *csdfile = "my.csd";
+  int numArgs = 6;
+  char *args[] = { "csound", csdfile, "-iadc", "-odac","-+rtaudio=null", "--realtime",
+		   "--daemon"};
+  gCsData  = new csData;
   csound->SetHostImplementedAudioIO(1,32);
-  gCsData->res = csound->Compile("simple.csd", "-iadc", "-odac",
-				 "-+rtaudio=null", "--realtime"); // TODO get CSD name
+  gCsData->res = csound->Compile(numArgs, args);
   gCsData->csound = csound;
   gCsData->blocksize = csound->GetOutputBufferSize();
   gCsData->count = 0;
