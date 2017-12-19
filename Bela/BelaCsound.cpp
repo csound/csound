@@ -8,6 +8,11 @@
 #include <vector>
 #include <sstream>
 
+static int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev);
+static int CloseMidiInDevice(CSOUND *csound, void *userData);
+static int ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf,
+			int nbytes);
+
 struct csChan {
   std::vector<MYFLT> data;
   std::stringstream name;
@@ -27,12 +32,16 @@ bool setup(BelaContext *context, void *userData)
 {
   Csound *csound = new Csound();
   const char *csdfile = "my.csd"; /* CSD name */
-  int numArgs = 6;
-  char *args[] = { "csound", csdfile, "-iadc", "-odac","-+rtaudio=null",
-		   "--realtime", "--daemon"};
+  int numArgs = 8;
+  char *args[] = { "csound", csdfile, "-iadc", "-odac", "-+rtaudio=null",
+		   "--realtime", "--daemon", "-Mhw:1,0,0"};
   
   gCsData  = new csData;
   csound->SetHostImplementedAudioIO(1,0);
+  csound>SetHostImplementedMIDIIO(1);
+  csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
+  csound->SetExternalMidiReadCallback(ReadMidiData);
+  csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
   gCsData->res = csound->Compile(numArgs, args);
   gCsData->csound = csound;
   gCsData->blocksize =
@@ -88,6 +97,7 @@ void render(BelaContext *context, void *Data)
           csound->SetChannel(channel[i].name.str().c_str(),
 			     &(channel[i].data[0]));
 	}
+	/* run csound */
 	if((res = userData->csound->PerformKsmps()) == 0) count = 0;
 	else {
 	  count = -1;
@@ -108,8 +118,7 @@ void render(BelaContext *context, void *Data)
       for(i = 0; i < an_chns; i++) {
 	k = (int) frm;
         channel[i].data[frmcount] = analogRead(context,k,i);
-      }
-	
+      }	
     }
     gCsData->res = res;
     userData->count = count;
@@ -123,3 +132,31 @@ void cleanup(BelaContext *context, void *Data)
   delete userData;
 }
 
+/** MIDI Input functions 
+ */
+int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
+  CsMIDI *midiData = new CsMIDI;
+  Midi &midi = midiData->midi;
+  midi.readFrom(dev);
+  midi.enableParser(false);
+  *userData = (void *) midiData;
+}
+
+int CloseMidiInDevice(CSOUND *csound, void *userData) {
+  CsMIDI *midiData = (CsMIDI *) userData;
+  delete midiData;
+}
+
+int ReadMidiData(CSOUND *csound, void *userData,
+                         unsigned char *mbuf, int nbytes) {
+  int n = 0;
+  CsMIDI *midiData = (CsMIDI *) userData;
+  Midi &midi = midiData->midi;
+  
+  while((byte = midi.getInput()) > 0) {
+    *mbuf++ = (unsigned char) byte;
+    if(++n == nbytes) break;
+  }
+  
+  return n;				   
+}
