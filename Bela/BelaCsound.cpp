@@ -23,7 +23,7 @@ struct csData{
   int blocksize;
   int res;
   int count;
-  csChan channel[8];
+  std::vector<csChan> channel;
 };
 
 struct CsMIDI {
@@ -53,9 +53,10 @@ bool setup(BelaContext *context, void *userData)
   gCsData->count = 0;
   
   /* set up the channels */
+  gCsData->channel.resize(context->analogInChannels);
   for(int i; i < context->analogInChannels; i++) {
-    gCsData.channel[i].data.resize(csound->GetKsmps());
-    gCsData.channel[i].name << "analogue" << i+1;
+    gCsData->channel[i].data.resize(csound->GetKsmps());
+    gCsData->channel[i].name << "analogue" << i+1;
   }
   
   if(gCsData->res != 0) return false;
@@ -73,7 +74,7 @@ void render(BelaContext *context, void *Data)
     int nchnls = userData->csound->GetNchnls();
     int chns = nchnls;
     int an_chns = context->analogInChannels;
-    CsChan *channel = userData->channel;
+    CsChan *channel = &(userData->channel[0]);
     float frm = 0, incr = ((float) context->analogFrames)/context->audioFrames;
     int an_chans = context->analogInChannels;
     count = userData->count;
@@ -152,7 +153,7 @@ int CloseMidiInDevice(CSOUND *csound, void *userData) {
 }
 
 int ReadMidiData(CSOUND *csound, void *userData,
-                         unsigned char *mbuf, int nbytes) {
+		 unsigned char *mbuf, int nbytes) {
   int n = 0;
   CsMIDI *midiData = (CsMIDI *) userData;
   Midi &midi = midiData->midi;
