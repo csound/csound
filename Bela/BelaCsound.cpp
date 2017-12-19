@@ -28,21 +28,17 @@ struct CsData {
   int count;
   CsChan channel[ANCHNS];
 };
-
-struct CsMIDI {
-  Midi midi;
-};
   
 CsData gCsData;
 
-bool setup(BelaContext *context, void *userData)
+bool setup(BelaContext *context, void *Data)
 {
   Csound *csound;
   const char *csdfile = "my.csd"; /* CSD name */
   const char *midiDev = "-Mhw:1,0,0"; /* MIDI device */
-  int numArgs = 8;
   const char *args[] = { "csound", csdfile, "-iadc", "-odac", "-+rtaudio=null",
-			 "--realtime", "--daemon", midiDev};
+			 "--realtime", "--daemon", midiDev };
+  int numArgs = (int) (sizeof(args)/sizeof(char *));
 
   if(context->audioInChannels != context->audioOutChannels) {
     printf("Number of audio inputs != number of audio outputs.\n");
@@ -145,25 +141,22 @@ void cleanup(BelaContext *context, void *Data)
 /** MIDI Input functions 
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
-  CsMIDI *midiData = new CsMIDI;
-  Midi &midi = midiData->midi;
-  midi.readFrom(dev);
-  midi.enableParser(false);
-  *userData = (void *) midiData;
+  Midi *midi = new Midi;
+  midi->readFrom(dev);
+  midi->enableParser(false);
+  *userData = (void *) midi;
 }
 
 int CloseMidiInDevice(CSOUND *csound, void *userData) {
-  CsMIDI *midiData = (CsMIDI *) userData;
-  delete midiData;
+  delete (Midi *) userData;
 }
 
 int ReadMidiData(CSOUND *csound, void *userData,
 		 unsigned char *mbuf, int nbytes) {
   int n = 0;
-  CsMIDI *midiData = (CsMIDI *) userData;
-  Midi &midi = midiData->midi;
+  Midi midi = (Midi *) userData;
   
-  while((byte = midi.getInput()) >= 0) {
+  while((byte = midi->getInput()) >= 0) {
     *mbuf++ = (unsigned char) byte;
     if(++n == nbytes) break;
   }
