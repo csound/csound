@@ -152,14 +152,14 @@ int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
 }
 
 int CloseMidiInDevice(CSOUND *csound, void *userData) {
-  csMIDI *midiData = (CsMIDI *) userData;
+  csMIDI *midiData = (csMIDI *) userData;
   delete midiData;
 }
 
 int ReadMidiData(CSOUND *csound, void *userData,
 		 unsigned char *mbuf, int nbytes) {
   int n = 0;
-  csMIDI *midiData = (CsMIDI *) userData;
+  csMIDI *midiData = (csMIDI *) userData;
   Midi &midi = midiData->midi;
   
   while((byte = midi.getInput()) >= 0) {
