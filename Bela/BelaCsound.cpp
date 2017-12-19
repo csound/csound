@@ -26,7 +26,7 @@ struct csData{
   std::vector<csChan> channel;
 };
 
-struct CsMIDI {
+struct csMIDI {
   Midi midi;
 };
   
@@ -37,7 +37,7 @@ bool setup(BelaContext *context, void *userData)
   Csound *csound = new Csound();
   const char *csdfile = "my.csd"; /* CSD name */
   int numArgs = 8;
-  char *args[] = { "csound", csdfile, "-iadc", "-odac", "-+rtaudio=null",
+  const char *args[] = { "csound", csdfile, "-iadc", "-odac", "-+rtaudio=null",
 		   "--realtime", "--daemon", "-Mhw:1,0,0"};
   
   gCsData  = new csData;
@@ -68,13 +68,14 @@ void render(BelaContext *context, void *Data)
   csData *userData = gCsData;
   if(gCsData->res == 0) {
     int n,i,k,count, frmcount,blocksize,res;
-    MYFLT scal = userData->csound->Get0dBFS();
-    MYFLT* audioIn = userData->csound->GetSpin();
-    MYFLT* audioOut = userData->csound->GetSpout();
-    int nchnls = userData->csound->GetNchnls();
+    CSOUND *csound = userData->csound;
+    MYFLT scal = csound->Get0dBFS();
+    MYFLT* audioIn = csound->GetSpin();
+    MYFLT* audioOut = csound->GetSpout();
+    int nchnls = csound->GetNchnls();
     int chns = nchnls;
     int an_chns = context->analogInChannels;
-    CsChan *channel = &(userData->channel[0]);
+    csChan *channel = &(userData->channel[0]);
     float frm = 0, incr = ((float) context->analogFrames)/context->audioFrames;
     int an_chans = context->analogInChannels;
     count = userData->count;
@@ -103,7 +104,7 @@ void render(BelaContext *context, void *Data)
 			     &(channel[i].data[0]));
 	}
 	/* run csound */
-	if((res = userData->csound->PerformKsmps()) == 0) count = 0;
+	if((res = csound->PerformKsmps()) == 0) count = 0;
 	else {
 	  count = -1;
 	  break;
@@ -140,7 +141,7 @@ void cleanup(BelaContext *context, void *Data)
 /** MIDI Input functions 
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
-  CsMIDI *midiData = new CsMIDI;
+  csMIDI *midiData = new CsMIDI;
   Midi &midi = midiData->midi;
   midi.readFrom(dev);
   midi.enableParser(false);
@@ -148,14 +149,14 @@ int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
 }
 
 int CloseMidiInDevice(CSOUND *csound, void *userData) {
-  CsMIDI *midiData = (CsMIDI *) userData;
+  csMIDI *midiData = (CsMIDI *) userData;
   delete midiData;
 }
 
 int ReadMidiData(CSOUND *csound, void *userData,
 		 unsigned char *mbuf, int nbytes) {
   int n = 0;
-  CsMIDI *midiData = (CsMIDI *) userData;
+  csMIDI *midiData = (CsMIDI *) userData;
   Midi &midi = midiData->midi;
   
   while((byte = midi.getInput()) >= 0) {
