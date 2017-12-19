@@ -25,6 +25,10 @@ struct csData{
   int count;
   csChan channel[8];
 };
+
+struct CsMIDI {
+  Midi midi;
+}
   
 csData* gCsData;
 
