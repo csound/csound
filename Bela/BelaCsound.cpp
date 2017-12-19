@@ -47,13 +47,16 @@ bool setup(BelaContext *context, void *Data)
 
   /* setup Csound */
   csound = new Csound();
+  gCsData.csound = csound;
   csound->SetHostImplementedAudioIO(1,0);
   csound->SetHostImplementedMIDIIO(1);
   csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
   csound->SetExternalMidiReadCallback(ReadMidiData);
   csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
-  gCsData.csound = csound;
-  gCsData.res = csound->Compile(numArgs, args);
+  if((gCsData.res = csound->Compile(numArgs, args)) != 0) {
+     printf("Error: Csound could not compile CSD file.\n");
+    return false;
+  }
   gCsData.blocksize = csound->GetKsmps()*csound->GetNchnls();
   gCsData.count = 0;
   
@@ -63,8 +66,7 @@ bool setup(BelaContext *context, void *Data)
     gCsData.channel[i].name << "analogue" << i+1;
   }
   
-  if(gCsData.res != 0) return false;
-  else return true;
+ return true;
 }
 
 void render(BelaContext *context, void *Data)
