@@ -145,24 +145,31 @@ void cleanup(BelaContext *context, void *Data)
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
   Midi *midi = new Midi;
-  midi->readFrom(dev);
-  midi->enableParser(false);
-  *userData = (void *) midi;
+  if(midi->readFrom(dev) == 1) {
+    midi->enableParser(false);
+    *userData = (void *) midi;
+    return 0;
+  }
+  csound->Warning(csound, "Could not open Midi device %s", dev);
+  delete Midi;
+  return -1;
 }
 
 int CloseMidiInDevice(CSOUND *csound, void *userData) {
-  delete (Midi *) userData;
+  if(userData) delete (Midi *) userData;
 }
 
 int ReadMidiData(CSOUND *csound, void *userData,
 		 unsigned char *mbuf, int nbytes) {
   int n = 0, byte;
-  Midi midi = (Midi *) userData;
+  if(userData) {
+  Midi *midi = (Midi *) userData;
   
   while((byte = midi->getInput()) >= 0) {
     *mbuf++ = (unsigned char) byte;
     if(++n == nbytes) break;
   }
-  
-  return n;				   
+  return n;
+  }
+  return 0;
 }
