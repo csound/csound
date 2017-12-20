@@ -746,8 +746,8 @@ NM              [nm]
 {SEND}  {
           if (!PARM->isString) {
             int op = yytext[strlen(yytext)-1];
-            printf("section end %d %c\n%s\n",
-                   PARM->in_repeat_sect, op, PARM->cf->body);
+            //printf("section end %d %c\n%s\n",
+            //       PARM->in_repeat_sect, op, PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
               corfile_putc(csound, 's', PARM->cf);
               while (1) {
