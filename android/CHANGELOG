@@ -2,6 +2,14 @@ Csound for Android ChangeLog
 
 This ChangeLog shows changes specific to Csound for Android. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
+6.10.0 - 2017-12-20
+
+* Fixed audio input handling (Did not properly work for nchnls_i=1 and many
+devices do not work with nchnls_i=2. Most users will likely want to use
+nchnls_i=1 in their CSDs if processing microphone.) 
+
+* Updated to compile with NDK r16
+
 6.04.0 - 2014-12-01
 
 * Android API updated: 
