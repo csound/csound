@@ -150,8 +150,8 @@ int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
     *userData = (void *) midi;
     return 0;
   }
-  csound->Warning(csound, "Could not open Midi device %s", dev);
-  delete Midi;
+  csoundMessage(csound, "Could not open Midi device %s", dev);
+  delete midi;
   return -1;
 }
 
