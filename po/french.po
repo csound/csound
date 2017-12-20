@@ -1639,13 +1639,13 @@ msgid "csoundLoadSoundFile(): error reading '%s'"
 msgstr "csoundLoadSoundFile() : erreur de lecture sur '%s'"
 
 #: Engine/memfiles.c:678
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "File '%s' (sr = %d Hz, %d channel(s), %lld sample frames) loaded into "
 "memory\n"
 msgstr ""
-"Le fichier '%s' (sr = %d Hz, %d voix, %d trames d'échantillons) a été chargé "
-"en mémoire\n"
+"Le fichier '%s' (sr = %d Hz, %d voix, %lld trames d'échantillons) a été "
+"chargé en mémoire\n"
 
 #: Engine/musmon.c:72
 #, c-format
@@ -2295,9 +2295,9 @@ msgid "audio_in %s has %d chnls, orch %d chnls_i"
 msgstr "l'entrée audio_in %s a %d voix, l'orchestre a %d voix"
 
 #: InOut/libsnd.c:575
-#, fuzzy, c-format
+#, c-format
 msgid "reading %d sample blks of %lu-bit floats from %s \n"
-msgstr "lecture de %d blocs d'échantillons de flottants sur %d bit depuis %s\n"
+msgstr "lecture de %d blocs d'échantillons de flottants sur %lu bit depuis %s\n"
 
 #: InOut/libsnd.c:579
 #, c-format
@@ -2337,9 +2337,9 @@ msgstr ""
 "%s"
 
 #: InOut/libsnd.c:871
-#, fuzzy, c-format
+#, c-format
 msgid "writing %d sample blks of %lu-bit floats to %s \n"
-msgstr "écriture de %d blocs d'échantillons de flottants sur %d bit vers %s\n"
+msgstr "écriture de %d blocs d'échantillons de flottants sur %lu bit vers %s\n"
 
 #: InOut/libsnd.c:874 util/srconv.c:506
 #, c-format
@@ -2351,9 +2351,9 @@ msgid " (raw)\n"
 msgstr " (raw)\n"
 
 #: InOut/libsnd.c:945
-#, fuzzy, c-format
+#, c-format
 msgid "%d %d sample blks of %lu-bit floats written to %s\n"
-msgstr "%d %d blocs d'échantillons de flottants sur %d bit écrits vers %s\n"
+msgstr "%d %d blocs d'échantillons de flottants sur %lu bit écrits vers %s\n"
 
 #: InOut/libsnd.c:950
 #, c-format
@@ -3298,9 +3298,9 @@ msgid "requested device %d out of range"
 msgstr "Le périphérique requis %d est hors limites"
 
 #: InOut/rtauhal.c:280
-#, fuzzy, c-format
+#, c-format
 msgid "requested device %d (%s) out of range"
-msgstr "Le périphérique requis %d est hors limites"
+msgstr "Le périphérique requis %d (%s) est hors limites"
 
 #: InOut/rtauhal.c:300
 #, c-format
@@ -4404,22 +4404,22 @@ msgstr ""
 "de l'orchestre\n"
 
 #: OOps/diskin2.c:468 OOps/diskin2.c:1742
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "diskin2: opened (asynchronously) '%s':\n"
 "         %d Hz, %d channel(s), %lld sample frames\n"
 msgstr ""
-"diskin2 : '%s' ouvert (asynchrone) :\n"
-"          %d Hz, %d voix, %d trames d'échantillons\n"
+"diskin2 : '%s' ouvert (en asynchrone) :\n"
+"          %d Hz, %d voix, %lld trames d'échantillons\n"
 
 #: OOps/diskin2.c:482 OOps/diskin2.c:1756
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "diskin2: opened '%s':\n"
 "         %d Hz, %d channel(s), %lld sample frames\n"
 msgstr ""
 "diskin2 : '%s' ouvert :\n"
-"          %d Hz, %d voix, %d trames d'échantillons\n"
+"          %d Hz, %d voix, %lld trames d'échantillons\n"
 
 #: OOps/diskin2.c:563 OOps/diskin2.c:749 OOps/diskin2.c:945
 #: OOps/diskin2.c:1350 OOps/diskin2.c:1788 OOps/diskin2.c:1981
@@ -8334,9 +8334,8 @@ msgid "Jack client deactivated.\n"
 msgstr "Client Jack désactivé.\n"
 
 #: Opcodes/jacko.cpp:712
-#, fuzzy
 msgid "Jack ports unregistered.\n"
-msgstr "jacktransport rembobiné.\n"
+msgstr "Ports jack désenregistrés.\n"
 
 #: Opcodes/jacko.cpp:723
 msgid "ENDED JackoState::close().\n"
