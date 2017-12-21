@@ -1,24 +1,24 @@
 /*
-    BelaCsound.cpp:
+  BelaCsound.cpp:
 
-    Copyright (C) 2017 V Lazzarini
+  Copyright (C) 2017 V Lazzarini
 
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 */
 #include <Bela.h>
 #include <Midi.h>
@@ -31,6 +31,10 @@
 static int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev);
 static int CloseMidiInDevice(CSOUND *csound, void *userData);
 static int ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf,
+			int nbytes);
+static int OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
+static int CloseMidiOutDevice(CSOUND *csound, void *userData);
+static int WriteMidiData(CSOUND *csound, void *userData, unsigned char *mbuf,
 			int nbytes);
 
 struct CsChan {
@@ -54,9 +58,10 @@ bool setup(BelaContext *context, void *Data)
 {
   Csound *csound;
   const char *csdfile = "my.csd"; /* CSD name */
-  const char *midiDev = "-Mhw:1,0,0"; /* MIDI device */
+  const char *midiDev = "-Mhw:1,0,0"; /* MIDI IN device */
+  const char *midiOutDev = "-Qhw:1,0,0"; /* MIDI OUT device */
   const char *args[] = { "csound", csdfile, "-iadc", "-odac", "-+rtaudio=null",
-			 "--realtime", "--daemon", midiDev };
+			 "--realtime", "--daemon", midiDev, midiOutDev };
   int numArgs = (int) (sizeof(args)/sizeof(char *));
 
   if(context->audioInChannels != context->audioOutChannels) {
@@ -77,6 +82,9 @@ bool setup(BelaContext *context, void *Data)
   csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
   csound->SetExternalMidiReadCallback(ReadMidiData);
   csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
+  csound->SetExternalMidiOutOpenCallback(OpenMidiOutDevice);
+  csound->SetExternalMidiWriteCallback(WriteMidiData);
+  csound->SetExternalMidiOutCloseCallback(CloseMidiOutDevice);
   if((gCsData.res = csound->Compile(numArgs, args)) != 0) {
     printf("Error: Csound could not compile CSD file.\n");
     return false;
@@ -109,6 +117,7 @@ void render(BelaContext *context, void *Data)
     int an_chns = context->analogInChannels > ANCHNS ?
       ANCHNS : context->analogInChannels;
     CsChan *channel = &(gCsData.channel[0]);
+    CsChan *ochannel = &(gCsData.ochannel[0]);
     float frm = 0.f, incr = ((float) context->analogFrames)/context->audioFrames;
     count = gCsData.count;
     blocksize = gCsData.blocksize;
@@ -161,7 +170,7 @@ int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
     *userData = (void *) &gMidi;
     return 0;
   }
-  csoundMessage(csound, "Could not open Midi device %s", dev);
+  csoundMessage(csound, "Could not open Midi in device %s", dev);
   return -1;
 }
 
@@ -173,13 +182,38 @@ int ReadMidiData(CSOUND *csound, void *userData,
 		 unsigned char *mbuf, int nbytes) {
   int n = 0, byte;
   if(userData) {
-  Midi *midi = (Midi *) userData;
+    Midi *midi = (Midi *) userData;
   
-  while((byte = midi->getInput()) >= 0) {
-    *mbuf++ = (unsigned char) byte;
-    if(++n == nbytes) break;
+    while((byte = midi->getInput()) >= 0) {
+      *mbuf++ = (unsigned char) byte;
+      if(++n == nbytes) break;
+    }
+    return n;
   }
-  return n;
+  return 0;
+}
+
+int OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev) {
+  if(gMidi.writeTo(dev) == 1) {
+    gMidi.enableParser(false);
+    *userData = (void *) &gMidi;
+    return 0;
+  }
+  csoundMessage(csound, "Could not open Midi out device %s", dev);
+  return -1;
+}
+
+int CloseMidiOutDevice(CSOUND *csound, void *userData) {
+  return 0;
+}
+
+int WriteMidiData(CSOUND *csound, void *userData,
+		  unsigned char *mbuf, int nbytes) {
+  int n = 0, byte;
+  if(userData) {
+    Midi *midi = (Midi *) userData;
+    if(midi->writeOutput(mbuf, nbytes) > 0) return nbytes;
+    return 0;
   }
   return 0;
 }
