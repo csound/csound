@@ -44,6 +44,7 @@ struct CsData {
   int res;
   int count;
   CsChan channel[ANCHNS];
+  CsChan ochannel[ANCHNS];
 };
   
 static CsData gCsData;
@@ -60,6 +61,11 @@ bool setup(BelaContext *context, void *Data)
 
   if(context->audioInChannels != context->audioOutChannels) {
     printf("Error: number of audio inputs != number of audio outputs.\n");
+    return false;
+  }
+
+  if(context->analogInChannels != context->analogOutChannels) {
+    printf("Error: number of analog inputs != number of analog outputs.\n");
     return false;
   }
 
@@ -81,7 +87,9 @@ bool setup(BelaContext *context, void *Data)
   /* set up the channels */
   for(int i=0; i < ANCHNS; i++) {
     gCsData.channel[i].data.resize(csound->GetKsmps());
-    gCsData.channel[i].name << "analogue" << i+1;
+    gCsData.channel[i].name << "analogIn" << i+1;
+    gCsData.ochannel[i].data.resize(csound->GetKsmps());
+    gCsData.ochannel[i].name << "analogOut" << i+1;
   }
   
   return true;
@@ -112,6 +120,8 @@ void render(BelaContext *context, void *Data)
 	for(i = 0; i < an_chns; i++) {
           csound->SetChannel(channel[i].name.str().c_str(),
 			     &(channel[i].data[0]));
+	  csound->GetChannel(ochannel[i].name.str().c_str(),
+			     &(ochannel[i].data[0]));
 	}
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
@@ -130,6 +140,7 @@ void render(BelaContext *context, void *Data)
       for(i = 0; i < an_chns; i++) {
 	k = (int) frm;
         channel[i].data[frmcount] = analogRead(context,k,i);
+	analogWriteOnce(context,k,i,ochannel[i].data[frmcount]); 
       }	
     }
     gCsData.res = res;
@@ -155,8 +166,9 @@ int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
 }
 
 int CloseMidiInDevice(CSOUND *csound, void *userData) {
+  return 0;
 }
-
+ 
 int ReadMidiData(CSOUND *csound, void *userData,
 		 unsigned char *mbuf, int nbytes) {
   int n = 0, byte;
