@@ -102,8 +102,8 @@ echo "Copying Python Libs... $PWD"
 
 cp $DIST/../_csnd6.so $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $DIST/../csnd6.py $FRAMEWORK64_DIR/$PYTHON_DIR
-cp $DIST/../CsoundAC.py $FRAMEWORK64_DIR/$PYTHON_DIR
-cp $DIST/../_CsoundAC.so $FRAMEWORK64_DIR/$PYTHON_DIR
+#cp $DIST/../CsoundAC.py $FRAMEWORK64_DIR/$PYTHON_DIR
+#cp $DIST/../_CsoundAC.so $FRAMEWORK64_DIR/$PYTHON_DIR
 cp $BLD/../interfaces/ctcsound.py $FRAMEWORK64_DIR/$PYTHON_DIR
 export CSOUND_AC_PYLIB=$FRAMEWORK64_DIR/$PYTHON_DIR/_CsoundAC.so
 
@@ -111,11 +111,11 @@ export CSOUND_AC_PYLIB=$FRAMEWORK64_DIR/$PYTHON_DIR/_CsoundAC.so
 echo "preparing framework..."
 
 cp  $DIST/lib/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
-cp  $DIST/lib/libCsoundAC.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
+#cp  $DIST/lib/libCsoundAC.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
 cp  $DIST/lib/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/csnd6.jar $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/luaCsnd6.so $FRAMEWORK64_DIR/$LUA_DIR
-cp  $DIST/lib/luaCsoundAC.so $FRAMEWORK64_DIR/$LUA_DIR
+#cp  $DIST/lib/luaCsoundAC.so $FRAMEWORK64_DIR/$LUA_DIR
 cp  $DIST/lib/csound6~.pd_darwin $FRAMEWORK64_DIR/$PD_DIR
 cp  csound6/examples/csoundapi_tilde/csound6~-help.pd $FRAMEWORK64_DIR/$PD_DIR/
 cp  csound6/examples/csoundapi_tilde/csapi_demo.csd $FRAMEWORK64_DIR/$PD_DIR/
@@ -255,7 +255,7 @@ install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../..
 install_name_tool -change $DEPS_BASE/lib/libfluidsynth.1.dylib @loader_path/../../../../libs/libfluidsynth.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libfluidOpcodes.dylib
 install_name_tool -change /usr/local/lib/libportmidi.dylib @loader_path/../../../../libs/libportmidi.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libpmidi.dylib
 
-install_name_tool -change  $BUILD_DIR/libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib $CSOUND_AC_PYLIB
+#install_name_tool -change  $BUILD_DIR/libCsoundAC.6.0.dylib /usr/local/lib/libCsoundAC.6.0.dylib $CSOUND_AC_PYLIB
 
 install_name_tool -change $DEPS_BASE/lib/libluajit-5.1.2.dylib @loader_path/../../../../libs/libluajit-5.1.2.0.2.dylib  $FRAMEWORK64_DIR/$LUA_DIR/luaCsnd6.so 
 install_name_tool -change $DEPS_BASE/lib/libluajit-5.1.2.dylib @loader_path/../../../../libs/libluajit-5.1.2.0.2.dylib  $FRAMEWORK64_DIR/$LUA_DIR/luaCsoundAC.so
@@ -293,7 +293,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-0.9.4-OSX.dmg .
+cp  ../../../DmgResources/CsoundQt-0.9.5-Macos0.13.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..
