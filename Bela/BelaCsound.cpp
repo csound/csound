@@ -46,7 +46,7 @@ struct DigiIn : csnd::Plugin<1, 1> {
   int pin;
   int fcount;
   int frms;
-  init init_done;
+  int init_done;
   BelaContext *context;
   
   int init() {
