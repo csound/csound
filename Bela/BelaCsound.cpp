@@ -46,6 +46,7 @@ struct DigiIn : csnd::Plugin<1, 1> {
   int pin;
   int fcount;
   int frms;
+  init init_done;
   BelaContext *context;
   
   int init() {
@@ -53,14 +54,18 @@ struct DigiIn : csnd::Plugin<1, 1> {
     if(pin < 0 ) pin = 0;
     if(pin > 15) pin = 15;
     context = (BelaContext *) csound->host_data();
-    pinMode(context,0,pin,0);
     fcount = 0;
+    init_done = 0;
     frms = context->digitalFrames; 
     return OK;
   }
 
   int kperf() {
-    outargs[0] = digitalRead(context,fcount,pin);
+   if(!init_done) {
+      pinMode(context,0,pin,0);
+      init_done = 1;
+    }
+    outargs[0] = (MYFLT) digitalRead(context,fcount,pin);
     fcount += nsmps;
     fcount %= frms;
     return OK;
@@ -69,12 +74,17 @@ struct DigiIn : csnd::Plugin<1, 1> {
   int aperf() {
     csnd::AudioSig out(this, outargs(0));
     int cnt = fcount;
+    if(!init_done) {
+      pinMode(context,0,pin,0);
+      init_done = 1;
+    }
     for (auto &s : out) {
-      s = digitalRead(context,cnt,pin);
+      s = (MYFLT) digitalRead(context,cnt,pin);
       if(cnt == frms - 1) cnt = 0;
       else cnt++;
     }
     fcount = cnt;
+    return OK;
   }
 };
 
@@ -86,6 +96,7 @@ struct DigiOut : csnd::Plugin<0, 2> {
   int pin;
   int fcount;
   int frms;
+  int init_done;
   BelaContext *context;
   
   int init() {
@@ -93,14 +104,18 @@ struct DigiOut : csnd::Plugin<0, 2> {
     if(pin < 0 ) pin = 0;
     if(pin > 15) pin = 15;
     context = (BelaContext *) csound->host_data();
-    pinMode(context,0,pin,1);
+    init_done = 0;
     fcount = 0;
     frms = context->digitalFrames; 
     return OK;
   }
 
   int kperf() {
-    digitalWrite(context,fcount,pin,inargs[0]);
+    if(!init_done) {
+      pinMode(context,0,pin,1);
+      init_done = 1;
+    }
+    digitalWrite(context,fcount,pin,(inargs[0] > 0.0 ? 1 : 0));
     fcount += nsmps;
     fcount %= frms;
     return OK;
@@ -109,12 +124,17 @@ struct DigiOut : csnd::Plugin<0, 2> {
   int aperf() {
     csnd::AudioSig in(this, inargs(0));
     int cnt = fcount;
+    if(!init_done) {
+      pinMode(context,0,pin,1);
+      init_done = 1;
+    }
     for (auto s : in) {
-      digitalWriteOnce(context,cnt,pin,s);
+      digitalWriteOnce(context,cnt,pin, (s > 0.0 ? 1 : 0));
       if(cnt == frms - 1) cnt = 0;
       else cnt++;
     }
     fcount = cnt;
+    return OK;
   }
 };
 
