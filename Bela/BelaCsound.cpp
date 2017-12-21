@@ -211,7 +211,7 @@ int WriteMidiData(CSOUND *csound, void *userData,
 		  const unsigned char *mbuf, int nbytes) {
   if(userData) {
     Midi *midi = (Midi *) userData;
-    if(midi->writeOutput(mbuf, nbytes) > 0) return nbytes;
+    if(midi->writeOutput((midi_byte_t *)mbuf, nbytes) > 0) return nbytes;
     return 0;
   }
   return 0;
