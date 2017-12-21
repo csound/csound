@@ -23,6 +23,7 @@
 #include <Bela.h>
 #include <Midi.h>
 #include <csound/csound.hpp>
+#include <csound/plugin.h>
 #include <vector>
 #include <sstream>
 
@@ -35,7 +36,48 @@ static int ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf,
 static int OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
 static int CloseMidiOutDevice(CSOUND *csound, void *userData);
 static int WriteMidiData(CSOUND *csound, void *userData, const unsigned char *mbuf,
-			int nbytes);
+			 int nbytes);
+
+/** DigiIn opcode 
+    ksig digiInBela ipin
+    asig digiInBela ipin
+*/
+struct DigiIn : csnd::Plugin<1, 1> {
+  int pin;
+  int fcount;
+  int frms;
+  BelaContext *context;
+  
+  int init() {
+    pin = (int) inargs[0];
+    if(pin < 0 ) pin = 0;
+    if(pin > 15) pin = 15;
+    context = (BelaContext *) csound->GetHostData();
+    pinMode(gContext,pin,0);
+    fcount = 0;
+    frms = context->digitalFrames; 
+    return OK;
+  }
+
+  int kperf() {
+    outargs[0] = digitalRead(context,fcount,pin);
+    if(fcount < frms) fcount+=nsmps;
+    else fcount = 0;
+    return OK;
+  }
+
+  int aperf() {
+    csnd::AudioSig out(this, outargs(0));
+    int cnt = fcount;
+    for (auto &s : out) {
+      s = digitalRead(context,fcount,pin);
+      if(cnt < frms) cnt++;
+      else cnt = 0;
+    }
+    fcount = cnt;
+  }
+};
+
 
 struct CsChan {
   std::vector<MYFLT> data;
@@ -74,9 +116,10 @@ bool setup(BelaContext *context, void *Data)
     return false;
   }
 
-  /* setup Csound */
+  /* set up Csound */
   csound = new Csound();
   gCsData.csound = csound;
+  csound->SetHostData((void *) context);
   csound->SetHostImplementedAudioIO(1,0);
   csound->SetHostImplementedMIDIIO(1);
   csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
@@ -85,12 +128,24 @@ bool setup(BelaContext *context, void *Data)
   csound->SetExternalMidiOutOpenCallback(OpenMidiOutDevice);
   csound->SetExternalMidiWriteCallback(WriteMidiData);
   csound->SetExternalMidiOutCloseCallback(CloseMidiOutDevice);
+  /* set up digi opcodes */
+  if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela" , "k",
+			  "i", csnd::thread::ik) != 0)
+    printf("Warning: could not add digiInBela k-rate opcode\n");
+  
+  
+  if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela" , "a",
+			  "i", csnd::thread::ia) != 0)
+    printf("Warning: could not add digiInBela a-rate opcode\n");
+
+  
   if((gCsData.res = csound->Compile(numArgs, args)) != 0) {
     printf("Error: Csound could not compile CSD file.\n");
     return false;
   }
   gCsData.blocksize = csound->GetKsmps()*csound->GetNchnls();
   gCsData.count = 0;
+
   
   /* set up the channels */
   for(int i=0; i < ANCHNS; i++) {
@@ -130,7 +185,7 @@ void render(BelaContext *context, void *Data)
           csound->SetChannel(channel[i].name.str().c_str(),
 			     &(channel[i].data[0]));
 	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
-			     &(ochannel[i].data[0]));
+				  &(ochannel[i].data[0]));
 	}
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
