@@ -34,7 +34,7 @@ static int ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf,
 			int nbytes);
 static int OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
 static int CloseMidiOutDevice(CSOUND *csound, void *userData);
-static int WriteMidiData(CSOUND *csound, void *userData, unsigned char *mbuf,
+static int WriteMidiData(CSOUND *csound, void *userData, const unsigned char *mbuf,
 			int nbytes);
 
 struct CsChan {
@@ -129,7 +129,7 @@ void render(BelaContext *context, void *Data)
 	for(i = 0; i < an_chns; i++) {
           csound->SetChannel(channel[i].name.str().c_str(),
 			     &(channel[i].data[0]));
-	  csound->GetChannel(ochannel[i].name.str().c_str(),
+	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
 			     &(ochannel[i].data[0]));
 	}
 	/* run csound */
@@ -209,7 +209,6 @@ int CloseMidiOutDevice(CSOUND *csound, void *userData) {
 
 int WriteMidiData(CSOUND *csound, void *userData,
 		  unsigned char *mbuf, int nbytes) {
-  int n = 0, byte;
   if(userData) {
     Midi *midi = (Midi *) userData;
     if(midi->writeOutput(mbuf, nbytes) > 0) return nbytes;
