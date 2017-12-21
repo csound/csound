@@ -1364,11 +1364,12 @@ typedef struct _message_queue_t_ {
     MYFLT (*GetA4)(CSOUND *csound);
     int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
                          AUXASYNC *, aux_cb, void *);
+    void *(*GetHostData)(CSOUND *);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[38];
+    SUBR dummyfn_2[37];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
