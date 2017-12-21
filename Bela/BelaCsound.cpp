@@ -47,6 +47,7 @@ struct CsData {
 };
   
 static CsData gCsData;
+static Midi gMidi;
 
 bool setup(BelaContext *context, void *Data)
 {
@@ -78,7 +79,7 @@ bool setup(BelaContext *context, void *Data)
   gCsData.count = 0;
   
   /* set up the channels */
-  for(int i; i < ANCHNS; i++) {
+  for(int i=0; i < ANCHNS; i++) {
     gCsData.channel[i].data.resize(csound->GetKsmps());
     gCsData.channel[i].name << "analogue" << i+1;
   }
@@ -144,10 +145,9 @@ void cleanup(BelaContext *context, void *Data)
 /** MIDI Input functions 
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
-  Midi *midi = new Midi;
-  if(midi->readFrom(dev) == 1) {
-    midi->enableParser(false);
-    *userData = (void *) midi;
+  if(gMidi.readFrom(dev) == 1) {
+    gMidi.enableParser(false);
+    *userData = (void *) &gMidi;
     return 0;
   }
   csoundMessage(csound, "Could not open Midi device %s", dev);
@@ -156,7 +156,6 @@ int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
 }
 
 int CloseMidiInDevice(CSOUND *csound, void *userData) {
-  if(userData) delete (Midi *) userData;
 }
 
 int ReadMidiData(CSOUND *csound, void *userData,
