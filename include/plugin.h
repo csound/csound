@@ -69,6 +69,12 @@ class Csound : CSOUND {
   }
 
 public:
+  /** Host Data
+   */
+  void *host_data() {
+    return GetHostData(this);
+  }
+  
   /** init-time error message
    */
   int init_error(const std::string &s) {
