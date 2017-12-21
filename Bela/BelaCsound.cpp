@@ -151,7 +151,6 @@ int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
     return 0;
   }
   csoundMessage(csound, "Could not open Midi device %s", dev);
-  delete midi;
   return -1;
 }
 
