@@ -92,7 +92,7 @@ struct DigiOut : csnd::Plugin<0, 2> {
     pin = (int) inargs[1];
     if(pin < 0 ) pin = 0;
     if(pin > 15) pin = 15;
-    context = (BelaContext *) csound->GetHostData();
+    context = (BelaContext *) csound->host_data();
     pinMode(context,0,pin,1);
     fcount = 0;
     frms = context->digitalFrames; 
