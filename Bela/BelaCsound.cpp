@@ -71,12 +71,53 @@ struct DigiIn : csnd::Plugin<1, 1> {
     int cnt = fcount;
     for (auto &s : out) {
       s = digitalRead(context,fcount,pin);
-      if(cnt == frms -1 ) cnt = 0;
+      if(cnt == frms - 1) cnt = 0;
       else cnt++;
     }
     fcount = cnt;
   }
 };
+
+/** DigiOut opcode 
+    digiOutBela ksig,ipin
+    digiOutBela asig,ipin
+*/
+struct DigiOut : csnd::Plugin<0, 2> {
+  int pin;
+  int fcount;
+  int frms;
+  BelaContext *context;
+  
+  int init() {
+    pin = (int) inargs[1];
+    if(pin < 0 ) pin = 0;
+    if(pin > 15) pin = 15;
+    context = (BelaContext *) csound->GetHostData();
+    pinMode(context,0,pin,1);
+    fcount = 0;
+    frms = context->digitalFrames; 
+    return OK;
+  }
+
+  int kperf() {
+    digitalWrite(context,fcount,pin,inargs[0]);
+    if(fcount == frms - 1) fcount = 0;
+    else fcount+=nsmps;
+    return OK;
+  }
+
+  int aperf() {
+    csnd::AudioSig in(this, inargs(0));
+    int cnt = fcount;
+    for (auto s : in) {
+      digitalWriteOnce(context,fcount,pin,s);
+      if(cnt == frms - 1) cnt =0;
+      else cnt++;
+    }
+    fcount = cnt;
+  }
+};
+
 
 
 struct CsChan {
@@ -116,6 +157,8 @@ bool setup(BelaContext *context, void *Data)
     return false;
   }
 
+
+
   /* set up Csound */
   csound = new Csound();
   gCsData.csound = csound;
@@ -137,6 +180,15 @@ bool setup(BelaContext *context, void *Data)
   if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela" , "a",
 			  "i", csnd::thread::ia) != 0)
     printf("Warning: could not add digiInBela a-rate opcode\n");
+
+  if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" , "",
+			   "ki", csnd::thread::ik) != 0)
+    printf("Warning: could not add digiOutBela k-rate opcode\n");
+  
+  
+  if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" , "",
+			   "ai", csnd::thread::ia) != 0)
+    printf("Warning: could not add digiOutBela a-rate opcode\n");
 
   
   if((gCsData.res = csound->Compile(numArgs, args)) != 0) {
