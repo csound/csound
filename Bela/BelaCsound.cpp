@@ -61,8 +61,8 @@ struct DigiIn : csnd::Plugin<1, 1> {
 
   int kperf() {
     outargs[0] = digitalRead(context,fcount,pin);
-    if(fcount == frms - 1) fcount = 0;
-    else fcount += nsmps;
+    fcount += nsmps;
+    fcount %= frms;
     return OK;
   }
 
@@ -70,7 +70,7 @@ struct DigiIn : csnd::Plugin<1, 1> {
     csnd::AudioSig out(this, outargs(0));
     int cnt = fcount;
     for (auto &s : out) {
-      s = digitalRead(context,fcount,pin);
+      s = digitalRead(context,cnt,pin);
       if(cnt == frms - 1) cnt = 0;
       else cnt++;
     }
@@ -101,8 +101,8 @@ struct DigiOut : csnd::Plugin<0, 2> {
 
   int kperf() {
     digitalWrite(context,fcount,pin,inargs[0]);
-    if(fcount == frms - 1) fcount = 0;
-    else fcount+=nsmps;
+    fcount += nsmps;
+    fcount %= frms;
     return OK;
   }
 
@@ -110,8 +110,8 @@ struct DigiOut : csnd::Plugin<0, 2> {
     csnd::AudioSig in(this, inargs(0));
     int cnt = fcount;
     for (auto s : in) {
-      digitalWriteOnce(context,fcount,pin,s);
-      if(cnt == frms - 1) cnt =0;
+      digitalWriteOnce(context,cnt,pin,s);
+      if(cnt == frms - 1) cnt = 0;
       else cnt++;
     }
     fcount = cnt;
