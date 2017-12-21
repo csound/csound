@@ -61,8 +61,8 @@ struct DigiIn : csnd::Plugin<1, 1> {
 
   int kperf() {
     outargs[0] = digitalRead(context,fcount,pin);
-    if(fcount < frms) fcount+=nsmps;
-    else fcount = 0;
+    if(fcount == frms - 1) fcount = 0;
+    else fcount += nsmps;
     return OK;
   }
 
@@ -71,8 +71,8 @@ struct DigiIn : csnd::Plugin<1, 1> {
     int cnt = fcount;
     for (auto &s : out) {
       s = digitalRead(context,fcount,pin);
-      if(cnt < frms) cnt++;
-      else cnt = 0;
+      if(cnt == frms -1 ) cnt = 0;
+      else cnt++;
     }
     fcount = cnt;
   }
