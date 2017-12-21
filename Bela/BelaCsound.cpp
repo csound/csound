@@ -52,8 +52,8 @@ struct DigiIn : csnd::Plugin<1, 1> {
     pin = (int) inargs[0];
     if(pin < 0 ) pin = 0;
     if(pin > 15) pin = 15;
-    context = (BelaContext *) csound->GetHostData();
-    pinMode(gContext,pin,0);
+    context = (BelaContext *) csound->host_data();
+    pinMode(context,pin,0);
     fcount = 0;
     frms = context->digitalFrames; 
     return OK;
