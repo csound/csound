@@ -156,9 +156,7 @@ bool setup(BelaContext *context, void *Data)
     printf("Error: number of analog inputs != number of analog outputs.\n");
     return false;
   }
-
-
-
+  
   /* set up Csound */
   csound = new Csound();
   gCsData.csound = csound;
