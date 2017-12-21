@@ -208,7 +208,7 @@ int CloseMidiOutDevice(CSOUND *csound, void *userData) {
 }
 
 int WriteMidiData(CSOUND *csound, void *userData,
-		  unsigned char *mbuf, int nbytes) {
+		  const unsigned char *mbuf, int nbytes) {
   if(userData) {
     Midi *midi = (Midi *) userData;
     if(midi->writeOutput(mbuf, nbytes) > 0) return nbytes;
