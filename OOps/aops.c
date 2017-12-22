@@ -1735,10 +1735,7 @@ int inall_opcode(CSOUND *csound, INALL *p)
     uint32_t    i,j = 0, k = 0, nsmps = CS_KSMPS;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT *spin = CS_SPIN;
-    if(csound->inchnls != (int) n)
-      return csound->PerfError(csound,
-                               p->h.insdshead,
-                               "Wrong numnber of input channels\n");
+
     CSOUND_SPIN_SPINLOCK
     m = (n < (uint32_t)csound->inchnls ? n : (uint32_t)csound->inchnls);
     for (j=0; j<nsmps; j++)
