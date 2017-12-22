@@ -269,8 +269,8 @@ void render(BelaContext *context, void *Data)
       frmcount = count/nchnls;
       for(i = 0; i < an_chns; i++) {
 	k = (int) frm;
-        channel[i].data[frmcount] = analogRead(context,k,i);
-	analogWriteOnce(context,k,i,ochannel[i].data[frmcount]); 
+        channel[i].samples[frmcount] = analogRead(context,k,i);
+	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]); 
       }	
     }
     gCsData.res = res;
