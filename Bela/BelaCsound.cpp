@@ -141,7 +141,7 @@ struct DigiOut : csnd::Plugin<0, 2> {
 
 
 struct CsChan {
-  std::vector<MYFLT> data;
+  std::vector<MYFLT> samples;
   std::stringstream name;
 };
 
@@ -190,25 +190,20 @@ bool setup(BelaContext *context, void *Data)
   csound->SetExternalMidiWriteCallback(WriteMidiData);
   csound->SetExternalMidiOutCloseCallback(CloseMidiOutDevice);
   /* set up digi opcodes */
-  if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela" , "k",
-			  "i", csnd::thread::ik) != 0)
+  if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela",
+			  "k","i", csnd::thread::ik) != 0)
     printf("Warning: could not add digiInBela k-rate opcode\n");
-  
-  
-  if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela" , "a",
-			  "i", csnd::thread::ia) != 0)
+  if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela",
+			  "a", "i", csnd::thread::ia) != 0)
     printf("Warning: could not add digiInBela a-rate opcode\n");
-
-  if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" , "",
-			   "ki", csnd::thread::ik) != 0)
+  if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" ,
+			   "", "ki", csnd::thread::ik) != 0)
     printf("Warning: could not add digiOutBela k-rate opcode\n");
-  
-  
-  if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" , "",
-			   "ai", csnd::thread::ia) != 0)
+  if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" ,
+			   "", "ai", csnd::thread::ia) != 0)
     printf("Warning: could not add digiOutBela a-rate opcode\n");
 
-  
+  /* compile CSD */  
   if((gCsData.res = csound->Compile(numArgs, args)) != 0) {
     printf("Error: Csound could not compile CSD file.\n");
     return false;
@@ -220,9 +215,9 @@ bool setup(BelaContext *context, void *Data)
   /* set up the channels */
   for(int i=0; i < ANCHNS; i++) {
     gCsData.channel[i].data.resize(csound->GetKsmps());
-    gCsData.channel[i].name << "analogIn" << i+1;
+    gCsData.channel[i].name << "analogIn" << i;
     gCsData.ochannel[i].data.resize(csound->GetKsmps());
-    gCsData.ochannel[i].name << "analogOut" << i+1;
+    gCsData.ochannel[i].name << "analogOut" << i;
   }
   
   return true;
@@ -241,9 +236,10 @@ void render(BelaContext *context, void *Data)
       nchnls : context->audioOutChannels;
     int an_chns = context->analogInChannels > ANCHNS ?
       ANCHNS : context->analogInChannels;
-    CsChan *channel = &(gCsData.channel[0]);
-    CsChan *ochannel = &(gCsData.ochannel[0]);
-    float frm = 0.f, incr = ((float) context->analogFrames)/context->audioFrames;
+    CsChan *channel = gCsData.channel;
+    CsChan *ochannel = gCsData.ochannel;
+    float frm = 0.f, incr =
+      ((float) context->analogFrames)/context->audioFrames;
     count = gCsData.count;
     blocksize = gCsData.blocksize;
       
@@ -253,9 +249,9 @@ void render(BelaContext *context, void *Data)
 	/* set the channels */
 	for(i = 0; i < an_chns; i++) {
           csound->SetChannel(channel[i].name.str().c_str(),
-			     &(channel[i].data[0]));
+			     channel[i].samples.data());
 	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
-				  &(ochannel[i].data[0]));
+				  ochannel[i].samples.data());
 	}
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
@@ -287,7 +283,7 @@ void cleanup(BelaContext *context, void *Data)
   delete gCsData.csound;
 }
 
-/** MIDI Input functions 
+/** MIDI functions 
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
   if(gMidi.readFrom(dev) == 1) {
@@ -308,7 +304,6 @@ int ReadMidiData(CSOUND *csound, void *userData,
   int n = 0, byte;
   if(userData) {
     Midi *midi = (Midi *) userData;
-  
     while((byte = midi->getInput()) >= 0) {
       *mbuf++ = (unsigned char) byte;
       if(++n == nbytes) break;
