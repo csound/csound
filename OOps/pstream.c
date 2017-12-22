@@ -1,7 +1,7 @@
 /*
     pstream.c:
 
-    Copyright (C) 2001 Richard Dobson
+    Copyright (C) 2001 Richard Dobson, John ffitch
 
     This file is part of Csound.
 
@@ -100,17 +100,14 @@ int fassign(CSOUND *csound, FASSIGN *p)
       return OK;
     }
 
-
-
-
     framesize = p->fsrc->N + 2;
 
     if (p->fout->framecount == p->fsrc->framecount) {/* avoid duplicate copying*/
-    memcpy(fout, fsrc, framesize*sizeof(float));
-    p->fout->framecount++;
+      memcpy(fout, fsrc, framesize*sizeof(float));
+      p->fout->framecount++;
     }
 
-     return OK;
+    return OK;
 }
 
 /************* OSCBANK SYNTH ***********/
@@ -402,7 +399,7 @@ static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
     p->membase = (float*) pp.data;
 
     if (UNLIKELY(p->overlap < (int)CS_KSMPS || p->overlap < 10))
-      csound->InitError(csound, Str("Sliding version not yet available"));
+      return csound->InitError(csound, Str("Sliding version not yet available"));
     if (UNLIKELY(p->nframes <= 0))
       return csound->InitError(csound, Str("pvsfread: file is empty!\n"));
     /* special case if only one frame - it is an impulse response */
@@ -667,7 +664,7 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
     if (UNLIKELY(p->outfna==NULL))
       return NOTOK;
     if (UNLIKELY(p->fsrc->sliding))
-      csound->InitError(csound, Str("Sliding version not yet available"));
+      return csound->InitError(csound, Str("Sliding version not yet available"));
     fsrc = (float *) p->fsrc->frame.auxp;               /* RWD MUST be 32bit */
     /* init table, one presumes with zero amps */
     nbins = p->fftsize/2 + 1;
@@ -783,7 +780,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
         return csound->InitError(csound, Str("pvsftr: amps ftable too small.\n"));
     }
     if (UNLIKELY(p->overlap < (int)CS_KSMPS || p->overlap < 10))
-      csound->InitError(csound, Str("Sliding version not yet available"));
+      return csound->InitError(csound, Str("Sliding version not yet available"));
     fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
 
     /*** setup first frame ?? */
@@ -839,6 +836,7 @@ int pvsftr(CSOUND *csound, PVSFTR *p)
 
 int pvsinfo(CSOUND *csound, PVSINFO *p)
 {
+   IGN(csound);
 #ifdef _DEBUG
     /* init stage opcode : this should always be a proper fsig */
     assert(p->fsrc->frame.auxp != NULL);

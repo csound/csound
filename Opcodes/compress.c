@@ -59,7 +59,7 @@ static int compset(CSOUND *csound, CMPRS *p)
     p->curatt = (MYFLT) MAXPOS;
     p->currls = (MYFLT) MAXPOS;
     /* round to nearest integer */
-    if ((delsmps = MYFLT2LONG(*p->ilook * csound->GetSr(csound))) <= 0L)
+    if (UNLIKELY((delsmps = MYFLT2LONG(*p->ilook * csound->GetSr(csound))) <= 0L))
       delsmps = 1L;                             /* alloc 2 delay bufs   */
     csound->AuxAlloc(csound, delsmps * 2 * sizeof(MYFLT), &p->auxch);
     p->abuf = (MYFLT *)p->auxch.auxp;
@@ -76,7 +76,7 @@ static int compset(CSOUND *csound, CMPRS *p)
 }
 
 /* compress2 is compress but with dB inputs in range [-90,0] rather
-   than [0.90], by setting p->bias valuex */
+   than [0.90], by setting p->bias valuex -- JPff */
 static int comp2set(CSOUND *csound, CMPRS *p)
 {
     int ret = compset(csound, p);
@@ -259,9 +259,9 @@ static int distort(CSOUND *csound, DIST *p)
       MYFLT sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */
       phs = p->midphs * (FL(1.0) + sig); /* as index into table  */
-      if (phs <= FL(0.0))
+      if (UNLIKELY(phs <= FL(0.0)))
         val = p->begval;
-      else if (phs >= p->maxphs)        /* check sticky bits    */
+      else if (UNLIKELY(phs >= p->maxphs))        /* check sticky bits    */
         val = p->endval;
       else {
         int32  iphs = (int32)phs;

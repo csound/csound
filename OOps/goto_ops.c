@@ -123,12 +123,13 @@ int reinit(CSOUND *csound, GOTO *p)
     csound->curip = p->h.insdshead;
     csound->ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
     if (csound->realtime_audio_flag == 0) {
-    while ((csound->ids = csound->ids->nxti) != NULL &&
-           csound->ids->iopadr != (SUBR) rireturn)
-      (*csound->ids->iopadr)(csound, csound->ids);
-     csound->reinitflag = p->h.insdshead->reinitflag = 0;
-     } else {
-    csound->curip->init_done = 0;
+      while ((csound->ids = csound->ids->nxti) != NULL &&
+             (csound->ids->iopadr != (SUBR) rireturn))
+        (*csound->ids->iopadr)(csound, csound->ids);
+      csound->reinitflag = p->h.insdshead->reinitflag = 0;
+    }
+    else {
+      csound->curip->init_done = 0;
     }
     return OK;
 }
@@ -149,8 +150,9 @@ int tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
 
 int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 {
+  IGN(csound);
   if (!p->h.insdshead->reinitflag)
-    *p->r = p->h.insdshead->tieflag;
+      *p->r = p->h.insdshead->tieflag;
     /* *p->r = (csound->tieflag ? FL(1.0) : FL(0.0)); */
     return OK;
 }
@@ -172,7 +174,7 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
     if (p->h.insdshead->actflg) {
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
-    while (lcurip->opcod_iobufs)
+      while (lcurip->opcod_iobufs)
       lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
     xturnoff(csound, lcurip);
     if (lcurip->xtratim <= 0)
@@ -189,10 +191,10 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
     INSDS *ip, *ip2, *nip;
     int   mode, insno, allow_release;
 
-    if (isStringArg){
+    if (isStringArg) {
       p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
     }
-    else  if (csound->ISSTRCOD(*p->kInsNo)) {
+    else if (csound->ISSTRCOD(*p->kInsNo)) {
       p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
     }
     else p1 = *(p->kInsNo);

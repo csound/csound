@@ -261,7 +261,8 @@ class CsPerfThreadMsg_Stop : public CsoundPerformanceThreadMessage {
     CsPerfThreadMsg_Stop(CsoundPerformanceThread *pt)
     : CsoundPerformanceThreadMessage(pt)
     {
-      CsoundPerformanceThreadMessage::QueueMessage(new CsPerfThreadMsg_StopRecord(pt));
+      CsoundPerformanceThreadMessage::QueueMessage(
+                                         new CsPerfThreadMsg_StopRecord(pt));
     }
     int run()
     {
@@ -420,6 +421,7 @@ int CsoundPerformanceThread::Perform()
         // if error or end of score, return now
         if (retval)
           goto endOfPerf;
+        // fprintf(stderr, "Error or end of score, returning now.");
         // if paused, wait until a new message is received, then loop back
         if (!paused)
           break;

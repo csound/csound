@@ -52,12 +52,12 @@ static int het_export(CSOUND *csound, int argc, char **argv)
       return 1;
     }
     inf = csound->ldmemfile2withCB(csound, argv[1], CSFTYPE_HETRO,NULL);
-    if (inf == NULL) {
+    if (UNLIKELY(inf == NULL)) {
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
     outf = fopen(argv[2], "w");
-    if (outf == NULL) {
+    if (UNLIKELY(outf == NULL)) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
       return 1;
     }

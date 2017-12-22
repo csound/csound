@@ -94,9 +94,9 @@ OENTRY opcodlst_1[] = {
 
   /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
   /* and setksmps */
-  { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
+  { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd, NULL },
   /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-  { "xin",  S(XIN_MAX),0,   1,  "****************", "",  xinset,  NULL, NULL },
+  { "xin",  S(XIN_MAX),0,   1,  "****************", "",  xinset,  NULL, NULL, NULL },
   /* { "xin.64",   S(XIN_HIGH),0,  1,
     "****************************************************************", "",
     xinset,  NULL, NULL },
@@ -106,7 +106,7 @@ OENTRY opcodlst_1[] = {
     "****************************************************************"
     "****************************************************************", "",
     xinset,  NULL, NULL },*/
-  { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL },
+  { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
@@ -152,6 +152,8 @@ OENTRY opcodlst_1[] = {
   { "==.0",     S(RELAT),0,   0,      "B",    "kk",   eq,     eq              },
   { "!=",     S(RELAT),0,   0,      "b",    "ii",   ne,     ne              },
   { "!=.0",     S(RELAT),0,   0,      "B",    "kk",   ne,     ne              },
+  { "!",      S(LOGCL),0,   0,      "b",    "b",    b_not,    b_not         },
+  { "!.0",      S(LOGCL),0, 0,      "B",    "B",    b_not,    b_not         },
   { "&&",     S(LOGCL),0,   0,      "b",    "bb",   and,    and             },
   { "&&.0",     S(LOGCL),0,   0,      "B",    "BB",   and,    and             },
   { "||",     S(LOGCL),0,   0,      "b",    "bb",   or,     or              },
@@ -485,7 +487,7 @@ OENTRY opcodlst_1[] = {
   { "soundouts",S(SNDOUTS),_QQ, 5,  "",    "aaSo", sndoutset_S, NULL, soundouts },
   { "soundouts.i",S(SNDOUTS),_QQ, 5,  "",    "aaio", sndoutset, NULL, soundouts },
   { "in.a",   S(INM),0,     4,      "a",    "",     NULL,   NULL,   in      },
-  { "in.s",   S(INM),0,     4,      "aa",    "",     NULL,   NULL,   ins      },
+  { "in.s",   S(INS),0,     4,      "aa",    "",     NULL,   NULL,   ins    },
   { "in.A",   S(INM),0,     4,      "a[]",  "",     NULL,   NULL,   inarray },
   { "ins",    S(INS),0,     4,      "aa",   "",     NULL,   NULL,   ins     },
   { "inq",    S(INQ),0,     4,      "aaaa", "",     NULL,   NULL,   inq     },
@@ -638,6 +640,7 @@ OENTRY opcodlst_1[] = {
   { "mclock", S(MCLOCK),0,  3,      "",     "i",    mclock_set, mclock,   NULL },
   { "mrtmsg", S(XTRADUR),0, 1,      "",     "i",    mrtmsg,     NULL,     NULL },
   { "midiout",S(MIDIOUT),0,  2,     "",     "kkkk", NULL, midiout,   NULL      },
+  { "midiout_i",S(MIDIOUT), 0,  1,     "",     "iiii", midiout,   NULL, NULL     },
   { "midion2", S(KON2),0,    3,     "",     "kkkk", kon2_set, kon2,   NULL     },
   { "nrpn",   S(NRPN),0,     2,     "",     "kkk",  NULL,  nrpn ,NULL          },
   { "mdelay", S(MDELAY),0,   3,     "",     "kkkkk",mdelay_set, mdelay,   NULL },
@@ -1067,6 +1070,8 @@ OENTRY opcodlst_1[] = {
     (SUBR) chnget_opcode_init_a, (SUBR) NULL, (SUBR) notinit_opcode_stub },
   { "chnget.S",    S(CHNGET),0,           3,      "S",            "S",
     (SUBR) chnget_opcode_init_S, (SUBR) chnget_opcode_perf_S, (SUBR) NULL},
+  { "chngetks",    S(CHNGET),0,           2,      "S",            "S",
+    (SUBR) NULL, (SUBR) chnget_opcode_perf_S, (SUBR) NULL},
   { "chnset",      0xFFFB,              _CW                               },
   { "chnset.i",    S(CHNGET),_CW,          1,      "",             "iS",
     (SUBR) chnset_opcode_init_i, (SUBR) NULL, (SUBR) NULL               },
@@ -1080,6 +1085,8 @@ OENTRY opcodlst_1[] = {
     (SUBR) chnset_opcode_init_a, (SUBR) NULL, (SUBR) notinit_opcode_stub },
   { "chnset.S",    S(CHNGET),_CW,           3,      "",             "SS",
     (SUBR) chnset_opcode_init_S, (SUBR) chnset_opcode_perf_S, (SUBR) NULL },
+  { "chnsetks",    S(CHNGET),_CW,           2,      "",             "SS",
+    (SUBR) NULL, (SUBR) chnset_opcode_perf_S, (SUBR) NULL },
   { "chnmix",      S(CHNGET),           _CB, 5,      "",             "aS",
     (SUBR) chnmix_opcode_init, (SUBR) NULL, (SUBR) notinit_opcode_stub  },
   { "chnclear",    S(CHNCLEAR),        _CW, 5,      "",             "S",

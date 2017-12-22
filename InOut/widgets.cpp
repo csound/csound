@@ -22,7 +22,10 @@
 */
 
 #if defined(WIN32)
-#include <FL/Fl_Output.H>
+# include <FL/Fl_Output.H>
+#endif
+#ifndef _MSC_VER
+# include <unistd.h>
 #endif
 #if !defined(_MSC_VER)
 #include <unistd.h>
@@ -1345,7 +1348,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 
 int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 {
-    if (is_empty == 1) {
+    if (UNLIKELY(is_empty == 1)) {
       /*  FIXME: should have CSOUND* pointer here */
       /*  return csound->InitError(csound, Str("empty snapshot")); */
       return -1;
@@ -1939,7 +1942,6 @@ public:
   }
   virtual int handle(int evt)
   {
-      CSOUND* csound = csound_; //gab
       switch (evt) {
       case FL_FOCUS:
         Fl::focus(this);
@@ -3219,9 +3221,9 @@ extern "C" {
       return OK;
   }
 
-  static int fl_box_(CSOUND *csound, FL_BOX *p)
+  static int fl_box_(CSOUND *csound, FL_BOX *p, char *text)
   {
-      char *text = p->itext->data;
+      //char *text = p->itext->data;
       Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
                               (int)*p->iwidth, (int)*p->iheight, text);
       widget_attributes(csound, o);
@@ -3287,6 +3289,19 @@ extern "C" {
       return OK;
   }
 
+  static int fl_box_s(CSOUND *csound, FL_BOX *p)
+  {
+    return fl_box_(csound, p, p->itext->data);
+  }
+  static int fl_box_i(CSOUND *csound, FL_BOX *p)
+  {
+    int i = (int)*((MYFLT*)p->itext);
+    char* text;
+    if (i<0 || i>csound->GetStrsmax(csound)) text = (char *) "???";
+    else if ((text=csound->GetStrsets(csound,i))==NULL) text = (char *) "???";
+    return fl_box_(csound, p, text);
+  }
+
   static int fl_setText(CSOUND *csound, FL_SET_TEXT *p)
   {
       WIDGET_GLOBALS *widgetGlobals =
@@ -3294,6 +3309,20 @@ extern "C" {
       char *text = p->itext->data;
       ADDR_SET_VALUE v = widgetGlobals->AddrSetValue[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
+      o->label(text);
+      return OK;
+  }
+
+  static int fl_setTexti(CSOUND *csound, FL_SET_TEXTi *p)
+  {
+      WIDGET_GLOBALS *widgetGlobals =
+        (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
+      int i = (int)(*p->ndx);
+      char *text ;
+      ADDR_SET_VALUE v = widgetGlobals->AddrSetValue[(int) *p->ihandle];
+      Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
+      if (i<0 || i>csound->GetStrsmax(csound)) text = (char *) "???";
+      else if ((text=csound->GetStrsets(csound,i))==NULL) text = (char *) "???";
       o->label(text);
       return OK;
   }
@@ -3541,8 +3570,8 @@ extern "C" {
             o->callback((Fl_Callback*)fl_callbackTableSlider,(void *) p);
         }
       }
-      widgetGlobals->AddrSetValue.push_back(ADDR_SET_VALUE(iexp, *p->imin, *p->imax,
-                                                (void *) o, (void*) p));
+      widgetGlobals->AddrSetValue.push_back(ADDR_SET_VALUE(iexp, *p->imin,
+                                                *p->imax, (void *) o, (void*) p));
       /*widgetGlobals->currentSnapGroup;*/
       *p->ihandle = widgetGlobals->AddrSetValue.size()-1;
       return OK;
@@ -5321,7 +5350,7 @@ extern "C" {
                                  Str("FLsldBnkSet: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
-      if (UNLIKELY( ftp->flen < startInd + numslid)) {
+      if (UNLIKELY( (int) ftp->flen < startInd + numslid)) {
         return csound->InitError(csound,
                                  Str("FLslidBnkSet: table too short!"));
       }
@@ -5390,7 +5419,7 @@ extern "C" {
                                  Str("FLsldBnkSet: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
-      if (UNLIKELY( ftp->flen < startInd + numslid)) {
+      if (UNLIKELY((int) ftp->flen < startInd + numslid)) {
         return csound->InitError(csound,
                                  Str("FLslidBnkSet: table too short!"));
       }
@@ -5470,7 +5499,7 @@ extern "C" {
                                   Str("FLsldBnkSetk: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
-      if (UNLIKELY( ftp->flen < p->startind + p->numslid)) {
+      if (UNLIKELY( (int) ftp->flen < p->startind + p->numslid)) {
         return csound->InitError(csound,
                                  Str("FLslidBnkSetk: table too short!"));
       }
@@ -5563,7 +5592,7 @@ extern "C" {
                                  Str("FLslidBnkSetk: invalid table number"));
       }
       // *startInd, *startSlid, *numSlid
-      if (UNLIKELY( ftp->flen < p->startind + p->numslid)) {
+      if (UNLIKELY( (int) ftp->flen < p->startind + p->numslid)) {
         return csound->InitError(csound,
                                  Str("FLslidBnkSetk: table too short!"));
       }
@@ -5590,8 +5619,6 @@ extern "C" {
 
   static int fl_slider_bank_setVal_k(CSOUND *csound, FLSLDBNK_SETK *p)
   {
-      WIDGET_GLOBALS *widgetGlobals =
-        (WIDGET_GLOBALS *) csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
       if (*p->kflag) {
         FLSLIDERBANK *q = p->q;
         MYFLT *table=p->table;
@@ -5953,8 +5980,10 @@ const OENTRY widgetOpcodes_[] = {
     (SUBR) fl_setFont,              (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLsetTextType", S(FL_SET_FONT), 0, 1,  (char*)"",     (char*)"ii",
     (SUBR) fl_setTextType,          (SUBR) NULL,              (SUBR) NULL },
-  { (char*)"FLsetText",   S(FL_SET_TEXT),  0, 1,  (char*)"",     (char*)"Ti",
+  { (char*)"FLsetText",   S(FL_SET_TEXT),  0, 1,  (char*)"",     (char*)"Si",
     (SUBR) fl_setText,              (SUBR) NULL,              (SUBR) NULL },
+  { (char*)"FLsetText",   S(FL_SET_TEXTi),  0, 1,  (char*)"",     (char*)"ii",
+    (SUBR) fl_setTexti,              (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLsetSize",   S(FL_SET_SIZE),  0, 1,  (char*)"",     (char*)"iii",
     (SUBR) fl_setSize,              (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLsetPosition", S(FL_SET_POSITION), 0, 1,  (char*)"", (char*)"iii",
@@ -5968,7 +5997,9 @@ const OENTRY widgetOpcodes_[] = {
   { (char*)"FLsetAlign",  S(FL_TALIGN),    0, 1,  (char*)"",     (char*)"ii",
     (SUBR) fl_align,                (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLbox",       S(FL_BOX),       0, 1,  (char*)"i", (char*)"Siiiiiii",
-    (SUBR) fl_box_,                  (SUBR) NULL,              (SUBR) NULL },
+    (SUBR) fl_box_s,                  (SUBR) NULL,              (SUBR) NULL },
+  { (char*)"FLbox",       S(FL_BOX),       0, 1,  (char*)"i", (char*)"iiiiiiii",
+    (SUBR) fl_box_i,                  (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLvalue",     S(FLVALUE),      0, 1,  (char*)"i",    (char*)"Sjjjj",
     (SUBR) fl_value,                (SUBR) NULL,              (SUBR) NULL },
   { (char*)"FLpanel",     S(FLPANEL),      0, 1,  (char*)"",  (char*)"Sjjjoooo",

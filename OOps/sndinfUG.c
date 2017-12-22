@@ -53,8 +53,8 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
       if (UNLIKELY(!csound->oparms->infilename)) {  /* commandline inputfile */
-        csound->InitError(csound, Str("no infile specified in the commandline"));
-        return NOTOK;
+        return
+          csound->InitError(csound, Str("no infile specified in the commandline"));
       }
       sfname = csound->oparms->infilename;
     }
@@ -63,8 +63,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
       s = csoundFindInputFile(csound, sfname, "SADIR");
       if (UNLIKELY(s == NULL)) {
         /* RWD 5:2001 better to exit in this situation ! */
-        csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
-        return NOTOK;
+        return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
       }
     }
     sfname = s;                         /* & record fullpath filnam */
@@ -128,8 +127,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
       }
     }
     if (UNLIKELY(sf == NULL && csFileType == CSFTYPE_UNKNOWN)) {
-      csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
-      return NOTOK;
+      return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
     }
     if (sf != NULL) {
       csFileType = sftype2csfiletype(sfinfo.format);
@@ -291,7 +289,8 @@ int filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
       double  *peaks;
       size_t  nBytes;
       if (UNLIKELY(channel > sfinfo.channels))
-        return csound->InitError(csound, Str("Input channel for peak exceeds number "
+        return csound->InitError(csound,
+                                 Str("Input channel for peak exceeds number "
                                 "of channels in file"));
       nBytes = sizeof(double)* sfinfo.channels;
       peaks = (double*)csound->Malloc(csound, nBytes);

@@ -1,3 +1,25 @@
+/*
+    mixer.cpp:
+
+    Copyright (C) 2005 by Michael Gogins
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
 #include "OpcodeBase.hpp"
 #include <map>
 #include <vector>
@@ -13,15 +35,12 @@ using namespace csound;
 /**
  * The mixer busses are laid out:
  * busses[csound][bus][channel][frame].
- */
-static std::map<CSOUND *, std::map<size_t,
-       std::vector< std::vector<MYFLT> > > > *busses = 0;
-
-/**
+ * std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses = 0;
+ *
  * The mixer send matrix is laid out:
  * matrix[csound][send][bus].
+ * std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
  */
-static std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
 
 /**
  * Creates the buss if it does not already exist.
@@ -29,23 +48,25 @@ static std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix =
 static void createBuss(CSOUND *csound, size_t buss)
 {
 #ifdef ENABLE_MIXER_IDEBUG
-    csound->Message(csound, "createBuss: csound %p buss %d...\n", csound, buss);
+        csound->Message(csound, "createBuss: csound %p buss %d...\n", csound, buss);
 #endif
-    if((*busses)[csound].find(buss) == (*busses)[csound].end()) {
-        size_t channels = csound->GetNchnls(csound);
-        size_t frames = csound->GetKsmps(csound);
-        (*busses)[csound][buss].resize(channels);
-        for(size_t channel = 0; channel < channels; channel++) {
-            (*busses)[csound][buss][channel].resize(frames);
+    std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses = 0;
+    csound::QueryGlobalPointer(csound, "busses", busses);
+        if ((*busses)[csound].find(buss) == (*busses)[csound].end()) {
+                size_t channels = csound->GetNchnls(csound);
+                size_t frames = csound->GetKsmps(csound);
+                (*busses)[csound][buss].resize(channels);
+                for (size_t channel = 0; channel < channels; channel++) {
+                        (*busses)[csound][buss][channel].resize(frames);
+                }
+#ifdef ENABLE_MIXER_IDEBUG
+                csound->Message(csound, "createBuss: created buss.\n");
+#endif
+        } else {
+#ifdef ENABLE_MIXER_IDEBUG
+                csound->Message(csound, "createBuss: buss already exists.\n");
+#endif
         }
-#ifdef ENABLE_MIXER_IDEBUG
-        csound->Message(csound, "createBuss: created buss.\n");
-#endif
-    } else {
-#ifdef ENABLE_MIXER_IDEBUG
-        csound->Message(csound, "createBuss: buss already exists.\n");
-#endif
-    }
 }
 
 /**
@@ -54,38 +75,40 @@ static void createBuss(CSOUND *csound, size_t buss)
  * Controls the gain of any signal route from a send to a bus
  */
 struct MixerSetLevel : public OpcodeBase<MixerSetLevel> {
-    // No outputs.
-    // Inputs.
-    MYFLT *isend;
-    MYFLT *ibuss;
-    MYFLT *kgain;
-    // State.
-    size_t send;
-    size_t buss;
-    int init(CSOUND *csound)
-    {
+        // No outputs.
+        // Inputs.
+        MYFLT *isend;
+        MYFLT *ibuss;
+        MYFLT *kgain;
+        // State.
+        size_t send;
+        size_t buss;
+    std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix;
+        int init(CSOUND *csound)
+        {
 #ifdef ENABLE_MIXER_IDEBUG
-        warn(csound, "MixerSetLevel::init...\n");
+                warn(csound, "MixerSetLevel::init...\n");
 #endif
-        send = static_cast<size_t>(*isend);
-        buss = static_cast<size_t>(*ibuss);
-        createBuss(csound, buss);
-        (*matrix)[csound][send][buss] = *kgain;
+        csound::QueryGlobalPointer(csound, "matrix", matrix);
+                send = static_cast<size_t>(*isend);
+                buss = static_cast<size_t>(*ibuss);
+                createBuss(csound, buss);
+                (*matrix)[csound][send][buss] = *kgain;
 #ifdef ENABLE_MIXER_IDEBUG
-        warn(csound, "MixerSetLevel::init: csound %p send %d buss %d gain %f\n",
-             csound, send, buss, (*matrix)[csound][send][buss]);
+                warn(csound, "MixerSetLevel::init: csound %p send %d buss %d gain %f\n",
+                     csound, send, buss, (*matrix)[csound][send][buss]);
 #endif
-        return OK;
-    }
-    int kontrol(CSOUND *csound)
-    {
-        (*matrix)[csound][send][buss] = *kgain;
+                return OK;
+        }
+        int kontrol(CSOUND *csound)
+        {
+                (*matrix)[csound][send][buss] = *kgain;
 #ifdef ENABLE_MIXER_KDEBUG
-        warn(csound, "MixerSetLevel::kontrol: csound %p send %d buss "
-             "%d gain %f\n", csound, send, buss, (*matrix)[csound][send][buss]);
+                warn(csound, "MixerSetLevel::kontrol: csound %p send %d buss "
+                     "%d gain %f\n", csound, send, buss, (*matrix)[csound][send][buss]);
 #endif
-        return OK;
-    }
+                return OK;
+        }
 };
 
 /**
@@ -94,36 +117,38 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel> {
  * Returns the gain of any signal route from a send to a bus.
  */
 struct MixerGetLevel : public OpcodeBase<MixerGetLevel> {
-    //.
-    MYFLT *kgain;
-    // Inputs.
-    MYFLT *isend;
-    MYFLT *ibuss;
-    // State.
-    size_t send;
-    size_t buss;
-    int init(CSOUND *csound)
-    {
+        //.
+        MYFLT *kgain;
+        // Inputs.
+        MYFLT *isend;
+        MYFLT *ibuss;
+        // State.
+        size_t send;
+        size_t buss;
+    std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix;
+        int init(CSOUND *csound)
+        {
 #ifdef ENABLE_MIXER_IDEBUG
-        warn(csound, "MixerGetLevel::init...\n");
+                warn(csound, "MixerGetLevel::init...\n");
 #endif
-        send = static_cast<size_t>(*isend);
-        buss = static_cast<size_t>(*ibuss);
-        createBuss(csound, buss);
-        return OK;
-    }
-    int noteoff(CSOUND *)
-    {
-        return OK;
-    }
-    int kontrol(CSOUND *csound)
-    {
+        csound::QueryGlobalPointer(csound, "matrix", matrix);
+                send = static_cast<size_t>(*isend);
+                buss = static_cast<size_t>(*ibuss);
+                createBuss(csound, buss);
+                return OK;
+        }
+        int noteoff(CSOUND *)
+        {
+                return OK;
+        }
+        int kontrol(CSOUND *csound)
+        {
 #ifdef ENABLE_MIXER_KDEBUG
-        warn(csound, "MixerGetLevel::kontrol...\n");
+                warn(csound, "MixerGetLevel::kontrol...\n");
 #endif
-        *kgain = (*matrix)[csound][send][buss];
-        return OK;
-    }
+                *kgain = (*matrix)[csound][send][buss];
+                return OK;
+        }
 };
 /**
  * MixerSend asignal, isend, ibus, ichannel
@@ -132,55 +157,59 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel> {
  * The gain of the send is controlled by the previously set mixer level.
  */
 struct MixerSend : public OpcodeBase<MixerSend> {
-    // No outputs.
-    // Inputs.
-    MYFLT *ainput;
-    MYFLT *isend;
-    MYFLT *ibuss;
-    MYFLT *ichannel;
-    // State.
-    size_t send;
-    size_t buss;
-    size_t channel;
-    size_t frames;
-    MYFLT *busspointer;
-    int init(CSOUND *csound)
-    {
+        // No outputs.
+        // Inputs.
+        MYFLT *ainput;
+        MYFLT *isend;
+        MYFLT *ibuss;
+        MYFLT *ichannel;
+        // State.
+        size_t send;
+        size_t buss;
+        size_t channel;
+        size_t frames;
+        MYFLT *busspointer;
+    std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses;
+    std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix;
+        int init(CSOUND *csound)
+        {
 #ifdef ENABLE_MIXER_IDEBUG
-        warn(csound, "MixerSend::init...\n");
+                warn(csound, "MixerSend::init...\n");
 #endif
-        send = static_cast<size_t>(*isend);
-        buss = static_cast<size_t>(*ibuss);
-        createBuss(csound, buss);
-        channel = static_cast<size_t>(*ichannel);
-        frames = opds.insdshead->ksmps;
-        busspointer = &(*busses)[csound][buss][channel].front();
+        csound::QueryGlobalPointer(csound, "busses", busses);
+        csound::QueryGlobalPointer(csound, "matrix", matrix);
+                send = static_cast<size_t>(*isend);
+                buss = static_cast<size_t>(*ibuss);
+                createBuss(csound, buss);
+                channel = static_cast<size_t>(*ichannel);
+                frames = opds.insdshead->ksmps;
+                busspointer = &(*busses)[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
-        warn(csound, "MixerSend::init: instance %p send %d buss "
-             "%d channel %d frames %d busspointer %p\n",
-             csound, send, buss, channel, frames, busspointer);
+                warn(csound, "MixerSend::init: instance %p send %d buss "
+                     "%d channel %d frames %d busspointer %p\n",
+                     csound, send, buss, channel, frames, busspointer);
 #endif
-        return OK;
-    }
-    int noteoff(CSOUND *)
-    {
-        return OK;
-    }
-    int audio(CSOUND *csound)
-    {
-#ifdef ENABLE_MIXER_KDEBUG
-        warn(csound, "MixerSend::audio...\n");
-#endif
-        MYFLT gain = (*matrix)[csound][send][buss];
-        for(size_t i = 0; i < frames; i++) {
-            busspointer[i] += (ainput[i] * gain);
+                return OK;
         }
+        int noteoff(CSOUND *)
+        {
+                return OK;
+        }
+        int audio(CSOUND *csound)
+        {
 #ifdef ENABLE_MIXER_KDEBUG
-        warn(csound, "MixerSend::audio: instance %d send %d buss "
-             "%d gain %f busspointer %p\n", csound, send, buss, gain, busspointer);
+                warn(csound, "MixerSend::audio...\n");
 #endif
-        return OK;
-    }
+                MYFLT gain = (*matrix)[csound][send][buss];
+                for (size_t i = 0; i < frames; i++) {
+                        busspointer[i] += (ainput[i] * gain);
+                }
+#ifdef ENABLE_MIXER_KDEBUG
+                warn(csound, "MixerSend::audio: instance %d send %d buss "
+                     "%d gain %f busspointer %p\n", csound, send, buss, gain, busspointer);
+#endif
+                return OK;
+        }
 };
 
 /**
@@ -191,51 +220,53 @@ struct MixerSend : public OpcodeBase<MixerSend> {
  * than instruments sending those signals.
  */
 struct MixerReceive : public OpcodeBase<MixerReceive> {
-    // Output.
-    MYFLT *aoutput;
-    // Inputs.
-    MYFLT *ibuss;
-    MYFLT *ichannel;
-    // State.
-    size_t buss;
-    size_t channel;
-    size_t frames;
-    MYFLT *busspointer;
-    int init(CSOUND *csound)
-    {
-        buss = static_cast<size_t>(*ibuss);
-        channel = static_cast<size_t>(*ichannel);
-        frames = opds.insdshead->ksmps;
-        createBuss(csound, buss);
+        // Output.
+        MYFLT *aoutput;
+        // Inputs.
+        MYFLT *ibuss;
+        MYFLT *ichannel;
+        // State.
+        size_t buss;
+        size_t channel;
+        size_t frames;
+        MYFLT *busspointer;
+    std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses;
+        int init(CSOUND *csound)
+        {
+        csound::QueryGlobalPointer(csound, "busses", busses);
+                buss = static_cast<size_t>(*ibuss);
+                channel = static_cast<size_t>(*ichannel);
+                frames = opds.insdshead->ksmps;
+                createBuss(csound, buss);
 #ifdef ENABLE_MIXER_IDEBUG
-        warn(csound, "MixerReceive::init...\n");
+                warn(csound, "MixerReceive::init...\n");
 #endif
-        busspointer = &(*busses)[csound][buss][channel].front();
+                busspointer = &(*busses)[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
-        warn(csound, "MixerReceive::init csound %p buss %d channel "
-             "%d frames %d busspointer %p\n", csound, buss, channel,
-             frames, busspointer);
+                warn(csound, "MixerReceive::init csound %p buss %d channel "
+                     "%d frames %d busspointer %p\n", csound, buss, channel,
+                     frames, busspointer);
 #endif
-        return OK;
-    }
-    int noteoff(CSOUND *)
-    {
-        return OK;
-    }
-    int audio(CSOUND *csound)
-    {
-#ifdef ENABLE_MIXER_KDEBUG
-        warn(csound, "MixerReceive::audio...\n");
-#endif
-        for(size_t i = 0; i < frames; i++) {
-            aoutput[i] = busspointer[i];
+                return OK;
         }
+        int noteoff(CSOUND *)
+        {
+                return OK;
+        }
+        int audio(CSOUND *csound)
+        {
 #ifdef ENABLE_MIXER_KDEBUG
-        warn(csound, "MixerReceive::audio aoutput %p busspointer %p\n",
-             aoutput, buss);
+                warn(csound, "MixerReceive::audio...\n");
 #endif
-        return OK;
-    }
+                for (size_t i = 0; i < frames; i++) {
+                        aoutput[i] = busspointer[i];
+                }
+#ifdef ENABLE_MIXER_KDEBUG
+                warn(csound, "MixerReceive::audio aoutput %p busspointer %p\n",
+                     aoutput, buss);
+#endif
+                return OK;
+        }
 };
 
 /**
@@ -246,185 +277,205 @@ struct MixerReceive : public OpcodeBase<MixerReceive> {
  * with an indefinite duration that invokes only this opcode.
  */
 struct MixerClear : public OpcodeBase<MixerClear> {
-    // No output.
-    // No input.
-    // No state.
-    int audio(CSOUND *csound)
+        // No output.
+        // No input.
+        // State.
+    std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses;
+    int init(CSOUND *csound)
     {
-#ifdef ENABLE_MIXER_KDEBUG
-        warn(csound, "MixerClear::audio...\n")
-#endif
-        for(std::map<size_t,
-                std::vector< std::vector<MYFLT> > >::iterator
-                busi = (*busses)[csound].begin(); busi != (*busses)[csound].end(); ++busi) {
-            for(std::vector< std::vector<MYFLT> >::iterator
-                    channeli = busi->second.begin();
-                    channeli != busi->second.end(); ++channeli) {
-                for(std::vector<MYFLT>::iterator
-                        framei = (*channeli).begin();
-                        framei != (*channeli).end(); ++framei) {
-                    *framei = 0;
-                }
-            }
-        }
-#ifdef ENABLE_MIXER_KDEBUG
-        warn(csound, "MixerClear::audio\n")
-#endif
+        csound::QueryGlobalPointer(csound, "busses", busses);
         return OK;
     }
+        int audio(CSOUND *csound)
+        {
+#ifdef ENABLE_MIXER_KDEBUG
+                warn(csound, "MixerClear::audio...\n")
+#endif
+                for (std::map<size_t,
+                        std::vector< std::vector<MYFLT> > >::iterator
+                        busi = (*busses)[csound].begin();
+                        busi != (*busses)[csound].end(); ++busi) {
+                        for (std::vector< std::vector<MYFLT> >::iterator
+                                channeli = busi->second.begin();
+                                channeli != busi->second.end(); ++channeli) {
+                                for (std::vector<MYFLT>::iterator
+                                        framei = (*channeli).begin();
+                                        framei != (*channeli).end(); ++framei) {
+                                        *framei = 0;
+                                }
+                        }
+                }
+#ifdef ENABLE_MIXER_KDEBUG
+                warn(csound, "MixerClear::audio\n")
+#endif
+                return OK;
+        }
 };
 
 extern "C"
 {
 
-    static OENTRY localops[] = {
-        {
-            (char*)"MixerSetLevel",
-            sizeof(MixerSetLevel),
-            _CW,
-            3,
-            (char*)"",
-            (char*)"iik",
-            (SUBR)&MixerSetLevel::init_,
-            (SUBR)&MixerSetLevel::kontrol_,
-            0
-        },
-        {
-            (char*)"MixerSetLevel_i",
-            sizeof(MixerSetLevel),
-            _CW,
-            1,
-            (char*)"",
-            (char*)"iii",
-            (SUBR)&MixerSetLevel::init_,
-            0,
-            0
-        },
-        {
-            (char*)"MixerGetLevel",
-            sizeof(MixerGetLevel),
-            _CR,
-            3,
-            (char*)"k",
-            (char*)"ii",
-            (SUBR)&MixerGetLevel::init_,
-            (SUBR)&MixerGetLevel::kontrol_,
-            0
-        },
-        {
-            (char*)"MixerSend",
-            sizeof(MixerSend),
-            _CR,
-            5,
-            (char*)"",
-            (char*)"aiii",
-            (SUBR)&MixerSend::init_,
-            0,
-            (SUBR)&MixerSend::audio_
-        },
-        {
-            (char*)"MixerReceive",
-            sizeof(MixerReceive),
-            _CW,
-            5,
-            (char*)"a",
-            (char*)"ii",
-            (SUBR)&MixerReceive::init_,
-            0,
-            (SUBR)&MixerReceive::audio_
-        },
-        {
-            (char*)"MixerClear",
-            sizeof(MixerClear),
-            0,
-            4,
-            (char*)"",
-            (char*)"",
-            0,
-            0,
-            (SUBR)&MixerClear::audio_
-        },
-        { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
-    };
+        static OENTRY localops[] = {
+                {
+                        (char *)"MixerSetLevel",
+                        sizeof(MixerSetLevel),
+                        _CW,
+                        3,
+                        (char *)"",
+                        (char *)"iik",
+                        (SUBR) &MixerSetLevel::init_,
+                        (SUBR) &MixerSetLevel::kontrol_,
+                        0
+                },
+                {
+                        (char *)"MixerSetLevel_i",
+                        sizeof(MixerSetLevel),
+                        _CW,
+                        1,
+                        (char *)"",
+                        (char *)"iii",
+                        (SUBR) &MixerSetLevel::init_,
+                        0,
+                        0
+                },
+                {
+                        (char *)"MixerGetLevel",
+                        sizeof(MixerGetLevel),
+                        _CR,
+                        3,
+                        (char *)"k",
+                        (char *)"ii",
+                        (SUBR) &MixerGetLevel::init_,
+                        (SUBR) &MixerGetLevel::kontrol_,
+                        0
+                },
+                {
+                        (char *)"MixerSend",
+                        sizeof(MixerSend),
+                        _CR,
+                        5,
+                        (char *)"",
+                        (char *)"aiii",
+                        (SUBR) &MixerSend::init_,
+                        0,
+                        (SUBR) &MixerSend::audio_
+                },
+                {
+                        (char *)"MixerReceive",
+                        sizeof(MixerReceive),
+                        _CW,
+                        5,
+                        (char *)"a",
+                        (char *)"ii",
+                        (SUBR) &MixerReceive::init_,
+                        0,
+                        (SUBR) &MixerReceive::audio_
+                },
+                {
+                        (char *)"MixerClear",
+                        sizeof(MixerClear),
+                        0,
+                        5,
+                        (char *)"",
+                        (char *)"",
+                        (SUBR) &MixerClear::init_,
+                        0,
+                        (SUBR) &MixerClear::audio_
+                },
+                { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
+        };
 
-    PUBLIC int csoundModuleCreate_mixer(CSOUND *csound)
-    {
-        busses = new std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > >;
-        matrix = new std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > >;
-        return OK;
-    }
 
-    PUBLIC int csoundModuleInit_mixer(CSOUND *csound)
-    {
-        OENTRY  *ep = (OENTRY*) &(localops[0]);
-        int     err = 0;
-
-        while (ep->opname != NULL) {
-            err |= csound->AppendOpcode(csound,
-                                        ep->opname, ep->dsblksiz, ep->flags,
-                                        ep->thread, ep->outypes, ep->intypes,
-                                        (int (*)(CSOUND *, void*)) ep->iopadr,
-                                        (int (*)(CSOUND *, void*)) ep->kopadr,
-                                        (int (*)(CSOUND *, void*)) ep->aopadr);
-            ep++;
+        PUBLIC int csoundModuleCreate_mixer(CSOUND *csound)
+        {
+                std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses = 0;
+                busses = new std::map<CSOUND *,
+                std::map<size_t, std::vector< std::vector<MYFLT> > > >;
+                csound::CreateGlobalPointer(csound, "busses", busses);
+                std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
+                matrix = new std::map<CSOUND *,
+                std::map<size_t, std::map<size_t, MYFLT> > >;
+                csound::CreateGlobalPointer(csound, "matrix", matrix);
+                return OK;
         }
-        return err;
-    }
 
-    /*
-     * The mixer busses are laid out:
-     * busses[csound][bus][channel][frame].
-     * std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses = 0;
-     * The mixer send matrix is laid out:
-     * matrix[csound][send][bus].
-     * std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
-     */
-    PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound)
-    {
-      if(busses) {
-        for(std::map<size_t,
-                std::vector< std::vector<MYFLT> > >::iterator
-                busi = (*busses)[csound].begin(); busi != (*busses)[csound].end(); ++busi) {
-            for(std::vector< std::vector<MYFLT> >::iterator
-                    channeli = busi->second.begin();
-                    channeli != busi->second.end(); ++channeli) {
-                channeli->resize(0);
-            }
-            busi->second.clear();
+        PUBLIC int csoundModuleInit_mixer(CSOUND *csound)
+        {
+                OENTRY  *ep = (OENTRY *) &(localops[0]);
+                int     err = 0;
+
+                while (ep->opname != NULL) {
+                        err |= csound->AppendOpcode(csound,
+                                                    ep->opname, ep->dsblksiz, ep->flags,
+                                                    ep->thread, ep->outypes, ep->intypes,
+                                                    (int (*)(CSOUND *, void *)) ep->iopadr,
+                                                    (int (*)(CSOUND *, void *)) ep->kopadr,
+                                                    (int (*)(CSOUND *, void *)) ep->aopadr);
+                        ep++;
+                }
+                return err;
         }
-        busses->clear();
-        delete busses;
-        busses = 0;
-      }
-      if(matrix) {
-        // std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > >
-        for(std::map<size_t, std::map<size_t, MYFLT> >::iterator
-                matrixi = (*matrix)[csound].begin(); matrixi != (*matrix)[csound].end(); ++matrixi) {
-             matrixi->second.clear();
+
+        /*
+         * The mixer busses are laid out:
+         * busses[csound][bus][channel][frame].
+         * std::map<CSOUND *, std::map<size_t,
+         *          std::vector< std::vector<MYFLT> > > > *busses = 0;
+         * The mixer send matrix is laid out:
+         * matrix[csound][send][bus].
+         * std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
+         */
+        PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound)
+        {
+                std::map<CSOUND *, std::map<size_t, std::vector< std::vector<MYFLT> > > > *busses = 0;
+                csound::QueryGlobalPointer(csound, "busses", busses);
+                if (busses) {
+                        for (std::map<size_t,
+                                std::vector< std::vector<MYFLT> > >::iterator
+                                busi = (*busses)[csound].begin();
+                                busi != (*busses)[csound].end(); ++busi) {
+                                for (std::vector< std::vector<MYFLT> >::iterator
+                                        channeli = busi->second.begin();
+                                        channeli != busi->second.end(); ++channeli) {
+                                        channeli->resize(0);
+                                }
+                                busi->second.clear();
+                        }
+                        busses->clear();
+                        csound::DestroyGlobalPointer(csound, "busses", busses);
+                        busses = 0;
+                }
+                std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > > *matrix = 0;
+                csound::QueryGlobalPointer(csound, "matrix", matrix);
+                if (matrix) {
+                        // std::map<CSOUND *, std::map<size_t, std::map<size_t, MYFLT> > >
+                        for (std::map<size_t, std::map<size_t, MYFLT> >::iterator
+                                matrixi = (*matrix)[csound].begin();
+                                matrixi != (*matrix)[csound].end(); ++matrixi) {
+                                matrixi->second.clear();
+                        }
+                        matrix->clear();
+                        csound::DestroyGlobalPointer(csound, "matrix", matrix);
+                        matrix = 0;
+                }
+                return OK;
         }
-        matrix->clear();
-        delete matrix;
-        matrix = 0;
-      }
-        return OK;
-    }
 
 
 #ifndef INIT_STATIC_MODULES
-    PUBLIC int csoundModuleCreate(CSOUND *csound)
-    {
-        return csoundModuleCreate_mixer(csound);
-    }
+        PUBLIC int csoundModuleCreate(CSOUND *csound)
+        {
+                return csoundModuleCreate_mixer(csound);
+        }
 
-    PUBLIC int csoundModuleInit(CSOUND *csound)
-    {
-        return csoundModuleInit_mixer(csound);
-    }
+        PUBLIC int csoundModuleInit(CSOUND *csound)
+        {
+                return csoundModuleInit_mixer(csound);
+        }
 
-    PUBLIC int csoundModuleDestroy(CSOUND *csound)
-    {
-        return csoundModuleDestroy_mixer(csound);
-    }
+        PUBLIC int csoundModuleDestroy(CSOUND *csound)
+        {
+                return csoundModuleDestroy_mixer(csound);
+        }
 #endif
 }   // END EXTERN C
-

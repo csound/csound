@@ -25,7 +25,7 @@
 
 functions specific to four loudspeaker VBAP
 
-Ville Pulkki heavily modified my Joh ffitch 2012
+Ville Pulkki heavily modified by John ffitch 2012
 */
 
 
@@ -259,7 +259,7 @@ int vbap_init(CSOUND *csound, VBAP *p)
     int cnt = p->q.number = (int)(p->OUTOCOUNT);
     char name[24];
 
-    if((!strcmp(p->h.optext->t.opcod, "vbap.a")) == 0) {
+    if ((!strcmp(p->h.optext->t.opcod, "vbap.a")) == 0) {
       p->audio = p->out_array[cnt];
       p->azi = p->out_array[cnt+1];
       p->ele = p->out_array[cnt+2];
@@ -269,7 +269,7 @@ int vbap_init(CSOUND *csound, VBAP *p)
     snprintf(name, 24, "vbap_ls_table_%d", (p->layout==NULL?0:(int)*p->layout));
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
 
-    if (ls_table==NULL)
+    if (UNLIKELY(ls_table==NULL))
       return csound->InitError(csound,
                                Str("could not find layout table no.%d"),
                                (int)*p->layout );
@@ -278,7 +278,7 @@ int vbap_init(CSOUND *csound, VBAP *p)
     p->q.ls_am     = (int)ls_table[1];
     p->q.ls_set_am = (int)ls_table[2];
     ptr = &(ls_table[3]);
-    if (!p->q.ls_set_am)
+    if (UNLIKELY(!p->q.ls_set_am))
       return csound->InitError(csound,
                                Str("vbap system NOT configured. \nMissing"
                                    " vbaplsinit opcode in orchestra?"));
@@ -293,8 +293,9 @@ int vbap_init(CSOUND *csound, VBAP *p)
       for (j=0 ; j < p->q.dim ; j++) {
         ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
       }
-      for (j=0 ; j < 9; j++)
-        ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
+      memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT)); // initial setting
+      /* for (j=0 ; j < 9; j++) */
+      /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\*initial setting*\/ */
       for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
         ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
       }
@@ -333,7 +334,7 @@ int vbap_init_a(CSOUND *csound, VBAPA *p)
     snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
 
-    if (ls_table==NULL)
+    if (UNLIKELY(ls_table==NULL))
       return csound->InitError(csound,
                                Str("could not find layout table no.%d"),
                                (int)*p->layout );
@@ -342,7 +343,7 @@ int vbap_init_a(CSOUND *csound, VBAPA *p)
     p->q.ls_am     = (int)ls_table[1];
     p->q.ls_set_am = (int)ls_table[2];
     ptr = &(ls_table[3]);
-    if (!p->q.ls_set_am)
+    if (UNLIKELY(!p->q.ls_set_am))
       return csound->InitError(csound,
                                Str("vbap system NOT configured.\nMissing"
                                    " vbaplsinit opcode in orchestra?"));
@@ -357,8 +358,9 @@ int vbap_init_a(CSOUND *csound, VBAPA *p)
       for (j=0 ; j < p->q.dim ; j++) {
         ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
       }
-      for (j=0 ; j < 9; j++)
-        ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
+      memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));
+      /* for (j=0 ; j < 9; j++) */
+      /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\*initial setting*\/ */
       for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
         ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
       }
@@ -501,7 +503,7 @@ int vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, INSDS *insdshead,
         tmp3.x /= coeff; tmp3.y /= coeff; tmp3.z /= coeff;
         cart_to_angle(tmp3,&(p->ang_dir));
       }
-      else if (p->dim == 2) { /* 2-D */
+      else if (LIKELY(p->dim == 2)) { /* 2-D */
         p->prev_ang_dir.azi =  *fld[p->curr_fld];
         p->next_ang_dir.azi =  *fld[p->next_fld ];
         p->prev_ang_dir.ele = p->next_ang_dir.ele =  FL(0.0);
@@ -647,7 +649,7 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
 
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
                                                         "vbap_ls_table_0"));
-    if (ls_table==NULL)
+    if (UNLIKELY(ls_table==NULL))
       return csound->InitError(csound, Str("could not find layout table no.0"));
     p->q.number = cnt;
     /* reading in loudspeaker info */
@@ -655,7 +657,7 @@ int vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     p->q.ls_am     = (int)ls_table[1];
     p->q.ls_set_am = (int)ls_table[2];
     ptr = &(ls_table[3]);
-    if (!p->q.ls_set_am)
+    if (UNLIKELY(!p->q.ls_set_am))
       return csound->InitError(csound, Str("vbap system NOT configured. \nMissing"
                                            " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
@@ -775,7 +777,7 @@ int vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
     LS_SET  *ls_set_ptr;
     int cnt;
 
-    if (p->tabout->data==NULL) {
+    if (UNLIKELY(p->tabout->data==NULL)) {
       return csound->InitError(csound,
                                Str("Output array in vpabmove not initalised"));
     }
@@ -783,7 +785,7 @@ int vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
 
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
                                                         "vbap_ls_table_0"));
-    if (ls_table==NULL)
+    if (UNLIKELY(ls_table==NULL))
       return csound->InitError(csound, Str("could not find layout table no.0"));
     p->q.number = cnt;
     /* reading in loudspeaker info */
@@ -791,7 +793,7 @@ int vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
     p->q.ls_am     = (int)ls_table[1];
     p->q.ls_set_am = (int)ls_table[2];
     ptr = &(ls_table[3]);
-    if (!p->q.ls_set_am)
+    if (UNLIKELY(!p->q.ls_set_am))
       return csound->InitError(csound,
                                Str("vbap system NOT configured.\nMissing"
                                    " vbaplsinit opcode in orchestra?"));
@@ -806,8 +808,9 @@ int vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
       for (j=0 ; j < p->q.dim ; j++) {
         ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
       }
-      for (j=0 ; j < 9; j++)
-        ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
+      memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));
+      /* for (j=0 ; j < 9; j++) */
+      /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\*initial setting*\/ */
       for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
         ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
       }

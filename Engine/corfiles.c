@@ -31,31 +31,31 @@
 extern int csoundFileClose(CSOUND*, void*);
 CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 
-CORFIL *corfile_create_w(void)
+CORFIL *corfile_create_w(CSOUND *csound)
 {
-    CORFIL *ans = (CORFIL*) malloc(sizeof(CORFIL));
-    ans->body = (char*)calloc(100,1);
+    CORFIL *ans = (CORFIL*) csound->Malloc(csound, sizeof(CORFIL));
+    ans->body = (char*)csound->Calloc(csound,100);
     ans->len = 100;
     ans->p = 0;
     return ans;
 }
 
-CORFIL *corfile_create_r(const char *text)
+CORFIL *corfile_create_r(CSOUND *csound, const char *text)
 {
     //char *strdup(const char *);
-    CORFIL *ans = (CORFIL*) malloc(sizeof(CORFIL));
-    ans->body = strdup(text);
+    CORFIL *ans = (CORFIL*) csound->Malloc(csound, sizeof(CORFIL));
+    ans->body = cs_strdup(csound, (char*)text);
     ans->len = strlen(text)+1;
     ans->p = 0;
     return ans;
 }
 
-void corfile_putc(int c, CORFIL *f)
+void corfile_putc(CSOUND *csound, int c, CORFIL *f)
 {
     char *new;
     f->body[f->p++] = c;
     if (UNLIKELY(f->p >= f->len)) {
-      new = (char*) realloc(f->body, f->len+=100);
+      new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
       if (UNLIKELY(new==NULL)) {
         fprintf(stderr, Str("Out of Memory\n"));
         exit(7);
@@ -65,7 +65,7 @@ void corfile_putc(int c, CORFIL *f)
     f->body[f->p] = '\0';
 }
 
-void corfile_puts(const char *s, CORFIL *f)
+void corfile_puts(CSOUND *csound, const char *s, CORFIL *f)
 {
     const char *c;
     int n;
@@ -76,7 +76,7 @@ void corfile_puts(const char *s, CORFIL *f)
       char *new;
       f->body[f->p++] = *c;
       if (UNLIKELY(f->p >= f->len)) {
-        new = (char*) realloc(f->body, f->len+=100);
+        new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
         if (UNLIKELY(new==NULL)) {
           fprintf(stderr, Str("Out of Memory\n"));
           exit(7);
@@ -90,7 +90,7 @@ void corfile_puts(const char *s, CORFIL *f)
         char *new;
         f->body[f->p++] = '\0';
         if (UNLIKELY(f->p >= f->len)) {
-          new = (char*) realloc(f->body, f->len+=100);
+          new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
           if (UNLIKELY(new==NULL)) {
             fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
@@ -102,11 +102,11 @@ void corfile_puts(const char *s, CORFIL *f)
     f->body[f->p] = '\0';
 }
 
-void corfile_flush(CORFIL *f)
+void corfile_flush(CSOUND *csound, CORFIL *f)
 {
     char *new;
     f->len = strlen(f->body)+1;
-    new = (char*)realloc(f->body, f->len);
+    new = (char*)csound->ReAlloc(csound, f->body, f->len);
     if (UNLIKELY(new==NULL)) {
       fprintf(stderr, Str("Out of Memory\n"));
       exit(7);
@@ -121,12 +121,12 @@ int corfile_length(CORFIL *f)
     return strlen(f->body);
 }
 
-void corfile_rm(CORFIL **ff)
+void corfile_rm(CSOUND *csound, CORFIL **ff)
 {
     CORFIL *f = *ff;
     if (LIKELY(f!=NULL)) {
-      free(f->body);
-      free(f);
+      csound->Free(csound, f->body);
+      csound->Free(csound, f);
       *ff = NULL;
     }
 }
@@ -227,7 +227,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     void *fd;
     int n;
     char buffer[1024];
-    if (fname==NULL) {
+    if (UNLIKELY(fname==NULL)) {
       csound->ErrorMsg(csound, Str("Null file name in copy_to_corefile"));
       csound->LongJmp(csound, 1);
     }
@@ -238,7 +238,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
 #endif
     fd = fopen_path(csound, &ff, (char *)fname, NULL, (char *)env, fromScore);
     if (UNLIKELY(ff==NULL)) return NULL;
-    mm = corfile_create_w();
+    mm = corfile_create_w(csound);
     memset(buffer, '\0', 1024);
     while ((n = fread(buffer, 1, 1023, ff))) {
       /* Need to lose \r characters  here */
@@ -247,28 +247,28 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
       /*   memmove(s, s+1, k); */
       /*   n--; */
       /* } */
-      corfile_puts(buffer, mm);
+      corfile_puts(csound, buffer, mm);
       memset(buffer, '\0', 1024);
     }
     //#ifdef SCORE_PARSER
     if (fromScore) {
-      corfile_puts("\n#exit\n", mm);
+      corfile_puts(csound, "\n#exit\n", mm);
     }
     //#endif
-    corfile_putc('\0', mm);     /* For use in bison/flex */
-    corfile_putc('\0', mm);     /* For use in bison/flex */
-    if (fromScore) corfile_flush(mm);
+    corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
+    corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
+    if (fromScore) corfile_flush(csound, mm);
     csoundFileClose(csound, fd);
     return mm;
 }
 
-void corfile_preputs(const char *s, CORFIL *f)
+void corfile_preputs(CSOUND *csound, const char *s, CORFIL *f)
 {
     char *body = f->body;
-    f->body = (char*)malloc(f->len=(strlen(body)+strlen(s)+1));
+    f->body = (char*)csound->Malloc(csound, f->len=(strlen(body)+strlen(s)+1));
     f->p = f->len-1;
     strcpy(f->body, s); strcat(f->body, body);
-    free(body);
+    csound->Free(csound, body);
 }
 
 #ifdef HAVE_CURL
@@ -278,6 +278,7 @@ void corfile_preputs(const char *s, CORFIL *f)
 struct MemoryStruct {
   char *memory;
   size_t size;
+  CSOUND* cs;
 };
 
 
@@ -286,8 +287,9 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
   size_t realsize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+  CSOUND *csound = mem->cs;
 
-  mem->memory = realloc(mem->memory, mem->size + realsize + 1);
+  mem->memory = csound->ReAlloc(csound, mem->memory, mem->size + realsize + 1);
   if (UNLIKELY(mem->memory == NULL)) {
     /* out of memory! */
     printf(Str("not enough memory (realloc returned NULL)\n"));
@@ -305,11 +307,12 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
 {
     int n;
     CURL *curl = curl_easy_init();
-    CORFIL *mm = corfile_create_w();
+    CORFIL *mm = corfile_create_w(csound);
     struct MemoryStruct chunk;
 
-    chunk.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    chunk.memory = csound->Malloc(csound, 1);  /* will grown */
     chunk.size = 0;    /* no data at this point */
+    chunk.cs = csound;
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
@@ -321,11 +324,11 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
       /* return NULL ? */
     }
     curl_easy_cleanup(curl);
-    corfile_puts(chunk.memory, mm);
-    corfile_putc('\0', mm);     /* For use in bison/flex */
-    corfile_putc('\0', mm);     /* For use in bison/flex */
-    if (fromScore) corfile_flush(mm);
-    free (chunk.memory);
+    corfile_puts(csound, chunk.memory, mm);
+    corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
+    corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
+    if (fromScore) corfile_flush(csound, mm);
+    csound->Free(csound, chunk.memory);
 
     curl_global_cleanup();
     return mm;
@@ -336,60 +339,76 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int fromScore)
 #if 0
 int main(void)
 {
-  CURL *curl_handle;
-  CURLcode res;
+    CURL *curl_handle;
+    CURLcode res;
 
-  struct MemoryStruct chunk;
+    struct MemoryStruct chunk;
 
-  chunk.memory = malloc(1);  /* will be grown as needed by the realloc above */
-  chunk.size = 0;    /* no data at this point */
+    /* will grown as needed by the realloc above */
+    chunk.memory = csound->Malloc(csound, 1);
+    chunk.size = 0;    /* no data at this point */
 
-  curl_global_init(CURL_GLOBAL_ALL);
+    curl_global_init(CURL_GLOBAL_ALL);
 
-  /* init the curl session */
-  curl_handle = curl_easy_init();
+    /* init the curl session */
+    curl_handle = curl_easy_init();
 
-  /* specify URL to get */
-  curl_easy_setopt(curl_handle, CURLOPT_URL, "http://www.example.com/");
+    /* specify URL to get */
+    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://www.example.com/");
 
-  /* send all data to this function  */
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    /* send all data to this function  */
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 
-  /* we pass our 'chunk' struct to the callback function */
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
+    /* we pass our 'chunk' struct to the callback function */
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
 
-  /* some servers don't like requests that are made without a user-agent
-     field, so we provide one */
-  curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    /* some servers don't like requests that are made without a user-agent
+       field, so we provide one */
+    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
-  /* get it! */
-  res = curl_easy_perform(curl_handle);
+    /* get it! */
+    res = curl_easy_perform(curl_handle);
 
-  /* check for errors */
-  if (res != CURLE_OK) {
-    fprintf(stderr, "curl_easy_perform() failed: %s\n",
-            curl_easy_strerror(res));
-  }
-  else {
-    /*
-     * Now, our chunk.memory points to a memory block that is chunk.size
-     * bytes big and contains the remote file.
-     *
-     * Do something nice with it!
-     */
+    /* check for errors */
+    if (res != CURLE_OK) {
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(res));
+    }
+    else {
+      /*
+       * Now, our chunk.memory points to a memory block that is chunk.size
+       * bytes big and contains the remote file.
+       *
+       * Do something nice with it!
+       */
 
-    printf("%lu bytes retrieved\n", (long)chunk.size);
-  }
+      printf("%lu bytes retrieved\n", (long)chunk.size);
+    }
 
-  /* cleanup curl stuff */
-  curl_easy_cleanup(curl_handle);
+    /* cleanup curl stuff */
+    curl_easy_cleanup(curl_handle);
 
-  if (chunk.memory)
-    free(chunk.memory);
+    if (chunk.memory)
+      free(chunk.memory);
 
-  /* we're done with libcurl, so clean it up */
-  curl_global_cleanup();
+    /* we're done with libcurl, so clean it up */
+    curl_global_cleanup();
 
-  return 0;
+    return 0;
 }
 #endif
+
+typedef struct dir {
+  char       *name;
+  CORFIL     *corfile;
+  struct dir *next;
+} CORDIR;
+
+void add_corfile(CSOUND* csound, CORFIL *smpf, char *filename)
+{
+    CORDIR *entry = csound->Malloc(csound, sizeof(CORDIR));
+    entry->name = cs_strdup(csound, filename);
+    entry->corfile = smpf;
+    entry->next = (CORDIR *)csound->directory;
+    csound->directory = entry;
+}

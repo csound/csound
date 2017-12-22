@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "csoundCore.h"
+#include "csound_orc.h"
 #include "CUnit/Basic.h"
 
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);

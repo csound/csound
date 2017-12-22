@@ -54,7 +54,7 @@ int CppSound::compile(int argc, const char **argv_)
   // Changed to use only internally stored Csound orchestra and score.
   returnValue = csoundCompileOrc(csound, getOrchestra().c_str());
   returnValue = csoundReadScore(csound, getScore().c_str());
-  for (int i = 0; i < argv.size(); ++i) {
+  for (int i = 0; (size_t) i < argv.size(); ++i) {
       Message("arg %3d: %s\n", i, argv[i]);
       csoundSetOption(csound, argv[i]);
   }

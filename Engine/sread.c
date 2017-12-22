@@ -33,7 +33,6 @@
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
 
-//#define MARGS   (3)
 //#define MACDEBUG (1)
 
 static void print_input_backtrace(CSOUND *csound, int needLFs,
@@ -199,7 +198,7 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
     if (strcmp(name, STA(macros)->name) == 0) {
       mm = STA(macros)->next;
       if (strcmp(STA(macros)->name, "[") != 0)
-        corfile_rm(&(STA(macros)->body));
+        corfile_rm(csound, &(STA(macros)->body));
       csound->Free(csound, STA(macros)->name);
  #ifdef MACDEBUG
       csound->DebugMsg(csound,"%s(%d): corfile is %p\n",
@@ -221,7 +220,7 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
         }
       }
       csound->Free(csound, nn->name);
-      corfile_rm(&nn->body);
+      corfile_rm(csound, &nn->body);
       for (i = 0; i < nn->acnt; i++)
         csound->Free(csound, nn->arg[i]);
       mm->next = nn->next;
@@ -233,7 +232,7 @@ static int undefine_score_macro(CSOUND *csound, const char *name)
 static inline int isNameChar(int c, int pos)
 {
     //c = (int) ((unsigned char) c);
-    if (c<0) return 0;
+    if (UNLIKELY(c<0)) return 0;
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
@@ -250,6 +249,7 @@ static int getscochar(CSOUND *csound, int expand)
 {
 /* Read a score character, expanding macros if flag set */
     int     c;
+    IGN(expand);
 #ifdef never
 /* top: */
 /*   c = corfile_getc(STA(str)->cf); */
@@ -395,7 +395,7 @@ static int getscochar(CSOUND *csound, int expand)
 /*     MYFLT *pv = vv - 1; */
 /*     char  buffer[100]; */
 /*     int   i; */
-/*     int   type = 0;  /\* 1 -> expecting binary operator,')', or ']'; else 0 *\/ */
+/*     int   type = 0; // 1 -> expecting binary operator,')', or ']'; else 0 */
 /*     *++op = '['; */
 /*     c = getscochar(csound, 1); */
 /*     do { */
@@ -519,7 +519,8 @@ static int getscochar(CSOUND *csound, int expand)
 /*         *++op = c; c = getscochar(csound, 1); break; */
 /*       case ']': */
 /*         if (UNLIKELY(!type)) { */
-/*           scorerr(csound, Str("missing operand before closing bracket in []")); */
+/*           scorerr(csound, */
+/*                   Str("missing operand before closing bracket in []")); */
 /*         } */
 /*         while (*op != '[') { */
 /*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
@@ -565,7 +566,8 @@ static int getscochar(CSOUND *csound, int expand)
 /*       STA(str)->is_marked_repeat = 0; */
 /*       STA(str)->mac = NULL; STA(str)->line = 1; */
 /* #ifdef MACDEBUG */
-/*       csound->Message(csound,"[] defined as >>%s<<\n", corfile_body(nn->body)); */
+/*       csound->Message(csound,"[] defined as >>%s<<\n", */
+/*                       corfile_body(nn->body)); */
 /* #endif */
 /*       STA(ingappop) = 1; */
 /*       goto top; */
@@ -645,7 +647,8 @@ static int getscochar(CSOUND *csound, int expand)
 /*       corfile_puts(buffer, STA(repeat_mm_n)[STA(repeat_index)]->body); */
 /*       corfile_rewind(STA(repeat_mm_n)[STA(repeat_index)]->body); */
 /* #ifdef MACDEBUG */
-/*       csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__, */
+/*       csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", */
+/*                        __FILE__, __LINE__, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->body, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->p, */
 /*              STA(repeat_mm_n)[STA(repeat_index)]->body->len); */
@@ -713,6 +716,7 @@ static int getscochar(CSOUND *csound, int expand)
 /*   return 0; */
 /* } */
 
+#if 0
 static void init_smacros(CSOUND *csound, NAMES *nn)
 {
     S_MACRO *mm;
@@ -765,6 +769,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
     mm->next = STA(macros);
     STA(macros) = mm;
 }
+#endif
 
 /* #if never */
 /* void sread_init(CSOUND *csound) */
@@ -784,6 +789,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
 void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
+    IGN(sco);
     STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
     STA(input_size) = 20;
     STA(input_cnt) = 0;
@@ -797,14 +803,14 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
       csound_prslex_init(&qq.yyscanner);
       cs_init_smacros(csound, &qq, csound->smacros);
       csound_prsset_extra(&qq, qq.yyscanner);
-      csound->expanded_sco = corfile_create_w();
+      csound->expanded_sco = corfile_create_w(csound);
       /* printf("Input:\n%s<<<\n", */
       /*        corfile_body(csound->sreadStatics.str->cf)); */
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
       csound_prslex_destroy(qq.yyscanner);
-      corfile_rm(&csound->scorestr);
+      corfile_rm(csound, &csound->scorestr);
       corfile_rewind(csound->expanded_sco);
     }
 }
@@ -941,7 +947,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         /* If we are in a repeat of a marked section ('n' statement),
            we must pop those inputs before doing an 'r' repeat. */
         if (STA(str)->is_marked_repeat) {
-          printf("end of n; return to %d\n", STA(str)->oposit);
+          //printf("end of n; return to %d\n", STA(str)->oposit);
           corfile_set(csound->expanded_sco, STA(str)->oposit);
           STA(str)--;
           return rtncod;
@@ -1024,13 +1030,15 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
 /*         ungetscochar(csound, c); */
 /*         /\* Define macro for counter *\/ */
 /*         STA(repeat_mm_n)[STA(repeat_index)]->name = */
-/*           csound->Malloc(csound, strlen(STA(repeat_name_n)[STA(repeat_index)])+1); */
+/*           csound->Malloc(csound, */
+/*                          strlen(STA(repeat_name_n)[STA(repeat_index)])+1); */
 /*         strcpy(STA(repeat_mm_n)[STA(repeat_index)]->name, */
 /*                STA(repeat_name_n)[STA(repeat_index)]); */
 /*         STA(repeat_mm_n)[STA(repeat_index)]->acnt = 0; */
 /*         STA(repeat_mm_n)[STA(repeat_index)]->body = corfile_create_r("0"); */
 /* #ifdef MACDEBUG */
-/*         csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n", __FILE__, __LINE__, */
+/*         csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n", */
+/*                           __FILE__, __LINE__, */
 /*                STA(repeat_name_n)[STA(repeat_index)], */
 /*                STA(repeat_mm_n)[STA(repeat_index)]->body); */
 /* #endif */
@@ -1079,7 +1087,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
 /*       } */
 /*       /\* Then remember this state *\/ */
 /*       *(STA(nxp)-2) = 's'; *STA(nxp)++ = LF; */
-/*       if (STA(nxp) >= STA(memend))              /\* if this memblk exhausted *\/ */
+/*       if (STA(nxp) >= STA(memend))     /\* if this memblk exhausted *\/ */
 /*         expand_nxp(csound); */
 /*       { */
 /*         int   c, i; */
@@ -1156,7 +1164,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(names)[j].line = STA(str)->line;
           //printf("line-%d\n",STA(names)[j].line);
           if (csound->oparms->msglevel & TIMEMSG)
-            csound->Message(csound,Str("%d: %s position %ld\n"),
+            csound->Message(csound,Str("%d: %s position %d\n"),
                             j, STA(names)[j].name,
                             STA(names)[j].posit);
           STA(op) = getop(csound);
@@ -1227,17 +1235,21 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           goto again;
         }
       case 'x':                         /* Skip section */
+        //printf("***skipping section\n");
+        flushlin(csound);
         while (1) {
           switch (STA(op) = getop(csound)) {
           case 's':
           case 'r':
           case 'm':
           case 'e':
+            //printf("***skip ending with %c\n", STA(op));
             salcblk(csound);            /* place op, blank into text    */
             goto again;
           case EOF:
             goto ending;
           default:
+            //printf("***ignoring %c\n", STA(op));
             flushlin(csound);
           }
         }
@@ -1393,8 +1405,9 @@ static void ifa(CSOUND *csound)
       }
       switch (STA(bp)->pcnt) {               /* newp2, newp3:   */
       case 2: if (STA(warpin)) {             /* for warpin,     */
-          getpfld(csound);                    /*   newp2 follows */
-          STA(bp)->newp2 = STA(warp_factor) * stof(csound, STA(sp)) + STA(clock_base);
+          getpfld(csound);                   /*   newp2 follows */
+          STA(bp)->newp2 = STA(warp_factor) * stof(csound, STA(sp)) +
+            STA(clock_base);
           STA(nxp) = STA(sp);                   /*    (skip text)  */
         }
         else STA(bp)->newp2 = STA(bp)->p2val;   /* else use p2val  */
@@ -1423,7 +1436,7 @@ static void ifa(CSOUND *csound)
          (!STA(bp)->pcnt && (prvbp = STA(bp)->prvblk) != NULL &&
           prvbp->text[0] == 'i')) &&
         (n = prvbp->pcnt - STA(bp)->pcnt) > 0) {
-      printf("carrying p-fields\n");
+      //printf("carrying p-fields\n");
       pcopy(csound, (int) STA(bp)->pcnt + 1, n, prvbp);
       STA(bp)->pcnt += n;
     }
@@ -1568,7 +1581,7 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
       //corfile_rm(&(STA(str)->cf));
       STA(str)--;
     }
-    corfile_rm(&(csound->scorestr));
+    corfile_rm(csound, &(csound->scorestr));
 }
 
 static void flushlin(CSOUND *csound)
@@ -1579,7 +1592,7 @@ static void flushlin(CSOUND *csound)
     STA(linpos) = 0;
     STA(lincnt)++;
 }
-
+/* unused at the moment
 static inline int check_preproc_name(CSOUND *csound, const char *name)
 {
     int   i;
@@ -1591,7 +1604,7 @@ static inline int check_preproc_name(CSOUND *csound, const char *name)
     }
     return 1;
 }
-
+*/
 static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 {
     int c;
@@ -1724,12 +1737,12 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 /*       csound->DebugMsg(csound,"%s(%d): macro %s %p\n", */
 /*                        __FILE__, __LINE__, mname, mm->body); */
 /* #endif */
-/*       while ((c = getscochar(csound, 0)) != '#') {  /\* Do not expand here!! *\/ */
+/*       while ((c = getscochar(csound, 0)) != '#') { // Do not expand here!! */
 /*         if (UNLIKELY(c==EOF)) */
 /*           scorerr(csound, Str("Syntax error in macro definition")); */
 /*         corfile_putc(c, mm->body); */
 /*         if (c=='\\') { */
-/*           corfile_putc(getscochar(csound, 0), mm->body);    /\* Allow escaped # *\/ */
+/*           corfile_putc(getscochar(csound, 0), mm->body); // Allow escaped # */
 /*         } */
 /*         if (c=='\n') STA(lincnt)++; */
 /*       } */
@@ -1901,6 +1914,7 @@ static MYFLT read_expression(CSOUND *csound)
       *++op = '[';
       c = getscochar(csound, 1);
       do {
+        //printf("read_expression: c=%c\n", c);
         switch (c) {
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
@@ -2019,6 +2033,22 @@ static MYFLT read_expression(CSOUND *csound)
         case '^':
           type = 0;
           *++op = c; c = getscochar(csound, 1); break;
+        case '[':
+          if (UNLIKELY(type)) {
+            scorerr(csound, Str("illegal placement of '[' in [] expression"));
+          }
+          type = 1;
+          {
+            //int i;
+            MYFLT x;
+            //for (i=0;i<=pv-vv;i++) printf(" %lf ", vv[i]);
+            //printf("| %d\n", pv-vv);
+            x = read_expression(csound);
+            *++pv = x;
+            //printf("recursion gives %lf (%lf)\n", x,*(pv-1));
+            //for (i=0;i<pv-vv;i++) printf(" %lf ", vv[i]); printf("| %d\n", pv-vv);
+            c = getscochar(csound, 1); break;
+          }
         case ']':
           if (UNLIKELY(!type)) {
             scorerr(csound, Str("missing operand before closing bracket in []"));
@@ -2028,8 +2058,9 @@ static MYFLT read_expression(CSOUND *csound)
             op--; pv--;
             *pv = v;
           }
-          c = '$';
-          break;
+          //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
+          //getscochar(csound, 1);
+          c = '$'; return *pv;
         case '$':
           break;
         case ' ':               /* Ignore spaces */

@@ -57,6 +57,7 @@
 static void sensLine(CSOUND *csound, void *userData);
 
 #define STA(x)   (csound->lineventStatics.x)
+#define MAXSTR 1048576 /* 1MB */
 
 void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 {                                   /*     callable once from musmon.c        */
@@ -64,8 +65,11 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
+
     STA(linebufsiz) = LBUFSIZ1;
     STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
+    STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
+    STA(orchestra) = STA(orchestrab);
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
@@ -93,6 +97,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     else
       if (UNLIKELY((csound->Linefd=open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
         csoundDie(csound, Str("Cannot open %s"), O->Linename);
+    if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
     csound->RegisterSenseEventCallback(csound, sensLine, NULL);
@@ -107,6 +112,7 @@ void RTclose(CSOUND *csound)
     if (csound->oparms->Linein == 0)
       return;
     csound->oparms->Linein = 0;
+    if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
 #ifdef PIPES
@@ -123,6 +129,7 @@ void RTclose(CSOUND *csound)
             csoundDie(csound, Str("Failed to set file status\n"));
 #endif
       }
+
 //csound->Free(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
@@ -142,20 +149,28 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
 {
     volatile jmp_buf tmpExitJmp;
     int         err;
+    unsigned int tmp;
 
     if (reallocsize > 0) {
+      /* VL 20-11-17 need to record the STA(Linep) offset
+         in relation to STA(Linebuf) */
+      tmp = (STA(Linep) - STA(Linebuf));
       STA(Linebuf) = (char *) csound->ReAlloc(csound,
                                               (void *) STA(Linebuf), reallocsize);
+
       STA(linebufsiz) = reallocsize;
-      // csound->Message(csound, "realloc: %d\n", reallocsize);
       STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
-      STA(Linep) = STA(Linebuf);
+      /* VL 20-11-17 so we can place it in the correct position
+         after reallocation */
+      STA(Linep) =  STA(Linebuf) + tmp;
     } else if (STA(Linebuf)==NULL) {
        STA(linebufsiz) = LBUFSIZ1;
        STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
     }
-    if (STA(Linebuf) == NULL) return 1;
-
+    if (STA(Linebuf) == NULL) {
+       return 1;
+    }
+    //csound->Message(csound, "1. realloc: %d\n", reallocsize);
     if (STA(Linep)) return 0;
     csound->Linefd = -1;
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
@@ -164,6 +179,8 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
       //csound->lineventGlobals = NULL;
       return -1;
     }
+
+
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
@@ -181,17 +198,12 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     int32  size = (int32) strlen(message);
     int n;
 
-#if 0
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    csound->Message(csound, Str("input message kcount, %d, %d.%06d\n"),
-                    csound->kcounter,ts.tv_sec,ts.tv_nsec/1000);
-#endif
-
     if ((n=linevent_alloc(csound, 0)) != 0) return;
+
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int extralloc = STA(Linep) + size - STA(Linebufend);
+      csound->Message(csound, "realloc %d\n", extralloc);
       // csound->Message(csound, "extralloc: %d %d %d\n",
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
       // FIXME -- Coverity points out that this test is always false
@@ -204,8 +216,10 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
       }
 #else
       n = linevent_alloc(csound, (STA(linebufsiz) + extralloc));
+
 #endif
     }
+    //csound->Message(csound, "%u = %u\n", (STA(Linep) + size),  STA(Linebufend) );
     memcpy(STA(Linep), message, size);
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';
@@ -218,10 +232,11 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 static void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
-    int     c, n, pcnt;
+    int     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
 
     while (1) {
+      if(STA(oflag) > oflag) break;
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
         n = read(csound->Linefd, Linend, STA(Linebufend) - Linend);
@@ -246,6 +261,47 @@ static void sensLine(CSOUND *csound, void *userData)
           Linestart = (++cp);
           continue;
         }
+        cm1 = *(cp-1);
+        cpp1 = *(cp+1);
+
+        /* new orchestra input
+         */
+        if(STA(oflag)) {
+          if(c == '}' && cm1 != '}' && cpp1 != '}') {
+            STA(oflag) = 0;
+            STA(orchestra) = STA(orchestrab);
+            csoundCompileOrc(csound, STA(orchestrab));
+            csound->Message(csound, "::compiling orchestra::\n");
+            Linestart = (++cp);
+            continue;
+          }
+          else {
+            char *pc;
+            memcpy(STA(orchestra), Linestart, Linend - Linestart);
+            STA(orchestra) += (Linend - Linestart);
+            *STA(orchestra) = '\0';
+            STA(oflag)++;
+            if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
+
+              if(*(pc-1) != '}') {
+              *pc = '\0';
+               cp = strrchr(Linestart, '}');
+              } else {
+               Linestart = Linend;
+              }
+              } else {
+              Linestart = Linend;
+            }
+            continue;
+          }
+        } else if(c == '{') {
+          STA(oflag) = 1;
+          csound->Message(csound,
+                          "::reading orchestra, use '}' to terminate::\n");
+          cp++;
+          continue;
+        }
+
         switch (c) {                    /* look for legal opcode    */
         case 'e':                       /* Quit realtime            */
         case 'i':
@@ -274,13 +330,16 @@ static void sensLine(CSOUND *csound, void *userData)
             n = scnt;
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
+
             while ((c = *(++cp)) != '"') {
               /* VL: allow strings to be multi-line */
               // if (UNLIKELY(c == LF)) {
               //  csound->ErrorMsg(csound, Str("unmatched quotes"));
               //  goto Lerr;
               //}
+              if(c == '\\') { cp++; c = *cp;}
               sstrp[n++] = c;                   /*   save in private strbuf */
+
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
                 e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
                 sstrp = e.strarg+n;
@@ -296,6 +355,7 @@ static void sensLine(CSOUND *csound, void *userData)
               e.p[pcnt] = ch.d;           /* set as string with count */
             }
             e.scnt = scnt;
+            //printf("string: %s \n", sstrp);
             continue;
           }
           if (UNLIKELY(!(isdigit(c) || c == '+' || c == '-' || c == '.')))
@@ -364,6 +424,7 @@ static void sensLine(CSOUND *csound, void *userData)
         break;
       STA(Linep) = Linend;                       /* accum the chars          */
     }
+
 }
 
 /* send a lineevent from the orchestra -matt 2001/12/07 */
@@ -419,7 +480,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       evt.p[1] *= -1;
     }
 
-    if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
+    if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("event: error creating '%c' event"),
                                opcod);

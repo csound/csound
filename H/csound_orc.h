@@ -1,3 +1,26 @@
+/*
+    csound_orc.h:
+
+    Copyright (C) 2007, 2017 by Stee Yi ad John ffitch
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 #ifndef __CSOUND_ORC_H
 
 #define __CSOUND_ORC_H
@@ -43,4 +66,16 @@ ORCTOKEN *make_token(CSOUND *csound, char *s);
 extern int ksmps, nchnls; */
 
 void query_deprecated_opcode(CSOUND *, ORCTOKEN *);
+
+    // holds matching oentries from opcodeList
+    // has space for 16 matches and next pointer in case more are found
+    // (unlikely though)
+
+typedef struct oentries {
+      int count;                /* Number of etries in table */
+  //char *opname;
+  //int prvnum;
+      OENTRY* entries[0];       /* Entended by count entries */
+    } OENTRIES;
+
 #endif

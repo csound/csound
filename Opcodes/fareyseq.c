@@ -254,7 +254,7 @@ int tablefilter (CSOUND *csound, TABFILT *p)
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, p->h.insdshead,
-                               Str("Farey: Filter type < 1 dft=%.2f  sft=%.2f"),
+                               Str("Farey: Filter type < 1 ftype=%.2f"),
                                *p->ftype);
     }
 
@@ -304,7 +304,7 @@ int tableifilter (CSOUND *csound, TABFILT *p)
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, p->h.insdshead,
-                               Str("Farey: Filter type < 1"),
+                               Str("Farey: Filter type < 1 ftype=%.2f"),
                                *p->ftype);
     }
 

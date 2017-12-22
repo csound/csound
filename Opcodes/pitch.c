@@ -1420,7 +1420,7 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
       /* Warn if user tried but failed to give sensible number */
       if (UNLIKELY(*p->iparam1 != FL(0.0)))
         csound->Warning(csound, Str("pinkish: Gardner method requires 4-%d bands. "
-                                    "Default %ld substituted for %d.\n"),
+                                    "Default %d substituted for %d.\n"),
                         GRD_MAX_RANDOM_ROWS, p->grd_NumRows,
                         (int) *p->iparam1);
     }
@@ -1682,7 +1682,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
     MYFLT       **argp, val;
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
-      csound->InitError(csound, Str("Incorrect argument count in transeg"));
+      return csound->InitError(csound, Str("Incorrect argument count in transeg"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
@@ -1734,7 +1734,7 @@ int trnset_bkpt(CSOUND *csound, TRANSEG *p)
     MYFLT       totdur = FL(0.0);
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
-      csound->InitError(csound, Str("Incorrect argument count in transegb"));
+      return csound->InitError(csound, Str("Incorrect argument count in transegb"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
@@ -1880,7 +1880,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
     double      val;
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
-      csound->InitError(csound, Str("Incorrect argument count in transegr"));
+      return csound->InitError(csound, Str("Incorrect argument count in transegr"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
@@ -2153,6 +2153,8 @@ int lpf18db(CSOUND *csound, LPF18 *p)
     MYFLT lfc=0, lrs=0, kres=0, kfcn=0, kp=0, kp1=0,  kp1h=0;
     double lds = 0.0;
     MYFLT zerodb = csound->e0dbfs;
+    int   asgf = IS_ASIG_ARG(p->fco), asgr = IS_ASIG_ARG(p->res),
+          asgd = IS_ASIG_ARG(p->dist);
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -2164,9 +2166,9 @@ int lpf18db(CSOUND *csound, LPF18 *p)
       MYFLT ax1  = lastin;
       MYFLT ay11 = ay1;
       MYFLT ay31 = ay2;
-      fco        = (IS_ASIG_ARG(p->fco) ? p->fco[n] : *p->fco);
-      res        = (IS_ASIG_ARG(p->res) ? p->res[n] : *p->res);
-      dist       = (double)(IS_ASIG_ARG(p->dist) ? p->dist[n] : *p->dist);
+      fco        = (asgf ? p->fco[n] : *p->fco);
+      res        = (asgr ? p->res[n] : *p->res);
+      dist       = (double)(asgd ? p->dist[n] : *p->dist);
       if (fco != lfc || flag) {
         lfc = fco;
         kfcn = FL(2.0) * fco * csound->onedsr;

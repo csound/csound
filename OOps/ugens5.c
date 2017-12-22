@@ -289,6 +289,9 @@ int rsnset(CSOUND *csound, RESON *p)
     p->prvcf = p->prvbw = -100.0;
     if (!(*p->istor))
       p->yt1 = p->yt2 = 0.0;
+    p->asigf = IS_ASIG_ARG(p->kcf);
+    p->asigw = IS_ASIG_ARG(p->kbw);
+
     return OK;
 }
 
@@ -340,6 +343,8 @@ int reson(CSOUND *csound, RESON *p)
     MYFLT       *ar, *asig;
     double      c3p1, c3t4, omc3, c2sqr;
     double      yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
+    int         asigf = p->asigf;
+    int         asigw = p->asigw;
 
     asig = p->asig;
     ar = p->ar;
@@ -351,8 +356,8 @@ int reson(CSOUND *csound, RESON *p)
     yt1 = p->yt1; yt2 = p->yt2;
     for (n=offset; n<nsmps; n++) {
       double yt0;
-      MYFLT cf = IS_ASIG_ARG(p->kcf) ? p->kcf[n] : *p->kcf;
-      MYFLT bw = IS_ASIG_ARG(p->kbw) ? p->kbw[n] : *p->kbw;
+      MYFLT cf = asigf ? p->kcf[n] : *p->kcf;
+      MYFLT bw = asigw ? p->kbw[n] : *p->kbw;
       if (cf != (MYFLT)p->prvcf) {
         p->prvcf = (double)cf;
         p->cosf = cos(cf * (double)(csound->tpidsr));
@@ -417,6 +422,8 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     MYFLT       *ar;
     double      c3p1, c3t4, omc3, c2sqr;
     double      *yt1, *yt2, c1,c2,c3;
+    int asgf = IS_ASIG_ARG(p->kcf);
+    int asgw = IS_ASIG_ARG(p->kbw);
 
     ar   = p->ar;
     c1   = p->c1;
@@ -434,8 +441,8 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     for (j=0; j< p->loop; j++) {
       for (n=offset; n<nsmps; n++) {
         double x;
-        MYFLT cf = IS_ASIG_ARG(p->kcf) ? p->kcf[n] : *p->kcf;
-        MYFLT bw = IS_ASIG_ARG(p->kbw) ? p->kbw[n] : *p->kbw;
+        MYFLT cf = asgf ? p->kcf[n] : *p->kcf;
+        MYFLT bw = asgw ? p->kbw[n] : *p->kbw;
         if (cf != (MYFLT)p->prvcf) {
           p->prvcf = (double)cf;
           p->cosf = cos(cf * (double)(csound->tpidsr));
@@ -673,7 +680,7 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, Str(
-                 "npoles %ld, nvals %ld, totvals %ld, lastfram16 = %lx\n"),
+                 "npoles %d, nvals %d, totvals %d, lastfram16 = %x\n"),
              p->npoles, p->nvals, totvals, p->lastfram16);
  lpend:
     p->lastmsg = 0;
@@ -1322,7 +1329,7 @@ int balance(CSOUND *csound, BALANCE *p)
     }
     p->prvq = q;
     p->prvr = r;
-    if (q != 0.0)
+    if (LIKELY(q != 0.0))
       a = sqrt(r/q);
     else
       a = sqrt(r);

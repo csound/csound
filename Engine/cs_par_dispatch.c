@@ -28,7 +28,7 @@
 #include "csound_orc.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#include "cs_par_dispatch.h"
+//#include "cs_par_dispatch.h"
 
 #include "cs_par_ops.h"
 #include "cs_par_structs.h"
@@ -52,7 +52,7 @@ struct global_var_lock_t {
   struct global_var_lock_t    *next;
 };
 
-inline void csp_locks_lock(CSOUND * csound, int global_index)
+static inline void csp_locks_lock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
       csound->Die(csound,
@@ -65,7 +65,7 @@ inline void csp_locks_lock(CSOUND * csound, int global_index)
     TAKE_LOCK(&(csound->global_var_lock_cache[global_index]->lock));
 }
 
-inline void csp_locks_unlock(CSOUND * csound, int global_index)
+static inline void csp_locks_unlock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
       csound->Die(csound,
@@ -77,7 +77,7 @@ inline void csp_locks_unlock(CSOUND * csound, int global_index)
     /*         global_index, csound->global_var_lock_cache[global_index], */
     /*         csound->global_var_lock_cache[global_index]->name); */
 }
-
+#if 0
 static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
                                                        char *name, int index)
 {
@@ -131,7 +131,8 @@ static struct global_var_lock_t
     }
 }
 
-TREE *csp_locks_insert(CSOUND *csound, TREE *root)
+
+static TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
     csound->Message(csound,
                     Str("Inserting Parallelism Constructs into AST\n"));
@@ -169,7 +170,6 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
         break;
 
       case '=':
-        /*if (current->type == '=')*/
         {
           struct set_t *left = csp_orc_sa_globals_find(csound, current->left);
           struct set_t *right = csp_orc_sa_globals_find(csound, current->right);
@@ -241,6 +241,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 
     return anchor;
 }
+#endif
 
 void csp_locks_cache_build(CSOUND *csound)
 {

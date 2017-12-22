@@ -1,7 +1,7 @@
 /*
     widgets.h:
 
-    Copyright (C) 1002 Gabriel Maldonado
+    Copyright (C) 2002 Gabriel Maldonado
 
     This file is part of Csound.
 
@@ -166,9 +166,15 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-  STRINGDAT  *itext;
-  MYFLT *ihandle;
+    STRINGDAT  *itext;
+    MYFLT   *ihandle;
 } FL_SET_TEXT;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ndx;
+    MYFLT   *ihandle;
+} FL_SET_TEXTi;
 
 typedef struct {
     OPDS    h;
@@ -467,7 +473,7 @@ class Fl_Spin : public Fl_Valuator {
 class Fl_Value_Input_Spin : public Fl_Valuator {
  private:
     CSOUND * csound;
-    int ix, iy, drag, indrag, sldrag;
+    int ix, iy, drag;
     int delta, deltadir;
     char soft_;
     uchar mouseobj;

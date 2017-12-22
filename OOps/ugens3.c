@@ -220,7 +220,7 @@ int losset(CSOUND *csound, LOSC *p)
         p->cpscvt = FL(261.62561); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
-      ///printf("****cpscvt = %g\n", p->cpscvt);
+      //printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
           csound->Warning(csound, Str("loscil: sustain defers to "
@@ -236,7 +236,8 @@ int losset(CSOUND *csound, LOSC *p)
         p->end1 = *p->iend1;
         if (!p->beg1 && !p->end1)
           /* default to looping the whole sample */
-          p->end1 = (p->mod1 ? (MYFLT)maxphs : (MYFLT)ftp->flenfrms); /* These are the same!! */
+          p->end1 =            /* These are the same!! */
+            (p->mod1 ? (MYFLT)maxphs : (MYFLT)ftp->flenfrms);
         else if (UNLIKELY(p->beg1 < 0 ||
                           p->end1 > maxphs ||
                           p->beg1 >= p->end1)) {
@@ -388,7 +389,7 @@ int loscil(CSOUND *csound, LOSC *p)
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     MYFLT    phs;
-    int32    inc, beg, end;
+    MYFLT    inc, beg, end;
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
@@ -397,7 +398,7 @@ int loscil(CSOUND *csound, LOSC *p)
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
-    if ((inc = (int32)(*p->kcps * p->cpscvt)) < 0)
+    if ((inc = (*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
     xamp = p->xamp;
     xx = *xamp;
@@ -505,11 +506,14 @@ int loscil(CSOUND *csound, LOSC *p)
  phsout:
     p->lphs = phs;
 put0:
-    printf("****put0\n");
-     memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
+    //printf("****put0\n");
+    memset(&ar1[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 
  phsck2:
+    /*VL increment for stereo */
+    inc *= 2;
+    end *= 2;
     if (phs >= end && p->curmod != 3)
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
@@ -599,7 +603,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     MYFLT    phs;
-    int32    inc, beg, end;
+    MYFLT    inc, beg, end;
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
@@ -608,7 +612,7 @@ int loscil3(CSOUND *csound, LOSC *p)
 
     ftp = p->ftp;
     ftbl = ftp->ftable;
-    if ((inc = (int32)(*p->kcps * p->cpscvt)) < 0)
+    if ((inc = (*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
     xamp = p->xamp;
     xx = *xamp;
@@ -719,6 +723,9 @@ int loscil3(CSOUND *csound, LOSC *p)
     return OK;
 
  phsck2:
+    /*VL increment for stereo */
+    inc *= 2;
+    end *= 2;
     if (UNLIKELY(phs >= end && p->curmod != 3))
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
@@ -832,8 +839,7 @@ static int adset_(CSOUND *csound, ADSYN *p, int stringname)
       /* readfile if reqd */
       if (UNLIKELY((mfp = ldmemfile2withCB(csound, filnam,
                                            CSFTYPE_HETRO, NULL)) == NULL)) {
-        csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
-        return NOTOK;
+        return csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
       }
       p->mfp = mfp;                         /*   & record         */
     }
@@ -862,8 +868,7 @@ static int adset_(CSOUND *csound, ADSYN *p, int stringname)
           ptlfp->phs = 0;                /*  and clr the phase */
           break;
         default:
-          csound->InitError(csound, Str("illegal code %d encountered"), val);
-          return NOTOK;
+          return csound->InitError(csound, Str("illegal code %d encountered"), val);
         }
       }
     } while (adp < endata);

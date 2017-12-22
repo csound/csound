@@ -87,8 +87,8 @@ static  MYFLT   getpch(CSOUND *, MYFLT *, LPANAL_GLOBALS*);
 
 /* Search for an argument and report of not found */
 #define FIND(MSG)   if (*s == '\0')  \
-                      if (!(--argc) || (((s = *++argv)!=0) && *s == '-'))  \
-                        lpdieu(csound, MSG);
+    if (UNLIKELY(!(--argc) || (((s = *++argv)!=0) && *s == '-')))       \
+      lpdieu(csound, MSG);
 
 #include <math.h>
 #include <stdio.h>
@@ -127,7 +127,7 @@ static void polyzero(int n, double *a, double *zerore, double *zeroim,
 
     /* for (i=0; i<=n; i++) */
     /*   work[i+1] = a[i]; */
-    memcpy(work+1, a, (n+1)*sizeof(double));
+    memcpy(&work[1], a, (n+1)*sizeof(double));
     *indic = 0;
     *pt = 0;
     n1 = n;
@@ -402,7 +402,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     storePoles = FALSE;
 
    /* Parse argument until no more found %-( */
-    if (!(--argc))
+    if (UNLIKELY(!(--argc)))
       lpdieu(csound, Str("insufficient arguments"));
     do {
       char *s = *++argv;
@@ -482,26 +482,26 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
     /* Do some checks on arguments we got */
 
-    if (argc != 2)
+    if (UNLIKELY(argc != 2))
       lpdieu(csound, Str("incorrect number of filenames"));
     infilnam = *argv++;
     outfilnam = *argv;
-    if (lpc.poleCount > MAXPOLES)
+    if (UNLIKELY(lpc.poleCount > MAXPOLES))
       quit(csound,Str("poles exceeds maximum allowed"));
     /* Allocate space now */
     coef = (MYFLT*) csound->Malloc(csound, (NDATA+lpc.poleCount*2)*sizeof(MYFLT));
     /* Space allocated */
-    if (slice < lpc.poleCount * 5)
+    if (UNLIKELY(slice < lpc.poleCount * 5))
       csound->Warning(csound,Str("hopsize may be too small, "
                                  "recommend at least poleCount * 5\n"));
 
-    if ((lpc.WINDIN = slice * 2) > MAXWINDIN)
+    if (UNLIKELY((lpc.WINDIN = slice * 2) > MAXWINDIN))
       quit(csound,Str("input framesize (inter-frame-offset*2) exceeds "
                       "maximum allowed"));
-    if ((input_dur < 0) || (beg_time < 0))
+    if (UNLIKELY((input_dur < 0) || (beg_time < 0)))
       quit(csound,Str("input and begin times cannot be less than zero"));
 
-    if (lpc.verbose) {
+    if (UNLIKELY(lpc.verbose)) {
       csound->Message(csound,
                       Str("Reading sound from %s, writing lpfile to %s\n"),
                       infilnam, outfilnam);
@@ -516,7 +516,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
                         pchlow,pchhigh);
       else csound->Message(csound,Str("pitch tracking inhibited\n"));
     }
-    if ((input_dur < 0) || (beg_time < 0))
+    if (UNLIKELY((input_dur < 0) || (beg_time < 0)))
       quit(csound,Str("input and begin times cannot be less than zero"));
 
     if (storePoles)
@@ -528,8 +528,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     lpg = (LPANAL_GLOBALS*) csound->Calloc(csound, sizeof(LPANAL_GLOBALS));
     lpg->firstcall = 1;
 
-    if ((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
-                                    &input_dur, &sr, channel)) == NULL) {
+    if (UNLIKELY((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+                                             &input_dur, &sr, channel)) == NULL)) {
       char errmsg[256];
       snprintf(errmsg,256,Str("error while opening %s"), infilnam);
       quit(csound, errmsg);
@@ -537,12 +537,12 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 
     /* Try to open output file */
     if (new_format) {
-      if (csound->FileOpen2(csound, &oFd, CSFILE_STD,
-                            outfilnam, "w", "", CSFTYPE_LPC, 0) == NULL)
-      quit(csound, Str("cannot create output file"));
+      if (UNLIKELY(csound->FileOpen2(csound, &oFd, CSFILE_STD,
+                                     outfilnam, "w", "", CSFTYPE_LPC, 0) == NULL))
+        quit(csound, Str("cannot create output file"));
     }
-    else if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W,
-                          outfilnam, NULL, "", CSFTYPE_LPC, 0) == NULL)
+    else if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W, outfilnam,
+                                        NULL, "", CSFTYPE_LPC, 0) == NULL))
       quit(csound, Str("cannot create output file"));
 
     /* Prepare header */
@@ -581,7 +581,8 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
     sigbuf2 = sigbuf + slice;
 
     /* Try to read first frame in buffer */
-    if ((n = csound->getsndin(csound, infd, sigbuf, lpc.WINDIN, p)) < lpc.WINDIN)
+    if (UNLIKELY((n = csound->getsndin(csound, infd, sigbuf, lpc.WINDIN, p)) <
+                 lpc.WINDIN))
       quit(csound,Str("soundfile read error, could not fill first frame"));
 
     /* initialize frame pitch table ? */
@@ -656,7 +657,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
         polyzero(lpc.poleCount,filterCoef,polePart1,polePart2,
                  &poleFound,2000,&indic,workArray1);
 
-        if (poleFound<lpc.poleCount) {
+        if (UNLIKELY(poleFound<lpc.poleCount)) {
           csound->Message(csound,
                           Str("Found only %d poles...sorry\n"), poleFound);
           csound->Message(csound,
@@ -680,7 +681,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
 #ifdef TRACE_FILTER
           csound->Message(csound, "filterCoef: %f\n", filterCoef[i]);
 #endif
-          if (filterCoef[i]-polyReal[lpc.poleCount-i]>1e-10)
+          if (UNLIKELY(filterCoef[i]-polyReal[lpc.poleCount-i]>1e-10))
             csound->Message(csound, Str("Error in coef %d : %f <> %f \n"),
                                     i, filterCoef[i], polyReal[lpc.poleCount-i]);
         }
@@ -733,7 +734,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
           #endif
       }
       else
-        if ((nb = write(ofd, (char *)coef, osiz)) != osiz)
+        if (UNLIKELY((nb = write(ofd, (char *)coef, osiz)) != osiz))
           quit(csound, Str("write error"));
       memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
 
@@ -745,7 +746,7 @@ static int lpanal(CSOUND *csound, int argc, char **argv)
       /* Get next sound frame */
       if ((n = csound->getsndin(csound, infd, sigbuf2, slice, p)) == 0)
         break;          /* refill til EOF */
-      if (!csound->CheckEvents(csound))
+      if (UNLIKELY(!csound->CheckEvents(csound)))
         return -1;
     } while (counter < analframes); /* or nsmps done */
 #if 0

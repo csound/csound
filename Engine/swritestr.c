@@ -47,7 +47,7 @@ static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 #endif
     /* corfile_puts(buffer, sco); */
     for (c = buffer; *c != '\0'; c++)
-      corfile_putc(*c, sco);
+      corfile_putc(csound, *c, sco);
 }
 
 /*
@@ -78,7 +78,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     if ((c = bp->text[0]) != 'w'
         && c != 's' && c != 'e') {      /*   if no warp stmnt but real data,  */
       /* create warp-format indicator */
-      if (first) corfile_puts("w 0 60\n", sco);
+      if (first) corfile_puts(csound, "w 0 60\n", sco);
       lincnt++;
     }
  nxtlin:
@@ -93,28 +93,29 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
       break;
     case 'f':
       isntAfunc = 0;
+      /* fall through */
     case 'q':
     case 'i':
     case 'd':
     case 'a':
-      corfile_putc(c, sco);
-      corfile_putc(*p++, sco);
+      corfile_putc(csound, c, sco);
+      corfile_putc(csound, *p++, sco);
       while ((c = *p++) != SP && c != LF)
-        corfile_putc(c, sco);                /* put p1       */
-      corfile_putc(c, sco);
+        corfile_putc(csound, c, sco);                /* put p1       */
+      corfile_putc(csound, c, sco);
       if (c == LF)
         break;
       fltout(csound, bp->p2val, sco);                        /* put p2val,   */
-      corfile_putc(SP, sco);
+      corfile_putc(csound, SP, sco);
       if (first) fltout(csound, bp->newp2, sco);             /*   newp2,     */
       while ((c = *p++) != SP && c != LF)
         ;
-      corfile_putc(c, sco);                /*   and delim  */
+      corfile_putc(csound, c, sco);                /*   and delim  */
       if (c == LF)
         break;
       if (isntAfunc) {
         fltout(csound, bp->p3val, sco);                      /* put p3val,   */
-        corfile_putc(SP, sco);
+        corfile_putc(csound, SP, sco);
         if (first) fltout(csound, bp->newp3, sco);           /*   newp3,     */
         while ((c = *p++) != SP && c != LF)
           ;
@@ -123,7 +124,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
         char temp[256];
         snprintf(temp,256,"%d ",(int32)bp->p3val);   /* put p3val  */
         fpnum(csound,temp, lincnt, pcnt, sco);
-        corfile_putc(SP, sco);
+        corfile_putc(csound, SP, sco);
         if (first) {
           snprintf(temp,256,"%d ",(int32)bp->newp3);   /* put newp3  */
           fpnum(csound,temp, lincnt, pcnt, sco);
@@ -134,29 +135,30 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
       pcnt = 3;
       while (c != LF) {
         pcnt++;
-        corfile_putc(SP, sco);
+        corfile_putc(csound, SP, sco);
         p = pfout(csound,bp,p,lincnt,pcnt, sco);     /* now put each pfield  */
         c = *p++;
       }
-      corfile_putc('\n', sco);
+      corfile_putc(csound, '\n', sco);
       break;
     case 's':
     case 'e':
       if (bp->pcnt > 0) {
         char buffer[80];
         CS_SPRINTF(buffer, "f 0 %f %f\n", bp->p2val, bp->newp2);
-        corfile_puts(buffer, sco);
+        corfile_puts(csound, buffer, sco);
       }
-      corfile_putc(c, sco);
-      corfile_putc(LF, sco);
+      corfile_putc(csound, c, sco);
+      corfile_putc(csound, LF, sco);
       break;
     case 'w':
     case 't':
-      corfile_putc(c, sco);
+      corfile_putc(csound, c, sco);
       while ((c = *p++) != LF)        /* put entire line      */
-        corfile_putc(c, sco);
-      corfile_putc(LF, sco);
+        corfile_putc(csound, c, sco);
+      corfile_putc(csound, LF, sco);
       break;
+    case 'x':
     case 'y':
     case -1:
       break;
@@ -258,7 +260,7 @@ static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,
       while (*p != SP && *p != LF)
         csound->Message(csound,"%c", *p++);
       csound->Message(csound,Str("   Zero substituted\n"));
-      corfile_putc('0', sco);
+      corfile_putc(csound, '0', sco);
     }
     return(p);
 }
@@ -298,7 +300,7 @@ static char *prevp(CSOUND *csound, SRTBLK *bp, char *p,
       while (*p != SP && *p != LF)
         csound->Message(csound,"%c", *p++);
       csound->Message(csound,Str("   Zero substituted\n"));
-      corfile_putc('0', sco);
+      corfile_putc(csound, '0', sco);
     }
     return(p);
 }
@@ -364,7 +366,7 @@ static char *ramp(CSOUND *csound, SRTBLK *bp, char *p,
                                 "has illegal forward or backward ref\n"),
                             csound->sectcnt, lincnt, pcnt);
  put0:
-    corfile_putc('0', sco);
+    corfile_putc(csound, '0', sco);
     return(psav);
 }
 
@@ -433,7 +435,7 @@ static char *expramp(CSOUND *csound, SRTBLK *bp, char *p,
                                 "has illegal forward or backward ref\n"),
                             csound->sectcnt, lincnt, pcnt);
  put0:
-    corfile_putc('0', sco);
+    corfile_putc(csound, '0', sco);
     return(psav);
 }
 
@@ -498,17 +500,17 @@ static char *randramp(CSOUND *csound, SRTBLK *bp, char *p,
                                " illegal forward or backward ref\n"),
                csound->sectcnt,lincnt,pcnt);
  put0:
-    corfile_putc('0', sco);
+    corfile_putc(csound, '0', sco);
     return(psav);
 }
 
 static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt, CORFIL *sco)
 {                             /* moves quoted ascii string to SCOREOUT file */
     char *q = p;              /*   with no internal format chk              */
-    corfile_putc(*p++, sco);
+    corfile_putc(csound, *p++, sco);
     while (*p != '"')
-      corfile_putc(*p++, sco);
-    corfile_putc(*p++, sco);
+      corfile_putc(csound, *p++, sco);
+    corfile_putc(csound, *p++, sco);
     if (UNLIKELY(*p != SP && *p != LF)) {
       csound->Message(csound, Str("swrite: output, sect%d line%d p%d "
                                   "has illegally terminated string   "),
@@ -533,30 +535,30 @@ static char *fpnum(CSOUND *csound, char *p,
     if (*p == '+')
       p++;
     if (*p == '-')
-      corfile_putc(*p++, sco);
+      corfile_putc(csound, *p++, sco);
     dcnt = 0;
     while (isdigit(*p)) {
       //      printf("*p=%c\n", *p);
-      corfile_putc(*p++, sco);
+      corfile_putc(csound, *p++, sco);
       dcnt++;
     }
     //    printf("%d:output: %s<<\n", __LINE__, sco);
     if (*p == '.')
-      corfile_putc(*p++, sco);
+      corfile_putc(csound, *p++, sco);
     while (isdigit(*p)) {
-      corfile_putc(*p++, sco);
+      corfile_putc(csound, *p++, sco);
       dcnt++;
     }
     //    printf("%d:output: %s<<\n", __LINE__, sco);
     if (*p == 'E' || *p == 'e') { /* Allow exponential notation */
-      corfile_putc(*p++, sco);
+      corfile_putc(csound, *p++, sco);
       dcnt++;
       if (*p == '+' || *p == '-') {
-        corfile_putc(*p++, sco);
+        corfile_putc(csound, *p++, sco);
         dcnt++;
       }
       while (isdigit(*p)) {
-        corfile_putc(*p++, sco);
+        corfile_putc(csound, *p++, sco);
         dcnt++;
       }
     }
@@ -571,7 +573,7 @@ static char *fpnum(CSOUND *csound, char *p,
         csound->Message(csound,"%c", *p++);
       csound->Message(csound,Str("    String truncated\n"));
       if (!dcnt)
-        corfile_putc('0', sco);
+        corfile_putc(csound, '0', sco);
     }
     return(p);
 }

@@ -58,26 +58,26 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     PVOCDATA data;
     WAVEFORMATEX fmt;
 
-    if (argc != 3) {
+    if (UNLIKELY(argc != 3)) {
       pv_import_usage(csound);
       return 1;
     }
     inf = fopen(argv[1], "rb");
-    if (inf == NULL) {
+    if (UNLIKELY(inf == NULL)) {
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
-    if (UNLIKELY(EOF == fscanf(inf,
+    if (UNLIKELY(UNLIKELY(EOF == fscanf(inf,
            "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
-                               "BlockAlign,BitsPerSample,cbSize\n"))) {
+                                        "BlockAlign,BitsPerSample,cbSize\n")))) {
       csound->Message(csound, Str("Not a PV file\n"));
       exit(1);
     }
     {
       int fmt1, fmt2, fmt3, fmt4, fmt5;
-      if (7!=fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
+      if (UNLIKELY(7!=fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
              &fmt1, &fmt2, &fmt.nSamplesPerSec,
-                    &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5)) {
+                             &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5))) {
         printf("ill formed inout\n");
         exit(1);
       }
@@ -119,7 +119,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
                                      data.wWindowType, data.fWindowParam,
                                      NULL, data.dwWinlen);
     }
-    if (outf < 0) {
+    if (UNLIKELY(outf < 0)) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
       fclose(inf);
       return 1;
@@ -129,7 +129,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       float *frame =
         (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));
       int i;
-      if (frame==NULL) {
+      if (UNLIKELY(frame==NULL)) {
         csound->Message(csound, Str("Memory failure\n"));
         exit(1);
       }
@@ -140,10 +140,10 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
           frame[j] = getnum(inf, &term);
           if (term==EOF) goto ending;
           if (feof(inf)) goto ending;
-          if (term!=',' && term!='\n')
+          if (UNLIKELY(term!=',' && term!='\n'))
             csound->Message(csound, Str("Sync error\n"));
         }
-        if (i%100==0) csound->Message(csound, "%d\n", i);
+        if (UNLIKELY(i%100==0)) csound->Message(csound, "%d\n", i);
         csound->PVOC_PutFrames(csound, outf, frame, 1);
       }
     ending:

@@ -22,6 +22,8 @@
 
 #include "compile_ops.h"
 #include <stdio.h>
+int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
+int csoundReadScoreInternal(CSOUND *csound, const char *str);
 
 int compile_orc_i(CSOUND *csound, COMPILE *p){
     FILE *fp;
@@ -43,8 +45,8 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
     if(size==0) {
       fclose(fp);
       *p->res = (MYFLT)(CSOUND_ERROR);
-      csound->InitError(csound, Str("compileorc: could not read %s\n"), name);
-      return NOTOK;
+      return
+        csound->InitError(csound, Str("compileorc: could not read %s\n"), name);
     }
 
     orc = (char *) csound->Calloc(csound, size+1);
@@ -54,7 +56,7 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
       csound->Free(csound,orc);
       return NOTOK;
     }
-    *p->res = (MYFLT)(csoundCompileOrc(csound, orc));
+    *p->res = (MYFLT)(csoundCompileOrcInternal(csound, orc, 0));
     fclose(fp);
     csound->Free(csound,orc);
     return OK;
@@ -66,16 +68,18 @@ int compile_csd_i(CSOUND *csound, COMPILE *p){
 }
 
 int compile_str_i(CSOUND *csound, COMPILE *p){
-    void csp_orc_sa_print_list(CSOUND*);
+  //void csp_orc_sa_print_list(CSOUND*);
     //printf("START\n");
-    *p->res = (MYFLT)(csoundCompileOrc(csound, ((STRINGDAT *)p->str)->data));
+    *p->res = (MYFLT)(csoundCompileOrcInternal(csound,
+                                               ((STRINGDAT *)p->str)->data, 0));
     //printf("END\n");
     //csp_orc_sa_print_list(csound);
     return OK;
 }
 
 int read_score_i(CSOUND *csound, COMPILE *p){
-    *p->res = (MYFLT)(csoundReadScore(csound, ((STRINGDAT *)p->str)->data));
+    *p->res = (MYFLT)(csoundReadScoreInternal(csound,
+                                              ((STRINGDAT *)p->str)->data));
     return OK;
 }
 

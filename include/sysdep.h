@@ -102,7 +102,13 @@ typedef uint_least16_t uint16;
 #include <AvailabilityMacros.h>
 #endif
 
+#if !defined(USE_DOUBLE)
+#if !defined(_MSC_VER)
 #include "float-version.h"
+#else
+#define USE_DOUBLE
+#endif
+#endif
 
 #ifdef USE_DOUBLE
 /* Defined here as Android does not have log2 functions */
@@ -315,8 +321,6 @@ typedef unsigned long       uintptr_t;
 #  define CS_PRINTF3    __attribute__ ((__format__ (__printf__, 3, 4)))
 /* a function with no side effects or dependencies on volatile data */
 #  define CS_PURE       __attribute__ ((__pure__))
-#  define LIKELY(x)     __builtin_expect(!!(x),1)
-#  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else
 #  define CS_DEPRECATED
 #  define CS_NOINLINE
@@ -325,6 +329,11 @@ typedef unsigned long       uintptr_t;
 #  define CS_PRINTF2
 #  define CS_PRINTF3
 #  define CS_PURE
+#endif
+#if defined(__clang__) ||  defined(HAVE_GCC3)
+#  define LIKELY(x)     __builtin_expect(!!(x),1)
+#  define UNLIKELY(x)   __builtin_expect(!!(x),0)
+#else
 #  define LIKELY(x)     x
 #  define UNLIKELY(x)   x
 #endif
@@ -337,11 +346,15 @@ typedef unsigned long       uintptr_t;
 
 #ifdef USE_LRINT
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? (int32) lrintf((float) (x)) : 0)
-#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? (int32) lrintf((float) (x)) : 0)
+#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrintf((float) (x)) : 0)
+#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrintf((float) (x)) : 0)
 #  else
-#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? (int32) lrint((double) (x)) : 0)
-#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? (int32) lrint((double) (x)) : 0)
+#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrint((double) (x)) : 0)
+#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrint((double) (x)) : 0)
 #  endif
 #elif defined(MSVC)
 #include <emmintrin.h>

@@ -157,7 +157,7 @@ void *sndgetset(CSOUND *csound, void *p_)
         sfinfo.samplerate = p->sr;
       }
     }
-    else if (sfinfo.samplerate != (int) ((double) csound->esr + 0.5)) {
+    else if (UNLIKELY(sfinfo.samplerate != (int) ((double) csound->esr + 0.5))) {
       csound->Warning(csound,                       /* non-anal:  cmp w. esr */
                       "%s sr = %d, orch sr = %7.1f",
                       sfname, (int) sfinfo.samplerate, csound->esr);

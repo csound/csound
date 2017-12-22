@@ -1,49 +1,118 @@
-image: Visual Studio 2015
+image: Visual Studio 2017
+
+environment:
+  ABLETON_LINK_HOME: C:\projects\csound\msvc\deps\link
+  APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
+  APPVEYOR_RDP_PASSWORD: Vercoe123
+  CsoundDepsDir: C:\projects\csound\msvc\deps\bin
+  CSOUND_VERSION: 6.10.0-rc2
+  HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
+  QTDIR: C:\Qt\5.9.2\msvc2017_64
+  VCPKGDir: C:\Tools\vcpkg
+  VSGENERATOR: Visual Studio 15 2017 Win64
+  VSTOOLSET: v141
+  VST_SDK2_HOME:  C:\projects\csound\msvc\deps\VST_SDK\VST2_SDK
+
+platform: x64
+configuration: RelWithDebInfo
+
+init:
+  - set CSOUND_HOME=%APPVEYOR_BUILD_FOLDER%
+  - set PYTHON=C:\Python27-x64\python.exe
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+  - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2015" call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\vcvars64.bat"
+  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CRT
+  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CXXAMP
+  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.MFC
+  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.MFCLOC
+  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.OpenMP
+  - set VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CRT
+  - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CXXAMP
+  - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.OpenMP
+  - set
+  - echo "Qt SDK configuration files:"
+  - dir "%QTDIR%\\mkspecs"
+  - echo "Redistributable runtime libraries:"
+  - dir /B /S "%VCToolsRedistDir%"
+  - dir /B /S "%VCREDIST_CRT_DIR%"
+  - dir /B /S "%VCREDIST_CXXAMP_DIR%"
+  - dir /B /S "%VCREDIST_OPENMP_DIR%"
+  - set PATH=%PATH%;%CsoundDepsDir%
 
 install:
   - cd msvc
-  - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1
-  - powershell -ExecutionPolicy ByPass -File generateProject.ps1
+  # This is so nw-gyp can build csound.node.
+  - ps: Install-Product node 6.2.1 x64
+  - npm install -g nw-gyp
+  - nodevars.bat
+  - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
+  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%" -vstSdkHome "%VST_SDK2_HOME%
   - cd ..
-
-platform: x64
-
-configuration: Release
 
 build:
   parallel: true
   project: msvc\csound-vs\Csound.sln
 
 after_build:
-  - 7z a csound.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll
+  - dir "%VCPKGDir%\installed\x64-windows-static\include"
+  - cd frontends\nwjs
+  - npm config set msvs_version 2017 --global
+  #- set PYTHON=C:\Python27-x64\python.exe
+  - set npm_config_target=0.23.5
+  - set npm_config_arch=x64
+  - set npm_config_runtime=node-webkit
+  - set npm_config_build_from_source=true
+  - set npm_config_node_gyp=C:\Users\appveyor\AppData\Roaming\npm\node_modules\nw-gyp\bin\nw-gyp.js
+  - npm configure --version=0.23.5
+  - nw-gyp rebuild --target=0.23.5 --arch=x64 && exit=0
+  - cd ..\..
+  - set PATH=%QTDIR%\bin;%PATH%
+  - cd msvc
+  # Report qmake version to make sure we are using the Qt libraries we need.
+  - qmake -v
+  - build-csoundqt.bat
+  - cd ..
+  - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
+  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\  /dInstallCsoundVst /omsvc installer\\windows\\csound6_x64_appveyor.iss
+  - 7z a csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
+  - 7z l csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
+
+# Tests
+
+test_script:
+  - cmake --build msvc\csound-vs --config RelWithDebInfo --target csdtests
 
 artifacts:
-  - path: csound.zip
-    name: Csound
+  - path: csound-windows-x64-*.zip
+    name: Csound Binaries
     type: zip
+  - path: msvc/csound-windows-x64-*.exe
+    name: Csound Installer
+    type: exe
 
-cache: 
- - C:\projects\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
+cache:
+ - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
 
-#deploy:
-#  release: myproduct-v$(appveyor_build_version)
-#  description: 'Release description'
-#  provider: GitHub
-#  auth_token:
-#    secure: <your encrypted token> # your encrypted token from GitHub
-#  artifact: /.*\.nupkg/            # upload all NuGet packages to release assets
-#  draft: false
-#  prerelease: false
-#  on:
-#    branch: master                 # release from master branch only
-#    appveyor_repo_tag: true        # deploy on tag push only
+deploy:
+  release: csound-$(csound_version)
+  description: 'Csound Windows installer.'
+  provider: GitHub
+  auth_token:
+    secure: puEAPJVkwT2mZwhobSNpk5LhUEP+61K9j6T66qIXKFk=
+  artifact: msvc/csound-windows-x64*.exe
+  draft: true
+  prerelease: true
+  on:
+    branch: develop
+    appveyor_repo_tag: true        # deploy on tag push only
 
 notifications:
   - provider: Email
     to:
       - CSOUND-DEV@listserv.heanet.ie
-    subject: 'Build {{status}}'     # optional    
+    subject: 'Build {{status}}'     # optional
     on_build_success: false
     on_build_failure: true
     on_build_status_changed: false

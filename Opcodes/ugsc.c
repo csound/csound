@@ -57,6 +57,7 @@ static int svf(CSOUND *csound, SVF *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    int asgf = IS_ASIG_ARG(p->kfco), asgq = IS_ASIG_ARG(p->kq);
 
     in   = p->in;
     low  = p->low;
@@ -81,8 +82,8 @@ static int svf(CSOUND *csound, SVF *p)
       memset(&band[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT fco = IS_ASIG_ARG(p->kfco) ? kfco[n] : *kfco;
-      MYFLT q = IS_ASIG_ARG(p->kq) ? kq[n] : *kq;
+      MYFLT fco = asgf ? kfco[n] : *kfco;
+      MYFLT q = asgq ? kq[n] : *kq;
       if (fco != lfco || q != lq) {
         lfco = fco; lq = q;
         /* calculate frequency and Q coefficients */
@@ -241,6 +242,7 @@ static int resonr(CSOUND *csound, RESONZ *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    int asgf = IS_ASIG_ARG(p->kcf), asgw = IS_ASIG_ARG(p->kbw);
 
     out = p->out;
     in = p->in;
@@ -255,8 +257,8 @@ static int resonr(CSOUND *csound, RESONZ *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT cf = IS_ASIG_ARG(p->kcf) ? kcf[n] : *kcf;
-      MYFLT bw = IS_ASIG_ARG(p->kbw) ? kbw[n] : *kbw;
+      MYFLT cf = asgf ? kcf[n] : *kcf;
+      MYFLT bw = asgw ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
         r = exp((double)(bw * csound->mpidsr));
@@ -303,6 +305,7 @@ static int resonz(CSOUND *csound, RESONZ *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    int asgf = IS_ASIG_ARG(p->kcf), asgw = IS_ASIG_ARG(p->kbw);
 
     /* Normalizing factors derived from equations in Ken Steiglitz,
      * "A Note on Constant-Gain Digital Resonators," Computer
@@ -322,8 +325,8 @@ static int resonz(CSOUND *csound, RESONZ *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT cf = IS_ASIG_ARG(p->kcf) ? kcf[n] : *kcf;
-      MYFLT bw = IS_ASIG_ARG(p->kbw) ? kbw[n] : *kbw;
+      MYFLT cf = asgf ? kcf[n] : *kcf;
+      MYFLT bw = asgw ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
         r = exp(-(double)(bw * csound->pidsr));

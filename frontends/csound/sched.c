@@ -119,7 +119,7 @@ int set_rt_priority(int argc, const char **argv)
     int     rtmode;
     struct sched_param p;
     int     i, err, priority, wd_enabled = 0;
-    int dummy = 0;
+    //int dummy = 0;
     /* int     not_root; */
 
     /* if ((int) geteuid() == 0) */
@@ -170,7 +170,7 @@ int set_rt_priority(int argc, const char **argv)
     }
 
     if (rtmode != 7) {          /* all the above are required to enable */
-      dummy = setuid(getuid());         /* error: give up root privileges */
+      (void)setuid(getuid());         /* error: give up root privileges */
       if (rtmode & 1) {
         err_msg("csound: --sched requires -d and either -o dac or -o devaudio");
         return -1;
@@ -226,7 +226,7 @@ int set_rt_priority(int argc, const char **argv)
       }
     }
     /* give up root privileges */
-    dummy = setuid(getuid());
+    (void)setuid(getuid());
     return 0;
 }
 

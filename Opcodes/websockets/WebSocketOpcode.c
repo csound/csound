@@ -41,6 +41,7 @@ typedef enum ArgumentType
     UNKNOWN
 } ArgumentType;
 
+
 struct OpcodeArgument{
 
     void *dataPointer;
@@ -52,8 +53,8 @@ struct OpcodeArgument{
     char *name;
     void *readBuffer;
     int itemsCount;
-    int bytesCount;
-    int bytesWritten;
+    unsigned int bytesCount;
+    unsigned int bytesWritten;
     bool iRateVarSent;
 };
 
@@ -110,7 +111,7 @@ void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self
                                   currentArgument->dataPointer,
                                   currentArgument->itemsCount);
 
-      if (itemsWritten != currentArgument->itemsCount) {
+      if (UNLIKELY(itemsWritten != currentArgument->itemsCount)) {
 
         csound->Message(csound,
                         Str("websocket: variable %s data not sent, "
@@ -211,7 +212,7 @@ void WebSocketOpcode_allocateStringArgument(MYFLT *argument,
 {
     STRINGDAT *string = (STRINGDAT *)argument;
 
-    if (isInputArgument == true) {
+    if (UNLIKELY(isInputArgument == true)) {
 
       csound->Die(csound,
                   Str("websocket: this opcode does not send strings, only "
@@ -219,7 +220,7 @@ void WebSocketOpcode_allocateStringArgument(MYFLT *argument,
     }
     else {
 
-      if (string->size != 0) {
+      if (UNLIKELY(string->size != 0)) {
 
         csound->Die(csound,
                     Str("websocket: error output string variable %s must not "
@@ -253,7 +254,7 @@ void WebSocketOpcode_allocateArrayArgument(MYFLT *argument,
 {
     ARRAYDAT *array = (ARRAYDAT *)argument;
 
-    if (array->dimensions == 0) {
+    if (UNLIKELY(array->dimensions == 0)) {
 
       csound->Die(csound,
                   Str("websocket: error array variable %s has not been "
@@ -297,7 +298,7 @@ void WebSocketOpcode_initialiseArgumentsArray(CSOUND *csound,
                                               MYFLT **arguments,
                                               bool areInputArguments)
 {
-    int i;
+    unsigned int i;
     for (i = 0; i < argumentsCount; ++i) {
 
       OpcodeArgument *argumentArrayItem = &argumentsArray[i];
@@ -381,6 +382,7 @@ void WebSocketOpcode_writeFragments(WebSocketOpcode *self,
     unsigned char *inputData =
       &((unsigned char *)inputArgument->readBuffer)[inputArgument->bytesWritten];
 
+    // *** FIXME *** signed/usigned comparison
     if (inputArgument->bytesWritten + writeBufferBytesCount <
         inputArgument->bytesCount) {
 
@@ -477,9 +479,10 @@ void WebSocketOpcode_handleReceive(struct lws *websocket, WebSocketOpcode *self,
       return;
     }
 
-    if (argument->bytesCount != inputDataSize
-        &&
-        argument->argumentType != STRING_VAR) {
+    // *** FIXME *** signed/unsigned comparison
+    if (UNLIKELY(argument->bytesCount != inputDataSize
+                 &&
+                 argument->argumentType != STRING_VAR)) {
 
       csound->Message(csound, Str("websocket: received message from is not "
                                   "correct size for variable %s, message dumped"),
@@ -487,9 +490,9 @@ void WebSocketOpcode_handleReceive(struct lws *websocket, WebSocketOpcode *self,
       return;
     }
 
-    if (argument->argumentType == STRING_VAR
-        &&
-        argument->bytesCount > stringVarMaximumBytesCount) {
+    if (UNLIKELY(argument->argumentType == STRING_VAR
+                 &&
+                 argument->bytesCount > stringVarMaximumBytesCount)) {
 
       csound->Message(csound, Str("websocket: received string message from "
                                   "%s is too large, message dumped"),
@@ -502,7 +505,7 @@ void WebSocketOpcode_handleReceive(struct lws *websocket, WebSocketOpcode *self,
                                                  inputData, argument->itemsCount);
     argument->receivedData = true;
 
-    if (writtenItems == 0) {
+    if (UNLIKELY(writtenItems == 0)) {
 
       csound->Message(csound, Str("websocket: received message from %s "
                                   "dumped, buffer overrrun"), argument->name);
@@ -629,7 +632,7 @@ void WebSocketOpcode_initialiseWebSocket(WebSocketOpcode *self, CSOUND *csound)
       csound->Calloc(csound, LWS_SEND_BUFFER_PRE_PADDING +
                      (sizeof(char) * writeBufferBytesCount) +
                      LWS_SEND_BUFFER_POST_PADDING);
-    if (self->webSocket->context == NULL) {
+    if (UNLIKELY(self->webSocket->context == NULL)) {
 
       csound->Die(csound,
                   Str("websocket: could not initialise websocket, Exiting"));

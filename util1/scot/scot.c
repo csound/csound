@@ -165,8 +165,9 @@ void readinstsec(Inst *inst,
         }
         else if (!strncmp(s, "timesignature", c)) {
           efindword(s);
-          if ((sscanf(s, "%lu/%lu", &timesig->num, &timesig->denom) != 2) ||
-              (&timesig->denom == 0)) {
+          if ((sscanf(s, "%lu/%lu", &timesig->num, &timesig->denom) != 2)
+              ||
+              (&(timesig->denom) == 0) ) {
             scoterror(Str("Invalid time signature"));
             timesig->num = 0;
             timesig->denom = 1;

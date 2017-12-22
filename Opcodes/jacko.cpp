@@ -1,3 +1,26 @@
+/*
+    jacko.cpp:
+
+    Copyright (C) 2010nby Michael Gogins
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+    02111-1307 USA
+*/
+
 /**
  * T H E   J A C K   O P C O D E S
  * Michael Gogins
@@ -96,7 +119,7 @@
  * which may be either faster or slower than real time.
  *
  * This is essential for rendering scores that are too
- * dense for real-time performance to a soundfile,
+ * dense for real-time jacko_is_driving to a soundfile,
  * without xruns or dropouts.
  *
  * Syntax
@@ -393,10 +416,10 @@
  *
  * kcommand -- 0 means "no action", 1 starts the transport,
  * 2 stops the transport, and 3 positions the transport
- * to kposition seconds from the beginning of performance
+ * to kposition seconds from the beginning of jacko_is_driving
  * (i.e. time 0 in the score).
  *
- * This opcode can be used at init time or during performance.
+ * This opcode can be used at init time or during jacko_is_driving.
  *
  * The granularity of timing is Csound's kperiod.
  *
@@ -423,13 +446,14 @@
  *         for dispatch via the MIDI driver callack through
  *         Csound's normal sensevents mechanism.
  *    4.2. csoundPerformKsmps is called.
- *    4.3. When the Csound performance is finished:
+ *    4.3. When the Csound jacko_is_driving is finished:
  *         4.3.1. The Csound processing thread is re-awakened.
  *         4.3.2. The Jack processing callback is deactivated.
  *         4.3.2. The Jack client is closed.
  * 5. At the end of processing, the module deinitialization
  *    function erases all Jack-related state.
  */
+#include <atomic>
 #include <csound.h>
 #include <cstdlib>
 #include <cstdio>
@@ -461,7 +485,7 @@ struct JackoState;
  * There is one and only one JackoState instance per instance of Csound.
  * It is created by and only by the JackoInit opcode.
  */
-static JackoState *jackoState = 0;
+//static JackoState *jackoState = 0;
 
 static void SenseEventCallback_(CSOUND *csound,
                                 void *data);
@@ -485,292 +509,281 @@ static int midiRead_(CSOUND *csound,
  */
 struct JackoState
 {
-  CSOUND *csound;
-  const char *serverName;
-  const char *clientName;
-  jack_client_t *jackClient;
-  char jackInitialized;
-  char jackActive;
-  char csoundActive;
-  jack_nframes_t csoundFramesPerTick;
-  jack_nframes_t jackFramesPerTick;
-  jack_nframes_t csoundFramesPerSecond;
-  jack_nframes_t jackFramesPerSecond;
-  jack_nframes_t jackFrameTime;
-  std::map<std::string, jack_port_t *> audioInPorts;
-  std::map<std::string, jack_port_t *> audioOutPorts;
-  std::map<std::string, jack_port_t *> midiInPorts;
-  std::map<std::string, jack_port_t *> midiOutPorts;
-  std::list<unsigned char> midiInputQueue;
-  jack_position_t jack_position;
-  pthread_t closeThread;
-  pthread_mutex_t conditionMutex;
-  pthread_cond_t closeCondition;
-  pthread_cond_t csoundCondition;
-  JackoState(CSOUND *csound_, const char *serverName_, const char *clientName_) :
-    csound(csound_),
-    serverName(serverName_),
-    clientName(clientName_),
-    jackInitialized(false),
-    jackActive(false),
-    csoundActive(true)
-  {
-      int result = 0;
-      csound = csound_;
-      csoundFramesPerTick = csound->GetKsmps(csound);
-      csoundFramesPerSecond = csound->GetSr(csound);
-      result |= pthread_mutex_init(&conditionMutex, 0);
-      result |= pthread_cond_init(&csoundCondition, 0);
-      result |= pthread_cond_init(&closeCondition, 0);
-      // Create a thread to run the close routine. It will immediately
-      // block until it is signaled.
-      result |= pthread_create(&closeThread, 0, &JackoState::closeRoutine_, this);
-      std::memset(&jack_position, 0, sizeof(jack_position_t));
-      jack_options_t jack_options = (jack_options_t) (JackServerName |
-                                                      JackNoStartServer |
-                                                      JackUseExactName);
-      jack_status_t status = jack_status_t(0);
-      jackClient = jack_client_open(clientName,
-                                    jack_options,
-                                    &status,
-                                    serverName);
-      if (!jackClient) {
-        csound->Message(csound, Str("Could not create Jack client \"%s\" -- "
-                                    "is Jack server \"%s\" running? Status: %d\n"),
-                        clientName,
-                        serverName,
-                        status);
-        csound->LongJmp(csound, 1);
-      } else {
-        csound->Message(csound,
-                        Str("Created Jack client \"%s\" for Jack server \"%s\".\n"),
-                        clientName, serverName);
-      }
-      jackFramesPerTick = jack_get_buffer_size(jackClient);
-      if (csoundFramesPerTick != jackFramesPerTick) {
-        csound->Message(csound,
-                        Str("Jack buffer size %d != Csound ksmps %d, exiting...\n"),
-                        jackFramesPerTick,
-                        csoundFramesPerTick);
-        csound->LongJmp(csound, 1);
-      }
-      jackFramesPerSecond = jack_get_sample_rate(jackClient);
-      if (csoundFramesPerSecond != jackFramesPerSecond) {
-        csound->Message(csound,
-                        Str("Jack sampling rate %d != Csound sr %d, exiting...\n"),
-                        jackFramesPerSecond,
-                        csoundFramesPerSecond);
-        csound->LongJmp(csound, 1);
-      }
-      csound->RegisterSenseEventCallback(csound, SenseEventCallback_, this);
-      result |= jack_set_process_callback(jackClient, JackProcessCallback_, this);
-      result |= jack_activate(jackClient);
-      if (!result) {
-        csound->Message(csound,
-                        Str("Activated Jack client \"%s\".\n"),
-                        jack_get_client_name(jackClient));
-      } else {
-        csound->Message(csound,
-                        Str("Failed to activate Jack client \"%s\": status %d.\n"),
-                        jack_get_client_name(jackClient),
-                        result);
-        return;
-      }
-      csound->SetExternalMidiInOpenCallback(csound, midiDeviceOpen_);
-      csound->SetExternalMidiReadCallback(csound, midiRead_);
-      jackInitialized = true;
-  }
-  ~JackoState()
-  {
-      //int result = 0;           // This does NOTHING!
-  }
-  int close()
-  {
-      csound->Message(csound, Str("BEGAN JackoState::close()...\n"));
-      int result = OK;
-      // Try not to do thread related operations more than once...
-      if (jackInitialized) {
-        jackInitialized = false;
-        jackActive = false;
-        result = jack_deactivate(jackClient);
-        for (std::map<std::string, jack_port_t *>
-               ::iterator it = audioInPorts.begin();
-             it != audioInPorts.end();
-             ++it) {
-          result = jack_port_unregister(jackClient, it->second);
-        }
-        for (std::map<std::string, jack_port_t *>
-               ::iterator it = audioOutPorts.begin();
-             it != audioOutPorts.end();
-             ++it) {
-          result = jack_port_unregister(jackClient, it->second);
-        }
-        for (std::map<std::string, jack_port_t *>
-               ::iterator it = midiInPorts.begin();
-             it != midiInPorts.end();
-             ++it) {
-          result = jack_port_unregister(jackClient, it->second);
-        }
-        for (std::map<std::string, jack_port_t *>
-               ::iterator it = midiOutPorts.begin();
-             it != midiOutPorts.end();
-             ++it) {
-          result = jack_port_unregister(jackClient, it->second);
-        }
-        result |= jack_client_close(jackClient);
-        result |= pthread_cond_destroy(&csoundCondition);
-        result |= pthread_cond_destroy(&closeCondition);
-        result |= pthread_mutex_destroy(&conditionMutex);
-        audioOutPorts.clear();
-        audioInPorts.clear();
-        midiInPorts.clear();
-        midiOutPorts.clear();
-      }
-      csound->Message(csound, Str("ENDED JackoState::close().\n"));
-      return result;
-  }
-  int processJack(jack_nframes_t frames)
-  {
-      // We must call PerformKsmps here ONLY after the original
-      // Csound performance thread is waiting on its condition.
-      int result = 0;
-      jackFrameTime = jack_last_frame_time(jackClient);
-      if (jackActive && !csoundActive) {
-        // Enqueue any MIDI messages pending in input ports.
-        for (std::map<std::string, jack_port_t *>
-               ::iterator it = midiInPorts.begin();
-             it != midiInPorts.end();
-             ++it) {
-          jack_port_t *midiinport = it->second;
-          void *portbuffer = jack_port_get_buffer(midiinport, jackFramesPerTick);
-          if (portbuffer) {
-            jack_nframes_t eventN = jack_midi_get_event_count(portbuffer);
-            for (jack_nframes_t eventI = 0; eventI < eventN; ++eventI) {
-              jack_midi_event_t event;
-              int result = jack_midi_event_get(&event, portbuffer, eventI);
-              if (result == 0) {
-                for (size_t i = 0; i < event.size; ++i) {
-                  midiInputQueue.push_back(event.buffer[i]);
+        CSOUND *csound;
+        const char *serverName;
+        const char *clientName;
+        jack_client_t *jackClient;
+        std::atomic<bool> jacko_is_driving;
+        std::atomic<bool> jackActive;
+        jack_nframes_t csoundFramesPerTick;
+        jack_nframes_t jackFramesPerTick;
+        jack_nframes_t csoundFramesPerSecond;
+        jack_nframes_t jackFramesPerSecond;
+        jack_nframes_t jackFrameTime;
+        std::map<std::string, jack_port_t *> audioInPorts;
+        std::map<std::string, jack_port_t *> audioOutPorts;
+        std::map<std::string, jack_port_t *> midiInPorts;
+        std::map<std::string, jack_port_t *> midiOutPorts;
+        std::list<unsigned char> midiInputQueue;
+        jack_position_t jack_position;
+    pthread_t closeThread;
+        pthread_mutex_t csoundPerformanceThreadConditionMutex;
+    pthread_mutexattr_t csoundPerformanceThreadConditionMutexAttribute;
+        pthread_cond_t csoundPerformanceThreadCondition;
+        JackoState(CSOUND *csound_, const char *serverName_, const char *clientName_) :
+                csound(csound_),
+                serverName(serverName_),
+                clientName(clientName_),
+                jackActive(false),
+                jacko_is_driving(false)
+        {
+                int result = 0;
+                csound = csound_;
+                csoundFramesPerTick = csound->GetKsmps(csound);
+                csoundFramesPerSecond = csound->GetSr(csound);
+        pthread_mutexattr_init(&csoundPerformanceThreadConditionMutexAttribute);
+        pthread_mutexattr_settype(&csoundPerformanceThreadConditionMutexAttribute, PTHREAD_MUTEX_RECURSIVE);
+                result |= pthread_mutex_init(&csoundPerformanceThreadConditionMutex, &csoundPerformanceThreadConditionMutexAttribute);
+                result |= pthread_cond_init(&csoundPerformanceThreadCondition, 0);
+                std::memset(&jack_position, 0, sizeof(jack_position_t));
+                jack_options_t jack_options = (jack_options_t)(JackServerName |
+                                              JackNoStartServer |
+                                              JackUseExactName);
+                jack_status_t status = jack_status_t(0);
+                jackClient = jack_client_open(clientName,
+                                              jack_options,
+                                              &status,
+                                              serverName);
+                if (!jackClient) {
+                        csound->Message(csound, Str("Could not create Jack client \"%s\" -- "
+                                                    "is Jack server \"%s\" running? Status: %d\n"),
+                                        clientName,
+                                        serverName,
+                                        status);
+                        csound->LongJmp(csound, 1);
+                } else {
+                        csound->Message(csound,
+                                        Str("Created Jack client \"%s\" for Jack server \"%s\".\n"),
+                                        clientName, serverName);
                 }
-              }
-            }
-          }
+                jackFramesPerTick = jack_get_buffer_size(jackClient);
+                if (csoundFramesPerTick != jackFramesPerTick) {
+                        csound->Message(csound,
+                                        Str("Jack buffer size %d != Csound ksmps %d, exiting...\n"),
+                                        jackFramesPerTick,
+                                        csoundFramesPerTick);
+                        csound->LongJmp(csound, 1);
+                }
+                jackFramesPerSecond = jack_get_sample_rate(jackClient);
+                if (csoundFramesPerSecond != jackFramesPerSecond) {
+                        csound->Message(csound,
+                                        Str("Jack sampling rate %d != Csound sr %d, exiting...\n"),
+                                        jackFramesPerSecond,
+                                        csoundFramesPerSecond);
+                        csound->LongJmp(csound, 1);
+                }
+                csound->SetExternalMidiInOpenCallback(csound, midiDeviceOpen_);
+                csound->SetExternalMidiReadCallback(csound, midiRead_);
+                csound->RegisterSenseEventCallback(csound, SenseEventCallback_, this);
+                result |= jack_set_process_callback(jackClient, JackProcessCallback_, this);
+                result |= jack_activate(jackClient);
+                if (!result) {
+                        csound->Message(csound,
+                                        Str("Activated Jack client \"%s\".\n"),
+                                        jack_get_client_name(jackClient));
+                } else {
+                        csound->Message(csound,
+                                        Str("Failed to activate Jack client \"%s\": status %d.\n"),
+                                        jack_get_client_name(jackClient),
+                                        result);
+                        return;
+                }
+                //jackInitialized = true;
         }
-        // Clear MIDI output buffers.
-        for (std::map<std::string, jack_port_t *>
-               ::iterator it = midiOutPorts.begin();
-             it != midiOutPorts.end();
-             ++it) {
-          void *buffer = jack_port_get_buffer(it->second, jackFramesPerTick);
-          jack_midi_clear_buffer(buffer);
+        ~JackoState()
+        {
+                //int result = 0;           // This does NOTHING!
         }
-        result = csound->PerformKsmps(csound);
-        // We break here when the Csound performance is complete,
-        // and signal the original Csound performance thread to continue.
-        if (result && jackActive) {
-          csoundActive = true;
-          jackActive = false;
-          pthread_mutex_lock(&conditionMutex);
-          pthread_cond_signal(&csoundCondition);
-          pthread_mutex_unlock(&conditionMutex);
-          return result;
+        int SenseEventCallback()
+        {
+                int result = 0;
+                // Here we must wait once and only once, in order to put
+                // the original Csound processing thread to sleep --
+                // but we must NOT put the Jack processing callback
+                // to sleep when it comes here!
+                if (jacko_is_driving == false) {
+                        // While Jack is processing, wait here.
+                        // The Jack process callback will then call csoundPerformKsmps
+                        // until the Csound jacko_is_driving is complete.
+                        csound->Message(csound, Str("Jacko is now driving Csound performance...\n"));
+                        result |= pthread_mutex_lock(&csoundPerformanceThreadConditionMutex);
+            jacko_is_driving = true;
+                        while (jacko_is_driving == true) {
+                                result |= pthread_cond_wait(&csoundPerformanceThreadCondition, &csoundPerformanceThreadConditionMutex);
+                        }
+                        result |= pthread_mutex_unlock(&csoundPerformanceThreadConditionMutex);
+                        csound->Message(csound, Str("Jacko has quit driving Csound performance.\n"));
+            return 1;
+                }
+                return 0;
         }
-      }
-      return result;
-  }
-  int processCsound()
-  {
-      int result = 0;
-      // Here we must wait once and only once, in order to put
-      // the original Csound processing thread to sleep --
-      // but we must NOT put the Jack processing callback
-      // to sleep when it comes here!
-      if (jackActive && csoundActive) {
-        csoundActive = false;
-        // While Jack is processing, wait here.
-        // The Jack process callback will then call csoundPerformKsmps
-        // until the Csound performance is complete.
-        result |= pthread_mutex_lock(&conditionMutex);
-        result |= pthread_cond_wait(&csoundCondition, &conditionMutex);
-        result |= pthread_mutex_unlock(&conditionMutex);
-      }
-      if (jackActive) {
-        return 1;
-      } else {
-        // Then, when the Csound performance is complete,
-        // we signal the close routine condition so that
-        // Jack can be shut down and cleaned up in a separate
-        // thread. Doing this inside the Jack process callback
-        // takes too long and may cause other problems.
-        result = pthread_mutex_lock(&conditionMutex);
-        result |= pthread_cond_signal(&closeCondition);
-        result |= pthread_mutex_unlock(&conditionMutex);
-        return result;
-      }
-  }
-  void *closeRoutine()
-  {
-      int result = 0;
-      // Wait until signaled to actually shut down the Jack client.
-      result = pthread_mutex_lock(&conditionMutex);
-      result |= pthread_cond_wait(&closeCondition, &conditionMutex);
-      result |= pthread_mutex_unlock(&conditionMutex);
-      close();
-      void *result_ = 0;
-      memcpy(&result_, &result, std::min(sizeof(result), sizeof(result_)));
-      return result_;
-  }
-  static void *closeRoutine_(void *userdata)
-  {
-      return ((JackoState *)userdata)->closeRoutine();
-  }
-  void startTransport()
-  {
-      midiInputQueue.clear();
-      jack_transport_start(jackClient);
-  }
-  void stopTransport()
-  {
-      jack_transport_stop(jackClient);
-  }
-  int positionTransport(double timeSeconds)
-  {
-      int result = OK;
-      jack_position.frame_time = timeSeconds;
-      midiInputQueue.clear();
-      result = jack_transport_reposition(jackClient, &jack_position);
-      return result;
-  }
-  /**
-   * Return a MIDI output buffer,
-   * clearing it if not yet cleared for this tick.
-   */
-  jack_midi_data_t *getMidiOutBuffer(jack_port_t *csoundPort)
-  {
-      jack_midi_data_t *buffer =
-        (jack_midi_data_t *)jack_port_get_buffer(csoundPort, csoundFramesPerTick);
-      return buffer;
-  }
+        int JackProcessCallback(jack_nframes_t frames)
+        {
+        if (jacko_is_driving == false) {
+            return 0;
+        }
+                // We must call PerformKsmps here ONLY after the original
+                // Csound jacko_is_driving thread is waiting on its condition.
+                int finished = 0;
+                jackFrameTime = jack_last_frame_time(jackClient);
+                if (jacko_is_driving == true) {
+                        // Enqueue any MIDI messages pending in input ports.
+                        for (std::map<std::string, jack_port_t *>
+                                ::iterator it = midiInPorts.begin();
+                                it != midiInPorts.end();
+                                ++it) {
+                                jack_port_t *midiinport = it->second;
+                                void *portbuffer = jack_port_get_buffer(midiinport, jackFramesPerTick);
+                                if (portbuffer) {
+                                        jack_nframes_t eventN = jack_midi_get_event_count(portbuffer);
+                                        for (jack_nframes_t eventI = 0; eventI < eventN; ++eventI) {
+                                                jack_midi_event_t event;
+                                                int result = jack_midi_event_get(&event, portbuffer, eventI);
+                                                if (result == 0) {
+                                                        for (size_t i = 0; i < event.size; ++i) {
+                                                                midiInputQueue.push_back(event.buffer[i]);
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                        // Clear MIDI output buffers.
+                        for (std::map<std::string, jack_port_t *>
+                                ::iterator it = midiOutPorts.begin();
+                                it != midiOutPorts.end();
+                                ++it) {
+                                void *buffer = jack_port_get_buffer(it->second, jackFramesPerTick);
+                                jack_midi_clear_buffer(buffer);
+                        }
+                        finished = csound->PerformKsmps(csound);
+                        // We break here when the Csound performace is complete, and close
+            // the Jack connection in a separate thread.
+                        if (finished /* && jackActive */) {
+                                csound->Message(csound, Str("Jacko performance finished.\n"));
+                                jacko_is_driving = false;
+                                // Create a thread to run the close routine.
+                                finished |= pthread_create(&closeThread, 0, &JackoState::closeThreadRoutine_, this);
+                        }
+                }
+                return finished;
+        }
+        int close()
+        {
+                csound->Message(csound, Str("BEGAN JackoState::close()...\n"));
+                int result = OK;
+                // Try not to do thread related operations more than once...
+                result = jack_deactivate(jackClient);
+                csound->Message(csound, Str("Jack client deactivated.\n"));
+                // Jack documentation says deactivating the client does the following also:
+                for (std::map<std::string, jack_port_t *>
+                       ::iterator it = audioInPorts.begin();
+                     it != audioInPorts.end();
+                     ++it) {
+                  result = jack_port_unregister(jackClient, it->second);
+                }
+                for (std::map<std::string, jack_port_t *>
+                       ::iterator it = audioOutPorts.begin();
+                     it != audioOutPorts.end();
+                     ++it) {
+                  result = jack_port_unregister(jackClient, it->second);
+                }
+                for (std::map<std::string, jack_port_t *>
+                       ::iterator it = midiInPorts.begin();
+                     it != midiInPorts.end();
+                     ++it) {
+                  result = jack_port_unregister(jackClient, it->second);
+                }
+                for (std::map<std::string, jack_port_t *>
+                       ::iterator it = midiOutPorts.begin();
+                     it != midiOutPorts.end();
+                     ++it) {
+                  result = jack_port_unregister(jackClient, it->second);
+                }
+                csound->Message(csound, Str("Jack ports unregistered.\n"));
+                result |= jack_client_close(jackClient);
+                //csound->Message(csound, Str("Jack client closed.\n"));
+        pthread_cond_signal(&csoundPerformanceThreadCondition);
+                result |= pthread_cond_destroy(&csoundPerformanceThreadCondition);
+                result |= pthread_mutex_unlock(&csoundPerformanceThreadConditionMutex);
+                result |= pthread_mutex_destroy(&csoundPerformanceThreadConditionMutex);
+                audioOutPorts.clear();
+                audioInPorts.clear();
+                midiInPorts.clear();
+                midiOutPorts.clear();
+                csound->Message(csound, Str("ENDED JackoState::close().\n"));
+                return result;
+        }
+        void *closeThreadRoutine()
+        {
+                int result = 0;
+                close();
+                void *result_ = 0;
+                memcpy(&result_, &result, std::min(sizeof(result), sizeof(result_)));
+                return result_;
+        }
+        static void *closeThreadRoutine_(void *userdata)
+        {
+                return ((JackoState *)userdata)->closeThreadRoutine();
+        }
+        void startTransport()
+        {
+                midiInputQueue.clear();
+                jack_transport_start(jackClient);
+        }
+        void stopTransport()
+        {
+                jack_transport_stop(jackClient);
+        }
+        int positionTransport(double timeSeconds)
+        {
+                int result = OK;
+                jack_position.frame_time = timeSeconds;
+                midiInputQueue.clear();
+                result = jack_transport_reposition(jackClient, &jack_position);
+                return result;
+        }
+        /**
+         * Return a MIDI output buffer,
+         * clearing it if not yet cleared for this tick.
+         */
+        jack_midi_data_t *getMidiOutBuffer(jack_port_t *csoundPort)
+        {
+                jack_midi_data_t *buffer =
+                    (jack_midi_data_t *)jack_port_get_buffer(csoundPort, csoundFramesPerTick);
+                return buffer;
+        }
 };
 
 static int JackProcessCallback_(jack_nframes_t frames,
                                 void *data)
 {
-    return ((JackoState *)data)->processJack(frames);
+        return ((JackoState *)data)->JackProcessCallback(frames);
 }
 
-static void SenseEventCallback_(CSOUND * csound,
+static void SenseEventCallback_(CSOUND *csound,
                                 void *data)
 {
-    ((JackoState *)data)->processCsound();
+        ((JackoState *)data)->SenseEventCallback();
 }
 
 static int midiDeviceOpen_(CSOUND *csound,
                            void **userData,
                            const char *devName)
 {
-    *userData = jackoState;
-    return 0;
+        JackoState *jackoState;
+        csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+        *userData = jackoState;
+        return 0;
 }
 
 /**
@@ -782,837 +795,862 @@ static int midiRead_(CSOUND *csound,
                      unsigned char *midiData,
                      int midiN)
 {
-    JackoState *jackoState_ = (JackoState *)userData;
-    int midiI = 0;
-    while (!jackoState_->midiInputQueue.empty() && midiI < midiN) {
-      midiData[midiI] = jackoState_->midiInputQueue.front();
-      jackoState_->midiInputQueue.pop_front();
-      midiI++;
-    }
-    //if (midiI) {
-    //  csound->Message(csound, "midiRead_: %d bytes.\n", midiI);
-    //}
-    return midiI;
+        JackoState *jackoState_ = (JackoState *)userData;
+        int midiI = 0;
+        while (!jackoState_->midiInputQueue.empty() && midiI < midiN) {
+                midiData[midiI] = jackoState_->midiInputQueue.front();
+                jackoState_->midiInputQueue.pop_front();
+                midiI++;
+        }
+        //if (midiI) {
+        //  csound->Message(csound, "midiRead_: %d bytes.\n", midiI);
+        //}
+        return midiI;
 }
 
 struct JackoInit : public OpcodeBase<JackoInit>
 {
-  STRINGDAT *ServerName;
-  STRINGDAT *SclientName;
-  const char *serverName;
-  const char *clientName;
-  int init(CSOUND *csound)
-  {
-    serverName = csound->strarg2name(csound,
-                                     (char *) 0,
-                                     ServerName->data,
-                                     (char *)"default",
-                                     (int) 1);
-    clientName = csound->strarg2name(csound,
-                                     (char *) 0,
-                                     SclientName->data,
-                                     (char *)"csound",
-                                     (int) 1);
-    jackoState = new JackoState(csound, serverName, clientName);
-    return OK;
-  }
+        STRINGDAT *ServerName;
+        STRINGDAT *SclientName;
+        const char *serverName;
+        const char *clientName;
+        int init(CSOUND *csound)
+        {
+                serverName = csound->strarg2name(csound,
+                                                 (char *) 0,
+                                                 ServerName->data,
+                                                 (char *)"default",
+                                                 (int) 1);
+                clientName = csound->strarg2name(csound,
+                                                 (char *) 0,
+                                                 SclientName->data,
+                                                 (char *)"csound",
+                                                 (int) 1);
+                JackoState *jackoState = new JackoState(csound, serverName, clientName);
+                int result = csound::CreateGlobalPointer(csound, "jackoState", jackoState);
+                return OK;
+        }
 };
 
 struct JackoInfo : public OpcodeBase<JackoInfo>
 {
-  int init(CSOUND *csound)
-  {
-    log(csound, "Jack information for client: %s\n", jackoState->clientName);
-    log(csound, "  Daemon name:               %s\n", jackoState->serverName);
-    log(csound, "  Frames per second:         %d\n",
-        jackoState->jackFramesPerSecond);
-    log(csound, "  Frames per period:         %d\n",
-        jackoState->jackFramesPerTick);
-    const char **ports = jack_get_ports(jackoState->jackClient, 0, 0, 0);
-    if (ports) {
-      log(csound, "  Ports and connections:\n");
-      for (size_t i = 0; ports[i]; ++i) {
-        const char *PortName = ports[i];
-        jack_port_t *port = jack_port_by_name(jackoState->jackClient, PortName);
-        int flags = jack_port_flags(port);
-        const char *type = jack_port_type(port);
-        const char *portType = "      ";
-        if ((flags & JackPortIsOutput) == JackPortIsOutput) {
-          portType = "Output";
-        } else if ((flags & JackPortIsInput) == JackPortIsInput) {
-          portType = "Input ";
+        int init(CSOUND *csound)
+        {
+                JackoState *jackoState =  0;
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                log(csound, "Jack information for client: %s\n", jackoState->clientName);
+                log(csound, "  Daemon name:               %s\n", jackoState->serverName);
+                log(csound, "  Frames per second:         %d\n",
+                    jackoState->jackFramesPerSecond);
+                log(csound, "  Frames per period:         %d\n",
+                    jackoState->jackFramesPerTick);
+                const char **ports = jack_get_ports(jackoState->jackClient, 0, 0, 0);
+                if (ports) {
+                        log(csound, "  Ports and connections:\n");
+                        for (size_t i = 0; ports[i]; ++i) {
+                                const char *PortName = ports[i];
+                                jack_port_t *port = jack_port_by_name(jackoState->jackClient, PortName);
+                                int flags = jack_port_flags(port);
+                                const char *type = jack_port_type(port);
+                                const char *portType = "      ";
+                                if ((flags & JackPortIsOutput) == JackPortIsOutput) {
+                                        portType = "Output";
+                                } else if ((flags & JackPortIsInput) == JackPortIsInput) {
+                                        portType = "Input ";
+                                }
+                                log(csound, "    %3d:   %s   %-25s  %s\n",
+                                    (i+1), portType, type, (PortName ? PortName : "(no name)"));
+                                char alias1[0x100];
+                                char alias2[0x100];
+                                char *const aliases[2] = {alias1, alias2};
+                                size_t aliasN = jack_port_get_aliases(port, aliases);
+                                for (size_t aliasI = 0; aliasI < aliasN; ++aliasI) {
+                                        log(csound, "           Alias: %s\n", aliases[aliasI]);
+                                }
+                                const char **connections =
+                                    jack_port_get_all_connections(jackoState->jackClient, port);
+                                if (connections) {
+                                        for (size_t j = 0; connections[j]; ++j) {
+                                                if ((jack_port_flags(port) & JackPortIsOutput) == JackPortIsOutput) {
+                                                        log(csound, "           Sends to:                           >> %s\n",
+                                                            connections[j]);
+                                                } else {
+                                                        log(csound, "           Receives from:                      << %s\n",
+                                                            connections[j]);
+                                                }
+                                        }
+                                }
+                                std::free(connections);
+                        }
+                        std::free(ports);
+                }
+                return OK;
         }
-        log(csound, "    %3d:   %s   %-25s  %s\n",
-            (i+1), portType, type, (PortName ? PortName : "(no name)"));
-        char alias1[0x100];
-        char alias2[0x100];
-        char * const aliases[2] = {alias1, alias2};
-        size_t aliasN = jack_port_get_aliases(port, aliases);
-        for (size_t aliasI = 0; aliasI < aliasN; ++aliasI) {
-          log(csound, "           Alias: %s\n", aliases[aliasI]);
-        }
-        const char **connections =
-          jack_port_get_all_connections(jackoState->jackClient, port);
-        if (connections) {
-          for (size_t j = 0; connections[j]; ++j) {
-            if ((jack_port_flags(port) & JackPortIsOutput) == JackPortIsOutput) {
-              log(csound, "           Sends to:                           >> %s\n",
-                  connections[j]);
-            } else {
-              log(csound, "           Receives from:                      << %s\n",
-                  connections[j]);
-            }
-          }
-        }
-        std::free(connections);
-      }
-      std::free(ports);
-    }
-    return OK;
-  }
 };
 
 struct JackoFreewheel : public OpcodeBase<JackoFreewheel>
 {
-  MYFLT *ifreewheel;
-  int init(CSOUND *csound)
-  {
-
-    int freewheel = (int) *ifreewheel;
-    int result = jack_set_freewheel(jackoState->jackClient, freewheel);
-    if (result) {
-      warn(csound,
-           Str("Failed to set Jack freewheeling mode to \"%s\": error %d.\n"),
-           (freewheel ? "on" : "off"), result);
-    } else {
-      log(csound, Str("Set Jack freewheeling mode to \"%s\".\n"),
-          (freewheel ? "on" : "off"));
-    }
-    return result;
-  }
+        MYFLT *ifreewheel;
+        int init(CSOUND *csound)
+        {
+                JackoState *jackoState =  0;
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int freewheel = (int) *ifreewheel;
+                int result = jack_set_freewheel(jackoState->jackClient, freewheel);
+                if (result) {
+                        warn(csound,
+                             Str("Failed to set Jack freewheeling mode to \"%s\": error %d.\n"),
+                             (freewheel ? "on" : "off"), result);
+                } else {
+                        log(csound, Str("Set Jack freewheeling mode to \"%s\".\n"),
+                            (freewheel ? "on" : "off"));
+                }
+                return result;
+        }
 };
 
 struct JackoOn : public OpcodeBase<JackoOn>
 {
-  MYFLT *jon;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-      jackoState->jackActive = (char) *jon;
-      log(csound, Str("Turned Jack connections \"%s\".\n"),
-          (jackoState->jackActive ? "on" : "off"));
-      return result;
-  }
+        MYFLT *jon;
+        int init(CSOUND *csound)
+        {
+                int result = OK;
+                JackoState *jackoState =  0;
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                jackoState->jackActive = (char) *jon;
+                log(csound, Str("Turned Jack connections \"%s\".\n"),
+                    (jackoState->jackActive ? "on" : "off"));
+                return result;
+        }
 };
 
 struct JackoAudioInConnect : public OpcodeBase<JackoAudioInConnect>
 {
-  // Out.
-  // Ins.
-  STRINGDAT *SexternalPortName;
-  STRINGDAT *ScsoundPortName;
-  // State.
-  const char *csoundPortName;
-  char csoundFullPortName[0x100];
-  const char *externalPortName;
-  const char *clientName;
-  jack_port_t *csoundPort;
-  jack_port_t *externalPort;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-      clientName = jack_get_client_name(jackoState->jackClient);
-      csoundPortName = csound->strarg2name(csound,
-                                           (char *)0,
-                                           ScsoundPortName->data,
-                                           (char *)"",
-                                           (int) 1);
-      std::sprintf(csoundFullPortName, "%s:%s", clientName, csoundPortName);
-      externalPortName = csound->strarg2name(csound,
-                                             (char *) 0,
-                                             SexternalPortName->data,
-                                             (char *)"csound",
-                                             (int) 1);
-      csoundPort = jack_port_by_name(jackoState->jackClient, csoundFullPortName);
-      if (!csoundPort) {
-        csoundPort = jack_port_register(jackoState->jackClient,
-                                        csoundPortName, JACK_DEFAULT_AUDIO_TYPE,
-                                        JackPortIsInput, 0);
-        if (csoundPort) {
-          log(csound, "Created Jack port \"%s\".\n", csoundFullPortName);
-        } else {
-          warn(csound, Str("Could not create Jack port \"%s\".\n"),
-               csoundFullPortName);
+        // Out.
+        // Ins.
+        STRINGDAT *SexternalPortName;
+        STRINGDAT *ScsoundPortName;
+        // State.
+        const char *csoundPortName;
+        char csoundFullPortName[0x100];
+        const char *externalPortName;
+        const char *clientName;
+        jack_port_t *csoundPort;
+        jack_port_t *externalPort;
+        int init(CSOUND *csound)
+        {
+                JackoState *jackoState =  0;
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int result = OK;
+                clientName = jack_get_client_name(jackoState->jackClient);
+                csoundPortName = csound->strarg2name(csound,
+                                                     (char *)0,
+                                                     ScsoundPortName->data,
+                                                     (char *)"",
+                                                     (int) 1);
+                std::sprintf(csoundFullPortName, "%s:%s", clientName, csoundPortName);
+                externalPortName = csound->strarg2name(csound,
+                                                       (char *) 0,
+                                                       SexternalPortName->data,
+                                                       (char *)"csound",
+                                                       (int) 1);
+                csoundPort = jack_port_by_name(jackoState->jackClient, csoundFullPortName);
+                if (!csoundPort) {
+                        csoundPort = jack_port_register(jackoState->jackClient,
+                                                        csoundPortName, JACK_DEFAULT_AUDIO_TYPE,
+                                                        JackPortIsInput, 0);
+                        if (csoundPort) {
+                                log(csound, "Created Jack port \"%s\".\n", csoundFullPortName);
+                        } else {
+                                warn(csound, Str("Could not create Jack port \"%s\".\n"),
+                                     csoundFullPortName);
+                        }
+                }
+                externalPort = jack_port_by_name(jackoState->jackClient, externalPortName);
+                result = jack_connect(jackoState->jackClient, jack_port_name(externalPort),
+                                      jack_port_name(csoundPort));
+                if (result == EEXIST) {
+                        log(csound,
+                            "Connection from \"%s\" to \"%s\" already exists.\n",
+                            externalPortName,
+                            csoundFullPortName);
+                } else if (result) {
+                        warn(csound,
+                             Str("Could not create Jack connection from \"%s\" to \"%s\": "
+                                 "status %d.\n"),
+                             externalPortName,
+                             csoundFullPortName,
+                             result);
+                        return result;
+                } else {
+                        log(csound,
+                            "Created Jack connection from \"%s\" to \"%s\".\n",
+                            externalPortName,
+                            csoundFullPortName);
+                }
+                jackoState->audioInPorts[csoundPortName] = csoundPort;
+                return result;
         }
-      }
-      externalPort = jack_port_by_name(jackoState->jackClient, externalPortName);
-      result = jack_connect(jackoState->jackClient, jack_port_name(externalPort),
-                            jack_port_name(csoundPort));
-      if (result == EEXIST) {
-        log(csound,
-            "Connection from \"%s\" to \"%s\" already exists.\n",
-            externalPortName,
-            csoundFullPortName);
-      } else if (result) {
-        warn(csound,
-             Str("Could not create Jack connection from \"%s\" to \"%s\": "
-                 "status %d.\n"),
-             externalPortName,
-             csoundFullPortName,
-             result);
-        return result;
-      } else {
-        log(csound,
-            "Created Jack connection from \"%s\" to \"%s\".\n",
-            externalPortName,
-            csoundFullPortName);
-      }
-      jackoState->audioInPorts[csoundPortName] = csoundPort;
-      return result;
-  }
 };
 
 struct JackoAudioIn : public OpcodeBase<JackoAudioIn>
 {
-  // Out.
-  MYFLT *asignal;
-  // Ins.
-  STRINGDAT *ScsoundPortName;
-  // State.
-  const char *csoundPortName;
-  jack_port_t *csoundPort;
-  jack_nframes_t csoundFramesPerTick;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-      csoundFramesPerTick = jackoState->csoundFramesPerTick;
-      csoundPortName = csound->strarg2name(csound,
-                                           (char *)0,
-                                           ScsoundPortName->data,
-                                           (char *)"",
-                                           (int) 1);
-      csoundPort = jackoState->audioInPorts[csoundPortName];
-      return result;
-  }
-  int audio(CSOUND *csound)
-  {
-      jack_default_audio_sample_t *buffer =
-        (jack_default_audio_sample_t *)jack_port_get_buffer(csoundPort,
-                                                            csoundFramesPerTick);
-      for (size_t frame = 0; frame < csoundFramesPerTick; ++frame) {
-        asignal[frame] = buffer[frame];
-      }
-      return OK;
-  }
+        // Out.
+        MYFLT *asignal;
+        // Ins.
+        STRINGDAT *ScsoundPortName;
+        // State.
+        const char *csoundPortName;
+        jack_port_t *csoundPort;
+        jack_nframes_t csoundFramesPerTick;
+        JackoState *jackoState;
+        int init(CSOUND *csound)
+        {
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int result = OK;
+                csoundFramesPerTick = jackoState->csoundFramesPerTick;
+                csoundPortName = csound->strarg2name(csound,
+                                                     (char *)0,
+                                                     ScsoundPortName->data,
+                                                     (char *)"",
+                                                     (int) 1);
+                csoundPort = jackoState->audioInPorts[csoundPortName];
+                return result;
+        }
+        int audio(CSOUND *csound)
+        {
+                jack_default_audio_sample_t *buffer =
+                    (jack_default_audio_sample_t *)jack_port_get_buffer(csoundPort,
+                            csoundFramesPerTick);
+                for (size_t frame = 0; frame < csoundFramesPerTick; ++frame) {
+                        asignal[frame] = buffer[frame];
+                }
+                return OK;
+        }
 };
 
 struct JackoAudioOutConnect : public OpcodeBase<JackoAudioOutConnect>
 {
-  // No outs.
-  // Ins.
-  STRINGDAT *ScsoundPortName;
-  STRINGDAT *SexternalPortName;
-  // State.
-  const char *csoundPortName;
-  char csoundFullPortName[0x100];
-  const char *externalPortName;
-  const char *clientName;
-  size_t frames;
-  jack_port_t *csoundPort;
-  jack_port_t *externalPort;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-      frames = opds.insdshead->ksmps;
-      clientName = jack_get_client_name(jackoState->jackClient);
-      csoundPortName = csound->strarg2name(csound,
-                                           (char *)0,
-                                           ScsoundPortName->data,
-                                           (char *)"",
-                                           (int) 1);
-      std::sprintf(csoundFullPortName, "%s:%s", clientName, csoundPortName);
-      externalPortName = csound->strarg2name(csound,
-                                             (char *) 0,
-                                             SexternalPortName->data,
-                                             (char *)"csound",
-                                             (int) 1);
-      csoundPort = jack_port_by_name(jackoState->jackClient, csoundFullPortName);
-      if (!csoundPort) {
-        csoundPort = jack_port_register(jackoState->jackClient,
-                                        csoundPortName, JACK_DEFAULT_AUDIO_TYPE,
-                                        JackPortIsOutput, 0);
-        if (csoundPort) {
-          log(csound, "Created Jack port \"%s\".\n", csoundFullPortName);
-        } else {
-          warn(csound, Str("Could not create Jack port \"%s\".\n"),
-               csoundFullPortName);
+        // No outs.
+        // Ins.
+        STRINGDAT *ScsoundPortName;
+        STRINGDAT *SexternalPortName;
+        // State.
+        const char *csoundPortName;
+        char csoundFullPortName[0x100];
+        const char *externalPortName;
+        const char *clientName;
+        size_t frames;
+        jack_port_t *csoundPort;
+        jack_port_t *externalPort;
+        JackoState *jackoState;
+        int init(CSOUND *csound)
+        {
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int result = OK;
+                frames = opds.insdshead->ksmps;
+                clientName = jack_get_client_name(jackoState->jackClient);
+                csoundPortName = csound->strarg2name(csound,
+                                                     (char *)0,
+                                                     ScsoundPortName->data,
+                                                     (char *)"",
+                                                     (int) 1);
+                std::sprintf(csoundFullPortName, "%s:%s", clientName, csoundPortName);
+                externalPortName = csound->strarg2name(csound,
+                                                       (char *) 0,
+                                                       SexternalPortName->data,
+                                                       (char *)"csound",
+                                                       (int) 1);
+                csoundPort = jack_port_by_name(jackoState->jackClient, csoundFullPortName);
+                if (!csoundPort) {
+                        csoundPort = jack_port_register(jackoState->jackClient,
+                                                        csoundPortName, JACK_DEFAULT_AUDIO_TYPE,
+                                                        JackPortIsOutput, 0);
+                        if (csoundPort) {
+                                log(csound, "Created Jack port \"%s\".\n", csoundFullPortName);
+                        } else {
+                                warn(csound, Str("Could not create Jack port \"%s\".\n"),
+                                     csoundFullPortName);
+                        }
+                }
+                externalPort = jack_port_by_name(jackoState->jackClient, externalPortName);
+                result = jack_connect(jackoState->jackClient,
+                                      jack_port_name(csoundPort),
+                                      jack_port_name(externalPort));
+                if (result == EEXIST) {
+                        log(csound,
+                            "Connection from \"%s\" to \"%s\" already exists.\n",
+                            csoundFullPortName,
+                            externalPortName);
+                } else if (result) {
+                        warn(csound,
+                             Str("Could not create Jack connection from \"%s\" to \"%s\": "
+                                 "status %d.\n"),
+                             csoundFullPortName,
+                             externalPortName,
+                             result);
+                        return result;
+                } else {
+                        log(csound,
+                            "Created Jack connection from \"%s\" to \"%s\".\n",
+                            csoundFullPortName,
+                            externalPortName);
+                }
+                jackoState->audioOutPorts[csoundPortName] = csoundPort;
+                return result;
         }
-      }
-      externalPort = jack_port_by_name(jackoState->jackClient, externalPortName);
-      result = jack_connect(jackoState->jackClient,
-                            jack_port_name(csoundPort),
-                            jack_port_name(externalPort));
-      if (result == EEXIST) {
-        log(csound,
-            "Connection from \"%s\" to \"%s\" already exists.\n",
-            csoundFullPortName,
-            externalPortName);
-      } else if (result) {
-        warn(csound,
-             Str("Could not create Jack connection from \"%s\" to \"%s\": "
-                 "status %d.\n"),
-             csoundFullPortName,
-             externalPortName,
-             result);
-        return result;
-      } else {
-        log(csound,
-            "Created Jack connection from \"%s\" to \"%s\".\n",
-            csoundFullPortName,
-            externalPortName);
-      }
-      jackoState->audioOutPorts[csoundPortName] = csoundPort;
-      return result;
-  }
 };
 
 struct JackoAudioOut : public OpcodeBase<JackoAudioOut>
 {
-  // No outs.
-  // Ins.
-  STRINGDAT *ScsoundPortName;
-  MYFLT *asignal;
-  // State.
-  const char *csoundPortName;
-  jack_port_t *csoundPort;
-  jack_nframes_t csoundFramesPerTick;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-      csoundFramesPerTick = jackoState->csoundFramesPerTick;
-      csoundPortName = csound->strarg2name(csound,
-                                           (char *)0,
-                                           ScsoundPortName->data,
-                                           (char *)"",
-                                           (int) 1);
-      csoundPort = jackoState->audioOutPorts[csoundPortName];
-      return result;
-  }
-  int audio(CSOUND *csound)
-  {
-      jack_default_audio_sample_t *buffer =
-        (jack_default_audio_sample_t *)jack_port_get_buffer(csoundPort,
-                                                            csoundFramesPerTick);
-      for (size_t frame = 0; frame < csoundFramesPerTick; ++frame) {
-        buffer[frame] = asignal[frame];
-      }
-      return OK;
-  }
+        // No outs.
+        // Ins.
+        STRINGDAT *ScsoundPortName;
+        MYFLT *asignal;
+        // State.
+        const char *csoundPortName;
+        jack_port_t *csoundPort;
+        jack_nframes_t csoundFramesPerTick;
+        JackoState *jackoState;
+        int init(CSOUND *csound)
+        {
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int result = OK;
+                csoundFramesPerTick = jackoState->csoundFramesPerTick;
+                csoundPortName = csound->strarg2name(csound,
+                                                     (char *)0,
+                                                     ScsoundPortName->data,
+                                                     (char *)"",
+                                                     (int) 1);
+                csoundPort = jackoState->audioOutPorts[csoundPortName];
+                return result;
+        }
+        int audio(CSOUND *csound)
+        {
+                jack_default_audio_sample_t *buffer =
+                    (jack_default_audio_sample_t *)jack_port_get_buffer(csoundPort,
+                            csoundFramesPerTick);
+                for (size_t frame = 0; frame < csoundFramesPerTick; ++frame) {
+                        buffer[frame] = asignal[frame];
+                }
+                return OK;
+        }
 };
 
 struct JackoMidiInConnect : public OpcodeBase<JackoMidiInConnect>
 {
-  // No outs.
-  // Ins.
-  STRINGDAT *SexternalPortName;
-  STRINGDAT *ScsoundPortName;
-  // State.
-  const char *csoundPortName;
-  char csoundFullPortName[0x100];
-  const char *externalPortName;
-  const char *clientName;
-  size_t frames;
-  jack_port_t *csoundPort;
-  jack_port_t *externalPort;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-      frames = opds.insdshead->ksmps;
-      clientName = jack_get_client_name(jackoState->jackClient);
-      csoundPortName = csound->strarg2name(csound,
-                                           (char *)0,
-                                           ScsoundPortName->data,
-                                           (char *)"",
-                                           (int) 1);
-      std::sprintf(csoundFullPortName, "%s:%s", clientName, csoundPortName);
-      externalPortName = csound->strarg2name(csound,
-                                             (char *) 0,
-                                             SexternalPortName->data,
-                                             (char *)"csound",
-                                             (int) 1);
-      csoundPort = jack_port_by_name(jackoState->jackClient, csoundFullPortName);
-      if (!csoundPort) {
-        csoundPort = jack_port_register(jackoState->jackClient, csoundPortName,
-                                        JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
-        if (csoundPort) {
-          log(csound, "Created Jack port \"%s\".\n", csoundFullPortName);
-        } else {
-          warn(csound, Str("Could not create Jack port \"%s\".\n"),
-               csoundFullPortName);
+        // No outs.
+        // Ins.
+        STRINGDAT *SexternalPortName;
+        STRINGDAT *ScsoundPortName;
+        // State.
+        const char *csoundPortName;
+        char csoundFullPortName[0x100];
+        const char *externalPortName;
+        const char *clientName;
+        size_t frames;
+        jack_port_t *csoundPort;
+        jack_port_t *externalPort;
+        JackoState *jackoState;
+        int init(CSOUND *csound)
+        {
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int result = OK;
+                frames = opds.insdshead->ksmps;
+                clientName = jack_get_client_name(jackoState->jackClient);
+                csoundPortName = csound->strarg2name(csound,
+                                                     (char *)0,
+                                                     ScsoundPortName->data,
+                                                     (char *)"",
+                                                     (int) 1);
+                std::sprintf(csoundFullPortName, "%s:%s", clientName, csoundPortName);
+                externalPortName = csound->strarg2name(csound,
+                                                       (char *) 0,
+                                                       SexternalPortName->data,
+                                                       (char *)"csound",
+                                                       (int) 1);
+                csoundPort = jack_port_by_name(jackoState->jackClient, csoundFullPortName);
+                if (!csoundPort) {
+                        csoundPort = jack_port_register(jackoState->jackClient, csoundPortName,
+                                                        JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
+                        if (csoundPort) {
+                                log(csound, "Created Jack port \"%s\".\n", csoundFullPortName);
+                        } else {
+                                warn(csound, Str("Could not create Jack port \"%s\".\n"),
+                                     csoundFullPortName);
+                        }
+                }
+                externalPort = jack_port_by_name(jackoState->jackClient, externalPortName);
+                result = jack_connect(jackoState->jackClient,
+                                      jack_port_name(externalPort),
+                                      jack_port_name(csoundPort));
+                if (result == EEXIST) {
+                        log(csound,
+                            "Connection from \"%s\" to \"%s\" already exists.\n",
+                            externalPortName,
+                            csoundFullPortName);
+                } else if (result) {
+                        warn(csound,
+                             Str("Could not create Jack connection from \"%s\" to \"%s\": "
+                                 "status %d.\n"),
+                             externalPortName,
+                             csoundFullPortName,
+                             result);
+                        return result;
+                } else {
+                        log(csound,
+                            "Created Jack connection from \"%s\" to \"%s\".\n",
+                            externalPortName,
+                            csoundFullPortName);
+                }
+                jackoState->midiInPorts[csoundPortName] = csoundPort;
+                return result;
         }
-      }
-      externalPort = jack_port_by_name(jackoState->jackClient, externalPortName);
-      result = jack_connect(jackoState->jackClient,
-                            jack_port_name(externalPort),
-                            jack_port_name(csoundPort));
-      if (result == EEXIST) {
-        log(csound,
-            "Connection from \"%s\" to \"%s\" already exists.\n",
-            externalPortName,
-            csoundFullPortName);
-      } else if (result) {
-        warn(csound,
-             Str("Could not create Jack connection from \"%s\" to \"%s\": "
-                 "status %d.\n"),
-             externalPortName,
-             csoundFullPortName,
-             result);
-        return result;
-      } else {
-        log(csound,
-            "Created Jack connection from \"%s\" to \"%s\".\n",
-            externalPortName,
-            csoundFullPortName);
-      }
-      jackoState->midiInPorts[csoundPortName] = csoundPort;
-      return result;
-  }
 };
 
 struct JackoMidiOutConnect : public OpcodeBase<JackoMidiOutConnect>
 {
-  // No outs.
-  // Ins.
-  STRINGDAT *ScsoundPortName;
-  STRINGDAT *SexternalPortName;
-  // State.
-  const char *csoundPortName;
-  char csoundFullPortName[0x100];
-  const char *externalPortName;
-  const char *clientName;
-  size_t frames;
-  jack_port_t *csoundPort;
-  jack_port_t *externalPort;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-      frames = opds.insdshead->ksmps;
-      clientName = jack_get_client_name(jackoState->jackClient);
-      csoundPortName = csound->strarg2name(csound,
-                                           (char *)0,
-                                           ScsoundPortName->data,
-                                           (char *)"",
-                                           (int) 1);
-      std::sprintf(csoundFullPortName, "%s:%s", clientName, csoundPortName);
-      externalPortName = csound->strarg2name(csound,
-                                             (char *) 0,
-                                             SexternalPortName->data,
-                                             (char *)"csound",
-                                             (int) 1);
-      csoundPort = jack_port_by_name(jackoState->jackClient, csoundFullPortName);
-      if (!csoundPort) {
-        csoundPort = jack_port_register(jackoState->jackClient,
-                                        csoundPortName, JACK_DEFAULT_MIDI_TYPE,
-                                        JackPortIsOutput, 0);
-        if (csoundPort) {
-          log(csound, "Created Jack port \"%s\".\n", csoundFullPortName);
-        } else {
-          warn(csound, Str("Could not create Jack port \"%s\".\n"),
-               csoundFullPortName);
+        // No outs.
+        // Ins.
+        STRINGDAT *ScsoundPortName;
+        STRINGDAT *SexternalPortName;
+        // State.
+        const char *csoundPortName;
+        char csoundFullPortName[0x100];
+        const char *externalPortName;
+        const char *clientName;
+        size_t frames;
+        jack_port_t *csoundPort;
+        jack_port_t *externalPort;
+        JackoState *jackoState;
+        int init(CSOUND *csound)
+        {
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int result = OK;
+                frames = opds.insdshead->ksmps;
+                clientName = jack_get_client_name(jackoState->jackClient);
+                csoundPortName = csound->strarg2name(csound,
+                                                     (char *)0,
+                                                     ScsoundPortName->data,
+                                                     (char *)"",
+                                                     (int) 1);
+                std::sprintf(csoundFullPortName, "%s:%s", clientName, csoundPortName);
+                externalPortName = csound->strarg2name(csound,
+                                                       (char *) 0,
+                                                       SexternalPortName->data,
+                                                       (char *)"csound",
+                                                       (int) 1);
+                csoundPort = jack_port_by_name(jackoState->jackClient, csoundFullPortName);
+                if (!csoundPort) {
+                        csoundPort = jack_port_register(jackoState->jackClient,
+                                                        csoundPortName, JACK_DEFAULT_MIDI_TYPE,
+                                                        JackPortIsOutput, 0);
+                        if (csoundPort) {
+                                log(csound, "Created Jack port \"%s\".\n", csoundFullPortName);
+                        } else {
+                                warn(csound, Str("Could not create Jack port \"%s\".\n"),
+                                     csoundFullPortName);
+                        }
+                }
+                externalPort = jack_port_by_name(jackoState->jackClient, externalPortName);
+                result = jack_connect(jackoState->jackClient, jack_port_name(csoundPort),
+                                      jack_port_name(externalPort));
+                if (result == EEXIST) {
+                        log(csound,
+                            "Connection from \"%s\" to \"%s\" already exists.\n",
+                            csoundFullPortName,
+                            externalPortName);
+                } else if (result) {
+                        warn(csound,
+                             Str("Could not create Jack connection from \"%s\" to \"%s\": "
+                                 "status %d.\n"),
+                             csoundFullPortName,
+                             externalPortName,
+                             result);
+                        return result;
+                } else {
+                        log(csound,
+                            "Created Jack connection from \"%s\" to \"%s\".\n",
+                            csoundFullPortName,
+                            externalPortName);
+                }
+                jackoState->midiOutPorts[csoundPortName] = csoundPort;
+                return result;
         }
-      }
-      externalPort = jack_port_by_name(jackoState->jackClient, externalPortName);
-      result = jack_connect(jackoState->jackClient, jack_port_name(csoundPort),
-                            jack_port_name(externalPort));
-      if (result == EEXIST) {
-        log(csound,
-            "Connection from \"%s\" to \"%s\" already exists.\n",
-            csoundFullPortName,
-            externalPortName);
-      } else if (result) {
-        warn(csound,
-             Str("Could not create Jack connection from \"%s\" to \"%s\": "
-                 "status %d.\n"),
-             csoundFullPortName,
-             externalPortName,
-             result);
-        return result;
-      } else {
-        log(csound,
-            "Created Jack connection from \"%s\" to \"%s\".\n",
-            csoundFullPortName,
-            externalPortName);
-      }
-      jackoState->midiOutPorts[csoundPortName] = csoundPort;
-      return result;
-  }
 };
 
 struct JackoMidiOut : public OpcodeBase<JackoMidiOut>
 {
-  // No outs.
-  // Ins.
-  STRINGDAT *ScsoundPortName;
-  MYFLT *kstatus;
-  MYFLT *kchannel;
-  MYFLT *kdata1;
-  MYFLT *kdata2;
-  char status;
-  char channel;
-  char data1;
-  char data2;
-  char priorstatus;
-  char priorchannel;
-  char priordata1;
-  char priordata2;
-  // State.
-  const char *csoundPortName;
-  jack_port_t *csoundPort;
-  jack_nframes_t csoundFramesPerTick;
-  jack_midi_data_t *buffer;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-
-      csoundFramesPerTick = jackoState->csoundFramesPerTick;
-      csoundPortName = csound->strarg2name(csound,
-                                           (char *)0,
-                                           ScsoundPortName->data,
-                                           (char *)"",
-                                           (int) 1);
-      csoundPort = jackoState->midiOutPorts[csoundPortName];
-      priorstatus = -1;
-      priorchannel = -1;
-      priordata1 = -1;
-      priordata2 = -1;
-      return result;
-  }
-  int kontrol(CSOUND *csound)
-  {
-      int result = OK;
-      status = *kstatus;
-      channel = *kchannel;
-      data1 = *kdata1;
-      data2 = *kdata2;
-      if (status != priorstatus ||
-          channel != priorchannel ||
-          data1 != priordata1 ||
-          data2 != priordata2) {
-        size_t dataSize = 0;
-        if (data2 == -1) {
-          dataSize = 2;
-        } else {
-          dataSize = 3;
+        // No outs.
+        // Ins.
+        STRINGDAT *ScsoundPortName;
+        MYFLT *kstatus;
+        MYFLT *kchannel;
+        MYFLT *kdata1;
+        MYFLT *kdata2;
+        char status;
+        char channel;
+        char data1;
+        char data2;
+        char priorstatus;
+        char priorchannel;
+        char priordata1;
+        char priordata2;
+        // State.
+        const char *csoundPortName;
+        jack_port_t *csoundPort;
+        jack_nframes_t csoundFramesPerTick;
+        jack_midi_data_t *buffer;
+        JackoState *jackoState;
+        int init(CSOUND *csound)
+        {
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int result = OK;
+                csoundFramesPerTick = jackoState->csoundFramesPerTick;
+                csoundPortName = csound->strarg2name(csound,
+                                                     (char *)0,
+                                                     ScsoundPortName->data,
+                                                     (char *)"",
+                                                     (int) 1);
+                csoundPort = jackoState->midiOutPorts[csoundPortName];
+                priorstatus = -1;
+                priorchannel = -1;
+                priordata1 = -1;
+                priordata2 = -1;
+                return result;
         }
-        buffer = jackoState->getMidiOutBuffer(csoundPort);
-        jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, dataSize);
-        data[0] = (status + channel);
-        data[1] = data1;
-        if (data2 != -1) {
-          data[2] = data2;
-          //log(csound, "MIDI:  %3d %3d %3d\n", data[0], data[1], data[2]);
-        } else {
-          //log(csound, "MIDI:  %3d %3d\n", data[0], data[1]);
+        int kontrol(CSOUND *csound)
+        {
+                int result = OK;
+                status = *kstatus;
+                channel = *kchannel;
+                data1 = *kdata1;
+                data2 = *kdata2;
+                if (status != priorstatus ||
+                        channel != priorchannel ||
+                        data1 != priordata1 ||
+                        data2 != priordata2) {
+                        size_t dataSize = 0;
+                        if (data2 == -1) {
+                                dataSize = 2;
+                        } else {
+                                dataSize = 3;
+                        }
+                        buffer = jackoState->getMidiOutBuffer(csoundPort);
+                        jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, dataSize);
+                        data[0] = (status + channel);
+                        data[1] = data1;
+                        if (data2 != -1) {
+                                data[2] = data2;
+                                //log(csound, "MIDI:  %3d %3d %3d\n", data[0], data[1], data[2]);
+                        } else {
+                                //log(csound, "MIDI:  %3d %3d\n", data[0], data[1]);
+                        }
+                }
+                priorstatus = status;
+                priorchannel = channel;
+                priordata1 = data1;
+                priordata2 = data2;
+                return result;
         }
-      }
-      priorstatus = status;
-      priorchannel = channel;
-      priordata1 = data1;
-      priordata2 = data2;
-      return result;
-  }
 };
 
 struct JackoNoteOut : public OpcodeNoteoffBase<JackoNoteOut>
 {
-  // No outs.
-  // Ins.
-  STRINGDAT *ScsoundPortName;
-  MYFLT *ichannel;
-  MYFLT *ikey;
-  MYFLT *ivelocity;
-  char status;
-  char channel;
-  char key;
-  char velocity;
-  // State.
-  const char *csoundPortName;
-  jack_port_t *csoundPort;
-  jack_nframes_t csoundFramesPerTick;
-  jack_midi_data_t *buffer;
-  int init(CSOUND *csound)
-  {
-      int result = OK;
-      csoundFramesPerTick = jackoState->csoundFramesPerTick;
-      csoundPortName = csound->strarg2name(csound,
-                                           (char *)0,
-                                           ScsoundPortName->data,
-                                           (char *)"",
-                                           (int) 1);
-      csoundPort = jackoState->midiOutPorts[csoundPortName];
-      status = 144;
-      channel = (char) *ichannel;
-      key = (char) *ikey;
-      velocity = (char) *ivelocity;
-      buffer = jackoState->getMidiOutBuffer(csoundPort);
-      jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, 3);
-      data[0] = (status + channel);
-      data[1] = key;
-      data[2] = velocity;
-      //log(csound, "noteon:  %3d %3d %3d\n", data[0], data[1], data[2]);
-      return result;
-  }
-  int noteoff(CSOUND *csound)
-  {
-      int result = OK;
-      buffer = jackoState->getMidiOutBuffer(csoundPort);
-      jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, 3);
-      data[0] = (status + channel);
-      data[1] = key;
-      data[2] = 0;
-      //log(csound, "noteoff: %3d %3d %3d\n", data[0], data[1], data[2]);
-      return result;
-  }
+        // No outs.
+        // Ins.
+        STRINGDAT *ScsoundPortName;
+        MYFLT *ichannel;
+        MYFLT *ikey;
+        MYFLT *ivelocity;
+        char status;
+        char channel;
+        char key;
+        char velocity;
+        // State.
+        const char *csoundPortName;
+        jack_port_t *csoundPort;
+        jack_nframes_t csoundFramesPerTick;
+        jack_midi_data_t *buffer;
+        JackoState *jackoState;
+        int init(CSOUND *csound)
+        {
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                int result = OK;
+                csoundFramesPerTick = jackoState->csoundFramesPerTick;
+                csoundPortName = csound->strarg2name(csound,
+                                                     (char *)0,
+                                                     ScsoundPortName->data,
+                                                     (char *)"",
+                                                     (int) 1);
+                csoundPort = jackoState->midiOutPorts[csoundPortName];
+                status = 144;
+                channel = (char) *ichannel;
+                key = (char) *ikey;
+                velocity = (char) *ivelocity;
+                buffer = jackoState->getMidiOutBuffer(csoundPort);
+                jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, 3);
+                data[0] = (status + channel);
+                data[1] = key;
+                data[2] = velocity;
+                //log(csound, "noteon:  %3d %3d %3d\n", data[0], data[1], data[2]);
+                return result;
+        }
+        int noteoff(CSOUND *csound)
+        {
+                int result = OK;
+                buffer = jackoState->getMidiOutBuffer(csoundPort);
+                jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, 3);
+                data[0] = (status + channel);
+                data[1] = key;
+                data[2] = 0;
+                //log(csound, "noteoff: %3d %3d %3d\n", data[0], data[1], data[2]);
+                return result;
+        }
 };
 
 struct JackoTransport : public OpcodeBase<JackoTransport>
 {
-  // Outs.
-  // Ins.
-  MYFLT *kcommand;
-  MYFLT *Oposition;
-  // State.
-  int command;
-  int priorCommand;
-  double positionSeconds;
-  double priorPositionSeconds;
-  int init(CSOUND *csound)
-  {
-      priorCommand = -1;
-      priorPositionSeconds = 0.0;
-      return kontrol(csound);
-  }
-  int kontrol(CSOUND *csound)
-  {
-      int result = OK;
-      command = int(*kcommand);
-      positionSeconds = double(*Oposition);
-      if (command) {
-        if (command != priorCommand) {
-          priorCommand = command;
-          switch(command) {
-          case 1:
-            result = jackoState->positionTransport(0.0);
-            jackoState->startTransport();
-            log(csound, "Started Jack transport.\n");
-            break;
-        case 2:
-            jackoState->stopTransport();
-            log(csound, "Stopped Jack transport.\n");
-            break;
-        case 3:
-            if (positionSeconds != priorPositionSeconds) {
-              priorPositionSeconds = positionSeconds;
-              result = jackoState->positionTransport(positionSeconds);
-              jackoState->startTransport();
-              if (result) {
-                log(csound, "Failed to start Jack transport at %f seconds with"
-                    " result: %d\n", positionSeconds, result);
-              } else {
-                log(csound, "Started Jack transport at %f seconds.\n",
-                    positionSeconds);
-              }
-            }
-            break;
-         };
+        // Outs.
+        // Ins.
+        MYFLT *kcommand;
+        MYFLT *Oposition;
+        // State.
+        int command;
+        int priorCommand;
+        double positionSeconds;
+        double priorPositionSeconds;
+        JackoState *jackoState;
+        int init(CSOUND *csound)
+        {
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                priorCommand = -1;
+                priorPositionSeconds = 0.0;
+                return kontrol(csound);
         }
-      }
-      return result;
-  }
+        int kontrol(CSOUND *csound)
+        {
+                int result = OK;
+                command = int(*kcommand);
+                positionSeconds = double(*Oposition);
+                if (command) {
+                        if (command != priorCommand) {
+                                priorCommand = command;
+                                switch (command) {
+                                case 1:
+                                        result = jackoState->positionTransport(0.0);
+                                        jackoState->startTransport();
+                                        log(csound, "Started Jack transport.\n");
+                                        break;
+                                case 2:
+                                        jackoState->stopTransport();
+                                        log(csound, "Stopped Jack transport.\n");
+                                        break;
+                                case 3:
+                                        if (positionSeconds != priorPositionSeconds) {
+                                                priorPositionSeconds = positionSeconds;
+                                                result = jackoState->positionTransport(positionSeconds);
+                                                jackoState->startTransport();
+                                                if (result) {
+                                                        log(csound, "Failed to start Jack transport at %f seconds with"
+                                                            " result: %d\n", positionSeconds, result);
+                                                } else {
+                                                        log(csound, "Started Jack transport at %f seconds.\n",
+                                                            positionSeconds);
+                                                }
+                                        }
+                                        break;
+                                };
+                        }
+                }
+                return result;
+        }
 };
 
 extern "C"
 {
-  static OENTRY oentries[] = {
-    {
-      (char *)"JackoInit",
-      sizeof(JackoInit),
-      0,
-      1,
-      (char *)"",
-      (char *)"SS",
-      (SUBR)&JackoInit::init_,
-      0,
-      0
-    },
-    {
-      (char *)"JackoInfo",
-      sizeof(JackoInfo),
-      0,
-      1,
-      (char *)"",
-      (char *)"",
-      (SUBR)&JackoInfo::init_,
-      0,
-      0
-    },
-    {
-      (char *)"JackoFreewheel",
-      sizeof(JackoFreewheel),
-      0,
-      1,
-      (char *)"",
-      (char *)"i",
-      (SUBR)&JackoFreewheel::init_,
-      0,
-      0
-    },
-    {
-      (char *)"JackoOn",
-      sizeof(JackoOn),
-      0,
-      1,
-      (char *)"",
-      (char *)"j",
-      (SUBR)&JackoOn::init_,
-      0,
-      0
-    },
-    {
-      (char *)"JackoAudioInConnect",
-      sizeof(JackoAudioInConnect),
-      0,
-      1,
-      (char *)"",
-      (char *)"SS",
-      (SUBR)&JackoAudioInConnect::init_,
-      0,
-      0,
-    },
-    {
-      (char *)"JackoAudioIn",
-      sizeof(JackoAudioIn),
-      0,
-      5,
-      (char *)"a",
-      (char *)"S",
-      (SUBR)&JackoAudioIn::init_,
-      0,
-      (SUBR)&JackoAudioIn::audio_,
-    },
-    {
-      (char *)"JackoAudioOutConnect",
-      sizeof(JackoAudioOutConnect),
-      0,
-      1,
-      (char *)"",
-      (char *)"SS",
-      (SUBR)&JackoAudioOutConnect::init_,
-      0,
-      0,
-    },
-    {
-      (char *)"JackoAudioOut",
-      sizeof(JackoAudioOut),
-      0,
-      5,
-      (char *)"",
-      (char *)"Sa",
-      (SUBR)&JackoAudioOut::init_,
-      0,
-      (SUBR)&JackoAudioOut::audio_,
-    },
-    {
-      (char *)"JackoMidiInConnect",
-      sizeof(JackoMidiInConnect),
-      0,
-      1,
-      (char *)"",
-      (char *)"SS",
-      (SUBR)&JackoMidiInConnect::init_,
-      0,
-      0,
-    },
-    {
-      (char *)"JackoMidiOutConnect",
-      sizeof(JackoMidiOutConnect),
-      0,
-      1,
-      (char *)"",
-      (char *)"SS",
-      (SUBR)&JackoMidiOutConnect::init_,
-      0,
-      0,
-    },
-    {
-      (char *)"JackoMidiOut",
-      sizeof(JackoMidiOut),
-      0,
-      3,
-      (char *)"",
-      (char *)"SkkkO",
-      (SUBR)&JackoMidiOut::init_,
-      (SUBR)&JackoMidiOut::kontrol_,
-      0,
-    },
-    {
-      (char *)"JackoNoteOut",
-      sizeof(JackoNoteOut),
-      0,
-      3,
-      (char *)"",
-      (char *)"Siii",
-      (SUBR)&JackoNoteOut::init_,
-      (SUBR)&JackoNoteOut::kontrol_,
-      0
-    },
-    {
-      (char *)"JackoTransport",
-      sizeof(JackoTransport),
-      0,
-      3,
-      (char *)"",
-      (char *)"kO", // O defaults to 0.
-      (SUBR)&JackoTransport::init_,
-      (SUBR)&JackoTransport::kontrol_,
-      0
-    },
-    { 0, 0, 0, 0, 0, 0, (SUBR) 0, (SUBR) 0, (SUBR) 0 }
-  };
+        static OENTRY oentries[] = {
+                {
+                        (char *)"JackoInit",
+                        sizeof(JackoInit),
+                        0,
+                        1,
+                        (char *)"",
+                        (char *)"SS",
+                        (SUBR) &JackoInit::init_,
+                        0,
+                        0
+                },
+                {
+                        (char *)"JackoInfo",
+                        sizeof(JackoInfo),
+                        0,
+                        1,
+                        (char *)"",
+                        (char *)"",
+                        (SUBR) &JackoInfo::init_,
+                        0,
+                        0
+                },
+                {
+                        (char *)"JackoFreewheel",
+                        sizeof(JackoFreewheel),
+                        0,
+                        1,
+                        (char *)"",
+                        (char *)"i",
+                        (SUBR) &JackoFreewheel::init_,
+                        0,
+                        0
+                },
+                {
+                        (char *)"JackoOn",
+                        sizeof(JackoOn),
+                        0,
+                        1,
+                        (char *)"",
+                        (char *)"j",
+                        (SUBR) &JackoOn::init_,
+                        0,
+                        0
+                },
+                {
+                        (char *)"JackoAudioInConnect",
+                        sizeof(JackoAudioInConnect),
+                        0,
+                        1,
+                        (char *)"",
+                        (char *)"SS",
+                        (SUBR) &JackoAudioInConnect::init_,
+                        0,
+                        0,
+                },
+                {
+                        (char *)"JackoAudioIn",
+                        sizeof(JackoAudioIn),
+                        0,
+                        5,
+                        (char *)"a",
+                        (char *)"S",
+                        (SUBR) &JackoAudioIn::init_,
+                        0,
+                        (SUBR) &JackoAudioIn::audio_,
+                },
+                {
+                        (char *)"JackoAudioOutConnect",
+                        sizeof(JackoAudioOutConnect),
+                        0,
+                        1,
+                        (char *)"",
+                        (char *)"SS",
+                        (SUBR) &JackoAudioOutConnect::init_,
+                        0,
+                        0,
+                },
+                {
+                        (char *)"JackoAudioOut",
+                        sizeof(JackoAudioOut),
+                        0,
+                        5,
+                        (char *)"",
+                        (char *)"Sa",
+                        (SUBR) &JackoAudioOut::init_,
+                        0,
+                        (SUBR) &JackoAudioOut::audio_,
+                },
+                {
+                        (char *)"JackoMidiInConnect",
+                        sizeof(JackoMidiInConnect),
+                        0,
+                        1,
+                        (char *)"",
+                        (char *)"SS",
+                        (SUBR) &JackoMidiInConnect::init_,
+                        0,
+                        0,
+                },
+                {
+                        (char *)"JackoMidiOutConnect",
+                        sizeof(JackoMidiOutConnect),
+                        0,
+                        1,
+                        (char *)"",
+                        (char *)"SS",
+                        (SUBR) &JackoMidiOutConnect::init_,
+                        0,
+                        0,
+                },
+                {
+                        (char *)"JackoMidiOut",
+                        sizeof(JackoMidiOut),
+                        0,
+                        3,
+                        (char *)"",
+                        (char *)"SkkkO",
+                        (SUBR) &JackoMidiOut::init_,
+                        (SUBR) &JackoMidiOut::kontrol_,
+                        0,
+                },
+                {
+                        (char *)"JackoNoteOut",
+                        sizeof(JackoNoteOut),
+                        0,
+                        3,
+                        (char *)"",
+                        (char *)"Siii",
+                        (SUBR) &JackoNoteOut::init_,
+                        (SUBR) &JackoNoteOut::kontrol_,
+                        0
+                },
+                {
+                        (char *)"JackoTransport",
+                        sizeof(JackoTransport),
+                        0,
+                        3,
+                        (char *)"",
+                        (char *)"kO", // O defaults to 0.
+                        (SUBR) &JackoTransport::init_,
+                        (SUBR) &JackoTransport::kontrol_,
+                        0
+                },
+                { 0, 0, 0, 0, 0, 0, (SUBR) 0, (SUBR) 0, (SUBR) 0 }
+        };
 
 
-  PUBLIC int csoundModuleCreate(CSOUND *csound)
-  {
-    return 0;
-  }
-
-  PUBLIC int csoundModuleInit(CSOUND *csound)
-  {
-    OENTRY *ep = (OENTRY *)&(oentries[0]);
-    int  err = 0;
-    while (ep->opname != 0) {
-      err |= csound->AppendOpcode(csound,
-                                  ep->opname,
-                                  ep->dsblksiz,
-                                  ep->flags,
-                                  ep->thread,
-                                  ep->outypes,
-                                  ep->intypes,
-                                  (int (*)(CSOUND *, void*)) ep->iopadr,
-                                  (int (*)(CSOUND *, void*)) ep->kopadr,
-                                  (int (*)(CSOUND *, void*)) ep->aopadr);
-      ep++;
-    }
-    return err;
-  }
-
-  PUBLIC int csoundModuleDestroy(CSOUND *csound)
-  {
-    int result = OK;
-        if (jackoState != 0) {
-            delete jackoState;
-            jackoState = 0;
+        PUBLIC int csoundModuleCreate(CSOUND *csound)
+        {
+                return 0;
         }
-    return result;
-  }
+
+        PUBLIC int csoundModuleInit(CSOUND *csound)
+        {
+                OENTRY *ep = (OENTRY *)&(oentries[0]);
+                int  err = 0;
+                while (ep->opname != 0) {
+                        err |= csound->AppendOpcode(csound,
+                                                    ep->opname,
+                                                    ep->dsblksiz,
+                                                    ep->flags,
+                                                    ep->thread,
+                                                    ep->outypes,
+                                                    ep->intypes,
+                                                    (int (*)(CSOUND *, void *)) ep->iopadr,
+                                                    (int (*)(CSOUND *, void *)) ep->kopadr,
+                                                    (int (*)(CSOUND *, void *)) ep->aopadr);
+                        ep++;
+                }
+                return err;
+        }
+
+        PUBLIC int csoundModuleDestroy(CSOUND *csound)
+        {
+                int result = OK;
+                JackoState *jackoState =  0;
+                csound::QueryGlobalPointer(csound, "jackoState", jackoState);
+                if (jackoState) {
+                        delete jackoState;
+                        jackoState = 0;
+                }
+                return result;
+        }
 }

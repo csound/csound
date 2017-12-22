@@ -738,15 +738,16 @@ extern "C"
   {
       const char* path = csound->GetEnv(csound, "RAWWAVE_PATH");
 #ifdef DEFAULT_RAWWAVE_PATH
-    if(!path)
+    if (!path)
         path = DEFAULT_RAWWAVE_PATH;
 #endif
-    if(path == NULL)
+    if (path == NULL)
       {
-        csound->Warning(csound,
-                        Str("STK opcodes not available: define environment "
-                            "variable RAWWAVE_PATH\n"
-                             "(points to rawwaves directory) to use STK opcodes."));
+        if (UNLIKELY(csound->GetDebug(csound)))
+          csound->Warning(csound,
+                          Str("STK opcodes not available: define environment "
+                              "variable RAWWAVE_PATH\n(points "
+                              "to rawwaves directory) to use STK opcodes."));
         return 0;
       }
     else
