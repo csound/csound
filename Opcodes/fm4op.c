@@ -33,7 +33,7 @@
 /*  should worry about this (making money) worry away.   */
 /*                                                       */
 /*********************************************************/
-// #include "csdl.h"
+
 #include "csoundCore.h"
 #include "fm4op.h"
 
@@ -75,28 +75,29 @@ MYFLT TwoZero_tick(TwoZero *p, MYFLT sample)
 
 MYFLT Wave_tick(MYFLT *vTime, int len, MYFLT *data, MYFLT rate, MYFLT phase)
 {                                /* Tick on vibrato table */
-    int32    temp;
-    MYFLT   temp_time, alpha;
+    int32   temp;
+    MYFLT   alpha;
     MYFLT   lastOutput;
+    MYFLT   vvTime = *vTime;
 
-    *vTime += rate;            /*  Update current time    */
-    while (*vTime >= len)      /*  Check for end of sound */
-      *vTime -= len;           /*  loop back to beginning */
-    while (*vTime < FL(0.0))       /*  Check for end of sound */
-      *vTime += len;           /*  loop back to beginning */
+    vvTime += rate;            /*  Update current time    */
+    while (vvTime >= len)      /*  Check for end of sound */
+      vvTime -= len;           /*  loop back to beginning */
+    while (vvTime < FL(0.0))       /*  Check for end of sound */
+      vvTime += len;           /*  loop back to beginning */
 
-    temp_time = *vTime;
+    *vTime = vvTime;
 
     if (phase != FL(0.0)) {
-      temp_time += phase;      /*  Add phase offset       */
-      while (temp_time >= len) /*  Check for end of sound */
-        temp_time -= len;      /*  loop back to beginning */
-      while (temp_time < FL(0.0))  /*  Check for end of sound */
-        temp_time += len;      /*  loop back to beginning */
+      vvTime += phase;      /*  Add phase offset       */
+      while (vvTime >= len) /*  Check for end of sound */
+        vvTime -= len;      /*  loop back to beginning */
+      while (vvTime < FL(0.0))  /*  Check for end of sound */
+        vvTime += len;      /*  loop back to beginning */
     }
-    temp = (int32) temp_time;  /*  Integer part of time address    */
+    temp = (int32) vvTime;  /*  Integer part of time address    */
     /*  fractional part of time address */
-    alpha = temp_time - (MYFLT)temp;
+    alpha = vvTime - (MYFLT)temp;
     lastOutput = data[temp];   /* Do linear interpolation */
     /* same as alpha*data[temp+1] + (1-alpha)data[temp] */
     lastOutput += (alpha * (data[temp+1] - lastOutput));

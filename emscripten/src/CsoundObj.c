@@ -21,22 +21,19 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <emscripten.h>
-#include <SDL/SDL_audio.h>
+
+extern int init_static_modules(CSOUND *csound);
 
 typedef struct {
-
   unsigned char status;
   unsigned char data1;
   unsigned char data2;
   unsigned char flag;
-
 } MidiData;
 
 typedef struct  {
-
   MidiData *midiData;
   int p, q;
-
 } MidiCallbackData;
 
 #define MIDI_QUEUE_SIZE 1024
@@ -50,11 +47,9 @@ typedef struct _CsoundObj
   uint32_t zerodBFS;
   MidiCallbackData *midiCallbackData;
   uint32_t status;
-  SDL_AudioSpec spec;
-  int cnt;
 } CsoundObj;
 
-
+EMSCRIPTEN_KEEPALIVE 
 CsoundObj *CsoundObj_new()
 {
   CsoundObj *self = calloc(1, sizeof(CsoundObj));
@@ -65,14 +60,21 @@ CsoundObj *CsoundObj_new()
   return self;
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_destroy(CsoundObj *self)
 {
   csoundDestroy(self->csound);
   free(self);
 }
 
-void CsoundObj_compileCSD(CsoundObj *self,
-			  char *csd)
+EMSCRIPTEN_KEEPALIVE 
+void CsoundObj_setOption(CsoundObj *self, const char *option)
+{
+  csoundSetOption(self->csound, option);
+}
+
+EMSCRIPTEN_KEEPALIVE 
+void CsoundObj_compileCSD(CsoundObj *self, char *csd)
 {
     csoundMessage(self->csound, "CsoundObj_compileCSD...\n");
     int result = 0;
@@ -80,6 +82,7 @@ void CsoundObj_compileCSD(CsoundObj *self,
         csoundMessage(self->csound, "Error: Null CSD.\n");
         return;
     }
+    result = init_static_modules(self->csound);
     // See if this is a filename or the text of a CSD.
     char *csd_start_tag = strstr(csd, "<CsoundSynthesizer>");
     char *csd_end_tag =  strstr(csd, "</CsoundSynthesizer>");
@@ -108,92 +111,108 @@ void CsoundObj_compileCSD(CsoundObj *self,
     }
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_prepareRT(CsoundObj *self) {
   csoundSetHostImplementedAudioIO(self->csound, 1, 0);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 uint32_t CsoundObj_compileOrc(CsoundObj *self, const char *string)
 {
-  int returnValue = csoundCompileOrc(self->csound, (char *) string);
-  if(self->status == CS_RESET_STATUS) csoundStart(self->csound);
+  int returnValue = init_static_modules(self->csound);
+  returnValue |= csoundCompileOrc(self->csound, (char *) string);
+  if(self->status == CS_RESET_STATUS) {
+   csoundStart(self->csound);
+   self->status = CS_STARTED_STATUS;
+  }
   return returnValue;
 }
 
+EMSCRIPTEN_KEEPALIVE 
+float CsoundObj_evaluateCode(CsoundObj *self, const char *code_text)
+{
+    float result = csoundEvalCode(self->csound, code_text);    
+    return result; 
+}
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_render(CsoundObj *self) 
 {
-  while(csoundPerformKsmps(self->csound) == 0);
+  while(csoundPerformKsmps(self->csound) == 0){};
   csoundCleanup(self->csound);
 }
 
-float CsoundObj_evaluateCode(CsoundObj *self, const char *codeString)
-{
-  return csoundEvalCode(self->csound, codeString);
-}
-
+EMSCRIPTEN_KEEPALIVE 
 int CsoundObj_readScore(CsoundObj *self, const char *scoreString)
 {
   return csoundReadScore(self->csound, scoreString);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 float CsoundObj_getControlChannel(CsoundObj *self, const char *channelName) {
-
   int *error = NULL;
   float returnValue = csoundGetControlChannel(self->csound, channelName, error);
   if (error != NULL) {
-
     printf("CsoundObj.getControlChannel: Error %d\n", *error);
     return 0;
-  }
-  else {
-
+  } else {
     return returnValue;
   }
 }
 
+EMSCRIPTEN_KEEPALIVE 
 float CsoundObj_getScoreTime(CsoundObj *self) {
   return csoundGetScoreTime(self->csound);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_setTable(CsoundObj *self, int num, int index, float val) {
   csoundTableSet(self->csound, num, index, val);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_setControlChannel(CsoundObj *self, const char *channelName, float value) {
 
   csoundSetControlChannel(self->csound, channelName, value);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_setStringChannel(CsoundObj *self, const char *channelName, char *string) {
 
   csoundSetStringChannel(self->csound, channelName, string);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 float *CsoundObj_getOutputBuffer(CsoundObj *self)
 {
   return csoundGetSpout(self->csound);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 float *CsoundObj_getInputBuffer(CsoundObj *self)
 {
   return csoundGetSpin(self->csound);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 int CsoundObj_getKsmps(CsoundObj *self)
 {
   return csoundGetKsmps(self->csound);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 int CsoundObj_performKsmps(CsoundObj *self)
 {
   return csoundPerformKsmps(self->csound);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 size_t CsoundObj_getZerodBFS(CsoundObj *self) 
 {
   return csoundGet0dBFS(self->csound);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_reset(CsoundObj *self)
 {
   csoundCleanup(self->csound);
@@ -201,21 +220,25 @@ void CsoundObj_reset(CsoundObj *self)
   self->status = CS_RESET_STATUS;
 }
 
+EMSCRIPTEN_KEEPALIVE 
 int CsoundObj_getInputChannelCount(CsoundObj *self)
 {
   return csoundGetNchnlsInput(self->csound);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 int CsoundObj_getOutputChannelCount(CsoundObj *self)
 {
   return csoundGetNchnls(self->csound);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 int CsoundObj_getTableLength(CsoundObj *self, int tableNumber)
 {
   return csoundGetTable(self->csound, NULL, tableNumber);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 float *CsoundObj_getTable(CsoundObj *self, int tableNumber)
 {
   float *tablePointer;
@@ -223,22 +246,21 @@ float *CsoundObj_getTable(CsoundObj *self, int tableNumber)
   return tablePointer;
 }
 
-
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_setOutputChannelCallback(CsoundObj *self, void (*outputCallback)(CSOUND *csound, const char *channelName, void *valuePointer, const void *channelType))
 {
   csoundSetOutputChannelCallback(self->csound, outputCallback);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_pushMidiMessage(CsoundObj *self, unsigned char status, unsigned char data1, unsigned char data2)
 {
   self->midiCallbackData->midiData[self->midiCallbackData->p].status = status;
   self->midiCallbackData->midiData[self->midiCallbackData->p].data1 = data1;
   self->midiCallbackData->midiData[self->midiCallbackData->p].data2= data2;
   self->midiCallbackData->midiData[self->midiCallbackData->p].flag = 1;
-
   self->midiCallbackData->p++;
   if (self->midiCallbackData->p == MIDI_QUEUE_SIZE) {
-
     self->midiCallbackData->p = 0;
   }
 }
@@ -249,32 +271,24 @@ static const int datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0  };
 /* csound MIDI read callback, called every k-cycle */
 static int CsoundObj_midiDataRead(CSOUND *csound, void *userData, unsigned char *mbuf, int nbytes)
 {
-
   CsoundObj *self = csoundGetHostData(csound);
   MidiCallbackData *data = self->midiCallbackData;
-
   if(data == NULL) return 0;
-
   MidiData *mdata = data->midiData;
-
   int *q = &data->q, st, d1, d2, n = 0;
-
   /* check if there is new data on circular queue */
   while (mdata[*q].flag) {
     st = (int) mdata[*q].status;
     d1 = (int) mdata[*q].data1;
     d2 = (int) mdata[*q].data2;
-
     if (st < 0x80)
       goto next;
-
     if (st >= 0xF0 &&
-	!(st == 0xF8 || st == 0xFA || st == 0xFB ||
-	  st == 0xFC || st == 0xFF))
+    !(st == 0xF8 || st == 0xFA || st == 0xFB ||
+      st == 0xFC || st == 0xFF))
       goto next;
     nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
     if (nbytes < 0) break;
-
     /* write to csound midi buffer */
     n += (datbyts[(st - 0x80) >> 4] + 1);
     switch (datbyts[(st - 0x80) >> 4]) {
@@ -290,30 +304,30 @@ static int CsoundObj_midiDataRead(CSOUND *csound, void *userData, unsigned char 
       *mbuf++ = (unsigned char) d1;
       *mbuf++ = (unsigned char) d2;
       break;
-
     } 
   next:
     mdata[*q].flag = 0;
     (*q)++;
     if(*q== MIDI_QUEUE_SIZE) *q = 0;
-
   }
-
   /* return the number of bytes read */
   return n;
 
 }
 
+EMSCRIPTEN_KEEPALIVE 
 static int CsoundObj_midiInOpen(CSOUND *csound, void **userData, const char *dev)
 {
   return OK;
 }
 
+EMSCRIPTEN_KEEPALIVE 
 static int CsoundObj_midiInClose(CSOUND *csound, void *userData)
 {
   return OK;
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_setMidiCallbacks(CsoundObj *self)
 {
   csoundSetHostImplementedMIDIIO(self->csound, 1);
@@ -322,55 +336,19 @@ void CsoundObj_setMidiCallbacks(CsoundObj *self)
   csoundSetExternalMidiInCloseCallback(self->csound, CsoundObj_midiInClose);
 }
 
-/* SDL Audio implementation 
-   VL, June 2017
- */
-void playback(void*  userdata,
-              Uint8* stream,
-	      int    len){
-
-  CsoundObj *self = ((CsoundObj *) userdata);
-  CSOUND *csound = self->csound;
-  short *samples = (short *)stream;
-  MYFLT *data = csoundGetSpout(csound);
-  int i, n = len/sizeof(short);
-  MYFLT scal = csoundGet0dBFS(csound);
-  int ksmps = csoundGetKsmps(csound)*csoundGetNchnls(csound);
-
-  for(i = 0; i < n; i++) {
-    if(self->cnt == ksmps) {
-      csoundPerformKsmps(csound);
-      self->cnt = 0;
-    }
-    samples[i] = data[self->cnt++]*32768/scal;
-  }
-}
-  
+EMSCRIPTEN_KEEPALIVE 
 int CsoundObj_openAudioOut(CsoundObj *self) {
- SDL_AudioSpec inSpec;
- inSpec.freq = csoundGetSr(self->csound);
- inSpec.format = AUDIO_S16;
- inSpec.channels = csoundGetNchnls(self->csound);
- inSpec.samples =  csoundGetOutputBufferSize(self->csound);
- inSpec.callback = playback;
- inSpec.userdata = (void *) self;
- int res = SDL_OpenAudio(&inSpec, &(self->spec));
- if (res == 0) {
-    printf("Failed to open audio: %s", SDL_GetError());
-    return CSOUND_ERROR;
- }
- self->cnt = csoundGetKsmps(self->csound)*csoundGetNchnls(self->csound);
  return 0;
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_play(CsoundObj *self) {
-   SDL_PauseAudio(0);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_pause(CsoundObj *self) {
-   SDL_PauseAudio(1);
 }
 
+EMSCRIPTEN_KEEPALIVE 
 void CsoundObj_closeAudioOut(CsoundObj *self) {
-  SDL_CloseAudio();
 }

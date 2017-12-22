@@ -182,8 +182,10 @@ libcsound.csoundParseOrc.restype = c_void_p
 libcsound.csoundParseOrc.argtypes = [c_void_p, c_char_p]
 
 libcsound.csoundCompileTree.argtypes = [c_void_p, c_void_p]
+libcsound.csoundCompileTreeAsync.argtypes = [c_void_p, c_void_p]
 libcsound.csoundDeleteTree.argtypes = [c_void_p, c_void_p]
 libcsound.csoundCompileOrc.argtypes = [c_void_p, c_char_p]
+libcsound.csoundCompileOrcAsync.argtypes = [c_void_p, c_char_p]
 
 libcsound.csoundEvalCode.restype = MYFLT
 libcsound.csoundEvalCode.argtypes = [c_void_p, c_char_p]
@@ -200,6 +202,12 @@ libcsound.csoundPerformBuffer.argtypes = [c_void_p]
 libcsound.csoundStop.argtypes = [c_void_p]
 libcsound.csoundCleanup.argtypes = [c_void_p]
 libcsound.csoundReset.argtypes = [c_void_p]
+
+libcsound.csoundUDPServerStart.argtypes = [c_void_p, c_uint]
+libcsound.csoundUDPServerStatus.argtypes = [c_void_p]
+libcsound.csoundUDPServerClose.argtypes = [c_void_p]
+libcsound.csoundUDPConsole.argtypes = [c_void_p, c_char_p, c_uint, c_uint]
+libcsound.csoundStopUDPConsole.argtypes = [c_void_p]
 
 libcsound.csoundGetSr.restype = MYFLT
 libcsound.csoundGetSr.argtypes = [c_void_p]
@@ -297,6 +305,7 @@ MIDIDEVLISTFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(CsoundMidiDevice), c_int)
 libcsound.csoundSetMIDIDeviceListCallback.argtypes = [c_void_p, MIDIDEVLISTFUNC]
 
 libcsound.csoundReadScore.argtypes = [c_void_p, c_char_p]
+libcsound.csoundReadScoreAsync.argtypes = [c_void_p, c_char_p]
 libcsound.csoundGetScoreTime.restype = c_double
 libcsound.csoundGetScoreTime.argtypes = [c_void_p]
 libcsound.csoundIsScorePending.argtypes = [c_void_p]
@@ -341,8 +350,11 @@ libcsound.csoundSetOutputChannelCallback.argtypes = [c_void_p, CHANNELFUNC]
 libcsound.csoundSetPvsChannel.argtypes = [c_void_p, POINTER(PvsdatExt), c_char_p]
 libcsound.csoundGetPvsChannel.argtypes = [c_void_p, POINTER(PvsdatExt), c_char_p]
 libcsound.csoundScoreEvent.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long]
+libcsound.csoundScoreEventAsync.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long]
 libcsound.csoundScoreEventAbsolute.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long, c_double]
+libcsound.csoundScoreEventAbsoluteAsync.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long, c_double]
 libcsound.csoundInputMessage.argtypes = [c_void_p, c_char_p]
+libcsound.csoundInputMessageAsync.argtypes = [c_void_p, c_char_p]
 libcsound.csoundKillInstance.argtypes = [c_void_p, MYFLT, c_char_p, c_int, c_int]
 SENSEFUNC = CFUNCTYPE(None, c_void_p, py_object)
 libcsound.csoundRegisterSenseEventCallback.argtypes = [c_void_p, SENSEFUNC, py_object]
@@ -356,7 +368,9 @@ libcsound.csoundTableGet.restype = MYFLT
 libcsound.csoundTableGet.argtypes = [c_void_p, c_int, c_int]
 libcsound.csoundTableSet.argtypes = [c_void_p, c_int, c_int, MYFLT]
 libcsound.csoundTableCopyOut.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
+libcsound.csoundTableCopyOutAsync.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
 libcsound.csoundTableCopyIn.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
+libcsound.csoundTableCopyInAsync.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
 libcsound.csoundGetTable.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_int]
 libcsound.csoundGetTableArgs.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_int]
 libcsound.csoundIsNamedGEN.argtypes = [c_void_p, c_int]
@@ -682,6 +696,10 @@ class Csound:
         """
         return libcsound.csoundCompileTree(self.cs, tree)
     
+    def compileTreeAsync(self, tree):
+        """Asynchronous version of compileTree()."""
+        return libcsound.csoundCompileTreeAsync(self.cs, tree)
+    
     def deleteTree(self, tree):
         """Free the resources associated with the TREE tree.
         
@@ -700,6 +718,15 @@ class Csound:
             cs.compileOrc(orc)
         """
         return libcsound.csoundCompileOrc(self.cs, cstring(orc))
+    
+    def compileOrcAsync(self, orc):
+        """Async version of compileOrc().
+        
+        The code is parsed and compiled, then placed on a queue for
+        asynchronous merge into the running engine, and evaluation.
+        The function returns following parsing and compilation.
+        """
+        return libcsound.csoundCompileOrcAsync(self.cs, cstring(orc))
     
     def evalCode(self, code):
         """Parse and compile an orchestra given on an string.
@@ -845,7 +872,7 @@ class Csound:
         Note that it is not guaranteed that perform() has already stopped
         when this function returns.
         """
-        return libcsound.csoundStop(self.cs)
+        libcsound.csoundStop(self.cs)
     
     def cleanup(self):
         """Print information and closes audio and MIDI devices.
@@ -863,8 +890,46 @@ class Csound:
         Enable external software to run successive Csound performances
         without reloading Csound. Implies cleanup(), unless already called.
         """
-        return libcsound.csoundReset(self.cs)
-    
+        libcsound.csoundReset(self.cs)
+
+    #UDP server
+    def UDPServerStart(self, port):
+        """Starts the UDP server on a supplied port number.
+        
+        Returns CSOUND_SUCCESS if server has been started successfully,
+        otherwise, CSOUND_ERROR.
+        """
+        return libcsound.csoundUDPServerStart(self.cs, c_uint(port))
+
+    def UDPServerStatus(self):
+        """Returns the port number on which the server is running.
+        
+        If the server is not running, CSOUND_ERROR is returned.
+        """
+        return libcsound.csoundUDPServerStatus(self.cs)
+
+    def UDPServerClose(self):
+        """Closes the UDP server.
+        
+        Returns CSOUND_SUCCESS if the running server was successfully closed,
+        CSOUND_ERROR otherwise.
+        """
+        return libcsound.csoundUDPServerClose(self.cs)
+
+    def UDPConsole(self, addr, port, mirror):
+        """Turns on the transmission of console messages to UDP on addr:port.
+        
+        If mirror is one, the messages will continue to be sent to the usual
+        destination (see setMessaggeCallback()) as well as to UDP.
+        Returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
+        could not be set up.
+        """
+        return libcsound.csoundUDPConsole(self.cs, cstring(addr), c_uint(port), c_uint(mirror))
+
+    def stopUDPConsole(self):
+        """Stop transmitting console messages via UDP."""
+        libcsound.csoundStopUDPConsole(self.cs)
+
     #Attributes
     def sr(self):
         """Return the number of audio sample frames per second."""
@@ -1307,6 +1372,10 @@ class Csound:
         """
         return libcsound.csoundReadScore(self.cs, cstring(sco))
     
+    def readScoreAsync(self, sco):
+        """Asynchronous version of readScore()."""
+        libcsound.csoundReadScoreAsync(self.cs, cstring(sco))
+    
     def scoreTime(self):
         """Returns the current score time.
         
@@ -1689,6 +1758,13 @@ class Csound:
         numFields = c_long(p.size)
         return libcsound.csoundScoreEvent(self.cs, cchar(type_), ptr, numFields)
     
+    def scoreEventAsync(self, type_, pFields):
+        """Asynchronous version of scoreEvent()."""
+        p = np.array(pFields).astype(MYFLT)
+        ptr = p.ctypes.data_as(POINTER(MYFLT))
+        numFields = c_long(p.size)
+        libcsound.csoundScoreEventAsync(self.cs, cchar(type_), ptr, numFields)
+    
     def scoreEventAbsolute(self, type_, pFields, timeOffset):
         """Like scoreEvent(), this function inserts a score event.
         
@@ -1700,12 +1776,23 @@ class Csound:
         numFields = c_long(p.size)
         return libcsound.csoundScoreEventAbsolute(self.cs, cchar(type_), ptr, numFields, c_double(timeOffset))
     
+    def scoreEventAbsoluteAsync(self, type_, pFields, timeOffset):
+        """Asynchronous version of scoreEventAbsolute()."""
+        p = np.array(pFields).astype(MYFLT)
+        ptr = p.ctypes.data_as(POINTER(MYFLT))
+        numFields = c_long(p.size)
+        libcsound.csoundScoreEventAbsoluteAsync(self.cs, cchar(type_), ptr, numFields, c_double(timeOffset))
+    
     def inputMessage(self, message):
         """Input a NULL-terminated string (as if from a console).
         
         Used for line events.
         """
         libcsound.csoundInputMessage(self.cs, cstring(message))
+    
+    def inputMessageAsync(self, message):
+        """Asynchronous version of inputMessage()."""
+        libcsound.csoundInputMessageAsync(self.cs, cstring(message))
     
     def killInstance(self, instr, instrName, mode, allowRelease):
         """Kills off one or more running instances of an instrument.
@@ -1826,6 +1913,11 @@ class Csound:
         ptr = dest.ctypes.data_as(POINTER(MYFLT))
         libcsound.csoundTableCopyOut(self.cs, table, ptr)
     
+    def tableCopyOutAsync(self, table, dest):
+        """Asynchronous version of tableCopyOut()."""
+        ptr = dest.ctypes.data_as(POINTER(MYFLT))
+        libcsound.csoundTableCopyOutAsync(self.cs, table, ptr)
+    
     def tableCopyIn(self, table, src):
         """Copy the contents of an ndarray src into a given function table.
         
@@ -1834,6 +1926,11 @@ class Csound:
         """
         ptr = src.ctypes.data_as(POINTER(MYFLT))
         libcsound.csoundTableCopyIn(self.cs, table, ptr)
+    
+    def tableCopyInAsync(self, table, src):
+        """Asynchronous version of tableCopyIn()."""
+        ptr = src.ctypes.data_as(POINTER(MYFLT))
+        libcsound.csoundTableCopyInAsync(self.cs, table, ptr)
     
     def table(self, tableNum):
         """Return a pointer to function table 'tableNum' as an ndarray.
@@ -2114,6 +2211,10 @@ class Csound:
     def waitBarrier(self, barrier):
         """Wait on the thread barrier."""
         return libcsound.csoundWaitBarrier(barrier)
+
+    #def createCondVar(self):
+    #def condWait(self, condVar, mutex):
+    #def condSignal(self, condVar):
     
     def sleep(self, milliseconds):
         """Wait for at least the specified number of milliseconds.
@@ -2427,7 +2528,7 @@ class Csound:
     
     def closeLibrary(self, library):
         """Platform-independent function to unload a shared library."""
-        libcsound.csoundCloseLibrary(library)
+        return libcsound.csoundCloseLibrary(library)
     
     def getLibrarySymbol(self, library, symbolName):
         """Platform-independent function to get a symbol address in a shared library."""

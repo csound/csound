@@ -36,9 +36,24 @@
 #include "pluck.h"
 
 /* external prototypes */
-static void error(CSOUND*, const char*, const char*);
 static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);
 static MYFLT *pluckShape(CSOUND*, WGPLUCK*);     /* pluck shape function */
+
+/* ***** class filter3 -- JPff ****** */
+
+/* ::set -- set the coefficients */
+static inline void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
+{
+    filt->a0 = a0;
+    filt->a1 = a1;
+    filt->x1 = filt->x2 = FL(0.0);
+#ifdef WG_VERBOSE
+    csound->Message(csound, "c[0]=%f; c[1]=%f; c[2]=\n", a0, a1, a0);
+    csound->Message(csound, "Zeros at %f, %f\n",
+                            (-a1-sqrt(a1*a1-4.0*a0*a0))/(2.0*a0),
+                            (-a1+sqrt(a1*a1-4.0*a0*a0))/(2.0*a0));
+#endif
+}
 
 /* ***** plucked string class member function definitions ***** */
 
@@ -51,14 +66,14 @@ static int pluckExcite(CSOUND *csound, WGPLUCK* p)
 
     /* set the delay element to pick at */
     p->pickSamp=(len_t)(size * *p->pickPos);
-    if (p->pickSamp<1)
+    if (UNLIKELY(p->pickSamp<1))
       p->pickSamp = 1;
 
     /* set the bridge filter coefficients for the correct magnitude response */
     pluckSetFilters(csound, p,*p->Aw0,*p->AwPI);/*attenuation in dB at w0 and PI*/
 
     /* add the pick shape to the waveguide rails */
-    shape = pluckShape(csound,p);    /* Efficiency loss here */
+    if (UNLIKELY((shape = pluckShape(csound,p))==NULL)) return NOTOK;
 
     /* add shape to lower rail */
     for (i=0;i<size;i++) {
@@ -66,17 +81,8 @@ static int pluckExcite(CSOUND *csound, WGPLUCK* p)
       p->wg.upperRail.data[size-i-1] = shape[i];
     }
 
-    /* flip shape and add to upper rail */
-/*      pluckFlip(p,shape); */
-/*      for (i=0;i<size;i++) */
-/*        p->wg.upperRail.data[i] = shape[i]; */
-
     /* free the space used by the pluck shape */
     csound->Free(csound, shape);
-
-    /* Reset the tuning and bridge filters */
-    /*filterReset(&p->wg.tnFIR);*/
-    /*filterReset(&p->bridge);*/
 
     /* set excitation flag */
     p->wg.excited = 1;
@@ -96,8 +102,6 @@ static int pluckPluck(CSOUND *csound, WGPLUCK* p)
     /* Allocate auxillary memory or reallocate if size has changed */
     csound->AuxAlloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->upperData);
     csound->AuxAlloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->lowerData);
-/*     csound->AuxAlloc(csound, 3L*sizeof(MYFLT), &p->bridgeCoeffs); */
-/*     csound->AuxAlloc(csound, 3L*sizeof(MYFLT), &p->bridgeData); */
 
 #ifdef WG_VERBOSE
     csound->Message(csound, "done.\n");
@@ -116,13 +120,7 @@ static int pluckPluck(CSOUND *csound, WGPLUCK* p)
 #ifdef WG_VERBOSE
     csound->Message(csound, "done.\n");
 #endif
-    /* Allocate memory to bridge data and coeffs */
-#ifdef WG_VERBOSE
-    csound->Message(csound, "Initializing bridge filters...");
-#endif
-#ifdef WG_VERBOSE
-    csound->Message(csound, "done\n");
-#endif
+
     /* Excite the string with the input parameters */
 #ifdef WG_VERBOSE
     csound->Message(csound, "Exciting the string...");
@@ -150,7 +148,7 @@ static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
       MYFLT a1=(H1_w0+cosw0*H1_PI)/(1+cosw0);
       MYFLT a0 = (a1 - H1_PI)*FL(0.5);
       /* apply constraints on coefficients (see Sullivan)*/
-      if ((a0<FL(0.0))|| (a1<a0+a0)) {
+      if (UNLIKELY((a0<FL(0.0))|| (a1<a0+a0))) {
         a0=FL(0.0);
         a1=H1_w0;
       }
@@ -169,10 +167,11 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
 
     /* This memory must be freed after use */
     shape = (MYFLT *)csound->Malloc(csound, len*sizeof(MYFLT));
-    if (UNLIKELY(!shape))
-      error(csound,
-            Str("Could not allocate for initial shape"),"<pluckShape>");
-
+    if (UNLIKELY(!shape)) {
+      csound->InitError(csound,
+                        Str("wgpluck:Could not allocate for initial shape"));
+      return NULL;
+    }
     scale = FL(0.5) * scale;      /* Scale was squared!! */
     for (i=0;i<p->pickSamp;i++)
       shape[i] = scale*i / p->pickSamp;
@@ -238,19 +237,13 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 #define EPSILON (FL(0.25))      /* threshold for small tuning values */
 /* prototypes */
 
-/***** circularBuffer class member function definitions *****/
-
-/* ::circularBuffer -- constructor for circular buffer class
- * This routine assumes that the DATA pointer has already been
- * allocated by the calling routine.
- */
-static void circularBufferCircularBuffer(CSOUND *csound,
+static inline int circularBufferCircularBuffer(CSOUND *csound,
                                          circularBuffer* cb, len_t N)
 {
     MYFLT *data = cb->data;
-    if (UNLIKELY(!data))
-      error(csound, Str("Buffer memory not allocated!"),
-                    "<circularBuffer::circularBuffer>");
+    /* if (UNLIKELY(!data)) */
+    /*   return csound->InitError(csound, */
+    /*                            Str("wgpluck: Buffer memory not allocated!")); */
 
   /* Initialize pointers and variables */
     cb->size            = N;
@@ -259,6 +252,7 @@ static void circularBufferCircularBuffer(CSOUND *csound,
     cb->endPoint        = data+cb->size-1;
     cb->insertionPoint  = data;
     cb->extractionPoint = data;
+    return OK;
 }
 
 /* ***** class guideRail -- waveguide rail derived class ***** */
@@ -269,27 +263,11 @@ static void circularBufferCircularBuffer(CSOUND *csound,
 static MYFLT guideRailAccess(guideRail* gr, len_t pos)
 {
     MYFLT *s = gr->pointer - pos;
-    while(s < gr->data)
+    while (s < gr->data)
       s += gr->size;
-    while(s > gr->endPoint)
+    while (s > gr->endPoint)
       s -= gr->size;
     return *s;
-}
-
-/* ***** class filter3 -- JPff ****** */
-
-/* ::set -- set the coefficients */
-static void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
-{
-    filt->a0 = a0;
-    filt->a1 = a1;
-    filt->x1 = filt->x2 = FL(0.0);
-#ifdef WG_VERBOSE
-    csound->Message(csound, "c[0]=%f; c[1]=%f; c[2]=\n", a0, a1, a0);
-    csound->Message(csound, "Zeros at %f, %f\n",
-                            (-a1-sqrt(a1*a1-4.0*a0*a0))/(2.0*a0),
-                            (-a1+sqrt(a1*a1-4.0*a0*a0))/(2.0*a0));
-#endif
 }
 
 /* ::FIR -- direct convolution filter routine */
@@ -354,8 +332,8 @@ static void waveguideWaveguide(CSOUND *csound,
     csound->Message(csound, "size=%d+1, df=%f\n", (len_t) size, df);
 #endif
     size = size*FL(0.5);
-    guideRailGuideRail(csound, &wg->upperRail,(len_t)size);
-    guideRailGuideRail(csound, &wg->lowerRail,(len_t)size);
+    circularBufferCircularBuffer(csound, &wg->upperRail,(len_t)size);
+    circularBufferCircularBuffer(csound, &wg->lowerRail,(len_t)size);
     waveguideSetTuning(csound, wg,df);
 }
 
@@ -370,12 +348,6 @@ static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 #ifdef WG_VERBOSE
     csound->Message(csound, "tuning :c=%f\n", wg->c);
 #endif
-}
-
-/* error -- report errors */
-static void error(CSOUND *csound, const char* a, const char* b)
-{
-    csound->ErrorMsg(csound, Str("Error: %s, %s"), a, b);
 }
 
 #define S(x)    sizeof(x)

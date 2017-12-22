@@ -166,7 +166,7 @@ static int sc_reverb_init(CSOUND *csound, SC_REVERB *p)
     int nBytes;
 
     /* check for valid parameters */
-    if (*(p->iSampleRate) <= FL(0.0))
+    if (UNLIKELY(*(p->iSampleRate) <= FL(0.0)))
       p->sampleRate = (double) CS_ESR;
     else
       p->sampleRate = (double) *(p->iSampleRate);
@@ -214,7 +214,7 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     int       bufferSize; /* Local copy */
     double    dampFact = p->dampFact;
 
-    if (p->initDone <= 0) goto err1;
+    if (UNLIKELY(p->initDone <= 0)) goto err1;
     /* calculate tone filter coefficient if frequency changed */
     if (*(p->kLPFreq) != p->prv_LPFreq) {
       p->prv_LPFreq = *(p->kLPFreq);
@@ -262,7 +262,7 @@ static int sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
         a1 = frac; a1 += 1.0; a1 *= 0.5; am1 = a1 - 1.0;
         a0 = 3.0 * a2; a1 -= a0; am1 -= a2; a0 -= frac;
         /* read four samples for interpolation */
-        if (readPos > 0 && readPos < (bufferSize - 2)) {
+        if (LIKELY(readPos > 0 && readPos < (bufferSize - 2))) {
           vm1 = (double) (lp->buf[readPos - 1]);
           v0  = (double) (lp->buf[readPos]);
           v1  = (double) (lp->buf[readPos + 1]);

@@ -73,21 +73,21 @@ int pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int stringname)
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
-    if (p->asr != CS_ESR) {                /* & chk the data */
+    if (UNLIKELY(p->asr != CS_ESR)) {                /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               pvfilnam, p->asr, CS_ESR);
     }
-    if (p->frSiz > PVFRAMSIZE) {
+    if (UNLIKELY(p->frSiz > PVFRAMSIZE)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld bigger than %ld in %s"),
                                (long) p->frSiz, (long) PVFRAMSIZE, pvfilnam);
     }
-    if (p->frSiz < 128) {
+    if (UNLIKELY(p->frSiz < 128)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld seems too small in %s"),
                                (long) p->frSiz, pvfilnam);
     }
-    if (chans != 1) {
+    if (UNLIKELY(chans != 1)) {
       return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
                                        (int) chans, pvfilnam);
     }
@@ -130,7 +130,7 @@ int pvbufread(CSOUND *csound, PVBUFREAD *p)
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err2;
     if (frIndx > (MYFLT) p->maxFr) {    /* not past last one */
       frIndx = (MYFLT) p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
         csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
       }
@@ -189,7 +189,7 @@ int pvinterpset_(CSOUND *csound, PVINTERP *p, int stringname)
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
-    if (p->asr != CS_ESR) {                /* & chk the data */
+    if (UNLIKELY(p->asr != CS_ESR)) {                /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               pvfilnam, p->asr, CS_ESR);
     }
@@ -223,9 +223,10 @@ int pvinterpset_(CSOUND *csound, PVINTERP *p, int stringname)
     p->opBpos = 0;
     p->lastPex = FL(1.0);    /* needs to know last pitchexp to update phase */
     /* Set up time window */
-    for (i = 0; i < pvdasiz(p); ++i) {      /* or maybe pvdasiz(p) */
-      p->lastPhase[i] = FL(0.0);
-    }
+    memset(p->lastPhase,'\0', pvdasiz(p)*sizeof(MYFLT));
+    /* for (i = 0; i < pvdasiz(p); ++i) {      /\* or maybe pvdasiz(p) *\/ */
+    /*   p->lastPhase[i] = FL(0.0); */
+    /* } */
     if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN)) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
@@ -279,7 +280,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
       frIndx = (MYFLT)p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
         csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
       }
@@ -317,7 +318,7 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
     writeClrFromCircBuf(p->outBuf, ar, p->opBpos, CS_KSMPS, circBufSize);
     p->opBpos += CS_KSMPS;
-    if (p->opBpos > circBufSize)
+    if (UNLIKELY(p->opBpos > circBufSize))
       p->opBpos -= circBufSize;
     addToCircBuf(buf2 + CS_KSMPS, p->outBuf, p->opBpos,
                  buf2Size - CS_KSMPS, circBufSize);
@@ -379,7 +380,7 @@ int pvcrossset_(CSOUND *csound, PVCROSS *p, int stringname)
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
-    if (p->asr != CS_ESR) {                /* & chk the data */
+    if (UNLIKELY(p->asr != CS_ESR)) {                /* & chk the data */
       csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               pvfilnam, p->asr, CS_ESR);
     }
@@ -411,9 +412,10 @@ int pvcrossset_(CSOUND *csound, PVCROSS *p, int stringname)
     p->opBpos = 0;
     p->lastPex = FL(1.0);   /* needs to know last pitchexp to update phase */
     /* Set up time window */
-    for (i = 0; i < pvdasiz(p); ++i) {      /* or maybe pvdasiz(p) */
-        p->lastPhase[i] = FL(0.0);
-    }
+    memset(p->lastPhase, '\0', pvdasiz(p)*sizeof(MYFLT));
+    /* for (i = 0; i < pvdasiz(p); ++i) {      /\* or maybe pvdasiz(p) *\/ */
+    /*     p->lastPhase[i] = FL(0.0); */
+    /* } */
     if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN )) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
@@ -467,7 +469,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     if (UNLIKELY(outlen<(int)(2*CS_KSMPS))) /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;     /* always window to same length after DS */
-    if ((frIndx = *p->ktimpnt * p->frPrtim) < 0) goto err4;
+    if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
     if (frIndx > (MYFLT) p->maxFr) {    /* not past last one */
       frIndx = (MYFLT) p->maxFr;
       if (p->prFlg) {
@@ -519,7 +521,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
     writeClrFromCircBuf(p->outBuf, ar, p->opBpos, CS_KSMPS, circBufSize);
     p->opBpos += CS_KSMPS;
-    if (p->opBpos > circBufSize)
+    if (UNLIKELY(p->opBpos > circBufSize))
       p->opBpos -= circBufSize;
     addToCircBuf(buf2 + CS_KSMPS, p->outBuf, p->opBpos,
                  buf2Size - CS_KSMPS, circBufSize);

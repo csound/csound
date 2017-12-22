@@ -86,6 +86,7 @@ int oscils_set(CSOUND *csound, OSCILS *p)
 
 int oscils(CSOUND *csound, OSCILS *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -141,12 +142,14 @@ int lphasor_set(CSOUND *csound, LPHASOR *p)
 
 int lphasor(CSOUND *csound, LPHASOR *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int loop_mode, dir;
     MYFLT   *ar, *xtrns;
     double  trns, phs, lps, lpe, lpt;
+    int     assxtr = IS_ASIG_ARG(p->xtrns);
 
     /* copy object data to local variables */
     ar = p->ar; xtrns = p->xtrns;
@@ -161,7 +164,7 @@ int lphasor(CSOUND *csound, LPHASOR *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      if (IS_ASIG_ARG(p->xtrns)) trns = (double)xtrns[n];
+      if (assxtr) trns = (double)xtrns[n];
       ar[n] = (MYFLT) phs;
       phs += (p->dir ? trns : -trns);
       if (loop_mode) {
@@ -225,6 +228,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     MYFLT   *ar, *xndx, ndx_f, a0, a1, a2, a3, v0, v1, v2, v3, *ftable;
     MYFLT   onedwarp, win_fact;
     FUNC    *ftp;
+    int     asgx = IS_ASIG_ARG(p->xndx);
 
     /* window size */
     wsize = p->wsize;
@@ -267,7 +271,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     for (n=offset; n<nsmps; n++) {
       ndx = (double)*xndx;
-      if (IS_ASIG_ARG(p->xndx)) xndx++;
+      if (asgx) xndx++;
       /* calculate table index */
       if (!(p->raw_ndx)) {
         ndx += (double)*(p->ixoff);

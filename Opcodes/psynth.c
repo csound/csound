@@ -211,25 +211,25 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
               amp = FL(0.0);
 
             }
-            if(amp > min){
-            /* interpolation & track synthesis loop */
-            a = amp;
-            f = freq;
-            incra = (ampnext - amp) / hopsize;
-            incrph = (freqnext - freq) / hopsize;
-            for (m = 0; m < hopsize; m++) {
-              /* table lookup oscillator */
-              phase += f * ratio;
-              while (phase < 0)
-                phase += size;
-              while (phase >= size)
-                phase -= size;
-              ndx = (int) phase;
-              frac = phase - ndx;
-              outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
-              a += incra;
-              f += incrph;
-            }
+            if (amp > min) {
+              /* interpolation & track synthesis loop */
+              a = amp;
+              f = freq;
+              incra = (ampnext - amp) / hopsize;
+              incrph = (freqnext - freq) / hopsize;
+              for (m = 0; m < hopsize; m++) {
+                /* table lookup oscillator */
+                phase += f * ratio;
+                while (phase < 0)
+                  phase += size;
+                while (phase >= size)
+                  phase -= size;
+                ndx = (int) phase;
+                frac = phase - ndx;
+                outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
+                a += incra;
+                f += incrph;
+              }
             }
             /* keep amp, freq, and phase values for next time */
             if (contin) {
@@ -345,7 +345,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     for (n = offset; n < nsmps; n++) {
       out[n] = outsum[pos];
       pos++;
-      if (pos == hopsize) {
+      if (UNLIKELY(pos == hopsize)) {
 
         memset(outsum, 0, sizeof(MYFLT) * hopsize);
         /* for each track */
@@ -386,40 +386,40 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
               amp = FL(0.0);
 #endif
             }
-            if(amp > min){
-            /* phasediff */
-            phasediff = phasenext - phase;
-            while (phasediff >= PI_F)
-              phasediff -= TWOPI_F;
-            while (phasediff < -PI_F)
-              phasediff += TWOPI_F;
-            /* update phasediff to match the freq */
-            cph = ((freq + freqnext) * factor * 0.5 - phasediff) / TWOPI;
-            phasediff += TWOPI_F * (int) (cph + 0.5);
-            /* interpolation coefs */
-            a2 = 3.0 / facsqr * (phasediff -
-                                factor / 3.0 * (2.0 * freq + freqnext));
-            a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
-            /* interpolation & track synthesis loop */
-            a = amp;
-            ph = phase;
-            cnt = 0;
-            incra = (ampnext - amp) / hopsize;
-            for (m = 0; m < hopsize; m++) {
-              /* table lookup oscillator */
-              ph *= lotwopi;
-              while (ph < 0)
-                ph += size;
-              while (ph >= size)
-                ph -= size;
-              ndx = (int) ph;
-              frac = ph - ndx;
-              outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
-              a += incra;
-              cnt += incrph;
-              ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
+            if (amp > min) {
+              /* phasediff */
+              phasediff = phasenext - phase;
+              while (phasediff >= PI_F)
+                phasediff -= TWOPI_F;
+              while (phasediff < -PI_F)
+                phasediff += TWOPI_F;
+              /* update phasediff to match the freq */
+              cph = ((freq + freqnext) * factor * 0.5 - phasediff) / TWOPI;
+              phasediff += TWOPI_F * (int) (cph + 0.5);
+              /* interpolation coefs */
+              a2 = 3.0 / facsqr * (phasediff -
+                                   factor / 3.0 * (2.0 * freq + freqnext));
+              a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
+              /* interpolation & track synthesis loop */
+              a = amp;
+              ph = phase;
+              cnt = 0;
+              incra = (ampnext - amp) / hopsize;
+              for (m = 0; m < hopsize; m++) {
+                /* table lookup oscillator */
+                ph *= lotwopi;
+                while (ph < 0)
+                  ph += size;
+                while (ph >= size)
+                  ph -= size;
+                ndx = (int) ph;
+                frac = ph - ndx;
+                outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
+                a += incra;
+                cnt += incrph;
+                ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
+              }
             }
-           }
             /* keep amp, freq, and phase values for next time */
           cont:
             if (contin) {
@@ -486,7 +486,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
     for (n = offset; n < nsmps; n++) {
       out[n] = outsum[pos];
       pos++;
-      if (pos == hopsize) {
+      if (UNLIKELY(pos == hopsize)) {
         memset(outsum, 0, sizeof(MYFLT) * hopsize);
         /* for each track */
         i = j = k = 0;
@@ -522,40 +522,40 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
               phase = phasenext - freq * factor;
               amp = FL(0.0);
             }
-            if(amp > min){
-            /* phasediff */
-            phasediff = phasenext - phase;
-            while (phasediff >= PI_F)
-              phasediff -= TWOPI_F;
-            while (phasediff < -PI_F)
-              phasediff += TWOPI_F;
+            if (amp > min) {
+              /* phasediff */
+              phasediff = phasenext - phase;
+              while (phasediff >= PI_F)
+                phasediff -= TWOPI_F;
+              while (phasediff < -PI_F)
+                phasediff += TWOPI_F;
 
-            /* update phasediff to match the freq */
-            cph = ((freq + freqnext) * factor *0.5 - phasediff) / TWOPI;
-            phasediff += TWOPI_F * cph;
-            /* interpolation coefs */
-            a2 = 3.0 / facsqr * (phasediff -
-                                factor / 3.0 * (2.0 * freq + freqnext));
-            a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
-            /* interpolation & track synthesis loop */
-            a = amp;
-            ph = phase;
-            cnt = 0;
-            incra = (ampnext - amp) / hopsize;
-            for (m = 0; m < hopsize; m++) {
-              /* table lookup oscillator */
-              ph *= lotwopi;
-              while (ph < 0)
-                ph += size;
-              while (ph >= size)
-                ph -= size;
-              ndx = (int) ph;
-              frac = ph - ndx;
-              outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
-              a += incra;
-              cnt += incrph;
-              ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
-            }
+              /* update phasediff to match the freq */
+              cph = ((freq + freqnext) * factor *0.5 - phasediff) / TWOPI;
+              phasediff += TWOPI_F * cph;
+              /* interpolation coefs */
+              a2 = 3.0 / facsqr * (phasediff -
+                                   factor / 3.0 * (2.0 * freq + freqnext));
+              a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
+              /* interpolation & track synthesis loop */
+              a = amp;
+              ph = phase;
+              cnt = 0;
+              incra = (ampnext - amp) / hopsize;
+              for (m = 0; m < hopsize; m++) {
+                /* table lookup oscillator */
+                ph *= lotwopi;
+                while (ph < 0)
+                  ph += size;
+                while (ph >= size)
+                  ph -= size;
+                ndx = (int) ph;
+                frac = ph - ndx;
+                outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
+                a += incra;
+                cnt += incrph;
+                ph = phase + cnt * (freq + cnt * (a2 + a3 * cnt));
+              }
             }
             /* keep amp, freq, and phase values for next time */
             if (contin) {
@@ -1012,13 +1012,13 @@ static int trfil_process(CSOUND *csound, _PSFIL *p)
       MYFLT   fr, pos = FL(0.0), frac = FL(0.0);
       int     posi = 0;
 
-      if (amnt > 1)
+      if (UNLIKELY(amnt > 1))
         amnt = 1;
-      if (amnt < 0)
+      if (UNLIKELY(amnt < 0))
         amnt = 0;
       do {
         fr = framein[i + 1];
-        if (fr > nyq)
+        if (UNLIKELY(fr > nyq))
           fr = nyq;
         //if (fr < 0)
         fr = FABS(fr);

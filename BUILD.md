@@ -40,15 +40,16 @@ required for building Csound, as well as for installing into /usr/local.
 
 ### Building Csound 6 
 
-The first thing to do is get a copy of the Csound 6 sources. The following
-instructions are written for those getting a copy of the source code from Git.
+The following instructions are written for those getting a copy of the source code from Git.
 You will need to adjust the steps accordingly when using the source tarball from
 the files section.
 
 The first thing to do is make sure you have all of the required dependencies for
 building Csound. In a terminal, do the following:
 
-1.  `sudo apt-get build-dep csound`
+1.  Edit, as root, `/etc/apt/sources.list` and ensure that each line beginning with `deb` has another line below it that is identical except that `deb` is replaced with `deb-src`. Then run `sudo apt-get update`.
+
+1.  `sudo apt-get build-dep csound` 
 
 2.  `sudo apt-get install cmake`
 

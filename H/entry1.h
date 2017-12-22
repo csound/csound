@@ -42,7 +42,6 @@
 #include "midiout.h"
 #include "sndinfUG.h"
 #include "ugrw1.h"
-#include "ugrw2.h"
 #include "schedule.h"
 #include "vdelay.h"
 #include "pstream.h"
@@ -73,6 +72,7 @@ int     gt(CSOUND *, void *), ge(CSOUND *, void *);
 int     lt(CSOUND *, void *), le(CSOUND *, void *);
 int     eq(CSOUND *, void *), ne(CSOUND *, void *);
 int     and(CSOUND *, void *), or(CSOUND *, void *);
+int     b_not(CSOUND *, void*);
 int     conval(CSOUND *, void *), aconval(CSOUND *, void *);
 int     addkk(CSOUND *, void *), subkk(CSOUND *, void *);
 int     mulkk(CSOUND *, void *), divkk(CSOUND *, void *);

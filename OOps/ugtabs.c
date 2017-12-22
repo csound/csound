@@ -31,82 +31,83 @@
 
 int tabler_init(CSOUND *csound, TABL *p) {
 
-  int ndx, len;
-  int mask;
+    int ndx, len;
+    int mask;
 
-  if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->InitError(csound,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
-  mask = p->ftp->lenmask;
-  p->np2 = mask ? 0 : 1;
-  len = p->ftp->flen;
+    mask = p->ftp->lenmask;
+    p->np2 = mask ? 0 : 1;
+    len = p->ftp->flen;
 
-  if (*p->mode)
+    if (*p->mode)
       p->mul = len;
     else
       p->mul = 1;
 
-  ndx = FLOOR((*p->ndx + *p->offset)*p->mul);
-  if (*p->wrap) {
-    if (p->np2) {
-      while(ndx >= len) ndx -= len;
-      while(ndx < 0)  ndx += len;
+    ndx = FLOOR((*p->ndx + *p->offset)*p->mul);
+    if (*p->wrap) {
+      if (p->np2) {
+        while(ndx >= len) ndx -= len;
+        while(ndx < 0)  ndx += len;
+      }
+      else ndx &= mask;
+    } else {
+      if (UNLIKELY(ndx >= len)) ndx = len - 1;
+      else if (UNLIKELY(ndx < 0)) ndx = 0;
     }
-    else ndx &= mask;
-  } else {
-    if (UNLIKELY(ndx >= len)) ndx = len - 1;
-    else if (UNLIKELY(ndx < 0)) ndx = 0;
-  }
-  *p->sig = p->ftp->ftable[ndx];
-  return OK;
+    *p->sig = p->ftp->ftable[ndx];
+    return OK;
 }
 
 
 int tabl_setup(CSOUND *csound, TABL *p) {
-  if(p->ftp == NULL) {
-    /* check for this only on first allocation */
-  if (UNLIKELY(IS_ASIG_ARG(p->ndx) != IS_ASIG_ARG(p->sig))) {
-   if (CS_KSMPS != 1)
-     return csound->InitError(csound,
+    if(p->ftp == NULL) {
+      /* check for this only on first allocation */
+      if (UNLIKELY(IS_ASIG_ARG(p->ndx) != IS_ASIG_ARG(p->sig))) {
+        if (CS_KSMPS != 1)
+          return
+            csound->InitError(csound,
                               Str("table: index type inconsistent with output"));
-  }
-  }
-   if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
+      }
+    }
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->InitError(csound,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
 
     p->np2 = p->ftp->lenmask ? 0 : 1;
 
-  if (*p->mode)
+    if (*p->mode)
       p->mul = p->ftp->flen;
     else
       p->mul = 1;
-  p->len = p->ftp->flen;
+    p->len = p->ftp->flen;
 
-  p->iwrap = (int32) *p->wrap;
-  return OK;
+    p->iwrap = (int32) *p->wrap;
+    return OK;
 }
 
 int tabler_kontrol(CSOUND *csound, TABL *p) {
-  int ndx, len = p->len;
-  int mask = p->ftp->lenmask;
-  IGN(csound);
+    int ndx, len = p->len;
+    int mask = p->ftp->lenmask;
+    IGN(csound);
 
-  ndx = MYFLOOR((*p->ndx + *p->offset)*p->mul);
-  if (p->iwrap) {
-    if (p->np2) {
-      while(ndx >= len) ndx -= len;
-      while(ndx < 0)  ndx += len;
+    ndx = MYFLOOR((*p->ndx + *p->offset)*p->mul);
+    if (p->iwrap) {
+      if (p->np2) {
+        while(ndx >= len) ndx -= len;
+        while(ndx < 0)  ndx += len;
+      }
+      else ndx &= mask;
+    } else {
+      if (UNLIKELY(ndx >= len)) ndx = len - 1;
+      else if (UNLIKELY(ndx < 0)) ndx = 0;
     }
-    else ndx &= mask;
-  } else {
-    if (UNLIKELY(ndx >= len)) ndx = len - 1;
-    else if (UNLIKELY(ndx < 0)) ndx = 0;
-  }
-  *p->sig = p->ftp->ftable[ndx];
-  return OK;
+    *p->sig = p->ftp->ftable[ndx];
+    return OK;
 }
 
 
@@ -150,71 +151,71 @@ int tabler_audio(CSOUND *csound, TABL *p)
 
 int tableir_init(CSOUND *csound, TABL *p) {
 
-  int ndx, len;
-  int mask;
-  MYFLT tmp, frac;
-  MYFLT x1, x2;
+    int ndx, len;
+    int mask;
+    MYFLT tmp, frac;
+    MYFLT x1, x2;
 
-  if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
+    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->InitError(csound,
                                Str("table: could not find ftable %d"),
                                (int) *p->ftable);
-  mask = p->ftp->lenmask;
-  p->np2 = mask ? 0 : 1;
-  len = p->ftp->flen;
+    mask = p->ftp->lenmask;
+    p->np2 = mask ? 0 : 1;
+    len = p->ftp->flen;
 
-  if (*p->mode)
+    if (*p->mode)
       p->mul = len;
     else
       p->mul = 1;
 
-  tmp = (*p->ndx + *p->offset)*p->mul;
-  ndx = MYFLOOR(tmp);
-  frac = tmp - ndx;
+    tmp = (*p->ndx + *p->offset)*p->mul;
+    ndx = MYFLOOR(tmp);
+    frac = tmp - ndx;
 
-  if (*p->wrap) {
-    if (p->np2) {
-      while(ndx >= len) ndx -= len;
-      while(ndx < 0)  ndx += len;
+    if (*p->wrap) {
+      if (p->np2) {
+        while(ndx >= len) ndx -= len;
+        while(ndx < 0)  ndx += len;
+      }
+      else ndx &= mask;
+    } else {
+      if (UNLIKELY(ndx >= len)) ndx = len - 1;
+      else if (UNLIKELY(ndx < 0)) ndx = 0;
     }
-    else ndx &= mask;
-  } else {
-    if (UNLIKELY(ndx >= len)) ndx = len - 1;
-    else if (UNLIKELY(ndx < 0)) ndx = 0;
-  }
-  x1 = p->ftp->ftable[ndx];
-  x2 = p->ftp->ftable[ndx+1];
-  *p->sig = x1 + (x2 - x1)*frac;
-  return OK;
+    x1 = p->ftp->ftable[ndx];
+    x2 = p->ftp->ftable[ndx+1];
+    *p->sig = x1 + (x2 - x1)*frac;
+    return OK;
 }
 
 
 
 int tableir_kontrol(CSOUND *csound, TABL *p) {
-  int ndx, len = p->len;
-  int mask = p->ftp->lenmask;
-  MYFLT tmp, frac;
-  MYFLT x1, x2;
-  IGN(csound);
+    int ndx, len = p->len;
+    int mask = p->ftp->lenmask;
+    MYFLT tmp, frac;
+    MYFLT x1, x2;
+    IGN(csound);
 
-  tmp = (*p->ndx + *p->offset)*p->mul;
-  ndx = MYFLOOR(tmp);
-  frac = tmp - ndx;
+    tmp = (*p->ndx + *p->offset)*p->mul;
+    ndx = MYFLOOR(tmp);
+    frac = tmp - ndx;
 
-  if (p->iwrap) {
-    if (p->np2) {
-      while(ndx >= len) ndx -= len;
-      while(ndx < 0)  ndx += len;
+    if (p->iwrap) {
+      if (p->np2) {
+        while(ndx >= len) ndx -= len;
+        while(ndx < 0)  ndx += len;
+      }
+      else ndx &= mask;
+    } else {
+      if (UNLIKELY(ndx >= len)) ndx = len - 1;
+      else if (UNLIKELY(ndx < 0)) ndx = 0;
     }
-    else ndx &= mask;
-  } else {
-    if (UNLIKELY(ndx >= len)) ndx = len - 1;
-    else if (UNLIKELY(ndx < 0)) ndx = 0;
-  }
-  x1 = p->ftp->ftable[ndx];
-  x2 = p->ftp->ftable[ndx+1];
-  *p->sig = x1 + (x2 - x1)*frac;
-  return OK;
+    x1 = p->ftp->ftable[ndx];
+    x2 = p->ftp->ftable[ndx+1];
+    *p->sig = x1 + (x2 - x1)*frac;
+    return OK;
 }
 
 int tableir_audio(CSOUND *csound, TABL *p)

@@ -173,14 +173,15 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     p->mtracks = maxtracks;
 
     if (UNLIKELY(p->fin1->format != PVS_AMP_FREQ)) {
-      return csound->InitError(csound,
-                               "partials: first input not in AMP_FREQ format \n");
+      return
+        csound->InitError(csound,
+                          Str("partials: first input not in AMP_FREQ format \n"));
     }
 
     if (UNLIKELY(p->fin2->format != PVS_AMP_PHASE)) {
       csound->Warning(csound,
-                      "partials: no phase input, tracks will contain "
-                      "amp & freq only\n");
+                      Str("partials: no phase input, tracks will contain "
+                          "amp & freq only\n"));
       p->nophase = 1;
     }
     else
@@ -223,7 +224,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     int     test1 = 1, test2 = 0;
 
     if(*p->kthresh >= 0) {
-    float max = 0.f;
+    float max = 0.0f;
     for (i = 0; i < numbins; i++)
       if (max < mags[i]) {
         max = mags[i];
@@ -231,7 +232,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     absthresh = (float)(*p->kthresh * max);
     } else absthresh = (float)(-*p->kthresh * csound->Get0dBFS(csound));
 
-    logthresh = LOG(absthresh / 5.0f);
+    logthresh = logf(absthresh / 5.0f);
 
     /* Quadratic Interpolation
        obtains bin indexes and magnitudes
@@ -432,7 +433,7 @@ static int partials_process(CSOUND * csound, _PARTS * p)
     double  *bins = p->bins.auxp;
     int    *trndx = p->trndx.auxp;
     double   frac, a, b;
-
+    int maxtracks = (p->mtracks < numbins ? p->mtracks : numbins);
     end = numbins * 4;
 
     if (p->lastframe < p->fin1->framecount) {
@@ -442,7 +443,7 @@ static int partials_process(CSOUND * csound, _PARTS * p)
       Analysis(csound, p);
       /* fout holds [amp, freq, pha, ID] */
       tracks = p->tracks;
-      for (i = k = 0; i < end; i += 4, k++) {
+      for (i = k = 0; i < end && k < maxtracks; i += 4, k++) {
         if (k < tracks) {
           /* magnitudes */
           ndx = (int) bins[k];

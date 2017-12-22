@@ -256,7 +256,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         for(i=0; (unsigned int)  i < devnos; i++) {
           if((unsigned int) devinfo[i].indevnum == devnum) CoreAudioDev = i;
         }
-        if(CoreAudioDev >= 0) {
+        if (LIKELY(CoreAudioDev >= 0)) {
           prop.mSelector = kAudioHardwarePropertyDefaultInputDevice;
           dev  = sysdevs[CoreAudioDev];
           AudioObjectSetPropertyData(kAudioObjectSystemObject, &prop,
@@ -271,13 +271,13 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         for(i=0;(unsigned int)  i < devnos; i++) {
           if((unsigned int) devinfo[i].outdevnum == devnum)  CoreAudioDev = i;
         }
-        if(CoreAudioDev >= 0) {
+        if (LIKELY(CoreAudioDev >= 0)) {
           dev  = sysdevs[CoreAudioDev];
           AudioObjectSetPropertyData(kAudioObjectSystemObject, &prop,
                                      0, NULL, sizeof(AudioDeviceID), &dev);
 
         }
-        else csound->Warning(csound, Str("requested device %d out of range"),
+        else csound->Warning(csound, Str("requested device %d (%s) out of range"),
                              devnum, devinfo[CoreAudioDev].name);
       }
     }
@@ -329,7 +329,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
 
-    if(sr != srate) {
+    if(UNLIKELY(sr != srate)) {
       csound->Warning(csound,
                       Str("Attempted to set device SR, tried %.1f, got %.1f \n"),
                       srate, sr);

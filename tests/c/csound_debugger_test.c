@@ -182,7 +182,7 @@ void test_bkpt_instrument(void)
 int count = 0;
 static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
-    debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
+  /*debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;*/
     count++;
 }
 
@@ -331,7 +331,7 @@ void test_line_breakpoint_orc_file(void)
 
     csoundCreateMessageBuffer(csound, 0);
     const char* argv[] = {"csound", "debug.orc", "debug.sco"};
-    csoundCompile(csound, 3, (char **) argv);
+    csoundCompile(csound, 3, argv);
 
     csoundDebuggerInit(csound);
     int line = 5;

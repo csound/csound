@@ -114,8 +114,8 @@ static  int     quit(CSOUND *, char *);
 #define u(x)    (x>0.0 ? 1 : 0)
 
 #define FIND(MSG)   if (*s == '\0')  \
-                        if (!(--argc) || ((s = *++argv) && *s == '-'))  \
-                            return quit(csound, MSG);
+    if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
+      return quit(csound, MSG);
 
 static void init_het(HET *thishet)
 {
@@ -150,7 +150,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
  /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0);   Needed ? */
     init_het(thishet);
 
-    if (!(--argc)) {
+    if (UNLIKELY(!(--argc))) {
       return quit(csound,Str("no arguments"));
     }
     do {
@@ -196,10 +196,10 @@ static int hetro(CSOUND *csound, int argc, char **argv)
         case 'h':
           FIND(Str("no harmonic count"))
           sscanf(s,"%hd",&thishet->hmax);
-          if (thishet->hmax > HMAX)
+          if (UNLIKELY(thishet->hmax > HMAX))
             csound->Message(csound,Str("over %d harmonics but continuing"),
                             HMAX);
-          if (thishet->hmax < 1) {
+          if (UNLIKELY(thishet->hmax < 1)) {
             csound->Message(csound,Str("h of %d too low, reset to 1\n"),
                             thishet->hmax);
                 thishet->hmax = 1;
@@ -241,21 +241,21 @@ static int hetro(CSOUND *csound, int argc, char **argv)
       else break;
     } while (--argc);
 
-    if (argc != 2)
+    if (UNLIKELY(argc != 2))
       return quit(csound, Str("incorrect number of filenames"));
     thishet->infilnam = *argv++;
     thishet->outfilnam = *argv;
 
-    if (thishet->freq_c > 1)
+    if (UNLIKELY(thishet->freq_c > 1))
       csound->Message(csound, Str("Filter cutoff freq. = %f\n"),
                               thishet->freq_c);
 
-    if ((thishet->input_dur < 0) || (thishet->beg_time < 0))
+    if (UNLIKELY((thishet->input_dur < 0) || (thishet->beg_time < 0)))
       return quit(csound,Str("input and begin times cannot be less than zero"));
     /* open sndfil, do skiptime */
-    if ((infd = csound->SAsndgetset(csound, thishet->infilnam, &p,
+    if (UNLIKELY((infd = csound->SAsndgetset(csound, thishet->infilnam, &p,
                                     &thishet->beg_time, &thishet->input_dur,
-                                    &thishet->sr, channel)) == NULL) {
+                                             &thishet->sr, channel)) == NULL)) {
       char errmsg[256];
       snprintf(errmsg, 256, Str("Cannot open %s"), thishet->infilnam);
       return quit(csound, errmsg);
@@ -264,8 +264,9 @@ static int hetro(CSOUND *csound, int argc, char **argv)
     /* alloc for MYFLTs */
     thishet->auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
     /* & read them in */
-    if ((thishet->smpsin = csound->getsndin(csound, infd,
-                                            thishet->auxp, nsamps, p)) <= 0) {
+    if (UNLIKELY((thishet->smpsin =
+                  csound->getsndin(csound, infd,
+                                   thishet->auxp, nsamps, p)) <= 0)) {
       char errmsg[256];
       csound->Message(csound, "smpsin = %ld\n", (long) thishet->smpsin);
       snprintf(errmsg, 256, Str("Read error on %s\n"), thishet->infilnam);
@@ -277,13 +278,13 @@ static int hetro(CSOUND *csound, int argc, char **argv)
 #if INCSDIF
     /* RWD no limit for SDIF files! */
     if (is_sdiffile(thishet->outfilnam)) {
-      if (thishet->num_pts >= nsamps - thishet->windsiz)
+      if (UNLIKELY(thishet->num_pts >= nsamps - thishet->windsiz))
         return quit(csound, Str("number of output points is too great"));
     }
     else
 #endif
-      if (thishet->num_pts > 32767 ||
-          thishet->num_pts >= nsamps - thishet->windsiz)
+      if (UNLIKELY(thishet->num_pts > 32767 ||
+                   thishet->num_pts >= nsamps - thishet->windsiz))
         return quit(csound, Str("number of output points is too great"));
     thishet->delta_t = FL(1.0)/thishet->sr;
     thishet->t = FL(1.0)/thishet->fund_est;
@@ -353,7 +354,7 @@ static int hetro(CSOUND *csound, int argc, char **argv)
 #if INCSDIF
     /* RWD if extension is .sdif, write as 1TRC frames */
     if (is_sdiffile(thishet->outfilnam)) {
-      if (!writesdif(csound,thishet)) {
+      if (UNLIKELY(!writesdif(csound,thishet))) {
         csound->Message(csound, Str("Unable to write to SDIF file\n"));
         retval = -1;
       }
@@ -611,12 +612,12 @@ static int filedump(HET *thishet, CSOUND *csound)
 
     /* fullpath else cur dir */
     if (thishet->newformat) {
-      if (csound->FileOpen2(csound, &ff, CSFILE_STD, thishet->outfilnam,
-                              "w", "", CSFTYPE_HETROT, 0) == NULL)
+      if (UNLIKELY(csound->FileOpen2(csound, &ff, CSFILE_STD, thishet->outfilnam,
+                                     "w", "", CSFTYPE_HETROT, 0) == NULL))
       return quit(csound, Str("cannot create output file\n"));
     } else
-      if (csound->FileOpen2(csound, &ofd, CSFILE_FD_W, thishet->outfilnam,
-                            NULL, "", CSFTYPE_HETRO, 0) == NULL)
+      if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W, thishet->outfilnam,
+                                     NULL, "", CSFTYPE_HETRO, 0) == NULL))
         return quit(csound, Str("cannot create output file\n"));
 
     if (thishet->newformat)
@@ -779,7 +780,7 @@ static int writesdif(CSOUND *csound, HET *thishet)
     SDIF_MatrixHeader mh;
     FILE        *sdiffile = NULL;
 
-    if (SDIF_Init() != ESDIF_SUCCESS) {
+    if (UNLIKELY(SDIF_Init() != ESDIF_SUCCESS)) {
       csound->Message(csound,
                       Str("OOPS: SDIF does not work on this machine!\n"));
       return 0;
@@ -805,7 +806,8 @@ static int writesdif(CSOUND *csound, HET *thishet)
       }
     }
 
-    if ((r = SDIF_OpenWrite(thishet->outfilnam, &sdiffile))!=ESDIF_SUCCESS) {
+    if (UNLIKELY((r =
+                  SDIF_OpenWrite(thishet->outfilnam, &sdiffile))!=ESDIF_SUCCESS)) {
       /* can get SDIF error messages, but trickly for CSTRINGS */
       csound->Message(csound,Str("Error creating %s\n"),thishet->outfilnam);
       fclose(sdiffile);
@@ -834,7 +836,7 @@ static int writesdif(CSOUND *csound, HET *thishet)
       sdif_float32 amp,freq,phase = 0.0f;
       /* cannot offer anything interesting with phase! */
       head.time = (sdif_float32) ((MYFLT)i * timesiz);
-      if ((r = SDIF_WriteFrameHeader(&head,sdiffile))!=ESDIF_SUCCESS) {
+      if (UNLIKELY((r = SDIF_WriteFrameHeader(&head,sdiffile))!=ESDIF_SUCCESS)) {
         csound->Message(csound,Str("Error writing SDIF frame header.\n"));
         return 0;
       }
@@ -843,7 +845,7 @@ static int writesdif(CSOUND *csound, HET *thishet)
       mh.columnCount = 4;
       SDIF_Copy4Bytes(mh.matrixType,"1TRC");
       mh.matrixDataType = SDIF_FLOAT32;
-      if ((r = SDIF_WriteMatrixHeader(&mh,sdiffile))!=ESDIF_SUCCESS) {
+      if (UNLIKELY((r = SDIF_WriteMatrixHeader(&mh,sdiffile))!=ESDIF_SUCCESS)) {
         csound->Message(csound,Str("Error writing SDIF matrix header.\n"));
         return 0;
       }
@@ -853,10 +855,10 @@ static int writesdif(CSOUND *csound, HET *thishet)
         index = (sdif_float32)(j+1);
         amp = (sdif_float32) thishet->MAGS[j][i];
         freq = (sdif_float32) thishet->FREQS[j][i];
-        if (((r = SDIF_Write4(&index,1,sdiffile))!= ESDIF_SUCCESS) ||
-            ((r = SDIF_Write4(&freq,1,sdiffile))!= ESDIF_SUCCESS)  ||
-            ((r = SDIF_Write4(&amp,1,sdiffile))!= ESDIF_SUCCESS)   ||
-            ((r = SDIF_Write4(&phase,1,sdiffile))!= ESDIF_SUCCESS)) {
+        if (UNLIKELY(((r = SDIF_Write4(&index,1,sdiffile))!= ESDIF_SUCCESS) ||
+                     ((r = SDIF_Write4(&freq,1,sdiffile))!= ESDIF_SUCCESS)  ||
+                     ((r = SDIF_Write4(&amp,1,sdiffile))!= ESDIF_SUCCESS)   ||
+                     ((r = SDIF_Write4(&phase,1,sdiffile))!= ESDIF_SUCCESS))) {
           csound->Message(csound,Str("Error writing SDIF data.\n"));
           return 0;
         }

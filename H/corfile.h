@@ -25,12 +25,12 @@
 
 #define __corfil
 
-CORFIL *corfile_create_w(void);
-CORFIL *corfile_create_r(const char *text);
-void corfile_putc(int c, CORFIL *f);
-void corfile_puts(const char *s, CORFIL *f);
-void corfile_flush(CORFIL *f);
-void corfile_rm(CORFIL **ff);
+CORFIL *corfile_create_w(CSOUND*);
+CORFIL *corfile_create_r(CSOUND*,const char *text);
+void corfile_putc(CSOUND*,int c, CORFIL *f);
+void corfile_puts(CSOUND*,const char *s, CORFIL *f);
+void corfile_flush(CSOUND*,CORFIL *f);
+void corfile_rm(CSOUND*,CORFIL **ff);
 int corfile_getc(CORFIL *f);
 void corfile_ungetc(CORFIL *f);
 char *corfile_fgets(char *b, int len, CORFIL *f);
@@ -53,6 +53,6 @@ int corfile_length(CORFIL *f);
 void corfile_set(CORFIL *f, int n);
 #define corfile_set(f,n) (f->p = n)
 void corfile_seek(CORFIL *f, int n, int dir);
-void corfile_preputs(const char *s, CORFIL *f);
-
+void corfile_preputs(CSOUND *csound, const char *s, CORFIL *f);
+void add_corfile(CSOUND* csound, CORFIL *smpf, char *filename);
 #endif

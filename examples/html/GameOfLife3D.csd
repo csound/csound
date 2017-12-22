@@ -1,4 +1,4 @@
-<CsoundSynthesizer>
+ <CsoundSynthesizer>
 <CsLicense>
 Game of Life in 3D for Csound
 Copyright (C) 2013 by Michael Gogins.
@@ -238,7 +238,7 @@ Use right mouse button for devtools to debug or examine.
 		renderer.shadowMapDarkness = 0.5;
 		renderer.shadowMapWidth = renderer.shadowMapHeight = 2048;
 
-		renderer.shadowMapEnabled = true;
+		renderer.shadowMap.enabled = true;
 		renderer.shadowMapSoft = true;
 
         container.appendChild( renderer.domElement );

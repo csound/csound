@@ -85,8 +85,9 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      /*csound->Message(csound, "%p -> %p \n", p->handle, phandle); */
     if (phandle == NULL)
-      csound->InitError(csound,
-                        Str("error... could not create global var for handle\n"));
+      return
+        csound->InitError(csound,
+                          Str("error... could not create global var for handle\n"));
     else
       *phandle = p->handle;
      }
@@ -144,9 +145,9 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     /* csound->Message(csound, "%s:\n", varname); */
     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
-      csound->InitError(csound,
-                        Str("error... could not read handle from "
-                            "global variable\n"));
+      return csound->InitError(csound,
+                               Str("error... could not read handle from "
+                                   "global variable\n"));
     else
       handle = *phandle;
     p->optr = *p->hptr;

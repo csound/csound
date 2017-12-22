@@ -30,16 +30,19 @@
 /* MEMORY COPYING FUNCTIONS */
 
 void myflt_copy_value(void* csound, void* dest, void* src) {
+  IGN(csound);
     MYFLT* f1 = (MYFLT*)dest;
     MYFLT* f2 = (MYFLT*)src;
     *f1 = *f2;
 }
 
 void asig_copy_value(void* csound, void* dest, void* src) {
+    IGN(csound);
     memcpy(dest, src, sizeof(MYFLT) * ((CSOUND*)csound)->ksmps);
 }
 
 void wsig_copy_value(void* csound, void* dest, void* src) {
+    IGN(csound);
     memcpy(dest, src, sizeof(SPECDAT));
     //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
 }
@@ -166,6 +169,7 @@ void arrayInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
 }
 
 void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    IGN(var);
     STRINGDAT *str = (STRINGDAT *)memblock;
     CSOUND* cs = (CSOUND*)csound;
     str->data = (char *) cs->Calloc(csound, 8);
@@ -174,6 +178,7 @@ void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
 }
 
 void varInitMemoryFsig(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    IGN(var);
     PVSDAT *fsig = (PVSDAT *)memblock;
     IGN(csound);
     memset(fsig, 0, sizeof(PVSDAT));  /* VL: clear memory for now */
@@ -291,7 +296,7 @@ void array_free_var_mem(void* csnd, void* p) {
             for (i = 1; i < dat->dimensions; i++) {
                 size *= dat->sizes[i];
             }
-            size = MYFLT2LRND(size);
+            //size = MYFLT2LRND(size); // size is not a float  but int
             for (i = 0; i < size; i++) {
                 arrayType->freeVariableMemory(csound,
                                               mem+ (i * memMyfltSize));
@@ -301,7 +306,7 @@ void array_free_var_mem(void* csnd, void* p) {
         csound->Free(csound, dat->data);
     }
 
-    if(dat->sizes != NULL) {
+    if (dat->sizes != NULL) {
         csound->Free(csound, dat->sizes);
     }
 }

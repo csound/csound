@@ -31,7 +31,8 @@
 #include <math.h>
 #include "vdelay.h"
 
-#define ESR     (csound->esr/FL(1000.0))
+//#define ESR     (csound->esr/FL(1000.0))
+#define ESR     (csound->esr*FL(0.001))
 
 int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
@@ -42,10 +43,11 @@ int vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
         /* allocate space for delay buffer */
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {     /*    make sure buffer is empty       */
-        memset(p->aux.auxp, 0, n*sizeof(MYFLT));
+        memset(p->aux.auxp, '\0', n*sizeof(MYFLT));
       }
       p->left = 0;
     }
+    p->maxd = n - 1;
     return OK;
 }
 
@@ -59,9 +61,10 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
+    MYFLT esr = ESR;
 
     if (UNLIKELY(buf==NULL)) goto err1;        /* RWD fix */
-    maxd = (uint32) (1+*p->imaxd * ESR);
+    maxd = p->maxd;
     indx = p->left;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -75,7 +78,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         int32   v1, v2;
 
         buf[indx] = in[nn];
-        fv1 = indx - (del[nn]) * ESR;
+        fv1 = indx - (del[nn]) * esr;
         /* Make sure Inside the buffer      */
         /*
          * The following has been fixed by adding a cast and making a
@@ -111,7 +114,7 @@ int vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         int32   v1, v2;
 
         buf[indx] = in[nn];
-        fv1 = indx - fdel * ESR;
+        fv1 = indx - fdel * esr;
         /* Make sure inside the buffer      */
         /*
          * See comment above--same fix applied here.  heh 981101
@@ -151,9 +154,10 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
+    MYFLT esr = ESR;
 
     if (UNLIKELY(buf==NULL)) goto err1;            /* RWD fix */
-    maxd = (uint32) (*p->imaxd * ESR);
+    maxd = p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -168,7 +172,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
         int32   v0, v1, v2, v3;
 
         buf[indx] = in[nn];      /* IV Oct 2001 */
-        fv1 = del[nn] * (-ESR);
+        fv1 = del[nn] * (-esr);
         v1 = (int32)fv1;
         fv1 -= (MYFLT) v1;
         v1 += (int32)indx;
@@ -206,7 +210,7 @@ int vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
       MYFLT  fv1, w, x, y, z;
       int32   v0, v1, v2, v3;
 
-      fv1 = *del * -ESR; v1 = (int32)fv1; fv1 -= (MYFLT) v1;
+      fv1 = *del * -esr; v1 = (int32)fv1; fv1 -= (MYFLT) v1;
       v1 += (int32)indx;
       /* Make sure Inside the buffer      */
       if ((v1 < 0L) || (fv1 < FL(0.0))) {
@@ -271,6 +275,7 @@ int vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
       p->interp_size = (p->interp_size < 4 ? 4 : p->interp_size);
       p->interp_size = (p->interp_size > 1024 ? 1024 : p->interp_size);
     }
+    p->maxd = (uint32) n;
     return OK;
 }
 
@@ -296,6 +301,7 @@ int vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
       p->interp_size = (p->interp_size < 4 ? 4 : p->interp_size);
       p->interp_size = (p->interp_size > 1024 ? 1024 : p->interp_size);
     }
+    p->maxd = (uint32) n;
     return OK;
 }
 
@@ -329,6 +335,7 @@ int vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
       p->interp_size = (p->interp_size < 4 ? 4 : p->interp_size);
       p->interp_size = (p->interp_size > 1024 ? 1024 : p->interp_size);
     }
+    p->maxd = (uint32) n;
     return OK;
 }
 
@@ -347,7 +354,7 @@ int vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
     int32   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd = p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -418,7 +425,7 @@ int vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     int32   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -490,7 +497,7 @@ int vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     uint32_t n, nsmps = CS_KSMPS;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1; /* RWD fix */
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -568,7 +575,7 @@ int vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     int32   i, i2, xpos;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1;     /* RWD fix */
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -652,7 +659,7 @@ int vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
                  (buf3 == NULL) || (buf4 == NULL))) goto err1;
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -747,7 +754,7 @@ int vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
                  (buf3 == NULL) || (buf4 == NULL))) goto err1;
-    maxd = (int32)(*p->imaxd * csound->esr);
+    maxd =  p->maxd;
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
@@ -825,7 +832,7 @@ int multitap_set(CSOUND *csound, MDEL *p)
     //if (UNLIKELY(p->INOCOUNT/2 == (MYFLT)p->INOCOUNT*FL(0.5)))
     /* Should this test just be p->INOCOUNT&1 ==  */
     if (UNLIKELY((p->INOCOUNT&1)==0))
-      csound->InitError(csound, Str("Wrong input count in multitap\n"));
+      return csound->InitError(csound, Str("Wrong input count in multitap\n"));
 
     for (i = 0; i < p->INOCOUNT - 1; i += 2) {
       if (max < *p->ndel[i]) max = *p->ndel[i];
@@ -997,7 +1004,8 @@ int reverbx_set(CSOUND *csound, NREV2 *p)
     int   cmbAllocSize, alpAllocSize;
 
     if (UNLIKELY(*p->hdif > FL(1.0) || *p->hdif < FL(0.0)))
-      csound->InitError(csound, Str("High frequency diffusion not in (0, 1)\n"));
+      return
+        csound->InitError(csound, Str("High frequency diffusion not in (0, 1)\n"));
 
     /* Init comb constants and allocate dynamised work space */
     if (*p->inumCombs < FL(1.0)) {  /* Using old defaults */

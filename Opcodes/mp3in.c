@@ -56,10 +56,12 @@ typedef struct {
 
 int mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
-    if (p->mpa != NULL)
+    if (LIKELY(p->mpa != NULL))
       mp3dec_uninit(p->mpa);
+    p->mpa = NULL;
     return OK;
 }
+
 
 int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
 {
@@ -99,7 +101,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
 
 
     /* FIXME: name can overflow with very long string */
-    if(stringname==0){
+    if (stringname==0){
       if (csound->ISSTRCOD(*p->iFileCode))
         strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
@@ -184,7 +186,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     //if(!skip)
     //mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
     p->r = r;
-    if(p->initDone == -1)
+    if (p->initDone == 0)
       csound->RegisterDeinitCallback(csound, p,
                                      (int (*)(CSOUND*, void*)) mp3in_cleanup);
     /* done initialisation */
@@ -377,7 +379,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = (int) pow(2.0, i-1);
+      N = (int) pow(2.0, i-1);  /* could be a shift? */
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -503,19 +505,23 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
       clock_gettime(CLOCK_MONOTONIC, &ts);
       dtime = ts.tv_sec + 1e-9*ts.tv_nsec;*/
 
-    sinit(csound, p);
-    size = p->N*sizeof(MYFLT)*BUFS;
-    if (p->fdata[0].auxp == NULL || p->fdata[0].size < size)
-      csound->AuxAlloc(csound, size, &p->fdata[0]);
-    p->indataL[0] = p->fdata[0].auxp;
-    p->indataL[1] = ((char*)p->fdata[0].auxp) + size/2;
-    if (p->fdata[1].auxp == NULL || p->fdata[1].size < size)
-      csound->AuxAlloc(csound, size, &p->fdata[1]);
-    p->indataR[0] = p->fdata[1].auxp;
-    p->indataR[1] = ((char*)p->fdata[1].auxp) + size/2;
-    if (p->buffer.auxp == NULL || p->buffer.size < size)
-      csound->AuxAlloc(csound, size, &p->buffer);
-
+    {
+      char *ps;
+      sinit(csound, p);
+      size = p->N*sizeof(MYFLT)*BUFS;
+      if (p->fdata[0].auxp == NULL || p->fdata[0].size < size)
+        csound->AuxAlloc(csound, size, &p->fdata[0]);
+      ps = (char *) p->fdata[0].auxp;
+      p->indataL[0] = (MYFLT*) ps;
+      p->indataL[1] = (MYFLT*) (ps + size/2);
+      if (p->fdata[1].auxp == NULL || p->fdata[1].size < size)
+        csound->AuxAlloc(csound, size, &p->fdata[1]);
+      ps = (char *) p->fdata[1].auxp;
+      p->indataR[0] = (MYFLT*) ps;
+      p->indataR[1] = (MYFLT*) (ps + size/2);
+      if (p->buffer.auxp == NULL || p->buffer.size < size)
+        csound->AuxAlloc(csound, size, &p->buffer);
+    }
     /*
       memset(&(p->fdch), 0, sizeof(FDCH));
       p->fdch.fd = fd;
@@ -1210,17 +1216,17 @@ typedef struct _check {
 
 
 static int check_init(CSOUND *csound, CHECK *p){
-  if(p->pp->data != NULL &&
-     p->pp->size != sizeof(MP3SCAL2)) {
-    p->p = (MP3SCAL2 *) p->pp->data;
-  }
-  else return csound->InitError(csound, "invalid handle \n");
-  return OK;
+    if(p->pp->data != NULL &&
+       p->pp->size != sizeof(MP3SCAL2)) {
+      p->p = (MP3SCAL2 *) p->pp->data;
+    }
+    else return csound->InitError(csound, "invalid handle \n");
+    return OK;
 }
 
 static int check_play(CSOUND *csound, CHECK *p){
-  *p->res = p->p->init;
-  return OK;
+    *p->res = p->p->init;
+    return OK;
 }
 
 #ifdef HAVE_NEON

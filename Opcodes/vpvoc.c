@@ -37,9 +37,8 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     FUNC    *nxtfunc, *curfunc;
     int32    flength;
 
-    if (!(p->INCOUNT & 1)){
-      csound->InitError(csound, "incomplete number of input arguments");
-      return NOTOK;
+    if (UNLIKELY(!(p->INCOUNT & 1))) {
+      return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     {
@@ -68,7 +67,7 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     p->outfunc->lobits = nxtfunc->lobits;
     p->outfunc->lomask = nxtfunc->lomask;
     p->outfunc->lodiv = nxtfunc->lodiv;
-    memset(p->outfunc->ftable, 0, sizeof(MYFLT)*(flength+1));
+    //memset(p->outfunc->ftable, 0, sizeof(MYFLT)*(flength+1)); not needed -- calloc
     if (**argp <= 0.0)  return OK;         /* if idur1 <= 0, skip init  */
     p->cursegp = segp;                      /* else proceed from 1st seg */
     segp--;
@@ -78,7 +77,7 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
         dur = **argp++;
         if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL))
           return OK;
-        if (dur > FL(0.0)) {
+        if (LIKELY(dur > FL(0.0))) {
                 segp->d = dur * CS_EKR;
                 segp->function =  curfunc;
                 segp->nxtfunction = nxtfunc;
@@ -316,7 +315,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     }
     if (frIndx > (MYFLT)p->maxFr) { /* not past last one */
       frIndx = (MYFLT)p->maxFr;
-      if (p->prFlg) {
+      if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
         csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
       }
@@ -342,7 +341,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     if (specwp == 0 || (p->prFlg)++ == -(int)specwp) {
       /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
-      if (specwp < 0)
+      if (UNLIKELY(specwp < 0))
         csound->Warning(csound, Str("PVOC debug: one frame gets through\n"));
       if (specwp > 0)
         PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);

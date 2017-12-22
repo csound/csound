@@ -21,8 +21,6 @@
 #include "hdf5.h"
 #include <stdbool.h>
 
-#pragma mark - HDF5IO -
-
 typedef enum ArgumentType
 {
     STRING_VAR,
@@ -89,8 +87,6 @@ HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
 
 void HDF5IO_deleteHDF5File(CSOUND *csound, HDF5File *hdf5File);
 
-#pragma mark - HDF5Write -
-
 typedef struct HDF5Write
 {
     OPDS h;
@@ -119,8 +115,6 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
 
 void HDF5Write_deleteArrayDataset(CSOUND *csound, HDF5Dataset *dataset);
 
-
-#pragma mark - HDF5Read -
 
 typedef struct HDF5Read
 {

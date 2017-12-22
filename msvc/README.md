@@ -1,12 +1,14 @@
 # Building Csound with MSVC on Windows
-The following instructions are required to get Csound building and running using Microsoft Visual Studio 2017
 
-Csound contains many dependencies, some of which do not work with the MSVC build yet. This page will document the current build status and will be updated accordingly as the work progresses. 
+Please note, the following applies not only to the online AppVeyor build of Csound, but also to local builds of Csound using Microsoft Visual Studio (MSVS). The build works either with MSVS 2015, or with MSVS 2017.
+
+Csound contains many dependencies, some of which do not work with the MSVS build yet. This page will document the current build status and will be updated accordingly as the work progresses. 
 
 The goal is to have as much of Csound build in a native Windows manner as possible which will ease maintainence of the Windows port.
 
 ## Pre-requisites
-1. Visual Studio 2017 x64 Community Edition (free) or greater 
+
+1. MSVS 2017=5 x64 Community Edition (free) or greater 
     * Needs to have C++ tools installed, which isn't the detault
     * https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15
     * In the installer, in the "Individual components" section. You should install "Python 2 64 bit", "VC++ 2015.3 toolset", "VC++ 2017 toolset", "Windows Universal CRT SDK", "Windows XP Support for C++", "Windows 10 SDK", "Windows 8.1 SDK" depending on the type of build you wish to create.
@@ -18,6 +20,7 @@ The goal is to have as much of Csound build in a native Windows manner as possib
     * Ensure Git is available on the Windows path
 
 ### Optional
+
 Some other dependencies may need to be installed to enable all features within Csound or if building the installer (full) version of Csound. Most of these are system wide tools that a development machine might have installed anyway.
 
 1. Python 2.7
@@ -27,9 +30,9 @@ Some other dependencies may need to be installed to enable all features within C
     * Note: CMake (3.8.0) doesn't seem to find the python embedded in Anaconda, only the offical version
 2. Java JDK
     * http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
-3. NSIS Installer
+3. Inno Setup Installer
     * Only required if building the Csound Installer
-    * http://nsis.sourceforge.net/Download
+    * http://www.jrsoftware.org/isdl.php
 
 ## VCPKG 
 The package manager used for Windows is VCPKG. It is still in beta/preview so it is not as integrated into Visual Studio as would be desired. It is advised to install it before downloading dependencies as the folder can grow to a large size (gigabytes). This is due to the source and binaries being housed within this folder. It can also be used system wide rather than just Csound so it is worth setting up.
@@ -46,7 +49,33 @@ The official instructions are here: https://github.com/Microsoft/vcpkg. The loca
 4. Once this script has finished, the Visual Studio solution file should be produced and located in "Csound\msvc\csound-vs" folder.
 5. Open this solution file in Visual Studio and build as normal. Just build the "ALLBUILD" project to build everything.
 
-Alternatively, execute the "build.bat" to do all of the above. This will also build a Release version of Csound.
+Alternatively, execute a batch file to do all of the above. `build.bat` should build Csound (but not CsoundQt or the Csound installer) using MSVS 2017; `build2015.bat` should build using MSVS 2015.
+
+If you want to build CsoundQt in addition to Csound and then compile the Windows installer, you can adapt the following batch file, which emulates the complete AppVeyor build:
+
+```
+@echo off
+echo Must call vcvars64.bat first!
+set CSOUND_HOME=D:\\msys64\\home\\restore\\csound\\
+set PYTHON=C:\Program_Files\Anaconda2\python.exe
+set APPVEYOR_BUILD_FOLDER=D:\\msys64\\home\\restore\\csound\\
+set VST_SDK_HOME=D:\\msys64\\mingw64\\include\\vstsdk2.4
+set VCREDIST_CRT_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CRT
+set VCREDIST_CXXAMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CXXAMP
+set VCREDIST_OPENMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.OpenMP
+set HDF5_HOME=C:\\Program Files\\HDF_Group\\HDF5\\1.8.19
+powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
+rem powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
+powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp" -vstSdkHome "D:\\msys64\\mingw64\\include\\vstsdk2.4"
+cmake --build csound-vs --config Release
+call build_csoundqt.bat
+cd %APPVEYOR_BUILD_FOLDER%\\frontends\\nwjs
+call C:\Program_Files\nodejs\nodevars.bat
+call nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2015
+cd %APPVEYOR_BUILD_FOLDER%\\msvc
+rem "C:\Program Files (x86)\Inno Setup 5\iscc.exe" /o. /dQtSdkBinDir="C:\\Qt\\Qt5.9.1\\5.9.1\\msvc2015_64\\bin\\" /dVcpkgInstalledBinDir="D:\\msys64\\home\\restore\\vcpkg\\installed\\x64-windows\\bin\\"  "..\installer\windows\csound6_x64_appveyor.iss"
+"C:\Program Files (x86)\Inno Setup 5\iscc.exe" /o. /dQtSdkBinDir="C:\\Qt\\Qt5.9.1\\5.9.1\\msvc2015_64\\bin\\" /dVcpkgInstalledBinDir="D:\\msys64\\home\\restore\\vcpkg\\installed\\x64-windows\\bin\\" /dInstallCsoundVst "..\installer\windows\csound6_x64_appveyor.iss"
+```
 
 ## Development workflow
 Once this project has been successfully generated as shown above, it does not require much further maintenance. To work on the Csound source, you can update the source directory via git pull and just rebuild the solution file in Visual Studio. There is no need to re-run the CMake command or script. Visual Studio detects changes within the project and will re-run the cmake command internally. 
@@ -73,29 +102,13 @@ You can pass in default arguments to the csound instance by right-clicking on "c
 Using the build configuration "Release" or "Release with debug info" will allow profilling of the project. By going to "Analyze" and "Performance Profiler", you will get a choice of profilling tools (cpu usage, memory etc).
 
 ## Work in progress / work to do
-1. [Partial] FLTK not being fully found. Everything is found except fluid_executable
-    * Is in VCPKG but missing fluid executable. Have a ticket open which will resolve this
-2. [Partial] Atomic builtins not being found, test program isn't working as expected but should
+ - [Partial] Atomic builtins not being found, test program isn't working as expected but should
    * Fixed the cmake test but csound source assumes linux based atomics, needs more work
-3. STK, source downloaded manually and built
-4. LUAJIT, source downloaded manually and built using VS console
-5. PureData, source download and extract
-6. GetText, is in vcpkg but not being detected by cmake. (missing:  GETTEXT_MSGMERGE_EXECUTABLE GETTEXT_MSGFMT_EXECUTABLE)
-7. Eigen, is in vcpkg but include path isn't being found
-8. FluidSynth, hard to build. Is there a windows binary download?
-9. WII opcodes, download source and build
-10. P5Glove, no idea about this
-11. Faust opcodes, need to investigate
-12. HDF5, need to investigate
-13. Websockets, need to investigate
-14. Csound AC 
-15. Csound~, needs max sdk
-16. Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
-17. Doxygen for documentation
-18. Installer needs work? Not tried
-
-## Investigate
-1. More usage of CMake instead of powershell scripts
-    * CMake can pull down git repos and build. Can be triggered if find_package fails
-    * Use of custom Find*.cmake modules to find dependencies, leads to cleaner cmake files
-2. Packaging build output, using NSIS or converting to something else
+ - PureData, source download and extract
+ - Faust opcodes, need to investigate
+ - HDF5, need to investigate
+ - Websockets, need to investigate
+ - Csound~, needs max sdk
+ - Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
+ - Doxygen for documentation
+ - Installer, currently being re-written

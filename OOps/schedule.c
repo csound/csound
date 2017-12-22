@@ -22,15 +22,21 @@
     02111-1307 USA
 */
 
-#include "csoundCore.h"
-#include "schedule.h"
 #include <math.h>
+#include "csoundCore.h"
 #include "namedins.h"
 #include "linevent.h"
+/* Keep Microsoft's schedule.h from being used instead of our schedule.h. */
+#ifdef _MSC_VER
+#include "H/schedule.h"
+#else
+#include "schedule.h"
+#endif
 
-
+extern void csoundInputMessageInternal(CSOUND *, const char *);
 int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int s, char p1);
 int eventOpcode_(CSOUND *csound, LINEVENT *p, int s, char p1);
+
 
 int schedule(CSOUND *csound, SCHED *p)
 {
@@ -50,6 +56,25 @@ int schedule(CSOUND *csound, SCHED *p)
     return eventOpcodeI_(csound, &pp, 0, 'i');
 }
 
+static void add_string_arg(char *s, const char *arg) {
+  int offs = strlen(s) ;
+  //char *c = s;
+  s += offs;
+  *s++ = ' ';
+
+  *s++ ='\"';
+  while(*arg != '\0') {
+    if(*arg == '\"')
+      *s++ = '\\';
+    *s++ = *arg++;
+  }
+
+  *s++ = '\"';
+  *s = '\0';
+  //printf("%s \n", c);
+}
+
+
 int schedule_N(CSOUND *csound, SCHED *p)
 {
     int i;
@@ -58,11 +83,15 @@ int schedule_N(CSOUND *csound, SCHED *p)
     sprintf(s, "i %f %f %f", *p->which, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
-         if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
-           sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
-         else sprintf(s, "%s %f", s,  *arg);
+       if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S) {
+           add_string_arg(s, ((STRINGDAT *)arg)->data);
+           //sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
+       }
+       else sprintf(s, "%s %f", s,  *arg);
+
     }
-    csoundInputMessage(csound, s);
+
+    csoundInputMessageInternal(csound, s);
     return OK;
 }
 
@@ -75,10 +104,12 @@ int schedule_SN(CSOUND *csound, SCHED *p)
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
          if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
-           sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
+           //sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
+           add_string_arg(s, ((STRINGDAT *)arg)->data);
          else sprintf(s, "%s %f", s,  *arg);
     }
-    csoundInputMessage(csound, s);
+    //printf("%s\n", s);
+    csoundInputMessageInternal(csound, s);
     return OK;
 }
 

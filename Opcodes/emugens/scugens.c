@@ -128,8 +128,15 @@ static int laga_next(CSOUND *csound, LAG *p) {
     MYFLT y1 = p->y1;
     MYFLT b1 = p->b1;
     MYFLT y0;
+    uint32_t offset = p->h.insdshead->ksmps_offset; // delayed onset
+    uint32_t early  = p->h.insdshead->ksmps_no_end; // early end of event
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early))  {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if (lag == p->lag) {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         y0 = in[n];
         y1 = y0 + b1 * (y1 - y0);
         out[n] = y1;
@@ -141,7 +148,7 @@ static int laga_next(CSOUND *csound, LAG *p) {
       p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
       MYFLT b1_slope = CALCSLOPE(p->b1, b1, nsmps);
       p->lag = lag;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         b1 += b1_slope;
         y0 = in[n];
         y1 = y0 + b1 * (y1 - y0);
@@ -169,11 +176,17 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
       y1 = p->y1,
       b1u = p->b1u,
       b1d = p->b1d;
-
+    uint32_t offset = p->h.insdshead->ksmps_offset; // delayed onset
+    uint32_t early  = p->h.insdshead->ksmps_no_end; // early end of event
     uint32_t n, nsmps = CS_KSMPS;
 
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early))  {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         MYFLT y0 = in[n];
         if (y0 > y1)
           y1 = y0 + b1u * (y1 - y0);
@@ -190,7 +203,7 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
       p->b1d = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
       MYFLT b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps);
       p->lagd = lagd;
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         MYFLT y0 = in[n];
         b1u += b1u_slope;
         b1d += b1d_slope;
@@ -272,8 +285,15 @@ static int trig_a(CSOUND *csound, Trig *p) {
       prevtrig = p->prevtrig,
       level = p->level;
     unsigned long counter = p->counter;
+    uint32_t offset = p->h.insdshead->ksmps_offset; // delayed onset
+    uint32_t early  = p->h.insdshead->ksmps_no_end; // early end of event
     uint32_t n, nsmps = CS_KSMPS;
-    for(n=0; n<nsmps; n++) {
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early))  {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
       MYFLT curtrig = in[n];
       MYFLT zout;
       if (counter > 0) {
@@ -365,22 +385,22 @@ static int trig_init(CSOUND *csound, Trig *p) {
 typedef struct {
   OPDS    h;
   MYFLT   *out, *trig, *rate, *start, *end, *resetPos;
-  MYFLT   level, previn, resetk;
+  MYFLT   level, previn/*, resetk*/;
 } Phasor;
 
 static int phasor_init(CSOUND *csound, Phasor *p) {
     p->previn = 0;
     p->level = 0;
-    p->resetk = 1;
+    /* p->resetk = 1; */
     return OK;
 }
 
-static int phasor_init0(CSOUND *csound, Phasor *p) {
-    p->previn = 0;
-    p->level = 0;
-    p->resetk = 0;
-    return OK;
-}
+/* static int phasor_init0(CSOUND *csound, Phasor *p) { */
+/*     p->previn = 0; */
+/*     p->level = 0; */
+/*     p->resetk = 0; */
+/*     return OK; */
+/* } */
 
 static int phasor_aa(CSOUND *csound, Phasor *p) {
     MYFLT *out  = p->out;
@@ -388,11 +408,19 @@ static int phasor_aa(CSOUND *csound, Phasor *p) {
     MYFLT *rate = p->rate;
     MYFLT start = *p->start;
     MYFLT end   = *p->end;
-    MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+    //MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+    MYFLT resetPos = *p->resetPos;
     MYFLT previn = p->previn;
     MYFLT level = p->level;
+    uint32_t offset = p->h.insdshead->ksmps_offset; // delayed onset
+    uint32_t early  = p->h.insdshead->ksmps_no_end; // early end of event
     uint32_t n, nsmps = CS_KSMPS;
-    for(n=0; n<nsmps; n++) {
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early))  {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
       MYFLT curin = in[n];
       MYFLT zrate = rate[n];
       if (previn <= FL(0.0) && curin > FL(0.0)) {
@@ -415,12 +443,20 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
     MYFLT rate  = *p->rate;
     MYFLT start = *p->start;
     MYFLT end   = *p->end;
-    // MYFLT resetPos = *p->resetPos;
-    MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+    MYFLT resetPos = *p->resetPos;
+    //MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
     MYFLT previn = p->previn;
     MYFLT level = p->level;
-    uint32_t n, nsmps = CS_KSMPS;
-    for(n=0; n<nsmps; n++) {
+    uint32_t n;
+    uint32_t offset = p->h.insdshead->ksmps_offset; // delayed onset
+    uint32_t early  = p->h.insdshead->ksmps_no_end; // early end of event
+    uint32_t nsmps = CS_KSMPS;
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early))  {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) { // Only calculate inside event
       MYFLT curin = in[n];
       if (previn <= FL(0.0) && curin > FL(0.0)) {
         MYFLT frac = FL(1.0) - previn/(curin-previn);
@@ -441,12 +477,12 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
     MYFLT rate  = *p->rate;
     MYFLT start = *p->start;
     MYFLT end   = *p->end;
-    // MYFLT resetPos = *p->resetPos;
-    MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
+    MYFLT resetPos = *p->resetPos;
+    //MYFLT resetPos = p->resetk ? (*p->resetPos) : 0;
     MYFLT previn = p->previn;
     MYFLT level = p->level;
 
-    if (previn <= FL(0.0) && curin > FL(0.0)) {
+    if (UNLIKELY(previn <= FL(0.0) && curin > FL(0.0))) {
       level = resetPos;
     }
     level = sc_wrap(level, start, end);
@@ -471,18 +507,18 @@ static OENTRY localops[] = {
   { "sc_trig",    S(Trig),  0, 3,   "k", "kk", (SUBR)trig_init, (SUBR)trig_k },
   { "sc_trig",    S(Trig),  0, 5,   "a", "ak",
     (SUBR)trig_init, NULL, (SUBR)trig_a },
-  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkkk",
+  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkkO",
     (SUBR)phasor_init, (SUBR)phasor_kk },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkkk",
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkkO",
     (SUBR)phasor_init, NULL, (SUBR)phasor_ak },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakkk",
+  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakkO",
     (SUBR)phasor_init, NULL, (SUBR)phasor_aa },
-  { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkk",
-    (SUBR)phasor_init0, (SUBR)phasor_kk },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkk",
-    (SUBR)phasor_init0, NULL, (SUBR)phasor_ak },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakk",
-    (SUBR)phasor_init0, NULL, (SUBR)phasor_aa }
+  /* { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkk", */
+  /*   (SUBR)phasor_init0, (SUBR)phasor_kk }, */
+  /* { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkk", */
+  /*   (SUBR)phasor_init0, NULL, (SUBR)phasor_ak }, */
+  /* { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakk", */
+  /*   (SUBR)phasor_init0, NULL, (SUBR)phasor_aa } */
 };
 
 LINKAGE

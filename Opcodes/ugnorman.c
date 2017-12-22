@@ -124,10 +124,9 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     /* load memfile */
     if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,
                                                   CSFTYPE_ATS, NULL)) == NULL)) {
-      csound->InitError(csound,
-                        Str("%s: Ats file %s not read (does it exist?)"),
-                        opname, fname);
-      return -1;
+      return  csound->InitError(csound,
+                                Str("%s: Ats file %s not read (does it exist?)"),
+                                opname, fname);
     }
     atsh = (ATSSTRUCT*) (*mfp)->beginp;
 
@@ -462,7 +461,7 @@ static MYFLT FetchNzBand(ATSREADNZ *p, MYFLT position)
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
-    if (frame == p->maxFr)
+    if (UNLIKELY(frame == p->maxFr))
       return (MYFLT) frm1val;
 
     frm_2 = frm_1 + p->frmInc;
@@ -939,7 +938,7 @@ static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
-    if (frame == p->maxFr) {
+    if (UNLIKELY(frame == p->maxFr)) {
       for (i = 0; i < npartials; i++) {
         if (p->swapped == 1) {
           buf[i].amp = bswap(&frm_0[partialloc]);        /* calc amplitude */
@@ -1052,7 +1051,7 @@ static void FetchADDNZbands(int ptls, int firstband, double *datastart,
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
-    if (frame == maxFr) {
+    if (UNLIKELY(frame == maxFr)) {
       for (i = 0; i < ptls; i++) {
         buf[i] = (swapped == 1 ? bswap(&frm_0[firstband + i])
                                     : frm_0[firstband + i]); /* output value */
@@ -1093,7 +1092,7 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     p->bands = (int)(*p->ibands);
     p->bandoffset = (int) (*p->ibandoffset);
@@ -1263,7 +1262,7 @@ static int atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     p->bands = (int)(*p->ibands);
     p->bandoffset = (int) (*p->ibandoffset);
@@ -1467,12 +1466,12 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
 
     synthme = p->bandoffset;
     nsynthed = 0;
+    ar = p->aoutput;
     for (i = 0; i < 25; i++) {
       /* do we even have to synthesize it? */
       if (i == synthme && nsynthed < p->bands) { /* synthesize cosine */
         amp = csound->e0dbfs*
           SQRT((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
-        ar = p->aoutput;
         for (n=offset; n<nsmps; n++) {
           ar[n] += (COS(p->oscphase[i])
                    * amp * randiats(csound, &(p->randinoise[i])));
@@ -2016,7 +2015,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
-    if (frame == p->maxFr) {
+    if (UNLIKELY(frame == p->maxFr)) {
       if (p->firstband == -1) { /* there is no noise data */
         if (p->swapped == 1) {
           for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
@@ -2324,10 +2323,11 @@ static int mycomp(const void *p1, const void *p2)
 {
     const ATS_DATA_LOC *a1 = p1;
     const ATS_DATA_LOC *a2 = p2;
-
-    if (a1->freq < a2->freq)
+    double a1f = a1->freq;
+    double a2f = a2->freq;
+    if (a1f < a2f)
       return -1;
-    else if (a1->freq == a2->freq)
+    else if (a1f == a2f)
       return 0;
     else
       return 1;
@@ -2350,7 +2350,7 @@ static void FetchBUFPartials(ATSBUFREAD *p,
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
-    if (frame == p->maxFr) {
+    if (UNLIKELY(frame == p->maxFr)) {
       if (p->swapped == 1) {
         for (i = 0; i < npartials; i++) {                   /* calc amplitude */
           buf[i].amp = buf2[i].amp = bswap(&frm_0[partialloc]);
@@ -2505,7 +2505,7 @@ static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
     if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
     /* make sure we are not asking for unreasonble frequencies */
-    if (*p->kfreq <= FL(20.0) || *p->kfreq >= FL(20000.0)) {
+    if (UNLIKELY(*p->kfreq <= FL(20.0) || *p->kfreq >= FL(20000.0))) {
       if (UNLIKELY(p->overflowflag)) {
         csound->Warning(csound, Str("ATSINTERPREAD: frequency must be greater "
                                     "than 20 and less than 20000 Hz"));
@@ -2561,7 +2561,7 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
@@ -2655,7 +2655,7 @@ static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
-    if (p->swapped < 0)
+    if (UNLIKELY(p->swapped < 0))
       return NOTOK;
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
@@ -2685,8 +2685,8 @@ static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
     }
 
     /* make sure partials are in range */
-    if ((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-        (int)(*p->iptloffset) < 0) {
+    if (UNLIKELY((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+                 (int)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSCROSS: Partial(s) out of range, "
                                            "max partial allowed is %i"),
                                        n_partials);
@@ -2746,7 +2746,7 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
 
     /* if we are using the data from the last frame */
     /* we should not try to interpolate */
-    if (frame == p->maxFr) {
+    if (UNLIKELY(frame == p->maxFr)) {
       if (p->swapped == 1) {
         for (i = 0; i < npartials; i++) {
           buf[i].amp = bswap(&frm_0[partialloc]);  /* calc amplitude */
@@ -2813,7 +2813,7 @@ static void ScalePartials(
       }
       tempamp = FL(0.0);
       /* make sure we are not going to overstep our array */
-      if (j < tbufnp && j > 0) {
+      if (LIKELY(j < tbufnp && j > 0)) {
         /* interp amplitude from table */
         frac =
             (cbuf[i].freq - tbuf[j - 1].freq) / (tbuf[j].freq -

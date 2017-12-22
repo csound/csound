@@ -1076,7 +1076,7 @@ static int looptseg(CSOUND *csound, LOOPTSEG *p)
         MYFLT diff = end_seg - beg_seg;
         MYFLT fract = ((MYFLT)phs-beg_seg)/diff;
         MYFLT v1 = *(p->argums[j].start);
-        MYFLT v2 = *(p->argums[j+1].start);
+        MYFLT v2 = (j!=nsegs-1)?*(p->argums[j+1].start):*(p->argums[0].start);
         if (alpha==FL(0.0))
           *p->out = v1 + (v2 - v1) * fract;
         else
@@ -1227,7 +1227,7 @@ static int lineto_set(CSOUND *csound, LINETO *p)
 
 static int lineto(CSOUND *csound, LINETO *p)
 {
-    if (p->flag) {
+    if (UNLIKELY(p->flag)) {
       p->val_incremented = p->current_val = *p->ksig;
       p->flag=0;
     }
@@ -1262,7 +1262,7 @@ static int tlineto_set(CSOUND *csound, LINETO2 *p)
 
 static int tlineto(CSOUND *csound, LINETO2 *p)
 {
-    if (p->flag) {
+    if (UNLIKELY(p->flag)) {
       p->val_incremented = p->current_val = *p->ksig;
       p->flag=0;
     }
@@ -1289,11 +1289,11 @@ static int vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0 && *p->iphs<1.0)
         p->lphs = (((long)(*p->iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
-      else if (*p->iphs>=1.0)
+      else if (UNLIKELY(*p->iphs>=1.0))
         return csound->InitError(csound, Str("vibrato@ Phase out of range"));
     }
     else return NOTOK;
@@ -1635,7 +1635,7 @@ static int kDiscreteUserRand(CSOUND *csound, DURAND *p)
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
-    *p->out = p->ftp->ftable[(int32)(randGab * MYFLT2LONG(p->ftp->flen))];
+    *p->out = p->ftp->ftable[(int32)(randGab * p->ftp->flen)];
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
@@ -1670,7 +1670,7 @@ static int aDiscreteUserRand(CSOUND *csound, DURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = table[(int32)(randGab) * MYFLT2LONG(flen)];
+      out[n] = table[(int32)(randGab) * flen];
     }
     return OK;
  err1:
@@ -1688,7 +1688,7 @@ static int kContinuousUserRand(CSOUND *csound, CURAND *p)
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
-    findx = (MYFLT) (randGab * MYFLT2LONG(p->ftp->flen));
+    findx = (MYFLT) (randGab * p->ftp->flen);
     indx = (int32) findx;
     fract = findx - indx;
     v1 = *(p->ftp->ftable + indx);
@@ -1740,7 +1740,7 @@ static int aContinuousUserRand(CSOUND *csound, CURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      findx = (MYFLT) (randGab * MYFLT2LONG(flen));
+      findx = (MYFLT) (randGab * flen);
       indx = (int32) findx;
       fract = findx - indx;
       v1 = table[indx];

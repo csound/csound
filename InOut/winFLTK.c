@@ -74,8 +74,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
     if (csound->QueryGlobalVariable(csound,
                                     "FLTK_Flags") == (void*) 0) {
-      if (csound->CreateGlobalVariable(csound,
-                                       "FLTK_Flags", sizeof(int)) != 0)
+      if (UNLIKELY(csound->CreateGlobalVariable(csound,
+                                                "FLTK_Flags", sizeof(int)) != 0))
         csound->Die(csound, "%s",
                     Str("widgets.cpp: error allocating FLTK flags"));
       initFlags = 1;

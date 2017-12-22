@@ -306,7 +306,7 @@ int pvsout_perf(CSOUND *csound, FCHAN *p)
 static int delete_channel_db(CSOUND *csound, void *p)
 {
     CONS_CELL *head, *values;
-
+    IGN(p);
     if (csound->chn_db == NULL) {
       return 0;
     }
@@ -672,7 +672,14 @@ static int chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
       print_chn_err_perf(p, err);
   }
 
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+    volatile union {
+    MYFLT d;
+    MYFLT_INT_TYPE i;
+    } x;
+    x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *) p->fp, 0);
+    *(p->arg) = x.d;
+#elif defined(HAVE_ATOMIC_BUILTIN)
     volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
@@ -734,7 +741,16 @@ int chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+    {
+    union {
+        MYFLT d;
+        MYFLT_INT_TYPE i;
+    } x;
+    x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)p->fp, 0);
+    *(p->arg) = x.d;
+    }
+#elif defined(HAVE_ATOMIC_BUILTIN)
     {
     union {
     MYFLT d;
@@ -845,7 +861,25 @@ int chnget_opcode_perf_S(CSOUND *csound, CHNGET *p)
 
 static int chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
-#ifdef HAVE_ATOMIC_BUILTIN
+ if(strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)){
+    int err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+                              CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
+    if(err == 0) {
+    p->lock = csoundGetChannelLock(csound, (char*) p->iname->data);
+    strncpy(p->chname, p->iname->data, MAX_CHAN_NAME);
+    }
+    else
+      print_chn_err_perf(p, err);
+  }
+
+#if defined(MSVC)
+    volatile union {
+      MYFLT d;
+      MYFLT_INT_TYPE i;
+    } x;
+    x.d = *(p->arg);
+    InterlockedExchange64((MYFLT_INT_TYPE *) p->fp, x.i);
+#elif defined(HAVE_ATOMIC_BUILTIN)
     union {
       MYFLT d;
       MYFLT_INT_TYPE i;
@@ -895,6 +929,7 @@ static int chnset_opcode_perf_a(CSOUND *csound, CHNGET *p)
 static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 {
     uint32_t n = 0;
+    IGN(csound);
     uint32_t nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -913,6 +948,7 @@ static int chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 static int chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
     /* Need lock for the channel */
+    IGN(csound);
     csoundSpinLock(p->lock);
     memset(p->fp, 0, CS_KSMPS*sizeof(MYFLT)); /* Should this leave start? */
     csoundSpinUnLock(p->lock);
@@ -931,7 +967,14 @@ int chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
       return print_chn_err(p, err);
 
 
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+    volatile union {
+      MYFLT d;
+      MYFLT_INT_TYPE i;
+    } x;
+    x.d = *(p->arg);
+    InterlockedExchange64((MYFLT_INT_TYPE *) p->fp, x.i);
+#elif defined(HAVE_ATOMIC_BUILTIN)
     union {
       MYFLT d;
       MYFLT_INT_TYPE i;
@@ -1027,8 +1070,10 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     // size = csoundGetChannelDatasize(csound, p->iname->data);
-    if (UNLIKELY(err))
+    if (UNLIKELY(err)) {
       return print_chn_err(p, err);
+
+    }
 
     if (s==NULL) return NOTOK;
     p->lock = lock =
@@ -1039,6 +1084,7 @@ int chnset_opcode_init_S(CSOUND *csound, CHNGET *p)
         csound->Free(csound, ((STRINGDAT *)p->fp)->data);
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
+
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
     }
     else if(((STRINGDAT *)p->fp)->data != NULL)
@@ -1072,9 +1118,10 @@ int chnset_opcode_perf_S(CSOUND *csound, CHNGET *p)
       ((STRINGDAT *)p->fp)->data = cs_strdup(csound, s);
       ((STRINGDAT *)p->fp)->size = strlen(s)+1;
       //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
+      //printf("p: %s: %s \n", p->iname->data, ((STRINGDAT *)p->fp)->data);
     }
     else if(((STRINGDAT *)p->fp)->data != NULL)
-            strcpy(((STRINGDAT *)p->fp)->data, s);
+        strcpy(((STRINGDAT *)p->fp)->data, s);
     csoundSpinUnLock(lock);
     //printf("%s \n", (char *)p->fp);
     return OK;

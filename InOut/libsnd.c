@@ -205,20 +205,22 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int     n;
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
+    int    dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-
+    dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   tmp = ((STA(dither) * 15625) + 1) & 0xFFFF;
+      int   tmp = ((dith * 15625) + 1) & 0xFFFF;
       int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
       MYFLT result;
-      STA(dither) = rnd;
+      dith = rnd;
       rnd = (rnd+tmp)>>1;           /* triangular distribution */
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7fff);
       buf[n] += result;
     }
+    STA(dither) = dith;
     n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
@@ -257,20 +259,22 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int     n;
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
+    int dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-
+    dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   tmp = ((STA(dither) * 15625) + 1) & 0xFFFF;
+      int   tmp = ((dith * 15625) + 1) & 0xFFFF;
       int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
       MYFLT result;
-      STA(dither) = rnd;
+      dith = rnd;
       rnd = (rnd+tmp)>>1;           /* triangular distribution */
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7f);
       buf[n] += result;
     }
+    STA(dither) = dith;
     n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
@@ -309,18 +313,20 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int     n;
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
+    int dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-
+    dith = STA(dither);
     for (n=0; n<m; n++) {
-        int   rnd = ((STA(dither) * 15625) + 1) & 0xFFFF;
-        MYFLT result;
-        STA(dither) = rnd;
-        result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
-        result /= ((MYFLT) 0x7fff);
-        buf[n] += result;
+      int   rnd = ((dith * 15625) + 1) & 0xFFFF;
+      MYFLT result;
+      dith =  rnd;
+      result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
+      result /= ((MYFLT) 0x7fff);
+      buf[n] += result;
     }
+    STA(dither) = dith;
     n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
@@ -359,18 +365,20 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     int     n;
     int m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
+    int dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-
+    dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   rnd = ((STA(dither) * 15625) + 1) & 0xFFFF;
+      int   rnd = ((dith * 15625) + 1) & 0xFFFF;
       MYFLT result;
       STA(dither) = rnd;
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
       result /= ((MYFLT) 0x7f);
       buf[n] += result;
     }
+    STA(dither) = dith;
     n = (int) sf_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
@@ -564,7 +572,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
                                          STA(inbufsiz)); /* alloc inbuf space */
     if (STA(pipdevout) == 2)
       csound->Message(csound,
-                      Str("reading %d sample blks of %d-bit floats from %s \n"),
+                      Str("reading %d sample blks of %lu-bit floats from %s \n"),
                       O->inbufsamps * O->sfsampsize, sizeof(MYFLT)*8, sfname);
     else {
       csound->Message(csound,
@@ -604,6 +612,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       case TYP_WAV:
       case TYP_W64:
       case TYP_WAVEX:
+      case TYP_RF64:
         O->outfilename = "test.wav";
         break;
       case TYP_AIFF:
@@ -612,18 +621,18 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       case TYP_AU:
         O->outfilename = "test.au";
         break;
-      /* case TYP_PAF: */
-      /*   O->outfilename = ""; */
-      /*   break;   */
-      /* case TYP_SVX: */
-      /*   O->outfilename = ""; */
-      /*   break;   */
-      /* case TYP_NIST: */
-      /*   O->outfilename = ""; */
-      /*   break;  */
-      /* case TYP_VOC: */
-      /*   O->outfilename = ""; */
-      /*   break;   */
+      case TYP_PAF:
+        O->outfilename = "test.paf";
+        break;
+      case TYP_SVX:
+        O->outfilename = "test.svx";
+        break;
+      case TYP_NIST:
+        O->outfilename = "test.sph";
+        break;
+      case TYP_VOC:
+        O->outfilename = "test.voc";
+        break;
       /* case TYP_IRCAM: */
       /*   O->outfilename = ""; */
       /*   break; */
@@ -636,17 +645,18 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       /* case TYP_PVF: */
       /*   O->outfilename = ""; */
       /*   break;   */
-      /* case TYP_XI: */
-      /*   O->outfilename = ""; */
-      /*   break;    */
+      case TYP_XI:
+        O->outfilename = "test.xi";
+        break;
       /* case TYP_HTK: */
       /*   O->outfilename = ""; */
       /*   break;   */
       /* case TYP_SDS: */
-      /*   O->outfilename = ""; */
+      /*   O->outfilename = "test.sds"; */
       /*   break;   */
-      /* case TYP_AVR: */
-      /*   O->outfilename = ""; */
+      case TYP_AVR:
+        O->outfilename = "test.avr";
+        break;
       case TYP_SD2:
         O->outfilename = "test.sd2";
         break;
@@ -662,9 +672,6 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       /* case TYP_MPC2K: */
       /*   O->outfilename = ""; */
       /*   break; */
-      /* case TYP_RF64: */
-      /*   O->outfilename = ""; */
-      /*   break;  */
       default:
         O->outfilename = "test";
         break;
@@ -708,13 +715,13 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         parm.sampleRate   = (float) csound->esr;
         csound->spoutran  = spoutsf;
         /* open devaudio for output */
-        if (csound->playopen_callback(csound, &parm) != 0)
+        if (UNLIKELY(csound->playopen_callback(csound, &parm) != 0))
           csoundDie(csound, Str("Failed to initialise real time audio output"));
         /*  & redirect audio puts  */
         csound->audtran = csound->rtplay_callback;
         STA(outbufrem)  = parm.bufSamp_SW * parm.nChannels;
         STA(pipdevout)  = 2;      /* no backward seeks !   */
-        if(O->realtime == 1)      /* set realtime priority mode */
+        if (O->realtime == 1)     /* set realtime priority mode */
           csound->realtime_audio_flag = 1;
         goto outset;              /* no header needed      */
       }
@@ -755,14 +762,14 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       if (STA(outfile) == NULL) {
         char fmt_name[6];
         if (O->sfsampsize == 8) {
-          if (O->filetyp == TYP_AU)
+          if (UNLIKELY(O->filetyp == TYP_AU))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                       sf_strerror(NULL));
           strcpy(fmt_name, "AU");
           O->filetyp = TYP_AU;
         }
         else {
-          if (O->filetyp == TYP_IRCAM)
+          if (UNLIKELY(O->filetyp == TYP_IRCAM))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                       sf_strerror(NULL));
           strcpy(fmt_name, "IRCAM");
@@ -861,7 +868,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
     if (STA(pipdevout) == 2)
       csound->Message(csound,
-                      Str("writing %d sample blks of %d-bit floats to %s \n"),
+                      Str("writing %d sample blks of %lu-bit floats to %s \n"),
                       O->outbufsamps, sizeof(MYFLT)*8, STA(sfoutname));
     else {
      csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
@@ -935,12 +942,12 @@ void sfcloseout(CSOUND *csound)
  report:
     if (STA(pipdevout) == 2) {
       csound->Message(csound,
-                      Str("%ld %d sample blks of %d-bit floats written to %s\n"),
+                      Str("%d %d sample blks of %lu-bit floats written to %s\n"),
                       csound->nrecs, O->outbufsamps,
                       sizeof(MYFLT)*8, STA(sfoutname));
     }
     else {
-      csound->Message(csound, Str("%ld %d sample blks of %s written to %s"),
+      csound->Message(csound, Str("%d %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
                       getstrformat(O->outformat), STA(sfoutname));
       if (O->sfheader == 0)

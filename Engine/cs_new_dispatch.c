@@ -117,7 +117,7 @@ static void dag_print_state(CSOUND *csound)
 }
 
 /* For now allocate a fixed maximum number of tasks; FIXME */
-void create_dag(CSOUND *csound)
+static void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
@@ -128,7 +128,7 @@ void create_dag(CSOUND *csound)
     csound->dag_wlmm = (watchList *)csound->Calloc(csound, sizeof(watchList)*max);
 }
 
-void recreate_dag(CSOUND *csound)
+static void recreate_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
@@ -154,7 +154,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
       current_instr =
         csp_orc_sa_instr_get_by_name(csound,
            csound->engineState.instrtxtp[insno]->insname);
-      if (current_instr == NULL)
+      if (UNLIKELY(current_instr == NULL))
         csound->Die(csound,
                     Str("Failed to find semantic information"
                         " for instrument '%i'"),
@@ -305,9 +305,17 @@ void dag_reinit(CSOUND *csound)
 #define ATOMIC_READ(x) x
 #define ATOMIC_WRITE(x,v) x = v;
 #if defined(_MSC_VER)
-#define ATOMIC_CAS(x,current,new)  InterlockedCompareExchange(x, current, new)
+#define ATOMIC_CAS(x,current,new) \
+  (current == InterlockedCompareExchange(x, new, current))
 #else
 #define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
+#endif
+
+#if defined(_MSC_VER)
+#define ATOMIC_CAS_PTR(x,current,new) \
+  (current == InterlockedCompareExchangePointer(x, new, current))
+#else
+#define ATOMIC_CAS_PTR(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
 #endif
 
 taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
@@ -385,7 +393,7 @@ inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
         return 0;//was no & earlier
       }
       else t->next = local;
-    } while (!ATOMIC_CAS(w,local,t));
+    } while (!ATOMIC_CAS_PTR(w,local,t));
     //dag_print_state(csound);
     //printf("moveWatch done\n");
     return 1;
@@ -409,7 +417,7 @@ taskID dag_end_task(CSOUND *csound, taskID i)
     {                                      /* ATOMIC_SWAP */
       do {
         to_notify = ATOMIC_READ(task_watch[i]);
-      } while (!ATOMIC_CAS(&task_watch[i],to_notify,&DoNotRead));
+      } while (!ATOMIC_CAS_PTR(&task_watch[i],to_notify,(watchList *) &DoNotRead));
     } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
     next = to_notify;
@@ -522,7 +530,7 @@ void initialiseWatch (watchList **w, taskID id) {
   *w = &(wlmm[id].s);
 }
 
-watchList * getWatches(taskID id) {
+inline watchList * getWatches(taskID id) {
 
     return __sync_lock_test_and_set (&(watch[id]), doNotAdd);
 }
@@ -556,7 +564,7 @@ void appendToWL (taskID id, watchList *l) {
 
 }
 
-void deleteWatch (watchList *t) {
+inline void deleteWatch (watchList *t) {
   wlmm[t->id].used = FALSE;
 }
 

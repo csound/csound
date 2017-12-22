@@ -1,9 +1,4 @@
-# When the minimum required version is bumped to >= 2.8.12, remove this line,
-# remove all occurences of LINK_INTERFACE_LIBRARIES, and modify all target_link_libraries
-# to be PRIVATE (eg, target_link_libraries(${CSOUNDLIB} PRIVATE ...) )
-# This silences a cmake warning about a variable name change
-set(CMAKE_POLICY_DEFAULT_CMP0022 OLD)
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(Csound)
 
@@ -15,7 +10,7 @@ endif()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
-if(NOT MSVC)
+if(NOT MSVC AND NOT WASM)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
 set(CMAKE_C_FLAGS_RELEASE "-O3 ")
 endif()
@@ -40,6 +35,14 @@ include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+# Utility to munge with items in a list.
+#
+macro(LIST_REPLACE LIST INDEX NEWVALUE)
+    list(INSERT ${LIST} ${INDEX} ${NEWVALUE})
+    MATH(EXPR __INDEX "${INDEX} + 1")
+    list (REMOVE_AT ${LIST} ${__INDEX})
+endmacro(LIST_REPLACE)
 
 # Utility function to make executables. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
@@ -79,19 +82,6 @@ function(make_utility name srcs)
     endif()
 endfunction()
 
-
-# Expands a list into a space-separated string (outvar element1 ....)
-# Why do I have to do this? Cmake, you just lost one point
-function(expand_list out)
-    set(i 1)
-    set(tmp "")
-    while( ${i} LESS ${ARGC} )
-        set(tmp "${tmp} ${ARGV${i}}")
-        math(EXPR i "${i}+1")
-    endwhile()
-    set(${out} "${tmp}" PARENT_SCOPE)
-endfunction(expand_list)
-
 # Checks if dependencies for an enabled target are fulfilled.
 # If FAIL_MISSING is true and the dependencies are not fulfilled,
 # it will abort the cmake run.
@@ -123,46 +113,6 @@ function(check_deps option)
         message(STATUS "${option} is disabled.")
     endif()
 endfunction(check_deps)
-
-# Shortcut to add compiler flags
-# Mandatory arguments: the flags to add, should be passed before optional keywords, can be
-#                      passed as lists or space-separated
-# Optional keywords:
-# LINKER: add to linker instead of compile flags (LDFLAGS vs CFLAGS)
-# TARGETS <target1> <target2> ...
-#           if specified, will add the flags to a target instead
-#           of the global namespace
-function(add_compiler_flags)
-    set(bool_options LINKER)
-    set(multi_val_args TARGETS)
-    cmake_parse_arguments(FLAGS "${bool_options}" "" "${multi_val_args}" ${ARGN})
-
-    expand_list(FLAGS ${FLAGS_UNPARSED_ARGUMENTS})
-
-    if(FLAGS_TARGETS)
-        foreach(target ${FLAGS_TARGETS})
-            if(NOT FLAGS_LINKER)
-                set(property "COMPILE_FLAGS")
-            else()
-                set(property "LINK_FLAGS")
-            endif()
-            get_target_property(propval ${target} ${property})
-            if(NOT propval)
-                set(propval "")
-            endif()
-            set_target_properties(${target} PROPERTIES
-                ${property} "${propval} ${FLAGS}")
-        endforeach()
-    else()
-        if(FLAGS_LINKER)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FLAGS}")
-            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${FLAGS}")
-            set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${FLAGS}")
-        else()
-            add_definitions("${FLAGS}")
-        endif()
-    endif()
-endfunction(add_compiler_flags)
 
 ### COMPILER OPTIMIZATION FLAGS
 option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
@@ -205,6 +155,7 @@ endif()
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
     set(LIBRARY_INSTALL_DIR "lib64")
+    add_definitions("-DLIB64")
 else()
     set(LIBRARY_INSTALL_DIR "lib")
 endif()
@@ -221,11 +172,13 @@ endif()
 execute_process (
      COMMAND python -c
      "import site, sys; sys.stdout.write(site.getusersitepackages())"
-     OUTPUT_VARIABLE PYTHON_MODULE_INSTALL_DIR
+     OUTPUT_VARIABLE PYTHON_USER_SITE_PACKAGES
    )
 
-set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
-set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR})
+SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_USER_SITE_PACKAGES} CACHE PATH "Python module install dir")
+
+set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Java module install dir")
+set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Lua module install dir")
 
 # VL this is breaking CUDA compilation. It's not necessary
 #if(APPLE)
@@ -242,22 +195,99 @@ if(WIN32 AND NOT MSVC)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
-if(MSVC) 
+if(MSVC)
   include_directories(${PROJECT_SOURCE_DIR}/msvc/include)
-  set(CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/msvc/include;${PROJECT_SOURCE_DIR}/msvc/deps/include")
+  list(APPEND CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/msvc/include;${PROJECT_SOURCE_DIR}/msvc/deps/include")
 endif()
 
 if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
+
+if(NOT MSVC)
     set(CSOUND_WINDOWS_LIBRARIES
+        msvcrt
         advapi32
         comctl32
         comdlg32
         glu32
         kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32
+        advapi32
+        comctl32
+        comdlg32
+        glu32
         msvcrt
+        kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32)
+else()
+    if(MSVC_VERSION LESS 1900)
+    set(CSOUND_WINDOWS_LIBRARIES
+        msvcrt
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        msvcrt
+        kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32)
+    else()
+    set(CSOUND_WINDOWS_LIBRARIES
+        ucrt
+        vcruntime
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        kernel32
+        mincore
         odbc32
         odbccp32
         ole32
@@ -285,11 +315,24 @@ if(WIN32)
         winspool
         ws2_32
         wsock32)
+    endif()
+endif()
 
 if(MSVC)
   # Experimented with flags but did not make change performance results
   #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
+  #set(CompilerFlags
+  #  CMAKE_CXX_FLAGS
+  #  CMAKE_CXX_FLAGS_DEBUG
+  #  CMAKE_CXX_FLAGS_RELEASE
+  #  CMAKE_C_FLAGS
+  #  CMAKE_C_FLAGS_DEBUG
+  #  CMAKE_C_FLAGS_RELEASE
+  #  )
+  #foreach(CompilerFlag ${CompilerFlags})
+  #  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+  #endforeach()
 else()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
@@ -321,6 +364,14 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
+check_c_compiler_flag(-std=gnu99 HAS_GNU99)
+if (HAS_GNU99)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+endif()
+if (HAS_CXX_VISIBILITY_HIDDEN)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+endif()
+
 if(APPLE)
 if(IOS)
 message(STATUS "Building for iOS.")
@@ -347,7 +398,7 @@ message(STATUS "Building for OSX")
     set(VECLIB_PATH "/System/Library/Frameworks/")
   endif()
  endif()
-   
+
 endif()
 
 if(USE_DOUBLE)
@@ -390,7 +441,6 @@ endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     add_definitions("-Wno-format")
-    #    add_compiler_flags("-g")
 endif()
 
 
@@ -424,16 +474,31 @@ SET(BUILD_SHARED_LIBS ON)
 ## HEADER/LIBRARY/OTHER CHECKS ##
 
 # First, required stuff
-find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1 HINTS ${PROJECT_SOURCE_DIR}/msvc/deps/lib)
+if (MSVC)
+  find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
+else()
+  find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
+endif()
+
 
 if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
 endif()
 
-find_package(Boost)
 find_package(CURL)
 set(FLTK_SKIP_OPENGL true)
-find_package(FLTK)
+find_package(FLTK )
+#if (FLTK_FOUND AND MSVC)
+#    # If "SHARED" variants of FLTK libraries exist, use them.
+#    find_library(FLTK_SHARED_VARIANT "fltk_SHARED")
+#    message(STATUS "FLTK_SHARED_VARIANT:" ${FLTK_SHARED_VARIANT})
+#    if(FLTK_SHARED_VARIANT)
+#        message(STATUS "Using 'SHARED' variants of FLTK libraries.")
+#        LIST_REPLACE(FLTK_LIBRARIES 0 "fltk_SHARED")
+#        LIST_REPLACE(FLTK_LIBRARIES 1 "fltk_forms_SHARED")
+#        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
+#    endif()
+#endif()
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
@@ -441,19 +506,24 @@ find_package(LUAJIT)
 find_package(MUSICXML)
 find_package(PORTSMF)
 find_package(PythonLibs 2.7)
-find_package(STK)
+if(NOT STK_LOCAL)
+    find_package(STK)
+endif()
 find_package(SWIG)
 find_package(VSTSDK2X)
 
 # TODO should this work for MSVC also?
-if(WIN32 AND NOT MSVC)
-  find_library(FLAC_LIB FLAC)
+if(WIN32)
+  find_library(FLAC_LIB NAMES FLAC flac)
   find_library(OGG_LIB ogg)
   find_library(SPEEX_LIB speex)
   find_library(VORBIS_LIB vorbis)
   find_library(VORBISENC_LIB vorbisenc)
-  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${SPEEX_LIB} ${FLAC_LIB} ${OGG_LIB}
-)
+  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${FLAC_LIB} ${OGG_LIB})
+  if(SPEEX_LIB) 
+    list(APPEND LIBSNDFILE_SUPPORT_LIBS ${SPEEX_LIB} )
+  endif()
+  #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
 endif()
 
 find_path(SNDFILE_H_PATH sndfile.h)
@@ -466,7 +536,7 @@ endif()
 if(NOT MSVC AND REQUIRE_PTHREADS)
   # Use ladder of if's to support older CMake versions (i.e., travis)
   find_library(PTHREAD_LIBRARY winpthread-1)
-  if(NOT PTHREAD_LIBRARY) 
+  if(NOT PTHREAD_LIBRARY)
     find_library(PTHREAD_LIBRARY pthread)
   endif()
   if(NOT PTHREAD_LIBRARY)
@@ -502,6 +572,7 @@ endif()
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
 find_path(EIGEN3_INCLUDE_PATH eigen3/Eigen/Dense)
+find_package(GMM)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
 check_library_exists(m lrint "" HAVE_LRINT)
@@ -670,7 +741,6 @@ set(libcsound_SRCS
     OOps/ugens6.c
     OOps/ugtabs.c
     OOps/ugrw1.c
-    OOps/ugrw2.c
     OOps/vdelay.c
     OOps/compile_ops.c
     Opcodes/babo.c
@@ -678,6 +748,7 @@ set(libcsound_SRCS
     Opcodes/compress.c
     Opcodes/eqfil.c
     Opcodes/Vosim.c
+    Opcodes/squinewave.c
     Opcodes/pinker.c
     Opcodes/pitch.c
     Opcodes/pitch0.c
@@ -829,7 +900,7 @@ set(mp3in_SRCS
     InOut/libmpadec/tables.c
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
-    
+
 list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
 
 if(INIT_STATIC_MODULES)
@@ -838,6 +909,7 @@ if(INIT_STATIC_MODULES)
         Opcodes/ampmidid.cpp
         Opcodes/doppler.cpp
         Opcodes/tl/fractalnoise.cpp
+        Opcodes/ftsamplebank.cpp
         Opcodes/mixer.cpp
         Opcodes/signalflowgraph.cpp)
     set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
@@ -889,7 +961,7 @@ set_source_files_properties(${YACC_OUTH} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
 set_source_files_properties(${PRELEX_OUT} GENERATED)
 
-if(MSVC) 
+if(MSVC)
   set_source_files_properties(${LEX_OUT} PROPERTIES
     COMPILE_FLAGS -DYY_NO_UNISTD_H)
   set_source_files_properties(${PRELEX_OUT} PROPERTIES
@@ -939,7 +1011,7 @@ list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
 #set_source_files_properties(${YACC_SCOOUT} GENERATED)
 #set_source_files_properties(${LEX_SCOOUT} GENERATED)
 set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
-if(MSVC) 
+if(MSVC)
   set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
     COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
@@ -983,9 +1055,6 @@ endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
-    # Do not pull extra libs when linking against shared libcsound
-    # The shared library loader will do that for us
-    LINK_INTERFACE_LIBRARIES ""
     SOVERSION ${APIVERSION})
 
 
@@ -1117,9 +1186,7 @@ endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
-    if(NOT MSVC)
-      list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
-    endif()
+    list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
 else()
 endif()
 
@@ -1257,10 +1324,8 @@ if(BIG_ENDIAN)
 endif()
 
 
-
-
-add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB})
-target_link_libraries(${CSOUNDLIB} ${libcsound_LIBS})
+target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
+target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -1271,7 +1336,7 @@ if(BUILD_STATIC_LIBRARY)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
-    add_compiler_flags(${libcsound_CFLAGS} TARGETS ${CSOUNDLIB_STATIC})
+    target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
 
     target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
 
@@ -1340,7 +1405,7 @@ set (CPACK_PACKAGE_VERSION_MINOR "0")
 set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
-# Documentation 
+# Documentation
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen

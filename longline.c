@@ -19,7 +19,7 @@ void process(char *name, int width)
       count++;
       p = strchr(buffer, '\n');
       if (p==NULL || (p-buffer) > width) {
-        printf("File=%s Line=%d:\n%s\n", name, count, buffer);
+        printf("File=%s Line=%d long\n%s\n", name, count, buffer);
       }
       p = strchr(buffer, '\t');
       if (p!=NULL)
