@@ -393,4 +393,3 @@ void onGenerate(Fl_Button* fl_button, ScoreGeneratorVstFltk* ScoreGeneratorVstFl
 {
   ScoreGeneratorVstFltk->onGenerate(fl_button, ScoreGeneratorVstFltk);
 }
-

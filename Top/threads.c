@@ -33,6 +33,15 @@
 
 #include "csoundCore.h"
 
+#if 0
+static CS_NOINLINE void notImplementedWarning_(const char *name)
+{
+#ifndef __EMSCRIPTEN__
+  fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
+#endif
+}
+#endif
+
 #if defined(HAVE_PTHREAD)
 
 #if defined(WIN32)
@@ -155,7 +164,8 @@ PUBLIC void csoundSleep(size_t milliseconds)
 #define BARRIER_SERIAL_THREAD (-1)
 
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-#if !defined(__MACH__) && !defined(__HAIKU__) && !defined(ANDROID) && !defined(NACL) && !defined(__CYGWIN__)
+#if !defined( __MACH__)&&!defined(__HAIKU__)&&!defined(ANDROID)&& \
+    !defined(NACL)&&!defined(__CYGWIN__)
 
 typedef struct barrier {
     pthread_mutex_t mut;
@@ -416,7 +426,8 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-    int ret, it;
+  int ret;
+  unsigned int it;
     barrier_t *b = (barrier_t *)barrier;
     pthread_mutex_lock(&b->mut);
     b->count++;
@@ -547,7 +558,9 @@ PUBLIC void csoundCondSignal(void* condVar) {
 
 #elif defined(WIN32)
 #include <windows.h>
+#if !defined(_USING_V110_SDK71_)
 #include <synchapi.h>
+#endif
 #include <process.h>
 
 /* #undef NO_WIN9X_COMPATIBILITY */
@@ -591,7 +604,9 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 
 PUBLIC void *csoundGetCurrentThreadId(void)
 {
-  return (void*) GetCurrentThreadId();
+    DWORD* d = malloc(sizeof(DWORD));
+    *d = GetCurrentThreadId();
+    return (void*) d;
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
@@ -743,168 +758,213 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
   return retval;
 }
 
+PUBLIC void* csoundCreateCondVar()
+{
+    CONDITION_VARIABLE* condVar =
+      (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
+
+    if (condVar != NULL)
+      InitializeConditionVariable(condVar);
+    return (void*) condVar;
+}
+
+PUBLIC void csoundCondWait(void* condVar, void* mutex) {
+    CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)condVar;
+    CRITICAL_SECTION* cs = (CRITICAL_SECTION*)mutex;
+    SleepConditionVariableCS(cv, cs, INFINITE);
+}
+
+PUBLIC void csoundCondSignal(void* condVar) {
+    CONDITION_VARIABLE* cv = (CONDITION_VARIABLE*)condVar;
+    WakeConditionVariable(cv);
+}
+
+// REMOVE FOLLOWING BARRIER DEFINITION WINDOWS SUPPORT LIMITED to WIN 8.1+
+typedef struct barrier {
+    CRITICAL_SECTION* mut;
+    CONDITION_VARIABLE* cond;
+    unsigned int count, max, iteration;
+} win_barrier_t;
+
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
-  SYNCHRONIZATION_BARRIER *barrier = (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
+  win_barrier_t *barrier =
+    (win_barrier_t*)malloc(sizeof(win_barrier_t));
 
-  if (barrier != NULL)
-    InitializeSynchronizationBarrier(barrier, max, -1);
+  barrier->cond = (CONDITION_VARIABLE*)csoundCreateCondVar();
+  barrier->mut = (CRITICAL_SECTION*)csoundCreateMutex(0);
+  barrier->count = 0;
+  barrier->iteration = 0;
+  barrier->max = max;
+
   return (void*) barrier;
+
+  // REPLACE ABOVE WITH FOLLOWING ONCE WINDOWS SUPPORT LIMITED to WIN 8.1+
+  //SYNCHRONIZATION_BARRIER *barrier =
+  //  (SYNCHRONIZATION_BARRIER*)malloc(sizeof(SYNCHRONIZATION_BARRIER));
+
+  //if (barrier != NULL)
+  //  InitializeSynchronizationBarrier(barrier, max, -1);
+  //return (void*) barrier;
 }
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
-  DeleteSynchronizationBarrier(barrier);
-  return 0;
+    win_barrier_t *winb = (win_barrier_t*)barrier;
+    free(winb->cond);
+    csoundDestroyMutex(winb->mut);
+    free(winb);
+    return 0;
+    // REPLACE ABOVE WITH FOLLOWING ONCE WINDOWS SUPPORT LIMITED to WIN 8.1+
+    //DeleteSynchronizationBarrier(barrier);
+    //return 0;
 }
 
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
-  EnterSynchronizationBarrier(barrier, 0);
-  return 0;
+    int ret;
+    unsigned int it;
+  win_barrier_t *winb = (win_barrier_t*)barrier;
+  csoundLockMutex(winb->mut);
+  winb->count++;
+  it = winb->iteration;
+  if (winb->count >= winb->max) {
+      winb->count = 0;
+      winb->iteration++;
+      WakeAllConditionVariable(winb->cond);
+      ret = 1;
+  }
+  else {
+      while(it == winb->iteration) {
+        csoundCondWait(winb->cond, winb->mut);
+      }
+      ret = 0;
+  }
+  csoundUnlockMutex(winb->mut);
+  return ret;
+    // REPLACE ABOVE WITH FOLLOWING ONCE WINDOWS SUPPORT LIMITED to WIN 8.1+
+    //EnterSynchronizationBarrier(barrier, 0);
+    //return 0;
 }
 
-PUBLIC void* csoundCreateCondVar()
-{
-  CONDITION_VARIABLE* condVar =
-    (CONDITION_VARIABLE*)malloc(sizeof(CONDITION_VARIABLE));
-
-  if (condVar != NULL)
-    InitializeConditionVariable(condVar);
-  return (void*) condVar;
-}
-
-PUBLIC void csoundCondWait(void* condVar, void* mutex) {
-        SleepConditionVariableCS(&condVar, &mutex, INFINITE);
-}
-
-PUBLIC void csoundCondSignal(void* condVar) {
-        WakeConditionVariable(&condVar);
-}
 
 /* ------------------------------------------------------------------------ */
 
 #else
 
-static CS_NOINLINE void notImplementedWarning_(const char *name)
-{
-#ifndef __EMSCRIPTEN__
-  fprintf(stderr, Str("%s() is not implemented on this platform.\n"), name);
-#endif
-}
-
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
 {
-    notImplementedWarning_("csoundCreateThread");
+    //notImplementedWarning_("csoundCreateThread");
     return NULL;
 }
 
 PUBLIC void *csoundGetCurrentThreadId(void)
 {
-    notImplementedWarning_("csoundGetCurrentThreadId");
+    //notImplementedWarning_("csoundGetCurrentThreadId");
     return NULL;
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
 {
-    notImplementedWarning_("csoundJoinThread");
+    //notImplementedWarning_("csoundJoinThread");
     return (uintptr_t) 0;
 }
 
 PUBLIC void *csoundCreateThreadLock(void)
 {
-    notImplementedWarning_("csoundCreateThreadLock");
+    //notImplementedWarning_("csoundCreateThreadLock");
     return NULL;
 }
 
 PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-    notImplementedWarning_("csoundWaitThreadLock");
+    //notImplementedWarning_("csoundWaitThreadLock");
     return 0;
 }
 
 PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
 {
-    notImplementedWarning_("csoundWaitThreadLockNoTimeout");
+    //notImplementedWarning_("csoundWaitThreadLockNoTimeout");
 }
 
 PUBLIC void csoundNotifyThreadLock(void *lock)
 {
-    notImplementedWarning_("csoundNotifyThreadLock");
+    //notImplementedWarning_("csoundNotifyThreadLock");
 }
 
 PUBLIC void csoundDestroyThreadLock(void *lock)
 {
-    notImplementedWarning_("csoundDestroyThreadLock");
+    //notImplementedWarning_("csoundDestroyThreadLock");
 }
 
 PUBLIC void *csoundCreateMutex(int isRecursive)
 {
-    notImplementedWarning_("csoundCreateMutex");
+    //notImplementedWarning_("csoundCreateMutex");
     return NULL;
 }
 
 PUBLIC void csoundLockMutex(void *mutex_)
 {
-    notImplementedWarning_("csoundLockMutex");
+    //notImplementedWarning_("csoundLockMutex");
 }
 
 PUBLIC int csoundLockMutexNoWait(void *mutex_)
 {
-    notImplementedWarning_("csoundLockMutexNoWait");
+    //notImplementedWarning_("csoundLockMutexNoWait");
     return 0;
 }
 
 PUBLIC void csoundUnlockMutex(void *mutex_)
 {
-    notImplementedWarning_("csoundUnlockMutex");
+    //notImplementedWarning_("csoundUnlockMutex");
 }
 
 PUBLIC void csoundDestroyMutex(void *mutex_)
 {
-    notImplementedWarning_("csoundDestroyMutex");
+    //notImplementedWarning_("csoundDestroyMutex");
 }
 
 PUBLIC void *csoundCreateBarrier(unsigned int max)
 {
-    notImplementedWarning_("csoundDestroyBarrier");
+    //notImplementedWarning_("csoundDestroyBarrier");
     return NULL;
 }
 
 PUBLIC int csoundDestroyBarrier(void *barrier)
 {
-    notImplementedWarning_("csoundDestroyBarrier");
+    //notImplementedWarning_("csoundDestroyBarrier");
     return 0;
 }
 
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
-    notImplementedWarning_("csoundWaitBarrier");
+    //notImplementedWarning_("csoundWaitBarrier");
     return 0;
 }
 
 
 PUBLIC void* csoundCreateCondVar()
 {
-  notImplementedWarning_("csoundCreateCondVar");
+  //notImplementedWarning_("csoundCreateCondVar");
   return NULL;
 }
 
 PUBLIC void csoundCondWait(void* condVar, void* mutex) {
-  notImplementedWarning_("csoundCreateCondWait");
+  //notImplementedWarning_("csoundCreateCondWait");
 }
 
 PUBLIC void csoundCondSignal(void* condVar) {
-  notImplementedWarning_("csoundCreateCondSignal");
+ // notImplementedWarning_("csoundCreateCondSignal");
 }
 
 PUBLIC long csoundRunCommand(const char * const *argv, int noWait) {
-  notImplementedWarning_("csoundRunCommand");
+  //notImplementedWarning_("csoundRunCommand");
+    return 0;
 }
 
 PUBLIC void csoundSleep(size_t milliseconds) {
-  notImplementedWarning_("csoundSleep");
+  //notImplementedWarning_("csoundSleep");
 }
 
 

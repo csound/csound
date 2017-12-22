@@ -33,8 +33,8 @@ static   int    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
 static int fofset0(CSOUND *csound, FOFS *p, int flag)
 {
     int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-    if ((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
-        (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL) {
+    if (LIKELY((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
+               (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL)) {
       OVRLAP *ovp, *nxtovp;
       int32  olaps;
       p->durtogo = (int32)(*p->itotdur * CS_ESR);

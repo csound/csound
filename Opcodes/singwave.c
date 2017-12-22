@@ -48,8 +48,7 @@ static void VoicForm_setVoicedUnVoiced(VOICF *p, MYFLT vGain, MYFLT nGain);
 static inline void make_SubNoise(SubNoise *p, int subSample)
 {
     p->lastOutput = FL(0.0);
-    p->howOften = subSample-1;
-    p->counter = subSample-1;
+    p->howOften = p->counter = subSample-1;
 }
 
 static MYFLT SubNoise_tick(CSOUND *csound, SubNoise *p)
@@ -80,7 +79,7 @@ static int make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 {
     FUNC        *ftp;
 
-    if ((ftp = csound->FTnp2Find(csound,i)) != NULL)
+    if (LIKELY((ftp = csound->FTnp2Find(csound,i)) != NULL))
       p->wave = ftp;
     else { /* Expect sine wave */
       return csound->InitError(csound, Str("No table for Modulatr"));

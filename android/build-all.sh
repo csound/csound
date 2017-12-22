@@ -1,5 +1,13 @@
 #!/bin/sh
 
+MACHINE="$(uname -s)"
+case "${MACHINE}" in 
+  MINGW*) NDK_BUILD_CMD=$NDK/ndk-build.cmd;;
+  *) NDK_BUILD_CMD=$NDK/ndk-build
+esac
+
+echo "NDK_BUILD_COMMAND = $NDK_BUILD_CMD"
+
 if [[ $1 == "clean" ]]
 then
     echo "Cleaning up shared libraries..."
@@ -12,7 +20,7 @@ for plugin in *
 do
     echo "Building in " ${plugin}
     cd $plugin $1
-    $NDK/ndk-build $1
+    $NDK_BUILD_CMD $1
     cd ..
 done
 

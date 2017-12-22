@@ -162,6 +162,7 @@
     extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
     extern int csound_orclex(TREE**, CSOUND *, void *);
     extern void print_tree(CSOUND *, char *msg, TREE *);
+    extern TREE* constant_fold(CSOUND *, TREE *);
     extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *,
                                 TREE**, const char*);
     extern int add_udo_definition(CSOUND*, char *, char *, char *);
@@ -176,11 +177,14 @@
 
 orcfile           : rootstatement
                         {
+                          csound->synterrcnt = csound_orcnerrs;
+                          if (UNLIKELY(csound->oparms->odebug))
+                            print_tree(csound, "ALL", $1);
+                          $1 = constant_fold(csound, $1);
+                          if (UNLIKELY(csound->oparms->odebug))
+                            print_tree(csound, "Folded", $1);
                           if ($1 != NULL)
                             *astTree = ((TREE *)$1);
-                          csound->synterrcnt = csound_orcnerrs;
-                          if (csound->oparms->odebug)
-                            print_tree(csound, "ALL", $1);
                         }
                   ;
 

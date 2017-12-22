@@ -359,7 +359,7 @@ void bqRecorderCallback(SLBufferQueueItf bq, void *context)
 {
   open_sl_params *p = (open_sl_params *) context;
   CSOUND *csound = p->csound;
-  int nchnls = csound->GetNchnls(csound);
+  int nchnls = csound->GetNchnls_i(csound);
   int items = p->inBufSamples/nchnls,i,k,n;
   MYFLT *inputBuffer = p->inputBuffer;
   short *recBuffer = p->recBuffer;
@@ -494,20 +494,20 @@ int openSLRecOpen(open_sl_params *params){
   }
   memset(params->recBuffer, 0, params->inBufSamples*sizeof(short));
   (*params->recorderBufferQueue)->Enqueue(params->recorderBufferQueue,
-					  params->recBuffer, params->inBufSamples*sizeof(short)/csound->GetNchnls(csound));
+					  params->recBuffer, params->inBufSamples*sizeof(short)/csound->GetNchnls_i(csound));
  end_recopen:
   return result;
 }
 
 int openSLInitInParams(open_sl_params *params){
   CSOUND *csound = params->csound;
-  params->inBufSamples  = params->inParm.bufSamp_SW*csound->GetNchnls(csound);
+  params->inBufSamples  = params->inParm.bufSamp_SW*csound->GetNchnls_i(csound);
   if((params->inputBuffer = (MYFLT *)csound->Calloc(csound, params->inBufSamples*sizeof(MYFLT))) == NULL){
     csound->Message(params->csound, "Memory allocation failure in opensl module.\n");
     return -1;
   }
   memset(params->inputBuffer, 0, params->inBufSamples*sizeof(MYFLT));
-  if((params->incb = csoundCreateCircularBuffer(csound,params->inParm.bufSamp_HW*csound->GetNchnls(csound), sizeof(MYFLT)))== NULL) {
+  if((params->incb = csoundCreateCircularBuffer(csound,params->inParm.bufSamp_HW*csound->GetNchnls_i(csound), sizeof(MYFLT)))== NULL) {
     return -1;
   }
   return OK;

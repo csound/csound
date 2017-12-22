@@ -50,7 +50,7 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
-      if (kfco<=FL(0.0))
+      if (UNLIKELY(kfco<=FL(0.0)))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Cutoff parameter must be positive"));
       b = 10.0 / (kres * sqrt((double)kfco)) - 1.0;
@@ -94,7 +94,7 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (okf!= fco[0] || okr != res[0]) { /* Only if changed */
-      if (fco[0]<=FL(0.0))
+      if (UNLIKELY(fco[0]<=FL(0.0)))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Cutoff parameter must be positive"));
       b = 10.0 / (res[0] * sqrt((double)fco[0])) - 1.0;
@@ -116,7 +116,7 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf!= fco[n] || okr != res[n]) { /* Only if changed */
-        if (fco[n]<=FL(0.0))
+        if (UNLIKELY(fco[n]<=FL(0.0)))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Cutoff parameter must be positive"));
         b = 10.0 / (res[n] * sqrt((double)fco[n])) - 1.0;
@@ -150,7 +150,7 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (okf != fco[0] || okr != kres) { /* Only if changed */
-      if (fco[0]<=FL(0.0))
+      if (UNLIKELY(fco[0]<=FL(0.0)))
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Cutoff parameter must be positive"));
       b = 10.0 / (kres * sqrt((double)fco[0])) - 1.0;
@@ -171,7 +171,7 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf != fco[n]) { /* Only if changed */
-        if (fco[n]<=FL(0.0))
+        if (UNLIKELY(fco[n]<=FL(0.0)))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Cutoff parameter must be positive"));
         b = 10.0 / (kres * sqrt((double)fco[n])) - 1.0;
@@ -205,9 +205,9 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (okf!= fco || okr != res[0]) { /* Only if changed */
-        if (fco<=FL(0.0))
-          return csound->PerfError(csound, p->h.insdshead,
-                                   Str("Cutoff parameter must be positive"));
+      if (UNLIKELY(fco<=FL(0.0)))
+        return csound->PerfError(csound, p->h.insdshead,
+                                 Str("Cutoff parameter must be positive"));
       b = 10.0 / (res[0] * sqrt((double)fco)) - 1.0;
       p->k = k = 1000.0 / (double)fco;
       p->coef1 = coef1 = (b+2.0 * k);
@@ -267,7 +267,7 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int      j;
-
+    int      asgf = IS_ASIG_ARG(p->kfco), asgr = IS_ASIG_ARG(p->kres);
 
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
@@ -282,8 +282,8 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
       ar = p->ar;
 
       for (n=offset;n<nsmps;n++) {
-        MYFLT fco = (IS_ASIG_ARG(p->kfco) ? kfco[n] : *kfco);
-        MYFLT res = (IS_ASIG_ARG(p->kres) ? kres[n] : *kres);
+        MYFLT fco = (asgf ? kfco[n] : *kfco);
+        MYFLT res = (asgr ? kres[n] : *kres);
         if (p->okf != fco || p->okr != res) { /* Only if changed */
           b = FL(10.0) / (res * SQRT(fco)) - FL(1.0);
           k = FL(1000.0) / fco;

@@ -44,8 +44,8 @@
 #define NUMBER_OF_FILES   (32)
 
 #define FIND(MSG)   if (*s == '\0')  \
-                        if (!(--argc) || ((s = *++argv) && *s == '-')) \
-                            csound->Die(csound, Str("mixer: error: %s"), MSG);
+    if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))            \
+      csound->Die(csound, Str("mixer: error: %s"), MSG);
 
 typedef struct scalepoint {
     MYFLT y0;
@@ -195,7 +195,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     mixin[n].factor = FL(1.0); mixin[n].non_clear = 0;
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
     for (i=1; i<5; i++) mixin[n].channels[i] = 0;
-    if (!(--argc))
+    if (UNLIKELY(!(--argc)))
       usage(csound,Str("Insufficient arguments"));
     do {
       s = *++argv;
@@ -206,10 +206,10 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             FIND(Str("no outfilename"))
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (strcmp(O.outfilename, "stdin") == 0)
+            if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
               csound->Die(csound, Str("mixer: -o cannot be stdin"));
 #if defined(WIN32)
-            if (strcmp(O.outfilename,"stdout") == 0) {
+            if (UNLIKELY(strcmp(O.outfilename,"stdout") == 0)) {
               csound->Die(csound, Str("mixer: stdout audio not supported"));
             }
 #endif
@@ -238,7 +238,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             FIND(Str("no start sample"));
             mixin[n].start = atoi(s);
             while (*++s);
-            if (mixin[n].time >= FL(0.0)) {
+            if (UNLIKELY(mixin[n].time >= FL(0.0))) {
               csound->Warning(csound, Str("-S overriding -T"));
               mixin[n].time = -FL(1.0);
             }
@@ -247,7 +247,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             FIND(Str("no start time"));
             mixin[n].time = (MYFLT) atof(s);
             while (*++s);
-            if (mixin[n].start >= 0) {
+            if (UNLIKELY(mixin[n].start >= 0)) {
               csound->Warning(csound, Str("-T overriding -S"));
               mixin[n].start = -1;
             }
@@ -273,7 +273,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
               FIND(Str("no destination channel number"));
               dst = atoi(s);
               while (*++s);
-              if (src > 4 || src < 1 || dst > 4 || dst < 1) {
+              if (UNLIKELY(src > 4 || src < 1 || dst > 4 || dst < 1)) {
                 csound->Warning(csound, Str("illegal channel number ignored"));
                 break;
               }
@@ -331,19 +331,19 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     } while (--argc);
 
     /* Read sound files */
-    if (n == 0) {
+    if (UNLIKELY(n == 0)) {
       csound->ErrorMsg(csound, Str("No mixin"));
       return -1;
     }
     for (i = 0; i < n; i++) {
-      if (!MXsndgetset(csound, &mixin[i])) {
+      if (UNLIKELY(!MXsndgetset(csound, &mixin[i]))) {
         csound->ErrorMsg(csound, Str("%s: error while opening %s"),
                                  argv[0], inputfile);
         return -1;
       }
       mixin[i].p->channel = ALLCHNLS;
       if (i>0) {
-        if (mixin[0].p->sr != mixin[i].p->sr) {
+        if (UNLIKELY(mixin[0].p->sr != mixin[i].p->sr)) {
           csound->ErrorMsg(csound, Str("Input formats not the same"));
           return -1;
         }
@@ -393,8 +393,9 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     if (strcmp(O.outfilename, "stdout") == 0) {
       outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 0);
       if (outfd != NULL) {
-        if (csound->CreateFileHandle(csound,
-                                     &outfd, CSFILE_SND_W, "stdout") == NULL) {
+        if (UNLIKELY(csound->CreateFileHandle(csound,
+                                              &outfd, CSFILE_SND_W,
+                                              "stdout") == NULL)) {
           sf_close(outfd);
           return -1;
         }
@@ -404,12 +405,12 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
                        &sfinfo, "SFDIR", csound->type2csfiletype(O.filetyp,
                        O.outformat), 0) == NULL)
       outfd = NULL;
-    if (outfd == NULL) {
+    if (UNLIKELY(outfd == NULL)) {
       csound->ErrorMsg(csound, Str("mixer: error opening output file '%s'"),
                                O.outfilename);
       return -1;
     }
-    if (O.rewrt_hdr)
+    if (UNLIKELY(O.rewrt_hdr))
       sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     /* calc outbuf size & alloc bufspace */
     pp->outbufsiz = NUMBER_OF_SAMPLES * pp->outputs;
@@ -435,8 +436,8 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
     MYFLT   x, y;
     scalepoint *tt = (scalepoint*) csound->Malloc(csound, sizeof(scalepoint));
 
-    if (csound->FileOpen2(csound, &f, CSFILE_STD, mixin[i].fname,
-                           "r", NULL, CSFTYPE_FLOATS_TEXT, 0) == NULL) {
+    if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD, mixin[i].fname,
+                                   "r", NULL, CSFTYPE_FLOATS_TEXT, 0) == NULL)) {
       csound->Die(csound, Str("Cannot open scale table file %s"),
                           mixin[i].fname);
       return;   /* not reached */

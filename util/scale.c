@@ -36,8 +36,8 @@
 /* Constants */
 
 #define FIND(MSG)   if (*s == '\0')  \
-                        if (!(--argc) || ((s = *++argv) && *s == '-')) \
-                            csound->Die(csound, MSG);
+    if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
+      csound->Die(csound, MSG);
 
 static const char *usage_txt[] = {
   Str_noop("Usage:\tscale [-flags] soundfile"),
@@ -163,7 +163,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
                             envoutyp);
       }
     }
-    if (!(--argc))
+    if (UNLIKELY(!(--argc)))
       usage(csound, Str("Insufficient arguments"));
     do {
       s = *++argv;
@@ -174,10 +174,10 @@ static int scale(CSOUND *csound, int argc, char **argv)
             FIND(Str("no outfilename"))
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (strcmp(O.outfilename, "stdin") == 0)
+            if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
               csound->Die(csound, Str("-o cannot be stdin"));
 #if defined(WIN32)
-            if (strcmp(O.outfilename, "stdout") == 0) {
+            if (UNLIKELY(strcmp(O.outfilename, "stdout") == 0)) {
               csound->Die(csound, Str("stdout audio not supported"));
             }
 #endif
@@ -251,8 +251,8 @@ static int scale(CSOUND *csound, int argc, char **argv)
 
  retry:
     /* Read sound file */
-    if (inputfile == NULL) return -1;
-    if (!(infile = SCsndgetset(csound, &sc, inputfile))) {
+    if (UNLIKELY(inputfile == NULL)) return -1;
+    if (UNLIKELY(!(infile = SCsndgetset(csound, &sc, inputfile)))) {
       csound->Message(csound, Str("%s: error while opening %s"),
                               argv[0], inputfile);
       return -1;
@@ -273,7 +273,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
 
       memset(&sfinfo, 0, sizeof(SF_INFO));
       //sfinfo.frames = 0/*was -1*/;
-      sfinfo.samplerate = (int) MYFLT2LRND( sc.p->sr);
+      sfinfo.samplerate = (int) /*MYFLT2LRND*/( sc.p->sr); // p->sr is int already
       sfinfo.channels = sc.p->nchanls;
       sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
       /* open file for write */
@@ -282,8 +282,9 @@ static int scale(CSOUND *csound, int argc, char **argv)
           strcmp(O.outfilename, "-") == 0) {
         outfile = sf_open_fd(1, SFM_WRITE, &sfinfo, 0);
         if (outfile != NULL) {
-          if ((fd = csound->CreateFileHandle(csound, &outfile,
-                                             CSFILE_SND_W, "stdout")) == NULL) {
+          if (UNLIKELY((fd =
+                        csound->CreateFileHandle(csound, &outfile,
+                                                 CSFILE_SND_W, "stdout")) == NULL)) {
             sf_close(outfile);
             csound->Die(csound, Str("Memory allocation failure"));
           }
@@ -293,7 +294,7 @@ static int scale(CSOUND *csound, int argc, char **argv)
         fd = csound->FileOpen2(csound, &outfile, CSFILE_SND_W,
                        O.outfilename, &sfinfo, "SFDIR",
                        csound->type2csfiletype(O.filetyp, O.outformat), 0);
-      if (fd == NULL)
+      if (UNLIKELY(fd == NULL))
         csound->Die(csound, Str("Failed to open output file %s"),
                             O.outfilename);
       outbufsiz = 1024 * O.sfsampsize;    /* calc outbuf size  */
@@ -325,8 +326,8 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
       FILE    *f;
       double  samplepert = (double)thissc->p->sr;
       double  x, y;
-      if (csound->FileOpen2(csound, &f, CSFILE_STD, factorfile, "r", NULL,
-                              CSFTYPE_FLOATS_TEXT, 0) == NULL)
+      if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD, factorfile, "r", NULL,
+                                     CSFTYPE_FLOATS_TEXT, 0) == NULL))
         csound->Die(csound, Str("Failed to open %s"), factorfile);
       while (fscanf(f, "%lf %lf\n", &x, &y) == 2) {
         scalepoint *newpoint =

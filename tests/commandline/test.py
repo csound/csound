@@ -106,6 +106,7 @@ def runTest():
 	["test_string.csd", "test string assignment and printing"],
 	["test_sprintf.csd", "test string assignment and printing"],
 	["test_sprintf2.csd", "test string assignment and printing that causes reallocation"],
+	["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
 	["test_label_within_if_block.csd", "test label within if block"],
 
 	["test_arrays.csd", "test k-array with single dimension, assignment to expression value"],
@@ -136,6 +137,7 @@ def runTest():
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
+        ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -160,9 +162,7 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = "/tmp/csound_test_output.txt"
-    if(os.sep == '/' and os.name == 'nt'):
-        tempfile = 'csound_test_output.txt'
+    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
     counter = 1
 
     retVals = []

@@ -222,6 +222,71 @@ struct PVGain : csnd::FPlugin<1, 2> {
   }
 };
 
+
+
+class PrintThread : public csnd::Thread {
+  std::atomic_bool spinlock;
+  std::atomic_bool on;
+  std::string message;
+  
+public:
+  MyThread(csnd::Csound *csound)
+    : Thread(csound), spinlock(false), on(true), message("") {};
+  uintptr_t run() {
+    std::string old;
+    while(on) {
+      lock();
+      if(old.compare(message)) {
+       csound->message("%s", message.cstr());
+       old = message;
+      } 
+      unlock(); 
+    }
+    return 0;
+  }
+  void lock() {
+    while(spinlock == true) csound->sleep();
+    spinlock = true;
+  }
+  void unlock() {
+    spinlock = false;
+  }
+
+  void set_message(const char *m) {
+    message = m;
+  }
+  void stop() { on = false; }
+};
+
+struct AsyncPrint : csnd::Plugin<0, 1> {
+  static constexpr char const *otypes = "";
+  static constexpr char const *itypes = "S";
+  MyThread t;
+
+  int init() {
+    csound->plugin_deinit(this);
+    csnd::constr(&t, csound);
+    return OK;
+  }
+
+  int deinit() {
+    t.stop();
+    t.join();
+    csnd::destr(&t);
+    return OK;
+  }
+
+  int kperf() {
+    t.lock();
+    t.set_message(inargs.str_data(0).data);
+    t.unlock();
+    return OK;
+  }
+};
+
+
+
+
 /** Thread to compute Gaussian distr.
  */
 class MyThread : public csnd::Thread {

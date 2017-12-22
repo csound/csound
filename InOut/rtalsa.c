@@ -113,7 +113,7 @@ int set_scheduler_priority(CSOUND *csound, int priority)
     struct sched_param p;
 
     memset(&p, 0, sizeof(struct sched_param));
-    if (priority < -20 || priority > sched_get_priority_max(SCHED_RR)) {
+    if (UNLIKELY(priority < -20 || priority > sched_get_priority_max(SCHED_RR))) {
       csound->Message(csound,
                       Str("--scheduler: invalid priority value; "
                           "the allowed range is:"));
@@ -128,7 +128,7 @@ int set_scheduler_priority(CSOUND *csound, int priority)
     /* set scheduling policy and priority */
     if (priority > 0) {
       p.sched_priority = priority;
-      if (sched_setscheduler(0, SCHED_RR, &p) != 0) {
+      if (UNLIKELY(sched_setscheduler(0, SCHED_RR, &p) != 0)) {
         csound->Message(csound,
                         Str("csound: cannot set scheduling policy to SCHED_RR"));
       }
@@ -137,7 +137,7 @@ int set_scheduler_priority(CSOUND *csound, int priority)
     }
     else {
       /* nice requested */
-      if (setpriority(PRIO_PROCESS, 0, priority) != 0) {
+      if (UNLIKELY(setpriority(PRIO_PROCESS, 0, priority) != 0)) {
         csound->Message(csound, Str("csound: cannot set nice level to %d"),
                         priority);
       }
@@ -361,7 +361,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     err = snd_pcm_open(&(dev->handle), devName,
                        (play ? SND_PCM_STREAM_PLAYBACK
                         : SND_PCM_STREAM_CAPTURE), 0);
-    if (err < 0) {
+    if (UNLIKELY(err < 0)) {
       if (play)
         p->ErrorMsg(p, Str(" *** Cannot open device '%s' for audio output: %s"),
                     devName, snd_strerror(err));
@@ -371,13 +371,13 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       return -1;
     }
     /* allocate hardware and software parameters */
-    if (snd_pcm_hw_params_any(dev->handle, hw_params) < 0) {
+    if (UNLIKELY(snd_pcm_hw_params_any(dev->handle, hw_params) < 0)) {
       strncpy(msg, Str("No real-time audio configurations found"), MSGLEN);
       goto err_return_msg;
     }
     /*=======================*/
     unsigned int hwchns;
-    if(snd_pcm_hw_params_get_channels_max(hw_params, &hwchns) < 0){
+    if (UNLIKELY(snd_pcm_hw_params_get_channels_max(hw_params, &hwchns) < 0)) {
       strncpy(msg, Str("Could not retrieve max number of channels"), MSGLEN);
       goto err_return_msg;
     }
@@ -389,8 +389,8 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
 
     /* now set the various hardware parameters: */
     /* access method, */
-    if (snd_pcm_hw_params_set_access(dev->handle, hw_params,
-                                     SND_PCM_ACCESS_RW_INTERLEAVED) < 0) {
+    if (UNLIKELY(snd_pcm_hw_params_set_access(dev->handle, hw_params,
+                                              SND_PCM_ACCESS_RW_INTERLEAVED) < 0)) {
       strncpy(msg, Str("Error setting access type for soundcard"), MSGLEN);
       goto err_return_msg;
     }
@@ -403,27 +403,29 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       if (play) dev->playconv = (void (*)(int, MYFLT*, void*, int*)) fp;
       else      dev->rec_conv = (void (*)(int, void*, MYFLT*)) fp;
     }
-    if (alsaFmt == SND_PCM_FORMAT_UNKNOWN) {
+    if (UNLIKELY(alsaFmt == SND_PCM_FORMAT_UNKNOWN)) {
       strncpy(msg, Str("Unknown sample format.\n *** Only 16-bit and 32-bit "
                        "integers, and 32-bit floats are supported."), MSGLEN);
       goto err_return_msg;
     }
-    if (snd_pcm_hw_params_set_format(dev->handle, hw_params, alsaFmt) < 0) {
+    if (UNLIKELY(snd_pcm_hw_params_set_format(dev->handle, hw_params, alsaFmt)<0)) {
       strncpy(msg,
               Str("Unable to set requested sample format on soundcard"),MSGLEN);
       goto err_return_msg;
     }
     /* number of channels, */
-    if (snd_pcm_hw_params_set_channels(dev->handle, hw_params,
-                                       (unsigned int) dev->nchns) < 0) {
+    if (UNLIKELY(snd_pcm_hw_params_set_channels(dev->handle, hw_params,
+                                                (unsigned int) dev->nchns) < 0)) {
       strncpy(msg, Str("Unable to set number of channels on soundcard"), MSGLEN);
       goto err_return_msg;
     }
     /* sample rate, (patched for sound cards that object to fixed rate) */
     {
       unsigned int target = dev->srate;
-      if (snd_pcm_hw_params_set_rate_near(dev->handle, hw_params,
-                                          (unsigned int *) &dev->srate, 0) < 0){
+      if (UNLIKELY(snd_pcm_hw_params_set_rate_near(dev->handle,
+                                                   hw_params,
+                                                   (unsigned int *) &dev->srate, 0)
+                   < 0)) {
         strncpy(msg, Str("Unable to set sample rate on soundcard"), MSGLEN);
         goto err_return_msg;
       }
@@ -440,7 +442,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->buffer_smps;
       err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
       if (err < 0 || (int) nn != dev->buffer_smps) {
-        if (err >= 0)  {
+        if (UNLIKELY(err >= 0))  {
           p->Message(p, Str("ALSA: -B %d not allowed on this device; "
                             "using %d instead\n"), dev->buffer_smps, (int) nn);
           dev->buffer_smps=nn;
@@ -463,7 +465,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       err = snd_pcm_hw_params_set_period_size_near(dev->handle, hw_params, &nn,
                                                    &dir);
       if (err < 0 || (int) nn != dev->period_smps) {
-        if (err >= 0) {
+        if (UNLIKELY(err >= 0)) {
           p->Message(p, Str("ALSA: -b %d not allowed on this device; "
                             "using %d instead\n"), dev->period_smps, (int) nn);
           dev->period_smps=nn;
@@ -471,7 +473,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       }
     }
     /* set up device according to the above parameters */
-    if (snd_pcm_hw_params(dev->handle, hw_params) < 0) {
+    if (UNLIKELY(snd_pcm_hw_params(dev->handle, hw_params) < 0)) {
       strncpy(msg,
               Str("Error setting hardware parameters for real-time audio"),
               MSGLEN);
@@ -485,13 +487,13 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                  dev->buffer_smps, dev->period_smps /*, dev->srate*/);
     /* now set software parameters */
     n = (play ? dev->buffer_smps : 1);
-    if (snd_pcm_sw_params_current(dev->handle, sw_params) < 0
-        || snd_pcm_sw_params_set_start_threshold(dev->handle, sw_params,
-                                                 (snd_pcm_uframes_t) n) < 0
-        || snd_pcm_sw_params_set_avail_min(dev->handle, sw_params,
-                                           dev->period_smps) < 0
-        /* || snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 */
-        || snd_pcm_sw_params(dev->handle, sw_params) < 0) {
+    if (UNLIKELY(snd_pcm_sw_params_current(dev->handle, sw_params) < 0 ||
+                 snd_pcm_sw_params_set_start_threshold(dev->handle, sw_params,
+                                                 (snd_pcm_uframes_t) n) < 0 ||
+                 snd_pcm_sw_params_set_avail_min(dev->handle, sw_params,
+                                           dev->period_smps) < 0 ||
+        /* snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 || */
+                 snd_pcm_sw_params(dev->handle, sw_params) < 0)) {
       strncpy(msg,
               Str("Error setting software parameters for real-time audio"),MSGLEN);
       goto err_return_msg;
@@ -499,7 +501,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     /* allocate memory for sample conversion buffer */
     n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
     dev->buf = (void*) csound->Malloc(csound, (size_t) n);
-    if (dev->buf == NULL) {
+    if (UNLIKELY(dev->buf == NULL)) {
       strncpy(msg, Str("Memory allocation failure"),MSGLEN);
       goto err_return_msg;
     }
@@ -612,7 +614,7 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
     /* check if the device is already opened */
     if (*userDataPtr != NULL)
       return 0;
-    if (parm->devNum != 1024) {
+    if (UNLIKELY(parm->devNum != 1024)) {
       csound->ErrorMsg(csound, Str(" *** ALSA: must specify a device name, "
                                    "not a number (e.g. -odac:hw:0,0)"));
       list_devices(csound);
@@ -620,7 +622,7 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
     }
     /* allocate structure */
     dev = (DEVPARAMS*) csound->Malloc(csound, sizeof(DEVPARAMS));
-    if (dev == NULL) {
+    if (UNLIKELY(dev == NULL)) {
       csound->ErrorMsg(csound, Str(" *** ALSA: %s: memory allocation failure"),
                        (play ? "playopen" : "recopen"));
       return -1;
@@ -668,9 +670,9 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
 #ifdef warning
 #undef warning
 #endif
-#define warning(x) {                            \
-      if (csound->GetMessageLevel(csound) & 4)  \
-        csound->Warning(csound, Str(x));        \
+#define warning(x) {                                      \
+      if (UNLIKELY(csound->GetMessageLevel(csound) & 4))  \
+        csound->Warning(csound, Str(x));                  \
   }
 
 static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
@@ -694,7 +696,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
         n -= err; m += err; continue;
       }
       /* handle I/O errors */
-      if (err == -EPIPE) {
+      if (UNLIKELY(err == -EPIPE)) {
         /* buffer underrun */
         warning(Str("Buffer overrun in real-time audio input"));     /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
@@ -791,14 +793,15 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
     int         err;
     alsaMidiInputDevice *dev;
 
-    dev = (alsaMidiInputDevice*) csound->Malloc(csound, sizeof(alsaMidiInputDevice));
-    if (dev == NULL) {
+    dev = (alsaMidiInputDevice*) csound->Malloc(csound,
+                                                sizeof(alsaMidiInputDevice));
+    if (UNLIKELY(dev == NULL)) {
       csound->ErrorMsg(csound, Str("ALSA MIDI: memory allocation failure"));
       return dev;
     }
     memset(dev, 0, sizeof(alsaMidiInputDevice));
     err = snd_rawmidi_open(&(dev->dev), NULL, s, SND_RAWMIDI_NONBLOCK);
-    if (err != 0) {
+    if (UNLIKELY(err != 0)) {
       csound->ErrorMsg(csound,
                        Str("ALSA: error opening MIDI input device: '%s'"), s);
       csound->Free(csound,dev);
@@ -822,7 +825,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
 
     (*userData) = NULL;
     olddev = NULL;
-    if (devName==NULL) {
+    if (UNLIKELY(devName==NULL)) {
       csound->Message(csound, Str("ALSA midi: no string\n"));
       exit(1);                  /* what should happen here???????? */
     }
@@ -843,7 +846,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
               }
               snprintf(name, 32, "hw:%d,%d", card, device);
               newdev = open_midi_device(csound, name);
-              if (newdev != NULL) {   /* Device opened successfully */
+              if (LIKELY(newdev != NULL)) {   /* Device opened successfully */
                 numdevs++;
                 if (olddev != NULL) {
                   olddev->next = newdev;
@@ -877,7 +880,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
       numdevs = 1;
     }
     csound->Free(csound, name);
-    if (numdevs == 0) {
+    if (UNLIKELY(numdevs == 0)) {
       csound->ErrorMsg(csound, Str("ALSA midi: No devices found.\n"));
       *userData = NULL;
     }
@@ -1442,7 +1445,7 @@ static int alsaseq_in_read(CSOUND *csound,
       return 0;
     else
       err = snd_midi_event_decode(amidi->mev, buf, nbytes, ev);
-    return err;
+    return (err==-ENOENT) ? 0 : err;
 }
 
 static int alsaseq_in_close(CSOUND *csound, void *userData)

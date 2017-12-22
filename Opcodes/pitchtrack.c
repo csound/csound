@@ -289,6 +289,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
 
       if (npeak > numpks) npeak = numpks;
       for (i = 0; i < maxbin; i++) histogram[i] = 0;
+      //or memset(histogram, '\0', maxbin*sizeof(MYFLT));
       for (i = 0; i < npeak; i++) {
         MYFLT pit = (MYFLT)(BPEROOVERLOG2 * LOG(peaklist[i].pfreq) - 96.0);
         MYFLT binbandwidth = FACTORTOBINS * peaklist[i].pwidth/peaklist[i].pfreq;
@@ -631,16 +632,16 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
     scal = 2.0*csound->pidsr;
 
     /* check for muted input & bypass */
-    if(ksmps > 1){
-    for(i=0; i < ksmps; i++){
-      if(asig[i] != 0.0 && asig[i] != itmp) {
+    if (ksmps > 1){
+    for (i=0; i < ksmps; i++) {
+      if (asig[i] != 0.0 && asig[i] != itmp) {
         itest = 1;
         break;
       }
       itmp = asig[i];
     }
-    if(!itest) return OK;
-    } else if(*asig == 0.0) return OK;
+    if (!itest)  return OK;
+    } else if (*asig == 0.0) return OK;
 
 
     if (*p->klpf == 0) klpf = 20.0;
@@ -677,9 +678,7 @@ int plltrack_perf(CSOUND *csound, PLLTRACK *p)
       p->klpf_o = klpf; p->klpfQ_o = klpfQ;
     }
 
-
-
-    for(k=0; k < 6; k++) {
+    for (k=0; k < 6; k++) {
       a0[k] = biquad[k].a0;
       a1[k] = biquad[k].a1;
       a2[k] = biquad[k].a2;

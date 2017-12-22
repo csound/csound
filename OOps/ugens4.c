@@ -49,10 +49,10 @@ int buzz(CSOUND *csound, BUZZ *p)
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
     int32       phs, inc, lobits, dwnphs, tnp1, lenmask;
     MYFLT       sicvt2, over2n, scal, num, denom;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32    nn;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    int32       nn;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
@@ -469,7 +469,7 @@ int rndset(CSOUND *csound, RAND *p)
       if (*p->iseed > FL(1.0)) {    /* As manual suggest seed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %lu\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
         if (!p->new) {
           p->rand = (int32) (seed & 0xFFFFUL);
         }
@@ -580,7 +580,7 @@ int rhset(CSOUND *csound, RANDH *p)
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %lu\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
         if (!p->new) {
           p->rand = (int32) (seed & 0xFFFFUL);
           p->num1 = (MYFLT) ((int16) p->rand) * DV32768;
@@ -686,7 +686,7 @@ int riset(CSOUND *csound, RANDI *p)
       if (*p->iseed > FL(1.0)) { /* As manual suggest sseed in range [0,1] */
         uint32 seed;             /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %lu\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
         if (!p->new) {
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */

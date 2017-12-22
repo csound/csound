@@ -160,25 +160,26 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
         while((ent = readdir(dir)) != NULL) {
           std::ostringstream fullFileName;
           //only use supported file types
-          for(int i=0;i<fileExtensions.size();i++)
+          for(int i=0;(size_t)i<fileExtensions.size();i++)
           {
             std::string fname = ent->d_name;
-            if (fname.find(fileExtensions[i], (fname.length() - fileExtensions[i].length())) != std::string::npos)
+            if (fname.find(fileExtensions[i],
+                           (fname.length() - fileExtensions[i].length())) !=
+                std::string::npos)
             {
-                if(strlen(directory)>2)
-                  {
+              if(strlen(directory)>2)
+                {
 #if defined(WIN32)
-                    fullFileName << directory << "\\" << ent->d_name;
+                  fullFileName << directory << "\\" << ent->d_name;
 #else
-                    fullFileName << directory << "/" << ent->d_name;
+                  fullFileName << directory << "/" << ent->d_name;
 #endif
-                  }
-                else
-                  fullFileName << ent->d_name;
+                }
+              else
+                fullFileName << ent->d_name;
 
-
-                noOfFiles++;
-                fileNames.push_back(fullFileName.str());
+              noOfFiles++;
+              fileNames.push_back(fullFileName.str());
             }
           }
         }
@@ -187,7 +188,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char* directory,
         std::sort(fileNames.begin(), fileNames.end() );
 
         // push statements to score, starting with table number 'index'
-          for(int y = 0; y < fileNames.size(); y++)
+        for(int y = 0; (size_t) y < fileNames.size(); y++)
             {
               std::ostringstream statement;
               statement << "f" << index+y << " 0 0 1 \"" << fileNames[y] <<

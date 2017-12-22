@@ -79,12 +79,12 @@ static int getCh(CSOUND *csound, FILE *f, int *bytesLeft)
     if (f == NULL)
       return -1;
     c = getc(f);
-    if (c == EOF) {
+    if (UNLIKELY(c == EOF)) {
       csound->Message(csound, Str(" *** unexpected end of MIDI file\n"));
       return -1;
     }
     if (bytesLeft != NULL) {
-      if (--(*bytesLeft) < 0) {
+      if (UNLIKELY(--(*bytesLeft) < 0)) {
         csound->Message(csound, Str(" *** unexpected end of MIDI track\n"));
         return -1;
       }
@@ -98,7 +98,7 @@ static int getVLenData(CSOUND *csound, FILE *f, int *bytesLeft)
 
     n = cnt = 0;
     do {
-      if (++cnt > 4) {
+      if (UNLIKELY(++cnt > 4)) {
         csound->Message(csound,
                         Str(" *** invalid dynamic length data in MIDI file\n"));
         return -1;
@@ -154,6 +154,7 @@ static int alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *data,
                                        int st, int d1, int d2)
 {
     midiEvent_t *tmp;
+    IGN(data);
     /* expand array if necessary */
     if (MF(nEvents) >= MF(maxEvents)) {
       MF(maxEvents) += (MF(maxEvents) >> 3);
@@ -204,7 +205,7 @@ static int checkRealTimeEvent(CSOUND *csound, FILE *f, int *tlen,
                               unsigned long tickCnt, int st, int *saved_st)
 {
     if (st & 0x80) {
-      if (st < 0xF8 || st > 0xFE) {
+      if (UNLIKELY(st < 0xF8 || st > 0xFE)) {
         csound->Message(csound, Str(" *** unexpected event 0x%02X\n"),
                                 (unsigned int) st);
         return -1;
@@ -227,7 +228,7 @@ static int readEvent(CSOUND *csound, FILE *f, int *tlen,
       /* repeat previous status byte */
       dataBytes[cnt++] = st;
       st = *saved_st;
-      if (st < 0x80) {
+      if (UNLIKELY(st < 0x80)) {
         csound->Message(csound, Str(" *** invalid MIDI file data\n"));
         return -1;
       }
@@ -261,7 +262,7 @@ static int readEvent(CSOUND *csound, FILE *f, int *tlen,
         d = getCh(csound, f, tlen);
         if (d < 0 || *tlen < 0) return -1;
         if (d == 0xF7) {        /* EOX */
-          if (!i)
+          if (LIKELY(!i))
             return 0;           /* should be at end of message */
           csound->Message(csound, Str(" *** unexpected end of system "
                                       "exclusive message\n"));
@@ -270,7 +271,7 @@ static int readEvent(CSOUND *csound, FILE *f, int *tlen,
         d = checkRealTimeEvent(csound, f, tlen, tickCnt, d, saved_st);
         if (d == -2)            /* if read real time event, */
           i++;                  /* continue with reading message bytes */
-        else if (d < 0)
+        else if (UNLIKELY(d < 0))
           return -1;            /* error */
       }
       /* zero length or EOX not found */
@@ -321,17 +322,17 @@ static int readEvent(CSOUND *csound, FILE *f, int *tlen,
             if (c < 0 || *tlen < 0) return -1;
             d = (d << 8) | c;
           }
-          if (d < 1) {
+          if (UNLIKELY(d < 1)) {
             csound->Message(csound, Str(" *** invalid tempo\n"));
             return -1;
           }
           return alloc_tempo(csound, tickCnt, (60000000.0 / (double) d));
         case 0x2F:                        /* end of track */
-          if (i) {
+          if (UNLIKELY(i)) {
             csound->Message(csound, Str(" *** invalid end of track event\n"));
             return -1;
           }
-          if (*tlen > 0) {
+          if (UNLIKELY(*tlen > 0)) {
             csound->Message(csound, Str(" *** trailing garbage at end of "
                                         "MIDI track\n"));
             return -1;
@@ -363,7 +364,7 @@ static int readTrack(CSOUND *csound, FILE *f)
       c = getCh(csound, f, NULL);
       if (c < 0)
         return -1;
-      if (c != (int) midiTrack_ID[i]) {
+      if (UNLIKELY(c != (int) midiTrack_ID[i])) {
         csound->Message(csound, Str(" *** invalid MIDI track header\n"));
         return -1;
       }
@@ -556,7 +557,7 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     if (MIDIFILE != NULL)
       return 0;         /* already opened */
     /* open file */
-    if (name == NULL || name[0] == '\0')
+    if (UNLIKELY(name == NULL || name[0] == '\0'))
       return -1;
     //if (*name==3) name++;       /* Because of ETX added bt readOptions */
     if (strcmp(name, "stdin") == 0)
@@ -564,7 +565,7 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     else {
       fd = csound->FileOpen2(csound, &f, CSFILE_STD, name, "rb",
                              "SFDIR;SSDIR;MFDIR", CSFTYPE_STD_MIDI, 0);
-      if (fd == NULL) {
+      if (UNLIKELY(fd == NULL)) {
         csound->ErrorMsg(csound, Str(" *** error opening MIDI file '%s': %s"),
                                  name, strerror(errno));
         return -1;
@@ -574,8 +575,8 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     /* check header */
     for (i = 0; i < 4; i++) {
       c = getCh(csound, f, NULL);
-      if (c < 0) goto err_return;
-      if (c != (int) midiFile_ID[i]) {
+      if (UNLIKELY(c < 0)) goto err_return;
+      if (UNLIKELY(c != (int) midiFile_ID[i])) {
         csound->Message(csound, Str(" *** invalid MIDI file header\n"));
         goto err_return;
       }
@@ -584,10 +585,10 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     hdrLen = 0;
     for (i = 0; i < 4; i++) {
       c = getCh(csound, f, NULL);
-      if (c < 0) goto err_return;
+      if (UNLIKELY(c < 0)) goto err_return;
       hdrLen = (hdrLen << 8) | c;
     }
-    if (hdrLen != 6) {
+    if (UNLIKELY(hdrLen != 6)) {
       csound->Message(csound, Str(" *** invalid MIDI file header\n"));
       goto err_return;
     }
@@ -595,10 +596,10 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     fileFormat = 0;
     for (i = 0; i < 2; i++) {
       c = getCh(csound, f, NULL);
-      if (c < 0) goto err_return;
+      if (UNLIKELY(c < 0)) goto err_return;
       fileFormat = (fileFormat << 8) | c;
     }
-    if (fileFormat != 0 && fileFormat != 1) {
+    if (UNLIKELY(fileFormat != 0 && fileFormat != 1)) {
       csound->Message(csound,
                       Str(" *** MIDI file format %d is not supported\n"),
                       fileFormat);
@@ -608,14 +609,14 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     nTracks = 0;
     for (i = 0; i < 2; i++) {
       c = getCh(csound, f, NULL);
-      if (c < 0) goto err_return;
+      if (UNLIKELY(c < 0)) goto err_return;
       nTracks = (nTracks << 8) | c;
     }
-    if (nTracks < 1) {
+    if (UNLIKELY(nTracks < 1)) {
       csound->Message(csound, Str(" *** invalid number of tracks\n"));
       goto err_return;
     }
-    if (nTracks > 1 && !fileFormat) {
+    if (UNLIKELY(nTracks > 1 && !fileFormat)) {
       csound->Message(csound, Str("WARNING: format 0 MIDI file with "
                                   "multiple tracks\n"));
     }
@@ -623,13 +624,13 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
     timeCode = 0;
     for (i = 0; i < 2; i++) {
       c = getCh(csound, f, NULL);
-      if (c < 0) goto err_return;
+      if (UNLIKELY(c < 0)) goto err_return;
       timeCode = (timeCode << 8) | c;
     }
     /* allocate structure */
     MIDIFILE = (void*) csound->Calloc(csound, sizeof(midiFile_t));
     /* calculate ticks per second or beat based on time code */
-    if (timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0)) {
+    if (UNLIKELY(timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0))) {
       csound->Message(csound, Str(" *** invalid time code: %d\n"), timeCode);
       goto err_return;
     }
@@ -669,7 +670,7 @@ int csoundMIDIFileOpen(CSOUND *csound, const char *name)
       if (*m != '\0') {             /* is this track muted ? */
         if (*m == '1')
           mute_track = 1;
-        else if (*m != '0') {
+        else if (UNLIKELY(*m != '0')) {
           csound->Message(csound, Str(" *** invalid mute track list format\n"));
           goto err_return;
         }
@@ -745,7 +746,7 @@ int csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int nBytes)
         i++; continue;        /* unknown or system event: skip */
       }
       nBytes -= n;
-      if (nBytes < 0) {
+      if (UNLIKELY(nBytes < 0)) {
         csound->Message(csound, Str(" *** buffer overflow while reading "
                                     "MIDI file events\n"));
         break;      /* return with whatever has been read so far */
@@ -789,9 +790,9 @@ void midifile_rewind_score(CSOUND *csound)
       /* reset controllers on all channels */
       for (i = 0; i < MAXCHAN; i++)
         midi_ctl_reset(csound, (int16) i);
-    } else if (O->FMidiname != NULL) {
+    } else if (LIKELY(O->FMidiname != NULL)) {
       csound->MTrkend = 0;
-      if (csoundMIDIFileOpen(csound, O->FMidiname) != 0)
+      if (UNLIKELY(csoundMIDIFileOpen(csound, O->FMidiname) != 0))
         csound->Die(csound, Str("Failed to load MIDI file."));
       O->FMidiin = 1;
     }

@@ -205,10 +205,10 @@ int musmon(CSOUND *csound)
     dbfs_init(csound, csound->e0dbfs);
     csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
-    csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin * sizeof(MYFLT));
-    csound->spraw = (MYFLT *) csound->Calloc(csound, csound->nspout * sizeof(MYFLT));
-    csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout * sizeof(MYFLT));
-    csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin *sizeof(MYFLT));
+    csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
+    csound->spraw = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
+    csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
+    csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
     /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
     /* memset(csound->smaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
     /* memset(csound->omaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
@@ -264,7 +264,7 @@ int musmon(CSOUND *csound)
         O->oMaxLag = IODACSAMPS;
       if (!O->outbufsamps)
         O->outbufsamps = IOBUFSAMPS;
-      else if (O->outbufsamps < 0) {    /* if k-aligned iobufs requested  */
+      else if (UNLIKELY(O->outbufsamps < 0)) { /* if k-aligned iobufs requested  */
         /* set from absolute value */
         O->outbufsamps *= -(csound->ksmps);
         csound->Message(csound, Str("k-period aligned audio buffering\n"));
@@ -297,7 +297,7 @@ int musmon(CSOUND *csound)
       else
         sfnopenout(csound);
     }
-    if (O->playscore!=NULL) corfile_flush(O->playscore);
+    if (O->playscore!=NULL) corfile_flush(csound, O->playscore);
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
       if (STA(lsect) == NULL) {
@@ -326,12 +326,12 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot reopen cscore.out"));
       }
       else {
-        CORFIL *inf = corfile_create_w();
+        CORFIL *inf = corfile_create_w(csound);
         int c;
-        while ((c=getc(csound->scfp))!=EOF) corfile_putc(c, inf);
+        while ((c=getc(csound->scfp))!=EOF) corfile_putc(csound, c, inf);
         corfile_rewind(inf);
         csound->scorestr = inf;
-        corfile_rm(&csound->scstr);
+        corfile_rm(csound, &csound->scstr);
       }
       csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
       /* write to cscore.srt */
@@ -401,12 +401,11 @@ static void delete_pending_rt_events(CSOUND *csound)
     csound->OrcTrigEvts = NULL;
 }
 
-static void cs_beep(CSOUND *csound)
+static inline void cs_beep(CSOUND *csound)
 {
     csound->Message(csound, Str("%c\tbeep!\n"), '\a');
 }
 
-extern int UDPServerClose(CSOUND *csound);
 PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
@@ -416,7 +415,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 
     csoundLockMutex(csound->API_lock);
     if (csound->QueryGlobalVariable(csound,"::UDPCOM")
-       != NULL) UDPServerClose(csound);
+       != NULL) csoundUDPServerClose(csound);
 
     while (csound->evtFuncChain != NULL) {
       p = (void*) csound->evtFuncChain;
@@ -460,13 +459,13 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 
     orcompact(csound);
 
-    corfile_rm(&csound->scstr);
+    corfile_rm(csound, &csound->scstr);
 
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
     {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
-      corfile_rm(&csound->expanded_sco);
+      corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])
           csound->omaxamp[n] = csound->smaxamp[n];
@@ -495,12 +494,12 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (!csound->enableHostImplementedAudioIO) {
       sfclosein(csound);
       sfcloseout(csound);
-      if (!csound->oparms->sfwrite)
+      if (UNLIKELY(!csound->oparms->sfwrite))
         csound->Message(csound, Str("no sound written to disk\n"));
     }
     /* close any remote.c sockets */
     if (csound->remoteGlobals) remote_Cleanup(csound);
-    if (csound->oparms->ringbell)
+    if (UNLIKELY(csound->oparms->ringbell))
       cs_beep(csound);
 
     csoundUnlockMutex(csound->API_lock);
@@ -534,9 +533,9 @@ int turnon(CSOUND *csound, TURNON *p)
     evt.pcnt = 3;
 
     if (csound->ISSTRCOD(*p->insno)) {
-    char *ss = get_arg_string(csound,*p->insno);
-    insno = csound->strarg2insno(csound,ss,1);
-    if (insno <= 0L)
+      char *ss = get_arg_string(csound,*p->insno);
+      insno = csound->strarg2insno(csound,ss,1);
+      if (insno <= 0L)
         return NOTOK;
     } else insno = *p->insno;
     evt.p[1] = (MYFLT) insno;
@@ -558,8 +557,8 @@ int turnon_S(CSOUND *csound, TURNON *p)
     evt.opcod = 'i';
     evt.pcnt = 3;
     insno = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
-    if (insno <= 0L)
-        return NOTOK;
+    if (UNLIKELY(insno <= 0L))
+      return NOTOK;
     evt.p[1] = (MYFLT) insno;
     evt.p[2] = *p->itime;
     evt.p[3] = FL(-1.0);
@@ -573,11 +572,11 @@ static void print_amp_values(CSOUND *csound, int score_evt)
 {
     CSOUND        *p = csound;
     MYFLT         *maxp, *smaxp;
-    uint32 *maxps, *smaxps;
-    int32          *rngp, *srngp;
+    uint32        *maxps, *smaxps;
+    int32         *rngp, *srngp;
     int           n;
 
-    if (STA(segamps) || (p->rngflg && STA(sormsg))) {
+    if (UNLIKELY(STA(segamps) || (p->rngflg && STA(sormsg)))) {
       if (score_evt)
         p->Message(p, "B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
                       p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
@@ -914,7 +913,7 @@ int sensevents(CSOUND *csound)
     int     conn, *sinp;
 
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-    if (data && data->status == CSDEBUG_STATUS_STOPPED) {
+    if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
         return 0; /* don't process events if we're in debug mode and stopped */
     }
     if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
@@ -1224,6 +1223,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
     case 'a':
       if (UNLIKELY(evt->pcnt < 3))
         goto pfld_err;
+      /* fall through */
     case 'd':
     cont:
       /* calculate actual start time in seconds and k-periods */
@@ -1251,7 +1251,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       /* calculate the length in beats */
       if (evt->p3orig > FL(0.0))
         evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
-      /* fall through required */
+      /* fall through */
     case 'q':                         /* mute instrument */
       /* check for a valid instrument number or name */
       if (evt->opcod=='d') {
@@ -1282,6 +1282,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
     case 'a':                         /* advance score time */
       /* calculate the length in beats */
       evt->p3orig = (MYFLT) ((double) evt->p3orig *csound->esr/ st->ibeatTime);
+      /* fall through */
     case 'f':                         /* function table */
       break;
     case 'e':                         /* end of score, */

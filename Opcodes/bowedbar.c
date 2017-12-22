@@ -51,7 +51,7 @@ static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int lag)
 {
     if (UNLIKELY(lag > p->length-1)) {                   /* if delay is too big, */
       csound->Warning(csound, Str("DLineN: Delay length too big ... setting to "
-                                  "maximum length of %ld.\n"), p->length - 1);
+                                  "maximum length of %d.\n"), p->length - 1);
       p->outPoint = p->inPoint + 1;            /* force delay to max_length */
     }
     else
@@ -88,7 +88,7 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
     make_ADSR(&p->adsr);
     ADSR_setAllTimes(csound, &p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
 
-    if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
+    if (LIKELY(*p->lowestFreq>=FL(0.0))) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
         p->length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
@@ -153,7 +153,7 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
           break;
         }
       }
-      if (p->nr_modes==0)
+      if (UNLIKELY(p->nr_modes==0))
         return csound->InitError(csound,
                                  Str("Bowedbar: cannot have zero modes\n"));
       for (i=0; i<p->nr_modes; i++) {

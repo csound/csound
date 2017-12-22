@@ -35,6 +35,9 @@
 
 namespace csnd {
 
+/* constants */
+const double twopi = TWOPI;
+
 /** opcode threads: i-time, k-perf and/or a-perf
 */
 enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
@@ -233,6 +236,11 @@ public:
       ComplexFFT(this, fdata, setup->N);
     return reinterpret_cast<std::complex<MYFLT> *>(fdata);
   }
+
+  /** Sleep
+   */
+  void sleep(int ms) { Sleep(ms); }
+
 };
 
 /**
@@ -241,6 +249,7 @@ public:
 class Thread {
   void *thread;
   static uintptr_t thrdRun(void *t) { return ((Thread *)t)->run(); }
+  virtual uintptr_t run() = 0;
 
 protected:
   Csound *csound;
@@ -250,7 +259,7 @@ public:
     CSOUND *p = (CSOUND *)csound;
     thread = p->CreateThread(thrdRun, (void *)this);
   }
-  virtual uintptr_t run() = 0;
+
   uintptr_t join() {
     CSOUND *p = (CSOUND *)csound;
     return p->JoinThread(thread);
@@ -319,6 +328,18 @@ public:
    */
   const MYFLT &operator[](int n) const { return sig[n]; }
 
+  /** get early exit sample position
+   */
+  uint32_t GetEarly() { return early;}
+
+  /** get early exit sample offset
+   */
+  uint32_t GetOffset() { return offset;}
+
+  /** get number of samples to process
+  */
+  uint32_t GetNsmps() { return nsmps; }
+
 };
 
 /** One-dimensional array container
@@ -371,7 +392,8 @@ public:
 
   /** vector end
    */
-  const_iterator cend() const { return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
+  const_iterator cend() const {
+      return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
 
   /** vector beginning
    */
@@ -379,7 +401,8 @@ public:
 
   /** vector end
    */
-  const_iterator end() const { return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
+  const_iterator end() const {
+      return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
 
   /** array subscript access (write)
    */
@@ -473,7 +496,7 @@ public:
 
 /** Phase Vocoder bin */
 typedef Pvbin<float> pv_bin;
- 
+
 /** Sliding Phase Vocoder bin */
 typedef Pvbin<MYFLT> spv_bin;
 
@@ -502,13 +525,13 @@ public:
     NB = nb;
     sliding = sl;
     if (!sliding) {
-      int bytes = (n + 2) * sizeof(float);
+      size_t bytes = (n + 2) * sizeof(float);
       if (frame.auxp == nullptr || frame.size < bytes) {
         csound->AuxAlloc(csound, bytes, &frame);
         std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0);
       }
     } else {
-      int bytes = (n + 2) * sizeof(MYFLT) * nsmps;
+      size_t  bytes = (n + 2) * sizeof(MYFLT) * nsmps;
       if (frame.auxp == NULL || frame.size < bytes)
         csound->AuxAlloc(csound, bytes, &frame);
     }
@@ -707,7 +730,7 @@ public:
   /** allocate memory for the container
    */
   void allocate(Csound *csound, int n) {
-    int bytes = n * sizeof(T);
+    size_t bytes = n * sizeof(T);
     if (auxp == nullptr || size < bytes) {
       csound->AuxAlloc(csound, bytes, (AUXCH *)this);
       std::fill((char *)auxp, (char *)endp, 0);
@@ -874,14 +897,13 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
     uint32_t early = insdshead->ksmps_no_end;
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
-    for(auto &arg : outargs) {
-    if (csound->is_asig(arg)) {
-      if (UNLIKELY(offset))
+    if(UNLIKELY(offset || early))
+     for(auto &arg : outargs) {
+      if (csound->is_asig(arg)) {
         std::fill(arg, arg + offset, 0);
-      if (UNLIKELY(early))
         std::fill(arg + nsmps, arg + nsmps + early, 0);
+      }
      }
-    }
   }
 
   /** returns the number of output arguments

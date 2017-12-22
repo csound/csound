@@ -64,8 +64,10 @@ void encode_file(char *inflname, FILE *outfl, int style)
       exit(-1);
     }
     /* create new CSD tag and encode file */
-    if (style)
+    if (style==1)
       fprintf(outfl, "<CsMidifileB>");
+    else if (style==2)
+      fprintf(outfl, "<CsFileC filename=\"%s\">", s);
     else
       fprintf(outfl, "<CsFileB filename=\"%s\">", s);
     linepos = bitcnt = inval = 0;

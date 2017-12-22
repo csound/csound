@@ -231,6 +231,7 @@ static void smoothsort(SRTBLK *A[], const int N)
     /* element 0 processed */
 }
 
+
 void sort(CSOUND *csound)
 {
     SRTBLK *bp;
@@ -261,6 +262,9 @@ void sort(CSOUND *csound)
       case 's':
         bp->preced = 'a';
         break;
+      case 'x':
+        n--;
+        break;
       case -1:
       case 'y':
         break;
@@ -275,8 +279,10 @@ void sort(CSOUND *csound)
       /* Get a temporary array and populate it */
       A = ((SRTBLK**) csound->Malloc(csound, n*sizeof(SRTBLK*)));
       bp = csound->frstbp;
-      for (i=0; i<n; i++,bp = bp->nxtblk)
+      for (i=0; i<n; i++,bp = bp->nxtblk) {
         A[i] = bp;
+        if (bp->text[0]=='x') i--; /* try to ignore x opcode */
+      }
       if (LIKELY(A[n-1]->text[0]=='e' || A[n-1]->text[0]=='s'))
         smoothsort(A, n-1);
       else

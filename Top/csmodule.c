@@ -266,7 +266,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
         char *new =
           csound->ReAlloc(csound, csound->delayederrormessages,
                           strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
-        if (new==NULL) {
+        if (UNLIKELY(new==NULL)) {
           csound->Free(csound, csound->delayederrormessages);
           return CSOUND_ERROR;
         }
@@ -315,7 +315,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
       if (UNLIKELY(m.fn.o.opcode_init == NULL && m.fn.o.fgen_init == NULL)) {
         /* must have csound_opcode_init() or csound_fgen_init() */
         csoundCloseLibrary(h);
-        if (csound->oparms->msglevel & 0x400)
+        if (UNLIKELY(csound->oparms->msglevel & 0x400))
           csound->Warning(csound, Str("'%s' is not a Csound plugin library"),
                           libraryPath);
         return CSOUND_ERROR;
@@ -459,7 +459,7 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       i = 0;
       do {
-        if ((fname[++n] | (char) 0x20) != buf[i])
+        if (UNLIKELY((fname[++n] | (char) 0x20) != buf[i]))
           break;
       } while (buf[++i] != '\0');
       if (buf[i] != '\0')
@@ -471,16 +471,16 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       }
       /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
-      if (csoundCheckOpcodeDeny(csound, fname)) {
+      if (UNLIKELY(csoundCheckOpcodeDeny(csound, fname))) {
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
       snprintf(buf, 1024, "%s%c%s", dname, DIRSEP, fname);
-      if (csound->oparms->odebug) {
+      if (UNLIKELY(csound->oparms->odebug)) {
         csoundMessage(csound, Str("Loading '%s'\n"), buf);
       }
       n = csoundLoadExternal(csound, buf);
-      if (UNLIKELY(n == CSOUND_ERROR))
+      if (UNLIKELY(UNLIKELY(n == CSOUND_ERROR)))
         continue;               /* ignore non-plugin files */
       if (UNLIKELY(n < err))
         err = n;                /* record serious errors */
@@ -503,7 +503,7 @@ int csoundLoadExternals(CSOUND *csound)
     int     i, cnt, err;
 
     s = csound->dl_opcodes_oplibs;
-    if (s == NULL || s[0] == '\0')
+    if (UNLIKELY(s == NULL || s[0] == '\0'))
       return 0;
     /* IV - Feb 19 2005 */
     csound->dl_opcodes_oplibs = NULL;
@@ -607,7 +607,7 @@ int csoundInitModules(CSOUND *csound)
     /* call init functions */
     for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
       i = csoundInitModule(csound, m);
-      if (i != CSOUND_SUCCESS && i < retval)
+      if (UNLIKELY(i != CSOUND_SUCCESS && i < retval))
         retval = i;
     }
     /* return with error code */
@@ -626,7 +626,7 @@ int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
     if (UNLIKELY(err != 0))
       return err;
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
-    if ((err = setjmp(csound->exitjmp)) != 0) {
+    if (UNLIKELY((err = setjmp(csound->exitjmp)) != 0)) {
       memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
       return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
               CSOUND_MEMORY : CSOUND_INITIALIZATION);
@@ -805,6 +805,7 @@ extern long vaops_localops_init(CSOUND *, void*);
 extern long ugakbari_localops_init(CSOUND *, void *);
 extern long harmon_localops_init(CSOUND *, void *);
 extern long pitchtrack_localops_init(CSOUND *, void *);
+extern long squinewave_localops_init(CSOUND *, void *);
 
 extern long partikkel_localops_init(CSOUND *, void *);
 extern long shape_localops_init(CSOUND *, void *);
@@ -849,7 +850,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
                                  vaops_localops_init, pvsgendy_localops_init,
-                                 paulstretch_localops_init,
+                                 paulstretch_localops_init, squinewave_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
@@ -888,17 +889,17 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
       }
     }
     /* stdopc module */
-    if (stdopc_ModuleInit(csound)) return CSOUND_ERROR;
+    if (UNLIKELY(stdopc_ModuleInit(csound))) return CSOUND_ERROR;
 
     /* pvs module */
-    if (pvsopc_ModuleInit(csound)) return CSOUND_ERROR;
+    if (UNLIKELY(pvsopc_ModuleInit(csound))) return CSOUND_ERROR;
 
     /* sfont module */
     sfont_ModuleCreate(csound);
-    if (sfont_ModuleInit(csound)) return CSOUND_ERROR;
+    if (UNLIKELY(sfont_ModuleInit(csound))) return CSOUND_ERROR;
 
     /* newgabopc */
-    if (newgabopc_ModuleInit(csound)) return CSOUND_ERROR;
+    if (UNLIKELY(newgabopc_ModuleInit(csound))) return CSOUND_ERROR;
 
     /* modules were initialised successfully */
     /* Now fgens */

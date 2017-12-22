@@ -50,7 +50,7 @@ static CS_NOINLINE CS_PRINTF2 void pvlook_print(PVLOOK *p, const char *fmt, ...)
     len = (int) vsnprintf(s, 1024, fmt, args);
     va_end(args);
  /* fprintf(p->outfd, "%s", s); */
-    p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, s);
+    p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "%s", s);
     tmp = strrchr(s, '\n');
     if (tmp == NULL)
       p->linePos += len;
@@ -112,13 +112,14 @@ static int pvlook(CSOUND *csound, int argc, char *argv[])
       csound->SetConfigurationVariable(csound, "msg_color", (void*) &tmp);
     }
 
-    if (argc < 2) {
+    if (UNLIKELY(argc < 2)) {
       for (i = 0; pvlook_usage_txt[i] != NULL; i++)
         csound->Message(csound, "%s\n", Str(pvlook_usage_txt[i]));
       return -1;
     }
 
-    if ((fp = csound->PVOC_OpenFile(csound, argv[argc - 1], &data, &fmt)) < 0) {
+    if (UNLIKELY((fp = csound->PVOC_OpenFile(csound, argv[argc - 1],
+                                             &data, &fmt)) < 0)) {
       csound->ErrorMsg(csound, Str("pvlook: Unable to open '%s'\n Does it exist?"),
                                argv[argc - 1]);
       return -1;

@@ -218,9 +218,15 @@ static void signal_handler(int sig)
 #endif
     psignal(sig, "\ncsound command");
     if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
-      if(_csound) csoundStop(_csound);
-      _result = -1;
-      return;
+      if(_csound) {
+        csoundStop(_csound);
+        csoundDestroy(_csound);
+      }
+      //_result = -1;
+      if (logFile != NULL)
+        fclose(logFile);
+      exit(1);
+      //return;
     }
     exit(1);
 }

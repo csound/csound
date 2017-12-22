@@ -1,9 +1,10 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0 -i adc -b128 -B512
+-o dac -dm0 -i adc
 </CsOptions>
 <CsInstruments>
 nchnls=2
+nchnls_i=1
 0dbfs=1
 ksmps=64
 sr = 44100
@@ -15,7 +16,7 @@ klfeedback  chnget "leftFeedback"
 krdelay     chnget "rightDelayTime"
 krfeedback  chnget "rightFeedback"
 
-asig,asig1 ins
+asig inch 1
 a1 init 0
 a2 init 0
 a1 vdelay3 asig+a2*klfeedback, kldelay, 3000
@@ -29,6 +30,6 @@ endin
 f1 0 16384 10 1
 
 i1 0 360000
- 
+
 </CsScore>
 </CsoundSynthesizer>

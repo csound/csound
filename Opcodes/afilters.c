@@ -369,7 +369,7 @@ static int tonexa(CSOUND *csound, TONEX *p) /* From Gabriel Maldonado, modified 
     }
     for (j=0; j< lp; j++) {
       /* Should *yt1 be reset to something?? */
-      for (n=0; n<nsmps; n++) {
+      for (n=offset; n<nsmps; n++) {
         double x;
         if (p->khp[n] != p->prvhp) {
           double b;
@@ -470,7 +470,7 @@ static int hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    if (p->afc[0] <= FL(0.0))     {
+    if (UNLIKELY(p->afc[0] <= FL(0.0)))     {
       memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
       return OK;
     }
@@ -520,7 +520,7 @@ static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
     in = p->ain;
     out = p->sr;
 
-    if (*p->afc <= FL(0.0))     {
+    if (UNLIKELY(*p->afc <= FL(0.0)))     {
       memset(out, 0, CS_KSMPS*sizeof(MYFLT));
       return OK;
     }
@@ -571,10 +571,11 @@ static int bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     double *a = p->a;
     double t, y;
     uint32_t nn;
+    int asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);
 
     in = p->ain;
     out = p->sr;
-    if (p->kbw[0] <= FL(0.0))     {
+    if (UNLIKELY(p->kbw[0] <= FL(0.0)))     {
       memset(out, 0, CS_KSMPS*sizeof(MYFLT));
       return OK;
     }
@@ -597,8 +598,8 @@ static int bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     //butter_filter(nsmps, offset, in, out, p->a);
     for (nn=offset; nn<nsmps; nn++) {
       MYFLT bw, fr;
-      bw = (IS_ASIG_ARG(p->kbw) ? p->kbw[nn] : *p->kbw);
-      fr = (IS_ASIG_ARG(p->kfo) ? p->kfo[nn] : *p->kfo);
+      bw = (asgbw ? p->kbw[nn] : *p->kbw);
+      fr = (asgfr ? p->kfo[nn] : *p->kfo);
       if (bw != p->lkb || fr != p->lkf) {
         double c, d;
         p->lkf = fr;
@@ -630,6 +631,7 @@ static int bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
     double *a = p->a;
     double t, y;
     uint32_t nn;
+    int asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);
 
     in = p->ain;
     out = p->sr;
@@ -639,15 +641,15 @@ static int bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
-    if (p->kbw[0] <= FL(0.0))     {
-      memcpy(&out[offset], &out[offset], (nsmps-offset)*sizeof(MYFLT));
+    if (UNLIKELY(p->kbw[0] <= FL(0.0)))     {
+      memcpy(&out[offset], &in[offset], (nsmps-offset)*sizeof(MYFLT));
       return OK;
     }
 
     for (nn=offset; nn<nsmps; nn++) {
       MYFLT bw, fr;
-      bw = (IS_ASIG_ARG(p->kbw) ? p->kbw[nn] : *p->kbw);
-      fr = (IS_ASIG_ARG(p->kfo) ? p->kfo[nn] : *p->kfo);
+      bw = (asgbw ? p->kbw[nn] : *p->kbw);
+      fr = (asgfr ? p->kfo[nn] : *p->kfo);
       if (bw != p->lkb || fr != p->lkf) {
         double c, d;
         p->lkf = fr;

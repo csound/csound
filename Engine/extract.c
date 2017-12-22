@@ -52,14 +52,13 @@ static void alloc_globals(EXTRACT_STATICS* extractStatics)
     memcpy(&extractStatics->a0, &a0, sizeof(SRTBLK));
     memcpy(&extractStatics->f0, &f0, sizeof(SRTBLK));
     memcpy(&extractStatics->e, &e, sizeof(SRTBLK));
-    /* } */
 }
 
 void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
               FILE *xfp)    /* read the extract control file */
 {
     int  flag, all;
-    char s[82];
+    char s[128];
 
     alloc_globals(extractStatics);
     all = 1;
@@ -68,10 +67,12 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     extractStatics->onbeat = FL(0.0);   /* other default vals   */
     extractStatics->offsect = 999;  extractStatics->offbeat = FL(0.0);
     //    while (fscanf(xfp, s) != EOF) {
-     while (fscanf(xfp, "%.81s", s) != EOF) {
-       //while (fgets(s, 82, xfp) != NULL) {
+    //  while (fscanf(xfp, "%.81s", s) != EOF) {
+    while (fscanf(xfp, "%100s", s) > 0) {
+    //  while (fgets(s, 82, xfp) > 0) {
       char *c = s;
       int i;
+      //printf("string: %s\n", s);
       switch (*c) {
       case 'i':
         all = 0;
@@ -84,12 +85,13 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         switch (flag) {
         case 'i':
           sscanf(s, "%d", &i);
-          //printf("%s %d\n", s, i);
-          if (i>=0 && i < INSMAX) extractStatics->inslst[i] = 1;
+          //printf("i: %d\n", i);
+          if (LIKELY(i>=0 && i < INSMAX)) extractStatics->inslst[i] = 1;
           else csound->Message(csound, Str("instrument number out of range"));
           all = 0;
           break;
         case 'f':
+          //printf("f: %s\n", s);
 #if defined(USE_DOUBLE)
           CS_SSCANF(s, "%d:%lf", &extractStatics->onsect, &extractStatics->onbeat);
 #else
@@ -97,6 +99,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
 #endif
           break;
         case 't':
+          //printf("t: %s\n");
           extractStatics->offsect = extractStatics->onsect; /* default offsect */
 #if defined(USE_DOUBLE)
           CS_SSCANF(s, "%d:%lf", &extractStatics->offsect,&extractStatics->offbeat);
@@ -106,6 +109,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         }
       }
     }
+    //printf("extract read\n");
     if (all) {
       char *ip;
       for (ip = &extractStatics->inslst[0];
@@ -245,4 +249,3 @@ static void include(EXTRACT_STATICS* extractStatics, SRTBLK *bp)
     bp->prvblk = extractStatics->prvout;      /* maintain the backptr      */
     extractStatics->prvout = bp;              /* and get ready for next    */
 }
-

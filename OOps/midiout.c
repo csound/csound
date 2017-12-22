@@ -68,6 +68,7 @@ int release(CSOUND *csound, REL *p)
 
 int xtratim(CSOUND *csound, XTRADUR *p)
 {
+    IGN(csound);
     int *xtra = &(p->h.insdshead->xtratim);
     int tim = (int)(*p->extradur * p->h.insdshead->ekr);
     if (*xtra < tim)  /* gab-a5 revised */
@@ -77,6 +78,7 @@ int xtratim(CSOUND *csound, XTRADUR *p)
 
 int mclock_set(CSOUND *csound, MCLOCK *p)
 {
+    IGN(csound);
     p->period= CS_EKR / *p->freq;
     p->clock_tics = p->period;
     p->beginning_flag = TRUE;
@@ -85,7 +87,7 @@ int mclock_set(CSOUND *csound, MCLOCK *p)
 
 int mclock(CSOUND *csound, MCLOCK *p)
 {
-    if (p->beginning_flag) {    /* first time */
+    if (UNLIKELY(p->beginning_flag)) {    /* first time */
       send_midi_message(csound, 0xF8, 0, 0);    /* clock message */
       p->beginning_flag=FALSE;
       return OK;
@@ -116,7 +118,7 @@ int mrtmsg(CSOUND *csound, MRT *p)
       send_midi_message(csound, 0xFE, 0, 0); /* active_sensing */
       break;
     default:
-      csound->InitError(csound, Str("illegal mrtmsg argument"));
+      return csound->InitError(csound, Str("illegal mrtmsg argument"));
     }
     return OK;
 }
@@ -197,6 +199,7 @@ int iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
 
 int moscil_set(CSOUND *csound, MOSCIL *p)
 {
+    IGN(csound);
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;

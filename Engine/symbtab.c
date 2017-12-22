@@ -74,7 +74,7 @@ void init_symbtab(CSOUND *csound)
     char *shortName;
 
 
-    if(csound->symbtab == NULL) {
+    if (csound->symbtab == NULL) {
       /* VL 27 02 2015 -- if symbtab exists, do not create it again
         to avoid memory consumption.
        */
@@ -90,22 +90,22 @@ void init_symbtab(CSOUND *csound)
     top = head = cs_hash_table_values(csound, csound->opcodes);
 
     while (head != NULL) {
-        items = head->value;
-        while (items != NULL) {
-            ep = items->value;
+      items = head->value;
+      while (items != NULL) {
+        ep = items->value;
 
-            if (ep->dsblksiz < 0xfffb) {
-                shortName = get_opcode_short_name(csound, ep->opname);
+        if (ep->dsblksiz < 0xfffb) {
+          shortName = get_opcode_short_name(csound, ep->opname);
 
-                add_token(csound, shortName, get_opcode_type(ep));
+          add_token(csound, shortName, get_opcode_type(ep));
 
-                if (shortName != ep->opname) {
-                    csound->Free(csound, shortName);
-                }
-            }
-            items = items->next;
+          if (shortName != ep->opname) {
+            csound->Free(csound, shortName);
+          }
         }
-        head = head->next;
+        items = items->next;
+      }
+      head = head->next;
     }
     csound->Free(csound, top);
     }
@@ -120,7 +120,7 @@ ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
     ORCTOKEN *ans;
     if (a!=NULL) {
       if (type == a->type) return a;
-      if ((type!=T_FUNCTION || a->type!=T_OPCODE))
+      if (UNLIKELY((type!=T_FUNCTION || a->type!=T_OPCODE)))
         csound->Warning(csound,
                         Str("Type confusion for %s (%d,%d), replacing\n"),
                         s, type, a->type);
@@ -177,7 +177,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     ORCTOKEN *a;
     ORCTOKEN *ans;
 
-    if (PARSER_DEBUG)
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Looking up token for: %s\n", s);
 
     if (udoflag == 0) {
@@ -190,7 +190,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     }
 
     if (udoflag == 1) {
-      if (csound->oparms->odebug) printf("Found UDO Arg List\n");
+      if (UNLIKELY(csound->oparms->odebug)) printf("Found UDO Arg List\n");
       if (isUDOArgList(s)) {
         ans = new_token(csound, UDO_ARGS_TOKEN);
         ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
@@ -246,8 +246,8 @@ static char map_udo_out_arg_type(char in) {
 
 static void map_args(char* args) {
     while (*args != '\0') {
-        *args = map_udo_out_arg_type(*args);
-        args++;
+      *args = map_udo_out_arg_type(*args);
+      args++;
     }
 }
 
@@ -303,20 +303,20 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     in_args = splitArgs(csound, intypes);
     out_args = splitArgs(csound, inm->outtypes);
 
-    if (in_args == NULL) {
+    if (UNLIKELY(in_args == NULL)) {
       synterr(csound,
               Str("invalid input argument types found for opcode %s: %s\n"),
               inm->name, intypes);
       err++;
     }
-    if (out_args == NULL) {
+    if (UNLIKELY(out_args == NULL)) {
       synterr(csound,
               Str("invalid output argument types found for opcode %s: %s\n"),
               inm->name, inm->outtypes);
       err++;
     }
 
-    if(err > 0) goto early_exit;
+    if (UNLIKELY(err > 0)) goto early_exit;
 
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
@@ -334,7 +334,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
-          if (type == NULL) {
+          if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s \n"), in_arg);
             err++;
             continue;
@@ -355,7 +355,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
-          if (type == NULL) {
+          if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s \n"), in_arg);
             err++;
             continue;
@@ -388,7 +388,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
-          if (type == NULL) {
+          if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid output type for opcode %s"), out_arg);
             err++;
             continue;
@@ -408,7 +408,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
-          if (type == NULL) {
+          if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid output type for opcode %s"), out_arg);
             err++;
             continue;
@@ -538,7 +538,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     }
 
     /* check if opcode is already defined */
-    if (opc != NULL) {
+    if (UNLIKELY(opc != NULL)) {
         /* IV - Oct 31 2002: redefine old opcode if possible */
       if (UNLIKELY(
                !strcmp(opname, "instr") ||

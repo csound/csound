@@ -60,7 +60,7 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
       scale++;
     }
     rail_len = npts/2/* + 1*/;      /* but only need half length */
-    if (plk >= FL(1.0) || plk <= FL(0.0)) {
+    if (UNLIKELY(plk >= FL(1.0) || plk <= FL(0.0))) {
       plk = (p->ain ? FL(0.0) : FL(0.5));
     }
     pickpt = (int)(rail_len * plk);
@@ -94,9 +94,9 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     lower_rail->end = lower_rail->data + rail_len - 1;
 
                                 /* Set initial shape */
-    if (plk != FL(0.0)) {
+    if (LIKELY(plk != FL(0.0))) {
       initial_shape = (MYFLT*) csound->Malloc(csound, rail_len*sizeof(MYFLT));
-      if (pickpt < 1) pickpt = 1;       /* Place for pluck, in range (0,1.0) */
+      if (UNLIKELY(pickpt < 1)) pickpt = 1; /* Place for pluck, in range (0,1.0) */
       upslope = FL(1.0)/(MYFLT)pickpt; /* Slightly faster to precalculate */
       downslope = FL(1.0)/(MYFLT)(rail_len - pickpt - 1);
       for (i = 0; i < pickpt; i++)
@@ -112,8 +112,6 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
     else {
       memset(upper_rail->data, 0, rail_len*sizeof(MYFLT));
       memset(lower_rail->data, 0, rail_len*sizeof(MYFLT));
-      /* for (i = 0; i < rail_len; i++) */
-      /*   upper_rail->data[i] = lower_rail->data[i] = FL(0.0); */
     }
                                 /* Copy data into structure */
     p->state = FL(0.0);         /* filter memory */
@@ -244,14 +242,12 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 
 static int stresonset(CSOUND *csound, STRES *p)
 {
-    int n;
     p->size = (int) (CS_ESR/20);   /* size of delay line */
     csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->aux);
     p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
     p->wpointer = p->rpointer = 0; /* reset the read/write pointers */
-    for (n = 0; n < p->size; n++)
-      p->Cdelay[n] = FL(0.0);
+    memset(p->Cdelay, '\0', p->size*sizeof(MYFLT));
     return OK;
 }
 
@@ -273,7 +269,7 @@ static int streson(CSOUND *csound, STRES *p)
     int         vdt;
 
     freq = *p->afr;
-    if (freq < FL(20.0)) freq = FL(20.0);   /* lowest freq is 20 Hz */
+    if (UNLIKELY(freq < FL(20.0))) freq = FL(20.0);   /* lowest freq is 20 Hz */
     tdelay = CS_ESR/freq;
     delay = (int) (tdelay - 0.5); /* comb delay */
     fracdelay = tdelay - (delay + 0.5); /* fractional delay */
@@ -288,7 +284,7 @@ static int streson(CSOUND *csound, STRES *p)
       /* GetSample(p); */
       MYFLT tmpo;
       rp = (vdt + wp);
-      if (rp >= size) rp -= size;
+      if (UNLIKELY(rp >= size)) rp -= size;
       tmpo = p->Cdelay[rp];
       w = in[n] + tmpo;
       s = (LPdelay + w)*0.5;
@@ -297,7 +293,7 @@ static int streson(CSOUND *csound, STRES *p)
       APdelay = s - (sample*a);
       p->Cdelay[wp] = sample*g;
       wp++;
-      if (wp == size) wp=0;
+      if (UNLIKELY(wp == size)) wp=0;
     }
     p->rpointer = rp; p->wpointer = wp;
     p->LPdelay = LPdelay; p->APdelay = APdelay;

@@ -168,7 +168,7 @@ ${CPPX}         { return T_CPP; }
                   yyterminate();
                 }
 
-.               { fprintf(stderr, "unknown character %c(%.2x)\n", 
+.               { fprintf(stderr, "unknown character %c(%.2x)\n",
                           yytext[0], yytext[0]);
                 }
 

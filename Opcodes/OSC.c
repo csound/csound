@@ -30,6 +30,8 @@
 #include <lo/lo.h>
 #include <ctype.h>
 
+//#define OSC_DEBUG
+
 /* structure for real time event */
 
 /* typedef struct rtEvt_s { */
@@ -113,7 +115,7 @@ typedef struct {
 static int oscsend_deinit(CSOUND *csound, OSCSEND *p)
 {
     lo_address a = (lo_address)p->addr;
-    if(a != NULL)
+    if (LIKELY(a != NULL))
       lo_address_free(a);
     p->addr = NULL;
     csound->Free(csound, p->lhost);
@@ -142,7 +144,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     else
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
-    if (*hh=='\0') {
+    if (UNLIKELY(*hh=='\0')) {
       hh = NULL;
       p->lhost = csound->Strdup(csound, "localhost");
     }
@@ -156,7 +158,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     p->addr = lo_address_new(hh, pp);
     // MKG: Seems to have been dropped from liblo.
     // But TTL 1 should be the default for multicast.
-    if (p->multicast) lo_address_set_ttl(p->addr, 1);
+    if (UNLIKELY(p->multicast)) lo_address_set_ttl(p->addr, 1);
     p->cnt = 0;
     p->last = 0;
     csound->RegisterDeinitCallback(csound, p,
@@ -180,12 +182,12 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     char *hh;
     int cmpr = 0;
 
-    if (*p->port<0)
+    if (UNLIKELY(*p->port<0))
       pp = NULL;
     else
       snprintf(port, 8, "%d", (int) MYFLT2LRND(*p->port));
     hh = (char*) p->host->data;
-    if (*hh=='\0') hh = NULL;
+    if (UNLIKELY(*hh=='\0')) hh = NULL;
     /*
        can this be done at init time?
        It was note that this could be creating
@@ -194,27 +196,27 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
     */
     // 152269
     //if (!(hh==NULL && p->lhost == NULL) || strcmp(p->lhost, hh)!=0) {
-    if(p->thread == NULL) {
-     if(hh && p->lhost) cmpr = strcmp(p->lhost, hh);
-    if (!(hh==NULL && p->lhost == NULL) || cmpr !=0) {
-      if (p->addr != NULL)
-        lo_address_free(p->addr);
-      p->addr = lo_address_new(hh, pp);
-      // MKG: This seems to have been dropped from liblo.
-      // if (p->multicast) lo_address_set_ttl(p->addr, 2);
-      if (p->multicast) {
-        u_char ttl = 2;
+    if (p->thread == NULL) {
+      if (hh && p->lhost) cmpr = strcmp(p->lhost, hh);
+      if (!(hh==NULL && p->lhost == NULL) || cmpr !=0) {
+        if (p->addr != NULL)
+          lo_address_free(p->addr);
+        p->addr = lo_address_new(hh, pp);
+        // MKG: This seems to have been dropped from liblo.
+        // if (p->multicast) lo_address_set_ttl(p->addr, 2);
+        if (UNLIKELY(p->multicast)) {
+          u_char ttl = 2;
 #if defined(LINUX)
-        if (setsockopt((long)p->addr, IPPROTO_IP,
-                       IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1) {
-          csound->Message(csound, Str("Failed to set multicast"));
-        }
+          if (UNLIKELY(setsockopt((long)p->addr, IPPROTO_IP,
+                                  IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1)) {
+            csound->Message(csound, Str("Failed to set multicast"));
+          }
 #else
-        setsockopt((int)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+          setsockopt((int)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #endif
-      }
-      csound->Free(csound, p->lhost);
-      if (hh) p->lhost = csound->Strdup(csound, hh); else p->lhost = NULL;
+        }
+        csound->Free(csound, p->lhost);
+        if (hh) p->lhost = csound->Strdup(csound, hh); else p->lhost = NULL;
       }
     }
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
@@ -254,7 +256,7 @@ static int osc_send(CSOUND *csound, OSCSEND *p)
           lo_message_add_double(msg, (double)(*arg[i]));
           break;
         case 's':
-            lo_message_add_string(msg, ((STRINGDAT *)arg[i])->data);
+          lo_message_add_string(msg, ((STRINGDAT *)arg[i])->data);
           break;
         case 'b':               /* Boolean */
           if (*arg[i]==FL(0.0)) lo_message_add_true(msg);
@@ -378,25 +380,25 @@ uintptr_t OSCthread(void *pp) {
   return 0;
 }
 
-static int osc_send_async_set(CSOUND *csound, OSCSEND *p) {
-  p->csound = csound;
-  return osc_send_set(csound, p);
-}
+/* static int osc_send_async_set(CSOUND *csound, OSCSEND *p) { */
+/*   p->csound = csound; */
+/*   return osc_send_set(csound, p); */
+/* } */
 
-static int osc_send_async(CSOUND *csound, OSCSEND *p) {
-  /*RTCLOCK t;
-    csound->InitTimerStruct(&t);*/
-  if(*p->kwhen != p->lasta) {
-    if(p->thread != NULL) {
-      csound->JoinThread(p->thread);
-      p->thread = NULL;
-    }
-    p->thread = csound->CreateThread(OSCthread, p);
-    p->lasta = *p->kwhen;
-  }
-  // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.);
-  return OK;
-}
+/* static int osc_send_async(CSOUND *csound, OSCSEND *p) { */
+/*     /\*RTCLOCK t; */
+/*       csound->InitTimerStruct(&t);*\/ */
+/*     if (*p->kwhen != p->lasta) { */
+/*       if (p->thread != NULL) { */
+/*         csound->JoinThread(p->thread); */
+/*         p->thread = NULL; */
+/*       } */
+/*       p->thread = csound->CreateThread(OSCthread, p); */
+/*       p->lasta = *p->kwhen; */
+/*     } */
+/*     // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.); */
+/*     return OK; */
+/* } */
 
 
 /* get pointer to globals structure, allocating it on the first call */
@@ -456,7 +458,7 @@ static int OSC_handler(const char *path, const char *types,
 {
     OSC_PORT  *pp = (OSC_PORT*) p;
     OSCLISTEN *o;
-    CSOUND *csound = (CSOUND *) pp->csound;
+    CSOUND    *csound = (CSOUND *) pp->csound;
     int       retval = 1;
 
     pp->csound->LockMutex(pp->mutex_);
@@ -517,7 +519,7 @@ static int OSC_handler(const char *path, const char *types,
                 m->args[i].blob =
                   csound->Malloc(csound,len);
                 memcpy(m->args[i].blob, argv[i], len);
-#ifdef JPFF
+#ifdef OSC_DEBUG
                 {
                   lo_blob *bb = (lo_blob*)m->args[i].blob;
                   int size = lo_blob_datasize(bb);
@@ -579,7 +581,7 @@ static int osc_listener_init(CSOUND *csound, OSCINIT *p)
     ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int) *(p->port));
     ports[n].thread = lo_server_thread_new(buff, OSC_error);
-    if (ports[n].thread==NULL)
+    if (UNLIKELY(ports[n].thread==NULL))
       return csound->InitError(csound,
                                Str("cannot start OSC listener on port %s\n"),
                                buff);
@@ -615,7 +617,7 @@ static int osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
     snprintf(buff, 32, "%d", (int) *(p->port));
     ports[n].thread = lo_server_thread_new_multicast(p->group->data,
                                                      buff, OSC_error);
-    if (ports[n].thread==NULL)
+    if (UNLIKELY(ports[n].thread==NULL))
       return csound->InitError(csound,
                                Str("cannot start OSC listener on port %s\n"),
                                buff);
@@ -677,8 +679,8 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     //void  *x;
     int   i, n;
 
-    OSC_GLOBALS *pp = (OSC_GLOBALS*)
-                        csound->QueryGlobalVariable(csound, "_OSC_globals");
+    OSC_GLOBALS *pp =
+      (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (UNLIKELY(pp == NULL))
       return csound->InitError(csound, Str("OSC not running"));
     /* find port */
@@ -695,7 +697,8 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       return csound->InitError(csound, Str("invalid number of arguments"));
     if (UNLIKELY((int) strlen((char*) p->type->data) != n))
       return csound->InitError(csound,
-                               "argument list inconsistent with format string");
+                               Str("argument list inconsistent with "
+                                   "format string"));
     strcpy(p->saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       const char *s;
@@ -703,7 +706,6 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       if (s[0] == 'g')
         s++;
       switch (p->saved_types[i]) {
-        //#ifdef SOMEFINEDAY
       case 'G':
       case 'A':
       case 'D':
@@ -711,7 +713,6 @@ static int OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'S':
         p->saved_types[i] = 'b';
         break;
-        //#endif
       case 'c':
       case 'd':
       case 'f':
@@ -782,20 +783,20 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
           //printf("blob found %p type %c\n", m->args[i].blob, c);
           //printf("length = %d\n", lo_blob_datasize(m->args[i].blob));
           int *idata = lo_blob_dataptr(m->args[i].blob);
-          if(c == 'D') {
+          if (c == 'D') {
             int j;
             MYFLT *data = (MYFLT *) idata;
             ARRAYDAT* arr = (ARRAYDAT*)p->args[i];
             int asize = 1;
-            for(j=0; j < arr->dimensions; j++) {
+            for (j=0; j < arr->dimensions; j++) {
               asize *= arr->sizes[j];
             }
             len /= sizeof(MYFLT);
-            if(asize < len) {
+            if (asize < len) {
               arr->data = (MYFLT *)
                 csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
               asize = len;
-             for(j = 0; j < arr->dimensions-1; j++)
+             for (j = 0; j < arr->dimensions-1; j++)
               asize /= arr->sizes[j];
              arr->sizes[arr->dimensions-1] = asize;
             }
@@ -809,17 +810,17 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
             foo->dimensions = idata[0];
             csound->Free(csound, foo->sizes);
             foo->sizes = (int*)csound->Malloc(csound, sizeof(int)*idata[0]);
-#ifdef JPFF
+#ifdef OSC_DEBUG
             printf("dimension=%d\n", idata[0]);
 #endif
             for (j=0; j<idata[0]; j++) {
               foo->sizes[j] = idata[j+1];
-#ifdef JPFF
+#ifdef OSC_DEBUG
               printf("sizes[%d] = %d\n", j, idata[j+1]);
 #endif
               size*=idata[j+1];
             }
-#ifdef JPFF
+#ifdef OSC_DEBUG
             printf("idata = %i %i %i %i %i %i %i ...\n",
                    idata[0], idata[1], idata[2], idata[3],
                    idata[4], idata[5], idata[6]);
@@ -846,30 +847,33 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
                                        Str("Invalid ftable no. %d"), fno);
 
             ftp = csound->FTnp2Find(csound, p->args[i]);
-           if (ftp==NULL) {
+            if (UNLIKELY(ftp==NULL)) {
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("OSC internal error"));
             }
-           if(len > (int)  (ftp->flen*sizeof(MYFLT)))
+            if (len > (int)  (ftp->flen*sizeof(MYFLT)))
               ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
                                                     len*sizeof(MYFLT));
             memcpy(ftp->ftable,data,len);
 
-            /*ftp = csound->FTFindP(csound, p->args[i]);
-            if (ftp==NULL) { // need to allocate ***FIXME***
+#if 0
+            ftp = csound->FTFindP(csound, p->args[i]);
+            if (UNLIKELY(ftp==NULL)) { // need to allocate ***FIXME***
               return csound->PerfError(csound, p->h.insdshead,
                                        Str("OSC internal error"));
             }
-
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
             ftp->fno = fno;
+#ifdef OSC_DEBUG
             printf("%d \n", len);
-            if(len > ftp->flen*sizeof(MYFLT))
-              ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
-                                                len-sizeof(FUNC)+sizeof(MYFLT*));
-            */
+#endif
+            if (len > ftp->flen*sizeof(MYFLT))
+              ftp->ftable =
+                (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
+                                        len-sizeof(FUNC)+sizeof(MYFLT*));
+#endif
             {
-#ifdef NEVER
+#ifdef OSC_DEBUG
               MYFLT* dst = ftp->ftable;
               MYFLT* src = (MYFLT*)(&(data->ftable));
 
@@ -916,8 +920,8 @@ static OENTRY localops[] = {
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
   { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS",
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
-  { "OSCsendA", S(OSCSEND), 0, 3, "", "kSkSS*",
-    (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL }
+  /* { "OSCsendA", S(OSCSEND), _QQ, 3, "", "kSkSS*", */
+  /*   (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL } */
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)

@@ -212,6 +212,11 @@ extern int ISSTRCOD(MYFLT);
 enum {FFT_LIB=0, PFFT_LIB, VDSP_LIB};
 enum {FFT_FWD=0, FFT_INV};
 
+/* advance declaration for
+  API  message queue struct
+*/
+struct _message_queue;
+
 typedef struct CORFIL {
     char    *body;
     unsigned int     len;
@@ -252,6 +257,7 @@ typedef struct CORFIL {
     double  quality;        /* for ogg encoding */
     int     ksmps_override;
     int     fft_lib;
+    int     echo;
   } OPARMS;
 
   typedef struct arglst {
@@ -282,18 +288,6 @@ typedef struct CORFIL {
         int     (*aopadr)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
-
-    // holds matching oentries from opcodeList
-    // has space for 16 matches and next pointer in case more are found
-    // (unlikely though)
-    typedef struct oentries {
-        OENTRY* entries[16];
-//        int opnum[16];
-        int count;
-        char *opname;
-        int prvnum;
-        struct oentries* next;
-    } OENTRIES;
 
   /**
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
@@ -588,7 +582,7 @@ typedef struct CORFIL {
 #define CS_ESR       (csound->esr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
-#define CS_SPOUT      (p->h.insdshead->spout)
+#define CS_SPOUT     (p->h.insdshead->spout)
 
   typedef int (*SUBR)(CSOUND *, void *);
 
@@ -934,8 +928,8 @@ typedef struct NAME__ {
    */
   typedef struct engine_state {
     CS_VAR_POOL    *varPool;  /* global variable pool */
-    MYFLT_POOL*   constantsPool;
-    CS_HASH_TABLE*  stringPool;
+    CS_HASH_TABLE  *constantsPool;
+    CS_HASH_TABLE  *stringPool;
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor;
@@ -1610,6 +1604,8 @@ typedef struct NAME__ {
       EVTBLK  prve;
       char    *Linebuf;
       int     linebufsiz;
+      char *orchestra, *orchestrab;
+      int   oflag;
     } lineventStatics;
     struct musmonStatics__ {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
@@ -1762,6 +1758,14 @@ typedef struct NAME__ {
     int           score_parser;
     CS_HASH_TABLE* symbtab;
     int           tseglen;
+    int           inZero;       /* flag compilation of instr0 */
+    struct _message_queue **msg_queue;
+    volatile long msg_queue_wget; /* Writer - Get index */
+    volatile long msg_queue_wput; /* Writer - Put Index */
+    volatile long msg_queue_rstart; /* Reader - start index */
+    volatile long msg_queue_items;
+    void     *directory;
+    int      aftouch;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
