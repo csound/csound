@@ -214,9 +214,9 @@ bool setup(BelaContext *context, void *Data)
   
   /* set up the channels */
   for(int i=0; i < ANCHNS; i++) {
-    gCsData.channel[i].data.resize(csound->GetKsmps());
+    gCsData.channel[i].samples.resize(csound->GetKsmps());
     gCsData.channel[i].name << "analogIn" << i;
-    gCsData.ochannel[i].data.resize(csound->GetKsmps());
+    gCsData.ochannel[i].samples.resize(csound->GetKsmps());
     gCsData.ochannel[i].name << "analogOut" << i;
   }
   
