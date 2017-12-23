@@ -10,7 +10,7 @@ endif()
 
 if(BUILD_STK_OPCODES)
     if(DEFAULT_STK_RAWWAVE_PATH)
-        set(rawwave_path "-DDEFAULT_RAWWAVE_PATH=\\\"${DEFAULT_STK_RAWWAVE_PATH}\\\"")
+        set(rawwave_path "-DDEFAULT_RAWWAVE_PATH=\"${DEFAULT_STK_RAWWAVE_PATH}\"")
     endif()
     #find_library(STK_LIBRARY stk)
     if(STK_LIBRARY)
