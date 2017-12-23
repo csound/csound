@@ -21,6 +21,7 @@
   02111-1307 USA
 */
 
+#include <getopt.h>
 #include <Bela.h>
 #include <Midi.h>
 #include <csound/csound.hpp>
@@ -159,13 +160,6 @@ struct CsData {
 
 
 extern "C"
-{
-int (*csound_setup)(BelaContext*, void*); 
-void (*csound_render)(BelaContext*, void*);
-void (*csound_cleanup)(BelaContext*, void*);
-};
-
- 
 bool csound_setup(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
@@ -233,6 +227,7 @@ bool csound_setup(BelaContext *context, void *p)
   return true;
 }
 
+extern "C"
 void csound_render(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
@@ -289,6 +284,7 @@ void csound_render(BelaContext *context, void *p)
   }
 }
 
+extern "C"
 void csound_cleanup(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
@@ -374,9 +370,9 @@ int main(int argc, const char *argv[]) {
 			{NULL, 0, NULL, 0}};
   
   Bela_defaultSettings(&settings);
-  settings.setup = setup;
-  settings.render = render;
-  settings.cleanup = cleanup;
+  settings.setup = csound_setup;
+  settings.render = csound_render;
+  settings.cleanup = csound_cleanup;
   settings.highPerformanceMode = 1;
   settings.interleave = 0;
   settings.analogOutputsPersist = 0;
@@ -386,7 +382,7 @@ int main(int argc, const char *argv[]) {
       usage(argv[0]);
       return 1;
     } else if (c == 'f') {
-      CsData.csdfile = optarg;
+      csData.csdfile = optarg;
       res = true;
     } else {
       usage(argv[0]);
@@ -395,10 +391,10 @@ int main(int argc, const char *argv[]) {
   }
   
   if(res) {
-    res = Bela_initAudio(&settings, &CsData);
+    res = Bela_initAudio(&settings, &csData);
     if(!res){
       if(Bela_startAudio() == 0) {
-         while(CsData.res == 0)
+         while(csData.res == 0)
 	   usleep(100000);
       } else
 	std::cerr << "error starting audio \n";
