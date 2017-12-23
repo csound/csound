@@ -378,7 +378,7 @@ int main(int argc, const char *argv[]) {
   settings.render = render;
   settings.cleanup = cleanup;
   settings.highPerformanceMode = 1;
-  settings.interleave = 1;
+  settings.interleave = 0;
   settings.analogOutputsPersist = 0;
 
   while((c = Bela_getopt_long(argc, argv, "hf", opt, &settings)) >= 0) {
