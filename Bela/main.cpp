@@ -27,6 +27,8 @@
 #include <csound/plugin.h>
 #include <vector>
 #include <sstream>
+#include <iostream>
+#include <atomic>
 
 #define ANCHNS 8
 
@@ -148,14 +150,23 @@ struct CsData {
   Csound *csound;
   std::string csdfile;
   int blocksize;
-  int res;
+  std::atomic_int res;
   int count;
   CsChan channel[ANCHNS];
   CsChan ochannel[ANCHNS];
   Midi midi;
 };
-  
-bool setup(BelaContext *context, void *p)
+
+
+extern "C"
+{
+int (*csound_setup)(BelaContext*, void*); 
+void (*csound_render)(BelaContext*, void*);
+void (*csound_cleanup)(BelaContext*, void*);
+};
+
+ 
+bool csound_setup(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   Csound *csound;
@@ -222,7 +233,7 @@ bool setup(BelaContext *context, void *p)
   return true;
 }
 
-void render(BelaContext *context, void *p)
+void csound_render(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   if(csData->res == 0) {
@@ -278,7 +289,7 @@ void render(BelaContext *context, void *p)
   }
 }
 
-void cleanup(BelaContext *context, void *p)
+void csound_cleanup(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   delete csData->csound;
@@ -342,30 +353,58 @@ int WriteMidiData(CSOUND *csound, void *userData,
   return 0;
 }
 
+void usage(const char *prg) {
+  std::cerr << prg << " [options]\n";
+  Bela_usage();
+  std::cerr << "  --csd=name [-f name]: CSD file name\n";
+  std::cerr << "  --help [-h]: help message\n";	   
+}
+
 /**
    Main program: takes Bela options and a --csd=<csdfile> 
    option for Csound
 */
 int main(int argc, const char *argv[]) {
   CsData csData;
+  int c;
+  bool res = false;
   BelaInitSettings settings;
-  const option opt[] = {{"csd", required_argument, NULL, 0},
+  const option opt[] = {{"csd", required_argument, NULL, 'f'},
+			{"help", 0, NULL, 'h'},
 			{NULL, 0, NULL, 0}};
   
   Bela_defaultSettings(&settings);
-  
-  if(Bela_getopt_long(argc, argv, "", opt, &settings) != -1) {
-    CsData.csdfile = optarg;
-    bool res = Bela_initAudio(&settings, &CsData);
-    if(res){
-       Bela_startAudio();
-       while(CsData.res == 0) sleep(1);
-       Bela_stopAudio();
+  settings.setup = setup;
+  settings.render = render;
+  settings.cleanup = cleanup;
+
+  while((c = Bela_getopt_long(argc, argv, "hf", opt, &settings)) >= 0) {
+    if (c == 'h') {
+      usage(argv[0]);
+      return 1;
+    } else if (c == 'f') {
+      CsData.csdfile = optarg;
+      res = true;
+    } else {
+      usage(argv[0]);
+      return 1;
     }
+  }
+  
+  if(res) {
+    res = Bela_initAudio(&settings, &CsData);
+    if(!res){
+      if(Bela_startAudio() == 0) {
+         while(CsData.res == 0)
+	   usleep(100000);
+      } else
+	std::cerr << "error starting audio \n";
+      Bela_stopAudio();
+    } else
+      std::cerr << "error initialising Bela \n";
     Bela_cleanupAudio();
     return 0;
   }
-  fprintf(stderr, "no csd provided, use --csd=<csdfile> \n");
-  Bela_usage();
-  return -1;
+  std::cerr << "no csd provided, use --csd=name \n";
+  return 1;
 }
