@@ -158,8 +158,6 @@ struct CsData {
   Midi midi;
 };
 
-
-extern "C"
 bool csound_setup(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
@@ -227,7 +225,6 @@ bool csound_setup(BelaContext *context, void *p)
   return true;
 }
 
-extern "C"
 void csound_render(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
@@ -284,7 +281,6 @@ void csound_render(BelaContext *context, void *p)
   }
 }
 
-extern "C"
 void csound_cleanup(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
