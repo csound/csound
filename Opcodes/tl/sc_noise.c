@@ -29,6 +29,9 @@
   of very first impulse.
 
         -- Gleb Rogozinsky
+
+  Code corrected 22 Dec 2017 by JPff
+
 */
 
 #include "csoundCore.h"
@@ -81,6 +84,7 @@ static int dust_process_krate(CSOUND *csound, DUST *p)
 static int dust_process_arate(CSOUND *csound, DUST *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, density, thresh, scale;
     out = p->out;
@@ -95,7 +99,12 @@ static int dust_process_arate(CSOUND *csound, DUST *p)
       thresh = p->thresh;
       scale  = p->scale;
     }
-   memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    //memset(out, '\0', offset*sizeof(MYFLT));
    for (n=offset; n<nsmps; n++) {
       MYFLT r;
       p->rand = csoundRand31(&p->rand);
@@ -128,6 +137,7 @@ static int dust2_process_krate(CSOUND *csound, DUST *p)
 static int dust2_process_arate(CSOUND *csound, DUST *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, density, thresh, scale;
     out = p->out;
@@ -142,7 +152,12 @@ static int dust2_process_arate(CSOUND *csound, DUST *p)
       thresh = p->thresh;
       scale  = p->scale;
     }
-    memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    //memset(out, '\0', offset*sizeof(MYFLT));
     for (n=offset; n<nsmps; n++) {
       MYFLT r;
       p->rand = csoundRand31(&p->rand);
