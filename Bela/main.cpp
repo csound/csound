@@ -162,12 +162,9 @@ bool csound_setup(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   Csound *csound;
-  const char *midiDev = "-Mhw:1,0,0"; /* MIDI IN device */
-  const char *midiOutDev = "-Qhw:1,0,0"; /* MIDI OUT device */
-  const char *args[] = { "csound", csdData->csdfile.c_str(), "-iadc",
+  const char *args[] = { "csound", csData->csdfile.c_str(), "-iadc",
 			 "-odac", "-+rtaudio=null",
-			 "--realtime", "--daemon",
-			 midiDev, midiOutDev };
+			 "--realtime", "--daemon" };
   int numArgs = (int) (sizeof(args)/sizeof(char *));
 
   if(context->audioInChannels != context->audioOutChannels) {
@@ -229,7 +226,7 @@ void csound_render(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   if(csData->res == 0) {
-    int n,i,k,count, frmcount,blocksize,res;
+    int n,i,k,count, frmcount,blocksize,res = csData->res;
     Csound *csound = csData->csound;
     MYFLT scal = csound->Get0dBFS();
     MYFLT* audioIn = csound->GetSpin();
@@ -249,6 +246,7 @@ void csound_render(BelaContext *context, void *p)
     /* processing loop */
     for(n = 0; n < context->audioFrames; n++, frm+=incr, count+=nchnls){
       if(count == blocksize) {
+	
 	/* set the channels */
 	for(i = 0; i < an_chns; i++) {
           csound->SetChannel(channel[i].name.str().c_str(),
@@ -259,6 +257,7 @@ void csound_render(BelaContext *context, void *p)
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
 	else break;
+	
       }
       /* read/write audio data */
       for(i = 0; i < chns; i++){
@@ -276,8 +275,8 @@ void csound_render(BelaContext *context, void *p)
 	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]); 
       }	
     }
-    gCsData.res = res;
-    gCsData.count = count;
+    csData->res = res;
+    csData->count = count;
   }
 }
 
@@ -370,10 +369,10 @@ int main(int argc, const char *argv[]) {
   settings.render = csound_render;
   settings.cleanup = csound_cleanup;
   settings.highPerformanceMode = 1;
-  settings.interleave = 0;
+  settings.interleave = 1;
   settings.analogOutputsPersist = 0;
 
-  while((c = Bela_getopt_long(argc, argv, "hf", opt, &settings)) >= 0) {
+  while((c = Bela_getopt_long(argc, (char **) argv, "hf", opt, &settings)) >= 0) {
     if (c == 'h') {
       usage(argv[0]);
       return 1;

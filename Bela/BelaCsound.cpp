@@ -226,7 +226,7 @@ bool setup(BelaContext *context, void *Data)
 void render(BelaContext *context, void *Data)
 {
   if(gCsData.res == 0) {
-    int n,i,k,count, frmcount,blocksize,res;
+    int n,i,k,count, frmcount,blocksize,res = gCsData->res;
     Csound *csound = gCsData.csound;
     MYFLT scal = csound->Get0dBFS();
     MYFLT* audioIn = csound->GetSpin();
