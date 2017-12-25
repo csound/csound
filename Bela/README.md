@@ -23,10 +23,11 @@ libsndfile1-dev:armhf libasound-dev:armhf
 
 5. Build Csound for armhf
 
-'''
-cmake -DCMAKE_TOOLCHAIN_FILE=../Bela/crosscompile.cmake \
+```
+$ cmake -DCMAKE_TOOLCHAIN_FILE=../Bela/crosscompile.cmake \
       -DCMAKE_INSTALL_PREFIX=$HOME -DUSE_DOUBLE=0 -DBUILD_BELA=1 ..
-'''
+$ make
+```
 
 The belacsound program should appear in your build directory
 
