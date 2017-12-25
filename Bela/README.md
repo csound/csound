@@ -25,11 +25,15 @@ libsndfile1-dev:armhf libasound-dev:armhf
 
 ```
 $ cmake -DCMAKE_TOOLCHAIN_FILE=../Bela/crosscompile.cmake \
-      -DCMAKE_INSTALL_PREFIX=$HOME -DUSE_DOUBLE=0 -DBUILD_BELA=1 ..
+      -DUSE_DOUBLE=0 -DBUILD_BELA=1 ..
 $ make
+$ make install
 ```
 
-The belacsound program should appear in your build directory
+The belacsound program should appear in your binary install directory. Read access
+to /root/Bela/lib and /root/Bela/include is needed even if these directories are
+empty.
+
 
 
 
