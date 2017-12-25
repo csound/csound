@@ -24,8 +24,8 @@
 #include <getopt.h>
 #include <Bela.h>
 #include <Midi.h>
-#include <csound/csound.hpp>
-#include <csound/plugin.h>
+#include <csound.hpp>
+#include <plugin.h>
 #include <vector>
 #include <sstream>
 #include <iostream>
