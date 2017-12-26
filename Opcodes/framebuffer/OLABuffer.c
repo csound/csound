@@ -26,11 +26,12 @@
 
 #include "OLABuffer.h"
 
+// As far as I can tell these includes are not needed -- JPff
 #ifdef _MSC_VER
 // FIXME including this "equivalent" file seems to cause a ton of errors
 //#include <ctgmath>
 #else
-#include <tgmath.h>
+//#include <tgmath.h>
 #endif
 
 void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self);
