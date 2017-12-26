@@ -521,14 +521,14 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     p->iargs = iarg;
     } else {
       bsize = strlen(p->dest->data)+1;
-      bsize = ceil(bsize/4.)*4;;
+      bsize = ceil(bsize/4.)*4;
+      bsize += 8;
     if (p->aux.auxp == NULL || bsize > p->aux.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, bsize, &p->aux);
     else {
       memset(p->aux.auxp, 0, bsize);
     }
-
     }
 
     p->last = FL(0.0);
@@ -768,6 +768,13 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         }
       }
+      } else {
+	int data = 1;
+	strcpy(&out[buffersize],",i");  
+        buffersize += 4;
+	byteswap((char *) &data, 4);
+        memcpy(out+buffersize,&data, 4);
+	buffersize += 4;
       }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
