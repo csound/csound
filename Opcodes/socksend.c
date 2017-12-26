@@ -769,12 +769,9 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
         }
       }
       } else {
-	int data = 1;
-	strcpy(&out[buffersize],",i");  
+	out[buffersize] = ',';
+	memset(out+buffersize+1, 0, 3);
         buffersize += 4;
-	byteswap((char *) &data, 4);
-        memcpy(out+buffersize,&data, 4);
-	buffersize += 4;
       }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
