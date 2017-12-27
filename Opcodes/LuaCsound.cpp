@@ -45,7 +45,8 @@ extern "C"
 // LuaJIT is built with gcc for the GNU runtime library;
 // but LuaCsound is built with the NDK for the bionic runtime library.
 
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) 
+#include <errno.h>
 extern "C"
 {
 #undef stdin
@@ -56,7 +57,8 @@ extern "C"
         FILE *stderr = &__sF[2];
         volatile int *__errno_location(void)
         {
-                return __errno();
+                //return __errno();
+                return &errno;
         }
         int _IO_getc(FILE *file_)
         {
