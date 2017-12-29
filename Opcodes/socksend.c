@@ -769,8 +769,8 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
         }
       }
       } else {
-	out[buffersize] = ',';
-	memset(out+buffersize+1, 0, 3);
+        out[buffersize] = ',';
+        memset(out+buffersize+1, 0, 3);
         buffersize += 4;
       }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
