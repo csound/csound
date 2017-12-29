@@ -1,4 +1,4 @@
-#
+
 # spec file for package csound
 #
 # Copyright (c) 2011 SUSE LINUX Products GmbH, Nuernberg, Germany.
@@ -29,7 +29,7 @@ Version:        6.10.0
 Release:        145
 License:        GFDL-1.2 ; LGPL-2.1+
 Group:          Productivity/Multimedia/Sound/Utilities
-Source:         Csound%{version}.tar.gz
+Source:         csound-%{version}.tar.gz
 Source1:        README.SuSE
 Source2:        readme-csound6.txt
 Url:            http://www.csounds.com
@@ -79,7 +79,7 @@ mv $RPM_BUILD_ROOT%{_bindir}/sndinfo $RPM_BUILD_ROOT%{_bindir}/csndinfo
 mv $RPM_BUILD_ROOT%{_bindir}/extract $RPM_BUILD_ROOT%{_bindir}/csound-extract
 # remove devel files
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
-rm -rf $RPM_BUILD_ROOT%{_includedir}
+#rm -rf $RPM_BUILD_ROOT%{_includedir}
 %fdupes -s $RPM_BUILD_ROOT
 
 %post -p /sbin/ldconfig
@@ -93,7 +93,7 @@ rm -rf $RPM_BUILD_ROOT%{_includedir}
 %{_libdir}/csound
 %{_datadir}/csound
 %{_datadir}/locale
-# %{_includedir}/*
-# %{_libdir}/lib*
-
+%{_includedir}/*
+%{_libdir}/lib*
+%{_libdir}/*.jar
 %changelog
