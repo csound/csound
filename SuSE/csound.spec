@@ -1,4 +1,4 @@
-#
+
 # spec file for package csound
 #
 # Copyright (c) 2011 SUSE LINUX Products GmbH, Nuernberg, Germany.
@@ -25,12 +25,13 @@ BuildRequires:  alsa-devel fdupes fluidsynth-devel gcc-c++ jack-devel liblo-deve
 BuildRequires:  fltk-devel libjpeg-devel libpng-devel xorg-x11-devel
 %endif
 Summary:        Computer Sound Synthesis and Composition Program
-Version:        6.00
-Release:        141
-License:        GFDL-1.2 ; LGPL-2.1+ ; MIT
+Version:        6.10.0
+Release:        145
+License:        GFDL-1.2 ; LGPL-2.1+
 Group:          Productivity/Multimedia/Sound/Utilities
-Source:         Csound%{version}.tar.bz2
+Source:         csound-%{version}.tar.gz
 Source1:        README.SuSE
+Source2:        readme-csound6.txt
 Url:            http://www.csounds.com
 AutoReq:        on
 Autoprov:       off
@@ -45,8 +46,9 @@ For detailed information, refer to http://www.csounds.com.
 
 
 %prep
-%setup -q -n Csound%{version}
+%setup -q -n csound-%{version}
 cp %{SOURCE1} .
+cp %{SOURCE2} .
 # fix encoding
 iconv -f latin1 -t utf8 readme-csound6.txt > readme-csound6.txt.utf8
 
@@ -77,7 +79,7 @@ mv $RPM_BUILD_ROOT%{_bindir}/sndinfo $RPM_BUILD_ROOT%{_bindir}/csndinfo
 mv $RPM_BUILD_ROOT%{_bindir}/extract $RPM_BUILD_ROOT%{_bindir}/csound-extract
 # remove devel files
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
-rm -rf $RPM_BUILD_ROOT%{_includedir}
+#rm -rf $RPM_BUILD_ROOT%{_includedir}
 %fdupes -s $RPM_BUILD_ROOT
 
 %post -p /sbin/ldconfig
@@ -91,7 +93,7 @@ rm -rf $RPM_BUILD_ROOT%{_includedir}
 %{_libdir}/csound
 %{_datadir}/csound
 %{_datadir}/locale
-# %{_includedir}/*
-# %{_libdir}/lib*
-
+%{_includedir}/*
+%{_libdir}/lib*
+%{_libdir}/*.jar
 %changelog

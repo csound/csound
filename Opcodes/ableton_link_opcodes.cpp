@@ -36,7 +36,7 @@ extern "C" {
  * So we must replace all the ifaddrs code.
  * Pretend that ifaddrs.h has been included:
  */
-#define _IFADDRS_H
+#define _IFADDRS_H_
 // Put in our own ifaddrs.h from https://raw.githubusercontent.com/libpd/abl_link/master/external/android-ifaddrs/ifaddrs.h.
 //////////////////////////////////////////////////////////////////////////////
 /*
@@ -88,10 +88,7 @@ void freeifaddrs(struct ifaddrs* addrs);
 //////////////////////////////////////////////////////////////////////////////
 // Put in our own ifaddrs.cpp from https://raw.githubusercontent.com/libpd/abl_link/master/external/android-ifaddrs/ifaddrs.cpp.
 //////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-#endif // defined(__ANDROID__)
-/*
- * libjingle
+/* libjingle
  * Copyright 2012, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,8 +113,7 @@ void freeifaddrs(struct ifaddrs* addrs);
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#if defined(ANDROID)
-#include "ifaddrs.h"
+//#include "ifaddrs.h"
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
