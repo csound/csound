@@ -21,7 +21,7 @@ script:
   - pwd
   - ls
   - cd $TRAVIS_BUILD_DIR/build
-  - cmake -DCMAKE_BUILD_TYPE=Release .. && make; fi
+  - cmake -DCMAKE_BUILD_TYPE=Release .. && make
   
 ###
 
