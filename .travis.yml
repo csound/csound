@@ -1,13 +1,13 @@
 language: cpp
 matrix:
   include:
-     - os: linux
-       dist: trusty
-       sudo: false
-       compiler: gcc
-     - os: osx
-       osx_image: xcode9.2
-       compiler: clang
+    - os: linux
+      dist: trusty
+      sudo: false
+      compiler: gcc
+    - os: osx
+      osx_image: xcode9.2
+      compiler: clang
 env:
       global:
            - secure: "pOICMBtfwljj450Vht1D2/XvtUm07edkbiUI0+PCnfuwiwBFJyqY919whZu+CrplQvkVS+RzvxT3wpgkVccflo0uvNJ7NwfKksRqrUKwTp59nGIwjUsnDjI3YkxOQyxIdIPsSm3bUxXVy/Jge0v6vzvbbPXKxyAxKsupnUBYOwM="
@@ -15,9 +15,7 @@ env:
            - VERBOSE=1
 before_script:
   - mkdir -p build
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && \
-	cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. \
-	&& make && make install)
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. && make && make install)
 script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make && make test && make regression && make csdtests)"
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; "(cd $TRAVIS_BUILD_DIR/build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make)"
