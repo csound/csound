@@ -67,3 +67,14 @@ notifications:
       email:
           recipients:
               - CSOUND-DEV@listserv.heanet.ie
+
+deploy:
+  overwrite: true
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: bf82004c53fea080cfc434bc49a84a3b7abde6f6
+  file: $HOME/csound-$TRAVIS_OS_NAME-build.tgz
+  on:
+    repo: csound/csound
+    branch: feature/realtime
