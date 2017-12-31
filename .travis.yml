@@ -16,12 +16,13 @@ before_script:
   - mkdir -p  build
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. && make && make install); fi
 script:
-  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME && make && make test && make regression && make csdtests && make install)"
-  - echo -en "building tar package"
-  - cd $HOME
-  - export PACKAGE_NAME=csound-$TRAVIS_OS_NAME-build
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cp -r $HOME/Library/Frameworks/ $HOME/lib; fi
-  - tar czf $PACKAGE_NAME.tgz ./bin ./lib ./include
+  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME && make && make test && make regression && make csdtests)"
+#  - echo -en "building tar package"
+#  - make install 
+#  - cd $HOME
+#  - export PACKAGE_NAME=csound-$TRAVIS_OS_NAME-build
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cp -r $HOME/Library/Frameworks/ $HOME/lib; fi
+#  - tar czf $PACKAGE_NAME.tgz ./bin ./lib ./include
 ###
 
 addons:
@@ -68,13 +69,13 @@ notifications:
           recipients:
               - CSOUND-DEV@listserv.heanet.ie
 
-deploy:
-  overwrite: true
-  skip_cleanup: true
-  provider: releases
-  api_key:
-    secure: bf82004c53fea080cfc434bc49a84a3b7abde6f6
-  file: $HOME/csound-$TRAVIS_OS_NAME-build.tgz
-  on:
-    repo: csound/csound
-    branch: feature/realtime
+#deploy:
+#  overwrite: true
+#  skip_cleanup: true
+#  provider: releases
+#  api_key:
+#    secure: 
+#  file: $HOME/csound-$TRAVIS_OS_NAME-build.tgz
+#  on:
+#    repo: csound/csound
+#    branch: feature/realtime
