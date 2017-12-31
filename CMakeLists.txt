@@ -152,6 +152,13 @@ else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
 
+# in Release configuration, set NDEBUG
+if(${CMAKE_BUILD_TYPE} MATCHES "Release")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+endif()
+
+
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
     set(LIBRARY_INSTALL_DIR "lib64")
