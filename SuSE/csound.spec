@@ -1,8 +1,7 @@
-
+#
 # spec file for package csound
 #
-# Copyright (c) 2011 SUSE LINUX Products GmbH, Nuernberg, Germany.
-#           (c) 2012 Csound Developers
+# Copyright (c) 2017 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -17,83 +16,110 @@
 #
 
 
+%define support_fltk 0
 
 Name:           csound
-%define support_fltk	0
-BuildRequires:  alsa-devel fdupes fluidsynth-devel gcc-c++ jack-devel liblo-devel portaudio-devel python-devel cmake swig
+BuildRequires:  alsa-devel
+BuildRequires:  bison
+BuildRequires:  cmake
+BuildRequires:  fdupes
+BuildRequires:  flex
+BuildRequires:  fluidsynth-devel
+BuildRequires:  gcc-c++
+BuildRequires:  jack-devel
+BuildRequires:  liblo-devel
+BuildRequires:  libsndfile-devel
+BuildRequires:  portaudio-devel
+BuildRequires:  portmidi-devel
+BuildRequires:  python-devel
+BuildRequires:  swig
 %if %support_fltk
-BuildRequires:  fltk-devel libjpeg-devel libpng-devel xorg-x11-devel
+BuildRequires:  fltk-devel
+BuildRequires:  libjpeg-devel
+BuildRequires:  libpng-devel
+BuildRequires:  xorg-x11-devel
 %endif
 Summary:        Computer Sound Synthesis and Composition Program
-Version:        6.10.0
-Release:        145
-License:        GFDL-1.2 ; LGPL-2.1+
+License:        LGPL-2.1-or-later
 Group:          Productivity/Multimedia/Sound/Utilities
+Version:        6.10.0
+Release:        0
 Source:         csound-%{version}.tar.gz
-Source1:        README.SuSE
+Source1:        README.SUSE
 Source2:        readme-csound6.txt
+Source3:        CMakeLists.txt
 Url:            http://www.csounds.com
-AutoReq:        on
-Autoprov:       off
+
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
 Csound is a software synthesis program. It is fully modular and
 supports an unlimited amount of oscillators and filters.
 
-For detailed information, refer to http://www.csounds.com.
+%package devel
+Summary:        Development files for Csound, a sound synthesis program
+Group:          Development/Libraries/C and C++
+Requires:       %{name} = %{version}
+Provides:       %{name}-devel = %{version}
 
-
+%description devel
+Development files for Csound.
 
 %prep
 %setup -q -n csound-%{version}
+# remove __DATE__ from source files, causes unnecessary rebuilds
+sed -i 's:__DATE__:"":' include/version.h
+# copy readme
 cp %{SOURCE1} .
 cp %{SOURCE2} .
+# replace CMakeLists.txt for now
+rm CMakeLists.txt
+cp %{SOURCE3} .
 # fix encoding
-iconv -f latin1 -t utf8 readme-csound6.txt > readme-csound6.txt.utf8
+iconv -f latin1 -t utf8 readme-csound6.txt > README
 
 %build
-%if %_lib == "lib64"
-args="Word64=1 Lib64=1"
+%if %{_lib} == "lib64"
+args="Word64=1"
 %else
 args=""
 %endif
-cmake  -DCMAKE_INSTALL_PREFIX=$RPM_BUILD_ROOT%{_prefix} -DUSE_LIB64=1 .
-make prefix=%{_prefix} buildRelease=1 useDouble=1 useOSC=1 \
-  buildVirtual=1 buildBeats=1 $args \
+cmake -DBUILD_STATIC_LIBRARY=1 -DCMAKE_INSTALL_PREFIX=$RPM_BUILD_ROOT%{_prefix} -DUSE_LIB64=1 -DCMAKE_BUILD_TYPE=Release .
+make prefix=%{_AKprefix} buildRelease=1 useDouble=1 useOSC=1 \
+  buildVirtual=1 E_buildBeats=1 $args \
   customCCFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \
   customCXXFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing"
 
 %install
-%if %_lib == "lib64"
+%if %{_lib} == "lib64"
 args="--word64"
 %else
 args=""
 %endif
 mkdir -pv $RPM_BUILD_ROOT%{_datadir}/csound
 make install
-rm -f $RPM_BUILD_ROOT%{_prefix}/csound6-*.md5sums
-rm -rf $RPM_BUILD_ROOT%{_datadir}/doc/csound
+rm -f %{buildroot}%{_prefix}/csound5-*.md5sums %{buildroot}%{_bindir}/uninstall-csound5
+rm -rf %{buildroot}%{_datadir}/doc/csound
 # rename conflicting binary names
-mv $RPM_BUILD_ROOT%{_bindir}/sndinfo $RPM_BUILD_ROOT%{_bindir}/csndinfo
-mv $RPM_BUILD_ROOT%{_bindir}/extract $RPM_BUILD_ROOT%{_bindir}/csound-extract
-# remove devel files
-rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
-#rm -rf $RPM_BUILD_ROOT%{_includedir}
-%fdupes -s $RPM_BUILD_ROOT
+mv %{buildroot}%{_bindir}/sndinfo %{buildroot}%{_bindir}/csndinfo
+mv %{buildroot}%{_bindir}/extract %{buildroot}%{_bindir}/csound-extract
+%fdupes -s %{buildroot}
+%find_lang %{name}6
 
 %post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
 
-%files
+%files -f %{name}6.lang
 %defattr(-,root,root)
-%doc COPYING readme-csound6.txt README.SuSE
+%doc AUTHORS COPYING ChangeLog README README.SUSE
 %{_bindir}/*
-%{_libdir}/csound
-%{_datadir}/csound
-%{_datadir}/locale
-%{_includedir}/*
-%{_libdir}/lib*
-%{_libdir}/*.jar
+%{_libdir}/csound/
+
+%files devel
+%defattr(-,root,root)
+%{_includedir}/csound/
+%{_libdir}/lib*.so*
+%{_libdir}/libcsound64.a
+
 %changelog

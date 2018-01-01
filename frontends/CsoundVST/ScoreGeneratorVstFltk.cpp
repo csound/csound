@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
@@ -48,8 +48,8 @@ static std::string about = "SCORE GENERATOR VST\n"
 "\n"
 "You should have received a copy of the GNU Lesser General Public \n"
 "License along with this software; if not, write to the Free Software\n"
-"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA\n"
-"02111-1307 USA\n"
+"Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA\n"
+"02110-1301 USA\n"
 "\n"
 "USAGE\n"
 "\n"
