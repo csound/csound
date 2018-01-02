@@ -54,7 +54,12 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
 Csound is a software synthesis program. It is fully modular and
-supports an unlimited amount of oscillators and filters.
+supports an unlimited amount of oscillators and filters.  It includes
+a language to specify sound (the orchestra language) and one to say
+when to play a sound (the score language).  There is support for
+multi-core synthesis, on-the-fly spectral transformations and a number
+of analysis utilities and much more.  It is a descendent of the MUSIC
+family.
 
 %package devel
 Summary:        Development files for Csound, a sound synthesis program
@@ -63,7 +68,7 @@ Requires:       %{name} = %{version}
 Provides:       %{name}-devel = %{version}
 
 %description devel
-Development files for Csound.
+Development files for Csound, mainly header files and some libraries.
 
 %prep
 %setup -q -n csound-%{version}
@@ -84,7 +89,8 @@ args="Word64=1"
 %else
 args=""
 %endif
-cmake -DBUILD_STATIC_LIBRARY=1 -DCMAKE_INSTALL_PREFIX=$RPM_BUILD_ROOT%{_prefix} -DUSE_LIB64=1 -DCMAKE_BUILD_TYPE=Release .
+cmake -DBUILD_STATIC_LIBRARY=1 -DCMAKE_INSTALL_PREFIX=$RPM_BUILD_ROOT%{_prefix} \
+      -DUSE_LIB64=1 -DCMAKE_BUILD_TYPE=Release .
 make prefix=%{_AKprefix} buildRelease=1 useDouble=1 useOSC=1 \
   buildVirtual=1 E_buildBeats=1 $args \
   customCCFLAGS="$RPM_OPT_FLAGS -fno-strict-aliasing" \
@@ -98,28 +104,34 @@ args=""
 %endif
 mkdir -pv $RPM_BUILD_ROOT%{_datadir}/csound
 make install
-rm -f %{buildroot}%{_prefix}/csound5-*.md5sums %{buildroot}%{_bindir}/uninstall-csound5
+rm -f %{buildroot}%{_prefix}/csound6-*.md5sums %{buildroot}%{_bindir}/uninstall-csound6
 rm -rf %{buildroot}%{_datadir}/doc/csound
 # rename conflicting binary names
 mv %{buildroot}%{_bindir}/sndinfo %{buildroot}%{_bindir}/csndinfo
 mv %{buildroot}%{_bindir}/extract %{buildroot}%{_bindir}/csound-extract
+rm -rf %{buildroot}/usr/share/csound
+
 %fdupes -s %{buildroot}
-%find_lang %{name}6
 
-%post -p /sbin/ldconfig
+%post
+/sbin/ldconfig
 
-%postun -p /sbin/ldconfig
+%postun
+/sbin/ldconfig
 
-%files -f %{name}6.lang
+%files
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog README README.SUSE
 %{_bindir}/*
 %{_libdir}/csound/
+%{_libdir}/lib*.so*
+/usr/share/locale
+
+##%files translations
 
 %files devel
 %defattr(-,root,root)
 %{_includedir}/csound/
-%{_libdir}/lib*.so*
 %{_libdir}/libcsound64.a
 
 %changelog
