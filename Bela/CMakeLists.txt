@@ -5,7 +5,7 @@ if(BUILD_BELA)
   make_executable(belacsound ./main.cpp ${CSOUNDLIB})
   target_link_libraries(belacsound ${CSOUNDLIB} -L$ENV{HOME}/Bela/lib -L/root/Bela/lib
     -Wl,@/usr/xenomai/lib/posix.wrappers -L/usr/xenomai/lib 
-    -lpthread_rt -lxenomai -lpthread -lrt -lcobalt -lmodechk -lbela
+    -lpthread_rt -lxenomai -lpthread -lrt -lbela
     -lbelaextra -lNE10)
   target_include_directories(belacsound PRIVATE /usr/xenomai/include/posix
     /usr/local/include $ENV{HOME}/Bela/include /root/Bela/lib)
