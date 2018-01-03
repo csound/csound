@@ -7,7 +7,8 @@ if(BUILD_BELA)
     -Wl,@/usr/xenomai/lib/posix.wrappers -L/usr/xenomai/lib 
     -lpthread_rt -lxenomai -lpthread -lrt -lbela
     -lbelaextra -lNE10)
-  target_include_directories(belacsound PRIVATE /usr/xenomai/include/posix
+  target_include_directories(belacsound PRIVATE /usr/xenomai/include
+    /usr/xenomai/include/posix
     /usr/local/include $ENV{HOME}/Bela/include /root/Bela/lib)
   set_target_properties(belacsound  PROPERTIES COMPILE_FLAGS
     "-std=c++11 -D_GNU_SOURCE -D_REENTRANT -D__XENO__")
