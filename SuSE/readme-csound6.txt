@@ -54,103 +54,42 @@ or go to http://csounds.com.
 
 CONTRIBUTORS
 
-Csound was originally developed by Barry L. Vercoe of the Music and
-Cognition Group at the Media Laboratory, M.I.T., Cambridge, MA, USA
-with partial support from the System Development Foundation and from
-the National Science Foundation Grant #IRI-8704665.
+Csound contains contributions from musicians, scientists, and programmers
+from around the world. They include (but are not limited to):
 
-Most of the Csound code has been modified, developed, documented and
-extended by an independent group of programmers, composers, and
-scientists.
-
-These contributors include
-
-David Akbari
-Nicola Bernardini
-Mike Berry
-Fabio Bertolotti
-Stefan Bilbao
-David Boothe
-Richard Boulanger
-Oeyvind Brandtsegg
-Eli Breder
-Phil Burk
-Andrés Cabrera
-Brian Carty
-Michael Casey
-Corbin Champion
-Amar Chaudhary
-Michael Clark
-Nick Collins
-Kevin Conder
-Perry Cook
-Sean Costello
-Erik de Castro Lopo
-Alan deLespinasse
-Oscar Pablo Di Liscia
-Richard Dobson
-Mark Dolson
-Rasmus Ekman
-Dan Ellis
-Tom Erbe
-Georg Essl
-John ffitch
-Kelly Fitz
-Richard Furse
-Bill Gardner
-Matt Gerassimoff
-Matt Gilliard
-Michael Gogins
-Jens Groh
-Samuel Groner
-Keith Henderson
-Torgeir Strand Henriksen
-Matt Ingalls
-Thom Johansen
-Richard Karpen
-Sami Khoury
-Anthony Kozar
-Clemens Ladisch
-Paul Lansky
-Victor Lazzarini
 Allan Lee
-David McIntyre
-Dave Madole
+Bill Gardner
+Bill Verplank
+Dan Ellis
+David Macintyre
+Eli Breder
 Gabriel Maldonado
-Cesare Marilungo
-Max Mathews
-Makoto Matsumoto
+Greg Sullivan
 Hans Mikelson
-Pete Moss
-Peter Neubäcker
-Takuji Nishimura
-Peter Nix
-Alex Norman
-Juan Pampin
-Dave Philips
-Maurizio Umberto Puxeddu
-Davide Rocchesso
+Istvan Varga
 Jean Piché
-Ville Pulkki
+John ffitch
 John Ramsdell
 Marc Resibois
-Sigurd Saue
-Simon Schampijer
-Rob Shaw
+Mark Dolson
+Matt Ingalls
+Max Mathews
+Michael Casey
+Michael Clark
+Michael Gogins
+Mike Berry
 Paris Smaragdis
-Erik Spjut
-Dmitriy Startsev
-Greg Sullivan
-Tom Sullivan
-Istvan Varga
-Bill Verplank
-Jezar Wakefield (?)
-Rory Walsh
+Perry Cook
+Peter Neubäcker
+Peter Nix
+Rasmus Ekman
+Richard Dobson
+Richard Karpen
+Rob Shaw
 Robin Whittle
-Christopher Wilson
-Trevor Wishart
-Matt Wright
+Sean Costello
 Steven Yi
+Tom Erbe
+Victor Lazzarini
+Ville Pulkki
 
-There may be others whose names have been inadvertantly omitted.
-If so, many apologies.  Please report any missing names.
