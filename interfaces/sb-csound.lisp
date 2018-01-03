@@ -16,7 +16,7 @@
 ;
 ; You should have received a copy of the GNU Lesser General Public
 ; License along with this software; if not, write to the Free Software
-; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ;
 ; This file is handwritten and should be maintained by keeping it up to date
 ; with regard to include/csound.h. This file is not intended to be complete

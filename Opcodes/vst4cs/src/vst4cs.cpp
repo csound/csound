@@ -21,8 +21,8 @@
 //
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with The vst4cs library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-//  02111-1307 USA
+//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+//  02110-1301 USA
 //
 //  Linking vst4cs statically or dynamically with other modules is making a
 //  combined work based on vst4cs. Thus, the terms and conditions of the GNU
