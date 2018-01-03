@@ -748,9 +748,9 @@ int printkset(CSOUND *csound, PRINTK *p)
      * to ensure that the print cycle happens every k cycle.  This low value is
      * 1 / ekr     */
     if (*p->ptime < CS_ONEDKR)
-      p->ctime = CS_ONEDKR;
+      p->ctime = FL(0.0);
     else
-      p->ctime = *p->ptime;
+      p->ctime = *p->ptime * csound->ekr;
 
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
@@ -764,11 +764,8 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set the initime variable - how many seconds in absolute time
      * when this instance of the instrument was initialised.     */
 
-    p->initime = (MYFLT) CS_KCNT * CS_ONEDKR;
-
-    /* Set cysofar to - 1 so that on the first call to printk - when
-     * cycle = 0, then there will be a print cycle.     */
-    p->cysofar = -1;
+    //printf("printkset: ctime = %f\n", p->ctime);
+    p->printat = FL(0.0);
     p->initialised = -1;
     return OK;
 }
@@ -780,25 +777,13 @@ int printkset(CSOUND *csound, PRINTK *p)
  */
 int printk(CSOUND *csound, PRINTK *p)
 {
-    MYFLT       timel;          /* Time in seconds since initialised */
-    int32        cycles;         /* What print cycle */
-
-    /*-----------------------------------*/
-
-    /* Initialise variables.    */
     if (UNLIKELY(p->initialised != -1))
       csound->PerfError(csound, p->h.insdshead, Str("printk not initialised"));
-    timel =     ((MYFLT) CS_KCNT * CS_ONEDKR) - p->initime;
 
-    /* Divide the current elapsed time by the cycle time and round down to
-     * an integer.
-     */
-    cycles =    MYFLT2LRND(timel / p->ctime);
+    //printf("printk: KCNT = %lu\n", CS_KCNT);
+    //printf("printat = %lf\n", p->printat);
 
-    /* Now test if the cycle number we arein is higher than the one in which
-     * we last printed. If so, update cysofar and print.    */
-    if (p->cysofar < cycles) {
-      p->cysofar = cycles;
+    if (p->printat <= CS_KCNT-1) {
       /* Do the print cycle.
        * Print instrument number and time. Instrument number stuff from
        * printv() in disprep.c.
@@ -806,7 +791,7 @@ int printk(CSOUND *csound, PRINTK *p)
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
                                (int)p->h.insdshead->p1.value);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
-                               csound->icurTime/csound->esr);
+                               csound->icurTime/csound->esr-CS_ONEDKR);
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
@@ -815,6 +800,7 @@ int printk(CSOUND *csound, PRINTK *p)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
+      p->printat += p->ctime;
     }
     return OK;
 }

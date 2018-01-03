@@ -277,9 +277,9 @@ typedef struct {
         MYFLT   *ptime;         /* How much time to leave between each print*/
         MYFLT   *val;           /* Value to print */
         MYFLT   *space;         /* Spaces to insert before printing */
-        MYFLT   initime, ctime; /* Time when initialised; initialised */
+        MYFLT   printat, ctime; /* Time when initialised; initialised */
         int32   pspace;         /* How many spaces to print */
-        int32   cysofar;        /* Number of print cycles so far */
+  //int32   cysofar;        /* Number of print cycles so far */
         int     initialised;    /* Non zero for initialised */
 } PRINTK;
 
