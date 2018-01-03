@@ -1,18 +1,28 @@
 language: cpp
-compiler:
-      - gcc
-#      - clang
-sudo: false
-dist: trusty
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: false
+      compiler: gcc
+    - os: osx
+      compiler: clang
 env:
       global:
            - secure: "pOICMBtfwljj450Vht1D2/XvtUm07edkbiUI0+PCnfuwiwBFJyqY919whZu+CrplQvkVS+RzvxT3wpgkVccflo0uvNJ7NwfKksRqrUKwTp59nGIwjUsnDjI3YkxOQyxIdIPsSm3bUxXVy/Jge0v6vzvbbPXKxyAxKsupnUBYOwM="
            - OMP_NUM_THREADS=4
            - VERBOSE=1
 before_script:
-        - mkdir -p build
+  - mkdir -p  build
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. && make && make install); fi
 script:
-  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON && make && make test && make regression && make csdtests)"
+  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME && make && make test && make regression && make csdtests)"
+#  - echo -en "building tar package"
+#  - make install 
+#  - cd $HOME
+#  - export PACKAGE_NAME=csound-$TRAVIS_OS_NAME-build
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cp -r $HOME/Library/Frameworks/ $HOME/lib; fi
+#  - tar czf $PACKAGE_NAME.tgz ./bin ./lib ./include
 ###
 
 addons:
@@ -58,3 +68,14 @@ notifications:
       email:
           recipients:
               - CSOUND-DEV@listserv.heanet.ie
+
+#deploy:
+#  overwrite: true
+#  skip_cleanup: true
+#  provider: releases
+#  api_key:
+#    secure: 
+#  file: $HOME/csound-$TRAVIS_OS_NAME-build.tgz
+#  on:
+#    repo: csound/csound
+#    branch: feature/realtime
