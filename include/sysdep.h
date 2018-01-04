@@ -500,7 +500,7 @@ size_t strlcat(char *dst, const char *src, size_t siz);
   !(__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,	\
 			      __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
 #else /* FIXME: no atomics, what to do? */
-#define ATOMIC_CMP_XCH(val, newVal, oldVal) ((*val = newVal) != oldVal))
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
 #endif
 
 
