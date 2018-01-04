@@ -161,10 +161,8 @@ bool setup(BelaContext *context, void *Data)
 {
   Csound *csound;
   const char *csdfile = "my.csd"; /* CSD name */
-  const char *midiDev = "-Mhw:1,0,0"; /* MIDI IN device */
-  const char *midiOutDev = "-Qhw:1,0,0"; /* MIDI OUT device */
   const char *args[] = { "csound", csdfile, "-iadc", "-odac", "-+rtaudio=null",
-			 "--realtime", "--daemon", midiDev, midiOutDev };
+			 "--realtime", "--daemon"};
   int numArgs = (int) (sizeof(args)/sizeof(char *));
 
   if(context->audioInChannels != context->audioOutChannels) {
@@ -226,7 +224,7 @@ bool setup(BelaContext *context, void *Data)
 void render(BelaContext *context, void *Data)
 {
   if(gCsData.res == 0) {
-    int n,i,k,count, frmcount,blocksize,res = gCsData->res;
+    int n,i,k,count, frmcount,blocksize,res = gCsData.res;
     Csound *csound = gCsData.csound;
     MYFLT scal = csound->Get0dBFS();
     MYFLT* audioIn = csound->GetSpin();
