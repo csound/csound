@@ -279,7 +279,6 @@ typedef struct {
         MYFLT   *space;         /* Spaces to insert before printing */
         MYFLT   printat, ctime; /* Time when initialised; initialised */
         int32   pspace;         /* How many spaces to print */
-  //int32   cysofar;        /* Number of print cycles so far */
         int     initialised;    /* Non zero for initialised */
 } PRINTK;
 
@@ -289,8 +288,7 @@ typedef struct {
         MYFLT   *ifilcod;       /* File name */
         MYFLT   *ptime;         /* How much time to leave between each print */
         MYFLT   *kvals[VARGMAX];/* values to print */
-        MYFLT   initime, ctime; /* Time when initialised; Cycle time */
-        int32   cysofar;        /* Number of print cycles so far from 0 */
+        MYFLT   printat, ctime; /* Time when initialised; Cycle time */
         int     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
         char* old;
