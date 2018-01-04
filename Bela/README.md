@@ -11,9 +11,12 @@ to be used in Bela C++ projects, requiring linking to the Csound library
 Cross-compiling instructions
 =========================================
 
+A file crosscompile-setup.sh is provided to either build the pre-requisites
+(xenomai and Bela libs) or at least guide you through what is needed.
+
 1. Setup your cross-compiling toolchain for armhf. On Debian stretch
 this means apt-get install arm-linux-gnueabihf-g++ cross-compile-essential-arm
-libsndfile1-dev:armhf libasound-dev:armhf
+libsndfile1-dev:armhf libasound-dev:armhf and possibly other things.
 
 2. Build and install xenomai for armhf.
 
