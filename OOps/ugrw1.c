@@ -747,6 +747,7 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set up ctime so that if it was 0 or negative, it is set to a low value
      * to ensure that the print cycle happens every k cycle.  This low value is
      * 1 / ekr     */
+    /* Not sure this mattersin revised version.  Would just work! -- JPff */
     if (*p->ptime < CS_ONEDKR)
       p->ctime = FL(0.0);
     else
@@ -761,11 +762,8 @@ int printkset(CSOUND *csound, PRINTK *p)
     else if (UNLIKELY(p->pspace > 120L))
       p->pspace = 120L;
 
-    /* Set the initime variable - how many seconds in absolute time
-     * when this instance of the instrument was initialised.     */
-
     //printf("printkset: ctime = %f\n", p->ctime);
-    p->printat = FL(0.0);
+    p->printat = CS_KCNT;
     p->initialised = -1;
     return OK;
 }
@@ -782,7 +780,7 @@ int printk(CSOUND *csound, PRINTK *p)
 
     //printf("printk: KCNT = %lu\n", CS_KCNT);
     //printf("printat = %lf\n", p->printat);
-
+    /* Now test if the cycle number has reached the next print time */
     if (p->printat <= CS_KCNT-1) {
       /* Do the print cycle.
        * Print instrument number and time. Instrument number stuff from
@@ -1135,7 +1133,7 @@ int printks(CSOUND *csound, PRINTKS *p)
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)
         return csoundPerfError(csound, p->h.insdshead, Str("null string\n"));
-     if (strcmp(sarg, p->old) != 0) {
+      if (strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
         csound->Free(csound, p->old);
         p->old = cs_strdup(csound, sarg);
