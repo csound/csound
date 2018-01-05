@@ -747,10 +747,11 @@ int printkset(CSOUND *csound, PRINTK *p)
     /* Set up ctime so that if it was 0 or negative, it is set to a low value
      * to ensure that the print cycle happens every k cycle.  This low value is
      * 1 / ekr     */
+    /* Not sure this mattersin revised version.  Would just work! -- JPff */
     if (*p->ptime < CS_ONEDKR)
-      p->ctime = CS_ONEDKR;
+      p->ctime = FL(0.0);
     else
-      p->ctime = *p->ptime;
+      p->ctime = *p->ptime * csound->ekr;
 
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
@@ -761,14 +762,8 @@ int printkset(CSOUND *csound, PRINTK *p)
     else if (UNLIKELY(p->pspace > 120L))
       p->pspace = 120L;
 
-    /* Set the initime variable - how many seconds in absolute time
-     * when this instance of the instrument was initialised.     */
-
-    p->initime = (MYFLT) CS_KCNT * CS_ONEDKR;
-
-    /* Set cysofar to - 1 so that on the first call to printk - when
-     * cycle = 0, then there will be a print cycle.     */
-    p->cysofar = -1;
+    //printf("printkset: ctime = %f\n", p->ctime);
+    p->printat = CS_KCNT;
     p->initialised = -1;
     return OK;
 }
@@ -780,25 +775,13 @@ int printkset(CSOUND *csound, PRINTK *p)
  */
 int printk(CSOUND *csound, PRINTK *p)
 {
-    MYFLT       timel;          /* Time in seconds since initialised */
-    int32        cycles;         /* What print cycle */
-
-    /*-----------------------------------*/
-
-    /* Initialise variables.    */
     if (UNLIKELY(p->initialised != -1))
       csound->PerfError(csound, p->h.insdshead, Str("printk not initialised"));
-    timel =     ((MYFLT) CS_KCNT * CS_ONEDKR) - p->initime;
 
-    /* Divide the current elapsed time by the cycle time and round down to
-     * an integer.
-     */
-    cycles =    MYFLT2LRND(timel / p->ctime);
-
-    /* Now test if the cycle number we arein is higher than the one in which
-     * we last printed. If so, update cysofar and print.    */
-    if (p->cysofar < cycles) {
-      p->cysofar = cycles;
+    //printf("printk: KCNT = %lu\n", CS_KCNT);
+    //printf("printat = %lf\n", p->printat);
+    /* Now test if the cycle number has reached the next print time */
+    if (p->printat <= CS_KCNT-1) {
       /* Do the print cycle.
        * Print instrument number and time. Instrument number stuff from
        * printv() in disprep.c.
@@ -806,7 +789,7 @@ int printk(CSOUND *csound, PRINTK *p)
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
                                (int)p->h.insdshead->p1.value);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
-                               csound->icurTime/csound->esr);
+                               csound->icurTime/csound->esr-CS_ONEDKR);
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
@@ -815,6 +798,7 @@ int printk(CSOUND *csound, PRINTK *p)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
+      p->printat += p->ctime;
     }
     return OK;
 }
@@ -833,13 +817,11 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
     char        *sdest;
     char        temp, tempn;
 
-    p->initialised = -1;
     if (*p->ptime < CS_ONEDKR)
       p->ctime = CS_ONEDKR;
     else
-      p->ctime = *p->ptime;
-    p->initime = (MYFLT) CS_KCNT * CS_ONEDKR;
-    p->cysofar = -1;
+      p->ctime = *p->ptime * csound->ekr;
+    p->printat = CS_KCNT;
     memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
     sdest = p->txtstring;
     /* Copy the string to the storage place in PRINTKS.
@@ -946,7 +928,8 @@ int printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       /* Increment pointer and process next character until end of string.  */
       ++sarg;
     }
-
+    p->printat = CS_KCNT;
+    p->initialised = -1;
     return OK;
 }
 
@@ -1140,8 +1123,6 @@ static int sprints(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
  */
 int printks(CSOUND *csound, PRINTKS *p)
 {
-    MYFLT       timel;
-    int32        cycles;
     char        string[8192]; /* matt ingals replacement */
 
     if (csound->ISSTRCOD(*p->ifilcod) == 0) {
@@ -1149,7 +1130,7 @@ int printks(CSOUND *csound, PRINTKS *p)
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)
         return csoundPerfError(csound, p->h.insdshead, Str("null string\n"));
-     if (strcmp(sarg, p->old) != 0) {
+      if (strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
         csound->Free(csound, p->old);
         p->old = cs_strdup(csound, sarg);
@@ -1159,18 +1140,7 @@ int printks(CSOUND *csound, PRINTKS *p)
     /*-----------------------------------*/
     if (UNLIKELY(p->initialised != -1))
       csound->PerfError(csound, p->h.insdshead, Str("printks not initialised"));
-    timel =     ((MYFLT) CS_KCNT * CS_ONEDKR) - p->initime;
-
-    /* Divide the current elapsed time by the cycle time and round down to
-     * an integer.     */
-    cycles = MYFLT2LRND(timel / p->ctime);
-    /* printf("cysofar = %d  cycles = %d (%f / %f)\n",
-       p->cysofar, cycles, timel, p->ctime); */
-    /* Now test if the cycle number we are in is higher than the one in which
-     * we last printed.  If so, update cysofar and print.     */
-    if (p->cysofar < cycles) {
-      p->cysofar = cycles;
-      /* Do the print cycle. */
+    if (p->printat <= CS_KCNT-1) {
       //string[0]='\0';           /* incase of empty string */
       memset(string,0,8192);
       if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)==NOTOK)
@@ -1178,6 +1148,7 @@ int printks(CSOUND *csound, PRINTKS *p)
           csound->PerfError(csound,  p->h.insdshead,
                             Str("Insufficient arguments in formatted printing"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+      p->printat += p->ctime;
     }
     return OK;
 }

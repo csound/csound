@@ -337,7 +337,13 @@ static void sensLine(CSOUND *csound, void *userData)
               //  csound->ErrorMsg(csound, Str("unmatched quotes"));
               //  goto Lerr;
               //}
-              if(c == '\\') { cp++; c = *cp;}
+               
+              if(c == '\\') {
+		cp++;
+		if(*cp == '"') c = *cp; /* if it is a double quote */
+		/* otherwise we ignore it */
+		else cp--;
+	      }
               sstrp[n++] = c;                   /*   save in private strbuf */
 
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
