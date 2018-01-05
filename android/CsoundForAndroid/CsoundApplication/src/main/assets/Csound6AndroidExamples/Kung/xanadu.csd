@@ -3,10 +3,9 @@
 -odac -d
 </CsOptions>
 <CsInstruments>
-sr          =           44100
+sr          =           48000
 ksmps       =           100
 nchnls      =           2
-0dbfs.      =           300000
 ;--------------------------------------------------------
 ;Instrument 1 : plucked strings chorused left/right and
 ;       pitch-shifted and delayed taps thru exponential
@@ -17,17 +16,21 @@ nchnls      =           2
 ishift      =           .00666667               ;shift it 8/1200.
 ipch        =           cpspch(p5)              ;convert parameter 5 to cps.
 ioct        =           octpch(p5)              ;convert parameter 5 to oct.
-kvib        oscil       1/120, ipch/50, 1       ;vibrato
+kvib        poscil      1/120, ipch/50, 1      ;vibrato
 ag          pluck       2000, cpsoct(ioct+kvib), 1000, 1, 1
 agleft      pluck       2000, cpsoct(ioct+ishift), 1000, 1, 1
 agright     pluck       2000, cpsoct(ioct-ishift), 1000, 1, 1
-kf1         expon       .1, p3, 1.0             ;exponential from 0.1 to 1.0
-kf2         expon       1.0, p3, .1             ;exponential from 1.0 to 0.1
+adamping    linsegr     0.0, 0.006, 1.0, p3 - 0.066, 1.0, 0.06, 0.0
+ag          =           adamping * ag
+agleft      =           adamping * agleft
+agright     =           adamping * agright
+af1         expon       .1, p3, 1.0             ;exponential from 0.1 to 1.0
+af2         expon       1.0, p3, .1             ;exponential from 1.0 to 0.1
 adump       delayr      2.0                     ;set delay line of 2.0 sec
-atap1       deltapi     kf1                     ;tap delay line with kf1 func.
-atap2       deltapi     kf2                     ;tap delay line with kf2 func.
-ad1         deltap      2.0                     ;delay 2 sec.
-ad2         deltap      1.1                     ;delay 1.1 sec.
+atap1       deltap3     af1                     ;tap delay line with kf1 func.
+atap2       deltap3     af2                     ;tap delay line with kf2 func.
+ad1         deltap3     2.0                     ;delay 2 sec.
+ad2         deltap3     1.1                     ;delay 1.1 sec.
             delayw      ag                      ;put ag signal into delay line.
             outs        agleft+atap1+ad1, agright+atap2+ad2
             endin
@@ -40,13 +43,17 @@ ad2         deltap      1.1                     ;delay 1.1 sec.
 ishift      =           .00666667               ;shift it 8/1200.
 ipch        =           cpspch(p5)              ;convert parameter 5 to cps.
 ioct        =           octpch(p5)              ;convert parameter 5 to oct.
-kvib        oscil       1/120, ipch/50, 1       ;vibrato
+kvib        poscil      1/120, ipch/50, 1       ;vibrato
 ag          pluck       1000, cpsoct(ioct+kvib), 1000, 1, 1
 agleft      pluck       1000, cpsoct(ioct+ishift), 1000, 1, 1
 agright     pluck       1000, cpsoct(ioct-ishift), 1000, 1, 1
+adamping    linsegr     0.0, 0.006, 1.0, p3 - 0.066, 1.0, 0.06, 0.0
+ag          =           adamping * ag
+agleft      =           adamping * agleft
+agright     =           adamping * agright
 adump       delayr      0.3                     ;set delay line of 0.3 sec
-ad1         deltap      0.1                     ;delay 100 msec.
-ad2         deltap      0.2                     ;delay 200 msec.
+ad1         deltap3     0.1                     ;delay 100 msec.
+ad2         deltap3     0.2                     ;delay 200 msec.
             delayw      ag                      ;put ag sign into del line.
             outs        agleft+ad1, agright+ad2
             endin
@@ -58,18 +65,18 @@ ad2         deltap      0.2                     ;delay 200 msec.
 ishift      =           .00666667               ;shift it 8/1200.
 ipch        =           cpspch(p5)              ;convert parameter 5 to cps.
 ioct        =           octpch(p5)              ;convert parameter 5 to oct.
-kadsr       linseg      0, p3/3, 1.0, p3/3, 1.0, p3/3, 0 ;ADSR envelope
-kmodi       linseg      0, p3/3, 5, p3/3, 3, p3/3, 0 ;ADSR envelope for I
-kmodr       linseg      p6, p3, p7              ;r moves from p6->p7 in p3 sec.
-a1          =           kmodi*(kmodr-1/kmodr)/2
+aadsr       linsegr     0, p3/3, 1.0, p3/3, 1.0, p3/3, 0 ;ADSR envelope
+amodi       linseg      0, p3/3, 5, p3/3, 3, p3/3, 0 ;ADSR envelope for I
+amodr       linseg      p6, p3, p7              ;r moves from p6->p7 in p3 sec.
+a1          =           amodi*(amodr-1/amodr)/2
 a1ndx       =           abs(a1*2/20)            ;a1*2 is normalized from 0-1.
-a2          =           kmodi*(kmodr+1/kmodr)/2
+a2          =           amodi*(amodr+1/amodr)/2
 a3          tablei      a1ndx, 3, 1             ;lookup tbl in f3, normal index
-ao1         oscil       a1, ipch, 2             ;cosine
+ao1         poscil      a1, ipch, 2             ;cosine
 a4          =           exp(-0.5*a3+ao1)
-ao2         oscil       a2*ipch, ipch, 2        ;cosine
-aoutl       oscil       1000*kadsr*a4, ao2+cpsoct(ioct+ishift), 1 ;fnl outleft
-aoutr       oscil       1000*kadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
+ao2         poscil      a2*ipch, ipch, 2        ;cosine
+aoutl       poscil      1000*aadsr*a4, ao2+cpsoct(ioct+ishift), 1 ;fnl outleft
+aoutr       poscil      1000*aadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
             outs        aoutl, aoutr
             endin
 
@@ -80,6 +87,8 @@ aoutr       oscil       1000*kadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
 
 ;           Piece entitled :  X A N A D U (short version)
 ;                           Joseph T. Kung, 12/12/88
+;            Instruments modified for higher precision
+;                         Michael Gogins, 07/22/2006
 
 ;           The first part of the score will specify all function
 ;       tables used in the piece. The second part specifies
@@ -103,9 +112,9 @@ aoutr       oscil       1000*kadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
 ;All functions are post-normalized (max value is 1) if p4 is
 ;POSITIVE.
 
-f1 0 8192 10 1      ;sine wave
-f2 0 8192 11 1      ;cosine wave
-f3 0 8192 -12 20.0  ;unscaled ln(I(x)) from 0 to 20.0
+f1 0 65537  10 1      ;sine wave
+f2 0 65537  11 1      ;cosine wave
+f3 0 65537 -12 20.0  ;unscaled ln(I(x)) from 0 to 20.0
 
 ;-----------------------------------------------------------
 
@@ -230,3 +239,4 @@ e
 
 </CsScore>
 </CsoundSynthesizer>
+
