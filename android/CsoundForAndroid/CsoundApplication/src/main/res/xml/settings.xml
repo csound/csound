@@ -11,4 +11,7 @@
         android:defaultValue="4"
         android:entries="@array/layoutEntries"
         android:entryValues="@array/layoutValues" />
+    <CheckBoxPreference
+        android:key="use_oboe"
+        android:title="Use Oboe audio driver" />
 </PreferenceScreen>

@@ -38,6 +38,7 @@
     #include "CsoundFile.hpp"
     #include "CppSound.hpp"
     #include "Soundfile.hpp" 
+    #include "csound_oboe.hpp"
 %}
 
 %apply int { size_t };
@@ -83,4 +84,6 @@ typedef unsigned int uint32_t;
 %include "CsoundFile.hpp"
 %include "CppSound.hpp"
 %include "Soundfile.hpp"
+%include "csound_oboe.hpp"
+
 
