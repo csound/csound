@@ -3,15 +3,15 @@
     <string-array name="layoutValues">
         <item>1</item>
         <item>2</item>
-        <item>3</item>item>
+        <item>3</item>
         <item>4</item>
-        <item>5</item>item>
+        <item>5</item>
     </string-array>
     <string-array name="layoutEntries">
         <item>Message console</item>
         <item>HTML</item>
-        <item>HTML with message console</item>item>
+        <item>HTML with message console</item>
         <item>Widgets</item>
-        <item>Widgets with message console</item>item>
+        <item>Widgets with message console</item>
     </string-array>
 </resources>
