@@ -302,19 +302,21 @@ public:
             }
             // Otherwise, copy the input stream audio to Csound.
             // The buffer type may differ by platform.
+            // For Csound itself, 0 dBFS is always assumed to be 1; 
+            // for Oboe, it is 1 for float buffers and 32767 for short buffers.
             if (frames_read >= 0) {
                 if (oboe_audio_format == oboe::AudioFormat::Float){
                     float_buffer = static_cast<float *>(audio_data);
-                    for (int i = 0; i < frames_per_kperiod; i++) {
-                        for (int j = 0; j < output_channel_count; j++) {
-                            spin[i * output_channel_count + j] = float_buffer[i * output_channel_count + j];
+                    for (int frame_index = 0; frame_index < frames_per_kperiod; frame_index++) {
+                        for (int channel_index = 0; channel_index < output_channel_count; channel_index++) {
+                            spin[frame_index * input_channel_count + channel_index] = float_buffer[frame_index * input_channel_count + channel_index] * zerodBFS;
                         }
                     }
                 } else {
                     short_buffer = static_cast<int16_t *>(audio_data);
-                    for (int i = 0; i < frames_per_kperiod; i++) {
-                        for (int j = 0; j < output_channel_count; j++) {
-                            spin[i * output_channel_count + j] = short_buffer[i * output_channel_count + j] * 32767;
+                    for (int frame_index = 0; frame_index < frames_per_kperiod; frame_index++) {
+                        for (int channel_index = 0; channel_index < input_channel_count; channel_index++) {
+                            spin[frame_index * input_channel_count + channel_index] = short_buffer[frame_index * input_channel_count + channel_index] / 32767. * zerodBFS;
                         }
                     }
                 }            
@@ -323,27 +325,27 @@ public:
         // Consume one kperiod of audio input from spin,
         // and produce one kperiod of audio output to spout.
         csound_result = PerformKsmps();
-        // If the Csound performance has finished, tell the Oboe driver 
-        // to stop.
+        // If the Csound performance has finished, 
+        // tell the Oboe driver to stop.
         if (csound_result) {
             is_playing = false;
             return oboe::DataCallbackResult::Stop;
             audio_stream_out->requestStop();
         }
-        // Otherwise, copy the Csound output audio to the Oboe output 
-        // buffer. The buffer type may differ by platform.
+        // Otherwise, copy Csound's audio output to the Oboe buffer. 
+        // The buffer type may differ by platform.
         if (oboe_audio_format == oboe::AudioFormat::Float){
             float_buffer = static_cast<float *>(audio_data);
-            for (int i = 0; i < frames_per_kperiod; i++) {
-                for (int j = 0; j < output_channel_count; j++) {
-                    float_buffer[i * output_channel_count + j] = spout[i * output_channel_count + j];
+            for (int frame_index = 0; frame_index < frames_per_kperiod; frame_index++) {
+                for (int channel_index = 0; channel_index < output_channel_count; channel_index++) {
+                    float_buffer[frame_index * output_channel_count + channel_index] = spout[frame_index * output_channel_count + channel_index] / zerodBFS;
                 }
             }
         } else {
             short_buffer = static_cast<int16_t *>(audio_data);
-            for (int i = 0; i < frames_per_kperiod; i++) {
-                for (int j = 0; j < output_channel_count; j++) {
-                    short_buffer[i * output_channel_count + j] = spout[i * output_channel_count + j] * 32767;
+            for (int frame_index = 0; frame_index < frames_per_kperiod; frame_index++) {
+                for (int channel_index = 0; channel_index < output_channel_count; channel_index++) {
+                    short_buffer[frame_index * output_channel_count + channel_index] = spout[frame_index * output_channel_count + channel_index] * 32767. / zerodBFS;
                 }
             }
         }            
@@ -389,7 +391,6 @@ public:
                 oboe_audio_format = audio_stream_in->getFormat();
                 Message("CsoundOboe::Start: Audio input stream format is: %s.\n", oboe::convertToText(oboe_audio_format));           
                 Message("CsoundOboe::Start: Starting Oboe audio input stream...\n");
-                // Is this correct?
                 audio_stream_in->start();
             }
             spout = GetSpout();
@@ -414,8 +415,6 @@ public:
                 return csound_result;
             }
         }
-        // Start Csound.
-        is_playing = true;
         return 0;
     }
     /**
@@ -423,6 +422,8 @@ public:
      */
     virtual int Perform()
     {
+        // Start Csound.
+        is_playing = true;
         Message("CsoundOboe::Perform...\n");
         return 0;
     }
