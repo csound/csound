@@ -31,7 +31,7 @@ if [ -e android-audio-high-performance ]; then
   cd ..;
 else
   echo "Cloning android-audio-high-performance...";
-  git clone OBOE_REPO
+  git clone $OBOE_REPO
 fi
 
 # FLUIDSYNTH
