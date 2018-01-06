@@ -1071,9 +1071,14 @@ extern "C" {
    *  @{ */
 
   /**
-   * Returns the output audio output name (-o).
+   * Returns the audio output name (-o).
    */
   PUBLIC const char *csoundGetOutputName(CSOUND *);
+
+  /**
+   * Returns the audio input name (-i).
+   */
+  PUBLIC const char *csoundGetInputName(CSOUND *);
 
   /**
    *  Set output destination, type and format
