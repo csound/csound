@@ -8,10 +8,13 @@
     <ListPreference
         android:title="Screen Layout"
         android:key="screenLayout"
-        android:defaultValue="4"
+        android:defaultValue="5"
         android:entries="@array/layoutEntries"
         android:entryValues="@array/layoutValues" />
-    <CheckBoxPreference
-        android:key="use_oboe"
-        android:title="Use Oboe audio driver" />
+    <ListPreference
+        android:title="Audio Driver"
+        android:key="audioDriver"
+        android:defaultValue="1"
+        android:entries="@array/audioDriverEntries"
+        android:entryValues="@array/audioDriverValues" />
 </PreferenceScreen>
