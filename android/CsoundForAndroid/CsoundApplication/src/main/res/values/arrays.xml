@@ -14,4 +14,12 @@
         <item>Widgets</item>
         <item>Widgets with message console</item>
     </string-array>
+    <string-array name="audioDriverValues">
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="audioDriverEntries">
+        <item>OpenSLES (input and output)</item>
+        <item>Oboe (output only, lower latency on Oreo or later)</item>
+    </string-array>
 </resources>
