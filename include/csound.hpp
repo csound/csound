@@ -910,6 +910,10 @@ public:
   {
     return csoundGetSpoutSample(csound, frame, channel);
   }
+  virtual const char *GetInputName()
+  {
+    return csoundGetInputName(csound);
+  }
 };
 
 class CsoundThreadLock {
