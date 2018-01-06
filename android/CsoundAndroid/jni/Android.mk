@@ -280,7 +280,7 @@ cmd-strip :=
 
 include $(BUILD_SHARED_LIBRARY)
 $(call import-module,libsndfile-android/jni)
-$(call import-module,android-audio-high-performance/jni)
+$(call import-module,oboe-android/jni)
 #$(call import-module,libstdutil/jni)
 #$(call import-module,libfluidsynth/jni)
 #$(call import-module,signalflowgraph/jni)

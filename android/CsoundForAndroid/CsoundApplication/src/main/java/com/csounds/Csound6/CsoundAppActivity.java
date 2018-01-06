@@ -571,8 +571,13 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         if (key.equals(SettingsActivity.KEY_LIST_PREFERENCE)) {
             setScreenLayout(sharedPreferences);
         }
-        if (key.equals("use_oboe")) {
-            use_oboe = sharedPreferences.getBoolean("use_oboe", use_oboe);
+        if (key.equals(SettingsActivity.KEY_AUDIO_DRIVER_PREFERENCE)) {
+            String driver = sharedPreferences.getString("audioDriver", "");
+            if (driver.equalsIgnoreCase("2")) {
+                use_oboe = true;
+            } else {
+                use_oboe = false;
+            }
         }
     }
 
@@ -623,7 +628,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
         OPCODE6DIR = getBaseContext().getApplicationInfo().nativeLibraryDir;
-        SharedPreferences sharedPreferences = PreferenceManager
+        final SharedPreferences sharedPreferences = PreferenceManager
                 .getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
         OPCODE6DIR = sharedPreferences.getString("OPCODE6DIR", OPCODE6DIR);
@@ -632,7 +637,12 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         SFDIR = sharedPreferences.getString("SFDIR", SFDIR);
         SADIR = sharedPreferences.getString("SADIR", SADIR);
         INCDIR = sharedPreferences.getString("INCDIR", INCDIR);
-        use_oboe = sharedPreferences.getBoolean("use_oboe",use_oboe);
+        String driver = sharedPreferences.getString("audioDriver", "");
+        if (driver.equalsIgnoreCase("2")) {
+            use_oboe = true;
+        } else {
+            use_oboe = false;
+        }
         // Pre-load plugin opcodes, not only to ensure that Csound
         // can load them, but for easier debugging if they fail to load.
         File file = new File(OPCODE6DIR);
@@ -822,6 +832,12 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                     csnd6.csndJNI.csoundSetGlobalEnv("SSDIR", SSDIR);
                     csnd6.csndJNI.csoundSetGlobalEnv("SADIR", SADIR);
                     csnd6.csndJNI.csoundSetGlobalEnv("INCDIR", INCDIR);
+                    String driver = sharedPreferences.getString("audioDriver", "");
+                    if (driver.equalsIgnoreCase("2")) {
+                        use_oboe = true;
+                    } else {
+                        use_oboe = false;
+                    }
                     if (use_oboe == true) {
                         csound_obj = null;
                         csound_oboe = new csnd6.CsoundOboe();

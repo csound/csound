@@ -34,8 +34,7 @@ Csound 6.10.0 for Android
 </h1>
 <p align="center" style="margin-top: 0.08in; margin-bottom: 0in"><i><b>Michael
 Gogins</b></i></p>
-<p align="center" style="margin-top: 0.08in; margin-bottom: 0in"><i><b>12
-November 2015</b></i></p>
+<p align="center" style="margin-top: 0.08in; margin-bottom: 0in"><i><b>6 December 2018</b></i></p>
 <p align="center" style="margin-top: 0.08in; margin-bottom: 0in"><br/>
 
 </p>
@@ -50,7 +49,7 @@ an Android version of Csound, an audio and music synthesis and
 processing language of great power, created by Barry Vercoe in 1984,
 maintained with complete backward compatibility since then, and
 widely used and taught for the creation of electroacoustic and
-computer music. Desite its age, Csound6 continues to be actively
+computer music. Desite its age, Csound continues to be actively
 developed. It has many advanced features for sound synthesis
 including user-designable instruments, an easy to learn programming
 language with a type system, several phase vocoders, several sample
@@ -193,6 +192,13 @@ the following choices:</p>
 <p><i><b>Widgets with message console</b></i> &ndash;
 			Displays predefined widgets and the top and a message console
 			below.</p>
+		</ul>
+		<p><i><b>Audio driver </b></i></p>
+		<ul>
+            <li/>
+			<p><i><b>OpenSLES</b></i> &ndash; Supports both input and output.</p>
+			<li/>
+			<p><i><b>Oboe</b></i> &ndash; Supports only output, but with lower latency on Android Oreo or later. Also works better with HTML-only pieces because with Oboe the JavaScript Csound API is conformant with csound.node, WebAssebly, and CsoundQt.</p>
 		</ul>
 	</ul>
 	<li/>
