@@ -27,7 +27,6 @@ cd ${CSOUND_HOME}/android/pluginlibs/android-audio-high-performance/oboe
 bash ${IDE_HOME}/gradle/gradle-4.1/bin/gradle assemble
 
 cd ${CSOUND_HOME}/android/pluginlibs/LuaCsound
-$NDK/ndk-build clean
 $NDK/ndk-build $1
 
 cd ${CSOUND_HOME}/android/pluginlibs/liblo-android

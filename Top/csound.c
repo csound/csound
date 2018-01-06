@@ -2323,6 +2323,11 @@ PUBLIC const char *csoundGetOutputName(CSOUND *csound)
 {
     return (const char*) csound->oparms_.outfilename;
 }
+    
+PUBLIC const char *csoundGetInputName(CSOUND *csound)
+{
+    return (const char*) csound->oparms_.infilename;
+}
 
 /**
  * Calling this function with a non-zero will disable all default
