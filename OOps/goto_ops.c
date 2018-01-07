@@ -114,6 +114,8 @@ int rireturn(CSOUND *csound, LINK *p)
 {
     IGN(p);
     IGN(csound);
+    if (csound->oparms->realtime == 0)
+      p->h.insdshead->init_done = 1;
     return OK;
 }
 
@@ -129,6 +131,7 @@ int reinit(CSOUND *csound, GOTO *p)
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
     }
     else {
+    csound->curip->init_done = 0;
     unsigned long wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp].ip = csound->ids;
     csound->alloc_queue[wp].type = 2;
