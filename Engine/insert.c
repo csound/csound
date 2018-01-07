@@ -310,6 +310,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
       ip->tieflag = 1;
       tie = 1;
       /* goto init; */ /*     continue that event */
+      break;
     }
   }
   
@@ -358,7 +359,8 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     prvp->nxtact = ip;
     ip->actflg++;                   /*    and mark the instr active */
   }
-
+  
+  
   /* init: */
   pfields = (CS_VAR_MEM*)&ip->p0;
   if (tp->psetdata) {
