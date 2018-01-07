@@ -236,6 +236,8 @@ libcsound.csoundSetDebug.argtypes = [c_void_p, c_int]
 
 libcsound.csoundGetOutputName.restype = c_char_p
 libcsound.csoundGetOutputName.argtypes = [c_void_p]
+libcsound.csoundGetInputName.restype = c_char_p
+libcsound.csoundGetInputName.argtypes = [c_void_p]
 libcsound.csoundSetOutput.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
 libcsound.csoundGetOutputFormat.argtypes = [c_void_p, c_char_p, c_char_p]
 libcsound.csoundSetInput.argtypes = [c_void_p, c_char_p]
@@ -1028,8 +1030,13 @@ class Csound:
 
     #General Input/Output
     def outputName(self):
-        """Return the output audio output name (-o)"""
+        """Return the audio output name (-o)"""
         s = libcsound.csoundGetOutputName(self.cs)
+        return pstring(s)
+    
+    def inputName(self):
+        """Return the audio input name (-i)"""
+        s = libcsound.csoundGetInputName(self.cs)
         return pstring(s)
     
     def setOutput(self, name, type_, format):
