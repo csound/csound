@@ -298,8 +298,8 @@ static const char *longUsageList[] = {
   Str_noop("--port=N                listen to UDP port N for instruments/orchestra "
                                     "code (implies --daemon)"),
   Str_noop("--vbr-quality=Ft        set quality of variable bit-rate compression"),
-  Str_noop("--devices[=in|out]      list available MIDI devices and exit"),
-  Str_noop("--midi-devices[=in|out] list available audio devices and exit"),
+  Str_noop("--devices[=in|out]      list available audio devices and exit"),
+  Str_noop("--midi-devices[=in|out] list available MIDI devices and exit"),
   Str_noop("--get-system-sr         print system sr and exit"),
   Str_noop("--ksmps=N               override ksmps"),
   Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, "
