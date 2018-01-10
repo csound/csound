@@ -133,7 +133,7 @@ int reinit(CSOUND *csound, GOTO *p)
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
     }
     else {
-     csound->curip->init_done = 0;
+    csound->curip->init_done = 0;
     csound->curip->actflg = 0;
     unsigned long wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp].ip = (INSDS *) csound->ids;
