@@ -232,9 +232,13 @@ typedef struct {
 
 
 static int systime(CSOUND *csound, SYST *p){
+#if HAVE_CLOCK_GETTIME
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     *p->ti = round((ts.tv_sec + ts.tv_nsec/1.e9)*1000);
+#else
+    *p->ti = FL(0.0);
+#endif
     return OK;
 }
 
