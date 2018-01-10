@@ -1452,11 +1452,12 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
   /* do init pass for this instr */
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
-  
+  csound->curip->init_done = 0;
   while (csound->ids != NULL) {
     (*csound->ids->iopadr)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
+  csound->curip->init_done = 1;
   /* copy length related parameters back to caller instr */
   parent_ip->relesing = lcurip->relesing;
   parent_ip->offbet = lcurip->offbet;
@@ -2112,6 +2113,9 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
   if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
     goto endop; /* no perf code */
+  if (UNLIKELY(p->ip->init_done == 0))
+    goto endop;
+  
 
   /* IV - Nov 16 2002: update release flag */
   p->ip->relesing = p->parent_ip->relesing;
