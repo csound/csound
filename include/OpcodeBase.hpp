@@ -117,14 +117,6 @@ template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*&
     return pointer;
 }
 
-/**
- * Release a pointer to a global heap-allocated object, e.g. one used to
- * manage state between opcode instances.
- */
-void DestroyGlobalPointer(CSOUND *csound, const char *name)
-{
-    csound->DestroyGlobalVariable(csound, name);
-}
 
 /**
  * Release a pointer to a global heap-allocated object, e.g. one used to

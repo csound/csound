@@ -22,7 +22,9 @@
 #include <stdbool.h>
 #include <emscripten.h>
 
+#ifdef INIT_STATIC_MODULES
 extern int init_static_modules(CSOUND *csound);
+#endif
 
 typedef struct {
   unsigned char status;
@@ -82,7 +84,10 @@ void CsoundObj_compileCSD(CsoundObj *self, char *csd)
         csoundMessage(self->csound, "Error: Null CSD.\n");
         return;
     }
+
+#ifdef INIT_STATIC_MODULES
     result = init_static_modules(self->csound);
+#endif
     // See if this is a filename or the text of a CSD.
     char *csd_start_tag = strstr(csd, "<CsoundSynthesizer>");
     char *csd_end_tag =  strstr(csd, "</CsoundSynthesizer>");
@@ -119,8 +124,13 @@ void CsoundObj_prepareRT(CsoundObj *self) {
 EMSCRIPTEN_KEEPALIVE 
 uint32_t CsoundObj_compileOrc(CsoundObj *self, const char *string)
 {
+
+#ifdef INIT_STATIC_MODULES
   int returnValue = init_static_modules(self->csound);
   returnValue |= csoundCompileOrc(self->csound, (char *) string);
+#else
+  int returnValue = csoundCompileOrc(self->csound, (char *) string);
+#endif
   if(self->status == CS_RESET_STATUS) {
    csoundStart(self->csound);
    self->status = CS_STARTED_STATUS;
