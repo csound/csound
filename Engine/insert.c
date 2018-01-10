@@ -1457,7 +1457,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     (*csound->ids->iopadr)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
-  printf("init done\n");
   p->ip->init_done = 1;
   /* copy length related parameters back to caller instr */
   parent_ip->relesing = lcurip->relesing;
@@ -1811,6 +1810,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
   MYFLT** external_ptrs = p->ar;
 
+  if (UNLIKELY(p->ip->init_done == 0)) /* init not done, exit */
+    return OK;
+
   p->ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
   early = p->h.insdshead->ksmps_no_end;
   offset = p->h.insdshead->ksmps_offset;
@@ -2108,16 +2110,16 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i;
-
+  if (UNLIKELY(p->ip->init_done == 0)) /* init not done, exit */
+    return OK;
+ 
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
 
   if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
     goto endop; /* no perf code */
-   if (UNLIKELY(p->ip->init_done == 0))
-    goto endop;
-  
 
+ 
   /* IV - Nov 16 2002: update release flag */
   p->ip->relesing = p->parent_ip->relesing;
   tmp = p->buf->iobufp_ptrs;
