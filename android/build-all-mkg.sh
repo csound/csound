@@ -22,10 +22,6 @@ make HOST_CC="gcc -m32" BUILD_MODE=static CROSS=arm-linux-gnueabi- TARGET_CFLAGS
 # Make certain that LuaCsound links only with the static LuaJIT library.
 rm -f src/libluajit.so
 
-cd ${CSOUND_HOME}/android/pluginlibs/android-audio-high-performance/oboe
-# PLEASE NOTE: Must use Android Studio's gradle!
-bash ${IDE_HOME}/gradle/gradle-4.1/bin/gradle assemble
-
 cd ${CSOUND_HOME}/android/pluginlibs/LuaCsound
 $NDK/ndk-build $1
 
