@@ -114,15 +114,12 @@ int rireturn(CSOUND *csound, LINK *p)
 {
     IGN(p);
     IGN(csound);
-    if (csound->oparms->realtime == 0) {
-      p->h.insdshead->init_done = 1;
-      p->h.insdshead->actflg = 1;
-    }
     return OK;
 }
 
 int reinit(CSOUND *csound, GOTO *p)
 {
+  
     csound->reinitflag = p->h.insdshead->reinitflag = 1;
     csound->curip = p->h.insdshead;
     csound->ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
@@ -133,13 +130,13 @@ int reinit(CSOUND *csound, GOTO *p)
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
     }
     else {
-    csound->curip->init_done = 0;
-    csound->curip->actflg = 0;
     unsigned long wp = csound->alloc_queue_wp;
-    csound->alloc_queue[wp].ip = (INSDS *) csound->ids;
-    csound->alloc_queue[wp].type = 2;
+    csound->alloc_queue[wp].ip = (INSDS *) csound->curip;
+    csound->alloc_queue[wp].type = 3;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
     ATOMIC_INCR(csound->alloc_queue_items);
+    return NOTOK;
+    
     }
     return OK;
 }

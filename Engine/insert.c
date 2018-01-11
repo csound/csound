@@ -94,6 +94,7 @@ static void message_string_enqueue(CSOUND *csound, int attr,
 static void no_op(CSOUND *csound, int attr,
 		  const char *format, va_list args) { };
 
+int rireturn(CSOUND *csound, LINK *p);
  /* do init pass for this instr */
 static int init_pass(CSOUND *csound, INSDS *ip) {
   int error = 0;
@@ -101,12 +102,29 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
-  while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
+  while (error == 0 && (csound->ids = csound->ids->nxti) != NULL){
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "init %s:\n",
 		      csound->ids->optext->t.oentry->opname);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
+  if(csound->oparms->realtime)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+  return error;
+}
+
+static int reinit_pass(CSOUND *csound, INSDS *ip) {
+  int error = 0;
+  if(csound->oparms->realtime)
+    csoundLockMutex(csound->init_pass_threadlock);
+  while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
+	 (csound->ids->iopadr != (SUBR) rireturn)){
+    if (UNLIKELY(csound->oparms->odebug))
+    printf("reinit %s:\n",
+		      csound->ids->optext->t.oentry->opname);
+    error = (*csound->ids->iopadr)(csound, csound->ids);
+  }
+  csound->reinitflag = ip->reinitflag = 0;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
   return error;
@@ -148,6 +166,14 @@ uintptr_t event_insert_thread(void *p) {
     if(items == 0)
        csoundSleep((int) ((int) wakeup > 0 ? wakeup : 1));
     else while(items) {
+	 if (inst[rp].type == 3)  {
+	  INSDS *ip = inst[rp].ip;
+	  ATOMIC_SET(ip->init_done, 0);
+          csoundSpinLock(&csound->alloc_spinlock);
+          reinit_pass(csound, ip);
+	  csoundSpinUnLock(&csound->alloc_spinlock);
+	  ATOMIC_SET(ip->init_done, 1);
+	}
 	if (inst[rp].type == 2)  {
 	  INSDS *ip = inst[rp].ip;
 	  ATOMIC_SET(ip->init_done, 0);
@@ -1246,11 +1272,12 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 		   (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
 
   /* do init pass for this instr */
+  p->ip->init_done = 0;
   csound->ids = (OPDS *)p->ip;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     (*csound->ids->iopadr)(csound, csound->ids);
   }
-
+  p->ip->init_done = 1;
   /* copy length related parameters back to caller instr */
   saved_curip->xtratim = csound->curip->xtratim;
   saved_curip->relesing = csound->curip->relesing;
@@ -1710,6 +1737,9 @@ int subinstr(CSOUND *csound, SUBINST *p)
   unsigned int nsmps = CS_KSMPS;
   INSDS *ip = p->ip;
 
+  if (UNLIKELY(p->ip->init_done == 0)) /* init not done, exit */
+    return OK;
+
   //printf("%s \n", p->ip->strarg);
 
   if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
@@ -1995,9 +2025,9 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 	    CS_PDS = CS_PDS->insdshead->pds;
 	    CS_PDS->insdshead->pds = NULL;
 	  }
-	}while (error == 0 && (CS_PDS = CS_PDS->nxtp));
+	} while (error == 0 && (CS_PDS = CS_PDS->nxtp));
       }
-
+      
       /* copy a-sig outputs, accounting for offset */
       current = inm->out_arg_pool->head;
       for (i = 0; i < inm->outchns; i++) {
@@ -2110,8 +2140,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i;
-  if (UNLIKELY(p->ip->init_done == 0)) /* init not done, exit */
-    return OK;
+  inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
+  if (ATOMIC_GET(p->ip->init_done) == 0) { /* init not done, exit */
+     return OK;
+  }
  
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
@@ -2153,13 +2185,17 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   int error = 0;
   CS_PDS->insdshead->pds = NULL;
   do {
+    if(ATOMIC_GET(p->ip->init_done) == 0) {
+      goto endop;
+    }
     error = (*CS_PDS->opadr)(csound, CS_PDS);
     if (CS_PDS->insdshead->pds != NULL &&
 	CS_PDS->insdshead->pds->insdshead) {
       CS_PDS = CS_PDS->insdshead->pds;
       CS_PDS->insdshead->pds = NULL;
     }
-  } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
+  } while (error == 0
+	   && (CS_PDS = CS_PDS->nxtp));
   }
   this_instr->kcounter++;
 
@@ -2184,6 +2220,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   }
 
  endop:
+ 
+  
   /* restore globals */
   CS_PDS = saved_pds;
   /* check if instrument was deactivated (e.g. by perferror) */
