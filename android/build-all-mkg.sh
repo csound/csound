@@ -23,6 +23,7 @@ make HOST_CC="gcc -m32" BUILD_MODE=static CROSS=arm-linux-gnueabi- TARGET_CFLAGS
 rm -f src/libluajit.so
 
 cd ${CSOUND_HOME}/android/pluginlibs/LuaCsound
+$NDK/ndk-build clean
 $NDK/ndk-build $1
 
 cd ${CSOUND_HOME}/android/pluginlibs/liblo-android

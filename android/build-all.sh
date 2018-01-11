@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 MACHINE="$(uname -s)"
 case "${MACHINE}" in 
