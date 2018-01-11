@@ -1659,7 +1659,8 @@ int kperf_nodebug(CSOUND *csound)
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
               while (error == 0 &&
-		     (opstart = opstart->nxtp) != NULL && ip->actflg) {
+		     (opstart = opstart->nxtp) != NULL &&
+		     ATOMIC_GET(ip->actflg)) {
                 opstart->insdshead->pds = opstart;
                 error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;

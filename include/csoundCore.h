@@ -969,6 +969,7 @@ typedef struct _alloc_data_ {
   MCHNBLK *chn;
   MEVENT mep;
   INSDS *ip;
+  OPDS *ids;
 } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024
