@@ -82,14 +82,6 @@ int rassign(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
-int kassign(CSOUND *csound, ASSIGN *p)
-{
-    IGN(csound);
-    *p->r = *p->a;
-    return OK;
-}
-
-
 int assign(CSOUND *csound, ASSIGN *p)
 {
     IGN(csound);
