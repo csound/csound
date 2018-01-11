@@ -79,7 +79,7 @@
  N       multiple args (a, k, i, or S-rate)
  F       multiple args (f-rate)#
  */
-int kassign(CSOUND *csound, void *p);
+
 
 OENTRY opcodlst_1[] = {
   /* opcode   dspace  flags  thread  outarg  inargs  isub    ksub    asub    */
@@ -285,7 +285,7 @@ OENTRY opcodlst_1[] = {
   { "ftchnls.i",S(EVAL),0,  1,      "i",    "i",    ftchnls                 },
   { "ftcps.i",S(EVAL),0,    1,      "i",    "i",    ftcps                   },
   { "i.i",   S(ASSIGN),0,   1,      "i",    "i",    assign                  },
-  { "i.k",   S(ASSIGN),0,   1,      "i",    "k",    kassign                  },
+  { "i.k",   S(ASSIGN),0,   1,      "i",    "k",    assign                  },
   { "k.i",   S(ASSIGN),0,   1,      "k",    "i",    assign                  },
   { "k.a",   S(DOWNSAMP),0, 3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   { "cpsoct.i",S(EVAL),0,   1,      "i",    "i",    cpsoct                  },
