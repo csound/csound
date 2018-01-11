@@ -21,7 +21,6 @@ else
   echo "Cloning libsndfile-android...";
   git clone $LIBSNDFILE_REPO
 fi
-
 # FLUIDSYNTH
 FLUIDSYNTH_REPO=http://bitbucket.org/kunstmusik/fluidsynth-android.git
 if [ -e fluidsynth-android ]; then
