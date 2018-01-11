@@ -422,8 +422,6 @@ void init(Handle<Object> target)
 {
     csound.SetMessageCallback(csoundMessageCallback_);
     // Keep these in alphabetical order.
-    // All methods must be exposed in both camel case and initial caps.
-    
     NODE_SET_METHOD(target, "cleanup", cleanup);
     NODE_SET_METHOD(target, "compileCsd", compileCsd);
     NODE_SET_METHOD(target, "compileCsdText", compileCsdText);
@@ -450,33 +448,6 @@ void init(Handle<Object> target)
     NODE_SET_METHOD(target, "setScorePending", setScorePending);
     NODE_SET_METHOD(target, "start", start);
     NODE_SET_METHOD(target, "stop", stop);
-    
-    NODE_SET_METHOD(target, "Cleanup", cleanup);
-    NODE_SET_METHOD(target, "CompileCsd", compileCsd);
-    NODE_SET_METHOD(target, "CompileCsdText", compileCsdText);
-    NODE_SET_METHOD(target, "CompileOrc", compileOrc);
-    NODE_SET_METHOD(target, "GetControlChannel", getControlChannel);
-    NODE_SET_METHOD(target, "GetKsmps", getKsmps);
-    NODE_SET_METHOD(target, "GetNchnls", getNchnls);
-    NODE_SET_METHOD(target, "GetScoreTime", getScoreTime);
-    NODE_SET_METHOD(target, "GetSr", getSr);
-    NODE_SET_METHOD(target, "GetVersion", getVersion);
-    NODE_SET_METHOD(target, "Hello", hello);
-    NODE_SET_METHOD(target, "InputMessage", inputMessage);
-    NODE_SET_METHOD(target, "IsPlaying", isPlaying);
-    NODE_SET_METHOD(target, "IsScorePending", isScorePending);
-    NODE_SET_METHOD(target, "Message", message);
-    NODE_SET_METHOD(target, "Perform", perform);
-    NODE_SET_METHOD(target, "ReadScore", readScore);
-    NODE_SET_METHOD(target, "Reset", reset);
-    NODE_SET_METHOD(target, "RewindScore", rewindScore);
-    NODE_SET_METHOD(target, "ScoreEvent", scoreEvent);
-    NODE_SET_METHOD(target, "SetControlChannel", setControlChannel);
-    NODE_SET_METHOD(target, "SetMessageCallback", setMessageCallback);
-    NODE_SET_METHOD(target, "SetOption", setOption);
-    NODE_SET_METHOD(target, "SetScorePending", setScorePending);
-    NODE_SET_METHOD(target, "Start", start);
-    NODE_SET_METHOD(target, "Stop", stop);
     uv_async_init(uv_default_loop(), &uv_csound_message_async, uv_csound_message_callback);
     std::atexit(&on_exit);
 }

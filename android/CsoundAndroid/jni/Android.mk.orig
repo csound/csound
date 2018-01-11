@@ -280,6 +280,10 @@ cmd-strip :=
 
 include $(BUILD_SHARED_LIBRARY)
 $(call import-module,libsndfile-android/jni)
+<<<<<<< HEAD
+$(call import-module,oboe-android/jni)
+=======
+>>>>>>> parent of c91c282... Added Android Oboe audio driver. Building Android for release with debug. Minor fixes to examples (#887 #902).
 #$(call import-module,libstdutil/jni)
 #$(call import-module,libfluidsynth/jni)
 #$(call import-module,signalflowgraph/jni)
