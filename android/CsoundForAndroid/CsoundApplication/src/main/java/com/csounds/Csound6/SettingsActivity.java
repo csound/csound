@@ -7,22 +7,18 @@ import android.preference.ListPreference;
 
 public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
     public static final String KEY_LIST_PREFERENCE = "screenLayout";
-    public static final String KEY_AUDIO_DRIVER_PREFERENCE = "audioDriver";
     public ListPreference screenLayoutPreference;
-    public ListPreference audioDriverPreference;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
         screenLayoutPreference =(ListPreference)findPreference(KEY_LIST_PREFERENCE);
-        audioDriverPreference = (ListPreference)findPreference(KEY_AUDIO_DRIVER_PREFERENCE);
     }
     @Override
     protected void onResume() {
         super.onResume();
         // Setup the initial values
         screenLayoutPreference.setSummary("Current value is " + screenLayoutPreference.getEntry().toString());
-        audioDriverPreference.setSummary("Selected driver is " + audioDriverPreference.getEntry().toString());
         // Set up a listener whenever a key changes
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
@@ -38,9 +34,6 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
         // Set new summary, when a preference value changes
         if (key.equals(KEY_LIST_PREFERENCE)) {
             screenLayoutPreference.setSummary("Current value is " + screenLayoutPreference.getEntry().toString());
-        }
-        if (key.equals(KEY_AUDIO_DRIVER_PREFERENCE)) {
-            audioDriverPreference.setSummary("Selected driver is " + audioDriverPreference.getEntry().toString());
         }
     }
 }
