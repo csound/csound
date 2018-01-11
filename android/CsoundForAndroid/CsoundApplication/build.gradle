@@ -27,7 +27,6 @@ android {
         }
         debug {
             minifyEnabled false
-//            signingConfig signingConfigs.CsoundForAndroid
             debuggable true
         }
     }

@@ -51,12 +51,13 @@ LUAJIT_REPO=http://luajit.org/git/luajit-2.0.git
 if [ -e luajit-2.0 ]; then
   echo "libluajit already exists, doing a pull to get the latest";
   cd luajit-2.0;
+  git checkout v2.1;
   git pull;
   cp -R $LUAJIT_JNI .
   cd ..;
 else
   echo "Cloning libluajit...";
-  git clone $LUAJIT_REPO
+  git clone $LUAJIT_REPO -b v2.1
   cp -R $LUAJIT_JNI luajit-2.0/
 fi
 
@@ -84,3 +85,8 @@ else
   git clone $OSC_REPO
 fi
 
+echo "Copying all patched files into build tree..."
+# Copy any patched files.
+cd patches
+cp -rf * ..
+cd ../..

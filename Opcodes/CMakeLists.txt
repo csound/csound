@@ -200,7 +200,7 @@ if(BUILD_JACK_OPCODES)
     make_plugin(jackTransport jackTransport.c "${jack_LIBS}")
 endif()
 
-check_deps(BUILD_LINEAR_ALGEBRA_OPCODES GMM_FOUND)
+check_deps(BUILD_LINEAR_ALGEBRA_OPCODES GMM_FOUND USE_DOUBLE)
 if(BUILD_LINEAR_ALGEBRA_OPCODES)
     make_plugin(linear_algebra linear_algebra.cpp)
     target_include_directories(linear_algebra PRIVATE ${GMM_INCLUDE_DIRS})
