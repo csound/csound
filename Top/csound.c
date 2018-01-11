@@ -2323,7 +2323,7 @@ PUBLIC const char *csoundGetOutputName(CSOUND *csound)
 {
     return (const char*) csound->oparms_.outfilename;
 }
-    
+
 PUBLIC const char *csoundGetInputName(CSOUND *csound)
 {
     return (const char*) csound->oparms_.infilename;
