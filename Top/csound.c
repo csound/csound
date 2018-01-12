@@ -2547,7 +2547,7 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_) 
-    csound->csoundMessageCallback_(csound, 0, format, args);
+    csound->csoundMessageCallback_(csound, attr, format, args);
     else {
     vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
     csound->csoundMessageStringCallback(csound, attr, csound->message_string);
