@@ -1,12 +1,10 @@
 #!/bin/sh
 
-MACHINE="$(uname -s)"
 case "${MACHINE}" in 
-  MINGW*) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build.cmd;;
-  *) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build
+  MINGW*) NDK_BUILD_CMD=$NDK/ndk-build.cmd;;
+  *) NDK_BUILD_CMD=$NDK/ndk-build
 esac
-
-echo "NDK_BUILD_COMMAND = $NDK_BUILD_CMD"
+echo "NDK_BUILD_COMMAND: $NDK_BUILD_CMD"
 
 flex -B -t ../../Engine/csound_orc.lex > jni/csound_orclex.c 
 flex -B ../../Engine/csound_pre.lex > jni/csound_prelex.c 
@@ -23,7 +21,6 @@ sed -i.bak "s/AttachCurrentThread((void \*\*)/AttachCurrentThread(/" jni/java_in
 
 # Actually build Csound.
 cd jni
-
-$NDK_BUILD_CMD V=1 $1
+$NDK_BUILD_CMD V=1 -j6 $1
 
 
