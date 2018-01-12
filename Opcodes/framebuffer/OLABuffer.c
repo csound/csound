@@ -20,17 +20,18 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- 02111-1307 USA
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ 02110-1301 USA
  */
 
 #include "OLABuffer.h"
 
+// As far as I can tell these includes are not needed -- JPff
 #ifdef _MSC_VER
 // FIXME including this "equivalent" file seems to cause a ton of errors
 //#include <ctgmath>
 #else
-#include <tgmath.h>
+//#include <tgmath.h>
 #endif
 
 void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self);

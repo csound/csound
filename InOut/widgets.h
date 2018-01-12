@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_WIDGETS_H
@@ -166,9 +166,15 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-  STRINGDAT  *itext;
-  MYFLT *ihandle;
+    STRINGDAT  *itext;
+    MYFLT   *ihandle;
 } FL_SET_TEXT;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ndx;
+    MYFLT   *ihandle;
+} FL_SET_TEXTi;
 
 typedef struct {
     OPDS    h;
@@ -467,7 +473,7 @@ class Fl_Spin : public Fl_Valuator {
 class Fl_Value_Input_Spin : public Fl_Valuator {
  private:
     CSOUND * csound;
-    int ix, iy, drag, indrag, sldrag;
+    int ix, iy, drag;
     int delta, deltadir;
     char soft_;
     uchar mouseobj;

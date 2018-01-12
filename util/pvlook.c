@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************************************/
@@ -50,7 +50,7 @@ static CS_NOINLINE CS_PRINTF2 void pvlook_print(PVLOOK *p, const char *fmt, ...)
     len = (int) vsnprintf(s, 1024, fmt, args);
     va_end(args);
  /* fprintf(p->outfd, "%s", s); */
-    p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, s);
+    p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "%s", s);
     tmp = strrchr(s, '\n');
     if (tmp == NULL)
       p->linePos += len;

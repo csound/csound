@@ -21,8 +21,8 @@
 //
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with The vst4cs library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-//  02111-1307 USA
+//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+//  02110-1301 USA
 //
 //  Linking vst4cs statically or dynamically with other modules is making a
 //  combined work based on vst4cs. Thus, the terms and conditions of the GNU
@@ -46,6 +46,8 @@
 //  exception also makes it possible to release a modified version which
 //  carries forward this exception.
 
+// Linux only: #define CSOUND_LIFECYCLE_DEBUG
+
 #ifdef _WIN32
 #pragma warning(disable:4786) //gab
 #endif
@@ -55,13 +57,20 @@
 #include <vector>
 #include <string>
 #include "vst4cs.h"
+#include <OpcodeBase.hpp>
 #include "vsthost.h"
 #include "fxbank.h"
 
+#if defined(CSOUND_LIFECYCLE_DEBUG)
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#endif
+
 // These two collections replace similar ones that used to be in widglobals.h.
 
-static std::vector<VSTPlugin*> *vstPlugEditors = 0;
-static std::vector<VSTPlugin*> *vstPlugins = 0;
+//typedef std::vector<VSTEDIT*> vstPlugEditors_t;
+typedef std::vector<VSTPlugin*> vstPlugins_t;
 
 extern "C" {
     std::string version = "0.2";
@@ -78,6 +87,8 @@ extern "C" {
     {
         VSTINIT *p = (VSTINIT *) data;
         VSTPlugin *plugin = new VSTPlugin(csound);
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         *p->iVSThandle = (MYFLT) vstPlugins->size();
         vstPlugins->push_back(plugin);
         if ((int) vstPlugins->size() == 1) {
@@ -108,6 +119,8 @@ extern "C" {
     static int vstinfo(CSOUND *csound, void *data)
     {
         VSTINFO *p = (VSTINFO *) data;
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
         plugin->Info();
         return OK;
@@ -116,12 +129,14 @@ extern "C" {
     static int vstaudio_init(CSOUND *csound, void *data)
     {
         VSTAUDIO *p = (VSTAUDIO *) data;
-
         p->opcodeInChannels = (size_t) (csound->GetInputArgCnt(data) - 1);
         if (p->opcodeInChannels > 32) {
           return csound->InitError(csound, Str("vstaudio: too many input args"));
         }
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         plugin->Debug("vstaudio_init.\n");
         p->framesPerBlock = csound->GetKsmps(csound);
         p->pluginInChannels  = (size_t) plugin->getNumInputs();
@@ -134,7 +149,7 @@ extern "C" {
     {
         VSTAUDIO *p = (VSTAUDIO *) data;
         size_t  i, j;
-        VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        VSTPlugin *plugin = p->vstplugin;
         uint32_t offset = p->h.insdshead->ksmps_offset;
         for(j=0; j < p->pluginOutChannels; j++) {
             memset(p->aouts[j], '\0', offset*sizeof(MYFLT));
@@ -180,8 +195,8 @@ extern "C" {
     static int vstaudiog(CSOUND *csound, void *data)
     {
         VSTAUDIO *p = (VSTAUDIO *) data;
+        VSTPlugin *plugin = p->vstplugin;
         size_t  i, j;
-        VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
         uint32_t offset = p->h.insdshead->ksmps_offset;
         for(j=0; j < p->pluginOutChannels; j++) {
             memset(p->aouts[j], '\0', offset*sizeof(MYFLT));
@@ -216,9 +231,10 @@ extern "C" {
     static int vstmidiout_init(CSOUND *csound, void *data)
     {
         VSTMIDIOUT *p = (VSTMIDIOUT *) data;
-        VSTPlugin *plugin;
-        p->vstHandle = (size_t) *p->iVSThandle;
-        plugin = (*vstPlugins)[p->vstHandle];
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
+        VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         plugin->Debug("vstmidiout_init.\n");
         p->prvMidiData = 0;
         return OK;
@@ -227,7 +243,7 @@ extern "C" {
     static int vstmidiout(CSOUND *csound, void *data)
     {
         VSTMIDIOUT *p = (VSTMIDIOUT *) data;
-        VSTPlugin *plugin;
+        VSTPlugin *plugin = p->vstplugin;
         int     st, ch, d1, d2, midiData;
         st = (int) *(p->kstatus);
         if (st < 128 || st >= 240) {
@@ -256,7 +272,6 @@ extern "C" {
             return OK;
         }
         p->prvMidiData = midiData;
-        plugin = (*vstPlugins)[p->vstHandle];
         plugin->Debug("vstmidiout. kstatus = %i kdata1 = %i kdata2 = %i"
                       "--- mididata = %i\n",
                       (int) *(p->kstatus),
@@ -269,13 +284,18 @@ extern "C" {
 
     static int vstparamget_init(CSOUND *csound, void *data)
     {
+        VSTPARAMGET *p = (VSTPARAMGET *) data;
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
+        VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         return OK;
     }
 
     static int vstparamget(CSOUND *csound, void *data)
     {
         VSTPARAMGET *p = (VSTPARAMGET *) data;
-        VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        VSTPlugin *plugin = p->vstplugin;
         plugin->Debug("vstparamset(%d).\n", int(*p->kparam));
         *p->kvalue = plugin->GetParamValue(int(*p->kparam));
         if (*(p->kvalue) == FL(-1.0)) {
@@ -287,7 +307,10 @@ extern "C" {
     static int vstparamset_init(CSOUND *csound, void *data)
     {
         VSTPARAMSET *p = (VSTPARAMSET *) data;
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         plugin->Debug("vstparamset_init.\n");
         p->oldkparam = 0;
         p->oldkvalue = 0;
@@ -297,7 +320,7 @@ extern "C" {
     static int vstparamset(CSOUND *csound, void *data)
     {
         VSTPARAMSET *p = (VSTPARAMSET *) data;
-        VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        VSTPlugin *plugin = p->vstplugin;
         if (*p->kparam == p->oldkparam && *p->kvalue == p->oldkvalue) {
             return OK;
         }
@@ -311,7 +334,10 @@ extern "C" {
     static int vstbankload(CSOUND *csound, void *data)
     {
         VSTBANKLOAD *p = (VSTBANKLOAD *) data;
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         void    *dummyPointer = 0;
         CFxBank fxBank((char *) p->ibank);          /* load the bank    */
         plugin->Dispatch(effBeginLoadBank,
@@ -362,8 +388,11 @@ extern "C" {
     {
         // The changes here are part of an attempt to map 0 to 1 and others
         VSTPROGSET *p = (VSTPROGSET *) data;
-        int program = (int)*p->iprogram;
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
+        int program = (int)*p->iprogram;
         if (program<=0) {
           csound->Message(csound,
                           Str("VSTprogset: Program %d treated as 1\n"), program);
@@ -376,16 +405,22 @@ extern "C" {
     static int vstedit_init(CSOUND *csound, void *data)
     {
         VSTEDIT *p = (VSTEDIT *) data;
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         plugin->OpenEditor();
-        vstPlugEditors->push_back(plugin); //gab
+        //~ vstPlugEditors->push_back(plugin); //gab
         return OK;
     }
 
     static int vstSetTempo(CSOUND *csound, void *data)
     {
         VSTTEMPO *p = (VSTTEMPO *)data;
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         plugin->vstTimeInfo.tempo = *p->tempo;
         return OK;
     }
@@ -393,7 +428,10 @@ extern "C" {
     int vstbanksave(CSOUND *csound, void *data)
     {
         VSTBANKLOAD *p = (VSTBANKLOAD *)data;
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         char bankname[512]; //gab
         strcpy(bankname, (char *) p->ibank);          /*   use that         */
         if (!plugin) {
@@ -463,20 +501,22 @@ extern "C" {
         MYFLT *iKey;
         MYFLT *iVelocity;
         MYFLT *iDuration;
-        VSTPlugin *vstPlugin;
         MYFLT startTime;
         MYFLT offTime;
         int channel;
         int key;
         int velocity;
         int on;
+        VSTPlugin *vstplugin;
     } VSTNOTEOUT;
 
     static int vstnote_init(CSOUND *csound, void *data)
     {
         VSTNOTEOUT *p = (VSTNOTEOUT *)data;
-        size_t vstHandle = (size_t) *p->iVSThandle;
-        p->vstPlugin = (*vstPlugins)[vstHandle];
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
+        VSTPlugin *plugin = (*vstPlugins)[(size_t) *p->iVSThandle];
+        p->vstplugin = plugin;
         p->startTime = getCurrentTime(csound);
         double onTime = double(p->h.insdshead->p2.value);
         double deltaTime = onTime - getCurrentTime(csound);
@@ -505,7 +545,7 @@ extern "C" {
         int cents = int( ( ( double(*p->iKey) - double(p->key) ) * double(100.0) ) +
                          double(0.5) );
         p->velocity = int(*p->iVelocity) & 0x7f;
-        p->vstPlugin->AddMIDI(144 | p->channel | (p->key << 8) | (p->velocity << 16),
+        p->vstplugin->AddMIDI(144 | p->channel | (p->key << 8) | (p->velocity << 16),
                               deltaFrames, cents);
         // Ensure that the opcode instance is still active when we are scheduled
         // to turn the note off!
@@ -537,7 +577,7 @@ extern "C" {
                 if (deltaTime > 0) {
                     deltaFrames = int(deltaTime / csound->GetSr(csound));
                 }
-                p->vstPlugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16),
+                p->vstplugin->AddMIDI(128 | p->channel | (p->key << 8) | (0 << 16),
                                       deltaFrames, 0);
                 p->on = false;
                 if (csound->GetDebug(csound)) {
@@ -596,13 +636,24 @@ extern "C" {
 
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
-        vstPlugEditors = new std::vector<VSTPlugin*>;
-        vstPlugins = new std::vector<VSTPlugin*>;
+        // It is necessary to store global references to plugins and editors from Seib's code
+        // so that their memory can be freed when the opcode module is destroyed.
+
+        #if defined(CSOUND_LIFECYCLE_DEBUG)
+        csound->Message(csound, "csoundModuleCreate: csound: %p thread: %d\n", csound, syscall(SYS_gettid));
+        #endif
+
+        int result = 0;
+        vstPlugins_t *vstPlugins = new vstPlugins_t;
+        result = csound::CreateGlobalPointer (csound, "vstPlugins", vstPlugins);
         return 0;
     }
 
     PUBLIC int csoundModuleInit(CSOUND *csound)
     {
+        #if defined(CSOUND_LIFECYCLE_DEBUG)
+        csound->Message(csound, "csoundModuleInit: csound: %p thread: %d\n", csound, syscall(SYS_gettid));
+        #endif
         OENTRY  *ep = (OENTRY *) &(localops[0]);
         int     err = 0;
         while (ep->opname != NULL) {
@@ -623,6 +674,11 @@ extern "C" {
 
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
+        #if defined(CSOUND_LIFECYCLE_DEBUG)
+        csound->Message(csound, "csoundModuleDestroy: csound: %p thread: %d\n", csound, syscall(SYS_gettid));
+        #endif
+        vstPlugins_t *vstPlugins = 0;
+        csound::QueryGlobalPointer(csound, "vstPlugins", vstPlugins);
         for (size_t i = 0, n = vstPlugins->size(); i < n; ++i) {
             if ((*vstPlugins)[i]) {
                 delete (*vstPlugins)[i];
@@ -631,14 +687,16 @@ extern "C" {
         }
         delete vstPlugins;
         vstPlugins = 0;
-        for (size_t i = 0, n = vstPlugEditors->size(); i < n; ++i) {
-            if ((*vstPlugEditors)[i]) {
-                delete (*vstPlugEditors)[i];
-            }
-            vstPlugEditors->clear();
-        }
-        delete vstPlugEditors;
-        vstPlugEditors = 0;
+        //~ vstPlugins_t *vstPlugEditors = 0;
+        //~ csound::QueryGlobalPointer(csound, "vstPlugEditors", vstPlugEditors);
+        //~ for (size_t i = 0, n = vstPlugEditors->size(); i < n; ++i) {
+            //~ if ((*vstPlugEditors)[i]) {
+                //~ delete (*vstPlugEditors)[i];
+            //~ }
+            //~ vstPlugEditors->clear();
+        //~ }
+        //~ delete vstPlugEditors;
+        //~ vstPlugEditors = 0;
         return 0;
     }
 }  // extern "C"

@@ -26,8 +26,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <stdlib.h>
@@ -427,7 +427,7 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
 #endif
     if (bytes > 0) {
       str[bytes] = '\0'; // terminate
-      csound->MessageS(csound, CSOUNDMSG_ORCH, str);
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", str);
     }
     return OK;
 }

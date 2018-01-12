@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"     /*                              LINEVENT.C      */
@@ -337,7 +337,13 @@ static void sensLine(CSOUND *csound, void *userData)
               //  csound->ErrorMsg(csound, Str("unmatched quotes"));
               //  goto Lerr;
               //}
-              if(c == '\\') { cp++; c = *cp;}
+
+              if(c == '\\') {
+                cp++;
+                if(*cp == '"') c = *cp; /* if it is a double quote */
+                /* otherwise we ignore it */
+                else cp--;
+              }
               sstrp[n++] = c;                   /*   save in private strbuf */
 
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {

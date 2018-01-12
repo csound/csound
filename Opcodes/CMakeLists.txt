@@ -1,7 +1,7 @@
 option(BUILD_CHUA_OPCODES "Build the chua opcodes" ON)
 option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
-option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
+option(BUILD_JACK_OPCODES "Build the JACK related opcodes" OFF)
 option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the Linear Algebra Opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
@@ -195,6 +195,8 @@ if(BUILD_JACK_OPCODES)
         list(APPEND jack_LIBS ${JACK_LIBRARY})
     endif()
     make_plugin(jacko jacko.cpp "${jack_LIBS}")
+    set_target_properties(jacko PROPERTIES COMPILE_FLAGS
+   "-std=c++11")
     make_plugin(jackTransport jackTransport.c "${jack_LIBS}")
 endif()
 
@@ -351,7 +353,7 @@ if(BUILD_VST4CS_OPCODES)
         endif()
     endif()
     install(TARGETS vst4cs
-        LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
+        LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
 
@@ -387,9 +389,9 @@ if(BUILD_ABLETON_LINK_OPCODES)
     endif()
     target_include_directories(ableton_link_opcodes PRIVATE ${ABLETON_LINK_HOME}/include)
     target_include_directories(ableton_link_opcodes PRIVATE ${ABLETON_LINK_HOME}/modules/asio-standalone/asio/include)
-    #install(TARGETS ableton_link_opcodes
-    #    LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
-    #    ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
+    install(TARGETS ableton_link_opcodes
+        LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
 
 add_subdirectory(stk)

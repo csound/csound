@@ -16,8 +16,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
     Faust Csound opcodes
 
@@ -425,7 +425,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
     return csound->InitError(csound,
                              Str("no factory available\n"));
   fobj = *fobjp;
-  while(fobj->cnt != factory) {
+  while((int) fobj->cnt != factory) {
     fobj = fobj->nxt;
     if(fobj == NULL)
       return csound->InitError(csound,
@@ -486,7 +486,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p){
   /* memory for sampAccurate offsets */
   csound->GetOParms(csound, &parms);
   if(parms.sampleAccurate){
-    int size;
+    size_t size;
     size = p->engine->getNumInputs()*sizeof(MYFLT *);
     if(p->memin.auxp == NULL ||
        p->memin.size < size)
@@ -507,7 +507,6 @@ void *init_faustgen_thread(void *pp){
   faustgen *p = ((hdata2 *) pp)->p;
   OPARMS parms;
   std::string err_msg;
-  int size;
   int argc = 3;
   const char* argv[argc];
   faustobj  **pfdsp, *fdsp;
@@ -592,7 +591,7 @@ void *init_faustgen_thread(void *pp){
   /* memory for sampAccurate offsets */
   csound->GetOParms(csound, &parms);
   if(parms.sampleAccurate){
-    int size;
+    size_t size;
     size = p->engine->getNumInputs()*sizeof(MYFLT *);
     if(p->memin.auxp == NULL ||
        p->memin.size < size)
@@ -693,7 +692,7 @@ int init_faustctl(CSOUND *csound, faustctl *p){
                              Str("no dsp instances available\n"));
   fobj = *fobjp;
 
-  while(fobj->cnt != instance) {
+  while((int) fobj->cnt != instance) {
     fobj = fobj->nxt;
     if(fobj == NULL)
       return csound->InitError(csound,

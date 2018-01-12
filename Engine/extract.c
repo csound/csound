@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -68,7 +68,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     extractStatics->offsect = 999;  extractStatics->offbeat = FL(0.0);
     //    while (fscanf(xfp, s) != EOF) {
     //  while (fscanf(xfp, "%.81s", s) != EOF) {
-    while (fscanf(xfp, "%.100s", s) > 0) {
+    while (fscanf(xfp, "%100s", s) > 0) {
     //  while (fgets(s, 82, xfp) > 0) {
       char *c = s;
       int i;

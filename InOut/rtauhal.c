@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <AudioUnit/AudioUnit.h>
@@ -277,7 +277,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                                      0, NULL, sizeof(AudioDeviceID), &dev);
 
         }
-        else csound->Warning(csound, Str("requested device %d out of range"),
+        else csound->Warning(csound, Str("requested device %d (%s) out of range"),
                              devnum, devinfo[CoreAudioDev].name);
       }
     }

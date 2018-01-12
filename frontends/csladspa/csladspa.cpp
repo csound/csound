@@ -16,8 +16,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-      02111-1307 USA
+      Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+      02110-1301 USA
 
 */
 
@@ -403,7 +403,6 @@ static LADSPA_Descriptor *init_descriptor(char *csdname, int plugindex)
   // and return NULL
   delete desc;
   delete[] PortNames;
-  delete[] ctlchn;
   delete[] PortDescriptors;
   delete[] PortRangeHints;
   cerr << "PLUGIN NOT LOADED: probably missing csLADSPA section\n";

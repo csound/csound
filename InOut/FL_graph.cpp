@@ -18,8 +18,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <FL/Fl.H>
@@ -232,7 +232,7 @@ void add_graph(CSOUND *csound, WINDAT *wdptr)
 
     for (m = 0; m < NUMOFWINDOWS; m++) {  // If text the same use slot
       if (ST(menu) != NULL) {
-        if (ST(menu)[m].text != NULL && wdptr->caption != NULL){
+        if (ST(menu)[m].text != NULL && strlen(wdptr->caption) == 0){
           if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
             replacing = 1;
             goto replace;
@@ -365,7 +365,10 @@ extern "C" {
   {
       FLGRAPH_GLOBALS *flgraphGlobals =
          (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
-                                                         "FLGRAPH_GLOBALS");
+                                                        "FLGRAPH_GLOBALS");
+      if (flgraphGlobals == 0) {
+          return OK;
+      }
       if (ST(form) && ST(graph_created) == 1) {
 
         if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {

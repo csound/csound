@@ -17,8 +17,8 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- 02111-1307 USA
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ 02110-1301 USA
  */
 
 #include "csoundCore.h"
@@ -30,16 +30,19 @@
 /* MEMORY COPYING FUNCTIONS */
 
 void myflt_copy_value(void* csound, void* dest, void* src) {
+  IGN(csound);
     MYFLT* f1 = (MYFLT*)dest;
     MYFLT* f2 = (MYFLT*)src;
     *f1 = *f2;
 }
 
 void asig_copy_value(void* csound, void* dest, void* src) {
+    IGN(csound);
     memcpy(dest, src, sizeof(MYFLT) * ((CSOUND*)csound)->ksmps);
 }
 
 void wsig_copy_value(void* csound, void* dest, void* src) {
+    IGN(csound);
     memcpy(dest, src, sizeof(SPECDAT));
     //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
 }
@@ -166,6 +169,7 @@ void arrayInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
 }
 
 void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    IGN(var);
     STRINGDAT *str = (STRINGDAT *)memblock;
     CSOUND* cs = (CSOUND*)csound;
     str->data = (char *) cs->Calloc(csound, 8);
@@ -174,6 +178,7 @@ void varInitMemoryString(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
 }
 
 void varInitMemoryFsig(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    IGN(var);
     PVSDAT *fsig = (PVSDAT *)memblock;
     IGN(csound);
     memset(fsig, 0, sizeof(PVSDAT));  /* VL: clear memory for now */

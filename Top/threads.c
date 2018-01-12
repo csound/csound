@@ -15,8 +15,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #if defined(__linux) || defined(__linux__)
@@ -426,8 +426,8 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
 PUBLIC int csoundWaitBarrier(void *barrier)
 {
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-    int ret;
-    unsigned int it;
+  int ret;
+  unsigned int it;
     barrier_t *b = (barrier_t *)barrier;
     pthread_mutex_lock(&b->mut);
     b->count++;

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -154,6 +154,7 @@ static int alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *data,
                                        int st, int d1, int d2)
 {
     midiEvent_t *tmp;
+    IGN(data);
     /* expand array if necessary */
     if (MF(nEvents) >= MF(maxEvents)) {
       MF(maxEvents) += (MF(maxEvents) >> 3);

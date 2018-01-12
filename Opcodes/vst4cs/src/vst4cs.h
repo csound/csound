@@ -21,8 +21,8 @@
 //
 //  You should have received a copy of the GNU Lesser General Public
 //  License along with The vst4cs library; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-//  02111-1307 USA
+//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+//  02110-1301 USA
 //
 //  Linking vst4cs statically or dynamically with other modules is making a
 //  combined work based on vst4cs. Thus, the terms and conditions of the GNU
@@ -51,18 +51,28 @@
 
 #include "csdl.h"
 
+class VSTPlugin;
+
+// In all of these, sizeof(MYFLT) is not necessarily equal to or greater than
+// sizeof(VSTPlugin *), hence type casting can not be used and a table of
+// handles must be used.
+
 typedef struct VSTINIT_ {
     OPDS    h;
     // Inputs.
     MYFLT   *iVSThandle;
     MYFLT   *iplugin;
     MYFLT   *iverbose;
+    // State.
+    VSTPlugin *vstplugin;
 } VSTINIT;
 
 typedef struct VSTINFO_ {
     OPDS    h;
     // Inputs.
     MYFLT   *iVSThandle;
+    // State.
+    VSTPlugin *vstplugin;
 } VSTINFO;
 
 typedef struct VSTAUDIO_ {
@@ -78,6 +88,7 @@ typedef struct VSTAUDIO_ {
     size_t  pluginOutChannels;
     size_t  opcodeInChannels;
     size_t  opcodeOutChannels;
+    VSTPlugin *vstplugin;
 } VSTAUDIO;
 
 typedef struct VSTNOTE_ {
@@ -93,6 +104,7 @@ typedef struct VSTNOTE_ {
     int     chn;
     int     note;
     size_t  framesRemaining;
+    VSTPlugin *vstplugin;
 } VSTNOTE;
 
 typedef struct VSTMIDIOUT_ {
@@ -106,6 +118,7 @@ typedef struct VSTMIDIOUT_ {
     // State.
     size_t  vstHandle;
     int     prvMidiData;
+    VSTPlugin *vstplugin;
 } VSTMIDIOUT;
 
 typedef struct VSTPARAMGET_ {
@@ -115,6 +128,8 @@ typedef struct VSTPARAMGET_ {
     // Intputs.
     MYFLT   *iVSThandle;
     MYFLT   *kparam;
+    // State.
+    VSTPlugin *vstplugin;
 } VSTPARAMGET;
 
 typedef struct VSTPARAMSET_ {
@@ -126,6 +141,7 @@ typedef struct VSTPARAMSET_ {
     // State.
     MYFLT   oldkparam;
     MYFLT   oldkvalue;
+    VSTPlugin *vstplugin;
 } VSTPARAMSET;
 
 typedef struct VSTBANKLOAD_ {
@@ -133,6 +149,8 @@ typedef struct VSTBANKLOAD_ {
     // Inputs.
     MYFLT   *iVSThandle;
     MYFLT   *ibank;
+    // State.
+    VSTPlugin *vstplugin;
 } VSTBANKLOAD;
 
 typedef struct VSTPROGSET_ {
@@ -140,18 +158,25 @@ typedef struct VSTPROGSET_ {
     // Inputs.
     MYFLT   *iVSThandle;
     MYFLT   *iprogram;
+    // State.
+    VSTPlugin *vstplugin;
 } VSTPROGSET;
 
 typedef struct VSTEDIT_ {
     OPDS    h;
     // Inputs.
     MYFLT   *iVSThandle;
+    // State.
+    VSTPlugin *vstplugin;
 } VSTEDIT;
 
 typedef struct VSTTEMPO_ { //gab
-        OPDS h;
-        // Inputs.
-        MYFLT *tempo,*iVSThandle;
+    OPDS h;
+    // Inputs.
+    MYFLT *tempo;
+    MYFLT *iVSThandle;
+    // State.
+    VSTPlugin *vstplugin;
 } VSTTEMPO;
 
 #endif

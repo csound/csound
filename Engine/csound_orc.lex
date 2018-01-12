@@ -20,8 +20,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <stdio.h>
@@ -556,7 +556,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 
 %%
 
-  /* currently unused
+  /* unused at the moment
 static inline int isNameChar(int c, int pos)
 {
     c = (int) ((unsigned char) c);
