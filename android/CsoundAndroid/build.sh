@@ -24,6 +24,6 @@ sed -i.bak "s/AttachCurrentThread((void \*\*)/AttachCurrentThread(/" jni/java_in
 # Actually build Csound.
 cd jni
 
-$NDK_BUILD_CMD V=1 $1
+$NDK_BUILD_CMD V=1 -j 6 $1
 
 
