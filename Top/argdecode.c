@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 #include "csoundCore.h"         /*                      ARGDECODE.C     */
 #include "soundio.h"
@@ -298,13 +298,14 @@ static const char *longUsageList[] = {
   Str_noop("--port=N                listen to UDP port N for instruments/orchestra "
                                     "code (implies --daemon)"),
   Str_noop("--vbr-quality=Ft        set quality of variable bit-rate compression"),
-  Str_noop("--devices[=in|out]      list available MIDI devices and exit"),
-  Str_noop("--midi-devices[=in|out] list available audio devices and exit"),
+  Str_noop("--devices[=in|out]      list available audio devices and exit"),
+  Str_noop("--midi-devices[=in|out] list available MIDI devices and exit"),
   Str_noop("--get-system-sr         print system sr and exit"),
   Str_noop("--ksmps=N               override ksmps"),
   Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, "
                                    "PFFFT = 1, vDSP =2)"),
   Str_noop("--udp-echo              echo UDP commands on terminal"),
+  Str_noop("--aft-zero              set aftertouch to zero, not 127 (default)"),
   " ",
   Str_noop("--help                  long help"),
   NULL
@@ -349,10 +350,10 @@ CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
     csound->ErrMsgV(csound, Str("Csound Command ERROR:    "), s, args);
     va_end(args);
     //***FIXME This code makes no sense
-    if (csound->info_message_request == 0) {
-      csound->info_message_request = 0;
-      csound->LongJmp(csound, 1);
-    }
+    /* if (csound->info_message_request == 0) { */
+    /*   csound->info_message_request = 0; */
+    /*   csound->LongJmp(csound, 1); */
+    /* } */
     //Added longjump -- JPff
     csound->LongJmp(csound, 1);
 }
@@ -1177,6 +1178,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         sfcloseout(csound);
       }
       csound->info_message_request = 1;
+      return 1;
+    }
+    else if (!(strcmp(s, "aft-zero"))){
+      csound->aftouch = 0;
       return 1;
     }
 

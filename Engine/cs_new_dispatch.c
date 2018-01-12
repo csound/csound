@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
 
 ** Fast system for managing task dependencies and dispatching to threads.
@@ -417,7 +417,7 @@ taskID dag_end_task(CSOUND *csound, taskID i)
     {                                      /* ATOMIC_SWAP */
       do {
         to_notify = ATOMIC_READ(task_watch[i]);
-      } while (!ATOMIC_CAS_PTR(&task_watch[i],to_notify, (struct _watchList *) &DoNotRead));
+      } while (!ATOMIC_CAS_PTR(&task_watch[i],to_notify,(watchList *) &DoNotRead));
     } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
     next = to_notify;

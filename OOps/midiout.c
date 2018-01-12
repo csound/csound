@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /****************************************/
@@ -68,6 +68,7 @@ int release(CSOUND *csound, REL *p)
 
 int xtratim(CSOUND *csound, XTRADUR *p)
 {
+    IGN(csound);
     int *xtra = &(p->h.insdshead->xtratim);
     int tim = (int)(*p->extradur * p->h.insdshead->ekr);
     if (*xtra < tim)  /* gab-a5 revised */
@@ -77,6 +78,7 @@ int xtratim(CSOUND *csound, XTRADUR *p)
 
 int mclock_set(CSOUND *csound, MCLOCK *p)
 {
+    IGN(csound);
     p->period= CS_EKR / *p->freq;
     p->clock_tics = p->period;
     p->beginning_flag = TRUE;
@@ -197,6 +199,7 @@ int iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
 
 int moscil_set(CSOUND *csound, MOSCIL *p)
 {
+    IGN(csound);
     if (p->h.insdshead->xtratim < EXTRA_TIME)
       /* if not initialised by another opcode */
       p->h.insdshead->xtratim = EXTRA_TIME;

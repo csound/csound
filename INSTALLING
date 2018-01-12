@@ -2,7 +2,7 @@ INSTALLING CSOUND 6
 
 To install prebuilt binaries for Linux on Intel, Windows, and OS X,
 obtain the appropriate archive or installer
-from the Files page at http://sourceforge.net/projects/csound.
+from https://github.com/csound/csound/releases
 
 To build from sources using the Csound GIT repository
 at Github or using a source archive, follow the instructions in

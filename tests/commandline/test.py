@@ -162,7 +162,7 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
+    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '$HOME/tmp/csound_test_output.txt'
     counter = 1
 
     retVals = []

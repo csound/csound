@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                                                         /*      UGRW1.H */
@@ -277,9 +277,8 @@ typedef struct {
         MYFLT   *ptime;         /* How much time to leave between each print*/
         MYFLT   *val;           /* Value to print */
         MYFLT   *space;         /* Spaces to insert before printing */
-        MYFLT   initime, ctime; /* Time when initialised; initialised */
+        MYFLT   printat, ctime; /* Time when initialised; initialised */
         int32   pspace;         /* How many spaces to print */
-        int32   cysofar;        /* Number of print cycles so far */
         int     initialised;    /* Non zero for initialised */
 } PRINTK;
 
@@ -289,8 +288,7 @@ typedef struct {
         MYFLT   *ifilcod;       /* File name */
         MYFLT   *ptime;         /* How much time to leave between each print */
         MYFLT   *kvals[VARGMAX];/* values to print */
-        MYFLT   initime, ctime; /* Time when initialised; Cycle time */
-        int32   cysofar;        /* Number of print cycles so far from 0 */
+        MYFLT   printat, ctime; /* Time when initialised; Cycle time */
         int     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
         char* old;

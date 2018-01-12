@@ -1,3 +1,27 @@
+/*
+    OpcodeBase.hpp:
+
+    Copyright (C) 2005, 2009, 2017 by Istva Varga, Victor Lazzarini and
+                                      Michael Gogins
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+*/
+
 #ifndef OPCODE_BASE_H
 #define OPCODE_BASE_H
 
@@ -63,6 +87,48 @@ struct LockGuard {
     CSOUND *csound;
     void *mutex;
 };
+
+/**
+ * Use this to store a pointer to a global heap-allocated object, e.g. one
+ * used to manage state between opcode instances.
+ */
+
+template<typename T> int CreateGlobalPointer(CSOUND *csound, const char *name, T *pointer)
+{
+    T **pointer_to_pointer = 0;
+    int result = csound->CreateGlobalVariable(csound, name, sizeof(pointer_to_pointer));
+    pointer_to_pointer = static_cast<T **>(csound->QueryGlobalVariable(csound, name));
+    *pointer_to_pointer = pointer;
+    return result;
+}
+
+/**
+ * Retrieve a pointer to a global heap-allocated object, e.g. one
+ * used to manage state between opcode instances.
+ */
+template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*& pointer)
+{
+    T **pointer_to_pointer = static_cast<T **>(csound->QueryGlobalVariableNoCheck(csound, name));
+    if (pointer_to_pointer != 0) {
+        pointer = *pointer_to_pointer;
+    } else {
+        pointer = 0;
+    }
+    return pointer;
+}
+
+
+/**
+ * Release a pointer to a global heap-allocated object, e.g. one used to
+ * manage state between opcode instances. If a non-null pointer is passed, it is deleted.
+ */
+template<typename T> void DestroyGlobalPointer(CSOUND *csound, const char *name, T *pointer)
+{
+    csound->DestroyGlobalVariable(csound, name);
+    if (pointer != 0) {
+        delete pointer;
+    }
+}
 
 template<typename T>
 class OpcodeBase

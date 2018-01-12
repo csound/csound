@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
@@ -1783,7 +1783,8 @@ typedef struct _message_queue_t_ {
     volatile long msg_queue_wget; /* Writer - Get index */
     volatile long msg_queue_wput; /* Writer - Put Index */
     volatile long msg_queue_rstart; /* Reader - start index */
-    volatile long msg_queue_items;    
+    volatile long msg_queue_items;
+    int      aftouch;
     void     *directory;
     ALLOC_DATA *alloc_queue;
     volatile unsigned long alloc_queue_items;

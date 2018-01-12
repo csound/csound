@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <csdl.h>
@@ -432,33 +432,40 @@ static int cmp_init(CSOUND *csound, Cmp *p) {
 }
 
 static int cmp_aa(CSOUND *csound, Cmp* p) {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT *a0 = p->a0;
     MYFLT *a1 = p->a1;
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     switch(p->mode) {
     case 0:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] > a1[n];
       }
       break;
     case 1:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] >= a1[n];
       }
       break;
     case 2:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] < a1[n];
       }
       break;
     case 3:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] <= a1[n];
       }
       break;
     case 4:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] == a1[n];
       }
       break;
@@ -467,33 +474,40 @@ static int cmp_aa(CSOUND *csound, Cmp* p) {
 }
 
 static int cmp_ak(CSOUND *csound, Cmp* p) {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT *out = p->out;
     MYFLT *a0 = p->a0;
     MYFLT a1 = *(p->a1);
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
     switch(p->mode) {
     case 0:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] > a1;
       }
       break;
     case 1:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] >= a1;
       }
       break;
     case 2:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] < a1;
       }
       break;
     case 3:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] <= a1;
       }
       break;
     case 4:
-      for(n=0; n<nsmps; n++) {
+      for(n=offset; n<nsmps; n++) {
         out[n] = a0[n] == a1;
       }
       break;

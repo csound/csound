@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Realtime MIDI using Portmidi library */
@@ -165,7 +165,7 @@ static int start_portmidi(CSOUND *csound)
     csoundUnLock();
 #endif
     if (UNLIKELY(errMsg != NULL)) {
-      csound->ErrorMsg(csound, Str(errMsg));
+      csound->ErrorMsg(csound, "%s", Str(errMsg));
       return -1;
     }
     //#if !defined(WIN32)

@@ -18,14 +18,19 @@ qmake.exe qcs.pro ^
     DEFAULT_CSOUND_LIBS=csound64.lib ^
     CSOUND_LIBRARY=csound64.lib ^
     LCSOUND=%APPVEYOR_BUILD_FOLDER%\\msvc\\csound-vs\\RelWithDebInfo\\csound64.lib ^
-    LIBS+="%VCPKGDir%\\installed\\x64-windows\\lib\\libsndfile-1.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\libsndfile.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\flac.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\ogg.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\vorbis.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\vorbisenc.lib" ^
+    LIBS+="%VCPKGDir%\\installed\\x64-windows-static\\lib\\vorbisfile.lib" ^
     LIBS+="%APPVEYOR_BUILD_FOLDER%\\msvc\\csound-vs\\RelWithDebInfo\\csound64.lib" ^
     LIBS+="Ole32.lib" ^
     -after ^
     CSOUND_INTERFACES_INCLUDE_DIR+="%~dp0deps\\include" ^
     CSOUND_INTERFACES_INCLUDE_DIR+="%APPVEYOR_BUILD_FOLDER%\\deps\\include" ^
-    CSOUND_INTERFACES_INCLUDE_DIR+="%VCPKGDir%\\installed\\x64-windows\\include" ^
-    INCLUDEPATH+="%VCPKGDir%\\installed\\x64-windows\\include"
+    CSOUND_INTERFACES_INCLUDE_DIR+="%VCPKGDir%\\installed\\x64-windows-static\\include" ^
+    INCLUDEPATH+="%VCPKGDir%\\installed\\x64-windows-static\\include"
 nmake.exe /A
 move "bin\\CsoundQt*.*" "..\\..\\csound-vs\\RelWithDebInfo\\"
 cd ..\..
