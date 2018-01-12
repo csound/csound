@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* This program converted from the FORTRAN routines by Singleton in
@@ -842,6 +842,7 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int n, int isn)
   /* See IEEE book for a long comment here on usage */
 
 {
+    IGN(csound);
     int inc,
       j,
       k,

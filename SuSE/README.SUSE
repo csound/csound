@@ -3,11 +3,14 @@ Plugin Directories
 
 The plugin binaries are installed under /usr/lib/csound/plugins
 (/usr/lib64/csound/plugins in x86_64).  Please set the environment variable
-"OPCODE6DIR" to this directory before starting csound.
+"OPCODEDIR" to this direcrory before starting csound.
 in bash style,
-	export OPCODE6DIR64=/usr/lib/csound/plugins
+	export OPCODEDIR=/usr/lib/csound/plugins
 in tcsh style,
-	setenv OPCODE6DIR64 /usr/lib/csound/plugins
+	setenv OPCODEDIR /usr/lib/csound/plugins
+
+Also, set CSSTRINGS variable such as
+	export CSSTRINGS=/usr/share/csound/xmg
 
 
 Binary Renaming

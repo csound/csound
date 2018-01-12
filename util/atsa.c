@@ -20,8 +20,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #define _FILE_OFFSET_BITS 64
@@ -2453,12 +2453,14 @@ static inline double amp2db_spl(double amp)
     return (amp2db(amp) + ATSA_MAX_DB_SPL);
 }
 
-/* unused at the moment 
+
+/*
 static inline double db2amp_spl(double db_spl)
 {
     return (db2amp(db_spl - ATSA_MAX_DB_SPL));
 }
 */
+
 /* ppp2
  * ====
  * returns the closest power of two

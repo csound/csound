@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csdl.h"
@@ -380,25 +380,25 @@ uintptr_t OSCthread(void *pp) {
   return 0;
 }
 
-static int osc_send_async_set(CSOUND *csound, OSCSEND *p) {
-  p->csound = csound;
-  return osc_send_set(csound, p);
-}
+/* static int osc_send_async_set(CSOUND *csound, OSCSEND *p) { */
+/*   p->csound = csound; */
+/*   return osc_send_set(csound, p); */
+/* } */
 
-static int osc_send_async(CSOUND *csound, OSCSEND *p) {
-    /*RTCLOCK t;
-      csound->InitTimerStruct(&t);*/
-    if (*p->kwhen != p->lasta) {
-      if (p->thread != NULL) {
-        csound->JoinThread(p->thread);
-        p->thread = NULL;
-      }
-      p->thread = csound->CreateThread(OSCthread, p);
-      p->lasta = *p->kwhen;
-    }
-    // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.);
-    return OK;
-}
+/* static int osc_send_async(CSOUND *csound, OSCSEND *p) { */
+/*     /\*RTCLOCK t; */
+/*       csound->InitTimerStruct(&t);*\/ */
+/*     if (*p->kwhen != p->lasta) { */
+/*       if (p->thread != NULL) { */
+/*         csound->JoinThread(p->thread); */
+/*         p->thread = NULL; */
+/*       } */
+/*       p->thread = csound->CreateThread(OSCthread, p); */
+/*       p->lasta = *p->kwhen; */
+/*     } */
+/*     // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.); */
+/*     return OK; */
+/* } */
 
 
 /* get pointer to globals structure, allocating it on the first call */
@@ -920,8 +920,8 @@ static OENTRY localops[] = {
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
   { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS",
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
-  { "OSCsendA", S(OSCSEND), 0, 3, "", "kSkSS*",
-    (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL }
+  /* { "OSCsendA", S(OSCSEND), _QQ, 3, "", "kSkSS*", */
+  /*   (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL } */
 };
 
 PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)

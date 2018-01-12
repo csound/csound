@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"                             /*   SREAD.C     */
@@ -249,6 +249,7 @@ static int getscochar(CSOUND *csound, int expand)
 {
 /* Read a score character, expanding macros if flag set */
     int     c;
+    IGN(expand);
 #ifdef never
 /* top: */
 /*   c = corfile_getc(STA(str)->cf); */
@@ -788,6 +789,7 @@ static void init_smacros(CSOUND *csound, NAMES *nn)
 void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
+    IGN(sco);
     STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
     STA(input_size) = 20;
     STA(input_cnt) = 0;

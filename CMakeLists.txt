@@ -152,6 +152,23 @@ else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
 
+# in Release configuration, set NDEBUG
+if(${CMAKE_BUILD_TYPE} MATCHES "Release")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+endif()
+
+if(APPLE)
+set(CMAKE_REQUIRED_INCLUDES time.h)
+CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
+if(${CLOCK_GETTIME})
+ message(STATUS  "clock_gettime() found")
+ set(CMAKE_C_FLAGS "-DHAVE_CLOCK_GETTIME ${CMAKE_C_FLAGS}")
+else()
+ message(STATUS  "clock_gettime() not found")
+endif()
+endif()
+
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
     set(LIBRARY_INSTALL_DIR "lib64")
@@ -322,6 +339,17 @@ if(MSVC)
   # Experimented with flags but did not make change performance results
   #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
+  #set(CompilerFlags
+  #  CMAKE_CXX_FLAGS
+  #  CMAKE_CXX_FLAGS_DEBUG
+  #  CMAKE_CXX_FLAGS_RELEASE
+  #  CMAKE_C_FLAGS
+  #  CMAKE_C_FLAGS_DEBUG
+  #  CMAKE_C_FLAGS_RELEASE
+  #  )
+  #foreach(CompilerFlag ${CompilerFlags})
+  #  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+  #endforeach()
 else()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
@@ -464,7 +492,7 @@ SET(BUILD_SHARED_LIBS ON)
 
 # First, required stuff
 if (MSVC)
-  find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1 HINTS ${PROJECT_SOURCE_DIR}/msvc/deps/lib)
+  find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 else()
   find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
 endif()
@@ -477,17 +505,17 @@ endif()
 find_package(CURL)
 set(FLTK_SKIP_OPENGL true)
 find_package(FLTK )
-if (FLTK_FOUND AND MSVC)
-    # If "SHARED" variants of FLTK libraries exist, use them.
-    find_library(FLTK_SHARED_VARIANT "fltk_SHARED")
-    message(STATUS "FLTK_SHARED_VARIANT:" ${FLTK_SHARED_VARIANT})
-    if(FLTK_SHARED_VARIANT)
-        message(STATUS "Using 'SHARED' variants of FLTK libraries.")
-        LIST_REPLACE(FLTK_LIBRARIES 0 "fltk_SHARED")
-        LIST_REPLACE(FLTK_LIBRARIES 1 "fltk_forms_SHARED")
-        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
-    endif()
-endif()
+#if (FLTK_FOUND AND MSVC)
+#    # If "SHARED" variants of FLTK libraries exist, use them.
+#    find_library(FLTK_SHARED_VARIANT "fltk_SHARED")
+#    message(STATUS "FLTK_SHARED_VARIANT:" ${FLTK_SHARED_VARIANT})
+#    if(FLTK_SHARED_VARIANT)
+#        message(STATUS "Using 'SHARED' variants of FLTK libraries.")
+#        LIST_REPLACE(FLTK_LIBRARIES 0 "fltk_SHARED")
+#        LIST_REPLACE(FLTK_LIBRARIES 1 "fltk_forms_SHARED")
+#        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
+#    endif()
+#endif()
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
@@ -502,14 +530,17 @@ find_package(SWIG)
 find_package(VSTSDK2X)
 
 # TODO should this work for MSVC also?
-if(WIN32 AND NOT MSVC)
-  find_library(FLAC_LIB FLAC)
+if(WIN32)
+  find_library(FLAC_LIB NAMES FLAC flac)
   find_library(OGG_LIB ogg)
   find_library(SPEEX_LIB speex)
   find_library(VORBIS_LIB vorbis)
   find_library(VORBISENC_LIB vorbisenc)
-  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${SPEEX_LIB} ${FLAC_LIB} ${OGG_LIB}
-)
+  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${FLAC_LIB} ${OGG_LIB})
+  if(SPEEX_LIB) 
+    list(APPEND LIBSNDFILE_SUPPORT_LIBS ${SPEEX_LIB} )
+  endif()
+  #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
 endif()
 
 find_path(SNDFILE_H_PATH sndfile.h)
@@ -1172,9 +1203,7 @@ endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
-    if(NOT MSVC)
-      list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
-    endif()
+    list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
 else()
 endif()
 

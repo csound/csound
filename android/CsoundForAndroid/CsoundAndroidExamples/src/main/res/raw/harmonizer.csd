@@ -4,13 +4,14 @@
 </CsOptions>
 <CsInstruments>
 nchnls=2
+nchnls_i=1
 0dbfs=1
 ksmps=64
 sr = 22050
 
 instr 3
 
-asig,asig1 ins
+asig inch 1
 
 ksl chnget "slider"
 kgain chnget "gain"
@@ -18,7 +19,7 @@ fsig1 pvsanal asig,2048,256,2048,1
 fsig2 pvscale fsig1,0.75+ksl,1
 fsig3 pvscale fsig1,(0.75+ksl)*1.25,1
 fsig4 pvsmix fsig2, fsig3
-a1 pvsynth fsig4 
+a1 pvsynth fsig4
 
 a1 = a1 * kgain
    outs a1,a1

@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"     /*                              MEMFILES.C      */
@@ -675,7 +675,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     p->data[p->nFrames] = 0.0f;
     csound->FileClose(csound, fd);
-    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %d "
+    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %lld "
                                 "sample frames) loaded into memory\n"),
                             p->fullName, (int) sfinfo->samplerate,
                             (int) sfinfo->channels,

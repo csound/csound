@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0 -i adc
+-o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0
 </CsOptions>
 <CsInstruments>
 nchnls=2
@@ -21,7 +21,7 @@ endin
 f1 0 16384 10 1
 
 i1 0 360000
- 
+
 </CsScore>
 </CsoundSynthesizer>
 <bsbPanel>

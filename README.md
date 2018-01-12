@@ -1,5 +1,5 @@
 # CSOUND
-Version 6.09 beta
+Version 6.10.0
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg)
@@ -22,8 +22,8 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this software; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+02110-1301 USA
 
 # GETTING STARTED
 

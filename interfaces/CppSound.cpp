@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #include "CppSound.hpp"
 
@@ -54,7 +54,7 @@ int CppSound::compile(int argc, const char **argv_)
   // Changed to use only internally stored Csound orchestra and score.
   returnValue = csoundCompileOrc(csound, getOrchestra().c_str());
   returnValue = csoundReadScore(csound, getScore().c_str());
-  for (int i = 0; i < argv.size(); ++i) {
+  for (int i = 0; (size_t) i < argv.size(); ++i) {
       Message("arg %3d: %s\n", i, argv[i]);
       csoundSetOption(csound, argv[i]);
   }

@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h" /*                            GOTO_OPS.C        */
@@ -157,7 +157,8 @@ int tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
 
 int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 {
-    if (!p->h.insdshead->reinitflag)
+  IGN(csound);
+  if (!p->h.insdshead->reinitflag)
       *p->r = p->h.insdshead->tieflag;
     /* *p->r = (csound->tieflag ? FL(1.0) : FL(0.0)); */
     return OK;

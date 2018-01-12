@@ -16,8 +16,7 @@
  *
  */
 
-// only available on Linux (no /proc/stat on OSX)
-#if defined(LINUX)
+#ifndef WIN32
 
 #include "csoundCore.h"
 #include <time.h>
@@ -36,6 +35,8 @@
 #include <limits.h>
 #include <float.h>
 
+// only available on Linux (no /proc/stat on OSX)
+#if defined(LINUX)
 /*######  Miscellaneous global stuff  ####################################*/
 #define SMLBUFSIZ (512)
 #define TEST (0)
@@ -207,6 +208,23 @@ static int cpupercent(CSOUND *csound, CPUMETER* p)
     return OK;
 }
 
+#else
+typedef struct {
+        OPDS    h;
+        MYFLT   *k0, *kk[8], *itrig;
+} CPUMETER;
+
+
+int cpupercent_init(CSOUND *csound, CPUMETER *p) {
+  csound->Message(csound, "not implemented\n");
+  return OK;
+}
+
+int cpupercent(CSOUND *c, CPUMETER *p) {
+  return OK;
+}
+#endif
+
 typedef struct {
     OPDS   h;
     MYFLT  *ti;
@@ -214,14 +232,15 @@ typedef struct {
 
 
 static int systime(CSOUND *csound, SYST *p){
+#if HAVE_CLOCK_GETTIME
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     *p->ti = round((ts.tv_sec + ts.tv_nsec/1.e9)*1000);
+#else
+    *p->ti = FL(0.0);
+#endif
     return OK;
 }
-
-
-
 
 #define S(x)    sizeof(x)
 
@@ -233,5 +252,5 @@ static OENTRY cpumeter_localops[] = {
 };
 
 LINKAGE_BUILTIN(cpumeter_localops)
-
 #endif
+

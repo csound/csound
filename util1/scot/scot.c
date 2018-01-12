@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*                                                      SCOT.C       */
@@ -165,8 +165,10 @@ void readinstsec(Inst *inst,
         }
         else if (!strncmp(s, "timesignature", c)) {
           efindword(s);
-          if ((sscanf(s, "%lu/%lu", &timesig->num, &timesig->denom) != 2) /*||
-									    (&timesig->denom == 0) */) {
+
+          if ((sscanf(s, "%lu/%lu", &timesig->num, &timesig->denom) != 2)
+              ||
+              (&(timesig->denom) == 0) ) {
             scoterror(Str("Invalid time signature"));
             timesig->num = 0;
             timesig->denom = 1;

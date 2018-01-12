@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -54,6 +54,7 @@ int s_opcode(CSOUND *csound, STRGET_OP *p){
 }
 
 int s_opcode_k(CSOUND *csound, STRGET_OP *p){
+     IGN(csound);
     snprintf(p->r->data, p->r->size, "%f", *p->indx);
     return OK;
 }
@@ -207,12 +208,14 @@ int strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 
 int strassign_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
+   IGN(csound);
     p->r->data = p->str->data;
     p->r->size = p->str->size;
     return OK;
 }
 int strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
 {
+    IGN(csound);
     if (strcmp(p->r->data, p->str->data)!=0){
       p->r->data = p->str->data;
       p->r->size = p->str->size;
@@ -638,6 +641,7 @@ int strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
 
 int strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
 {
+    IGN(csound);
     char    *s = NULL, *tmp;
     double  x;
     s = (char*) p->str->data;
@@ -654,6 +658,7 @@ int strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
 
 int strtol_opcode_S(CSOUND *csound, STRSET_OP *p)
 {
+    IGN(csound);
     char  *s = NULL;
     int   sgn = 0, radix = 10;
     int32  x = 0L;

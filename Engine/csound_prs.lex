@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <stdio.h>
@@ -91,7 +91,9 @@ END             #end(if)?[ \t]*(;.*)?(\n|\r\n?)
 LOOP            #loop
 EXIT            #exit
 CONT            \\[ \t]*(;.*)?(\n|\r\n?)
-SEND            [es]
+SEND            ^[ \t]*[es]
+ROP             ^[ \t]*r
+
 NM              [nm]
 
 %X incl
@@ -532,10 +534,33 @@ NM              [nm]
                   do {
                     c = input(yyscanner);
                   } while (isblank(c));
-                  while (isdigit(c)) {
+                  if (c=='$') { // macro to yield count
+                    char buf[256];
+                    int i=0;
+                    MACRO* mm;
+                    //printf("*** macro count\n");
+                    while (!isblank(c=input(yyscanner)) && c!='.') {
+                      buf[i++] = c;
+                    }
+                    if (c=='.') c = input(yyscanner);
+                    buf[i] = '\0';
+                    //printf("*** lookup macro %s\n", buf);
+                    if ((mm = find_definition(PARM->macros, buf))==NULL) {
+                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
+                     //csound->LongJmp(csound, 1);
+                     corfile_puts(csound, "$error", PARM->cf);
+                     PARM->repeat_cnt_n[PARM->repeat_index] = 0;
+                    }
+                   else
                     PARM->repeat_cnt_n[PARM->repeat_index] =
+                      atoi(mm->body);
+                  }
+                  else {
+                    while (isdigit(c)) {
+                      PARM->repeat_cnt_n[PARM->repeat_index] =
                       10 * PARM->repeat_cnt_n[PARM->repeat_index] + c - '0';
-                    c = input(yyscanner);
+                      c = input(yyscanner);
+                    }
                   }
                   if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0
                                || !isspace(c)))
@@ -653,8 +678,8 @@ NM              [nm]
             PARM->repeat_index--;
           }
        }
-"r"    {
-         if (PARM->isString) corfile_putc(csound, 'r', PARM->cf);
+{ROP}  {
+         if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
          else {
            int c, i;
            char buff[120];
@@ -674,8 +699,10 @@ NM              [nm]
              c = input(yyscanner);
            }
            if (UNLIKELY(PARM->repeat_sect_cnt <= 0
-                        || !isspace(c)))
-             csound->Die(csound, Str("r: invalid repeat count"));
+                        || !isspace(c))) {
+             csound->Message(csound, Str("r: invalid repeat count"));
+             csound->LongJmp(csound, 1);
+           }
            if (UNLIKELY(csound->oparms->odebug))
              csound->Message(csound, Str("r LOOP=%d\n"), PARM->repeat_sect_cnt);
            while (isblank(c)) {
@@ -718,8 +745,9 @@ NM              [nm]
         }
 {SEND}  {
           if (!PARM->isString) {
+            int op = yytext[strlen(yytext)-1];
             //printf("section end %d %c\n%s\n",
-            //       PARM->in_repeat_sect,yytext[0], PARM->cf->body);
+            //       PARM->in_repeat_sect, op, PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
               corfile_putc(csound, 's', PARM->cf);
               while (1) {
@@ -729,7 +757,7 @@ NM              [nm]
                 corfile_putc(csound, c, PARM->cf);
               }
               corfile_putc(csound, '\n', PARM->cf);
-              unput(yytext[0]);
+              unput(op);
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
@@ -765,7 +793,7 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
-                /* corfile_putc(csound, yytext[0], PARM->cf); */
+                /* corfile_putc(csound, op, PARM->cf); */
                 /* corfile_putc(csound, '\n', PARM->cf); */
                 //printf("end of loop\n");
                 PARM->in_repeat_sect=0;
@@ -775,7 +803,7 @@ NM              [nm]
               }
             }
             else {
-              corfile_putc(csound, yytext[0], PARM->cf);
+              corfile_putc(csound, op, PARM->cf);
                 /* while (1) { */
                 /*   int c = input(yyscanner); */
                 /*   printf("**copy %.2x(%c)\n", c, c); */
@@ -785,7 +813,7 @@ NM              [nm]
                 /* } */
             }
           }
-          else corfile_putc(csound, yytext[0], PARM->cf);
+          else corfile_puts(csound, yytext, PARM->cf);
         }
 .       { corfile_putc(csound, yytext[0], PARM->cf); }
 
@@ -1306,7 +1334,7 @@ void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
       if (p == NULL)
         p = s + strlen(s);
       if (UNLIKELY(csound->oparms->msglevel & 7))
-        csound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
+        csound->Message(csound, Str("Macro definition for %*s\n"), (int) (p - s), s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {
         csound->Die(csound, Str("Invalid macro name for --smacro"));

@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include "entry1.h"             /*                      ENTRY1.C        */
@@ -94,9 +94,9 @@ OENTRY opcodlst_1[] = {
 
   /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
   /* and setksmps */
-  { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd },
+  { "##userOpcode", S(UOPCODE),0, 7, "", "", useropcdset, useropcd, useropcd, NULL },
   /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-  { "xin",  S(XIN_MAX),0,   1,  "****************", "",  xinset,  NULL, NULL },
+  { "xin",  S(XIN_MAX),0,   1,  "****************", "",  xinset,  NULL, NULL, NULL },
   /* { "xin.64",   S(XIN_HIGH),0,  1,
     "****************************************************************", "",
     xinset,  NULL, NULL },
@@ -106,7 +106,7 @@ OENTRY opcodlst_1[] = {
     "****************************************************************"
     "****************************************************************", "",
     xinset,  NULL, NULL },*/
-  { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL },
+  { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
@@ -487,8 +487,8 @@ OENTRY opcodlst_1[] = {
   { "soundouts",S(SNDOUTS),_QQ, 5,  "",    "aaSo", sndoutset_S, NULL, soundouts },
   { "soundouts.i",S(SNDOUTS),_QQ, 5,  "",    "aaio", sndoutset, NULL, soundouts },
   { "in.a",   S(INM),0,     4,      "a",    "",     NULL,   NULL,   in      },
-  { "in.s",   S(INM),0,     4,      "aa",    "",     NULL,   NULL,   ins      },
-  { "in.A",   S(INM),0,     4,      "a[]",  "",     NULL,   NULL,   inarray },
+  { "in.s",   S(INS),0,     4,      "aa",    "",     NULL,   NULL,   ins      },
+  { "in.A",   S(INA),0,     4,      "a[]",  "",     NULL,   NULL,   inarray },
   { "ins",    S(INS),0,     4,      "aa",   "",     NULL,   NULL,   ins     },
   { "inq",    S(INQ),0,     4,      "aaaa", "",     NULL,   NULL,   inq     },
   { "out.a",  S(OUTX),0,     5,      "",     "y",    ochn,   NULL,   outall },
