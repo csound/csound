@@ -46,7 +46,7 @@ def showHelp():
     print message
 
 def runTest():
-    runArgs = "-Wdo test.wav"
+    runArgs = "-nd"# "-Wdo test.wav"
 
     if (parserType == "--old-parser"):
         print "Testing with old parser"
