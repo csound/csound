@@ -7,7 +7,7 @@ fi
 
 export LUAJIT_JNI=`pwd`/pluginlibs/patches/luajit-2.0/jni
 
-echo "Using NDK_MODULE_PATH: $NDK_MODULE_PATH\n"
+echo "Using NDK_MODULE_PATH: $NDK_MODULE_PATH"
 cd $NDK_MODULE_PATH
 
 # LIBSNDFILE
