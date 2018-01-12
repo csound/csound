@@ -21,7 +21,7 @@ LOCAL_LDLIBS += -ldl
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Opcodes/LuaCsound.cpp
 
-LOCAL_STATIC_LIBRARIES += luajit-5.1
+LOCAL_STATIC_LIBRARIES += luajit
 
 include $(BUILD_SHARED_LIBRARY)
 
