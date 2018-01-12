@@ -46,7 +46,7 @@ def showHelp():
     print message
 
 def runTest():
-    runArgs = "-n" # VL: best not to write audio when testing, can be disabled if needed
+    runArgs = "-Wdo test.wav"
 
     if (parserType == "--old-parser"):
         print "Testing with old parser"
@@ -162,7 +162,7 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '$HOME/tmp/csound_test_output.txt'
+    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
     counter = 1
 
     retVals = []
