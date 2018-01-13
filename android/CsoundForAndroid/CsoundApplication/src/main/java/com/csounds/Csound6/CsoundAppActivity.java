@@ -93,7 +93,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
     CsoundUI csoundUI = null;
     File csound_file = null;
     Button pad = null;
-    WebView htmlView = null;
+    WebView webView = null;
     LinearLayout channelsLayout = null;
     ArrayList<SeekBar> sliders = new ArrayList<SeekBar>();
     ArrayList<Button> buttons = new ArrayList<Button>();
@@ -437,6 +437,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         postMessageClear_(message_, true);
     }
 
+    private StringBuilder csoundMessageStringBuilder = new StringBuilder();
     private synchronized void postMessageClear_(String message_,
                                                 boolean doClear_) {
         final String message = message_;
@@ -452,6 +453,20 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                 }
                 messageTextView.append(message);
                 messageScrollView.fullScroll(ScrollView.FOCUS_DOWN);
+                // Send Csound messages to the WebView's console.log function.
+                // This should happen when and only when a newline appears
+                // in the message, but the newline itself should not be sent.
+                for (int i = 0, n = message.length(); i < n; i++){
+                    char c = message.charAt(i);
+                    if (c == '\n') {
+                        String line = csoundMessageStringBuilder.toString();
+                        String code = String.format("console.log(\"%s\")", line);
+                        webView.evaluateJavascript(code, null);
+                        csoundMessageStringBuilder.setLength(0);
+                    } else {
+                        csoundMessageStringBuilder.append(c);
+                    }
+                }
                 Log.i("Csound6", message);
             }
         });
@@ -507,8 +522,8 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
             if (!(start == -1 || end == -1)) {
                 html5Page = csdText.substring(start, end);
                 if (html5Page.length() > 1) {
-                    htmlView.setLayerType(View.LAYER_TYPE_NONE, null);
-                    WebSettings settings = htmlView.getSettings();
+                    webView.setLayerType(View.LAYER_TYPE_NONE, null);
+                    WebSettings settings = webView.getSettings();
                     // Page itself must specify utf-8 in meta tag?
                     settings.setDefaultTextEncodingName("utf-8");
                     settings.setDomStorageEnabled(true);
@@ -524,12 +539,12 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                     }
                     File basePath = csound_file.getParentFile();
                     baseUrl = basePath.toURI().toURL();
-                    htmlView.loadDataWithBaseURL(baseUrl.toString(),
+                    webView.loadDataWithBaseURL(baseUrl.toString(),
                             html5Page, "text/html", "utf-8", null);
                 }
             } else {
-                htmlView.onPause();
-                htmlView.pauseTimers();
+                webView.onPause();
+                webView.pauseTimers();
             }
             View mainLayout = findViewById(R.id.mainLayout);
             mainLayout.invalidate();
@@ -544,23 +559,23 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
         screenLayout = sharedPreferences.getString("screenLayout", "1");
         if (screenLayout.equals("1")) {
             channelsLayout.setVisibility(channelsLayout.GONE);
-            htmlView.setVisibility(htmlView.GONE);
+            webView.setVisibility(webView.GONE);
             messageScrollView.setVisibility(messageScrollView.VISIBLE);
         } else if (screenLayout.equals("2")) {
             channelsLayout.setVisibility(channelsLayout.GONE);
-            htmlView.setVisibility(htmlView.VISIBLE);
+            webView.setVisibility(webView.VISIBLE);
             messageScrollView.setVisibility(messageScrollView.GONE);
         } else if (screenLayout.equals("3")) {
             channelsLayout.setVisibility(channelsLayout.GONE);
-            htmlView.setVisibility(htmlView.VISIBLE);
+            webView.setVisibility(webView.VISIBLE);
             messageScrollView.setVisibility(messageScrollView.VISIBLE);
         } else if (screenLayout.equals("4")) {
             channelsLayout.setVisibility(channelsLayout.VISIBLE);
-            htmlView.setVisibility(htmlView.GONE);
+            webView.setVisibility(webView.GONE);
             messageScrollView.setVisibility(messageScrollView.GONE);
         } else if (screenLayout.equals("5")) {
             channelsLayout.setVisibility(channelsLayout.VISIBLE);
-            htmlView.setVisibility(htmlView.GONE);
+            webView.setVisibility(webView.GONE);
             messageScrollView.setVisibility(messageScrollView.VISIBLE);
         }
         View mainLayout = findViewById(R.id.mainLayout);
@@ -780,8 +795,8 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
             }
         });
         channelsLayout = (LinearLayout) findViewById(R.id.channelsLayout);
-        htmlView = (WebView) findViewById(R.id.htmlView);
-        htmlView.setWebViewClient(new WebViewClient() {
+        webView = (WebView) findViewById(R.id.htmlView);
+        webView.setWebViewClient(new WebViewClient() {
             public void onReceivedError(WebView view, int errorCode,
                                         String description, String failingUrl) {
                 Toast.makeText(CsoundAppActivity.this,
@@ -849,16 +864,16 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                             }
                         };
                         oboe_callback_wrapper.SetMessageCallback();
-                        htmlView.addJavascriptInterface(csound_oboe, "csound");
-                        htmlView.addJavascriptInterface(CsoundAppActivity.this, "csoundApp");
+                        webView.addJavascriptInterface(csound_oboe, "csound");
+                        webView.addJavascriptInterface(CsoundAppActivity.this, "csoundApp");
                     } else {
                         csound_oboe = null;
                         csound_obj = new JSCsoundObj();
                         csoundUI = new CsoundUI(csound_obj);
                         csound_obj.messagePoster = CsoundAppActivity.this;
                         csound_obj.setMessageLoggingEnabled(true);
-                        htmlView.addJavascriptInterface(csound_obj, "csound");
-                        htmlView.addJavascriptInterface(CsoundAppActivity.this,
+                        webView.addJavascriptInterface(csound_obj, "csound");
+                        webView.addJavascriptInterface(CsoundAppActivity.this,
                                 "csoundApp");
                     }
                     // Csound will not be in scope of any JavaScript on the page
