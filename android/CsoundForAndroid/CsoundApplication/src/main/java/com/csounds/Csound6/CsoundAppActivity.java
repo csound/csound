@@ -460,7 +460,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                     char c = message.charAt(i);
                     if (c == '\n') {
                         String line = csoundMessageStringBuilder.toString();
-                        String code = String.format("console.log(\"%s\")", line);
+                        String code = String.format("console.log(\"%s\");", line);
                         webView.evaluateJavascript(code, null);
                         csoundMessageStringBuilder.setLength(0);
                     } else {
