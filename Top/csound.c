@@ -1704,23 +1704,23 @@ int kperf_nodebug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-	  done = ATOMIC_GET(ip->init_done);
+          done = ATOMIC_GET(ip->init_done);
           if (done == 1) {/* if init-pass has been done */
-	    int error = 0;
+            int error = 0;
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
               while (error == 0 &&
-		     (opstart = opstart->nxtp) != NULL &&
-		     ATOMIC_GET(ip->actflg)) {
+                     (opstart = opstart->nxtp) != NULL &&
+                     ATOMIC_GET(ip->actflg)) {
                 opstart->insdshead->pds = opstart;
                 error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
             } else {
-	        int error = 0;
+                int error = 0;
                 int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
                 int incr = csound->nchnls*lksmps;
@@ -1748,7 +1748,7 @@ int kperf_nodebug(CSOUND *csound)
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
                   while (error ==  0 && (opstart = opstart->nxtp) != NULL
-			 && ip->actflg) {
+                         && ip->actflg) {
                     opstart->insdshead->pds = opstart;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
@@ -1943,7 +1943,7 @@ int kperf_debug(CSOUND *csound)
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
         csound->multiThreadedDag = NULL;
-      } 
+      }
       else {
         int done;
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
@@ -1958,7 +1958,7 @@ int kperf_debug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-	  done = ATOMIC_GET(ip->init_done);
+          done = ATOMIC_GET(ip->init_done);
           if (done == 1) {/* if init-pass has been done */
             /* check if next command pending and we are on the
                first instrument in the chain */
@@ -2113,7 +2113,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     do {
       done = sensevents(csound);
       if (UNLIKELY(done)) {
-	if(!csound->oparms->realtime) // no API lock in realtime mode
+        if(!csound->oparms->realtime) // no API lock in realtime mode
          csoundUnlockMutex(csound->API_lock);
         csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
@@ -2180,7 +2180,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
       csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))){
-	  if(!csound->oparms->realtime) // no API lock in realtime mode
+          if(!csound->oparms->realtime) // no API lock in realtime mode
             csoundUnlockMutex(csound->API_lock);
           return done;
         }
@@ -2221,7 +2221,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
       do {
         if (UNLIKELY((done = sensevents(csound)))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
-	  if(!csound->oparms->realtime)
+          if(!csound->oparms->realtime)
           csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
             csound->multiThreadedComplete = 1;
@@ -2491,9 +2491,9 @@ PUBLIC void csoundSetDefaultMessageCallback(
 
 
 PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
-	      void (*csoundMessageStrCallback)(CSOUND *csound,
-					    int attr,
-					    const char *str)) {
+              void (*csoundMessageStrCallback)(CSOUND *csound,
+                                            int attr,
+                                            const char *str)) {
 
   if (csoundMessageStrCallback) {
     if(csound->message_string == NULL)
@@ -2533,7 +2533,7 @@ PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-    if(csound->csoundMessageCallback_) 
+    if(csound->csoundMessageCallback_)
     csound->csoundMessageCallback_(csound, 0, format, args);
     else {
     vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
@@ -2546,7 +2546,7 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-    if(csound->csoundMessageCallback_) 
+    if(csound->csoundMessageCallback_)
     csound->csoundMessageCallback_(csound, attr, format, args);
     else {
     vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);

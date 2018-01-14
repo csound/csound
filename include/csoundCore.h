@@ -1792,8 +1792,8 @@ typedef struct _message_queue_t_ {
     int alloc_spinlock;
     EVTBLK *init_event;
     void (*csoundMessageStringCallback)(CSOUND *csound,
-					    int attr,
-				     const char *str);
+                                        int attr,
+                                        const char *str);
     char* message_string;
     volatile unsigned long message_string_queue_items;
     unsigned long message_string_queue_wp;

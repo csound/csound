@@ -1554,10 +1554,12 @@ static void vco2_calculate_table(CSOUND *csound,
 {
     MYFLT   scaleFac;
     MYFLT   *fftbuf;
-    int     i, minh;    
+    int     i, minh;
 
     if(table->ftable == NULL) {
-      csound->InitError(csound, "function table is NULL, check that ibasfn is available\n");
+      csound->InitError(csound,
+                        Str("function table is NULL, check that ibasfn is "
+                            "available\n"));
       return;
     }
 
