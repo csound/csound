@@ -167,8 +167,9 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
                                 }
         break;
       case 3: /* Lowpass Elliptical */
-        return csound->InitError(csound, Str(
-                             "Lowpass Elliptical not implemented yet. Sorry!"));
+        return
+          csound->InitError(csound,
+                            Str("Lowpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
         return csound->InitError(csound, Str("code error, ikind out of range"));

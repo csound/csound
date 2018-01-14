@@ -31,6 +31,12 @@
 #include <fcntl.h>
 #endif
 
+#if defined(WIN32) && !defined(__CYGWIN__)
+#  include <direct.h>
+#  define getcwd(x,y) _getcwd(x,y)
+#endif
+
+
 #include "namedins.h"
 
 /* list of environment variables used by Csound */
