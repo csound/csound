@@ -497,8 +497,8 @@ size_t strlcat(char *dst, const char *src, size_t siz);
   (InterlockedCompareExchange(val, newVal, oldVal) != oldVal)
 #elif defined(HAVE_ATOMIC_BUILTIN)
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) \
-  !(__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,	\
-			      __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+  !(__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,        \
+                              __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
 #else /* FIXME: no atomics, what to do? */
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
 #endif

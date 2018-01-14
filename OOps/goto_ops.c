@@ -129,14 +129,13 @@ int reinit(CSOUND *csound, GOTO *p)
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
     }
     else {
-    unsigned long wp = csound->alloc_queue_wp;
-    csound->alloc_queue[wp].ip = p->h.insdshead;
-    csound->alloc_queue[wp].ids = p->lblblk->prvi; 
-    csound->alloc_queue[wp].type = 3;
-    csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-    ATOMIC_INCR(csound->alloc_queue_items);
-    return NOTOK;
-    
+      unsigned long wp = csound->alloc_queue_wp;
+      csound->alloc_queue[wp].ip = p->h.insdshead;
+      csound->alloc_queue[wp].ids = p->lblblk->prvi;
+      csound->alloc_queue[wp].type = 3;
+      csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
+      ATOMIC_INCR(csound->alloc_queue_items);
+      return NOTOK;
     }
     return OK;
 }
