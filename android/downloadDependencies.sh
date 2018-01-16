@@ -5,6 +5,7 @@ if [ -z "$NDK_MODULE_PATH" ]; then
     exit;
 fi
 
+export ORIG=`pwd`
 export LUAJIT_JNI=`pwd`/pluginlibs/patches/luajit-2.0/jni
 
 echo "Using NDK_MODULE_PATH: $NDK_MODULE_PATH"
@@ -87,6 +88,7 @@ fi
 
 echo "Copying all patched files into build tree..."
 # Copy any patched files.
-cd patches
+cd $ORIG
+cd pluginlibs/patches
 cp -rf * ..
 cd ../..
