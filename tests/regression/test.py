@@ -58,10 +58,13 @@ def runTest():
         ["bug18.csd", "gen18"],
         ["bugaa.csd", "arate array arithmetic"],
         ["bugarray.csd", "krate array arithmetic"],
-        ["bugasusst.csd", "gausstrig"],
+        ["bugausst.csd", "gausstrig"],
         ["bugblam.csd", "macro test"],
         ["bugcopy.csd", "copy mixed rate arrays"],
-        ["bugftlen.csd", "table size oddity"]
+        ["bugftlen.csd", "table size oddity"],
+        ["buglosc.csd", "non integer loscil"],
+        ["bugpow.csd", "karray power"],
+        ["bugrezzy.csd", "rezzy stabilised"]
     ]
 
     output = ""
