@@ -17,7 +17,6 @@ if [ -z "NDK_MODULE_PATH" ]; then
     exit;
 fi
 
-
 MACHINE="$(uname -s)"
 case "${MACHINE}" in 
   MINGW*) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build.cmd;;

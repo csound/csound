@@ -1,6 +1,13 @@
 #!/bin/sh
 
+if [ -z "$NDK_MODULE_PATH" ]; then
+    echo "ERROR: NDK_MODULE_PATH is not set. Please set this variable to continue.\n";
+    exit;
+fi
+
+export ORIG=`pwd`
 export LUAJIT_JNI=`pwd`/pluginlibs/patches/luajit-2.0/jni
+
 cd pluginlibs
 
 # LIBSNDFILE
@@ -79,6 +86,7 @@ fi
 
 echo "Copying all patched files into build tree..."
 # Copy any patched files.
-cd patches
+cd $ORIG
+cd pluginlibs/patches
 cp -rf * ..
 cd ../..
