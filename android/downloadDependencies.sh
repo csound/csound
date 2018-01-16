@@ -22,17 +22,29 @@ else
   git clone $LIBSNDFILE_REPO
 fi
 
-# OBOE (Also includes dependencies.)
-OBOE_REPO=https://github.com/googlesamples/android-audio-high-performance.git
-if [ -e android-audio-high-performance ]; then
-  echo "android-audio-high-performance already exists, doing a pull to get the latest";
-  cd android-audio-high-performance;
+# ANDROID_AUDIO (Also includes dependencies.)
+#ANDROID_AUDIO_REPO=https://github.com/googlesamples/android-audio-high-performance.git
+#if [ -e android-audio-high-performance ]; then
+#  echo "android-audio-high-performance already exists, doing a pull to get the latest";
+#  cd android-audio-high-performance;
+#  git pull;
+#  cd ..;
+#else
+#  echo "Cloning android-audio-high-performance...";
+#  git clone ANDROID_AUDIO_REPO
+#fi
+
+OBOE_REPO=https://github.com/google/oboe.git
+if [ -e oboe ]; then
+  echo "oboe already exists, doing a pull to get the latest";
+  cd oboe;
   git pull;
   cd ..;
 else
   echo "Cloning android-audio-high-performance...";
   git clone $OBOE_REPO
 fi
+
 
 # FLUIDSYNTH
 FLUIDSYNTH_REPO=http://bitbucket.org/kunstmusik/fluidsynth-android.git

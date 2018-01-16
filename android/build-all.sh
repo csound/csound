@@ -7,10 +7,10 @@ if [ -z "ANDROID_SDK_ROOT" ]; then
     echo "ERROR: ANDROID_SDK_ROOT is not set. Please set this variable to point to the root directory of your Android SDK installation to continue.";
     exit;
 fi
-if [ -z "ANDROID_STUDIO_ROOT" ]; then
-    echo "ERROR: ANDROID_STUDIO_ROOT is not set. Please set this variable to point to the root directory of your Android Studio installation to continue.";
-    exit;
-fi
+#if [ -z "ANDROID_STUDIO_ROOT" ]; then
+#    echo "ERROR: ANDROID_STUDIO_ROOT is not set. Please set this variable to point to the root directory of your #Android Studio installation to continue.";
+#    exit;
+#fi
 if [ -z "$ANDROID_NDK_ROOT" ]; then
     echo "ERROR: ANDROID_NDK_ROOT is not set. Please set this variable to point to the root directory of your Android Native Development Kit installation to continue.";
     exit;
@@ -43,16 +43,27 @@ then
     exit
 fi
 echo
-echo "Building the Oboe audio driver library..."
-cd $CSOUND_ROOT/android/pluginlibs/android-audio-high-performance/oboe
-# PLEASE NOTE: Android Studio's gradle muset be used!
-bash ${ANDROID_STUDIO_ROOT}/gradle/gradle-4.1/bin/gradle assemble
+#echo "Building the Oboe audio driver library..."
+#$cd $CSOUND_ROOT/android/pluginlibs/android-audio-high-performance/oboe
+## PLEASE NOTE: Android Studio's gradle muset be used!
+#bash ${ANDROID_STUDIO_ROOT}/gradle/gradle-4.1/bin/gradle assemble
+#if [ $? -eq 0 ]; then
+#    echo OK
+#else
+#    echo FAIL
+#    exit
+#fi
+
+echo "Building Oboe audio driver library..."
+cd $CSOUND_ROOT/android/pluginlibs/oboe-android
+$NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
     echo FAIL
     exit
 fi
+
 
 echo "Building luajit-2.1..."
 cd $CSOUND_ROOT/android/pluginlibs/luajit-2.0
@@ -62,7 +73,7 @@ cd $CSOUND_ROOT/android/pluginlibs/luajit-2.0
 # Build for arm. 
 
 make clean
-make HOST_CC="gcc -m32" BUILD_MODE=static CROSS=arm-linux-gnueabi- TARGET_CFLAGS="-mcpu=cortex-a8 -mfloat-abi=softfp -fPIC -D_FILE_OFFSET_BITS=32"
+make HOST_CC="gcc -m32" BUILD_MODE=static CROSS=arm-linux-gnueabi- TARGET_CFLAGS="-mcpu=cortex-a8 -mfloat-abi=softfp -fPIC -D_FILE_OFFSET_BITS=32" -j6
 if [ $? -eq 0 ]; then
     echo OK
 else
@@ -78,7 +89,7 @@ else
 fi
 # Build for arm64.
 make clean
-make HOST_CC="gcc" BUILD_MODE=static CROSS=aarch64-linux-gnu- TARGET_CFLAGS="-fPIC -D_FILE_OFFSET_BITS=32"
+make HOST_CC="gcc" BUILD_MODE=static CROSS=aarch64-linux-gnu- TARGET_CFLAGS="-fPIC -D_FILE_OFFSET_BITS=32" -j6
 if [ $? -eq 0 ]; then
     echo OK
 else
@@ -207,16 +218,16 @@ cd $CSOUND_ROOT/android/CsoundForAndroid/CsoundApplication
 ./install_libs.sh
 cd $CSOUND_ROOT/android
 
-echo "Building Csound for Android app..."
-cd $CSOUND_ROOT/android/CsoundForAndroid/CsoundApplication
-# PLEASE NOTE: Android Studio's gradle muset be used!
-bash ${ANDROID_STUDIO_ROOT}/gradle/gradle-4.1/bin/gradle assemble
-if [ $? -eq 0 ]; then
-    echo OK
-else
-    echo FAIL
-    exit
-fi
+#echo "Building Csound for Android app..."
+#cd $CSOUND_ROOT/android/CsoundForAndroid/CsoundApplication
+## PLEASE NOTE: Android Studio's gradle muset be used!
+#bash ${ANDROID_STUDIO_ROOT}/gradle/gradle-4.1/bin/gradle assemble
+#if [ $? -eq 0 ]; then
+#    echo OK
+#else
+#    echo FAIL
+#    exit
+#fi
 
 echo "Finished NDK build for Csound for Android."
 

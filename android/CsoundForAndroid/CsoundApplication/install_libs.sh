@@ -19,6 +19,7 @@ cp -f $PLUGINLIBS/libOSC/libs/arm64-v8a/*.so $JNILIBS/arm64-v8a/
 cp -f $PLUGINLIBS/doppler/libs/arm64-v8a/*.so $JNILIBS/arm64-v8a/
 cp -f $PLUGINLIBS/stk-csound/libs/arm64-v8a/*.so $JNILIBS/arm64-v8a/
 cp -f $PLUGINLIBS/ableton_link_opcodes/libs/arm64-v8a/*.so $JNILIBS/arm64-v8a/
+cp -f $PLUGINLIBS/oboe/libs/arm64-v8a/*.so $JNILIBS/arm64-v8a/
 
 cp -f $PLUGINLIBS/libfluidsynth/libs/armeabi-v7a/libfluidOpcodes.so $JNILIBS/armeabi-v7a/
 cp -f $PLUGINLIBS/libstdutil/libs/armeabi-v7a/libstdutil.so $JNILIBS/armeabi-v7a/
@@ -29,6 +30,7 @@ cp -f $PLUGINLIBS/libOSC/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
 cp -f $PLUGINLIBS/doppler/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
 cp -f $PLUGINLIBS/stk-csound/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
 cp -f $PLUGINLIBS/ableton_link_opcodes/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
+cp -f $PLUGINLIBS/oboe/libs/armeabi-v7a/*.so $JNILIBS/armeabi-v7a/
 
 rm -f $JNILIBS/arm64-v8a/libsndfile.so
 rm -f $JNILIBS/armeabi-v7a/libsndfile.so
