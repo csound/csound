@@ -144,7 +144,7 @@ int phsor(CSOUND *csound, PHSOR *p)
     uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       *rs, onedsr = csound->onedsr;
     double      incr;
-   
+
     rs = p->sr;
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {

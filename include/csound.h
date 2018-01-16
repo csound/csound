@@ -1567,14 +1567,14 @@ extern "C" {
                                                                   va_list valist));
 
   /**
-   * Sets an alternative function to be called by Csound to print an 
+   * Sets an alternative function to be called by Csound to print an
    * informational message, using a less granular signature.
    *  This callback can be set for --realtime mode
    */
   PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
-	      void (*csoundMessageStrCallback)(CSOUND *csound,
-					       int attr,
-					       const char *str));
+              void (*csoundMessageStrCallback)(CSOUND *csound,
+                                               int attr,
+                                               const char *str));
 
   /**
    * Returns the Csound message level (from 0 to 231).

@@ -53,7 +53,15 @@ def runTest():
         ["bugtrans.csd", " "],
         ["bugbra.csd", " "],
         ["bugy.csd", "y in score"],
-        ["bugbigargs.csd", "many arguments in score"]
+        ["bugbigargs.csd", "many arguments in score"],
+        ["bugadsr.csd", "xadsr"],
+        ["bug18.csd", "gen18"],
+        ["bugaa.csd", "arate array arithmetic"],
+        ["bugarray.csd", "krate array arithmetic"],
+        ["bugasusst.csd", "gausstrig"],
+        ["bugblam.csd", "macro test"],
+        ["bugcopy.csd", "copy mixed rate arrays"],
+        ["bugftlen.csd", "table size oddity"]
     ]
 
     output = ""
