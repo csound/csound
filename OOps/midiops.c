@@ -30,9 +30,6 @@
 
 #define dv127   (FL(1.0)/FL(127.0))
 
-/* aops.c, table for CPSOCTL */
-/*extern  MYFLT   cpsocfrc[];*/
-
 extern int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls);
 
 #define MIDI_VALUE(m,field) ((m != (MCHNBLK *) NULL) ? m->field : FL(0.0))
@@ -439,11 +436,11 @@ int pgmassign_(CSOUND *csound, PGMASSIGN *p, int instname)
     return OK;
 }
 
-int pgmassign_S(CSOUND *csound, PGMASSIGN *p){
+int pgmassign_S(CSOUND *csound, PGMASSIGN *p) {
     return pgmassign_(csound,p,1);
 }
 
-int pgmassign(CSOUND *csound, PGMASSIGN *p){
+int pgmassign(CSOUND *csound, PGMASSIGN *p) {
     return pgmassign_(csound,p,0);
 }
 
@@ -516,7 +513,7 @@ int midiin_set(CSOUND *csound, MIDIIN *p)
 int midiin(CSOUND *csound, MIDIIN *p)
 {
     unsigned char *temp;                        /* IV - Nov 30 2002 */
-    if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
+    if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
       p->local_buf_index &= MIDIINBUFMSK;
       *p->status = (MYFLT) (*temp & (unsigned char) 0xf0);
@@ -538,7 +535,7 @@ int pgmin_set(CSOUND *csound, PGMIN *p)
 int pgmin(CSOUND *csound, PGMIN *p)
 {
     unsigned char *temp;
-    if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
+    if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       int st,ch,d1;
       temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
       st = *temp & (unsigned char) 0xf0;
@@ -610,6 +607,7 @@ int ctlin(CSOUND *csound, CTLIN *p)
 int midiarp_set(CSOUND *csound, MIDIARP *p)
 /* MIDI Arp - Jan 2017 - RW */
 {
+    int cnt;
     srand(time(NULL));
     p->flag=1, *p->arpMode=0, p->direction=2, p->noteIndex=9;
     p->maxNumNotes=10, p->noteCnt=0, p->status=0, p->chan=0;
@@ -617,8 +615,7 @@ int midiarp_set(CSOUND *csound, MIDIARP *p)
 
     p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
 
-    int cnt;
-    for(cnt=0;cnt<10;cnt++)
+    for (cnt=0;cnt<10;cnt++)
       p->notes[cnt] = 0;
 
     return OK;
@@ -627,9 +624,9 @@ int midiarp_set(CSOUND *csound, MIDIARP *p)
 void sort_notes(int notes[], int n)
 {
     int j,i,tmp;
-    for (i = 0; i < n; ++i){
-      for (j = i + 1; j < n; ++j){
-        if (notes[i] > notes[j]){
+    for (i = 0; i < n; ++i) {
+      for (j = i + 1; j < n; ++j) {
+        if (notes[i] > notes[j]) {
           tmp =  notes[i];
           notes[i] = notes[j];
           notes[j] = tmp;
@@ -641,8 +638,8 @@ void sort_notes(int notes[], int n)
 void zeroNoteFromArray(int notes[], int noteNumber, int size)
 {
     int i;
-    for(i=0;i<size;i++){
-      if(notes[i]==noteNumber)
+    for (i=0;i<size;i++) {
+      if (notes[i]==noteNumber)
         notes[i]=0;
     }
 }
@@ -671,7 +668,9 @@ int midiarp(CSOUND *csound, MIDIARP *p)
 {
     int i=0;
     unsigned char *temp;
-    if  (p->local_buf_index != MGLOB(MIDIINbufIndex))
+    int arpmode = (int)*p->arpMode;
+
+    if (p->local_buf_index != MGLOB(MIDIINbufIndex))
       {
         temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
         p->local_buf_index &= MIDIINBUFMSK;
@@ -680,10 +679,10 @@ int midiarp(CSOUND *csound, MIDIARP *p)
         p->data1  = (MYFLT) *++temp;
         p->data2  = (MYFLT) *++temp;
 
-        if(p->status==144 && p->data2>0){
+        if (p->status==144 && p->data2>0) {
           p->notes[p->noteCnt] = p->data1;
 
-          for(i  = 0 ; i < p->maxNumNotes ; i++)
+          for (i = 0 ; i < p->maxNumNotes ; i++)
             p->sortedNotes[i] = p->notes[i];
 
           p->noteCnt = (p->noteCnt>p->maxNumNotes-1 ?
@@ -691,10 +690,10 @@ int midiarp(CSOUND *csound, MIDIARP *p)
           sort_notes(p->sortedNotes, 10);
 
         }
-        else if(p->status==128 || (p->status==144 && p->data2==0)){
+        else if (p->status==128 || (p->status==144 && p->data2==0)) {
           zeroNoteFromArray(p->notes, p->data1, p->maxNumNotes);
 
-          for(i  = 0 ; i < p->maxNumNotes ; i++)
+          for (i = 0 ; i < p->maxNumNotes ; i++)
             p->sortedNotes[i] = p->notes[i];
 
           p->noteCnt = (p->noteCnt<0 ? 0 : p->noteCnt-1);
@@ -703,40 +702,41 @@ int midiarp(CSOUND *csound, MIDIARP *p)
       }
     else p->status = FL(0.0);
 
-    if(p->noteCnt != 0) {
+    if (p->noteCnt != 0) {
       // only when some note/s are pressed
       *p->counter = metroCounter(p);
-      if(*p->counter == 1){
+      if (*p->counter == 1) {
 
-        if(p->noteIndex<p->maxNumNotes && p->sortedNotes[p->noteIndex]!=0)
+        if (p->noteIndex<p->maxNumNotes && p->sortedNotes[p->noteIndex]!=0)
           *p->noteOut = p->sortedNotes[p->noteIndex];
 
-        if(*p->arpMode==0){
+        if (arpmode==0) {
           //up and down pattern
-          if(p->direction>0) {
+          if (p->direction>0) {
             p->noteIndex = (p->noteIndex < p->maxNumNotes-1
                             ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
-            if(p->noteIndex==p->maxNumNotes-1)
+            if (p->noteIndex==p->maxNumNotes-1)
               p->direction = -2;
           }
-          else{
+          else {
             p->noteIndex = (p->noteIndex > p->maxNumNotes - p->noteCnt
                             ? p->noteIndex-1 : p->maxNumNotes-1);
-            if(p->noteIndex==p->maxNumNotes-p->noteCnt)
+            if (p->noteIndex==p->maxNumNotes-p->noteCnt)
               p->direction = 2;
 
           }
         }
-        else if(*p->arpMode==1) {
+        else if (arpmode==1) {
           //up only pattern
           p->noteIndex = (p->noteIndex < p->maxNumNotes-1
                           ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
-        }else if(*p->arpMode==2) {
+        }
+        else if (arpmode==2) {
           //down only pattern
           p->noteIndex = (p->noteIndex > p->maxNumNotes - p->noteCnt
                           ? p->noteIndex-1 : p->maxNumNotes-1);
         }
-        else if(*p->arpMode==3) {
+        else if (arpmode==3) {
           //random pattern
           int randIndex = ((rand() % 100)/100.f)*(p->noteCnt);
           p->noteIndex = p->maxNumNotes-randIndex-1;
@@ -745,7 +745,7 @@ int midiarp(CSOUND *csound, MIDIARP *p)
           csound->Message(csound,
                           Str("Invalid arp mode selected:"
                               " %d. Valid modes are 0, 1, 2, and 3\n"),
-                          (int)*p->arpMode);
+                          arpmode);
         }
       }
     }
