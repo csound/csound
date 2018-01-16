@@ -44,12 +44,12 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not build oboe audio driver library..."
 fi
 cd ..
+
 unamestr=`uname`
-if [[ "$unamestr" != 'Darwin' ]]; then
+
 echo "Building luajit-2.1..."
 cd luajit-2.0
 # The luajit library can't be compiled with the clang NDK, so we cross-compile using gcc.
@@ -62,15 +62,13 @@ make HOST_CC="gcc -m32" BUILD_MODE=static CROSS=arm-linux-gnueabi- TARGET_CFLAGS
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building luaJIT library..."
 fi
 make install PREFIX=`pwd`/jni/local MULTILIB=libs/armeabi-v7a
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building luaJIT library..."
 fi
 # Build for arm64.
 make clean
@@ -78,15 +76,13 @@ make HOST_CC="gcc" BUILD_MODE=static CROSS=aarch64-linux-gnu- TARGET_CFLAGS="-fP
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building luaJIT library..."
 fi
 make install PREFIX=`pwd`/jni/local MULTILIB=libs/arm64-v8a
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building luaJIT library..."
 fi
 # Make certain that LuaCsound links only with the STATIC LuaJIT library.
 find . -name *.so* -delete
@@ -98,8 +94,7 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building ableton link opcodes..."
 fi
 cd ..
 
@@ -109,8 +104,7 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building lua opcodes..."
 fi
 cd ..
 
@@ -122,11 +116,10 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building STK opcodes..."
 fi
 cd ..
-fi
+
 
 echo "Building OSC opcodes..."
 cd libOSC
@@ -134,8 +127,7 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building OSC opcodes..."
 fi
 cd ..
 
@@ -146,7 +138,6 @@ if [ $? -eq 0 ]; then
     echo OK
 else
     echo FAIL
-    exit
 fi
 cd ..
 
@@ -156,8 +147,7 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building Doppler opcodes..."
 fi
 cd ..
 
@@ -167,8 +157,7 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building fluidsynth opcodes..."
 fi
 cd ..
 
@@ -178,8 +167,7 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building scanned opcodes..."
 fi
 cd ..
 
@@ -190,8 +178,7 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-    echo FAIL
-    exit
+    echo "Not building signal flowgraph opcodes..."
 fi
 cd ..
 cd ..
