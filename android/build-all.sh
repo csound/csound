@@ -48,7 +48,8 @@ else
     exit
 fi
 cd ..
-
+unamestr=`uname`
+if [[ "$unamestr" != 'Darwin' ]]; then
 echo "Building luajit-2.1..."
 cd luajit-2.0
 # The luajit library can't be compiled with the clang NDK, so we cross-compile using gcc.
@@ -113,8 +114,10 @@ else
 fi
 cd ..
 
-echo "Building OSC opcodes..."
-cd libOSC
+echo "Building STK opcodes..."
+cd stk-csound
+mkdir -p CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
+cp -rf ../stk/rawwaves/*.raw CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -123,11 +126,10 @@ else
     exit
 fi
 cd ..
+fi
 
-echo "Building STK opcodes..."
-cd stk-csound
-mkdir -p CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
-cp -rf ../stk/rawwaves/*.raw CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
+echo "Building OSC opcodes..."
+cd libOSC
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -181,6 +183,7 @@ else
 fi
 cd ..
 
+
 echo "Building signal flow graph opcodes..."
 cd signalflowgraph
 $NDK_BUILD_CMD $1
@@ -194,7 +197,11 @@ cd ..
 cd ..
 
 echo "Building CsoundAndroid library..."
+if [[ "$unamestr" == 'Darwin' ]]; then
+    cp -r ./pluginlibs/oboe-android $NDK_MODULE_PATH
+fi
 cd CsoundAndroid
+
 ./build.sh $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -204,6 +211,7 @@ else
 fi 
 cd ..
 
+if [[ "$unamestr" != 'Darwin' ]]; then
 echo "Installing binaries for the Csound for Android app..."
 rm -rf CsoundForAndroid/CsoundAndroid/src/main/java/csnd6
 cp -r CsoundAndroid/src/csnd6  CsoundForAndroid/CsoundAndroid/src/main/java/
@@ -215,7 +223,7 @@ cd ..
 cd ..
 
 echo "Finished NDK build for Csound for Android."
-
+fi
 
 
 
