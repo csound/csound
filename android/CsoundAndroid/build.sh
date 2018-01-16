@@ -1,5 +1,6 @@
 #!/bin/sh
 
+MACHINE="$(uname -s)"
 case "${MACHINE}" in 
   MINGW*) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build.cmd;;
   *) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build
