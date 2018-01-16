@@ -546,7 +546,7 @@ int main(int argc, char **argv)
     sf_close(inf);
   err_rtn_msg:
     err_msg[255] = '\0';
-    fprintf(stderr, err_msg);
+    fprintf(stderr, "%s", err_msg);
     return -1;
 }
 
