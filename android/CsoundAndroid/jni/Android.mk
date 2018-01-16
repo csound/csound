@@ -5,7 +5,7 @@ CSOUND_SRC_ROOT := ../../..
 LIBSNDFILE_SRC_DIR := $(NDK_MODULE_PATH)/libsndfile-android/jni/
 
 LOCAL_MODULE   := csoundandroid
-LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(CSOUND_HOME)/include $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces 
+LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(CSOUND_HOME)/include $(LOCAL_PATH)/../../../H  $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces $(NDK_MODULE_PATH)/oboe/include $(NDK_MODULE_PATH)/oboe/src 
 
 ifeq ($(NDK_TOOLCHAIN_VERSION),clang)
 LOCAL_CFLAGS := -std=c99 -O2 -g -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_BUILTIN_ATOMIC -mllvm -unroll-allow-partial -mllvm -unroll-runtime -funsafe-math-optimizations -ffast-math -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
@@ -271,8 +271,7 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc -latomic
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += c++_shared sndfile 
-LOCAL_STATIC_LIBRARIES += oboe
+LOCAL_SHARED_LIBRARIES += oboe c++_shared sndfile 
 
 # Prevents stripping needed exports from the shared library.
 
