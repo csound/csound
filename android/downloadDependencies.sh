@@ -1,14 +1,7 @@
 #!/bin/sh
 
-if [ -z "$NDK_MODULE_PATH" ]; then
-    echo "ERROR: NDK_MODULE_PATH is not set. Please set this variable to continue.\n";
-    exit;
-fi
-
 export LUAJIT_JNI=`pwd`/pluginlibs/patches/luajit-2.0/jni
-
-echo "Using NDK_MODULE_PATH: $NDK_MODULE_PATH"
-cd $NDK_MODULE_PATH
+cd pluginlibs
 
 # LIBSNDFILE
 LIBSNDFILE_REPO=http://bitbucket.org/kunstmusik/libsndfile-android.git
@@ -32,7 +25,6 @@ else
   echo "Cloning oboe...";
   git clone $OBOE_REPO
 fi
-
 
 # FLUIDSYNTH
 FLUIDSYNTH_REPO=http://bitbucket.org/kunstmusik/fluidsynth-android.git
