@@ -961,7 +961,7 @@ typedef struct NAME__ {
 
 
 #define MAX_ALLOC_QUEUE 1024
-  
+
 typedef struct _alloc_data_ {
   int type;
   int insno;
@@ -977,7 +977,7 @@ typedef struct _message_queue_t_ {
     int attr;
     char str[MAX_MESSAGE_STR];
 } message_string_queue_t;
-  
+
 
   /**
    * Contains all function pointers, data, and data pointers required

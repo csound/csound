@@ -30,7 +30,7 @@
 #include <complex>
 #include "csdl.h"
 #include <iostream>
-#include "pstream.h" 
+#include "pstream.h"
 #include <cstring>
 
 namespace csnd {
@@ -74,7 +74,7 @@ public:
   void *host_data() {
     return GetHostData(this);
   }
-  
+
   /** init-time error message
    */
   int init_error(const std::string &s) {
