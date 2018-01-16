@@ -25,6 +25,7 @@ export NDK_MODULE_PATH=$CSOUND_ROOT/android/pluginlibs
 echo "NDK_MODULE_PATH:   $NDK_MODULE_PATH"
 export ANDROID_HOME=$ANDROID_SDK_ROOT
 echo "ANDROID_HOME:      $ANDROID_HOME"
+
 MACHINE="$(uname -s)"
 case "${MACHINE}" in 
   MINGW*) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build.cmd;;
@@ -61,6 +62,7 @@ $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
+
     echo FAIL
     exit
 fi
