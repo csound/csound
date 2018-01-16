@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 clear
 echo "Beginning NDK build for Csound for Android..."
 echo
@@ -7,24 +6,17 @@ if [ -z "ANDROID_SDK_ROOT" ]; then
     echo "ERROR: ANDROID_SDK_ROOT is not set. Please set this variable to point to the root directory of your Android SDK installation to continue.";
     exit;
 fi
-#if [ -z "ANDROID_STUDIO_ROOT" ]; then
-#    echo "ERROR: ANDROID_STUDIO_ROOT is not set. Please set this variable to point to the root directory of your #Android Studio installation to continue.";
-#    exit;
-#fi
+
 if [ -z "$ANDROID_NDK_ROOT" ]; then
     echo "ERROR: ANDROID_NDK_ROOT is not set. Please set this variable to point to the root directory of your Android Native Development Kit installation to continue.";
     exit;
 fi
 
-# Store where we are so we don't have to count cd up and cd down.
-cd ..
-export CSOUND_ROOT=$PWD
-cd $CSOUND_ROOT/android
-echo "CSOUND_ROOT:       $CSOUND_ROOT"
-export NDK_MODULE_PATH=$CSOUND_ROOT/android/pluginlibs
-echo "NDK_MODULE_PATH:   $NDK_MODULE_PATH"
-export ANDROID_HOME=$ANDROID_SDK_ROOT
-echo "ANDROID_HOME:      $ANDROID_HOME"
+if [ -z "NDK_MODULE_PATH" ]; then
+    echo "ERROR: NDK_MODULE_PATH is not set. Please set this variable to point to the android/pluginlibs directory of this project to continue.";
+    exit;
+fi
+
 
 MACHINE="$(uname -s)"
 case "${MACHINE}" in 
@@ -45,31 +37,21 @@ then
 fi
 echo
 
-#echo "Building the Oboe audio driver library..."
-#$cd $CSOUND_ROOT/android/pluginlibs/android-audio-high-performance/oboe
-## PLEASE NOTE: Android Studio's gradle muset be used!
-#bash ${ANDROID_STUDIO_ROOT}/gradle/gradle-4.1/bin/gradle assemble
-#if [ $? -eq 0 ]; then
-#    echo OK
-#else
-#    echo FAIL
-#    exit
-#fi
+cd pluginlibs
 
 echo "Building Oboe audio driver library..."
-cd $CSOUND_ROOT/android/pluginlibs/oboe-android
+cd oboe-android
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
 else
-
     echo FAIL
     exit
 fi
-
+cd ..
 
 echo "Building luajit-2.1..."
-cd $CSOUND_ROOT/android/pluginlibs/luajit-2.0
+cd luajit-2.0
 # The luajit library can't be compiled with the clang NDK, so we cross-compile using gcc.
 # We have to turn large file support OFF.
 # PREFIX and ARM produce directories compatible with ndk-build.
@@ -108,9 +90,10 @@ else
 fi
 # Make certain that LuaCsound links only with the STATIC LuaJIT library.
 find . -name *.so* -delete
+cd ..
 
 echo "Building ableton_link_opcodes..."
-cd $CSOUND_ROOT/android/pluginlibs/ableton_link_opcodes
+cd ableton_link_opcodes
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -118,9 +101,10 @@ else
     echo FAIL
     exit
 fi
+cd ..
 
 echo "Building LuaCsound opcodes..."
-cd $CSOUND_ROOT/android/pluginlibs/LuaCsound
+cd LuaCsound
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -128,9 +112,10 @@ else
     echo FAIL
     exit
 fi
+cd ..
 
 echo "Building OSC opcodes..."
-cd $CSOUND_ROOT/android/pluginlibs/libOSC
+cd libOSC
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -138,11 +123,12 @@ else
     echo FAIL
     exit
 fi
+cd ..
 
 echo "Building STK opcodes..."
-cd $CSOUND_ROOT/android/pluginlibs/stk-csound
-mkdir -p $CSOUND_ROOT/android/CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
-cp -rf $CSOUND_ROOT/android/pluginlibs/stk/rawwaves/*.raw $CSOUND_ROOT/android/CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
+cd stk-csound
+mkdir -p CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
+cp -rf ../stk/rawwaves/*.raw CsoundForAndroid/CsoundApplication/src/main/assets/rawwaves/
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -150,9 +136,10 @@ else
     echo FAIL
     exit
 fi
+cd ..
 
 echo "Building stdutil library..."
-cd $CSOUND_ROOT/android/pluginlibs/libstdutil
+cd libstdutil
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -160,9 +147,10 @@ else
     echo FAIL
     exit
 fi
+cd ..
 
 echo "Building Doppler opcodes..."
-cd $CSOUND_ROOT/android/pluginlibs/doppler
+cd doppler
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -170,9 +158,10 @@ else
     echo FAIL
     exit
 fi
+cd ..
 
 echo "Building FluidSynth opcodes..."
-cd $CSOUND_ROOT/android/pluginlibs/libfluidsynth
+cd libfluidsynth
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -180,9 +169,10 @@ else
     echo FAIL
     exit
 fi
+cd ..
 
 echo "Building scanned synthesis opcodes..."
-cd $CSOUND_ROOT/android/pluginlibs/libscansyn
+cd libscansyn
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -190,9 +180,10 @@ else
     echo FAIL
     exit
 fi
+cd ..
 
 echo "Building signal flow graph opcodes..."
-cd $CSOUND_ROOT/android/pluginlibs/signalflowgraph
+cd signalflowgraph
 $NDK_BUILD_CMD $1
 if [ $? -eq 0 ]; then
     echo OK
@@ -200,37 +191,29 @@ else
     echo FAIL
     exit
 fi
+cd ..
+cd ..
 
 echo "Building CsoundAndroid library..."
-cd $CSOUND_ROOT/android/CsoundAndroid
+cd CsoundAndroid
 ./build.sh $1
 if [ $? -eq 0 ]; then
     echo OK
 else
     echo FAIL
     exit
-fi
+fi 
+cd ..
 
 echo "Installing binaries for the Csound for Android app..."
-cd $CSOUND_ROOT/android
 rm -rf CsoundForAndroid/CsoundAndroid/src/main/java/csnd6
 cp -r CsoundAndroid/src/csnd6  CsoundForAndroid/CsoundAndroid/src/main/java/
 rm -rf CsoundForAndroid/CsoundAndroid/src/main/jniLibs
 cp -r CsoundAndroid/libs  CsoundForAndroid/CsoundAndroid/src/main/jniLibs
-cd $CSOUND_ROOT/android/CsoundForAndroid/CsoundApplication
+cd CsoundForAndroid/CsoundApplication
 ./install_libs.sh
-cd $CSOUND_ROOT/android
-
-#echo "Building Csound for Android app..."
-#cd $CSOUND_ROOT/android/CsoundForAndroid/CsoundApplication
-## PLEASE NOTE: Android Studio's gradle muset be used!
-#bash ${ANDROID_STUDIO_ROOT}/gradle/gradle-4.1/bin/gradle assemble
-#if [ $? -eq 0 ]; then
-#    echo OK
-#else
-#    echo FAIL
-#    exit
-#fi
+cd ..
+cd ..
 
 echo "Finished NDK build for Csound for Android."
 
