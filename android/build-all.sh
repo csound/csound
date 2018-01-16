@@ -11,8 +11,8 @@ if [ -z "ANDROID_STUDIO_ROOT" ]; then
     echo "ERROR: ANDROID_STUDIO_ROOT is not set. Please set this variable to point to the root directory of your Android Studio installation to continue.";
     exit;
 fi
-if [ -z "$NDK" ]; then
-    echo "ERROR: NDK is not set. Please set this variable to point to the root directory of your Android Native Development Kit installation to continue.";
+if [ -z "$ANDROID_NDK_ROOT" ]; then
+    echo "ERROR: ANDROID_NDK_ROOT is not set. Please set this variable to point to the root directory of your Android Native Development Kit installation to continue.";
     exit;
 fi
 
@@ -27,8 +27,8 @@ export ANDROID_HOME=$ANDROID_SDK_ROOT
 echo "ANDROID_HOME:      $ANDROID_HOME"
 MACHINE="$(uname -s)"
 case "${MACHINE}" in 
-  MINGW*) NDK_BUILD_CMD=$NDK/ndk-build.cmd;;
-  *) NDK_BUILD_CMD=$NDK/ndk-build
+  MINGW*) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build.cmd;;
+  *) NDK_BUILD_CMD="$ANDROID_NDK_ROOT/ndk-build -j6"
 esac
 echo "NDK_BUILD_COMMAND: $NDK_BUILD_CMD"
 
