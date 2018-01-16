@@ -46,7 +46,7 @@ echo
 echo "Building the Oboe audio driver library..."
 cd $CSOUND_ROOT/android/pluginlibs/android-audio-high-performance/oboe
 # PLEASE NOTE: Android Studio's gradle muset be used!
-bash ${ANDROID_STUDIO_ROOT}/gradle/gradle-4.1/bin/gradle assemble
+bash "${ANDROID_STUDIO_ROOT}"/gradle/gradle-4.1/bin/gradle assemble
 if [ $? -eq 0 ]; then
     echo OK
 else
