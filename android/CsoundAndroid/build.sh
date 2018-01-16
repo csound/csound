@@ -1,8 +1,8 @@
 #!/bin/sh
 
 case "${MACHINE}" in 
-  MINGW*) NDK_BUILD_CMD=$NDK/ndk-build.cmd;;
-  *) NDK_BUILD_CMD=$NDK/ndk-build
+  MINGW*) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build.cmd;;
+  *) NDK_BUILD_CMD=$ANDROID_NDK_ROOT/ndk-build
 esac
 echo "NDK_BUILD_COMMAND: $NDK_BUILD_CMD"
 
