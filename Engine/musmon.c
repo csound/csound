@@ -36,19 +36,20 @@
 #define SEGAMPS AMPLMSG
 #define SORMSG  RNGEMSG
 
-extern  int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
-extern  int     insert(CSOUND *, int, EVTBLK*);
-extern  void    MidiOpen(CSOUND *);
-extern  void    m_chn_init_all(CSOUND *);
-//extern  char *  scsortstr(CSOUND *, CORFIL *);
-extern  void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
-extern  void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
-extern  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
-extern  void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
-extern  void    MidiClose(CSOUND *);
-extern  void    RTclose(CSOUND *);
-extern  void    remote_Cleanup(CSOUND *);
-extern  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
+int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
+  int     insert(CSOUND *, int, EVTBLK*);
+  void    MidiOpen(CSOUND *);
+  void    m_chn_init_all(CSOUND *);
+//  char *  scsortstr(CSOUND *, CORFIL *);
+  void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
+  void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
+  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
+  void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
+  void    MidiClose(CSOUND *);
+  void    RTclose(CSOUND *);
+  void    remote_Cleanup(CSOUND *);
+  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
+void    openMIDIout(CSOUND *);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 #define RT_SPIN_TRYLOCK { int trylock = 0; \
@@ -261,6 +262,14 @@ int musmon(CSOUND *csound)
     O->RTevents = 1;
     MidiOpen(csound);                 /*   alloc bufs & open files    */
   }
+      /* open MIDI output (moved here from argdecode) */
+    if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
+      O->Midioutname = NULL;
+    if (O->FMidioutname != NULL && O->FMidioutname[0] == (char) '\0')
+      O->FMidioutname = NULL;
+    if (O->Midioutname != NULL || O->FMidioutname != NULL)
+      openMIDIout(csound);
+  
   csound->Message(csound, Str("orch now loaded\n"));
 
   csound->multichan = (csound->nchnls > 1 ? 1 : 0);
