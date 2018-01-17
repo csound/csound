@@ -21,7 +21,7 @@ option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 
-check_deps(BUILD_LINEAR_ALGEBRA_OPCIODES USE_DOUBLE)
+check_deps(BUILD_LINEAR_ALGEBRA_OPCODES USE_DOUBLE)
 
 message(STATUS "## Building Opcodes ##")
 #find_package (Eigen3 3.3 REQUIRED NO_MODULE)
