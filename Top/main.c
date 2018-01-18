@@ -39,7 +39,6 @@ CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     init_pvsys(CSOUND *);
 //  char    *get_sconame(CSOUND *);
   void    print_benchmark_info(CSOUND *, const char *);
-  void    openMIDIout(CSOUND *);
   int     read_unified_file(CSOUND *, char **, char **);
   int     read_unified_file2(CSOUND *csound, char *csd);
   int     read_unified_file4(CSOUND *csound, CORFIL *csd);
@@ -322,15 +321,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       csound->Message(csound, Str("Syntax check completed.\n"));
       return CSOUND_EXITJMP_SUCCESS;
     }
-
-    /* open MIDI output (moved here from argdecode) */
-    if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
-      O->Midioutname = NULL;
-    if (O->FMidioutname != NULL && O->FMidioutname[0] == (char) '\0')
-      O->FMidioutname = NULL;
-    if (O->Midioutname != NULL || O->FMidioutname != NULL)
-      openMIDIout(csound);
-
     return CSOUND_SUCCESS;
 }
 
