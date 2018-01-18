@@ -156,7 +156,7 @@ endif()
 check_deps(BUILD_CHUA_OPCODES EIGEN3_INCLUDE_PATH)
 if(BUILD_CHUA_OPCODES)
     make_plugin(chua chua/ChuaOscillator.cpp)
-    target_include_directories(chua PRIVATE ${Boost_INCLUDE_DIRS})
+    target_include_directories(chua PRIVATE)
 endif()
 
 check_deps(BUILD_DSSI_OPCODES LINUX)
