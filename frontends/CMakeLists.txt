@@ -169,4 +169,3 @@ endif()
 # Others
 add_subdirectory(CsoundAC)
 add_subdirectory(CsoundVST)
-add_subdirectory(max_csound_tilde)
