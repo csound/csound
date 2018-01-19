@@ -1789,7 +1789,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     l1 = (int) ftp->flen;
 
     x = (MYFLT*) csound->Calloc(csound, (l2 + 2)*sizeof(MYFLT));
-    y = (MYFLT*) csound->Calloc(csound, l1 + 2*sizeof(MYFLT));
+    y = (MYFLT*) csound->Calloc(csound, (l1 + 2)*sizeof(MYFLT));
     /* read and analyze src table, apply amplitude scale */
     a = csound->GetInverseRealFFTScale(csound, l1) * (MYFLT) l1 / (MYFLT) l2;
     for (i = 0; i < l2; i++)
@@ -1816,7 +1816,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
       p *= TWOPI_F;
       d_re = cos((double) p); d_im = sin((double) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
-      for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
+      for (i = k = 0; (i < l1 && k <l2); i += (n << 1), k += 2) {
         /* mix to table */
         y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
         y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
