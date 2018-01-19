@@ -24,6 +24,7 @@
 #include "csoundCore.h"         /*                      UGENS5.C        */
 #include "ugens5.h"
 #include <math.h>
+#include <inttypes.h>
 
 /*
  * LPC storage slots
@@ -680,7 +681,7 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, Str(
-                 "npoles %d, nvals %d, totvals %d, lastfram16 = %x\n"),
+                 "npoles %"PRIi32", nvals %"PRIi32", totvals %"PRIi32", lastfram16 = %"PRIi32"x\n"),
              p->npoles, p->nvals, totvals, p->lastfram16);
  lpend:
     p->lastmsg = 0;
