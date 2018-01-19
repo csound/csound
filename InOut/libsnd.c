@@ -25,6 +25,7 @@
 #include "soundio.h"
 #include <stdlib.h>
 #include <time.h>
+#include <inttypes.h>
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
@@ -942,12 +943,12 @@ void sfcloseout(CSOUND *csound)
  report:
     if (STA(pipdevout) == 2) {
       csound->Message(csound,
-                      Str("%d %d sample blks of %lu-bit floats written to %s\n"),
+                      Str("%"PRIi32" %d sample blks of %lu-bit floats written to %s\n"),
                       csound->nrecs, O->outbufsamps,
                       sizeof(MYFLT)*8, STA(sfoutname));
     }
     else {
-      csound->Message(csound, Str("%d %d sample blks of %s written to %s"),
+      csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
                       getstrformat(O->outformat), STA(sfoutname));
       if (O->sfheader == 0)

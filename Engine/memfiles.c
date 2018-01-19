@@ -31,6 +31,7 @@
 #include "namedins.h"
 #include <sndfile.h>
 #include <string.h>
+#include <inttypes.h>
 
 static int Load_Het_File_(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)
@@ -554,8 +555,8 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
 
     /* link into PVOC-EX memfile chain */
     csound->pvx_memfiles = pp;
-    csound->Message(csound, Str("file %s (%d bytes) loaded into memory\n"),
-                            fname, (int32) mem_wanted);
+    csound->Message(csound, Str("file %s (%"PRIi32" bytes) loaded into memory\n"),
+                            fname, mem_wanted);
 
     memcpy(p, pp, sizeof(PVOCEX_MEMFILE));
     return 0;
@@ -675,10 +676,10 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     p->data[p->nFrames] = 0.0f;
     csound->FileClose(csound, fd);
-    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %lld "
+    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %ld"
                                 "sample frames) loaded into memory\n"),
-                            p->fullName, (int) sfinfo->samplerate,
-                            (int) sfinfo->channels,
+                            p->fullName, sfinfo->samplerate,
+                            sfinfo->channels,
                             sfinfo->frames);
 
     /* link into database */
