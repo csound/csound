@@ -116,9 +116,9 @@ Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; C
 Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
-Source: "..\..\emscripten\examples-wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\emscripten\examples\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\emscripten\wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;;Source: "..\..\emscripten\examples-wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;;Source: "..\..\emscripten\examples\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;;Source: "..\..\emscripten\wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;;Source: "..\..\examples\python\CsoundPerformanceTest.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;;Source: "..\..\examples\python\GeneralMidi.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;;Source: "..\..\examples\python\HelloWorld.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -161,7 +161,6 @@ Source: "..\..\msvc\csound-vs\RelWithDebInfo\csanalyze.exe"; DestDir: "{#APP_BIN
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\csladspa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;;Source: "..\..\msvc\csound-vs\CsoundAC.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
@@ -233,41 +232,41 @@ Source: "..\..\msvc\deps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion
 Source: "..\..\msvc\deps\fluidsynthdeps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 ; NOTE: The .qml files are compiled into the resources of CsoundQt.
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundQt-d-cs6.*"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\*.pdb"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
-Source: "..\..\msvc\staging\CsoundQt\examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
-Source: "..\..\msvc\staging\CsoundQt\src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
+;;Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundQt-d-cs6.*"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
+;;Source: "..\..\msvc\csound-vs\RelWithDebInfo\*.pdb"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
+;;Source: "..\..\msvc\staging\CsoundQt\examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
+;;Source: "..\..\msvc\staging\CsoundQt\src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
 
-Source: "{#QtSdkBinDir}libEGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}libGLESv2.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Multimedia.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5MultimediaWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Network.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5OpenGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Positioning.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Qml.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Quick.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5QuickWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Sql.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Svg.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5WebChannel.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5WebEngine.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5WebEngineCore.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}QtWebEngineProcess.exe"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5WebEngineWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5XmlPatterns.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}..\plugins\imageformats\*.dll"; DestDir: "{#APP_BIN}\plugins\imageformats"; Components: core;
-Source: "{#QtSdkBinDir}..\plugins\platforms\qwindows.dll"; DestDir: "{#APP_BIN}\platforms"; Components: core;
-Source: "{#QtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; DestDir: "{#APP_BIN}\plugins\printsupport"; Components: core;
-Source: "{#QtSdkBinDir}..\qml\QtQml\*.*"; DestDir: "{#APP_BIN}QtQml"; Flags: ignoreversion recursesubdirs;  Components: core;
-Source: "{#QtSdkBinDir}..\qml\QtQuick\*.*"; DestDir: "{#APP_BIN}QtQuick"; Flags: ignoreversion recursesubdirs;  Components: core;
-Source: "{#QtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Flags: ignoreversion recursesubdirs;  Components: core;
-Source: "{#QtSdkBinDir}..\resources\*.*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
+;;Source: "{#QtSdkBinDir}libEGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}libGLESv2.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Multimedia.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5MultimediaWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Network.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5OpenGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Positioning.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Qml.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Quick.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5QuickWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Sql.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Svg.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5WebChannel.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5WebEngine.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5WebEngineCore.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}QtWebEngineProcess.exe"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5WebEngineWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}Qt5XmlPatterns.dll"; DestDir: "{#APP_BIN}"; Components: core;
+;;Source: "{#QtSdkBinDir}..\plugins\imageformats\*.dll"; DestDir: "{#APP_BIN}\plugins\imageformats"; Components: core;
+;;Source: "{#QtSdkBinDir}..\plugins\platforms\qwindows.dll"; DestDir: "{#APP_BIN}\platforms"; Components: core;
+;;Source: "{#QtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; DestDir: "{#APP_BIN}\plugins\printsupport"; Components: core;
+;;Source: "{#QtSdkBinDir}..\qml\QtQml\*.*"; DestDir: "{#APP_BIN}QtQml"; Flags: ignoreversion recursesubdirs;  Components: core;
+;;Source: "{#QtSdkBinDir}..\qml\QtQuick\*.*"; DestDir: "{#APP_BIN}QtQuick"; Flags: ignoreversion recursesubdirs;  Components: core;
+;;Source: "{#QtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Flags: ignoreversion recursesubdirs;  Components: core;
+;;Source: "{#QtSdkBinDir}..\resources\*.*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
 
 ;; Source: "{#VcpkgInstalledBinDir}*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
 

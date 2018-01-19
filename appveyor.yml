@@ -47,7 +47,7 @@ install:
   - npm install -g nw-gyp
   - nodevars.bat
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
-  # - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%" -vstSdkHome "%VST_SDK2_HOME%
+  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%" -vstSdkHome "%VST_SDK2_HOME%
   - cd ..
 
 build:
@@ -56,26 +56,26 @@ build:
 
 after_build:
   - dir "%VCPKGDir%\installed\x64-windows-static\include"
-  - cd frontends\nwjs
-  - npm config set msvs_version 2017 --global
+  #- cd frontends\nwjs
+  #- npm config set msvs_version 2017 --global
   #- set PYTHON=C:\Python27-x64\python.exe
-  - set npm_config_target=0.23.5
-  - set npm_config_arch=x64
-  - set npm_config_runtime=node-webkit
-  - set npm_config_build_from_source=true
-  - set npm_config_node_gyp=C:\Users\appveyor\AppData\Roaming\npm\node_modules\nw-gyp\bin\nw-gyp.js
-  - npm configure --version=0.23.5
-  - nw-gyp rebuild --target=0.23.5 --arch=x64 && exit=0
-  - cd ..\..
-  - set PATH=%QTDIR%\bin;%PATH%
-  - cd msvc
+  #- set npm_config_target=0.23.5
+  #- set npm_config_arch=x64
+  #- set npm_config_runtime=node-webkit
+  #- set npm_config_build_from_source=true
+  #- set npm_config_node_gyp=C:\Users\appveyor\AppData\Roaming\npm\node_modules\nw-gyp\bin\nw-gyp.js
+  #- npm configure --version=0.23.5
+  #- nw-gyp rebuild --target=0.23.5 --arch=x64 && exit=0
+  #- cd ..\..
+  #- set PATH=%QTDIR%\bin;%PATH%
+  #- cd msvc
   # Report qmake version to make sure we are using the Qt libraries we need.
-  - qmake -v
-  - build-csoundqt.bat
-  - cd ..
+  #- qmake -v
+  #- build-csoundqt.bat
+  #- cd ..
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
   - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
-  - 7z a csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py %APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
+  - 7z a csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py #%APPVEYOR_BUILD_FOLDER%\msvc\staging\CsoundQt\bin\*.exe
   - 7z l csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
 # Tests
