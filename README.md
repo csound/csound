@@ -1,5 +1,5 @@
 # CSOUND
-Version 6.10.0
+Version 6.11.0 (Beta)
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg)
@@ -27,28 +27,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 # GETTING STARTED
 
-CsoundQt, a graphical shell for Csound, is an excellent place to begin
-the exploration of Csound, especially as CsoundQt has an extensive menu
-of built-in examples that show off Csound's capabilities. Many musicians make
-CsoundQt their main Csound environment, although there are other excellent
-environments. CsoundQt runs not only Csound code, but also Python scripts and, 
-in the latest version, HTML5 code.
+This repository contains the code for the core Csound library, the
+interfaces library, and the command-line interface frontend. It also
+contains specific code for ports to various embedded, mobile and web platforms.
 
-The examples directory and its subdirectories contain numerous working 
-Csound orchestras, and even complete pieces. 
+For general project information, please look at http://csound.com,
+where all details about Csound, what it does, its history, music
+made with it, and many other things can be found.
 
-The Csound Reference Manual may be found online at 
-http://csound.github.io/docs/manual/indexframes.html, or it may be installed with 
-Csound in a location that varies by operating system.
-
-This version of Csound is programmable in C, C++, JavaScript, Python, Java, Lua, 
-and Common Lisp, and scores can be generated in these languages.
+The Csound Reference Manual can be found online at http://docs.csound.com.
 
 The Csound API application programming interface reference 
-may be found online at http://csound.github.io/docs/api/index.html, or it may be 
-installed with Csound in a location that varies by operating system. The API 
-reference is generated from and for the C and C++ API, but it is also helpful when 
-programming Csound in other languages.
+may be found online at http://csound.github.io/docs/api/index.html.
+
+Information on how to build Csound on various platforms is given in
+the BUILD.md file at the top level directory of this repository.
 
 # CONTRIBUTORS
 
