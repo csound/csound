@@ -64,7 +64,10 @@ def runTest():
         ["bugftlen.csd", "table size oddity"],
         ["buglosc.csd", "non integer loscil"],
         ["bugpow.csd", "karray power"],
-        ["bugrezzy.csd", "rezzy stabilised"]
+        ["bugrezzy.csd", "rezzy stabilised"],
+        ["buggen31.csd", "gen31 test"],
+        ["bugg.csd", "grain3"],
+        ["bugline.csd", "comments in score"]
     ]
 
     output = ""
