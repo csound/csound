@@ -1,0 +1,82 @@
+<!DOCTYPE html> 
+<html> 
+<!-- 
+ WasmCsound example 
+ Copyright (C) 2017 V Lazzarini 
+--> 
+<head> 
+ <title>Minimal Csound Example</title>
+</head>
+<script src="javascripts/libcsound.js"></script>
+<script src="javascripts/CsoundObj.js"></script>
+<script type="text/javascript">
+console.log = function(message){
+   var messField = document.getElementById("console") 
+   messField.innerText = message;
+   messField.style.color = getRandomColor();
+};
+
+console.warn = function(message){
+   var messField = document.getElementById("console") 
+   messField.innerText = message;
+   messField.style.color = getRandomColor();
+ };
+
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+
+var stop_csound = function() {
+csound.reset();
+var button = document.getElementById("butt");
+button.onclick = run_csound;
+button.innerHTML = "run";
+console.log("ready");
+};
+
+var run_csound = function () {
+csound = new CsoundObj();
+csound.compileOrc(
+   "0dbfs=1\n" +
+   "print 1 \n" +
+   "instr 1 \n" +
+   "k1 expon p4,p3,p4*0.001 \n" +
+   "a1 oscili k1,p5 \n" + 
+   "outs a1,a1 \n" +
+   "schedule 1,0.25,0.5,0.1+rnd(0.1),500+rnd(500)\n" +
+   "endin \n" +
+   "schedule 1,0,0.5,0.1,500\n"
+);
+csound.start();
+var button = document.getElementById("butt");
+button.onclick = stop_csound;
+button.innerHTML = "stop";
+console.log("running");
+};
+
+
+Module["_main"] =
+function (){
+console.log("ready");
+var button = document.createElement("button");
+button.onclick = run_csound;
+button.innerHTML = "run";
+button.setAttribute("id", "butt");
+document.getElementById("button").appendChild(button);
+}
+
+</script>
+<body>
+<div id="button" title="run"></div>
+<div id="console"></div>
+
+</body>
+</html>
+  
