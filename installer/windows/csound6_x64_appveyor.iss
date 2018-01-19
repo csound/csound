@@ -116,9 +116,9 @@ Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; C
 Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
-Source: "..\..\emscripten\examples-wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\emscripten\examples\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\emscripten\wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;;Source: "..\..\emscripten\examples-wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;;Source: "..\..\emscripten\examples\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;;Source: "..\..\emscripten\wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;;Source: "..\..\examples\python\CsoundPerformanceTest.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;;Source: "..\..\examples\python\GeneralMidi.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;;Source: "..\..\examples\python\HelloWorld.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
