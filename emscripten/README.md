@@ -48,8 +48,7 @@ Web browser that supports WebAudio.
 
 ## Build Instructions for WebAssembly
 
-1. In the `emsdk` directory run `source emsdk_env.sh` and 
-   `export EMSCRIPTEN_ROOT=$EMSCRIPTEN`.
+1. In the `emsdk` directory run `source emsdk_env.sh`.
 2. Change to the `csound/emscripten` directory.
 3. First you will need to build libsndfile. Use the
    `download_and_build_libsndfile_wasm.sh` script. In the emscripten
