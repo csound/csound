@@ -29,6 +29,7 @@
 #include "spectra.h"
 #include "pitch.h"
 #include "uggab.h"
+#include <inttypes.h>
 
 #define LOGTWO  (0.69314718056)
 
@@ -187,7 +188,7 @@ int spectset(CSOUND *csound, SPECTRUM *p)
         octp->endp = fltp;  minr *= 2;
       }
       csound->Warning(csound, Str("\t%d oct analysis window "
-                                  "delay = %d samples (%d msecs)\n"),
+                                  "delay = %"PRIi32" samples (%d msecs)\n"),
                               nocts, bufsiz, (int)(bufsiz*1000/dwnp->srate));
       if (p->disprd) {                      /* if display requested, */
         totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
