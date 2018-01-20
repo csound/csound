@@ -456,12 +456,6 @@ else()
     add_definitions("-DBETA")
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions("-Wno-format")
-endif()
-
-
-
 #if(USE_DOUBLE)
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins64)
 #else()
@@ -598,7 +592,7 @@ set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
     sys/time.h sys/types.h termios.h
     values.h winsock.h sys/socket.h
-    dirent.h )
+    dirent.h inttypes.h)
 
 foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
@@ -607,6 +601,11 @@ foreach(header ${HEADERS_TO_CHECK})
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
     check_include_file(${header} HAVE_${upper_header})
 endforeach()
+
+if (NOT HAVE_INTTYPES_H)
+    message(FATAL_ERROR "Csound requires inttypes.h")
+endif()
+
 
 check_deps(USE_LRINT HAVE_LRINT)
 if(USE_LRINT)

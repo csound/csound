@@ -29,6 +29,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "oload.h"
 #include "insert.h"
@@ -853,11 +854,11 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
       int32 instrNum = (int32)root->left->value->value; /* Not used! */
 
       c = csound->Malloc(csound, 10); /* arbritrarily chosen number of digits */
-      snprintf(c, 10, "%ld", (long)instrNum);
+      snprintf(c, 10, "%"PRIi32, instrNum);
 
       if (PARSER_DEBUG)
         csound->Message(csound,
-                        Str("create_instrument: instr num %d\n"), instrNum);
+                        Str("create_instrument: instr num %"PRIi32"\n"), instrNum);
 
       ip->t.inlist->arg[0] = strsav_string(csound, engineState, c);
 
@@ -1055,7 +1056,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       /* redefinition does not raise an error now, just a warning */
        if (UNLIKELY(csound->oparms->odebug))
          csound->Warning(csound,
-                         Str("instr %d redefined, replacing previous definition"),
+                         Str("instr %"PRIi32" redefined, replacing previous definition"),
                          inm->instno);
       /* here we should move the old instrument definition into a deadpool
          which will be checked for active instances and freed when there are no
@@ -1211,7 +1212,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       if (!merge) synterr(csound, Str("instr %d redefined\n"), instrNum);
       if (UNLIKELY(instrNum && csound->oparms->odebug))
         csound->Warning(csound,
-                        Str("instr %d redefined, replacing previous definition"),
+                        Str("instr %"PRIi32" redefined, replacing previous definition"),
                         instrNum);
       /* inherit active & maxalloc flags */
         instrtxt->active = engineState->instrtxtp[instrNum]->active;

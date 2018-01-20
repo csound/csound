@@ -26,6 +26,7 @@
 #include "convolve.h"
 #include "ugens9.h"
 #include "soundio.h"
+#include <inttypes.h>
 
 static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
 {
@@ -60,7 +61,7 @@ static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
     cvh = (CVSTRUCT *)mfp->beginp;
     if (UNLIKELY(cvh->magic != CVMAGIC)) {
       return csound->InitError(csound,
-                               Str("%s not a CONVOLVE file (magic %d)"),
+                               Str("%s not a CONVOLVE file (magic %"PRIi32")"),
                                cvfilnam, cvh->magic);
     }
 
@@ -107,7 +108,7 @@ static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
     if (UNLIKELY(cvh->dataFormat != CVMYFLT)) {
       return csound->InitError(csound,
                                Str("unsupported CONVOLVE data "
-                                   "format %d in %s"),
+                                   "format %"PRIi32" in %s"),
                                cvh->dataFormat, cvfilnam);
     }
 

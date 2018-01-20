@@ -28,6 +28,7 @@
 #include "csound_orc_expressions.h"
 #include "csound_type_system.h"
 #include "csound_orc_semantics.h"
+#include <inttypes.h>
 
 extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);
@@ -828,7 +829,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
     char *label = (char *)csound->Calloc(csound, 20);
     ORCTOKEN *token;
 
-    snprintf(label,20, "__synthetic_%ld", (long)count);
+    snprintf(label, 20, "__synthetic_%"PRIi32, count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
@@ -841,7 +842,7 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
     ORCTOKEN *token;
-    snprintf(label, 20, "__synthetic_%ld:", (long)count);
+    snprintf(label, 20, "__synthetic_%"PRIi32, count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     token = make_label(csound, label);

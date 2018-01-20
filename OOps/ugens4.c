@@ -24,6 +24,7 @@
 #include "csoundCore.h"         /*                      UGENS4.C        */
 #include "ugens4.h"
 #include <math.h>
+#include <inttypes.h>
 
 /* The branch prediction slows it down!! */
 
@@ -469,7 +470,7 @@ int rndset(CSOUND *csound, RAND *p)
       if (*p->iseed > FL(1.0)) {    /* As manual suggest seed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           p->rand = (int32) (seed & 0xFFFFUL);
         }
@@ -580,7 +581,7 @@ int rhset(CSOUND *csound, RANDH *p)
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           p->rand = (int32) (seed & 0xFFFFUL);
           p->num1 = (MYFLT) ((int16) p->rand) * DV32768;
@@ -686,7 +687,7 @@ int riset(CSOUND *csound, RANDI *p)
       if (*p->iseed > FL(1.0)) { /* As manual suggest sseed in range [0,1] */
         uint32 seed;             /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */

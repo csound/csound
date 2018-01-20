@@ -24,6 +24,7 @@
 #include "csoundCore.h"                             /*   SREAD.C     */
 #include <math.h>      /* for fabs() */
 #include <ctype.h>
+#include <inttypes.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
 #include "Engine/score_param.h"
@@ -1164,7 +1165,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(names)[j].line = STA(str)->line;
           //printf("line-%d\n",STA(names)[j].line);
           if (csound->oparms->msglevel & TIMEMSG)
-            csound->Message(csound,Str("%d: %s position %d\n"),
+            csound->Message(csound,Str("%d: %s position %"PRIi32"\n"),
                             j, STA(names)[j].name,
                             STA(names)[j].posit);
           STA(op) = getop(csound);
