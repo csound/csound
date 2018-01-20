@@ -188,233 +188,233 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
 
 int musmon(CSOUND *csound)
 {
-  OPARMS  *O = csound->oparms;
-  /* VL - 20-10-16 this is already printed in csound.c */
-  /*
-    #ifdef USE_DOUBLE
-    #ifdef BETA
-    csound->Message(csound,
-    Str("--Csound version %s beta (double samples) %s \n[%s]\n"),
-    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
-    #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s \n[%s]\n"),
-    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
-    #endif
-    #else
-    #ifdef BETA
-    csound->Message(csound,
-    Str("--Csound version %s beta (float samples) %s\n[%s]\n"),
-    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
-    #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s\n[%s]\n"),
-    CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
-    #endif
-    #endif
-  */
-  /* initialise search path cache */
-  csoundGetSearchPathFromEnv(csound, "SNAPDIR");
-  csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR;INCDIR");
-  csoundGetSearchPathFromEnv(csound, "SFDIR");
-  csoundGetSearchPathFromEnv(csound, "SADIR");
-  csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR");
+    OPARMS  *O = csound->oparms;
+    /* VL - 20-10-16 this is already printed in csound.c */
+    /*
+      #ifdef USE_DOUBLE
+      #ifdef BETA
+      csound->Message(csound,
+      Str("--Csound version %s beta (double samples) %s \n[%s]\n"),
+      CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
+      #else
+      csound->Message(csound,
+n                     Str("--Csound version %s (double samples) %s \n[%s]\n"),
+      CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
+      #endif
+      #else
+      #ifdef BETA
+      csound->Message(csound,
+      Str("--Csound version %s beta (float samples) %s\n[%s]\n"),
+      CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
+      #else
+      csound->Message(csound, Str("--Csound version %s (float samples) %s\n[%s]\n"),
+      CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
+      #endif
+      #endif
+    */
+    /* initialise search path cache */
+    csoundGetSearchPathFromEnv(csound, "SNAPDIR");
+    csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR;INCDIR");
+    csoundGetSearchPathFromEnv(csound, "SFDIR");
+    csoundGetSearchPathFromEnv(csound, "SADIR");
+    csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR");
 
-  m_chn_init_all(csound);     /* allocate MIDI channels */
-  dispinit(csound);           /* initialise graphics or character display */
+    m_chn_init_all(csound);     /* allocate MIDI channels */
+    dispinit(csound);           /* initialise graphics or character display */
 
-  reverbinit(csound);
-  dbfs_init(csound, csound->e0dbfs);
-  csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
-  csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
-  csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
-  csound->spraw = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
-  csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
-  csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
-  /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
-  /* memset(csound->smaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
-  /* memset(csound->omaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
+    reverbinit(csound);
+    dbfs_init(csound, csound->e0dbfs);
+    csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
+    csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
+    csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
+    csound->spraw = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
+    csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
+    csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
+    /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
+    /* memset(csound->smaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
+    /* memset(csound->omaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
 
-  /* initialise sensevents state */
-  csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
-  csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
-  csound->icurTime = 0L;
-  if (O->Beatmode && O->cmdTempo > 0.0) {
-    /* if performing from beats, set the initial tempo */
-    csound->curBeat_inc = O->cmdTempo / (60.0 * (double) csound->ekr);
-    csound->ibeatTime = (int64_t)(csound->esr*60.0 / O->cmdTempo);
-  }
-  else {
-    csound->curBeat_inc = 1.0 / (double) csound->ekr;
-    csound->ibeatTime = 1;
-  }
-  csound->cyclesRemaining = 0;
-  memset(&(csound->evt), 0, sizeof(EVTBLK));
+    /* initialise sensevents state */
+    csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
+    csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
+    csound->icurTime = 0L;
+    if (O->Beatmode && O->cmdTempo > 0.0) {
+      /* if performing from beats, set the initial tempo */
+      csound->curBeat_inc = O->cmdTempo / (60.0 * (double) csound->ekr);
+      csound->ibeatTime = (int64_t)(csound->esr*60.0 / O->cmdTempo);
+    }
+    else {
+      csound->curBeat_inc = 1.0 / (double) csound->ekr;
+      csound->ibeatTime = 1;
+    }
+    csound->cyclesRemaining = 0;
+    memset(&(csound->evt), 0, sizeof(EVTBLK));
 
-  /* run instr 0 inits */
-  if (UNLIKELY(init0(csound) != 0))
-    csoundDie(csound, Str("header init errors"));
+    /* run instr 0 inits */
+    if (UNLIKELY(init0(csound) != 0))
+      csoundDie(csound, Str("header init errors"));
 
-  /* kperf() will not call csoundYield() more than 250 times per second */
-  csound->evt_poll_cnt    = 0;
-  csound->evt_poll_maxcnt =
-    (int)(250.0 /(double) csound->ekr); /* VL this was wrong: kr/250 originally */
-  /* Enable musmon to handle external MIDI input, if it has been enabled. */
-  if (O->Midiin || O->FMidiin || O->RMidiin) {
-    O->RTevents = 1;
-    MidiOpen(csound);                 /*   alloc bufs & open files    */
-  }
-      /* open MIDI output (moved here from argdecode) */
+    /* kperf() will not call csoundYield() more than 250 times per second */
+    csound->evt_poll_cnt    = 0;
+    csound->evt_poll_maxcnt =
+      (int)(250.0 /(double) csound->ekr); /* VL this was wrong: kr/250 originally */
+    /* Enable musmon to handle external MIDI input, if it has been enabled. */
+    if (O->Midiin || O->FMidiin || O->RMidiin) {
+      O->RTevents = 1;
+      MidiOpen(csound);                 /*   alloc bufs & open files    */
+    }
+    /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
       O->Midioutname = NULL;
     if (O->FMidioutname != NULL && O->FMidioutname[0] == (char) '\0')
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
-  
-  csound->Message(csound, Str("orch now loaded\n"));
+    csound->Message(csound, Str("orch now loaded\n"));
 
-  csound->multichan = (csound->nchnls > 1 ? 1 : 0);
-  STA(segamps) = O->msglevel & SEGAMPS;
-  STA(sormsg)  = O->msglevel & SORMSG;
+    csound->multichan = (csound->nchnls > 1 ? 1 : 0);
+    STA(segamps) = O->msglevel & SEGAMPS;
+    STA(sormsg)  = O->msglevel & SORMSG;
 
-  if (O->Linein)
-    RTLineset(csound);                /* if realtime input expected   */
+    if (O->Linein)
+      RTLineset(csound);                /* if realtime input expected   */
 
-  if (csound->enableHostImplementedAudioIO &&
-      csound->hostRequestedBufferSize) {
-    int bufsize    = (int) csound->hostRequestedBufferSize;
-    int ksmps      = (int) csound->ksmps;
-    bufsize        = (bufsize + (ksmps >> 1)) / ksmps;
-    bufsize        = (bufsize ? bufsize * ksmps : ksmps);
-    O->outbufsamps = O->inbufsamps = bufsize;
-  }
-  else {
-    if (!O->oMaxLag)
-      O->oMaxLag = IODACSAMPS;
-    if (!O->outbufsamps)
-      O->outbufsamps = IOBUFSAMPS;
-    else if (UNLIKELY(O->outbufsamps < 0)) { /* if k-aligned iobufs requested  */
-      /* set from absolute value */
-      O->outbufsamps *= -(csound->ksmps);
-      csound->Message(csound, Str("k-period aligned audio buffering\n"));
-      if (O->oMaxLag <= O->outbufsamps)
-        O->oMaxLag = O->outbufsamps << 1;
-    }
-    /* else keep the user values */
-    /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
-    /* are usable */
-    if (check_rtaudio_name(O->infilename, NULL, 0) >= 0 ||
-        check_rtaudio_name(O->outfilename, NULL, 1) >= 0) {
-      O->oMaxLag = ((O->oMaxLag + O->outbufsamps - 1) / O->outbufsamps)
-        * O->outbufsamps;
-      if (O->oMaxLag <= O->outbufsamps && O->outbufsamps > 1)
-        O->outbufsamps >>= 1;
-    }
-    O->inbufsamps = O->outbufsamps;
-  }
-  csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
-                  (int) O->outbufsamps);
-  O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
-  O->outbufsamps *= csound->nchnls;
-  iotranset(csound);          /* point recv & tran to audio formatter */
-  /* open audio file or device for input first, and then for output */
-  if (!csound->enableHostImplementedAudioIO) {
-    if (O->sfread)
-      sfopenin(csound);
-    if (O->sfwrite && !csound->initonly)
-      sfopenout(csound);
-    else
-      sfnopenout(csound);
-  }
-  if (O->playscore!=NULL) corfile_flush(csound, O->playscore);
-  //csound->scfp
-  if (UNLIKELY(O->usingcscore)) {
-    if (STA(lsect) == NULL) {
-      STA(lsect) = (EVENT*) csound->Malloc(csound, sizeof(EVENT));
-      STA(lsect)->op = 'l';
-    }
-    csound->Message(csound, Str("using Cscore processing\n"));
-    /* override stdout in */
-    if (UNLIKELY(!(csound->oscfp = fopen("cscore.out", "w"))))
-      csoundDie(csound, Str("cannot create cscore.out"));
-    csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 1, 0);
-    /* rdscor for cscorefns */
-    csoundInitializeCscore(csound, csound->scfp, csound->oscfp);
-    /* call cscore, optionally re-enter via lplay() */
-    csound->cscoreCallback_(csound);
-    fclose(csound->oscfp); csound->oscfp = NULL;
-    if (csound->scfp != NULL) {
-      fclose(csound->scfp);
-      csound->scfp = NULL;
-    }
-    if (STA(lplayed))
-      return 0;
-
-    /*  read from cscore.out */
-    if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r")))) {
-      csoundDie(csound, Str("cannot reopen cscore.out"));
+    if (csound->enableHostImplementedAudioIO &&
+        csound->hostRequestedBufferSize) {
+      int bufsize    = (int) csound->hostRequestedBufferSize;
+      int ksmps      = (int) csound->ksmps;
+      bufsize        = (bufsize + (ksmps >> 1)) / ksmps;
+      bufsize        = (bufsize ? bufsize * ksmps : ksmps);
+      O->outbufsamps = O->inbufsamps = bufsize;
     }
     else {
-      CORFIL *inf = corfile_create_w(csound);
-      int c;
-      while ((c=getc(csound->scfp))!=EOF) corfile_putc(csound, c, inf);
-      corfile_rewind(inf);
-      csound->scorestr = inf;
-      corfile_rm(csound, &csound->scstr);
+      if (!O->oMaxLag)
+        O->oMaxLag = IODACSAMPS;
+      if (!O->outbufsamps)
+        O->outbufsamps = IOBUFSAMPS;
+      else if (UNLIKELY(O->outbufsamps < 0)) { /* if k-aligned iobufs requested  */
+        /* set from absolute value */
+        O->outbufsamps *= -(csound->ksmps);
+        csound->Message(csound, Str("k-period aligned audio buffering\n"));
+        if (O->oMaxLag <= O->outbufsamps)
+          O->oMaxLag = O->outbufsamps << 1;
+      }
+      /* else keep the user values */
+      /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
+      /* are usable */
+      if (check_rtaudio_name(O->infilename, NULL, 0) >= 0 ||
+          check_rtaudio_name(O->outfilename, NULL, 1) >= 0) {
+        O->oMaxLag = ((O->oMaxLag + O->outbufsamps - 1) / O->outbufsamps)
+          * O->outbufsamps;
+        if (O->oMaxLag <= O->outbufsamps && O->outbufsamps > 1)
+          O->outbufsamps >>= 1;
+      }
+      O->inbufsamps = O->outbufsamps;
     }
-    csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
-    /* write to cscore.srt */
-    if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w"))))
-      csoundDie(csound, Str("cannot reopen cscore.srt"));
-    csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
-    csound->Message(csound, Str("sorting cscore.out ..\n"));
-    /* csound->scorestr = copy_to_corefile(csound, "cscore.srt", NULL, 1); */
-    scsortstr(csound, csound->scorestr);  /* call the sorter again */
-    fclose(csound->scfp); csound->scfp = NULL;
-    fputs(corfile_body(csound->scstr), csound->oscfp);
-    fclose(csound->oscfp); csound->oscfp = NULL;
-    csound->Message(csound, Str("\t... done\n"));
-    csound->Message(csound, Str("playing from cscore.srt\n"));
-    O->usingcscore = 0;
-  }
+    csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
+                    (int) O->outbufsamps);
+    O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
+    O->outbufsamps *= csound->nchnls;
+    iotranset(csound);          /* point recv & tran to audio formatter */
+    /* open audio file or device for input first, and then for output */
+    if (!csound->enableHostImplementedAudioIO) {
+      if (O->sfread)
+        sfopenin(csound);
+      if (O->sfwrite && !csound->initonly)
+        sfopenout(csound);
+      else
+        sfnopenout(csound);
+    }
+    if (O->playscore!=NULL) corfile_flush(csound, O->playscore);
+    //csound->scfp
+    if (UNLIKELY(O->usingcscore)) {
+      if (STA(lsect) == NULL) {
+        STA(lsect) = (EVENT*) csound->Malloc(csound, sizeof(EVENT));
+        STA(lsect)->op = 'l';
+      }
+      csound->Message(csound, Str("using Cscore processing\n"));
+      /* override stdout in */
+      if (UNLIKELY(!(csound->oscfp = fopen("cscore.out", "w"))))
+        csoundDie(csound, Str("cannot create cscore.out"));
+      csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 1, 0);
+      /* rdscor for cscorefns */
+      csoundInitializeCscore(csound, csound->scfp, csound->oscfp);
+      /* call cscore, optionally re-enter via lplay() */
+      csound->cscoreCallback_(csound);
+      fclose(csound->oscfp); csound->oscfp = NULL;
+      if (csound->scfp != NULL) {
+        fclose(csound->scfp);
+        csound->scfp = NULL;
+      }
+      if (STA(lplayed))
+        return 0;
 
-  csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
-  /* apply score offset if non-zero */
-  if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
-    csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
+      /*  read from cscore.out */
+      if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r")))) {
+        csoundDie(csound, Str("cannot reopen cscore.out"));
+      }
+      else {
+        CORFIL *inf = corfile_create_w(csound);
+        int c;
+        while ((c=getc(csound->scfp))!=EOF) corfile_putc(csound, c, inf);
+        corfile_rewind(inf);
+        csound->scorestr = inf;
+        corfile_rm(csound, &csound->scstr);
+      }
+      csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
+      /* write to cscore.srt */
+      if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w"))))
+        csoundDie(csound, Str("cannot reopen cscore.srt"));
+      csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
+      csound->Message(csound, Str("sorting cscore.out ..\n"));
+      /* csound->scorestr = copy_to_corefile(csound, "cscore.srt", NULL, 1); */
+      scsortstr(csound, csound->scorestr);  /* call the sorter again */
+      fclose(csound->scfp); csound->scfp = NULL;
+      fputs(corfile_body(csound->scstr), csound->oscfp);
+      fclose(csound->oscfp); csound->oscfp = NULL;
+      csound->Message(csound, Str("\t... done\n"));
+      csound->Message(csound, Str("playing from cscore.srt\n"));
+      O->usingcscore = 0;
+    }
+
+    csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    /* apply score offset if non-zero */
+    if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
+      csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
 #ifndef __EMSCRIPTEN__
-  if (csound->oparms->realtime && csound->event_insert_loop == 0){
-    extern void *event_insert_thread(void *);
-    csound->init_pass_threadlock = csoundCreateMutex(0);
+    if (csound->oparms->realtime && csound->event_insert_loop == 0){
+      extern void *event_insert_thread(void *);
+      csound->init_pass_threadlock = csoundCreateMutex(0);
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-    csound->Message(csound, "Initialising spinlock...\n");
-    pthread_spin_init((pthread_spinlock_t*)&csound->alloc_spinlock,
-                      PTHREAD_PROCESS_PRIVATE);
+      csound->Message(csound, "Initialising spinlock...\n");
+      pthread_spin_init((pthread_spinlock_t*)&csound->alloc_spinlock,
+                        PTHREAD_PROCESS_PRIVATE);
 #endif
-    csound->event_insert_loop = 1;
-    csound->alloc_queue = (ALLOC_DATA *)
-      csound->Calloc(csound, sizeof(ALLOC_DATA)*MAX_ALLOC_QUEUE);
-    csound->event_insert_thread = csound->CreateThread(
-                                                       (uintptr_t (*)(void*)) event_insert_thread,
-                                                       (void*)csound);
-    csound->Message(csound, "Starting realtime mode queue: %p thread: %p\n",
-                    csound->alloc_queue, csound->event_insert_thread );
-  }
+      csound->event_insert_loop = 1;
+      csound->alloc_queue = (ALLOC_DATA *)
+        csound->Calloc(csound, sizeof(ALLOC_DATA)*MAX_ALLOC_QUEUE);
+      csound->event_insert_thread =
+        csound->CreateThread((uintptr_t (*)(void*)) event_insert_thread,
+                             (void*)csound);
+      csound->Message(csound, "Starting realtime mode queue: %p thread: %p\n",
+                      csound->alloc_queue, csound->event_insert_thread );
+    }
 #endif
 
-  /* since we are running in components, we exit here to playevents later */
-  return 0;
+    /* since we are running in components, we exit here to playevents later */
+    return 0;
 }
 
 static void deactivate_all_notes(CSOUND *csound)
 {
-  INSDS *ip = csound->actanchor.nxtact;
+    INSDS *ip = csound->actanchor.nxtact;
 
-  while (ip != NULL) {
-    INSDS *nxt = ip->nxtact;
-    xturnoff_now(csound, ip);
-    ip = nxt;
-  }
+    while (ip != NULL) {
+      INSDS *nxt = ip->nxtact;
+      xturnoff_now(csound, ip);
+      ip = nxt;
+    }
 }
 
 static void delete_pending_rt_events(CSOUND *csound)
@@ -437,107 +437,107 @@ static void delete_pending_rt_events(CSOUND *csound)
 
 static inline void cs_beep(CSOUND *csound)
 {
-  csound->Message(csound, Str("%c\tbeep!\n"), '\a');
+    csound->Message(csound, Str("%c\tbeep!\n"), '\a');
 }
 
 PUBLIC int csoundCleanup(CSOUND *csound)
 {
-  void    *p;
-  MYFLT   *maxp;
-  int32    *rngp;
-  uint32_t n;
+    void    *p;
+    MYFLT   *maxp;
+    int32   *rngp;
+    uint32_t n;
 
-  csoundLockMutex(csound->API_lock);
-  if (csound->QueryGlobalVariable(csound,"::UDPCOM")
-      != NULL) csoundUDPServerClose(csound);
+    csoundLockMutex(csound->API_lock);
+    if (csound->QueryGlobalVariable(csound,"::UDPCOM")
+        != NULL) csoundUDPServerClose(csound);
 
 
 
-  while (csound->evtFuncChain != NULL) {
-    p = (void*) csound->evtFuncChain;
-    csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
-    csound->Free(csound,p);
-  }
+    while (csound->evtFuncChain != NULL) {
+      p = (void*) csound->evtFuncChain;
+      csound->evtFuncChain = ((EVT_CB_FUNC*) p)->nxt;
+      csound->Free(csound,p);
+    }
 
-  /* check if we have already cleaned up */
-  if (!(csound->engineStatus & CS_STATE_CLN)){
-    csoundUnlockMutex(csound->API_lock);
-    return 0;
-  }
-  /* will not clean up more than once */
-  csound->engineStatus &= ~(CS_STATE_CLN);
+    /* check if we have already cleaned up */
+    if (!(csound->engineStatus & CS_STATE_CLN)){
+      csoundUnlockMutex(csound->API_lock);
+      return 0;
+    }
+    /* will not clean up more than once */
+    csound->engineStatus &= ~(CS_STATE_CLN);
 
-  deactivate_all_notes(csound);
+    deactivate_all_notes(csound);
 
-  if (csound->engineState.instrtxtp &&
-      csound->engineState.instrtxtp[0] &&
-      csound->engineState.instrtxtp[0]->instance &&
-      csound->engineState.instrtxtp[0]->instance->actflg)
-    xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
-  delete_pending_rt_events(csound);
+    if (csound->engineState.instrtxtp &&
+        csound->engineState.instrtxtp[0] &&
+        csound->engineState.instrtxtp[0]->instance &&
+        csound->engineState.instrtxtp[0]->instance->actflg)
+      xturnoff_now(csound, csound->engineState.instrtxtp[0]->instance);
+    delete_pending_rt_events(csound);
 
 #ifndef __EMSCRIPTEN__
-  if (csound->event_insert_loop == 1) {
-    csound->event_insert_loop = 0;
-    csound->JoinThread(csound->event_insert_thread);
-    csoundDestroyMutex(csound->init_pass_threadlock);
-    csound->event_insert_thread = 0;
-  }
+    if (csound->event_insert_loop == 1) {
+      csound->event_insert_loop = 0;
+      csound->JoinThread(csound->event_insert_thread);
+      csoundDestroyMutex(csound->init_pass_threadlock);
+      csound->event_insert_thread = 0;
+    }
 #endif
 
-  while (csound->freeEvtNodes != NULL) {
-    p = (void*) csound->freeEvtNodes;
-    csound->freeEvtNodes = ((EVTNODE*) p)->nxt;
-    csound->Free(csound,p);
-  }
-
-  orcompact(csound);
-
-  corfile_rm(csound, &csound->scstr);
-
-  /* print stats only if musmon was actually run */
-  /* NOT SURE HOW   ************************** */
-  {
-    csound->Message(csound, Str("end of score.\t\t   overall amps:"));
-    corfile_rm(csound, &csound->expanded_sco);
-    for (n = 0; n < csound->nchnls; n++) {
-      if (csound->smaxamp[n] > csound->omaxamp[n])
-        csound->omaxamp[n] = csound->smaxamp[n];
-      if (csound->maxamp[n] > csound->omaxamp[n])
-        csound->omaxamp[n] = csound->maxamp[n];
-      STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
+    while (csound->freeEvtNodes != NULL) {
+      p = (void*) csound->freeEvtNodes;
+      csound->freeEvtNodes = ((EVTNODE*) p)->nxt;
+      csound->Free(csound,p);
     }
-    for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
-      print_maxamp(csound, *maxp++);
-    if (csound->oparms->outformat != AE_FLOAT) {
-      csound->Message(csound, Str("\n\t   overall samples out of range:"));
-      for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
-        csound->Message(csound, "%9d", *rngp++);
+
+    orcompact(csound);
+
+    corfile_rm(csound, &csound->scstr);
+
+    /* print stats only if musmon was actually run */
+    /* NOT SURE HOW   ************************** */
+    {
+      csound->Message(csound, Str("end of score.\t\t   overall amps:"));
+      corfile_rm(csound, &csound->expanded_sco);
+      for (n = 0; n < csound->nchnls; n++) {
+        if (csound->smaxamp[n] > csound->omaxamp[n])
+          csound->omaxamp[n] = csound->smaxamp[n];
+        if (csound->maxamp[n] > csound->omaxamp[n])
+          csound->omaxamp[n] = csound->maxamp[n];
+        STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
+      }
+      for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
+        print_maxamp(csound, *maxp++);
+      if (csound->oparms->outformat != AE_FLOAT) {
+        csound->Message(csound, Str("\n\t   overall samples out of range:"));
+        for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
+          csound->Message(csound, "%9d", *rngp++);
+      }
+      csound->Message(csound, Str("\n%d errors in performance\n"),
+                      csound->perferrcnt);
+      print_benchmark_info(csound, Str("end of performance"));
     }
-    csound->Message(csound, Str("\n%d errors in performance\n"),
-                    csound->perferrcnt);
-    print_benchmark_info(csound, Str("end of performance"));
-  }
-  /* close line input (-L) */
-  RTclose(csound);
-  /* close MIDI input */
-  MidiClose(csound);
+    /* close line input (-L) */
+    RTclose(csound);
+    /* close MIDI input */
+    MidiClose(csound);
 
-  /* IV - Feb 03 2005: do not need to call rtclose from here, */
-  /* as sfclosein/sfcloseout will do that. */
-  if (!csound->enableHostImplementedAudioIO) {
-    sfclosein(csound);
-    sfcloseout(csound);
-    if (UNLIKELY(!csound->oparms->sfwrite))
-      csound->Message(csound, Str("no sound written to disk\n"));
-  }
-  /* close any remote.c sockets */
-  if (csound->remoteGlobals) remote_Cleanup(csound);
-  if (UNLIKELY(csound->oparms->ringbell))
-    cs_beep(csound);
+    /* IV - Feb 03 2005: do not need to call rtclose from here, */
+    /* as sfclosein/sfcloseout will do that. */
+    if (!csound->enableHostImplementedAudioIO) {
+      sfclosein(csound);
+      sfcloseout(csound);
+      if (UNLIKELY(!csound->oparms->sfwrite))
+        csound->Message(csound, Str("no sound written to disk\n"));
+    }
+    /* close any remote.c sockets */
+    if (csound->remoteGlobals) remote_Cleanup(csound);
+    if (UNLIKELY(csound->oparms->ringbell))
+      cs_beep(csound);
 
-  csoundUnlockMutex(csound->API_lock);
-  return dispexit(csound);    /* hold or terminate the display output     */
+    csoundUnlockMutex(csound->API_lock);
+    return dispexit(csound);    /* hold or terminate the display output     */
 }
 
 int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
@@ -716,6 +716,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
   switch (evt->opcod) {                       /* scorevt or Linevt:     */
   case 'e':           /* quit realtime */
     csound->event_insert_loop = 0;
+    /* fall through */
   case 'l':
   case 's':
     while (csound->frstoff != NULL) {
