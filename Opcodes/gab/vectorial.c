@@ -25,6 +25,7 @@
 #include "interlocks.h"
 #include "vectorial.h"
 #include <math.h>
+#include <inttypes.h>
 
 static int mtable_i(CSOUND *csound,MTABLEI *p)
 {
@@ -1904,7 +1905,7 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
           p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
         }
         csound->Message(csound,
-                        Str("vrandh: Seeding from current time %u\n"),
+                        Str("vrandh: Seeding from current time %" PRIu32 "\n"),
                         seed);
       }
       else {
@@ -2004,7 +2005,7 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
           p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
         }
         csound->Message(csound,
-                        Str("vrandi: Seeding from current time %u\n"), seed);
+                        Str("vrandi: Seeding from current time %" PRIu32 "\n"), seed);
       }
       else {
         if (*p->isize == 0)
