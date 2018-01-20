@@ -842,7 +842,7 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
     char *label = (char *)csound->Calloc(csound, 20);
     ORCTOKEN *token;
-    snprintf(label, 20, "__synthetic_%"PRIi32, count);
+    snprintf(label, 20, "__synthetic_%"PRIi32":", count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     token = make_label(csound, label);
