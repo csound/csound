@@ -87,7 +87,7 @@ static void message_string_enqueue(CSOUND *csound, int attr,
     const char *str) {
     unsigned long wp = csound->message_string_queue_wp;
     csound->message_string_queue[wp].attr = attr;
-    strncpy(csound->message_string_queue[wp].str, str, MAX_MESSAGE_STR);
+    strncpy(csound->message_string_queue[wp].str, str, MAX_MESSAGE_STR-1);
     csound->message_string_queue_wp = wp + 1 < QUEUESIZ ? wp + 1 : 0;
     ATOMIC_INCR(csound->message_string_queue_items);
 }
@@ -206,12 +206,12 @@ uintptr_t event_insert_thread(void *p) {
       }
      items = ATOMIC_GET(csound->message_string_queue_items);
      while(items) {
-     if(mess != NULL)
-      csoundMessageStringCallback(csound, mess[rpm].attr,  mess[rpm].str);
-      ATOMIC_DECR(csound->message_string_queue_items);
-      items--;
-      rpm = rpm + 1 < QUEUESIZ ? rpm + 1 : 0;
-    }
+       if(mess != NULL)
+         csoundMessageStringCallback(csound, mess[rpm].attr,  mess[rpm].str);
+       ATOMIC_DECR(csound->message_string_queue_items);
+       items--;
+       rpm = rpm + 1 < QUEUESIZ ? rpm + 1 : 0;
+     }
   }
   csoundSetMessageCallback(csound, csoundMessageCallback);
   return (uintptr_t) NULL;
