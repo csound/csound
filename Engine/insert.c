@@ -33,6 +33,7 @@
 #include "interlocks.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+#include <inttypes.h>
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -302,10 +303,10 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if (UNLIKELY(O->odebug)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
-      csound->Message(csound, Str("activating instr %s at %lld\n"),
+        csound->Message(csound, Str("activating instr %s at %"PRIi64"\n"),
                       name, csound->icurTime);
     else
-      csound->Message(csound, Str("activating instr %d at %lld\n"),
+        csound->Message(csound, Str("activating instr %d at %"PRIi64"\n"),
                       insno, csound->icurTime);
   }
   csound->inerrcnt = 0;

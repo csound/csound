@@ -34,6 +34,7 @@
 #include "csdl.h"
 #include "cwindow.h"
 #include "winFLTK.h"
+#include <inttypes.h>
 
 #define NUMOFWINDOWS (30)
 #define XINIT    10      /* set default window location */
@@ -125,14 +126,14 @@ void graph_box::draw()
       if (!win)
         return;
       MYFLT       *fdata = win->fdata;
-      long        npts   = win->npts;
+      int32       npts   = win->npts;
       char        *msg   = win->caption;
       short       win_x, win_y,        win_h;     /* window rect */
       short       gra_x, gra_y, gra_w, gra_h;     /* graph rect is inset */
       short       y_axis;
       int         lsegs, pts_pls;
       int         pol;
-      char        string[80];
+      char        string[400];
 
       pol  = win->polarity;
 
@@ -204,9 +205,9 @@ void graph_box::draw()
         fl_line(win_x+w()/2, win_y, win_x+w()/2, win_y+win_h);
       }
       if (pol != NEGPOL)
-        sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->oabsmax);
+      sprintf(string, "%s  %" PRIi32 " points, max %5.3f", msg, npts, win->oabsmax);
       else
-        sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->max);
+      sprintf(string, "%s  %" PRIi32 " points, max %5.3f", msg, npts, win->max);
 
       ST(form)->label(string);
     }
