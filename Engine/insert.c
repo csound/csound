@@ -87,7 +87,8 @@ static void message_string_enqueue(CSOUND *csound, int attr,
     const char *str) {
     unsigned long wp = csound->message_string_queue_wp;
     csound->message_string_queue[wp].attr = attr;
-    strncpy(csound->message_string_queue[wp].str, str, MAX_MESSAGE_STR-1);
+    strncpy(csound->message_string_queue[wp].str, str, MAX_MESSAGE_STR);
+    csound->message_string_queue[wp].str[MAX_MESSAGE_STR-1] = '\0';
     csound->message_string_queue_wp = wp + 1 < QUEUESIZ ? wp + 1 : 0;
     ATOMIC_INCR(csound->message_string_queue_items);
 }
