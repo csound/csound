@@ -1334,7 +1334,7 @@ void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
       if (p == NULL)
         p = s + strlen(s);
       if (UNLIKELY(csound->oparms->msglevel & 7))
-        csound->Message(csound, Str("Macro definition for %*s\n"), (int) (p - s), s);
+        csound->Message(csound, Str("Macro definition for %*s\n"), (int)(p - s), s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {
         csound->Die(csound, Str("Invalid macro name for --smacro"));

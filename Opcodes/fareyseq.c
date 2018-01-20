@@ -250,12 +250,12 @@ int tablefilter (CSOUND *csound, TABFILT *p)
     if (UNLIKELY((*p->dft < 1) || (*p->sft < 1))) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f"),
-                               *p->dft, *p->sft);
+                               (float)*p->dft, (float)*p->sft);
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("Farey: Filter type < 1 ftype=%.2f"),
-                               *p->ftype);
+                               (float)*p->ftype);
     }
 
 
@@ -304,8 +304,7 @@ int tableifilter (CSOUND *csound, TABFILT *p)
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, p->h.insdshead,
-                               Str("Farey: Filter type < 1 ftype=%.2f"),
-                               *p->ftype);
+                               Str("Farey: Filter type < 1"));
     }
 
     /* Check each table number in turn.  */
