@@ -145,10 +145,10 @@ uintptr_t event_insert_thread(void *p) {
   ALLOC_DATA *inst = csound->alloc_queue;
   float wakeup = (1000*csound->ksmps/csound->esr);
   unsigned long rp = 0, items, rpm = 0;
-  message_string_queue_t *mess;
+  message_string_queue_t *mess = NULL;
   void (*csoundMessageStringCallback)(CSOUND *csound,
                                       int attr,
-                                      const char *str);
+                                      const char *str) = NULL;
   void (*csoundMessageCallback)(CSOUND *csound,
                                 int attr,
                                 const char *format,
