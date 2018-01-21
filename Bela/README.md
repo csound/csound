@@ -6,7 +6,25 @@ Csound for Bela is provided in two forms:
 1. BelaCsound.cpp: setup(), render(), an cleanup() functions
 to be used in Bela C++ projects, requiring linking to the Csound library
 
-2. belacsound: a standalone executable, built from CMake with -DBUILD_BELA=1
+2. belacsound: a standalone executable, built from CMake with
+-DBUILD_BELA=1
+
+Build instructions
+=========================================
+
+To build Csound on the board (as root), just do, from the
+top-level sources
+
+```
+$ cp Bela/Custom.cmake.bela Custom.cmake
+$ mkdir build && cd build
+$ cmake .. -DBUILD_BELA=1 -DUSE_DOUBLE=0
+$ make && make install
+$ sudo ldconfig
+```
+
+Csound is installed by default in /usr/local. Other locations can be
+selected by setting the CMake variable CMAKE_INSTALL_PREFIX. 
 
 Cross-compiling instructions
 =========================================
