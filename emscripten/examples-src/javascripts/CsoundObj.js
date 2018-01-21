@@ -45,7 +45,7 @@ var CsoundObj = function() {
     var _openAudioOut = cwrap('CsoundObj_openAudioOut', null, ['number']);
     var _closeAudioOut = cwrap('CsoundObj_closeAudioOut', null, ['number']);
     var _play = cwrap('CsoundObj_play', null, ['number']);
-    var _paude = cwrap('CsoundObj_pause', null, ['number']);
+    var _pause = cwrap('CsoundObj_pause', null, ['number']);
     var bufferSize;
     var _self = _new();
     var _destroy = cwrap('CsoundObj_destroy', null, ['number']);
