@@ -8584,7 +8584,7 @@ msgstr "rnd31 : non initialisé"
 
 #: Opcodes/oscbnk.c:1561
 msgid "function table is NULL, check that ibasfn is available\n"
-msgstr ""
+msgstr "table de fonction NULL, vérifier que ibasfn est valable\n"
 
 #: Opcodes/oscbnk.c:1711
 #, c-format
@@ -11547,15 +11547,14 @@ msgstr ""
 "variable"
 
 #: Top/argdecode.c:301
-#, fuzzy
 msgid "--devices[=in|out]      list available audio devices and exit"
 msgstr ""
-"--devices[=in|out]      liste les périphériques MIDI disponibles et termine"
+"--devices[=in|out]      liste les périphériques audio disponibles et termine"
 
 #: Top/argdecode.c:302
-#, fuzzy
 msgid "--midi-devices[=in|out] list available MIDI devices and exit"
-msgstr "--midi-devices[=in|out] liste les périphériques disponibles et termine"
+msgstr ""
+"--midi-devices[=in|out] liste les périphériques MIDI disponibles et termine"
 
 #: Top/argdecode.c:303
 msgid "--get-system-sr         print system sr and exit"
