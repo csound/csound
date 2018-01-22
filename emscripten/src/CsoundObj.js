@@ -37,6 +37,7 @@ var CsoundObj = function() {
     var _prepareRT = cwrap('CsoundObj_prepareRT', null, ['number']);
     var _pushMidiMessage = cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']);
     var _readScore = cwrap('CsoundObj_readScore', 'number', ['number', 'string']);
+    var _inputMessage = cwrap('CsoundObj_inputMessage', null , ['number', 'string']);
     var _render = cwrap('CsoundObj_render', null, ['number']);
     var _reset = cwrap('CsoundObj_reset', null, ['number']);
     var _setControlChannel = cwrap('CsoundObj_setControlChannel', null, ['number', 'string', 'number']);
@@ -153,6 +154,10 @@ var CsoundObj = function() {
 
     this.readScore = function(scoreString) {
         _readScore(csound_obj_, scoreString);
+    };
+
+    this.inputMessage = function(events) {
+        _inputMessage(csound_obj_, events);
     };
 
     this.setControlChannel = function(channelName, value) {

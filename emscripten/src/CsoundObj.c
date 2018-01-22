@@ -159,6 +159,12 @@ int CsoundObj_readScore(CsoundObj *self, const char *scoreString)
 }
 
 EMSCRIPTEN_KEEPALIVE 
+void CsoundObj_inputMessage(CsoundObj *self, const char *events)
+{
+  csoundInputMessage(self->csound, events);
+}
+
+EMSCRIPTEN_KEEPALIVE 
 float CsoundObj_getControlChannel(CsoundObj *self, const char *channelName) {
   int *error = NULL;
   float returnValue = csoundGetControlChannel(self->csound, channelName, error);
