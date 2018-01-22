@@ -48,6 +48,7 @@ static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
 
 int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
+     IGN(csound);
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = 0.0;
       p->lkf = FL(0.0);

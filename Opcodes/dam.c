@@ -64,6 +64,7 @@ static int daminit(CSOUND *csound, DAM *p)
 
 static int dam(CSOUND *csound, DAM *p)
 {
+     IGN(csound);
     MYFLT *ain,*aout;
     MYFLT threshold;
     MYFLT gain;

@@ -29,6 +29,8 @@
 
 static int lowpr_set(CSOUND *csound, LOWPR *p)
 {
+
+     IGN(csound);
     if (*p->istor==FL(0.0))
       p->ynm1 = p->ynm2 = 0.0;
     p->okf = 0.0;
@@ -259,6 +261,7 @@ static int lowpr_setx(CSOUND *csound, LOWPRX *p)
 
 static int lowprx(CSOUND *csound, LOWPRX *p)
 {
+     IGN(csound);
     MYFLT    b, k = p->k;
     MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT    coef1 = p->coef1, coef2 = p->coef2;
@@ -317,6 +320,7 @@ static int lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
 
 static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 {
+     IGN(csound);
     MYFLT    b, k;
     MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT    coef1, coef2;

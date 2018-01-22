@@ -161,6 +161,7 @@ static int tabfill(CSOUND *csound, TABFILL *p)
 
 static int array_err(CSOUND* csound, ARRAY_SET *p)
 {
+    IGN(p);
     return csound->InitError(csound, Str("Cannot set i-array at k-rate\n"));
 }
 
@@ -1349,6 +1350,7 @@ static int tabscaleset(CSOUND *csound, TABSCALE *p)
 
 static int tabscale(CSOUND *csound, TABSCALE *p)
 {
+    IGN(csound);
     MYFLT min = *p->kmin, max = *p->kmax;
     int strt = (int)MYFLT2LRND(*p->kstart), end = (int)MYFLT2LRND(*p->kend);
     ARRAYDAT *t = p->tab;
@@ -1770,6 +1772,7 @@ static int tabmap_perf(CSOUND *csound, TABMAP *p)
 
 int tablength(CSOUND *csound, TABQUERY1 *p)
 {
+    IGN(csound);
     int opt = (int)*p->opt;
     if (UNLIKELY(p->tab==NULL || opt>p->tab->dimensions))
       *p->ans = -FL(1.0);
@@ -1838,6 +1841,7 @@ static int ina_set(CSOUND *csound, OUTA *p)
 
 static int ina(CSOUND *csound, OUTA *p)
 {
+    IGN(csound);
     ARRAYDAT *aa = p->tabin;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2080,6 +2084,7 @@ int init_recttopol(CSOUND *csound, FFT *p){
 }
 
 int perf_recttopol(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i, end = p->out->sizes[0];
     MYFLT *in, *out, mag, ph;
     in = p->in->data;
@@ -2093,6 +2098,7 @@ int perf_recttopol(CSOUND *csound, FFT *p){
 }
 
 int perf_poltorect(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i, end = p->out->sizes[0];
     MYFLT *in, *out, re, im;
     in = p->in->data;
@@ -2117,6 +2123,7 @@ int init_poltorect2(CSOUND *csound, FFT *p){
 
 
 int perf_poltorect2(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i,j, end = p->in->sizes[0]-1;
     MYFLT *mags, *phs, *out, re, im;
     mags = p->in->data;
@@ -2139,6 +2146,7 @@ int init_mags(CSOUND *csound, FFT *p){
 }
 
 int perf_mags(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
@@ -2151,6 +2159,7 @@ int perf_mags(CSOUND *csound, FFT *p){
 }
 
 int perf_phs(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
@@ -2170,6 +2179,7 @@ int init_logarray(CSOUND *csound, FFT *p){
 }
 
 int perf_logarray(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i, end = p->out->sizes[0];
     MYFLT bas = p->b;
     MYFLT *in, *out;
@@ -2191,6 +2201,7 @@ int init_rtoc(CSOUND *csound, FFT *p){
 }
 
 int perf_rtoc(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
@@ -2216,6 +2227,7 @@ int init_ctor(CSOUND *csound, FFT *p){
 
 
 int perf_ctor(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
@@ -2252,6 +2264,7 @@ int init_window(CSOUND *csound, FFT *p){
 }
 
 int perf_window(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i,end = p->out->sizes[0], off = *((MYFLT *)p->in2);
     MYFLT *in, *out, *w;
     in = p->in->data;
@@ -2489,6 +2502,7 @@ int shiftin_init(CSOUND *csound, FFT *p){
 }
 
 int shiftin_perf(CSOUND *csound, FFT *p){
+   IGN(csound);
     uint32_t  siz =  p->out->sizes[0], n = p->n;
     MYFLT *in = ((MYFLT *) p->in);
     if (n + CS_KSMPS < siz) {
@@ -2513,6 +2527,7 @@ int shiftout_init(CSOUND *csound, FFT *p){
 }
 
 int shiftout_perf(CSOUND *csound, FFT *p){
+    IGN(csound);
     uint32_t siz =  p->in->sizes[0], n = p->n;
     MYFLT *out = ((MYFLT *) p->out);
 
@@ -2529,6 +2544,7 @@ int shiftout_perf(CSOUND *csound, FFT *p){
 }
 
 int scalarset(CSOUND *csound, FFT *p){
+    IGN(csound);
     uint32_t siz = 0 , dim = p->out->dimensions, i;
     MYFLT val = *((MYFLT *)p->in);
     for(i=0; i < dim; i++)
@@ -2539,6 +2555,7 @@ int scalarset(CSOUND *csound, FFT *p){
 }
 
 int unwrap(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i,siz = p->in->sizes[0];
     MYFLT *phs = p->out->data;
     for(i=0; i < siz; i++){
@@ -2606,6 +2623,7 @@ int dctinv(CSOUND *csound, FFT *p){
 }
 
 int perf_pows(CSOUND *csound, FFT *p){
+    IGN(csound);
     int i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
@@ -2728,6 +2746,7 @@ typedef struct _inout{
 } INOUT;
 
 int nxtpow2(CSOUND *csound, INOUT *p){
+    IGN(csound);
     int inval = (int)*p->in;
     int powtwo = 2;
     while (powtwo < inval) powtwo *= 2;

@@ -36,6 +36,7 @@
 
 static int dcblockrset(CSOUND *csound, DCBlocker* p)
 {
+     IGN(csound);
     p->outputs = 0.0;
     p->inputs = 0.0;
     p->gain = (double)*p->gg;
@@ -46,6 +47,7 @@ static int dcblockrset(CSOUND *csound, DCBlocker* p)
 
 static int dcblockr(CSOUND *csound, DCBlocker* p)
 {
+     IGN(csound);
     MYFLT       *ar = p->ar;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -137,6 +139,7 @@ static int dcblock2set(CSOUND *csound, DCBlock2* p)
 
 static int dcblock2(CSOUND *csound, DCBlock2* p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;

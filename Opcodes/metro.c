@@ -64,6 +64,7 @@ static int metro_set(CSOUND *csound, METRO *p)
 
 static int metro(CSOUND *csound, METRO *p)
 {
+     IGN(csound);
     double      phs= p->curphs;
     if (phs == 0.0 && p->flag) {
       *p->sr = FL(1.0);
@@ -112,6 +113,7 @@ static int split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
 
 static int split_trig(CSOUND *csound, SPLIT_TRIG *p)
 {
+     IGN(csound);
     int j;
     int numouts =  p->numouts;
     MYFLT **outargs = p->outargs;
@@ -164,6 +166,7 @@ static int timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 
 static int timeseq(CSOUND *csound, TIMEDSEQ *p)
 {
+     IGN(csound);
     MYFLT *table = p->table, minDist = CS_ONEDKR;
     MYFLT phs = *p->kphs, endseq = p->endSeq;
     int  j,k, numParm = p->numParm, endIndex = p->endIndex;

@@ -750,7 +750,8 @@ static int trlowest_process(CSOUND *csound, _PLOW *p)
 }
 
 static int trhighest_process(CSOUND *csound, _PLOW *p)
-{
+{ 
+    IGN(csound);   
     MYFLT   scale = *p->kpar;
     float   highest = 0.0f, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
@@ -834,6 +835,7 @@ static int trsplit_init(CSOUND *csound, _PSPLIT *p)
 
 static int trsplit_process(CSOUND *csound, _PSPLIT *p)
 {
+    IGN(csound);
     MYFLT   split = *p->kpar;
     MYFLT   gain1 = (p->kgain1 != NULL ? *p->kgain1 : FL(1.0));
     MYFLT   gain2 = (p->kgain2 != NULL ? *p->kgain2 : FL(1.0));
@@ -923,6 +925,7 @@ static int trmix_init(CSOUND *csound, _PSMIX *p)
 
 static int trmix_process(CSOUND *csound, _PSMIX *p)
 {
+     IGN(csound);
     float   *framein2 = (float *) p->fsig3->frame.auxp;
     float   *frameout = (float *) p->fsig1->frame.auxp;
     float   *framein1 = (float *) p->fsig2->frame.auxp;
@@ -1085,6 +1088,7 @@ static int trcross_init(CSOUND *csound, _PSCROSS *p)
 
 static int trcross_process(CSOUND *csound, _PSCROSS *p)
 {
+     IGN(csound);
     MYFLT   interval = *p->kpar1, bal = *p->kpar2;
     int     mode = p->kpar3 != NULL ? (int) *p->kpar3 : 0;
     float   *framein2 = (float *) p->fsig3->frame.auxp;

@@ -224,6 +224,7 @@ static int mtab_set(CSOUND *csound,MTAB *p)     /* mtab by G.Maldonado */
 
 static int mtab_k(CSOUND *csound,MTAB *p)
 {
+    IGN(csound);
     int j, nargs = p->nargs;
     MYFLT **out = p->outargs;
     MYFLT *table;
@@ -239,6 +240,7 @@ static int mtab_k(CSOUND *csound,MTAB *p)
 
 static int mtab_a(CSOUND *csound,MTAB *p)
 {
+     IGN(csound);
     int j, nargs = p->nargs;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1735,6 +1737,7 @@ static int vlimit_set(CSOUND *csound,VLIMIT *p)
 
 static int vlimit(CSOUND *csound,VLIMIT *p)
 {
+     IGN(csound);
     int elements = p->elements;
     MYFLT *vector = p->vector;
     MYFLT min = *p->kmin, max = *p->kmax;
@@ -1789,6 +1792,7 @@ static int vport_set(CSOUND *csound,VPORT *p)
 
 static int vport(CSOUND *csound,VPORT *p)
 {
+     IGN(csound);
     int elements = p->elements;
     MYFLT *vector = p->vector, *yt1 = p->yt1, c1, c2;
     if (p->prvhtim != *p->khtim) {
@@ -1808,6 +1812,7 @@ static int vport(CSOUND *csound,VPORT *p)
 /*-------------------------------*/
 static int vwrap(CSOUND *csound,VLIMIT *p)
 {
+     IGN(csound);
     int elements = p->elements;
     MYFLT *vector = p->vector;
     MYFLT min = *p->kmin, max = *p->kmax;
@@ -1835,6 +1840,7 @@ static int vwrap(CSOUND *csound,VLIMIT *p)
 
 static int vmirror(CSOUND *csound,VLIMIT *p)
 {
+     IGN(csound);
     int elements = p->elements;
     MYFLT *vector = p->vector;
     MYFLT min = *p->kmin, max = *p->kmax;
@@ -1954,6 +1960,7 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
 
 static int vrandh(CSOUND *csound,VRANDH *p)
 {
+     IGN(csound);
     MYFLT *vector = p->vector, *num1 = p->num1;
     MYFLT value = *p->krange;
     int elements = p->elements;
@@ -2058,6 +2065,7 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
 
 static int vrandi(CSOUND *csound,VRANDI *p)
 {
+     IGN(csound);
     MYFLT *vector = p->vector, *num1 = p->num1, *num2, *dfdmax = p->dfdmax;
     MYFLT value = *p->krange;
     int elements = p->elements;
@@ -2503,6 +2511,7 @@ static int ca_set(CSOUND *csound,CELLA *p)
 
 static int ca(CSOUND *csound,CELLA *p)
 {
+     IGN(csound);
     if (*p->kreinit) {
       MYFLT *currLine = p->currLine, *initVec = p->initVec;
       int elements =  p->elements;

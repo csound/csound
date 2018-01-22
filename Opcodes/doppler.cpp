@@ -69,6 +69,7 @@ public:
   {
     return priorValue + (fraction * (currentValue - priorValue));
   }
+  virtual ~LinearInterpolator() { };
 protected:
   MYFLT priorValue;
   MYFLT currentValue;

@@ -53,6 +53,7 @@ typedef struct _cdata {
 /* coremidi callback, called when MIDI data is available */
 void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 {
+    IGN(srcConnRefCon);
     cdata *data = (cdata *)refcon;
     MIDIdata *mdata = data->mdata;
     int *p = &data->p;
@@ -169,6 +170,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 
 static int MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
+     IGN(userData); IGN(dev);
     /*stub for the moment */
     csound->Message(csound, Str("output not implemented yet in CoreMIDI \n"));
     return 0;
@@ -181,6 +183,7 @@ static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 static int MidiDataRead(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int nbytes)
 {
+  IGN(csound);
     cdata *data = (cdata *)userData;
     MIDIdata *mdata = data->mdata;
     int *q = &data->q, st, d1, d2, n = 0;
@@ -246,6 +249,7 @@ static int MidiDataWrite(CSOUND *csound, void *userData,
     /* stub at the moment */
     /*
     */
+  IGN(csound); IGN(userData); IGN(mbuf); IGN(nbytes);
     return nbytes;
 }
 
@@ -253,7 +257,8 @@ static int MidiDataWrite(CSOUND *csound, void *userData,
 
 static int MidiOutDeviceClose(CSOUND *csound, void *userData)
 {
-    /* stub at the mement */
+    /* stub at the moment */
+  IGN(csound); IGN(userData);
     return 0;
 }
 
@@ -263,6 +268,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     //csound->Message(csound, Str("CoreMIDI real time MIDI plugin for Csound\n"));
+  IGN(csound); 
     return 0;
 }
 

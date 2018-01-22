@@ -381,6 +381,7 @@ static MYFLT
 BaboTapline_output(CSOUND *csound, const BaboTapline *this,
                    const BaboTaplineParameters *pars)
 {
+    IGN(csound);
     int     i;
     MYFLT   output = BaboTapline_single_output(this, &pars->direct);
 

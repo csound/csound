@@ -157,7 +157,10 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
 
         SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
-        target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME} PRIVATE ${JNI_INCLUDE_DIRS})
+        target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME}
+        PRIVATE ${JNI_INCLUDE_DIRS})
+	set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
+            PROPERTIES COMPILE_FLAGS "-Wno-unused-function" )
 
         ADD_CUSTOM_COMMAND(TARGET _jcsound6
             POST_BUILD

@@ -31,6 +31,7 @@ typedef struct Select {
 
 static int selecter(CSOUND *csound, Selecter* p)
 {
+    IGN(csound);
     MYFLT       *ar = p->ar;
 
     MYFLT       *a1=p->in1, *a2=p->in2, *al=p->less, *ae=p->equal, *am=p->more;

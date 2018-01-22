@@ -82,7 +82,7 @@ void test_get_var_simple_name(void) {
 //    
 //}
 
-int main(int argc, char** argv)
+int main()
 {
   CU_pSuite pSuite = NULL;
   

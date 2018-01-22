@@ -82,6 +82,7 @@ typedef struct {
 } LAG;
 
 static int lagk_next(CSOUND *csound, LAG *p) {
+     IGN(csound);
     MYFLT lag = *p->lagtime;
     MYFLT y0 = *p->in;
     MYFLT y1 = p->y1;
@@ -102,6 +103,7 @@ static int lagk_next(CSOUND *csound, LAG *p) {
 }
 
 static int lag_init0(CSOUND *csound, LAG *p) {
+    IGN(csound);
     p->lag = -1;
     p->b1 = FL(0.0);
     p->y1 = *p->first;
@@ -122,6 +124,7 @@ static int laga_init(CSOUND *csound, LAG *p) {
 
 
 static int laga_next(CSOUND *csound, LAG *p) {
+     IGN(csound);
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT *in = p->in, *out = p->out;
     MYFLT lag = *p->lagtime;
@@ -254,6 +257,7 @@ static int lagud_k(CSOUND *csound, LagUD *p) {
 }
 
 static int lagud_init(CSOUND *csound, LagUD *p) {
+     IGN(csound);
     p->lagu = -1;
     p->lagd = -1;
     p->b1u = FL(0.0);
@@ -389,6 +393,7 @@ typedef struct {
 } Phasor;
 
 static int phasor_init(CSOUND *csound, Phasor *p) {
+     IGN(csound);
     p->previn = 0;
     p->level = 0;
     /* p->resetk = 1; */
@@ -403,6 +408,7 @@ static int phasor_init(CSOUND *csound, Phasor *p) {
 /* } */
 
 static int phasor_aa(CSOUND *csound, Phasor *p) {
+     IGN(csound);
     MYFLT *out  = p->out;
     MYFLT *in = p->trig;
     MYFLT *rate = p->rate;
@@ -438,6 +444,7 @@ static int phasor_aa(CSOUND *csound, Phasor *p) {
 }
 
 static int phasor_ak(CSOUND *csound, Phasor *p) {
+     IGN(csound);
     MYFLT *out  = p->out;
     MYFLT *in   = p->trig;
     MYFLT rate  = *p->rate;
@@ -473,6 +480,7 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
 }
 
 static int phasor_kk(CSOUND *csound, Phasor *p) {
+     IGN(csound);
     MYFLT curin = *p->trig;
     MYFLT rate  = *p->rate;
     MYFLT start = *p->start;
@@ -490,6 +498,7 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
     level += rate;
     p->previn = curin;
     p->level = level;
+
     return OK;
 }
 

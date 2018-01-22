@@ -57,6 +57,7 @@ static int tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
 
 static int tabmorph(CSOUND *csound, TABMORPH *p)
 {
+    IGN(csound);
     MYFLT /* index, index_frac, */ tabndx1, tabndx2, tabndx1frac, tabndx2frac;
     MYFLT tab1val1,tab1val2, tab2val1, tab2val2, interpoint, val1, val2;
     long index_int;
@@ -89,6 +90,7 @@ static int tabmorph(CSOUND *csound, TABMORPH *p)
 
 static int tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
 {
+    IGN(csound);
     MYFLT index, index_frac, tabndx1, tabndx2, tabndx1frac, tabndx2frac;
     MYFLT tab1val1a,tab1val2a, tab2val1a, tab2val2a, interpoint, val1, val2;
     MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
@@ -140,6 +142,7 @@ static int tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
 
 static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate */
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -206,6 +209,7 @@ static int atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-rate *
  /* all args k-rate except out and table index */
 static int atabmorphi(CSOUND *csound, TABMORPH *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;

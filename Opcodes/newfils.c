@@ -57,6 +57,7 @@ static double TanH(double x)
 static int moogladder_init(CSOUND *csound, moogladder *p)
 {
     /* int i; */
+     IGN(csound);
     if (LIKELY(*p->istor == FL(0.0))) {
       /* for (i = 0; i < 6; i++) */
       /*   p->delay[i] = 0.0; */
@@ -826,6 +827,7 @@ static int moogladder2_process_ka(CSOUND *csound, moogladder *p)
 
 static int statevar_init(CSOUND *csound,statevar *p)
 {
+     IGN(csound);
     if (*p->istor==FL(0.0)) {
       p->bpd = p->lpd = p->lp = 0.0;
       p->oldfreq = FL(0.0);
@@ -911,6 +913,7 @@ static int statevar_process(CSOUND *csound,statevar *p)
 
 static int fofilter_init(CSOUND *csound,fofilter *p)
 {
+     IGN(csound);
     int i;
     if (*p->istor==FL(0.0)) {
       for (i=0;i<4; i++)
@@ -986,6 +989,7 @@ double exp2ap(double x) {
 
 
 int mvclpf24_init(CSOUND *csound, mvclpf24 *p){
+     IGN(csound);
     if (!*p->skipinit){
       p->c1 = p->c2  = p->c3 =
         p->c4 = p->c5 = FL(0.0);
@@ -1711,6 +1715,7 @@ typedef struct _mvcf4 {
 
 
 int mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
+     IGN(csound);
     if (!*p->skipinit){
       p->c1 = p->c2  = p->c3 =
         p->c4 = p->c5 = FL(0.0);
@@ -2081,6 +2086,7 @@ typedef struct _mvcfh {
 } mvchpf24;
 
 int mvchpf24_init(CSOUND *csound, mvchpf24 *p){
+     IGN(csound);
     if (!*p->skipinit){
       p->c1 = p->c2  = p->c3 =
         p->c4 = p->c5 = p->x = FL(0.0);

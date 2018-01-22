@@ -441,6 +441,7 @@ static void add_ldsp_triplet(CSOUND *csound, int i, int j, int k,
                              struct ls_triplet_chain **ls_triplets,
                              ls lss[])
 {
+    IGN(lss);
     struct ls_triplet_chain *ls_ptr, *prev;
     ls_ptr = *ls_triplets;
     prev = NULL;
@@ -733,6 +734,7 @@ static void choose_ls_tuplets(CSOUND *csound,
      /* selects the loudspeaker pairs, calculates the inversion
         matrices and stores the data to a global array */
 {
+    IGN(ls_triplets);
     int i, j, k;
     int *sorted_lss = (int*)malloc(sizeof(int)*ls_amount);
     int *exist = (int*)calloc(1,sizeof(int)*ls_amount);

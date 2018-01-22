@@ -476,6 +476,7 @@ int macset(CSOUND *csound, SUM *p)
 
 int maca(CSOUND *csound, SUM *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
@@ -498,6 +499,7 @@ int maca(CSOUND *csound, SUM *p)
 
 int mac(CSOUND *csound, SUM *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
@@ -543,6 +545,7 @@ static inline CPU_CLOCK *getClockStruct(CSOUND *csound, void **p)
 
 int clockset(CSOUND *csound, CLOCK *p)
 {
+   IGN(csound);
     p->c = (int)*p->cnt;
     if (UNLIKELY(p->c < 0 || p->c > 31))
       p->c = 32;
@@ -1463,6 +1466,7 @@ int GardnerPink_init(CSOUND *csound, PINKISH *p)
 /* Generate numRows octave-spaced white bands and sum to pink noise. */
 int GardnerPink_perf(CSOUND *csound, PINKISH *p)
 {
+    IGN(csound);
     MYFLT *aout, *amp, scalar;
     int32 *rows, rowIndex, indexMask, randSeed, newRandom;
     int32 runningSum, sum, ampinc;
@@ -1540,6 +1544,7 @@ int GardnerPink_perf(CSOUND *csound, PINKISH *p)
 double tanh(double);
 int clip_set(CSOUND *csound, CLIP *p)
 {
+    IGN(csound);
     int meth = (int)MYFLT2LONG(*p->imethod);
     p->meth = meth;
     p->arg = FABS(*p->iarg);
@@ -1566,6 +1571,7 @@ int clip_set(CSOUND *csound, CLIP *p)
 
 int clip(CSOUND *csound, CLIP *p)
 {
+    IGN(csound);
     MYFLT *aout = p->aout, *ain = p->ain;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2076,6 +2082,7 @@ extern int32 randint31(int32);
 
 int varicolset(CSOUND *csound, VARI *p)
 {
+   IGN(csound);
     p->last = FL(0.0);
     p->lastbeta = *p->beta;
     p->sq1mb2 = SQRT(FL(1.0)-p->lastbeta * p->lastbeta);
@@ -2128,6 +2135,7 @@ int varicol(CSOUND *csound, VARI *p)
 
 int lpf18set(CSOUND *csound, LPF18 *p)
 {
+    IGN(csound);
     /* Initialise delay lines */
     if (*p->istor==FL(0.0)) {
         p->ay1 = FL(0.0);
@@ -2230,6 +2238,7 @@ int wavesetset(CSOUND *csound, BARRI *p)
 
 int waveset(CSOUND *csound, BARRI *p)
 {
+    IGN(csound);
     MYFLT *in = p->ain;
     MYFLT *out = p->ar;
     int   index = p->end;

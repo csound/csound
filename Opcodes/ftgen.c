@@ -246,6 +246,7 @@ static int ftfree(CSOUND *csound, FTFREE *p)
 
 static int myInitError(CSOUND *csound, INSDS *p, const char *str, ...)
 {
+    IGN(p);
     return csound->InitError(csound, "%s",str);
 }
 

@@ -48,6 +48,7 @@ static int pan2set(CSOUND *csound, PAN2 *p)
 
 static int pan2run(CSOUND *csound, PAN2 *p)
 {
+    IGN(csound);
     int type = p->type;
     MYFLT *ain = p->asig;
     MYFLT *al = p->aleft, *ar = p->aright;

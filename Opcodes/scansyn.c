@@ -507,6 +507,7 @@ static int scsns_init(CSOUND *csound, PSCSNS *p)
  */
 static int scsns_play(CSOUND *csound, PSCSNS *p)
 {
+     IGN(csound);
     MYFLT phs = p->phs, inc = *p->k_freq * p->fix;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

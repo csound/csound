@@ -982,6 +982,7 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
+  IGN(csound);
     int i;
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -996,6 +997,7 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
 /* used when creating T_FUNCTION's */
 char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                               char* inArgTypes) {
+   
     int i;
 
     for (i = 0; i < entries->count; i++) {
@@ -1915,6 +1917,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 /* BISON PARSER FUNCTION */
 int csound_orcwrap(void* dummy)
 {
+   IGN(dummy);
 #ifdef DEBUG
     printf("\n === END OF INPUT ===\n");
 #endif
@@ -1929,6 +1932,8 @@ extern char *csound_orcget_current_pointer(void *);
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE **astTree, const char *str)
 {
+     IGN(pp);
+      IGN(astTree);
     char ch;
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
@@ -1970,6 +1975,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
  */
 TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
 {
+    IGN(csound);
     TREE *current;
     if (first == NULL) {
       return newlast;
@@ -2560,6 +2566,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 }
 
 char tree_argtyp(CSOUND *csound, TREE *tree) {
+    IGN(csound);
     if (tree->type == INTEGER_TOKEN || tree->type == NUMBER_TOKEN) {
       return 'i';
     }

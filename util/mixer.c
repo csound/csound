@@ -134,7 +134,7 @@ static void usage(CSOUND *csound, const char *mesg, ...)
 
 static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *O)
 {
-
+  (void) csound;
     switch (c) {
       case 'a': O->outformat = AE_ALAW;   /* a-law soundfile */
                 break;

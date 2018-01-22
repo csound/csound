@@ -94,7 +94,12 @@ static void message_string_enqueue(CSOUND *csound, int attr,
 }
 
 static void no_op(CSOUND *csound, int attr,
-                  const char *format, va_list args) { };
+                  const char *format, va_list args) {
+  IGN(csound);
+  IGN(attr);
+  IGN(format);
+  IGN(args);
+};
 
 
  /* do init pass for this instr */
@@ -2253,6 +2258,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 /* UTILITY FUNCTIONS FOR LABELS */
 
 int findLabelMemOffset(CSOUND* csound, INSTRTXT* ip, char* labelName) {
+  IGN(csound);
   OPTXT* optxt = (OPTXT*) ip;
   int offset = 0;
 

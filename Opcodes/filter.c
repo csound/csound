@@ -266,6 +266,7 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
  */
 static int afilter(CSOUND *csound, FILTER* p)
 {
+     IGN(csound);
     int      i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -320,6 +321,7 @@ static int afilter(CSOUND *csound, FILTER* p)
  */
 static int kfilter(CSOUND *csound, FILTER* p)
 {
+     IGN(csound);
     int i;
 
     double* a = p->dcoeffs+p->numb;
@@ -367,6 +369,7 @@ static int kfilter(CSOUND *csound, FILTER* p)
  */
 static int azfilter(CSOUND *csound, ZFILTER* p)
 {
+     IGN(csound);
     int      i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

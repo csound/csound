@@ -202,6 +202,7 @@ static int pycall1_krate(CSOUND *csound, PYCALL1 *p)
 
 static int pylcall1_irate(CSOUND *csound, PYCALL1 *p)
 {
+     IGN(csound);
     create_private_namespace_if_needed(&p->h);
     return OK;
 }

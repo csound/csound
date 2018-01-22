@@ -176,6 +176,7 @@ int serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 // returns valid fd, or -1 on error
 int serialport_init(CSOUND *csound, const char* serialport, int baud)
 {
+     IGN(csound);
     struct termios toptions;
     int fd;
     speed_t brate;
@@ -243,6 +244,7 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
 
 int serialport_init(CSOUND *csound, const char* serialport, int baud)
 {
+     IGN(csound);
     HANDLE hSerial;
     DCB dcbSerialParams = {0};
     int i;
@@ -339,6 +341,7 @@ int serialBegin(CSOUND *csound, SERIALBEGIN *p)
 
 int serialEnd(CSOUND *csound, SERIALEND *p)
 {
+    IGN(csound);
 #ifdef WN32
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
@@ -355,6 +358,7 @@ int serialEnd(CSOUND *csound, SERIALEND *p)
 
 int serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
+    IGN(csound);
 #ifdef WIN32
     HANDLE port = get_port(csound, (int)*p->port);
     if (port==NULL) return NOTOK;
@@ -374,6 +378,7 @@ int serialWrite(CSOUND *csound, SERIALWRITE *p)
 
 int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 {
+     IGN(csound);
 #ifdef WIN32
     HANDLE port = get_port(csound, (int)*p->port);
     if (port==NULL) return NOTOK;
@@ -395,6 +400,7 @@ int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 
 int serialRead(CSOUND *csound, SERIALREAD *p)
 {
+     IGN(csound);
     unsigned char b = 0;
 #ifdef WIN32
     size_t bytes;
@@ -434,6 +440,7 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
 
 int serialFlush(CSOUND *csound, SERIALFLUSH *p)
 {
+     IGN(csound);
 #ifndef WIN32
     tcflush(*p->port, TCIFLUSH); // who knows if this works...
 #endif
@@ -442,11 +449,13 @@ int serialFlush(CSOUND *csound, SERIALFLUSH *p)
 
 int serialAvailable(CSOUND *csound, SERIALAVAIL *p)
 {
+     IGN(csound);  IGN(p);
     //TODO
     return OK;
 }
 int serialPeekByte(CSOUND *csound, SERIALPEEK *p)
 {
+     IGN(csound);  IGN(p);
     //TODO
     return OK;
 }

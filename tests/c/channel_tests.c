@@ -99,6 +99,8 @@ void inputCallback(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
+  (void) csound;
+    (void) channelType;
     if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
         MYFLT *v = (MYFLT *) channelValuePtr;
         *v = 5.0;
@@ -114,6 +116,7 @@ void outputCallback(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
+  (void) channelType; (void) csound;
     if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
         MYFLT *v = (MYFLT *) channelValuePtr;
         CU_ASSERT_DOUBLE_EQUAL(*v, 5.0, 0.0000001);
@@ -177,6 +180,7 @@ void inputCallback2(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
+     (void) channelType;
     MYFLT val = csoundGetControlChannel(csound, channelName, NULL);
     MYFLT *valPtr = (MYFLT *) channelValuePtr;
     *valPtr = val;
@@ -187,6 +191,7 @@ void outputCallback2(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
+     (void) channelType;
     MYFLT *valPtr = (MYFLT *) channelValuePtr;
     csoundSetControlChannel(csound, channelName, *valPtr);
 }

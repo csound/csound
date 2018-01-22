@@ -1371,6 +1371,7 @@ typedef struct namedgen {
         struct namedgen *next;
 } NAMEDGEN;
 
+/* Unused.
 static void log(CSOUND *csound, const char *format,...)
 {
         va_list args;
@@ -1382,7 +1383,7 @@ static void log(CSOUND *csound, const char *format,...)
         }
         va_end(args);
 }
-
+*/
 static void warn(CSOUND *csound, const char *format,...)
 {
         if (csound) {

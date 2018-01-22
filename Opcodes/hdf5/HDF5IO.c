@@ -95,6 +95,7 @@ ArgumentType HDF5IO_getArgumentTypeFromArgument(CSOUND *csound, MYFLT *argument)
 
 ArgumentType HDF5IO_getArgumentTypeFromString(CSOUND *csound, const char *string)
 {
+     IGN(csound);
     ArgumentType type = UNKNOWN;
 
     if (strcmp("STRING_VAR", string) == 0) {
@@ -198,6 +199,7 @@ void HDF5IO_writeStringAttribute(CSOUND *csound, HDF5File *self,
                                  const char *attributeName,
                                  const char *attributeString)
 {
+     IGN(self);
     hid_t attributeID  = H5Screate(H5S_SCALAR);
     HDF5ERROR(attributeID);
     hid_t attributeType = H5Tcopy(H5T_C_S1);

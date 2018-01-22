@@ -456,6 +456,7 @@ static inline OSC_PAT *get_pattern(OSCLISTEN *pp)
 static int OSC_handler(const char *path, const char *types,
                        lo_arg **argv, int argc, void *data, void *p)
 {
+     IGN(argc);  IGN(data);
     OSC_PORT  *pp = (OSC_PORT*) p;
     OSCLISTEN *o;
     CSOUND    *csound = (CSOUND *) pp->csound;

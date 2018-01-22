@@ -87,6 +87,7 @@ static int midic7set(CSOUND *csound, MIDICTL2 *p)
 
 static int midic7(CSOUND *csound, MIDICTL2 *p)
 {
+     IGN(csound);
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
 
@@ -167,6 +168,7 @@ static int midic14set(CSOUND *csound, MIDICTL3 *p)
 
 static int midic14(CSOUND *csound, MIDICTL3 *p)
 {
+     IGN(csound);
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
 
@@ -267,6 +269,7 @@ static int midic21set(CSOUND *csound, MIDICTL4 *p)
 
 static int midic21(CSOUND *csound, MIDICTL4 *p)
 {
+     IGN(csound);
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
 

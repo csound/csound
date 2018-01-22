@@ -131,6 +131,7 @@ static void ambicode_set_coefficients(AMBIC *p)
 
 static int aambicode(CSOUND *csound, AMBIC *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS; /* array size from orchestra */
@@ -639,6 +640,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
 
 static int aambideco(CSOUND *csound, AMBID *p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i=0, n, nsmps = CS_KSMPS;

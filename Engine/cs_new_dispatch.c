@@ -166,6 +166,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
 static int dag_intersect(CSOUND *csound, struct set_t *current,
                          struct set_t *later, int cnt)
 {
+    IGN(cnt);
     struct set_t *ans;
     int res = 0;
     struct set_element_t *ele;
@@ -382,6 +383,7 @@ static const watchList DoNotRead = { INVALID, NULL};
 inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
                             watchList *t)
 {
+     IGN(csound);
     watchList *local=*w;
     t->next = NULL;
     //printf("moveWatch\n");

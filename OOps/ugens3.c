@@ -386,6 +386,7 @@ static CS_NOINLINE void
 /* *********************** needs total rewrite **************** */
 int loscil(CSOUND *csound, LOSC *p)
 {
+    IGN(csound);
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     MYFLT    phs;
@@ -600,6 +601,7 @@ put0:
 
 int loscil3(CSOUND *csound, LOSC *p)
 {
+    IGN(csound);
     FUNC    *ftp;
     MYFLT   *ar1, *ar2, *ftbl, *xamp;
     MYFLT    phs;

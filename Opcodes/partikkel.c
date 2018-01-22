@@ -724,6 +724,7 @@ static inline void render_trainlet(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
 /* do the actual waveform synthesis */
 static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
 {
+    IGN(csound);
     int i;
     unsigned n;
     MYFLT *out1 = *(&(p->output1) + grain->chan1);
@@ -858,6 +859,7 @@ static int partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
 
 static int partikkelsync(CSOUND *csound, PARTIKKEL_SYNC *p)
 {
+   IGN(csound);
     /* write sync pulse data */
     memcpy(p->syncout, p->ge->synctab, CS_KSMPS*sizeof(MYFLT));
     /* write scheduler phase data, if user wanted it */
@@ -899,6 +901,7 @@ static int partikkelget_init(CSOUND *csound, PARTIKKEL_GET *p)
 
 static int partikkelget(CSOUND *csound, PARTIKKEL_GET *p)
 {
+    IGN(csound);
     PARTIKKEL *partikkel = p->ge->partikkel;
 
     switch ((int)*p->index) {
@@ -931,6 +934,7 @@ static int partikkelset_init(CSOUND *csound, PARTIKKEL_SET *p)
 
 static int partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
 {
+    IGN(csound);
     PARTIKKEL *partikkel = p->ge->partikkel;
 
     switch ((int)*p->index) {

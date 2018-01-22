@@ -636,6 +636,7 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
  */
 static int scsnsx(CSOUND *csound, PSCSNSX *p)
 {
+     IGN(csound);
     MYFLT   *out = p->a_out;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -717,6 +718,7 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
 
 static int scsnmapx_init(CSOUND *csound, PSCSNMAPX *p)
 {
+    IGN(csound);
     /* Get corresponding update */
     p->p = listget(csound, (int)*p->i_id);
     return OK;
@@ -724,6 +726,7 @@ static int scsnmapx_init(CSOUND *csound, PSCSNMAPX *p)
 
 static int scsnmapx(CSOUND *csound, PSCSNMAPX *p)
 {
+    IGN(csound);
     PSCSNUX *pp = p->p;
     *p->k_pos = *p->k_pamp * pp->x0[(int)(*p->k_which)];
     *p->k_vel = *p->k_vamp * pp->v[(int)(*p->k_which)];
@@ -732,6 +735,7 @@ static int scsnmapx(CSOUND *csound, PSCSNMAPX *p)
 
 static int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 {
+     IGN(csound);
     PSCSNUX *pp = p->p;
     pp->x0[(int)(*p->k_which)] = *p->k_pos/(*p->k_pamp);
     pp->v[(int)(*p->k_which)]  = *p->k_vel/(*p->k_vamp);

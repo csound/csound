@@ -43,6 +43,7 @@ typedef struct _pvsgain {
 
 static int pvsgainset(CSOUND *csound, PVSGAIN *p){
 
+   IGN(csound);
   int32    N = p->fa->N;
   p->fout->sliding = 0;
   if (p->fa->sliding) {
@@ -73,6 +74,7 @@ static int pvsgainset(CSOUND *csound, PVSGAIN *p){
 
 static int pvsgain(CSOUND *csound, PVSGAIN *p)
 {
+   IGN(csound);
   int     i;
   int32    framesize;
   float   *fout, *fa;
@@ -750,6 +752,7 @@ static int pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
 
 static int pvssfreezeprocess(CSOUND *csound, PVSFREEZE *p)
 {
+   IGN(csound);
   int i;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t n, nsmps = CS_KSMPS;
@@ -961,12 +964,14 @@ static int pvsoscprocess(CSOUND *csound, PVSOSC *p)
 
 static int pvsbinset(CSOUND *csound, PVSBIN *p)
 {
+   IGN(csound);
   p->lastframe = 0;
   return OK;
 }
 
 static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 {
+   IGN(csound);
   int32    framesize, pos;
   if (p->fin->sliding) {
     CMPLX *fin = (CMPLX *) p->fin->frame.auxp;
@@ -996,6 +1001,7 @@ static int pvsbinprocess(CSOUND *csound, PVSBIN *p)
 
 static int pvsbinprocessa(CSOUND *csound, PVSBIN *p)
 {
+   IGN(csound);
   int32    framesize, pos;
   if (p->fin->sliding) {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1076,6 +1082,7 @@ static int pvsmoothset(CSOUND *csound, PVSMOOTH *p)
 
 static int pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
 {
+   IGN(csound);
   int     i;
   int32    framesize;
   double  ffa, ffr;
@@ -2432,7 +2439,7 @@ int pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
 }
 
 int  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
-
+   IGN(csound);
   int size = p->ans->sizes[0], N = p->fsig->N, i;
   float *fsig = (float *) p->fsig->frame.auxp;
   for(i = 0; i < size && i < N+2; i++)
@@ -2464,6 +2471,7 @@ int pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
 
 int  pvs2tabsplit(CSOUND *csound, PVS2TABSPLIT_T *p){
 
+   IGN(csound);
   int mags_size = p->mags->sizes[0], freqs_size = p->freqs->sizes[0],
     N = p->fsig->N, i, j;
   float *fsig = (float *) p->fsig->frame.auxp;
@@ -2512,6 +2520,7 @@ int tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
 
 int  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
 {
+   IGN(csound);
   int size = p->in->sizes[0], i;
   float *fout = (float *) p->fout->frame.auxp;
 
@@ -2569,6 +2578,7 @@ int tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
 
 int  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
 {
+   IGN(csound);
   int size = p->mags->sizes[0], i;
   float *fout = (float *) p->fout->frame.auxp;
 

@@ -216,11 +216,14 @@ typedef struct {
 
 
 int cpupercent_init(CSOUND *csound, CPUMETER *p) {
+   IGN(p);
   csound->Message(csound, "not implemented\n");
   return OK;
 }
 
 int cpupercent(CSOUND *c, CPUMETER *p) {
+  IGN(c);
+  IGN(p);
   return OK;
 }
 #endif
@@ -232,6 +235,7 @@ typedef struct {
 
 
 static int systime(CSOUND *csound, SYST *p){
+    IGN(csound);
 #if HAVE_CLOCK_GETTIME
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);

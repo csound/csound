@@ -103,6 +103,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
  */
 void vosim_pulse(CSOUND* csound, VOSIM *p)
 {
+    IGN(csound);
     int32 pulselen;
     p->pulsephs &= PHMASK;
     p->pulseinc *= p->lenfact;
