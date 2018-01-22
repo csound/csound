@@ -369,6 +369,7 @@ void WebSocketOpcode_initialiseArguments(WebSocketOpcode *self, CSOUND *csound)
 void WebSocketOpcode_writeOnce(WebSocketOpcode *self, OpcodeArgument *inputArgument,
                                void *messageBuffer, struct lws *websocket)
 {
+  IGN(self);
     unsigned char *inputData = (unsigned char *)inputArgument->readBuffer;
     memcpy(messageBuffer, inputData, inputArgument->bytesCount);
     lws_write(websocket, messageBuffer, inputArgument->bytesCount,
@@ -379,6 +380,7 @@ void WebSocketOpcode_writeFragments(WebSocketOpcode *self,
                                     OpcodeArgument *inputArgument,
                                     void *messageBuffer, struct lws *websocket)
 {
+  IGN(self);
     unsigned char *inputData =
       &((unsigned char *)inputArgument->readBuffer)[inputArgument->bytesWritten];
 
@@ -527,7 +529,7 @@ static int Websocket_callback(struct lws *websocket,
                               void *user, void *inputData, size_t inputDataSize)
 {
 
-
+   IGN(user);
 
     if (reason != LWS_CALLBACK_ESTABLISHED &&
         reason != LWS_CALLBACK_SERVER_WRITEABLE && reason != LWS_CALLBACK_RECEIVE) {

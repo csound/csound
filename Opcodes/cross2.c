@@ -348,6 +348,7 @@ static int Xsynthset(CSOUND *csound, CON *p)
 
 static int Xsynth(CSOUND *csound, CON *p)
 {
+     IGN(csound);
     MYFLT               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
     int32                size, div;
     int32                n, m;

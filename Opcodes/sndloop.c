@@ -233,6 +233,7 @@ static int sndloop_init(CSOUND *csound, sndloop *p)
 
 static int sndloop_process(CSOUND *csound, sndloop *p)
 {
+     IGN(csound);
     int on = (int) *(p->on), recon;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -369,6 +370,7 @@ static int flooper_init(CSOUND *csound, flooper *p)
 
 static int flooper_process(CSOUND *csound, flooper *p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;

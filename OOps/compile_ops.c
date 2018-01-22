@@ -96,6 +96,7 @@ int eval_str_k(CSOUND *csound, COMPILE *p){
 
 
 int retval_i(CSOUND *csound, RETVAL *p){
+    IGN(csound);
     INSDS *ip = p->h.insdshead;
     ip->retval = *p->ret;
     return OK;

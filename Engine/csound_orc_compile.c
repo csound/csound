@@ -2009,6 +2009,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 static void lgbuild(CSOUND *csound, INSTRTXT* ip, char *s,
                     int inarg, ENGINE_STATE *engineState)
 {
+   IGN(ip);
+   IGN(inarg);
     char    c;
     char* temp;
 

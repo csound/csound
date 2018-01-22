@@ -87,6 +87,7 @@ static int hvs1_set(CSOUND *csound, HVS1 *p)
 
 static int hvs1(CSOUND *csound, HVS1 *p)
 {
+    IGN(csound);
     MYFLT x = *p->kx * (*p->inumPointsX-1);
     int posX = (int) x;
 
@@ -173,6 +174,7 @@ static int hvs2_set(CSOUND *csound, HVS2 *p)
 
 static int hvs2(CSOUND *csound, HVS2 *p)
 {
+    IGN(csound);
     MYFLT x = *p->kx * (*p->inumlinesX-1);
     MYFLT y = *p->ky * (*p->inumlinesY-1);
     int posX = (int) x;
@@ -273,6 +275,7 @@ static int hvs3_set(CSOUND *csound, HVS3 *p)
 
 static int hvs3(CSOUND *csound, HVS3 *p)
 {
+    IGN(csound);
     MYFLT x = *p->kx * (*p->inumlinesX-1);
     MYFLT y = *p->ky * (*p->inumlinesY-1);
     MYFLT z = *p->kz * (*p->inumlinesZ-1);
@@ -462,6 +465,7 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
 
 static int vphaseseg(CSOUND *csound, VPSEG *p)
 {
+    IGN(csound);
     TSEG2       *segp = p->cursegp;
     double phase = *p->kphase, partialPhase = 0.0;
     int j, flength;

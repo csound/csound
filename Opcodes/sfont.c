@@ -465,6 +465,7 @@ static int SfPlay_set(CSOUND *csound, SFPLAY *p)
 
 static int SfPlay(CSOUND *csound, SFPLAY *p)
 {
+    IGN(csound);
     MYFLT   *out1 = p->out1, *out2 = p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -555,6 +556,7 @@ static int SfPlay(CSOUND *csound, SFPLAY *p)
 
 static int SfPlay3(CSOUND *csound, SFPLAY *p)
 {
+    IGN(csound);
     MYFLT    *out1 = p->out1, *out2 = p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -738,6 +740,7 @@ static int SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
 
 static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 {
+    IGN(csound);
     MYFLT   *out1 = p->out1 , *env  = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -824,6 +827,7 @@ static int SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 
 static int SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
 {
+    IGN(csound);
     MYFLT   *out1 = p->out1, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -997,6 +1001,7 @@ static int SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 
 static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 {
+    IGN(csound);
     MYFLT *out1= p->out1, *out2= p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1087,6 +1092,7 @@ static int SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 
 static int SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 {
+   IGN(csound);
     MYFLT *out1= p->out1, *out2= p->out2,*env =p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1259,6 +1265,7 @@ static int SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
 
 static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 {
+    IGN(csound);
     MYFLT *out1= p->out1, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1346,6 +1353,7 @@ static int SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 
 static int SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
 {
+    IGN(csound);
     MYFLT *out1= p->out1, *env = p->env  ;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

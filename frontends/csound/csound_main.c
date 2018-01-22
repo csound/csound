@@ -20,7 +20,6 @@
 */
 
 /* Console Csound using the Csound API. */
-
 #include "csound.h"
 #include <stdio.h>
 #include <signal.h>
@@ -33,7 +32,7 @@
 #ifdef GNU_GETTEXT
 #include <locale.h>
 #endif
-
+#define IGN(x) (void) x
 #ifdef LINUX
 extern int set_rt_priority(int argc, const char **argv);
 #endif
@@ -65,7 +64,9 @@ static void msg_callback(CSOUND *csound,
 }
 
 static void nomsg_callback(CSOUND *csound,
-  int attr, const char *format, va_list args){ return; }
+  int attr, const char *format, va_list args){
+  IGN(csound); IGN(attr);  IGN(format);  IGN(args);
+}
 
 
 #if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \

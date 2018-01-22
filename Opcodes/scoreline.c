@@ -54,6 +54,7 @@ int setscorepos(CSOUND *csound, SCOREPOS *p){
 }
 
 int rewindscore(CSOUND *csound, SCOREPOS *p){
+    IGN(p);
     csound->RewindScore(csound);
     return OK;
 }

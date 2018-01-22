@@ -130,6 +130,7 @@ int squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 
 int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 {
+    IGN(csound);
     const uint32_t nsmps = CS_KSMPS;
     uint32_t n;
 

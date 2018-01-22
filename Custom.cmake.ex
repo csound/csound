@@ -7,9 +7,6 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(BUILD_STATIC_LIBRARY ON)
 set(TCL_VERSION 8.5)
 set(PYTHON_INCLUDE_DIRS "/usr/include/python2.7")
-##set(BUILD_CSOUND_AC OFF)
-##set(BUILD_CSOUND_AC_PYTHON_INTERFACE OFF)
-##set(BUILD_CSOUND_AC_LUA_INTERFACE OFF)
 
 #### NOTE the processor type needs setting
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2")

@@ -134,6 +134,7 @@ static void warn(CSOUND *csound, const char *format,...)
     }
 }
 
+/* unused
 static MYFLT profile_original(MYFLT fi, MYFLT bwi)
 {
     MYFLT x=fi/bwi;
@@ -143,6 +144,7 @@ static MYFLT profile_original(MYFLT fi, MYFLT bwi)
     }
     return exp(-x)/bwi;
 };
+*/
 
 // profile(p9_profile_shape, profile_sample_index_normalized, bandwidth_samples, p10_profile_parameter);
 static MYFLT profile(int shape, MYFLT fi, MYFLT bwi, MYFLT a)

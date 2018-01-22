@@ -40,6 +40,7 @@
 
 static int svfset(CSOUND *csound, SVF *p)
 {
+    IGN(csound);
     if (*p->iskip) {
       /* set initial delay states to 0 */
       p->ynm1 = p->ynm2 = FL(0.0);
@@ -120,6 +121,7 @@ static int svf(CSOUND *csound, SVF *p)
 
 static int hilbertset(CSOUND *csound, HILBERT *p)
 {
+  
     int j;  /* used to increment for loop */
 
     /* pole values taken from Bernie Hutchins, "Musical Engineer's Handbook" */
@@ -143,6 +145,7 @@ static int hilbertset(CSOUND *csound, HILBERT *p)
 
 static int hilbert(CSOUND *csound, HILBERT *p)
 {
+     IGN(csound);
     MYFLT xn1, yn1, xn2, yn2;
     MYFLT *out1, *out2, *in;
     MYFLT *coef;
@@ -538,6 +541,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
 /* initialization for 2nd-order lowpass filter */
 static int lp2_set(CSOUND *csound, LP2 *p)
 {
+     IGN(csound);
     if (!(*p->istor))
       p->ynm1 = p->ynm2 = 0.0;
     return OK;

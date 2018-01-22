@@ -500,6 +500,7 @@ static int lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 
 static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
 {
+    IGN(csound);
     double  *phs= &p->phs,   si= *p->freq * p->fsrUPsr;
     MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;
@@ -539,6 +540,7 @@ static int lposca_stereo(CSOUND *csound, LPOSC_ST *p) /* stereo lposcinta */
 static int lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
 {    /* transposition is allowed only */
      /*in integer values (twice, three times etc.) so it is faster */
+    IGN(csound);
     long    *phs = &p->phs_int, si = (long) *p->freq;
     MYFLT   *out1 = p->out1, *out2 = p->out2, *amp=p->amp;
     MYFLT   *ft =  p->ft;

@@ -443,6 +443,7 @@ extern int butset(CSOUND *csound, BFIL *p);
 
 static int bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
+     IGN(csound);
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = 0.0;
       p->lkb = FL(0.0);

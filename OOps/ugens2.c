@@ -126,6 +126,7 @@ int ephsor(CSOUND *csound, EPHSOR *p)
 
 int kphsor(CSOUND *csound, PHSOR *p)
 {
+    IGN(csound);
     double      phs;
     *p->sr = (MYFLT)(phs = p->curphs);
     if (UNLIKELY((phs += (double)*p->xcps * CS_ONEDKR) >= 1.0))

@@ -65,6 +65,7 @@ static int locsigset(CSOUND *csound, LOCSIG *p)
 
 static int locsig(CSOUND *csound, LOCSIG *p)
 {
+    IGN(csound);
     MYFLT *r1, *r2, *r3=NULL, *r4=NULL, degree, *asig;
     MYFLT direct, *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
     MYFLT torev, localrev, globalrev;
@@ -171,6 +172,7 @@ static int locsend(CSOUND *csound, LOCSEND *p)
 {
 /*     MYFLT       *r1, *r2, *r3=NULL, *r4=NULL; */
 /*     MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL; */
+     IGN(csound);
     LOCSIG *q = p->locsig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

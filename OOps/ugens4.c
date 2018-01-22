@@ -497,6 +497,7 @@ int rndset(CSOUND *csound, RAND *p)
 
 int krand(CSOUND *csound, RAND *p)
 {
+    IGN(csound);
     if (p->new) {
       int32 r = randint31(p->rand);      /* result is a 31-bit value */
       p->rand = r;
@@ -516,6 +517,7 @@ int krand(CSOUND *csound, RAND *p)
 
 int arand(CSOUND *csound, RAND *p)
 {
+    IGN(csound);
     MYFLT       *ar;
     int16       rndmul = RNDMUL;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -612,7 +614,7 @@ int rhset(CSOUND *csound, RANDH *p)
 
 int krandh(CSOUND *csound, RANDH *p)
 {
-    /* IV - Jul 11 2002 */
+    IGN(csound);
     *p->ar = *p->base + p->num1 * *p->xamp;     /* rslt = num * amp     */
     p->phs += (long)(*p->xcps * CS_KICVT); /* phs += inc           */
 
@@ -736,7 +738,7 @@ int riset(CSOUND *csound, RANDI *p)
 
 int krandi(CSOUND *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
-    /* IV - Jul 11 2002 */
+   IGN(csound);
     *p->ar = *p->base + (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
     p->phs += (long)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */

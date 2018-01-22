@@ -82,12 +82,14 @@ typedef struct {
 } XYSCALE;
 
 static int xyscalei_init(CSOUND *csound, XYSCALE *p) {
+     IGN(csound);
     p->d0 = (*p->v01) - (*p->v00);
     p->d1 = (*p->v11) - (*p->v10);
     return OK;
 }
 
 static int xyscalei(CSOUND *csound, XYSCALE *p) {
+     IGN(csound);
     // x, y: between 0-1
     MYFLT x = *p->kx;
     MYFLT y0 = x*(p->d0)+(*p->v00);
@@ -97,6 +99,7 @@ static int xyscalei(CSOUND *csound, XYSCALE *p) {
 }
 
 static int xyscale(CSOUND *csound, XYSCALE *p) {
+     IGN(csound);
     // x, y: between 0-1
     // x, y will interpolate between the values at the 4 corners
     MYFLT v00 = *p->v00;
@@ -123,6 +126,7 @@ typedef struct {
 } PITCHCONV;
 
 static int mtof(CSOUND *csound, PITCHCONV *p) {
+     IGN(csound);
     *p->r = POWER(FL(2.0), (*p->k - FL(69.0)) / FL(12.0)) * p->freqA4;
     return OK;
 }
@@ -134,6 +138,7 @@ static int mtof_init(CSOUND *csound, PITCHCONV *p) {
 }
 
 static int ftom(CSOUND *csound, PITCHCONV *p) {
+     IGN(csound);
     *p->r = FL(12.0) * LOG2(*p->k / p->freqA4) + FL(69.0);
     return OK;
 }
@@ -145,6 +150,7 @@ static int ftom_init(CSOUND *csound, PITCHCONV *p) {
 }
 
 static int pchtom(CSOUND *csound, PITCHCONV *p) {
+     IGN(csound);
     MYFLT pch = *p->k;
     MYFLT oct = FLOOR(pch);
     MYFLT note = pch - oct;
@@ -195,6 +201,7 @@ typedef struct {
 
 
 static int bpf3(CSOUND *csound, BPF3 *p) {
+    IGN(csound);
     MYFLT x = *p->x;
     MYFLT n, m;
     if(x<*p->x1) {
@@ -215,6 +222,7 @@ typedef struct {
 
 
 static int bpf4(CSOUND *csound, BPF4 *p) {
+    IGN(csound);
     MYFLT x = *p->x;
     MYFLT m, n;
     if(x < (*p->x1)) {
@@ -236,6 +244,7 @@ typedef struct {
 } BPF5;
 
 static int bpf5(CSOUND *csound, BPF5 *p) {
+     IGN(csound);
     MYFLT x = *p->x;
     if(x < (*p->x2)) {
       if(x < (*p->x1)) {
@@ -273,6 +282,7 @@ typedef struct {
 int _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
 static int ntom(CSOUND *csound, NTOM *p) {
+     
     /*
       formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
       - no lowercase
@@ -432,6 +442,7 @@ static int cmp_init(CSOUND *csound, Cmp *p) {
 }
 
 static int cmp_aa(CSOUND *csound, Cmp* p) {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -474,6 +485,7 @@ static int cmp_aa(CSOUND *csound, Cmp* p) {
 }
 
 static int cmp_ak(CSOUND *csound, Cmp* p) {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;

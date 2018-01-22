@@ -215,6 +215,7 @@ int pfunk_init(CSOUND *csound, PFUNK *p)
 
 int pfunk(CSOUND *csound, PFUNK *p)
 {
+    IGN(csound);
     int n = (int)MYFLT2LONG(*p->pnum);
     MYFLT ans, *pfield;
     if (n<1 || n>PMAX) {

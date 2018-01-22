@@ -114,6 +114,7 @@ int tabler_kontrol(CSOUND *csound, TABL *p) {
 
 int tabler_audio(CSOUND *csound, TABL *p)
 {
+    IGN(csound);
     int ndx, len = p->len, n, nsmps = CS_KSMPS;
     int mask = p->ftp->lenmask;
     MYFLT *sig = p->sig;
@@ -220,6 +221,7 @@ int tableir_kontrol(CSOUND *csound, TABL *p) {
 
 int tableir_audio(CSOUND *csound, TABL *p)
 {
+    IGN(csound);
     int ndx, len        = p->len, n, nsmps = CS_KSMPS;
     int mask            = p->ftp->lenmask;
     MYFLT *sig          = p->sig;
@@ -363,6 +365,7 @@ int table3r_kontrol(CSOUND *csound, TABL *p) {
 
 int table3r_audio(CSOUND *csound, TABL *p)
 {
+    IGN(csound);
     int ndx, len = p->len, n, nsmps = CS_KSMPS;
     int mask = p->ftp->lenmask;
     MYFLT *sig = p->sig;
@@ -586,6 +589,7 @@ int tablew_kontrol(CSOUND *csound, TABL *p) {
 }
 
 int tablew_audio(CSOUND *csound, TABL *p) {
+    IGN(csound);
     int ndx, len = p->len, n, nsmps = CS_KSMPS;
     int mask = p->ftp->lenmask;
     MYFLT *sig = p->sig;
@@ -785,6 +789,7 @@ int table_mix(CSOUND *csound, TABLMIX *p) {
 
 int table_ra_set(CSOUND *csound, TABLRA *p) {
     IGN(csound);
+    IGN(p);
     return OK;
 }
 

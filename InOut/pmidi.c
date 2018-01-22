@@ -504,6 +504,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     // csound->Message(csound, Str("PortMIDI real time MIDI plugin for Csound\n"));
+   IGN(csound);
     return 0;
 }
 
@@ -531,6 +532,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound) {
 
+  IGN(csound);
     return 0;
 }
 

@@ -33,6 +33,7 @@
 
 static int wrap(CSOUND *csound, WRAP *p)
 {
+    IGN(csound);
     MYFLT       *adest= p->xdest;
     MYFLT       *asig = p->xsig;
     MYFLT       xlow, xhigh, xsig;
@@ -64,6 +65,7 @@ static int wrap(CSOUND *csound, WRAP *p)
 
 static int kwrap(CSOUND *csound, WRAP *p)
 {
+     IGN(csound);
     MYFLT xsig, xlow, xhigh;
 
     if ((xlow=*p->xlow) >= (xhigh=*p->xhigh))
@@ -81,6 +83,7 @@ static int kwrap(CSOUND *csound, WRAP *p)
 
 static int kmirror(CSOUND *csound, WRAP *p)
 {
+     IGN(csound);
     MYFLT  xsig, xlow, xhigh;
     xsig = *p->xsig;
     xhigh= *p->xhigh;
@@ -101,6 +104,7 @@ static int kmirror(CSOUND *csound, WRAP *p)
 
 static int mirror(CSOUND *csound, WRAP *p)
 {
+     IGN(csound);
     MYFLT       *adest, *asig;
     MYFLT       xlow, xhigh, xaverage, xsig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -140,6 +144,7 @@ static int mirror(CSOUND *csound, WRAP *p)
 
 static int trig_set(CSOUND *csound, TRIG *p)
 {
+    IGN(csound);
     p->old_sig = FL(0.0);
     return OK;
 }
@@ -186,6 +191,7 @@ static int trig(CSOUND *csound, TRIG *p)
 
 static int interpol(CSOUND *csound, INTERPOL *p)
 {
+    IGN(csound);
     MYFLT point_value = (*p->point - *p->imin) / (*p->imax - *p->imin);
     *p->r = point_value * (*p->val2 - *p->val1) + *p->val1;
     return OK;
@@ -202,6 +208,7 @@ static int nterpol_init(CSOUND *csound, INTERPOL *p)
 
 static int knterpol(CSOUND *csound, INTERPOL *p)
 {
+     IGN(csound);
     MYFLT point_value = (*p->point - *p->imin ) * p->point_factor;
     *p->r = point_value * (*p->val2 - *p->val1) + *p->val1;
     return OK;
@@ -209,6 +216,7 @@ static int knterpol(CSOUND *csound, INTERPOL *p)
 
 static int anterpol(CSOUND *csound, INTERPOL *p)
 {
+     IGN(csound);
     MYFLT point_value = (*p->point - *p->imin ) * p->point_factor;
     MYFLT *out = p->r, *val1 = p->val1, *val2 = p->val2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -387,6 +395,7 @@ static int poscak(CSOUND *csound, POSC *p)
 
 static int kposc(CSOUND *csound, POSC *p)
 {
+     IGN(csound);
     double      phs = p->phs;
     double      si = *p->freq * p->tablen * CS_ONEDKR;
     MYFLT       *curr_samp = p->ftp->ftable + (int32)phs;
@@ -628,6 +637,7 @@ static int posc3aa(CSOUND *csound, POSC *p)
 
 static int kposc3(CSOUND *csound, POSC *p)
 {
+     IGN(csound);
     double      phs   = p->phs;
     double      si    = *p->freq * p->tablen * CS_ONEDKR;
     MYFLT       *ftab = p->ftp->ftable;
@@ -777,6 +787,7 @@ static int lposc3(CSOUND *csound, LPOSC *p)
 
 static int sum(CSOUND *csound, SUM *p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
@@ -801,6 +812,7 @@ static int sum(CSOUND *csound, SUM *p)
 /* Actually by JPff but after Gabriel */
 static int product(CSOUND *csound, SUM *p)
 {
+     IGN(csound);
     int   count = (int) p->INOCOUNT;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -914,6 +926,7 @@ static int resony(CSOUND *csound, RESONY *p)
 
 static int fold_set(CSOUND *csound, FOLD *p)
 {
+     IGN(csound);
     p->sample_index = 0;
     p->index = 0.0;
     p->value = FL(0.0);         /* This was not initialised -- JPff */
@@ -922,6 +935,7 @@ static int fold_set(CSOUND *csound, FOLD *p)
 
 static int fold(CSOUND *csound, FOLD *p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -966,6 +980,7 @@ static int loopseg_set(CSOUND *csound, LOOPSEG *p)
 
 static int loopseg(CSOUND *csound, LOOPSEG *p)
 {
+     IGN(csound);
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
     double   phs, si=*p->freq*CS_ONEDKR;
@@ -1007,6 +1022,7 @@ static int loopseg(CSOUND *csound, LOOPSEG *p)
 
 static int loopxseg(CSOUND *csound, LOOPSEG *p)
 {
+     IGN(csound);
     MYFLT exp1 = FL(1.0)/(FL(1.0)-EXP(FL(1.0)));
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
@@ -1049,6 +1065,7 @@ static int loopxseg(CSOUND *csound, LOOPSEG *p)
 
 static int looptseg_set(CSOUND *csound, LOOPTSEG *p)
 {
+     IGN(csound);
     p->nsegs   = (p->INOCOUNT-2)/3;
     p->phs     = *p->iphase;
     return OK;
@@ -1056,6 +1073,7 @@ static int looptseg_set(CSOUND *csound, LOOPTSEG *p)
 
 static int looptseg(CSOUND *csound, LOOPTSEG *p)
 {
+     IGN(csound);
     MYFLT beg_seg=FL(0.0), end_seg=FL(0.0), durtot=FL(0.0);
     double   phs, si=*p->freq*CS_ONEDKR;
     int nsegs=p->nsegs;
@@ -1096,6 +1114,7 @@ static int looptseg(CSOUND *csound, LOOPTSEG *p)
 
 static int lpshold(CSOUND *csound, LOOPSEG *p)
 {
+    IGN(csound);
     MYFLT *argp=p->args;
     MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
     double   phs, si=*p->freq*CS_ONEDKR;
@@ -1134,6 +1153,7 @@ static int lpshold(CSOUND *csound, LOOPSEG *p)
 
 static int loopsegp_set(CSOUND *csound, LOOPSEGP *p)
 {
+     IGN(csound);
     p->nsegs   = p->INOCOUNT-1;
     p->args[0] = FL(0.0);
     return OK;
@@ -1141,6 +1161,7 @@ static int loopsegp_set(CSOUND *csound, LOOPSEGP *p)
 
 static int loopsegp(CSOUND *csound, LOOPSEGP *p)
 {
+     IGN(csound);
     MYFLT *argp = p->args;
     MYFLT beg_seg=0, end_seg, durtot=FL(0.0);
     MYFLT phs;
@@ -1179,6 +1200,7 @@ static int loopsegp(CSOUND *csound, LOOPSEGP *p)
 
 static int lpsholdp(CSOUND *csound, LOOPSEGP *p)
 {
+     IGN(csound);
     MYFLT *argp=p->args;
     MYFLT beg_seg=FL(0.0), end_seg, durtot=FL(0.0);
     MYFLT phs;
@@ -1218,6 +1240,7 @@ static int lpsholdp(CSOUND *csound, LOOPSEGP *p)
 
 static int lineto_set(CSOUND *csound, LINETO *p)
 {
+    IGN(csound);
     p->current_time = FL(0.0);
     p->incr=FL(0.0);
     p->old_time=FL(0.0);
@@ -1227,6 +1250,7 @@ static int lineto_set(CSOUND *csound, LINETO *p)
 
 static int lineto(CSOUND *csound, LINETO *p)
 {
+     IGN(csound);
     if (UNLIKELY(p->flag)) {
       p->val_incremented = p->current_val = *p->ksig;
       p->flag=0;
@@ -1253,6 +1277,7 @@ static int lineto(CSOUND *csound, LINETO *p)
 
 static int tlineto_set(CSOUND *csound, LINETO2 *p)
 {
+     IGN(csound);
     p->current_time = FL(0.0);
     p->incr=FL(0.0);
     p->old_time=FL(1.0);
@@ -1262,6 +1287,7 @@ static int tlineto_set(CSOUND *csound, LINETO2 *p)
 
 static int tlineto(CSOUND *csound, LINETO2 *p)
 {
+     IGN(csound);
     if (UNLIKELY(p->flag)) {
       p->val_incremented = p->current_val = *p->ksig;
       p->flag=0;
@@ -1710,6 +1736,7 @@ static int iContinuousUserRand(CSOUND *csound, CURAND *p)
 
 static int Cuserrnd_set(CSOUND *csound, CURAND *p)
 {
+    IGN(csound);
     p->pfn = 0;
     return OK;
 }

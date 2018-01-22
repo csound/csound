@@ -40,6 +40,7 @@ typedef struct {
 
 static int urand_deinit(CSOUND *csound, URANDOM *p)
 {
+     IGN(csound);
     close(p->ur);
     return OK;
 }
@@ -58,6 +59,7 @@ static int urand_init(CSOUND *csound, URANDOM *p)
 
 static int urand_run(CSOUND *csound, URANDOM *p)
 {
+     IGN(csound);
     int ur = p->ur;
     /* union ieee754_double x; */
     int64_t x;
@@ -78,6 +80,7 @@ static int urand_irate(CSOUND *csound, URANDOM *p)
 
 static int urand_arun(CSOUND *csound, URANDOM *p)
 {
+     IGN(csound);
     int ur = p->ur;
     /* union ieee754_double x; */
     int64_t x;

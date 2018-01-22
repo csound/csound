@@ -35,6 +35,7 @@
 
 int porset(CSOUND *csound, PORT *p)
 {
+   IGN(csound);
     p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
     p->c1 = 1.0 - p->c2;
     if (LIKELY(*p->isig >= FL(0.0)))
@@ -46,6 +47,7 @@ int kporset(CSOUND *csound, PORT *p) { return porset(csound, p); }
 
 int port(CSOUND *csound, PORT *p)
 {
+    IGN(csound);
     p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
     *p->kr = (MYFLT)p->yt1;
     return OK;
@@ -53,6 +55,7 @@ int port(CSOUND *csound, PORT *p)
 
 int kport(CSOUND *csound, KPORT *p)
 {
+    IGN(csound);
     if (p->ihtim_old != *p->ihtim) {
       p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
       p->c1 = 1.0 - p->c2;
@@ -77,6 +80,7 @@ int tonset(CSOUND *csound, TONE *p)
 }
 
 int ktonset(CSOUND *csound, TONE *p) {
+    IGN(csound);
     double b;
     p->prvhp = (double)*p->khp;
     b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
@@ -90,6 +94,7 @@ int ktonset(CSOUND *csound, TONE *p) {
 
 int ktone(CSOUND *csound, TONE *p)
 {
+    IGN(csound);
     double      c1 = p->c1, c2 = p->c2;
     double      yt1 = p->yt1;
 
@@ -108,6 +113,7 @@ int ktone(CSOUND *csound, TONE *p)
 
 int tone(CSOUND *csound, TONE *p)
 {
+    IGN(csound);
     MYFLT       *ar, *asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -193,6 +199,7 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
 
 int katone(CSOUND *csound, TONE *p)
 {
+    IGN(csound);
     double     sig, x;
     double      c2 = p->c2, yt1 = p->yt1;
 
@@ -1031,6 +1038,7 @@ int lprsnset(CSOUND *csound, LPRESON *p)
 
 int lpreson(CSOUND *csound, LPRESON *p)
 {
+    IGN(csound);
     LPREAD *q = p->lpread;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1240,6 +1248,7 @@ int balnset(CSOUND *csound, BALANCE *p)
 
 int rms(CSOUND *csound, RMS *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1261,6 +1270,7 @@ int rms(CSOUND *csound, RMS *p)
 
 int gain(CSOUND *csound, GAIN *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1305,6 +1315,7 @@ int gain(CSOUND *csound, GAIN *p)
 
 int balance(CSOUND *csound, BALANCE *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1453,6 +1464,7 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
 
 int klimit(CSOUND *csound, LIMIT *p)
 {
+    IGN(csound);
     MYFLT       sig=*p->sig, min=*p->min, max=*p->max;
     if (LIKELY((sig <= max) && (sig >= min))) {
       *p->ans = sig;
@@ -1473,6 +1485,7 @@ int klimit(CSOUND *csound, LIMIT *p)
 
 int limit(CSOUND *csound, LIMIT *p)
 {
+    IGN(csound);
     MYFLT       *ans, *asig;
     MYFLT       min=*p->min, max=*p->max, aver;
     uint32_t offset = p->h.insdshead->ksmps_offset;

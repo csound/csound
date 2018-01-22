@@ -56,6 +56,7 @@ typedef struct {
 
 int mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
+     IGN(csound);
     if (LIKELY(p->mpa != NULL))
       mp3dec_uninit(p->mpa);
     p->mpa = NULL;
@@ -356,6 +357,7 @@ typedef struct dats{
 
 int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
 {
+   IGN(csound);
     if (p->mpa != NULL)
       mp3dec_uninit(p->mpa);
     return OK;
@@ -594,6 +596,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p) {
   call to fillbuf
 */
 void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
+   IGN(csound);
     short *buffer= (short *) p->buffer.auxp;
     MYFLT *data[2];
     data[0] =  p->indataL[(int)p->curbuf];

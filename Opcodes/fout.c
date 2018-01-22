@@ -1260,6 +1260,7 @@ static int i_infile_S(CSOUND *csound, I_INFILE *p){
 
 static int incr(CSOUND *csound, INCR *p)
 {
+     IGN(csound);
     MYFLT *avar = p->avar, *aincr = p->aincr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1273,6 +1274,7 @@ static int incr(CSOUND *csound, INCR *p)
 
 static int clear(CSOUND *csound, CLEARS *p)
 {
+     IGN(csound);
     uint32_t   nsmps = CS_KSMPS, j;
 
     for (j = 0; j < p->INOCOUNT; j++) {

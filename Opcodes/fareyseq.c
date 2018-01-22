@@ -229,6 +229,7 @@ void float_to_cfrac (CSOUND *csound, double r, int n, int a[], int p[], int q[])
 
 int tablefilterset(CSOUND *csound, TABFILT *p)
 {
+   IGN(csound);
     p->pdft = 0;
     p->psft = 0;
     *p->ftype = 1;
@@ -434,6 +435,7 @@ static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p);
 
 int tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
 {
+    IGN(csound);
     p->psft = 0;
     return OK;
 }
@@ -522,6 +524,7 @@ static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
 
 int fareylen (CSOUND *csound, FAREYLEN *p)
 {
+    IGN(csound);
     int n = (int) *p->kn;
     *p->kr = (MYFLT) FareyLength (n);
     return OK;

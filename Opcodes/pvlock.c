@@ -620,6 +620,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p)
 
 void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
 
+    IGN(csound);
     sf_count_t sampsread;
     // fill p->curbuf
     sampsread = sf_read_MYFLT(p->sf, p->indata[p->curbuf],
@@ -898,6 +899,7 @@ static int pvslockset(CSOUND *csound, PVSLOCK *p)
 
 static int pvslockproc(CSOUND *csound, PVSLOCK *p)
 {
+    IGN(csound);
     int i;
     float *fout = (float *) p->fout->frame.auxp,
       *fin = (float *) p->fin->frame.auxp;
@@ -1076,6 +1078,7 @@ int am_fm_init(CSOUND *csound, AMFM *p) {
 }
 
 int am_fm(CSOUND *csound, AMFM *p){
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int n, nsmps = CS_KSMPS;
