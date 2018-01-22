@@ -542,6 +542,7 @@ PUBLIC EVLIST * cscoreListConcatenate(CSOUND *csound, EVLIST *a, EVLIST *b)
 
 PUBLIC void cscoreListSort(CSOUND *csound, EVLIST *a)
 {
+    IGN(csound);
     EVENT **p, **q;
     EVENT *e, *f;
     int  n, gap, i, j;
@@ -729,6 +730,7 @@ PUBLIC EVLIST * cscoreListSeparateTWF(CSOUND *csound, EVLIST *a)
 
 PUBLIC void cscoreFreeEvent(CSOUND *csound, EVENT *e)
 {
+    IGN(csound);
     csfree((CSHDR *) e);
 }
 
@@ -736,6 +738,7 @@ PUBLIC void cscoreFreeEvent(CSOUND *csound, EVENT *e)
 
 PUBLIC void cscoreListFree(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     csfree((CSHDR *) a);
 }
 
@@ -743,6 +746,7 @@ PUBLIC void cscoreListFree(CSOUND *csound, EVLIST *a)
 
 PUBLIC void cscoreListFreeEvents(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     EVENT **p = &a->e[1];
     int  n = a->nevents;
 
@@ -934,6 +938,7 @@ PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 
 PUBLIC int cscoreListCount(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     EVENT **p;
     int  n, nrem;
 

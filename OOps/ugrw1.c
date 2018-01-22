@@ -387,6 +387,7 @@ int zkcl(CSOUND *csound, ZKCL *p)
  */
 int zaset(CSOUND *csound, ZAR *p)
 {
+    IGN(p);
     if  (csound->zastart == NULL) {
       return csound->InitError(csound, Str("No za space: "
                                            "zakinit has not been called yet."));
@@ -684,6 +685,7 @@ int zacl(CSOUND *csound, ZACL *p)
 
 int timek(CSOUND *csound, RDTIME *p)
 {
+    IGN(csound);
     /* Read the global variable kcounter and turn it into a float.   */
     *p->rslt = (MYFLT) CS_KCNT;
     return OK;
@@ -693,7 +695,7 @@ int timek(CSOUND *csound, RDTIME *p)
 int timesr(CSOUND *csound, RDTIME *p)
 {
     /* Read the global variable kcounter divide it by the k rate.    */
-
+    IGN(csound);
     *p->rslt = (MYFLT) CS_KCNT * CS_ONEDKR;
     return OK;
 }
@@ -708,6 +710,7 @@ int timesr(CSOUND *csound, RDTIME *p)
  */
 int instimset(CSOUND *csound, RDTIME *p)
 {
+   IGN(csound);
     p->instartk = CS_KCNT;
     *p->rslt = FL(0.0);
     return OK;
@@ -720,6 +723,7 @@ int instimset(CSOUND *csound, RDTIME *p)
  */
 int instimek(CSOUND *csound, RDTIME *p)
 {
+    IGN(csound);
     *p->rslt = (MYFLT) (CS_KCNT - p->instartk);
     return OK;
 }
@@ -731,6 +735,7 @@ int instimek(CSOUND *csound, RDTIME *p)
  */
 int instimes(CSOUND *csound, RDTIME *p)
 {
+    IGN(csound);
     *p->rslt = (MYFLT) (CS_KCNT - p->instartk) * CS_ONEDKR;
     return OK;
 }
@@ -1207,6 +1212,7 @@ int printsset_S(CSOUND *csound, PRINTS *p)
  * is higher. */
 int peakk(CSOUND *csound, PEAK *p)
 {
+   IGN(csound);
     if (*p->kpeakout < FABS(*p->xsigin)) {
       *p->kpeakout = FABS(*p->xsigin);
     }
@@ -1218,6 +1224,7 @@ int peakk(CSOUND *csound, PEAK *p)
  * Similar to peakk, but looks at an a rate input variable. */
 int peaka(CSOUND *csound, PEAK *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1243,6 +1250,7 @@ int peaka(CSOUND *csound, PEAK *p)
 
 int printk2set(CSOUND *csound, PRINTK2 *p)
 {
+    IGN(csound);
     p->pspace = (int)*p->space;
     if (UNLIKELY(p->pspace < 0))
       p->pspace = 0;
@@ -1276,6 +1284,7 @@ int printk2(CSOUND *csound, PRINTK2 *p)
 
 int printk3set(CSOUND *csound, PRINTK3 *p)
 {
+    IGN(csound);
     p->oldvalue = FL(-1.12123e35);  /* hack to force printing first value */
     p->sarg = ((STRINGDAT*)p->iformat)->data;
     return OK;

@@ -74,6 +74,7 @@ static int modmatrix_init(CSOUND *csound, MODMATRIX *m)
 
 static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
 {
+    IGN(csound);
     int i, j, k;
     MYFLT *matval;
     /* Use the still unused process matrix for this temporary array */
@@ -139,6 +140,7 @@ static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
 
 static void process(CSOUND *csound, MODMATRIX *m)
 {
+    IGN(csound);
     int col = 0, row;
 
     MYFLT *src = &m->modtab->ftable[0];
@@ -203,6 +205,7 @@ static void process(CSOUND *csound, MODMATRIX *m)
 
 static void process_scanned(CSOUND *csound, MODMATRIX *m)
 {
+    IGN(csound);
     int col = 0, row;
     int i;
     MYFLT *src = &m->remap_mod[0];

@@ -44,6 +44,7 @@ typedef struct {
 
 static int PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
 {
+    
     p->maxamplitude = *p->ifullscale;
     if (UNLIKELY(p->maxamplitude<= 0.0))
       return
@@ -55,6 +56,7 @@ static int PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
 
 static int PowerShape(CSOUND* csound, POWER_SHAPE* p)
 {
+    IGN(csound);
     MYFLT     cur, amt, maxampl, invmaxampl;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t  early  = p->h.insdshead->ksmps_no_end;
@@ -231,6 +233,7 @@ typedef struct {
 
 static int PDClip(CSOUND* csound, PD_CLIP* p)
 {
+    IGN(csound);
     MYFLT     cur, low, high, maxampl, width, unwidth, center, outscalar;
     int       bipolarMode;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -296,6 +299,7 @@ typedef struct {
 /* Casio-style phase distortion with "pivot point" on the X axis */
 static int PDHalfX(CSOUND* csound, PD_HALF* p)
 {
+    IGN(csound);
     MYFLT     cur, maxampl, midpoint, leftslope, rightslope;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -354,6 +358,7 @@ static int PDHalfX(CSOUND* csound, PD_HALF* p)
 /* Casio-style phase distortion with "pivot point" on the Y axis */
 static int PDHalfY(CSOUND* csound, PD_HALF* p)
 {
+    IGN(csound);
     MYFLT     cur, maxampl, midpoint, leftslope, rightslope;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

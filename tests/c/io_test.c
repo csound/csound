@@ -91,6 +91,7 @@ void test_dev_list(void)
 int key_callback_evt(void *userData, void *p,
                      unsigned int type)
 {
+  (void) type;
     int *prev = (int *) userData;
     *((int *) p) = *prev;
     *prev += 1;
@@ -100,6 +101,7 @@ int key_callback_evt(void *userData, void *p,
 int key_callback_txt(void *userData, void *p,
                      unsigned int type)
 {
+  (void) type;
     int *prev = (int *) userData;
     *((int *) p) =  *prev;
     *prev += 1;
@@ -257,7 +259,7 @@ void test_midi_hostbased(void)
 }
 
 
-int main(int argc, char **argv)
+int main()
 {
     CU_pSuite pSuite = NULL;
 

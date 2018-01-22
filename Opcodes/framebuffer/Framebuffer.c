@@ -60,6 +60,7 @@ int Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
 void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
                              MYFLT *inputSamples, int inputSamplesCount)
 {
+     IGN(csound);
     if (self->writeIndex + inputSamplesCount <= self->elementCount) {
 
         memcpy(&self->buffer[self->writeIndex], inputSamples,
@@ -82,6 +83,7 @@ void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
 void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self,
                             MYFLT *outputSamples, int outputSamplesCount)
 {
+     IGN(csound);
     if (self->writeIndex + outputSamplesCount < self->elementCount) {
 
         memcpy(outputSamples, &self->buffer[self->writeIndex],

@@ -44,6 +44,7 @@ Csound C versions by Steven Yi
 #include "wpfilters.h"
 
 static int zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
+     IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->last_cut = -1.0;
@@ -53,7 +54,7 @@ static int zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
 
 
 static int zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
-
+     IGN(csound);
     double z1 = p->z1;
     double last_cut = p->last_cut;
     double G = p->G;
@@ -120,6 +121,7 @@ static int zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
 }
 
 static int zdf_1pole_init(CSOUND* csound, ZDF_1POLE* p) {
+   IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->last_cut = -1.0;
@@ -207,6 +209,7 @@ static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 
 
 static int zdf_2pole_mode_init(CSOUND* csound, ZDF_2POLE_MODE* p) {
+     IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -304,6 +307,7 @@ static int zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
 
 
 static int zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
+     IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -416,7 +420,7 @@ static int zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
 }
 
 static int zdf_ladder_init(CSOUND* csound, ZDF_LADDER* p) {
-
+     IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -552,7 +556,7 @@ static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
 
 static int diode_ladder_init(CSOUND* csound,
                              DIODE_LADDER* p) {
-
+     IGN(csound);
     if (*p->skip == 0) {
       int i;
       p->a[0] = 1.0;
@@ -773,7 +777,7 @@ static int diode_ladder_perf(CSOUND* csound,
 
 
 static int k35_lpf_init(CSOUND* csound, K35_LPF* p) {
-
+     IGN(csound);
     if (*p->skip == 0.0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -912,7 +916,7 @@ static int k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
 
 
 static int k35_hpf_init(CSOUND* csound, K35_HPF* p) {
-
+     IGN(csound);
     if (*p->skip == 0.0) {
       p->z1 = 0.0;
       p->z2 = 0.0;

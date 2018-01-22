@@ -501,6 +501,7 @@ int part2txt_init(CSOUND *csound, PARTXT *p){
 }
 
 int part2txt_perf(CSOUND *csound, PARTXT *p){
+     IGN(csound);
     float *tracks = (float *) p->tracks->frame.auxp;
     int i = 0;
     if (p->tracks->framecount > p->lastframe){

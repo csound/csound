@@ -78,6 +78,7 @@ static int cell_set(CSOUND *csound,CELL *p)
 
 static int cell(CSOUND *csound,CELL *p)
 {
+     IGN(csound);
     if (*p->kreinit) {
       p->NewOld = 0;
       memcpy(p->currLine, p->initVec, sizeof(MYFLT)*p->elements);

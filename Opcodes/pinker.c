@@ -144,8 +144,9 @@ static int pink_perf(CSOUND* csound, PINKER *p)
     return OK;
 };
 
-static int pink_init(CSOUND *csund, PINKER *p)      // constructor
+static int pink_init(CSOUND *csound, PINKER *p)      // constructor
 {
+    IGN(csound);
     p->lfsr  = 0x5EED41F5 + instance_cnt++;   // seed for lfsr,
                                               // decorrelate multiple instances
     *((float*)(&p->accu))  = PINK_BIAS;       // init float hack

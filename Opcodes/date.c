@@ -43,6 +43,7 @@ typedef struct {
 
 static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
 {
+    IGN(csound);
 #ifdef USE_DOUBLE
     const time_t base = 0;
 #else
@@ -142,6 +143,7 @@ typedef struct {
 
 static int readf_delete(CSOUND *csound, void *p)
 {
+     IGN(csound);
     READF *pp = (READF*)p;
 
     if (pp->fd) fclose(pp->fd);

@@ -37,6 +37,7 @@ int downset(CSOUND *csound, DOWNSAMP *p)
 
 int downsamp(CSOUND *csound, DOWNSAMP *p)
 {
+    IGN(csound);
     MYFLT       *asig, sum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -59,6 +60,7 @@ int downsamp(CSOUND *csound, DOWNSAMP *p)
 
 int upsamp(CSOUND *csound, UPSAMP *p)
 {
+    IGN(csound);
     MYFLT kval = *p->ksig;
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -77,6 +79,7 @@ int upsamp(CSOUND *csound, UPSAMP *p)
 
 int a_k_set(CSOUND *csound, INTERP *p)
 {
+    IGN(csound);
     p->prev = FL(0.0);
     p->init_k = 0;              /* IV - Sep 5 2002 */
     return OK;
@@ -84,6 +87,7 @@ int a_k_set(CSOUND *csound, INTERP *p)
 
 int interpset(CSOUND *csound, INTERP *p)
 {
+    IGN(csound);
     if (*p->istor == FL(0.0)) {
       p->prev = (*p->imode == FL(0.0) ? *p->istart : FL(0.0));
       p->init_k = (*p->imode == FL(0.0) ? 0 : 1);       /* IV - Sep 5 2002 */
@@ -94,6 +98,7 @@ int interpset(CSOUND *csound, INTERP *p)
 
 int interp(CSOUND *csound, INTERP *p)
 {
+    IGN(csound);
     MYFLT *ar, val, incr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -120,6 +125,7 @@ int interp(CSOUND *csound, INTERP *p)
 
 int indfset(CSOUND *csound, INDIFF *p)
 {
+    IGN(csound);
     if (*p->istor == FL(0.0))   /* IV - Sep 5 2002 */
       p->prev = FL(0.0);
     return OK;
@@ -127,12 +133,14 @@ int indfset(CSOUND *csound, INDIFF *p)
 
 int kntegrate(CSOUND *csound, INDIFF *p)
 {
+    IGN(csound);
     *p->rslt = p->prev += *p->xsig;
     return OK;
 }
 
 int integrate(CSOUND *csound, INDIFF *p)
 {
+    IGN(csound);
     MYFLT       *rslt, *asig, sum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -155,6 +163,7 @@ int integrate(CSOUND *csound, INDIFF *p)
 
 int kdiff(CSOUND *csound, INDIFF *p)
 {
+    IGN(csound);
     MYFLT       tmp;
     tmp = *p->xsig;             /* IV - Sep 5 2002: fix to make */
     *p->rslt = tmp - p->prev;   /* diff work when the input and */
@@ -164,6 +173,7 @@ int kdiff(CSOUND *csound, INDIFF *p)
 
 int diff(CSOUND *csound, INDIFF *p)
 {
+    IGN(csound);
     MYFLT       *ar, *asig, prev, tmp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -188,6 +198,7 @@ int diff(CSOUND *csound, INDIFF *p)
 
 int samphset(CSOUND *csound, SAMPHOLD *p)
 {
+    IGN(csound);
     if (!(*p->istor))
       p->state = *p->ival;
     p->audiogate = IS_ASIG_ARG(p->xgate) ? 1 : 0;
@@ -196,6 +207,7 @@ int samphset(CSOUND *csound, SAMPHOLD *p)
 
 int ksmphold(CSOUND *csound, SAMPHOLD *p)
 {
+    IGN(csound);
     if (*p->xgate > FL(0.0))
       p->state = *p->xsig;
     *p->xr = p->state;
@@ -204,6 +216,7 @@ int ksmphold(CSOUND *csound, SAMPHOLD *p)
 
 int samphold(CSOUND *csound, SAMPHOLD *p)
 {
+    IGN(csound);
     MYFLT       *ar, *asig, *agate, state;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -873,6 +886,7 @@ int deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
 
 int del1set(CSOUND *csound, DELAY1 *p)
 {
+    IGN(csound);
     if (!(*p->istor))
       p->sav1 = FL(0.0);
     return OK;
@@ -880,6 +894,7 @@ int del1set(CSOUND *csound, DELAY1 *p)
 
 int delay1(CSOUND *csound, DELAY1 *p)
 {
+    IGN(csound);
     MYFLT       *ar, *asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

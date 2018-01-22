@@ -832,6 +832,7 @@ int specptrk(CSOUND *csound, SPECPTRK *p)
 
 int spsumset(CSOUND *csound, SPECSUM *p)
 {
+   IGN(csound);
     p->kinterp = (*p->interp == FL(0.0)) ? 0 : 1;
     p->kinc = p->kval = FL(0.0);
     return OK;

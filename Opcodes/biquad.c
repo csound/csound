@@ -43,6 +43,7 @@
 
 static int biquadset(CSOUND *csound, BIQUAD *p)
 {
+     IGN(csound);
     /* The biquadratic filter is initialised to zero.    */
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
@@ -52,6 +53,7 @@ static int biquadset(CSOUND *csound, BIQUAD *p)
 
 static int biquad(CSOUND *csound, BIQUAD *p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -82,6 +84,7 @@ static int biquad(CSOUND *csound, BIQUAD *p)
 
 static int biquada(CSOUND *csound, BIQUAD *p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -218,6 +221,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
 
 static int rezzyset(CSOUND *csound, REZZY *p)
 {
+    IGN(csound);
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0; /* Initialize to zero */
     }
@@ -803,6 +807,7 @@ static int vco(CSOUND *csound, VCO *p)
 
 static int planetset(CSOUND *csound, PLANET *p)
 {
+     IGN(csound);
     if (*p->iskip==FL(0.0)) {
       p->x  = *p->xval;  p->y  = *p->yval;  p->z  = *p->zval;
       p->vx = *p->vxval; p->vy = *p->vyval; p->vz = *p->vzval;
@@ -817,6 +822,7 @@ static int planetset(CSOUND *csound, PLANET *p)
 
 static int planet(CSOUND *csound, PLANET *p)
 {
+     IGN(csound);
     MYFLT *outx, *outy, *outz;
     MYFLT   sqradius1, sqradius2, radius1, radius2, fric;
     MYFLT xxpyy, dz1, dz2, mass1, mass2, msqror1, msqror2;
@@ -897,6 +903,7 @@ static int planet(CSOUND *csound, PLANET *p)
 /* Implementation of Zoelzer's Parametric Equalizer Filters */
 static int pareqset(CSOUND *csound, PAREQ *p)
 {
+     IGN(csound);
     /* The equalizer filter is initialised to zero.    */
     if (*p->iskip == FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
@@ -908,6 +915,7 @@ static int pareqset(CSOUND *csound, PAREQ *p)
 
 static int pareq(CSOUND *csound, PAREQ *p)
 {
+     IGN(csound);
     MYFLT xn, yn;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1193,6 +1201,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
 
 static int lorenzset(CSOUND *csound, LORENZ *p)
 {
+   IGN(csound);
     if (*p->iskip==FL(0.0)) {
       p->valx = *p->inx; p->valy = *p->iny; p->valz = *p->inz;
     }
@@ -1203,6 +1212,7 @@ static int lorenzset(CSOUND *csound, LORENZ *p)
 
 static int lorenz(CSOUND *csound, LORENZ *p)
 {
+    IGN(csound);
     MYFLT   *outx, *outy, *outz;
     MYFLT   x, y, z, xx, yy, s, r, b, hstep;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1267,6 +1277,7 @@ static int lorenz(CSOUND *csound, LORENZ *p)
 
 static int tbvcfset(CSOUND *csound, TBVCF *p)
 {
+    IGN(csound);
     if (*p->iskip==FL(0.0)) {
       p->y = p->y1 = p->y2 = 0.0;
     }
@@ -1277,6 +1288,7 @@ static int tbvcfset(CSOUND *csound, TBVCF *p)
 
 static int tbvcf(CSOUND *csound, TBVCF *p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1347,6 +1359,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
 /* bqrez by Matt Gerassimoff */
 static int bqrezset(CSOUND *csound, REZZY *p)
 {
+     IGN(csound);
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;  /* Initialise to zero */
     }
@@ -1502,6 +1515,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
 
  static int modeset(CSOUND *csound, MODE *p)
 {
+    IGN(csound);
     /* Initialize filter to zero if set to reinitialize.  */
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
       p->xnm1 = p->ynm1 = p->ynm2 = 0.0;

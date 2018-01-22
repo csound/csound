@@ -762,6 +762,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
 static int srconv(CSOUND *csound, int argc, char **argv)
 {
+  (void) argc;
     csound->Message(csound, Str("Do not use srconv but the src_conv program\n"));
     return execv("src_conv", argv);
 }

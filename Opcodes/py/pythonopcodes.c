@@ -203,6 +203,7 @@ static int pyinit(CSOUND *csound, PYINIT *p)
 
 static int pycalln_krate(CSOUND *csound, PYCALLN *p)
 {
+    IGN(csound);
     int       i;
     char      command[1024];
     PyObject  *result;
@@ -225,12 +226,14 @@ static int pycalln_krate(CSOUND *csound, PYCALLN *p)
 
 static int pylcalln_irate(CSOUND *csound, PYCALLN *p)
 {
+     IGN(csound);
     create_private_namespace_if_needed(&p->h);
     return OK;
 }
 
 static int pylcalln_krate(CSOUND *csound, PYCALLN *p)
 {
+     IGN(csound);
     int       i;
     char      command[1024];
     PyObject  *result;
@@ -252,6 +255,7 @@ static int pylcalln_krate(CSOUND *csound, PYCALLN *p)
 
 static int pylcallni_irate(CSOUND *csound, PYCALLN *p)
 {
+     IGN(csound);
     int       i;
     char      command[1024];
     PyObject  *result;

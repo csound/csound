@@ -52,6 +52,7 @@ int closedir(DIR*);
 #ifndef GNU_GETTEXT
 void init_getstring(void *cs)
 {
+   IGN(cs);
 #ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C");                   /* Ensure C syntax */
     csound_c_locale = setlocale(LC_NUMERIC, "C"); /* and remwmber */
@@ -69,6 +70,7 @@ PUBLIC char *csoundLocalizeString(const char *s)
 /* This stub is needed for backwards compatibility */
 PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 {
+  IGN(lang_code);
     return;
 }
 #else

@@ -1147,6 +1147,7 @@ static int rnd31a(CSOUND *csound, RND31 *p)
 
 static int oscktset(CSOUND *csound, OSCKT *p)
 {
+     IGN(csound);
     MYFLT   phs;
 
     if (*(p->istor) != FL(0.0)) return OK;         /* skip initialisation */
@@ -1356,6 +1357,7 @@ static int oscaaikt(CSOUND *csound, OSCKT *p)
 
 static int oscktpset(CSOUND *csound, OSCKTP *p)
 {
+     IGN(csound);
     if (*(p->istor) != FL(0.0)) return OK;         /* skip initialisation */
     /* initialise table parameters */
     p->oldfn = FL(-1.0);
@@ -1425,6 +1427,7 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
 
 static int oscktsset(CSOUND *csound, OSCKTS *p)
 {
+     IGN(csound);
     if (*(p->istor) != FL(0.0)) return OK;         /* skip initialisation */
     /* initialise table parameters */
     p->oldfn = FL(-1.0);
@@ -1926,6 +1929,7 @@ static int vco2ftset(CSOUND *csound, VCO2FT *p)
 
 static int vco2ftp(CSOUND *csound, VCO2FT *p)
 {
+    IGN(csound);
 #ifdef VCO2FT_USE_TABLE
     MYFLT   npart;
     int     n;
@@ -2344,6 +2348,7 @@ static int vdelayk(CSOUND *csound, VDELAYK *p)
 
 static int rbjeqset(CSOUND *csound, RBJEQ *p)
 {
+     IGN(csound);
     int mode = (int) MYFLT2LONG(*p->imode) & 0xF;
 
     if (mode & 1)

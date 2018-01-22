@@ -227,6 +227,7 @@ static int distset(CSOUND *csound, DIST *p)
 
 static int distort(CSOUND *csound, DIST *p)
 {
+    IGN(csound);
     MYFLT   *ar, *asig;
     MYFLT   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;

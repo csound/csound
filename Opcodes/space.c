@@ -191,6 +191,7 @@ static int spsendset(CSOUND *csound, SPSEND *p)
 
 static int spsend(CSOUND *csound, SPSEND *p)
 {
+    IGN(csound);
     SPACE *q = p->space;
     int nbytes = CS_KSMPS*sizeof(MYFLT);
 

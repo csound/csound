@@ -60,6 +60,7 @@ static int dconvset(CSOUND *csound, DCONV *p)
 
 static int dconv(CSOUND *csound, DCONV *p)
 {
+     IGN(csound);
     int32 i = 0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -99,6 +100,7 @@ static int dconv(CSOUND *csound, DCONV *p)
 
 static int and_kk(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32 input1 = MYFLT2LRND(*p->a);
     int32 input2 = MYFLT2LRND(*p->b);
     *p->r = (MYFLT)(input1 & input2);
@@ -107,6 +109,7 @@ static int and_kk(CSOUND *csound, AOP *p)
 
 static int and_aa(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     MYFLT *r    = p->r;
     MYFLT *in1  = p->a;
     MYFLT *in2  = p->b;
@@ -130,6 +133,7 @@ static int and_aa(CSOUND *csound, AOP *p)
 
 static int and_ak(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -151,6 +155,7 @@ static int and_ak(CSOUND *csound, AOP *p)
 
 static int and_ka(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -172,6 +177,7 @@ static int and_ka(CSOUND *csound, AOP *p)
 
 static int or_kk(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32 input1 = MYFLT2LRND(*p->a);
     int32 input2 = MYFLT2LRND(*p->b);
     *p->r = (MYFLT)(input1 | input2);
@@ -180,6 +186,7 @@ static int or_kk(CSOUND *csound, AOP *p)
 
 static int or_aa(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     MYFLT *in2 = p->b;
@@ -203,6 +210,7 @@ static int or_aa(CSOUND *csound, AOP *p)
 
 static int or_ak(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -224,6 +232,7 @@ static int or_ak(CSOUND *csound, AOP *p)
 
 static int or_ka(CSOUND *csound, AOP *p)
 {
+    IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -245,6 +254,7 @@ static int or_ka(CSOUND *csound, AOP *p)
 
 static int xor_kk(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32 input1 = MYFLT2LRND(*p->a);
     int32 input2 = MYFLT2LRND(*p->b);
     *p->r = (MYFLT)(input1 ^ input2);
@@ -253,6 +263,7 @@ static int xor_kk(CSOUND *csound, AOP *p)
 
 static int xor_aa(CSOUND *csound, AOP *p)
 {
+    IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     MYFLT *in2 = p->b;
@@ -276,6 +287,7 @@ static int xor_aa(CSOUND *csound, AOP *p)
 
 static int xor_ak(CSOUND *csound, AOP *p)
 {
+    IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -297,6 +309,7 @@ static int xor_ak(CSOUND *csound, AOP *p)
 
 static int xor_ka(CSOUND *csound, AOP *p)
 {
+    IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -318,6 +331,7 @@ static int xor_ka(CSOUND *csound, AOP *p)
 
 static int shift_left_kk(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32 input1 = MYFLT2LRND(*p->a);
     int  input2 = (int) MYFLT2LRND(*p->b);
     *p->r = (MYFLT) (input1 << input2);
@@ -326,6 +340,7 @@ static int shift_left_kk(CSOUND *csound, AOP *p)
 
 static int shift_left_aa(CSOUND *csound, AOP *p)
 {
+    IGN(csound);
     int32  input1, input2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -346,6 +361,7 @@ static int shift_left_aa(CSOUND *csound, AOP *p)
 
 static int shift_left_ak(CSOUND *csound, AOP *p)
 {
+    IGN(csound);
     int32  input1;
     int   input2 = MYFLT2LRND(*p->b);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -366,6 +382,7 @@ static int shift_left_ak(CSOUND *csound, AOP *p)
 
 static int shift_left_ka(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32  input1 = MYFLT2LRND(*p->a), input2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -385,6 +402,7 @@ static int shift_left_ka(CSOUND *csound, AOP *p)
 
 static int shift_right_kk(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32 input1 = MYFLT2LRND(*p->a);
     int  input2 = (int) MYFLT2LRND(*p->b);
     *p->r = (MYFLT) (input1 >> input2);
@@ -393,6 +411,7 @@ static int shift_right_kk(CSOUND *csound, AOP *p)
 
 static int shift_right_aa(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32  input1, input2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -413,6 +432,7 @@ static int shift_right_aa(CSOUND *csound, AOP *p)
 
 static int shift_right_ak(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32  input1;
     int32   input2 = MYFLT2LRND(*p->b);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -433,6 +453,7 @@ static int shift_right_ak(CSOUND *csound, AOP *p)
 
 static int shift_right_ka(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     int32  input1 = MYFLT2LRND(*p->a), input2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -452,6 +473,7 @@ static int shift_right_ka(CSOUND *csound, AOP *p)
 
 static int not_k(CSOUND *csound, AOP *p)    /* Added for completeness by JPff */
 {
+     IGN(csound);
     int32 input1 = MYFLT2LRND(*p->a);
     *p->r = (MYFLT)(~input1);
     return OK;
@@ -459,6 +481,7 @@ static int not_k(CSOUND *csound, AOP *p)    /* Added for completeness by JPff */
 
 static int not_a(CSOUND *csound, AOP *p)
 {
+     IGN(csound);
     MYFLT *r = p->r;
     MYFLT *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;

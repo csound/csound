@@ -31,6 +31,7 @@
 static void msg_callback(CSOUND *csound,
                          int attr, const char *fmt, va_list args)
 {
+  (void) csound;
     if (attr & CSOUNDMSG_TYPE_MASK) {
       vfprintf(stderr, fmt, args);
     }

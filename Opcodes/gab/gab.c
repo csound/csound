@@ -278,6 +278,7 @@ static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
 
 static CS_NOINLINE int tab_perf(CSOUND *csound, FASTB *p)
 {
+     IGN(csound);
     *p->r = (*p->tb_ptr)[(int) *p->ndx];
     return OK;
 }
@@ -335,6 +336,7 @@ TAB_MACRO(tab15_init, tab15_i_tmp, tab15_k_tmp, 15)
 
 static int nlalp_set(CSOUND *csound, NLALP *p)
 {
+     IGN(csound);
     if (LIKELY(!(*p->istor))) {
      p->m0 = 0.0;
      p->m1 = 0.0;
@@ -344,6 +346,7 @@ static int nlalp_set(CSOUND *csound, NLALP *p)
 
 static int nlalp(CSOUND *csound, NLALP *p)
 {
+     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -555,6 +558,7 @@ static int exitnow(CSOUND *csound, EXITNOW *p)
 
 static int tabrec_set(CSOUND *csound,TABREC *p)
 {
+     IGN(csound);
     p->recording = 0;
     p->currtic = 0;
     p->ndx = 0;
@@ -610,6 +614,7 @@ static int tabplay_set(CSOUND *csound,TABPLAY *p)
     /* } */
     /*  p->table = ftp->ftable; */
     /*  p->tablen = ftp->flen; */
+     IGN(csound);
     p->playing = 0;
     p->currtic = 0;
     p->ndx = 0;
@@ -658,6 +663,7 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
 
 static int isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
+     IGN(csound);
     p->numargs = p->INOCOUNT;
     memset(p->old_inargs, 0, sizeof(MYFLT)*p->numargs); /* Initialise */
     p->cnt = 1;
@@ -666,6 +672,7 @@ static int isChanged_set(CSOUND *csound,ISCHANGED *p)
 
 static int isChanged(CSOUND *csound,ISCHANGED *p)
 {
+     IGN(csound);
     MYFLT **inargs = p->inargs;
     MYFLT *old_inargs = p->old_inargs;
     int numargs = p->numargs, ktrig = 0, j;
@@ -715,6 +722,7 @@ static int isAChanged_set(CSOUND *csound, ISACHANGED *p)
 
 static int isAChanged(CSOUND *csound,ISACHANGED *p)
 {
+     IGN(csound);
     ARRAYDAT *chk = p->chk;
     void *old_chk = p->old_chk.auxp;
     int size = p->size;
@@ -730,6 +738,7 @@ static int isAChanged(CSOUND *csound,ISACHANGED *p)
 
 static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 {
+     IGN(csound);
     int flag = (int) *p->imaxflag;
     switch (flag) {
     case 1:
@@ -812,6 +821,7 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 /* mandelbrot set scanner  */
 static int mandel_set(CSOUND *csound,MANDEL *p)
 {
+     IGN(csound);
     p->oldx=-99999; /*probably unused values  */
     p->oldy=-99999;
     p->oldCount = -1;
@@ -820,6 +830,7 @@ static int mandel_set(CSOUND *csound,MANDEL *p)
 
 static int mandel(CSOUND *csound,MANDEL *p)
 {
+     IGN(csound);
     MYFLT px=*p->kx, py=*p->ky;
     if (*p->ktrig && (px != p->oldx || py != p->oldy)) {
       int maxIter = (int) *p->kmaxIter, j;

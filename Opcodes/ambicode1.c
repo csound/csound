@@ -131,6 +131,7 @@ static int ibformenc_a(CSOUND * csound, AMBICA * p)
 static int
 abformenc(CSOUND * csound, AMBIC * p) {
 
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t sampleCount, sampleIndex, channelCount, channelIndex;
@@ -207,7 +208,7 @@ abformenc(CSOUND * csound, AMBIC * p) {
 
 static int
 abformenc_a(CSOUND * csound, AMBICA * p) {
-
+   IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t sampleCount, sampleIndex, channelCount, channelIndex, ksmps;
@@ -339,6 +340,7 @@ abformdec(CSOUND * csound, AMBID * p) {
        suggest these aren't removed until everyone is sure the
        unoptimised code is doing the right thing!) */
 
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t sampleCount = CS_KSMPS, sampleIndex;
@@ -735,6 +737,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
     /* (There are some repeated multiplies in the code below, but I
        suggest these aren't removed until everyone is sure the
        unoptimised code is doing the right thing!) */
+    IGN(csound);
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

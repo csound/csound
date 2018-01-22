@@ -92,6 +92,7 @@ void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, int outputFrameOff
 
 int OLABuffer_process(CSOUND *csound, OLABuffer *self)
 {
+     IGN(csound);
     int nextKPassSampleIndex =
       (self->readSampleIndex + self->ksmps) % self->overlapSamplesCount;
 

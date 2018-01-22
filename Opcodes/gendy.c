@@ -2,7 +2,7 @@
     gendy.c:
 
     Implementation of the dynamic stochastic synthesis generator
-    conceived by Iannis Xenakis.
+    conceived by 63 Xenakis.
 
     Based on Nick Collins's Gendy1 ugen (SuperCollider).
 
@@ -62,6 +62,7 @@ typedef struct {
 
 static MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
 {
+    IGN(csound);
     MYFLT   c, r;
     if (a > FL(1.0))
       a = FL(1.0);

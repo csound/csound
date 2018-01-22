@@ -113,6 +113,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 static int ReadMidiData_(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int nbytes)
 {
+     IGN(csound);
     int             n;
     int             sock = *((int *) userData);
     fd_set          rset;
@@ -141,6 +142,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 
 static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
+     IGN(csound);
     int             sock = *((int *) userData);
     //printf("CloseMidiInDevice_\n");
     close(sock);

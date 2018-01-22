@@ -1067,7 +1067,7 @@ Fl_Value_Slider_Input::Fl_Value_Slider_Input(CSOUND *cs, int x, int y,
 
 // ---- IV - Aug 23 2002 ---- end of included files
 
-static char *GetString(CSOUND *csound, MYFLT *pname, int is_string);
+//static char *GetString(CSOUND *csound, MYFLT *pname, int is_string);
 
 //---------------
 
@@ -1804,6 +1804,7 @@ extern "C" {
 
 // -----------
 
+/* unused
 static char *GetString(CSOUND *csound, MYFLT *pname, int is_string)
 {
     char    *Name = new char[MAXNAME];
@@ -1812,6 +1813,7 @@ static char *GetString(CSOUND *csound, MYFLT *pname, int is_string)
     widgetGlobals->allocatedStrings.push_back(Name);
     return csound->strarg2name(csound, Name, pname, "", is_string);
 }
+*/
 
 class CsoundFLTKKeyboardBuffer {
 private:

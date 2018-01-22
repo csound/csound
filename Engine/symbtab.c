@@ -173,6 +173,7 @@ int isUDOAnsList(char *s)
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
+    IGN(yyscanner);
     int type = T_IDENT;
     ORCTOKEN *a;
     ORCTOKEN *ans;

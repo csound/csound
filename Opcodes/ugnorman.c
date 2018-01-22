@@ -2801,6 +2801,7 @@ static void ScalePartials(
                 MYFLT tbufamp,      /* the amp of the table buffer */
                 MYFLT kthresh )
 {
+     IGN(csound);
     MYFLT   tempamp;            /* hold the cbufn amp for a bit */
     MYFLT   frac;               /* for interpilation */
     int     i, j=0;               /* for the for loop */

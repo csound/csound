@@ -84,6 +84,7 @@ extern int barrier_wait(barrier_t *b);
 
 int barrier_init(barrier_t *b, void *dump, unsigned int max)
 {
+    IGN(dump);
     if (UNLIKELY(max == 0)) return EINVAL;
 
     if (UNLIKELY(pthread_mutex_init(&b->mut, NULL))) {
@@ -259,6 +260,7 @@ static int set_element_delloc(CSOUND *csound,
 
 static int set_is_set(CSOUND *csound, struct set_t *set)
 {
+     IGN(csound);
     char buf[4];
     if (set == NULL) return 0;
     strncpy(buf, (char *)set, HDR_LEN);
@@ -342,6 +344,7 @@ static int set_element_get(CSOUND *csound, struct set_t *set,
                            char *data,
                            struct set_element_t **out_set_element)
 {
+     IGN(csound);
 #ifdef SET_DEBUG
     if (UNLIKELY(set == NULL))
       csound->Die(csound, Str("Invalid NULL Parameter set"));

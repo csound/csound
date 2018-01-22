@@ -194,6 +194,7 @@ static inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 /* ::getSamps -- the sample generating routine */
 static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 {
+    IGN(csound);
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
     MYFLT *ar = p->out;    /* The sample output buffer */
     len_t M=p->wg.upperRail.size; /* Length of the guide rail */
@@ -240,6 +241,7 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 static inline int circularBufferCircularBuffer(CSOUND *csound,
                                          circularBuffer* cb, len_t N)
 {
+    IGN(csound);
     MYFLT *data = cb->data;
     /* if (UNLIKELY(!data)) */
     /*   return csound->InitError(csound, */

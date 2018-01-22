@@ -301,6 +301,7 @@ static int notinit_opcode_stub_perf(CSOUND *csound, void *p)
 
 static int push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
 {
+     IGN(csound);
     if (p->argMap[2] != 0) {
       void  *bp;
       int   i, *ofsp;
@@ -398,6 +399,7 @@ static int push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
 
 static int pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
 {
+     IGN(csound);
     if (p->argMap[2] != 0) {
       void  *bp;
       int   i, *ofsp;
@@ -505,6 +507,7 @@ static int pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
 
 static int push_f_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
 {
+    IGN(csound);
     void    *bp;
     int     *ofsp;
     int     offs;
