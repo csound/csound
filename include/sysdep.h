@@ -422,6 +422,7 @@ static inline double csoundUndenormalizeDouble(double x)
 
 #ifndef USE_DOUBLE
 #  define csoundUndenormalizeMYFLT      csoundUndenormalizeFloat
+k
 #else
 #  define csoundUndenormalizeMYFLT      csoundUndenormalizeDouble
 #endif
@@ -442,6 +443,7 @@ static inline double csoundUndenormalizeDouble(double x)
 #if !defined(HAVE_STRLCAT) && !defined(strlcat)
 size_t strlcat(char *dst, const char *src, size_t siz);
 #endif
+char *strNcpy(char *dst, const char *src, size_t siz);
 
 /* atomics */
 #if defined(MSVC)

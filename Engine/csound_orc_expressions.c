@@ -181,28 +181,28 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 
     switch(gotoNode->type) {
     case KGOTO_TOKEN:
-      strncpy(op, "ckgoto", 8);
+      strNcpy(op, "ckgoto", 8);
       break;
     case IGOTO_TOKEN:
-      strncpy(op, "cigoto", 8);
+      strNcpy(op, "cigoto", 8);
       break;
     case ITHEN_TOKEN:
     icase:
-      strncpy(op, "cingoto", 8);
+      strNcpy(op, "cingoto", 8);
       break;
     case THEN_TOKEN:
       if (csound->inZero) goto icase;
       /* fall through */
     case KTHEN_TOKEN:
-      strncpy(op, "cngoto", 8);
+      strNcpy(op, "cngoto", 8);
       break;
     default:
       switch (type) {
-      case 1: strncpy(op, "ckgoto", 8); break;
-      case 0x8001: strncpy(op, "cnkgoto", 8); break;
-      case 0: strncpy(op, "cggoto", 8); break;
+      case 1: strNcpy(op, "ckgoto", 8); break;
+      case 0x8001: strNcpy(op, "cnkgoto", 8); break;
+      case 0: strNcpy(op, "cggoto", 8); break;
       case 0x8000:
-        strncpy(op,csound->inZero?"cingoto":"cngoto", 8); break;
+        strNcpy(op,csound->inZero?"cingoto":"cngoto", 8); break;
       default: printf("Whooops %d\n", type);
       }
     }
@@ -228,7 +228,7 @@ static TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
     TREE * opTree;
     char *gt[3] = {"kgoto", "igoto", "goto"};
     if (csound->inZero && type==2) type = 1;
-    strncpy(op, gt[type],6);       /* kgoto, igoto, goto ?? */
+    strNcpy(op, gt[type],6);       /* kgoto, igoto, goto ?? */
     opTree = create_opcode_token(csound, op);
     opTree->left = NULL;
     opTree->right = label;
@@ -366,7 +366,7 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     char* rightArgType = get_arg_string_from_tree(csound, right, typeTable);
     char* argString = csound->Calloc(csound, 80);
 
-    strncpy(argString, leftArgType, 80);
+    strNcpy(argString, leftArgType, 80);
     strlcat(argString, rightArgType, 80);
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
 
@@ -449,32 +449,32 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
     switch(root->type) {
     case '+':
-      strncpy(op, "##add", 80);
+      strNcpy(op, "##add", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case '-':
-      strncpy(op, "##sub", 80);
+      strNcpy(op, "##sub", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case '*':
-      strncpy(op, "##mul", 80);
+      strNcpy(op, "##mul", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case '%':
-      strncpy(op, "##mod", 80);
+      strNcpy(op, "##mod", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case '/':
-      strncpy(op, "##div", 80);
+      strNcpy(op, "##div", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case '^':
-      strncpy(op, "##pow", 80);
+      strNcpy(op, "##pow", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
@@ -482,7 +482,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
       {
         char *outtype, *outtype_internal;
         int len = strlen(root->value->lexeme);
-        strncpy(op, root->value->lexeme, len);
+        strNcpy(op, root->value->lexeme, len+1);
         if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound, "Found OP: %s\n", op);
 
@@ -527,39 +527,39 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
         csound->Message(csound, "HANDLING UNARY MINUS!");
       root->left = create_minus_token(csound);
       //      arg1 = 'i';
-      strncpy(op, "##mul", 80);
+      strNcpy(op, "##mul", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
 
       break;
     case '|':
-      strncpy(op, "##or", 80);
+      strNcpy(op, "##or", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case '&':
-      strncpy(op, "##and", 80);
+      strNcpy(op, "##and", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case S_BITSHIFT_RIGHT:
-      strncpy(op, "##shr", 80);
+      strNcpy(op, "##shr", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case S_BITSHIFT_LEFT:
-      strncpy(op, "##shl", 80);
+      strNcpy(op, "##shl", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case '#':
-      strncpy(op, "##xor", 80);
+      strNcpy(op, "##xor", 80);
       outarg = create_out_arg_for_expression(csound, op, root->left,
                                              root->right, typeTable);
       break;
     case '~':
       {
-        strncpy(op, "##not", 80);
+        strNcpy(op, "##not", 80);
 
         opentries = find_opcode2(csound, op);
 
@@ -585,7 +585,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
       }
       break;
     case T_ARRAY:
-        strncpy(op, "##array_get", 80);
+        strNcpy(op, "##array_get", 80);
 
         char* leftArgType =
           get_arg_string_from_tree(csound, root->left, typeTable);
@@ -752,31 +752,31 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     op = csound->Calloc(csound, 80);
     switch(root->type) {
     case S_UNOT:
-      strncpy(op, "!", 80);
+      strNcpy(op, "!", 80);
       break;
     case S_EQ:
-      strncpy(op, "==", 80);
+      strNcpy(op, "==", 80);
       break;
     case S_NEQ:
-      strncpy(op, "!=", 80);
+      strNcpy(op, "!=", 80);
       break;
     case S_GE:
-      strncpy(op, ">=", 80);
+      strNcpy(op, ">=", 80);
       break;
     case S_LE:
-      strncpy(op, "<=", 80);
+      strNcpy(op, "<=", 80);
       break;
     case S_GT:
-      strncpy(op, ">", 80);
+      strNcpy(op, ">", 80);
       break;
     case S_LT:
-      strncpy(op, "<", 80);
+      strNcpy(op, "<", 80);
       break;
     case S_AND:
-      strncpy(op, "&&", 80);
+      strNcpy(op, "&&", 80);
       break;
     case S_OR:
-      strncpy(op, "||", 80);
+      strNcpy(op, "||", 80);
       break;
     }
 
@@ -846,6 +846,8 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     token = make_label(csound, label);
+    if (UNLIKELY(PARSER_DEBUG))
+      printf("**** label lexeme >>%s<<\n", token->lexeme);
     csound->Free(csound, label);
     return make_leaf(csound, -1, 0, LABEL_TOKEN, token);
 }

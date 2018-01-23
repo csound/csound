@@ -21,6 +21,40 @@
 
 #include "std_util.h"
 
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
+
 /* module interface */
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)

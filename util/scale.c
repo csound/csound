@@ -399,7 +399,7 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
     p->analonly = 1;
-    strncpy(p->sfname, inputfile, MAXSNDNAME-1);p->sfname[MAXSNDNAME-1]='\0';
+    strNcpy(p->sfname, inputfile, MAXSNDNAME-1);//p->sfname[MAXSNDNAME-1]='\0';
     if ((infile = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skptim*/
       return(0);
     p->getframes = p->framesrem;

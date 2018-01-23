@@ -111,12 +111,12 @@ static int getIpAddress(char *ipaddr)
     if (fd >= 0) {
       char *dev = getenv("CS_ETHER");
       if (dev)
-        strncpy(ifr.ifr_name, dev, IFNAMSIZ-1);
+        strNcpy(ifr.ifr_name, dev, IFNAMSIZ-1);
       else {
 #ifdef MACOSX
-        strncpy(ifr.ifr_name, "en0", IFNAMSIZ-1);
+        strNcpy(ifr.ifr_name, "en0", IFNAMSIZ-1);
 #else
-        strncpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
+        strNcpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
 #endif
       }
       ifr.ifr_name[IFNAMSIZ-1] = '\0';
@@ -128,7 +128,7 @@ static int getIpAddress(char *ipaddr)
         ret = 0;
       }
       else {
-        strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1);
+        strNcpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1);
         ifr.ifr_name[IFNAMSIZ-1] = '\0';
         if (ioctl(fd, SIOCGIFADDR, &ifr) == 0) {
           char *local;
