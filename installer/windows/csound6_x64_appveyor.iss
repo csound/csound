@@ -24,7 +24,7 @@
 ;
 
 [setup]
-#define AppName "csound-windows-x64"
+#define AppName "Csound6_x64"
 #define AppVersion "6"
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define AppveyorBuildNumber GetEnv("APPVEYOR_BUILD_NUMBER")
