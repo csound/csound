@@ -32,9 +32,11 @@
 #define AppURL "http://csound.github.io/"
 #define LibStkSourceDir "..\..\msvc\deps\stk-master\"
 #define ManualSourceDir "c:\html\"
+#define CsoundQTDir "c:\CsoundQt-0.9.5-win64\bin\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
+Name: "csoundqt"; Description: "Csound QT"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full;
 
 [Dirs]
@@ -212,6 +214,8 @@ Source: "../../examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.htm
 Source: "../../samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#LibStkSourceDir}rawwaves\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: {#ManualSourceDir}\*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs; Components: core
+Source: {#CsoundQTDir}\*.*; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs; Components: csoundqt
+
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;
