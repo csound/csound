@@ -369,7 +369,7 @@ static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
     /* printf("DEBUG %s(%d): check fname=%s\n", __FILE__, __LINE__, fname); */
     /* printf("DEBUG %s(%d): list %s\n", __FILE__, __LINE__, list); */
     if (list==NULL) return 0;
-    strncpy(buff, fname, 255); buff[255]='\0';
+    strNcpy(buff, fname, 255); //buff[255]='\0';
     strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
     p = cs_strdup(csound, list);
     deny = cs_strtok_r(p, ",", &th);
