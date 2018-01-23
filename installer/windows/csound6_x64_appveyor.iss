@@ -31,6 +31,7 @@
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
 #define LibStkSourceDir "..\..\msvc\deps\stk-master\"
+#define ManualSourceDir "c:\html\"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
@@ -54,6 +55,9 @@ Name: "{app}\include"
 ; All Csound examples go here.
 Name: "{app}\examples"; Permissions: users-modify
 #define APP_EXAMPLES "{app}\examples\"
+; Csound manual
+Name: "{app}\doc\manual"
+#define APP_MANUAL "{app}\doc\manual\"
 ; Any SoundFonts or sound samples used by Csound examples go here.
 Name: "{app}\samples"
 #define APP_SAMPLES "{app}\samples\"
@@ -207,6 +211,7 @@ Source: ../../interfaces/*.py; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Com
 Source: "../../examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.html"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "../../samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#LibStkSourceDir}rawwaves\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
+Source: {#ManualSourceDir}\*.*; DestDir: "{#APP_MANUAL}\html"; Flags: ignoreversion recursesubdirs; Components: core
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;
