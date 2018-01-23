@@ -200,10 +200,10 @@ int vpvset_(CSOUND *csound, VPVOC *p, int stringname)
     }
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("VPVOC cannot load %s"), pvfilnam);
