@@ -752,16 +752,16 @@ extern "C"
             csound::QueryGlobalPointer(csound, "luaStatesForThreads", luaStatesForThreads);
             if (luaStatesForThreads != 0) {
                 for (std::vector<LuaStateForThread>::iterator it =
-                            luaStatesForThreads->begin();
-                        it != luaStatesForThreads->end(); ++it) {
+                    luaStatesForThreads->begin();
+                    it != luaStatesForThreads->end(); ++it) {
                     lua_close(it->L);
                 }
             }
                         luaStatesForThreads->clear();
-            csound::DestroyGlobalPointer(csound, "luaStatesForThreads", luaStatesForThreads);
+                        csound::DestroyGlobalPointer(csound, "luaStatesForThreads", luaStatesForThreads);
                         csound->UnlockMutex(lua_states_mutex);
                         csound->DestroyMutex(lua_states_mutex);
-            csound::DestroyGlobalPointer(csound, "lua_states_mutex", lua_states_mutex);
+                        //csound::DestroyGlobalPointer(csound, "lua_states_mutex", lua_states_mutex);
                         lua_states_mutex = 0;
                 }
         void *reference_keys_mutex = 0;
@@ -776,7 +776,7 @@ extern "C"
             }
                         csound->UnlockMutex(reference_keys_mutex);
                         csound->DestroyMutex(reference_keys_mutex);
-            csound::DestroyGlobalPointer(csound, "reference_keys_mutex", reference_keys_mutex);
+                        //csound::DestroyGlobalPointer(csound, "reference_keys_mutex", reference_keys_mutex);
                         reference_keys_mutex = 0;
                 }
                 return OK;
