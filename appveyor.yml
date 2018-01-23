@@ -49,6 +49,7 @@ install:
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%" -vstSdkHome "%VST_SDK2_HOME%
   - cd ..
+  #download an unzip manual and CsoundQT for inclusion with the installer
   - cd c:/
   - ps: Start-FileDownload 'https://github.com/csound/csound/releases/download/6.10.0/Csound6.10.0_manual_html.zip'
   - cmd: 7z.exe x Csound6.10.0_manual_html.zip
