@@ -196,7 +196,7 @@ int csp_set_alloc(CSOUND *csound, struct set_t **set,
       csound->Die(csound, Str("Failed to allocate set"));
     }
     memset(p, 0, sizeof(struct set_t));
-    strncpy(p->hdr, SET_HDR, HDR_LEN);
+    memcpy(p->hdr, SET_HDR, HDR_LEN);
     p->ele_eq_func = ele_eq_func;
     p->ele_print_func = ele_print_func;
     p->cache = NULL;
@@ -240,7 +240,7 @@ static int set_element_alloc(CSOUND *csound,
       csound->Die(csound, Str("Failed to allocate set element"));
     }
     memset(*set_element, 0, sizeof(struct set_element_t));
-    strncpy((*set_element)->hdr, SET_ELEMENT_HDR, HDR_LEN);
+    memcpy((*set_element)->hdr, SET_ELEMENT_HDR, HDR_LEN);
     (*set_element)->data = cs_strdup(csound, data);
 
     return CSOUND_SUCCESS;
@@ -261,7 +261,7 @@ static int set_is_set(CSOUND *csound, struct set_t *set)
 {
     char buf[4];
     if (set == NULL) return 0;
-    strncpy(buf, (char *)set, HDR_LEN);
+    memcpy(buf, (char *)set, HDR_LEN);
     buf[3] = 0;
     return strcmp(buf, SET_HDR) == 0;
 }
@@ -273,7 +273,7 @@ static int
 {
     char buf[4];
     if (set_element == NULL) return 0;
-    strncpy(buf, (char *)set_element, HDR_LEN);
+    memcpy(buf, (char *)set_element, HDR_LEN-1);
     buf[3] = 0;
     return strcmp(buf, SET_ELEMENT_HDR) == 0;
 }

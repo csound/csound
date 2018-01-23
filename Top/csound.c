@@ -185,8 +185,8 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
        i++;
      }
      modules[i] = (MODULE_INFO *) csound->Malloc(csound, sizeof(MODULE_INFO));
-     strncpy(modules[i]->module, drv, 11);
-     strncpy(modules[i]->type, type, 11);
+     strNcpy(modules[i]->module, drv, 11);
+     strNcpy(modules[i]->type, type, 11);
     }
 }
 
@@ -962,8 +962,8 @@ static const CSOUND cenviron_ = {
     0,              /* msg_queue_wput */
     0,              /* msg_queue_rstart */
     0,              /* msg_queue_items */
-    NULL,           /* directory for corfiles */
     127,            /* aftouch */
+    NULL,           /* directory for corfiles */
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
     0,               /* alloc_queue_wp */
@@ -3274,7 +3274,7 @@ static void reset(CSOUND *csound)
 PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
     char *s;
     if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
-      strncpy(s, module, 20);
+      strNcpy(s, module, 20);
     if (UNLIKELY(s==NULL)) return;        /* Should not happen */
     if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
         strcmp(s, "NULL") == 0) {
@@ -3296,7 +3296,7 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module){
     char *s;
 
     if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
-      strncpy(s, module, 20);
+      strNcpy(s, module, 20);
     if (UNLIKELY(s==NULL)) return;        /* Should not happen */
     if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
        strcmp(s, "NULL") == 0) {

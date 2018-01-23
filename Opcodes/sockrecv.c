@@ -311,7 +311,7 @@ static int send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
       str->data = csound->ReAlloc(csound, str->data, len+1);
       str->size  = len;
     }
-    strncpy(str->data, &p->buf[p->outsamps], len+1);
+    strNcpy(str->data, &p->buf[p->outsamps], len+1);
     p->outsamps += len+1;       /* Move bffer on */
     return OK;
 }
@@ -653,8 +653,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             memset(str[n].data,0,len+1);
             str[n].size  = len+1;
           }
-          strncpy(str[n].data, buf, len);
-          str[n].data[len] = '\0'; // explicitly terminate it.
+          strNcpy(str[n].data, buf, len+1);
+          //str[n].data[len] = '\0'; // explicitly terminate it.
           n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
         }
@@ -664,8 +664,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
             str[n].size  = len+1;
           }
-          strncpy(str[n].data, buf, len);
-          str[n].data[str[n].size-1] = '\0'; // explicitly terminate it.
+          strNcpy(str[n].data, buf, len+1);
+          //str[n].data[str[n].size-1] = '\0'; // explicitly terminate it.
           types = str[n].data;
           n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
@@ -697,8 +697,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
-            strncpy(str[n].data, buf, len);
-            str[n].data[len] = '\0';
+            strNcpy(str[n].data, buf, len+1);
+            //str[n].data[len] = '\0';
             len = ceil((len+1)/4.)*4;
             buf += len;
           } else if (c == 'b') {
@@ -709,8 +709,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
-            strncpy(str[n].data, buf, len);
-            str[n].data[len] = '\0';
+            strNcpy(str[n].data, buf, len+1);
+            //str[n].data[len] = '\0';
             buf += len;
           }
           n++;
