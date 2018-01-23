@@ -84,13 +84,13 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
     }
 
     if (!strcmp("HRTFcompact", p->ifilno->data)) {
-      strncpy(filename, p->ifilno->data, MAXNAME-1);
-      filename[MAXNAME-1] = '\0';
+      strNcpy(filename, p->ifilno->data, MAXNAME);
+      //filename[MAXNAME-1] = '\0';
     }
     else {
       csound->Message(csound, Str("\nLast argument must be the string "
                                   "'HRTFcompact' ...correcting.\n"));
-      strncpy(filename, "HRTFcompact", MAXNAME); /* for safety */
+      strNcpy(filename, "HRTFcompact", MAXNAME); /* for safety */
     }
 
     if ((mfp = p->mfp) == NULL)

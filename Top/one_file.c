@@ -91,7 +91,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
         s = _tempnam(s, "cs");
         if (UNLIKELY(s == NULL))
           csound->Die(csound, Str(" *** cannot create temporary file"));
-        strncpy(lbuf, s, nBytes);
+        strNcpy(lbuf, s, nBytes);
         free(s);
       }
 #endif
@@ -620,7 +620,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
       return FALSE;
     }
     *q = '\0';
-    strncpy(prog, p+5, 255); prog[255]='\0';/* after "<CsExScore " */
+    strNcpy(prog, p+5, 256); //prog[255]='\0';/* after "<CsExScore " */
     /* Generate score name */
     if (STA(sconame)) free(STA(sconame));
     STA(sconame) = csoundTmpFileName(csound, ".sco");
@@ -887,7 +887,7 @@ static int createFile(CSOUND *csound, char *buffer, CORFIL *cf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strncpy(filename, p, 255); filename[255]='\0';
+    strNcpy(filename, p, 256); //filename[255]='\0';
 //sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
 //    if (filename[0] != '\0' &&
 //       filename[strlen(filename) - 1] == '>' &&
@@ -936,7 +936,7 @@ static int createCorfile(CSOUND *csound, char *buffer, CORFIL *cf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strncpy(filename, p, 255); filename[255]='\0';
+    strNcpy(filename, p, 256); //filename[255]='\0';
 //sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
 //    if (filename[0] != '\0' &&
 //       filename[strlen(filename) - 1] == '>' &&
@@ -980,7 +980,7 @@ static int createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strncpy(filename, p, 255); filename[255]='\0';
+    strNcpy(filename, p, 256); //filename[255]='\0';
     if (UNLIKELY((smpf = fopen(filename, "r")) != NULL)) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);

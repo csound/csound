@@ -44,10 +44,10 @@ static int cvset_(CSOUND *csound, CONVOLVE *p, int stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strncpy(cvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strNcpy(cvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, cvfilnam,p->ifilno, "convolve.",0);
     }
-    else strncpy(cvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strNcpy(cvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
@@ -395,10 +395,10 @@ static int pconvset_(CSOUND *csound, PCONVOLVE *p, int stringname)
 
      if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strncpy(IRfile.sfname,get_arg_string(csound, *p->ifilno), 511);
+        strNcpy(IRfile.sfname,get_arg_string(csound, *p->ifilno), 511);
       else csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",0);
     }
-    else strncpy(IRfile.sfname, ((STRINGDAT *)p->ifilno)->data, 511);
+    else strNcpy(IRfile.sfname, ((STRINGDAT *)p->ifilno)->data, 511);
 
     IRfile.sr = 0;
     if (UNLIKELY(channel < 1 || ((channel > 4) && (channel != ALLCHNLS)))) {

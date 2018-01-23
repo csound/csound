@@ -90,7 +90,7 @@ static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
       csound->Malloc(csound, sizeof(struct global_var_lock_t));
     memset(ret, 0, sizeof(struct global_var_lock_t));
     INIT_LOCK(ret->lock);
-    strncpy(ret->hdr, GLOBAL_VAR_LOCK_HDR, HDR_LEN);
+    memcpy(ret->hdr, GLOBAL_VAR_LOCK_HDR, HDR_LEN);
     ret->name = name;
     ret->index = index;
 
