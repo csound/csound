@@ -1426,7 +1426,7 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
           strseg[i] = '\0';
           switch (*segwaiting) {
           case '%':
-            strncpy(outstring, "%%", len);
+            strNcpy(outstring, "%%", len);
             j--;
             break;
           case 'd':
@@ -1476,7 +1476,7 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
       if (segwaiting) {
         switch (*segwaiting) {
           case '%':
-            strncpy(outstring, "%%", len);
+            strNcpy(outstring, "%%", len);
             j--;
             break;
         case 'd':

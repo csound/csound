@@ -74,7 +74,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
           pcBuffer = csound->Malloc(csound,
                                     iFilenameLength + 2 + (pcEnd - pcStart));
           if (pcEnd > pcStart)
-            strncpy(pcBuffer, pcStart, pcEnd - pcStart);
+            strNcpy(pcBuffer, pcStart, pcEnd - pcStart);
           iNeedSlash = 0;
           if (pcEnd > pcStart)
             if (*(pcEnd - 1) != '/') {

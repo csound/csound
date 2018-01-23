@@ -529,7 +529,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     p->analonly = 1;
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
-    strncpy(p->sfname, ddd->name, MAXSNDNAME-1);
+    strNcpy(p->sfname, ddd->name, MAXSNDNAME-1);
     /* open sndfil, do skiptime */
     if (UNLIKELY((infd = csound->sndgetset(csound, p)) == NULL))
       return NULL;

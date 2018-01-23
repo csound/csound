@@ -103,10 +103,10 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
       if (csound->ISSTRCOD(*p->iFileCode))
-        strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+        strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
     }
-    else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
+    else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
     if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
@@ -280,10 +280,10 @@ int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
     /* FIXME: name can overflow with very long string */
     if(stringname==0){
       if(csound->ISSTRCOD(*p->iFileCode))
-        strncpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+        strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
     }
-    else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
+    else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
     if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
