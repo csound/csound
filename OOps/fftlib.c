@@ -3424,11 +3424,10 @@ int setupDispose(CSOUND *csound, void *pp){
   switch(setup->lib){
 #if defined(__MACH__)
   case VDSP_LIB:
-    vDSP_destroy_fftsetupD(
 #ifdef USE_DOUBLE
-                           (FFTSetupD)
+     vDSP_destroy_fftsetupD((FFTSetupD)
 #else
-                           (FFTSetup)
+     vDSP_destroy_fftsetup((FFTSetup)
 #endif
                            setup->setup);
     break;
