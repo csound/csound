@@ -1562,25 +1562,8 @@ typedef struct _message_queue_t_ {
     int          event_insert_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
-
-#if defined(MACOSX)
     spin_lock_t spoutlock, spinlock;
- #else
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    void *spoutlock, *spinlock;
-#else
-    int           spoutlock, spinlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
-#endif
-#if defined(MACOSX)
     spin_lock_t memlock, spinlock1;
-#else
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    void *memlock, *spinlock1;
-#else
-    int           memlock, spinlock1;
-#endif
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
     char          *delayederrormessages;
     void          *printerrormessagesflag;
     struct sreadStatics__ {
