@@ -576,7 +576,7 @@ struct set_t *csp_set_intersection(CSOUND *csound, struct set_t *first,
       void *data = NULL;
       data = csp_set_get_num(first, ctr);
       if (csp_set_exists(second, data)) {
-        csp_set_add(csound, &result, data);
+        csp_set_add(csound, result, data);
       }
       ctr++;
     }

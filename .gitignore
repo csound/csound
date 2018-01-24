@@ -196,9 +196,12 @@ xcshareddata/
 *.xccheckout
 project.xcworkspace/
 xcuserdata/
-emscripten/examples/javascripts/CsoundObj.js
-emscripten/examples/javascripts/libcsound.js
 *.bz2
 tests/soak/CheckSums
 tests/soak/Output
 Opcodes/stk/
+
+# Emscripten
+emscripten/examples/javascripts/CsoundObj.js
+emscripten/examples/javascripts/libcsound.js
+emscripten/dist-wasm
