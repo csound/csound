@@ -7,7 +7,7 @@ environment:
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   CSOUND_VERSION: 6.11.0-beta
   HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
-  QTDIR: C:\Qt\5.9.2\msvc2017_64
+#  QTDIR: C:\Qt\5.9.2\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 15 2017 Win64
   VSTOOLSET: v141
@@ -31,8 +31,8 @@ init:
   - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CXXAMP
   - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.OpenMP
   - set
-  - echo "Qt SDK configuration files:"
-  - dir "%QTDIR%\\mkspecs"
+  #- echo "Qt SDK configuration files:"
+  #- dir "%QTDIR%\\mkspecs"
   - echo "Redistributable runtime libraries:"
   - dir /B /S "%VCToolsRedistDir%"
   - dir /B /S "%VCREDIST_CRT_DIR%"
@@ -57,7 +57,7 @@ build:
 after_build:
   - dir "%VCPKGDir%\installed\x64-windows-static\include"
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
-  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
+  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
   - 7z a csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
   - 7z l csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
