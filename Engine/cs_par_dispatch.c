@@ -78,172 +78,172 @@ static inline void csp_locks_unlock(CSOUND * csound, int global_index)
     /*         csound->global_var_lock_cache[global_index]->name); */
 }
 
-#if 0
-static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
-                                                       char *name, int index)
-{
-    if (UNLIKELY(name == NULL))
-      csound->Die(csound,
-                  Str("Invalid NULL parameter name for a global variable\n"));
+/* #if 0 */
+/* static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound, */
+/*                                                        char *name, int index) */
+/* { */
+/*     if (UNLIKELY(name == NULL)) */
+/*       csound->Die(csound, */
+/*                   Str("Invalid NULL parameter name for a global variable\n")); */
 
-    struct global_var_lock_t *ret =
-      csound->Malloc(csound, sizeof(struct global_var_lock_t));
-    memset(ret, 0, sizeof(struct global_var_lock_t));
-    INIT_LOCK(ret->lock);
-    memcpy(ret->hdr, GLOBAL_VAR_LOCK_HDR, HDR_LEN);
-    ret->name = name;
-    ret->index = index;
+/*     struct global_var_lock_t *ret = */
+/*       csound->Malloc(csound, sizeof(struct global_var_lock_t)); */
+/*     memset(ret, 0, sizeof(struct global_var_lock_t)); */
+/*     INIT_LOCK(ret->lock); */
+/*     memcpy(ret->hdr, GLOBAL_VAR_LOCK_HDR, HDR_LEN); */
+/*     ret->name = name; */
+/*     ret->index = index; */
 
-    csound->global_var_lock_count++;
+/*     csound->global_var_lock_count++; */
 
-    return ret;
-}
+/*     return ret; */
+/* } */
 
 
 
-static struct global_var_lock_t
-  *global_var_lock_find(CSOUND *csound, char *name)
-{
-    if (UNLIKELY(name == NULL))
-      csound->Die(csound,
-                  Str("Invalid NULL parameter name for a global variable\n"));
+/* static struct global_var_lock_t */
+/*   *global_var_lock_find(CSOUND *csound, char *name) */
+/* { */
+/*     if (UNLIKELY(name == NULL)) */
+/*       csound->Die(csound, */
+/*                   Str("Invalid NULL parameter name for a global variable\n")); */
 
-    if (csound->global_var_lock_root == NULL) {
-      csound->global_var_lock_root = global_var_lock_alloc(csound, name, 0);
-      return csound->global_var_lock_root;
-    }
-    else {
-      struct global_var_lock_t *current = csound->global_var_lock_root,
-        *previous = NULL;
-      int ctr = 0;
-      while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
-          break;
-        }
-        previous = current;
-        current = current->next;
-        ctr++;
-      }
-      if (current == NULL) {
-        previous->next = global_var_lock_alloc(csound, name, ctr);
-        return previous->next;
-      }
-      else {
-        return current;
-      }
-    }
-}
+/*     if (csound->global_var_lock_root == NULL) { */
+/*       csound->global_var_lock_root = global_var_lock_alloc(csound, name, 0); */
+/*       return csound->global_var_lock_root; */
+/*     } */
+/*     else { */
+/*       struct global_var_lock_t *current = csound->global_var_lock_root, */
+/*         *previous = NULL; */
+/*       int ctr = 0; */
+/*       while (current != NULL) { */
+/*         if (strcmp(current->name, name) == 0) { */
+/*           break; */
+/*         } */
+/*         previous = current; */
+/*         current = current->next; */
+/*         ctr++; */
+/*       } */
+/*       if (current == NULL) { */
+/*         previous->next = global_var_lock_alloc(csound, name, ctr); */
+/*         return previous->next; */
+/*       } */
+/*       else { */
+/*         return current; */
+/*       } */
+/*     } */
+/* } */
 
-static TREE *csp_locks_insert(CSOUND *csound, TREE *root)
-{
-    csound->Message(csound,
-                    Str("Inserting Parallelism Constructs into AST\n"));
+/* static TREE *csp_locks_insert(CSOUND *csound, TREE *root) */
+/* { */
+/*     csound->Message(csound, */
+/*                     Str("Inserting Parallelism Constructs into AST\n")); */
 
-    TREE *anchor = NULL;
+/*     TREE *anchor = NULL; */
 
-    TREE *current = root;
-    TREE *previous = NULL;
-    INSTR_SEMANTICS *instr = NULL;
+/*     TREE *current = root; */
+/*     TREE *previous = NULL; */
+/*     INSTR_SEMANTICS *instr = NULL; */
 
-    while (current != NULL) {
-      switch(current->type) {
-      case INSTR_TOKEN:
-        if (current->left->type == T_INSTLIST) {
-          instr =
-            csp_orc_sa_instr_get_by_name(csound,
-                                               current->left->left->value->lexeme);
-        }
-        else {
-          instr = csp_orc_sa_instr_get_by_name(csound,
-                                               current->left->value->lexeme);
-        }
-        if (instr->read_write->count > 0 &&
-            instr->read->count == 0 &&
-            instr->write->count == 0) {
-          csound->Message(csound, Str("Instr %d needs locks"), instr->insno);
-          //print_tree(csound, "before locks", root);
-          current->right = csp_locks_insert(csound, current->right);
-          //print_tree(csound, "after locks", root);
-        }
-        break;
+/*     while (current != NULL) { */
+/*       switch(current->type) { */
+/*       case INSTR_TOKEN: */
+/*         if (current->left->type == T_INSTLIST) { */
+/*           instr = */
+/*             csp_orc_sa_instr_get_by_name(csound, */
+/*                                                current->left->left->value->lexeme); */
+/*         } */
+/*         else { */
+/*           instr = csp_orc_sa_instr_get_by_name(csound, */
+/*                                                current->left->value->lexeme); */
+/*         } */
+/*         if (instr->read_write->count > 0 && */
+/*             instr->read->count == 0 && */
+/*             instr->write->count == 0) { */
+/*           csound->Message(csound, Str("Instr %d needs locks"), instr->insno); */
+/*           //print_tree(csound, "before locks", root); */
+/*           current->right = csp_locks_insert(csound, current->right); */
+/*           //print_tree(csound, "after locks", root); */
+/*         } */
+/*         break; */
 
-      case UDO_TOKEN:
-      case IF_TOKEN:
-        break;
+/*       case UDO_TOKEN: */
+/*       case IF_TOKEN: */
+/*         break; */
 
-      case '=':
-        {
-          struct set_t *left = csp_orc_sa_globals_find(csound, current->left);
-          struct set_t *right = csp_orc_sa_globals_find(csound, current->right);
-          struct set_t *new = NULL;
-          csp_set_union(csound, left, right, &new);
-          /* add locks if this is a read-write global variable
-           * that is same global read and written in this operation */
-          if (left->count == 1 && right->count == 1 && new->count == 1) {
-            char *global_var = NULL;
-            struct global_var_lock_t *gvar;
-            char buf[8];
-            ORCTOKEN *lock_tok, *unlock_tok, *var_tok, *var0_tok;;
-            TREE *lock_leaf, *unlock_leaf;
+/*       case '=': */
+/*         { */
+/*           struct set_t *left = csp_orc_sa_globals_find(csound, current->left); */
+/*           struct set_t *right = csp_orc_sa_globals_find(csound, current->right); */
+/*           struct set_t *new = NULL; */
+/*           csp_set_union(csound, left, right, &new); */
+/*           /\* add locks if this is a read-write global variable */
+/*            * that is same global read and written in this operation *\/ */
+/*           if (left->count == 1 && right->count == 1 && new->count == 1) { */
+/*             char *global_var = NULL; */
+/*             struct global_var_lock_t *gvar; */
+/*             char buf[8]; */
+/*             ORCTOKEN *lock_tok, *unlock_tok, *var_tok, *var0_tok;; */
+/*             TREE *lock_leaf, *unlock_leaf; */
 
-            csp_set_get_num(new, 0, (void **)&global_var);
-            gvar       = global_var_lock_find(csound, global_var);
-            lock_tok   = lookup_token(csound, "##globallock");
-            unlock_tok = lookup_token(csound, "##globalunlock");
-            snprintf(buf, 8, "%i", gvar->index);
-            var_tok    = make_int(csound, buf);
-            var0_tok   = make_int(csound, buf);
+/*             global_var = csp_set_get_num(new, 0); */
+/*             gvar       = global_var_lock_find(csound, global_var); */
+/*             lock_tok   = lookup_token(csound, "##globallock"); */
+/*             unlock_tok = lookup_token(csound, "##globalunlock"); */
+/*             snprintf(buf, 8, "%i", gvar->index); */
+/*             var_tok    = make_int(csound, buf); */
+/*             var0_tok   = make_int(csound, buf); */
 
-            lock_leaf  = make_leaf(csound, current->line, current->locn,
-                                   T_OPCODE, lock_tok);
-            lock_leaf->right = make_leaf(csound, current->line, current->locn,
-                                         INTEGER_TOKEN, var_tok);
-            unlock_leaf = make_leaf(csound, current->line, current->locn,
-                                    T_OPCODE, unlock_tok);
-            unlock_leaf->right = make_leaf(csound, current->line, current->locn,
-                                           INTEGER_TOKEN, var0_tok);
+/*             lock_leaf  = make_leaf(csound, current->line, current->locn, */
+/*                                    T_OPCODE, lock_tok); */
+/*             lock_leaf->right = make_leaf(csound, current->line, current->locn, */
+/*                                          INTEGER_TOKEN, var_tok); */
+/*             unlock_leaf = make_leaf(csound, current->line, current->locn, */
+/*                                     T_OPCODE, unlock_tok); */
+/*             unlock_leaf->right = make_leaf(csound, current->line, current->locn, */
+/*                                            INTEGER_TOKEN, var0_tok); */
 
-            if (previous == NULL) {
-              //TREE *old_current = lock_leaf;
-              lock_leaf->next = current;
-              unlock_leaf->next = current->next;
-              current->next = unlock_leaf;
-              current = unlock_leaf;
-              //print_tree(csound, "changed to\n", lock_leaf);
-            }
-            else {
-              previous->next = lock_leaf;
-              lock_leaf->next = current;
-              unlock_leaf->next = current->next;
-              current->next = unlock_leaf;
-              current = unlock_leaf;
-              //print_tree(csound, "changed-1 to\n", lock_leaf);
-            }
-          }
+/*             if (previous == NULL) { */
+/*               //TREE *old_current = lock_leaf; */
+/*               lock_leaf->next = current; */
+/*               unlock_leaf->next = current->next; */
+/*               current->next = unlock_leaf; */
+/*               current = unlock_leaf; */
+/*               //print_tree(csound, "changed to\n", lock_leaf); */
+/*             } */
+/*             else { */
+/*               previous->next = lock_leaf; */
+/*               lock_leaf->next = current; */
+/*               unlock_leaf->next = current->next; */
+/*               current->next = unlock_leaf; */
+/*               current = unlock_leaf; */
+/*               //print_tree(csound, "changed-1 to\n", lock_leaf); */
+/*             } */
+/*           } */
 
-          csp_set_dealloc(csound, &new);
-          csp_set_dealloc(csound, &left);
-          csp_set_dealloc(csound, &right);
-       }
-      default:
-        break;
-      }
+/*           csp_set_dealloc(csound, &new); */
+/*           csp_set_dealloc(csound, &left); */
+/*           csp_set_dealloc(csound, &right); */
+/*        } */
+/*       default: */
+/*         break; */
+/*       } */
 
-      if (anchor == NULL) {
-        anchor = current;
-      }
+/*       if (anchor == NULL) { */
+/*         anchor = current; */
+/*       } */
 
-      previous = current;
-      current = current->next;
+/*       previous = current; */
+/*       current = current->next; */
 
-    }
+/*     } */
 
-    csound->Message(csound,
-                    Str("[End Inserting Parallelism Constructs into AST]\n"));
+/*     csound->Message(csound, */
+/*                     Str("[End Inserting Parallelism Constructs into AST]\n")); */
 
-    return anchor;
-}
-#endif
+/*     return anchor; */
+/* } */
+/* #endif */
 
 void csp_locks_cache_build(CSOUND *csound)
 {
