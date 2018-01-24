@@ -422,7 +422,6 @@ static inline double csoundUndenormalizeDouble(double x)
 
 #ifndef USE_DOUBLE
 #  define csoundUndenormalizeMYFLT      csoundUndenormalizeFloat
-k
 #else
 #  define csoundUndenormalizeMYFLT      csoundUndenormalizeDouble
 #endif
