@@ -750,8 +750,8 @@ static int trlowest_process(CSOUND *csound, _PLOW *p)
 }
 
 static int trhighest_process(CSOUND *csound, _PLOW *p)
-{ 
-    IGN(csound);   
+{
+    IGN(csound);
     MYFLT   scale = *p->kpar;
     float   highest = 0.0f, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
