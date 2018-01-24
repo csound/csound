@@ -1009,11 +1009,11 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 
 #elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
 
-void csoundSpinLock(spin_lock_t spinlock){
+void csoundSpinLock(spin_lock_t *spinlock){
   while (__sync_lock_test_and_set(spinlock, 1) == 1) { };
 }
 
-void csoundSpinUnLock(spin_lock_t spinlock){                                    
+void csoundSpinUnLock(spin_lock_t *spinlock){                                    
       __sync_lock_release(spinlock);           
 }
 
@@ -1027,13 +1027,13 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 }
 
 #elif defined(MACOSX)
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
 
-void csoundSpinLock(spin_lock_t spinlock){                                     
+void csoundSpinLock(spin_lock_t *spinlock){                                     
       os_unfair_lock_lock(spinlock);
 }
 
-void csoundSpinUnLock(spin_lock_t spinlock){ 
+void csoundSpinUnLock(spin_lock_t *spinlock){ 
       os_unfair_lock_unlock(spinlock);
 }
 
@@ -1042,21 +1042,21 @@ int csoundSpinTryLock(spin_lock_t *spinlock) {
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
-  *spinlock = SPINLOCK_INIT;
+  IGN(spinlock);
   return 0;
 }
 
 #else
 
-void csoundSpinLock(spin_lock_t spinlock) { 
+void csoundSpinLock(spin_lock_t *spinlock) { 
       OSSpinLockLock(spinlock);
 }
-void csoundSpinUnLock(spin_lock_t spinlock) { 
+void csoundSpinUnLock(spin_lock_t *spinlock) { 
       OSSpinLockUnlock(spinlock);               
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return OSSpinLockTry;
+  return (int) OSSpinLockTry(spinlock);
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
@@ -1066,10 +1066,10 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 #endif // MAC_OS_X_VERSION_MIN_REQUIRED
 
 #else
-void csoundSpinLock(spin_lock_t spinlock) { 
+void csoundSpinLock(spin_lock_t *spinlock) { 
       IGN(spinlock);
 }
-void csoundSpinUnLock(spin_lock_t spinlock) { 
+void csoundSpinUnLock(spin_lock_t *spinlock) { 
       IGN(spinlock);               
 }
 
