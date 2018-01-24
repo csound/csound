@@ -2289,8 +2289,9 @@ extern "C" {
 # define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 # define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 typedef int32_t spin_lock_t;
-
+#define SPINLOCK_INIT 0
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+  #define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
   //# if defined(SWIG)
 #  define csoundSpinLock(spinlock)                              \
   {                                                             \
@@ -2313,7 +2314,7 @@ typedef int32_t spin_lock_t;
   //#endif
 
 #elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
-
+#define SPINLOCK_INIT 0
 # define csoundSpinLock(spinlock)                               \
   {                                                             \
       while (__sync_lock_test_and_set(spinlock, 1) == 1) {      \
@@ -2369,7 +2370,7 @@ typedef int32_t spin_lock_t;
 # define csoundSpinUnLock(spinlock)
 # define CSOUND_SPIN_LOCK
 # define CSOUND_SPIN_UNLOCK
-
+#define SPINLOCK_INIT 0
 #endif
 
   /** @}*/

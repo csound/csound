@@ -733,27 +733,8 @@ static const CSOUND cenviron_ = {
     0,              /* init pass loop  */
     NULL,           /* init pass threadlock */
     NULL,           /* API_lock */
-#ifdef MACOSX
-    SPINLOCK_INIT, SPINLOCK_INIT,
-#else
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
-#else
-    0,              /*  spoutlock           */
-    0,              /*  spinlock            */
-#endif
-#endif
-#ifdef MACOSX
-    SPINLOCK_INIT, SPINLOCK_INIT,
-#else
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock             */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock1           */
-#else
-    0, 0,              /*  memlock, spinlock1             */
-#endif
-#endif
+    SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
+    SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
     NULL, NULL,             /* Delayed messages */
     {
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
@@ -976,11 +957,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
     0,               /* alloc_queue_wp */
-#ifdef MACOSX
     SPINLOCK_INIT,    /* alloc_spinlock */
-#else
-    0,
-#endif
     NULL,            /* init_event */
     NULL,            /* message string callback */
     NULL,             /* message_string */
