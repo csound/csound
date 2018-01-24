@@ -2301,7 +2301,8 @@ typedef int32_t spin_lock_t;
       pthread_spin_unlock((pthread_spinlock_t *)spinlock);      \
   }
 #  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock)
+  typedef int32_t spin_lock_t;
   //# else
   //#  define csoundSpinLock(spinlock)
   //     pthread_spin_lock((pthread_spinlock_t *)spinlock);
@@ -2325,6 +2326,7 @@ typedef int32_t spin_lock_t;
 # define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 # define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
 typedef int32_t spin_lock_t;
+
 #elif defined(MACOSX)
 
 #ifndef SWIG
