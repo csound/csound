@@ -587,7 +587,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     *(ps+1) = '\0';
     len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len);
-    strncpy(ans->lexeme, s, len-1); /* Not the trailing colon */
+    strNcpy(ans->lexeme, s, len); /* Not the trailing colon */
     return ans;
 }
 
@@ -616,7 +616,7 @@ ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
     sprintf(buf, "%d", i+k);
     len = strlen(buf);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
-    strncpy(ans->lexeme, buf, len);
+    strNcpy(ans->lexeme, buf, len+1);
     ans->value = i;
     return ans;
 }
@@ -627,7 +627,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, INTEGER_TOKEN);
     int len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
-    strncpy(ans->lexeme, s, len);
+    strNcpy(ans->lexeme, s, len+1);
     ans->value = n;
     return ans;
 }
@@ -638,7 +638,7 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN);
     int len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
-    strncpy(ans->lexeme, s, len);
+    strNcpy(ans->lexeme, s, len+1);
     ans->fvalue = n;
     return ans;
 }

@@ -43,9 +43,9 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
     memset(hdr, 0, sizeof(SF_INFO));
     /* leap thru std hoops to get the name */
     if (strin)
-      strncpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
+      strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
     else if (csound->ISSTRCOD(*p->ifilno)){
-      strncpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
+      strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
     else csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",0);
 
@@ -322,7 +322,7 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
  if (csound->ISSTRCOD(*p->ifilno)){
-      strncpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
+      strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
   else csound->strarg2name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
@@ -333,7 +333,7 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p){
 int filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
- strncpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
+ strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
 
  return filepeak_(csound, p, soundiname);
 }
@@ -344,7 +344,7 @@ int filevalid(CSOUND *csound, FILEVALID *p)
     char soundiname[1024];       /* There is no check on this length */
     *p->r1 = 0;
     if (csound->ISSTRCOD(*p->ifilno)){
-      strncpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
+      strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
     else csound->strarg2name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
@@ -364,7 +364,7 @@ int filevalid_S(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];       /* There is no check on this length */
     *p->r1 = 0;
-    strncpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
+    strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
       if (csound->oparms->infilename)  /* commandline inputfile */
         *p->r1 = 1;
