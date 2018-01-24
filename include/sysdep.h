@@ -504,5 +504,29 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
 #endif
 
+#if defined(MSVC)
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
+#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+typedef pthread_spinlock_t spin_lock_t;
+#define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
+#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
+#elif defined(MACOSX)
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+#include <os/lock.h>
+typedef struct os_unfair_lock_s spin_lock_t;
+#define SPINLOCK_INIT {0}
+#else
+#include <libkern/OSAtomic.h>
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
+#endif // MAC_OS_X_VERSION_MIN_REQUIRED
+#else
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
+#endif
+
 
 #endif  /* CSOUND_SYSDEP_H */
