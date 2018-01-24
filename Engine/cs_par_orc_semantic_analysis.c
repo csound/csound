@@ -49,7 +49,7 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
     INSTR_SEMANTICS *instr =
       csound->Malloc(csound, sizeof(INSTR_SEMANTICS));
     memset(instr, 0, sizeof(INSTR_SEMANTICS));
-    strncpy(instr->hdr, INSTR_SEMANTICS_HDR, HDR_LEN);
+    memcpy(instr->hdr, INSTR_SEMANTICS_HDR, HDR_LEN);
     instr->name = name;
     instr->insno = -1;
     /* always check for greater than 0 in optimisation

@@ -74,10 +74,10 @@ int pvreadset_(CSOUND *csound, PVREAD *p, int stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
 
     if (pvocex_loadfile(csound, pvfilnam, p) == OK) {
       p->prFlg = 1;

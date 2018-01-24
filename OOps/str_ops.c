@@ -143,9 +143,10 @@ int strget_init(CSOUND *csound, STRGET_OP *p)
         p->r->size = strlen(ss) + 1;
       }
       else {
-        p->r->size = strlen(ss) + 1;
-        strncpy(p->r->data, ss, strlen(ss));
-        p->r->data[p->r->size - 1] = '\0';
+        int n = strlen(ss)+1;
+        p->r->size = n;
+        strNcpy(p->r->data, ss, n);
+        //p->r->data[p->r->size - 1] = '\0';
       }
       return OK;
     }
@@ -316,7 +317,7 @@ int strcat_opcode(CSOUND *csound, STRCAT_OP *p)
          p->r->size = size + 1;
     }
 
-    strncpy((char*) p->r->data,  str1, p->r->size-1);
+    strNcpy((char*) p->r->data,  str1, p->r->size-1);
     strcat((char*) p->r->data, str2);
 
     csound->Free(csound, str2);                 /* not needed anymore */
@@ -1139,6 +1140,13 @@ int str_from_url(CSOUND *csound, STRCPY_OP *p)
 
 #if !defined(HAVE_STRLCAT) && !defined(strlcat) && !defined(EMSCRIPTEN)
 /* Direct from BSD sources */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
 size_t
 strlcat(char *dst, const char *src, size_t siz)
 {
@@ -1168,6 +1176,39 @@ strlcat(char *dst, const char *src, size_t siz)
 }
 #endif
 
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
 
 /* Debugging opcode for testing runtime type identification */
 int print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {

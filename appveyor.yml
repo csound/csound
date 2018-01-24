@@ -30,6 +30,7 @@ init:
   - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CXXAMP
   - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.OpenMP
   - set
+  - echo "Redistributable runtime libraries:"
   - dir /B /S "%VCToolsRedistDir%"
   - dir /B /S "%VCREDIST_CRT_DIR%"
   - dir /B /S "%VCREDIST_CXXAMP_DIR%"
@@ -62,9 +63,8 @@ after_build:
   - dir "%VCPKGDir%\installed\x64-windows"
   - dir "%VCPKGDir%\installed\x64-windows\bin"
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
-
   - dir "installer\windows"
-  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ installer\\windows\\csound6_x64_appveyor.iss
+  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
   - 7z a csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
   - 7z l csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 

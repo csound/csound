@@ -725,7 +725,7 @@ static int atsa_main(CSOUND *csound, int argc, char **argv)
     {
       char buffer[160];
       char * tmp = getenv("TEMP");
-      strncpy(buffer, tmp, 160);
+      strNcpy(buffer, tmp, 160);
       // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
       // but wrong; corrected
       //strlcat(buffer, ATSA_RES_FILE, 160);
@@ -2391,7 +2391,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
 #ifdef WIN32
       char buffer[160];
       char * tmp = getenv("TEMP");
-      strncpy(buffer, tmp, 160);
+      strNcpy(buffer, tmp, 160);
       // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
       // snd corrected
       //strlcat(buffer, ATSA_RES_FILE, 160);
