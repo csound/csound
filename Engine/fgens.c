@@ -2570,7 +2570,7 @@ static int gen01(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ-1);
+      strNcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
       return OK;
     }
     return gen01raw(ff, ftp);
@@ -2624,19 +2624,19 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
           /* printf("****line %d\n" , __LINE__); */
-          strncpy(p->sfname, ff->e.strarg + 1, 512);
+          strNcpy(p->sfname, ff->e.strarg + 1, 512);
           if (len >= 0 && p->sfname[len] == '"')
             p->sfname[len] = '\0';
         }
         else {
           /* printf("****line %d\n" , __LINE__); */
-          strncpy(p->sfname, ff->e.strarg, 512);
+          strNcpy(p->sfname, ff->e.strarg, 512);
         }
       }
       else if (filno >= 0 && filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno]) {
         /* printf("****line %d\n" , __LINE__); */
-        strncpy(p->sfname, csound->strsets[filno], 512);
+        strNcpy(p->sfname, csound->strsets[filno], 512);
       }
       else {
         /* printf("****line %d\n" , __LINE__); */
@@ -2825,7 +2825,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 
     filno = &ff->e.p[5];
     if (isstrcod(ff->e.p[5]))
-      strncpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME-1);
+      strNcpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
     else
       csound->strarg2name(csound, filename, filno, "pvoc.", 0);
 
@@ -2903,17 +2903,17 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       if (isstrcod(ff->e.p[5])) {
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
-          strncpy(sfname, ff->e.strarg + 1, 1023);
+          strNcpy(sfname, ff->e.strarg + 1, 1024);
           if (len >= 0 && sfname[len] == '"')
             sfname[len] = '\0';
         }
         else
-          strncpy(sfname, ff->e.strarg, 1023);
+          strNcpy(sfname, ff->e.strarg, 1024);
       }
       else if ((filno= (int32) MYFLT2LRND(ff->e.p[5])) >= 0 &&
                filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno])
-        strncpy(sfname, csound->strsets[filno], 1023);
+        strNcpy(sfname, csound->strsets[filno], 1024);
       else
         snprintf(sfname, 1024, "soundin.%d", filno);   /* soundin.filno */
     }
@@ -3048,7 +3048,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ-1);
+      strNcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
       return OK;
     }
     return gen49raw(ff, ftp);
@@ -3367,12 +3367,14 @@ int csoundIsNamedGEN(CSOUND *csound, int num) {
     return 0;
 }
 
-/* ODDITY:  does not stop when num found but continues to end; aso not used! */
+/* ODDITY:  does not stop when num found but continues to end; also not used!
+   But has API use
+ */
 void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len) {
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
     while (n != NULL) {
       if (n->genum == abs(num)) {
-        strncpy(name,n->name,len);
+        strNcpy(name,n->name,len+1);
         return;
       }
       n = n->next;

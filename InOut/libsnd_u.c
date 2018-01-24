@@ -43,7 +43,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
 
     csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
     *ap = p = (SOUNDIN*) csound->Calloc(csound, sizeof(SOUNDIN));
-    strncpy(p->sfname, infilnam, 511); p->sfname[511] = '\0';
+    strNcpy(p->sfname, infilnam, 512); //p->sfname[511] = '\0';
     if (UNLIKELY(channel < 1 && channel != ALLCHNLS)) {
       csound->Message(csound, Str("channel request %d illegal\n"), channel);
       csound->Free(csound, p);

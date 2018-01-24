@@ -345,7 +345,7 @@ MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
     else
       csound->memfiles = mfp;
     mfp->next = NULL;
-    strncpy(mfp->filename, filnam, 255);
+    strNcpy(mfp->filename, filnam, 256);
 
     pathnam = csoundFindInputFile(csound, filnam, "SADIR");
     if (UNLIKELY(pathnam == NULL)) {

@@ -109,16 +109,16 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     ATSSTRUCT         *atsh;
     int               i;
 
-    strncpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
+    strNcpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
     opname[63]='\0';
     for (i = 0; opname[i] != '\0'; i++)
       opname[i] = toupper(opname[i]);           /* converted to upper case */
 
     /* copy in ats file name */
-    if (istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
+    if (istring) strNcpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
     else {
       if (csound->ISSTRCOD(*((MYFLT*)name_arg)))
-        strncpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
+        strNcpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
          else csound->strarg2name(csound, fname, name_arg, "ats.",0);
     }
     /* load memfile */
