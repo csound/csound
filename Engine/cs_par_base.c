@@ -467,7 +467,8 @@ inline int csp_set_count(struct set_t *set)
 
 /* 0 indexed */
 // FIXME inlining breaks linkage for MSVC
-inline void* csp_set_get_num(struct set_t *set, int num)
+static inline
+void* csp_set_get_num(struct set_t *set, int num)
 {
 /* #ifdef SET_DEBUG */
 /*     if (UNLIKELY(set == NULL)) */
@@ -576,7 +577,7 @@ struct set_t *csp_set_intersection(CSOUND *csound, struct set_t *first,
       void *data = NULL;
       data = csp_set_get_num(first, ctr);
       if (csp_set_exists(second, data)) {
-        csp_set_add(csound, &result, data);
+        csp_set_add(csound, result, data);
       }
       ctr++;
     }
