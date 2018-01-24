@@ -460,12 +460,12 @@ void csp_set_print(CSOUND *csound, struct set_t *set)
 
 inline int csp_set_count(struct set_t *set)
 {
-#ifdef SET_DEBUG
-    if (UNLIKELY(set == NULL))
-      csound->Die(csound, "Invalid NULL Parameter set");
-    if (UNLIKELY(!set_is_set(set)))
-      csound->Die(csound, "Invalid Parameter set not a set");
-#endif
+/* #ifdef SET_DEBUG */
+/*     if (UNLIKELY(set == NULL)) */
+/*       csound->Die(csound, "Invalid NULL Parameter set"); */
+/*     if (UNLIKELY(!set_is_set(set))) */
+/*       csound->Die(csound, "Invalid Parameter set not a set"); */
+/* #endif */
 
     return set->count;
 }
