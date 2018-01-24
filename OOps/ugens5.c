@@ -776,12 +776,12 @@ static int DoPoleInterpolation(int poleCount,
     }
 
     for (i=0; i<poleCount; i++) {
-      if (FABS(FABS(pp1[i])-PI)<FL(1.0e-5)) {
+      if (FABS(FL(FABS(pp1[i])-PI))<FL(1.0e-5)) {
         pm1[i] = -pm1[i];
         pp1[i] = FL(0.0);
       }
 
-      if (FABS(FABS(pp2[i])-PI)<FL(1.0e-5)) {
+      if (FABS(FL(FABS(pp2[i])-PI))<FL(1.0e-5)) {
         pm2[i] = -pm2[i];
         pp2[i] = FL(0.0);
       }
