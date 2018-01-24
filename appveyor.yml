@@ -39,6 +39,7 @@ init:
 
 install:
   - cd msvc
+  - dir
   # This is so nw-gyp can build csound.node.
   - ps: Install-Product node 6.2.1 x64
   - npm install -g nw-gyp
@@ -55,6 +56,7 @@ install:
   - dir c:\
   - dir c:\html
   - dir c:\CsoundQt-0.9.5-win64\bin
+  - cd C:\projects\csound\
 
 build:
   parallel: true
