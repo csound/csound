@@ -393,7 +393,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       for (i = 0; i < tvlen; i++, i0++, i1++) {
 #ifdef USE_DOUBLE
         if ((fscanf(tvfp, "%lf %lf", i0, i1)) != 2)
-#else 
+#else
         if ((fscanf(tvfp, "%f %f", i0, i1)) != 2)
 #endif
           {
