@@ -60,7 +60,10 @@ build:
 after_build:
   - dir "%VCPKGDir%\installed\x64-windows-static\include"
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
-  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
+  - dir
+  - dir "%VCPKGDir%\installed\x64-windows\bin"
+  - dir "installer\windows"
+  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ installer\\windows\\csound6_x64_appveyor.iss
   - 7z a csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
   - 7z l csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
