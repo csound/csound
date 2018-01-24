@@ -479,11 +479,12 @@ static const CSOUND cenviron_ = {
     csoundGetA4,
     csoundAuxAllocAsync,
     csoundGetHostData,
+    strNcpy,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -732,19 +733,8 @@ static const CSOUND cenviron_ = {
     0,              /* init pass loop  */
     NULL,           /* init pass threadlock */
     NULL,           /* API_lock */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
-#else
-    0,              /*  spoutlock           */
-    0,              /*  spinlock            */
-#endif
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock             */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock1           */
-#else
-    0, 0,              /*  memlock, spinlock1             */
-#endif
+    SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
+    SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
     NULL, NULL,             /* Delayed messages */
     {
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
@@ -967,7 +957,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
     0,               /* alloc_queue_wp */
-    0,               /* alloc_spinlock */
+    SPINLOCK_INIT,    /* alloc_spinlock */
     NULL,            /* init_event */
     NULL,            /* message string callback */
     NULL,             /* message_string */
