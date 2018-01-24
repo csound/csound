@@ -130,13 +130,13 @@ void csp_set_element_string_print(CSOUND *csound, struct set_element_t *ele);
 void csp_set_element_ptr_print(CSOUND *csound, struct set_element_t *ele);
 
 /* allocating sets with specification of element equality and printing functions */
-void csp_set_alloc(CSOUND *csound,   struct set_t **set,
-                   set_element_data_eq *ele_eq_func,
-                   set_element_data_print *ele_print_func);
+struct set_t *csp_set_alloc(CSOUND *csound,
+                            set_element_data_eq *ele_eq_func,
+                            set_element_data_print *ele_print_func);
 void csp_set_dealloc(CSOUND *csound, struct set_t **set);
 /* shortcut to get a set of strings uses string element equality and
    printing functions */
-void csp_set_alloc_string(CSOUND *csound, struct set_t **set);
+struct set_t *csp_set_alloc_string(CSOUND *csound);
 
 /* functions to manipulate set, return CSOUND_SUCCESS if successful */
 void csp_set_add(CSOUND *csound,     struct set_t *set, void *data);
@@ -146,17 +146,16 @@ void csp_set_print(CSOUND *csound, struct set_t *set);
 
 /* get a count and access members */
 int csp_set_count(struct set_t *set);
-void csp_set_get_num(struct set_t *set, int num, void **data);
 
 /*
  * set union and intersection
  * allocates a new set in result
  * union/intersect first and second putting into result
  */
-void csp_set_union(CSOUND *csound, struct set_t *first,
-                   struct set_t *second, struct set_t **result);
-void csp_set_intersection(CSOUND *csound, struct set_t *first,
-                          struct set_t *second, struct set_t **result);
+struct set_t *csp_set_union(CSOUND *csound, struct set_t *first,
+                   struct set_t *second);
+struct set_t *csp_set_intersection(CSOUND *csound, struct set_t *first,
+                          struct set_t *second);
 
 /* spinlock */
 
