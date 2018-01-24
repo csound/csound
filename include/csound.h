@@ -2288,8 +2288,10 @@ extern "C" {
   }
 # define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 # define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+  #define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
   //# if defined(SWIG)
 #  define csoundSpinLock(spinlock)                              \
   {                                                             \
@@ -2300,7 +2302,8 @@ extern "C" {
       pthread_spin_unlock((pthread_spinlock_t *)spinlock);      \
   }
 #  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock)
+  typedef int32_t spin_lock_t;
   //# else
   //#  define csoundSpinLock(spinlock)
   //     pthread_spin_lock((pthread_spinlock_t *)spinlock);
@@ -2311,7 +2314,7 @@ extern "C" {
   //#endif
 
 #elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
-
+#define SPINLOCK_INIT 0
 # define csoundSpinLock(spinlock)                               \
   {                                                             \
       while (__sync_lock_test_and_set(spinlock, 1) == 1) {      \
@@ -2323,13 +2326,30 @@ extern "C" {
   }
 # define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
 # define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+typedef int32_t spin_lock_t;
 
 #elif defined(MACOSX)
 
 #ifndef SWIG
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+#include <os/lock.h>
+typedef struct os_unfair_lock_s spin_lock_t;
+#define SPINLOCK_INIT {0}
+#define csoundSpinLock(spinlock)                \
+  {                                             \
+      os_unfair_lock_lock(spinlock);           \
+  }
+#define csoundSpinUnLock(spinlock)              \
+  {                                             \
+      os_unfair_lock_unlock(spinlock);          \
+  }
+#define CSOUND_SPIN_LOCK static spin_lock_t spinlock; csoundSpinLock(&spinlock);
+#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+#else
 #include <libkern/OSAtomic.h>
-
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
 #define csoundSpinLock(spinlock)                \
   {                                             \
       OSSpinLockLock(spinlock);                 \
@@ -2339,18 +2359,18 @@ extern "C" {
       OSSpinLockUnlock(spinlock);               \
   }
 #define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-
 #define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
+#endif // MAC_OS_X_VERSION_MIN_REQUIRED
 #endif
 #else
-
+typedef int32_t spin_lock_t;
   /* We do not know the configuration,      */
   /* so we define these symbols as nothing. */
 # define csoundSpinLock(spinlock)
 # define csoundSpinUnLock(spinlock)
 # define CSOUND_SPIN_LOCK
 # define CSOUND_SPIN_UNLOCK
-
+#define SPINLOCK_INIT 0
 #endif
 
   /** @}*/

@@ -332,7 +332,7 @@ int lfoa(CSOUND *csound, LFO *p)
 static void unquote(char *dst, char *src, int maxsize)
 {
     if (src[0] == '"') {
-      int len = (int) strlen(src) - 2;
+      //int len = (int) strlen(src) - 2;
       strNcpy(dst, src + 1, maxsize-1);
       //if (len >= 0 && dst[len] == '"') dst[len] = '\0';
     }

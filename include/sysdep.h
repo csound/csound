@@ -165,7 +165,7 @@ typedef uint_least16_t uint16;
   #define POWER powf
   #define SQRT sqrtf
   #define HYPOT hypotf
-  #define FABS fabsf
+  #define FABS(x) fabsf(FL(x))
   #define FLOOR floorf
   #define CEIL ceilf
   #define FMOD fmodf
