@@ -381,12 +381,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
         ((STRINGDAT*) pp->data)->data = csound->Calloc(csound, 128 * sizeof(char));
     }
 
-#ifndef MACOSX
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spin_init(&(pp->theLock), PTHREAD_PROCESS_PRIVATE);
-    pp->lock = &(pp->theLock);
-#endif
-#endif
+    csoundSpinLockInit(&pp->lock);
     pp->datasize = dsize;
 
     return (CHNENTRY*) pp;
@@ -472,15 +467,7 @@ PUBLIC int *csoundGetChannelLock(CSOUND *csound,
       return NULL;
     pp = find_channel(csound, name);
     if (pp) {
-#ifndef MACOSX
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-      return (int*)pp->lock;
-#else
-      return (int *) &(pp->lock);
-#endif
-#else
-      return (int *) &(pp->lock);
-#endif
+      return (int*) &pp->lock;
     }
     else return NULL;
 }
