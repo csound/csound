@@ -3328,16 +3328,10 @@ PUBLIC void csoundReset(CSOUND *csound)
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
-    #ifdef HAVE_PTHREAD_SPIN_LOCK
-     pthread_spin_init((pthread_spinlock_t*)&csound->spoutlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->memlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock1,
-                       PTHREAD_PROCESS_PRIVATE);
-    #endif
+     csoundSpinLockInit(&csound->spoutlock);
+     csoundSpinLockInit(&csound->spinlock);
+     csoundSpinLockInit(&csound->memlock);
+     csoundSpinLockInit(&csound->spinlock1);
      if (UNLIKELY(O->odebug))
         csound->Message(csound,"init spinlocks\n");
     }

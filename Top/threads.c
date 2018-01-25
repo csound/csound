@@ -982,7 +982,7 @@ void csoundSpinUnLock(spin_lock_t *spinlock){
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return _InterlockedExchange(spinlock, 1) == 1 ? 0 : 1;
+  return _InterlockedExchange(spinlock, 1) == 1 ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
@@ -1018,7 +1018,7 @@ void csoundSpinUnLock(spin_lock_t *spinlock){
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return _sync_lock_test_and_set(spinlock, 1) == 1 ? 0 : 1;
+  return _sync_lock_test_and_set(spinlock, 1) == 1 ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
@@ -1038,7 +1038,7 @@ void csoundSpinUnLock(spin_lock_t *spinlock){
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return os_unfair_lock_trylock(spinlock);
+  return os_unfair_lock_trylock(spinlock) == 1 ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
@@ -1056,7 +1056,7 @@ void csoundSpinUnLock(spin_lock_t *spinlock) {
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return (int) OSSpinLockTry(spinlock);
+  return OSSpinLockTry(spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
