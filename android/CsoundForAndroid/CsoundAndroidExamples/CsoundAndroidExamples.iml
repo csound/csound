@@ -106,6 +106,5 @@
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="CsoundAndroid" />
-    <orderEntry type="module" module-name="CsoundAndroid" />
   </component>
 </module>
