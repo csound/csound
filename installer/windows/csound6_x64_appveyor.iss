@@ -36,7 +36,7 @@
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
-Name: "csoundqt"; Description: "Csound QT"; Types: full custom; Flags: full;
+Name: "csoundqt"; Description: "Csound QT"; Types: full;
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full;
 
 [Dirs]
