@@ -53,9 +53,7 @@ install:
   - cmd: 7z.exe x Csound6.10.0_manual_html.zip
   - ps: Start-FileDownload 'https://github.com/CsoundQt/CsoundQt/releases/download/0.9.5/CsoundQt-0.9.5-win64.zip'
   - cmd: 7z.exe x CsoundQt-0.9.5-win64.zip
-  - dir c:\
-  - dir c:\html
-  - dir c:\CsoundQt-0.9.5-win64\bin
+  - ps: Start-FileDownload 'https://raw.githubusercontent.com/CsoundQt/CsoundQt/develop/images/qtcs.ico'
   - cd C:\projects\csound\
 
 build:
