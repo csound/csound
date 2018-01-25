@@ -2277,7 +2277,8 @@ extern "C" {
   PUBLIC void csoundSpinLock(spin_lock_t *spinlock);
 
   /**
-   * Tries the lock, returns 0 if lock could not be acquired.
+   * Tries the lock, returns CSOUND_SUCCESS if lock could be acquired,
+      CSOUND_ERROR, otherwise.
    */
   PUBLIC int csoundSpinTryLock(spin_lock_t *spinlock);
   
