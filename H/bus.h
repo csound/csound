@@ -60,16 +60,7 @@ typedef struct channelEntry_s {
     struct channelEntry_s *nxt;
     controlChannelHints_t hints;
     MYFLT   *data;
-#ifndef MACOSX
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t *lock;
-    pthread_spinlock_t theLock;
-#else
-    int     lock;
-#endif
-#else
     spin_lock_t  lock;               /* Multi-thread protection */
-#endif
     int     type;
     int     datasize;  /* size of allocated chn data */
     char    name[1];
@@ -80,7 +71,7 @@ typedef struct {
     MYFLT   *arg;
     STRINGDAT   *iname;
     MYFLT   *fp;
-    spin_lock_t     *lock;
+    spin_lock_t  *lock;
     int      pos;
     char     chname[MAX_CHAN_NAME+1];
 } CHNGET;
