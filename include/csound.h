@@ -2281,11 +2281,11 @@ extern "C" {
       CSOUND_ERROR, otherwise.
    */
   PUBLIC int csoundSpinTryLock(spin_lock_t *spinlock);
-  
-  /** 
+
+  /**
    * Unlocks the spinlock
    */
-  PUBLIC void csoundSpinUnLock(spin_lock_t *spinlock); 
+  PUBLIC void csoundSpinUnLock(spin_lock_t *spinlock);
 
 
   /** @}*/
