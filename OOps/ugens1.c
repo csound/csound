@@ -1185,7 +1185,7 @@ int linen(CSOUND *csound, LINEN *p)
       cnt2--;
     }
     else {
-      val = lin2;
+      val *= lin2;
       lin2 -= p->inc2;
       flag = 1;
     }
