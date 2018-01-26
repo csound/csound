@@ -5,12 +5,8 @@ if(BUILD_BELA)
   execute_process(COMMAND /usr/xenomai/bin/xeno-config --skin=posix --cflags OUTPUT_VARIABLE XENOMAI_POSIX_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND /usr/xenomai/bin/xeno-config --skin=posix --ldflags OUTPUT_VARIABLE XENOMAI_POSIX_LDFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
   make_executable(belacsound ./main.cpp ${CSOUNDLIB})
-  #string(REPLACE " " ";" OPT_LIST ${XENOMAI_POSIX_CFLAGS})
-  #foreach(OPT ${OPT_LIST})
-  # message(${OPT})
   set(MAIN_FLAGS "-std=c++11 ${XENOMAI_POSIX_CFLAGS}")
   set_source_files_properties(./main.cpp PROPERTIES COMPILE_FLAGS ${MAIN_FLAGS})
-  #endforeach()
   target_link_libraries(belacsound ${CSOUNDLIB} -L$ENV{HOME}/Bela/lib -L/root/Bela/lib
     -fno-pie -no-pie ${XENOMAI_POSIX_LDFLAGS} -lbela
     -lbelaextra -lNE10)
