@@ -665,7 +665,7 @@ public:
     toa(i_vr, array);
     std::ostringstream stream;
     stream << array->vr << std::endl;
-    csound->Message(csound, stream.str().c_str());
+    csound->Message(csound, "%s", stream.str().c_str());
     return OK;
   }
 };
@@ -680,7 +680,7 @@ public:
     toa(i_vc, array);
     std::ostringstream stream;
     stream << array->vc << std::endl;
-    csound->Message(csound, stream.str().c_str());
+    csound->Message(csound, "%s", stream.str().c_str());
     return OK;
   }
 };
@@ -695,7 +695,7 @@ public:
     toa(i_mr, array);
     std::ostringstream stream;
     stream << array->mr << std::endl;
-    csound->Message(csound, stream.str().c_str());
+    csound->Message(csound, "%s", stream.str().c_str());
     return OK;
   }
 };
@@ -710,7 +710,7 @@ public:
     toa(i_mc, array);
     std::ostringstream stream;
     stream << array->mc << std::endl;
-    csound->Message(csound, stream.str().c_str());
+    csound->Message(csound, "%s", stream.str().c_str());
     return OK;
   }
 };
