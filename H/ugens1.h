@@ -92,14 +92,14 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *sig, *iris, *idur, *idec;
         double  lin1, inc1, lin2, inc2;
-        long long   cnt1, cnt2;
+        int64_t  cnt1, cnt2;
 } LINEN;
 
 typedef struct {
         OPDS    h;
         MYFLT   *rslt, *sig, *iris, *idec, *iatdec;
         double  lin1, inc1, val, val2, mlt2;
-        long long  cnt1;
+        int64_t  cnt1;
 } LINENR;
 
 typedef struct {
