@@ -1005,7 +1005,7 @@ public class CsoundAppActivity extends Activity implements CsoundObjListener,
                     // If the Csound file is a CSD, start Csound;
                     // otherwise, do not start Csound, and assume the
                     // file is HTML with JavaScript that will call
-                    // csound_obj.perform() as in csound_obj.node().
+                    // csound_obj.perform() as in csound.node().
                     if (csound_file.toString().toLowerCase().endsWith(".csd")) {
                         if (use_oboe == true) {
                             int result = 0;
