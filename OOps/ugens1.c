@@ -1082,9 +1082,8 @@ int lnnset(CSOUND *csound, LINEN *p)
       p->cnt1 = (int32)(iris * CS_EKR + FL(0.5));
       if (p->cnt1 > (int32)0) {
         p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
-        p->val = FL(0.0);
       }
-      else p->inc1 = p->val = FL(1.0);
+      else p->inc1 = FL(1.0);
       a = dur * CS_EKR + FL(0.5);
       b = idec * CS_EKR + FL(0.5);
       if ((int32) b > 0) {
@@ -1110,21 +1109,20 @@ int alnnset(CSOUND *csound, LINEN *p)
       MYFLT iris = *p->iris, idec = *p->idec;
       if (len<(iris<idec?idec:iris))
         csound->Warning(csound, Str("p3 too short in linen"));
-      p->cnt1 = (int32)(*p->iris * CS_ESR + FL(0.5));
-      if (p->cnt1 > (int32)0) {
+      p->cnt1 = (long long)(*p->iris * CS_ESR + FL(0.5));
+      if (p->cnt1 > 0) {
         p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
-        p->val = FL(0.0);
       }
-      else p->inc1 = p->val = FL(1.0);
+      else p->inc1 = FL(1.0);
       a = dur * CS_ESR + FL(0.5);
       b = *p->idec * CS_ESR + FL(0.5);
-      if ((int32) b > 0) {
-        p->cnt2 = (int32) (a - b);
+      if ((long long) b > 0) {
+        p->cnt2 = (long long) (a - b);
         p->inc2 = FL(1.0) /  b;
       }
       else {
         p->inc2 = FL(1.0);
-        p->cnt2 = (int32) a;
+        p->cnt2 = (long long) a;
       }
       p->lin1 = FL(0.0);
       p->lin2 = FL(1.0);
@@ -1160,8 +1158,11 @@ int linen(CSOUND *csound, LINEN *p)
     uint32_t flag=0, n, nsmps = CS_KSMPS;
     MYFLT *rs,*sg,val;
     int    asgsg = IS_ASIG_ARG(p->sig);
+    long long cnt2 = p->cnt2;
+    long long cnt1 = p->cnt1;
+    MYFLT lin1 = p->lin1;
+    MYFLT lin2 = p->lin2;
 
-    val = p->val;
     rs = p->rslt;
     sg = p->sig;
 
@@ -1173,28 +1174,21 @@ int linen(CSOUND *csound, LINEN *p)
 
     for (n=offset; n<nsmps; n++) {
     val = FL(1.0);
-    if (p->cnt1 > 0) {
+    if (cnt1 > 0) {
       flag = 1;
-      val = p->lin1;
-      p->lin1 += p->inc1;
-      p->cnt1--;
+      val = lin1;
+      lin1 += p->inc1;
+      cnt1--;
     }
 
-    if (p->cnt2 > 0){
-      p->cnt2--;
+    if (cnt2 > 0){
+      cnt2--;
     }
     else {
-      val *= p->lin2;
-      p->lin2 -= p->inc2;
+      val = lin2;
+      lin2 -= p->inc2;
       flag = 1;
     }
-      /*if (p->cnt2 <= 0) {
-      flag = 1;
-      val = p->lin2;
-      p->lin2 -= p->inc2;
-    }
-    else p->cnt2--; */
-
 
     if (flag) {
       if (asgsg)
@@ -1203,12 +1197,16 @@ int linen(CSOUND *csound, LINEN *p)
           rs[n] = *sg * val;
       }
     else {
-      if (asgsg)
+     if (asgsg)
         rs[n] = sg[n];
-      else rs[n] = *sg;
-      }
+     else rs[n] = *sg;
+     }
+    flag = 0;
     }
-    p->val = val;
+    p->cnt2 = cnt2;
+    p->cnt1 = cnt1;
+    p->lin1 = lin1;
+    p->lin2 = lin2;
     return OK;
 }
 
