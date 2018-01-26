@@ -978,8 +978,8 @@ void csoundSpinLock(spin_lock_t *spinlock) {
   while (_InterlockedExchange(spinlock, 1) == 1){};
 }
 
-void csoundSpinUnLock(spin_lock_t *spinlock){                                   
-      _InterlockedExchange(spinlock, 0);        
+void csoundSpinUnLock(spin_lock_t *spinlock){
+      _InterlockedExchange(spinlock, 0);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
@@ -998,8 +998,8 @@ void csoundSpinLock(spin_lock_t *spinlock) {
   pthread_spin_lock(spinlock);
 }
 
-void csoundSpinUnLock(spin_lock_t *spinlock){                                   
-  pthread_spin_unlock(spinlock);        
+void csoundSpinUnLock(spin_lock_t *spinlock){
+  pthread_spin_unlock(spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
@@ -1011,15 +1011,15 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 }
 
 
-#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET) 
+#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
 // No POSIX spinlocks but GCC intrinsics
 
 void csoundSpinLock(spin_lock_t *spinlock){
   while (__sync_lock_test_and_set(spinlock, 1) == 1) { };
 }
 
-void csoundSpinUnLock(spin_lock_t *spinlock){                                    
-      __sync_lock_release(spinlock);           
+void csoundSpinUnLock(spin_lock_t *spinlock){
+      __sync_lock_release(spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
@@ -1036,11 +1036,11 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
 // New spinlock interface
 
-void csoundSpinLock(spin_lock_t *spinlock){                                     
+void csoundSpinLock(spin_lock_t *spinlock){
       os_unfair_lock_lock(spinlock);
 }
 
-void csoundSpinUnLock(spin_lock_t *spinlock){ 
+void csoundSpinUnLock(spin_lock_t *spinlock){
       os_unfair_lock_unlock(spinlock);
 }
 
@@ -1055,12 +1055,12 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 
 #else // Old spinlock interface
 
-void csoundSpinLock(spin_lock_t *spinlock) { 
+void csoundSpinLock(spin_lock_t *spinlock) {
       OSSpinLockLock(spinlock);
 }
 
-void csoundSpinUnLock(spin_lock_t *spinlock) { 
-      OSSpinLockUnlock(spinlock);               
+void csoundSpinUnLock(spin_lock_t *spinlock) {
+      OSSpinLockUnlock(spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
@@ -1075,11 +1075,11 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 #endif // MAC_OS_X_VERSION_MIN_REQUIRED
 
 #else // No spinlocks
-void csoundSpinLock(spin_lock_t *spinlock) { 
+void csoundSpinLock(spin_lock_t *spinlock) {
       IGN(spinlock);
 }
-void csoundSpinUnLock(spin_lock_t *spinlock) { 
-      IGN(spinlock);               
+void csoundSpinUnLock(spin_lock_t *spinlock) {
+      IGN(spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {

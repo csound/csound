@@ -3,7 +3,6 @@
 ./Engine/corfiles.c
 ./Engine/cs_new_dispatch.c
 ./Engine/cs_par_base.c
-./Engine/cs_par_dispatch.c
 ./Engine/cs_par_orc_semantic_analysis.c
 ./Engine/csound_data_structures.c
 ./Engine/csound_orc_compile.c
@@ -52,7 +51,6 @@
 ./H/csound_orc.h
 ./H/csound_orc_semantics.h
 ./H/cs_par_base.h
-./H/cs_par_dispatch.h
 ./H/cs_par_ops.h
 ./H/cs_par_orc_semantics.h
 ./H/diskin2.h
