@@ -1116,13 +1116,13 @@ int alnnset(CSOUND *csound, LINEN *p)
       else p->inc1 = FL(1.0);
       a = dur * CS_ESR + FL(0.5);
       b = *p->idec * CS_ESR + FL(0.5);
-      if ((long long) b > 0) {
-        p->cnt2 = (long long) (a - b);
+      if ((int64_t) b > 0) {
+        p->cnt2 = (int64_t) (a - b);
         p->inc2 = FL(1.0) /  b;
       }
       else {
         p->inc2 = FL(1.0);
-        p->cnt2 = (long long) a;
+        p->cnt2 = (int64_t) a;
       }
       p->lin1 = FL(0.0);
       p->lin2 = FL(1.0);
@@ -1158,8 +1158,8 @@ int linen(CSOUND *csound, LINEN *p)
     uint32_t flag=0, n, nsmps = CS_KSMPS;
     MYFLT *rs,*sg,val;
     int    asgsg = IS_ASIG_ARG(p->sig);
-    long long cnt2 = p->cnt2;
-    long long cnt1 = p->cnt1;
+    int64_t cnt2 = p->cnt2;
+    int64_t cnt1 = p->cnt1;
     MYFLT lin1 = p->lin1;
     MYFLT lin2 = p->lin2;
 
