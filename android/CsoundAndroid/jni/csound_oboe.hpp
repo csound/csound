@@ -262,19 +262,22 @@ public
 class PUBLIC CsoundOboe : public Csound, public oboe::AudioStreamCallback
 {
 public:
-    CsoundOboe() :
-        timeout_nanoseconds(1000000),
-        frames_per_kperiod(0),
-        is_playing(false),
-        audio_stream_in(0),
-        spin(0),
-        input_channel_count(0),
-        spin_size(0),
-        spout(0),
-        output_channel_count(0),
-        spout_size(0),
-        audio_stream_out(0)
+    CsoundOboe()
     {
+        internal_reset();
+    }
+    virtual void internal_reset() {
+        timeout_nanoseconds = 1000000;
+        frames_per_kperiod = 0;
+        is_playing = false;
+        audio_stream_in = 0;
+        spin = 0;
+        input_channel_count = 0;
+        spin_size = 0;
+        spout = 0;
+        output_channel_count = 0;
+        spout_size = 0;
+        audio_stream_out = 0;
     }
     virtual ~CsoundOboe()
     {
@@ -354,68 +357,88 @@ public:
     virtual int Start()
     {
         Message("CsoundOboe::Start...\n");
-        // If and only if -odac, enable host-implemented audio.
-        std::string output_name = GetOutputName();
-        auto position = output_name.find("dac");
         int csound_result = 0;
+        // If and only if -odac, enable host-implemented audio.
+        // Need a better way to identify input and output.
+        const char *output_name = GetOutputName();
+        if (output_name == nullptr) {
+            return -1;
+        }
+        std::string output_name_string = output_name;
+        auto position = output_name_string.find("dac");
         if (position != std::string::npos) {
+            internal_reset();
             SetHostImplementedAudioIO(1, 0);
             csound_result = Csound::Start();
             if (csound_result != 0) {
-                Message("Csound::Start returned: %d.\n", csound_result);
+                Message("Csound::Start error: %d.\n", csound_result);
                 return csound_result;
             }
             oboe::Result result;
-            // Create the oboe input and output streams.
-            audio_stream_builder.setCallback(this);
-            audio_stream_builder.setSharingMode(oboe::SharingMode::Exclusive);
-            audio_stream_builder.setPerformanceMode(oboe::PerformanceMode::LowLatency);
-            audio_stream_builder.setSampleRate(GetSr());
             frames_per_kperiod = GetKsmps();
-            audio_stream_builder.setFramesPerCallback(frames_per_kperiod);
-            if (input_channel_count > 0) {
-                spin = GetSpin();
-                input_channel_count = GetNchnlsInput();
-                spin_size = sizeof(MYFLT) * frames_per_kperiod * input_channel_count;
-                audio_stream_builder.setChannelCount(input_channel_count);
-                audio_stream_builder.setDirection(oboe::Direction::Input);
-                result = audio_stream_builder.openStream(&audio_stream_in);
-                if (result != oboe::Result::OK){
-                    Message("CsoundOboe::Start: Failed to create Oboe input stream stream. Error: %s.\n", oboe::convertToText(result));
-                    return -1;
+            input_channel_count = GetNchnlsInput();
+            output_channel_count = GetNchnls();
+            const char *input_name = GetInputName();
+            if (input_name != nullptr) {
+                std::string input_name_string = input_name;
+                auto position = input_name_string.find("adc");
+                if (position != std::string::npos) {
+                    Message("CsoundOboe::Start: Creating Oboe input stream stream...\n");
+                    float sample = 0;
+                    while(audio_fifo.try_pop(sample)) {};
+                    spin = GetSpin();
+                    input_channel_count = GetNchnlsInput();
+                    spin_size = sizeof(MYFLT) * frames_per_kperiod * input_channel_count;
+                    audio_stream_builder.setSharingMode(oboe::SharingMode::Exclusive);
+                    audio_stream_builder.setPerformanceMode(oboe::PerformanceMode::LowLatency);
+                    audio_stream_builder.setCallback(this);
+                    audio_stream_builder.setSampleRate(GetSr());
+                    audio_stream_builder.setFramesPerCallback(frames_per_kperiod);
+                    audio_stream_builder.setChannelCount(input_channel_count);
+                    audio_stream_builder.setDirection(oboe::Direction::Input);
+                    result = audio_stream_builder.openStream(&audio_stream_in);
+                    if (result != oboe::Result::OK){
+                        Message("CsoundOboe::Start: Failed to create Oboe input stream. Error: %s.\n", oboe::convertToText(result));
+                        return -1;
+                    }
+                    // We assume that Oboe's input format is always the same as
+                    // its output format! But input and output may open without
+                    // the other.
+                    oboe_audio_format = audio_stream_in->getFormat();
+                    Message("CsoundOboe::Start: Audio input stream format is: %s.\n", oboe::convertToText(oboe_audio_format));
                 }
-                // We assume that Oboe's input format is always the same as
-                // its output format! But input and output may open without
-                // the other.
-                oboe_audio_format = audio_stream_in->getFormat();
-                Message("CsoundOboe::Start: Audio input stream format is: %s.\n", oboe::convertToText(oboe_audio_format));
-                Message("CsoundOboe::Start: Starting Oboe audio input stream...\n");
             }
             spout = GetSpout();
-            output_channel_count = GetNchnls();
             spout_size = sizeof(MYFLT) * frames_per_kperiod * output_channel_count;
+            audio_stream_builder.setSharingMode(oboe::SharingMode::Exclusive);
+            audio_stream_builder.setPerformanceMode(oboe::PerformanceMode::LowLatency);
+            audio_stream_builder.setCallback(this);
+            audio_stream_builder.setSampleRate(GetSr());
+            audio_stream_builder.setFramesPerCallback(frames_per_kperiod);
             audio_stream_builder.setChannelCount(output_channel_count);
             audio_stream_builder.setDirection(oboe::Direction::Output);
             result = audio_stream_builder.openStream(&audio_stream_out);
-            if (result != oboe::Result::OK){
-                Message("CsoundOboe::Start: Failed to create Oboe output stream stream. Error: %s.\n", oboe::convertToText(result));
+            if (result != oboe::Result::OK) {
+                Message("CsoundOboe::Start: Failed to create Oboe output stream. Error: %s.\n", oboe::convertToText(result));
                 return -1;
             }
             // Start oboe.
             oboe_audio_format = audio_stream_out->getFormat();
             Message("CsoundOboe::Start: Audio output stream format is: %s.\n", oboe::convertToText(oboe_audio_format));
             Message("CsoundOboe::Start: Starting Oboe audio streams...\n");
-            audio_stream_in->requestStart();
-            audio_stream_out->requestStart();
+            is_playing = true;
+            if(audio_stream_in != nullptr) {
+                audio_stream_in->start();
+            }
+            audio_stream_out->start();
         } else {
             csound_result = Csound::Start();
             if (csound_result != 0) {
                 Message("Csound::Start returned: %d.\n", csound_result);
                 return csound_result;
             }
-        }
-        // Start Csound.
-        is_playing = true;
+            is_playing = true;
+         }
         return 0;
     }
     /**
