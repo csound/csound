@@ -1728,9 +1728,10 @@ typedef struct _message_queue_t_ {
     void          *barrier1;
     void          *barrier2;
     /* Statics from cs_par_dispatch; */
-    struct global_var_lock_t *global_var_lock_root;
-    struct global_var_lock_t **global_var_lock_cache;
-    int           global_var_lock_count;
+    /* ********These are no longer used******** */
+    void          *pointer1; //struct global_var_lock_t *global_var_lock_root;
+    void          *pointer2; //struct global_var_lock_t **global_var_lock_cache;
+    int           int1; //global_var_lock_count;
     /* statics from cs_par_orc_semantic_analysis */
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
