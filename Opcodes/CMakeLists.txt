@@ -18,7 +18,8 @@ option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
-check_deps(BUILD_LINEAR_ALGEBRA_OPCODES USE_DOUBLE)
+option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" OFF)
+
 
 message(STATUS "## Building Opcodes ##")
 #find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -194,14 +195,24 @@ if(BUILD_JACK_OPCODES)
     make_plugin(jackTransport jackTransport.c "${jack_LIBS}")
 endif()
 
-check_deps(BUILD_LINEAR_ALGEBRA_OPCODES GMM_FOUND)
+
 if(BUILD_LINEAR_ALGEBRA_OPCODES)
+if(GMM_FOUND)
+if(USE_DOUBLE)
     make_plugin(linear_algebra linear_algebra.cpp)
     target_include_directories(linear_algebra PRIVATE ${GMM_INCLUDE_DIRS})
     if (MSVC)
         target_compile_options(linear_algebra PRIVATE "/D_SCL_SECURE_NO_DEPRECATE")
     endif()
+ else()
+ message(STATUS "Not building linear algebra opcodes: float-sample configuration")
+ endif()
+ else()
+ message(STATUS "Not building linear algebra opcodes: gmm not found")
 endif()
+endif()
+  
+
 
 check_deps(BUILD_OSC_OPCODES LIBLO_LIBRARY OSC_HEADER)
 if(BUILD_OSC_OPCODES)
