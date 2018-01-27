@@ -261,9 +261,9 @@ msgid "system constants can only be set once\n"
 msgstr "les constantes du système ne peuvent être fixées qu'une fois\n"
 
 #: Engine/csound_orc_compile.c:861
-#, fuzzy, c-format
+#, c-format
 msgid "create_instrument: instr num %<PRIi32>\n"
-msgstr "create_instrument : numéro d'instrument %d\n"
+msgstr "create_instrument : numéro d'instrument %<PRIi32>\n"
 
 #: Engine/csound_orc_compile.c:978
 msgid "-- deleted instr from deadpool \n"
@@ -280,9 +280,9 @@ msgid " -- added to deadpool slot %d \n"
 msgstr " -- ajout du slot %d au deadpool \n"
 
 #: Engine/csound_orc_compile.c:1059 Engine/csound_orc_compile.c:1215
-#, fuzzy, c-format
+#, c-format
 msgid "instr %<PRIi32> redefined, replacing previous definition"
-msgstr "instr %d redéfini, précédente définition remplacée"
+msgstr "instr %<PRIi32> redéfini, précédente définition remplacée"
 
 #: Engine/csound_orc_compile.c:1086
 msgid "no active instances \n"
@@ -1193,14 +1193,14 @@ msgid "Deferred load of '%s' failed"
 msgstr "Le chargement différé de '%s' a échoué"
 
 #: Engine/insert.c:312
-#, fuzzy, c-format
+#, c-format
 msgid "activating instr %s at %<PRIi64>\n"
-msgstr "activation de l'instrument %s à %lld\n"
+msgstr "activation de l'instrument %s à %<PRIi64>\n"
 
 #: Engine/insert.c:315
-#, fuzzy, c-format
+#, c-format
 msgid "activating instr %d at %<PRIi64>\n"
-msgstr "activation de l'instrument %d à %lld\n"
+msgstr "activation de l'instrument %d à %<PRIi64>\n"
 
 #: Engine/insert.c:325
 #, c-format
@@ -1507,9 +1507,9 @@ msgid "instance: error creating event"
 msgstr "instance : erreur en créant l'évènement"
 
 #: Engine/memalloc.c:58
-#, fuzzy, c-format
+#, c-format
 msgid "memory allocate failure for %zd"
-msgstr "échec de l'allocation de mémoire pour %zu"
+msgstr "échec de l'allocation de mémoire pour %zd"
 
 #: Engine/memfiles.c:49
 #, c-format
@@ -1598,9 +1598,9 @@ msgid "%s's srate = %8.0f, orch's srate = %8.0f"
 msgstr "srate de %s = %8.0f, srate de l'orchestre = %8.0f"
 
 #: Engine/memfiles.c:558
-#, fuzzy, c-format
+#, c-format
 msgid "file %s (%<PRIi32> bytes) loaded into memory\n"
-msgstr "le fichier %s (%d octets) a été chargé en mémoire\n"
+msgstr "le fichier %s (%<PRIi32> octets) a été chargé en mémoire\n"
 
 #: Engine/memfiles.c:622
 #, c-format
@@ -1613,11 +1613,11 @@ msgid "csoundLoadSoundFile(): error reading '%s'"
 msgstr "csoundLoadSoundFile() : erreur de lecture sur '%s'"
 
 #: Engine/memfiles.c:679
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "File '%s' (sr = %d Hz, %d channel(s), %lldsample frames) loaded into memory\n"
 msgstr ""
-"Le fichier '%s' (sr = %d Hz, %d voix, %lld trames d'échantillons) a été "
+"Le fichier '%s' (sr = %d Hz, %d voix, %lldsample trames d'échantillons) a été "
 "chargé en mémoire\n"
 
 #: Engine/musmon.c:92
@@ -1952,9 +1952,9 @@ msgid "m Named section >>>%s<<<\n"
 msgstr "m section nommée >>>%s<<<\n"
 
 #: Engine/sread.c:1098
-#, fuzzy, c-format
+#, c-format
 msgid "%d: %s position %<PRIi32>\n"
-msgstr "%d : %s position %d\n"
+msgstr "%d : %s position %<PRIi32>\n"
 
 #: Engine/sread.c:1128
 #, c-format
@@ -2325,14 +2325,15 @@ msgid " (raw)\n"
 msgstr " (raw)\n"
 
 #: InOut/libsnd.c:946
-#, fuzzy, c-format
+#, c-format
 msgid "%<PRIi32> %d sample blks of %lu-bit floats written to %s\n"
-msgstr "%d %d blocs d'échantillons de flottants sur %lu bit écrits vers %s\n"
+msgstr ""
+"%<PRIi32> %d blocs d'échantillons de flottants sur %lu bit écrits vers %s\n"
 
 #: InOut/libsnd.c:951
-#, fuzzy, c-format
+#, c-format
 msgid "%<PRIi32> %d sample blks of %s written to %s"
-msgstr "%d %d blocs d'échantillons de %s écrits vers %s"
+msgstr "%<PRIi32> %d blocs d'échantillons de %s écrits vers %s"
 
 #: InOut/libsnd.c:968
 #, c-format
@@ -5746,9 +5747,9 @@ msgid "pluck: kcps more than sample rate"
 msgstr "pluck : kcps supérieur au taux d'échantillonnage"
 
 #: OOps/ugens4.c:473 OOps/ugens4.c:586 OOps/ugens4.c:692
-#, fuzzy, c-format
+#, c-format
 msgid "Seeding from current time %<PRIu32>\n"
-msgstr "Graine à partir de l'horloge %u\n"
+msgstr "Graine à partir de l'horloge %<PRIu32>\n"
 
 #: OOps/ugens5.c:294 OOps/ugens5.c:412 Opcodes/gab/gab.c:52 Opcodes/ugsc.c:216
 #, c-format
@@ -5791,11 +5792,13 @@ msgid "insufficient args and no file header"
 msgstr "nombre d'arguments insuffisant et pas d'en-tête de fichier"
 
 #: OOps/ugens5.c:691
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "npoles %<PRIi32>, nvals %<PRIi32>, totvals %<PRIi32>, lastfram16 = "
 "%<PRIi32>x\n"
-msgstr "npoles %d, nvals %d, totvals %d, lastfram16 = %x\n"
+msgstr ""
+"npoles %<PRIi32>, nvals %<PRIi32>, totvals %<PRIi32>, lastfram16 = "
+"%<PRIi32>x\n"
 
 #: OOps/ugens5.c:716 util/lpanal.c:329
 #, c-format
@@ -7821,9 +7824,9 @@ msgid "vport: invalid init table"
 msgstr "vport : table non valide"
 
 #: Opcodes/gab/vectorial.c:1914
-#, fuzzy, c-format
+#, c-format
 msgid "vrandh: Seeding from current time %<PRIu32>\n"
-msgstr "vrandh : graine à partir de l'horloge %u\n"
+msgstr "vrandh : graine à partir de l'horloge %<PRIu32>\n"
 
 #: Opcodes/gab/vectorial.c:1927
 msgid "vrandh: Invalid table."
@@ -7838,9 +7841,9 @@ msgid "randh: Table length exceeded, last elements discarded."
 msgstr "randh : longeur de la table dépassée, derniers éléments ignoré."
 
 #: Opcodes/gab/vectorial.c:2015
-#, fuzzy, c-format
+#, c-format
 msgid "vrandi: Seeding from current time %<PRIu32>\n"
-msgstr "vrandi : graine à partir de l'horloge %u\n"
+msgstr "vrandi : graine à partir de l'horloge %<PRIu32>\n"
 
 #: Opcodes/gab/vectorial.c:2027
 msgid "vrandi: Invalid table."
@@ -8854,13 +8857,13 @@ msgstr ""
 "pinkish : la méthode de filtrage nécessite une entrée (bruit) de taux-a"
 
 #: Opcodes/pitch.c:1426
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "pinkish: Gardner method requires 4-%d bands. Default %<PRIi32> substituted "
 "for %d.\n"
 msgstr ""
-"pinkish : la méthode de Gardner nécessitre 4-%d bandes. La valeur par défaut "
-"%d a été substituée à %d.\n"
+"pinkish : la méthode de Gardner nécessite 4-%d bandes. La valeur par défaut "
+"%<PRIi32> a été substituée à %d.\n"
 
 #: Opcodes/pitch.c:1692
 msgid "Incorrect argument count in transeg"
@@ -9915,10 +9918,10 @@ msgid "spectrum windowed sines:"
 msgstr "spectrum : sinus fenêtrées : "
 
 #: Opcodes/spectra.c:190
-#, fuzzy, c-format
+#, c-format
 msgid "\t%d oct analysis window delay = %<PRIi32> samples (%d msecs)\n"
 msgstr ""
-"\tle délai de la fenêtre d'analyse de l'oct %d est égal à %d échantillons "
+"\tle délai de la fenêtre d'analyse de l'oct %d = %<PRIi32> échantillons "
 "(%d ms)\n"
 
 #: Opcodes/spectra.c:198
@@ -10162,9 +10165,9 @@ msgid "CONVOLVE cannot load %s"
 msgstr "CONVOLVE ne peut pas charger %s"
 
 #: Opcodes/ugens9.c:64
-#, fuzzy, c-format
+#, c-format
 msgid "%s not a CONVOLVE file (magic %<PRIi32>)"
-msgstr "%s n'est pas un fichier CONVOLVE (magic %d)"
+msgstr "%s n'est pas un fichier CONVOLVE (magic %<PRIi32>)"
 
 #: Opcodes/ugens9.c:75 Opcodes/ugens9.c:83
 msgid "CONVOLVE: output channels not equal to number of channels in source"
@@ -10177,9 +10180,9 @@ msgstr ""
 "CONVOLVE : nombre de canaux supérieur au nombre de canaux dans la source"
 
 #: Opcodes/ugens9.c:110
-#, fuzzy, c-format
+#, c-format
 msgid "unsupported CONVOLVE data format %<PRIi32> in %s"
-msgstr "format de données CONVOLVE %d dans %s non supporté"
+msgstr "format de données CONVOLVE %<PRIi32> dans %s non supporté"
 
 #: Opcodes/ugens9.c:368
 msgid "convolve: not initialised"
