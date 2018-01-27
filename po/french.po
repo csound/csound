@@ -1615,9 +1615,9 @@ msgstr "csoundLoadSoundFile() : erreur de lecture sur '%s'"
 #: Engine/memfiles.c:679
 #, c-format
 msgid ""
-"File '%s' (sr = %d Hz, %d channel(s), %lldsample frames) loaded into memory\n"
+"File '%s' (sr = %d Hz, %d channel(s), %lld sample frames) loaded into memory\n"
 msgstr ""
-"Le fichier '%s' (sr = %d Hz, %d voix, %lldsample trames d'échantillons) a été "
+"Le fichier '%s' (sr = %d Hz, %d voix, %lld trames d'échantillons) a été "
 "chargé en mémoire\n"
 
 #: Engine/musmon.c:92
