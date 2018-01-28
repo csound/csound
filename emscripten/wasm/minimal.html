@@ -12,11 +12,11 @@
 function moduleDidLoad() {
   csound.Play();
   csound.CompileOrc(
+  "massign 1,1\n" +
   "instr 1 \n" +
   "icps = 440+rnd(440) \n" +
-   "chnset icps, \"freq\" \n" +
-   "aenv expon 0.1,p3,0.001 \n" + 
-  "a1 oscili aenv, icps\n" +
+  "chnset icps, \"freq\" \n" +
+  "a1 oscili 0.1, icps\n" +
   "outs a1,a1 \n" +
   "endin");
   document.getElementById("tit").innerHTML = "Click on the page below to play";
