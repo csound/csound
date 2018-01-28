@@ -1083,7 +1083,7 @@ void csoundSpinUnLock(spin_lock_t *spinlock) {
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  IGN(spinlock)
+  IGN(spinlock);
   return 1;
 }
 
