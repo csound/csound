@@ -1,7 +1,7 @@
 OOps: internal opcodes
 ===================
 
-aops.c: audio input and output 
+aops.c: audio input and output
 bus.c: software bus opcodes
 cmath.c: mathematical functions
 compile_ops.c: compilation and score reading opcodes
