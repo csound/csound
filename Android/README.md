@@ -1,23 +1,11 @@
-Android: build scripts and sources for the Android platform
+Csound for Android
 =======================================
 
-* build-all.sh: builds Csound for Android as well as plugins
-* downloadDependencies.sh: downloads dependencies for plugins
-* release.sh: creates a release package
+Csound for Android consists of the Csound library, dedicated
+OpenSL audio backends, a java interface, some selected
+plugin libraries, and some test/example applications.
 
-Directories
-----------
-
-* CSDPlayer: simple CSD player example
-* CsoundAndroid: Android Csound JNI and java interface
-* CsoundAndroidExamples: suite of examples and tests
-* pluginLibs: Csound plugin opcode ports
-
-
-Android Toolchain
--------------------
-
-The following are the required toolchain components to build Csound.
+The following are the required toolchain components to build Csound:
 
 - Android Studio: https://developer.android.com/studio/index.html.
 
@@ -49,3 +37,11 @@ $ sh build-all.sh
 
 Once the Csound JNI library is used, the CsoundAndroid project is ready to
 be used in an Android Studio application. Just add it as a dependency.
+
+Directories
+----------
+
+* CSDPlayer: simple CSD player example
+* CsoundAndroid: Android Csound JNI and java interface
+* CsoundAndroidExamples: suite of examples and tests
+* pluginLibs: Csound plugin opcode ports
