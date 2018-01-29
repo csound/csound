@@ -680,7 +680,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
                                 "sample frames) loaded into memory\n"),
                             p->fullName, sfinfo->samplerate,
                             sfinfo->channels,
-		            (long long) sfinfo->frames);
+                            (long long) sfinfo->frames);
 
     /* link into database */
     cs_hash_table_put(csound, csound->sndmemfiles, (char*)fileName, p);
