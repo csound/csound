@@ -12,7 +12,8 @@ find_path(CSOUND_INCLUDE_DIR csound.h PATH_SUFFIXES csound)
 endif()
 
 if(APPLE)
-find_library(CSOUND_LIBRARY NAMES Csound64Lib CsoundLib)
+find_library(CSOUND_LIBRARY NAMES CsoundLib64 HINTS /Library/Frameworks/CsoundLib64.framework/
+"$ENV{HOME}/Library/Frameworks/CsoundLib64.framework")
 else()
 find_library(CSOUND_LIBRARY NAMES csound64 csound)
 endif()
@@ -20,7 +21,7 @@ endif()
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set CSOUND_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(DEFAULT_MSG
+find_package_handle_standard_args(CSOUND
                                   CSOUND_LIBRARY CSOUND_INCLUDE_DIR)
 mark_as_advanced(CSOUND_INCLUDE_DIR CSOUND_LIBRARY)
 
