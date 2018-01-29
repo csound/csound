@@ -4,8 +4,6 @@
 #  CSOUND_INCLUDE_DIRS - The Csound include directories.
 #  CSOUND_LIBRARIES - The libraries needed to use the Csound library.
 
-FIND(sndfile)
-
 if(APPLE)
 find_path(CSOUND_INCLUDE_DIR csound.h HINTS /Library/Frameworks/CsoundLib64.framework/Headers
 "$ENV{HOME}/Library/Frameworks/CsoundLib64.framework/Headers")
