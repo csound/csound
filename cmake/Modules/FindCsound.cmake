@@ -1,6 +1,6 @@
 # Try to find the Csound library.
 # Once done this will define:
-#  CSOUND_FOUND - System has the Csound l;ibrary
+#  CSOUND_FOUND - System has the Csound library
 #  CSOUND_INCLUDE_DIRS - The Csound include directories.
 #  CSOUND_LIBRARIES - The libraries needed to use the Csound library.
 
@@ -12,9 +12,9 @@ find_path(CSOUND_INCLUDE_DIR csound.h PATH_SUFFIXES csound)
 endif()
 
 if(APPLE)
-find_library(LIBLO_LIBRARY NAMES Csound64Lib CsoundLib)
+find_library(CSOUND_LIBRARY NAMES Csound64Lib CsoundLib)
 else()
-find_library(LIBLO_LIBRARY NAMES csound64 csound)
+find_library(CSOUND_LIBRARY NAMES csound64 csound)
 endif()
 
 include(FindPackageHandleStandardArgs)
@@ -24,5 +24,5 @@ find_package_handle_standard_args(DEFAULT_MSG
                                   CSOUND_LIBRARY CSOUND_INCLUDE_DIR)
 mark_as_advanced(CSOUND_INCLUDE_DIR CSOUND_LIBRARY)
 
-set(CSOUND_INCLUDE_DIRS ${LIBLO_INCLUDE_DIR})
+set(CSOUND_INCLUDE_DIRS ${CSOUND_INCLUDE_DIR})
 set(CSOUND_LIBRARIES ${CSOUND_LIBRARY} )
