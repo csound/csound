@@ -17,12 +17,12 @@ Build Instructions
 Before building, make sure ANDROID_NDK_ROOT contains the path to the
 installed NDK. The variable NDK_MODULE_PATH should also be set to
 the location of the NDK modules (libraries) that will be used in the
-build, such as libsndfile (the only dependency for Csound).
+build.
 
-1. If you want to build the Csound library only (requires the libsndfile-android
-NDK module, which has to be built separately):
+1. If you want to build the Csound library only:
 
 ```
+$ sh downloadDependencies.sh
 $ cd ../CsoundAndroid
 $ sh build.sh
 ```
