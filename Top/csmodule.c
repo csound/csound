@@ -431,7 +431,6 @@ int csoundLoadModules(CSOUND *csound)
 #else
       dname = "";
 #endif
-
     }
 
     /* We now loop through the directory list */
