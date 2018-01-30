@@ -1434,3 +1434,7 @@ if(DOXYGEN_FOUND)
  else()
    message(STATUS "Not building documentation")
 endif(DOXYGEN_FOUND)
+
+# install CMake module
+install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
