@@ -405,6 +405,12 @@ int csoundLoadModules(CSOUND *csound)
     int             i, n, len, err = CSOUND_SUCCESS;
     char   *dname1, *end;
     int     read_directory = 1;
+    char sep =
+#ifdef WIN32
+    ';';
+#else
+    ':';
+#endif
 
     if (UNLIKELY(csound->csmodule_db != NULL))
       return CSOUND_ERROR;
@@ -428,10 +434,10 @@ int csoundLoadModules(CSOUND *csound)
 
     }
 
+    /* We now loop through the directory list */
     while(read_directory) {
-
       /* find separator */
-    if((end = strchr(dname, ':')) != NULL) {
+    if((end = strchr(dname, sep)) != NULL) {
       *end = '\0';
       /* copy directory name */
       dname1 = cs_strdup(csound, (char *) dname);
@@ -443,17 +449,23 @@ int csoundLoadModules(CSOUND *csound)
       read_directory = 0;
     }
 
-    //printf("DIRECTORY: %s\n", dname1);
+    /* protect for the case where there is an
+       extra separator at the end */
+    if(*dname1 == '\0') {
+      csound->Free(csound, dname1);
+      break;
+    }
+
     dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
-      //if (dname != NULL)  /* cannot be other */
       csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
-                               dname, strerror(errno));
-      //else
-      //csound->Warning(csound, Str("Error opening plugin directory: %s"),
-      //                         strerror(errno));
-      return CSOUND_SUCCESS;
+                               dname1, strerror(errno));
+      csound->Free(csound, dname1);
+      continue;
     }
+    
+    if(UNLIKELY(csound->oparms->odebug))
+      csound->Message(csound, "Opening plugin directory: %s\n", dname1);
     /* load database for deferred plugin loading */
 /*     n = csoundLoadOpcodeDB(csound, dname); */
 /*     if (n != 0) */
@@ -497,7 +509,7 @@ int csoundLoadModules(CSOUND *csound)
       snprintf(buf, 1024, "%s%c%s", dname, DIRSEP, fname);
       if (UNLIKELY(csound->oparms->odebug)) {
         csoundMessage(csound, Str("Loading '%s'\n"), buf);
-      }
+       }
       n = csoundLoadExternal(csound, buf);
       if (UNLIKELY(UNLIKELY(n == CSOUND_ERROR)))
         continue;               /* ignore non-plugin files */
