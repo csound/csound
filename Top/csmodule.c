@@ -443,7 +443,7 @@ int csoundLoadModules(CSOUND *csound)
       read_directory = 0;
     }
 
-    printf("DIRECTORY: %s\n", dname1);
+    //printf("DIRECTORY: %s\n", dname1);
     dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
       //if (dname != NULL)  /* cannot be other */
