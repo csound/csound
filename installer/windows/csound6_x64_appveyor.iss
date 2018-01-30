@@ -212,7 +212,7 @@ Source: "..\..\msvc\deps\fluidsynthdeps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags
 
 Source: ../../include/*.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../include/*.hpp; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
-Source: "../../msvc/csound-vs/include/csound-version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: "../../msvc/csound-vs/include/float-version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../H/pffft.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../interfaces/csPerfThread.*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
