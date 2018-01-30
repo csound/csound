@@ -403,6 +403,8 @@ int csoundLoadModules(CSOUND *csound)
     const char      *dname, *fname;
     char            buf[1024];
     int             i, n, len, err = CSOUND_SUCCESS;
+    char   *dname1, *end;
+    int     read_directory = 1;
 
     if (UNLIKELY(csound->csmodule_db != NULL))
       return CSOUND_ERROR;
@@ -425,7 +427,24 @@ int csoundLoadModules(CSOUND *csound)
 #endif
 
     }
-    dir = opendir(dname);
+
+    while(read_directory) {
+
+      /* find separator */
+    if((end = strchr(dname, ':')) != NULL) {
+      *end = '\0';
+      /* copy directory name */
+      dname1 = cs_strdup(csound, (char *) dname);
+      /* move to next directory name */
+      dname = end + 1;
+    } else {
+      /* copy last directory name) */
+      dname1 = cs_strdup(csound, (char *) dname);
+      read_directory = 0;
+    }
+
+    printf("DIRECTORY: %s\n", dname1);
+    dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
       //if (dname != NULL)  /* cannot be other */
       csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
@@ -486,6 +505,8 @@ int csoundLoadModules(CSOUND *csound)
         err = n;                /* record serious errors */
     }
     closedir(dir);
+    csound->Free(csound, dname1);
+    }
     return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
     return CSOUND_SUCCESS;
