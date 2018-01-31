@@ -1745,7 +1745,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                     "%lld sample frames\n"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
-                        sfinfo.frames);
+                        (long long) sfinfo.frames);
       }
     }
     else {
@@ -1759,7 +1759,7 @@ static int diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int stringname)
                                     "%lld sample frames\n"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
-                        sfinfo.frames);
+                        (long long) sfinfo.frames);
       }
     }
 
