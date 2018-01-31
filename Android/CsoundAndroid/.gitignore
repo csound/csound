@@ -7,4 +7,5 @@ src/csnd*
 *swp
 jni/csound_orc*
 jni/csound_prelex.c
+jni/csound_prslex.c
 jni/java_interface*
