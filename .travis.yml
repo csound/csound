@@ -5,8 +5,8 @@ matrix:
       dist: trusty
       sudo: false
       compiler: gcc
-#    - os: osx
-#      compiler: clang
+    - os: osx
+      compiler: clang
 env:
       global:
            - secure: "pOICMBtfwljj450Vht1D2/XvtUm07edkbiUI0+PCnfuwiwBFJyqY919whZu+CrplQvkVS+RzvxT3wpgkVccflo0uvNJ7NwfKksRqrUKwTp59nGIwjUsnDjI3YkxOQyxIdIPsSm3bUxXVy/Jge0v6vzvbbPXKxyAxKsupnUBYOwM="
