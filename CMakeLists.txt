@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
+# silence RPATH cmake warning
+set(CMAKE_MACOSX_RPATH 1)
 
 project(Csound)
 
@@ -647,6 +649,8 @@ include_directories(./include)
 include_directories(./Engine)
 
 #adding this for files that #include SDIF/sdif*
+include_directories(./util)
+#adding this for files that #include files in local dirs
 include_directories(./)
 
 #checking pthread functions
@@ -1389,7 +1393,6 @@ add_subdirectory(frontends)
 add_subdirectory(Bela)
 add_subdirectory(util)
 add_subdirectory(util1)
-add_subdirectory(SDIF)
 add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
