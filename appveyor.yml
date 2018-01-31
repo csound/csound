@@ -5,7 +5,7 @@ environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
-  CSOUND_VERSION: 6.11.0-beta
+  CSOUND_VERSION: 6.10.0
   HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 15 2017 Win64
