@@ -155,7 +155,7 @@ endif()
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
-set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
 endif()
 
 if(APPLE)
