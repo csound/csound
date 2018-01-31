@@ -131,8 +131,7 @@ void message_dequeue(CSOUND *csound) {
     long rp = csound->msg_queue_rstart;
     long items = csound->msg_queue_items;
     long rend = rp + items;
-
-    int64_t rtn = 0;            /* This value is not used */
+ 
 
     while(rp < rend) {
       message_queue_t* msg = csound->msg_queue[rp % API_MAX_QUEUE];
@@ -147,7 +146,7 @@ void message_dequeue(CSOUND *csound) {
       case READ_SCORE:
         {
           const char *str = msg->args;
-          rtn = csoundReadScoreInternal(csound, str);
+          csoundReadScoreInternal(csound, str);
         }
         break;
       case SCORE_EVENT:
@@ -160,8 +159,8 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(MYFLT *));
           memcpy(&numFields, msg->args + ARG_ALIGN*2,
                  sizeof(long));
-          rtn =
-            csoundScoreEventInternal(csound, type, pfields, numFields);
+         
+          csoundScoreEventInternal(csound, type, pfields, numFields);
         }
         break;
       case SCORE_EVENT_ABS:
@@ -177,8 +176,8 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(long));
           memcpy(&ofs, msg->args + ARG_ALIGN*3,
                  sizeof(double));
-          rtn =
-            csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields,
+         
+          csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields,
                                              ofs);
         }
         break;
