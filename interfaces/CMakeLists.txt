@@ -159,7 +159,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
         target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME}
         PRIVATE ${JNI_INCLUDE_DIRS})
-	if(APPLE)
+	if((APPLE) OR (LINUX))
 	set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function" )
 	 endif()
