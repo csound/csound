@@ -27,7 +27,7 @@ OOps: internal opcodes
 - ugens1.c: envelopes and control signal generators
 - ugens2.c: standard periodic signal generators, table lookup
 - ugens3.c: fm, sample playback, additive synthesis
-- ugens4.c: noise signal generators
+- ugens4.c: broadband periodic and noise signal generators
 - ugens5.c: standard filters, lpc
 - ugens6.c: delay processors
 - ugrw1.c: zak and other misc utility opcodes

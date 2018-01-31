@@ -447,6 +447,8 @@ OENTRY opcodlst_1[] = {
   { "foscil", S(FOSC),TR,  5,      "a",  "xkxxkjo",foscset,NULL,   foscil  },
   { "foscili",S(FOSC),TR,  5,      "a",  "xkxxkjo",foscset,NULL,   foscili },
   { "loscil", S(LOSC),TR,  5,      "mm","xkjojoojoo",losset,NULL, loscil   },
+  { "loscilphs", S(LOSCPHS),TR,  5,   "amm","xkjojoojoo",losset_phs,NULL, loscil_phs   },
+    { "loscil3phs", S(LOSCPHS),TR,  5,   "amm","xkjojoojoo",losset_phs,NULL, loscil3_phs   },
   { "loscil3", S(LOSC),TR,  5,      "mm","xkjojoojoo",losset,NULL, loscil3  },
   { "adsyn",  S(ADSYN),0,   5,      "a",    "kkkSo", adset_S, NULL,   adsyn   },
   { "adsyn.i",  S(ADSYN),0,   5,      "a",    "kkkio", adset, NULL,   adsyn   },
