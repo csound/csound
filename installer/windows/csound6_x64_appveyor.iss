@@ -13,34 +13,32 @@
 ; DIRECTORY STRUCTURE
 ;
 ; C:\Program Files\Csound6
-;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, and NW.js binary trees here including runtime
+;     bin (copy Csound, PortAudio, libsndfile binary trees here including runtime
 ;     libraries and dependency libraries; but not Csound opcodes)
 ;     doc (copy tree)
 ;     examples (copy tree but exclude .wav files)
 ;     include
 ;         csound (copy include and interfaces dirs *.h and *.hpp)
-;         csoundac (copy dir *.hpp)
 ;     plugins64 (all Csound plugin opcodes)
 ;     samples (copy tree)
 ;
-#define InstallCsoundVst
 
 [setup]
-#define AppName "csound-windows-x64"
+#define AppName "Csound6_x64"
 #define AppVersion "6"
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define AppveyorBuildNumber GetEnv("APPVEYOR_BUILD_NUMBER")
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
-;#define QtSdkBinDir "C:\Qt\5.9.1\msvc2017_64\bin\"
 #define LibStkSourceDir "..\..\msvc\deps\stk-master\"
+#define ManualSourceDir "c:\html\"
+#define CsoundQTDir "c:\CsoundQt-0.9.5-win64\bin\"
+#define CsoundQTIcon "c:\qtcs.ico"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
+Name: "csoundqt"; Description: "Csound QT"; Types: full;
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full;
-#ifdef InstallCsoundVst
-Name: "vst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: full;
-#endif
 
 [Dirs]
 ; ALL programs and shared libraries (except opcodes and other Csound modules) go here.
@@ -60,9 +58,15 @@ Name: "{app}\include"
 ; All Csound examples go here.
 Name: "{app}\examples"; Permissions: users-modify
 #define APP_EXAMPLES "{app}\examples\"
+
+; Csound manual
+Name: "{app}\doc\manual"
+#define APP_MANUAL "{app}\doc\manual\"
+
 ; Any SoundFonts or sound samples used by Csound examples go here.
 Name: "{app}\samples"
 #define APP_SAMPLES "{app}\samples\"
+
 ; Tutorials go here.
 Name: "{app}\doc\tutorial"
 #define APP_TUTORIAL "{app}\doc\tutorial\"
@@ -117,36 +121,7 @@ Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; C
 Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
-Source: "..\..\emscripten\examples-wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\emscripten\examples\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\emscripten\wasm\httpd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\CsoundPerformanceTest.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\GeneralMidi.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\HelloWorld.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\Koch.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\Lindenmayer.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\Orbifold.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\PythonDemoApp.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\PythonDemoFrame.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\StrangeAtrractor.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\TrappedCsd.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\TrappedOrcSco.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\cb.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\display.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\drone.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\keys.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\messageCallback.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\oscilloscope.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\shapes.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\vu.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\examples\python\wxController.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\interfaces\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-#ifdef InstallCsoundVst
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundVst.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: vst;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\csoundvstmain.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: vst;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\vst4cs.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion skipifsourcedoesntexist; Components: vst;
-#endif
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\*CsoundAC.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\*csnd6.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\*jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\ableton_link_opcodes.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -162,16 +137,12 @@ Source: "..\..\msvc\csound-vs\RelWithDebInfo\csanalyze.exe"; DestDir: "{#APP_BIN
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\csladspa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\CsoundAC.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\csnd6.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundAC.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
-Source: "..\..\frontends\nwjs\build\Release\csound.node"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\cvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\dnoise.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -209,6 +180,7 @@ Source: "..\..\msvc\csound-vs\RelWithDebInfo\pv_import.exe"; DestDir: "{#APP_BIN
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\pvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\pvlook.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\pvsops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\RelWithDebInfo\pmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\py.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\quadbezier.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
@@ -233,70 +205,34 @@ Source: "..\..\msvc\csound-vs\RelWithDebInfo\widgets.dll"; DestDir: "{#APP_PLUGI
 Source: "..\..\msvc\deps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\deps\fluidsynthdeps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
-; NOTE: The .qml files are compiled into the resources of CsoundQt.
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\CsoundQt-d-cs6.*"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
-Source: "..\..\msvc\csound-vs\RelWithDebInfo\*.pdb"; DestDir: "{#APP_BIN}"; Flags: skipifsourcedoesntexist; Components: core;
-Source: "..\..\msvc\staging\CsoundQt\examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
-Source: "..\..\msvc\staging\CsoundQt\src\Examples\*.*"; DestDir: "{#APP_BIN}\Examples"; Flags: ignoreversion recursesubdirs;  Components: core
-
-Source: "{#QtSdkBinDir}libEGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}libGLESv2.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Core.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Gui.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Multimedia.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5MultimediaWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Network.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5OpenGL.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Positioning.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5PrintSupport.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Qml.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Quick.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5QuickWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Sql.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Svg.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5WebChannel.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5WebEngine.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5WebEngineCore.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}QtWebEngineProcess.exe"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5WebEngineWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}Qt5XmlPatterns.dll"; DestDir: "{#APP_BIN}"; Components: core;
-Source: "{#QtSdkBinDir}..\plugins\imageformats\*.dll"; DestDir: "{#APP_BIN}\plugins\imageformats"; Components: core;
-Source: "{#QtSdkBinDir}..\plugins\platforms\qwindows.dll"; DestDir: "{#APP_BIN}\platforms"; Components: core;
-Source: "{#QtSdkBinDir}..\plugins\printsupport\windowsprintersupport.dll"; DestDir: "{#APP_BIN}\plugins\printsupport"; Components: core;
-Source: "{#QtSdkBinDir}..\qml\QtQml\*.*"; DestDir: "{#APP_BIN}QtQml"; Flags: ignoreversion recursesubdirs;  Components: core;
-Source: "{#QtSdkBinDir}..\qml\QtQuick\*.*"; DestDir: "{#APP_BIN}QtQuick"; Flags: ignoreversion recursesubdirs;  Components: core;
-Source: "{#QtSdkBinDir}..\qml\QtQuick.2\*.*"; DestDir: "{#APP_BIN}QtQuick.2"; Flags: ignoreversion recursesubdirs;  Components: core;
-Source: "{#QtSdkBinDir}..\resources\*.*"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
-
 ;; Source: "{#VcpkgInstalledBinDir}*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
 
 ;; Source: "..\..\msvc\csound-vs\RelWithDebInfo\libsndfile-1.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;; Source: {#LibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 
-Source: ../../include/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: ../../include/*.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: ../../include/*.hpp; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: "../../msvc/csound-vs/include/float-version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../H/pffft.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../interfaces/*.h*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../interfaces/csPerfThread.*; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../interfaces/*.py; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core
-Source: ../../frontends/CsoundAC/*.hpp; DestDir: "{#APP_INCLUDE}\csoundac"; Flags: ignoreversion;  Components: core
-
 Source: "../../examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.html"; Flags: ignoreversion recursesubdirs;  Components: core
-
 Source: "../../samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#LibStkSourceDir}rawwaves\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
+Source: {#ManualSourceDir}*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs; Components: core
+Source: {#CsoundQTDir}*.*; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs; Components: csoundqt
+
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
-Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  Components: core
+Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-cs6.exe"; WorkingDir: "{#APP_BIN}";  IconFilename:"{app}\{#CsoundQTIcon}" ;Components: csoundqt
 Name: "{group}\Csound Reference Manual"; Filename: "http://csound.github.io/docs/manual/indexframes.html";  Components: core
 Name: "{group}\Csound API Reference Manual"; Filename: "http://csound.github.io/docs/api/index.html";  Components: core
 
 [Registry]
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"NODE_PATH"; ValueData:"{#APP_BIN};{olddata}"; Flags: preservestringtype uninsdeletevalue;  Components: core
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"OPCODE6DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletevalue;  Components: core
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"PYTHONPATH"; ValueData:"{#APP_BIN};{olddata}"; Flags: preservestringtype uninsdeletevalue;  Components: python
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletevalue;  Components: core
@@ -495,4 +431,3 @@ begin
 		Result := False;
 	end;
 end;
-
