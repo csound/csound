@@ -780,12 +780,14 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     if (UNLIKELY(PVS_CreateWindow(csound, analwinhalf, wintype, M) != OK))
       return NOTOK;
 
-    for (i = 1; i <= halfwinsize; i++)
+    for (i = 1; i <= halfwinsize; i++){
       analwinhalf[-i] = analwinhalf[i - Mf];
+    }
 
       // sinc function
-      if (Mf)
+    if (Mf) {
         *analwinhalf *= (MYFLT)(dN * sin(PI*0.5/dN) / ( PI*0.5));
+    }
       for (i = 1; i <= halfwinsize; i++)
         *(analwinhalf + i) *= (MYFLT)
           (dN * sin((double)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
