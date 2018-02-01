@@ -226,13 +226,14 @@ void csound_render(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   if(csData->res == 0) {
-    int n,i,k,count, frmcount,blocksize,res = csData->res;
+    int i,k,count, frmcount,blocksize,res = csData->res;
+    unsigned int n;
     Csound *csound = csData->csound;
     MYFLT scal = csound->Get0dBFS();
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
     int nchnls = csound->GetNchnls();
-    int chns = nchnls < context->audioOutChannels ?
+    int chns = (unsigned int) nchnls < context->audioOutChannels ?
       nchnls : context->audioOutChannels;
     int an_chns = context->analogInChannels > ANCHNS ?
       ANCHNS : context->analogInChannels;
