@@ -151,6 +151,7 @@ static int listPortAudioDevices_blocking(CSOUND *csound,
                                          int print_list, int play)
 {
     int i,n = listDevices(csound, NULL, play);
+    IGN(print_list);
     CS_AUDIODEVICE *devs =
       (CS_AUDIODEVICE *) csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
     listDevices(csound, devs, play);
@@ -410,8 +411,10 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     CSOUND  *csound = pabs->csound;
     float   *paInput = (float*) input;
     float   *paOutput = (float*) output;
-
-
+    IGN(frameCount);
+    IGN(statusFlags);
+    IGN(timeInfo);
+ 
     if (pabs->complete == 1) {
         return paComplete;
     }
@@ -833,6 +836,7 @@ static void rtclose_blocking(CSOUND *csound)
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
+  IGN(csound);
     /* nothing to do, report success */
   //csound->Message(csound,
   // Str("PortAudio real-time audio module for Csound\n"));
