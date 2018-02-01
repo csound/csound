@@ -462,7 +462,7 @@ int csoundLoadModules(CSOUND *csound)
       csound->Free(csound, dname1);
       continue;
     }
-    
+
     if(UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "Opening plugin directory: %s\n", dname1);
     /* load database for deferred plugin loading */

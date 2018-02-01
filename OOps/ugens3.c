@@ -382,12 +382,12 @@ int losset_phs(CSOUND *csound, LOSCPHS *p)
                                "mono loscilphs cannot read from stereo ftable"));
       }
       else if (p->OUTOCOUNT == 3)
-	{
-        p->stereo = 1;
-        if (UNLIKELY(ftp->nchanls != 2))
-          return csound->InitError(csound, Str(
+        {
+          p->stereo = 1;
+          if (UNLIKELY(ftp->nchanls != 2))
+            return csound->InitError(csound, Str(
                                "stereo loscilphs cannot read from mono ftable"));
-      }
+        }
       else {
         return csound->InitError(csound, Str(
                                "loscilphs: insufficient outputs"));
@@ -756,7 +756,7 @@ int loscil_phs(CSOUND *csound, LOSCPHS *p)
         loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if ((phs += inc) >= end) {
           //printf("****phs, end = %f, %d\n", phs, end);
           goto nxtseg;
@@ -768,7 +768,7 @@ int loscil_phs(CSOUND *csound, LOSCPHS *p)
         loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= end - beg;
@@ -781,7 +781,7 @@ int loscil_phs(CSOUND *csound, LOSCPHS *p)
         loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if ((phs += inc) >= end) {
           if (!(p->looping)) goto nxtseg;
           phs -= (phs - end) * 2;
@@ -797,7 +797,7 @@ int loscil_phs(CSOUND *csound, LOSCPHS *p)
         loscil_linear_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
@@ -846,7 +846,7 @@ put0:
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end))
           goto nxtseg2;
       }
@@ -857,7 +857,7 @@ put0:
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= end - beg;
@@ -871,7 +871,7 @@ put0:
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= (phs - end) * 2;
@@ -888,7 +888,7 @@ put0:
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
@@ -981,7 +981,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
         loscil_cubic_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end))
           goto nxtseg;
       }
@@ -991,7 +991,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
         loscil_cubic_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= end - beg;
@@ -1004,7 +1004,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
         loscil_cubic_interp_mono(&ar1[n], ftbl, phs, ftp->flen);
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg;
           phs -= (phs - end) * 2;
@@ -1020,7 +1020,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
         loscil_cubic_interp_mono(&ar1[n], ftbl, phs, ftp->flen);;
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
@@ -1071,7 +1071,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end))
           goto nxtseg2;
       }
@@ -1082,7 +1082,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs += inc) >= end)) {
           if (!(p->looping)) goto nxtseg2;
           phs -= end - beg;
@@ -1112,7 +1112,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         ar2[n] *= xx;
-	sphs[n] = phs/ftp->flen;
+        sphs[n] = phs/ftp->flen;
         if (UNLIKELY((phs -= inc) < beg)) {
           phs += (beg - phs) * 2;
           p->curmod = 2;
