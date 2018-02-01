@@ -1,14 +1,9 @@
 #!/bin/sh 
 
-export RELEASE_DIR=csound-android-6.06.0
+export RELEASE_DIR=csound-android-6.10.0
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
-
-rm -rf CsoundAndroid/bin
-rm -rf CsoundAndroid/obj
-rm -rf CsoundAndroidExamples/bin
-rm -rf CSDPlayer/bin
 
 for plugin in pluginlibs/*
 do
@@ -26,13 +21,31 @@ rm -rf $RELEASE_DIR
 mkdir $RELEASE_DIR
 cd $RELEASE_DIR
 
+
+# Copy and Clean CsoundForAndroid
+cp -R ../CsoundForAndroid .
+cd CsoundForAndroid
+./gradlew clean
+rm -r .gradle
+cd ..
+
 cp ../COPYING .
 cp ../CHANGELOG .
 cp ../docs/csound_android_manual.pdf .
-cp -R ../CSDPlayer .
-cp -R ../CsoundAndroid .
-cp -R ../CsoundAndroidExamples .
 cp -R ../pluginlibs .
+
+for plugin in pluginlibs/*
+do
+  rm -r $plugin/obj
+done
+
+rm -r pluginlibs/luajit-2.0
+rm -r pluginlibs/libsndfile-android
+rm -r pluginlibs/fluidsynth-android
+rm -r pluginlibs/liblo-android
+rm -r pluginlibs/stk
+rm -r pluginlibs/patches
+
 cd ..
 
 rm ${RELEASE_DIR}.zip
