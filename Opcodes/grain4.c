@@ -395,8 +395,9 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 
          if (*gskip < gstart) *gskip = gstart;
 
-         if (*p->imode == 0)
+         if (*p->imode == 0) {
            *mode = (grand(p) < 0) ? -1 : 1;
+	 }
 
            if (*p->ipshift == 0) {
              tmpfloat1 = grand(p);

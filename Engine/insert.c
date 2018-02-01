@@ -169,8 +169,9 @@ uintptr_t event_insert_thread(void *p) {
     csoundMessageStringCallback = csound->csoundMessageStringCallback;
   else csoundMessageStringCallback = print_messages;
   csoundSetMessageStringCallback(csound, message_string_enqueue);
- } else
+ } else {
   csoundSetMessageCallback(csound, no_op);
+ }
 
   while(csound->event_insert_loop) {
     // get the value of items_to_alloc

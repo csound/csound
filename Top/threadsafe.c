@@ -430,8 +430,9 @@ MYFLT csoundEvalCode(CSOUND *csound, const char *str)
   int async = 0;
   if (str && csoundCompileOrcInternal(csound,str,async)
       == CSOUND_SUCCESS){
-    if(!(csound->engineStatus & CS_STATE_COMP))
+    if(!(csound->engineStatus & CS_STATE_COMP)) {
       init0(csound);
+    }
       return csound->instr0->instance[0].retval;
     }
 #ifdef NAN
