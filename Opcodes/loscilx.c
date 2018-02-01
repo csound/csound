@@ -163,8 +163,10 @@ static inline int32 loscilx_phase_int(int_least64_t phs)
 {
     int32_t retval = (int32_t) ((uint32_t) ((uint_least64_t) phs >> 32));
 #ifndef __i386__
+ #ifndef __arm__
     if ((int32_t) 0x80000000U >= (int32_t) 0)   /* for safety only */
       retval += (-((int32_t) 0x40000000) << 2);
+   #endif
 #endif
     return retval;
 }
