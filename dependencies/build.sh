@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # change this if installation needs to go elsewhere
+export PGK_CONFIG_PATH=$HOME/lib/pkgconfig
 PREFIX=$HOME
 cd build
 C_FLAGS="-arch i386 -arch x86_64 -mmacosx-version-min=10.4"
@@ -22,6 +23,8 @@ then
 rm -rf portmidi-cmake
 mkdir portmidi-cmake
 cp ../patches/portmidi-CMakeLists.txt portmidi-svn/CmakeLists.txt
+cp ../patches/pm_common-CMakeLists.txt portmidi-svn/pm_common/CmakeLists.txt
+cp ../patches/pm_dylib-CMakeLists.txt portmidi-svn/pm_dylib/CmakeLists.txt
 cd portmidi-cmake
 cmake ../portmidi-svn -DCMAKE_INSTALL_PREFIX=$PREFIX
 make
@@ -56,32 +59,32 @@ fi
 
 # FLAC
 
-if [ ! -f flac-1.2.1-i386/.complete ]; then
+if [ ! -f flac-1.3.2-i386/.complete ]; then
 
-cd flac-1.2.1
+cd flac-1.3.2
 ./configure  --disable-dependency-tracking --disable-cpplibs --disable-asm-optimizations --enable-sse --prefix=$PREFIX
 make 
 make install
 
-cd ../flac-1.2.1-i386
+cd ../flac-1.3.2-i386
 ./configure CC="gcc -m32" --disable-dependency-tracking --disable-cpplibs --disable-asm-optimizations --enable-sse --prefix=$PREFIX 
 make
 
 cp $PREFIX/lib/libFLAC.a libflac-x86_64.a
-cp $PREFIX/libFLAC.8.2.0.dylib libflac-x86_64.dylib 
+cp $PREFIX/libFLAC.8.dylib libflac-x86_64.dylib 
 
 rm $PREFIX/lib/libFLAC.a
-rm $PREFIX/lib/libFLAC.8.2.0.dylib
+rm $PREFIX/lib/libFLAC.8.dylib
 lipo -create src/libFLAC/.libs/libflac.a libflac-x86_64.a -output $PREFIX/lib/libFLAC.a
-lipo -create src/libFLAC/.libs/libflac.8.2.0.dylib libflac-x86_64.dylib -output $PREFIX/lib/libFLAC.8.2.0.dylib
+lipo -create src/libFLAC/.libs/libflac.8.dylib libflac-x86_64.dylib -output $PREFIX/lib/libFLAC.8.dylib
 
 touch .complete
 cd ..
 fi
 
 # LIBSNDFILE
-if [ ! -f libsndfile-1.0.25/.complete ]; then
-cd libsndfile-1.0.25
+if [ ! -f libsndfile-1.0.28/.complete ]; then
+cd libsndfile-1.0.28
 ./configure CFLAGS="$C_FLAGS" --disable-dependency-tracking  --disable-sqlite --prefix=$PREFIX 
 make || true
 make install
