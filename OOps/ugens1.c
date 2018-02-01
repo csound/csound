@@ -778,10 +778,10 @@ int xdsrset(CSOUND *csound, EXXPSEG *p)
     p->cursegp = segp;                  /* else setup null seg0 */
     p->segsrem = nsegs;
     delay += FL(0.001);
-    if (delay > len) delay = len; len -= delay;
+    if (delay > len) {delay = len; len -= delay;}
     attack -= FL(0.001);
-    if (attack > len) attack = len; len -= attack;
-    if (decay > len) decay = len; len -= decay;
+    if (attack > len) {attack = len; len -= attack;}
+    if (decay > len) {decay = len; len -= decay;}
     sus = len;
     segp[0].val = FL(0.0001);   /* Like zero start, but exponential */
     segp[0].mlt = FL(1.0);
