@@ -759,7 +759,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
         result = csound::CreateGlobalPointer(csound, "fluid_synths", fluid_synths);
         void *fluid_synths_mutex = csound->Create_Mutex(0);
         result = csound::CreateGlobalPointer(csound, "fluid_synths_mutex", fluid_synths_mutex);
-        return 0;
+        return result;
 }
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
