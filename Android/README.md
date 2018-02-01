@@ -41,7 +41,7 @@ be used in an Android Studio application. Just add it as a dependency.
 Directories
 ----------
 
-* CSDPlayer: simple CSD player example
 * CsoundAndroid: Android Csound JNI and java interface
-* CsoundAndroidExamples: suite of examples and tests
+* CsoundForAndroid: Android Studio projects
 * pluginLibs: Csound plugin opcode ports
+* docs: documentation
