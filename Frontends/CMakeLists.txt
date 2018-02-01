@@ -78,8 +78,6 @@ if(BUILD_WINSOUND)
     set(WINSOUND_SRCS ${WINSOUND_CXX} winsound/main.cxx)
 
     make_executable(winsound "${WINSOUND_SRCS}" "${FLTK_LIBRARIES}")
-
-    target_link_libraries (winsound ${CSOUNDLIB})
     set_target_properties(winsound 
             PROPERTIES COMPILE_FLAGS "-Wno-nonportable-include-path" )
     
