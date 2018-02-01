@@ -29,7 +29,7 @@
  * of Csound instances, instruments, or user-defined
  * opcodes to any number of Jack ports
  * in any number of external Jack servers.
- * Audio and MIDI signal types are supported.
+ * Audio and MIDI signal types are supported
  *
  * Sending MIDI and/or audio to external Jack clients,
  * such as synthesizers, and receiving audio and/or
@@ -534,8 +534,8 @@ struct JackoState
                 csound(csound_),
                 serverName(serverName_),
                 clientName(clientName_),
-                jackActive(false),
-                jacko_is_driving(false)
+                jacko_is_driving(false),
+                jackActive(false)
         {
                 int result = 0;
                 csound = csound_;
@@ -827,7 +827,7 @@ struct JackoInit : public OpcodeBase<JackoInit>
                                                  (char *)"csound",
                                                  (int) 1);
                 JackoState *jackoState = new JackoState(csound, serverName, clientName);
-                int result = csound::CreateGlobalPointer(csound, "jackoState", jackoState);
+                csound::CreateGlobalPointer(csound, "jackoState", jackoState);
                 return OK;
         }
 };

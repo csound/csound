@@ -476,7 +476,7 @@ void HDF5Write_checkArgumentSanity(CSOUND *csound, const HDF5Write *self)
                    type == UNKNOWN)) {
 
         csound->Die(csound, Str("hdf5write: Error, unable to identify type "
-                                "of argument %zd"), i);
+                                "of argument %d"), i);
       }
     }
 }
@@ -1020,23 +1020,23 @@ void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
 
       if (UNLIKELY(inputType != STRING_VAR)) {
 
-        csound->Die(csound, Str("hdf5read: Error, input argument %zd does not "
+        csound->Die(csound, Str("hdf5read: Error, input argument %d does not "
                                 "appear to be a string, exiting"), i + 1);
       }
       else if (UNLIKELY(inputType == UNKNOWN)) {
 
-        csound->Die(csound, Str("hdf5read: Error, input argument %zd type "
+        csound->Die(csound, Str("hdf5read: Error, input argument %d type "
                                 "is unknown, exiting"), i + 1);
       }
 
       if (UNLIKELY(outputType == STRING_VAR)) {
 
-        csound->Die(csound, Str("hdf5read: Error, output argument %zd appears "
+        csound->Die(csound, Str("hdf5read: Error, output argument %d appears "
                                 "to be a string, exiting"), i + 1);
       }
       else if (UNLIKELY(outputType == UNKNOWN)) {
 
-        csound->Die(csound, Str("hdf5read: Error, output argument %zd type "
+        csound->Die(csound, Str("hdf5read: Error, output argument %d type "
                                 "is unknown, exiting"), i + 1);
       }
     }
