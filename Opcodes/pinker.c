@@ -158,7 +158,7 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
                                               // decorrelate multiple instances
 #ifdef __GNUC__
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"    
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
     *((float*)(&p->accu))  = PINK_BIAS;       // init float hack
 #pragma GCC diagnostic pop
 #endif
