@@ -1384,7 +1384,7 @@ struct JackoNoteOut : public OpcodeNoteoffBase<JackoNoteOut>
                                                      (char *)"",
                                                      (int) 1);
                 csoundPort = jackoState->midiOutPorts[csoundPortName];
-                status = 144;
+                status = (char)144;
                 channel = (char) *ichannel;
                 key = (char) *ikey;
                 velocity = (char) *ivelocity;
