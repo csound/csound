@@ -185,8 +185,8 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
        i++;
      }
      modules[i] = (MODULE_INFO *) csound->Malloc(csound, sizeof(MODULE_INFO));
-     strncpy(modules[i]->module, drv, 11);
-     strncpy(modules[i]->type, type, 11);
+     strNcpy(modules[i]->module, drv, 11);
+     strNcpy(modules[i]->type, type, 11);
     }
 }
 
@@ -479,11 +479,12 @@ static const CSOUND cenviron_ = {
     csoundGetA4,
     csoundAuxAllocAsync,
     csoundGetHostData,
+    strNcpy,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -732,19 +733,8 @@ static const CSOUND cenviron_ = {
     0,              /* init pass loop  */
     NULL,           /* init pass threadlock */
     NULL,           /* API_lock */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
-#else
-    0,              /*  spoutlock           */
-    0,              /*  spinlock            */
-#endif
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock             */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock1           */
-#else
-    0, 0,              /*  memlock, spinlock1             */
-#endif
+    SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
+    SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
     NULL, NULL,             /* Delayed messages */
     {
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
@@ -914,9 +904,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
-    NULL,           /* global_var_lock_root */
-    NULL,           /* global_var_lock_cache */
-    0,              /* global_var_lock_count */
+    NULL,           /* pointer1 was global_var_lock_root */
+    NULL,           /* pointer2 was global_var_lock_cache */
+    0,              /* int1 was global_var_lock_count */
     /* statics from cs_par_orc_semantic_analysis */
     NULL,           /* instCurr */
     NULL,           /* instRoot */
@@ -967,7 +957,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
     0,               /* alloc_queue_wp */
-    0,               /* alloc_spinlock */
+    SPINLOCK_INIT,    /* alloc_spinlock */
     NULL,            /* init_event */
     NULL,            /* message string callback */
     NULL,             /* message_string */
@@ -2176,8 +2166,9 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     }
     csound->sampsNeeded += csound->oparms_.outbufsamps;
     while (csound->sampsNeeded > 0) {
-     if(!csound->oparms->realtime) // no API lock in realtime mode
+     if(!csound->oparms->realtime) {// no API lock in realtime mode
       csoundLockMutex(csound->API_lock);
+     }
       do {
         if (UNLIKELY((done = sensevents(csound)))){
           if(!csound->oparms->realtime) // no API lock in realtime mode
@@ -2185,8 +2176,9 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
           return done;
         }
       } while (csound->kperf(csound));
-      if(!csound->oparms->realtime) // no API lock in realtime mode
+      if(!csound->oparms->realtime) { // no API lock in realtime mode
        csoundUnlockMutex(csound->API_lock);
+      }
       csound->sampsNeeded -= csound->nspout;
     }
     return 0;
@@ -3274,7 +3266,7 @@ static void reset(CSOUND *csound)
 PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
     char *s;
     if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
-      strncpy(s, module, 20);
+      strNcpy(s, module, 20);
     if (UNLIKELY(s==NULL)) return;        /* Should not happen */
     if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
         strcmp(s, "NULL") == 0) {
@@ -3296,7 +3288,7 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module){
     char *s;
 
     if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
-      strncpy(s, module, 20);
+      strNcpy(s, module, 20);
     if (UNLIKELY(s==NULL)) return;        /* Should not happen */
     if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
        strcmp(s, "NULL") == 0) {
@@ -3338,16 +3330,10 @@ PUBLIC void csoundReset(CSOUND *csound)
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
-    #ifdef HAVE_PTHREAD_SPIN_LOCK
-     pthread_spin_init((pthread_spinlock_t*)&csound->spoutlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->memlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock1,
-                       PTHREAD_PROCESS_PRIVATE);
-    #endif
+     csoundSpinLockInit(&csound->spoutlock);
+     csoundSpinLockInit(&csound->spinlock);
+     csoundSpinLockInit(&csound->memlock);
+     csoundSpinLockInit(&csound->spinlock1);
      if (UNLIKELY(O->odebug))
         csound->Message(csound,"init spinlocks\n");
     }

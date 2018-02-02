@@ -420,12 +420,10 @@ libcsound.csoundCreateBarrier.argtypes = [c_uint]
 libcsound.csoundDestroyBarrier.argtypes = [c_void_p]
 libcsound.csoundWaitBarrier.argtypes = [c_void_p]
 libcsound.csoundSleep.argtypes = [c_uint]
-hasSpinLock = True
-try:
-    libcsound.csoundSpinLock.argtypes = [c_void_p]
-    libcsound.csoundSpinUnLock.argtypes = [c_void_p]
-except AttributeError:
-    hasSpinLock = False
+libcsound.csoundSpinLockInit.argtypes = [POINTER(c_int32)]
+libcsound.csoundSpinLock.argtypes = [POINTER(c_int32)]
+libcsound.csoundSpinTryLock.argtypes = [POINTER(c_int32)]
+libcsound.csoundSpinUnLock.argtypes = [POINTER(c_int32)]
 
 libcsound.csoundRunCommand.restype = c_long 
 libcsound.csoundRunCommand.argtypes = [POINTER(c_char_p), c_int]
@@ -2229,37 +2227,43 @@ class Csound:
         It yields the CPU to other threads.
         """
         libcsound.csoundSleep(c_uint(milliseconds))
-    
-    if (hasSpinLock):
-        def spinLock(self, spinlock):
-            """Lock the specified spinlock.
-            
-            If the spinlock is not locked, lock it and return;
-            if is is locked, wait until it is unlocked, then lock it and return.
-            Uses atomic compare and swap operations that are safe across processors
-            and safe for out of order operations,
-            and which are more efficient than operating system locks.
-            Use spinlocks to protect access to shared data, especially in functions
-            that do little more than read or write such data, for example:
-            
-                lock = ctypes.c_int(0)
-                def write(cs, frames, signal):
-                    cs.spinLock(ctypes.byref(lock))
-                    for frame in range(frames) :
-                        global_buffer[frame] += signal[frame];
-                    cs.spinUnlock(ctypes.byref(lock))
-            """
-            libcsound.csoundSpinLock(spinlock)
+
+    def spinLockInit(self, spinlock):
+        """Inits the spinlock.
         
-        def spinUnlock(self, spinlock):
-            """Unlock the specified spinlock ; (see spinlock())."""
-            libcsound.csoundSpinUnLock(spinlock)
-    else:
-        def spinLock(self, spinlock):
-            pass
+        If the spinlock is not locked, lock it and return;
+        if is is locked, wait until it is unlocked, then lock it and return.
+        Uses atomic compare and swap operations that are safe across processors
+        and safe for out of order operations,
+        and which are more efficient than operating system locks.
+        Use spinlocks to protect access to shared data, especially in functions
+        that do little more than read or write such data, for example:
         
-        def spinUnlock(self, spinlock):
-            pass
+            lock = ctypes.c_int32(0)
+            cs.spinLockInit(lock)
+            def write(cs, frames, signal):
+                cs.spinLock(lock)
+                for frame in range(frames) :
+                    global_buffer[frame] += signal[frame];
+                cs.spinUnlock(lock)
+        """
+        return libcsound.csoundSpinLockInit(byref(spinlock))
+
+    def spinLock(self, spinlock):
+        """Locks the spinlock."""
+        libcsound.csoundSpinLock(byref(spinlock))
+
+    def spinTryLock(self,spinlock):
+        """Tries the spinlock.
+        
+        returns CSOUND_SUCCESS if lock could be acquired,
+        CSOUND_ERROR, otherwise.
+        """
+        return libcsound.csoundSpinLock(byref(spinlock))
+
+    def spinUnlock(self, spinlock):
+        """Unlocks the spinlock."""
+        libcsound.csoundSpinUnLock(byref(spinlock))
     
     #Miscellaneous Functions
     def runCommand(self, args, noWait):

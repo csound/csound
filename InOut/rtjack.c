@@ -39,6 +39,41 @@
 #include <sched.h>
 #endif
 
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
+
+
 #include "cs_jack.h"
 static int listDevices(CSOUND *csound,
                        CS_AUDIODEVICE *list,
@@ -463,7 +498,7 @@ static void openJackStreams(RtJackGlobals *p)
       else {
         if (strcmp(p->outDevName, "null") && p->inDevName != NULL){
           char dev[128], *dev_final, *sp;
-          strncpy(dev, p->inDevName, 128); dev[127]='\0';
+          strNcpy(dev, p->inDevName, 128); //dev[127]='\0';
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
@@ -515,7 +550,7 @@ static void openJackStreams(RtJackGlobals *p)
       else {
         if (p->outDevName != NULL && strcmp(p->outDevName, "null")){
           char dev[128], *dev_final, *sp;
-          strncpy(dev, p->outDevName, 128); dev[127]='\0';
+          strNcpy(dev, p->outDevName, 128); //dev[127]='\0';
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
@@ -988,10 +1023,10 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++, cnt++) {
       n = (int) strlen(portNames[i]);
-      strncpy(port, portNames[i], n);
-      port[n] = '\0';
+      strNcpy(port, portNames[i], n+1);
+      //port[n] = '\0';
       if (list != NULL) {
-        strncpy(list[cnt].device_name, port, 63);
+        strNcpy(list[cnt].device_name, port, 63);
         snprintf(list[cnt].device_id, 63, "%s%d",
                  isOutput ? "dac" : "adc", cnt);
         list[cnt].max_nchnls = 1;
@@ -1397,14 +1432,14 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++, cnt++) {
       n = (int) strlen(portNames[i]);
-      strncpy(port, portNames[i], n);
-      port[n] = '\0';
+      strNcpy(port, portNames[i], n+1);
+      //port[n] = '\0';
       if (list != NULL) {
-        strncpy(list[cnt].device_name, port, 63);
+        strNcpy(list[cnt].device_name, port, 64);
         snprintf(list[cnt].device_id, 63, "%d", cnt);
         list[cnt].isOutput = isOutput;
         strcpy(list[i].interface_name, "");
-        strncpy(list[i].midi_module, drv, 63);
+        strNcpy(list[i].midi_module, drv, 64);
       }
     }
     jack_free(portNames);
@@ -1429,14 +1464,14 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
   for (i = 0; i < cnt; i++) {
   info = portMidi_getDeviceInfo(i, isOutput);
   if(info->name != NULL)
-  strncpy(list[i].device_name, info->name, 63);
+  strNcpy(list[i].device_name, info->name, 64);
   snprintf(tmp, 64, "%d", i);
-  strncpy(list[i].device_id, tmp, 63);
+  strNcpy(list[i].device_id, tmp, 64);
   list[i].isOutput = isOutput;
   if (info->interf != NULL)
-  strncpy(list[i].interface_name, info->interf, 63);
+  strNcpy(list[i].interface_name, info->interf, 64);
   else strcpy(list[i].interface_name, "");
-  strncpy(list[i].midi_module, drv, 63);
+  strNcpy(list[i].midi_module, drv, 64);
   }
   return cnt;
   }

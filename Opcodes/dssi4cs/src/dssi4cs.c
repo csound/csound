@@ -60,6 +60,41 @@ size_t strlcat(char *dst, const char *src, size_t siz)
 }
 #endif
 
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
+
+
 /* TODO accomodate plugins which return control outputs */
 
 /****************************************************************************
@@ -232,7 +267,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
     CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
 
     if (strcmp("S", argType->varTypeName) == 0)
-      strncpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME-1);
+      strNcpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME);
     else
       csound->strarg2name(csound, dssiFilename, csound->ISSTRCOD(*p->iplugin) ?
                           csound->GetString(csound, *p->iplugin) :
@@ -982,7 +1017,7 @@ static void
       pcFilename =
         csound->Malloc(csound,
                        slen = (lDirLength + strlen(psDirectoryEntry->d_name) + 2));
-      strncpy(pcFilename, pcDirectory, slen); /*pcFilename[slen-1] = '\0';*/
+      strNcpy(pcFilename, pcDirectory, slen); /*pcFilename[slen-1] = '\0';*/
       if (iNeedSlash)
         strlcat(pcFilename, "/",slen);
       strlcat(pcFilename, psDirectoryEntry->d_name, slen);
@@ -1052,8 +1087,8 @@ LADSPAPluginSearch(CSOUND *csound,
 
       pcBuffer = csound->Malloc(csound, 1 + (pcEnd - pcStart));
       if (pcEnd > pcStart) {
-        strncpy(pcBuffer, pcStart, pcEnd - pcStart);
-        pcBuffer[pcEnd - pcStart] = '\0';
+        strNcpy(pcBuffer, pcStart, pcEnd - pcStart +1);
+        //pcBuffer[pcEnd - pcStart] = '\0';
       }
       LADSPADirectoryPluginSearch(csound, pcBuffer, fCallbackFunction);
       csound->Free(csound, pcBuffer);
@@ -1139,10 +1174,10 @@ int dssilist(CSOUND * csound, DSSILIST * p)
       pcEnd = pcStart;
       while (*pcEnd != ':' && *pcEnd != '\0')
         pcEnd++;
-      pcBuffer = csound->Malloc(csound, 1 + (pcEnd - pcStart));
+      pcBuffer = csound->Calloc(csound, 1 + (pcEnd - pcStart));
       if (pcEnd > pcStart)
-        strncpy(pcBuffer, pcStart, pcEnd - pcStart);
-      pcBuffer[pcEnd - pcStart] = '\0';
+        strNcpy(pcBuffer, pcStart, pcEnd - pcStart +1);
+      //pcBuffer[pcEnd - pcStart] = '\0';
       LADSPADirectoryPluginSearch(csound, pcBuffer, describePluginLibrary);
       csound->Free(csound, pcBuffer);
       pcStart = pcEnd;

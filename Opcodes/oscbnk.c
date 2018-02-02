@@ -161,7 +161,8 @@ static MYFLT oscbnk_interp_read_limit(MYFLT phase, MYFLT *ft, int32 flen)
     else phase *= (MYFLT) flen;
     n = (int32) phase; phase -= (MYFLT) n;
     if (n >= flen) return ft[flen];
-    else x = ft[n]; x += phase * (ft[++n] - x);
+    else { x = ft[n]; }
+    x += phase * (ft[++n] - x);
     //printf("**** (%d) x = %f\n", __LINE__, x);
     return x;
 }

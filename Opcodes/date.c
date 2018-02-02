@@ -120,7 +120,7 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
     if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #endif
       {
-        strncpy(p->Scd->data, "**Unknown**", p->Scd->size-1);
+        strncpy(p->Scd->data, "**Unknown**", p->Scd->size);
         return csound->InitError(csound,
                                  Str("cannot determine current directory: %s\n"),
                                  strerror(errno));
@@ -153,7 +153,10 @@ static int readf_delete(CSOUND *csound, void *p)
 static int readf_init_(CSOUND *csound, READF *p, int isstring)
 {
     char name[1024];
-    if(isstring) strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
+    if (isstring) {
+      strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
+      name[1023] = '\0';
+    }
     else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;

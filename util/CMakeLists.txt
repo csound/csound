@@ -6,7 +6,7 @@ set(stdutil_SRCS
     lpc_export.c    lpc_import.c    mixer.c     pvanal.c
     pv_export.c     pv_import.c     pvlook.c    scale.c
     sndinfo.c       srconv.c        std_util.c  xtrct.c
-    ../SDIF/sdif.c)
+    SDIF/sdif.c)
 
 if(MSVC) 
   make_plugin(stdutil "${stdutil_SRCS}" )
@@ -56,3 +56,4 @@ if(BUILD_UTILITIES)
     endif()
 
 endif()
+add_subdirectory(SDIF)

@@ -29,7 +29,7 @@
  * of Csound instances, instruments, or user-defined
  * opcodes to any number of Jack ports
  * in any number of external Jack servers.
- * Audio and MIDI signal types are supported.
+ * Audio and MIDI signal types are supported
  *
  * Sending MIDI and/or audio to external Jack clients,
  * such as synthesizers, and receiving audio and/or
@@ -534,70 +534,70 @@ struct JackoState
                 csound(csound_),
                 serverName(serverName_),
                 clientName(clientName_),
-                jackActive(false),
-                jacko_is_driving(false)
+                jacko_is_driving(false),
+                jackActive(false)
         {
-                int result = 0;
-                csound = csound_;
-                csoundFramesPerTick = csound->GetKsmps(csound);
-                csoundFramesPerSecond = csound->GetSr(csound);
-        pthread_mutexattr_init(&csoundPerformanceThreadConditionMutexAttribute);
-        pthread_mutexattr_settype(&csoundPerformanceThreadConditionMutexAttribute, PTHREAD_MUTEX_RECURSIVE);
-                result |= pthread_mutex_init(&csoundPerformanceThreadConditionMutex, &csoundPerformanceThreadConditionMutexAttribute);
-                result |= pthread_cond_init(&csoundPerformanceThreadCondition, 0);
-                std::memset(&jack_position, 0, sizeof(jack_position_t));
-                jack_options_t jack_options = (jack_options_t)(JackServerName |
-                                              JackNoStartServer |
-                                              JackUseExactName);
-                jack_status_t status = jack_status_t(0);
-                jackClient = jack_client_open(clientName,
-                                              jack_options,
-                                              &status,
-                                              serverName);
-                if (!jackClient) {
-                        csound->Message(csound, Str("Could not create Jack client \"%s\" -- "
-                                                    "is Jack server \"%s\" running? Status: %d\n"),
-                                        clientName,
-                                        serverName,
-                                        status);
-                        csound->LongJmp(csound, 1);
-                } else {
-                        csound->Message(csound,
-                                        Str("Created Jack client \"%s\" for Jack server \"%s\".\n"),
-                                        clientName, serverName);
-                }
-                jackFramesPerTick = jack_get_buffer_size(jackClient);
-                if (csoundFramesPerTick != jackFramesPerTick) {
-                        csound->Message(csound,
-                                        Str("Jack buffer size %d != Csound ksmps %d, exiting...\n"),
-                                        jackFramesPerTick,
-                                        csoundFramesPerTick);
-                        csound->LongJmp(csound, 1);
-                }
-                jackFramesPerSecond = jack_get_sample_rate(jackClient);
-                if (csoundFramesPerSecond != jackFramesPerSecond) {
-                        csound->Message(csound,
-                                        Str("Jack sampling rate %d != Csound sr %d, exiting...\n"),
-                                        jackFramesPerSecond,
-                                        csoundFramesPerSecond);
-                        csound->LongJmp(csound, 1);
-                }
-                csound->SetExternalMidiInOpenCallback(csound, midiDeviceOpen_);
-                csound->SetExternalMidiReadCallback(csound, midiRead_);
-                csound->RegisterSenseEventCallback(csound, SenseEventCallback_, this);
-                result |= jack_set_process_callback(jackClient, JackProcessCallback_, this);
-                result |= jack_activate(jackClient);
-                if (!result) {
-                        csound->Message(csound,
-                                        Str("Activated Jack client \"%s\".\n"),
-                                        jack_get_client_name(jackClient));
-                } else {
-                        csound->Message(csound,
-                                        Str("Failed to activate Jack client \"%s\": status %d.\n"),
-                                        jack_get_client_name(jackClient),
-                                        result);
-                        return;
-                }
+            int result = 0;
+            csound = csound_;
+            csoundFramesPerTick = csound->GetKsmps(csound);
+            csoundFramesPerSecond = csound->GetSr(csound);
+            pthread_mutexattr_init(&csoundPerformanceThreadConditionMutexAttribute);
+            pthread_mutexattr_settype(&csoundPerformanceThreadConditionMutexAttribute, PTHREAD_MUTEX_RECURSIVE);
+            result |= pthread_mutex_init(&csoundPerformanceThreadConditionMutex, &csoundPerformanceThreadConditionMutexAttribute);
+            result |= pthread_cond_init(&csoundPerformanceThreadCondition, 0);
+            std::memset(&jack_position, 0, sizeof(jack_position_t));
+            jack_options_t jack_options = (jack_options_t)(JackServerName |
+                                          JackNoStartServer |
+                                          JackUseExactName);
+            jack_status_t status = jack_status_t(0);
+            jackClient = jack_client_open(clientName,
+                                          jack_options,
+                                          &status,
+                                          serverName);
+            if (!jackClient) {
+                    csound->Message(csound, Str("Could not create Jack client \"%s\" -- "
+                                                "is Jack server \"%s\" running? Status: %d\n"),
+                                    clientName,
+                                    serverName,
+                                    status);
+                    csound->LongJmp(csound, 1);
+            } else {
+                    csound->Message(csound,
+                                    Str("Created Jack client \"%s\" for Jack server \"%s\".\n"),
+                                    clientName, serverName);
+            }
+            jackFramesPerTick = jack_get_buffer_size(jackClient);
+            if (csoundFramesPerTick != jackFramesPerTick) {
+                    csound->Message(csound,
+                                    Str("Jack buffer size %d != Csound ksmps %d, exiting...\n"),
+                                    jackFramesPerTick,
+                                    csoundFramesPerTick);
+                    csound->LongJmp(csound, 1);
+            }
+            jackFramesPerSecond = jack_get_sample_rate(jackClient);
+            if (csoundFramesPerSecond != jackFramesPerSecond) {
+                    csound->Message(csound,
+                                    Str("Jack sampling rate %d != Csound sr %d, exiting...\n"),
+                                    jackFramesPerSecond,
+                                    csoundFramesPerSecond);
+                    csound->LongJmp(csound, 1);
+            }
+            csound->SetExternalMidiInOpenCallback(csound, midiDeviceOpen_);
+            csound->SetExternalMidiReadCallback(csound, midiRead_);
+            csound->RegisterSenseEventCallback(csound, SenseEventCallback_, this);
+            result |= jack_set_process_callback(jackClient, JackProcessCallback_, this);
+            result |= jack_activate(jackClient);
+            if (!result) {
+                    csound->Message(csound,
+                                    Str("Activated Jack client \"%s\".\n"),
+                                    jack_get_client_name(jackClient));
+            } else {
+                    csound->Message(csound,
+                                    Str("Failed to activate Jack client \"%s\": status %d.\n"),
+                                    jack_get_client_name(jackClient),
+                                    result);
+                    return;
+            }
                 //jackInitialized = true;
         }
         ~JackoState()
@@ -617,7 +617,7 @@ struct JackoState
                         // until the Csound jacko_is_driving is complete.
                         csound->Message(csound, Str("Jacko is now driving Csound performance...\n"));
                         result |= pthread_mutex_lock(&csoundPerformanceThreadConditionMutex);
-            jacko_is_driving = true;
+                        jacko_is_driving = true;
                         while (jacko_is_driving == true) {
                                 result |= pthread_cond_wait(&csoundPerformanceThreadCondition, &csoundPerformanceThreadConditionMutex);
                         }
@@ -625,7 +625,7 @@ struct JackoState
                         csound->Message(csound, Str("Jacko has quit driving Csound performance.\n"));
             return 1;
                 }
-                return 0;
+                return result;
         }
         int JackProcessCallback(jack_nframes_t frames)
         {
@@ -828,7 +828,7 @@ struct JackoInit : public OpcodeBase<JackoInit>
                                                  (int) 1);
                 JackoState *jackoState = new JackoState(csound, serverName, clientName);
                 int result = csound::CreateGlobalPointer(csound, "jackoState", jackoState);
-                return OK;
+                return result;
         }
 };
 
@@ -1384,7 +1384,7 @@ struct JackoNoteOut : public OpcodeNoteoffBase<JackoNoteOut>
                                                      (char *)"",
                                                      (int) 1);
                 csoundPort = jackoState->midiOutPorts[csoundPortName];
-                status = 144;
+                status = (char)144;
                 channel = (char) *ichannel;
                 key = (char) *ikey;
                 velocity = (char) *ivelocity;

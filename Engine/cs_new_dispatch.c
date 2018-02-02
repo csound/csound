@@ -170,7 +170,7 @@ static int dag_intersect(CSOUND *csound, struct set_t *current,
     struct set_t *ans;
     int res = 0;
     struct set_element_t *ele;
-    csp_set_intersection(csound, current, later, &ans);
+    ans = csp_set_intersection(csound, current, later);
     res = ans->count;
     ele = ans->head;
     while (ele != NULL) {
