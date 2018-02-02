@@ -61,9 +61,6 @@
 #include <CoreFoundation/CFBundle.h>
 #endif
 
-
-
-
 #ifdef MSVC
 #pragma warning(disable:4786) //gab
 #define round int
@@ -1106,3 +1103,5 @@ VstIntPtr VSTPlugin::Master(AEffect *effect,
     }
     return 0;
 }
+
+

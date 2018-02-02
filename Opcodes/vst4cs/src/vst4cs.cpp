@@ -599,9 +599,10 @@ extern "C" {
         return OK;
     }
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wwrite-strings"
-    
+#endif
     static OENTRY localops[] = {
         { "vstinit",      sizeof(VSTINIT),    0, 1, "i", "To", &vstinit, 0, 0 },
         { "vstinfo",      sizeof(VSTINFO),    0, 1, "", "i", &vstinfo, 0, 0 },
@@ -637,8 +638,9 @@ extern "C" {
         { 0,              0,                   0, 0, 0,  0,      (SUBR) 0,     (SUBR) 0, (SUBR) 0 }
     };
     
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
-
+#endif
 
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
