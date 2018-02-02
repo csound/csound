@@ -345,6 +345,7 @@ if(BUILD_VST4CS_OPCODES)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         )
+    set_target_properties(vst4cs PROPERTIES COMPILE_FLAGS "-Wno-error=multichar")
     target_link_libraries(vst4cs PRIVATE ${CSOUNDLIB} ${FLTK_LIBRARIES})
     if(NOT MSVC)
         if(BUILD_STATIC_LIBRARY)
