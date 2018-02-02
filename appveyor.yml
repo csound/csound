@@ -7,7 +7,6 @@ environment:
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   CSOUND_VERSION: 6.11.0-beta
   HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
-  QTDIR: C:\Qt\5.9.2\msvc2017_64
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 15 2017 Win64
   VSTOOLSET: v141
@@ -31,8 +30,6 @@ init:
   - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CXXAMP
   - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.OpenMP
   - set
-  - echo "Qt SDK configuration files:"
-  - dir "%QTDIR%\\mkspecs"
   - echo "Redistributable runtime libraries:"
   - dir /B /S "%VCToolsRedistDir%"
   - dir /B /S "%VCREDIST_CRT_DIR%"
@@ -42,6 +39,7 @@ init:
 
 install:
   - cd msvc
+  - dir
   # This is so nw-gyp can build csound.node.
   - ps: Install-Product node 6.2.1 x64
   - npm install -g nw-gyp
@@ -49,15 +47,22 @@ install:
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%" -vstSdkHome "%VST_SDK2_HOME%
   - cd ..
+  #download an unzip manual and CsoundQT for inclusion with the installer
+  - cd c:/
+  - ps: Start-FileDownload 'https://github.com/csound/csound/releases/download/6.10.0/Csound6.10.0_manual_html.zip'
+  - cmd: 7z.exe x Csound6.10.0_manual_html.zip
+  - ps: Start-FileDownload 'https://github.com/CsoundQt/CsoundQt/releases/download/0.9.5/CsoundQt-0.9.5-win64.libsndfile.zip'
+  - cmd: 7z.exe x CsoundQt-0.9.5-win64.libsndfile.zip
+  - ps: Start-FileDownload 'https://raw.githubusercontent.com/CsoundQt/CsoundQt/develop/images/qtcs.ico'
+  - cd C:\projects\csound\
 
 build:
   parallel: true
   project: msvc\csound-vs\Csound.sln
 
 after_build:
-  - dir "%VCPKGDir%\installed\x64-windows-static\include"
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
-  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /dQtSdkBinDir=%QTDIR%\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
+  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
   - 7z a csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
   - 7z l csound-windows-x64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
@@ -70,7 +75,7 @@ artifacts:
   - path: csound-windows-x64-*.zip
     name: Csound Binaries
     type: zip
-  - path: msvc/csound-windows-x64-*.exe
+  - path: msvc/Csound6_x64*.exe
     name: Csound Installer
     type: exe
 

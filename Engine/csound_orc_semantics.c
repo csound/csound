@@ -982,14 +982,14 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
-  IGN(csound);
+    IGN(csound);
     int i;
     for (i = 0; i < entries->count; i++) {
-        OENTRY* temp = entries->entries[i];
-        if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
-            temp->outypes != NULL && !strcmp(outArgTypes, temp->outypes)) {
-            return temp;
-        }
+      OENTRY* temp = entries->entries[i];
+      if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
+          temp->outypes != NULL && !strcmp(outArgTypes, temp->outypes)) {
+        return temp;
+      }
     }
     return NULL;
 }
@@ -997,21 +997,19 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
 /* used when creating T_FUNCTION's */
 char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                               char* inArgTypes) {
-   
     int i;
 
     for (i = 0; i < entries->count; i++) {
-        OENTRY* temp = entries->entries[i];
-        if (temp->intypes == NULL && temp->outypes == NULL) {
-            continue;
-        }
-        if (check_in_args(csound, inArgTypes, temp->intypes)) {
-            // FIXME this is only returning the first match, we need to check
-            // if there are multiple matches and if so, return NULL to signify
-            // ambiguity
-            return temp->outypes;
-        }
-
+      OENTRY* temp = entries->entries[i];
+      if (temp->intypes == NULL && temp->outypes == NULL) {
+        continue;
+      }
+      if (check_in_args(csound, inArgTypes, temp->intypes)) {
+        // FIXME this is only returning the first match, we need to check
+        // if there are multiple matches and if so, return NULL to signify
+        // ambiguity
+        return temp->outypes;
+      }
     }
     return NULL;
 }
@@ -1052,20 +1050,20 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
     char* retVal;
 
     if (arg == NULL || *arg != '[') {
-        return arg;
+      return arg;
     }
 
     dimensions = 0;
     while (*arg == '[') {
-        arg++;
-        dimensions++;
+      arg++;
+      dimensions++;
     }
 
     retVal = csound->Malloc(csound, sizeof(char) * ((dimensions * 2) + 2));
     retVal[0] = *arg;
     for (i = 0; i < dimensions * 2; i += 2) {
-       retVal[i + 1] = '[';
-       retVal[i + 2] = ']';
+      retVal[i + 1] = '[';
+      retVal[i + 2] = ']';
     }
     retVal[dimensions * 2 + 1] = '\0';
     //csound->Free(csound, arg);
@@ -1078,7 +1076,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
     char* retVal;
 
     if (arg == NULL || *(arg + 1) != '[') {
-        return arg;
+      return arg;
     }
 
     dimensions = (strlen(arg) - 1) / 2;
@@ -1089,7 +1087,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
     retVal[dimensions] = *arg;
 
     for (i = 0; i < dimensions; i++) {
-        retVal[i] = '[';
+      retVal[i] = '[';
     }
     //csound->Free(csound, arg);
     return retVal;
@@ -1103,7 +1101,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     int i;
 
     if (len == 0) {
-        return NULL;
+      return NULL;
     }
 
     char** argTypes = csound->Malloc(csound, len * sizeof(char*));
@@ -1113,30 +1111,29 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     int argsLen = 0;
 
     while (current != NULL) {
-        char* argType = get_arg_type2(csound, current, typeTable);
+      char* argType = get_arg_type2(csound, current, typeTable);
 
-        //FIXME - fix if argType is NULL and remove the below hack
-        if (argType == NULL) {
-            argsLen += 1;
-            argTypes[index++] = cs_strdup(csound, "@");
-        } else {
-            argType = convert_internal_to_external(csound, argType);
-            argsLen += strlen(argType);
-            argTypes[index++] = argType;
-        }
+      //FIXME - fix if argType is NULL and remove the below hack
+      if (argType == NULL) {
+        argsLen += 1;
+        argTypes[index++] = cs_strdup(csound, "@");
+      } else {
+        argType = convert_internal_to_external(csound, argType);
+        argsLen += strlen(argType);
+        argTypes[index++] = argType;
+      }
 
-
-        current = current->next;
+      current = current->next;
     }
 
     argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
     char* temp = argString;
 
     for (i = 0; i < len; i++) {
-        int size = strlen(argTypes[i]);
-        memcpy(temp, argTypes[i], size);
-        temp += size;
-        csound->Free(csound, argTypes[i]);
+      int size = strlen(argTypes[i]);
+      memcpy(temp, argTypes[i], size);
+      temp += size;
+      csound->Free(csound, argTypes[i]);
     }
 
 
@@ -1173,7 +1170,7 @@ OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
     OENTRIES* opcodes = find_opcode2(csound, opname);
 
     if (opcodes->count == 0) {
-        return NULL;
+      return NULL;
     }
 
 

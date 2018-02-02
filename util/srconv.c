@@ -363,7 +363,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       Chans = 1;
 
     if ((P != FL(0.0)) && (Rout != FL(0.0))) {
-      strncpy(err_msg, Str("srconv: cannot specify both -r and -P"), 256);
+      strNcpy(err_msg, Str("srconv: cannot specify both -r and -P"), 256);
       goto err_rtn_msg;
     }
     if (P != FL(0.0))
@@ -374,7 +374,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     if (tvflg) {
       P = FL(0.0);        /* will be reset to max in time-vary function */
       if ((tvfp = fopen(bfile, "r")) == NULL) {
-        strncpy(err_msg,
+        strNcpy(err_msg,
                 Str("srconv: cannot open time-vary function file"), 256);
         goto err_rtn_msg;
       }
@@ -383,7 +383,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       if (UNLIKELY(fscanf(tvfp, "%d", &tvlen) != 1))
         csound->Message(csound, Str("Read failure\n"));
       if (UNLKELY(tvlen <= 0)) {
-            strncpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
+            strNcpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
             goto err_rtn_msg;
        }
       fxval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
@@ -397,7 +397,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         if ((fscanf(tvfp, "%f %f", i0, i1)) != 2)
 #endif
           {
-            strncpy(err_msg, Str("srconv: too few x-y pairs "
+            strNcpy(err_msg, Str("srconv: too few x-y pairs "
                                  "in time-vary function file"), 256);
             goto err_rtn_msg;
           }
@@ -411,17 +411,17 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       tvy1 = fyval[1];
       tvdx = tvx1 - tvx0;
       if (tvx0 != FL(0.0)) {
-        strncpy(err_msg, Str("srconv: first x value "
+        strNcpy(err_msg, Str("srconv: first x value "
                              "in time-vary function must be 0"), 256);
         goto err_rtn_msg;
       }
       if (tvy0 <= FL(0.0)) {
-        strncpy(err_msg, Str("srconv: invalid initial y value "
+        strNcpy(err_msg, Str("srconv: invalid initial y value "
                              "in time-vary function"),256);
         goto err_rtn_msg;
       }
       if (tvdx <= FL(0.0)) {
-        strncpy(err_msg,
+        strNcpy(err_msg,
                        Str("srconv: invalid x values in time-vary function"),
                        256);
         goto err_rtn_msg;
@@ -729,7 +729,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
               tvy1 = fyval[tvnxt];
               tvdx = tvx1 - tvx0;
               if (tvdx <= FL(0.0)) {
-                strncpy(err_msg, Str("srconv: invalid x values "
+                strNcpy(err_msg, Str("srconv: invalid x values "
                                      "in time-vary function"), 256);
                 goto err_rtn_msg;
               }

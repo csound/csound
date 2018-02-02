@@ -1,0 +1,155 @@
+Opcodes: internal and plugin opcodes
+==========================
+
+- LuaCsound.cpp: lua-language opcodes
+- OSC.c: open sound control
+- Vosim.c: VOSIM opcode
+- ableton_link_opcodes.cpp: ableton link opcodes
+- afilters.c: miscellaneous filters
+- ambicode.c: original ambisonics opcodes 
+- ambicode1.c: ambisonics (new decoding algorithms)
+- ampmidid.cpp: ampmidi opcodes
+- arrayops.cpp: array operators/functions
+- arrays.c: array manipulations
+- babo.c: ball in a box model
+- bbcut.c: bbcut opcodes
+- bilbar.c: physical models (bars)
+- biquad.c: biquadratic filters
+- bowedbar.c: physical models (bowed bars)
+- buchla.c: buchla model filters
+- butter.c: butterworth filters
+- cellular.c: cellular automata
+- clfilt.c: classic filters
+- compress.c: compressor
+- control.c: tcl/tk controls
+- cpumeter.c: cpu metering
+- cross2.c: cross-synthesis
+- crossfm.c: crossFM synthesis
+- dam.c: compressor
+- date.c: date utilities
+- dcblockr.c: DC block filter
+- doppler.cpp: doppler effect
+- dsputil.c: DSP utility code for spectral processing
+- eqfil.c: equaliser
+- exciter.c: exciter 
+- fareygen.c: Farey GEN routines
+- fareyseq.c: Farey sequence opcodes
+- faustgen.cpp: Faust JIT opcodes
+- filter.c: miscellaneous filters
+- flanger.c: flanger
+- fm4op.c: 4-op FM synthesis
+- follow.c: enveloper follower
+- fout.c: file output
+- freeverb.c: freeverb reverb
+- ftconv.c: ftconv opcode
+- ftest.c: miscelaneous GEN routines 
+- ftgen.c: ftgen opcode
+- ftsamplebank.cpp: sample bank loading opcode
+- gendy.c: GENDY GEN routines
+- getftargs.c: retrieving function table arguments
+- grain.c: granular synthesis
+- grain4.c: granular synthesis
+- harmon.c: harmonisers
+- hrtfearly.c: HRTF early reflectioms
+- hrtferX.c: original HRTF opcode
+- hrtfopcodes.c: HRTF opcodes (new algorithms)
+- hrtfreverb.c: binaural reverb
+- ifd.c: instantaneous frequency distribution
+- imageOpcodes.c: image opcodes
+- jackTransport.c: jack transport control
+- jacko.cpp: jack output opcodes
+- linear_algebra.cpp: linear algebra opcodes
+- linuxjoystick.c: joystick controls
+- liveconv.c: live convolution 
+- locsig.c: locsig and locsend
+- loscilx.c: looping oscillator
+- lowpassr.c: low-pass filters
+- mandolin.c: mandolin physical model
+- metro.c: metronome trigger opcode
+- midiops2.c: midi opcodes
+- midiops3.c: midi opcodes
+- minmax.c: min-max opcodes
+- mixer.cpp: mixer opcodes
+- modal4.c: modal synthesis
+- modmatrix.c: modmatrix opcode
+- moog1.c: moog model
+- mp3in.c: mp3 player opcodes
+- newfils.c: new filter algorithms
+- nlfilt.c: non-linear filter
+- oscbnk.c: oscillator bank and virtual analogue oscillator
+- p5glove.c: P5 glove opcodes
+- padsynth_gen.cpp: padsynth GEN routine
+- pan2.c: panning
+- partials.c: spectral partial tracking
+- partikkel.c: particle synthesis
+- paulstretch.c: paul-stretch opcode
+- phisem.c: physically-informed models
+- physmod.c: physical models
+- physutil.c: utilities for physical model implementation
+- pinker.c: pink noise
+- pitch.c: pitch tracker
+- pitch0.c: pitch tracker
+- pitchtrack.c: pitch tracker
+- platerev.c: plate reverb model
+- pluck.c: plucked-string model
+- psynth.c: partial-track synthesis
+- pvadd.c: phase vocoder additive synthesis
+- pvinterp.c: phase vocoder interpolation
+- pvlock.c: phase-lock vocoder synthesis
+- pvoc.c: phase vocoder
+- pvocext.c: utility routines for pv synthesis
+- pvread.c: phase vocoder file data input
+- pvs_ops.c: streaming phase vocoder opcodes
+- pvsband.c: streaming phase vocoder filters
+- pvsbasic.c: streaming phase vocoder opcodes
+- pvsbuffer.c: streaming phase vocoder delay line
+- pvscent.c: centroid analysis
+- pvsdemix.c: streaming phase vocoder demixing
+- pvsgendy.c: streaming phase vocoder GENDY processing
+- pvsops.cpp: phase vocoder opcodes, time-varying convolution
+- quadbezier.c: bezier lines
+- repluck.c: plucked-string physical models
+- reverbsc.c: FDN reverb
+- scansyn.c: scanned synthesis
+- scansynx.c: scanned synthesis
+- scoreline.c: event triggering
+- select.c: select opcode
+- seqtime.c: sequencing
+- serial.c: serial IO
+- sfont.c: soundfont opcodes
+- shaker.c: shaker model
+- shape.c:  waveshaping
+- signalflowgraph.cpp: signal flowgraph opcodes
+- singwave.c: singing wave model
+- sndloop.c: sound loop and sample looper
+- sndwarp.c: sound time warping
+- sockrecv.c: socket input opcodes
+- socksend.c: socket output opcodes
+- space.c: spatialisation opcode
+- spat3d.c: spatialisation in 3d
+- spectra.c: non-standard spectral analysis
+- squinewave.c: squinewave synthesis
+- stackops.c: stack opcodes
+- stdopcod.c: opcode library entry point
+- syncgrain.c: granular synthesis
+- system_call.c: system opcodes
+- tabsum.c: summing tables
+- ugakbari.c: curve generators
+- ugens7.c: FOF opcodes
+- ugens8.c: phase vocoder opcodes
+- ugens9.c: convolution opcodes
+- ugensa.c: FOG opcode
+- uggab.c: miscellaneous opcodes
+- ugmoss.c: direct convolution and logic operators
+- ugnorman.c:  ATS opcodes
+- ugsc.c: miscellaneous filters
+- urandom.c: random number generators
+- vaops.c: vector access 
+- vbap.c: vbap opcodes
+- vbap1.c: vbap opcodes
+- vbap_n.c: vbap opcodes
+- vbap_zak.c: vbap opcodes with zak output
+- vpvoc.c: phase vocoder opcodes
+- wave-terrain.c: wave terrain synthesis
+- wiimote.c: wiimote control input
+- wpfilters.c: zero-delay filters

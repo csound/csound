@@ -209,11 +209,11 @@ doing it.
 
 -   `cd src `
 
--   `wget http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz `
+-   `wget http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28.tar.gz `
 
--   `tar xf libsndfile-1.0.25.tar.gz`
+-   `tar xf libsndfile-1.0.28.tar.gz`
 
--   `cd libsndfile-1.0.25 `
+-   `cd libsndfile-1.0.28 `
 
 -   `./configure --prefix=$HOME`
 
@@ -669,10 +669,10 @@ Requirements
 
  $ git clone https://bitbucket.org/kunstmusik/libsndfile-android.git
 
-3. Set the ANDROID_NDK_MODULE variable to point to the top directory
+3. Set the NDK_MODULE_PATH variable to point to the top directory
 where the libsndfile sources are located,e.g.
 
- $ export ANDROID_NDK_MODULE=$HOME/android
+ $ export NDK_MODULE_PATH=$HOME/android
 
 4. Download boost and install (headers only) in your include path (e.g. /usr/local/include). There is
 no need to build the library.

@@ -458,3 +458,6 @@ int aevxset(CSOUND *csound, void *p);
 int aevrset(CSOUND *csound, void *p);
 int midiarp_set(CSOUND *, void *);
 int midiarp(CSOUND *, void *);
+int losset_phs(CSOUND *, void *);
+int loscil_phs(CSOUND *, void *);
+int loscil3_phs(CSOUND *, void *);

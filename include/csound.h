@@ -2257,7 +2257,8 @@ extern "C" {
    * that do little more than read or write such data, for example:
    *
    * @code
-   * static int lock = 0;
+   * static spin_lock_t lock = SPINLOCK_INIT;
+   * csoundSpinLockInit(&lock);
    * void write(size_t frames, int* signal)
    * {
    *   csoundSpinLock(&lock);
@@ -2268,90 +2269,24 @@ extern "C" {
    * }
    * @endcode
    */
+  PUBLIC int csoundSpinLockInit(spin_lock_t *spinlock);
 
-  /* PUBLIC void csoundSpinLock(int32_t *spinlock)   */
-  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+  /**
+   * Locks the spinlock
+   */
+  PUBLIC void csoundSpinLock(spin_lock_t *spinlock);
 
-#if defined(MSVC)
+  /**
+   * Tries the lock, returns CSOUND_SUCCESS if lock could be acquired,
+      CSOUND_ERROR, otherwise.
+   */
+  PUBLIC int csoundSpinTryLock(spin_lock_t *spinlock);
 
-  /* This pragma must come before all public function declarations */
+  /**
+   * Unlocks the spinlock
+   */
+  PUBLIC void csoundSpinUnLock(spin_lock_t *spinlock);
 
-# pragma intrinsic(_InterlockedExchange)
-# define csoundSpinLock(spinlock)                       \
-  {                                                     \
-      while (_InterlockedExchange(spinlock, 1) == 1) {  \
-      }                                                 \
-  }
-# define csoundSpinUnLock(spinlock)             \
-  {                                             \
-      _InterlockedExchange(spinlock, 0);        \
-  }
-# define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-# define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
-#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-  //# if defined(SWIG)
-#  define csoundSpinLock(spinlock)                              \
-  {                                                             \
-      pthread_spin_lock((pthread_spinlock_t *)spinlock);        \
-  }
-#  define csoundSpinUnLock(spinlock)                            \
-  {                                                             \
-      pthread_spin_unlock((pthread_spinlock_t *)spinlock);      \
-  }
-#  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-  //# else
-  //#  define csoundSpinLock(spinlock)
-  //     pthread_spin_lock((pthread_spinlock_t *)spinlock);
-  //#  define csoundSpinUnLock(spinlock)
-  //     pthread_spin_unlock((pthread_spinlock_t *)spinlock);
-  //#  define CSOUND_SPIN_LOCK
-  //#  define CSOUND_SPIN_UNLOCK
-  //#endif
-
-#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
-
-# define csoundSpinLock(spinlock)                               \
-  {                                                             \
-      while (__sync_lock_test_and_set(spinlock, 1) == 1) {      \
-      }                                                         \
-  }
-# define csoundSpinUnLock(spinlock)             \
-  {                                             \
-      __sync_lock_release(spinlock);            \
-  }
-# define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-# define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
-#elif defined(MACOSX)
-
-#ifndef SWIG
-
-#include <libkern/OSAtomic.h>
-
-#define csoundSpinLock(spinlock)                \
-  {                                             \
-      OSSpinLockLock(spinlock);                 \
-  }
-#define csoundSpinUnLock(spinlock)              \
-  {                                             \
-      OSSpinLockUnlock(spinlock);               \
-  }
-#define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-
-#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-#endif
-#else
-
-  /* We do not know the configuration,      */
-  /* so we define these symbols as nothing. */
-# define csoundSpinLock(spinlock)
-# define csoundSpinUnLock(spinlock)
-# define CSOUND_SPIN_LOCK
-# define CSOUND_SPIN_UNLOCK
-
-#endif
 
   /** @}*/
   /** @defgroup MISCELLANEOUS Miscellaneous functions

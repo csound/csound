@@ -332,13 +332,12 @@ int lfoa(CSOUND *csound, LFO *p)
 static void unquote(char *dst, char *src, int maxsize)
 {
     if (src[0] == '"') {
-      int len = (int) strlen(src) - 2;
-      strncpy(dst, src + 1, maxsize-1);
-      if (len >= 0 && dst[len] == '"')
-        dst[len] = '\0';
+      //int len = (int) strlen(src) - 2;
+      strNcpy(dst, src + 1, maxsize-1);
+      //if (len >= 0 && dst[len] == '"') dst[len] = '\0';
     }
     else
-      strncpy(dst, src, maxsize);
+      strNcpy(dst, src, maxsize);
 }
 
 static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname);

@@ -44,7 +44,6 @@ typedef struct {
 
 static int PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
 {
-    
     p->maxamplitude = *p->ifullscale;
     if (UNLIKELY(p->maxamplitude<= 0.0))
       return

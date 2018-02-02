@@ -131,8 +131,7 @@ void message_dequeue(CSOUND *csound) {
     long rp = csound->msg_queue_rstart;
     long items = csound->msg_queue_items;
     long rend = rp + items;
-
-    int64_t rtn = 0;            /* This value is not used */
+ 
 
     while(rp < rend) {
       message_queue_t* msg = csound->msg_queue[rp % API_MAX_QUEUE];
@@ -147,7 +146,7 @@ void message_dequeue(CSOUND *csound) {
       case READ_SCORE:
         {
           const char *str = msg->args;
-          rtn = csoundReadScoreInternal(csound, str);
+          csoundReadScoreInternal(csound, str);
         }
         break;
       case SCORE_EVENT:
@@ -160,8 +159,8 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(MYFLT *));
           memcpy(&numFields, msg->args + ARG_ALIGN*2,
                  sizeof(long));
-          rtn =
-            csoundScoreEventInternal(csound, type, pfields, numFields);
+         
+          csoundScoreEventInternal(csound, type, pfields, numFields);
         }
         break;
       case SCORE_EVENT_ABS:
@@ -177,8 +176,8 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(long));
           memcpy(&ofs, msg->args + ARG_ALIGN*3,
                  sizeof(double));
-          rtn =
-            csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields,
+         
+          csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields,
                                              ofs);
         }
         break;
@@ -424,11 +423,18 @@ int csoundCompileOrc(CSOUND *csound, const char *str) {
   return csoundCompileOrcInternal(csound, str, async);
 }
 
+int init0(CSOUND *csound);
+
 MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 {
   int async = 0;
-  if (str && csoundCompileOrcInternal(csound,str,async) == CSOUND_SUCCESS)
-    return csound->instr0->instance[0].retval;
+  if (str && csoundCompileOrcInternal(csound,str,async)
+      == CSOUND_SUCCESS){
+    if(!(csound->engineStatus & CS_STATE_COMP)) {
+      init0(csound);
+    }
+      return csound->instr0->instance[0].retval;
+    }
 #ifdef NAN
   else return NAN;
 #else
@@ -541,7 +547,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
     __sync_lock_test_and_set((MYFLT_INT_TYPE *)pval,x.i);
 #else
   {
-    int    *lock =
+    spin_lock_t *lock = (spin_lock_t *)
       csoundGetChannelLock(csound, (char*) name);
     csoundSpinLock(lock);
     *pval  = val;
@@ -558,7 +564,7 @@ void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
   if (csoundGetChannelPtr(csound, &psamples, name,
                           CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL)
       == CSOUND_SUCCESS) {
-    int *lock = csoundGetChannelLock(csound, (char*) name);
+    spin_lock_t *lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) name);
     csoundSpinLock(lock);
     memcpy(samples, psamples, csoundGetKsmps(csound)*sizeof(MYFLT));
     csoundSpinUnLock(lock);
@@ -571,7 +577,7 @@ void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
   if (csoundGetChannelPtr(csound, &psamples, name,
                           CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL)
       == CSOUND_SUCCESS){
-    int *lock = csoundGetChannelLock(csound, (char*) name);
+    spin_lock_t *lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) name);
     csoundSpinLock(lock);
     memcpy(psamples, samples, csoundGetKsmps(csound)*sizeof(MYFLT));
     csoundSpinUnLock(lock);
@@ -588,7 +594,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
 
     STRINGDAT* stringdat = (STRINGDAT*) pstring;
     int    size = stringdat->size; //csoundGetChannelDatasize(csound, name);
-    int    *lock = csoundGetChannelLock(csound, (char*) name);
+    spin_lock_t *lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) name);
 
     if (lock != NULL) {
       csoundSpinLock(lock);
@@ -618,14 +624,14 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
   if (csoundGetChannelPtr(csound, &pstring, name,
                           CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
       == CSOUND_SUCCESS){
-    int *lock = csoundGetChannelLock(csound, (char*) name);
+    spin_lock_t *lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) name);
     chstring = ((STRINGDAT *) pstring)->data;
     if (lock != NULL)
       csoundSpinLock(lock);
     if (string != NULL && chstring != NULL) {
       n2 = strlen(chstring);
-      strncpy(string,chstring, n2);
-      string[n2] = 0;
+      strNcpy(string,chstring, n2);
+      //string[n2] = 0;
     }
     if (lock != NULL)
       csoundSpinUnLock(lock);
@@ -640,7 +646,7 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
   if (LIKELY(csoundGetChannelPtr(csound, &pp, name,
                                  CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
              == CSOUND_SUCCESS)){
-    int    *lock =
+    spin_lock_t *lock = (spin_lock_t *)
       csoundGetChannelLock(csound, name);
     f = (PVSDATEXT *) pp;
     csoundSpinLock(lock);
@@ -670,7 +676,7 @@ PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
   if (UNLIKELY(csoundGetChannelPtr(csound, &pp, name,
                                    CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
                == CSOUND_SUCCESS)){
-    int    *lock =
+    spin_lock_t *lock = (spin_lock_t *)
       csoundGetChannelLock(csound, name);
     f = (PVSDATEXT *) pp;
     if (UNLIKELY(pp == NULL)) return CSOUND_ERROR;

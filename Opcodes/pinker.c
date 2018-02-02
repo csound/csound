@@ -120,7 +120,14 @@ static int pink_perf(CSOUND* csound, PINKER *p)
       lfsr <<= 1;                  /* shift lfsr                      */
       dec |= inc & mask;           /* copy increment to decrement bit */
       inc ^= bit & mask;           /* new random bit                  */
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
       *((int *)(&yy)) = accu;      /* save biased value as float      */
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
       //printf("yy = %f ", yy);
       accu += inc - dec;           /* integrate                       */
       lfsr ^= bit & 0x46000001;    /* update lfsr                     */
@@ -149,7 +156,12 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
     IGN(csound);
     p->lfsr  = 0x5EED41F5 + instance_cnt++;   // seed for lfsr,
                                               // decorrelate multiple instances
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"    
     *((float*)(&p->accu))  = PINK_BIAS;       // init float hack
+#pragma GCC diagnostic pop
+#endif
     p->cnt = 0;                               // counter from zero
     p->inc   = 0x0CCC;                        // balance initial states to avoid DC
     p->dec   = 0x0CCC;

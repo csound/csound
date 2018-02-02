@@ -1366,6 +1366,7 @@ typedef struct _message_queue_t_ {
     int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
                          AUXASYNC *, aux_cb, void *);
     void *(*GetHostData)(CSOUND *);
+    char *(*strNcpy)(char *dst, const char *src, size_t siz);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
@@ -1561,16 +1562,8 @@ typedef struct _message_queue_t_ {
     int          event_insert_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
-    #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    void *spoutlock, *spinlock;
-#else
-    int           spoutlock, spinlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    void *memlock, *spinlock1;
-#else
-    int           memlock, spinlock1;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
+    spin_lock_t spoutlock, spinlock;
+    spin_lock_t memlock, spinlock1;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
     struct sreadStatics__ {
@@ -1735,9 +1728,10 @@ typedef struct _message_queue_t_ {
     void          *barrier1;
     void          *barrier2;
     /* Statics from cs_par_dispatch; */
-    struct global_var_lock_t *global_var_lock_root;
-    struct global_var_lock_t **global_var_lock_cache;
-    int           global_var_lock_count;
+    /* ********These are no longer used******** */
+    void          *pointer1; //struct global_var_lock_t *global_var_lock_root;
+    void          *pointer2; //struct global_var_lock_t **global_var_lock_cache;
+    int           int1; //global_var_lock_count;
     /* statics from cs_par_orc_semantic_analysis */
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
@@ -1789,7 +1783,11 @@ typedef struct _message_queue_t_ {
     ALLOC_DATA *alloc_queue;
     volatile unsigned long alloc_queue_items;
     unsigned long alloc_queue_wp;
+#ifdef MACOSX
+    spin_lock_t alloc_spinlock;
+#else
     int alloc_spinlock;
+#endif
     EVTBLK *init_event;
     void (*csoundMessageStringCallback)(CSOUND *csound,
                                         int attr,

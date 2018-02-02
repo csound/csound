@@ -268,7 +268,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     //csound->Message(csound, Str("CoreMIDI real time MIDI plugin for Csound\n"));
-  IGN(csound); 
+    IGN(csound);
     return 0;
 }
 

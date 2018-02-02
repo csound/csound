@@ -369,7 +369,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     value = strchr(name, '=');
     append_mode = 0;
     if (UNLIKELY(value == NULL || value == name)) {
-      strncpy(msg, Str(" *** invalid format for --env\n"), 255);
+      strNcpy(msg, Str(" *** invalid format for --env\n"), 256);
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -379,7 +379,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
       *(value - 2) = '\0';
     }
     if (UNLIKELY(!is_valid_envvar_name(name))) {
-      strncpy(msg, Str(" *** invalid environment variable name\n"), 255);
+      strNcpy(msg, Str(" *** invalid environment variable name\n"), 256);
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -389,9 +389,9 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     else
       retval = csoundAppendEnv(csound, name, value);
     if (UNLIKELY(retval == CSOUND_MEMORY))
-      strncpy(msg, Str(" *** memory allocation failure\n"), 255);
+      strNcpy(msg, Str(" *** memory allocation failure\n"), 256);
     else
-      strncpy(msg, Str(" *** error setting environment variable\n"), 255);
+      strNcpy(msg, Str(" *** error setting environment variable\n"), 256);
 
  err_return:
     if (UNLIKELY(retval != CSOUND_SUCCESS))
@@ -656,8 +656,8 @@ char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
     else {
         len = lastIndex - convPath;
         partialPath = (char*) csound->Malloc(csound, len+1);
-        strncpy(partialPath, convPath, len);
-        partialPath[len] = '\0';
+        strNcpy(partialPath, convPath, len+1);
+        //partialPath[len] = '\0';
    }
    csound->Free(csound, convPath);
    return partialPath;
@@ -725,7 +725,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
       len = (lastIndex - tempPath);
 
       partialPath = (char *)csound->Calloc(csound, len + 1);
-      strncpy(partialPath, tempPath, len);
+      strNcpy(partialPath, tempPath, len+1);
 
       csound->Free(csound, tempPath);
 
@@ -753,7 +753,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     len = (lastIndex - tempPath);  /* could be 0 on OS 9 */
 
     partialPath = (char *)csound->Calloc(csound, len + 1);
-    strncpy(partialPath, tempPath, len);
+    strNcpy(partialPath, tempPath, len+1);
 
     retval = csoundConcatenatePaths(csound, cwd, partialPath);
 
