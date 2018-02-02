@@ -637,7 +637,7 @@ extern "C" {
         { "vstbanksave",  sizeof(VSTBANKLOAD),0, 1, "", "iT",    &vstbanksave,  0,             0 },
         { 0,              0,                   0, 0, 0,  0,      (SUBR) 0,     (SUBR) 0, (SUBR) 0 }
     };
-    
+
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
