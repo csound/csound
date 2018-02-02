@@ -534,9 +534,9 @@ struct JackoState
                 csound(csound_),
                 serverName(serverName_),
                 clientName(clientName_),
-                jackActive(false),
-                jacko_is_driving(false)
-        {
+                jacko_is_driving(false),
+                jackActive(false)
+         {
                 int result = 0;
                 csound = csound_;
                 csoundFramesPerTick = csound->GetKsmps(csound);
@@ -617,7 +617,7 @@ struct JackoState
                         // until the Csound jacko_is_driving is complete.
                         csound->Message(csound, Str("Jacko is now driving Csound performance...\n"));
                         result |= pthread_mutex_lock(&csoundPerformanceThreadConditionMutex);
-            jacko_is_driving = true;
+                        jacko_is_driving = true;
                         while (jacko_is_driving == true) {
                                 result |= pthread_cond_wait(&csoundPerformanceThreadCondition, &csoundPerformanceThreadConditionMutex);
                         }
@@ -625,7 +625,7 @@ struct JackoState
                         csound->Message(csound, Str("Jacko has quit driving Csound performance.\n"));
             return 1;
                 }
-                return 0;
+                return result;
         }
         int JackProcessCallback(jack_nframes_t frames)
         {
@@ -828,7 +828,7 @@ struct JackoInit : public OpcodeBase<JackoInit>
                                                  (int) 1);
                 JackoState *jackoState = new JackoState(csound, serverName, clientName);
                 int result = csound::CreateGlobalPointer(csound, "jackoState", jackoState);
-                return OK;
+                return result;
         }
 };
 
