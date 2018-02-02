@@ -409,8 +409,8 @@ message(STATUS "Building for OSX")
   endif()
 
   if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
-    message(STATUS "OSX: Setting Deployment Target to 10.7")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.9)
+    message(STATUS "OSX: Setting Deployment Target to 10.9")
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
