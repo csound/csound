@@ -324,17 +324,17 @@ PUBLIC void cscorePutEvent(CSOUND *csound, EVENT *e)
       if (pcnt--)       fprintf(csound->oscfp," %g",*q++);
       //else goto termin; /* cannot happen */
       if (pcnt--) {
-        if (warpout)    fprintf(csound->oscfp," %g", e->p2orig);
+        if (warpout) {    fprintf(csound->oscfp," %g", e->p2orig);}
                         fprintf(csound->oscfp," %g",*q++);
       }
       else goto termin;
       if (pcnt--) {
-        if (warpout)    fprintf(csound->oscfp," %g", e->p3orig);
+        if (warpout)  {  fprintf(csound->oscfp," %g", e->p3orig); }
                         fprintf(csound->oscfp," %g",*q++);
       }
       else goto termin;
       while (pcnt--)
-        fprintf(csound->oscfp," %g",*q++);
+        { fprintf(csound->oscfp," %g",*q++); }
     }
  termin:
     putc((int)'\n', csound->oscfp);

@@ -2176,7 +2176,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
           return done;
         }
       } while (csound->kperf(csound));
-      if(!csound->oparms->realtime) {// no API lock in realtime mode
+      if(!csound->oparms->realtime) { // no API lock in realtime mode
        csoundUnlockMutex(csound->API_lock);
       }
       csound->sampsNeeded -= csound->nspout;

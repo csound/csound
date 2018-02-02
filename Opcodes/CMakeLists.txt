@@ -1,7 +1,7 @@
 option(BUILD_CHUA_OPCODES "Build the chua opcodes" ON)
 option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
-option(BUILD_JACK_OPCODES "Build the JACK related opcodes" OFF)
+option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
 option(BUILD_PYTHON_OPCODES "Build the Python opcodes" ON)

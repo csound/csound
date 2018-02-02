@@ -86,7 +86,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     p = bp->text;
     c = *p++;
     isntAfunc = 1;
-    switch (c) {
+    switch ((int) c) {
     case 'z':
       printf("skip z\n");
       //corfile_putc('\n', sco);
