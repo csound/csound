@@ -282,7 +282,6 @@ typedef struct {
 int _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
 static int ntom(CSOUND *csound, NTOM *p) {
-     
     /*
       formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
       - no lowercase

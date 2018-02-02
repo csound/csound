@@ -277,9 +277,9 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
     if (!istring) {
       if (csound->ISSTRCOD(*p->ifilno))
         csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
-      else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
+      else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
     } else {
-      strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+      strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
     }
 
     if (*p->iflag <= FL(0.0)) {
@@ -331,73 +331,95 @@ static int ftload_(CSOUND *csound, FTLOAD *p, int istring)
         s1 = strchr(s, ' ')+1;
         header.flen = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4; }
+	s1 = strchr(s, ' ')+1;
         header.lenmask = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4; }
+	  s1 = strchr(s, ' ')+1;
         header.lobits = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
+	  s1 = strchr(s, ' ')+1;
         header.lomask = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.lodiv = (MYFLT)strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.cvtbas = (MYFLT)strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.cpscvt = (MYFLT)strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) { goto err4; }
+	s1 = strchr(s, ' ')+1;
         header.loopmode1 = (int16) strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.loopmode2 = (int16) strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.begin1 = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.end1 = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4; }
+	s1 = strchr(s, ' ')+1;
         header.begin2 = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.end2 = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}  s1 = strchr(s, ' ')+1;
         header.soundend = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.flenfrms = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.nchanls = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4; }
+	s1 = strchr(s, ' ')+1;
         header.fno = strtol(s1, &endptr, 10);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.gen01args.gen01 = (MYFLT)cs_strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {
+	  goto err4;}  s1 = strchr(s, ' ')+1;
         header.gen01args.ifilno = (MYFLT)cs_strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.gen01args.iskptim = (MYFLT)cs_strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.gen01args.iformat = (MYFLT)cs_strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.gen01args.channel = (MYFLT)cs_strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
+	s1 = strchr(s, ' ')+1;
         header.gen01args.sample_rate = (MYFLT)cs_strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
-        if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;  s1 = strchr(s, ' ')+1;
+        if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
+	s1 = strchr(s, ' ')+1;
         /* WARNING! skips header.gen01args.strarg from saving/loading
            in text format */
         header.fno = (int32) fno;
@@ -490,9 +512,9 @@ static int ftsave_(CSOUND *csound, FTLOAD *p, int istring)
     if (!istring) {
       if (csound->ISSTRCOD(*p->ifilno))
         csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
-      else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME-1);
+      else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
     } else {
-      strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+      strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
     }
 
     if (*p->iflag <= FL(0.0)) {

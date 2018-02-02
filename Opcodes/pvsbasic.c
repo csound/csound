@@ -217,10 +217,10 @@ static int pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int stringname)
 
   if (stringname==0) {
     if (csound->ISSTRCOD(*p->file))
-      strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
+      strNcpy(fname,get_arg_string(csound, *p->file), MAXNAME);
     else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
   }
-  else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME-1);
+  else strNcpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
 
 
 
@@ -354,10 +354,10 @@ static int pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int stringname)
 
   if (stringname==0){
     if (csound->ISSTRCOD(*p->file))
-      strncpy(fname,get_arg_string(csound, *p->file), MAXNAME-1);
+      strNcpy(fname,get_arg_string(csound, *p->file), MAXNAME);
     else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
   }
-  else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME-1);
+  else strNcpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
 
   if (UNLIKELY(p->fout->sliding))
     return csound->InitError(csound,

@@ -76,7 +76,15 @@ add_executable(testEngine engine_test.c)
 target_link_libraries(testEngine ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
 add_test(NAME testEngine
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
-        COMMAND $<TARGET_FILE:testEngine> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
+        COMMAND $<TARGET_FILE:testEngine> ${CMAKE_SOURCE_DIR}/tests/c/
+	-arg2 ${TEST_ARGS})
+
+add_executable(testServer server_test.cpp)
+target_link_libraries(testServer ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread
+libcsnd6)
+add_test(NAME testServer
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/c/
+        COMMAND $<TARGET_FILE:testServer> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
 
 endif(BUILD_TESTS)

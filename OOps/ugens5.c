@@ -622,9 +622,9 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = p;
 
     /* Build file name */
-    if (stringname) strncpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
+    if (stringname) strNcpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
     else if (csound->ISSTRCOD(*p->ifilcod))
-      strncpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
+      strNcpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
     else csound->strarg2name(csound, lpfilname, p->ifilcod, "lp.", 0);
 
     /* Do not reload existing file ? */
@@ -776,12 +776,12 @@ static int DoPoleInterpolation(int poleCount,
     }
 
     for (i=0; i<poleCount; i++) {
-      if (FABS(FABS(pp1[i])-PI)<FL(1.0e-5)) {
+      if (FABS(FL(FABS(pp1[i])-PI))<FL(1.0e-5)) {
         pm1[i] = -pm1[i];
         pp1[i] = FL(0.0);
       }
 
-      if (FABS(FABS(pp2[i])-PI)<FL(1.0e-5)) {
+      if (FABS(FL(FABS(pp2[i])-PI))<FL(1.0e-5)) {
         pm2[i] = -pm2[i];
         pp2[i] = FL(0.0);
       }

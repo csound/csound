@@ -14,19 +14,43 @@ int clean_suite1(void)
     return 0;
 }
 
-void test_udp_server(void)
+void test_daemon(void)
 {
     CSOUND  *csound;
-    //int     result;
-
     csound = csoundCreate(NULL);
     csoundSetIsGraphable(csound, 1);
     csoundSetOption(csound,"-odac");
-    csoundSetOption(csound,"--port=12345");
-    /*result =*/(void) csoundStart(csound);
+    csoundSetOption(csound,"--daemon");
+    csoundStart(csound);
     csoundSleep(1000);
     /* delete Csound instance */
     csoundStop(csound);
+    csoundDestroy(csound);
+}
+
+void test_eval_code(void)
+{
+    CSOUND  *csound;
+    MYFLT res;
+    csound = csoundCreate(NULL);
+    res = csoundEvalCode(csound, "i1 init 1 \n"
+			 "print i1 \n"
+			 "return i1 \n");
+    CU_ASSERT_EQUAL(res, 1.0);
+    csoundDestroy(csound);
+}
+
+void test_compile_async(void)
+{
+    CSOUND  *csound;
+    csound = csoundCreate(NULL);
+    csoundStart(csound);
+    csoundCompileOrcAsync(csound, "instr 1\n"
+		               "i1 = 1 \n"
+		                "print i1 \n"
+                                "endin\n"
+		                "schedule 1,0,1");
+    csoundPerformBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -46,8 +70,10 @@ int main()
     }
 
     /* add the tests to the suite */
-    if ((NULL == CU_add_test(pSuite, "Test UDP Server", test_udp_server))
-        )
+    if ((NULL == CU_add_test(pSuite, "Test daemon mode", test_daemon))
+        || (NULL == CU_add_test(pSuite, "Test evalcode", test_eval_code))
+	|| (NULL == CU_add_test(pSuite, "Test compileAsync", test_compile_async)) 
+	)
     {
         CU_cleanup_registry();
         return CU_get_error();

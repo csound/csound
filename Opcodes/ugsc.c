@@ -121,7 +121,6 @@ static int svf(CSOUND *csound, SVF *p)
 
 static int hilbertset(CSOUND *csound, HILBERT *p)
 {
-  
     int j;  /* used to increment for loop */
 
     /* pole values taken from Bernie Hutchins, "Musical Engineer's Handbook" */

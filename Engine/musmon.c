@@ -52,10 +52,10 @@ int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
 void    openMIDIout(CSOUND *);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-#define RT_SPIN_TRYLOCK { int trylock = 0; \
-  if(csound->oparms->realtime)                                  \
-  trylock = pthread_spin_trylock(&csound->alloc_spinlock);      \
-  if(trylock == 0) {
+#define RT_SPIN_TRYLOCK { int trylock = CSOUND_SUCCESS; \
+  if(csound->oparms->realtime)             \
+  trylock = csoundSpinTryLock(&csound->alloc_spinlock);      \
+  if(trylock == CSOUND_SUCCESS) {
 #else
 #define RT_SPIN_TRYLOCK csoundSpinLock(&csound->alloc_spinlock);
 #endif
@@ -64,7 +64,7 @@ void    openMIDIout(CSOUND *);
 #define RT_SPIN_UNLOCK \
 if(csound->oparms->realtime) \
   csoundSpinUnLock(&csound->alloc_spinlock); \
-trylock = 0; } }
+  trylock = CSOUND_SUCCESS; } }
 #else
 #define RT_SPIN_UNLOCK csoundSpinUnLock(&csound->alloc_spinlock);
 #endif
@@ -386,11 +386,8 @@ n                     Str("--Csound version %s (double samples) %s \n[%s]\n"),
     if (csound->oparms->realtime && csound->event_insert_loop == 0){
       extern void *event_insert_thread(void *);
       csound->init_pass_threadlock = csoundCreateMutex(0);
-#ifdef HAVE_PTHREAD_SPIN_LOCK
       csound->Message(csound, "Initialising spinlock...\n");
-      pthread_spin_init((pthread_spinlock_t*)&csound->alloc_spinlock,
-                        PTHREAD_PROCESS_PRIVATE);
-#endif
+      csoundSpinLockInit(&csound->alloc_spinlock);
       csound->event_insert_loop = 1;
       csound->alloc_queue = (ALLOC_DATA *)
         csound->Calloc(csound, sizeof(ALLOC_DATA)*MAX_ALLOC_QUEUE);

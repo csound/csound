@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
+# silence RPATH cmake warning
+set(CMAKE_MACOSX_RPATH 1)
 
 project(Csound)
 
@@ -13,6 +15,8 @@ message(STATUS "${CMAKE_HOME_DIRECTORY}")
 if(NOT MSVC AND NOT WASM)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
 set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
 endif()
 
 # Project definitions
@@ -155,7 +159,7 @@ endif()
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
-set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
 endif()
 
 if(APPLE)
@@ -400,13 +404,16 @@ message(STATUS "Building for OSX")
 
   set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
 
-  if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
+ if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
-  endif()
+ endif()
 
-  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*")
+  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*"
+     AND (NOT  CMAKE_OSX_DEPLOYMENT_TARGET))
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
     message(STATUS "OSX: Setting Deployment Target to 10.7")
+  else()
+    message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
@@ -647,6 +654,8 @@ include_directories(./include)
 include_directories(./Engine)
 
 #adding this for files that #include SDIF/sdif*
+include_directories(./util)
+#adding this for files that #include files in local dirs
 include_directories(./)
 
 #checking pthread functions
@@ -1049,8 +1058,7 @@ if(BUILD_MULTI_CORE)
     list(APPEND libcsound_SRCS
         Engine/cs_new_dispatch.c
         Engine/cs_par_base.c
-        Engine/cs_par_orc_semantic_analysis.c
-        Engine/cs_par_dispatch.c)
+        Engine/cs_par_orc_semantic_analysis.c)
 
     list(APPEND libcsound_CFLAGS -DPARCS)
 
@@ -1386,11 +1394,10 @@ endif()
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(interfaces)
-add_subdirectory(frontends)
+add_subdirectory(Frontends)
 add_subdirectory(Bela)
 add_subdirectory(util)
 add_subdirectory(util1)
-add_subdirectory(SDIF)
 add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
@@ -1435,3 +1442,7 @@ if(DOXYGEN_FOUND)
  else()
    message(STATUS "Not building documentation")
 endif(DOXYGEN_FOUND)
+
+# install CMake module
+install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
