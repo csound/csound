@@ -49,7 +49,7 @@ static double TanH(double x)
     }
     if (x<0.5) return x*sign;
 #ifdef JPFF
-    printf("x=%g\n",x, fast_tanh(x),tanh(x));
+    printf("x=%g (%g,%g)\n",x, fast_tanh(x),tanh(x));
 #endif
     return sign*fast_tanh(x);
 }
