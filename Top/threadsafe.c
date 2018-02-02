@@ -131,7 +131,6 @@ void message_dequeue(CSOUND *csound) {
     long rp = csound->msg_queue_rstart;
     long items = csound->msg_queue_items;
     long rend = rp + items;
- 
 
     while(rp < rend) {
       message_queue_t* msg = csound->msg_queue[rp % API_MAX_QUEUE];
@@ -159,7 +158,7 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(MYFLT *));
           memcpy(&numFields, msg->args + ARG_ALIGN*2,
                  sizeof(long));
-         
+
           csoundScoreEventInternal(csound, type, pfields, numFields);
         }
         break;
@@ -176,7 +175,7 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(long));
           memcpy(&ofs, msg->args + ARG_ALIGN*3,
                  sizeof(double));
-         
+
           csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields,
                                              ofs);
         }

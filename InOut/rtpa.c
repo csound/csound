@@ -414,7 +414,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     IGN(frameCount);
     IGN(statusFlags);
     IGN(timeInfo);
- 
+
     if (pabs->complete == 1) {
         return paComplete;
     }
