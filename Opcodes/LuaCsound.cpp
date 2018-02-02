@@ -418,7 +418,7 @@ public:
                 }
                 result = lua_tonumber(L, -1);
                 lua_pop(L, 1);
-                return OK;
+                return result;
         }
 
         int kontrol(CSOUND *csound)
