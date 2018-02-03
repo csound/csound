@@ -96,6 +96,7 @@ static inline void rtJack_Lock(CSOUND *csound, pthread_mutex_t *p)
 static inline int rtJack_LockTimeout(CSOUND *csound, pthread_mutex_t *p,
                                      size_t milliseconds)
 {
+  IGN(csound);
     struct timeval  tv;
     struct timespec ts;
     register size_t n, s;
