@@ -25,6 +25,10 @@
 #include <time.h>
 #include <errno.h>
 
+#if defined(WIN32)
+#include "direct.h"
+#endif
+
 #if defined(__MACH__)
 #include <unistd.h>
 #endif

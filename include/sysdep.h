@@ -504,7 +504,7 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
 #endif
 
-#if defined(MSVC)
+#if defined(WIN32)
 typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
@@ -528,5 +528,18 @@ typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 #endif
 
+/* The ignore_value() macro is taken from GNULIB ignore-value.h,
+   licensed under the terms of the LGPLv2+
+   Normally casting an expression to void discards its value, but GCC
+   versions 3.4 and newer have __attribute__ ((__warn_unused_result__))
+   which may cause unwanted diagnostics in that case.  Use __typeof__
+   and __extension__ to work around the problem, if the workaround is
+   known to be needed.  */
+#if 3 < __GNUC__ + (4 <= __GNUC_MINOR__)
+# define ignore_value(x) \
+    (__extension__ ({ __typeof__ (x) __x = (x); (void) __x; }))
+#else
+# define ignore_value(x) ((void) (x))
+#endif
 
 #endif  /* CSOUND_SYSDEP_H */

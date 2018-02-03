@@ -35,7 +35,7 @@ def showHelp():
     print message
 
 def runTest():
-    runArgs = "-Wdo test.wav"
+    runArgs = "-Wd -n"
 
     tests = [
         ["buga1.csd", " "],
@@ -91,7 +91,8 @@ def runTest():
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s &> %s"%(executable, runArgs, filename, tempfile)
+            command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
+            print command
             retVal = os.system(command)
   
         out = ""
