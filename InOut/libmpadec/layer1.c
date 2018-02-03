@@ -78,21 +78,22 @@ static void I_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     uint8_t *ba = bit_alloc, *scf = scalefac;
     unsigned i, n;
+    int cnst = -1;
 
     if (mpa->frame.channels > 1) {
       unsigned jsbound = mpa->frame.jsbound;
       MYFLT *f0 = fraction[0], *f1 = fraction[1];
       for (i = jsbound; i; i--) {
         if ((n = *ba++) != 0)
-          *f0++ = (((-1)<<n)+GETBITS(n + 1) + 1)*mpa->tables.muls[n + 1][*scf++];
+          *f0++ = (((cnst)<<n)+GETBITS(n + 1) + 1)*mpa->tables.muls[n + 1][*scf++];
         else *f0++ = 0.0;
         if ((n = *ba++) != 0)
-          *f1++ = (((-1)<<n) + GETBITS(n + 1) + 1)*mpa->tables.muls[n + 1][*scf++];
+          *f1++ = (((cnst)<<n) + GETBITS(n + 1) + 1)*mpa->tables.muls[n + 1][*scf++];
         else *f1++ = 0.0;
       }
       for (i = (SBLIMIT - jsbound); i; i--) {
         if ((n = *ba++) != 0) {
-          register MYFLT tmp = (((-1) << n) + GETBITS(n + 1) + 1);
+          register MYFLT tmp = (((cnst) << n) + GETBITS(n + 1) + 1);
           *f0++ = tmp*mpa->tables.muls[n + 1][*scf++];
           *f1++ = tmp*mpa->tables.muls[n + 1][*scf++];
         } else *f0++ = *f1++ = 0.0;
@@ -103,7 +104,7 @@ static void I_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
       MYFLT *f0 = fraction[0];
       for (i = SBLIMIT; i; i--) {
         if ((n = *ba++) != 0)
-          *f0++ = (((-1)<<n) + GETBITS(n + 1) + 1)*mpa->tables.muls[n + 1][*scf++];
+          *f0++ = (((cnst)<<n) + GETBITS(n + 1) + 1)*mpa->tables.muls[n + 1][*scf++];
         else *f0++ = 0.0;
       }
       for (i = (SBLIMIT - mpa->frame.downsample_sblimit); i; i--) *--f0 = 0.0;

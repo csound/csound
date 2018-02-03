@@ -229,6 +229,7 @@ static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed
 static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf,
                                      int16_t *outBuf, int *seed)
 {
+  IGN(seed);
     MYFLT tmp_f;
     int   tmp_i;
     int n;
@@ -586,6 +587,7 @@ static void list_devices(CSOUND *csound)
 
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
+  IGN(csound);
     FILE * f = fopen("/proc/asound/pcm", "r");
     /*file presents this format:
       02-00: Analog PCM : Mona : playback 6 : capture 4*/
@@ -931,6 +933,7 @@ static int midi_in_read(CSOUND *csound,
     alsaMidiInputDevice *dev = (alsaMidiInputDevice*) userData;
     int             bufpos = 0;
     unsigned char   c;
+    IGN(csound);
 
     if (!dev) { /* No devices */
       /*  fprintf(stderr, "No devices!"); */
@@ -1245,6 +1248,7 @@ static int midi_out_close_file(CSOUND *csound, void *userData)
 static int alsaseq_get_client_id(CSOUND *csound, alsaseqMidi *amidi,
                                  unsigned int capability, const char *name)
 {
+  IGN(csound);
     snd_seq_client_info_t *client_info = amidi->cinfo;
     snd_seq_port_info_t   *port_info = amidi->pinfo;
 
@@ -1319,7 +1323,8 @@ static char *my_strchr(const char *s, int c, int escape_all)
 /* Searching for port number after ':' at the end of the string */
 static int get_port_from_string(CSOUND *csound, char *str)
 {
-    int port = 0;
+  IGN(csound);
+  int port = 0;
     char *end, *tmp, *c = str;
 
     while (1) {
