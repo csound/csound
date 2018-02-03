@@ -504,7 +504,7 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
 #endif
 
-#if defined(MSVC)
+#if defined(WIN32)
 typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
