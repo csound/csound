@@ -124,8 +124,9 @@ int rireturn(CSOUND *csound, void *p);
 /* do reinit pass */
 static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   int error = 0;
-  if(csound->oparms->realtime)
+  if(csound->oparms->realtime) {
     csoundLockMutex(csound->init_pass_threadlock);
+  }
   ATOMIC_SET(ip->actflg, 0);
   csound->ids = ids;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&

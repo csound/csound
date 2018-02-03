@@ -404,13 +404,16 @@ message(STATUS "Building for OSX")
 
   set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
 
-  if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
+ if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
-  endif()
+ endif()
 
-  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*")
+  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*"
+     AND (NOT  CMAKE_OSX_DEPLOYMENT_TARGET))
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
     message(STATUS "OSX: Setting Deployment Target to 10.7")
+  else()
+    message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")

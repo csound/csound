@@ -53,10 +53,10 @@ static int instance_cnt = 0;    /* Is tis thread-safe? */
 
 #define F(cf,m,shift)   (0.0625f*cf*(2*((m)>>shift&1)-1))
 
-#define FA(n)   F(1.190566,n,0)+F(0.162580,n,1)+F(0.002208,n,2)+ \
-                F(0.025475,n,3)+F(-0.001522,n,4)+F(0.007322,n,5)-PINK_BIAS
-#define FB(n)   F(0.001774,n,0)+F(0.004529,n,1)+F(-0.001561,n,2)+ \
-                F(0.000776,n,3)+F(-0.000486,n,4)+F(0.002017,n,5)
+#define FA(n)   F(1.190566f,n,0)+F(0.162580f,n,1)+F(0.002208f,n,2)+ \
+                F(0.025475f,n,3)+F(-0.001522f,n,4)+F(0.007322f,n,5)-PINK_BIAS
+#define FB(n)   F(0.001774f,n,0)+F(0.004529f,n,1)+F(-0.001561f,n,2)+ \
+                F(0.000776f,n,3)+F(-0.000486f,n,4)+F(0.002017f,n,5)
 
 #define FA8(n)  FA(n),FA(n+1),FA(n+2),FA(n+3),FA(n+4),FA(n+5),FA(n+6),FA(n+7)
 #define FB8(n)  FB(n),FB(n+1),FB(n+2),FB(n+3),FB(n+4),FB(n+5),FB(n+6),FB(n+7)
@@ -120,7 +120,14 @@ static int pink_perf(CSOUND* csound, PINKER *p)
       lfsr <<= 1;                  /* shift lfsr                      */
       dec |= inc & mask;           /* copy increment to decrement bit */
       inc ^= bit & mask;           /* new random bit                  */
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
       *((int *)(&yy)) = accu;      /* save biased value as float      */
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
       //printf("yy = %f ", yy);
       accu += inc - dec;           /* integrate                       */
       lfsr ^= bit & 0x46000001;    /* update lfsr                     */
@@ -149,7 +156,12 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
     IGN(csound);
     p->lfsr  = 0x5EED41F5 + instance_cnt++;   // seed for lfsr,
                                               // decorrelate multiple instances
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
     *((float*)(&p->accu))  = PINK_BIAS;       // init float hack
+#pragma GCC diagnostic pop
+#endif
     p->cnt = 0;                               // counter from zero
     p->inc   = 0x0CCC;                        // balance initial states to avoid DC
     p->dec   = 0x0CCC;

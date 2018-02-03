@@ -356,6 +356,7 @@ if(BUILD_VST4CS_OPCODES)
         else()
             target_link_libraries(vst4cs PRIVATE ${PTHREAD_LIBRARY})
         endif()
+        set_target_properties(vst4cs PROPERTIES COMPILE_FLAGS "-Wno-multichar")
     endif()
     install(TARGETS vst4cs
         LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}

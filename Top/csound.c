@@ -633,8 +633,7 @@ static const CSOUND cenviron_ = {
     440.0,               /* A4 base frequency */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
-#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || \
-    (defined(_WIN32) && defined(__GNUC__))
+#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) 
     {0},
 #else
    {{{0}}},        /*  exitjmp of type jmp_buf */
@@ -982,6 +981,7 @@ static  volatile  csInstance_t  *instance_list = NULL;
 /* non-zero if performance should be terminated now */
 static  volatile  int exitNow_ = 0;
 
+#if !defined(WIN32)
 static void destroy_all_instances(void)
 {
     volatile csInstance_t *p;
@@ -1004,6 +1004,7 @@ static void destroy_all_instances(void)
       csoundDestroy(p->csound);
     }
 }
+#endif
 
 #if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
                          !defined(__HAIKU__) && !defined(__BEOS__) && \
@@ -1704,7 +1705,7 @@ int kperf_nodebug(CSOUND *csound)
             if (ip->ksmps == csound->ksmps) {
               while (error == 0 &&
                      (opstart = opstart->nxtp) != NULL &&
-                     ATOMIC_GET(ip->actflg)) {
+                     ip->actflg) {
                 opstart->insdshead->pds = opstart;
                 error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
@@ -2166,9 +2167,9 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     }
     csound->sampsNeeded += csound->oparms_.outbufsamps;
     while (csound->sampsNeeded > 0) {
-      if(!csound->oparms->realtime){ // no API lock in realtime mode
+     if(!csound->oparms->realtime) {// no API lock in realtime mode
       csoundLockMutex(csound->API_lock);
-      }
+     }
       do {
         if (UNLIKELY((done = sensevents(csound)))){
           if(!csound->oparms->realtime) // no API lock in realtime mode

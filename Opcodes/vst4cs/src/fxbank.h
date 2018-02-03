@@ -165,10 +165,18 @@ public:
         if (!bChunk) for (int i = GetNumPrograms() -1; i >= 0; i--)
                        GetProgram(i)->fxVersion = v; }
     long GetNumPrograms() {
-        if (!bBank) return 0; return ((fxSet*)bBank)->numPrograms; }
+        if (!bBank) {
+            return 0;
+        }
+        return ((fxSet*)bBank)->numPrograms;
+    }
     long GetNumParams() { if (bChunk) return 0; return GetProgram(0)->numParams; }
     long GetChunkSize() {
-        if (!bChunk) return 0; return ((fxChunkSet *)bBank)->chunkSize; }
+        if (!bChunk) {
+            return 0;
+        }
+        return ((fxChunkSet *)bBank)->chunkSize;
+    }
     void *GetChunk() { if (!bChunk) return 0; return ((fxChunkSet *)bBank)->chunk; }
     bool SetChunk(void *chunk) {
         if (!bChunk) return false;
