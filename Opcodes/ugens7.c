@@ -191,7 +191,8 @@ static int newpulse(CSOUND *csound,
         (*p->iskip==FL(0.0))) /* ringtime */
       return(0);
     if ((oct = *p->koct) > FL(0.0)) {                   /* octaviation */
-      int32 ioct = (int32)oct, bitpat = ~(-1L << ioct);
+      int64_t csnt = -1;
+      int32 ioct = (int32)oct, bitpat = ~(csnt << ioct);
       if (bitpat & ++p->fofcount)
         return(0);
       if ((bitpat += 1) & p->fofcount)

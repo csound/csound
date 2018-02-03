@@ -176,7 +176,8 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
         (*p->iskip==FL(0.0)))  /* ringtime    */
       return(0);
     if ((oct = *p->koct) > 0.0) {                   /* octaviation */
-      int32 ioct = (int32)oct, bitpat = ~(-1L << ioct);
+      int64_t cnst = -1L;
+      int32 ioct = (int32)oct, bitpat = ~(cnst << ioct);
       if (bitpat & ++p->fofcount)
         return(0);
       if ((bitpat += 1) & p->fofcount)

@@ -148,6 +148,7 @@ void   *loadLADSPAPluginLibrary(CSOUND *csound, const char *pcPluginFilename)
 
 void unloadLADSPAPluginLibrary(CSOUND *csound, void *pvLADSPAPluginLibrary)
 {
+  IGN(csound);
     dlclose(pvLADSPAPluginLibrary);
 }
 

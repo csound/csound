@@ -543,6 +543,7 @@ int dssiinit(CSOUND * csound, DSSIINIT * p)
 
 int ActivatePlugin(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_, int ktrigger)
 {
+  IGN(csound);
     const LADSPA_Descriptor *Descriptor;
 
     if (!DSSIPlugin_)
@@ -943,12 +944,14 @@ int dssictls_dummy(CSOUND * csound, DSSICTLS * p)
 
 int dssisynth_init(CSOUND * csound, DSSISYNTH * p)
 {
+  IGN(p);
     /* TODO docs: dssisynth only for DSSI plugs */
     return csound->InitError(csound, "DSSI4CS: dssisynth not implemented yet.");
 }
 
 int dssisynth(CSOUND * csound, DSSISYNTH * p)
 {
+  IGN(p); IGN(csound);
     return OK;
 }
 
@@ -957,22 +960,26 @@ int dssisynth(CSOUND * csound, DSSISYNTH * p)
 *****************************************************************************/
 int dssinote_init(CSOUND * csound, DSSINOTE * p)
 {
+  IGN(p);
     return csound->InitError(csound, Str("DSSI4CS: dssinote not implemented yet."));
 }
 
 int dssinote(CSOUND * csound, DSSINOTE * p)
 {
+  IGN(p); IGN(csound);
     return OK;
 }
 
 int dssievent_init(CSOUND * csound, DSSINOTEON * p)
 {
+  IGN(p);
     return
       csound->InitError(csound, Str("DSSI4CS: dssievent not implemented yet."));
 }
 
 int dssievent(CSOUND * csound, DSSINOTEON * p)
 {
+  IGN(p); IGN(csound);
     return OK;
 }
 
@@ -1123,6 +1130,7 @@ describePluginLibrary(CSOUND *csound,
 int dssilist(CSOUND * csound, DSSILIST * p)
 {
     /* Most of this function comes from the ladspa sdk by Richard Furse */
+  IGN(p);
     char   *pcBuffer;
     const char *pcEnd;
           char *pcLADSPAPath;
