@@ -49,7 +49,6 @@ if(BUILD_CXX_INTERFACE)
     target_compile_options(libcsnd6 PRIVATE "-std=c++11")
    endif()
 
-
     if(${libcsnd6_CFLAGS})
         target_compile_options(libcsnd6 PRIVATE ${libcsnd6_CFLAGS})
     endif()
@@ -121,6 +120,9 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
         endif()
+        if(${CMAKE_COMPILER_IS_GNUCC})
+            target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-error")
+        endif()
 
         install(TARGETS ${SWIG_MODULE_csnd6_REAL_NAME}
             LIBRARY DESTINATION "${PYTHON_MODULE_INSTALL_DIR}"
@@ -176,6 +178,9 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+        if(${CMAKE_COMPILER_IS_GNUCC})
+            target_compile_options(_jcsound6 PRIVATE "-Wno-error")
+        endif()
 
         install(TARGETS _jcsound6
             LIBRARY DESTINATION "${JAVA_MODULE_INSTALL_DIR}"
@@ -212,6 +217,9 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             PREFIX "")
+        if(${CMAKE_COMPILER_IS_GNUCC})
+            target_compile_options(${SWIG_MODULE_luaCsnd6_REAL_NAME} PRIVATE "-Wno-error")
+        endif()
 
         install(TARGETS luaCsnd6
             LIBRARY DESTINATION "${LUA_MODULE_INSTALL_DIR}"

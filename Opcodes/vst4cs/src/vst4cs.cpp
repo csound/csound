@@ -599,6 +599,10 @@ extern "C" {
         return OK;
     }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
     static OENTRY localops[] = {
         { "vstinit",      sizeof(VSTINIT),    0, 1, "i", "To", &vstinit, 0, 0 },
         { "vstinfo",      sizeof(VSTINFO),    0, 1, "", "i", &vstinfo, 0, 0 },
@@ -634,6 +638,10 @@ extern "C" {
         { 0,              0,                   0, 0, 0,  0,      (SUBR) 0,     (SUBR) 0, (SUBR) 0 }
     };
 
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
         // It is necessary to store global references to plugins and editors from Seib's code
@@ -646,7 +654,7 @@ extern "C" {
         int result = 0;
         vstPlugins_t *vstPlugins = new vstPlugins_t;
         result = csound::CreateGlobalPointer (csound, "vstPlugins", vstPlugins);
-        return 0;
+        return result;
     }
 
     PUBLIC int csoundModuleInit(CSOUND *csound)
