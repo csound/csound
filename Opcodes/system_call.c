@@ -35,6 +35,7 @@ typedef struct {
 } SYSTEM;
 
 #if defined(WIN32)
+#include <process.h>
 
 static void threadroutine(void *p)
 {

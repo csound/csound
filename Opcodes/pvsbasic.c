@@ -660,7 +660,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       csound->RealFFT2(csound, p->fwdsetup, fwin);
       if (*p->konset){
         csound->RealFFT2(csound,p->fwdsetup, nwin);
-        tmp_real = tmp_im = (MYFLT) 1e-20;
+        tmp_real = tmp_im = 1e-20f;
         for (i=2; i < N; i++) {
           tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
           tmp_im += fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1];
