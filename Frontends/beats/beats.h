@@ -41,3 +41,8 @@ extern int yyparse(void);
 extern void print_instr_structure(void);
 extern INSTR *find_instr(int);
 
+#ifdef MSVC
+#include <io.h>
+#DEFINE isatty(x) _isatty(x)
+#endif
+
