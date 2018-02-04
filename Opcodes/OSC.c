@@ -127,7 +127,7 @@ static int osc_send_set(CSOUND *csound, OSCSEND *p)
     char port[8];
     char *pp = port;
     char *hh;
-    //unsigned int i;
+    //uint32_t i;
 
     /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
@@ -834,7 +834,7 @@ static int OSC_list(CSOUND *csound, OSCLISTEN *p)
           else if (c == 'a') {
 
             MYFLT *data= (MYFLT*)idata;
-            unsigned int len = (int)data[0];
+            uint32_t len = (uint32_t)data[0];
             if (len>CS_KSMPS) len = CS_KSMPS;
             memcpy(p->args[i], &data[1], len*sizeof(MYFLT));
           }

@@ -31,7 +31,7 @@ typedef struct {
     PVSDAT *fin;
     MYFLT  *kmrate;
     MYFLT  *kfrate;
-    unsigned int lastframe;
+    uint32_t lastframe;
 } PVSGENDY;
 
 
@@ -44,7 +44,7 @@ static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
 
     if (UNLIKELY(p->fin->sliding)) {
       if (p->fout->frame.auxp==NULL ||
-          CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
+          CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fout->frame.size)
         csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
       else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     }

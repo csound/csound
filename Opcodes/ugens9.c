@@ -616,7 +616,7 @@ static int pconvolve(CSOUND *csound, PCONVOLVE *p)
     /* copy to output if we have enough samples [we always should
        except the first Hlen samples] */
     if (p->outCount >= (int)CS_KSMPS) {
-      unsigned int n;
+      uint32_t n;
       p->outCount -= CS_KSMPS;
       for (n=0; n < CS_KSMPS; n++) {
         switch (p->nchanls) {

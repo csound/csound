@@ -63,7 +63,7 @@ typedef struct {
       int Stutterspeed;
 
   /* internal data */
-  /* unsigned long int sampdone; */
+  /* unsigned long sampdone; */
       int samplesperunit;
       int repeatlengthsamp;
       int repeatsampdone;
@@ -112,7 +112,7 @@ typedef struct {
       int Stutterspeed;
 
       /* internal data */
-      /* unsigned long int sampdone; */
+      /* unsigned long sampdone; */
       int samplesperunit;
       int repeatlengthsamp;
       int repeatsampdone;

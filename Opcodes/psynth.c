@@ -111,27 +111,27 @@ static int psynth_init(CSOUND *csound, _PSYN *p)
     else p->min = *p->thresh*csound->Get0dBFS(csound);
 
     if (p->amps.auxp == NULL ||
-        (unsigned) p->amps.size < sizeof(double) * numbins)
+        (uint32_t) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
     else
       memset(p->amps.auxp, 0, sizeof(double) * numbins );
     if (p->freqs.auxp == NULL ||
-        (unsigned) p->freqs.size < sizeof(double) * numbins)
+        (uint32_t) p->freqs.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
     else
       memset(p->freqs.auxp, 0, sizeof(double) * numbins );
     if (p->phases.auxp == NULL ||
-        (unsigned) p->phases.size < sizeof(double) * numbins)
+        (uint32_t) p->phases.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->phases);
     else
       memset(p->phases.auxp, 0, sizeof(double) * numbins );
     if (p->sum.auxp == NULL ||
-        (unsigned) p->sum.size < sizeof(double) * p->hopsize)
+        (uint32_t) p->sum.size < sizeof(double) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
     else
       memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
     if (p->trackID.auxp == NULL ||
-        (unsigned) p->trackID.size < sizeof(int) * numbins)
+        (uint32_t) p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
     else
       memset(p->trackID.auxp, 0, sizeof(int) * numbins );
@@ -278,27 +278,27 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
     else p->min = *p->thresh*csound->Get0dBFS(csound);
 
     if (p->amps.auxp == NULL ||
-        (unsigned) p->amps.size < sizeof(double) * numbins)
+        (uint32_t) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
     else
       memset(p->amps.auxp, 0, sizeof(double) * numbins );
     if (p->freqs.auxp == NULL ||
-        (unsigned) p->freqs.size < sizeof(double) * numbins)
+        (uint32_t) p->freqs.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
     else
       memset(p->freqs.auxp, 0, sizeof(double) * numbins );
     if (p->phases.auxp == NULL ||
-        (unsigned) p->phases.size < sizeof(double) * numbins)
+        (uint32_t) p->phases.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->phases);
     else
       memset(p->phases.auxp, 0, sizeof(double) * numbins  );
     if (p->sum.auxp == NULL ||
-        (unsigned) p->sum.size < sizeof(double) * p->hopsize)
+        (uint32_t) p->sum.size < sizeof(double) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
     else
       memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
     if (p->trackID.auxp == NULL ||
-        (unsigned) p->trackID.size < sizeof(int) * numbins)
+        (uint32_t) p->trackID.size < sizeof(int) * numbins)
       csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
     else
       memset(p->trackID.auxp, 0, sizeof(int) * numbins );
@@ -594,7 +594,7 @@ typedef struct _ptrans {
     MYFLT   *kgain;
     MYFLT   *pad1;
     MYFLT   *pad2;
-    unsigned int lastframe;
+    uint32_t lastframe;
     int     numbins;
 } _PTRANS;
 
@@ -687,7 +687,7 @@ typedef struct _plow {
     MYFLT   *kamp;
     PVSDAT  *fin;
     MYFLT   *kpar;
-    unsigned int lastframe;
+    uint32_t lastframe;
     int     numbins;
 } _PLOW;
 
@@ -793,7 +793,7 @@ typedef struct _psplit {
     MYFLT   *kgain2;
     MYFLT   *pad1;
     MYFLT   *pad2;
-    unsigned int lastframe;
+    uint32_t lastframe;
     int     numbins;
 } _PSPLIT;
 
@@ -889,7 +889,7 @@ typedef struct _psmix {
     PVSDAT  *fsig1;
     PVSDAT  *fsig2;
     PVSDAT  *fsig3;
-    unsigned int lastframe;
+    uint32_t lastframe;
     int     numbins;
 } _PSMIX;
 
@@ -968,7 +968,7 @@ typedef struct _psfil {
     MYFLT   *ifn;
     FUNC    *tab;
     int     len;
-    unsigned int lastframe;
+    uint32_t lastframe;
     int     numbins;
 } _PSFIL;
 
@@ -1052,7 +1052,7 @@ typedef struct _pscross {
     MYFLT   *kpar1;
     MYFLT   *kpar2;
     MYFLT   *kpar3;
-    unsigned int lastframe;
+    uint32_t lastframe;
     int     numbins;
 } _PSCROSS;
 
@@ -1161,7 +1161,7 @@ typedef struct _psbin {
     PVSDAT  *fsig2;
     MYFLT   *ipar;
     int     N;
-    unsigned int lastframe;
+    uint32_t lastframe;
     int     numbins;
 } _PSBIN;
 

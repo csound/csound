@@ -202,7 +202,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Get parameter table pointers and check lengths */
     SCANSYN_GLOBALS *pp;
     FUNC    *f;
-    unsigned int     len;
+    unsigned int len;
 
     /* Mass */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_m)) == NULL)) {
@@ -234,7 +234,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Spring stiffness */
     {
-      unsigned int i, j;
+      uint32_t i, j;
 
       /* Get the table */
       if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
@@ -274,7 +274,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Initialize them ... */
     {
-      unsigned int i;
+      uint32_t i;
       for (i = 0 ; i != len ; i++) {
         p->x0[i] = p->x1[i] = p->x2[i]= p->ext[i] = FL(0.0);
 #if PHASE_INTERP == 3
@@ -298,7 +298,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
     }
     /* Velocity gets presidential treatment */
     {
-      unsigned int i;
+      uint32_t i;
       FUNC *f = csound->FTnp2Find(csound, p->i_v);
       if (UNLIKELY(f == NULL)) {
         return csound->InitError(csound,
@@ -333,7 +333,7 @@ static int scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Make external force window if we haven't so far */
     if (pp->ewin == NULL) {
-      unsigned int i;
+      uint32_t i;
       MYFLT arg =  PI_F/(len-1);
       pp->ewin = (MYFLT*) csound->Calloc(csound, len * sizeof(MYFLT));
       for (i = 0 ; i != len-1 ; i++)

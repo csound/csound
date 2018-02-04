@@ -575,7 +575,7 @@ static int koutfile_set_(CSOUND *csound, KOUTFILE *p, int istring)
     sfinfo.channels = p->nargs;
     sfinfo.samplerate = (int) MYFLT2LRND(CS_EKR);
     format_ = (int) MYFLT2LRND(*p->iflag);
-    if ((unsigned int) format_ >= (unsigned int) 10)
+    if ((uint32_t) format_ >= 10ul)
       sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
     else
       sfinfo.format = fout_format_table[format_] | SF_FORMAT_RAW;

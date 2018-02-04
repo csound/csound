@@ -53,7 +53,7 @@ typedef uint16_t    WORD;
 typedef short       SHORT;
 typedef char        CHAR;
 
-typedef unsigned short SFTransform;
+typedef uint16_t SFTransform;
 
 typedef struct
 {

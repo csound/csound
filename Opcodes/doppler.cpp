@@ -178,7 +178,7 @@ public:
 
     std::vector<MYFLT> *sourceBuffer = new std::vector<MYFLT>;
     sourceBuffer->resize(blockSize);
-    for (size_t inputFrame = 0; inputFrame<(unsigned int)blockSize; inputFrame++) {
+    for (size_t inputFrame = 0; inputFrame<(uint32_t)blockSize; inputFrame++) {
       (*sourceBuffer)[inputFrame] = audioInput[inputFrame];
     }
     audioBufferQueue->push_back(sourceBuffer);
@@ -213,7 +213,7 @@ public:
     }
 
     for (size_t outputFrame = 0;
-         outputFrame < (unsigned int)blockSize;
+         outputFrame < (uint32_t)blockSize;
          outputFrame++) {
       MYFLT position = smoothingFilter->update(targetPosition);
       MYFLT distance = std::fabs(position);

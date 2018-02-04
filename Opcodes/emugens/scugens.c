@@ -288,7 +288,7 @@ static int trig_a(CSOUND *csound, Trig *p) {
       sr = csound->GetSr(csound),
       prevtrig = p->prevtrig,
       level = p->level;
-    unsigned long counter = p->counter;
+    uint64_t counter = p->counter;
     uint32_t offset = p->h.insdshead->ksmps_offset; // delayed onset
     uint32_t early  = p->h.insdshead->ksmps_no_end; // early end of event
     uint32_t n, nsmps = CS_KSMPS;
@@ -327,7 +327,7 @@ static int trig_k(CSOUND *csound, Trig *p) {
     MYFLT kr = csound->GetKr(csound);
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
-    unsigned long counter = p->counter;
+    uint64_t counter = p->counter;
     if (counter > 0) {
       *p->out = --counter ? level : FL(0.0);
     } else {

@@ -46,7 +46,7 @@ typedef struct _parts {
     PVSDAT *fin1, *fin2;
     MYFLT  *kthresh, *pts, *gap, *mtrks;
     int     tracks, numbins, mtracks, prev, cur;
-    unsigned long  accum;
+    uint64_t accum;
     uint32  lastframe, timecount;
     AUXCH   mags, lmags, index, cflag, trkid, trndx;
     AUXCH   tstart, binex, magex, oldbins, diffs, adthresh;
@@ -219,8 +219,8 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     double  *pmags = (double *) p->pmags.auxp;
     double  *bins = (double *) p->bins.auxp;
     uint32 *lastpk = (uint32 *) p->lastpk.auxp;
-    unsigned int timecount = p->timecount,
-             maxgap = (unsigned int) (*p->gap > 0 ? *p->gap : 0);
+    uint32_t timecount = p->timecount,
+             maxgap = (uint32_t) (*p->gap > 0 ? *p->gap : 0);
     int     test1 = 1, test2 = 0;
 
     if(*p->kthresh >= 0) {

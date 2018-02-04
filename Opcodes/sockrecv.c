@@ -201,7 +201,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
@@ -257,7 +257,7 @@ static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
@@ -372,7 +372,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
@@ -575,7 +575,7 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {

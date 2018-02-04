@@ -94,7 +94,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     int color_type;
     unsigned char *image_data;
     png_bytepp row_pointers;
-    unsigned int i;
+    uint32_t i;
 
     Image *img;
 
@@ -277,7 +277,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     png_structp png_ptr;
     png_infop info_ptr;
     png_bytepp row_pointers;
-    unsigned rowbytes;
+    uint32_t rowbytes;
     int i;
 
     FILE *fp;

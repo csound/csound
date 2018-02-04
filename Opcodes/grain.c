@@ -61,7 +61,7 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     bufsize = sizeof(MYFLT) * (2L * (size_t) (CS_ESR * *p->imkglen)
                                + (3L * CS_KSMPS));
 
-    if (p->aux.auxp == NULL || (unsigned int)bufsize > p->aux.size)
+    if (p->aux.auxp == NULL || (uint32_t)bufsize > p->aux.size)
       csound->AuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
@@ -82,9 +82,9 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     int32       isc, isc2, inc, inc2, lb, lb2;
     int32       n, bufsize;
     int32       ekglen;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t i, nsmps = CS_KSMPS;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    i, nsmps = CS_KSMPS;
     MYFLT       kglen = *p->kglen;
     MYFLT       gcount = p->gcount;
 

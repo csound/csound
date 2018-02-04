@@ -54,15 +54,15 @@ static int syncgrain_init(CSOUND *csound, syncgrain *p)
       p->olaps = 2;
 
     size =  (p->olaps) * sizeof(double);
-    if (p->index.auxp == NULL || p->index.size < (unsigned int)size)
+    if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->index);
-    if (p->envindex.auxp == NULL || p->envindex.size < (unsigned int)size)
+    if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->envindex);
-    if (p->envincr.auxp == NULL || p->envincr.size < (unsigned int)size)
+    if (p->envincr.auxp == NULL || p->envincr.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->envincr);
 
     size = (p->olaps) * sizeof(int);
-    if (p->streamon.auxp == NULL || p->streamon.size < (unsigned int)size)
+    if (p->streamon.auxp == NULL || p->streamon.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->streamon);
 
     p->count = 0;                  /* sampling period counter */
@@ -210,12 +210,12 @@ static int syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 
     if (*p->iskip == 0) {
       int size =  (p->olaps) * sizeof(double);
-      if (p->index.auxp == NULL || p->index.size < (unsigned int)size)
+      if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
          csound->AuxAlloc(csound, size, &p->index);
-      if (p->envindex.auxp == NULL || p->envindex.size < (unsigned int)size)
+      if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
           csound->AuxAlloc(csound, size, &p->envindex);
       size = (p->olaps) * sizeof(int);
-       if (p->streamon.auxp == NULL || p->streamon.size > (unsigned int)size)
+       if (p->streamon.auxp == NULL || p->streamon.size > (uint32_t)size)
           csound->AuxAlloc(csound, size, &p->streamon);
     p->count = 0;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
@@ -422,12 +422,12 @@ static int filegrain_init(CSOUND *csound, filegrain *p)
       p->olaps = 2;
 
     size =  (p->olaps) * sizeof(double);
-    if (p->index.auxp == NULL || p->index.size < (unsigned int)size)
+    if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->index);
-    if (p->envindex.auxp == NULL || p->envindex.size < (unsigned int)size)
+    if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->envindex);
     size = (p->olaps) * sizeof(int);
-    if (p->streamon.auxp == NULL || p->streamon.size < (unsigned int)size)
+    if (p->streamon.auxp == NULL || p->streamon.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->streamon);
     if (p->buffer.auxp == NULL ||
         p->buffer.size < (p->dataframes+1)*sizeof(MYFLT)*p->nChannels)
@@ -587,7 +587,7 @@ static int filegrain_process(CSOUND *csound, filegrain *p)
             if (!read1) {
 
               /*this roundabout code is to
-                allow us to use an unsigned long
+                allow us to use an uint64_t
                 to hold the file position
                 whilst allowing for pos to go negative
               */

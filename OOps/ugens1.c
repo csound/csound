@@ -140,7 +140,7 @@ int lsgset(CSOUND *csound, LINSEG *p)
     MYFLT       **argp;
     double val;
 
-    if (!(p->INCOUNT & 1)){
+    if (UNLIKELY(!(p->INCOUNT & 1))) {
       return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
@@ -208,7 +208,7 @@ int klnseg(CSOUND *csound, LINSEG *p)
     IGN(csound);
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;          /* RWD fix */
-    if (p->segsrem) {                   /* done if no more segs */
+    if (UNLIKELY(p->segsrem)) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
         SEG *segp = p->cursegp;
         if (UNLIKELY(!(--p->segsrem)))  {

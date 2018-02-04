@@ -77,8 +77,8 @@ MYFLT csoundPow2(CSOUND *csound, MYFLT a)
 int rassign(CSOUND *csound, ASSIGN *p)
 {
     /* already assigned by otran */
-   IGN(csound);
-   IGN(p);
+    IGN(csound);
+    IGN(p);
     return OK;
 }
 
@@ -112,10 +112,10 @@ int aassign(CSOUND *csound, ASSIGN *p, int islocal)
 }
 
 int gaassign(CSOUND *csound, ASSIGN *p)
-{  return aassign(csound, p, 0); }
+{   return aassign(csound, p, 0); }
 
 int laassign(CSOUND *csound, ASSIGN *p)
-{  return aassign(csound, p, 1); }
+{   return aassign(csound, p, 1); }
 
 int ainit(CSOUND *csound, ASSIGN *p)
 {
@@ -137,22 +137,23 @@ int ainit(CSOUND *csound, ASSIGN *p)
 int minit(CSOUND *csound, ASSIGNM *p)
 {
     unsigned int nargs = p->INCOUNT;
+    unsigned int nout = p->OUTOCOUNT;
     unsigned int i;
     MYFLT *tmp;
     if (UNLIKELY(nargs > p->OUTOCOUNT))
       return csound->InitError(csound,
                                Str("Cannot be more In arguments than Out in "
                                    "init (%d,%d)"),p->OUTOCOUNT, nargs);
-    if (p->OUTOCOUNT==1) {
+    if (nout==1) {
       *p->r[0] =  *p->a[0];
       return OK;
     }
     tmp = (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*p->OUTOCOUNT);
     for (i=0; i<nargs; i++)
       tmp[i] =  *p->a[i];
-    for (; i<p->OUTOCOUNT; i++)
+    for (; i<nout; i++)
       tmp[i] =  *p->a[nargs-1];
-    for (i=0; i<p->OUTOCOUNT; i++)
+    for (i=0; i<nout; i++)
       *p->r[i] = tmp[i];
     csound->Free(csound, tmp);
     return OK;
@@ -161,12 +162,13 @@ int minit(CSOUND *csound, ASSIGNM *p)
 int mainit(CSOUND *csound, ASSIGNM *p)
 {
     unsigned int nargs = p->INCOUNT;
+    unsigned int nouts = p->OUTOCOUNT;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     unsigned int   i, n, nsmps = CS_KSMPS;
     MYFLT aa = FL(0.0);
     early = nsmps - early;      /* Bit at end to ignore */
-    if (UNLIKELY(nargs > p->OUTOCOUNT))
+    if (UNLIKELY(nargs > nouts))
       return csound->InitError(csound,
                                Str("Cannot be more In arguments than Out in "
                                    "init (%d,%d)"),p->OUTOCOUNT, nargs);
@@ -176,7 +178,7 @@ int mainit(CSOUND *csound, ASSIGNM *p)
       for (n = 0; n < nsmps; n++)
         r[n] = (n < offset || n > early ? FL(0.0) : aa);
     }
-    for (; i<p->OUTOCOUNT; i++) {
+    for (; i<nouts; i++) {
       MYFLT *r =p->r[i];
       memset(r, '\0', nsmps*sizeof(MYFLT));
       for (n = 0; n < nsmps; n++)
@@ -442,7 +444,7 @@ int modak(CSOUND *csound, AOP *p)
 #ifdef USE_SSE
 #include "emmintrin.h"
 #define AA_VEC(OPNAME,OP)                   \
-int OPNAME(CSOUND *csound, AOP *p){ \
+int OPNAME(CSOUND *csound, AOP *p){  \
   MYFLT   *r, *a, *b; \
   __m128d va, vb;                    \
   uint32_t n, nsmps = CS_KSMPS, end; \
@@ -1012,7 +1014,7 @@ int rtclock(CSOUND *csound, EVAL *p)
 
 int octpch(CSOUND *csound, EVAL *p)
 {
-   IGN(csound);
+    IGN(csound);
     double fract, oct;
     fract = modf((double)*p->a, &oct);
     fract *= EIPT3;
@@ -1022,7 +1024,7 @@ int octpch(CSOUND *csound, EVAL *p)
 
 int pchoct(CSOUND *csound, EVAL *p)
 {
-   IGN(csound);
+    IGN(csound);
     double fract, oct;
     fract = modf((double)*p->a, &oct);
     fract *= 0.12;
@@ -1061,7 +1063,7 @@ int acpsoct(CSOUND *csound, EVAL *p)
 
 int octcps(CSOUND *csound, EVAL *p)
 {
-   IGN(csound);
+    IGN(csound);
     *p->r = (LOG(*p->a /(MYFLT)ONEPT) / (MYFLT)LOGTWO);
     return OK;
 }
@@ -1095,7 +1097,7 @@ int octmidinn(CSOUND *csound, EVAL *p)
 
 int pchmidinn(CSOUND *csound, EVAL *p)
 {
-   IGN(csound);
+    IGN(csound);
     double fract, oct, octdec;
     /* Convert Midi Note number to 8ve.decimal format */
     octdec = ((double)*p->a / 12.0) + MIDINOTE0;
@@ -1450,7 +1452,7 @@ int ins(CSOUND *csound, INS *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps =CS_KSMPS, k;
-    if(csound->inchnls != 2)
+    if (UNLIKELY(csound->inchnls != 2))
       return csound->PerfError(csound, p->h.insdshead,
                                "Wrong numnber of input channels\n");
     CSOUND_SPIN_SPINLOCK
@@ -1477,11 +1479,11 @@ int ins(CSOUND *csound, INS *p)
 int inq(CSOUND *csound, INQ *p)
 {
     MYFLT       *sp = CS_SPIN, *ar1 = p->ar1, *ar2 = p->ar2,
-                                    *ar3 = p->ar3, *ar4 = p->ar4;
+                               *ar3 = p->ar3, *ar4 = p->ar4;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps =CS_KSMPS, k;
-     if(csound->inchnls != 4)
+    if (UNLIKELY(csound->inchnls != 4))
       return csound->PerfError(csound,
                                p->h.insdshead,
                                "Wrong numnber of input channels\n");
@@ -1512,11 +1514,11 @@ int inq(CSOUND *csound, INQ *p)
 int inh(CSOUND *csound, INH *p)
 {
     MYFLT       *sp = CS_SPIN, *ar1 = p->ar1, *ar2 = p->ar2, *ar3 = p->ar3,
-                                    *ar4 = p->ar4, *ar5 = p->ar5, *ar6 = p->ar6;
+                               *ar4 = p->ar4, *ar5 = p->ar5, *ar6 = p->ar6;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps =CS_KSMPS, k;
-     if(csound->inchnls != 6)
+    if (UNLIKELY(csound->inchnls != 6))
       return csound->PerfError(csound,
                                p->h.insdshead,
                                "Wrong numnber of input channels\n");
@@ -1553,12 +1555,12 @@ int inh(CSOUND *csound, INH *p)
 int ino(CSOUND *csound, INO *p)
 {
     MYFLT       *sp = CS_SPIN, *ar1 = p->ar1, *ar2 = p->ar2, *ar3 = p->ar3,
-                                    *ar4 = p->ar4, *ar5 = p->ar5, *ar6 = p->ar6,
-                                    *ar7 = p->ar7, *ar8 = p->ar8;
+                               *ar4 = p->ar4, *ar5 = p->ar5, *ar6 = p->ar6,
+                               *ar7 = p->ar7, *ar8 = p->ar8;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps =CS_KSMPS, k;
-     if(csound->inchnls != 8)
+    if (UNLIKELY(csound->inchnls != 8))
       return csound->PerfError(csound,
                                p->h.insdshead,
                                "Wrong numnber of input channels\n");
@@ -1604,14 +1606,15 @@ static int inn(CSOUND *csound, INALL *p, uint32_t n)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t m, nsmps =CS_KSMPS, i;
-    if(csound->inchnls != (int) n)
+    if (UNLIKELY(csound->inchnls != (int) n))
       return csound->PerfError(csound,
                                p->h.insdshead,
                                "Wrong numnber of input channels\n");
 
     CSOUND_SPIN_SPINLOCK
-    if (UNLIKELY(offset)) for (i = 0; i < n; i++)
-                  memset(ara[i], '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset))
+      for (i = 0; i < n; i++)
+        memset(ara[i], '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       for (i = 0; i < n; i++)
@@ -1649,39 +1652,39 @@ int inch_opcode1(CSOUND *csound, INCH1 *p)
     uint32_t n, nsmps = CS_KSMPS, ch;
     MYFLT *sp, *ain;
 
-      ch = ((int)*p->ch + FL(0.5));
-      if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
-        if (p->init)
-          csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
-        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
-        p->init = 0;
-        //        return OK;
-      } else if (UNLIKELY(ch < 1)) {
-        if (p->init)
-          csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
-        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
-        p->init = 0;
+    ch = ((int)*p->ch + FL(0.5));
+    if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
+      if (p->init)
+        csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
+      memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+      p->init = 0;
+      //        return OK;
+    } else if (UNLIKELY(ch < 1)) {
+      if (p->init)
+        csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
+      memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+      p->init = 0;
+    }
+    else {
+      sp = CS_SPIN + (ch - 1);
+      ain = p->ar;
+      if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset(&ain[nsmps], '\0', early*sizeof(MYFLT));
       }
-      else {
-        sp = CS_SPIN + (ch - 1);
-        ain = p->ar;
-        if (UNLIKELY(offset)) memset(ain, '\0', offset*sizeof(MYFLT));
-        if (UNLIKELY(early)) {
-          nsmps -= early;
-          memset(&ain[nsmps], '\0', early*sizeof(MYFLT));
-        }
-        for (n = offset; n < nsmps; n++) {
-          ain[n] = *sp;
-          sp += csound->inchnls;
-        }
+      for (n = offset; n < nsmps; n++) {
+        ain[n] = *sp;
+        sp += csound->inchnls;
       }
+    }
 
     return OK;
 }
 
 int inch_set(CSOUND *csound, INCH *p)
 {
-   IGN(csound);
+    IGN(csound);
     p->init = 1;
     return OK;
 }
@@ -1706,7 +1709,7 @@ int inch_opcode(CSOUND *csound, INCH *p)
         p->init = 0;
         //        return OK;
       } else if (UNLIKELY(ch < 1)) {
-        if (p->init)
+        if (UNLIKELY(p->init))
           csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
         memset(p->ar, 0, sizeof(MYFLT)*nsmps);
         p->init = 0;
@@ -1822,7 +1825,7 @@ int outs2(CSOUND *csound, OUTM *p)
 
 int outq3(CSOUND *csound, OUTM *p)
 {
-  MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap3 = p->asig;
+    MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap3 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -1849,7 +1852,7 @@ int outq3(CSOUND *csound, OUTM *p)
 
 int outq4(CSOUND *csound, OUTM *p)
 {
-  MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap4 = p->asig;
+    MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap4 = p->asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t nsmps =CS_KSMPS,  n;
     uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
@@ -2136,7 +2139,7 @@ int outRange(CSOUND *csound, OUTRANGE *p)
     MYFLT *sp = csound->spraw + startChan*nsmps;
     int narg = p->narg;
 
-    if (startChan < 0)
+    if (UNLIKELY(startChan < 0))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("outrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
@@ -2170,13 +2173,13 @@ int outRange(CSOUND *csound, OUTRANGE *p)
 int hw_channels(CSOUND *csound, ASSIGN *p){
 
     int *dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
-    if (dachans == NULL) {
+    if (UNLIKELY(dachans == NULL)) {
       csound->Warning(csound, Str("number of hardware output channels"
                                   " not currently available"));
     }
     else *p->r = *dachans;
     dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
-    if (dachans == NULL) {
+    if (UNLIKELY(dachans == NULL)) {
       csound->Warning(csound, Str("number of hardware input channels"
                                   " not currently available"));
     }

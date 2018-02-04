@@ -60,13 +60,13 @@ typedef struct _DSSI_Program_Descriptor {
         MIDI-style separation of bank LSB and MSB values.  There is no
         restriction on the set of available banks: the numbers do not
         need to be contiguous, there does not need to be a bank 0, etc. */
-    unsigned long Bank;
+    uint64_t Bank;
 
     /** Program number (unique within its bank) for this program.
         There is no restriction on the set of available programs: the
         numbers do not need to be contiguous, there does not need to
         be a program 0, etc. */
-    unsigned long Program;
+    uint64_t Program;
 
     /** Name of the program. */
     const char * Name;
@@ -192,7 +192,7 @@ typedef struct _DSSI_Descriptor {
      * programs as well as their properties.
      */
     const DSSI_Program_Descriptor *(*get_program)(LADSPA_Handle Instance,
-                                                  unsigned long Index);
+                                                  uint64_t Index);
 
     /**
      * select_program()
@@ -216,8 +216,8 @@ typedef struct _DSSI_Descriptor {
      * configure().
      */
     void (*select_program)(LADSPA_Handle Instance,
-                           unsigned long Bank,
-                           unsigned long Program);
+                           uint64_t Bank,
+                           uint64_t Program);
 
     /**
      * get_midi_controller_for_port()
@@ -246,7 +246,7 @@ typedef struct _DSSI_Descriptor {
      * controllers 0 or 32 (MIDI Bank Select MSB and LSB).
      */
     int (*get_midi_controller_for_port)(LADSPA_Handle Instance,
-                                        unsigned long Port);
+                                        uint64_t Port);
 
     /**
      * run_synth()
@@ -296,9 +296,9 @@ typedef struct _DSSI_Descriptor {
      * select controller to a plugin via run_synth.
      */
     void (*run_synth)(LADSPA_Handle    Instance,
-                      unsigned long    SampleCount,
+                      uint64_t    SampleCount,
                       snd_seq_event_t *Events,
-                      unsigned long    EventCount);
+                      uint64_t    EventCount);
 
     /**
      * run_synth_adding()
@@ -310,9 +310,9 @@ typedef struct _DSSI_Descriptor {
      * that does not provide it must set this member to NULL.
      */
     void (*run_synth_adding)(LADSPA_Handle    Instance,
-                             unsigned long    SampleCount,
+                             uint64_t    SampleCount,
                              snd_seq_event_t *Events,
-                             unsigned long    EventCount);
+                             uint64_t    EventCount);
 
     /**
      * run_multiple_synths()
@@ -346,11 +346,11 @@ typedef struct _DSSI_Descriptor {
      * to aid simplistic hosts, even where it would be less efficient
      * to use it.
      */
-    void (*run_multiple_synths)(unsigned long     InstanceCount,
+    void (*run_multiple_synths)(uint64_t     InstanceCount,
                                 LADSPA_Handle    *Instances,
-                                unsigned long     SampleCount,
+                                uint64_t     SampleCount,
                                 snd_seq_event_t **Events,
-                                unsigned long    *EventCounts);
+                                uint64_t    *EventCounts);
 
     /**
      * run_multiple_synths_adding()
@@ -362,11 +362,11 @@ typedef struct _DSSI_Descriptor {
      * run_adding() functions, and is equally optional.  A plugin
      * that does not provide it must set this member to NULL.
      */
-    void (*run_multiple_synths_adding)(unsigned long     InstanceCount,
+    void (*run_multiple_synths_adding)(uint64_t     InstanceCount,
                                        LADSPA_Handle    *Instances,
-                                       unsigned long     SampleCount,
+                                       uint64_t     SampleCount,
                                        snd_seq_event_t **Events,
-                                       unsigned long    *EventCounts);
+                                       uint64_t    *EventCounts);
 } DSSI_Descriptor;
 
 /**
@@ -389,9 +389,9 @@ typedef struct _DSSI_Descriptor {
  *   of a distinct plugin type.
  */
 
-const DSSI_Descriptor *dssi_descriptor(unsigned long Index);
+const DSSI_Descriptor *dssi_descriptor(uint64_t Index);
 
-typedef const DSSI_Descriptor *(*DSSI_Descriptor_Function)(unsigned long Index);
+typedef const DSSI_Descriptor *(*DSSI_Descriptor_Function)(uint64_t Index);
 
 /*
  * Macros to specify particular MIDI controllers in return values from

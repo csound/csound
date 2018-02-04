@@ -45,7 +45,7 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
     if (UNLIKELY((p->loop = MYFLT2LRND(*p->ord)) < 1))
       p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (unsigned int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
+                       (uint32_t)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
       csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
@@ -419,7 +419,7 @@ static int nlalp(CSOUND *csound, NLALP *p)
 static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp;
-    unsigned int     count;
+    uint32_t     count;
     int32   *lphs;
     MYFLT   iphs = *p->iphs;
 
@@ -433,7 +433,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       return csound->InitError(csound, Str("adsynt2: wavetable not found!"));
     }
 
-    count = (unsigned int)*p->icnt;
+    count = (uint32_t)*p->icnt;
     if (UNLIKELY(count < 1)) count = 1;
     p->count = count;
 
@@ -471,7 +471,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     lphs = (int32*)p->lphs.auxp;
 
     if (iphs > 1) {
-      unsigned int c;
+      uint32_t c;
       for (c=0; c<count; c++) {
         lphs[c] = ((int32)
                    ((MYFLT) ((double) (csound->Rand31(&(csound->randSeed1)) - 1)
@@ -479,7 +479,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       }
     }
     else if (iphs >= 0) {
-      unsigned int c;
+      uint32_t c;
       for (c=0; c<count; c++) {
         lphs[c] = ((int32)(iphs * FMAXLEN)) & PHMASK;
       }

@@ -71,7 +71,7 @@ void LADSPAPluginSearch(CSOUND * csound,
    and -1 if not. */
 int getLADSPADefault(CSOUND * csound,
                      const LADSPA_PortRangeHint * psPortRangeHint,
-                     const unsigned long          lSampleRate,
+                     const uint64_t             lSampleRate,
                      LADSPA_Data                * pfResult);
 
 /*****************************************************************************/

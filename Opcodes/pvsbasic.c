@@ -423,7 +423,7 @@ static int pvsdiskinset_S(CSOUND *csound, pvsdiskin *p){
 static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 {
   int overlap = p->fout->overlap, i;
-  unsigned int posi;
+  uint32_t posi;
   double pos = p->pos;
   int32 N = p->fout->N;
   MYFLT frac;
@@ -434,7 +434,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
   float amp = (float) (*p->kgain * csound->e0dbfs);
 
   if (p->scnt >= overlap) {
-    posi = (unsigned int) pos;
+    posi = (uint32_t) pos;
     if (posi != p->oldpos) {
       /*
         read new frame
@@ -446,7 +446,7 @@ static int pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
       while(pos < 0) pos += p->flen;
       csound->PVOC_fseek(csound,p->pvfile, pos);
       (void)csound->PVOC_GetFrames(csound, p->pvfile, buffer, 2*p->chans);
-      p->oldpos = posi = (unsigned int)pos;
+      p->oldpos = posi = (uint32_t)pos;
 
     }
     if (*p->interp) {
@@ -559,7 +559,7 @@ int pvstanalset(CSOUND *csound, PVST *p)
 int pvstanal(CSOUND *csound, PVST *p)
 {
   int hsize = p->fout[0]->overlap, i, k;
-  unsigned int j;
+  uint32_t j;
   uint32_t sizefrs, nchans = p->nchans;
   int32 N = p->fout[0]->N, post, size;
   double frac, spos = p->pos, pos;
@@ -1614,7 +1614,7 @@ static int pvsshiftset(CSOUND *csound, PVSSHIFT *p)
     csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
   if (p->fin->sliding) {
     if (p->fout->frame.auxp==NULL ||
-        CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
+        CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fout->frame.size)
       csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
     else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
   }
@@ -2191,7 +2191,7 @@ static int pvstencilset(CSOUND *csound, PVSTENCIL *p)
   if (p->func == NULL)
     return OK;
 
-  if (UNLIKELY(p->func->flen + 1 < (unsigned int)chans))
+  if (UNLIKELY(p->func->flen + 1 < (uint32_t)chans))
     return csound->InitError(csound, Str("pvstencil: ftable needs to equal "
                                          "the number of bins"));
 

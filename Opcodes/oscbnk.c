@@ -2237,7 +2237,7 @@ static int delaykset(CSOUND *csound, DELAYK *p)
     p->readp = 0; p->npts = npts;
     /* allocate space for delay buffer */
     if (p->aux.auxp == NULL ||
-        (unsigned int)(npts * sizeof(MYFLT)) > p->aux.size) {
+        (uint32_t)(npts * sizeof(MYFLT)) > p->aux.size) {
       csound->AuxAlloc(csound, (int32) (npts * sizeof(MYFLT)), &p->aux);
     }
     p->init_k = npts - 1;
@@ -2278,7 +2278,7 @@ static int vdelaykset(CSOUND *csound, VDELAYK *p)
     p->wrtp = 0; p->npts = npts;
     /* allocate space for delay buffer */
     if (p->aux.auxp == NULL ||
-        (unsigned int)(npts * sizeof(MYFLT)) > p->aux.size) {
+        (uint32_t)(npts * sizeof(MYFLT)) > p->aux.size) {
       csound->AuxAlloc(csound, (int32) (npts * sizeof(MYFLT)), &p->aux);
     }
     p->init_k = npts;           /* not -1 this time ! */

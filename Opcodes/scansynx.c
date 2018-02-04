@@ -317,7 +317,7 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
 #define NMATLENLF (sizeof(NMATRIXLF)-1)
 #define NMATRIXCRLF "</MATRIX>\r\n"
 #define NMATLENCRLF (sizeof(NMATRIXCRLF)-1)
-        unsigned int j;
+        uint32_t j;
         char *pp = mfp->beginp;
         if ((i=strncmp(pp, MATRIXLF, MATLENLF))==0) {
           pp += MATLENLF;
@@ -546,7 +546,7 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
           csound->display(csound, p->win);
       }
       if (p->id<0) { /* Write to ftable */
-        unsigned int i;
+        uint32_t i;
         MYFLT t  = (MYFLT)idx / rate;
         for (i = 0 ; i != p->len ; i++) {
 #if PHASE_INTERP == 3

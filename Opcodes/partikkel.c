@@ -37,15 +37,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* macro used to wrap an index back to start position if it's out of bounds. */
 #define clip_index(index, from, to) \
-    if (index > (unsigned)(to) || index < (unsigned)(from)) \
-        index = (unsigned)(from);
+    if (index > (uint32_t)(to) || index < (uint32_t)(from)) \
+        index = (uint32_t)(from);
 
 /* here follows routines for maintaining a linked list of grains */
 
 /* initialises a linked list of NODEs */
-static void init_pool(GRAINPOOL *s, unsigned max_grains)
+static void init_pool(GRAINPOOL *s, uint32_t max_grains)
 {
-    unsigned i;
+    uint32_t i;
     NODE **p = &s->grainlist;
     NODE *grainpool = (NODE *)s->mempool;
 
@@ -164,11 +164,11 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
  * zscale: 1/(1 << tab->lobits)
  * shift: length of phase register in bits minus length of table in bits
  */
-static inline MYFLT lrplookup(FUNC *tab, unsigned phase, MYFLT zscale,
-                              unsigned shift)
+static inline MYFLT lrplookup(FUNC *tab, uint32_t phase, MYFLT zscale,
+                              uint32_t shift)
 {
-    const unsigned index = phase >> shift;
-    const unsigned mask = (1 << shift) - 1;
+    const uint32_t index = phase >> shift;
+    const uint32_t mask = (1 << shift) - 1;
 
     MYFLT a = tab->ftable[index];
     MYFLT b = tab->ftable[index + 1];
@@ -177,7 +177,7 @@ static inline MYFLT lrplookup(FUNC *tab, unsigned phase, MYFLT zscale,
 }
 
 /* Why not use csound->intpow ? */
-static inline double intpow_(MYFLT x, unsigned n)
+static inline double intpow_(MYFLT x, uint32_t n)
 {
     double ans = 1.0;
 
@@ -192,14 +192,14 @@ static inline double intpow_(MYFLT x, unsigned n)
 
 /* dsf synthesis for trainlets */
 static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
-                        unsigned cosineshift)
+                        uint32_t cosineshift)
 {
     MYFLT numerator, denominator, cos_beta;
     MYFLT lastharmonic, result;
-    unsigned fbeta, N = grain->harmonics;
+    uint32_t fbeta, N = grain->harmonics;
     const MYFLT a = grain->falloff;
     const MYFLT a_pow_N = grain->falloff_pow_N;
-    fbeta = (unsigned)(beta*(double)UINT_MAX);
+    fbeta = (uint32_t)(beta*(double)UINT_MAX);
 
     cos_beta = lrplookup(tab, fbeta, zscale, cosineshift);
     denominator = FL(1.0) - FL(2.0)*a*cos_beta + a*a;
@@ -290,10 +290,10 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     if (UNLIKELY(!p->wavgaintab))
         return INITERROR("unable to load wave gain table");
 
-    p->disttabshift = sizeof(unsigned)*CHAR_BIT -
-                      (unsigned)(log((double)p->disttab->flen)/log(2.0) + 0.5);
-    p->cosineshift = sizeof(unsigned)*CHAR_BIT -
-                     (unsigned)(log((double)p->costab->flen)/log(2.0) + 0.5);
+    p->disttabshift = sizeof(uint32_t)*CHAR_BIT -
+                      (uint32_t)(log((double)p->disttab->flen)/log(2.0) + 0.5);
+    p->cosineshift = sizeof(uint32_t)*CHAR_BIT -
+                     (uint32_t)(log((double)p->costab->flen)/log(2.0) + 0.5);
     p->zscale = FL(1.0)/FL(1 << p->cosineshift);
     p->wavfreqstartindex = p->wavfreqendindex = 0;
     p->gainmaskindex = p->channelmaskindex = 0;
@@ -314,11 +314,11 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
     if (UNLIKELY(*p->max_grains < FL(1.0)))
         return INITERROR("maximum number of grains needs to be non-zero "
                          "and positive");
-    size = ((unsigned)*p->max_grains)*sizeof(NODE);
+    size = ((uint32_t)*p->max_grains)*sizeof(NODE);
     if (p->aux2.auxp == NULL || p->aux2.size < size)
         csound->AuxAlloc(csound, size, &p->aux2);
     p->gpool.mempool = p->aux2.auxp;
-    init_pool(&p->gpool, (unsigned)*p->max_grains);
+    init_pool(&p->gpool, (uint32_t)*p->max_grains);
 
     /* find out which of the xrate parameters are arate */
     p->grainfreq_arate = IS_ASIG_ARG(p->grainfreq) ? 1 : 0;
@@ -336,8 +336,8 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
     MYFLT startfreqscale, endfreqscale;
     MYFLT maskgain, maskchannel;
     GRAIN *grain = &node->grain;
-    unsigned int i;
-    unsigned int chan;
+    uint32_t i;
+    uint32_t chan;
     MYFLT graingain;
     MYFLT *gainmasks = p->gainmasktab->ftable;
     MYFLT *chanmasks = p->channelmasktab->ftable;
@@ -345,7 +345,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
     MYFLT *freqends = p->wavfreqendtab->ftable;
     MYFLT *fmamps = p->fmamptab->ftable;
     MYFLT *wavgains = p->wavgaintab->ftable;
-    unsigned wavgainsindex;
+    uint32_t wavgainsindex;
 
     /* the table boundary limits might well change at any time, so we do the
      * boundary clipping before using it to fetch a value */
@@ -394,18 +394,18 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
     grain->fmenvtab = p->fmenvtab;
 
     /* place a grain in between two channels according to channel mask value */
-    chan = (unsigned)maskchannel;
+    chan = (uint32_t)maskchannel;
     if (UNLIKELY(chan >= p->num_outputs)) {
         return_grain(&p->gpool, node);
         return PERFERROR("channel mask specifies non-existing output channel");
     }
     /* use panning law table if specified */
     if (p->pantab != NULL) {
-        const unsigned tabsize = p->pantab->flen/8;
+        const uint32_t tabsize = p->pantab->flen/8;
         /* offset of pan table for current output pair */
-        const unsigned tab_offset = chan*tabsize;
-        const unsigned offset = (unsigned)((maskchannel - chan)*(tabsize - 1));
-        const unsigned flip_offset = tabsize - 1 - offset;
+        const uint32_t tab_offset = chan*tabsize;
+        const uint32_t offset = (uint32_t)((maskchannel - chan)*(tabsize - 1));
+        const uint32_t flip_offset = tabsize - 1 - offset;
 
         grain->gain1 = p->pantab->ftable[tab_offset + flip_offset];
         grain->gain2 = p->pantab->ftable[tab_offset + offset];
@@ -434,8 +434,8 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
                             ? p->grainphase/p->graininc
                             : 0.0;
     const double rcp_samples = 1.0/dur_samples;
-    grain->start = (unsigned)((double)n + offset*CS_ESR + phase_corr);
-    grain->stop = (unsigned)(grain->start + dur_samples - phase_corr) + 1;
+    grain->start = (uint32_t)((double)n + offset*CS_ESR + phase_corr);
+    grain->stop = (uint32_t)(grain->start + dur_samples - phase_corr) + 1;
     /* set up the four wavetables and dsf to use in the grain */
     for (i = 0; i < 5; ++i) {
         WAVEDATA *curwav = &grain->wav[i];
@@ -467,7 +467,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
             nh = 0.5*CS_ESR/fabs(maxfreq);
             if (nh > fabs(*p->harmonics))
                 nh = fabs(*p->harmonics);
-            grain->harmonics = (unsigned)nh + 1;
+            grain->harmonics = (uint32_t)nh + 1;
             if (grain->harmonics < 2)
                 grain->harmonics = 2;
             grain->falloff = *p->falloff;
@@ -603,7 +603,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
             /* first determine time offset for grain */
             if (*p->distribution >= FL(0.0)) {
                 /* positive distrib, choose random point in table */
-                unsigned rnd = csound->RandMT(&p->randstate);
+                uint32_t rnd = csound->RandMT(&p->randstate);
                 offset = p->disttab->ftable[rnd >> p->disttabshift];
                 offset *= *p->distribution;
             } else {
@@ -662,15 +662,15 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
 /* NOTE: the main synthesis loop is duplicated for both wavetable and
  * trainlet synthesis for speed */
 static inline void render_wave(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
-                               MYFLT *buf, unsigned stop)
+                               MYFLT *buf, uint32_t stop)
 {
-    unsigned n;
+    uint32_t n;
     double fmenvphase = grain->envphase;
 
     /* wavetable synthesis */
     for (n = grain->start; n < stop; ++n) {
         double tablen = (double)wav->table->flen;
-        unsigned x0;
+        uint32_t x0;
         MYFLT frac, fmenv;
 
         /* make sure phase accumulator stays within bounds */
@@ -680,7 +680,7 @@ static inline void render_wave(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
             wav->phase += tablen;
 
         /* sample table lookup with linear interpolation */
-        x0 = (unsigned)wav->phase;
+        x0 = (uint32_t)wav->phase;
         frac = (MYFLT)(wav->phase - x0);
         buf[n] += lrp(wav->table->ftable[x0], wav->table->ftable[x0 + 1],
                       frac)*wav->gain;
@@ -695,9 +695,9 @@ static inline void render_wave(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
 }
 
 static inline void render_trainlet(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
-                                   MYFLT *buf, unsigned stop)
+                                   MYFLT *buf, uint32_t stop)
 {
-    unsigned n;
+    uint32_t n;
     double fmenvphase = grain->envphase;
 
     /* trainlet synthesis */
@@ -726,10 +726,10 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
 {
     IGN(csound);
     int i;
-    unsigned n;
+    uint32_t n;
     MYFLT *out1 = *(&(p->output1) + grain->chan1);
     MYFLT *out2 = *(&(p->output1) + grain->chan2);
-    unsigned stop = grain->stop > CS_KSMPS
+    uint32_t stop = grain->stop > CS_KSMPS
                     ? CS_KSMPS : grain->stop;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
 
@@ -794,7 +794,7 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
 static int partikkel(CSOUND *csound, PARTIKKEL *p)
 {
     int ret;
-    unsigned int n;
+    uint32_t n;
     NODE **nodeptr;
     MYFLT **outputs = &p->output1;
 
@@ -939,22 +939,22 @@ static int partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
 
     switch ((int)*p->index) {
     case 0:
-        partikkel->gainmaskindex = (unsigned)*p->value;
+        partikkel->gainmaskindex = (uint32_t)*p->value;
         break;
     case 1:
-        partikkel->wavfreqstartindex = (unsigned)*p->value;
+        partikkel->wavfreqstartindex = (uint32_t)*p->value;
         break;
     case 2:
-        partikkel->wavfreqendindex = (unsigned)*p->value;
+        partikkel->wavfreqendindex = (uint32_t)*p->value;
         break;
     case 3:
-        partikkel->fmampindex = (unsigned)*p->value;
+        partikkel->fmampindex = (uint32_t)*p->value;
         break;
     case 4:
-        partikkel->channelmaskindex = (unsigned)*p->value;
+        partikkel->channelmaskindex = (uint32_t)*p->value;
         break;
     case 5:
-        partikkel->wavgainindex = (unsigned)*p->value;
+        partikkel->wavgainindex = (uint32_t)*p->value;
         break;
     }
     return OK;
