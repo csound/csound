@@ -170,9 +170,9 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
 
     if (p->o_num != 1) {
       switch (ws->cnum) {                     /* new coordinates   */
-      case 0: X = ws->Xc - X; break;
-      case 1: Y = ws->Xc - Y; break;
-      case 2: Z = ws->Xc - Z; break;
+      /* FALLTHRU */ case 0: X = ws->Xc - X; break;
+      /* FALLTHRU */ case 1: Y = ws->Xc - Y; break;
+      /* FALLTHRU */ case 2: Z = ws->Xc - Z; break;
       }
       if (p->zout < 4) {                      /* convert coord.    */
         d = SPAT3D_XYZ2DIST(X, Y, Z);           /* distance  */
@@ -181,9 +181,9 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
         d = FL(1.0) / (d > p->mdist ? d : p->mdist);
         w = x = y = z = FL(0.0);
         switch (p->zout) {
-        case 3: z =  Z * d; w += z*z; z *= a;   /* Z */
-        case 2: x =  Y * d; w += x*x; x *= a;   /* X */
-        case 1: y = -X * d; w += y*y; y *= a;   /* Y */
+        /* FALLTHRU */ case 3: z =  Z * d; w += z*z; z *= a;   /* Z */
+	  /* FALLTHRU */ /* FALLTHRU */ case 2: x =  Y * d; w += x*x; x *= a;   /* X */
+        /* FALLTHRU */ case 1: y = -X * d; w += y*y; y *= a;   /* Y */
         }
         w = a - FL(0.293) * w * a;                      /* W */
       }
@@ -245,20 +245,20 @@ static int spat3d_init_delay(CSOUND *csound, SPAT3D *p)
     if (p->zout > 2) p->Zb = p->Xb + i;             /* Z */
     for (j = 0; j < i; j++) {
       switch (p->zout) {              /* clear buffers */
-      case 4:
-      case 3: p->Zb[j] = FL(0.0);
-      case 2: p->Xb[j] = FL(0.0);
-      case 1: p->Yb[j] = FL(0.0);
-      case 0: p->Wb[j] = FL(0.0);
+      /* FALLTHRU */ case 4:
+      /* FALLTHRU */ case 3: p->Zb[j] = FL(0.0);
+      /* FALLTHRU */ case 2: p->Xb[j] = FL(0.0);
+      /* FALLTHRU */ case 1: p->Yb[j] = FL(0.0);
+      /* FALLTHRU */ case 0: p->Wb[j] = FL(0.0);
       }
     }
     if (p->o_num == 1) {
       switch (p->zout) {
-      case 4:
-      case 3: (p->Zb)++;      /* spat3d requires 1    */
-      case 2: (p->Xb)++;      /* extra sample before  */
-      case 1: (p->Yb)++;      /* and 3 samples after  */
-      case 0: (p->Wb)++;      /* the delay buffer     */
+      /* FALLTHRU */ case 4:
+      /* FALLTHRU */ case 3: (p->Zb)++;      /* spat3d requires 1    */
+      /* FALLTHRU */ case 2: (p->Xb)++;      /* extra sample before  */
+      /* FALLTHRU */ case 1: (p->Yb)++;      /* and 3 samples after  */
+      /* FALLTHRU */ case 0: (p->Wb)++;      /* the delay buffer     */
       }
     }
     return OK;
@@ -302,10 +302,10 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
 
     xidist = xift = ximode = ximdel = xiovr = xirlen = xioutft = -1;
     switch (p->o_num) {
-    case 1: ximdel = 11; xiovr = 12;                /* spat3d  */
-    case 0: xidist = 8; xift = 9; ximode = 10;      /* spat3di */
+    /* FALLTHRU */ case 1: ximdel = 11; xiovr = 12;                /* spat3d  */
+    /* FALLTHRU */ case 0: xidist = 8; xift = 9; ximode = 10;      /* spat3di */
       break;
-    case 2: xidist = 4; xift = 5; ximode = 6;       /* spat3dt */
+    /* FALLTHRU */ case 2: xidist = 4; xift = 5; ximode = 6;       /* spat3dt */
       xirlen = 7; xioutft = 0;
       break;
     }
@@ -453,9 +453,9 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
     /* calculate coordinates of reflection      */
 
     switch (ws->cnum) {
-    case 0:     X = ws->Xc - X; break;
-    case 1:     Y = ws->Xc - Y; break;
-    case 2:     Z = ws->Xc - Z; break;
+    /* FALLTHRU */ case 0:     X = ws->Xc - X; break;
+    /* FALLTHRU */ case 1:     Y = ws->Xc - Y; break;
+    /* FALLTHRU */ case 2:     Z = ws->Xc - Z; break;
     }
 
     /* convert coordinates */
@@ -467,9 +467,9 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
       d = FL(1.0) / (d > p->mdist ? d : p->mdist);
       w = x = y = z = FL(0.0);
       switch (p->zout) {
-      case 3:   z =  Z * d; w += z*z; z *= a;   /* Z */
-      case 2:   x =  Y * d; w += x*x; x *= a;   /* X */
-      case 1:   y = -X * d; w += y*y; y *= a;   /* Y */
+      /* FALLTHRU */ case 3:   z =  Z * d; w += z*z; z *= a;   /* Z */
+      /* FALLTHRU */ case 2:   x =  Y * d; w += x*x; x *= a;   /* X */
+      /* FALLTHRU */ case 1:   y = -X * d; w += y*y; y *= a;   /* Y */
       }
       w = a - FL(0.293) * w * a;                /* W */
     }
@@ -499,12 +499,12 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
     wd = xd = yd = zd = (MYFLT) d0d;
     a = (MYFLT) p->oversamp;
     switch (p->zout) {
-    case 4:     d1d *= (d1 - D1); D1 -= d1d * 0.5;
+    /* FALLTHRU */ case 4:     d1d *= (d1 - D1); D1 -= d1d * 0.5;
       d = (a + (MYFLT) d1d) / a;        /* correct amplitude */
-    case 3:     zd *= (z - Z0);
-    case 2:     xd *= (x - X0);
-    case 1:     yd *= (y - Y0);
-    case 0:     wd *= (w - W0);
+    /* FALLTHRU */ case 3:     zd *= (z - Z0);
+    /* FALLTHRU */ case 2:     xd *= (x - X0);
+    /* FALLTHRU */ case 1:     yd *= (y - Y0);
+    /* FALLTHRU */ case 0:     wd *= (w - W0);
       d0d *= (d0 - D0); D0 -= d0d * 0.5;
       a = (a + (MYFLT) d0d) / a;
     }
@@ -533,17 +533,17 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
       *(Wb++) += w * W0; *(Wb++) += x * W0;
       *(Wb++) += y * W0; *Wb += z * W0;
       switch (p->zout) {
-      case 3:   Zb = p->Zb + xpos; Z0 += zd;            /* Z */
+      /* FALLTHRU */ case 3:   Zb = p->Zb + xpos; Z0 += zd;            /* Z */
         *(Zb++) += w * Z0; *(Zb++) += x * Z0;
         *(Zb++) += y * Z0; *Zb += z * Z0;
-      case 2:   Xb = p->Xb + xpos; X0 += xd;            /* X */
+      /* FALLTHRU */ case 2:   Xb = p->Xb + xpos; X0 += xd;            /* X */
         *(Xb++) += w * X0; *(Xb++) += x * X0;
         *(Xb++) += y * X0; *Xb += z * X0;
-      case 1:   Yb = p->Yb + xpos; Y0 += yd;            /* Y */
+      /* FALLTHRU */ case 1:   Yb = p->Yb + xpos; Y0 += yd;            /* Y */
         *(Yb++) += w * Y0; *(Yb++) += x * Y0;
         *(Yb++) += y * Y0; *Yb += z * Y0;
-      case 0:   break;
-      case 4:   Xb = p->Xb + xpos; X0 += xd;    /* Lh */
+      /* FALLTHRU */ case 0:   break;
+      /* FALLTHRU */ case 4:   Xb = p->Xb + xpos; X0 += xd;    /* Lh */
         *(Xb++) += w * X0; *(Xb++) += x * X0;
         *(Xb++) += y * X0; *Xb += z * X0;
         xpos = (int32) (D1 += d1d);
@@ -605,27 +605,27 @@ static int    spat3d(CSOUND *csound, SPAT3D *p)
 
     j = p->mdel_s;
     switch (p->zout) {  /* clear extra samples at beginning and */
-    case 4:             /* end of delay line                    */
-    case 3:     *(p->Zb - 1) = p->Zb[j] = p->Zb[j + 1] = p->Zb[j + 2] =
+    /* FALLTHRU */ case 4:             /* end of delay line                    */
+    /* FALLTHRU */ case 3:     *(p->Zb - 1) = p->Zb[j] = p->Zb[j + 1] = p->Zb[j + 2] =
                   FL(0.0);
-    case 2:     *(p->Xb - 1) = p->Xb[j] = p->Xb[j + 1] = p->Xb[j + 2] =
+    /* FALLTHRU */ case 2:     *(p->Xb - 1) = p->Xb[j] = p->Xb[j + 1] = p->Xb[j + 2] =
                   FL(0.0);
-    case 1:     *(p->Yb - 1) = p->Yb[j] = p->Yb[j + 1] = p->Yb[j + 2] =
+    /* FALLTHRU */ case 1:     *(p->Yb - 1) = p->Yb[j] = p->Yb[j + 1] = p->Yb[j + 2] =
                   FL(0.0);
-    case 0:     *(p->Wb - 1) = p->Wb[j] = p->Wb[j + 1] = p->Wb[j + 2] =
+    /* FALLTHRU */ case 0:     *(p->Wb - 1) = p->Wb[j] = p->Wb[j + 1] = p->Wb[j + 2] =
                   FL(0.0);
     }
     spat3d_wall_perf(csound, p, p->args[4], (SPAT3D_WALL *) p->ws.auxp,
                      *(p->args[5]), *(p->args[6]), *(p->args[7]));
     switch (p->zout) {  /* copy extra samples from beginning and */
-    case 4:             /* end of delay line                     */
-    case 3:     p->Zb[j - 1] += *(p->Zb - 1); p->Zb[0] += p->Zb[j];
+    /* FALLTHRU */ case 4:             /* end of delay line                     */
+    /* FALLTHRU */ case 3:     p->Zb[j - 1] += *(p->Zb - 1); p->Zb[0] += p->Zb[j];
       p->Zb[1] += p->Zb[j + 1]; p->Zb[2] += p->Zb[j + 2];
-    case 2:     p->Xb[j - 1] += *(p->Xb - 1); p->Xb[0] += p->Xb[j];
+    /* FALLTHRU */ case 2:     p->Xb[j - 1] += *(p->Xb - 1); p->Xb[0] += p->Xb[j];
       p->Xb[1] += p->Xb[j + 1]; p->Xb[2] += p->Xb[j + 2];
-    case 1:     p->Yb[j - 1] += *(p->Yb - 1); p->Yb[0] += p->Yb[j];
+    /* FALLTHRU */ case 1:     p->Yb[j - 1] += *(p->Yb - 1); p->Yb[0] += p->Yb[j];
       p->Yb[1] += p->Yb[j + 1]; p->Yb[2] += p->Yb[j + 2];
-    case 0:     p->Wb[j - 1] += *(p->Wb - 1); p->Wb[0] += p->Wb[j];
+    /* FALLTHRU */ case 0:     p->Wb[j - 1] += *(p->Wb - 1); p->Wb[0] += p->Wb[j];
       p->Wb[1] += p->Wb[j + 1]; p->Wb[2] += p->Wb[j + 2];
     }
 
@@ -638,21 +638,21 @@ static int    spat3d(CSOUND *csound, SPAT3D *p)
         if (j < 0) j += p->mdel_s;
         if (j >= p->mdel_s) j -= p->mdel_s;
         switch (p->zout) {
-        case 4:
-        case 3: *aoutZ += p->Zb[j] * w;
-        case 2: *aoutX += p->Xb[j] * w;
-        case 1: *aoutY += p->Yb[j] * w;
-        case 0: *aoutW += p->Wb[j] * w;
+        /* FALLTHRU */ case 4:
+        /* FALLTHRU */ case 3: *aoutZ += p->Zb[j] * w;
+        /* FALLTHRU */ case 2: *aoutX += p->Xb[j] * w;
+        /* FALLTHRU */ case 1: *aoutY += p->Yb[j] * w;
+        /* FALLTHRU */ case 0: *aoutW += p->Wb[j] * w;
         }
       }
       j = p->del_p - (p->oversamp << 4); if (j < 0) j += p->mdel_s;
       for (i = 0; i < p->oversamp; i++, j++) {
         switch (p->zout) {
-        case 4:
-        case 3: p->Zb[j] = FL(0.0);
-        case 2: p->Xb[j] = FL(0.0);
-        case 1: p->Yb[j] = FL(0.0);
-        case 0: p->Wb[j] = FL(0.0);
+        /* FALLTHRU */ case 4:
+        /* FALLTHRU */ case 3: p->Zb[j] = FL(0.0);
+        /* FALLTHRU */ case 2: p->Xb[j] = FL(0.0);
+        /* FALLTHRU */ case 1: p->Yb[j] = FL(0.0);
+        /* FALLTHRU */ case 0: p->Wb[j] = FL(0.0);
         }
       }
       aoutW++; aoutX++; aoutY++; aoutZ++;               /* next   */
@@ -682,12 +682,12 @@ static void spat3di_wall_perf(SPAT3D        *p,     /* opcode struct    */
     xpos1 = xpos0; Wb = Xb = Yb = Zb = NULL;
     w = ws->W0; x = ws->X0; y = ws->Y0; z = ws->Z0;
     switch (p->zout) {
-    case 4:     xpos1 = (int32) ws->D1 + p->del_p;
+    /* FALLTHRU */ case 4:     xpos1 = (int32) ws->D1 + p->del_p;
       while (xpos1 >= bs) xpos1 -= bs;
-    case 3:     Zb = p->Zb + xpos1;             /* Z / Rh */
-    case 2:     Xb = p->Xb + xpos0;             /* X / Lh */
-    case 1:     Yb = p->Yb + xpos1;             /* Y / Rl */
-    case 0:     Wb = p->Wb + xpos0;             /* W / Ll */
+    /* FALLTHRU */ case 3:     Zb = p->Zb + xpos1;             /* Z / Rh */
+    /* FALLTHRU */ case 2:     Xb = p->Xb + xpos0;             /* X / Lh */
+    /* FALLTHRU */ case 1:     Yb = p->Yb + xpos1;             /* Y / Rl */
+    /* FALLTHRU */ case 0:     Wb = p->Wb + xpos0;             /* W / Ll */
     }
 
     nn = p->bs; while (nn--) {  /* EQ */
@@ -700,21 +700,21 @@ static void spat3di_wall_perf(SPAT3D        *p,     /* opcode struct    */
       /* write to delay buffer */
 
       switch (p->zout) {
-      case 3:   *(Zb++) += *yn * z;             /* Z */
-      case 2:   *(Xb++) += *yn * x;             /* X */
-      case 1:   *(Yb++) += *yn * y;             /* Y */
-      case 0:   *(Wb++) += *yn * w;             /* W */
+      /* FALLTHRU */ case 3:   *(Zb++) += *yn * z;             /* Z */
+      /* FALLTHRU */ case 2:   *(Xb++) += *yn * x;             /* X */
+      /* FALLTHRU */ case 1:   *(Yb++) += *yn * y;             /* Y */
+      /* FALLTHRU */ case 0:   *(Wb++) += *yn * w;             /* W */
         if (++xpos0 >= bs) {
           xpos0 -= bs;
           switch (p->zout) {
-          case 3:       Zb -= bs;
-          case 2:       Xb -= bs;
-          case 1:       Yb -= bs;
-          case 0:       Wb -= bs;
+          /* FALLTHRU */ case 3:       Zb -= bs;
+          /* FALLTHRU */ case 2:       Xb -= bs;
+          /* FALLTHRU */ case 1:       Yb -= bs;
+          /* FALLTHRU */ case 0:       Wb -= bs;
           }
         }
         break;
-      case 4:   *(Wb++) += *yn * w;             /* Ll */
+      /* FALLTHRU */ case 4:   *(Wb++) += *yn * w;             /* Ll */
         *(Xb++) += *yn * x;                     /* Lh */
         *(Yb++) += *yn * y;                     /* Rl */
         *(Zb++) += *yn * z;                     /* Rh */
@@ -764,14 +764,17 @@ static int    spat3di(CSOUND *csound, SPAT3D *p)
     nn = p->bs;
     do {        /* read from delay line */
       switch (p->zout) {
-      case 4:
-      case 3:   *(a_outZ++) = p->Zb[p->del_p];          /* Z */
+      /* FALLTHRU */ case 4:
+      /* FALLTHRU */ case 3:   *(a_outZ++) = p->Zb[p->del_p];          /* Z */
         p->Zb[p->del_p] = FL(0.0);
-      case 2:   *(a_outX++) = p->Xb[p->del_p];          /* X */
+	/* FALLTHRU */
+      /* FALLTHRU */ case 2:   *(a_outX++) = p->Xb[p->del_p];          /* X */
         p->Xb[p->del_p] = FL(0.0);
-      case 1:   *(a_outY++) = p->Yb[p->del_p];          /* Y */
+	/* FALLTHRU */
+      /* FALLTHRU */ case 1:   *(a_outY++) = p->Yb[p->del_p];          /* Y */
         p->Yb[p->del_p] = FL(0.0);
-      case 0:   *(a_outW++) = p->Wb[p->del_p];          /* W */
+	/* FALLTHRU */
+      /* FALLTHRU */ case 0:   *(a_outW++) = p->Wb[p->del_p];          /* W */
         p->Wb[p->del_p] = FL(0.0);
       }
       /* next sample */

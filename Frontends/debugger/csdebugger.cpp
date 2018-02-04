@@ -76,6 +76,7 @@ int main(int argc, char **argv)
 
 void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+  (void) (csound); (void) (userdata);
     cout << "\nBreakpoint at instr " << bkpt_info->breakpointInstr->p1
          << "\nNumber of k-cycles into performance: "
          << bkpt_info->breakpointInstr->kcounter

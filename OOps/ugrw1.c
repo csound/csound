@@ -1340,7 +1340,7 @@ int inz(CSOUND *csound, IOZ *p)
     uint32_t n, nsmps = CS_KSMPS;
     /* Check to see this index is within the limits of za space.     */
     indx = (int32) *p->ndx;
-    if (UNLIKELY((indx + csound->nchnls) >= csound->zalast)) goto err1;
+    if (UNLIKELY(indx + csound->nchnls >= csound->zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;
     else {
       MYFLT *writeloc;

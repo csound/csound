@@ -43,6 +43,7 @@ typedef struct {
 } PINKER;
 
 #define PINK_BIAS   FL(440.0)
+#define PINK_BIASF  440.f
 
 static int instance_cnt = 0;    /* Is tis thread-safe? */
 
@@ -54,7 +55,7 @@ static int instance_cnt = 0;    /* Is tis thread-safe? */
 #define F(cf,m,shift)   (0.0625f*cf*(2*((m)>>shift&1)-1))
 
 #define FA(n)   F(1.190566f,n,0)+F(0.162580f,n,1)+F(0.002208f,n,2)+ \
-                F(0.025475f,n,3)+F(-0.001522f,n,4)+F(0.007322f,n,5)-PINK_BIAS
+                F(0.025475f,n,3)+F(-0.001522f,n,4)+F(0.007322f,n,5)-PINK_BIASF
 #define FB(n)   F(0.001774f,n,0)+F(0.004529f,n,1)+F(-0.001561f,n,2)+ \
                 F(0.000776f,n,3)+F(-0.000486f,n,4)+F(0.002017f,n,5)
 

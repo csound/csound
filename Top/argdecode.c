@@ -1237,6 +1237,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'I':
             csound->initonly = 1;         /* I-only overrides */
             O->syntaxCheckOnly = 0;       /* --syntax-check-only and implies */
+	    /* FALLTHRU */
           case 'n':
             O->sfwrite = 0;               /* nosound        */
             break;
