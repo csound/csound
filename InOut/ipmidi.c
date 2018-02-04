@@ -87,7 +87,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 
     mreq.imr_multiaddr.s_addr = inet_addr("225.0.0.37");
     mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-    status = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+    status = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq));
 
     if ( status < 0 ) {
 #ifdef WIN32
