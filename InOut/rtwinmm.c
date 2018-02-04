@@ -500,8 +500,8 @@ static void rtclose_(CSOUND *csound)
     }
 }
 
-static void CALLBACK midi_in_handler(HMIDIIN hmin, UINT wMsg, DWORD dwInstance,
-                                     DWORD dwParam1, DWORD dwParam2)
+static void CALLBACK midi_in_handler(HMIDIIN hmin, UINT wMsg, DWORD_PTR dwInstance,
+                                     DWORD_PTR dwParam1, DWORD_PTR dwParam2)
 {
     RTMIDI_MME_GLOBALS  *p = (RTMIDI_MME_GLOBALS*) dwInstance;
     int                 new_pos;
@@ -562,7 +562,7 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     csound->Message(csound, Str("Opening MIDI input device %d (%s)\n"),
                             devnum, &(caps.szPname[0]));
     if (midiInOpen(&(p->inDev), (unsigned int) devnum,
-                            (DWORD) midi_in_handler, (DWORD) p, CALLBACK_FUNCTION)
+                            (DWORD_PTR) midi_in_handler, (DWORD_PTR) p, CALLBACK_FUNCTION)
                  != MMSYSERR_NOERROR) {
       p->inDev = (HMIDIIN) 0;
       csound->ErrorMsg(csound, Str("rtmidi: could not open input device"));
