@@ -555,6 +555,7 @@ extern "C" {
 
     PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
     {
+         IGN(csound);
          return padsynth_gens;
     }
 

@@ -24,6 +24,7 @@
 #include "FLTKKeyboardWidget.hpp"
 
 static void allNotesOff(Fl_Widget *widget, void * v) {
+  IGN(widget);
     FLTKKeyboardWidget *win = (FLTKKeyboardWidget *)v;
     win->keyboard->allNotesOff();
 }

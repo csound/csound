@@ -50,7 +50,7 @@ inline int lsr (int x, int n)
 
 struct Meta
 {
-    void declare (const char* key, const char* value) { }
+  void declare (const char* key, const char* value) { IGN(key); IGN(value); }
 };
 
 class UserInterface
@@ -93,30 +93,30 @@ public:
 
   virtual void addButton(char* label, MYFLT* zone)
   {
-      addZone(zone);
+      IGN(label); addZone(zone);;
   }
   virtual void addToggleButton(char* label, MYFLT* zone)
   {
-      addZone(zone);
+      IGN(label); addZone(zone);;
   }
   virtual void addCheckButton(char* label, MYFLT* zone)
   {
-      addZone(zone);
+      IGN(label); addZone(zone);;
   }
   virtual void addVerticalSlider(char* label, MYFLT* zone, MYFLT init,
                                  MYFLT min, MYFLT max, MYFLT step)
   {
-      addZone(zone);
+    IGN(label); IGN(init); IGN(min); IGN(max); IGN(step); addZone(zone);;
   }
   virtual void addHorizontalSlider(char* label, MYFLT* zone, MYFLT init,
                                    MYFLT min, MYFLT max, MYFLT step)
   {
-      addZone(zone);
+      IGN(label);  IGN(init); IGN(min); IGN(max); IGN(step); addZone(zone);;
   }
   virtual void addNumEntry(char* label, MYFLT* zone, MYFLT init,
                            MYFLT min, MYFLT max, MYFLT step)
   {
-      addZone(zone);
+      IGN(label); IGN(init); IGN(min); IGN(max); IGN(step);  addZone(zone);
   }
   virtual void openFrameBox(char*) {}
   virtual void openTabBox(char*) {}
@@ -231,7 +231,7 @@ class mydsp : public dsp {
 
         virtual int getNumInputs()  { return 0; }
         virtual int getNumOutputs() { return 1; }
-        static  void classInit(int samplingFreq) { }
+  static  void classInit(int sr) {IGN(sr); }
         virtual void instanceInit(int samplingFreq)
         {
             fSamplingFreq = samplingFreq;
@@ -400,6 +400,7 @@ extern "C"
 {
     int fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p)
     {
+        IGN(csound);
         delete p->faust;
         delete p->cs_interface;
         p->faust = 0;
@@ -434,6 +435,7 @@ extern "C"
 #ifndef INIT_STATIC_MODULES
     PUBLIC int csoundModuleCreate(CSOUND *csound)
     {
+        IGN(csound);
         return OK;
     }
 #endif
@@ -459,10 +461,10 @@ extern "C"
     {
         return csoundModuleInit_fractalnoise(csound);
     }
-
-
+  
     PUBLIC int csoundModuleDestroy(CSOUND *csound)
     {
+        IGN(csound);
         return OK;
     }
   #endif
