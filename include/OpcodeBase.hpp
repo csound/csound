@@ -241,6 +241,7 @@ class OpcodeNoteoffBase
 public:
     int init(CSOUND *csound)
     {
+      IGN(csound);
         return NOTOK;
     }
     static int init_(CSOUND *csound, void *opcode)
@@ -253,6 +254,7 @@ public:
     }
     int kontrol(CSOUND *csound)
     {
+        IGN(csound);
         return NOTOK;
     }
     static int kontrol_(CSOUND *csound, void *opcode)
@@ -261,6 +263,7 @@ public:
     }
     int audio(CSOUND *csound)
     {
+        IGN(csound);
         return NOTOK;
     }
     static int audio_(CSOUND *csound, void *opcode)

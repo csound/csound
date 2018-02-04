@@ -306,6 +306,7 @@ void makeWindow(CSOUND *csound, char *name)
 }
 
 void graphs_reset(CSOUND * csound){
+  IGN(csound);
   //if (csound->flgraphGlobals != NULL)
   //  csound->Free(csound, csound->flgraphGlobals);
 }
@@ -496,7 +497,7 @@ extern "C" {
 
   void KillXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
-
+    IGN(csound);
       delete ((Fl_Window*) wdptr->windid);
       wdptr->windid = (uintptr_t) 0;
   }

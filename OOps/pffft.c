@@ -1480,7 +1480,7 @@ static NEVER_INLINE(void) pffft_real_finalize(int Ncvec, const v4sf *in, v4sf *o
   v4sf_union cr, ci, *uout = (v4sf_union*)out;
   v4sf save = in[7], zero=VZERO();
   float xr0, xi0, xr1, xi1, xr2, xi2, xr3, xi3;
-  static const float s = M_SQRT2/2;
+  static const float s = (float) M_SQRT2/2;
 
   cr.v = in[0]; ci.v = in[Ncvec*2-1];
   assert(in != out);
@@ -1572,7 +1572,7 @@ static NEVER_INLINE(void) pffft_real_preprocess(int Ncvec, const v4sf *in, v4sf 
 
   v4sf_union Xr, Xi, *uout = (v4sf_union*)out;
   float cr0, ci0, cr1, ci1, cr2, ci2, cr3, ci3;
-  static const float s = M_SQRT2;
+  static const float s = (float) M_SQRT2;
   assert(in != out);
   for (k=0; k < 4; ++k) {
     Xr.f[k] = ((float*)in)[8*k];

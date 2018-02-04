@@ -246,7 +246,7 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
     p->RoverTwoPi = (float)(p->arate / TWOPI_F);
     p->TwoPioverR = (float)(TWOPI_F / p->arate);
     p->Fexact =  (float)(csound->esr / (MYFLT)N);
-    p->nI = -(halfwinsize / overlap) * overlap; /* input time (in samples) */
+    p->nI = -((int64_t)(halfwinsize / overlap)) * overlap; /* input time (in samples) */
     /*Dd = halfwinsize + p->nI + 1;                     */
     /* in streaming mode, Dd = ovelap all the time */
     p->Ii = 0;
@@ -534,6 +534,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
       default:
         csound->Warning(csound,
                         Str("Unknown window type; replaced by rectangular\n"));
+	/* FALLTHRU */
       case PVS_WIN_RECT:
         memcpy(ff, fw, NB*sizeof(CMPLX));
         /* for (j=0; j<NB; j++) { */
