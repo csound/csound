@@ -167,6 +167,7 @@ abformenc(CSOUND * csound, AMBIC * p) {
       coefficients[14] = (MYFLT)(x * (x2 - 3.0 * y2));
       coefficients[15] = (MYFLT)(y * (3.0 * x2 - y2));
       /* Deliberately no break;. */
+      /* FALLTHRU */
     case 9:
       /* Second order. */
       coefficients[ 4] = (MYFLT)(1.5 * z2 - 0.5);
@@ -175,6 +176,7 @@ abformenc(CSOUND * csound, AMBIC * p) {
       coefficients[ 7] = (MYFLT)(x2 - y2);
       coefficients[ 8] = (MYFLT)(2.0 * x * y);
       /* Deliberately no break;. */
+      /* FALLTHRU */
     case 4:
       /* Zero and first order. */
       coefficients[ 0] = SQRT(FL(0.5));
@@ -244,6 +246,7 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
       coefficients[14] = (MYFLT)(x * (x2 - 3.0 * y2));
       coefficients[15] = (MYFLT)(y * (3.0 * x2 - y2));
       /* Deliberately no break;. */
+      /* FALLTHRU */
     case 9:
       /* Second order. */
       coefficients[ 4] = (MYFLT)(1.5 * z2 - 0.5);
@@ -252,6 +255,7 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
       coefficients[ 7] = (MYFLT)(x2 - y2);
       coefficients[ 8] = (MYFLT)(2.0 * x * y);
       /* Deliberately no break;. */
+      /* FALLTHRU */
     case 4:
       /* Zero and first order. */
       coefficients[ 0] = SQRT(FL(0.5));

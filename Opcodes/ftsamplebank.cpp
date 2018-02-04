@@ -110,6 +110,7 @@ public:
     //init-pass
     int init(CSOUND *csound)
     {
+        IGN(csound);
         *numberOfFiles = 0;
         //loadSamplesToTables(csound, *index, fileNames,
         // (char* )sDirectory->data, *skiptime, *format, *channel);
@@ -404,7 +405,8 @@ extern "C" {
 #ifndef INIT_STATIC_MODULES
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
-      return 0;
+     IGN(csound);
+     return 0;
   }
 
   PUBLIC int csoundModuleInit(CSOUND *csound)
@@ -414,6 +416,7 @@ extern "C" {
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
+    IGN(csound);
       return 0;
   }
   #endif

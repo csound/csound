@@ -982,7 +982,7 @@ template <typename T>
 int plugin(Csound *csound, const char *name, uint32_t thread,
            uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), 0, thread,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thread,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
                           (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
