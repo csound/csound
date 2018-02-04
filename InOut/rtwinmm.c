@@ -561,9 +561,9 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     midiInGetDevCaps((unsigned int) devnum, &caps, sizeof(MIDIINCAPS));
     csound->Message(csound, Str("Opening MIDI input device %d (%s)\n"),
                             devnum, &(caps.szPname[0]));
-    if (UNLIKELY(midiInOpen(&(p->inDev), (unsigned int) devnum,
+    if (midiInOpen(&(p->inDev), (unsigned int) devnum,
                             (DWORD) midi_in_handler, (DWORD) p, CALLBACK_FUNCTION)
-                 != MMSYSERR_NOERROR)) {
+                 != MMSYSERR_NOERROR) {
       p->inDev = (HMIDIIN) 0;
       csound->ErrorMsg(csound, Str("rtmidi: could not open input device"));
       return -1;
