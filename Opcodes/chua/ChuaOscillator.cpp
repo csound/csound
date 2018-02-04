@@ -16,9 +16,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
 */
-// function TimeSeries = chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,dataset_size,step_size)
+// function TimeSeries =
+// chuacc(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,dataset_size,step_size)
 // %0.00945,7.5,2e-007,0.00105,0,-0.00121,1.5e-008,1.76e-005,0,-0.1,0.1,2500,5e-6
-// % Syntax: TimeSeries=chua(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,dataset_size,step_size)
+// % Syntax:
+// TimeSeries=chua(L,R0,C2,G,Ga,Gb,C1,E,x0,y0,z0,dataset_size,step_size)
 // % ______________________________________
 // %
 // % Chua's oscillator is described by a  set  of  three
@@ -117,14 +119,13 @@
 //     d = sys_variables(12);
 //     gnor = a*(x.^3) + b*(x.^2) + c*x + d;
 
-#include <eigen3/Eigen/Dense>
 #include <OpcodeBase.hpp>
 #include <cmath>
+#include <eigen3/Eigen/Dense>
 
 using namespace csound;
 
-class ChuasOscillatorCubic : public OpcodeNoteoffBase<ChuasOscillatorCubic>
-{
+class ChuasOscillatorCubic : public OpcodeNoteoffBase<ChuasOscillatorCubic> {
 public:
   // OUTPUTS
   MYFLT *I3;
@@ -170,9 +171,9 @@ public:
   MYFLT c;
   MYFLT d;
   size_t ksmps;
+
 public:
-  int init(CSOUND *csound)
-  {
+  int init(CSOUND *csound) {
     if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
       csound->RegisterDeinitCallback(csound, this, &noteoff_);
     }
@@ -209,14 +210,13 @@ public:
     d = 0.0;
     ksmps = opds.insdshead->ksmps;
     warn(csound, "ChuasOscillatorCubic::init: L: %f  R0: %f  C2: %f  G: %f"
-         "  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n",
+                 "  C1: %f  V1: %f  V2: %f  I3: %f step: %f\n",
          *L_, *R0_, *C2_, *G_, *C1_, M(1), M(2), M(3), h);
-    warn(csound, "ChuasOscillatorCubic::init: a: %f  b: %f  c: %f  d: %f\n",
-         a, b, c, d);
+    warn(csound, "ChuasOscillatorCubic::init: a: %f  b: %f  c: %f  d: %f\n", a,
+         b, c, d);
     return OK;
   }
-  int noteoff(CSOUND *csound)
-  {
+  int noteoff(CSOUND *csound) {
     warn(csound, "ChuasOscillatorCubic::noteoff\n");
     k1.resize(0);
     k2.resize(0);
@@ -225,28 +225,26 @@ public:
     M.resize(0);
     return OK;
   }
-  static int noteoff_(CSOUND *csound, void *opcode)
-  {
+  static int noteoff_(CSOUND *csound, void *opcode) {
     return ((ChuasOscillatorCubic *)opcode)->noteoff(csound);
   }
-  int kontrol(CSOUND *csound)
-  {
+  int kontrol(CSOUND *csound) {
     // NOTE: MATLAB code goes into eigen3 C++ code pretty straightforwardly,
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
     uint32_t offset = opds.insdshead->ksmps_offset;
-    uint32_t early  = opds.insdshead->ksmps_no_end;
+    uint32_t early = opds.insdshead->ksmps_no_end;
     uint32_t nsmps = opds.insdshead->ksmps;
     if (UNLIKELY(offset)) {
-      memset(I3, '\0', offset*sizeof(MYFLT));
-      memset(V1, '\0', offset*sizeof(MYFLT));
-      memset(V2, '\0', offset*sizeof(MYFLT));
+      memset(I3, '\0', offset * sizeof(MYFLT));
+      memset(V1, '\0', offset * sizeof(MYFLT));
+      memset(V2, '\0', offset * sizeof(MYFLT));
     }
     if (UNLIKELY(early)) {
-      memset(&I3[nsmps-early], '\0', early*sizeof(MYFLT));
-      memset(&V1[nsmps-early], '\0', early*sizeof(MYFLT));
-      memset(&V2[nsmps-early], '\0', early*sizeof(MYFLT));
+      memset(&I3[nsmps - early], '\0', early * sizeof(MYFLT));
+      memset(&V1[nsmps - early], '\0', early * sizeof(MYFLT));
+      memset(&V2[nsmps - early], '\0', early * sizeof(MYFLT));
     }
     MYFLT &L = *L_;
     MYFLT &R0 = *R0_;
@@ -255,7 +253,7 @@ public:
     MYFLT &C1 = *C1_;
     // Recompute Runge-Kutta step sizes if necessary.
     if (h != *step_size_) {
-       // h = step_size; %*(G/C2);
+      // h = step_size; %*(G/C2);
       h = *step_size_;
       // h2 = (h)*(.5);
       h2 = h / 2.0;
@@ -273,31 +271,43 @@ public:
       // std::printf("%4d  V1: %f  V2: %f  I3: %f\n", i, V1[i], V2[i], I3[i]);
       // Runge Kutta
       // Round One
-      k1(1) = (G*(M(2) - M(1)) - gnor(M(1)))/C1;
-      k1(2) = (G*(M(1) - M(2)) + M(3))/C2;
-      k1(3) = (-1.0*(M(2) + R0*M(3)))/L;
+      k1(1) = (G * (M(2) - M(1)) - gnor(M(1))) / C1;
+      k1(2) = (G * (M(1) - M(2)) + M(3)) / C2;
+      k1(3) = (-1.0 * (M(2) + R0 * M(3))) / L;
       // Round Two
-      k2(1) = (G*(M(2) + h2*k1(2) - (M(1) + h2*k1(1))) - gnor(M(1) + h2*k1(1)))/C1;
-      k2(2) = (G*(M(1) + h2*k1(1) - (M(2) + h2*k1(2))) + M(3) + h2*k1(3))/C2;
-      k2(3) = (- (M(2) + h2*k1(2) + R0*(M(3) + h2*k1(3))))/L;
+      k2(1) = (G * (M(2) + h2 * k1(2) - (M(1) + h2 * k1(1))) -
+               gnor(M(1) + h2 * k1(1))) /
+              C1;
+      k2(2) =
+          (G * (M(1) + h2 * k1(1) - (M(2) + h2 * k1(2))) + M(3) + h2 * k1(3)) /
+          C2;
+      k2(3) = (-(M(2) + h2 * k1(2) + R0 * (M(3) + h2 * k1(3)))) / L;
       // Round Three
-      k3(1) = (G*(M(2) + h2*k2(2) - (M(1) + h2*k2(1))) - gnor(M(1) + h2*k2(1)))/C1;
-      k3(2) = (G*(M(1) + h2*k2(1) - (M(2) + h2*k2(2))) + M(3) + h2*k2(3))/C2;
-      k3(3) = (- (M(2) + h2*k2(2) + R0*(M(3) + h2*k2(3))))/L;
+      k3(1) = (G * (M(2) + h2 * k2(2) - (M(1) + h2 * k2(1))) -
+               gnor(M(1) + h2 * k2(1))) /
+              C1;
+      k3(2) =
+          (G * (M(1) + h2 * k2(1) - (M(2) + h2 * k2(2))) + M(3) + h2 * k2(3)) /
+          C2;
+      k3(3) = (-(M(2) + h2 * k2(2) + R0 * (M(3) + h2 * k2(3)))) / L;
       // Round Four
-      k4(1) = (G*(M(2) + h*k3(2) - (M(1) + h*k3(1))) - gnor(M(1) + h*k3(1)))/C1;
-      k4(2) = (G*(M(1) + h*k3(1) - (M(2) + h*k3(2))) + M(3) + h*k3(3))/C2;
-      k4(3) = (- (M(2) + h*k3(2) + R0*(M(3) + h*k3(3))))/L;
+      k4(1) = (G * (M(2) + h * k3(2) - (M(1) + h * k3(1))) -
+               gnor(M(1) + h * k3(1))) /
+              C1;
+      k4(2) =
+          (G * (M(1) + h * k3(1) - (M(2) + h * k3(2))) + M(3) + h * k3(3)) / C2;
+      k4(3) = (-(M(2) + h * k3(2) + R0 * (M(3) + h * k3(3)))) / L;
       // Finishes integration and assigns values to M
-      M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
+      M = M + (k1 + 2 * k2 + 2 * k3 + k4) * (h6);
     }
     return OK;
   }
-  MYFLT gnor(MYFLT x)
-  {   // Odd to use std::pow here for integer powers when there is intpow function
-      return (a * std::pow(x, FL(3.0))) + (b * std::pow(x, FL(2.0))) + (c * x) + d;
+  MYFLT gnor(MYFLT x) { // Odd to use std::pow here for integer powers when
+                        // there is intpow function
+    return (a * std::pow(x, FL(3.0))) + (b * std::pow(x, FL(2.0))) + (c * x) +
+           d;
   }
- };
+};
 
 // %%%%%%%%%%%%%%%%%%%%%%
 // % SubFunction (James)%
@@ -352,7 +362,8 @@ public:
 //     % Runge Kutta
 //     % Round One
 //     k1(1) = alpha*(M(2) - bnorplus1*M(1) - (.5)*(anor - bnor)*(abs(M(1) + 1)
-//                                                              - abs(M(1) - 1)));
+//                                                              - abs(M(1) -
+//                                                              1)));
 //     k1(2) = M(1) - M(2) + M(3);
 //     k1(3) = -beta*M(2) - gammaloc*M(3);
 //     % Round Two
@@ -380,8 +391,8 @@ public:
 //     i=i+1;
 // end
 
-class ChuasOscillatorPiecewise : public OpcodeNoteoffBase<ChuasOscillatorPiecewise>
-{
+class ChuasOscillatorPiecewise
+    : public OpcodeNoteoffBase<ChuasOscillatorPiecewise> {
 public:
   // OUTPUTS
   MYFLT *I3;
@@ -434,8 +445,7 @@ public:
   MYFLT omch2;
   MYFLT temp;
   size_t ksmps;
-  int init(CSOUND *csound)
-  {
+  int init(CSOUND *csound) {
     if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
       csound->RegisterDeinitCallback(csound, this, &noteoff_);
     }
@@ -460,14 +470,13 @@ public:
     M(3) = *I3_ / (*E_ * *G_);
     ksmps = opds.insdshead->ksmps;
     warn(csound, "ChuasOscillatorPiecewise::init: L: %f  R0: %f  C2: %f  G: "
-         "%f  Ga: %f  Gb: %f  E: %f  C1: %f  iI3: %f  iV2:"
-         " %f  iV1: %f step: %f\n",
-         *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_,
-        *I3_, *V2_, *V1_, step_size);
+                 "%f  Ga: %f  Gb: %f  E: %f  C1: %f  iI3: %f  iV2:"
+                 " %f  iV1: %f step: %f\n",
+         *L_, *R0_, *C2_, *G_, *Ga_, *Gb_, *E_, *C1_, *I3_, *V2_, *V1_,
+         step_size);
     return OK;
   }
-  int noteoff(CSOUND *csound)
-  {
+  int noteoff(CSOUND *csound) {
     warn(csound, "ChuasOscillatorPiecewise::noteoff\n");
     k1.resize(0);
     k2.resize(0);
@@ -476,28 +485,26 @@ public:
     M.resize(0);
     return OK;
   }
-  static int noteoff_(CSOUND *csound, void *opcode)
-  {
+  static int noteoff_(CSOUND *csound, void *opcode) {
     return ((ChuasOscillatorPiecewise *)opcode)->noteoff(csound);
   }
- int kontrol(CSOUND *csound)
-  {
+  int kontrol(CSOUND *csound) {
     // NOTE: MATLAB code goes into eigen3 C++ code pretty straightforwardly,
     // probaby by design. This is very handy and should prevent mistakes.
     // Start with aliases for the Csound inputs, in order
     // to preserve the clarity of the original code.
     uint32_t offset = opds.insdshead->ksmps_offset;
-    uint32_t early  = opds.insdshead->ksmps_no_end;
+    uint32_t early = opds.insdshead->ksmps_no_end;
     if (UNLIKELY(offset)) {
-      memset(I3, '\0', offset*sizeof(MYFLT));
-      memset(V1, '\0', offset*sizeof(MYFLT));
-      memset(V2, '\0', offset*sizeof(MYFLT));
+      memset(I3, '\0', offset * sizeof(MYFLT));
+      memset(V1, '\0', offset * sizeof(MYFLT));
+      memset(V2, '\0', offset * sizeof(MYFLT));
     }
     if (UNLIKELY(early)) {
       ksmps -= early;
-      memset(&I3[ksmps], '\0', early*sizeof(MYFLT));
-      memset(&V1[ksmps], '\0', early*sizeof(MYFLT));
-      memset(&V2[ksmps], '\0', early*sizeof(MYFLT));
+      memset(&I3[ksmps], '\0', early * sizeof(MYFLT));
+      memset(&V1[ksmps], '\0', early * sizeof(MYFLT));
+      memset(&V2[ksmps], '\0', early * sizeof(MYFLT));
     }
     MYFLT &L = *L_;
     MYFLT &R0 = *R0_;
@@ -538,32 +545,32 @@ public:
     ch2 = gammaloc * h2;
     // omch2 = 1 - ch2;
     omch2 = 1.0 - ch2;
-     // Standard 4th-order Runge-Kutta integration.
+    // Standard 4th-order Runge-Kutta integration.
     for (size_t i = offset; i < ksmps; i++) {
       // Stage 1.
-      k1(1) = alpha*(M(2) - bnorplus1*M(1) -
-                     (.5)*(anor - bnor)*(abs(M(1) + 1) - abs(M(1) - 1)));
+      k1(1) = alpha * (M(2) - bnorplus1 * M(1) -
+                       (.5) * (anor - bnor) * (abs(M(1) + 1) - abs(M(1) - 1)));
       k1(2) = M(1) - M(2) + M(3);
-      k1(3) = -beta*M(2) - gammaloc*M(3);
+      k1(3) = -beta * M(2) - gammaloc * M(3);
       // Stage 2.
-      temp = M(1) + h2*k1(1);
-      k2(1) = alpha*(M(2) + h2*k1(2) - bnorplus1*temp -
-                     (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
-      k2(2) = k1(2) + h2*(k1(1) - k1(2) + k1(3));
-      k2(3) = omch2*k1(3) - bh2*k1(2);
+      temp = M(1) + h2 * k1(1);
+      k2(1) = alpha * (M(2) + h2 * k1(2) - bnorplus1 * temp -
+                       (.5) * (anor - bnor) * (abs(temp + 1) - abs(temp - 1)));
+      k2(2) = k1(2) + h2 * (k1(1) - k1(2) + k1(3));
+      k2(3) = omch2 * k1(3) - bh2 * k1(2);
       // Stage 3.
-      temp = M(1) + h2*k2(1);
-      k3(1) = alpha*(M(2) + h2*k2(2) - bnorplus1*temp -
-                     (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
-      k3(2) = k1(2) + h2*(k2(1) - k2(2) + k2(3));
-      k3(3) = k1(3) - bh2*k2(2) - ch2*k2(3);
+      temp = M(1) + h2 * k2(1);
+      k3(1) = alpha * (M(2) + h2 * k2(2) - bnorplus1 * temp -
+                       (.5) * (anor - bnor) * (abs(temp + 1) - abs(temp - 1)));
+      k3(2) = k1(2) + h2 * (k2(1) - k2(2) + k2(3));
+      k3(3) = k1(3) - bh2 * k2(2) - ch2 * k2(3);
       // Stage 4.
-      temp = M(1) + h*k3(1);
-      k4(1) = alpha*(M(2) + h*k3(2) - bnorplus1*temp -
-                     (.5)*(anor - bnor)*(abs(temp + 1) - abs(temp - 1)));
-      k4(2) = k1(2) + h*(k3(1) - k3(2) + k3(3));
-      k4(3) = k1(3) - bh*k3(2) - ch*k3(3);
-      M = M + (k1 + 2*k2 + 2*k3 + k4)*(h6);
+      temp = M(1) + h * k3(1);
+      k4(1) = alpha * (M(2) + h * k3(2) - bnorplus1 * temp -
+                       (.5) * (anor - bnor) * (abs(temp + 1) - abs(temp - 1)));
+      k4(2) = k1(2) + h * (k3(1) - k3(2) + k3(3));
+      k4(3) = k1(3) - bh * k3(2) - ch * k3(3);
+      M = M + (k1 + 2 * k2 + 2 * k3 + k4) * (h6);
       // TimeSeries(3,i+1) = E*M(1);
       V1[i] = E * M(1);
       // TimeSeries(2,i+1) = E*M(2);
@@ -576,74 +583,51 @@ public:
   }
 };
 
-extern "C"
-{
-  OENTRY oentries[] =
+extern "C" {
+OENTRY oentries[] = {
+    //       {
+    //         (char*)"chuac",
+    //         sizeof(ChuasOscillatorCubic),
+    //         0,
+    //         5,
+    //    // kL,       kR0,  kC2,     kG,       kC1,       iI3, iV2,   iV1,
+    //    kstep_size
+    //    // 0.00945,  7.5,  2e-007,  0.00105,  1.5e-008,  0,   -0.1,  0.1, 5e-6
+    //         (char*)"aaa",
+    //         (char*)"kkkkkiiik",
+    //         (SUBR) ChuasOscillatorCubic::init_,
+    //         0,
+    //         (SUBR) ChuasOscillatorCubic::kontrol_,
+    //       },
     {
-//       {
-//         (char*)"chuac",
-//         sizeof(ChuasOscillatorCubic),
-//         0,
-//         5,
-//    // kL,       kR0,  kC2,     kG,       kC1,       iI3, iV2,   iV1,  kstep_size
-//    // 0.00945,  7.5,  2e-007,  0.00105,  1.5e-008,  0,   -0.1,  0.1,  5e-6
-//         (char*)"aaa",
-//         (char*)"kkkkkiiik",
-//         (SUBR) ChuasOscillatorCubic::init_,
-//         0,
-//         (SUBR) ChuasOscillatorCubic::kontrol_,
-//       },
-      {
-        (char*)"chuap",
-        sizeof(ChuasOscillatorPiecewise),
-        0,
-        5,
+        (char *)"chuap", sizeof(ChuasOscillatorPiecewise), 0, 5,
         // kL,       kR0,  kC2,     kG,       kGa, kGb,       kE,         kC1,
         //                  iI3, iV2,   iV1,  kstep_size
-        // 0.00945,  7.5,  2e-007,  0.00105,  0,   -0.00121,  1.76e-005,  1.5e-008,
+        // 0.00945,  7.5,  2e-007,  0.00105,  0,   -0.00121,  1.76e-005,
+        // 1.5e-008,
         //                   0,   -0.1,  0.1,  5e-6
-        (char*)"aaa",
-        (char*)"kkkkkkkkiiik",
-        (SUBR) ChuasOscillatorPiecewise::init_,
-        0,
-        (SUBR) ChuasOscillatorPiecewise::kontrol_,
-      },
-      {
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-      }
-    };
+        (char *)"aaa", (char *)"kkkkkkkkiiik",
+        (SUBR)ChuasOscillatorPiecewise::init_, 0,
+        (SUBR)ChuasOscillatorPiecewise::kontrol_,
+    },
+    {
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+    }};
 
-  PUBLIC int csoundModuleCreate(CSOUND *csound)
-  {
-    return 0;
-  }
+PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
 
-  PUBLIC int csoundModuleInit(CSOUND *csound)
-  {
-    int status = 0;
-    for(OENTRY *oentry = &oentries[0]; oentry->opname; oentry++)
-      {
-        status |= csound->AppendOpcode(csound, oentry->opname,
-                                       oentry->dsblksiz, oentry->flags,
-                                       oentry->thread,
-                                       oentry->outypes, oentry->intypes,
-                                       (int (*)(CSOUND*,void*)) oentry->iopadr,
-                                       (int (*)(CSOUND*,void*)) oentry->kopadr,
-                                       (int (*)(CSOUND*,void*)) oentry->aopadr);
-      }
-    return status;
+PUBLIC int csoundModuleInit(CSOUND *csound) {
+  int status = 0;
+  for (OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) {
+    status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
+                                   oentry->flags, oentry->thread,
+                                   oentry->outypes, oentry->intypes,
+                                   (int (*)(CSOUND *, void *))oentry->iopadr,
+                                   (int (*)(CSOUND *, void *))oentry->kopadr,
+                                   (int (*)(CSOUND *, void *))oentry->aopadr);
   }
+  return status;
+}
 
-  PUBLIC int csoundModuleDestroy(CSOUND *csound)
-  {
-    return 0;
-  }
+PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
 }
