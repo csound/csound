@@ -96,7 +96,7 @@ class VSTPlugin {
   char productName[64];
   char vendorName[64];
   char libraryName[0x100];
-  unsigned long pluginVersion;
+  uint64_t pluginVersion;
   bool pluginIsSynth;
   std::vector<float *> inputs;
   std::vector<float *> outputs;
@@ -134,7 +134,7 @@ class VSTPlugin {
   virtual int getNumInputs(void);
   virtual int getNumOutputs(void);
   virtual char* GetName(void);
-  virtual unsigned long GetVersion();
+  virtual uint64_t GetVersion();
   virtual char* GetVendorName(void);
   virtual char* GetDllName(void);
   virtual long NumParameters(void);

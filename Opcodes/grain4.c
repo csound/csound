@@ -236,7 +236,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
       ftp->flen = tmplong2;
     }
 
-    if (p->gend > (int) ftp->flen) {
+    if (UNLIKELY(p->gend > (int) ftp->flen)) {
       return csound->InitError(csound, Str("granule_set: Illegal combination "
                                            "of igskip and ilength"));
     }
@@ -255,7 +255,7 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
                                   "%f Sec, kgsize is %f Sec\n"),
                       *p->ilength, *p->kgsize);
 
-    p->clock = 0;               /* init clock */
+    //p->clock = 0;               /* init clock */
     return OK;
 } /* end grainsetv4(p) */
 
@@ -292,10 +292,10 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
    /* Recover audio output pointer... */
    ar   = p->ar;
    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
+   if (UNLIKELY(early)) {
+     nsmps -= early;
+     memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+   }
    /* *** Start the loop .... *** */
    for (n=offset; n<nsmps; n++) {
                                 /* Optimisations */
@@ -397,24 +397,24 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 
          if (*p->imode == 0) {
            *mode = (grand(p) < 0) ? -1 : 1;
-	 }
+         }
 
-           if (*p->ipshift == 0) {
-             tmpfloat1 = grand(p);
-             *pshift = (tmpfloat1 < FL(0.0)) ?
-               (tmpfloat1*FL(0.5))+FL(1.0) : tmpfloat1+FL(1.0);
-           }
+         if (*p->ipshift == 0) {
+           tmpfloat1 = grand(p);
+           *pshift = (tmpfloat1 < FL(0.0)) ?
+             (tmpfloat1*FL(0.5))+FL(1.0) : tmpfloat1+FL(1.0);
+         }
 
-           *gap = (int32)(*p->kgap * CS_ESR);
-           if (*p->igap_os != 0) {
-             *gap += (int32)((*gap * p->gap_os) * grand(p));
-           }
+         *gap = (int32)(*p->kgap * CS_ESR);
+         if (*p->igap_os != 0) {
+           *gap += (int32)((*gap * p->gap_os) * grand(p));
+         }
 
-           *gsize = (int32)(*p->kgsize * CS_ESR * *pshift);
-           if (*p->igsize_os != 0)
-             *gsize += (int32)((*gsize * p->gsize_os) * grand(p));
+         *gsize = (int32)(*p->kgsize * CS_ESR * *pshift);
+         if (*p->igsize_os != 0)
+           *gsize += (int32)((*gsize * p->gsize_os) * grand(p));
 
-           *stretch = *gsize + *gap;
+         *stretch = *gsize + *gap;
 
        }
        fpnt++; cnt++; gskip++; gap++; gsize++;

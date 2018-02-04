@@ -615,7 +615,7 @@ int scratchwrite(CSOUND *csound, SCRATCHPAD *p)
 int adsyntset(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp;
-    unsigned int     count;
+    uint32_t     count;
     int32   *lphs;
 
     p->inerr = 0;
@@ -628,7 +628,7 @@ int adsyntset(CSOUND *csound, ADSYNT *p)
       return csound->InitError(csound, Str("adsynt: wavetable not found!"));
     }
 
-    count = (unsigned int)*p->icnt;
+    count = (uint32_t)*p->icnt;
     if (UNLIKELY(count < 1))
       count = 1;
     p->count = count;
@@ -1637,7 +1637,7 @@ int clip(CSOUND *csound, CLIP *p)
 
 int impulse_set(CSOUND *csound, IMPULSE *p)
 {
-    p->next = (unsigned int)MYFLT2LONG(*p->offset * CS_ESR);
+    p->next = (uint32_t)MYFLT2LONG(*p->offset * CS_ESR);
     return OK;
 }
 
@@ -1692,7 +1692,7 @@ int trnset(CSOUND *csound, TRANSEG *p)
       return csound->InitError(csound, Str("Incorrect argument count in transeg"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
-        (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
+        (uint32_t)p->auxch.size < nsegs*sizeof(NSEG)) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(NSEG), &p->auxch);
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
     }
@@ -1744,7 +1744,7 @@ int trnset_bkpt(CSOUND *csound, TRANSEG *p)
       return csound->InitError(csound, Str("Incorrect argument count in transegb"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
-        (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
+        (uint32_t)p->auxch.size < nsegs*sizeof(NSEG)) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(NSEG), &p->auxch);
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
     }
@@ -1890,7 +1890,7 @@ int trnsetr(CSOUND *csound, TRANSEG *p)
       return csound->InitError(csound, Str("Incorrect argument count in transegr"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
-        (unsigned int)p->auxch.size < nsegs*sizeof(NSEG)) {
+        (uint32_t)p->auxch.size < nsegs*sizeof(NSEG)) {
       csound->AuxAlloc(csound, (int32)nsegs*sizeof(NSEG), &p->auxch);
       p->cursegp = segp = (NSEG *) p->auxch.auxp;
     }

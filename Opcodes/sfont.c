@@ -2088,7 +2088,7 @@ static void fill_SfPointers(CSOUND *csound)
 /*         csound->Message(csound, "**chkid %p %p\n", */
 /*                                 (void*) chkid, (void*) (*((DWORD *) chkp))); */
 /*         csound->Message(csound, ":Looking at %.4s (%u)\n", */
-/*                                 (char*) &chkid, (unsigned int) size); */
+/*                                 (char*) &chkid, (uint32_t) size); */
 /* #endif */
         if (chkid == s2d("INFO")) {
           chkp += size;
@@ -2191,7 +2191,7 @@ static void fill_SfPointers(CSOUND *csound)
             else {
 /* #ifdef BETA */
 /*               csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
-/*                                       (char*) &chkid, (unsigned int) chkid); */
+/*                                       (char*) &chkid, (uint32_t) chkid); */
 /* #endif */
               shdrChunk = (CHUNK *) chkp;
               chkp += shdrChunk->ckSize+8;
@@ -2202,7 +2202,7 @@ static void fill_SfPointers(CSOUND *csound)
         else {
 /* #ifdef BETA */
 /*           csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
-/*                                   (char*) &chkid, (unsigned int) chkid); */
+/*                                   (char*) &chkid, (uint32_t) chkid); */
 /* #endif */
           shdrChunk = (CHUNK *) chkp;
           chkp += shdrChunk->ckSize+8;
@@ -2212,7 +2212,7 @@ static void fill_SfPointers(CSOUND *csound)
       else {
 /* #ifdef BETA */
 /*         csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
-/*                                 (char*) &chkid, (unsigned int) chkid); */
+/*                                 (char*) &chkid, (uint32_t) chkid); */
 /* #endif */
         shdrChunk = (CHUNK *) chkp;
         chkp += shdrChunk->ckSize+8;

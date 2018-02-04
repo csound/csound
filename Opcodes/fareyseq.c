@@ -491,7 +491,7 @@ int tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
 {
     time_t now;
-    unsigned int seed = (unsigned int) time (&now);
+    uint32_t seed = (uint32_t) time (&now);
 
     MYFLT *bases;       /* Base address of the source table.*/
     MYFLT *temp;

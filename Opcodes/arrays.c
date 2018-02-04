@@ -1784,7 +1784,7 @@ int tablength(CSOUND *csound, TABQUERY1 *p)
 typedef struct {
   OPDS h;
   ARRAYDAT *tabin;
-  unsigned int    len;
+  uint32_t    len;
 } OUTA;
 
 
@@ -1801,8 +1801,8 @@ static int outa_set(CSOUND *csound, OUTA *p)
 
 static int outa(CSOUND *csound, OUTA *p)
 {
-    unsigned int n, nsmps = CS_KSMPS, nchns = csound->GetNchnls(csound);
-    unsigned int l, pl = p->len;
+    uint32_t n, nsmps = CS_KSMPS, nchns = csound->GetNchnls(csound);
+    uint32_t l, pl = p->len;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;
@@ -1930,7 +1930,7 @@ typedef struct _fft {
 } FFT;
 
 
-static unsigned int isPowerOfTwo (unsigned int x) {
+static uint32_t isPowerOfTwo (uint32_t x) {
   return x != 0  ? !(x & (x - 1)) : 0;
 }
 

@@ -784,7 +784,7 @@ void HDF5Read_readData(CSOUND *csound, HDF5Read *self, HDF5Dataset *dataset,
                        hsize_t *offset, hsize_t *chunkDimensions,
                        MYFLT *dataPointer)
 {
-    unsigned long kCount = csound->GetKcounter(csound);
+    uint64_t kCount = csound->GetKcounter(csound);
 
     if (kCount > dataset->datasetSize[0]) {
 

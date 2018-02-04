@@ -151,7 +151,7 @@ int pvbufread(CSOUND *csound, PVBUFREAD *p)
 /************************************************************/
 int pvinterpset_(CSOUND *csound, PVINTERP *p, int stringname)
 {
-    unsigned int      i;
+    uint32_t i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
     int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */

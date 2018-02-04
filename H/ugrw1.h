@@ -348,6 +348,7 @@ int peaka(CSOUND*,PEAK *p);
 int peakk(CSOUND*,PEAK *p);
 int printk(CSOUND*,PRINTK *p);
 int printk2(CSOUND*,PRINTK2 *p);
+int printk4(CSOUND*,PRINTK2 *p);
 int printk2set(CSOUND*,PRINTK2 *p);
 int printks(CSOUND*,PRINTKS *p);
 int printkset(CSOUND*,PRINTK *p);

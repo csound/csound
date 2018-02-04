@@ -119,7 +119,7 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
     FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
     uint32_t i = 0;
-    unsigned int size;
+    uint32_t size;
 
     if (ftp == NULL)
       return csound->InitError(csound, Str("paulstretch: table not found"));

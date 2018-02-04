@@ -169,7 +169,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     /* initialise buffer */
     mp3dec_seek(mpa,0, MP3DEC_SEEK_SAMPLES);
     p->bufSize = buffersize;
-    if (p->auxch.auxp == NULL || p->auxch.size < (unsigned int)buffersize)
+    if (p->auxch.auxp == NULL || p->auxch.size < (uint32_t)buffersize)
       csound->AuxAlloc(csound, buffersize, &p->auxch);
     p->buf = (uint8_t *) p->auxch.auxp;
     p->bufused = -1;
@@ -370,8 +370,8 @@ static int sinit(CSOUND *csound, DATASPACE *p)
 {
 
     int N =  *p->iN, ui;
-    unsigned int i;
-    unsigned int size;
+    uint32_t i;
+    uint32_t size;
     int decim = *p->idecim;
     /*double dtime;
       struct timespec ts;
@@ -437,7 +437,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
 
 static int sinit3_(CSOUND *csound, DATASPACE *p)
 {
-    unsigned int size;
+    uint32_t size;
     char *name;
     // open file
     int fd;
@@ -880,7 +880,7 @@ typedef struct _mp3scal2_ {
   int error;
   MYFLT orsr;
   char lock;
-  unsigned long end;
+  uint64_t end;
 } MP3SCAL2;
 
 typedef struct _loader {
@@ -947,8 +947,8 @@ static int meminit(CSOUND *csound, LOADER *pp)
 
   MP3SCAL2 *p = &(pp->p);
   int N =  *pp->iN, ui;
-  unsigned int i;
-  unsigned int size;
+  uint32_t i;
+  uint32_t size;
   int decim = *pp->idecim;
   p->N = N;
   p->error = 0;
@@ -1028,7 +1028,7 @@ void decode_seek(CSOUND *csound, mp3dec_t mpa, int skip){
 static int filinit(CSOUND *csound, LOADER *pp)
 {
   MP3SCAL2 *p = &(pp->p);
-  unsigned int size;
+  uint32_t size;
   char *name;
   // open file
   int fd;
@@ -1884,8 +1884,8 @@ static int meminit2(CSOUND *csound, LOADER *pp)
 
   MP3SCAL2 *p = &(pp->p);
   int N =  *pp->iN, ui;
-  unsigned int i;
-  unsigned int size;
+  uint32_t i;
+  uint32_t size;
   int decim = *pp->idecim;
   p->N = N;
   p->error = 0;
@@ -1945,7 +1945,7 @@ static int meminit2(CSOUND *csound, LOADER *pp)
 static int filinit2(CSOUND *csound, LOADER *pp)
 {
   MP3SCAL2 *p = &(pp->p);
-  unsigned int size;
+  uint32_t size;
   char *name;
   // open file
   int fd;

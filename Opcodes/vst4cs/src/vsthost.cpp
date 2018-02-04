@@ -923,7 +923,7 @@ char* VSTPlugin::GetName(void)
     return productName;
 }
 
-unsigned long VSTPlugin::GetVersion(void)
+uint64_t VSTPlugin::GetVersion(void)
 {
     return pluginVersion;
 }

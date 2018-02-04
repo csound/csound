@@ -32,7 +32,7 @@ typedef struct dats{
   MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN,
     *idecim, *konset, *offset, *dbthresh;
   int cnt, hsize, curframe, N, decim,tscale;
-  unsigned int nchans;
+  uint32_t nchans;
   double pos;
   MYFLT accum;
   AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
@@ -62,8 +62,8 @@ static inline int32 intpowint(int32 x, uint32 n) /* Binary +ve power function */
 static int sinit(CSOUND *csound, DATASPACE *p)
 {
     int N =  *p->iN, ui;
-    unsigned int nchans, i;
-    unsigned int size;
+    uint32_t nchans, i;
+    uint32_t size;
     int decim = *p->idecim;
 
     if (N) {
@@ -334,7 +334,7 @@ static int sprocess1(CSOUND *csound, DATASPACE *p)
 
 static int sinit2(CSOUND *csound, DATASPACE *p)
 {
-    unsigned int size,i;
+    uint32_t size,i;
     p->nchans = csound->GetOutputArgCnt(p);
     sinit(csound, p);
     size = p->N*sizeof(MYFLT);
@@ -565,7 +565,7 @@ static void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps);
 /* file-reading version of temposcal */
 static int sinit3(CSOUND *csound, DATASPACE *p)
 {
-    unsigned int size,i;
+    uint32_t size,i;
     char *name;
     SF_INFO sfinfo;
     // open file
@@ -945,7 +945,7 @@ typedef struct hilb {
 static int hilbert_init(CSOUND *csound, HILB *p){
     int N = (int) *p->ifftsize;
     int h = (int) *p->ihopsize;
-    unsigned int size;
+    uint32_t size;
     int *p1, *p2, i, decim;
 
     if (h > N) h = N;

@@ -132,7 +132,7 @@ typedef struct {
   MYFLT *clear;
   MYFLT iclear, optr;
   FSIG_HANDLE *handle;
-  unsigned int scnt;
+  uint32_t scnt;
 } PVSBUFFERREAD;
 
 static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
@@ -181,12 +181,12 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
  static int pvsbufreadproc(CSOUND *csound, PVSBUFFERREAD *p){
 
-    unsigned int posi, frames;
+    uint32_t posi, frames;
     MYFLT pos, sr = CS_ESR, frac;
     FSIG_HANDLE *handle =  p->handle, **phandle;
     float *fout, *buffer;
     int strt = *p->strt, end = *p->end, i, N;
-    unsigned int overlap;
+    uint32_t overlap;
     p->iclear = *p->clear;
 
    if (*p->hptr != p->optr) {
@@ -222,7 +222,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      while (pos < 0) pos += frames;
      posi = (int) pos;
      if (N == handle->header.N &&
-         overlap == (unsigned int)handle->header.overlap){
+         overlap == (uint32_t)handle->header.overlap){
        frame1 = buffer + (N + 2) * posi;
        frame2 = buffer + (N + 2)*(posi != frames-1 ? posi+1 : 0);
        frac = pos - posi;
@@ -251,7 +251,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
 static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 {
-    unsigned int posi, frames;
+    uint32_t posi, frames;
     MYFLT pos, sr = CS_ESR;
     FSIG_HANDLE *handle =  p->handle, **phandle;
     MYFLT    frac, *tab1, *tab2, *tab;
@@ -292,7 +292,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab2 = ftab->ftable;
-      for (i=0; i < (unsigned int)N+2; i++){
+      for (i=0; i < (uint32_t)N+2; i++){
         pos = (*p->ktime - tab[i/2])*(sr/overlap);
            while(pos >= frames) {
              pos -= frames;
@@ -302,7 +302,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
            }
            posi = (int) pos;
         if (N == handle->header.N &&
-            overlap == (unsigned int)handle->header.overlap) {
+            overlap == (uint32_t)handle->header.overlap) {
            frame1 = buffer + (N + 2) * posi;
            frame2 = buffer + (N + 2)*(posi != frames-1 ? posi+1 : 0);
            frac = pos - posi;
