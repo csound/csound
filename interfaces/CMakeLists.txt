@@ -121,7 +121,8 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
                 LINK_FLAGS "-undefined dynamic_lookup")
         endif()
         if(${CMAKE_COMPILER_IS_GNUCC})
-            target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-error")
+          target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-error")
+	  target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-unused-parameter")
         endif()
 
         install(TARGETS ${SWIG_MODULE_csnd6_REAL_NAME}
