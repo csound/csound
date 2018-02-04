@@ -52,7 +52,9 @@
 #include <FL/x.H>
 #include <cmath>
 #ifdef WIN32
+#ifndef MSVC
 #pragma GCC diagnostic ignored "-fpermissive"
+#endif
 #endif
 
 #ifdef __MACH__

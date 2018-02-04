@@ -1482,9 +1482,9 @@ typedef struct _message_queue_t_ {
     int           *argoffspace;
     INSDS         *frstoff;
     MYFLT         *zkstart;
-    long          zklast;
+    int64_t          zklast;
     MYFLT         *zastart;
-    long          zalast;
+    int64_t          zalast;
     /** reserved for std opcode library  */
     void          *stdOp_Env;
     int           holdrand;

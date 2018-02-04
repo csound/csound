@@ -193,7 +193,7 @@ static int pyinit(CSOUND *csound, PYINIT *p)
       return NOTOK;
     }
     PyObject *public = PyModule_GetDict(module);
-    PyObject *csobj = Py_BuildValue("l", (long) csound);
+    PyObject *csobj = Py_BuildValue("l", (int64_t) csound);
     PyDict_SetItemString(public, "_CSOUND_", csobj);
     return OK;
 }

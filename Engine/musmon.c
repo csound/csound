@@ -294,7 +294,7 @@ n                     Str("--Csound version %s (double samples) %s \n[%s]\n"),
         O->outbufsamps = IOBUFSAMPS;
       else if (UNLIKELY(O->outbufsamps < 0)) { /* if k-aligned iobufs requested  */
         /* set from absolute value */
-        O->outbufsamps *= -(csound->ksmps);
+        O->outbufsamps *= -((int64_t)csound->ksmps);
         csound->Message(csound, Str("k-period aligned audio buffering\n"));
         if (O->oMaxLag <= O->outbufsamps)
           O->oMaxLag = O->outbufsamps << 1;
