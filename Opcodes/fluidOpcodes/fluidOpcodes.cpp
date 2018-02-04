@@ -251,8 +251,8 @@ class FluidProgramSelect : public OpcodeBase<FluidProgramSelect>
         fluid_synth_t *fluidSynth;
         int channel;
         unsigned int instrument;
-        unsigned int bank;
-        unsigned int preset;
+        uint32_t bank;
+        uint32_t preset;
         void *mutex;
 public:
         int init(CSOUND *csound)
@@ -261,9 +261,9 @@ public:
                 LockGuard guard(csound, mutex);
                 toa(iFluidSynth, fluidSynth);
                 channel = (int) *iChannelNumber;
-                instrument = (unsigned int) *iInstrumentNumber;
-                bank = (unsigned int) *iBankNumber;
-                preset = (unsigned int) *iPresetNumber;
+                instrument = (uint32_t) *iInstrumentNumber;
+                bank = (uint32_t) *iBankNumber;
+                preset = (uint32_t) *iPresetNumber;
                 fluid_synth_program_select(fluidSynth,
                                            channel,
                                            instrument,

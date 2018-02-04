@@ -40,7 +40,7 @@ static int pvx_loadfile(CSOUND *, const char *, PVOC *);
 
 int pvset_(CSOUND *csound, PVOC *p, int stringname)
 {
-    unsigned int      i;
+    uint32_t      i;
     int32    memsize;
     char     pvfilnam[MAXNAME];
     int      size;      /* THESE SHOULD BE SAVED IN PVOC STRUCT */

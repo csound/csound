@@ -35,14 +35,14 @@ typedef struct opdata{
 
 inline int lsr (int x, int n)
 {
-    return int(((unsigned int)x) >> n);
+    return int(((uint32_t)x) >> n);
 }
 
 /* VECTOR INTRINSICS */
 
 //inline void *aligned_calloc(size_t nmemb, size_t size)
 //{
-//    return (void*)(((unsigned long)(calloc((nmemb*size)+15,
+//    return (void*)(((uint64_t)(calloc((nmemb*size)+15,
 //                                           (sizeof(char))))+15) & 0xfffffff0);
 //}
 

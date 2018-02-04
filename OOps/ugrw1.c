@@ -1282,6 +1282,26 @@ int printk2(CSOUND *csound, PRINTK2 *p)
     return OK;
 }
 
+int printk4(CSOUND *csound, PRINTK2 *p)
+{
+    MYFLT   value = *p->val;
+
+    if (p->oldvalue != value) {
+      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
+                                               (int)p->h.insdshead->p1.value);
+      if (p->pspace > 0) {
+        char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
+        memset(s, ' ', (size_t) p->pspace);
+        s[p->pspace] = '\0';
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
+      }
+      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
+                       *p->h.optext->t.inlist->arg, *p->val);
+      p->oldvalue = value;
+    }
+    return OK;
+}
+
 int printk3set(CSOUND *csound, PRINTK3 *p)
 {
     IGN(csound);

@@ -163,7 +163,7 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
 
 int vpvset_(CSOUND *csound, VPVOC *p, int stringname)
 {
-    unsigned int      i;
+    uint32_t      i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
     int     frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */

@@ -159,7 +159,7 @@ static int cent_i(CSOUND *csound, CENT *p)
     if (p->windowed.auxp == NULL || p->windowed.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->windowed);
     if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT)) {
-      unsigned int i;
+      uint32_t i;
       MYFLT *win;
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->win);
       win = (MYFLT *) p->win.auxp;
@@ -176,7 +176,7 @@ static int cent_i(CSOUND *csound, CENT *p)
 
 static int cent_k(CSOUND *csound, CENT *p)
 {
-    unsigned int n = p->count, k;
+    uint32_t n = p->count, k;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -266,7 +266,7 @@ typedef struct _pvspitch
 int pvspitch_init(CSOUND *csound, PVSPITCH *p)
 {
     /* Initialise frame count to zero. */
-    unsigned int size;
+    uint32_t size;
     p->lastframe = 0;
 
     if (UNLIKELY(p->fin->sliding))

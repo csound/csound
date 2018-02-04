@@ -53,8 +53,8 @@ struct OpcodeArgument{
     char *name;
     void *readBuffer;
     int itemsCount;
-    unsigned int bytesCount;
-    unsigned int bytesWritten;
+    uint32_t bytesCount;
+    uint32_t bytesWritten;
     bool iRateVarSent;
 };
 
@@ -298,7 +298,7 @@ void WebSocketOpcode_initialiseArgumentsArray(CSOUND *csound,
                                               MYFLT **arguments,
                                               bool areInputArguments)
 {
-    unsigned int i;
+    uint32_t i;
     for (i = 0; i < argumentsCount; ++i) {
 
       OpcodeArgument *argumentArrayItem = &argumentsArray[i];

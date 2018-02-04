@@ -1949,7 +1949,7 @@ static int vrandh_set(CSOUND *csound,VRANDH *p)
       }
       else {
         // 31-bit PRNG
-        *num1++ = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        *num1++ = (MYFLT)((int32)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
         r = randint31( r);
       }
     } while (--elements);
@@ -1985,7 +1985,7 @@ static int vrandh(CSOUND *csound,VRANDH *p)
         }
         else {
           // 31-bit PRNG
-          *num1++ = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+          *num1++ = (MYFLT)((int32)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
           r = randint31(r);
         }
       } while (--elements);
@@ -2053,7 +2053,7 @@ static int vrandi_set(CSOUND *csound,VRANDI *p)
       }
       else {
         // 31-bit PRNG
-        *num2 = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        *num2 = (MYFLT)((int32)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
         r = randint31(r);
       }
       *dfdmax++ = (*num2++ - *num1++) / FMAXLEN;
@@ -2094,7 +2094,7 @@ static int vrandi(CSOUND *csound,VRANDI *p)
         }
         else {
           // 31-bit PRNG
-          *num2 = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31 ;
+          *num2 = (MYFLT)((int32)((uint32_t)r<<1)-BIPOLAR) * dv2_31 ;
           r = randint31(r);
         }
         *dfdmax++ = ((MYFLT)*num2++ - (MYFLT)*num1++) / FMAXLEN;
@@ -2138,7 +2138,7 @@ static int vecdly_set(CSOUND *csound, VECDEL *p)
 
     if (!*p->istod) {
       if (p->aux.auxp == NULL ||
-          (unsigned int)(elements * sizeof(MYFLT *)
+          (uint32_t)(elements * sizeof(MYFLT *)
                 + n * elements * sizeof(MYFLT)
                 + elements * sizeof(int32)) > p->aux.size) {
         csound->AuxAlloc(csound, elements * sizeof(MYFLT *)
@@ -2433,7 +2433,7 @@ static int kdel_set(CSOUND *csound,KDEL *p)
     if (n == 0) n = (p->maxd = 1);
 
     if (!*p->istod) {
-      if (p->aux.auxp == NULL || (unsigned int)(n*sizeof(MYFLT)) > p->aux.size)
+      if (p->aux.auxp == NULL || (uint32_t)(n*sizeof(MYFLT)) > p->aux.size)
         csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
       else {
         memset(p->aux.auxp, 0, sizeof(MYFLT)*n);

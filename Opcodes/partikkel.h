@@ -29,16 +29,16 @@ typedef struct {
 } WAVEDATA;
 
 typedef struct {
-    unsigned start, stop;
+    uint32_t start, stop;
     double envphase, envinc;
     double envattacklen, envdecaystart;
     double env2amount;
     MYFLT fmamp;
     FUNC *fmenvtab;
-    unsigned harmonics;
+    uint32_t harmonics;
     MYFLT falloff, falloff_pow_N;
     MYFLT gain1, gain2;
-    unsigned chan1, chan2;
+    uint32_t chan1, chan2;
     WAVEDATA wav[5];
 } GRAIN;
 
@@ -54,7 +54,7 @@ typedef struct NODE {
 typedef struct {
     NODE *grainlist;
     char *mempool;
-    unsigned free_nodes;
+    uint32_t free_nodes;
 } GRAINPOOL;
 
 struct PARTIKKEL;
@@ -124,30 +124,30 @@ typedef struct PARTIKKEL {
     GRAINPOOL gpool;
     NODE *grainroot;
     int out_of_voices_warning;
-    unsigned num_outputs;
+    uint32_t num_outputs;
     int grainfreq_arate;
     int synced;
     AUXCH aux, aux2;
     CsoundRandMTState randstate;
     FUNC *wavetabs[4];
     FUNC *costab;
-    unsigned cosineshift;
+    uint32_t cosineshift;
     MYFLT zscale;
     FUNC *disttab;
-    unsigned distindex;
-    unsigned disttabshift;
+    uint32_t distindex;
+    uint32_t disttabshift;
     FUNC *env2_tab, *env_attack_tab, *env_decay_tab;
     FUNC *fmenvtab;
     FUNC *gainmasktab;
-    unsigned gainmaskindex;
+    uint32_t gainmaskindex;
     FUNC *wavfreqstarttab, *wavfreqendtab;
-    unsigned wavfreqstartindex, wavfreqendindex;
+    uint32_t wavfreqstartindex, wavfreqendindex;
     FUNC *fmamptab;
-    unsigned fmampindex;
+    uint32_t fmampindex;
     FUNC *channelmasktab;
-    unsigned channelmaskindex;
+    uint32_t channelmaskindex;
     FUNC *wavgaintab;
-    unsigned wavgainindex;
+    uint32_t wavgainindex;
     double grainphase, graininc;
     FUNC *pantab;
 } PARTIKKEL;

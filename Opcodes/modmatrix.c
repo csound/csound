@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 static int modmatrix_init(CSOUND *csound, MODMATRIX *m)
 {
-    unsigned int size;
+    uint32_t size;
 
     m->restab = csound->FTnp2Find(csound, m->ires);
     m->modtab = csound->FTnp2Find(csound, m->imod);

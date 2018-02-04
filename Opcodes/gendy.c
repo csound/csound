@@ -73,7 +73,7 @@ static MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
       break;
     case 1: // cauchy
       c = ATAN(FL(10.0)*a);
-      r = (MYFLT)((int32)((unsigned)rnd<<1)-BIPOLAR) * dv2_31;
+      r = (MYFLT)((int32)((uint32_t)rnd<<1)-BIPOLAR) * dv2_31;
       r = (FL(1.0)/a) * TAN(c*r) * FL(0.1);
       return r;
     case 2: // logist
@@ -101,7 +101,7 @@ static MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
     default:
       break;
     }
-    r = (MYFLT)((int32)((unsigned)rnd<<1)-BIPOLAR) * dv2_31;
+    r = (MYFLT)((int32)((uint32_t)rnd<<1)-BIPOLAR) * dv2_31;
     return r;
 }
 
@@ -127,7 +127,7 @@ static int gendyset(CSOUND *csound, GENDY *p)
     p->rand = csoundRand31(&csound->randSeed1);
     for (i=0; i < p->points; i++) {
       p->rand = csoundRand31(&p->rand);
-      memamp[i] = (MYFLT)((int32)((unsigned)p->rand<<1)-BIPOLAR)*dv2_31;
+      memamp[i] = (MYFLT)((int32)((uint32_t)p->rand<<1)-BIPOLAR)*dv2_31;
       p->rand = csoundRand31(&p->rand);
       memdur[i] = (MYFLT)p->rand * dv2_31;
     }
@@ -259,7 +259,7 @@ static int gendyxset(CSOUND *csound, GENDYX *p)
     p->rand = csoundRand31(&csound->randSeed1);
     for (i=0; i < p->points; i++) {
       p->rand   = (int32)csoundRand31(&p->rand);
-      memamp[i] = (MYFLT)((int32)((unsigned)p->rand<<1)-BIPOLAR)*dv2_31;
+      memamp[i] = (MYFLT)((int32)((uint32_t)p->rand<<1)-BIPOLAR)*dv2_31;
       p->rand   = csoundRand31(&p->rand);
       memdur[i] = (MYFLT)p->rand * dv2_31;
     }
@@ -402,7 +402,7 @@ static int gendycset(CSOUND *csound, GENDYC *p)
     p->rand = csoundRand31(&csound->randSeed1);
     for (i=0; i < p->points; i++) {
       p->rand = csoundRand31(&p->rand);
-      memamp[i] = (MYFLT)((int32)((unsigned)p->rand<<1)-BIPOLAR)*dv2_31;
+      memamp[i] = (MYFLT)((int32)((uint32_t)p->rand<<1)-BIPOLAR)*dv2_31;
       p->rand = csoundRand31(&p->rand);
       memdur[i] = (MYFLT)p->rand * dv2_31;
     }

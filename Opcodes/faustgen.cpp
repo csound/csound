@@ -162,7 +162,7 @@ struct faustobj  {
   void *obj;
   controls *ctls;
   faustobj *nxt;
-  unsigned long cnt;
+  uint64_t cnt;
 };
 
 /**
@@ -287,7 +287,7 @@ void *init_faustcompile_thread(void *pp) {
     ffactory = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
     ffactory->obj = factory;
     ffactory->nxt = NULL;
-    ffactory->cnt = 0;
+    ffactory->cnt = 0ul;
     *pffactory = ffactory;
   }
   else {
@@ -296,7 +296,7 @@ void *init_faustcompile_thread(void *pp) {
       ffactory = ffactory->nxt;
     }
     ffactory->nxt = (faustobj *) csound->Calloc(csound, sizeof(faustobj));
-    ffactory->nxt->cnt = ffactory->cnt+1;
+    ffactory->nxt->cnt = ffactory->cnt+1ul;
     ffactory = ffactory->nxt;
     ffactory->obj = factory;
   }

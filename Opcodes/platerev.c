@@ -73,11 +73,11 @@ static int platerev_init(CSOUND *csound, PLATE *p)
 
     p->nin = (int) (p->INOCOUNT) - 7; p->nout = (int) (p->OUTOCOUNT);
     if (UNLIKELY((inp = csound->FTnp2Find(csound,p->tabins)) == NULL ||
-                 inp->flen < (unsigned)3*p->nin)) {
+                 inp->flen < (uint32_t)3*p->nin)) {
       return csound->InitError(csound, Str("Missing input table or too short"));
     }
     if (UNLIKELY((outp = csound->FTnp2Find(csound,p->tabout)) == NULL ||
-                 outp->flen < (unsigned int)3*p->nout)) {
+                 outp->flen < (uint32_t)3*p->nout)) {
       return csound->InitError(csound, Str("Missing output table or too short"));
     }
     p->in_param = inp->ftable;

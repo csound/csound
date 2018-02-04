@@ -102,7 +102,7 @@ int timset(CSOUND *csound, TIMOUT *p)
 
 int timout(CSOUND *csound, TIMOUT *p)
 {
-   IGN(csound);
+    IGN(csound);
     if (p->cnt1)                            /* once delay has expired, */
       p->cnt1--;
     else if (--p->cnt2 >= 0L)               /*  br during idur countdown */
@@ -156,8 +156,8 @@ int tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
 
 int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 {
-  IGN(csound);
-  if (!p->h.insdshead->reinitflag)
+    IGN(csound);
+    if (!p->h.insdshead->reinitflag)
       *p->r = p->h.insdshead->tieflag;
     /* *p->r = (csound->tieflag ? FL(1.0) : FL(0.0)); */
     return OK;
@@ -181,11 +181,11 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
       while (lcurip->opcod_iobufs)
-      lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
-    xturnoff(csound, lcurip);
-    if (lcurip->xtratim <= 0)
-      while (CS_PDS->nxtp != NULL)
-        CS_PDS = CS_PDS->nxtp;                /* loop to last opds */
+        lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
+      xturnoff(csound, lcurip);
+      if (lcurip->xtratim <= 0)
+        while (CS_PDS->nxtp != NULL)
+          CS_PDS = CS_PDS->nxtp;                /* loop to last opds */
     }
     return OK;
 }
@@ -269,11 +269,11 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
 }
 
 int turnoff2S(CSOUND *csound, TURNOFF2 *p){
-  return turnoff2(csound, p, 1);
+    return turnoff2(csound, p, 1);
 }
 
 int turnoff2k(CSOUND *csound, TURNOFF2 *p){
-   return turnoff2(csound, p, 0);
+    return turnoff2(csound, p, 0);
 }
 
 int loop_l_i(CSOUND *csound, LOOP_OPS *p)

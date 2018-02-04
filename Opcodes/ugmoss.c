@@ -43,14 +43,14 @@ static int dconvset(CSOUND *csound, DCONV *p)
     if (LIKELY((ftp = csound->FTnp2Find(csound,
                                         p->ifn)) != NULL)) {   /* find table */
       p->ftp = ftp;
-      if ((unsigned)ftp->flen < p->len)
+      if ((uint32_t)ftp->flen < p->len)
         p->len = ftp->flen; /* correct len if flen shorter */
     }
     else {
       return csound->InitError(csound, Str("No table for dconv"));
     }
     if (p->sigbuf.auxp == NULL ||
-        p->sigbuf.size < (unsigned int)(p->len*sizeof(MYFLT)))
+        p->sigbuf.size < (uint32_t)(p->len*sizeof(MYFLT)))
       csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
     else
       memset(p->sigbuf.auxp, '\0', p->len*sizeof(MYFLT));
@@ -666,7 +666,7 @@ static int ftmorfset(CSOUND *csound, FTMORF *p)
 {
     FUNC *ftp;
     int j = 0;
-    unsigned int len;
+    uint32_t len;
     /* make sure resfn exists and set it up */
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->iresfn)) != NULL)) {
       p->resfn = ftp, len = p->resfn->flen;
@@ -684,7 +684,7 @@ static int ftmorfset(CSOUND *csound, FTMORF *p)
 
     do {                /* make sure tables in ftfn exist and are right size*/
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->ftfn->ftable + j)) != NULL)) {
-        if (UNLIKELY((unsigned int)ftp->flen != len)) {
+        if (UNLIKELY((uint32_t)ftp->flen != len)) {
           return csound->InitError(csound,
                                    Str("table in iftfn for ftmorf wrong size"));
         }
@@ -702,7 +702,7 @@ static int ftmorfset(CSOUND *csound, FTMORF *p)
 
 static int ftmorf(CSOUND *csound, FTMORF *p)
 {
-    unsigned int j = 0;
+    uint32_t j = 0;
     int i;
     MYFLT f;
     FUNC *ftp1, *ftp2;

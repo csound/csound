@@ -414,7 +414,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     unsigned int     bsize;
 
-    if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (unsigned int) p->type->size + 4))
+    if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) p->type->size + 4))
        return csound->InitError(csound,
                              Str("insufficient number of arguments for "
                                  "OSC message types\n"));
@@ -457,7 +457,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     for(i=0; i < p->type->size-1; i++) {
       switch(p->type->data[i]){
       case 't':
-        if (UNLIKELY(p->INOCOUNT < (unsigned int) p->type->size + 5))
+        if (UNLIKELY(p->INOCOUNT < (uint32_t) p->type->size + 5))
           return csound->InitError(csound, "extra argument needed for type t\n");
         bsize += 8;
         iarg+=2;

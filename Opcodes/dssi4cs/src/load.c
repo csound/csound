@@ -163,7 +163,7 @@ const LADSPA_Descriptor *
 
     const LADSPA_Descriptor *psDescriptor;
     LADSPA_Descriptor_Function pfDescriptorFunction;
-    unsigned long lPluginIndex;
+    uint64_t lPluginIndex;
 
     dlerror();
     pfDescriptorFunction

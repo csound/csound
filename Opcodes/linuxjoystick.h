@@ -27,7 +27,7 @@ typedef struct
   OPDS h;
   MYFLT *kresult, *kdev, *ktable;
   int devFD;
-  unsigned int numk, numb;
+  uint32_t numk, numb;
   int timeout, initme;
   MYFLT table;
   int dev;

@@ -633,7 +633,7 @@ static const CSOUND cenviron_ = {
     440.0,               /* A4 base frequency */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
-#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) 
+#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX)
     {0},
 #else
    {{{0}}},        /*  exitjmp of type jmp_buf */

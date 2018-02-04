@@ -92,13 +92,13 @@ static int sonetable(FGDATA *ff, FUNC *ftp)
 typedef struct {
   MYFLT        *pWF, *pSF;
   MYFLT        *pFil[2];
-  unsigned int *size;
+  uint32_t *size;
 } WAVELET;
 
-static int deconvolve(MYFLT *pInp, WAVELET *pwaveS, unsigned int *pnewLen,
+static int deconvolve(MYFLT *pInp, WAVELET *pwaveS, uint32_t *pnewLen,
                       MYFLT *pBuf, int *pOrder)
 {
-    unsigned int i, j;
+    uint32_t i, j;
     *pnewLen *= 2;
     for (j = 0; j < *pnewLen; j++) {
       for (i = 0; i < *pwaveS->size; i++)
@@ -119,8 +119,8 @@ static int wavetable(FGDATA *ff, FUNC *ftp)
     MYFLT   order = ff->e.p[6];
     MYFLT   resc = ff->e.p[7];
     int     ffilno = (int)ff->e.p[5];
-    unsigned int     i;
-    unsigned int     steps, newLen, *pnewLen;
+    uint32_t     i;
+    uint32_t     steps, newLen, *pnewLen;
     int     nargs = ff->e.pcnt - 4;
     int     *pOrder, *xfree;
     FUNC    *srcfil = csound->flist[ffilno];
