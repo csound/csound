@@ -241,6 +241,7 @@ public:
   }
     int noteoff(CSOUND *csound)
     {
+        IGN(csound);
         int result = OK;
         if (audioBufferQueue) {
             while (!audioBufferQueue->empty()) {
@@ -314,6 +315,7 @@ extern "C"
 #ifndef INIT_STATIC_MODULES
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
+    IGN(csound);
     return 0;
   }
 
@@ -324,6 +326,7 @@ extern "C"
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
+    IGN(csound);
     return 0;
   }
 #endif

@@ -461,6 +461,7 @@ int FLTKKeyboard::handle(int event) {
         this->redraw();
         return 1;
       }
+      /* FALLTHRU */
     default:
       return Fl_Widget::handle(event);
     }

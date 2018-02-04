@@ -629,6 +629,7 @@ struct JackoState
         }
         int JackProcessCallback(jack_nframes_t frames)
         {
+	  IGN(frames);
         if (jacko_is_driving == false) {
             return 0;
         }
@@ -773,6 +774,7 @@ static int JackProcessCallback_(jack_nframes_t frames,
 static void SenseEventCallback_(CSOUND *csound,
                                 void *data)
 {
+  IGN(csound);
         ((JackoState *)data)->SenseEventCallback();
 }
 
@@ -780,6 +782,7 @@ static int midiDeviceOpen_(CSOUND *csound,
                            void **userData,
                            const char *devName)
 {
+  IGN(devName);
         JackoState *jackoState;
         csound::QueryGlobalPointer(csound, "jackoState", jackoState);
         *userData = jackoState;
@@ -795,6 +798,7 @@ static int midiRead_(CSOUND *csound,
                      unsigned char *midiData,
                      int midiN)
 {
+  IGN(csound);
         JackoState *jackoState_ = (JackoState *)userData;
         int midiI = 0;
         while (!jackoState_->midiInputQueue.empty() && midiI < midiN) {
@@ -1019,6 +1023,7 @@ struct JackoAudioIn : public OpcodeBase<JackoAudioIn>
         }
         int audio(CSOUND *csound)
         {
+	  IGN(csound);
                 jack_default_audio_sample_t *buffer =
                     (jack_default_audio_sample_t *)jack_port_get_buffer(csoundPort,
                             csoundFramesPerTick);
@@ -1127,6 +1132,7 @@ struct JackoAudioOut : public OpcodeBase<JackoAudioOut>
         }
         int audio(CSOUND *csound)
         {
+	  IGN(csound);
                 jack_default_audio_sample_t *buffer =
                     (jack_default_audio_sample_t *)jack_port_get_buffer(csoundPort,
                             csoundFramesPerTick);
@@ -1321,6 +1327,7 @@ struct JackoMidiOut : public OpcodeBase<JackoMidiOut>
         }
         int kontrol(CSOUND *csound)
         {
+	  IGN(csound);
                 int result = OK;
                 status = *kstatus;
                 channel = *kchannel;
@@ -1398,6 +1405,7 @@ struct JackoNoteOut : public OpcodeNoteoffBase<JackoNoteOut>
         }
         int noteoff(CSOUND *csound)
         {
+	  IGN(csound);
                 int result = OK;
                 buffer = jackoState->getMidiOutBuffer(csoundPort);
                 jack_midi_data_t *data = jack_midi_event_reserve(buffer, 0, 3);
@@ -1619,11 +1627,13 @@ extern "C"
 
         PUBLIC int csoundModuleCreate(CSOUND *csound)
         {
+	  IGN(csound);
                 return 0;
         }
 
         PUBLIC int csoundModuleInit(CSOUND *csound)
         {
+	  
                 OENTRY *ep = (OENTRY *)&(oentries[0]);
                 int  err = 0;
                 while (ep->opname != 0) {

@@ -950,10 +950,12 @@ set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
 
 set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
-
-set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
+PROPERTIES COMPILE_FLAGS "-Wimplicit-fallthrough=0")
+set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)  
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
-
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c
+PROPERTIES COMPILE_FLAGS "-Wimplicit-fallthrough=0")
 add_custom_command(
     OUTPUT ${LEX_OUT}
     DEPENDS ${LEX_SRC}

@@ -534,6 +534,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
       default:
         csound->Warning(csound,
                         Str("Unknown window type; replaced by rectangular\n"));
+	/* FALLTHRU */
       case PVS_WIN_RECT:
         memcpy(ff, fw, NB*sizeof(CMPLX));
         /* for (j=0; j<NB; j++) { */

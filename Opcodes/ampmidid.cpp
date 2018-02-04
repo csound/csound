@@ -86,6 +86,7 @@ public:
   }
   int kontrol(CSOUND *csound)
   {
+    IGN(csound);
       *kamplitude = dbfs * std::pow( (im * (*kvelocity + ib) ),
                                      MYFLT(2.0) ) * onedrms;
       return OK;
@@ -182,6 +183,7 @@ extern "C" {
 #ifndef INIT_STATIC_MODULES
   PUBLIC int csoundModuleCreate(CSOUND *csound)
   {
+    IGN(csound);
       return 0;
   }
 
@@ -192,6 +194,7 @@ extern "C" {
 
   PUBLIC int csoundModuleDestroy(CSOUND *csound)
   {
+    IGN(csound);
       return 0;
   }
 #endif

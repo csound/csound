@@ -257,6 +257,8 @@ struct MixerReceive : public OpcodeBase<MixerReceive> {
         {
 #ifdef ENABLE_MIXER_KDEBUG
                 warn(csound, "MixerReceive::audio...\n");
+#else
+		IGN(csound);
 #endif
                 for (size_t i = 0; i < frames; i++) {
                         aoutput[i] = busspointer[i];
