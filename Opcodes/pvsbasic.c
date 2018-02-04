@@ -672,7 +672,7 @@ int pvstanal(CSOUND *csound, PVST *p)
       fwin[N+1] = fwin[1] = 0.0;
 
       for (i=2,k=1; i < N; i+=2, k++) {
-        float bph, fph, dph;
+        double bph, fph, dph;
         /* freqs */
         bph = atan2(bwin[i+1],bwin[i]);
         fph = atan2(fwin[i+1],fwin[i]);
@@ -680,9 +680,9 @@ int pvstanal(CSOUND *csound, PVST *p)
         dph = fph - bph - rotfac*k;
         while(dph > PI) dph -= TWOPI;
         while(dph < -PI) dph += TWOPI;
-        fout[i+1] = dph*factor + k*fund;
+        fout[i+1] = (float) (dph*factor + k*fund);
         /* mags */
-        fout[i] = sqrt(fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1]);
+        fout[i] = (float) sqrt(fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1]);
       }
 
       p->fout[j]->framecount++;
