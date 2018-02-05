@@ -96,7 +96,7 @@ typedef struct {
     FUNC    *ftp;
     FUNC    *freqtp;
     FUNC    *amptp;
-    unsigned int32_t     count;
+    uint32_t     count;
     int32_t     inerr;
     AUXCH   lphs;
 } ADSYNT;
@@ -176,7 +176,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar;
         MYFLT   *amp, *freq, *offset;
-        unsigned int32_t     next;
+        uint32_t     next;
 } IMPULSE;
 
 typedef struct {
@@ -320,7 +320,6 @@ int32_t waveset(CSOUND *, BARRI *p);
 int32_t wavesetset(CSOUND *, BARRI *p);
 int32_t medfiltset(CSOUND *, MEDFILT *p);
 int32_t medfilt(CSOUND *, MEDFILT *p);
-int32_t
-kmedfilt(CSOUND *, MEDFILT *p);
+int32_t kmedfilt(CSOUND *, MEDFILT *p);
 #endif /* PITCH_H */
 
