@@ -25,6 +25,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include "beats.tab.h"
+
+#ifdef MSVC
+#include <io.h>
+#DEFINE isatty(x) _isatty(x)
+#endif
+
 void comment(void);
 void comment1(void);
 int yyline = 0;
