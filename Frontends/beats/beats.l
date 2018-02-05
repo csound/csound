@@ -26,9 +26,11 @@
 #include <stdlib.h>
 #include "beats.tab.h"
 
-#ifdef MSVC
+#if defined(_WIN32) || defined(WIN32) 
 #include <io.h>
-#define isatty(x) _isatty(x)
+int isatty(int x) {
+return _isatty(x);
+}
 #endif
 
 void comment(void);
