@@ -31,7 +31,7 @@
 
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
-static int pvocex_loadfile(CSOUND *, const char *fname, PVREAD *p);
+static int32_t pvocex_loadfile(CSOUND *, const char *fname, PVREAD *p);
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*ksmps)    /* manifest used for final time wdw */
@@ -68,7 +68,7 @@ static void FetchInOne(
     }
 }
 
-int pvreadset_(CSOUND *csound, PVREAD *p, int stringname)
+int32_t32_t32_t pvreadset_(CSOUND *csound, PVREAD *p, int stringname)
 {
     char      pvfilnam[256];
 
@@ -87,19 +87,19 @@ int pvreadset_(CSOUND *csound, PVREAD *p, int stringname)
     return NOTOK;
 }
 
-int pvreadset(CSOUND *csound, PVREAD *p){
+int32_t pvreadset(CSOUND *csound, PVREAD *p){
     return pvreadset_(csound,p,0);
 }
 
-int pvreadset_S(CSOUND *csound, PVREAD *p){
+int32_t pvreadset_S(CSOUND *csound, PVREAD *p){
     return pvreadset_(csound,p,1);
 }
 
-int pvread(CSOUND *csound, PVREAD *p)
+int32_t pvread(CSOUND *csound, PVREAD *p)
 {
     MYFLT  frIndx;
     MYFLT  buf[2];
-    int    size = pvfrsiz(p);
+    int32_t    size = pvfrsiz(p);
 
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err1;
     if (frIndx > p->maxFr) {  /* not past last one */
@@ -117,7 +117,7 @@ int pvread(CSOUND *csound, PVREAD *p)
     return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
 }
 
-static int pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
+static int32_t pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
 {
     PVOCEX_MEMFILE  pp;
 

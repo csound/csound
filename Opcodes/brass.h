@@ -73,7 +73,7 @@ typedef struct DLineA {
 
 void make_DLineA(CSOUND *,DLineA *, int32 max_length);
 /* void DLineA_clear(DLineA *); */
-int DLineA_setDelay(CSOUND *,DLineA *, MYFLT length);
+int32_t DLineA_setDelay(CSOUND *,DLineA *, MYFLT length);
 MYFLT DLineA_tick(DLineA *, MYFLT sample);
 
 /***********************************************/
@@ -118,7 +118,7 @@ typedef struct BRASS {
     MYFLT       frq;            /* Remember previous value */
     MYFLT       lipT;           /* and lip tension */
     MYFLT       limit;
-    int         kloop;
+    int32_t     kloop;
 } BRASS;
 
 #endif

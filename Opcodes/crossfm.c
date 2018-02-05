@@ -26,7 +26,7 @@
 #include "crossfm.h"
 #include <math.h>
 
-int xfmset(CSOUND *csound, CROSSFM *p)
+int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {
     FUNC *ftp1 = csound->FTnp2Find(csound, p->ifn1);
     FUNC *ftp2 = csound->FTnp2Find(csound, p->ifn2);
@@ -52,7 +52,7 @@ int xfmset(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int xfm(CSOUND *csound, CROSSFM *p)
+int32_t xfm(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
     MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -62,7 +62,7 @@ int xfm(CSOUND *csound, CROSSFM *p)
     MYFLT *tbl1, *tbl2;
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
-    int n1, n2;
+    int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -105,8 +105,8 @@ int xfm(CSOUND *csound, CROSSFM *p)
       phase1 -= FLOOR(phase1);
       phase2 += si2;
       phase2 -= FLOOR(phase2);
-      n1 = (int)(phase1 * siz1);
-      n2 = (int)(phase2 * siz2);
+      n1 = (int32_t)(phase1 * siz1);
+      n2 = (int32_t)(phase2 * siz2);
       sig1 = tbl1[n1];
       sig2 = tbl2[n2];
       xfrq1 += p->frq1adv;
@@ -122,7 +122,7 @@ int xfm(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int xfmi(CSOUND *csound, CROSSFM *p)
+int32_t xfmi(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
     MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -133,7 +133,7 @@ int xfmi(CSOUND *csound, CROSSFM *p)
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
     MYFLT x, y1, y2;
-    int n1, n2;
+    int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -177,11 +177,11 @@ int xfmi(CSOUND *csound, CROSSFM *p)
       phase2 += si2;
       phase2 -= FLOOR(phase2);
       x = phase1 * siz1;
-      n1 = (int)x;
+      n1 = (int32_t)x;
       y1 = tbl1[n1];
       sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
       x = phase2 * siz2;
-      n2 = (int)x;
+      n2 = (int32_t)x;
       y2 = tbl2[n2];
       sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
       xfrq1 += p->frq1adv;
@@ -197,7 +197,7 @@ int xfmi(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int xpm(CSOUND *csound, CROSSFM *p)
+int32_t xpm(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
     MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -207,7 +207,7 @@ int xpm(CSOUND *csound, CROSSFM *p)
     MYFLT *tbl1, *tbl2;
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
-    int n1, n2;
+    int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -250,8 +250,8 @@ int xpm(CSOUND *csound, CROSSFM *p)
       phase2 += (frq2 * k);
       si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
       si2 -= FLOOR(si2);
-      n1 = (int)(si1 * siz1);
-      n2 = (int)(si2 * siz2);
+      n1 = (int32_t)(si1 * siz1);
+      n2 = (int32_t)(si2 * siz2);
       sig1 = tbl1[n1];
       sig2 = tbl2[n2];
       xfrq1 += p->frq1adv;
@@ -267,7 +267,7 @@ int xpm(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int xpmi(CSOUND *csound, CROSSFM *p)
+int32_t xpmi(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
     MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -278,7 +278,7 @@ int xpmi(CSOUND *csound, CROSSFM *p)
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
     MYFLT x, y1, y2;
-    int n1, n2;
+    int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -322,11 +322,11 @@ int xpmi(CSOUND *csound, CROSSFM *p)
       si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
       si2 -= FLOOR(si2);
       x = si1 * siz1;
-      n1 = (int)x;
+      n1 = (int32_t)x;
       y1 = tbl1[n1];
       sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
       x = si2 * siz2;
-      n2 = (int)x;
+      n2 = (int32_t)x;
       y2 = tbl2[n2];
       sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
       xfrq1 += p->frq1adv;
@@ -342,7 +342,7 @@ int xpmi(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int xfmpm(CSOUND *csound, CROSSFM *p)
+int32_t xfmpm(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
     MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -352,7 +352,7 @@ int xfmpm(CSOUND *csound, CROSSFM *p)
     MYFLT *tbl1, *tbl2;
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
-    int n1, n2;
+    int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -395,8 +395,8 @@ int xfmpm(CSOUND *csound, CROSSFM *p)
       phase2 += (frq2 * k);
       si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
       si2 -= FLOOR(si2);
-      n1 = (int)(phase1 * siz1);
-      n2 = (int)(si2 * siz2);
+      n1 = (int32_t)(phase1 * siz1);
+      n2 = (int32_t)(si2 * siz2);
       sig1 = tbl1[n1];
       sig2 = tbl2[n2];
       xfrq1 += p->frq1adv;
@@ -412,7 +412,7 @@ int xfmpm(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int xfmpmi(CSOUND *csound, CROSSFM *p)
+int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
     MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
@@ -423,7 +423,7 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
     MYFLT phase1, phase2;
     MYFLT sig1, sig2;
     MYFLT x, y1, y2;
-    int n1, n2;
+    int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -467,11 +467,12 @@ int xfmpmi(CSOUND *csound, CROSSFM *p)
       si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
       si2 -= FLOOR(si2);
       x = phase1 * siz1;
-      n1 = (int)x;
+      n1 = (int32_t)x;
       y1 = tbl1[n1];
       sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
       x = si2 * siz2;
-      n2 = (int)x;
+      n2 = (int32_t
+            )x;
       y2 = tbl2[n2];
       sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
       xfrq1 += p->frq1adv;

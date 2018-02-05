@@ -74,7 +74,7 @@ typedef struct {
   OPDS    h;
   /* INPUTS */
   MYFLT   *iEngineNumber, *iChannelNumber, *iControllerNumber, *kVal;
-  int     priorMidiValue;
+  int32_t     priorMidiValue;
   fluid_synth_t *fluidEngine;
 } FLUID_CC;
 
@@ -82,7 +82,7 @@ typedef struct {
   OPDS    h;
   /* INPUTS */
   MYFLT   *iEngineNumber, *iChannelNumber, *iMidiKeyNumber, *iVelocity;
-  int     initDone, iChn, iKey;
+  int32_t     initDone, iChn, iKey;
   fluid_synth_t *fluidEngine;
 } FLUID_NOTE;
 
@@ -109,10 +109,10 @@ typedef struct {
   MYFLT   *kMidiData2;
   /* No outputs. */
   /* Internal state. */
-  int     priorMidiStatus;
-  int     priorMidiChannel;
-  int     priorMidiData1;
-  int     priorMidiData2;
+  int32_t     priorMidiStatus;
+  int32_t     priorMidiChannel;
+  int32_t     priorMidiData1;
+  int32_t     priorMidiData2;
   fluid_synth_t *fluidEngine;
 } FLUIDCONTROL;
 

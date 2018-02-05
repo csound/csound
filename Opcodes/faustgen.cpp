@@ -194,9 +194,9 @@ struct faustcompile {
   pthread_mutex_t *lock;
 };
 
-char **parse_cmd(CSOUND *csound, char *str, int *argc) {
+char **parse_cmd(CSOUND *csound, char *str, int32_t *argc) {
   char **argv;
-  int i = 0, n = 0, end = strlen(str);
+  int32_t i = 0, n = 0, end = strlen(str);
   while (str[i] == ' ')
     i++;
   if (str[i] != '\0')
@@ -228,7 +228,7 @@ char **parse_cmd(CSOUND *csound, char *str, int *argc) {
   return argv;
 }
 
-int delete_faustcompile(CSOUND *csound, void *p) {
+int32_t delete_faustcompile(CSOUND *csound, void *p) {
 
   faustcompile *pp = ((faustcompile *)p);
   faustobj *fobj, *prv, **pfobj;
@@ -263,10 +263,10 @@ void *init_faustcompile_thread(void *pp) {
   faustobj **pffactory, *ffactory;
   CSOUND *csound = ((hdata *)pp)->csound;
   llvm_dsp_factory *factory;
-  int argc = 0;
+  int32_t argc = 0;
   std::string err_msg;
   char *cmd = (char *)csound->Malloc(csound, p->args->size + 8);
-  int ret;
+  int32_t ret;
 
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
@@ -325,7 +325,7 @@ void *init_faustcompile_thread(void *pp) {
 }
 
 #define MBYTE 1048576
-int init_faustcompile(CSOUND *csound, faustcompile *p) {
+int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
   pthread_t thread;
   pthread_attr_t attr;
   hdata *data = (hdata *)csound->Malloc(csound, sizeof(hdata));
@@ -386,7 +386,7 @@ struct hdata2 {
 /* deinit function
    delete faust objects
 */
-int delete_faustgen(CSOUND *csound, void *p) {
+int32_t delete_faustgen(CSOUND *csound, void *p) {
   faustgen *pp = (faustgen *)p;
   faustobj *fobj, *prv, **pfobj;
   pfobj = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
@@ -415,22 +415,22 @@ int delete_faustgen(CSOUND *csound, void *p) {
   return OK;
 }
 
-int init_faustaudio(CSOUND *csound, faustgen *p) {
-  int factory;
+int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
+  int32_t factory;
   OPARMS parms;
   faustobj *fobj, **fobjp, **pfdsp, *fdsp;
   llvm_dsp *dsp;
   controls *ctls = new controls();
   const char *varname = "::dsp";
 #if defined(MACOSX) || defined(linux) || defined(HAIKU)
-  while ((int)*((MYFLT *)p->code) == -1)
-    usleep(1);
+  while ((int32_t)*((MYFLT *)p->code) == -1)
+    usleep(1); 
 #else
-  while ((int)*((MYFLT *)p->code) == -1)
+  while ((int32_t)*((MYFLT *)p->code) == -1)
     Sleep(1);
 #endif
 
-  factory = (int)*((MYFLT *)p->code);
+  factory = (int32_t)*((MYFLT *)p->code);
 
   if (factory == -2)
     return csound->InitError(
@@ -441,11 +441,11 @@ int init_faustaudio(CSOUND *csound, faustgen *p) {
   if (fobjp == NULL)
     return csound->InitError(csound, Str("no factory available\n"));
   fobj = *fobjp;
-  while ((int)fobj->cnt != factory) {
+  while ((int32_t)fobj->cnt != factory) {
     fobj = fobj->nxt;
     if (fobj == NULL)
       return csound->InitError(csound, Str("factory not found %d\n"),
-                               (int)factory);
+                               (int32_t)factory);
   }
 
   dsp = ((llvm_dsp_factory *)fobj->obj)->createDSPInstance();
@@ -519,7 +519,7 @@ void *init_faustgen_thread(void *pp) {
   faustgen *p = ((hdata2 *)pp)->p;
   OPARMS parms;
   std::string err_msg;
-  int argc = 3;
+  int32_t argc = 3;
   const char *argv[argc];
   faustobj **pfdsp, *fdsp;
   llvm_dsp *dsp;
@@ -538,7 +538,7 @@ void *init_faustgen_thread(void *pp) {
   p->factory = createDSPFactoryFromString(
       "faustop", (const char *)p->code->data, argc, argv, "", err_msg, 3);
   if (p->factory == NULL) {
-    int ret = csound->InitError(csound, Str("Faust compilation problem: %s\n"),
+    int32_t ret = csound->InitError(csound, Str("Faust compilation problem: %s\n"),
                                 err_msg.c_str());
     csound->Free(csound, pp);
     pthread_exit(&ret);
@@ -546,7 +546,7 @@ void *init_faustgen_thread(void *pp) {
 
   dsp = p->factory->createDSPInstance();
   if (dsp == NULL) {
-    int ret = csound->InitError(csound, Str("Faust instantiation problem \n"));
+    int32_t ret = csound->InitError(csound, Str("Faust instantiation problem \n"));
     csound->Free(csound, pp);
     pthread_exit(&ret);
   }
@@ -579,7 +579,7 @@ void *init_faustgen_thread(void *pp) {
   dsp->buildUserInterface(ctls);
   dsp->init(csound->GetSr(csound));
   if (p->engine->getNumInputs() != p->INCOUNT - 1) {
-    int ret;
+    int32_t ret;
     delete p->engine;
     deleteDSPFactory(p->factory);
     csound->Free(csound, pp);
@@ -588,7 +588,7 @@ void *init_faustgen_thread(void *pp) {
     pthread_exit(&ret);
   }
   if (p->engine->getNumOutputs() != p->OUTCOUNT - 1) {
-    int ret;
+    int32_t ret;
     delete p->engine;
     deleteDSPFactory(p->factory);
     csound->Free(csound, pp);
@@ -615,10 +615,10 @@ void *init_faustgen_thread(void *pp) {
   return NULL;
 }
 
-int init_faustgen(CSOUND *csound, faustgen *p) {
+int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   pthread_t thread;
   pthread_attr_t attr;
-  int *ret;
+  int32_t *ret;
   hdata2 *data = (hdata2 *)csound->Malloc(csound, sizeof(hdata2));
   data->csound = csound;
   data->p = p;
@@ -632,8 +632,8 @@ int init_faustgen(CSOUND *csound, faustgen *p) {
     return NOTOK;
 }
 
-int perf_faust(CSOUND *csound, faustgen *p) {
-  int nsmps = CS_KSMPS, i;
+int32_t perf_faust(CSOUND *csound, faustgen *p) {
+  int32_t nsmps = CS_KSMPS, i;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early = p->h.insdshead->ksmps_no_end;
   MYFLT **in_tmp = (MYFLT **)p->memin.auxp;
@@ -690,21 +690,21 @@ struct faustctl {
   MYFLT min, max;
 };
 
-int init_faustctl(CSOUND *csound, faustctl *p) {
+int32_t init_faustctl(CSOUND *csound, faustctl *p) {
 
   faustobj *fobj, **fobjp;
-  int instance = (int)*p->inst;
+  int32_t instance = (int32_t)*p->inst;
 
   fobjp = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
   if (fobjp == NULL)
     return csound->InitError(csound, Str("no dsp instances available\n"));
   fobj = *fobjp;
 
-  while ((int)fobj->cnt != instance) {
+  while ((int32_t)fobj->cnt != instance) {
     fobj = fobj->nxt;
     if (fobj == NULL)
       return csound->InitError(csound, Str("dsp instance not found %d\n"),
-                               (int)*p->inst);
+                               (int32_t)*p->inst);
   }
   p->zone = fobj->ctls->getZone(p->label->data);
   if (p->zone == NULL)
@@ -721,7 +721,7 @@ int init_faustctl(CSOUND *csound, faustctl *p) {
   return OK;
 }
 
-int perf_faustctl(CSOUND *csound, faustctl *p) {
+int32_t perf_faustctl(CSOUND *csound, faustctl *p) {
   MYFLT val = *p->val;
   if (p->min != p->max)
     val = val < p->min ? p->min : (val > p->max ? p->max : val);
@@ -743,12 +743,12 @@ static OENTRY localops[] = {
     {(char *)"faustctl", S(faustgen), 0, 3, (char *)"", (char *)"iSk",
      (SUBR)init_faustctl, (SUBR)perf_faustctl}};
 
-PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep) {
+PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep) {
   IGN(csound);
   *ep = localops;
-  return (long)sizeof(localops);
+  return (int64_t)sizeof(localops);
 }
 
-PUBLIC int csoundModuleInfo(void) {
-  return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int)sizeof(MYFLT));
+PUBLIC int32_t csoundModuleInfo(void) {
+  return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t)sizeof(MYFLT));
 }

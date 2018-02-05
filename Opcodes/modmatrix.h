@@ -33,13 +33,14 @@ typedef struct {
     MYFLT *kupdate;
 
     FUNC *restab, *modtab, *parmtab, *mattab;
-    int nummod, numparm;
+    int32_t nummod, numparm;
     /* Variables for the preprocessed matrix */
-    int doscan, scanned;
+    int32_t doscan, scanned;
         AUXCH aux;
     MYFLT *proc_mat;
-    int *mod_map, *parm_map;
+    int32_t *mod_map, *parm_map;
     MYFLT *remap_mod, *remap_parm;
-    int nummod_scanned, numparm_scanned;
+    int32_t
+    nummod_scanned, numparm_scanned;
 } MODMATRIX;
 

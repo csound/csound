@@ -29,10 +29,10 @@
 #include "pitch.h"
 #include "uggab.h"
 
-int mute_inst(CSOUND *csound, MUTE *p)
+int32_t mute_inst(CSOUND *csound, MUTE *p)
 {
-    int n;
-    int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
+    int32_t n;
+    int32_t onoff = (*p->onoff == FL(0.0) ? 0 : 1);
 
     if (csound->ISSTRCOD(*p->ins)) {
       char *ss = get_arg_string(csound,*p->ins);
@@ -50,10 +50,10 @@ int mute_inst(CSOUND *csound, MUTE *p)
     return OK;
 }
 
-int mute_inst_S(CSOUND *csound, MUTE *p)
+int32_t mute_inst_S(CSOUND *csound, MUTE *p)
 {
-    int n;
-    int onoff = (*p->onoff == FL(0.0) ? 0 : 1);
+    int32_t n;
+    int32_t onoff = (*p->onoff == FL(0.0) ? 0 : 1);
 
     n = csound->strarg2insno(csound, ((STRINGDAT *)p->ins)->data, 1);
 
@@ -68,9 +68,9 @@ int mute_inst_S(CSOUND *csound, MUTE *p)
     return OK;
 }
 
-int instcount(CSOUND *csound, INSTCNT *p)
+int32_t instcount(CSOUND *csound, INSTCNT *p)
 {
-    int n;
+    int32_t n;
 
     if (csound->ISSTRCOD(*p->ins)) {
       char *ss = get_arg_string(csound,*p->ins);
@@ -82,7 +82,7 @@ int instcount(CSOUND *csound, INSTCNT *p)
         csound->engineState.instrtxtp[n] == NULL)
       *p->cnt = FL(0.0);
     else if (n==0) {  /* Count all instruments */
-      int tot = 1;
+      int32_t tot = 1;
       for (n=1; n<csound->engineState.maxinsno; n++)
         if (csound->engineState.instrtxtp[n]) /* If it exists */
           tot += ((*p->opt) ? csound->engineState.instrtxtp[n]->instcnt :
@@ -101,17 +101,17 @@ int instcount(CSOUND *csound, INSTCNT *p)
     return OK;
 }
 
-int instcount_S(CSOUND *csound, INSTCNT *p)
+int32_t instcount_S(CSOUND *csound, INSTCNT *p)
 {
 
 
-    int n = csound->strarg2insno(csound, ((STRINGDAT *)p->ins)->data, 1);
+    int32_t n = csound->strarg2insno(csound, ((STRINGDAT *)p->ins)->data, 1);
 
     if (n<0 || n > csound->engineState.maxinsno ||
         csound->engineState.instrtxtp[n] == NULL)
       *p->cnt = FL(0.0);
     else if (n==0) {  /* Count all instruments */
-      int tot = 1;
+      int32_t tot = 1;
       for (n=1; n<csound->engineState.maxinsno; n++)
         if (csound->engineState.instrtxtp[n]) /* If it exists */
           tot += ((*p->opt) ? csound->engineState.instrtxtp[n]->instcnt :
@@ -131,9 +131,9 @@ int instcount_S(CSOUND *csound, INSTCNT *p)
 
 /* After gabriel maldonado */
 
-int cpuperc(CSOUND *csound, CPU_PERC *p)
+int32_t cpuperc(CSOUND *csound, CPU_PERC *p)
 {
-    int n;
+    int32_t n;
 
     if (csound->ISSTRCOD(*p->instrnum)) {
       char *ss = get_arg_string(csound,*p->instrnum);
@@ -147,9 +147,9 @@ int cpuperc(CSOUND *csound, CPU_PERC *p)
     return OK;
 }
 
-int cpuperc_S(CSOUND *csound, CPU_PERC *p)
+int32_t cpuperc_S(CSOUND *csound, CPU_PERC *p)
 {
-    int n = csound->strarg2insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
+    int32_t n = csound->strarg2insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
     if (n > 0 && n <= csound->engineState.maxinsno &&
         csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
@@ -157,9 +157,9 @@ int cpuperc_S(CSOUND *csound, CPU_PERC *p)
     return OK;
 }
 
-int maxalloc(CSOUND *csound, CPU_PERC *p)
+int32_t maxalloc(CSOUND *csound, CPU_PERC *p)
 {
-    int n;
+    int32_t n;
 
     if (csound->ISSTRCOD(*p->instrnum)) {
       char *ss = get_arg_string(csound,*p->instrnum);
@@ -169,23 +169,23 @@ int maxalloc(CSOUND *csound, CPU_PERC *p)
     if (n > 0 && n <= csound->engineState.maxinsno &&
         csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
-      csound->engineState.instrtxtp[n]->maxalloc = (int)*p->ipercent;
+      csound->engineState.instrtxtp[n]->maxalloc = (int32_t)*p->ipercent;
     return OK;
 }
 
-int maxalloc_S(CSOUND *csound, CPU_PERC *p)
+int32_t maxalloc_S(CSOUND *csound, CPU_PERC *p)
 {
-    int n = csound->strarg2insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
+    int32_t n = csound->strarg2insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
     if (n > 0 && n <= csound->engineState.maxinsno &&
         csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
-      csound->engineState.instrtxtp[n]->maxalloc = (int)*p->ipercent;
+      csound->engineState.instrtxtp[n]->maxalloc = (int32_t)*p->ipercent;
     return OK;
 }
 
-int pfun(CSOUND *csound, PFUN *p)
+int32_t pfun(CSOUND *csound, PFUN *p)
 {
-    int n = (int)MYFLT2LONG(*p->pnum);
+    int32_t32_t32_t n = (int)MYFLT2LONG(*p->pnum);
     MYFLT ans;
     if (n<1) ans = FL(0.0);
     else if (n<PMAX) ans = csound->init_event->p[n];
@@ -197,9 +197,9 @@ int pfun(CSOUND *csound, PFUN *p)
     return OK;
 }
 
-int pfunk_init(CSOUND *csound, PFUNK *p)
+int32_t pfunk_init(CSOUND *csound, PFUNK *p)
 {
-    int i, n = (int)MYFLT2LONG(*p->pnum);
+    int32_t32_t32_t i, n = (int)MYFLT2LONG(*p->pnum);
     MYFLT ans, *pfield;
     if (n<1 || n>PMAX) ans = FL(0.0);
     else ans = csound->init_event->p[n];
@@ -213,10 +213,10 @@ int pfunk_init(CSOUND *csound, PFUNK *p)
     return OK;
 }
 
-int pfunk(CSOUND *csound, PFUNK *p)
+int32_t pfunk(CSOUND *csound, PFUNK *p)
 {
     IGN(csound);
-    int n = (int)MYFLT2LONG(*p->pnum);
+    int32_t32_t32_t n = (int)MYFLT2LONG(*p->pnum);
     MYFLT ans, *pfield;
     if (n<1 || n>PMAX) {
       ans = FL(0.0);

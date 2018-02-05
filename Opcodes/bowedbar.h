@@ -77,15 +77,15 @@ typedef struct BowedBar {
 /*      MYFLT   filtIn[4]; */
 /*      MYFLT   filtGain[4]; */
     MYFLT       freq;
-    int         nr_modes;       /* Usually 4 */
-    int         length;
+    int32_t         nr_modes;       /* Usually 4 */
+    int32_t         length;
     MYFLT       gains[4];
     MYFLT       velinput;
     MYFLT       bowvel, bowTarg, lastBowPos;
     MYFLT       lastpos;
-/*      int             pluck; */
+/*      int32_t             pluck; */
     MYFLT       lastpress;
-    int         kloop;
+    int32_t         kloop;
 } BOWEDBAR;
 
 #endif

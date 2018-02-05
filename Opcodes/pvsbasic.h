@@ -175,8 +175,8 @@ typedef struct _pvsmix {
     uint32  lastframe;
 } PVSMIX;
 
-static int pvsmixset(CSOUND *, PVSMIX *p);
-static int pvsmix(CSOUND *, PVSMIX *p);
+static int32_t pvsmixset(CSOUND *, PVSMIX *p);
+static int32_t pvsmix(CSOUND *, PVSMIX *p);
 
 typedef struct _pvsfilter {
     OPDS    h;
@@ -188,8 +188,8 @@ typedef struct _pvsfilter {
     uint32  lastframe;
 } PVSFILTER;
 
-static int pvsfilterset(CSOUND *, PVSFILTER *p);
-static int pvsfilter(CSOUND *, PVSFILTER *p);
+static int32_t pvsfilterset(CSOUND *, PVSFILTER *p);
+static int32_t pvsfilter(CSOUND *, PVSFILTER *p);
 
 
 typedef struct _pvsblur {
@@ -204,8 +204,8 @@ typedef struct _pvsblur {
     uint32  lastframe;
 } PVSBLUR;
 
-static int pvsblurset(CSOUND *, PVSBLUR *p);
-static int pvsblur(CSOUND *, PVSBLUR *p);
+static int32_t pvsblurset(CSOUND *, PVSBLUR *p);
+static int32_t pvsblur(CSOUND *, PVSBLUR *p);
 
 typedef struct _pvstencil {
     OPDS    h;
@@ -218,8 +218,9 @@ typedef struct _pvstencil {
     uint32  lastframe;
 } PVSTENCIL;
 
-static int pvstencilset(CSOUND *, PVSTENCIL *p);
-static int pvstencil(CSOUND *, PVSTENCIL *p);
+static int32_t pvstencilset(CSOUND *, PVSTENCIL *p);
+static int32_t
+pvstencil(CSOUND *, PVSTENCIL *p);
 
 #endif
 

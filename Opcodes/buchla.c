@@ -46,8 +46,8 @@ typedef struct {
 
 static double kontrolconvert(CSOUND *csound, double in1, double in2);
 
-static int warn = 0;
-int poly_LPG_init(CSOUND* csound, BUCHLA *p)
+static int32_t warn = 0;
+int32_t poly_LPG_init(CSOUND* csound, BUCHLA *p)
 {
     p->so = p->sx = p->sd = p->xo = 0.0;
     if (warn==0) csound->Message(csound, "**** Experimental code ****\n");
@@ -58,7 +58,7 @@ int poly_LPG_init(CSOUND* csound, BUCHLA *p)
     return OK;
 }
 
-int poly_LPG_perf(CSOUND* csound, BUCHLA *p)
+int32_t poly_LPG_perf(CSOUND* csound, BUCHLA *p)
 {
     double c3, r3, rf, max_res, a, f=p->f, a1, a2, b1, b2, b3, b4;
     double Dmas, yx, yo, yd, tanh_xo, Dx, Do;
@@ -175,7 +175,7 @@ typedef struct {
       double      t_down;
 } VACTROL;
 
-int vactrol_init(CSOUND *csound, VACTROL* p)
+int32_t vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
     p->a_base = 1000.0*M_PI/(csound->GetSr(csound));
@@ -184,7 +184,7 @@ int vactrol_init(CSOUND *csound, VACTROL* p)
     return OK;
 }
 
-int vactrol_perf(CSOUND *csound, VACTROL* p)
+int32_t vactrol_perf(CSOUND *csound, VACTROL* p)
 {
     double s1 = p->s1;
     double a_base = p->a_base;

@@ -133,7 +133,7 @@ input  |    |------>|
 #define FLT_MAX         (1.0e38)
 #endif
 
-static const int sound_speed = 330;
+static const int32_t sound_speed = 330;
 
 /*
  * private Babo tools
@@ -382,7 +382,7 @@ BaboTapline_output(CSOUND *csound, const BaboTapline *this,
                    const BaboTaplineParameters *pars)
 {
     IGN(csound);
-    int     i;
+    int32_t     i;
     MYFLT   output = BaboTapline_single_output(this, &pars->direct);
 
     for (i = 0; i < BABO_TAPS; ++i)
@@ -463,7 +463,7 @@ BaboNode_output(const BaboNode *this)
 static void
 BaboMatrix_create_FDN(BaboMatrix *this, MYFLT diffusion)
 {
-    int  i,j;
+    int32_t  i,j;
     MYFLT _2PI_NODES = TWOPI_F / BABO_NODES;
     /*
      * The following sequence of eigenvalues provides, by IDFT,
@@ -530,12 +530,12 @@ BaboMatrix_create_FDN(BaboMatrix *this, MYFLT diffusion)
 static MYFLT
 BaboMatrix_calculate_delays(MYFLT delay_time[], MYFLT x, MYFLT y, MYFLT z)
 {
-    int i = 0;
+    int32_t i = 0;
     MYFLT min = FL(0.0);
 
     static const struct babo_diffusion_constants
     {
-        int x, y, z;
+        int32_t x, y, z;
 
     } BABO_DIRECTIONS[] =
     {
@@ -595,7 +595,7 @@ BaboMatrix_create(CSOUND *csound,
                   BaboMatrix *this, MYFLT diffusion, MYFLT x, MYFLT y,
                   MYFLT z, MYFLT decay, MYFLT hidecay, MYFLT early_diffusion)
 {
-    int i = 0;
+    int32_t i = 0;
     MYFLT delays[BABO_NODES];
     MYFLT min_delay = BaboMatrix_calculate_delays(delays, x, y, z);
 
@@ -611,7 +611,7 @@ BaboMatrix_create(CSOUND *csound,
 }
 
 static inline MYFLT
-BaboMatrix_coefficient(const BaboMatrix *this, int x, int y)
+BaboMatrix_coefficient(const BaboMatrix *this, int32_t x, int32_t y)
 {
     return this->fdn[x][y];
 }
@@ -623,7 +623,7 @@ BaboMatrix_output(BaboMatrix *this, MYFLT outputs[], MYFLT input,
 {
     MYFLT            filter_tmpout[BABO_NODES]  = { FL(0.0) },
                      tmp2[BABO_NODES]           = { FL(0.0) };
-    register int     i = 0, j = 0;
+    register int32_t     i = 0, j = 0;
 
     for (i = 0; i < BABO_NODES; ++i)
     {
@@ -707,7 +707,7 @@ resolve_defaults(BABO *p)
 }
 
 static inline MYFLT
-load_value_or_default(const FUNC *table, int idx, MYFLT dEfault)
+load_value_or_default(const FUNC *table, int32_t idx, MYFLT dEfault)
 {
     MYFLT result = (table != (FUNC *) NULL && idx < (int32)table->flen) ?
                    table->ftable[idx] : dEfault;
@@ -719,7 +719,7 @@ static void
 set_expert_values(CSOUND *csound, BABO *p)
 {
     FUNC    *ftp    = (FUNC *) NULL; /* brain-damaged function calling */
-    int      n      = 0;
+    int32_t      n      = 0;
 
     if (p->expert_values > 0)
         ftp = csound->FTnp2Find(csound, &(p->expert_values));
@@ -754,7 +754,7 @@ verify_coherence(CSOUND *csound, BABO *p)
  *
  */
 
-static int
+static int32_t
 baboset(CSOUND *csound, void *entry)
 {
     BABO *p = (BABO *) entry;   /* assuming the engine is right... :)   */
@@ -770,7 +770,7 @@ baboset(CSOUND *csound, void *entry)
     return OK;
 }
 
-static int
+static int32_t
 babo(CSOUND *csound, void *entry)
 {
     BABO    *p          = (BABO *) entry;

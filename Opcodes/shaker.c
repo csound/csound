@@ -54,7 +54,7 @@ But we're smarter than that!!!  See below
 #include "csoundCore.h"
 #include "shaker.h"
 
-int shakerset(CSOUND *csound, SHAKER *p)
+int32_t shakerset(CSOUND *csound, SHAKER *p)
 {
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
@@ -72,19 +72,19 @@ int shakerset(CSOUND *csound, SHAKER *p)
 /*     p->num_beans = 8; */
     ADSR_setAll(csound, &p->envelope,
                 p->shake_speed,  p->shake_speed, FL(0.0),  p->shake_speed);
-    p->num_beans = (int)*p->beancount;
+    p->num_beans = (int32_t)*p->beancount;
     if (p->num_beans<1) p->num_beans = 1;
     p->wait_time = 0x7FFFFFFE / p->num_beans;
     p->gain_norm = FL(0.0005);
-    p->shake_num = (int)*p->times;
+    p->shake_num = (int32_t)*p->times;
     ADSR_keyOn(&p->envelope);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
     p->freq = -FL(1.0);        /* So will get changed */
     return OK;
 }
 
-int shaker(CSOUND *csound, SHAKER *p)
+int32_t shaker(CSOUND *csound, SHAKER *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -100,8 +100,9 @@ int shaker(CSOUND *csound, SHAKER *p)
 
     if (p->freq != *p->kfreq)
       BiQuad_setFreqAndReson(p->filter, p->freq = *p->kfreq, FL(0.96));
-    if (p->num_beans != (int)*p->beancount) { /* Bean Count */
-      p->num_beans = (int)*p->beancount;
+    if (p->num_beans != (int32_t)*p->beancount) { /* Bean Count */
+      p->num_beans = (int32_t
+                      )*p->beancount;
       p->wait_time = 0x7FFFFFFE / p->num_beans;
     }
     if (shake_speed != p->shake_speed) {

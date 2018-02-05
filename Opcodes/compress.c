@@ -48,7 +48,7 @@ typedef struct {        /* this now added from 07/01 */
     FUNC    *ftp;
 } DIST;
 
-static int compset(CSOUND *csound, CMPRS *p)
+static int32_t compset(CSOUND *csound, CMPRS *p)
 {
     int32    delsmps;
 
@@ -77,14 +77,14 @@ static int compset(CSOUND *csound, CMPRS *p)
 
 /* compress2 is compress but with dB inputs in range [-90,0] rather
    than [0.90], by setting p->bias valuex -- JPff */
-static int comp2set(CSOUND *csound, CMPRS *p)
+static int32_t comp2set(CSOUND *csound, CMPRS *p)
 {
-    int ret = compset(csound, p);
+    int32_t ret = compset(csound, p);
     p->bias = FL(90.0);
     return ret;
 }
 
-static int compress(CSOUND *csound, CMPRS *p)
+static int32_t compress(CSOUND *csound, CMPRS *p)
 {
     MYFLT       *ar, *ainp, *cinp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -202,7 +202,7 @@ static int compress(CSOUND *csound, CMPRS *p)
     return OK;
 }
 
-static int distset(CSOUND *csound, DIST *p)
+static int32_t distset(CSOUND *csound, DIST *p)
 {
     double  b;
     FUNC    *ftp;
@@ -225,7 +225,7 @@ static int distset(CSOUND *csound, DIST *p)
     return OK;
 }
 
-static int distort(CSOUND *csound, DIST *p)
+static int32_t distort(CSOUND *csound, DIST *p)
 {
     IGN(csound);
     MYFLT   *ar, *asig;

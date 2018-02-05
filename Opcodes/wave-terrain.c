@@ -31,7 +31,7 @@
  *          en6mjg@bath.ac.uk
  */
 
-static int wtinit(CSOUND *csound, WAVETER *p)
+static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
     /* DECLARE */
     FUNC *ftpx = csound->FTnp2Find(csound, p->i_tabx);
@@ -53,12 +53,12 @@ static int wtinit(CSOUND *csound, WAVETER *p)
     return OK;
 }
 
-static int wtPerf(CSOUND *csound, WAVETER *p)
+static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int xloc, yloc;
+    int32_t xloc, yloc;
     MYFLT xc, yc;
     MYFLT amp = *p->kamp;
     MYFLT pch = *p->kpch;
@@ -85,8 +85,8 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
       yc = yc-FLOOR(yc);
 
       /* SCALE TO TABLE-SIZE SQUARE */
-      xloc = (int)(xc * sizx);
-      yloc = (int)(yc * sizy);
+      xloc = (int32_t)(xc * sizx);
+      yloc = (int32_t)(yc * sizy);
 
       /* OUTPUT AM OF TABLE VALUES * KAMP */
       aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
@@ -109,7 +109,7 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
  *          en6mjg@bath.ac.uk
  */
 
-static int scanhinit(CSOUND *csound, SCANHAMMER *p)
+static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
 {
   uint32_t srcpos = 0;
   uint32_t dstpos = (uint32_t)MYFLT2LONG(*p->ipos);
@@ -143,7 +143,7 @@ static int scanhinit(CSOUND *csound, SCANHAMMER *p)
  *          en6mjg@bath.ac.uk
  */
 
-static int scantinit(CSOUND *csound, SCANTABLE *p)
+static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
 {
     /* DECLARE */
     FUNC *fpoint = csound->FTnp2Find(csound, p->i_point);
@@ -204,13 +204,13 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
     return OK;
 }
 
-static int scantPerf(CSOUND *csound, SCANTABLE *p)
+static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT force, fc1, fc2;
-    int next, last;
+    int32_t next, last;
 
     /* DECLARE */
     FUNC *fpoint = p->fpoint;
@@ -241,7 +241,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
         next = 0;
       }
       else if (UNLIKELY(i == 0)) {
-        last = (int)p->size - 1;
+        last = (int32_t)p->size - 1;
       }
 
       if (UNLIKELY(fmass->ftable[i] == 0)) {
@@ -270,7 +270,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
     for (i=offset; i<nsmps; i++) {
 
       /* NO INTERPOLATION */
-      aout[i] = fpoint->ftable[(int)pos] * amp;
+      aout[i] = fpoint32_t32_t->ftable[(int)pos] * amp;
 
       pos += inc /* p->size * *(p->kpch) * csound->onedsr */;
       if (UNLIKELY(pos > p->size)) {
@@ -298,9 +298,10 @@ static OENTRY localops[] = {
 { "scanhammer",S(SCANHAMMER),TB, 1,"", "iiii", (SUBR)scanhinit, NULL, NULL    }
 };
 
-int wave_terrain_init_(CSOUND *csound)
+int32_t wave_terrain_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

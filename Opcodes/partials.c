@@ -45,23 +45,23 @@ typedef struct _parts {
     PVSDAT *fout;
     PVSDAT *fin1, *fin2;
     MYFLT  *kthresh, *pts, *gap, *mtrks;
-    int     tracks, numbins, mtracks, prev, cur;
+    int32_t     tracks, numbins, mtracks, prev, cur;
     uint64_t accum;
     uint32  lastframe, timecount;
     AUXCH   mags, lmags, index, cflag, trkid, trndx;
     AUXCH   tstart, binex, magex, oldbins, diffs, adthresh;
     AUXCH   pmags, bins, lastpk;
-    int     nophase;
+    int32_t     nophase;
 
 } _PARTS;
 
-static int partials_init(CSOUND * csound, _PARTS * p)
+static int32_t partials_init(CSOUND * csound, _PARTS * p)
 {
 
-    int     N = p->fin1->N, maxtracks;
-    int     numbins = N / 2 + 1, i;
-    int    *trkid;
-    int    *trndx;
+    int32_t     N = p->fin1->N, maxtracks;
+    int32_t     numbins = N / 2 + 1, i;
+    int32_t    *trkid;
+    int32_t    *trndx;
 
     p->tracks = 0;
     p->mtracks = *p->mtrks;
@@ -84,25 +84,25 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     else
       memset(p->lmags.auxp, 0,sizeof(double) * numbins );
 
-     if (p->cflag.auxp == NULL || p->cflag.size < sizeof(int) * maxtracks)
-      csound->AuxAlloc(csound, sizeof(int) * maxtracks, &p->cflag);
+     if (p->cflag.auxp == NULL || p->cflag.size < sizeof(int32_t) * maxtracks)
+      csound->AuxAlloc(csound, sizeof(int32_t) * maxtracks, &p->cflag);
      else
-       memset(p->cflag.auxp, 0, sizeof(int) * maxtracks);
+       memset(p->cflag.auxp, 0, sizeof(int32_t) * maxtracks);
 
-     if (p->trkid.auxp == NULL || p->trkid.size < sizeof(int) * maxtracks * 2)
-      csound->AuxAlloc(csound, sizeof(int) * maxtracks * 2, &p->trkid);
+     if (p->trkid.auxp == NULL || p->trkid.size < sizeof(int32_t) * maxtracks * 2)
+      csound->AuxAlloc(csound, sizeof(int32_t) * maxtracks * 2, &p->trkid);
      else
-       memset(p->trkid.auxp, 0, sizeof(int) * maxtracks * 2);
+       memset(p->trkid.auxp, 0, sizeof(int32_t) * maxtracks * 2);
 
-     if (p->trndx.auxp == NULL || p->trndx.size < sizeof(int) * maxtracks)
-      csound->AuxAlloc(csound, sizeof(int) * maxtracks, &p->trndx);
+     if (p->trndx.auxp == NULL || p->trndx.size < sizeof(int32_t) * maxtracks)
+      csound->AuxAlloc(csound, sizeof(int32_t) * maxtracks, &p->trndx);
      else
-       memset(p->trndx.auxp, 0, sizeof(int) * maxtracks );
+       memset(p->trndx.auxp, 0, sizeof(int32_t) * maxtracks );
 
-     if (p->index.auxp == NULL || p->index.size < sizeof(int) * numbins)
-      csound->AuxAlloc(csound, sizeof(int) * numbins, &p->index);
+     if (p->index.auxp == NULL || p->index.size < sizeof(int32_t) * numbins)
+      csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->index);
      else
-       memset(p->index.auxp, 0,sizeof(int) * numbins );
+       memset(p->index.auxp, 0,sizeof(int32_t) * numbins );
 
      if (p->tstart.auxp == NULL || p->tstart.size < sizeof(uint32) * maxtracks * 2)
       csound->AuxAlloc(csound, sizeof(uint32) * maxtracks * 2, &p->tstart);
@@ -165,8 +165,8 @@ static int partials_init(CSOUND * csound, _PARTS * p)
     p->fout->framecount = 1;
     p->fout->format = PVS_TRACKS;
 
-    trkid = (int *) p->trkid.auxp;
-    trndx = (int *) p->trndx.auxp;
+    trkid = (int32_t *) p->trkid.auxp;
+    trndx = (int32_t *) p->trndx.auxp;
     for (i = 0; i < maxtracks; i++)
       trkid[p->cur + i] = trkid[p->prev + i] = trndx[i] = -1;
 
@@ -196,20 +196,20 @@ static void Analysis(CSOUND * csound, _PARTS * p)
 {
 
     float   absthresh, logthresh;
-    int     ndx, count = 0, i = 0, n = 0, j = 0;
+    int32_t     ndx, count = 0, i = 0, n = 0, j = 0;
     float   dbstep;
     double  y1, y2, a, b, dtmp;
     float   ftmp, ftmp2;
-    int     numbins = p->numbins, maxtracks = p->mtracks;
-    int     prev = p->prev, cur = p->cur, foundcont;
-    int     accum = p->accum, minpoints = (int) (*p->pts > 1 ? *p->pts : 1) - 1;
-    int     tracks = p->tracks;
+    int32_t     numbins = p->numbins, maxtracks = p->mtracks;
+    int32_t     prev = p->prev, cur = p->cur, foundcont;
+    int32_t32_t32_t32_t     accum = p->accum, minpoints = (int) (*p->pts > 1 ? *p->pts : 1) - 1;
+    int32_t     tracks = p->tracks;
     double  *mags = (double *) p->mags.auxp;
     double *lmags = (double *) p->lmags.auxp;
-    int    *cflag = (int *) p->cflag.auxp;
-    int    *trkid = (int *) p->trkid.auxp;
-    int    *trndx = (int *) p->trndx.auxp;
-    int    *index = (int *) p->index.auxp;
+    int32_t32_t32_t32_t    *cflag = (int *) p->cflag.auxp;
+    int32_t32_t32_t32_t    *trkid = (int *) p->trkid.auxp;
+    int32_t32_t32_t32_t    *trndx = (int *) p->trndx.auxp;
+    int32_t32_t32_t32_t    *index = (int *) p->index.auxp;
     uint32 *tstart = (uint32 *) p->tstart.auxp;
     double  *binex = (double *) p->binex.auxp;
     double  *magex = (double *) p->magex.auxp;
@@ -221,7 +221,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     uint32 *lastpk = (uint32 *) p->lastpk.auxp;
     uint32_t timecount = p->timecount,
              maxgap = (uint32_t) (*p->gap > 0 ? *p->gap : 0);
-    int     test1 = 1, test2 = 0;
+    int32_t     test1 = 1, test2 = 0;
 
     if(*p->kthresh >= 0) {
     float max = 0.0f;
@@ -259,7 +259,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     }
 
     for (i = 0; i < n; i++) {
-      int     rmax;
+      int32_t     rmax;
 
       rmax = index[i];
 
@@ -337,7 +337,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
         }
       }
       if (foundcont == 0) {
-        if ((mags[(int) (oldbins[prev + j] + 0.5f)]) < (0.2 * pmags[prev + j])
+        if ((mags[(int32_t) (oldbins[prev + j] + 0.5f)]) < (0.2 * pmags[prev + j])
             || (timecount - lastpk[prev + j]) > maxgap)
           cflag[j] = 0;
         else {
@@ -420,20 +420,20 @@ static void Analysis(CSOUND * csound, _PARTS * p)
 
 }
 
-static int partials_process(CSOUND * csound, _PARTS * p)
+static int32_t partials_process(CSOUND * csound, _PARTS * p)
 {
 
-    int     pos, ndx, end, fftsize = p->fin1->N;
-    int     numbins = fftsize / 2 + 1, i, k;
-    int     tracks, nophase = p->nophase;
+    int32_t     pos, ndx, end, fftsize = p->fin1->N;
+    int32_t     numbins = fftsize / 2 + 1, i, k;
+    int32_t     tracks, nophase = p->nophase;
     float  *fin1 = p->fin1->frame.auxp;
     float  *fin2 = p->fin2->frame.auxp;
     float  *fout = p->fout->frame.auxp;
     double  *mags = p->mags.auxp;
     double  *bins = p->bins.auxp;
-    int    *trndx = p->trndx.auxp;
+    int32_t    *trndx = p->trndx.auxp;
     double   frac, a, b;
-    int maxtracks = (p->mtracks < numbins ? p->mtracks : numbins);
+    int32_t maxtracks = (p->mtracks < numbins ? p->mtracks : numbins);
     end = numbins * 4;
 
     if (p->lastframe < p->fin1->framecount) {
@@ -446,7 +446,7 @@ static int partials_process(CSOUND * csound, _PARTS * p)
       for (i = k = 0; i < end && k < maxtracks; i += 4, k++) {
         if (k < tracks) {
           /* magnitudes */
-          ndx = (int) bins[k];
+          ndx = (int32_t) bins[k];
           fout[i] = (float) mags[k];
           /* fractional part of bin indexes */
           frac = (bins[k] - ndx);
@@ -487,7 +487,7 @@ typedef struct  _partxt{
 } PARTXT;
 
 
-int part2txt_init(CSOUND *csound, PARTXT *p){
+int32_t part2txt_init(CSOUND *csound, PARTXT *p){
 
     if (p->fdch.fd != NULL)
       fdclose(csound, &(p->fdch));
@@ -500,14 +500,14 @@ int part2txt_init(CSOUND *csound, PARTXT *p){
     return OK;
 }
 
-int part2txt_perf(CSOUND *csound, PARTXT *p){
+int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
      IGN(csound);
     float *tracks = (float *) p->tracks->frame.auxp;
-    int i = 0;
+    int32_t i = 0;
     if (p->tracks->framecount > p->lastframe){
       for (i=0; tracks[i+3] != -1; i+=4){
         fprintf(p->f, "%f %f %f %d\n",tracks[i],tracks[i+1],
-                tracks[i+2], (int) tracks[i+3]);
+                tracks[i+2], (int32_t) tracks[i+3]);
       }
       fprintf(p->f, "-1.0 -1.0 -1.0 -1\n");
       p->lastframe = p->tracks->framecount;
@@ -523,8 +523,9 @@ static OENTRY localops[] =
                             (SUBR) part2txt_init, (SUBR) part2txt_perf }
   };
 
-int partials_init_(CSOUND *csound)
+int32_t partials_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-                               (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int32_t
+                                ) (sizeof(localops) / sizeof(OENTRY)));
 }

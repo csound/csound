@@ -28,7 +28,7 @@
 typedef struct {
     OPDS    h;
     MYFLT   *ar, *asig, *kcf, *kbw, *ord, *iscl, *istor;
-    int     scale, loop;
+    int32_t     scale, loop;
     MYFLT   c1, c2, c3, *yt1, *yt2, cosf, prvcf, prvbw;
     AUXCH   aux;
 } KRESONX;
@@ -38,8 +38,8 @@ typedef struct {
     MYFLT   *rslt, *xndx, *xfn, *ixmode;
     MYFLT   *table;
     MYFLT   xbmul;
-    int     xmode;
-    int     tablen;
+    int32_t     xmode;
+    int32_t     tablen;
 } FASTAB;
 
 typedef struct {
@@ -75,8 +75,8 @@ typedef struct {
     FUNC    *ftp;
     FUNC    *freqtp;
     FUNC    *amptp;
-    int     count;
-    int     inerr;
+    int32_t     count;
+    int32_t     inerr;
     AUXCH   lphs;
     AUXCH   pamp;
 } ADSYNT2;
@@ -89,24 +89,24 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *ktrig_start, *ktrig_stop, *numtics, *kfn, *inargs[VARGMAX];
-    int     recording, numins;
-    long    currtic, ndx, tablen;
+    int32_t     recording, numins;
+    int64_t    currtic, ndx, tablen;
     MYFLT   *table, old_fn;
 } TABREC;
 
 typedef struct {
     OPDS    h;
     MYFLT   *ktrig, *numtics, *kfn, *outargs[VARGMAX];
-    int     playing, numouts;
-    long    currtic, ndx, tablen;
+    int32_t     playing, numouts;
+    int64_t    currtic, ndx, tablen;
     MYFLT   *table, old_fn;
 } TABPLAY;
 
 typedef struct {
     OPDS    h;
     MYFLT   *ktrig, *inargs[VARGMAX];
-    int     numargs;            /* Reordered for caching */
-    int     cnt;
+    int32_t     numargs;            /* Reordered for caching */
+    int32_t     cnt;
     MYFLT   old_inargs[VARGMAX];
 } ISCHANGED;
 
@@ -114,8 +114,8 @@ typedef struct {
     OPDS     h;
     MYFLT    *ktrig;
     ARRAYDAT *chk;
-    int      size;
-    int      cnt;
+    int32_t      size;
+    int32_t      cnt;
     AUXCH    old_chk;
 } ISACHANGED;
 
@@ -128,7 +128,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *kout, *asig, *ktrig, *imaxflag;
     MYFLT   max;
-    int     counter;
+    int32_t     counter;
 } P_MAXIMUM;
 
 /* From fractals.h */
@@ -136,7 +136,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *kr, *koutrig,  *ktrig, *kx, *ky, *kmaxIter;
     MYFLT   oldx, oldy;
-    int     oldCount;
+    int32_t     oldCount;
 } MANDEL;
 
 #endif

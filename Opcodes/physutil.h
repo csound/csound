@@ -85,7 +85,7 @@ typedef struct Envelope {
     MYFLT       value;
     MYFLT       target;
     MYFLT       rate;
-    int         state;
+    int32_t         state;
 } Envelope;
 
 void make_Envelope(Envelope*);
@@ -172,7 +172,7 @@ typedef struct ADSR {
     MYFLT       value;                /* Envelope subclass */
     MYFLT       target;
     MYFLT       rate;
-    int         state;                  /* end */
+    int32_t         state;                  /* end */
     MYFLT       attackRate;
     MYFLT       decayRate;
     MYFLT       sustainLevel;
@@ -192,7 +192,8 @@ void ADSR_setAllTimes(CSOUND *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
 void ADSR_setTarget(CSOUND *,ADSR*, MYFLT);
 void ADSR_setValue(CSOUND *,ADSR*, MYFLT);
 MYFLT ADSR_tick(ADSR*);
-int ADSR_informTick(ADSR*);
+int32_t
+ADSR_informTick(ADSR*);
 MYFLT ADSR_lastOut(ADSR*);
 
 /*******************************************/

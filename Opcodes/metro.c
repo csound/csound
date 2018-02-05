@@ -28,13 +28,13 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *iphs;
         double  curphs;
-        int flag;
+        int32_t flag;
 } METRO;
 
 typedef struct  {
         OPDS    h;
         MYFLT   *trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
-        int             numouts, currtic, old_ndx;
+        int32_t             numouts, currtic, old_ndx;
         MYFLT *table;
 } SPLIT_TRIG;
 
@@ -42,13 +42,13 @@ typedef struct  {
         OPDS    h;
         MYFLT   *ktrig, *kphs, *ifn, *args[VARGMAX];
         MYFLT endSeq, *table, oldPhs;
-        int numParm, endIndex, prevIndex, nextIndex ;
+        int32_t numParm, endIndex, prevIndex, nextIndex ;
         MYFLT prevActime, nextActime;
-        int initFlag;
+        int32_t initFlag;
 
 } TIMEDSEQ;
 
-static int metro_set(CSOUND *csound, METRO *p)
+static int32_t metro_set(CSOUND *csound, METRO *p)
 {
     double phs = *p->iphs;
     int32  longphs;
@@ -62,7 +62,7 @@ static int metro_set(CSOUND *csound, METRO *p)
     return OK;
 }
 
-static int metro(CSOUND *csound, METRO *p)
+static int32_t metro(CSOUND *csound, METRO *p)
 {
      IGN(csound);
     double      phs= p->curphs;
@@ -81,7 +81,7 @@ static int metro(CSOUND *csound, METRO *p)
     return OK;
 }
 
-static int split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
+static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
 {
 
     /* syntax of each table element:
@@ -111,19 +111,19 @@ static int split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     return OK;
 }
 
-static int split_trig(CSOUND *csound, SPLIT_TRIG *p)
+static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
 {
      IGN(csound);
-    int j;
-    int numouts =  p->numouts;
+    int32_t j;
+    int32_t numouts =  p->numouts;
     MYFLT **outargs = p->outargs;
 
     if (*p->trig) {
-      int ndx = (int) *p->ndx * (numouts * (int) *p->maxtics + 1);
-      int numtics =  (int) p->table[ndx];
+      int32_t32_t32_t ndx = (int) *p->ndx * (numouts * (int) *p->maxtics + 1);
+      int32_t32_t32_t numtics =  (int) p->table[ndx];
       MYFLT *table = &(p->table[ndx+1]);
-      int kndx = (int) *p->ndx;
-      int currtic;
+      int32_t32_t32_t kndx = (int) *p->ndx;
+      int32_t currtic;
 
       if (kndx != p->old_ndx) {
         p->currtic = 0;
@@ -145,7 +145,7 @@ static int split_trig(CSOUND *csound, SPLIT_TRIG *p)
     return OK;
 }
 
-static int timeseq_set(CSOUND *csound, TIMEDSEQ *p)
+static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 {
     FUNC *ftp;
     MYFLT *table;
@@ -164,12 +164,12 @@ static int timeseq_set(CSOUND *csound, TIMEDSEQ *p)
     return OK;
 }
 
-static int timeseq(CSOUND *csound, TIMEDSEQ *p)
+static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 {
      IGN(csound);
     MYFLT *table = p->table, minDist = CS_ONEDKR;
     MYFLT phs = *p->kphs, endseq = p->endSeq;
-    int  j,k, numParm = p->numParm, endIndex = p->endIndex;
+    int32_t  j,k, numParm = p->numParm, endIndex = p->endIndex;
     while (phs > endseq)
       phs -=endseq;
     while (phs < 0 )
@@ -260,9 +260,10 @@ static OENTRY localops[] = {
   { "timedseq",S(TIMEDSEQ), TR, 3, "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }
 };
 
-int metro_init_(CSOUND *csound)
+int32_t metro_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

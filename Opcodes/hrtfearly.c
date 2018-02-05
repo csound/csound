@@ -31,16 +31,16 @@
 #define minelev (-40)
 #define elevincrement (10)
 
-static const int elevationarray[14] =
+static const int32_t elevationarray[14] =
   {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, 36, 24, 12, 1 };
 
 /* for ppc byte switch */
 #ifdef WORDS_BIGENDIAN
-static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
+static int32_t swap4bytes(CSOUND* csound, MEMFIL* mfp)
 {
     char c1, c2, c3, c4;
     char *p = mfp->beginp;
-    int  size = mfp->length;
+    int32_t  size = mfp->length;
 
     while (size >= 4)
       {
@@ -52,15 +52,15 @@ static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
     return OK;
 }
 #else
-static int (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
+static int32_t (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 #endif
 
 /* low pass filter for overall surface shape */
 MYFLT filter(MYFLT* sig, MYFLT highcoeff, MYFLT lowcoeff,
-             MYFLT *del, int vecsize, MYFLT sr)
+             MYFLT *del, int32_t vecsize, MYFLT sr)
 {
     MYFLT costh, coef;
-    int i;
+    int32_t i;
 
     /* setup filter */
     MYFLT T = FL(1.0) / sr;
@@ -121,7 +121,7 @@ MYFLT filter(MYFLT* sig, MYFLT highcoeff, MYFLT lowcoeff,
 
 /* band pass for surface detail, from csound eqfil */
 MYFLT band(MYFLT* sig, MYFLT cfreq, MYFLT bw, MYFLT g, MYFLT *del,
-           int vecsize, MYFLT sr)
+           int32_t vecsize, MYFLT sr)
 {
     MYFLT T = FL(1.0) / sr;
     MYFLT pioversr = FL(PI) * T;
@@ -129,7 +129,7 @@ MYFLT band(MYFLT* sig, MYFLT cfreq, MYFLT bw, MYFLT g, MYFLT *del,
     MYFLT b = (TAN(bw * pioversr));
     MYFLT c = (FL(1.0) - b) / (FL(1.0) + b);
     MYFLT w, y;
-    int i;
+    int32_t i;
 
     for(i = 0; i < vecsize; i++)
       {
@@ -163,13 +163,13 @@ typedef struct
   MYFLT rotatev;
 
   /* processing buffer sizes, depends on sr */
-  int irlength, irlengthpad, overlapsize;
+  int32_t irlength, irlengthpad, overlapsize;
   MYFLT sr;
-  int counter;
+  int32_t counter;
 
   /* crossfade preparation and checks */
-  int fade, fadebuffer;
-  int initialfade;
+  int32_t fade, fadebuffer;
+  int32_t initialfade;
 
   /* interpolation buffer declaration */
   AUXCH lowl1, lowr1, lowl2, lowr2;
@@ -185,17 +185,17 @@ typedef struct
   AUXCH overlaplold, overlaprold;
 
   /* no of impulses based on order */
-  int impulses, order;
-  int M;
+  int32_t impulses, order;
+  int32_t M;
   /* 3d check*/
-  int threed;
+  int32_t threed;
 
   /* speed of sound*/
   MYFLT c;
 
   /* Image Model*/
   MYFLT rmx, rmy, rmz;
-  int maxdelsamps;
+  int32_t maxdelsamps;
 
   /* for each reflection*/
   AUXCH hrtflpadspec, hrtfrpadspec, hrtflpadspecold, hrtfrpadspecold;
@@ -228,17 +228,17 @@ typedef struct
 
 } early;
 
-static int early_init(CSOUND *csound, early *p)
+static int32_t early_init(CSOUND *csound, early *p)
 {
     /* iterator */
-    int i;
+    int32_t i;
 
     /* left and right data files: spectral mag, phase format.*/
     MEMFIL *fpl=NULL, *fpr=NULL;
     char filel[MAXNAME],filer[MAXNAME];
 
     /* processing sizes*/
-    int irlength = 0, irlengthpad = 0, overlapsize = 0;
+    int32_t irlength = 0, irlengthpad = 0, overlapsize = 0;
 
     /* walls: surface area*/
     MYFLT wallS1, wallS2, cfS;
@@ -250,31 +250,31 @@ static int early_init(CSOUND *csound, early *p)
     /* room */
     MYFLT rmx, rmy, rmz;
     /* default room */
-    int defroom;
+    int32_t defroom;
 
     /* dynamic values, based on number of impulses...*/
-    int *oldelevindex;
-    int *oldangleindex;
-    int *skipdel;
+    int32_t *oldelevindex;
+    int32_t *oldangleindex;
+    int32_t *skipdel;
 
     /* order calculation */
-    int impulses = 1;
-    int temp = 2;
+    int32_t impulses = 1;
+    int32_t temp = 2;
 
     /* defs for delay lines */
     MYFLT maxdist = FL(0.0);
     MYFLT maxdtime;
-    int     maxdelsamps;
+    int32_t     maxdelsamps;
 
     /* late tail */
     MYFLT meanfreepath;
     MYFLT surfacearea = FL(0.0);
 
     /* setup defaults for optional parameters */
-    int fade = (int)*p->ofade;
+    int32_t32_t32_t fade = (int)*p->ofade;
     MYFLT sr = *p->osr;
-    int threed = (int)*p->othreed;
-    int order = (int)*p->porder;
+    int32_t32_t32_t threed = (int)*p->othreed;
+    int32_t32_t32_t order = (int)*p->porder;
 
     /* fade length: default 8, max 24, min 1 (fade is a local variable)*/
     if (fade < 1 || fade > 24)
@@ -348,9 +348,9 @@ static int early_init(CSOUND *csound, early *p)
     p->M = 0;
 
     /* the amount of buffers to fade over */
-    p->fadebuffer = (int)fade * irlength;
+    p->fadebuffer = (int32_t)fade * irlength;
 
-    defroom = (int)*p->idefroom;
+    defroom = (int32_t)*p->idefroom;
     /* 3 default rooms allowed*/
     if (defroom > 3)
       defroom = 1;
@@ -580,20 +580,20 @@ static int early_init(CSOUND *csound, early *p)
     memset(p->predell.auxp, 0, irlength * impulses * sizeof(MYFLT));
     memset(p->predelr.auxp, 0, irlength * impulses * sizeof(MYFLT));
 
-    if (!p->cross.auxp || p->cross.size < impulses * sizeof(int))
-      csound->AuxAlloc(csound, impulses * sizeof(int), &p->cross);
-    if (!p->l.auxp || p->l.size < impulses * sizeof(int))
-      csound->AuxAlloc(csound, impulses * sizeof(int), &p->l);
-    if (!p->delp.auxp || p->delp.size < impulses * sizeof(int))
-      csound->AuxAlloc(csound, impulses * sizeof(int), &p->delp);
-    if (!p->skipdel.auxp || p->skipdel.size < impulses * sizeof(int))
-      csound->AuxAlloc(csound, impulses * sizeof(int), &p->skipdel);
+    if (!p->cross.auxp || p->cross.size < impulses * sizeof(int32_t))
+      csound->AuxAlloc(csound, impulses * sizeof(int32_t), &p->cross);
+    if (!p->l.auxp || p->l.size < impulses * sizeof(int32_t))
+      csound->AuxAlloc(csound, impulses * sizeof(int32_t), &p->l);
+    if (!p->delp.auxp || p->delp.size < impulses * sizeof(int32_t))
+      csound->AuxAlloc(csound, impulses * sizeof(int32_t), &p->delp);
+    if (!p->skipdel.auxp || p->skipdel.size < impulses * sizeof(int32_t))
+      csound->AuxAlloc(csound, impulses * sizeof(int32_t), &p->skipdel);
     if (!p->vdt.auxp || p->vdt.size < impulses * sizeof(MYFLT))
       csound->AuxAlloc(csound, impulses * sizeof(MYFLT), &p->vdt);
 
-    memset(p->cross.auxp, 0, impulses * sizeof(int));
-    memset(p->l.auxp, 0, impulses * sizeof(int));
-    memset(p->delp.auxp, 0, impulses * sizeof(int));
+    memset(p->cross.auxp, 0, impulses * sizeof(int32_t));
+    memset(p->l.auxp, 0, impulses * sizeof(int32_t));
+    memset(p->delp.auxp, 0, impulses * sizeof(int32_t));
     memset(p->vdt.auxp, 0, impulses * sizeof(MYFLT));
     /* skipdel looked after below */
 
@@ -620,17 +620,17 @@ static int early_init(CSOUND *csound, early *p)
     memset(p->dtime.auxp, 0, impulses * sizeof(MYFLT));
     memset(p->amp.auxp, 0, impulses * sizeof(MYFLT));
 
-    if (!p->oldelevindex.auxp || p->oldelevindex.size < impulses * sizeof(int))
-      csound->AuxAlloc(csound, impulses * sizeof(int), &p->oldelevindex);
+    if (!p->oldelevindex.auxp || p->oldelevindex.size < impulses * sizeof(int32_t))
+      csound->AuxAlloc(csound, impulses * sizeof(int32_t), &p->oldelevindex);
 
-    if (!p->oldangleindex.auxp || p->oldangleindex.size < impulses * sizeof(int))
-      csound->AuxAlloc(csound, impulses * sizeof(int), &p->oldangleindex);
+    if (!p->oldangleindex.auxp || p->oldangleindex.size < impulses * sizeof(int32_t))
+      csound->AuxAlloc(csound, impulses * sizeof(int32_t), &p->oldangleindex);
 
     /* no need to zero above, as filled below...*/
 
     /* -1 for first check */
-    oldelevindex = (int *)p->oldelevindex.auxp;
-    oldangleindex = (int *)p->oldangleindex.auxp;
+    oldelevindex = (int32_t *)p->oldelevindex.auxp;
+    oldangleindex = (int32_t *)p->oldangleindex.auxp;
 
     for(i = 0; i < impulses; i++)
       oldelevindex[i] = oldangleindex[i] = -1;
@@ -729,7 +729,7 @@ static int early_init(CSOUND *csound, early *p)
     maxdist = maxdist * (order + 1);
 
     maxdtime = maxdist / p->c;
-    maxdelsamps = (int)(maxdtime * sr);
+    maxdelsamps = (int32_t)(maxdtime * sr);
     p->maxdelsamps = maxdelsamps;
 
     surfacearea = FL(2.0) * wallS1 + FL(2.0) * wallS2 + FL(2.0) * cfS;
@@ -749,7 +749,7 @@ static int early_init(CSOUND *csound, early *p)
     memset(p->delr.auxp, 0, maxdelsamps * impulses * sizeof(MYFLT));
 
     /* amount to skip in to each del line */
-    skipdel = (int *)p->skipdel.auxp;
+    skipdel = (int32_t *)p->skipdel.auxp;
 
     for(i = 0; i < impulses; i++)
       skipdel[i] = i * maxdelsamps;
@@ -774,10 +774,10 @@ static int early_init(CSOUND *csound, early *p)
     return OK;
 }
 
-static int early_process(CSOUND *csound, early *p)
+static int32_t early_process(CSOUND *csound, early *p)
 {
     /* iterators */
-    int i;
+    int32_t i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t j, nsmps = CS_KSMPS;
@@ -787,11 +787,11 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT *outsigl  = p->outsigl;
     MYFLT *outsigr = p->outsigr;
 
-    int irlength = p->irlength;
-    int irlengthpad = p->irlengthpad;
-    int overlapsize = p->overlapsize;
+    int32_t irlength = p->irlength;
+    int32_t irlengthpad = p->irlengthpad;
+    int32_t overlapsize = p->overlapsize;
 
-    int counter = p->counter;
+    int32_t counter = p->counter;
 
     /* convolution buffers */
     MYFLT *lowl1 = (MYFLT *)p->lowl1.auxp;
@@ -833,19 +833,19 @@ static int early_process(CSOUND *csound, early *p)
 
     /* for reading */
     MYFLT angle, elev;
-    int elevindex;
-    int angleindex;
-    int skip = 0;
+    int32_t elevindex;
+    int32_t angleindex;
+    int32_t skip = 0;
 
     /* crossfade preparation and checks */
-    int fade = p->fade;
-    int fadebuffer = p->fadebuffer;
-    int initialfade = p->initialfade;
-    int crossfade;
-    int crossout;
+    int32_t fade = p->fade;
+    int32_t fadebuffer = p->fadebuffer;
+    int32_t initialfade = p->initialfade;
+    int32_t crossfade;
+    int32_t crossout;
 
     /* interpolation variable declaration: local */
-    int elevindexlow, elevindexhigh, angleindex1, angleindex2,
+    int32_t elevindexlow, elevindexhigh, angleindex1, angleindex2,
       angleindex3, angleindex4;
     MYFLT elevindexhighper, angleindex2per, angleindex4per;
     MYFLT magllow, magrlow, maglhigh, magrhigh, magl, magr, phasel, phaser;
@@ -881,12 +881,12 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT *delr = (MYFLT *)p->delr.auxp;
 
     /* as above */
-    int *oldelevindex = (int *)p->oldelevindex.auxp;
-    int *oldangleindex = (int *)p->oldangleindex.auxp;
-    int *cross = (int *)p->cross.auxp;
-    int *l = (int *)p->l.auxp;
-    int *delp = (int *)p->delp.auxp;
-    int *skipdel = (int *)p->skipdel.auxp;
+    int32_t32_t32_t *oldelevindex = (int *)p->oldelevindex.auxp;
+    int32_t32_t32_t *oldangleindex = (int *)p->oldangleindex.auxp;
+    int32_t32_t32_t *cross = (int *)p->cross.auxp;
+    int32_t32_t32_t *l = (int *)p->l.auxp;
+    int32_t32_t32_t *delp = (int *)p->delp.auxp;
+    int32_t32_t32_t *skipdel = (int *)p->skipdel.auxp;
     MYFLT *vdt = (MYFLT *)p->vdt.auxp;
     MYFLT *dist = (MYFLT *)p->dist.auxp;
     MYFLT *dtime = (MYFLT *)p->dtime.auxp;
@@ -897,15 +897,15 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT tempdist;
 
     /* from structure */
-    int impulses = p->impulses;
-    int order = p->order;
-    int M = p->M;
-    int threed = p->threed;
+    int32_t impulses = p->impulses;
+    int32_t order = p->order;
+    int32_t M = p->M;
+    int32_t threed = p->threed;
 
     /* used in vdel */
-    int maxdelsamps = p->maxdelsamps;
+    int32_t maxdelsamps = p->maxdelsamps;
     MYFLT c = p->c;
-    int pos;
+    int32_t pos;
     MYFLT rp, frac;
 
     /* room size */
@@ -914,13 +914,13 @@ static int early_process(CSOUND *csound, early *p)
     MYFLT rmz = p->rmz;
 
     /* xc = x coordinate, etc...*/
-    int xc, yc, zc, lowz, highz;
+    int32_t xc, yc, zc, lowz, highz;
 
     /* to simplify formulae, local */
     MYFLT formx, formy, formz;
-    int formxpow, formypow, formzpow;
+    int32_t formxpow, formypow, formzpow;
 
-    int wallreflections, floorreflections=0, ceilingreflections=0;
+    int32_t wallreflections, floorreflections=0, ceilingreflections=0;
     MYFLT delsinglel, delsingler;
     MYFLT deldoublel[2], deldoubler[2];
 
@@ -991,9 +991,9 @@ static int early_process(CSOUND *csound, early *p)
           for (zc = lowz; zc <= highz; zc++) {
             /* to avoid recalculation, especially at audio rate
                for delay, later on */
-            formxpow = (int)pow(-1.0, xc);
-            formypow = (int)pow(-1.0, yc);
-            formzpow = (int)pow(-1.0, zc);
+            formxpow = (int32_t)pow(-1.0, xc);
+            formypow = (int32_t)pow(-1.0, yc);
+            formzpow = (int32_t)pow(-1.0, zc);
             formx = (xc + (1 - formxpow)/2) * rmx;
             formy = (yc + (1 - formypow)/2) * rmy;
             formz = (zc + (1 - formzpow)/2) * rmz;
@@ -1055,9 +1055,9 @@ static int early_process(CSOUND *csound, early *p)
         rp = delp[M] - vdt[M];
         rp = (rp >= 0 ? (rp < maxdelsamps ? rp : rp - maxdelsamps) :
               rp + maxdelsamps);
-        frac = rp - (int)rp;
+        frac = rp - (int32_t)rp;
         /* shift into correct part of buffer */
-        pos = (int)rp + skipdel[M];
+        pos = (int32_t)rp + skipdel[M];
         /* write to l and r del lines */
         dell[delp[M] + skipdel[M]] = predell[counter + M * irlength] * amp[M];
         delr[delp[M] + skipdel[M]] = predelr[counter + M * irlength] * amp[M];
@@ -1178,7 +1178,7 @@ static int early_process(CSOUND *csound, early *p)
                   /* two nearest elev indices
                      to avoid recalculating */
                   elevindexstore = (elev - minelev) / elevincrement;
-                  elevindexlow = (int)elevindexstore;
+                  elevindexlow = (int32_t)elevindexstore;
 
                   if (elevindexlow < 13)
                     elevindexhigh = elevindexlow + 1;
@@ -1199,9 +1199,9 @@ static int early_process(CSOUND *csound, early *p)
 
                   /* as above,lookup index, used to check
                      for crossfade */
-                  elevindex = (int)(elevindexstore + 0.5);
+                  elevindex = (int32_t)(elevindexstore + 0.5);
 
-                  angleindex = (int)(angle /
+                  angleindex = (int32_t)(angle /
                                      (360.0 /
                                       elevationarray[elevindex]) +
                                      0.5);
@@ -1215,13 +1215,13 @@ static int early_process(CSOUND *csound, early *p)
                     (FL(360.0) / elevationarray[elevindexhigh]);
 
                   /* 4 closest indices, 2 low and 2 high */
-                  angleindex1 = (int)angleindexlowstore;
+                  angleindex1 = (int32_t)angleindexlowstore;
 
                   angleindex2 = angleindex1 + 1;
                   angleindex2 = angleindex2 %
                     elevationarray[elevindexlow];
 
-                  angleindex3 = (int)angleindexhighstore;
+                  angleindex3 = (int32_t)angleindexhighstore;
 
                   angleindex4 = angleindex3 + 1;
                   angleindex4 = angleindex4 %
@@ -1261,7 +1261,7 @@ static int early_process(CSOUND *csound, early *p)
                     /* store current phase */
                     if (angleindex > elevationarray[elevindex] / 2) {
                       for (i = 0; i < elevindex; i ++)
-                        skip +=((int)(elevationarray[i] / 2)
+                        skip +=((int32_t)(elevationarray[i] / 2)
                                 + 1) * irlength;
                       for (i = 0;
                            i < (elevationarray[elevindex] -
@@ -1277,7 +1277,7 @@ static int early_process(CSOUND *csound, early *p)
                     }
                     else {
                       for (i = 0; i < elevindex; i ++)
-                        skip +=((int)(elevationarray[i] / 2)
+                        skip +=((int32_t)(elevationarray[i] / 2)
                                 + 1) * irlength;
                       for (i = 0; i < angleindex; i++)
                         skip += irlength;
@@ -1299,7 +1299,7 @@ static int early_process(CSOUND *csound, early *p)
                   skip = 0;
                   if (angleindex1 > elevationarray[elevindexlow] / 2) {
                     for (i = 0; i < elevindexlow; i ++)
-                      skip +=((int)(elevationarray[i] / 2)
+                      skip +=((int32_t)(elevationarray[i] / 2)
                               + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexlow] -
@@ -1313,7 +1313,7 @@ static int early_process(CSOUND *csound, early *p)
                   }
                   else {
                     for (i = 0; i < elevindexlow; i ++)
-                      skip +=((int)(elevationarray[i] / 2)
+                      skip +=((int32_t)(elevationarray[i] / 2)
                               + 1) * irlength;
                     for (i = 0; i < angleindex1; i++)
                       skip += irlength;
@@ -1326,7 +1326,7 @@ static int early_process(CSOUND *csound, early *p)
                   skip = 0;
                   if (angleindex2 > elevationarray[elevindexlow] / 2) {
                     for (i = 0; i < elevindexlow; i ++)
-                      skip +=((int)(elevationarray[i] / 2)
+                      skip +=((int32_t)(elevationarray[i] / 2)
                               + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexlow] -
@@ -1340,7 +1340,7 @@ static int early_process(CSOUND *csound, early *p)
                   }
                   else {
                     for (i = 0; i < elevindexlow; i ++)
-                      skip +=((int)(elevationarray[i] / 2)
+                      skip +=((int32_t)(elevationarray[i] / 2)
                               + 1) * irlength;
                     for (i = 0; i < angleindex2; i++)
                       skip += irlength;
@@ -1353,7 +1353,7 @@ static int early_process(CSOUND *csound, early *p)
                   skip = 0;
                   if (angleindex3 > elevationarray[elevindexhigh] / 2) {
                     for (i = 0; i < elevindexhigh; i ++)
-                      skip +=((int)(elevationarray[i] / 2)
+                      skip +=((int32_t)(elevationarray[i] / 2)
                               + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexhigh] -
@@ -1367,7 +1367,7 @@ static int early_process(CSOUND *csound, early *p)
                   }
                   else {
                     for (i = 0; i < elevindexhigh; i ++)
-                      skip +=((int)(elevationarray[i] / 2)
+                      skip +=((int32_t)(elevationarray[i] / 2)
                               + 1) * irlength;
                     for (i = 0; i < angleindex3; i++)
                       skip += irlength;
@@ -1380,7 +1380,7 @@ static int early_process(CSOUND *csound, early *p)
                   skip = 0;
                   if (angleindex4 > elevationarray[elevindexhigh] / 2) {
                     for (i = 0; i < elevindexhigh; i ++)
-                      skip +=((int)(elevationarray[i] / 2)
+                      skip +=((int32_t)(elevationarray[i] / 2)
                               + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexhigh] -
@@ -1394,7 +1394,7 @@ static int early_process(CSOUND *csound, early *p)
                   }
                   else {
                     for (i = 0; i < elevindexhigh; i ++)
-                      skip +=((int)(elevationarray[i] / 2)
+                      skip +=((int32_t)(elevationarray[i] / 2)
                               + 1) * irlength;
                     for (i = 0; i < angleindex4; i++)
                       skip += irlength;
@@ -1497,28 +1497,28 @@ static int early_process(CSOUND *csound, early *p)
                      make them different...) */
                   /* x axis, wall1 (left) */
                   wallreflections =
-                    (int)abs((int)(xc * .5 - .25 +
+                    (int32_t32_t32_t)abs((int)(xc * .5 - .25 +
                                    (0.25 * pow(-1.0, xc))));
                   /* wall2, x (right) */
                   wallreflections +=
-                    (int)abs((int)(xc * .5 + .25 -
+                    (int32_t32_t32_t)abs((int)(xc * .5 + .25 -
                                    (0.25 * pow(-1.0, xc))));
                   /* yaxis, wall3 (bottom) */
                   wallreflections +=
-                    (int)abs((int)(yc * .5 - .25 +
+                    (int32_t32_t32_t)abs((int)(yc * .5 - .25 +
                                    (0.25 * pow(-1.0, yc))));
                   /* yaxis, wall 4 (top) */
                   wallreflections +=
-                    (int)abs((int)(yc * .5 + .25 -
+                    (int32_t32_t32_t)abs((int)(yc * .5 + .25 -
                                    (0.25 * pow(-1.0, yc))));
                   if (threed) {
                     /* floor (negative z) */
                     floorreflections =
-                      (int)abs((int)(zc * .5 - .25 +
+                      (int32_t32_t32_t)abs((int)(zc * .5 - .25 +
                                      (0.25 * pow(-1.0, zc))));
                     /* ceiling (positive z) */
                     ceilingreflections =
-                      (int)abs((int)(zc * .5 + .25
+                      (int32_t32_t32_t)abs((int)(zc * .5 + .25
                                      - (0.25 * pow(-1.0, zc))));
                   }
 

@@ -43,7 +43,7 @@ typedef struct {
             v[8], k[8], l[8], m[8], n[8], o[8], p[8], q[8];
 } AMBID;
 
-static int iambicode(CSOUND *csound, AMBIC *p)
+static int32_t iambicode(CSOUND *csound, AMBIC *p)
 {
     csound->Warning(csound,
                     Str("bformenc is deprecated; use bformenc1 instead\n"));
@@ -129,7 +129,7 @@ static void ambicode_set_coefficients(AMBIC *p)
     p->q = 3.0 * p->x * (p->x * p->x - 3.0 * p->y * p->y);
 }
 
-static int aambicode(CSOUND *csound, AMBIC *p)
+static int32_t aambicode(CSOUND *csound, AMBIC *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -287,7 +287,7 @@ static int aambicode(CSOUND *csound, AMBIC *p)
 }
 
 static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
-                                      int index)
+                                      int32_t index)
 {
     /* convert degrees to radian */
     /* 0.017... = pi/180 */
@@ -327,9 +327,9 @@ static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
       (p->x[index] * p->x[index] - 3.0 * p->y[index] * p->y[index]);
 }
 
-static int iambideco(CSOUND *csound, AMBID *p)
+static int32_t iambideco(CSOUND *csound, AMBID *p)
 {
-    int setup = (int)*p->isetup;
+    int32_t setup = (int32_t)*p->isetup;
     csound->Warning(csound,
                     Str("bformdec is deprecated; use bformdec1 instead\n"));
     if (setup<0) setup = -setup;
@@ -353,7 +353,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
             ambideco_set_coefficients(p, 30.0, 0.0, 1);     /* right */
           }
           else {
-            int i;
+            int32_t i;
             static double w[] = {0.707106781186547524400844362104849,
                                  0.707106781186547524400844362104849};
 /*             static double x[] = {0.0, 0.0}; */
@@ -400,7 +400,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
             ambideco_set_coefficients(p, 315.0, 0.0, 3);
           }
           else {
-            int i;
+            int32_t i;
             static double w[] = {0.3536, 0.3536, 0.3536, 0.3536};
             static double x[] = {0.2434,  0.2434, -0.2434, -0.2434};
             static double y[] = {0.2434,  -0.2434, -0.2434, 0.2434};
@@ -446,7 +446,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
           ambideco_set_coefficients(p, 110.0, 0.0, 4);  /* surround R */
         }
         else {
-          int i;
+          int32_t i;
           /* Furze controlled opposites */
           static double w[] = {0.2828, 0.2828, 0.2828, 0.2828, 0.2828};
           static double x[] = {0.2227, -0.0851, -0.2753, -0.0851, 0.2227};
@@ -498,7 +498,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
             ambideco_set_coefficients(p, 337.5, 0.0, 7);
           }
           else {
-            int i;
+            int32_t i;
             static double w[] = {0.1768, 0.1768, 0.1768, 0.1768,
                                  0.1768, 0.1768, 0.1768, 0.1768};
             static double x[] = {0.1591, 0.0659, -0.0659,-0.1591,
@@ -553,7 +553,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
             ambideco_set_coefficients(p, 315.0, 30.0, 7);
           }
           else {
-            int i;
+            int32_t i;
             static double w[] = {0.1768,0.1768,0.1768,0.1768,
                                  0.1768,0.1768,0.1768,0.1768};
             static double x[] = {0.1140, 0.1140,-0.1140,-0.1140,
@@ -604,7 +604,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
    LS   110°    {0.9101, -0.7834,  0.9562, -0.0806,  0.0000}
    RS   -110°   {0.9101, -0.7834, -0.9562, -0.0806,  0.0000}  */
         {
-          int i;
+          int32_t i;
           static double w[] = {0.4724, 0.4724, 0.3226, 0.9101, 0.9101};
           static double x[] = {0.7143, 0.7143, 0.7719,-0.7834,-0.7834};
           static double y[] = {0.7258,-0.7258, 0.0000, 0.9562,-0.9562};
@@ -638,7 +638,7 @@ static int iambideco(CSOUND *csound, AMBID *p)
     return OK;
 }
 
-static int aambideco(CSOUND *csound, AMBID *p)
+static int32_t aambideco(CSOUND *csound, AMBID *p)
 {
      IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -741,8 +741,9 @@ static OENTRY localops[] = {
                             (SUBR)iambideco, NULL, (SUBR)aambideco }
 };
 
-int ambicode_init_(CSOUND *csound)
+int32_t ambicode_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

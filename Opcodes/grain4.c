@@ -43,10 +43,10 @@
 
 static MYFLT grand(GRAINV4 *);
 
-static int grainsetv4(CSOUND *csound, GRAINV4 *p)
+static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
-    int         nvoice, cnt;
+    int32_t         nvoice, cnt;
     int32_t    tmplong1, tmplong2;
     MYFLT       tmpfloat1;
     MYFLT       pitch[4];
@@ -230,18 +230,18 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     if (*p->ithd != 0) {        /* Do thresholding.... */
       tmplong2 = 0;
-      for (tmplong1=0; tmplong1< (int) ftp->flen; tmplong1++)
+      for (tmplong1=0; tmplong1< (int32_t) ftp->flen; tmplong1++)
         if (fabs(ftp->ftable[tmplong1]) >= *p->ithd )
           ftp->ftable[tmplong2++] = ftp->ftable[tmplong1];
       ftp->flen = tmplong2;
     }
 
-    if (UNLIKELY(p->gend > (int) ftp->flen)) {
+    if (UNLIKELY(p->gend > (int32_t) ftp->flen)) {
       return csound->InitError(csound, Str("granule_set: Illegal combination "
                                            "of igskip and ilength"));
     }
 
-    nvoice = (int)*p->ivoice;
+    nvoice = (int32_t)*p->ivoice;
 
     if (UNLIKELY(*p->ilength < (20 * *p->kgsize)))
       csound->Warning(csound, Str("granule_set: "
@@ -259,14 +259,14 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
     return OK;
 } /* end grainsetv4(p) */
 
-static int graingenv4(CSOUND *csound, GRAINV4 *p)
+static int32_t graingenv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int         nvoice;
+    int32_t         nvoice;
     int32       tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
     int32       att_len, dec_len, att_sus;
@@ -433,7 +433,8 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 /* Function return a float random number between -1 to +1 */
 static MYFLT grand( GRAINV4 *p)
 {
-   p->grnd *= (int)RNDMUL;
+   p->grnd *= (int32_t
+               )RNDMUL;
    p->grnd += 1;
    return ((MYFLT) p->grnd * DV32768);  /* IV - Jul 11 2002 */
 } /* end grand(p) */

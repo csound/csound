@@ -53,8 +53,8 @@
 typedef struct {
         void    *nextRefl[6];           /* pointers to next reflections */
                                         /* (NULL: no reflection)        */
-        int     init;                   /* 1 at first k-cycle           */
-        int     cnum;                   /* select coord. to transform:  */
+        int32_t     init;                   /* 1 at first k-cycle           */
+        int32_t     cnum;                   /* select coord. to transform:  */
                                         /* -1: none, 0: X, 1: Y, 2: Z   */
         MYFLT   Xc;                     /* coord. offset                */
         MYFLT   W0, X0, Y0, Z0;         /* W, X, Y, Z (Ll, Lh, Rl, Rh)  */
@@ -111,23 +111,24 @@ typedef struct {                /* opcode args */
 /*      12      -               iovr            -               */
 /*      13      -               [istor]         -               */
                         /* internal variables  */
-        int     o_num;  /* opcode (0: spat3di, 1: spat3d, 2: spat3dt      */
-        int     oversamp;               /* oversample ratio     (spat3d)  */
-        int     zout;                   /* output mode                    */
+        int32_t     o_num;  /* opcode (0: spat3di, 1: spat3d, 2: spat3dt      */
+        int32_t     oversamp;               /* oversample ratio     (spat3d)  */
+        int32_t     zout;                   /* output mode                    */
         MYFLT   mdist;                  /* unit circle distance           */
         MYFLT   *ftable;                /* ptr. to ftable                 */
         int32   rseed;                  /* random seed                    */
-        int     mindep;                 /* min. recursion depth           */
-        int     maxdep;                 /* max. recursion depth           */
+        int32_t     mindep;                 /* min. recursion depth           */
+        int32_t     maxdep;                 /* max. recursion depth           */
         MYFLT   *outft;                 /* ptr to output ftable (spat3dt) */
         int32   outftlnth;              /* output ftable length (spat3dt) */
-        int     irlen;                  /* IR length            (spat3dt) */
-        int     bs;                     /* block size (ksmps or irlen)    */
+        int32_t     irlen;                  /* IR length            (spat3dt) */
+        int32_t     bs;                     /* block size (ksmps or irlen)    */
         MYFLT   mdel;                   /* max. delay (in seconds)        */
         int32   mdel_s;                 /* max. delay (in samples)        */
         int32   del_p;                  /* read position in delay buffers */
         MYFLT   *Wb, *Xb, *Yb, *Zb;     /* delay buffers                  */
-        int     *sample;                /* FIR filter data      (spat3d)  */
+        int32_t
+        *sample;                /* FIR filter data      (spat3d)  */
         MYFLT   *window;
         AUXCH   fltr;
         AUXCH   ws;                     /* wall structure array           */

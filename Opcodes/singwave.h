@@ -55,8 +55,8 @@ extern char phonemes[32][4];
 
 typedef struct SubNoise {
      Noise      lastOutput;
-     int        counter;
-     int        howOften;
+     int32_t        counter;
+     int32_t        howOften;
 } SubNoise;
 
 typedef struct Modulatr {
@@ -115,7 +115,8 @@ typedef struct VOICF {
     MYFLT       *ifn, *ivfn;
 
     MYFLT       oldform;
-    int         ph;
+    int32_t
+    ph;
     MYFLT       basef;
     MYFLT       lastGain;
     SingWave    voiced;

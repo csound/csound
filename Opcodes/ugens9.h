@@ -28,7 +28,7 @@ typedef struct {
     MYFLT   *ar1,*ar2,*ar3,*ar4,*ain,*ifilno,*channel;
     MEMFIL  *mfp;
     int32    Hlen, Hlenpadded,incount,outcnt,obufsiz;
-    int     nchanls; /* number of channels we are actually processing */
+    int32_t     nchanls; /* number of channels we are actually processing */
     MYFLT   *H,*cvlut,*outhead,*outail,*obufend;
     AUXCH   auxch;    /* use AUXDS to manage the following buffer spaces */
     MYFLT   *fftbuf;  /* [Hlenpadded + 2] (general FFT working buffer) */
@@ -46,7 +46,7 @@ typedef struct {
     MYFLT   *ar1, *ar2, *ar3, *ar4, *ain,*ifilno,*partitionSize,*channel;
     int32    numPartitions;
     int32    Hlen, Hlenpadded;
-    int     nchanls;    /* number of channels we are actually processing */
+    int32_t     nchanls;    /* number of channels we are actually processing */
 
     AUXCH   H;                  /* array of Impulse Responses */
 

@@ -98,7 +98,8 @@ static inline MYFLT Clamp(const MYFLT x, const MYFLT minval, const MYFLT maxval)
 
 /* ================================================================== */
 
-int squinewave_init(CSOUND* csound, SQUINEWAVE *p)
+
+int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 {
     const double sr = csound->GetSr(csound);
 
@@ -128,7 +129,7 @@ int squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 
 /* ================================================================== */
 
-int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
+int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 {
     IGN(csound);
     const uint32_t nsmps = CS_KSMPS;

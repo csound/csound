@@ -44,10 +44,10 @@ static void threadroutine(void *p)
     pp->csound->Free(pp->csound,pp->command);
 }
 
-static int call_system(CSOUND *csound, SYSTEM *p)
+static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
     _flushall();
-    if ( (int)*p->nowait != 0 ) {
+    if ( (int32_t)*p->nowait != 0 ) {
        p->command = csound->Strdup(csound, p->commandLine->data);
        p->csound = csound;
       _beginthread( threadroutine, 0, p);
@@ -62,10 +62,10 @@ static int call_system(CSOUND *csound, SYSTEM *p)
 #else
 #include <unistd.h>
 
-static int call_system(CSOUND *csound, SYSTEM *p)
+static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
-    if ((int)*p->nowait!=0) {
+    if ((int32_t)*p->nowait!=0) {
       if ((*p->res = fork()))
         return OK;
       else {
@@ -81,7 +81,7 @@ static int call_system(CSOUND *csound, SYSTEM *p)
 
 #endif
 
-int call_system_i(CSOUND *csound, SYSTEM *p)
+int32_t call_system_i(CSOUND *csound, SYSTEM *p)
 {
     if (*p->ktrig <= FL(0.0)) {
       *p->res=FL(0.0);
@@ -91,14 +91,15 @@ int call_system_i(CSOUND *csound, SYSTEM *p)
       return call_system(csound, p);
 }
 
-int call_system_set(CSOUND *csound, SYSTEM *p)
+int32_t call_system_set(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
     p->prv_ktrig = FL(0.0);
     return OK;
 }
 
-int call_system_k(CSOUND *csound, SYSTEM *p)
+int32_t
+call_system_k(CSOUND *csound, SYSTEM *p)
 {
     if (*p->ktrig == p->prv_ktrig)
       return OK;

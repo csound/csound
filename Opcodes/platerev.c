@@ -50,7 +50,7 @@ typedef struct {
  } PLATE;
 
 
-static int platerev_init(CSOUND *csound, PLATE *p)
+static int32_t platerev_init(CSOUND *csound, PLATE *p)
 {
     FUNC *inp, *outp;
     double a = *p->asp;
@@ -71,7 +71,7 @@ static int platerev_init(CSOUND *csound, PLATE *p)
     double V = 2.0*b2*dt*Nx*Nx;
     uint32_t qq;
 
-    p->nin = (int) (p->INOCOUNT) - 7; p->nout = (int) (p->OUTOCOUNT);
+    p->nin = (int32_t) (p->INOCOUNT) - 7; p->nout = (int32_t) (p->OUTOCOUNT);
     if (UNLIKELY((inp = csound->FTnp2Find(csound,p->tabins)) == NULL ||
                  inp->flen < (uint32_t)3*p->nin)) {
       return csound->InitError(csound, Str("Missing input table or too short"));
@@ -109,7 +109,7 @@ static int platerev_init(CSOUND *csound, PLATE *p)
 }
 
 
-static int platerev(CSOUND *csound, PLATE *p)
+static int32_t platerev(CSOUND *csound, PLATE *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -117,7 +117,7 @@ static int platerev(CSOUND *csound, PLATE *p)
     uint32_t i, j, nsmps = CS_KSMPS;
     uint32_t Ny = p->Ny, Nx = p->Nx;
     uint32_t Nx5 = Nx+5;
-    int bc =  (int) MYFLT2LONG(*p->bndry);
+    int32_t bc =  (int32_t) MYFLT2LONG(*p->bndry);
     double *u = p->u, *u1 = p->u1, *u2 = p->u2;
     double s00 = p->s00, s10 = p->s10, s01 = p->s01,
            s11 = p->s11, s20 = p->s20, s02 = p->s02,
@@ -145,7 +145,7 @@ static int platerev(CSOUND *csound, PLATE *p)
       /*u = conv2(u1,S,'same')+conv2(u2,T,'same'); */
       for (j=2; j<Ny+3; j++)  /* Loop from 2,3,...Nf, Nf+1, Nf+2 */
         for (i=2; i<Nx+3; i++) {
-          int ij = i+Nx5*j;
+          int32_t ij = i+Nx5*j;
           u[ij] = s00*u1[ij]+
                   s10*(u1[ij-Nx5]+u1[ij+Nx5])+
                   s20*(u1[ij-2*Nx5]+u1[ij+2*Nx5])+
@@ -159,7 +159,7 @@ static int platerev(CSOUND *csound, PLATE *p)
         }
       /* boundary grid points*/
       if (bc==1) {             /* clamped*/
-        int jj = Nx5*j;
+        int32_t jj = Nx5*j;
         for (j=0; j<Ny+5; j++) {
           u[0+jj] = u[2+jj] = u[Nx+2+jj] = u[Nx+4+jj] = 0.0;
         }
@@ -177,7 +177,7 @@ static int platerev(CSOUND *csound, PLATE *p)
         u[1+Nx5*1] = u[1+Nx5*(Ny+3)] = u[Nx+3+Nx5*1] = u[Nx+3+Nx5*(Ny+3)] = 0.0;
       }
       else if (bc==2) {           /* pivoting*/
-        int jj = Nx5*j;
+        int32_t jj = Nx5*j;
         for (j=0; j<Ny+5; j++) {
           u[0+jj] = u[2+jj] = u[Nx+2+jj] = u[Nx+4+jj] = 0.0;
         }
@@ -201,8 +201,8 @@ static int platerev(CSOUND *csound, PLATE *p)
         double sv = p->ci[qq]*sdi[qq] + p->si[qq]*cdi[qq];
         double xid = (0.5+w*cv)*Nx;
         double yid = ((*p->asp)*0.5+w*sv)/dy;
-        int xi = (int)(floor(xid))+2;
-        int yi = (int)(floor(yid))+2;
+        int32_t xi = (int32_t)(floor(xid))+2;
+        int32_t yi = (int32_t)(floor(yid))+2;
         double xf = xid-(double)(xi-2);
         double yf = yid-(double)(yi-2);
         double xyf = xf*yf;
@@ -221,8 +221,8 @@ static int platerev(CSOUND *csound, PLATE *p)
         double sv = p->co[qq]*sdo[qq] + p->so[qq]*cdo[qq];
         double xod = (0.5+w*cv)*Nx;
         double yod = (*p->asp*0.5+w*sv)/dy;
-        int xo = (int)(floor(xod))+2;
-        int yo = (int)(floor(yod))+2;
+        int32_t xo = (int32_t)(floor(xod))+2;
+        int32_t yo = (int32_t)(floor(yod))+2;
         double xf = xod-(double)(xo-2);
         double yf = yod-(double)(yo-2);
         double xyf = xf*yf;

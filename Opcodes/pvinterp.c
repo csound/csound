@@ -36,11 +36,11 @@
 /*************PVBUFREAD**************************************/
 /************************************************************/
 
-int pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int stringname)
+int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
 {
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int32_t      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     {
       PVOC_GLOBALS  *p_ = PVOC_GetGlobals(csound);
@@ -80,16 +80,16 @@ int pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int stringname)
     if (UNLIKELY(p->frSiz > PVFRAMSIZE)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld bigger than %ld in %s"),
-                               (long) p->frSiz, (long) PVFRAMSIZE, pvfilnam);
+                               (int64_t) p->frSiz, (int64_t) PVFRAMSIZE, pvfilnam);
     }
     if (UNLIKELY(p->frSiz < 128)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld seems too small in %s"),
-                               (long) p->frSiz, pvfilnam);
+                               (int64_t) p->frSiz, pvfilnam);
     }
     if (UNLIKELY(chans != 1)) {
       return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
-                                       (int) chans, pvfilnam);
+                                       (int32_t) chans, pvfilnam);
     }
     p->frPtr = (float*) pp.data;
     p->maxFr = pp.nframes - 1;
@@ -105,26 +105,26 @@ int pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int stringname)
     if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN )) {
       return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
-                                       CS_KSMPS, (int) (OPWLEN / 2 + 1),
-                                       (int) PVWINLEN, pvfilnam);
+                                       CS_KSMPS, (int32_t) (OPWLEN / 2 + 1),
+                                       (int32_t) PVWINLEN, pvfilnam);
     }
 
     return OK;
 }
 
-int pvbufreadset(CSOUND *csound, PVBUFREAD *p){
+int32_t pvbufreadset(CSOUND *csound, PVBUFREAD *p){
   return pvbufreadset_(csound,p,0);
 }
 
-int pvbufreadset_S(CSOUND *csound, PVBUFREAD *p){
+int32_t pvbufreadset_S(CSOUND *csound, PVBUFREAD *p){
   return pvbufreadset_(csound,p,1);
 }
 
-int pvbufread(CSOUND *csound, PVBUFREAD *p)
+int32_t pvbufread(CSOUND *csound, PVBUFREAD *p)
 {
     MYFLT  frIndx;
     MYFLT  *buf = p->fftBuf;
-    int    size = pvfrsiz(p);
+    int32_t    size = pvfrsiz(p);
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;        /* RWD fix */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err2;
@@ -149,12 +149,12 @@ int pvbufread(CSOUND *csound, PVBUFREAD *p)
 /************************************************************/
 /*************PVINTERP**************************************/
 /************************************************************/
-int pvinterpset_(CSOUND *csound, PVINTERP *p, int stringname)
+int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
 {
     uint32_t i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int32_t      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     p->pp = PVOC_GetGlobals(csound);
     p->pvbufread = p->pp->pvbufreadaddr;
@@ -197,11 +197,11 @@ int pvinterpset_(CSOUND *csound, PVINTERP *p, int stringname)
       return csound->InitError(csound,
                                Str("pvinterp: %s: frame size %d does not "
                                    "match pvbufread frame size %d\n"), pvfilnam,
-                               (int) p->frSiz, (int) p->pvbufread->frSiz);
+                               (int32_t) p->frSiz, (int32_t) p->pvbufread->frSiz);
     }
     if (UNLIKELY(chans != 1)) {
       return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
-                                       (int) chans, pvfilnam);
+                                       (int32_t) chans, pvfilnam);
     }
     /* Check that pv->frSiz is a power of two too ? */
     p->frPtr = (float*) pp.data;
@@ -244,37 +244,37 @@ int pvinterpset_(CSOUND *csound, PVINTERP *p, int stringname)
     return OK;
 }
 
-int pvinterpset(CSOUND *csound, PVINTERP *p){
+int32_t pvinterpset(CSOUND *csound, PVINTERP *p){
   return pvinterpset_(csound,p,0);
 }
 
-int pvinterpset_S(CSOUND *csound, PVINTERP *p){
+int32_t pvinterpset_S(CSOUND *csound, PVINTERP *p){
   return pvinterpset_(csound,p,1);
 }
 
 
-int pvinterp(CSOUND *csound, PVINTERP *p)
+int32_t pvinterp(CSOUND *csound, PVINTERP *p)
 {
     MYFLT   *ar = p->rslt;
     MYFLT   frIndx;
     MYFLT   *buf = p->fftBuf;
     MYFLT   *buf2 = p->dsBuf;
-    int     asize = pvdasiz(p); /* fix */
-    int     size = pvfrsiz(p);
-    int     buf2Size, outlen;
-    int     circBufSize = PVFFTSIZE;
+    int32_t     asize = pvdasiz(p); /* fix */
+    int32_t     size = pvfrsiz(p);
+    int32_t     buf2Size, outlen;
+    int32_t     circBufSize = PVFFTSIZE;
     MYFLT   pex, scaleFac = p->scale;
     PVBUFREAD *q = p->pvbufread;
     int32    i, j;
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;    /* RWD Fix */
     pex = *p->kfmod;
-    outlen = (int) (((MYFLT) size) / pex);
+    outlen = (int32_t) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
                            /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<(int)(2*CS_KSMPS)))
+    if (UNLIKELY(outlen<(int32_t)(2*CS_KSMPS)))
       goto err3;   /* minimum post-squeeze windowlength */
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -304,14 +304,14 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
 
-    Polar2Real_PVOC(csound, buf, (int) size);
+    Polar2Real_PVOC(csound, buf, (int32_t) size);
 
     if (pex != FL(1.0))
       UDSample(p->pp, buf,
                (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)), buf2,
                size, buf2Size, pex);
     else
-      memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
+      memcpy(buf2, buf + (int32_t) ((size - buf2Size) >> 1),
              sizeof(MYFLT) * buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
 
@@ -341,12 +341,12 @@ int pvinterp(CSOUND *csound, PVINTERP *p)
 /************************************************************/
 /************* PVCROSS **************************************/
 /************************************************************/
-int pvcrossset_(CSOUND *csound, PVCROSS *p, int stringname)
+int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
 {
     uint32_t i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    int      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int32_t      frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     p->pp = PVOC_GetGlobals(csound);
     p->pvbufread = p->pp->pvbufreadaddr;
@@ -388,11 +388,11 @@ int pvcrossset_(CSOUND *csound, PVCROSS *p, int stringname)
       return csound->InitError(csound,
                                Str("pvcross: %s: frame size %d does not "
                                    "match pvbufread frame size %d\n"), pvfilnam,
-                               (int) p->frSiz, (int) p->pvbufread->frSiz);
+                               (int32_t) p->frSiz, (int32_t) p->pvbufread->frSiz);
     }
     if (UNLIKELY(chans != 1)) {
       return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
-                                       (int) chans, pvfilnam);
+                                       (int32_t) chans, pvfilnam);
     }
     /* Check that pv->frSiz is a power of two too ? */
     p->frPtr = (float*) pp.data;
@@ -434,25 +434,25 @@ int pvcrossset_(CSOUND *csound, PVCROSS *p, int stringname)
     return OK;
 }
 
-int pvcrossset(CSOUND *csound, PVCROSS *p){
+int32_t pvcrossset(CSOUND *csound, PVCROSS *p){
   return pvcrossset_(csound,p,0);
 }
 
-int pvcrossset_S(CSOUND *csound, PVCROSS *p) {
+int32_t pvcrossset_S(CSOUND *csound, PVCROSS *p) {
 return pvcrossset_(csound,p,1);
 }
 
-int pvcross(CSOUND *csound, PVCROSS *p)
+int32_t pvcross(CSOUND *csound, PVCROSS *p)
 {
     MYFLT   *ar = p->rslt;
     MYFLT   frIndx;
     MYFLT   *buf = p->fftBuf;
     MYFLT   *buf2 = p->dsBuf;
-    int     asize = pvdasiz(p);         /* fix */
-    int     size = pvfrsiz(p);
-    int     buf2Size, outlen;
-    int     circBufSize = PVFFTSIZE;
-    int     specwp = (int) *p->ispecwp; /* spectral warping flag */
+    int32_t     asize = pvdasiz(p);         /* fix */
+    int32_t     size = pvfrsiz(p);
+    int32_t     buf2Size, outlen;
+    int32_t     circBufSize = PVFFTSIZE;
+    int32_t     specwp = (int32_t) *p->ispecwp; /* spectral warping flag */
     MYFLT   pex, scaleFac = p->scale;
     PVBUFREAD *q = p->pvbufread;
     int32   i, j;
@@ -461,12 +461,12 @@ int pvcross(CSOUND *csound, PVCROSS *p)
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;        /* RWD Fix */
     pex = *p->kfmod;
-    outlen = (int) (((MYFLT) size) / pex);
+    outlen = (int32_t) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE)) /* Maximum transposition down is one octave */
                                     /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<(int)(2*CS_KSMPS))) /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int32_t)(2*CS_KSMPS))) /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -492,7 +492,7 @@ int pvcross(CSOUND *csound, PVCROSS *p)
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
 
-    if (specwp == 0 || (p->prFlg)++ == -(int) specwp) {
+    if (specwp == 0 || (p->prFlg)++ == -(int32_t) specwp) {
       /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
 #ifdef BETA
@@ -502,14 +502,14 @@ int pvcross(CSOUND *csound, PVCROSS *p)
       if (specwp > 0)
         PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
 
-      Polar2Real_PVOC(csound, buf, (int) size);
+      Polar2Real_PVOC(csound, buf, (int32_t) size);
 
       if (pex != FL(1.0))
         UDSample(p->pp, buf,
                  (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)), buf2,
                  size, buf2Size, pex);
       else
-        memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
+        memcpy(buf2, buf + (int32_t) ((size - buf2Size) >> 1),
                sizeof(MYFLT) * buf2Size);
       if (specwp >= 0)
         ApplyHalfWin(buf2, p->window, buf2Size);

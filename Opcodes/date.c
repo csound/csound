@@ -45,7 +45,7 @@ typedef struct {
    MYFLT *timstmp;
 } DATESTRING;
 
-static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
+static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
 {
     IGN(csound);
 #ifdef USE_DOUBLE
@@ -64,7 +64,7 @@ static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
   #ifdef __MACH
     // There may be more accurate methods.....
     struct timeval tp;
-    int rv = gettimeofday(&tp, NULL);
+    int32_t rv = gettimeofday(&tp, NULL);
     *p->time_  = (MYFLT)(tp.tv_sec-base);
     *p->time_ += (MYFLT)(tp.tv_usec)*1.0e-6;
     if (p->OUTOCOUNT==2) *p->nano =(MYFLT)(tp.tv_usec * 1000);
@@ -76,7 +76,7 @@ static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
     return OK;
 }
 
-static int datestringset(CSOUND *csound, DATESTRING *p)
+static int32_t datestringset(CSOUND *csound, DATESTRING *p)
 {
     time_t temp_time;
     char *time_string;
@@ -107,7 +107,7 @@ typedef struct {
    STRINGDAT *Scd;
 } GETCWD;
 
-static int getcurdir(CSOUND *csound, GETCWD *p)
+static int32_t getcurdir(CSOUND *csound, GETCWD *p)
 {
   if (p->Scd->size < 1024) {
     p->Scd->size = 1024;
@@ -142,10 +142,10 @@ typedef struct {
   MYFLT *line;
   MYFLT *Sfile;
   FILE  *fd;
-  int   lineno;
+  int32_t   lineno;
 } READF;
 
-static int readf_delete(CSOUND *csound, void *p)
+static int32_t readf_delete(CSOUND *csound, void *p)
 {
      IGN(csound);
     READF *pp = (READF*)p;
@@ -154,7 +154,7 @@ static int readf_delete(CSOUND *csound, void *p)
     return OK;
 }
 
-static int readf_init_(CSOUND *csound, READF *p, int isstring)
+static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
 {
     char name[1024];
     if (isstring) {
@@ -174,21 +174,21 @@ static int readf_init_(CSOUND *csound, READF *p, int isstring)
     return csound->RegisterDeinitCallback(csound, p, readf_delete);
 }
 
-static int readf_init(CSOUND *csound, READF *p){
+static int32_t readf_init(CSOUND *csound, READF *p){
     return readf_init_(csound,p,0);
 }
 
-static int readf_init_S(CSOUND *csound, READF *p){
+static int32_t readf_init_S(CSOUND *csound, READF *p){
     return readf_init_(csound,p,1);
 }
 
 
-static int readf(CSOUND *csound, READF *p)
+static int32_t readf(CSOUND *csound, READF *p)
 {
     p->Sline->data[0] = '\0';
     if (UNLIKELY(fgets(p->Sline->data,
                        p->Sline->size-1, p->fd)==NULL)) {
-      int ff = feof(p->fd);
+      int32_t ff = feof(p->fd);
       fclose(p->fd);
       p->fd = NULL;
       if (ff) {
@@ -203,7 +203,7 @@ static int readf(CSOUND *csound, READF *p)
     return OK;
 }
 
-static int readfi(CSOUND *csound, READF *p)
+static int32_t readfi(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init(csound, p)!= OK))
@@ -211,7 +211,8 @@ static int readfi(CSOUND *csound, READF *p)
     return readf(csound, p);
 }
 
-static int readfi_S(CSOUND *csound, READF *p)
+static int32_t
+readfi_S(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init_S(csound, p)!= OK))

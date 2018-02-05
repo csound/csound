@@ -46,7 +46,7 @@ typedef struct  {
 
 static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
 
-int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
+int32_t butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
      IGN(csound);
     if (*p->istor==FL(0.0)) {
@@ -56,7 +56,7 @@ int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
     return OK;
 }
 
-static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
+static int32_t hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
 {
     MYFLT       *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -93,7 +93,7 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
     return OK;
 }
 
-static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
+static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
     MYFLT       *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -157,8 +157,9 @@ static OENTRY localops[] = {
 { "butlp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
 };
 
-int butter_init_(CSOUND *csound)
+int32_t butter_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

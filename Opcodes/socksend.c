@@ -35,7 +35,7 @@
 #include <string.h>
 #include <errno.h>
 
-extern  int     inet_aton(const char *cp, struct in_addr *inp);
+extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 
 typedef struct {
   OPDS    h;
@@ -44,9 +44,9 @@ typedef struct {
   MYFLT *port, *buffersize;
   MYFLT   *format;
   AUXCH   aux;
-  int     sock;
-  int     bsize, wp;
-  int     ff, bwidth;
+  int32_t     sock;
+  int32_t     bsize, wp;
+  int32_t     ff, bwidth;
   struct sockaddr_in server_addr;
 } SOCKSEND;
 
@@ -57,9 +57,9 @@ typedef struct {
   MYFLT *port, *buffersize;
   MYFLT   *format;
   AUXCH   aux;
-  int     sock;
-  int     bsize, wp;
-  int     ff, bwidth;
+  int32_t     sock;
+  int32_t     bsize, wp;
+  int32_t     ff, bwidth;
   struct sockaddr_in server_addr;
 } SOCKSENDT;
 
@@ -70,32 +70,32 @@ typedef struct {
   MYFLT *port, *buffersize;
   MYFLT   *format;
   AUXCH   aux;
-  int     sock;
-  int     bsize, wp;
-  int     ff, bwidth;
+  int32_t     sock;
+  int32_t     bsize, wp;
+  int32_t     ff, bwidth;
   struct sockaddr_in server_addr;
 } SOCKSENDS;
 
 #define MTU (1456)
 
 /* UDP version one channel */
-static int init_send(CSOUND *csound, SOCKSEND *p)
+static int32_t init_send(CSOUND *csound, SOCKSEND *p)
 {
-    int     bsize;
-    int     bwidth = sizeof(MYFLT);
+    int32_t     bsize;
+    int32_t     bwidth = sizeof(MYFLT);
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
-    p->ff = (int)(*p->format);
-    p->bsize = bsize = (int) *p->buffersize;
+    p->ff = (int32_t)(*p->format);
+    p->bsize = bsize = (int32_t) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
     /*   return csound->InitError(csound,
          Str("The buffersize must be <= %d samples " */
     /*                                        "to fit in a udp-packet."), */
-    /*                            (int) (MTU / sizeof(MYFLT))); */
+    /*                            (int32_t) (MTU / sizeof(MYFLT))); */
     /* } */
     p->wp = 0;
 
@@ -113,7 +113,7 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     inet_aton((const char *) p->ipaddress->data,
               &p->server_addr.sin_addr);    /* the server IP address */
 #endif
-    p->server_addr.sin_port = htons((int) *p->port);    /* the port */
+    p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
     if (p->ff) bwidth = sizeof(int16);
     /* create a buffer to write the interleaved audio to  */
@@ -127,18 +127,18 @@ static int init_send(CSOUND *csound, SOCKSEND *p)
     return OK;
 }
 
-static int send_send(CSOUND *csound, SOCKSEND *p)
+static int32_t send_send(CSOUND *csound, SOCKSEND *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int     wp;
-    int     buffersize = p->bsize;
+    int32_t     wp;
+    int32_t     buffersize = p->bsize;
     MYFLT   *asig = p->asig;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
-    int     ff = p->ff;
+    int32_t     ff = p->ff;
 
     if (UNLIKELY(early)) nsmps -= early;
     for (i = offset, wp = p->wp; i < nsmps; i++, wp++) {
@@ -168,15 +168,15 @@ static int send_send(CSOUND *csound, SOCKSEND *p)
     return OK;
 }
 
-static int send_send_k(CSOUND *csound, SOCKSEND *p)
+static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-    int     buffersize = p->bsize;
+    int32_t     buffersize = p->bsize;
     MYFLT   *ksig = p->asig;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
-    int     ff = p->ff;
+    int32_t     ff = p->ff;
 
 
     if (p->wp == buffersize) {
@@ -202,14 +202,14 @@ static int send_send_k(CSOUND *csound, SOCKSEND *p)
     return OK;
 }
 
-static int send_send_Str(CSOUND *csound, SOCKSENDT *p)
+static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-    int     buffersize = p->bsize;
+    int32_t     buffersize = p->bsize;
     char    *out = (char *) p->aux.auxp;
     char    *q = p->str->data;
-    int     len = p->str->size;
+    int32_t     len = p->str->size;
 
     if (UNLIKELY(len>=buffersize)) {
       csound->Warning(csound, Str("string truncated in socksend"));
@@ -228,24 +228,24 @@ static int send_send_Str(CSOUND *csound, SOCKSENDT *p)
 
 
 /* UDP version 2 channels */
-static int init_sendS(CSOUND *csound, SOCKSENDS *p)
+static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
-    int     bsize;
-    int     bwidth = sizeof(MYFLT);
+    int32_t     bsize;
+    int32_t     bwidth = sizeof(MYFLT);
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
-    p->ff = (int)(*p->format);
-    p->bsize = bsize = (int) *p->buffersize;
+    p->ff = (int32_t)(*p->format);
+    p->bsize = bsize = (int32_t) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
     /*   return csound->InitError(csound,
          Str("The buffersize must be <= %d samples " */
     /*                                        "to fit in a udp-packet."), */
-    /*                            (int) (MTU / sizeof(MYFLT))); */
+    /*                            (int32_t) (MTU / sizeof(MYFLT))); */
     /* } */
     p->wp = 0;
 
@@ -263,7 +263,7 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     inet_aton((const char *) p->ipaddress->data,
               &p->server_addr.sin_addr);    /* the server IP address */
 #endif
-    p->server_addr.sin_port = htons((int) *p->port);    /* the port */
+    p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
     if (p->ff) bwidth = sizeof(int16);
     /* create a buffer to write the interleaved audio to */
@@ -277,19 +277,19 @@ static int init_sendS(CSOUND *csound, SOCKSENDS *p)
     return OK;
 }
 
-static int send_sendS(CSOUND *csound, SOCKSENDS *p)
+static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 {
     const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
     MYFLT   *asigl = p->asigl;
     MYFLT   *asigr = p->asigr;
     MYFLT   *out = (MYFLT *) p->aux.auxp;
     int16   *outs = (int16 *) p->aux.auxp;
-    int     wp;
-    int     buffersize = p->bsize;
+    int32_t     wp;
+    int32_t     buffersize = p->bsize;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int     ff = p->ff;
+    int32_t     ff = p->ff;
 
     if (UNLIKELY(early)) nsmps -= early;
     /* store the samples of the channels interleaved in the packet */
@@ -329,11 +329,11 @@ static int send_sendS(CSOUND *csound, SOCKSENDS *p)
 }
 
 /* TCP version */
-static int init_ssend(CSOUND *csound, SOCKSEND *p)
+static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 {
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -362,7 +362,7 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
 #endif
 
     /* the port we are going to listen on, in network byte order */
-    p->server_addr.sin_port = htons((int) *p->port);
+    p->server_addr.sin_port = htons((int32_t) *p->port);
 
  again:
     if (UNLIKELY(connect(p->sock, (struct sockaddr *) &p->server_addr,
@@ -377,7 +377,7 @@ static int init_ssend(CSOUND *csound, SOCKSEND *p)
     return OK;
 }
 
-static int send_ssend(CSOUND *csound, SOCKSEND *p)
+static int32_t send_ssend(CSOUND *csound, SOCKSEND *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -385,7 +385,7 @@ static int send_ssend(CSOUND *csound, SOCKSEND *p)
 
     if (UNLIKELY(n != write(p->sock, &p->asig[offset], n))) {
       csound->Message(csound, Str("Expected %d got %d\n"),
-                      (int) (sizeof(MYFLT) * CS_KSMPS), n);
+                      (int32_t) (sizeof(MYFLT) * CS_KSMPS), n);
       return csound->PerfError(csound, p->h.insdshead,
                                Str("write to socket failed"));
     }
@@ -404,15 +404,15 @@ typedef struct {
   MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
   AUXCH   aux;
   AUXCH   types;
-  int     sock, iargs;
+  int32_t     sock, iargs;
   MYFLT last;
   struct sockaddr_in server_addr;
 } OSCSEND2;
 
 
-static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
+static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
-    unsigned int     bsize;
+    unsigned int32_t     bsize;
 
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) p->type->size + 4))
        return csound->InitError(csound,
@@ -421,7 +421,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -439,7 +439,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     inet_aton((const char *) p->ipaddress->data,
               &p->server_addr.sin_addr);    /* the server IP address */
 #endif
-    p->server_addr.sin_port = htons((int) *p->port);    /* the port */
+    p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
     if(p->INCOUNT > 4) {
               if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
@@ -448,11 +448,11 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
 
     // todo: parse type to allocate memory
-    int i, iarg = 0;
+    int32_t i, iarg = 0;
     STRINGDAT *s;
     ARRAYDAT *ar;
     FUNC *ft;
-    int j;
+    int32_t j;
     bsize = 0;
     for(i=0; i < p->type->size-1; i++) {
       switch(p->type->data[i]){
@@ -477,7 +477,7 @@ static int osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 'l':
-      case 'h': /* OSC-accepted type name for 64bit int */
+      case 'h': /* OSC-accepted type name for 64bit int32_t */
         p->type->data[i] = 'h';
         /* fall through */
       case 'd':
@@ -543,10 +543,10 @@ static inline char le_test(){
     return le.c[0];
 }
 
-static inline char *byteswap(char *p, int N){
+static inline char *byteswap(char *p, int32_t N){
     if(le_test()) {
       char tmp;
-      int j ;
+      int32_t j ;
       for(j = 0; j < N/2; j++) {
         tmp = p[j];
         p[j] = p[N - j - 1];
@@ -556,7 +556,7 @@ static inline char *byteswap(char *p, int N){
     return p;
 }
 
-static inline int aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
+static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
     char *p = aux->auxp;
     aux->auxp = csound->ReAlloc(csound, p, size);
     aux->size = size;
@@ -564,12 +564,12 @@ static inline int aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
     return size;
 }
 
-static int osc_send2(CSOUND *csound, OSCSEND2 *p)
+static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
     if(*p->kwhen != p->last) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-      int buffersize = 0, size, i, bsize = p->aux.size;
+      int32_t buffersize = 0, size, i, bsize = p->aux.size;
       char *out = (char *) p->aux.auxp;
 
       memset(out,0,bsize);
@@ -603,13 +603,13 @@ static int osc_send2(CSOUND *csound, OSCSEND2 *p)
       float fdata;
       double ddata;
       MYFLT mdata;
-      int data;
+      int32_t data;
       int64_t ldata;
       uint64_t udata;
       STRINGDAT *s;
       ARRAYDAT *ar;
       FUNC *ft;
-      int j;
+      int32_t j;
       for(i = 0; i < p->iargs; i++) {
         switch(p->type->data[i]){
         case 'f':

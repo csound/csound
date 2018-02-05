@@ -35,7 +35,7 @@
 #include "vibraphn.h"
 #include <math.h>
 #include "interlocks.h"
-static int make_Modal4(CSOUND *csound,
+static int32_t make_Modal4(CSOUND *csound,
                        Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 {
     FUNC        *ftp;
@@ -93,7 +93,7 @@ void Modal4_setFreq(CSOUND *csound, Modal4 *m, MYFLT frequency)
 }
 
 void Modal4_setRatioAndReson(CSOUND *csound,
-                             Modal4 *m, int whichOne, MYFLT ratio,MYFLT reson)
+                             Modal4 *m, int32_t whichOne, MYFLT ratio,MYFLT reson)
 {
     MYFLT temp;
     if (ratio* m->baseFreq < CS_ESR * FL(0.5)) {
@@ -114,7 +114,7 @@ void Modal4_setRatioAndReson(CSOUND *csound,
 
 static void Modal4_strike(CSOUND *csound, Modal4 *m, MYFLT amplitude)
 {
-    int i;
+    int32_t i;
     MYFLT temp;
     Envelope_setRate(csound, &m->envelope, FL(1.0));
     Envelope_setTarget(&m->envelope, amplitude);
@@ -135,7 +135,7 @@ static void Modal4_strike(CSOUND *csound, Modal4 *m, MYFLT amplitude)
 
 static void Modal4_damp(CSOUND *csound, Modal4 *m, MYFLT amplitude)
 {
-    int i;
+    int32_t i;
     MYFLT temp;
     for (i=0;i<4;i++)   {
       if (m->ratios[i] < 0)
@@ -151,7 +151,7 @@ static MYFLT Modal4_tick(Modal4 *m)
     MYFLT temp,temp2;
     int32 itemp;
     MYFLT temp_time, alpha, lastOutput;
-    int length = (int)m->wave->flen;
+    int32_t32_t32_t length = (int)m->wave->flen;
 
     m->w_time += m->w_rate;                  /*  Update current time          */
     if (m->w_time >= length)  {              /*  Check for end of sound       */
@@ -234,11 +234,11 @@ static MYFLT Modal4_tick(Modal4 *m)
 /*                vibAmt                   */
 /*******************************************/
 
-int marimbaset(CSOUND *csound, MARIMBA *p)
+int32_t marimbaset(CSOUND *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       temp,temp2;
-    int         itemp;
+    int32_t         itemp;
     FUNC        *ftp;
 
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
@@ -278,8 +278,8 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     BiQuad_setGain(p->m4.filters[2], FL(0.11)*temp); /* 3rd mode function of pos.*/
                                 /* Strike */
     {
-      int triples = (*p->triples<=FL(0.0) ? 20 : (int)*p->triples);
-      int doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int)*p->doubles);
+      int32_t32_t32_t triples = (*p->triples<=FL(0.0) ? 20 : (int)*p->triples);
+      int32_t32_t32_t doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int)*p->doubles);
       itemp = csound->Rand31(&(csound->randSeed1)) % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
@@ -297,17 +297,17 @@ int marimbaset(CSOUND *csound, MARIMBA *p)
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 1;
     {
-      int relestim = (int) (CS_EKR * *p->dettack);
+      int32_t32_t32_t relestim = (int) (CS_EKR * *p->dettack);
       /* 0.1 second decay extention */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int) ((int32) (p->h.insdshead->offtim * CS_EKR)
+    p->kloop = (int32_t) ((int32) (p->h.insdshead->offtim * CS_EKR)
                       - (int32) (CS_EKR * *p->dettack));
     return OK;
 }
 
-int marimba(CSOUND *csound, MARIMBA *p)
+int32_t marimba(CSOUND *csound, MARIMBA *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
@@ -357,7 +357,7 @@ int marimba(CSOUND *csound, MARIMBA *p)
 /*                MOD_WHEEL= vibAmt        */
 /*******************************************/
 
-int vibraphnset(CSOUND *csound, VIBRAPHN *p)
+int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       temp;
@@ -400,7 +400,7 @@ int vibraphnset(CSOUND *csound, VIBRAPHN *p)
     return OK;
 }
 
-int vibraphn(CSOUND *csound, VIBRAPHN *p)
+int32_t vibraphn(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;
@@ -445,7 +445,7 @@ int vibraphn(CSOUND *csound, VIBRAPHN *p)
 /*   Modes measured from my Agogo Bell by FFT:  */
 /*   360, 1470, 2401, 4600                      */
 
-int agogobelset(CSOUND *csound, VIBRAPHN *p)
+int32_t agogobelset(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     FUNC        *ftp;
@@ -486,7 +486,7 @@ int agogobelset(CSOUND *csound, VIBRAPHN *p)
     return OK;
 }
 
-int agogobel(CSOUND *csound, VIBRAPHN *p)
+int32_t agogobel(CSOUND *csound, VIBRAPHN *p)
 {
     Modal4      *m = &(p->m4);
     MYFLT       *ar = p->ar;

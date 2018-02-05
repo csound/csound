@@ -34,18 +34,18 @@
 typedef struct {
   OPDS h;
   MYFLT *ar;
-  int   inc;
-  int   dec;
+  int32_t   inc;
+  int32_t   dec;
   int32 accu;
   int32 lfsr;
   unsigned char cnt;
-  int offset;
+  int32_t offset;
 } PINKER;
 
 #define PINK_BIAS   FL(440.0)
 #define PINK_BIASF  440.f
 
-static int instance_cnt = 0;    /* Is tis thread-safe? */
+static int32_t instance_cnt = 0;    /* Is tis thread-safe? */
 
 // Let preprocessor and compiler calculate two lookup tables for 12-tap
 // FIR filter with these coefficients:
@@ -80,32 +80,32 @@ static const unsigned char pnmask[256] =
     PM16(0x02),PM16(0x08),PM16(0x04),PM16(0x08)
 };
 
-static const int ind[] = {     0, 0x0800, 0x0400, 0x0800,
+static const int32_t ind[] = {     0, 0x0800, 0x0400, 0x0800,
                           0x0200, 0x0800, 0x0400, 0x0800,
                           0x0100, 0x0800, 0x0400, 0x0800,
                           0x0200, 0x0800, 0x0400, 0x0800};
 
  /* generate samples of pink noise */
-static int pink_perf(CSOUND* csound, PINKER *p)
+static int32_t pink_perf(CSOUND* csound, PINKER *p)
 {
-    int inc    =   p->inc;
-    int dec    =   p->dec;
+    int32_t inc    =   p->inc;
+    int32_t dec    =   p->dec;
     int32 accu =   p->accu;
     int32 lfsr   =   p->lfsr;
-    int cnt    =   p->cnt;
-    int bit;
-    int n, nn, nsmps = csound->ksmps;
+    int32_t cnt    =   p->cnt;
+    int32_t bit;
+    int32_t n, nn, nsmps = csound->ksmps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int mask;
+    int32_t mask;
     float yy;
     MYFLT *out = p->ar;
-    int loffset = p->offset;
+    int32_t loffset = p->offset;
     if (UNLIKELY(early)) {
       nsmps -= early;
     }
     for (n=offset, nn=loffset; n<nsmps; n++, nn++) {
-      int k = nn%16;   /* algorithm is in 16 sample chunks */
+      int32_t k = nn%16;   /* algorithm is in 16 sample chunks */
 
 /* bit   = lfsr >> 31;        dec &= ~0x0800; */
 /* lfsr <<= 1;                dec |= inc & 0x0800; */
@@ -125,7 +125,7 @@ static int pink_perf(CSOUND* csound, PINKER *p)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
-      *((int *)(&yy)) = accu;      /* save biased value as float      */
+      *((int32_t *)(&yy)) = accu;      /* save biased value as float      */
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
@@ -152,7 +152,8 @@ static int pink_perf(CSOUND* csound, PINKER *p)
     return OK;
 };
 
-static int pink_init(CSOUND *csound, PINKER *p)      // constructor
+static int32_t
+pink_init(CSOUND *csound, PINKER *p)      // constructor
 {
     IGN(csound);
     p->lfsr  = 0x5EED41F5 + instance_cnt++;   // seed for lfsr,

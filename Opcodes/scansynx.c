@@ -64,7 +64,7 @@
 /* static void unquote(char *dst, char *src) */
 /* { */
 /*     if (src[0] == '"') { */
-/*       int len = (int) strlen(src) - 2; */
+/*       int32_t len = (int32_t) strlen(src) - 2; */
 /*       strcpy(dst, src + 1); */
 /*       if (len >= 0 && dst[len] == '"') */
 /*         dst[len] = '\0'; */
@@ -80,7 +80,7 @@
 /*
  *      Wavetable init
  */
-static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
+static int32_t scsnux_initw(CSOUND *csound, PSCSNUX *p)
 {
     uint32_t len = p->len;
     FUNC *fi = csound->FTnp2Find(csound, p->i_init);
@@ -108,9 +108,9 @@ static int scsnux_initw(CSOUND *csound, PSCSNUX *p)
 /*
  *      Hammer hit
  */
-static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
+static int32_t scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
 {
-    int i, i1, i2;
+    int32_t i, i1, i2;
     FUNC *fi;
     MYFLT *f;
     MYFLT tab = FABS(*p->i_init);
@@ -125,8 +125,8 @@ static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
 
     /* Add hit */
     f  = fi->ftable;
-    i1 = (int)(len*pos - fi->flen/2);
-    i2 = (int)(len*pos + fi->flen/2);
+    i1 = (int32_t)(len*pos - fi->flen/2);
+    i2 = (int32_t)(len*pos + fi->flen/2);
     //printf("tab=%f len=%d i1=%d i2=%d\n", tab, len, i1, i2);///
     for (i = i1 ; i < 0 ; i++) {
       //printf("0: writing index %d (%d)\n", len+i, i);
@@ -160,7 +160,7 @@ static int scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
  ******************************/
 
 struct scsnx_elem {
-    int                 id;
+    int32_t                 id;
     PSCSNUX             *p;
     struct scsnx_elem   *next;
 };
@@ -185,7 +185,7 @@ static void listadd(SCANSYN_GLOBALS *pp, PSCSNUX *p)
 }
 
 /* Return from list according to id */
-static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
+static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int32_t id)
 {
     SCANSYN_GLOBALS   *pp;
     struct scsnx_elem *i;
@@ -219,7 +219,7 @@ static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int id)
  *      Setup the updater
  */
 
-static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
+static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
 {
     /* Get parameter table pointers and check lengths */
     SCANSYN_GLOBALS *pp;
@@ -289,8 +289,8 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
           if (p->f[ilen+j])
             csound->Message(csound, "%.0f: %d %d\n", *p->i_f, i, j);
 #else
-          int wd = (ilen+j)>>LOG_BITS_PER_UNIT; /* dead reckonng would be faster */
-          int bt = (ilen+j)&(BITS_PER_UNIT-1);
+          int32_t wd = (ilen+j)>>LOG_BITS_PER_UNIT; /* dead reckonng would be faster */
+          int32_t bt = (ilen+j)&(BITS_PER_UNIT-1);
           csound->Message(csound,
                           "%.0f: %d %d -> wd%d/bt%d\n", *p->i_f, i, j, wd, bt);
           p->f[wd] |= (1<<bt);
@@ -348,8 +348,8 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
           p->f[i*len+j] = 1;
 #else
           if (LIKELY(i<len && j<len)) { /* Only if in range! */
-            int wd = (i*len+j)>>LOG_BITS_PER_UNIT;
-            int bt = (i*len+j)&(BITS_PER_UNIT-1);
+            int32_t wd = (i*len+j)>>LOG_BITS_PER_UNIT;
+            int32_t bt = (i*len+j)&(BITS_PER_UNIT-1);
             p->f[wd] |= (1<<bt);
           }
           else {
@@ -390,8 +390,8 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
 #endif
 
     /* ... according to scheme */
-    if ((int)*p->i_init < 0) {
-      int res;
+    if ((int32_t)*p->i_init < 0) {
+      int32_t res;
       res = scsnux_hammer(csound, p, *p->i_l, FL(1.0));
       if (res != OK) return res;
       res = scsnux_hammer(csound, p, *p->i_r, -FL(1.0));
@@ -400,7 +400,7 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
     else if (*p->i_id<FL(0.0))
       scsnux_hammer(csound, p, FL(0.5), FL(1.0));
     else {
-      int res = scsnux_initw(csound, p);
+      int32_t res = scsnux_initw(csound, p);
       if (res != OK) return res;
     }
 
@@ -447,9 +447,9 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
     }
 
     /* Throw data into list or use table */
-    p->id = (int) *p->i_id;
+    p->id = (int32_t) *p->i_id;
     if (p->id < 0) {
-      if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < (int)len)) {
+      if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < (int32_t)len)) {
         return csound->InitError(csound, Str("xscanu: invalid id table"));
       }
     }
@@ -460,11 +460,11 @@ static int scsnux_init_(CSOUND *csound, PSCSNUX *p, int istring)
     return OK;
 }
 
-static int scsnux_init(CSOUND *csound, PSCSNUX *p){
+static int32_t scsnux_init(CSOUND *csound, PSCSNUX *p){
   return scsnux_init_(csound, p, 0);
 }
 
-static int scsnux_init_S(CSOUND *csound, PSCSNUX *p){
+static int32_t scsnux_init_S(CSOUND *csound, PSCSNUX *p){
   return scsnux_init_(csound, p, 1);
 }
 
@@ -474,13 +474,13 @@ static int scsnux_init_S(CSOUND *csound, PSCSNUX *p){
 
 #define dt FL(1.0)
 
-static int scsnux(CSOUND *csound, PSCSNUX *p)
+static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
 {
     SCANSYN_GLOBALS *pp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     len = p->len;
+    int32_t     len = p->len;
     int32    exti = p->exti;
     int32    idx = p->idx;
     MYFLT   rate = p->rate;
@@ -503,7 +503,7 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
 
       /* If it is time to calculate next phase, do it */
       if (idx >= rate) {
-        int i, j, cnt = 0;      /* cnt is i*len+j */
+        int32_t i, j, cnt = 0;      /* cnt is i*len+j */
         for (i = 0 ; i != len ; i++) {
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
@@ -517,8 +517,8 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
             if (p->f[cnt])  /* if connection */
               a += (p->x1[j] - p->x1[i])/* * p->f[cnt] */ * *p->k_f;
 #else
-            int wd = (cnt)>>LOG_BITS_PER_UNIT;
-            int bt = (cnt)&(BITS_PER_UNIT-1);
+            int32_t wd = (cnt)>>LOG_BITS_PER_UNIT;
+            int32_t bt = (cnt)&(BITS_PER_UNIT-1);
             if (p->f[wd]&(1<<bt))
               a += (p->x1[j] - p->x1[i]) * *p->k_f;
 #endif
@@ -589,15 +589,15 @@ static int scsnux(CSOUND *csound, PSCSNUX *p)
 /*
  *      Init scaner
  */
-static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
+static int32_t scsnsx_init(CSOUND *csound, PSCSNSX *p)
 {
     /* Get corresponding update */
-    p->p = listget(csound, (int)*p->i_id);
+    p->p = listget(csound, (int32_t)*p->i_id);
 
     /* Get trajectory matrix */
     {
-      int i;
-      int oscil_interp = (int)*p->interp;
+      int32_t i;
+      int32_t oscil_interp = (int32_t)*p->interp;
       FUNC *t = csound->FTnp2Find(csound, p->i_trj);
       if (UNLIKELY(t == NULL)) {
         return csound->InitError(csound, Str("scans: Could not find "
@@ -614,7 +614,7 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
       /* Allocate mem<ory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
       csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32), &p->aux_t);
-      p->t = (int32*)p->aux_t.auxp + (int)(oscil_interp-1)/2;
+      p->t = (int32_t*)p->aux_t.auxp + (int32_t)(oscil_interp-1)/2;
       /* Fill 'er up */
       for (i = 0 ; i != p->tlen ; i++)
         p->t[i] = (int32)t->ftable[i];
@@ -634,7 +634,7 @@ static int scsnsx_init(CSOUND *csound, PSCSNSX *p)
 /*
  *      Performance function for scanner
  */
-static int scsnsx(CSOUND *csound, PSCSNSX *p)
+static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
 {
      IGN(csound);
     MYFLT   *out = p->a_out;
@@ -656,8 +656,8 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
     case 1:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-/*      MYFLT x     = phs - (int)phs; */
-        int ph = (int)phs;
+/*      MYFLT x     = phs - (int32_t)phs; */
+        int32_t ph = (int32_t)phs;
         out[i] = amp * (PINTERP(ph, t));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
@@ -667,7 +667,7 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
     case 2:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-        int ph = (int)phs;
+        int32_t  ph = (int32_t)phs;
         MYFLT x     = phs - ph;
         MYFLT y1    = PINTERP(ph  , t);
         MYFLT y2    = PINTERP(ph+1, t);
@@ -680,7 +680,7 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
     case 3:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-        int ph = (int)phs;
+        int32_t  ph = (int32_t)phs;
         MYFLT x     = phs - ph;
         MYFLT y1    = PINTERP(ph-1, t);
         MYFLT y2    = PINTERP(ph  , t);
@@ -695,7 +695,7 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
     case 4:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-        int ph = (int)phs;
+        int32_t  ph = (int32_t)phs;
         MYFLT x     = phs - ph;
         MYFLT y1    = PINTERP(ph-1, t);
         MYFLT y2    = PINTERP(ph  , t);
@@ -716,29 +716,29 @@ static int scsnsx(CSOUND *csound, PSCSNSX *p)
     return OK;
 }
 
-static int scsnmapx_init(CSOUND *csound, PSCSNMAPX *p)
+static int32_t scsnmapx_init(CSOUND *csound, PSCSNMAPX *p)
 {
     IGN(csound);
     /* Get corresponding update */
-    p->p = listget(csound, (int)*p->i_id);
+    p->p = listget(csound, (int32_t)*p->i_id);
     return OK;
 }
 
-static int scsnmapx(CSOUND *csound, PSCSNMAPX *p)
+static int32_t scsnmapx(CSOUND *csound, PSCSNMAPX *p)
 {
     IGN(csound);
     PSCSNUX *pp = p->p;
-    *p->k_pos = *p->k_pamp * pp->x0[(int)(*p->k_which)];
-    *p->k_vel = *p->k_vamp * pp->v[(int)(*p->k_which)];
+    *p->k_pos = *p->k_pamp * pp->x0[(int32_t)(*p->k_which)];
+    *p->k_vel = *p->k_vamp * pp->v[(int32_t)(*p->k_which)];
     return OK;
 }
 
-static int scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
+static int32_t scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 {
      IGN(csound);
     PSCSNUX *pp = p->p;
-    pp->x0[(int)(*p->k_which)] = *p->k_pos/(*p->k_pamp);
-    pp->v[(int)(*p->k_which)]  = *p->k_vel/(*p->k_vamp);
+    pp->x0[(int32_t)(*p->k_which)] = *p->k_pos/(*p->k_pamp);
+    pp->v[(int32_t)(*p->k_which)]  = *p->k_vel/(*p->k_vamp);
     return OK;
 }
 
@@ -757,8 +757,9 @@ static OENTRY localops[] = {
                                                    (SUBR)scsnsmapx,NULL }
 };
 
-int scansynx_init_(CSOUND *csound)
+int32_t scansynx_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

@@ -26,10 +26,11 @@ typedef struct
 {
   OPDS h;
   MYFLT *kresult, *kdev, *ktable;
-  int devFD;
+  int32_t devFD;
   uint32_t numk, numb;
-  int timeout, initme;
+  int32_t timeout, initme;
   MYFLT table;
-  int dev;
+  int32_t
+  dev;
   FUNC *ftp;
 } LINUXJOYSTICK;

@@ -37,17 +37,17 @@
 
 /* initialise FIR filter for downsampling */
 
-static int    spat3d_init_window(CSOUND *csound, SPAT3D *p)
+static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 {
-    int     i, j, o;
+    int32_t     i, j, o;
     double  d, w;
 
     o = p->oversamp << 5;           /* window size = 32 * oversample */
 
-    i = ((o + 1) * (sizeof(int) + sizeof(MYFLT)));      /* allocate */
+    i = ((o + 1) * (sizeof(int32_t) + sizeof(MYFLT)));      /* allocate */
     if ((p->fltr.auxp == NULL) || (p->fltr.size < (uint32_t)i)) /* space */
       csound->AuxAlloc(csound, i, &(p->fltr));
-    p->sample = (int *) p->fltr.auxp;                 /* sample number */
+    p->sample = (int32_t *) p->fltr.auxp;                 /* sample number */
     p->window = (MYFLT *) (p->sample + o + 1);        /* window value  */
 
     for (i = -(o >> 1), j = 0; i < (o >> 1); i++) {
@@ -70,14 +70,14 @@ static int    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 
 /* initialise parameric equalizer (code taken from pareq opcode) */
 
-static int spat3d_init_eq(CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
+static int32_t spat3d_init_eq(CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
 {
-    int     eqmode;
+    int32_t     eqmode;
     double  omega, k, kk, vk, vkk, vkdq, sq, a0, a1, a2, b0, b1, b2;
 
     /* EQ code taken from biquad.c */
 
-    eqmode = (int) ((double) ftable[3] + 0.5);                  /* mode      */
+    eqmode = (int32_t) ((double) ftable[3] + 0.5);                  /* mode      */
     omega = (double) ftable[0] * (double) csound->tpidsr;       /* frequency */
     sq = sqrt(2.0 * (double) ftable[1]);                        /* level     */
 
@@ -113,12 +113,12 @@ static int spat3d_init_eq(CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
 
 static SPAT3D_WALL*
 spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
-                 int    wallno,         /* wall number                      */
-                 int    dep,            /* recursion depth                  */
+                 int32_t    wallno,         /* wall number                      */
+                 int32_t    dep,            /* recursion depth                  */
                  int32   *wmax,          /* wall structure number            */
                  MYFLT  X, MYFLT Y, MYFLT Z) /* coordinates (spat3di/spat3dt) */
 {
-    int             i;
+    int32_t             i;
     SPAT3D_WALL     *ws;
     MYFLT           *ft, a, d, w, x, y, z;
     double          d0, d1;
@@ -228,7 +228,7 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
 
 /* allocate space for delay buffers */
 
-static int spat3d_init_delay(CSOUND *csound, SPAT3D *p)
+static int32_t spat3d_init_delay(CSOUND *csound, SPAT3D *p)
 {
     int32    i, j;
 
@@ -266,10 +266,10 @@ static int spat3d_init_delay(CSOUND *csound, SPAT3D *p)
 
 /* count reflections */
 
-static void spat3d_count_refl(int32 *cnt, int *md,
-                              int d, int mdep, int w, int wm)
+static void spat3d_count_refl(int32_t32_t32_t32_t32 *cnt, int *md,
+                              int32_t32_t32_t32_t d, int mdep, int w, int wm)
 {
-    int     j;
+    int32_t32_t     j;
 
     (*cnt)++;                       /* update count    */
     if (++d > *md) *md = d;         /* md is the max. depth reached + 1 */
@@ -281,10 +281,10 @@ static void spat3d_count_refl(int32 *cnt, int *md,
 
 /* initialise opcode structure */
 
-static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
+static int32_t32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
 {
-    int     xidist, xift, ximode, ximdel, xiovr, xirlen, xioutft;
-    int     d, wmask;
+    int32_t32_t     xidist, xift, ximode, ximdel, xiovr, xirlen, xioutft;
+    int32_t32_t     d, wmask;
     int32    i;
 
     /* default settings */
@@ -292,7 +292,7 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     p->ftable = p->outft = NULL;    /* no ftables */
     p->zout = p->rseed = p->mindep = p->maxdep = p->outftlnth = wmask = 0;
     p->oversamp = 1;                /* oversample */
-    p->bs = (int) CS_KSMPS;    /* block size */
+    p->bs = (int32_t32_t) CS_KSMPS;    /* block size */
     p->irlen = 2;                   /* IR length  */
     p->mdist = p->mdel = FL(0.001); /* unit circle dist., max. delay */
     p->mdel_s = p->del_p = 0L;
@@ -313,24 +313,24 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     /* read opcode args */
 
     if (ximode >= 0)                                /* output mode */
-      p->zout = (int) MYFLT2LRND(*(p->args[ximode]));
+      p->zout = (int32_t32_t) MYFLT2LRND(*(p->args[ximode]));
     if (xidist >= 0)                                /* unit circle dist. */
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */
-      int fLen;
-      fLen = csoundGetTable(csound, &(p->ftable), (int) *(p->args[xift]));
+      int32_t fLen;
+      fLen = csoundGetTable(csound, &(p->ftable), (int32_t) *(p->args[xift]));
       if (fLen < 53)
         p->ftable = NULL;
     }
     if (ximdel >= 0)                                /* max. delay */
       p->mdel = *(p->args[ximdel]);
     if (xiovr >= 0)                                 /* oversample */
-      p->oversamp = (int) MYFLT2LRND(*(p->args[xiovr]));
+      p->oversamp = (int32_t) MYFLT2LRND(*(p->args[xiovr]));
     if (xirlen >= 0)                                /* IR length */
-      p->irlen = (int) MYFLT2LRND(*(p->args[xirlen]) * CS_ESR);
+      p->irlen = (int32_t) MYFLT2LRND(*(p->args[xirlen]) * CS_ESR);
     if (xioutft >= 0) {                             /* output table */
-      int fLen;
-      fLen = csoundGetTable(csound, &(p->outft), (int) *(p->args[xioutft]));
+      int32_t fLen;
+      fLen = csoundGetTable(csound, &(p->outft), (int32_t) *(p->args[xioutft]));
       if (fLen < 1) {
         p->outft = NULL; p->outftlnth = 0;
       }
@@ -342,17 +342,17 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
 
     if (p->ftable != NULL) {
       if (p->o_num == 2) {                    /* min, max depth    */
-        p->mindep = (int) MYFLT2LRND(p->ftable[0]) + 1;
-        p->maxdep = (int) MYFLT2LRND(p->ftable[1]);
+        p->mindep = (int32_t) MYFLT2LRND(p->ftable[0]) + 1;
+        p->maxdep = (int32_t) MYFLT2LRND(p->ftable[1]);
       }
       else {
         p->mindep = 0;
-        p->maxdep = (int) MYFLT2LRND(p->ftable[0]);
+        p->maxdep = (int32_t) MYFLT2LRND(p->ftable[0]);
       }
       if (p->ftable[2] >= FL(0.0))            /* max. delay        */
         p->mdel = p->ftable[2];
       if (p->ftable[3] >= FL(0.0))            /* IR length         */
-        p->irlen = (int) MYFLT2LRND(p->ftable[3] * CS_ESR);
+        p->irlen = (int32_t) MYFLT2LRND(p->ftable[3] * CS_ESR);
       if (p->ftable[4] >= FL(0.0))            /* unit circle dist. */
         p->mdist = p->ftable[4];
       p->rseed = (int32) MYFLT2LRND(p->ftable[5]);     /* seed      */
@@ -395,7 +395,7 @@ static int spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
 
 /* spat3d set-up */
 
-static int    spat3dset(CSOUND *csound, SPAT3D *p)
+static int32_t    spat3dset(CSOUND *csound, SPAT3D *p)
 {
     int32    wmax;
 
@@ -414,7 +414,7 @@ static int    spat3dset(CSOUND *csound, SPAT3D *p)
 
 /* spat3di set-up */
 
-static int    spat3diset(CSOUND *csound, SPAT3D *p)
+static int32_t    spat3diset(CSOUND *csound, SPAT3D *p)
 {
     int32    wmax;
 
@@ -582,7 +582,7 @@ static void spat3d_wall_perf(CSOUND     *csound, /* General environment       */
 
 /* spat3d routine */
 
-static int    spat3d(CSOUND *csound, SPAT3D *p)
+static int32_t    spat3d(CSOUND *csound, SPAT3D *p)
 {
     int32        nn, i, j;
     MYFLT       *aoutW, *aoutX, *aoutY, *aoutZ, w;
@@ -737,7 +737,7 @@ static void spat3di_wall_perf(SPAT3D        *p,     /* opcode struct    */
 
 /* spat3di routine */
 
-static int    spat3di(CSOUND *csound, SPAT3D *p)
+static int32_t    spat3di(CSOUND *csound, SPAT3D *p)
 {
     int32        nn;
     MYFLT       *a_outW, *a_outX, *a_outY, *a_outZ;
@@ -841,7 +841,7 @@ static void spat3dt_wall_perf(SPAT3D        *p,     /* opcode struct    */
 
 /* spat3dt opcode (i-time only) */
 
-static int    spat3dt(CSOUND *csound, SPAT3D *p)
+static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
 {
     int32    wmax;
     MYFLT   *ir;
@@ -886,9 +886,10 @@ static OENTRY localops[] = {
                     (SUBR) spat3dt,     NULL,   NULL            }
 };
 
-int spat3d_init_(CSOUND *csound)
+int32_t spat3d_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

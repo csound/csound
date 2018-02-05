@@ -41,7 +41,7 @@ typedef struct {
 
 
 /* Post: unless skipping init, timrem == 0 */
-int vosimset(CSOUND* csound, VOSIM *p)
+int32_t vosimset(CSOUND* csound, VOSIM *p)
 {
     if (*p->iskip)
       return OK;
@@ -117,7 +117,7 @@ void vosim_pulse(CSOUND* csound, VOSIM *p)
 }
 
 
-int vosim(CSOUND* csound, VOSIM *p)
+int32_t vosim(CSOUND* csound, VOSIM *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
