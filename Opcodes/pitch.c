@@ -503,7 +503,7 @@ int32_t mac(CSOUND *csound, SUM *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
-    int32_t32_t32_t count=(int) p->INOCOUNT, j;
+    int32_t count=(int32_t) p->INOCOUNT, j;
     MYFLT *ar = p->ar, **args = p->argums;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -575,7 +575,7 @@ int32_t clockoff(CSOUND *csound, CLOCK *p)
 int32_t clockread(CSOUND *csound, CLKRD *p)
 {
     CPU_CLOCK *clk = getClockStruct(csound, &(p->clk));
-    int32_t32_t32_t cnt = (int) *p->a;
+    int32_t cnt = (int32_t) *p->a;
     if (UNLIKELY(cnt < 0 || cnt > 32)) cnt = 32;
     if (UNLIKELY(clk->running[cnt]))
       return csound->InitError(csound, Str("clockread: clock still running, "
@@ -1182,7 +1182,7 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
     double  phs;
     double  *curphs = (double*)p->curphs.auxp;
     int32_t     size = p->curphs.size / sizeof(double);
-    int32_t32_t32_t     index = (int)(*p->kindx);
+    int32_t     index = (int32_t)(*p->kindx);
 
     if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
@@ -1212,7 +1212,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     double  phase, incr;
     double  *curphs = (double*)p->curphs.auxp;
     int32_t     size = p->curphs.size / sizeof(double);
-    int32_t32_t32_t     index = (int)(*p->kindx);
+    int32_t     index = (int32_t)(*p->kindx);
 
     if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
@@ -1545,7 +1545,7 @@ double tanh(double);
 int32_t clip_set(CSOUND *csound, CLIP *p)
 {
     IGN(csound);
-    int32_t32_t32_t meth = (int)MYFLT2LONG(*p->imethod);
+    int32_t meth = (int32_t)MYFLT2LONG(*p->imethod);
     p->meth = meth;
     p->arg = FABS(*p->iarg);
     p->lim = *p->limit;
