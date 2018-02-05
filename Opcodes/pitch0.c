@@ -185,7 +185,7 @@ int32_t maxalloc_S(CSOUND *csound, CPU_PERC *p)
 
 int32_t pfun(CSOUND *csound, PFUN *p)
 {
-    int32_t32_t32_t n = (int)MYFLT2LONG(*p->pnum);
+    int32_t n = (int32_t)MYFLT2LONG(*p->pnum);
     MYFLT ans;
     if (n<1) ans = FL(0.0);
     else if (n<PMAX) ans = csound->init_event->p[n];
@@ -199,7 +199,7 @@ int32_t pfun(CSOUND *csound, PFUN *p)
 
 int32_t pfunk_init(CSOUND *csound, PFUNK *p)
 {
-    int32_t32_t32_t i, n = (int)MYFLT2LONG(*p->pnum);
+    int32_t i, n = (int32_t)MYFLT2LONG(*p->pnum);
     MYFLT ans, *pfield;
     if (n<1 || n>PMAX) ans = FL(0.0);
     else ans = csound->init_event->p[n];
@@ -216,7 +216,7 @@ int32_t pfunk_init(CSOUND *csound, PFUNK *p)
 int32_t pfunk(CSOUND *csound, PFUNK *p)
 {
     IGN(csound);
-    int32_t32_t32_t n = (int)MYFLT2LONG(*p->pnum);
+    int32_t n = (int32_t)MYFLT2LONG(*p->pnum);
     MYFLT ans, *pfield;
     if (n<1 || n>PMAX) {
       ans = FL(0.0);
