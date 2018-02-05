@@ -28,7 +28,7 @@
 
 #ifdef MSVC
 #include <io.h>
-#DEFINE isatty(x) _isatty(x)
+#define isatty(x) _isatty(x)
 #endif
 
 void comment(void);
