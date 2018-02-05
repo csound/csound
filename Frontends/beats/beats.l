@@ -28,9 +28,7 @@
 
 #if defined(_WIN32) || defined(WIN32) 
 #include <io.h>
-int isatty(int x) {
-return _isatty(x);
-}
+#define isatty(x) _isatty(x)
 #endif
 
 void comment(void);
