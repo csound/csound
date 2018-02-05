@@ -22,16 +22,16 @@
 #include "pvs_ops.h"
 
 /*
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
 }
 */
 
-int pvsopc_ModuleInit(CSOUND *csound)
+int32_t pvsopc_ModuleInit(CSOUND *csound)
 {
-    int     err = 0;
+    int32_t     err = 0;
 
     err |= ifd_init_(csound);
     err |= partials_init_(csound);
@@ -45,9 +45,10 @@ int pvsopc_ModuleInit(CSOUND *csound)
 }
 
 /*
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t
+) sizeof(MYFLT));
 }
 */
 

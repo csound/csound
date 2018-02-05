@@ -29,10 +29,10 @@
 #include "pvoc.h"
 #include <math.h>
 
-int tblesegset(CSOUND *csound, TABLESEG *p)
+int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {
     TSEG    *segp;
-    int     nsegs;
+    int32_t     nsegs;
     MYFLT   **argp, dur;
     FUNC    *nxtfunc, *curfunc;
     int32    flength;
@@ -93,11 +93,11 @@ int tblesegset(CSOUND *csound, TABLESEG *p)
     return OK;
 }
 
-int ktableseg(CSOUND *csound, TABLESEG *p)
+int32_t ktableseg(CSOUND *csound, TABLESEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, durovercnt=FL(0.0);
-    int         i;
+    int32_t         i;
     int32        flength, upcnt;
 
     /* RWD fix */
@@ -125,11 +125,11 @@ int ktableseg(CSOUND *csound, TABLESEG *p)
                              Str("tableseg: not initialised"));
 }
 
-int ktablexseg(CSOUND *csound, TABLESEG *p)
+int32_t ktablexseg(CSOUND *csound, TABLESEG *p)
 {
     TSEG        *segp;
     MYFLT       *curtab, *nxttab,curval, nxtval, cntoverdur=FL(0.0);
-    int         i;
+    int32_t         i;
     int32        flength, upcnt;
 
     /* RWD fix */
@@ -161,12 +161,12 @@ int ktablexseg(CSOUND *csound, TABLESEG *p)
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
-int vpvset_(CSOUND *csound, VPVOC *p, int stringname)
+int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
 {
     uint32_t      i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    int     frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int32_t     frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     p->pp = PVOC_GetGlobals(csound);
     /* If optional table given, fake it up -- JPff  */
@@ -219,16 +219,16 @@ int vpvset_(CSOUND *csound, VPVOC *p, int stringname)
     if (UNLIKELY(p->frSiz > PVFRAMSIZE)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld bigger than %ld in %s"),
-                               (long) p->frSiz, (long) PVFRAMSIZE, pvfilnam);
+                               (int64_t) p->frSiz, (int64_t) PVFRAMSIZE, pvfilnam);
     }
     if (UNLIKELY(p->frSiz < 128)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld seems too small in %s"),
-                               (long) p->frSiz, pvfilnam);
+                               (int64_t) p->frSiz, pvfilnam);
     }
     if (UNLIKELY(chans != 1)) {
       return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
-                                       (int) chans, pvfilnam);
+                                       (int32_t) chans, pvfilnam);
     }
     /* Check that pv->frSiz is a power of two too ? */
     p->frPtr = (float*) pp.data;
@@ -272,25 +272,25 @@ int vpvset_(CSOUND *csound, VPVOC *p, int stringname)
     return OK;
 }
 
-int vpvset(CSOUND *csound, VPVOC *p){
+int32_t vpvset(CSOUND *csound, VPVOC *p){
   return vpvset_(csound,p,0);
 }
 
-int vpvset_S(CSOUND *csound, VPVOC *p){
+int32_t vpvset_S(CSOUND *csound, VPVOC *p){
   return vpvset_(csound,p,1);
 }
 
-int vpvoc(CSOUND *csound, VPVOC *p)
+int32_t vpvoc(CSOUND *csound, VPVOC *p)
 {
     MYFLT     *ar = p->rslt;
     MYFLT     frIndx;
     MYFLT     *buf = p->fftBuf;
     MYFLT     *buf2 = p->dsBuf;
-    int       asize = pvdasiz(p); /* fix */
-    int       size = pvfrsiz(p);
-    int       buf2Size, outlen;
-    int       circBufSize = PVFFTSIZE;
-    int       specwp = (int) *p->ispecwp;   /* spectral warping flag */
+    int32_t       asize = pvdasiz(p); /* fix */
+    int32_t       size = pvfrsiz(p);
+    int32_t       buf2Size, outlen;
+    int32_t       circBufSize = PVFFTSIZE;
+    int32_t       specwp = (int32_t) *p->ispecwp;   /* spectral warping flag */
     MYFLT     pex, scaleFac = p->scale;
     TABLESEG  *q = p->tableseg;
     int32     i, j;
@@ -299,13 +299,13 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
 
     pex = *p->kfmod;
-    outlen = (int) (((MYFLT) size) / pex);
+    outlen = (int32_t) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE)) { /* Maximum transposition down is one octave */
                             /* ..so we won't run into buf2Size problems */
       goto err2;
     }
-    if (UNLIKELY(outlen<(int)(2*CS_KSMPS))) {
+    if (UNLIKELY(outlen<(int32_t)(2*CS_KSMPS))) {
       /* minimum post-squeeze windowlength */
       goto err3;
     }
@@ -338,7 +338,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
 
-    if (specwp == 0 || (p->prFlg)++ == -(int)specwp) {
+    if (specwp == 0 || (p->prFlg)++ == -(int32_t)specwp) {
       /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
       if (UNLIKELY(specwp < 0))
@@ -353,7 +353,7 @@ int vpvoc(CSOUND *csound, VPVOC *p)
                  (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
                  buf2, size, buf2Size, pex);
       else
-        memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
+        memcpy(buf2, buf + (int32_t) ((size - buf2Size) >> 1),
                sizeof(MYFLT) * buf2Size);
       if (specwp >= 0)
         ApplyHalfWin(buf2, p->window, buf2Size);

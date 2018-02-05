@@ -113,7 +113,7 @@ void OneZero_setCoeff(OneZero* z, MYFLT aValue)
 /* } */
 
 /* *********************************************************************** */
-int clarinset(CSOUND *csound, CLARIN *p)
+int32_t clarinset(CSOUND *csound, CLARIN *p)
 {
     FUNC        *ftp;
 
@@ -140,12 +140,12 @@ int clarinset(CSOUND *csound, CLARIN *p)
     /*    p->noiseGain = 0.2f; */       /* Arguemnts; suggested values? */
     /*    p->vibrGain = 0.1f; */
       {
-        int relestim = (int)(CS_EKR * FL(0.1));
+        int32_t32_t32_t32_t relestim = (int)(CS_EKR * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((int32) (p->h.insdshead->offtim * CS_EKR)
+      p->kloop = (int32_t) ((int32) (p->h.insdshead->offtim * CS_EKR)
                         - (int32) (CS_EKR * *p->attack));
 #ifdef BETA
       csound->Message(csound, "offtim=%f  kloop=%d\n",
@@ -157,7 +157,7 @@ int clarinset(CSOUND *csound, CLARIN *p)
     return OK;
 }
 
-int clarin(CSOUND *csound, CLARIN *p)
+int32_t clarin(CSOUND *csound, CLARIN *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -165,7 +165,7 @@ int clarin(CSOUND *csound, CLARIN *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT nGain = *p->noiseGain;
-    int v_len = (int)p->vibr->flen;
+    int32_t32_t32_t32_t v_len = (int)p->vibr->flen;
     MYFLT *v_data = p->vibr->ftable;
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
@@ -280,7 +280,7 @@ static inline MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
     return j;
 }
 
-int fluteset(CSOUND *csound, FLUTE *p)
+int32_t fluteset(CSOUND *csound, FLUTE *p)
 {
     FUNC        *ftp;
     int32        length;
@@ -334,7 +334,7 @@ int fluteset(CSOUND *csound, FLUTE *p)
       p->maxPress = FL(2.3) / FL(0.8);
       p->outputGain = FL(1.001);
       ADSR_keyOn(&p->adsr);
-      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*CS_EKR -
+      p->kloop = (MYFLT)((int32_t)(p->h.insdshead->offtim*CS_EKR -
                                CS_EKR*(*p->dettack)));
 
       p->lastFreq = FL(0.0);
@@ -345,7 +345,7 @@ int fluteset(CSOUND *csound, FLUTE *p)
     return OK;
 }
 
-int flute(CSOUND *csound, FLUTE *p)
+int32_t flute(CSOUND *csound, FLUTE *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -353,7 +353,7 @@ int flute(CSOUND *csound, FLUTE *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       temp;
-    int         v_len = (int)p->vibr->flen;
+    int32_t32_t32_t         v_len = (int)p->vibr->flen;
     MYFLT       *v_data = p->vibr->ftable;
     MYFLT       v_time = p->v_time;
     MYFLT       vibGain = *p->vibAmt;
@@ -493,7 +493,7 @@ MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
     return lastOutput;
 }
 
-int bowedset(CSOUND *csound, BOWED *p)
+int32_t bowedset(CSOUND *csound, BOWED *p)
 {
     int32        length;
     FUNC        *ftp;
@@ -558,7 +558,7 @@ int bowedset(CSOUND *csound, BOWED *p)
     return OK;
 }
 
-int bowed(CSOUND *csound, BOWED *p)
+int32_t bowed(CSOUND *csound, BOWED *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -566,7 +566,7 @@ int bowed(CSOUND *csound, BOWED *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       maxVel;
-    int         freq_changed = 0;
+    int32_t         freq_changed = 0;
 
     if (amp != p->lastamp) {
       p->maxVelocity = FL(0.03) + (FL(0.2) * amp);
@@ -707,7 +707,7 @@ void make_DLineA(CSOUND *csound, DLineA *p, int32 max_length)
     p->outPoint = max_length >> 1;
 }
 
-int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
+int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
 {
     MYFLT outputPointer;
   /* outPoint chases inpoint + 2 for interp and other        */
@@ -787,7 +787,7 @@ MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
 
 /* ====================================================================== */
 
-int brassset(CSOUND *csound, BRASS *p)
+int32_t brassset(CSOUND *csound, BRASS *p)
 {
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
@@ -838,18 +838,18 @@ int brassset(CSOUND *csound, BRASS *p)
       /*                     p->lipTarget * (MYFLT)pow(4.0,
                                                        (2.0* p->lipT) -1.0)); */
       {
-        int relestim = (int)(CS_EKR * FL(0.1));
+        int32_t32_t32_t relestim = (int)(CS_EKR * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((int32) (p->h.insdshead->offtim * CS_EKR)
+      p->kloop = (int32_t) ((int32) (p->h.insdshead->offtim * CS_EKR)
                         - (int32) (CS_EKR * *p->dettack));
     }
     return OK;
 }
 
-int brass(CSOUND *csound, BRASS *p)
+int32_t brass(CSOUND *csound, BRASS *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -857,7 +857,7 @@ int brass(CSOUND *csound, BRASS *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT maxPressure = p->maxPressure = amp;
-    int v_len = (int)p->vibr->flen;
+    int32_t32_t32_t v_len = (int)p->vibr->flen;
     MYFLT *v_data = p->vibr->ftable;
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
@@ -897,7 +897,7 @@ int brass(CSOUND *csound, BRASS *p)
     for (n=offset;n<nsmps;n++) {
       MYFLT     breathPressure;
       MYFLT     lastOutput;
-      int       temp;
+      int32_t       temp;
       MYFLT     temp_time, alpha;
       MYFLT     v_lastOutput;
       MYFLT     ans;
@@ -922,7 +922,7 @@ int brass(CSOUND *csound, BRASS *p)
       }
 #endif
 
-      temp = (int) temp_time;            /*  Integer part of time address    */
+      temp = (int32_t) temp_time;            /*  Integer part of time address    */
                                          /*  fractional part of time address */
       alpha = temp_time - (MYFLT)temp;
       v_lastOutput = v_data[temp];  /* Do linear interpolation, same as */
@@ -952,29 +952,30 @@ int brass(CSOUND *csound, BRASS *p)
 #include "fm4op.h"
 #include "bowedbar.h"
 
-int tubebellset(void*,void*);
-int tubebell(void*,void*);
-int rhodeset(void*,void*);
-int wurleyset(void*,void*);
-int wurley(void*,void*);
-int heavymetset(void*,void*);
-int heavymet(void*,void*);
-int b3set(void*,void*);
-int hammondB3(void*,void*);
-int FMVoiceset(void*,void*);
-int FMVoice(void*,void*);
-int percfluteset(void*,void*);
-int percflute(void*,void*);
-int Moog1set(void*,void*);
-int Moog1(void*,void*);
-int mandolinset(void*,void*);
-int mandolin(void*,void*);
-int voicformset(void*,void*);
-int voicform(void*,void*);
-int shakerset(void*,void*);
-int shaker(void*,void*);
-int bowedbarset(void*,void*);
-int bowedbar(void*,void*);
+int32_t tubebellset(void*,void*);
+int32_t tubebell(void*,void*);
+int32_t rhodeset(void*,void*);
+int32_t wurleyset(void*,void*);
+int32_t wurley(void*,void*);
+int32_t heavymetset(void*,void*);
+int32_t heavymet(void*,void*);
+int32_t b3set(void*,void*);
+int32_t hammondB3(void*,void*);
+int32_t FMVoiceset(void*,void*);
+int32_t FMVoice(void*,void*);
+int32_t percfluteset(void*,void*);
+int32_t percflute(void*,void*);
+int32_t Moog1set(void*,void*);
+int32_t Moog1(void*,void*);
+int32_t mandolinset(void*,void*);
+int32_t mandolin(void*,void*);
+int32_t voicformset(void*,void*);
+int32_t voicform(void*,void*);
+int32_t shakerset(void*,void*);
+int32_t shaker(void*,void*);
+int32_t bowedbarset(void*,void*);
+int32_t
+bowedbar(void*,void*);
 
 static OENTRY physmod_localops[] = {
 { "wgclar",  S(CLARIN),TR, 5, "a", "kkkiikkkjo",(SUBR)clarinset,NULL, (SUBR)clarin },

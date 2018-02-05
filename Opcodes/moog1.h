@@ -51,7 +51,8 @@ typedef struct FormSwep {
     MYFLT       poleCoeffs[2];
     MYFLT       freq;
     MYFLT       reson;
-    int         dirty;
+    int32_t
+    dirty;
     MYFLT       targetFreq;
     MYFLT       targetReson;
     MYFLT       targetGain;

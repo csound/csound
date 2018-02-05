@@ -172,7 +172,7 @@ public:
   MYFLT oldkcontroller7;
   MYFLT oldkvalue7;
   STKInstrumentAdapter() : instrument(0) {}
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     if (!instrument) {
       Stk::setSampleRate(csound->GetSr(csound));
       instrument = new T();
@@ -198,47 +198,47 @@ public:
     oldkvalue7 = -1.0;
     return OK;
   }
-  int kontrol(CSOUND *csound) {
+  int32_t kontrol(CSOUND *csound) {
     uint32_t offset =
         OpcodeBase<STKInstrumentAdapter<T>>::opds.insdshead->ksmps_offset;
     if (!released) {
       if (*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0) {
-        instrument->controlChange(static_cast<int>(*kcontroller0), *kvalue0);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller0), *kvalue0);
         oldkcontroller0 = *kcontroller0;
         oldkvalue0 = *kvalue0;
       }
       if (*kcontroller1 != oldkcontroller1 || *kvalue1 != oldkvalue1) {
-        instrument->controlChange(static_cast<int>(*kcontroller1), *kvalue1);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller1), *kvalue1);
         oldkcontroller1 = *kcontroller1;
         oldkvalue1 = *kvalue1;
       }
       if (*kcontroller2 != oldkcontroller2 || *kvalue2 != oldkvalue2) {
-        instrument->controlChange(static_cast<int>(*kcontroller2), *kvalue2);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller2), *kvalue2);
         oldkcontroller2 = *kcontroller2;
         oldkvalue2 = *kvalue2;
       }
       if (*kcontroller3 != oldkcontroller3 || *kvalue3 != oldkvalue3) {
-        instrument->controlChange(static_cast<int>(*kcontroller3), *kvalue3);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller3), *kvalue3);
         oldkcontroller3 = *kcontroller3;
         oldkvalue3 = *kvalue3;
       }
       if (*kcontroller4 != oldkcontroller4 || *kvalue4 != oldkvalue4) {
-        instrument->controlChange(static_cast<int>(*kcontroller4), *kvalue4);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller4), *kvalue4);
         oldkcontroller4 = *kcontroller4;
         oldkvalue4 = *kvalue4;
       }
       if (*kcontroller5 != oldkcontroller5 || *kvalue5 != oldkvalue5) {
-        instrument->controlChange(static_cast<int>(*kcontroller5), *kvalue5);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller5), *kvalue5);
         oldkcontroller5 = *kcontroller5;
         oldkvalue5 = *kvalue5;
       }
       if (*kcontroller6 != oldkcontroller6 || *kvalue6 != oldkvalue6) {
-        instrument->controlChange(static_cast<int>(*kcontroller6), *kvalue6);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller6), *kvalue6);
         oldkcontroller6 = *kcontroller6;
         oldkvalue6 = *kvalue6;
       }
       if (*kcontroller7 != oldkcontroller7 || *kvalue7 != oldkvalue7) {
-        instrument->controlChange(static_cast<int>(*kcontroller7), *kvalue7);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller7), *kvalue7);
         oldkcontroller7 = *kcontroller7;
         oldkvalue7 = *kvalue7;
       }
@@ -301,7 +301,7 @@ public:
   MYFLT oldkcontroller7;
   MYFLT oldkvalue7;
   STKInstrumentAdapter1() : instrument(0) {}
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     if (!instrument) {
       Stk::setSampleRate(csound->GetSr(csound));
       instrument = new T((StkFloat)10.0);
@@ -327,47 +327,47 @@ public:
     oldkvalue7 = -1.0;
     return OK;
   }
-  int kontrol(CSOUND *csound) {
+  int32_t kontrol(CSOUND *csound) {
     uint32_t offset =
         OpcodeBase<STKInstrumentAdapter1<T>>::opds.insdshead->ksmps_offset;
     if (!released) {
       if (*kcontroller0 != oldkcontroller0 || *kvalue0 != oldkvalue0) {
-        instrument->controlChange(static_cast<int>(*kcontroller0), *kvalue0);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller0), *kvalue0);
         oldkcontroller0 = *kcontroller0;
         oldkvalue0 = *kvalue0;
       }
       if (*kcontroller1 != oldkcontroller1 || *kvalue1 != oldkvalue1) {
-        instrument->controlChange(static_cast<int>(*kcontroller1), *kvalue1);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller1), *kvalue1);
         oldkcontroller1 = *kcontroller1;
         oldkvalue1 = *kvalue1;
       }
       if (*kcontroller2 != oldkcontroller2 || *kvalue2 != oldkvalue2) {
-        instrument->controlChange(static_cast<int>(*kcontroller2), *kvalue2);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller2), *kvalue2);
         oldkcontroller2 = *kcontroller2;
         oldkvalue2 = *kvalue2;
       }
       if (*kcontroller3 != oldkcontroller3 || *kvalue3 != oldkvalue3) {
-        instrument->controlChange(static_cast<int>(*kcontroller3), *kvalue3);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller3), *kvalue3);
         oldkcontroller3 = *kcontroller3;
         oldkvalue3 = *kvalue3;
       }
       if (*kcontroller4 != oldkcontroller4 || *kvalue4 != oldkvalue4) {
-        instrument->controlChange(static_cast<int>(*kcontroller4), *kvalue4);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller4), *kvalue4);
         oldkcontroller4 = *kcontroller4;
         oldkvalue4 = *kvalue4;
       }
       if (*kcontroller5 != oldkcontroller5 || *kvalue5 != oldkvalue5) {
-        instrument->controlChange(static_cast<int>(*kcontroller5), *kvalue5);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller5), *kvalue5);
         oldkcontroller5 = *kcontroller5;
         oldkvalue5 = *kvalue5;
       }
       if (*kcontroller6 != oldkcontroller6 || *kvalue6 != oldkvalue6) {
-        instrument->controlChange(static_cast<int>(*kcontroller6), *kvalue6);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller6), *kvalue6);
         oldkcontroller6 = *kcontroller6;
         oldkvalue6 = *kvalue6;
       }
       if (*kcontroller7 != oldkcontroller7 || *kvalue7 != oldkvalue7) {
-        instrument->controlChange(static_cast<int>(*kcontroller7), *kvalue7);
+        instrument->controlChange(static_cast<int32_t>(*kcontroller7), *kvalue7);
         oldkcontroller7 = *kcontroller7;
         oldkvalue7 = *kvalue7;
       }
@@ -553,9 +553,9 @@ OENTRY oentries[] = {
         0, 0, 0, 0, 0, 0, 0, 0,
     }};
 
-PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) { return 0; }
 
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   const char *path = csound->GetEnv(csound, "RAWWAVE_PATH");
 #ifdef DEFAULT_RAWWAVE_PATH
   if (!path)
@@ -581,17 +581,17 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
     // csound->DebugMsg(csound,
     //                Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
   }
-  int status = 0;
+  int32_t status = 0;
   for (OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) {
     status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
                                    oentry->flags, oentry->thread,
                                    oentry->outypes, oentry->intypes,
-                                   (int (*)(CSOUND *, void *))oentry->iopadr,
-                                   (int (*)(CSOUND *, void *))oentry->kopadr,
-                                   (int (*)(CSOUND *, void *))oentry->aopadr);
+                                   (int32_t (*)(CSOUND *, void *))oentry->iopadr,
+                                   (int32_t (*)(CSOUND *, void *))oentry->kopadr,
+                                   (int32_t (*)(CSOUND *, void *))oentry->aopadr);
   }
   return status;
 }
 
-PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) { return 0; }
 }

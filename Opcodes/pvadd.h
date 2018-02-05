@@ -40,6 +40,7 @@ typedef struct {
     MYFLT   frPrtim, asr;
     float   *frPtr, *pvcopy;
     int32   maxFr, frSiz, prFlg, mems;
-    int     maxbin;
+    int32_t
+    maxbin;
 } PVADD;
 

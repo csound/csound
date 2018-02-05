@@ -995,9 +995,9 @@ static void
     char   *pcFilename;
     DIR    *psDirectory;
     LADSPA_Descriptor_Function fDescriptorFunction;
-    long    lDirLength;
-    long    slen;
-    long    iNeedSlash;
+    int64_t    lDirLength;
+    int64_t    slen;
+    int64_t    iNeedSlash;
     struct dirent *psDirectoryEntry;
     void   *pvPluginHandle;
 

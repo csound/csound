@@ -87,23 +87,23 @@ class FluidEngine : public OpcodeBase<FluidEngine> {
   // State.
   // fluid_synth_t *fluidSynth;
   // fluid_settings_t *fluidSettings;
-  int chorusEnabled;
-  int reverbEnabled;
-  int channelCount;
-  int voiceCount;
+  int32_t chorusEnabled;
+  int32_t reverbEnabled;
+  int32_t channelCount;
+  int32_t voiceCount;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
-    int result = OK;
+    int32_t result = OK;
     fluid_synth_t *fluidSynth = 0;
     fluid_settings_t *fluidSettings = 0;
-    chorusEnabled = (int)*iChorusEnabled;
-    reverbEnabled = (int)*iReverbEnabled;
-    channelCount = (int)*iChannelCount;
-    voiceCount = (int)*iVoiceCount;
+    chorusEnabled = (int32_t)*iChorusEnabled;
+    reverbEnabled = (int32_t)*iReverbEnabled;
+    channelCount = (int32_t)*iChannelCount;
+    voiceCount = (int32_t)*iVoiceCount;
     if (channelCount <= 0) {
       channelCount = 256;
     } else if (channelCount < 16) {
@@ -168,18 +168,18 @@ class FluidLoad : public OpcodeBase<FluidLoad> {
   char *filename;
   char *filepath;
   fluid_synth_t *fluidSynth;
-  int soundFontId;
-  int listPresets;
+  int32_t soundFontId;
+  int32_t listPresets;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
-    int result = OK;
+    int32_t result = OK;
     soundFontId = -1;
     toa(iFluidSynth, fluidSynth);
-    listPresets = (int)*iListPresets;
+    listPresets = (int32_t)*iListPresets;
     CS_TYPE *argType = csound->GetTypeForArg(iFilename);
     if (strcmp("S", argType->varTypeName) == 0) {
       filename = csound->Strdup(csound, ((STRINGDAT *)iFilename)->data);
@@ -234,18 +234,18 @@ class FluidProgramSelect : public OpcodeBase<FluidProgramSelect>
         MYFLT *iPresetNumber;
         // State.
         fluid_synth_t *fluidSynth;
-        int channel;
-        unsigned int instrument;
+        int32_t channel;
+        uint32_t instrument;
         uint32_t bank;
         uint32_t preset;
         void *mutex;
 public:
-        int init(CSOUND *csound)
+        int32_t init(CSOUND *csound)
         {
                 mutex = csound->Create_Mutex(0);
                 LockGuard guard(csound, mutex);
                 toa(iFluidSynth, fluidSynth);
-                channel = (int) *iChannelNumber;
+                channel = (int32_t) *iChannelNumber;
                 instrument = (uint32_t) *iInstrumentNumber;
                 bank = (uint32_t) *iBankNumber;
                 preset = (uint32_t) *iPresetNumber;
@@ -266,19 +266,19 @@ class FluidCCI : public OpcodeBase<FluidCCI> {
   MYFLT *kVal;
   // State.
   fluid_synth_t *fluidSynth;
-  int channel;
-  int controller;
-  int value;
+  int32_t channel;
+  int32_t controller;
+  int32_t value;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
-    channel = (int)*iChannelNumber;
-    controller = (int)*iControllerNumber;
-    value = (int)*kVal;
+    channel = (int32_t)*iChannelNumber;
+    controller = (int32_t)*iControllerNumber;
+    value = (int32_t)*kVal;
     fluid_synth_cc(fluidSynth, channel, controller, value);
     return OK;
   }
@@ -292,27 +292,27 @@ class FluidCCK : public OpcodeBase<FluidCCK> {
   MYFLT *kVal;
   // State.
   fluid_synth_t *fluidSynth;
-  int channel;
-  int controller;
-  int value;
-  int priorValue;
+  int32_t channel;
+  int32_t controller;
+  int32_t value;
+  int32_t priorValue;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     priorValue = -1;
     return OK;
   }
-  int kontrol(CSOUND *csound) {
+  int32_t kontrol(CSOUND *csound) {
     LockGuard guard(csound, mutex);
-    value = (int)*kVal;
+    value = (int32_t)*kVal;
     if (value != priorValue) {
       priorValue = value;
-      channel = (int)*iChannelNumber;
-      controller = (int)*iControllerNumber;
+      channel = (int32_t)*iChannelNumber;
+      controller = (int32_t)*iControllerNumber;
       fluid_synth_cc(fluidSynth, channel, controller, value);
     }
     return OK;
@@ -327,23 +327,23 @@ class FluidNote : public OpcodeNoteoffBase<FluidNote> {
   MYFLT *iVelocity;
   // State.
   fluid_synth_t *fluidSynth;
-  int channel;
-  int key;
-  int velocity;
+  int32_t channel;
+  int32_t key;
+  int32_t velocity;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
-    channel = (int)*iChannelNumber;
-    key = (int)*iMidiKeyNumber;
-    velocity = (int)*iVelocity;
+    channel = (int32_t)*iChannelNumber;
+    key = (int32_t)*iMidiKeyNumber;
+    velocity = (int32_t)*iVelocity;
     fluid_synth_noteon(fluidSynth, channel, key, velocity);
     return OK;
   }
-  int noteoff(CSOUND *csound) {
+  int32_t noteoff(CSOUND *csound) {
     LockGuard guard(csound, mutex);
     fluid_synth_noteoff(fluidSynth, channel, key);
     return OK;
@@ -360,19 +360,19 @@ class FluidOut : public OpcodeBase<FluidOut> {
   fluid_synth_t *fluidSynth;
   float leftSample;
   float rightSample;
-  int frame;
-  int ksmps;
+  int32_t frame;
+  int32_t ksmps;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     ksmps = opds.insdshead->ksmps;
     return OK;
   }
-  int audio(CSOUND *csound) {
+  int32_t audio(CSOUND *csound) {
     LockGuard guard(csound, mutex);
     uint32_t offset = opds.insdshead->ksmps_offset;
     uint32_t early = opds.insdshead->ksmps_no_end;
@@ -404,18 +404,18 @@ class FluidAllOut : public OpcodeBase<FluidAllOut> {
   // State.
   float leftSample;
   float rightSample;
-  int frame;
-  int ksmps;
+  int32_t frame;
+  int32_t ksmps;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
     ksmps = opds.insdshead->ksmps;
     return OK;
   }
-  int audio(CSOUND *csound) {
+  int32_t audio(CSOUND *csound) {
     LockGuard guard(csound, mutex);
     uint32_t offset = opds.insdshead->ksmps_offset;
     uint32_t early = opds.insdshead->ksmps_no_end;
@@ -460,19 +460,19 @@ class FluidControl : public OpcodeBase<FluidControl> {
   MYFLT *kMidiData2;
   // State.
   fluid_synth_t *fluidSynth;
-  int midiStatus;
-  int midiChannel;
-  int midiData1;
-  int midiData2;
-  int priorMidiStatus;
-  int priorMidiChannel;
-  int priorMidiData1;
-  int priorMidiData2;
-  int printMsgs;
+  int32_t midiStatus;
+  int32_t midiChannel;
+  int32_t midiData1;
+  int32_t midiData2;
+  int32_t priorMidiStatus;
+  int32_t priorMidiChannel;
+  int32_t priorMidiData1;
+  int32_t priorMidiData2;
+  int32_t printMsgs;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
@@ -485,25 +485,25 @@ public:
     printMsgs = ((oparms.msglevel & 7) == 7 ? 1 : 0);
     return OK;
   }
-  int kontrol(CSOUND *csound) {
+  int32_t kontrol(CSOUND *csound) {
     LockGuard guard(csound, mutex);
-    midiStatus = 0xF0 & (int)*kMidiStatus;
-    midiChannel = (int)*kMidiChannel;
-    midiData1 = (int)*kMidiData1;
-    midiData2 = (int)*kMidiData2;
-    int result = -1;
+    midiStatus = 0xF0 & (int32_t)*kMidiStatus;
+    midiChannel = (int32_t)*kMidiChannel;
+    midiData1 = (int32_t)*kMidiData1;
+    midiData2 = (int32_t)*kMidiData2;
+    int32_t result = -1;
 
     if (midiData2 != priorMidiData2 || midiData1 != priorMidiData1 ||
         midiChannel != priorMidiChannel || midiStatus != priorMidiStatus) {
       switch (midiStatus) {
-      case (int)0x80:
+      case (int32_t)0x80:
       noteOff:
         result = fluid_synth_noteoff(fluidSynth, midiChannel, midiData1);
         if (printMsgs)
           csound->Message(csound, Str("result: %d \n Note off: c:%3d k:%3d\n"),
                           result, midiChannel, midiData1);
         break;
-      case (int)0x90:
+      case (int32_t)0x90:
         if (!midiData2) {
           goto noteOff;
         }
@@ -513,37 +513,37 @@ public:
           log(csound, "result: %d \nNote on: c:%3d k:%3d v:%3d\n", result,
               midiChannel, midiData1, midiData2);
         break;
-      case (int)0xA0:
+      case (int32_t)0xA0:
         if (printMsgs)
           log(csound, "Key pressure (not handled): "
                       "c:%3d k:%3d v:%3d\n",
               midiChannel, midiData1, midiData2);
         break;
-      case (int)0xB0:
+      case (int32_t)0xB0:
         result = fluid_synth_cc(fluidSynth, midiChannel, midiData1, midiData2);
         if (printMsgs)
           log(csound, "Result: %d Control change: c:%3d c:%3d v:%3d\n", result,
               midiChannel, midiData1, midiData2);
         break;
-      case (int)0xC0:
+      case (int32_t)0xC0:
         result = fluid_synth_program_change(fluidSynth, midiChannel, midiData1);
         if (printMsgs)
           log(csound, "Result: %d Program change: c:%3d p:%3d\n", result,
               midiChannel, midiData1);
         break;
-      case (int)0xD0:
+      case (int32_t)0xD0:
         if (printMsgs)
           log(csound, "After touch (not handled): c:%3d v:%3d\n", midiChannel,
               midiData1);
         break;
-      case (int)0xE0: {
-        int pbVal = midiData1 + (midiData2 << 7);
+      case (int32_t)0xE0: {
+        int32_t pbVal = midiData1 + (midiData2 << 7);
         fluid_synth_pitch_bend(fluidSynth, midiChannel, pbVal);
         if (printMsgs)
           log(csound, "Result: %d, Pitch bend:     c:%d b:%d\n", result,
               midiChannel, pbVal);
       } break;
-      case (int)0xF0:
+      case (int32_t)0xF0:
         if (printMsgs)
           log(csound, "System exclusive (not handled): "
                       "c:%3d v1:%3d v2:%3d\n",
@@ -566,16 +566,16 @@ class FluidSetInterpMethod : public OpcodeBase<FluidSetInterpMethod> {
   MYFLT *iInterpMethod;
   // State.
   fluid_synth_t *fluidSynth;
-  int channel;
-  int interpolationMethod;
+  int32_t channel;
+  int32_t interpolationMethod;
   void *mutex;
 
 public:
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
-    channel = (int)*iChannelNumber;
-    interpolationMethod = (int)*iInterpMethod;
+    channel = (int32_t)*iChannelNumber;
+    interpolationMethod = (int32_t)*iInterpMethod;
     if (UNLIKELY(interpolationMethod != 0 && interpolationMethod != 1 &&
                  interpolationMethod != 4 && interpolationMethod != 7)) {
       return csound->InitError(csound,
@@ -613,10 +613,10 @@ static OENTRY localops[] = {
      (SUBR)0},
     {0, 0, 0, 0, 0, 0, (SUBR)0, (SUBR)0, (SUBR)0}};
 
-PUBLIC int csoundModuleCreate(CSOUND *csound) {
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   std::vector<fluid_synth_t *> *fluid_synths =
       new std::vector<fluid_synth_t *>();
-  int result = 0;
+  int32_t result = 0;
   result = csound::CreateGlobalPointer(csound, "fluid_synths", fluid_synths);
   void *fluid_synths_mutex = csound->Create_Mutex(0);
   result = csound::CreateGlobalPointer(csound, "fluid_synths_mutex",
@@ -624,17 +624,17 @@ PUBLIC int csoundModuleCreate(CSOUND *csound) {
   return result;
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   // printf("csoundModuleInit: %p \n", csound);
   OENTRY *ep;
-  int err = 0;
+  int32_t err = 0;
 
   for (ep = (OENTRY *)&(localops[0]); ep->opname != NULL; ep++) {
     err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
                                 ep->thread, ep->outypes, ep->intypes,
-                                (int (*)(CSOUND *, void *))ep->iopadr,
-                                (int (*)(CSOUND *, void *))ep->kopadr,
-                                (int (*)(CSOUND *, void *))ep->aopadr);
+                                (int32_t (*)(CSOUND *, void *))ep->iopadr,
+                                (int32_t (*)(CSOUND *, void *))ep->kopadr,
+                                (int32_t (*)(CSOUND *, void *))ep->aopadr);
   }
   return err;
 }
@@ -643,7 +643,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
  * Called by Csound to de-initialize the opcode
  * just before destroying it.
  */
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
   // printf("csoundModuleDestroy: %p \n", csound);
   void *fluid_synths_mutex = 0;
   csound::QueryGlobalPointer(csound, "fluid_synths_mutex", fluid_synths_mutex);
@@ -670,6 +670,6 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
   return 0;
 }
 
-PUBLIC int csoundModuleInfo(void) {
-  return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int)sizeof(MYFLT));
+PUBLIC int32_t csoundModuleInfo(void) {
+  return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t)sizeof(MYFLT));
 }

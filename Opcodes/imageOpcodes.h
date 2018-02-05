@@ -26,7 +26,8 @@
 typedef struct
 {
   unsigned char *imageData;
-  int w,h;
+  int32_t
+  w,h;
 } Image;
 
 typedef struct

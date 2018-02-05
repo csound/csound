@@ -52,7 +52,7 @@ struct OpcodeArgument{
     void *circularBuffer;
     char *name;
     void *readBuffer;
-    int itemsCount;
+    int32_t itemsCount;
     uint32_t bytesCount;
     uint32_t bytesWritten;
     bool iRateVarSent;
@@ -78,11 +78,11 @@ static const size_t stringVarMaximumBytesCount = 4096;
 static const size_t ringBufferItemsCount = 2048 * 16;
 
 void WebSocketOpcode_initialiseWebSocket(WebSocketOpcode *self, CSOUND *csound);
-int WebSocketOpcode_finish(CSOUND *csound, void *opaqueReference);
+int32_t WebSocketOpcode_finish(CSOUND *csound, void *opaqueReference);
 void WebSocketOpcode_initialiseArguments(WebSocketOpcode *self, CSOUND *csound);
 ArgumentType WebSocketOpcode_getArgumentType(CSOUND *csound, MYFLT *argument);
 
-int WebSocketOpcode_initialise(CSOUND *csound, WebSocketOpcode *self)
+int32_t WebSocketOpcode_initialise(CSOUND *csound, WebSocketOpcode *self)
 {
     self->inputArgumentCount = self->INOCOUNT - 1;
     self->outputArgumentCount = self->OUTOCOUNT;
@@ -95,7 +95,7 @@ int WebSocketOpcode_initialise(CSOUND *csound, WebSocketOpcode *self)
 
 void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self)
 {
-    int i;
+    int32_t i;
     for (i = 0; i < self->inputArgumentCount; ++i) {
 
       OpcodeArgument *currentArgument = &self->inputArguments[i];
@@ -105,7 +105,7 @@ void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self
         continue;
       }
 
-      int itemsWritten =
+      int32_t itemsWritten =
         csoundWriteCircularBuffer(csound,
                                   currentArgument->circularBuffer,
                                   currentArgument->dataPointer,
@@ -123,7 +123,7 @@ void WebSocketOpcode_sendInputArgumentData(CSOUND *csound, WebSocketOpcode *self
 void WebSocketOpcode_receiveOutputArgumentData(CSOUND *csound,
                                                WebSocketOpcode *self)
 {
-    int i;
+    int32_t i;
     for (i = 0; i < self->outputArgumentCount; ++i) {
 
       OpcodeArgument *currentArgument = &self->outputArguments[i];
@@ -142,7 +142,7 @@ void WebSocketOpcode_receiveOutputArgumentData(CSOUND *csound,
         if (currentArgument->argumentType == STRING_VAR) {
 
           STRINGDAT *string = (STRINGDAT *)currentArgument->argumentPointer;
-          string->size = (int)strlen(currentArgument->dataPointer);
+          string->size = (int32_t)strlen(currentArgument->dataPointer);
         }
 
         currentArgument->receivedData = false;
@@ -151,16 +151,16 @@ void WebSocketOpcode_receiveOutputArgumentData(CSOUND *csound,
     }
 }
 
-int WebSocketOpcode_process(CSOUND *csound, WebSocketOpcode *self)
+int32_t WebSocketOpcode_process(CSOUND *csound, WebSocketOpcode *self)
 {
     WebSocketOpcode_sendInputArgumentData(csound, self);
     WebSocketOpcode_receiveOutputArgumentData(csound, self);
     return OK;
 }
 
-int WebSocketOpcode_finish(CSOUND *csound, void *opaqueReference)
+int32_t WebSocketOpcode_finish(CSOUND *csound, void *opaqueReference)
 {
-    int i;
+    int32_t i;
     WebSocketOpcode *self = opaqueReference;
     self->isRunning = false;
 
@@ -193,10 +193,10 @@ int WebSocketOpcode_finish(CSOUND *csound, void *opaqueReference)
     return OK;
 }
 
-int WebSocketOpcode_getArrayElementCount(ARRAYDAT *array)
+int32_t WebSocketOpcode_getArrayElementCount(ARRAYDAT *array)
 {
-    int elementCount = array->sizes[0];
-    int i;
+    int32_t elementCount = array->sizes[0];
+    int32_t i;
     for (i = 1; i < array->dimensions; ++i) {
 
       elementCount *= array->sizes[i];
@@ -278,7 +278,7 @@ void WebSocketOpcode_allocateArrayArgument(MYFLT *argument,
 
 void WebSocketOpcode_allocateVariableArgument(MYFLT *argument,
                                               OpcodeArgument *argumentArrayItem,
-                                              CSOUND *csound, int bytesCount)
+                                              CSOUND *csound, int32_t bytesCount)
 {
     argumentArrayItem->dataPointer = argument;
     argumentArrayItem->itemsCount = 1;
@@ -388,7 +388,7 @@ void WebSocketOpcode_writeFragments(WebSocketOpcode *self,
     if (inputArgument->bytesWritten + writeBufferBytesCount <
         inputArgument->bytesCount) {
 
-      int writeFlags = LWS_WRITE_NO_FIN;
+      int32_t writeFlags = LWS_WRITE_NO_FIN;
       writeFlags |=
         inputArgument->bytesWritten==0 ? LWS_WRITE_BINARY : LWS_WRITE_CONTINUATION;
       memcpy(messageBuffer, inputData, writeBufferBytesCount);
@@ -432,11 +432,11 @@ void WebSocketOpcode_handleServerWritable(struct lws *websocket,
       return;
     }
 
-    int inputIndex = 0;
+    int32_t inputIndex = 0;
 
     OpcodeArgument *argument = &self->inputArguments[inputIndex];
 
-    int readItems = 0;
+    int32_t readItems = 0;
 
     if (argument->bytesWritten == 0) {
 
@@ -503,7 +503,7 @@ void WebSocketOpcode_handleReceive(struct lws *websocket, WebSocketOpcode *self,
       return;
     }
 
-    int writtenItems = csoundWriteCircularBuffer(csound, argument->circularBuffer,
+    int32_t writtenItems = csoundWriteCircularBuffer(csound, argument->circularBuffer,
                                                  inputData, argument->itemsCount);
     argument->receivedData = true;
 
@@ -524,7 +524,7 @@ void WebSocketOpcode_handleReceive(struct lws *websocket, WebSocketOpcode *self,
 }
 
 
-static int Websocket_callback(struct lws *websocket,
+static int32_t Websocket_callback(struct lws *websocket,
                               enum lws_callback_reasons reason,
                               void *user, void *inputData, size_t inputDataSize)
 {
@@ -593,7 +593,7 @@ uintptr_t WebSocketOpcode_processThread(void *opaquePointer)
 
 void WebSocketOpcode_initialiseWebSocket(WebSocketOpcode *self, CSOUND *csound)
 {
-    int i;
+    int32_t i;
     size_t argumentsCount = self->inputArgumentCount + self->outputArgumentCount;
 
     self->webSocket = csound->Calloc(csound, sizeof(WebSocket));

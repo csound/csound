@@ -45,7 +45,7 @@
  * exist in file system (because the data is symmetrical.
  */
 
-/* int elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, */
+/* int32_t elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, */
 /*                               36, 24, 12, 1 };                        */
 
 typedef struct {

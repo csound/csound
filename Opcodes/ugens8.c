@@ -26,7 +26,7 @@
 
 /* RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
-static int pvx_loadfile(CSOUND *, const char *, PVOC *);
+static int32_t pvx_loadfile(CSOUND *, const char *, PVOC *);
 
 /********************************************/
 /* Originated by Dan Ellis, MIT             */
@@ -38,12 +38,12 @@ static int pvx_loadfile(CSOUND *, const char *, PVOC *);
 #define WLN   1                         /* time window is WLN*2*ksmps long  */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
-int pvset_(CSOUND *csound, PVOC *p, int stringname)
+int32_t32_t32_t pvset_(CSOUND *csound, PVOC *p, int stringname)
 {
     uint32_t      i;
     int32    memsize;
     char     pvfilnam[MAXNAME];
-    int      size;      /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int32_t      size;      /* THESE SHOULD BE SAVED IN PVOC STRUCT */
     FUNC     *AmpGateFunc = NULL;
 
     p->pp = PVOC_GetGlobals(csound);
@@ -114,7 +114,7 @@ int pvset_(CSOUND *csound, PVOC *p, int stringname)
 
     if (*p->imode == 1 || *p->imode == 2) {
       SpectralExtract(p->frPtr, p->pvcopy, size, p->maxFr,
-                      (int) *p->imode, *p->ifreqlim);
+                      (int32_t) *p->imode, *p->ifreqlim);
       p->frPtr = p->pvcopy;
     }
 
@@ -132,26 +132,26 @@ int pvset_(CSOUND *csound, PVOC *p, int stringname)
     return OK;
 }
 
-int pvset(CSOUND *csound, PVOC *p){
+int32_t pvset(CSOUND *csound, PVOC *p){
   return pvset_(csound,p,0);
 }
 
-int pvset_S(CSOUND *csound, PVOC *p){
+int32_t pvset_S(CSOUND *csound, PVOC *p){
   return pvset_(csound,p,1);
 }
 
 
-int pvoc(CSOUND *csound, PVOC *p)
+int32_t pvoc(CSOUND *csound, PVOC *p)
 {
     MYFLT  *ar = p->rslt;
     MYFLT  frIndx;
     MYFLT  *buf = p->fftBuf;
     MYFLT  *buf2 = p->dsBuf;
-    int    asize = pvdasiz(p);  /* new */
-    int    size = pvfrsiz(p);
-    int    buf2Size, outlen;
-    int    circBufSize = PVFFTSIZE;
-    int    specwp = (int)*p->ispecwp;   /* spectral warping flag */
+    int32_t    asize = pvdasiz(p);  /* new */
+    int32_t    size = pvfrsiz(p);
+    int32_t    buf2Size, outlen;
+    int32_t    circBufSize = PVFFTSIZE;
+    int32_t32_t32_t    specwp = (int)*p->ispecwp;   /* spectral warping flag */
     MYFLT  pex, scaleFac;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -159,11 +159,11 @@ int pvoc(CSOUND *csound, PVOC *p)
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
     pex = *p->kfmod;
-    outlen = (int) (((MYFLT) size) / pex);
+    outlen = (int32_t) (((MYFLT) size) / pex);
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
       goto err2;           /* ..so we won't run into buf2Size problems */
-    if (UNLIKELY(outlen<(int)(2*nsmps)))     /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int32_t)(2*nsmps)))     /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;       /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
@@ -195,7 +195,7 @@ int pvoc(CSOUND *csound, PVOC *p)
       UDSample(p->pp, buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
                buf2, size, buf2Size, pex);
     else
-      memcpy(buf2, buf + (int) ((size - buf2Size) >> 1),
+      memcpy(buf2, buf + (int32_t) ((size - buf2Size) >> 1),
              sizeof(MYFLT) * buf2Size);
     ApplyHalfWin(buf2, p->window, buf2Size);
     addToCircBuf(buf2, p->outBuf, p->opBpos, nsmps, circBufSize);
@@ -237,7 +237,7 @@ int pvoc(CSOUND *csound, PVOC *p)
 
   this version applies scaling to match  existing  pvanal format
  */
-static int pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
+static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
 {
     PVOCEX_MEMFILE  pp;
 
@@ -248,7 +248,7 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
     if (UNLIKELY(pp.fftsize > PVFRAMSIZE)) {
       return csound->InitError(csound, Str("pvoc-ex file %s: "
                                            "FFT size %d too large for Csound"),
-                               fname, (int) pp.fftsize);
+                               fname, (int32_t) pp.fftsize);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (UNLIKELY(pp.chans > 1)) {

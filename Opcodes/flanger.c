@@ -26,7 +26,7 @@
 #include <math.h>
 #include "flanger.h"
 
-static int flanger_set (CSOUND *csound, FLANGER *p)
+static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {
         /*---------------- delay  -----------------------*/
     p->maxdelay = (uint32)(*p->maxd  * CS_ESR);
@@ -37,7 +37,7 @@ static int flanger_set (CSOUND *csound, FLANGER *p)
     return OK;
 }
 
-static int flanger(CSOUND *csound, FLANGER *p)
+static int32_t flanger(CSOUND *csound, FLANGER *p)
 {
         /*---------------- delay -----------------------*/
     uint32 indx = p->left;
@@ -81,7 +81,7 @@ static int flanger(CSOUND *csound, FLANGER *p)
 
 #define MAXDELAY        0.2 /* 5 Hz */
 
-static int wguide1set (CSOUND *csound, WGUIDE1 *p)
+static int32_t wguide1set (CSOUND *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
     p->maxd = (uint32) (MAXDELAY * CS_ESR);
@@ -95,7 +95,7 @@ static int wguide1set (CSOUND *csound, WGUIDE1 *p)
     return OK;
 }
 
-static int wguide1(CSOUND *csound, WGUIDE1 *p)
+static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
     uint32  indx;
@@ -175,7 +175,7 @@ static int wguide1(CSOUND *csound, WGUIDE1 *p)
     return OK;
 }
 
-static int wguide2set (CSOUND *csound, WGUIDE2 *p)
+static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
     p->maxd                  = (uint32) (MAXDELAY * CS_ESR);
@@ -204,7 +204,7 @@ static int wguide2set (CSOUND *csound, WGUIDE2 *p)
     return OK;
 }
 
-static int wguide2(CSOUND *csound, WGUIDE2 *p)
+static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
 {
     MYFLT *out               = p->ar;
     MYFLT *in                = p->asig;
@@ -336,9 +336,10 @@ static OENTRY localops[] = {
 { "wguide2", S(WGUIDE2), 0, 5, "a", "axxkkkk",(SUBR)wguide2set, NULL, (SUBR)wguide2 }
 };
 
-int flanger_init_(CSOUND *csound)
+int32_t flanger_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

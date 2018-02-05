@@ -31,7 +31,7 @@ typedef struct {
     MYFLT       *x0, *x1, *x2, *x3, *ext, *v, rate;
     MYFLT       *m, *f, *c, *d, *out;
     int32        idx, len, exti;
-    int         id;
+    int32_t         id;
     void        *win;
     SCANSYN_GLOBALS *pp;
 } PSCSNU;
@@ -45,7 +45,7 @@ typedef struct {
     AUXCH       aux_t;
     MYFLT       fix, phs;
     int32        tlen, *t;
-    int         oscil_interp;
+    int32_t         oscil_interp;
     PSCSNU      *p;
 } PSCSNS;
 
@@ -73,7 +73,7 @@ typedef struct {
 #endif
     int32       idx, exti;
     uint32_t    len;
-    int         id;
+    int32_t         id;
     void        *win;
     SCANSYN_GLOBALS *pp;
 } PSCSNUX;
@@ -88,7 +88,7 @@ typedef struct {
     AUXCH       aux_t;
     MYFLT       fix, phs;
     int32       tlen, *t;
-    int         oscil_interp;
+    int32_t         oscil_interp;
     PSCSNUX     *p;
 } PSCSNSX;
 
@@ -109,7 +109,8 @@ struct SCANSYN_GLOBALS_ {
     void        *scsnx_list;
 };
 
-extern int scansynx_init_(CSOUND *);
+extern int32_t
+scansynx_init_(CSOUND *);
 
 static CS_NOINLINE SCANSYN_GLOBALS * scansyn_allocGlobals(CSOUND *csound)
 {

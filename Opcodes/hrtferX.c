@@ -61,17 +61,17 @@
 /* This array transferred here so as to be declared once.  Belongs to
    the structure of the HRTF data really in 3Dug.h */
 
-static const int elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72,
+static const int32_t elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72,
                                            60, 56, 45, 36, 24, 12, 1 };
 
-#define ROUND(x) ((int)floor((x)+FL(0.5)))
+#define ROUND(x) ((int32_t)floor((x)+FL(0.5)))
 #define GET_NFAZ(el_index)      ((elevation_data[el_index] / 2) + 1)
 
-static int hrtferxkSet(CSOUND *csound, HRTFER *p)
+static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
 {
-    // int    i; /* standard loop counter */
+    // int32_t    i; /* standard loop counter */
     char   filename[MAXNAME];
-    int    bytrev_test;
+    int32_t    bytrev_test;
     MEMFIL *mfp;
 
         /* first check if orchestra's sampling rate is compatible with HRTF
@@ -146,24 +146,24 @@ static int hrtferxkSet(CSOUND *csound, HRTFER *p)
 
 /********************** a-rate code ***********************************/
 
-static int hrtferxk(CSOUND *csound, HRTFER *p)
+static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 {
     MYFLT      *aLeft, *aRight; /* audio output streams */
     MYFLT      *aIn, *kAz, *kElev; /* audio and control input streams */
-    int        azim, elev, el_index, az_index;
-    int        nsmpsi, nsmpso; /* number of samples in/out */
+    int32_t        azim, elev, el_index, az_index;
+    int32_t        nsmpsi, nsmpso; /* number of samples in/out */
     /*         input,      out-left,    out-right */
     MYFLT      *x, *yl, *yr;    /* Local copies of address */
     /*         overlap left,   overlap right */
     MYFLT      *bl, *br;
                         /* copy of current input convolved with old HRTFs */
     MYFLT      *outl, *outr; /* output left/right */
-    int        outfront, outend; /* circular output indices */
-    int        incount, outcount; /* number of samples in/out */
+    int32_t        outfront, outend; /* circular output indices */
+    int32_t        incount, outcount; /* number of samples in/out */
     uint32_t   toread; /* number of samples to read */
-    int        i; /* standard loop counter */
+    int32_t        i; /* standard loop counter */
     HRTF_DATUM hrtf_data; /* local hrtf instances */
-    int        flip; /* flag - true if we need to flip the channels */
+    int32_t        flip; /* flag - true if we need to flip the channels */
     int16      *fpindex; /* pointer into HRTF file */
     int16      numskip; /* number of shorts to skip in HRTF file */
                         /* short arrays into which HRTFs are stored locally */
@@ -178,8 +178,8 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
         /* update local variables */
     kElev = p->kElev;
     kAz = p->kAz;
-    elev = (int) *kElev;
-    azim = (int) *kAz;
+    elev = (int32_t) *kElev;
+    azim = (int32_t) *kAz;
     //oldel_index = p->oldel_index;
     fpindex = (int16 *) p->fpbegin;
     flip = 0;
@@ -192,7 +192,7 @@ static int hrtferxk(CSOUND *csound, HRTFER *p)
       el_index = N_ELEV-1;
 
         /* Convert azimuth in degrees to azimuth array index. */
-    azim = (int)fmod((double)azim, 360.0);
+    azim = (int32_t)fmod((double)azim, 360.0);
     if (azim < 0)
       azim += 360;
     if (azim > 180) {

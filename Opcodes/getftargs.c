@@ -29,10 +29,10 @@ typedef struct {
    MYFLT     *ftable;
    MYFLT     *ktrig;
    MYFLT     prv_ktrig;
-   int       status;
+   int32_t       status;
 } FTARGS;
 
-static int getftargs(CSOUND *, FTARGS *);
+static int32_t getftargs(CSOUND *, FTARGS *);
 
 /*
     Inspiration for the implementation of this Opcode was taken
@@ -40,7 +40,7 @@ static int getftargs(CSOUND *, FTARGS *);
     Credit for that goes to their respective authors.
 */
 
-static int getftargs_init(CSOUND *csound, FTARGS *p)
+static int32_t getftargs_init(CSOUND *csound, FTARGS *p)
 {
     p->status = OK;
     if (*p->ktrig > FL(0.0))
@@ -50,7 +50,7 @@ static int getftargs_init(CSOUND *csound, FTARGS *p)
     return p->status;
 }
 
-static int getftargs_process(CSOUND *csound, FTARGS *p)
+static int32_t getftargs_process(CSOUND *csound, FTARGS *p)
 {
    if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
      p->prv_ktrig = *p->ktrig;
@@ -62,7 +62,7 @@ static int getftargs_process(CSOUND *csound, FTARGS *p)
 }
 
 
-static int getftargs(CSOUND *csound, FTARGS *p)
+static int32_t getftargs(CSOUND *csound, FTARGS *p)
 {
     FUNC *src;
     int32 argcnt, i, strlen = 0;
@@ -70,7 +70,7 @@ static int getftargs(CSOUND *csound, FTARGS *p)
     if (UNLIKELY((src = csound->FTnp2Find(csound, p->ftable)) == NULL)) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("table: could not find ftable %d"),
-                               (int) *p->ftable);
+                               (int32_t) *p->ftable);
     }
 
     argcnt = src->argcnt;

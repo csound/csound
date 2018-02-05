@@ -33,6 +33,6 @@ typedef struct {
       alpha[CL_LIM], beta[CL_LIM], odelta2[CL_LIM],
       b0[CL_LIM], b1[CL_LIM], b2[CL_LIM],
       a0[CL_LIM], a1[CL_LIM], a2[CL_LIM], prvfreq;
-  int           ilohi, nsec, ikind;
+      int32_t          ilohi, nsec, ikind;
 } CLFILT;
 

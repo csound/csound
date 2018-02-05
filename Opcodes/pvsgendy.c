@@ -35,9 +35,9 @@ typedef struct {
 } PVSGENDY;
 
 
-static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
+static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
 {
-    int     N = p->fin->N;
+    int32_t     N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
@@ -67,9 +67,9 @@ static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
     return OK;
 }
 
-static int pvsgendy(CSOUND *csound, PVSGENDY *p)
+static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
 {
-    int     i, N = p->fin->N;
+    int32_t     i, N = p->fin->N;
     MYFLT   mrate = *p->kmrate;
     MYFLT   frate = *p->kfrate;
     float   *finf = (float *) p->fin->frame.auxp;
@@ -81,12 +81,12 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
-      int NB  = p->fout->NB;
+      int32_t NB  = p->fout->NB;
       for (n=0; n<offset; n+=2) foutf[n] = foutf[n+1] = FL(0.0);
       for (n=nsmps-early; n<nsmps; n+=2) foutf[n] = foutf[n+1] = FL(0.0);
       nsmps -= early;
       for (n=offset; n<nsmps; n++) {
-        //int change = 0;
+        //int32_t change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         for (i = 0; i < NB-1; i++) {

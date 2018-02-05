@@ -41,7 +41,7 @@
 /* Coded by Hans Mikelson October 1998                                     */
 /***************************************************************************/
 
-static int biquadset(CSOUND *csound, BIQUAD *p)
+static int32_t biquadset(CSOUND *csound, BIQUAD *p)
 {
      IGN(csound);
     /* The biquadratic filter is initialised to zero.    */
@@ -51,7 +51,7 @@ static int biquadset(CSOUND *csound, BIQUAD *p)
     return OK;
 } /* end biquadset(p) */
 
-static int biquad(CSOUND *csound, BIQUAD *p)
+static int32_t biquad(CSOUND *csound, BIQUAD *p)
 {
      IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -82,7 +82,7 @@ static int biquad(CSOUND *csound, BIQUAD *p)
 
 /* A-rate version of above -- JPff August 2001 */
 
-static int biquada(CSOUND *csound, BIQUAD *p)
+static int32_t biquada(CSOUND *csound, BIQUAD *p)
 {
      IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -120,7 +120,7 @@ static int biquada(CSOUND *csound, BIQUAD *p)
 /* translated to C by Hans Mikelson            *****************************/
 /***************************************************************************/
 
-static int moogvcfset(CSOUND *csound, MOOGVCF *p)
+static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
 {
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->y1nm1 = p->y2nm1 = p->y3nm1 = 0.0;
@@ -133,7 +133,7 @@ static int moogvcfset(CSOUND *csound, MOOGVCF *p)
     return OK;
 }
 
-static int moogvcf(CSOUND *csound, MOOGVCF *p)
+static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -219,7 +219,7 @@ static int moogvcf(CSOUND *csound, MOOGVCF *p)
 /* Coded by Hans Mikelson October 1998                         */
 /***************************************************************/
 
-static int rezzyset(CSOUND *csound, REZZY *p)
+static int32_t rezzyset(CSOUND *csound, REZZY *p)
 {
     IGN(csound);
     if (*p->iskip==FL(0.0)) {
@@ -233,7 +233,7 @@ static int rezzyset(CSOUND *csound, REZZY *p)
 
 #define NEARONE (0.99999)
 
-static int rezzy(CSOUND *csound, REZZY *p)
+static int32_t rezzy(CSOUND *csound, REZZY *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -244,7 +244,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
       csq=0.0, invb=0.0, tval=0.0; /* Temporary variables for the filter */
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
     double b1 = 0.0, b2 = 0.0;
-    int warn = p->warn;
+    int32_t warn = p->warn;
 
     in     = p->in;
     out    = p->out;
@@ -495,7 +495,7 @@ static int rezzy(CSOUND *csound, REZZY *p)
 /* Coded by Hans Mikelson November 1998                                    */
 /***************************************************************************/
 
-static int distort(CSOUND *csound, DISTORT *p)
+static int32_t distort(CSOUND *csound, DISTORT *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -551,7 +551,7 @@ static int distort(CSOUND *csound, DISTORT *p)
 
 
 
-static int vcoset(CSOUND *csound, VCO *p)
+static int32_t vcoset(CSOUND *csound, VCO *p)
 {
     /* Number of bytes in the delay */
     uint32 ndel = (uint32)(*p->maxd * CS_ESR);
@@ -603,7 +603,7 @@ static int vcoset(CSOUND *csound, VCO *p)
 
 /* This code modified from Csound's buzz, integ, & vdelay opcodes */
 
-static int vco(CSOUND *csound, VCO *p)
+static int32_t vco(CSOUND *csound, VCO *p)
 {
     FUNC  *ftp;
     MYFLT *ar, *ampp, *cpsp, *ftbl;
@@ -614,13 +614,13 @@ static int vco(CSOUND *csound, VCO *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int   knh;
+    int32_t   knh;
 
     /* VDelay Inserted here */
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT fv1, out1;
     int32  v1, v2;
-    int wave = (int)MYFLT2LONG(*p->wave); /* Save recalculation and also round */
+    int32_t32_t32_t wave = (int)MYFLT2LONG(*p->wave); /* Save recalculation and also round */
 
     leaky = p->leaky;
 
@@ -639,8 +639,8 @@ static int vco(CSOUND *csound, VCO *p)
     cpsp = p->xcps;
     fqc = *cpsp;
     //rtfqc = SQRT(fqc);
-    knh = (int)(CS_ESR*p->nyq/fqc);
-    if (UNLIKELY((n = (int)knh) <= 0)) {
+    knh = (int32_t)(CS_ESR*p->nyq/fqc);
+    if (UNLIKELY((n = (int32_t)knh) <= 0)) {
       csound->Warning(csound, "knh=%x nyq=%f fqc=%f\n"
                       "vco knh (%d) <= 0; taken as 1\n", knh, p->nyq, fqc, n);
       n = 1;
@@ -805,7 +805,7 @@ static int vco(CSOUND *csound, VCO *p)
 /* Coded by Hans Mikelson December 1998                                    */
 /***************************************************************************/
 
-static int planetset(CSOUND *csound, PLANET *p)
+static int32_t planetset(CSOUND *csound, PLANET *p)
 {
      IGN(csound);
     if (*p->iskip==FL(0.0)) {
@@ -820,7 +820,7 @@ static int planetset(CSOUND *csound, PLANET *p)
 
 /* Planet orbiting in a binary star system coded by Hans Mikelson */
 
-static int planet(CSOUND *csound, PLANET *p)
+static int32_t planet(CSOUND *csound, PLANET *p)
 {
      IGN(csound);
     MYFLT *outx, *outy, *outz;
@@ -901,19 +901,19 @@ static int planet(CSOUND *csound, PLANET *p)
 /* ************************************************** */
 
 /* Implementation of Zoelzer's Parametric Equalizer Filters */
-static int pareqset(CSOUND *csound, PAREQ *p)
+static int32_t pareqset(CSOUND *csound, PAREQ *p)
 {
      IGN(csound);
     /* The equalizer filter is initialised to zero.    */
     if (*p->iskip == FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
       p->prv_fc = p->prv_v = p->prv_q = FL(-1.0);
-      p->imode = (int) MYFLT2LONG(*p->mode);
+      p->imode = (int32_t) MYFLT2LONG(*p->mode);
     }
     return OK;
 } /* end pareqset(p) */
 
-static int pareq(CSOUND *csound, PAREQ *p)
+static int32_t pareq(CSOUND *csound, PAREQ *p)
 {
      IGN(csound);
     MYFLT xn, yn;
@@ -998,7 +998,7 @@ static int pareq(CSOUND *csound, PAREQ *p)
 /* Derived from Csound's delay opcode                  */
 /* Set up nested all-pass filter                       */
 
-static int nestedapset(CSOUND *csound, NESTEDAP *p)
+static int32_t nestedapset(CSOUND *csound, NESTEDAP *p)
 {
     int32    npts, npts1=0, npts2=0, npts3=0;
     void    *auxp;
@@ -1063,7 +1063,7 @@ static int nestedapset(CSOUND *csound, NESTEDAP *p)
     return OK;
 }
 
-static int nestedap(CSOUND *csound, NESTEDAP *p)
+static int32_t nestedap(CSOUND *csound, NESTEDAP *p)
 {
     MYFLT   *outp, *inp;
     MYFLT   *beg1p, *beg2p, *beg3p, *end1p, *end2p, *end3p;
@@ -1199,7 +1199,7 @@ static int nestedap(CSOUND *csound, NESTEDAP *p)
 /* Coded by Hans Mikelson Jauarary 1999                                    */
 /***************************************************************************/
 
-static int lorenzset(CSOUND *csound, LORENZ *p)
+static int32_t lorenzset(CSOUND *csound, LORENZ *p)
 {
    IGN(csound);
     if (*p->iskip==FL(0.0)) {
@@ -1210,7 +1210,7 @@ static int lorenzset(CSOUND *csound, LORENZ *p)
 
 /* Lorenz System coded by Hans Mikelson */
 
-static int lorenz(CSOUND *csound, LORENZ *p)
+static int32_t lorenz(CSOUND *csound, LORENZ *p)
 {
     IGN(csound);
     MYFLT   *outx, *outy, *outz;
@@ -1275,7 +1275,7 @@ static int lorenz(CSOUND *csound, LORENZ *p)
 /* but frequency is only approximate.                                     */
 /**************************************************************************/
 
-static int tbvcfset(CSOUND *csound, TBVCF *p)
+static int32_t tbvcfset(CSOUND *csound, TBVCF *p)
 {
     IGN(csound);
     if (*p->iskip==FL(0.0)) {
@@ -1286,7 +1286,7 @@ static int tbvcfset(CSOUND *csound, TBVCF *p)
     return OK;
 }
 
-static int tbvcf(CSOUND *csound, TBVCF *p)
+static int32_t tbvcf(CSOUND *csound, TBVCF *p)
 {
      IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1357,7 +1357,7 @@ static int tbvcf(CSOUND *csound, TBVCF *p)
 }
 
 /* bqrez by Matt Gerassimoff */
-static int bqrezset(CSOUND *csound, REZZY *p)
+static int32_t bqrezset(CSOUND *csound, REZZY *p)
 {
      IGN(csound);
     if (*p->iskip==FL(0.0)) {
@@ -1369,7 +1369,7 @@ static int bqrezset(CSOUND *csound, REZZY *p)
     return OK;
 } /* end rezzyset(p) */
 
-static int bqrez(CSOUND *csound, REZZY *p)
+static int32_t bqrez(CSOUND *csound, REZZY *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1379,7 +1379,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
     double sin2 = 0.0, cos2 = 0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
     double theta;
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    int mode = (int)MYFLT2LONG(*p->mode);
+    int32_t32_t32_t mode = (int)MYFLT2LONG(*p->mode);
 
     in     = p->in;
     out    = p->out;
@@ -1513,7 +1513,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
  * Steven Yi
  */
 
- static int modeset(CSOUND *csound, MODE *p)
+ static int32_t modeset(CSOUND *csound, MODE *p)
 {
     IGN(csound);
     /* Initialize filter to zero if set to reinitialize.  */
@@ -1526,7 +1526,7 @@ static int bqrez(CSOUND *csound, REZZY *p)
 }
 
 
-static int mode(CSOUND *csound, MODE *p)
+static int32_t mode(CSOUND *csound, MODE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1537,7 +1537,7 @@ static int mode(CSOUND *csound, MODE *p)
 
     double xn, yn, a0=p->a0, a1=p->a1, a2=p->a2,d=p->d;
     double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    int    asgfr = IS_ASIG_ARG(p->kfreq), asgq = IS_ASIG_ARG(p->kq);
+    int32_t    asgfr = IS_ASIG_ARG(p->kfreq), asgq = IS_ASIG_ARG(p->kq);
 
     if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1607,8 +1607,9 @@ static OENTRY localops[] = {
 { "mode",  S(MODE),   0, 5,      "a", "axxo", (SUBR)modeset, NULL, (SUBR)mode   }
 };
 
-int biquad_init_(CSOUND *csound)
+int32_t biquad_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

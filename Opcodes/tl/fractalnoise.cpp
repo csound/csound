@@ -31,9 +31,9 @@
 
 typedef struct opdata { OPDS h; } OPDATA;
 
-inline int lsr (int x, int n)
+inline int32_t lsr (int32_t x, int32_t n)
 {
-    return int(((uint32_t)x) >> n);
+    return int32_t(((uint32_t)x) >> n);
 }
 
 /* VECTOR INTRINSICS */
@@ -81,7 +81,7 @@ public:
 class csUI : public UserInterface {
 private:
   MYFLT *args[2];
-  int ctrlCount;
+  int32_t ctrlCount;
 
   void addZone(MYFLT *zone) { args[ctrlCount++] = zone; }
 
@@ -152,15 +152,15 @@ public:
 /* abstract definition of a signal processor */
 class dsp {
 protected:
-  int fSamplingFreq;
+  int32_t fSamplingFreq;
 
 public:
   dsp() { fSamplingFreq = -1; }
   virtual ~dsp() {}
-  virtual int getNumInputs() = 0;
-  virtual int getNumOutputs() = 0;
+  virtual int32_t getNumInputs() = 0;
+  virtual int32_t getNumOutputs() = 0;
   virtual void buildUserInterface(UserInterface *userInterface) = 0;
-  virtual void init(int samplingRate) = 0;
+  virtual void init(int32_t samplingRate) = 0;
   virtual void compute(CSOUND *csound, MYFLT *output, void *p) = 0;
 };
 
@@ -168,10 +168,10 @@ public:
 
 class mydsp : public dsp {
 private:
-  int iConst0;
+  int32_t iConst0;
   MYFLT fConst1;
   MYFLT fConst2;
-  int iRec8[2];
+  int32_t iRec8[2];
   MYFLT fConst3;
   MYFLT fConst4;
   MYFLT fConst5;
@@ -244,15 +244,15 @@ public:
     m->declare("math.lib/license", "LGPL");
   }
 
-  virtual int getNumInputs() { return 0; }
-  virtual int getNumOutputs() { return 1; }
-  static void classInit(int sr) { IGN(sr); }
-  virtual void instanceInit(int samplingFreq) {
+  virtual int32_t getNumInputs() { return 0; }
+  virtual int32_t getNumOutputs() { return 1; }
+  static void classInit(int32_t sr) { IGN(sr); }
+  virtual void instanceInit(int32_t samplingFreq) {
     fSamplingFreq = samplingFreq;
     iConst0 = min(192000, max(1, fSamplingFreq));
     fConst1 = FL(67683.56194843161) / iConst0;
     fConst2 = (-EXP(-fConst1));
-    for (int i = 0; i < 2; i++)
+    for (int32_t i = 0; i < 2; i++)
       iRec8[i] = 0;
     fConst3 = FL(314.1592653589793) / iConst0;
     fConst4 = EXP(-fConst3);
@@ -260,7 +260,7 @@ public:
     fConst6 = EXP(-fConst5);
     fConst7 = -fConst6 - fConst4;
     fConst8 = -fConst6 * -fConst4;
-    for (int i = 0; i < 3; i++)
+    for (int32_t i = 0; i < 3; i++)
       fRec7[i] = 0;
     fslider0 = FL(1.75);
     fConst9 = FL(676.8356194843168) / iConst0;
@@ -269,7 +269,7 @@ public:
     fConst12 = EXP(-fConst11);
     fConst13 = -fConst12 - fConst10;
     fConst14 = -fConst12 * -fConst10;
-    for (int i = 0; i < 3; i++)
+    for (int32_t i = 0; i < 3; i++)
       fRec6[i] = 0;
     fConst15 = FL(1458.1981380662319) / iConst0;
     fConst16 = EXP(-fConst15);
@@ -277,7 +277,7 @@ public:
     fConst18 = EXP(-fConst17);
     fConst19 = -fConst18 - fConst16;
     fConst20 = -fConst18 * -fConst16;
-    for (int i = 0; i < 3; i++)
+    for (int32_t i = 0; i < 3; i++)
       fRec5[i] = 0;
     fConst21 = FL(3141.5926535897916) / iConst0;
     fConst22 = EXP(-fConst21);
@@ -285,7 +285,7 @@ public:
     fConst24 = EXP(-fConst23);
     fConst25 = -fConst24 - fConst22;
     fConst26 = -fConst24 * -fConst22;
-    for (int i = 0; i < 3; i++)
+    for (int32_t i = 0; i < 3; i++)
       fRec4[i] = 0;
     fConst27 = FL(6768.356194843165) / iConst0;
     fConst28 = EXP(-fConst27);
@@ -293,7 +293,7 @@ public:
     fConst30 = EXP(-fConst29);
     fConst31 = -fConst30 - fConst28;
     fConst32 = -fConst30 * -fConst28;
-    for (int i = 0; i < 3; i++)
+    for (int32_t i = 0; i < 3; i++)
       fRec3[i] = 0;
     fConst33 = FL(14581.981380662311) / iConst0;
     fConst34 = EXP(-fConst33);
@@ -301,7 +301,7 @@ public:
     fConst36 = EXP(-fConst35);
     fConst37 = -fConst36 - fConst34;
     fConst38 = -fConst36 * -fConst34;
-    for (int i = 0; i < 3; i++)
+    for (int32_t i = 0; i < 3; i++)
       fRec2[i] = 0;
     fConst39 = FL(31415.926535897903) / iConst0;
     fConst40 = EXP(-fConst39);
@@ -309,13 +309,13 @@ public:
     fConst42 = EXP(-fConst41);
     fConst43 = -fConst42 - fConst40;
     fConst44 = -fConst42 * -fConst40;
-    for (int i = 0; i < 3; i++)
+    for (int32_t i = 0; i < 3; i++)
       fRec1[i] = 0;
-    for (int i = 0; i < 2; i++)
+    for (int32_t i = 0; i < 2; i++)
       fRec0[i] = 0;
     fslider1 = FL(1.0);
   }
-  virtual void init(int samplingFreq) {
+  virtual void init(int32_t samplingFreq) {
     classInit(samplingFreq);
     instanceInit(samplingFreq);
   }
@@ -328,7 +328,7 @@ public:
     userInterface->closeBox();
   }
   virtual void compute(CSOUND *csound, MYFLT *output, void *p) {
-    int nn = ((OPDATA *)p)->h.insdshead->ksmps;
+    int32_t nn = ((OPDATA *)p)->h.insdshead->ksmps;
     uint32_t offset = ((OPDATA *)p)->h.insdshead->ksmps_offset;
     uint32_t early = ((OPDATA *)p)->h.insdshead->ksmps_no_end;
     MYFLT fSlow0 = POWER(FL(10.0), (FL(0.08333333333333333) * fslider0));
@@ -369,7 +369,7 @@ public:
       nn -= early;
       memset(&output0[nn], '\0', early * sizeof(MYFLT));
     }
-    for (int i = offset; i < nn; i++) {
+    for (int32_t i = offset; i < nn; i++) {
       iRec8[0] = (csound->GetRandSeed(csound, 1) + (1103515245 * iRec8[1]));
       fRec7[0] =
           -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + (iRec8[0] * dv2_31);
@@ -425,7 +425,7 @@ typedef struct {
 } FRACTALNOISE;
 
 extern "C" {
-int fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p) {
+int32_t fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p) {
   IGN(csound);
   delete p->faust;
   delete p->cs_interface;
@@ -434,17 +434,17 @@ int fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p) {
   return OK;
 }
 
-int fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
+int32_t fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
   p->faust = new mydsp;
   p->cs_interface = new csUI;
-  p->faust->init((int)csound->GetSr(csound));
+  p->faust->init((int32_t)csound->GetSr(csound));
   p->faust->buildUserInterface(p->cs_interface);
   csound->RegisterDeinitCallback(
-      csound, p, (int (*)(CSOUND *, void *))fractalnoise_cleanup);
+      csound, p, (int32_t (*)(CSOUND *, void *))fractalnoise_cleanup);
   return OK;
 }
 
-int fractalnoise_process(CSOUND *csound, FRACTALNOISE *p) {
+int32_t fractalnoise_process(CSOUND *csound, FRACTALNOISE *p) {
   p->cs_interface->updateCtrlZones(p->kamp, p->kbeta);
   p->faust->compute(csound, p->out, p);
   return OK;
@@ -456,29 +456,29 @@ static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 5,
                             {0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
 #ifndef INIT_STATIC_MODULES
-PUBLIC int csoundModuleCreate(CSOUND *csound) {
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return OK;
 }
 #endif
-PUBLIC int csoundModuleInit_fractalnoise(CSOUND *csound) {
-  int status = 0;
+PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
+  int32_t status = 0;
   for (OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
     status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
                                    oentry->flags, oentry->thread,
                                    oentry->outypes, oentry->intypes,
-                                   (int (*)(CSOUND *, void *))oentry->iopadr,
-                                   (int (*)(CSOUND *, void *))oentry->kopadr,
-                                   (int (*)(CSOUND *, void *))oentry->aopadr);
+                                   (int32_t (*)(CSOUND *, void *))oentry->iopadr,
+                                   (int32_t (*)(CSOUND *, void *))oentry->kopadr,
+                                   (int32_t (*)(CSOUND *, void *))oentry->aopadr);
   }
   return status;
 }
 #ifndef INIT_STATIC_MODULES
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return csoundModuleInit_fractalnoise(csound);
 }
 
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
   IGN(csound);
   return OK;
 }

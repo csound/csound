@@ -22,7 +22,7 @@
 */
 
 typedef struct {
-  int    cnt, wsize, flag; /* , section; */
+  int32_t    cnt, wsize, flag; /* , section; */
         MYFLT  ampincr, ampphs, offset;
 } WARPSECTION;
 
@@ -32,7 +32,7 @@ typedef struct {
             *iwsize, *irandw, *ioverlap, *ifn, *itimemode;
     FUNC    *ftpWind, *ftpSamp;
     int32   maxFr, prFlg, flen, sampflen, nsections;
-    int     chans, *frPtr, begin;
+    int32_t     chans, *frPtr, begin;
     WARPSECTION *exp;
     AUXCH   auxch;
     int16   ampcode, timewarpcode, resamplecode;
@@ -44,7 +44,7 @@ typedef struct {
             *ibegin, *iwsize, *irandw, *ioverlap, *ifn, *itimemode;
     FUNC    *ftpWind,  *ftpSamp;
     int32   maxFr, prFlg, flen, sampflen, nsections;
-    int     chans, *frPtr, begin;
+    int32_t     chans, *frPtr, begin;
     WARPSECTION *exp;
     AUXCH   auxch;
     int16   ampcode, timewarpcode, resamplecode;

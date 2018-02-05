@@ -27,7 +27,7 @@ typedef struct {
     OPDS   h;
     MYFLT  *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
     int32  ndx;
-    int    done, first_flag;
+    int32_t    done, first_flag;
     double start, newtime;
     int32  pfn;
     MYFLT  *table, curr_unit_time;
@@ -37,14 +37,14 @@ typedef struct {
     OPDS   h;
     MYFLT  *ktrig, *ktrigin, *unit_time, *kstart, *kloop, *kinitndx, *kfn;
     int32  ndx;
-    int    done, first_flag;
+    int32_t    done, first_flag;
     double start, newtime;
     int32  pfn;
     MYFLT  *table, curr_unit_time;
 } SEQTIM2;
 
 
-static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
+static int32_t seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
 {
     FUNC *ftp;
     int32 start, loop;
@@ -81,7 +81,7 @@ static int seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
     return OK;
 }
 
-static int seqtim(CSOUND *csound, SEQTIM *p)
+static int32_t seqtim(CSOUND *csound, SEQTIM *p)
 {
     if (p->done)
       *p->ktrig=FL(0.0);
@@ -149,7 +149,7 @@ static int seqtim(CSOUND *csound, SEQTIM *p)
 
 /**---------------------------------------**/
 
-static int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
+static int32_t seqtim2_set(CSOUND *csound, SEQTIM2 *p)
 {
     FUNC *ftp;
     int32 start, loop;
@@ -183,7 +183,7 @@ static int seqtim2_set(CSOUND *csound, SEQTIM2 *p)
     return OK;
 }
 
-static int seqtim2(CSOUND *csound, SEQTIM2 *p)
+static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
 {
     if (*p->ktrigin) {
       p->ndx = (int32) *p->kinitndx;
@@ -260,9 +260,10 @@ static OENTRY localops[] = {
 { "seqtime2", S(SEQTIM2),TR, 3, "k",    "kkkkkk", (SUBR)seqtim2_set, (SUBR)seqtim2}
 };
 
-int seqtime_init_(CSOUND *csound)
+int32_t seqtime_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

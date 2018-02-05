@@ -43,7 +43,7 @@ typedef struct {
   MYFLT   *kout, *kx, *kx0, *kx1, *ky0, *ky1;
 } LINLINK;
 
-static int linlink(CSOUND *csound, LINLINK *p) {
+static int32_t linlink(CSOUND *csound, LINLINK *p) {
     MYFLT x0 = *p->kx0;
     MYFLT y0 = *p->ky0;
     MYFLT x = *p->kx;
@@ -81,14 +81,14 @@ typedef struct {
   MYFLT   d0, d1;
 } XYSCALE;
 
-static int xyscalei_init(CSOUND *csound, XYSCALE *p) {
+static int32_t xyscalei_init(CSOUND *csound, XYSCALE *p) {
      IGN(csound);
     p->d0 = (*p->v01) - (*p->v00);
     p->d1 = (*p->v11) - (*p->v10);
     return OK;
 }
 
-static int xyscalei(CSOUND *csound, XYSCALE *p) {
+static int32_t xyscalei(CSOUND *csound, XYSCALE *p) {
      IGN(csound);
     // x, y: between 0-1
     MYFLT x = *p->kx;
@@ -98,7 +98,7 @@ static int xyscalei(CSOUND *csound, XYSCALE *p) {
     return OK;
 }
 
-static int xyscale(CSOUND *csound, XYSCALE *p) {
+static int32_t xyscale(CSOUND *csound, XYSCALE *p) {
      IGN(csound);
     // x, y: between 0-1
     // x, y will interpolate between the values at the 4 corners
@@ -125,31 +125,31 @@ typedef struct {
   MYFLT freqA4;
 } PITCHCONV;
 
-static int mtof(CSOUND *csound, PITCHCONV *p) {
+static int32_t mtof(CSOUND *csound, PITCHCONV *p) {
      IGN(csound);
     *p->r = POWER(FL(2.0), (*p->k - FL(69.0)) / FL(12.0)) * p->freqA4;
     return OK;
 }
 
-static int mtof_init(CSOUND *csound, PITCHCONV *p) {
+static int32_t mtof_init(CSOUND *csound, PITCHCONV *p) {
     p->freqA4 = csound->GetA4(csound);
     mtof(csound, p);
     return OK;
 }
 
-static int ftom(CSOUND *csound, PITCHCONV *p) {
+static int32_t ftom(CSOUND *csound, PITCHCONV *p) {
      IGN(csound);
     *p->r = FL(12.0) * LOG2(*p->k / p->freqA4) + FL(69.0);
     return OK;
 }
 
-static int ftom_init(CSOUND *csound, PITCHCONV *p) {
+static int32_t ftom_init(CSOUND *csound, PITCHCONV *p) {
     p->freqA4 = csound->GetA4(csound);
     ftom(csound, p);
     return OK;
 }
 
-static int pchtom(CSOUND *csound, PITCHCONV *p) {
+static int32_t pchtom(CSOUND *csound, PITCHCONV *p) {
      IGN(csound);
     MYFLT pch = *p->k;
     MYFLT oct = FLOOR(pch);
@@ -200,7 +200,7 @@ typedef struct {
 } BPF3;
 
 
-static int bpf3(CSOUND *csound, BPF3 *p) {
+static int32_t bpf3(CSOUND *csound, BPF3 *p) {
     IGN(csound);
     MYFLT x = *p->x;
     MYFLT n, m;
@@ -221,7 +221,7 @@ typedef struct {
 } BPF4;
 
 
-static int bpf4(CSOUND *csound, BPF4 *p) {
+static int32_t bpf4(CSOUND *csound, BPF4 *p) {
     IGN(csound);
     MYFLT x = *p->x;
     MYFLT m, n;
@@ -243,7 +243,7 @@ typedef struct {
   MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3, *x4, *y4;
 } BPF5;
 
-static int bpf5(CSOUND *csound, BPF5 *p) {
+static int32_t bpf5(CSOUND *csound, BPF5 *p) {
      IGN(csound);
     MYFLT x = *p->x;
     if(x < (*p->x2)) {
@@ -279,9 +279,9 @@ typedef struct {
   STRINGDAT *notename;
 } NTOM;
 
-int _pcs[] = {9, 11, 0, 2, 4, 5, 7};
+int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
-static int ntom(CSOUND *csound, NTOM *p) {
+static int32_t ntom(CSOUND *csound, NTOM *p) {
     /*
       formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
       - no lowercase
@@ -289,17 +289,17 @@ static int ntom(CSOUND *csound, NTOM *p) {
       - no negative octaves, no octaves higher than 9
     */
     char *n = (char *) p->notename->data;
-    int octave = n[0] - '0';
-    int pcidx = n[1] - 'A';
+    int32_t octave = n[0] - '0';
+    int32_t pcidx = n[1] - 'A';
     if (pcidx < 0 || pcidx >= 7) {
       csound->Message(csound,
                       Str("expecting a char between A and G, but got %c\n"),
                       n[1]);
       return NOTOK;
     }
-    int pc = _pcs[pcidx];
-    int cents = 0;
-    int cursor;
+    int32_t pc = _pcs[pcidx];
+    int32_t cents = 0;
+    int32_t cursor;
     if(n[2] == '#') {
       pc += 1;
       cursor = 3;
@@ -309,9 +309,9 @@ static int ntom(CSOUND *csound, NTOM *p) {
     } else {
       cursor = 2;
     }
-    int rest = p->notename->size - 1 - cursor;
+    int32_t rest = p->notename->size - 1 - cursor;
     if(rest > 0) {
-      int sign = n[cursor] == '+' ? 1 : -1;
+      int32_t sign = n[cursor] == '+' ? 1 : -1;
       if(rest == 1) {
         cents = 50;
       } else if(rest == 2) {
@@ -335,23 +335,23 @@ typedef struct {
 } MTON;
 
 //               C  C# D D#  E  F  F# G G# A Bb B
-int _pc2idx[] = {2, 2, 3, 3, 4, 5, 5, 6, 6, 0, 1, 1};
-int _pc2alt[] = {0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2, 0};
+int32_t _pc2idx[] = {2, 2, 3, 3, 4, 5, 5, 6, 6, 0, 1, 1};
+int32_t _pc2alt[] = {0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2, 0};
 char _alts[] = " #b";
 
-static int mton(CSOUND *csound, MTON *p) {
+static int32_t mton(CSOUND *csound, MTON *p) {
     char *dst;
     MYFLT m = *p->kmidi;
-    int maxsize = 7;  // 4C#+99\0
+    int32_t maxsize = 7;  // 4C#+99\0
     if (p->Sdst->data == NULL) {
       p->Sdst->data = csound->Calloc(csound, maxsize);
       p->Sdst->size = maxsize;
     }
     dst = (char*) p->Sdst->data;
-    int octave = m / 12 - 1;
-    int pc = (int)m % 12;
-    int cents = round((m - floor(m))*100.0);
-    int sign, cursor, i;
+    int32_t octave = m / 12 - 1;
+    int32_t pc = (int32_t)m % 12;
+    int32_t cents = round((m - floor(m))*100.0);
+    int32_t sign, cursor, i;
 
     if(cents == 0) {
       sign = 0;
@@ -376,7 +376,7 @@ static int mton(CSOUND *csound, MTON *p) {
     }
     dst[cursor] = 'A' + _pc2idx[pc];
     cursor += 1;
-    int alt = _pc2alt[pc];
+    int32_t alt = _pc2alt[pc];
     if(alt > 0) {
       dst[cursor++] = _alts[alt];
     }
@@ -385,7 +385,7 @@ static int mton(CSOUND *csound, MTON *p) {
       if(cents < 10) {
         dst[cursor++] = '0'+cents;
       } else if(cents != 50) {
-        dst[cursor++] = '0' + (int)(cents / 10);
+        dst[cursor++] = '0' + (int32_t)(cents / 10);
         dst[cursor++] = '0' + (cents % 10);
       }
     } else if(sign == -1) {
@@ -393,7 +393,7 @@ static int mton(CSOUND *csound, MTON *p) {
       if(cents < 10) {
         dst[cursor++] = '0'+cents;
       } else if(cents != 50) {
-        dst[cursor++] = '0' + (int)(cents / 10);
+        dst[cursor++] = '0' + (int32_t)(cents / 10);
         dst[cursor++] = '0' + (cents % 10);
       }
     }
@@ -419,12 +419,12 @@ typedef struct {
   MYFLT *out, *a0;
   STRINGDAT *op;
   MYFLT *a1;
-  int mode;
+  int32_t mode;
 } Cmp;
 
-static int cmp_init(CSOUND *csound, Cmp *p) {
+static int32_t cmp_init(CSOUND *csound, Cmp *p) {
     char *op = (char *) p->op->data;
-    int opsize = p->op->size - 1;
+    int32_t opsize = p->op->size - 1;
 
     if (op[0] == '>') {
       p->mode = (opsize == 1) ? 0 : 1;
@@ -440,7 +440,7 @@ static int cmp_init(CSOUND *csound, Cmp *p) {
     return OK;
 }
 
-static int cmp_aa(CSOUND *csound, Cmp* p) {
+static int32_t cmp_aa(CSOUND *csound, Cmp* p) {
      IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -483,7 +483,7 @@ static int cmp_aa(CSOUND *csound, Cmp* p) {
     return OK;
 }
 
-static int cmp_ak(CSOUND *csound, Cmp* p) {
+static int32_t cmp_ak(CSOUND *csound, Cmp* p) {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

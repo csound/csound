@@ -34,28 +34,29 @@ typedef struct {
     MYFLT *asig;
     MYFLT *pan;                  /* pan position */
     MYFLT *itype;                /* type of panning */
-    int   type;
+    int32_t   type;
 } PAN2;
 #define SQRT2 FL(1.41421356237309504880)
 
-static int pan2set(CSOUND *csound, PAN2 *p)
+static int32_t pan2set(CSOUND *csound, PAN2 *p)
 {
-    int type = p->type = MYFLT2LRND(*p->itype);
+    int32_t type = p->type = MYFLT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 3))
       return csound->InitError(csound, Str("Unknown panning type"));
     return OK;
 }
 
-static int pan2run(CSOUND *csound, PAN2 *p)
+static int32_t pan2run(CSOUND *csound, PAN2 *p)
 {
     IGN(csound);
-    int type = p->type;
+    int32_t type = p->type;
     MYFLT *ain = p->asig;
     MYFLT *al = p->aleft, *ar = p->aright;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      asgp = IS_ASIG_ARG(p->pan);
+    int32_t
+      asgp = IS_ASIG_ARG(p->pan);
 
     if (UNLIKELY(offset)) {
       memset(ar, '\0', offset*sizeof(MYFLT));

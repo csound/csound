@@ -55,7 +55,7 @@ typedef struct _gainslider {
 
 /*  scale opcode  */
 
-static int scale_process(CSOUND *csound, scale *p)
+static int32_t scale_process(CSOUND *csound, scale *p)
 {
     IGN(csound);
     if (*p->kmin != *p->kmax) {
@@ -67,7 +67,7 @@ static int scale_process(CSOUND *csound, scale *p)
 
 /*  expcurve opcode  */
 
-static int expcurve_perf(CSOUND *csound, expcurve *p)
+static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
 {
     IGN(csound);
     MYFLT ki = *p->kin;
@@ -79,7 +79,7 @@ static int expcurve_perf(CSOUND *csound, expcurve *p)
 
 /*  logcurve opcode  */
 
-static int logcurve_perf(CSOUND *csound, logcurve *p)
+static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
 {
     IGN(csound);
     MYFLT ki = *p->kin;
@@ -91,7 +91,8 @@ static int logcurve_perf(CSOUND *csound, logcurve *p)
 
 /*  gainslider opcode  */
 
-static int gainslider_perf(CSOUND *csound, gainslider *p)
+static int32_t
+gainslider_perf(CSOUND *csound, gainslider *p)
 {
     IGN(csound);
     if (*p->kindex <= FL(0.0)) {

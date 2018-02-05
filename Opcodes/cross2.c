@@ -60,7 +60,7 @@ static void getmag(MYFLT *x, int32 size)
     } while (--n);
 
     if (LIKELY(max!=FL(0.0))) {
-      int NN = size/2 + 1;
+      int32_t NN = size/2 + 1;
       for (n=0; n<NN; n++) {
         x[n] /= max;
       }
@@ -306,7 +306,7 @@ static void pfht(MYFLT *fz, int32 n)
     } while (k4 < n);
 }
 
-static int Xsynthset(CSOUND *csound, CON *p)
+static int32_t Xsynthset(CSOUND *csound, CON *p)
 {
     uint32_t    flen, bufsize;
     MYFLT       *b;
@@ -321,7 +321,7 @@ static int Xsynthset(CSOUND *csound, CON *p)
 
     if (ovlp < FL(2.0)) ovlp = FL(2.0);
     else if (ovlp > (MYFLT)(flen+flen)) ovlp = (MYFLT)(flen+flen);
-    ovlp = (MYFLT)(1 << (int)plog2((int32)ovlp));
+    ovlp = (MYFLT)(1 << (int32_t)plog2((int32)ovlp));
 
     bufsize = 10 * flen * sizeof(MYFLT);
 
@@ -346,7 +346,7 @@ static int Xsynthset(CSOUND *csound, CON *p)
     return OK;
 }
 
-static int Xsynth(CSOUND *csound, CON *p)
+static int32_t Xsynth(CSOUND *csound, CON *p)
 {
      IGN(csound);
     MYFLT               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
@@ -409,7 +409,7 @@ static int Xsynth(CSOUND *csound, CON *p)
         /* } */
 
         if (*p->bias != FL(0.0)) {
-          int nsize = (int)(size+size);
+          int32_t32_t32_t nsize = (int)(size+size);
 
           do_fht( x, nsize);
           do_fht( y, nsize);
@@ -444,9 +444,10 @@ static OENTRY localops[] = {
 { "cross2",  S(CON), TR, 5, "a", "aaiiik",(SUBR)Xsynthset, NULL, (SUBR)Xsynth}
 };
 
-int cross2_init_(CSOUND *csound)
+int32_t cross2_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

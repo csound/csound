@@ -44,11 +44,12 @@ typedef struct Marimba {
     MYFLT       *doubles, *triples;
 /* Modal4 */
     Modal4      m4;
-    int         multiStrike;
+    int32_t         multiStrike;
     MYFLT       strikePosition;
     MYFLT       stickHardness;
-    int         first;
-    int         kloop;
+    int32_t         first;
+    int32_t
+    kloop;
 } MARIMBA;
 
 #endif

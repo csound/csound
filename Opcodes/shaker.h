@@ -44,16 +44,17 @@ typedef struct Shaker {
 
     BiQuad      filter;
     ADSR        envelope;
-    int         num_beans;
-    int         wait_time;
-    int         shake_num;
+    int32_t         num_beans;
+    int32_t         wait_time;
+    int32_t         shake_num;
     MYFLT       shake_speed;    /* A + amp*N -- hides two parameters */
     MYFLT       res_freq;
     MYFLT       coll_damp;
     MYFLT       shakeEnergy;
     MYFLT       noiseGain;
     MYFLT       gain_norm;
-    int         kloop;
+    int32_t
+    kloop;
     MYFLT       freq;
 } SHAKER;
 

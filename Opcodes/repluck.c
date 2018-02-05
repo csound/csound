@@ -31,39 +31,39 @@
 #include "stdopcod.h"
 #include "repluck.h"
 
-static int wgpsetin(CSOUND *, WGPLUCK2 *);
+static int32_t wgpsetin(CSOUND *, WGPLUCK2 *);
 
-static int wgpset(CSOUND *csound, WGPLUCK2 *p)
+static int32_t wgpset(CSOUND *csound, WGPLUCK2 *p)
 {
     p->ain = NULL;
     wgpsetin(csound,p);
     return OK;
 }
 
-static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
+static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
 {
-    int     npts;
-    int     pickpt;
-    int     rail_len;
+    int32_t     npts;
+    int32_t     pickpt;
+    int32_t     rail_len;
     MYFLT   upslope;
     MYFLT   downslope;
     MYFLT   *initial_shape;
-    int     i;
-    int     scale = 1;
+    int32_t     i;
+    int32_t     scale = 1;
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
     MYFLT   plk = *p->plk;
                                 /* Initialize variables....*/
-    npts = (int)(CS_ESR / *p->icps);/* Length of full delay */
+    npts = (int32_t)(CS_ESR / *p->icps);/* Length of full delay */
     while (npts < 512) {        /* Minimum rail length is 256 */
-      npts += (int)(CS_ESR / *p->icps);
+      npts += (int32_t)(CS_ESR / *p->icps);
       scale++;
     }
     rail_len = npts/2/* + 1*/;      /* but only need half length */
     if (UNLIKELY(plk >= FL(1.0) || plk <= FL(0.0))) {
       plk = (p->ain ? FL(0.0) : FL(0.5));
     }
-    pickpt = (int)(rail_len * plk);
+    pickpt = (int32_t)(rail_len * plk);
 
                                 /* Create upper rail */
     if (p->upper.auxp == NULL) {/* get newspace    */
@@ -121,7 +121,7 @@ static int wgpsetin(CSOUND *csound, WGPLUCK2 *p)
 } /* end wgpset(p) */
 
                                 /* Access a delay line with wrapping */
-static MYFLT* locate(DelayLine *dl, int position)
+static MYFLT* locate(DelayLine *dl, int32_t position)
 {
     MYFLT *outloc = dl->pointer + position;
     while (outloc < dl->data)
@@ -131,7 +131,7 @@ static MYFLT* locate(DelayLine *dl, int position)
     return outloc;
 }
 
-static MYFLT getvalue(DelayLine *dl, int position)
+static MYFLT getvalue(DelayLine *dl, int32_t position)
 {
     MYFLT *outloc = dl->pointer + position;
     while (outloc < dl->data)
@@ -145,7 +145,7 @@ static MYFLT getvalue(DelayLine *dl, int position)
 #define OVERSHT (8)
 #define OVERMSK (0xFF)
 
-static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
+static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
 {
     MYFLT   *ar, *ain;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -154,9 +154,9 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
     MYFLT   yp0,ym0,ypM,ymM;
     DelayLine   *upper_rail;
     DelayLine   *lower_rail;
-    int     pickup, pickfrac;
-    int     i;
-    int     scale;
+    int32_t     pickup, pickfrac;
+    int32_t     i;
+    int32_t     scale;
     MYFLT   state = p->state;
     MYFLT   reflect = *p->reflect;
 
@@ -171,7 +171,7 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
     upper_rail = (DelayLine*)p->upper.auxp;
     lower_rail = (DelayLine*)p->lower.auxp;
     /* fractional delays */
-    pickup     = (int)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len);
+    pickup     = (int32_t)((MYFLT)OVERCNT * *(p->pickup) * p->rail_len);
     pickfrac   = pickup & OVERMSK;
     pickup     = pickup>>OVERSHT;
     if (UNLIKELY(pickup<0 || pickup > p->rail_len)) {
@@ -240,9 +240,9 @@ static int wgpluck(CSOUND *csound, WGPLUCK2 *p)
 /*          Victor Lazzarini, 1998                     */
 /*******************************************************/
 
-static int stresonset(CSOUND *csound, STRES *p)
+static int32_t stresonset(CSOUND *csound, STRES *p)
 {
-    p->size = (int) (CS_ESR/20);   /* size of delay line */
+    p->size = (int32_t) (CS_ESR/20);   /* size of delay line */
     csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->aux);
     p->Cdelay = (MYFLT*) p->aux.auxp; /* delay line */
     p->LPdelay = p->APdelay = FL(0.0); /* reset the All-pass and Low-pass delays */
@@ -251,27 +251,27 @@ static int stresonset(CSOUND *csound, STRES *p)
     return OK;
 }
 
-static int streson(CSOUND *csound, STRES *p)
+static int32_t streson(CSOUND *csound, STRES *p)
 {
     MYFLT *out = p->result;
     MYFLT *in = p->ainput;
     MYFLT g = *p->ifdbgain;
     MYFLT freq;
     double a, s, w, sample, tdelay, fracdelay;
-    int delay;
+    int32_t delay;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int rp = p->rpointer, wp = p->wpointer;
-    int size = p->size;
+    int32_t rp = p->rpointer, wp = p->wpointer;
+    int32_t size = p->size;
     MYFLT       APdelay = p->APdelay;
     MYFLT       LPdelay = p->LPdelay;
-    int         vdt;
+    int32_t         vdt;
 
     freq = *p->afr;
     if (UNLIKELY(freq < FL(20.0))) freq = FL(20.0);   /* lowest freq is 20 Hz */
     tdelay = CS_ESR/freq;
-    delay = (int) (tdelay - 0.5); /* comb delay */
+    delay = (int32_t) (tdelay - 0.5); /* comb delay */
     fracdelay = tdelay - (delay + 0.5); /* fractional delay */
     vdt = size - delay;       /* set the var delay */
     a = (1.0-fracdelay)/(1.0+fracdelay);   /* set the all-pass gain */
@@ -308,9 +308,10 @@ static OENTRY localops[] = {
 { "streson", S(STRES),    0, 5, "a",  "akk",  (SUBR)stresonset, NULL, (SUBR)streson}
 };
 
-int repluck_init_(CSOUND *csound)
+int32_t repluck_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

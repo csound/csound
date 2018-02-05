@@ -38,7 +38,7 @@ typedef struct DSSI4CS_PLUGIN_ {
     LADSPA_Data ** control;
     LADSPA_Data ** audio;
     snd_seq_event_t *Events;
-    unsigned long EventCount;
+    uint64_t EventCount;
     int PluginNumber;
     int * PluginCount;
     void * NextPlugin;
@@ -76,8 +76,8 @@ typedef struct DSSIAUDIO_ {
 /*  MYFLT *ain4; */
     int NumInputPorts;
     int NumOutputPorts;
-    unsigned long * InputPorts;
-    unsigned long * OutputPorts;
+    uint64_t * InputPorts;
+    uint64_t * OutputPorts;
     DSSI4CS_PLUGIN * DSSIPlugin_;
     /* State. */
     /* size_t framesPerBlock; */
@@ -91,7 +91,7 @@ typedef struct DSSICTLS_ {
     MYFLT *val;
     MYFLT *ktrig;
     /* float *Data; */
-    unsigned long PortNumber;
+    uint64_t PortNumber;
     int HintSampleRate;
     DSSI4CS_PLUGIN * DSSIPlugin_;
 } DSSICTLS;
@@ -103,8 +103,8 @@ typedef struct DSSISYNTH_ {
     MYFLT *iDSSIhandle;
     int NumInputPorts;
     int NumOutputPorts;
-    unsigned long * InputPorts;
-    unsigned long * OutputPorts;
+    uint64_t * InputPorts;
+    uint64_t * OutputPorts;
     DSSI4CS_PLUGIN * DSSIPlugin_;
 } DSSISYNTH;
 

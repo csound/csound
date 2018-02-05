@@ -71,14 +71,14 @@ typedef struct {
         OPDS h;
         MYFLT *out, *in, *kcf, *kbw, *iscl, *istor;
         double xnm1, xnm2, ynm1, ynm2;
-        int scaletype, aratemod;
+        int32_t scaletype, aratemod;
 } RESONZ;
 
 /* Structure for cascade of 2nd order allpass filters */
 typedef struct {
         OPDS h;
         MYFLT *out, *in, *kbf, *kbw, *order, *mode, *ksep, *fbgain;
-        int loop, modetype;
+        int32_t loop, modetype;
         MYFLT *nm1, *nm2, feedback;
         AUXCH aux1, aux2;
 } PHASER2;
@@ -87,7 +87,8 @@ typedef struct {
 typedef struct {
         OPDS h;
         MYFLT *out, *in, *kcoef, *iorder, *fbgain, *istor;
-        int loop;
+        int32_t
+        loop;
         MYFLT *xnm1, *ynm1, feedback;
         AUXCH auxx, auxy;
 } PHASER1;

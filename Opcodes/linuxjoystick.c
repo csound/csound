@@ -38,13 +38,13 @@
 #include "linuxjoystick.h"
 #include <sys/errno.h>
 
-static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
+static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 {
-    static int read_pos = 0;
+    static int32_t read_pos = 0;
     struct js_event js;
-    int read_size;
-    int getmore;
-    int evtidx;
+    int32_t read_size;
+    int32_t getmore;
+    int32_t evtidx;
     long long evtmask = 0;
     char device[256];
 
@@ -67,7 +67,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         (stick->timeout)--;
         return OK;
       }
-      stick->dev = (int)MYFLT2LRND(*stick->kdev);
+      stick->dev = (int32_t)MYFLT2LRND(*stick->kdev);
       snprintf(device, 256, "/dev/js%i", stick->dev);
       if ((stick->devFD = open(device, O_RDONLY, O_NONBLOCK)) < 0) {
         snprintf(device, 256, "/dev/input/js%i", stick->dev);
@@ -81,7 +81,8 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
           csound->Warning
             (csound,
              Str("linuxjoystick: table %d of size %d too small for data size %d"),
-             (int)stick->table, stick->ftp->flen, 2+stick->numk+stick->numb);
+             (int32_t
+              )stick->table, stick->ftp->flen, 2+stick->numk+stick->numb);
           return OK;
         }
         stick->ftp->ftable[ 0 ] = (MYFLT) stick->numk;

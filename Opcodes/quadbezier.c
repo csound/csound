@@ -25,7 +25,7 @@
 #include <math.h>
 
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
-static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int x);
+static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);
 
 /*
    This Gen routine fills a table with the values produced by applying the
@@ -52,9 +52,9 @@ static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int x);
 
 */
 
-static int quadbeziertable (FGDATA *ff, FUNC *ftp)
+static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
 {
-    int nvals, nargs, n;
+    int32_t nvals, nargs, n;
     MYFLT   *fp = ftp->ftable;
     CSOUND *csound = ff->csound;
 
@@ -67,7 +67,7 @@ static int quadbeziertable (FGDATA *ff, FUNC *ftp)
 
     for (n = 4; n < nargs; n += 4)
     {
-      int j, x1;
+      int32_t j, x1;
       j = (n < 8) ? 0 : ff->e.p[n];
       x1 = j;
       while (j <= ff->e.p[n+4]) {
@@ -93,7 +93,8 @@ inline static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c)
       return 0;
 }
 
-static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int x)
+static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t
+                       x)
 {
     MYFLT a =  (x1 - FL(2.0)*x2 + x3), b = FL(2.0)* (-x1 + x2), c = x1 - x;
     if (a)

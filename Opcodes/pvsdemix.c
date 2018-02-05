@@ -24,7 +24,7 @@
 #include "pvs_ops.h"
 #include "pvsdemix.h"
 
-static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
+static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
     if ((f1->overlap    == f2->overlap)
         && (f1->winsize == f2->winsize)
@@ -38,12 +38,12 @@ static int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 #define FLOATMAX_ 3.402823466e+38f
 
-static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
+static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
 {
     uint32_t N = p->finleft->N;
-    int olap = p->finleft->overlap;
+    int32_t olap = p->finleft->overlap;
     uint32_t M;
-    p->beta = (int)(*p->slices);
+    p->beta = (int32_t)(*p->slices);
 
     if (UNLIKELY(p->finleft->sliding))
       return csound->InitError(csound, Str("SDFT case not implemented yet"));
@@ -87,12 +87,12 @@ static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
     return OK;
 }
 
-static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
+static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 {
-    int n, i, n2, N = p->fout->N, imax;
-    int framesize = N+2;
+    int32_t n, i, n2, N = p->fout->N, imax;
+    int32_t framesize = N+2;
     float sum = 0.0f,sig,g;
-    int beta = (int) p->beta, pos;
+    int32_t32_t32_t beta = (int) p->beta, pos;
     float *sigl = (float *) p->finleft->frame.auxp;
     float *sigr = (float *) p->finright->frame.auxp;
     float *out = (float *) p->fout->frame.auxp;
@@ -120,7 +120,7 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
       imax = beta*framesize;
       range = width/FL(2.0);
-      pos = (int)((azimuth >= 0 ? azimuth : -azimuth)*beta);
+      pos = (int32_t)((azimuth >= 0 ? azimuth : -azimuth)*beta);
 
       /*  create the azimuth amplitude vectors &
           find the max/min values for channels, per bin */
@@ -157,7 +157,7 @@ static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
            azimuth <= 0 => pos incrs right to left
            azimuth >  0 => pos incrs left to right
         */
-        for (i = (int) (pos-range); i < pos+range; i++) {
+        for (i = (int32_t) (pos-range); i < pos+range; i++) {
           if (i < 0)
             sum  += (azimuth <= 0 ? right[n+(beta+i)*framesize]
                      :  left[n+(beta+i)*framesize]);
@@ -188,8 +188,9 @@ static OENTRY localops[] =
                  (SUBR) pvsdemix_init, (SUBR) pvsdemix_process, (SUBR) NULL }
   };
 
-int pvsdemix_init_(CSOUND *csound)
+int32_t pvsdemix_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-                               (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int32_t
+                                ) (sizeof(localops) / sizeof(OENTRY)));
 }

@@ -21,22 +21,22 @@
 
 #include "pvoc.h"
 
-int     pvset(CSOUND *, void *), pvset_S(CSOUND *, void *), pvoc(CSOUND *, void *);
-int     pvaddset(CSOUND *, void *), pvadd(CSOUND *, void *);
-int     pvaddset_S(CSOUND *, void *);
-int     tblesegset(CSOUND *, void *), ktableseg(CSOUND *, void *);
-int     ktablexseg(CSOUND *, void *);
-int     vpvset(CSOUND *, void *), vpvset_S(CSOUND *, void *),
+int32_t     pvset(CSOUND *, void *), pvset_S(CSOUND *, void *), pvoc(CSOUND *, void *);
+int32_t     pvaddset(CSOUND *, void *), pvadd(CSOUND *, void *);
+int32_t     pvaddset_S(CSOUND *, void *);
+int32_t     tblesegset(CSOUND *, void *), ktableseg(CSOUND *, void *);
+int32_t     ktablexseg(CSOUND *, void *);
+int32_t     vpvset(CSOUND *, void *), vpvset_S(CSOUND *, void *),
         vpvoc(CSOUND *, void *);
-int     pvreadset(CSOUND *, void *), pvread(CSOUND *, void *);
-int     pvcrossset(CSOUND *, void *), pvcross(CSOUND *, void *);
-int     pvbufreadset(CSOUND *, void *), pvbufread(CSOUND *, void *);
-int     pvinterpset(CSOUND *, void *), pvinterp(CSOUND *, void *);
+int32_t     pvreadset(CSOUND *, void *), pvread(CSOUND *, void *);
+int32_t     pvcrossset(CSOUND *, void *), pvcross(CSOUND *, void *);
+int32_t     pvbufreadset(CSOUND *, void *), pvbufread(CSOUND *, void *);
+int32_t     pvinterpset(CSOUND *, void *), pvinterp(CSOUND *, void *);
 
-int     pvreadset_S(CSOUND *, void *);
-int     pvcrossset_S(CSOUND *, void *);
-int     pvbufreadset_S(CSOUND *, void *);
-int     pvinterpset_S(CSOUND *, void *);
+int32_t     pvreadset_S(CSOUND *, void *);
+int32_t     pvcrossset_S(CSOUND *, void *);
+int32_t     pvbufreadset_S(CSOUND *, void *);
+int32_t     pvinterpset_S(CSOUND *, void *);
 
 #define S(x)    sizeof(x)
 

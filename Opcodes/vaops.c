@@ -47,7 +47,7 @@ typedef struct {
         MYFLT   *avar, *kval, *kindx;
 } VASIG_SET;
 
-static int vaget(CSOUND *csound, VA_GET *p)
+static int32_t vaget(CSOUND *csound, VA_GET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -59,7 +59,7 @@ static int vaget(CSOUND *csound, VA_GET *p)
     return OK;
 }
 
-static int vaset(CSOUND *csound, VA_SET *p)
+static int32_t vaset(CSOUND *csound, VA_SET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -72,7 +72,7 @@ static int vaset(CSOUND *csound, VA_SET *p)
 }
 
 
-static int vasigget(CSOUND *csound, VASIG_GET *p)
+static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -84,7 +84,7 @@ static int vasigget(CSOUND *csound, VASIG_GET *p)
     return OK;
 }
 
-static int vasigset(CSOUND *csound, VASIG_SET *p)
+static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;

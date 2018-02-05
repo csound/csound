@@ -48,7 +48,7 @@ typedef struct {
     }                                                                   \
     else {                                                              \
         MYFLT value;                                                    \
-        int j = 0;                                                      \
+        int32_t j = 0;                                                      \
         SLD *sld = p->s;                                                \
         unsigned char *slnum = p->slnum;                                \
         MYFLT *min = p->min, *max= p->max;                              \
@@ -58,7 +58,7 @@ typedef struct {
         if ((outftp = csound->FTnp2Find(csound, p->ioutfn)) != NULL)    \
           p->outTable = outftp->ftable;                                 \
         while (j < 8) {                                                 \
-            int t = (int) *sld->ifn;                                    \
+            int32_t t = (int32_t) *sld->ifn;                                    \
             *slnum = (unsigned char) *sld->ictlno;                      \
             value=*sld->initvalue;                                      \
                                                                         \
@@ -113,7 +113,7 @@ typedef struct {
               /*   representing the phase of the table            */    \
               if (*sld->ifn > 0)   *ftp = csound->FTnp2Find(csound, sld->ifn); \
             }                                                           \
-            chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5))); \
+            chanblock[*slnum++] =  (MYFLT)((int32_t)(value * f7bit + FL(0.5))); \
             min++; max++; ftp++; j++; sld++;                            \
         }                                                               \
     }                                                                   \
@@ -122,16 +122,16 @@ return OK;
 
 #define SLIDER_TABLE_INIT(p, n)                                         \
 {                                                                       \
-    int j = 0;                                                          \
+    int32_t j = 0;                                                          \
     FUNC **ftp = p->ftp;                                                \
     MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val;   \
     unsigned char  *slnum = p->slnum;                                   \
     MYFLT *min = p->min, *max = p->max;                                 \
-    MYFLT *outTable = p->outTable + (int) *p->ioffset;                  \
+    MYFLT *outTable = p->outTable + (int32_t) *p->ioffset;                  \
     *p->ktrig = 0;                                                      \
     while (j < n) {                                                     \
-      int t = (int) *(p->s[j].ifn);                                     \
-      int val = (int) chanblock[*slnum++];                              \
+      int32_t t = (int32_t) *(p->s[j].ifn);                                     \
+      int32_t val = (int32_t) chanblock[*slnum++];                              \
       MYFLT value = (MYFLT) val / f7bit;                                \
       if (val != p->oldvalue[j] ) {                                     \
         MYFLT base, range = *max - *min;                                \
@@ -146,7 +146,7 @@ return OK;
           value = value * range + *min;                                 \
           break;                                                        \
         default: /* TABLE */                                            \
-          value = *((*ftp)->ftable + (long)(value * (*ftp)->flen));     \
+          value = *((*ftp)->ftable + (int64_t)(value * (*ftp)->flen));     \
           value = value * range + *min;   /* scales the output */       \
           break;                                                        \
         }                                                               \
@@ -170,12 +170,12 @@ typedef struct {
 } SLIDER8t; /* GAB */
 
 
-static int sliderTable_i8(CSOUND *csound, SLIDER8t *p) /* GAB */
+static int32_t sliderTable_i8(CSOUND *csound, SLIDER8t *p) /* GAB */
 {
     SLIDER_I_TABLE_INIT(p,8);
 }
 
-static int sliderTable8(CSOUND *csound, SLIDER8t *p) /* GAB */
+static int32_t sliderTable8(CSOUND *csound, SLIDER8t *p) /* GAB */
 {
     SLIDER_TABLE_INIT(p,8);
 
@@ -192,12 +192,12 @@ typedef struct {
     FUNC   *ftp[16];
 } SLIDER16t; /* GAB */
 
-static int sliderTable_i16(CSOUND *csound, SLIDER16t *p) /* GAB */
+static int32_t sliderTable_i16(CSOUND *csound, SLIDER16t *p) /* GAB */
 {
     SLIDER_I_TABLE_INIT(p,16);
 }
 
-static int sliderTable16(CSOUND *csound, SLIDER16t *p) /* GAB */
+static int32_t sliderTable16(CSOUND *csound, SLIDER16t *p) /* GAB */
 {
     SLIDER_TABLE_INIT(p,16);
 }
@@ -214,12 +214,12 @@ typedef struct {
 } SLIDER32t; /* GAB */
 
 
-static int sliderTable_i32(CSOUND *csound, SLIDER32t *p) /* GAB */
+static int32_t sliderTable_i32(CSOUND *csound, SLIDER32t *p) /* GAB */
 {
     SLIDER_I_TABLE_INIT(p,32);
 }
 
-static int sliderTable32(CSOUND *csound, SLIDER32t *p) /* GAB */
+static int32_t sliderTable32(CSOUND *csound, SLIDER32t *p) /* GAB */
 {
     SLIDER_TABLE_INIT(p,32);
 }
@@ -235,12 +235,12 @@ typedef struct {
     FUNC   *ftp[64];
 } SLIDER64t; /* GAB */
 
-static int sliderTable_i64(CSOUND *csound, SLIDER64t *p) /* GAB */
+static int32_t sliderTable_i64(CSOUND *csound, SLIDER64t *p) /* GAB */
 {
     SLIDER_I_TABLE_INIT(p,64);
 }
 
-static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
+static int32_t sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
 {
     SLIDER_TABLE_INIT(p,64);
 }
@@ -258,7 +258,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
     }                                                                   \
     {                                                                   \
       MYFLT value;                                                      \
-      int j = 0;                                                        \
+      int32_t j = 0;                                                        \
       SLDf *sld = p->s;                                                 \
       unsigned char *slnum = p->slnum;                                  \
       MYFLT *min = p->min, *max= p->max;                                \
@@ -272,7 +272,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
       if((outftp = csound->FTnp2Find(csound, p->ioutfn)) != NULL)       \
         p->outTable = outftp->ftable;                                   \
       while (j < n) {                                                   \
-        int t = (int) *sld->ifn;                                        \
+        int32_t t = (int32_t) *sld->ifn;                                        \
         *slnum = (unsigned char) *sld->ictlno;                          \
         value=*sld->initvalue;                                          \
                                                                         \
@@ -320,7 +320,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
             return csound->InitError(csound, "%s", sbuf);               \
           }                                                             \
         }                                                               \
-        chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5))); \
+        chanblock[*slnum++] =  (MYFLT)((int32_t)(value * f7bit + FL(0.5))); \
         /*----- init filtering coeffs*/                                 \
         *yt1++ = FL(0.0);                                               \
         b = (MYFLT)(2.0 - cos((double)(*(sld)->ihp *                    \
@@ -338,18 +338,18 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
 #define SLIDER_TABLEF_INIT(p,n)                                                 \
 {                                                                               \
     MYFLT value, base;                                                          \
-    int j = 0;                                                                  \
+    int32_t j = 0;                                                                  \
     FUNC **ftp = p->ftp;                                                        \
     MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val;           \
     unsigned char  *slnum = p->slnum;                                           \
     MYFLT *min = p->min, *max = p->max;                                         \
-    MYFLT *outTable = p->outTable + (int) *p->ioffset;                          \
+    MYFLT *outTable = p->outTable + (int32_t) *p->ioffset;                          \
     MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                                  \
                                                                                 \
     while (j < n) {                                                             \
-        int t = (int) *(p->s[j].ifn);                                           \
+        int32_t t = (int32_t) *(p->s[j].ifn);                                           \
         MYFLT range;                                                            \
-        int val = (int) chanblock[*slnum++];                                    \
+        int32_t val = (int32_t) chanblock[*slnum++];                                    \
         value = (MYFLT) val / f7bit;                                            \
         if (val != p->oldvalue[j] ) {                                           \
             *p->ktrig = 1;                                                      \
@@ -365,7 +365,7 @@ static int sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
             value = value * (*max++ - *min) + *min;                             \
             break;                                                              \
         default: /* TABLE   */                                                  \
-            value = *((*ftp)->ftable + (long)(value * (*ftp)->flen));           \
+            value = *((*ftp)->ftable + (int64_t)(value * (*ftp)->flen));           \
             value = value * (*max - *min) + *min;   /* scales the output */     \
             break;                                                              \
         }                                                                       \
@@ -391,12 +391,12 @@ typedef struct {
 } SLIDER8tf;
 
 
-static int sliderTable_i8f(CSOUND *csound, SLIDER8tf *p)
+static int32_t sliderTable_i8f(CSOUND *csound, SLIDER8tf *p)
 {
     SLIDER_I_TABLEF_INIT(p,8)
 }
 
-static int sliderTable8f(CSOUND *csound, SLIDER8tf *p)
+static int32_t sliderTable8f(CSOUND *csound, SLIDER8tf *p)
 {
     SLIDER_TABLEF_INIT(p,8)
 }
@@ -415,12 +415,12 @@ typedef struct {
     MYFLT  yt1[6];
 } SLIDER16tf;
 
-static int sliderTable_i16f(CSOUND *csound, SLIDER16tf *p)
+static int32_t sliderTable_i16f(CSOUND *csound, SLIDER16tf *p)
 {
     SLIDER_I_TABLEF_INIT(p,16)
 }
 
-static int sliderTable16f(CSOUND *csound, SLIDER16tf *p)
+static int32_t sliderTable16f(CSOUND *csound, SLIDER16tf *p)
 {
     SLIDER_TABLEF_INIT(p,16)
 }
@@ -439,12 +439,12 @@ typedef struct {
 } SLIDER32tf;
 
 
-static int sliderTable_i32f(CSOUND *csound, SLIDER32tf *p)
+static int32_t sliderTable_i32f(CSOUND *csound, SLIDER32tf *p)
 {
     SLIDER_I_TABLEF_INIT(p,32)
 }
 
-static int sliderTable32f(CSOUND *csound, SLIDER32tf *p)
+static int32_t sliderTable32f(CSOUND *csound, SLIDER32tf *p)
 {
     SLIDER_TABLEF_INIT(p,32)
 }
@@ -462,12 +462,12 @@ typedef struct {
     MYFLT  yt1[64];
 } SLIDER64tf;
 
-static int sliderTable_i64f(CSOUND *csound, SLIDER64tf *p)
+static int32_t sliderTable_i64f(CSOUND *csound, SLIDER64tf *p)
 {
     SLIDER_I_TABLEF_INIT(p,64)
 }
 
-static int sliderTable64f(CSOUND *csound, SLIDER64tf *p)
+static int32_t sliderTable64f(CSOUND *csound, SLIDER64tf *p)
 {
     SLIDER_TABLEF_INIT(p,64)
 }
@@ -499,12 +499,12 @@ typedef struct {
     FUNC   *ftp[16];
 } SLIDERKAWAI;
 
-static int sliderKawai_i(CSOUND *csound, SLIDERKAWAI *p)
+static int32_t sliderKawai_i(CSOUND *csound, SLIDERKAWAI *p)
 {
     char sbuf[120];
-    int n = 16;
+    int32_t n = 16;
     MYFLT value;
-    int j = 0;
+    int32_t j = 0;
     SLD2 *sld = p->s;
     MYFLT *min = p->min, *max= p->max;
     FUNC **ftp = p->ftp;
@@ -518,15 +518,15 @@ static int sliderKawai_i(CSOUND *csound, SLIDERKAWAI *p)
       else                 *ftp++ = NULL;
       value =  (*(sld++)->initvalue - *min) / (*max++ - *min);
       min++;
-      csound->m_chnbp[j]->ctl_val[7] = (MYFLT)((int)(value * f7bit + FL(0.5)));
+      csound->m_chnbp[j]->ctl_val[7] = (MYFLT)((int32_t)(value * f7bit + FL(0.5)));
     } while (++j < n);
     return OK;
 }
 
-static int sliderKawai(CSOUND *csound, SLIDERKAWAI *p)
+static int32_t sliderKawai(CSOUND *csound, SLIDERKAWAI *p)
 {
     MYFLT value;
-    int j = 0, n=16;
+    int32_t j = 0, n=16;
     FUNC **ftp = p->ftp-1;
     MYFLT *min = p->min, *max = p->max;
     MYFLT **result = p->r;
@@ -534,7 +534,7 @@ static int sliderKawai(CSOUND *csound, SLIDERKAWAI *p)
       value = (MYFLT)  csound->m_chnbp[j]->ctl_val[7] * oneTOf7bit;
       if (*(++ftp))             /* if valid ftable,use value as index   */
         /* no interpolation */
-        value = *((*ftp)->ftable + (long)(value * (*ftp)->flen));
+        value = *((*ftp)->ftable + (int64_t)(value * (*ftp)->flen));
       **result++ = value * (*max++ - *min) + *min;   /* scales the output */
       min++;;
     } while (++j < n);
@@ -549,7 +549,7 @@ typedef struct {
     MYFLT  *r, *ichan, *ictlno, *imin, *imax, *ifn, *icutoff;
     short flag;
     FUNC *ftp;
-    long   ctlno;
+    int64_t   ctlno;
 
     MYFLT   c1;     /* Value to multiply with input value  */
     MYFLT   c2;     /* Value to multiply with previous state */
@@ -558,15 +558,15 @@ typedef struct {
 
 } CTRL7a;
 
-static int ctrl7a_set(CSOUND *csound, CTRL7a *p)
+static int32_t ctrl7a_set(CSOUND *csound, CTRL7a *p)
 {
-    int ctlno, chan;
+    int32_t ctlno, chan;
     MYFLT   cutoff, b;
 
 
-    if ((ctlno = (int) *p->ictlno) < 0 || ctlno > 127)
+    if ((ctlno = (int32_t) *p->ictlno) < 0 || ctlno > 127)
       return csound->InitError(csound, Str("illegal controller number"));
-    else if ((chan=(int) *p->ichan-1) < 0 || chan > 15)
+    else if ((chan=(int32_t) *p->ichan-1) < 0 || chan > 15)
       return csound->InitError(csound, Str("illegal midi channel"));
     else p->ctlno = ctlno;
 
@@ -588,17 +588,17 @@ static int ctrl7a_set(CSOUND *csound, CTRL7a *p)
     return OK;
 }
 
-static int ctrl7a(CSOUND *csound, CTRL7a *p)
+static int32_t ctrl7a(CSOUND *csound, CTRL7a *p)
 {
     MYFLT       *ar, val, incr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT value =
-      (MYFLT) (csound->m_chnbp[(int) *p->ichan-1]->ctl_val[p->ctlno] * oneTOf7bit);
+      (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->ctl_val[p->ctlno] * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
                                 /* no interpolation */
-      value = *(p->ftp->ftable + (long)(value*(p->ftp->flen-1)));
+      value = *(p->ftp->ftable + (int64_t)(value*(p->ftp->flen-1)));
     }
     /* scales the output */
     value = value * (*p->imax - *p->imin) + *p->imin + TOOSMALL;
@@ -677,8 +677,8 @@ OENTRY sliderTable_localops[] = {
   (SUBR) ctrl7a_set,   NULL,    (SUBR) ctrl7a },
 };
 
-int slidertable_init_(CSOUND *csound) {
+int32_t slidertable_init_(CSOUND *csound) {
     return
       csound->AppendOpcodes(csound, &(sliderTable_localops[0]),
-                            (int) (sizeof(sliderTable_localops) / sizeof(OENTRY)));
+                            (int32_t) (sizeof(sliderTable_localops) / sizeof(OENTRY)));
 }

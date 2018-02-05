@@ -97,11 +97,11 @@ TODO: (might need some kind of threaded buffer-read?)
 #ifdef WIN32
 typedef struct SERIAL_GLOBALS_ {
     CSOUND  *csound;
-    int     maxind;
+    int32_t     maxind;
     HANDLE  handles[10];
 } SERIAL_GLOBALS;
 
-static HANDLE get_port(CSOUND *csound, int port)
+static HANDLE get_port(CSOUND *csound, int32_t port)
 {
     HANDLE hport;
     SERIAL_GLOBALS *q;
@@ -122,37 +122,37 @@ typedef struct {
     STRINGDAT *portName;
     MYFLT *baudRate;
 } SERIALBEGIN;
-int serialBegin(CSOUND *csound, SERIALBEGIN *p);
+int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p);
 
 typedef struct {
     OPDS  h;
     MYFLT *port;
 } SERIALEND;
-int serialEnd(CSOUND *csound, SERIALEND *p);
+int32_t serialEnd(CSOUND *csound, SERIALEND *p);
 
 typedef struct {
     OPDS  h;
     MYFLT *port, *toWrite;
 } SERIALWRITE;
-int serialWrite(CSOUND *csound, SERIALWRITE *p);
+int32_t serialWrite(CSOUND *csound, SERIALWRITE *p);
 
 typedef struct {
     OPDS  h;
     MYFLT *rChar, *port;
 } SERIALREAD;
-int serialRead(CSOUND *csound, SERIALREAD *p);
+int32_t serialRead(CSOUND *csound, SERIALREAD *p);
 
 typedef struct {
     OPDS  h;
     MYFLT *port;
 } SERIALPRINT;
-int serialPrint(CSOUND *csound, SERIALPRINT *p);
+int32_t serialPrint(CSOUND *csound, SERIALPRINT *p);
 
 typedef struct {
     OPDS  h;
     MYFLT *port;
 } SERIALFLUSH;
-int serialFlush(CSOUND *csound, SERIALFLUSH *p);
+int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p);
 
 
 ///-----------TODO
@@ -160,13 +160,13 @@ typedef struct {
     OPDS  h;
     MYFLT *retVal, *port;
 } SERIALAVAIL;
-int serialAvailable(CSOUND *csound, SERIALAVAIL *p);
+int32_t serialAvailable(CSOUND *csound, SERIALAVAIL *p);
 
 typedef struct {
     OPDS  h;
     MYFLT *retChar, *port;
 } SERIALPEEK;
-int serialPeekByte(CSOUND *csound, SERIALPEEK *p);
+int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 //------------------
 
 #ifndef WIN32
@@ -174,11 +174,11 @@ int serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 // and a baud rate (bps) and connects to that port at that speed and 8N1.
 // opens the port in fully raw mode so you can send binary data.
 // returns valid fd, or -1 on error
-int serialport_init(CSOUND *csound, const char* serialport, int baud)
+int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
 {
-     IGN(csound);
+    IGN(csound);
     struct termios toptions;
-    int fd;
+    int32_t fd;
     speed_t brate;
 
     //csound = NULL;              /* Not used */
@@ -242,12 +242,12 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
 }
 #else
 
-int serialport_init(CSOUND *csound, const char* serialport, int baud)
+int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
 {
-     IGN(csound);
+    IGN(csound);
     HANDLE hSerial;
     DCB dcbSerialParams = {0};
-    int i;
+    int32_t i;
     /* NEED TO CREATE A GLOBAL FOR HANDLE */
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
@@ -332,14 +332,14 @@ int serialport_init(CSOUND *csound, const char* serialport, int baud)
 #endif
 
 
-int serialBegin(CSOUND *csound, SERIALBEGIN *p)
+int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
     *p->returnedPort =
       (MYFLT)serialport_init(csound, (char *)p->portName->data, *p->baudRate);
     return OK;
 }
 
-int serialEnd(CSOUND *csound, SERIALEND *p)
+int32_t serialEnd(CSOUND *csound, SERIALEND *p)
 {
     IGN(csound);
 #ifdef WN32
@@ -348,49 +348,49 @@ int serialEnd(CSOUND *csound, SERIALEND *p)
                                                       "serialGlobals_");
     if (q = NULL)
       return csound->PerfError(csound, Str("Nothing to close"));
-    CloseHandle((HANDLE)q->handles[(int)p->port]);
-    q->handles[(int)*p->port] = NULL;
+    CloseHandle((HANDLE)q->handles[(int32_t)p->port]);
+    q->handles[(int32_t)*p->port] = NULL;
 #else
-    close((int)*p->port);
+    close((int32_t)*p->port);
 #endif
     return OK;
 }
 
-int serialWrite(CSOUND *csound, SERIALWRITE *p)
+int32_t serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
     IGN(csound);
 #ifdef WIN32
-    HANDLE port = get_port(csound, (int)*p->port);
+    HANDLE port = get_port(csound, (int32_t)*p->port);
     if (port==NULL) return NOTOK;
 #endif
     {
       unsigned char b = *p->toWrite;
 #ifndef WIN32
-      if (UNLIKELY(write((int)*p->port, &b, 1)<0))
+      if (UNLIKELY(write((int32_t)*p->port, &b, 1)<0))
         return NOTOK;
 #else
-      int nbytes;
+      int32_t nbytes;
       WriteFile(port, &b, 1, (PDWORD)&nbytes, NULL);
 #endif
     }
     return OK;
 }
 
-int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
+int32_t serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 {
      IGN(csound);
 #ifdef WIN32
-    HANDLE port = get_port(csound, (int)*p->port);
+    HANDLE port = get_port(csound, (int32_t)*p->port);
     if (port==NULL) return NOTOK;
 #endif
 #ifndef WIN32
-    if (UNLIKELY(write((int)*p->port,
+    if (UNLIKELY(write((int32_t)*p->port,
                        ((STRINGDAT*)p->toWrite)->data,
                        ((STRINGDAT*)p->toWrite)->size))!=
         ((STRINGDAT*)p->toWrite)->size) /* Does Windows write behave correctly? */
         return NOTOK;
 #else
-      int nbytes;
+      int32_t nbytes;
       WriteFile(port,p->toWrite, strlen((char *)p->toWrite),
                 (PDWORD)&nbytes, NULL);
 #endif
@@ -398,18 +398,18 @@ int serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 }
 
 
-int serialRead(CSOUND *csound, SERIALREAD *p)
+int32_t serialRead(CSOUND *csound, SERIALREAD *p)
 {
      IGN(csound);
     unsigned char b = 0;
 #ifdef WIN32
     size_t bytes;
-    HANDLE port = get_port(csound, (int)*p->port);
+    HANDLE port = get_port(csound, (int32_t)*p->port);
     if (port==NULL) return NOTOK;
     ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
 #else
     ssize_t bytes;
-    bytes = read((int)*p->port, &b, 1);
+    bytes = read((int32_t)*p->port, &b, 1);
 #endif
     if (bytes > 0)
       *p->rChar = b;
@@ -419,17 +419,17 @@ int serialRead(CSOUND *csound, SERIALREAD *p)
     return OK;
 }
 
-int serialPrint(CSOUND *csound, SERIALPRINT *p)
+int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 {
     char str[32769];
 #ifdef WIN32
     size_t bytes;
-    HANDLE port = get_port(csound, (int)*p->port);
+    HANDLE port = get_port(csound, (int32_t)*p->port);
     if (port==NULL) return NOTOK;
     ReadFile(port, str, 32768, (PDWORD)&bytes, NULL);
 #else
     ssize_t bytes;
-    bytes  = read((int)*p->port, str, 32768);
+    bytes  = read((int32_t)*p->port, str, 32768);
 #endif
     if (bytes > 0) {
       str[bytes] = '\0'; // terminate
@@ -438,7 +438,7 @@ int serialPrint(CSOUND *csound, SERIALPRINT *p)
     return OK;
 }
 
-int serialFlush(CSOUND *csound, SERIALFLUSH *p)
+int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p)
 {
      IGN(csound);
 #ifndef WIN32
@@ -447,13 +447,13 @@ int serialFlush(CSOUND *csound, SERIALFLUSH *p)
     return OK;
 }
 
-int serialAvailable(CSOUND *csound, SERIALAVAIL *p)
+int32_t serialAvailable(CSOUND *csound, SERIALAVAIL *p)
 {
      IGN(csound);  IGN(p);
     //TODO
     return OK;
 }
-int serialPeekByte(CSOUND *csound, SERIALPEEK *p)
+int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
 {
      IGN(csound);  IGN(p);
     //TODO

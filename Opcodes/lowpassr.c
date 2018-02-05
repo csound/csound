@@ -27,7 +27,7 @@
 #include "lowpassr.h"
 #include <math.h>
 
-static int lowpr_set(CSOUND *csound, LOWPR *p)
+static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 {
 
      IGN(csound);
@@ -39,7 +39,7 @@ static int lowpr_set(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowpr(CSOUND *csound, LOWPR *p)
+static int32_t lowpr(CSOUND *csound, LOWPR *p)
 {
     double b, k = p->k;
     MYFLT *ar, *asig;
@@ -82,7 +82,7 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowpraa(CSOUND *csound, LOWPR *p)
+static int32_t lowpraa(CSOUND *csound, LOWPR *p)
 {
     double b, k = p->k;
     MYFLT *ar, *asig;
@@ -138,7 +138,7 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowprak(CSOUND *csound, LOWPR *p)
+static int32_t lowprak(CSOUND *csound, LOWPR *p)
 {
     double b, k = p->k;
     MYFLT *ar, *asig;
@@ -193,7 +193,7 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowprka(CSOUND *csound, LOWPR *p)
+static int32_t lowprka(CSOUND *csound, LOWPR *p)
 {
     double b, k = p->k;
     MYFLT *ar, *asig;
@@ -246,10 +246,10 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowpr_setx(CSOUND *csound, LOWPRX *p)
+static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
 {
-    int j;
-    if ((p->loop = (int) MYFLT2LONG(*p->ord)) < 1) p->loop = 4; /*default value*/
+    int32_t j;
+    if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1) p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
       return csound->InitError(csound, Str("illegal order num. (min 1, max 10)"));
     }
@@ -259,7 +259,7 @@ static int lowpr_setx(CSOUND *csound, LOWPRX *p)
     return OK;
 }
 
-static int lowprx(CSOUND *csound, LOWPRX *p)
+static int32_t lowprx(CSOUND *csound, LOWPRX *p)
 {
      IGN(csound);
     MYFLT    b, k = p->k;
@@ -269,8 +269,8 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j;
-    int      asgf = IS_ASIG_ARG(p->kfco), asgr = IS_ASIG_ARG(p->kres);
+    int32_t      j;
+    int32_t      asgf = IS_ASIG_ARG(p->kfco), asgr = IS_ASIG_ARG(p->kres);
 
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
@@ -306,10 +306,10 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     return OK;
 }
 
-static int lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
+static int32_t lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
 {
-    int j;
-    if ((p->loop = (int) MYFLT2LONG(*p->ord)) < 1)
+    int32_t j;
+    if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1)
       p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
       return csound->InitError(csound, Str("illegal order num. (min 1, max 10)"));
@@ -318,7 +318,7 @@ static int lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
     return OK;
 }
 
-static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
+static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 {
      IGN(csound);
     MYFLT    b, k;
@@ -329,7 +329,7 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j;
+    int32_t      j;
 
     MYFLT kres = *p->kres;
     MYFLT kfco;
@@ -388,8 +388,9 @@ static OENTRY localops[] = {
                           (SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
 };
 
-int lowpassr_init_(CSOUND *csound)
+int32_t lowpassr_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

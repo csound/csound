@@ -81,7 +81,7 @@ typedef struct {
   MYFLT   sr;
 } LAG;
 
-static int lagk_next(CSOUND *csound, LAG *p) {
+static int32_t lagk_next(CSOUND *csound, LAG *p) {
      IGN(csound);
     MYFLT lag = *p->lagtime;
     MYFLT y0 = *p->in;
@@ -102,7 +102,7 @@ static int lagk_next(CSOUND *csound, LAG *p) {
     }
 }
 
-static int lag_init0(CSOUND *csound, LAG *p) {
+static int32_t lag_init0(CSOUND *csound, LAG *p) {
     IGN(csound);
     p->lag = -1;
     p->b1 = FL(0.0);
@@ -110,20 +110,20 @@ static int lag_init0(CSOUND *csound, LAG *p) {
     return OK;
 }
 
-static int lagk_init(CSOUND *csound, LAG *p) {
+static int32_t lagk_init(CSOUND *csound, LAG *p) {
     lag_init0(csound, p);
     p->sr = csound->GetKr(csound);
     return lagk_next(csound, p);
 }
 
-static int laga_init(CSOUND *csound, LAG *p) {
+static int32_t laga_init(CSOUND *csound, LAG *p) {
     lag_init0(csound, p);
     p->sr = csound->GetSr(csound);
     return OK;
 }
 
 
-static int laga_next(CSOUND *csound, LAG *p) {
+static int32_t laga_next(CSOUND *csound, LAG *p) {
      IGN(csound);
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT *in = p->in, *out = p->out;
@@ -170,7 +170,7 @@ typedef struct {
   MYFLT   lagu, lagd, b1u, b1d, y1;
 } LagUD;
 
-static int lagud_a(CSOUND *csound, LagUD *p) {
+static int32_t lagud_a(CSOUND *csound, LagUD *p) {
     MYFLT
       *out = p->out,
       *in = p->in,
@@ -221,7 +221,7 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
     return OK;
 }
 
-static int lagud_k(CSOUND *csound, LagUD *p) {
+static int32_t lagud_k(CSOUND *csound, LagUD *p) {
     MYFLT
       *in = p->in,
       lagu = *p->lagtimeU,
@@ -256,7 +256,7 @@ static int lagud_k(CSOUND *csound, LagUD *p) {
     return OK;
 }
 
-static int lagud_init(CSOUND *csound, LagUD *p) {
+static int32_t lagud_init(CSOUND *csound, LagUD *p) {
      IGN(csound);
     p->lagu = -1;
     p->lagd = -1;
@@ -276,10 +276,10 @@ typedef struct {
   OPDS    h;
   MYFLT   *out, *in, *dur;
   MYFLT   level, prevtrig;
-  long counter;
+  int64_t counter;
 } Trig;
 
-static int trig_a(CSOUND *csound, Trig *p) {
+static int32_t trig_a(CSOUND *csound, Trig *p) {
     MYFLT
       *out = p->out,
       *in = p->in;
@@ -304,7 +304,7 @@ static int trig_a(CSOUND *csound, Trig *p) {
         zout = --counter ? level : FL(0.0);
       } else {
         if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
-          counter = (long)(dur * sr + FL(0.5));
+          counter = (int64_t)(dur * sr + FL(0.5));
           if (counter < 1) counter = 1;
           level = curtrig;
           zout = level;
@@ -321,7 +321,7 @@ static int trig_a(CSOUND *csound, Trig *p) {
     return OK;
 }
 
-static int trig_k(CSOUND *csound, Trig *p) {
+static int32_t trig_k(CSOUND *csound, Trig *p) {
     MYFLT curtrig = *p->in;
     MYFLT dur = *p->dur;
     MYFLT kr = csound->GetKr(csound);
@@ -332,7 +332,7 @@ static int trig_k(CSOUND *csound, Trig *p) {
       *p->out = --counter ? level : FL(0.0);
     } else {
       if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
-        counter = (long)(dur * kr + FL(0.5));
+        counter = (int64_t)(dur * kr + FL(0.5));
         if (counter < 1)
           counter = 1;
         level = curtrig;
@@ -347,7 +347,7 @@ static int trig_k(CSOUND *csound, Trig *p) {
     return OK;
 }
 
-static int trig_init(CSOUND *csound, Trig *p) {
+static int32_t trig_init(CSOUND *csound, Trig *p) {
     p->counter = 0;
     p->prevtrig = FL(0.0);
     p->level = FL(0.0);
@@ -392,7 +392,7 @@ typedef struct {
   MYFLT   level, previn/*, resetk*/;
 } Phasor;
 
-static int phasor_init(CSOUND *csound, Phasor *p) {
+static int32_t phasor_init(CSOUND *csound, Phasor *p) {
      IGN(csound);
     p->previn = 0;
     p->level = 0;
@@ -400,14 +400,14 @@ static int phasor_init(CSOUND *csound, Phasor *p) {
     return OK;
 }
 
-/* static int phasor_init0(CSOUND *csound, Phasor *p) { */
+/* static int32_t phasor_init0(CSOUND *csound, Phasor *p) { */
 /*     p->previn = 0; */
 /*     p->level = 0; */
 /*     p->resetk = 0; */
 /*     return OK; */
 /* } */
 
-static int phasor_aa(CSOUND *csound, Phasor *p) {
+static int32_t phasor_aa(CSOUND *csound, Phasor *p) {
      IGN(csound);
     MYFLT *out  = p->out;
     MYFLT *in = p->trig;
@@ -443,7 +443,7 @@ static int phasor_aa(CSOUND *csound, Phasor *p) {
     return OK;
 }
 
-static int phasor_ak(CSOUND *csound, Phasor *p) {
+static int32_t phasor_ak(CSOUND *csound, Phasor *p) {
      IGN(csound);
     MYFLT *out  = p->out;
     MYFLT *in   = p->trig;
@@ -479,7 +479,7 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
     return OK;
 }
 
-static int phasor_kk(CSOUND *csound, Phasor *p) {
+static int32_t phasor_kk(CSOUND *csound, Phasor *p) {
      IGN(csound);
     MYFLT curin = *p->trig;
     MYFLT rate  = *p->rate;
