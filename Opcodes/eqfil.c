@@ -35,7 +35,7 @@ typedef struct _equ {
 
 } equ;
 
-static int equ_init(CSOUND *csound, equ *p)
+static int32_t equ_init(CSOUND *csound, equ *p)
 {
     if (*p->ini==0) {
       double sr = (double)CS_ESR;
@@ -48,13 +48,14 @@ static int equ_init(CSOUND *csound, equ *p)
     return OK;
 }
 
-static int equ_process(CSOUND *csound, equ *p)
+static int32_t equ_process(CSOUND *csound, equ *p)
 {
     double z1 = p->z1, z2 = p->z2,c,d,w,a,y;
     MYFLT  *in= p->sig,*out=p->out,g;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int i, ksmps = CS_KSMPS;
+    int32_t
+      i, ksmps = CS_KSMPS;
 
     if (*p->bw != p->bwv || *p->fr != p->frv){
       double sr = (double)CS_ESR;

@@ -25,9 +25,9 @@
 #include "ugens5.h"
 #include <math.h>
 
-extern int rsnset(CSOUND *csound, RESON *p);
+extern int32_t rsnset(CSOUND *csound, RESON *p);
 
-static int aresonaa(CSOUND *csound, RESON *p)
+static int32_t aresonaa(CSOUND *csound, RESON *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -113,7 +113,7 @@ static int aresonaa(CSOUND *csound, RESON *p)
     return OK;
 }
 
-static int aresonak(CSOUND *csound, RESON *p)
+static int32_t aresonak(CSOUND *csound, RESON *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -197,7 +197,7 @@ static int aresonak(CSOUND *csound, RESON *p)
     return OK;
 }
 
-static int aresonka(CSOUND *csound, RESON *p)
+static int32_t aresonka(CSOUND *csound, RESON *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -281,10 +281,10 @@ static int aresonka(CSOUND *csound, RESON *p)
     return OK;
 }
 
-extern int tonset(CSOUND*, TONE*);
-extern int tonsetx(CSOUND *csound, TONEX *p);
+extern int32_t tonset(CSOUND*, TONE*);
+extern int32_t tonsetx(CSOUND *csound, TONEX *p);
 
-static int atonea(CSOUND *csound, TONE *p)
+static int32_t atonea(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -317,7 +317,7 @@ static int atonea(CSOUND *csound, TONE *p)
     return OK;
 }
 
-static int tonea(CSOUND *csound, TONE *p)
+static int32_t tonea(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -352,14 +352,14 @@ static int tonea(CSOUND *csound, TONE *p)
     return OK;
 }
 
-static int tonexa(CSOUND *csound, TONEX *p) /* From Gabriel Maldonado, modified */
+static int32_t tonexa(CSOUND *csound, TONEX *p) /* From Gabriel Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j, lp = p->loop;
+    int32_t      j, lp = p->loop;
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
@@ -386,14 +386,14 @@ static int tonexa(CSOUND *csound, TONEX *p) /* From Gabriel Maldonado, modified 
     return OK;
 }
 
-static int atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified */
+static int32_t32_t atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j, lp = p->loop;
+    int32_t      j, lp = p->loop;
     MYFLT    prvhp = p->prvhp;
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
@@ -439,9 +439,9 @@ typedef struct  {
 
 #define ROOT2 (1.4142135623730950488)
 
-extern int butset(CSOUND *csound, BFIL *p);
+extern int32_t butset(CSOUND *csound, BFIL *p);
 
-static int bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
+static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
      IGN(csound);
     if (*p->istor==FL(0.0)) {
@@ -452,7 +452,8 @@ static int bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
     return OK;
 }
 
-static int hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
+
+static int32_t32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 {
     MYFLT       *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -508,7 +509,7 @@ static int hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
     return OK;
 }
 
-static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
+static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
     MYFLT       *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -563,7 +564,7 @@ static int lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
     return OK;
 }
 
-static int bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
+static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -572,7 +573,7 @@ static int bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     double *a = p->a;
     double t, y;
     uint32_t nn;
-    int asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);
+    int32_t asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);
 
     in = p->ain;
     out = p->sr;
@@ -623,7 +624,7 @@ static int bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
     return OK;
 }
 
-static int bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
+static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -632,7 +633,8 @@ static int bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
     double *a = p->a;
     double t, y;
     uint32_t nn;
-    int asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);
+    int32_t
+      asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);
 
     in = p->ain;
     out = p->sr;

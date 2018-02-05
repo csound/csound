@@ -29,7 +29,7 @@
 ArgumentType Framebuffer_getArgumentType(CSOUND *csound, MYFLT *argument);
 void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self);
 
-int Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
+int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
 {
     self->inputType = Framebuffer_getArgumentType(csound, self->inputArgument);
     self->outputType = Framebuffer_getArgumentType(csound, self->outputArgument);
@@ -45,7 +45,7 @@ int Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
     if (self->outputType == KRATE_ARRAY) {
 
         ARRAYDAT *array = (ARRAYDAT *) self->outputArgument;
-        array->sizes = csound->Calloc(csound, sizeof(int));
+        array->sizes = csound->Calloc(csound, sizeof(int32_t));
         array->sizes[0] = self->elementCount;
         array->dimensions = 1;
         CS_VARIABLE *var = array->arrayType->createVariable(csound, NULL);
@@ -58,7 +58,7 @@ int Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
 }
 
 void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
-                             MYFLT *inputSamples, int inputSamplesCount)
+                             MYFLT *inputSamples, int32_t inputSamplesCount)
 {
      IGN(csound);
     if (self->writeIndex + inputSamplesCount <= self->elementCount) {
@@ -70,10 +70,10 @@ void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
     }
     else {
 
-        int firstHalf = self->elementCount - self->writeIndex;
+        int32_t firstHalf = self->elementCount - self->writeIndex;
         memcpy(&self->buffer[self->writeIndex], inputSamples,
                sizeof(MYFLT) * firstHalf);
-        int secondHalf = inputSamplesCount - firstHalf;
+        int32_t secondHalf = inputSamplesCount - firstHalf;
         memcpy(self->buffer, &inputSamples[firstHalf],
                sizeof(MYFLT) * secondHalf);
         self->writeIndex = secondHalf;
@@ -81,7 +81,7 @@ void Framebuffer_writeBuffer(CSOUND *csound, Framebuffer *self,
 }
 
 void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self,
-                            MYFLT *outputSamples, int outputSamplesCount)
+                            MYFLT *outputSamples, int32_t outputSamplesCount)
 {
      IGN(csound);
     if (self->writeIndex + outputSamplesCount < self->elementCount) {
@@ -91,10 +91,10 @@ void Framebuffer_readBuffer(CSOUND *csound, Framebuffer *self,
     }
     else {
 
-        int firstHalf = self->elementCount - self->writeIndex;
+        int32_t firstHalf = self->elementCount - self->writeIndex;
         memcpy(outputSamples, &self->buffer[self->writeIndex],
                sizeof(MYFLT) * firstHalf);
-        int secondHalf = outputSamplesCount - firstHalf;
+        int32_t secondHalf = outputSamplesCount - firstHalf;
         memcpy(&outputSamples[firstHalf], self->buffer,
                sizeof(MYFLT) * secondHalf);
     }
@@ -115,7 +115,7 @@ void Framebuffer_processFrameInAudioOut(CSOUND *csound, Framebuffer *self)
     Framebuffer_readBuffer(csound, self, self->outputArgument, self->ksmps);
 }
 
-int Framebuffer_process(CSOUND *csound, Framebuffer *self)
+int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self)
 {
     if (self->inputType == KRATE_ARRAY) {
 

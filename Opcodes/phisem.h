@@ -70,7 +70,7 @@ typedef struct Cabasa {
     int32       num_objects;
     MYFLT       last_num;
     MYFLT       totalEnergy;
-    int         kloop;
+    int32_t         kloop;
 } CABASA;
 
 typedef struct Sekere {
@@ -99,7 +99,7 @@ typedef struct Sekere {
     MYFLT       finalZ0;
     MYFLT       finalZ1;
     MYFLT       finalZ2;
-    int         kloop;
+    int32_t         kloop;
 } SEKERE;
 
 typedef struct Guiro {
@@ -136,12 +136,12 @@ typedef struct Guiro {
     MYFLT       num_objects;
     MYFLT       totalEnergy;
     MYFLT       ratchet,ratchetDelta;
-    int         ratchetPos;
+    int32_t         ratchetPos;
     MYFLT       finalZ0;
     MYFLT       finalZ1;
     MYFLT       finalZ2;
     MYFLT       decayScale;
-    int         kloop;
+    int32_t         kloop;
 } GUIRO;
 
 typedef struct Tambour {
@@ -189,7 +189,7 @@ typedef struct Tambour {
     MYFLT       res_freq1;
     MYFLT       res_freq2;
     MYFLT       shake_damp;
-    int         kloop;
+    int32_t         kloop;
 } TAMBOURINE;
 
 typedef struct Bamboo {
@@ -231,7 +231,7 @@ typedef struct Bamboo {
     MYFLT       res_freq1;
     MYFLT       res_freq2;
     MYFLT       shake_damp;
-    int         kloop;
+    int32_t         kloop;
 } BAMBOO;
 
 typedef struct Wuter {
@@ -280,7 +280,7 @@ typedef struct Wuter {
     MYFLT       res_freq1;
     MYFLT       res_freq2;
     MYFLT       shake_damp;
-    int         kloop;
+    int32_t         kloop;
 } WUTER;
 
 typedef struct Sleighbells {
@@ -334,6 +334,7 @@ typedef struct Sleighbells {
     MYFLT       res_freq3;
     MYFLT       res_freq4;
     MYFLT       shake_damp;
-    int         kloop;
+    int32_t
+    kloop;
 } SLEIGHBELLS;
 #endif

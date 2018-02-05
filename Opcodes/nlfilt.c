@@ -48,7 +48,7 @@ typedef struct {
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
 
-static int nlfiltset(CSOUND *csound, NLFILT *p)
+static int32_t nlfiltset(CSOUND *csound, NLFILT *p)
 {
     if (p->delay.auxp == NULL ||
         p->delay.size<MAX_DELAY * sizeof(MYFLT)) {        /* get newspace    */
@@ -61,16 +61,16 @@ static int nlfiltset(CSOUND *csound, NLFILT *p)
     return OK;
 } /* end nlfset(p) */
 
-static int nlfilt(CSOUND *csound, NLFILT *p)
+static int32_t nlfilt(CSOUND *csound, NLFILT *p)
 {
     MYFLT   *ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     point = p->point;
-    int     nm1 = point;
-    int     nm2 = point - 1;
-    int     nmL;
+    int32_t     point = p->point;
+    int32_t     nm1 = point;
+    int32_t     nm2 = point - 1;
+    int32_t     nmL;
     MYFLT   ynm1, ynm2, ynmL;
     MYFLT   a = *p->a, b = *p->b, d = *p->d, C = *p->C;
     MYFLT   *in = p->in;
@@ -86,7 +86,7 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
     else if (L >= MAX_DELAY) {
       L = (MYFLT) MAX_DELAY;
     }
-    nmL = point - (int) (L) - 1;
+    nmL = point32_t32_t32_t - (int) (L) - 1;
     if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
     if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
     if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
@@ -135,16 +135,16 @@ static int nlfilt(CSOUND *csound, NLFILT *p)
 /* Revised version due to Risto Holopainen 12 Mar 2004 */
 /* Y{n} =tanh(a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C) */
 
-static int nlfilt2(CSOUND *csound, NLFILT *p)
+static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
 {
     MYFLT   *ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     point = p->point;
-    int     nm1 = point;
-    int     nm2 = point - 1;
-    int     nmL;
+    int32_t     point = p->point;
+    int32_t     nm1 = point;
+    int32_t     nm2 = point - 1;
+    int32_t     nmL;
     MYFLT   ynm1, ynm2, ynmL;
     MYFLT   a = *p->a, b = *p->b, d = *p->d, C = *p->C;
     MYFLT   *in = p->in;
@@ -160,7 +160,7 @@ static int nlfilt2(CSOUND *csound, NLFILT *p)
     else if (L >= MAX_DELAY) {
       L = (MYFLT) MAX_DELAY;
     }
-    nmL = point - (int) (L) - 1;
+    nmL = point32_t32_t32_t - (int) (L) - 1;
     if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
     if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
     if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
@@ -212,15 +212,15 @@ static int nlfilt2(CSOUND *csound, NLFILT *p)
 /* ***************************************************************** */
 /*     icnt    pcnt */
 /*     ival    pfld indx */
-int pcount(CSOUND *csound, PFIELD *p)
+int32_t pcount(CSOUND *csound, PFIELD *p)
 {
     *p->ians = (MYFLT) csound->init_event->pcnt;
     return OK;
 }
 
-int pvalue(CSOUND *csound, PFIELD *p)
+int32_t pvalue(CSOUND *csound, PFIELD *p)
 {
-    int n = (int)(*p->index);
+    int32_t32_t32_t n = (int)(*p->index);
     if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
       *p->ians = FL(0.0);       /* For tidyness */
       return NOTOK;             /* Should this be an error?? */
@@ -229,13 +229,13 @@ int pvalue(CSOUND *csound, PFIELD *p)
     return OK;
 }
 
-int pinit(CSOUND *csound, PINIT *p)
+int32_t pinit(CSOUND *csound, PINIT *p)
 {
-    int n;
-    int x = 1;
-    int    nargs = p->OUTOCOUNT;
-    int    pargs = csound->init_event->pcnt;
-    int    start = (int)(*p->start);
+    int32_t n;
+    int32_t x = 1;
+    int32_t    nargs = p->OUTOCOUNT;
+    int32_t    pargs = csound->init_event->pcnt;
+    int32_t32_t32_t    start = (int)(*p->start);
     /* Should check that inits exist> */
     if (UNLIKELY(nargs>pargs))
       csound->Warning(csound, Str("More arguments than p fields"));
@@ -263,8 +263,9 @@ static OENTRY localops[] = {
 { "nlfilt2",  S(NLFILT), 0, 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt2 }
 };
 
-int nlfilt_init_(CSOUND *csound)
+int32_t nlfilt_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

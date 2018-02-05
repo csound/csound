@@ -24,7 +24,7 @@
                                                         /* repluck.h */
 typedef struct _DelayLine {
     MYFLT   *data;
-    int length;
+    int32_t length;
     MYFLT   *pointer;
     MYFLT   *end;
 } DelayLine;
@@ -38,8 +38,8 @@ typedef struct  {
     AUXCH   up_data;
     AUXCH   down_data;
     MYFLT   state;
-    int     scale;
-    int     rail_len;
+    int32_t     scale;
+    int32_t     rail_len;
 } WGPLUCK2;
 
 /****************************************************/
@@ -53,5 +53,5 @@ typedef struct{
         double   LPdelay, APdelay;
         MYFLT   *Cdelay;
         AUXCH   aux;
-        int     wpointer, rpointer, size;
+        int32_t     wpointer, rpointer, size;
 } STRES;

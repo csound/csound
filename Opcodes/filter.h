@@ -46,13 +46,13 @@ typedef struct {
   MYFLT *coeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient input arguments */
   MYFLT *d1,*d2;    /* These allow ZFILTER to access FILTER routines */
 
-  int numa;         /* i-var p-time storage registers */
-  int numb;
+  int32_t numa;         /* i-var p-time storage registers */
+  int32_t numb;
 
   double dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient double arguments */
   AUXCH delay;     /* delay-line state memory base pointer */
   double* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
-  int   ndelay;    /* length of delay line (i.e. filter order) */
+  int32_t   ndelay;    /* length of delay line (i.e. filter order) */
 } FILTER;
 
 typedef struct {
@@ -64,13 +64,14 @@ typedef struct {
   MYFLT *nb, *na;   /* filter-order input arguments */
   MYFLT *coeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient input arguments */
 
-  int numa;         /* i-var p-time storage registers */
-  int numb;
+  int32_t numa;         /* i-var p-time storage registers */
+  int32_t numb;
 
   double dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient double arguments */
   AUXCH delay;     /* delay-line state memory base pointer */
   double* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
-  int   ndelay;    /* length of delay line (i.e. filter order) */
+  int32_t
+  ndelay;    /* length of delay line (i.e. filter order) */
   AUXCH roots;     /* pole roots memory for zfilter */
 } ZFILTER;
 

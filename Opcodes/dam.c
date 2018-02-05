@@ -42,7 +42,7 @@
  *      Initialisation code
  */
 
-static int daminit(CSOUND *csound, DAM *p)
+static int32_t daminit(CSOUND *csound, DAM *p)
 {
    /* Initialise gain value */
 
@@ -62,7 +62,7 @@ static int daminit(CSOUND *csound, DAM *p)
  * Run-time computation code
  */
 
-static int dam(CSOUND *csound, DAM *p)
+static int32_t dam(CSOUND *csound, DAM *p)
 {
      IGN(csound);
     MYFLT *ain,*aout;
@@ -157,9 +157,10 @@ static OENTRY localops[] = {
 { "dam",     S(DAM),  0, 5,     "a",    "akiiii",(SUBR)daminit, NULL, (SUBR)dam },
 };
 
-int dam_init_(CSOUND *csound)
+int32_t dam_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

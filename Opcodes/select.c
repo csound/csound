@@ -29,7 +29,7 @@ typedef struct Select {
 } Selecter;
 
 
-static int selecter(CSOUND *csound, Selecter* p)
+static int32_t selecter(CSOUND *csound, Selecter* p)
 {
     IGN(csound);
     MYFLT       *ar = p->ar;

@@ -34,7 +34,7 @@ typedef struct {
 } TABSUM;
 
 
-static int tabsuminit(CSOUND *csound, TABSUM *p)
+static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
       return csound->InitError(csound, Str("tabsum: No table"));
@@ -44,9 +44,9 @@ static int tabsuminit(CSOUND *csound, TABSUM *p)
 
 
 
-static int tabsum(CSOUND *csound, TABSUM *p)
+static int32_t tabsum(CSOUND *csound, TABSUM *p)
 {
-    int i, min, max;
+    int32_t i, min, max;
     MYFLT ans = FL(0.0);
     FUNC  *ftp = p->ftp;
     MYFLT *t;
@@ -59,7 +59,7 @@ static int tabsum(CSOUND *csound, TABSUM *p)
     max = MYFLT2LRND(*p->kmax);
     if (UNLIKELY(min == 0 && max == 0)) max = ftp->flen-1;
     else if (UNLIKELY(min > max)) {
-      int k = min; min = max; max = k;
+      int32_t k = min; min = max; max = k;
     }
     /* printf("tabsum: min, max = %d, %d\n", min, max); */
     for (i=min; i<=max; i++) ans += t[i];

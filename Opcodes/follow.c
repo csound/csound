@@ -30,7 +30,7 @@
 #include <math.h>
 #include "follow.h"
 
-static int flwset(CSOUND *csound, FOL *p)
+static int32_t flwset(CSOUND *csound, FOL *p)
 {
     p->wgh = p->max = FL(0.0);
     p->length = (int32)(*p->len * CS_ESR);
@@ -43,7 +43,7 @@ static int flwset(CSOUND *csound, FOL *p)
 }
 
                                 /* Use absolute value rather than max/min */
-static int follow(CSOUND *csound, FOL *p)
+static int32_t follow(CSOUND *csound, FOL *p)
 {
      IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -77,7 +77,7 @@ static int follow(CSOUND *csound, FOL *p)
    Bram.DeJong@rug.ac.be and James Maccartney posted on music-dsp;
    Transferred to csound by JPff, 2000 feb 12
 */
-static int envset(CSOUND *csound, ENV *p)
+static int32_t envset(CSOUND *csound, ENV *p)
 {
                                 /* Note - 6.90775527898 -- log(0.001) */
     p->lastatt = *p->attack;
@@ -94,7 +94,7 @@ static int envset(CSOUND *csound, ENV *p)
     return OK;
 }
 
-static int envext(CSOUND *csound, ENV *p)
+static int32_t envext(CSOUND *csound, ENV *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -148,9 +148,10 @@ static OENTRY localops[] = {
 { "follow2",  S(ENV),   0, 5, "a",    "akk",  (SUBR)envset,  NULL,  (SUBR)envext  }
 };
 
-int follow_init_(CSOUND *csound)
+int32_t follow_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

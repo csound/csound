@@ -37,7 +37,7 @@ static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
     return (x * a);
 }
 
-static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
+static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
 {
     FUNC        *gftp, *eftp;
     int32        bufsize;
@@ -65,7 +65,7 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
       csound->AuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
-    d +=  (int)(CS_ESR * *p->imkglen) + CS_KSMPS;
+    d +=  (int32_t)(CS_ESR * *p->imkglen) + CS_KSMPS;
     p->y = d;
 
     p->ampadv = IS_ASIG_ARG(p->xamp) ? 1 : 0;
@@ -74,7 +74,7 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     return OK;
 }
 
-static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
+static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 {
     FUNC        *gtp, *etp;
     MYFLT       *buf, *out, *rem, *gtbl, *etbl;
@@ -166,9 +166,10 @@ static OENTRY localops[] = {
 { "grain", S(PGRA),  TR, 5,   "a",    "xxxkkkiiio", (SUBR)agsset, NULL, (SUBR)ags }
 };
 
-int grain_init_(CSOUND *csound)
+int32_t grain_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

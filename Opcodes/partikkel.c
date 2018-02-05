@@ -91,14 +91,14 @@ static void kill_oldest_grain(GRAINPOOL *s, NODE *n)
     n->next = NULL;
 }
 
-static int setup_globals(CSOUND *csound, PARTIKKEL *p)
+static int32_t setup_globals(CSOUND *csound, PARTIKKEL *p)
 {
     PARTIKKEL_GLOBALS *pg;
     PARTIKKEL_GLOBALS_ENTRY **pe;
 
     pg = csound->QueryGlobalVariable(csound, "partikkel");
     if (pg == NULL) {
-      int i;
+      int32_t i;
 
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "partikkel",
                                                 sizeof(PARTIKKEL_GLOBALS)) != 0))
@@ -135,7 +135,7 @@ static int setup_globals(CSOUND *csound, PARTIKKEL *p)
         pg->zzhhhhz_tab->ftable[i] = FL(0.5);
     }
     p->globals = pg;
-    if ((int)*p->opcodeid == 0) {
+    if ((int32_t)*p->opcodeid == 0) {
       /* opcodeid 0 means we do not bother with the sync opcode */
       p->globals_entry = NULL;
       return OK;
@@ -217,10 +217,10 @@ static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
     return result;
 }
 
-static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
+static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
 {
     uint32_t size;
-    int ret;
+    int32_t ret;
 
     if ((ret = setup_globals(csound, p)) != OK)
         return ret;
@@ -329,7 +329,7 @@ static int partikkel_init(CSOUND *csound, PARTIKKEL *p)
 
 /* n is sample number for which the grain is to be scheduled
  * offset is time offset for grain in seconds, passed separately for hints */
-static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
+static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
                           double offset)
 {
     /* make a new grain */
@@ -545,7 +545,7 @@ static int schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
 }
 
 /* this function schedules the grains that are bound to happen this k-period */
-static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
+static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
 {
     uint32_t koffset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -636,7 +636,7 @@ static int schedule_grains(CSOUND *csound, PARTIKKEL *p)
             /* check first, in case we'll change the above behaviour of
              * killing a grain */
             if (node) {
-                int ret = schedule_grain(csound, p, node, n, offset);
+                int32_t ret = schedule_grain(csound, p, node, n, offset);
 
                 if (ret != OK)
                     return ret;
@@ -725,7 +725,7 @@ static inline void render_trainlet(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
 static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
 {
     IGN(csound);
-    int i;
+    int32_t i;
     uint32_t n;
     MYFLT *out1 = *(&(p->output1) + grain->chan1);
     MYFLT *out2 = *(&(p->output1) + grain->chan2);
@@ -791,9 +791,9 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
     memset(buf + grain->start, 0, (stop - grain->start)*sizeof(MYFLT));
 }
 
-static int partikkel(CSOUND *csound, PARTIKKEL *p)
+static int32_t partikkel(CSOUND *csound, PARTIKKEL *p)
 {
-    int ret;
+    int32_t ret;
     uint32_t n;
     NODE **nodeptr;
     MYFLT **outputs = &p->output1;
@@ -833,12 +833,12 @@ static int partikkel(CSOUND *csound, PARTIKKEL *p)
 }
 
 /* partikkelsync stuff */
-static int partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
+static int32_t partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
 {
     PARTIKKEL_GLOBALS *pg;
     PARTIKKEL_GLOBALS_ENTRY *pe;
 
-    if (UNLIKELY((int)*p->opcodeid == 0))
+    if (UNLIKELY((int32_t)*p->opcodeid == 0))
         return csound->InitError(csound,
             Str("partikkelsync: opcode id needs to be a non-zero integer"));
     pg = csound->QueryGlobalVariable(csound, "partikkel");
@@ -857,7 +857,7 @@ static int partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
     return OK;
 }
 
-static int partikkelsync(CSOUND *csound, PARTIKKEL_SYNC *p)
+static int32_t partikkelsync(CSOUND *csound, PARTIKKEL_SYNC *p)
 {
    IGN(csound);
     /* write sync pulse data */
@@ -872,7 +872,7 @@ static int partikkelsync(CSOUND *csound, PARTIKKEL_SYNC *p)
     return OK;
 }
 
-static int get_global_entry(CSOUND *csound, PARTIKKEL_GLOBALS_ENTRY **entry,
+static int32_t get_global_entry(CSOUND *csound, PARTIKKEL_GLOBALS_ENTRY **entry,
                             MYFLT opcodeid, const char *prefix)
 {
     PARTIKKEL_GLOBALS *pg;
@@ -894,17 +894,17 @@ static int get_global_entry(CSOUND *csound, PARTIKKEL_GLOBALS_ENTRY **entry,
     return OK;
 }
 
-static int partikkelget_init(CSOUND *csound, PARTIKKEL_GET *p)
+static int32_t partikkelget_init(CSOUND *csound, PARTIKKEL_GET *p)
 {
     return get_global_entry(csound, &p->ge, *p->opcodeid, "partikkelget");
 }
 
-static int partikkelget(CSOUND *csound, PARTIKKEL_GET *p)
+static int32_t partikkelget(CSOUND *csound, PARTIKKEL_GET *p)
 {
     IGN(csound);
     PARTIKKEL *partikkel = p->ge->partikkel;
 
-    switch ((int)*p->index) {
+    switch ((int32_t)*p->index) {
     case 0:
         *p->valout = (MYFLT)partikkel->gainmaskindex;
         break;
@@ -927,17 +927,17 @@ static int partikkelget(CSOUND *csound, PARTIKKEL_GET *p)
     return OK;
 }
 
-static int partikkelset_init(CSOUND *csound, PARTIKKEL_SET *p)
+static int32_t partikkelset_init(CSOUND *csound, PARTIKKEL_SET *p)
 {
     return get_global_entry(csound, &p->ge, *p->opcodeid, "partikkelset");
 }
 
-static int partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
+static int32_t partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
 {
     IGN(csound);
     PARTIKKEL *partikkel = p->ge->partikkel;
 
-    switch ((int)*p->index) {
+    switch ((int32_t)*p->index) {
     case 0:
         partikkel->gainmaskindex = (uint32_t)*p->value;
         break;

@@ -45,7 +45,7 @@ typedef struct {
   double      rs00[7], rs01[7], rs10[7], rs11[7];
   // distortion
   double      rdrive, rbdr, kpa, kpb, kna, knb, ap, an, imr, kc, srct, sq, pwrq;
-  int         over;
+  int32_t         over;
   double      prev_med, prev_out;
   double      blend_old, drive_old;
 } EXCITER;
@@ -98,7 +98,7 @@ static inline void set_lp_rbj(double lp[7], double fc, double q, double sr)
     /* printf("lp_rbj: %f %f %f %f %f\n", lp[0], lp[1], lp[2], lp[3], lp[4]); */
 }
 
-static int exciter_init(CSOUND *csound, EXCITER *p)
+static int32_t exciter_init(CSOUND *csound, EXCITER *p)
 {
     p->freq_old =  p->ceil_old = FL(0.0);
     p->hp1[5] = p->hp2[5] = p->hp3[5] = p->hp4[5] = 0.0;
@@ -165,7 +165,7 @@ static inline double D(double x)
 static inline double distort(EXCITER *p, double in)
 {
     double samples[2], ans;
-    int i;
+    int32_t i;
     double ap = p->ap, an = p->an, kpa = p->kpa, kna = p->kna,
           kpb = p->kpb, knb = p->knb, pwrq = p->pwrq;
     //printf("in: %f\n", in);
@@ -250,7 +250,7 @@ static inline void params_changed(CSOUND *csound, EXCITER *p)
     set_distort(csound, p);
 }
 
-int exciter_perf(CSOUND *csound, EXCITER *p)
+int32_t exciter_perf(CSOUND *csound, EXCITER *p)
 //uint32_t inputs_mask, uint32_t outputs_mask)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;

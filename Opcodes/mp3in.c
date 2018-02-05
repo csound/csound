@@ -36,9 +36,9 @@ typedef struct {
   MYFLT   *ibufsize;
   /* ------------------------------------- */
   mp3dec_t mpa;               /* For library */
-  int      r;                  /* Result field */
-  int      initDone;
-  int      bufSize;            /* in sample frames, power of two */
+  int32_t      r;                  /* Result field */
+  int32_t      initDone;
+  int32_t      bufSize;            /* in sample frames, power of two */
   uint32_t bufused;
   int64_t  pos;           /* type should be defined in sysdep.h */
   uint8_t  *buf;
@@ -54,7 +54,7 @@ typedef struct {
 
 } MP3LEN;
 
-int mp3in_cleanup(CSOUND *csound, MP3IN *p)
+int32_t mp3in_cleanup(CSOUND *csound, MP3IN *p)
 {
      IGN(csound);
     if (LIKELY(p->mpa != NULL))
@@ -64,20 +64,20 @@ int mp3in_cleanup(CSOUND *csound, MP3IN *p)
 }
 
 
-int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
+int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
 {
     char    name[1024];
-    int     fd;
+    int32_t     fd;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
     mpadec_info_t mpainfo;
-    int buffersize = (*p->ibufsize<=0.0 ? /*0x1000*/ 8*1152 : (int)*p->ibufsize);
+    int32_t buffersize = (*p->ibufsize<=0.0 ? /*0x1000*/ 8*1152 : (int32_t)*p->ibufsize);
     /* uint64_t maxsize; */
-    int r;
-    int skip;
+    int32_t r;
+    int32_t skip;
     if (p->OUTOCOUNT==1) config.mode = MPADEC_CONFIG_MONO;
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
@@ -129,7 +129,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
       mp3dec_uninit(mpa);
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
-    skip = (int)(*p->iSkipTime*CS_ESR);
+    skip = (int32_t)(*p->iSkipTime*CS_ESR);
 
     /* maxsize = mpainfo.decoded_sample_size */
     /*          *mpainfo.decoded_frame_samples */
@@ -161,10 +161,10 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     if (*(p->iSkipInit) != FL(0.0))
       return OK;
     /* set file parameters from header info */
-    if ((int) (CS_ESR + FL(0.5)) != mpainfo.frequency) {
+    if ((int32_t) (CS_ESR + FL(0.5)) != mpainfo.frequency) {
       csound->Warning(csound, Str("mp3in: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
-                      mpainfo.frequency, (int) (CS_ESR + FL(0.5)));
+                      mpainfo.frequency, (int32_t) (CS_ESR + FL(0.5)));
     }
     /* initialise buffer */
     mp3dec_seek(mpa,0, MP3DEC_SEEK_SAMPLES);
@@ -177,7 +177,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     //printf("===%d \n", skip);
     //skip = skip - 528;
     while (skip > 0) {
-      int xx= skip;
+      int32_t xx= skip;
       // printf("%d \n", skip);
       if (xx > buffersize) xx = buffersize;
       skip -= xx;
@@ -189,7 +189,7 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     p->r = r;
     if (p->initDone == 0)
       csound->RegisterDeinitCallback(csound, p,
-                                     (int (*)(CSOUND*, void*)) mp3in_cleanup);
+                                     (int32_t (*)(CSOUND*, void*)) mp3in_cleanup);
     /* done initialisation */
     p->initDone = -1;
     p->pos = 0;
@@ -197,23 +197,23 @@ int mp3ininit_(CSOUND *csound, MP3IN *p, int stringname)
     return OK;
 }
 
-int mp3ininit(CSOUND *csound, MP3IN *p){
+int32_t mp3ininit(CSOUND *csound, MP3IN *p){
     return mp3ininit_(csound,p,0);
 }
 
-int mp3ininit_S(CSOUND *csound, MP3IN *p){
+int32_t mp3ininit_S(CSOUND *csound, MP3IN *p){
     return mp3ininit_(csound,p,1);
 }
 
 
-int mp3in(CSOUND *csound, MP3IN *p)
+int32_t mp3in(CSOUND *csound, MP3IN *p)
 {
-    int r           = p->r;
+    int32_t r           = p->r;
     mp3dec_t mpa    = p->mpa;
     uint8_t *buffer = p->buf;
     MYFLT *al       = p->ar[0];
     MYFLT *ar       = p->ar[1];
-    int pos         = p->pos;
+    int32_t pos         = p->pos;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t i, n, nsmps = CS_KSMPS;
@@ -231,7 +231,7 @@ int mp3in(CSOUND *csound, MP3IN *p)
       for (i=0; i<p->OUTOCOUNT; i++) {     /* stereo */
         MYFLT xx;
         short *bb = (short*)buffer;
-        while (r != MP3DEC_RETCODE_OK || 2*pos >=  (int)p->bufused) {
+        while (r != MP3DEC_RETCODE_OK || 2*pos >=  (int32_t)p->bufused) {
           r = mp3dec_decode(mpa, buffer, p->bufSize, &p->bufused);
           if (UNLIKELY(p->bufused == 0)) {
             memset(&al[n], 0, (nsmps-n)*sizeof(MYFLT));
@@ -257,17 +257,17 @@ int mp3in(CSOUND *csound, MP3IN *p)
     return OK;
 }
 
-int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
+int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
 {
     char    name[1024];
-    int     fd;
+    int32_t     fd;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
     mpadec_info_t mpainfo;
-    int r;
+    int32_t r;
 
     /* open file */
     mpa = mp3dec_init();
@@ -317,11 +317,11 @@ int mp3len_(CSOUND *csound, MP3LEN *p, int stringname)
     return OK;
 }
 
-int mp3len(CSOUND *csound, MP3LEN *p){
+int32_t mp3len(CSOUND *csound, MP3LEN *p){
     return mp3len_(csound,p,0);
 }
 
-int mp3len_S(CSOUND *csound, MP3LEN *p){
+int32_t mp3len_S(CSOUND *csound, MP3LEN *p){
     return mp3len_(csound,p,1);
 }
 
@@ -330,7 +330,7 @@ typedef struct dats{
   OPDS h;
   MYFLT *out1,*out2,*kstamp, *knum, *time,*kpitch, *kamp, *skip, *iN,
     *idecim, *klock,*kinterp;
-  int cnt, hsize, curframe, N, decim,tscale;
+  int32_t cnt, hsize, curframe, N, decim,tscale;
   double pos;
   MYFLT accum;
   AUXCH outframe[MP3_CHNS], win, bwin[MP3_CHNS], fwin[MP3_CHNS],
@@ -342,20 +342,20 @@ typedef struct dats{
   FDCH    fdch;
   MYFLT resamp;
   double tstamp, incr;
-  int initDone;
+  int32_t initDone;
   uint32_t bufused;
-  int finished;
+  int32_t finished;
   char init;
   CSOUND *csound;
   // PTHREAD: change
   //pthread_t t;
   void* t;
-  int ti;
+  int32_t ti;
   char filling;
   void *fwdsetup, *invsetup;
 } DATASPACE;
 
-int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
+int32_t mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
 {
    IGN(csound);
     if (p->mpa != NULL)
@@ -364,15 +364,15 @@ int mp3scale_cleanup(CSOUND *csound, DATASPACE *p)
 }
 
 #define BUFS 32
-static void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps);
+static void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps);
 /* file-reading version of temposcal */
-static int sinit(CSOUND *csound, DATASPACE *p)
+static int32_t sinit(CSOUND *csound, DATASPACE *p)
 {
 
-    int N =  *p->iN, ui;
+    int32_t N =  *p->iN, ui;
     uint32_t i;
     uint32_t size;
-    int decim = *p->idecim;
+    int32_t decim = *p->idecim;
     /*double dtime;
       struct timespec ts;
       clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -381,7 +381,7 @@ static int sinit(CSOUND *csound, DATASPACE *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = (int) pow(2.0, i-1);  /* could be a shift? */
+      N = (int32_t) pow(2.0, i-1);  /* could be a shift? */
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -399,13 +399,13 @@ static int sinit(CSOUND *csound, DATASPACE *p)
         csound->AuxAlloc(csound, size, &p->bwin[i]);
       if (p->prev[i].auxp == NULL || p->prev[i].size < size)
         csound->AuxAlloc(csound, size, &p->prev[i]);
-      size = decim*sizeof(int);
+      size = decim*sizeof(int32_t);
       if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
         csound->AuxAlloc(csound, size, &p->framecount[i]);
       {
-        int k=0;
+        int32_t k=0;
         for (k=0; k < decim; k++) {
-          ((int *)(p->framecount[i].auxp))[k] = k*N;
+          ((int32_t *)(p->framecount[i].auxp))[k] = k*N;
         }
       }
       size = decim*sizeof(MYFLT)*N;
@@ -435,13 +435,13 @@ static int sinit(CSOUND *csound, DATASPACE *p)
     return OK;
 }
 
-static int sinit3_(CSOUND *csound, DATASPACE *p)
+static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
 {
     uint32_t size;
     char *name;
     // open file
-    int fd;
-    int r;
+    int32_t fd;
+    int32_t r;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
@@ -530,13 +530,13 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
       fdrecord(csound, &(p->fdch));
     */
     printf("fftsize = %d \n", p->N);
-    int buffersize = size;
+    int32_t buffersize = size;
     buffersize /= mpainfo.decoded_sample_size;
-    int skip = (int)(*p->skip*CS_ESR)*p->resamp;
+    int32_t skip = (int32_t)(*p->skip*CS_ESR)*p->resamp;
     p->bufused = -1;
 
     /*while (skip > 0) {
-      int xx= skip;
+      int32_t xx= skip;
       if (xx > buffersize) xx = buffersize;
       skip -= xx;
       r = mp3dec_decode(mpa, p->buffer.auxp,
@@ -555,7 +555,7 @@ static int sinit3_(CSOUND *csound, DATASPACE *p)
     p->tstamp = 0;
     if(p->initDone == -1)
       csound->RegisterDeinitCallback(csound, p,
-                                     (int (*)(CSOUND*, void*)) mp3scale_cleanup);
+                                     (int32_t (*)(CSOUND*, void*)) mp3scale_cleanup);
     p->initDone = -1;
     p->finished = 0;
     p->init = 1;
@@ -573,7 +573,7 @@ void *init_thread(void *p){
     return NULL;
 }
 
-static int sinit3(CSOUND *csound, DATASPACE *p){
+static int32_t sinit3(CSOUND *csound, DATASPACE *p){
     p->csound = csound;
     p->init = 0;
     p->ti = 0;
@@ -583,7 +583,7 @@ static int sinit3(CSOUND *csound, DATASPACE *p){
 }
 #else
 
-static int sinit3(CSOUND *csound, DATASPACE *p) {
+static int32_t sinit3(CSOUND *csound, DATASPACE *p) {
     return sinit3_(csound,p);
 }
 
@@ -595,13 +595,13 @@ static int sinit3(CSOUND *csound, DATASPACE *p) {
   from disk position offset samps from the last
   call to fillbuf
 */
-void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
+void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps){
    IGN(csound);
     short *buffer= (short *) p->buffer.auxp;
     MYFLT *data[2];
-    data[0] =  p->indataL[(int)p->curbuf];
-    data[1] =  p->indataR[(int)p->curbuf];
-    int i,j, end;
+    data[0] =  p->indataL[(int32_t)p->curbuf];
+    data[1] =  p->indataR[(int32_t)p->curbuf];
+    int32_t i,j, end;
     memset(data[0],0,nsmps*sizeof(MYFLT));
     memset(data[1],0,nsmps*sizeof(MYFLT));
     if(!p->finished){
@@ -620,34 +620,34 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int nsmps){
     p->curbuf = p->curbuf ? 0 : 1;
 }
 
-static int sprocess3(CSOUND *csound, DATASPACE *p)
+static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     MYFLT pitch = *p->kpitch*p->resamp, time = *p->time*p->resamp, lock = *p->klock;
     MYFLT *out;
     MYFLT *tab, **table,frac;
-    int N = p->N, hsize = p->hsize, cnt = p->cnt;
-    int  nsmps = CS_KSMPS, n;
-    int size = p->fdata[0].size/sizeof(MYFLT), post, i, j;
+    int32_t N = p->N, hsize = p->hsize, cnt = p->cnt;
+    int32_t  nsmps = CS_KSMPS, n;
+    int32_t size = p->fdata[0].size/sizeof(MYFLT), post, i, j;
     double pos, spos = p->pos;
     MYFLT *fwin, *bwin;
     MYFLT in, *prev;
     MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
     MYFLT ph_real, ph_im, tmp_real, tmp_im, div;
-    int *framecnt, curframe = p->curframe;
-    int decim = p->decim;
-    int interp = *p->kinterp;
+    int32_t *framecnt, curframe = p->curframe;
+    int32_t decim = p->decim;
+    int32_t interp = *p->kinterp;
     double tstamp = p->tstamp, incrt = p->incr;
     double amp = *p->kamp*csound->Get0dBFS(csound)*(8./decim)/3.;
-    int curbuf = p->curbuf;
+    int32_t curbuf = p->curbuf;
     AUXCH *mfwin = p->fwin,
       *mbwin = p->bwin,
       *mprev = p->prev,
       *moutframe = p->outframe,
       *mframecount = p->framecount;
     MYFLT hsizepitch = hsize*pitch;
-    int nbytes =  p->N*sizeof(MYFLT);
+    int32_t nbytes =  p->N*sizeof(MYFLT);
 
     if(time < 0) time = 0.0;
     table = p->tab;
@@ -699,13 +699,13 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
           bwin = (MYFLT *) mbwin[j].auxp;
           fwin = (MYFLT *) mfwin[j].auxp;
           prev = (MYFLT *) mprev[j].auxp;
-          framecnt  = (int *) mframecount[j].auxp;
+          framecnt  = (int32_t *) mframecount[j].auxp;
           outframe= (MYFLT *) moutframe[j].auxp;
           tab = table[j];
           if(pitch != 1) {
             pos = spos;
             for (i=0; i < N; i++) {
-              post = (int) pos;
+              post = (int32_t) pos;
               frac = pos  - post;
               if(post < 0) post += size;
               if(post >= size) post -= size;
@@ -729,12 +729,12 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
             }
           }
           else {
-            post = (int) spos;
-            int end = post+N;
+            post = (int32_t) spos;
+            int32_t end = post+N;
             if(end <= size)
               memcpy(fwin,&tab[post],nbytes);
             else {
-              int endbytes;
+              int32_t endbytes;
               endbytes = (end - size)*sizeof(MYFLT);
               end = N - (end - size);
               memcpy(fwin,&tab[post],nbytes-endbytes);
@@ -746,7 +746,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
             if(end < size)
               memcpy(bwin,&tab[post],nbytes);
             else {
-              int endbytes;
+              int32_t endbytes;
               endbytes = (end - size)*sizeof(MYFLT);
               end = N - (end - size);
               memcpy(bwin,&tab[post],nbytes-endbytes);
@@ -827,7 +827,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
       /* we only output as many channels as we have outs for */
       for (j=0; j < 2; j++) {
         out = j == 0 ? p->out1 : p->out2;
-        framecnt  = (int *) p->framecount[j].auxp;
+        framecnt  = (int32_t *) p->framecount[j].auxp;
         outframe  = (MYFLT *) p->outframe[j].auxp;
         out[n] = (MYFLT) 0;
 
@@ -852,7 +852,7 @@ static int sprocess3(CSOUND *csound, DATASPACE *p)
 #ifdef ANDROID
 
 typedef struct _mp3scal2_ {
-  int cnt, hsize, curframe, N, decim,tscale;
+  int32_t cnt, hsize, curframe, N, decim,tscale;
   double pos;
   MYFLT accum;
   AUXCH outframe[MP3_CHNS], win, bwin[MP3_CHNS], fwin[MP3_CHNS],
@@ -864,20 +864,20 @@ typedef struct _mp3scal2_ {
   FDCH    fdch;
   MYFLT resamp;
   double tstamp, incr;
-  int initDone;
+  int32_t initDone;
   uint32_t bufused;
-  int finished;
+  int32_t finished;
   char init;
   CSOUND *csound;
   pthread_t t,t1;
-  int ti;
+  int32_t ti;
   MYFLT ilen;
   MYFLT skip;
   char playing;
-  int nsmps;
+  int32_t nsmps;
   char filling;
-  int async;
-  int error;
+  int32_t async;
+  int32_t error;
   MYFLT orsr;
   char lock;
   uint64_t end;
@@ -894,14 +894,14 @@ typedef struct _loader {
 
 void *buffiller(void *pp){
   MP3SCAL2 *p = (MP3SCAL2 *) pp;
-  int nsmps = p->nsmps;
+  int32_t nsmps = p->nsmps;
   short *buffer= (short *) p->buffer.auxp;
   MYFLT *data[2];
   p->lock = 1;
   if(p->mpa != NULL) {
-    data[0] =  p->indataL[(int)p->curbuf];
-    data[1] =  p->indataR[(int)p->curbuf];
-    int i,j, end;
+    data[0] =  p->indataL[(int32_t)p->curbuf];
+    data[1] =  p->indataR[(int32_t)p->curbuf];
+    int32_t i,j, end;
     memset(data[0],0,nsmps*sizeof(MYFLT));
     memset(data[1],0,nsmps*sizeof(MYFLT));
     if(!p->finished){
@@ -923,10 +923,10 @@ void *buffiller(void *pp){
   return NULL;
 }
 
-void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int nsmps){
+void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int32_t nsmps){
   p->nsmps = nsmps;
   if(p->async) {
-    int policy;
+    int32_t policy;
     struct sched_param param;
     pthread_create(&(p->t1), NULL, buffiller, p);
     pthread_getschedparam(p->t1, &policy,
@@ -942,21 +942,21 @@ void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int nsmps){
 }
 
 
-static int meminit(CSOUND *csound, LOADER *pp)
+static int32_t meminit(CSOUND *csound, LOADER *pp)
 {
 
   MP3SCAL2 *p = &(pp->p);
-  int N =  *pp->iN, ui;
+  int32_t N =  *pp->iN, ui;
   uint32_t i;
   uint32_t size;
-  int decim = *pp->idecim;
+  int32_t decim = *pp->idecim;
   p->N = N;
   p->error = 0;
   if (N) {
     for (i=0; N; i++) {
       N >>= 1;
     }
-    N = (int) pow(2.0, i-1);
+    N = (int32_t) pow(2.0, i-1);
   } else N = 2048;
   if (decim == 0) decim = 4;
 
@@ -975,13 +975,13 @@ static int meminit(CSOUND *csound, LOADER *pp)
     if (p->prev[i].auxp == NULL || p->prev[i].size < size)
       csound->AuxAlloc(csound, size, &p->prev[i]);
 
-    size = decim*sizeof(int);
+    size = decim*sizeof(int32_t);
     if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
       csound->AuxAlloc(csound, size, &p->framecount[i]);
     {
-      int k=0;
+      int32_t k=0;
       for (k=0; k < decim; k++) {
-        ((int *)(p->framecount[i].auxp))[k] = k*N;
+        ((int32_t *)(p->framecount[i].auxp))[k] = k*N;
       }
     }
     size = decim*sizeof(MYFLT)*N;
@@ -1005,7 +1005,7 @@ static int meminit(CSOUND *csound, LOADER *pp)
   return OK;
 }
 
-int mp3dec_cleanup(CSOUND *csound, LOADER *p)
+int32_t mp3dec_cleanup(CSOUND *csound, LOADER *p)
 {
   while(p->p.lock)
     usleep(1000);
@@ -1015,7 +1015,7 @@ int mp3dec_cleanup(CSOUND *csound, LOADER *p)
   return OK;
 }
 
-void decode_seek(CSOUND *csound, mp3dec_t mpa, int skip){
+void decode_seek(CSOUND *csound, mp3dec_t mpa, int32_t skip){
   unsigned char buffer[1152*4];
   mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);
   while (skip > 0) {
@@ -1025,21 +1025,21 @@ void decode_seek(CSOUND *csound, mp3dec_t mpa, int skip){
 }
 
 
-static int filinit(CSOUND *csound, LOADER *pp)
+static int32_t filinit(CSOUND *csound, LOADER *pp)
 {
   MP3SCAL2 *p = &(pp->p);
   uint32_t size;
   char *name;
   // open file
-  int fd;
-  int r;
+  int32_t fd;
+  int32_t r;
   mp3dec_t mpa           = NULL;
   mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
                              MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                              MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                              0.0 };
   mpadec_info_t mpainfo;
-  int buffsize = 32768;
+  int32_t buffsize = 32768;
 
   p->init = 0;
   if(*pp->bfs) buffsize = *pp->bfs*8;
@@ -1114,22 +1114,22 @@ static int filinit(CSOUND *csound, LOADER *pp)
      dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
    */
 
-  int skip = (int)(*pp->skip*mpainfo.frequency);
+  int32_t skip = (int32_t)(*pp->skip*mpainfo.frequency);
   p->bufused = -1;
   /* mp3_seek operates on multiples of 1152 frames */
-  int frmsiz = mpainfo.decoded_frame_samples;
+  int32_t frmsiz = mpainfo.decoded_frame_samples;
    if(skip > 0) {
-     int ftbr = skip/frmsiz;
-     int skips = ftbr*frmsiz;
+     int32_t ftbr = skip/frmsiz;
+     int32_t skips = ftbr*frmsiz;
      MYFLT fsize = (FL(125.0)*mpainfo.bitrate*frmsiz)/mpainfo.frequency;
-     if(fsize - (int) fsize > FL(0.0)){
+     if(fsize - (int32_t) fsize > FL(0.0)){
        char dat[4];
-       int byts, pad, i;
+       int32_t byts, pad, i;
        mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);
        for(i=0; i < ftbr; i++){
         byts = read(fd,dat,4);
         pad = dat[2] & 0x02 ? 1 : 0;
-        lseek(fd,(int)fsize + pad - 4, SEEK_CUR);
+        lseek(fd,(int32_t)fsize + pad - 4, SEEK_CUR);
         //printf("skip %d pad %d \n", i, pad);
        }
      } else
@@ -1182,7 +1182,7 @@ void *loader_thread(void *p){
   return NULL;
 }
 
-static int loader_init(CSOUND *csound, LOADER *pp){
+static int32_t loader_init(CSOUND *csound, LOADER *pp){
   MP3SCAL2 *p = &(pp->p);
   p->csound = csound;
   p->init = 0;
@@ -1191,7 +1191,7 @@ static int loader_init(CSOUND *csound, LOADER *pp){
     if(pthread_create(&(pp->p.t), NULL, loader_thread, pp) != 0)
       csound->Message(csound, "failed to start thread \n");
     struct sched_param param;
-    int policy;
+    int32_t policy;
     pthread_getschedparam((pp->p.t), &policy,
                           &param);
     param.sched_priority = 0;
@@ -1205,7 +1205,7 @@ static int loader_init(CSOUND *csound, LOADER *pp){
   pp->res->size = sizeof(MP3SCAL2);
   // if(p->initDone == 0)
   //csound->RegisterDeinitCallback(csound, pp,
-  // (int (*)(CSOUND*, void*)) mp3dec_cleanup);
+  // (int32_t (*)(CSOUND*, void*)) mp3dec_cleanup);
   //p->initDone = 1;
   return OK;
 }
@@ -1218,7 +1218,7 @@ typedef struct _check {
 } CHECK;
 
 
-static int check_init(CSOUND *csound, CHECK *p){
+static int32_t check_init(CSOUND *csound, CHECK *p){
     if(p->pp->data != NULL &&
        p->pp->size != sizeof(MP3SCAL2)) {
       p->p = (MP3SCAL2 *) p->pp->data;
@@ -1227,7 +1227,7 @@ static int check_init(CSOUND *csound, CHECK *p){
     return OK;
 }
 
-static int check_play(CSOUND *csound, CHECK *p){
+static int32_t check_play(CSOUND *csound, CHECK *p){
     *p->res = p->p->init;
     return OK;
 }
@@ -1251,7 +1251,7 @@ typedef struct _player {
 #endif
 } PLAYER;
 
-int mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
+int32_t mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
 {
   while(p->p->lock)
     usleep(1000);
@@ -1267,7 +1267,7 @@ int mp3dec_cleanup_player(CSOUND *csound,  PLAYER  *p)
   return OK;
 }
 
-static int player_init(CSOUND *csound, PLAYER *p){
+static int32_t player_init(CSOUND *csound, PLAYER *p){
   if(p->pp->data != NULL &&
      p->pp->size != sizeof(MP3SCAL2)) {
     p->p = (MP3SCAL2 *) p->pp->data;
@@ -1277,10 +1277,10 @@ static int player_init(CSOUND *csound, PLAYER *p){
   p->p->async = *p->async;
   if(p->p->initDone == 0)
     csound->RegisterDeinitCallback(csound, p,
-                                   (int (*)(CSOUND*, void*)) mp3dec_cleanup_player);
+                                   (int32_t (*)(CSOUND*, void*)) mp3dec_cleanup_player);
   p->p->initDone = 1;
 
-  int policy;
+  int32_t policy;
   struct sched_param param;
   pthread_getschedparam(pthread_self(), &policy,
                         &param);
@@ -1339,9 +1339,9 @@ inline
 MYFLT
 invsqrt(MYFLT x)
 {
-  long i;
+  int64_t i;
   float x2 = x*0.5f;
-  i = * (long *) &x;
+  i = * (int64_t *) &x;
   i = 0x5f3759df - (i >> 1);
   x = *(float *) &i;
   x = x*(1.5f - (x2*x*x));
@@ -1394,25 +1394,25 @@ inv_mag2(MYFLT *a){
 
 
 
-#define FTOINT(x)  ((int)x)
+#define FTOINT(x)  ((int32_t)x)
 
-static int player_play(CSOUND *csound, PLAYER *pp)
+static int32_t player_play(CSOUND *csound, PLAYER *pp)
 {
   MP3SCAL2 *p = pp->p;
   uint32_t offset = pp->h.insdshead->ksmps_offset;
   uint32_t early  = pp->h.insdshead->ksmps_no_end;
-  int decim = p->decim;
+  int32_t decim = p->decim;
   MYFLT pitch = *pp->kpitch*p->resamp, time = *pp->time*p->resamp,
          lock = *pp->klock;
   double amp = *pp->kamp*csound->Get0dBFS(csound)*(8./decim)/3.;
-  int interp = *pp->kinterp;
+  int32_t interp = *pp->kinterp;
 #ifdef __clang__
   MYFLT *restrict out;
   MYFLT *restrict fwin;
   MYFLT *restrict bwin;
   MYFLT *restrict prev;
   MYFLT *restrict win = (MYFLT *) p->win.auxp, *restrict outframe;
-  int *restrict framecnt, curframe = p->curframe;
+  int32_t *restrict framecnt, curframe = p->curframe;
   MYFLT *restrict tab, **table,frac;
   MYFLT *restrict phs;
 #else
@@ -1421,13 +1421,13 @@ static int player_play(CSOUND *csound, PLAYER *pp)
   MYFLT *bwin;
   MYFLT *prev;
   MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
-  int *framecnt, curframe = p->curframe;
+  int32_t *framecnt, curframe = p->curframe;
   MYFLT *tab, **table,frac;
   MYFLT *phs;
 #endif
-  int N = p->N, hsize = p->hsize, cnt = p->cnt;
-  int  nsmps = csound->GetKsmps(csound), n;
-  int size = p->fdata[0].size/sizeof(MYFLT), post, i, j;
+  int32_t N = p->N, hsize = p->hsize, cnt = p->cnt;
+  int32_t  nsmps = csound->GetKsmps(csound), n;
+  int32_t size = p->fdata[0].size/sizeof(MYFLT), post, i, j;
   double pos, spos = p->pos;
   MYFLT in;
   MYFLT div;
@@ -1438,8 +1438,8 @@ static int player_play(CSOUND *csound, PLAYER *pp)
     *moutframe = p->outframe,
     *mframecount = p->framecount;
   MYFLT hsizepitch = hsize*pitch;
-  int nbytes =  p->N*sizeof(MYFLT);
-  int start_flag = pp->start_flag;
+  int32_t nbytes =  p->N*sizeof(MYFLT);
+  int32_t start_flag = pp->start_flag;
 #ifdef HAVE_NEON
   float *restrict bw =  pp->bw, *restrict fw = pp->fw;
 #endif
@@ -1520,7 +1520,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
         bwin = (MYFLT *) mbwin[j].auxp;
         fwin = (MYFLT *) mfwin[j].auxp;
         prev = (MYFLT *) mprev[j].auxp;
-        framecnt  = (int *) mframecount[j].auxp;
+        framecnt  = (int32_t *) mframecount[j].auxp;
         outframe= (MYFLT *) moutframe[j].auxp;
         tab = table[j];
         if(pitch != 1) {
@@ -1528,7 +1528,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 
 #ifndef HAVE_NEON
           for (i=0; i < N; i++) {
-            post = (int) pos;
+            post = (int32_t) pos;
             frac = pos  - post;
             if(post < 0) post += size;
             if(post >= size) post -= size;
@@ -1562,7 +1562,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
           float32x4_t bsm1,bsm2,ans;
           float tmpf[5],fracv[4];
           float tmpos;
-          int   tmposi;
+          int32_t   tmposi;
           for (i=0; i < N; i+=4) {
             tmpos = pos;
             if(tmpos < 0) tmpos += size;
@@ -1736,12 +1736,12 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 #endif
         }
         else {
-          post = (int) spos;
-          int end = post+N;
+          post = (int32_t) spos;
+          int32_t end = post+N;
           if(end <= size)
             memcpy(fwin,&tab[post],nbytes);
           else {
-            int endbytes;
+            int32_t endbytes;
             endbytes = (end - size)*sizeof(MYFLT);
             end = N - (end - size);
             memcpy(fwin,&tab[post],nbytes-endbytes);
@@ -1753,7 +1753,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
           if(end < size)
             memcpy(bwin,&tab[post],nbytes);
           else {
-            int endbytes;
+            int32_t endbytes;
             endbytes = (end - size)*sizeof(MYFLT);
             end = N - (end - size);
             memcpy(bwin,&tab[post],nbytes-endbytes);
@@ -1854,7 +1854,7 @@ static int player_play(CSOUND *csound, PLAYER *pp)
     /* we only output as many channels as we have outs for */
     for (j=0; j < 2; j++) {
       out = j == 0 ? pp->out1 : pp->out2;
-      framecnt  = (int *) p->framecount[j].auxp;
+      framecnt  = (int32_t *) p->framecount[j].auxp;
       outframe  = (MYFLT *) p->outframe[j].auxp;
       out[n] = (MYFLT) 0;
 
@@ -1879,21 +1879,21 @@ static int player_play(CSOUND *csound, PLAYER *pp)
 #endif
 
 #ifdef ONE_FINE_DAY
-static int meminit2(CSOUND *csound, LOADER *pp)
+static int32_t meminit2(CSOUND *csound, LOADER *pp)
 {
 
   MP3SCAL2 *p = &(pp->p);
-  int N =  *pp->iN, ui;
+  int32_t N =  *pp->iN, ui;
   uint32_t i;
   uint32_t size;
-  int decim = *pp->idecim;
+  int32_t decim = *pp->idecim;
   p->N = N;
   p->error = 0;
   if (N) {
     for (i=0; N; i++) {
       N >>= 1;
     }
-    N = (int) pow(2.0, i-1);
+    N = (int32_t) pow(2.0, i-1);
   } else N = 2048;
   if (decim == 0) decim = 4;
 
@@ -1912,13 +1912,13 @@ static int meminit2(CSOUND *csound, LOADER *pp)
     if (p->prev[i].auxp == NULL || p->prev[i].size < size)
       csound->AuxAlloc(csound, size, &p->prev[i]);
 
-    size = decim*sizeof(int);
+    size = decim*sizeof(int32_t);
     if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
       csound->AuxAlloc(csound, size, &p->framecount[i]);
     {
-      int k=0;
+      int32_t k=0;
       for (k=0; k < decim; k++) {
-        ((int *)(p->framecount[i].auxp))[k] = k*N;
+        ((int32_t *)(p->framecount[i].auxp))[k] = k*N;
       }
     }
     size = decim*sizeof(MYFLT)*N;
@@ -1942,21 +1942,21 @@ static int meminit2(CSOUND *csound, LOADER *pp)
   return OK;
 }
 
-static int filinit2(CSOUND *csound, LOADER *pp)
+static int32_t filinit2(CSOUND *csound, LOADER *pp)
 {
   MP3SCAL2 *p = &(pp->p);
   uint32_t size;
   char *name;
   // open file
-  int fd;
-  int r;
+  int32_t fd;
+  int32_t r;
   mp3dec_t mpa           = NULL;
   mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
                              MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                              MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                              0.0 };
   mpadec_info_t mpainfo;
-  int buffsize = 32768;
+  int32_t buffsize = 32768;
   if(*pp->bfs) buffsize = *pp->bfs*8;
 
   name = pp->name->data;
@@ -1998,15 +1998,15 @@ static int filinit2(CSOUND *csound, LOADER *pp)
     p->resamp = 1;
   meminit2(csound, pp);
 
-  int extrasmps = p->N+p->hsize+528;
+  int32_t extrasmps = p->N+p->hsize+528;
   size = (mpainfo.duration*mpainfo.frequency + extrasmps)*sizeof(MYFLT);
   if (p->fdata[0].auxp == NULL || p->fdata[0].size < size)
     csound->AuxAlloc(csound, size, &p->fdata[0]);
   if (p->fdata[1].auxp == NULL || p->fdata[1].size < size)
     csound->AuxAlloc(csound, size, &p->fdata[1]);
 
-  int frmsiz = mpainfo.decoded_frame_samples;
-  int skip = (int)(*pp->skip*mpainfo.frequency);
+  int32_t frmsiz = mpainfo.decoded_frame_samples;
+  int32_t skip = (int32_t)(*pp->skip*mpainfo.frequency);
   p->bufused = -1;
   p->orsr = mpainfo.frequency;
   p->curbuf = 0;
@@ -2024,19 +2024,19 @@ static int filinit2(CSOUND *csound, LOADER *pp)
 
   // fill buffers
   mp3dec_seek(mpa,0, MP3DEC_SEEK_SAMPLES);
-  int end = mpainfo.duration*mpainfo.frequency;
+  int32_t end = mpainfo.duration*mpainfo.frequency;
   short decbuffer[frmsiz*sizeof(short)*MP3_CHNS];
   p->end = end;
   MYFLT *left = (MYFLT *)  p->fdata[0].auxp;
   MYFLT *right = (MYFLT *) p->fdata[1].auxp;
   left += p->hsize;
   right += p->hsize;
-  int i,j,k;
+  int32_t i,j,k;
   uint32_t bufused = 0;
   for(i=0;i<end;i+=frmsiz){
     mp3dec_decode(mpa, (unsigned char *)decbuffer,
                   frmsiz*sizeof(short)*MP3_CHNS,&bufused);
-    //int ss = (bufused/sizeof(short))/MP3_CHNS;
+    //int32_t ss = (bufused/sizeof(short))/MP3_CHNS;
     for(k=j=0;k<frmsiz;j+=2,k++){
       left[i+k] = decbuffer[j]/32768.;
       right[i+k] = decbuffer[j+1]/32768.;
@@ -2062,7 +2062,7 @@ void *loader_thread2(void *p){
 }
 
 
-static int loader_init2(CSOUND *csound, LOADER *pp){
+static int32_t loader_init2(CSOUND *csound, LOADER *pp){
   MP3SCAL2 *p = &(pp->p);
   p->csound = csound;
   p->init = 0;
@@ -2070,7 +2070,7 @@ static int loader_init2(CSOUND *csound, LOADER *pp){
   if(p->playing == 0){
     pthread_create(&(pp->p.t), NULL, loader_thread2, pp);
     struct sched_param param;
-    int policy;
+    int32_t policy;
     pthread_getschedparam((pp->p.t), &policy,
                           &param);
     param.sched_priority = 0;
@@ -2085,7 +2085,7 @@ static int loader_init2(CSOUND *csound, LOADER *pp){
   return OK;
 }
 
-static int player_init2(CSOUND *csound, PLAYER *p){
+static int32_t player_init2(CSOUND *csound, PLAYER *p){
   if(p->pp->data != NULL &&
      p->pp->size != sizeof(MP3SCAL2)) {
     p->p = (MP3SCAL2 *) p->pp->data;
@@ -2095,7 +2095,7 @@ static int player_init2(CSOUND *csound, PLAYER *p){
   p->p->async = *p->async;
   if(p->p->initDone == 0)
     csound->RegisterDeinitCallback(csound, p,
-                                   (int (*)(CSOUND*, void*)) mp3dec_cleanup_player);
+                                   (int32_t (*)(CSOUND*, void*)) mp3dec_cleanup_player);
   p->p->initDone = 1;
 
 #ifdef HAVE_NEON
@@ -2114,23 +2114,23 @@ static int player_init2(CSOUND *csound, PLAYER *p){
 
 
 
-static int player_play2(CSOUND *csound, PLAYER *pp)
+static int32_t player_play2(CSOUND *csound, PLAYER *pp)
 {
   MP3SCAL2 *p = pp->p;
   uint32_t offset = pp->h.insdshead->ksmps_offset;
   uint32_t early  = pp->h.insdshead->ksmps_no_end;
-  int decim = p->decim;
+  int32_t decim = p->decim;
   MYFLT pitch = *pp->kpitch*p->resamp, time = *pp->time*p->resamp,
          lock = *pp->klock;
   double amp = *pp->kamp*csound->Get0dBFS(csound)*(8.0/decim)/3.0;
-  int interp = *pp->kinterp;
+  int32_t interp = *pp->kinterp;
 #ifdef __clang__
   MYFLT *restrict out;
   MYFLT *restrict fwin;
   MYFLT *restrict bwin;
   MYFLT *restrict prev;
   MYFLT *restrict win = (MYFLT *) p->win.auxp, *restrict outframe;
-  int *restrict framecnt, curframe = p->curframe;
+  int32_t *restrict framecnt, curframe = p->curframe;
   MYFLT *restrict tab;
   MYFLT frac;
   MYFLT *restrict phs;
@@ -2140,14 +2140,14 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
   MYFLT *bwin;
   MYFLT *prev;
   MYFLT *win = (MYFLT *) p->win.auxp, *outframe;
-  int *framecnt, curframe = p->curframe;
+  int32_t *framecnt, curframe = p->curframe;
   MYFLT *tab;
   MYFLT frac;
   MYFLT *phs;
 #endif
-  int N = p->N, hsize = p->hsize, cnt = p->cnt;
-  int  nsmps = csound->GetKsmps(csound), n;
-  int post, i, j;
+  int32_t N = p->N, hsize = p->hsize, cnt = p->cnt;
+  int32_t  nsmps = csound->GetKsmps(csound), n;
+  int32_t post, i, j;
   double pos, spos = p->pos;
   MYFLT in;
   MYFLT div;
@@ -2158,8 +2158,8 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
     *moutframe = p->outframe,
     *mframecount = p->framecount;
   MYFLT hsizepitch = hsize*pitch;
-  int nbytes =  p->N*sizeof(MYFLT);
-  int start_flag = pp->start_flag;
+  int32_t nbytes =  p->N*sizeof(MYFLT);
+  int32_t start_flag = pp->start_flag;
 #ifdef HAVE_NEON
   float *restrict bw =  pp->bw, *restrict fw = pp->fw;
 #endif
@@ -2206,14 +2206,14 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
         bwin = (MYFLT *) mbwin[j].auxp;
         fwin = (MYFLT *) mfwin[j].auxp;
         prev = (MYFLT *) mprev[j].auxp;
-        framecnt  = (int *) mframecount[j].auxp;
+        framecnt  = (int32_t *) mframecount[j].auxp;
         outframe= (MYFLT *) moutframe[j].auxp;
         tab = (MYFLT *) p->fdata[j].auxp;
         if(pitch != 1) {
           pos = spos;
 #ifndef HAVE_NEON
           for (i=0; i < N; i++) {
-            post = (int) pos;
+            post = (int32_t) pos;
             frac = pos  - post;
             if(interp){
               in = tab[post] + frac*(tab[post+1] - tab[post]);
@@ -2243,7 +2243,7 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
           float32x4_t bsm1,bsm2,ans;
           float tmpf[5],fracv[4];
           float tmpos;
-          int   tmposi;
+          int32_t   tmposi;
           for (i=0; i < N; i+=4) {
             tmpos = pos;
             tmposi = FTOINT(tmpos);
@@ -2309,7 +2309,7 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
 #endif
         }
         else {
-          post = (int) spos;
+          post = (int32_t) spos;
           memcpy(fwin,&tab[post],nbytes);
           post -= hsize;
           memcpy(bwin,&tab[post],nbytes);
@@ -2405,7 +2405,7 @@ static int player_play2(CSOUND *csound, PLAYER *pp)
     /* we only output as many channels as we have outs for */
     for (j=0; j < 2; j++) {
       out = j == 0 ? pp->out1 : pp->out2;
-      framecnt  = (int *) p->framecount[j].auxp;
+      framecnt  = (int32_t *) p->framecount[j].auxp;
       outframe  = (MYFLT *) p->outframe[j].auxp;
       out[n] = (MYFLT) 0;
 

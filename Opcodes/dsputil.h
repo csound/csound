@@ -34,7 +34,7 @@
 
 /* Predeclare static supporting functions */
 
-void    Polar2Real_PVOC(CSOUND *, MYFLT *, int);
+void    Polar2Real_PVOC(CSOUND *, MYFLT *, int32_t);
 void    RewrapPhase(MYFLT *, int32, MYFLT *);
 void    FrqToPhase(MYFLT *, int32, MYFLT, MYFLT, MYFLT);
 void    FetchIn(float *, MYFLT *, int32, MYFLT);

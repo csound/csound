@@ -28,11 +28,11 @@
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
-static   int    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
+static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
 
-static int fofset0(CSOUND *csound, FOFS *p, int flag)
+static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
 {
-    int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
+    int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
     if (LIKELY((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
                (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL)) {
       OVRLAP *ovp, *nxtovp;
@@ -74,17 +74,17 @@ static int fofset0(CSOUND *csound, FOFS *p, int flag)
     return OK;
 }
 
-static int fofset(CSOUND *csound, FOFS *p)
+static int32_t fofset(CSOUND *csound, FOFS *p)
 {
     return fofset0(csound, p, 1);
 }
 
-static int fofset2(CSOUND *csound, FOFS *p)
+static int32_t fofset2(CSOUND *csound, FOFS *p)
 {
     return fofset0(csound, p, 0);
 }
 
-static int fof(CSOUND *csound, FOFS *p)
+static int32_t fof(CSOUND *csound, FOFS *p)
 {
     OVRLAP  *ovp;
     FUNC    *ftp1,  *ftp2;
@@ -181,7 +181,7 @@ static int fof(CSOUND *csound, FOFS *p)
                              Str("FOF needs more overlaps"));
 }
 
-static int newpulse(CSOUND *csound,
+static int32_t newpulse(CSOUND *csound,
                     FOFS *p, OVRLAP *ovp, MYFLT *amp, MYFLT *fund, MYFLT *form)
 {
     MYFLT   octamp = *amp, oct;
@@ -251,10 +251,10 @@ static int newpulse(CSOUND *csound,
 }
 
 #if 0
-static int hrngflg=0;
+static int32_t hrngflg=0;
 #endif
 
-static int harmset(CSOUND *csound, HARMON *p)
+static int32_t harmset(CSOUND *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
     if (UNLIKELY(minfrq < FL(64.0))) {
@@ -278,7 +278,7 @@ static int harmset(CSOUND *csound, HARMON *p)
       p->lomaxdist = maxprd;
       p->minfrq = minfrq;
     }
-    if ((p->autoktim = (int)/*MYFLT2LONG*/(*p->iptrkprd * CS_EKR)) < 1)
+    if ((p->autoktim = (int32_t)/*MYFLT2LONG*/(*p->iptrkprd * CS_EKR)) < 1)
       p->autoktim = 1;
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
     printf("ekr = %f iptrk = %f, autocnt = %d; autotim = %d\n",
@@ -304,9 +304,9 @@ static int harmset(CSOUND *csound, HARMON *p)
 }
 
 #if 0
-static int cycle = 0;
+static int32_t cycle = 0;
 #endif
-static int harmon(CSOUND *csound, HARMON *p)
+static int32_t harmon(CSOUND *csound, HARMON *p)
 {
     MYFLT *src1, *src2, *src3, *inp1, *inp2, *outp;
     MYFLT c1, c2, qval, *inq1, *inq2;
@@ -344,7 +344,7 @@ static int harmon(CSOUND *csound, HARMON *p)
     }
     if (*p->kvar != p->prvar) {
       MYFLT oneplusvar = FL(1.0) + *p->kvar;
-      /* prd window is prd +/- var int */
+      /* prd window is prd +/- var int32_t */
       p->mindist = (int32)(p->estprd/oneplusvar);
 /*       if (p->mindist==0) p->mindist=1; */
       p->maxdist = (int32)(p->estprd*oneplusvar);
@@ -396,7 +396,7 @@ static int harmon(CSOUND *csound, HARMON *p)
           maxval = *autop;
           maxp = autop;
 #if 0
-          csound->Message(csound, "new maxval %f at %p\n", maxval, (long)maxp);
+          csound->Message(csound, "new maxval %f at %p\n", maxval, (int64_t)maxp);
 #endif
         }
         autop++;
@@ -620,9 +620,9 @@ static OENTRY localops[] = {
 { "harmon", S(HARMON), 0,5, "a",  "akkkkiii",(SUBR)harmset,NULL,  (SUBR)harmon  }
 };
 
-int ugens7_init_(CSOUND *csound)
+int32_t ugens7_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

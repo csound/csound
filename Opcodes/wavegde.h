@@ -50,7 +50,7 @@ typedef long    len_t;    /* length type */
 /* circularBuffer -- circular buffer class */
 /* serves as base class for waveguides and lattice filters */
 typedef struct {
-  int    inited;           /* Data initialization flag */
+  int32_t    inited;           /* Data initialization flag */
   len_t  size;             /* Size of the digital filter lattice */
   MYFLT* insertionPoint;   /* Position in queue to place new data */
   MYFLT* extractionPoint;  /* Position to read data from */
@@ -84,7 +84,8 @@ static void guideRailUpdate(guideRail*,MYFLT);   /* delay line update routine */
 
 /* waveguide -- abstract base class definition for waveguide classes */
 typedef struct{
-  int excited;         /* excitation flag */
+  int32_t
+    excited;         /* excitation flag */
   guideRail upperRail; /* the right-going wave */
   guideRail lowerRail; /* the left-going wave */
   MYFLT c;             /* The tuning filter coefficient */

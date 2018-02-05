@@ -40,7 +40,7 @@
 #include "physutil.h"
 
 /**********************************************/
-/*  One break point linear reed table object  */
+/*  One break poinr32_t linear reed table object  */
 /*  by Perry R. Cook, 1995-96                 */
 /*  Consult McIntyre, Schumacher, & Woodhouse */
 /*        Smith, Hirschman, Cook, Scavone,    */
@@ -99,11 +99,11 @@ typedef struct CLARIN {
     Noise       noise;
     int32       length;
     MYFLT       outputGain;
-    int         kloop;
+    int32       kloop;
 } CLARIN;
 
-/* int clarinetset(CLARINET *p); */
-/* int clarinet(CLARINET *p) */
+/* int32_tclarinetset(CLARINET *p); */
+/* int32_tclarinet(CLARINET *p) */
 
 #endif
 

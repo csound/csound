@@ -50,7 +50,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out1, *out2, *ivel, *inotnum,*xamp, *xfreq;
         MYFLT   *ipresethandle, *iflag, *ioffset, *ienv;
-        int     spltNum;
+        int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
@@ -64,7 +64,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out1, *ivel, *inotnum,*xamp, *xfreq, *ipresethandle,
                 *iflag, *ioffset, *ienv;
-        int     spltNum;
+        int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
@@ -78,7 +78,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out1, *ivel, *inotnum, *xamp, *xfreq, *instrNum;
         MYFLT   *sfBank, *iflag, *ioffset, *ienv;
-        int     spltNum;
+        int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
@@ -92,7 +92,8 @@ typedef struct {
         OPDS    h;
         MYFLT   *out1, *out2, *ivel, *inotnum, *xamp, *xfreq;
         MYFLT   *instrNum, *sfBank, *iflag, *ioffset, *ienv;
-        int     spltNum;
+        int32_t
+        spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];

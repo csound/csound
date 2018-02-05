@@ -81,7 +81,7 @@ static uint32 oscbnk_rnd_phase(int32 *seed)
 
 /* return a random value between -1 and 1 */
 
-static MYFLT oscbnk_rnd_bipolar(int32 *seed, MYFLT rpow, int rmode)
+static MYFLT oscbnk_rnd_bipolar(int32_t32_t32_t32_t32 *seed, MYFLT rpow, int rmode)
 {
     double      x;
     MYFLT       s;
@@ -172,7 +172,7 @@ static MYFLT oscbnk_interp_read_limit(MYFLT phase, MYFLT *ft, int32 flen)
 static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
 {
     uint32   n;
-    int     eqmode;
+    int32_t     eqmode;
     MYFLT   f, l, q, k, kk, vk, vkk, vkdq, sq;
     MYFLT   lfo1val = FL(0.0), lfo2val = FL(0.0);
 
@@ -274,23 +274,23 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
 
 /* ---------------- oscbnk set-up ---------------- */
 
-static int oscbnkset(CSOUND *csound, OSCBNK *p)
+static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
 {
     uint32_t    i;
     FUNC    *ftp;
     MYFLT   x;
 
     p->init_k = 1;
-    p->nr_osc = (int) MYFLT2LONG(*(p->args[5]));            /* number of oscs */
+    p->nr_osc = (int32_t) MYFLT2LONG(*(p->args[5]));            /* number of oscs */
     if (p->nr_osc <= 0) p->nr_osc = -1;                     /* no output */
     oscbnk_seedrand(csound, &(p->seed), *(p->args[6]));     /* random seed */
-    p->ilfomode = (int) MYFLT2LONG(*(p->args[11])) & 0xFF;  /* LFO mode */
+    p->ilfomode = (int32_t) MYFLT2LONG(*(p->args[11])) & 0xFF;  /* LFO mode */
     p->eq_interp = 0;                                       /* EQ mode */
     if (*(p->args[18]) < FL(-0.5)) {
       p->ieqmode = -1; p->ilfomode &= 0xEE;                 /* disable EQ */
     }
     else {
-      p->ieqmode = (int) MYFLT2LONG(*(p->args[18]));
+      p->ieqmode = (int32_t) MYFLT2LONG(*(p->args[18]));
       if (p->ieqmode > 2) {
         p->ieqmode -= 3;
       }
@@ -402,9 +402,9 @@ static int oscbnkset(CSOUND *csound, OSCBNK *p)
 
 /* ---------------- oscbnk performance ---------------- */
 
-static int oscbnk(CSOUND *csound, OSCBNK *p)
+static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
 {
-    int     osc_cnt, pm_enabled, am_enabled;
+    int32_t     osc_cnt, pm_enabled, am_enabled;
     FUNC    *ftp;
     MYFLT   *ft;
     uint32  n, lobits, mask, ph, f_i;
@@ -573,20 +573,20 @@ static int oscbnk(CSOUND *csound, OSCBNK *p)
 
 /* ---------------- grain2 set-up ---------------- */
 
-static int grain2set(CSOUND *csound, GRAIN2 *p)
+static int32_t grain2set(CSOUND *csound, GRAIN2 *p)
 {
-    int     i;
+    int32_t     i;
     FUNC    *ftp;
     uint32_t    n;
     double  x, y;
 
     /* check opcode params */
 
-    i = (int) MYFLT2LONG(*(p->imode));  /* mode */
+    i = (int32_t) MYFLT2LONG(*(p->imode));  /* mode */
     if (i & 1) return OK;               /* skip initialisation */
     p->init_k = 1;
     p->mode = i & 0x0E;
-    p->nr_osc = (int) MYFLT2LONG(*(p->iovrlp));       /* nr of oscillators */
+    p->nr_osc = (int32_t) MYFLT2LONG(*(p->iovrlp));       /* nr of oscillators */
     if (p->nr_osc < 1) p->nr_osc = -1;
     oscbnk_seedrand(csound, &(p->seed), *(p->iseed)); /* initialise seed */
     p->rnd_pow = *(p->irpow);                         /* random distribution */
@@ -630,7 +630,7 @@ static int grain2set(CSOUND *csound, GRAIN2 *p)
 
 static void grain2_init_grain_phase(GRAIN2_OSC *o, uint32 frq,
                                     uint32 w_frq, MYFLT frq_scl,
-                                    int f_nolock)
+                                    int32_t f_nolock)
 {
     double  d;
     MYFLT   f;
@@ -673,12 +673,12 @@ static void grain2_init_grain(GRAIN2 *p, GRAIN2_OSC *o)
 
 /* ---- grain2 opcode ---- */
 
-static int grain2(CSOUND *csound, GRAIN2 *p)
+static int32_t grain2(CSOUND *csound, GRAIN2 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
-    int         i, w_interp, g_interp, f_nolock;
+    int32_t         i, w_interp, g_interp, f_nolock;
     MYFLT       *aout, *ft, *w_ft, grain_frq, frq_scl, pfrac, w_pfrac, f, a, k;
     uint32 n, mask, lobits, w_mask, w_lobits;
     uint32 g_frq, w_frq;
@@ -772,21 +772,21 @@ static int grain2(CSOUND *csound, GRAIN2 *p)
 
 /* ---------------- grain3 set-up ---------------- */
 
-static int grain3set(CSOUND *csound, GRAIN3 *p)
+static int32_t grain3set(CSOUND *csound, GRAIN3 *p)
 {
-    int   i;
+    int32_t   i;
     FUNC  *ftp;
     uint32_t  n;
 
     /* check opcode params */
 
-    i = (int) MYFLT2LONG(*(p->imode));  /* mode */
+    i = (int32_t) MYFLT2LONG(*(p->imode));  /* mode */
     if (i & 1) return OK;                  /* skip initialisation */
     p->init_k = 1;
     p->mode = i & 0x7E;
     p->x_phs = OSCBNK_PHSMAX;
 
-    p->ovrlap = (int) MYFLT2LONG(*(p->imaxovr));        /* max. overlap */
+    p->ovrlap = (int32_t) MYFLT2LONG(*(p->imaxovr));        /* max. overlap */
     p->ovrlap = (p->ovrlap < 1 ? 1 : p->ovrlap) + 1;
 
     oscbnk_seedrand(csound, &(p->seed), *(p->iseed));   /* initialise seed */
@@ -840,9 +840,9 @@ static void grain3_init_grain(GRAIN3 *p, GRAIN2_OSC *o,
 
 /* ---- grain3 opcode ---- */
 
-static int grain3(CSOUND *csound, GRAIN3 *p)
+static int32_t grain3(CSOUND *csound, GRAIN3 *p)
 {
-    int           i, w_interp, g_interp, f_nolock;
+    int32_t           i, w_interp, g_interp, f_nolock;
     MYFLT         *aout0, *aout, *ft, *w_ft, frq_scl, pfrac, w_pfrac, f, a, k;
     MYFLT         wfdivxf, w_frq_f, x_frq_f;
     uint32        n, mask, lobits, w_mask, w_lobits;
@@ -1028,7 +1028,7 @@ static int grain3(CSOUND *csound, GRAIN3 *p)
 
 /* ----------------------------- rnd31 opcode ------------------------------ */
 
-static int rnd31set(CSOUND *csound, RND31 *p)
+static int32_t rnd31set(CSOUND *csound, RND31 *p)
 {
     /* initialise random seed */
     oscbnk_seedrand(csound, &(p->seed), *(p->iseed));
@@ -1037,10 +1037,10 @@ static int rnd31set(CSOUND *csound, RND31 *p)
 
 /* ---- rnd31 / i-rate ---- */
 
-static int rnd31i(CSOUND *csound, RND31 *p)
+static int32_t rnd31i(CSOUND *csound, RND31 *p)
 {
     MYFLT rpow;
-    int   rmode;
+    int32_t   rmode;
 
     /* random distribution */
     rpow = *(p->rpow);
@@ -1073,10 +1073,10 @@ static int rnd31i(CSOUND *csound, RND31 *p)
 
 /* ---- rnd31 / k-rate ---- */
 
-static int rnd31k(CSOUND *csound, RND31 *p)
+static int32_t rnd31k(CSOUND *csound, RND31 *p)
 {
     MYFLT rpow;
-    int   rmode;
+    int32_t   rmode;
 
     if (UNLIKELY(!p->seed)) goto err1;
 
@@ -1101,10 +1101,10 @@ static int rnd31k(CSOUND *csound, RND31 *p)
 
 /* ---- rnd31 / a-rate ---- */
 
-static int rnd31a(CSOUND *csound, RND31 *p)
+static int32_t rnd31a(CSOUND *csound, RND31 *p)
 {
     MYFLT   scl, *out, rpow;
-    int     rmode;
+    int32_t     rmode;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
@@ -1146,7 +1146,7 @@ static int rnd31a(CSOUND *csound, RND31 *p)
 
 /* ---- oscilikt initialisation ---- */
 
-static int oscktset(CSOUND *csound, OSCKT *p)
+static int32_t oscktset(CSOUND *csound, OSCKT *p)
 {
      IGN(csound);
     MYFLT   phs;
@@ -1163,7 +1163,7 @@ static int oscktset(CSOUND *csound, OSCKT *p)
 
 /* ---- oscilikt performance ---- */
 
-static int kosclikt(CSOUND *csound, OSCKT *p)
+static int32_t kosclikt(CSOUND *csound, OSCKT *p)
 {
     FUNC    *ftp;
     uint32   n, phs;
@@ -1188,7 +1188,7 @@ static int kosclikt(CSOUND *csound, OSCKT *p)
     return OK;
 }
 
-static int osckkikt(CSOUND *csound, OSCKT *p)
+static int32_t osckkikt(CSOUND *csound, OSCKT *p)
 {
     FUNC    *ftp;
     uint32   n, phs, lobits, mask, frq;
@@ -1226,7 +1226,7 @@ static int osckkikt(CSOUND *csound, OSCKT *p)
     return OK;
 }
 
-static int osckaikt(CSOUND *csound, OSCKT *p)
+static int32_t osckaikt(CSOUND *csound, OSCKT *p)
 {
     FUNC    *ftp;
     uint32   n, phs, lobits, mask;
@@ -1278,7 +1278,7 @@ static void oscbnk_flen_setup(int32 flen, uint32 *mask,
     *pfrac = FL(1.0) / (MYFLT) *mask; (*mask)--;
 }
 
-static int oscakikt(CSOUND *csound, OSCKT *p)
+static int32_t oscakikt(CSOUND *csound, OSCKT *p)
 {
     FUNC    *ftp;
     uint32   n, phs, lobits, mask, frq;
@@ -1316,7 +1316,7 @@ static int oscakikt(CSOUND *csound, OSCKT *p)
     return OK;
 }
 
-static int oscaaikt(CSOUND *csound, OSCKT *p)
+static int32_t oscaaikt(CSOUND *csound, OSCKT *p)
 {
     FUNC    *ftp;
     uint32   n, phs, lobits, mask;
@@ -1356,7 +1356,7 @@ static int oscaaikt(CSOUND *csound, OSCKT *p)
 
 /* ---- osciliktp initialisation ---- */
 
-static int oscktpset(CSOUND *csound, OSCKTP *p)
+static int32_t oscktpset(CSOUND *csound, OSCKTP *p)
 {
      IGN(csound);
     if (*(p->istor) != FL(0.0)) return OK;         /* skip initialisation */
@@ -1371,7 +1371,7 @@ static int oscktpset(CSOUND *csound, OSCKTP *p)
 
 /* ---- osciliktp performance ---- */
 
-static int oscktp(CSOUND *csound, OSCKTP *p)
+static int32_t oscktp(CSOUND *csound, OSCKTP *p)
 {
     FUNC    *ftp;
     uint32_t   n, phs, lobits, mask, frq;
@@ -1426,7 +1426,7 @@ static int oscktp(CSOUND *csound, OSCKTP *p)
 
 /* ---- oscilikts initialisation ---- */
 
-static int oscktsset(CSOUND *csound, OSCKTS *p)
+static int32_t oscktsset(CSOUND *csound, OSCKTS *p)
 {
      IGN(csound);
     if (*(p->istor) != FL(0.0)) return OK;         /* skip initialisation */
@@ -1441,12 +1441,12 @@ static int oscktsset(CSOUND *csound, OSCKTS *p)
 
 /* ---- oscilikts performance ---- */
 
-static int osckts(CSOUND *csound, OSCKTS *p)
+static int32_t osckts(CSOUND *csound, OSCKTS *p)
 {
     FUNC    *ftp;
     uint32_t   n, phs, lobits, mask, frq = 0UL;
     MYFLT   pfrac, *ft, v, *ar, *xcps, *xamp, *async;
-    int     a_amp, a_cps;
+    int32_t     a_amp, a_cps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
@@ -1513,19 +1513,19 @@ static int osckts(CSOUND *csound, OSCKTS *p)
 #define VCO2_MAX_NPART  4096    /* maximum number of harmonic partials */
 
 typedef struct {
-    int     waveform;           /* waveform number (< 0: user defined)       */
-    int     w_npart;            /* nr of partials in user specified waveform */
+    int32_t     waveform;           /* waveform number (< 0: user defined)       */
+    int32_t     w_npart;            /* nr of partials in user specified waveform */
     double  npart_mul;          /* multiplier for number of partials         */
-    int     min_size, max_size; /* minimum and maximum table size            */
+    int32_t     min_size, max_size; /* minimum and maximum table size            */
     MYFLT   *w_fftbuf;          /* FFT of user specified waveform            */
 } VCO2_TABLE_PARAMS;
 
 /* remove table array for the specified waveform */
 
-static void vco2_delete_table_array(CSOUND *csound, int w)
+static void vco2_delete_table_array(CSOUND *csound, int32_t w)
 {
     STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
-    int               j;
+    int32_t               j;
 
     /* table array does not exist: nothing to do */
     if (pp->vco2_tables == (VCO2_TABLE_ARRAY**) NULL ||
@@ -1558,7 +1558,7 @@ static void vco2_calculate_table(CSOUND *csound,
 {
     MYFLT   scaleFac;
     MYFLT   *fftbuf;
-    int     i, minh;
+    int32_t     i, minh;
 
     if(table->ftable == NULL) {
       csound->InitError(csound,
@@ -1574,7 +1574,7 @@ static void vco2_calculate_table(CSOUND *csound,
     }
     else
       minh = 0;
-    scaleFac = csound->GetInverseRealFFTScale(csound, (int) table->size);
+    scaleFac = csound->GetInverseRealFFTScale(csound, (int32_t) table->size);
     scaleFac *= (FL(0.5) * (MYFLT) table->size);
     switch (tp->waveform) {
       case 0: scaleFac *= (FL(-2.0) / PI_F);          break;
@@ -1613,8 +1613,8 @@ static void vco2_calculate_table(CSOUND *csound,
     }
     /* inverse FFT */
     fftbuf[1] = fftbuf[table->size];
-    fftbuf[table->size] = fftbuf[(int) table->size + 1] = FL(0.0);
-    csound->InverseRealFFT(csound, fftbuf, (int) table->size);
+    fftbuf[table->size] = fftbuf[(int32_t) table->size + 1] = FL(0.0);
+    csound->InverseRealFFT(csound, fftbuf, (int32_t) table->size);
     /* copy to table */
     for (i = 0; i < table->size; i++)
       table->ftable[i] = fftbuf[i];
@@ -1626,7 +1626,7 @@ static void vco2_calculate_table(CSOUND *csound,
 
 /* set default table parameters depending on waveform */
 
-static void vco2_default_table_params(int w, VCO2_TABLE_PARAMS *tp)
+static void vco2_default_table_params(int32_t w, VCO2_TABLE_PARAMS *tp)
 {
     tp->waveform = w;
     tp->w_npart = -1;
@@ -1650,9 +1650,9 @@ static void vco2_next_npart(double *npart, VCO2_TABLE_PARAMS *tp)
 
 /* return optimal table size for a given number of partials */
 
-static int vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
+static int32_t32_t32_t32_t vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 {
-    int     n;
+    int32_t     n;
 
     if (npart < 1)
       return 16;        /* empty table, size is always 16 */
@@ -1682,11 +1682,11 @@ static int vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 /* from table number "base_ftable" if it is greater than zero.           */
 /* The return value is the first ftable number that is not allocated.    */
 
-static int vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
+static int32_t32_t32_t32_t vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
                               VCO2_TABLE_PARAMS *tp)
 {
     STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
-    int               i, npart, ntables;
+    int32_t               i, npart, ntables;
     double            npart_f;
     VCO2_TABLE_ARRAY  *tables;
     VCO2_TABLE_PARAMS tp2;
@@ -1747,7 +1747,7 @@ static int vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
     npart_f = 0.0; i = 0;
     do {
       /* store number of partials, */
-      npart = tables->tables[i].npart = (int) (npart_f + 0.5);
+      npart = tables->tables[i].npart = (int32_t) (npart_f + 0.5);
 #ifndef VCO2FT_USE_TABLE
       tables->nparts[ntables + i] = (MYFLT) npart;
 #endif
@@ -1760,7 +1760,7 @@ static int vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
                         &(tables->tables[i].pfrac));
       /* if base ftable was specified, generate empty table ... */
       if (base_ftable > 0) {
-        csound->FTAlloc(csound, base_ftable, (int) tables->tables[i].size);
+        csound->FTAlloc(csound, base_ftable, (int32_t) tables->tables[i].size);
         csoundGetTable(csound, &(tables->tables[i].ftable), base_ftable);
         base_ftable++;                /* next table number */
       }
@@ -1787,21 +1787,21 @@ static int vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
 
 /* ---- vco2init opcode ---- */
 
-static int vco2init(CSOUND *csound, VCO2INIT *p)
+static int32_t vco2init(CSOUND *csound, VCO2INIT *p)
 {
-    int     waveforms, base_ftable, ftnum, i, w;
+    int32_t     waveforms, base_ftable, ftnum, i, w;
     VCO2_TABLE_PARAMS   tp;
     FUNC    *ftp;
     uint32_t j;
     /* check waveform number */
-    waveforms = (int) MYFLT2LRND(*(p->iwaveforms));
+    waveforms = (int32_t) MYFLT2LRND(*(p->iwaveforms));
     if (UNLIKELY(waveforms < -1000000 || waveforms > 31)) {
       return csound->InitError(csound,
                                Str("vco2init: invalid waveform number: %f"),
                                *(p->iwaveforms));
     }
     /* base ftable number (required by user defined waveforms except -1) */
-    ftnum = base_ftable = (int) MYFLT2LONG(*(p->iftnum));
+    ftnum = base_ftable = (int32_t) MYFLT2LONG(*(p->iftnum));
     if (ftnum < 1) ftnum = base_ftable = -1;
     if (UNLIKELY((waveforms < -1 && ftnum < 1) || ftnum > 1000000)) {
       return csound->InitError(csound,
@@ -1822,7 +1822,7 @@ static int vco2init(CSOUND *csound, VCO2INIT *p)
       tp.npart_mul = (double) *(p->ipmul);
     }
     if (*(p->iminsiz) > FL(0.0)) {
-      i = (int) MYFLT2LONG(*(p->iminsiz));
+      i = (int32_t) MYFLT2LONG(*(p->iminsiz));
       if (UNLIKELY(i < 16 || i > 262144 || (i & (i - 1)))) {
         return csound->InitError(csound,
                                  Str("vco2init: invalid min table size"));
@@ -1830,7 +1830,7 @@ static int vco2init(CSOUND *csound, VCO2INIT *p)
       tp.min_size = i;
     }
     if (*(p->imaxsiz) > FL(0.0)) {
-      i = (int) MYFLT2LONG(*(p->imaxsiz));
+      i = (int32_t) MYFLT2LONG(*(p->imaxsiz));
       if (UNLIKELY(i < 16 || i > 16777216 || (i & (i - 1)) || i < tp.min_size)) {
         return csound->InitError(csound,
                                  Str("vco2init: invalid max table size"));
@@ -1863,9 +1863,9 @@ static int vco2init(CSOUND *csound, VCO2INIT *p)
         tp.w_fftbuf = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (i + 2));
         for (j = 0; j < ftp->flen; j++)
           tp.w_fftbuf[j] = ftp->ftable[j] / (MYFLT) (ftp->flen >> 1);
-        csound->RealFFT(csound, tp.w_fftbuf, (int) ftp->flen);
+        csound->RealFFT(csound, tp.w_fftbuf, (int32_t) ftp->flen);
         tp.w_fftbuf[ftp->flen] = tp.w_fftbuf[1];
-        tp.w_fftbuf[1] = tp.w_fftbuf[(int) ftp->flen + 1] = FL(0.0);
+        tp.w_fftbuf[1] = tp.w_fftbuf[(int32_t) ftp->flen + 1] = FL(0.0);
         /* generate table array */
         ftnum = vco2_tables_create(csound,waveforms, ftnum, &tp);
         /* free memory used by FFT buffer */
@@ -1882,18 +1882,18 @@ static int vco2init(CSOUND *csound, VCO2INIT *p)
 
 /* ---- vco2ft / vco2ift opcode (initialisation) ---- */
 
-static int vco2ftp(CSOUND *, VCO2FT *);
+static int32_t vco2ftp(CSOUND *, VCO2FT *);
 
-static int vco2ftset(CSOUND *csound, VCO2FT *p)
+static int32_t vco2ftset(CSOUND *csound, VCO2FT *p)
 {
-    int     w;
+    int32_t     w;
 
     if (p->vco2_nr_table_arrays == NULL || p->vco2_tables == NULL) {
       STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
       p->vco2_nr_table_arrays = &(pp->vco2_nr_table_arrays);
       p->vco2_tables = &(pp->vco2_tables);
     }
-    w = (int) MYFLT2LRND(*(p->iwave));
+    w = (int32_t) MYFLT2LRND(*(p->iwave));
     if (w > 4) w = 0x7FFFFFFF;
     if (w < 0) w = 4 - w;
     if (UNLIKELY(w >= *(p->vco2_nr_table_arrays) || (*(p->vco2_tables))[w] == NULL
@@ -1928,20 +1928,20 @@ static int vco2ftset(CSOUND *csound, VCO2FT *p)
 
 /* ---- vco2ft opcode (performance) ---- */
 
-static int vco2ftp(CSOUND *csound, VCO2FT *p)
+static int32_t vco2ftp(CSOUND *csound, VCO2FT *p)
 {
     IGN(csound);
 #ifdef VCO2FT_USE_TABLE
     MYFLT   npart;
-    int     n;
+    int32_t     n;
 #else
     MYFLT   npart, *nparts;
-    int     nn;
+    int32_t     nn;
 #endif
 
     npart = (MYFLT)fabs(*(p->kcps)); if (npart < p->p_min) npart = p->p_min;
 #ifdef VCO2FT_USE_TABLE
-    n = (int) (p->nparts_tabl[(int) (p->p_scl / npart)] - p->tab0);
+    n = (int32_t32_t32_t32_t) (p->nparts_tabl[(int) (p->p_scl / npart)] - p->tab0);
     *(p->kft) = (MYFLT) (n + p->base_ftnum);
 #else
     npart = p->p_scl / npart;
@@ -1963,12 +1963,12 @@ static int vco2ftp(CSOUND *csound, VCO2FT *p)
       } while (nn > 1);
     }
     p->npart_old = nparts;
-    *(p->kft) = (MYFLT) ((int) (nparts - p->nparts) + p->base_ftnum);
+    *(p->kft) = (MYFLT) ((int32_t) (nparts - p->nparts) + p->base_ftnum);
 #endif
     return OK;
 }
 
-static int vco2ft(CSOUND *csound, VCO2FT *p)
+static int32_t vco2ft(CSOUND *csound, VCO2FT *p)
 {
     return csound->PerfError(csound, p->h.insdshead,
                              Str("vco2ft: not initialised"));
@@ -1976,11 +1976,11 @@ static int vco2ft(CSOUND *csound, VCO2FT *p)
 
 /* ---- vco2 opcode (initialisation) ---- */
 
-static int vco2set(CSOUND *csound, VCO2 *p)
+static int32_t vco2set(CSOUND *csound, VCO2 *p)
 {
-    int     mode, tnum;
-    int     tnums[8] = { 0, 0, 1, 2, 1, 3, 4, 5 };
-    int     modes[8] = { 0, 1, 2, 0, 0, 0, 0, 0 };
+    int32_t     mode, tnum;
+    int32_t     tnums[8] = { 0, 0, 1, 2, 1, 3, 4, 5 };
+    int32_t     modes[8] = { 0, 1, 2, 0, 0, 0, 0, 0 };
     MYFLT   x;
     uint32_t min_args;
 
@@ -1993,7 +1993,7 @@ static int vco2set(CSOUND *csound, VCO2 *p)
     if (UNLIKELY(p->INOCOUNT > 6)) {
       return csound->InitError(csound, Str("vco2: too many input arguments"));
     }
-    mode = (int) MYFLT2LONG(*(p->imode)) & 0x1F;
+    mode = (int32_t) MYFLT2LONG(*(p->imode)) & 0x1F;
     if (mode & 1) return OK;               /* skip initialisation */
     /* more checks */
     min_args = 2;
@@ -2052,12 +2052,12 @@ static int vco2set(CSOUND *csound, VCO2 *p)
 
 /* ---- vco2 opcode (performance) ---- */
 
-static int vco2(CSOUND *csound, VCO2 *p)
+static int32_t vco2(CSOUND *csound, VCO2 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
-    int      n;
+    int32_t      n;
     VCO2_TABLE      *tabl;
     uint32  phs, phs2, frq, frq2, lobits, mask;
 #ifdef VCO2FT_USE_TABLE
@@ -2102,7 +2102,7 @@ static int vco2(CSOUND *csound, VCO2 *p)
     /* find best table for current frequency */
     npart = (MYFLT)fabs(f); if (npart < p->p_min) npart = p->p_min;
 #ifdef VCO2FT_USE_TABLE
-    tabl = p->nparts_tabl[(int) (p->p_scl / npart)];
+    tabl = p->nparts_tabl[(int32_t) (p->p_scl / npart)];
 #else
     npart = p->p_scl / npart;
     nparts = p->npart_old;
@@ -2123,7 +2123,7 @@ static int vco2(CSOUND *csound, VCO2 *p)
       } while (nn > 1);
     }
     p->npart_old = nparts;
-    tabl = p->tables + (int) (nparts - p->nparts);
+    tabl = p->tables + (int32_t) (nparts - p->nparts);
 #endif
     /* copy object data to local variables */
     kamp = *(p->kamp);
@@ -2195,13 +2195,13 @@ static int vco2(CSOUND *csound, VCO2 *p)
                              * FL(1.0e-60))
 #endif
 
-static int denorms(CSOUND *csound, DENORMS *p)
+static int32_t denorms(CSOUND *csound, DENORMS *p)
 {
     MYFLT   r, *ar, **args = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
-    int     n = p->INOCOUNT, *seed;
+    int32_t     n = p->INOCOUNT, *seed;
 
     seed = p->seedptr;
     if (seed == NULL) {
@@ -2223,14 +2223,14 @@ static int denorms(CSOUND *csound, DENORMS *p)
 
 /* ---- delayk and vdel_k opcodes ---- */
 
-static int delaykset(CSOUND *csound, DELAYK *p)
+static int32_t delaykset(CSOUND *csound, DELAYK *p)
 {
-    int npts, mode = (int) MYFLT2LONG(*p->imode) & 3;
+    int32_t32_t32_t32_t npts, mode = (int) MYFLT2LONG(*p->imode) & 3;
 
     if (mode & 1) return OK;            /* skip initialisation */
     p->mode = mode;
     /* calculate delay time */
-    npts = (int) (*p->idel * CS_EKR + FL(1.5));
+    npts = (int32_t) (*p->idel * CS_EKR + FL(1.5));
     if (UNLIKELY(npts < 1))
       return csound->InitError(csound, Str("delayk: invalid delay time "
                                            "(must be >= 0)"));
@@ -2244,7 +2244,7 @@ static int delaykset(CSOUND *csound, DELAYK *p)
     return OK;
 }
 
-static int delayk(CSOUND *csound, DELAYK *p)
+static int32_t delayk(CSOUND *csound, DELAYK *p)
 {
     MYFLT   *buf = (MYFLT*) p->aux.auxp;
 
@@ -2263,15 +2263,15 @@ static int delayk(CSOUND *csound, DELAYK *p)
     return OK;
 }
 
-static int vdelaykset(CSOUND *csound, VDELAYK *p)
+static int32_t vdelaykset(CSOUND *csound, VDELAYK *p)
 {
-    int npts, mode = (int) MYFLT2LONG(*p->imode) & 3;
+    int32_t32_t32_t32_t npts, mode = (int) MYFLT2LONG(*p->imode) & 3;
 
     if (mode & 1)
       return OK;                /* skip initialisation */
     p->mode = mode;
     /* calculate max. delay time */
-    npts = (int) (*p->imdel * CS_EKR + FL(1.5));
+    npts = (int32_t) (*p->imdel * CS_EKR + FL(1.5));
     if (UNLIKELY(npts < 1))
       return csound->InitError(csound, Str("vdel_k: invalid max delay time "
                                            "(must be >= 0)"));
@@ -2285,17 +2285,17 @@ static int vdelaykset(CSOUND *csound, VDELAYK *p)
     return OK;
 }
 
-static int vdelayk(CSOUND *csound, VDELAYK *p)
+static int32_t vdelayk(CSOUND *csound, VDELAYK *p)
 {
     MYFLT   *buf = (MYFLT*) p->aux.auxp;
-    int     n, npts = p->npts;
+    int32_t     n, npts = p->npts;
 
     if (UNLIKELY(!buf))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("vdel_k: not initialised"));
     buf[p->wrtp] = *(p->ksig);              /* write input signal to buffer */
                                             /* calculate delay time */
-    n = (int) MYFLT2LONG(*(p->kdel) * CS_EKR);
+    n = (int32_t) MYFLT2LONG(*(p->kdel) * CS_EKR);
     if (UNLIKELY(n < 0))
       return csound->PerfError(csound, p->h.insdshead,
                                Str("vdel_k: invalid delay time "
@@ -2347,10 +2347,10 @@ static int vdelayk(CSOUND *csound, VDELAYK *p)
 /* #undef IV_Q_CALC */
 #define IV_Q_CALC 1
 
-static int rbjeqset(CSOUND *csound, RBJEQ *p)
+static int32_t rbjeqset(CSOUND *csound, RBJEQ *p)
 {
      IGN(csound);
-    int mode = (int) MYFLT2LONG(*p->imode) & 0xF;
+    int32_t32_t32_t32_t mode = (int) MYFLT2LONG(*p->imode) & 0xF;
 
     if (mode & 1)
       return OK;                /* skip initialisation */
@@ -2363,12 +2363,12 @@ static int rbjeqset(CSOUND *csound, RBJEQ *p)
     return OK;
 }
 
-static int rbjeq(CSOUND *csound, RBJEQ *p)
+static int32_t rbjeq(CSOUND *csound, RBJEQ *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     new_frq;
+    int32_t     new_frq;
     MYFLT   b0, b1, b2, a1, a2, tmp;
     MYFLT   xnm1, xnm2, ynm1, ynm2;
     MYFLT   *ar, *asig;
@@ -2632,8 +2632,9 @@ static const OENTRY localops[] = {
             (SUBR) rbjeqset, (SUBR) NULL, (SUBR) rbjeq                  }
 };
 
-int oscbnk_init_(CSOUND *csound)
+int32_t oscbnk_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

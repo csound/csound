@@ -70,11 +70,11 @@ protected:
 class DelayLine : public std::vector<MYFLT> {
 public:
   MYFLT sampleRate;
-  int writingFrame;
-  int size_;
+  int32_t writingFrame;
+  int32_t size_;
   void initialize(size_t sampleRate_, MYFLT maximumDelay = 10.0) {
     sampleRate = (MYFLT)sampleRate_;
-    size_ = (int)std::ceil(maximumDelay * sampleRate);
+    size_ = (int32_t)std::ceil(maximumDelay * sampleRate);
     // std::cout << "DelayLine::initialize: size: " << size_ << std::endl;
     // std::cout << "DelayLine::initialize: sampleRate: " << sampleRate <<
     // std::endl;
@@ -91,13 +91,13 @@ public:
     writingFrame++;
   }
   MYFLT delaySeconds(MYFLT delaySeconds) {
-    int delayFrames_ = (int)(delaySeconds * sampleRate);
+    int32_t delayFrames_ = (int32_t)(delaySeconds * sampleRate);
     return delayFrames(delayFrames_);
   }
-  MYFLT delayFrames(int delayFrames_) {
+  MYFLT delayFrames(int32_t delayFrames_) {
     // std::cout << "DelayLine::delayFrames: delayFrames: "
     //        << delayFrames_ << std::endl;
-    int readingFrame = writingFrame - delayFrames_;
+    int32_t readingFrame = writingFrame - delayFrames_;
     while (readingFrame < 0) {
       readingFrame += size_;
     }
@@ -126,15 +126,15 @@ public:
   MYFLT sampleRate;            // Hz
   MYFLT samplesPerDistance;    // usually samples/meter
   MYFLT blockRate;             // Hz
-  int blockSize;               // samples
+  int32_t blockSize;               // samples
   RCLowpassFilter *smoothingFilter;
   LinearInterpolator *audioInterpolator;
   std::list<std::vector<MYFLT> *> *audioBufferQueue;
   std::list<MYFLT> *sourcePositionQueue;
-  int relativeIndex;
-  int currentIndex;
+  int32_t relativeIndex;
+  int32_t currentIndex;
 
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     sampleRate = csound->GetSr(csound);
     blockRate = opds.insdshead->ekr;
     blockSize = opds.insdshead->ksmps;
@@ -158,7 +158,7 @@ public:
     relativeIndex = 0;
     return OK;
   }
-  int kontrol(CSOUND *csound) {
+  int32_t kontrol(CSOUND *csound) {
     MYFLT sourcePosition = *kSourcePosition;
     MYFLT micPosition = *kMicPosition;
 
@@ -201,17 +201,14 @@ public:
            *kSourcePosition);
     }
 
-<<<<<<< HEAD
+
     for (size_t outputFrame = 0;
          outputFrame < (uint32_t)blockSize;
-=======
-    for (size_t outputFrame = 0; outputFrame < (unsigned int)blockSize;
->>>>>>> d1b44d2ac5fee57908058759ebaff8f7eb5edfb0
          outputFrame++) {
       MYFLT position = smoothingFilter->update(targetPosition);
       MYFLT distance = std::fabs(position);
       MYFLT sourceTime = relativeIndex - (distance * samplesPerDistance);
-      int targetIndex = int(sourceTime);
+      int32_t targetIndex = int32_t(sourceTime);
       MYFLT fraction = sourceTime - targetIndex;
       relativeIndex++;
       for (; targetIndex >= currentIndex; currentIndex++) {
@@ -232,9 +229,9 @@ public:
     }
     return OK;
   }
-  int noteoff(CSOUND *csound) {
+  int32_t noteoff(CSOUND *csound) {
     IGN(csound);
-    int result = OK;
+    int32_t result = OK;
     if (audioBufferQueue) {
       while (!audioBufferQueue->empty()) {
         delete audioBufferQueue->front();
@@ -269,29 +266,29 @@ OENTRY oentries[] = {{
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      }};
 
-PUBLIC int csoundModuleInit_doppler(CSOUND *csound) {
-  int status = 0;
+PUBLIC int32_t csoundModuleInit_doppler(CSOUND *csound) {
+  int32_t status = 0;
   for (OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) {
     status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
                                    oentry->flags, oentry->thread,
                                    oentry->outypes, oentry->intypes,
-                                   (int (*)(CSOUND *, void *))oentry->iopadr,
-                                   (int (*)(CSOUND *, void *))oentry->kopadr,
-                                   (int (*)(CSOUND *, void *))oentry->aopadr);
+                                   (int32_t (*)(CSOUND *, void *))oentry->iopadr,
+                                   (int32_t (*)(CSOUND *, void *))oentry->kopadr,
+                                   (int32_t (*)(CSOUND *, void *))oentry->aopadr);
   }
   return status;
 }
 #ifndef INIT_STATIC_MODULES
-PUBLIC int csoundModuleCreate(CSOUND *csound) {
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return csoundModuleInit_doppler(csound);
 }
 
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
   IGN(csound);
   return 0;
 }

@@ -32,7 +32,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kfco, *kres, *ord, *istor;
         MYFLT   ynm1[10], ynm2[10] ;
-        int     loop;
+        int32_t     loop;
         MYFLT   coef1, coef2, okf, okr, k;
 } LOWPRX;
 
@@ -40,5 +40,6 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kfco, *kres, *ord, *sep;
         MYFLT   ynm1[10], ynm2[10], cut[10];
-        int     loop;
+        int32_t
+        loop;
 } LOWPR_SEP;

@@ -27,16 +27,16 @@
 
 /* my auxilliary functions */
 
-static inline int roundoffint(MYFLT x)
+static inline int32_t roundoffint(MYFLT x)
 {
     if (x > 0)
-      return((int)(x + 0.500001)); /* in case of a close rounding
+      return((int32_t)(x + 0.500001)); /* in case of a close rounding
                                       error when x= 0.5 +- integer */
     else
-      return((int)(x - 0.5));
+      return((int32_t)(x - 0.5));
 }
 
-static int random_number(CSOUND *csound, int a, int b)
+static int32_t32_t32_t32_t random_number(CSOUND *csound, int a, int b)
 {
     MYFLT x;
     x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
@@ -50,11 +50,11 @@ static MYFLT myfltrandom(CSOUND *csound, MYFLT a, MYFLT b)
     return (a + x * (b - a));
 }
 
-static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
+static int32_t BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 {
     /* call seed random at time now? */
     /* later for efficiency- lookup table for grain envelope */
-    /* int i; */
+    /* int32_t i; */
     /* MYFLT t; */
 
     /* allocate space for a 256 point quarter sine/ exponential wavetable  */
@@ -109,13 +109,13 @@ static int BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 /* true tempo is determined by samplesperunit (which has been rounded off) */
 /* only make floating point corrections for stutters with stutterspeed>1 */
 
-static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
+static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int oddmax,unitproj;
-    int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
+    int32_t oddmax,unitproj;
+    int32_t unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out;          /* intermedaites for enveloping grains */
 
     if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
@@ -282,17 +282,17 @@ static int BBCutMono(CSOUND *csound, BBCUTMONO *p)
    for interleaved stereo save and code in audio output part
    to cope with that, variables out1,out2 for 2 channels */
 
-static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
+static int32_t BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 {
     /* call seed random at time now? */
 
     /* later for efficiency- lookup table for grain envelope */
-    /* int i; */
+    /* int32_t i; */
     /* MYFLT t; */
 
        /* allocate space for a 256 point quarter sine/ exponential wavetable  */
 /*     if (p->envbuffer.auxp == NULL) { */
-/*       csound->AuxAlloc(csound, ((int)(256*sizeof(MYFLT),&p->envbuffer); */
+/*       csound->AuxAlloc(csound, ((int32_t)(256*sizeof(MYFLT),&p->envbuffer); */
 
 /*                 for (i=0;i<256;++i) */
 /*       { */
@@ -345,13 +345,13 @@ static int BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 /* rounding errors will accumulate slowly with respect to bps,  */
 /* true tempo is determined by samplesperunit (which has been rounded off) */
 /* only make floating point corrections for stutters with stutterspeed>1 */
-static int BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
+static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int oddmax,unitproj;
-    int unitb,unitl,unitd;      /* temp for integer unitblock calculations */
+    int32_t oddmax,unitproj;
+    int32_t unitb,unitl,unitd;      /* temp for integer unitblock calculations */
     MYFLT envmult,out1,out2;/* intermediates for enveloping grains */
 
     if (UNLIKELY(offset)) {
@@ -538,9 +538,10 @@ static OENTRY localops[] = {
                                (SUBR)BBCutStereoInit, NULL, (SUBR)BBCutStereo}
 };
 
-int bbcut_init_(CSOUND *csound)
+int32_t bbcut_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

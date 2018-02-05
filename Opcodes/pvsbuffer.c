@@ -46,9 +46,9 @@ typedef struct {
   uint32 lastframe;
 } PVSBUFFER;
 
-static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
+static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
 {
-    int N, hop, i=0;
+    int32_t N, hop, i=0;
     char varname[32] = "::buffer0";
     FSIG_HANDLE **phandle = NULL;
 
@@ -99,7 +99,7 @@ static int pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     return OK;
 }
 
-static int pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
+static int32_t pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
 {
      float *fin = p->fin->frame.auxp;
 
@@ -135,13 +135,13 @@ typedef struct {
   uint32_t scnt;
 } PVSBUFFERREAD;
 
-static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
+static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 {
-    int N;
+    int32_t N;
     FSIG_HANDLE *handle=NULL, **phandle;
     char varname[32];
 
-    snprintf(varname, 32, "::buffer%d", (int)(*p->hptr));
+    snprint32_t32_t32_tf(varname, 32, "::buffer%d", (int)(*p->hptr));
     /* csound->Message(csound, "%s:\n", varname); */
     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
@@ -179,19 +179,19 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     return OK;
 }
 
- static int pvsbufreadproc(CSOUND *csound, PVSBUFFERREAD *p){
+ static int32_t pvsbufreadproc(CSOUND *csound, PVSBUFFERREAD *p){
 
     uint32_t posi, frames;
     MYFLT pos, sr = CS_ESR, frac;
     FSIG_HANDLE *handle =  p->handle, **phandle;
     float *fout, *buffer;
-    int strt = *p->strt, end = *p->end, i, N;
+    int32_t strt = *p->strt, end = *p->end, i, N;
     uint32_t overlap;
     p->iclear = *p->clear;
 
    if (*p->hptr != p->optr) {
      char varname[32];
-     snprintf(varname, 32, "::buffer%d", (int)(*p->hptr));
+     snprint32_t32_t32_tf(varname, 32, "::buffer%d", (int)(*p->hptr));
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      if (phandle == NULL)
        csound->PerfError(csound, p->h.insdshead,
@@ -212,15 +212,15 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      float *frame1, *frame2;
      strt /= (sr/N);
      end /= (sr/N);
-     strt = (int)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
-     end = (int)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
+     strt = (int32_t)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
+     end = (int32_t)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
      frames = handle->frames-1;
      pos = *p->ktime*(sr/overlap);
 
      if (p->iclear) memset(fout, 0, sizeof(float)*(N+2));
      while (pos >= frames) pos -= frames;
      while (pos < 0) pos += frames;
-     posi = (int) pos;
+     posi = (int32_t) pos;
      if (N == handle->header.N &&
          overlap == (uint32_t)handle->header.overlap){
        frame1 = buffer + (N + 2) * posi;
@@ -249,7 +249,7 @@ static int pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
   }
 
 
-static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
+static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 {
     uint32_t posi, frames;
     MYFLT pos, sr = CS_ESR;
@@ -258,11 +258,11 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     FUNC     *ftab;
     float    *fout, *buffer;
     uint32_t overlap, i;
-    int      N;
+    int32_t      N;
 
     if (*p->hptr != p->optr){
       char varname[32];
-      snprintf(varname, 32, "::buffer%d", (int)(*p->hptr));
+      snprint32_t32_t32_tf(varname, 32, "::buffer%d", (int)(*p->hptr));
       phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
       if (phandle == NULL)
         csound->PerfError(csound, p->h.insdshead,
@@ -281,13 +281,13 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       float *frame1, *frame2;
       frames = handle->frames-1;
       ftab = csound->FTnp2Find(csound, p->strt);
-      if (UNLIKELY((int)ftab->flen < N/2+1))
+      if (UNLIKELY((int32_t)ftab->flen < N/2+1))
         csound->PerfError(csound, p->h.insdshead,
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
       ftab = csound->FTnp2Find(csound, p->end);
-      if (UNLIKELY((int)ftab->flen < N/2+1))
+      if (UNLIKELY((int32_t)ftab->flen < N/2+1))
         csound->PerfError(csound, p->h.insdshead,
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
@@ -300,7 +300,7 @@ static int pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
            while(pos < 0){
              pos += frames;
            }
-           posi = (int) pos;
+           posi = (int32_t) pos;
         if (N == handle->header.N &&
             overlap == (uint32_t)handle->header.overlap) {
            frame1 = buffer + (N + 2) * posi;

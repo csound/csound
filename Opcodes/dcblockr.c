@@ -34,7 +34,7 @@
 #include "stdopcod.h"
 #include "dcblockr.h"
 
-static int dcblockrset(CSOUND *csound, DCBlocker* p)
+static int32_t dcblockrset(CSOUND *csound, DCBlocker* p)
 {
      IGN(csound);
     p->outputs = 0.0;
@@ -45,7 +45,7 @@ static int dcblockrset(CSOUND *csound, DCBlocker* p)
     return OK;
 }
 
-static int dcblockr(CSOUND *csound, DCBlocker* p)
+static int32_t dcblockr(CSOUND *csound, DCBlocker* p)
 {
      IGN(csound);
     MYFLT       *ar = p->ar;
@@ -86,14 +86,14 @@ typedef struct _dcblk2 {
   AUXCH delay1;
   AUXCH iirdelay1, iirdelay2, iirdelay3, iirdelay4;
   double ydels[4];
-  int dp1,dp2;
+  int32_t dp1,dp2;
   double scaler;
 } DCBlock2;
 
 
-static int dcblock2set(CSOUND *csound, DCBlock2* p)
+static int32_t dcblock2set(CSOUND *csound, DCBlock2* p)
 {
-    int order = (int) *p->order;
+    int32_t32_t32_t order = (int) *p->order;
     if (order == 0) order = 128;
     else if (order < 4) order = 4;
 
@@ -137,7 +137,7 @@ static int dcblock2set(CSOUND *csound, DCBlock2* p)
     return OK;
 }
 
-static int dcblock2(CSOUND *csound, DCBlock2* p)
+static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
 {
      IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -149,9 +149,9 @@ static int dcblock2(CSOUND *csound, DCBlock2* p)
     double   *iirdel[4],x1,x2,y,del;
     double   *ydels = p->ydels;
     double   scale = p->scaler;
-    int      p1 = p->dp1;
-    int      p2 = p->dp2;
-    int      j,del1size, iirdelsize;
+    int32_t      p1 = p->dp1;
+    int32_t      p2 = p->dp2;
+    int32_t      j,del1size, iirdelsize;
 
     iirdel[0] = (double *) p->iirdelay1.auxp;
     iirdel[1] = (double *) p->iirdelay2.auxp;
@@ -202,8 +202,9 @@ static OENTRY localops[] = {
                                    (SUBR)dcblock2set, NULL, (SUBR)dcblock2}
 };
 
-int dcblockr_init_(CSOUND *csound)
+int32_t dcblockr_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

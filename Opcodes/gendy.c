@@ -60,7 +60,7 @@ typedef struct {
 #define dv2_31       (FL(4.656612873077392578125e-10))
 #define GENDYMAXCPS  8192          /* Max number of control points */
 
-static MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
+static MYFLT gendy_distribution(CSOUND *csound, int32_t which, MYFLT a, int32 rnd)
 {
     IGN(csound);
     MYFLT   c, r;
@@ -105,9 +105,9 @@ static MYFLT gendy_distribution(CSOUND *csound, int which, MYFLT a, int32 rnd)
     return r;
 }
 
-static int gendyset(CSOUND *csound, GENDY *p)
+static int32_t gendyset(CSOUND *csound, GENDY *p)
 {
-    int     i;
+    int32_t     i;
     MYFLT   *memamp, *memdur;
     p->amp     = FL(0.0);
     p->nextamp = FL(0.0);
@@ -134,17 +134,17 @@ static int gendyset(CSOUND *csound, GENDY *p)
     return OK;
 }
 
-static int kgendy(CSOUND *csound, GENDY *p)
+static int32_t kgendy(CSOUND *csound, GENDY *p)
 {
-    int     knum;
+    int32_t     knum;
     MYFLT   *memamp, *memdur, minfreq, maxfreq, dist;
-    knum = (int)*p->knum;
+    knum = (int32_t)*p->knum;
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
     if (p->phase >= FL(1.0)) {
-      int index = p->index;
+      int32_t index = p->index;
       p->phase -= FL(1.0);
       if (knum > p->points || knum < 1)
         knum = p->points;
@@ -181,15 +181,15 @@ static int kgendy(CSOUND *csound, GENDY *p)
     return OK;
 }
 
-static int agendy(CSOUND *csound, GENDY *p)
+static int32_t agendy(CSOUND *csound, GENDY *p)
 {
-    int     knum;
+    int32_t     knum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
     out  = p->out;
-    knum = (int)*p->knum;
+    knum = (int32_t)*p->knum;
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
@@ -201,7 +201,7 @@ static int agendy(CSOUND *csound, GENDY *p)
     }
    for (n=offset; n<nsmps; n++) {
       if (p->phase >= FL(1.0)) {
-        int index = p->index;
+        int32_t index = p->index;
         p->phase -= FL(1.0);
         if (knum > p->points || knum < 1)
           knum = p->points;
@@ -237,9 +237,9 @@ static int agendy(CSOUND *csound, GENDY *p)
     return OK;
 }
 
-static int gendyxset(CSOUND *csound, GENDYX *p)
+static int32_t gendyxset(CSOUND *csound, GENDYX *p)
 {
-    int     i;
+    int32_t     i;
     MYFLT   *memamp, *memdur;
     p->amp     = FL(0.0);
     p->nextamp = FL(0.0);
@@ -266,17 +266,17 @@ static int gendyxset(CSOUND *csound, GENDYX *p)
     return OK;
 }
 
-static int kgendyx(CSOUND *csound, GENDYX *p)
+static int32_t kgendyx(CSOUND *csound, GENDYX *p)
 {
-    int     knum;
+    int32_t     knum;
     MYFLT   *memamp, *memdur, minfreq, maxfreq, dist, curve;
-    knum = (int)*p->knum;
+    knum = (int32_t)*p->knum;
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
     if (p->phase >= FL(1.0)) {
-      int index = p->index;
+      int32_t index = p->index;
       p->phase -= FL(1.0);
       if (knum > p->points || knum < 1)
         knum = p->points;
@@ -316,15 +316,15 @@ static int kgendyx(CSOUND *csound, GENDYX *p)
     return OK;
 }
 
-static int agendyx(CSOUND *csound, GENDYX *p)
+static int32_t agendyx(CSOUND *csound, GENDYX *p)
 {
-    int     knum;
+    int32_t     knum;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist, curve;
     out  = p->out;
-    knum = (int)*p->knum;
+    knum = (int32_t)*p->knum;
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
@@ -336,7 +336,7 @@ static int agendyx(CSOUND *csound, GENDYX *p)
     }
     for (n=offset; n<nsmps; n++) {
       if (p->phase >= FL(1.0)) {
-        int index = p->index;
+        int32_t index = p->index;
         p->phase -= FL(1.0);
         if (knum > p->points || knum < 1)
           knum = p->points;
@@ -378,9 +378,9 @@ static int agendyx(CSOUND *csound, GENDYX *p)
 }
 
 /* version with cubic interpolation based from Bhob Rainey's Gendy4 */
-static int gendycset(CSOUND *csound, GENDYC *p)
+static int32_t gendycset(CSOUND *csound, GENDYC *p)
 {
-    int     i;
+    int32_t     i;
     MYFLT   *memamp, *memdur;
     p->amp     = FL(0.0);
     p->nextamp = FL(0.0);
@@ -409,17 +409,17 @@ static int gendycset(CSOUND *csound, GENDYC *p)
     return OK;
 }
 
-static int kgendyc(CSOUND *csound, GENDYC *p)
+static int32_t kgendyc(CSOUND *csound, GENDYC *p)
 {
-    int     knum;
+    int32_t     knum;
     MYFLT   *memamp, *memdur, minfreq, maxfreq, dist;
-    knum = (int)*p->knum;
+    knum = (int32_t)*p->knum;
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
     maxfreq = *p->maxfreq;
     if (p->phase <= 0) {
-      int     index = p->index;
+      int32_t     index = p->index;
       MYFLT   fphase, next_midpnt;
       if (knum > p->points || knum < 1)
         knum = p->points;
@@ -462,15 +462,15 @@ static int kgendyc(CSOUND *csound, GENDYC *p)
     return OK;
 }
 
-static int agendyc(CSOUND *csound, GENDYC *p)
+static int32_t agendyc(CSOUND *csound, GENDYC *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int     knum;
-    int     remain = CS_KSMPS-offset-early;
+    int32_t     knum;
+    int32_t     remain = CS_KSMPS-offset-early;
     MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
     out  = p->out;
-    knum = (int)*p->knum;
+    knum = (int32_t)*p->knum;
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     minfreq = *p->minfreq;
@@ -482,7 +482,7 @@ static int agendyc(CSOUND *csound, GENDYC *p)
     do {
       uint32_t n, nsmps = CS_KSMPS;
       if (p->phase <= 0) {
-        int     index = p->index;
+        int32_t     index = p->index;
         MYFLT   fphase, next_midpnt;
         if (knum > p->points || knum < 1)
           knum = p->points;

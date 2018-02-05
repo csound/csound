@@ -62,8 +62,9 @@ typedef struct Mandolin {
     MYFLT       lastFreq;
     MYFLT       lastLength;
     int32       dampTime;
-    int         waveDone;
-    int         kloop;
+    int32_t         waveDone;
+    int32_t
+    kloop;
 } MANDOL;
 
 #endif

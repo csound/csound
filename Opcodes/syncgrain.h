@@ -116,8 +116,8 @@ typedef struct _syncgrain {
     MYFLT *ols;
     FUNC  *sfunc;
     FUNC  *efunc;
-    int count, numstreams, firststream;
-    int datasize, envtablesize, olaps;
+    int32_t count, numstreams, firststream;
+    int32_t datasize, envtablesize, olaps;
     AUXCH streamon;
     AUXCH index;
     AUXCH envindex;
@@ -142,17 +142,18 @@ typedef struct _syncgrainl {
   MYFLT *iskip;
     FUNC  *sfunc;
     FUNC  *efunc;
-    int count, numstreams, firststream;
-    int datasize, envtablesize, olaps;
+    int32_t count, numstreams, firststream;
+    int32_t datasize, envtablesize, olaps;
     AUXCH streamon;
     AUXCH index;
     AUXCH envindex;
     float start,frac;
-    int firsttime;
+    int32_t firsttime;
 } syncgrainloop;
 
-static int syncgrain_process(CSOUND *csound, syncgrain *p);
-static int syncgrain_init(CSOUND *csound, syncgrain *p);
+static int32_t syncgrain_process(CSOUND *csound, syncgrain *p);
+static int32_t
+syncgrain_init(CSOUND *csound, syncgrain *p);
 
 #endif
 

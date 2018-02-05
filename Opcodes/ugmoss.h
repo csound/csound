@@ -29,7 +29,7 @@ typedef struct {
   MYFLT                 *curp;
   FUNC                  *ftp;
   AUXCH                 sigbuf;
-  unsigned int          len;
+  unsigned int32_t          len;
 } DCONV;
 
 typedef struct {
@@ -45,7 +45,8 @@ typedef struct {
   MYFLT                 *kftndx, *iftfn, *iresfn;
   FUNC                  *ftfn, *resfn;
   MYFLT                 ftndx;
-  unsigned int  len;
+  unsigned int32_t
+  len;
 } FTMORF;
 
 /* end ugmoss.h */

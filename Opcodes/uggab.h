@@ -70,7 +70,7 @@ typedef struct {
 typedef struct {
     OPDS        h;
     MYFLT       *ar, *asig, *kcf, *kbw, *ord, *sep, *iflag, *iscl, *istor;
-    int         scale, loop;
+    int32_t         scale, loop;
     AUXCH       aux;
     AUXCH       buffer;
     MYFLT       *yt1, *yt2;
@@ -89,7 +89,7 @@ typedef struct {
         MYFLT   *out, *freq, *retrig, *iphase, *argums[VARGMAX];
         MYFLT   args[VARGMAX];
         double  phs;
-        int     nsegs;
+        int32_t     nsegs;
 } LOOPSEG;
 
 /* Complexity of args leads to confusion */
@@ -104,28 +104,28 @@ typedef struct {
         MYFLT   *out, *freq, *retrig, *iphase;
         T3SEG   argums[VARGMAX/3];
         double  phs;
-        int     nsegs;
+        int32_t     nsegs;
 } LOOPTSEG;
 
 typedef struct {
         OPDS    h;
         MYFLT   *out, *kphase, *argums[VARGMAX];
         MYFLT   args[VARGMAX];
-        int     nsegs;
+        int32_t     nsegs;
 } LOOPSEGP;
 
 typedef struct {  /* gab f1 */
         OPDS    h;
         MYFLT   *kr, *ksig, *ktime;
         MYFLT   current_val, current_time, incr, val_incremented, old_time;
-        int flag;
+        int32_t flag;
 } LINETO;
 
 typedef struct {  /* gab f1 */
         OPDS    h;
         MYFLT   *kr, *ksig, *ktime, *ktrig;
         MYFLT   current_val, current_time, incr, val_incremented, old_time;
-        int flag;
+        int32_t flag;
 } LINETO2;
 
 typedef struct {
@@ -152,7 +152,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *out, *gamp, *amp1, *cps1, *amp2, *cps2, *amp3, *cps3, *option;
-        int     flag;
+        int32_t     flag;
         int32   phs1,phs2,phs3;
         MYFLT   num1a,num2a, dfdmax1, num1b,num2b, dfdmax2, num1c,num2c, dfdmax3;
 } JITTER2;
@@ -162,7 +162,7 @@ typedef struct {
         MYFLT   *ar, *amp, *cpsMin, *cpsMax;
         MYFLT   xcps;
         int32    phs;
-        int     initflag;
+        int32_t     initflag;
         MYFLT   num1, num2, dfdmax;
 } JITTER;
 
@@ -171,7 +171,7 @@ typedef struct {
         MYFLT   *ar, *amp, *cpsMin, *cpsMax;
         double  si;
         double  phs;
-        int     initflag, cod;
+        int32_t     initflag, cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } JITTERS;
 
@@ -186,14 +186,14 @@ typedef struct {
 typedef struct  {
         OPDS    h;
         MYFLT   *out, *tableNum;
-        int     pfn;
+        int32_t     pfn;
         FUNC    *ftp;
 } DURAND;
 
 typedef struct  {
         OPDS    h;
         MYFLT   *out, *min, *max, *tableNum;
-        int     pfn;
+        int32_t     pfn;
         FUNC    *ftp;
 } CURAND;
 
@@ -227,7 +227,8 @@ typedef struct {
         MYFLT   *ar, *rangeMin, *rangeMax, *cpsMin, *cpsMax;
         double  si;
         double  phs;
-        int initflag, rangeMin_cod, rangeMax_cod;
+        int32_t
+        initflag, rangeMin_cod, rangeMax_cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } RANDOM3;
 

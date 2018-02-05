@@ -87,7 +87,7 @@ typedef struct {
     double xnm1, xnm2, ynm1, ynm2;
     MYFLT  prv_fc, prv_v, prv_q;
     double b0, b1, b2, a1, a2;
-    int    imode;
+    int32_t imode;
 } PAREQ;
 
 typedef struct {

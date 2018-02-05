@@ -139,7 +139,7 @@ static MYFLT Samp_tick(Wave *p)
 
     temp = (int32) temp_time;    /*  Integer part of time address    */
     temp1 = temp + 1;
-    if (UNLIKELY(temp1==(int)p->wave->flen)) temp1 = 0; /* Wrap!! */
+    if (UNLIKELY(temp1==(int32_t)p->wave->flen)) temp1 = 0; /* Wrap!! */
     /*  fractional part of time address */
     alpha = temp_time - (MYFLT)temp;
     lastOutput = p->wave->ftable[temp];  /* Do linear interpolation */
@@ -149,7 +149,7 @@ static MYFLT Samp_tick(Wave *p)
     return lastOutput;
 }
 
-int Moog1set(CSOUND *csound, MOOG1 *p)
+int32_t Moog1set(CSOUND *csound, MOOG1 *p)
 {
     FUNC        *ftp;
     MYFLT       tempCoeffs[2] = {FL(0.0),-FL(1.0)};
@@ -182,7 +182,7 @@ int Moog1set(CSOUND *csound, MOOG1 *p)
     return OK;
 }
 
-int Moog1(CSOUND *csound, MOOG1 *p)
+int32_t Moog1(CSOUND *csound, MOOG1 *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;

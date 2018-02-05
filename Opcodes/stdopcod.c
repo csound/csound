@@ -21,17 +21,17 @@
 
 #include "stdopcod.h"
 
-/* PUBLIC int csoundModuleCreate(CSOUND *csound)
+/* PUBLIC int32_t32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
 }
 */
 
-int stdopc_ModuleInit(CSOUND *csound)
+int32_t32_t stdopc_ModuleInit(CSOUND *csound)
 {
     STDOPCOD_GLOBALS  *p;
-    int               err = 0;
+    int32_t32_t               err = 0;
 
     if (UNLIKELY(csound->stdOp_Env != NULL)) {
       csound->ErrorMsg(csound, Str("stdopcod.c: error: globals already allocated"));
@@ -95,9 +95,11 @@ int stdopc_ModuleInit(CSOUND *csound)
 }
 
 /*
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t
+32_t
+) sizeof(MYFLT));
 }
 */
 

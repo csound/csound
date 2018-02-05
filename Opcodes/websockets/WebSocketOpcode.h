@@ -41,8 +41,8 @@ extern "C"
     {
         OPDS h;
         MYFLT *arguments[20];
-        int inputArgumentCount;
-        int outputArgumentCount;
+        int32_t inputArgumentCount;
+        int32_t outputArgumentCount;
         WebSocket *webSocket;
         OpcodeArgument *inputArguments;
         OpcodeArgument *outputArguments;
@@ -50,8 +50,8 @@ extern "C"
         CSOUND *csound;
     } WebSocketOpcode;
 
-    int WebSocketOpcode_initialise(CSOUND *csound, WebSocketOpcode *self);
-    int WebSocketOpcode_process(CSOUND *csound, WebSocketOpcode *self);
+    int32_t WebSocketOpcode_initialise(CSOUND *csound, WebSocketOpcode *self);
+    int32_t WebSocketOpcode_process(CSOUND *csound, WebSocketOpcode *self);
 #ifdef __cplusplus
 }
 #endif

@@ -41,7 +41,7 @@ void SpectralExtract(
     float   *pvcopy,
     int32    fsize,      /* frame size we're working with */
     int32    MaxFrame,
-    int     mode,
+    int32_t     mode,
     MYFLT   freqlim
     )
 {

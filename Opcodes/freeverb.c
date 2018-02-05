@@ -57,15 +57,15 @@ static const double offsetRoom  = 0.7;
 static const double allPassFeedBack = 0.5;
 
 typedef struct {
-    int     nSamples;
-    int     bufPos;
+    int32_t     nSamples;
+    int32_t     bufPos;
     double  filterState;
     MYFLT   buf[1];
 } freeVerbComb;
 
 typedef struct {
-    int     nSamples;
-    int     bufPos;
+    int32_t     nSamples;
+    int32_t     bufPos;
     MYFLT   buf[1];
 } freeVerbAllPass;
 
@@ -88,34 +88,34 @@ typedef struct {
     double          srFact;
 } FREEVERB;
 
-static int calc_nsamples(FREEVERB *p, double delTime)
+static int32_t calc_nsamples(FREEVERB *p, double delTime)
 {
     double  sampleRate;
     sampleRate = (double) *(p->iSampleRate);
     if (sampleRate < MIN_SRATE)
       sampleRate = DEFAULT_SRATE;
-    return (int) (delTime * sampleRate + 0.5);
+    return (int32_t) (delTime * sampleRate + 0.5);
 }
 
-static int comb_nbytes(FREEVERB *p, double delTime)
+static int32_t comb_nbytes(FREEVERB *p, double delTime)
 {
-    int nbytes;
-    nbytes = (int) sizeof(freeVerbComb) - (int) sizeof(MYFLT);
-    nbytes += ((int) sizeof(MYFLT) * calc_nsamples(p, delTime));
+    int32_t nbytes;
+    nbytes = (int32_t32_t32_t) sizeof(freeVerbComb) - (int) sizeof(MYFLT);
+    nbytes += ((int32_t) sizeof(MYFLT) * calc_nsamples(p, delTime));
     return ((nbytes + 15) & (~15));
 }
 
-static int allpass_nbytes(FREEVERB *p, double delTime)
+static int32_t allpass_nbytes(FREEVERB *p, double delTime)
 {
-    int nbytes;
-    nbytes = (int) sizeof(freeVerbAllPass) - (int) sizeof(MYFLT);
-    nbytes += ((int) sizeof(MYFLT) * calc_nsamples(p, delTime));
+    int32_t nbytes;
+    nbytes = (int32_t32_t32_t) sizeof(freeVerbAllPass) - (int) sizeof(MYFLT);
+    nbytes += ((int32_t) sizeof(MYFLT) * calc_nsamples(p, delTime));
     return ((nbytes + 15) & (~15));
 }
 
-static int freeverb_init(CSOUND *csound, FREEVERB *p)
+static int32_t freeverb_init(CSOUND *csound, FREEVERB *p)
 {
-    int             i, j, k, nbytes;
+    int32_t             i, j, k, nbytes;
     freeVerbComb    *combp;
     freeVerbAllPass *allpassp;
     /* calculate the total number of bytes to allocate */
@@ -128,16 +128,16 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
       nbytes += allpass_nbytes(p, allpass_delays[i][0]);
       nbytes += allpass_nbytes(p, allpass_delays[i][1]);
     }
-    nbytes += (int) sizeof(MYFLT) * (int) CS_KSMPS;
+    nbytes += (int32_t32_t32_t) sizeof(MYFLT) * (int) CS_KSMPS;
     /* allocate space if size has changed */
-    if (nbytes != (int) p->auxData.size)
+    if (nbytes != (int32_t) p->auxData.size)
       csound->AuxAlloc(csound, (int32) nbytes, &(p->auxData));
     else if (*(p->iSkipInit) != FL(0.0))    /* skip initialisation */
       return OK;                            /*   if requested      */
     /* set up comb and allpass filters */
     nbytes = 0;
     for (i = 0; i < (NR_COMB << 1); i++) {
-      combp = (freeVerbComb*)((unsigned char*)p->auxData.auxp + (int) nbytes);
+      combp = (freeVerbComb*)((unsigned char*)p->auxData.auxp + (int32_t) nbytes);
       p->Comb[i >> 1][i & 1] = combp;
       k = calc_nsamples(p, comb_delays[i >> 1][i & 1]);
       combp->nSamples = k;
@@ -149,7 +149,7 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
     }
     for (i = 0; i < (NR_ALLPASS << 1); i++) {
       allpassp = (freeVerbAllPass*) ((unsigned char*) p->auxData.auxp
-                                     + (int) nbytes);
+                                     + (int32_t) nbytes);
       p->AllPass[i >> 1][i & 1] = allpassp;
       k = calc_nsamples(p, allpass_delays[i >> 1][i & 1]);
       allpassp->nSamples = k;
@@ -159,7 +159,7 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
         allpassp->buf[j] = FL(0.0);
       nbytes += allpass_nbytes(p, allpass_delays[i >> 1][i & 1]);
     }
-    p->tmpBuf = (MYFLT*) ((unsigned char*)p->auxData.auxp + (int)nbytes);
+    p->tmpBuf = (MYFLT*) ((unsigned char*)p->auxData.auxp + (int32_t)nbytes);
     p->prvDampFactor = -FL(1.0);
     if (*(p->iSampleRate) >= MIN_SRATE)
       p->srFact = pow((DEFAULT_SRATE / *(p->iSampleRate)), 0.8);
@@ -168,12 +168,12 @@ static int freeverb_init(CSOUND *csound, FREEVERB *p)
     return OK;
 }
 
-static int freeverb_perf(CSOUND *csound, FREEVERB *p)
+static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
 {
     double          feedback, damp1, damp2, x;
     freeVerbComb    *combp;
     freeVerbAllPass *allpassp;
-    int             i;
+    int32_t             i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -274,12 +274,13 @@ static int freeverb_perf(CSOUND *csound, FREEVERB *p)
 
 /* module interface functions */
 
-int freeverb_init_(CSOUND *csound)
+int32_t freeverb_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "freeverb",
-                                (int) sizeof(FREEVERB), 0, 5, "aa", "aakkjo",
-                                (int (*)(CSOUND*, void*)) freeverb_init,
-                                (int (*)(CSOUND*, void*)) NULL,
-                                (int (*)(CSOUND*, void*)) freeverb_perf);
+                                (int32_t) sizeof(FREEVERB), 0, 5, "aa", "aakkjo",
+                                (int32_t (*)(CSOUND*, void*)) freeverb_init,
+                                (int32_t (*)(CSOUND*, void*)) NULL,
+                                (int32_t
+                                 (*)(CSOUND*, void*)) freeverb_perf);
 }
 

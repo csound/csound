@@ -31,19 +31,19 @@ typedef struct FOUT_FILE_ {
     SNDFILE *sf;
     FILE    *f;
     void    *fd;
-    int     bufsize;
-  int     nchnls;
-  int async;
-    int     idx;        /* file index + 1 */
+    int32_t     bufsize;
+  int32_t     nchnls;
+  int32_t async;
+    int32_t     idx;        /* file index + 1 */
 } FOUT_FILE;
 
 typedef struct {
     OPDS    h;
     MYFLT   *fname, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
-    int     nargs;
-    int     buf_pos;
-    int     guard_pos;
+    int32_t     nargs;
+    int32_t     buf_pos;
+    int32_t     guard_pos;
     AUXCH   buf;
     FOUT_FILE f;
 } OUTFILE;
@@ -53,8 +53,8 @@ typedef struct {
     MYFLT   *fname, *iflag;
     ARRAYDAT* tabin;
     MYFLT   scaleFac;
-    int     buf_pos;
-    int     guard_pos;
+    int32_t     buf_pos;
+    int32_t     guard_pos;
     AUXCH   buf;
     FOUT_FILE f;
 } OUTFILEA;
@@ -64,8 +64,8 @@ typedef struct {
     MYFLT   *fname, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
     uint32_t     nargs;
-    int     buf_pos;
-    int     guard_pos;
+    int32_t     buf_pos;
+    int32_t     guard_pos;
     AUXCH   buf;
     FOUT_FILE f;
 } KOUTFILE;
@@ -75,11 +75,11 @@ typedef struct {
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
     int32   currpos;
-    int     flag;
-    int     nargs;
-    int     buf_pos;
-    int     guard_pos;
-    int     frames;
+    int32_t     flag;
+    int32_t     nargs;
+    int32_t     buf_pos;
+    int32_t     guard_pos;
+    int32_t     frames;
     uint32_t     remain;
     AUXCH   buf;
     FOUT_FILE f;
@@ -91,11 +91,11 @@ typedef struct {
     ARRAYDAT *tabout;
     MYFLT   scaleFac;
     int32   currpos;
-    int     flag;
-    int     chn;
-    int     buf_pos;
-    int     guard_pos;
-    int     frames;
+    int32_t     flag;
+    int32_t     chn;
+    int32_t     buf_pos;
+    int32_t     guard_pos;
+    int32_t     frames;
     uint32_t     remain;
     AUXCH   buf;
     FOUT_FILE f;
@@ -106,12 +106,12 @@ typedef struct {
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     MYFLT   scaleFac;
     int32   currpos;
-    int     flag;
-    int     nargs;
-    int     buf_pos;
-    int     guard_pos;
-    int     frames;
-    int     remain;
+    int32_t     flag;
+    int32_t     nargs;
+    int32_t     buf_pos;
+    int32_t     guard_pos;
+    int32_t     frames;
+    int32_t     remain;
     AUXCH   buf;
     FOUT_FILE f;
 } KINFILE;
@@ -120,7 +120,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
     int32   currpos;
-    int     flag;
+    int32_t     flag;
 } I_INFILE;
 
 typedef struct {
@@ -154,7 +154,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
     int32   counter;
-    int     done;
+    int32_t     done;
 } IOUTFILE_R;
 
 typedef struct {

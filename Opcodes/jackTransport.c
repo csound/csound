@@ -44,7 +44,7 @@ typedef struct
   MYFLT *location;
 } JACKTRANSPORT;
 
-static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
+static int32_t jack_transport (CSOUND *csound, JACKTRANSPORT * p)
 {
     RtJackGlobals *rtjack;
     jack_client_t *client;
@@ -59,7 +59,7 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
     }
     else {
       //move to specified location (in seconds)
-      if ((int)(*p->location)>=0) {
+      if ((int32_t)(*p->location)>=0) {
         MYFLT loc_sec = *p->location;
         MYFLT loc_sec_per_sr = loc_sec*csound->GetSr(csound);
         jack_transport_locate(client, loc_sec_per_sr);
@@ -68,7 +68,8 @@ static int jack_transport (CSOUND *csound, JACKTRANSPORT * p)
                             "at %f seconds\n"), loc_sec);
       }
       //start or stop
-      switch ((int)(*p->command)) {
+      switch ((int32_t
+               )(*p->command)) {
       case START:
         csound->Warning(csound, Str("jacktransport: playing.\n"));
         jack_transport_start(client);

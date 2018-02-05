@@ -123,10 +123,10 @@ typedef struct PARTIKKEL {
     PARTIKKEL_GLOBALS_ENTRY *globals_entry;
     GRAINPOOL gpool;
     NODE *grainroot;
-    int out_of_voices_warning;
+    int32_t out_of_voices_warning;
     uint32_t num_outputs;
-    int grainfreq_arate;
-    int synced;
+    int32_t grainfreq_arate;
+    int32_t synced;
     AUXCH aux, aux2;
     CsoundRandMTState randstate;
     FUNC *wavetabs[4];
@@ -162,7 +162,8 @@ typedef struct {
     MYFLT *opcodeid;
 
     /* internal variables */
-    int output_schedphase;
+    int32_t
+    output_schedphase;
     PARTIKKEL_GLOBALS_ENTRY *ge;
 } PARTIKKEL_SYNC;
 

@@ -38,7 +38,7 @@
  *
  */
 
-static int svfset(CSOUND *csound, SVF *p)
+static int32_t svfset(CSOUND *csound, SVF *p)
 {
     IGN(csound);
     if (*p->iskip) {
@@ -48,7 +48,7 @@ static int svfset(CSOUND *csound, SVF *p)
     return OK;
 }
 
-static int svf(CSOUND *csound, SVF *p)
+static int32_t svf(CSOUND *csound, SVF *p)
 {
     MYFLT f1 = FL(0.0), q1 = FL(1.0), scale = FL(1.0),
           lfco = -FL(1.0), lq = -FL(1.0);
@@ -58,7 +58,7 @@ static int svf(CSOUND *csound, SVF *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int asgf = IS_ASIG_ARG(p->kfco), asgq = IS_ASIG_ARG(p->kq);
+    int32_t asgf = IS_ASIG_ARG(p->kfco), asgq = IS_ASIG_ARG(p->kq);
 
     in   = p->in;
     low  = p->low;
@@ -119,9 +119,9 @@ static int svf(CSOUND *csound, SVF *p)
  * Allpass coefficients are calculated at i-time.
  */
 
-static int hilbertset(CSOUND *csound, HILBERT *p)
+static int32_t hilbertset(CSOUND *csound, HILBERT *p)
 {
-    int j;  /* used to increment for loop */
+    int32_t j;  /* used to increment for loop */
 
     /* pole values taken from Bernie Hutchins, "Musical Engineer's Handbook" */
     double poles[12] = {0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
@@ -142,7 +142,7 @@ static int hilbertset(CSOUND *csound, HILBERT *p)
     return OK;
 }
 
-static int hilbert(CSOUND *csound, HILBERT *p)
+static int32_t hilbert(CSOUND *csound, HILBERT *p)
 {
      IGN(csound);
     MYFLT xn1, yn1, xn2, yn2;
@@ -151,7 +151,7 @@ static int hilbert(CSOUND *csound, HILBERT *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int j;
+    int32_t j;
 
     coef = p->coef;
     out1 = p->out1;
@@ -207,11 +207,11 @@ static int hilbert(CSOUND *csound, HILBERT *p)
  *
  */
 
-static int resonzset(CSOUND *csound, RESONZ *p)
+static int32_t resonzset(CSOUND *csound, RESONZ *p)
 {
     /* error message code derived from code for reson in ugens5.c */
-    int scaletype;
-    p->scaletype = scaletype = (int)*p->iscl;
+    int32_t scaletype;
+    p->scaletype = scaletype = (int32_t)*p->iscl;
     if (UNLIKELY(UNLIKELY(scaletype && scaletype != 1 && scaletype != 2))) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                (float)*p->iscl);
@@ -221,7 +221,7 @@ static int resonzset(CSOUND *csound, RESONZ *p)
     return OK;
 }
 
-static int resonr(CSOUND *csound, RESONZ *p)
+static int32_t resonr(CSOUND *csound, RESONZ *p)
 {
     /*
      *
@@ -244,7 +244,7 @@ static int resonr(CSOUND *csound, RESONZ *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int asgf = IS_ASIG_ARG(p->kcf), asgw = IS_ASIG_ARG(p->kbw);
+    int32_t asgf = IS_ASIG_ARG(p->kcf), asgw = IS_ASIG_ARG(p->kbw);
 
     out = p->out;
     in = p->in;
@@ -285,7 +285,7 @@ static int resonr(CSOUND *csound, RESONZ *p)
     return OK;
 }
 
-static int resonz(CSOUND *csound, RESONZ *p)
+static int32_t resonz(CSOUND *csound, RESONZ *p)
 {
     /*
      *
@@ -307,7 +307,7 @@ static int resonz(CSOUND *csound, RESONZ *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int asgf = IS_ASIG_ARG(p->kcf), asgw = IS_ASIG_ARG(p->kbw);
+    int32_t asgf = IS_ASIG_ARG(p->kcf), asgw = IS_ASIG_ARG(p->kbw);
 
     /* Normalizing factors derived from equations in Ken Steiglitz,
      * "A Note on Constant-Gain Digital Resonators," Computer
@@ -354,14 +354,14 @@ static int resonz(CSOUND *csound, RESONZ *p)
     return OK;
 }
 
-static int phaser1set(CSOUND *csound, PHASER1 *p)
+static int32_t phaser1set(CSOUND *csound, PHASER1 *p)
 {
-    int   loop = (int) MYFLT2LONG(*p->iorder);
+    int32_t32_t32_t   loop = (int) MYFLT2LONG(*p->iorder);
     int32  nBytes = (int32) loop * (int32) sizeof(MYFLT);
 
     if (*p->istor == FL(0.0) || p->auxx.auxp == NULL ||
-        (int)p->auxx.size<nBytes || p->auxy.auxp == NULL ||
-        (int)p->auxy.size<nBytes) {
+        (int32_t)p->auxx.size<nBytes || p->auxy.auxp == NULL ||
+        (int32_t)p->auxy.size<nBytes) {
       csound->AuxAlloc(csound, nBytes, &p->auxx);
       csound->AuxAlloc(csound, nBytes, &p->auxy);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
@@ -373,7 +373,7 @@ static int phaser1set(CSOUND *csound, PHASER1 *p)
       size_t  oldSize1 = (size_t) p->auxx.size;
       size_t  oldSize2 = (size_t) p->auxy.size;
       tmp1 = csound->Malloc(csound, oldSize1 + oldSize2);
-      tmp2 = (char*) tmp1 + (int) oldSize1;
+      tmp2 = (char*) tmp1 + (int32_t) oldSize1;
       memcpy(tmp1, p->auxx.auxp, oldSize1);
       memcpy(tmp2, p->auxy.auxp, oldSize2);
       csound->AuxAlloc(csound, nBytes, &p->auxx);
@@ -388,7 +388,7 @@ static int phaser1set(CSOUND *csound, PHASER1 *p)
     return OK;
 }
 
-static int phaser1(CSOUND *csound, PHASER1 *p)
+static int32_t phaser1(CSOUND *csound, PHASER1 *p)
 {
     MYFLT xn = FL(0.0), yn = FL(0.0);
     MYFLT *out, *in;
@@ -398,7 +398,7 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int j;
+    int32_t j;
 
     feedback = p->feedback;
     out = p->out;
@@ -435,18 +435,18 @@ static int phaser1(CSOUND *csound, PHASER1 *p)
     return OK;
 }
 
-static int phaser2set(CSOUND *csound, PHASER2 *p)
+static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
 {
-    int modetype;
-    int loop;
+    int32_t modetype;
+    int32_t loop;
 
-    p->modetype = modetype = (int)*p->mode;
+    p->modetype = modetype = (int32_t)*p->mode;
     if (UNLIKELY(UNLIKELY(modetype && modetype != 1 && modetype != 2))) {
       return csound->InitError(csound,
                                Str("Phaser mode must be either 1 or 2"));
     }
 
-    loop = p->loop = (int) MYFLT2LONG(*p->order);
+    loop = p->loop = (int32_t) MYFLT2LONG(*p->order);
     csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux1);
     csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux2);
     p->nm1 = (MYFLT *) p->aux1.auxp;
@@ -457,7 +457,7 @@ static int phaser2set(CSOUND *csound, PHASER2 *p)
     return OK;
 }
 
-static int phaser2(CSOUND *csound, PHASER2 *p)
+static int32_t phaser2(CSOUND *csound, PHASER2 *p)
 {
     MYFLT xn = FL(0.0), yn = FL(0.0);
     MYFLT *out, *in;
@@ -469,7 +469,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int j;
+    int32_t j;
 
     nm1 = p->nm1;
     nm2 = p->nm2;
@@ -538,7 +538,7 @@ static int phaser2(CSOUND *csound, PHASER2 *p)
 }
 
 /* initialization for 2nd-order lowpass filter */
-static int lp2_set(CSOUND *csound, LP2 *p)
+static int32_t lp2_set(CSOUND *csound, LP2 *p)
 {
      IGN(csound);
     if (!(*p->istor))
@@ -548,7 +548,7 @@ static int lp2_set(CSOUND *csound, LP2 *p)
 
 /* k-time code for 2nd-order lowpass filter. Derived from code in
 Hal Chamberlin's "Musical Applications of Microprocessors." */
-static int lp2(CSOUND *csound, LP2 *p)
+static int32_t lp2(CSOUND *csound, LP2 *p)
 {
     double a, b, c, temp;
     MYFLT *out, *in;
@@ -584,7 +584,7 @@ static int lp2(CSOUND *csound, LP2 *p)
     return OK;
 }
 
-static int lp2aa(CSOUND *csound, LP2 *p)
+static int32_t lp2aa(CSOUND *csound, LP2 *p)
 {
     double a, b, c, temp;
     MYFLT *out, *in;
@@ -629,7 +629,7 @@ static int lp2aa(CSOUND *csound, LP2 *p)
     return OK;
 }
 
-static int lp2ka(CSOUND *csound, LP2 *p)
+static int32_t lp2ka(CSOUND *csound, LP2 *p)
 {
     double a, b, c, temp;
     MYFLT *out, *in;
@@ -674,7 +674,7 @@ static int lp2ka(CSOUND *csound, LP2 *p)
     return OK;
 }
 
-static int lp2ak(CSOUND *csound, LP2 *p)
+static int32_t lp2ak(CSOUND *csound, LP2 *p)
 {
     double a, b, c, temp;
     MYFLT *out, *in;
@@ -734,9 +734,10 @@ static OENTRY localops[] = {
 { "phaser1", S(PHASER1), 0,5, "a", "akkko", (SUBR)phaser1set, NULL,(SUBR)phaser1}
 };
 
-int ugsc_init_(CSOUND *csound)
+int32_t ugsc_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

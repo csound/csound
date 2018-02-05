@@ -61,13 +61,14 @@ typedef struct _pvsdemix {
         AUXCH   maxr;
         AUXCH   minl;
         AUXCH   minr;
-        int     beta;
+        int32_t     beta;
         uint32  lastframe;
 }
 PVSDEMIX;
 
-static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p);
-static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p);
+static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p);
+static int32_t
+pvsdemix_process(CSOUND *csound, PVSDEMIX *p);
 
 #endif
 

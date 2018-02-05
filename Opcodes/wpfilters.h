@@ -109,4 +109,5 @@ typedef struct {
 //
 //} K35HPF;
 
-static int zdf_ladder_perf(CSOUND * csound, ZDF_LADDER * p);
+static int32_t
+zdf_ladder_perf(CSOUND * csound, ZDF_LADDER * p);

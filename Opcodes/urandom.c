@@ -33,34 +33,34 @@ typedef struct {
     MYFLT   *ar;                /* Output */
     MYFLT   *imin;
     MYFLT   *imax;
-    int     ur;
+    int32_t     ur;
     MYFLT   mul;
     MYFLT   add;
 } URANDOM;
 
-static int urand_deinit(CSOUND *csound, URANDOM *p)
+static int32_t urand_deinit(CSOUND *csound, URANDOM *p)
 {
      IGN(csound);
     close(p->ur);
     return OK;
 }
 
-static int urand_init(CSOUND *csound, URANDOM *p)
+static int32_t urand_init(CSOUND *csound, URANDOM *p)
 {
-    int ur = open("/dev/urandom", O_RDONLY);
+    int32_t ur = open("/dev/urandom", O_RDONLY);
     if (UNLIKELY(ur<0)) return NOTOK;
     p->ur = ur;
     csound->RegisterDeinitCallback(csound, p,
-                                   (int (*)(CSOUND *, void *)) urand_deinit);
+                                   (int32_t (*)(CSOUND *, void *)) urand_deinit);
     p->mul = FL(0.5)*(*p->imax - *p->imin);
     p->add = FL(0.5)*(*p->imax + *p->imin);
     return OK;
 }
 
-static int urand_run(CSOUND *csound, URANDOM *p)
+static int32_t urand_run(CSOUND *csound, URANDOM *p)
 {
      IGN(csound);
-    int ur = p->ur;
+    int32_t ur = p->ur;
     /* union ieee754_double x; */
     int64_t x;
     if (UNLIKELY(read(ur, &x, sizeof(int64_t))!=sizeof(int64_t))) return NOTOK;
@@ -72,16 +72,16 @@ static int urand_run(CSOUND *csound, URANDOM *p)
     return OK;
 }
 
-static int urand_irate(CSOUND *csound, URANDOM *p)
+static int32_t urand_irate(CSOUND *csound, URANDOM *p)
 {
     if (LIKELY(urand_init(csound,p)==OK)) return urand_run(csound,p);
     else return NOTOK;
 }
 
-static int urand_arun(CSOUND *csound, URANDOM *p)
+static int32_t urand_arun(CSOUND *csound, URANDOM *p)
 {
      IGN(csound);
-    int ur = p->ur;
+    int32_t ur = p->ur;
     /* union ieee754_double x; */
     int64_t x;
     MYFLT *ar = p->ar;

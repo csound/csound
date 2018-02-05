@@ -96,7 +96,7 @@ typedef struct {
 #define ROOT27 (5.1961524227066318806)
 #define ROOT135d16 (0.72618437741389066597) /* sqrt(135.0/256.0) */
 
-static int ibformenc(CSOUND * csound, AMBIC * p)
+static int32_t ibformenc(CSOUND * csound, AMBIC * p)
 {
     /* All we do in here is police our parameters. */
     switch (p->OUTOCOUNT) {
@@ -110,7 +110,7 @@ static int ibformenc(CSOUND * csound, AMBIC * p)
   }
 }
 
-static int ibformenc_a(CSOUND * csound, AMBICA * p)
+static int32_t ibformenc_a(CSOUND * csound, AMBICA * p)
 {
     if (UNLIKELY(p->tabout->data==NULL || p->tabout->dimensions!=1))
       return csound->InitError(csound,
@@ -128,7 +128,7 @@ static int ibformenc_a(CSOUND * csound, AMBICA * p)
   }
 }
 
-static int
+static int32_t
 abformenc(CSOUND * csound, AMBIC * p) {
 
     IGN(csound);
@@ -208,7 +208,7 @@ abformenc(CSOUND * csound, AMBIC * p) {
 
 }
 
-static int
+static int32_t
 abformenc_a(CSOUND * csound, AMBICA * p) {
    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -289,7 +289,7 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
 
 /* ------------------------------------------------------------------------- */
 
-static int
+static int32_t
 ibformdec(CSOUND * csound, AMBID * p) {
     /* All we do in here is police our parameters. */
     if (UNLIKELY(p->INOCOUNT != 1 + 4 &&
@@ -333,7 +333,7 @@ ibformdec(CSOUND * csound, AMBID * p) {
     return OK;                    /* Never used */
 }
 
-static int
+static int32_t
 abformdec(CSOUND * csound, AMBID * p) {
 
     /* All assert() calls in here should already have been validated in
@@ -352,7 +352,7 @@ abformdec(CSOUND * csound, AMBID * p) {
 
     assert(p->INOCOUNT >= 5);
 
-    switch ((int)*(p->isetup)) {
+    switch ((int32_t)*(p->isetup)) {
     case 1: /* Stereo */
       assert(p->OUTOCOUNT == 2);
       /* Use a 90degree stereo decode, equivalent to a M+S microphone
@@ -681,9 +681,9 @@ abformdec(CSOUND * csound, AMBID * p) {
 
 }
 
-static int
+static int32_t
 ibformdec_a(CSOUND * csound, AMBIDA * p) {
-    int dim;
+    int32_t dim;
     if (p->tabout->data==NULL || p->tabout->dimensions!=1)
       return csound->InitError(csound,
                                Str("bformdec1 output array not initilised"));
@@ -731,7 +731,7 @@ ibformdec_a(CSOUND * csound, AMBIDA * p) {
     return OK;                    /* Never used */
 }
 
-static int
+static int32_t
 abformdec_a(CSOUND * csound, AMBIDA * p) {
 
     /* All assert() calls in here should already have been validated in
@@ -751,7 +751,8 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
     uint32_t dim = p->dim;
     MYFLT *tabin = p->tabin->data, *tabout = p->tabout->data;
 
-    switch ((int)*(p->isetup)) {
+    switch ((int32_t
+             )*(p->isetup)) {
     case 1: /* Stereo */
       /* Use a 90degree stereo decode, equivalent to a M+S microphone
          array at the origin. Works better than front-facing

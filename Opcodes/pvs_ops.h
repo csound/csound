@@ -28,13 +28,14 @@
 #include "interlocks.h"
 
 
-extern int ifd_init_(CSOUND *);
-extern int partials_init_(CSOUND *);
-extern int psynth_init_(CSOUND *);
-extern int pvsbasic_init_(CSOUND *);
-extern int pvscent_init_(CSOUND *);
-extern int pvsdemix_init_(CSOUND *);
-extern int pvsband_init_(CSOUND *);
+extern int32_t ifd_init_(CSOUND *);
+extern int32_t partials_init_(CSOUND *);
+extern int32_t psynth_init_(CSOUND *);
+extern int32_t pvsbasic_init_(CSOUND *);
+extern int32_t pvscent_init_(CSOUND *);
+extern int32_t pvsdemix_init_(CSOUND *);
+extern int32_t
+pvsband_init_(CSOUND *);
 
 #endif  /* CSOUND_PVS_OPS_H */
 
