@@ -52,7 +52,7 @@
 class controls : public UI {
 
   struct ctl {
-    MYFLT *zone;
+    FAUSTFLOAT *zone;
     char label[64];
     MYFLT min, max;
     ctl *nxt;
@@ -120,7 +120,7 @@ public:
   virtual void addVerticalBargraph(const char *label, FAUSTFLOAT *zone,
                                    FAUSTFLOAT min, FAUSTFLOAT max){};
 
-  MYFLT *getZone(char *label) {
+  FAUSTFLOAT *getZone(char *label) {
     ctl *pctl = &anchor;
     pctl = pctl->nxt;
     while (pctl) {
@@ -376,6 +376,10 @@ struct faustgen {
   controls *ctls;
   AUXCH memin;
   AUXCH memout;
+#ifndef USE_DOUBLE
+  AUXCH buffin;
+  AUXCH buffout;
+#endif
 };
 
 struct hdata2 {
@@ -508,6 +512,19 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
     if (p->memout.auxp == NULL || p->memout.size < size)
       csound->AuxAlloc(csound, size, &p->memout);
   }
+
+#ifndef USE_DOUBLE
+{
+    size_t size;
+    size = CS_KSMPS * p->engine->getNumInputs() * sizeof(double);
+    if (p->buffin.auxp == NULL || p->buffin.size < size)
+      csound->AuxAlloc(csound, size, &p->buffin);
+    size = CS_KSMPS * p->engine->getNumOutputs() * sizeof(double);
+    if (p->buffout.auxp == NULL || p->buffout.size < size)
+      csound->AuxAlloc(csound, size, &p->buffout);
+ }
+#endif
+  
   p->ctls = ctls;
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   *p->ohptr = (MYFLT)fdsp->cnt;
@@ -658,8 +675,30 @@ int32_t perf_faust(CSOUND *csound, faustgen *p) {
     }
     nsmps -= offset;
   }
-  p->engine->compute(nsmps, p->ins, p->outs);
 
+#ifdef USE_DOUBLE
+  p->engine->compute(nsmps, p->ins, p->outs);
+#else
+  {
+  int n;
+  double *buffin, **buffinp = (double **) p->buffin.auxp;
+  double *buffout, **buffoutp = (double **) p->buffout.auxp;
+  for (i = 0; i < p->INCOUNT - 1; i++) {
+    buffin = ((double *)p->buffin.auxp) + CS_KSMPS*i;
+    if(UNLIKELY(offset))
+      memset(buffin, '\0', offset * sizeof(MYFLT));
+    for(n = offset; n < nsmps; n++)
+      buffin[n] = p->ins[i][n];
+  }
+  p->engine->compute(nsmps,buffinp, buffoutp);
+  for (i = 0; i < p->OUTCOUNT - 1; i++) {
+    buffout = ((double *)p->buffout.auxp) + CS_KSMPS*i;
+    for(n = offset; n < nsmps; n++)
+      p->ins[i][n] = buffout[n];
+  }
+  }
+#endif
+  
   if (UNLIKELY(offset)) {
     /* restore pos  */
     for (i = 0; i < p->OUTCOUNT - 1; i++)
@@ -686,7 +725,7 @@ struct faustctl {
   MYFLT *inst;
   STRINGDAT *label;
   MYFLT *val;
-  MYFLT *zone;
+  FAUSTFLOAT *zone;
   MYFLT min, max;
 };
 
