@@ -25,7 +25,7 @@
 #include "dumpf.h"
 #include <ctype.h>
 
-static const int dumpf_format_table[9] = {
+static const int32_t dumpf_format_table[9] = {
   0,
   CSFTYPE_INTEGER_BINARY,
   0,
@@ -37,10 +37,10 @@ static const int dumpf_format_table[9] = {
   CSFTYPE_FLOATS_TEXT,
 };
 
-int kdmpset_S(CSOUND *csound, KDUMP *p) {
+int32_t kdmpset_S(CSOUND *csound, KDUMP *p) {
     /* open in curdir or pathname */
     char soundoname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -63,11 +63,11 @@ int kdmpset_S(CSOUND *csound, KDUMP *p) {
 }
 
 
-int kdmpset_p(CSOUND *csound, KDUMP *p)
+int32_t kdmpset_p(CSOUND *csound, KDUMP *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -90,11 +90,11 @@ int kdmpset_p(CSOUND *csound, KDUMP *p)
     return OK;
 }
 
-int kdmp2set_S(CSOUND *csound, KDUMP2 *p)
+int32_t kdmp2set_S(CSOUND *csound, KDUMP2 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -116,11 +116,11 @@ int kdmp2set_S(CSOUND *csound, KDUMP2 *p)
 }
 
 
-int kdmp2set_p(CSOUND *csound, KDUMP2 *p)
+int32_t kdmp2set_p(CSOUND *csound, KDUMP2 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -144,11 +144,11 @@ int kdmp2set_p(CSOUND *csound, KDUMP2 *p)
 }
 
 
-int kdmp3set_S(CSOUND *csound, KDUMP3 *p)
+int32_t kdmp3set_S(CSOUND *csound, KDUMP3 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -171,11 +171,11 @@ int kdmp3set_S(CSOUND *csound, KDUMP3 *p)
 
 
 
-int kdmp3set_p(CSOUND *csound, KDUMP3 *p)
+int32_t kdmp3set_p(CSOUND *csound, KDUMP3 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -198,11 +198,11 @@ int kdmp3set_p(CSOUND *csound, KDUMP3 *p)
     return OK;
 }
 
-int kdmp4set_S(CSOUND *csound, KDUMP4 *p)
+int32_t kdmp4set_S(CSOUND *csound, KDUMP4 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -223,11 +223,11 @@ int kdmp4set_S(CSOUND *csound, KDUMP4 *p)
     return OK;
 }
 
-int kdmp4set_p(CSOUND *csound, KDUMP4 *p)
+int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
 {
     /* open in curdir or pathname */
     char soundoname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -250,11 +250,11 @@ int kdmp4set_p(CSOUND *csound, KDUMP4 *p)
     return OK;
 }
 
-static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format,
-                   int nk, void *p)
+static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
+                   int32_t nk, void *p)
 {
     char  buf1[256], outbuf[256];
-    int   len = 0;
+    int32_t   len = 0;
 
     switch(format) {               /* place formatted kvals into outbuf */
     case 1: {
@@ -288,10 +288,10 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format,
     case 7:
       outbuf[0] = '\0';
       while (--nk) {
-        snprintf(buf1, 256, "%ld\t", (long) *kp++);
+        snprintf(buf1, 256, "%ld\t", (int64_t) *kp++);
         strlcat(outbuf, buf1, 256);
       }
-      snprintf(buf1, 256, "%ld\n", (long) *kp);
+      snprintf(buf1, 256, "%ld\n", (int64_t) *kp);
       strlcat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
@@ -314,7 +314,7 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int format,
     }
 }
 
-int kdump(CSOUND *csound, KDUMP *p)
+int32_t kdump(CSOUND *csound, KDUMP *p)
 {
     MYFLT kval[4];
 
@@ -326,7 +326,7 @@ int kdump(CSOUND *csound, KDUMP *p)
     return OK;
 }
 
-int kdump2(CSOUND *csound, KDUMP2 *p)
+int32_t kdump2(CSOUND *csound, KDUMP2 *p)
 {
     MYFLT kval[4];
 
@@ -339,7 +339,7 @@ int kdump2(CSOUND *csound, KDUMP2 *p)
     return OK;
 }
 
-int kdump3(CSOUND *csound, KDUMP3 *p)
+int32_t kdump3(CSOUND *csound, KDUMP3 *p)
 {
     MYFLT kval[4];
 
@@ -353,7 +353,7 @@ int kdump3(CSOUND *csound, KDUMP3 *p)
     return OK;
 }
 
-int kdump4(CSOUND *csound, KDUMP4 *p)
+int32_t kdump4(CSOUND *csound, KDUMP4 *p)
 {
     MYFLT kval[4];
 
@@ -372,11 +372,11 @@ int kdump4(CSOUND *csound, KDUMP4 *p)
 /* ******** READK and friends; new code 1999 Feb 14 by JPff    ******** */
 /* ******************************************************************** */
 
-int krdset_p(CSOUND *csound, KREAD *p)
+int32_t krdset_p(CSOUND *csound, KREAD *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -400,11 +400,11 @@ int krdset_p(CSOUND *csound, KREAD *p)
     return OK;
 }
 
-int krdset_S(CSOUND *csound, KREAD *p)
+int32_t krdset_S(CSOUND *csound, KREAD *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -426,11 +426,11 @@ int krdset_S(CSOUND *csound, KREAD *p)
     return OK;
 }
 
-int krd2set_S(CSOUND *csound, KREAD2 *p)
+int32_t krd2set_S(CSOUND *csound, KREAD2 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -452,11 +452,11 @@ int krd2set_S(CSOUND *csound, KREAD2 *p)
     return OK;
 }
 
-int krd2set_p(CSOUND *csound, KREAD2 *p)
+int32_t krd2set_p(CSOUND *csound, KREAD2 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -480,11 +480,11 @@ int krd2set_p(CSOUND *csound, KREAD2 *p)
     return OK;
 }
 
-int krd3set_S(CSOUND *csound, KREAD3 *p)
+int32_t krd3set_S(CSOUND *csound, KREAD3 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -506,11 +506,11 @@ int krd3set_S(CSOUND *csound, KREAD3 *p)
     return OK;
 }
 
-int krd3set_p(CSOUND *csound, KREAD3 *p)
+int32_t krd3set_p(CSOUND *csound, KREAD3 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -534,11 +534,11 @@ int krd3set_p(CSOUND *csound, KREAD3 *p)
     return OK;
 }
 
-int krd4set_S(CSOUND *csound, KREAD4 *p)
+int32_t krd4set_S(CSOUND *csound, KREAD4 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -560,11 +560,11 @@ int krd4set_S(CSOUND *csound, KREAD4 *p)
     return OK;
 }
 
-int krd4set_p(CSOUND *csound, KREAD4 *p)
+int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (UNLIKELY((p->format = (int)*p->iformat) < 1 || p->format > 8)) {
+    if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
       return csound->InitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
@@ -589,9 +589,9 @@ int krd4set_p(CSOUND *csound, KREAD4 *p)
 }
 
 
-static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
+static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t nk)
 {
-    int   len;
+    int32_t   len;
     char  inbuf[256];
 
     switch(format) {               /* place formatted kvals into outbuf */
@@ -670,7 +670,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int format, int nk)
     }
 }
 
-int kread(CSOUND *csound, KREAD *p)
+int32_t kread(CSOUND *csound, KREAD *p)
 {
     MYFLT kval[4];
 
@@ -683,7 +683,7 @@ int kread(CSOUND *csound, KREAD *p)
     return OK;
 }
 
-int kread2(CSOUND *csound, KREAD2 *p)
+int32_t kread2(CSOUND *csound, KREAD2 *p)
 {
     MYFLT kval[4];
 
@@ -700,7 +700,7 @@ int kread2(CSOUND *csound, KREAD2 *p)
     return OK;
 }
 
-int kread3(CSOUND *csound, KREAD3 *p)
+int32_t kread3(CSOUND *csound, KREAD3 *p)
 {
     MYFLT kval[4];
 
@@ -719,7 +719,7 @@ int kread3(CSOUND *csound, KREAD3 *p)
     return OK;
 }
 
-int kread4(CSOUND *csound, KREAD4 *p)
+int32_t kread4(CSOUND *csound, KREAD4 *p)
 {
     MYFLT kval[4];
 
@@ -742,7 +742,7 @@ int kread4(CSOUND *csound, KREAD4 *p)
 
 #define INITSIZE 1024
 
-int krdsset_S(CSOUND *csound, KREADS *p)
+int32_t krdsset_S(CSOUND *csound, KREADS *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
@@ -767,7 +767,7 @@ int krdsset_S(CSOUND *csound, KREADS *p)
 }
 
 
-int krdsset_p(CSOUND *csound, KREADS *p)
+int32_t krdsset_p(CSOUND *csound, KREADS *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
@@ -794,7 +794,7 @@ int krdsset_p(CSOUND *csound, KREADS *p)
 }
 
 
-int kreads(CSOUND *csound, KREADS *p)
+int32_t kreads(CSOUND *csound, KREADS *p)
 {
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;

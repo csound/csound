@@ -44,7 +44,7 @@
 
 /* simple linear congruential generator */
 
-PUBLIC int csoundRand31(int *seedVal)
+PUBLIC int32_t csoundRand31(int32_t *seedVal)
 {
     uint64_t  tmp1;
     uint32_t  tmp2;
@@ -54,8 +54,8 @@ PUBLIC int csoundRand31(int *seedVal)
     tmp2 = (uint32_t) tmp1 & (uint32_t) 0x7FFFFFFF;
     tmp2 += (uint32_t) (tmp1 >> 31);
     tmp2 = (tmp2 & (uint32_t) 0x7FFFFFFF) + (tmp2 >> 31);
-    (*seedVal) = (int) tmp2;
-    return (int) tmp2;
+    (*seedVal) = (int32_t) tmp2;
+    return (int32_t) tmp2;
 }
 
 /* Period parameters */
@@ -70,7 +70,7 @@ static CS_NOINLINE void MT_update_state(uint32_t *mt)
 {
     /* mag01[x] = x * MATRIX_A  for x=0,1 */
     const uint32_t  mag01[2] = { (uint32_t) 0, (uint32_t) MATRIX_A };
-    int       i;
+    int32_t       i;
     uint32_t  y;
 
     for (i = 0; i < (N - M); i++) {
@@ -89,7 +89,7 @@ static CS_NOINLINE void MT_update_state(uint32_t *mt)
 
 PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p)
 {
-    int       i = p->mti;
+    int32_t       i = p->mti;
     uint32_t  y;
 
     if (i >= N) {                   /* generate N words at one time */
@@ -115,7 +115,7 @@ PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p)
 PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
                              const uint32_t *initKey, uint32_t keyLength)
 {
-    int       i, j, k;
+    int32_t       i, j, k;
     uint32_t  x;
 
     /* if array is NULL, use length parameter as simple 32 bit seed */
@@ -133,7 +133,7 @@ PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
     if (initKey == NULL)
       return;
     i = 0; j = 0;
-    k = (N > (int) keyLength ? N : (int) keyLength);
+    k = (N > (int32_t) keyLength ? N : (int32_t) keyLength);
     for ( ; k; k--) {
       x = p->mt[i++];
       p->mt[i] = (p->mt[i] ^ ((x ^ (x >> 30)) * (uint32_t) 1664525))
@@ -142,7 +142,7 @@ PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
         p->mt[0] = p->mt[N - 1];
         i = 0;
       }
-      if (++j >= (int) keyLength)
+      if (++j >= (int32_t) keyLength)
         j = 0;
     }
     for (k = (N - 1); k; k--) {

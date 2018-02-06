@@ -22,10 +22,10 @@
 
 #include "compile_ops.h"
 #include <stdio.h>
-int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
-int csoundReadScoreInternal(CSOUND *csound, const char *str);
+int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
+int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
 
-int compile_orc_i(CSOUND *csound, COMPILE *p){
+int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
     FILE *fp;
     size_t size=0;
     char *orc, c, *name;
@@ -62,12 +62,12 @@ int compile_orc_i(CSOUND *csound, COMPILE *p){
     return OK;
 }
 
-int compile_csd_i(CSOUND *csound, COMPILE *p){
+int32_t compile_csd_i(CSOUND *csound, COMPILE *p){
     *p->res = (MYFLT) csoundCompileCsd(csound, ((STRINGDAT *)p->str)->data);
     return OK;
 }
 
-int compile_str_i(CSOUND *csound, COMPILE *p){
+int32_t compile_str_i(CSOUND *csound, COMPILE *p){
   //void csp_orc_sa_print_list(CSOUND*);
     //printf("START\n");
     *p->res = (MYFLT)(csoundCompileOrcInternal(csound,
@@ -77,25 +77,25 @@ int compile_str_i(CSOUND *csound, COMPILE *p){
     return OK;
 }
 
-int read_score_i(CSOUND *csound, COMPILE *p){
+int32_t read_score_i(CSOUND *csound, COMPILE *p){
     *p->res = (MYFLT)(csoundReadScoreInternal(csound,
                                               ((STRINGDAT *)p->str)->data));
     return OK;
 }
 
-int eval_str_i(CSOUND *csound, COMPILE *p){
+int32_t eval_str_i(CSOUND *csound, COMPILE *p){
     *p->res = csoundEvalCode(csound, ((STRINGDAT *)p->str)->data);
     return OK;
 }
 
-int eval_str_k(CSOUND *csound, COMPILE *p){
+int32_t eval_str_k(CSOUND *csound, COMPILE *p){
     if (*p->ktrig)
       *p->res = csoundEvalCode(csound, ((STRINGDAT *)p->str)->data);
     return OK;
 }
 
 
-int retval_i(CSOUND *csound, RETVAL *p){
+int32_t retval_i(CSOUND *csound, RETVAL *p){
     IGN(csound);
     INSDS *ip = p->h.insdshead;
     ip->retval = *p->ret;

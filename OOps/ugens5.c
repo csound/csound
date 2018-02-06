@@ -33,7 +33,7 @@
 #define MAX_LPC_SLOT 20
 
 
-int porset(CSOUND *csound, PORT *p)
+int32_t porset(CSOUND *csound, PORT *p)
 {
    IGN(csound);
     p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
@@ -43,9 +43,9 @@ int porset(CSOUND *csound, PORT *p)
     p->ihtim_old = *p->ihtim;
     return OK;
 }
-int kporset(CSOUND *csound, PORT *p) { return porset(csound, p); }
+int32_t kporset(CSOUND *csound, PORT *p) { return porset(csound, p); }
 
-int port(CSOUND *csound, PORT *p)
+int32_t port(CSOUND *csound, PORT *p)
 {
     IGN(csound);
     p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
@@ -53,7 +53,7 @@ int port(CSOUND *csound, PORT *p)
     return OK;
 }
 
-int kport(CSOUND *csound, KPORT *p)
+int32_t kport(CSOUND *csound, KPORT *p)
 {
     IGN(csound);
     if (p->ihtim_old != *p->ihtim) {
@@ -66,7 +66,7 @@ int kport(CSOUND *csound, KPORT *p)
     return OK;
 }
 
-int tonset(CSOUND *csound, TONE *p)
+int32_t tonset(CSOUND *csound, TONE *p)
 {
     double b;
     p->prvhp = (double)*p->khp;
@@ -79,7 +79,7 @@ int tonset(CSOUND *csound, TONE *p)
     return OK;
 }
 
-int ktonset(CSOUND *csound, TONE *p) {
+int32_t ktonset(CSOUND *csound, TONE *p) {
     IGN(csound);
     double b;
     p->prvhp = (double)*p->khp;
@@ -92,7 +92,7 @@ int ktonset(CSOUND *csound, TONE *p) {
     return OK;
  }
 
-int ktone(CSOUND *csound, TONE *p)
+int32_t ktone(CSOUND *csound, TONE *p)
 {
     IGN(csound);
     double      c1 = p->c1, c2 = p->c2;
@@ -111,7 +111,7 @@ int ktone(CSOUND *csound, TONE *p)
     return OK;
 }
 
-int tone(CSOUND *csound, TONE *p)
+int32_t tone(CSOUND *csound, TONE *p)
 {
     IGN(csound);
     MYFLT       *ar, *asig;
@@ -143,7 +143,7 @@ int tone(CSOUND *csound, TONE *p)
     return OK;
 }
 
-int tonsetx(CSOUND *csound, TONEX *p)
+int32_t tonsetx(CSOUND *csound, TONEX *p)
 {                   /* From Gabriel Maldonado, modified for arbitrary order */
     {
       double b;
@@ -152,9 +152,9 @@ int tonsetx(CSOUND *csound, TONEX *p)
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
-    if (UNLIKELY((p->loop = (int) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
+    if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
-                    (unsigned int)(p->loop*sizeof(double)) > p->aux.size))
+                    (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
         csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
     if (LIKELY(!(*p->istor))) {
@@ -163,14 +163,14 @@ int tonsetx(CSOUND *csound, TONEX *p)
     return OK;
 }
 
-int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
+int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j, lp = p->loop;
+    int32_t      j, lp = p->loop;
 
     if (*p->khp != p->prvhp) {
       double b;
@@ -197,7 +197,7 @@ int tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
     return OK;
 }
 
-int katone(CSOUND *csound, TONE *p)
+int32_t katone(CSOUND *csound, TONE *p)
 {
     IGN(csound);
     double     sig, x;
@@ -220,7 +220,7 @@ int katone(CSOUND *csound, TONE *p)
 }
 
 
-int atone(CSOUND *csound, TONE *p)
+int32_t atone(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -252,14 +252,14 @@ int atone(CSOUND *csound, TONE *p)
     return OK;
 }
 
-int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
+int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j, lp = p->loop;
+    int32_t      j, lp = p->loop;
 
     if (*p->khp != p->prvhp) {
       double b;
@@ -286,10 +286,10 @@ int atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
     return OK;
 }
 
-int rsnset(CSOUND *csound, RESON *p)
+int32_t rsnset(CSOUND *csound, RESON *p)
 {
-    int scale;
-    p->scale = scale = (int)*p->iscl;
+    int32_t scale;
+    p->scale = scale = (int32_t)*p->iscl;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
                                        *p->iscl);
@@ -303,9 +303,9 @@ int rsnset(CSOUND *csound, RESON *p)
     return OK;
 }
 
-int krsnset(CSOUND *csound, RESON *p){ return rsnset(csound,p); }
+int32_t krsnset(CSOUND *csound, RESON *p){ return rsnset(csound,p); }
 
-int kreson(CSOUND *csound, RESON *p)
+int32_t kreson(CSOUND *csound, RESON *p)
 {
     uint32_t flag = 0;
     double      c3p1, c3t4, omc3, c2sqr;
@@ -343,7 +343,7 @@ int kreson(CSOUND *csound, RESON *p)
 }
 
 
-int reson(CSOUND *csound, RESON *p)
+int32_t reson(CSOUND *csound, RESON *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -351,8 +351,8 @@ int reson(CSOUND *csound, RESON *p)
     MYFLT       *ar, *asig;
     double      c3p1, c3t4, omc3, c2sqr;
     double      yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
-    int         asigf = p->asigf;
-    int         asigw = p->asigw;
+    int32_t         asigf = p->asigf;
+    int32_t         asigw = p->asigw;
 
     asig = p->asig;
     ar = p->ar;
@@ -398,14 +398,14 @@ int reson(CSOUND *csound, RESON *p)
     return OK;
 }
 
-int rsnsetx(CSOUND *csound, RESONX *p)
+int32_t rsnsetx(CSOUND *csound, RESONX *p)
 {                               /* Gabriel Maldonado, modifies for arb order */
-    int scale;
-    p->scale = scale = (int) *p->iscl;
-    if ((p->loop = (int) (*p->ord + FL(0.5))) < 1)
+    int32_t scale;
+    p->scale = scale = (int32_t) *p->iscl;
+    if ((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)
       p->loop = 4; /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (unsigned int)(p->loop*2*sizeof(double)) > p->aux.size))
+                       (uint32_t)(p->loop*2*sizeof(double)) > p->aux.size))
       csound->AuxAlloc(csound, (int32)(p->loop*2*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
@@ -421,17 +421,17 @@ int rsnsetx(CSOUND *csound, RESONX *p)
     return OK;
 }
 
-int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
+int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 {
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t    flag = 0, n, nsmps = CS_KSMPS;
-    int         j;
+    int32_t         j;
     MYFLT       *ar;
     double      c3p1, c3t4, omc3, c2sqr;
     double      *yt1, *yt2, c1,c2,c3;
-    int asgf = IS_ASIG_ARG(p->kcf);
-    int asgw = IS_ASIG_ARG(p->kbw);
+    int32_t asgf = IS_ASIG_ARG(p->kcf);
+    int32_t asgw = IS_ASIG_ARG(p->kbw);
 
     ar   = p->ar;
     c1   = p->c1;
@@ -484,7 +484,7 @@ int resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     return OK;
 }
 
-int kareson(CSOUND *csound, RESON *p)
+int32_t kareson(CSOUND *csound, RESON *p)
 {
     uint32_t flag = 0;
     double      c3p1, c3t4, omc3, c2sqr; //, D = 2.0; /* 1/RMS = root2 (rand) */
@@ -534,7 +534,7 @@ int kareson(CSOUND *csound, RESON *p)
     return OK;
 }
 
-int areson(CSOUND *csound, RESON *p)
+int32_t areson(CSOUND *csound, RESON *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -603,7 +603,7 @@ int areson(CSOUND *csound, RESON *p)
  *
  */
 
-int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
+int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
 {
     LPHEADER *lph;
     MEMFIL   *mfp;
@@ -695,20 +695,20 @@ int lprdset_(CSOUND *csound, LPREAD *p, int stringname)
     return OK;
 }
 
-int lprdset(CSOUND *csound, LPREAD *p){
+int32_t lprdset(CSOUND *csound, LPREAD *p){
   return lprdset_(csound, p, 0);
 }
 
-int lprdset_S(CSOUND *csound, LPREAD *p){
+int32_t lprdset_S(CSOUND *csound, LPREAD *p){
   return lprdset_(csound, p, 1);
 }
 
 
 #ifdef TRACE_POLES
 static void
-  DumpPolesF(int poleCount, MYFLT *part1, MYFLT *part2, int isMagn, char *where)
+  DumpPolesF(int32_t poleCount, MYFLT *part1, MYFLT *part2, int32_t isMagn, char *where)
 {
-    int i;
+    int32_t i;
 
     csound->Message(csound, "%s\n", where);
     for (i=0; i<poleCount; i++) {
@@ -722,11 +722,11 @@ static void
 }
 #endif
 
-static void SortPoles(int poleCount, MYFLT *poleMagn, MYFLT *polePhas)
+static void SortPoles(int32_t poleCount, MYFLT *poleMagn, MYFLT *polePhas)
 {
-    int i, j;
+    int32_t i, j;
     MYFLT diff, fTemp;
-    int shouldSwap;
+    int32_t shouldSwap;
 
     /*  DumpPolesF(poleCount, poleMagn, polePhas, 1, "Before sort"); */
 
@@ -763,12 +763,12 @@ static void SortPoles(int poleCount, MYFLT *poleMagn, MYFLT *polePhas)
 /*  DumpPolesF(poleCount, poleMagn, polePhas, 1, "After sort"); */
 }
 
-static int DoPoleInterpolation(int poleCount,
+static int32_t DoPoleInterpolation(int poleCount,
                                MYFLT *pm1, MYFLT *pp1,
                                MYFLT *pm2, MYFLT *pp2,
                                MYFLT factor, MYFLT *outMagn, MYFLT *outPhas)
 {
-    int i;
+    int32_t i;
 
     if (UNLIKELY(poleCount%2!=0)) {
       printf (Str("Cannot handle uneven pole count yet \n"));
@@ -807,9 +807,9 @@ static int DoPoleInterpolation(int poleCount,
     return(1);
 }
 
-static inline void InvertPoles(int count, double *real, double *imag)
+static inline void InvertPoles(int32_t count, double *real, double *imag)
 {
-    int    i;
+    int32_t    i;
     double pr,pi,mag;
 
     for (i=0; i<count; i++) {
@@ -828,11 +828,11 @@ static inline void InvertPoles(int count, double *real, double *imag)
  */
 
 static inline void
-    synthetize(int    poleCount,
+    synthetize(int32_t    poleCount,
                double *poleReal, double *poleImag,
                double *polyReal, double *polyImag)
 {
-    int    j, k;
+    int32_t    j, k;
     double pr, pi, cr, ci;
 
     polyReal[0] = 1;
@@ -872,12 +872,12 @@ static inline void
  *
  */
 
-int lpread(CSOUND *csound, LPREAD *p)
+int32_t lpread(CSOUND *csound, LPREAD *p)
 {
     MYFLT   *bp, *np, *cp;
     int32    nn, framphase;
     MYFLT   fract;
-    int     i, status;
+    int32_t     i, status;
     MYFLT   *poleMagn1 = p->kcoefs + 2*p->npoles;
     MYFLT   *polePhas1 = poleMagn1 + p->npoles;
     MYFLT   *poleMagn2 = polePhas1 + p->npoles;
@@ -958,7 +958,7 @@ int lpread(CSOUND *csound, LPREAD *p)
 }
 
 
-int lpformantset(CSOUND *csound, LPFORM *p)
+int32_t lpformantset(CSOUND *csound, LPFORM *p)
 {
     LPREAD *q;
 
@@ -969,13 +969,13 @@ int lpformantset(CSOUND *csound, LPFORM *p)
     return OK;
 }
 
-int lpformant(CSOUND *csound, LPFORM *p)
+int32_t lpformant(CSOUND *csound, LPFORM *p)
 {
     LPREAD *q = p->lpread;
     MYFLT   *coefp, sr = csound->esr;
     MYFLT   *cfs = (MYFLT*)p->aux.auxp;
     MYFLT   *bws = cfs+p->lpread->npoles/2;
-    int     i, j, ndx = *p->kfor;
+    int32_t     i, j, ndx = *p->kfor;
     double  pm,pp;
 
     if (q->storePoles) {
@@ -1015,7 +1015,7 @@ int lpformant(CSOUND *csound, LPFORM *p)
  *
  *
  */
-int lprsnset(CSOUND *csound, LPRESON *p)
+int32_t lprsnset(CSOUND *csound, LPRESON *p)
 {
     LPREAD *q;
 
@@ -1036,7 +1036,7 @@ int lprsnset(CSOUND *csound, LPRESON *p)
  *                  Uses a circular buffer to store previous signal values.
  */
 
-int lpreson(CSOUND *csound, LPRESON *p)
+int32_t lpreson(CSOUND *csound, LPRESON *p)
 {
     IGN(csound);
     LPREAD *q = p->lpread;
@@ -1047,7 +1047,7 @@ int lpreson(CSOUND *csound, LPRESON *p)
     MYFLT   x;
     double  poleReal[MAXPOLES], poleImag[MAXPOLES];
     double  polyReal[MAXPOLES+1], polyImag[MAXPOLES+1];
-    int     i, nn;
+    int32_t     i, nn;
     double  pm,pp;
 
     jp = p->circjp;
@@ -1122,7 +1122,7 @@ int lpreson(CSOUND *csound, LPRESON *p)
  * LPFRESON : Initialisation time
  *
  */
-int lpfrsnset(CSOUND *csound, LPFRESON *p)
+int32_t lpfrsnset(CSOUND *csound, LPFRESON *p)
 {
 
    /* Connect to previously loaded analysis file */
@@ -1146,7 +1146,7 @@ int lpfrsnset(CSOUND *csound, LPFRESON *p)
  * LPFRESON : k & a time : actually filters the data
  *
  */
-int lpfreson(CSOUND *csound, LPFRESON *p)
+int32_t lpfreson(CSOUND *csound, LPFRESON *p)
 {
     LPREAD  *q = p->lpread;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1210,7 +1210,7 @@ int lpfreson(CSOUND *csound, LPFRESON *p)
     return OK;
 }
 
-int rmsset(CSOUND *csound, RMS *p)
+int32_t rmsset(CSOUND *csound, RMS *p)
 {
     double   b;
 
@@ -1222,7 +1222,7 @@ int rmsset(CSOUND *csound, RMS *p)
     return OK;
 }
 
-int gainset(CSOUND *csound, GAIN *p)
+int32_t gainset(CSOUND *csound, GAIN *p)
 {
     double   b;
 
@@ -1234,7 +1234,7 @@ int gainset(CSOUND *csound, GAIN *p)
     return OK;
 }
 
-int balnset(CSOUND *csound, BALANCE *p)
+int32_t balnset(CSOUND *csound, BALANCE *p)
 {
     double   b;
 
@@ -1246,7 +1246,7 @@ int balnset(CSOUND *csound, BALANCE *p)
     return OK;
 }
 
-int rms(CSOUND *csound, RMS *p)
+int32_t rms(CSOUND *csound, RMS *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1268,7 +1268,7 @@ int rms(CSOUND *csound, RMS *p)
     return OK;
 }
 
-int gain(CSOUND *csound, GAIN *p)
+int32_t gain(CSOUND *csound, GAIN *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1313,7 +1313,7 @@ int gain(CSOUND *csound, GAIN *p)
     return OK;
 }
 
-int balance(CSOUND *csound, BALANCE *p)
+int32_t balance(CSOUND *csound, BALANCE *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1365,11 +1365,11 @@ int balance(CSOUND *csound, BALANCE *p)
 /*
  *   Set current lpc slot
  */
-int lpslotset(CSOUND *csound, LPSLOT *p)
+int32_t lpslotset(CSOUND *csound, LPSLOT *p)
 {
-    int n;
+    int32_t n;
 
-    n = (int) *(p->islotnum);
+    n = (int32_t) *(p->islotnum);
     if (UNLIKELY(n < 0))
       return csound->InitError(csound, Str("lpslot number should be positive"));
     else {
@@ -1384,17 +1384,17 @@ int lpslotset(CSOUND *csound, LPSLOT *p)
     return OK;
 }
 
-int lpitpset(CSOUND *csound, LPINTERPOL *p)
+int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
 {
 
-    if (UNLIKELY((unsigned int) ((int) *(p->islot1))
-                 >= (unsigned int) csound->max_lpc_slot ||
-                 (unsigned int) ((int) *(p->islot2))
-                 >= (unsigned int) csound->max_lpc_slot))
+    if (UNLIKELY((uint32_t) ((int32_t) *(p->islot1))
+                 >= (uint32_t) csound->max_lpc_slot ||
+                 (uint32_t) ((int32_t) *(p->islot2))
+                 >= (uint32_t) csound->max_lpc_slot))
       return csound->InitError(csound, Str("LPC slot is not allocated"));
   /* Get lpread pointers */
-    p->lp1 = ((LPREAD**) csound->lprdaddr)[(int) *(p->islot1)];
-    p->lp2 = ((LPREAD**) csound->lprdaddr)[(int) *(p->islot2)];
+    p->lp1 = ((LPREAD**) csound->lprdaddr)[(int32_t) *(p->islot1)];
+    p->lp2 = ((LPREAD**) csound->lprdaddr)[(int32_t) *(p->islot2)];
 
   /* Check if workable */
 
@@ -1420,9 +1420,9 @@ int lpitpset(CSOUND *csound, LPINTERPOL *p)
     return OK;
 }
 
-int lpinterpol(CSOUND *csound, LPINTERPOL *p)
+int32_t lpinterpol(CSOUND *csound, LPINTERPOL *p)
 {
-    int     i,status;
+    int32_t     i,status;
     MYFLT   *cp,*cp1,*cp2;
     MYFLT   *poleMagn1 = p->kcoefs + 2*p->npoles;
     MYFLT   *polePhas1 = poleMagn1 + p->npoles;
@@ -1462,7 +1462,7 @@ int lpinterpol(CSOUND *csound, LPINTERPOL *p)
 }
 
 
-int klimit(CSOUND *csound, LIMIT *p)
+int32_t klimit(CSOUND *csound, LIMIT *p)
 {
     IGN(csound);
     MYFLT       sig=*p->sig, min=*p->min, max=*p->max;
@@ -1483,7 +1483,7 @@ int klimit(CSOUND *csound, LIMIT *p)
     return OK;
 }
 
-int limit(CSOUND *csound, LIMIT *p)
+int32_t limit(CSOUND *csound, LIMIT *p)
 {
     IGN(csound);
     MYFLT       *ans, *asig;

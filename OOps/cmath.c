@@ -28,7 +28,7 @@
 #include "cmath.h"
 #include <math.h>
 
-int ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
+int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 {
     MYFLT in = *p->in;
     MYFLT powerOf = *p->powerOf;
@@ -41,7 +41,7 @@ int ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
     return OK;
 }
 
-int apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
+int32_t apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -73,7 +73,7 @@ int apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
     return OK;
 }
 
-int seedrand(CSOUND *csound, PRAND *p)
+int32_t seedrand(CSOUND *csound, PRAND *p)
 {
     uint32_t  seedVal = (uint32_t)0;
     int32 xx = (int32)((double)*p->out + 0.5);
@@ -83,20 +83,20 @@ int seedrand(CSOUND *csound, PRAND *p)
     else if (xx==0) {
       seedVal = (uint32_t)csound->GetRandomSeedFromTime();
       csound->Warning(csound, Str("Seeding from current time %u\n"),
-                              (unsigned int)seedVal);
+                              (uint32_t)seedVal);
     }
     else
-      csound->Warning(csound, Str("Seeding with %u\n"), (unsigned int)seedVal);
+      csound->Warning(csound, Str("Seeding with %u\n"), (uint32_t)seedVal);
     csound->SeedRandMT(&(csound->randState_), NULL, seedVal);
-    csound->holdrand = (int)(seedVal & (uint32_t) 0x7FFFFFFF);
+    csound->holdrand = (int32_t)(seedVal & (uint32_t) 0x7FFFFFFF);
     while (seedVal >= (uint32_t)0x7FFFFFFE)
       seedVal -= (uint32_t)0x7FFFFFFE;
-    csound->randSeed1 = ((int)seedVal + 1);
+    csound->randSeed1 = ((int32_t)seedVal + 1);
 
     return OK;
 }
 
-int getseed(CSOUND *csound, GETSEED *p)
+int32_t getseed(CSOUND *csound, GETSEED *p)
 {
     *p->ans = csound->randSeed1;
     return OK;
@@ -174,7 +174,7 @@ static MYFLT biexprand(CSOUND *csound, MYFLT range)
 static MYFLT gaussrand(CSOUND *csound, MYFLT s)
 {
     int64_t   r1 = -((int64_t)0xFFFFFFFFU * 6);
-    int       n = 12;
+    int32_t       n = 12;
     double    x;
 
     do {
@@ -278,7 +278,7 @@ static MYFLT poissrand(CSOUND *csound, MYFLT lambda)
 
  /* ------------------------------------------------------------------------ */
 
-int auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
+int32_t auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
 {
     MYFLT   *out = p->out;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -297,13 +297,13 @@ int auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
     return OK;
 }
 
-int ikuniform(CSOUND *csound, PRAND *p)
+int32_t ikuniform(CSOUND *csound, PRAND *p)
 {
     *p->out = unifrand(csound, *p->arg1);
     return OK;
 }
 
-int alinear(CSOUND *csound, PRAND *p)   /* Linear random functions      */
+int32_t alinear(CSOUND *csound, PRAND *p)   /* Linear random functions      */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -322,13 +322,13 @@ int alinear(CSOUND *csound, PRAND *p)   /* Linear random functions      */
 
 }
 
-int iklinear(CSOUND *csound, PRAND *p)
+int32_t iklinear(CSOUND *csound, PRAND *p)
 {
     *p->out = linrand(csound, *p->arg1);
     return OK;
 }
 
-int atrian(CSOUND *csound, PRAND *p)    /* Triangle random functions  */
+int32_t atrian(CSOUND *csound, PRAND *p)    /* Triangle random functions  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -346,13 +346,13 @@ int atrian(CSOUND *csound, PRAND *p)    /* Triangle random functions  */
     return OK;
 }
 
-int iktrian(CSOUND *csound, PRAND *p)
+int32_t iktrian(CSOUND *csound, PRAND *p)
 {
     *p->out = trirand(csound, *p->arg1);
     return OK;
 }
 
-int exprndiset(CSOUND *csound, PRANDI *p)
+int32_t exprndiset(CSOUND *csound, PRANDI *p)
 {
     p->num1 = exprand(csound, *p->arg1);
     p->num2 = exprand(csound, *p->arg1);
@@ -377,13 +377,13 @@ int kexprndi(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int iexprndi(CSOUND *csound, PRANDI *p)
+int32_t iexprndi(CSOUND *csound, PRANDI *p)
 {
     exprndiset(csound, p);
     return kexprndi(csound, p);
 }
 
-int aexprndi(CSOUND *csound, PRANDI *p)
+int32_t aexprndi(CSOUND *csound, PRANDI *p)
 {
     int32       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -420,7 +420,7 @@ int aexprndi(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
+int32_t aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -438,13 +438,13 @@ int aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
     return OK;
 }
 
-int ikexp(CSOUND *csound, PRAND *p)
+int32_t ikexp(CSOUND *csound, PRAND *p)
 {
     *p->out = exprand(csound, *p->arg1);
     return OK;
 }
 
-int abiexp(CSOUND *csound, PRAND *p)    /* Bilateral exponential rand */
+int32_t abiexp(CSOUND *csound, PRAND *p)    /* Bilateral exponential rand */
 {                                       /* functions */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -462,13 +462,13 @@ int abiexp(CSOUND *csound, PRAND *p)    /* Bilateral exponential rand */
     return OK;
 }
 
-int ikbiexp(CSOUND *csound, PRAND *p)
+int32_t ikbiexp(CSOUND *csound, PRAND *p)
 {
     *p->out = biexprand(csound, *p->arg1);
     return OK;
 }
 
-int agaus(CSOUND *csound, PRAND *p)     /* Gaussian random functions */
+int32_t agaus(CSOUND *csound, PRAND *p)     /* Gaussian random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -486,13 +486,13 @@ int agaus(CSOUND *csound, PRAND *p)     /* Gaussian random functions */
     return OK;
 }
 
-int ikgaus(CSOUND *csound, PRAND *p)
+int32_t ikgaus(CSOUND *csound, PRAND *p)
 {
     *p->out = gaussrand(csound, *p->arg1);
     return OK;
 }
 
-int acauchy(CSOUND *csound, PRAND *p)   /* Cauchy random functions */
+int32_t acauchy(CSOUND *csound, PRAND *p)   /* Cauchy random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -510,7 +510,7 @@ int acauchy(CSOUND *csound, PRAND *p)   /* Cauchy random functions */
     return OK;
 }
 
-int gaussiset(CSOUND *csound, PRANDI *p)
+int32_t gaussiset(CSOUND *csound, PRANDI *p)
 {
     p->num1 = gaussrand(csound, *p->arg1);
     p->num2 = gaussrand(csound, *p->arg1);
@@ -521,7 +521,7 @@ int gaussiset(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int kgaussi(CSOUND *csound, PRANDI *p)
+int32_t kgaussi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
@@ -535,13 +535,13 @@ int kgaussi(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int igaussi(CSOUND *csound, PRANDI *p)
+int32_t igaussi(CSOUND *csound, PRANDI *p)
 {
     gaussiset(csound, p);
     return kgaussi(csound, p);
 }
 
-int agaussi(CSOUND *csound, PRANDI *p)
+int32_t agaussi(CSOUND *csound, PRANDI *p)
 {
     int32       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -578,13 +578,13 @@ int agaussi(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int ikcauchy(CSOUND *csound, PRAND *p)
+int32_t ikcauchy(CSOUND *csound, PRAND *p)
 {
     *p->out = cauchrand(csound, *p->arg1);
     return OK;
 }
 
-int apcauchy(CSOUND *csound, PRAND *p)  /* +ve Cauchy random functions */
+int32_t apcauchy(CSOUND *csound, PRAND *p)  /* +ve Cauchy random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -602,13 +602,13 @@ int apcauchy(CSOUND *csound, PRAND *p)  /* +ve Cauchy random functions */
     return OK;
 }
 
-int ikpcauchy(CSOUND *csound, PRAND *p)
+int32_t ikpcauchy(CSOUND *csound, PRAND *p)
 {
     *p->out = pcauchrand(csound, *p->arg1);
     return OK;
 }
 
-int cauchyiset(CSOUND *csound, PRANDI *p)
+int32_t cauchyiset(CSOUND *csound, PRANDI *p)
 {
     p->num1 = cauchrand(csound, *p->arg1);
     p->num2 = cauchrand(csound, *p->arg1);
@@ -619,7 +619,7 @@ int cauchyiset(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int kcauchyi(CSOUND *csound, PRANDI *p)
+int32_t kcauchyi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
@@ -633,13 +633,13 @@ int kcauchyi(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int icauchyi(CSOUND *csound, PRANDI *p)
+int32_t icauchyi(CSOUND *csound, PRANDI *p)
 {
     cauchyiset(csound, p);
     return kcauchyi(csound, p);
 }
 
-int acauchyi(CSOUND *csound, PRANDI *p)
+int32_t acauchyi(CSOUND *csound, PRANDI *p)
 {
     int32       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -676,7 +676,7 @@ int acauchyi(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
+int32_t abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -696,13 +696,13 @@ int abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
     return OK;
 }
 
-int ikbeta(CSOUND *csound, PRAND *p)
+int32_t ikbeta(CSOUND *csound, PRAND *p)
 {
     *p->out = betarand(csound, *p->arg1, *p->arg2, *p->arg3);
     return OK;
 }
 
-int aweib(CSOUND *csound, PRAND *p)     /* Weibull randon functions */
+int32_t aweib(CSOUND *csound, PRAND *p)     /* Weibull randon functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -721,13 +721,13 @@ int aweib(CSOUND *csound, PRAND *p)     /* Weibull randon functions */
     return OK;
 }
 
-int ikweib(CSOUND *csound, PRAND *p)
+int32_t ikweib(CSOUND *csound, PRAND *p)
 {
     *p->out = weibrand(csound, *p->arg1, *p->arg2);
     return OK;
 }
 
-int apoiss(CSOUND *csound, PRAND *p)    /*      Poisson random funcions */
+int32_t apoiss(CSOUND *csound, PRAND *p)    /*      Poisson random funcions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -745,7 +745,7 @@ int apoiss(CSOUND *csound, PRAND *p)    /*      Poisson random funcions */
     return OK;
 }
 
-int ikpoiss(CSOUND *csound, PRAND *p)
+int32_t ikpoiss(CSOUND *csound, PRAND *p)
 {
     *p->out = poissrand(csound, *p->arg1);
     return OK;
@@ -753,20 +753,20 @@ int ikpoiss(CSOUND *csound, PRAND *p)
 
  /* ------------------------------------------------------------------------ */
 
-int gen21_rand(FGDATA *ff, FUNC *ftp)
+int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
     int32    i, n;
     MYFLT   *ft;
     MYFLT   scale;
-    int     nargs = ff->e.pcnt - 4;
+    int32_t     nargs = ff->e.pcnt - 4;
 
     ft = ftp->ftable;
     scale = (nargs > 1 ? ff->e.p[6] : FL(1.0));
     n = ff->flen;
     if (ff->guardreq)
       n++;
-    switch ((int) ff->e.p[5]) {
+    switch ((int32_t) ff->e.p[5]) {
     case 1:                     /* Uniform distribution */
       for (i = 0 ; i < n ; i++)
         ft[i] = unifrand(csound, scale);

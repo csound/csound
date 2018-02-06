@@ -34,14 +34,14 @@
 #endif
 
 extern void csoundInputMessageInternal(CSOUND *, const char *);
-int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int s, char p1);
-int eventOpcode_(CSOUND *csound, LINEVENT *p, int s, char p1);
+int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 
 
-int schedule(CSOUND *csound, SCHED *p)
+int32_t schedule(CSOUND *csound, SCHED *p)
 {
     LINEVENT pp;
-    int i;
+    int32_t i;
     pp.h = p->h;
     char c[2] = "i";
     pp.args[0] = (MYFLT *) c;
@@ -57,7 +57,7 @@ int schedule(CSOUND *csound, SCHED *p)
 }
 
 static void add_string_arg(char *s, const char *arg) {
-  int offs = strlen(s) ;
+  int32_t offs = strlen(s) ;
   //char *c = s;
   s += offs;
   *s++ = ' ';
@@ -75,10 +75,10 @@ static void add_string_arg(char *s, const char *arg) {
 }
 
 
-int schedule_N(CSOUND *csound, SCHED *p)
+int32_t schedule_N(CSOUND *csound, SCHED *p)
 {
-    int i;
-    int argno = p->INOCOUNT+1;
+    int32_t i;
+    int32_t argno = p->INOCOUNT+1;
     char s[16384];
     sprintf(s, "i %f %f %f", *p->which, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
@@ -95,10 +95,10 @@ int schedule_N(CSOUND *csound, SCHED *p)
     return OK;
 }
 
-int schedule_SN(CSOUND *csound, SCHED *p)
+int32_t schedule_SN(CSOUND *csound, SCHED *p)
 {
-    int i;
-    int argno = p->INOCOUNT+1;
+    int32_t i;
+    int32_t argno = p->INOCOUNT+1;
     char s[16384];
     sprintf(s, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
@@ -114,10 +114,10 @@ int schedule_SN(CSOUND *csound, SCHED *p)
 }
 
 
-int schedule_S(CSOUND *csound, SCHED *p)
+int32_t schedule_S(CSOUND *csound, SCHED *p)
 {
     LINEVENT pp;
-    int i;
+    int32_t i;
     pp.h = p->h;
     char c[2] = "i";
     pp.args[0] = (MYFLT *) c;
@@ -134,18 +134,18 @@ int schedule_S(CSOUND *csound, SCHED *p)
 
 
 
-int ifschedule(CSOUND *csound, WSCHED *p)
+int32_t ifschedule(CSOUND *csound, WSCHED *p)
 {                       /* All we need to do is ensure the trigger is set */
     IGN(csound);
     p->todo = 1;
     return OK;
 }
 
-int kschedule(CSOUND *csound, WSCHED *p)
+int32_t kschedule(CSOUND *csound, WSCHED *p)
 {
     if (p->todo && *p->trigger != FL(0.0)) {
       LINEVENT pp;
-      int i;
+      int32_t i;
       pp.h = p->h;
       char c[2] = "i";
       pp.args[0] = (MYFLT *) c;
@@ -173,7 +173,7 @@ int kschedule(CSOUND *csound, WSCHED *p)
 
 #define MAXPHASE 0x1000000
 #define MAXMASK  0x0ffffff
-int lfoset(CSOUND *csound, LFO *p)
+int32_t lfoset(CSOUND *csound, LFO *p)
 {
   /* Types: 0:  sine
             1:  triangles
@@ -182,9 +182,9 @@ int lfoset(CSOUND *csound, LFO *p)
             4:  saw-tooth
             5:  saw-tooth(down)
             */
-    int type = (int)*p->type;
+    int32_t type = (int32_t)*p->type;
     if (type == 0) {            /* Sine wave so need to create */
-      int i;
+      int32_t i;
       if (p->auxd.auxp==NULL) {
         csound->AuxAlloc(csound, sizeof(MYFLT)*4097L, &p->auxd);
         p->sine = (MYFLT*)p->auxd.auxp;
@@ -202,7 +202,7 @@ int lfoset(CSOUND *csound, LFO *p)
     return OK;
 }
 
-int lfok(CSOUND *csound, LFO *p)
+int32_t lfok(CSOUND *csound, LFO *p)
 {
     int32        phs;
     MYFLT       fract;
@@ -253,7 +253,7 @@ int lfok(CSOUND *csound, LFO *p)
     return OK;
 }
 
-int lfoa(CSOUND *csound, LFO *p)
+int32_t lfoa(CSOUND *csound, LFO *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -329,10 +329,10 @@ int lfoa(CSOUND *csound, LFO *p)
 /* August 1999 by rasmus ekman.                                               */
 /******************************************************************************/
 
-static void unquote(char *dst, char *src, int maxsize)
+static void unquote(char *dst, char *src, int32_t maxsize)
 {
     if (src[0] == '"') {
-      //int len = (int) strlen(src) - 2;
+      //int32_t len = (int32_t) strlen(src) - 2;
       strNcpy(dst, src + 1, maxsize-1);
       //if (len >= 0 && dst[len] == '"') dst[len] = '\0';
     }
@@ -340,9 +340,9 @@ static void unquote(char *dst, char *src, int maxsize)
       strNcpy(dst, src, maxsize);
 }
 
-static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname);
+static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname);
 
-int triginset(CSOUND *csound, TRIGINSTR *p)
+int32_t triginset(CSOUND *csound, TRIGINSTR *p)
 {
     p->prvmintim = *p->mintime;
     p->timrem = 0;
@@ -365,7 +365,7 @@ int triginset(CSOUND *csound, TRIGINSTR *p)
     return OK;
 }
 
-int triginset_S(CSOUND *csound, TRIGINSTR *p)
+int32_t triginset_S(CSOUND *csound, TRIGINSTR *p)
 {
     p->prvmintim = *p->mintime;
     p->timrem = 0;
@@ -389,20 +389,20 @@ int triginset_S(CSOUND *csound, TRIGINSTR *p)
 }
 
 
-static int get_absinsno(CSOUND *csound, TRIGINSTR *p, int stringname)
+static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
 {
-    int insno;
+    int32_t insno;
 
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
-      insno = (int)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
+      insno = (int32_t)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
     else if (csound->ISSTRCOD(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
-      insno = (int)strarg2insno_p(csound, ss);
+      insno = (int32_t)strarg2insno_p(csound, ss);
     }
     else
-      insno = (int)FABS(*p->args[0]);
+      insno = (int32_t)FABS(*p->args[0]);
     /* Check that instrument is defined */
     if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
@@ -414,10 +414,10 @@ static int get_absinsno(CSOUND *csound, TRIGINSTR *p, int stringname)
     return insno;
 }
 
-static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
+static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
 {         /* k-rate event generator */
-    long  starttime;
-    int     i, argnum;
+    int64_t  starttime;
+    int32_t     i, argnum;
     EVTBLK  evt;
     char    name[512];
     memset(&evt, 0, sizeof(EVTBLK));
@@ -447,7 +447,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
       /* See if there are too many instances already */
       if (*p->maxinst >= FL(1.0)) {
         INSDS *ip;
-        int absinsno, numinst = 0;
+        int32_t absinsno, numinst = 0;
         /* Count active instr instances */
         absinsno = get_absinsno(csound, p, stringname);
         if (UNLIKELY(absinsno < 1))
@@ -455,7 +455,7 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
         ip = &(csound->actanchor);
         while ((ip = ip->nxtact) != NULL)
           if (ip->insno == absinsno) numinst++;
-        if (numinst >= (int) *p->maxinst)
+        if (numinst >= (int32_t) *p->maxinst)
           return OK;
       }
     }
@@ -501,17 +501,17 @@ static int ktriginstr_(CSOUND *csound, TRIGINSTR *p, int stringname)
       (insert_score_event_at_sample(csound, &evt, starttime) == 0 ? OK : NOTOK);
 }
 
-int ktriginstr_S(CSOUND *csound, TRIGINSTR *p){
+int32_t ktriginstr_S(CSOUND *csound, TRIGINSTR *p){
   return ktriginstr_(csound,p,1);
 }
 
-int ktriginstr(CSOUND *csound, TRIGINSTR *p){
+int32_t ktriginstr(CSOUND *csound, TRIGINSTR *p){
   return ktriginstr_(csound,p,0);
 }
 
 /* Maldonado triggering of events */
 
-int trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
+int32_t trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 {
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->kfn)) == NULL)) {
@@ -525,11 +525,11 @@ int trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
     return OK;
 }
 
-int trigseq(CSOUND *csound, TRIGSEQ *p)
+int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
 {
     if (p->done) return OK;
     else {
-      int j, nargs = p->nargs;
+      int32_t j, nargs = p->nargs;
       int32 start = (int32) *p->kstart, loop = (int32) *p->kloop;
       int32 *ndx = &p->ndx;
       MYFLT **out = p->outargs;
@@ -544,7 +544,7 @@ int trigseq(CSOUND *csound, TRIGSEQ *p)
         p->table = ftp->ftable;
       }
       if (*p->ktrig) {
-        int nn = nargs * (int)*ndx;
+        int32_t nn = nargs * (int32_t)*ndx;
         for (j=0; j < nargs; j++) {
           *out[j] = p->table[nn+j];
         }

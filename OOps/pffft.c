@@ -128,7 +128,7 @@ inline v4sf ld_ps1(const float *p) { v4sf v=vec_lde(0,p); return vec_splat(vec_p
     x3 = vec_mergel(y1, y3);                    \
   }
 #  define VSWAPHL(a,b) vec_perm(a,b, (vector unsigned char)(16,17,18,19,20,21,22,23,8,9,10,11,12,13,14,15))
-#  define VALIGNED(ptr) ((((long)(ptr)) & 0xF) == 0)
+#  define VALIGNED(ptr) ((((int64_t)(ptr)) & 0xF) == 0)
 
 /*
   SSE1 support macros
@@ -148,7 +148,7 @@ typedef __m128 v4sf;
 #  define UNINTERLEAVE2(in1, in2, out1, out2) { v4sf tmp__ = _mm_shuffle_ps(in1, in2, _MM_SHUFFLE(2,0,2,0)); out2 = _mm_shuffle_ps(in1, in2, _MM_SHUFFLE(3,1,3,1)); out1 = tmp__; }
 #  define VTRANSPOSE4(x0,x1,x2,x3) _MM_TRANSPOSE4_PS(x0,x1,x2,x3)
 #  define VSWAPHL(a,b) _mm_shuffle_ps(b, a, _MM_SHUFFLE(3,2,1,0))
-#  define VALIGNED(ptr) ((((long)(ptr)) & 0xF) == 0)
+#  define VALIGNED(ptr) ((((int64_t)(ptr)) & 0xF) == 0)
 
 /*
   ARM NEON support macros
@@ -175,7 +175,7 @@ typedef float32x4_t v4sf;
 // marginally faster version
 //#  define VTRANSPOSE4(x0,x1,x2,x3) { asm("vtrn.32 %q0, %q1;\n vtrn.32 %q2,%q3\n vswp %f0,%e2\n vswp %f1,%e3" : "+w"(x0), "+w"(x1), "+w"(x2), "+w"(x3)::); }
 #  define VSWAPHL(a,b) vcombine_f32(vget_low_f32(b), vget_high_f32(a))
-#  define VALIGNED(ptr) ((((long)(ptr)) & 0x3) == 0)
+#  define VALIGNED(ptr) ((((int64_t)(ptr)) & 0x3) == 0)
 #else
 #  if !defined(PFFFT_SIMD_DISABLE)
 #    warning "building with simd disabled !!!!!!!!!!!!!!\n";
@@ -193,7 +193,7 @@ typedef float v4sf;
 #  define VMADD(a,b,c) ((a)*(b)+(c))
 #  define VSUB(a,b) ((a)-(b))
 #  define LD_PS1(p) (p)
-#  define VALIGNED(ptr) ((((long)(ptr)) & 0x3) == 0)
+#  define VALIGNED(ptr) ((((int64_t)(ptr)) & 0x3) == 0)
 #endif
 
 // shortcuts for complex multiplcations
@@ -267,14 +267,14 @@ void pffft_aligned_free(void *p) {
   if (p) free(*((void **) p - 1));
 }
 
-int pffft_simd_size(void) { return SIMD_SZ; }
+int32_t pffft_simd_size(void) { return SIMD_SZ; }
 
 /*
   passf2 and passb2 has been merged here, fsign = -1 for passf2, +1 for passb2
 */
-static NEVER_INLINE(void) passf2_ps(int ido, int l1, const v4sf *cc, v4sf *ch, const float *wa1, float fsign) {
-  int k, i;
-  int l1ido = l1*ido;
+static NEVER_INLINE(void) passf2_ps(int32_t ido, int32_t l1, const v4sf *cc, v4sf *ch, const float *wa1, float fsign) {
+  int32_t k, i;
+  int32_t l1ido = l1*ido;
   if (ido <= 2) {
     for (k=0; k < l1ido; k += ido, ch += ido, cc+= 2*ido) {
       ch[0]         = VADD(cc[0], cc[ido+0]);
@@ -301,13 +301,13 @@ static NEVER_INLINE(void) passf2_ps(int ido, int l1, const v4sf *cc, v4sf *ch, c
 /*
   passf3 and passb3 has been merged here, fsign = -1 for passf3, +1 for passb3
 */
-static NEVER_INLINE(void) passf3_ps(int ido, int l1, const v4sf *cc, v4sf *ch,
+static NEVER_INLINE(void) passf3_ps(int32_t ido, int32_t l1, const v4sf *cc, v4sf *ch,
                                     const float *wa1, const float *wa2, float fsign) {
   static const float taur = -0.5f;
   float taui = 0.866025403784439f*fsign;
-  int i, k;
+  int32_t i, k;
   v4sf tr2, ti2, cr2, ci2, cr3, ci3, dr2, di2, dr3, di3;
-  int l1ido = l1*ido;
+  int32_t l1ido = l1*ido;
   float wr1, wi1, wr2, wi2;
   assert(ido > 2);
   for (k=0; k< l1ido; k += ido, cc+= 3*ido, ch +=ido) {
@@ -335,13 +335,13 @@ static NEVER_INLINE(void) passf3_ps(int ido, int l1, const v4sf *cc, v4sf *ch,
   }
 } /* passf3 */
 
-static NEVER_INLINE(void) passf4_ps(int ido, int l1, const v4sf *cc, v4sf *ch,
+static NEVER_INLINE(void) passf4_ps(int32_t ido, int32_t l1, const v4sf *cc, v4sf *ch,
                                     const float *wa1, const float *wa2, const float *wa3, float fsign) {
   /* isign == -1 for forward transform and +1 for backward transform */
 
-  int i, k;
+  int32_t i, k;
   v4sf ci2, ci3, ci4, cr2, cr3, cr4, ti1, ti2, ti3, ti4, tr1, tr2, tr3, tr4;
-  int l1ido = l1*ido;
+  int32_t l1ido = l1*ido;
   if (ido == 2) {
     for (k=0; k < l1ido; k += ido, ch += ido, cc += 4*ido) {
       tr1 = VSUB(cc[0], cc[2*ido + 0]);
@@ -406,7 +406,7 @@ static NEVER_INLINE(void) passf4_ps(int ido, int l1, const v4sf *cc, v4sf *ch,
 /*
   passf5 and passb5 has been merged here, fsign = -1 for passf5, +1 for passb5
 */
-static NEVER_INLINE(void) passf5_ps(int ido, int l1, const v4sf *cc, v4sf *ch,
+static NEVER_INLINE(void) passf5_ps(int32_t ido, int32_t l1, const v4sf *cc, v4sf *ch,
                                     const float *wa1, const float *wa2,
                                     const float *wa3, const float *wa4, float fsign) {
   static const float tr11 = .309016994374947f;
@@ -415,7 +415,7 @@ static NEVER_INLINE(void) passf5_ps(int ido, int l1, const v4sf *cc, v4sf *ch,
   const float ti12 = .587785252292473f*fsign;
 
   /* Local variables */
-  int i, k;
+  int32_t i, k;
   v4sf ci2, ci3, ci4, ci5, di3, di4, di5, di2, cr2, cr3, cr5, cr4, ti2, ti3,
     ti4, ti5, dr3, dr4, dr5, dr2, tr2, tr3, tr4, tr5;
 
@@ -473,9 +473,9 @@ static NEVER_INLINE(void) passf5_ps(int ido, int l1, const v4sf *cc, v4sf *ch,
 #undef cc_ref
 }
 
-static NEVER_INLINE(void) radf2_ps(int ido, int l1, const v4sf * RESTRICT cc, v4sf * RESTRICT ch, const float *wa1) {
+static NEVER_INLINE(void) radf2_ps(int32_t ido, int32_t l1, const v4sf * RESTRICT cc, v4sf * RESTRICT ch, const float *wa1) {
   static const float minus_one = -1.f;
-  int i, k, l1ido = l1*ido;
+  int32_t i, k, l1ido = l1*ido;
   for (k=0; k < l1ido; k += ido) {
     v4sf a = cc[k], b = cc[k + l1ido];
     ch[2*k] = VADD(a, b);
@@ -503,9 +503,9 @@ static NEVER_INLINE(void) radf2_ps(int ido, int l1, const v4sf * RESTRICT cc, v4
 } /* radf2 */
 
 
-static NEVER_INLINE(void) radb2_ps(int ido, int l1, const v4sf *cc, v4sf *ch, const float *wa1) {
+static NEVER_INLINE(void) radb2_ps(int32_t ido, int32_t l1, const v4sf *cc, v4sf *ch, const float *wa1) {
   static const float minus_two=-2;
-  int i, k, l1ido = l1*ido;
+  int32_t i, k, l1ido = l1*ido;
   v4sf a,b,c,d, tr2, ti2;
   for (k=0; k < l1ido; k += ido) {
     a = cc[2*k]; b = cc[2*(k+ido) - 1];
@@ -536,11 +536,11 @@ static NEVER_INLINE(void) radb2_ps(int ido, int l1, const v4sf *cc, v4sf *ch, co
   }
 } /* radb2 */
 
-static void radf3_ps(int ido, int l1, const v4sf * RESTRICT cc, v4sf * RESTRICT ch,
+static void radf3_ps(int32_t ido, int32_t l1, const v4sf * RESTRICT cc, v4sf * RESTRICT ch,
                      const float *wa1, const float *wa2) {
   static const float taur = -0.5f;
   static const float taui = 0.866025403784439f;
-  int i, k, ic;
+  int32_t i, k, ic;
   v4sf ci2, di2, di3, cr2, dr2, dr3, ti2, ti3, tr2, tr3, wr1, wi1, wr2, wi2;
   for (k=0; k<l1; k++) {
     cr2 = VADD(cc[(k + l1)*ido], cc[(k + 2*l1)*ido]);
@@ -577,13 +577,13 @@ static void radf3_ps(int ido, int l1, const v4sf * RESTRICT cc, v4sf * RESTRICT 
 } /* radf3 */
 
 
-static void radb3_ps(int ido, int l1, const v4sf *RESTRICT cc, v4sf *RESTRICT ch,
+static void radb3_ps(int32_t ido, int32_t l1, const v4sf *RESTRICT cc, v4sf *RESTRICT ch,
                      const float *wa1, const float *wa2)
 {
   static const float taur = -0.5f;
   static const float taui = 0.866025403784439f;
   static const float taui_2 = 0.866025403784439f*2;
-  int i, k, ic;
+  int32_t i, k, ic;
   v4sf ci2, ci3, di2, di3, cr2, cr3, dr2, dr3, ti2, tr2;
   for (k=0; k<l1; k++) {
     tr2 = cc[ido-1 + (3*k + 1)*ido]; tr2 = VADD(tr2,tr2);
@@ -619,11 +619,11 @@ static void radb3_ps(int ido, int l1, const v4sf *RESTRICT cc, v4sf *RESTRICT ch
   }
 } /* radb3 */
 
-static NEVER_INLINE(void) radf4_ps(int ido, int l1, const v4sf *RESTRICT cc, v4sf * RESTRICT ch,
+static NEVER_INLINE(void) radf4_ps(int32_t ido, int32_t l1, const v4sf *RESTRICT cc, v4sf * RESTRICT ch,
                                    const float * RESTRICT wa1, const float * RESTRICT wa2, const float * RESTRICT wa3)
 {
   static const float minus_hsqt2 = (float)-0.7071067811865475;
-  int i, k, l1ido = l1*ido;
+  int32_t i, k, l1ido = l1*ido;
   {
     const v4sf *RESTRICT cc_ = cc, * RESTRICT cc_end = cc + l1ido;
     v4sf * RESTRICT ch_ = ch;
@@ -646,7 +646,7 @@ static NEVER_INLINE(void) radf4_ps(int ido, int l1, const v4sf *RESTRICT cc, v4s
     for (k = 0; k < l1ido; k += ido) {
       const v4sf * RESTRICT pc = (v4sf*)(cc + 1 + k);
       for (i=2; i<ido; i += 2, pc += 2) {
-        int ic = ido - i;
+        int32_t ic = ido - i;
         v4sf wr, wi, cr2, ci2, cr3, ci3, cr4, ci4;
         v4sf tr1, ti1, tr2, ti2, tr3, ti3, tr4, ti4;
 
@@ -703,12 +703,12 @@ static NEVER_INLINE(void) radf4_ps(int ido, int l1, const v4sf *RESTRICT cc, v4s
 } /* radf4 */
 
 
-static NEVER_INLINE(void) radb4_ps(int ido, int l1, const v4sf * RESTRICT cc, v4sf * RESTRICT ch,
+static NEVER_INLINE(void) radb4_ps(int32_t ido, int32_t l1, const v4sf * RESTRICT cc, v4sf * RESTRICT ch,
                                    const float * RESTRICT wa1, const float * RESTRICT wa2, const float *RESTRICT wa3)
 {
   static const float minus_sqrt2 = (float)-1.414213562373095;
   static const float two = 2.f;
-  int i, k, l1ido = l1*ido;
+  int32_t i, k, l1ido = l1*ido;
   v4sf ci2, ci3, ci4, cr2, cr3, cr4, ti1, ti2, ti3, ti4, tr1, tr2, tr3, tr4;
   {
     const v4sf *RESTRICT cc_ = cc, * RESTRICT ch_end = ch + l1ido;
@@ -769,7 +769,7 @@ static NEVER_INLINE(void) radb4_ps(int ido, int l1, const v4sf * RESTRICT cc, v4
     if (ido % 2 == 1) return;
   }
   for (k=0; k < l1ido; k+=ido) {
-    int i0 = 4*k + ido;
+    int32_t i0 = 4*k + ido;
     v4sf c = cc[i0-1], d = cc[i0 + 2*ido-1];
     v4sf a = cc[i0+0], b = cc[i0 + 2*ido+0];
     tr1 = VSUB(c,d);
@@ -783,7 +783,7 @@ static NEVER_INLINE(void) radb4_ps(int ido, int l1, const v4sf * RESTRICT cc, v4
   }
 } /* radb4 */
 
-static void radf5_ps(int ido, int l1, const v4sf * RESTRICT cc, v4sf * RESTRICT ch,
+static void radf5_ps(int32_t ido, int32_t l1, const v4sf * RESTRICT cc, v4sf * RESTRICT ch,
                      const float *wa1, const float *wa2, const float *wa3, const float *wa4)
 {
   static const float tr11 = .309016994374947f;
@@ -792,13 +792,13 @@ static void radf5_ps(int ido, int l1, const v4sf * RESTRICT cc, v4sf * RESTRICT 
   static const float ti12 = .587785252292473f;
 
   /* System generated locals */
-  int cc_offset, ch_offset;
+  int32_t cc_offset, ch_offset;
 
   /* Local variables */
-  int i, k, ic;
+  int32_t i, k, ic;
   v4sf ci2, di2, ci4, ci5, di3, di4, di5, ci3, cr2, cr3, dr2, dr3, dr4, dr5,
     cr5, cr4, ti2, ti3, ti5, ti4, tr2, tr3, tr4, tr5;
-  int idp2;
+  int32_t idp2;
 
 
 #define cc_ref(a_1,a_2,a_3) cc[((a_3)*l1 + (a_2))*ido + a_1]
@@ -870,7 +870,7 @@ static void radf5_ps(int ido, int l1, const v4sf * RESTRICT cc, v4sf * RESTRICT 
 #undef ch_ref
 } /* radf5 */
 
-static void radb5_ps(int ido, int l1, const v4sf *RESTRICT cc, v4sf *RESTRICT ch,
+static void radb5_ps(int32_t ido, int32_t l1, const v4sf *RESTRICT cc, v4sf *RESTRICT ch,
                   const float *wa1, const float *wa2, const float *wa3, const float *wa4)
 {
   static const float tr11 = .309016994374947f;
@@ -878,13 +878,13 @@ static void radb5_ps(int ido, int l1, const v4sf *RESTRICT cc, v4sf *RESTRICT ch
   static const float tr12 = -.809016994374947f;
   static const float ti12 = .587785252292473f;
 
-  int cc_offset, ch_offset;
+  int32_t cc_offset, ch_offset;
 
   /* Local variables */
-  int i, k, ic;
+  int32_t i, k, ic;
   v4sf ci2, ci3, ci4, ci5, di3, di4, di5, di2, cr2, cr3, cr5, cr4, ti2, ti3,
     ti4, ti5, dr3, dr4, dr5, dr2, tr2, tr3, tr4, tr5;
-  int idp2;
+  int32_t idp2;
 
 #define cc_ref(a_1,a_2,a_3) cc[((a_3)*5 + (a_2))*ido + a_1]
 #define ch_ref(a_1,a_2,a_3) ch[((a_3)*l1 + (a_2))*ido + a_1]
@@ -959,34 +959,34 @@ static void radb5_ps(int ido, int l1, const v4sf *RESTRICT cc, v4sf *RESTRICT ch
 #undef ch_ref
 } /* radb5 */
 
-static NEVER_INLINE(v4sf *) rfftf1_ps(int n, const v4sf *input_readonly, v4sf *work1, v4sf *work2,
-                                      const float *wa, const int *ifac) {
+static NEVER_INLINE(v4sf *) rfftf1_ps(int32_t n, const v4sf *input_readonly, v4sf *work1, v4sf *work2,
+                                      const float *wa, const int32_t *ifac) {
   v4sf *in  = (v4sf*)input_readonly;
   v4sf *out = (in == work2 ? work1 : work2);
-  int nf = ifac[1], k1;
-  int l2 = n;
-  int iw = n-1;
+  int32_t nf = ifac[1], k1;
+  int32_t l2 = n;
+  int32_t iw = n-1;
   assert(in != out && work1 != work2);
   for (k1 = 1; k1 <= nf; ++k1) {
-    int kh = nf - k1;
-    int ip = ifac[kh + 2];
-    int l1 = l2 / ip;
-    int ido = n / l2;
+    int32_t kh = nf - k1;
+    int32_t ip = ifac[kh + 2];
+    int32_t l1 = l2 / ip;
+    int32_t ido = n / l2;
     iw -= (ip - 1)*ido;
     switch (ip) {
       case 5: {
-        int ix2 = iw + ido;
-        int ix3 = ix2 + ido;
-        int ix4 = ix3 + ido;
+        int32_t ix2 = iw + ido;
+        int32_t ix3 = ix2 + ido;
+        int32_t ix4 = ix3 + ido;
         radf5_ps(ido, l1, in, out, &wa[iw], &wa[ix2], &wa[ix3], &wa[ix4]);
       } break;
       case 4: {
-        int ix2 = iw + ido;
-        int ix3 = ix2 + ido;
+        int32_t ix2 = iw + ido;
+        int32_t ix3 = ix2 + ido;
         radf4_ps(ido, l1, in, out, &wa[iw], &wa[ix2], &wa[ix3]);
       } break;
       case 3: {
-        int ix2 = iw + ido;
+        int32_t ix2 = iw + ido;
         radf3_ps(ido, l1, in, out, &wa[iw], &wa[ix2]);
       } break;
       case 2:
@@ -1006,32 +1006,32 @@ static NEVER_INLINE(v4sf *) rfftf1_ps(int n, const v4sf *input_readonly, v4sf *w
   return in; /* this is in fact the output .. */
 } /* rfftf1 */
 
-static NEVER_INLINE(v4sf *) rfftb1_ps(int n, const v4sf *input_readonly, v4sf *work1, v4sf *work2,
-                                      const float *wa, const int *ifac) {
+static NEVER_INLINE(v4sf *) rfftb1_ps(int32_t n, const v4sf *input_readonly, v4sf *work1, v4sf *work2,
+                                      const float *wa, const int32_t *ifac) {
   v4sf *in  = (v4sf*)input_readonly;
   v4sf *out = (in == work2 ? work1 : work2);
-  int nf = ifac[1], k1;
-  int l1 = 1;
-  int iw = 0;
+  int32_t nf = ifac[1], k1;
+  int32_t l1 = 1;
+  int32_t iw = 0;
   assert(in != out);
   for (k1=1; k1<=nf; k1++) {
-    int ip = ifac[k1 + 1];
-    int l2 = ip*l1;
-    int ido = n / l2;
+    int32_t ip = ifac[k1 + 1];
+    int32_t l2 = ip*l1;
+    int32_t ido = n / l2;
     switch (ip) {
       case 5: {
-        int ix2 = iw + ido;
-        int ix3 = ix2 + ido;
-        int ix4 = ix3 + ido;
+        int32_t ix2 = iw + ido;
+        int32_t ix3 = ix2 + ido;
+        int32_t ix4 = ix3 + ido;
         radb5_ps(ido, l1, in, out, &wa[iw], &wa[ix2], &wa[ix3], &wa[ix4]);
       } break;
       case 4: {
-        int ix2 = iw + ido;
-        int ix3 = ix2 + ido;
+        int32_t ix2 = iw + ido;
+        int32_t ix3 = ix2 + ido;
         radb4_ps(ido, l1, in, out, &wa[iw], &wa[ix2], &wa[ix3]);
       } break;
       case 3: {
-        int ix2 = iw + ido;
+        int32_t ix2 = iw + ido;
         radb3_ps(ido, l1, in, out, &wa[iw], &wa[ix2]);
       } break;
       case 2:
@@ -1053,19 +1053,19 @@ static NEVER_INLINE(v4sf *) rfftb1_ps(int n, const v4sf *input_readonly, v4sf *w
   return in; /* this is in fact the output .. */
 }
 
-static int decompose(int n, int *ifac, const int *ntryh) {
-  int nl = n, nf = 0, i, j = 0;
+static int32_t decompose(int32_t n, int32_t *ifac, const int32_t *ntryh) {
+  int32_t nl = n, nf = 0, i, j = 0;
   for (j=0; ntryh[j]; ++j) {
-    int ntry = ntryh[j];
+    int32_t ntry = ntryh[j];
     while (nl != 1) {
-      int nq = nl / ntry;
-      int nr = nl - ntry * nq;
+      int32_t nq = nl / ntry;
+      int32_t nr = nl - ntry * nq;
       if (nr == 0) {
         ifac[2+nf++] = ntry;
         nl = nq;
         if (ntry == 2 && nf != 1) {
           for (i = 2; i <= nf; ++i) {
-            int ib = nf - i + 2;
+            int32_t ib = nf - i + 2;
             ifac[ib + 1] = ifac[ib];
           }
           ifac[2] = 2;
@@ -1080,25 +1080,25 @@ static int decompose(int n, int *ifac, const int *ntryh) {
 
 
 
-static void rffti1_ps(int n, float *wa, int *ifac)
+static void rffti1_ps(int32_t n, float *wa, int32_t *ifac)
 {
-  static const int ntryh[] = { 4,2,3,5,0 };
-  int k1, j, ii;
+  static const int32_t ntryh[] = { 4,2,3,5,0 };
+  int32_t k1, j, ii;
 
-  int nf = decompose(n,ifac,ntryh);
+  int32_t nf = decompose(n,ifac,ntryh);
   float argh = (2*M_PI) / n;
-  int is = 0;
-  int nfm1 = nf - 1;
-  int l1 = 1;
+  int32_t is = 0;
+  int32_t nfm1 = nf - 1;
+  int32_t l1 = 1;
   for (k1 = 1; k1 <= nfm1; k1++) {
-    int ip = ifac[k1 + 1];
-    int ld = 0;
-    int l2 = l1*ip;
-    int ido = n / l2;
-    int ipm = ip - 1;
+    int32_t ip = ifac[k1 + 1];
+    int32_t ld = 0;
+    int32_t l2 = l1*ip;
+    int32_t ido = n / l2;
+    int32_t ipm = ip - 1;
     for (j = 1; j <= ipm; ++j) {
       float argld;
-      int i = is, fi=0;
+      int32_t i = is, fi=0;
       ld += l1;
       argld = ld*argh;
       for (ii = 3; ii <= ido; ii += 2) {
@@ -1113,25 +1113,25 @@ static void rffti1_ps(int n, float *wa, int *ifac)
   }
 } /* rffti1 */
 
-void cffti1_ps(int n, float *wa, int *ifac)
+void cffti1_ps(int32_t n, float *wa, int32_t *ifac)
 {
-  static const int ntryh[] = { 5,3,4,2,0 };
-  int k1, j, ii;
+  static const int32_t ntryh[] = { 5,3,4,2,0 };
+  int32_t k1, j, ii;
 
-  int nf = decompose(n,ifac,ntryh);
+  int32_t nf = decompose(n,ifac,ntryh);
   float argh = (2*M_PI)/(float)n;
-  int i = 1;
-  int l1 = 1;
+  int32_t i = 1;
+  int32_t l1 = 1;
   for (k1=1; k1<=nf; k1++) {
-    int ip = ifac[k1+1];
-    int ld = 0;
-    int l2 = l1*ip;
-    int ido = n / l2;
-    int idot = ido + ido + 2;
-    int ipm = ip - 1;
+    int32_t ip = ifac[k1+1];
+    int32_t ld = 0;
+    int32_t l2 = l1*ip;
+    int32_t ido = n / l2;
+    int32_t idot = ido + ido + 2;
+    int32_t ipm = ip - 1;
     for (j=1; j<=ipm; j++) {
       float argld;
-      int i1 = i, fi = 0;
+      int32_t i1 = i, fi = 0;
       wa[i-1] = 1;
       wa[i] = 0;
       ld += l1;
@@ -1152,35 +1152,35 @@ void cffti1_ps(int n, float *wa, int *ifac)
 } /* cffti1 */
 
 
-v4sf *cfftf1_ps(int n, const v4sf *input_readonly, v4sf *work1, v4sf *work2, const float *wa, const int *ifac, int isign) {
+v4sf *cfftf1_ps(int32_t n, const v4sf *input_readonly, v4sf *work1, v4sf *work2, const float *wa, const int32_t *ifac, int32_t isign) {
   v4sf *in  = (v4sf*)input_readonly;
   v4sf *out = (in == work2 ? work1 : work2);
-  int nf = ifac[1], k1;
-  int l1 = 1;
-  int iw = 0;
+  int32_t nf = ifac[1], k1;
+  int32_t l1 = 1;
+  int32_t iw = 0;
   assert(in != out && work1 != work2);
   for (k1=2; k1<=nf+1; k1++) {
-    int ip = ifac[k1];
-    int l2 = ip*l1;
-    int ido = n / l2;
-    int idot = ido + ido;
+    int32_t ip = ifac[k1];
+    int32_t l2 = ip*l1;
+    int32_t ido = n / l2;
+    int32_t idot = ido + ido;
     switch (ip) {
       case 5: {
-        int ix2 = iw + idot;
-        int ix3 = ix2 + idot;
-        int ix4 = ix3 + idot;
+        int32_t ix2 = iw + idot;
+        int32_t ix3 = ix2 + idot;
+        int32_t ix4 = ix3 + idot;
         passf5_ps(idot, l1, in, out, &wa[iw], &wa[ix2], &wa[ix3], &wa[ix4], isign);
       } break;
       case 4: {
-        int ix2 = iw + idot;
-        int ix3 = ix2 + idot;
+        int32_t ix2 = iw + idot;
+        int32_t ix3 = ix2 + idot;
         passf4_ps(idot, l1, in, out, &wa[iw], &wa[ix2], &wa[ix3], isign);
       } break;
       case 2: {
         passf2_ps(idot, l1, in, out, &wa[iw], isign);
       } break;
       case 3: {
-        int ix2 = iw + idot;
+        int32_t ix2 = iw + idot;
         passf3_ps(idot, l1, in, out, &wa[iw], &wa[ix2], isign);
       } break;
       default:
@@ -1200,18 +1200,18 @@ v4sf *cfftf1_ps(int n, const v4sf *input_readonly, v4sf *work1, v4sf *work2, con
 
 
 struct PFFFT_Setup {
-  int     N;
-  int     Ncvec; // nb of complex simd vectors (N/4 if PFFFT_COMPLEX, N/8 if PFFFT_REAL)
-  int ifac[15];
+  int32_t     N;
+  int32_t     Ncvec; // nb of complex simd vectors (N/4 if PFFFT_COMPLEX, N/8 if PFFFT_REAL)
+  int32_t ifac[15];
   pffft_transform_t transform;
   v4sf *data; // allocated room for twiddle coefs
   float *e;    // points into 'data' , N/4*3 elements
   float *twiddle; // points into 'data', N/4 elements
 };
 
-PFFFT_Setup *pffft_new_setup(int N, pffft_transform_t transform) {
+PFFFT_Setup *pffft_new_setup(int32_t N, pffft_transform_t transform) {
   PFFFT_Setup *s = (PFFFT_Setup*)malloc(sizeof(PFFFT_Setup));
-  int k, m;
+  int32_t k, m;
   /* unfortunately, the fft size must be a multiple of 16 for complex FFTs
      and 32 for real FFTs -- a lot of stuff would need to be rewritten to
      handle other cases (or maybe just switch to a scalar fft, I don't know..) */
@@ -1228,8 +1228,8 @@ PFFFT_Setup *pffft_new_setup(int N, pffft_transform_t transform) {
 
   if (transform == PFFFT_REAL) {
     for (k=0; k < s->Ncvec; ++k) {
-      int i = k/SIMD_SZ;
-      int j = k%SIMD_SZ;
+      int32_t i = k/SIMD_SZ;
+      int32_t j = k%SIMD_SZ;
       for (m=0; m < SIMD_SZ-1; ++m) {
         float A = -2*M_PI*(m+1)*k / N;
         s->e[(2*(i*3 + m) + 0) * SIMD_SZ + j] = cos(A);
@@ -1239,8 +1239,8 @@ PFFFT_Setup *pffft_new_setup(int N, pffft_transform_t transform) {
     rffti1_ps(N/SIMD_SZ, s->twiddle, s->ifac);
   } else {
     for (k=0; k < s->Ncvec; ++k) {
-      int i = k/SIMD_SZ;
-      int j = k%SIMD_SZ;
+      int32_t i = k/SIMD_SZ;
+      int32_t j = k%SIMD_SZ;
       for (m=0; m < SIMD_SZ-1; ++m) {
         float A = -2*M_PI*(m+1)*k / N;
         s->e[(2*(i*3 + m) + 0)*SIMD_SZ + j] = cos(A);
@@ -1268,9 +1268,9 @@ void pffft_destroy_setup(PFFFT_Setup *s) {
 #if !defined(PFFFT_SIMD_DISABLE)
 
 /* [0 0 1 2 3 4 5 6 7 8] -> [0 8 7 6 5 4 3 2 1] */
-static void reversed_copy(int N, const v4sf *in, int in_stride, v4sf *out) {
+static void reversed_copy(int32_t N, const v4sf *in, int32_t in_stride, v4sf *out) {
   v4sf g0, g1;
-  int k;
+  int32_t k;
   INTERLEAVE2(in[0], in[1], g0, g1); in += in_stride;
 
   *--out = VSWAPHL(g0, g1); // [g0l, g0h], [g1l g1h] -> [g1l, g0h]
@@ -1284,9 +1284,9 @@ static void reversed_copy(int N, const v4sf *in, int in_stride, v4sf *out) {
   *--out = VSWAPHL(g1, g0);
 }
 
-static void unreversed_copy(int N, const v4sf *in, v4sf *out, int out_stride) {
+static void unreversed_copy(int32_t N, const v4sf *in, v4sf *out, int32_t out_stride) {
   v4sf g0, g1, h0, h1;
-  int k;
+  int32_t k;
   g0 = g1 = in[0]; ++in;
   for (k=1; k < N; ++k) {
     h0 = *in++; h1 = *in++;
@@ -1302,12 +1302,12 @@ static void unreversed_copy(int N, const v4sf *in, v4sf *out, int out_stride) {
 }
 
 void pffft_zreorder(PFFFT_Setup *setup, const float *in, float *out, pffft_direction_t direction) {
-  int k, N = setup->N, Ncvec = setup->Ncvec;
+  int32_t k, N = setup->N, Ncvec = setup->Ncvec;
   const v4sf *vin = (const v4sf*)in;
   v4sf *vout = (v4sf*)out;
   assert(in != out);
   if (setup->transform == PFFFT_REAL) {
-    int k, dk = N/32;
+    int32_t k, dk = N/32;
     if (direction == PFFFT_FORWARD) {
       for (k=0; k < dk; ++k) {
         INTERLEAVE2(vin[k*8 + 0], vin[k*8 + 1], vout[2*(0*dk + k) + 0], vout[2*(0*dk + k) + 1]);
@@ -1326,20 +1326,20 @@ void pffft_zreorder(PFFFT_Setup *setup, const float *in, float *out, pffft_direc
   } else {
     if (direction == PFFFT_FORWARD) {
       for (k=0; k < Ncvec; ++k) {
-        int kk = (k/4) + (k%4)*(Ncvec/4);
+        int32_t kk = (k/4) + (k%4)*(Ncvec/4);
         INTERLEAVE2(vin[k*2], vin[k*2+1], vout[kk*2], vout[kk*2+1]);
       }
     } else {
       for (k=0; k < Ncvec; ++k) {
-        int kk = (k/4) + (k%4)*(Ncvec/4);
+        int32_t kk = (k/4) + (k%4)*(Ncvec/4);
         UNINTERLEAVE2(vin[kk*2], vin[kk*2+1], vout[k*2], vout[k*2+1]);
       }
     }
   }
 }
 
-void pffft_cplx_finalize(int Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
-  int k, dk = Ncvec/SIMD_SZ; // number of 4x4 matrix blocks
+void pffft_cplx_finalize(int32_t Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
+  int32_t k, dk = Ncvec/SIMD_SZ; // number of 4x4 matrix blocks
   v4sf r0, i0, r1, i1, r2, i2, r3, i3;
   v4sf sr0, dr0, sr1, dr1, si0, di0, si1, di1;
   assert(in != out);
@@ -1382,8 +1382,8 @@ void pffft_cplx_finalize(int Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
   }
 }
 
-void pffft_cplx_preprocess(int Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
-  int k, dk = Ncvec/SIMD_SZ; // number of 4x4 matrix blocks
+void pffft_cplx_preprocess(int32_t Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
+  int32_t k, dk = Ncvec/SIMD_SZ; // number of 4x4 matrix blocks
   v4sf r0, i0, r1, i1, r2, i2, r3, i3;
   v4sf sr0, dr0, sr1, dr1, si0, di0, si1, di1;
   assert(in != out);
@@ -1473,8 +1473,8 @@ static ALWAYS_INLINE(void) pffft_real_finalize_4x4(const v4sf *in0, const v4sf *
 
 }
 
-static NEVER_INLINE(void) pffft_real_finalize(int Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
-  int k, dk = Ncvec/SIMD_SZ; // number of 4x4 matrix blocks
+static NEVER_INLINE(void) pffft_real_finalize(int32_t Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
+  int32_t k, dk = Ncvec/SIMD_SZ; // number of 4x4 matrix blocks
   /* fftpack order is f0r f1r f1i f2r f2i ... f(n-1)r f(n-1)i f(n)r */
 
   v4sf_union cr, ci, *uout = (v4sf_union*)out;
@@ -1518,7 +1518,7 @@ static NEVER_INLINE(void) pffft_real_finalize(int Ncvec, const v4sf *in, v4sf *o
 }
 
 static ALWAYS_INLINE(void) pffft_real_preprocess_4x4(const v4sf *in,
-                                             const v4sf *e, v4sf *out, int first) {
+                                             const v4sf *e, v4sf *out, int32_t first) {
   v4sf r0=in[0], i0=in[1], r1=in[2], i1=in[3], r2=in[4], i2=in[5], r3=in[6], i3=in[7];
   /*
     transformation for each column is:
@@ -1566,8 +1566,8 @@ static ALWAYS_INLINE(void) pffft_real_preprocess_4x4(const v4sf *in,
   *out++ = i3;
 }
 
-static NEVER_INLINE(void) pffft_real_preprocess(int Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
-  int k, dk = Ncvec/SIMD_SZ; // number of 4x4 matrix blocks
+static NEVER_INLINE(void) pffft_real_preprocess(int32_t Ncvec, const v4sf *in, v4sf *out, const v4sf *e) {
+  int32_t k, dk = Ncvec/SIMD_SZ; // number of 4x4 matrix blocks
   /* fftpack order is f0r f1r f1i f2r f2i ... f(n-1)r f(n-1)i f(n)r */
 
   v4sf_union Xr, Xi, *uout = (v4sf_union*)out;
@@ -1609,18 +1609,18 @@ static NEVER_INLINE(void) pffft_real_preprocess(int Ncvec, const v4sf *in, v4sf 
 
 
 void pffft_transform_internal(PFFFT_Setup *setup, const float *finput, float *foutput, v4sf *scratch,
-                             pffft_direction_t direction, int ordered) {
-  int k, Ncvec   = setup->Ncvec;
-  int nf_odd = (setup->ifac[1] & 1);
+                             pffft_direction_t direction, int32_t ordered) {
+  int32_t k, Ncvec   = setup->Ncvec;
+  int32_t nf_odd = (setup->ifac[1] & 1);
 
   // temporary buffer is allocated on the stack if the scratch pointer is NULL
-  int stack_allocate = (scratch == 0 ? Ncvec*2 : 1);
+  int32_t stack_allocate = (scratch == 0 ? Ncvec*2 : 1);
   VLA_ARRAY_ON_STACK(v4sf, scratch_on_stack, stack_allocate);
 
   const v4sf *vinput = (const v4sf*)finput;
   v4sf *voutput      = (v4sf*)foutput;
   v4sf *buff[2]      = { voutput, scratch ? scratch : scratch_on_stack };
-  int ib = (nf_odd ^ ordered ? 1 : 0);
+  int32_t ib = (nf_odd ^ ordered ? 1 : 0);
 
   assert(VALIGNED(finput) && VALIGNED(foutput));
 
@@ -1678,7 +1678,7 @@ void pffft_transform_internal(PFFFT_Setup *setup, const float *finput, float *fo
 }
 
 void pffft_zconvolve_accumulate(PFFFT_Setup *s, const float *a, const float *b, float *ab, float scaling) {
-  int Ncvec = s->Ncvec;
+  int32_t Ncvec = s->Ncvec;
   const v4sf * RESTRICT va = (const v4sf*)a;
   const v4sf * RESTRICT vb = (const v4sf*)b;
   v4sf * RESTRICT vab = (v4sf*)ab;
@@ -1704,7 +1704,7 @@ void pffft_zconvolve_accumulate(PFFFT_Setup *s, const float *a, const float *b, 
   float ar, ai, br, bi, abr, abi;
 #ifndef ZCONVOLVE_USING_INLINE_ASM
   v4sf vscal = LD_PS1(scaling);
-  int i;
+  int32_t i;
 #endif
 
   assert(VALIGNED(a) && VALIGNED(b) && VALIGNED(ab));
@@ -1717,7 +1717,7 @@ void pffft_zconvolve_accumulate(PFFFT_Setup *s, const float *a, const float *b, 
 
 #ifdef ZCONVOLVE_USING_INLINE_ASM // inline asm version, unfortunately miscompiled by clang 3.2, at least on ubuntu.. so this will be restricted to gcc
   const float *a_ = a, *b_ = b; float *ab_ = ab;
-  int N = Ncvec;
+  int32_t N = Ncvec;
   asm volatile("mov         r8, %2                  \n"
                "vdup.f32    q15, %4                 \n"
                "1:                                  \n"
@@ -1777,7 +1777,7 @@ void pffft_zconvolve_accumulate(PFFFT_Setup *s, const float *a, const float *b, 
 
 #define pffft_zreorder_nosimd pffft_zreorder
 void pffft_zreorder_nosimd(PFFFT_Setup *setup, const float *in, float *out, pffft_direction_t direction) {
-  int k, N = setup->N;
+  int32_t k, N = setup->N;
   if (setup->transform == PFFFT_COMPLEX) {
     for (k=0; k < 2*N; ++k) out[k] = in[k];
     return;
@@ -1797,15 +1797,15 @@ void pffft_zreorder_nosimd(PFFFT_Setup *setup, const float *in, float *out, pfff
 
 #define pffft_transform_internal_nosimd pffft_transform_internal
 void pffft_transform_internal_nosimd(PFFFT_Setup *setup, const float *input, float *output, float *scratch,
-                                    pffft_direction_t direction, int ordered) {
-  int Ncvec   = setup->Ncvec;
-  int nf_odd = (setup->ifac[1] & 1);
+                                    pffft_direction_t direction, int32_t ordered) {
+  int32_t Ncvec   = setup->Ncvec;
+  int32_t nf_odd = (setup->ifac[1] & 1);
 
   // temporary buffer is allocated on the stack if the scratch pointer is NULL
-  int stack_allocate = (scratch == 0 ? Ncvec*2 : 1);
+  int32_t stack_allocate = (scratch == 0 ? Ncvec*2 : 1);
   VLA_ARRAY_ON_STACK(v4sf, scratch_on_stack, stack_allocate);
   float *buff[2];
-  int ib;
+  int32_t ib;
   if (scratch == 0) scratch = scratch_on_stack;
   buff[0] = output; buff[1] = scratch;
 
@@ -1840,7 +1840,7 @@ void pffft_transform_internal_nosimd(PFFFT_Setup *setup, const float *input, flo
     }
   }
   if (buff[ib] != output) {
-    int k;
+    int32_t k;
     // extra copy required -- this situation should happens only when finput == foutput
     assert(input==output);
     for (k=0; k < Ncvec; ++k) {
@@ -1855,7 +1855,7 @@ void pffft_transform_internal_nosimd(PFFFT_Setup *setup, const float *input, flo
 #define pffft_zconvolve_accumulate_nosimd pffft_zconvolve_accumulate
 void pffft_zconvolve_accumulate_nosimd(PFFFT_Setup *s, const float *a, const float *b,
                                        float *ab, float scaling) {
-  int i, Ncvec = s->Ncvec;
+  int32_t i, Ncvec = s->Ncvec;
 
   if (s->transform == PFFFT_REAL) {
     // take care of the fftpack ordering

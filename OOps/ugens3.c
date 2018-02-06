@@ -25,7 +25,7 @@
 #include "ugens3.h"
 #include <math.h>
 
-int foscset(CSOUND *csound, FOSC *p)
+int32_t foscset(CSOUND *csound, FOSC *p)
 {
     FUNC    *ftp;
 
@@ -41,7 +41,7 @@ int foscset(CSOUND *csound, FOSC *p)
     return NOTOK;
 }
 
-int foscil(CSOUND *csound, FOSC *p)
+int32_t foscil(CSOUND *csound, FOSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *modp, cps, amp;
@@ -118,7 +118,7 @@ int foscil(CSOUND *csound, FOSC *p)
                              Str("foscil: not initialised"));
 }
 
-int foscili(CSOUND *csound, FOSC *p)
+int32_t foscili(CSOUND *csound, FOSC *p)
 {
     FUNC   *ftp;
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
@@ -207,7 +207,7 @@ int foscili(CSOUND *csound, FOSC *p)
 }
 
 
-int losset(CSOUND *csound, LOSC *p)
+int32_t losset(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
@@ -302,7 +302,7 @@ int losset(CSOUND *csound, LOSC *p)
     return csound->InitError(csound, Str("illegal release loop data"));
 }
 
-int losset_phs(CSOUND *csound, LOSCPHS *p)
+int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
 {
     FUNC    *ftp;
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
@@ -427,7 +427,7 @@ static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
     //printf("phs=%d+%f\n",x, fract);
     tmpL = ftbl[x];
     tmpR = ftbl[x + 1];
-    x = (x < ((int) flen - 1) ? (x + 2) : ((int) flen - 1));
+    x = (x < ((int32_t) flen - 1) ? (x + 2) : ((int32_t) flen - 1));
     *arL = tmpL + ((ftbl[x] - tmpL) * fract);
     *arR = tmpR + ((ftbl[x + 1] - tmpR) * fract);
 }
@@ -436,7 +436,7 @@ static inline void loscil_cubic_interp_mono(MYFLT *ar,
                                             MYFLT *ftbl, MYFLT phs, int32 flen)
 {
     MYFLT   fract, tmp, a0, a1, a2, a3;
-    int     x;
+    int32_t     x;
 
     fract = MODF(phs, &tmp);
     x = (int32) tmp;
@@ -448,9 +448,9 @@ static inline void loscil_cubic_interp_mono(MYFLT *ar,
     tmp = ftbl[(x >= 0 ? x : 0)] * a0;
     tmp += ftbl[++x] * a1;
     x++;
-    tmp += ftbl[(x < (int) flen ? x : (int) flen)] * a2;
+    tmp += ftbl[(x < (int32_t) flen ? x : (int32_t) flen)] * a2;
     x++;
-    tmp += ftbl[(x < (int) flen ? x : (int) flen)] * a3;
+    tmp += ftbl[(x < (int32_t) flen ? x : (int32_t) flen)] * a3;
     *ar = tmp;
 }
 
@@ -459,7 +459,7 @@ static CS_NOINLINE void
                                MYFLT *ftbl, MYFLT phs, int32 flen)
 {
     MYFLT   fract, tmpL, tmpR, a0, a1, a2, a3;
-    int     x;
+    int32_t     x;
 
     fract = MODF(phs, &tmpL);
     x = (int32) tmpL;
@@ -473,10 +473,10 @@ static CS_NOINLINE void
     x += 2;
     tmpL += ftbl[x] * a1;
     tmpR += ftbl[x + 1] * a1;
-    x = (x < ((int) flen - 1) ? (x + 2) : ((int) flen - 1));
+    x = (x < ((int32_t) flen - 1) ? (x + 2) : ((int32_t) flen - 1));
     tmpL += ftbl[x] * a2;
     tmpR += ftbl[x + 1] * a2;
-    x = (x < ((int) flen - 1) ? (x + 2) : ((int) flen - 1));
+    x = (x < ((int32_t) flen - 1) ? (x + 2) : ((int32_t) flen - 1));
     tmpL += ftbl[x] * a3;
     tmpR += ftbl[x + 1] * a3;
     *arL = tmpL;
@@ -484,7 +484,7 @@ static CS_NOINLINE void
 }
 
 /* *********************** needs total rewrite **************** */
-int loscil(CSOUND *csound, LOSC *p)
+int32_t loscil(CSOUND *csound, LOSC *p)
 {
     IGN(csound);
     FUNC    *ftp;
@@ -494,7 +494,7 @@ int loscil(CSOUND *csound, LOSC *p)
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    int      aamp;
+    int32_t      aamp;
     MYFLT    xx;
 
     ftp = p->ftp;
@@ -700,7 +700,7 @@ put0:
 }
 
 
-int loscil_phs(CSOUND *csound, LOSCPHS *p)
+int32_t loscil_phs(CSOUND *csound, LOSCPHS *p)
 {
     IGN(csound);
     FUNC    *ftp;
@@ -710,7 +710,7 @@ int loscil_phs(CSOUND *csound, LOSCPHS *p)
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    int      aamp;
+    int32_t      aamp;
     MYFLT    xx;
 
     ftp = p->ftp;
@@ -927,7 +927,7 @@ put0:
 
 
 
-int loscil3_phs(CSOUND *csound, LOSCPHS *p)
+int32_t loscil3_phs(CSOUND *csound, LOSCPHS *p)
 {
     IGN(csound);
     FUNC    *ftp;
@@ -937,7 +937,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    int     aamp;
+    int32_t     aamp;
     MYFLT   xx;
 
     ftp = p->ftp;
@@ -1150,7 +1150,7 @@ int loscil3_phs(CSOUND *csound, LOSCPHS *p)
 }
 
 
-int loscil3(CSOUND *csound, LOSC *p)
+int32_t loscil3(CSOUND *csound, LOSC *p)
 {
     IGN(csound);
     FUNC    *ftp;
@@ -1160,7 +1160,7 @@ int loscil3(CSOUND *csound, LOSC *p)
     uint32_t n = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    int     aamp;
+    int32_t     aamp;
     MYFLT   xx;
 
     ftp = p->ftp;
@@ -1368,14 +1368,14 @@ int loscil3(CSOUND *csound, LOSC *p)
 #define ISINSIZ 32768L
 #define ADMASK  32767L
 
-static int adset_(CSOUND *csound, ADSYN *p, int stringname)
+static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
 {
     int32    n;
     char    filnam[MAXNAME];
     MEMFIL  *mfp;
     int16   *adp, *endata, val;
     PTLPTR  *ptlap, *ptlfp, *ptlim;
-    int     size;
+    int32_t     size;
 
     if (csound->isintab == NULL) {  /* if no sin table yet, make one */
       int16 *ip;
@@ -1429,8 +1429,8 @@ static int adset_(CSOUND *csound, ADSYN *p, int stringname)
     } while (adp < endata);
     if (UNLIKELY(ptlap != ptlfp)) {
       return csound->InitError(csound, Str("%d amp tracks, %d freq tracks"),
-                               (int) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
-                               (int) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
+                               (int32_t) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
+                               (int32_t) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
     }
     ptlap->nxtp = NULL;   /* terminate the chain */
     p->mksecs = 0;
@@ -1441,17 +1441,17 @@ static int adset_(CSOUND *csound, ADSYN *p, int stringname)
     return csound->InitError(csound, Str("partial count exceeds MAXPTLS"));
 }
 
-int adset(CSOUND *csound, ADSYN *p){
+int32_t adset(CSOUND *csound, ADSYN *p){
   return adset_(csound,p,0);
 }
 
-int adset_S(CSOUND *csound, ADSYN *p){
+int32_t adset_S(CSOUND *csound, ADSYN *p){
   return adset_(csound,p,1);
 }
 
 #define ADSYN_MAXLONG FL(2147483647.0)
 
-int adsyn(CSOUND *csound, ADSYN *p)
+int32_t adsyn(CSOUND *csound, ADSYN *p)
 {
     PTLPTR  *curp, *prvp;
     DUPLE   *ap, *fp;
