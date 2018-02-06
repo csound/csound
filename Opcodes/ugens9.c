@@ -422,7 +422,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
       }
 
     csound->Warning(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
-                            (int64_t) IRfile.getframes, ainput_dur);
+                            (long) IRfile.getframes, ainput_dur);
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
     if (UNLIKELY(p->nchanls != (int32_t)p->OUTOCOUNT)) {
