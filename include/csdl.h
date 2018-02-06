@@ -123,7 +123,7 @@ extern "C" {
 #define Str(x)  (csound->LocalizeString(x))
 #endif
 
-PUBLIC  long    csound_opcode_init(CSOUND *, OENTRY **);
+PUBLIC  int64_t  csound_opcode_init(CSOUND *, OENTRY **);
 PUBLIC  NGFENS  *csound_fgen_init(CSOUND *);
 
 PUBLIC  int     csoundModuleCreate(CSOUND *);
@@ -136,8 +136,8 @@ PUBLIC  int     csoundModuleInfo(void);
 /** The LINKAGE macro sets up linking of opcode list*/
 
 #define LINKAGE                                                         \
-PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
-{   (void) csound; *ep = localops; return (long) sizeof(localops);  }   \
+PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
+{   (void) csound; *ep = localops; return (int64_t) sizeof(localops);  }   \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
@@ -146,8 +146,8 @@ PUBLIC int csoundModuleInfo(void)                                       \
 
 #undef LINKAGE_BUILTIN
 #define LINKAGE_BUILTIN(name)                                           \
-PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
-{   (void) csound; *ep = name; return (long) (sizeof(name));  }         \
+PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
+{   (void) csound; *ep = name; return (int64_t) (sizeof(name));  }         \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 

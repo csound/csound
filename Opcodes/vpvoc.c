@@ -219,12 +219,12 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
     if (UNLIKELY(p->frSiz > PVFRAMSIZE)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld bigger than %ld in %s"),
-                               (int64_t) p->frSiz, (int64_t) PVFRAMSIZE, pvfilnam);
+                               (long) p->frSiz, (long) PVFRAMSIZE, pvfilnam);
     }
     if (UNLIKELY(p->frSiz < 128)) {
       return csound->InitError(csound,
                                Str("PVOC frame %ld seems too small in %s"),
-                               (int64_t) p->frSiz, pvfilnam);
+                               (long) p->frSiz, pvfilnam);
     }
     if (UNLIKELY(chans != 1)) {
       return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
