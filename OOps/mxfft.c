@@ -87,10 +87,10 @@ static char *rcsid = "$Id$";
 #include <math.h>
 #include <assert.h>
 
-static void fft_(CSOUND *,MYFLT *, MYFLT *, int, int, int, int);
-static void fftmx(MYFLT *, MYFLT *, int, int, int, int, int,
-                  int*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int *, int[]);
-static void reals_(CSOUND *,MYFLT *, MYFLT *, int, int);
+static void fft_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t);
+static void fftmx(MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t, int32_t,
+                  int32_t*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int32_t *, int32_t[]);
+static void reals_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t);
 
 /*
  *-----------------------------------------------------------------------
@@ -106,7 +106,7 @@ static void reals_(CSOUND *,MYFLT *, MYFLT *, int, int);
  */
 
 static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
-                                  int nseg, int n, int nspn, int isn)
+                                  int32_t nseg, int32_t n, int32_t nspn, int32_t isn)
   /*    *a,       pointer to array 'anal'  */
   /*    *b;       pointer to array 'banal' */
 {
@@ -126,7 +126,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
     /* work space pointers */
     void        *buf;
     MYFLT       *at, *ck, *bt, *sk;
-    int         *np;
+    int32_t         *np;
 
     /* reduce the pointers to input arrays - by doing this, FFT uses FORTRAN
        indexing but retains compatibility with C arrays */
@@ -184,12 +184,12 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
       maxf = nfac[kt];
 
     /* allocate workspace - assume no errors! */
-    buf = csound->Calloc(csound, sizeof(MYFLT) * 4 * maxf + sizeof(int) * maxp);
+    buf = csound->Calloc(csound, sizeof(MYFLT) * 4 * maxf + sizeof(int32_t) * maxp);
     at = (MYFLT*) buf;
-    ck = (MYFLT*) at + (int) maxf;
-    bt = (MYFLT*) ck + (int) maxf;
-    sk = (MYFLT*) bt + (int) maxf;
-    np = (int*) ((void*) ((MYFLT*) sk + (int) maxf));
+    ck = (MYFLT*) at + (int32_t) maxf;
+    bt = (MYFLT*) ck + (int32_t) maxf;
+    sk = (MYFLT*) bt + (int32_t) maxf;
+    np = (int32_t*) ((void*) ((MYFLT*) sk + (int32_t) maxf));
 
     /* decrement pointers to allow FORTRAN type usage in fftmx */
     at--; bt--; ck--; sk--; np--;
@@ -209,11 +209,11 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
  */
 
 static void fftmx(MYFLT *a, MYFLT *b,
-                  int ntot, int n, int nspan, int isn, int m,
-                  int *kt, MYFLT *at, MYFLT *ck, MYFLT *bt, MYFLT *sk,
-                  int *np, int nfac[])
+                  int32_t ntot, int32_t n, int32_t nspan, int32_t isn, int32_t m,
+                  int32_t *kt, MYFLT *at, MYFLT *ck, MYFLT *bt, MYFLT *sk,
+                  int32_t *np, int32_t nfac[])
 {
-    int i,inc,
+    int32_t i,inc,
         j,jc,jf, jj,
         k, k1, k2, k3=0, k4,
         kk,klim,ks,kspan, kspnn,
@@ -835,7 +835,7 @@ lbl570:
  *              reals_(csound,anal,banal,&N2,&mtwo);
  */
 
-static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int n, int isn)
+static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
 
   /*    *a,       a refers to an array of floats 'anal'   */
   /*    *b;       b refers to an array of floats 'banal'  */
@@ -843,7 +843,7 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int n, int isn)
 
 {
     IGN(csound);
-    int inc,
+    int32_t inc,
       j,
       k,
       lim,
@@ -928,7 +928,7 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int n, int isn)
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
     if (!(FFTsize & (FFTsize - 1))) {
       /* if FFT size is power of two: */
@@ -958,7 +958,7 @@ void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
  * FFTsize: FFT length in samples; not required to be an integer power of two,
  *          but should be even and not have too many factors.
  */
-void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
   if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))){
       csound->Warning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
@@ -970,7 +970,7 @@ void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
     buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
 }
 
-void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
   if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))){
       csound->Warning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
@@ -979,7 +979,7 @@ void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
     fft_(csound, buf, buf, 1, FFTsize, 1, 2);
 }
 
-void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
       if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
         csound->Warning(csound, Str("csoundRealFFTnp2(): invalid FFT size"));

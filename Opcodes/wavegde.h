@@ -43,7 +43,7 @@
 #endif
 
 /* TYPEDEFS */
-typedef long    len_t;    /* length type */
+typedef int64_t    len_t;    /* length type */
 
 /* CLASS DEFINITIONS */
 

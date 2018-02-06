@@ -30,7 +30,7 @@
 /* aops.c, table for CPSOCTL */
 /* extern  MYFLT   cpsocfrc[]; */
 
-int midinoteoff(CSOUND *csound, MIDINOTEON *p)
+int32_t midinoteoff(CSOUND *csound, MIDINOTEON *p)
 {
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
@@ -41,7 +41,7 @@ int midinoteoff(CSOUND *csound, MIDINOTEON *p)
     return OK;
 }
 
-int midinoteonkey(CSOUND *csound, MIDINOTEON *p)
+int32_t midinoteonkey(CSOUND *csound, MIDINOTEON *p)
 {
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
@@ -52,7 +52,7 @@ int midinoteonkey(CSOUND *csound, MIDINOTEON *p)
     return OK;
 }
 
-int midinoteoncps(CSOUND *csound, MIDINOTEON *p)
+int32_t midinoteoncps(CSOUND *csound, MIDINOTEON *p)
 {
     MYFLT octave;
     int32 longOctave;
@@ -66,7 +66,7 @@ int midinoteoncps(CSOUND *csound, MIDINOTEON *p)
     return OK;
 }
 
-int midinoteonoct(CSOUND *csound, MIDINOTEON *p)
+int32_t midinoteonoct(CSOUND *csound, MIDINOTEON *p)
 {
     MYFLT octave;
    IGN(csound);
@@ -79,7 +79,7 @@ int midinoteonoct(CSOUND *csound, MIDINOTEON *p)
     return OK;
 }
 
-int midinoteonpch(CSOUND *csound, MIDINOTEON *p)
+int32_t midinoteonpch(CSOUND *csound, MIDINOTEON *p)
 {
     double pitch;
     double octave;
@@ -98,7 +98,7 @@ int midinoteonpch(CSOUND *csound, MIDINOTEON *p)
     return OK;
 }
 
-int midipolyaftertouch(CSOUND *csound, MIDIPOLYAFTERTOUCH *p)
+int32_t midipolyaftertouch(CSOUND *csound, MIDIPOLYAFTERTOUCH *p)
 {
     MYFLT scale;
     IGN(csound);
@@ -107,11 +107,11 @@ int midipolyaftertouch(CSOUND *csound, MIDIPOLYAFTERTOUCH *p)
     }
     scale = (*p->hhigh - *p->olow) * dv127;
     *p->xpolyaftertouch = *p->olow +
-      p->h.insdshead->m_chnbp->polyaft[(int)*p->xcontroller] * scale;
+      p->h.insdshead->m_chnbp->polyaft[(int32_t)*p->xcontroller] * scale;
     return OK;
 }
 
-int midicontrolchange(CSOUND *csound, MIDICONTROLCHANGE *p)
+int32_t midicontrolchange(CSOUND *csound, MIDICONTROLCHANGE *p)
 {
     MYFLT scale;
     IGN(csound);
@@ -120,11 +120,11 @@ int midicontrolchange(CSOUND *csound, MIDICONTROLCHANGE *p)
     }
     scale = (*p->hhigh - *p->olow) * dv127;
     *p->xcontrollervalue =
-      *p->olow + p->h.insdshead->m_chnbp->ctl_val[(int)*p->xcontroller] * scale;
+      *p->olow + p->h.insdshead->m_chnbp->ctl_val[(int32_t)*p->xcontroller] * scale;
     return OK;
 }
 
-int midiprogramchange(CSOUND *csound, MIDIPROGRAMCHANGE *p)
+int32_t midiprogramchange(CSOUND *csound, MIDIPROGRAMCHANGE *p)
 {
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
@@ -134,7 +134,7 @@ int midiprogramchange(CSOUND *csound, MIDIPROGRAMCHANGE *p)
     return OK;
 }
 
-int midichannelaftertouch(CSOUND *csound, MIDICHANNELAFTERTOUCH *p)
+int32_t midichannelaftertouch(CSOUND *csound, MIDICHANNELAFTERTOUCH *p)
 {
     MYFLT scale;
     IGN(csound);
@@ -146,7 +146,7 @@ int midichannelaftertouch(CSOUND *csound, MIDICHANNELAFTERTOUCH *p)
     return OK;
 }
 
-int midipitchbend(CSOUND *csound, MIDIPITCHBEND *p)
+int32_t midipitchbend(CSOUND *csound, MIDIPITCHBEND *p)
 {
     MYFLT scale;
     IGN(csound);
@@ -158,7 +158,7 @@ int midipitchbend(CSOUND *csound, MIDIPITCHBEND *p)
     return OK;
 }
 
-int mididefault(CSOUND *csound, MIDIDEFAULT *p)
+int32_t mididefault(CSOUND *csound, MIDIDEFAULT *p)
 {
     IGN(csound);
     if (!p->h.insdshead->m_chnbp) {

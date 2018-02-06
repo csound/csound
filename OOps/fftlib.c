@@ -51,7 +51,7 @@
  * routines to initialize tables used by fft routines *
  *****************************************************/
 
-static void fftCosInit(int M, MYFLT *Utbl)
+static void fftCosInit(int32_t M, MYFLT *Utbl)
 {
   /* Compute Utbl, the cosine table for ffts  */
   /* of size (pow(2,M)/4 +1)                  */
@@ -59,8 +59,8 @@ static void fftCosInit(int M, MYFLT *Utbl)
   /*   M = log2 of fft size                   */
   /* OUTPUTS                                  */
   /*   *Utbl = cosine table                   */
-  unsigned int fftN = POW2(M);
-  unsigned int i1;
+  uint32_t fftN = POW2(M);
+  uint32_t i1;
 
   Utbl[0] = FL(1.0);
   for (i1 = 1; i1 < fftN/4; i1++)
@@ -68,7 +68,7 @@ static void fftCosInit(int M, MYFLT *Utbl)
   Utbl[fftN/4] = FL(0.0);
 }
 
-static void fftBRInit(int M, int16 *BRLow)
+static void fftBRInit(int32_t M, int16 *BRLow)
 {
   /* Compute BRLow, the bit reversed table for ffts */
   /* of size pow(2,M/2 -1)                          */
@@ -76,12 +76,12 @@ static void fftBRInit(int M, int16 *BRLow)
   /*   M = log2 of fft size                         */
   /* OUTPUTS                                        */
   /*   *BRLow = bit reversed counter table          */
-  int Mroot_1 = M / 2 - 1;
-  int Nroot_1 = POW2(Mroot_1);
-  int i1;
-  int bitsum;
-  int bitmask;
-  int bit;
+  int32_t Mroot_1 = M / 2 - 1;
+  int32_t Nroot_1 = POW2(Mroot_1);
+  int32_t i1;
+  int32_t bitsum;
+  int32_t bitmask;
+  int32_t bit;
 
   for (i1 = 0; i1 < Nroot_1; i1++) {
     bitsum = 0;
@@ -97,7 +97,7 @@ static void fftBRInit(int M, int16 *BRLow)
  * parts of ffts1 *
  *****************/
 
-static void bitrevR2(MYFLT *ioptr, int M, int16 *BRLow)
+static void bitrevR2(MYFLT *ioptr, int32_t M, int16 *BRLow)
 {
   /*** bit reverse and first radix 2 stage of forward or inverse fft ***/
   MYFLT f0r;
@@ -124,17 +124,17 @@ static void bitrevR2(MYFLT *ioptr, int M, int16 *BRLow)
   MYFLT *p1r;
   MYFLT *IOP;
   MYFLT *iolimit;
-  int Colstart;
-  int iCol;
-  unsigned int posA;
-  unsigned int posAi;
-  unsigned int posB;
-  unsigned int posBi;
+  int32_t Colstart;
+  int32_t iCol;
+  uint32_t posA;
+  uint32_t posAi;
+  uint32_t posB;
+  uint32_t posBi;
 
-  const unsigned int Nrems2 = POW2((M + 3) / 2);
-  const unsigned int Nroot_1_ColInc = POW2(M) - Nrems2;
-  const unsigned int Nroot_1 = POW2(M / 2 - 1) - 1;
-  const unsigned int ColstartShift = (M + 1) / 2 + 1;
+  const uint32_t Nrems2 = POW2((M + 3) / 2);
+  const uint32_t Nroot_1_ColInc = POW2(M) - Nrems2;
+  const uint32_t Nroot_1 = POW2(M / 2 - 1) - 1;
+  const uint32_t ColstartShift = (M + 1) / 2 + 1;
 
   posA = POW2(M);               /* 1/2 of POW2(M) complexes */
   posAi = posA + 1;
@@ -436,15 +436,15 @@ static void fft8pt(MYFLT *ioptr)
   ioptr[15] = f6i;
 }
 
-static void bfR2(MYFLT *ioptr, int M, int NDiffU)
+static void bfR2(MYFLT *ioptr, int32_t M, int32_t NDiffU)
 {
   /*** 2nd radix 2 stage ***/
-  unsigned int pos;
-  unsigned int posi;
-  unsigned int pinc;
-  unsigned int pnext;
-  unsigned int NSameU;
-  unsigned int SameUCnt;
+  uint32_t pos;
+  uint32_t posi;
+  uint32_t pinc;
+  uint32_t pnext;
+  uint32_t NSameU;
+  uint32_t SameUCnt;
 
   MYFLT *pstrt;
   MYFLT *p0r, *p1r, *p2r, *p3r;
@@ -543,16 +543,16 @@ static void bfR2(MYFLT *ioptr, int M, int NDiffU)
   }
 }
 
-static void bfR4(MYFLT *ioptr, int M, int NDiffU)
+static void bfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
 {
   /*** 1 radix 4 stage ***/
-  unsigned int pos;
-  unsigned int posi;
-  unsigned int pinc;
-  unsigned int pnext;
-  unsigned int pnexti;
-  unsigned int NSameU;
-  unsigned int SameUCnt;
+  uint32_t pos;
+  uint32_t posi;
+  uint32_t pinc;
+  uint32_t pnext;
+  uint32_t pnexti;
+  uint32_t NSameU;
+  uint32_t SameUCnt;
 
   MYFLT *pstrt;
   MYFLT *p0r, *p1r, *p2r, *p3r;
@@ -750,21 +750,21 @@ static void bfR4(MYFLT *ioptr, int M, int NDiffU)
   *(p0r + posi) = f4i;
 }
 
-static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
-                     int NDiffU, int StageCnt)
+static void bfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
+                     int32_t NDiffU, int32_t StageCnt)
 {
   /***   RADIX 8 Stages   ***/
-  unsigned int pos;
-  unsigned int posi;
-  unsigned int pinc;
-  unsigned int pnext;
-  unsigned int NSameU;
-  int          Uinc;
-  int          Uinc2;
-  int          Uinc4;
-  unsigned int DiffUCnt;
-  unsigned int SameUCnt;
-  unsigned int U2toU3;
+  uint32_t pos;
+  uint32_t posi;
+  uint32_t pinc;
+  uint32_t pnext;
+  uint32_t NSameU;
+  int32_t          Uinc;
+  int32_t          Uinc2;
+  int32_t          Uinc4;
+  uint32_t DiffUCnt;
+  uint32_t SameUCnt;
+  uint32_t U2toU3;
 
   MYFLT *pstrt;
   MYFLT *p0r, *p1r, *p2r, *p3r;
@@ -781,7 +781,7 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
   pos = pinc * 4;
   posi = pos + 1;
   NSameU = POW2(M) / 8 / NDiffU;        /* 8 pts per butterfly */
-  Uinc = (int) NSameU * Ustride;
+  Uinc = (int32_t) NSameU * Ustride;
   Uinc2 = Uinc * 2;
   Uinc4 = Uinc * 4;
   U2toU3 = (POW2(M) / 8) * Ustride;
@@ -970,7 +970,7 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       f1r = f1r * Two - f3r;
       f1i = f1i * Two - f3i;
 
-      if ((int) DiffUCnt == NDiffU / 2)
+      if ((int32_t) DiffUCnt == NDiffU / 2)
         Uinc4 = -Uinc4;
 
       u0r += Uinc4;
@@ -1007,7 +1007,7 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       w1r = *u1r;
       w1i = *u1i;
 
-      if ((int) DiffUCnt <= NDiffU / 2)
+      if ((int32_t) DiffUCnt <= NDiffU / 2)
         w0r = -w0r;
 
       t0r = f0r - f4r * w2r - f4i * w2i;
@@ -1070,13 +1070,13 @@ static void bfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
   }
 }
 
-static void fftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride, int NDiffU,
-                      int StageCnt)
+static void fftrecurs(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride, int32_t NDiffU,
+                      int32_t StageCnt)
 {
   /* recursive bfstages calls to maximize on chip cache efficiency */
-  int i1;
+  int32_t i1;
 
-  if (M <= (int) MCACHE)              /* fits on chip ? */
+  if (M <= (int32_t) MCACHE)              /* fits on chip ? */
     bfstages(ioptr, M, Utbl, Ustride, NDiffU, StageCnt); /* RADIX 8 Stages */
   else {
     for (i1 = 0; i1 < 8; i1++) {
@@ -1087,7 +1087,7 @@ static void fftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride, int NDiffU,
   }
 }
 
-static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
+static void ffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
 {
   /* Compute in-place complex fft on the rows of the input array  */
   /* INPUTS                                                       */
@@ -1098,8 +1098,8 @@ static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
   /* OUTPUTS                                                      */
   /*   *ioptr = output data array                                 */
 
-  int StageCnt;
-  int NDiffU;
+  int32_t StageCnt;
+  int32_t NDiffU;
 
   switch (M) {
   case 0:
@@ -1125,7 +1125,7 @@ static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
       bfR4(ioptr, M, NDiffU); /* 1 radix 4 stage */
       NDiffU *= 4;
     }
-    if (M <= (int) MCACHE)
+    if (M <= (int32_t) MCACHE)
       bfstages(ioptr, M, Utbl, 1, NDiffU, StageCnt);  /* RADIX 8 Stages */
     else
       fftrecurs(ioptr, M, Utbl, 1, NDiffU, StageCnt); /* RADIX 8 Stages */
@@ -1136,7 +1136,7 @@ static void ffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
  * parts of iffts1 *
  ******************/
 
-static void scbitrevR2(MYFLT *ioptr, int M, int16 *BRLow, MYFLT scale)
+static void scbitrevR2(MYFLT *ioptr, int32_t M, int16 *BRLow, MYFLT scale)
 {
   /*** scaled bit reverse and first radix 2 stage forward or inverse fft ***/
   MYFLT f0r;
@@ -1163,17 +1163,17 @@ static void scbitrevR2(MYFLT *ioptr, int M, int16 *BRLow, MYFLT scale)
   MYFLT *p1r;
   MYFLT *IOP;
   MYFLT *iolimit;
-  int Colstart;
-  int iCol;
-  unsigned int posA;
-  unsigned int posAi;
-  unsigned int posB;
-  unsigned int posBi;
+  int32_t Colstart;
+  int32_t iCol;
+  uint32_t posA;
+  uint32_t posAi;
+  uint32_t posB;
+  uint32_t posBi;
 
-  const unsigned int Nrems2 = POW2((M + 3) / 2);
-  const unsigned int Nroot_1_ColInc = POW2(M) - Nrems2;
-  const unsigned int Nroot_1 = POW2(M / 2 - 1) - 1;
-  const unsigned int ColstartShift = (M + 1) / 2 + 1;
+  const uint32_t Nrems2 = POW2((M + 3) / 2);
+  const uint32_t Nroot_1_ColInc = POW2(M) - Nrems2;
+  const uint32_t Nroot_1 = POW2(M / 2 - 1) - 1;
+  const uint32_t ColstartShift = (M + 1) / 2 + 1;
 
   posA = POW2(M);               /* 1/2 of POW2(M) complexes */
   posAi = posA + 1;
@@ -1476,15 +1476,15 @@ static void ifft8pt(MYFLT *ioptr, MYFLT scale)
   ioptr[15] = scale * f6i;
 }
 
-static void ibfR2(MYFLT *ioptr, int M, int NDiffU)
+static void ibfR2(MYFLT *ioptr, int32_t M, int32_t NDiffU)
 {
   /*** 2nd radix 2 stage ***/
-  unsigned int pos;
-  unsigned int posi;
-  unsigned int pinc;
-  unsigned int pnext;
-  unsigned int NSameU;
-  unsigned int SameUCnt;
+  uint32_t pos;
+  uint32_t posi;
+  uint32_t pinc;
+  uint32_t pnext;
+  uint32_t NSameU;
+  uint32_t SameUCnt;
 
   MYFLT *pstrt;
   MYFLT *p0r, *p1r, *p2r, *p3r;
@@ -1583,16 +1583,16 @@ static void ibfR2(MYFLT *ioptr, int M, int NDiffU)
   }
 }
 
-static void ibfR4(MYFLT *ioptr, int M, int NDiffU)
+static void ibfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
 {
   /*** 1 radix 4 stage ***/
-  unsigned int pos;
-  unsigned int posi;
-  unsigned int pinc;
-  unsigned int pnext;
-  unsigned int pnexti;
-  unsigned int NSameU;
-  unsigned int SameUCnt;
+  uint32_t pos;
+  uint32_t posi;
+  uint32_t pinc;
+  uint32_t pnext;
+  uint32_t pnexti;
+  uint32_t NSameU;
+  uint32_t SameUCnt;
 
   MYFLT *pstrt;
   MYFLT *p0r, *p1r, *p2r, *p3r;
@@ -1790,21 +1790,21 @@ static void ibfR4(MYFLT *ioptr, int M, int NDiffU)
   *(p0r + posi) = f4i;
 }
 
-static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
-                      int NDiffU, int StageCnt)
+static void ibfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
+                      int32_t NDiffU, int32_t StageCnt)
 {
   /***   RADIX 8 Stages   ***/
-  unsigned int pos;
-  unsigned int posi;
-  unsigned int pinc;
-  unsigned int pnext;
-  unsigned int NSameU;
-  int          Uinc;
-  int          Uinc2;
-  int          Uinc4;
-  unsigned int DiffUCnt;
-  unsigned int SameUCnt;
-  unsigned int U2toU3;
+  uint32_t pos;
+  uint32_t posi;
+  uint32_t pinc;
+  uint32_t pnext;
+  uint32_t NSameU;
+  int32_t          Uinc;
+  int32_t          Uinc2;
+  int32_t          Uinc4;
+  uint32_t DiffUCnt;
+  uint32_t SameUCnt;
+  uint32_t U2toU3;
 
   MYFLT *pstrt;
   MYFLT *p0r, *p1r, *p2r, *p3r;
@@ -1821,7 +1821,7 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
   pos = pinc * 4;
   posi = pos + 1;
   NSameU = POW2(M) / 8 / NDiffU;        /* 8 pts per butterfly */
-  Uinc = (int) NSameU * Ustride;
+  Uinc = (int32_t) NSameU * Ustride;
   Uinc2 = Uinc * 2;
   Uinc4 = Uinc * 4;
   U2toU3 = (POW2(M) / 8) * Ustride;
@@ -2013,7 +2013,7 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       f1r = f1r * Two - f3r;
       f1i = f1i * Two - f3i;
 
-      if ((int) DiffUCnt == NDiffU / 2)
+      if ((int32_t) DiffUCnt == NDiffU / 2)
         Uinc4 = -Uinc4;
 
       u0r += Uinc4;
@@ -2050,7 +2050,7 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
       w1r = *u1r;
       w1i = *u1i;
 
-      if ((int) DiffUCnt <= NDiffU / 2)
+      if ((int32_t) DiffUCnt <= NDiffU / 2)
         w0r = -w0r;
 
       t0r = f0r - f4r * w2r + f4i * w2i;
@@ -2113,13 +2113,13 @@ static void ibfstages(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
   }
 }
 
-static void ifftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
-                       int NDiffU, int StageCnt)
+static void ifftrecurs(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
+                       int32_t NDiffU, int32_t StageCnt)
 {
   /* recursive bfstages calls to maximize on chip cache efficiency */
-  int i1;
+  int32_t i1;
 
-  if (M <= (int) MCACHE)
+  if (M <= (int32_t) MCACHE)
     ibfstages(ioptr, M, Utbl, Ustride, NDiffU, StageCnt); /* RADIX 8 Stages */
   else {
     for (i1 = 0; i1 < 8; i1++) {
@@ -2130,7 +2130,7 @@ static void ifftrecurs(MYFLT *ioptr, int M, MYFLT *Utbl, int Ustride,
   }
 }
 
-static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
+static void iffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
 {
   /* Compute in-place inverse complex fft on the rows of the input array  */
   /* INPUTS                                                               */
@@ -2141,8 +2141,8 @@ static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
   /* OUTPUTS                                                              */
   /*   *ioptr = output data array                                         */
 
-  int StageCnt;
-  int NDiffU;
+  int32_t StageCnt;
+  int32_t NDiffU;
   const MYFLT scale = FL(1.0) / POW2(M);
 
   switch (M) {
@@ -2170,7 +2170,7 @@ static void iffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
       ibfR4(ioptr, M, NDiffU);        /* 1 radix 4 stage */
       NDiffU *= 4;
     }
-    if (M <= (int) MCACHE)
+    if (M <= (int32_t) MCACHE)
       ibfstages(ioptr, M, Utbl, 1, NDiffU, StageCnt);  /* RADIX 8 Stages */
     else
       ifftrecurs(ioptr, M, Utbl, 1, NDiffU, StageCnt); /* RADIX 8 Stages */
@@ -2462,13 +2462,13 @@ static void rfft8pt(MYFLT *ioptr)
   ioptr[15] = scale * f6i;
 }
 
-static void frstage(MYFLT *ioptr, int M, MYFLT *Utbl)
+static void frstage(MYFLT *ioptr, int32_t M, MYFLT *Utbl)
 {
   /*      Finish RFFT             */
 
-  unsigned int pos;
-  unsigned int posi;
-  unsigned int diffUcnt;
+  uint32_t pos;
+  uint32_t posi;
+  uint32_t diffUcnt;
 
   MYFLT *p0r, *p1r;
   MYFLT *u0r, *u0i;
@@ -2585,7 +2585,7 @@ static void frstage(MYFLT *ioptr, int M, MYFLT *Utbl)
   }
 }
 
-static void rffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
+static void rffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
 {
   /* Compute in-place real fft on the rows of the input array           */
   /* The result is the complex spectra of the positive frequencies      */
@@ -2602,8 +2602,8 @@ static void rffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
   /*     ... Re(x[N/2-1]), Im(x[N/2-1]).                                */
 
   MYFLT scale;
-  int StageCnt;
-  int NDiffU;
+  int32_t StageCnt;
+  int32_t NDiffU;
 
   M = M - 1;
   switch (M) {
@@ -2635,7 +2635,7 @@ static void rffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
       bfR4(ioptr, M, NDiffU); /* 1 radix 4 stage */
       NDiffU *= 4;
     }
-    if (M <= (int) MCACHE)
+    if (M <= (int32_t) MCACHE)
       bfstages(ioptr, M, Utbl, 2, NDiffU, StageCnt);  /* RADIX 8 Stages */
     else
       fftrecurs(ioptr, M, Utbl, 2, NDiffU, StageCnt); /* RADIX 8 Stages */
@@ -2925,13 +2925,13 @@ static void rifft8pt(MYFLT *ioptr, MYFLT scale)
   ioptr[15] = scale * f6i;
 }
 
-static void ifrstage(MYFLT *ioptr, int M, MYFLT *Utbl)
+static void ifrstage(MYFLT *ioptr, int32_t M, MYFLT *Utbl)
 {
   /*      Start RIFFT             */
 
-  unsigned int pos;
-  unsigned int posi;
-  unsigned int diffUcnt;
+  uint32_t pos;
+  uint32_t posi;
+  uint32_t diffUcnt;
 
   MYFLT *p0r, *p1r;
   MYFLT *u0r, *u0i;
@@ -3048,7 +3048,7 @@ static void ifrstage(MYFLT *ioptr, int M, MYFLT *Utbl)
   }
 }
 
-static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
+static void riffts1(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int16 *BRLow)
 {
   /* Compute in-place real ifft on the rows of the input array    */
   /* data order as from rffts1                                    */
@@ -3063,10 +3063,10 @@ static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
   /*   *ioptr = real output data array                            */
 
   MYFLT scale;
-  int StageCnt;
-  int NDiffU;
+  int32_t StageCnt;
+  int32_t NDiffU;
 
-  scale = (MYFLT)(1.0 / (double)((int)POW2(M)));
+  scale = (MYFLT)(1.0 / (double)((int32_t)POW2(M)));
   M = M - 1;
   switch (M) {
   case -1:
@@ -3097,7 +3097,7 @@ static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
       ibfR4(ioptr, M, NDiffU);        /* 1 radix 4 stage */
       NDiffU *= 4;
     }
-    if (M <= (int) MCACHE)
+    if (M <= (int32_t) MCACHE)
       ibfstages(ioptr, M, Utbl, 2, NDiffU, StageCnt); /*  RADIX 8 Stages */
     else
       ifftrecurs(ioptr, M, Utbl, 2, NDiffU, StageCnt); /* RADIX 8 Stages */
@@ -3105,7 +3105,7 @@ static void riffts1(MYFLT *ioptr, int M, MYFLT *Utbl, int16 *BRLow)
 }
 
 
-static void fftInit(CSOUND *csound, int M)
+static void fftInit(CSOUND *csound, int32_t M)
 {
   /* malloc and init cosine and bit reversed tables for a given size  */
   /* fft, ifft, rfft, rifft                                           */
@@ -3116,7 +3116,7 @@ static void fftInit(CSOUND *csound, int M)
 
   MYFLT **UtblArray;
   int16 **BRLowArray;
-  int   i;
+  int32_t   i;
 
   if (!csound->FFT_max_size) {
     if (csound->FFT_table_1 == NULL)
@@ -3158,7 +3158,7 @@ static void fftInit(CSOUND *csound, int M)
 }
 
 
-static inline int ConvertFFTSize(CSOUND *csound, int N)
+static inline int32_t ConvertFFTSize(CSOUND *csound, int32_t N)
 {
   if (N <= 0)
     return (-N);
@@ -3199,7 +3199,7 @@ static inline int ConvertFFTSize(CSOUND *csound, int N)
 }
 
 static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
-                                    int cn, int bn)
+                                    int32_t cn, int32_t bn)
 {
   if (!(p->FFT_max_size & (1 << cn)))
     fftInit(p, cn);
@@ -3212,7 +3212,7 @@ static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
  * Returns the amplitude scale that should be applied to the result of
  * an inverse complex FFT with a length of 'FFTsize' samples.
  */
-MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int FFTsize)
+MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int32_t FFTsize)
 {
   IGN(FFTsize);
   IGN(csound);
@@ -3223,7 +3223,7 @@ MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int FFTsize)
  * Returns the amplitude scale that should be applied to the result of
  * an inverse real FFT with a length of 'FFTsize' samples.
  */
-MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
+MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize)
 {
   IGN(FFTsize);
   IGN(csound);
@@ -3236,11 +3236,11 @@ MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize)
  * buf:     array of FFTsize*2 MYFLT values,
  *          in interleaved real/imaginary format
  */
-void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
   MYFLT *Utbl;
   int16 *BRLow;
-  int   M;
+  int32_t   M;
 
   M = ConvertFFTSize(csound, FFTsize);
   getTablePointers(csound, &Utbl, &BRLow, M, M / 2);
@@ -3256,11 +3256,11 @@ void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
  * csoundGetInverseComplexFFTScale(csound, FFTsize).
  */
 
-void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
   MYFLT *Utbl;
   int16 *BRLow;
-  int   M;
+  int32_t   M;
 
   M = ConvertFFTSize(csound, FFTsize);
   getTablePointers(csound, &Utbl, &BRLow, M, M / 2);
@@ -3275,12 +3275,12 @@ void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
  *          part for the Nyquist frequency
  */
 
-void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
 
     MYFLT *Utbl;
     int16 *BRLow;
-    int   M;
+    int32_t   M;
     M = ConvertFFTSize(csound, FFTsize);
     getTablePointers(csound, &Utbl, &BRLow, M, (M - 1) / 2);
     rffts1(buf, M, Utbl, BRLow);
@@ -3296,11 +3296,11 @@ void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
  * csoundGetInverseRealFFTScale(csound, FFTsize).
  */
 
-void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
+void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
     MYFLT *Utbl;
     int16 *BRLow;
-    int   M;
+    int32_t   M;
     M = ConvertFFTSize(csound, FFTsize);
     getTablePointers(csound, &Utbl, &BRLow, M, (M - 1) / 2);
     riffts1(buf, M, Utbl, BRLow);
@@ -3315,10 +3315,10 @@ void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize)
  */
 
 void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
-                       MYFLT *buf1, MYFLT *buf2, int FFTsize, MYFLT scaleFac)
+                       MYFLT *buf1, MYFLT *buf2, int32_t FFTsize, MYFLT scaleFac)
 {
   MYFLT re, im;
-  int   i;
+  int32_t   i;
   IGN(csound);
 
   if (scaleFac != FL(1.0)) {
@@ -3356,7 +3356,7 @@ void csoundRealFFTMult(CSOUND *csound, MYFLT *outbuf,
 static
 void pffft_execute(CSOUND_FFT_SETUP *setup,
                    MYFLT *sig) {
-  int i, N = setup->N;
+  int32_t i, N = setup->N;
   float s, *buf;
   buf = (float *) setup->buffer;
   for(i=0;i<N;i++)
@@ -3381,9 +3381,9 @@ void vDSP_execute(CSOUND_FFT_SETUP *setup,
 #else
   DSPSplitComplex tmp;
 #endif
-  int i,j;
+  int32_t i,j;
   MYFLT s;
-  int N = setup->N;
+  int32_t N = setup->N;
   tmp.realp = &setup->buffer[0];
   tmp.imagp = &setup->buffer[N>>1];
   for(i=j=0;i<N;i+=2,j++){
@@ -3418,7 +3418,7 @@ void *align_alloc(CSOUND *csound, size_t nb_bytes){
   return p;
 }
 
-int setupDispose(CSOUND *csound, void *pp){
+int32_t setupDispose(CSOUND *csound, void *pp){
   IGN(csound);
   CSOUND_FFT_SETUP *setup =(CSOUND_FFT_SETUP *) pp;
   switch(setup->lib){
@@ -3439,15 +3439,15 @@ int setupDispose(CSOUND *csound, void *pp){
   return OK;
 }
 
-int isPowTwo(int N) {
+int32_t isPowTwo(int32_t N) {
   return (N != 0) ? !(N & (N - 1)) : 0;
 }
 
 void *csoundRealFFT2Setup(CSOUND *csound,
-                         int FFTsize,
-                         int d){
+                         int32_t FFTsize,
+                         int32_t d){
   CSOUND_FFT_SETUP *setup;
-  int lib = csound->oparms->fft_lib;
+  int32_t lib = csound->oparms->fft_lib;
   if(lib == PFFT_LIB && FFTsize <= 16){
     csound->Warning(csound,
       "FFTsize %d \n"
@@ -3491,7 +3491,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   }
   setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*FFTsize);
   csound->RegisterResetCallback(csound, (void*) setup,
-                                (int (*)(CSOUND *, void *))
+                                (int32_t (*)(CSOUND *, void *))
                                 setupDispose);
   return (void *) setup;
 }
@@ -3521,7 +3521,7 @@ void csoundRealFFT2(CSOUND *csound,
 
 
 void *csoundDCTSetup(CSOUND *csound,
-                     int FFTsize, int d){
+                     int32_t FFTsize, int32_t d){
  CSOUND_FFT_SETUP *setup;
  setup = (CSOUND_FFT_SETUP *)
    csoundRealFFT2Setup(csound,
@@ -3539,7 +3539,7 @@ void pffft_DCT_execute(CSOUND *csound,
   IGN(csound);
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
-  int i,j, N= setup->N;
+  int32_t i,j, N= setup->N;
   float *buffer = (float *)setup->buffer;
   if(setup->d == FFT_FWD){
   for(i=j = 0; i < N/2; i+=2, j++){
@@ -3585,7 +3585,7 @@ void vDSP_DCT_execute(CSOUND *csound,
   IGN(csound);
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
-  int i,j, N= setup->N;
+  int32_t i,j, N= setup->N;
 #ifdef USE_DOUBLE
   DSPDoubleSplitComplex tmp;
 #else
@@ -3643,7 +3643,7 @@ void DCT_execute(CSOUND *csound,
                      void *p, MYFLT *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
-  int i,j, N= setup->N;
+  int32_t i,j, N= setup->N;
   MYFLT *buffer = setup->buffer;
   if(setup->d == FFT_FWD){
   for(i=j = 0; i < N/2; i+=2, j++){
@@ -3718,7 +3718,7 @@ void vDSP_free(CSOUND *csound, void *p) {
 }
 
 /* reset vdsp */
-int vDSP_reset(CSOUND *csound, void *pp){
+int32_t vDSP_reset(CSOUND *csound, void *pp){
   IGN(pp);
 #ifdef USE_DOUBLE
   vDSP_destroy_fftsetupD(csound->vdsp_setup);
@@ -3732,8 +3732,8 @@ int vDSP_reset(CSOUND *csound, void *pp){
 
 /* create setup if setup does not exist */
 static
-void vDSP_setup(CSOUND *csound, int FFTsize){
-  int M = ConvertFFTSize(csound, FFTsize);
+void vDSP_setup(CSOUND *csound, int32_t FFTsize){
+  int32_t M = ConvertFFTSize(csound, FFTsize);
   if(csound->FFT_max_size < FFTsize){
 #ifdef USE_DOUBLE
     if(csound->vdsp_setup != NULL)
@@ -3752,20 +3752,20 @@ void vDSP_setup(CSOUND *csound, int FFTsize){
                                      FFTsize*(sizeof(MYFLT)));
     if(csound->FFT_max_size == 0)
       csound->RegisterResetCallback(csound, (void*) NULL,
-                                    (int (*)(CSOUND *, void *))
+                                    (int32_t (*)(CSOUND *, void *))
                                     vDSP_reset);
     csound->FFT_max_size = FFTsize;
   }
 }
 
 static
-void vDSP_RealFFT(CSOUND *csound,int FFTsize,MYFLT *sig,FFTDirection d){
+void vDSP_RealFFT(CSOUND *csound,int32_t FFTsize,MYFLT *sig,FFTDirection d){
 #ifdef USE_DOUBLE
   DSPDoubleSplitComplex tmp;
 #else
   DSPSplitComplex tmp;
 #endif
-  int i,j;
+  int32_t i,j;
   MYFLT s;
   vDSP_setup(csound, FFTsize);
   tmp.realp = &csound->vdsp_buffer[0];
@@ -3792,7 +3792,7 @@ void vDSP_RealFFT(CSOUND *csound,int FFTsize,MYFLT *sig,FFTDirection d){
 }
 
 /* these functions are available from OSX 10.9 */
-int vDSP_reset_New(CSOUND *csound, void *pp){
+int32_t vDSP_reset_New(CSOUND *csound, void *pp){
   IGN(pp);
 #ifdef USE_DOUBLE
   vDSP_DFT_DestroySetupD(csound->vdsp_setup_fwd);
@@ -3812,7 +3812,7 @@ vDSP_DFT_SetupD
 #else
 vDSP_DFT_Setup
 #endif
-vDSP_setup_New(CSOUND *csound, int FFTsize, int d){
+vDSP_setup_New(CSOUND *csound, int32_t FFTsize, int32_t d){
   if(csound->vdsp_setup_fwd == NULL ||
      csound->vdsp_setup_inv == NULL){
 #ifdef USE_DOUBLE
@@ -3843,16 +3843,16 @@ vDSP_setup_New(CSOUND *csound, int FFTsize, int d){
 
   if(csound->FFT_max_size == 0)
     csound->RegisterResetCallback(csound, (void*) NULL,
-                                  (int (*)(CSOUND *, void *))
+                                  (int32_t (*)(CSOUND *, void *))
                                   vDSP_reset_New);
   csound->FFT_max_size = FFTsize;
   return d == 1 ? csound->vdsp_setup_fwd :
     csound->vdsp_setup_inv;
 }
 
-void vDSP_RealFFT_New(CSOUND *csound,int FFTsize,MYFLT *sig,
+void vDSP_RealFFT_New(CSOUND *csound,int32_t FFTsize,MYFLT *sig,
                   FFTDirection d){
-  int i,j;
+  int32_t i,j;
   MYFLT s;
 #ifdef USE_DOUBLE
   vDSP_DFT_SetupD setup;
@@ -3880,9 +3880,9 @@ void vDSP_RealFFT_New(CSOUND *csound,int FFTsize,MYFLT *sig,
 }
 
 #else /* HAVE_VECLIB */
-int pffft_reset(CSOUND *csound, void *pp){
+int32_t pffft_reset(CSOUND *csound, void *pp){
   IGN(pp);
-  int i;
+  int32_t i;
   for(i=0; i < 32; i++)
     if(csound->setup[i]) pffft_destroy_setup(csound->setup[i]);
   pffft_aligned_free(csound->vdsp_buffer);
@@ -3891,11 +3891,11 @@ int pffft_reset(CSOUND *csound, void *pp){
 
 /* create setup if setup does not exist */
 static
-void pffft_setup(CSOUND *csound, int FFTsize, int M){
+void pffft_setup(CSOUND *csound, int32_t FFTsize, int32_t M){
   if(csound->FFT_max_size != FFTsize){
     if(csound->FFT_max_size == 0)
       csound->RegisterResetCallback(csound, (void*) NULL,
-                                    (int (*)(CSOUND *, void *)) pffft_reset);
+                                    (int32_t (*)(CSOUND *, void *)) pffft_reset);
     if(csound->setup[M] == NULL)
        csound->setup[M] = pffft_new_setup(FFTsize,PFFFT_REAL);
     if(csound->FFT_max_size < FFTsize) {
@@ -3909,11 +3909,11 @@ void pffft_setup(CSOUND *csound, int FFTsize, int M){
 
 static
 void pffft_RealFFT(CSOUND *csound,
-                   int FFTsize,MYFLT *sig,
-                   int d){
-  int i;
+                   int32_t FFTsize,MYFLT *sig,
+                   int32_t d){
+  int32_t i;
   float s, *buf;
-  int M = ConvertFFTSize(csound, FFTsize);
+  int32_t M = ConvertFFTSize(csound, FFTsize);
   pffft_setup(csound, FFTsize, M);
   buf = (float *)csound->vdsp_buffer;
   for(i=0;i<FFTsize;i++)

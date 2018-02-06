@@ -26,7 +26,7 @@
 #include <math.h>
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
-/* #define FLOOR(x) (x >= FL(0.0) ? (long)x : (long)((double)x - 0.999999999999999))
+/* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x : (int64_t)((double)x - 0.999999999999999))
 */
 /* 1.0-1e-8 is safe for a maximum table length of 16777216 */
 /* 1.0-1e-15 could incorrectly round down large negative integers, */
@@ -39,7 +39,7 @@
 
 
 
-int phsset(CSOUND *csound, PHSOR *p)
+int32_t phsset(CSOUND *csound, PHSOR *p)
 {
     MYFLT       phs;
     int32  longphs;
@@ -52,7 +52,7 @@ int phsset(CSOUND *csound, PHSOR *p)
     return OK;
 }
 
-int ephsset(CSOUND *csound, EPHSOR *p)
+int32_t ephsset(CSOUND *csound, EPHSOR *p)
 {
     MYFLT       phs;
     int32  longphs;
@@ -66,7 +66,7 @@ int ephsset(CSOUND *csound, EPHSOR *p)
     return OK;
 }
 
-int ephsor(CSOUND *csound, EPHSOR *p)
+int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
     double      phase;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -124,7 +124,7 @@ int ephsor(CSOUND *csound, EPHSOR *p)
     return OK;
 }
 
-int kphsor(CSOUND *csound, PHSOR *p)
+int32_t kphsor(CSOUND *csound, PHSOR *p)
 {
     IGN(csound);
     double      phs;
@@ -137,7 +137,7 @@ int kphsor(CSOUND *csound, PHSOR *p)
     return OK;
 }
 
-int phsor(CSOUND *csound, PHSOR *p)
+int32_t phsor(CSOUND *csound, PHSOR *p)
 {
     double      phase;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -208,7 +208,7 @@ int phsor(CSOUND *csound, PHSOR *p)
  * input variable - (which we can assume here is also i rate) to set
  * up the TABLE data structure ready for the k and a rate functions.  */
 
-static int itblchk(CSOUND *csound, TABLE *p)
+static int32_t itblchk(CSOUND *csound, TABLE *p)
 {
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
       return NOTOK;
@@ -239,7 +239,7 @@ static int itblchk(CSOUND *csound, TABLE *p)
                                        p->offset);
     }
 
-    p->wrap   = (int)*p->iwrap;
+    p->wrap   = (int32_t)*p->iwrap;
     return OK;
 }
 
@@ -260,7 +260,7 @@ static int itblchk(CSOUND *csound, TABLE *p)
  * ktablekt tablekt   Non interpolated
  * ktablikt tablikt   Interpolated
  *  */
-static int ptblchk(CSOUND *csound, TABLE *p)
+static int32_t ptblchk(CSOUND *csound, TABLE *p)
 {
     IGN(csound);                /* Argument is needed to fit structure */
     /* TABLE has an integer variable for the previous table number
@@ -274,7 +274,7 @@ static int ptblchk(CSOUND *csound, TABLE *p)
 
     /* The only other thing to do is write the wrap value into the
      * immediate copy of it in TABLE.  */
-    p->wrap   = (int)*p->iwrap;
+    p->wrap   = (int32_t)*p->iwrap;
     return OK;
 }
 
@@ -282,7 +282,7 @@ static int ptblchk(CSOUND *csound, TABLE *p)
 
 /* tblset() */
 
-int tblset(CSOUND *csound, TABLE *p)
+int32_t tblset(CSOUND *csound, TABLE *p)
 {
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
       const char  *opname = csound->GetOpcodeName(p);
@@ -299,7 +299,7 @@ int tblset(CSOUND *csound, TABLE *p)
 
 /* tblsetkt() */
 
-int tblsetkt(CSOUND *csound, TABLE *p)
+int32_t tblsetkt(CSOUND *csound, TABLE *p)
 {
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
       const char  *opname = csound->GetOpcodeName(p);
@@ -325,23 +325,23 @@ int tblsetkt(CSOUND *csound, TABLE *p)
  * rate function just once.
  *
  * If the table was not found, an error will result from ftfind.  */
-int ktable(CSOUND *,TABLE*);
-int ktabli(CSOUND *,TABLE*);
-int ktabl3(CSOUND *,TABLE*);
+int32_t ktable(CSOUND *,TABLE*);
+int32_t ktabli(CSOUND *,TABLE*);
+int32_t ktabl3(CSOUND *,TABLE*);
 
-int itable(CSOUND *csound, TABLE *p)
+int32_t itable(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(itblchk(csound,p)==OK)) return ktable(csound,p);
     return NOTOK;
 }
 
-int itabli(CSOUND *csound, TABLE *p)
+int32_t itabli(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(itblchk(csound,p)==OK)) return ktabli(csound,p);
     return NOTOK;
 }
 
-int itabl3(CSOUND *csound, TABLE *p)
+int32_t itabl3(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(itblchk(csound,p)==OK)) return ktabl3(csound,p);
     return NOTOK;
@@ -408,7 +408,7 @@ int itabl3(CSOUND *csound, TABLE *p)
 
 /* ktable() */
 
-int ktable(CSOUND *csound, TABLE   *p)
+int32_t ktable(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
     int32        indx, length;
@@ -427,7 +427,7 @@ int ktable(CSOUND *csound, TABLE   *p)
     /* ndx now includes the offset and is ready to address the table.
      *
      * The original code was:
-     *  indx = (long) (ndx + p->offset);
+     *  indx = (int64_t) (ndx + p->offset);
      *
      * This is a problem, causes problems with negative numbers.
      *
@@ -485,7 +485,7 @@ int ktable(CSOUND *csound, TABLE   *p)
  * array of input indexes, to send results to another array.  These
  * arrays are ksmps long.  */
 /*sbrandon: NeXT m68k does not like 'table' */
-int tablefn(CSOUND *csound, TABLE *p)
+int32_t tablefn(CSOUND *csound, TABLE *p)
 {
     FUNC        *ftp;
     MYFLT       *rslt, *pxndx, *tab;
@@ -494,7 +494,7 @@ int tablefn(CSOUND *csound, TABLE *p)
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     MYFLT       ndx, xbmul, offset;
-    int         wrap = p->wrap;
+    int32_t         wrap = p->wrap;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;            /* RWD fix */
@@ -554,7 +554,7 @@ int tablefn(CSOUND *csound, TABLE *p)
  *
  * In non-wrap mode, when the final index is >= length, then the
  * output should be the value in the guard point location.  */
-int ktabli(CSOUND *csound, TABLE   *p)
+int32_t ktabli(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
     int32        indx, length;
@@ -633,7 +633,7 @@ int ktabli(CSOUND *csound, TABLE   *p)
 }
 
 
-int ktabl3(CSOUND *csound, TABLE   *p)
+int32_t ktabl3(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
     int32        indx, length;
@@ -729,7 +729,7 @@ int ktabl3(CSOUND *csound, TABLE   *p)
 /* tabli() is similar to ktabli() above, except that it processes an
  * array of input indexes, to send results to another array. */
 
-int tabli(CSOUND *csound, TABLE   *p)
+int32_t tabli(CSOUND *csound, TABLE   *p)
 {
     FUNC        *ftp;
     int32        indx, mask, length;
@@ -805,7 +805,7 @@ int tabli(CSOUND *csound, TABLE   *p)
                              Str("tablei: not initialised"));
 }
 
-int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
+int32_t tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
 {
     FUNC        *ftp;
     int32        indx, mask, length;
@@ -814,7 +814,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
     uint32_t     n, nsmps = CS_KSMPS;
     MYFLT       *rslt, *pxndx, *tab;
     MYFLT        fract, v1, v2, ndx, xbmul, offset;
-    int          wrap = p->wrap;
+    int32_t          wrap = p->wrap;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -899,7 +899,7 @@ int tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolation */
  *
  * ftkrchk() */
 
-static int ftkrchk(CSOUND *csound, TABLE *p)
+static int32_t ftkrchk(CSOUND *csound, TABLE *p)
 {
     /* Check the table number is >= 1.  Print error and deactivate if
      * it is not.  Return NOTOK to tell calling function not to proceed
@@ -964,44 +964,44 @@ static int ftkrchk(CSOUND *csound, TABLE *p)
 /* Now for the four functions, which are called as a result of being
  * listed in engineState.opcodlst in entry.c */
 
-int    ktablekt(CSOUND *csound, TABLE *p)
+int32_t    ktablekt(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(ftkrchk(csound,p)==OK)) return ktable(csound,p);
     return NOTOK;
 }
 
-int    tablekt(CSOUND *csound, TABLE *p)
+int32_t    tablekt(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(ftkrchk(csound,p)==OK)) return tablefn(csound,p);
     return NOTOK;
 }
 
-int    ktablikt(CSOUND *csound, TABLE *p)
+int32_t    ktablikt(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(ftkrchk(csound,p)==OK)) return ktabli(csound,p);
     return NOTOK;
 }
 
-int    tablikt(CSOUND *csound, TABLE *p)
+int32_t    tablikt(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(ftkrchk(csound,p)==OK)) return tabli(csound,p);
     return NOTOK;
 }
 
-int    ktabl3kt(CSOUND *csound, TABLE *p)
+int32_t    ktabl3kt(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(ftkrchk(csound,p)==OK)) return ktabl3(csound,p);
     return NOTOK;
 }
 
-int    tabl3kt(CSOUND *csound, TABLE *p)
+int32_t    tabl3kt(CSOUND *csound, TABLE *p)
 {
     if (LIKELY(ftkrchk(csound,p)==OK)) return tabl3(csound,p);
     return NOTOK;
 }
 #endif /* SOME_FINE_DAY */
 
-int ko1set(CSOUND *csound, OSCIL1 *p)
+int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 {
     FUNC        *ftp;
 
@@ -1020,7 +1020,7 @@ int ko1set(CSOUND *csound, OSCIL1 *p)
     return OK;
 }
 
-int kosc1(CSOUND *csound, OSCIL1 *p)
+int32_t kosc1(CSOUND *csound, OSCIL1 *p)
 {
     FUNC *ftp;
     int32  phs, dcnt;
@@ -1049,7 +1049,7 @@ int kosc1(CSOUND *csound, OSCIL1 *p)
                              Str("oscil1(krate): not initialised"));
 }
 
-int kosc1i(CSOUND *csound, OSCIL1   *p)
+int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
 {
     FUNC        *ftp;
     MYFLT       fract, v1, *ftab;
@@ -1084,7 +1084,7 @@ int kosc1i(CSOUND *csound, OSCIL1   *p)
                              Str("oscil1i(krate): not initialised"));
 }
 
-int oscnset(CSOUND *csound, OSCILN *p)
+int32_t oscnset(CSOUND *csound, OSCILN *p)
 {
     FUNC        *ftp;
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
@@ -1098,7 +1098,7 @@ int oscnset(CSOUND *csound, OSCILN *p)
     else return NOTOK;
 }
 
-int osciln(CSOUND *csound, OSCILN *p)
+int32_t osciln(CSOUND *csound, OSCILN *p)
 {
     MYFLT *rs = p->rslt;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1144,10 +1144,10 @@ int osciln(CSOUND *csound, OSCILN *p)
                              Str("osciln: not initialised"));
 }
 
-static int fill_func_from_array(ARRAYDAT *a, FUNC *f)
+static int32_t fill_func_from_array(ARRAYDAT *a, FUNC *f)
 {
-    int     lobits, ltest, flen, i;
-    int     nonpowof2_flag = 0;
+    int32_t     lobits, ltest, flen, i;
+    int32_t     nonpowof2_flag = 0;
 
     flen = f->flen = a->sizes[0];
     flen &= -2L;
@@ -1173,10 +1173,10 @@ static int fill_func_from_array(ARRAYDAT *a, FUNC *f)
     return OK;
 }
 
-int oscsetA(CSOUND *csound, OSC *p)
+int32_t oscsetA(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp = &p->FF;
-    int x;
+    int32_t x;
 
     if (*p->iphs >= 0)
       p->lphs = ((int32)(*p->iphs * FMAXLEN)) & PHMASK;
@@ -1190,7 +1190,7 @@ int oscsetA(CSOUND *csound, OSC *p)
       else return csound->InitError(csound, "array size not pow-of-two \n");
 }
 
-int oscset(CSOUND *csound, OSC *p)
+int32_t oscset(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp;
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
@@ -1202,7 +1202,7 @@ int oscset(CSOUND *csound, OSC *p)
     return NOTOK;
 }
 
-int koscil(CSOUND *csound, OSC *p)
+int32_t koscil(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     int32    phs, inc;
@@ -1221,7 +1221,7 @@ int koscil(CSOUND *csound, OSC *p)
                              Str("oscil(krate): not initialised"));
 }
 
-int osckk(CSOUND *csound, OSC *p)
+int32_t osckk(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   amp, *ar, *ftbl;
@@ -1257,7 +1257,7 @@ int osckk(CSOUND *csound, OSC *p)
                              Str("oscil: not initialised"));
 }
 
-int oscka(CSOUND *csound, OSC *p)
+int32_t oscka(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, *ftbl;
@@ -1293,7 +1293,7 @@ int oscka(CSOUND *csound, OSC *p)
                              Str("oscil: not initialised"));
 }
 
-int oscak(CSOUND *csound, OSC *p)
+int32_t oscak(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *ftbl;
@@ -1326,7 +1326,7 @@ int oscak(CSOUND *csound, OSC *p)
                              Str("oscil: not initialised"));
 }
 
-int oscaa(CSOUND *csound, OSC *p)
+int32_t oscaa(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *cpsp, *ftbl;
@@ -1361,7 +1361,7 @@ int oscaa(CSOUND *csound, OSC *p)
                              Str("oscil: not initialised"));
 }
 
-int koscli(CSOUND *csound, OSC   *p)
+int32_t koscli(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     int32    phs, inc;
@@ -1384,7 +1384,7 @@ int koscli(CSOUND *csound, OSC   *p)
                              Str("oscili(krate): not initialised"));
 }
 
-int osckki(CSOUND *csound, OSC   *p)
+int32_t osckki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   fract, v1, amp, *ar, *ft, *ftab;
@@ -1419,7 +1419,7 @@ int osckki(CSOUND *csound, OSC   *p)
                              Str("oscili: not initialised"));
 }
 
-int osckai(CSOUND *csound, OSC   *p)
+int32_t osckai(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, v1, *ftab, *ft;
@@ -1459,7 +1459,7 @@ int osckai(CSOUND *csound, OSC   *p)
                              Str("oscili: not initialised"));
 }
 
-int oscaki(CSOUND *csound, OSC   *p)
+int32_t oscaki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT    v1, fract, *ar, *ampp, *ftab, *ft;
@@ -1495,7 +1495,7 @@ int oscaki(CSOUND *csound, OSC   *p)
                              Str("oscili: not initialised"));
 }
 
-int oscaai(CSOUND *csound, OSC   *p)
+int32_t oscaai(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab, *ft;
@@ -1534,7 +1534,7 @@ int oscaai(CSOUND *csound, OSC   *p)
                              Str("oscili: not initialised"));
 }
 
-int koscl3(CSOUND *csound, OSC   *p)
+int32_t koscl3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     int32    phs, inc;
@@ -1575,7 +1575,7 @@ int koscl3(CSOUND *csound, OSC   *p)
                              Str("oscil3(krate): not initialised"));
 }
 
-int osckk3(CSOUND *csound, OSC   *p)
+int32_t osckk3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   fract, amp, *ar, *ftab;
@@ -1634,7 +1634,7 @@ int osckk3(CSOUND *csound, OSC   *p)
                              Str("oscil3: not initialised"));
 }
 
-int oscka3(CSOUND *csound, OSC   *p)
+int32_t oscka3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   *ar, amp, *cpsp, fract, *ftab;
@@ -1690,7 +1690,7 @@ int oscka3(CSOUND *csound, OSC   *p)
                              Str("oscil3: not initialised"));
 }
 
-int oscak3(CSOUND *csound, OSC   *p)
+int32_t oscak3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT   fract, *ar, *ampp, *ftab;
@@ -1743,7 +1743,7 @@ int oscak3(CSOUND *csound, OSC   *p)
                              Str("oscil3: not initialised"));
 }
 
-int oscaa3(CSOUND *csound, OSC   *p)
+int32_t oscaa3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
     MYFLT    fract, *ar, *ampp, *cpsp, *ftab;

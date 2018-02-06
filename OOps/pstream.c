@@ -34,7 +34,7 @@
 #include <assert.h>
 #endif
 
-int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
+int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
     if ((f1->overlap    == f2->overlap)
         && (f1->winsize == f2->winsize)
@@ -51,7 +51,7 @@ int fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 /* Pandora's box opcode, but we can make it at least plausible,
    by forbidding copy to different format. */
 
-int fassign_set(CSOUND *csound, FASSIGN *p)
+int32_t fassign_set(CSOUND *csound, FASSIGN *p)
 {
      int32 N = p->fsrc->N;
 
@@ -81,7 +81,7 @@ int fassign_set(CSOUND *csound, FASSIGN *p)
 }
 
 
-int fassign(CSOUND *csound, FASSIGN *p)
+int32_t fassign(CSOUND *csound, FASSIGN *p)
 {
     int32 framesize;
     float *fout,*fsrc;
@@ -112,11 +112,11 @@ int fassign(CSOUND *csound, FASSIGN *p)
 
 /************* OSCBANK SYNTH ***********/
 
-int pvadsynset(CSOUND *csound, PVADS *p)
+int32_t pvadsynset(CSOUND *csound, PVADS *p)
 {
     /* get params from input fsig */
     /* we trust they are legit! */
-    int i;
+    int32_t i;
     PVSDAT  *fs = p->fsig;
     int32 N = fs->N;
     int32 noscs,n_oscs;
@@ -193,7 +193,7 @@ static inline MYFLT fastoscil(MYFLT *a, MYFLT *x, MYFLT *y)
 
 static void adsyn_frame(CSOUND *csound, PVADS *p)
 {
-    int i,j;
+    int32_t i,j;
     int32 startbin,lastbin,binoffset;
     MYFLT *outbuf = (MYFLT *) (p->outbuf.auxp);
 
@@ -257,7 +257,7 @@ static MYFLT adsyn_tick(CSOUND *csound, PVADS *p)
     return  outbuf[p->outptr++];
 }
 
-int pvadsyn(CSOUND *csound, PVADS *p)
+int32_t pvadsyn(CSOUND *csound, PVADS *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -281,7 +281,7 @@ int pvadsyn(CSOUND *csound, PVADS *p)
 
 /******* PVSCROSS ***********/
 
-int pvscrosset(CSOUND *csound, PVSCROSS *p)
+int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
 {
     PVSDAT  *fsrc = p->fsrc;
     PVSDAT  *fout = p->fout;
@@ -317,7 +317,7 @@ int pvscrosset(CSOUND *csound, PVSCROSS *p)
     return OK;
 }
 
-int pvscross(CSOUND *csound, PVSCROSS *p)
+int32_t pvscross(CSOUND *csound, PVSCROSS *p)
 {
     int32 i,N = p->fftsize;
     MYFLT amp1 = FABS(*p->kamp1);
@@ -342,7 +342,7 @@ int pvscross(CSOUND *csound, PVSCROSS *p)
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
-      int NB = p->fsrc->NB;
+      int32_t NB = p->fsrc->NB;
       nsmps -= early;
       for (n=offset; n<nsmps; n++) {
         fsrc = (CMPLX *) p->fsrc->frame.auxp +n*NB;    /* RWD all must be 32bit */
@@ -373,7 +373,7 @@ int pvscross(CSOUND *csound, PVSCROSS *p)
 
 /******** PVSFREAD ************/
 
-static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
+static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
 {
     PVOCEX_MEMFILE  pp;
     uint32   N;
@@ -398,7 +398,7 @@ static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
     p->arate   = csound->esr / (MYFLT) pp.overlap;
     p->membase = (float*) pp.data;
 
-    if (UNLIKELY(p->overlap < (int)CS_KSMPS || p->overlap < 10))
+    if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS || p->overlap < 10))
       return csound->InitError(csound, Str("Sliding version not yet available"));
     if (UNLIKELY(p->nframes <= 0))
       return csound->InitError(csound, Str("pvsfread: file is empty!\n"));
@@ -406,7 +406,7 @@ static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
     if (UNLIKELY(p->nframes == 1))
       return csound->InitError(csound, Str("pvsfread: file has only one frame "
                               "(= impulse response).\n"));
-    if (UNLIKELY(p->overlap < (int)CS_KSMPS))
+    if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS))
       return csound->InitError(csound, Str("pvsfread: analysis frame overlap "
                               "must be >= ksmps\n"));
     p->blockalign = (p->fftsize+2) * p->chans;
@@ -425,7 +425,7 @@ static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
     p->chanoffset = (int32) MYFLT2LRND(*p->ichan) * (N + 2);
     memcpy((float *) p->fout->frame.auxp,               /* RWD MUST be 32bit */
            (float *) pp.data + (int32) p->chanoffset,    /* RWD MUST be 32bit */
-           (size_t) ((int) (N + 2) * (int) sizeof(float)));
+           (size_t) ((int32_t) (N + 2) * (int32_t) sizeof(float)));
     p->membase += p->blockalign;  /* move to 2nd frame in file, as startpoint */
     p->nframes--;
     p->fout->N           =  N;
@@ -439,18 +439,18 @@ static int pvsfreadset_(CSOUND *csound, PVSFREAD *p, int stringname)
 }
 
 
-int pvsfreadset(CSOUND *csound, PVSFREAD *p){
+int32_t pvsfreadset(CSOUND *csound, PVSFREAD *p){
   return pvsfreadset_(csound,p, 0);
   }
 
-int pvsfreadset_S(CSOUND *csound, PVSFREAD *p){
+int32_t pvsfreadset_S(CSOUND *csound, PVSFREAD *p){
   return pvsfreadset_(csound,p, 1);
   }
 
 
-int pvsfread(CSOUND *csound, PVSFREAD *p)
+int32_t pvsfread(CSOUND *csound, PVSFREAD *p)
 {
-    int i,j;
+    int32_t i,j;
     MYFLT pos = *p->kpos;
     MYFLT framepos,frac;
     int32 frame1pos,/*frame2pos,*/framesize,n_mcframes;
@@ -506,9 +506,9 @@ int pvsfread(CSOUND *csound, PVSFREAD *p)
 }
 
 /************* PVSMASKA ****************/
-int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
+int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
 {
-    unsigned int i;
+    uint32_t i;
     MYFLT *ftable;
     uint32_t N = p->fsrc->N;
     uint32_t nbins = N/2 + 1;
@@ -557,9 +557,9 @@ int pvsmaskaset(CSOUND *csound, PVSMASKA *p)
     return OK;
 }
 
-int pvsmaska(CSOUND *csound, PVSMASKA *p)
+int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
 {
-    int i;
+    int32_t i;
     int32 /*flen, */nbins;
     MYFLT *ftable;
     float *fout,*fsrc;                      /* RWD MUST be 32bit */
@@ -599,7 +599,7 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
 
     margin = 1.0f - depth;
     if (p->fsrc->sliding) {
-      int NB = p->fsrc->NB;
+      int32_t NB = p->fsrc->NB;
       CMPLX *fout, *fsrc;
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -621,7 +621,7 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
     /* only process when a new frame is ready */
     if (p->lastframe < p->fsrc->framecount) {
       MYFLT amp = FL(1.0);
-      int aindex, findex;
+      int32_t aindex, findex;
       for (i=0;i < nbins;i++) {
         amp = depth + margin * ftable[i];
         aindex = i*2;
@@ -638,9 +638,9 @@ int pvsmaska(CSOUND *csound, PVSMASKA *p)
 
 /**************PVSFTW ******************/
 
-int pvsftwset(CSOUND *csound, PVSFTW *p)
+int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
 {
-    int i;
+    int32_t i;
     MYFLT *ftablea,*ftablef;
     float *fsrc;                                        /* RWD MUST be 32bit */
     int32 flena,flenf,nbins, N = p->fsrc->N;
@@ -697,9 +697,9 @@ int pvsftwset(CSOUND *csound, PVSFTW *p)
     return OK;
 }
 
-int pvsftw(CSOUND *csound, PVSFTW *p)
+int32_t pvsftw(CSOUND *csound, PVSFTW *p)
 {
-    int i;
+    int32_t i;
     int32 nbins;
     MYFLT *ftablea, *ftablef = NULL;
     float *fsrc;                /* RWD MUST be 32bit */
@@ -742,9 +742,9 @@ int pvsftw(CSOUND *csound, PVSFTW *p)
 
 /************ PVSFTR ****************/
 
-int pvsftrset(CSOUND *csound, PVSFTR *p)
+int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
 {
-    int i;
+    int32_t i;
     float *fdest;                         /* RWD MUST be 32bit */
     int32 flena,flenf,nbins, N = p->fdest->N;
     /* source fsig */
@@ -779,7 +779,7 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
       if (UNLIKELY(flena < nbins))
         return csound->InitError(csound, Str("pvsftr: amps ftable too small.\n"));
     }
-    if (UNLIKELY(p->overlap < (int)CS_KSMPS || p->overlap < 10))
+    if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS || p->overlap < 10))
       return csound->InitError(csound, Str("Sliding version not yet available"));
     fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
 
@@ -805,9 +805,9 @@ int pvsftrset(CSOUND *csound, PVSFTR *p)
     return OK;
 }
 
-int pvsftr(CSOUND *csound, PVSFTR *p)
+int32_t pvsftr(CSOUND *csound, PVSFTR *p)
 {
-    int   i;
+    int32_t   i;
     int32 nbins;
     float *fdest;                       /*RWD MUST be 32bit */
 
@@ -834,7 +834,7 @@ int pvsftr(CSOUND *csound, PVSFTR *p)
 
 /************** PVSINFO ***********/
 
-int pvsinfo(CSOUND *csound, PVSINFO *p)
+int32_t pvsinfo(CSOUND *csound, PVSINFO *p)
 {
    IGN(csound);
 #ifdef _DEBUG
