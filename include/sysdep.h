@@ -277,12 +277,6 @@ typedef uint64_t            uint_least64_t;
 #elif defined(HAVE_STDINT_H) || defined(HAVE_C99)
 #  include <stdint.h>
 
-#ifdef USE_DOUBLE
-typedef int64_t myflt_intptr_t;
-#else
-typedef int32_t myflt_intptr_t;
-#endif
-
 #    if defined(__CYGWIN__)
 #define __int8 char
 #define __int16 short
