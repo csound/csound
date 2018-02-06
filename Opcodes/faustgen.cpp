@@ -422,7 +422,7 @@ int init_faustaudio(CSOUND *csound, faustgen *p) {
   llvm_dsp *dsp;
   controls *ctls = new controls();
   const char *varname = "::dsp";
-#if defined(MACOSX) || defined(linux) || defined(HAIKU)
+#if defined(MACOSX) || defined(LINUX) || defined(HAIKU)
   while ((int)*((MYFLT *)p->code) == -1)
     usleep(1);
 #else
