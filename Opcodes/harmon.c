@@ -58,7 +58,7 @@ typedef struct {
         int32_t     hmrngflg;
 } HARM234;
 
-/* static void print32_t32_t32_t_data(HARM234* p, int x) */
+/* static void print32_t32_t32_t_data(HARM234* p, int32_t x) */
 /* { */
 /*     printf("DATA %d\n=======\n", x); */
 /*     printf("nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead " */

@@ -1139,7 +1139,7 @@ void HDF5Read_allocateArray(CSOUND *csound, HDF5Dataset *dataset,
                             hsize_t rank, hsize_t *dimensions)
 {
     ARRAYDAT *array = dataset->argumentPointer;
-    array->dimensions = (int)rank;
+    array->dimensions = (int32_t)rank;
     array->sizes = csound->Calloc(csound, sizeof(int32_t) * rank);
 
     array->sizes[0] = (int32_t)dimensions[0];
