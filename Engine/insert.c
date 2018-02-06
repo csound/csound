@@ -544,7 +544,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     showallocs(csound);
   }
   if (newevtp->pinstance != NULL) {
-    *((MYFLT *)newevtp->pinstance) = (MYFLT) ((int64_t) ip);
+    *((MYFLT *)newevtp->pinstance) = (MYFLT) ((myflt_intptr_t) ip);
   }
   return 0;
 }
@@ -930,7 +930,7 @@ static void deact(CSOUND *csound, INSDS *ip)
 
 
 int kill_instance(CSOUND *csound, KILLOP *p) {
-  if (LIKELY(*p->inst)) xturnoff(csound, (INSDS *) ((int64_t)*p->inst));
+  if (LIKELY(*p->inst)) xturnoff(csound, (INSDS *) ((myflt_intptr_t)*p->inst));
   else csound->Warning(csound, Str("instance not valid \n"));
   return OK;
 }
