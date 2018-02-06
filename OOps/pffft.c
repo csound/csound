@@ -176,7 +176,7 @@ typedef float32x4_t v4sf;
 // marginally faster version
 //#  define VTRANSPOSE4(x0,x1,x2,x3) { asm("vtrn.32 %q0, %q1;\n vtrn.32 %q2,%q3\n vswp %f0,%e2\n vswp %f1,%e3" : "+w"(x0), "+w"(x1), "+w"(x2), "+w"(x3)::); }
 #  define VSWAPHL(a,b) vcombine_f32(vget_low_f32(b), vget_high_f32(a))
-#  define VALIGNED(ptr) ((((int64_t)(ptr)) & 0x3) == 0)
+#  define VALIGNED(ptr) ((((uintptr_t)(ptr)) & 0x3) == 0)
 #else
 #  if !defined(PFFFT_SIMD_DISABLE)
 #    warning "building with simd disabled !!!!!!!!!!!!!!\n";
