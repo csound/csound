@@ -118,7 +118,7 @@ $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
 "http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
-"http://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip",
+"https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.19/bin/windows/hdf5-1.8.19-Std-win10_64-vs2015.zip",
 "https://github.com/thestk/stk/archive/master.zip"
 
 # commenting out 1.8.20 for now
