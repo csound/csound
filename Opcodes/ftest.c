@@ -118,7 +118,7 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     MYFLT   *fp_filter, *pInp, *pBuf;
     MYFLT   order = ff->e.p[6];
     MYFLT   resc = ff->e.p[7];
-    int32_t32_t32_t     ffilno = (int)ff->e.p[5];
+    int32_t ffilno = (int32_t)ff->e.p[5];
     uint32_t     i;
     uint32_t     steps, newLen, *pnewLen;
     int32_t     nargs = ff->e.pcnt - 4;
@@ -146,7 +146,7 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     pBuf = (MYFLT*) csound->Calloc(csound, ftp->flen* sizeof(MYFLT));
     *pInp = FL(1.0);
     steps = (int32_t)LOG2(ftp->flen/srcfil->flen);
-    xfree = pOrder = (int32_t32_t32_t*)csound->Malloc(csound, sizeof(int)*steps);
+    xfree = pOrder = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*steps);
     /* DEC to BIN */
     for (i = 0; i < steps; i++)
       pOrder[i] = ((int32_t

@@ -119,10 +119,10 @@ static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
     MYFLT **outargs = p->outargs;
 
     if (*p->trig) {
-      int32_t32_t32_t ndx = (int) *p->ndx * (numouts * (int) *p->maxtics + 1);
-      int32_t32_t32_t numtics =  (int) p->table[ndx];
+      int32_t ndx = (int32_t) *p->ndx * (numouts * (int32_t) *p->maxtics + 1);
+      int32_t numtics =  (int32_t) p->table[ndx];
       MYFLT *table = &(p->table[ndx+1]);
-      int32_t32_t32_t kndx = (int) *p->ndx;
+      int32_t kndx = (int32_t) *p->ndx;
       int32_t currtic;
 
       if (kndx != p->old_ndx) {

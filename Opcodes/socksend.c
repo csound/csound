@@ -412,7 +412,7 @@ typedef struct {
 
 static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
-    unsigned int32_t     bsize;
+    uint32_t     bsize;
 
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) p->type->size + 4))
        return csound->InitError(csound,

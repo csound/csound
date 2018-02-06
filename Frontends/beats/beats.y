@@ -55,6 +55,8 @@
     extern int debug;
     extern int yylex(void);
     extern void yyerror (char *);
+
+    
 %}
 %token  S_NL
 %token  S_EQ

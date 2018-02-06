@@ -356,8 +356,8 @@ static int32_t resonz(CSOUND *csound, RESONZ *p)
 
 static int32_t phaser1set(CSOUND *csound, PHASER1 *p)
 {
-    int32_t32_t32_t   loop = (int) MYFLT2LONG(*p->iorder);
-    int32  nBytes = (int32) loop * (int32) sizeof(MYFLT);
+    int32_t  loop = (int32_t) MYFLT2LONG(*p->iorder);
+    int32_t  nBytes = (int32_t) loop * (int32_t) sizeof(MYFLT);
 
     if (*p->istor == FL(0.0) || p->auxx.auxp == NULL ||
         (int32_t)p->auxx.size<nBytes || p->auxy.auxp == NULL ||
@@ -367,7 +367,7 @@ static int32_t phaser1set(CSOUND *csound, PHASER1 *p)
       p->xnm1 = (MYFLT *) p->auxx.auxp;
       p->ynm1 = (MYFLT *) p->auxy.auxp;
     }
-    else if ((int32) p->auxx.size < nBytes || (int32) p->auxy.size < nBytes) {
+    else if ((int32_t) p->auxx.size < nBytes || (int32_t) p->auxy.size < nBytes) {
       /* Existing arrays too small so copy */
       void    *tmp1, *tmp2;
       size_t  oldSize1 = (size_t) p->auxx.size;
@@ -507,7 +507,7 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
         else {
           freq = kbf * kk;
           kk *= ksep;
-          //freq = kbf * csound->intpow(ksep,(int32)j);
+          //freq = kbf * csound->intpow(ksep,(int32_t)j);
         }
         /* Note similarities of following equations to
          * equations in resonr/resonz. The 2nd-order

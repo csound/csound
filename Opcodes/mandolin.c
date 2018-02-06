@@ -117,7 +117,7 @@ int32_t mandolinset(CSOUND *csound, MANDOL *p)
       p->dampTime = (int32) p->lastLength; /* See tick method below */
       p->waveDone = 0;
       {
-        int32_t32_t32_t relestim = (int)(CS_EKR * FL(0.1));
+        int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;

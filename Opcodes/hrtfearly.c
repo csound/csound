@@ -271,10 +271,10 @@ static int32_t early_init(CSOUND *csound, early *p)
     MYFLT surfacearea = FL(0.0);
 
     /* setup defaults for optional parameters */
-    int32_t32_t32_t fade = (int)*p->ofade;
+    int32_t fade = (int32_t)*p->ofade;
     MYFLT sr = *p->osr;
-    int32_t32_t32_t threed = (int)*p->othreed;
-    int32_t32_t32_t order = (int)*p->porder;
+    int32_t threed = (int32_t)*p->othreed;
+    int32_t order = (int32_t)*p->porder;
 
     /* fade length: default 8, max 24, min 1 (fade is a local variable)*/
     if (fade < 1 || fade > 24)
@@ -881,12 +881,12 @@ static int32_t early_process(CSOUND *csound, early *p)
     MYFLT *delr = (MYFLT *)p->delr.auxp;
 
     /* as above */
-    int32_t32_t32_t *oldelevindex = (int *)p->oldelevindex.auxp;
-    int32_t32_t32_t *oldangleindex = (int *)p->oldangleindex.auxp;
-    int32_t32_t32_t *cross = (int *)p->cross.auxp;
-    int32_t32_t32_t *l = (int *)p->l.auxp;
-    int32_t32_t32_t *delp = (int *)p->delp.auxp;
-    int32_t32_t32_t *skipdel = (int *)p->skipdel.auxp;
+    int32_t *oldelevindex = (int32_t *)p->oldelevindex.auxp;
+    int32_t *oldangleindex = (int32_t *)p->oldangleindex.auxp;
+    int32_t *cross = (int32_t *)p->cross.auxp;
+    int32_t *l = (int32_t *)p->l.auxp;
+    int32_t *delp = (int32_t *)p->delp.auxp;
+    int32_t *skipdel = (int32_t *)p->skipdel.auxp;
     MYFLT *vdt = (MYFLT *)p->vdt.auxp;
     MYFLT *dist = (MYFLT *)p->dist.auxp;
     MYFLT *dtime = (MYFLT *)p->dtime.auxp;
@@ -1497,28 +1497,28 @@ static int32_t early_process(CSOUND *csound, early *p)
                      make them different...) */
                   /* x axis, wall1 (left) */
                   wallreflections =
-                    (int32_t32_t32_t)abs((int)(xc * .5 - .25 +
+                    (int32_t)abs((int32_t)(xc * .5 - .25 +
                                    (0.25 * pow(-1.0, xc))));
                   /* wall2, x (right) */
                   wallreflections +=
-                    (int32_t32_t32_t)abs((int)(xc * .5 + .25 -
+                    (int32_t)abs((int32_t)(xc * .5 + .25 -
                                    (0.25 * pow(-1.0, xc))));
                   /* yaxis, wall3 (bottom) */
                   wallreflections +=
-                    (int32_t32_t32_t)abs((int)(yc * .5 - .25 +
+                    (int32_t)abs((int32_t)(yc * .5 - .25 +
                                    (0.25 * pow(-1.0, yc))));
                   /* yaxis, wall 4 (top) */
                   wallreflections +=
-                    (int32_t32_t32_t)abs((int)(yc * .5 + .25 -
+                    (int32_t)abs((int32_t)(yc * .5 + .25 -
                                    (0.25 * pow(-1.0, yc))));
                   if (threed) {
                     /* floor (negative z) */
                     floorreflections =
-                      (int32_t32_t32_t)abs((int)(zc * .5 - .25 +
+                      (int32_t)abs((int32_t)(zc * .5 - .25 +
                                      (0.25 * pow(-1.0, zc))));
                     /* ceiling (positive z) */
                     ceilingreflections =
-                      (int32_t32_t32_t)abs((int)(zc * .5 + .25
+                      (int32_t)abs((int32_t)(zc * .5 + .25
                                      - (0.25 * pow(-1.0, zc))));
                   }
 

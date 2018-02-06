@@ -100,7 +100,7 @@ static int32_t calc_nsamples(FREEVERB *p, double delTime)
 static int32_t comb_nbytes(FREEVERB *p, double delTime)
 {
     int32_t nbytes;
-    nbytes = (int32_t32_t32_t) sizeof(freeVerbComb) - (int) sizeof(MYFLT);
+    nbytes = (int32_t) sizeof(freeVerbComb) - (int32_t) sizeof(MYFLT);
     nbytes += ((int32_t) sizeof(MYFLT) * calc_nsamples(p, delTime));
     return ((nbytes + 15) & (~15));
 }
@@ -108,7 +108,7 @@ static int32_t comb_nbytes(FREEVERB *p, double delTime)
 static int32_t allpass_nbytes(FREEVERB *p, double delTime)
 {
     int32_t nbytes;
-    nbytes = (int32_t32_t32_t) sizeof(freeVerbAllPass) - (int) sizeof(MYFLT);
+    nbytes = (int32_t) sizeof(freeVerbAllPass) - (int32_t) sizeof(MYFLT);
     nbytes += ((int32_t) sizeof(MYFLT) * calc_nsamples(p, delTime));
     return ((nbytes + 15) & (~15));
 }
@@ -128,7 +128,7 @@ static int32_t freeverb_init(CSOUND *csound, FREEVERB *p)
       nbytes += allpass_nbytes(p, allpass_delays[i][0]);
       nbytes += allpass_nbytes(p, allpass_delays[i][1]);
     }
-    nbytes += (int32_t32_t32_t) sizeof(MYFLT) * (int) CS_KSMPS;
+    nbytes += (int32_t) sizeof(MYFLT) * (int32_t) CS_KSMPS;
     /* allocate space if size has changed */
     if (nbytes != (int32_t) p->auxData.size)
       csound->AuxAlloc(csound, (int32) nbytes, &(p->auxData));

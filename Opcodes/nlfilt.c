@@ -86,7 +86,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     else if (L >= MAX_DELAY) {
       L = (MYFLT) MAX_DELAY;
     }
-    nmL = point32_t32_t32_t - (int) (L) - 1;
+    nmL = point - (int32_t) (L) - 1;
     if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
     if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
     if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
@@ -160,7 +160,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     else if (L >= MAX_DELAY) {
       L = (MYFLT) MAX_DELAY;
     }
-    nmL = point32_t32_t32_t - (int) (L) - 1;
+    nmL = point - (int32_t) (L) - 1;
     if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
     if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
     if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
@@ -220,7 +220,7 @@ int32_t pcount(CSOUND *csound, PFIELD *p)
 
 int32_t pvalue(CSOUND *csound, PFIELD *p)
 {
-    int32_t32_t32_t n = (int)(*p->index);
+    int32_t n = (int32_t)(*p->index);
     if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
       *p->ians = FL(0.0);       /* For tidyness */
       return NOTOK;             /* Should this be an error?? */
@@ -235,7 +235,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
     int32_t x = 1;
     int32_t    nargs = p->OUTOCOUNT;
     int32_t    pargs = csound->init_event->pcnt;
-    int32_t32_t32_t    start = (int)(*p->start);
+    int32_t    start = (int32_t)(*p->start);
     /* Should check that inits exist> */
     if (UNLIKELY(nargs>pargs))
       csound->Warning(csound, Str("More arguments than p fields"));

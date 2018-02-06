@@ -36,7 +36,7 @@ static inline int32_t roundoffint(MYFLT x)
       return((int32_t)(x - 0.5));
 }
 
-static int32_t32_t32_t32_t random_number(CSOUND *csound, int a, int b)
+static int32_t random_number(CSOUND *csound, int32_t a, int32_t b)
 {
     MYFLT x;
     x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);

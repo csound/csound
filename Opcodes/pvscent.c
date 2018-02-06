@@ -291,7 +291,7 @@ int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
     MYFLT *PeakFreq         = (MYFLT *) p->peakfreq.auxp;
     MYFLT *inharmonic       = (MYFLT *) p->inharmonic.auxp;
     MYFLT Threshold         = (MYFLT) *p->ithreshold;
-    int32_t32_t32_t fftsize             = (int) p->fin->N;
+    int32_t fftsize             = (int32_t) p->fin->N;
     int32_t numBins             = fftsize/2 + 1;
 
     MYFLT f0Cand, Frac, Freq = FL(0.0);

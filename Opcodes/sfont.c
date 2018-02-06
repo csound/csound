@@ -144,7 +144,7 @@ static int32_t compare(presetType * elem1, presetType *elem2)
 
 static char *Gfname;            /* NOT THREAD SAFE */
 
-static int32_t32_t32_t SfLoad_(CSOUND *csound, SFLOAD *p, int istring)
+static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
                                        /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char *fname;
@@ -276,7 +276,7 @@ static int32_t Sfilist(CSOUND *csound, SFPLIST *p)
 static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
 {
     sfontg *globals; SFBANK *sf;
-    int32_t32_t32_t j, presetHandle = (int) *p->iPresetHandle;
+    int32_t j, presetHandle = (int32_t) *p->iPresetHandle;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
 
@@ -302,7 +302,7 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
                                Str("sfpreset: cannot find any preset having prog "
                                    "number %d and bank number %d in SoundFont file"
                                    " \"%s\""),
-                               (int32_t32_t32_t) *p->iprog, (int) *p->ibank,
+                               (int32_t) *p->iprog, (int32_t) *p->ibank,
                                globals->sfArray[(DWORD) *p->isfhandle].name);
     }
     return OK;
@@ -314,7 +314,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     presetType *preset;
     SHORT *sBase;
 
-    int32_t32_t32_t layersNum, j, spltNum = 0, flag = (int) *p->iflag;
+    int32_t layersNum, j, spltNum = 0, flag = (int32_t) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     preset = globals->presetp[index];
@@ -327,7 +327,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     layersNum = preset->layers_num;
     for (j =0; j < layersNum; j++) {
       layerType *layer = &preset->layer[j];
-      int32_t32_t32_t vel= (int) *p->ivel, notnum= (int) *p->inotnum;
+      int32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
       if (notnum >= layer->minNoteRange &&
           notnum <= layer->maxNoteRange &&
           vel    >= layer->minVelRange  &&
@@ -649,9 +649,9 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset;
     SHORT *sBase;
-    /* int32_t32_t32_t layersNum= preset->layers_num, j, spltNum = 0, flag=(int) *p->iflag; */
+    /* int32_t layersNum= preset->layers_num, j, spltNum = 0, flag=(int32_t) *p->iflag; */
 
-    int32_t32_t32_t layersNum, j, spltNum = 0, flag=(int) *p->iflag;
+    int32_t layersNum, j, spltNum = 0, flag=(int32_t) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     preset = globals->presetp[index];
@@ -664,7 +664,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     layersNum= preset->layers_num;
     for (j =0; j < layersNum; j++) {
       layerType *layer = &preset->layer[j];
-      int32_t32_t32_t vel= (int) *p->ivel, notnum= (int) *p->inotnum;
+      int32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
       if (notnum >= layer->minNoteRange &&
           notnum <= layer->maxNoteRange &&
           vel >= layer->minVelRange  &&
@@ -916,7 +916,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 {
     sfontg *globals;
     SFBANK *sf;
-    int32_t32_t32_t index = (int) *p->sfBank;
+    int32_t index = (int32_t) *p->sfBank;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[index];
     if (UNLIKELY(index > globals->currSFndx || *p->instrNum >  sf->instrs_num)) {
@@ -925,8 +925,8 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     else {
       instrType *layer = &sf->instr[(int32_t) *p->instrNum];
       SHORT *sBase = sf->sampleData;
-      int32_t32_t32_t spltNum = 0, flag=(int) *p->iflag;
-      int32_t32_t32_t vel= (int) *p->ivel, notnum= (int) *p->inotnum;
+      int32_t spltNum = 0, flag=(int32_t) *p->iflag;
+      int32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
       int32_t splitsNum = layer->splits_num, k;
       for (k = 0; k < splitsNum; k++) {
         splitType *split = &layer->split[k];
@@ -1184,7 +1184,7 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 
 static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
 {
-    int32_t32_t32_t index = (int) *p->sfBank;
+    int32_t index = (int32_t) *p->sfBank;
     sfontg *globals;
     SFBANK *sf;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
@@ -1195,8 +1195,8 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
     else {
       instrType *layer = &sf->instr[(int32_t) *p->instrNum];
       SHORT *sBase = sf->sampleData;
-      int32_t32_t32_t spltNum = 0, flag=(int) *p->iflag;
-      int32_t32_t32_t vel= (int) *p->ivel, notnum= (int) *p->inotnum;
+      int32_t spltNum = 0, flag=(int32_t) *p->iflag;
+      int32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
       int32_t splitsNum = layer->splits_num, k;
       for (k = 0; k < splitsNum; k++) {
         splitType *split = &layer->split[k];
@@ -2264,7 +2264,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
     layersNum = preset->layers_num;
     for (j =0; j < layersNum; j++) {
       layerType *layer = &preset->layer[j];
-      int32_t32_t32_t vel= (int) *p->ivel, notnum= (int) *p->inotnum;
+      int32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
       if (notnum >= layer->minNoteRange &&
           notnum <= layer->maxNoteRange &&
           vel    >= layer->minVelRange  &&

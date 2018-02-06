@@ -409,7 +409,7 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
         /* } */
 
         if (*p->bias != FL(0.0)) {
-          int32_t32_t32_t nsize = (int)(size+size);
+          int32_t nsize = (int32_t)(size+size);
 
           do_fht( x, nsize);
           do_fht( y, nsize);

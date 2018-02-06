@@ -426,7 +426,7 @@ static int32_t ctrl14set(CSOUND *csound, CTRL14 *p)
 static int32_t ctrl14(CSOUND *csound, CTRL14 *p)
 {
     MYFLT value;
-    int32_t32_t32_t chan=(int) *p->ichan-1;
+    int32_t chan=(int32_t) *p->ichan-1;
 
     value = (MYFLT)((csound->m_chnbp[chan]->ctl_val[p->ctlno1] * 128 +
                      csound->m_chnbp[chan]->ctl_val[p->ctlno2]) * oneTOf14bit);
@@ -511,7 +511,7 @@ static int32_t ctrl21set(CSOUND *csound, CTRL21 *p)
 static int32_t ctrl21(CSOUND *csound, CTRL21 *p)
 {
     MYFLT value;
-    int32_t32_t32_t chan=(int) *p->ichan-1;
+    int32_t chan=(int32_t) *p->ichan-1;
     value = (csound->m_chnbp[chan]->ctl_val[p->ctlno1] * 16384 +
              csound->m_chnbp[chan]->ctl_val[p->ctlno2] * 128   +
              csound->m_chnbp[chan]->ctl_val[p->ctlno3]) / f21bit;
