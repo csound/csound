@@ -62,6 +62,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdint.h>
 
 /* detect compiler flavour */
 #if defined(_MSC_VER)
