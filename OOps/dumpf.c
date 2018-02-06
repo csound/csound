@@ -24,6 +24,7 @@
 #include "csoundCore.h"                              /*  DUMPF.C  */
 #include "dumpf.h"
 #include <ctype.h>
+#include <inttypes.h>
 
 static const int32_t dumpf_format_table[9] = {
   0,
@@ -288,10 +289,10 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
     case 7:
       outbuf[0] = '\0';
       while (--nk) {
-        snprintf(buf1, 256, "%ld\t", (long)*kp++);
+        snprintf(buf1, 256, "%" SCNd64 "\t", (int64_t)*kp++);
         strlcat(outbuf, buf1, 256);
       }
-      snprintf(buf1, 256, "%ld\n", (long)*kp);
+      snprintf(buf1, 256, "%" SCNd64 "\n", (int64_t)*kp);
       strlcat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
