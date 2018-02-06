@@ -36,8 +36,10 @@
 #include "interlocks.h"
 #include "H/fftlib.h"
 
+#ifdef ANDROID
 float crealf(_Complex float);
 float cimagf(_Complex float);
+#endif
 
 typedef struct {
     OPDS h;
