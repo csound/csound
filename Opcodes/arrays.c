@@ -1646,9 +1646,9 @@ typedef struct {
 static int32_t tabslice(CSOUND *csound, TABSLICE *p){
 
     MYFLT *tabin = p->tabin->data;
-    int32_t start = (int) *p->start;
-    int32_t end   = (int) *p->end;
-    int32_t inc   = (int) *p->inc;
+    int32_t start = (int32_t) *p->start;
+    int32_t end   = (int32_t) *p->end;
+    int32_t inc   = (int32_t) *p->inc;
     int32_t size = (end - start)/inc + 1;
     int32_t i, destIndex;
     int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
@@ -1677,8 +1677,8 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p){
 //static int32_t tabsliceS(CSOUND *csound, TABSLICE *p){
 //
 //    MYFLT *tabin = p->tabin->data;
-//    int32_t start = (int) *p->start;
-//    int32_t end   = (int) *p->end;
+//    int32_t start = (int32_t) *p->start;
+//    int32_t end   = (int32_t) *p->end;
 //    int32_t size = end - start + 1, i;
 //    STRCPY_OP xx;
 //    if (UNLIKELY(size < 0))
@@ -1773,7 +1773,7 @@ static int32_t tabmap_perf(CSOUND *csound, TABMAP *p)
 int32_t tablength(CSOUND *csound, TABQUERY1 *p)
 {
     IGN(csound);
-    int32_t opt = (int)*p->opt;
+    int32_t opt = (int32_t)*p->opt;
     if (UNLIKELY(p->tab==NULL || opt>p->tab->dimensions))
       *p->ans = -FL(1.0);
     else if (UNLIKELY(opt<=0)) *p->ans = p->tab->dimensions;
@@ -1831,7 +1831,7 @@ static int32_t ina_set(CSOUND *csound, OUTA *p)
     aa->dimensions = 1;
     if (aa->sizes) csound->Free(csound, aa->sizes);
     if (aa->data) csound->Free(csound, aa->data);
-    aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int));
+    aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
     aa->sizes[0] = p->len = csound->inchnls;
     aa->data = (MYFLT*)
       csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
@@ -1906,7 +1906,7 @@ static int32_t monitora_init(CSOUND *csound, OUTA *p)
     aa->dimensions = 1;
     if (aa->sizes) csound->Free(csound, aa->sizes);
     if (aa->data) csound->Free(csound, aa->data);
-    aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int));
+    aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
     aa->sizes[0] = p->len = csound->nchnls;
     aa->data = (MYFLT*)
       csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
@@ -2246,7 +2246,7 @@ int32_t ctor_i(CSOUND *csound, FFT *p){
 
 int32_t init_window(CSOUND *csound, FFT *p){
     int32_t   N = p->in->sizes[0];
-    int32_t   i,type = (int) *p->f;
+    int32_t   i,type = (int32_t) *p->f;
     MYFLT *w;
     tabensure(csound, p->out, N);
     if (p->mem.auxp == 0 || p->mem.size < N*sizeof(MYFLT))
@@ -2447,7 +2447,7 @@ static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p, int32_t rows, int32_
       if (p->data==NULL) {
         p->data = (MYFLT*)csound->Calloc(csound, ss);
         p->dimensions = 2;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int)*2);
+        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*2);
       }
       else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
       p->sizes[0] = rows;  p->sizes[1] = columns;

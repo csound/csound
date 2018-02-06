@@ -91,7 +91,7 @@ typedef float LADSPA_Data;
    LADSPA_Properties type. This is assembled by ORing individual
    properties together. */
 
-typedef int LADSPA_Properties;
+typedef int32_t LADSPA_Properties;
 
 /* Property LADSPA_PROPERTY_REALTIME indicates that the plugin has a
    real-time dependency (e.g. listens to a MIDI device) and so its
@@ -149,7 +149,7 @@ typedef int LADSPA_Properties;
    Note that a port must be an input or an output port but not both
    and that a port must be a control or audio port but not both. */
 
-typedef int LADSPA_PortDescriptor;
+typedef int32_t LADSPA_PortDescriptor;
 
 /* Property LADSPA_PORT_INPUT indicates that the port is an input. */
 #define LADSPA_PORT_INPUT   0x1
@@ -197,7 +197,7 @@ typedef int LADSPA_PortDescriptor;
    All the hint information for a particular port is aggregated in the
    LADSPA_PortRangeHint structure. */
 
-typedef int LADSPA_PortRangeHintDescriptor;
+typedef int32_t LADSPA_PortRangeHintDescriptor;
 
 /* Hint LADSPA_HINT_BOUNDED_BELOW indicates that the LowerBound field
    of the LADSPA_PortRangeHint should be considered meaningful. The
