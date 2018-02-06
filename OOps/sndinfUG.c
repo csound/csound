@@ -33,12 +33,12 @@
 #include "pvfileio.h"
 #include "convolve.h"
 
-static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
+static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int32_t strin)
 {
     char    *sfname, *s, soundiname[1024];
     SNDFILE *sf;
     SF_INFO sfinfo;
-    int     csFileType;
+    int32_t     csFileType;
 
     memset(hdr, 0, sizeof(SF_INFO));
     /* leap thru std hoops to get the name */
@@ -84,23 +84,23 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
 
         f = fopen(sfname, "rb");
         if (f != NULL) {
-          int   n = (int)fread(&cvdata, sizeof(CVSTRUCT), 1, f);
+          int32_t   n = (int32_t)fread(&cvdata, sizeof(CVSTRUCT), 1, f);
           fclose(f);
           if (n == 1) {
             if (cvdata.magic == (int32)CVMAGIC &&
                 cvdata.dataFormat == (int32)CVMYFLT &&
                 cvdata.Format == (int32)CVRECT) {
               hdr->frames = (sf_count_t)cvdata.Hlen;
-              hdr->samplerate = (int)(cvdata.samplingRate + FL(0.5));
+              hdr->samplerate = (int32_t)(cvdata.samplingRate + FL(0.5));
               hdr->channels = (cvdata.channel == (int32)ALLCHNLS ?
-                               (int)cvdata.src_chnls : 1);
+                               (int32_t)cvdata.src_chnls : 1);
               csFileType = CSFTYPE_CVANAL;
             }
           }
         }
       }
       if (csFileType == CSFTYPE_UNKNOWN) {  /* PVOC */
-        int     fd;
+        int32_t     fd;
         PVOCDATA pvdata;
         WAVEFORMATEX fmt;
 
@@ -109,19 +109,19 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
         if (fd >= 0) {
           hdr->frames =
               (sf_count_t) (((int32)csound->PVOC_FrameCount(csound, fd)
-                             / (int)fmt.nChannels) * (sf_count_t)pvdata.dwOverlap);
-          hdr->samplerate = (int)fmt.nSamplesPerSec;
-          hdr->channels = (int)fmt.nChannels;
+                             / (int32_t)fmt.nChannels) * (sf_count_t)pvdata.dwOverlap);
+          hdr->samplerate = (int32_t)fmt.nSamplesPerSec;
+          hdr->channels = (int32_t)fmt.nChannels;
           csound->PVOC_CloseFile(csound, fd);
           csFileType = CSFTYPE_PVCEX;
         }
       }
       if (csFileType == CSFTYPE_UNKNOWN) {
         memset(&sfinfo, 0, sizeof(SF_INFO));
-        sfinfo.samplerate = (int)(csound->esr + FL(0.5));
+        sfinfo.samplerate = (int32_t)(csound->esr + FL(0.5));
         sfinfo.channels = 1;
-        sfinfo.format = (int)FORMAT2SF(csound->oparms->outformat)
-                        | (int)TYPE2SF(TYP_RAW);
+        sfinfo.format = (int32_t)FORMAT2SF(csound->oparms->outformat)
+                        | (int32_t)TYPE2SF(TYP_RAW);
         /* try again */
         sf = sf_open(sfname, SFM_READ, &sfinfo);
       }
@@ -142,7 +142,7 @@ static int getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int strin)
     return 1;
 }
 
-int filelen(CSOUND *csound, SNDINFO *p)
+int32_t filelen(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
 
@@ -154,7 +154,7 @@ int filelen(CSOUND *csound, SNDINFO *p)
     return OK;
 }
 
-int filelen_S(CSOUND *csound, SNDINFO *p)
+int32_t filelen_S(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
 
@@ -166,7 +166,7 @@ int filelen_S(CSOUND *csound, SNDINFO *p)
     return OK;
 }
 
-int filenchnls_S(CSOUND *csound, SNDINFO *p)
+int32_t filenchnls_S(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
 
@@ -176,7 +176,7 @@ int filenchnls_S(CSOUND *csound, SNDINFO *p)
     return OK;
 }
 
-int filesr_S(CSOUND *csound, SNDINFO *p)
+int32_t filesr_S(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
 
@@ -186,10 +186,10 @@ int filesr_S(CSOUND *csound, SNDINFO *p)
     return OK;
 }
 
-int filebit_S(CSOUND *csound, SNDINFO *p)
+int32_t filebit_S(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
-    int bits, format;
+    int32_t bits, format;
 
     getsndinfo(csound, p, &hdr, 1);
     format = hdr.format &  SF_FORMAT_SUBMASK;
@@ -206,7 +206,7 @@ int filebit_S(CSOUND *csound, SNDINFO *p)
 }
 
 
-int filenchnls(CSOUND *csound, SNDINFO *p)
+int32_t filenchnls(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
 
@@ -216,7 +216,7 @@ int filenchnls(CSOUND *csound, SNDINFO *p)
     return OK;
 }
 
-int filesr(CSOUND *csound, SNDINFO *p)
+int32_t filesr(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
 
@@ -226,10 +226,10 @@ int filesr(CSOUND *csound, SNDINFO *p)
     return OK;
 }
 
-int filebit(CSOUND *csound, SNDINFO *p)
+int32_t filebit(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
-    int bits, format;
+    int32_t bits, format;
 
     getsndinfo(csound, p, &hdr, 0);
     format = hdr.format &  SF_FORMAT_SUBMASK;
@@ -251,14 +251,14 @@ int filebit(CSOUND *csound, SNDINFO *p)
 
 
 
-int filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
+int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
 {
-    int     channel = (int)(*p->channel + FL(0.5));
+    int32_t     channel = (int32_t)(*p->channel + FL(0.5));
     char    *sfname;
     void    *fd;
     SNDFILE *sf;
     double  peakVal = -1.0;
-    int     fmt, typ;
+    int32_t     fmt, typ;
     SF_INFO sfinfo;
 
     sfname = soundiname;
@@ -318,7 +318,7 @@ int filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
 }
 
 
-int filepeak(CSOUND *csound, SNDINFOPEAK *p){
+int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
  if (csound->ISSTRCOD(*p->ifilno)){
@@ -330,7 +330,7 @@ int filepeak(CSOUND *csound, SNDINFOPEAK *p){
  return filepeak_(csound, p, soundiname);
 }
 
-int filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
+int32_t filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
  strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
@@ -339,7 +339,7 @@ int filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 }
 
 /* From matt ingalls */
-int filevalid(CSOUND *csound, FILEVALID *p)
+int32_t filevalid(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];       /* There is no check on this length */
     *p->r1 = 0;
@@ -360,7 +360,7 @@ int filevalid(CSOUND *csound, FILEVALID *p)
 }
 
 
-int filevalid_S(CSOUND *csound, FILEVALID *p)
+int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];       /* There is no check on this length */
     *p->r1 = 0;

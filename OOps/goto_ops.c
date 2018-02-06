@@ -26,29 +26,29 @@
 #include "csoundCore.h" /*                            GOTO_OPS.C        */
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
-extern int32 strarg2insno(CSOUND *, void *p, int is_string);
+extern int32 strarg2insno(CSOUND *, void *p, int32_t is_string);
 
-int igoto(CSOUND *csound, GOTO *p)
+int32_t igoto(CSOUND *csound, GOTO *p)
 {
     csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int kgoto(CSOUND *csound, GOTO *p)
+int32_t kgoto(CSOUND *csound, GOTO *p)
 {
     IGN(csound);
     CS_PDS = p->lblblk->prvp;
     return OK;
 }
 
-int icgoto(CSOUND *csound, CGOTO *p)
+int32_t icgoto(CSOUND *csound, CGOTO *p)
 {
     if (*p->cond)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int kcgoto(CSOUND *csound, CGOTO *p)
+int32_t kcgoto(CSOUND *csound, CGOTO *p)
 {
    IGN(csound);
     if (*p->cond)
@@ -58,7 +58,7 @@ int kcgoto(CSOUND *csound, CGOTO *p)
 }
 
 /* an 'if-then' variant of 'if-goto' */
-int ingoto(CSOUND *csound, CGOTO *p)
+int32_t ingoto(CSOUND *csound, CGOTO *p)
 {
     /* Make sure we have an i-time conditional */
     if (p->h.optext->t.intype == 'b' && !*p->cond)
@@ -66,7 +66,7 @@ int ingoto(CSOUND *csound, CGOTO *p)
     return OK;
 }
 
-int kngoto(CSOUND *csound, CGOTO *p)
+int32_t kngoto(CSOUND *csound, CGOTO *p)
 {
     IGN(csound);
     if (!*p->cond)
@@ -77,14 +77,14 @@ int kngoto(CSOUND *csound, CGOTO *p)
 #ifdef VARGS
 /* an i-rate version that ALWAYS jumps at p-time */
 
-int iingoto(CSOUND *csound, CGOTO *p)
+int32_t iingoto(CSOUND *csound, CGOTO *p)
 {
     if (!*p->cond)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int kingoto(CSOUND *csound, CGOTO *p)
+int32_t kingoto(CSOUND *csound, CGOTO *p)
 {
     IGN(csound);
     CS_PDS = p->lblblk->prvp;
@@ -92,7 +92,7 @@ int kingoto(CSOUND *csound, CGOTO *p)
 }
 #endif
 
-int timset(CSOUND *csound, TIMOUT *p)
+int32_t timset(CSOUND *csound, TIMOUT *p)
 {
     if (UNLIKELY((p->cnt1 = (int32)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
                  (p->cnt2 = (int32)(*p->idur * CS_EKR + FL(0.5))) < 0L))
@@ -100,7 +100,7 @@ int timset(CSOUND *csound, TIMOUT *p)
     return OK;
 }
 
-int timout(CSOUND *csound, TIMOUT *p)
+int32_t timout(CSOUND *csound, TIMOUT *p)
 {
     IGN(csound);
     if (p->cnt1)                            /* once delay has expired, */
@@ -110,14 +110,14 @@ int timout(CSOUND *csound, TIMOUT *p)
     return OK;
 }
 
-int rireturn(CSOUND *csound, LINK *p)
+int32_t rireturn(CSOUND *csound, LINK *p)
 {
     IGN(p);
     IGN(csound);
     return OK;
 }
 
-int reinit(CSOUND *csound, GOTO *p)
+int32_t reinit(CSOUND *csound, GOTO *p)
 {
     csound->reinitflag = p->h.insdshead->reinitflag = 1;
     if (csound->oparms->realtime == 0) {
@@ -129,7 +129,7 @@ int reinit(CSOUND *csound, GOTO *p)
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
     }
     else {
-      unsigned long wp = csound->alloc_queue_wp;
+      uint64_t wp = csound->alloc_queue_wp;
       csound->alloc_queue[wp].ip = p->h.insdshead;
       csound->alloc_queue[wp].ids = p->lblblk->prvi;
       csound->alloc_queue[wp].type = 3;
@@ -140,21 +140,21 @@ int reinit(CSOUND *csound, GOTO *p)
     return OK;
 }
 
-int rigoto(CSOUND *csound, GOTO *p)
+int32_t rigoto(CSOUND *csound, GOTO *p)
 {
     if (p->h.insdshead->reinitflag)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
+int32_t tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
 {
     if (p->h.insdshead->tieflag && !p->h.insdshead->reinitflag)
       csound->ids = p->lblblk->prvi;
     return OK;
 }
 
-int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
+int32_t tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 {
     IGN(csound);
     if (!p->h.insdshead->reinitflag)
@@ -163,7 +163,7 @@ int tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
     return OK;
 }
 
-int ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
+int32_t ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
 {                                       /* called by ihold statmnt at Itime  */
     IGN(csound);
     if (!p->h.insdshead->reinitflag) {  /* no-op at reinit                   */
@@ -173,7 +173,7 @@ int ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
     return OK;
 }
 
-int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
+int32_t turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     IGN(csound);
     INSDS  *lcurip = CS_PDS->insdshead;
@@ -191,11 +191,11 @@ int turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
 }
 
 /* turnoff2 opcode */
-int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
+int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
     MYFLT p1;
     INSDS *ip, *ip2, *nip;
-    int   mode, insno, allow_release;
+    int32_t   mode, insno, allow_release;
 
     if (isStringArg) {
       p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
@@ -208,13 +208,13 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
     if (p1 <= FL(0.0))
       return OK;    /* not triggered */
 
-    insno = (int) p1;
-    if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||
+    insno = (int32_t) p1;
+    if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
       return csoundPerfError(csound, p->h.insdshead,
                              Str("turnoff2: invalid instrument number"));
     }
-    mode = (int) (*(p->kFlags) + FL(0.5));
+    mode = (int32_t) (*(p->kFlags) + FL(0.5));
     allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
     if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
       return csoundPerfError(csound, p->h.insdshead,
@@ -226,7 +226,7 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
 /*       return csoundPerfError(csound, p->h.insdshead, */
 /*                              Str("turnoff2: invalid instrument number")); */
 /*     }   */
-    while ((ip = ip->nxtact) != NULL && (int) ip->insno != insno);
+    while ((ip = ip->nxtact) != NULL && (int32_t) ip->insno != insno);
     if (ip == NULL)
       return OK;
     do {                        /* This loop does not terminate in mode=0 */
@@ -252,7 +252,7 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
           break;
       }
       ip = nip;
-    } while (ip != NULL && (int) ip->insno == insno);
+    } while (ip != NULL && (int32_t) ip->insno == insno);
     if (ip2 != NULL) {
       if (allow_release) {
         xturnoff(csound, ip2);
@@ -268,15 +268,15 @@ int turnoff2(CSOUND *csound, TURNOFF2 *p, int isStringArg)
     return OK;
 }
 
-int turnoff2S(CSOUND *csound, TURNOFF2 *p){
+int32_t turnoff2S(CSOUND *csound, TURNOFF2 *p){
     return turnoff2(csound, p, 1);
 }
 
-int turnoff2k(CSOUND *csound, TURNOFF2 *p){
+int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
     return turnoff2(csound, p, 0);
 }
 
-int loop_l_i(CSOUND *csound, LOOP_OPS *p)
+int32_t loop_l_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar += iincr) < ilimit) igoto l */
     *(p->ndxvar) += *(p->incr);
@@ -285,7 +285,7 @@ int loop_l_i(CSOUND *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_le_i(CSOUND *csound, LOOP_OPS *p)
+int32_t loop_le_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar += iincr) <= ilimit) igoto l */
     *(p->ndxvar) += *(p->incr);
@@ -294,7 +294,7 @@ int loop_le_i(CSOUND *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_g_i(CSOUND *csound, LOOP_OPS *p)
+int32_t loop_g_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar -= idecr) > ilimit) igoto l */
     *(p->ndxvar) -= *(p->incr);
@@ -303,7 +303,7 @@ int loop_g_i(CSOUND *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_ge_i(CSOUND *csound, LOOP_OPS *p)
+int32_t loop_ge_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar -= idecr) >= ilimit) igoto l */
     *(p->ndxvar) -= *(p->incr);
@@ -312,7 +312,7 @@ int loop_ge_i(CSOUND *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_l_p(CSOUND *csound, LOOP_OPS *p)
+int32_t loop_l_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar += kincr) < klimit) kgoto l */
     IGN(csound);
@@ -322,7 +322,7 @@ int loop_l_p(CSOUND *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_le_p(CSOUND *csound, LOOP_OPS *p)
+int32_t loop_le_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar += kincr) <= klimit) kgoto l */
     IGN(csound);
@@ -332,7 +332,7 @@ int loop_le_p(CSOUND *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_g_p(CSOUND *csound, LOOP_OPS *p)
+int32_t loop_g_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar -= kdecr) > klimit) kgoto l */
     IGN(csound);
@@ -342,7 +342,7 @@ int loop_g_p(CSOUND *csound, LOOP_OPS *p)
     return OK;
 }
 
-int loop_ge_p(CSOUND *csound, LOOP_OPS *p)
+int32_t loop_ge_p(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((kndxvar -= kdecr) >= klimit) kgoto l */
     IGN(csound);

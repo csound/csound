@@ -112,7 +112,7 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     } while (--nPartitions);
 }
 
-static inline int32_t buf_bytes_alloc(int nChannels, int partSize, int32_t nPartitions)
+static inline int32_t buf_bytes_alloc(int32_t nChannels, int32_t partSize, int32_t nPartitions)
 {
     int32_t nSmps;
 

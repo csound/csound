@@ -31,20 +31,20 @@
 #include "pstream.h"
 
         double  besseli(double x);
-static  void    hamming(MYFLT *win, int winLen, int even);
-static  void    vonhann(MYFLT *win, int winLen, int even);
+static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);
+static  void    vonhann(MYFLT *win, int32_t winLen, int32_t even);
 
 static  void    generate_frame(CSOUND *, PVSANAL *p);
 static  void    process_frame(CSOUND *, PVSYNTH *p);
 
 /* generate half-window */
 
-static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
-                                        int type, int winLen)
+static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
+                                        int32_t type, int32_t winLen)
 {
     double  fpos, inc;
     MYFLT   *ftable;
-    int     i, n, flen, even;
+    int32_t     i, n, flen, even;
 
     even = (winLen + 1) & 1;
     switch (type) {
@@ -83,9 +83,9 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     /* sample is allocated */
     for (i = 0; i < n; i++) {
       double  frac, tmp;
-      int     pos;
+      int32_t     pos;
       frac = modf(fpos, &tmp);
-      pos = (int) tmp;
+      pos = (int32_t) tmp;
       buf[i] = ftable[pos] + ((ftable[pos + 1] - ftable[pos]) * (MYFLT) frac);
       fpos += inc;
     }
@@ -94,13 +94,13 @@ static CS_NOINLINE int PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
 }
 
 
-int pvssanalset(CSOUND *csound, PVSANAL *p)
+int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
 {
     /* opcode params */
-    int N = MYFLT2LRND(*p->winsize);
-    int NB;
-    int i;
-    int wintype = MYFLT2LRND(*p->wintype);
+    int32_t N = MYFLT2LRND(*p->winsize);
+    int32_t NB;
+    int32_t i;
+    int32_t wintype = MYFLT2LRND(*p->wintype);
 
     if (N<=0) return csound->InitError(csound, Str("Invalid window size"));
     /* deal with iinit and iformat later on! */
@@ -110,17 +110,17 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
 
     /* Need space for NB complex numbers for each of ksmps */
     if (p->fsig->frame.auxp==NULL ||
-        CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fsig->frame.size)
+        CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fsig->frame.size)
       csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fsig->frame);
     else memset(p->fsig->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     /* Space for remembering samples */
     if (p->input.auxp==NULL ||
-        N*sizeof(MYFLT) > (unsigned int)p->input.size)
+        N*sizeof(MYFLT) > (uint32_t)p->input.size)
       csound->AuxAlloc(csound, N*sizeof(MYFLT),&p->input);
     else memset(p->input.auxp, 0, N*sizeof(MYFLT));
     csound->AuxAlloc(csound, NB * sizeof(double), &p->oldInPhase);
    if (p->analwinbuf.auxp==NULL ||
-        NB*sizeof(CMPLX) > (unsigned int)p->analwinbuf.size)
+        NB*sizeof(CMPLX) > (uint32_t)p->analwinbuf.size)
       csound->AuxAlloc(csound, NB*sizeof(CMPLX),&p->analwinbuf);
     else memset(p->analwinbuf.auxp, 0, NB*sizeof(CMPLX));
     p->inptr = 0;                 /* Pointer in circular buffer */
@@ -131,7 +131,7 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->sliding = 1;
     /* Need space for NB sines, cosines and a scatch phase area */
     if (p->trig.auxp==NULL ||
-        (2*NB)*sizeof(double) > (unsigned int)p->trig.size)
+        (2*NB)*sizeof(double) > (uint32_t)p->trig.size)
       csound->AuxAlloc(csound,(2*NB)*sizeof(double),&p->trig);
     {
       double dc = cos(TWOPI/(double)N);
@@ -159,18 +159,18 @@ int pvssanalset(CSOUND *csound, PVSANAL *p)
     return OK;
 }
 
-int pvsanalset(CSOUND *csound, PVSANAL *p)
+int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *analwinhalf,*analwinbase;
     MYFLT sum;
     int32 halfwinsize,buflen;
-    int i,nBins,Mf/*,Lf*/;
+    int32_t i,nBins,Mf/*,Lf*/;
 
     /* opcode params */
     uint32_t N =(int32) *(p->fftsize);
     uint32_t overlap = (uint32_t) *(p->overlap);
     uint32_t M = (uint32_t) *(p->winsize);
-    int wintype = (int) *p->wintype;
+    int32_t wintype = (int32_t) *p->wintype;
     /* deal with iinit and iformat later on! */
 
     if (overlap<CS_KSMPS || overlap<=10) /* 10 is a guess.... */
@@ -270,9 +270,9 @@ int pvsanalset(CSOUND *csound, PVSANAL *p)
 
 static void generate_frame(CSOUND *csound, PVSANAL *p)
 {
-  int got, tocp,i,j,k,ii;
-    int N = p->fsig->N;
-    int N2 = N/2;
+  int32_t got, tocp,i,j,k,ii;
+    int32_t N = p->fsig->N;
+    int32_t N2 = N/2;
     int32 buflen = p->buflen;
     int32 analWinLen = p->fsig->winsize/2;
     int32 synWinLen = analWinLen;
@@ -452,11 +452,11 @@ static inline double mod2Pi(double x)
       return x;
 }
 
-int pvssanal(CSOUND *csound, PVSANAL *p)
+int32_t pvssanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
-    int NB = p->Ii, loc;
-    int N = p->fsig->N;
+    int32_t NB = p->Ii, loc;
+    int32_t N = p->fsig->N;
     MYFLT *data = (MYFLT*)(p->input.auxp);
     CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp);
     double *c = p->cosine;
@@ -465,7 +465,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int wintype = p->fsig->wintype;
+    int32_t wintype = p->fsig->wintype;
     if (UNLIKELY(data==NULL)) {
       return csound->PerfError(csound,p->h.insdshead,
                                Str("pvsanal: Not Initialised.\n"));
@@ -476,7 +476,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     for (i=offset; i < nsmps; i++) {
       MYFLT re, im, dx;
       CMPLX* ff;
-      int j;
+      int32_t j;
 
 /*       printf("%d: in = %f\n", i, *ain); */
       dx = *ain - data[loc];    /* Change in sample */
@@ -671,7 +671,7 @@ int pvssanal(CSOUND *csound, PVSANAL *p)
     return OK;
 }
 
-int pvsanal(CSOUND *csound, PVSANAL *p)
+int32_t pvsanal(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *ain;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -685,8 +685,8 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
                                Str("pvsanal: Not Initialised.\n"));
     }
     {
-      int overlap = (int)*p->overlap;
-      if (overlap<(int)nsmps || overlap<10) /* 10 is a guess.... */
+      int32_t overlap = (int32_t)*p->overlap;
+      if (overlap<(int32_t)nsmps || overlap<10) /* 10 is a guess.... */
         return pvssanal(csound, p);
     }
     nsmps -= early;
@@ -695,13 +695,13 @@ int pvsanal(CSOUND *csound, PVSANAL *p)
     return OK;
 }
 
-int pvsynthset(CSOUND *csound, PVSYNTH *p)
+int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
 {
     MYFLT *analwinhalf;
     MYFLT *synwinhalf;
     MYFLT sum;
     int32 halfwinsize,buflen;
-    int i,nBins,Mf,Lf;
+    int32_t i,nBins,Mf,Lf;
     double IO;
 
     /* get params from input fsig */
@@ -709,8 +709,8 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     int32 N = p->fsig->N;
     int32 overlap = p->fsig->overlap;
     int32 M = p->fsig->winsize;
-    int wintype = p->fsig->wintype;
-
+    int32_t wintype = p->fsig->wintype;
+    
     p->fftsize = N;
     p->winsize = M;
     p->overlap = overlap;
@@ -719,7 +719,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
     if (p->fsig->sliding) {
       /* get params from input fsig */
       /* we TRUST they are legal */
-      int wintype = p->fsig->wintype;
+      int32_t wintype = p->fsig->wintype;
       /* and put into locals */
       p->wintype = wintype;
       p->format = p->fsig->format;
@@ -819,7 +819,7 @@ int pvsynthset(CSOUND *csound, PVSYNTH *p)
 
 
    if (!(N & (N - 1L)))
-     sum = csound->GetInverseRealFFTScale(csound, (int) N)/ sum;
+     sum = csound->GetInverseRealFFTScale(csound, (int32_t) N)/ sum;
     else
       sum = FL(1.0) / sum;
 
@@ -855,7 +855,7 @@ static MYFLT synth_tick(CSOUND *csound, PVSYNTH *p)
 
 static void process_frame(CSOUND *csound, PVSYNTH *p)
 {
-    int i,j,k,ii,NO,NO2;
+    int32_t i,j,k,ii,NO,NO2;
     float *anal;                                        /* RWD MUST be 32bit */
     MYFLT *syn, *output;
     MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
@@ -970,7 +970,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     obufptr = outbuf;
 
     for (i = 0; i < p->IOi;) {  /* shift out next IOi values */
-      int todo = (p->IOi-i <= output+p->buflen - p->nextOut ?
+      int32_t todo = (p->IOi-i <= output+p->buflen - p->nextOut ?
                   p->IOi-i : output+p->buflen - p->nextOut);
       /*outfloats(nextOut, todo, ofd);*/
       /*copy data to external buffer */
@@ -1007,12 +1007,12 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     p->IOi =  p->Ii;
 }
 
-int pvssynth(CSOUND *csound, PVSYNTH *p)
+int32_t pvssynth(CSOUND *csound, PVSYNTH *p)
 {
-    int i, k;
-    int ksmps = CS_KSMPS;
-    int N = p->fsig->N;
-    int NB = p->fsig->NB;
+    int32_t i, k;
+    int32_t ksmps = CS_KSMPS;
+    int32_t N = p->fsig->N;
+    int32_t NB = p->fsig->NB;
     MYFLT *aout = p->aout;
     CMPLX *ff;
     double *h = (double*)p->oldOutPhase.auxp;
@@ -1045,7 +1045,7 @@ int pvssynth(CSOUND *csound, PVSYNTH *p)
     return OK;
 }
 
-int pvsynth(CSOUND *csound, PVSYNTH *p)
+int32_t pvsynth(CSOUND *csound, PVSYNTH *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1067,10 +1067,10 @@ int pvsynth(CSOUND *csound, PVSYNTH *p)
     return OK;
 }
 
-static void hamming(MYFLT *win, int winLen, int even)
+static void hamming(MYFLT *win, int32_t winLen, int32_t even)
 {
     double ftmp;
-    int i;
+    int32_t i;
 
     ftmp = PI/winLen;
 
@@ -1118,10 +1118,10 @@ double besseli(double x)
     return ans;
 }
 
-static void vonhann(MYFLT *win, int winLen, int even)
+static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
 {
     MYFLT ftmp;
-    int i;
+    int32_t i;
 
     ftmp = PI_F/winLen;
 
