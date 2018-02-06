@@ -349,7 +349,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
         }                                                              \
         if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Find(csound, sld->ifn); \
         else                 *ftp++ = NULL;                            \
-        int32_t32_t32_tvalue = (int) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
+        intvalue = (int32_t) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
                           * f14bit+FL(0.5));                           \
         min++;                                                         \
         chanblock[*slnum_msb++] =  (MYFLT) (intvalue >> 7);            \

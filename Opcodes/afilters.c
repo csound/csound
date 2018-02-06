@@ -386,14 +386,14 @@ static int32_t tonexa(CSOUND *csound, TONEX *p) /* From Gabriel Maldonado, modif
     return OK;
 }
 
-static int32_t32_t atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified */
+static int32_t atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t      j, lp = p->loop;
+    int32_t  j, lp = p->loop;
     MYFLT    prvhp = p->prvhp;
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
@@ -453,7 +453,7 @@ static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         
 }
 
 
-static int32_t32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
+static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 {
     MYFLT       *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;

@@ -211,12 +211,12 @@ int32_t tableshuffleset (CSOUND*, TABSHUFFLE *p);
 int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
 
 /* utility functions */
-int32_t32_t32_t EulerPhi (int n);
-int32_t32_t32_t FareyLength (int n);
-int32_t32_t32_t PrimeFactors (int n, PFACTOR p[]);
+int32_t EulerPhi (int32_t n);
+int32_t FareyLength (int32_t n);
+int32_t PrimeFactors (int32_t n, PFACTOR p[]);
 MYFLT Digest (int32_t n);
-void float2frac (CSOUND *csound, MYFLT in, int32_t32_t32_t *p, int *q);
-void float_to_cfrac (CSOUND *csound, double r, int32_t32_t32_t n, int a[], int p[], int q[]);
+void float2frac (CSOUND *csound, MYFLT in, int32_t *p, int32_t *q);
+void float_to_cfrac (CSOUND *csound, double r, int32_t n, int32_t a[], int32_t p[], int32_t q[]);
 
 /* a filter and table copy opcode for filtering tables containing
    Farey Sequences generated with fateytable GEN */
@@ -526,14 +526,14 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
 int32_t fareylen (CSOUND *csound, FAREYLEN *p)
 {
     IGN(csound);
-    int32_t32_t32_t n = (int) *p->kn;
+    int32_t n = (int32_t) *p->kn;
     *p->kr = (MYFLT) FareyLength (n);
     return OK;
 }
 
 /* utility functions */
 
-int32_t32_t32_t EulerPhi (int n)
+int32_t EulerPhi (int32_t n)
 {
     int32_t i = 0;
     //int32_t pcount;
@@ -557,7 +557,7 @@ int32_t32_t32_t EulerPhi (int n)
     return (int32_t) result;
 }
 
-int32_t32_t32_t FareyLength (int n)
+int32_t FareyLength (int32_t n)
 {
     int32_t i = 1;
     int32_t result = 1;
@@ -568,9 +568,9 @@ int32_t32_t32_t FareyLength (int n)
 }
 
 
-int32_t32_t32_t PrimeFactors (int n, PFACTOR p[])
+int32_t PrimeFactors (int32_t n, PFACTOR p[])
 {
-    int32_t32_t32_t i = 0; int j = 0;
+    int32_t i = 0; int32_t j = 0;
     int32_t i_exp = 0;
     int32_t pcount = 0;
 
@@ -655,13 +655,13 @@ MYFLT Digest (int32_t n)
    continued fraction expansion
    in order to convert a real number <in>
    into an integer fraction <num, denom> with an error less than 10^-5 */
-void float2frac (CSOUND *csound, MYFLT in, int32_t32_t32_t *num, int *denom)
+void float2frac (CSOUND *csound, MYFLT in, int32_t *num, int32_t *denom)
 {
 #define  N (10)
     int32_t a[N+1];
     int32_t p[N+2];
     int32_t q[N+2];
-    int32_t32_t32_t P = 0; int Q = 0;
+    int32_t P = 0; int32_t Q = 0;
     int32_t i;
 
     float_to_cfrac (csound, (double)in, N, a, p, q);
@@ -684,7 +684,7 @@ void float2frac (CSOUND *csound, MYFLT in, int32_t32_t32_t *num, int *denom)
 }
 
 /* continued fraction expansion */
-void float_to_cfrac (CSOUND *csound, double r, int32_t32_t32_t n, int a[], int p[], int q[])
+void float_to_cfrac (CSOUND *csound, double r, int32_t n, int32_t a[], int32_t p[], int32_t q[])
 {
     int32_t i;
     double r_copy;

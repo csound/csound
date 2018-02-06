@@ -326,7 +326,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
                     (histpeak.hindex + FL(96.0)));
       for (j = 0; j < npeak; j++) {
         MYFLT fpnum = peaklist[j].pfreq/putfreq;
-        int32_t32_t32_t pnum = (int)(fpnum + FL(0.5));
+        int32_t pnum = (int32_t)(fpnum + FL(0.5));
         MYFLT fipnum = pnum;
         MYFLT deviation;
         if (pnum > 16 || pnum < 1) continue;
@@ -469,7 +469,7 @@ typedef struct _pitchaf{
 } PITCHAF;
 
 int32_t pitchafset(CSOUND *csound, PITCHAF *p){
-    int32_t32_t32_t siz = (int)(CS_ESR/ (*p->iflow));
+    int32_t siz = (int32_t)(CS_ESR/ (*p->iflow));
     if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
       csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
     else

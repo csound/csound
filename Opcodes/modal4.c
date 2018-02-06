@@ -151,7 +151,7 @@ static MYFLT Modal4_tick(Modal4 *m)
     MYFLT temp,temp2;
     int32 itemp;
     MYFLT temp_time, alpha, lastOutput;
-    int32_t32_t32_t length = (int)m->wave->flen;
+    int32_t length = (int32_t)m->wave->flen;
 
     m->w_time += m->w_rate;                  /*  Update current time          */
     if (m->w_time >= length)  {              /*  Check for end of sound       */
@@ -278,8 +278,8 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     BiQuad_setGain(p->m4.filters[2], FL(0.11)*temp); /* 3rd mode function of pos.*/
                                 /* Strike */
     {
-      int32_t32_t32_t triples = (*p->triples<=FL(0.0) ? 20 : (int)*p->triples);
-      int32_t32_t32_t doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int)*p->doubles);
+      int32_t triples = (*p->triples<=FL(0.0) ? 20 : (int32_t)*p->triples);
+      int32_t doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int32_t)*p->doubles);
       itemp = csound->Rand31(&(csound->randSeed1)) % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
@@ -297,13 +297,13 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     Modal4_setFreq(csound, m, *p->frequency);
     p->first = 1;
     {
-      int32_t32_t32_t relestim = (int) (CS_EKR * *p->dettack);
+      int32_t relestim = (int32_t) (CS_EKR * *p->dettack);
       /* 0.1 second decay extention */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int32_t) ((int32) (p->h.insdshead->offtim * CS_EKR)
-                      - (int32) (CS_EKR * *p->dettack));
+    p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
+                      - (int32_t) (CS_EKR * *p->dettack));
     return OK;
 }
 

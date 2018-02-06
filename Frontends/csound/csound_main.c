@@ -265,12 +265,11 @@ int main(int argc, char **argv)
     csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
 
     /* set stdout to non buffering if not outputing to console window */
-    if (!isatty(fileno(stdout))) {
 #if !defined(WIN32)
+    if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
-#endif
     }
-
+#endif
 #ifdef GNU_GETTEXT
     /* We need to set the locale for the translations to work */
     lang = csoundGetEnv(NULL, "CS_LANG");

@@ -226,8 +226,8 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     int32_t i;
     char filel[MAXNAME],filer[MAXNAME];
 
-    int32_t32_t32_t mode = (int)*p->omode;
-    int32_t32_t32_t fade = (int)*p->ofade;
+    int32_t mode = (int32_t)*p->omode;
+    int32_t fade = (int32_t)*p->ofade;
     MYFLT sr = *p->osr;
 
     MYFLT *win;
@@ -2062,7 +2062,7 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     //MYFLT *inbuf;
     //MYFLT *outbufl, *outbufr;
 
-    int32_t32_t32_t overlap = (int)*p->ooverlap;
+    int32_t overlap = (int32_t)*p->ooverlap;
     MYFLT r = *p->oradius;
     MYFLT sr = *p->osr;
 
@@ -2245,8 +2245,8 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
     int32_t hopsize = p->hopsize;
 
     MYFLT *win = (MYFLT *)p->win.auxp;
-    int32_t32_t32_t *overlapskipin = (int *)p->overlapskipin.auxp;
-    int32_t32_t32_t *overlapskipout = (int *)p->overlapskipout.auxp;
+    int32_t *overlapskipin = (int32_t *)p->overlapskipin.auxp;
+    int32_t *overlapskipout = (int32_t *)p->overlapskipout.auxp;
 
     int32_t counter = p ->counter;
     int32_t t = p ->t;

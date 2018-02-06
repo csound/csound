@@ -199,7 +199,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     int32_t     i, j, indx;
     MYFLT   *ls_table, *ptr; /* , *gains; */
     LS_SET  *ls_set_ptr;
-    int32_t32_t n = p->n = (int)MYFLT2LONG(*p->numb); /* Set size */
+    int32_t n = p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
     char name[24];
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
@@ -212,7 +212,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
                                Str("outz index < 0. No output."));
     }
     if ((int32_t)*p->layout==0) strcpy(name, "vbap_ls_table");
-    else snprint32_t32_tf(name, 24, "vbap_ls_table_%d", (int)*p->layout==0);
+    else snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout==0);
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart + (indx * CS_KSMPS);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
@@ -564,10 +564,10 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
                   2 + (p->dim - 2) * 2);
     }
     if (p->dim == 2)
-      p->point32_t32_t_change_interval = (int) (CS_EKR * *p->dur
+      p->point_change_interval = (int32_t) (CS_EKR * *p->dur
                                         / (fabs(*p->field_am) - 1.0));
     else if (LIKELY(p->dim == 3))
-      p->point32_t32_t_change_interval = (int) (CS_EKR * *p->dur
+      p->point_change_interval = (int32_t) (CS_EKR * *p->dur
                                         / (fabs(*p->field_am) * 0.5 - 1.0));
     else
       return csound->InitError(csound, Str("Wrong dimension"));

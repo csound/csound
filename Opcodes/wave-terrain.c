@@ -270,7 +270,7 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     for (i=offset; i<nsmps; i++) {
 
       /* NO INTERPOLATION */
-      aout[i] = fpoint32_t32_t->ftable[(int)pos] * amp;
+      aout[i] = fpoint->ftable[(int32_t)pos] * amp;
 
       pos += inc /* p->size * *(p->kpch) * csound->onedsr */;
       if (UNLIKELY(pos > p->size)) {

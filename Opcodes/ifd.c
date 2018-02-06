@@ -67,7 +67,7 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
   fftsize = p->fftsize = (int32_t) *p->p2;
   hopsize = p->hopsize = (int32_t) *p->p3;
   p->g = *p->p5;
-  wint32_t32_t32_type = p->wintype = (int) *p->p4;
+  wintype = p->wintype = (int32_t) *p->p4;
   frames = fftsize / hopsize;
 
   if (UNLIKELY((frames - (float) fftsize / hopsize) != 0.0f))
@@ -229,7 +229,7 @@ static int32_t ifd_process(CSOUND * csound, IFD * p)
   MYFLT  *sigin = p->in;
   MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
   int32_t     fftsize = p->fftsize;
-  int32_t32_t32_t    *counter = (int *) p->counter.auxp;
+  int32_t *counter = (int32_t *) p->counter.auxp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -265,7 +265,7 @@ static int32_t tifd_init(CSOUND * csound, IFD * p)
 
   fftsize = p->fftsize = (int32_t) *p->p4;
   hopsize = p->hopsize = (int32_t) *p->p5;
-  wint32_t32_t32_type = p->wintype = (int) *p->p6;
+  wintype = p->wintype = (int32_t) *p->p6;
 
   if (UNLIKELY((fftsize & (fftsize - 1))))
     return csound->InitError(csound,

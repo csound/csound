@@ -256,7 +256,7 @@ int32_t vbap_init(CSOUND *csound, VBAP *p)
     int32_t     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
-    int32_t32_t cnt = p->q.number = (int)(p->OUTOCOUNT);
+    int32_t cnt = p->q.number = (int32_t)(p->OUTOCOUNT);
     char name[24];
 
     if ((!strcmp(p->h.optext->t.opcod, "vbap.a")) == 0) {
@@ -266,7 +266,7 @@ int32_t vbap_init(CSOUND *csound, VBAP *p)
       p->spread = p->out_array[cnt+3];
       p->layout = p->out_array[cnt+4];
     }
-    snprint32_t32_tf(name, 24, "vbap_ls_table_%d", (p->layout==NULL?0:(int)*p->layout));
+    snprintf(name, 24, "vbap_ls_table_%d", (p->layout==NULL?0:(int32_t)*p->layout));
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
 
     if (UNLIKELY(ls_table==NULL))
@@ -331,7 +331,7 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
     char name[24];
 
     cnt = p->q.number = p->tabout->sizes[0];
-    snprint32_t32_tf(name, 24, "vbap_ls_table_%d", (int)*p->layout);
+    snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
 
     if (UNLIKELY(ls_table==NULL))
@@ -637,7 +637,7 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     int32_t     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
-    int32_t32_t cnt = (int)p->h.optext->t.outArgCount;
+    int32_t cnt = (int32_t)p->h.optext->t.outArgCount;
     if ((!strncmp(p->h.optext->t.opcod, "vbapmove", 8)) == 0) {
       p->audio = p->out_array[cnt];
       p->dur = p->out_array[cnt+1];

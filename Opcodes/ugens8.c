@@ -38,7 +38,7 @@ static int32_t pvx_loadfile(CSOUND *, const char *, PVOC *);
 #define WLN   1                         /* time window is WLN*2*ksmps long  */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
 
-int32_t32_t32_t pvset_(CSOUND *csound, PVOC *p, int stringname)
+int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
 {
     uint32_t      i;
     int32    memsize;
@@ -151,7 +151,7 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
     int32_t    size = pvfrsiz(p);
     int32_t    buf2Size, outlen;
     int32_t    circBufSize = PVFFTSIZE;
-    int32_t32_t32_t    specwp = (int)*p->ispecwp;   /* spectral warping flag */
+    int32_t    specwp = (int32_t)*p->ispecwp;   /* spectral warping flag */
     MYFLT  pex, scaleFac;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

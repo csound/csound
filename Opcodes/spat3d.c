@@ -266,10 +266,10 @@ static int32_t spat3d_init_delay(CSOUND *csound, SPAT3D *p)
 
 /* count reflections */
 
-static void spat3d_count_refl(int32_t32_t32_t32_t32 *cnt, int *md,
-                              int32_t32_t32_t32_t d, int mdep, int w, int wm)
+static void spat3d_count_refl(int32_t *cnt, int32_t *md,
+                              int32_t d, int32_t mdep, int32_t w, int32_t wm)
 {
-    int32_t32_t     j;
+    int32_t     j;
 
     (*cnt)++;                       /* update count    */
     if (++d > *md) *md = d;         /* md is the max. depth reached + 1 */
@@ -281,10 +281,10 @@ static void spat3d_count_refl(int32_t32_t32_t32_t32 *cnt, int *md,
 
 /* initialise opcode structure */
 
-static int32_t32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
+static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
 {
-    int32_t32_t     xidist, xift, ximode, ximdel, xiovr, xirlen, xioutft;
-    int32_t32_t     d, wmask;
+    int32_t     xidist, xift, ximode, ximdel, xiovr, xirlen, xioutft;
+    int32_t     d, wmask;
     int32    i;
 
     /* default settings */
@@ -292,7 +292,7 @@ static int32_t32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     p->ftable = p->outft = NULL;    /* no ftables */
     p->zout = p->rseed = p->mindep = p->maxdep = p->outftlnth = wmask = 0;
     p->oversamp = 1;                /* oversample */
-    p->bs = (int32_t32_t) CS_KSMPS;    /* block size */
+    p->bs = (int32_t) CS_KSMPS;    /* block size */
     p->irlen = 2;                   /* IR length  */
     p->mdist = p->mdel = FL(0.001); /* unit circle dist., max. delay */
     p->mdel_s = p->del_p = 0L;
@@ -313,7 +313,7 @@ static int32_t32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     /* read opcode args */
 
     if (ximode >= 0)                                /* output mode */
-      p->zout = (int32_t32_t) MYFLT2LRND(*(p->args[ximode]));
+      p->zout = (int32_t) MYFLT2LRND(*(p->args[ximode]));
     if (xidist >= 0)                                /* unit circle dist. */
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */

@@ -92,7 +92,7 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     int32_t n, i, n2, N = p->fout->N, imax;
     int32_t framesize = N+2;
     float sum = 0.0f,sig,g;
-    int32_t32_t32_t beta = (int) p->beta, pos;
+    int32_t beta = (int32_t) p->beta, pos;
     float *sigl = (float *) p->finleft->frame.auxp;
     float *sigr = (float *) p->finright->frame.auxp;
     float *out = (float *) p->fout->frame.auxp;

@@ -620,7 +620,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT fv1, out1;
     int32  v1, v2;
-    int32_t32_t32_t wave = (int)MYFLT2LONG(*p->wave); /* Save recalculation and also round */
+    int32_t wave = (int32_t)MYFLT2LONG(*p->wave); /* Save recalculation and also round */
 
     leaky = p->leaky;
 
@@ -1379,7 +1379,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     double sin2 = 0.0, cos2 = 0.0, beta=0.0, alpha, gamma=0.0, mu, sigma, chi;
     double theta;
     double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
-    int32_t32_t32_t mode = (int)MYFLT2LONG(*p->mode);
+    int32_t mode = (int32_t)MYFLT2LONG(*p->mode);
 
     in     = p->in;
     out    = p->out;
