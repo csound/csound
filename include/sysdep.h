@@ -45,6 +45,8 @@ typedef void *locale_t;
 #endif
 #endif
 
+
+
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
 #endif
@@ -274,6 +276,13 @@ typedef int64_t             int_least64_t;
 typedef uint64_t            uint_least64_t;
 #elif defined(HAVE_STDINT_H) || defined(HAVE_C99)
 #  include <stdint.h>
+
+#ifdef USE_DOUBLE
+typedef int64_t myflt_intptr_t;
+#else
+typedef int32_t myflt_intptr_t;
+#endif
+
 #    if defined(__CYGWIN__)
 #define __int8 char
 #define __int16 short
@@ -303,6 +312,8 @@ typedef long                intptr_t;
 typedef unsigned long       uintptr_t;
 #endif
 #endif      /* !(USE_GUSI2 || HAVE_STDINT_H || HAVE_C99) */
+
+
 
 /* function attributes */
 
@@ -541,5 +552,6 @@ typedef int32_t spin_lock_t;
 #else
 # define ignore_value(x) ((void) (x))
 #endif
+
 
 #endif  /* CSOUND_SYSDEP_H */
