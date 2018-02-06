@@ -288,10 +288,10 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
     case 7:
       outbuf[0] = '\0';
       while (--nk) {
-        snprintf(buf1, 256, "%ld\t", (int64_t) *kp++);
+        snprintf(buf1, 256, "%ld\t", (long)*kp++);
         strlcat(outbuf, buf1, 256);
       }
-      snprintf(buf1, 256, "%ld\n", (int64_t) *kp);
+      snprintf(buf1, 256, "%ld\n", (long)*kp);
       strlcat(outbuf, buf1, 256);
       len = strlen(outbuf);
       break;
