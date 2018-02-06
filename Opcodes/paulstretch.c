@@ -36,6 +36,9 @@
 #include "interlocks.h"
 #include "H/fftlib.h"
 
+float crealf(_Complex float);
+float cimagf(_Complex float);
+
 typedef struct {
     OPDS h;
     MYFLT *out, *stretch, *winsize, *ifn;
