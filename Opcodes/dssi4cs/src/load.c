@@ -14,7 +14,7 @@
    not an absolute path (i.e. does not begin with / character), this
    routine will search the LADSPA_PATH for the file. */
 /* TODO static? */
-void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
+void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
 {
 
     char   *pcBuffer;
@@ -22,8 +22,8 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
     char *pcLADSPAPath = NULL;
     char *pcDSSIPath = NULL;
     const char *pcStart;
-    int     iEndsInSO;
-    int     iNeedSlash;
+    int32_t     iEndsInSO;
+    int32_t     iNeedSlash;
     size_t  iFilenameLength;
     void   *pvResult;
     char *tmp;
@@ -59,7 +59,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
 #endif
       }
       if (pcDSSIPath) {
-        int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
+        int32_t len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
         char *tmp = (char*)malloc(len);
         snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
         free(pcLADSPAPath);
