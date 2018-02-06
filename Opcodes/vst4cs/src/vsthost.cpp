@@ -758,7 +758,7 @@ float VSTPlugin::GetParamValue(int numparam) {
 
 char *VSTPlugin::GetName(void) { return productName; }
 
-xuint64_t VSTPlugin::GetVersion(void)
+uint64_t VSTPlugin::GetVersion(void)
 {
     return pluginVersion;
 }
