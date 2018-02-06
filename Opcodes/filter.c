@@ -649,7 +649,7 @@ static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, double fact)
 /* Simple definition is sufficient */
 #define FPMAX(a,b) (a>b ? a : b)
 
-static void laguer(CSOUND *csound, fcomplex a[], int32_t32_t32_t m, fcomplex *x, int *its)
+static void laguer(CSOUND *csound, fcomplex a[], int32_t m, fcomplex *x, int32_t *its)
 {
     int32_t iter,j;
     double abx,abp,abm,err;

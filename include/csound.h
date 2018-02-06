@@ -2533,7 +2533,7 @@ extern "C" {
 
 #ifdef SWIGPYTHON
 
-  PUBLIC CSOUND *csoundGetInstance(long obj){ return (CSOUND *)obj; }
+  PUBLIC CSOUND *csoundGetInstance(int64_t obj){ return (CSOUND *)obj; }
 
 #endif
 

@@ -141,7 +141,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     FSIG_HANDLE *handle=NULL, **phandle;
     char varname[32];
 
-    snprint32_t32_t32_tf(varname, 32, "::buffer%d", (int)(*p->hptr));
+    snprintf(varname, 32, "::buffer%d", (int32_t)(*p->hptr));
     /* csound->Message(csound, "%s:\n", varname); */
     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
@@ -191,7 +191,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
    if (*p->hptr != p->optr) {
      char varname[32];
-     snprint32_t32_t32_tf(varname, 32, "::buffer%d", (int)(*p->hptr));
+     snprintf(varname, 32, "::buffer%d", (int32_t)(*p->hptr));
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      if (phandle == NULL)
        csound->PerfError(csound, p->h.insdshead,
@@ -262,7 +262,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 
     if (*p->hptr != p->optr){
       char varname[32];
-      snprint32_t32_t32_tf(varname, 32, "::buffer%d", (int)(*p->hptr));
+      snprintf(varname, 32, "::buffer%d", (int32_t)(*p->hptr));
       phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
       if (phandle == NULL)
         csound->PerfError(csound, p->h.insdshead,

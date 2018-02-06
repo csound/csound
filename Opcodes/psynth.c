@@ -131,7 +131,7 @@ static int32_t psynth_init(CSOUND *csound, _PSYN *p)
     else
       memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
     if (p->trackID.auxp == NULL ||
-        (uint32_t32_t32_t32_t) p->trackID.size < sizeof(int) * numbins)
+        (uint32_t) p->trackID.size < sizeof(int32_t) * numbins)
       csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
     else
       memset(p->trackID.auxp, 0, sizeof(int32_t) * numbins );
@@ -148,7 +148,7 @@ static int32_t psynth_process(CSOUND *csound, _PSYN *p)
     int32_t     i, j, k, m, id;
     int32_t     notcontin = 0;
     int32_t     contin = 0;
-    int32_t32_t32_t     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
+    int32_t     tracks = p->tracks, maxtracks = (int32_t) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -158,7 +158,7 @@ static int32_t psynth_process(CSOUND *csound, _PSYN *p)
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
-    int32_t32_t32_t     *trackID = (int *) p->trackID.auxp;
+    int32_t     *trackID = (int32_t *) p->trackID.auxp;
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
     ratio = size * csound->onedsr;
@@ -298,7 +298,7 @@ static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
     else
       memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
     if (p->trackID.auxp == NULL ||
-        (uint32_t32_t32_t32_t) p->trackID.size < sizeof(int) * numbins)
+        (uint32_t) p->trackID.size < sizeof(int32_t) * numbins)
       csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
     else
       memset(p->trackID.auxp, 0, sizeof(int32_t) * numbins );
@@ -317,7 +317,7 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
     int32_t     i=0, j, k, m, id;
     int32_t     notcontin = 0;
     int32_t     contin = 0;
-    int32_t32_t32_t     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
+    int32_t     tracks = p->tracks, maxtracks = (int32_t) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -327,7 +327,7 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT   *outsum = (MYFLT *) p->sum.auxp;
-    int32_t32_t32_t     *trackID = (int *) p->trackID.auxp;
+    int32_t     *trackID = (int32_t *) p->trackID.auxp;
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
 
@@ -458,7 +458,7 @@ static int32_t psynth3_process(CSOUND *csound, _PSYN *p)
     int32_t     i, j, k, m, id;
     int32_t     notcontin = 0;
     int32_t     contin = 0;
-    int32_t32_t32_t     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
+    int32_t     tracks = p->tracks, maxtracks = (int32_t) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -468,7 +468,7 @@ static int32_t psynth3_process(CSOUND *csound, _PSYN *p)
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
-    int32_t32_t32_t     *trackID = (int *) p->trackID.auxp;
+    int32_t     *trackID = (int32_t *) p->trackID.auxp;
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
 
@@ -629,7 +629,7 @@ static int32_t trscale_process(CSOUND *csound, _PTRANS *p)
     MYFLT   nyq = CS_ESR * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t32_t32_t     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
     MYFLT   outfr;
 
     if (p->lastframe < p->fin->framecount) {
@@ -658,7 +658,7 @@ static int32_t trshift_process(CSOUND *csound, _PTRANS *p)
     MYFLT   nyq = CS_ESR * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t32_t32_t     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t     i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
     MYFLT   outfr;
 
     if (p->lastframe < p->fin->framecount) {
@@ -722,7 +722,7 @@ static int32_t trlowest_process(CSOUND *csound, _PLOW *p)
     float   lowest = (float) nyq, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t32_t32_t     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       do {
@@ -756,7 +756,7 @@ static int32_t trhighest_process(CSOUND *csound, _PLOW *p)
     float   highest = 0.0f, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t32_t32_t     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       do {
@@ -842,7 +842,7 @@ static int32_t trsplit_process(CSOUND *csound, _PSPLIT *p)
     float   *framein = (float *) p->fsig3->frame.auxp;
     float   *frameout1 = (float *) p->fsig1->frame.auxp;
     float   *frameout2 = (float *) p->fsig2->frame.auxp;
-    int32_t32_t32_t     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
     int32_t     trkcnt1 = 0, trkcnt2 = 0;
 
     if (p->lastframe < p->fsig3->framecount) {
@@ -929,7 +929,7 @@ static int32_t trmix_process(CSOUND *csound, _PSMIX *p)
     float   *framein2 = (float *) p->fsig3->frame.auxp;
     float   *frameout = (float *) p->fsig1->frame.auxp;
     float   *framein1 = (float *) p->fsig2->frame.auxp;
-    int32_t32_t32_t     i = 0, j = 0, id = (int) framein1[3], end = p->numbins * 4;
+    int32_t   i = 0, j = 0, id = (int32_t) framein1[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fsig2->framecount) {
 
@@ -1009,7 +1009,7 @@ static int32_t trfil_process(CSOUND *csound, _PSFIL *p)
     MYFLT   *fil = p->tab->ftable;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t32_t32_t     i = 0, id = (int) framein[3], len = p->len, end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], len = p->len, end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       MYFLT   fr, pos = FL(0.0), frac = FL(0.0);
@@ -1090,7 +1090,7 @@ static int32_t trcross_process(CSOUND *csound, _PSCROSS *p)
 {
      IGN(csound);
     MYFLT   interval = *p->kpar1, bal = *p->kpar2;
-    int32_t32_t32_t     mode = p->kpar3 != NULL ? (int) *p->kpar3 : 0;
+    int32_t mode = p->kpar3 != NULL ? (int32_t) *p->kpar3 : 0;
     float   *framein2 = (float *) p->fsig3->frame.auxp;
     float   *frameout = (float *) p->fsig1->frame.auxp;
     float   *framein1 = (float *) p->fsig2->frame.auxp;
@@ -1193,10 +1193,10 @@ static int32_t binit_init(CSOUND *csound, _PSBIN *p)
 
 static int32_t binit_process(CSOUND *csound, _PSBIN *p)
 {
-    int32_t32_t32_t     N = (int) p->N;
+    int32_t N = (int32_t) p->N;
     float   *frameout = (float *) p->fsig1->frame.auxp;
     float   *framein = (float *) p->fsig2->frame.auxp;
-    int32_t32_t32_t     i = 0, n = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t i = 0, n = 0, id = (int32_t) framein[3], end = p->numbins * 4;
     int32_t     maxi = -1;
     MYFLT   bw = CS_ESR / (MYFLT)N, boundup, boundown;
     MYFLT   nyq = CS_ESR * FL(0.5), centre;

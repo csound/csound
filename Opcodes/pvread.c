@@ -68,7 +68,7 @@ static void FetchInOne(
     }
 }
 
-int32_t32_t32_t pvreadset_(CSOUND *csound, PVREAD *p, int stringname)
+int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
 {
     char      pvfilnam[256];
 

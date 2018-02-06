@@ -307,7 +307,7 @@ static int32_t atsreadset(CSOUND *csound, ATSREAD *p)
     }
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int32_t32_t32_t) (*p->ipartial) > n_partials || (int) (*p->ipartial) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->ipartial) > n_partials || (int32_t) (*p->ipartial) <= 0)) {
       return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
                                            "max allowed is %i"),
                                        (int32_t) (*p->ipartial), n_partials);
@@ -373,7 +373,7 @@ static int32_t atsreadset_S(CSOUND *csound, ATSREAD *p)
     }
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int32_t32_t32_t) (*p->ipartial) > n_partials || (int) (*p->ipartial) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->ipartial) > n_partials || (int32_t) (*p->ipartial) <= 0)) {
       return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
                                            "max allowed is %i"),
                                        (int32_t) (*p->ipartial), n_partials);
@@ -503,7 +503,7 @@ static int32_t atsreadnzset(CSOUND *csound, ATSREADNZ *p)
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
     /* check to see if band is valid */
-    if (UNLIKELY((int32_t32_t) (*p->inzbin) > 25 || (int) (*p->inzbin) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->inzbin) > 25 || (int32_t) (*p->inzbin) <= 0)) {
       return csound->InitError(csound, Str("ATSREADNZ: band %i out of range, "
                                            "1-25 are the valid band values"),
                                        (int32_t) (*p->inzbin));
@@ -563,7 +563,7 @@ static int32_t atsreadnzset_S(CSOUND *csound, ATSREADNZ *p)
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
     /* check to see if band is valid */
-    if (UNLIKELY((int32_t32_t32_t) (*p->inzbin) > 25 || (int) (*p->inzbin) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->inzbin) > 25 || (int32_t) (*p->inzbin) <= 0)) {
       return csound->InitError(csound, Str("ATSREADNZ: band %i out of range, "
                                            "1-25 are the valid band values"),
                                        (int32_t) (*p->inzbin));
@@ -855,7 +855,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t32_t32_t     numpartials = (int) *p->iptls;
+    int32_t     numpartials = (int32_t) *p->iptls;
     ATS_DATA_LOC *buf;
 
     buf = p->buf;
@@ -931,7 +931,7 @@ static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
     int32_t     frame;
     int32_t     i;                  /* for the for loop */
     int32_t     partialloc = p->firstpartial;
-    int32_t32_t32_t     npartials = (int) *p->iptls;
+    int32_t     npartials = (int32_t) *p->iptls;
 
     frame = (int32_t) position;
     frm_0 = p->datastart + frame * p->frmInc;
@@ -1032,8 +1032,8 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 
 /* ------------------------------------------------------------------ */
 
-static void FetchADDNZbands(int32_t32_t32_t ptls, int firstband, double *datastart,
-                            int32_t32_t32_t frmInc, int maxFr, int swapped,
+static void FetchADDNZbands(int32_t ptls, int32_t firstband, double *datastart,
+                            int32_t frmInc, int32_t maxFr, int swapped,
                             double *buf, MYFLT position)
 {
     double  frac;               /* the distance in time we are between frames */
@@ -1100,7 +1100,7 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* make sure that this file contains noise */
-    type = (p->swapped == 1) ? (int32_t32_t32_t) bswap(&atsh->type) : (int) atsh->type;
+    type = (p->swapped == 1) ? (int32_t) bswap(&atsh->type) : (int32_t) atsh->type;
 
     if (UNLIKELY(type != 4 && type != 3)) {
       if (type < 5)
@@ -1270,7 +1270,7 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* make sure that this file contains noise */
-    type = (p->swapped == 1) ? (int32_t32_t32_t) bswap(&atsh->type) : (int) atsh->type;
+    type = (p->swapped == 1) ? (int32_t) bswap(&atsh->type) : (int32_t) atsh->type;
 
     if (UNLIKELY(type != 4 && type != 3)) {
       if (type < 5)
@@ -1503,7 +1503,7 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
     partialband = (double **) csound->Malloc(csound, sizeof(double*)
                                      * (int32_t) p->atshead->npartials);
     bandnum = (int32_t *) csound->Malloc(csound,
-                                     sizeof(int32_t32_t32_t) * (int) p->atshead->npartials);
+                                     sizeof(int32_t) * (int32_t) p->atshead->npartials);
 
     for (i = 0; i < (int32_t) p->atshead->nfrms; i++) {
       /* init sums */
@@ -2018,7 +2018,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     if (UNLIKELY(frame == p->maxFr)) {
       if (p->firstband == -1) { /* there is no noise data */
         if (p->swapped == 1) {
-          for (i = (int32_t32_t32_t) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
+          for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
                i += (int32_t) *p->iptlincr) {
             oscbuf->amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc);  /* amp */
             oscbuf->freq = bswap(frm_0 + 2 + i * (int32_t) p->partialinc); /* freq */
@@ -2026,7 +2026,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
           }
         }
         else {
-          for (i = (int32_t32_t32_t) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
+          for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
                i += (int32_t) *p->iptlincr) {
             oscbuf->amp = *(frm_0 + 1 + i * (int32_t) p->partialinc);    /* amp */
             oscbuf->freq = *(frm_0 + 2 + i * (int32_t) p->partialinc);   /* freq */
@@ -2036,7 +2036,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
       }
       else {
         if (p->swapped == 1) {
-          for (i = (int32_t32_t32_t) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
+          for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
                i += (int32_t) *p->iptlincr) {
             oscbuf->amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc);  /* amp */
             oscbuf->freq = bswap(frm_0 + 2 + i * (int32_t) p->partialinc); /* freq */
@@ -2046,7 +2046,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
           }
         }
         else {
-          for (i = (int32_t32_t32_t) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
+          for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
                i += (int32_t) *p->iptlincr) {
             oscbuf->amp = *(frm_0 + 1 + i * (int32_t) p->partialinc);    /* amp */
             oscbuf->freq = *(frm_0 + 2 + i * (int32_t) p->partialinc);   /* freq */
@@ -2064,7 +2064,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
 
     if (p->firstband == -1) {   /* there is no noise data */
       if (p->swapped == 1) {
-        for (i = (int32_t32_t32_t) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
+        for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
              i += (int32_t) *p->iptlincr) {
           frm0amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc);
           frm1amp = bswap(frm_1 + 1 + i * (int32_t) p->partialinc);
@@ -2076,7 +2076,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
         }
       }
       else {
-        for (i = (int32_t32_t32_t) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
+        for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
              i += (int32_t) *p->iptlincr) {
           frm0amp = *(frm_0 + 1 + i * (int32_t) p->partialinc);
           frm1amp = *(frm_1 + 1 + i * (int32_t) p->partialinc);
@@ -2090,7 +2090,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     }
     else {
       if (p->swapped == 1) {
-        for (i = (int32_t32_t32_t) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
+        for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
              i += (int32_t) *p->iptlincr) {
           frm0amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc);
           frm1amp = bswap(frm_1 + 1 + i * (int32_t) p->partialinc);
@@ -2107,7 +2107,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
         }
       }
       else {
-        for (i = (int32_t32_t32_t) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
+        for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
              i += (int32_t) *p->iptlincr) {
           frm0amp = *(frm_0 + 1 + i * (int32_t) p->partialinc);
           frm1amp = *(frm_1 + 1 + i * (int32_t) p->partialinc);
@@ -2215,9 +2215,9 @@ static int32_t atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     /* to make interpolation easier later */
     p->table[0].freq = p->utable[0].freq = 20;
     p->table[0].amp = p->utable[0].amp = 0;
-    p->table[(int32_t32_t32_t) *p->iptls + 1].freq = p->utable[(int) *p->iptls + 1].freq =
+    p->table[(int32_t) *p->iptls + 1].freq = p->utable[(int32_t) *p->iptls + 1].freq =
         20000;
-    p->table[(int32_t32_t32_t) *p->iptls + 1].amp = p->utable[(int) *p->iptls + 1].amp = 0;
+    p->table[(int32_t) *p->iptls + 1].amp = p->utable[(int32_t) *p->iptls + 1].amp = 0;
 
     *(get_atsbufreadaddrp(csound)) = p;
 
@@ -2309,9 +2309,9 @@ static int32_t atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
     /* to make interpolation easier later */
     p->table[0].freq = p->utable[0].freq = 20;
     p->table[0].amp = p->utable[0].amp = 0;
-    p->table[(int32_t32_t32_t) *p->iptls + 1].freq = p->utable[(int) *p->iptls + 1].freq =
+    p->table[(int32_t) *p->iptls + 1].freq = p->utable[(int32_t) *p->iptls + 1].freq =
         20000;
-    p->table[(int32_t32_t32_t) *p->iptls + 1].amp = p->utable[(int) *p->iptls + 1].amp = 0;
+    p->table[(int32_t) *p->iptls + 1].amp = p->utable[(int32_t) *p->iptls + 1].amp = 0;
 
     *(get_atsbufreadaddrp(csound)) = p;
 
@@ -2343,7 +2343,7 @@ static void FetchBUFPartials(ATSBUFREAD *p,
     int32_t     frame;
     int32_t     i;                  /* for the for loop */
     int32_t     partialloc = p->firstpartial;
-    int32_t32_t32_t     npartials = (int) *p->iptls;
+    int32_t     npartials = (int32_t) *p->iptls;
 
     frame = (int32_t) position;
     frm_0 = p->datastart + frame * p->frmInc;
@@ -2456,7 +2456,7 @@ static int32_t atspartialtapset(CSOUND *csound, ATSPARTIALTAP *p)
                                Str("ATSPARTIALTAP: you must have an "
                                    "atsbufread before an atspartialtap"));
     }
-    if (UNLIKELY((int32_t32_t32_t) *p->iparnum > (int) *(atsbufreadaddr->iptls))) {
+    if (UNLIKELY((int32_t) *p->iparnum > (int32_t) *(atsbufreadaddr->iptls))) {
       return csound->InitError(csound, Str("ATSPARTIALTAP: exceeded "
                                            "max partial %i"),
                                        (int32_t) *(atsbufreadaddr->iptls));
@@ -2739,7 +2739,7 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
     int32_t     frame;
     int32_t     i;                  /* for the for loop */
     int32_t     partialloc = p->firstpartial;
-    int32_t32_t32_t     npartials = (int) *p->iptls;
+    int32_t     npartials = (int32_t) *p->iptls;
 
     frame = (int32_t) position;
     frm_0 = p->datastart + frame * p->frmInc;
@@ -2847,7 +2847,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t32_t32_t     numpartials = (int) *p->iptls;
+    int32_t     numpartials = (int32_t) *p->iptls;
     ATS_DATA_LOC *buf;
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));

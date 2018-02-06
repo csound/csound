@@ -980,7 +980,7 @@ typedef struct _mvcf {
 } mvclpf24;
 
 double exp2ap(double x) {
-    int32_t32_t32_t i = (int) (floor(x));
+    int32_t i = (int32_t) (floor(x));
     x -= i;
     return ldexp(1 + x * (0.6930 +
                           x * (0.2416 + x * (0.0517 +

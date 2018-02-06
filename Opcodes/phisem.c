@@ -55,7 +55,7 @@
    "10: Wrench", "12: CokeCan"};
 */
 
-static inline int32_t32_t32_t32_t my_random(CSOUND *csound, int max)
+static inline int32_t my_random(CSOUND *csound, int32_t max)
 {                                   /* Return Random Int Between 0 and max */
     return (csound->Rand31(&(csound->randSeed1)) % (max + 1));
 }

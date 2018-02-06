@@ -259,7 +259,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
     MYFLT sr = (MYFLT)*p->osr;
     MYFLT meanfp = (MYFLT)*p->omeanfp;
-    int32_t32_t32_t order = (int)*p->porder;
+    int32_t order = (int32_t)*p->porder;
 
     /* delay line variables */
     MYFLT delaytime, meanfporder;
@@ -441,7 +441,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     csound->Message(csound, "%d \n", M);
 
     delaytime /= M;
-    delaytimeint32_t32_t32_t = (int)delaytime;
+    delaytimeint= (int32_t)delaytime;
 
     if(delaytimeint < meanfpsamps)
       delaytimeint = meanfpsamps;

@@ -51,7 +51,7 @@ typedef struct {
 } FTCONV;
 
 static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
-                                 MYFLT *IR_Data, int32_t32_t32_t partSize, int nPartitions,
+                                 MYFLT *IR_Data, int32_t partSize, int32_t nPartitions,
                                  int32_t ringBuf_startPos)
 {
     MYFLT   re, im, re1, re2, im1, im2;
@@ -112,7 +112,7 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     } while (--nPartitions);
 }
 
-static inline int32_t32_t32_t buf_bytes_alloc(int nChannels, int partSize, int nPartitions)
+static inline int32_t buf_bytes_alloc(int nChannels, int partSize, int32_t nPartitions)
 {
     int32_t nSmps;
 
@@ -125,7 +125,7 @@ static inline int32_t32_t32_t buf_bytes_alloc(int nChannels, int partSize, int n
 }
 
 static void set_buf_pointers(FTCONV *p,
-                             int32_t32_t32_t nChannels, int partSize, int nPartitions)
+                             int32_t nChannels, int32_t partSize, int32_t nPartitions)
 {
     MYFLT *ptr;
     int32_t   i;

@@ -37,9 +37,9 @@
 #endif
 */
 
-static int32_t32_t syncgrain_init(CSOUND *csound, syncgrain *p)
+static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
 {
-    int32_t32_t size;
+    int32_t size;
     p->efunc = csound->FTnp2Find(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
@@ -48,7 +48,7 @@ static int32_t32_t syncgrain_init(CSOUND *csound, syncgrain *p)
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
-    p->olaps = (int32_t32_t) *p->ols+2;
+    p->olaps = (int32_t) *p->ols+2;
 
     if (UNLIKELY(p->olaps < 2))
       p->olaps = 2;
@@ -61,7 +61,7 @@ static int32_t32_t syncgrain_init(CSOUND *csound, syncgrain *p)
     if (p->envincr.auxp == NULL || p->envincr.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->envincr);
 
-    size = (p->olaps) * sizeof(int32_t32_t);
+    size = (p->olaps) * sizeof(int32_t);
     if (p->streamon.auxp == NULL || p->streamon.size < (uint32_t)size)
       csound->AuxAlloc(csound, size, &p->streamon);
 
@@ -78,13 +78,13 @@ static int32_t32_t syncgrain_init(CSOUND *csound, syncgrain *p)
     return OK;
 }
 
-static int32_t32_t syncgrain_process(CSOUND *csound, syncgrain *p)
+static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
 {
     MYFLT   sig, pitch, amp, grsize, envincr, period, fperiod, prate;
     MYFLT   *output = p->output;
     MYFLT   *datap = p->sfunc->ftable;
     MYFLT   *ftable = p->efunc->ftable;
-    int32_t32_t32_t32_t     *streamon = (int *) p->streamon.auxp;
+    int32_t     *streamon = (int32_t *) p->streamon.auxp;
     float   start = p->start, frac = p->frac;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
@@ -92,10 +92,10 @@ static int32_t32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t vecpos, vecsize=CS_KSMPS;
-    int32_t32_t firststream = p->firststream;
-    int32_t32_t     numstreams = p->numstreams, olaps = p->olaps;
-    int32_t32_t     count = p->count, j, newstream;
-    int32_t32_t     datasize = p->datasize, envtablesize = p->envtablesize;
+    int32_t firststream = p->firststream;
+    int32_t     numstreams = p->numstreams, olaps = p->olaps;
+    int32_t     count = p->count, j, newstream;
+    int32_t     datasize = p->datasize, envtablesize = p->envtablesize;
 
     pitch  = *p->pitch;
     fperiod = FABS(CS_ESR/(*p->fr));
@@ -149,13 +149,13 @@ static int32_t32_t syncgrain_process(CSOUND *csound, syncgrain *p)
 
        if (UNLIKELY(envindex[j] < envtablesize)){
         /* sum all the grain streams */
-        sig += ((datap[(int32_t32_t)index[j]] +
+        sig += ((datap[(int32_t)index[j]] +
                  (index[j] - (int32_t)index[j])*
-                 (datap[(int32_t32_t32_t)index[j]+1] - datap[(int)index[j]])
+                 (datap[(int32_t)index[j]+1] - datap[(int32_t)index[j]])
                  ) *
                 (ftable[(int32_t)envindex[j]] +
                  (envindex[j] - (int32_t)envindex[j])*
-                 (ftable[(int32_t32_t32_t)envindex[j]+1] - ftable[(int)envindex[j]])
+                 (ftable[(int32_t)envindex[j]+1] - ftable[(int32_t)envindex[j]])
                  )
                 );
         }
@@ -233,7 +233,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     MYFLT   *output = p->output;
     MYFLT   *datap = p->sfunc->ftable;
     MYFLT   *ftable = p->efunc->ftable;
-    int32_t32_t32_t     *streamon = (int *) p->streamon.auxp;
+    int32_t     *streamon = (int32_t *) p->streamon.auxp;
     float   start = p->start, frac = p->frac;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
@@ -325,11 +325,11 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
           /* sum all the grain streams */
           sig += ((datap[(int32_t)index[j]] +
                    (index[j] - (int32_t)index[j])*
-                   (datap[(int32_t32_t32_t)index[j]+1] - datap[(int)index[j]])
+                   (datap[(int32_t)index[j]+1] - datap[(int32_t)index[j]])
                    ) *
                   (ftable[(int32_t)envindex[j]] +
                    (envindex[j] - (int32_t)envindex[j])*
-                   (ftable[(int32_t32_t32_t)envindex[j]+1] - ftable[(int)envindex[j]])
+                   (ftable[(int32_t)envindex[j]+1] - ftable[(int32_t)envindex[j]])
                    )
                   );
 
@@ -481,7 +481,7 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     MYFLT   **output = p->output;
     MYFLT   *datap = (MYFLT *) p->buffer.auxp;
     MYFLT   *ftable = p->efunc->ftable;
-    int32_t32_t32_t     *streamon = (int *) p->streamon.auxp;
+    int32_t     *streamon = (int32_t *) p->streamon.auxp;
     float   start = p->start, frac = p->frac, jump;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;

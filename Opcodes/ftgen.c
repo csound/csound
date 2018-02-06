@@ -72,7 +72,7 @@ static int32_t ftable_delete(CSOUND *csound, void *p)
     return err;
 }
 
-static int32_t32_t32_t register_ftable_delete(CSOUND *csound, void *p, int tableNum)
+static int32_t register_ftable_delete(CSOUND *csound, void *p, int32_t tableNum)
 {
   FTDELETE  *op = (FTDELETE*) csound->Calloc(csound, sizeof(FTDELETE));
     if (UNLIKELY(op == NULL))
@@ -83,7 +83,7 @@ static int32_t32_t32_t register_ftable_delete(CSOUND *csound, void *p, int table
 }
 
 /* set up and call any GEN routine */
-static int32_t32_t32_t ftgen_(CSOUND *csound, FTGEN *p, int istring1, int istring2)
+static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istring2)
 {
     MYFLT   *fp;
     FUNC    *ftp;
@@ -232,7 +232,7 @@ static int32_t ftgentmp_SS(CSOUND *csound, FTGEN *p)
 
 static int32_t ftfree(CSOUND *csound, FTFREE *p)
 {
-    int32_t32_t32_t fno = (int) MYFLT2LRND(*p->iftno);
+    int32_t fno = (int32_t) MYFLT2LRND(*p->iftno);
 
     if (UNLIKELY(fno <= 0))
       return csound->InitError(csound, Str("Invalid table number: %d"), fno);
@@ -250,7 +250,7 @@ static int32_t myInitError(CSOUND *csound, INSDS *p, const char *str, ...)
     return csound->InitError(csound, "%s",str);
 }
 
-static int32_t32_t32_t ftload_(CSOUND *csound, FTLOAD *p, int istring)
+static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
     MYFLT **argp = p->argums;
     FUNC  *ftp;
@@ -288,7 +288,7 @@ static int32_t32_t32_t ftload_(CSOUND *csound, FTLOAD *p, int istring)
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
         FUNC  header;
-        int32_t32_t32_t   fno = (int) MYFLT2LRND(**argp);
+        int32_t   fno = (int32_t) MYFLT2LRND(**argp);
         MYFLT fno_f = (MYFLT) fno;
         size_t   n;
 
@@ -318,7 +318,7 @@ static int32_t32_t32_t ftload_(CSOUND *csound, FTLOAD *p, int istring)
       while (nargs--) {
         FUNC  header;
         char  s[64], *s1;
-        int32_t32_t32_t   fno = (int) MYFLT2LRND(**argp);
+        int32_t   fno = (int32_t) MYFLT2LRND(**argp);
         MYFLT fno_f = (MYFLT) fno;
         uint32_t  j;
         char *endptr;
@@ -487,7 +487,7 @@ static int32_t ftload_kS(CSOUND *csound, FTLOAD_K *p)
     return OK;
 }
 
-static int32_t32_t32_t ftsave_(CSOUND *csound, FTLOAD *p, int istring)
+static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
     MYFLT **argp = p->argums;
     char  filename[MAXNAME];
@@ -560,8 +560,8 @@ static int32_t32_t32_t ftsave_(CSOUND *csound, FTLOAD *p, int istring)
           fprintf(file,"lodiv: %f\n",ftp->lodiv);
           fprintf(file,"cvtbas: %f\n",ftp->cvtbas);
           fprintf(file,"cpscvt: %f\n",ftp->cpscvt);
-          fprint32_t32_t32_tf(file,"loopmode1: %d\n", (int) ftp->loopmode1);
-          fprint32_t32_t32_tf(file,"loopmode2: %d\n", (int) ftp->loopmode2);
+          fprintf(file,"loopmode1: %d\n", (int32_t) ftp->loopmode1);
+          fprintf(file,"loopmode2: %d\n", (int32_t) ftp->loopmode2);
           fprintf(file,"begin1: %d\n",ftp->begin1);
           fprintf(file,"end1: %d\n",ftp->end1);
           fprintf(file,"begin2: %d\n",ftp->begin2);
@@ -640,7 +640,7 @@ static int32_t ftsave_kS(CSOUND *csound, FTLOAD_K *p)
     return OK;
 }
 
-static int32_t32_t32_t ftgen_list(CSOUND *csound, FTGEN *p, int istring)
+static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
 {
     MYFLT   *fp;
     FUNC    *ftp;

@@ -78,7 +78,7 @@ static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
     int32_t i, j, k;
     MYFLT *matval;
     /* Use the still unused process matrix for this temporary array */
-    int32_t32_t32_t *coltab = (int *)m->proc_mat;
+    int32_t *coltab = (int32_t *)m->proc_mat;
 
     memset(coltab, 0, m->numparm*sizeof(int32_t));
     m->nummod_scanned = m->numparm_scanned = 0;

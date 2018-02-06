@@ -234,7 +234,7 @@ static int32_t sndloop_init(CSOUND *csound, sndloop *p)
 static int32_t sndloop_process(CSOUND *csound, sndloop *p)
 {
      IGN(csound);
-    int32_t32_t32_t on = (int) *(p->on), recon;
+    int32_t on = (int32_t) *(p->on), recon;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1211,7 +1211,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
     float *ffr = (float *) p->ffr->frame.auxp;
     float *fexc = (float *) p->fexc.auxp;
     float *fout = (float *) p->fout->frame.auxp;
-    int32_t32_t32_t coefs = (int) *(p->kcoefs), j;
+    int32_t coefs = (int32_t) *(p->kcoefs), j;
     MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
     MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
     float maxe=0.f, maxa=0.f;

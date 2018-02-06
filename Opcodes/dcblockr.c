@@ -93,7 +93,7 @@ typedef struct _dcblk2 {
 
 static int32_t dcblock2set(CSOUND *csound, DCBlock2* p)
 {
-    int32_t32_t32_t order = (int) *p->order;
+    int32_t order = (int32_t) *p->order;
     if (order == 0) order = 128;
     else if (order < 4) order = 4;
 

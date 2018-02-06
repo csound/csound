@@ -211,8 +211,14 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
                                   IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1)) {
             csound->Message(csound, Str("Failed to set multicast"));
           }
+#elif defined(MSVC)
+          setsockopt((SOCKET)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #else
+<<<<<<< HEAD
           setsockopt((int32_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+=======
+	  setsockopt((int64_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+>>>>>>> 3869982d8381b83e98017c40a8534b6733e68be7
 #endif
         }
         csound->Free(csound, p->lhost);

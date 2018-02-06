@@ -81,7 +81,7 @@ static uint32 oscbnk_rnd_phase(int32 *seed)
 
 /* return a random value between -1 and 1 */
 
-static MYFLT oscbnk_rnd_bipolar(int32_t32_t32_t32_t32 *seed, MYFLT rpow, int rmode)
+static MYFLT oscbnk_rnd_bipolar(int32_t *seed, MYFLT rpow, int32_t rmode)
 {
     double      x;
     MYFLT       s;
@@ -1650,7 +1650,7 @@ static void vco2_next_npart(double *npart, VCO2_TABLE_PARAMS *tp)
 
 /* return optimal table size for a given number of partials */
 
-static int32_t32_t32_t32_t vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
+static int32_t vco2_table_size(int32_t npart, VCO2_TABLE_PARAMS *tp)
 {
     int32_t     n;
 
@@ -1682,7 +1682,7 @@ static int32_t32_t32_t32_t vco2_table_size(int npart, VCO2_TABLE_PARAMS *tp)
 /* from table number "base_ftable" if it is greater than zero.           */
 /* The return value is the first ftable number that is not allocated.    */
 
-static int32_t32_t32_t32_t vco2_tables_create(CSOUND *csound, int waveform, int base_ftable,
+static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform, int32_t base_ftable,
                               VCO2_TABLE_PARAMS *tp)
 {
     STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
@@ -1941,7 +1941,7 @@ static int32_t vco2ftp(CSOUND *csound, VCO2FT *p)
 
     npart = (MYFLT)fabs(*(p->kcps)); if (npart < p->p_min) npart = p->p_min;
 #ifdef VCO2FT_USE_TABLE
-    n = (int32_t32_t32_t32_t) (p->nparts_tabl[(int) (p->p_scl / npart)] - p->tab0);
+    n = (int32_t) (p->nparts_tabl[(int32_t) (p->p_scl / npart)] - p->tab0);
     *(p->kft) = (MYFLT) (n + p->base_ftnum);
 #else
     npart = p->p_scl / npart;
@@ -2225,7 +2225,7 @@ static int32_t denorms(CSOUND *csound, DENORMS *p)
 
 static int32_t delaykset(CSOUND *csound, DELAYK *p)
 {
-    int32_t32_t32_t32_t npts, mode = (int) MYFLT2LONG(*p->imode) & 3;
+    int32_t npts, mode = (int32_t) MYFLT2LONG(*p->imode) & 3;
 
     if (mode & 1) return OK;            /* skip initialisation */
     p->mode = mode;
@@ -2265,7 +2265,7 @@ static int32_t delayk(CSOUND *csound, DELAYK *p)
 
 static int32_t vdelaykset(CSOUND *csound, VDELAYK *p)
 {
-    int32_t32_t32_t32_t npts, mode = (int) MYFLT2LONG(*p->imode) & 3;
+    int32_t npts, mode = (int32_t) MYFLT2LONG(*p->imode) & 3;
 
     if (mode & 1)
       return OK;                /* skip initialisation */
@@ -2350,7 +2350,7 @@ static int32_t vdelayk(CSOUND *csound, VDELAYK *p)
 static int32_t rbjeqset(CSOUND *csound, RBJEQ *p)
 {
      IGN(csound);
-    int32_t32_t32_t32_t mode = (int) MYFLT2LONG(*p->imode) & 0xF;
+    int32_t mode = (int32_t) MYFLT2LONG(*p->imode) & 0xF;
 
     if (mode & 1)
       return OK;                /* skip initialisation */

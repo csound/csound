@@ -41,17 +41,17 @@ Re-written to take flexible number of outputs by JPff 2012 */
 
 /* static void choose_ls_triplets(CSOUND *csound, ls *lss, */
 /*                                ls_triplet_chain **ls_triplets, */
-/*                                int32_t32_t ls_amount, int channels); */
-static int32_t32_t any_ls_inside_triplet(int, int, int, ls[], int);
-static void add_ldsp_triplet(CSOUND *csound, int32_t32_t i, int j, int k,
+/*                                int32_t ls_amount, int32_t channels); */
+static int32_t any_ls_inside_triplet(int32_t, int32_t, int32_t, ls[], int32_t);
+static void add_ldsp_triplet(CSOUND *csound, int32_t i, int32_t j, int32_t k,
                              ls_triplet_chain **ls_triplets,
                              ls *lss);
 static void calculate_3x3_matrixes(CSOUND *csound,
                                    ls_triplet_chain *ls_triplets,
-                                   ls lss[], int32_t32_t ls_amount, int ind);
+                                   ls lss[], int32_t ls_amount, int32_t ind);
 static void choose_ls_tuplets(CSOUND *csound, ls lss[],
                               ls_triplet_chain **ls_triplets,
-                              int32_t32_t ls_amount, int ind);
+                              int32_t ls_amount, int32_t ind);
 static void sort_2D_lss(ls lss[], int32_t sorted_lss[],
                         int32_t ls_amount);
 
@@ -78,7 +78,7 @@ static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int32_t ind)
     return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
 }
 
-void calc_vbap_gns(int32_t32_t ls_set_am, int dim, LS_SET *sets,
+void calc_vbap_gns(int32_t ls_set_am, int dim, LS_SET *sets,
                    MYFLT *gains, int32_t ls_amount,
                    CART_VEC cart_dir)
      /* Selects a vector base of a virtual source.
@@ -238,7 +238,7 @@ void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
     to->z= SIN(from->ele * ang2rad);
 }
 
-MYFLT vol_p_side_lgth(int32_t32_t i, int j,int k, ls  lss[] )
+MYFLT vol_p_side_lgth(int32_t i, int32_t j,int32_t k, ls  lss[] )
 {
   /* calculate volume of the parallelepiped defined by the loudspeaker
      direction vectors and divide it with total length of the triangle sides.
@@ -390,7 +390,7 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
 
 /* returns 1 if there is loudspeaker(s) inside given ls triplet */
 
-static int32_t32_t any_ls_inside_triplet(int a, int b, int c, ls lss[],
+static int32_t any_ls_inside_triplet(int32_t a, int32_t b, int32_t c, ls lss[],
                                  int32_t ls_amount)
 {
     MYFLT invdet;
@@ -437,7 +437,7 @@ static int32_t32_t any_ls_inside_triplet(int a, int b, int c, ls lss[],
     return any_ls_inside;
 }
 
-static void add_ldsp_triplet(CSOUND *csound, int32_t32_t i, int j, int k,
+static void add_ldsp_triplet(CSOUND *csound, int32_t i, int32_t j, int32_t k,
                              struct ls_triplet_chain **ls_triplets,
                              ls lss[])
 {
@@ -514,7 +514,7 @@ void vec_print(CSOUND *csound, CART_VEC v)
 
 }
 
-int32_t32_t lines_intersect(int i,int j,int k,int l,ls  lss[])
+int32_t lines_intersect(int32_t i,int32_t j,int32_t k,int32_t l,ls  lss[])
   /* checks if two lines intersect on 3D sphere
      see theory in paper Pulkki, V. Lokki, T. "Creating Auditory Displays
      with Multiple Loudspeakers Using VBAP: A Case Study with
@@ -565,7 +565,7 @@ int32_t32_t lines_intersect(int i,int j,int k,int l,ls  lss[])
     }
 }
 
-static inline int32_t32_t vbap_ls_init_sr (CSOUND *csound, int dim, int count,
+static inline int32_t vbap_ls_init_sr (CSOUND *csound, int32_t dim, int32_t count,
                             MYFLT **f, int32_t layout)
      /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
         according to current dimension. The inversion matrices are
@@ -627,16 +627,16 @@ static inline int32_t32_t vbap_ls_init_sr (CSOUND *csound, int dim, int count,
 
 int32_t vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
 {
-    int32_t32_t dim = (int) *p->dim;
+    int32_t dim = (int32_t) *p->dim;
     MYFLT  layout = (*p->dim-dim)*100;
     return vbap_ls_init_sr(csound, dim, (int32_t) *p->ls_amount, p->f, round(layout));
 }
 
 int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
 {
-    int32_t32_t dim = (int) *p->dim;
+    int32_t dim = (int32_t) *p->dim;
     MYFLT  layout = (*p->dim-dim)*100;
-    int32_t32_t i, n = (int)*p->ls_amount;
+    int32_t i, n = (int32_t)*p->ls_amount;
     /* if (n>CHANNELS) */
     /*   return csound->InitError(csound, Str("Too many speakers (%n)\n"), n); */
     if (UNLIKELY(n>p->a->sizes[0]))
@@ -652,7 +652,7 @@ int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
 
 static void calculate_3x3_matrixes(CSOUND *csound,
                                    struct ls_triplet_chain *ls_triplets,
-                                   ls lss[], int32_t32_t ls_amount, int ind)
+                                   ls lss[], int32_t ls_amount, int32_t ind)
      /* Calculates the inverse matrices for 3D */
 {
     MYFLT invdet;
@@ -730,14 +730,14 @@ static void calculate_3x3_matrixes(CSOUND *csound,
 static void choose_ls_tuplets(CSOUND *csound,
                               ls lss[],
                               ls_triplet_chain **ls_triplets,
-                              int32_t32_t ls_amount, int ind)
+                              int32_t ls_amount, int32_t ind)
      /* selects the loudspeaker pairs, calculates the inversion
         matrices and stores the data to a global array */
 {
     IGN(ls_triplets);
     int32_t i, j, k;
-    int32_t32_t *sorted_lss = (int*)malloc(sizeof(int)*ls_amount);
-    int32_t32_t *exist = (int*)calloc(1,sizeof(int)*ls_amount);
+    int32_t *sorted_lss = (int32_t*)malloc(sizeof(int32_t)*ls_amount);
+    int32_t *exist = (int32_t*)calloc(1,sizeof(int32_t)*ls_amount);
     int32_t amount = 0;
     MYFLT *inv_mat = (MYFLT*)malloc(MATSIZE*sizeof(MYFLT)*ls_amount),
           *ls_table, *ptr;

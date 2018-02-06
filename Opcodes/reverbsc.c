@@ -87,7 +87,7 @@ typedef struct {
     AUXCH       auxData;
 } SC_REVERB;
 
-static int32_t32_t32_t delay_line_max_samples(SC_REVERB *p, int n)
+static int32_t delay_line_max_samples(SC_REVERB *p, int32_t n)
 {
     double  maxDel;
 
@@ -96,11 +96,11 @@ static int32_t32_t32_t delay_line_max_samples(SC_REVERB *p, int n)
     return (int32_t) (maxDel * p->sampleRate + 16.5);
 }
 
-static int32_t32_t32_t delay_line_bytes_alloc(SC_REVERB *p, int n)
+static int32_t delay_line_bytes_alloc(SC_REVERB *p, int32_t n)
 {
     int32_t nBytes;
 
-    nBytes = (int32_t32_t32_t) sizeof(delayLine) - (int) sizeof(MYFLT);
+    nBytes = (int32_t) sizeof(delayLine) - (int32_t) sizeof(MYFLT);
     nBytes += (delay_line_max_samples(p, n) * (int32_t) sizeof(MYFLT));
     nBytes = (nBytes + 15) & (~15);
     return nBytes;
