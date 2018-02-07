@@ -37,6 +37,7 @@
 #include "std_util.h"
 #include "soundio.h"
 #include <ctype.h>
+#include <inttypes.h>
 
 /* Constants */
 
@@ -535,8 +536,8 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
       return NULL;
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
-    csound->Message(csound, Str("mixing %ld sample frames (%3.1f secs)\n"),
-                            (long) p->getframes, dur);
+    csound->Message(csound, "%s %" PRId64 " %s (%3.1f secs)\n",
+                    Str("mixing"),  p->getframes, Str("sample frames"), dur);
     ddd->fd = infd;
     return infd;
 }

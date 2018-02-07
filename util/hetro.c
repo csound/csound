@@ -269,7 +269,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
                   csound->getsndin(csound, infd,
                                    thishet->auxp, nsamps, p)) <= 0)) {
       char errmsg[256];
-      csound->Message(csound, "smpsin = %ld\n", (int64_t) thishet->smpsin);
+      csound->Message(csound, "smpsin = %" PRId64 "\n", (int64_t) thishet->smpsin);
       snprintf(errmsg, 256, Str("Read error on %s\n"), thishet->infilnam);
       return quit(csound, errmsg);
     }
