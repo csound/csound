@@ -23,6 +23,7 @@
 #define CSOUND_STD_UTIL_H
 
 #include "csdl.h"
+#include <inttypes.h>
 
 extern int32_t atsa_init_(CSOUND *);
 extern int32_t cvanal_init_(CSOUND *);

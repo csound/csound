@@ -537,7 +537,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
     csound->Message(csound, "%s %" PRId64 " %s (%3.1f secs)\n",
-                    Str("mixing"),  p->getframes, Str("sample frames"), dur);
+                    Str("mixing"), p->getframes, Str("sample frames"), dur);
     ddd->fd = infd;
     return infd;
 }
