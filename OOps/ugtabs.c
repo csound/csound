@@ -26,7 +26,7 @@
 #include "ugens2.h"
 #include <math.h>
 
-//(x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
+//(x >= FL(0.0) ? (int32_t)x : (int32_t)((double)x - 0.99999999))
 #define MYFLOOR(x) FLOOR(x)
 
 int32_t tabler_init(CSOUND *csound, TABL *p) {
@@ -86,7 +86,7 @@ int32_t tabl_setup(CSOUND *csound, TABL *p) {
       p->mul = 1;
     p->len = p->ftp->flen;
 
-    p->iwrap = (int32) *p->wrap;
+    p->iwrap = (int32_t) *p->wrap;
     return OK;
 }
 
@@ -122,7 +122,7 @@ int32_t tabler_audio(CSOUND *csound, TABL *p)
     MYFLT *func = p->ftp->ftable;
     MYFLT offset = *p->offset;
     MYFLT mul = p->mul;
-    int32 iwrap = p->iwrap;
+    int32_t iwrap = p->iwrap;
     uint32_t    koffset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
 
@@ -229,7 +229,7 @@ int32_t tableir_audio(CSOUND *csound, TABL *p)
     MYFLT *func         = p->ftp->ftable;
     MYFLT offset        = *p->offset;
     MYFLT mul           = p->mul, tmp, frac;
-    int32 iwrap         = p->iwrap;
+    int32_t iwrap         = p->iwrap;
     uint32_t    koffset = p->h.insdshead->ksmps_offset;
     uint32_t    early   = p->h.insdshead->ksmps_no_end;
 
@@ -373,7 +373,7 @@ int32_t table3r_audio(CSOUND *csound, TABL *p)
     MYFLT *func = p->ftp->ftable;
     MYFLT offset = *p->offset;
     MYFLT mul = p->mul, tmp, frac;
-    int32 iwrap = p->iwrap;
+    int32_t iwrap = p->iwrap;
     uint32_t    koffset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
 
@@ -428,7 +428,7 @@ int32_t tablkt_setup(CSOUND *csound, TABL *p) {
                             Str("tablekt: index type inconsistent with output"));
     }
 
-    p->iwrap = (int32) *p->wrap;
+    p->iwrap = (int32_t) *p->wrap;
     return OK;
 }
 

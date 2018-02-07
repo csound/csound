@@ -87,12 +87,12 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int32_t stri
           int32_t   n = (int32_t)fread(&cvdata, sizeof(CVSTRUCT), 1, f);
           fclose(f);
           if (n == 1) {
-            if (cvdata.magic == (int32)CVMAGIC &&
-                cvdata.dataFormat == (int32)CVMYFLT &&
-                cvdata.Format == (int32)CVRECT) {
+            if (cvdata.magic == (int32_t)CVMAGIC &&
+                cvdata.dataFormat == (int32_t)CVMYFLT &&
+                cvdata.Format == (int32_t)CVRECT) {
               hdr->frames = (sf_count_t)cvdata.Hlen;
               hdr->samplerate = (int32_t)(cvdata.samplingRate + FL(0.5));
-              hdr->channels = (cvdata.channel == (int32)ALLCHNLS ?
+              hdr->channels = (cvdata.channel == (int32_t)ALLCHNLS ?
                                (int32_t)cvdata.src_chnls : 1);
               csFileType = CSFTYPE_CVANAL;
             }
@@ -108,7 +108,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int32_t stri
         fd = csound->PVOC_OpenFile(csound, sfname, &pvdata, &fmt);
         if (fd >= 0) {
           hdr->frames =
-              (sf_count_t) (((int32)csound->PVOC_FrameCount(csound, fd)
+              (sf_count_t) (((int32_t)csound->PVOC_FrameCount(csound, fd)
                              / (int32_t)fmt.nChannels) * (sf_count_t)pvdata.dwOverlap);
           hdr->samplerate = (int32_t)fmt.nSamplesPerSec;
           hdr->channels = (int32_t)fmt.nChannels;
@@ -147,7 +147,7 @@ int32_t filelen(CSOUND *csound, SNDINFO *p)
     SF_INFO hdr;
 
     if (getsndinfo(csound, p, &hdr, 0))
-      *(p->r1) = (MYFLT)((int32)hdr.frames) / (MYFLT)hdr.samplerate;
+      *(p->r1) = (MYFLT)((int32_t)hdr.frames) / (MYFLT)hdr.samplerate;
     else
       *(p->r1) = FL(0.0);
 
@@ -159,7 +159,7 @@ int32_t filelen_S(CSOUND *csound, SNDINFO *p)
     SF_INFO hdr;
 
     if (getsndinfo(csound, p, &hdr, 1))
-      *(p->r1) = (MYFLT)((int32)hdr.frames) / (MYFLT)hdr.samplerate;
+      *(p->r1) = (MYFLT)((int32_t)hdr.frames) / (MYFLT)hdr.samplerate;
     else
       *(p->r1) = FL(0.0);
 

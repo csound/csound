@@ -163,11 +163,11 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
 {
     MYFLT *analwinhalf,*analwinbase;
     MYFLT sum;
-    int32 halfwinsize,buflen;
+    int32_t halfwinsize,buflen;
     int32_t i,nBins,Mf/*,Lf*/;
 
     /* opcode params */
-    uint32_t N =(int32) *(p->fftsize);
+    uint32_t N =(int32_t) *(p->fftsize);
     uint32_t overlap = (uint32_t) *(p->overlap);
     uint32_t M = (uint32_t) *(p->winsize);
     int32_t wintype = (int32_t) *p->wintype;
@@ -273,9 +273,9 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
   int32_t got, tocp,i,j,k,ii;
     int32_t N = p->fsig->N;
     int32_t N2 = N/2;
-    int32 buflen = p->buflen;
-    int32 analWinLen = p->fsig->winsize/2;
-    int32 synWinLen = analWinLen;
+    int32_t buflen = p->buflen;
+    int32_t analWinLen = p->fsig->winsize/2;
+    int32_t synWinLen = analWinLen;
     float *ofp;                 /* RWD MUST be 32bit */
     MYFLT *fp;
     MYFLT *anal = (MYFLT *) (p->analbuf.auxp);
@@ -534,7 +534,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
       default:
         csound->Warning(csound,
                         Str("Unknown window type; replaced by rectangular\n"));
-	/* FALLTHRU */
+        /* FALLTHRU */
       case PVS_WIN_RECT:
         memcpy(ff, fw, NB*sizeof(CMPLX));
         /* for (j=0; j<NB; j++) { */
@@ -700,15 +700,15 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     MYFLT *analwinhalf;
     MYFLT *synwinhalf;
     MYFLT sum;
-    int32 halfwinsize,buflen;
+    int32_t halfwinsize,buflen;
     int32_t i,nBins,Mf,Lf;
     double IO;
 
     /* get params from input fsig */
     /* we TRUST they are legal */
-    int32 N = p->fsig->N;
-    int32 overlap = p->fsig->overlap;
-    int32 M = p->fsig->winsize;
+    int32_t N = p->fsig->N;
+    int32_t overlap = p->fsig->overlap;
+    int32_t M = p->fsig->winsize;
     int32_t wintype = p->fsig->wintype;
     
     p->fftsize = N;
@@ -859,11 +859,11 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     float *anal;                                        /* RWD MUST be 32bit */
     MYFLT *syn, *output;
     MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
-    int32 N = p->fsig->N;
+    int32_t N = p->fsig->N;
     MYFLT *obufptr,*outbuf,*synWindow;
     MYFLT mag,phase,angledif, the_phase;
-    int32 synWinLen = p->fsig->winsize / 2;
-    int32 overlap = p->fsig->overlap;
+    int32_t synWinLen = p->fsig->winsize / 2;
+    int32_t overlap = p->fsig->overlap;
     /*int32 format = p->fsig->format; */
 
     /* fsigs MUST be corect format, as we offer no mechanism for

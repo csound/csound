@@ -676,11 +676,11 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     p->data[p->nFrames] = 0.0f;
     csound->FileClose(csound, fd);
-    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %lld "
-                                "sample frames) loaded into memory\n"),
-                            p->fullName, sfinfo->samplerate,
-                            sfinfo->channels,
-                            (long long) sfinfo->frames);
+    csound->Message(csound, "%s '%s' (sr = %d Hz, %d %s, %" PRId64 " %s) %s",
+                    Str("File"), p->fullName, sfinfo->samplerate,
+                    sfinfo->channels, Str("channel(s)"),sfinfo->frames,
+                    Str("sample frames"),
+                    Str("loaded into memory\n"));
 
     /* link into database */
     cs_hash_table_put(csound, csound->sndmemfiles, (char*)fileName, p);

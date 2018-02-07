@@ -44,11 +44,11 @@ Technologies, University of California, Berkeley.
 #include "sdif-mem.h"
 
 /* Global variables local to this file */
-static void *(*my_malloc)(int numBytes);
-static void (*my_free)(void *memory, int numBytes);
+static void *(*my_malloc)(int32_t numBytes);
+static void (*my_free)(void *memory, int32_t numBytes);
 
-SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int numBytes),
-                        void (*MemoryFreer)(void *memory, int numBytes))
+SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int32_t numBytes),
+                        void (*MemoryFreer)(void *memory, int32_t numBytes))
 {
     my_malloc = MemoryAllocator;
     my_free = MemoryFreer;
@@ -154,7 +154,7 @@ SDIFresult SDIFmem_ReadFrameContents(SDIF_FrameHeader *head, FILE *f,
     SDIFresult r;
     SDIFmem_Frame result;
     SDIFmem_Matrix matrix;
-    int i, sz;
+    int32_t i, sz;
     SDIFmem_Matrix *prevNextPtr;
 
     result = (SDIFmem_Frame) (*my_malloc)(sizeof(*result));
@@ -227,7 +227,7 @@ SDIFresult SDIFmem_ReadFrame(FILE *f, SDIFmem_Frame *putithere)
 
 SDIFresult SDIFmem_AddMatrix(SDIFmem_Frame f, SDIFmem_Matrix m)
 {
-    int sz;
+    int32_t sz;
     SDIFmem_Matrix p, last;
 
     assert(f != NULL);
@@ -261,7 +261,7 @@ SDIFresult SDIFmem_WriteMatrix(FILE *sdif_handle, SDIFmem_Matrix m)
 {
     SDIFresult r;
     sdif_int32 sz, numElements;
-    int paddingNeeded;
+    int32_t paddingNeeded;
 
     if ((r = SDIF_WriteMatrixHeader(&(m->header), sdif_handle))!=ESDIF_SUCCESS) {
       return r;

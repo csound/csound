@@ -76,7 +76,7 @@ int32_t apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
 int32_t seedrand(CSOUND *csound, PRAND *p)
 {
     uint32_t  seedVal = (uint32_t)0;
-    int32 xx = (int32)((double)*p->out + 0.5);
+   int32_t xx = (int32_t)((double)*p->out + 0.5);
 
     if (xx > FL(0.0))
       seedVal = (uint32_t)xx;
@@ -367,7 +367,7 @@ int kexprndi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (int32)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += (int32_t)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (UNLIKELY(p->phs >= MAXLEN)) {         /* when phs overflows,  */
       p->phs &= PHMASK;                       /*      mod the phs     */
       p->num1 = p->num2;                      /*      & new num vals  */
@@ -385,7 +385,7 @@ int32_t iexprndi(CSOUND *csound, PRANDI *p)
 
 int32_t aexprndi(CSOUND *csound, PRANDI *p)
 {
-    int32       phs = p->phs, inc;
+   int32_t       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -394,7 +394,7 @@ int32_t aexprndi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32)(cpsp[0] * csound->sicvt);
+    inc = (int32_t)(cpsp[0] * csound->sicvt);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -408,7 +408,7 @@ int32_t aexprndi(CSOUND *csound, PRANDI *p)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
       if (p->cpscod)
-        inc = (int32)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int32_t)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -525,7 +525,7 @@ int32_t kgaussi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (int32)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += (int32_t)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (UNLIKELY(p->phs >= MAXLEN)) {           /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       p->num1 = p->num2;                        /*      & new num vals  */
@@ -543,7 +543,7 @@ int32_t igaussi(CSOUND *csound, PRANDI *p)
 
 int32_t agaussi(CSOUND *csound, PRANDI *p)
 {
-    int32       phs = p->phs, inc;
+   int32_t       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -552,7 +552,7 @@ int32_t agaussi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32)(*cpsp * csound->sicvt);
+    inc = (int32_t)(*cpsp * csound->sicvt);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -566,7 +566,7 @@ int32_t agaussi(CSOUND *csound, PRANDI *p)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
       if (p->cpscod)
-        inc = (int32)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int32_t)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -623,7 +623,7 @@ int32_t kcauchyi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (int32)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += (int32_t)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (UNLIKELY(p->phs >= MAXLEN)) {         /* when phs overflows,  */
       p->phs &= PHMASK;                       /*      mod the phs     */
       p->num1 = p->num2;                      /*      & new num vals  */
@@ -641,7 +641,7 @@ int32_t icauchyi(CSOUND *csound, PRANDI *p)
 
 int32_t acauchyi(CSOUND *csound, PRANDI *p)
 {
-    int32       phs = p->phs, inc;
+   int32_t       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -650,7 +650,7 @@ int32_t acauchyi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32)(*cpsp * csound->sicvt);
+    inc = (int32_t)(*cpsp * csound->sicvt);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -664,7 +664,7 @@ int32_t acauchyi(CSOUND *csound, PRANDI *p)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
       if (p->cpscod)
-        inc = (int32)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int32_t)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -756,10 +756,10 @@ int32_t ikpoiss(CSOUND *csound, PRAND *p)
 int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
-    int32    i, n;
+    int32_t  i, n;
     MYFLT   *ft;
     MYFLT   scale;
-    int32_t     nargs = ff->e.pcnt - 4;
+    int32_t nargs = ff->e.pcnt - 4;
 
     ft = ftp->ftable;
     scale = (nargs > 1 ? ff->e.p[6] : FL(1.0));

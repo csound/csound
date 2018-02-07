@@ -155,7 +155,7 @@ int32_t tonsetx(CSOUND *csound, TONEX *p)
     if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
     if (!*p->istor && (p->aux.auxp == NULL ||
                     (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
-        csound->AuxAlloc(csound, (int32)(p->loop*sizeof(double)), &p->aux);
+        csound->AuxAlloc(csound, (int32_t)(p->loop*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp;
     if (LIKELY(!(*p->istor))) {
     memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
@@ -406,7 +406,7 @@ int32_t rsnsetx(CSOUND *csound, RESONX *p)
       p->loop = 4; /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (uint32_t)(p->loop*2*sizeof(double)) > p->aux.size))
-      csound->AuxAlloc(csound, (int32)(p->loop*2*sizeof(double)), &p->aux);
+      csound->AuxAlloc(csound, (int32_t)(p->loop*2*sizeof(double)), &p->aux);
     p->yt1 = (double*)p->aux.auxp; p->yt2 = (double*)p->aux.auxp + p->loop;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound, Str("illegal reson iscl value, %f"),
@@ -607,8 +607,8 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
 {
     LPHEADER *lph;
     MEMFIL   *mfp;
-    int32     magic;
-    int32     totvals;
+    int32_t     magic;
+    int32_t     totvals;
     char      lpfilname[MAXNAME];
 
     /* Store adress of opcode for other lpXXXX init to point to */
@@ -668,7 +668,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     }
     else {                                    /* No Header on file:*/
       p->headlen = 0;
-      p->npoles = (int32)*p->inpoles;          /*  data from inargs */
+      p->npoles = (int32_t)*p->inpoles;          /*  data from inargs */
       p->nvals = p->npoles + 4;
       p->framrat16 = *p->ifrmrate * FL(65536.0);
       if (UNLIKELY(!p->npoles || !p->framrat16)) {
@@ -677,7 +677,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
       }
     }
     /* Check pole number */
-    csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
+    csound->AuxAlloc(csound, (int32_t)(p->npoles*8*sizeof(MYFLT)), &p->aux);
     p->kcoefs = (MYFLT*)p->aux.auxp;
     /* if (UNLIKELY(p->npoles > MAXPOLES)) { */
     /*   return csound->InitError(csound, Str("npoles > MAXPOLES")); */
@@ -875,7 +875,7 @@ static inline void
 int32_t lpread(CSOUND *csound, LPREAD *p)
 {
     MYFLT   *bp, *np, *cp;
-    int32    nn, framphase;
+    int32_t    nn, framphase;
     MYFLT   fract;
     int32_t     i, status;
     MYFLT   *poleMagn1 = p->kcoefs + 2*p->npoles;

@@ -39,13 +39,13 @@ void het_export_usage(CSOUND *csound)
     csound->Message(csound, Str("Usage: het_export het_file cstext_file\n"));
 }
 
-static int het_export(CSOUND *csound, int argc, char **argv)
+static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
 {
     MEMFIL *inf;
     FILE *outf;
     int16 *adp;
     int16 *endata;
-    int cc = 0;
+    int32_t cc = 0;
 
     if (argc!= 3) {
       het_export_usage(csound);
@@ -76,9 +76,9 @@ static int het_export(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int het_export_init_(CSOUND *csound)
+int32_t het_export_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "het_export", het_export);
+    int32_t retval = csound->AddUtility(csound, "het_export", het_export);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "het_export",

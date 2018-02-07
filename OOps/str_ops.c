@@ -684,19 +684,19 @@ int32_t strtol_opcode_S(CSOUND *csound, STRSET_OP *p)
       return StrOp_ErrMsg(p, Str("invalid format"));
     switch (radix) {
       case 8:
-        while (*s >= '0' && *s <= '7') x = (x * 8L) + (int32) (*s++ - '0');
+        while (*s >= '0' && *s <= '7') x = (x * 8L) + (int32_t) (*s++ - '0');
         break;
       case 10:
-        while (isdigit(*s)) x = (x * 10L) + (int32) (*s++ - '0');
+        while (isdigit(*s)) x = (x * 10L) + (int32_t) (*s++ - '0');
         break;
       default:
         while (1) {
           if (isdigit(*s))
-            x = (x * 16L) + (int32) (*s++ - '0');
+            x = (x * 16L) + (int32_t) (*s++ - '0');
           else if (*s >= 'A' && *s <= 'F')
-            x = (x * 16L) + (int32) (*s++ - 'A') + 10L;
+            x = (x * 16L) + (int32_t) (*s++ - 'A') + 10L;
           else if (*s >= 'a' && *s <= 'f')
-            x = (x * 16L) + (int32) (*s++ - 'a') + 10L;
+            x = (x * 16L) + (int32_t) (*s++ - 'a') + 10L;
           else
             break;
         }
@@ -714,7 +714,7 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
 {
     char  *s = NULL;
     int32_t   sgn = 0, radix = 10;
-    int32  x = 0L;
+    int32_t   x = 0L;
 
     if (csound->ISSTRCOD(*p->str))
         s = get_arg_string(csound, *p->str);
@@ -745,19 +745,19 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
       return StrOp_ErrMsg(p, Str("invalid format"));
     switch (radix) {
       case 8:
-        while (*s >= '0' && *s <= '7') x = (x * 8L) + (int32) (*s++ - '0');
+        while (*s >= '0' && *s <= '7') x = (x * 8L) + (int32_t) (*s++ - '0');
         break;
       case 10:
-        while (isdigit(*s)) x = (x * 10L) + (int32) (*s++ - '0');
+        while (isdigit(*s)) x = (x * 10L) + (int32_t) (*s++ - '0');
         break;
       default:
         while (1) {
           if (isdigit(*s))
-            x = (x * 16L) + (int32) (*s++ - '0');
+            x = (x * 16L) + (int32_t) (*s++ - '0');
           else if (*s >= 'A' && *s <= 'F')
-            x = (x * 16L) + (int32) (*s++ - 'A') + 10L;
+            x = (x * 16L) + (int32_t) (*s++ - 'A') + 10L;
           else if (*s >= 'a' && *s <= 'f')
-            x = (x * 16L) + (int32) (*s++ - 'a') + 10L;
+            x = (x * 16L) + (int32_t) (*s++ - 'a') + 10L;
           else
             break;
         }

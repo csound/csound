@@ -60,7 +60,7 @@ static void envext_usage(CSOUND *csound, char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static int envext(CSOUND *csound, int argc, char **argv)
+static int32_t envext(CSOUND *csound, int32_t argc, char **argv)
 {
     char        *inputfile = NULL;
     SNDFILE     *infd;
@@ -126,7 +126,7 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
     csound->Message(csound,Str("enveloping %ld sample frames (%3.1f secs)\n"),
-           (long) p->getframes, dur);
+           (int64_t) p->getframes, dur);
     return(infd);
 }
 
@@ -136,16 +136,16 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
 {
     double      tpersample;
     double      max, min;
-    long        mxpos, minpos;
-    int         block = 0;
+    int64_t        mxpos, minpos;
+    int32_t         block = 0;
     MYFLT       *buffer;
-    int         bufferlen;
-    long        read_in;
-    int         i;
+    int32_t         bufferlen;
+    int64_t        read_in;
+    int32_t         i;
     FILE *      outfile;
 
     outfile = fopen((outname == NULL ? "newenv" : outname), "w");
-    bufferlen = (int)(window*(double)p->sr);
+    bufferlen = (int32_t)(window*(double)p->sr);
     buffer = (MYFLT*) malloc(bufferlen*sizeof(MYFLT));
     tpersample = 1.0/(double)p->sr;
     fprintf(outfile, "%.3f\t%.3f\n", 0.0, 0.0);
@@ -169,9 +169,9 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
 
 /* module interface */
 
-int envext_init_(CSOUND *csound)
+int32_t envext_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "envext", envext);
+    int32_t retval = csound->AddUtility(csound, "envext", envext);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "envext",

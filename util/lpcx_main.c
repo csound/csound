@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
-    unsigned int i, j;
+    uint32_t i, j;
     char *str = NULL;
     MYFLT *coef = NULL;
 
