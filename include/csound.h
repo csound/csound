@@ -1,9 +1,9 @@
 /*
-    csoud.h:
+    csound.h:
 
     Copyright (C) 2003 2005 2008 2013 by John ffitch, Istvan Varga,
                                          Mike Gogins, Victor Lazzarini,
-                                         Andres Cabrera
+                                         Andres Cabrera, Steven Yi
 
     This file is part of Csound.
 
