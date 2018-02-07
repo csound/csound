@@ -56,9 +56,6 @@ CsoundObj *CsoundObj_new()
 {
   CsoundObj *self = calloc(1, sizeof(CsoundObj));
   self->csound = csoundCreate(self);
-  csoundSetOption(self->csound, "-M0");
-  self->midiCallbackData = calloc(1, sizeof(MidiCallbackData));
-  self->midiCallbackData->midiData = calloc(MIDI_QUEUE_SIZE, sizeof(MidiData));
   self->status = CS_RESET_STATUS;
   return self;
 }
