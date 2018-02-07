@@ -27,8 +27,7 @@
 #define CSOUND_H
 /*! \mainpage
  *
- * Csound is a unit generator-based, user-programmable,
- * user-extensible computer music system.  It was originally written
+ * Csound is a sound and music computing system. It was originally written
  * by Barry Vercoe at the Massachusetts Institute of Technology in
  * 1984 as the first C language version of this type of
  * software. Since then Csound has received numerous contributions
@@ -63,7 +62,7 @@
  *
  * \b Users
  *
- * Users of the Csound API fall into two main categories: hosts, and plugins.
+ * Users of the Csound API fall into two main categories: hosts and plugins.
  *
  * \li Hosts are applications that use Csound as a software synthesis engine.
  *     Hosts can link with the Csound API either statically or dynamically.
@@ -71,13 +70,14 @@
  * \li Plugins are shared libraries loaded by Csound at run time to implement
  *     external opcodes and/or drivers for audio or MIDI input and output.
  *     Plugin opcodes need only include the csdl.h header which brings all
- *     necessary functions and data structures. Plugins can be written in C++
- *     using either `include/plugin.h` (using the Csound allocator, for opcodes
+ *     necessary functions and data structures.
+ *     Plugins can be written in C or C++. For C++, OOP support is given through 
+ *     `include/plugin.h` (using the Csound allocator, for opcodes
  *     that do not involve standard C++ library collections) or
  *     `include/OpcodeBase.hpp` (using the standard ++ allocator, for opcodes
  *     that do use standard C++ library collections).
  *
- * \section section_api_c_example Examples Using the Csound API
+ * \section section_api_c_example Examples Using the Csound (host) API
  *
  * The Csound command--line program is itself built using the Csound API.
  * Its code reads (in outline) as follows:
@@ -98,27 +98,31 @@
  * }
  * \endcode
  *
- * The Csound API defines two modes of operation for hosts. In the first mode,
- * a regular Csound score is performed and then performance automatically
- * ends. This could be called "score mode." In the second mode, Csound
- * continues to perform indefinitely until performance is explicitly ended by
- * calling csoundStop. This could be called "live mode." Which mode is used is
- * determined by when csoundStart is called. In more detail:
+ * Csound code can also be supplied directly using strings, either as 
+ * a multi-section CSD (with the same format as CSD files) or
+ * directly as a string. It can be compiled any number of times
+ * before or during performance.
  *
- * \subsection s1 Score Mode
- *
- * \li The <CsOptions> section of the CSD file is processed.
- *
- * \li Either csoundStart must be called after csoundCompileCsd or csoundReadScore,
- *     or csoundReadScore must be called before csoundCompile.
- *
- * \li The score is pre-processed, and events are dispatched as regular score
- *     events. "f", "s", and "e" events are permitted in the score.
+ * \subsection s1 Using a CSD text
+ * 
+ * System options can be passed via the CSD text before the engine
+ * is started. These are ignored in subsequent compilations.
  *
  * \code
  * #include "csound.h"
  *
- * const char *csd_text = "blah blah blah";
+ * const char *csd_text = 
+ *  "<CsoundSynthesizer> \n"
+ *  "<CsOptions> -odac </CsOptions> \n"
+ *  "<CsInstruments> \n"
+ *  "instr 1 \n"
+ *  " out(linen(oscili(p4,p5),0.1,p3,0.1)) \n"
+ *  "endin \n"
+ *  "</CsInstruments> \n"
+ *  "<CsScore> \n"
+ *  "i1 0 5 1000 440 \n"
+ *  "</CsScore> \n"
+ *  "</CsoundSynthesizer> \n";
  *
  * int main(int argc, char **argv)
  * {
@@ -138,21 +142,19 @@
  * }
  * \endcode
  *
- * \subsection s2 Live Mode
+ * \subsection s2 Using Csound code directly.
  *
- * \li The <CsOptions> section of the CSD file not processed; options must
- *     be set by calling csoundSetOption.
- *
- * \li csoundStart must be called before csoundCompileCsd or csoundReadScore.
- *
- * \li The score is not pre-processed, and events are dispatched as real-time
- *     events. "f", "s", and "e" events are not permitted.
+ * Options can be passed via csoundSetOption() before the engine starts.
  *
  * \code
  * #include "csound.h"
  *
- * const char *orc_text = "blah blah blah";
- * const char *sco_text = "blah blah blah";
+ * const char *orc_text = 
+ *  "instr 1 \n"
+ *  " out(linen(oscili(p4,p5),0.1,p3,0.1)) \n"
+ *  "endin \n";
+ *
+ * const char *sco_text = "i1 0 5 1000 440 \n";
  *
  * int main(int argc, char **argv)
  * {
