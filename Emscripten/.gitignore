@@ -2,5 +2,7 @@ deps
 build
 build-wasm
 dist
+dist-wasm
+ace
 csound-emscripten-*
 csound-wasm-*
