@@ -802,7 +802,11 @@ int32_t printk(CSOUND *csound, PRINTK *p)
         s[p->pspace] = '\0';
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
+      if (*p->named)
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
+                         p->h.optext->t.inlist->arg[1], *p->val);
+      else
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->printat += p->ctime;
     }
     return OK;
