@@ -207,14 +207,14 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
         if (UNLIKELY(p->multicast)) {
           u_char ttl = 2;
 #if defined(LINUX)
-          if (UNLIKELY(setsockopt((int64_t)p->addr, IPPROTO_IP,
+          if (UNLIKELY(setsockopt((uintptr_t)p->addr, IPPROTO_IP,
                                   IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1)) {
             csound->Message(csound, Str("Failed to set multicast"));
           }
 #elif defined(MSVC)
           setsockopt((SOCKET)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #else
-	  setsockopt((int64_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+	  setsockopt((uintptr_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #endif
         }
         csound->Free(csound, p->lhost);
