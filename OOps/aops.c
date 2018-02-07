@@ -680,12 +680,12 @@ int32_t frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac par
 #ifdef MYFLOOR
 #undef MYFLOOR
 #endif
-#define MYFLOOR(x) ((int32)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
+#define MYFLOOR(x) ((int32_t)((double)(x) >= 0.0 ? (x) : (x) - 0.99999999))
 
 #ifdef MYCEIL
 #undef MYCEIL
 #endif
-#define MYCEIL(x) ((int32)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
+#define MYCEIL(x) ((int32_t)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
 
 int32_t int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 {
@@ -1150,7 +1150,7 @@ int32_t cps2pch(CSOUND *csound, XENH *p)
     else {
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTnp2Find(csound, &t);
-      int32 len;
+      int32_t len;
       if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, p->h.insdshead,Str("No tuning table %d"),
                                  -((int32_t)*p->et));

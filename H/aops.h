@@ -62,19 +62,19 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    int     *rbool;
+    int32_t     *rbool;
     MYFLT   *a, *b;
 } RELAT;
 
 typedef struct {
     OPDS    h;
-    int     *rbool, *ibool, *jbool;
+    int32_t     *rbool, *ibool, *jbool;
 } LOGCL;
 
 typedef struct {
     OPDS    h;
     MYFLT   *r;
-    int     *cond;
+    int32_t     *cond;
     MYFLT   *a, *b;
 } CONVAL;
 
@@ -132,14 +132,14 @@ typedef struct {
     OPDS    h;
     MYFLT   *ar[40];
     MYFLT   *ch[VARGMAX];
-    int     init;
+    int32_t     init;
 } INCH;
 
 typedef struct {
     OPDS    h;
     MYFLT   *ar;
     MYFLT   *ch;
-    int     init;
+    int32_t     init;
 } INCH1;
 
 typedef struct {
@@ -191,11 +191,11 @@ typedef struct MONITOR_OPCODE_ {
 typedef struct {
         OPDS    h;
         MYFLT   *kstartChan, *argums[VARGMAX];
-        int narg;
+        int32_t narg;
 } OUTRANGE;
 
-int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
-int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
-int outRange_i(CSOUND *csound, OUTRANGE *p);
-int outRange(CSOUND *csound, OUTRANGE *p);
-int hw_channels(CSOUND *csound, ASSIGN *p);
+int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
+int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
+int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
+int32_t outRange(CSOUND *csound, OUTRANGE *p);
+int32_t hw_channels(CSOUND *csound, ASSIGN *p);

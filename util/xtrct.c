@@ -50,7 +50,7 @@ typedef struct {
   MYFLT       stime;          /* Time file starts in secs */
   MYFLT       endtime;        /* Time file ends in secs */
   MYFLT       dur;            /* Length in secs */
-  int         outputs;        /* Number of out chanels */
+  int32_t         outputs;        /* Number of out chanels */
   SOUNDIN *   p;              /* Csound structure */
 } XTRC;
 
@@ -87,7 +87,7 @@ static void usage(CSOUND *csound, char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static int xtrct(CSOUND *csound, int argc, char **argv)
+static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
 {
     OPARMS      O;
     char        *inputfile = NULL;
@@ -96,8 +96,8 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     void        *fd;
     char        c, *s;
     SF_INFO     sfinfo;
-    int         debug   = 0;
-    int         Omsg;
+    int32_t         debug   = 0;
+    int32_t         Omsg;
     XTRC        xtrc;
 
     csound->GetOParms(csound, &O);
@@ -282,7 +282,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     csound->SetUtilNchnls(csound, xtrc.outputs);
     memset(&sfinfo, 0, sizeof(SF_INFO));
     //sfinfo.frames = 0/*was -1*/;
-    sfinfo.samplerate = (int) ((MYFLT)xtrc.p->sr + FL(0.5));
+    sfinfo.samplerate = (int32_t) ((MYFLT)xtrc.p->sr + FL(0.5));
     sfinfo.channels = xtrc.outputs;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     /* open file for write */
@@ -337,11 +337,11 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
     double buffer[NUMBER_OF_SAMPLES];
     long  read_in;
     long  frames = 0;
-    int   block = 0;
+    int32_t   block = 0;
 
     sf_seek(infd, x->sample, SEEK_CUR);
     while (x->numsamps>0) {
-      int num = NUMBER_OF_SAMPLES / x->outputs;
+      int32_t num = NUMBER_OF_SAMPLES / x->outputs;
       if (x->numsamps < num)
         num = x->numsamps;
       x->numsamps -= num;
@@ -364,9 +364,9 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
 
 /* module interface */
 
-int xtrct_init_(CSOUND *csound)
+int32_t xtrct_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "extractor", xtrct);
+    int32_t retval = csound->AddUtility(csound, "extractor", xtrct);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "extractor",
                                              Str("Extract part of a sound file"));

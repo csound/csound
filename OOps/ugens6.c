@@ -256,7 +256,7 @@ int32_t samphold(CSOUND *csound, SAMPHOLD *p)
 
 int32_t delset(CSOUND *csound, DELAY *p)
 {
-    int32      npts;
+    int32_t      npts;
     char        *auxp;
 
     if (UNLIKELY(*p->istor && p->auxch.auxp != NULL))
@@ -268,7 +268,7 @@ int32_t delset(CSOUND *csound, DELAY *p)
 
     if ((auxp = p->auxch.auxp) == NULL ||
         npts != p->npts) { /* new space if reqd */
-      csound->AuxAlloc(csound, (int32)npts*sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (int32_t)npts*sizeof(MYFLT), &p->auxch);
       auxp = p->auxch.auxp;
       p->npts = npts;
     }
@@ -309,7 +309,7 @@ int32_t delrset(CSOUND *csound, DELAYR *p)
     }
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
-      csound->AuxAlloc(csound, (int32)npts*sizeof(MYFLT), &p->auxch);
+      csound->AuxAlloc(csound, (int32_t)npts*sizeof(MYFLT), &p->auxch);
       auxp = (MYFLT*)p->auxch.auxp;
       p->npts = npts;
     }
@@ -496,7 +496,7 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32       idelsmps;
+    int32_t       idelsmps;
     MYFLT       delsmps, delfrac;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
@@ -511,7 +511,7 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
     if (!IS_ASIG_ARG(p->xdlt)) {
       if(*p->xdlt == INFINITY) goto err2;
       delsmps = *p->xdlt * csound->esr;
-      idelsmps = (int32)delsmps;
+      idelsmps = (int32_t)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
@@ -529,7 +529,7 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
       for (n=offset; n<nsmps; n++) {
         if(timp[n] == INFINITY) goto err2;
         delsmps = timp[n] * csound->esr;
-        idelsmps = (int32)delsmps;
+        idelsmps = (int32_t)delsmps;
         delfrac = delsmps - idelsmps;
         tap = curq++ - idelsmps;
         if (UNLIKELY(tap < begp)) tap += q->npts;
@@ -558,7 +558,7 @@ int32_t deltapn(CSOUND *csound, DELTAP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32  idelsmps;
+    int32_t  idelsmps;
     MYFLT  delsmps;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
@@ -572,7 +572,7 @@ int32_t deltapn(CSOUND *csound, DELTAP *p)
     endp = (MYFLT *) q->auxch.endp;
     if (!IS_ASIG_ARG(p->xdlt)) {
       delsmps = *p->xdlt;
-      idelsmps = (int32)delsmps;
+      idelsmps = (int32_t)delsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
       for (n=offset; n<nsmps; n++) {
@@ -588,7 +588,7 @@ int32_t deltapn(CSOUND *csound, DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=offset; n<nsmps; n++) {
         delsmps = timp[n];
-        idelsmps = (int32)delsmps;
+        idelsmps = (int32_t)delsmps;
         if (UNLIKELY((tap = curq++ - idelsmps) < begp))
           tap += q->npts;
         else if (UNLIKELY(tap >= endp))
@@ -610,7 +610,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32       idelsmps;
+    int32_t       idelsmps;
     MYFLT       delsmps, delfrac;
 
     if (UNLIKELY(q->auxch.auxp==NULL)) goto err1;
@@ -625,7 +625,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
     if (!IS_ASIG_ARG(p->xdlt)) {
       if(*p->xdlt == INFINITY) goto err2;
       delsmps = *p->xdlt * csound->esr;
-      idelsmps = (int32)delsmps;
+      idelsmps = (int32_t)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
       while (tap < begp) tap += q->npts;
@@ -660,7 +660,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
         MYFLT ym1, y0, y1, y2;
         if(timp[n] == INFINITY) goto err2;
         delsmps = *timp++ * csound->esr;
-        idelsmps = (int32)delsmps;
+        idelsmps = (int32_t)delsmps;
         delfrac = delsmps - idelsmps;
         if (UNLIKELY((tap = curq++ - idelsmps) < begp))
           tap += q->npts;
@@ -717,7 +717,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32   indx, maxd, xpos;
+    int32_t   indx, maxd, xpos;
 
     if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
     out1 = p->ar; del = p->adlt;
@@ -727,7 +727,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
       memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
     }
     buf1 = (MYFLT *) q->auxch.auxp;
-    indx = (int32) (q->curp - buf1);
+    indx = (int32_t) (q->curp - buf1);
     maxd = q->npts; bufend = buf1 + maxd;
 
     if (p->wsize != 4) {                /* window size >= 8 */
@@ -743,7 +743,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 
         x1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (x1 < 0.0) x1 += (double)maxd;
-        xpos = (int32)x1; x1 -= (double)xpos;
+        xpos = (int32_t)x1; x1 -= (double)xpos;
         while (xpos >= maxd) xpos -= maxd;
 
         if (x1 > 0.00000001 && x1 < 0.99999999) {
@@ -776,7 +776,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
       for (n=offset; n<nsmps; n++) {
         am1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (am1 < 0.0) am1 += (double)maxd;
-        xpos = (int32) am1; am1 -= (double)xpos;
+        xpos = (int32_t) am1; am1 -= (double)xpos;
 
         a0  = am1 * am1; a2 = 0.16666667 * (am1 * a0 - am1);    /* sample +2 */
         a1  = 0.5 * (a0 + am1) - 3.0 * a2;                      /* sample +1 */
@@ -806,13 +806,13 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32   indx, maxd, xpos;
+    int32_t   indx, maxd, xpos;
 
     if (UNLIKELY(q->auxch.auxp == NULL)) goto err1; /* RWD fix */
     in1 = p->ar; del = p->adlt;
     if (UNLIKELY(early)) nsmps -= early;
     buf1 = (MYFLT *) q->auxch.auxp;
-    indx = (int32) (q->curp - buf1);
+    indx = (int32_t) (q->curp - buf1);
     maxd = q->npts; bufend = buf1 + maxd;
 
     if (p->wsize != 4) {                /* window size >= 8 */
@@ -828,7 +828,7 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
 
         x1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (x1 < 0.0) x1 += (double)maxd;
-        xpos = (int32) x1; x1 -= (double)xpos;
+        xpos = (int32_t) x1; x1 -= (double)xpos;
         while (xpos >= maxd) xpos -= maxd;
 
         if (x1 > 0.00000001 && x1 < 0.99999999) {
@@ -860,7 +860,7 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
       for (n=offset; n<nsmps; n++) {
         am1 = (double)indx - (double)*(del++) * (double)csound->esr;
         while (am1 < 0.0) am1 += (double)maxd;
-        xpos = (int32) am1; am1 -= (double)xpos;
+        xpos = (int32_t) am1; am1 -= (double)xpos;
 
         a0  = am1 * am1; a2 = 0.16666667 * (am1 * a0 - am1);    /* sample +2 */
         a1  = 0.5 * (a0 + am1) - 3.0 * a2;                      /* sample +1 */
@@ -916,7 +916,7 @@ int32_t delay1(CSOUND *csound, DELAY1 *p)
 
 int32_t cmbset(CSOUND *csound, COMB *p)
 {
-    int32       lpsiz, nbytes;
+    int32_t       lpsiz, nbytes;
 
     if (*p->insmps != 0) {
       if (UNLIKELY((lpsiz = MYFLT2LRND(*p->ilpt))) <= 0) {
@@ -928,13 +928,13 @@ int32_t cmbset(CSOUND *csound, COMB *p)
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || (uint32_t)nbytes != p->auxch.size) {
-      csound->AuxAlloc(csound, (int32)nbytes, &p->auxch);
+      csound->AuxAlloc(csound, (int32_t)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       p->prvt = FL(0.0);
       p->coef = FL(0.0);
     }
     else if (!(*p->istor)) {
-      /* Does this assume sizeof(MYFLT)==sizeof(int32)?? */
+      /* Does this assume sizeof(MYFLT)==sizeof(int32_t)?? */
       p->pntr = (MYFLT *) p->auxch.auxp;
       memset(p->auxch.auxp, '\0', nbytes);
       p->prvt = FL(0.0);

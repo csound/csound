@@ -36,7 +36,7 @@
 
 int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
-    uint32 n = (int32)(*p->imaxd * ESR)+1;
+    uint32 n = (int32_t)(*p->imaxd * ESR)+1;
 
     if (!*p->istod) {
       if (p->aux.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux.size)
@@ -56,7 +56,7 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
-    int32  maxd, indx;
+    int32_t  maxd, indx;
     MYFLT *out = p->sr;     /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -75,7 +75,7 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     if (IS_ASIG_ARG(p->adel)) {          /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
         MYFLT  fv1, fv2;
-        int32   v1, v2;
+        int32_t   v1, v2;
 
         buf[indx] = in[nn];
         fv1 = indx - (del[nn]) * esr;
@@ -98,8 +98,8 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         else
           fv2 = FL(0.0);
 
-        v1 = (int32)fv1;
-        v2 = (int32)fv2;
+        v1 = (int32_t)fv1;
+        v2 = (int32_t)fv2;
         out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (UNLIKELY(++indx == maxd))
@@ -111,7 +111,7 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
       MYFLT fdel=*del;
       for (nn=offset; nn<nsmps; nn++) {
         MYFLT  fv1, fv2;
-        int32   v1, v2;
+        int32_t   v1, v2;
 
         buf[indx] = in[nn];
         fv1 = indx - fdel * esr;
@@ -129,8 +129,8 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
         else
           fv2 = FL(0.0);
 
-        v1 = (int32)fv1;
-        v2 = (int32)fv2;
+        v1 = (int32_t)fv1;
+        v2 = (int32_t)fv2;
         out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (UNLIKELY(++indx == maxd)) indx = 0;   /*      Advance current pointer */
@@ -149,7 +149,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
-    int32  maxd, indx;
+    int32_t  maxd, indx;
     MYFLT *out = p->sr;  /* assign object data to local variables   */
     MYFLT *in = p->ain;
     MYFLT *del = p->adel;
@@ -169,29 +169,29 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     if (IS_ASIG_ARG(p->adel)) {              /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
         MYFLT  fv1;
-        int32   v0, v1, v2, v3;
+        int32_t   v0, v1, v2, v3;
 
         buf[indx] = in[nn];      /* IV Oct 2001 */
         fv1 = del[nn] * (-esr);
-        v1 = (int32)fv1;
+        v1 = (int32_t)fv1;
         fv1 -= (MYFLT) v1;
-        v1 += (int32)indx;
+        v1 += (int32_t)indx;
         /* Make sure Inside the buffer      */
         if ((v1 < 0L) || (fv1 < FL(0.0))) {
-          fv1++; v1--; while (UNLIKELY(v1 < 0L)) v1 += (int32)maxd;
+          fv1++; v1--; while (UNLIKELY(v1 < 0L)) v1 += (int32_t)maxd;
         }
         else {
-          while (UNLIKELY(v1 >= (int32)maxd)) v1 -= (int32)maxd;
+          while (UNLIKELY(v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
         }
         /* Find next sample for interpolation      */
-        v2 = (v1 == (int32)(maxd - 1UL) ? 0L : v1 + 1L);
+        v2 = (v1 == (int32_t)(maxd - 1UL) ? 0L : v1 + 1L);
 
         if (maxd<4) {
           out[nn] = buf[v1] + fv1 * (buf[v2] - buf[v1]);
         }
         else {
           v0 = (v1==0 ? maxd-1 : v1-1);
-          v3 = (v2==(int32)maxd-1 ? 0 : v2+1);
+          v3 = (v2==(int32_t)maxd-1 ? 0 : v2+1);
           {                     /* optimized by Istvan Varga (Oct 2001) */
             MYFLT w, x, y, z;
             z = fv1 * fv1; z--; z *= FL(0.1666666667);
@@ -208,24 +208,24 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     }
     else {                      /* and, if delay is k-rate */
       MYFLT  fv1, w, x, y, z;
-      int32   v0, v1, v2, v3;
+      int32_t   v0, v1, v2, v3;
 
-      fv1 = *del * -esr; v1 = (int32)fv1; fv1 -= (MYFLT) v1;
-      v1 += (int32)indx;
+      fv1 = *del * -esr; v1 = (int32_t)fv1; fv1 -= (MYFLT) v1;
+      v1 += (int32_t)indx;
       /* Make sure Inside the buffer      */
       if ((v1 < 0L) || (fv1 < FL(0.0))) {
-        fv1++; v1--; while (UNLIKELY(v1 < 0L)) v1 += (int32)maxd;
+        fv1++; v1--; while (UNLIKELY(v1 < 0L)) v1 += (int32_t)maxd;
       }
       else {
-        while (UNLIKELY(v1 >= (int32)maxd)) v1 -= (int32)maxd;
+        while (UNLIKELY(v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
       }
 
       if (maxd<4) {
         for (nn=offset; nn<nsmps; nn++) {
           /* Find next sample for interpolation      */
-          v2 = (v1 == (int32)(maxd - 1UL) ? 0L : v1 + 1L);
+          v2 = (v1 == (int32_t)(maxd - 1UL) ? 0L : v1 + 1L);
           out[nn] = buf[v1] + fv1 * (buf[v2] - buf[v1]);
-          if (UNLIKELY(++v1 >= (int32)maxd)) v1 -= (int32)maxd;
+          if (UNLIKELY(++v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
               if (UNLIKELY(++indx >= maxd)) indx -= maxd;
         }
       }
@@ -237,12 +237,12 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
         for (nn=offset; nn<nsmps; nn++) {
           buf[indx] = in[nn];
           /* Find next sample for interpolation      */
-          v2 = (v1 == (int32)(maxd - 1UL) ? 0L : v1 + 1L);
-          v0 = (v1 == 0L ? (int32)(maxd - 1UL) : v1 - 1L);
-          v3 = (v2 == (int32)(maxd - 1UL) ? 0L : v2 + 1L);
+          v2 = (v1 == (int32_t)(maxd - 1UL) ? 0L : v1 + 1L);
+          v0 = (v1 == 0L ? (int32_t)(maxd - 1UL) : v1 - 1L);
+          v3 = (v2 == (int32_t)(maxd - 1UL) ? 0L : v2 + 1L);
           out[nn] = (w*buf[v0] + x*buf[v1] + y*buf[v2] + z*buf[v3])
                      * fv1 + buf[v1];
-          if (UNLIKELY(++v1 >= (int32)maxd)) v1 -= (int32)maxd;
+          if (UNLIKELY(++v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
           if (UNLIKELY(++indx >= maxd))
             indx -= maxd;     /* Advance current pointer */
         }
@@ -344,14 +344,14 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
-    int32 indx, maxd;
+    int32_t indx, maxd;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *in1 = p->ain1;
     MYFLT *del = p->adel;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     int32_t   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1;
-    int32   i, i2, xpos;
+    int32_t   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
     maxd = p->maxd;
@@ -375,7 +375,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
 
       x1 = (double)indx - ((double)del[nn] * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
-      xpos = (int32)x1;
+      xpos = (int32_t)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
@@ -395,7 +395,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
         out1[nn] = (MYFLT) (n1 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[nn] = buf1[xpos];
       }
@@ -415,14 +415,14 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
-    int32  maxd, indx;
+    int32_t  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *in1 = p->ain1;
     MYFLT *del = p->adel;
     MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
     int32_t   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1;
-    int32   i, i2, xpos;
+    int32_t   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
     maxd =  p->maxd;
@@ -443,7 +443,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 
       x1 = (double)indx + ((double)del[nn] * (double)csound->esr);
       while (x1 < 0.0) x1 += (double)maxd;
-      xpos = (int32)x1;
+      xpos = (int32_t)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
@@ -463,7 +463,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[nn];
       }
@@ -481,7 +481,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 
 int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 {
-    int32  maxd, indx;
+    int32_t  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *in1 = p->ain1;
@@ -491,7 +491,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
     int32_t   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2;
-    int32   i, i2, xpos;
+    int32_t   i, i2, xpos;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -522,7 +522,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 
       x1 = (double)indx - ((double)del[n] * (double)csound->esr);
       while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
-      xpos = (int32)x1;
+      xpos = (int32_t)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
@@ -542,7 +542,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
         out1[n] = (MYFLT) (n1 * x2); out2[n] = (MYFLT) (n2 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
       }
@@ -562,7 +562,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32  maxd, indx;
+    int32_t  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *in1 = p->ain1;
@@ -572,7 +572,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
     int32_t   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2;
-    int32   i, i2, xpos;
+    int32_t   i, i2, xpos;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1;     /* RWD fix */
     maxd =  p->maxd;
@@ -597,7 +597,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 
       x1 = (double)indx + ((double)del[n] * (double)csound->esr);
       while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
-      xpos = (int32)x1;
+      xpos = (int32_t)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
@@ -617,7 +617,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[n]; buf2[xpos] += in2[n];
       }
@@ -639,7 +639,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32  maxd, indx;
+    int32_t  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *out3 = p->sr3;
@@ -655,7 +655,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     MYFLT *buf4 = (MYFLT *)p->aux4.auxp;
     int32_t   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2, n3, n4;
-    int32   i, i2, xpos;
+    int32_t   i, i2, xpos;
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
                  (buf3 == NULL) || (buf4 == NULL))) goto err1;
@@ -690,7 +690,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 
       x1 = (double)indx - ((double)*del++ * (double)csound->esr);
       while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
-      xpos = (int32)x1;
+      xpos = (int32_t)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
@@ -713,7 +713,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
         out3[n] = (MYFLT) (n3 * x2); out4[n] = (MYFLT) (n4 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
         out3[n] = buf3[xpos]; out4[n] = buf4[xpos];
@@ -734,7 +734,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32  maxd, indx;
+    int32_t  maxd, indx;
     MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
     MYFLT *out2 = p->sr2;
     MYFLT *out3 = p->sr3;
@@ -750,7 +750,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     MYFLT *buf4 = (MYFLT *)p->aux4.auxp;
     int32_t   wsize = p->interp_size;
     double x1, x2, w, d, d2x, n1, n2, n3, n4;
-    int32   i, i2, xpos;
+    int32_t   i, i2, xpos;
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
                  (buf3 == NULL) || (buf4 == NULL))) goto err1;
@@ -781,7 +781,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 
       x1 = (double)indx + ((double)del[n] * (double)csound->esr);
       while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
-      xpos = (int32)x1;
+      xpos = (int32_t)x1;
       x1 -= (double)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
@@ -804,7 +804,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[n]; buf2[xpos] += in2[n];
         buf3[xpos] += in3[n]; buf4[xpos] += in4[n];
@@ -847,7 +847,7 @@ int32_t multitap_set(CSOUND *csound, MDEL *p)
     }
 
     p->left = 0;
-    p->max = (int32)(csound->esr * max);
+    p->max = (int32_t)(csound->esr * max);
     return OK;
 }
 
@@ -873,9 +873,9 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
 
       if (UNLIKELY(++indx == max)) indx = 0;   /*      Advance input pointer   */
       for (i = 0; i < p->INOCOUNT - 1; i += 2) {
-        delay = indx - (int32)(csound->esr * *p->ndel[i]);
+        delay = indx - (int32_t)(csound->esr * *p->ndel[i]);
         if (UNLIKELY(delay < 0))
-          delay += (int32)max;
+          delay += (int32_t)max;
         v += buf[delay] * *p->ndel[i+1]; /*      Write output    */
       }
       out[n] = v;
@@ -997,7 +997,7 @@ static const MYFLT ca_gain[orgAlpas] = {
 
 int32_t reverbx_set(CSOUND *csound, NREV2 *p)
 {
-    int32  i, n;
+    int32_t  i, n;
     /* Temp holder of old or user constants. */
     const MYFLT *c_orgtime, *a_orgtime;
     int32_t   c_time, a_time;
@@ -1151,7 +1151,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
 
 int32_t reverbx(CSOUND *csound, NREV2 *p)
 {
-    int32   i;
+    int32_t i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;

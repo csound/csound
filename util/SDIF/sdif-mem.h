@@ -65,8 +65,8 @@ typedef struct SDIFmemFrameStruct {
 /* SDIFmem_Init --
    You must call this before any of the other procedures in this library.  You
    pass in the procedures that will be used for malloc() and free(). */
-SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int numBytes),
-              void (*MemoryFreer)(void *memory, int numBytes));
+SDIFresult SDIFmem_Init(void *(*MemoryAllocator)(int32_t numBytes),
+              void (*MemoryFreer)(void *memory, int32_t numBytes));
 
 /* Constructors */
 

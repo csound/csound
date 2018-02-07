@@ -26,7 +26,7 @@
 #include "csoundCore.h" /*                            GOTO_OPS.C        */
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
-extern int32 strarg2insno(CSOUND *, void *p, int32_t is_string);
+extern int32_t strarg2insno(CSOUND *, void *p, int32_t is_string);
 
 int32_t igoto(CSOUND *csound, GOTO *p)
 {
@@ -94,8 +94,8 @@ int32_t kingoto(CSOUND *csound, CGOTO *p)
 
 int32_t timset(CSOUND *csound, TIMOUT *p)
 {
-    if (UNLIKELY((p->cnt1 = (int32)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
-                 (p->cnt2 = (int32)(*p->idur * CS_EKR + FL(0.5))) < 0L))
+    if (UNLIKELY((p->cnt1 = (int32_t)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
+                 (p->cnt2 = (int32_t)(*p->idur * CS_EKR + FL(0.5))) < 0L))
       return csoundInitError(csound, Str("negative time period"));
     return OK;
 }

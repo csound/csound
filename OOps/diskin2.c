@@ -38,7 +38,7 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
                                             DISKIN2 *p, int32_t bufReadPos)
 {
     MYFLT *tmp;
-    int32 nsmps;
+    int32_t nsmps;
     int32_t   i;
     IGN(csound);
     /* swap buffer pointers */
@@ -46,9 +46,9 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
     p->buf = p->prvBuf;
     p->prvBuf = tmp;
     /* check if requested data can be found in previously used buffer */
-    i = (int32_t)((int32) bufReadPos + (p->bufStartPos - p->prvBufStartPos));
+    i = (int32_t)((int32_t) bufReadPos + (p->bufStartPos - p->prvBufStartPos));
     if ((uint32_t) i < (uint32_t) p->bufSize) {
-      int32  tmp2;
+      int32_t  tmp2;
       /* yes, only need to swap buffers and return */
       tmp2 = p->bufStartPos;
       p->bufStartPos = p->prvBufStartPos;
@@ -58,16 +58,16 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
     /* save buffer position */
     p->prvBufStartPos = p->bufStartPos;
     /* calculate new buffer frame start position */
-    p->bufStartPos = p->bufStartPos + (int32) bufReadPos;
-    p->bufStartPos &= (~((int32) (p->bufSize - 1)));
+    p->bufStartPos = p->bufStartPos + (int32_t) bufReadPos;
+    p->bufStartPos &= (~((int32_t) (p->bufSize - 1)));
     i = 0;
     if (p->bufStartPos >= 0L) {
       /* number of sample frames to read */
       nsmps = p->fileLength - p->bufStartPos;
       if (nsmps > 0L) {         /* if there is anything to read: */
-        if (nsmps > (int32) p->bufSize)
-          nsmps = (int32) p->bufSize;
-        nsmps *= (int32) p->nChannels;
+        if (nsmps > (int32_t) p->bufSize)
+          nsmps = (int32_t) p->bufSize;
+        nsmps *= (int32_t) p->nChannels;
         sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
         /* convert sample count to mono samples and read file */
         i = (int32_t)sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
@@ -86,7 +86,7 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
 /* scale 'scl'.                                                         */
 
 static inline void diskin2_get_sample(CSOUND *csound,
-                                      DISKIN2 *p, int32 fPos, int32_t n, MYFLT scl)
+                                      DISKIN2 *p, int32_t fPos, int32_t n, MYFLT scl)
 {
     int32_t  bufPos, i;
 
@@ -373,7 +373,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
         / ((MYFLT)((p->winSize * p->winSize) >> 2));
     }
     /* set file parameters from header info */
-    p->fileLength = (int32) sfinfo.frames;
+    p->fileLength = (int32_t) sfinfo.frames;
     p->warpScale = 1.0;
     if ((int32_t)(csound->esr + FL(0.5)) != sfinfo.samplerate) {
       if (LIKELY(p->winSize != 1)) {
@@ -405,8 +405,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     p->bufSize = diskin2_calc_buffer_size(p, (int32_t)((p->BufSize) + FL(0.5)));
     n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
     if (n != (int32_t)p->auxData.size)
-      csound->AuxAlloc(csound, (int32) n, &(p->auxData));
-    p->bufStartPos = p->prvBufStartPos = -((int32)p->bufSize);
+      csound->AuxAlloc(csound, (int32_t) n, &(p->auxData));
+    p->bufStartPos = p->prvBufStartPos = -((int32_t)p->bufSize);
     n = p->bufSize * p->nChannels;
     p->buf = (MYFLT*) (p->auxData.auxp);
     p->prvBuf = (MYFLT*) p->buf + (int32_t)n;
@@ -423,7 +423,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       // allocate buffer
       n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
-        csound->AuxAlloc(csound, (int32) n, &(p->auxData2));
+        csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
       p->aOut_bufsize = CS_KSMPS;
@@ -466,12 +466,14 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
 
       /* print file information */
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
-        csound->Message(csound, Str("diskin2: opened (asynchronously) '%s':\n"
-                                    "         %d Hz, %d channel(s), "
-                                    "%lld sample frames\n"),
+        csound->Message(csound, "%s '%s'\n"
+                        "         %d Hz, %d %s, %"  PRId64 " %s",
+                        Str("diskin2: opened (asynchronously)"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
-                        (long long)sfinfo.frames);
+                        Str("channel(s)"),
+                        sfinfo.frames,
+                        Str("sample frames\n"));
       }
     }
     else {
@@ -480,12 +482,14 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       p->async = 0;
       /* print file information */
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
-        csound->Message(csound, Str("diskin2: opened '%s':\n"
-                                    "         %d Hz, %d channel(s), "
-                                    "%lld sample frames\n"),
+        csound->Message(csound, "%s '%s':\n"
+                        "         %d Hz, %d %s, %" PRId64 " %s\n",
+                        Str("diskin2: opened"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
-                        (long long)sfinfo.frames);
+                        Str("channel(s)"),
+                        sfinfo.frames,
+                        Str("sample frames\n"));
       }
     }
 
@@ -529,10 +533,10 @@ int32_t diskin2_async_deinit(CSOUND *csound,  void *p){
     return OK;
 }
 
-static inline void diskin2_file_pos_inc(DISKIN2 *p, int32 *ndx)
+static inline void diskin2_file_pos_inc(DISKIN2 *p, int32_t *ndx)
 {
     p->pos_frac += p->pos_frac_inc;
-    *ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
+    *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     if (p->wrapMode) {
       if (*ndx >= p->fileLength) {
         *ndx -= p->fileLength;
@@ -554,7 +558,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
     int chn, i, nn;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
-    int32   ndx;
+    int32_t   ndx;
     int32_t     wsized2, warp;
 
 
@@ -579,7 +583,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         p->aOut[chn][nn] = FL(0.0);
     /* file read position */
     if (UNLIKELY(early)) nsmps -= early;
-    ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
+    ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
     case 1:                   /* ---- no interpolation ---- */
       for (nn = offset; nn < nsmps; nn++) {
@@ -647,7 +651,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
       for (nn = offset; nn < nsmps; nn++) {
         frac_d = (double)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
           * (1.0 / (double)POS_FRAC_SCALE);
-        ndx += (int32)(1 - wsized2);
+        ndx += (int32_t)(1 - wsized2);
         d = (double)(1 - wsized2) - frac_d;
         if (warp) {                           /* ---- warp enabled ---- */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
@@ -697,7 +701,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         else {                                /* ---- warp disabled ---- */
           /* avoid division by zero */
           if (frac_d < 0.00001 || frac_d > 0.99999) {
-            ndx += (int32) (wsized2 - (frac_d < 0.5 ? 1 : 0));
+            ndx += (int32_t) (wsized2 - (frac_d < 0.5 ? 1 : 0));
             diskin2_get_sample(csound, p, ndx, nn, FL(1.0));
           }
           else {
@@ -740,7 +744,7 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
     int32_t chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
-    int32   ndx;
+    int32_t   ndx;
     int32_t     wsized2, warp;
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
 
@@ -832,7 +836,7 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
       for (nn = 0; nn < nsmps; nn++) {
         frac_d = (double)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
           * (1.0 / (double)POS_FRAC_SCALE);
-        ndx += (int32)(1 - wsized2);
+        ndx += (int32_t)(1 - wsized2);
         d = (double)(1 - wsized2) - frac_d;
         if (warp) {                           /* ---- warp enabled ---- */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
@@ -882,7 +886,7 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
         else {                                /* ---- warp disabled ---- */
           /* avoid division by zero */
           if (frac_d < 0.00001 || frac_d > 0.99999) {
-            ndx += (int32) (wsized2 - (frac_d < 0.5 ? 1 : 0));
+            ndx += (int32_t) (wsized2 - (frac_d < 0.5 ? 1 : 0));
             diskin2_get_sample(csound, p, ndx, nn, FL(1.0));
           }
           else {
@@ -1148,7 +1152,7 @@ static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
                                                   DISKIN2_ARRAY *p, int32_t bufReadPos)
 {
     MYFLT *tmp;
-    int32 nsmps;
+    int32_t nsmps;
     int32_t   i;
     IGN(csound);
     /* swap buffer pointers */
@@ -1156,9 +1160,9 @@ static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
     p->buf = p->prvBuf;
     p->prvBuf = tmp;
     /* check if requested data can be found in previously used buffer */
-    i = (int32_t)((int32) bufReadPos + (p->bufStartPos - p->prvBufStartPos));
+    i = (int32_t)((int32_t) bufReadPos + (p->bufStartPos - p->prvBufStartPos));
     if ((uint32_t) i < (uint32_t) p->bufSize) {
-      int32  tmp2;
+      int32_t  tmp2;
       /* yes, only need to swap buffers and return */
       tmp2 = p->bufStartPos;
       p->bufStartPos = p->prvBufStartPos;
@@ -1168,16 +1172,16 @@ static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
     /* save buffer position */
     p->prvBufStartPos = p->bufStartPos;
     /* calculate new buffer frame start position */
-    p->bufStartPos = p->bufStartPos + (int32) bufReadPos;
-    p->bufStartPos &= (~((int32) (p->bufSize - 1)));
+    p->bufStartPos = p->bufStartPos + (int32_t) bufReadPos;
+    p->bufStartPos &= (~((int32_t) (p->bufSize - 1)));
     i = 0;
     if (p->bufStartPos >= 0L) {
       /* number of sample frames to read */
       nsmps = p->fileLength - p->bufStartPos;
       if (nsmps > 0L) {         /* if there is anything to read: */
-        if (nsmps > (int32) p->bufSize)
-          nsmps = (int32) p->bufSize;
-        nsmps *= (int32) p->nChannels;
+        if (nsmps > (int32_t) p->bufSize)
+          nsmps = (int32_t) p->bufSize;
+        nsmps *= (int32_t) p->nChannels;
         sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
         /* convert sample count to mono samples and read file */
         i = (int32_t)sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
@@ -1215,10 +1219,10 @@ static int32_t diskin2_calc_buffer_size_array(DISKIN2_ARRAY *p, int32_t n_monoSa
     return nFrames;
 }
 
-static inline void diskin2_file_pos_inc_array(DISKIN2_ARRAY *p, int32 *ndx)
+static inline void diskin2_file_pos_inc_array(DISKIN2_ARRAY *p, int32_t *ndx)
 {
     p->pos_frac += p->pos_frac_inc;
-    *ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
+    *ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     if (p->wrapMode) {
       if (*ndx >= p->fileLength) {
         *ndx -= p->fileLength;
@@ -1232,7 +1236,7 @@ static inline void diskin2_file_pos_inc_array(DISKIN2_ARRAY *p, int32 *ndx)
 }
 
 static inline void diskin2_get_sample_array(CSOUND *csound,
-                                            DISKIN2_ARRAY *p, int32 fPos,
+                                            DISKIN2_ARRAY *p, int32_t fPos,
                                             int32_t n, MYFLT scl)
 {
     int32_t  bufPos, i;
@@ -1341,7 +1345,7 @@ int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
     int32_t chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
-    int32   ndx;
+    int32_t   ndx;
     int32_t     wsized2, warp;
     MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
 
@@ -1365,7 +1369,7 @@ int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
       for (nn = 0; nn < nsmps; nn++)
         aOut[chn + nn*chans] = FL(0.0);
     /* file read position */
-    ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
+    ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
     case 1:                   /* ---- no interpolation ---- */
       for (nn = 0; nn < nsmps; nn++) {
@@ -1433,7 +1437,7 @@ int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
       for (nn = 0; nn < nsmps; nn++) {
         frac_d = (double)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
           * (1.0 / (double)POS_FRAC_SCALE);
-        ndx += (int32)(1 - wsized2);
+        ndx += (int32_t)(1 - wsized2);
         d = (double)(1 - wsized2) - frac_d;
         if (warp) {                           /* ---- warp enabled ---- */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
@@ -1483,7 +1487,7 @@ int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
         else {                                /* ---- warp disabled ---- */
           /* avoid division by zero */
           if (frac_d < 0.00001 || frac_d > 0.99999) {
-            ndx += (int32) (wsized2 - (frac_d < 0.5 ? 1 : 0));
+            ndx += (int32_t) (wsized2 - (frac_d < 0.5 ? 1 : 0));
             diskin2_get_sample_array(csound, p, ndx, nn, FL(1.0));
           }
           else {
@@ -1635,7 +1639,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stri
         / ((MYFLT)((p->winSize * p->winSize) >> 2));
     }
     /* set file parameters from header info */
-    p->fileLength = (int32) sfinfo.frames;
+    p->fileLength = (int32_t) sfinfo.frames;
     p->warpScale = 1.0;
     if ((int32_t)(csound->esr + FL(0.5)) != sfinfo.samplerate) {
       if (LIKELY(p->winSize != 1)) {
@@ -1667,8 +1671,8 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stri
     p->bufSize = diskin2_calc_buffer_size_array(p, (int32_t)((p->BufSize) + FL(0.5)));
     n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
     if (n != (int32_t)p->auxData.size)
-      csound->AuxAlloc(csound, (int32) n, &(p->auxData));
-    p->bufStartPos = p->prvBufStartPos = -((int32)p->bufSize);
+      csound->AuxAlloc(csound, (int32_t) n, &(p->auxData));
+    p->bufStartPos = p->prvBufStartPos = -((int32_t)p->bufSize);
     n = p->bufSize * p->nChannels;
     p->buf = (MYFLT*) (p->auxData.auxp);
     p->prvBuf = (MYFLT*) p->buf + (int32_t)n;
@@ -1685,7 +1689,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stri
       // allocate buffer
       n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
-        csound->AuxAlloc(csound, (int32) n, &(p->auxData2));
+        csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
       p->aOut_bufsize = CS_KSMPS;
@@ -1740,12 +1744,14 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stri
 
       /* print file information */
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
-        csound->Message(csound, Str("diskin2: opened (asynchronously) '%s':\n"
-                                    "         %d Hz, %d channel(s), "
-                                    "%lld sample frames\n"),
+        csound->Message(csound, "%s '%s':\n"
+                                "         %d Hz, %d %schannel(s), %" PRId64 " %s",
+                        Str("diskin2: opened (asynchronously)"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
-                        (long long) sfinfo.frames);
+                        Str("channel(s)"),
+                        sfinfo.frames,
+                        Str("sample frames\n"));
       }
     }
     else {
@@ -1754,12 +1760,14 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stri
       p->async = 0;
       /* print file information */
       if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
-        csound->Message(csound, Str("diskin2: opened '%s':\n"
-                                    "         %d Hz, %d channel(s), "
-                                    "%lld sample frames\n"),
+        csound->Message(csound, "%s '%s':\n"
+                        "         %d Hz, %d %s, %"  PRId64 " %s",
+                        Str("diskin2: opened"),
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
-                        (long long) sfinfo.frames);
+                        Str("channel(s)"),
+                        sfinfo.frames,
+                        Str("sample frames\n"));
       }
     }
 
@@ -1778,7 +1786,7 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
     int32_t chn, i, nn;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
-    int32   ndx;
+    int32_t   ndx;
     int32_t     wsized2, warp;
     MYFLT *aOut = (MYFLT *) p->aOut->data;
 
@@ -1804,7 +1812,7 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
         aOut[chn*ksmps+nn] = FL(0.0);
     /* file read position */
     if (UNLIKELY(early)) nsmps -= early;
-    ndx = (int32) (p->pos_frac >> POS_FRAC_SHIFT);
+    ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
     case 1:                   /* ---- no interpolation ---- */
       for (nn = offset; nn < nsmps; nn++) {
@@ -1872,7 +1880,7 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
       for (nn = offset; nn < nsmps; nn++) {
         frac_d = (double)((int32_t)(p->pos_frac & (int64_t)POS_FRAC_MASK))
           * (1.0 / (double)POS_FRAC_SCALE);
-        ndx += (int32)(1 - wsized2);
+        ndx += (int32_t)(1 - wsized2);
         d = (double)(1 - wsized2) - frac_d;
         if (warp) {                           /* ---- warp enabled ---- */
           init_sine_gen((1.0 / PI), pidwarp_d, (pidwarp_d * d), c, &x, &v);
@@ -1922,7 +1930,7 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
         else {                                /* ---- warp disabled ---- */
           /* avoid division by zero */
           if (frac_d < 0.00001 || frac_d > 0.99999) {
-            ndx += (int32) (wsized2 - (frac_d < 0.5 ? 1 : 0));
+            ndx += (int32_t) (wsized2 - (frac_d < 0.5 ? 1 : 0));
             diskin2_get_sample_array(csound, p, ndx, nn, FL(1.0));
           }
           else {
@@ -2160,7 +2168,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
                                   "%ld sample frames\n"),
                       csound->GetFileName(fd),
                       (int32_t) sfinfo.samplerate, (int32_t) sfinfo.channels,
-                      (int32) sfinfo.frames);
+                      (int32_t) sfinfo.frames);
     }
     /* check number of channels in file (must equal the number of outargs) */
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
@@ -2190,7 +2198,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     /* allocate and initialise buffer */
     n = p->bufSize * p->nChannels;
     if (n != (int32_t) p->auxData.size)
-      csound->AuxAlloc(csound, (int32) (n * (int32_t) sizeof(MYFLT)), &(p->auxData));
+      csound->AuxAlloc(csound, (int32_t) (n * (int32_t) sizeof(MYFLT)), &(p->auxData));
     p->buf = (MYFLT*) (p->auxData.auxp);
     /* make sure that read position is not in buffer, to force read */
     if (p->read_pos < (int_least64_t) 0)

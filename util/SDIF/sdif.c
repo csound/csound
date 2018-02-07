@@ -80,8 +80,8 @@ Music and Audio Technologies, University of California, Berkeley.
 #include "sdif.h"
 
 /* prototypes for functions used only in this file. */
-static int SizeofSanityCheck(void);
-static SDIFresult SkipBytes(FILE *f, int numBytes);
+static int32_t SizeofSanityCheck(void);
+static SDIFresult SkipBytes(FILE *f, int32_t numBytes);
 
 /* error handling stuff. */
 static char *error_string_array[] = {
@@ -319,7 +319,7 @@ SDIFresult SDIF_SkipFrame(const SDIF_FrameHeader *head, FILE *f)
 {
     /* The header's size count includes the 8-byte time tag, 4-byte
        stream ID and 4-byte matrix count that we already read. */
-    int bytesToSkip = head->size - 16;
+    int32_t bytesToSkip = head->size - 16;
 
     if (bytesToSkip < 0) {
       return ESDIF_BAD_FRAME_HEADER;
@@ -370,9 +370,9 @@ SDIFresult SDIF_WriteMatrixHeader(const SDIF_MatrixHeader *m, FILE *f)
 #endif
 }
 
-int SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m)
+int32_t SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m)
 {
-    int size;
+    int32_t size;
     size = SDIF_GetMatrixDataTypeSize(m->matrixDataType) *
            m->rowCount * m->columnCount;
 
@@ -383,9 +383,9 @@ int SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m)
     return size;
 }
 
-int SDIF_PaddingRequired(const SDIF_MatrixHeader *m)
+int32_t SDIF_PaddingRequired(const SDIF_MatrixHeader *m)
 {
-    int size;
+    int32_t size;
     size = SDIF_GetMatrixDataTypeSize(m->matrixDataType) *
            m->rowCount * m->columnCount;
 
@@ -399,7 +399,7 @@ int SDIF_PaddingRequired(const SDIF_MatrixHeader *m)
 
 SDIFresult SDIF_SkipMatrix(const SDIF_MatrixHeader *head, FILE *f)
 {
-    int size = SDIF_GetMatrixDataSize(head);
+    int32_t size = SDIF_GetMatrixDataSize(head);
 
     if (size < 0) {
       return ESDIF_BAD_MATRIX_HEADER;
@@ -441,11 +441,11 @@ SDIF_ReadMatrixData(void *putItHere, FILE *f, const SDIF_MatrixHeader *head)
 
 sdif_int32 SDIF_UniqueStreamID(void)
 {
-    static int id;
+    static int32_t id;
     return ++id;
 }
 
-int SDIF_Char4Eq(const char *ths, const char *that)
+int32_t SDIF_Char4Eq(const char *ths, const char *that)
 {
     return ths[0] == that[0] && ths[1] == that[1] &&
            ths[2] == that[2] && ths[3] == that[3];
@@ -474,11 +474,11 @@ SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
-    int i, m = 2*n;
+    int32_t i, m = 2*n;
 
     if ((n << 1) > BUFSIZE) {
       /* Too big for buffer */
-      int num = BUFSIZE >> 1;
+      int32_t num = BUFSIZE >> 1;
       if ((r = SDIF_Write2(block, num, f))!=ESDIF_SUCCESS)
         return r;
       return SDIF_Write2(((char *) block) + num, n-num, f);
@@ -501,10 +501,10 @@ SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
-    int i, m = 4*n;
+    int32_t i, m = 4*n;
 
     if ((n << 2) > BUFSIZE) {
-      int num = BUFSIZE >> 2;
+      int32_t num = BUFSIZE >> 2;
       if ((r = SDIF_Write4(block, num, f))!=ESDIF_SUCCESS)
         return r;
       return SDIF_Write4(((char *) block) + num, n-num, f);
@@ -528,10 +528,10 @@ SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
-    int i, m = 8*n;
+    int32_t i, m = 8*n;
 
     if ((n << 3) > BUFSIZE) {
-      int num = BUFSIZE >> 3;
+      int32_t num = BUFSIZE >> 3;
       if ((r = SDIF_Write8(block, num, f))!=ESDIF_SUCCESS)
         return r;
       return SDIF_Write8(((char *) block) + num, n-num, f);
@@ -564,10 +564,10 @@ SDIFresult SDIF_Read2(void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
-    int i, m = 2*n;
+    int32_t i, m = 2*n;
 
     if ((n << 1) > BUFSIZE) {
-      int num = BUFSIZE >> 1;
+      int32_t num = BUFSIZE >> 1;
       if ((r = SDIF_Read2(block, num, f))!=ESDIF_SUCCESS)
         return r;
       return SDIF_Read2(((char *) block) + num, n-num, f);
@@ -593,10 +593,10 @@ SDIFresult SDIF_Read4(void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
-    int i, m = 4*n;
+    int32_t i, m = 4*n;
 
     if ((n << 2) > BUFSIZE) {
-      int num = BUFSIZE >> 2;
+      int32_t num = BUFSIZE >> 2;
       if ((r = SDIF_Read4(block, num, f))!=ESDIF_SUCCESS)
         return r;
       return SDIF_Read4(((char *) block) + num, n-num, f);
@@ -624,10 +624,10 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
-    int i, m = 8*n;
+    int32_t i, m = 8*n;
 
     if ((n << 3) > BUFSIZE) {
-      int num = BUFSIZE >> 3;
+      int32_t num = BUFSIZE >> 3;
       if ((r = SDIF_Read8(block, num, f))!=ESDIF_SUCCESS)
         return r;
       return SDIF_Read8(((char *) block) + num, n-num, f);
@@ -656,25 +656,25 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f)
 
 /* static function definitions follow. */
 
-static int SizeofSanityCheck(void)
+static int32_t SizeofSanityCheck(void)
 {
-    int OOK = 1;
+    int32_t OOK = 1;
     static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
 
     if (sizeof(sdif_int32) != 4) {
-      sprintf(errorMessage, "sizeof(sdif_int32) is %d!", (int)sizeof(sdif_int32));
+      sprintf(errorMessage, "sizeof(sdif_int32) is %d!", (int32_t)sizeof(sdif_int32));
       OOK = 0;
     }
 
     if (sizeof(sdif_float32) != 4) {
       sprintf(errorMessage, "sizeof(sdif_float32) is %d!",
-              (int)sizeof(sdif_float32));
+              (int32_t)sizeof(sdif_float32));
       OOK = 0;
     }
 
     if (sizeof(sdif_float64) != 8) {
       sprintf(errorMessage, "sizeof(sdif_float64) is %d!",
-              (int)sizeof(sdif_float64));
+              (int32_t)sizeof(sdif_float64));
       OOK = 0;
     }
 
@@ -684,7 +684,7 @@ static int SizeofSanityCheck(void)
     return OOK;
 }
 
-static SDIFresult SkipBytes(FILE *f, int bytesToSkip)
+static SDIFresult SkipBytes(FILE *f, int32_t bytesToSkip)
 {
 #ifdef STREAMING
     /* Can't fseek in a stream, so waste some time needlessly copying

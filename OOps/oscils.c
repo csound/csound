@@ -224,11 +224,11 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t i, wsize, wsized2, wrap_ndx, warp;
     double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
-    int32    ndx_i=0, flen;
+    int32_t ndx_i=0, flen;
     MYFLT   *ar, *xndx, ndx_f, a0, a1, a2, a3, v0, v1, v2, v3, *ftable;
     MYFLT   onedwarp, win_fact;
     FUNC    *ftp;
-    int32_t     asgx = IS_ASIG_ARG(p->xndx);
+    int32_t asgx = IS_ASIG_ARG(p->xndx);
 
     /* window size */
     wsize = p->wsize;
@@ -278,7 +278,7 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
         if (p->ndx_scl) ndx *= flen_d;
       }
       /* integer and fractional part of table index */
-      ndx_i = (int32)ndx;
+      ndx_i = (int32_t)ndx;
       ndx_f = (MYFLT) (ndx - (double)ndx_i);
       if (ndx_f < FL(0.0)) {
         ndx_f++; ndx_i--;
@@ -325,7 +325,7 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
         default:                    /* ---- sinc interpolation ---- */
           ar[n] = FL(0.0);        /* clear output */
           ndx = (double)ndx_f;
-          ndx_i += (int32)(1 - wsized2);
+          ndx_i += (int32_t)(1 - wsized2);
           d = (double)(1 - wsized2) - ndx;
           if (warp) {           /* ---- warp enabled ---- */
             init_sine_gen(onedpi_d, pidwarp_d, pidwarp_d * d, &x, &c, &v);
@@ -372,11 +372,11 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
           else {                /* ---- warp disabled ---- */
             /* avoid division by zero */
             if (UNLIKELY(ndx < 0.00001)) {
-              ndx_i += (int32) (wsized2 - 1);    /* no need to check here */
+              ndx_i += (int32_t) (wsized2 - 1);    /* no need to check here */
               ar[n] = ftable[ndx_i];
             }
             else if (ndx > 0.99999) {
-              ndx_i += (int32) wsized2;          /* does need range checking */
+              ndx_i += (int32_t) wsized2;          /* does need range checking */
               if (ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
               ar[n] = ftable[ndx_i];
             }

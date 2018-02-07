@@ -221,11 +221,11 @@ int32_t octmidib_i(CSOUND *csound, MIDIKMB *p)
 int32_t cpsmidi(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    int32  loct;
+    int32_t  loct;
     /*    loct = (int64_t)(((lcurip->m_pitch +
      *       pitchbend_value(lcurip->m_chnbp) * p->iscal)/ 12.0f + 3.0f) * OCTRES);
      */
-    loct = (int32)((lcurip->m_pitch/ FL(12.0) + FL(3.0)) * OCTRES);
+    loct = (int32_t)((lcurip->m_pitch/ FL(12.0) + FL(3.0)) * OCTRES);
     *p->r = CPSOCTL(loct);
     return OK;
 }
@@ -233,10 +233,10 @@ int32_t cpsmidi(CSOUND *csound, MIDIKMB *p)
 int32_t icpsmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
-    int32  loct;
+    int32_t  loct;
     MYFLT bend = pitchbend_value(lcurip->m_chnbp);
     p->prvbend = bend;
-    loct = (int32)(((lcurip->m_pitch +
+    loct = (int32_t)(((lcurip->m_pitch +
                      bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
     *p->r = CPSOCTL(loct);
     return OK;
@@ -257,9 +257,9 @@ int32_t kcpsmidib(CSOUND *csound, MIDIKMB *p)
     if (bend == p->prvbend || lcurip->relesing)
       *p->r = p->prvout;
     else {
-      int32  loct;
+      int32_t  loct;
       p->prvbend = bend;
-      loct = (int32)(((lcurip->m_pitch +
+      loct = (int32_t)(((lcurip->m_pitch +
                        bend * p->scale) / FL(12.0) + FL(3.0)) * OCTRES);
       *p->r = p->prvout = CPSOCTL(loct);
     }
@@ -269,14 +269,14 @@ int32_t kcpsmidib(CSOUND *csound, MIDIKMB *p)
 int32_t ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude */
 {                                         /*   valid only at I-time          */
     MYFLT amp;
-    int32  fno;
+    int32_t  fno;
     FUNC *ftp;
 
     amp = csound->curip->m_veloc / FL(128.0);     /* amp = normalised veloc */
-    if ((fno = (int32)*p->ifn) > 0) {              /* if valid ftable,       */
+    if ((fno = (int32_t)*p->ifn) > 0) {              /* if valid ftable,       */
       if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
         return NOTOK;                             /*     use amp as index   */
-      amp = *(ftp->ftable + (int32)(amp * ftp->flen));
+      amp = *(ftp->ftable + (int32_t)(amp * ftp->flen));
     }
     *p->r = amp * *p->imax;                       /* now scale the output   */
     return OK;
@@ -321,8 +321,8 @@ int32_t aftouch(CSOUND *csound, MIDIKMAP *p)
 
 int32_t imidictl(CSOUND *csound, MIDICTL *p)
 {
-    int32  ctlno;
-    if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
+    int32_t  ctlno;
+    if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, ctl_val[ctlno])
            * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
@@ -331,8 +331,8 @@ int32_t imidictl(CSOUND *csound, MIDICTL *p)
 
 int32_t mctlset(CSOUND *csound, MIDICTL *p)
 {
-    int32  ctlno;
-    if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
+    int32_t  ctlno;
+    if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
     else {
       p->ctlno = ctlno;
@@ -352,8 +352,8 @@ int32_t midictl(CSOUND *csound, MIDICTL *p)
 
 int32_t imidiaft(CSOUND *csound, MIDICTL *p)
 {
-    int32  ctlno;
-    if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
+    int32_t  ctlno;
+    if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, polyaft[ctlno])
            * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
@@ -362,8 +362,8 @@ int32_t imidiaft(CSOUND *csound, MIDICTL *p)
 
 int32_t maftset(CSOUND *csound, MIDICTL *p)
 {
-    int32  ctlno;
-    if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
+    int32_t  ctlno;
+    if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
     else {
       p->ctlno = ctlno;
@@ -446,10 +446,10 @@ int32_t pgmassign(CSOUND *csound, PGMASSIGN *p) {
 
 int32_t ichanctl(CSOUND *csound, CHANCTL *p)
 {
-    int32  ctlno, chan = (int32)(*p->ichano - FL(1.0));
+    int32_t  ctlno, chan = (int32_t)(*p->ichano - FL(1.0));
     if (UNLIKELY(chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL))
       return csound->InitError(csound, Str("illegal channel number"));
-    if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127))
+    if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
       return csound->InitError(csound, Str("illegal controller number"));
     else *p->r = csound->m_chnbp[chan]->ctl_val[ctlno] * (*p->ihi - *p->ilo)
            * dv127 + *p->ilo;
@@ -458,12 +458,12 @@ int32_t ichanctl(CSOUND *csound, CHANCTL *p)
 
 int32_t chctlset(CSOUND *csound, CHANCTL *p)
 {
-    int32  ctlno, chan = (int32)(*p->ichano - FL(1.0));
+    int32_t  ctlno, chan = (int32_t)(*p->ichano - FL(1.0));
     if (UNLIKELY(chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL)) {
       return csound->InitError(csound, Str("illegal channel number"));
     }
     p->chano = chan;
-    if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)) {
+    if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127)) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
     else {
