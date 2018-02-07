@@ -739,7 +739,7 @@ OENTRY opcodlst_1[] = {
     (SUBR)instimset, (SUBR)instimes, NULL },
   { "peak.k",  S(PEAK),0,   2,   "k",  "k",    NULL,    (SUBR)peakk,    NULL    },
   { "peak.a",   S(PEAK),0,  4,   "k",  "a",    NULL,    NULL,     (SUBR)peaka   },
-  { "printk", S(PRINTK),WR,  3,"",     "iko",
+  { "printk", S(PRINTK),WR,  3,"",     "ikoooo",
     (SUBR)printkset, (SUBR)printk, NULL },
   { "printks",S(PRINTKS),WR, 3,   "",   "SiM",
     (SUBR)printksset_S,(SUBR)printks, NULL },

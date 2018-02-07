@@ -277,6 +277,7 @@ typedef struct {
         MYFLT   *ptime;         /* How much time to leave between each print*/
         MYFLT   *val;           /* Value to print */
         MYFLT   *space;         /* Spaces to insert before printing */
+        MYFLT   *named;
         MYFLT   printat, ctime; /* Time when initialised; initialised */
         int32   pspace;         /* How many spaces to print */
         int     initialised;    /* Non zero for initialised */
