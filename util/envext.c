@@ -125,7 +125,7 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
-    csound->Message(csound,Str("enveloping %ld sample frames (%3.1f secs)\n"),
+    csound->Message(csound,Str("enveloping %"PRId64" sample frames (%3.1f secs)\n"),
            (int64_t) p->getframes, dur);
     return(infd);
 }
