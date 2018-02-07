@@ -313,9 +313,9 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *val, *space;
+        MYFLT   *val, *space, *named;
         MYFLT   oldvalue;
-        int     pspace;
+        int32_t pspace;
 } PRINTK2;
 
 typedef struct {
