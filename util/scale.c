@@ -404,8 +404,8 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
-    csound->Message(csound, Str("scaling %ld sample frames (%3.1f secs)\n"),
-                            (long) p->getframes, dur);
+    csound->Message(csound, "%s %" PRId64 " %s (%3.1f secs)\n",
+                    Str("scaling"), p->getframes, Str("sample frame"), dur);
     return(infile);
 }
 
