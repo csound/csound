@@ -4,5 +4,7 @@ build-wasm
 dist
 dist-wasm
 ace
+examples
+examples-wasm
 csound-emscripten-*
 csound-wasm-*
