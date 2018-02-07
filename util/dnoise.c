@@ -407,9 +407,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
               while (*++s);
               break;
             case 'E': FIND(Str("no E argument"));
-
               sscanf(s,"%" PRId64, &End);
-
               while (*++s);
               break;
             case 'N': FIND(Str("no N argument"));
