@@ -5,10 +5,9 @@ Version 6.11.0 (Beta)
 ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg)
 [![Build status](https://ci.appveyor.com/api/projects/status/1qamc986774rsbjq/branch/develop?svg=true)](https://ci.appveyor.com/project/csound/csound/branch/develop)
 
-A user-programmable and user-extensible sound processing language
-and software synthesizer.
+A sound and music computing system.
 
-Csound is copyright (c) 1991 Barry Vercoe, John ffitch, and other contributors.
+Csound is copyright (c) 1991-2018 The Csound Developers, see CONTRIBUTORS
 
 Csound is free software; you can redistribute them
 and/or modify them under the terms of the GNU Lesser General Public
@@ -51,6 +50,7 @@ from around the world. They include (but are not limited to):
 * Allan Lee
 * Andres Cabrera
 * Anthony Kozar
+* Barry Vercoe
 * Bill Gardner
 * Bill Verplank
 * Dan Ellis
