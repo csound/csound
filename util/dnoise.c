@@ -78,6 +78,7 @@
 #include <math.h>
 #include <ctype.h>
 
+
 #define ERR(x)                          \
 {                                       \
     csound->Message(csound, x);         \
@@ -394,7 +395,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
               while (*++s);
               break;
             case 'B': FIND(Str("no B argument"));
-              sscanf(s,"%ld", &Beg);
+              sscanf(s,"%" PRId64, &Beg);
               while (*++s);
               break;
             case 'e': FIND("no e arg");
@@ -406,7 +407,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
               while (*++s);
               break;
             case 'E': FIND(Str("no E argument"));
-              sscanf(s,"%ld", &End);
+              sscanf(s,"%" PRId64, &End);
               while (*++s);
               break;
             case 'N': FIND(Str("no N argument"));

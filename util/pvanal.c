@@ -207,7 +207,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
             csound->sscanf(s, "%lf", &beta);
             break;
         case 'n':  FIND(Str("no framesize"));
-          sscanf(s, "%ld", &frameSize);
+          sscanf(s, "%"PRId64, &frameSize);
           if (UNLIKELY(frameSize < MINFRMPTS || frameSize > MAXFRMPTS)) {
             snprintf(err_msg, 512, Str("frameSize must be between %d and %d"),
                      MINFRMPTS, MAXFRMPTS);
@@ -220,7 +220,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
           sscanf(s, "%d", &ovlp);
           break;
         case 'h':  FIND(Str("no hopsize"));
-          sscanf(s, "%ld", &frameIncr);
+          sscanf(s, "%"PRId64, &frameIncr);
           break;
         case 'g':  displays = 1;
             break;
@@ -266,7 +266,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
         frameSize >>= 1;        /* divide down until just larger */
     }
     if (ovlp == 0 && frameIncr == 0) {
-      csound->Message(csound, "frameSize=%ld\n", frameSize);
+      csound->Message(csound, "frameSize=%"PRId64"\n", frameSize);
       ovlp = OVLP_DEF;          /* default overlap */
       frameIncr = frameSize / ovlp;
     }
@@ -283,9 +283,9 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
       /* VL: removed this restriction, which sounds a bit drastic */
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
-    csound->Message(csound, Str("%ld infrsize, %ld infrInc\n"),
+    csound->Message(csound, Str("%"PRId64" infrsize, %"PRId64" infrInc\n"),
                             (int64_t) frameSize, (int64_t) frameIncr);
-    csound->Message(csound, Str("%ld output frames estimated\n"),
+    csound->Message(csound, Str("%"PRId64" output frames estimated\n"),
                             (int64_t) oframeEst);
 
     /* even for old pvoc file, is absence of extension OK? */
@@ -393,7 +393,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
                                  / (MYFLT) p->dispCnt));
     p->csound->dispset(p->csound, &(p->dwindow), p->dispBufs[p->dispFrame],
                        p->npts, "pvanalwin", 0, "PVANAL");
-    snprintf(&(p->dwindow.caption[0]), CAPSIZE, "%ld", (int64_t) frame);
+    snprintf(&(p->dwindow.caption[0]), CAPSIZE, "%"PRId64, (int64_t) frame);
     p->csound->display(p->csound, &(p->dwindow));
     p->dispCnt = 0;
     p->dispFrame++;
@@ -502,7 +502,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
           blocks_written++;
           if (displays) PVDisplay_Update(&disp, frame);
           if ((blocks_written/chans) % 20 == 0) {
-            csound->Message(csound, "%ld\n", blocks_written/chans);
+            csound->Message(csound, "%"PRId64"\n", blocks_written/chans);
           }
           if (displays) PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
         }
@@ -536,7 +536,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
       }
       if (displays) PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
     }
-    csound->Message(csound, Str("\n%ld %d-chan blocks written to %s\n"),
+    csound->Message(csound, Str("\n%"PRId64" %d-chan blocks written to %s\n"),
                     (int64_t) blocks_written / (int64_t) chans, (int32_t) chans, fname);
 
  error:
