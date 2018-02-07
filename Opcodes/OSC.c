@@ -214,7 +214,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
 #elif defined(MSVC)
           setsockopt((SOCKET)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #else
-	  setsockopt((int64_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+          setsockopt((int64_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
 #endif
         }
         csound->Free(csound, p->lhost);

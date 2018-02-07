@@ -32,7 +32,7 @@ int32_t foscset(CSOUND *csound, FOSC *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
-        p->cphs = p->mphs = (int32)(*p->iphs * FMAXLEN);
+        p->cphs = p->mphs = (int32_t)(*p->iphs * FMAXLEN);
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
       p->carcod = IS_ASIG_ARG(p->xcar) ? 1 : 0;
       p->modcod = IS_ASIG_ARG(p->xmod) ? 1 : 0;
@@ -46,7 +46,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *modp, cps, amp;
     MYFLT   xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
-    int32    mphs, cphs, minc, cinc, lobits;
+    int32_t    mphs, cphs, minc, cinc, lobits;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -80,12 +80,12 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
-        minc = (int32)(mod * sicvt);
+        minc = (int32_t)(mod * sicvt);
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (int32)(cfreq * sicvt);
+        cinc = (int32_t)(cfreq * sicvt);
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
@@ -97,13 +97,13 @@ int32_t foscil(CSOUND *csound, FOSC *p)
       car = cps * *carp;
       mod = cps * *modp;
       ndx = *p->kndx * mod;
-      minc = (int32)(mod * sicvt);
+      minc = (int32_t)(mod * sicvt);
       for (n=offset;n<nsmps;n++) {
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (int32)(cfreq * sicvt);
+        cinc = (int32_t)(cfreq * sicvt);
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
@@ -123,7 +123,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
     FUNC   *ftp;
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
-    int32  mphs, cphs, minc, cinc, lobits;
+    int32_t  mphs, cphs, minc, cinc, lobits;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -157,7 +157,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
-        minc = (int32)(mod * sicvt);
+        minc = (int32_t)(mod * sicvt);
         mphs &= PHMASK;
         fract = PFRAC(mphs);
         ftab = ft + (mphs >>lobits);
@@ -165,7 +165,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         fmod = (v1 + (*ftab - v1) * fract) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (int32)(cfreq * sicvt);
+        cinc = (int32_t)(cfreq * sicvt);
         cphs &= PHMASK;
         fract = PFRAC(cphs);
         ftab = ft + (cphs >>lobits);
@@ -179,7 +179,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
       car = cps * *carp;
       mod = cps * *modp;
       ndx = *p->kndx * mod;
-      minc = (int32)(mod * sicvt);
+      minc = (int32_t)(mod * sicvt);
       for (n=offset;n<nsmps;n++) {
         mphs &= PHMASK;
         fract = PFRAC(mphs);
@@ -188,7 +188,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         fmod = (v1 + (*ftab - v1) * fract) * ndx;
         mphs += minc;
         cfreq = car + fmod;
-        cinc = (int32)(cfreq * sicvt);
+        cinc = (int32_t)(cfreq * sicvt);
         cphs &= PHMASK;
         fract = PFRAC(cphs);
         ftab = ft + (cphs >>lobits);
@@ -255,20 +255,20 @@ int32_t losset(CSOUND *csound, LOSC *p)
         p->beg2 = *p->ibeg2;
         p->end2 = *p->iend2;
         if (UNLIKELY(p->mod2 < 0 || p->mod2 > 3 ||
-                     p->beg2 < 0 || p->end2 > (int32)maxphs ||
+                     p->beg2 < 0 || p->end2 > (int32_t)maxphs ||
                      p->beg2 >= p->end2)) {
           goto lerr3;
         }
       }
       p->beg1 = (p->beg1 >= 0L ? p->beg1 : 0L);
-      p->end1 = (p->end1 < (int32)maxphs ? p->end1 : (int32)maxphs);
+      p->end1 = (p->end1 < (int32_t)maxphs ? p->end1 : (int32_t)maxphs);
       if (UNLIKELY(p->beg1 >= p->end1)) {
         p->mod1 = 0;
         p->beg1 = 0L;
         p->end1 = maxphs;
       }
       p->beg2 = (p->beg2 >= 0L ? p->beg2 : 0L);
-      p->end2 = (p->end2 < (int32)maxphs ? p->end2 : (int32)maxphs);
+      p->end2 = (p->end2 < (int32_t)maxphs ? p->end2 : (int32_t)maxphs);
       if (UNLIKELY(p->beg2 >= p->end2)) {
         p->mod2 = 0;
         p->beg2 = 0L;
@@ -350,20 +350,20 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
         p->beg2 = *p->ibeg2;
         p->end2 = *p->iend2;
         if (UNLIKELY(p->mod2 < 0 || p->mod2 > 3 ||
-                     p->beg2 < 0 || p->end2 > (int32)maxphs ||
+                     p->beg2 < 0 || p->end2 > (int32_t)maxphs ||
                      p->beg2 >= p->end2)) {
           goto lerr3;
         }
       }
       p->beg1 = (p->beg1 >= 0L ? p->beg1 : 0L);
-      p->end1 = (p->end1 < (int32)maxphs ? p->end1 : (int32)maxphs);
+      p->end1 = (p->end1 < (int32_t)maxphs ? p->end1 : (int32_t)maxphs);
       if (UNLIKELY(p->beg1 >= p->end1)) {
         p->mod1 = 0;
         p->beg1 = 0L;
         p->end1 = maxphs;
       }
       p->beg2 = (p->beg2 >= 0L ? p->beg2 : 0L);
-      p->end2 = (p->end2 < (int32)maxphs ? p->end2 : (int32)maxphs);
+      p->end2 = (p->end2 < (int32_t)maxphs ? p->end2 : (int32_t)maxphs);
       if (UNLIKELY(p->beg2 >= p->end2)) {
         p->mod2 = 0;
         p->beg2 = 0L;
@@ -403,13 +403,13 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
 }
 
 static inline void loscil_linear_interp_mono(MYFLT *ar,
-                                             MYFLT *ftbl, MYFLT phs, int32 flen)
+                                             MYFLT *ftbl, MYFLT phs, int32_t flen)
 {
     MYFLT   fract, tmp;
-    int32   x;
+    int32_t   x;
 
     fract = MODF(phs, &tmp);
-    x = (int32) tmp;
+    x = (int32_t) tmp;
     //printf("phs=%d+%f\n",x, fract);
     tmp = ftbl[x];
     x = (x < flen ? (x + 1) : flen);
@@ -417,13 +417,13 @@ static inline void loscil_linear_interp_mono(MYFLT *ar,
 }
 
 static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
-                                               MYFLT *ftbl, MYFLT phs, int32 flen)
+                                               MYFLT *ftbl, MYFLT phs, int32_t flen)
 {
     MYFLT   fract, tmpL, tmpR;
     int     x;
 
     fract = MODF(phs, &tmpL);
-    x = (int32) tmpL;
+    x = (int32_t) tmpL;
     //printf("phs=%d+%f\n",x, fract);
     tmpL = ftbl[x];
     tmpR = ftbl[x + 1];
@@ -433,13 +433,13 @@ static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
 }
 
 static inline void loscil_cubic_interp_mono(MYFLT *ar,
-                                            MYFLT *ftbl, MYFLT phs, int32 flen)
+                                            MYFLT *ftbl, MYFLT phs, int32_t flen)
 {
     MYFLT   fract, tmp, a0, a1, a2, a3;
     int32_t     x;
 
     fract = MODF(phs, &tmp);
-    x = (int32) tmp;
+    x = (int32_t) tmp;
     //printf("phs=%d+%f\n",x, fract);
     a3 = fract * fract; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
     a2 = fract; a2 += FL(1.0); a0 = (a2 *= FL(0.5)); a0 -= FL(1.0);
@@ -456,13 +456,13 @@ static inline void loscil_cubic_interp_mono(MYFLT *ar,
 
 static CS_NOINLINE void
     loscil_cubic_interp_stereo(MYFLT *arL, MYFLT *arR,
-                               MYFLT *ftbl, MYFLT phs, int32 flen)
+                               MYFLT *ftbl, MYFLT phs, int32_t flen)
 {
     MYFLT   fract, tmpL, tmpR, a0, a1, a2, a3;
     int32_t     x;
 
     fract = MODF(phs, &tmpL);
-    x = (int32) tmpL;
+    x = (int32_t) tmpL;
     //printf("phs=%d+%f\n",x, fract);
     a3 = fract * fract; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
     a2 = fract; a2 += FL(1.0); a0 = (a2 *= FL(0.5)); a0 -= FL(1.0);
@@ -1370,7 +1370,7 @@ int32_t loscil3(CSOUND *csound, LOSC *p)
 
 static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
 {
-    int32    n;
+    int32_t    n;
     char    filnam[MAXNAME];
     MEMFIL  *mfp;
     int16   *adp, *endata, val;
@@ -1456,13 +1456,13 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
     PTLPTR  *curp, *prvp;
     DUPLE   *ap, *fp;
     int16   curtim, diff, ktogo;
-    int32   phs, sinc, amp;
+    int32_t   phs, sinc, amp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT   *ar = p->rslt;
     MYFLT   ampscale, frqscale;
-    int32   timkincr, nxtim;
+    int32_t   timkincr, nxtim;
 
     if (UNLIKELY(csound->isintab == NULL)) {      /* RWD fix */
       return csound->PerfError(csound, p->h.insdshead,

@@ -57,9 +57,9 @@ strNcpy(char *dst, const char *src, size_t siz)
 
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
-    int   err = 0;
+    int32_t   err = 0;
 
     err |= atsa_init_(csound);
     err |= envext_init_(csound);
@@ -83,8 +83,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return err;
 }
 
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT));
 }
 

@@ -23,7 +23,7 @@ typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;
 
-int
+int32_t
 SDIF_Read1TRCVals(FILE *f,
                   sdif_float32 *indexp, sdif_float32 *freqp,
                   sdif_float32 *ampp, sdif_float32 *phasep) {
@@ -65,14 +65,14 @@ typedef struct partial_point{
 } P_POINT;
 
 typedef struct partial_props {
-        long numpoints;
+        int64_t numpoints;
         float maxamp;
         float maxfreq;
         float minfreq;
         P_POINT *head;
 } PPROPS;
 
-int write_partial(FILE *fp,const P_POINT *partial,float sfac,int do_scale)
+int32_t write_partial(FILE *fp,const P_POINT *partial,float sfac,int32_t do_scale)
 ;
 
 P_POINT *new_ppoint(float amp,float freq,float pos)
@@ -108,10 +108,10 @@ PPROPS *new_pprops(void)
 
 int main(int argc, char **argv)
 {
-    int i,framecount, partials_written = 0;
-    int result, iindex;
-    int max_partials = MAXPARTIALS;
-    int n_partials = 0, maxpoints = 0;
+    int32_t i,framecount, partials_written = 0;
+    int32_t result, iindex;
+    int32_t max_partials = MAXPARTIALS;
+    int32_t n_partials = 0, maxpoints = 0;
     sdif_int32 frame_id = -1;
     SDIF_FrameHeader fh;
     SDIF_MatrixHeader mh;
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
     float thistime = 0.0f;
     float maxfreq = 0.0f, minfreq = 100000.0f, maxamp = 0.0f;
     float scalefac = 1.0;
-    int doscale = 0;
+    int32_t doscale = 0;
     short stemp;                 /* to write partial count to adsyn file */
 
     if (argc < 2) {
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
       }
       framecount++;
       for (i = 0; i < fh.matrixCount; ++i) {
-        int j;
+        int32_t j;
 
         if (SDIF_ReadMatrixHeader(&mh,infile) != ESDIF_SUCCESS) {
           fprintf(stderr,"\nerror reading infile");
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
                     index,framecount);
             exit(1);
           }
-          iindex = (int) index;
+          iindex = (int32_t) index;
           /* a small (unlikely) sacrifice for the sake of a simple algorithm! */
           if (iindex >= MAXPARTIALS) {
             printf("Warning: high partial index %d in frame %d; skipping.\n",
@@ -380,7 +380,7 @@ int main(int argc, char **argv)
         exit(1);
       }
       partials_written++;
-      if (partials_written == (int) stemp)
+      if (partials_written == (int32_t) stemp)
         break;
     }
 
@@ -403,7 +403,7 @@ int main(int argc, char **argv)
     free(pprops);
     fclose(outfile);
     printf("File conversion completed.\n");
-    printf("%d partials written to %s\n",(int)stemp,argv[2]);
+    printf("%d partials written to %s\n",(int32_t)stemp,argv[2]);
     SDIF_CloseRead(infile);
     return 0;
 }
@@ -411,9 +411,9 @@ int main(int argc, char **argv)
 /* pass props->head */
 /* NB does not check for over-range times */
 /* it also trusts that there is a freq element matching each amp element */
-int write_partial(FILE *fp,const P_POINT *partial,float sfac,int do_scale)
+int32_t write_partial(FILE *fp,const P_POINT *partial,float sfac,int32_t do_scale)
 {
-    int length = 0;
+    int32_t length = 0;
     const P_POINT *head;
     float scalefac = 32767.0f;
     short amp,freq,time;

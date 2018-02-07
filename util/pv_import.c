@@ -43,18 +43,18 @@ static void pv_import_usage(CSOUND *csound)
 static float getnum(FILE* inf, char *term)
 {
     char buff[100];
-    int  cc;
-    int p = 0;
+    int32_t  cc;
+    int32_t p = 0;
     while ((cc=getc(inf))!=',' && cc!='\n' && cc!=EOF && p<99) buff[p++] = cc;
     buff[p]='\0';
     *term = cc;
     return (float)atof(buff);
 }
 
-static int pv_import(CSOUND *csound, int argc, char **argv)
+static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
 {
     FILE *inf;
-    int outf;
+    int32_t outf;
     PVOCDATA data;
     WAVEFORMATEX fmt;
 
@@ -74,7 +74,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       exit(1);
     }
     {
-      int fmt1, fmt2, fmt3, fmt4, fmt5;
+      int32_t fmt1, fmt2, fmt3, fmt4, fmt5;
       if (UNLIKELY(7!=fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
              &fmt1, &fmt2, &fmt.nSamplesPerSec,
                              &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5))) {
@@ -94,7 +94,7 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
       exit(1);
     }
     {
-      int data1, data2, data3, data4;
+      int32_t data1, data2, data3, data4;
       if (UNLIKELY(10!=fscanf(inf, "%d,%d,%d,%d,%d,%d,%d,%d,%g,%g\n",
                               &data1,&data2,&data3,&data4,&data.nAnalysisBins,
                               &data.dwWinlen, &data.dwOverlap,&data.dwFrameAlign,
@@ -128,13 +128,13 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     {
       float *frame =
         (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));
-      int i;
+      int32_t i;
       if (UNLIKELY(frame==NULL)) {
         csound->Message(csound, Str("Memory failure\n"));
         exit(1);
       }
       for (i=1;;i++) {
-        unsigned int j;
+        uint32_t j;
         for (j=0; j<data.nAnalysisBins*2; j++) {
           char term;
           frame[j] = getnum(inf, &term);
@@ -156,9 +156,9 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int pv_import_init_(CSOUND *csound)
+int32_t pv_import_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "pv_import", pv_import);
+    int32_t retval = csound->AddUtility(csound, "pv_import", pv_import);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "pv_import",

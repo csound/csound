@@ -43,12 +43,12 @@ void lpc_export_usage(CSOUND *csound)
     csound->Message(csound, Str("usage: lpc_export lpc_file cstext-file\n"));
 }
 
-static int lpc_export(CSOUND *csound, int argc, char **argv)
+static int32_t lpc_export(CSOUND *csound, int32_t argc, char **argv)
 {
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
-    unsigned int i, j;
+    uint32_t i, j;
     char *str;
     MYFLT *coef;
 
@@ -97,7 +97,7 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
     coef = (MYFLT *)csound->Malloc(csound,(hdr.npoles+hdr.nvals)*sizeof(MYFLT));
     if (UNLIKELY(coef==NULL)) {
       fclose(inf); fclose(outf); csound->Free(csound,str); return 3;}
-    for (i = 0; i<(unsigned int)floor(hdr.framrate*hdr.duration); i++) {
+    for (i = 0; i<(uint32_t)floor(hdr.framrate*hdr.duration); i++) {
       if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf)!=hdr.npoles))
         csound->Message(csound, Str("Read failure\n"));
       for (j=0; j<hdr.npoles; j++)
@@ -111,9 +111,9 @@ static int lpc_export(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int lpc_export_init_(CSOUND *csound)
+int32_t lpc_export_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "lpc_export", lpc_export);
+    int32_t retval = csound->AddUtility(csound, "lpc_export", lpc_export);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "lpc_export",

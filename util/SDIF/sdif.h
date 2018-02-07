@@ -249,12 +249,12 @@ SDIFresult SDIF_WriteMatrixHeader(const SDIF_MatrixHeader *m, FILE *f);
 /* SDIF_GetMatrixDataSize --
    Returns the size in bytes of the matrix described by the given
    SDIF_MatrixHeader, including possible byte padding. */
-int SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m);
+int32_t SDIF_GetMatrixDataSize(const SDIF_MatrixHeader *m);
 
 /* SDIF_PaddingRequired --
    Returns the number of padding bytes required after the matrix data
    according to the given SDIF_MatrixHeader. */
-int SDIF_PaddingRequired(const SDIF_MatrixHeader *m);
+int32_t SDIF_PaddingRequired(const SDIF_MatrixHeader *m);
 
 /* SDIF_SkipMatrix --
    Assuming that you just read an SDIF_MatrixHeader and want to ignore the
@@ -284,7 +284,7 @@ sdif_int32 SDIF_UniqueStreamID(void);
 /* SDIF_Char4Eq --
    Checks two 4-byte character arrays for equality.  Returns zero if they
    differ, nonzero if they're the same. */
-int SDIF_Char4Eq(const char *thisone, const char *thatone);
+int32_t SDIF_Char4Eq(const char *thisone, const char *thatone);
 
 /* SDIF_Copy4Bytes --
    Copies 4 bytes (e.g., "SDIF") into a 4-byte char array. */

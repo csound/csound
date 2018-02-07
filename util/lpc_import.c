@@ -39,12 +39,12 @@ void lpc_import_usage(CSOUND *csound)
     csound->Message(csound, Str("Usage: lpc_import cstext_file lpc_file\n"));
 }
 
-static int lpc_import(CSOUND *csound, int argc, char **argv)
+static int32_t lpc_import(CSOUND *csound, int32_t argc, char **argv)
 {
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
-    unsigned int i, j;
+    uint32_t i, j;
     char *str;
     MYFLT *coef;
 
@@ -109,9 +109,9 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int lpc_import_init_(CSOUND *csound)
+int32_t lpc_import_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "lpc_import", lpc_import);
+    int32_t retval = csound->AddUtility(csound, "lpc_import", lpc_import);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "lpc_import",

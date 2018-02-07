@@ -193,11 +193,11 @@ int32_t pvsin_init(CSOUND *csound, FCHAN *p)
         csoundSpinUnLock(lock);
     }
 
-    N = p->init.N = (int32)(*p->N ? *p->N : p->init.N);
-    p->init.overlap = (int32) (*p->overlap ? *p->overlap : p->init.overlap);
-    p->init.winsize = (int32) (*p->winsize ? *p->winsize : p->init.winsize);
-    p->init.wintype = (int32)(*p->wintype);
-    p->init.format = (int32)(*p->format);
+    N = p->init.N = (int32_t)(*p->N ? *p->N : p->init.N);
+    p->init.overlap = (int32_t) (*p->overlap ? *p->overlap : p->init.overlap);
+    p->init.winsize = (int32_t) (*p->winsize ? *p->winsize : p->init.winsize);
+    p->init.wintype = (int32_t)(*p->wintype);
+    p->init.format = (int32_t)(*p->format);
     p->init.framecount = 0;
     memcpy(p->r, &p->init, sizeof(PVSDAT)-sizeof(AUXCH));
     if (p->r->frame.auxp == NULL ||
@@ -541,9 +541,9 @@ PUBLIC int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
         return 0;
     }
     if  (hints.behav == CSOUND_CONTROL_CHANNEL_INT) {
-        hints.dflt = (MYFLT) ((int32) MYFLT2LRND(hints.dflt));
-        hints.min  = (MYFLT) ((int32) MYFLT2LRND(hints.min));
-        hints.max  = (MYFLT) ((int32) MYFLT2LRND(hints.max));
+        hints.dflt = (MYFLT) ((int32_t) MYFLT2LRND(hints.dflt));
+        hints.min  = (MYFLT) ((int32_t) MYFLT2LRND(hints.min));
+        hints.max  = (MYFLT) ((int32_t) MYFLT2LRND(hints.max));
     }
     if (UNLIKELY(hints.min > hints.max || hints.dflt < hints.min ||
                  hints.dflt > hints.max ||

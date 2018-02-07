@@ -48,8 +48,8 @@ void het_import_usage(CSOUND *csound)
 int16 getnum(FILE* inf, char *term)
 {
     char buff[16];
-    int  cc;
-    int p = 0;
+    int32_t  cc;
+    int32_t p = 0;
     while ((cc=getc(inf))!=',' && cc!='\n' && p<15) {
       if (UNLIKELY(cc == EOF)) {
             *term = '\0';
@@ -62,11 +62,11 @@ int16 getnum(FILE* inf, char *term)
     return (int16)atoi(buff);
 }
 
-static int het_import(CSOUND *csound, int argc, char **argv)
+static int32_t het_import(CSOUND *csound, int32_t argc, char **argv)
 {
     FILE *infd;
     FILE *outf;
-    int c;
+    int32_t c;
 
     if (UNLIKELY(argc!= 3)) {
       het_import_usage(csound);
@@ -87,7 +87,7 @@ static int het_import(CSOUND *csound, int argc, char **argv)
 
     if ((c=getc(infd)) == 'H') {
       char buf[6];
-      int i;
+      int32_t i;
       for (i=0; i<4; i++) buf[i]=(char)getc(infd);
       if (UNLIKELY(strncmp(buf, "ETRO", 4)!=0)) {
         csound->Message(csound, Str("Not an hetro anaysis file %s\n"), argv[1]);
@@ -115,9 +115,9 @@ static int het_import(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int het_import_init_(CSOUND *csound)
+int32_t het_import_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "het_import", het_import);
+    int32_t retval = csound->AddUtility(csound, "het_import", het_import);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "het_import",

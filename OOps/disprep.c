@@ -82,18 +82,18 @@ int32_t fdsplay(CSOUND *csound, FSIGDISP *p)
 
 int32_t dspset(CSOUND *csound, DSPLAY *p)
 {
-    int32  npts, nprds, bufpts, totpts;
+    int32_t  npts, nprds, bufpts, totpts;
     char   *auxp;
     char   strmsg[256];
 
     if (p->h.optext->t.intype == 'k')
-      npts = (int32)(*p->iprd * CS_EKR);
-    else npts = (int32)(*p->iprd * csound->esr);
+      npts = (int32_t)(*p->iprd * CS_EKR);
+    else npts = (int32_t)(*p->iprd * csound->esr);
     if (UNLIKELY(npts <= 0)) {
       return csound->InitError(csound, Str("illegal iprd in display"));
 
     }
-    if ((nprds = (int32)*p->inprds) <= 1) {
+    if ((nprds = (int32_t)*p->inprds) <= 1) {
       nprds  = 0;
       bufpts = npts;
       totpts = npts;
@@ -192,11 +192,11 @@ int32_t dsplay(CSOUND *csound, DSPLAY *p)
 }
 
 /* Write window coefs into buffer, don't malloc */
-static void FillHalfWin(MYFLT *wBuf, int32 size, MYFLT max, int32_t hannq)
+static void FillHalfWin(MYFLT *wBuf, int32_t size, MYFLT max, int32_t hannq)
     /* 1 => hanning window else hamming */
 {
     MYFLT       a,b;
-    int32        i;
+    int32_t        i;
 
     if (hannq) {
       a = FL(0.50);
@@ -217,10 +217,10 @@ static void FillHalfWin(MYFLT *wBuf, int32 size, MYFLT max, int32_t hannq)
     return;
 }
 
-static void ApplyHalfWin(MYFLT *buf, MYFLT *win, int32 len)
+static void ApplyHalfWin(MYFLT *buf, MYFLT *win, int32_t len)
 {   /* Window only store 1st half, is symmetric */
-    int32    j;
-    int32    lenOn2 = (len/2);
+    int32_t    j;
+    int32_t    lenOn2 = (len/2);
 
     for (j=lenOn2+1; j--; )
       *buf++ *= *win++;
@@ -232,10 +232,10 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
                                       /* Transform of collected samples and  */
                                       /* displays coefficients (mag or db)   */
 {
-    int32 window_size, step_size;
+    int32_t window_size, step_size;
     int32_t   hanning;
     char  strmsg[256];
-    int32  minbin, maxbin;
+    int32_t  minbin, maxbin;
     minbin = *p->imin;
     maxbin = *p->imax;
 
@@ -244,7 +244,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
 
     p->sampbuf = (MYFLT *) p->smpbuf.auxp;
 
-    window_size = (int32)*p->inpts;
+    window_size = (int32_t)*p->inpts;
     if (UNLIKELY(window_size > WINDMAX)) {
       return csound->InitError(csound, Str("too many points requested"));
     }
@@ -255,8 +255,8 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
       return csound->InitError(csound, Str("window size must be power of two"));
     }
     if (p->h.optext->t.intype == 'k')
-      step_size = (int32)(*p->iprd * CS_EKR);
-    else step_size = (int32)(*p->iprd * csound->esr);
+      step_size = (int32_t)(*p->iprd * CS_EKR);
+    else step_size = (int32_t)(*p->iprd * csound->esr);
     if (UNLIKELY(step_size <= 0)) {
       return csound->InitError(csound, Str("illegal iprd in ffy display"));
     }
@@ -270,7 +270,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
          minbin != p->start         ||
          window_size != p->windsize ||
          hanning != p->hanning) {             /* if windowing has changed:  */
-      int32 auxsiz;
+      int32_t auxsiz;
       MYFLT *hWin;
       p->windsize = window_size;                /* set new parameter values */
       p->hanning = hanning;
@@ -279,7 +279,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
       p->overN   = FL(1.0)/(*p->inpts);
       p->ncoefs  = window_size >>1;
       auxsiz = (window_size/2 + 1) * sizeof(MYFLT);  /* size for half window */
-      csound->AuxAlloc(csound, (int32)auxsiz, &p->auxch); /* alloc or realloc */
+      csound->AuxAlloc(csound, (int32_t)auxsiz, &p->auxch); /* alloc or realloc */
       hWin = (MYFLT *) p->auxch.auxp;
       FillHalfWin(hWin, window_size,
                   FL(1.0), hanning);            /* fill with proper values */
@@ -304,7 +304,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
 }
 
 /* pack re,im,re,im into re,re */
-static void PackReals(MYFLT *buffer, int32 size)
+static void PackReals(MYFLT *buffer, int32_t size)
 {
     MYFLT   *b2 = buffer;
 
@@ -316,9 +316,9 @@ static void PackReals(MYFLT *buffer, int32 size)
 }
 
 /* Convert Real & Imaginary spectra into Amplitude & Phase */
-static void Rect2Polar(MYFLT *buffer, int32 size, MYFLT scal)
+static void Rect2Polar(MYFLT *buffer, int32_t size, MYFLT scal)
 {
-    int32   i;
+    int32_t   i;
     MYFLT   *real,*imag;
     MYFLT   re,im;
     MYFLT   mag;
@@ -337,7 +337,7 @@ static void Rect2Polar(MYFLT *buffer, int32 size, MYFLT scal)
 }
 
 /* packed buffer ie. reals, not complex */
-static void Lin2DB(MYFLT *buffer, int32 size)
+static void Lin2DB(MYFLT *buffer, int32_t size)
 {
     while (size--) {
       if(*buffer > 0.0)
@@ -350,7 +350,7 @@ static void d_fft(      /* perform an FFT as reqd below */
   CSOUND *csound,
   MYFLT  *sce,   /* input array - pure packed real */
   MYFLT  *dst,   /* output array - packed magnitude, only half-length */
-  int32  size,   /* number of points in input */
+  int32_t  size,   /* number of points in input */
   MYFLT  *hWin,  /* hanning window lookup table */
   int32_t    dbq, MYFLT scal)    /* flag: 1-> convert output into db */
 {
@@ -499,7 +499,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
       p->maxlam = maxlam = nptsm1/(NTERMS-1);
       lamspan = maxlam - minlam + 1;          /* alloc 8 bufs: 2 circ, 6 lin */
       auxsiz = (npts * 5 + lamspan * 3) * sizeof(MYFLT);
-      csound->AuxAlloc(csound, (int32)auxsiz, &p->auxch);
+      csound->AuxAlloc(csound, (int32_t)auxsiz, &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->hbeg   = fltp;   fltp += npts;
       p->hend   = fltp;
@@ -515,15 +515,15 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
     }
     if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to display stmem & exp */
       snprintf(strmsg, 256, "instr %d tempest:", (int32_t) p->h.insdshead->p1.value);
-      dispset(csound, &p->dwindow, p->stmemp, (int32)npts * 2, strmsg, 0,
+      dispset(csound, &p->dwindow, p->stmemp, (int32_t)npts * 2, strmsg, 0,
                       Str("tempest"));
       p->dwindow.danflag = 1;                    /* for mid-scale axis */
     }
     {
       MYFLT *funp = ftp->ftable;
-      int32 phs = 0;
-      int32 inc = (int32)PHMASK / npts;
-      int32 nn, lobits = ftp->lobits;
+      int32_t phs = 0;
+      int32_t inc = (int32_t)PHMASK / npts;
+      int32_t nn, lobits = ftp->lobits;
       for (fltp=p->hbeg, nn=npts*4; nn--; )   /* clr 2 circ & 1st 2 lin bufs */
         *fltp++ = FL(0.0);
       for (fltp=p->ftable+npts, nn=npts; nn--; ) {  /* now sample the ftable  */
@@ -533,8 +533,8 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
     }
     {
       MYFLT *tblp, sumraw, sumsqr;      /* calc the CROSS prod scalers */
-      int32 terms;
-      int32 lambda, maxlam;
+      int32_t terms;
+      int32_t lambda, maxlam;
       MYFLT crossprods, RMS, *endtable = p->ftable + nptsm1;
    /* MYFLT coef, log001 = -6.9078; */
       MYFLT *xscale = p->xscale;
@@ -617,7 +617,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
         MYFLT *hcur = p->hcur;
         MYFLT *hend = p->hend;
         MYFLT *tblp = p->ftable;
-        int32  wrap;
+        int32_t  wrap;
         *hcur++ = kin + expect * p->xfdbak;   /* join insample & expect val */
         if (hcur < hend)  p->hcur = hcur;     /* stor pntr for next insamp  */
         else p->hcur = p->hbeg;
@@ -631,7 +631,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
       if (p->yt1 > p->thresh        /* if lo-pass of kinput now significant */
           && kin > p->fwdmask) {    /*    & kin > masking due to prev kin */
         MYFLT sumraw, sumsqr;
-        int32 lambda, minlam, maxlam;
+        int32_t lambda, minlam, maxlam;
         int32_t  terms, nn, npts = p->npts;
         MYFLT mult, crossprods, RMScross, RMStot, unilam, rd;
         MYFLT *xend = p->xend;
@@ -725,7 +725,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
       MYFLT *linp = p->linexp;
       MYFLT *xcur = p->xcur;
       MYFLT *xend = p->xend;
-      int32 wrap = xcur - p->xbeg;
+      int32_t wrap = xcur - p->xbeg;
       while (xcur < xend)                   /* lineariz the circ xbuf */
         *linp++ = *xcur++;                  /*  into linexp buf       */
       for (xcur=p->xbeg; wrap--; )

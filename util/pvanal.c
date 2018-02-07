@@ -53,9 +53,9 @@ typedef struct pvocex_ch {
                 *oi,            /* pointer to old phase channels */
                 *oldInPhase;    /* pointer to start of input phase buffer */
 
-        int     m, n;
+        int32_t     m, n;
 
-        int     N ,             /* number of phase vocoder channels (bands) */
+        int32_t     N ,             /* number of phase vocoder channels (bands) */
                 M,              /* length of analWindow impulse response */
                 L,              /* length of synWindow impulse response */
                 D,              /* decimation factor (default will be M/8) */
@@ -66,13 +66,13 @@ typedef struct pvocex_ch {
 
                 MYFLT Fexact;
 
-        long /* tmprate, */     /* temporary variable */
+        int64_t /* tmprate, */     /* temporary variable */
                 ibuflen,        /* length of input buffer */
                 nI,             /* current input (analysis) sample */
                 nMin,           /* first input (analysis) sample */
                 nMax;           /* last input sample (unless EOF) */
 /***************************** 6:2:91  OLD CODE **************
-                                                long    origsize;
+                                                int64_t    origsize;
 *******************************NEW CODE **********************/
         MYFLT   real,           /* real part of analysis data */
                 imag,           /* imaginary part of analysis data */
@@ -87,7 +87,7 @@ typedef struct pvocex_ch {
                 invR,           /* 1. / srate */
                 time,           /* nI / srate */
                 R ;             /* input sampling rate */
-        int     i,j,k,          /* index variables */
+        int32_t     i,j,k,          /* index variables */
                 Dd,             /* number of new inputs to read (Dd <= D) */
                 N2,             /* N/2 */
                 NO,             /* synthesis NO = N / P */
@@ -99,12 +99,12 @@ typedef struct pvocex_ch {
 
         float   srate;          /* sample rate from header on stdin */
         float   timecheckf;
-        long    isr,            /* sampling rate */
+        int64_t    isr,            /* sampling rate */
                 Nchans;         /* no of chans */
 
         /* my vars */
 /*      pvocmode m_mode; */
-        long  bin_index;     /* index into oldOutPhase to do fast norm_phase */
+        int64_t  bin_index;     /* index into oldOutPhase to do fast norm_phase */
         float *synWindow_base;
         MYFLT *analWindow_base;
 
@@ -112,25 +112,25 @@ typedef struct pvocex_ch {
 
 /* prototype arguments */
 
-static  int     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
+static  int32_t     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
                                         const char *fname,
-                                        long srate, long chans, long fftsize,
-                                        long overlap, long winsize,
+                                        int64_t srate, int64_t chans, int64_t fftsize,
+                                        int64_t overlap, int64_t winsize,
                                         pv_wtype wintype,
-                                        double beta, int displays);
-static  long    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
-                                        long samps, int frametype);
+                                        double beta, int32_t displays);
+static  int64_t    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
+                                        int64_t samps, int32_t frametype);
 static  void    chan_split(CSOUND*, const MYFLT *inbuf, MYFLT **chbuf,
-                                    long insize, long chans);
-static  int     init(CSOUND *csound,
-                     PVX **pvx, long srate, long fftsize, long winsize,
-                     long overlap, pv_wtype wintype, double beta);
+                                    int64_t insize, int64_t chans);
+static  int32_t     init(CSOUND *csound,
+                     PVX **pvx, int64_t srate, int64_t fftsize, int64_t winsize,
+                     int64_t overlap, pv_wtype wintype, double beta);
 /* from elsewhere in Csound! But special form for CARL code*/
-static  void    hamming(MYFLT *win, int winLen, int even);
+static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);
 static  double  besseli(double x);
-static  void    kaiser(MYFLT *win, int len, double Beta);
-static  void    vonhann(MYFLT *win, int winLen, int even);
-static  int     quit(CSOUND *, char *msg);
+static  void    kaiser(MYFLT *win, int32_t len, double Beta);
+static  void    vonhann(MYFLT *win, int32_t winLen, int32_t even);
+static  int32_t     quit(CSOUND *, char *msg);
 
 #define MINFRMMS        20      /* frame defaults to at least this many ms */
 #define MAXFRMPTS       65536
@@ -146,24 +146,24 @@ static  int     quit(CSOUND *, char *msg);
 #define DEFAULT_BUFLEN  (8192)  /* per channel */
 #define DISPFRAMES      30
 
-static int pvanal(CSOUND *csound, int argc, char **argv)
+static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
 {
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
-    int     channel = ALLCHNLS;
-    int     ovlp = 0;           /* number of overlapping windows to have */
+    int32_t     channel = ALLCHNLS;
+    int32_t     ovlp = 0;           /* number of overlapping windows to have */
     SOUNDIN *p;                 /* space allocated by SAsndgetset() */
 
     MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
-    long    oframeEst = 0;      /* output frms estimated */
-    long    frameSize  = 0;     /* size of FFT frames */
-    long    frameIncr  = 0;     /* step between successive frames */
-    int     latch = 200;
+    int64_t    oframeEst = 0;      /* output frms estimated */
+    int64_t    frameSize  = 0;     /* size of FFT frames */
+    int64_t    frameIncr  = 0;     /* step between successive frames */
+    int32_t     latch = 200;
     FILE    *trfil = stdout;
     pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
     double  beta = 6.8;
-    int displays = 0;
+    int32_t displays = 0;
 
 
     if (UNLIKELY(!(--argc)))
@@ -259,8 +259,8 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
     sr = (MYFLT)p->sr;
     /* setup frame size etc according to sampling rate */
     if (frameSize == 0) {       /* not specified on command line */
-      int target;
-      target = (int)(sr * (MYFLT)MINFRMMS / FL(1000.0));
+      int32_t target;
+      target = (int32_t)(sr * (MYFLT)MINFRMMS / FL(1000.0));
       frameSize = MAXFRMPTS;    /* default frame size is > MINFRMMS msecs */
       while ((frameSize>>1) >= target && frameSize > MINFRMPTS)
         frameSize >>= 1;        /* divide down until just larger */
@@ -278,15 +278,15 @@ static int pvanal(CSOUND *csound, int argc, char **argv)
       csound->Message(csound,
                       Str("WARNING: pvanal: %d might be a bad window "
                           "overlap index\n"),
-                      (int) ovlp);
+                      (int32_t) ovlp);
       /* return -1; */
       /* VL: removed this restriction, which sounds a bit drastic */
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
     csound->Message(csound, Str("%ld infrsize, %ld infrInc\n"),
-                            (long) frameSize, (long) frameIncr);
+                            (int64_t) frameSize, (int64_t) frameIncr);
     csound->Message(csound, Str("%ld output frames estimated\n"),
-                            (long) oframeEst);
+                            (int64_t) oframeEst);
 
     /* even for old pvoc file, is absence of extension OK? */
     if (UNLIKELY(p->nchanls > MAXPVXCHANS)) {
@@ -327,9 +327,9 @@ static const char *pvanal_usage_txt[] = {
     NULL
 };
 
-static int quit(CSOUND *csound, char *msg)
+static int32_t quit(CSOUND *csound, char *msg)
 {
-    int i;
+    int32_t i;
 
     csound->Message(csound, Str("pvanal error: %s\n"), msg);
     for (i = 0; pvanal_usage_txt[i] != NULL; i++)
@@ -339,9 +339,9 @@ static int quit(CSOUND *csound, char *msg)
 
 /* module interface */
 
-int pvanal_init_(CSOUND *csound)
+int32_t pvanal_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "pvanal", pvanal);
+    int32_t retval = csound->AddUtility(csound, "pvanal", pvanal);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "pvanal",
                                              Str("Soundfile analysis for pvoc"));
@@ -353,13 +353,13 @@ typedef struct PVDISPLAY_ {
     CSOUND  *csound;
     WINDAT  dwindow;
     MYFLT   *dispBufs[DISPFRAMES];
-    int     npts, dispCnt, dispCntMax, dispFrame;
+    int32_t     npts, dispCnt, dispCntMax, dispFrame;
 } PVDISPLAY;
 
 static void PVDisplay_Init(CSOUND *csound, PVDISPLAY *p,
-                           int fftSize, int dispCntMax)
+                           int32_t fftSize, int32_t dispCntMax)
 {
-    int     i;
+    int32_t     i;
 
     memset(p, 0, sizeof(PVDISPLAY));
     p->csound = csound;
@@ -371,7 +371,7 @@ static void PVDisplay_Init(CSOUND *csound, PVDISPLAY *p,
 
 static void PVDisplay_Update(PVDISPLAY *p, const float *buf)
 {
-    int     i;
+    int32_t     i;
 
     if (p->dispFrame >= DISPFRAMES)
       return;
@@ -380,9 +380,9 @@ static void PVDisplay_Update(PVDISPLAY *p, const float *buf)
     p->dispCnt++;
 }
 
-static void PVDisplay_Display(PVDISPLAY *p, int frame)
+static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
 {
-    int     i;
+    int32_t     i;
 
     if (p->dispFrame >= DISPFRAMES ||
         p->dispCnt < p->dispCntMax)
@@ -393,7 +393,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int frame)
                                  / (MYFLT) p->dispCnt));
     p->csound->dispset(p->csound, &(p->dwindow), p->dispBufs[p->dispFrame],
                        p->npts, "pvanalwin", 0, "PVANAL");
-    snprintf(&(p->dwindow.caption[0]), CAPSIZE, "%ld", (long) frame);
+    snprintf(&(p->dwindow.caption[0]), CAPSIZE, "%ld", (int64_t) frame);
     p->csound->display(p->csound, &(p->dwindow));
     p->dispCnt = 0;
     p->dispFrame++;
@@ -403,22 +403,22 @@ static void PVDisplay_Display(PVDISPLAY *p, int frame)
 
 /* cannot add display code, as we may have 8 channels here...*/
 
-static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
-                   long srate, long chans, long fftsize, long overlap,
-                   long winsize, pv_wtype wintype, double beta, int displays)
+static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
+                   int64_t srate, int64_t chans, int64_t fftsize, int64_t overlap,
+                   int64_t winsize, pv_wtype wintype, double beta, int32_t displays)
 {
-    int         i, k, pvfile = -1, rc = 0;
+    int32_t         i, k, pvfile = -1, rc = 0;
     pv_stype    stype = STYPE_16;
-    long        buflen, buflen_samps;
-    long        sampsread;
-    long        blocks_written = 0;     /* m/c framecount for user */
+    int64_t        buflen, buflen_samps;
+    int64_t        sampsread;
+    int64_t        blocks_written = 0;     /* m/c framecount for user */
     PVX         *pvx[MAXPVXCHANS];
     MYFLT       *inbuf_c[MAXPVXCHANS];
     float       *frame_c[MAXPVXCHANS];  /* RWD : MUST be 32bit  */
     MYFLT       *inbuf = NULL;
     float       *frame;                 /* RWD : MUST be 32bit  */
     MYFLT       *chanbuf;
-    long        total_sampsread = 0;
+    int64_t        total_sampsread = 0;
     PVDISPLAY   disp;
 
     switch (p->format) {
@@ -469,8 +469,8 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
       goto error;
     }
     if (displays)
-    PVDisplay_Init(csound, &disp, (int) fftsize,
-                   (int) (((long) p->getframes * chans / overlap)
+    PVDisplay_Init(csound, &disp, (int32_t) fftsize,
+                   (int32_t) (((int64_t) p->getframes * chans / overlap)
                           / DISPFRAMES));
 
     while ((sampsread = csound->getsndin(csound,
@@ -504,7 +504,7 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
           if ((blocks_written/chans) % 20 == 0) {
             csound->Message(csound, "%ld\n", blocks_written/chans);
           }
-          if (displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
+          if (displays) PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
         }
       }
       if (total_sampsread >= p->getframes*chans)
@@ -534,10 +534,10 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
         blocks_written++;
         if (displays) PVDisplay_Update(&disp, frame);
       }
-      if (displays) PVDisplay_Display(&disp, (int) (blocks_written / chans));
+      if (displays) PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
     }
     csound->Message(csound, Str("\n%ld %d-chan blocks written to %s\n"),
-                    (long) blocks_written / (long) chans, (int) chans, fname);
+                    (int64_t) blocks_written / (int64_t) chans, (int32_t) chans, fname);
 
  error:
     if (pvfile >= 0)
@@ -545,12 +545,12 @@ static int pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
     return rc;
 }
 
-static int init(CSOUND *csound,
-                PVX **pvx, long srate, long fftsize, long winsize,
-                long overlap, pv_wtype wintype, double beta)
+static int32_t init(CSOUND *csound,
+                PVX **pvx, int64_t srate, int64_t fftsize, int64_t winsize,
+                int64_t overlap, pv_wtype wintype, double beta)
 {
-    int     i;
-    long    N, N2, M, Mf, D;
+    int32_t     i;
+    int64_t    N, N2, M, Mf, D;
     MYFLT   sum;
     PVX     *thispvx;
 
@@ -592,7 +592,7 @@ static int init(CSOUND *csound,
     thispvx->Mf          = Mf = 1 - M%2;
     thispvx->ibuflen     = 4 * M;
 
-    D = (int)((D != 0 ? D : M/(8.0))); /* Why floating 8?? */
+    D = (int32_t)((D != 0 ? D : M/(8.0))); /* Why floating 8?? */
     if (D == 0) {
       D = 1;
     }
@@ -705,12 +705,12 @@ static int init(CSOUND *csound,
 
 /* RWD outanal MUST be 32bit */
 
-static long generate_frame(CSOUND *csound, PVX *pvx,
+static int64_t generate_frame(CSOUND *csound, PVX *pvx,
                                            MYFLT *fbuf, float *outanal,
-                                           long samps, int frametype)
+                                           int64_t samps, int32_t frametype)
 {
-    int     got, tocp, i, j, k;
-    long    N = pvx->N;
+    int32_t     got, tocp, i, j, k;
+    int64_t    N = pvx->N;
     MYFLT   *fp, *oi, *i0, *i1, real, imag, *anal, angleDif;
     double  rratio, phase;
     float   *ofp;           /* RWD MUST be 32bit */
@@ -820,9 +820,9 @@ static long generate_frame(CSOUND *csound, PVX *pvx,
 }
 
 static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
-                                        long insize, long chans)
+                                        int64_t insize, int64_t chans)
 {
-    long i,j,len;
+    int64_t i,j,len;
     MYFLT ampfac;
     MYFLT *buf_c[MAXPVXCHANS] = { NULL };
 
@@ -840,10 +840,10 @@ static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
 
 }
 
-static void hamming(MYFLT *win, int winLen, int even)
+static void hamming(MYFLT *win, int32_t winLen, int32_t even)
 {
     double ftmp;
-    int i;
+    int32_t i;
 
     ftmp = PI/winLen;
 
@@ -891,7 +891,7 @@ static double besseli(double x)
     return ans;
 }
 
-static void kaiser(MYFLT *win, int len, double Beta)
+static void kaiser(MYFLT *win, int32_t len, double Beta)
 {
     MYFLT *ft = win;
     double i, xarg = 1.0;        /*xarg = amp scalefactor */
@@ -905,10 +905,10 @@ static void kaiser(MYFLT *win, int len, double Beta)
     win[0] = win[len-1];
 }
 
-static void vonhann(MYFLT *win, int winLen, int even)
+static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
 {
     MYFLT ftmp;
-    int i;
+    int32_t i;
 
     ftmp = PI_F/winLen;
 

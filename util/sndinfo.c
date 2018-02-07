@@ -28,13 +28,13 @@
 
 /* Some of the information is borrowed from libsndfile's sndfile-info code */
 
-static int sndinfo(CSOUND *csound, int argc, char **argv)
+static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
 {
     char    *infilnam, *fname;
     char    channame[32];
-    int     retval = 0;
-    int     instr_info = 0;
-    int     bcast_info = 0;
+    int32_t     retval = 0;
+    int32_t     instr_info = 0;
+    int32_t     bcast_info = 0;
     SF_INFO sf_info;
     SNDFILE *hndl;
 
@@ -110,7 +110,7 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
                                 (long) sf_info.frames);
         if (instr_info) {
           SF_INSTRUMENT inst;
-          int     k;
+          int32_t     k;
 
           if (sf_command(hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst)) != 0) {
             csound->Message(csound, Str("  Gain        : %d\n"),
@@ -118,9 +118,9 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
             csound->Message(csound, Str("  Base note   : %d\n"),
                             inst.basenote);
             csound->Message(csound, Str("  Velocity    : %d - %d\n"),
-                            (int) inst.velocity_lo, (int) inst.velocity_hi);
+                            (int32_t) inst.velocity_lo, (int32_t) inst.velocity_hi);
             csound->Message(csound, Str("  Key         : %d - %d\n"),
-                            (int) inst.key_lo, (int) inst.key_hi);
+                            (int32_t) inst.key_lo, (int32_t) inst.key_hi);
             csound->Message(csound, Str("  Loop points : %d\n"),
                             inst.loop_count);
 
@@ -145,22 +145,22 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
           if (sf_command(hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))
               != 0) {
             csound->Message(csound, Str("Description      : %.*s\n"),
-                            (int) sizeof (bext.description), bext.description);
+                            (int32_t) sizeof (bext.description), bext.description);
             csound->Message(csound, Str("Originator       : %.*s\n"),
-                            (int) sizeof (bext.originator), bext.originator);
+                            (int32_t) sizeof (bext.originator), bext.originator);
             csound->Message(csound, Str("Origination ref  : %.*s\n"),
-                            (int) sizeof (bext.originator_reference),
+                            (int32_t) sizeof (bext.originator_reference),
                             bext.originator_reference);
             csound->Message(csound, Str("Origination date : %.*s\n"),
-                            (int) sizeof (bext.origination_date),
+                            (int32_t) sizeof (bext.origination_date),
                             bext.origination_date);
             csound->Message(csound, Str("Origination time : %.*s\n"),
-                            (int) sizeof (bext.origination_time),
+                            (int32_t) sizeof (bext.origination_time),
                             bext.origination_time);
             csound->Message(csound, Str("BWF version      : %d\n"),
                             bext.version);
             csound->Message(csound, Str("UMID             : %.*s\n"),
-                            (int) sizeof (bext.umid), bext.umid);
+                            (int32_t) sizeof (bext.umid), bext.umid);
             csound->Message(csound, Str("Coding history   : %.*s\n"),
                             bext.coding_history_size, bext.coding_history);
           }
@@ -174,9 +174,9 @@ static int sndinfo(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int sndinfo_init_(CSOUND *csound)
+int32_t sndinfo_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "sndinfo", sndinfo);
+    int32_t retval = csound->AddUtility(csound, "sndinfo", sndinfo);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "sndinfo",
