@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 
     result = SDIF_OpenRead(argv[1],&infile);
     if (result != ESDIF_SUCCESS) {
-      fprintf(stderr,"Couldn't open %s: %s\n",
+      fprintf(stderr,"Could not open %s: %s\n",
               argv[1], SDIF_GetErrorString(result));
       exit(1);
     }
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 
         n_partials = mh.rowCount;
 #ifdef _DEBUG
-        /*printf("\nReading Matrix %ld: %ld rows",i+1,n_partials); */
+        /*printf("\nReading Matrix %d: %d rows",i+1,n_partials); */
 #endif
 
         for (j=0;j < n_partials; j++) {

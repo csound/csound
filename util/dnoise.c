@@ -77,6 +77,7 @@
 #include "soundio.h"
 #include <math.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #define ERR(x)                          \
 {                                       \
@@ -394,7 +395,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
               while (*++s);
               break;
             case 'B': FIND(Str("no B argument"));
-              sscanf(s,"%" SCn664, &Beg);
+              sscanf(s,"%" SCNd64, &Beg);
               while (*++s);
               break;
             case 'e': FIND("no e arg");
