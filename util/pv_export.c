@@ -37,7 +37,7 @@
 
 static void pv_export_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: pv_export pv_file cstext_file\n"));
+    csound->Message(csound, "%s", Str("Usage: pv_export pv_file cstext_file\n"));
 }
 
 static int32_t pv_export(CSOUND *csound, int32_t argc, char **argv)

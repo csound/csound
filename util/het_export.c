@@ -36,7 +36,7 @@
 
 void het_export_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: het_export het_file cstext_file\n"));
+    csound->Message(csound, "%s", Str("Usage: het_export het_file cstext_file\n"));
 }
 
 static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)

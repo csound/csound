@@ -131,7 +131,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
         endpoints = MIDIGetNumberOfSources();
         csound->Message(csound, Str("%d MIDI sources in system \n"), endpoints);
         if (!strcmp(dev,"all")) {
-          csound->Message(csound, Str("receiving from all sources \n"));
+          csound->Message(csound, "%s", Str("receiving from all sources \n"));
           for(k=0; k < endpoints; k++){
             endpoint = MIDIGetSource(k);
             long srcRefCon = (long) endpoint;
@@ -172,7 +172,7 @@ static int MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
      IGN(userData); IGN(dev);
     /*stub for the moment */
-    csound->Message(csound, Str("output not implemented yet in CoreMIDI \n"));
+    csound->Message(csound, "%s", Str("output not implemented yet in CoreMIDI \n"));
     return 0;
 }
 
@@ -267,7 +267,7 @@ static int MidiOutDeviceClose(CSOUND *csound, void *userData)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
-    //csound->Message(csound, Str("CoreMIDI real time MIDI plugin for Csound\n"));
+    //csound->Message(csound, "%s", Str("CoreMIDI real time MIDI plugin for Csound\n"));
     IGN(csound);
     return 0;
 }
@@ -282,7 +282,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "coremidi") == 0 || strcmp(drv, "CoreMidi") == 0 ||
           strcmp(drv, "CoreMIDI") == 0 || strcmp(drv, "cm") == 0))
       return 0;
-    csound->Message(csound, Str("rtmidi: CoreMIDI module enabled\n"));
+    csound->Message(csound, "%s", Str("rtmidi: CoreMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
     csound->SetExternalMidiReadCallback(csound, MidiDataRead);
     csound->SetExternalMidiInCloseCallback(csound, MidiInDeviceClose);
