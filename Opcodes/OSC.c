@@ -131,11 +131,11 @@ static int32_t osc_send_set(CSOUND *csound, OSCSEND *p)
 
     /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
-      return csound->InitError(csound, Str("Too many arguments to OSCsend"));
+      return csound->InitError(csound, "%s", Str("Too many arguments to OSCsend"));
     /* a-rate arguments are not allowed */
     /* for (i = 0; i < p->INOCOUNT-5; i++) { */
     /*   if (strcmp("a", csound->GetTypeForArg(p->arg[i])->varTypeName) == 0) { */
-    /*     return csound->InitError(csound, Str("No a-rate arguments allowed")); */
+    /*     return csound->InitError(csound, "%s", Str("No a-rate arguments allowed")); */
     /*   } */
     /* } */
 
@@ -209,7 +209,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
 #if defined(LINUX)
           if (UNLIKELY(setsockopt((uintptr_t)p->addr, IPPROTO_IP,
                                   IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1)) {
-            csound->Message(csound, Str("Failed to set multicast"));
+            csound->Message(csound, "%s", Str("Failed to set multicast"));
           }
 #elif defined(MSVC)
           setsockopt((SOCKET)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
@@ -271,7 +271,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             msk <<= 1; i++;
             if (UNLIKELY(type[i]!='t'))
               return csound->PerfError(csound, p->h.insdshead,
-                                       Str("Time stamp is two values"));
+                                       "%s", Str("Time stamp is two values"));
             tt.frac = (uint32_t)(*arg[i]+FL(0.5));
             lo_message_add_timetag(msg, tt);
             break;
@@ -414,7 +414,7 @@ static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
       return pp;
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_OSC_globals",
                                               sizeof(OSC_GLOBALS)) != 0)){
-      csound->ErrorMsg(csound, Str("OSC: failed to allocate globals"));
+      csound->ErrorMsg(csound, "%s", Str("OSC: failed to allocate globals"));
       return NULL;
     }
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
@@ -563,7 +563,7 @@ static int32_t OSC_deinit(CSOUND *csound, OSCINIT *p)
     lo_server_thread_stop(ports[n].thread);
     lo_server_thread_free(ports[n].thread);
     ports[n].thread =  NULL;
-    csound->Message(csound, Str("OSC deinitiatised\n"));
+    csound->Message(csound, "%s", Str("OSC deinitiatised\n"));
     return OK;
 }
 
@@ -685,11 +685,11 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     OSC_GLOBALS *pp =
       (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (UNLIKELY(pp == NULL))
-      return csound->InitError(csound, Str("OSC not running"));
+      return csound->InitError(csound, "%s", Str("OSC not running"));
     /* find port */
     n = (int32_t) *(p->ihandle);
     if (UNLIKELY(n < 0 || n >= pp->nPorts))
-      return csound->InitError(csound, Str("invalid handle"));
+      return csound->InitError(csound, "%s", Str("invalid handle"));
     p->port = &(pp->ports[n]);
     p->saved_path = (char*) csound->Malloc(csound,
                                            strlen((char*) p->dest->data) + 1);
@@ -697,10 +697,10 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     /* check for a valid argument list */
     n = csound->GetInputArgCnt(p) - 3;
     if (UNLIKELY(n < 1 || n > 28))
-      return csound->InitError(csound, Str("invalid number of arguments"));
+      return csound->InitError(csound, "%s", Str("invalid number of arguments"));
     if (UNLIKELY((int32_t) strlen((char*) p->type->data) != n))
       return csound->InitError(csound,
-                               Str("argument list inconsistent with "
+                               "%s", Str("argument list inconsistent with "
                                    "format string"));
     strcpy(p->saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
@@ -722,16 +722,16 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'h':
       case 'i':
         if (UNLIKELY(*s != 'k'))
-          return csound->InitError(csound, Str("argument list inconsistent "
+          return csound->InitError(csound, "%s", Str("argument list inconsistent "
                                                "with format string"));
         break;
       case 's':
         if (UNLIKELY(*s != 'S'))
-          return csound->InitError(csound, Str("argument list inconsistent "
+          return csound->InitError(csound, "%s", Str("argument list inconsistent "
                                                "with format string"));
         break;
       default:
-        return csound->InitError(csound, Str("invalid type"));
+        return csound->InitError(csound, "%s", Str("invalid type"));
       }
     }
     csound->LockMutex(p->port->mutex_);
@@ -852,7 +852,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
             ftp = csound->FTnp2Find(csound, p->args[i]);
             if (UNLIKELY(ftp==NULL)) {
               return csound->PerfError(csound, p->h.insdshead,
-                                       Str("OSC internal error"));
+                                       "%s", Str("OSC internal error"));
             }
             if (len > (int32_t)  (ftp->flen*sizeof(MYFLT)))
               ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
@@ -863,7 +863,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
             ftp = csound->FTFindP(csound, p->args[i]);
             if (UNLIKELY(ftp==NULL)) { // need to allocate ***FIXME***
               return csound->PerfError(csound, p->h.insdshead,
-                                       Str("OSC internal error"));
+                                       "%s", Str("OSC internal error"));
             }
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
             ftp->fno = fno;

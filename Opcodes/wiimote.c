@@ -119,7 +119,7 @@ int32_t wiimote_find(CSOUND *csound, WIIMOTE *p)
     n  = wiiuse_find(wiimotes, max_wiimotes, i);
     if (LIKELY(n!=0)) n = wiiuse_connect(wiimotes, max_wiimotes);
     if (UNLIKELY(n==0)) {
-      return csound->InitError(csound, Str("unable to open wiimote\n"));
+      return csound->InitError(csound, "%s", Str("unable to open wiimote\n"));
     }
     /* Initialise ranges */
     for (i=0; i<n; i++) {
@@ -177,7 +177,7 @@ int32_t wiimote_poll(CSOUND *csound, WIIMOTE *p)
         /*                                     exp.nunchuk, 90.0f); */
         /* wiiuse_set_nunchuk_accel_threshold((struct nunchuk_t*)&wiimotes[i]-> */
         /*                                    exp.nunchuk, 100); */
-        csound->Warning(csound, Str("Nunchuk inserted.\n"));
+        csound->Warning(csound, "%s", Str("Nunchuk inserted.\n"));
         break;
       case WIIUSE_NUNCHUK_REMOVED:
         /* some expansion was removed */
@@ -198,10 +198,10 @@ int32_t wii_data_init(CSOUND *csound, WIIMOTE *p)
     wiirange_t *wiirange;
     wiimotes = (wiimote**)csound->QueryGlobalVariable(csound, "wiiMote");
     if (UNLIKELY(wiimotes==NULL))
-      return csound->InitError(csound, Str("No wii open"));
+      return csound->InitError(csound, "%s", Str("No wii open"));
     wiirange = (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiRange");
     if (UNLIKELY(wiirange==NULL))
-      return csound->InitError(csound, Str("No wii open"));
+      return csound->InitError(csound, "%s", Str("No wii open"));
     p->wii = wiimotes;
     p->wiir = wiirange;
     return OK;
@@ -334,10 +334,10 @@ int32_t wii_data_inits(CSOUND *csound, WIIMOTES *p)
     wiirange_t *wiirange;
     wiimotes = (wiimote**)csound->QueryGlobalVariable(csound, "wiiMote");
     if (UNLIKELY(wiimotes==NULL))
-      return csound->InitError(csound, Str("No wii open"));
+      return csound->InitError(csound, "%s", Str("No wii open"));
     wiirange = (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiRange");
     if (UNLIKELY(wiirange==NULL))
-      return csound->InitError(csound, Str("No wii open"));
+      return csound->InitError(csound, "%s", Str("No wii open"));
     p->wii = wiimotes;
     p->wiir = wiirange;
     return OK;
@@ -348,7 +348,7 @@ int32_t wii_send(CSOUND *csound, WIIMOTES *p)
     wiimote **wii = p->wii;
     int32_t num = (int32_t)*p->num;
     if (UNLIKELY(!(wii[num]->state & WIIMOTE_STATE_CONNECTED)))
-      return csound->PerfError(csound, p->h.insdshead, Str("Not open"));
+      return csound->PerfError(csound, p->h.insdshead, "%s", Str("Not open"));
     switch ((int32_t)(*p->kControl+FL(0.5))) {
     /* case 1: */
     /*   wii->mode.acc = (int32_t)*p->kValue; */
@@ -371,7 +371,7 @@ int32_t wiimote_range(CSOUND *csound, WIIRANGE *p)
     wiirange_t *wiirange =
       (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiRange");
     if (UNLIKELY(wiirange==NULL))
-      return csound->InitError(csound, Str("No wii range"));
+      return csound->InitError(csound, "%s", Str("No wii range"));
     switch ((int32_t
              )(*p->iControl+FL(0.5))) {
     /* case 17: */

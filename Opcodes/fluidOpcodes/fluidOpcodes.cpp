@@ -133,7 +133,7 @@ public:
         delete_fluid_settings(fluidSettings);
       }
       result =
-          csound->InitError(csound, Str("error allocating fluid engine\n"));
+          csound->InitError(csound, "%s", Str("error allocating fluid engine\n"));
     } else {
       fluid_synth_set_chorus_on(fluidSynth, chorusEnabled);
       fluid_synth_set_reverb_on(fluidSynth, reverbEnabled);
@@ -578,7 +578,7 @@ public:
     interpolationMethod = (int32_t)*iInterpMethod;
     if (UNLIKELY(interpolationMethod != 0 && interpolationMethod != 1 &&
                  interpolationMethod != 4 && interpolationMethod != 7)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("Illegal Interpolation Method: Must be "
                                    "either 0, 1, 4, or 7.\n"));
     } else {

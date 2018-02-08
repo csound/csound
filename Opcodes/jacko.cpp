@@ -599,7 +599,7 @@ struct JackoState {
       // The Jack process callback will then call csoundPerformKsmps
       // until the Csound jacko_is_driving is complete.
       csound->Message(csound,
-                      Str("Jacko is now driving Csound performance...\n"));
+                      "%s", Str("Jacko is now driving Csound performance...\n"));
       result |= pthread_mutex_lock(&csoundPerformanceThreadConditionMutex);
       jacko_is_driving = true;
       while (jacko_is_driving == true) {
@@ -608,7 +608,7 @@ struct JackoState {
       }
       result |= pthread_mutex_unlock(&csoundPerformanceThreadConditionMutex);
       csound->Message(csound,
-                      Str("Jacko has quit driving Csound performance.\n"));
+                      "%s", Str("Jacko has quit driving Csound performance.\n"));
       return 1;
     }
     return result;
@@ -653,7 +653,7 @@ struct JackoState {
       // We break here when the Csound performace is complete, and close
       // the Jack connection in a separate thread.
       if (finished /* && jackActive */) {
-        csound->Message(csound, Str("Jacko performance finished.\n"));
+        csound->Message(csound, "%s", Str("Jacko performance finished.\n"));
         jacko_is_driving = false;
         // Create a thread to run the close routine.
         finished |= pthread_create(&closeThread, 0,
@@ -663,11 +663,11 @@ struct JackoState {
     return finished;
   }
   int close() {
-    csound->Message(csound, Str("BEGAN JackoState::close()...\n"));
+    csound->Message(csound, "%s", Str("BEGAN JackoState::close()...\n"));
     int result = OK;
     // Try not to do thread related operations more than once...
     result = jack_deactivate(jackClient);
-    csound->Message(csound, Str("Jack client deactivated.\n"));
+    csound->Message(csound, "%s", Str("Jack client deactivated.\n"));
     // Jack documentation says deactivating the client does the following also:
     for (std::map<std::string, jack_port_t *>::iterator it =
              audioInPorts.begin();
@@ -689,9 +689,9 @@ struct JackoState {
          it != midiOutPorts.end(); ++it) {
       result = jack_port_unregister(jackClient, it->second);
     }
-    csound->Message(csound, Str("Jack ports unregistered.\n"));
+    csound->Message(csound, "%s", Str("Jack ports unregistered.\n"));
     result |= jack_client_close(jackClient);
-    // csound->Message(csound, Str("Jack client closed.\n"));
+    // csound->Message(csound, "%s", Str("Jack client closed.\n"));
     pthread_cond_signal(&csoundPerformanceThreadCondition);
     result |= pthread_cond_destroy(&csoundPerformanceThreadCondition);
     result |= pthread_mutex_unlock(&csoundPerformanceThreadConditionMutex);
@@ -700,7 +700,7 @@ struct JackoState {
     audioInPorts.clear();
     midiInPorts.clear();
     midiOutPorts.clear();
-    csound->Message(csound, Str("ENDED JackoState::close().\n"));
+    csound->Message(csound, "%s", Str("ENDED JackoState::close().\n"));
     return result;
   }
   void *closeThreadRoutine() {

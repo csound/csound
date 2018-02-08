@@ -49,10 +49,10 @@ static int32_t scsnu_initw(CSOUND *csound, PSCSNU *p)
     FUNC *fi = csound->FTnp2Find(csound,  p->i_init);
     if (UNLIKELY(fi == NULL)) {
       return csound->InitError(csound,
-                               Str("scanu: Could not find ifnnit ftable"));
+                               "%s", Str("scanu: Could not find ifnnit ftable"));
     }
     if (UNLIKELY((int32_t)fi->flen != p->len))
-      return csound->InitError(csound, Str("scanu: Init table has bad size"));
+      return csound->InitError(csound, "%s", Str("scanu: Init table has bad size"));
     memcpy(p->x0, fi->ftable, p->len*sizeof(MYFLT));
     memcpy(p->x1, fi->ftable, p->len*sizeof(MYFLT));
     memcpy(p->x2, fi->ftable, p->len*sizeof(MYFLT));
@@ -73,7 +73,7 @@ static int32_t scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
     //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
     if (UNLIKELY((fi = csound->FTnp2Find(csound, &tab)) == NULL)) {
       return csound->InitError(csound,
-                               Str("scanu: Could not find ifninit ftable"));
+                               "%s", Str("scanu: Could not find ifninit ftable"));
     }
 
     /* Add hit */
@@ -127,7 +127,7 @@ static int32_t listrm(CSOUND *csound, PSCSNU *p)
       if (UNLIKELY(i == NULL)) {
 
         csound->ErrorMsg(csound,
-                         Str("Eek ... scan synthesis id was not found"));
+                         "%s", Str("Eek ... scan synthesis id was not found"));
         return NOTOK;
       }
       if (i->p == p)
@@ -175,7 +175,7 @@ static PSCSNU *listget(CSOUND *csound, int32_t id)
     pp = scansyn_getGlobals(csound);
     i = (struct scsn_elem *) pp->scsn_list;
     if (UNLIKELY(i == NULL)) {
-      csound->ErrorMsg(csound, Str("scans: No scan synthesis net specified"));
+      csound->ErrorMsg(csound, "%s", Str("scans: No scan synthesis net specified"));
       return NULL;
     }
     while (1) {
@@ -183,7 +183,7 @@ static PSCSNU *listget(CSOUND *csound, int32_t id)
         break;
       i = i->next;
       if (UNLIKELY(i == NULL)){
-        csound->ErrorMsg(csound, Str("Eek ... scan synthesis id was not found"));
+        csound->ErrorMsg(csound, "%s", Str("Eek ... scan synthesis id was not found"));
         return NULL;
       }
     }
@@ -207,7 +207,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Mass */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_m)) == NULL)) {
       return csound->InitError(csound,
-                               Str("scanu: Could not find ifnmass table"));
+                               "%s", Str("scanu: Could not find ifnmass table"));
     }
     len = p->len = f->flen;
     p->m = f->ftable;
@@ -215,20 +215,20 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Centering */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_c)) == NULL)) {
       return csound->InitError(csound,
-                               Str("scanu: Could not find ifncentr table"));
+                               "%s", Str("scanu: Could not find ifncentr table"));
     }
     if (UNLIKELY(f->flen != len))
-      return csound->InitError(csound, Str("scanu: Parameter tables should all "
+      return csound->InitError(csound, "%s", Str("scanu: Parameter tables should all "
                                            "have the same length"));
     p->c = f->ftable;
 
     /* Damping */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_d)) == NULL)) {
       return csound->InitError(csound,
-                               Str("scanu: Could not find ifndamp table"));
+                               "%s", Str("scanu: Could not find ifndamp table"));
     }
     if (UNLIKELY(f->flen != len))
-      return csound->InitError(csound, Str("scanu: Parameter tables should all "
+      return csound->InitError(csound, "%s", Str("scanu: Parameter tables should all "
                                            "have the same length"));
     p->d = f->ftable;
 
@@ -239,13 +239,13 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       /* Get the table */
       if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
         return csound->InitError(csound,
-                                 Str("scanu: Could not find ifnstiff table"));
+                                 "%s", Str("scanu: Could not find ifnstiff table"));
       }
 
      /* Check that the size is good */
       if (UNLIKELY(f->flen < len*len)) {
         //printf("len = %d len*len = %d flen = %d\n", len, len*len, f->flen);
-        return csound->InitError(csound, Str("scanu: Spring matrix is too small"));
+        return csound->InitError(csound, "%s", Str("scanu: Spring matrix is too small"));
       }
 
       /* Setup an easier addressing scheme */
@@ -302,10 +302,10 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       FUNC *f = csound->FTnp2Find(csound, p->i_v);
       if (UNLIKELY(f == NULL)) {
         return csound->InitError(csound,
-                                 Str("scanu: Could not find ifnvel table"));
+                                 "%s", Str("scanu: Could not find ifnvel table"));
       }
       if (UNLIKELY(f->flen != len)) {
-        return csound->InitError(csound, Str("scanu: Parameter tables should "
+        return csound->InitError(csound, "%s", Str("scanu: Parameter tables should "
                                              "all have the same length"));
       }
       for (i = 0 ; i != len ; i++)
@@ -345,7 +345,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     p->id = (int32_t) *p->i_id;
     if (p->id < 0) {
       if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < (int32_t)len)) {
-        return csound->InitError(csound, Str("scanu: invalid id table"));
+        return csound->InitError(csound, "%s", Str("scanu: invalid id table"));
       }
     }
     else {
@@ -436,7 +436,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
-                             Str("scanu: not initialised"));
+                             "%s", Str("scanu: not initialised"));
 }
 
 /****************************************************************************
@@ -472,7 +472,7 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     /* Get trajectory matrix */
     t = csound->FTnp2Find(csound, p->i_trj);
     if (UNLIKELY(t == NULL)) {
-      return csound->InitError(csound, Str("scans: Could not find "
+      return csound->InitError(csound, "%s", Str("scans: Could not find "
                                            "the ifntraj table"));
     }
     if (oscil_interp<1 || oscil_interp>4) oscil_interp = 4;
@@ -481,7 +481,7 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     /* Check that trajectory is within bounds */
     for (i = 0 ; i != p->tlen ; i++)
       if (UNLIKELY(t->ftable[i] < 0 || t->ftable[i] >= p->p->len))
-        return csound->InitError(csound, Str("vermp: Trajectory table includes "
+        return csound->InitError(csound, "%s", Str("vermp: Trajectory table includes "
                                              "values out of range"));
     /* Allocate memory and pad to accomodate interpolation */
                               /* Note that the 4 here is a hack -- jpff */

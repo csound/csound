@@ -55,7 +55,7 @@ static int32_t jack_transport (CSOUND *csound, JACKTRANSPORT * p)
     client = rtjack->client;
 
     if (UNLIKELY(client == NULL)) {
-      return csound->InitError(csound, Str("Cannot find Jack client.\n"));
+      return csound->InitError(csound, "%s", Str("Cannot find Jack client.\n"));
     }
     else {
       //move to specified location (in seconds)
@@ -71,15 +71,15 @@ static int32_t jack_transport (CSOUND *csound, JACKTRANSPORT * p)
       switch ((int32_t
                )(*p->command)) {
       case START:
-        csound->Warning(csound, Str("jacktransport: playing.\n"));
+        csound->Warning(csound, "%s", Str("jacktransport: playing.\n"));
         jack_transport_start(client);
         break;
       case STOP:
-        csound->Warning(csound, Str("jacktransport: stopped.\n"));
+        csound->Warning(csound, "%s", Str("jacktransport: stopped.\n"));
         jack_transport_stop(client);
         break;
       default:
-        csound->Warning(csound, Str("jacktransport: invalid parameter.\n"));
+        csound->Warning(csound, "%s", Str("jacktransport: invalid parameter.\n"));
         break;
       }
     }
