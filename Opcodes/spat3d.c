@@ -39,7 +39,7 @@
 
 static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 {
-    int32_t     i, j, o;
+    int32_t i, j, o;
     double  d, w;
 
     o = p->oversamp << 5;           /* window size = 32 * oversample */
@@ -47,7 +47,7 @@ static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
     i = ((o + 1) * (sizeof(int32_t) + sizeof(MYFLT)));      /* allocate */
     if ((p->fltr.auxp == NULL) || (p->fltr.size < (uint32_t)i)) /* space */
       csound->AuxAlloc(csound, i, &(p->fltr));
-    p->sample = (int32_t *) p->fltr.auxp;                 /* sample number */
+    p->sample = (int32_t *) p->fltr.auxp;             /* sample number */
     p->window = (MYFLT *) (p->sample + o + 1);        /* window value  */
 
     for (i = -(o >> 1), j = 0; i < (o >> 1); i++) {
@@ -72,12 +72,12 @@ static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 
 static int32_t spat3d_init_eq(CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
 {
-    int32_t     eqmode;
+    int32_t eqmode;
     double  omega, k, kk, vk, vkk, vkdq, sq, a0, a1, a2, b0, b1, b2;
 
     /* EQ code taken from biquad.c */
 
-    eqmode = (int32_t) ((double) ftable[3] + 0.5);                  /* mode      */
+    eqmode = (int32_t) ((double) ftable[3] + 0.5);              /* mode      */
     omega = (double) ftable[0] * (double) csound->tpidsr;       /* frequency */
     sq = sqrt(2.0 * (double) ftable[1]);                        /* level     */
 
@@ -113,9 +113,9 @@ static int32_t spat3d_init_eq(CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftabl
 
 static SPAT3D_WALL*
 spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
-                 int32_t    wallno,         /* wall number                      */
-                 int32_t    dep,            /* recursion depth                  */
-                 int32_t   *wmax,          /* wall structure number            */
+                 int32_t    wallno,     /* wall number                      */
+                 int32_t    dep,        /* recursion depth                  */
+                 int32_t   *wmax,       /* wall structure number            */
                  MYFLT  X, MYFLT Y, MYFLT Z) /* coordinates (spat3di/spat3dt) */
 {
     int32_t             i;
@@ -175,15 +175,17 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
       /* FALLTHRU */ case 2: Z = ws->Xc - Z; break;
       }
       if (p->zout < 4) {                      /* convert coord.    */
-        d = SPAT3D_XYZ2DIST(X, Y, Z);           /* distance  */
+        d = SPAT3D_XYZ2DIST(X, Y, Z);         /* distance  */
         d0 = d1 = (double) SPAT3D_DIST2DEL(d);  /* delay     */
-        a = SPAT3D_DIST2AMP(d);                 /* amp.      */
+        a = SPAT3D_DIST2AMP(d);                /* amp.      */
         d = FL(1.0) / (d > p->mdist ? d : p->mdist);
         w = x = y = z = FL(0.0);
         switch (p->zout) {
-        /* FALLTHRU */ case 3: z =  Z * d; w += z*z; z *= a;   /* Z */
-          /* FALLTHRU */ /* FALLTHRU */ case 2: x =  Y * d; w += x*x; x *= a;   /* X */
-        /* FALLTHRU */ case 1: y = -X * d; w += y*y; y *= a;   /* Y */
+        case 3: z =  Z * d; w += z*z; z *= a;   /* Z */
+          /* FALLTHRU */
+        case 2: x =  Y * d; w += x*x; x *= a;   /* X */
+        /* FALLTHRU */
+        case 1: y = -X * d; w += y*y; y *= a;   /* Y */
         }
         w = a - FL(0.293) * w * a;                      /* W */
       }
