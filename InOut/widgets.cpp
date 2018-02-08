@@ -1317,7 +1317,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       }
       else if (opcode_name == "FLbutBank") {
         FLBUTTONBANK *p = (FLBUTTONBANK *) (v.opcode);
-        fld->widg_name = "%s", Str("No name for FLbutbank");
+        fld->widg_name =  Str("No name for FLbutbank");
         //fld->widg_name = GetString(csound, p->name, p->XSTRCODE);
         fld->value = *p->kout;
         fld->min = 0; fld->max = 1; fld->exp = LIN_;

@@ -813,7 +813,7 @@ static void rtclose_(CSOUND *csound)
       csound->DestroyCircularBuffer(csound, cdata->incb);
       csound->DestroyCircularBuffer(csound, cdata->outcb);
       csound->Free(csound,cdata);
-      csound->Message(csound, Str("AuHAL module: device closed\n"));
+      csound->Message(csound, "%s", Str("AuHAL module: device closed\n"));
     }
 }
 
@@ -830,7 +830,7 @@ int csoundModuleInit(CSOUND *csound)
           strcmp(drv, "COREAUDIO") == 0))
       return 0;
     //if (csound->oparms->msglevel & 0x400)
-    csound->Message(csound, Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
+    csound->Message(csound, "%s", Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);

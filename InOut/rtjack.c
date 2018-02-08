@@ -211,7 +211,7 @@ static void freeWheelCallback(int starting, void *arg)
     if (starting) {
       if (UNLIKELY(sched_getscheduler(0) != SCHED_OTHER)) {
         struct sched_param sp;
-        csound->Message(csound, Str(" *** WARNING: "
+        csound->Message(csound, "%s", Str(" *** WARNING: "
                                     "disabling --sched in freewheel mode\n"));
         memset(&sp, 0, sizeof(struct sched_param));
         sp.sched_priority = 0;
@@ -516,7 +516,7 @@ static void openJackStreams(RtJackGlobals *p)
           }
           *sp = (char) 0;
         }
-        csound->Message(csound, Str("put port not connected\n"));
+        csound->Message(csound, "%s", Str("put port not connected\n"));
       }
 
     }
@@ -568,7 +568,7 @@ static void openJackStreams(RtJackGlobals *p)
           }
           *sp = (char) 0;
         } else
-          csound->Message(csound, Str("output port not connected\n"));
+          csound->Message(csound, "%s", Str("output port not connected\n"));
       }
     }
     /* stream is now active */
@@ -782,7 +782,7 @@ static CS_NOINLINE void rtJack_Restart(RtJackGlobals *p)
 {
     CSOUND  *csound = p->csound;
 
-    csound->ErrorMsg(csound, Str(" *** rtjack: connection to JACK "
+    csound->ErrorMsg(csound, "%s", Str(" *** rtjack: connection to JACK "
                                  "server was lost, reconnecting..."));
     p->jackState = -1;
     jack_client_close(p->client);
@@ -821,7 +821,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
           OPARMS oparms;
           csound->GetOParms(csound, &oparms);
           if (UNLIKELY(oparms.msglevel & 4))
-            csound->Warning(csound, Str("rtjack: input audio timeout"));
+            csound->Warning(csound, "%s", Str("rtjack: input audio timeout"));
           return bytes_;
         }
       }
@@ -847,7 +847,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (UNLIKELY(oparms.msglevel & 4))
-        csound->Warning(csound, Str("rtjack: xrun in real time audio"));
+        csound->Warning(csound, "%s", Str("rtjack: xrun in real time audio"));
     }
 
     return bytes_;
@@ -893,7 +893,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
     }
     if (p->xrunFlag) {
       p->xrunFlag = 0;
-      csound->Warning(csound, Str("rtjack: xrun in real time audio"));
+      csound->Warning(csound, "%s", Str("rtjack: xrun in real time audio"));
     }
 }
 
@@ -1057,10 +1057,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
     /* allocate and initialise globals */
     if (UNLIKELY(oparms.msglevel & 0x400))
-      csound->Message(csound, Str("JACK real-time audio module for Csound\n"));
+      csound->Message(csound, "%s", Str("JACK real-time audio module for Csound\n"));
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtjackGlobals",
                                               sizeof(RtJackGlobals)) != 0)) {
-      csound->ErrorMsg(csound, Str(" *** rtjack: error allocating globals"));
+      csound->ErrorMsg(csound, "%s", Str(" *** rtjack: error allocating globals"));
       return -1;
     }
     p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
@@ -1119,10 +1119,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
     RtJackMIDIGlobals *pm;
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, Str("JACK MIDI module for Csound\n"));
+      csound->Message(csound, "%s", Str("JACK MIDI module for Csound\n"));
     if (csound->CreateGlobalVariable(csound, "_rtjackMIDIGlobals",
                                      sizeof(RtJackMIDIGlobals)) != 0) {
-      csound->ErrorMsg(csound, Str(" *** rtjack MIDI: error allocating globals"));
+      csound->ErrorMsg(csound, "%s", Str(" *** rtjack MIDI: error allocating globals"));
       return -1;
     }
     pm = (RtJackMIDIGlobals*)
@@ -1184,7 +1184,7 @@ int MidiInProcessCallback(jack_nframes_t nframes, void *userData){
       if (UNLIKELY(csound->WriteCircularBuffer(csound,dev->cb,
                                               event.buffer,event.size)
                   != (int) event.size)){
-        csound->Warning(csound, Str("Jack MIDI module: buffer overflow"));
+        csound->Warning(csound, "%s", Str("Jack MIDI module: buffer overflow"));
         return 1;
       }
     }
@@ -1211,7 +1211,7 @@ static int midi_in_open(CSOUND *csound,
                  jack_client_open(clientName, 0, NULL)) == NULL)){
       *userData = NULL;
       csound->ErrorMsg(csound,
-                       Str("Jack MIDI module: failed to create client for input"));
+                       "%s", Str("Jack MIDI module: failed to create client for input"));
       return NOTOK;
     }
 
@@ -1223,7 +1223,7 @@ static int midi_in_open(CSOUND *csound,
       jack_client_close(jack_client);
       *userData = NULL;
       csound->ErrorMsg(csound,
-                       Str("Jack MIDI module: failed to register input port"));
+                       "%s", Str("Jack MIDI module: failed to register input port"));
       return NOTOK;
     }
 
@@ -1242,7 +1242,7 @@ static int midi_in_open(CSOUND *csound,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       csound->ErrorMsg(csound,
-                       Str("Jack MIDI module: failed to set input"
+                       "%s", Str("Jack MIDI module: failed to set input"
                            " process callback"));
       return NOTOK;
     }
@@ -1252,14 +1252,14 @@ static int midi_in_open(CSOUND *csound,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       *userData = NULL;
-      csound->ErrorMsg(csound, Str("Jack MIDI module: failed to activate input"));
+      csound->ErrorMsg(csound, "%s", Str("Jack MIDI module: failed to activate input"));
       return NOTOK;
     }
 
     if (strcmp(devName,"0")){
       if (UNLIKELY(jack_connect(jack_client,devName,
                                 jack_port_name(dev->port)) != 0)){
-        csound->Warning(csound, Str("Jack MIDI module: failed to connect to: %s"),
+        csound->Warning(csound,  Str("Jack MIDI module: failed to connect to: %s"),
                         devName);
       }
     }
@@ -1298,7 +1298,7 @@ int MidiOutProcessCallback(jack_nframes_t nframes, void *userData){
                                           JACK_MIDI_BUFFSIZE)) != 0) {
       if(UNLIKELY(jack_midi_event_write(jack_port_get_buffer(dev->port,nframes),
                                         0, buf,n) != 0)){
-        csound->Warning(csound, Str("Jack MIDI module: out buffer overflow"));
+        csound->Warning(csound, "%s", Str("Jack MIDI module: out buffer overflow"));
         return 1;
       }
     }
@@ -1323,7 +1323,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
                  jack_client_open(clientName, 0, NULL)) == NULL)){
       *userData = NULL;
       csound->ErrorMsg(csound,
-                       Str("Jack MIDI module: failed to create client for output"));
+                       "%s", Str("Jack MIDI module: failed to create client for output"));
       return NOTOK;
     }
 
@@ -1335,7 +1335,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
       jack_client_close(jack_client);
       *userData = NULL;
       csound->ErrorMsg(csound,
-                       Str("Jack MIDI module: failed to register output port"));
+                       "%s", Str("Jack MIDI module: failed to register output port"));
       return NOTOK;
     }
 
@@ -1354,7 +1354,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       csound->ErrorMsg(csound,
-                       Str("Jack MIDI module: failed to set input"
+                       "%s", Str("Jack MIDI module: failed to set input"
                            " process callback"));
       return NOTOK;
     }
@@ -1364,7 +1364,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       *userData = NULL;
-      csound->ErrorMsg(csound, Str("Jack MIDI module: failed to activate output"));
+      csound->ErrorMsg(csound, "%s", Str("Jack MIDI module: failed to activate output"));
       return NOTOK;
     }
 
@@ -1372,7 +1372,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
       if(UNLIKELY(jack_connect(jack_client,
                                jack_port_name(dev->port),devName) != 0)){
         csound->Warning(csound,
-                        Str("Jack MIDI out module: failed to connect to: %s"),
+                         Str("Jack MIDI out module: failed to connect to: %s"),
                         devName);
       }
     }
@@ -1503,7 +1503,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    csound->Message(csound, Str("rtaudio: JACK module enabled\n"));
+    csound->Message(csound, "%s", Str("rtaudio: JACK module enabled\n"));
     {
       /* register Csound interface functions */
       csound->SetPlayopenCallback(csound, playopen_);
@@ -1521,7 +1521,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           strcmp(drv, "JACK") == 0))
       return 0;
 
-    csound->Message(csound, Str("rtmidi: JACK module enabled\n"));
+    csound->Message(csound, "%s", Str("rtmidi: JACK module enabled\n"));
     {
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);

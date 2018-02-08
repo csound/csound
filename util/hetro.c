@@ -198,7 +198,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
           FIND(Str("no harmonic count"))
           sscanf(s,"%hd",&thishet->hmax);
           if (UNLIKELY(thishet->hmax > HMAX))
-            csound->Message(csound,Str("over %d harmonics but continuing"),
+            csound->Message(csound, Str("over %d harmonics but continuing"),
                             HMAX);
           if (UNLIKELY(thishet->hmax < 1)) {
             csound->Message(csound,Str("h of %d too low, reset to 1\n"),
@@ -356,7 +356,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     /* RWD if extension is .sdif, write as 1TRC frames */
     if (is_sdiffile(thishet->outfilnam)) {
       if (UNLIKELY(!writesdif(csound,thishet))) {
-        csound->Message(csound, Str("Unable to write to SDIF file\n"));
+        csound->Message(csound, "%s", Str("Unable to write to SDIF file\n"));
         retval = -1;
       }
     }
@@ -625,7 +625,7 @@ static int32_t filedump(HET *thishet, CSOUND *csound)
       fprintf(ff,"HETRO %d\n", thishet->hmax);        /* Header */
     else {
       if (UNLIKELY(write(ofd, (char*)&thishet->hmax, sizeof(thishet->hmax))<0))
-        csound->Message(csound,Str("Write failure\n")); /* Write header */
+        csound->Message(csound,"%s", Str("Write failure\n")); /* Write header */
     }
     for (pnt=0; pnt < thishet->num_pts; pnt++) {
       ampsum = 0.0;
@@ -714,7 +714,7 @@ static int32_t filedump(HET *thishet, CSOUND *csound)
       }
       else {
         if (UNLIKELY(write(ofd, (char *)magout, nbytes)<0))
-          csound->Message(csound, Str("Write failure\n"));
+          csound->Message(csound, "%s", Str("Write failure\n"));
       }
 #ifdef DEBUG
       {
@@ -735,7 +735,7 @@ static int32_t filedump(HET *thishet, CSOUND *csound)
       }
       else {
         if (UNLIKELY(write(ofd, (char *)frqout, nbytes)<0))
-          csound->Message(csound, Str("Write failure\n"));
+          csound->Message(csound, "%s", Str("Write failure\n"));
       }
 #ifdef DEBUG
       {
@@ -783,7 +783,7 @@ static int32_t writesdif(CSOUND *csound, HET *thishet)
 
     if (UNLIKELY(SDIF_Init() != ESDIF_SUCCESS)) {
       csound->Message(csound,
-                      Str("OOPS: SDIF does not work on this machine!\n"));
+                      "%s", Str("OOPS: SDIF does not work on this machine!\n"));
       return 0;
     }
 
@@ -838,7 +838,7 @@ static int32_t writesdif(CSOUND *csound, HET *thishet)
       /* cannot offer anything interesting with phase! */
       head.time = (sdif_float32) ((MYFLT)i * timesiz);
       if (UNLIKELY((r = SDIF_WriteFrameHeader(&head,sdiffile))!=ESDIF_SUCCESS)) {
-        csound->Message(csound,Str("Error writing SDIF frame header.\n"));
+        csound->Message(csound,"%s", Str("Error writing SDIF frame header.\n"));
         return 0;
       }
       /*setup data matrix */
@@ -847,7 +847,7 @@ static int32_t writesdif(CSOUND *csound, HET *thishet)
       SDIF_Copy4Bytes(mh.matrixType,"1TRC");
       mh.matrixDataType = SDIF_FLOAT32;
       if (UNLIKELY((r = SDIF_WriteMatrixHeader(&mh,sdiffile))!=ESDIF_SUCCESS)) {
-        csound->Message(csound,Str("Error writing SDIF matrix header.\n"));
+        csound->Message(csound,"%s", Str("Error writing SDIF matrix header.\n"));
         return 0;
       }
       for (j=0;j < thishet->hmax;j++) {
@@ -860,7 +860,7 @@ static int32_t writesdif(CSOUND *csound, HET *thishet)
                      ((r = SDIF_Write4(&freq,1,sdiffile))!= ESDIF_SUCCESS)  ||
                      ((r = SDIF_Write4(&amp,1,sdiffile))!= ESDIF_SUCCESS)   ||
                      ((r = SDIF_Write4(&phase,1,sdiffile))!= ESDIF_SUCCESS))) {
-          csound->Message(csound,Str("Error writing SDIF data.\n"));
+          csound->Message(csound,"%s", Str("Error writing SDIF data.\n"));
           return 0;
         }
       }

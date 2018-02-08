@@ -294,7 +294,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
                                   "Maxchans = %d.\n"), MAXPVXCHANS);
       return -1;
     }
-    csound->Message(csound, Str("pvanal: creating pvocex file\n"));
+    csound->Message(csound, "%s", Str("pvanal: creating pvocex file\n"));
     /* handle all messages in here, for now */
     if (UNLIKELY(displays))
         csound->dispinit(csound);
@@ -302,7 +302,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
                         ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
                          WindowType, beta, displays) != 0)) {
-      csound->Message(csound, Str("error generating pvocex file.\n"));
+      csound->Message(csound, "%s", Str("error generating pvocex file.\n"));
       return -1;
     }
     if (displays)
