@@ -38,7 +38,8 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
     int32    flength;
 
     if (UNLIKELY(!(p->INCOUNT & 1))) {
-      return csound->InitError(csound, Str("incomplete number of input arguments"));
+      return csound->InitError(csound, "%s",
+                               Str("incomplete number of input arguments"));
     }
 
     {
@@ -121,7 +122,7 @@ int32_t ktableseg(CSOUND *csound, TABLESEG *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, p->h.insdshead, "%s",
                              Str("tableseg: not initialised"));
 }
 
@@ -150,7 +151,7 @@ int32_t ktablexseg(CSOUND *csound, TABLESEG *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, p->h.insdshead, "%s",
                              Str("tablexseg: not initialised"));
 }
 
@@ -163,10 +164,10 @@ int32_t ktablexseg(CSOUND *csound, TABLESEG *p)
 
 int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
 {
-    uint32_t      i;
+    uint32_t i;
     char     pvfilnam[MAXNAME];
     PVOCEX_MEMFILE  pp;
-    int32_t     frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
+    int32_t  frInc, chans; /* THESE SHOULD BE SAVED IN PVOC STRUCT */
 
     p->pp = PVOC_GetGlobals(csound);
     /* If optional table given, fake it up -- JPff  */
@@ -177,13 +178,13 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
       if (UNLIKELY((p->tableseg->outfunc =
                     csound->FTnp2Find(csound, p->isegtab)) == NULL)) {
-        return csound->InitError(csound,
-                                 Str("vpvoc: Could not find ifnmagctrl table %f"),
+        return csound->InitError(csound, "%s%f",
+                                 Str("vpvoc: Could not find ifnmagctrl table "),
                                  *p->isegtab);
       }
     }
     if (UNLIKELY(p->tableseg == NULL))
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("vpvoc: associated tableseg not found"));
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
