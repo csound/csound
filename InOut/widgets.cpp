@@ -1947,7 +1947,7 @@ public:
       switch (evt) {
       case FL_FOCUS:
         Fl::focus(this);
-	/* FALLTHRU */
+        /* FALLTHRU */
       case FL_UNFOCUS:
         return 1;
       case FL_KEYDOWN:
