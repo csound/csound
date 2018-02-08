@@ -269,7 +269,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
                   csound->getsndin(csound, infd,
                                    thishet->auxp, nsamps, p)) <= 0)) {
       char errmsg[256];
-      csound->Message(csound, "smpsin = %"PRId64"\n", (int64_t) thishet->smpsin);
+     csound->Message(csound, "smpsin = %"PRId64"\n", (int64_t) thishet->smpsin);
       snprintf(errmsg, 256, Str("Read error on %s\n"), thishet->infilnam);
       return quit(csound, errmsg);
     }
@@ -751,7 +751,7 @@ static int32_t filedump(HET *thishet, CSOUND *csound)
                           "\tpeakamp %d\n"),
                       h, mpoints, fpoints, pkamp);
     }
-    csound->Message(csound, "%s%" PRId64 " %s%s\n", Str("wrote %"), 
+    csound->Message(csound, "%s%" PRId64 " %s%s\n", Str("wrote %"),
                     (int64_t)lenfil, Str("bytes to "), thishet->outfilnam);
     csound->Free(csound, magout);
     csound->Free(csound, frqout);
