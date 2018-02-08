@@ -148,7 +148,7 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
     if (UNLIKELY(floor(overlapCount) != overlapCount)) {
 
       csound->Die(csound,
-                  Str("olabuffer: Error, overlap factor must be an integer"));
+                  "%s", Str("olabuffer: Error, overlap factor must be an integer"));
     }
 
     ARRAYDAT *array = (ARRAYDAT *) self->inputArgument;
@@ -156,7 +156,7 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
     if (UNLIKELY(array->dimensions != 1)) {
 
       csound->Die(csound,
-                  Str("olabuffer: Error, k-rate array must be one dimensional"));
+                  "%s", Str("olabuffer: Error, k-rate array must be one dimensional"));
     }
 
     int32_t frameSampleCount = array->sizes[0];
@@ -164,20 +164,20 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
     if (UNLIKELY(frameSampleCount <= (int32_t)overlapCount)) {
 
       csound->Die(csound,
-                  Str("olabuffer: Error, k-rate array size must be "
+                  "%s", Str("olabuffer: Error, k-rate array size must be "
                       "larger than ovelap factor"));
     }
 
     if (UNLIKELY(frameSampleCount % (int32_t)overlapCount != 0)) {
 
-      csound->Die(csound, Str("olabuffer: Error, overlap factor must be "
+      csound->Die(csound, "%s", Str("olabuffer: Error, overlap factor must be "
                               "an integer multiple of k-rate array size"));
     }
 
     if (UNLIKELY(frameSampleCount / (int32_t)overlapCount <
                  (int32_t) csound->GetKsmps(csound))) {
 
-      csound->Die(csound, Str("olabuffer: Error, k-rate array size divided "
+      csound->Die(csound, "%s", Str("olabuffer: Error, k-rate array size divided "
                               "by overlap factor must be larger than or equal "
                               "to ksmps"));
     }

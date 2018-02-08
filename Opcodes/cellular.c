@@ -1,6 +1,6 @@
 
 /*
-    pitch.c:
+    cellular.c:
 
     Copyright (C) 2011 Gleb Rogozinsky
 
@@ -47,21 +47,21 @@ static int32_t cell_set(CSOUND *csound,CELL *p)
       elements = (p->elements = (int32_t) *p->ielements);
 
       if (UNLIKELY( elements > (int32_t)ftp->flen ))
-        return csound->InitError(csound, Str("cell: invalid num of elements"));
+        return csound->InitError(csound, "%s", Str("cell: invalid num of elements"));
     }
-    else return csound->InitError(csound, Str("cell: invalid output table"));
+    else return csound->InitError(csound, "%s", Str("cell: invalid output table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
       if (UNLIKELY(elements > (int32_t)ftp->flen ))
-        return csound->InitError(csound, Str("cell: invalid num of elements"));
+        return csound->InitError(csound, "%s", Str("cell: invalid num of elements"));
     }
     else
-      return csound->InitError(csound, Str("cell: invalid initial state table"));
+      return csound->InitError(csound, "%s", Str("cell: invalid initial state table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->iRuleFunc)) != NULL)) {
       p->ruleVec = ftp->ftable;
     }
     else
-      return csound->InitError(csound, Str("cell: invalid rule table"));
+      return csound->InitError(csound, "%s", Str("cell: invalid rule table"));
 
     if (p->auxch.auxp == NULL)
       csound->AuxAlloc(csound, elements * sizeof(MYFLT) * 2, &p->auxch);

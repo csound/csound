@@ -64,7 +64,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
 
     /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0); */
     if (UNLIKELY(!(--argc))) {
-      return quit(csound, Str("insufficient arguments"));
+      return quit(csound,Str("insufficient arguments"));
     }
     do {
       char *s = *++argv;
@@ -131,7 +131,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
     /* alloc & fill CV hdrblk */
     if (UNLIKELY((err = CVAlloc(csound, &cvh, Estdatasiz, CVMYFLT, sr,
                                 p->nchanls, channel, Hlen, CVRECT, 4)))) {
-      csound->Message(csound, Str("cvanal: Error allocating header\n"));
+      csound->Message(csound, "%s", Str("cvanal: Error allocating header\n"));
       return -1;
     }
     if (new_format) {
@@ -174,14 +174,14 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
       }
     }
     res = takeFFT(csound, p, cvh, Hlenpadded, infd, ofd, new_format);
-    csound->Message(csound, Str("cvanal finished\n"));
+    csound->Message(csound, "%s", Str("cvanal finished\n"));
     return (res != 0 ? -1 : 0);
 }
 
 static int32_t quit(CSOUND *csound, char *msg)
 {
     csound->Message(csound, Str("cvanal error: %s\n"), msg);
-    csound->Message(csound, Str("Usage: cvanal [-d<duration>] "
+    csound->Message(csound, "%s", Str("Usage: cvanal [-d<duration>] "
                             "[-c<channel>] [-b<begin time>] [-X] <input soundfile>"
                             " <output impulse response FFT file> \n"));
     return -1;
@@ -200,7 +200,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     j = (int32_t) (Hlen * nchanls);
     inbuf = fp1 = (MYFLT *) csound->Malloc(csound, j * sizeof(MYFLT));
     if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf, j, p)) < j)) {
-      csound->Message(csound, Str("less sound than expected!\n"));
+      csound->Message(csound, "%s", Str("less sound than expected!\n"));
       return -1;
     }
     /* normalize the samples read in. */
@@ -238,7 +238,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
       }
       else
         if (UNLIKELY(1!=fwrite(outbuf, cvh->dataBsize/nchanls, 1, ofd)))
-          fprintf(stderr, Str("Write failure\n"));
+          fprintf(stderr, "%s", Str("Write failure\n"));
       for (j = Hlenpadded - Hlen; j > 0; j--)
         fp2[j] = FL(0.0);
       fp2 = outbuf;

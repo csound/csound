@@ -463,7 +463,7 @@ void HDF5Write_checkArgumentSanity(CSOUND *csound, const HDF5Write *self)
 
     if (UNLIKELY(type != STRING_VAR)) {
 
-      csound->Die(csound, Str("hdf5write: Error, first argument does not "
+      csound->Die(csound, "%s", Str("hdf5write: Error, first argument does not "
                               "appear to be a string, exiting"));
     }
 
@@ -595,7 +595,7 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
     }
     default: {
 
-      csound->Die(csound, Str("This should not happen, exiting"));
+      csound->Die(csound, "%s", Str("This should not happen, exiting"));
       break;
     }
     }
@@ -1000,12 +1000,12 @@ void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self)
 
       if (self->inputArgumentCount > self->outputArgumentCount) {
 
-        csound->Die(csound, Str("hdf5read: Error, more input arguments than "
+        csound->Die(csound, "%s", Str("hdf5read: Error, more input arguments than "
                                 "output arguments, exiting"));
       }
       else {
 
-        csound->Die(csound, Str("hdf5read: Error, more output arguments than "
+        csound->Die(csound, "%s", Str("hdf5read: Error, more output arguments than "
                                 "input arguments, exiting"));
       }
     }
@@ -1055,7 +1055,7 @@ void HDF5Read_initialiseHDF5Dataset(CSOUND *csound, HDF5Read *self,
 
     if (UNLIKELY(result <= 0)) {
 
-      csound->Die(csound, Str("hdf5read: Error, dataset does not exist or "
+      csound->Die(csound, "%s", Str("hdf5read: Error, dataset does not exist or "
                               "cannot be found in file"));
     }
 
@@ -1122,7 +1122,7 @@ void HDF5Read_checkReadTypeSanity(CSOUND *csound, HDF5Read *self,
     }
     else {
 
-      csound->Die(csound, Str("hdf5read: Unable to read saved type of "
+      csound->Die(csound, "%s", Str("hdf5read: Unable to read saved type of "
                               "dataset, exiting"));
     }
 }

@@ -135,7 +135,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 {
     if (UNLIKELY((uint32_t)self->elementCount < csound->GetKsmps(csound))) {
 
-      csound->Die(csound, Str("framebuffer: Error, specified element "
+      csound->Die(csound, "%s", Str("framebuffer: Error, specified element "
                               "count less than ksmps value, Exiting"));
     }
 
@@ -143,7 +143,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
       if (UNLIKELY(self->outputType != KRATE_ARRAY)) {
 
-          csound->Die(csound, Str("framebuffer: Error, only k-rate arrays "
+          csound->Die(csound, "%s", Str("framebuffer: Error, only k-rate arrays "
                                   "allowed for a-rate var inputs, Exiting"));
         }
     }
@@ -151,7 +151,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
       if (UNLIKELY(self->outputType != ARATE_VAR)) {
 
-          csound->Die(csound, Str("framebuffer: Error, only a-rate vars "
+          csound->Die(csound, "%s", Str("framebuffer: Error, only a-rate vars "
                                   "allowed for k-rate array inputs, Exiting"));
         }
 
@@ -159,13 +159,13 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
         if (UNLIKELY(array->dimensions != 1)) {
 
-          csound->Die(csound, Str("framebuffer: Error, k-rate array input "
+          csound->Die(csound, "%s", Str("framebuffer: Error, k-rate array input "
                                   "must be one dimensional, Exiting"));
         }
 
         if (UNLIKELY(array->sizes[0] > self->elementCount)) {
 
-          csound->Die(csound, Str("framebuffer: Error, k-rate array input "
+          csound->Die(csound, "%s", Str("framebuffer: Error, k-rate array input "
                                   "element count must be less than \nor equal "
                                   "to specified framebuffer size, Exiting"));
         }
@@ -173,7 +173,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
     else {
 
       csound->Die(csound,
-                  Str("framebuffer: Error, only a-rate var input with k-rate "
+                  "%s", Str("framebuffer: Error, only a-rate var input with k-rate "
                       "array output or k-rate\narray input with a-rate var "
                       "output are valid arguments, Exiting"));
     }

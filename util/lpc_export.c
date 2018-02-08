@@ -40,7 +40,7 @@
 
 void lpc_export_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("usage: lpc_export lpc_file cstext-file\n"));
+    csound->Message(csound, "%s", Str("usage: lpc_export lpc_file cstext-file\n"));
 }
 
 static int32_t lpc_export(CSOUND *csound, int32_t argc, char **argv)
@@ -69,7 +69,7 @@ static int32_t lpc_export(CSOUND *csound, int32_t argc, char **argv)
     }
     if (UNLIKELY(fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
                  (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2))) {
-      csound->Message(csound, Str("Failed to read LPC header\n"));
+      csound->Message(csound, "%s", Str("Failed to read LPC header\n"));
       fclose(inf);
       fclose(outf);
       return 1;
@@ -90,7 +90,7 @@ static int32_t lpc_export(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(fread(str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4))
-      csound->Message(csound, Str("Read failure\n"));
+      csound->Message(csound, "%s", Str("Read failure\n"));
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
@@ -99,7 +99,7 @@ static int32_t lpc_export(CSOUND *csound, int32_t argc, char **argv)
       fclose(inf); fclose(outf); csound->Free(csound,str); return 3;}
     for (i = 0; i<(uint32_t)floor(hdr.framrate*hdr.duration); i++) {
       if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf)!=hdr.npoles))
-        csound->Message(csound, Str("Read failure\n"));
+        csound->Message(csound, "%s", Str("Read failure\n"));
       for (j=0; j<hdr.npoles; j++)
         fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));
     }

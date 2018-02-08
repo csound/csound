@@ -42,7 +42,7 @@
 
 void het_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: het_import csvtext_file het_file\n"));
+    csound->Message(csound, "%s", Str("Usage: het_import csvtext_file het_file\n"));
 }
 
 int16 getnum(FILE* inf, char *term)
