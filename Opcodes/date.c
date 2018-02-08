@@ -170,7 +170,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
     p->Sline->size = MAXLINE;
     }
     if (UNLIKELY(p->fd==NULL))
-      return csound->InitError(csound, Str("readf: failed to open file"));
+      return csound->InitError(csound, "%s", Str("readf: failed to open file"));
     return csound->RegisterDeinitCallback(csound, p, readf_delete);
 }
 
@@ -197,7 +197,7 @@ static int32_t readf(CSOUND *csound, READF *p)
       }
       else
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("readf: read failure"));
+                                 "%s", Str("readf: read failure"));
     }
     *p->line = ++p->lineno;
     return OK;
@@ -207,7 +207,7 @@ static int32_t readfi(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init(csound, p)!= OK))
-        return csound->InitError(csound, Str("readi failed to initialise"));
+        return csound->InitError(csound, "%s", Str("readi failed to initialise"));
     return readf(csound, p);
 }
 
@@ -216,7 +216,7 @@ readfi_S(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init_S(csound, p)!= OK))
-        return csound->InitError(csound, Str("readi failed to initialise"));
+        return csound->InitError(csound, "%s", Str("readi failed to initialise"));
     return readf(csound, p);
 }
 

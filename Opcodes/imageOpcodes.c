@@ -122,14 +122,14 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
 
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (UNLIKELY(!png_ptr)) {
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       csound->FileClose(csound, fd);
       return NULL;
     }
     info_ptr = png_create_info_struct(png_ptr);
     if (UNLIKELY(!info_ptr)) {
       png_destroy_read_struct(&png_ptr, (png_infopp) NULL, (png_infopp) NULL);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       csound->FileClose(csound, fd);
       return NULL;
     }
@@ -137,7 +137,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     /* end_ptr = png_create_info_struct(png_ptr); */
     /* if (UNLIKELY(!end_ptr)) { */
     /*   png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL); */
-    /*   csound->InitError(csound, Str("imageload: out of memory.\n")); */
+    /*   csound->InitError(csound, "%s", Str("imageload: out of memory.\n")); */
     /*   csound->FileClose(csound, fd); */
     /*   return NULL; */
     /* } */
@@ -169,7 +169,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     if (UNLIKELY((image_data =
                  (unsigned char *)csound->Malloc(csound,rowbytes*height))==NULL)) {
       png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       return NULL;
     }
 
@@ -178,7 +178,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
       png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
       csound->Free(csound,image_data);
       image_data = NULL;
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       return NULL;
     }
 
@@ -193,7 +193,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     img = csound->Malloc(csound, sizeof(Image));
     if (UNLIKELY(!img)) {
       csound->Free(csound,image_data);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       return NULL;
     }
 
@@ -296,14 +296,14 @@ static int32_t __doSaveImage(Image *image, char *filename, CSOUND *csound)
 
     if (UNLIKELY(!png_ptr)){
       csound->FileClose(csound, fd);
-      return csound->InitError(csound, Str("imageload: out of memory.\n"));
+      return csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
     }
 
     info_ptr = png_create_info_struct(png_ptr);
     if (UNLIKELY(!info_ptr)) {
       png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
       csound->FileClose(csound, fd);
-      return csound->InitError(csound, Str("imageload: out of memory.\n"));
+      return csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
     }
 
     png_init_io(png_ptr, fp);
@@ -316,7 +316,7 @@ static int32_t __doSaveImage(Image *image, char *filename, CSOUND *csound)
     row_pointers = (png_bytepp)csound->Malloc(csound, image->h*sizeof(png_bytep));
     if (UNLIKELY(row_pointers == NULL)) {
       png_destroy_write_struct(&png_ptr, &info_ptr);
-      return csound->InitError(csound, Str("imageload: out of memory.\n"));
+      return csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
     }
 
     rowbytes = png_get_rowbytes(png_ptr, info_ptr);
@@ -397,7 +397,7 @@ static int32_t imagecreate (CSOUND *csound, IMGCREATE * p)
     img = createImage(csound, *p->kw, *p->kh);
 
     if (UNLIKELY(img==NULL)) {
-      return csound->InitError(csound, Str("Cannot allocate memory.\n"));
+      return csound->InitError(csound, "%s", Str("Cannot allocate memory.\n"));
     }
     else {
       pimages->images[pimages->cnt-1] = img;

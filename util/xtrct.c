@@ -41,7 +41,7 @@
 #define SHORTMAX                (32767)
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
-      csound->Die(csound, MSG);
+      csound->Die(csound, "%s", MSG);
 
 typedef struct {
   long        sample;         /* Time file starts in samples */
@@ -63,23 +63,23 @@ static void usage(CSOUND *csound, char *mesg, ...)
 {
     va_list args;
 
-    csound->Message(csound,Str("Usage:\textractor [-flags] soundfile\n"));
-    csound->Message(csound,Str("Legal flags are:\n"));
-    csound->Message(csound,Str("-o fname\tsound output filename\n"));
-    csound->Message(csound,Str("-N\t\tnotify (ring the bell) when done\n"));
-    csound->Message(csound,Str("-S integer\tsample number at which"
+    csound->Message(csound,"%s", Str("Usage:\textractor [-flags] soundfile\n"));
+    csound->Message(csound,"%s", Str("Legal flags are:\n"));
+    csound->Message(csound,"%s", Str("-o fname\tsound output filename\n"));
+    csound->Message(csound,"%s", Str("-N\t\tnotify (ring the bell) when done\n"));
+    csound->Message(csound,"%s", Str("-S integer\tsample number at which"
                                " to start file\n"));
-    csound->Message(csound,Str("-Z integer\tsample number at which to end file\n"));
-    csound->Message(csound,Str("-Q integer\tnumber of samples to read\n"));
+    csound->Message(csound,"%s", Str("-Z integer\tsample number at which to end file\n"));
+    csound->Message(csound,"%s", Str("-Q integer\tnumber of samples to read\n"));
 
-    csound->Message(csound,Str("-T fpnum\ttime in secs at which to start file\n"));
-    csound->Message(csound,Str("-E fpnum\ttime in secs at which to end file\n"));
-    csound->Message(csound,Str("-D fpnum\tduration in secs of extract\n"));
-    csound->Message(csound,Str("-R\tRewrite header\n"));
-    csound->Message(csound,Str("-H\t\tHeartbeat\n"));
-    csound->Message(csound,Str("-v\t\tverbose mode for debugging\n"));
-    csound->Message(csound,Str("-- fname\tLog output to file\n"));
-    csound->Message(csound,Str("flag defaults: extractor -otest -S 0\n"));
+    csound->Message(csound,"%s", Str("-T fpnum\ttime in secs at which to start file\n"));
+    csound->Message(csound,"%s", Str("-E fpnum\ttime in secs at which to end file\n"));
+    csound->Message(csound,"%s", Str("-D fpnum\tduration in secs of extract\n"));
+    csound->Message(csound,"%s", Str("-R\tRewrite header\n"));
+    csound->Message(csound,"%s", Str("-H\t\tHeartbeat\n"));
+    csound->Message(csound,"%s", Str("-v\t\tverbose mode for debugging\n"));
+    csound->Message(csound,"%s", Str("-- fname\tLog output to file\n"));
+    csound->Message(csound,"%s", Str("flag defaults: extractor -otest -S 0\n"));
 
     va_start(args, mesg);
     csound->ErrMsgV(csound, Str("extractor: error: "), mesg, args);
@@ -121,7 +121,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
-              csound->Die(csound, Str("-o cannot be stdin"));
+              csound->Die(csound, "%s", Str("-o cannot be stdin"));
             break;
           case 'S':
             FIND(Str("no start sample"));
@@ -129,7 +129,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             while (*++s);
             if (xtrc.stime >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-S overriding -T"));
+                csound->Message(csound,"%s", Str("-S overriding -T"));
               xtrc.stime = -1.0;
             }
             break;
@@ -139,7 +139,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             while (*++s);
             if (xtrc.sample >= 0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-T overriding -S"));
+                csound->Message(csound,"%s", Str("-T overriding -S"));
               xtrc.sample = -1;
             }
             break;
@@ -149,17 +149,17 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Z overriding -E"));
+                csound->Message(csound,"%s", Str("-Z overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.dur >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Z overriding -D"));
+                csound->Message(csound,"%s", Str("-Z overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.numsamps >=0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Z overriding -Q"));
+                csound->Message(csound,"%s", Str("-Z overriding -Q"));
               xtrc.numsamps = -1;
             }
             break;
@@ -169,17 +169,17 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             while (*++s);
             if (xtrc.dur >= 0.0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-E overriding -D"));
+                csound->Message(csound,"%s", Str("-E overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.numsamps >=0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-E overriding -Q"));
+                csound->Message(csound,"%s", Str("-E overriding -Q"));
               xtrc.numsamps = -1;
             }
             if (xtrc.stop >= 0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-E overriding -Z"));
+                csound->Message(csound,"%s", Str("-E overriding -Z"));
               xtrc.stop = -1;
             }
             break;
@@ -189,17 +189,17 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-D overriding -E"));
+                csound->Message(csound,"%s", Str("-D overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.numsamps >=0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-D overriding -Q"));
+                csound->Message(csound,"%s", Str("-D overriding -Q"));
               xtrc.numsamps = -1;
             }
             if (xtrc.stop >= 0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-D overriding -Z"));
+                csound->Message(csound,"%s", Str("-D overriding -Z"));
               xtrc.stop = -1;
             }
             break;
@@ -209,17 +209,17 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Q overriding -E"));
+                csound->Message(csound,"%s", Str("-Q overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.dur >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Q overriding -D"));
+                csound->Message(csound,"%s", Str("-Q overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.stop >= 0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Q overriding -Z"));
+                csound->Message(csound,"%s", Str("-Q overriding -Z"));
               xtrc.stop = -1;
             }
             break;
@@ -294,7 +294,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
         fd = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W, "stdout");
         if (UNLIKELY(fd == NULL)) {
           sf_close(outfd);
-          csound->Die(csound, Str("Memory allocation failure"));
+          csound->Die(csound, "%s", Str("Memory allocation failure"));
         }
       }
     }

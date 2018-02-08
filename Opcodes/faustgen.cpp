@@ -434,12 +434,12 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
 
   if (factory == -2)
     return csound->InitError(
-        csound, Str("Faust code did not compile properly.\n"
+        csound, "%s", Str("Faust code did not compile properly.\n"
                     "Check above messages for Faust compiler errors\n"));
 
   fobjp = (faustobj **)csound->QueryGlobalVariable(csound, "::factory");
   if (fobjp == NULL)
-    return csound->InitError(csound, Str("no factory available\n"));
+    return csound->InitError(csound, "%s", Str("no factory available\n"));
   fobj = *fobjp;
   while ((int32_t)fobj->cnt != factory) {
     fobj = fobj->nxt;
@@ -450,7 +450,7 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
 
   dsp = ((llvm_dsp_factory *)fobj->obj)->createDSPInstance();
   if (dsp == NULL)
-    return csound->InitError(csound, Str("Faust instantiation problem \n"));
+    return csound->InitError(csound, "%s", Str("Faust instantiation problem \n"));
 
   dsp->buildUserInterface(ctls);
   pfdsp = (faustobj **)csound->QueryGlobalVariable(csound, varname);
@@ -490,11 +490,11 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
 
   if (p->engine->getNumInputs() != p->INCOUNT - 1) {
     delete p->engine;
-    return csound->InitError(csound, Str("wrong number of input args\n"));
+    return csound->InitError(csound, "%s", Str("wrong number of input args\n"));
   }
   if (p->engine->getNumOutputs() != p->OUTCOUNT - 1) {
     delete p->engine;
-    return csound->InitError(csound, Str("wrong number of output args\n"));
+    return csound->InitError(csound, "%s", Str("wrong number of output args\n"));
   }
 
   /* memory for sampAccurate offsets */
@@ -559,7 +559,7 @@ void *init_faustgen_thread(void *pp) {
 
   dsp = p->factory->createDSPInstance();
   if (dsp == NULL) {
-    int32_t ret = csound->InitError(csound, Str("Faust instantiation problem \n"));
+    int32_t ret = csound->InitError(csound, "%s", Str("Faust instantiation problem \n"));
     csound->Free(csound, pp);
     pthread_exit(&ret);
   }
@@ -596,7 +596,7 @@ void *init_faustgen_thread(void *pp) {
     delete p->engine;
     deleteDSPFactory(p->factory);
     csound->Free(csound, pp);
-    ret = csound->InitError(csound, Str("wrong number of input args\n"));
+    ret = csound->InitError(csound, "%s", Str("wrong number of input args\n"));
     p->engine = NULL;
     pthread_exit(&ret);
   }
@@ -605,7 +605,7 @@ void *init_faustgen_thread(void *pp) {
     delete p->engine;
     deleteDSPFactory(p->factory);
     csound->Free(csound, pp);
-    ret = csound->InitError(csound, Str("wrong number of output args\n"));
+    ret = csound->InitError(csound, "%s", Str("wrong number of output args\n"));
     p->engine = NULL;
     pthread_exit(&ret);
   }
@@ -732,7 +732,7 @@ int32_t init_faustctl(CSOUND *csound, faustctl *p) {
 
   fobjp = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
   if (fobjp == NULL)
-    return csound->InitError(csound, Str("no dsp instances available\n"));
+    return csound->InitError(csound, "%s", Str("no dsp instances available\n"));
   fobj = *fobjp;
 
   while ((int32_t)fobj->cnt != instance) {

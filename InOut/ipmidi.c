@@ -50,7 +50,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 #ifdef WIN32
     WSADATA wsaData;
     if (WSAStartup (MAKEWORD(2, 2), &wsaData) != 0) {
-      fprintf(stderr, Str("WSAStartup failed!\n"));
+      fprintf(stderr, "%s", Str("WSAStartup failed!\n"));
       return -1;
     }
 #endif
@@ -160,7 +160,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
      csound->GetOParms(csound, &oparms);
     /* nothing to do, report success */
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, Str("ipMIDI real time MIDI plugin for Csound\n"));
+      csound->Message(csound, "%s", Str("ipMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
 
@@ -176,7 +176,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (strcmp(drv, "ipmidi") != 0)
       return 0;
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, Str("ipmidi: ipMIDI module enabled\n"));
+      csound->Message(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);

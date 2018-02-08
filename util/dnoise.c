@@ -82,7 +82,7 @@
 
 #define ERR(x)                          \
 {                                       \
-    csound->Message(csound, x);         \
+   csound->Message(csound, "%s", x);	\
     return -1;                          \
 }
 
@@ -295,7 +295,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
               O.outfilename = s;                 /* soundout name */
               for ( ; *s != '\0'; s++) ;
               if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0)) {
-                csound->Message(csound, Str("-o cannot be stdin\n"));
+                csound->Message(csound, "%s", Str("-o cannot be stdin\n"));
                 return -1;
               }
               break;
@@ -307,19 +307,19 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 'A':
               if (UNLIKELY(O.filetyp == TYP_WAV))
                 csound->Warning(csound,
-                                Str("-A overriding local default WAV out"));
+                                "%s", Str("-A overriding local default WAV out"));
               O.filetyp = TYP_AIFF;    /* AIFF output request*/
               break;
             case 'J':
               if (UNLIKELY(O.filetyp == TYP_AIFF || O.filetyp == TYP_WAV))
-                csound->Warning(csound, Str("-J overriding local default "
+                csound->Warning(csound, "%s", Str("-J overriding local default "
                                             "AIFF/WAV out"));
               O.filetyp = TYP_IRCAM;   /* IRCAM output request */
               break;
             case 'W':
               if (UNLIKELY(O.filetyp == TYP_AIFF))
                 csound->Warning(csound,
-                                Str("-W overriding local default AIFF out"));
+                                "%s", Str("-W overriding local default AIFF out"));
               O.filetyp = TYP_WAV;      /* WAV output request */
               break;
             case 'h':
@@ -450,11 +450,11 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       }
     }
     if (UNLIKELY(infile == NULL)) {
-      csound->Message(csound, Str("dnoise: no input file\n"));
+      csound->Message(csound, "%s", Str("dnoise: no input file\n"));
       return dnoise_usage(csound, -1);
     }
     if (UNLIKELY(nfile == NULL)) {
-      csound->Message(csound, Str("Must have an example noise file (-i name)\n"));
+      csound->Message(csound, "%s", Str("Must have an example noise file (-i name)\n"));
       return -1;
     }
     if (UNLIKELY((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
@@ -514,7 +514,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     p->nchanls = Chans;
 
     if (UNLIKELY(Chans > 2)) {
-      csound->Message(csound, Str("dnoise: input MUST be mono or stereo\n"));
+      csound->Message(csound, "%s", Str("dnoise: input MUST be mono or stereo\n"));
       return -1;
     }
 
@@ -522,12 +522,12 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     if (UNLIKELY((fp = csound->SAsndgetset(csound, nfile, &pn, &beg_ntime,
                                            &input_ndur, &srn, channel)) == NULL)) {
-      csound->Message(csound, Str("dnoise: cannot open noise reference file\n"));
+      csound->Message(csound, "%s", Str("dnoise: cannot open noise reference file\n"));
       return -1;
     }
 
     if (UNLIKELY(sr != srn)) {
-      csound->Message(csound, Str("Incompatible sample rates\n"));
+      csound->Message(csound, "%s", Str("Incompatible sample rates\n"));
       return -1;
     }
     /* calculate begin and end times in NOISE file */
@@ -561,7 +561,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (W != -1) {
       if (UNLIKELY(M != 0))
         csound->Message(csound,
-                        Str("dnoise: warning - do not specify both M and W\n"));
+                        "%s", Str("dnoise: warning - do not specify both M and W\n"));
       else if (W == 0)
         M = 4*N;
       else if (W == 1)
@@ -571,7 +571,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       else if (W == 3)
         M = N2;
       else
-        csound->Message(csound, Str("dnoise: warning - invalid W ignored\n"));
+        csound->Message(csound, "%s", Str("dnoise: warning - invalid W ignored\n"));
     }
 
     if (M == 0)
@@ -585,7 +585,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       Leven = 1;
 
     if (UNLIKELY(M < 7)) {
-      csound->Message(csound, Str("dnoise: warning - M is too small\n"));
+      csound->Message(csound, "%s", Str("dnoise: warning - M is too small\n"));
       exit(~1);
     }
     if (D == 0)
@@ -596,13 +596,13 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     lj = (int64_t) M + 3 * (int64_t) D;
     lj *= (int64_t) Chans;
     if (UNLIKELY(lj > 32767)) {
-      csound->Message(csound, Str("dnoise: M too large\n"));
+      csound->Message(csound, "%s", Str("dnoise: M too large\n"));
       return -1;
     }
     lj = (int64_t) L + 3 * (int64_t) I;
     lj *= (int64_t) Chans;
     if (UNLIKELY(lj > 32767)) {
-      csound->Message(csound, Str("dnoise: L too large\n"));
+      csound->Message(csound, "%s", Str("dnoise: L too large\n"));
       return -1;
     }
 
@@ -1170,7 +1170,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 /*  csound->rewriteheader(outfd); */
     csound->Message(csound, "\n\n");
     if (Verbose) {
-      csound->Message(csound, Str("processing complete\n"));
+      csound->Message(csound, "%s", Str("processing complete\n"));
       csound->Message(csound, "N = %d\n", N);
       csound->Message(csound, "M = %d\n", M);
       csound->Message(csound, "L = %d\n", L);
@@ -1222,10 +1222,10 @@ static void sndwrterr(CSOUND *csound, int32_t nret, int32_t nput)
 {
     csound->Message(csound, Str("soundfile write returned sample count of %d, "
                                 "not %d\n"), nret, nput);
-    csound->Message(csound, Str("(disk may be full...\n"
+    csound->Message(csound, "%s", Str("(disk may be full...\n"
                                 " closing the file ...)\n"));
     /* FIXME: should clean up */
-    //csound->Die(csound, Str("\t... closed\n"));
+    //csound->Die(csound, "%s", Str("\t... closed\n"));
 }
 
 static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,

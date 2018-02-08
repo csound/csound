@@ -37,7 +37,7 @@
 
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
-      csound->Die(csound, MSG);
+      csound->Die(csound, "%s", MSG);
 
 static const char *usage_txt[] = {
   Str_noop("Usage:\tscale [-flags] soundfile"),
@@ -175,10 +175,10 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
-              csound->Die(csound, Str("-o cannot be stdin"));
+              csound->Die(csound, "%s", Str("-o cannot be stdin"));
 #if defined(WIN32)
             if (UNLIKELY(strcmp(O.outfilename, "stdout") == 0)) {
-              csound->Die(csound, Str("stdout audio not supported"));
+              csound->Die(csound, "%s", Str("stdout audio not supported"));
             }
 #endif
             break;
@@ -286,7 +286,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
                         csound->CreateFileHandle(csound, &outfile,
                                                  CSFILE_SND_W, "stdout")) == NULL)) {
             sf_close(outfile);
-            csound->Die(csound, Str("Memory allocation failure"));
+            csound->Die(csound, "%s", Str("Memory allocation failure"));
           }
         }
       }
