@@ -136,7 +136,6 @@ int32_t ainit(CSOUND *csound, ASSIGN *p)
 
 int32_t minit(CSOUND *csound, ASSIGNM *p)
 {
-    
     uint32_t nargs = p->INCOUNT;
     uint32_t nout = p->OUTOCOUNT;
     uint32_t i;
@@ -216,8 +215,8 @@ int32_t asignum(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
-#define RELATN(OPNAME,OP)                               \
-  int32_t OPNAME(CSOUND *csound, RELAT *p)                  \
+#define RELATN(OPNAME,OP)                                \
+  int32_t OPNAME(CSOUND *csound, RELAT *p)               \
   {   IGN(csound); *p->rbool = (*p->a OP *p->b) ? 1 : 0; \
        return OK; }
 
@@ -233,14 +232,14 @@ int32_t b_not(CSOUND *csound, LOGCL *p)
     IGN(csound); *p->rbool = (*p->ibool) ? 0 : 1; return OK; }
 
 #define LOGCLX(OPNAME,OP)                                       \
-  int32_t OPNAME(CSOUND *csound, LOGCL *p)                          \
+  int32_t OPNAME(CSOUND *csound, LOGCL *p)                      \
   { IGN(csound);*p->rbool = (*p->ibool OP *p->jbool) ? 1 : 0; return OK; }
 
 LOGCLX(and,&&)
 LOGCLX(or,||)
 
 #define KK(OPNAME,OP)                                           \
-  int32_t OPNAME(CSOUND *csound, AOP *p)                            \
+  int32_t OPNAME(CSOUND *csound, AOP *p)                        \
   { IGN(csound); *p->r = *p->a OP *p->b; return OK; }
 
 KK(addkk,+)
@@ -277,9 +276,9 @@ int32_t modkk(CSOUND *csound, AOP *p)
 }
 
 #define KA(OPNAME,OP)                                  \
-  int32_t OPNAME(CSOUND *csound, AOP *p) {                 \
+  int32_t OPNAME(CSOUND *csound, AOP *p) {             \
     uint32_t n, nsmps = CS_KSMPS;                      \
-    IGN(csound); \
+    IGN(csound);                                       \
     if (LIKELY(nsmps!=1)) {                            \
       MYFLT   *r, a, *b;                               \
       uint32_t offset = p->h.insdshead->ksmps_offset;  \
@@ -330,9 +329,9 @@ int32_t modka(CSOUND *csound, AOP *p)
 }
 
 #define AK(OPNAME,OP)                           \
-  int32_t OPNAME(CSOUND *csound, AOP *p) {          \
+  int32_t OPNAME(CSOUND *csound, AOP *p) {      \
     uint32_t n, nsmps = CS_KSMPS;               \
-    IGN(csound); \
+    IGN(csound);                                 \
     if (LIKELY(nsmps != 1)) {                   \
       MYFLT   *r, *a, b;                        \
       uint32_t offset = p->h.insdshead->ksmps_offset;  \
@@ -376,7 +375,7 @@ int32_t divak(CSOUND *csound, AOP *p) {
         memset(r, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
-        memset(&r[nsmps], '\0', early*sizeof(MYFLT)); \
+        memset(&r[nsmps], '\0', early*sizeof(MYFLT));
       }
       for (n=offset; n<nsmps; n++)
         r[n] = a[n] / b;
@@ -413,12 +412,12 @@ int32_t modak(CSOUND *csound, AOP *p)
 }
 
 #define AA(OPNAME,OP)                           \
-  int32_t OPNAME(CSOUND *csound, AOP *p) {          \
+  int32_t OPNAME(CSOUND *csound, AOP *p) {      \
   MYFLT   *r, *a, *b;                           \
-  IGN(csound); \
+  IGN(csound);                                  \
   uint32_t n, nsmps = CS_KSMPS;                 \
   if (LIKELY(nsmps!=1)) {                       \
-    uint32_t offset = p->h.insdshead->ksmps_offset;       \
+    uint32_t offset = p->h.insdshead->ksmps_offset;  \
     uint32_t early  = p->h.insdshead->ksmps_no_end;  \
     r = p->r;                                   \
     a = p->a;                                   \
@@ -433,7 +432,7 @@ int32_t modak(CSOUND *csound, AOP *p)
     return OK;                                  \
   }                                             \
     else {                                      \
-      *p->r = *p->a OP *p->b;                    \
+      *p->r = *p->a OP *p->b;                   \
       return OK;                                \
     }                                           \
   }
@@ -445,17 +444,17 @@ int32_t modak(CSOUND *csound, AOP *p)
 #ifdef USE_SSE
 #include "emmintrin.h"
 #define AA_VEC(OPNAME,OP)                   \
-int32_t OPNAME(CSOUND *csound, AOP *p){  \
-  MYFLT   *r, *a, *b; \
-  __m128d va, vb;                    \
-  uint32_t n, nsmps = CS_KSMPS, end; \
-  if (LIKELY(nsmps!=1)) { \
+int32_t OPNAME(CSOUND *csound, AOP *p){     \
+  MYFLT   *r, *a, *b;                       \
+  __m128d va, vb;                           \
+  uint32_t n, nsmps = CS_KSMPS, end;        \
+  if (LIKELY(nsmps!=1)) {                   \
   uint32_t offset = p->h.insdshead->ksmps_offset; \
   uint32_t early  = p->h.insdshead->ksmps_no_end; \
-  r = p->r; a = p->a; b = p->b; \
+  r = p->r; a = p->a; b = p->b;             \
   if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT)); \
-  if (UNLIKELY(early)) { \
-      nsmps -= early;   \
+  if (UNLIKELY(early)) {                    \
+      nsmps -= early;                       \
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));  \
   } \
   end = nsmps; \
