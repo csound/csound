@@ -236,7 +236,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
               return quit(csound, Str("Failed to open text file"));
             csound->Message(csound, Str("Writing text form to file %s\n"), s);
           }
-	  /* FALLTHRU */
+          /* FALLTHRU */
         default:
           return quit(csound, Str("unrecognised switch option"));
         }

@@ -77,7 +77,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
       case 'i':
         all = 0;
         // intended no break here
-	/* FALLTHRU */
+        /* FALLTHRU */
       case 'f':
       case 't':
         flag = *c++;
@@ -196,7 +196,7 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
             break;
           if (bp->newp3 < 0)            /* treat indef dur like f */
             goto casef;
-	  /* FALLTHRU */
+          /* FALLTHRU */
         case 'a':turnoff = bp->newp2 + bp->newp3;   /* i and a: */
           if (extractStatics->sectno == extractStatics->onsect) {
             if (turnoff < extractStatics->ontime)
