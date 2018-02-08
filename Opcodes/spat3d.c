@@ -676,7 +676,7 @@ static void spat3di_wall_perf(SPAT3D        *p,     /* opcode struct    */
                               SPAT3D_WALL   *ws)    /* wall params      */
 {
     MYFLT       *yn, *Wb, *Xb, *Yb, *Zb, w, x, y, z;
-    int32_t        xpos0, xpos1, nn, bs;
+    int32_t     xpos0, xpos1, nn, bs;
 
     yn = ws->yn;
     bs = p->mdel_s;
@@ -741,7 +741,7 @@ static void spat3di_wall_perf(SPAT3D        *p,     /* opcode struct    */
 
 static int32_t    spat3di(CSOUND *csound, SPAT3D *p)
 {
-    int32_t        nn;
+    int32_t     nn;
     MYFLT       *a_outW, *a_outX, *a_outY, *a_outZ;
 
     /* assign object data to local variables */
@@ -797,8 +797,7 @@ static void spat3dt_wall_perf(SPAT3D        *p,     /* opcode struct    */
                               SPAT3D_WALL   *ws)    /* wall params      */
 {
     MYFLT       *yn, *Wb, *Yb, *endp, w, x, y, z, a, d, ad, yw;
-    int32_t        nn;
-
+    int32_t     nn;
     yn = ws->yn;
     endp = p->outft;            /* write to ftable      */
     Wb = endp + ((int32_t) ws->D0 << 2);
@@ -845,7 +844,7 @@ static void spat3dt_wall_perf(SPAT3D        *p,     /* opcode struct    */
 
 static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
 {
-    int32_t    wmax;
+    int32_t wmax;
     MYFLT   *ir;
 
     p->o_num = 2;                           /* opcode number         */
@@ -891,7 +890,6 @@ static OENTRY localops[] = {
 int32_t spat3d_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 
