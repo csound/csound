@@ -96,7 +96,7 @@ static CS_NOINLINE void fsg_assign(CSOUND *csound,
                                 PVSDAT *fdst, const PVSDAT *fsrc)
 {
   if (UNLIKELY(fsrc->frame.auxp == NULL)) {
-      csound->ErrorMsg(csound, Str("fsig = : source signal is not initialised"));
+      csound->ErrorMsg(csound, "%s", Str("fsig = : source signal is not initialised"));
       return;
   }
     fdst->N = fsrc->N;
@@ -133,19 +133,19 @@ static CS_NOINLINE int32_t csoundStack_Error(void *p, const char *msg)
 static CS_NOINLINE int32_t csoundStack_OverflowError(void *p)
 {
     /* CSOUND  *csound= ((OPDS*) p)->insdshead->csound; */
-    return csoundStack_Error(p, Str("stack overflow"));
+    return csoundStack_Error(p, "stack overflow");
 }
 
 static CS_NOINLINE int32_t csoundStack_EmptyError(void *p)
 {
     /* CSOUND  *csound((OPDS*) p)->insdshead->csound; */
-    return csoundStack_Error(p, Str("cannot pop from empty stack"));
+    return csoundStack_Error(p, "cannot pop from empty stack");
 }
 
 static CS_NOINLINE int32_t csoundStack_TypeError(void *p)
 {
     /* CSOUND  *csound = ((OPDS*) p)->insdshead->csound; */
-    return csoundStack_Error(p, Str("argument number or type mismatch"));
+    return csoundStack_Error(p, "argument number or type mismatch");
 }
 
 /* static CS_NOINLINE int32_t csoundStack_LengthError(void *p) */
@@ -169,7 +169,7 @@ static CS_NOINLINE CsoundArgStack_t *csoundStack_AllocGlobals(CSOUND *csound,
     if (UNLIKELY(csound->CreateGlobalVariable(csound,
                                               "csArgStack", (size_t) nBytes)
                  != 0)) {
-      csound->ErrorMsg(csound, Str("Error allocating argument stack"));
+      csound->ErrorMsg(csound, "%s", Str("Error allocating argument stack"));
       return NULL;
     }
     pp = (CsoundArgStack_t*) csound->QueryGlobalVariable(csound, "csArgStack");
@@ -208,7 +208,7 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
       argCnt = csound->GetOutputArgCnt(p);
     }
     if (UNLIKELY(argCnt > 31))
-      return csoundStack_Error(p, Str("too many arguments"));
+      return csoundStack_Error(p, "too many arguments");
     argMap[0] = 0;
     argCnt_i = 0;
     argCnt_p = 0;
@@ -287,7 +287,7 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
 static int32_t stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 {
     if (UNLIKELY(csound->QueryGlobalVariable(csound, "csArgStack") != NULL))
-      return csound->InitError(csound, Str("the stack is already allocated"));
+      return csound->InitError(csound, "%s", Str("the stack is already allocated"));
     csoundStack_AllocGlobals(csound, (int32_t) (*(p->iStackSize) + 0.5));
     return OK;
 }

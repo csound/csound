@@ -564,7 +564,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   if (path == NULL) {
     if (UNLIKELY(csound->GetDebug(csound)))
       csound->Warning(csound,
-                      Str("STK opcodes not available: define environment "
+                      "%s", Str("STK opcodes not available: define environment "
                           "variable RAWWAVE_PATH\n(points "
                           "to rawwaves directory) to use STK opcodes."));
     return 0;
@@ -579,7 +579,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
       Stk::setRawwavePath(path);
     }
     // csound->DebugMsg(csound,
-    //                Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
+    //                "%s", Str("RAWWAVE_PATH: %s\n"), Stk::rawwavePath().c_str());
   }
   int32_t status = 0;
   for (OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) {

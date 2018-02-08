@@ -215,7 +215,7 @@ void WebSocketOpcode_allocateStringArgument(MYFLT *argument,
     if (UNLIKELY(isInputArgument == true)) {
 
       csound->Die(csound,
-                  Str("websocket: this opcode does not send strings, only "
+                  "%s", Str("websocket: this opcode does not send strings, only "
                       "receiving them is supported\nExiting"));
     }
     else {
@@ -223,7 +223,7 @@ void WebSocketOpcode_allocateStringArgument(MYFLT *argument,
       if (UNLIKELY(string->size != 0)) {
 
         csound->Die(csound,
-                    Str("websocket: error output string variable %s must not "
+                     Str("websocket: error output string variable %s must not "
                         "be initialised\nExiting"),
                     argumentArrayItem->name);
       }
@@ -342,7 +342,7 @@ void WebSocketOpcode_initialiseArgumentsArray(CSOUND *csound,
       }
       default: {
 
-        csound->Die(csound, Str("websocket: error, incompatible argument "
+        csound->Die(csound, "%s", Str("websocket: error, incompatible argument "
                                 "detected\nExiting"));
         break;
       }
@@ -637,7 +637,7 @@ void WebSocketOpcode_initialiseWebSocket(WebSocketOpcode *self, CSOUND *csound)
     if (UNLIKELY(self->webSocket->context == NULL)) {
 
       csound->Die(csound,
-                  Str("websocket: could not initialise websocket, Exiting"));
+                  "%s", Str("websocket: could not initialise websocket, Exiting"));
     }
 
 
