@@ -37,7 +37,7 @@
 
 static void pv_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: pv_import cstext_file pv_file \n"));
+    csound->Message(csound, "%s", Str("Usage: pv_import cstext_file pv_file \n"));
 }
 
 static float getnum(FILE* inf, char *term)
@@ -70,7 +70,7 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(UNLIKELY(EOF == fscanf(inf,
            "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
                                         "BlockAlign,BitsPerSample,cbSize\n")))) {
-      csound->Message(csound, Str("Not a PV file\n"));
+      csound->Message(csound, "%s", Str("Not a PV file\n"));
       exit(1);
     }
     {
@@ -90,7 +90,7 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(EOF == fscanf(inf, "WordFormat,AnalFormat,SourceFormat,WindowType,"
             "AnalysisBins,Winlen,Overlap,FrameAlign,"
             "AnalysisRate,WindowParam\n"))) {
-      csound->Message(csound, Str("Not a PV file\n"));
+      csound->Message(csound, "%s", Str("Not a PV file\n"));
       exit(1);
     }
     {
@@ -130,7 +130,7 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
         (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));
       int32_t i;
       if (UNLIKELY(frame==NULL)) {
-        csound->Message(csound, Str("Memory failure\n"));
+        csound->Message(csound, "%s", Str("Memory failure\n"));
         exit(1);
       }
       for (i=1;;i++) {
@@ -141,7 +141,7 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
           if (term==EOF) goto ending;
           if (feof(inf)) goto ending;
           if (UNLIKELY(term!=',' && term!='\n'))
-            csound->Message(csound, Str("Sync error\n"));
+            csound->Message(csound, "%s", Str("Sync error\n"));
         }
         if (UNLIKELY(i%100==0)) csound->Message(csound, "%d\n", i);
         csound->PVOC_PutFrames(csound, outf, frame, 1);

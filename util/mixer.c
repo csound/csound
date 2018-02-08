@@ -1,5 +1,5 @@
 /*
-    mixer.c
+    mixer.cXF
 
     Copyright (C) 1995 John ffitch
 
@@ -197,7 +197,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
     for (i=1; i<5; i++) mixin[n].channels[i] = 0;
     if (UNLIKELY(!(--argc)))
-      usage(csound,Str("Insufficient arguments"));
+      usage(csound,"%s", Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                  /* read all flags:  */
@@ -208,10 +208,10 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
-              csound->Die(csound, Str("mixer: -o cannot be stdin"));
+              csound->Die(csound, "%s", Str("mixer: -o cannot be stdin"));
 #if defined(WIN32)
             if (UNLIKELY(strcmp(O.outfilename,"stdout") == 0)) {
-              csound->Die(csound, Str("mixer: stdout audio not supported"));
+              csound->Die(csound, "%s", Str("mixer: stdout audio not supported"));
             }
 #endif
             break;
@@ -240,7 +240,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             mixin[n].start = atoi(s);
             while (*++s);
             if (UNLIKELY(mixin[n].time >= FL(0.0))) {
-              csound->Warning(csound, Str("-S overriding -T"));
+              csound->Warning(csound, "%s", Str("-S overriding -T"));
               mixin[n].time = -FL(1.0);
             }
             break;
@@ -249,7 +249,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             mixin[n].time = (MYFLT) atof(s);
             while (*++s);
             if (UNLIKELY(mixin[n].start >= 0)) {
-              csound->Warning(csound, Str("-T overriding -S"));
+              csound->Warning(csound, "%s", Str("-T overriding -S"));
               mixin[n].start = -1;
             }
             break;
@@ -275,7 +275,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
               dst = atoi(s);
               while (*++s);
               if (UNLIKELY(src > 4 || src < 1 || dst > 4 || dst < 1)) {
-                csound->Warning(csound, Str("illegal channel number ignored"));
+                csound->Warning(csound, "%s", Str("illegal channel number ignored"));
                 break;
               }
               if (dst > pp->outputs)
@@ -333,7 +333,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
 
     /* Read sound files */
     if (UNLIKELY(n == 0)) {
-      csound->ErrorMsg(csound, Str("No mixin"));
+      csound->ErrorMsg(csound, "%s", Str("No mixin"));
       return -1;
     }
     for (i = 0; i < n; i++) {
@@ -345,7 +345,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       mixin[i].p->channel = ALLCHNLS;
       if (i>0) {
         if (UNLIKELY(mixin[0].p->sr != mixin[i].p->sr)) {
-          csound->ErrorMsg(csound, Str("Input formats not the same"));
+          csound->ErrorMsg(csound, "%s", Str("Input formats not the same"));
           return -1;
         }
       }
