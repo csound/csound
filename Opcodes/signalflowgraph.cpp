@@ -708,7 +708,7 @@ struct Inletf : public OpcodeBase<Inletf> {
             int32 N = sourceOutlet->fsignal->N;
             if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
               csound->Warning(csound,
-                              Str("Unsafe to have same fsig as in and out"));
+                              "%s", Str("Unsafe to have same fsig as in and out"));
             }
             fsignal->sliding = 0;
             if (sourceOutlet->fsignal->sliding) {
@@ -735,7 +735,7 @@ struct Inletf : public OpcodeBase<Inletf> {
             if (UNLIKELY(!(fsignal->format == PVS_AMP_FREQ) ||
                          (fsignal->format == PVS_AMP_PHASE)))
               result = csound->InitError(csound,
-                                         Str("inletf: signal format "
+                                         "%s", Str("inletf: signal format "
                                              "must be amp-phase or amp-freq."));
             fsignalInitialized = true;
           }
@@ -1385,7 +1385,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       if (sfg_globals->signal_flow_ftables_lock != 0) {
         csound->UnlockMutex(sfg_globals->signal_flow_ftables_lock);
       }
-      return csound->InitError(csound, Str("ftgen string arg not allowed"));
+      return csound->InitError(csound, "%s", Str("ftgen string arg not allowed"));
     }
   } else {
     ftevt->p[5] = *p->p5;
@@ -1413,7 +1413,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       FUNC *func = 0;
       int status = csound->hfgens(csound, &func, ftevt, 1);
       if (UNLIKELY(status != 0)) {
-        result = csound->InitError(csound, Str("ftgenonce error"));
+        result = csound->InitError(csound, "%s", Str("ftgenonce error"));
       }
       if (func) {
         sfg_globals->functionTablesForEvtblks[eventBlock] = func->fno;

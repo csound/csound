@@ -41,7 +41,7 @@ static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)
       return p;
     if (csound->CreateGlobalVariable(csound, "controlGlobals_",
                                      sizeof(CONTROL_GLOBALS)) != 0){
-      csound->Warning(csound, Str("control: failed to allocate globals"));
+      csound->Warning(csound, "%s", Str("control: failed to allocate globals"));
       return NULL;
     }
     p = (CONTROL_GLOBALS*) csound->QueryGlobalVariable(csound,

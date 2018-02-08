@@ -230,7 +230,7 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
 
   if (inArgCount == 0)
     return csound->InitError(
-        csound, Str("Error: you must pass a directory as a string."));
+        csound, "%s", Str("Error: you must pass a directory as a string."));
 
   if (inArgCount == 1) {
     fileNames = searchDir(csound, p->directoryName->data, (char *)"");
@@ -243,7 +243,7 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
       fileNames = searchDir(csound, p->directoryName->data, extension);
     } else
       return csound->InitError(csound,
-                               Str("Error: second parameter to directory"
+                               "%s", Str("Error: second parameter to directory"
                                    " must be a string"));
   }
 
