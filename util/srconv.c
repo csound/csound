@@ -253,12 +253,12 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O.outfilename, "stdin") == 0) {
-              csound->ErrorMsg(csound, Str("-o cannot be stdin"));
+              csound->ErrorMsg(csound, "%s", Str("-o cannot be stdin"));
               return -1;
             }
 #if defined(WIN32)
             if (strcmp(O.outfilename, "stdout") == 0) {
-              csound->ErrorMsg(csound, Str("stdout audio not supported"));
+              csound->ErrorMsg(csound, "%s", Str("stdout audio not supported"));
               return -1;
             }
 #endif
@@ -346,7 +346,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       }
     }
     if (infile == NULL) {
-      csound->Message(csound, Str("No input given\n"));
+      csound->Message(csound, "%s", Str("No input given\n"));
       usage(csound);
       return -1;
     }
@@ -381,7 +381,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       /* register file to be closed by csoundReset() */
       (void) csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
       if (UNLIKELY(fscanf(tvfp, "%d", &tvlen) != 1))
-        csound->Message(csound, Str("Read failure\n"));
+        csound->Message(csound, "%s", Str("Read failure\n"));
       if (UNLKELY(tvlen <= 0)) {
             strNcpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
             goto err_rtn_msg;
@@ -763,7 +763,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 static int srconv(CSOUND *csound, int argc, char **argv)
 {
   (void) argc;
-    csound->Message(csound, Str("Do not use srconv but the src_conv program\n"));
+    csound->Message(csound, "%s", Str("Do not use srconv but the src_conv program\n"));
 #ifndef MSVC
     return execv("src_conv", argv);
 #else

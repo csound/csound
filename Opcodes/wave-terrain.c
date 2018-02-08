@@ -39,7 +39,7 @@ static int32_t wtinit(CSOUND *csound, WAVETER *p)
 
     /* CHECK */
     if (UNLIKELY((ftpx == NULL)||(ftpy == NULL))) {
-      return csound->InitError(csound, Str("wterrain: ftable not found"));
+      return csound->InitError(csound, "%s", Str("wterrain: ftable not found"));
     }
 
     /* POINT xarr AND yarr AT THE TABLES */
@@ -118,7 +118,7 @@ static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
   FUNC *fdst = csound->FTnp2Find(csound, p->idst); /* Destination table */
 
   if (UNLIKELY(fsrc->flen > fdst->flen)) {
-    return csound->InitError(csound, Str("Source table must be same size or "
+    return csound->InitError(csound,  "%s",  Str("Source table must be same size or "
                                          "smaller than dest table\n"));
   }
 
@@ -154,23 +154,23 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
 
     /* CHECK */
     if (UNLIKELY(fpoint == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s", 
                                Str("Scantable: point table not found"));
     }
     if (UNLIKELY(fmass == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s", 
                                Str("Scantable: mass table not found"));
     }
     if (UNLIKELY(fstiff == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s", 
                                Str("Scantable: stiffness table not found"));
     }
     if (UNLIKELY(fdamp == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s", 
                                Str("Scantable: damping table not found"));
     }
     if (UNLIKELY(fvel == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s", 
                                Str("Scantable: velocity table not found"));
     }
 
@@ -179,7 +179,7 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
           (fdamp->flen==fstiff->flen)  &&
           (fvel->flen==fstiff->flen)   &&
                    (fpoint->flen==fdamp->flen)))) {
-      return csound->InitError(csound, Str("Table lengths do not agree!!"));
+      return csound->InitError(csound, "%s", Str("Table lengths do not agree!!"));
     }
 
     p->fpoint = fpoint;

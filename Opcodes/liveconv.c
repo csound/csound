@@ -248,7 +248,7 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     p->partSize = MYFLT2LRND(*(p->iPartLen));
     if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
       // Must be a power of 2 at least as large as 4
-      return csound->InitError(csound, Str("liveconv: invalid impulse response "
+      return csound->InitError(csound, "%s", Str("liveconv: invalid impulse response "
                                            "partition length"));
     }
 
@@ -261,7 +261,7 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     n = (int32_t) ftp->flen;
     if (UNLIKELY(n <= 0)) {
       return csound->InitError(csound,
-                               Str("liveconv: invalid length, or insufficient"
+                               "%s", Str("liveconv: invalid length, or insufficient"
                                    " IR data for convolution"));
     }
 
@@ -499,7 +499,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
 
  err1:
     return csound->PerfError(csound, p->h.insdshead,
-                             Str("liveconv: not initialised"));
+                             "%s", Str("liveconv: not initialised"));
 }
 
 /* module interface functions */

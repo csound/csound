@@ -38,7 +38,7 @@
 #define SHORTMAX 32767.0
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-'))) {          \
-      csound->Message(csound, MSG); csound->LongJmp(csound, 1); }
+      csound->Message(csound, "%s", MSG); csound->LongJmp(csound, 1); }
 
 /* Static function prototypes */
 
@@ -49,11 +49,11 @@ static void envext_usage(CSOUND *csound, char *mesg, ...)
 {
     va_list args;
 
-    csound->Message(csound,Str("Usage:\tenvext [-flags] soundfile\n"));
-    csound->Message(csound,Str("Legal flags are:\n"));
-    csound->Message(csound,Str("-o fnam\tsound output filename\n"));
-    csound->Message(csound,Str( "-w time\tSize of window\n"));
-    csound->Message(csound,Str("flag defaults: envext -onewenv -w0.25\n"));
+    csound->Message(csound,"%s", Str("Usage:\tenvext [-flags] soundfile\n"));
+    csound->Message(csound,"%s", Str("Legal flags are:\n"));
+    csound->Message(csound,"%s", Str("-o fnam\tsound output filename\n"));
+    csound->Message(csound, "%s", Str( "-w time\tSize of window\n"));
+    csound->Message(csound,"%s", Str("flag defaults: envext -onewenv -w0.25\n"));
     va_start(args, mesg);
     csound->ErrMsgV(csound, Str("envext: error: "), mesg, args);
     va_end(args);
@@ -74,7 +74,7 @@ static int32_t envext(CSOUND *csound, int32_t argc, char **argv)
 
     /* Check arguments */
     if (UNLIKELY(!(--argc)))
-      envext_usage(csound, Str("Insufficient arguments"));
+      envext_usage(csound, "%s", Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                        /* read all flags:  */

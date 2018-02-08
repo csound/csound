@@ -50,7 +50,7 @@ static int32_t linlink(CSOUND *csound, LINLINK *p) {
     MYFLT x1 = *p->kx1;
     if (UNLIKELY(x0 == x1))
       return csound->PerfError(csound, p->h.insdshead,
-                               Str("linlin.k: Division by zero"));
+                               "%s", Str("linlin.k: Division by zero"));
     *p->kout = (x - x0) / (x1 -x0) * (*(p->ky1) - y0) + y0;
     return OK;
 }
@@ -319,7 +319,7 @@ static int32_t ntom(CSOUND *csound, NTOM *p) {
       } else if (rest == 3) {
         cents = 10*(n[cursor+1] - '0') + (n[cursor+2] - '0');
       } else {
-        csound->Message(csound,Str("format not understood\n"));
+        csound->Message(csound,"%s", Str("format not understood\n"));
         return NOTOK;
       }
       cents *= sign;
@@ -434,7 +434,7 @@ static int32_t cmp_init(CSOUND *csound, Cmp *p) {
       p->mode = 4;
     } else {
       return
-        csound->InitError(csound, Str("cmp: operator not understood. "
+        csound->InitError(csound, "%s", Str("cmp: operator not understood. "
                                       "Expecting <, <=, >, >=, ==\n"));
     }
     return OK;
