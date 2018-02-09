@@ -76,22 +76,26 @@ public:
   /** init-time error message
    */
   int init_error(const std::string &s) {
-    return InitError(this, "%s\n", s.c_str());
+    return InitError(this, "%s\n", LocalizeString(s.c_str()));
   }
 
   /** perf-time error message
    */
   int perf_error(const std::string &s, INSDS *inst) {
-    return PerfError(this, inst, "%s\n", s.c_str());
+    return PerfError(this, inst, "%s\n", LocalizeString(s.c_str()));
   }
 
   /** warning message
    */
-  void warning(const std::string &s) { Warning(this, "%s", s.c_str()); }
+  void warning(const std::string &s) {
+    Warning(this, "%s", LocalizeString(s.c_str()));
+  }
 
   /** console messages
    */
-  void message(const std::string &s) { Message(this, "%s\n", s.c_str()); }
+  void message(const std::string &s) {
+    Message(this, "%s\n", LocalizeString(s.c_str()));
+  }
 
   /** system sampling rate
    */
