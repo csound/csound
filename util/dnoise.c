@@ -82,7 +82,7 @@
 
 #define ERR(x)                          \
 {                                       \
-   csound->Message(csound, "%s", x);	\
+    csound->Message(csound, "%s", x);   \
     return -1;                          \
 }
 
