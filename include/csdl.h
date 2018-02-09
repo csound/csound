@@ -117,6 +117,12 @@ extern "C" {
 
 /* Use the Str() macro for translations of strings */
 #undef Str
+
+  /* VL commenting this out so ALL uses of Str(x) 
+     call LocalizeString() [which might be a stub]
+     This would allows us to keep an eye on 
+     -Wformat-security warnings 
+  */
 //#ifndef GNU_GETTEXT
 //#define Str(x)  (x)
 //#else
