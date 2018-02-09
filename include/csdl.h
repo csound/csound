@@ -117,11 +117,11 @@ extern "C" {
 
 /* Use the Str() macro for translations of strings */
 #undef Str
-#ifndef GNU_GETTEXT
-#define Str(x)  (x)
-#else
+//#ifndef GNU_GETTEXT
+//#define Str(x)  (x)
+//#else
 #define Str(x)  (csound->LocalizeString(x))
-#endif
+//#endif
 
 PUBLIC  int64_t  csound_opcode_init(CSOUND *, OENTRY **);
 PUBLIC  NGFENS  *csound_fgen_init(CSOUND *);
