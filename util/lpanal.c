@@ -45,7 +45,7 @@
 #define PITCHMAX        FL(200.0)   /* default limits in Hz for pitch search */
 
 typedef struct {
-  int32_t     poleCount, WINDIN, debug, verbose, doPitch;
+  int32_t poleCount, WINDIN, debug, verbose, doPitch;
   double  *x;
   double  (*a)[MAXPOLES];
   WINDAT   pwindow;
@@ -64,13 +64,13 @@ typedef struct {
   MYFLT   *tgamph[FREQS], *tgamps[FREQS], freq[FREQS];
           /* prv tgamph[50][5],  tgamps[50][6] */
   MYFLT    NYQ10;
-  int32_t      Windsiz, Windsiz2;         /* settable windowsize, halfthat */
-  int32_t      Dwind, Hwind;              /* settable downsamp10, halfthat */
+  int32_t  Windsiz, Windsiz2;         /* settable windowsize, halfthat */
+  int32_t  Dwind, Hwind;              /* settable downsamp10, halfthat */
   MYFLT    w11, w12;                  /* Initialised to zero by calloc */
   MYFLT    w21, w22;                  /* Initialised to zero by calloc */
   MYFLT    w31, w32;                  /* Initialised to zero by calloc */
   MYFLT    w41/*, w42*/;              /* Initialised to zero by calloc */
-  int32_t      firstcall, tencount;       /* Initialised to zero by calloc */
+  int32_t  firstcall, tencount;       /* Initialised to zero by calloc */
   MYFLT   *Dwind_dbuf, *Dwind_end1;   /* double buffer for downsamps   */
   MYFLT   *dbp1, *dbp2;
 } LPANAL_GLOBALS;
@@ -113,7 +113,7 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
 {
     double        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
     double        dx, dy, term, factor;
-    int32_t           n1, i, j, p, iter;
+    int32_t       n1, i, j, p, iter;
     unsigned char conv;
     double        tmp;
 
@@ -229,7 +229,7 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
           u = 0.0;
           v = 0.0;
           k = 2.0*xc;
-          m = xc*xc + yc*yc /* pow(xc,2.0)+pow(yc,2.0)*/;
+          m = xc*xc + yc*yc;
           p = n1-2;
           for (j=0; j<=p; j++) {
             a[j] += k*u-m*v;
@@ -259,14 +259,14 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
  *
  */
 
-static void synthetize(int32_t    poleCount,
+static void synthetize(int32_t poleCount,
                        double *poleReal,
                        double *poleImag,
                        double *polyReal,
                        double *polyImag)
 {
-    int32_t    j, k;
-    double pr, pi, cr, ci;
+    int32_t  j, k;
+    double   pr, pi, cr, ci;
 
     polyReal[0] = 1;
     polyImag[0] = 0;

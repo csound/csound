@@ -35,10 +35,10 @@
 #include "convolve.h"
 
 static int32_t takeFFT(CSOUND *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
-                   int64_t Hlenpadded, SNDFILE *infd, FILE *ofd, int32_t nf);
+                       int64_t Hlenpadded, SNDFILE *infd, FILE *ofd, int32_t nf);
 static int32_t quit(CSOUND*, char *msg);
 static int32_t CVAlloc(CSOUND*, CVSTRUCT**, int64_t, int32_t, MYFLT,
-                   int32_t, int32_t, int64_t, int32_t, int32_t);
+                       int32_t, int32_t, int64_t, int32_t, int32_t);
 
 #define SF_UNK_LEN      -1      /* code for sndfile len unkown  */
 
@@ -53,13 +53,13 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
     SNDFILE *infd;
     FILE    *ofd;
     void    *ofd_handle;
-    int32_t     err, channel = ALLCHNLS;
+    int32_t err, channel = ALLCHNLS;
     SOUNDIN *p;  /* space allocated by SAsndgetset() */
     MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
-    int64_t    Estdatasiz, Hlen;
-    int64_t    Hlenpadded = 1;
+    int64_t Estdatasiz, Hlen;
+    int64_t Hlenpadded = 1;
     char    err_msg[512];
-    int32_t     res;
+    int32_t res;
     int32_t new_format = 0;
 
     /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0); */
@@ -190,11 +190,11 @@ static int32_t quit(CSOUND *csound, char *msg)
 static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
                    int64_t Hlenpadded, SNDFILE *infd, FILE *ofd, int32_t nf)
 {
-    int32_t     i, j, read_in;
+    int32_t i, j, read_in;
     MYFLT   *inbuf, *outbuf;
     MYFLT   *fp1, *fp2;
-    int32_t     Hlen = (int32_t) cvh->Hlen;
-    int32_t     nchanls;
+    int32_t Hlen = (int32_t) cvh->Hlen;
+    int32_t nchanls;
 
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
     j = (int32_t) (Hlen * nchanls);
@@ -249,14 +249,14 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
 static int32_t CVAlloc(
     CSOUND      *csound,
     CVSTRUCT    **pphdr,        /* returns address of new block */
-    int64_t        dataBsize,      /* desired bytesize of datablock */
-    int32_t         dataFormat,     /* data format - PVMYFLT etc */
+    int64_t     dataBsize,      /* desired bytesize of datablock */
+    int32_t     dataFormat,     /* data format - PVMYFLT etc */
     MYFLT       srate,          /* sampling rate of original in Hz */
-    int32_t         src_chnls,      /* number of channels in source */
-    int32_t         channel,        /* requested channel(s) */
-    int64_t        Hlen,           /* impulse response length */
-    int32_t         Format,         /* format of frames: CVPOLAR, CVPVOC etc */
-    int32_t         infoBsize)      /* bytes to allocate in info region */
+    int32_t     src_chnls,      /* number of channels in source */
+    int32_t     channel,        /* requested channel(s) */
+    int64_t     Hlen,           /* impulse response length */
+    int32_t     Format,         /* format of frames: CVPOLAR, CVPVOC etc */
+    int32_t     infoBsize)      /* bytes to allocate in info region */
 
     /* Allocate memory for a new CVSTRUCT+data block;
        fill in header according to passed in data.
@@ -268,15 +268,15 @@ static int32_t CVAlloc(
     hSize = sizeof(CVSTRUCT) + infoBsize - CVDFLTBYTS;
     if (( (*pphdr) = (CVSTRUCT *) csound->Malloc(csound, hSize)) == NULL )
       return(CVE_MALLOC);
-    (*pphdr)->magic = CVMAGIC;
-    (*pphdr)->headBsize = hSize;
-    (*pphdr)->dataBsize = dataBsize;
-    (*pphdr)->dataFormat= dataFormat;
+    (*pphdr)->magic        = CVMAGIC;
+    (*pphdr)->headBsize    = hSize;
+    (*pphdr)->dataBsize    = dataBsize;
+    (*pphdr)->dataFormat   = dataFormat;
     (*pphdr)->samplingRate = srate;
-    (*pphdr)->src_chnls  = src_chnls;
-    (*pphdr)->channel  = channel;
-    (*pphdr)->Hlen = Hlen;
-    (*pphdr)->Format = Format;
+    (*pphdr)->src_chnls    = src_chnls;
+    (*pphdr)->channel      = channel;
+    (*pphdr)->Hlen         = Hlen;
+    (*pphdr)->Format       = Format;
     /* leave info bytes undefined */
     return(CVE_OK);
 }

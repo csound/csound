@@ -40,9 +40,7 @@
 #  define UNLIKELY(x)   x
 #endif
 
-typedef int_least32_t int32;
 typedef int_least16_t int16;
-typedef uint_least32_t uint32;
 typedef uint_least16_t uint16;
 
 void het_import_usage(void)
@@ -54,7 +52,7 @@ int16 getnum(FILE* inf, char *term)
 {
     char buff[100];
     int  cc;
-    int p = 0;
+    int  p = 0;
     while ((cc=getc(inf))!=',' && cc!='\n' && p<99) {
       if (UNLIKELY(cc == EOF)) {
         *term = '\0';
