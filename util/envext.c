@@ -136,12 +136,12 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
 {
     double      tpersample;
     double      max, min;
-    int64_t        mxpos, minpos;
-    int32_t         block = 0;
+    int64_t     mxpos, minpos;
+    int32_t     block = 0;
     MYFLT       *buffer;
-    int32_t         bufferlen;
-    int64_t        read_in;
-    int32_t         i;
+    int32_t     bufferlen;
+    int64_t     read_in;
+    int32_t     i;
     FILE *      outfile;
 
     outfile = fopen((outname == NULL ? "newenv" : outname), "w");
@@ -154,7 +154,7 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
       min = 0.0;        minpos = 0;
       for (i=0; i<read_in; i++) {
         if ((double)buffer[i] > max)
-          max = (double)buffer[i], mxpos = i;
+\          max = (double)buffer[i], mxpos = i;
         if ((double)buffer[i] < min)
           min = (double)buffer[i], minpos = i;
       }

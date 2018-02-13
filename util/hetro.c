@@ -81,9 +81,9 @@ typedef struct {
          m_ampsum;              /* maximum amplitude at output*/
   int32_t windsiz;               /* # of pts. in one per. of sample*/
   int16  hmax;                  /* max harmonics requested */
-  int32_t    num_pts,               /* breakpoints per harmonic */
+  int32_t num_pts,               /* breakpoints per harmonic */
          amp_min;               /* amplitude cutout threshold */
-  int32_t    skip,                  /* flag to stop analysis if zeros*/
+  int32_t skip,                  /* flag to stop analysis if zeros*/
          bufsiz;                /* circular buffer size */
   int32  smpsin;                /* num sampsin */
   int32  midbuf,                /* set to bufsiz / 2   */
@@ -93,7 +93,7 @@ typedef struct {
   MYFLT  *auxp;                 /* pointer to input file */
   MYFLT  *adp;                  /* pointer to front of sample file */
   double *c_p,*s_p;             /* pointers to space for sine and cos terms */
-  int32_t    newformat;             /* flag for m/c independent format */
+  int32_t newformat;             /* flag for m/c independent format */
 } HET;
 
 #if INCSDIF
@@ -102,14 +102,14 @@ static int32_t writesdif(CSOUND*, HET*);
 static  double  GETVAL(HET *, double *, int32);
 static  double  sq(double);
 static  void    PUTVAL(HET *,double *, int32, double);
-static  int32_t     hetdyn(CSOUND *csound, HET *, int32_t);
+static  int32_t hetdyn(CSOUND *csound, HET *, int32_t);
 static  void    lpinit(HET*);
 static  void    lowpass(HET *,double *, double *, int32);
 static  void    average(HET *,int32, double *, double *, int32);
 static  void    output(HET *,int32, int32_t, int32_t);
 static  void    output_ph(HET *, int32);
-static  int32_t     filedump(HET *, CSOUND *);
-static  int32_t     quit(CSOUND *, char *);
+static  int32_t filedump(HET *, CSOUND *);
+static  int32_t quit(CSOUND *, char *);
 
 #define sgn(x)  (x<0.0 ? -1 : 1)
 #define u(x)    (x>0.0 ? 1 : 0)
@@ -140,7 +140,7 @@ static void init_het(HET *thishet)
 static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
 {
     SNDFILE *infd;
-    int32_t     i, hno, channel = 1, retval = 0;
+    int32_t i, hno, channel = 1, retval = 0;
     int32   nsamps, smpspc, bufspc, mgfrspc;
     char    *dsp, *dspace, *mspace;
     double  *begbufs, *endbufs;
@@ -269,7 +269,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
                   csound->getsndin(csound, infd,
                                    thishet->auxp, nsamps, p)) <= 0)) {
       char errmsg[256];
-     csound->Message(csound, "smpsin = %"PRId64"\n", (int64_t) thishet->smpsin);
+      csound->Message(csound, "smpsin = %"PRId64"\n", (int64_t) thishet->smpsin);
       snprintf(errmsg, 256, Str("Read error on %s\n"), thishet->infilnam);
       return quit(csound, errmsg);
     }
@@ -378,13 +378,14 @@ static void PUTVAL(HET* thishet, double *outb, int32 smpl, double value)
     outb[(smpl + thishet->midbuf) & thishet->bufmask] = value;
 }
 
-static int32_t hetdyn(CSOUND *csound, HET* thishet, int32_t hno) /* HETERODYNE FILTER */
+static int32_t hetdyn(CSOUND *csound,
+                      HET* thishet, int32_t hno) /* HETERODYNE FILTER */
 {
     int32   smplno;
     double  temp_a, temp_b, tpidelest;
     double  *cos_p, *sin_p, *cos_wp, *sin_wp;
     int32   n;
-    int32_t     outpnt, lastout = -1;
+    int32_t outpnt, lastout = -1;
     MYFLT   *ptr;
 
     thishet->jmp_ph = 0;                     /* set initial phase to 0 */
@@ -589,7 +590,7 @@ static int32_t quit(CSOUND *csound, char *msg)
 
 static int32_t filedump(HET *thishet, CSOUND *csound)
 {
-    int32_t     h, pnt, ofd, nbytes;    double  scale,x,y;
+    int32_t h, pnt, ofd, nbytes;    double  scale,x,y;
     int16   **mags, **freqs, *magout, *frqout;
     double  ampsum, maxampsum = 0.0;
     int32   lenfil = 0;
@@ -772,7 +773,7 @@ static int32_t filedump(HET *thishet, CSOUND *csound)
 
 static int32_t writesdif(CSOUND *csound, HET *thishet)
 {
-    int32_t         i,j,h, pnt;
+    int32_t     i,j,h, pnt;
     double      scale;
     double      ampsum, maxampsum = 0.0;
     MYFLT       timesiz;

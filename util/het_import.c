@@ -52,10 +52,10 @@ int16 getnum(FILE* inf, char *term)
     int32_t p = 0;
     while ((cc=getc(inf))!=',' && cc!='\n' && p<15) {
       if (UNLIKELY(cc == EOF)) {
-            *term = '\0';
-            return 0;
-        }
-        buff[p++] = cc;
+        *term = '\0';
+        return 0;
+      }
+      buff[p++] = cc;
     }
     buff[p]='\0';
     *term = cc;
@@ -64,8 +64,8 @@ int16 getnum(FILE* inf, char *term)
 
 static int32_t het_import(CSOUND *csound, int32_t argc, char **argv)
 {
-    FILE *infd;
-    FILE *outf;
+    FILE    *infd;
+    FILE    *outf;
     int32_t c;
 
     if (UNLIKELY(argc!= 3)) {
@@ -98,7 +98,7 @@ static int32_t het_import(CSOUND *csound, int32_t argc, char **argv)
     else ungetc(c, infd);
     for (;;) {
       int16 x;
-      char term;
+      char  term;
       int16 end = END;
       x = getnum(infd, &term);
       if (term == '\0') break;
