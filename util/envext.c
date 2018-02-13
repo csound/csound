@@ -154,7 +154,7 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
       min = 0.0;        minpos = 0;
       for (i=0; i<read_in; i++) {
         if ((double)buffer[i] > max)
-\          max = (double)buffer[i], mxpos = i;
+          max = (double)buffer[i], mxpos = i;
         if ((double)buffer[i] < min)
           min = (double)buffer[i], minpos = i;
       }
