@@ -19,12 +19,13 @@ To maintain this document use the following markdown:
 Any valid HTML can also be used.
 
 --->
-# CSOUND VERSION 6.101RELEASE NOTES
+
+# CSOUND VERSION 6.11 RELEASE NOTES
 
 There has been a great amount of internal reorganisation, which should
 not affect most users.  Some components are now independently managed
-and installablevia the new package manager.  The realtime optaion is
-now considered stable and has the "experim`ental" tag removed.
+and installable via the new package manager.  The realtime option is
+now considered stable and has the "experimental" tag removed.
 
 -- The Developers
 
@@ -53,7 +54,7 @@ addition to the audio.
 
 ### Modified Opcodes and Gens
 
-- print, printk2 now take an additionl optional argument which if
+- print, printk2 now take an additional optional argument which if
   non-zero causes the k-variable name to be printed as well as the value.
 
 ### Utilities
