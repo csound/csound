@@ -458,12 +458,28 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_SET(var, val) var = val;
 #endif
 
+#if defined(MSVC)
+#define ATOMIC_SET8(var, val)  InterlockedExchange8(&var, val);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SET8(var, val) __sync_lock_test_and_set(&var, val);
+#else
+#define ATOMIC_SET8(var, val) var = val;
+#endif
+
 #ifdef MSVC
 #define ATOMIC_GET(var) InterlockedExchangeAdd(&var, 0)
 #elif defined(HAVE_ATOMIC_BUILTIN)
 #define ATOMIC_GET(var) __atomic_load_n(&var, __ATOMIC_SEQ_CST)
 #else
 #define ATOMIC_GET(var) var
+#endif
+
+#ifdef MSVC
+#define ATOMIC_GET8(var) InterlockedExchangeAdd8(&var, 0)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_GET8(var) __atomic_load_n(&var, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_GET8(var) var
 #endif
 
 #ifdef MSVC
