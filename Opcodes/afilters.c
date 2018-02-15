@@ -352,14 +352,14 @@ static int32_t tonea(CSOUND *csound, TONE *p)
     return OK;
 }
 
-static int32_t tonexa(CSOUND *csound, TONEX *p) /* From Gabriel Maldonado, modified */
+static int32_t tonexa(CSOUND *csound, TONEX *p) /* From G Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t      j, lp = p->loop;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    int32_t     j, lp = p->loop;
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
@@ -443,7 +443,7 @@ extern int32_t butset(CSOUND *csound, BFIL *p);
 
 static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
-     IGN(csound);
+    IGN(csound);
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = 0.0;
       p->lkb = FL(0.0);
@@ -455,12 +455,12 @@ static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         
 
 static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 {
-    MYFLT       *out, *in;
+    MYFLT    *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    double    *a;
-    double t, y;
+    double   *a;
+    double   t, y;
     uint32_t nn;
     a = p->a;
 
@@ -511,12 +511,12 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 
 static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
-    MYFLT       *out, *in;
+    MYFLT    *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    double *a = p->a;
-    double t, y;
+    double   *a = p->a;
+    double   t, y;
     uint32_t nn;
 
     in = p->ain;
