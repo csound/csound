@@ -24,8 +24,10 @@ Any valid HTML can also be used.
 
 There has been a great amount of internal reorganisation, which should
 not affect most users.  Some components are now independently managed
-and installable via the new package manager.  The realtime option is
-now considered stable and has the "experimental" tag removed.
+and will eventully be installable via a new package manager.  The
+realtime option is now considered stable and has the "experimental"
+tag removed.  There have been more steps towards completing the
+arithmetic operations involving a-arrays.
 
 -- The Developers
 
@@ -35,6 +37,8 @@ now considered stable and has the "experimental" tag removed.
 
 - loscilphs, loscil3phs are like loscil but return the phase in
 addition to the audio.
+
+- more arithmetic, between a-rate arrays and a-rate values
 
 ### New Gen and Macros
 
