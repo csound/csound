@@ -833,6 +833,7 @@ static int32_t tabaadd(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -845,8 +846,9 @@ static int32_t tabaadd(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a,*b,*aa;
-      a = (MYFLT*)&(l->data[i]); b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = (MYFLT*)&(l->data[j]); b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -867,6 +869,7 @@ static int32_t tabasub(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -876,8 +879,9 @@ static int32_t tabasub(CSOUND *csound, TABARITH *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *a,*b,*aa;
-      a = (MYFLT*)&(l->data[i]); b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = (MYFLT*)&(l->data[j]); b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -898,6 +902,7 @@ static int32_t tabamul(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -907,8 +912,9 @@ static int32_t tabamul(CSOUND *csound, TABARITH *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *a,*b,*aa;
-      a = (MYFLT*)&(l->data[i]); b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = (MYFLT*)&(l->data[j]); b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -929,6 +935,7 @@ static int32_t tabadiv(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -938,8 +945,9 @@ static int32_t tabadiv(CSOUND *csound, TABARITH *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *a,*b,*aa;
-      a = (MYFLT*)&(l->data[i]); b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = (MYFLT*)&(l->data[j]); b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -965,6 +973,7 @@ static int32_t tabkamult(CSOUND *csound, TABARITH2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -973,8 +982,9 @@ static int32_t tabkamult(CSOUND *csound, TABARITH2 *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -995,6 +1005,7 @@ static int32_t tabakmult(CSOUND *csound, TABARITH1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1003,8 +1014,9 @@ static int32_t tabakmult(CSOUND *csound, TABARITH1 *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1025,6 +1037,7 @@ static int32_t tabkaadd(CSOUND *csound, TABARITH2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1033,8 +1046,9 @@ static int32_t tabkaadd(CSOUND *csound, TABARITH2 *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1055,6 +1069,7 @@ static int32_t tabakadd(CSOUND *csound, TABARITH1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1063,8 +1078,9 @@ static int32_t tabakadd(CSOUND *csound, TABARITH1 *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1085,6 +1101,7 @@ static int32_t tabkasub(CSOUND *csound, TABARITH2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1093,8 +1110,9 @@ static int32_t tabkasub(CSOUND *csound, TABARITH2 *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1115,6 +1133,7 @@ static int32_t tabaksub(CSOUND *csound, TABARITH1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1123,8 +1142,9 @@ static int32_t tabaksub(CSOUND *csound, TABARITH1 *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1145,6 +1165,7 @@ static int32_t tabkadiv(CSOUND *csound, TABARITH2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1153,8 +1174,9 @@ static int32_t tabkadiv(CSOUND *csound, TABARITH2 *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1180,6 +1202,7 @@ static int32_t tabakdiv(CSOUND *csound, TABARITH1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1191,8 +1214,9 @@ static int32_t tabakdiv(CSOUND *csound, TABARITH1 *p)
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1214,6 +1238,7 @@ static int32_t tabaardd(CSOUND *csound, TABARITH2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1225,8 +1250,9 @@ static int32_t tabaardd(CSOUND *csound, TABARITH2 *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1247,6 +1273,7 @@ static int32_t tabaarsb(CSOUND *csound, TABARITH2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1258,8 +1285,9 @@ static int32_t tabaarsb(CSOUND *csound, TABARITH2 *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1280,6 +1308,7 @@ static int32_t tabaarml(CSOUND *csound, TABARITH2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1291,8 +1320,9 @@ static int32_t tabaarml(CSOUND *csound, TABARITH2 *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i+span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1313,6 +1343,7 @@ static int32_t tabaardv(CSOUND *csound, TABARITH2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1324,8 +1355,9 @@ static int32_t tabaardv(CSOUND *csound, TABARITH2 *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *b,*aa;
-      b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1335,7 +1367,6 @@ static int32_t tabaardv(CSOUND *csound, TABARITH2 *p)
     }
     return OK;
 }
-
 
 //a[]+a
 static int32_t tabaradd(CSOUND *csound, TABARITH1 *p)
@@ -1347,6 +1378,7 @@ static int32_t tabaradd(CSOUND *csound, TABARITH1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1358,8 +1390,9 @@ static int32_t tabaradd(CSOUND *csound, TABARITH1 *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a,*aa;
-      a = (MYFLT*)&(l->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = (MYFLT*)&(l->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1380,6 +1413,7 @@ static int32_t tabarasb(CSOUND *csound, TABARITH1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1391,8 +1425,9 @@ static int32_t tabarasb(CSOUND *csound, TABARITH1 *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a,*aa;
-      a = (MYFLT*)&(l->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = (MYFLT*)&(l->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1413,6 +1448,7 @@ static int32_t tabaraml(CSOUND *csound, TABARITH1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1424,8 +1460,9 @@ static int32_t tabaraml(CSOUND *csound, TABARITH1 *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a,*aa;
-      a = (MYFLT*)&(l->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = (MYFLT*)&(l->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1446,6 +1483,7 @@ static int32_t tabaradv(CSOUND *csound, TABARITH1 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1457,8 +1495,9 @@ static int32_t tabaradv(CSOUND *csound, TABARITH1 *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a,*aa;
-      a = (MYFLT*)&(l->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = (MYFLT*)&(l->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1480,6 +1519,7 @@ static int32_t tabkrardd(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1492,8 +1532,9 @@ static int32_t tabkrardd(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT a, *b,*aa;
-      a = l->data[i]; b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = l->data[i]; b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1514,6 +1555,7 @@ static int32_t tabkrarsb(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1526,8 +1568,9 @@ static int32_t tabkrarsb(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT a, *b,*aa;
-      a = l->data[i]; b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = l->data[i]; b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1548,6 +1591,7 @@ static int32_t tabkrarml(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1560,8 +1604,9 @@ static int32_t tabkrarml(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT a, *b,*aa;
-      a = l->data[i]; b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = l->data[i]; b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1582,6 +1627,7 @@ static int32_t tabkrardv(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1594,8 +1640,9 @@ static int32_t tabkrardv(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT a, *b,*aa;
-      a = l->data[i]; b = (MYFLT*)&(r->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      a = l->data[i]; b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1616,6 +1663,7 @@ static int32_t tabarkrdd(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1628,8 +1676,9 @@ static int32_t tabarkrdd(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a, b,*aa;
-      b = r->data[i]; a = (MYFLT*)&(l->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = r->data[i]; a = (MYFLT*)&(l->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1650,6 +1699,7 @@ static int32_t tabarkrsb(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1662,8 +1712,9 @@ static int32_t tabarkrsb(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a, b,*aa;
-      b = r->data[i]; a = (MYFLT*)&(l->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = r->data[i]; a = (MYFLT*)&(l->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1684,6 +1735,7 @@ static int32_t tabarkrml(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1696,8 +1748,9 @@ static int32_t tabarkrml(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a, b,*aa;
-      b = r->data[i]; a = (MYFLT*)&(l->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = r->data[i]; a = (MYFLT*)&(l->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
@@ -1718,6 +1771,7 @@ static int32_t tabarkrdv(CSOUND *csound, TABARITH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, p->h.insdshead,
@@ -1730,8 +1784,9 @@ static int32_t tabarkrdv(CSOUND *csound, TABARITH *p)
     }
     for (i=0; i<size; i++) {
       MYFLT *a, b,*aa;
-      b = r->data[i]; a = (MYFLT*)&(l->data[i]);
-      aa = (MYFLT*)&(ans->data[i]);
+      int32_t j = i*span;
+      b = r->data[i]; a = (MYFLT*)&(l->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
       if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
