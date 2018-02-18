@@ -84,6 +84,15 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
             ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
             ep->outypes != NULL && ep->intypes != NULL) {
           cnt++;
+#ifdef JPFF
+          if (ep->thread==7)
+            printf("%s, type 7 %s -> %s\n", ep->opname,
+                   ep->intypes, ep->outypes);
+          else if (ep->thread==6)
+            printf("%s, type 6 %s -> %s\n", ep->opname,
+                   ep->intypes, ep->outypes);
+#endif
+    
           nBytes += sizeof(opcodeListEntry);
           for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++);
           nBytes += (size_t) i;
