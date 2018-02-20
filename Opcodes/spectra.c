@@ -1224,7 +1224,9 @@ int32_t specfilt(CSOUND *csound, SPECFILT *p)
 #define S       sizeof
 
 static OENTRY spectra_localops[] = {
-{ "spectrum", S(SPECTRUM),_QQ, 7, "w", "xiiiqoooo",
+{ "spectrum", S(SPECTRUM),_QQ, 3, "w", "kiiiqoooo",
+                                   (SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
+{ "spectrum", S(SPECTRUM),_QQ, 5, "w", "aiiiqoooo",
                                    (SUBR)spectset,(SUBR)spectrum,(SUBR)spectrum},
 { "specaddm", S(SPECADDM),_QQ, 5, "w", "wwp", (SUBR)spadmset,NULL,  (SUBR)specaddm},
 { "specdiff", S(SPECDIFF),_QQ, 5, "w", "w",   (SUBR)spdifset,NULL,  (SUBR)specdiff},

@@ -730,9 +730,9 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY sockrecv_localops[] = {
-  { "sockrecv", S(SOCKRECV), 0, 7, "s", "ii", (SUBR) init_recv, (SUBR) send_recv_k,
-    (SUBR) send_recv, NULL },
-  { "sockrecv", S(SOCKRECVSTR), 0, 3, "S", "ii", (SUBR) init_recv_S,
+  { "sockrecv.k", S(SOCKRECV), 0, 3, "k", "ii", (SUBR) init_recv, (SUBR) send_recv_k, NULL },
+  { "sockrecv.a", S(SOCKRECV), 0, 3, "a", "ii", (SUBR) init_recv, (SUBR) send_recv, NULL },
+  { "sockrecv.S", S(SOCKRECVSTR), 0, 3, "S", "ii", (SUBR) init_recv_S,
     (SUBR) send_recv_S, NULL },
   { "sockrecvs", S(SOCKRECV), 0, 5, "aa", "ii", (SUBR) init_recvS, NULL,
     (SUBR) send_recvS, NULL },
