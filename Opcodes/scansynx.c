@@ -744,17 +744,15 @@ static int32_t scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "xscanu", S(PSCSNUX),TR, 5, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init_S,
-                                                    NULL,(SUBR)scsnux },
-{ "xscanu", S(PSCSNUX),TR, 5, "", "iiiiiiikkkkiikkaii", (SUBR)scsnux_init,
-                                                    NULL,(SUBR)scsnux },
-{ "xscans", S(PSCSNSX),  TR, 5,  "a", "kkiio",         (SUBR)scsnsx_init,
-                                                    NULL, (SUBR)scsnsx},
-{ "xscanmap", S(PSCSNMAPX),TR, 3, "kk", "ikko",        (SUBR)scsnmapx_init,
-                                                   (SUBR)scsnmapx,NULL },
-{ "xscansmap", S(PSCSNMAPX),TR, 3,"",   "kkikko",      (SUBR)scsnmapx_init,
-                                                   (SUBR)scsnsmapx,NULL }
+static OENTRY localops[] =
+  {
+   { "xscanu", S(PSCSNUX),TR, 3, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init_S,(SUBR)scsnux },
+   { "xscanu", S(PSCSNUX),TR, 3, "", "iiiiiiikkkkiikkaii", (SUBR)scsnux_init,(SUBR)scsnux },
+   { "xscans", S(PSCSNSX),  TR, 3,  "a", "kkiio",         (SUBR)scsnsx_init, (SUBR)scsnsx},
+   { "xscanmap", S(PSCSNMAPX),TR, 3, "kk", "ikko",        (SUBR)scsnmapx_init,
+     (SUBR)scsnmapx,NULL },
+   { "xscansmap", S(PSCSNMAPX),TR, 3,"",   "kkikko",      (SUBR)scsnmapx_init,
+     (SUBR)scsnsmapx,NULL }
 };
 
 int32_t scansynx_init_(CSOUND *csound)

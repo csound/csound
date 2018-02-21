@@ -287,8 +287,8 @@ int32_t exciter_perf(CSOUND *csound, EXCITER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY excite_localops[] = {
-  { "exciter", S(EXCITER),   0, 5, "a", "akkkk",
-                             (SUBR)exciter_init, NULL, (SUBR)exciter_perf },
+  { "exciter", S(EXCITER),   0, 3, "a", "akkkk",
+                             (SUBR)exciter_init, (SUBR)exciter_perf },
 };
 
 LINKAGE_BUILTIN(excite_localops)

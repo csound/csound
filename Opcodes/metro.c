@@ -254,7 +254,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "metro",  S(METRO),  9,  3,      "k", "ko",  (SUBR)metro_set, (SUBR)metro     },
+  { "metro",  S(METRO),  0,  3,      "k", "ko",  (SUBR)metro_set, (SUBR)metro     },
   { "splitrig", S(SPLIT_TRIG), 0, 3, "",  "kkiiz",
                                         (SUBR)split_trig_set, (SUBR)split_trig },
   { "timedseq",S(TIMEDSEQ), TR, 3, "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }

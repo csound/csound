@@ -673,8 +673,8 @@ OENTRY sliderTable_localops[] = {
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
-{ "ctrl7.a", S(CTRL7a),  0, 5, "a",    "iikkoo",
-  (SUBR) ctrl7a_set,   NULL,    (SUBR) ctrl7a },
+{ "ctrl7.a", S(CTRL7a),  0, 3, "a",    "iikkoo",
+  (SUBR) ctrl7a_set,    (SUBR) ctrl7a },
 };
 
 int32_t slidertable_init_(CSOUND *csound) {

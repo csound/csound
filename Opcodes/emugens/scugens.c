@@ -508,26 +508,20 @@ static int32_t phasor_kk(CSOUND *csound, Phasor *p) {
 static OENTRY localops[] = {
   { "sc_lag", S(LAG),   0, 3,   "k", "kko",
     (SUBR)lagk_init, (SUBR)lagk_next, NULL, NULL },
-  { "sc_lag", S(LAG),   0, 5,   "a", "ako",
-    (SUBR)laga_init, NULL, (SUBR)laga_next, NULL },
+  { "sc_lag", S(LAG),   0, 3,   "a", "ako",
+    (SUBR)laga_init, (SUBR)laga_next, NULL },
   { "sc_lagud",   S(LagUD), 0, 3,   "k", "kkko", (SUBR)lagud_init, (SUBR)lagud_k },
-  { "sc_lagud",   S(LagUD), 0, 5,   "a", "akko",
-    (SUBR)lagud_init, NULL, (SUBR)lagud_a },
+  { "sc_lagud",   S(LagUD), 0, 3,   "a", "akko",
+    (SUBR)lagud_init, (SUBR)lagud_a },
   { "sc_trig",    S(Trig),  0, 3,   "k", "kk", (SUBR)trig_init, (SUBR)trig_k },
-  { "sc_trig",    S(Trig),  0, 5,   "a", "ak",
-    (SUBR)trig_init, NULL, (SUBR)trig_a },
+  { "sc_trig",    S(Trig),  0, 3,   "a", "ak",
+    (SUBR)trig_init, (SUBR)trig_a },
   { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkkO",
     (SUBR)phasor_init, (SUBR)phasor_kk },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkkO",
-    (SUBR)phasor_init, NULL, (SUBR)phasor_ak },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakkO",
-    (SUBR)phasor_init, NULL, (SUBR)phasor_aa },
-  /* { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkk", */
-  /*   (SUBR)phasor_init0, (SUBR)phasor_kk }, */
-  /* { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkk", */
-  /*   (SUBR)phasor_init0, NULL, (SUBR)phasor_ak }, */
-  /* { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakk", */
-  /*   (SUBR)phasor_init0, NULL, (SUBR)phasor_aa } */
+  { "sc_phasor",  S(Phasor),  0, 3,   "a", "akkkO",
+    (SUBR)phasor_init, (SUBR)phasor_ak },
+  { "sc_phasor",  S(Phasor),  0, 3,   "a", "aakkO",
+    (SUBR)phasor_init, (SUBR)phasor_aa }
 };
 
 LINKAGE

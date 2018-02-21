@@ -229,11 +229,12 @@ static int32_t locsend(CSOUND *csound, LOCSEND *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "locsig", S(LOCSIG),  0, 5, "mmmm", "akkk",
-                                         (SUBR)locsigset,NULL, (SUBR)locsig    },
-{ "locsend", S(LOCSEND),0, 5, "mmmm", "",(SUBR)locsendset, NULL, (SUBR)locsend }
-};
+static OENTRY localops[] =
+  {
+   { "locsig", S(LOCSIG),  0, 3, "mmmm", "akkk",
+     (SUBR)locsigset, (SUBR)locsig    },
+   { "locsend", S(LOCSEND),0, 3, "mmmm", "",(SUBR)locsendset, (SUBR)locsend }
+  };
 
 int32_t locsig_init_(CSOUND *csound)
 {
