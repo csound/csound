@@ -183,7 +183,7 @@ if (Test-Path "link")
 }
 else
 {
-    git clone "https://github.com/Ableton/link.git"
+    git clone --branch Link-3.0.0 https://github.com/Ableton/link.git
     cd link
     git submodule update --init --recursive
     echo "Ableton Link downloaded."
