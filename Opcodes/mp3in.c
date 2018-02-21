@@ -2433,9 +2433,10 @@ static int32_t player_play2(CSOUND *csound, PLAYER *pp)
 
 #define S(x)    sizeof(x)
 
-static OENTRY mp3in_localops[] = {
-  {"mp3in",  S(MP3IN),  0, 5, "mm", "Soooo", (SUBR) mp3ininit_S, NULL, (SUBR)mp3in},
-  {"mp3in.i",  S(MP3IN),  0, 5, "mm", "ioooo", (SUBR) mp3ininit, NULL, (SUBR)mp3in},
+static OENTRY mp3in_localops[] =
+  {
+   {"mp3in",  S(MP3IN),  0, 3, "mm", "Soooo", (SUBR) mp3ininit_S, (SUBR)mp3in},
+   {"mp3in.i",  S(MP3IN),  0, 3, "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in},
   {"mp3len", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3len.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3sr", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
@@ -2444,21 +2445,21 @@ static OENTRY mp3in_localops[] = {
   {"mp3bitrate.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3nchnls", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3nchnls.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
-  {"mp3scal", sizeof(DATASPACE), 0, 5, "aak", "SkkkoooPP",
-   (SUBR)sinit3, NULL,(SUBR)sprocess3 },
+   {"mp3scal", sizeof(DATASPACE), 0, 3, "aak", "SkkkoooPP",
+   (SUBR)sinit3,(SUBR)sprocess3 },
 #ifdef ANDROID
   {"mp3scal_load", sizeof(LOADER), 0, 1, "i", "Soooo",
    (SUBR)loader_init, NULL,NULL },
-  {"mp3scal_play", sizeof(PLAYER), 0, 5, "aaki", "ikkkPPo",
-   (SUBR)player_init, NULL,(SUBR)player_play},
-  {"mp3scal_check", sizeof(CHECK), 0, 5, "k", "i",
-   (SUBR)check_init, NULL,(SUBR)check_play},
+   {"mp3scal_play", sizeof(PLAYER), 0, 3, "aaki", "ikkkPPo",
+   (SUBR)player_init,(SUBR)player_play},
+   {"mp3scal_check", sizeof(CHECK), 0, 3, "k", "i",
+   (SUBR)check_init,(SUBR)check_play},
  #endif
   /*
   {"mp3scal_load2", sizeof(LOADER), 0, 1, "i", "Soooo",
    (SUBR)loader_init2, NULL,NULL },
-  {"mp3scal_play2", sizeof(PLAYER), 0, 5, "aaki", "ikkkPPo",
-   (SUBR)player_init2, NULL,(SUBR)player_play2}
+  {"mp3scal_play2", sizeof(PLAYER), 0, 3, "aaki", "ikkkPPo",
+   (SUBR)player_init2,(SUBR)player_play2}
   */
 };
 

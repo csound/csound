@@ -788,19 +788,20 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY socksend_localops[] = {
-  { "socksend.a", S(SOCKSEND), 0, 5, "", "aSiio", (SUBR) init_send, NULL,
-    (SUBR) send_send },
-  { "socksend.k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
-    (SUBR) send_send_k, NULL },
-  { "socksend.S", S(SOCKSENDT), 0, 3, "", "SSiio", (SUBR) init_send,
-    (SUBR) send_send_Str, NULL },
-  { "socksends", S(SOCKSENDS), 0, 5, "", "aaSiio", (SUBR) init_sendS, NULL,
-    (SUBR) send_sendS },
-  { "stsend", S(SOCKSEND), 0, 5, "", "aSi", (SUBR) init_ssend, NULL,
-    (SUBR) send_ssend },
-  { "OSCsend", S(OSCSEND2), 0, 3, "", "kSk*", (SUBR)osc_send2_init,
-    (SUBR)osc_send2 }
+static OENTRY socksend_localops[] =
+  {
+   { "socksend.a", S(SOCKSEND), 0, 3, "", "aSiio", (SUBR) init_send,
+     (SUBR) send_send },
+   { "socksend.k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
+     (SUBR) send_send_k, NULL },
+   { "socksend.S", S(SOCKSENDT), 0, 3, "", "SSiio", (SUBR) init_send,
+     (SUBR) send_send_Str, NULL },
+   { "socksends", S(SOCKSENDS), 0, 3, "", "aaSiio", (SUBR) init_sendS,
+     (SUBR) send_sendS },
+   { "stsend", S(SOCKSEND), 0, 3, "", "aSi", (SUBR) init_ssend,
+     (SUBR) send_ssend },
+   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSk*", (SUBR)osc_send2_init,
+     (SUBR)osc_send2 }
 };
 
 LINKAGE_BUILTIN(socksend_localops)

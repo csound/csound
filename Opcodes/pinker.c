@@ -158,7 +158,7 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
                                               // decorrelate multiple instances
 #ifdef __GNUC__
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"    
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
     *((float*)(&p->accu))  = PINK_BIAS;       // init float hack
 #ifdef __GNUC__
@@ -173,7 +173,7 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
 
 static OENTRY pinker_localops[] =
 {
-  { "pinker", sizeof(PINKER),0,5, "a", "", (SUBR)pink_init, NULL, (SUBR)pink_perf }
+ { "pinker", sizeof(PINKER),0,3, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
 };
 
 LINKAGE_BUILTIN(pinker_localops)

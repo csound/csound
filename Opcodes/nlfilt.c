@@ -259,8 +259,8 @@ static OENTRY localops[] = {
 { "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
 { "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "p",
                                              (SUBR)pinit,     NULL, NULL },
-{ "nlfilt",  S(NLFILT), 0, 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt },
-{ "nlfilt2",  S(NLFILT), 0, 5, "a", "akkkkk", (SUBR)nlfiltset, NULL, (SUBR)nlfilt2 }
+{ "nlfilt",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
+{ "nlfilt2",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
 };
 
 int32_t nlfilt_init_(CSOUND *csound)

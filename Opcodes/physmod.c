@@ -977,28 +977,29 @@ int32_t bowedbarset(void*,void*);
 int32_t
 bowedbar(void*,void*);
 
-static OENTRY physmod_localops[] = {
-{ "wgclar",  S(CLARIN),TR, 5, "a", "kkkiikkkjo",(SUBR)clarinset,NULL, (SUBR)clarin },
-{ "wgflute", S(FLUTE), TR, 5, "a", "kkkiikkkjovv",(SUBR)fluteset,NULL, (SUBR)flute },
-{ "wgbow",   S(BOWED), TR, 5, "a", "kkkkkkjo", (SUBR)bowedset, NULL,   (SUBR)bowed },
-{ "wgbrass", S(BRASS), TR, 5, "a", "kkkikkjo", (SUBR)brassset, NULL,    (SUBR)brass},
-{ "mandol", S(MANDOL), TR, 5, "a", "kkkkkkio",(SUBR)mandolinset,NULL,(SUBR)mandolin},
-{ "voice", S(VOICF),   TR, 5, "a", "kkkkkkii",(SUBR)voicformset,NULL,(SUBR)voicform},
-{ "fmbell",  S(FM4OP), TR, 5, "a", "kkkkkkjjjjjo",
-                                            (SUBR)tubebellset,NULL,(SUBR)tubebell},
-{ "fmrhode", S(FM4OP), TR, 5, "a", "kkkkkkiiiii",(SUBR)rhodeset,NULL,(SUBR)tubebell},
-{ "fmwurlie", S(FM4OP),TR, 5, "a", "kkkkkkiiiii",(SUBR)wurleyset,NULL,(SUBR)wurley },
-{ "fmmetal", S(FM4OP), TR, 5, "a", "kkkkkkiiiii",
-                                          (SUBR)heavymetset, NULL, (SUBR)heavymet},
-{ "fmb3", S(FM4OP),    TR, 5, "a", "kkkkkkjjjjj", (SUBR)b3set,NULL,(SUBR)hammondB3 },
-{ "fmvoice", S(FM4OPV),TR, 5, "a", "kkkkkkjjjjj",
-                                       (SUBR)FMVoiceset,NULL,(SUBR)FMVoice},
-{ "fmpercfl", S(FM4OP),TR, 5, "a", "kkkkkkjjjjj",
-                                        (SUBR)percfluteset, NULL, (SUBR)percflute},
-{ "moog", S(MOOG1),    TR, 5, "a", "kkkkkkiii", (SUBR)Moog1set, NULL, (SUBR)Moog1  },
-{ "shaker", S(SHAKER), 0, 5, "a", "kkkkko",  (SUBR)shakerset, NULL,   (SUBR)shaker},
-{ "wgbowedbar", S(BOWEDBAR), 0, 5, "a","kkkkkoooo",
-                             (SUBR)bowedbarset, NULL,(SUBR) bowedbar },
+static OENTRY physmod_localops[] =
+  {
+   { "wgclar",  S(CLARIN),TR, 3, "a", "kkkiikkkjo",(SUBR)clarinset, (SUBR)clarin },
+   { "wgflute", S(FLUTE), TR, 3, "a", "kkkiikkkjovv",(SUBR)fluteset, (SUBR)flute },
+   { "wgbow",   S(BOWED), TR, 3, "a", "kkkkkkjo", (SUBR)bowedset,   (SUBR)bowed },
+   { "wgbrass", S(BRASS), TR, 3, "a", "kkkikkjo", (SUBR)brassset,    (SUBR)brass},
+   { "mandol", S(MANDOL), TR, 3, "a", "kkkkkkio",(SUBR)mandolinset,(SUBR)mandolin},
+   { "voice", S(VOICF),   TR, 3, "a", "kkkkkkii",(SUBR)voicformset,(SUBR)voicform},
+   { "fmbell",  S(FM4OP), TR, 3, "a", "kkkkkkjjjjjo",
+     (SUBR)tubebellset,(SUBR)tubebell},
+   { "fmrhode", S(FM4OP), TR, 3, "a", "kkkkkkiiiii",(SUBR)rhodeset,(SUBR)tubebell},
+   { "fmwurlie", S(FM4OP),TR, 3, "a", "kkkkkkiiiii",(SUBR)wurleyset,(SUBR)wurley },
+   { "fmmetal", S(FM4OP), TR, 3, "a", "kkkkkkiiiii",
+     (SUBR)heavymetset, (SUBR)heavymet},
+   { "fmb3", S(FM4OP),    TR, 3, "a", "kkkkkkjjjjj", (SUBR)b3set,(SUBR)hammondB3 },
+   { "fmvoice", S(FM4OPV),TR, 3, "a", "kkkkkkjjjjj",
+     (SUBR)FMVoiceset,(SUBR)FMVoice},
+   { "fmpercfl", S(FM4OP),TR, 3, "a", "kkkkkkjjjjj",
+     (SUBR)percfluteset, (SUBR)percflute},
+   { "moog", S(MOOG1),    TR, 3, "a", "kkkkkkiii", (SUBR)Moog1set, (SUBR)Moog1  },
+   { "shaker", S(SHAKER), 0, 3, "a", "kkkkko",  (SUBR)shakerset,   (SUBR)shaker},
+   { "wgbowedbar", S(BOWEDBAR), 0, 3, "a","kkkkkoooo",
+     (SUBR)bowedbarset,(SUBR) bowedbar },
 };
 
 LINKAGE_BUILTIN(physmod_localops)

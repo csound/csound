@@ -767,14 +767,14 @@ int32_t perf_faustctl(CSOUND *csound, faustctl *p) {
 #define S(x) sizeof(x)
 
 static OENTRY localops[] = {
-    {(char *)"faustgen", S(faustgen), 0, 5,
+    {(char *)"faustgen", S(faustgen), 0, 3,
      (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"SM",
-     (SUBR)init_faustgen, NULL, (SUBR)perf_faust},
+     (SUBR)init_faustgen, (SUBR)perf_faust},
     {(char *)"faustcompile", S(faustcompile), 0, 1, (char *)"i", (char *)"SSp",
      (SUBR)init_faustcompile, NULL, NULL},
-    {(char *)"faustaudio", S(faustgen), 0, 5,
+    {(char *)"faustaudio", S(faustgen), 0, 3,
      (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"iM",
-     (SUBR)init_faustaudio, NULL, (SUBR)perf_faust},
+     (SUBR)init_faustaudio, (SUBR)perf_faust},
     {(char *)"faustctl", S(faustgen), 0, 3, (char *)"", (char *)"iSk",
      (SUBR)init_faustctl, (SUBR)perf_faustctl}};
 

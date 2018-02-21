@@ -1240,13 +1240,13 @@ static int32_t binit_process(CSOUND *csound, _PSBIN *p)
 
 static OENTRY localops[] =
   {
-    {"tradsyn", sizeof(_PSYN),0,  5, "a", "fkkkij", (SUBR) psynth_init, NULL,
+   {"tradsyn", sizeof(_PSYN),0,  3, "a", "fkkkij", (SUBR) psynth_init,
      (SUBR) psynth_process}
     ,
-    {"sinsyn", sizeof(_PSYN2), TR, 5, "a", "fkkij", (SUBR) psynth2_init, NULL,
+   {"sinsyn", sizeof(_PSYN2), TR, 3, "a", "fkkij", (SUBR) psynth2_init,
      (SUBR) psynth2_process}
     ,
-    {"resyn", sizeof(_PSYN), TR, 5, "a", "fkkkij", (SUBR) psynth_init, NULL,
+   {"resyn", sizeof(_PSYN), TR, 3, "a", "fkkkij", (SUBR) psynth_init,
      (SUBR) psynth3_process}
     ,
     {"trscale", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,

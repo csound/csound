@@ -250,8 +250,8 @@ systime(CSOUND *csound, SYST *p){
 #define S(x)    sizeof(x)
 
 static OENTRY cpumeter_localops[] = {
-  { "cpumeter",   S(CPUMETER),   0,5, "kzzzzzzzz", "i",
-    (SUBR)cpupercent_init, (SUBR)cpupercent, NULL   },
+  { "cpumeter",   S(CPUMETER),   0,3, "kzzzzzzzz", "i",
+    (SUBR)cpupercent_init, (SUBR)cpupercent   },
 { "systime", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime},
 { "systime", S(SYST),0, 1, "i",    "", (SUBR)systime}
 };

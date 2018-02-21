@@ -861,15 +861,15 @@ OENTRY gab_localops[] = {
   {"resonxk", S(KRESONX),    0, 3,   "k",    "kkkooo",
                             (SUBR) krsnsetx, (SUBR) kresonx, NULL },
   { "tab_i",S(FASTAB),       TR, 1,   "i",    "iio", (SUBR) fastabi, NULL, NULL },
-  { "tab",S(FASTAB),         TR, 5,   "a",    "xio",
-                            (SUBR) fastab_set, (SUBR)NULL, (SUBR) fastab },
-  { "tab.k",S(FASTAB),         TR, 3,   "k",    "kio",
+  { "tab",S(FASTAB),         TR, 3,   "a",    "xio",
+                            (SUBR) fastab_set, (SUBR) fastab },
+  { "tab.k",S(FASTAB),       TR, 3,   "k",    "kio",
                             (SUBR) fastab_set, (SUBR)fastabk, NULL },
   { "tabw_i",S(FASTAB),      TW, 1,   "",    "iiio", (SUBR) fastabiw, NULL, NULL },
   { "tabw",S(FASTAB),        TW, 3,   "",    "kkio",
                             (SUBR)fastab_set, (SUBR)fastabkw          },
-  { "tabw",S(FASTAB),        TW, 5,   "",    "aaio",
-                            (SUBR)fastab_set, NULL, (SUBR)fastabw     },
+  { "tabw",S(FASTAB),        TW, 3,   "",    "aaio",
+                            (SUBR)fastab_set, (SUBR)fastabw     },
   { "tb0_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab0_init},
   { "tb1_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab1_init},
   { "tb2_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab2_init},
@@ -919,17 +919,17 @@ OENTRY gab_localops[] = {
   { "tb13.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab13_k_tmp, NULL  },
   { "tb14.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab14_k_tmp, NULL  },
   { "tb15.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab15_k_tmp, NULL  },
-  { "nlalp",      S(NLALP), 0, 5,    "a",     "akkoo",
-                            (SUBR) nlalp_set, NULL, (SUBR) nlalp   },
-  { "adsynt2",S(ADSYNT2),TR, 5,    "a",     "kkiiiio",
-                            (SUBR) adsynt2_set, NULL, (SUBR)adsynt2 },
+  { "nlalp",      S(NLALP), 0, 3,    "a",     "akkoo",
+                            (SUBR) nlalp_set, (SUBR) nlalp   },
+  { "adsynt2",S(ADSYNT2),TR, 3,    "a",     "kkiiiio",
+                            (SUBR) adsynt2_set, (SUBR)adsynt2 },
   { "exitnow",S(EXITNOW),   0, 1,    "",  "o", (SUBR) exitnow, NULL, NULL },
 /* { "zr_i",  S(ZKR),     0, 1,  "i",  "i",  (SUBR)zread, NULL, NULL}, */
 /* { "zr_k",  S(ZKR),     0, 2,  "k",  "k",  NULL, (SUBR)zread, NULL}, */
-/* { "zr_a",  S(ZAR),     0, 5,  "a",  "a",  (SUBR)zaset, NULL, (SUBR)zar}, */
+/* { "zr_a",  S(ZAR),     0, 3,  "a",  "a",  (SUBR)zaset, (SUBR)zar}, */
 /* { "k_i",   S(ASSIGN),  0, 1,  "k",  "i",  (SUBR)assign}, */
 /* { "k_t",   S(ASSIGN),  0, 2,  "k",  "t",  NULL, (SUBR)assign}, */
-/* { "a_k",   S(INDIFF),  0, 5,  "a",  "k",  (SUBR)a_k_set,NULL, (SUBR)interp }, */
+/* { "a_k",   S(INDIFF),  0, 3,  "a",  "k",  (SUBR)a_k_set, (SUBR)interp }, */
   { "tabrec",   S(TABREC),  0, 3,     "",      "kkkkz",
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
   { "tabplay",  S(TABPLAY), TR, 3,     "",      "kkkz",
@@ -941,10 +941,8 @@ OENTRY gab_localops[] = {
   { "changed2.A", S(ISACHANGED), 0, 3,     "k",     ".[]",
                             (SUBR) isAChanged_set, (SUBR)isAChanged, NULL },
   /*{ "ftlen_k",S(EVAL),    0, 2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
-  { "max_k",  S(P_MAXIMUM), 0, 5,      "k",    "aki",
-            (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
-/*{ "maxk",   S(P_MAXIMUM), 0, 5,      "k",    "aki", */
-/*        (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum }, */
+  { "max_k",  S(P_MAXIMUM), 0, 3,      "k",    "aki",
+            (SUBR) partial_maximum_set, (SUBR) partial_maximum },
   { "mandel",S(MANDEL),     0, 3,      "kk",    "kkkk",
                             (SUBR) mandel_set, (SUBR) mandel, NULL }
 };

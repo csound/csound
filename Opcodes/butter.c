@@ -151,10 +151,10 @@ static void butter_filter(uint32_t n, uint32_t offset,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "butterhp.k", S(BFIL), 0, 5, "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butterlp.k", S(BFIL), 0, 5, "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
-{ "buthp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butlp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
+{ "butterhp.k", S(BFIL), 0, 3, "a",    "ako",  (SUBR)butset,   (SUBR)hibut  },
+{ "butterlp.k", S(BFIL), 0, 3, "a",    "ako",  (SUBR)butset,   (SUBR)lobut  },
+{ "buthp.k",    S(BFIL),  0, 3, "a",   "ako",  (SUBR)butset,   (SUBR)hibut  },
+{ "butlp.k",    S(BFIL),  0, 3, "a",   "ako",  (SUBR)butset,   (SUBR)lobut  },
 };
 
 int32_t butter_init_(CSOUND *csound)

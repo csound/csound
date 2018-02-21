@@ -1198,29 +1198,24 @@ int32_t dssilist(CSOUND * csound, DSSILIST * p)
 }
 
 static OENTRY dssi_localops[] = {
-  {"dssiinit", sizeof(DSSIINIT), 0, 1, "i", "Tip", (SUBR) dssiinit, NULL, NULL }
-    ,
-    {"dssiactivate", sizeof(DSSIACTIVATE), 0, 3, "", "ik",
-     (SUBR) dssiactivate_init, (SUBR) dssiactivate, NULL }
-    ,
-    {"dssiaudio", sizeof(DSSIAUDIO), 0, 5, "mmmmmmmmm", "iMMMMMMMMM",
-                                            (SUBR) dssiaudio_init,
-                                            NULL, (SUBR) dssiaudio }
-    ,
+  {"dssiinit", sizeof(DSSIINIT), 0, 1, "i", "Tip", (SUBR) dssiinit, NULL, NULL },
+  {"dssiactivate", sizeof(DSSIACTIVATE), 0, 3, "", "ik",
+   (SUBR) dssiactivate_init, (SUBR) dssiactivate, NULL },
+  {"dssiaudio", sizeof(DSSIAUDIO), 0, 3, "mmmmmmmmm", "iMMMMMMMMM",
+   (SUBR) dssiaudio_init, (SUBR) dssiaudio },
     {"dssictls", sizeof(DSSICTLS), 0, 3, "", "iikk", (SUBR) dssictls_init,
-     (SUBR) dssictls_kk, NULL }
-    ,
+     (SUBR) dssictls_kk, NULL },
     {"dssilist", sizeof(DSSILIST), 0, 1, "", "", (SUBR) dssilist, NULL, NULL }
 #if 0
     ,
-    {"dssisynth", sizeof(DSSISYNTH), 0, 5, "aa",  "i", (SUBR) dssisynth_init,
-     NULL, (SUBR) dssisynth}
+    {"dssisynth", sizeof(DSSISYNTH), 0, 3, "aa",  "i", (SUBR) dssisynth_init,
+     (SUBR) dssisynth}
     ,
     {"dssinote", sizeof(DSSINOTE), 0, 3, "",  "kikkk", (SUBR) dssinote_init,
-     NULL, (SUBR) dssinote}
+     (SUBR) dssinote}
     ,
     {"dssievent", sizeof(DSSINOTEON), 0, 3, "",  "kikk", (SUBR) dssievent_init,
-     NULL, (SUBR) dssievent}
+     (SUBR) dssievent}
 #endif
 };
 
