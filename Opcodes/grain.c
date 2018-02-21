@@ -162,9 +162,10 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "grain", S(PGRA),  TR, 5,   "a",    "xxxkkkiiio", (SUBR)agsset, NULL, (SUBR)ags }
-};
+static OENTRY localops[] =
+  {
+   { "grain", S(PGRA),  TR, 3,   "a",    "xxxkkkiiio", (SUBR)agsset, (SUBR)ags }
+  };
 
 int32_t grain_init_(CSOUND *csound)
 {

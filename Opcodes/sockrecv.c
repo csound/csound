@@ -734,9 +734,9 @@ static OENTRY sockrecv_localops[] = {
   { "sockrecv.a", S(SOCKRECV), 0, 3, "a", "ii", (SUBR) init_recv, (SUBR) send_recv, NULL },
   { "sockrecv.S", S(SOCKRECVSTR), 0, 3, "S", "ii", (SUBR) init_recv_S,
     (SUBR) send_recv_S, NULL },
-  { "sockrecvs", S(SOCKRECV), 0, 5, "aa", "ii", (SUBR) init_recvS, NULL,
+  { "sockrecvs", S(SOCKRECV), 0, 3, "aa", "ii", (SUBR) init_recvS,
     (SUBR) send_recvS, NULL },
-  { "strecv", S(SOCKRECVT), 0, 5, "a", "Si", (SUBR) init_srecv, NULL,
+  { "strecv", S(SOCKRECVT), 0, 3, "a", "Si", (SUBR) init_srecv,
     (SUBR) send_srecv, NULL },
   { "OSCraw", S(RAWOSC), 0, 3, "S[]k", "i",
     (SUBR) init_raw_osc, (SUBR) perf_raw_osc, NULL, NULL}

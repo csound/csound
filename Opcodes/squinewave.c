@@ -385,9 +385,10 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
 /* ar[, aSyncOut] squinewave   aFreq, aClip, aSkew [, aSyncIn, aMinSweep, iphase] */
 
-static OENTRY squinewave_localops[] = {
-    { "squinewave", sizeof(SQUINEWAVE), 0, 5, "am", "aaaxoj",
-      (SUBR)squinewave_init, NULL, (SUBR)squinewave_gen },
+static OENTRY squinewave_localops[] =
+  {
+   { "squinewave", sizeof(SQUINEWAVE), 0, 3, "am", "aaaxoj",
+     (SUBR)squinewave_init, (SUBR)squinewave_gen },
 };
 
 LINKAGE_BUILTIN(squinewave_localops)

@@ -563,19 +563,20 @@ static int32_t Phasine(CSOUND* csound, PHASINE* p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY shape_localops[] = {
-  /* { "phasine", S(PHASINE), 0, 5, "a", "akp",
-                        (SUBR)PhasineInit, NULL, (SUBR)Phasine }, */
-  { "powershape", S(POWER_SHAPE), 0, 5, "a", "akp",
-                        (SUBR)PowerShapeInit, NULL, (SUBR)PowerShape },
-  { "polynomial", S(POLYNOMIAL), 0, 4, "a", "az", NULL, NULL, (SUBR)Polynomial },
-  { "chebyshevpoly", S(CHEBPOLY), 0, 5, "a", "az",
-                     (SUBR)ChebyshevPolyInit, NULL, (SUBR)ChebyshevPolynomial },
-  { "pdclip", S(PD_CLIP), 0, 4, "a", "akkop", NULL, NULL, (SUBR)PDClip },
-  { "pdhalf", S(PD_HALF), 0, 4, "a", "akop", NULL, NULL, (SUBR)PDHalfX },
-  { "pdhalfy", S(PD_HALF), 0, 4, "a", "akop", NULL, NULL, (SUBR)PDHalfY },
-  { "syncphasor", S(SYNCPHASOR), 0, 5, "aa", "xao",
-                  (SUBR)SyncPhasorInit, NULL, (SUBR)SyncPhasor },
+static OENTRY shape_localops[] =
+  {
+  /* { "phasine", S(PHASINE), 0, 3, "a", "akp",
+     (SUBR)PhasineInit, (SUBR)Phasine }, */
+   { "powershape", S(POWER_SHAPE), 0, 3, "a", "akp",
+     (SUBR)PowerShapeInit, (SUBR)PowerShape },
+   { "polynomial", S(POLYNOMIAL), 0, 2, "a", "az", NULL, (SUBR)Polynomial },
+   { "chebyshevpoly", S(CHEBPOLY), 0, 3, "a", "az",
+     (SUBR)ChebyshevPolyInit, (SUBR)ChebyshevPolynomial },
+   { "pdclip", S(PD_CLIP), 0, 2, "a", "akkop", NULL, (SUBR)PDClip },
+   { "pdhalf", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfX },
+   { "pdhalfy", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfY },
+   { "syncphasor", S(SYNCPHASOR), 0, 3, "aa", "xao",
+     (SUBR)SyncPhasorInit, (SUBR)SyncPhasor },
 };
 
 LINKAGE_BUILTIN(shape_localops)

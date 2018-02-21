@@ -721,17 +721,18 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "svfilter", S(SVF),    0, 5, "aaa", "axxoo", (SUBR)svfset, NULL, (SUBR)svf    },
-{ "hilbert", S(HILBERT), 0,5, "aa", "a", (SUBR)hilbertset, NULL, (SUBR)hilbert },
-{ "resonr", S(RESONZ),   0,5, "a", "axxoo", (SUBR)resonzset, NULL, (SUBR)resonr},
-{ "resonz", S(RESONZ),   0,5, "a", "axxoo", (SUBR)resonzset, NULL, (SUBR)resonz},
-{ "lowpass2.kk", S(LP2), 0,5, "a", "akko",  (SUBR)lp2_set, NULL, (SUBR)lp2     },
-{ "lowpass2.aa", S(LP2), 0,5, "a", "aaao",  (SUBR)lp2_set, NULL, (SUBR)lp2aa   },
-{ "lowpass2.ak", S(LP2), 0,5, "a", "aakao", (SUBR)lp2_set, NULL, (SUBR)lp2ak   },
-{ "lowpass2.ka", S(LP2), 0,5, "a", "akao",  (SUBR)lp2_set, NULL, (SUBR)lp2ka   },
-{ "phaser2", S(PHASER2), 0,5, "a", "akkkkkk",(SUBR)phaser2set,NULL,(SUBR)phaser2},
-{ "phaser1", S(PHASER1), 0,5, "a", "akkko", (SUBR)phaser1set, NULL,(SUBR)phaser1}
+static OENTRY localops[] =
+  {
+   { "svfilter", S(SVF),    0, 3, "aaa", "axxoo", (SUBR)svfset, (SUBR)svf    },
+   { "hilbert", S(HILBERT), 0,3, "aa", "a", (SUBR)hilbertset, (SUBR)hilbert },
+   { "resonr", S(RESONZ),   0,3, "a", "axxoo", (SUBR)resonzset, (SUBR)resonr},
+   { "resonz", S(RESONZ),   0,3, "a", "axxoo", (SUBR)resonzset, (SUBR)resonz},
+   { "lowpass2.kk", S(LP2), 0,3, "a", "akko",  (SUBR)lp2_set, (SUBR)lp2     },
+   { "lowpass2.aa", S(LP2), 0,3, "a", "aaao",  (SUBR)lp2_set, (SUBR)lp2aa   },
+   { "lowpass2.ak", S(LP2), 0,3, "a", "aakao", (SUBR)lp2_set, (SUBR)lp2ak   },
+   { "lowpass2.ka", S(LP2), 0,3, "a", "akao",  (SUBR)lp2_set, (SUBR)lp2ka   },
+   { "phaser2", S(PHASER2), 0,3, "a", "akkkkkk",(SUBR)phaser2set,(SUBR)phaser2},
+   { "phaser1", S(PHASER1), 0,3, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1}
 };
 
 int32_t ugsc_init_(CSOUND *csound)

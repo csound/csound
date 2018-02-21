@@ -535,16 +535,16 @@ static OENTRY gendy_localops[] = {
   { "gendyc",   0xffff                                   },
   { "gendy.k",  sizeof(GENDY),  0,3, "k", "kkkkkkkkkoO",
     (SUBR)gendyset,  (SUBR)kgendy,  (SUBR)NULL           },
-  { "gendy.a",  sizeof(GENDY),  0,5, "a", "kkkkkkkkkoO",
-    (SUBR)gendyset,  (SUBR)NULL,    (SUBR)agendy         },
+  { "gendy.a",  sizeof(GENDY),  0,3, "a", "kkkkkkkkkoO",
+    (SUBR)gendyset,    (SUBR)agendy         },
   { "gendyx.k", sizeof(GENDYX), 0,3, "k", "kkkkkkkkkkkoO",
     (SUBR)gendyxset, (SUBR)kgendyx, (SUBR)NULL           },
-  { "gendyx.a", sizeof(GENDYX), 0,5, "a", "kkkkkkkkkkkoO",
-    (SUBR)gendyxset, (SUBR)NULL,    (SUBR)agendyx        },
+  { "gendyx.a", sizeof(GENDYX), 0,3, "a", "kkkkkkkkkkkoO",
+    (SUBR)gendyxset,    (SUBR)agendyx        },
   { "gendyc.k", sizeof(GENDYC), 0,3, "k", "kkkkkkkkkoO",
     (SUBR)gendycset, (SUBR)kgendyc, (SUBR)NULL           },
-  { "gendyc.a", sizeof(GENDYC), 0,5, "a", "kkkkkkkkkoO",
-    (SUBR)gendycset, (SUBR)NULL,    (SUBR)agendyc        }
+  { "gendyc.a", sizeof(GENDYC), 0,3, "a", "kkkkkkkkkoO",
+    (SUBR)gendycset,    (SUBR)agendyc        }
 };
 
 LINKAGE_BUILTIN(gendy_localops)
