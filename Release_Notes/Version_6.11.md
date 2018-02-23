@@ -85,9 +85,13 @@ addition to the audio.
 
 - resetting csound caused a crash if Lua opcodes were used; fixed
 
+- The poscil family of opcodes could give incorrect results if used in
+  multi-core orchestras AND another instrument changed the f-table.
+  This is now corrected.
+
 ## SYSTEM LEVEL CHANGES
 
-- OPCODE6DIR{64} now can contain a colon-separated list of directories
+- OPCODE6DIR{64} now can contain a colon-separated list of directories.
 
 ### System Changes
 
@@ -125,8 +129,9 @@ addition to the audio.
 
 
 ========================================================================
-mmit 1b10b9e8aacb5e6b9240ce418741a1346909eed3
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Feb 9 10:00:53 2018 +0000
+commit 91b9efa9f849d8cf8e28fbd6a173ea55034d0cbe (HEAD -> develop, origin/develop
+)
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Feb 22 18:22:39 2018 +0000
 
 **end**
