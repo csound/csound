@@ -683,11 +683,13 @@ NM              [nm]
          else {
            int c, i;
            char buff[120];
-           corfile_putc(csound, 's', PARM->cf);
-           corfile_putc(csound, '\n', PARM->cf);
            //printf("r detected\n");
-           if (UNLIKELY(PARM->in_repeat_sect))
-             csound->Die(csound, Str("Section loops cannot be nested"));
+           /* if (UNLIKELY(PARM->in_repeat_sect)) */
+           /*   csound->Die(csound, Str("Section loops cannot be nested")); */
+           if (UNLIKELY(PARM->in_repeat_sect)) {
+             unput('s'); unput('\n');
+           }
+           else {
            PARM->repeat_sect_cnt = 0;
            PARM->in_repeat_sect = 1; /* Mark as recording */
            do {
@@ -741,6 +743,7 @@ NM              [nm]
            while (input(yyscanner)!='\n') {}
            PARM->repeat_sect_cf = PARM->cf;
            PARM->cf = corfile_create_w(csound);
+         }
          }
         }
 {SEND}  {
