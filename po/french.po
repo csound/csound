@@ -1614,23 +1614,20 @@ msgstr "csoundLoadSoundFile() : erreur de lecture sur '%s'"
 
 #: Engine/memfiles.c:680
 msgid "File"
-msgstr ""
+msgstr "Fichier"
 
 #: Engine/memfiles.c:681 OOps/diskin2.c:474 OOps/diskin2.c:490
 #: OOps/diskin2.c:1752 OOps/diskin2.c:1768
-#, fuzzy
 msgid "channel(s)"
-msgstr "%d voix"
+msgstr "voix"
 
 #: Engine/memfiles.c:682 util/mixer.c:540
-#, fuzzy
 msgid "sample frames"
-msgstr "\t(%ld trames d'échantillons)\n"
+msgstr "trames d'échantillons"
 
 #: Engine/memfiles.c:683
-#, fuzzy
 msgid "loaded into memory\n"
-msgstr "imageload : dépassement mémoire.\n"
+msgstr "chargé en mémoire\n"
 
 #: Engine/musmon.c:92
 #, c-format
@@ -4391,20 +4388,17 @@ msgstr ""
 "de l'orchestre\n"
 
 #: OOps/diskin2.c:471 OOps/diskin2.c:1749
-#, fuzzy
 msgid "diskin2: opened (asynchronously)"
-msgstr "diskin2 : '%s' est ouvert :\n"
+msgstr "diskin2 : ouvert (en asynchrone)"
 
 #: OOps/diskin2.c:476 OOps/diskin2.c:492 OOps/diskin2.c:1754
 #: OOps/diskin2.c:1770
-#, fuzzy
 msgid "sample frames\n"
-msgstr "\t(%ld trames d'échantillons)\n"
+msgstr "trames d'échantillons\n"
 
 #: OOps/diskin2.c:487 OOps/diskin2.c:1765
-#, fuzzy
 msgid "diskin2: opened"
-msgstr "diskin2 : '%s' est ouvert :\n"
+msgstr "diskin2 : ouvert"
 
 #: OOps/diskin2.c:568 OOps/diskin2.c:754 OOps/diskin2.c:950
 #: OOps/diskin2.c:1355 OOps/diskin2.c:1797 OOps/diskin2.c:1990
@@ -5697,19 +5691,16 @@ msgid "illegal release loop data"
 msgstr "données de boucle de relâchement illégales"
 
 #: OOps/ugens3.c:382
-#, fuzzy
 msgid "mono loscilphs cannot read from stereo ftable"
-msgstr "un loscil mono ne peut pas lire à partir d'une ftable stéréo"
+msgstr "un loscilphs mono ne peut pas lire à partir d'une ftable stéréo"
 
 #: OOps/ugens3.c:389
-#, fuzzy
 msgid "stereo loscilphs cannot read from mono ftable"
-msgstr "un loscil stéréo ne peut pas lire à partir d'une ftable mono"
+msgstr "un loscilphs stéréo ne peut pas lire à partir d'une ftable mono"
 
 #: OOps/ugens3.c:393
-#, fuzzy
 msgid "loscilphs: insufficient outputs"
-msgstr "dnoise : mémoire insuffisante\n"
+msgstr "loscilph : sorties insuffisantes"
 
 #: OOps/ugens3.c:1397
 #, c-format
@@ -8067,9 +8058,9 @@ msgstr ""
 "abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:478
-#, fuzzy, c-format
+#, c-format
 msgid "hdf5write: Error, unable to identify type of argument %d"
-msgstr "hdf5write : erreur, impossible d'identifier le type de l'argument %zd"
+msgstr "hdf5write : erreur, impossible d'identifier le type de l'argument %d"
 
 #: Opcodes/hdf5/HDF5IO.c:598
 msgid "This should not happen, exiting"
@@ -8084,28 +8075,28 @@ msgid "hdf5read: Error, more output arguments than input arguments, exiting"
 msgstr "hdf5read : erreur, plus d'arguments en sortie qu'en entrée, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1023
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "hdf5read: Error, input argument %d does not appear to be a string, exiting"
 msgstr ""
-"hdf5read : erreur, l'arg d'entrée %zd n'est pas une chaîne de caractères, "
+"hdf5read : erreur, l'arg d'entrée %d n'est pas une chaîne de caractères, "
 "abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1028
-#, fuzzy, c-format
+#, c-format
 msgid "hdf5read: Error, input argument %d type is unknown, exiting"
-msgstr "hdf5read : erreur, l'arg d'entrée %zd est de type inconnu, abandon"
+msgstr "hdf5read : erreur, l'arg d'entrée %d est de type inconnu, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1034
-#, fuzzy, c-format
+#, c-format
 msgid "hdf5read: Error, output argument %d appears to be a string, exiting"
 msgstr ""
-"hdf5read : erreur, l'arg de sortie %zd est une chaîne de caractères, abandon"
+"hdf5read : erreur, l'arg de sortie %d est une chaîne de caractères, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1039
-#, fuzzy, c-format
+#, c-format
 msgid "hdf5read: Error, output argument %d type is unknown, exiting"
-msgstr "hdf5read : erreur, l'arg de sortie %zd est de type inconnu, abandon"
+msgstr "hdf5read : erreur, l'arg de sortie %d est de type inconnu, abandon"
 
 #: Opcodes/hdf5/HDF5IO.c:1058
 msgid "hdf5read: Error, dataset does not exist or cannot be found in file"
@@ -10691,9 +10682,8 @@ msgid "Have to have at least %d directions in vbapzmove"
 msgstr "Il faut au moins %d directions dans vbapzmove"
 
 #: Opcodes/vpvoc.c:182
-#, fuzzy
 msgid "vpvoc: Could not find ifnmagctrl table "
-msgstr "vpvoc : la table ifnmagctrl %f n'a pas été trouvée"
+msgstr "vpvoc : la table ifnmagctrl n'a pas été trouvée"
 
 #: Opcodes/vpvoc.c:188
 msgid "vpvoc: associated tableseg not found"
@@ -13390,9 +13380,9 @@ msgid "%s: error while opening %s"
 msgstr "%s : erreur en ouvrant %s"
 
 #: util/envext.c:128
-#, fuzzy, c-format
+#, c-format
 msgid "enveloping %<PRId64> sample frames (%3.1f secs)\n"
-msgstr "mise en enveloppe de %ld trames d'échantillon (%3.1f secs)\n"
+msgstr "mise en enveloppe de %<PRId64> trames d'échantillon (%3.1f secs)\n"
 
 #: util/envext.c:178
 msgid "Create a text file of envelope"
@@ -13550,11 +13540,11 @@ msgstr ""
 
 #: util/hetro.c:755
 msgid "wrote %"
-msgstr ""
+msgstr "a écrit %"
 
 #: util/hetro.c:756
 msgid "bytes to "
-msgstr ""
+msgstr "octets vers "
 
 #: util/hetro.c:787
 msgid "OOPS: SDIF does not work on this machine!\n"
@@ -14022,9 +14012,8 @@ msgid "Cannot open scale table file %s"
 msgstr "Impossible d'ouvrir le fichier de la table de pondération %s"
 
 #: util/mixer.c:540
-#, fuzzy
 msgid "mixing"
-msgstr "Pas d'entrée à mixer"
+msgstr "mixage"
 
 #: util/mixer.c:649
 #, c-format
@@ -14127,15 +14116,14 @@ msgid "WARNING: pvanal: %d might be a bad window overlap index\n"
 msgstr "pvanal : %d est un mauvais index de chevauchement de fenêtres\n"
 
 #: util/pvanal.c:286
-#, fuzzy, c-format
+#, c-format
 msgid "%<PRId64> infrsize, %<PRId64> infrInc\n"
-msgstr ""
-"taille de trame en entrée %ld, taille d'incrément de trame en entrée %ld\n"
+msgstr "%<PRId64> infrsize, %<PRId64> infrInc\n"
 
 #: util/pvanal.c:288
-#, fuzzy, c-format
+#, c-format
 msgid "%<PRId64> output frames estimated\n"
-msgstr "environ %ld trames de sortie\n"
+msgstr "environ %<PRId64> trames de sortie\n"
 
 #: util/pvanal.c:293
 #, c-format
@@ -14220,13 +14208,13 @@ msgid "pvxanal: error writing analysis frames: %s\n"
 msgstr "pvxanal : erreur en écrivant les trames d'analyse : %s\n"
 
 #: util/pvanal.c:539
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "%<PRId64> %d-chan blocks written to %s\n"
 msgstr ""
 "\n"
-"%ld blocs de %d octets écrits vers %s\n"
+"%<PRId64> blocs de %d voix écrits vers %s\n"
 
 #: util/pvlook.c:77
 msgid "pvlook is a program which reads a Csound pvanal's pvoc"
@@ -14332,12 +14320,11 @@ msgstr "L'ouverture de %s a échoué"
 
 #: util/scale.c:408
 msgid "scaling"
-msgstr ""
+msgstr "mise à l'échelle"
 
 #: util/scale.c:408
-#, fuzzy
 msgid "sample frame"
-msgstr "pas de taux d'échantillonnage"
+msgstr "trame d'échantillons"
 
 #: util/scale.c:451 util/scale.c:497
 #, c-format
