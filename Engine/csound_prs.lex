@@ -690,60 +690,60 @@ NM              [nm]
              unput('s'); unput('\n');
            }
            else {
-           PARM->repeat_sect_cnt = 0;
-           PARM->in_repeat_sect = 1; /* Mark as recording */
-           do {
-             c = input(yyscanner);
-           } while (isblank(c));
-           while (isdigit(c)) {
-             PARM->repeat_sect_cnt =
-               10 * PARM->repeat_sect_cnt + c - '0';
-             c = input(yyscanner);
-           }
-           if (UNLIKELY(PARM->repeat_sect_cnt <= 0
-                        || !isspace(c))) {
-             csound->Message(csound, Str("r: invalid repeat count"));
-             csound->LongJmp(csound, 1);
-           }
-           if (UNLIKELY(csound->oparms->odebug))
-             csound->Message(csound, Str("r LOOP=%d\n"), PARM->repeat_sect_cnt);
-           while (isblank(c)) {
-             c = input(yyscanner);
-           }
-           if (!isalpha(c)) { //no macro
-             //printf("No macro\n");
-             PARM->repeat_sect_mm =NULL;
-           }
-           else {
-             for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
-               buff[i] = c;
+             PARM->repeat_sect_cnt = 0;
+             PARM->in_repeat_sect = 1; /* Mark as recording */
+             do {
+               c = input(yyscanner);
+             } while (isblank(c));
+             while (isdigit(c)) {
+               PARM->repeat_sect_cnt =
+                 10 * PARM->repeat_sect_cnt + c - '0';
                c = input(yyscanner);
              }
-             PARM->repeat_sect_mm =
-               (MACRO*)csound->Malloc(csound, sizeof(MACRO));
-             if (UNLIKELY(PARM->repeat_sect_mm== NULL)) {
-               csound->Message(csound, Str("Memory exhausted"));
+             if (UNLIKELY(PARM->repeat_sect_cnt <= 0
+                          || !isspace(c))) {
+               csound->Message(csound, Str("r: invalid repeat count"));
                csound->LongJmp(csound, 1);
              }
-             buff[i] = '\0';
-             printf("macro name %s\n", buff);
-                      /* Define macro for counter */
-             PARM->repeat_sect_mm->name = cs_strdup(csound, buff);
-             PARM->repeat_sect_mm->acnt = -1; /* inhibit */
-             PARM->repeat_sect_mm->body = csound->Calloc(csound, 16);
-             PARM->repeat_sect_mm->body[0] = '0';
-             //csound->DebugMsg(csound,"repeat %s zero %s\n",
-             //                 buff, PARM->repeat_sect_mm->body);
-             PARM->repeat_sect_mm->next = PARM->macros; /* add to chain */
-             PARM->macros = PARM->repeat_sect_mm;
+             if (UNLIKELY(csound->oparms->odebug))
+               csound->Message(csound, Str("r LOOP=%d\n"), PARM->repeat_sect_cnt);
+             while (isblank(c)) {
+               c = input(yyscanner);
+             }
+             if (!isalpha(c)) { //no macro
+               //printf("No macro\n");
+               PARM->repeat_sect_mm =NULL;
+             }
+             else {
+               for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
+                 buff[i] = c;
+                 c = input(yyscanner);
+               }
+               PARM->repeat_sect_mm =
+                 (MACRO*)csound->Malloc(csound, sizeof(MACRO));
+               if (UNLIKELY(PARM->repeat_sect_mm== NULL)) {
+                 csound->Message(csound, Str("Memory exhausted"));
+                 csound->LongJmp(csound, 1);
+               }
+               buff[i] = '\0';
+               printf("macro name %s\n", buff);
+               /* Define macro for counter */
+               PARM->repeat_sect_mm->name = cs_strdup(csound, buff);
+               PARM->repeat_sect_mm->acnt = -1; /* inhibit */
+               PARM->repeat_sect_mm->body = csound->Calloc(csound, 16);
+               PARM->repeat_sect_mm->body[0] = '0';
+               //csound->DebugMsg(csound,"repeat %s zero %s\n",
+               //                 buff, PARM->repeat_sect_mm->body);
+               PARM->repeat_sect_mm->next = PARM->macros; /* add to chain */
+               PARM->macros = PARM->repeat_sect_mm;
+             }
+             unput(c);
+             PARM->repeat_sect_line = PARM->line;
+             PARM->repeat_sect_index = 0;
+             while (input(yyscanner)!='\n') {}
+             PARM->repeat_sect_cf = PARM->cf;
+             PARM->cf = corfile_create_w(csound);
            }
-           unput(c);
-           PARM->repeat_sect_line = PARM->line;
-           PARM->repeat_sect_index = 0;
-           while (input(yyscanner)!='\n') {}
-           PARM->repeat_sect_cf = PARM->cf;
-           PARM->cf = corfile_create_w(csound);
-         }
          }
         }
 {SEND}  {
