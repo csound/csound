@@ -654,7 +654,7 @@ int32_t randh(CSOUND *csound, RANDH *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     inc = (int64_t)(*cpsp++ * csound->sicvt);
-    for (n=offset;n<nsmps;n++) { 
+    for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + p->num1 * *ampp;   /* rslt = num * amp */
       if (p->ampcod)
@@ -666,13 +666,13 @@ int32_t randh(CSOUND *csound, RANDH *p)
         phs &= PHMASK;
         if (!p->new) {
           int16 rand = p->rand;
-          rand *= RNDMUL;               /*   calc new number */
+          rand *= RNDMUL;                       /*   calc new number */
           rand += 1;
           p->num1 = (MYFLT)rand * DV32768;      /* IV - Jul 11 2002 */
           p->rand = rand;
         }
         else {
-          int32_t r = randint31(p->rand);          /*   calc new number */
+          int32_t r = randint31(p->rand);       /*   calc new number */
           p->rand = r;
           p->num1 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
         }

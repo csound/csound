@@ -171,7 +171,7 @@ static char* gm[] = {
 
 Bank::Bank(CSOUND *csound, char* bankName) : bankNum(0) {
         this->name = bankName;
-        IGN(csound); 
+        IGN(csound);
         currentProgram = 0;
         previousProgram = -1;
 }

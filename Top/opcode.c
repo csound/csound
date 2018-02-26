@@ -92,7 +92,6 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
           /*   printf("%s, type 6 %s -> %s\n", ep->opname, */
           /*          ep->intypes, ep->outypes); */
 #endif
-    
           nBytes += sizeof(opcodeListEntry);
           for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++);
           nBytes += (size_t) i;

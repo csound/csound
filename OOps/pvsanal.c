@@ -710,7 +710,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     int32_t overlap = p->fsig->overlap;
     int32_t M = p->fsig->winsize;
     int32_t wintype = p->fsig->wintype;
-    
+
     p->fftsize = N;
     p->winsize = M;
     p->overlap = overlap;
