@@ -176,7 +176,7 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY vosim_localops[] = {
-  { "vosim", S(VOSIM), TR, 5, "a", "kkkkkkio", (SUBR)vosimset, NULL, (SUBR)vosim }
+  { "vosim", S(VOSIM), TR, 3, "a", "kkkkkkio", (SUBR)vosimset, (SUBR)vosim }
 };
 
 

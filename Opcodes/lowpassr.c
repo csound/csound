@@ -374,18 +374,18 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "lowres.kk",   S(LOWPR),   0, 5, "a", "akko",
-                          (SUBR)lowpr_set, NULL,   (SUBR)lowpr   },
-{ "lowres.aa",   S(LOWPR),   0, 5, "a", "aaao",
-                          (SUBR)lowpr_set, NULL,   (SUBR)lowpraa },
-{ "lowres.ak",   S(LOWPR),   0, 5, "a", "aako",
-                          (SUBR)lowpr_set, NULL,   (SUBR)lowprak },
-{ "lowres.ka",   S(LOWPR),   0, 5, "a", "akao",
-                          (SUBR)lowpr_set, NULL,   (SUBR)lowprka },
-{ "lowresx",  S(LOWPRX),  0, 5, "a", "axxoo",
-                          (SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
-{ "vlowres", S(LOWPR_SEP),0, 5, "a", "akkik",
-                          (SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
+                            { "lowres.kk",   S(LOWPR),   0, 3, "a", "akko",
+                          (SUBR)lowpr_set,   (SUBR)lowpr   },
+                            { "lowres.aa",   S(LOWPR),   0, 3, "a", "aaao",
+                          (SUBR)lowpr_set,   (SUBR)lowpraa },
+                            { "lowres.ak",   S(LOWPR),   0, 3, "a", "aako",
+                          (SUBR)lowpr_set,   (SUBR)lowprak },
+                            { "lowres.ka",   S(LOWPR),   0, 3, "a", "akao",
+                          (SUBR)lowpr_set,   (SUBR)lowprka },
+                            { "lowresx",  S(LOWPRX),  0, 3, "a", "axxoo",
+                          (SUBR)lowpr_setx, (SUBR)lowprx   },
+                            { "vlowres", S(LOWPR_SEP),0, 3, "a", "akkik",
+                          (SUBR)lowpr_w_sep_set, (SUBR)lowpr_w_sep }
 };
 
 int32_t lowpassr_init_(CSOUND *csound)

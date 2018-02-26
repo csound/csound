@@ -307,12 +307,12 @@ static OENTRY localops[] = {
     {(char *)"MixerGetLevel", sizeof(MixerGetLevel), _CR, 3, (char *)"k",
      (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
      0},
-    {(char *)"MixerSend", sizeof(MixerSend), _CR, 5, (char *)"", (char *)"aiii",
-     (SUBR)&MixerSend::init_, 0, (SUBR)&MixerSend::audio_},
-    {(char *)"MixerReceive", sizeof(MixerReceive), _CW, 5, (char *)"a",
-     (char *)"ii", (SUBR)&MixerReceive::init_, 0, (SUBR)&MixerReceive::audio_},
-    {(char *)"MixerClear", sizeof(MixerClear), 0, 5, (char *)"", (char *)"",
-     (SUBR)&MixerClear::init_, 0, (SUBR)&MixerClear::audio_},
+    {(char *)"MixerSend", sizeof(MixerSend), _CR, 3, (char *)"", (char *)"aiii",
+     (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_},
+    {(char *)"MixerReceive", sizeof(MixerReceive), _CW, 3, (char *)"a",
+     (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_},
+    {(char *)"MixerClear", sizeof(MixerClear), 0, 3, (char *)"", (char *)"",
+     (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_},
     {NULL, 0, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL}};
 
 PUBLIC int csoundModuleCreate_mixer(CSOUND *csound) {

@@ -171,6 +171,7 @@ static void create_opcode_table(CSOUND *csound)
 
     if (UNLIKELY(err))
       csoundDie(csound, Str("Error allocating opcode list"));
+
 }
 
 #define MAX_MODULES 64
@@ -3082,6 +3083,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     if (shortName != ep->opname) {
         csound->Free(csound, shortName);
     }
+
     return 0;
 }
 

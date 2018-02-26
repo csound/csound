@@ -442,9 +442,10 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
                              Str("hrtfer: not initialised"));
 }
 
-static OENTRY hrtferX_localops[] = {
-  { "hrtfer",   sizeof(HRTFER), _QQ, 5, "aa", "akkS",
-                                (SUBR)hrtferxkSet, NULL, (SUBR)hrtferxk},
+static OENTRY hrtferX_localops[] =
+  {
+   { "hrtfer",   sizeof(HRTFER), _QQ, 3, "aa", "akkS",
+     (SUBR)hrtferxkSet, (SUBR)hrtferxk},
 };
 
 LINKAGE_BUILTIN(hrtferX_localops)

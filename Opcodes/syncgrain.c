@@ -715,13 +715,14 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
 
 
 
-static OENTRY localops[] = {
-{"syncgrain", sizeof(syncgrain), TR, 5, "a", "kkkkkiii",
- (SUBR)syncgrain_init, NULL,(SUBR)syncgrain_process },
-{"syncloop", sizeof(syncgrainloop), TR, 5, "a", "kkkkkkkiiioo",
- (SUBR)syncgrainloop_init, NULL,(SUBR)syncgrainloop_process },
-{"diskgrain", sizeof(filegrain), TR, 5, DGRAIN_OUTTYPES, "Skkkkkiipo",
-                            (SUBR)filegrain_init, NULL,(SUBR)filegrain_process }
+static OENTRY localops[] =
+  {
+   {"syncgrain", sizeof(syncgrain), TR, 3, "a", "kkkkkiii",
+    (SUBR)syncgrain_init,(SUBR)syncgrain_process },
+   {"syncloop", sizeof(syncgrainloop), TR, 3, "a", "kkkkkkkiiioo",
+    (SUBR)syncgrainloop_init,(SUBR)syncgrainloop_process },
+   {"diskgrain", sizeof(filegrain), TR, 3, DGRAIN_OUTTYPES, "Skkkkkiipo",
+    (SUBR)filegrain_init,(SUBR)filegrain_process }
 
 };
 

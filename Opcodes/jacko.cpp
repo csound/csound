@@ -1356,16 +1356,16 @@ static OENTRY oentries[] = {
         (char *)"", (char *)"SS", (SUBR)&JackoAudioInConnect::init_, 0, 0,
     },
     {
-        (char *)"JackoAudioIn", sizeof(JackoAudioIn), 0, 5, (char *)"a",
-        (char *)"S", (SUBR)&JackoAudioIn::init_, 0, (SUBR)&JackoAudioIn::audio_,
+     (char *)"JackoAudioIn", sizeof(JackoAudioIn), 0, 3, (char *)"a",
+        (char *)"S", (SUBR)&JackoAudioIn::init_, (SUBR)&JackoAudioIn::audio_,
     },
     {
         (char *)"JackoAudioOutConnect", sizeof(JackoAudioOutConnect), 0, 1,
         (char *)"", (char *)"SS", (SUBR)&JackoAudioOutConnect::init_, 0, 0,
     },
     {
-        (char *)"JackoAudioOut", sizeof(JackoAudioOut), 0, 5, (char *)"",
-        (char *)"Sa", (SUBR)&JackoAudioOut::init_, 0,
+     (char *)"JackoAudioOut", sizeof(JackoAudioOut), 0, 3, (char *)"",
+        (char *)"Sa", (SUBR)&JackoAudioOut::init_,
         (SUBR)&JackoAudioOut::audio_,
     },
     {

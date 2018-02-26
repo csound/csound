@@ -277,10 +277,9 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
 int32_t freeverb_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "freeverb",
-                                (int32_t) sizeof(FREEVERB), 0, 5, "aa", "aakkjo",
+                                (int32_t) sizeof(FREEVERB), 0, 3, "aa", "aakkjo",
                                 (int32_t (*)(CSOUND*, void*)) freeverb_init,
-                                (int32_t (*)(CSOUND*, void*)) NULL,
-                                (int32_t
-                                 (*)(CSOUND*, void*)) freeverb_perf);
+                                (int32_t (*)(CSOUND*, void*)) freeverb_perf,
+                                NULL);
 }
 

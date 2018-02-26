@@ -88,8 +88,8 @@ static int32_t equ_process(CSOUND *csound, equ *p)
 }
 
 static OENTRY eqfil_localops[] = {
-  {"eqfil", sizeof(equ), 0, 5,
-   "a", "akkko", (SUBR)equ_init, NULL, (SUBR)equ_process},
+  {"eqfil", sizeof(equ), 0, 3,
+   "a", "akkko", (SUBR)equ_init, (SUBR)equ_process},
 };
 
 LINKAGE_BUILTIN(eqfil_localops)

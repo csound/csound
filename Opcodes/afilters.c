@@ -352,14 +352,14 @@ static int32_t tonea(CSOUND *csound, TONE *p)
     return OK;
 }
 
-static int32_t tonexa(CSOUND *csound, TONEX *p) /* From Gabriel Maldonado, modified */
+static int32_t tonexa(CSOUND *csound, TONEX *p) /* From G Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
     double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t      j, lp = p->loop;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    int32_t     j, lp = p->loop;
 
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
@@ -443,7 +443,7 @@ extern int32_t butset(CSOUND *csound, BFIL *p);
 
 static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
-     IGN(csound);
+    IGN(csound);
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = 0.0;
       p->lkb = FL(0.0);
@@ -455,12 +455,12 @@ static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         
 
 static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 {
-    MYFLT       *out, *in;
+    MYFLT    *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    double    *a;
-    double t, y;
+    double   *a;
+    double   t, y;
     uint32_t nn;
     a = p->a;
 
@@ -511,12 +511,12 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 
 static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
-    MYFLT       *out, *in;
+    MYFLT    *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
-    double *a = p->a;
-    double t, y;
+    double   *a = p->a;
+    double   t, y;
     uint32_t nn;
 
     in = p->ain;
@@ -679,21 +679,21 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
 
 static OENTRY afilts_localops[] =
 {
-  { "areson.aa", sizeof(RESON), 0,5,"a","aaaoo",(SUBR)rsnset,NULL,(SUBR)aresonaa},
-  { "areson.ak", sizeof(RESON), 0,5,"a","aakoo",(SUBR)rsnset,NULL,(SUBR)aresonak},
-  { "areson.ka", sizeof(RESON), 0,5,"a","akaoo",(SUBR)rsnset,NULL,(SUBR)aresonka},
-  { "atone.a",  sizeof(TONE),   0,5,"a","ako",  (SUBR)tonset,NULL,(SUBR)atonea  },
-  { "atonex.a", sizeof(TONEX),  0,5, "a","aaoo",(SUBR)tonsetx,NULL,(SUBR)atonexa},
-  { "tone.a",  sizeof(TONE),    0,5,"a","aao",  (SUBR)tonset,NULL,(SUBR)tonea   },
-  { "tonex.a", sizeof(TONEX),   0,5,"a","aaoo", (SUBR)tonsetx,NULL,(SUBR)tonexa },
-  { "butterhp.a", sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)hibuta  },
-  { "butterlp.a", sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)lobuta  },
-  { "buthp.a",    sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)hibuta  },
-  { "butlp.a",    sizeof(BFIL), 0,5,"a","aao",  (SUBR)butset,NULL,(SUBR)lobuta  },
-  { "butterbp",   sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bppasxx},
-  { "butbp",      sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bppasxx},
-  { "butterbr",   sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpcutxx},
-  { "butbr",      sizeof(BBFIL),0,5,"a","axxo", (SUBR)bbutset,NULL,(SUBR)bpcutxx},
+  { "areson.aa", sizeof(RESON), 0,3,"a","aaaoo",(SUBR)rsnset,(SUBR)aresonaa},
+  { "areson.ak", sizeof(RESON), 0,3,"a","aakoo",(SUBR)rsnset,(SUBR)aresonak},
+  { "areson.ka", sizeof(RESON), 0,3,"a","akaoo",(SUBR)rsnset,(SUBR)aresonka},
+  { "atone.a",  sizeof(TONE),   0,3,"a","ako",  (SUBR)tonset,(SUBR)atonea  },
+  { "atonex.a", sizeof(TONEX),  0,3, "a","aaoo",(SUBR)tonsetx,(SUBR)atonexa},
+  { "tone.a",  sizeof(TONE),    0,3,"a","aao",  (SUBR)tonset,(SUBR)tonea   },
+  { "tonex.a", sizeof(TONEX),   0,3,"a","aaoo", (SUBR)tonsetx,(SUBR)tonexa },
+  { "butterhp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
+  { "butterlp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
+  { "buthp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
+  { "butlp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
+  { "butterbp",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
+  { "butbp",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
+  { "butterbr",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
+  { "butbr",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
 };
 
 LINKAGE_BUILTIN(afilts_localops)

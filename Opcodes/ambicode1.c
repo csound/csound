@@ -1084,14 +1084,14 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
 #define S(x) sizeof(x)
 
 static OENTRY ambicode1_localops[] = {
-  { "bformenc1.a", S(AMBIC), 0, 5, "mmmmmmmmmmmmmmmm", "akk",
-                (SUBR)ibformenc, NULL, (SUBR)abformenc },
-  { "bformenc1.A", S(AMBIC), 0, 5, "a[]", "akk",
-                (SUBR)ibformenc_a, NULL, (SUBR)abformenc_a },
-  { "bformdec1.a", S(AMBID), 0, 5, "mmmmmmmm", "iy",
-    (SUBR)ibformdec, NULL, (SUBR)abformdec },
-  { "bformdec1.A", S(AMBIDA), 0, 5, "a[]", "ia[]",
-    (SUBR)ibformdec_a, NULL, (SUBR)abformdec_a },
+  { "bformenc1.a", S(AMBIC), 0, 3, "mmmmmmmmmmmmmmmm", "akk",
+                (SUBR)ibformenc,  (SUBR)abformenc },
+  { "bformenc1.A", S(AMBIC), 0, 3, "a[]", "akk",
+                (SUBR)ibformenc_a,  (SUBR)abformenc_a },
+  { "bformdec1.a", S(AMBID), 0, 3, "mmmmmmmm", "iy",
+    (SUBR)ibformdec,  (SUBR)abformdec },
+  { "bformdec1.A", S(AMBIDA), 0, 3, "a[]", "ia[]",
+    (SUBR)ibformdec_a,  (SUBR)abformdec_a },
 };
 
 LINKAGE_BUILTIN(ambicode1_localops)

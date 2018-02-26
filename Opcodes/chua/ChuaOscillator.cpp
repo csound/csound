@@ -600,14 +600,14 @@ OENTRY oentries[] = {
     //         (SUBR) ChuasOscillatorCubic::kontrol_,
     //       },
     {
-        (char *)"chuap", sizeof(ChuasOscillatorPiecewise), 0, 5,
+        (char *)"chuap", sizeof(ChuasOscillatorPiecewise), 0, 3,
         // kL,       kR0,  kC2,     kG,       kGa, kGb,       kE,         kC1,
         //                  iI3, iV2,   iV1,  kstep_size
         // 0.00945,  7.5,  2e-007,  0.00105,  0,   -0.00121,  1.76e-005,
         // 1.5e-008,
         //                   0,   -0.1,  0.1,  5e-6
         (char *)"aaa", (char *)"kkkkkkkkiiik",
-        (SUBR)ChuasOscillatorPiecewise::init_, 0,
+        (SUBR)ChuasOscillatorPiecewise::init_,
         (SUBR)ChuasOscillatorPiecewise::kontrol_,
     },
     {

@@ -961,25 +961,25 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 /* static */
 static OENTRY vbap_localops[] = {
   { "vbap.a",      S(VBAP),
-    TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    TR, 3,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOOo",
-    (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
-  { "vbap.A",      S(VBAPA), TR, 5,  "a[]",    "akOOo",
-    (SUBR) vbap_init_a,          (SUBR) NULL,    (SUBR) vbap_a               },
+    (SUBR) vbap_init,    (SUBR) vbap                   },
+  { "vbap.A",      S(VBAPA), TR, 3,  "a[]",    "akOOo",
+    (SUBR) vbap_init_a,    (SUBR) vbap_a               },
   { "vbap4",      S(VBAP),
-    TR|_QQ, 5,  "aaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    TR|_QQ, 3,  "aaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-    "akOOo", (SUBR) vbap_init, (SUBR) NULL, (SUBR) vbap },
+    "akOOo", (SUBR) vbap_init, (SUBR) vbap },
   { "vbap8",      S(VBAP),
-    TR|_QQ, 5,  "aaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    TR|_QQ, 3,  "aaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOOo",
-    (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
+    (SUBR) vbap_init,    (SUBR) vbap                   },
   { "vbap16",      S(VBAP),
-    TR|_QQ, 5,  "aaaaaaaaaaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    TR|_QQ, 3,  "aaaaaaaaaaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "akOOo",
-    (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
+    (SUBR) vbap_init,    (SUBR) vbap                   },
   { "vbapg.a",      S(VBAP1),             TR, 3,
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "kOOo",
@@ -987,8 +987,8 @@ static OENTRY vbap_localops[] = {
   { "vbapg.A",      S(VBAPA1),            TR, 3,
     "k[]",  "kOOo",
     (SUBR) vbap1_init_a,         (SUBR) vbap1a                               },
-  { "vbapz",      S(VBAP_ZAK),     ZW|TR, 5,  "",                 "iiakOOo",
-    (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
+  { "vbapz",      S(VBAP_ZAK),     ZW|TR, 3,  "",                 "iiakOOo",
+    (SUBR) vbap_zak_init,    (SUBR) vbap_zak         },
   { "vbaplsinit",S(VBAP_LS_INIT),TR,1, "",
     "ii"
     "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
@@ -997,29 +997,29 @@ static OENTRY vbap_localops[] = {
   { "vbaplsinit",S(VBAP_LS_INIT),TR,1, "", "iii[]",
     (SUBR) vbap_ls_inita, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL         },
   { "vbapmove.a", S(VBAP_MOVING),
-    TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    TR, 3,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "aiiim",
-    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
-  { "vbapgmove.a",  S(VBAP1_MOVING),      TR, 5,
+    (SUBR) vbap_moving_init, (SUBR) vbap_moving },
+  { "vbapgmove.a",  S(VBAP1_MOVING),      TR, 3,
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "iiim",
-    (SUBR) vbap1_moving_init,   (SUBR) NULL,    (SUBR) vbap1_moving },
+    (SUBR) vbap1_moving_init,    (SUBR) vbap1_moving },
   { "vbapmove.A", S(VBAPA_MOVING),
-    TR, 5,  "a[]",  "aiiim",
-    (SUBR) vbap_moving_init_a, (SUBR) NULL, (SUBR) vbap_moving_a },
-  { "vbapgmove.A",  S(VBAPA1_MOVING),      TR, 5,
+    TR, 3,  "a[]",  "aiiim",
+    (SUBR) vbap_moving_init_a, (SUBR) vbap_moving_a },
+  { "vbapgmove.A",  S(VBAPA1_MOVING),      TR, 3,
     "k[]", "iiim",
-    (SUBR) vbap1_moving_init_a,   (SUBR) NULL,    (SUBR) vbap1_moving_a },
-  { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR, 5,  "",  "iiaiiim",
-    (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  },
-  { "vbap4move", S(VBAP_MOVING),   TR|_QQ, 5,  "aaaa",
+    (SUBR) vbap1_moving_init_a,    (SUBR) vbap1_moving_a },
+  { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR, 3,  "",  "iiaiiim",
+    (SUBR) vbap_zak_moving_init,    (SUBR) vbap_zak_moving  },
+  { "vbap4move", S(VBAP_MOVING),   TR|_QQ, 3,  "aaaa",
    "aiiim",
-    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
+    (SUBR) vbap_moving_init, (SUBR) vbap_moving },
   { "vbap8move", S(VBAP_MOVING),
-    TR|_QQ, 5,  "aaaaaaaa",
+    TR|_QQ, 3,  "aaaaaaaa",
     "aiiim",
-    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving }
+    (SUBR) vbap_moving_init, (SUBR) vbap_moving }
 
 };
 
