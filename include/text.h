@@ -123,10 +123,10 @@ extern "C" {
 #endif
 
 
-  /* VL commenting this out so ALL uses of Str(x) 
+  /* VL commenting this out so ALL uses of Str(x)
      call LocalizeString() [which might be a stub]
-     This would allows us to keep an eye on 
-     -Wformat-security warnings 
+     This would allows us to keep an eye on
+     -Wformat-security warnings
   */
 //#ifdef GNU_GETTEXT
 # define Str(x) csoundLocalizeString(x)
@@ -138,4 +138,3 @@ extern "C" {
 
 
 #endif  /* CSOUND_TEXT_H */
-
