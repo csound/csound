@@ -594,7 +594,7 @@ OENTRY oentries[] = {
         (SUBR)cslua_opcall::init_, (SUBR)cslua_opcall::kontrol_, (SUBR)0,
     },
     {
-        (char *)"lua_iaopcall", sizeof(cslua_opcall), 0, 5, (char *)"",
+     (char *)"lua_iaopcall", sizeof(cslua_opcall), 0, 3, (char *)"",
         (char *)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
                 "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
                 "NNNNN"
@@ -602,7 +602,7 @@ OENTRY oentries[] = {
                 "NNNNN"
                 "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
                 "N",
-        (SUBR)cslua_opcall::init_, (SUBR)0, (SUBR)cslua_opcall::audio_,
+        (SUBR)cslua_opcall::init_, (SUBR)cslua_opcall::audio_,
     },
     {
         (char *)"lua_iopcall_off", sizeof(cslua_opcall_off), 0, 1, (char *)"",
@@ -628,7 +628,7 @@ OENTRY oentries[] = {
         (SUBR)0,
     },
     {
-        (char *)"lua_iaopcall_off", sizeof(cslua_opcall_off), 0, 5, (char *)"",
+     (char *)"lua_iaopcall_off", sizeof(cslua_opcall_off), 0, 3, (char *)"",
         (char *)"TNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
                 "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
                 "NNNNN"
@@ -636,7 +636,7 @@ OENTRY oentries[] = {
                 "NNNNN"
                 "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
                 "N",
-        (SUBR)cslua_opcall_off::init_, (SUBR)0, (SUBR)cslua_opcall_off::audio_,
+        (SUBR)cslua_opcall_off::init_, (SUBR)cslua_opcall_off::audio_,
     },
     {
         (char *)"lua_opdef", sizeof(cslua_opdef), 0, 1,

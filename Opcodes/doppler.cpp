@@ -260,7 +260,7 @@ extern "C" {
 OENTRY oentries[] = {{
                          (char *)"doppler", sizeof(Doppler), 0, 3, (char *)"a",
                          (char *)"akkjj", (SUBR)Doppler::init_,
-                         (SUBR)Doppler::kontrol_, 0,
+                         (SUBR)Doppler::kontrol_,
                      },
                      {
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

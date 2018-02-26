@@ -1293,20 +1293,21 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY phisem_localops[] = {
-{ "cabasa",  S(CABASA),  0, 5, "a", "iiooo",  (SUBR)cabasaset, NULL, (SUBR)cabasa},
-{ "crunch",  S(CABASA),  0, 5, "a", "iiooo",  (SUBR)crunchset, NULL, (SUBR)cabasa},
-{ "sekere",  S(SEKERE),  0, 5, "a", "iiooo",  (SUBR)sekereset, NULL, (SUBR)sekere},
-{ "sandpaper", S(SEKERE),0, 5, "a", "iiooo",  (SUBR)sandset, NULL,   (SUBR)sekere},
-{ "stix", S(SEKERE),     0, 5, "a", "iiooo",  (SUBR)stixset, NULL,   (SUBR)sekere},
-{ "guiro", S(GUIRO),     0, 5, "a", "kiooooo",(SUBR)guiroset, NULL,  (SUBR)guiro },
-{ "tambourine", S(TAMBOURINE),0, 5,"a", "kioooooo",
-                                        (SUBR)tambourset, NULL, (SUBR)tambourine},
-{ "bamboo", S(BAMBOO),   0, 5, "a", "kioooooo",
-                                        (SUBR)bambooset, NULL, (SUBR)bamboo },
-{ "dripwater", S(WUTER), 0, 5, "a", "kioooooo", (SUBR)wuterset, NULL, (SUBR)wuter },
-{ "sleighbells", S(SLEIGHBELLS), 0, 5, "a","kioooooo",
-                                       (SUBR)sleighset, NULL, (SUBR)sleighbells }
+static OENTRY phisem_localops[] =
+  {
+   { "cabasa",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)cabasaset, (SUBR)cabasa},
+   { "crunch",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)crunchset, (SUBR)cabasa},
+   { "sekere",  S(SEKERE),  0, 3, "a", "iiooo",  (SUBR)sekereset, (SUBR)sekere},
+   { "sandpaper", S(SEKERE),0, 3, "a", "iiooo",  (SUBR)sandset,   (SUBR)sekere},
+   { "stix", S(SEKERE),     0, 3, "a", "iiooo",  (SUBR)stixset,   (SUBR)sekere},
+   { "guiro", S(GUIRO),     0, 3, "a", "kiooooo",(SUBR)guiroset,  (SUBR)guiro },
+   { "tambourine", S(TAMBOURINE),0, 3,"a", "kioooooo",
+                                        (SUBR)tambourset, (SUBR)tambourine},
+   { "bamboo", S(BAMBOO),   0, 3, "a", "kioooooo",
+                                        (SUBR)bambooset, (SUBR)bamboo },
+   { "dripwater", S(WUTER), 0, 3, "a", "kioooooo", (SUBR)wuterset, (SUBR)wuter },
+   { "sleighbells", S(SLEIGHBELLS), 0, 3, "a","kioooooo",
+                                       (SUBR)sleighset, (SUBR)sleighbells }
 };
 
 LINKAGE_BUILTIN(phisem_localops)

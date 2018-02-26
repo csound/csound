@@ -96,10 +96,11 @@
     }                                                                      \
 }
 
-static  int32_t     dnoise_usage(CSOUND *, int32_t);
+static  int32_t dnoise_usage(CSOUND *, int32_t);
 static  void    hamming(MYFLT *, int32_t, int32_t);
 
-static int32_t writebuffer(CSOUND *, SNDFILE *, MYFLT *, int32_t, int32_t *, OPARMS *);
+static int32_t writebuffer(CSOUND *, SNDFILE *, MYFLT *,
+                           int32_t, int32_t *, OPARMS *);
 
 #if 0
 static void fast(CSOUND *csound, MYFLT *b, int32_t N)
@@ -131,8 +132,8 @@ static void fsst(CSOUND *csound, MYFLT *b, int32_t N)
      fsst(b,N) where N=2**M and b is the real array described
      above.
   */
-    MYFLT scaleVal;
-    int32_t   i;
+    MYFLT   scaleVal;
+    int32_t i;
 
     scaleVal = csound->GetInverseRealFFTScale(csound, N);
     b[1] = b[N];
@@ -158,7 +159,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 {
     OPARMS  O;
     MYFLT   beg = -FL(1.0), end = -FL(1.0);
-    int64_t    Beg = 0, End = 99999999;
+    int64_t Beg = 0, End = 99999999;
 
     MYFLT
         *ibuf1,     /* pointer to start of input buffer */
@@ -233,7 +234,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
         minv,       /* 1 / m */
         R = -FL(1.0);  /* input sampling rate */
 
-    int32_t    i,j,k,   /* index variables */
+    int32_t i,j,k,  /* index variables */
         ibs,        /* current starting location in input buffer */
         ibc,        /* current location in input buffer */
         obs,        /* current starting location in output buffer */
@@ -1231,7 +1232,7 @@ static void sndwrterr(CSOUND *csound, int32_t nret, int32_t nput)
 static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
                        MYFLT *outbuf, int32_t nsmps, int32_t *nrecs, OPARMS *O)
 {
-    int32_t     n;
+    int32_t n;
 
     if (UNLIKELY(outfd == NULL)) return 0;
     n = sf_write_MYFLT(outfd, outbuf, nsmps);
@@ -1266,7 +1267,7 @@ static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
 static void hamming(MYFLT *win, int32_t winLen, int32_t even)
 {
     double  ftmp;
-    int32_t     i;
+    int32_t i;
 
     ftmp = PI / winLen;
 

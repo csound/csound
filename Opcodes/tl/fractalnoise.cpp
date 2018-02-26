@@ -450,9 +450,9 @@ int32_t fractalnoise_process(CSOUND *csound, FRACTALNOISE *p) {
   return OK;
 }
 
-static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 5,
-                             (char *)"a", (char *)"kk", (SUBR)fractalnoise_init,
-                             NULL, (SUBR)fractalnoise_process},
+  static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 3,
+                               (char *)"a", (char *)"kk", (SUBR)fractalnoise_init,
+                               (SUBR)fractalnoise_process},
                             {0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
 #ifndef INIT_STATIC_MODULES

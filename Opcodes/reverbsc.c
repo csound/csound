@@ -310,10 +310,9 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 int32_t reverbsc_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "reverbsc",
-                                (int32_t) sizeof(SC_REVERB), 0, 5, "aa", "aakkjpo",
+                                (int32_t) sizeof(SC_REVERB), 0, 3, "aa", "aakkjpo",
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_init,
-                                (int32_t (*)(CSOUND *, void *)) NULL,
-                                (int32_t
-                                 (*)(CSOUND *, void *)) sc_reverb_perf);
+                                (int32_t (*)(CSOUND *, void *)) sc_reverb_perf,
+                                NULL);
 }
 

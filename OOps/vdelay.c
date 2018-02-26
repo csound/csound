@@ -395,7 +395,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
         out1[nn] = (MYFLT) (n1 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[nn] = buf1[xpos];
       }
@@ -463,7 +463,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[nn];
       }
@@ -542,7 +542,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
         out1[n] = (MYFLT) (n1 * x2); out2[n] = (MYFLT) (n2 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
       }

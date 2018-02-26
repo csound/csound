@@ -354,9 +354,10 @@ static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "wgpluck",S(WGPLUCK),0, 5,"a","iikiiia",
-   (SUBR)pluckPluck,NULL,(SUBR)pluckGetSamps}
+static OENTRY localops[] =
+  {
+   { "wgpluck",S(WGPLUCK),0, 3,"a","iikiiia",
+     (SUBR)pluckPluck,(SUBR)pluckGetSamps}
 };
 
 int32_t pluck_init_(CSOUND *csound)
