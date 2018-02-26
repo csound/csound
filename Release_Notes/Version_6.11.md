@@ -91,6 +91,11 @@ addition to the audio.
   multi-core orchestras AND another instrument changed the f-table.
   This is now corrected.
 
+- use of out with an audio array did not check that the array
+  dimension was not greater than the number of channels, which caused
+  a crash.  It is now checked and truncated if too large with a
+  warning. 
+
 ## SYSTEM LEVEL CHANGES
 
 - OPCODE6DIR{64} now can contain a colon-separated list of directories.
