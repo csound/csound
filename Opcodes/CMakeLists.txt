@@ -62,12 +62,10 @@ make_plugin(liveconv liveconv.c)
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
 
+
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
-   set_target_properties(arrayops PROPERTIES COMPILE_FLAGS
-   "-std=c++11")
-    make_plugin(pvsops pvsops.cpp)
-   set_target_properties(pvsops PROPERTIES COMPILE_FLAGS "-std=c++11")
+   make_plugin(pvsops pvsops.cpp)
 elseif(LINUX)
     include(CheckCXXCompilerFlag)
     CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_CXX11)
@@ -152,6 +150,9 @@ check_deps(BUILD_CHUA_OPCODES EIGEN3_INCLUDE_PATH)
 if(BUILD_CHUA_OPCODES)
     make_plugin(chua chua/ChuaOscillator.cpp)
     target_include_directories(chua PRIVATE)
+ if(APPLE)
+   set_target_properties(chua PROPERTIES COMPILE_FLAGS "-Wno-unused-local-typedef")
+ endif()
 endif()
 
 check_deps(BUILD_DSSI_OPCODES LINUX)
@@ -399,6 +400,15 @@ if(BUILD_ABLETON_LINK_OPCODES)
         LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
+
+#if(APPLE)
+#foreach(TARG ampmidid doppler mixer signalflowgraph arrayops pvsops
+#ftsamplebank padsynth)
+#set_target_properties(${TARG} PROPERTIES COMPILE_FLAGS "-std=c++11
+#-stdlib=libc++"
+#   LINK_FLAGS "-std=c++11 -stdlib=libc++")
+#endforeach(TARG)
+#endif()
 
 add_subdirectory(stk)
 add_subdirectory(cuda)

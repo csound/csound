@@ -172,22 +172,22 @@ for($i=0; $i -lt $uriList.Length; $i++)
     echo "Extracted $fileName to $destDir"
 }
 
-cd $depsDir
-echo "Ableton Link..."
-if (Test-Path "link")
-{
-    cd link
-    git pull
-    git submodule update --recursive
-    echo "Ableton Link already downloaded, updated."
-}
-else
-{
-    git clone "https://github.com/Ableton/link.git"
-    cd link
-    git submodule update --init --recursive
-    echo "Ableton Link downloaded."
-}
+#cd $depsDir
+#echo "Ableton Link..."
+#if (Test-Path "link")
+#{
+#    cd link
+#    git pull
+#    git submodule update --recursive
+#    echo "Ableton Link already downloaded, updated."
+#}
+#else
+#{
+#    git clone "https://github.com/Ableton/link.git"
+#    cd link
+#    git submodule update --init --recursive
+#    echo "Ableton Link downloaded."
+#}
 mkdir build
 cd build
 cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
