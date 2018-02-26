@@ -1946,6 +1946,12 @@ int32_t outall(CSOUND *csound, OUTX *p)             /* Output a list of channels
     return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
 }
 
+int32_t outarr_init(CSOUND *csound, OUTARRAY *p)
+{
+    p->nowarn = 0;
+    return OK;
+}
+
 int32_t outarr(CSOUND *csound, OUTARRAY *p)
 {
     uint32_t nsmps =CS_KSMPS,  i, j;
@@ -1954,10 +1960,13 @@ int32_t outarr(CSOUND *csound, OUTARRAY *p)
     MYFLT *data = p->tabin->data;
     MYFLT *spout = CS_SPOUT; //csound->spraw;
     if (n>csound->nchnls) {
-      csound->Warning(csound,
-                      Str("out: number of channels truncated from %d to %d"),
-                      n, csound->nchnls);
+      if (p->nowarn==0) {
+        csound->Warning(csound,
+                        Str("out: number of channels truncated from %d to %d"),
+                        n, csound->nchnls);
+      }
       n = csound->nchnls;
+      p->nowarn = 1;
     }
     if (csound->oparms->sampleAccurate) {
       uint32_t offset = p->h.insdshead->ksmps_offset;
