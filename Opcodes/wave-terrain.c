@@ -154,23 +154,23 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
 
     /* CHECK */
     if (UNLIKELY(fpoint == NULL)) {
-      return csound->InitError(csound, "%s", 
+      return csound->InitError(csound, "%s",
                                Str("Scantable: point table not found"));
     }
     if (UNLIKELY(fmass == NULL)) {
-      return csound->InitError(csound, "%s", 
+      return csound->InitError(csound, "%s",
                                Str("Scantable: mass table not found"));
     }
     if (UNLIKELY(fstiff == NULL)) {
-      return csound->InitError(csound, "%s", 
+      return csound->InitError(csound, "%s",
                                Str("Scantable: stiffness table not found"));
     }
     if (UNLIKELY(fdamp == NULL)) {
-      return csound->InitError(csound, "%s", 
+      return csound->InitError(csound, "%s",
                                Str("Scantable: damping table not found"));
     }
     if (UNLIKELY(fvel == NULL)) {
-      return csound->InitError(csound, "%s", 
+      return csound->InitError(csound, "%s",
                                Str("Scantable: velocity table not found"));
     }
 
@@ -304,4 +304,3 @@ int32_t wave_terrain_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-

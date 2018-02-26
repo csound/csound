@@ -338,7 +338,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
           if (c < .001) c = .001;            /* and convert to db       */
           c = 10.0 * log10(c);
           break;
-        case 3: 
+        case 3:
           c = sqrt(c);                       /*    or root mag          */
           /* FALLTHRU */
         case 0:

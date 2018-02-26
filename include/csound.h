@@ -71,7 +71,7 @@
  *     external opcodes and/or drivers for audio or MIDI input and output.
  *     Plugin opcodes need only include the csdl.h header which brings all
  *     necessary functions and data structures.
- *     Plugins can be written in C or C++. For C++, OOP support is given through 
+ *     Plugins can be written in C or C++. For C++, OOP support is given through
  *     `include/plugin.h` (using the Csound allocator, for opcodes
  *     that do not involve standard C++ library collections) or
  *     `include/OpcodeBase.hpp` (using the standard ++ allocator, for opcodes
@@ -98,20 +98,20 @@
  * }
  * \endcode
  *
- * Csound code can also be supplied directly using strings, either as 
+ * Csound code can also be supplied directly using strings, either as
  * a multi-section CSD (with the same format as CSD files) or
  * directly as a string. It can be compiled any number of times
  * before or during performance.
  *
  * \subsection s1 Using a CSD text
- * 
+ *
  * System options can be passed via the CSD text before the engine
  * is started. These are ignored in subsequent compilations.
  *
  * \code
  * #include "csound.h"
  *
- * const char *csd_text = 
+ * const char *csd_text =
  *  "<CsoundSynthesizer> \n"
  *  "<CsOptions> -odac </CsOptions> \n"
  *  "<CsInstruments> \n"
@@ -149,7 +149,7 @@
  * \code
  * #include "csound.h"
  *
- * const char *orc_text = 
+ * const char *orc_text =
  *  "instr 1 \n"
  *  " out(linen(oscili(p4,p5),0.1,p3,0.1)) \n"
  *  "endin \n";
