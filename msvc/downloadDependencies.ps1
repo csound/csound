@@ -172,26 +172,28 @@ for($i=0; $i -lt $uriList.Length; $i++)
     echo "Extracted $fileName to $destDir"
 }
 
-cd $depsDir
-echo "Ableton Link..."
-if (Test-Path "link")
-{
-    cd link
-    git pull
-    git submodule update --recursive
-    echo "Ableton Link already downloaded, updated."
-}
-else
-{
-    git clone --branch Link-3.0.0 https://github.com/Ableton/link.git
-    cd link
-    git submodule update --init --recursive
-    echo "Ableton Link downloaded."
-}
-mkdir build
-cd build
-cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
-cmake --build .
+
+#cd $depsDir
+#echo "Ableton Link..."
+#if (Test-Path "link")
+#{
+#    cd link
+#    git pull
+#    git submodule update --recursive
+#    echo "Ableton Link already downloaded, updated."
+#}
+#else
+#{
+#    git clone --branch Link-3.0.0 https://github.com/Ableton/link.git
+#    cd link
+#    git submodule update --init --recursive
+#    echo "Ableton Link downloaded."
+#}
+
+#mkdir build
+#cd build
+#cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
+#cmake --build .
 
 
 # disable 1.8.20 for time being
