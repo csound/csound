@@ -391,7 +391,7 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
  * format is in pairs of specified type and types it can resolve into,
  * termintated by a NULL */
 const char* POLY_IN_TYPES[] = {
-    "x", "kacpri",
+    "x", "kacpri",              /* ***Deprecated*** */
     "T", "Sicpr",
     "U", "Sikcpr",
     "i", "cpri",
@@ -421,7 +421,7 @@ const char* VAR_ARG_IN_TYPES[] = {
 };
 
 const char* POLY_OUT_TYPES[] = {
-    "s", "ka",
+    "s", "ka",                  /* ***Deprecated*** */
     "i", "pi", NULL
 };
 

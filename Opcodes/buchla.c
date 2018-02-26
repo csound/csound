@@ -320,11 +320,11 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
 
 static OENTRY buchla_localops[] = {
   //#ifdef JPFF
-  { "buchla", S(BUCHLA), 0, 5, "a", "aakkaPP",
-                            (SUBR)poly_LPG_init, NULL, (SUBR)poly_LPG_perf },
+  { "buchla", S(BUCHLA), 0, 3, "a", "aakkaPP",
+                            (SUBR)poly_LPG_init, (SUBR)poly_LPG_perf },
   //#endif
-  { "vactrol", S(VACTROL), 0, 5, "a", "ajj",
-                                 (SUBR)vactrol_init, NULL, (SUBR)vactrol_perf }
+  { "vactrol", S(VACTROL), 0, 3, "a", "ajj",
+                                 (SUBR)vactrol_init, (SUBR)vactrol_perf }
 };
 
 LINKAGE_BUILTIN(buchla_localops)

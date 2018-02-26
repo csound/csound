@@ -165,7 +165,7 @@ int32_t mainit(CSOUND *csound, ASSIGNM *p)
     uint32_t nouts = p->OUTOCOUNT;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t   i, n, nsmps = CS_KSMPS;
+    uint32_t i, n, nsmps = CS_KSMPS;
     MYFLT aa = FL(0.0);
     early = nsmps - early;      /* Bit at end to ignore */
     if (UNLIKELY(nargs > nouts))
@@ -331,7 +331,7 @@ int32_t modka(CSOUND *csound, AOP *p)
 #define AK(OPNAME,OP)                           \
   int32_t OPNAME(CSOUND *csound, AOP *p) {      \
     uint32_t n, nsmps = CS_KSMPS;               \
-    IGN(csound);                                 \
+    IGN(csound);                                \
     if (LIKELY(nsmps != 1)) {                   \
       MYFLT   *r, *a, b;                        \
       uint32_t offset = p->h.insdshead->ksmps_offset;  \

@@ -18,13 +18,16 @@ To maintain this document use the following markdown:
 
 Any valid HTML can also be used.
 
---->
-# CSOUND VERSION 6.101RELEASE NOTES
+ --->
+
+# CSOUND VERSION 6.11 RELEASE NOTES
 
 There has been a great amount of internal reorganisation, which should
 not affect most users.  Some components are now independently managed
-and installablevia the new package manager.  The realtime optaion is
-now considered stable and has the "experim`ental" tag removed.
+and will eventually be installable via a new package manager.  The
+realtime option is now considered stable and has the "experimental"
+tag removed.  There have been more steps towards completing the
+arithmetic operations involving a-arrays.
 
 -- The Developers
 
@@ -34,6 +37,10 @@ now considered stable and has the "experim`ental" tag removed.
 
 - loscilphs, loscil3phs are like loscil but return the phase in
 addition to the audio.
+
+- more arithmetic, between a-rate arrays and a-rate values; this
+  completes the arithmetic where one or more argument is an audio
+  array. 
 
 ### New Gen and Macros
 
@@ -53,7 +60,7 @@ addition to the audio.
 
 ### Modified Opcodes and Gens
 
-- print, printk2 now take an additionl optional argument which if
+- print, printk2 now take an additional optional argument which if
   non-zero causes the k-variable name to be printed as well as the value.
 
 ### Utilities
@@ -80,13 +87,22 @@ addition to the audio.
 
 - resetting csound caused a crash if Lua opcodes were used; fixed
 
+- The poscil family of opcodes could give incorrect results if used in
+  multi-core orchestras AND another instrument changed the f-table.
+  This is now corrected.
+
 ## SYSTEM LEVEL CHANGES
 
-- OPCODE6DIR{64} now can contain a colon-separated list of directories
+- OPCODE6DIR{64} now can contain a colon-separated list of directories.
 
 ### System Changes
 
--
+- The somewhat curious distinction between k-rate and a-rate perf-time
+  has been removed throughput, so only threads 1, 2 and 3 are used,
+  and the s-type output and x-type input are not used, having been
+  changed for direct polymorphism.  This only matters for opcode
+  writers as the s, and x codes and threads 4,5,6 and 7 will be
+  removed in a while.
 
 ### Translations
 
@@ -120,8 +136,9 @@ addition to the audio.
 
 
 ========================================================================
-mmit 1b10b9e8aacb5e6b9240ce418741a1346909eed3
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Feb 9 10:00:53 2018 +0000
+commit 91b9efa9f849d8cf8e28fbd6a173ea55034d0cbe (HEAD -> develop, origin/develop
+)
+Author: jpff <jpff@codemist.co.uk>
+Date:   Thu Feb 22 18:22:39 2018 +0000
 
 **end**

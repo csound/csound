@@ -266,10 +266,11 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "space",  S(SPACE), TR,5, "aaaa", "aikkkk",(SUBR)spaceset, NULL, (SUBR)space },
-  { "spsend", S(SPSEND), 0,5, "aaaa", "",     (SUBR)spsendset, NULL, (SUBR)spsend },
-  { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist, NULL }
+static OENTRY localops[] =
+  {
+   { "space",  S(SPACE), TR,3, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space },
+   { "spsend", S(SPSEND), 0,3, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend },
+   { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist }
 };
 
 int32_t space_init_(CSOUND *csound)

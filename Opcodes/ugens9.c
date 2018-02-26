@@ -650,19 +650,20 @@ static int32_t pconvolve(CSOUND *csound, PCONVOLVE *p)
     return OK;
 }
 
-static OENTRY localops[] = {
-    { "convolve", sizeof(CONVOLVE),   0, 5, "mmmm", "aSo",
-            (SUBR) cvset_S,     (SUBR) NULL,    (SUBR) convolve   },
-    { "convle",   sizeof(CONVOLVE),   0, 5, "mmmm", "aSo",
-            (SUBR) cvset_S,     (SUBR) NULL,    (SUBR) convolve   },
-    { "pconvolve",sizeof(PCONVOLVE),  0, 5, "mmmm", "aSoo",
-      (SUBR) pconvset_S,  (SUBR) NULL,    (SUBR) pconvolve  },
-     { "convolve.i", sizeof(CONVOLVE),   0, 5, "mmmm", "aio",
-            (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },
-    { "convle.i",   sizeof(CONVOLVE),   0, 5, "mmmm", "aio",
-            (SUBR) cvset,     (SUBR) NULL,    (SUBR) convolve   },
-    { "pconvolve.i",sizeof(PCONVOLVE),  0, 5, "mmmm", "aioo",
-            (SUBR) pconvset,  (SUBR) NULL,    (SUBR) pconvolve  }
+static OENTRY localops[] =
+  {
+   { "convolve", sizeof(CONVOLVE),   0, 3, "mmmm", "aSo",
+            (SUBR) cvset_S,    (SUBR) convolve   },
+   { "convle",   sizeof(CONVOLVE),   0, 3, "mmmm", "aSo",
+            (SUBR) cvset_S,    (SUBR) convolve   },
+   { "pconvolve",sizeof(PCONVOLVE),  0, 3, "mmmm", "aSoo",
+      (SUBR) pconvset_S,    (SUBR) pconvolve  },
+   { "convolve.i", sizeof(CONVOLVE),   0, 3, "mmmm", "aio",
+            (SUBR) cvset,    (SUBR) convolve   },
+   { "convle.i",   sizeof(CONVOLVE),   0, 3, "mmmm", "aio",
+            (SUBR) cvset,    (SUBR) convolve   },
+   { "pconvolve.i",sizeof(PCONVOLVE),  0, 3, "mmmm", "aioo",
+            (SUBR) pconvset,    (SUBR) pconvolve  }
 };
 
 int32_t ugens9_init_(CSOUND *csound)

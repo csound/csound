@@ -702,8 +702,8 @@ static OENTRY loscilx_localops[] = {
     (SUBR) sndload_opcode_init, (SUBR) NULL, (SUBR) NULL                      },
  { "sndload.S",  sizeof(SNDLOAD_OPCODE), _QQ, 1,  "",                 "Sooooojjoo",
     (SUBR) sndload_opcode_init_S, (SUBR) NULL, (SUBR) NULL                      },
-  { "loscilx",  sizeof(LOSCILX_OPCODE), TR, 5,  "mmmmmmmmmmmmmmmm", "xkioojjoo",
-    (SUBR) loscilx_opcode_init, (SUBR) NULL, (SUBR) loscilx_opcode_perf       }
+  { "loscilx",  sizeof(LOSCILX_OPCODE), TR, 3,  "mmmmmmmmmmmmmmmm", "xkioojjoo",
+    (SUBR) loscilx_opcode_init, (SUBR) loscilx_opcode_perf       }
 };
 
 LINKAGE_BUILTIN(loscilx_localops)

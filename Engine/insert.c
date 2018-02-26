@@ -127,7 +127,7 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   if(csound->oparms->realtime) {
     csoundLockMutex(csound->init_pass_threadlock);
   }
-  ATOMIC_SET(ip->actflg, 0);
+  ATOMIC_SET8(ip->actflg, 0);
   csound->ids = ids;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
          (csound->ids->iopadr != (SUBR) rireturn)){
@@ -136,7 +136,7 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
                       csound->ids->optext->t.oentry->opname);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
-  ATOMIC_SET(ip->actflg, 1);
+  ATOMIC_SET8(ip->actflg, 1);
   csound->reinitflag = ip->reinitflag = 0;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
@@ -1813,7 +1813,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
         int error = 0;
         CS_PDS->insdshead->pds = NULL;
         do {
-          if(UNLIKELY(!ATOMIC_GET(p->ip->actflg))){
+          if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))){
             memset(p->ar, 0, sizeof(MYFLT)*CS_KSMPS*p->OUTCOUNT);
             goto endin;
           }
@@ -1932,7 +1932,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         int error = 0;
         CS_PDS->insdshead->pds = NULL;
         do {
-          if(UNLIKELY(!ATOMIC_GET(p->ip->actflg))) goto endop;
+          if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
           error = (*CS_PDS->opadr)(csound, CS_PDS);
           if (CS_PDS->insdshead->pds != NULL &&
               CS_PDS->insdshead->pds->insdshead) {
@@ -2042,7 +2042,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         int error = 0;
         CS_PDS->insdshead->pds = NULL;
         do {
-          if(UNLIKELY(!ATOMIC_GET(p->ip->actflg))) goto endop;
+          if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
           error = (*CS_PDS->opadr)(csound, CS_PDS);
           if (CS_PDS->insdshead->pds != NULL &&
               CS_PDS->insdshead->pds->insdshead) {
@@ -2211,7 +2211,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   int error = 0;
   CS_PDS->insdshead->pds = NULL;
   do {
-    if(UNLIKELY(!ATOMIC_GET(p->ip->actflg))) goto endop;
+    if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
     error = (*CS_PDS->opadr)(csound, CS_PDS);
     if (CS_PDS->insdshead->pds != NULL &&
         CS_PDS->insdshead->pds->insdshead) {
@@ -2390,6 +2390,7 @@ static void instance(CSOUND *csound, int insno)
       lblbp->prvp = prvpds;
       continue;                               /*    for later refs */
     }
+    // ******** This needs revisipn with no distinction between k- anda- rate ****
     if ((ep->thread & 07) == 0) {             /* thread 1 OR 2:  */
       if (ttp->pftype == 'b') {
         prvids = prvids->nxti = opds;

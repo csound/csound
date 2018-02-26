@@ -299,5 +299,5 @@ struct TPrint : csnd::Plugin<0, 1> {
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
-  csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
+  csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ik);
 }

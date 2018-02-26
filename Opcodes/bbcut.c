@@ -532,10 +532,10 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "bbcutm",S(BBCUTMONO), 0, 5, "a","aiiiiipop",
-                                 (SUBR)BBCutMonoInit, NULL, (SUBR)BBCutMono  },
-  { "bbcuts",S(BBCUTSTEREO), 0, 5, "aa","aaiiiiipop",
-                               (SUBR)BBCutStereoInit, NULL, (SUBR)BBCutStereo}
+  { "bbcutm",S(BBCUTMONO), 0, 3, "a","aiiiiipop",
+                                 (SUBR)BBCutMonoInit, (SUBR)BBCutMono  },
+  { "bbcuts",S(BBCUTSTEREO), 0, 3, "aa","aaiiiiipop",
+                               (SUBR)BBCutStereoInit, (SUBR)BBCutStereo}
 };
 
 int32_t bbcut_init_(CSOUND *csound)
