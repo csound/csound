@@ -52,8 +52,8 @@ int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
    by forbidding copy to different format. */
 
 int32_t fassign_set(CSOUND *csound, FASSIGN *p)
-{ 
-     int32_t N = p->fsrc->N;
+{
+    int32_t N = p->fsrc->N;
 
     p->fout->N =  N;
     p->fout->overlap = p->fsrc->overlap;

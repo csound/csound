@@ -148,8 +148,9 @@ typedef struct {
 } OUTX;
 
 typedef struct {
-    OPDS    h;
+    OPDS       h;
     ARRAYDAT   *tabin;
+    int32_t    nowarn;
 } OUTARRAY;
 
 typedef struct {
