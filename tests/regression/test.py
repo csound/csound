@@ -67,7 +67,8 @@ def runTest():
         ["bugrezzy.csd", "rezzy stabilised"],
         ["buggen31.csd", "gen31 test"],
         ["bugg.csd", "grain3"],
-        ["bugline.csd", "comments in score"]
+        ["bugline.csd", "comments in score"],
+        ["arrayout.csd2", "array dimension greater than nchls"]
     ]
 
     output = ""
