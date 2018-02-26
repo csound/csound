@@ -496,7 +496,7 @@ OENTRY opcodlst_1[] = {
   { "ins",    S(INS),0,     2,      "aa",   "",     NULL,   ins     },
   { "inq",    S(INQ),0,     2,      "aaaa", "",     NULL,   inq     },
   { "out.a",  S(OUTX),0,     3,      "",     "y",    ochn,   outall },
-  { "out.A",  S(OUTARRAY),0, 2,      "",     "a[]",  NULL,   outarr },
+  { "out.A",  S(OUTARRAY),0, 3,      "",     "a[]",  outarr_init,  outarr },
   { "outs",   S(OUTX),0,     3,      "",     "y",    ochn,   outall },
   { "outq",   S(OUTX),0,     3,      "",     "y",    ochn,   outall },
   { "outh",   S(OUTX),0,     3,      "",     "y",    ochn,   outall },
