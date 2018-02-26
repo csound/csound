@@ -371,7 +371,7 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
 
 static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
-   
+
     deleteWindow(csound, (FLTKKeyboardWindow *)userData);
 
     return 0;

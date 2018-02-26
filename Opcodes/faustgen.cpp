@@ -427,7 +427,7 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   controls *ctls = new controls();
   const char *varname = "::dsp";
   while ((int32_t)*((MYFLT *)p->code) == -1)
-    csound->Sleep(1); 
+    csound->Sleep(1);
 
 
   factory = (int32_t)*((MYFLT *)p->code);
@@ -520,7 +520,7 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
       csound->AuxAlloc(csound, size, &p->buffout);
  }
 #endif
-  
+
   p->ctls = ctls;
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   *p->ohptr = (MYFLT)fdsp->cnt;
@@ -694,7 +694,7 @@ int32_t perf_faust(CSOUND *csound, faustgen *p) {
   }
   }
 #endif
-  
+
   if (UNLIKELY(offset)) {
     /* restore pos  */
     for (i = 0; i < p->OUTCOUNT - 1; i++)
