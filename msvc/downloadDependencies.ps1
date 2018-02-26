@@ -173,7 +173,7 @@ for($i=0; $i -lt $uriList.Length; $i++)
 }
 
 
-cd $depsDir
+#cd $depsDir
 #echo "Ableton Link..."
 #if (Test-Path "link")
 #{
@@ -190,10 +190,10 @@ cd $depsDir
 #    echo "Ableton Link downloaded."
 #}
 
-mkdir build
-cd build
-cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
-cmake --build .
+#mkdir build
+#cd build
+#cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
+#cmake --build .
 
 
 # disable 1.8.20 for time being
