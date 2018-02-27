@@ -421,9 +421,9 @@ static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
 {
     MYFLT   fract, tmpL, tmpR;
     int     x;
-
+    
     fract = MODF(phs, &tmpL);
-    x = (int32_t) tmpL;
+    x = (int32_t) 2*tmpL;
     //printf("phs=%d+%f\n",x, fract);
     tmpL = ftbl[x];
     tmpR = ftbl[x + 1];
@@ -462,7 +462,7 @@ static CS_NOINLINE void
     int32_t     x;
 
     fract = MODF(phs, &tmpL);
-    x = (int32_t) tmpL;
+    x = (int32_t) 2*tmpL;
     //printf("phs=%d+%f\n",x, fract);
     a3 = fract * fract; a3 -= FL(1.0); a3 *= (FL(1.0) / FL(6.0));
     a2 = fract; a2 += FL(1.0); a0 = (a2 *= FL(0.5)); a0 -= FL(1.0);
@@ -613,8 +613,6 @@ put0:
 
  phsck2:
     /*VL increment for stereo */
-    inc *= 2;
-    end *= 2;
     if (phs >= end && p->curmod != 3)
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
@@ -835,8 +833,6 @@ put0:
 
  phsck2:
     /*VL increment for stereo */
-    inc *= 2;
-    end *= 2;
     if (phs >= end && p->curmod != 3)
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
@@ -1059,9 +1055,6 @@ int32_t loscil3_phs(CSOUND *csound, LOSCPHS *p)
     return OK;
 
  phsck2:
-    /*VL increment for stereo */
-    inc *= 2;
-    end *= 2;
     if (UNLIKELY(phs >= end && p->curmod != 3))
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
@@ -1276,9 +1269,6 @@ int32_t loscil3(CSOUND *csound, LOSC *p)
     return OK;
 
  phsck2:
-    /*VL increment for stereo */
-    inc *= 2;
-    end *= 2;
     if (UNLIKELY(phs >= end && p->curmod != 3))
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
