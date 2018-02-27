@@ -1,3 +1,4 @@
+
 <!---
 
 To maintain this document use the following markdown:
@@ -94,7 +95,10 @@ addition to the audio.
 - use of out with an audio array did not check that the array
   dimension was not greater than the number of channels, which caused
   a crash.  It is now checked and truncated if too large with a
-  warning. 
+  warning.
+
+- Bug in steeo versions of loscil introduced distortionl now fixed
+
 
 ## SYSTEM LEVEL CHANGES
 
