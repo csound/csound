@@ -696,12 +696,11 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
       }
     }
     luaStatesForThreads->clear();
-    csound::DestroyGlobalPointer(csound, "luaStatesForThreads",
-                                 luaStatesForThreads);
+    csound->DestroyGlobalVariable(csound, "luaStatesForThreads");
+    delete luaStatesForThreads;
+    luaStatesForThreads = nullptr;
     csound->UnlockMutex(lua_states_mutex);
     csound->DestroyMutex(lua_states_mutex);
-    // csound::DestroyGlobalPointer(csound, "lua_states_mutex",
-    // lua_states_mutex);
     lua_states_mutex = 0;
   }
   void *reference_keys_mutex = 0;
@@ -713,13 +712,12 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
     QueryGlobalPointer(csound, "luaReferenceKeys", luaReferenceKeys);
     if (luaReferenceKeys != 0) {
       luaReferenceKeys->clear();
-      csound::DestroyGlobalPointer(csound, "luaReferenceKeys",
-                                   luaReferenceKeys);
+        csound->DestroyGlobalVariable(csound, "luaReferenceKeys");
+        delete luaReferenceKeys;
+        luaReferenceKeys = nullptr;
     }
     csound->UnlockMutex(reference_keys_mutex);
     csound->DestroyMutex(reference_keys_mutex);
-    // csound::DestroyGlobalPointer(csound, "reference_keys_mutex",
-    // reference_keys_mutex);
     reference_keys_mutex = 0;
   }
   return OK;

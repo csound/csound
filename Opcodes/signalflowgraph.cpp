@@ -1553,7 +1553,9 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
       csound->UnlockMutex(sfg_globals->signal_flow_ftables_lock);
       csound->DestroyMutex(sfg_globals->signal_flow_ftables_lock);
     }
-    csound::DestroyGlobalPointer(csound, "sfg_globals", sfg_globals);
+    csound->DestroyGlobalVariable(csound, "sfg_globals");
+    delete sfg_globals;
+    sfg_globals = nullptr;
   }
   return 0;
 }
