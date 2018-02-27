@@ -251,7 +251,6 @@ public:
         Message("CsoundThreaded::PerformAndResetRoutine(): Reset() returned...\n");
         Message("Ended CsoundThreaded::PerformAndResetRoutine() with %d.\n", result);
         return result;
-
     }
     /**
      * Overrides Csound::Perform to run in a separate thread of execution.

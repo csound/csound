@@ -35,7 +35,6 @@
 %module csnd6
 %{
 #include "csound.h"
-
 %}
 #else
 #include "csound.h"
@@ -43,7 +42,6 @@
 #include <pthread.h>
 #endif
 #ifdef __BUILDING_CSOUND_INTERFACES
-
 #endif
 #endif
 
