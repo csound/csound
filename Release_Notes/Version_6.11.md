@@ -64,6 +64,8 @@ addition to the audio.
 - print, printk2 now take an additional optional argument which if
   non-zero causes the k-variable name to be printed as well as the value.
 
+- getrow, setrow, getcol, andsetcol can now act on i-rate arrays
+
 ### Utilities
 
 -
