@@ -316,7 +316,7 @@ typedef struct CORFIL {
     TEXT    t;                      /* Text of instrument (same in nxtop) */
     int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                        opcodes in instr */
-    int     mdepends;               /* Opcode type (i/k/a) */
+    //int     mdepends;               /* Opcode type (i/k/a) */
     CS_VAR_POOL* varPool;
 
     //    int     optxtcount;
