@@ -832,7 +832,6 @@ put0:
     return OK;
 
  phsck2:
-    /*VL increment for stereo */
     if (phs >= end && p->curmod != 3)
       goto put0s;                               /* for STEREO:  */
     switch (p->curmod) {
