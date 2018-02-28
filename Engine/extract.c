@@ -66,10 +66,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     extractStatics->onsect = 1;
     extractStatics->onbeat = FL(0.0);   /* other default vals   */
     extractStatics->offsect = 999;  extractStatics->offbeat = FL(0.0);
-    //    while (fscanf(xfp, s) != EOF) {
-    //  while (fscanf(xfp, "%.81s", s) != EOF) {
     while (fscanf(xfp, "%100s", s) > 0) {
-    //  while (fgets(s, 82, xfp) > 0) {
       char *c = s;
       int i;
       //printf("string: %s\n", s);

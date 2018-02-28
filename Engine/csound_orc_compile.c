@@ -306,7 +306,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       tp->inlist = (ARGLST *) csound->Malloc(csound, sizeof(ARGLST));
       tp->inlist->count = 0;
 
-      ip->mdepends |= labelOpcode->flags;
+      //ip->mdepends |= labelOpcode->flags;
       ip->opdstot += labelOpcode->dsblksiz;
 
       break;
@@ -329,7 +329,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       tp->oentry = (OENTRY*)root->markup;
       tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
       tp->linenum = root->line;
-      ip->mdepends |= tp->oentry->flags;
+      //ip->mdepends |= tp->oentry->flags;
       ip->opdstot += tp->oentry->dsblksiz;
 
 
@@ -499,7 +499,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
     /* initialize */
 
-    ip->mdepends = 0;
+    //ip->mdepends = 0;
     ip->opdstot = 0;
     ip->nocheckpcnt = 0;
 
@@ -744,7 +744,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     current = root;
 
     /* initialize */
-    ip->mdepends = 0;
+    //ip->mdepends = 0;
     ip->opdstot = 0;
     ip->pmax = 3L;
 
@@ -814,7 +814,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
     ip->varPool = (CS_VAR_POOL*)root->markup;
     op = (OPTXT *)ip;
     statements = root->right;
-    ip->mdepends = 0;
+    //ip->mdepends = 0;
     ip->opdstot = 0;
     ip->nocheckpcnt = tree_contains_fn_p(csound, root->right);
     ip->pmax = 3L;
