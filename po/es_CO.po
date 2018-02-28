@@ -101,20 +101,20 @@ msgstr ""
 msgid "(unknown error)"
 msgstr ""
 
-#: Engine/corfiles.c:60 Engine/corfiles.c:81 Engine/corfiles.c:95
-#: Engine/corfiles.c:111 Engine/fgens.c:1633 Engine/rdscor.c:216
+#: Engine/corfiles.c:59 Engine/corfiles.c:79 Engine/corfiles.c:92
+#: Engine/corfiles.c:108 Engine/fgens.c:1633 Engine/rdscor.c:216
 msgid "Out of Memory\n"
 msgstr ""
 
-#: Engine/corfiles.c:231
+#: Engine/corfiles.c:228
 msgid "Null file name in copy_to_corefile"
 msgstr ""
 
-#: Engine/corfiles.c:295
+#: Engine/corfiles.c:292
 msgid "not enough memory (realloc returned NULL)\n"
 msgstr ""
 
-#: Engine/corfiles.c:322
+#: Engine/corfiles.c:319
 #, c-format
 msgid "curl_easy_perform() failed: %s\n"
 msgstr ""
@@ -583,18 +583,18 @@ msgstr "Macro indefinido: '%s'"
 #: Engine/csound_prs.lex:234 Engine/csound_prs.lex:244
 #: Engine/csound_prs.lex:295 Engine/csound_prs.lex:530
 #: Engine/csound_prs.lex:600 Engine/csound_prs.lex:638
-#: Engine/csound_prs.lex:723 Engine/csound_prs.lex:923
-#: Engine/csound_prs.lex:951 Engine/csound_prs.lex:957
-#: Engine/csound_prs.lex:970 Engine/csound_prs.lex:978
-#: Engine/csound_prs.lex:986 Engine/csound_prs.lex:997
-#: Engine/csound_prs.lex:1006 Engine/csound_prs.lex:1014
-#: Engine/csound_prs.lex:1060 Engine/csound_prs.lex:1072
-#: Engine/csound_prs.lex:1086 Engine/csound_prs.lex:1095
-#: Engine/csound_prs.lex:1117 Engine/csound_prs.lex:1125
-#: Engine/csound_prs.lex:1162 Engine/csound_prs.lex:1172
-#: Engine/csound_prs.lex:1181 Engine/csound_prs.lex:1238
-#: Engine/csound_prs.lex:1344 Engine/csound_prs.lex:1357
-#: Engine/csound_prs.lex:1372
+#: Engine/csound_prs.lex:725 Engine/csound_prs.lex:926
+#: Engine/csound_prs.lex:954 Engine/csound_prs.lex:960
+#: Engine/csound_prs.lex:973 Engine/csound_prs.lex:981
+#: Engine/csound_prs.lex:989 Engine/csound_prs.lex:1000
+#: Engine/csound_prs.lex:1009 Engine/csound_prs.lex:1017
+#: Engine/csound_prs.lex:1063 Engine/csound_prs.lex:1075
+#: Engine/csound_prs.lex:1089 Engine/csound_prs.lex:1098
+#: Engine/csound_prs.lex:1120 Engine/csound_prs.lex:1128
+#: Engine/csound_prs.lex:1165 Engine/csound_prs.lex:1175
+#: Engine/csound_prs.lex:1184 Engine/csound_prs.lex:1241
+#: Engine/csound_prs.lex:1347 Engine/csound_prs.lex:1360
+#: Engine/csound_prs.lex:1375
 msgid "Memory exhausted"
 msgstr ""
 
@@ -629,7 +629,7 @@ msgid "#else without #if\n"
 msgstr ""
 
 #: Engine/csound_pre.lex:542 Engine/csound_pre.lex:1141
-#: Engine/csound_prs.lex:479 Engine/csound_prs.lex:1299
+#: Engine/csound_prs.lex:479 Engine/csound_prs.lex:1302
 msgid "#else after #else\n"
 msgstr ""
 
@@ -638,25 +638,25 @@ msgstr ""
 msgid "Unmatched #end\n"
 msgstr "endin sin complemento"
 
-#: Engine/csound_pre.lex:725 Engine/csound_prs.lex:887
+#: Engine/csound_pre.lex:725 Engine/csound_prs.lex:890
 msgid "Ill formed #include ignored"
 msgstr ""
 
-#: Engine/csound_pre.lex:734 Engine/csound_prs.lex:896
+#: Engine/csound_pre.lex:734 Engine/csound_prs.lex:899
 msgid "Includes nested too deeply"
 msgstr ""
 
-#: Engine/csound_pre.lex:749 Engine/csound_prs.lex:913
+#: Engine/csound_pre.lex:749 Engine/csound_prs.lex:916
 #, c-format
 msgid "%s is a directory; not including"
 msgstr ""
 
-#: Engine/csound_pre.lex:753 Engine/csound_prs.lex:917
+#: Engine/csound_pre.lex:753 Engine/csound_prs.lex:920
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr "No se puede abrir el archivo pedido por #include %s\n"
 
-#: Engine/csound_pre.lex:865 Engine/csound_prs.lex:1023
+#: Engine/csound_pre.lex:865 Engine/csound_prs.lex:1026
 msgid "macro error\n"
 msgstr "error de macro\n"
 
@@ -664,43 +664,43 @@ msgstr "error de macro\n"
 #: Engine/csound_pre.lex:881 Engine/csound_pre.lex:887
 #: Engine/csound_pre.lex:974 Engine/csound_pre.lex:978
 #: Engine/csound_pre.lex:985 Engine/csound_pre.lex:991
-#: Engine/csound_prs.lex:1028 Engine/csound_prs.lex:1032
-#: Engine/csound_prs.lex:1039 Engine/csound_prs.lex:1045
-#: Engine/csound_prs.lex:1132 Engine/csound_prs.lex:1136
-#: Engine/csound_prs.lex:1143 Engine/csound_prs.lex:1149
+#: Engine/csound_prs.lex:1031 Engine/csound_prs.lex:1035
+#: Engine/csound_prs.lex:1042 Engine/csound_prs.lex:1048
+#: Engine/csound_prs.lex:1135 Engine/csound_prs.lex:1139
+#: Engine/csound_prs.lex:1146 Engine/csound_prs.lex:1152
 #, fuzzy
 msgid "define macro runaway\n"
 msgstr "Macro indefinido: '%s'"
 
 #: Engine/csound_pre.lex:894 Engine/csound_pre.lex:998
-#: Engine/csound_prs.lex:1052
+#: Engine/csound_prs.lex:1055
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:908 Engine/csound_prs.lex:1066
+#: Engine/csound_pre.lex:908 Engine/csound_prs.lex:1069
 msgid "define macro with args: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1009 Engine/csound_prs.lex:1167
+#: Engine/csound_pre.lex:1009 Engine/csound_prs.lex:1170
 msgid "define macro: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1044 Engine/csound_prs.lex:1202
+#: Engine/csound_pre.lex:1044 Engine/csound_prs.lex:1205
 #, c-format
 msgid "macro %s undefined\n"
 msgstr "el macro %s no está definido\n"
 
-#: Engine/csound_pre.lex:1059 Engine/csound_prs.lex:1217 Engine/sread.c:219
+#: Engine/csound_pre.lex:1059 Engine/csound_prs.lex:1220 Engine/sread.c:219
 msgid "Undefining undefined macro"
 msgstr ""
 
-#: Engine/csound_pre.lex:1114 Engine/csound_prs.lex:1272
+#: Engine/csound_pre.lex:1114 Engine/csound_prs.lex:1275
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1216 Engine/csound_prs.lex:1337
+#: Engine/csound_pre.lex:1216 Engine/csound_prs.lex:1340
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr "Definición del macro %*s\n"
@@ -736,25 +736,21 @@ msgstr ""
 msgid "unmatched } in score\n"
 msgstr "comillas sin cerrar"
 
-#: Engine/csound_prs.lex:690
-msgid "Section loops cannot be nested"
-msgstr ""
-
-#: Engine/csound_prs.lex:703
+#: Engine/csound_prs.lex:705
 msgid "r: invalid repeat count"
 msgstr "r: número inválido de repeticiones"
 
-#: Engine/csound_prs.lex:707
+#: Engine/csound_prs.lex:709
 #, c-format
 msgid "r LOOP=%d\n"
 msgstr ""
 
-#: Engine/csound_prs.lex:1156
+#: Engine/csound_prs.lex:1159
 #, fuzzy, c-format
 msgid "define macro unexpected character %c(0x%.2x)awaiting #\n"
 msgstr "Caracter # inesperado"
 
-#: Engine/csound_prs.lex:1340
+#: Engine/csound_prs.lex:1343
 msgid "Invalid macro name for --smacro"
 msgstr "Nombre de macro inválido para --smacro"
 
@@ -805,7 +801,7 @@ msgstr "error interno: csoundFileOpen(): tipo inváido: %d"
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
 msgstr "error interno: csoundCreateFileHandle(): tipo inválido: %d"
 
-#: Engine/extract.c:91
+#: Engine/extract.c:88
 #, fuzzy
 msgid "instrument number out of range"
 msgstr "Número de dispositivo fuera de rango"
@@ -1116,8 +1112,8 @@ msgstr "número equivocado de argumentos para la tabla-f (ftable)"
 msgid "Failed to load PVOC-EX file"
 msgstr "No fue posible cargar el archivo PVOC-EX"
 
-#: Engine/fgens.c:2845 InOut/midirecv.c:419 OOps/midiops.c:401
-#: OOps/midiops.c:451 OOps/midiops.c:463
+#: Engine/fgens.c:2845 InOut/midirecv.c:419 OOps/midiops.c:402
+#: OOps/midiops.c:452 OOps/midiops.c:464
 msgid "illegal channel number"
 msgstr "número de canal ilegal"
 
@@ -4197,23 +4193,28 @@ msgstr ""
 msgid "Excess channels ignored\n"
 msgstr "falta el número de canales"
 
-#: OOps/aops.c:2082
+#: OOps/aops.c:1965
+#, fuzzy, c-format
+msgid "out: number of channels truncated from %d to %d"
+msgstr "número de canales inválido"
+
+#: OOps/aops.c:2097
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:2115
+#: OOps/aops.c:2130
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:2144
+#: OOps/aops.c:2159
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 
-#: OOps/aops.c:2177
+#: OOps/aops.c:2192
 msgid "number of hardware output channels not currently available"
 msgstr ""
 
-#: OOps/aops.c:2183
+#: OOps/aops.c:2198
 msgid "number of hardware input channels not currently available"
 msgstr ""
 
@@ -4577,20 +4578,20 @@ msgstr "turnoff2: número de instrumento inválido"
 msgid "turnoff2: invalid mode parameter"
 msgstr "turnoff2: parámetro de modo inválido"
 
-#: OOps/midiops.c:100
+#: OOps/midiops.c:101
 msgid "uneven ctrl pairs"
 msgstr ""
 
-#: OOps/midiops.c:110
+#: OOps/midiops.c:111
 msgid "illegal ctrl no"
 msgstr "número inválido de control (ctrl num)"
 
-#: OOps/midiops.c:136
+#: OOps/midiops.c:137
 msgid "cpstabm: invalid modulator table"
 msgstr "cpstabm: tabla de modulador inválida"
 
-#: OOps/midiops.c:326 OOps/midiops.c:336 OOps/midiops.c:357 OOps/midiops.c:367
-#: OOps/midiops.c:453 OOps/midiops.c:467 Opcodes/gab/sliderTable.c:568
+#: OOps/midiops.c:327 OOps/midiops.c:337 OOps/midiops.c:358 OOps/midiops.c:368
+#: OOps/midiops.c:454 OOps/midiops.c:468 Opcodes/gab/sliderTable.c:568
 #: Opcodes/midiops2.c:59 Opcodes/midiops2.c:76 Opcodes/midiops2.c:121
 #: Opcodes/midiops2.c:155 Opcodes/midiops2.c:223 Opcodes/midiops2.c:254
 #: Opcodes/midiops2.c:319 Opcodes/midiops2.c:338 Opcodes/midiops2.c:378
@@ -4598,11 +4599,11 @@ msgstr "cpstabm: tabla de modulador inválida"
 msgid "illegal controller number"
 msgstr "numero de controlador ilegal"
 
-#: OOps/midiops.c:425
+#: OOps/midiops.c:426
 msgid "pgmassign: invalid program number"
 msgstr "pgmassign: número de programa inválido"
 
-#: OOps/midiops.c:746
+#: OOps/midiops.c:747
 #, c-format
 msgid "Invalid arp mode selected: %d. Valid modes are 0, 1, 2, and 3\n"
 msgstr ""
@@ -5568,26 +5569,26 @@ msgstr ""
 msgid "loscilphs: insufficient outputs"
 msgstr "argumentos insuficientes"
 
-#: OOps/ugens3.c:1397
+#: OOps/ugens3.c:1387
 #, c-format
 msgid "ADSYN cannot load %s"
 msgstr ""
 
-#: OOps/ugens3.c:1426
+#: OOps/ugens3.c:1416
 #, c-format
 msgid "illegal code %d encountered"
 msgstr ""
 
-#: OOps/ugens3.c:1431
+#: OOps/ugens3.c:1421
 #, c-format
 msgid "%d amp tracks, %d freq tracks"
 msgstr ""
 
-#: OOps/ugens3.c:1441
+#: OOps/ugens3.c:1431
 msgid "partial count exceeds MAXPTLS"
 msgstr ""
 
-#: OOps/ugens3.c:1469
+#: OOps/ugens3.c:1459
 msgid "adsyn: not initialised"
 msgstr "adsyn: no ha sido inicializado"
 
@@ -6289,9 +6290,10 @@ msgstr ""
 #: Opcodes/arrays.c:1521 Opcodes/arrays.c:1556 Opcodes/arrays.c:1592
 #: Opcodes/arrays.c:1628 Opcodes/arrays.c:1664 Opcodes/arrays.c:1700
 #: Opcodes/arrays.c:1736 Opcodes/arrays.c:1772 Opcodes/arrays.c:1808
-#: Opcodes/arrays.c:1844 Opcodes/arrays.c:1877 Opcodes/arrays.c:1883
-#: Opcodes/arrays.c:1894 Opcodes/arrays.c:1925 Opcodes/arrays.c:1956
-#: Opcodes/arrays.c:1977 Opcodes/arrays.c:2050 Opcodes/arrays.c:2096
+#: Opcodes/arrays.c:1844 Opcodes/arrays.c:1880 Opcodes/arrays.c:1916
+#: Opcodes/arrays.c:1952 Opcodes/arrays.c:1985 Opcodes/arrays.c:1991
+#: Opcodes/arrays.c:2002 Opcodes/arrays.c:2033 Opcodes/arrays.c:2064
+#: Opcodes/arrays.c:2085 Opcodes/arrays.c:2158 Opcodes/arrays.c:2204
 #: Opcodes/pvsbasic.c:2438 Opcodes/pvsbasic.c:2469 Opcodes/pvsbasic.c:2518
 #, fuzzy
 msgid "array-variable not initialised"
@@ -6321,129 +6323,129 @@ msgstr ""
 msgid "division by zero in array-var at index %d/%d"
 msgstr ""
 
-#: Opcodes/arrays.c:1959
+#: Opcodes/arrays.c:2067
 #, fuzzy
 msgid "array-variable not a vector"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:2054 Opcodes/arrays.c:2099
+#: Opcodes/arrays.c:2162 Opcodes/arrays.c:2207
 #, fuzzy
 msgid "array-variable dimensions do not match"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:2056
+#: Opcodes/arrays.c:2164
 #, fuzzy
 msgid "array-variable types do not match"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:2148 Opcodes/arrays.c:2169 Opcodes/arrays.c:2348
-#: Opcodes/arrays.c:2384 Opcodes/arrays.c:2387
+#: Opcodes/arrays.c:2256 Opcodes/arrays.c:2277 Opcodes/arrays.c:2456
+#: Opcodes/arrays.c:2492 Opcodes/arrays.c:2495
 #, fuzzy
 msgid "array-var not initialised"
 msgstr "t-var no ha sido inicializado"
 
-#: Opcodes/arrays.c:2151 Opcodes/arrays.c:2171 Opcodes/arrays.c:2229
-#: Opcodes/arrays.c:2251
+#: Opcodes/arrays.c:2259 Opcodes/arrays.c:2279 Opcodes/arrays.c:2337
+#: Opcodes/arrays.c:2359
 msgid "No table for copy2ftab"
 msgstr ""
 
-#: Opcodes/arrays.c:2201
+#: Opcodes/arrays.c:2309
 msgid "inconsistent start, end and increment parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:2286
+#: Opcodes/arrays.c:2394
 #, fuzzy
 msgid "inconsistent start, end parameters"
 msgstr "%s sr, kr, ksmps inconsistentes"
 
-#: Opcodes/arrays.c:2289
+#: Opcodes/arrays.c:2397
 msgid "slice larger than original size"
 msgstr ""
 
-#: Opcodes/arrays.c:2292
+#: Opcodes/arrays.c:2400
 #, fuzzy
 msgid "slice increment must be positive"
 msgstr "valor incorrecto para 0dbfs: debe ser positivo."
 
-#: Opcodes/arrays.c:2361
+#: Opcodes/arrays.c:2469
 #, fuzzy, c-format
 msgid "%s not found"
 msgstr "Nombre %s no encontrado"
 
-#: Opcodes/arrays.c:2392
+#: Opcodes/arrays.c:2500
 msgid "map fn not found at k rate"
 msgstr ""
 
-#: Opcodes/arrays.c:2571
+#: Opcodes/arrays.c:2679
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2604
+#: Opcodes/arrays.c:2712
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2635
+#: Opcodes/arrays.c:2743
 #, fuzzy
 msgid "array sizes do not match\n"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:2659
+#: Opcodes/arrays.c:2767
 msgid "fft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2686
+#: Opcodes/arrays.c:2794
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2749
+#: Opcodes/arrays.c:2857
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:2927 Opcodes/arrays.c:2967 Opcodes/arrays.c:2999
+#: Opcodes/arrays.c:3035 Opcodes/arrays.c:3075 Opcodes/arrays.c:3107
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
-#: Opcodes/arrays.c:2960
+#: Opcodes/arrays.c:3068
 msgid "FFT size too small (min 64 samples)\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3027 Opcodes/arrays.c:3050
+#: Opcodes/arrays.c:3135 Opcodes/arrays.c:3158
 msgid "in array not 2-dimensional\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3039
+#: Opcodes/arrays.c:3147
 #, fuzzy
 msgid "requested row is out of range\n"
 msgstr "el número del dispositivo está fuera de rango"
 
-#: Opcodes/arrays.c:3064
+#: Opcodes/arrays.c:3172
 #, fuzzy
 msgid "requested col is out of range\n"
 msgstr "el número del dispositivo está fuera de rango"
 
-#: Opcodes/arrays.c:3097 Opcodes/arrays.c:3117
+#: Opcodes/arrays.c:3205 Opcodes/arrays.c:3225
 #, fuzzy
 msgid "Error: index out of range\n"
 msgstr "error: el número de dispositivo está fuera de rango"
 
-#: Opcodes/arrays.c:3154
+#: Opcodes/arrays.c:3262
 msgid "input array too small\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3207
+#: Opcodes/arrays.c:3315
 msgid "dct: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3214
+#: Opcodes/arrays.c:3322
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:3236
+#: Opcodes/arrays.c:3344
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3244
+#: Opcodes/arrays.c:3352
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
@@ -12210,11 +12212,11 @@ msgstr "Etiqueta CSD desconocida: %s\n"
 msgid "Could not find <CsoundSynthesizer> tag in CSD file.\n"
 msgstr "No se encontró la etiqueta <CsoundSynthesizer> en el archivo CSD.\n"
 
-#: Top/opcode.c:173
+#: Top/opcode.c:172
 msgid "Error creating opcode list"
 msgstr ""
 
-#: Top/opcode.c:180
+#: Top/opcode.c:179
 #, c-format
 msgid "%d opcodes\n"
 msgstr ""

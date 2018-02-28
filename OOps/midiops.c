@@ -30,7 +30,8 @@
 
 #define dv127   (FL(1.0)/FL(127.0))
 
-extern int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctls);
+extern int32_t m_chinsno(CSOUND *csound, int32_t chan,
+                         int32_t insno, int32_t reset_ctls);
 
 #define MIDI_VALUE(m,field) ((m != (MCHNBLK *) NULL) ? m->field : FL(0.0))
 
