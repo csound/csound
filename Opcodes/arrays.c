@@ -3147,6 +3147,22 @@ int32_t rows_perf(CSOUND *csound, FFT *p){
                                   Str("requested row is out of range\n"));
 }
 
+int32_t rows_i(CSOUND *csound, FFT *p) {
+  if(rows_init(csound,p) == OK) {
+   int32_t start = *((MYFLT *)p->in2);
+   if (LIKELY(start < p->in->sizes[0])) {
+      int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
+      start *= p->in->sizes[1];
+      memcpy(p->out->data,p->in->data+start,bytes);
+      return OK;
+    }
+    else return csound->InitError(csound,
+                                  Str("requested row is out of range\n"));
+
+  }
+  else return NOTOK;
+}
+
 int32_t cols_init(CSOUND *csound, FFT *p){
     if (LIKELY(p->in->dimensions == 2)){
       int32_t siz = p->in->sizes[0];
@@ -3171,6 +3187,24 @@ int32_t cols_perf(CSOUND *csound, FFT *p){
     else return csound->PerfError(csound,  p->h.insdshead,
                                   Str("requested col is out of range\n"));
 }
+
+int32_t cols_i(CSOUND *csound, FFT *p){
+  if(cols_init(csound, p) == OK) {
+  int32_t start = *((MYFLT *)p->in2);
+    if (LIKELY(start < p->in->sizes[1])) {
+        int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
+        for(j=0,i=start; j < len; i+=collen, j++) {
+            p->out->data[j] = p->in->data[i];
+        }
+        return OK;
+    }
+    else return csound->InitError(csound, 
+                                  Str("requested col is out of range\n"));
+  }
+  else return NOTOK;
+}
+
+
 static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p, int32_t rows, int32_t columns)
 {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -3209,6 +3243,20 @@ int32_t set_rows_perf(CSOUND *csound, FFT *p){
     return OK;
 }
 
+int32_t set_rows_i(CSOUND *csound, FFT *p){
+  int32_t start = *((MYFLT *)p->in2);
+  set_rows_init(csound, p);
+  if (UNLIKELY(start < 0 || start >= p->out->sizes[0]))
+        return csound->InitError(csound,
+                                 Str("Error: index out of range\n"));
+    int32_t bytes =  p->in->sizes[0]*sizeof(MYFLT);
+    start *= p->out->sizes[1];
+    memcpy(p->out->data+start,p->in->data,bytes);
+    return OK;
+ 
+}
+
+
 int32_t set_cols_init(CSOUND *csound, FFT *p){
     int32_t siz = p->in->sizes[0];
     int32_t col = *((MYFLT *)p->in2);
@@ -3225,6 +3273,18 @@ int32_t set_cols_perf(CSOUND *csound, FFT *p){
                                  Str("Error: index out of range\n"));
 
 
+    int32_t j,i,len =  p->out->sizes[0];
+    for(j=0,i=start; j < len; i+=len, j++)
+        p->out->data[i] = p->in->data[j];
+    return OK;
+}
+
+int32_t set_cols_i(CSOUND *csound, FFT *p) {
+    int32_t start = *((MYFLT *)p->in2);
+    set_cols_init(csound,p);
+    if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
+        return csound->InitError(csound, 
+                                 Str("Error: index out of range\n"));
     int32_t j,i,len =  p->out->sizes[0];
     for(j=0,i=start; j < len; i+=len, j++)
         p->out->data[i] = p->in->data[j];
@@ -3790,12 +3850,20 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_iceps, (SUBR) perf_iceps, NULL},
     {"ceps", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) init_ceps, (SUBR) perf_ceps, NULL},
+    {"getrow", sizeof(FFT), 0, 1, "i[]","i[]i",
+     (SUBR) rows_i, NULL, NULL},
     {"getrow", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) rows_init, (SUBR) rows_perf, NULL},
+    {"getcol", sizeof(FFT), 0, 1, "i[]","i[]i",
+     (SUBR) cols_i, NULL, NULL},
     {"getcol", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) cols_init, (SUBR) cols_perf, NULL},
+    {"setrow", sizeof(FFT), 0, 1, "i[]","i[]i",
+     (SUBR) set_rows_i, NULL, NULL},
     {"setrow", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) set_rows_init, (SUBR) set_rows_perf, NULL},
+    {"setcol", sizeof(FFT), 0, 1, "i[]","i[]i",
+     (SUBR) set_cols_i, NULL, NULL},
     {"setcol", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL},
     {"shiftin", sizeof(FFT), 0, 3, "k[]","a",
