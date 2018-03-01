@@ -678,7 +678,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     csound->FileClose(csound, fd);
     csound->Message(csound, "%s '%s' (sr = %d Hz, %d %s, %" PRId64 " %s) %s",
                     Str("File"), p->fullName, sfinfo->samplerate,
-                    sfinfo->channels, Str("channel(s)"),sfinfo->frames,
+                    sfinfo->channels, Str("channel(s)"), (int64_t)sfinfo->frames,
                     Str("sample frames"),
                     Str("loaded into memory\n"));
 
