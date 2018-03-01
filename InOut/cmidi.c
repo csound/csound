@@ -267,7 +267,8 @@ static int MidiOutDeviceClose(CSOUND *csound, void *userData)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
-    //csound->Message(csound, "%s", Str("CoreMIDI real time MIDI plugin for Csound\n"));
+    //csound->Message(csound, "%s",
+    //                Str("CoreMIDI real time MIDI plugin for Csound\n"));
     IGN(csound);
     return 0;
 }

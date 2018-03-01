@@ -1056,7 +1056,8 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       /* redefinition does not raise an error now, just a warning */
        if (UNLIKELY(csound->oparms->odebug))
          csound->Warning(csound,
-                         Str("instr %"PRIi32" redefined, replacing previous definition"),
+                         Str("instr %"PRIi32" redefined, "
+                             "replacing previous definition"),
                          inm->instno);
       /* here we should move the old instrument definition into a deadpool
          which will be checked for active instances and freed when there are no
@@ -1212,7 +1213,8 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       if (!merge) synterr(csound, Str("instr %d redefined\n"), instrNum);
       if (UNLIKELY(instrNum && csound->oparms->odebug))
         csound->Warning(csound,
-                        Str("instr %"PRIi32" redefined, replacing previous definition"),
+                        Str("instr %"PRIi32" redefined, "
+                            "replacing previous definition"),
                         instrNum);
       /* inherit active & maxalloc flags */
         instrtxt->active = engineState->instrtxtp[instrNum]->active;

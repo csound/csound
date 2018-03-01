@@ -1070,8 +1070,8 @@ static void bfstages(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
   }
 }
 
-static void fftrecurs(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride, int32_t NDiffU,
-                      int32_t StageCnt)
+static void fftrecurs(MYFLT *ioptr, int32_t M, MYFLT *Utbl, int32_t Ustride,
+                      int32_t NDiffU, int32_t StageCnt)
 {
   /* recursive bfstages calls to maximize on chip cache efficiency */
   int32_t i1;

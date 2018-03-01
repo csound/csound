@@ -282,11 +282,11 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
         note_off(csound, p->last_chn, p->last_num, p->last_vel);
         p->fl_note_expired = TRUE;
       }
-      else {
-        int32_t temp;
-        int32_t curr_chn = (temp = abs((int32_t)*p->kchn-1)) < NUMCHN ? temp : NUMCHN-1;
-        int32_t curr_num = (temp = abs((int32_t)*p->knum)) < 128    ? temp : 127;
-        int32_t curr_vel = (temp = abs((int32_t)*p->kvel)) < 128    ? temp : 127;
+      else { 
+        int32_t tt;
+        int32_t curr_chn = (tt = abs((int32_t)*p->kchn-1)) < NUMCHN ? tt : NUMCHN-1;
+        int32_t curr_num = (tt = abs((int32_t)*p->knum)) < 128    ? tt : 127;
+        int32_t curr_vel = (tt = abs((int32_t)*p->kvel)) < 128    ? tt : 127;
 
         if (  p->last_chn != curr_chn
                || p->last_num != curr_num
@@ -449,11 +449,11 @@ int32_t kon2(CSOUND *csound, KON2 *p)
 {
     /*
         if (p->fl_first_note) {
-          register int32_t temp;
+          register int32_t tt;
 
-          p->last_chn = (temp = abs((int32_t)*p->kchn)) < NUMCHN  ? temp : NUMCHN-1;
-          p->last_num = (temp = abs((int32_t)*p->knum)) < 128     ? temp : 127;
-          p->last_vel = (temp = abs((int32_t)*p->kvel)) < 128     ? temp : 127;
+          p->last_chn = (tt = abs((int32_t)*p->kchn)) < NUMCHN  ? tt : NUMCHN-1;
+          p->last_num = (tt = abs((int32_t)*p->knum)) < 128     ? tt : 127;
+          p->last_vel = (tt = abs((int32_t)*p->kvel)) < 128     ? tt : 127;
           p->fl_first_note   = FALSE;
           p->fl_note_expired = FALSE;
 
@@ -469,11 +469,11 @@ int32_t kon2(CSOUND *csound, KON2 *p)
         p->fl_note_expired = TRUE;
       }
       else {
-        int32_t temp;
+        int32_t tt;
 
-        int32_t curr_chn = (temp = abs((int32_t)*p->kchn-1)) <= NUMCHN ? temp : NUMCHN;
-        int32_t curr_num = (temp = abs((int32_t)*p->knum)) < 128    ? temp : 127;
-        int32_t curr_vel = (temp = abs((int32_t)*p->kvel)) < 128    ? temp : 127;
+        int32_t curr_chn = (tt = abs((int32_t)*p->kchn-1)) <= NUMCHN ? tt : NUMCHN;
+        int32_t curr_num = (tt = abs((int32_t)*p->knum)) < 128    ? tt : 127;
+        int32_t curr_vel = (tt = abs((int32_t)*p->kvel)) < 128    ? tt : 127;
 
         if ((int32_t)(*p->ktrig +FL(0.5)) != 0  )/* i.e. equal to 1  */
                                 /*   p->last_chn != curr_chn
