@@ -472,7 +472,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
                         Str("channel(s)"),
-                        sfinfo.frames,
+                        (int64_t)sfinfo.frames,
                         Str("sample frames\n"));
       }
     }
@@ -488,7 +488,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
                         Str("channel(s)"),
-                        sfinfo.frames,
+                        (int64_t)sfinfo.frames,
                         Str("sample frames\n"));
       }
     }
@@ -1750,7 +1750,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stri
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
                         Str("channel(s)"),
-                        sfinfo.frames,
+                        (int64_t)sfinfo.frames,
                         Str("sample frames\n"));
       }
     }
@@ -1766,7 +1766,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stri
                         csound->GetFileName(fd),
                         sfinfo.samplerate, sfinfo.channels,
                         Str("channel(s)"),
-                        sfinfo.frames,
+                        (int64_t)sfinfo.frames,
                         Str("sample frames\n"));
       }
     }
