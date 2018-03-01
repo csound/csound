@@ -4248,9 +4248,9 @@ msgid "Excess channels ignored\n"
 msgstr "Canaux en excès ignorés\n"
 
 #: OOps/aops.c:1965
-#, fuzzy, c-format
+#, c-format
 msgid "out: number of channels truncated from %d to %d"
-msgstr "Impossible de fixer le nombre de canaux sur la carte son"
+msgstr "out: nombre de canaux tronqué de %d à %d"
 
 #: OOps/aops.c:2097
 msgid "Unknown function called"
