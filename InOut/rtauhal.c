@@ -469,7 +469,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       AudioOutputUnitStart(*aunit);
       csound->Message(csound,
               "***** AuHAL module: input device open with %d buffer frames\n",
-                      bufframes);
+                      (int) bufframes);
     }
     if(!cdata->disp)
       csound->Message(csound,
