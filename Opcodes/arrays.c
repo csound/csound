@@ -3198,7 +3198,7 @@ int32_t cols_i(CSOUND *csound, FFT *p){
         }
         return OK;
     }
-    else return csound->InitError(csound, 
+    else return csound->InitError(csound,
                                   Str("requested col is out of range\n"));
   }
   else return NOTOK;
@@ -3253,7 +3253,7 @@ int32_t set_rows_i(CSOUND *csound, FFT *p){
     start *= p->out->sizes[1];
     memcpy(p->out->data+start,p->in->data,bytes);
     return OK;
- 
+
 }
 
 
@@ -3283,7 +3283,7 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
     set_cols_init(csound,p);
     if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
-        return csound->InitError(csound, 
+        return csound->InitError(csound,
                                  Str("Error: index out of range\n"));
     int32_t j,i,len =  p->out->sizes[0];
     for(j=0,i=start; j < len; i+=len, j++)

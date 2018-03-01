@@ -370,7 +370,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     double  polyReal[MAXPOLES], polyImag[MAXPOLES];
 #endif
     LPANAL_GLOBALS *lpg;
-    int32_t     new_format=0;
+    int32_t new_format=0;
     FILE    *oFd;
 
     lpc.debug   = 0;
@@ -563,10 +563,10 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       lph->headersize = LPBUFSIZ;
 
     /* Write header to disk */
-    if (new_format) {
-      fprintf(oFd, "LPANAL\n%d %d %d %d\n%f %f %f\n",
+    if (new_format) {           /* ****This is not accurate wrt doubles**** */
+      fprintf(oFd, "LPANAL\n%d %d %d %d\n%a %a %a\n",
               lph->headersize, lph->lpmagic, lph->npoles, lph->nvals,
-              lph->framrate, lph->srate, lph->duration);
+              (double)lph->framrate, (double)lph->srate, (double)lph->duration);
     }
     else if ((nb = write(ofd,(char *)lph,(int32_t)lph->headersize)) <
         lph->headersize)
@@ -727,11 +727,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       if (new_format) {
         uint32_t i, j;
         for (i=0, j=0; i<osiz; i+=sizeof(MYFLT), j++)
-          #if defined(USE_DOUBLE)
-          fprintf(oFd, "%.17lg\n", coef[j]);
-          #else
-          fprintf(oFd, "%.9f\n", coef[j]);
-          #endif
+          fprintf(oFd, "%a\n", (double)coef[j]);
       }
       else
         if (UNLIKELY((nb = write(ofd, (char *)coef, osiz)) != osiz))

@@ -140,7 +140,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
                                      "SFDIR", CSFTYPE_CVANAL, 0);
       if (UNLIKELY(ofd_handle == NULL)) {         /* open the output CV file */
         return quit(csound, Str("cannot create output file"));
-      }                                           /* & wrt hdr into the file */
+      }                                          /* & wrt hdr into the file */
 #if defined(USE_DOUBLE)
       fprintf(ofd, "CVANAL\n%d %d %d %.17lg %d %d %d %d\n",
               cvh->headBsize,              /* total number of bytes of data */
@@ -229,11 +229,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
         int32 i, l;
         l = (cvh->dataBsize/nchanls)/sizeof(MYFLT);
         for (i=0; i<l; i++) {
-            #if defined(USE_DOUBLE)
-            fprintf(ofd, "%.17lg\n", (double)outbuf[i]);
-            #else
-            fprintf(ofd, "%.9g\n", (double)outbuf[i]);
-            #endif
+            fprintf(ofd, "%a\n", (double)outbuf[i]);
         }
       }
       else
