@@ -289,8 +289,8 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
                                                             * sizeof(MYFLT));
       }
       snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),
-                      (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
-                      p->dbout ? Str("db") : Str("mag"));
+               (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
+               p->dbout ? Str("db") : Str("mag"));
       if(maxbin == 0) maxbin = p->ncoefs;
       if(minbin > maxbin) minbin = 0;
       p->npts = maxbin - minbin;

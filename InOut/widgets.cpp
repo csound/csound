@@ -1124,9 +1124,10 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
       opcode_name = fld->opcode_name = ((OPDS *) (v.opcode))->optext->t.opcod;
       if (UNLIKELY(opcode_name.c_str() == NULL))
         {
-          csound->InitError(csound, "%s", Str("Invalid snapshot. Perhaps you modified "
-                                        "orchestra widget code after you saved "
-                                        "the snapshot bank."));
+          csound->InitError(csound, "%s",
+                            Str("Invalid snapshot. Perhaps you modified "
+                                "orchestra widget code after you saved "
+                                "the snapshot bank."));
           goto err;
         }
       else if (opcode_name == "FLslider") {
@@ -2297,7 +2298,8 @@ static void fl_callbackExecButton(Fl_Button* w, void *a)
         v[i] = NULL;
         csound->Free(csound, command); // Otherwise will lose space
         if (UNLIKELY(csound->RunCommand(v, 1)<0))
-          p->csound->Message(p->csound, "%s", Str("Error: Unable to fork process\n"));
+          p->csound->Message(p->csound, "%s",
+                             Str("Error: Unable to fork process\n"));
       }
     }
 #endif
@@ -5026,8 +5028,8 @@ extern "C" {
           slider_type = slider_type - 20;
         }
         if (UNLIKELY(slider_type > 10 && iexp == EXP_)) {
-          csound->Warning(csound,
-                          "%s", Str("FLslider exponential, using non-labeled slider"));
+          csound->Warning(csound, "%s",
+                          Str("FLslider exponential, using non-labeled slider"));
           slider_type -= 10;
         }
         if (slider_type <= 10)
@@ -5385,8 +5387,8 @@ extern "C" {
       }
       if (numslid == 0) numslid = (int)(q->elements - *p->startSlid);
       if (UNLIKELY( q->elements > startSlid + numslid)) {
-        return csound->InitError(csound,
-                                 "%s", Str("FLslidBnkSet: too many sliders to reset!"));
+        return csound->InitError(csound, "%s",
+                                 Str("FLslidBnkSet: too many sliders to reset!"));
       }
       for (int j = startSlid, k = startInd; j< numslid + startSlid; j++, k++) {
 
@@ -5455,8 +5457,8 @@ extern "C" {
 
       if (numslid == 0) numslid = (int)(q->elements - *p->startSlid);
       if (UNLIKELY( q->elements > startSlid + numslid)) {
-        return csound->InitError(csound,
-                                 "%s", Str("FLslidBnkSet: too many sliders to reset!"));
+        return csound->InitError(csound, "%s",
+                                 Str("FLslidBnkSet: too many sliders to reset!"));
       }
 
       for (int j = startSlid, k = startInd; j< numslid + startSlid; j++, k++) {
@@ -5529,14 +5531,14 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->q->ioutable)) != NULL))
         p->outable = ftp->ftable;
       else {
-        return csound->InitError(csound,
-                                 "%s", Str("FLsldBnkSetk: invalid outable number"));
+        return csound->InitError(csound, "%s",
+                                 Str("FLsldBnkSetk: invalid outable number"));
       }
 
       if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
       if (UNLIKELY( p->q->elements < p->startslid + p->numslid)) {
-        return csound->InitError(csound,
-                                 "%s", Str("FLslidBnkSetk: too many sliders to reset!"));
+        return csound->InitError(csound, "%s",
+                                Str("FLslidBnkSetk: too many sliders to reset!"));
       }
       return OK;
   }
@@ -5622,15 +5624,14 @@ extern "C" {
       if (LIKELY((ftp = csound->FTnp2Find(csound, p->q->ioutable)) != NULL))
         p->outable = ftp->ftable;
       else {
-        return csound->InitError(csound,
-                                 "%s", Str("FLslidBnkSetk: invalid outable number"));
+        return csound->InitError(csound, "%s",
+                                 Str("FLslidBnkSetk: invalid outable number"));
       }
 
       if (p->numslid == 0) p->numslid = p->q->elements - p->startslid;
       if (UNLIKELY( p->q->elements < p->startslid + p->numslid)) {
-        return csound->InitError(csound,
-                                 "%s", Str("FLslidBnkSetk:"
-                                     " too many sliders to reset!"));
+        return csound->InitError(csound, "%s",
+                                 Str("FLslidBnkSetk: too many sliders to reset!"));
       }
       return OK;
   }
@@ -5701,8 +5702,8 @@ extern "C" {
       case -1: // EXP
         p->expx = EXP_;
         if (UNLIKELY(*p->ioutx_min == 0 || *p->ioutx_max==0))
-          return csound->InitError(csound,
-                                   "%s", Str("FLxyin: none of X limits can be zero in"
+          return csound->InitError(csound, "%s",
+                                   Str("FLxyin: none of X limits can be zero in"
                                        " exponential mode!"));
         p->basex = pow((double) (*p->ioutx_max / *p->ioutx_min),
                        (double) (1/p->rangex));

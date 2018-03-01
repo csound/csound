@@ -229,7 +229,8 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
       } else ADC_channels(csound, dev_info->maxInputChannels);
     }
     else
-      csound->Message(csound, "%s", Str("PortAudio: failed to obtain device info.\n"));
+      csound->Message(csound, "%s",
+                      Str("PortAudio: failed to obtain device info.\n"));
     return devNum;
 }
 
@@ -487,7 +488,8 @@ static int rtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
     }
     if (pabs->paStream == NULL) {
       if (UNLIKELY(paBlockingReadWriteOpen(csound) != 0))
-        csound->Die(csound, "%s", Str("Failed to initialise real time audio input"));
+        csound->Die(csound, "%s",
+                    Str("Failed to initialise real time audio input"));
     }
 
     do {
@@ -798,7 +800,8 @@ static void rtplay_blocking(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       dev->buf[i] = (float) outbuf[i];
     err = (int) Pa_WriteStream(dev->handle, dev->buf, (unsigned long) n);
     if (UNLIKELY(err != (int) paNoError && (csound->GetMessageLevel(csound) & 4)))
-      csound->Warning(csound, "%s", Str("Buffer underrun in real-time audio output"));
+      csound->Warning(csound, "%s",
+                      Str("Buffer underrun in real-time audio output"));
 }
 
 /* close the I/O device entirely  */
