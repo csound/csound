@@ -183,7 +183,8 @@ static PSCSNU *listget(CSOUND *csound, int32_t id)
         break;
       i = i->next;
       if (UNLIKELY(i == NULL)){
-        csound->ErrorMsg(csound, "%s", Str("Eek ... scan synthesis id was not found"));
+        csound->ErrorMsg(csound, "%s",
+                         Str("Eek ... scan synthesis id was not found"));
         return NULL;
       }
     }
@@ -218,8 +219,9 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
                                "%s", Str("scanu: Could not find ifncentr table"));
     }
     if (UNLIKELY(f->flen != len))
-      return csound->InitError(csound, "%s", Str("scanu: Parameter tables should all "
-                                           "have the same length"));
+      return csound->InitError(csound, "%s",
+                               Str("scanu: Parameter tables should all "
+                                   "have the same length"));
     p->c = f->ftable;
 
     /* Damping */
@@ -228,8 +230,9 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
                                "%s", Str("scanu: Could not find ifndamp table"));
     }
     if (UNLIKELY(f->flen != len))
-      return csound->InitError(csound, "%s", Str("scanu: Parameter tables should all "
-                                           "have the same length"));
+      return csound->InitError(csound, "%s",
+                               Str("scanu: Parameter tables should all "
+                                   "have the same length"));
     p->d = f->ftable;
 
     /* Spring stiffness */
@@ -245,7 +248,8 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
      /* Check that the size is good */
       if (UNLIKELY(f->flen < len*len)) {
         //printf("len = %d len*len = %d flen = %d\n", len, len*len, f->flen);
-        return csound->InitError(csound, "%s", Str("scanu: Spring matrix is too small"));
+        return csound->InitError(csound, "%s",
+                                 Str("scanu: Spring matrix is too small"));
       }
 
       /* Setup an easier addressing scheme */
@@ -305,8 +309,9 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
                                  "%s", Str("scanu: Could not find ifnvel table"));
       }
       if (UNLIKELY(f->flen != len)) {
-        return csound->InitError(csound, "%s", Str("scanu: Parameter tables should "
-                                             "all have the same length"));
+        return csound->InitError(csound, "%s",
+                                 Str("scanu: Parameter tables should "
+                                     "all have the same length"));
       }
       for (i = 0 ; i != len ; i++)
         p->v[i] = f->ftable[i];
@@ -481,8 +486,9 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     /* Check that trajectory is within bounds */
     for (i = 0 ; i != p->tlen ; i++)
       if (UNLIKELY(t->ftable[i] < 0 || t->ftable[i] >= p->p->len))
-        return csound->InitError(csound, "%s", Str("vermp: Trajectory table includes "
-                                             "values out of range"));
+        return csound->InitError(csound, "%s",
+                                 Str("vermp: Trajectory table includes "
+                                     "values out of range"));
     /* Allocate memory and pad to accomodate interpolation */
                               /* Note that the 4 here is a hack -- jpff */
     csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32), &p->aux_t);

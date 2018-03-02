@@ -662,7 +662,8 @@ static int32_t SizeofSanityCheck(void)
     static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
 
     if (sizeof(sdif_int32) != 4) {
-      sprintf(errorMessage, "sizeof(sdif_int32) is %d!", (int32_t)sizeof(sdif_int32));
+      sprintf(errorMessage,
+              "sizeof(sdif_int32) is %d!", (int32_t)sizeof(sdif_int32));
       OOK = 0;
     }
 

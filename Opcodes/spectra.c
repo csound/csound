@@ -647,7 +647,7 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
       *fp++ = FL(0.0);
 
     csound->Warning(csound, Str("specptrk: %d freqs, %d%s ptls at "),
-                            (int32_t)nfreqs, (int32_t)nptls, inc==2 ? Str(" odd") : "");
+                    (int32_t)nfreqs, (int32_t)nptls, inc==2 ? Str(" odd") : "");
     for (nn = 0; nn < nptls; nn++)
       csound->Warning(csound, "\t%d", p->pdist[nn]);
     if (p->rolloff) {
@@ -710,7 +710,8 @@ int32_t specptrk(CSOUND *csound, SPECPTRK *p)
       if (UNLIKELY(inp==NULL)) goto err1;             /* RWD fix */
       kvar = FABS(*p->kvar);
       kval = p->playing == PLAYING ? p->kval : p->kvalsav;
-      lobin = (int32_t)((kval-kvar) * inspecp->nfreqs); /* set lims of frq interest */
+      lobin =
+        (int32_t)((kval-kvar) * inspecp->nfreqs); /* set lim of frq interest */
       hibin = (int32_t)((kval+kvar) * inspecp->nfreqs);
       if ((flop = p->oct0p + lobin) < p->flop)  /*       as fundp bin pntrs */
         flop = p->flop;
