@@ -462,3 +462,4 @@ int32_t midiarp(CSOUND *, void *);
 int32_t losset_phs(CSOUND *, void *);
 int32_t loscil_phs(CSOUND *, void *);
 int32_t loscil3_phs(CSOUND *, void *);
+int32_t balance2(CSOUND *, void *);

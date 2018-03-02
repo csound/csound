@@ -127,15 +127,16 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   if(csound->oparms->realtime) {
     csoundLockMutex(csound->init_pass_threadlock);
   }
-  ATOMIC_SET8(ip->actflg, 0);
+  csound->curip = ip;
   csound->ids = ids;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
          (csound->ids->iopadr != (SUBR) rireturn)){
-    if (UNLIKELY(csound->oparms->odebug))
+   if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "reinit %s:\n",
                       csound->ids->optext->t.oentry->opname);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
+  
   ATOMIC_SET8(ip->actflg, 1);
   csound->reinitflag = ip->reinitflag = 0;
   if(csound->oparms->realtime)
@@ -183,7 +184,6 @@ uintptr_t event_insert_thread(void *p) {
         if (inst[rp].type == 3)  {
           INSDS *ip = inst[rp].ip;
           OPDS *ids = inst[rp].ids;
-          ATOMIC_SET(ip->init_done, 0);
           csoundSpinLock(&csound->alloc_spinlock);
           reinit_pass(csound, ip, ids);
           csoundSpinUnLock(&csound->alloc_spinlock);
@@ -192,17 +192,17 @@ uintptr_t event_insert_thread(void *p) {
         if (inst[rp].type == 2)  {
           INSDS *ip = inst[rp].ip;
           ATOMIC_SET(ip->init_done, 0);
-          csoundSpinLock(&csound->alloc_spinlock);
+          csoundSpinLock(&csound->alloc_spinlock);	  
           init_pass(csound, ip);
           csoundSpinUnLock(&csound->alloc_spinlock);
           ATOMIC_SET(ip->init_done, 1);
         }
-        else if(inst[rp].type == 1) {
+        if(inst[rp].type == 1) {
           csoundSpinLock(&csound->alloc_spinlock);
           insert_midi(csound, inst[rp].insno, inst[rp].chn, &inst[rp].mep);
           csoundSpinUnLock(&csound->alloc_spinlock);
         }
-        else {
+       if(inst[rp].type == 0)  {
           csoundSpinLock(&csound->alloc_spinlock);
           insert_event(csound, inst[rp].insno, &inst[rp].blk);
           csoundSpinUnLock(&csound->alloc_spinlock);
@@ -220,7 +220,9 @@ uintptr_t event_insert_thread(void *p) {
        items--;
        rpm = rpm + 1 < QUEUESIZ ? rpm + 1 : 0;
      }
+     
   }
+  
   csoundSetMessageCallback(csound, csoundMessageCallback);
   return (uintptr_t) NULL;
 }

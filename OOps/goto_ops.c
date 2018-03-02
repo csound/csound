@@ -130,6 +130,8 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     }
     else {
       uint64_t wp = csound->alloc_queue_wp;
+      ATOMIC_SET(p->h.insdshead->init_done, 0);
+      ATOMIC_SET8(p->h.insdshead->actflg, 0);
       csound->alloc_queue[wp].ip = p->h.insdshead;
       csound->alloc_queue[wp].ids = p->lblblk->prvi;
       csound->alloc_queue[wp].type = 3;

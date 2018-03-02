@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # change this if installation needs to go elsewhere
-export PGK_CONFIG_PATH=$HOME/lib/pkgconfig
-PREFIX=$HOME
+export PGK_CONFIG_PATH=/usr/local/lib/pkgconfig
+PREFIX=/usr/local
 cd build
-C_FLAGS="-arch i386 -arch x86_64 -mmacosx-version-min=10.4"
+C_FLAGS="-arch i386 -arch x86_64 -mmacosx-version-min=10.7"
 
 # PORTAUDIO
 if [ ! -f portaudio/.complete ]; then
