@@ -451,7 +451,8 @@ static int pylevali_irate(CSOUND *csound, PYEVAL *p)
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
 
-    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
+    result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
     }
@@ -479,7 +480,8 @@ static int pyevalt_krate(CSOUND *csound, PYEVALT *p)
       return OK;
     }
 
-    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';result = eval_string_in_given_context(source, 0);
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
+    result = eval_string_in_given_context(source, 0);
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
     }

@@ -629,7 +629,8 @@ int32_t vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
 {
     int32_t dim = (int32_t) *p->dim;
     MYFLT  layout = (*p->dim-dim)*100;
-    return vbap_ls_init_sr(csound, dim, (int32_t) *p->ls_amount, p->f, round(layout));
+    return vbap_ls_init_sr(csound, dim, (int32_t) *p->ls_amount,
+                           p->f, round(layout));
 }
 
 int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
