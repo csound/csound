@@ -2477,7 +2477,7 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
     opc = find_opcode_new(csound, p->str->data, "i", "i");
 
     if (UNLIKELY(opc == NULL))
-      return csound->InitError(csound, "%s", Str("%s not found"), p->str->data);
+      return csound->InitError(csound, Str("%s not found"), p->str->data);
     p->opc = opc;
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
