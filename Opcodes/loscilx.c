@@ -35,7 +35,8 @@ typedef struct SNDLOAD_OPCODE_ {
     MYFLT   *iLoopMode1, *iLoopStart1, *iLoopEnd1;
 } SNDLOAD_OPCODE;
 
-static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p, int32_t isstring)
+static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
+                                    int32_t isstring)
 {
     char        *fname;
     SNDMEMFILE  *sf;

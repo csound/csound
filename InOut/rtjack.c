@@ -1057,7 +1057,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
     /* allocate and initialise globals */
     if (UNLIKELY(oparms.msglevel & 0x400))
-      csound->Message(csound, "%s", Str("JACK real-time audio module for Csound\n"));
+      csound->Message(csound, "%s",
+                      Str("JACK real-time audio module for Csound\n"));
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtjackGlobals",
                                               sizeof(RtJackGlobals)) != 0)) {
       csound->ErrorMsg(csound, "%s", Str(" *** rtjack: error allocating globals"));
@@ -1122,7 +1123,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
       csound->Message(csound, "%s", Str("JACK MIDI module for Csound\n"));
     if (csound->CreateGlobalVariable(csound, "_rtjackMIDIGlobals",
                                      sizeof(RtJackMIDIGlobals)) != 0) {
-      csound->ErrorMsg(csound, "%s", Str(" *** rtjack MIDI: error allocating globals"));
+      csound->ErrorMsg(csound, "%s",
+                       Str(" *** rtjack MIDI: error allocating globals"));
       return -1;
     }
     pm = (RtJackMIDIGlobals*)
@@ -1210,8 +1212,8 @@ static int midi_in_open(CSOUND *csound,
     if (UNLIKELY((jack_client =
                  jack_client_open(clientName, 0, NULL)) == NULL)){
       *userData = NULL;
-      csound->ErrorMsg(csound,
-                       "%s", Str("Jack MIDI module: failed to create client for input"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("Jack MIDI module: failed to create client for input"));
       return NOTOK;
     }
 
@@ -1222,8 +1224,8 @@ static int midi_in_open(CSOUND *csound,
                                                 0)) == NULL)){
       jack_client_close(jack_client);
       *userData = NULL;
-      csound->ErrorMsg(csound,
-                       "%s", Str("Jack MIDI module: failed to register input port"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("Jack MIDI module: failed to register input port"));
       return NOTOK;
     }
 
@@ -1252,7 +1254,8 @@ static int midi_in_open(CSOUND *csound,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       *userData = NULL;
-      csound->ErrorMsg(csound, "%s", Str("Jack MIDI module: failed to activate input"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("Jack MIDI module: failed to activate input"));
       return NOTOK;
     }
 
@@ -1322,8 +1325,8 @@ static int midi_out_open(CSOUND *csound, void **userData,
     if(UNLIKELY((jack_client =
                  jack_client_open(clientName, 0, NULL)) == NULL)){
       *userData = NULL;
-      csound->ErrorMsg(csound,
-                       "%s", Str("Jack MIDI module: failed to create client for output"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("Jack MIDI module: failed to create client for output"));
       return NOTOK;
     }
 
@@ -1334,8 +1337,8 @@ static int midi_out_open(CSOUND *csound, void **userData,
                                                 0)) == NULL)){
       jack_client_close(jack_client);
       *userData = NULL;
-      csound->ErrorMsg(csound,
-                       "%s", Str("Jack MIDI module: failed to register output port"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("Jack MIDI module: failed to register output port"));
       return NOTOK;
     }
 
@@ -1364,7 +1367,8 @@ static int midi_out_open(CSOUND *csound, void **userData,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       *userData = NULL;
-      csound->ErrorMsg(csound, "%s", Str("Jack MIDI module: failed to activate output"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("Jack MIDI module: failed to activate output"));
       return NOTOK;
     }
 

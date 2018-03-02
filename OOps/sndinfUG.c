@@ -108,8 +108,8 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int32_t stri
         fd = csound->PVOC_OpenFile(csound, sfname, &pvdata, &fmt);
         if (fd >= 0) {
           hdr->frames =
-              (sf_count_t) (((int32_t)csound->PVOC_FrameCount(csound, fd)
-                             / (int32_t)fmt.nChannels) * (sf_count_t)pvdata.dwOverlap);
+            (sf_count_t) (((int32_t)csound->PVOC_FrameCount(csound, fd)
+                           / (int32_t)fmt.nChannels)*(sf_count_t)pvdata.dwOverlap);
           hdr->samplerate = (int32_t)fmt.nSamplesPerSec;
           hdr->channels = (int32_t)fmt.nChannels;
           csound->PVOC_CloseFile(csound, fd);

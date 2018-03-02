@@ -137,7 +137,7 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
         buf[indx]            = in[n] + (yt1 * feedback);
         if (UNLIKELY(fd<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd                 = FL(1.0)/MAXDELAY;
-        fv1                  = indx - (CS_ESR / fd); /* Make sure inside the buffer */
+        fv1                  = indx - (CS_ESR/fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1                = fv1 + (MYFLT)p->maxd;
         }
@@ -157,7 +157,7 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
         buf[indx]            = in[n] + (yt1 * feedback);
         if (UNLIKELY(fd<FL(1.0)/MAXDELAY)) /* Avoid silly values jpff */
           fd                 = FL(1.0)/MAXDELAY;
-        fv1                  = indx - (CS_ESR / fd); /* Make sure inside the buffer */
+        fv1                  = indx - (CS_ESR/fd); /* Make sure inside the buffer */
         while (fv1 < 0) {
           fv1                = fv1 + (MYFLT)p->maxd;
         }

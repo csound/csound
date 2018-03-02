@@ -344,7 +344,8 @@ static inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
     return NULL;
 }
 
-void set_channel_data_ptr(CSOUND *csound, const char *name, void *ptr, int32_t newSize)
+void set_channel_data_ptr(CSOUND *csound,
+                          const char *name, void *ptr, int32_t newSize)
 {
     find_channel(csound, name)->data = (MYFLT *) ptr;
     find_channel(csound, name)->datasize = newSize;
@@ -652,7 +653,7 @@ static int32_t chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
     int32_t err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if(err == 0) {
-      p->lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+      p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
     strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
     }
     else
@@ -760,7 +761,7 @@ int32_t chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
     int32_t   err;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
-    p->lock =   (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+    p->lock =   (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
     if (LIKELY(!err)) {
       strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
       p->h.opadr = (SUBR) chnget_opcode_perf_k;
@@ -779,7 +780,7 @@ int32_t chnget_opcode_init_a(CSOUND *csound, CHNGET *p)
     p->pos = 0;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
-    p->lock =   (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+    p->lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
 
     if (LIKELY(!err)) {
       strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
@@ -820,7 +821,7 @@ int32_t chnget_opcode_perf_S(CSOUND *csound, CHNGET *p)
     char *s = ((STRINGDAT *) p->arg)->data;
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
-     p->lock =  (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+     p->lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
 
     if (UNLIKELY(err))
       return print_chn_err(p, err);
@@ -852,7 +853,7 @@ static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
     int32_t err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if(err == 0) {
-    p->lock =   (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+    p->lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
     strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
     }
     else
@@ -990,7 +991,7 @@ int32_t chnset_opcode_init_k(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
-      p->lock =  (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+      p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
       p->h.opadr = (SUBR) chnset_opcode_perf_k;
       return OK;
     }
@@ -1006,7 +1007,7 @@ int32_t chnset_opcode_init_a(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (!err) {
-      p->lock =  (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+      p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
       p->h.opadr = (SUBR) chnset_opcode_perf_a;
       return OK;
     }
@@ -1022,7 +1023,7 @@ int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
-      p->lock =  (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+      p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
       p->h.opadr = (SUBR) chnmix_opcode_perf;
       return OK;
     }
@@ -1039,7 +1040,7 @@ int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
     err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
-      p->lock =  (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+      p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
       p->h.opadr = (SUBR) chnclear_opcode_perf;
       return OK;
     }
@@ -1159,7 +1160,7 @@ int32_t chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
     }
     err = csoundSetControlChannelHints(csound, (char*) p->iname->data, hints);
     if (LIKELY(!err)) {
-      p->lock =  (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+      p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
       return OK;
     }
     if (err == CSOUND_MEMORY)
@@ -1206,7 +1207,7 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
     err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname->data, type);
     if (UNLIKELY(err))
       return print_chn_err(p, err);
-    p->lock =   (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
+    p->lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
     return OK;
 }
 

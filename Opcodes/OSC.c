@@ -132,12 +132,12 @@ static int32_t osc_send_set(CSOUND *csound, OSCSEND *p)
     /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > 31))
       return csound->InitError(csound, "%s", Str("Too many arguments to OSCsend"));
-    /* a-rate arguments are not allowed */
-    /* for (i = 0; i < p->INOCOUNT-5; i++) { */
-    /*   if (strcmp("a", csound->GetTypeForArg(p->arg[i])->varTypeName) == 0) { */
-    /*     return csound->InitError(csound, "%s", Str("No a-rate arguments allowed")); */
-    /*   } */
-    /* } */
+/* a-rate arguments are not allowed */
+/* for (i = 0; i < p->INOCOUNT-5; i++) { */
+/*   if (strcmp("a", csound->GetTypeForArg(p->arg[i])->varTypeName) == 0) { */
+/*     return csound->InitError(csound,"%s", Str("No a-rate arguments allowed")); */
+/*   } */
+/* } */
 
     if (*p->port<0)
       pp = NULL;
@@ -212,9 +212,11 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             csound->Message(csound, "%s", Str("Failed to set multicast"));
           }
 #elif defined(MSVC)
-          setsockopt((SOCKET)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+          setsockopt((SOCKET)p->addr, IPPROTO_IP, IP_MULTICAST_TTL,
+                     &ttl, sizeof(ttl));
 #else
-          setsockopt((uintptr_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+          setsockopt((uintptr_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL,
+                     &ttl, sizeof(ttl));
 #endif
         }
         csound->Free(csound, p->lhost);
@@ -335,13 +337,16 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             }
             // two parts needed
             {
-              void *dd = csound->Malloc(csound, len+sizeof(int32_t)*(1+ss->dimensions));
+              void *dd =
+                csound->Malloc(csound, len+sizeof(int32_t)*(1+ss->dimensions));
               memcpy(dd, &ss->dimensions, sizeof(int32_t));
-              memcpy((char*)dd+sizeof(int32_t), ss->sizes, sizeof(int32_t)*ss->dimensions);
+              memcpy((char*)dd+sizeof(int32_t), ss->sizes,
+ sizeof(int32_t)*ss->dimensions);
               memcpy((char*)dd+sizeof(int32_t)*(1+ss->dimensions), ss->data, len);
       /* printf("dd length = %d dimensions = %d, %d %d %.8x %.8x %.8x %.8x\n", */
       /*        len+sizeof(int32_t)*(1+ss->dimensions), ss->dimensions, */
-      /*        ((int32_t*)dd)[0], ((int32_t*)dd)[1], ((int32_t*)dd)[2], ((int32_t*)dd)[3], */
+      /*        ((int32_t*)dd)[0], ((int32_t*)dd)[1], ((int32_t*)dd)[2],*/
+      /* ((int32_t*)dd)[3], */
       /*        ((int32_t*)dd)[4], ((int32_t*)dd)[5]); */
               myblob = lo_blob_new(len, dd);
               csound->Free(csound, dd);

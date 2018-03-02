@@ -466,8 +466,8 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
     if (UNLIKELY(outlen>PVFFTSIZE)) /* Maximum transposition down is one octave */
                                     /* ..so we won't run into buf2Size problems */
       goto err2;
-    if (UNLIKELY(outlen<(int32_t)(2*CS_KSMPS))) /* minimum post-squeeze windowlength */
-      goto err3;
+    if (UNLIKELY(outlen<(int32_t)(2*CS_KSMPS)))
+      goto err3;               /* minimum post-squeeze windowlength */
     buf2Size = OPWLEN;     /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;
     if (frIndx > (MYFLT) p->maxFr) {    /* not past last one */

@@ -216,7 +216,8 @@ int32_t FareyLength (int32_t n);
 int32_t PrimeFactors (int32_t n, PFACTOR p[]);
 MYFLT Digest (int32_t n);
 void float2frac (CSOUND *csound, MYFLT in, int32_t *p, int32_t *q);
-void float_to_cfrac (CSOUND *csound, double r, int32_t n, int32_t a[], int32_t p[], int32_t q[]);
+void float_to_cfrac (CSOUND *csound, double r, int32_t n,
+                     int32_t a[], int32_t p[], int32_t q[]);
 
 /* a filter and table copy opcode for filtering tables containing
    Farey Sequences generated with fateytable GEN */
@@ -684,7 +685,8 @@ void float2frac (CSOUND *csound, MYFLT in, int32_t *num, int32_t *denom)
 }
 
 /* continued fraction expansion */
-void float_to_cfrac (CSOUND *csound, double r, int32_t n, int32_t a[], int32_t p[], int32_t q[])
+void float_to_cfrac (CSOUND *csound, double r, int32_t n,
+                     int32_t a[], int32_t p[], int32_t q[])
 {
     int32_t i;
     double r_copy;
