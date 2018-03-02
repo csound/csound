@@ -419,7 +419,9 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
                                               p->bufSize*p->nChannels*2,
                                               sizeof(MYFLT))) != NULL){
       DISKIN_INST **top, *current;
+#ifndef __EMSCRIPTEN__
       int32_t *start;
+#endif
       // allocate buffer
       n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
@@ -427,10 +429,9 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
       p->aOut_bufsize = CS_KSMPS;
-
+      top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST");
 #ifndef __EMSCRIPTEN__
-      if ((top=(DISKIN_INST **)csound->QueryGlobalVariable(csound,
-                                                           "DISKIN_INST")) == NULL){
+      if (top == NULL){
         csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
         *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
@@ -1688,7 +1689,9 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
                                               p->bufSize*p->nChannels*2,
                                               sizeof(MYFLT))) != NULL){
       DISKIN_INST **top, *current;
+#ifndef __EMSCRIPTEN__
       int32_t *start;
+#endif
       // allocate buffer
       n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
@@ -1696,11 +1699,9 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
       p->aOut_bufsize = CS_KSMPS;
-
+      top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY");
 #ifndef __EMSCRIPTEN__
-      if ((top=(DISKIN_INST **)
-           csound->QueryGlobalVariable(csound,
-                                       "DISKIN_INST_ARRAY")) == NULL){
+      if (top == NULL){
         csound->CreateGlobalVariable(csound,
                                      "DISKIN_INST_ARRAY", sizeof(DISKIN_INST *));
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound,
