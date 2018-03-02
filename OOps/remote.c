@@ -169,7 +169,8 @@ static int32_t callox(CSOUND *csound)
       goto error;
     }
 
-    ST(socksin) = (int32_t*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int32_t));
+    ST(socksin) = (int32_t*) csound->Calloc(csound,
+                                            (size_t)MAXREMOTES * sizeof(int32_t));
     if (UNLIKELY(ST(socksin) == NULL)) {
       csound->Message(csound, Str("insufficient memory to initialise incoming "
                                   "socket table."));
@@ -286,7 +287,8 @@ static int32_t CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to sen
 #else
     inet_aton((const char *)ipadrs, &(ST(to_addr).sin_addr));
 #endif
-    ST(to_addr).sin_port = htons((int32_t) ST(remote_port)); /* port we will listen on,
+    ST(to_addr).sin_port =
+      htons((int32_t) ST(remote_port)); /* port we will listen on,
                                                             network byte order */
     for (i=0; i<10; i++){
       if (UNLIKELY(connect(rfd, (struct sockaddr *) &ST(to_addr),
@@ -359,7 +361,7 @@ static int32_t SVopen(CSOUND *csound)
 #endif
 /*     ST(local_addr).sin_port = htons((int32_t)REMOT_PORT); */
     ST(local_addr).sin_port =
-      htons((int32_t) ST(remote_port)); /* port we will listen on, netwrk byt order */
+      htons((int32_t)ST(remote_port)); /* port we listen on, netwrk byte order */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind (socklisten,
               (struct sockaddr *) &ST(local_addr),
@@ -614,8 +616,8 @@ int32_t insSendevt(CSOUND *csound, EVTBLK *evt, int32_t rfd)
     else return OK;
 }
 
-int32_t insGlobevt(CSOUND *csound, EVTBLK *evt)  /* send an event to all remote fd's */
-{
+int32_t insGlobevt(CSOUND *csound, EVTBLK *evt)
+{  /* send an event to all remote fd's */
     int32_t nn;
     for (nn = 0; nn < ST(insrfd_count); nn++) {
       if (UNLIKELY(insSendevt(csound, evt, ST(insrfd_list)[nn]) == NOTOK))
@@ -639,8 +641,8 @@ int32_t MIDIsendevt(CSOUND *csound, MEVENT *evt, int32_t rfd)
     else return OK;
 }
 
-int32_t MIDIGlobevt(CSOUND *csound, MEVENT *evt) /* send an Mevent to all remote fd's */
-{
+int32_t MIDIGlobevt(CSOUND *csound, MEVENT *evt)
+{  /* send an Mevent to all remote fd's */
     int32_t nn;
     for (nn = 0; nn < ST(chnrfd_count); nn++) {
       if (UNLIKELY(MIDIsendevt(csound, evt, ST(chnrfd_list)[nn]) == NOTOK))

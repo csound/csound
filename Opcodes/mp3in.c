@@ -74,7 +74,8 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
     mpadec_info_t mpainfo;
-    int32_t buffersize = (*p->ibufsize<=0.0 ? /*0x1000*/ 8*1152 : (int32_t)*p->ibufsize);
+    int32_t buffersize =
+      (*p->ibufsize<=0.0 ? /*0x1000*/ 8*1152 : (int32_t)*p->ibufsize);
     /* uint64_t maxsize; */
     int32_t r;
     int32_t skip;
@@ -555,7 +556,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
     p->tstamp = 0;
     if(p->initDone == -1)
       csound->RegisterDeinitCallback(csound, p,
-                                     (int32_t (*)(CSOUND*, void*)) mp3scale_cleanup);
+                                     (int32_t (*)(CSOUND*, void*))mp3scale_cleanup);
     p->initDone = -1;
     p->finished = 0;
     p->init = 1;
@@ -1277,7 +1278,7 @@ static int32_t player_init(CSOUND *csound, PLAYER *p){
   p->p->async = *p->async;
   if(p->p->initDone == 0)
     csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND*, void*)) mp3dec_cleanup_player);
+                               (int32_t (*)(CSOUND*,void*))mp3dec_cleanup_player);
   p->p->initDone = 1;
 
   int32_t policy;
@@ -2095,7 +2096,7 @@ static int32_t player_init2(CSOUND *csound, PLAYER *p){
   p->p->async = *p->async;
   if(p->p->initDone == 0)
     csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND*, void*)) mp3dec_cleanup_player);
+                               (int32_t (*)(CSOUND*, void*)) mp3dec_cleanup_player);
   p->p->initDone = 1;
 
 #ifdef HAVE_NEON

@@ -292,15 +292,15 @@ static int32_t hvs3(CSOUND *csound, HVS3 *p)
     int32_t linesX      = (int32_t) *p->inumlinesX;
     int32_t linesXY  = linesX * (int32_t) *p->inumlinesY;
 
-    int32_t ndx1 = (int32_t) p->posTable[posX   + posY     * linesX + posZ * linesXY];
-    int32_t ndx2 = (int32_t) p->posTable[posX+1 + posY     * linesX + posZ * linesXY];
-    int32_t ndx3 = (int32_t) p->posTable[posX   + (posY+1) * linesX + posZ * linesXY];
-    int32_t ndx4 = (int32_t) p->posTable[posX+1 + (posY+1) * linesX + posZ * linesXY];
+    int32_t ndx1 = (int32_t) p->posTable[posX  +posY    *linesX+posZ*linesXY];
+    int32_t ndx2 = (int32_t) p->posTable[posX+1+posY    *linesX+posZ*linesXY];
+    int32_t ndx3 = (int32_t) p->posTable[posX  +(posY+1)*linesX+posZ*linesXY];
+    int32_t ndx4 = (int32_t) p->posTable[posX+1+(posY+1)*linesX+posZ*linesXY];
 
-    int32_t ndx5 = (int32_t) p->posTable[posX   + posY     * linesX + (posZ+1) * linesXY];
-    int32_t ndx6 = (int32_t) p->posTable[posX+1 + posY     * linesX + (posZ+1) * linesXY];
-    int32_t ndx7 = (int32_t) p->posTable[posX   + (posY+1) * linesX + (posZ+1) * linesXY];
-    int32_t ndx8 = (int32_t) p->posTable[posX+1 + (posY+1) * linesX + (posZ+1) * linesXY];
+    int32_t ndx5 = (int32_t) p->posTable[posX  +posY    *linesX+(posZ+1)*linesXY];
+    int32_t ndx6 = (int32_t) p->posTable[posX+1+posY    *linesX+(posZ+1)*linesXY];
+    int32_t ndx7 = (int32_t) p->posTable[posX  +(posY+1)*linesX+(posZ+1)*linesXY];
+    int32_t ndx8 = (int32_t) p->posTable[posX+1+(posY+1)*linesX+(posZ+1)*linesXY];
 
 
     int32_t j;

@@ -1682,8 +1682,9 @@ static int32_t vco2_table_size(int32_t npart, VCO2_TABLE_PARAMS *tp)
 /* from table number "base_ftable" if it is greater than zero.           */
 /* The return value is the first ftable number that is not allocated.    */
 
-static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform, int32_t base_ftable,
-                              VCO2_TABLE_PARAMS *tp)
+static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform,
+                                  int32_t base_ftable,
+                                  VCO2_TABLE_PARAMS *tp)
 {
     STDOPCOD_GLOBALS  *pp = get_oscbnk_globals(csound);
     int32_t               i, npart, ntables;

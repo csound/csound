@@ -1362,7 +1362,7 @@ int32_t dba(CSOUND *csound, EVAL *p)          /* JPff */
 
 int32_t logbasetwo(CSOUND *csound, EVAL *p)
 {
-    int32_t n = (int32_t)((*p->a -  (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
+    int32_t n = (int32_t)((*p->a -(FL(1.0)/INTERVAL)) / (INTERVAL-FL(1.0)/INTERVAL)
                   *  STEPS + FL(0.5));
     if (n<0 || n>STEPS)
       *p->r = LOG(*p->a)*ONEdLOG2;
@@ -1386,7 +1386,7 @@ int32_t logbasetwoa(CSOUND *csound, EVAL *p)
     }
     for (n = offset; n < nsmps; n++) {
       MYFLT aa = a[n];
-      int32_t n = (int32_t)((aa - (FL(1.0)/INTERVAL)) / (INTERVAL - FL(1.0)/INTERVAL)
+      int32_t n = (int32_t)((aa -(FL(1.0)/INTERVAL)) / (INTERVAL-FL(1.0)/INTERVAL)
                     *  STEPS + FL(0.5));
       if (n<0 || n>STEPS) r[n] = LOG(aa)*ONEdLOG2;
       else                r[n] = csound->logbase2[n];
@@ -1786,8 +1786,8 @@ int32_t outs1(CSOUND *csound, OUTM *p)
     return OK;
 }
 
-#define OUTCN(n)  if (n>csound->nchnls) return           \
-                            csound->InitError(csound,   \
+#define OUTCN(n)  if (n>csound->nchnls) return          \
+                                          csound->InitError(csound, "%s", \
                                               Str("Channel greater than nchnls")); \
   return OK;
 
@@ -2187,7 +2187,8 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
 
 int32_t hw_channels(CSOUND *csound, ASSIGN *p){
 
-    int32_t *dachans = (int32_t *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+    int32_t *dachans =
+      (int32_t *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
     if (UNLIKELY(dachans == NULL)) {
       csound->Warning(csound, Str("number of hardware output channels"
                                   " not currently available"));

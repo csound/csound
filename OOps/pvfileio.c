@@ -899,7 +899,8 @@ int32_t pvoc_closefile(CSOUND *csound, int32_t ofd)
  *
  * return 0 for error, 1 for success. This could change....
  */
-int32_t pvoc_putframes(CSOUND *csound, int32_t ofd, const float *frame, int32_t numframes)
+int32_t pvoc_putframes(CSOUND *csound, int32_t ofd, const float *frame,
+                       int32_t numframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
     int32_t     towrite;  /* count in 'words' */
