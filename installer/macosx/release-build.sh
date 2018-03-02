@@ -182,9 +182,6 @@ install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/libpo
 # install name changes for libs under framework, luajit not included here
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/CsoundLib64
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
-install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libCsoundAC.6.0.dylib
-install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../libs/libfltk.1.3.dylib  $FRAMEWORK64_DIR/Versions/6.0/libCsoundAC.6.0.dylib
-install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../libs/libfltk_images.1.3.dylib  $FRAMEWORK64_DIR/Versions/6.0/libCsoundAC.6.0.dylib
 
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
 
@@ -226,9 +223,6 @@ sudo chgrp -R admin  CsoundLib64/Package_Contents/Library
 sudo chown -R root   CsoundLib64/Package_Contents/Library
 sudo chmod -R 775    CsoundLib64/Package_Contents/Library
 
-sudo chgrp -R admin  CsoundApps64/Package_Contents/Library
-sudo chown -R root   CsoundApps64/Package_Contents/Library
-sudo chmod -R 775    CsoundApps64/Package_Contents/Library
 sudo chgrp -R wheel  CsoundApps64/Package_Contents/usr
 sudo chown -R root   CsoundApps64/Package_Contents/usr
 sudo chmod -R 755    CsoundApps64/Package_Contents/usr
@@ -249,7 +243,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-0.9.5-Macos0.13.dmg .
+cp  ../../../DmgResources/CsoundQt-0.9.5-MacOs10.13.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..
