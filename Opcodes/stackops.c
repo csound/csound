@@ -96,7 +96,8 @@ static CS_NOINLINE void fsg_assign(CSOUND *csound,
                                 PVSDAT *fdst, const PVSDAT *fsrc)
 {
   if (UNLIKELY(fsrc->frame.auxp == NULL)) {
-      csound->ErrorMsg(csound, "%s", Str("fsig = : source signal is not initialised"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("fsig = : source signal is not initialised"));
       return;
   }
     fdst->N = fsrc->N;
@@ -311,7 +312,8 @@ static int32_t push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
       p->pp->freeSpaceOffset += p->argMap[2];
       *((void**) bp) = p->pp->curBundle;
       p->pp->curBundle = bp;
-      ofsp = (int32_t*) ((char*) bp + (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
+      ofsp = (int32_t*) ((char*) bp +
+                         (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
       for (i = 0; p->argMap[i + 3] != CS_STACK_END; i++) {
         if (p->argMap[0] & (1 << i)) {
           int32_t   curOffs = p->argMap[i + 3];
@@ -328,7 +330,8 @@ static int32_t push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
               uint32_t early  = p->h.insdshead->ksmps_no_end;
               uint32_t nsmps = CS_KSMPS;
               src = p->args[i];
-              dst = (MYFLT*) ((char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
+              dst = (MYFLT*) ((char*) bp +
+                              (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
               if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(MYFLT));
               if (UNLIKELY(early)) {
                 nsmps -= early;
@@ -365,7 +368,8 @@ static int32_t push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
       p->pp->freeSpaceOffset += p->argMap[1];
       *((void**) bp) = p->pp->curBundle;
       p->pp->curBundle = bp;
-      ofsp = (int32_t*) ((char*) bp + (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
+      ofsp = (int32_t*) ((char*) bp +
+                         (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
       for (i = 0; p->argMap[i + 3] != CS_STACK_END; i++) {
         if (!(p->argMap[0] & (1 << i))) {
           int32_t   curOffs = p->argMap[i + 3];
@@ -381,7 +385,8 @@ static int32_t push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
               STRINGDAT **ans, *dst;
               /* int32_t   j, maxLen; */
               src = ((STRINGDAT*) p->args[i])->data;
-              ans = ((STRINGDAT**)(char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
+              ans = ((STRINGDAT**)(char*) bp +
+                     (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
               dst = (STRINGDAT*) csound->Malloc(csound, sizeof(STRINGDAT));
               dst->data = csound->Strdup(csound, src);
               dst->size = strlen(src) + 1;
@@ -406,7 +411,8 @@ static int32_t pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
       if (UNLIKELY(p->pp->curBundle == NULL))
         return csoundStack_EmptyError(p);
       bp = p->pp->curBundle;
-      ofsp = (int32_t*) ((char*) bp + (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
+      ofsp = (int32_t*) ((char*) bp +
+                         (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
       for (i = 0; *ofsp != CS_STACK_END; i++) {
         if (p->argMap[0] & (1 << i)) {
           int32_t   curOffs = p->argMap[i + 3];
@@ -416,7 +422,8 @@ static int32_t pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
           switch (curOffs & (int32_t) 0x7F000000) {
           case CS_STACK_K:
             *(p->args[i]) =
-                *((MYFLT*) ((char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF)));
+                *((MYFLT*) ((char*) bp +
+                            (int32_t) (curOffs & (int32_t) 0x00FFFFFF)));
             break;
           case CS_STACK_A:
             {
@@ -424,7 +431,8 @@ static int32_t pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
               uint32_t offset = p->h.insdshead->ksmps_offset;
               uint32_t early  = p->h.insdshead->ksmps_no_end;
               uint32_t nsmps = CS_KSMPS;
-              src = (MYFLT*) ((char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
+              src = (MYFLT*) ((char*) bp +
+                              (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
               dst = p->args[i];
               if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(MYFLT));
               if (UNLIKELY(early)) {
@@ -461,7 +469,8 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
       if (p->pp->curBundle == NULL)
         return csoundStack_EmptyError(p);
       bp = p->pp->curBundle;
-      ofsp = (int32_t*) ((char*) bp + (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
+      ofsp = (int32_t*) ((char*) bp +
+                         (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
       for (i = 0; *ofsp != CS_STACK_END; i++) {
         if (!(p->argMap[0] & (1 << i))) {
           int32_t   curOffs = p->argMap[i + 3];
@@ -471,12 +480,14 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
           switch (curOffs & (int32_t) 0x7F000000) {
           case CS_STACK_I:
             *(p->args[i]) =
-                *((MYFLT*) ((char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF)));
+                *((MYFLT*) ((char*) bp +
+                            (int32_t) (curOffs & (int32_t) 0x00FFFFFF)));
             break;
           case CS_STACK_S:
             {
               STRINGDAT **ans =
-                ((STRINGDAT**)(char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
+                ((STRINGDAT**)(char*) bp +
+                 (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
               STRINGDAT *str = *ans;
               STRINGDAT *dst = (STRINGDAT*)p->args[i];
               /* printf("***string: %p\nbp=%p Off = %x\n", ans, bp, curOffs); */
@@ -519,7 +530,8 @@ static int32_t push_f_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
     p->pp->freeSpaceOffset += p->argMap[2];
     *((void**) bp) = p->pp->curBundle;
     p->pp->curBundle = bp;
-    ofsp = (int32_t*) ((char*) bp + (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
+    ofsp = (int32_t*) ((char*) bp +
+                       (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
     offs = p->argMap[3];
     *(ofsp++) = offs;
     *((PVSDAT**) ((char*) bp + (int32_t) (offs & (int32_t) 0x00FFFFFF))) =
@@ -561,7 +573,8 @@ static int32_t push_f_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
     p->pp->freeSpaceOffset += p->argMap[1];
     *((void**) bp) = p->pp->curBundle;
     p->pp->curBundle = bp;
-    ofsp = (int32_t*) ((char*) bp + (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
+    ofsp = (int32_t*) ((char*) bp +
+                       (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
     offs = p->argMap[3];
     *(ofsp++) = offs;
     *((PVSDAT**) ((char*) bp + (int32_t) (offs & (int32_t) 0x00FFFFFF))) =
@@ -580,7 +593,8 @@ static int32_t pop_f_opcode_perf(CSOUND *csound, POP_OPCODE *p)
     if (UNLIKELY(p->pp->curBundle == NULL))
       return csoundStack_EmptyError(p);
     bp = p->pp->curBundle;
-    ofsp = (int32_t*) ((char*) bp + (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
+    ofsp = (int32_t*) ((char*) bp +
+                       (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
     offs = p->argMap[3];
     if (UNLIKELY(offs != *ofsp))
       csoundStack_TypeError(p);
@@ -625,7 +639,8 @@ static int32_t pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
     if (UNLIKELY(p->pp->curBundle == NULL))
       return csoundStack_EmptyError(p);
     bp = p->pp->curBundle;
-    ofsp = (int32_t*) ((char*) bp + (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
+    ofsp = (int32_t*) ((char*) bp +
+                       (int32_t) csoundStack_Align((int32_t) sizeof(void*)));
     offs = p->argMap[3];
     if (UNLIKELY(offs != *ofsp))
       csoundStack_TypeError(p);

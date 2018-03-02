@@ -649,8 +649,6 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset;
     SHORT *sBase;
-    /* int32_t layersNum= preset->layers_num, j, spltNum = 0, flag=(int32_t) *p->iflag; */
-
     int32_t layersNum, j, spltNum = 0, flag=(int32_t) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
@@ -2575,18 +2573,27 @@ static OENTRY localops[] = {
   { "sfload",S(SFLOAD),     0, 1,    "i",    "S",      (SUBR)SfLoad_S, NULL, NULL },
    { "sfload.i",S(SFLOAD),     0, 1,    "i",    "i",   (SUBR)SfLoad, NULL, NULL },
   { "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
-  { "sfplay", S(SFPLAY), 0, 3, "aa", "iixxiooo",       (SUBR)SfPlay_set, (SUBR)SfPlay     },
-  { "sfplaym", S(SFPLAYMONO), 0, 3, "a", "iixxiooo",    (SUBR)SfPlayMono_set, (SUBR)SfPlayMono },
+  { "sfplay", S(SFPLAY), 0, 3, "aa", "iixxiooo",
+    (SUBR)SfPlay_set, (SUBR)SfPlay     },
+  { "sfplaym", S(SFPLAYMONO), 0, 3, "a", "iixxiooo",
+    (SUBR)SfPlayMono_set, (SUBR)SfPlayMono },
   { "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
   { "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
   { "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
-  { "sfinstrm", S(SFIPLAYMONO),0, 3, "a", "iixxiiooo", (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono },
-  { "sfinstr", S(SFIPLAY),  0, 3,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set,(SUBR)SfInstrPlay },
-  { "sfplay3", S(SFPLAY),   0, 3,    "aa", "iixxiooo",  (SUBR)SfPlay_set, (SUBR)SfPlay3  },
-  { "sfplay3m", S(SFPLAYMONO), 0, 3, "a", "iixxiooo",   (SUBR)SfPlayMono_set,(SUBR)SfPlayMono3 },
-  { "sfinstr3", S(SFIPLAY), 0, 3,    "aa", "iixxiiooo", (SUBR)SfInstrPlay_set, (SUBR)SfInstrPlay3 },
-  { "sfinstr3m", S(SFIPLAYMONO), 0, 3, "a", "iixxiiooo",(SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono3 },
-  { "sflooper", S(sflooper), 0, 3, "aa", "iikkikkkoooo",  (SUBR)sflooper_init, (SUBR)sflooper_process },
+  { "sfinstrm", S(SFIPLAYMONO),0, 3, "a", "iixxiiooo",
+    (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono },
+  { "sfinstr", S(SFIPLAY),  0, 3,    "aa", "iixxiiooo",
+    (SUBR)SfInstrPlay_set,(SUBR)SfInstrPlay },
+  { "sfplay3", S(SFPLAY),   0, 3,    "aa", "iixxiooo",
+    (SUBR)SfPlay_set, (SUBR)SfPlay3  },
+  { "sfplay3m", S(SFPLAYMONO), 0, 3, "a", "iixxiooo",
+    (SUBR)SfPlayMono_set,(SUBR)SfPlayMono3 },
+  { "sfinstr3", S(SFIPLAY), 0, 3,    "aa", "iixxiiooo",
+    (SUBR)SfInstrPlay_set, (SUBR)SfInstrPlay3 },
+  { "sfinstr3m", S(SFIPLAYMONO), 0, 3, "a", "iixxiiooo",
+    (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono3 },
+  { "sflooper", S(sflooper), 0, 3, "aa", "iikkikkkoooo",
+    (SUBR)sflooper_init, (SUBR)sflooper_process },
   { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
