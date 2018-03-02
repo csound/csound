@@ -356,8 +356,8 @@ sprintf_opcode_(CSOUND *csound,
                     STRINGDAT *str,   /* pointer to space for output string  */
                     const char *fmt,  /* format string                       */
                     MYFLT **kvals,    /* array of argument pointers          */
-                    int32_t numVals,      /* number of arguments                 */
-                    int32_t strCode)      /* bit mask for string arguments       */
+                    int32_t numVals,      /* number of arguments             */
+                    int32_t strCode)      /* bit mask for string arguments   */
 {
     int32_t     len = 0;
     char    *strseg, *outstring = str->data;
@@ -881,7 +881,7 @@ int32_t strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
     if (pos < 0 || pos >= len)
       *(p->ichr) = FL(0.0);
     else
-      *(p->ichr) = (MYFLT) ((int32_t) ((unsigned char) ((char*) p->Ssrc->data)[pos]));
+      *(p->ichr) = (MYFLT) ((int32_t)((unsigned char)((char*) p->Ssrc->data)[pos]));
 
     return OK;
 }

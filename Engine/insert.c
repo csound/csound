@@ -2310,11 +2310,13 @@ static void instance(CSOUND *csound, int insno)
   pextrab = ((i = tp->pmax - 3L) > 0 ? (int) i * sizeof(CS_VAR_MEM) : 0);
   /* alloc new space,  */
   pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM);
-  ip = (INSDS*) csound->Calloc(csound,
-                               (size_t) pextent + tp->varPool->poolSize +
-                               (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET)) +
-                               (tp->varPool->varCount * sizeof(CS_VARIABLE*)) +
-                               tp->opdstot);
+  ip =
+    (INSDS*) csound->Calloc(csound,
+                            (size_t) pextent + tp->varPool->poolSize +
+                            (tp->varPool->varCount *
+                             CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET)) +
+                            (tp->varPool->varCount * sizeof(CS_VARIABLE*)) +
+                            tp->opdstot);
   ip->csound = csound;
   ip->m_chnbp = (MCHNBLK*) NULL;
   ip->instr = tp;

@@ -26,7 +26,8 @@
 #include <math.h>
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
-/* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x : (int64_t)((double)x - 0.999999999999999))
+/* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x                          */
+/*                                  : (int64_t)((double)x - 0.999999999999999))
 */
 /* 1.0-1e-8 is safe for a maximum table length of 16777216 */
 /* 1.0-1e-15 could incorrectly round down large negative integers, */

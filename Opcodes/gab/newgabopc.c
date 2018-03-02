@@ -33,7 +33,7 @@ typedef struct {
 } MTABLE1;
 
 
-static int32_t  mtable1_set(CSOUND *csound, MTABLE1 *p)      /* mtab by G.Maldonado */
+static int32_t  mtable1_set(CSOUND *csound, MTABLE1 *p) /* mtab by G.Maldonado */
 {
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))

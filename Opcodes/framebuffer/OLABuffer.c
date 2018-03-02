@@ -74,7 +74,8 @@ void OLABuffer_writeFrame(OLABuffer *self, MYFLT *inputFrame, int32_t frameIndex
            secondHalfCount * sizeof(MYFLT));
 }
 
-void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame, int32_t outputFrameOffset,
+void OLABuffer_readFrame(OLABuffer *self, MYFLT *outputFrame,
+                         int32_t outputFrameOffset,
                          int32_t olaBufferOffset, int32_t samplesCount)
 {
     memcpy(&outputFrame[outputFrameOffset],
@@ -155,8 +156,8 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
     if (UNLIKELY(array->dimensions != 1)) {
 
-      csound->Die(csound,
-                  "%s", Str("olabuffer: Error, k-rate array must be one dimensional"));
+      csound->Die(csound, "%s",
+                  Str("olabuffer: Error, k-rate array must be one dimensional"));
     }
 
     int32_t frameSampleCount = array->sizes[0];

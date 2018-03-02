@@ -688,7 +688,8 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, Str(
-                 "npoles %"PRIi32", nvals %"PRIi32", totvals %"PRIi32", lastfram16 = %"PRIi32"x\n"),
+                 "npoles %"PRIi32", nvals %"PRIi32", totvals %"PRIi32
+                 ", lastfram16 = %"PRIi32"x\n"),
              p->npoles, p->nvals, totvals, p->lastfram16);
  lpend:
     p->lastmsg = 0;
@@ -706,7 +707,8 @@ int32_t lprdset_S(CSOUND *csound, LPREAD *p){
 
 #ifdef TRACE_POLES
 static void
-  DumpPolesF(int32_t poleCount, MYFLT *part1, MYFLT *part2, int32_t isMagn, char *where)
+  DumpPolesF(int32_t poleCount, MYFLT *part1, MYFLT *part2,
+             int32_t isMagn, char *where)
 {
     int32_t i;
 
