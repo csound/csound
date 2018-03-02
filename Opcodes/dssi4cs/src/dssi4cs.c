@@ -119,7 +119,8 @@ void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
                             DSSIPlugin_->PluginNumber);
     csound->Message(csound, "Plugin Type: %s\n",
                     ((DSSIPlugin_->Type == LADSPA) ? "LADSPA" : "DSSI"));
-    csound->Message(csound, "Plugin UniqueID: %lu\n", (unsigned long) Descriptor->UniqueID);
+    csound->Message(csound, "Plugin UniqueID: %lu\n",
+                    (unsigned long) Descriptor->UniqueID);
     csound->Message(csound, "Label: %s\n", Descriptor->Label);
     csound->Message(csound, "Name: %s\n", Descriptor->Name);
     csound->Message(csound, "Maker: %s\n", Descriptor->Maker);
@@ -541,7 +542,8 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
            dssiactivate
 *****************************************************************************/
 
-int32_t ActivatePlugin(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_, int32_t ktrigger)
+int32_t ActivatePlugin(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_,
+                       int32_t ktrigger)
 {
   IGN(csound);
     const LADSPA_Descriptor *Descriptor;
@@ -748,7 +750,8 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 #ifdef DEBUG
         csound->Message(csound, "DSSI4CS: Connected Audio port: "
                                 "%lu to Input port : %li\n",
-                        (unsigned long)p->InputPorts[ConnectedInputPorts], PortIndex);
+                        (unsigned long)p->InputPorts[ConnectedInputPorts],
+                        PortIndex);
 #endif
 
         ConnectedInputPorts++;
@@ -760,7 +763,8 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 #ifdef DEBUG
         csound->Message(csound, "DSSI4CS: Connected Audio Port: "
                                 "%lu to Output port: %li\n",
-                        (unsigned long)p->OutputPorts[ConnectedOutputPorts], PortIndex);
+                        (unsigned long)p->OutputPorts[ConnectedOutputPorts],
+                        PortIndex);
 #endif
 
         ConnectedOutputPorts++;

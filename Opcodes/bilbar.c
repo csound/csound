@@ -47,7 +47,7 @@ typedef struct {
 static int32_t bar_init(CSOUND *csound, BAR *p)
 {
     if (*p->iK >= FL(0.0) || p->w_aux.auxp == NULL) {
-      double  K = FABS(*p->iK);       /* ~=3.0  stiffness parameter, dimensionless */
+      double  K = FABS(*p->iK); /* ~=3.0  stiffness parameter, dimensionless */
       double  T30 = *p->iT30;   /* ~=5.0; 30 db decay time (s) */
       double  b = *p->ib;       /* ~=0.001 high-frequency loss parameter
                                    (keep small) */
@@ -102,8 +102,9 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
     uint32_t n, nsmps = CS_KSMPS;
     double *w = p->w, *w1 = p->w1, *w2 = p->w2;
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
-    int32_t bcL = (int32_t)MYFLT2LONG(*p->kbcL);    /*  boundary condition pair */
-    int32_t bcR = (int32_t)MYFLT2LONG(*p->kbcR);    /*  1: clamped, 2: pivoting, 3: free */
+    /*  boundary condition pair  1: clamped, 2: pivoting, 3: free */
+    int32_t bcL = (int32_t)MYFLT2LONG(*p->kbcL);
+    int32_t bcR = (int32_t)MYFLT2LONG(*p->kbcR);
     double SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
     double COSNW = cos(xofreq*step); /* formula rather than many calls    */
     double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
@@ -394,7 +395,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     if (p->init) {
       p->hammer_on = 1;          /*  turns on hammer updating */
       p->hammer_contact = 0;     /* hammer not in contact with string yet */
-      p->hammer_index = 2+(int32_t)(*p->ipos*N);   /* find location of hammer strike */
+      p->hammer_index = 2+(int32_t)(*p->ipos*N); /* find location of hammerstrike */
       p->ham2 = *p->ham_initial;
       p->ham1 = *p->ham_initial+dt*(*p->vel);    /* initialize hammer */
       p->init = 0;

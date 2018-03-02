@@ -338,18 +338,18 @@ static int32_t sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
 #define SLIDER_TABLEF_INIT(p,n)                                                 \
 {                                                                               \
     MYFLT value, base;                                                          \
-    int32_t j = 0;                                                                  \
+    int32_t j = 0;                                                              \
     FUNC **ftp = p->ftp;                                                        \
     MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val;           \
     unsigned char  *slnum = p->slnum;                                           \
     MYFLT *min = p->min, *max = p->max;                                         \
-    MYFLT *outTable = p->outTable + (int32_t) *p->ioffset;                          \
+    MYFLT *outTable = p->outTable + (int32_t) *p->ioffset;                      \
     MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                                  \
                                                                                 \
     while (j < n) {                                                             \
-        int32_t t = (int32_t) *(p->s[j].ifn);                                           \
+        int32_t t = (int32_t) *(p->s[j].ifn);                                   \
         MYFLT range;                                                            \
-        int32_t val = (int32_t) chanblock[*slnum++];                                    \
+        int32_t val = (int32_t) chanblock[*slnum++];                            \
         value = (MYFLT) val / f7bit;                                            \
         if (val != p->oldvalue[j] ) {                                           \
             *p->ktrig = 1;                                                      \
@@ -365,7 +365,7 @@ static int32_t sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
             value = value * (*max++ - *min) + *min;                             \
             break;                                                              \
         default: /* TABLE   */                                                  \
-            value = *((*ftp)->ftable + (int64_t)(value * (*ftp)->flen));           \
+            value = *((*ftp)->ftable + (int64_t)(value * (*ftp)->flen));        \
             value = value * (*max - *min) + *min;   /* scales the output */     \
             break;                                                              \
         }                                                                       \
@@ -595,7 +595,8 @@ static int32_t ctrl7a(CSOUND *csound, CTRL7a *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT value =
-      (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->ctl_val[p->ctlno] * oneTOf7bit);
+      (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->
+               ctl_val[p->ctlno]*oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
                                 /* no interpolation */
       value = *(p->ftp->ftable + (int64_t)(value*(p->ftp->flen-1)));
@@ -680,5 +681,5 @@ OENTRY sliderTable_localops[] = {
 int32_t slidertable_init_(CSOUND *csound) {
     return
       csound->AppendOpcodes(csound, &(sliderTable_localops[0]),
-                            (int32_t) (sizeof(sliderTable_localops) / sizeof(OENTRY)));
+                            (int32_t) (sizeof(sliderTable_localops)/sizeof(OENTRY)));
 }

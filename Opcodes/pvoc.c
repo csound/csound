@@ -21,7 +21,8 @@
 
 #include "pvoc.h"
 
-int32_t     pvset(CSOUND *, void *), pvset_S(CSOUND *, void *), pvoc(CSOUND *, void *);
+int32_t     pvset(CSOUND *, void *), pvset_S(CSOUND *, void *);
+int32_t     pvoc(CSOUND *, void *);
 int32_t     pvaddset(CSOUND *, void *), pvadd(CSOUND *, void *);
 int32_t     pvaddset_S(CSOUND *, void *);
 int32_t     tblesegset(CSOUND *, void *), ktableseg(CSOUND *, void *);
