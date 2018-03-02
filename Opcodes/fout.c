@@ -70,8 +70,9 @@ static CS_NOINLINE int32_t fout_deinit_callback(CSOUND *csound, void *p_)
 }
 
 static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp,
-                                      int32_t fileType, MYFLT *iFile, int32_t isString,
-                                      void *fileParams, int32_t forceSync)
+                                          int32_t fileType, MYFLT *iFile,
+                                          int32_t isString,
+                                          void *fileParams, int32_t forceSync)
 {
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     char              *name;

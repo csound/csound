@@ -559,7 +559,8 @@ void *init_faustgen_thread(void *pp) {
 
   dsp = p->factory->createDSPInstance();
   if (dsp == NULL) {
-    int32_t ret = csound->InitError(csound, "%s", Str("Faust instantiation problem \n"));
+    int32_t ret = csound->InitError(csound, "%s",
+                                    Str("Faust instantiation problem \n"));
     csound->Free(csound, pp);
     pthread_exit(&ret);
   }

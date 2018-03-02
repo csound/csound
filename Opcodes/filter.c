@@ -531,7 +531,8 @@ static void sortRoots(fcomplex roots[], int32_t dim)
     complex2polar(roots, plr, dim);
 
     /* Sort by their magnitudes */
-    qsort(plr, dim, sizeof(fpolar), (int32_t(*)(const void *, const void * ))sortfun);
+    qsort(plr, dim, sizeof(fpolar),
+          (int32_t(*)(const void *, const void * ))sortfun);
 
     /* Convert back to complex form */
     polar2complex(plr,roots,dim);
@@ -649,7 +650,8 @@ static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, double fact)
 /* Simple definition is sufficient */
 #define FPMAX(a,b) (a>b ? a : b)
 
-static void laguer(CSOUND *csound, fcomplex a[], int32_t m, fcomplex *x, int32_t *its)
+static void laguer(CSOUND *csound, fcomplex a[], int32_t m,
+                   fcomplex *x, int32_t *its)
 {
     int32_t iter,j;
     double abx,abp,abm,err;

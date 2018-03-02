@@ -89,7 +89,8 @@ static char *rcsid = "$Id$";
 
 static void fft_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t);
 static void fftmx(MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t, int32_t,
-                  int32_t*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int32_t *, int32_t[]);
+                  int32_t*, MYFLT *, MYFLT *, MYFLT *, MYFLT *, int32_t *,
+                  int32_t[]);
 static void reals_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t);
 
 /*

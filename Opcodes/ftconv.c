@@ -38,10 +38,10 @@ typedef struct {
  /* ------------------------- */
     int32_t     initDone;
     int32_t     nChannels;
-    int32_t     cnt;                /* buffer position, 0 to partSize - 1       */
-    int32_t     nPartitions;        /* number of convolve partitions            */
-    int32_t     partSize;           /* partition length in sample frames        */
-    int32_t     rbCnt;              /* ring buffer index, 0 to nPartitions - 1  */
+    int32_t     cnt;            /* buffer position, 0 to partSize - 1       */
+    int32_t     nPartitions;    /* number of convolve partitions            */
+    int32_t     partSize;       /* partition length in sample frames        */
+    int32_t     rbCnt;          /* ring buffer index, 0 to nPartitions - 1  */
     MYFLT   *tmpBuf;            /* temporary buffer for accumulating FFTs   */
     MYFLT   *ringBuf;           /* ring buffer of FFTs of input partitions  */
     MYFLT   *IR_Data[FTCONV_MAXCHN];    /* impulse responses (scaled)       */
@@ -51,7 +51,8 @@ typedef struct {
 } FTCONV;
 
 static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
-                                 MYFLT *IR_Data, int32_t partSize, int32_t nPartitions,
+                                 MYFLT *IR_Data, int32_t partSize,
+                                 int32_t nPartitions,
                                  int32_t ringBuf_startPos)
 {
     MYFLT   re, im, re1, re2, im1, im2;
@@ -112,7 +113,8 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     } while (--nPartitions);
 }
 
-static inline int32_t buf_bytes_alloc(int32_t nChannels, int32_t partSize, int32_t nPartitions)
+static inline int32_t buf_bytes_alloc(int32_t nChannels,
+                                      int32_t partSize, int32_t nPartitions)
 {
     int32_t nSmps;
 
@@ -125,7 +127,8 @@ static inline int32_t buf_bytes_alloc(int32_t nChannels, int32_t partSize, int32
 }
 
 static void set_buf_pointers(FTCONV *p,
-                             int32_t nChannels, int32_t partSize, int32_t nPartitions)
+                             int32_t nChannels, int32_t partSize,
+                             int32_t nPartitions)
 {
     MYFLT *ptr;
     int32_t   i;
@@ -309,7 +312,8 @@ static int32_t ftconv_perf(CSOUND *csound, FTCONV *p)
 int32_t ftconv_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "ftconv",
-                                (int32_t) sizeof(FTCONV), TR, 3, "mmmmmmmm", "aiiooo",
+                                (int32_t) sizeof(FTCONV), TR, 3,
+                                "mmmmmmmm", "aiiooo",
                                 (int32_t (*)(CSOUND *, void *)) ftconv_init,
                                 (int32_t (*)(CSOUND *, void *)) ftconv_perf,
                                 NULL);

@@ -571,7 +571,8 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
     if (*p->ktrig_start) {
       if (*p->kfn != p->old_fn) {
         int32_t flen;
-        if (UNLIKELY((flen = csoundGetTable(csound,&(p->table),(int32_t)*p->kfn)) < 0))
+        if (UNLIKELY((flen = csoundGetTable(csound,&(p->table),
+                                            (int32_t)*p->kfn)) < 0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (int64_t) flen;
@@ -627,7 +628,8 @@ static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
     if (*p->ktrig) {
       if (*p->kfn != p->old_fn) {
         int32_t flen;
-        if (UNLIKELY((flen = csoundGetTable(csound, &(p->table),(int32_t)*p->kfn)) < 0))
+        if (UNLIKELY((flen = csoundGetTable(csound, &(p->table),
+                                            (int32_t)*p->kfn)) < 0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (int64_t) flen;

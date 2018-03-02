@@ -440,10 +440,12 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     /* delay buffers */
     if (!p->delmeml.auxp ||
         p->delmeml.size < (int32_t)(sr * maxdeltime) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmeml);
+      csound->AuxAlloc(csound,
+                       (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmeml);
     if (!p->delmemr.auxp ||
         p->delmemr.size < (int32_t)(sr * maxdeltime) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmemr);
+      csound->AuxAlloc(csound,
+                       (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmemr);
 
     memset(p->delmeml.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(MYFLT));
     memset(p->delmemr.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(MYFLT));
@@ -660,7 +662,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 /* lookup indices, used to check for crossfade */
                 elevindex = (int32_t)(elevindexstore + FL(0.5));
 
-                angleindex = (int32_t)(angle / (FL(360.0) / elevationarray[elevindex])
+                angleindex = (int32_t)(angle/(FL(360.0) / elevationarray[elevindex])
                                    + FL(0.5));
                 angleindex = angleindex % elevationarray[elevindex];
 
@@ -722,7 +724,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                         if(angleindex > elevationarray[elevindex] / 2)
                           {
                             for(i = 0; i < elevindex; i++)
-                              skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
+                              skip +=((int32_t)(elevationarray[i] / 2)+1)*irlength;
                             for (i = 0;
                                  i < (elevationarray[elevindex] - angleindex);
                                  i++)
@@ -736,7 +738,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                         else
                           {
                             for(i = 0; i < elevindex; i++)
-                              skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
+                              skip +=((int32_t)(elevationarray[i] / 2)+1)*irlength;
                             for (i = 0; i < angleindex; i++)
                               skip += irlength;
                             for(i = 0; i < irlength; i++)
@@ -2178,7 +2180,8 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->win);
     if (!p->overlapskipin.auxp || p->overlapskipin.size < overlap * sizeof(int32_t))
       csound->AuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipin);
-    if (!p->overlapskipout.auxp || p->overlapskipout.size < overlap * sizeof(int32_t))
+    if (!p->overlapskipout.auxp ||
+        p->overlapskipout.size < overlap * sizeof(int32_t))
       csound->AuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipout);
 
     memset(p->win.auxp, 0, irlength * sizeof(MYFLT));
