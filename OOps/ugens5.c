@@ -1364,6 +1364,42 @@ int32_t balance(CSOUND *csound, BALANCE *p)
     return OK;
 }
 
+
+int32_t balance2(CSOUND *csound, BALANCE *p)
+{
+    IGN(csound);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT    *ar, *asig, *csig;
+    double   q, r, a;
+    double   c1 = p->c1, c2 = p->c2;
+
+    q = p->prvq;
+    r = p->prvr;
+    asig = p->asig;
+    csig = p->csig;
+    ar = p->ar;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n = offset; n < nsmps; n++) {
+      double as = (double)asig[n];
+      double cs = (double)csig[n];
+      q = c1 * as * as + c2 * q;
+      r = c1 * cs * cs + c2 * r;
+      if (LIKELY(q != 0.0))
+      a = sqrt(r/q);
+      else
+      a = sqrt(r);
+      ar[n] = asig[n] * a;
+      
+    }
+    return OK;
+}
+
 /*
  *   Set current lpc slot
  */
