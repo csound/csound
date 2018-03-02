@@ -307,7 +307,8 @@ static int32_t atsreadset(CSOUND *csound, ATSREAD *p)
     }
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int32_t) (*p->ipartial) > n_partials || (int32_t) (*p->ipartial) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->ipartial) > n_partials ||
+                 (int32_t) (*p->ipartial) <= 0)) {
       return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
                                            "max allowed is %i"),
                                        (int32_t) (*p->ipartial), n_partials);
@@ -373,7 +374,8 @@ static int32_t atsreadset_S(CSOUND *csound, ATSREAD *p)
     }
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int32_t) (*p->ipartial) > n_partials || (int32_t) (*p->ipartial) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->ipartial) > n_partials ||
+                 (int32_t) (*p->ipartial) <= 0)) {
       return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
                                            "max allowed is %i"),
                                        (int32_t) (*p->ipartial), n_partials);
@@ -691,7 +693,7 @@ static int32_t atsaddset(CSOUND *csound, ATSADD *p)
     }
 
     /* make sure partials are in range */
-    if (UNLIKELY((int32_t) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+    if (UNLIKELY((int32_t) (*p->iptloffset+*p->iptls * *p->iptlincr) > n_partials ||
                  (int32_t) (*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSADD: Partial(s) out of range, "
                                            "max partial allowed is %i"),
@@ -799,7 +801,7 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
     }
 
     /* make sure partials are in range */
-    if (UNLIKELY((int32_t) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+    if (UNLIKELY((int32_t) (*p->iptloffset+*p->iptls * *p->iptlincr) > n_partials ||
                  (int32_t) (*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSADD: Partial(s) out of range, "
                                            "max partial allowed is %i"),
@@ -1502,8 +1504,9 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
 
     partialband = (double **) csound->Malloc(csound, sizeof(double*)
                                      * (int32_t) p->atshead->npartials);
-    bandnum = (int32_t *) csound->Malloc(csound,
-                                     sizeof(int32_t) * (int32_t) p->atshead->npartials);
+    bandnum =
+      (int32_t *) csound->Malloc(csound,
+                                 sizeof(int32_t) * (int32_t) p->atshead->npartials);
 
     for (i = 0; i < (int32_t) p->atshead->nfrms; i++) {
       /* init sums */
@@ -1595,7 +1598,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 
 
     /* make sure partials are in range */
-    if (UNLIKELY((int32_t) (*p->iptloffset + *p->iptls * *p->iptlincr) > p->npartials ||
+    if (UNLIKELY((int32_t)(*p->iptloffset+*p->iptls* *p->iptlincr) > p->npartials ||
                  (int32_t) (*p->iptloffset) < 0)) {
       return csound->InitError(csound,
                                Str("ATSSINNOI: Partial(s) out of range, "
@@ -1780,7 +1783,8 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
 
 
     /* make sure partials are in range */
-    if (UNLIKELY((int32_t) (*p->iptloffset + *p->iptls * *p->iptlincr) > p->npartials ||
+    if (UNLIKELY((int32_t) (*p->iptloffset + *p->iptls * *p->iptlincr) >
+                 p->npartials ||
                  (int32_t) (*p->iptloffset) < 0)) {
       return csound->InitError(csound,
                                Str("ATSSINNOI: Partial(s) out of range, "
@@ -2021,7 +2025,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
           for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
                i += (int32_t) *p->iptlincr) {
             oscbuf->amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc);  /* amp */
-            oscbuf->freq = bswap(frm_0 + 2 + i * (int32_t) p->partialinc); /* freq */
+            oscbuf->freq= bswap(frm_0 + 2 + i * (int32_t) p->partialinc); /* freq */
             oscbuf++;
           }
         }
@@ -2039,7 +2043,7 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
           for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
                i += (int32_t) *p->iptlincr) {
             oscbuf->amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc);  /* amp */
-            oscbuf->freq = bswap(frm_0 + 2 + i * (int32_t) p->partialinc); /* freq */
+            oscbuf->freq= bswap(frm_0 + 2 + i * (int32_t) p->partialinc); /* freq */
             *nzbuf = bswap(p->nzdata + frame * npartials + i);
             nzbuf++;
             oscbuf++;
@@ -2174,7 +2178,7 @@ static int32_t atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     p->utable = fltp + ((int32_t) *(p->iptls) + 2);
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+    if (UNLIKELY((int32_t)(*p->iptloffset+ *p->iptls * *p->iptlincr) > n_partials ||
                  (int32_t)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
                                            "max partial is %i"), n_partials);
@@ -2215,9 +2219,11 @@ static int32_t atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     /* to make interpolation easier later */
     p->table[0].freq = p->utable[0].freq = 20;
     p->table[0].amp = p->utable[0].amp = 0;
-    p->table[(int32_t) *p->iptls + 1].freq = p->utable[(int32_t) *p->iptls + 1].freq =
+    p->table[(int32_t) *p->iptls + 1].freq =
+      p->utable[(int32_t) *p->iptls + 1].freq =
         20000;
-    p->table[(int32_t) *p->iptls + 1].amp = p->utable[(int32_t) *p->iptls + 1].amp = 0;
+    p->table[(int32_t) *p->iptls + 1].amp =
+      p->utable[(int32_t) *p->iptls + 1].amp = 0;
 
     *(get_atsbufreadaddrp(csound)) = p;
 
@@ -2268,7 +2274,8 @@ static int32_t atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
     p->utable = fltp + ((int32_t) *(p->iptls) + 2);
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+    if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) >
+                 n_partials ||
                  (int32_t)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
                                            "max partial is %i"), n_partials);
@@ -2309,9 +2316,11 @@ static int32_t atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
     /* to make interpolation easier later */
     p->table[0].freq = p->utable[0].freq = 20;
     p->table[0].amp = p->utable[0].amp = 0;
-    p->table[(int32_t) *p->iptls + 1].freq = p->utable[(int32_t) *p->iptls + 1].freq =
+    p->table[(int32_t) *p->iptls + 1].freq =
+      p->utable[(int32_t) *p->iptls + 1].freq =
         20000;
-    p->table[(int32_t) *p->iptls + 1].amp = p->utable[(int32_t) *p->iptls + 1].amp = 0;
+    p->table[(int32_t) *p->iptls + 1].amp =
+      p->utable[(int32_t) *p->iptls + 1].amp = 0;
 
     *(get_atsbufreadaddrp(csound)) = p;
 
@@ -2685,7 +2694,8 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
     }
 
     /* make sure partials are in range */
-    if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+    if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) >
+                 n_partials ||
                  (int32_t)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSCROSS: Partial(s) out of range, "
                                            "max partial allowed is %i"),
@@ -2794,10 +2804,10 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
 static void ScalePartials(
                 CSOUND *csound,
                 ATS_DATA_LOC *cbuf, /* the current buffer */
-                int32_t cbufnp,         /* the current buffer's number of partials */
+                int32_t cbufnp,     /* the current buffer's number of partials */
                 MYFLT cbufamp,      /* the amplitude for the current buffer */
                 ATS_DATA_LOC *tbuf, /* the table buffer */
-                int32_t tbufnp,         /* the table buffer's n partials */
+                int32_t tbufnp,     /* the table buffer's n partials */
                 MYFLT tbufamp,      /* the amp of the table buffer */
                 MYFLT kthresh )
 {

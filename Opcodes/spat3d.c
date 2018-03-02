@@ -607,14 +607,19 @@ static int32_t    spat3d(CSOUND *csound, SPAT3D *p)
 
     j = p->mdel_s;
     switch (p->zout) {  /* clear extra samples at beginning and */
-    /* FALLTHRU */ case 4:             /* end of delay line                    */
-    /* FALLTHRU */ case 3:     *(p->Zb - 1) = p->Zb[j] = p->Zb[j + 1] = p->Zb[j + 2] =
+    /* FALLTHRU */
+    case 4:             /* end of delay line                    */
+    /* FALLTHRU */
+    case 3:     *(p->Zb - 1) = p->Zb[j] = p->Zb[j + 1] = p->Zb[j + 2] =
                   FL(0.0);
-    /* FALLTHRU */ case 2:     *(p->Xb - 1) = p->Xb[j] = p->Xb[j + 1] = p->Xb[j + 2] =
+    /* FALLTHRU */
+    case 2:     *(p->Xb - 1) = p->Xb[j] = p->Xb[j + 1] = p->Xb[j + 2] =
                   FL(0.0);
-    /* FALLTHRU */ case 1:     *(p->Yb - 1) = p->Yb[j] = p->Yb[j + 1] = p->Yb[j + 2] =
+    /* FALLTHRU */
+    case 1:     *(p->Yb - 1) = p->Yb[j] = p->Yb[j + 1] = p->Yb[j + 2] =
                   FL(0.0);
-    /* FALLTHRU */ case 0:     *(p->Wb - 1) = p->Wb[j] = p->Wb[j + 1] = p->Wb[j + 2] =
+    /* FALLTHRU */
+    case 0:     *(p->Wb - 1) = p->Wb[j] = p->Wb[j + 1] = p->Wb[j + 2] =
                   FL(0.0);
     }
     spat3d_wall_perf(csound, p, p->args[4], (SPAT3D_WALL *) p->ws.auxp,
