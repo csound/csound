@@ -503,8 +503,9 @@ void WebSocketOpcode_handleReceive(struct lws *websocket, WebSocketOpcode *self,
       return;
     }
 
-    int32_t writtenItems = csoundWriteCircularBuffer(csound, argument->circularBuffer,
-                                                 inputData, argument->itemsCount);
+    int32_t writtenItems =
+      csoundWriteCircularBuffer(csound, argument->circularBuffer,
+                                inputData, argument->itemsCount);
     argument->receivedData = true;
 
     if (UNLIKELY(writtenItems == 0)) {

@@ -166,7 +166,8 @@ static uintptr_t udp_recv(void *pdata){
               == CSOUND_SUCCESS) {
             STRINGDAT* stringdat = (STRINGDAT*) pstring;
             int size = stringdat->size;
-            spin_lock_t *lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
+            spin_lock_t *lock =
+              (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
             msg = (char *) csound->Calloc(csound, strlen(chn) + size);
             if (lock != NULL)
               csoundSpinLock(lock);
