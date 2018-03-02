@@ -214,9 +214,9 @@ static inline int32_t buf_bytes_alloc(int32_t partSize, int32_t nPartitions)
     nSmps += ((partSize << 1) * nPartitions);           /* ringBuf    */
     nSmps += ((partSize << 1) * nPartitions);           /* IR_Data    */
     nSmps += ((partSize << 1));                         /* outBuf */
-    nSmps *= (int32_t) sizeof(MYFLT);                       /* Buffer type MYFLT */
+    nSmps *= (int32_t) sizeof(MYFLT);                   /* Buffer type MYFLT */
 
-    nSmps += (nPartitions+1) * (int32_t) sizeof(load_t);    /* Load/unload structure */
+    nSmps += (nPartitions+1) * (int32_t) sizeof(load_t);/* Load/unload structure */
     /* One load/unload pr. partitions and an extra for buffering is sufficient */
 
     return nSmps;
@@ -248,8 +248,9 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     p->partSize = MYFLT2LRND(*(p->iPartLen));
     if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
       // Must be a power of 2 at least as large as 4
-      return csound->InitError(csound, "%s", Str("liveconv: invalid impulse response "
-                                           "partition length"));
+      return csound->InitError(csound, "%s",
+                               Str("liveconv: invalid impulse response "
+                                   "partition length"));
     }
 
     /* Find and assign the function table numbered iFTNum */
@@ -260,8 +261,8 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     /* Calculate the total length  */
     n = (int32_t) ftp->flen;
     if (UNLIKELY(n <= 0)) {
-      return csound->InitError(csound,
-                               "%s", Str("liveconv: invalid length, or insufficient"
+      return csound->InitError(csound, "%s",
+                               Str("liveconv: invalid length, or insufficient"
                                    " IR data for convolution"));
     }
 
@@ -419,7 +420,8 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
           /* Iterate over IR partitions in reverse order */
           for (k = 0; k < nSamples; k++) {
             /* Fill IR_Data with scaled IR data, or zero if outside the IR buffer */
-            p->IR_Data[n + k] = (cnt < (int32_t)ftp->flen) ? ftp->ftable[cnt] : FL(0.0);
+            p->IR_Data[n + k] =
+              (cnt < (int32_t)ftp->flen) ? ftp->ftable[cnt] : FL(0.0);
             cnt++;
           }
 

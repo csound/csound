@@ -97,13 +97,13 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 
     if (UNLIKELY(inArgCount == 0))
       return
-        csound->InitError(csound,
+        csound->InitError(csound, "%s",
                           Str("Error: no sizes set for array initialization"));
 
     for (i = 0; i < inArgCount; i++) {
       if (UNLIKELY(MYFLT2LRND(*p->isizes[i]) <= 0)) {
         return
-          csound->InitError(csound,
+          csound->InitError(csound, "%s",
                       Str("Error: sizes must be > 0 for array initialization"));
       }
     }
@@ -146,7 +146,7 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
     tabensure(csound, p->ans, nargs);
     if (UNLIKELY(p->ans->dimensions > 2)) {
       return
-        csound->InitError(csound,
+        csound->InitError(csound, "%s",
                           Str("fillarrray: arrays with dim > 2 not "
                               "currently supported\n"));
     }
@@ -162,7 +162,7 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
 static int32_t array_err(CSOUND* csound, ARRAY_SET *p)
 {
     IGN(p);
-    return csound->InitError(csound, Str("Cannot set i-array at k-rate\n"));
+    return csound->InitError(csound, "%s", Str("Cannot set i-array at k-rate\n"));
 }
 
 static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
@@ -321,7 +321,7 @@ static int32_t tabarithset(CSOUND *csound, TABARITH *p)
       int32_t size;
       if (UNLIKELY(p->left->dimensions!=1 || p->right->dimensions!=1))
         return
-          csound->InitError(csound,
+          csound->InitError(csound, "%s",
                             Str("Dimensions do not match in array arithmetic"));
       /* size is the smallest of the two */
       size = p->left->sizes[0] < p->right->sizes[0] ?
@@ -330,10 +330,12 @@ static int32_t tabarithset(CSOUND *csound, TABARITH *p)
       p->ans->sizes[0] = size;
       return OK;
     }
-    else return csound->InitError(csound, Str("array-variable not initialised"));
+    else return csound->InitError(csound, "%s",
+                                  Str("array-variable not initialised"));
 }
 
-static int32_t tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p);
+static int32_t tabiadd(CSOUND *csound, ARRAYDAT *ans,
+                       ARRAYDAT *l, MYFLT r, void *p);
 
 // For cases with array as first arg
 static int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
@@ -348,14 +350,15 @@ static int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
       int32_t size;
       if (UNLIKELY(left->dimensions!=1))
         return
-          csound->InitError(csound,
+          csound->InitError(csound, "%s",
                             Str("Dimension does not match in array arithmetic"));
       size = left->sizes[0];
       tabensure(csound, p->ans, size);
       p->ans->sizes[0] = size;
       return OK;
     }
-    else return csound->InitError(csound, Str("array-variable not initialised"));
+    else return csound->InitError(csound, "%s",
+                                  Str("array-variable not initialised"));
 }
 
 // For cases with array as second arg
@@ -366,14 +369,15 @@ static int32_t tabarithset2(CSOUND *csound, TABARITH2 *p)
       int32_t size;
       if (UNLIKELY(right->dimensions!=1))
         return
-          csound->InitError(csound,
+          csound->InitError(csound, "%s",
                             Str("Dimension does not match in array arithmetic"));
       size = right->sizes[0];
       tabensure(csound, p->ans, size);
       p->ans->sizes[0] = size;
       return OK;
     }
-    else return csound->InitError(csound, Str("array-variable not initialised"));
+    else return csound->InitError(csound, "%s",
+                                  Str("array-variable not initialised"));
 }
 
 static int32_t tabadd(CSOUND *csound, TABARITH *p)
@@ -1982,13 +1986,13 @@ static int32_t tabarkrpw(CSOUND *csound, TABARITH *p)
 static int32_t tabqset(CSOUND *csound, TABQUERY *p)
 {
     if (LIKELY(p->tab->data)) return OK;
-    return csound->InitError(csound, Str("array-variable not initialised"));
+    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
 }
 
 static int32_t tabqset1(CSOUND *csound, TABQUERY1 *p)
 {
     if (LIKELY(p->tab->data)) return OK;
-    return csound->InitError(csound, Str("array-variable not initialised"));
+    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
 }
 
 static int32_t tabmax(CSOUND *csound, TABQUERY *p)
@@ -2082,14 +2086,15 @@ static int32_t tabsum1(CSOUND *csound, TABQUERY1 *p)
 static int32_t tabscaleset(CSOUND *csound, TABSCALE *p)
 {
     if (LIKELY(p->tab->data && p->tab->dimensions==1)) return OK;
-    return csound->InitError(csound, Str("array-variable not initialised"));
+    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
 }
 
 static int32_t tabscale(CSOUND *csound, TABSCALE *p)
 {
     IGN(csound);
     MYFLT min = *p->kmin, max = *p->kmax;
-    int32_t strt = (int32_t)MYFLT2LRND(*p->kstart), end = (int32_t)MYFLT2LRND(*p->kend);
+    int32_t strt = (int32_t)MYFLT2LRND(*p->kstart),
+            end = (int32_t)MYFLT2LRND(*p->kend);
     ARRAYDAT *t = p->tab;
     MYFLT tmin;
     MYFLT tmax;
@@ -2155,13 +2160,14 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
     int32_t i, arrayTotalSize, memMyfltSize;
 
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
-      return csound->InitError(csound, Str("array-variable not initialised"));
+      return csound->InitError(csound, "%s", Str("array-variable not initialised"));
     if (UNLIKELY(p->dst->dimensions > 0 &&
                  p->src->dimensions != p->dst->dimensions))
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("array-variable dimensions do not match"));
     if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
-      return csound->InitError(csound, Str("array-variable types do not match"));
+      return csound->InitError(csound, "%s",
+                               Str("array-variable types do not match"));
 
     if (p->src == p->dst) return OK;
 
@@ -2201,12 +2207,13 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
     int32_t i, arrayTotalSize, memMyfltSize;
 
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
-      return csound->InitError(csound, Str("array-variable not initialised"));
+      return csound->InitError(csound, "%s", Str("array-variable not initialised"));
     if (p->dst->dimensions > 0 && p->src->dimensions != p->dst->dimensions)
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("array-variable dimensions do not match"));
 //    if (p->src->arrayType != p->dst->arrayType)
-//      return csound->InitError(csound, Str("array-variable types do not match"));
+//      return csound->InitError(csound, "%s",
+//                               Str("array-variable types do not match"));
 
     if (p->src == p->dst) return OK;
 
@@ -2274,9 +2281,9 @@ static int32_t tab2ftabi(CSOUND *csound, TABCOPY *p)
     int32_t i, tlen = 0;
 
     if (UNLIKELY(p->tab->data==NULL))
-      return csound->InitError(csound, Str("array-var not initialised"));
+      return csound->InitError(csound, "%s", Str("array-var not initialised"));
     if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-      return csound->InitError(csound, Str("No table for copy2ftab"));
+      return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
     for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
     fsize = ftp->flen;
     fdata = ftp->ftable;
@@ -2305,7 +2312,7 @@ static int32_t tabgen(CSOUND *csound, TABGEN *p)
     //printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
     if (UNLIKELY(size < 0))
       return
-        csound->InitError(csound,
+        csound->InitError(csound, "%s",
                           Str("inconsistent start, end and increment parameters"));
     tabensure(csound, p->tab, size);
     if (UNLIKELY(p->tab->data==NULL)) {
@@ -2334,7 +2341,7 @@ static int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
     int32_t tlen;
 
     if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-      return csound->InitError(csound,Str("No table for copy2ftab"));
+      return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
     fsize = ftp->flen;
     if (UNLIKELY(p->tab->data==NULL)) {
       tabensure(csound, p->tab, fsize);
@@ -2391,13 +2398,16 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p){
     int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
 
     if (UNLIKELY(size < 0))
-      return csound->InitError(csound, Str("inconsistent start, end parameters"));
+      return csound->InitError(csound, "%s",
+                               Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || end >= p->tabin->sizes[0])) {
       //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-      return csound->InitError(csound, Str("slice larger than original size"));
+      return csound->InitError(csound, "%s",
+                               Str("slice larger than original size"));
     }
     if (UNLIKELY(inc<=0))
-      return csound->InitError(csound, Str("slice increment must be positive"));
+      return csound->InitError(csound, "%s",
+                               Str("slice increment must be positive"));
     tabensure(csound, p->tab, size);
 
     for (i = start, destIndex = 0; i < end + 1; i+=inc, destIndex++) {
@@ -2419,11 +2429,12 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p){
 //    int32_t size = end - start + 1, i;
 //    STRCPY_OP xx;
 //    if (UNLIKELY(size < 0))
-//      return csound->InitError(csound,
+//      return csound->InitError(csound, "%s",
 //                               Str("inconsistent start, end parameters"));
 //    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
 //      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-//      return csound->InitError(csound, Str("slice larger than original size"));
+//      return csound->InitError(csound, "%s",
+//                               Str("slice larger than original size"));
 //    }
 //    tabensure(csound, p->tab, size);
 //    for (i=0; i<size; i++) {
@@ -2453,7 +2464,7 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
     EVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
-      return csound->InitError(csound, Str("array-var not initialised"));
+      return csound->InitError(csound, "%s", Str("array-var not initialised"));
 
     size = p->tabin->sizes[0];
     if (UNLIKELY(p->tab->data==NULL)) {
@@ -2675,7 +2686,7 @@ static uint32_t isPowerOfTwo (uint32_t x) {
 int32_t init_rfft(CSOUND *csound, FFT *p){
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound,
+    return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
   if (isPowerOfTwo(N)){
     tabensure(csound, p->out,N);
@@ -2708,7 +2719,7 @@ int32_t rfft_i(CSOUND *csound, FFT *p){
 int32_t init_rifft(CSOUND *csound, FFT *p){
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound,
+    return csound->InitError(csound, "%s",
                              Str("rifft: only one-dimensional arrays allowed"));
   if (isPowerOfTwo(N)){
     p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
@@ -2740,12 +2751,12 @@ int32_t rifft_i(CSOUND *csound, FFT *p){
 int32_t init_rfftmult(CSOUND *csound, FFT *p){
     int32_t   N = p->in->sizes[0];
     if (UNLIKELY(N != p->in2->sizes[0]))
-      return csound->InitError(csound, Str("array sizes do not match\n"));
+      return csound->InitError(csound, "%s", Str("array sizes do not match\n"));
     /*if (isPowerOfTwo(N))*/
     tabensure(csound, p->out, N);
     /* else
        return
-         csound->InitError(csound,
+         csound->InitError(csound, "%s",
                            Str("non-pow-of-two case not implemented yet \n"));*/
     return OK;
 }
@@ -2763,7 +2774,7 @@ void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 int32_t init_fft(CSOUND *csound, FFT *p){
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound,
+    return csound->InitError(csound, "%s",
                              Str("fft: only one-dimensional arrays allowed"));
   tabensure(csound,p->out,N2);
   return OK;
@@ -2788,12 +2799,12 @@ int32_t fft_i(CSOUND *csound, FFT *p){
 
 
 int32_t init_ifft(CSOUND *csound, FFT *p){
-  int32_t   N2 = p->in->sizes[0];
-  if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound,
-                             Str("fftinv: only one-dimensional arrays allowed"));
-  tabensure(csound, p->out, N2);
-  return OK;
+    int32_t   N2 = p->in->sizes[0];
+    if (UNLIKELY(p->in->dimensions > 1))
+      return csound->InitError(csound, "%s",
+                               Str("fftinv: only one-dimensional arrays allowed"));
+    tabensure(csound, p->out, N2);
+    return OK;
 }
 
 int32_t perf_ifft(CSOUND *csound, FFT *p){
@@ -3031,7 +3042,7 @@ int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p){
       tabensure(csound, p->out, N/2+1);
     }
     else
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("non-pow-of-two case not implemented yet\n"));
     p->lastframe = 0;
     return OK;
@@ -3064,14 +3075,14 @@ int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p){
 int32_t init_ceps(CSOUND *csound, FFT *p){
     int32_t N = p->in->sizes[0]-1;
     if (UNLIKELY(N < 64))
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("FFT size too small (min 64 samples)\n"));
     if (LIKELY(isPowerOfTwo(N))){
       p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
       tabensure(csound, p->out, N+1);
     }
     else
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("non-pow-of-two case not implemented yet\n"));
 
     return OK;
@@ -3103,7 +3114,7 @@ int32_t init_iceps(CSOUND *csound, FFT *p){
       tabensure(csound, p->out, N+1);
     }
     else
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("non-pow-of-two case not implemented yet\n"));
     N++;
     if (p->mem.auxp == NULL || p->mem.size < N*sizeof(MYFLT))
@@ -3131,7 +3142,7 @@ int32_t rows_init(CSOUND *csound, FFT *p){
       return OK;
     }
     else
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("in array not 2-dimensional\n"));
 }
 
@@ -3156,7 +3167,7 @@ int32_t rows_i(CSOUND *csound, FFT *p) {
       memcpy(p->out->data,p->in->data+start,bytes);
       return OK;
     }
-    else return csound->InitError(csound,
+    else return csound->InitError(csound, "%s",
                                   Str("requested row is out of range\n"));
 
   }
@@ -3170,7 +3181,7 @@ int32_t cols_init(CSOUND *csound, FFT *p){
       return OK;
     }
     else
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("in array not 2-dimensional\n"));
 }
 
@@ -3198,14 +3209,15 @@ int32_t cols_i(CSOUND *csound, FFT *p){
         }
         return OK;
     }
-    else return csound->InitError(csound,
+    else return csound->InitError(csound, "%s",
                                   Str("requested col is out of range\n"));
   }
   else return NOTOK;
 }
 
 
-static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p, int32_t rows, int32_t columns)
+static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p,
+                               int32_t rows, int32_t columns)
 {
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==2 && (p->sizes[0] < rows || p->sizes[1] < columns))) {
@@ -3247,7 +3259,7 @@ int32_t set_rows_i(CSOUND *csound, FFT *p){
   int32_t start = *((MYFLT *)p->in2);
   set_rows_init(csound, p);
   if (UNLIKELY(start < 0 || start >= p->out->sizes[0]))
-        return csound->InitError(csound,
+        return csound->InitError(csound, "%s",
                                  Str("Error: index out of range\n"));
     int32_t bytes =  p->in->sizes[0]*sizeof(MYFLT);
     start *= p->out->sizes[1];
@@ -3283,7 +3295,7 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
     set_cols_init(csound,p);
     if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
-        return csound->InitError(csound,
+        return csound->InitError(csound, "%s",
                                  Str("Error: index out of range\n"));
     int32_t j,i,len =  p->out->sizes[0];
     for(j=0,i=start; j < len; i+=len, j++)
@@ -3319,7 +3331,7 @@ int32_t shiftout_init(CSOUND *csound, FFT *p){
     int32_t siz = p->in->sizes[0];
     p->n = ((int32_t)*((MYFLT *)p->in2) % siz);
     if (UNLIKELY((uint32_t) siz < CS_KSMPS))
-      return csound->InitError(csound, Str("input array too small\n"));
+      return csound->InitError(csound, "%s", Str("input array too small\n"));
     return OK;
 }
 
@@ -3371,14 +3383,14 @@ int32_t init_dct(CSOUND *csound, FFT *p){
    int32_t   N = p->in->sizes[0];
    if (LIKELY(isPowerOfTwo(N))){
      if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound,
+    return csound->InitError(csound, "%s",
                              Str("dct: only one-dimensional arrays allowed"));
     tabensure(csound, p->out, N);
     p->setup =  csoundDCTSetup(csound,N,FFT_FWD);
     return OK;
    }
    else return
-          csound->InitError(csound,
+          csound->InitError(csound, "%s",
                             Str("dct: non-pow-of-two sizes not yet implemented"));
 }
 
@@ -3400,7 +3412,7 @@ int32_t init_dctinv(CSOUND *csound, FFT *p){
    int32_t   N = p->in->sizes[0];
    if (LIKELY(isPowerOfTwo(N))){
      if (UNLIKELY(p->in->dimensions > 1))
-       return csound->InitError(csound,
+       return csound->InitError(csound, "%s",
                                 Str("dctinv: only one-dimensional arrays allowed"));
      tabensure(csound, p->out, N);
      p->setup =  csoundDCTSetup(csound,N,FFT_INV);
@@ -3408,7 +3420,7 @@ int32_t init_dctinv(CSOUND *csound, FFT *p){
    }
    else
      return
-       csound->InitError(csound,
+       csound->InitError(csound, "%s",
                          Str("dctinv: non-pow-of-two sizes not yet implemented"));
 }
 
@@ -3458,7 +3470,7 @@ int32_t mfb_init(CSOUND *csound, MFB *p){
   if (LIKELY(L < N))
    tabensure(csound, p->out, L);
   else
-   return csound->InitError(csound,
+   return csound->InitError(csound, "%s",
        "mfb: filter bank size exceeds input array length");
   if (p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int32_t))
       csound->AuxAlloc(csound, (L+2)*sizeof(MYFLT), &p->bins);

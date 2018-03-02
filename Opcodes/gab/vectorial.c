@@ -52,7 +52,8 @@ static int32_t mtable_i(CSOUND *csound,MTABLEI *p)
       }
     }
     else {
-      int64_t indx = (*p->ixmode) ? (int64_t)(*p->xndx * xbmul) : (int64_t) *p->xndx;
+      int64_t indx =
+        (*p->ixmode) ? (int64_t)(*p->xndx * xbmul) : (int64_t) *p->xndx;
       for (j=0; j < nargs; j++)
         **out++ =  table[indx * nargs + j];
     }
@@ -2012,7 +2013,8 @@ static int32_t vrandi_set(CSOUND *csound,VRANDI *p)
           p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
         }
         csound->Message(csound,
-                        Str("vrandi: Seeding from current time %" PRIu32 "\n"), seed);
+                        Str("vrandi: Seeding from current time %" PRIu32 "\n"),
+                        seed);
       }
       else {
         if (*p->isize == 0)

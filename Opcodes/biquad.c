@@ -620,7 +620,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
     MYFLT *buf = (MYFLT *)p->aux.auxp;
     MYFLT fv1, out1;
     int32  v1, v2;
-    int32_t wave = (int32_t)MYFLT2LONG(*p->wave); /* Save recalculation and also round */
+     /* Save recalculation and also round */
+    int32_t wave = (int32_t)MYFLT2LONG(*p->wave);
 
     leaky = p->leaky;
 

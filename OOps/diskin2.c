@@ -1149,7 +1149,8 @@ int32_t soundouts(CSOUND *csound, SNDOUTS *p)
 }
 
 static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
-                                                  DISKIN2_ARRAY *p, int32_t bufReadPos)
+                                                  DISKIN2_ARRAY *p,
+                                                  int32_t bufReadPos)
 {
     MYFLT *tmp;
     int32_t nsmps;
@@ -1546,7 +1547,8 @@ uintptr_t diskin_io_thread_array(void *p){
 }
 
 
-static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stringname)
+static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
+                                  int32_t stringname)
 {
     double  pos;
     char    name[1024];
@@ -1668,7 +1670,8 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p, int32_t stri
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* allocate and initialise buffers */
-    p->bufSize = diskin2_calc_buffer_size_array(p, (int32_t)((p->BufSize) + FL(0.5)));
+    p->bufSize = diskin2_calc_buffer_size_array(p,
+                                                (int32_t)((p->BufSize) + FL(0.5)));
     n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
     if (n != (int32_t)p->auxData.size)
       csound->AuxAlloc(csound, (int32_t) n, &(p->auxData));
@@ -2198,7 +2201,8 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     /* allocate and initialise buffer */
     n = p->bufSize * p->nChannels;
     if (n != (int32_t) p->auxData.size)
-      csound->AuxAlloc(csound, (int32_t) (n * (int32_t) sizeof(MYFLT)), &(p->auxData));
+      csound->AuxAlloc(csound, (int32_t)(n * (int32_t)sizeof(MYFLT)),
+                       &(p->auxData));
     p->buf = (MYFLT*) (p->auxData.auxp);
     /* make sure that read position is not in buffer, to force read */
     if (p->read_pos < (int_least64_t) 0)

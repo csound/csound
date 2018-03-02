@@ -87,7 +87,8 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 
     mreq.imr_multiaddr.s_addr = inet_addr("225.0.0.37");
     mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-    status = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq, sizeof(mreq));
+    status = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+                        (const char *)&mreq, sizeof(mreq));
 
     if ( status < 0 ) {
 #ifdef WIN32
@@ -160,7 +161,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
      csound->GetOParms(csound, &oparms);
     /* nothing to do, report success */
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, "%s", Str("ipMIDI real time MIDI plugin for Csound\n"));
+      csound->Message(csound, "%s",
+                      Str("ipMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
 

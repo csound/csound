@@ -134,9 +134,12 @@ static void ensure_slider(CONTROL_GLOBALS *p, int32_t n)
       start_tcl_tk(p);
     if (n > p->max_sliders) {
       int32_t i, nn = n + 1;
-      p->values  = (int32_t*) p->csound->ReAlloc(p->csound,p->values, nn * sizeof(int32_t));
-      p->minvals = (int32_t*) p->csound->ReAlloc(p->csound,p->minvals,nn * sizeof(int32_t));
-      p->maxvals = (int32_t*) p->csound->ReAlloc(p->csound,p->maxvals,nn * sizeof(int32_t));
+      p->values  = (int32_t*) p->csound->ReAlloc(p->csound,
+                                                 p->values, nn * sizeof(int32_t));
+      p->minvals = (int32_t*) p->csound->ReAlloc(p->csound,
+                                                 p->minvals,nn * sizeof(int32_t));
+      p->maxvals = (int32_t*) p->csound->ReAlloc(p->csound,
+                                                 p->maxvals,nn * sizeof(int32_t));
       for (i = p->max_sliders + 1; i < nn; i++) {
         p->values[i] = 0; p->minvals[i] = 0; p->maxvals[i] = 127;
       }
@@ -274,7 +277,8 @@ static int32_t check_set(CSOUND *csound, CNTRL *p)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_check) {
-      pp->checks = (int32_t*) csound->ReAlloc(csound,pp->checks, (n + 1) * sizeof(int32_t));
+      pp->checks = (int32_t*) csound->ReAlloc(csound,pp->checks,
+                                              (n + 1) * sizeof(int32_t));
       do {
         pp->checks[++(pp->max_check)] = 0;
       } while (pp->max_check < n);

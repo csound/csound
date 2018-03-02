@@ -574,7 +574,8 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     if (STA(pipdevout) == 2)
       csound->Message(csound,
                       Str("reading %d sample blks of %lu-bit floats from %s \n"),
-                      O->inbufsamps * O->sfsampsize, (unsigned long) sizeof(MYFLT)*8, sfname);
+                      O->inbufsamps * O->sfsampsize,
+                      (unsigned long) sizeof(MYFLT)*8, sfname);
     else {
       csound->Message(csound,
                       Str("reading %d-byte blks of %s from %s (%s)\n"),
@@ -870,7 +871,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     if (STA(pipdevout) == 2)
       csound->Message(csound,
                       Str("writing %d sample blks of %lu-bit floats to %s \n"),
-                      O->outbufsamps, (unsigned long) sizeof(MYFLT)*8, STA(sfoutname));
+                      O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
+                      STA(sfoutname));
     else {
      csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
@@ -943,9 +945,10 @@ void sfcloseout(CSOUND *csound)
  report:
     if (STA(pipdevout) == 2) {
       csound->Message(csound,
-                      Str("%"PRIi32" %d sample blks of %lu-bit floats written to %s\n"),
-                      csound->nrecs, O->outbufsamps,
-                      (unsigned long) sizeof(MYFLT)*8, STA(sfoutname));
+                      "%"PRIi32" %d %s%lu%s%s\n",
+                      csound->nrecs, O->outbufsamps, Str("sample blks of "),
+                      (unsigned long)sizeof(MYFLT)*8,Str("-bit floats written to "),
+                      STA(sfoutname));
     }
     else {
       csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
