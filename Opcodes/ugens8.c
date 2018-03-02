@@ -163,7 +163,7 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
     /* use outlen to check window/krate/transpose combinations */
     if (UNLIKELY(outlen>PVFFTSIZE))  /* Maximum transposition down is one octave */
       goto err2;           /* ..so we won't run into buf2Size problems */
-    if (UNLIKELY(outlen<(int32_t)(2*nsmps)))     /* minimum post-squeeze windowlength */
+    if (UNLIKELY(outlen<(int32_t)(2*nsmps))) /* minimum post-squeeze windowlength */
       goto err3;
     buf2Size = OPWLEN;       /* always window to same length after DS */
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err4;

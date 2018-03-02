@@ -85,11 +85,12 @@ static int32_t scsnux_initw(CSOUND *csound, PSCSNUX *p)
     uint32_t len = p->len;
     FUNC *fi = csound->FTnp2Find(csound, p->i_init);
     if (UNLIKELY(fi == NULL)) {
-      return csound->InitError(csound,
-                               "%s", Str("scanux: Could not find ifnnit ftable"));
+      return csound->InitError(csound, "%s",
+                               Str("scanux: Could not find ifnnit ftable"));
     }
     if (UNLIKELY(fi->flen != len))
-      return csound->InitError(csound, "%s", Str("scanux: Init table has bad size"));
+      return csound->InitError(csound, "%s",
+                               Str("scanux: Init table has bad size"));
     /*
       memcpy is 20 times faster that loop!!
     for (i = 0 ; i != len ; i++) {
@@ -193,7 +194,8 @@ static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int32_t id)
     pp = scansyn_getGlobals(csound);
     i = (struct scsnx_elem *) pp->scsnx_list;
     if (UNLIKELY(i == NULL)) {
-      csound->InitError(csound, "%s", Str("xscans: No scan synthesis net specified"));
+      csound->InitError(csound, "%s",
+                        Str("xscans: No scan synthesis net specified"));
       return NULL;
     }
     while (1) {
@@ -201,7 +203,8 @@ static CS_NOINLINE PSCSNUX *listget(CSOUND *csound, int32_t id)
         break;
       i = i->next;
       if (UNLIKELY(i == NULL)) {
-        csound->InitError(csound, "%s", Str("Eek ... scan synthesis id was not found"));
+        csound->InitError(csound, "%s",
+                          Str("Eek ... scan synthesis id was not found"));
         return NULL;
       }
     }
@@ -237,12 +240,13 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
 
     /* Centering */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_c)) == NULL)) {
-      return csound->InitError(csound,
-                               "%s", Str("scanux: Could not find ifncentr table"));
+      return csound->InitError(csound, "%s",
+                               Str("scanux: Could not find ifncentr table"));
     }
     if (UNLIKELY(f->flen != len))
-      return csound->InitError(csound, "%s", Str("scanux: Parameter tables should all "
-                                           "have the same length"));
+      return csound->InitError(csound, "%s",
+                               Str("scanux: Parameter tables should all "
+                                   "have the same length"));
     p->c = f->ftable;
 
     /* Damping */
@@ -251,8 +255,9 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
                                "%s", Str("scanux: Could not find ifndamp table"));
     }
     if (UNLIKELY(f->flen != len))
-      return csound->InitError(csound, "%s", Str("scanux: Parameter tables should all "
-                                           "have the same length"));
+      return csound->InitError(csound, "%s",
+                               Str("scanux: Parameter tables should all "
+                                   "have the same length"));
     p->d = f->ftable;
 
     /* Spring stiffness */
@@ -261,8 +266,8 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
 
       /* Get the table */
       if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
-        return csound->InitError(csound,
-                                 "%s", Str("scanux: Could not find ifnstiff table"));
+        return csound->InitError(csound, "%s",
+                                 Str("scanux: Could not find ifnstiff table"));
       }
 
      /* Check that the size is good */
@@ -289,7 +294,8 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
           if (p->f[ilen+j])
             csound->Message(csound, "%.0f: %d %d\n", *p->i_f, i, j);
 #else
-          int32_t wd = (ilen+j)>>LOG_BITS_PER_UNIT; /* dead reckonng would be faster */
+           /* dead reckonng would be faster */
+          int32_t wd = (ilen+j)>>LOG_BITS_PER_UNIT;
           int32_t bt = (ilen+j)&(BITS_PER_UNIT-1);
           csound->Message(csound,
                           "%.0f: %d %d -> wd%d/bt%d\n", *p->i_f, i, j, wd, bt);
@@ -408,12 +414,13 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
     {
       FUNC *f = csound->FTnp2Find(csound, p->i_v);
       if (UNLIKELY(f == NULL)) {
-        return csound->InitError(csound,
-                                 "%s", Str("scanux: Could not find ifnvel table"));
+        return csound->InitError(csound, "%s",
+                                 Str("scanux: Could not find ifnvel table"));
       }
       if (UNLIKELY(f->flen != len)) {
-        return csound->InitError(csound, "%s", Str("scanux: Parameter tables should "
-                                             "all have the same length"));
+        return csound->InitError(csound, "%s",
+                                 Str("scanux: Parameter tables should "
+                                     "all have the same length"));
       }
       for (i = 0 ; i != len ; i++)
         p->v[i] = f->ftable[i];
@@ -609,8 +616,9 @@ static int32_t scsnsx_init(CSOUND *csound, PSCSNSX *p)
       /* Check that trajectory is within bounds */
       for (i = 0 ; i != p->tlen ; i++)
         if (UNLIKELY(t->ftable[i] < 0 || t->ftable[i] >= p->p->len))
-          return csound->InitError(csound, "%s", Str("scsn: Trajectory table includes "
-                                               "values out of range"));
+          return csound->InitError(csound, "%s",
+                                   Str("scsn: Trajectory table includes "
+                                       "values out of range"));
       /* Allocate mem<ory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
       csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32), &p->aux_t);
@@ -746,9 +754,12 @@ static int32_t scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 
 static OENTRY localops[] =
   {
-   { "xscanu", S(PSCSNUX),TR, 3, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init_S,(SUBR)scsnux },
-   { "xscanu", S(PSCSNUX),TR, 3, "", "iiiiiiikkkkiikkaii", (SUBR)scsnux_init,(SUBR)scsnux },
-   { "xscans", S(PSCSNSX),  TR, 3,  "a", "kkiio",         (SUBR)scsnsx_init, (SUBR)scsnsx},
+   { "xscanu", S(PSCSNUX),TR, 3, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init_S,
+     (SUBR)scsnux },
+   { "xscanu", S(PSCSNUX),TR, 3, "", "iiiiiiikkkkiikkaii", (SUBR)scsnux_init,
+     (SUBR)scsnux },
+   { "xscans", S(PSCSNSX),  TR, 3,  "a", "kkiio",         (SUBR)scsnsx_init,
+     (SUBR)scsnsx},
    { "xscanmap", S(PSCSNMAPX),TR, 3, "kk", "ikko",        (SUBR)scsnmapx_init,
      (SUBR)scsnmapx,NULL },
    { "xscansmap", S(PSCSNMAPX),TR, 3,"",   "kkikko",      (SUBR)scsnmapx_init,
