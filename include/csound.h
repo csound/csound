@@ -1413,10 +1413,10 @@ extern "C" {
    * Sets callback for writing to real time MIDI output.
    */
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-                                                 int (*func)(CSOUND *,
-                                                             void *userData,
-                                                             const unsigned char *buf,
-                                                             int nBytes));
+                                              int (*func)(CSOUND *,
+                                                          void *userData,
+                                                          const unsigned char *buf,
+                                                          int nBytes));
 
   /**
    * Sets callback for closing real time MIDI output.
