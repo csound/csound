@@ -41,7 +41,10 @@ addition to the audio.
 
 - more arithmetic, between a-rate arrays and a-rate values; this
   completes the arithmetic where one or more argument is an audio
-  array. 
+  array.
+
+- balance2 is like balance but scales the ouput at a-rate, rather than
+  k-rate.
 
 ### New Gen and Macros
 
