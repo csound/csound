@@ -1391,9 +1391,9 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
       q = c1 * as * as + c2 * q;
       r = c1 * cs * cs + c2 * r;
       if (LIKELY(q != 0.0))
-      a = sqrt(r/q);
+        a = sqrt(r/q);
       else
-      a = sqrt(r);
+        a = sqrt(r);
       ar[n] = asig[n] * a;
       
     }
