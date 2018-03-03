@@ -455,7 +455,8 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       return dnoise_usage(csound, -1);
     }
     if (UNLIKELY(nfile == NULL)) {
-      csound->Message(csound, "%s", Str("Must have an example noise file (-i name)\n"));
+      csound->Message(csound, "%s",
+                      Str("Must have an example noise file (-i name)\n"));
       return -1;
     }
     if (UNLIKELY((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
@@ -523,7 +524,8 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     if (UNLIKELY((fp = csound->SAsndgetset(csound, nfile, &pn, &beg_ntime,
                                            &input_ndur, &srn, channel)) == NULL)) {
-      csound->Message(csound, "%s", Str("dnoise: cannot open noise reference file\n"));
+      csound->Message(csound, "%s",
+                      Str("dnoise: cannot open noise reference file\n"));
       return -1;
     }
 
@@ -561,8 +563,8 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     if (W != -1) {
       if (UNLIKELY(M != 0))
-        csound->Message(csound,
-                        "%s", Str("dnoise: warning - do not specify both M and W\n"));
+        csound->Message(csound, "%s",
+                        Str("dnoise: warning - do not specify both M and W\n"));
       else if (W == 0)
         M = 4*N;
       else if (W == 1)

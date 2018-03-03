@@ -94,7 +94,8 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
     return length;
 }
 
-static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *oparms)
+static char set_output_format(CSOUND *csound, char c, char outformch,
+                              OPARMS *oparms)
 {
     if (oparms->outformat) {
       csound->Warning(csound, Str("Sound format -%c has been overruled by -%c"),
@@ -763,7 +764,8 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 static int srconv(CSOUND *csound, int argc, char **argv)
 {
   (void) argc;
-    csound->Message(csound, "%s", Str("Do not use srconv but the src_conv program\n"));
+    csound->Message(csound, "%s",
+                    Str("Do not use srconv but the src_conv program\n"));
 #ifndef MSVC
     return execv("src_conv", argv);
 #else
