@@ -112,12 +112,12 @@ typedef struct pvocex_ch {
 
 /* prototype arguments */
 
-static  int32_t     pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
-                                        const char *fname,
-                                        int64_t srate, int64_t chans, int64_t fftsize,
-                                        int64_t overlap, int64_t winsize,
-                                        pv_wtype wintype,
-                                        double beta, int32_t displays);
+static  int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd,
+                        const char *fname,
+                        int64_t srate, int64_t chans, int64_t fftsize,
+                        int64_t overlap, int64_t winsize,
+                        pv_wtype wintype,
+                        double beta, int32_t displays);
 static  int64_t    generate_frame(CSOUND*, PVX *pvx, MYFLT *fbuf, float *outanal,
                                         int64_t samps, int32_t frametype);
 static  void    chan_split(CSOUND*, const MYFLT *inbuf, MYFLT **chbuf,
@@ -504,7 +504,8 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
           if ((blocks_written/chans) % 20 == 0) {
             csound->Message(csound, "%"PRId64"\n", blocks_written/chans);
           }
-          if (displays) PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
+          if (displays)
+            PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
         }
       }
       if (total_sampsread >= p->getframes*chans)
@@ -537,7 +538,8 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
       if (displays) PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
     }
     csound->Message(csound, Str("\n%"PRId64" %d-chan blocks written to %s\n"),
-                    (int64_t) blocks_written / (int64_t) chans, (int32_t) chans, fname);
+                    (int64_t) blocks_written / (int64_t) chans,
+                    (int32_t) chans, fname);
 
  error:
     if (pvfile >= 0)

@@ -273,7 +273,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
 
       memset(&sfinfo, 0, sizeof(SF_INFO));
       //sfinfo.frames = 0/*was -1*/;
-      sfinfo.samplerate = (int32_t) /*MYFLT2LRND*/( sc.p->sr); // p->sr is int already
+      sfinfo.samplerate = (int32_t) ( sc.p->sr); // p->sr is int already
       sfinfo.channels = sc.p->nchanls;
       sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
       /* open file for write */

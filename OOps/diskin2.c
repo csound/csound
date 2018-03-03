@@ -436,7 +436,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
         top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
         *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
         csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(void**));
-        csound->CreateGlobalVariable(csound, "DISKIN_THREAD_START", sizeof(int32_t));
+        csound->CreateGlobalVariable(csound,
+                                     "DISKIN_THREAD_START", sizeof(int32_t));
         current = *top;
       }
       else
