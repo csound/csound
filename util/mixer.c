@@ -275,7 +275,8 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
               dst = atoi(s);
               while (*++s);
               if (UNLIKELY(src > 4 || src < 1 || dst > 4 || dst < 1)) {
-                csound->Warning(csound, "%s", Str("illegal channel number ignored"));
+                csound->Warning(csound, "%s",
+                                Str("illegal channel number ignored"));
                 break;
               }
               if (dst > pp->outputs)
@@ -669,7 +670,8 @@ int32_t mixer_init_(CSOUND *csound)
     char    buf[128];
     int32_t     retval = csound->AddUtility(csound, "mixer", mixer_main);
 
-    snprintf(buf, 128, Str("Mixes sound files (max. %d)"), (int32_t) NUMBER_OF_FILES);
+    snprintf(buf, 128, Str("Mixes sound files (max. %d)"),
+             (int32_t) NUMBER_OF_FILES);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "mixer", buf);
     }

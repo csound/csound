@@ -68,12 +68,15 @@ static void usage(CSOUND *csound, char *mesg, ...)
     csound->Message(csound,"%s", Str("-o fname\tsound output filename\n"));
     csound->Message(csound,"%s", Str("-N\t\tnotify (ring the bell) when done\n"));
     csound->Message(csound,"%s", Str("-S integer\tsample number at which"
-                               " to start file\n"));
-    csound->Message(csound,"%s", Str("-Z integer\tsample number at which to end file\n"));
+                                     " to start file\n"));
+    csound->Message(csound,"%s", Str("-Z integer\tsample number at which"
+                                     " to end file\n"));
     csound->Message(csound,"%s", Str("-Q integer\tnumber of samples to read\n"));
 
-    csound->Message(csound,"%s", Str("-T fpnum\ttime in secs at which to start file\n"));
-    csound->Message(csound,"%s", Str("-E fpnum\ttime in secs at which to end file\n"));
+    csound->Message(csound,"%s", Str("-T fpnum\ttime in secs at which"
+                                     " to start file\n"));
+    csound->Message(csound,"%s", Str("-E fpnum\ttime in secs at which"
+                                     " XSto end file\n"));
     csound->Message(csound,"%s", Str("-D fpnum\tduration in secs of extract\n"));
     csound->Message(csound,"%s", Str("-R\tRewrite header\n"));
     csound->Message(csound,"%s", Str("-H\t\tHeartbeat\n"));
