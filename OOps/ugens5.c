@@ -1397,6 +1397,8 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
       ar[n] = asig[n] * a;
       
     }
+    p->prvq = q;
+    p->prvr = r;
     return OK;
 }
 
