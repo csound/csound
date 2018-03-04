@@ -16,7 +16,7 @@ endin
 
 <CsScore>
 
-i 1 0 300
+i 1 0 30
 e
 </CsScore>
 
