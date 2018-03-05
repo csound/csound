@@ -78,12 +78,16 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       while ((c = corfile_getc(csound->scstr)) != '"') {
         if (c=='\\') { c = corfile_getc(csound->scstr);
           switch (c) {
-          case 'n':
-            c = '\n'; break;
-          case '\\':
-            c = '\\'; break;
-          case '"':
-            c = '"'; break;
+          case '"': c = '"'; break;
+          case '\'': c = '\''; break;
+          case '\\': c = '\\'; break;
+          case 'a': c = '\a'; break;
+          case 'b': c = '\b'; break;
+          case 'f': c = '\f'; break;
+          case 'n': c = '\n'; break;
+          case 'r': c = '\r'; break;
+          case 't': c = '\t'; break;
+          case 'v': c = '\v'; break;
           }
         }
         *sstrp++ = c;
