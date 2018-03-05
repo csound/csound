@@ -56,7 +56,9 @@ addition to the audio.
 
 ### Score
 
-- 
+- Characters following a \ in a score string are treated as escaped, so
+  \n is a newline rather than two characters.   It handles escaped a,
+  b, f, n, r, t and v.  Other characters following a \ ignore the \.
 
 ### Options
 
