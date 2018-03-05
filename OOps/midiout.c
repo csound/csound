@@ -282,7 +282,7 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
         note_off(csound, p->last_chn, p->last_num, p->last_vel);
         p->fl_note_expired = TRUE;
       }
-      else { 
+      else {
         int32_t tt;
         int32_t curr_chn = (tt = abs((int32_t)*p->kchn-1)) < NUMCHN ? tt : NUMCHN-1;
         int32_t curr_num = (tt = abs((int32_t)*p->knum)) < 128    ? tt : 127;

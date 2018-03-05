@@ -1395,7 +1395,6 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
       else
         a = sqrt(r);
       ar[n] = asig[n] * a;
-      
     }
     p->prvq = q;
     p->prvr = r;

@@ -136,7 +136,7 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
                       csound->ids->optext->t.oentry->opname);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
-  
+
   ATOMIC_SET8(ip->actflg, 1);
   csound->reinitflag = ip->reinitflag = 0;
   if(csound->oparms->realtime)
@@ -192,7 +192,7 @@ uintptr_t event_insert_thread(void *p) {
         if (inst[rp].type == 2)  {
           INSDS *ip = inst[rp].ip;
           ATOMIC_SET(ip->init_done, 0);
-          csoundSpinLock(&csound->alloc_spinlock);	  
+          csoundSpinLock(&csound->alloc_spinlock);
           init_pass(csound, ip);
           csoundSpinUnLock(&csound->alloc_spinlock);
           ATOMIC_SET(ip->init_done, 1);
@@ -220,9 +220,9 @@ uintptr_t event_insert_thread(void *p) {
        items--;
        rpm = rpm + 1 < QUEUESIZ ? rpm + 1 : 0;
      }
-     
+
   }
-  
+
   csoundSetMessageCallback(csound, csoundMessageCallback);
   return (uintptr_t) NULL;
 }
