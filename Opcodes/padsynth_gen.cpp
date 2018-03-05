@@ -341,7 +341,7 @@ FUNC(spike)
         if(x < (0.5 - (b / 2.0))) {
             return 0.0;
         } else {  // shift to zero, and expand to range from 0 to 1
-            x = (x + (b / 2) - 0.5) * (2.0 / b); 
+            x = (x + (b / 2) - 0.5) * (2.0 / b);
             return x * (2.0 / b); // this is the slope: 1 / (b / 2)
         }
     } else {
