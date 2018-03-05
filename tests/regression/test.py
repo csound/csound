@@ -68,7 +68,7 @@ def runTest():
         ["buggen31.csd", "gen31 test"],
         ["bugg.csd", "grain3"],
         ["bugline.csd", "comments in score"],
-        ["arrayout.csd", "array dimension greater than nchls", -1],
+        ["arrayout.csd", "array dimension greater than nchls"],
         ["bugstr1.csd", "escaes in score strings"]
     ]
 
