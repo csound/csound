@@ -504,8 +504,10 @@ static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt, CORFIL *sco)
 {                             /* moves quoted ascii string to SCOREOUT file */
     char *q = p;              /*   with no internal format chk              */
     corfile_putc(csound, *p++, sco);
-    while (*p != '"')
+    while (*p != '"') {
       corfile_putc(csound, *p++, sco);
+      if (*(p-1)=='\\') corfile_putc(csound, *p++, sco);
+    }
     corfile_putc(csound, *p++, sco);
     if (UNLIKELY(*p != SP && *p != LF)) {
       csound->Message(csound, Str("swrite: output, sect%d line%d p%d "
