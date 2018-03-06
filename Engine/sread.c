@@ -2055,6 +2055,10 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
           return(0);
         }
         *p++ = c;                       /*   copy to matched quote */
+        if (c=='\\') {
+          *p++ = getscochar(csound, 1);
+          //          printf("escaped %c\n", *(p-1));
+        }
         /* **** CHECK **** */
         if (p >= STA(memend))
           p = (char*) ((uintptr_t) p + expand_nxp(csound));
