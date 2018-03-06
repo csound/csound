@@ -154,6 +154,7 @@ NM              [nm]
 {ESCAPE}        { corfile_puts(csound, yytext, PARM->cf); }
 {STSTR}         {
                   corfile_putc(csound, '"', PARM->cf);
+                  //printf("string start/end: >>%s<<\n", PARM->cf->body);
                   PARM->isString = !PARM->isString;
                 }
 {MACRONAME}|{MACRONAMED}     {
