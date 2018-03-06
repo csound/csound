@@ -2331,12 +2331,11 @@ msgstr " (raw)\n"
 
 #: InOut/libsnd.c:949
 msgid "sample blks of "
-msgstr ""
+msgstr "blocs d'échantillons de "
 
 #: InOut/libsnd.c:950
-#, fuzzy
 msgid "-bit floats written to "
-msgstr "%d trames lpc écrites vers %s\n"
+msgstr "-bit flottants écrits vers "
 
 #: InOut/libsnd.c:954
 #, c-format
@@ -3307,10 +3306,10 @@ msgstr ""
 "***** module AuHAL : périphérique de sortie ouvert avec %d trames de tampon\n"
 
 #: InOut/rtauhal.c:471
-#, fuzzy, c-format
+#, c-format
 msgid "***** AuHAL module: input device open with %d buffer frames\n"
 msgstr ""
-"***** module AuHAL : périphérique de sortie ouvert avec %d trames de tampon\n"
+"***** module AuHAL : périphérique d'entrée ouvert avec %d trames de tampon\n"
 
 #: InOut/rtauhal.c:817
 msgid "AuHAL module: device closed\n"
