@@ -684,11 +684,9 @@ NM              [nm]
          else {
            int c, i;
            char buff[120];
-           //printf("r detected\n");
-           /* if (UNLIKELY(PARM->in_repeat_sect)) */
-           /*   csound->Die(csound, Str("Section loops cannot be nested")); */
+           //printf("r detected %d\n",PARM->in_repeat_sect );
            if (UNLIKELY(PARM->in_repeat_sect)) {
-             unput('s'); unput('\n');
+              unput('s');unput('\n');
            }
            else {
              PARM->repeat_sect_cnt = 0;
@@ -727,7 +725,7 @@ NM              [nm]
                  csound->LongJmp(csound, 1);
                }
                buff[i] = '\0';
-               printf("macro name %s\n", buff);
+               //printf("macro name %s\n", buff);
                /* Define macro for counter */
                PARM->repeat_sect_mm->name = cs_strdup(csound, buff);
                PARM->repeat_sect_mm->acnt = -1; /* inhibit */
@@ -741,7 +739,7 @@ NM              [nm]
              unput(c);
              PARM->repeat_sect_line = PARM->line;
              PARM->repeat_sect_index = 0;
-             while (input(yyscanner)!='\n') {}
+             //while (input(yyscanner)!='\n') {}
              PARM->repeat_sect_cf = PARM->cf;
              PARM->cf = corfile_create_w(csound);
            }
@@ -750,7 +748,7 @@ NM              [nm]
 {SEND}  {
           if (!PARM->isString) {
             int op = yytext[strlen(yytext)-1];
-            //printf("section end %d %c\n%s\n",
+            //printf("section end %d %c\n>>%s<<\n",
             //       PARM->in_repeat_sect, op, PARM->cf->body);
             if (PARM->in_repeat_sect==1) {
               corfile_putc(csound, 's', PARM->cf);
@@ -768,8 +766,10 @@ NM              [nm]
                 PARM->repeat_sect_mm->acnt = 0; /* uninhibit */
               csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
               csound_prs_scan_string(PARM->cf->body, yyscanner);
-              { CORFIL *tmp = PARM->cf; PARM->cf = PARM->repeat_sect_cf;
-                PARM->repeat_sect_cf = tmp; }
+              { CORFIL *tmp = PARM->cf;
+                PARM->cf = PARM->repeat_sect_cf;
+                PARM->repeat_sect_cf = tmp;
+              }
               PARM->line = PARM->repeat_sect_line;
             }
             else if (PARM->in_repeat_sect==2) {
@@ -808,6 +808,8 @@ NM              [nm]
             }
             else {
               corfile_putc(csound, op, PARM->cf);
+              corfile_putc(csound, '\n', PARM->cf);
+              if (op=='s') unput('\n'); //avoid attempting to push back too much
                 /* while (1) { */
                 /*   int c = input(yyscanner); */
                 /*   printf("**copy %.2x(%c)\n", c, c); */
