@@ -604,7 +604,7 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
     }
     else {
       MYFLT freq = *p->xfreq;
-      while(j--) {
+      while (j--) {
         double looplength = *endloop - *startloop, si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
@@ -2311,7 +2311,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
   if (*p->iskip == 0){
     p->mode = (int32_t) *p->imode;
 
-    for(j=0; j < spltNum; j++){
+    for (j=0; j < spltNum; j++) {
       if (p->mode == 0 || p->mode == 2){
         if ((p->ndx[j][0] = *p->start*CS_ESR+p->sstart[j]) < 0)
           p->ndx[j][0] = 0;
@@ -2358,12 +2358,12 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
     memset(outR, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
-    for(k=0; k < spltNum; k++){
+    for (k=0; k < spltNum; k++) {
 
-      tab = base[k];
-      len = nend[k];
-      ndx = p->ndx[k];
-      left = p->leftlevel[k];
+      tab   = base[k];
+      len   = nend[k];
+      ndx   = p->ndx[k];
+      left  = p->leftlevel[k];
       right = p->rightlevel[k];
       pitch = pit*p->freq[k];
 
@@ -2412,7 +2412,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
               fadeout = etab[(int32_t)fadeout];
             }
             out = amp*(fadeout*(tab[tndx0] + frac0*(tab[tndx0+1] - tab[tndx0]))
-                       + fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1])));
+                      + fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1])));
 
             ndx[1] -= pitch;
             count -= pitch;

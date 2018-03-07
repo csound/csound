@@ -53,13 +53,13 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    int32_t     fno;
+    int32_t fno;
 } FTDELETE;
 
 typedef struct namedgen {
     char    *name;
-    int32_t     genum;
-    struct namedgen *next;
+    int32_t genum;
+    struct  namedgen *next;
 } NAMEDGEN;
 
 static int32_t ftable_delete(CSOUND *csound, void *p)
@@ -683,7 +683,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
       ftevt->pcnt = (int16) n+4;
       int32_t i = 0;
       memcpy(&fp[5], array->data, n*sizeof(MYFLT));
-      while(i < n){
+      while (i < n) {
         i++;
       }
       n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */

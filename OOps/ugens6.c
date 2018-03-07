@@ -509,7 +509,7 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!IS_ASIG_ARG(p->xdlt)) {
-      if(*p->xdlt == INFINITY) goto err2;
+      if (*p->xdlt == INFINITY) goto err2;
       delsmps = *p->xdlt * csound->esr;
       idelsmps = (int32_t)delsmps;
       delfrac = delsmps - idelsmps;
@@ -527,7 +527,7 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
     else {
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=offset; n<nsmps; n++) {
-        if(timp[n] == INFINITY) goto err2;
+        if (timp[n] == INFINITY) goto err2;
         delsmps = timp[n] * csound->esr;
         idelsmps = (int32_t)delsmps;
         delfrac = delsmps - idelsmps;
@@ -623,7 +623,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
     begp = (MYFLT *) q->auxch.auxp;
     endp = (MYFLT *) q->auxch.endp;
     if (!IS_ASIG_ARG(p->xdlt)) {
-      if(*p->xdlt == INFINITY) goto err2;
+      if (*p->xdlt == INFINITY) goto err2;
       delsmps = *p->xdlt * csound->esr;
       idelsmps = (int32_t)delsmps;
       delfrac = delsmps - idelsmps;
@@ -658,7 +658,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=offset; n<nsmps; n++) {
         MYFLT ym1, y0, y1, y2;
-        if(timp[n] == INFINITY) goto err2;
+        if (timp[n] == INFINITY) goto err2;
         delsmps = *timp++ * csound->esr;
         idelsmps = (int32_t)delsmps;
         delfrac = delsmps - idelsmps;

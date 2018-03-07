@@ -137,17 +137,17 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
 #endif
 
 typedef struct {
-  OPDS h;
+  OPDS      h;
   STRINGDAT *Sline;
-  MYFLT *line;
-  MYFLT *Sfile;
-  FILE  *fd;
+  MYFLT     *line;
+  MYFLT     *Sfile;
+  FILE      *fd;
   int32_t   lineno;
 } READF;
 
 static int32_t readf_delete(CSOUND *csound, void *p)
 {
-     IGN(csound);
+    IGN(csound);
     READF *pp = (READF*)p;
 
     if (pp->fd) fclose(pp->fd);
@@ -165,7 +165,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
     p->fd = fopen(name, "r");
     p->lineno = 0;
     if (p->Sline->size < MAXLINE) {
-      if(p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
+      if (p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
       p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
     p->Sline->size = MAXLINE;
     }
@@ -211,8 +211,7 @@ static int32_t readfi(CSOUND *csound, READF *p)
     return readf(csound, p);
 }
 
-static int32_t
-readfi_S(CSOUND *csound, READF *p)
+static int32_t readfi_S(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init_S(csound, p)!= OK))
@@ -229,10 +228,10 @@ static OENTRY date_localops[] =
     { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
     { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
-    { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,       },
+    { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,     },
     { "readf",  sizeof(READF),      0, 3, "Sk",   "i", (SUBR)readf_init,
-      (SUBR)readf         },
-    { "readf.S",  sizeof(READF),      0, 3, "Sk",   "S", (SUBR)readf_init_S,
+      (SUBR)readf                                                          },
+    { "readf.S",  sizeof(READF),    0, 3, "Sk",   "S", (SUBR)readf_init_S,
                                                        (SUBR)readf         }
 
 };
