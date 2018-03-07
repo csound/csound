@@ -200,7 +200,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     if (indefArgCount > 1) {
       for (i = end - 1; i >= 0; i--) {
         int32_t ind = MYFLT2LRND(*p->indexes[i]);
-        if (UNLIKELY(ind >= dat->sizes[i] || ind<0)){
+        if (UNLIKELY(ind >= dat->sizes[i] || ind<0)) {
           csound->Warning(csound,Str("Array index %d out of range (0,%d) "
                                      "for dimension %d"), ind,
                           dat->sizes[i]-1, i+1);
@@ -232,7 +232,7 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     if (UNLIKELY(indefArgCount == 0))
       csound->PerfError(csound, p->h.insdshead,
                         Str("Error: no indexes set for array get"));
-    if (UNLIKELY(indefArgCount>dat->dimensions)){
+    if (UNLIKELY(indefArgCount>dat->dimensions)) {
        csound->Warning(csound,
                        Str("Array dimension %d out of range "
                            "for dimensions %d"),
@@ -241,7 +241,7 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     }
     end = indefArgCount - 1;
     index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0)){
+    if (UNLIKELY(index >= dat->sizes[end] || index<0)) {
       csound->Warning(csound,
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
@@ -2387,7 +2387,7 @@ typedef struct {
 } TABSLICE;
 
 
-static int32_t tabslice(CSOUND *csound, TABSLICE *p){
+static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
 
     MYFLT *tabin = p->tabin->data;
     int32_t start = (int32_t) *p->start;
@@ -2421,7 +2421,7 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p){
 
 //#include "str_ops.h"
 //// This cheats using strcpy opcode fake
-//static int32_t tabsliceS(CSOUND *csound, TABSLICE *p){
+//static int32_t tabsliceS(CSOUND *csound, TABSLICE *p) {
 //
 //    MYFLT *tabin = p->tabin->data;
 //    int32_t start = (int32_t) *p->start;
@@ -2683,12 +2683,12 @@ static uint32_t isPowerOfTwo (uint32_t x) {
 }
 
 
-int32_t init_rfft(CSOUND *csound, FFT *p){
+int32_t init_rfft(CSOUND *csound, FFT *p) {
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
-  if (isPowerOfTwo(N)){
+  if (isPowerOfTwo(N)) {
     tabensure(csound, p->out,N);
     p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
   }
@@ -2697,10 +2697,10 @@ int32_t init_rfft(CSOUND *csound, FFT *p){
   return OK;
 }
 
-int32_t perf_rfft(CSOUND *csound, FFT *p){
+int32_t perf_rfft(CSOUND *csound, FFT *p) {
     int32_t N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-    if (isPowerOfTwo(N)){
+    if (isPowerOfTwo(N)) {
       csound->RealFFT2(csound,p->setup,p->out->data);
     }
     else{
@@ -2710,18 +2710,18 @@ int32_t perf_rfft(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t rfft_i(CSOUND *csound, FFT *p){
+int32_t rfft_i(CSOUND *csound, FFT *p) {
   if (init_rfft(csound,p) == OK)
     return perf_rfft(csound, p);
   else return NOTOK;
 }
 
-int32_t init_rifft(CSOUND *csound, FFT *p){
+int32_t init_rifft(CSOUND *csound, FFT *p) {
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rifft: only one-dimensional arrays allowed"));
-  if (isPowerOfTwo(N)){
+  if (isPowerOfTwo(N)) {
     p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
     tabensure(csound, p->out, N);
   }
@@ -2730,7 +2730,7 @@ int32_t init_rifft(CSOUND *csound, FFT *p){
   return OK;
 }
 
-int32_t perf_rifft(CSOUND *csound, FFT *p){
+int32_t perf_rifft(CSOUND *csound, FFT *p) {
     int32_t N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     if (isPowerOfTwo(N))
@@ -2742,13 +2742,13 @@ int32_t perf_rifft(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t rifft_i(CSOUND *csound, FFT *p){
+int32_t rifft_i(CSOUND *csound, FFT *p) {
   if (init_rifft(csound,p) == OK)
     return perf_rifft(csound, p);
   else return NOTOK;
 }
 
-int32_t init_rfftmult(CSOUND *csound, FFT *p){
+int32_t init_rfftmult(CSOUND *csound, FFT *p) {
     int32_t   N = p->in->sizes[0];
     if (UNLIKELY(N != p->in2->sizes[0]))
       return csound->InitError(csound, "%s", Str("array sizes do not match\n"));
@@ -2761,7 +2761,7 @@ int32_t init_rfftmult(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t perf_rfftmult(CSOUND *csound, FFT *p){
+int32_t perf_rfftmult(CSOUND *csound, FFT *p) {
     int32_t N = p->out->sizes[0];
     csound->RealFFTMult(csound,p->out->data,p->in->data,p->in2->data,N,1);
     return OK;
@@ -2771,7 +2771,7 @@ int32_t perf_rfftmult(CSOUND *csound, FFT *p){
 void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
-int32_t init_fft(CSOUND *csound, FFT *p){
+int32_t init_fft(CSOUND *csound, FFT *p) {
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -2780,7 +2780,7 @@ int32_t init_fft(CSOUND *csound, FFT *p){
   return OK;
 }
 
-int32_t perf_fft(CSOUND *csound, FFT *p){
+int32_t perf_fft(CSOUND *csound, FFT *p) {
     int32_t N2 = p->in->sizes[0];
     memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
     if (isPowerOfTwo(N2))
@@ -2791,14 +2791,14 @@ int32_t perf_fft(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t fft_i(CSOUND *csound, FFT *p){
+int32_t fft_i(CSOUND *csound, FFT *p) {
   if (init_fft(csound,p) == OK)
     return perf_fft(csound, p);
   else return NOTOK;
 }
 
 
-int32_t init_ifft(CSOUND *csound, FFT *p){
+int32_t init_ifft(CSOUND *csound, FFT *p) {
     int32_t   N2 = p->in->sizes[0];
     if (UNLIKELY(p->in->dimensions > 1))
       return csound->InitError(csound, "%s",
@@ -2807,10 +2807,10 @@ int32_t init_ifft(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t perf_ifft(CSOUND *csound, FFT *p){
+int32_t perf_ifft(CSOUND *csound, FFT *p) {
     int32_t N2 = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
-    if (isPowerOfTwo(N2)){
+    if (isPowerOfTwo(N2)) {
       csound->InverseComplexFFT(csound,p->out->data,N2/2);
     }
     else {
@@ -2819,25 +2819,25 @@ int32_t perf_ifft(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t ifft_i(CSOUND *csound, FFT *p){
+int32_t ifft_i(CSOUND *csound, FFT *p) {
     if (LIKELY(init_ifft(csound,p) == OK))
     return perf_ifft(csound, p);
   else return NOTOK;
 }
 
-int32_t init_recttopol(CSOUND *csound, FFT *p){
+int32_t init_recttopol(CSOUND *csound, FFT *p) {
     int32_t   N = p->in->sizes[0];
     tabensure(csound, p->out, N);
     return OK;
 }
 
-int32_t perf_recttopol(CSOUND *csound, FFT *p){
+int32_t perf_recttopol(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i, end = p->out->sizes[0];
     MYFLT *in, *out, mag, ph;
     in = p->in->data;
     out = p->out->data;
-    for (i=2;i<end;i+=2 ){
+    for (i=2;i<end;i+=2 ) {
       mag = HYPOT(in[i], in[i+1]);
       ph = ATAN2(in[i+1],in[i]);
       out[i] = mag; out[i+1] = ph;
@@ -2845,13 +2845,13 @@ int32_t perf_recttopol(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t perf_poltorect(CSOUND *csound, FFT *p){
+int32_t perf_poltorect(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i, end = p->out->sizes[0];
     MYFLT *in, *out, re, im;
     in = p->in->data;
     out = p->out->data;
-    for(i=2;i<end;i+=2){
+    for (i=2;i<end;i+=2) {
       re = in[i]*COS(in[i+1]);
       im = in[i]*SIN(in[i+1]);
       out[i] = re; out[i+1] = im;
@@ -2859,8 +2859,8 @@ int32_t perf_poltorect(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t init_poltorect2(CSOUND *csound, FFT *p){
-    if (LIKELY(p->in2->sizes[0] == p->in->sizes[0])){
+int32_t init_poltorect2(CSOUND *csound, FFT *p) {
+    if (LIKELY(p->in2->sizes[0] == p->in->sizes[0])) {
       int32_t   N = p->in2->sizes[0]-1;
       tabensure(csound, p->out, N*2);
       return OK;
@@ -2870,14 +2870,14 @@ int32_t init_poltorect2(CSOUND *csound, FFT *p){
 }
 
 
-int32_t perf_poltorect2(CSOUND *csound, FFT *p){
+int32_t perf_poltorect2(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i,j, end = p->in->sizes[0]-1;
     MYFLT *mags, *phs, *out, re, im;
     mags = p->in->data;
     phs = p->in2->data;
     out = p->out->data;
-    for(i=2,j=1;j<end;i+=2, j++){
+    for (i=2,j=1;j<end;i+=2, j++) {
       re = mags[j]*COS(phs[j]);
       im = mags[j]*SIN(phs[j]);
       out[i] = re; out[i+1] = im;
@@ -2887,37 +2887,37 @@ int32_t perf_poltorect2(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t init_mags(CSOUND *csound, FFT *p){
+int32_t init_mags(CSOUND *csound, FFT *p) {
     int32_t   N = p->in->sizes[0];
     tabensure(csound, p->out, N/2+1);
     return OK;
 }
 
-int32_t perf_mags(CSOUND *csound, FFT *p){
+int32_t perf_mags(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
     out = p->out->data;
-    for(i=2,j=1;j<end-1;i+=2,j++)
+    for (i=2,j=1;j<end-1;i+=2,j++)
       out[j] = HYPOT(in[i],in[i+1]);
     out[0] = in[0];
     out[end-1] = in[1];
     return OK;
 }
 
-int32_t perf_phs(CSOUND *csound, FFT *p){
+int32_t perf_phs(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
     out = p->out->data;
-    for(i=0,j=0;j<end;i+=2,j++)
+    for (i=0,j=0;j<end;i+=2,j++)
       out[j] = atan2(in[i+1],in[i]);
     return OK;
 }
 
-int32_t init_logarray(CSOUND *csound, FFT *p){
+int32_t init_logarray(CSOUND *csound, FFT *p) {
     tabensure(csound, p->out, p->in->sizes[0]);
     if (LIKELY(*((MYFLT *)p->in2)))
       p->b = 1/log(*((MYFLT *)p->in2));
@@ -2926,7 +2926,7 @@ int32_t init_logarray(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t perf_logarray(CSOUND *csound, FFT *p){
+int32_t perf_logarray(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i, end = p->out->sizes[0];
     MYFLT bas = p->b;
@@ -2934,65 +2934,65 @@ int32_t perf_logarray(CSOUND *csound, FFT *p){
     in = p->in->data;
     out = p->out->data;
     if (LIKELY(bas))
-      for(i=0;i<end;i++)
+      for (i=0;i<end;i++)
         out[i] = log(in[i])*bas;
     else
-      for(i=0;i<end;i++)
+      for (i=0;i<end;i++)
         out[i] = log(in[i]);
     return OK;
 }
 
-int32_t init_rtoc(CSOUND *csound, FFT *p){
+int32_t init_rtoc(CSOUND *csound, FFT *p) {
     int32_t   N = p->in->sizes[0];
     tabensure(csound, p->out, N*2);
     return OK;
 }
 
-int32_t perf_rtoc(CSOUND *csound, FFT *p){
+int32_t perf_rtoc(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
     out = p->out->data;
-    for(i=0,j=0;i<end;i+=2,j++){
+    for (i=0,j=0;i<end;i+=2,j++) {
       out[i] = in[j];
       out[i+1] = FL(0.0);
     }
     return OK;
 }
 
-int32_t rtoc_i(CSOUND *csound, FFT *p){
+int32_t rtoc_i(CSOUND *csound, FFT *p) {
     if (LIKELY(init_rtoc(csound,p) == OK))
     return perf_rtoc(csound, p);
   else return NOTOK;
 }
 
-int32_t init_ctor(CSOUND *csound, FFT *p){
+int32_t init_ctor(CSOUND *csound, FFT *p) {
     int32_t   N = p->in->sizes[0];
     tabensure(csound, p->out, N/2);
     return OK;
 }
 
 
-int32_t perf_ctor(CSOUND *csound, FFT *p){
+int32_t perf_ctor(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
     out = p->out->data;
-    for(i=0,j=0;j<end;i+=2,j++)
+    for (i=0,j=0;j<end;i+=2,j++)
       out[j] = in[i];
     return OK;
 }
 
-int32_t ctor_i(CSOUND *csound, FFT *p){
+int32_t ctor_i(CSOUND *csound, FFT *p) {
     if (LIKELY(init_ctor(csound,p) == OK))
     return perf_ctor(csound, p);
   else return NOTOK;
 }
 
 
-int32_t init_window(CSOUND *csound, FFT *p){
+int32_t init_window(CSOUND *csound, FFT *p) {
     int32_t   N = p->in->sizes[0];
     int32_t   i,type = (int32_t) *p->f;
     MYFLT *w;
@@ -3000,26 +3000,26 @@ int32_t init_window(CSOUND *csound, FFT *p){
     if (p->mem.auxp == 0 || p->mem.size < N*sizeof(MYFLT))
       csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
     w = (MYFLT *) p->mem.auxp;
-    switch(type){
+    switch(type) {
     case 0:
-      for(i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
+      for (i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
       break;
     case 1:
     default:
-      for(i=0; i<N; i++) w[i] = 0.5 - 0.5*cos(i*2*PI/N);
+      for (i=0; i<N; i++) w[i] = 0.5 - 0.5*cos(i*2*PI/N);
     }
     return OK;
 }
 
-int32_t perf_window(CSOUND *csound, FFT *p){
+int32_t perf_window(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i,end = p->out->sizes[0], off = *((MYFLT *)p->in2);
     MYFLT *in, *out, *w;
     in = p->in->data;
     out = p->out->data;
     w = (MYFLT *) p->mem.auxp;
-    while(off < 0) off += end;
-    for(i=0;i<end;i++)
+    while (off < 0) off += end;
+    for (i=0;i<end;i++)
       out[(i+off)%end] = in[i]*w[i];
     return OK;
 }
@@ -3035,9 +3035,9 @@ typedef struct _pvsceps {
   uint32_t  lastframe;
 } PVSCEPS;
 
-int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p){
+int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p) {
     int32_t N = p->fin->N;
-    if (LIKELY(isPowerOfTwo(N))){
+    if (LIKELY(isPowerOfTwo(N))) {
       p->setup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
       tabensure(csound, p->out, N/2+1);
     }
@@ -3048,7 +3048,7 @@ int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p){
     return OK;
 }
 
-int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p){
+int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
 
     if (p->lastframe < p->fin->framecount) {
       int32_t N = p->fin->N;
@@ -3056,12 +3056,12 @@ int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p){
       MYFLT *ceps = p->out->data;
       MYFLT coefs = *p->coefs;
       float *fin = (float *) p->fin->frame.auxp;
-      for(i=j=0; i < N; i+=2, j++){
+      for (i=j=0; i < N; i+=2, j++) {
         ceps[j] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
       }
       ceps[N/2] = fin[N/2];
       csound->RealFFT2(csound, p->setup, ceps);
-      if (coefs){
+      if (coefs) {
         // lifter coefs
        for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
         ceps[N/2] = 0.0;
@@ -3072,12 +3072,12 @@ int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p){
 }
 
 
-int32_t init_ceps(CSOUND *csound, FFT *p){
+int32_t init_ceps(CSOUND *csound, FFT *p) {
     int32_t N = p->in->sizes[0]-1;
     if (UNLIKELY(N < 64))
       return csound->InitError(csound, "%s",
                                Str("FFT size too small (min 64 samples)\n"));
-    if (LIKELY(isPowerOfTwo(N))){
+    if (LIKELY(isPowerOfTwo(N))) {
       p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
       tabensure(csound, p->out, N+1);
     }
@@ -3089,17 +3089,17 @@ int32_t init_ceps(CSOUND *csound, FFT *p){
 }
 
 
-int32_t perf_ceps(CSOUND *csound, FFT *p){
+int32_t perf_ceps(CSOUND *csound, FFT *p) {
     int32_t siz = p->out->sizes[0]-1, i;
     MYFLT *ceps = p->out->data;
     MYFLT coefs = *((MYFLT *)p->in2);
     MYFLT *mags = (MYFLT *) p->in->data;
-    for(i=0; i < siz; i++){
+    for (i=0; i < siz; i++) {
       ceps[i] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
     }
     ceps[siz] = mags[siz];
     csound->RealFFT2(csound, p->setup, ceps);
-    if (coefs){
+    if (coefs) {
       // lifter coefs
       for (i=coefs*2; i < siz; i++) ceps[i] = 0.0;
       ceps[siz] = 0.0;
@@ -3107,7 +3107,7 @@ int32_t perf_ceps(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t init_iceps(CSOUND *csound, FFT *p){
+int32_t init_iceps(CSOUND *csound, FFT *p) {
     int32_t N = p->in->sizes[0]-1;
     if (LIKELY(isPowerOfTwo(N))) {
       p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
@@ -3122,21 +3122,21 @@ int32_t init_iceps(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t perf_iceps(CSOUND *csound, FFT *p){
+int32_t perf_iceps(CSOUND *csound, FFT *p) {
     int32_t siz = p->in->sizes[0]-1, i;
     MYFLT *spec = (MYFLT *)p->mem.auxp;
     MYFLT *out = p->out->data;
     memcpy(spec, p->in->data, siz*sizeof(MYFLT));
     csound->RealFFT2(csound,p->setup,spec);
-    for(i=0; i < siz; i++){
+    for (i=0; i < siz; i++) {
       out[i] = exp(spec[i]);
     }
     out[siz] = spec[siz];       /* Writes outside data allocated */
     return OK;
 }
 
-int32_t rows_init(CSOUND *csound, FFT *p){
-    if (p->in->dimensions == 2){
+int32_t rows_init(CSOUND *csound, FFT *p) {
+    if (p->in->dimensions == 2) {
       int32_t siz = p->in->sizes[1];
       tabensure(csound, p->out, siz);
       return OK;
@@ -3146,7 +3146,7 @@ int32_t rows_init(CSOUND *csound, FFT *p){
                                Str("in array not 2-dimensional\n"));
 }
 
-int32_t rows_perf(CSOUND *csound, FFT *p){
+int32_t rows_perf(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
     if (LIKELY(start < p->in->sizes[0])) {
       int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
@@ -3159,7 +3159,7 @@ int32_t rows_perf(CSOUND *csound, FFT *p){
 }
 
 int32_t rows_i(CSOUND *csound, FFT *p) {
-  if(rows_init(csound,p) == OK) {
+  if (rows_init(csound,p) == OK) {
    int32_t start = *((MYFLT *)p->in2);
    if (LIKELY(start < p->in->sizes[0])) {
       int32_t bytes =  p->in->sizes[1]*sizeof(MYFLT);
@@ -3174,8 +3174,8 @@ int32_t rows_i(CSOUND *csound, FFT *p) {
   else return NOTOK;
 }
 
-int32_t cols_init(CSOUND *csound, FFT *p){
-    if (LIKELY(p->in->dimensions == 2)){
+int32_t cols_init(CSOUND *csound, FFT *p) {
+    if (LIKELY(p->in->dimensions == 2)) {
       int32_t siz = p->in->sizes[0];
       tabensure(csound, p->out, siz);
       return OK;
@@ -3185,12 +3185,12 @@ int32_t cols_init(CSOUND *csound, FFT *p){
                                Str("in array not 2-dimensional\n"));
 }
 
-int32_t cols_perf(CSOUND *csound, FFT *p){
+int32_t cols_perf(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
 
     if (LIKELY(start < p->in->sizes[1])) {
         int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
-        for(j=0,i=start; j < len; i+=collen, j++) {
+        for (j=0,i=start; j < len; i+=collen, j++) {
             p->out->data[j] = p->in->data[i];
         }
         return OK;
@@ -3199,12 +3199,12 @@ int32_t cols_perf(CSOUND *csound, FFT *p){
                                   Str("requested col is out of range\n"));
 }
 
-int32_t cols_i(CSOUND *csound, FFT *p){
-  if(cols_init(csound, p) == OK) {
+int32_t cols_i(CSOUND *csound, FFT *p) {
+  if (cols_init(csound, p) == OK) {
   int32_t start = *((MYFLT *)p->in2);
     if (LIKELY(start < p->in->sizes[1])) {
         int32_t j,i,collen =  p->in->sizes[1], len = p->in->sizes[0];
-        for(j=0,i=start; j < len; i+=collen, j++) {
+        for (j=0,i=start; j < len; i+=collen, j++) {
             p->out->data[j] = p->in->data[i];
         }
         return OK;
@@ -3237,14 +3237,14 @@ static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p,
     }
 }
 
-int32_t set_rows_init(CSOUND *csound, FFT *p){
+int32_t set_rows_init(CSOUND *csound, FFT *p) {
     int32_t sizs = p->in->sizes[0];
     int32_t row = *((MYFLT *)p->in2);
     tabensure2D(csound, p->out, row+1, sizs);
     return OK;
 }
 
-int32_t set_rows_perf(CSOUND *csound, FFT *p){
+int32_t set_rows_perf(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
     if (UNLIKELY(start < 0 || start >= p->out->sizes[0]))
         return csound->PerfError(csound, p->h.insdshead,
@@ -3255,7 +3255,7 @@ int32_t set_rows_perf(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t set_rows_i(CSOUND *csound, FFT *p){
+int32_t set_rows_i(CSOUND *csound, FFT *p) {
   int32_t start = *((MYFLT *)p->in2);
   set_rows_init(csound, p);
   if (UNLIKELY(start < 0 || start >= p->out->sizes[0]))
@@ -3269,14 +3269,14 @@ int32_t set_rows_i(CSOUND *csound, FFT *p){
 }
 
 
-int32_t set_cols_init(CSOUND *csound, FFT *p){
+int32_t set_cols_init(CSOUND *csound, FFT *p) {
     int32_t siz = p->in->sizes[0];
     int32_t col = *((MYFLT *)p->in2);
     tabensure2D(csound, p->out, siz, col+1);
     return OK;
 }
 
-int32_t set_cols_perf(CSOUND *csound, FFT *p){
+int32_t set_cols_perf(CSOUND *csound, FFT *p) {
 
     int32_t start = *((MYFLT *)p->in2);
 
@@ -3286,7 +3286,7 @@ int32_t set_cols_perf(CSOUND *csound, FFT *p){
 
 
     int32_t j,i,len =  p->out->sizes[0];
-    for(j=0,i=start; j < len; i+=len, j++)
+    for (j=0,i=start; j < len; i+=len, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
@@ -3298,19 +3298,19 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
         return csound->InitError(csound, "%s",
                                  Str("Error: index out of range\n"));
     int32_t j,i,len =  p->out->sizes[0];
-    for(j=0,i=start; j < len; i+=len, j++)
+    for (j=0,i=start; j < len; i+=len, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
 
-int32_t shiftin_init(CSOUND *csound, FFT *p){
+int32_t shiftin_init(CSOUND *csound, FFT *p) {
     int32_t sizs = CS_KSMPS;
     tabensure(csound, p->out, sizs);
     p->n = 0;
     return OK;
 }
 
-int32_t shiftin_perf(CSOUND *csound, FFT *p){
+int32_t shiftin_perf(CSOUND *csound, FFT *p) {
    IGN(csound);
     uint32_t  siz =  p->out->sizes[0], n = p->n;
     MYFLT *in = ((MYFLT *) p->in);
@@ -3327,7 +3327,7 @@ int32_t shiftin_perf(CSOUND *csound, FFT *p){
 }
 
 
-int32_t shiftout_init(CSOUND *csound, FFT *p){
+int32_t shiftout_init(CSOUND *csound, FFT *p) {
     int32_t siz = p->in->sizes[0];
     p->n = ((int32_t)*((MYFLT *)p->in2) % siz);
     if (UNLIKELY((uint32_t) siz < CS_KSMPS))
@@ -3335,7 +3335,7 @@ int32_t shiftout_init(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t shiftout_perf(CSOUND *csound, FFT *p){
+int32_t shiftout_perf(CSOUND *csound, FFT *p) {
     IGN(csound);
     uint32_t siz =  p->in->sizes[0], n = p->n;
     MYFLT *out = ((MYFLT *) p->out);
@@ -3352,24 +3352,24 @@ int32_t shiftout_perf(CSOUND *csound, FFT *p){
     return OK;
 }
 
-int32_t scalarset(CSOUND *csound, FFT *p){
+int32_t scalarset(CSOUND *csound, FFT *p) {
     IGN(csound);
     uint32_t siz = 0 , dim = p->out->dimensions, i;
     MYFLT val = *((MYFLT *)p->in);
-    for(i=0; i < dim; i++)
+    for (i=0; i < dim; i++)
       siz += p->out->sizes[i];
-    for(i=0; i < siz; i++)
+    for (i=0; i < siz; i++)
       p->out->data[i] = val;
     return OK;
 }
 
-int32_t unwrap(CSOUND *csound, FFT *p){
+int32_t unwrap(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i,siz = p->in->sizes[0];
     MYFLT *phs = p->out->data;
-    for(i=0; i < siz; i++){
-      while(phs[i] >= PI) phs[i] -= 2*PI;
-      while(phs[i] < -PI) phs[i] += 2*PI;
+    for (i=0; i < siz; i++) {
+      while (phs[i] >= PI) phs[i] -= 2*PI;
+      while (phs[i] < -PI) phs[i] += 2*PI;
     }
     return OK;
 }
@@ -3379,9 +3379,9 @@ void *csoundDCTSetup(CSOUND *csound,
 void csoundDCT(CSOUND *csound,
                void *p, MYFLT *sig);
 
-int32_t init_dct(CSOUND *csound, FFT *p){
+int32_t init_dct(CSOUND *csound, FFT *p) {
    int32_t   N = p->in->sizes[0];
-   if (LIKELY(isPowerOfTwo(N))){
+   if (LIKELY(isPowerOfTwo(N))) {
      if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("dct: only one-dimensional arrays allowed"));
@@ -3394,23 +3394,23 @@ int32_t init_dct(CSOUND *csound, FFT *p){
                             Str("dct: non-pow-of-two sizes not yet implemented"));
 }
 
-int32_t kdct(CSOUND *csound, FFT *p){
+int32_t kdct(CSOUND *csound, FFT *p) {
     int32_t N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     csoundDCT(csound,p->setup,p->out->data);
     return OK;
 }
 
-int32_t dct(CSOUND *csound, FFT *p){
-    if (!init_dct(csound,p)){
+int32_t dct(CSOUND *csound, FFT *p) {
+    if (!init_dct(csound,p)) {
       kdct(csound,p);
       return OK;
       } else return NOTOK;
 }
 
-int32_t init_dctinv(CSOUND *csound, FFT *p){
+int32_t init_dctinv(CSOUND *csound, FFT *p) {
    int32_t   N = p->in->sizes[0];
-   if (LIKELY(isPowerOfTwo(N))){
+   if (LIKELY(isPowerOfTwo(N))) {
      if (UNLIKELY(p->in->dimensions > 1))
        return csound->InitError(csound, "%s",
                                 Str("dctinv: only one-dimensional arrays allowed"));
@@ -3424,20 +3424,20 @@ int32_t init_dctinv(CSOUND *csound, FFT *p){
                          Str("dctinv: non-pow-of-two sizes not yet implemented"));
 }
 
-int32_t dctinv(CSOUND *csound, FFT *p){
-    if (LIKELY(!init_dctinv(csound,p))){
+int32_t dctinv(CSOUND *csound, FFT *p) {
+    if (LIKELY(!init_dctinv(csound,p))) {
       kdct(csound,p);
       return OK;
       } else return NOTOK;
 }
 
-int32_t perf_pows(CSOUND *csound, FFT *p){
+int32_t perf_pows(CSOUND *csound, FFT *p) {
     IGN(csound);
     int32_t i,j, end = p->out->sizes[0];
     MYFLT *in, *out;
     in = p->in->data;
     out = p->out->data;
-    for(i=2,j=1;j<end-1;i+=2,j++)
+    for (i=2,j=1;j<end-1;i+=2,j++)
       out[j] = in[i]*in[i]+in[i+1]*in[i+1];
     out[0] = in[0]*in[0];
     out[end-1] = in[1]*in[1];
@@ -3454,17 +3454,17 @@ typedef struct _MFB {
   AUXCH  bins;
 } MFB;
 
-static inline MYFLT f2mel(MYFLT f){
+static inline MYFLT f2mel(MYFLT f) {
   return 1125.*log(1.+f/700.);
 }
 
-static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr){
+static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr) {
   MYFLT f = 700.*(exp(m/1125.) - 1.);
   return  (int32_t)(f/(sr/(2*N)));
 
 }
 
-int32_t mfb_init(CSOUND *csound, MFB *p){
+int32_t mfb_init(CSOUND *csound, MFB *p) {
   int32_t   L = *p->len;
   int32_t N = p->in->sizes[0];
   if (LIKELY(L < N))
@@ -3493,24 +3493,24 @@ int32_t mfb(CSOUND *csound, MFB *p) {
   end = f2mel(*p->up);
   incr = (end-start)/(L+1);
 
-  for(i=0;i<L+2;i++){
+  for (i=0;i<L+2;i++) {
     bin[i] = (int32_t) mel2bin(start,N-1,sr);
     if (bin[i] > N) bin[i] = N;
     start += incr;
   }
 
-  for(i=0; i < L; i++){
+  for (i=0; i < L; i++) {
     start = bin[i];
     max = bin[i+1];
     end = bin[i+2];
     incr =  1.0/(max - start);
     decr =  1.0/(end - max);
-    for(j=start; j < max; j++){
+    for (j=start; j < max; j++) {
       sum += in[j]*g;
       g += incr;
     }
     g = FL(1.0);
-    for(j=max; j < end; j++){
+    for (j=max; j < end; j++) {
       sum += in[j]*g;
       g -= decr;
     }
@@ -3522,7 +3522,7 @@ int32_t mfb(CSOUND *csound, MFB *p) {
   return OK;
 }
 
-int32_t mfbi(CSOUND *csound, MFB *p){
+int32_t mfbi(CSOUND *csound, MFB *p) {
     if (LIKELY(mfb_init(csound,p) == OK))
     return mfb(csound,p);
   else return NOTOK;
@@ -3534,14 +3534,14 @@ typedef struct _centr{
   ARRAYDAT *in;
 } CENTR;
 
-int32_t array_centroid(CSOUND *csound, CENTR *p){
+int32_t array_centroid(CSOUND *csound, CENTR *p) {
 
   MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
   int32_t NP1 = p->in->sizes[0];
   MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
   int32_t i;
   cf = f*FL(0.5);
-  for(i=0; i < NP1-1; i++, cf+=f){
+  for (i=0; i < NP1-1; i++, cf+=f) {
     a += in[i];
     b += in[i]*cf;
   }
@@ -3549,12 +3549,12 @@ int32_t array_centroid(CSOUND *csound, CENTR *p){
   return OK;
 }
 
-typedef struct _inout{
+typedef struct _inout {
   OPDS H;
   MYFLT *out, *in;
 } INOUT;
 
-int32_t nxtpow2(CSOUND *csound, INOUT *p){
+int32_t nxtpow2(CSOUND *csound, INOUT *p) {
     IGN(csound);
     int32_t inval = (int32_t)*p->in;
     int32_t powtwo = 2;

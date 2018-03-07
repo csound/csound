@@ -510,9 +510,9 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, INSDS *insdshead,
         scale_angles(&(p->prev_ang_dir));
         scale_angles(&(p->next_ang_dir));
         angle = (p->prev_ang_dir.azi - p->next_ang_dir.azi);
-        while(angle > FL(180.0))
+        while (angle > FL(180.0))
           angle -= FL(360.0);
-        while(angle < -FL(180.0))
+        while (angle < -FL(180.0))
           angle += FL(360.0);
         coeff = ((MYFLT) p->point_change_counter) /
           ((MYFLT) p->point_change_interval);

@@ -152,15 +152,15 @@ static MYFLT oscbnk_rand(OSCBNK *p)
 /* Read from ft at phase with linear interpolation. flen is the table   */
 /* length. Phase is limited to the range 0 - 1.                         */
 
-static MYFLT oscbnk_interp_read_limit(MYFLT phase, MYFLT *ft, int32 flen)
+static MYFLT oscbnk_interp_read_limit(MYFLT phase, MYFLT *ft, int32_t flen)
 {
-    MYFLT x;
-    int32  n;
+    MYFLT   x;
+    int32_t n;
 
     if (phase < FL(0.0)) return ft[0];
     else phase *= (MYFLT) flen;
     n = (int32) phase; phase -= (MYFLT) n;
-    if (n >= flen) return ft[flen];
+    if (UNLIKELY(n >= flen)) return ft[flen];
     else { x = ft[n]; }
     x += phase * (ft[++n] - x);
     //printf("**** (%d) x = %f\n", __LINE__, x);
@@ -172,7 +172,7 @@ static MYFLT oscbnk_interp_read_limit(MYFLT phase, MYFLT *ft, int32 flen)
 static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
 {
     uint32   n;
-    int32_t     eqmode;
+    int32_t  eqmode;
     MYFLT   f, l, q, k, kk, vk, vkk, vkdq, sq;
     MYFLT   lfo1val = FL(0.0), lfo2val = FL(0.0);
 
@@ -276,12 +276,12 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
 
 static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
 {
-    uint32_t    i;
-    FUNC    *ftp;
-    MYFLT   x;
+    uint32_t i;
+    FUNC     *ftp;
+    MYFLT    x;
 
     p->init_k = 1;
-    p->nr_osc = (int32_t) MYFLT2LONG(*(p->args[5]));            /* number of oscs */
+    p->nr_osc = (int32_t) MYFLT2LONG(*(p->args[5]));        /* number of oscs */
     if (p->nr_osc <= 0) p->nr_osc = -1;                     /* no output */
     oscbnk_seedrand(csound, &(p->seed), *(p->args[6]));     /* random seed */
     p->ilfomode = (int32_t) MYFLT2LONG(*(p->args[11])) & 0xFF;  /* LFO mode */
@@ -404,7 +404,7 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
 
 static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
 {
-    int32_t     osc_cnt, pm_enabled, am_enabled;
+    int32_t osc_cnt, pm_enabled, am_enabled;
     FUNC    *ftp;
     MYFLT   *ft;
     uint32  n, lobits, mask, ph, f_i;
@@ -435,7 +435,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
     /* some constants */
     pm_enabled = (p->ilfomode & 0x22 ? 1 : 0);
     am_enabled = (p->ilfomode & 0x44 ? 1 : 0);
-    p->frq_scl = csound->onedsr;                      /* osc. freq.   */
+    p->frq_scl = csound->onedsr;                 /* osc. freq.   */
     p->lf1_scl = (*(p->args[8]) - *(p->args[7])) * CS_ONEDKR;
     p->lf1_ofs = *(p->args[7]) * CS_ONEDKR;      /* LFO1 freq.   */
     p->lf2_scl = (*(p->args[10]) - *(p->args[9])) * CS_ONEDKR;
@@ -575,10 +575,10 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
 
 static int32_t grain2set(CSOUND *csound, GRAIN2 *p)
 {
-    int32_t     i;
-    FUNC    *ftp;
-    uint32_t    n;
-    double  x, y;
+    int32_t  i;
+    FUNC     *ftp;
+    uint32_t n;
+    double   x, y;
 
     /* check opcode params */
 
@@ -586,7 +586,7 @@ static int32_t grain2set(CSOUND *csound, GRAIN2 *p)
     if (i & 1) return OK;               /* skip initialisation */
     p->init_k = 1;
     p->mode = i & 0x0E;
-    p->nr_osc = (int32_t) MYFLT2LONG(*(p->iovrlp));       /* nr of oscillators */
+    p->nr_osc = (int32_t) MYFLT2LONG(*(p->iovrlp));   /* nr of oscillators */
     if (p->nr_osc < 1) p->nr_osc = -1;
     oscbnk_seedrand(csound, &(p->seed), *(p->iseed)); /* initialise seed */
     p->rnd_pow = *(p->irpow);                         /* random distribution */
@@ -678,10 +678,10 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
-    int32_t         i, w_interp, g_interp, f_nolock;
-    MYFLT       *aout, *ft, *w_ft, grain_frq, frq_scl, pfrac, w_pfrac, f, a, k;
-    uint32 n, mask, lobits, w_mask, w_lobits;
-    uint32 g_frq, w_frq;
+    int32_t  i, w_interp, g_interp, f_nolock;
+    MYFLT    *aout, *ft, *w_ft, grain_frq, frq_scl, pfrac, w_pfrac, f, a, k;
+    uint32   n, mask, lobits, w_mask, w_lobits;
+    uint32   g_frq, w_frq;
     GRAIN2_OSC  *o;
     FUNC        *ftp;
 
@@ -775,12 +775,12 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
 static int32_t grain3set(CSOUND *csound, GRAIN3 *p)
 {
     int32_t   i;
-    FUNC  *ftp;
+    FUNC      *ftp;
     uint32_t  n;
 
     /* check opcode params */
 
-    i = (int32_t) MYFLT2LONG(*(p->imode));  /* mode */
+    i = (int32_t) MYFLT2LONG(*(p->imode)); /* mode */
     if (i & 1) return OK;                  /* skip initialisation */
     p->init_k = 1;
     p->mode = i & 0x7E;
@@ -1560,8 +1560,8 @@ static void vco2_calculate_table(CSOUND *csound,
     MYFLT   *fftbuf;
     int32_t     i, minh;
 
-    if(table->ftable == NULL) {
-      csound->InitError(csound,
+    if (UNLIKELY(table->ftable == NULL)) {
+      csound->InitError(csound, "%s",
                         Str("function table is NULL, check that ibasfn is "
                             "available\n"));
       return;

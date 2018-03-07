@@ -236,6 +236,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     fd = fopen_path(csound, &ff, (char *)fname, NULL, (char *)env, fromScore);
     if (UNLIKELY(ff==NULL)) return NULL;
     mm = corfile_create_w(csound);
+    if (fromScore) corfile_putc(csound, '\n', mm);
     memset(buffer, '\0', 1024);
     while ((n = fread(buffer, 1, 1023, ff))) {
       /* Need to lose \r characters  here */
