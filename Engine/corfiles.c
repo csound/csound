@@ -250,13 +250,14 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     }
     //#ifdef SCORE_PARSER
     if (fromScore) {
-      corfile_puts(csound, "\n#exit\n", mm);
+      corfile_puts(csound, "\ne\n#exit\n", mm);
     }
     //#endif
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(csound, mm);
     csoundFileClose(csound, fd);
+    if (fromScore) printf("Copy is >>%s<<\n", mm->body);
     return mm;
 }
 
