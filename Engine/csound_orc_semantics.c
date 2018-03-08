@@ -493,6 +493,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     case T_IDENT:
 
       s = tree->value->lexeme;
+      if(s == NULL) {
+	/* VL: 8/3/2018
+           something very wrong happened.
+           To prevent a crash, we get out
+           here. Not sure if any other 
+           diagnostics are due */
+	return NULL;
+      }
 
       if (is_label(s, typeTable->labelList)) {
         return cs_strdup(csound, "l");
@@ -1570,7 +1578,7 @@ static int is_label(char* ident, CONS_CELL* labelList) {
 
     current = labelList;
 
-    while (current != NULL) {
+    while  (current != NULL) {
       if (strcmp((char*)current->value, ident) == 0) {
         return 1;
       }
