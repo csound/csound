@@ -51,6 +51,10 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     sread_initstr(csound, scin);
 
     while ((n = sread(csound)) > 0) {
+      if (csound->frstbp->text[0] == 's') { // ignore empty segment
+        //printf("repeated 's'\n");
+        continue;
+      }
       sort(csound);
       twarp(csound);
       swritestr(csound, sco, first);

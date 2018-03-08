@@ -774,6 +774,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
       rtncod = 1;
       salcblk(csound);          /* build a line structure; init bp,nxp  */
     again:
+      //printf("reading: %c (%.2x)\n", STA(op), STA(op));
       switch (STA(op)) {         /*  and dispatch on opcodes             */
       case 'y':
         {
