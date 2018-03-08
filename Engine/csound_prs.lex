@@ -687,7 +687,7 @@ NM              [nm]
            //printf("r detected %d\n",PARM->in_repeat_sect );
            if (PARM->in_repeat_sect==1) {
              char *tmp = strdup(yytext);
-             // Previous r opcode not terminated
+             // Previous r opcode not terminated so fake an s and redo
              //printf("unterminated r loop\n");
              for (i = yyleng-1; i >= 0; --i)
                unput(tmp[i]);
