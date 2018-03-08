@@ -510,6 +510,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
 
     if (csound->scorestr == NULL)
       csound->scorestr = corfile_create_w(csound);
+    corfile_putc(csound, '\n', csound->scorestr);
     csound->scoLineOffset = STA(csdlinecount);
  nxt:
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
@@ -518,7 +519,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
       if (state == 0 &&
           (q = strstr(p, "</CsScore>")) &&
           all_blank(buffer,q)) {
-        corfile_puts(csound, "\n#exit\n", csound->scorestr);
+        corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         return TRUE;

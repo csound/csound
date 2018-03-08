@@ -43,7 +43,7 @@ static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
 #define MACDEBUG 1
-
+ 
 static inline int isNameChar(int cc, int pos)
 {
     unsigned char c = ((unsigned char) cc);
@@ -343,7 +343,7 @@ NM              [nm]
                   BEGIN(INITIAL);
                 }
 {EXIT}          {
-                  //printf("exit found: >>>%s<<<\n", PARM->cf->body);
+                 //printf("exit found: >>>%s<<<\n", PARM->cf->body);
                   corfile_putc(csound, '\0', PARM->cf);
                   corfile_putc(csound, '\0', PARM->cf);
                   delete_macros(csound, yyscanner);
@@ -685,15 +685,21 @@ NM              [nm]
            int c, i;
            char buff[120];
            //printf("r detected %d\n",PARM->in_repeat_sect );
-           if (UNLIKELY(PARM->in_repeat_sect)) {
-              unput('s');unput('\n');
+           if (PARM->in_repeat_sect==1) {
+             char *tmp = strdup(yytext);
+             // Previous r opcode not terminated
+             //printf("unterminated r loop\n");
+             for (i = yyleng-1; i >= 0; --i)
+               unput(tmp[i]);
+             unput('\n'); unput('s'); unput('\n'); 
+             free(tmp);
            }
            else {
              PARM->repeat_sect_cnt = 0;
              PARM->in_repeat_sect = 1; /* Mark as recording */
              do {
                c = input(yyscanner);
-             } while (isblank(c));
+             } while (isblank(c) || c=='\0');
              while (isdigit(c)) {
                PARM->repeat_sect_cnt =
                  10 * PARM->repeat_sect_cnt + c - '0';
@@ -701,7 +707,8 @@ NM              [nm]
              }
              if (UNLIKELY(PARM->repeat_sect_cnt <= 0
                           || !isspace(c))) {
-               csound->Message(csound, Str("r: invalid repeat count"));
+               csound->Message(csound, Str("r: invalid repeat count %d"),
+                               PARM->repeat_sect_cnt);
                csound->LongJmp(csound, 1);
              }
              if (UNLIKELY(csound->oparms->odebug))
@@ -760,6 +767,7 @@ NM              [nm]
               }
               corfile_putc(csound, '\n', PARM->cf);
               unput(op);
+              struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
@@ -797,7 +805,7 @@ NM              [nm]
                 PARM->line = PARM->repeat_sect_line;
               }
               else {
-                /* corfile_putc(csound, op, PARM->cf); */
+                //corfile_puts(csound, 'r', PARM->cf);
                 /* corfile_putc(csound, '\n', PARM->cf); */
                 //printf("end of loop\n");
                 PARM->in_repeat_sect=0;
@@ -1439,7 +1447,6 @@ static MACRO *find_definition(MACRO *mmo, char *s)
     //if (mm) printf("found body #%s#%c\n****\n", mm->body, mm->acnt?'X':' ');
     return mm;
 }
-
 
 #if 0
 static void print_csound_prsdata(CSOUND *csound, char *mesg, void *yyscanner)
