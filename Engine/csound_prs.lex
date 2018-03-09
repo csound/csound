@@ -816,15 +816,13 @@ NM              [nm]
             }
             else {
               corfile_putc(csound, op, PARM->cf);
-              corfile_putc(csound, '\n', PARM->cf);
-              if (op=='s') unput('\n'); //avoid attempting to push back too much
-                /* while (1) { */
-                /*   int c = input(yyscanner); */
-                /*   printf("**copy %.2x(%c)\n", c, c); */
-                /*   corfile_putc(csound, c, PARM->cf); */
-                /*   if (c=='\n') break; */
-                /*   if (c=='\0') break; */
-                /* } */
+              while (1) {
+                int c = input(yyscanner);
+                //printf("**copy %.2x(%c)\n", c, c);
+                corfile_putc(csound, c, PARM->cf);
+                if (c=='\n') break;
+                if (c=='\0') break;
+              }
             }
           }
           else corfile_puts(csound, yytext, PARM->cf);
