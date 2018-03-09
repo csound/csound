@@ -76,7 +76,7 @@ static void usage(CSOUND *csound, char *mesg, ...)
     csound->Message(csound,"%s", Str("-T fpnum\ttime in secs at which"
                                      " to start file\n"));
     csound->Message(csound,"%s", Str("-E fpnum\ttime in secs at which"
-                                     " XSto end file\n"));
+                                     " to end file\n"));
     csound->Message(csound,"%s", Str("-D fpnum\tduration in secs of extract\n"));
     csound->Message(csound,"%s", Str("-R\tRewrite header\n"));
     csound->Message(csound,"%s", Str("-H\t\tHeartbeat\n"));
