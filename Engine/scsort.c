@@ -52,6 +52,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
 
     while ((n = sread(csound)) > 0) {
       if (csound->frstbp->text[0] == 's') { // ignore empty segment
+        // should this free memory?
         //printf("repeated 's'\n");
         continue;
       }
