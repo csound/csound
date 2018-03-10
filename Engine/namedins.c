@@ -26,6 +26,8 @@
 #include "csound_orc_semantics.h"
 #include <ctype.h>
 
+#define NOT_AN_INSTRUMENT INT32_MAX
+
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
 
@@ -67,7 +69,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
     if (is_string) {
       if (UNLIKELY((insno = named_instr_find(csound, (char*) p)) <= 0)) {
         csound->Warning(csound, Str("instr %s not found"), (char*) p);
-        return -1;
+        return NOT_AN_INSTRUMENT;
       }
     }
     else {      /* numbered instrument */
@@ -75,7 +77,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
       if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                    !csound->engineState.instrtxtp[insno])) {
         csound->Warning(csound, Str("Cannot Find Instrument %d"), (int) insno);
-        return -1;
+        return csound->engineState.maxinsno;
       }
     }
     return insno;
@@ -90,7 +92,7 @@ int32 strarg2insno_p(CSOUND *csound, char *s)
 
     if (UNLIKELY(!(insno = named_instr_find(csound, s)))) {
       csound->ErrorMsg(csound, Str("instr %s not found"), s);
-      return -1;
+      return NOT_AN_INSTRUMENT;
     }
     return insno;
 }
@@ -113,7 +115,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
         if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                      !csound->engineState.instrtxtp[insno])) {
           csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
-          return -1;
+          return NOT_AN_INSTRUMENT;
         }
       }
     }
@@ -125,7 +127,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
     if (UNLIKELY(insno < 1)) {
       csound->InitError(csound,
                         Str("cannot find the specified instrument or opcode"));
-      insno = -1;
+      insno = NOT_AN_INSTRUMENT;
     }
     return insno;
 }
