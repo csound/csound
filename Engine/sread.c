@@ -769,7 +769,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
       exit(0);
     }
 #endif
-
+    //printf("sread starts with >>%s<<\n", csound->expanded_sco->body);
     while ((STA(op) = getop(csound)) != EOF) { /* read next op from scorefile */
       rtncod = 1;
       salcblk(csound);          /* build a line structure; init bp,nxp  */
