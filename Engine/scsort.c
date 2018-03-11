@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
+#include <ctype.h>
 
 extern void sort(CSOUND*);
 extern void twarp(CSOUND*);
@@ -38,7 +39,7 @@ extern void sread_initstr(CSOUND *, CORFIL *sco);
 char *scsortstr(CSOUND *csound, CORFIL *scin)
 {
     int     n;
-    int     m = 0, first = 0;
+    int     first = 0;
     CORFIL *sco;
 
     csound->scoreout = NULL;
@@ -60,15 +61,17 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       twarp(csound);
       swritestr(csound, sco, first);
       //printf("sorted: >>>%s<<<\n", sco->body);
-      m++;
     }
     //printf("**** first = %d m = %d body = >>%s<<\n", first, m, sco->body);
     if (first) {
-      if (m<2) {
+      int i = 0;
+      while (isspace(sco->body[i])) i++;
+      if (strncmp(&sco->body[i], "e\ne", 3) == 'e') {
         corfile_rewind(sco);
         corfile_puts(csound, "f0 800000000000.0\ne\n", sco); /* ~25367 years */
       }
       else corfile_puts(csound, "e\n", sco);
+      //printf("body >>%s<<\n", sco->body);
     }
     corfile_flush(csound, sco);
     sfree(csound);
