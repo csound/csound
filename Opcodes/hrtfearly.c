@@ -1,5 +1,5 @@
 /*
-  Brian Carty
+  Coyright 2010 Brian Carty
   PhD Code August 2010
   binaural reverb: early reflections
 
