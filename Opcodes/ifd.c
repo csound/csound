@@ -1,6 +1,6 @@
 /*  ifd.c pvsifd
 
-    (c) Victor Lazzarini, 2005
+    Copyright (c) Victor Lazzarini, 2005
 
     This file is part of Csound.
 

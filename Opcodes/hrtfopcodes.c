@@ -1,7 +1,7 @@
 /*
     hrtfopcodes.c: new HRTF opcodes
 
-    (c) Brian Carty, 2010
+    Copyright (c) Brian Carty, 2010
 
     This file is part of Csound.
 
