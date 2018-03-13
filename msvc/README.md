@@ -1,5 +1,4 @@
 # Building Csound with MSVC on Windows
-
 Please note, the following applies not only to the online AppVeyor build of Csound, but also to local builds of Csound using Microsoft Visual Studio (MSVS). The build works either with MSVS 2015, or with MSVS 2017.
 
 Csound contains many dependencies, some of which do not work with the MSVS build yet. This page will document the current build status and will be updated accordingly as the work progresses. 
@@ -7,7 +6,6 @@ Csound contains many dependencies, some of which do not work with the MSVS build
 The goal is to have as much of Csound build in a native Windows manner as possible which will ease maintainence of the Windows port.
 
 ## Pre-requisites
-
 1. MSVS 2017=5 x64 Community Edition (free) or greater 
     * Needs to have C++ tools installed, which isn't the detault
     * https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15
@@ -20,7 +18,6 @@ The goal is to have as much of Csound build in a native Windows manner as possib
     * Ensure Git is available on the Windows path
 
 ### Optional
-
 Some other dependencies may need to be installed to enable all features within Csound or if building the installer (full) version of Csound. Most of these are system wide tools that a development machine might have installed anyway.
 
 1. Python 2.7
@@ -32,9 +29,13 @@ Some other dependencies may need to be installed to enable all features within C
     * http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 3. Inno Setup Installer
     * Only required if building the Csound Installer
-    * http://www.jrsoftware.org/isdl.php
+    * http://www.jrsoftware.org/isdl.
+4. SVN 
+	* Currently required to acquire Portmidi. svn must be available on the path.
+5. 7zip 
+	* Required to extract GMM files. Only required if building this feature.
 
-## VCPKG 
+## VCPKG
 The package manager used for Windows is VCPKG. It is still in beta/preview so it is not as integrated into Visual Studio as would be desired. It is advised to install it before downloading dependencies as the folder can grow to a large size (gigabytes). This is due to the source and binaries being housed within this folder. It can also be used system wide rather than just Csound so it is worth setting up.
 
 The official instructions are here: https://github.com/Microsoft/vcpkg. The location of the folder should be added to the Windows Path so that vcpkg.exe can be invoked on the command line.
