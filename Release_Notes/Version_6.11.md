@@ -103,8 +103,9 @@ addition to the audio.
   a crash.  It is now checked and truncated if too large with a
   warning.
 
-- Bug in steeo versions of loscil introduced distortionl now fixed
+- Bug in stereo versions of loscil introduced distortionl now fixed
 
+- Fencepost error in phs fixed
 
 ## SYSTEM LEVEL CHANGES
 

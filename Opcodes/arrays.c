@@ -3836,7 +3836,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_recttopol, (SUBR) perf_recttopol, NULL},
     {"pol2rect", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_recttopol, (SUBR) perf_poltorect, NULL},
-    {"pol2rect", sizeof(FFT), 0, 3, "k[]","k[]k[]",
+    {"pol2rect.AA", sizeof(FFT), 0, 3, "k[]","k[]k[]",
      (SUBR) init_poltorect2, (SUBR) perf_poltorect2, NULL},
     {"mags", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_mags, (SUBR) perf_mags, NULL},
