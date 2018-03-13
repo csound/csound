@@ -1,6 +1,8 @@
 /*
   threads.c:
 
+  Copyright (C) 2007 The Csound #project
+
   This file is part of Csound.
 
   The Csound Library is free software; you can redistribute it

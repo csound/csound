@@ -1,7 +1,7 @@
 /*  newfils.h:
     Filter opcodes
 
-    (c) Victor Lazzarini, 2004
+    Copyright (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
