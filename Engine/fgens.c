@@ -2947,7 +2947,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     //    fd = open(sfname, O_RDONLY); /* search paths */
     if (UNLIKELY(fd < 0)) {
       mp3dec_uninit(mpa);
-      fterror(ff, "sfname");
+      return fterror(ff, "sfname");
     }
     if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
