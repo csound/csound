@@ -107,6 +107,8 @@ addition to the audio.
 
 - Fencepost error in phs fixed
 
+- gen49 read deleted memory if the file was not found; fixed
+
 ## SYSTEM LEVEL CHANGES
 
 - OPCODE6DIR{64} now can contain a colon-separated list of directories.
