@@ -608,13 +608,14 @@ static void print_amp_values(CSOUND *csound, int score_evt)
   int           n;
 
   if (UNLIKELY(STA(segamps) || (p->rngflg && STA(sormsg)))) {
-    if (score_evt)
+    if (score_evt > 0)
       p->Message(p, "B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
                  p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
                  p->curp2 - p->timeOffs,  p->curp2);
     else
       p->Message(p, "  rtevent:\t   T%7.3f TT%7.3f M:",
                  p->curp2 - p->timeOffs,  p->curp2);
+    
     for (n = p->nchnls, maxp = p->maxamp; n--; )
       print_maxamp(p, *maxp++);               /* IV - Jul 9 2002 */
     p->Message(p, "\n");
@@ -886,7 +887,7 @@ static int process_rt_event(CSOUND *csound, int sensType)
   retval = 0;
   if (csound->curp2 * csound->esr < (double)csound->icurTime) {
     csound->curp2 = (double)csound->icurTime/csound->esr;
-    print_amp_values(csound, 0);
+    if(sensType != 2) print_amp_values(csound, 0);
   }
   if (sensType == 4) {                  /* RM: Realtime orc event   */
     EVTNODE *e = csound->OrcTrigEvts;
