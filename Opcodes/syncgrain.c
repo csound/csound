@@ -1,7 +1,7 @@
 /*
     syncgrain.c: Synchronous granular synthesis
 
-    (c) Victor Lazzarini, 2004
+    Copyright (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 

@@ -1,5 +1,8 @@
 /* utils.h
 
+   Copyright 2005 Richard W.E. Furse
+   with Csound adjustments by Andres Cabrera, John ffitch
+
    Free software by Richard W.E. Furse. Do with as you will. No
    warranty.
    Modified for csound by Andres Cabrera*/

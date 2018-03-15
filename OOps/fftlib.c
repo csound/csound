@@ -1,6 +1,8 @@
 /*
   fftlib.c:
 
+  Copyright 2005 John Green Istvan Varga
+
   FFT library
   based on public domain code by John Green <green_jt@vsdec.npt.nuwc.navy.mil>
   original version is available at

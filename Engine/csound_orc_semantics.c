@@ -493,13 +493,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     case T_IDENT:
 
       s = tree->value->lexeme;
-      if(s == NULL) {
-	/* VL: 8/3/2018
+      if (s == NULL) {
+        /* VL: 8/3/2018
            something very wrong happened.
            To prevent a crash, we get out
-           here. Not sure if any other 
+           here. Not sure if any other
            diagnostics are due */
-	return NULL;
+        return NULL;
       }
 
       if (is_label(s, typeTable->labelList)) {
