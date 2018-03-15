@@ -6,7 +6,7 @@
 
     Based on Nick Collins's Gendy1 ugen (SuperCollider).
 
-    (c) Tito Latini, 2012
+    Copyright (c) Tito Latini, 2012
 
     This file is part of Csound.
 

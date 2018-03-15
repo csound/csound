@@ -2,7 +2,7 @@
     pvsband.c:
     bandpass filter transformation of streaming PV signals
 
-    (c) John ffitch, 2007
+    Copyright (c) John ffitch, 2007
 
     This file is part of Csound.
 

@@ -3,7 +3,7 @@
 
   kcps, kamp  ptrack asig, ihopsize [, ipeaks]
 
-  (c) Victor Lazzarini, 2007
+  Copyright (c) Victor Lazzarini, 2007
 
   based on M Puckette's pitch tracking algorithm.
 
