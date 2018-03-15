@@ -95,95 +95,95 @@ void print_benchmark_info(CSOUND *csound, const char *s)
 
 static void settempo(CSOUND *csound, double tempo)
 {
-  if (tempo <= 0.0) return;
-  if (csound->oparms->Beatmode==1)
-    csound->ibeatTime = (int64_t)(csound->esr*60.0 / tempo);
-  csound->curBeat_inc = tempo / (60.0 * (double) csound->ekr);
+    if (tempo <= 0.0) return;
+    if (csound->oparms->Beatmode==1)
+      csound->ibeatTime = (int64_t)(csound->esr*60.0 / tempo);
+    csound->curBeat_inc = tempo / (60.0 * (double) csound->ekr);
 }
 
 int gettempo(CSOUND *csound, GTEMPO *p)
 {
-  if (LIKELY(csound->oparms->Beatmode)) {
-    *p->ans = FL(60.0) * csound->esr / (MYFLT)csound->ibeatTime;
-  }
-  else
-    *p->ans = FL(60.0);
-  return OK;
+    if (LIKELY(csound->oparms->Beatmode)) {
+      *p->ans = FL(60.0) * csound->esr / (MYFLT)csound->ibeatTime;
+    }
+    else
+      *p->ans = FL(60.0);
+    return OK;
 }
 
 int tempset(CSOUND *csound, TEMPO *p)
 {
-  double tempo;
+    double tempo;
 
-  if (UNLIKELY((tempo = (double)*p->istartempo) <= FL(0.0))) {
-    return csound->InitError(csound, Str("illegal istartempo value"));
-  }
-  if (UNLIKELY(csound->oparms->Beatmode==0))
-    return csound->InitError(csound, Str("Beat mode not in force"));
-  settempo(csound, tempo);
-  p->prvtempo = (MYFLT)tempo;
-  return OK;
+    if (UNLIKELY((tempo = (double)*p->istartempo) <= FL(0.0))) {
+      return csound->InitError(csound, Str("illegal istartempo value"));
+    }
+    if (UNLIKELY(csound->oparms->Beatmode==0))
+      return csound->InitError(csound, Str("Beat mode not in force"));
+    settempo(csound, tempo);
+    p->prvtempo = (MYFLT)tempo;
+    return OK;
 }
 
 int tempo(CSOUND *csound, TEMPO *p)
 {
-  if (*p->ktempo != p->prvtempo) {
-    settempo(csound, (double)*p->ktempo);
-    p->prvtempo = *p->ktempo;
-  }
-  return OK;
+    if (*p->ktempo != p->prvtempo) {
+      settempo(csound, (double)*p->ktempo);
+      p->prvtempo = *p->ktempo;
+    }
+    return OK;
 }
 
 static void print_maxamp(CSOUND *csound, MYFLT x)
 {
-  int   attr = 0;
-  if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
-    if (csound->oparms->msglevel & 0x100) {
+    int   attr = 0;
+    if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
+      if (csound->oparms->msglevel & 0x100) {
+        MYFLT y = x / csound->e0dbfs;     /* relative level */
+        if (UNLIKELY(y >= FL(1.0)))                    /* >= 0 dB: red */
+          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
+        else if (csound->oparms->msglevel & 0x200) {
+          if (y >= FL(0.5))                            /* -6..0 dB: yellow */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_CYAN; /* was yellow but... */
+          else if (y >= FL(0.125))                      /* -24..-6 dB: green */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_GREEN;
+          else                                          /* -200..-24 dB: blue */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_BLUE;
+        }
+      }
+      if (csound->e0dbfs > FL(3000.0))
+        csound->MessageS(csound, attr, "%9.1f", x);
+      else if (csound->e0dbfs < FL(3.0))
+        csound->MessageS(csound, attr, "%9.5f", x);
+      else if (csound->e0dbfs > FL(300.0))
+        csound->MessageS(csound, attr, "%9.2f", x);
+      else if (csound->e0dbfs > FL(30.0))
+        csound->MessageS(csound, attr, "%9.3f", x);
+      else
+        csound->MessageS(csound, attr, "%9.4f", x);
+    }
+    else {                              /* dB values */
       MYFLT y = x / csound->e0dbfs;     /* relative level */
-      if (UNLIKELY(y >= FL(1.0)))                    /* >= 0 dB: red */
-        attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
-      else if (csound->oparms->msglevel & 0x200) {
-        if (y >= FL(0.5))                            /* -6..0 dB: yellow */
-          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_CYAN; /* was yellow but... */
-        else if (y >= FL(0.125))                      /* -24..-6 dB: green */
-          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_GREEN;
-        else                                          /* -200..-24 dB: blue */
-          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_BLUE;
+      if (UNLIKELY(y < FL(1.0e-10))) {
+        /* less than -200 dB: print zero */
+        csound->Message(csound, "      0  ");
+        return;
       }
-    }
-    if (csound->e0dbfs > FL(3000.0))
-      csound->MessageS(csound, attr, "%9.1f", x);
-    else if (csound->e0dbfs < FL(3.0))
-      csound->MessageS(csound, attr, "%9.5f", x);
-    else if (csound->e0dbfs > FL(300.0))
-      csound->MessageS(csound, attr, "%9.2f", x);
-    else if (csound->e0dbfs > FL(30.0))
-      csound->MessageS(csound, attr, "%9.3f", x);
-    else
-      csound->MessageS(csound, attr, "%9.4f", x);
-  }
-  else {                              /* dB values */
-    MYFLT y = x / csound->e0dbfs;     /* relative level */
-    if (UNLIKELY(y < FL(1.0e-10))) {
-      /* less than -200 dB: print zero */
-      csound->Message(csound, "      0  ");
-      return;
-    }
-    y = FL(20.0) * (MYFLT) log10((double) y);
-    if (csound->oparms->msglevel & 0x40) {
-      if (UNLIKELY(y >= FL(0.0)))                     /* >= 0 dB: red */
-        attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
-      else if (csound->oparms->msglevel & 0x20) {
-        if (y >= FL(-6.0))                            /* -6..0 dB: yellow */
-          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_YELLOW;
-        else if (y >= FL(-24.0))                      /* -24..-6 dB: green */
-          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_GREEN;
-        else                                          /* -200..-24 dB: blue */
-          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_BLUE;
+      y = FL(20.0) * (MYFLT) log10((double) y);
+      if (csound->oparms->msglevel & 0x40) {
+        if (UNLIKELY(y >= FL(0.0)))                     /* >= 0 dB: red */
+          attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
+        else if (csound->oparms->msglevel & 0x20) {
+          if (y >= FL(-6.0))                            /* -6..0 dB: yellow */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_YELLOW;
+          else if (y >= FL(-24.0))                      /* -24..-6 dB: green */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_GREEN;
+          else                                          /* -200..-24 dB: blue */
+            attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_BLUE;
+        }
       }
+      csound->MessageS(csound, attr, "%+9.2f", y);
     }
-    csound->MessageS(csound, attr, "%+9.2f", y);
-  }
 }
 
 int musmon(CSOUND *csound)
@@ -198,7 +198,7 @@ int musmon(CSOUND *csound)
       CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
       #else
       csound->Message(csound,
-n                     Str("--Csound version %s (double samples) %s \n[%s]\n"),
+                      Str("--Csound version %s (double samples) %s \n[%s]\n"),
       CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
       #endif
       #else
@@ -615,7 +615,7 @@ static void print_amp_values(CSOUND *csound, int score_evt)
     else
       p->Message(p, "  rtevent:\t   T%7.3f TT%7.3f M:",
                  p->curp2 - p->timeOffs,  p->curp2);
-    
+
     for (n = p->nchnls, maxp = p->maxamp; n--; )
       print_maxamp(p, *maxp++);               /* IV - Jul 9 2002 */
     p->Message(p, "\n");
