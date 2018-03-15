@@ -1,6 +1,8 @@
 /*
     libsnd_u.c:
 
+    Copyright (C) 2005 Barry Vercoe, John ffitch, Istvan Varga
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it

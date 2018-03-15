@@ -2,7 +2,7 @@
     pvsbasic.h:
     basic opcodes for transformation of streaming PV signals
 
-    (c) Victor Lazzarini, 2004
+    Copyright (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 

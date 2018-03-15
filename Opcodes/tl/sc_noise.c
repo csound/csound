@@ -3,7 +3,7 @@
 
     Based on the noise ugens of SuperCollider.
 
-    (c) Tito Latini, 2012
+    Copyright (c) Tito Latini, 2012
 
     This file is part of Csound.
 
