@@ -1,5 +1,5 @@
 /*
-    (c) Victor Lazzarini, 2007
+    Copyright (c) Victor Lazzarini, 2007
 
     This file is part of Csound.
 

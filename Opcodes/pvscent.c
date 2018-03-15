@@ -1,9 +1,9 @@
 /*  pvscent.c:
     Calculation of spectral centroid as Beauchamp
 
-    (c) John ffitch, 2005
-    (c) Alan OCinneide, 2005
-    (c) V Lazzarini, 2012
+    Copyright (c) John ffitch, 2005
+    Copyright (c) Alan OCinneide, 2005
+    Copyright (c) V Lazzarini, 2012
 
     This file is part of Csound.
 

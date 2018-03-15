@@ -1,6 +1,6 @@
 /*
  * threadsafe.c: threadsafe API functions
- *               (c) V Lazzarini, 2013
+ *               Copyright (c) V Lazzarini, 2013
  *
  * L I C E N S E
  *

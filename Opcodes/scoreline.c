@@ -1,7 +1,7 @@
 /*
     scoreline.c:
 
-    (c) Victor Lazzarini, 2004,2008
+    Copyright (c) Victor Lazzarini, 2004,2008
 
     This file is part of Csound.
 
