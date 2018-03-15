@@ -1,6 +1,8 @@
 /*
     csound_main.c:
 
+    Copyrght 2004 The Csounfd Core Developers
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
