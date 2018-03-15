@@ -1,4 +1,3 @@
-
 <!---
 
 To maintain this document use the following markdown:
@@ -104,8 +103,11 @@ addition to the audio.
   a crash.  It is now checked and truncated if too large with a
   warning.
 
-- Bug in steeo versions of loscil introduced distortionl now fixed
+- Bug in stereo versions of loscil introduced distortionl now fixed
 
+- Fencepost error in phs fixed
+
+- gen49 read deleted memory if the file was not found; fixed
 
 ## SYSTEM LEVEL CHANGES
 
@@ -115,8 +117,8 @@ addition to the audio.
 
 - The somewhat curious distinction between k-rate and a-rate perf-time
   has been removed throughput, so only threads 1, 2 and 3 are used,
-  and the s-type output and x-type input are not used, having been
-  changed for direct polymorphism.  This only matters for opcode
+  and the s-type output is not used and some x-type inputs, having
+  been changed for direct polymorphism.  This only matters for opcode
   writers as the s, and x codes and threads 4,5,6 and 7 will be
   removed in a while.
 

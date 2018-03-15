@@ -1,6 +1,8 @@
 /*
     stdopcod.h:
 
+    Copyright (c) 2012 Victor Lazzarini, John ffitch
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -47,20 +49,20 @@ typedef struct STDOPCOD_GLOBALS_ {
     CSOUND      *csound;
     /* fout.c */
     struct fileinTag  *file_opened;
-    int32_t         file_max;
-    int32_t         file_num;
+    int32_t      file_max;
+    int32_t      file_num;
     int32        fout_kreset;
    /* MYFLT       *buf;
-      int32_t         buf_size; */ /* VL - now using per instance buffer */
+      int32_t     buf_size; */ /* VL - now using per instance buffer */
     /* oscbnk.c */
     uint32      oscbnk_seed;
     int32       rnd31i_seed;
-    int32_t         denorm_seed;
-    int32_t         vco2_nr_table_arrays;
+    int32_t     denorm_seed;
+    int32_t     vco2_nr_table_arrays;
     VCO2_TABLE_ARRAY  **vco2_tables;
     /* ugnorman.c */
     ATSBUFREAD  *atsbufreadaddr;
-    int32_t         swapped_warning;
+    int32_t     swapped_warning;
     /* locsig.c */
     void        *locsigaddr;
     /* space.c */
@@ -68,7 +70,7 @@ typedef struct STDOPCOD_GLOBALS_ {
     /* gab/gab.c */
     MYFLT       *tb_ptrs[16];       /* Left here while the rest is implemented */
     MYFLT       *tb[16];       /* gab: updated */
-    int32_t         tb_ixmode[16]; /* gab: added */
+    int32_t     tb_ixmode[16]; /* gab: added */
     int32       tb_size[16];   /* gab: added */
 } STDOPCOD_GLOBALS;
 

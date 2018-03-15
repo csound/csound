@@ -2,7 +2,7 @@
     pvsgendy.c:
     gendy style transformation in frequency domain
 
-    (c) John ffitch, 2009
+    Copyright (c) John ffitch, 2009
 
     This file is part of Csound.
 

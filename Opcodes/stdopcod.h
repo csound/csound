@@ -1,6 +1,8 @@
 /*
     stdopcod.h:
 
+    Copyright (c) 205 Istvan Varga
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it

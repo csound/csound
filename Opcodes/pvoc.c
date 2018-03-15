@@ -1,6 +1,8 @@
 /*
     pvoc.c:
 
+    Copyright (c) 2006 Istvan Varga
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it

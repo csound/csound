@@ -1,6 +1,8 @@
 /*
     ugnorman.h:
 
+    Copyright 2004 Alex Norman
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it

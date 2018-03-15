@@ -1,7 +1,7 @@
 /*
-Brian Carty
-PhD Code August 2010
-binaural reverb: diffuse field
+    Copyright #(c) 2010 Brian Carty
+    PhD Code August 2010
+    binaural reverb: diffuse field
 
    This file is part of Csound.
 
