@@ -372,8 +372,7 @@ int32_t wiimote_range(CSOUND *csound, WIIRANGE *p)
       (wiirange_t *)csound->QueryGlobalVariable(csound, "wiiRange");
     if (UNLIKELY(wiirange==NULL))
       return csound->InitError(csound, "%s", Str("No wii range"));
-    switch ((int32_t
-             )(*p->iControl+FL(0.5))) {
+    switch ((int32_t)(*p->iControl+FL(0.5))) {
     /* case 17: */
     /*   wiirange->axis_x_min = *p->iMin; */
     /*   wiirange->axis_x_scale = (*p->iMax-*p->iMin)/FL(255.0); */
