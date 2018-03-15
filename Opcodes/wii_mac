@@ -1,3 +1,4 @@
+// Csound include file for wiimote opcodes
 #define WII_BUTTONS     #0#
 #define WII_TWO         #1#
 #define WII_ONE         #2#
