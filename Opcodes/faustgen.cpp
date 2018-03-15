@@ -1,6 +1,6 @@
 /*  faustgen.cpp
 
-    (c) Victor Lazzarini, 2013
+    Copyright (c) Victor Lazzarini, 2013
 
     This file is part of Csound.
 
