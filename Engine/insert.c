@@ -1941,7 +1941,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             CS_PDS = CS_PDS->insdshead->pds;
             CS_PDS->insdshead->pds = NULL;
           }
-        } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
+        } while (error == 0 && p->ip != NULL
+		 && (CS_PDS = CS_PDS->nxtp));
       }
 
       /* copy a-sig outputs, accounting for offset */
@@ -2051,7 +2052,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             CS_PDS = CS_PDS->insdshead->pds;
             CS_PDS->insdshead->pds = NULL;
           }
-        } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
+        } while (error == 0 && p->ip != NULL
+		 && (CS_PDS = CS_PDS->nxtp));
       }
 
       /* copy a-sig outputs, accounting for offset */
@@ -2152,7 +2154,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   CS_PDS = saved_pds;
   /* check if instrument was deactivated (e.g. by perferror) */
   if (!p->ip)                                         /* loop to last opds */
-    while (CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
+    while (CS_PDS && CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
   return OK;
 }
 
@@ -2166,7 +2168,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
-
+  
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   done = ATOMIC_GET(p->ip->init_done);
 
@@ -2211,7 +2213,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   /*  run each opcode  */
   {
   int error = 0;
-  CS_PDS->insdshead->pds = NULL;
+  CS_PDS->insdshead->pds = NULL; 
   do {
     if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
     error = (*CS_PDS->opadr)(csound, CS_PDS);
@@ -2220,7 +2222,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       CS_PDS = CS_PDS->insdshead->pds;
       CS_PDS->insdshead->pds = NULL;
     }
-  } while (error == 0
+  } while (error == 0 && p->ip != NULL 
            && (CS_PDS = CS_PDS->nxtp));
   }
   this_instr->kcounter++;
@@ -2252,7 +2254,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   CS_PDS = saved_pds;
   /* check if instrument was deactivated (e.g. by perferror) */
   if (!p->ip)  {                   /* loop to last opds */
-    while (CS_PDS->nxtp) {
+    while (CS_PDS && CS_PDS->nxtp) {
       CS_PDS = CS_PDS->nxtp;
     }
   }
