@@ -40,12 +40,12 @@ static void II_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
     if (mpa->frame.channels > 1) {
       unsigned jsbound = mpa->frame.jsbound;
       sblimit2 = sblimit << 1;
-      for (i = jsbound; i; i--, alloc += ((int64_t)(1 << step))) {
+      for (i = jsbound; i; i--, alloc += ((int64_t)(1) << step)) {
         step = alloc->bits;
         *ba++ = (uint8_t)GETBITS(step);
         *ba++ = (uint8_t)GETBITS(step);
       }
-      for (i = sblimit - jsbound; i; i--, alloc += ((int64_t)(1 << step))) {
+      for (i = sblimit - jsbound; i; i--, alloc += ((int64_t)(1) << step)) {
         step = alloc->bits;
         ba[0] = (uint8_t)GETBITS(step);
         ba[1] = ba[0];
@@ -56,7 +56,7 @@ static void II_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
       for (i = sblimit2; i; i--) if (*ba++) *scfsi++ = (uint8_t)GETBITS(2);
     } else {
       sblimit2 = sblimit;
-      for (i = sblimit; i; i--, alloc += ((int64_t)(1 << step))) {
+      for (i = sblimit; i; i--, alloc += ((int64_t)(1) << step)) {
         step = alloc->bits;
         *ba++ = (uint8_t)GETBITS(step);
       }
@@ -134,7 +134,7 @@ static void II_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
         } else fraction[j][0][i] = fraction[j][1][i] = fraction[j][2][i] = 0.0;
       }
     }
-    for (i = jsbound; i < sblimit; i++, alloc += ((int64_t)(1 << step))) {
+    for (i = jsbound; i < sblimit; i++, alloc += ((int64_t)(1) << step)) {
       unsigned b = ba[1]; int d;
       step = alloc->bits;
       ba += 2;

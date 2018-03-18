@@ -82,24 +82,25 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
         csound->Free(csound, fname);
         switch (sf_info.channels) {
         case 1:
-          strcpy(channame, Str("monaural"));
+          strncpy(channame, Str("monaural"), 30);
           break;
         case 2:
-          strcpy(channame, Str("stereo"));
+          strncpy(channame, Str("stereo"), 30);
           break;
         case 4:
-          strcpy(channame, Str("quad"));
+          strncpy(channame, Str("quad"), 30);
           break;
         case 6:
-          strcpy(channame, Str("hex"));
+          strncpy(channame, Str("hex"),30);
           break;
         case 8:
-          strcpy(channame, Str("oct"));
+          strncpy(channame, Str("oct"),30);
           break;
         default:
-          snprintf(channame, 32, "%d-channel", sf_info.channels);
+          snprintf(channame, 30, "%d-channel", sf_info.channels);
           break;
         }
+        channame[31] = '\0';
         csound->Message(csound,
                         Str("\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"),
                         (long) sf_info.samplerate, channame,
