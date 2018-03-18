@@ -882,7 +882,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     //rIn = ((MYFLT) R / D);
     //rOut = ((MYFLT) R / I);
     invR = FL(1.0) / R;
-    nI = -(aLen / D) * D;    /* input time (in samples) */
+    nI = -((int64_t)aLen / D) * D;    /* input time (in samples) */
     nO = nI;                 /* output time (in samples) */
     ibs = ibuflen + Chans * (nI - aLen - 1);    /* starting position in ib1 */
     ib1 = ibuf1;        /* filled with zeros to start */
