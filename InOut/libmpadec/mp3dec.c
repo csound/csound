@@ -132,7 +132,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       mp3->in_buffer_used -= mp3->in_buffer_offset;
       if (r != MPADEC_RETCODE_OK) {
         // this is a fix for ID3 tag at the start of a file
-        while(r == 7) { /* NO SYNC, read more data */
+        while (r == 7) { /* NO SYNC, read more data */
           int32_t n = sizeof(mp3->in_buffer);
           if (mp3->stream_size && (n > mp3->stream_size))
             n = (int32_t)mp3->stream_size;
