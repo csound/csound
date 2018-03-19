@@ -20,15 +20,15 @@
 void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
 {
 
-    char   *pcBuffer;
+    char       *pcBuffer;
     const char *pcEnd;
-    char *pcLADSPAPath = NULL;
-    char *pcDSSIPath = NULL;
+    char       *pcLADSPAPath = NULL;
+    char       *pcDSSIPath = NULL;
     const char *pcStart;
     int32_t     iEndsInSO;
     int32_t     iNeedSlash;
-    size_t  iFilenameLength;
-    void   *pvResult;
+    size_t      iFilenameLength;
+    void       *pvResult;
     char *tmp;
 
     iFilenameLength = strlen(pcFilename);
@@ -74,8 +74,10 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
           pcEnd = pcStart;
           while (*pcEnd != ':' && *pcEnd != '\0')
             pcEnd++;
+          // Belt + braces
+          if (pcEnd - pcStart>0x47777777) return NULL;
           pcBuffer = csound->Malloc(csound,
-                                    iFilenameLength + 2 + (pcEnd - pcStart));
+                                    iFilenameLength + 4 + (pcEnd - pcStart));
           if (pcEnd > pcStart)
             strNcpy(pcBuffer, pcStart, pcEnd - pcStart);
           iNeedSlash = 0;
