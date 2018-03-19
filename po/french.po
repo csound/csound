@@ -1805,9 +1805,8 @@ msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr "erreur dans la partition.  L'opcode %c (ASCII %d) est illégal\n"
 
 #: Engine/musmon.c:1344
-#, fuzzy
 msgid "insert_score_event(): invalid named instrument\n"
-msgstr "insert_score_event() : numéro ou nom d'instrument non valide %d\n"
+msgstr "insert_score_event() : instrument nommé non valide\n"
 
 #: Engine/musmon.c:1346
 #, c-format
@@ -8563,38 +8562,34 @@ msgid "mp3scale: %s: failed to open file"
 msgstr "mp3scale : %s : l'ouverture du fichier a échoué"
 
 #: Opcodes/mp3in.c:938 Opcodes/mp3in.c:1202
-#, fuzzy
 msgid "could not set priority \n"
-msgstr "impossible d'ouvrir le port distant"
+msgstr "impossible de fixer la priorité \n"
 
 #: Opcodes/mp3in.c:1176 Opcodes/mp3in.c:2057
-#, fuzzy, c-format
+#, c-format
 msgid "mp3scal_load error: %s \n"
-msgstr "cvanal erreur : %s\n"
+msgstr "erreur de mp3scal_load : %s\n"
 
 #: Opcodes/mp3in.c:1180 Opcodes/mp3in.c:2061
-#, fuzzy, c-format
+#, c-format
 msgid "mp3scal_load error: could not open %s \n"
-msgstr "compileorc : impossible d'ouvrir %s\n"
+msgstr "erreur de mp3scal_load : impossible d'ouvrir %s\n"
 
 #: Opcodes/mp3in.c:1193
-#, fuzzy
 msgid "failed to start thread \n"
-msgstr "La lecture de /proc/stat a échoué"
+msgstr "le démarrage du thread a échoué \n"
 
 #: Opcodes/mp3in.c:1205 Opcodes/mp3in.c:2086
-#, fuzzy
 msgid "cannot load: player still active\n"
-msgstr "L'instrument %d est toujours actif"
+msgstr "chargement impossible : le lecteur est toujours actif\n"
 
 #: Opcodes/mp3in.c:1228 Opcodes/mp3in.c:1277
-#, fuzzy
 msgid "invalid handle \n"
-msgstr "descripteur non valide"
+msgstr "descripteur non valide \n"
 
 #: Opcodes/mp3in.c:1458
 msgid "not init \n"
-msgstr ""
+msgstr "pas d'initialisation \n"
 
 #: Opcodes/nlfilt.c:130
 msgid "nlfilt: not initialised"
