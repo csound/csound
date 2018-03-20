@@ -103,11 +103,15 @@ addition to the audio.
   a crash.  It is now checked and truncated if too large with a
   warning.
 
-- Bug in stereo versions of loscil introduced distortionl now fixed
+- Bug in stereo versions of loscil introduced distortion; now fixed.
 
-- Fencepost error in phs fixed
+- Fencepost error in phs fixed.
 
 - gen49 read deleted memory if the file was not found; fixed
+
+- Loading of LADSPA plugins when relying on search paths was wrong and
+  mangled the name; now fixed.
+
 
 ## SYSTEM LEVEL CHANGES
 
