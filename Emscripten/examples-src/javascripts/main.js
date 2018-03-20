@@ -48,7 +48,7 @@ function main() {
 			var FilePanel = require('FilePanel');
 			var InputPanel = require('InputPanel');
 			var consolePanel = new ConsolePanel();
-			consolePanel.print("Welcome to Wasm Csound !");
+			consolePanel.print("Welcome to Web Csound!");
 
 		//	Module['print'] = Module['printErr'] = consolePanel.print 
 			Module['print'] = Module['printErr'] = function (txt) {
