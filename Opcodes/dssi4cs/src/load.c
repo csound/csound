@@ -74,19 +74,28 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
           pcEnd = pcStart;
           while (*pcEnd != ':' && *pcEnd != '\0')
             pcEnd++;
+          //printf("****length of \"%s\" = %ld; pcEnd-pcStart = %ld ending %.2x\n",
+          //       pcFilename, iFilenameLength, pcEnd - pcStart, *pcEnd);
+          //printf("****allocating %ld bytes\n",
+          //       iFilenameLength + 4 + (pcEnd - pcStart));
           // Belt + braces
           if (pcEnd - pcStart>0x47777777) return NULL;
           pcBuffer = csound->Malloc(csound,
                                     iFilenameLength + 4 + (pcEnd - pcStart));
           if (pcEnd > pcStart)
-            strNcpy(pcBuffer, pcStart, pcEnd - pcStart);
+            strNcpy(pcBuffer, pcStart, pcEnd - pcStart+1);
+          //printf("**** pcBuffer is >>%s<<\n", pcBuffer);
           iNeedSlash = 0;
           if (pcEnd > pcStart)
             if (*(pcEnd - 1) != '/') {
               iNeedSlash = 1;
+              //printf("**** slash needed\n");
               pcBuffer[pcEnd - pcStart] = '/';
             }
+          //printf("**** pcBuffer is >>%s<<\n", pcBuffer);
+          //printf("**** copying to %ld\n", iNeedSlash + (pcEnd - pcStart));
           strcpy(pcBuffer + iNeedSlash + (pcEnd - pcStart), pcFilename);
+          //printf("**** pcBuffer is >>%s<<\n", pcBuffer);
 
           pvResult = dlopen(pcBuffer, iFlag);
 
