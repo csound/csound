@@ -1109,8 +1109,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
         /* check for .sd2 file first */
         if (extPos > 0 &&
             p->fullName[extPos] == (char) '.' &&
-            (p->fullName[extPos + 1] | (char) 0x20) == (char) 's' &&
-            (p->fullName[extPos + 2] | (char) 0x20) == (char) 'd' &&
+            tolower(p->fullName[extPos + 1]) == (char) 's' &&
+            tolower(p->fullName[extPos + 2]) == (char) 'd' &&
             p->fullName[extPos + 3] == (char) '2') {
           memset(&sfinfo, 0, sizeof(SF_INFO));
           p->sf = sf_open(&(p->fullName[0]), SFM_READ, &sfinfo);
