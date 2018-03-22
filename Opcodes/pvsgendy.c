@@ -53,7 +53,7 @@ static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
         if (p->fout->frame.auxp == NULL ||
             p->fout->frame.size < (N+2)*sizeof(float))  /* RWD MUST be 32bit */
           csound->AuxAlloc(csound, (N+2)*sizeof(float), &p->fout->frame);
-        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(MYFLT));
+        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(float));
       }
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
@@ -103,7 +103,7 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
       for (i = 0; i < N; i += 2) {
         MYFLT x = frate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX/(MYFLT)(i+1);
         foutf[i+1] = finf[i+1] + x;
-        foutf[i] = finf[i] + mrate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
+        foutf[i] = finf[i] ;//+ mrate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
