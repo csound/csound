@@ -369,8 +369,7 @@ After adding that to the sources.list, you should run `sudo apt-get update ` and
 
 6.  `cd cs6make`
 
-7.  `cmake ../csound -DBUILD_CSOUND_AC=OFF -DCMAKE_BUILD_TYPE="Release"` (this will not build CsoundAC, that
-    gives errors)
+7.  `cmake ../csound -DCMAKE_BUILD_TYPE="Release"` 
 
 8.  `make -j6`
 
@@ -407,12 +406,14 @@ Custom.cmake. In that file, the line
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon")
 
 2. If step 1 fails, there might be no NEON support for your arm chip,
-in which case, you need to change the line above to
+or there might be a compiler issue, in which case, you need to change the line above to
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE")
 
-    in order to disable the vectorial code and use standard C scalar operations.
+    in order to disable the vectorial code and use standard C scalar
+    operations.
 
+There is no support for NEON on rpi 1 or zero. This is available for rpi 2 and 3, though.
 
 Fedora 18 <a name="fedora">
 ---------
