@@ -70,6 +70,10 @@ addition to the audio.
 
 - getrow, setrow, getcol, andsetcol can now act on i-rate arrays
 
+- diskin2 was incorrectly described in the manual with respect to the
+  iformat parameñer, with should be in range 1-10 rather than 0-9.
+  ***THIS MAY BE INCOMPATBLE**
+
 ### Utilities
 
 -
