@@ -1125,8 +1125,14 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
           }
         }
         /* maybe raw file ? rewind and try again */
-        if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0)
-          p->sf = sf_open_fd(tmp_fd, SFM_READ, (SF_INFO*) param, 0);
+        if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0) {
+          SF_INFO *sf = (SF_INFO*)param;
+          sf->format |= SF_FORMAT_RAW;
+          csound->Warning(csound,
+                          Str("After open failure will try to open %s as raw\n"),
+                          fullName);
+          p->sf = sf_open_fd(tmp_fd, SFM_READ, sf, 0);
+        }
         if (UNLIKELY(p->sf == (SNDFILE*) NULL))
           goto err_return;
       }
