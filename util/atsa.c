@@ -534,8 +534,8 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     fd = csound->FileOpen2(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
                           NULL, CSFTYPE_ATS, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->Die(csound, Str("\nCould not open %s for writing, bye...\n"),
-                  ats_outfile);
+      csound->Die(csound, Str("\nCould not open %s for writing, %s\nbye...\n"),
+                  ats_outfile, sf_strerror(NULL));
     }
     /* call tracker */
     sound = tracker(csound, anargs, soundfile, resfile);
@@ -2021,8 +2021,8 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s'"),
-                       soundfile);
+      csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s': %s"),
+                       soundfile, sf_strerror(NULL));
       return NULL;
     }
     /* warn about multi-channel sound files */

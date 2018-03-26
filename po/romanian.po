@@ -784,12 +784,12 @@ msgid ""
 "will try to open %s as raw\n"
 msgstr ""
 
-#: Engine/envvar.c:1141
+#: Engine/envvar.c:1141 Engine/envvar.c:1155
 #, c-format
 msgid "Failed to open %s: %s\n"
 msgstr ""
 
-#: Engine/envvar.c:1251
+#: Engine/envvar.c:1254
 #, c-format
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
 msgstr ""
@@ -1556,7 +1556,7 @@ msgstr ""
 
 #: Engine/memfiles.c:622
 #, c-format
-msgid "csoundLoadSoundFile(): failed to open '%s'"
+msgid "csoundLoadSoundFile(): failed to open '%s' %s"
 msgstr ""
 
 #: Engine/memfiles.c:673
@@ -1569,7 +1569,7 @@ msgid "File"
 msgstr ""
 
 #: Engine/memfiles.c:681 OOps/diskin2.c:476 OOps/diskin2.c:492
-#: OOps/diskin2.c:1757 OOps/diskin2.c:1773
+#: OOps/diskin2.c:1758 OOps/diskin2.c:1774
 msgid "channel(s)"
 msgstr ""
 
@@ -4262,31 +4262,31 @@ msgid ""
 "diskin2: number of output args inconsistent with number of file channels"
 msgstr ""
 
-#: OOps/diskin2.c:384 OOps/diskin2.c:1654
+#: OOps/diskin2.c:384 OOps/diskin2.c:1655
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: OOps/diskin2.c:473 OOps/diskin2.c:1754
+#: OOps/diskin2.c:473 OOps/diskin2.c:1755
 msgid "diskin2: opened (asynchronously)"
 msgstr ""
 
-#: OOps/diskin2.c:478 OOps/diskin2.c:494 OOps/diskin2.c:1759
-#: OOps/diskin2.c:1775
+#: OOps/diskin2.c:478 OOps/diskin2.c:494 OOps/diskin2.c:1760
+#: OOps/diskin2.c:1776
 msgid "sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:489 OOps/diskin2.c:1770
+#: OOps/diskin2.c:489 OOps/diskin2.c:1771
 msgid "diskin2: opened"
 msgstr ""
 
 #: OOps/diskin2.c:570 OOps/diskin2.c:756 OOps/diskin2.c:952
-#: OOps/diskin2.c:1358 OOps/diskin2.c:1802 OOps/diskin2.c:1995
+#: OOps/diskin2.c:1358 OOps/diskin2.c:1803 OOps/diskin2.c:1996
 msgid "diskin2: not initialised"
 msgstr ""
 
 #: OOps/diskin2.c:736 OOps/diskin2.c:927 OOps/diskin2.c:1529
-#: OOps/diskin2.c:1968
+#: OOps/diskin2.c:1969
 msgid "diskin2: file descriptor closed or invalid\n"
 msgstr ""
 
@@ -4320,40 +4320,45 @@ msgstr ""
 
 #: OOps/diskin2.c:1593
 #, c-format
-msgid "diskin2: %s: failed to open file"
+msgid "diskin2: %s: failed to open file: %s"
 msgstr ""
 
-#: OOps/diskin2.c:2120
+#: OOps/diskin2.c:2121
 msgid "soundin: invalid number of channels"
 msgstr ""
 
-#: OOps/diskin2.c:2142
+#: OOps/diskin2.c:2143
 msgid "soundin: unknown sample format"
 msgstr ""
 
-#: OOps/diskin2.c:2163
+#: OOps/diskin2.c:2165
+#, c-format
+msgid "soundin: %s: failed to open file: %s"
+msgstr ""
+
+#: OOps/diskin2.c:2169
 #, c-format
 msgid "soundin: %s: failed to open file"
 msgstr ""
 
-#: OOps/diskin2.c:2171
+#: OOps/diskin2.c:2177
 #, c-format
 msgid ""
 "soundin: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:2181
+#: OOps/diskin2.c:2187
 msgid ""
 "soundin: number of output args inconsistent with number of file channels"
 msgstr ""
 
-#: OOps/diskin2.c:2190
+#: OOps/diskin2.c:2196
 #, c-format
 msgid "soundin: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: OOps/diskin2.c:2241
+#: OOps/diskin2.c:2247
 msgid "soundin: not initialised"
 msgstr ""
 
@@ -5174,21 +5179,26 @@ msgstr ""
 msgid "no infile specified in the commandline"
 msgstr ""
 
-#: OOps/sndinfUG.c:66 OOps/sndinfUG.c:130 OOps/sndinfUG.c:276
+#: OOps/sndinfUG.c:66 OOps/sndinfUG.c:130
 #, c-format
 msgid "diskinfo cannot open %s"
 msgstr ""
 
-#: OOps/sndinfUG.c:281 OOps/sndinfUG.c:298
+#: OOps/sndinfUG.c:276
+#, c-format
+msgid "diskinfo cannot open %s: %s"
+msgstr ""
+
+#: OOps/sndinfUG.c:282 OOps/sndinfUG.c:299
 #, c-format
 msgid "%s: no PEAK chunk was found, scanning file for maximum amplitude"
 msgstr ""
 
-#: OOps/sndinfUG.c:293
+#: OOps/sndinfUG.c:294
 msgid "Input channel for peak exceeds number of channels in file"
 msgstr ""
 
-#: OOps/sndinfUG.c:306
+#: OOps/sndinfUG.c:307
 msgid "filepeak: error getting peak value"
 msgstr ""
 
@@ -8760,19 +8770,19 @@ msgstr ""
 msgid "invalid number of output arguments"
 msgstr ""
 
-#: Opcodes/pvlock.c:584
+#: Opcodes/pvlock.c:585
 #, c-format
 msgid "filescal: mismatched channel numbers. %d outputs, %d inputs\n"
 msgstr ""
 
-#: Opcodes/pvlock.c:881 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:716
+#: Opcodes/pvlock.c:882 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:716
 #: Opcodes/pvsbasic.c:1047 Opcodes/pvsbasic.c:1262 Opcodes/pvsbasic.c:1369
 #: Opcodes/pvsbasic.c:1614 Opcodes/pvsbasic.c:1838 Opcodes/pvsbasic.c:2011
 #: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:711
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
-#: Opcodes/pvlock.c:893
+#: Opcodes/pvlock.c:894
 msgid "pvsfreeze: signal format must be amp-freq."
 msgstr ""
 
@@ -9695,7 +9705,7 @@ msgid ""
 "(points to rawwaves directory) to use STK opcodes."
 msgstr ""
 
-#: Opcodes/syncgrain.c:190 Opcodes/syncgrain.c:363 Opcodes/syncgrain.c:713
+#: Opcodes/syncgrain.c:190 Opcodes/syncgrain.c:363 Opcodes/syncgrain.c:714
 msgid "grain size smaller than 1 sample\n"
 msgstr ""
 
@@ -9704,15 +9714,16 @@ msgid "diskgrain: invalid number of channels"
 msgstr ""
 
 #: Opcodes/syncgrain.c:443
-msgid "diskgrain: could not open file\n"
+#, c-format
+msgid "diskgrain: could not open file: %s\n"
 msgstr ""
 
-#: Opcodes/syncgrain.c:447
+#: Opcodes/syncgrain.c:448
 msgid ""
 "diskgrain: soundfile channel numbers do not match the number of outputs \n"
 msgstr ""
 
-#: Opcodes/syncgrain.c:459
+#: Opcodes/syncgrain.c:460
 msgid "diskgrain: could not read file \n"
 msgstr ""
 
@@ -12100,7 +12111,8 @@ msgstr ""
 #, c-format
 msgid ""
 "\n"
-"Could not open %s for writing, bye...\n"
+"Could not open %s for writing, %s\n"
+"bye...\n"
 msgstr ""
 
 #: util/atsa.c:544
@@ -12245,7 +12257,7 @@ msgstr ""
 
 #: util/atsa.c:2024
 #, c-format
-msgid "atsa: cannot open input file '%s'"
+msgid "atsa: cannot open input file '%s': %s"
 msgstr ""
 
 #: util/atsa.c:2031
@@ -13347,7 +13359,7 @@ msgstr ""
 
 #: util/mixer.c:411
 #, c-format
-msgid "mixer: error opening output file '%s'"
+msgid "mixer: error opening output file '%s': %s"
 msgstr ""
 
 #: util/mixer.c:421
@@ -13642,7 +13654,7 @@ msgstr ""
 
 #: util/scale.c:298 util/xtrct.c:309
 #, c-format
-msgid "Failed to open output file %s"
+msgid "Failed to open output file %s: %s"
 msgstr ""
 
 #: util/scale.c:301

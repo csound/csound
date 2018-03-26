@@ -822,12 +822,12 @@ msgid ""
 "will try to open %s as raw\n"
 msgstr ""
 
-#: Engine/envvar.c:1141
+#: Engine/envvar.c:1141 Engine/envvar.c:1155
 #, fuzzy, c-format
 msgid "Failed to open %s: %s\n"
 msgstr "L'ouverture de %s a échoué"
 
-#: Engine/envvar.c:1251
+#: Engine/envvar.c:1254
 #, c-format
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
 msgstr "erreur interne : csoundCreateFileHandle() : type non valide : %d"
@@ -1612,8 +1612,8 @@ msgid "file %s (%<PRIi32> bytes) loaded into memory\n"
 msgstr "le fichier %s (%<PRIi32> octets) a été chargé en mémoire\n"
 
 #: Engine/memfiles.c:622
-#, c-format
-msgid "csoundLoadSoundFile(): failed to open '%s'"
+#, fuzzy, c-format
+msgid "csoundLoadSoundFile(): failed to open '%s' %s"
 msgstr "csoundLoadSoundFile() : l'ouverture de '%s' a échoué"
 
 #: Engine/memfiles.c:673
@@ -1626,7 +1626,7 @@ msgid "File"
 msgstr "Fichier"
 
 #: Engine/memfiles.c:681 OOps/diskin2.c:476 OOps/diskin2.c:492
-#: OOps/diskin2.c:1757 OOps/diskin2.c:1773
+#: OOps/diskin2.c:1758 OOps/diskin2.c:1774
 msgid "channel(s)"
 msgstr "voix"
 
@@ -4406,33 +4406,33 @@ msgstr ""
 "diskin2 : le nombre d'arguments en sortie est en contradiction avec le "
 "nombre de canaux du fichier"
 
-#: OOps/diskin2.c:384 OOps/diskin2.c:1654
+#: OOps/diskin2.c:384 OOps/diskin2.c:1655
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 "diskin2 : avertissement: taux d'échantillonnage (%d) du fichier != sr (%d) "
 "de l'orchestre\n"
 
-#: OOps/diskin2.c:473 OOps/diskin2.c:1754
+#: OOps/diskin2.c:473 OOps/diskin2.c:1755
 msgid "diskin2: opened (asynchronously)"
 msgstr "diskin2 : ouvert (en asynchrone)"
 
-#: OOps/diskin2.c:478 OOps/diskin2.c:494 OOps/diskin2.c:1759
-#: OOps/diskin2.c:1775
+#: OOps/diskin2.c:478 OOps/diskin2.c:494 OOps/diskin2.c:1760
+#: OOps/diskin2.c:1776
 msgid "sample frames\n"
 msgstr "trames d'échantillons\n"
 
-#: OOps/diskin2.c:489 OOps/diskin2.c:1770
+#: OOps/diskin2.c:489 OOps/diskin2.c:1771
 msgid "diskin2: opened"
 msgstr "diskin2 : ouvert"
 
 #: OOps/diskin2.c:570 OOps/diskin2.c:756 OOps/diskin2.c:952
-#: OOps/diskin2.c:1358 OOps/diskin2.c:1802 OOps/diskin2.c:1995
+#: OOps/diskin2.c:1358 OOps/diskin2.c:1803 OOps/diskin2.c:1996
 msgid "diskin2: not initialised"
 msgstr "diskin2 : non initialisé"
 
 #: OOps/diskin2.c:736 OOps/diskin2.c:927 OOps/diskin2.c:1529
-#: OOps/diskin2.c:1968
+#: OOps/diskin2.c:1969
 msgid "diskin2: file descriptor closed or invalid\n"
 msgstr "diskin2 : descripteur de fichier fermé ou non valide\n"
 
@@ -4465,24 +4465,29 @@ msgid "soundouts: not initialised"
 msgstr "soundouts : non initialisé"
 
 #: OOps/diskin2.c:1593
-#, c-format
-msgid "diskin2: %s: failed to open file"
-msgstr "diskin2 : %s: l'ouverture du fichier a échoué"
+#, fuzzy, c-format
+msgid "diskin2: %s: failed to open file: %s"
+msgstr "diskin2 : %s : l'ouverture du fichier (%s)  a échoué"
 
-#: OOps/diskin2.c:2120
+#: OOps/diskin2.c:2121
 msgid "soundin: invalid number of channels"
 msgstr "soundin : nombre de canaux non valide"
 
-#: OOps/diskin2.c:2142
+#: OOps/diskin2.c:2143
 msgid "soundin: unknown sample format"
 msgstr "soundin : format d'échantillon inconnu"
 
-#: OOps/diskin2.c:2163
+#: OOps/diskin2.c:2165
+#, fuzzy, c-format
+msgid "soundin: %s: failed to open file: %s"
+msgstr "soundin : %s : l'ouverture du fichier a échoué"
+
+#: OOps/diskin2.c:2169
 #, c-format
 msgid "soundin: %s: failed to open file"
 msgstr "soundin : %s : l'ouverture du fichier a échoué"
 
-#: OOps/diskin2.c:2171
+#: OOps/diskin2.c:2177
 #, c-format
 msgid ""
 "soundin: opened '%s':\n"
@@ -4491,19 +4496,19 @@ msgstr ""
 "soundin: '%s' ouvert :\n"
 "         %d Hz, %d voix, %ld trames d'échantillons\n"
 
-#: OOps/diskin2.c:2181
+#: OOps/diskin2.c:2187
 msgid ""
 "soundin: number of output args inconsistent with number of file channels"
 msgstr ""
 "soundin : le nombre d'arguments en sortie est en contradiction avec le "
 "nombre de canaux du fichier"
 
-#: OOps/diskin2.c:2190
+#: OOps/diskin2.c:2196
 #, c-format
 msgid "soundin: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr "soundin : taux d'échantillonnage (%d) != sr (%d) de l'orchestre\n"
 
-#: OOps/diskin2.c:2241
+#: OOps/diskin2.c:2247
 msgid "soundin: not initialised"
 msgstr "soundin : non initialisé"
 
@@ -5417,24 +5422,29 @@ msgstr "trigseq : numéro de table incorrect"
 msgid "no infile specified in the commandline"
 msgstr "pas de fichier d'entrée spécifié dans la ligne de commande"
 
-#: OOps/sndinfUG.c:66 OOps/sndinfUG.c:130 OOps/sndinfUG.c:276
+#: OOps/sndinfUG.c:66 OOps/sndinfUG.c:130
 #, c-format
 msgid "diskinfo cannot open %s"
 msgstr "diskinfo ne peut pas ouvrir %s"
 
-#: OOps/sndinfUG.c:281 OOps/sndinfUG.c:298
+#: OOps/sndinfUG.c:276
+#, fuzzy, c-format
+msgid "diskinfo cannot open %s: %s"
+msgstr "diskinfo ne peut pas ouvrir %s"
+
+#: OOps/sndinfUG.c:282 OOps/sndinfUG.c:299
 #, c-format
 msgid "%s: no PEAK chunk was found, scanning file for maximum amplitude"
 msgstr ""
 "%s : aucun bloc PEAK n'a été trouvé, parcours du fichier pour déterminer "
 "l'amplitude maximale"
 
-#: OOps/sndinfUG.c:293
+#: OOps/sndinfUG.c:294
 msgid "Input channel for peak exceeds number of channels in file"
 msgstr ""
 "Le canal d'entrée pour le pic dépasse le nombre de canaux dans le fichier"
 
-#: OOps/sndinfUG.c:306
+#: OOps/sndinfUG.c:307
 msgid "filepeak: error getting peak value"
 msgstr "filepeak: erreur lors de l'obtention de la valeur de pic"
 
@@ -9172,19 +9182,19 @@ msgstr "pvcross : non initialisé"
 msgid "invalid number of output arguments"
 msgstr "nombre d'arguments de sortie non valide"
 
-#: Opcodes/pvlock.c:584
+#: Opcodes/pvlock.c:585
 #, c-format
 msgid "filescal: mismatched channel numbers. %d outputs, %d inputs\n"
 msgstr "filescal : nombres de canaux différents. %d sorties, %d entrées\n"
 
-#: Opcodes/pvlock.c:881 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:716
+#: Opcodes/pvlock.c:882 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:716
 #: Opcodes/pvsbasic.c:1047 Opcodes/pvsbasic.c:1262 Opcodes/pvsbasic.c:1369
 #: Opcodes/pvsbasic.c:1614 Opcodes/pvsbasic.c:1838 Opcodes/pvsbasic.c:2011
 #: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:711
 msgid "Unsafe to have same fsig as in and out"
 msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
 
-#: Opcodes/pvlock.c:893
+#: Opcodes/pvlock.c:894
 msgid "pvsfreeze: signal format must be amp-freq."
 msgstr "pvsfreeze : le format de signal doit être amp-fréq."
 
@@ -10145,7 +10155,7 @@ msgstr ""
 "RAWWAVE_PATH\n"
 "(pointant sur le répertoire des rawwaves) pour utiliser les opcodes STK."
 
-#: Opcodes/syncgrain.c:190 Opcodes/syncgrain.c:363 Opcodes/syncgrain.c:713
+#: Opcodes/syncgrain.c:190 Opcodes/syncgrain.c:363 Opcodes/syncgrain.c:714
 msgid "grain size smaller than 1 sample\n"
 msgstr "la taille de grain est inférieure à 1 échantillon\n"
 
@@ -10154,17 +10164,18 @@ msgid "diskgrain: invalid number of channels"
 msgstr "diskgrain : nombre de canaux non valide"
 
 #: Opcodes/syncgrain.c:443
-msgid "diskgrain: could not open file\n"
+#, fuzzy, c-format
+msgid "diskgrain: could not open file: %s\n"
 msgstr "diskgrain : impossible d'ouvrir le fichier\n"
 
-#: Opcodes/syncgrain.c:447
+#: Opcodes/syncgrain.c:448
 msgid ""
 "diskgrain: soundfile channel numbers do not match the number of outputs \n"
 msgstr ""
 "diskgrain : le nombre de canaux du fichier son ne correspond pas au nombre "
 "de sorties\n"
 
-#: Opcodes/syncgrain.c:459
+#: Opcodes/syncgrain.c:460
 msgid "diskgrain: could not read file \n"
 msgstr "diskgrain : impossible de lire le fichier\n"
 
@@ -12738,10 +12749,11 @@ msgid "The available utilities are:\n"
 msgstr "Les utilitaires disponibles sont :\n"
 
 #: util/atsa.c:537
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "\n"
-"Could not open %s for writing, bye...\n"
+"Could not open %s for writing, %s\n"
+"bye...\n"
 msgstr ""
 "\n"
 " Impossible d'ouvrir %s en écriture, au revoir...\n"
@@ -12892,8 +12904,8 @@ msgid "Write failure\n"
 msgstr "L'écriture a échoué\n"
 
 #: util/atsa.c:2024
-#, c-format
-msgid "atsa: cannot open input file '%s'"
+#, fuzzy, c-format
+msgid "atsa: cannot open input file '%s': %s"
 msgstr "atsa : impossible d'ouvrir le fichier '%s' en entrée"
 
 #: util/atsa.c:2031
@@ -14055,8 +14067,8 @@ msgid "Input formats not the same"
 msgstr "Les formats d'entrée ne sont pas les mêmes"
 
 #: util/mixer.c:411
-#, c-format
-msgid "mixer: error opening output file '%s'"
+#, fuzzy, c-format
+msgid "mixer: error opening output file '%s': %s"
 msgstr "mixer : erreur en ouvrant le fichier '%s'"
 
 #: util/mixer.c:421
@@ -14362,8 +14374,8 @@ msgid "No maximum"
 msgstr "Pas de maximum"
 
 #: util/scale.c:298 util/xtrct.c:309
-#, c-format
-msgid "Failed to open output file %s"
+#, fuzzy, c-format
+msgid "Failed to open output file %s: %s"
 msgstr "L'ouverture du fichier de sortie %s a échoué"
 
 #: util/scale.c:301
@@ -14898,6 +14910,9 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "diskin2: %s: failed to open file"
+#~ msgstr "diskin2 : %s: l'ouverture du fichier a échoué"
 
 #~ msgid "%<PRIi32> %d sample blks of %lu-bit floats written to %s\n"
 #~ msgstr ""
