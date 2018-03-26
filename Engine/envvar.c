@@ -1138,8 +1138,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
         }
 #endif
         if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
-          csound->Warning(csound, Str("Failed to open %s: %s\n"),
-                          fullName, sf_strerror(NULL));
+          /* csound->Warning(csound, Str("Failed to open %s: %s\n"), */
+          /*                 fullName, sf_strerror(NULL)); */
           goto err_return;
         }
       }
