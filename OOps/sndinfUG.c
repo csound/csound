@@ -273,7 +273,8 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */
-      return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
+      return csound->InitError(csound, Str("diskinfo cannot open %s: %s"),
+                               sfname, sf_strerror(NULL));
     }
     if (channel <= 0) {
       if (sf_command(sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
