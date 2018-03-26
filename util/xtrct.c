@@ -306,8 +306,8 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
                        O.outfilename, &sfinfo, "SFDIR",
                        csound->type2csfiletype(O.filetyp, O.outformat), 0);
     if (UNLIKELY(fd == NULL))
-      csound->Die(csound, Str("Failed to open output file %s"),
-                          O.outfilename);
+      csound->Die(csound, Str("Failed to open output file %s: %s"),
+                  O.outfilename, sf_strerror(NULL));
     ExtractSound(csound, &xtrc, infd, outfd, &O);
     if (O.ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');

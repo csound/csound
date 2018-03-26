@@ -1124,7 +1124,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
             goto doneSFOpen;
           }
         }
-#if 1
+#if 0
         /* maybe raw file ? rewind and try again */
         if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0) {
           SF_INFO *sf = (SF_INFO*)param;
@@ -1151,8 +1151,11 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       break;
     case CSFILE_SND_W:                        /* sound file write */
       p->sf = sf_open_fd(tmp_fd, SFM_WRITE, (SF_INFO*) param, 0);
-      if (UNLIKELY(p->sf == (SNDFILE*) NULL))
+      if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
+          csound->Warning(csound, Str("Failed to open %s: %s\n"),
+                          fullName, sf_strerror(NULL));
         goto err_return;
+      }
       sf_command(p->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
       sf_command(p->sf, SFC_SET_VBR_ENCODING_QUALITY,
                  &csound->oparms->quality, sizeof(double));

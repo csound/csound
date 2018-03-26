@@ -571,6 +571,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
     // open file
     void *fd;
     name = ((STRINGDAT *)p->knum)->data;
+    // ****FIXME: What if this fails?
     fd  = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (sfinfo.samplerate != CS_ESR)

@@ -619,8 +619,8 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound,
-                       Str("csoundLoadSoundFile(): failed to open '%s'"),
-                       fileName);
+                       Str("csoundLoadSoundFile(): failed to open '%s' %s"),
+                       fileName, sf_strerror(NULL));
       return NULL;
     }
     p = (SNDMEMFILE*)

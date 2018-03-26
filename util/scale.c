@@ -295,8 +295,8 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
                        O.outfilename, &sfinfo, "SFDIR",
                        csound->type2csfiletype(O.filetyp, O.outformat), 0);
       if (UNLIKELY(fd == NULL))
-        csound->Die(csound, Str("Failed to open output file %s"),
-                            O.outfilename);
+        csound->Die(csound, Str("Failed to open output file %s: %s"),
+                    O.outfilename, sf_strerror(NULL));
       outbufsiz = 1024 * O.sfsampsize;    /* calc outbuf size  */
       csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
                               (int32_t) outbufsiz,
