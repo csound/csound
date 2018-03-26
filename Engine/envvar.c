@@ -1124,17 +1124,24 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
             goto doneSFOpen;
           }
         }
+#if 1
         /* maybe raw file ? rewind and try again */
         if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0) {
           SF_INFO *sf = (SF_INFO*)param;
-          sf->format |= SF_FORMAT_RAW;
+          sf->format = SF_FORMAT_RAW | SF_FORMAT_PCM_16;
+          sf->samplerate = csound->esr;
+          //sf->channels = 1;//csound->inchnls;
           csound->Warning(csound,
-                          Str("After open failure will try to open %s as raw\n"),
-                          fullName);
+                          Str("After open failure(%s)\nwill try to open %s as raw\n"),
+                          sf_strerror(NULL), fullName);
           p->sf = sf_open_fd(tmp_fd, SFM_READ, sf, 0);
         }
-        if (UNLIKELY(p->sf == (SNDFILE*) NULL))
+#endif
+        if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
+          csound->Warning(csound, Str("Failed to open %s: %s\n"),
+                          fullName, sf_strerror(NULL));
           goto err_return;
+        }
       }
       else {
       doneSFOpen:

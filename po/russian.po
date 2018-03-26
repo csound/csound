@@ -778,7 +778,19 @@ msgstr ""
 msgid "internal error: csoundFileOpen(): invalid type: %d"
 msgstr ""
 
-#: Engine/envvar.c:1238
+#: Engine/envvar.c:1135
+#, c-format
+msgid ""
+"After open failure(%s)\n"
+"will try to open %s as raw\n"
+msgstr ""
+
+#: Engine/envvar.c:1141
+#, fuzzy, c-format
+msgid "Failed to open %s: %s\n"
+msgstr "%s: не выступлено с иничиативой"
+
+#: Engine/envvar.c:1251
 #, c-format
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
 msgstr ""
@@ -6665,12 +6677,12 @@ msgstr ""
 msgid "DSSI4CS: DSSI_PATH environment variable not set.\n"
 msgstr ""
 
-#: Opcodes/dssi4cs/src/load.c:143
+#: Opcodes/dssi4cs/src/load.c:154
 #, c-format
 msgid "Failed to load plugin \"%s\": %s"
 msgstr ""
 
-#: Opcodes/dssi4cs/src/load.c:179
+#: Opcodes/dssi4cs/src/load.c:190
 #, c-format
 msgid ""
 "Unable to find ladspa_descriptor() function in plugin library file \"%s\": "
@@ -6678,14 +6690,14 @@ msgid ""
 "Are you sure this is a LADSPA plugin file ?"
 msgstr ""
 
-#: Opcodes/dssi4cs/src/load.c:185
+#: Opcodes/dssi4cs/src/load.c:196
 #, c-format
 msgid ""
 "Unable to find ladspa_descriptor() function in plugin library file \"%s\".\n"
 "Are you sure this is a LADSPA plugin file ?"
 msgstr ""
 
-#: Opcodes/dssi4cs/src/load.c:200
+#: Opcodes/dssi4cs/src/load.c:211
 #, c-format
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
@@ -13798,87 +13810,87 @@ msgstr ""
 msgid "%s: Not a sound file\n"
 msgstr ""
 
-#: util/sndinfo.c:104
+#: util/sndinfo.c:105
 #, c-format
 msgid "\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"
 msgstr ""
 
-#: util/sndinfo.c:109
+#: util/sndinfo.c:110
 #, c-format
 msgid "\t(%ld sample frames)\n"
 msgstr ""
 
-#: util/sndinfo.c:116
+#: util/sndinfo.c:117
 #, c-format
 msgid "  Gain        : %d\n"
 msgstr ""
 
-#: util/sndinfo.c:118
+#: util/sndinfo.c:119
 #, c-format
 msgid "  Base note   : %d\n"
 msgstr ""
 
-#: util/sndinfo.c:120
+#: util/sndinfo.c:121
 #, c-format
 msgid "  Velocity    : %d - %d\n"
 msgstr ""
 
-#: util/sndinfo.c:122
+#: util/sndinfo.c:123
 #, c-format
 msgid "  Key         : %d - %d\n"
 msgstr ""
 
-#: util/sndinfo.c:124
+#: util/sndinfo.c:125
 #, c-format
 msgid "  Loop points : %d\n"
 msgstr ""
 
-#: util/sndinfo.c:128
+#: util/sndinfo.c:129
 #, c-format
 msgid "  %-2d    Mode : %s    Start : %6d   End : %6d   Count : %6d\n"
 msgstr ""
 
-#: util/sndinfo.c:147
+#: util/sndinfo.c:148
 #, c-format
 msgid "Description      : %.*s\n"
 msgstr ""
 
-#: util/sndinfo.c:149
+#: util/sndinfo.c:150
 #, c-format
 msgid "Originator       : %.*s\n"
 msgstr ""
 
-#: util/sndinfo.c:151
+#: util/sndinfo.c:152
 #, c-format
 msgid "Origination ref  : %.*s\n"
 msgstr ""
 
-#: util/sndinfo.c:154
+#: util/sndinfo.c:155
 #, c-format
 msgid "Origination date : %.*s\n"
 msgstr ""
 
-#: util/sndinfo.c:157
+#: util/sndinfo.c:158
 #, c-format
 msgid "Origination time : %.*s\n"
 msgstr ""
 
-#: util/sndinfo.c:160
+#: util/sndinfo.c:161
 #, c-format
 msgid "BWF version      : %d\n"
 msgstr ""
 
-#: util/sndinfo.c:162
+#: util/sndinfo.c:163
 #, c-format
 msgid "UMID             : %.*s\n"
 msgstr ""
 
-#: util/sndinfo.c:164
+#: util/sndinfo.c:165
 #, c-format
 msgid "Coding history   : %.*s\n"
 msgstr ""
 
-#: util/sndinfo.c:183
+#: util/sndinfo.c:184
 msgid "Prints information about sound files"
 msgstr ""
 
