@@ -784,7 +784,7 @@ msgid ""
 "will try to open %s as raw\n"
 msgstr ""
 
-#: Engine/envvar.c:1141 Engine/envvar.c:1155
+#: Engine/envvar.c:1155
 #, c-format
 msgid "Failed to open %s: %s\n"
 msgstr ""
@@ -8770,19 +8770,24 @@ msgstr ""
 msgid "invalid number of output arguments"
 msgstr ""
 
-#: Opcodes/pvlock.c:585
+#: Opcodes/pvlock.c:578
+#, c-format
+msgid "filescal: failed to open file %s\n"
+msgstr ""
+
+#: Opcodes/pvlock.c:587
 #, c-format
 msgid "filescal: mismatched channel numbers. %d outputs, %d inputs\n"
 msgstr ""
 
-#: Opcodes/pvlock.c:882 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:716
+#: Opcodes/pvlock.c:884 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:716
 #: Opcodes/pvsbasic.c:1047 Opcodes/pvsbasic.c:1262 Opcodes/pvsbasic.c:1369
 #: Opcodes/pvsbasic.c:1614 Opcodes/pvsbasic.c:1838 Opcodes/pvsbasic.c:2011
 #: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:711
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
-#: Opcodes/pvlock.c:894
+#: Opcodes/pvlock.c:896
 msgid "pvsfreeze: signal format must be amp-freq."
 msgstr ""
 
