@@ -1100,7 +1100,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       *((FILE**) fd) = tmp_f;
       break;
     case CSFILE_SND_R:                        /* sound file read */
-      memset(&sfinfo, 0, sizeof(SF_INFO));
+      memcpy(&sfinfo, param, sizeof(SF_INFO));
       p->sf = sf_open_fd(tmp_fd, SFM_READ, &sfinfo, 0);
       if (p->sf == (SNDFILE*) NULL) {
         int   extPos;
@@ -1112,7 +1112,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
             tolower(p->fullName[extPos + 1]) == (char) 's' &&
             tolower(p->fullName[extPos + 2]) == (char) 'd' &&
             p->fullName[extPos + 3] == (char) '2') {
-          memset(&sfinfo, 0, sizeof(SF_INFO));
+          //memset(&sfinfo, 0, sizeof(SF_INFO));
           p->sf = sf_open(&(p->fullName[0]), SFM_READ, &sfinfo);
           if (p->sf != (SNDFILE*) NULL) {
             /* if successfully opened as .sd2, */
