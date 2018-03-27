@@ -834,7 +834,7 @@ msgstr "la tabla-f (ftable) %d ha sido borrada\n"
 
 #: Engine/fgens.c:187 Engine/fgens.c:1696 Engine/fgens.c:1782
 #: Engine/fgens.c:1866 Engine/fgens.c:1983 Engine/fgens.c:2064
-#: Engine/fgens.c:3112
+#: Engine/fgens.c:3110
 msgid "insufficient gen arguments"
 msgstr "argumentos GEN insuficientes"
 
@@ -857,7 +857,7 @@ msgstr "tamaño diferido sólo permitido para GEN1, GEN23, GEN28, GEN49"
 msgid "ftable %d:\n"
 msgstr "tabla-f (ftable) %d:\n"
 
-#: Engine/fgens.c:260 Engine/fgens.c:2399 Engine/fgens.c:2997
+#: Engine/fgens.c:260 Engine/fgens.c:2399 Engine/fgens.c:2995
 msgid "illegal table length"
 msgstr "longitud ilegal de tabla"
 
@@ -873,7 +873,7 @@ msgstr ""
 #: Engine/fgens.c:1011 Engine/fgens.c:1113 Engine/fgens.c:1157
 #: Engine/fgens.c:1208 Engine/fgens.c:1479 Engine/fgens.c:1541
 #: Engine/fgens.c:1780 Engine/fgens.c:1863 Engine/fgens.c:2223
-#: Engine/fgens.c:3066 Engine/fgens.c:3109
+#: Engine/fgens.c:3064 Engine/fgens.c:3107
 msgid "using extended arguments\n"
 msgstr ""
 
@@ -886,8 +886,8 @@ msgid "illegal x interval"
 msgstr "intervalo x ilegal"
 
 #: Engine/fgens.c:460 Engine/fgens.c:609 Engine/fgens.c:690 Engine/fgens.c:935
-#: Engine/fgens.c:1436 Engine/fgens.c:2561 Engine/fgens.c:2898
-#: Engine/fgens.c:3039 Opcodes/ftest.c:131 Opcodes/quadbezier.c:64
+#: Engine/fgens.c:1436 Engine/fgens.c:2561 Engine/fgens.c:2896
+#: Engine/fgens.c:3037 Opcodes/ftest.c:131 Opcodes/quadbezier.c:64
 #: Top/main.c:124 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "argumentos insuficientes"
@@ -1065,123 +1065,123 @@ msgstr ""
 msgid "non-deferred ftable %d needs size %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2650 Opcodes/loscilx.c:70
+#: Engine/fgens.c:2648 Opcodes/loscilx.c:70
 #, c-format
 msgid "invalid sample format: %d"
 msgstr "formato de muestra inválido: %d"
 
-#: Engine/fgens.c:2658 Engine/fgens.c:2922
+#: Engine/fgens.c:2656 Engine/fgens.c:2920
 #, c-format
 msgid "channel %d illegal"
 msgstr "canal %d ilegal"
 
-#: Engine/fgens.c:2664
+#: Engine/fgens.c:2662
 #, fuzzy, c-format
 msgid "deferred alloc for %s\n"
 msgstr "Nueva colocación para el instrumento %s:\n"
 
-#: Engine/fgens.c:2668
+#: Engine/fgens.c:2666
 #, fuzzy, c-format
 msgid "Failed to open file %s"
 msgstr "No fue posible abrir el archivo csd: %s"
 
-#: Engine/fgens.c:2673 Engine/fgens.c:2995
+#: Engine/fgens.c:2671 Engine/fgens.c:2993
 msgid "deferred size, but filesize unknown"
 msgstr "tamaño diferido, pero tamaño del archivo desconocido"
 
-#: Engine/fgens.c:2676 Engine/fgens.c:2999
+#: Engine/fgens.c:2674 Engine/fgens.c:2997
 #, c-format
 msgid "  defer length %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2744
+#: Engine/fgens.c:2742
 msgid "GEN1: input file truncated by ftable size"
 msgstr "GEN1: archivo de entrada truncado por el tamaño de la tabla-f (ftable)"
 
-#: Engine/fgens.c:2748
+#: Engine/fgens.c:2746
 #, c-format
 msgid "\tlooping endpoint %d exceeds ftsize %d\n"
 msgstr "\tpunto final de bucle %ld excede el tamaño de la tabla %ld\n"
 
-#: Engine/fgens.c:2764
+#: Engine/fgens.c:2762
 msgid "GEN1 read error"
 msgstr "GEN1 error de lectura"
 
-#: Engine/fgens.c:2769
+#: Engine/fgens.c:2767
 #, fuzzy
 msgid "GEN1: file truncated by ftable size"
 msgstr "GEN1: archivo aiff truncado por el tamaño de la tabla-f (ftable)"
 
-#: Engine/fgens.c:2770
+#: Engine/fgens.c:2768
 #, c-format
 msgid "\taudio samps %d exceeds ftsize %d"
 msgstr "\tmuestras de audio %ld excedene el tamaño de la tabla %ld"
 
-#: Engine/fgens.c:2823
+#: Engine/fgens.c:2821
 msgid "wrong number of ftable arguments"
 msgstr "número equivocado de argumentos para la tabla-f (ftable)"
 
-#: Engine/fgens.c:2833 OOps/pstream.c:388
+#: Engine/fgens.c:2831 OOps/pstream.c:388
 msgid "Failed to load PVOC-EX file"
 msgstr "No fue posible cargar el archivo PVOC-EX"
 
-#: Engine/fgens.c:2845 InOut/midirecv.c:419 OOps/midiops.c:402
+#: Engine/fgens.c:2843 InOut/midirecv.c:419 OOps/midiops.c:402
 #: OOps/midiops.c:452 OOps/midiops.c:464
 msgid "illegal channel number"
 msgstr "número de canal ilegal"
 
-#: Engine/fgens.c:2863
+#: Engine/fgens.c:2861
 msgid "ftable size too small"
 msgstr "la tabla-f (ftable) es demasiado pequeña"
 
-#: Engine/fgens.c:2938 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
+#: Engine/fgens.c:2936 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr ""
 
-#: Engine/fgens.c:3076
+#: Engine/fgens.c:3074
 #, fuzzy
 msgid "GEN51: invalid number of p-fields (too few grades)"
 msgstr "GEN51: número inválido de campos-p (p-fields) (faltan grados)"
 
-#: Engine/fgens.c:3116
+#: Engine/fgens.c:3114
 msgid "number of channels inconsistent with number of args"
 msgstr "número de canales inconsistente con el número de argumentos"
 
-#: Engine/fgens.c:3278
+#: Engine/fgens.c:3276
 msgid "GEN53: invalid number of gen arguments"
 msgstr "GEN53: número inválido de argumentos"
 
-#: Engine/fgens.c:3288
+#: Engine/fgens.c:3286
 msgid "GEN53: invalid table length"
 msgstr "GEN53: tamaño inválido de tabla"
 
-#: Engine/fgens.c:3292
+#: Engine/fgens.c:3290
 msgid "GEN53: invalid source table number"
 msgstr "GEN53: número inválido de tabla fuente"
 
-#: Engine/fgens.c:3295
+#: Engine/fgens.c:3293
 msgid "GEN53: mode must be in the range 0 to 15"
 msgstr "GEN53: el modo debe estar entre 0 y 15"
 
-#: Engine/fgens.c:3299
+#: Engine/fgens.c:3297
 #, fuzzy
 msgid "GEN53: invalid source table length:"
 msgstr "GEN53: tamaño inválido de la tabla fuente"
 
-#: Engine/fgens.c:3304
+#: Engine/fgens.c:3302
 msgid "GEN53: invalid window table"
 msgstr "GEN53: tabla de ventana inválida"
 
-#: Engine/fgens.c:3319
+#: Engine/fgens.c:3317
 msgid "GEN 53: impulse response input, "
 msgstr ""
 
-#: Engine/fgens.c:3325
+#: Engine/fgens.c:3323
 msgid "GEN 53: frequency response input, "
 msgstr ""
 
-#: Engine/fgens.c:3430
+#: Engine/fgens.c:3428
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr "Falló la carga diferida de '%s'"
@@ -2381,8 +2381,8 @@ msgid "soundfile read error"
 msgstr "error de lectura del archivo de audio"
 
 #: InOut/libsnd_u.c:141
-#, c-format
-msgid "soundin cannot open %s"
+#, fuzzy, c-format
+msgid "soundin cannot open %s: %s"
 msgstr "soundin no puede abrir %s"
 
 #: InOut/libsnd_u.c:157
