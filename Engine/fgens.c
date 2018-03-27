@@ -2643,13 +2643,9 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
       }
       /* printf("****line %d: sfname=%s\n" , __LINE__, p->sfname); */
-      if (!fmt)
-        p->format = csound->oparms->outformat;
-      else {
-        if (UNLIKELY(fmt < -1 || fmt > 9))
-          return fterror(ff, Str("invalid sample format: %d"), fmt);
-        p->format = gen01_format_table[fmt + 1];
-      }
+      if (UNLIKELY(fmt < -1 || fmt > 9))
+        return fterror(ff, Str("invalid sample format: %d"), fmt);
+      p->format = gen01_format_table[fmt + 1];
     }
     p->skiptime = ff->e.p[6];
     p->channel  = (int) MYFLT2LRND(ff->e.p[8]);
@@ -2731,7 +2727,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         ftp->loopmode2 = (lpd.loops[1].mode == SF_LOOP_NONE ? 0 :
                           lpd.loops[1].mode == SF_LOOP_FORWARD ? 1 :
                           2);
-        ftp->begin1 = lpd.loops[0].start;
+         ftp->begin1 = lpd.loops[0].start;
         ftp->begin2 = lpd.loops[1].start;
         if (ftp->loopmode1)             /* Greg Sullivan */
           ftp->end1 = lpd.loops[0].end;
