@@ -74,8 +74,12 @@ addition to the audio.
   iformat parameter.  Now if iformat is zero the file is expected to
   have an audio header; if in the range 1-10 (rather than 0-9 as
   before) then it is opened as raw with the specified sample format.
-  ***THIS MAY BE INCOMPATBLE**.  For most users the value of zero will
+  ***THIS MAY BE INCOMPATBLE***.  For most users the value of zero will
   be correct.
+
+- gen01 now uses format 0 to get the file type from the header; any
+  other value indicates a raw file. ***THIS MAY BE INCOMPATBLE***.  For
+  most users the value of zero will be correct.
 
 ### Utilities
 
