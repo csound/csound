@@ -519,7 +519,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       STA(infile) = sf_open_fd(isfd, SFM_READ, &sfinfo, 0);
       if (UNLIKELY(STA(infile) == NULL)) {
         /* open failed: possibly raw file, but cannot seek back to try again */
-        const char *sfError = sf_strerror(NULL);
+        const char *sfError = Str(sf_strerror(NULL));
         csoundDie(csound, Str("isfinit: cannot open %s -- %s"), sfname, sfError);
       }
     }
@@ -538,7 +538,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
         STA(infile) = sf_open(fullName, SFM_READ, &sfinfo);  /* try again */
       }
       if (UNLIKELY(STA(infile) == NULL)) {
-        const char *sfError = sf_strerror(NULL);
+        const char *sfError = Str(sf_strerror(NULL));
         csoundDie(csound, Str("isfinit: cannot open %s -- %s"), fullName, sfError);
       }
       /* only notify the host if we opened a real file, not stdin or a pipe */
@@ -766,14 +766,14 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         if (O->sfsampsize == 8) {
           if (UNLIKELY(O->filetyp == TYP_AU))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                      sf_strerror(NULL));
+                      Str(sf_strerror(NULL)));
           strcpy(fmt_name, "AU");
           O->filetyp = TYP_AU;
         }
         else {
           if (UNLIKELY(O->filetyp == TYP_IRCAM))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                      sf_strerror(NULL));
+                      Str(sf_strerror(NULL)));
           strcpy(fmt_name, "IRCAM");
           O->filetyp = TYP_IRCAM;
         }
@@ -787,7 +787,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
 #endif
       if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                  sf_strerror(NULL));
+                  Str(sf_strerror(NULL)));
     }
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
