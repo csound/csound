@@ -620,7 +620,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound,
                        Str("csoundLoadSoundFile(): failed to open '%s' %s"),
-                       fileName, sf_strerror(NULL));
+                       fileName, Str(sf_strerror(NULL)));
       return NULL;
     }
     p = (SNDMEMFILE*)

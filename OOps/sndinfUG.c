@@ -274,7 +274,7 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
     if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */
       return csound->InitError(csound, Str("diskinfo cannot open %s: %s"),
-                               sfname, sf_strerror(NULL));
+                               sfname, Str(sf_strerror(NULL)));
     }
     if (channel <= 0) {
       if (sf_command(sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
