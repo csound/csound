@@ -821,11 +821,13 @@ msgid ""
 "After open failure(%s)\n"
 "will try to open %s as raw\n"
 msgstr ""
+"Après échec de l'ouverture (%s)\n"
+"essai d'ouverture de %s en format brut\n"
 
 #: Engine/envvar.c:1155
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open %s: %s\n"
-msgstr "L'ouverture de %s a échoué"
+msgstr "Echec de l'ouverture de %s : %s\n"
 
 #: Engine/envvar.c:1254
 #, c-format
@@ -1612,9 +1614,9 @@ msgid "file %s (%<PRIi32> bytes) loaded into memory\n"
 msgstr "le fichier %s (%<PRIi32> octets) a été chargé en mémoire\n"
 
 #: Engine/memfiles.c:622
-#, fuzzy, c-format
+#, c-format
 msgid "csoundLoadSoundFile(): failed to open '%s' %s"
-msgstr "csoundLoadSoundFile() : l'ouverture de '%s' a échoué"
+msgstr "csoundLoadSoundFile() : échec de l'ouverture de '%s' %s"
 
 #: Engine/memfiles.c:673
 #, c-format
@@ -2409,9 +2411,9 @@ msgid "soundfile read error"
 msgstr "erreur de lecture du fichier son"
 
 #: InOut/libsnd_u.c:141
-#, fuzzy, c-format
+#, c-format
 msgid "soundin cannot open %s: %s"
-msgstr "soundin ne peut pas ouvrir %s"
+msgstr "soundin ne peut pas ouvrir %s : %s"
 
 #: InOut/libsnd_u.c:157
 #, c-format
@@ -4465,9 +4467,9 @@ msgid "soundouts: not initialised"
 msgstr "soundouts : non initialisé"
 
 #: OOps/diskin2.c:1593
-#, fuzzy, c-format
+#, c-format
 msgid "diskin2: %s: failed to open file: %s"
-msgstr "diskin2 : %s : l'ouverture du fichier (%s)  a échoué"
+msgstr "diskin2 : %s : échec de l'ouverture du fichier : %s"
 
 #: OOps/diskin2.c:2121
 msgid "soundin: invalid number of channels"
@@ -4478,9 +4480,9 @@ msgid "soundin: unknown sample format"
 msgstr "soundin : format d'échantillon inconnu"
 
 #: OOps/diskin2.c:2165
-#, fuzzy, c-format
+#, c-format
 msgid "soundin: %s: failed to open file: %s"
-msgstr "soundin : %s : l'ouverture du fichier a échoué"
+msgstr "soundin : %s : échec de l'ouverture du fichier : %s"
 
 #: OOps/diskin2.c:2169
 #, c-format
@@ -5428,9 +5430,9 @@ msgid "diskinfo cannot open %s"
 msgstr "diskinfo ne peut pas ouvrir %s"
 
 #: OOps/sndinfUG.c:276
-#, fuzzy, c-format
+#, c-format
 msgid "diskinfo cannot open %s: %s"
-msgstr "diskinfo ne peut pas ouvrir %s"
+msgstr "diskinfo ne peut pas ouvrir %s : %s"
 
 #: OOps/sndinfUG.c:282 OOps/sndinfUG.c:299
 #, c-format
@@ -9183,9 +9185,9 @@ msgid "invalid number of output arguments"
 msgstr "nombre d'arguments de sortie non valide"
 
 #: Opcodes/pvlock.c:578
-#, fuzzy, c-format
+#, c-format
 msgid "filescal: failed to open file %s\n"
-msgstr "L'ouverture du fichier %s a échoué\n"
+msgstr "filescal : échec de l'ouverture du fichier %s\n"
 
 #: Opcodes/pvlock.c:587
 #, c-format
@@ -10169,9 +10171,9 @@ msgid "diskgrain: invalid number of channels"
 msgstr "diskgrain : nombre de canaux non valide"
 
 #: Opcodes/syncgrain.c:443
-#, fuzzy, c-format
+#, c-format
 msgid "diskgrain: could not open file: %s\n"
-msgstr "diskgrain : impossible d'ouvrir le fichier\n"
+msgstr "diskgrain : impossible d'ouvrir le fichier  %s\n"
 
 #: Opcodes/syncgrain.c:448
 msgid ""
@@ -12754,14 +12756,15 @@ msgid "The available utilities are:\n"
 msgstr "Les utilitaires disponibles sont :\n"
 
 #: util/atsa.c:537
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "Could not open %s for writing, %s\n"
 "bye...\n"
 msgstr ""
 "\n"
-" Impossible d'ouvrir %s en écriture, au revoir...\n"
+" Impossible d'ouvrir %s en écriture, %s\n"
+"au revoir...\n"
 
 #: util/atsa.c:544
 msgid "saving ATS data..."
@@ -12909,9 +12912,9 @@ msgid "Write failure\n"
 msgstr "L'écriture a échoué\n"
 
 #: util/atsa.c:2024
-#, fuzzy, c-format
+#, c-format
 msgid "atsa: cannot open input file '%s': %s"
-msgstr "atsa : impossible d'ouvrir le fichier '%s' en entrée"
+msgstr "atsa : impossible d'ouvrir en entrée le fichier '%s' : %s"
 
 #: util/atsa.c:2031
 #, c-format
@@ -14072,9 +14075,9 @@ msgid "Input formats not the same"
 msgstr "Les formats d'entrée ne sont pas les mêmes"
 
 #: util/mixer.c:411
-#, fuzzy, c-format
+#, c-format
 msgid "mixer: error opening output file '%s': %s"
-msgstr "mixer : erreur en ouvrant le fichier '%s'"
+msgstr "mixer : erreur d'ouverture en sortie du fichier '%s' : %s"
 
 #: util/mixer.c:421
 #, c-format
@@ -14379,9 +14382,9 @@ msgid "No maximum"
 msgstr "Pas de maximum"
 
 #: util/scale.c:298 util/xtrct.c:309
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open output file %s: %s"
-msgstr "L'ouverture du fichier de sortie %s a échoué"
+msgstr "Echec de l'ouverture du fichier de sortie %s : %s"
 
 #: util/scale.c:301
 #, c-format
