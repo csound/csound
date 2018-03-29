@@ -68,17 +68,17 @@ addition to the audio.
 - print, printk2 now take an additional optional argument which if
   non-zero causes the k-variable name to be printed as well as the value.
 
-- getrow, setrow, getcol, andsetcol can now act on i-rate arrays
+- getrow, setrow, getcol, and setcol can now act on i-rate arrays
 
 - diskin2 was incorrectly described in the manual with respect to the
   iformat parameter.  Now if iformat is zero the file is expected to
   have an audio header; if in the range 1-10 (rather than 0-9 as
   before) then it is opened as raw with the specified sample format.
-  ***THIS MAY BE INCOMPATBLE***.  For most users the value of zero will
+  ***THIS MAY BE INCOMPATIBLE***.  For most users the value of zero will
   be correct.
 
 - gen01 now uses format 0 to get the file type from the header; any
-  other value indicates a raw file. ***THIS MAY BE INCOMPATBLE***.  For
+  other value indicates a raw file. ***THIS MAY BE INCOMPATIBLE***.  For
   most users the value of zero will be correct.
 
 ### Utilities
@@ -169,9 +169,3 @@ addition to the audio.
 
 
 ========================================================================
-commit 91b9efa9f849d8cf8e28fbd6a173ea55034d0cbe (HEAD -> develop, origin/develop
-)
-Author: jpff <jpff@codemist.co.uk>
-Date:   Thu Feb 22 18:22:39 2018 +0000
-
-**end**

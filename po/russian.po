@@ -815,7 +815,7 @@ msgstr ""
 
 #: Engine/fgens.c:187 Engine/fgens.c:1696 Engine/fgens.c:1782
 #: Engine/fgens.c:1866 Engine/fgens.c:1983 Engine/fgens.c:2064
-#: Engine/fgens.c:3110
+#: Engine/fgens.c:3108
 msgid "insufficient gen arguments"
 msgstr ""
 
@@ -838,7 +838,7 @@ msgstr ""
 msgid "ftable %d:\n"
 msgstr ""
 
-#: Engine/fgens.c:260 Engine/fgens.c:2399 Engine/fgens.c:2995
+#: Engine/fgens.c:260 Engine/fgens.c:2399 Engine/fgens.c:2993
 msgid "illegal table length"
 msgstr ""
 
@@ -854,7 +854,7 @@ msgstr ""
 #: Engine/fgens.c:1011 Engine/fgens.c:1113 Engine/fgens.c:1157
 #: Engine/fgens.c:1208 Engine/fgens.c:1479 Engine/fgens.c:1541
 #: Engine/fgens.c:1780 Engine/fgens.c:1863 Engine/fgens.c:2223
-#: Engine/fgens.c:3064 Engine/fgens.c:3107
+#: Engine/fgens.c:3062 Engine/fgens.c:3105
 msgid "using extended arguments\n"
 msgstr ""
 
@@ -867,8 +867,8 @@ msgid "illegal x interval"
 msgstr ""
 
 #: Engine/fgens.c:460 Engine/fgens.c:609 Engine/fgens.c:690 Engine/fgens.c:935
-#: Engine/fgens.c:1436 Engine/fgens.c:2561 Engine/fgens.c:2896
-#: Engine/fgens.c:3037 Opcodes/ftest.c:131 Opcodes/quadbezier.c:64
+#: Engine/fgens.c:1436 Engine/fgens.c:2561 Engine/fgens.c:2894
+#: Engine/fgens.c:3035 Opcodes/ftest.c:131 Opcodes/quadbezier.c:64
 #: Top/main.c:124 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "недостаточные аргументы"
@@ -1043,121 +1043,121 @@ msgstr ""
 msgid "non-deferred ftable %d needs size %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2648 Opcodes/loscilx.c:70
+#: Engine/fgens.c:2647 Opcodes/loscilx.c:70
 #, c-format
 msgid "invalid sample format: %d"
 msgstr ""
 
-#: Engine/fgens.c:2656 Engine/fgens.c:2920
+#: Engine/fgens.c:2654 Engine/fgens.c:2918
 #, c-format
 msgid "channel %d illegal"
 msgstr ""
 
-#: Engine/fgens.c:2662
+#: Engine/fgens.c:2660
 #, c-format
 msgid "deferred alloc for %s\n"
 msgstr ""
 
-#: Engine/fgens.c:2666
+#: Engine/fgens.c:2664
 #, fuzzy, c-format
 msgid "Failed to open file %s"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Engine/fgens.c:2671 Engine/fgens.c:2993
+#: Engine/fgens.c:2669 Engine/fgens.c:2991
 msgid "deferred size, but filesize unknown"
 msgstr ""
 
-#: Engine/fgens.c:2674 Engine/fgens.c:2997
+#: Engine/fgens.c:2672 Engine/fgens.c:2995
 #, c-format
 msgid "  defer length %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2742
+#: Engine/fgens.c:2740
 msgid "GEN1: input file truncated by ftable size"
 msgstr ""
 
-#: Engine/fgens.c:2746
+#: Engine/fgens.c:2744
 #, c-format
 msgid "\tlooping endpoint %d exceeds ftsize %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2762
+#: Engine/fgens.c:2760
 msgid "GEN1 read error"
 msgstr ""
 
-#: Engine/fgens.c:2767
+#: Engine/fgens.c:2765
 msgid "GEN1: file truncated by ftable size"
 msgstr ""
 
-#: Engine/fgens.c:2768
+#: Engine/fgens.c:2766
 #, c-format
 msgid "\taudio samps %d exceeds ftsize %d"
 msgstr ""
 
-#: Engine/fgens.c:2821
+#: Engine/fgens.c:2819
 msgid "wrong number of ftable arguments"
 msgstr ""
 
-#: Engine/fgens.c:2831 OOps/pstream.c:388
+#: Engine/fgens.c:2829 OOps/pstream.c:388
 msgid "Failed to load PVOC-EX file"
 msgstr ""
 
-#: Engine/fgens.c:2843 InOut/midirecv.c:419 OOps/midiops.c:402
+#: Engine/fgens.c:2841 InOut/midirecv.c:419 OOps/midiops.c:402
 #: OOps/midiops.c:452 OOps/midiops.c:464
 msgid "illegal channel number"
 msgstr ""
 
-#: Engine/fgens.c:2861
+#: Engine/fgens.c:2859
 msgid "ftable size too small"
 msgstr ""
 
-#: Engine/fgens.c:2936 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
+#: Engine/fgens.c:2934 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr ""
 
-#: Engine/fgens.c:3074
+#: Engine/fgens.c:3072
 msgid "GEN51: invalid number of p-fields (too few grades)"
 msgstr ""
 
-#: Engine/fgens.c:3114
+#: Engine/fgens.c:3112
 msgid "number of channels inconsistent with number of args"
 msgstr ""
 
-#: Engine/fgens.c:3276
+#: Engine/fgens.c:3274
 msgid "GEN53: invalid number of gen arguments"
 msgstr ""
 
-#: Engine/fgens.c:3286
+#: Engine/fgens.c:3284
 msgid "GEN53: invalid table length"
 msgstr ""
 
-#: Engine/fgens.c:3290
+#: Engine/fgens.c:3288
 msgid "GEN53: invalid source table number"
 msgstr ""
 
-#: Engine/fgens.c:3293
+#: Engine/fgens.c:3291
 msgid "GEN53: mode must be in the range 0 to 15"
 msgstr ""
 
-#: Engine/fgens.c:3297
+#: Engine/fgens.c:3295
 #, fuzzy
 msgid "GEN53: invalid source table length:"
 msgstr "неправильный число аргументов"
 
-#: Engine/fgens.c:3302
+#: Engine/fgens.c:3300
 msgid "GEN53: invalid window table"
 msgstr ""
 
-#: Engine/fgens.c:3317
+#: Engine/fgens.c:3315
 msgid "GEN 53: impulse response input, "
 msgstr ""
 
-#: Engine/fgens.c:3323
+#: Engine/fgens.c:3321
 msgid "GEN 53: frequency response input, "
 msgstr ""
 
-#: Engine/fgens.c:3428
+#: Engine/fgens.c:3426
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr ""
@@ -6182,6 +6182,11 @@ msgstr ""
 #: Opcodes/ambicode1.c:689
 #, fuzzy
 msgid "bformdec1 output array not initilised"
+msgstr "%s: не выступлено с иничиативой"
+
+#: Opcodes/arrayops.cpp:78
+#, fuzzy
+msgid "second input array is too short\n"
 msgstr "%s: не выступлено с иничиативой"
 
 #: Opcodes/arrays.c:101
@@ -14296,6 +14301,716 @@ msgstr ""
 #: util1/scot/scot.c:1471
 #, c-format
 msgid "scot: %d errors.\n"
+msgstr ""
+
+#: po/sndfile_str.c:3
+msgid "Format not recognised."
+msgstr ""
+
+#: po/sndfile_str.c:4
+msgid "System error."
+msgstr ""
+
+#: po/sndfile_str.c:5
+msgid "Supported file format but file is malformed."
+msgstr ""
+
+#: po/sndfile_str.c:6
+msgid "Supported file format but unsupported encoding."
+msgstr ""
+
+#: po/sndfile_str.c:7
+msgid "Error : major format is 0."
+msgstr ""
+
+#: po/sndfile_str.c:8
+msgid "Error : minor format is 0."
+msgstr ""
+
+#: po/sndfile_str.c:9
+msgid "File does not exist or is not a regular file (possibly a pipe?)."
+msgstr ""
+
+#: po/sndfile_str.c:10
+msgid "File exists but no data could be read."
+msgstr ""
+
+#: po/sndfile_str.c:11
+#, fuzzy
+msgid "Could not open file."
+msgstr "%s: не выступлено с иничиативой"
+
+#: po/sndfile_str.c:12
+msgid "Not a valid SNDFILE* pointer."
+msgstr ""
+
+#: po/sndfile_str.c:13
+msgid "NULL SF_INFO pointer passed to libsndfile."
+msgstr ""
+
+#: po/sndfile_str.c:14
+msgid "SF_PRIVATE struct incomplete and end of header parsing."
+msgstr ""
+
+#: po/sndfile_str.c:15
+msgid "Bad FILE pointer."
+msgstr ""
+
+#: po/sndfile_str.c:16
+msgid "Internal error, Bad pointer."
+msgstr ""
+
+#: po/sndfile_str.c:17
+msgid ""
+"Error : software was misconfigured at compile time (sizeof statbuf.st_size)."
+msgstr ""
+
+#: po/sndfile_str.c:18
+msgid "Error : Could not file temp dir."
+msgstr ""
+
+#: po/sndfile_str.c:19
+msgid "Internal malloc () failed."
+msgstr ""
+
+#: po/sndfile_str.c:20
+msgid "File contains data in an unimplemented format."
+msgstr ""
+
+#: po/sndfile_str.c:21
+#, fuzzy
+msgid "Attempt to read a non-integer number of channels."
+msgstr "неправильный число аргументов"
+
+#: po/sndfile_str.c:22
+msgid "Attempt to write a non-integer number of channels."
+msgstr ""
+
+#: po/sndfile_str.c:23
+msgid "File contains data in an unknown format."
+msgstr ""
+
+#: po/sndfile_str.c:24
+msgid "Read attempted on file currently open for write."
+msgstr ""
+
+#: po/sndfile_str.c:25
+msgid "Write attempted on file currently open for read."
+msgstr ""
+
+#: po/sndfile_str.c:26
+msgid "Error : This file format does not support read/write mode."
+msgstr ""
+
+#: po/sndfile_str.c:27
+msgid "Internal error : SF_INFO struct incomplete."
+msgstr ""
+
+#: po/sndfile_str.c:28
+msgid "Error : supplied offset beyond end of file."
+msgstr ""
+
+#: po/sndfile_str.c:29
+msgid "Error : embedding not supported for this file format."
+msgstr ""
+
+#: po/sndfile_str.c:30
+msgid "Error : cannot open embedded file read/write."
+msgstr ""
+
+#: po/sndfile_str.c:31
+msgid "Error : this file format does not support pipe write."
+msgstr ""
+
+#: po/sndfile_str.c:32
+msgid "Error : bad pointer on SF_VIRTUAL_IO struct."
+msgstr ""
+
+#: po/sndfile_str.c:33
+msgid "Error : bad coding_history_size in SF_BROADCAST_INFO struct."
+msgstr ""
+
+#: po/sndfile_str.c:34
+msgid "Error : SF_BROADCAST_INFO struct too large."
+msgstr ""
+
+#: po/sndfile_str.c:35
+msgid "Error: SF_CART_INFO struct too large."
+msgstr ""
+
+#: po/sndfile_str.c:36
+msgid "Error: bad tag_text_size in SF_CART_INFO struct."
+msgstr ""
+
+#: po/sndfile_str.c:37
+msgid "Attempt to write to file with non-interleaved data."
+msgstr ""
+
+#: po/sndfile_str.c:38
+msgid "Bad karma in seek during interleave read operation."
+msgstr ""
+
+#: po/sndfile_str.c:39
+msgid "Bad karma in read during interleave read operation."
+msgstr ""
+
+#: po/sndfile_str.c:40
+msgid "Unspecified internal error."
+msgstr ""
+
+#: po/sndfile_str.c:41
+msgid "Bad parameter passed to function sf_command."
+msgstr ""
+
+#: po/sndfile_str.c:42
+msgid "Bad endian-ness. Try default endian-ness"
+msgstr ""
+
+#: po/sndfile_str.c:43
+msgid "Channel count is zero."
+msgstr ""
+
+#: po/sndfile_str.c:44
+msgid "Too many channels specified."
+msgstr ""
+
+#: po/sndfile_str.c:45
+msgid "Bad channel count."
+msgstr ""
+
+#: po/sndfile_str.c:46
+msgid "Internal psf_fseek() failed."
+msgstr ""
+
+#: po/sndfile_str.c:47
+msgid "Seek attempted on unseekable file type."
+msgstr ""
+
+#: po/sndfile_str.c:48
+msgid "Error : combination of file open mode and seek command is ambiguous."
+msgstr ""
+
+#: po/sndfile_str.c:49
+msgid "Error : invalid seek parameters."
+msgstr ""
+
+#: po/sndfile_str.c:50
+msgid "Error : parameters OK, but psf_seek() failed."
+msgstr ""
+
+#: po/sndfile_str.c:51
+msgid "Error : bad mode parameter for file open."
+msgstr ""
+
+#: po/sndfile_str.c:52
+msgid "Error : attempt to open a pipe in read/write mode."
+msgstr ""
+
+#: po/sndfile_str.c:53
+msgid "Error on RDWR position (cryptic)."
+msgstr ""
+
+#: po/sndfile_str.c:54
+msgid ""
+"Error : Cannot open file in read/write mode due to string data in header."
+msgstr ""
+
+#: po/sndfile_str.c:55
+msgid "Error : Command fails because file already has audio data."
+msgstr ""
+
+#: po/sndfile_str.c:56
+msgid "Error : File type does not support string data."
+msgstr ""
+
+#: po/sndfile_str.c:57
+msgid "Error : Trying to set a string when file is not in write mode."
+msgstr ""
+
+#: po/sndfile_str.c:58
+msgid "Error : Maximum string data storage reached."
+msgstr ""
+
+#: po/sndfile_str.c:59
+msgid "Error : Maximum string data count reached."
+msgstr ""
+
+#: po/sndfile_str.c:60
+msgid "Error : Bad string data type."
+msgstr ""
+
+#: po/sndfile_str.c:61
+msgid "Error : file type does not support strings added at end of file."
+msgstr ""
+
+#: po/sndfile_str.c:62
+msgid "Error : bad string."
+msgstr ""
+
+#: po/sndfile_str.c:63
+msgid "Error : Weird string error."
+msgstr ""
+
+#: po/sndfile_str.c:64
+msgid "Error in WAV file. No 'RIFF' chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:65
+msgid "Error in WAV file. No 'WAVE' chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:66
+msgid "Error in WAV/W64/RF64 file. No 'fmt ' chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:67
+msgid "Error in WAV/W64/RF64 file. Malformed 'fmt ' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:68
+msgid "Error in WAV/W64/RF64 file. Short 'fmt ' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:69
+msgid "Error in WAV file. 'fact' chunk out of place."
+msgstr ""
+
+#: po/sndfile_str.c:70
+msgid "Error in WAV file. Bad 'PEAK' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:71
+msgid "Error in WAV file. 'PEAK' chunk found before 'fmt ' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:72
+msgid "Error in WAV file. Errors in 'fmt ' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:73
+msgid "Error in WAV file. Block alignment in 'fmt ' chunk is incorrect."
+msgstr ""
+
+#: po/sndfile_str.c:74
+msgid "Error in WAV file. No 'data' chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:75
+msgid "Error in WAV file. Malformed LIST chunk."
+msgstr ""
+
+#: po/sndfile_str.c:76
+msgid "Error in WAV file. File contains an unknown chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:77
+msgid "Error in WAV file. Data is in WAVPACK format."
+msgstr ""
+
+#: po/sndfile_str.c:78
+msgid "Error in ADPCM WAV file. Invalid bit width."
+msgstr ""
+
+#: po/sndfile_str.c:79
+#, fuzzy
+msgid "Error in ADPCM WAV file. Invalid number of channels."
+msgstr "неправильный число аргументов"
+
+#: po/sndfile_str.c:80
+msgid "Error in ADPCM WAV file. Invalid number of samples per block."
+msgstr ""
+
+#: po/sndfile_str.c:81
+msgid "Error in GSM610 WAV file. Invalid format chunk."
+msgstr ""
+
+#: po/sndfile_str.c:82
+msgid "Error in AIFF file, bad 'FORM' marker."
+msgstr ""
+
+#: po/sndfile_str.c:83
+msgid "Error in AIFF file, 'AIFF' marker without 'FORM'."
+msgstr ""
+
+#: po/sndfile_str.c:84
+msgid "Error in AIFF file, 'COMM' marker without 'FORM'."
+msgstr ""
+
+#: po/sndfile_str.c:85
+msgid "Error in AIFF file, 'SSND' marker without 'COMM'."
+msgstr ""
+
+#: po/sndfile_str.c:86
+msgid "Error in AIFF file, unknown chunk."
+msgstr ""
+
+#: po/sndfile_str.c:87
+msgid "Error in AIFF file, bad 'COMM' chunk size."
+msgstr ""
+
+#: po/sndfile_str.c:88
+msgid "Error in AIFF file, bad 'COMM' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:89
+msgid "Error in AIFF file. 'PEAK' chunk found before 'COMM' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:90
+msgid "Error in AIFF file. Bad 'PEAK' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:91
+msgid "Error in AIFF file, bad 'SSND' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:92
+msgid "Error in AIFF file, no sound data."
+msgstr ""
+
+#: po/sndfile_str.c:93
+msgid "Error in AIFF file, RDWR only possible if SSND chunk at end of file."
+msgstr ""
+
+#: po/sndfile_str.c:94
+msgid "Error in AU file, unknown format."
+msgstr ""
+
+#: po/sndfile_str.c:95
+msgid "Error in AU file, missing '.snd' or 'dns.' marker."
+msgstr ""
+
+#: po/sndfile_str.c:96
+msgid "Embedded AU file with unknown length."
+msgstr ""
+
+#: po/sndfile_str.c:97
+msgid ""
+"Error while opening RAW file for read. Must specify format and channels.\n"
+msgstr ""
+
+#: po/sndfile_str.c:98
+msgid "Possibly trying to open unsupported format."
+msgstr ""
+
+#: po/sndfile_str.c:99
+msgid "Error. RAW file bitwidth must be a multiple of 8."
+msgstr ""
+
+#: po/sndfile_str.c:100
+msgid ""
+"Error. Bad format field in SF_INFO struct when opening a RAW file for read."
+msgstr ""
+
+#: po/sndfile_str.c:101
+msgid "Error in PAF file, no marker."
+msgstr ""
+
+#: po/sndfile_str.c:102
+msgid "Error in PAF file, bad version."
+msgstr ""
+
+#: po/sndfile_str.c:103
+msgid "Error in PAF file, unknown format."
+msgstr ""
+
+#: po/sndfile_str.c:104
+msgid "Error in PAF file. File shorter than minimal header."
+msgstr ""
+
+#: po/sndfile_str.c:105
+msgid "Error in PAF file. Bad channel count."
+msgstr ""
+
+#: po/sndfile_str.c:106
+msgid "Error in 8SVX / 16SV file, no 'FORM' marker."
+msgstr ""
+
+#: po/sndfile_str.c:107
+msgid "Error in 8SVX / 16SV file, no 'BODY' marker."
+msgstr ""
+
+#: po/sndfile_str.c:108
+msgid "Error in 8SVX / 16SV file, no sound data."
+msgstr ""
+
+#: po/sndfile_str.c:109
+msgid "Error in 8SVX / 16SV file, unsupported compression format."
+msgstr ""
+
+#: po/sndfile_str.c:110
+msgid "Error in 8SVX / 16SV file, NAME chunk too long."
+msgstr ""
+
+#: po/sndfile_str.c:111
+msgid "Error in NIST file, bad header."
+msgstr ""
+
+#: po/sndfile_str.c:112
+msgid "Error : NIST file damaged by Windows CR -> CRLF conversion process."
+msgstr ""
+
+#: po/sndfile_str.c:113
+msgid "Error in NIST file, unsupported compression format."
+msgstr ""
+
+#: po/sndfile_str.c:114
+msgid "Error in VOC file, no 'Creative Voice File' marker."
+msgstr ""
+
+#: po/sndfile_str.c:115
+msgid "Error in VOC file, bad format."
+msgstr ""
+
+#: po/sndfile_str.c:116
+msgid "Error in VOC file, bad version number."
+msgstr ""
+
+#: po/sndfile_str.c:117
+msgid "Error in VOC file, bad marker in file."
+msgstr ""
+
+#: po/sndfile_str.c:118
+msgid "Error in VOC file, incompatible VOC sections."
+msgstr ""
+
+#: po/sndfile_str.c:119
+msgid "Error in VOC file, more than one sample rate defined."
+msgstr ""
+
+#: po/sndfile_str.c:120
+msgid "Unimplemented VOC file feature, file contains multiple sound sections."
+msgstr ""
+
+#: po/sndfile_str.c:121
+msgid "Error in VOC file, file contains multiple bit or channel widths."
+msgstr ""
+
+#: po/sndfile_str.c:122
+msgid "Error in VOC file, too many sections."
+msgstr ""
+
+#: po/sndfile_str.c:123
+msgid "Error : not able to operate on VOC files over a pipe."
+msgstr ""
+
+#: po/sndfile_str.c:124
+msgid "Error in IRCAM file, bad IRCAM marker."
+msgstr ""
+
+#: po/sndfile_str.c:125
+msgid "Error in IRCAM file, bad channel count."
+msgstr ""
+
+#: po/sndfile_str.c:126
+msgid "Error in IRCAM file, unknown encoding format."
+msgstr ""
+
+#: po/sndfile_str.c:127
+msgid "Error in W64 file, file contains 64 bit offset."
+msgstr ""
+
+#: po/sndfile_str.c:128
+msgid "Error in W64 file. No 'riff' chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:129
+msgid "Error in W64 file. No 'wave' chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:130
+msgid "Error in W64 file. No 'data' chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:131
+msgid "Error in ADPCM W64 file. Invalid bit width."
+msgstr ""
+
+#: po/sndfile_str.c:132
+#, fuzzy
+msgid "Error in ADPCM W64 file. Invalid number of channels."
+msgstr "неправильный число аргументов"
+
+#: po/sndfile_str.c:133
+msgid "Error in GSM610 W64 file. Invalid format chunk."
+msgstr ""
+
+#: po/sndfile_str.c:134
+msgid "Error in MAT4 file. No variable name."
+msgstr ""
+
+#: po/sndfile_str.c:135
+msgid "Error in MAT4 file. No sample rate."
+msgstr ""
+
+#: po/sndfile_str.c:136
+msgid "Error in MAT5 file. Not able to determine endian-ness."
+msgstr ""
+
+#: po/sndfile_str.c:137
+msgid "Error in MAT5 file. Bad block structure."
+msgstr ""
+
+#: po/sndfile_str.c:138
+msgid "Error in MAT5 file. Not able to determine sample rate."
+msgstr ""
+
+#: po/sndfile_str.c:139
+msgid "Error in PVF file. No PVF1 marker."
+msgstr ""
+
+#: po/sndfile_str.c:140
+msgid "Error in PVF file. Bad header."
+msgstr ""
+
+#: po/sndfile_str.c:141
+msgid "Error in PVF file. Bad bit width."
+msgstr ""
+
+#: po/sndfile_str.c:142
+msgid "Error in XI file. Bad header."
+msgstr ""
+
+#: po/sndfile_str.c:143
+msgid "Error in XI file. Excess samples in file."
+msgstr ""
+
+#: po/sndfile_str.c:144
+msgid "Error : not able to operate on XI files over a pipe."
+msgstr ""
+
+#: po/sndfile_str.c:145
+msgid "Error : not able to operate on HTK files over a pipe."
+msgstr ""
+
+#: po/sndfile_str.c:146
+msgid "Error : not an SDS file."
+msgstr ""
+
+#: po/sndfile_str.c:147
+msgid "Error : bad bit width for SDS file."
+msgstr ""
+
+#: po/sndfile_str.c:148
+msgid "Error : cannot open SD2 file without a file name."
+msgstr ""
+
+#: po/sndfile_str.c:149
+msgid "Error : bad data offset."
+msgstr ""
+
+#: po/sndfile_str.c:150
+msgid "Error : bad map offset."
+msgstr ""
+
+#: po/sndfile_str.c:151
+msgid "Error : bad data length."
+msgstr ""
+
+#: po/sndfile_str.c:152
+msgid "Error : bad map length."
+msgstr ""
+
+#: po/sndfile_str.c:153
+msgid "Error : bad resource fork."
+msgstr ""
+
+#: po/sndfile_str.c:154
+msgid "Error : bad sample size."
+msgstr ""
+
+#: po/sndfile_str.c:155
+msgid "Error : bad flac header."
+msgstr ""
+
+#: po/sndfile_str.c:156
+msgid "Error : problem while creating flac decoder."
+msgstr ""
+
+#: po/sndfile_str.c:157
+msgid "Error : problem with initialization of the flac decoder."
+msgstr ""
+
+#: po/sndfile_str.c:158
+msgid "Error : flac decoder lost sync."
+msgstr ""
+
+#: po/sndfile_str.c:159
+msgid "Error : flac does not support this sample rate."
+msgstr ""
+
+#: po/sndfile_str.c:160
+msgid "Error : flac channel changed mid stream."
+msgstr ""
+
+#: po/sndfile_str.c:161
+msgid "Error : unknown error in flac decoder."
+msgstr ""
+
+#: po/sndfile_str.c:162
+msgid "Error : not a WVE file."
+msgstr ""
+
+#: po/sndfile_str.c:163
+msgid "Error : not able to operate on WVE files over a pipe."
+msgstr ""
+
+#: po/sndfile_str.c:164
+msgid "Error : Bad bit width for DWVW encoding. Must be 12, 16 or 24."
+msgstr ""
+
+#: po/sndfile_str.c:165
+msgid "Error : G72x encoding does not support more than 1 channel."
+msgstr ""
+
+#: po/sndfile_str.c:166
+msgid ""
+"Error : Sample rate chosen is known to trigger a Vorbis encoder bug on this "
+"CPU."
+msgstr ""
+
+#: po/sndfile_str.c:167
+msgid "Error : Not an RF64 file."
+msgstr ""
+
+#: po/sndfile_str.c:168
+msgid "Error in RF64 file. 'PEAK' chunk found before 'fmt ' chunk."
+msgstr ""
+
+#: po/sndfile_str.c:169
+msgid "Error in RF64 file. No 'data' chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:170
+msgid "Error : Failed to open tmp file for ALAC encoding."
+msgstr ""
+
+#: po/sndfile_str.c:171
+msgid "Error : Bad SF_CHUNK_INFO pointer."
+msgstr ""
+
+#: po/sndfile_str.c:172
+msgid "Error : Unknown chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:173
+msgid "Error : Reading/writing chunks from this file format is not supported."
+msgstr ""
+
+#: po/sndfile_str.c:174
+msgid "Error : Bad chunk marker."
+msgstr ""
+
+#: po/sndfile_str.c:175
+msgid "Error : Bad data pointer in SF_CHUNK_INFO struct."
+msgstr ""
+
+#: po/sndfile_str.c:176
+msgid "Error : Supplied filename too long."
+msgstr ""
+
+#: po/sndfile_str.c:177
+msgid "Error : Length parameter passed to read/write is negative."
 msgstr ""
 
 #, fuzzy
