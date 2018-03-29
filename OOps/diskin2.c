@@ -339,7 +339,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("diskin2: %s: failed to open file (%s)"),
-                               name, sf_strerror(NULL));
+                               name, Str(sf_strerror(NULL)));
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
@@ -1591,7 +1591,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("diskin2: %s: failed to open file: %s"),
-                               name, sf_strerror(NULL));
+                               name, Str(sf_strerror(NULL)));
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
@@ -2163,7 +2163,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       if (csound->oparms->realtime==0)
         return csound->InitError(csound,
                                Str("soundin: %s: failed to open file: %s"),
-                                 name, sf_strerror(NULL));
+                                 name, Str(sf_strerror(NULL)));
       else
         return csound->InitError(csound,
                                  Str("soundin: %s: failed to open file"), name);

@@ -441,7 +441,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     memset(buffer, 0,p->buffer.size);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound, Str("diskgrain: could not open file: %s\n"),
-                               sf_strerror(NULL));
+                               Str(sf_strerror(NULL)));
     }
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return

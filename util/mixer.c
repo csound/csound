@@ -409,7 +409,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       outfd = NULL;
     if (UNLIKELY(outfd == NULL)) {
       csound->ErrorMsg(csound, Str("mixer: error opening output file '%s': %s"),
-                       O.outfilename, sf_strerror(NULL));
+                       O.outfilename, Str(sf_strerror(NULL)));
       return -1;
     }
     if (UNLIKELY(O.rewrt_hdr))
