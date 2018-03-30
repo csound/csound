@@ -8,7 +8,7 @@
 /*
     srconv.c
 
-    Copyright (C) 2015 John ffitch after Eric de Castro Lopo
+    Copyright (C) 2015 John ffitch after Erik de Castro Lopo
 
     This file is associated with Csound.
 
@@ -168,9 +168,9 @@ int main(int argc, char **argv)
     SF_INFO sfinfo;
 
     double
-      P = 0.0,              /* Rin / Rout */
-      Rin = 0.0,            /* input sampling rate */
-      Rout = 0.0;           /* output sample rate */
+      P = 0.0,                  /* Rin / Rout */
+      Rin = 0.0,                /* input sampling rate */
+      Rout = 0.0;               /* output sample rate */
 
     int
       i,                        /* index variables */

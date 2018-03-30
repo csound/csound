@@ -1132,7 +1132,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
           sf->samplerate = csound->esr;
           //sf->channels = 1;//csound->inchnls;
           csound->Warning(csound,
-                          Str("After open failure(%s)\nwill try to open %s as raw\n"),
+                          Str("After open failure(%s)\n"
+                              "will try to open %s as raw\n"),
                           sf_strerror(NULL), fullName);
           p->sf = sf_open_fd(tmp_fd, SFM_READ, sf, 0);
         }

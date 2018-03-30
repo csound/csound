@@ -222,14 +222,14 @@ int32_t tableir_kontrol(CSOUND *csound, TABL *p) {
 int32_t tableir_audio(CSOUND *csound, TABL *p)
 {
     IGN(csound);
-    int32_t ndx, len        = p->len, n, nsmps = CS_KSMPS;
-    int32_t mask            = p->ftp->lenmask;
+    int32_t ndx, len    = p->len, n, nsmps = CS_KSMPS;
+    int32_t mask        = p->ftp->lenmask;
     MYFLT *sig          = p->sig;
     MYFLT *ndx_f        = p->ndx;
     MYFLT *func         = p->ftp->ftable;
     MYFLT offset        = *p->offset;
     MYFLT mul           = p->mul, tmp, frac;
-    int32_t iwrap         = p->iwrap;
+    int32_t iwrap       = p->iwrap;
     uint32_t    koffset = p->h.insdshead->ksmps_offset;
     uint32_t    early   = p->h.insdshead->ksmps_no_end;
 
@@ -266,10 +266,10 @@ int32_t table3r_init(CSOUND *csound, TABL *p) {
 
     int32_t ndx, len;
     int32_t mask;
-    MYFLT tmp, frac;
-    MYFLT x0, x1, x2, x3;
-    MYFLT fracub, fracsq, temp1;
-    MYFLT *func;
+    MYFLT   tmp, frac;
+    MYFLT   x0, x1, x2, x3;
+    MYFLT   fracub, fracsq, temp1;
+    MYFLT   *func;
 
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->InitError(csound,
