@@ -46,11 +46,14 @@ if(BUILD_UTILITIES)
     make_utility(srconv      srconv_main.c)
 
 
-    find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
-    find_library(LIBSAMPLERATE_LIBRARY samplerate)
+    #find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
+    find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
 
     if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)
         make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
+        if(MSVC)
+            target_link_libraries(src_conv ${LIBSNDFILE_SUPPORT_LIBS})
+        endif()
     else()
         message(STATUS "Not building src_conv (libsndfile or libsamplerate not found).")
     endif()
