@@ -810,7 +810,6 @@ extern long babo_localops_init(CSOUND *, void *);
 extern long bilbar_localops_init(CSOUND *, void *);
 extern long compress_localops_init(CSOUND *, void *);
 extern long pvsbuffer_localops_init(CSOUND *, void *);
-extern long pvsgendy_localops_init(CSOUND *, void *);
 extern long vosim_localops_init(CSOUND *, void *);
 extern long eqfil_localops_init(CSOUND *, void *);
 extern long modal4_localops_init(CSOUND *, void *);
@@ -846,7 +845,6 @@ extern long crossfm_localops_init(CSOUND *, void *);
 extern long pvlock_localops_init(CSOUND *, void *);
 extern long fareyseq_localops_init(CSOUND *, void *);
 extern long cpumeter_localops_init(CSOUND *, void *);
-extern long gendy_localops_init(CSOUND *, void *);
 extern long scnoise_localops_init(CSOUND *, void *);
 #ifndef NACL
 extern long socksend_localops_init(CSOUND *, void *);
@@ -881,8 +879,8 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
-                                 vaops_localops_init, pvsgendy_localops_init,
-                                 paulstretch_localops_init, squinewave_localops_init,
+                                 vaops_localops_init, paulstretch_localops_init,
+                                 squinewave_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
@@ -891,7 +889,6 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  sockrecv_localops_init,
                                  socksend_localops_init,
 #endif
-                                 gendy_localops_init,
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init,
                                  wpfilters_localops_init,
