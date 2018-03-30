@@ -1,5 +1,5 @@
 /* sdif2adsyn.c: convert SDIF 1TRC additive synthesis data to Csound adsyn format
- * v1.0 Richard W Dobson August 4 2000 
+ * v1.0 Richard W Dobson August 4 2000
 
     Copyright (c) 2000 Richard Dobson
 

@@ -19,7 +19,7 @@ option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" OFF)
-
+option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
 
 message(STATUS "## Building Opcodes ##")
 #find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -289,6 +289,11 @@ endif()
 if(BUILD_STACK_OPCODES)
     make_plugin(stackops stackops.c)
 endif()
+
+if(BUILD_PVSGENDY_OPCODES)
+    make_plugin(pvsgendy pvsgendy.c)
+endif()
+
 
 check_deps(BUILD_FAUST_OPCODES FAUST_FOUND)
 if(BUILD_FAUST_OPCODES)
