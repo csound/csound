@@ -12152,7 +12152,8 @@ msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr " module rtaudio inconnu : '%s', utilisation d'un module factice"
 
 #: Top/csound.c:2892
-msgid "WARNING: real time midi input disabled, using dummy functions\n"
+#, fuzzy
+msgid "!!WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 "AVERTISSEMENT : l'entrée midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
