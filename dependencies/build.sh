@@ -70,12 +70,12 @@ cd ../flac-1.3.2-i386
 ./configure CC="gcc -m32" --disable-dependency-tracking --disable-cpplibs --disable-asm-optimizations --enable-sse --prefix=$PREFIX 
 make
 
-cp $PREFIX/lib/libFLAC.a libflac-x86_64.a
+#cp $PREFIX/lib/libFLAC.a libflac-x86_64.a
 cp $PREFIX/libFLAC.8.dylib libflac-x86_64.dylib 
 
-rm $PREFIX/lib/libFLAC.a
+#rm $PREFIX/lib/libFLAC.a
 rm $PREFIX/lib/libFLAC.8.dylib
-lipo -create src/libFLAC/.libs/libflac.a libflac-x86_64.a -output $PREFIX/lib/libFLAC.a
+#lipo -create src/libFLAC/.libs/libflac.a libflac-x86_64.a -output $PREFIX/lib/libFLAC.a
 lipo -create src/libFLAC/.libs/libflac.8.dylib libflac-x86_64.dylib -output $PREFIX/lib/libFLAC.8.dylib
 
 touch .complete

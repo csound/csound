@@ -127,6 +127,7 @@ cp $DEPS_BASE/lib/libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libfltk_forms.1.3.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/liblo.7.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
+cp $DEPS_BASE/lib/libsamplerate.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libpng16.16.dylib $SUPPORT_LIBS_DIR
@@ -143,6 +144,7 @@ install_name_tool -id libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR/libfltk_images.
 install_name_tool -id libfltk_forms.1.3.dylib $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
 install_name_tool -id liblo.7.dylib $SUPPORT_LIBS_DIR/liblo.7.dylib
 install_name_tool -id libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
+install_name_tool -id libsamplerate.0.dylib $SUPPORT_LIBS_DIR/libsamplerate.0.dylib
 install_name_tool -id libportaudio.2.dylib $SUPPORT_LIBS_DIR/libportaudio.2.dylib
 install_name_tool -id libportmidi.dylib $SUPPORT_LIBS_DIR/libportmidi.dylib
 install_name_tool -id libpng16.16.dylib $SUPPORT_LIBS_DIR/libpng16.16.dylib
@@ -154,25 +156,31 @@ install_name_tool -id libfluidsynth.1.dylib $SUPPORT_LIBS_DIR/libfluidsynth.1.dy
 install_name_tool -id libwiiuse.dylib $SUPPORT_LIBS_DIR/libwiiuse.dylib
 
 # change deps for libsndfile
-export OLD_VORBISENC_LIB=/usr/local/lib/libvorbisenc.2.dylib
+export OLD_VORBISENC_LIB=$DEPS_BASE/lib/libvorbisenc.2.dylib
 export NEW_VORBISENC_LIB=@loader_path/libvorbisenc.2.dylib
 install_name_tool -change $OLD_VORBISENC_LIB $NEW_VORBISENC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
 
-export OLD_VORBIS_LIB=/usr/local/lib/libvorbis.0.dylib
+export OLD_VORBIS_LIB=$DEPS_BASE/lib/libvorbis.0.dylib
 export NEW_VORBIS_LIB=@loader_path/libvorbis.0.dylib
 install_name_tool -change $OLD_VORBIS_LIB $NEW_VORBIS_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
 install_name_tool -change $OLD_VORBIS_LIB $NEW_VORBIS_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 
-export OLD_OGG_LIB=/usr/local/lib/libogg.0.dylib
+export OLD_OGG_LIB=$DEPS_BASE/lib/libogg.0.dylib
 export NEW_OGG_LIB=@loader_path/libogg.0.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 
-export OLD_FLAC_LIB=/usr/local/lib/libFLAC.8.dylib
+export OLD_FLAC_LIB=$DEPS_BASE/lib/libFLAC.8.dylib
 export NEW_FLAC_LIB=@loader_path/libFLAC.8.dylib
 install_name_tool -change $OLD_FLAC_LIB $NEW_FLAC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.8.dylib
+
+# change dep for libsamplerate
+install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsamplerate.0.dylib
+# and for src_conv (NEEDS CHECKING!)
+install_name_tool -change $DEPS_BASE/lib/libsamplerate.0.dylib $SUPPORT_LIBS_DIR/libsamplerate.0.dylib $APPS64_DIR/src_conv
+install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib $APPS64_DIR/src_conv
 
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
