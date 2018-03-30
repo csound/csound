@@ -93,7 +93,7 @@ $targetTriplet = "x64-windows"
 $targetTripletStatic = "x64-windows-static"
 #vcpkg --triplet $targetTriplet install eigen3 fltk zlib 
 #vcpkg --triplet $targetTripletStatic install libflac libogg libvorbis libsndfile
-vcpkg --triplet $targetTripletStatic install eigen3 fltk zlib libflac libogg libvorbis libsndfile
+vcpkg --triplet $targetTripletStatic install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate
 $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
