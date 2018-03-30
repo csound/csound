@@ -138,7 +138,8 @@ void *sndgetset(CSOUND *csound, void *p_)
                                      sfname, &sfinfo, "SFDIR;SSDIR",
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(p->fd == NULL)) {
-      csound->ErrorMsg(csound, Str("soundin cannot open %s: %s"), sfname, sf_strerror(NULL));
+      csound->ErrorMsg(csound, Str("soundin cannot open %s: %s"),
+                       sfname, sf_strerror(NULL));
       goto err_return;
     }
     /* & record fullpath filnam */

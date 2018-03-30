@@ -239,7 +239,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
     minbin = *p->imin;
     maxbin = *p->imax;
 
-    if(p->smpbuf.auxp == NULL)
+    if (p->smpbuf.auxp == NULL)
       csound->AuxAlloc(csound, sizeof(MYFLT)*WINDMAX, &(p->smpbuf));
 
     p->sampbuf = (MYFLT *) p->smpbuf.auxp;
@@ -291,8 +291,8 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
       snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),
                (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
                p->dbout ? Str("db") : Str("mag"));
-      if(maxbin == 0) maxbin = p->ncoefs;
-      if(minbin > maxbin) minbin = 0;
+      if (maxbin == 0) maxbin = p->ncoefs;
+      if (minbin > maxbin) minbin = 0;
       p->npts = maxbin - minbin;
       p->start = minbin;
       dispset(csound, &p->dwindow,
@@ -340,7 +340,7 @@ static void Rect2Polar(MYFLT *buffer, int32_t size, MYFLT scal)
 static void Lin2DB(MYFLT *buffer, int32_t size)
 {
     while (size--) {
-      if(*buffer > 0.0)
+      if (*buffer > 0.0)
       *buffer = /* FL(20.0)*log10 */ FL(8.68589)*LOG(*buffer);
       buffer++;
     }
@@ -369,7 +369,7 @@ int32_t kdspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *bufp = p->bufp, *endp = p->endp;
 
-    if(p->dbout) p->dwindow.polarity = NEGPOL;
+    if (p->dbout) p->dwindow.polarity = NEGPOL;
           else p->dwindow.polarity = POSPOL;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
@@ -413,11 +413,11 @@ int32_t dspfft(CSOUND *csound, DSPFFT *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if(p->dbout){
+    if (p->dbout) {
        p->dwindow.polarity = NEGPOL;
        p->dwindow.absflag = 1;
     }
-          else p->dwindow.polarity = POSPOL;
+    else p->dwindow.polarity = POSPOL;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     nsmps -= early;
@@ -445,7 +445,7 @@ int32_t dspfft(CSOUND *csound, DSPFFT *p)
             tp   = endp - p->overlap;
             do {
               *bufp++ = *tp++;
-            } while(tp < endp);
+            } while (tp < endp);
           }
           else bufp = p->sampbuf + p->overlap;
         }

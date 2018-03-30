@@ -907,8 +907,7 @@ set(cs_pvs_ops_SRCS
     Opcodes/pvsdemix.c
     Opcodes/pvs_ops.c
     Opcodes/pvsband.c
-    Opcodes/pvsbuffer.c
-    Opcodes/pvsgendy.c)
+    Opcodes/pvsbuffer.c)
 
 set(oldpvoc_SRCS
     Opcodes/dsputil.c
