@@ -6,12 +6,11 @@ android {
         }
     }
     compileSdkVersion 23
-    buildToolsVersion '26.0.2'
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 21
         versionCode 2
-        versionName "6.10.0"
+        versionName "6.11.0"
     }
     buildTypes {
         release {
@@ -26,6 +25,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile project(':CsoundAndroid')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':CsoundAndroid')
 }
