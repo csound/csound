@@ -11528,7 +11528,7 @@ msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
 #: Top/csound.c:2892
-msgid "WARNING: real time midi input disabled, using dummy functions\n"
+msgid "!!WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
 #: Top/csound.c:2897 Top/csound.c:2931
