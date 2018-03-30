@@ -63,7 +63,7 @@
 
 #define Str_noop(x) x
 
-#if !(defined(__MACH__) && (__GNUC__ == 3) && (__GNUC_MINOR__ < 2))
+#if defined(__clang__) ||  defined(HAVE_GCC3)
 #  define LIKELY(x)     __builtin_expect(!!(x),1)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else
