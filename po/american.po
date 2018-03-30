@@ -784,12 +784,12 @@ msgid ""
 "will try to open %s as raw\n"
 msgstr ""
 
-#: Engine/envvar.c:1155
+#: Engine/envvar.c:1156
 #, fuzzy, c-format
 msgid "Failed to open %s: %s\n"
 msgstr "Can't open input file %s"
 
-#: Engine/envvar.c:1254
+#: Engine/envvar.c:1255
 #, c-format
 msgid "internal error: csoundCreateFileHandle(): invalid type: %d"
 msgstr ""
@@ -2338,125 +2338,125 @@ msgstr ""
 msgid "soundin cannot open %s: %s"
 msgstr "soundin can't open %s"
 
-#: InOut/libsnd_u.c:157
+#: InOut/libsnd_u.c:158
 #, c-format
 msgid "-s %d overriding soundfile sr %d"
 msgstr ""
 
-#: InOut/libsnd_u.c:168
+#: InOut/libsnd_u.c:169
 #, c-format
 msgid "error: req chan %d, file %s has only %d"
 msgstr ""
 
-#: InOut/libsnd_u.c:174
+#: InOut/libsnd_u.c:175
 #, c-format
 msgid "audio sr = %d, "
 msgstr ""
 
-#: InOut/libsnd_u.c:176 util/sndinfo.c:85
+#: InOut/libsnd_u.c:177 util/sndinfo.c:85
 msgid "monaural"
 msgstr ""
 
-#: InOut/libsnd_u.c:177 util/sndinfo.c:88
+#: InOut/libsnd_u.c:178 util/sndinfo.c:88
 msgid "stereo"
 msgstr ""
 
-#: InOut/libsnd_u.c:178 util/sndinfo.c:91
+#: InOut/libsnd_u.c:179 util/sndinfo.c:91
 msgid "quad"
 msgstr ""
 
-#: InOut/libsnd_u.c:179 util/sndinfo.c:94
+#: InOut/libsnd_u.c:180 util/sndinfo.c:94
 msgid "hex"
 msgstr ""
 
-#: InOut/libsnd_u.c:180 util/sndinfo.c:97
+#: InOut/libsnd_u.c:181 util/sndinfo.c:97
 msgid "oct"
 msgstr ""
 
-#: InOut/libsnd_u.c:181
+#: InOut/libsnd_u.c:182
 #, c-format
 msgid "%d-channels"
 msgstr ""
 
-#: InOut/libsnd_u.c:185
+#: InOut/libsnd_u.c:186
 #, c-format
 msgid ", reading %s channels"
 msgstr ""
 
-#: InOut/libsnd_u.c:186
+#: InOut/libsnd_u.c:187
 msgid "both"
 msgstr ""
 
-#: InOut/libsnd_u.c:186
+#: InOut/libsnd_u.c:187
 msgid "all"
 msgstr ""
 
-#: InOut/libsnd_u.c:188
+#: InOut/libsnd_u.c:189
 #, c-format
 msgid ", reading channel %d"
 msgstr ""
 
-#: InOut/libsnd_u.c:191
+#: InOut/libsnd_u.c:192
 #, c-format
 msgid ""
 "\n"
 "opening %s infile %s\n"
 msgstr ""
 
-#: InOut/libsnd_u.c:201
+#: InOut/libsnd_u.c:202
 msgid "soundin: invalid skip time"
 msgstr ""
 
-#: InOut/libsnd_u.c:234
+#: InOut/libsnd_u.c:235
 msgid "soundin seek error"
 msgstr ""
 
-#: InOut/libsnd_u.c:318
+#: InOut/libsnd_u.c:319
 #, c-format
 msgid "0dBFS level = %.1f\n"
 msgstr ""
 
-#: InOut/libsnd_u.c:347 InOut/libsnd_u.c:377
+#: InOut/libsnd_u.c:348 InOut/libsnd_u.c:378
 msgid "unknown"
 msgstr ""
 
-#: InOut/libsnd_u.c:366
+#: InOut/libsnd_u.c:367
 msgid "unsigned bytes"
 msgstr ""
 
-#: InOut/libsnd_u.c:367
+#: InOut/libsnd_u.c:368
 msgid "signed chars"
 msgstr ""
 
-#: InOut/libsnd_u.c:368
+#: InOut/libsnd_u.c:369
 msgid "alaw bytes"
 msgstr ""
 
-#: InOut/libsnd_u.c:369
+#: InOut/libsnd_u.c:370
 msgid "ulaw bytes"
 msgstr ""
 
-#: InOut/libsnd_u.c:370
+#: InOut/libsnd_u.c:371
 msgid "shorts"
 msgstr ""
 
-#: InOut/libsnd_u.c:371
+#: InOut/libsnd_u.c:372
 msgid "longs"
 msgstr ""
 
-#: InOut/libsnd_u.c:372
+#: InOut/libsnd_u.c:373
 msgid "floats"
 msgstr ""
 
-#: InOut/libsnd_u.c:373
+#: InOut/libsnd_u.c:374
 msgid "double floats"
 msgstr ""
 
-#: InOut/libsnd_u.c:374
+#: InOut/libsnd_u.c:375
 msgid "24bit ints"
 msgstr ""
 
-#: InOut/libsnd_u.c:375
+#: InOut/libsnd_u.c:376
 msgid "vorbis encoding"
 msgstr ""
 
@@ -6158,7 +6158,7 @@ msgstr "The output channel count doesn't match the isetup value."
 msgid "bformdec1 output array not initilised"
 msgstr "bformdec1 output array not initilized"
 
-#: Opcodes/arrayops.cpp:78
+#: Opcodes/arrayops.cpp:78 Opcodes/arrayops.cpp:175
 #, fuzzy
 msgid "second input array is too short\n"
 msgstr "output array too small\n"
@@ -8820,7 +8820,7 @@ msgstr ""
 #: Opcodes/pvlock.c:884 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:716
 #: Opcodes/pvsbasic.c:1047 Opcodes/pvsbasic.c:1262 Opcodes/pvsbasic.c:1369
 #: Opcodes/pvsbasic.c:1614 Opcodes/pvsbasic.c:1838 Opcodes/pvsbasic.c:2011
-#: Opcodes/pvsgendy.c:43 Opcodes/signalflowgraph.cpp:711
+#: Opcodes/pvsgendy.c:44 Opcodes/signalflowgraph.cpp:711
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
@@ -8983,7 +8983,7 @@ msgstr ""
 msgid "pvsdemix : not initialised \n"
 msgstr "pvsdemix : not initialized\n"
 
-#: Opcodes/pvsgendy.c:113
+#: Opcodes/pvsgendy.c:114
 msgid "pvsgendy: not initialised"
 msgstr "pvsgendy: not initialized"
 
@@ -11231,12 +11231,12 @@ msgid "-M: stdin not supported on this platform"
 msgstr ""
 
 #: Top/argdecode.c:833 Top/argdecode.c:1261 util/envext.c:84 util/mixer.c:207
-#: util/scale.c:174 util/srconv.c:253 util/xtrct.c:123
+#: util/new_srconv.c:221 util/scale.c:174 util/srconv.c:253 util/xtrct.c:123
 msgid "no outfilename"
 msgstr ""
 
-#: Top/argdecode.c:836 Top/argdecode.c:1265 util/scale.c:178 util/srconv.c:257
-#: util/xtrct.c:127
+#: Top/argdecode.c:836 Top/argdecode.c:1265 util/new_srconv.c:225
+#: util/scale.c:178 util/srconv.c:257 util/xtrct.c:127
 msgid "-o cannot be stdin"
 msgstr "-o can't be stdin"
 
@@ -12504,8 +12504,8 @@ msgstr "unrecognized switch option"
 msgid "illegal number of filenames"
 msgstr ""
 
-#: util/cvanal.c:118 util/dnoise.c:464 util/lpanal.c:534 util/pvanal.c:256
-#: util/srconv.c:356
+#: util/cvanal.c:118 util/dnoise.c:464 util/lpanal.c:534 util/new_srconv.c:336
+#: util/pvanal.c:256 util/srconv.c:356
 #, c-format
 msgid "error while opening %s"
 msgstr ""
@@ -12601,7 +12601,7 @@ msgstr ""
 msgid "no D argument"
 msgstr ""
 
-#: util/dnoise.c:438 util/srconv.c:333
+#: util/dnoise.c:438 util/new_srconv.c:290 util/srconv.c:333
 #, c-format
 msgid "Looking at %c\n"
 msgstr ""
@@ -12629,7 +12629,7 @@ msgstr ""
 msgid "cannot open %s.\n"
 msgstr "can't open %s.\n"
 
-#: util/dnoise.c:499 util/srconv.c:477 util/srconv.c:495
+#: util/dnoise.c:499 util/new_srconv.c:412 util/srconv.c:477 util/srconv.c:495
 #, c-format
 msgid "cannot open %s."
 msgstr "can't open %s."
@@ -12802,7 +12802,7 @@ msgstr ""
 msgid "Usage:\tenvext [-flags] soundfile\n"
 msgstr ""
 
-#: util/envext.c:54 util/srconv.c:785
+#: util/envext.c:54 util/new_srconv.c:560 util/srconv.c:785
 msgid "-o fnam\tsound output filename\n"
 msgstr ""
 
@@ -13276,11 +13276,11 @@ msgstr ""
 msgid "-o fnam\tsound output filename"
 msgstr ""
 
-#: util/mixer.c:96 util/scale.c:46 util/srconv.c:786
+#: util/mixer.c:96 util/new_srconv.c:561 util/scale.c:46 util/srconv.c:786
 msgid "-A\tcreate an AIFF format output soundfile"
 msgstr ""
 
-#: util/mixer.c:97 util/scale.c:47 util/srconv.c:788
+#: util/mixer.c:97 util/new_srconv.c:563 util/scale.c:47 util/srconv.c:788
 msgid "-W\tcreate a WAV format output soundfile"
 msgstr ""
 
@@ -13288,39 +13288,39 @@ msgstr ""
 msgid "-h\tno header on output soundfile"
 msgstr ""
 
-#: util/mixer.c:99 util/mixer.c:101 util/srconv.c:792
+#: util/mixer.c:99 util/mixer.c:101 util/new_srconv.c:566 util/srconv.c:792
 msgid "-8\t8-bit unsigned_char sound samples"
 msgstr ""
 
-#: util/mixer.c:100 util/scale.c:49 util/srconv.c:790
+#: util/mixer.c:100 util/new_srconv.c:564 util/scale.c:49 util/srconv.c:790
 msgid "-c\t8-bit signed_char sound samples"
 msgstr ""
 
-#: util/mixer.c:102 util/scale.c:50 util/srconv.c:791
+#: util/mixer.c:102 util/new_srconv.c:565 util/scale.c:50 util/srconv.c:791
 msgid "-a\talaw sound samples"
 msgstr ""
 
-#: util/mixer.c:103 util/scale.c:51 util/srconv.c:793
+#: util/mixer.c:103 util/new_srconv.c:567 util/scale.c:51 util/srconv.c:793
 msgid "-u\tulaw sound samples"
 msgstr ""
 
-#: util/mixer.c:104 util/scale.c:52 util/srconv.c:794
+#: util/mixer.c:104 util/new_srconv.c:568 util/scale.c:52 util/srconv.c:794
 msgid "-s\tshort_int sound samples"
 msgstr ""
 
-#: util/mixer.c:105 util/scale.c:53 util/srconv.c:795
+#: util/mixer.c:105 util/new_srconv.c:569 util/scale.c:53 util/srconv.c:795
 msgid "-l\tlong_int sound samples"
 msgstr ""
 
-#: util/mixer.c:106 util/scale.c:54 util/srconv.c:796
+#: util/mixer.c:106 util/new_srconv.c:570 util/scale.c:54 util/srconv.c:796
 msgid "-f\tfloat sound samples"
 msgstr ""
 
-#: util/mixer.c:107 util/scale.c:59 util/srconv.c:799
+#: util/mixer.c:107 util/new_srconv.c:572 util/scale.c:59 util/srconv.c:799
 msgid "-R\tcontinually rewrite header while writing soundfile (WAV/AIFF)"
 msgstr ""
 
-#: util/mixer.c:108 util/scale.c:60 util/srconv.c:800
+#: util/mixer.c:108 util/new_srconv.c:573 util/scale.c:60 util/srconv.c:800
 msgid "-H#\tprint a heartbeat style 1, 2 or 3 at each soundfile write"
 msgstr ""
 
@@ -13364,7 +13364,7 @@ msgstr ""
 msgid "mixer: error: "
 msgstr ""
 
-#: util/mixer.c:190 util/scale.c:162 util/srconv.c:237
+#: util/mixer.c:190 util/new_srconv.c:205 util/scale.c:162 util/srconv.c:237
 #, c-format
 msgid "%s not a recognized SFOUTYP env setting"
 msgstr ""
@@ -13463,6 +13463,104 @@ msgstr ""
 #: util/mixer.c:673
 #, c-format
 msgid "Mixes sound files (max. %d)"
+msgstr ""
+
+#: util/new_srconv.c:121 util/srconv.c:101
+#, c-format
+msgid "Sound format -%c has been overruled by -%c"
+msgstr ""
+
+#: util/new_srconv.c:154 util/srconv.c:134
+#, c-format
+msgid "srconv: unknown outout format '%c'\n"
+msgstr ""
+
+#: util/new_srconv.c:269 util/srconv.c:304
+msgid "No Q argument"
+msgstr ""
+
+#: util/new_srconv.c:274 util/srconv.c:309
+msgid "No P argument"
+msgstr ""
+
+#: util/new_srconv.c:279 util/srconv.c:318
+msgid "No r argument"
+msgstr ""
+
+#: util/new_srconv.c:284 util/srconv.c:327
+msgid "No break file"
+msgstr ""
+
+#: util/new_srconv.c:301
+#, c-format
+msgid "Extra arguments: %s\n"
+msgstr ""
+
+#: util/new_srconv.c:307 util/srconv.c:350
+msgid "No input given\n"
+msgstr ""
+
+#: util/new_srconv.c:331 util/srconv.c:367
+msgid "srconv: cannot specify both -r and -P"
+msgstr "srconv: can't specify both -r and -P"
+
+#: util/new_srconv.c:353 util/srconv.c:379
+msgid "srconv: cannot open time-vary function file"
+msgstr "srconv: can't open time-vary function file"
+
+#: util/new_srconv.c:357
+#, fuzzy
+msgid "Read failure of warp file\n"
+msgstr "ftsave: failed to write file"
+
+#: util/new_srconv.c:363 util/srconv.c:387
+msgid "srconv: tvlen <= 0 "
+msgstr ""
+
+#: util/new_srconv.c:369 util/srconv.c:401
+msgid "srconv: too few x-y pairs in time-vary function file"
+msgstr ""
+
+#: util/new_srconv.c:380
+#, fuzzy
+msgid "srconv: first frame value in time-vary function must be 0"
+msgstr "srconv: can't open time-vary function file"
+
+#: util/new_srconv.c:554 util/srconv.c:779
+msgid ""
+"usage: srconv [flags] infile\n"
+"\n"
+"flags:"
+msgstr ""
+
+#: util/new_srconv.c:555 util/srconv.c:780
+msgid ""
+"-P num\tpitch transposition ratio (srate/r) [do not specify both P and r]"
+msgstr ""
+"-P num\tpitch transposition ratio (srate/r) [don't specify both P and r]"
+
+#: util/new_srconv.c:557
+msgid "-Q num\tquality factor (1 to 5: default = 3)"
+msgstr ""
+
+#: util/new_srconv.c:558 util/srconv.c:783
+msgid "-i filnam\tbreak file"
+msgstr ""
+
+#: util/new_srconv.c:559 util/srconv.c:784
+msgid "-r num\toutput sample rate (must be specified)"
+msgstr ""
+
+#: util/new_srconv.c:562 util/srconv.c:787
+msgid "-J\tcreate an IRCAM format output soundfile"
+msgstr ""
+
+#: util/new_srconv.c:571 util/srconv.c:798
+msgid "-K\tDo not generate PEAK chunks"
+msgstr "-K\tDon't generate PEAK chunks"
+
+#: util/new_srconv.c:574
+msgid "-N\tnotify (ring the bell) when done"
 msgstr ""
 
 #: util/pv_export.c:40
@@ -13851,52 +13949,6 @@ msgstr ""
 msgid "Prints information about sound files"
 msgstr ""
 
-#: util/srconv.c:101
-#, c-format
-msgid "Sound format -%c has been overruled by -%c"
-msgstr ""
-
-#: util/srconv.c:134
-#, c-format
-msgid "srconv: unknown outout format '%c'\n"
-msgstr ""
-
-#: util/srconv.c:304
-msgid "No Q argument"
-msgstr ""
-
-#: util/srconv.c:309
-msgid "No P argument"
-msgstr ""
-
-#: util/srconv.c:318
-msgid "No r argument"
-msgstr ""
-
-#: util/srconv.c:327
-msgid "No break file"
-msgstr ""
-
-#: util/srconv.c:350
-msgid "No input given\n"
-msgstr ""
-
-#: util/srconv.c:367
-msgid "srconv: cannot specify both -r and -P"
-msgstr "srconv: can't specify both -r and -P"
-
-#: util/srconv.c:379
-msgid "srconv: cannot open time-vary function file"
-msgstr "srconv: can't open time-vary function file"
-
-#: util/srconv.c:387
-msgid "srconv: tvlen <= 0 "
-msgstr ""
-
-#: util/srconv.c:401
-msgid "srconv: too few x-y pairs in time-vary function file"
-msgstr ""
-
 #: util/srconv.c:415
 msgid "srconv: first x value in time-vary function must be 0"
 msgstr ""
@@ -13918,42 +13970,13 @@ msgstr ""
 msgid "Do not use srconv but the src_conv program\n"
 msgstr ""
 
-#: util/srconv.c:779
-msgid ""
-"usage: srconv [flags] infile\n"
-"\n"
-"flags:"
-msgstr ""
-
-#: util/srconv.c:780
-msgid ""
-"-P num\tpitch transposition ratio (srate/r) [do not specify both P and r]"
-msgstr ""
-"-P num\tpitch transposition ratio (srate/r) [don't specify both P and r]"
-
 #: util/srconv.c:782
 msgid "-Q num\tquality factor (1 to 8: default = 2)"
-msgstr ""
-
-#: util/srconv.c:783
-msgid "-i filnam\tbreak file"
-msgstr ""
-
-#: util/srconv.c:784
-msgid "-r num\toutput sample rate (must be specified)"
-msgstr ""
-
-#: util/srconv.c:787
-msgid "-J\tcreate an IRCAM format output soundfile"
 msgstr ""
 
 #: util/srconv.c:797
 msgid "-r N\torchestra srate override"
 msgstr ""
-
-#: util/srconv.c:798
-msgid "-K\tDo not generate PEAK chunks"
-msgstr "-K\tDon't generate PEAK chunks"
 
 #: util/srconv.c:869
 msgid "Sample rate conversion"
