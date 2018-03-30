@@ -2889,7 +2889,7 @@ int DummyMidiInOpen(CSOUND *csound, void **userData,
     if (UNLIKELY(s == NULL ||
         (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
          strcmp(s, "NULL") == 0))) {
-      csoundMessage(csound, Str("WARNING: real time midi input disabled, "
+      csoundMessage(csound, Str("!!WARNING: real time midi input disabled, "
                                 "using dummy functions\n"));
       return 0;
     }
