@@ -2586,10 +2586,10 @@ static void needsiz(CSOUND *csound, FGDATA *ff, int32 maxend)
                             (int) ff->fno, nxtpow);
 }
 
-static const int gen01_format_table[11] = {
+static const int gen01_format_table[10] = {
     0,
-    0,          AE_CHAR,    AE_ALAW,    AE_ULAW,    AE_SHORT,
-    AE_LONG,    AE_FLOAT,   AE_UNCH,    AE_24INT,   AE_DOUBLE
+    AE_CHAR,    AE_ALAW,    AE_ULAW,    AE_SHORT,    AE_LONG,
+    AE_FLOAT,   AE_UNCH,    AE_24INT,   AE_DOUBLE
 };
 
 /* read ftable values from a sound file */
@@ -2643,9 +2643,9 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
       }
       /* printf("****line %d: sfname=%s\n" , __LINE__, p->sfname); */
-      if (UNLIKELY(fmt < -1 || fmt > 9))
+      if (UNLIKELY(fmt < 0 || fmt > 9))
         return fterror(ff, Str("invalid sample format: %d"), fmt);
-      p->format = gen01_format_table[fmt + 1];
+      p->format = gen01_format_table[fmt];
     }
     p->skiptime = ff->e.p[6];
     p->channel  = (int) MYFLT2LRND(ff->e.p[8]);
