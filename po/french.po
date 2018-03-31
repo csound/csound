@@ -2488,7 +2488,7 @@ msgstr "soundin : temps de décalage dans le fichier non valide"
 
 #: InOut/libsnd_u.c:235
 msgid "soundin seek error"
-msgstr "soundin : erreur de recherche"
+msgstr "soundin : erreur seek"
 
 #: InOut/libsnd_u.c:319
 #, c-format
@@ -12152,10 +12152,9 @@ msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr " module rtaudio inconnu : '%s', utilisation d'un module factice"
 
 #: Top/csound.c:2892
-#, fuzzy
 msgid "!!WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
-"AVERTISSEMENT : l'entrée midi en temps réel est désactivée, utilisation de "
+"!!AVERTISSEMENT : l'entrée midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
 #: Top/csound.c:2897 Top/csound.c:2931
@@ -14150,9 +14149,9 @@ msgid "No break file"
 msgstr "Pas de fichier de segments"
 
 #: util/new_srconv.c:301
-#, fuzzy, c-format
+#, c-format
 msgid "Extra arguments: %s\n"
-msgstr "trop d'arguments"
+msgstr "Arguments supplémentaires : %s\n"
 
 #: util/new_srconv.c:307 util/srconv.c:350
 msgid "No input given\n"
@@ -14169,9 +14168,8 @@ msgstr ""
 "temporelle"
 
 #: util/new_srconv.c:357
-#, fuzzy
 msgid "Read failure of warp file\n"
-msgstr "readf : l'ouverture du fichier a échoué"
+msgstr "Echec de la lecture du fichier de warp\n"
 
 #: util/new_srconv.c:363 util/srconv.c:387
 msgid "srconv: tvlen <= 0 "
@@ -14184,11 +14182,10 @@ msgstr ""
 "temporelle"
 
 #: util/new_srconv.c:380
-#, fuzzy
 msgid "srconv: first frame value in time-vary function must be 0"
 msgstr ""
-"srconv : la première valeur de x dans la fonction de variation temporelle "
-"doit être 0"
+"srconv : la valeur de la première trame dans la fonction de variation "
+"temporelle doit être 0"
 
 #: util/new_srconv.c:554 util/srconv.c:779
 msgid ""
@@ -14208,9 +14205,8 @@ msgstr ""
 "fois P et r]"
 
 #: util/new_srconv.c:557
-#, fuzzy
 msgid "-Q num\tquality factor (1 to 5: default = 3)"
-msgstr "-Q num\tfacteur de qualité (1 à 8 : par défaut = 2)"
+msgstr "-Q num\tfacteur de qualité (1 à 5 : par défaut = 3)"
 
 #: util/new_srconv.c:558 util/srconv.c:783
 msgid "-i filnam\tbreak file"
@@ -14229,9 +14225,8 @@ msgid "-K\tDo not generate PEAK chunks"
 msgstr "-K\tNe générer aucun bloc PEAK"
 
 #: util/new_srconv.c:574
-#, fuzzy
 msgid "-N\tnotify (ring the bell) when done"
-msgstr "-N\tavertir (par un beep) à la fin\n"
+msgstr "-N\tavertir (par un beep) à la fin"
 
 #: util/pv_export.c:40
 msgid "Usage: pv_export pv_file cstext_file\n"
@@ -14953,741 +14948,754 @@ msgstr "scot : %d erreurs.\n"
 
 #: po/sndfile_str.c:3
 msgid "Format not recognised."
-msgstr ""
+msgstr "Format non reconnu."
 
 #: po/sndfile_str.c:4
-#, fuzzy
 msgid "System error."
-msgstr "erreur de ftgen"
+msgstr "Erreur système"
 
 #: po/sndfile_str.c:5
 msgid "Supported file format but file is malformed."
-msgstr ""
+msgstr "Format supporté mais le fichier est malformé."
 
 #: po/sndfile_str.c:6
 msgid "Supported file format but unsupported encoding."
-msgstr ""
+msgstr "Format de fichier supporté mais pas l'encodage."
 
 #: po/sndfile_str.c:7
 msgid "Error : major format is 0."
-msgstr ""
+msgstr "Erreur : le format majeur est 0."
 
 #: po/sndfile_str.c:8
 msgid "Error : minor format is 0."
-msgstr ""
+msgstr "Erreur : le format mineur est 0."
 
 #: po/sndfile_str.c:9
 msgid "File does not exist or is not a regular file (possibly a pipe?)."
 msgstr ""
+"Le fichier n'existe pas ou n'est pas un fichier régulier "
+"(peut-être un tube ?)."
 
 #: po/sndfile_str.c:10
 msgid "File exists but no data could be read."
-msgstr ""
+msgstr "Le fichier existe mais aucune donnée n'a pu être lue."
 
 #: po/sndfile_str.c:11
-#, fuzzy
 msgid "Could not open file."
-msgstr "impossible d'ouvrir le fichier de spatialisation"
+msgstr "Impossible d'ouvrir le fichier"
 
 #: po/sndfile_str.c:12
 msgid "Not a valid SNDFILE* pointer."
-msgstr ""
+msgstr "Ce n'est pas un pointeur SNDFILE* valide."
 
 #: po/sndfile_str.c:13
 msgid "NULL SF_INFO pointer passed to libsndfile."
-msgstr ""
+msgstr "Pointeur SF_INFO NULL passé à libsndfile."
 
 #: po/sndfile_str.c:14
 msgid "SF_PRIVATE struct incomplete and end of header parsing."
-msgstr ""
+msgstr "Struct SF_PRIVATE incomplète et fin de l'analyse de l'entête"
 
 #: po/sndfile_str.c:15
 msgid "Bad FILE pointer."
-msgstr ""
+msgstr "Mauvais pointeur FILE."
 
 #: po/sndfile_str.c:16
-#, fuzzy
 msgid "Internal error, Bad pointer."
-msgstr "Erreur interne op=%c"
+msgstr "Erreur interne, mauvais pointeur."
 
 #: po/sndfile_str.c:17
 msgid ""
 "Error : software was misconfigured at compile time (sizeof statbuf.st_size)."
 msgstr ""
+"Erreur : le logiciel a été mal configuré à la compilation "
+"(sizeof statbuf.st_size)."
 
 #: po/sndfile_str.c:18
-#, fuzzy
 msgid "Error : Could not file temp dir."
-msgstr "Erreur : le son n'est pas optimisé !"
+msgstr "Erreur : impossible d'utiliser le répertoire temp."
 
 #: po/sndfile_str.c:19
-#, fuzzy
 msgid "Internal malloc () failed."
-msgstr "L'interpolation a échoué"
+msgstr "malloc() en interne a échoué."
 
 #: po/sndfile_str.c:20
 msgid "File contains data in an unimplemented format."
-msgstr ""
+msgstr "Le fichier contient des données dans un format non supporté."
 
 #: po/sndfile_str.c:21
-#, fuzzy
 msgid "Attempt to read a non-integer number of channels."
-msgstr "oggread : nombre de canaux non valide"
+msgstr "Tentative de lecture d'un nombre non entier de canaux."
 
 #: po/sndfile_str.c:22
-#, fuzzy
 msgid "Attempt to write a non-integer number of channels."
-msgstr "oggread : nombre de canaux non valide"
+msgstr "Tentative d'écriture dans un nombre non entier de canaux."
 
 #: po/sndfile_str.c:23
 msgid "File contains data in an unknown format."
-msgstr ""
+msgstr "Le fichier contient des données dans un format inconnu."
 
 #: po/sndfile_str.c:24
 msgid "Read attempted on file currently open for write."
-msgstr ""
+msgstr "Tentative de lecture sur un fichier ouvert en écriture."
 
 #: po/sndfile_str.c:25
 msgid "Write attempted on file currently open for read."
-msgstr ""
+msgstr "Tentative d'écriture dans un fichier ouvert en lecture."
 
 #: po/sndfile_str.c:26
-#, fuzzy
 msgid "Error : This file format does not support read/write mode."
-msgstr " *** le format de fichier MIDI %d n'est pas supporté\n"
+msgstr "Erreur : ce format de fichier ne supporte pas le mode lecture/écriture."
 
 #: po/sndfile_str.c:27
 msgid "Internal error : SF_INFO struct incomplete."
-msgstr ""
+msgstr "Erreur interne : struct SF_INFO incomplète."
 
 #: po/sndfile_str.c:28
 msgid "Error : supplied offset beyond end of file."
-msgstr ""
+msgstr "Erreur : décalage demandé au-delà de la fin du fichier."
 
 #: po/sndfile_str.c:29
-#, fuzzy
 msgid "Error : embedding not supported for this file format."
-msgstr "-F : stdin n'est pas supporté sur cette plateforme"
+msgstr "Erreur : l'attachement n'est pas supporté par ce format de fichier."
 
 #: po/sndfile_str.c:30
 msgid "Error : cannot open embedded file read/write."
-msgstr ""
+msgstr "Erreur : impossible d'ouvrir le fichier attaché en lecture/écriture."
 
 #: po/sndfile_str.c:31
-#, fuzzy
 msgid "Error : this file format does not support pipe write."
-msgstr " *** le format de fichier MIDI %d n'est pas supporté\n"
+msgstr "Erreur : ce format de fichier ne supporte pas l'écriture via un tube"
 
 #: po/sndfile_str.c:32
 msgid "Error : bad pointer on SF_VIRTUAL_IO struct."
-msgstr ""
+msgstr "Erreur : mauvais pointeur sur la struct SF_VIRTUAL."
 
 #: po/sndfile_str.c:33
 msgid "Error : bad coding_history_size in SF_BROADCAST_INFO struct."
-msgstr ""
+msgstr "Erreur: mauvais coding_history_size dans la struct SF_BROADCAST_INFO."
 
 #: po/sndfile_str.c:34
 msgid "Error : SF_BROADCAST_INFO struct too large."
-msgstr ""
+msgstr "Erreur : struct SF_BROADCAST_INFO trop grande."
 
 #: po/sndfile_str.c:35
 msgid "Error: SF_CART_INFO struct too large."
-msgstr ""
+msgstr "Erreur : struct SF_CART_INFO trop grande."
 
 #: po/sndfile_str.c:36
 msgid "Error: bad tag_text_size in SF_CART_INFO struct."
-msgstr ""
+msgstr "Erreur : mauvais tag_text_size dans la struct SF_CART_INFO."
 
 #: po/sndfile_str.c:37
 msgid "Attempt to write to file with non-interleaved data."
-msgstr ""
+msgstr "Tentative d'écriture dans un fichier avec des données non entrelacées."
 
 #: po/sndfile_str.c:38
 msgid "Bad karma in seek during interleave read operation."
 msgstr ""
+"Mauvais karma dans seek lors de l'opération de lecture entrelacée."
 
 #: po/sndfile_str.c:39
 msgid "Bad karma in read during interleave read operation."
 msgstr ""
+"Mauvais karma dans la lecture lors de l'opération de lecture entrelacée."
 
 #: po/sndfile_str.c:40
-#, fuzzy
 msgid "Unspecified internal error."
-msgstr "Erreur interne OSC"
+msgstr "Erreur interne non spécifiée."
 
 #: po/sndfile_str.c:41
 msgid "Bad parameter passed to function sf_command."
-msgstr ""
+msgstr "Mauvais paramètre passé à la fonction sf_command."
 
 #: po/sndfile_str.c:42
 msgid "Bad endian-ness. Try default endian-ness"
-msgstr ""
+msgstr "Mauvais boutisme. Essayer le boutisme par défaut."
 
 #: po/sndfile_str.c:43
 msgid "Channel count is zero."
-msgstr ""
+msgstr "Le nombre de canaux est zéro."
 
 #: po/sndfile_str.c:44
-#, fuzzy
 msgid "Too many channels specified."
-msgstr "Le tempo doit être spécifié"
+msgstr "Trop de canaux spécifiés."
 
 #: po/sndfile_str.c:45
-#, fuzzy
 msgid "Bad channel count."
-msgstr "numéro de canal illégal"
+msgstr "Mauvais nombre de canaux."
 
 #: po/sndfile_str.c:46
 msgid "Internal psf_fseek() failed."
-msgstr ""
+msgstr "Echec de psf_fseek() en interne."
 
 #: po/sndfile_str.c:47
 msgid "Seek attempted on unseekable file type."
-msgstr ""
+msgstr "Tentative de positionnement sur un type de fichier non aléatoire."
 
 #: po/sndfile_str.c:48
 msgid "Error : combination of file open mode and seek command is ambiguous."
 msgstr ""
+"Erreur : la combinaison du mode d'ouverture du fichier et de la "
+"commande seek est ambiguë."
 
 #: po/sndfile_str.c:49
-#, fuzzy
 msgid "Error : invalid seek parameters."
-msgstr "turnoff2 : paramètre de mode non valide"
+msgstr "Erreur : paramètres de seek non valides."
 
 #: po/sndfile_str.c:50
 msgid "Error : parameters OK, but psf_seek() failed."
-msgstr ""
+msgstr "Erreur : paramètres OK, mais psf_seek() a échoué."
 
 #: po/sndfile_str.c:51
-#, fuzzy
 msgid "Error : bad mode parameter for file open."
-msgstr "Erreur de réglage des paramètres logiciels pour l'audio en temps réel"
+msgstr "Erreur : mauvais paramètre de mode pour ouvrir un fichier."
 
 #: po/sndfile_str.c:52
 msgid "Error : attempt to open a pipe in read/write mode."
-msgstr ""
+msgstr "Erreur : tentative d'ouvrir un tube en mode lecture/écriture."
 
 #: po/sndfile_str.c:53
 msgid "Error on RDWR position (cryptic)."
-msgstr ""
+msgstr "Erreur sur la position RDWR (cryptique)."
 
 #: po/sndfile_str.c:54
 msgid ""
 "Error : Cannot open file in read/write mode due to string data in header."
 msgstr ""
+"Erreur : impossible d'ouvrir le fichier en mode lecture/écriture à cause "
+"de données chaînes de caractères dans l'en-tête."
 
 #: po/sndfile_str.c:55
 msgid "Error : Command fails because file already has audio data."
-msgstr ""
+msgstr "Erreur : échec de la commande car le fichier a déjà des données audio."
 
 #: po/sndfile_str.c:56
 msgid "Error : File type does not support string data."
 msgstr ""
+"Erreur : le type du fichier ne supporte pas les données chaînes de caractères."
 
 #: po/sndfile_str.c:57
 msgid "Error : Trying to set a string when file is not in write mode."
 msgstr ""
+"Erreur : tentative de fixer une chaîne de caractères alors que le fichier "
+"n'est pas en mode écriture."
 
 #: po/sndfile_str.c:58
 msgid "Error : Maximum string data storage reached."
 msgstr ""
+"Erreur : le maximum de l'espace des données chaîne de caractères est atteint."
 
 #: po/sndfile_str.c:59
 msgid "Error : Maximum string data count reached."
 msgstr ""
+"Erreur : le compte maximum des données chaîne de caractères est atteint."
 
 #: po/sndfile_str.c:60
 msgid "Error : Bad string data type."
-msgstr ""
+msgstr "Erreur : mauvais type de données chaîne de caractères."
 
 #: po/sndfile_str.c:61
 msgid "Error : file type does not support strings added at end of file."
 msgstr ""
+"Erreur : le type de fichier ne supporte pas l'addition de chaînes de "
+"caractères à la fin du fichier."
 
 #: po/sndfile_str.c:62
 msgid "Error : bad string."
-msgstr ""
+msgstr "Erreur : mauvaise chaîne de caractères."
 
 #: po/sndfile_str.c:63
 msgid "Error : Weird string error."
-msgstr ""
+msgstr "Erreur : étrange erreur de chaîne de caractères."
 
 #: po/sndfile_str.c:64
 msgid "Error in WAV file. No 'RIFF' chunk marker."
-msgstr ""
+msgstr "Erreur dans le fichier WAV. Pas de marqueur de tronçon 'RIFF'."
 
 #: po/sndfile_str.c:65
 msgid "Error in WAV file. No 'WAVE' chunk marker."
-msgstr ""
+msgstr "Erreur dans le fichier WAV. Pas de marqueur de tronçon 'WAVE'."
 
 #: po/sndfile_str.c:66
 msgid "Error in WAV/W64/RF64 file. No 'fmt ' chunk marker."
-msgstr ""
+msgstr "Erreur dans le fichier WAV/W64/RF64. Pas de marqueur de tronçon 'fmt '."
 
 #: po/sndfile_str.c:67
 msgid "Error in WAV/W64/RF64 file. Malformed 'fmt ' chunk."
-msgstr ""
+msgstr "Erreur dans le fichier WAV/W64/RF64. Tronçon 'fmt ' malformé."
 
 #: po/sndfile_str.c:68
 msgid "Error in WAV/W64/RF64 file. Short 'fmt ' chunk."
-msgstr ""
+msgstr "Erreur dans le fichier WAV/W64/RF64. Tronçon 'fmt ' court."
 
 #: po/sndfile_str.c:69
 msgid "Error in WAV file. 'fact' chunk out of place."
-msgstr ""
+msgstr "Erreur dans le fichier WAV. Tronçon 'fact' mal placé."
 
 #: po/sndfile_str.c:70
 msgid "Error in WAV file. Bad 'PEAK' chunk."
-msgstr ""
+msgstr "Erreur dans le fichier WAV. Mauvais tronçon 'PEAK'."
 
 #: po/sndfile_str.c:71
-#, fuzzy
 msgid "Error in WAV file. 'PEAK' chunk found before 'fmt ' chunk."
 msgstr ""
-"\n"
-"pvsys : le bloc PVXW a été trouvé avant le bloc fmt"
+"Erreur dans le fichier WAV. Tronçon 'PEAK' trouvé avant le tronçon 'fmt '."
 
 #: po/sndfile_str.c:72
 msgid "Error in WAV file. Errors in 'fmt ' chunk."
-msgstr ""
+msgstr "Erreur dans le fichier WAV. Erreurs dans le tronçon 'fmt '."
 
 #: po/sndfile_str.c:73
 msgid "Error in WAV file. Block alignment in 'fmt ' chunk is incorrect."
 msgstr ""
+"Erreur dans le fichier WAV. L'alignement de bloc dans le tronçon 'fmt ' est "
+"incorrect."
 
 #: po/sndfile_str.c:74
 msgid "Error in WAV file. No 'data' chunk marker."
-msgstr ""
+msgstr "Erreur dans le fichier WAV. Pas de marqueur de tronçon 'data'."
 
 #: po/sndfile_str.c:75
 msgid "Error in WAV file. Malformed LIST chunk."
-msgstr ""
+msgstr "Erreur dans le fichier WAV. Tronçon LIST malformé."
 
 #: po/sndfile_str.c:76
 msgid "Error in WAV file. File contains an unknown chunk marker."
 msgstr ""
+"Erreur dans le fichier WAV. Le fichier contient un marqueur de tronçon "
+"inconnu."
 
 #: po/sndfile_str.c:77
 msgid "Error in WAV file. Data is in WAVPACK format."
-msgstr ""
+msgstr "Erreur dans le fichier WAV. Les données sont dans le format WAVPACK."
 
 #: po/sndfile_str.c:78
 msgid "Error in ADPCM WAV file. Invalid bit width."
-msgstr ""
+msgstr "Erreur dans le fichier ADPCM WAV. Largeur en bit non valide."
 
 #: po/sndfile_str.c:79
-#, fuzzy
 msgid "Error in ADPCM WAV file. Invalid number of channels."
-msgstr "soundin : nombre de canaux non valide"
+msgstr "Erreur dans le fichier ADPCM WAV. Nombre de canaux non valide."
 
 #: po/sndfile_str.c:80
 msgid "Error in ADPCM WAV file. Invalid number of samples per block."
 msgstr ""
+"Erreur dans le fichier ADPCM WAV. Nombre d'échantillons par bloc non valide."
 
 #: po/sndfile_str.c:81
 msgid "Error in GSM610 WAV file. Invalid format chunk."
-msgstr ""
+msgstr "Erreur dans le fichier GSM610 WAV. Format de tronçon non valide."
 
 #: po/sndfile_str.c:82
 msgid "Error in AIFF file, bad 'FORM' marker."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, mauvais marqueur 'FORM'."
 
 #: po/sndfile_str.c:83
 msgid "Error in AIFF file, 'AIFF' marker without 'FORM'."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, marqueur 'AIFF' sans 'FORM'."
 
 #: po/sndfile_str.c:84
 msgid "Error in AIFF file, 'COMM' marker without 'FORM'."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, marqueur 'COMM' sans 'FORM'."
 
 #: po/sndfile_str.c:85
 msgid "Error in AIFF file, 'SSND' marker without 'COMM'."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, marqueur 'SSND' sans 'FORM'."
 
 #: po/sndfile_str.c:86
 msgid "Error in AIFF file, unknown chunk."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, tronçon inconnu."
 
 #: po/sndfile_str.c:87
 msgid "Error in AIFF file, bad 'COMM' chunk size."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, mauvaise taille de tronçon 'COMM'."
 
 #: po/sndfile_str.c:88
 msgid "Error in AIFF file, bad 'COMM' chunk."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, mauvais tronçon 'COMM'."
 
 #: po/sndfile_str.c:89
 msgid "Error in AIFF file. 'PEAK' chunk found before 'COMM' chunk."
 msgstr ""
+"Erreur dans le fichier AIFF. Tronçon 'PEAK' trouvé avant un tronçon 'COMM'."
 
 #: po/sndfile_str.c:90
 msgid "Error in AIFF file. Bad 'PEAK' chunk."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF. Mauvais tronçon 'PEAK'."
 
 #: po/sndfile_str.c:91
 msgid "Error in AIFF file, bad 'SSND' chunk."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, mauvais tronçon 'SSND'."
 
 #: po/sndfile_str.c:92
 msgid "Error in AIFF file, no sound data."
-msgstr ""
+msgstr "Erreur dans le fichier AIFF, pas de données sonores."
 
 #: po/sndfile_str.c:93
 msgid "Error in AIFF file, RDWR only possible if SSND chunk at end of file."
 msgstr ""
+"Erreur dans le fichier AIFF, RDWR n'est possible que s'il y a un tronçon SSND "
+"à la fin du fichier."
 
 #: po/sndfile_str.c:94
 msgid "Error in AU file, unknown format."
-msgstr ""
+msgstr "Erreur dans le fichier AU, format inconnu."
 
 #: po/sndfile_str.c:95
 msgid "Error in AU file, missing '.snd' or 'dns.' marker."
-msgstr ""
+msgstr "Erreur dans le fichier AU, marqueur '.snd' ou 'dns.' manquant."
 
 #: po/sndfile_str.c:96
 msgid "Embedded AU file with unknown length."
-msgstr ""
+msgstr "Fichier AU attaché de longueur inconnue."
 
 #: po/sndfile_str.c:97
 msgid ""
 "Error while opening RAW file for read. Must specify format and channels.\n"
 msgstr ""
+"Erreur lors de l'ouverture en lecture d'un fichier RAW. Il faut spécifier "
+"le format et les canaux.\n"
 
 #: po/sndfile_str.c:98
 msgid "Possibly trying to open unsupported format."
-msgstr ""
+msgstr "Possible essai d'ouverture d'un format non supporté."
 
 #: po/sndfile_str.c:99
 msgid "Error. RAW file bitwidth must be a multiple of 8."
-msgstr ""
+msgstr "Erreur. La largeur en bit d'un fichier RAW doit être un multiple de 8."
 
 #: po/sndfile_str.c:100
 msgid ""
 "Error. Bad format field in SF_INFO struct when opening a RAW file for read."
 msgstr ""
+"Erreur. Mauvais champ de format dans la struct SF_INFO lors de l'ouverture "
+"d'un fichier RAW en lecture."
 
 #: po/sndfile_str.c:101
 msgid "Error in PAF file, no marker."
-msgstr ""
+msgstr "Erreur dans le fichier PAF, pas de marqueur."
 
 #: po/sndfile_str.c:102
 msgid "Error in PAF file, bad version."
-msgstr ""
+msgstr "Erreur dans le fichier PAF, mauvaise version."
 
 #: po/sndfile_str.c:103
 msgid "Error in PAF file, unknown format."
-msgstr ""
+msgstr "Erreur dans le fichier PAF, format inconnu."
 
 #: po/sndfile_str.c:104
 msgid "Error in PAF file. File shorter than minimal header."
-msgstr ""
+msgstr "Erreur dans le fichier PAF. Fichier plus court que l'en-tête minimal."
 
 #: po/sndfile_str.c:105
 msgid "Error in PAF file. Bad channel count."
-msgstr ""
+msgstr "Erreur dans le fichier PAF. Mauvais nombre de canaux."
 
 #: po/sndfile_str.c:106
 msgid "Error in 8SVX / 16SV file, no 'FORM' marker."
-msgstr ""
+msgstr "Erreur dans le fichier 8SVX / 16SV, pas de marqueur 'FORM'."
 
 #: po/sndfile_str.c:107
 msgid "Error in 8SVX / 16SV file, no 'BODY' marker."
-msgstr ""
+msgstr "Erreur dans le fichier 8SVX / 16SV, pas de marqueur 'BODY'."
 
 #: po/sndfile_str.c:108
 msgid "Error in 8SVX / 16SV file, no sound data."
-msgstr ""
+msgstr "Erreur dans le fichier 8SVX / 16SV, pas de données sonores."
 
 #: po/sndfile_str.c:109
 msgid "Error in 8SVX / 16SV file, unsupported compression format."
-msgstr ""
+msgstr "Erreur dans le fichier 8SVX / 16SV, format de compression non supporté."
 
 #: po/sndfile_str.c:110
 msgid "Error in 8SVX / 16SV file, NAME chunk too long."
-msgstr ""
+msgstr "Erreur dans le fichier 8SVX / 16SV, tronçon NAME trop long."
 
 #: po/sndfile_str.c:111
-#, fuzzy
 msgid "Error in NIST file, bad header."
-msgstr "Erreur en écrivant un en-tête de trame SDIF.\n"
+msgstr "Erreur dans le fichier NIST, mauvais en-tête."
 
 #: po/sndfile_str.c:112
 msgid "Error : NIST file damaged by Windows CR -> CRLF conversion process."
 msgstr ""
+"Erreur : fichier NIST endommagé par le procédé de conversion des CR -> CRLF "
+"de Windows."
 
 #: po/sndfile_str.c:113
 msgid "Error in NIST file, unsupported compression format."
-msgstr ""
+msgstr "Erreur dans le fichier NIST, format de compression non supporté."
 
 #: po/sndfile_str.c:114
 msgid "Error in VOC file, no 'Creative Voice File' marker."
-msgstr ""
+msgstr "Erreur dans le fichier VOC, pas de tronçon 'Creative Voice File'."
 
 #: po/sndfile_str.c:115
-#, fuzzy
 msgid "Error in VOC file, bad format."
-msgstr "Erreur en lisant le fichier PVOC"
+msgstr "Erreur dans le fichier VOC, mauvais format."
 
 #: po/sndfile_str.c:116
 msgid "Error in VOC file, bad version number."
-msgstr ""
+msgstr "Erreur dans le fichier VOC, mauvais numéro de version."
 
 #: po/sndfile_str.c:117
 msgid "Error in VOC file, bad marker in file."
-msgstr ""
+msgstr "Erreur dans le fichier VOC, mauvais marqueur dans le fichier."
 
 #: po/sndfile_str.c:118
 msgid "Error in VOC file, incompatible VOC sections."
-msgstr ""
+msgstr "Erreur dans le fichier VOC, sections VOC incompatibles."
 
 #: po/sndfile_str.c:119
 msgid "Error in VOC file, more than one sample rate defined."
-msgstr ""
+msgstr "Erreur dans le fichier VOC, plus d'un taux d'échantillonnage définis."
 
 #: po/sndfile_str.c:120
 msgid "Unimplemented VOC file feature, file contains multiple sound sections."
 msgstr ""
+"Fonctionnalité du fichier VOC non implantée, le fichier contient  plusieurs "
+"sections sonores."
 
 #: po/sndfile_str.c:121
 msgid "Error in VOC file, file contains multiple bit or channel widths."
 msgstr ""
+"Erreur dans le fichier VOC, le fichier contient plusieurs largeurs en bit ou "
+"canaux."
 
 #: po/sndfile_str.c:122
 msgid "Error in VOC file, too many sections."
-msgstr ""
+msgstr "Erreur dans le fichier VOC, trop de sections."
 
 #: po/sndfile_str.c:123
 msgid "Error : not able to operate on VOC files over a pipe."
-msgstr ""
+msgstr "Erreur : impossible d'opérer sur des fichiers VOC dans un tube."
 
 #: po/sndfile_str.c:124
 msgid "Error in IRCAM file, bad IRCAM marker."
-msgstr ""
+msgstr "Erreur dans le fichier IRCAM, mauvais tronçon IRCAM."
 
 #: po/sndfile_str.c:125
 msgid "Error in IRCAM file, bad channel count."
-msgstr ""
+msgstr "Erreur dans le fichier IRCAM, mauvais nombre de canaux."
 
 #: po/sndfile_str.c:126
 msgid "Error in IRCAM file, unknown encoding format."
-msgstr ""
+msgstr "Erreur dans le fichier IRCAM, format d'encodage inconnu."
 
 #: po/sndfile_str.c:127
 msgid "Error in W64 file, file contains 64 bit offset."
-msgstr ""
+msgstr "Erreur dans le fichier W64, le fichier contient un décalage sur 64 bit."
 
 #: po/sndfile_str.c:128
 msgid "Error in W64 file. No 'riff' chunk marker."
-msgstr ""
+msgstr "Erreur dans le fichier W64. Pas de marqueur de tronçon 'riff'."
 
 #: po/sndfile_str.c:129
 msgid "Error in W64 file. No 'wave' chunk marker."
-msgstr ""
+msgstr "Erreur dans le fichier W64. Pas de marqueur de tronçon 'wave'."
 
 #: po/sndfile_str.c:130
 msgid "Error in W64 file. No 'data' chunk marker."
-msgstr ""
+msgstr "Erreur dans le fichier W64. Pas de marqueur de tronçon 'data'."
 
 #: po/sndfile_str.c:131
 msgid "Error in ADPCM W64 file. Invalid bit width."
-msgstr ""
+msgstr "Erreur dans le fichier ADPCM W64. Largeur en bit non valide."
 
 #: po/sndfile_str.c:132
-#, fuzzy
 msgid "Error in ADPCM W64 file. Invalid number of channels."
-msgstr "soundin : nombre de canaux non valide"
+msgstr "Erreur dans le fichier ADPCM W64. Nombre de canaux non valide"
 
 #: po/sndfile_str.c:133
 msgid "Error in GSM610 W64 file. Invalid format chunk."
-msgstr ""
+msgstr "Erreur dans le fichier GSM610 W64. Tronçon de format non valide."
 
 #: po/sndfile_str.c:134
 msgid "Error in MAT4 file. No variable name."
-msgstr ""
+msgstr "Erreur dans le fichier MAT4. Pas de nom de variable."
 
 #: po/sndfile_str.c:135
 msgid "Error in MAT4 file. No sample rate."
-msgstr ""
+msgstr "Erreur dans le fichier MAT4. Pas de taux d'échantillonnage."
 
 #: po/sndfile_str.c:136
 msgid "Error in MAT5 file. Not able to determine endian-ness."
-msgstr ""
+msgstr "Erreur dans le fichier MAT5. Impossible de déterminer le boutisme."
 
 #: po/sndfile_str.c:137
 msgid "Error in MAT5 file. Bad block structure."
-msgstr ""
+msgstr "Erreur dans le fichier MAT5. Mauvaise structure de bloc."
 
 #: po/sndfile_str.c:138
 msgid "Error in MAT5 file. Not able to determine sample rate."
 msgstr ""
+"Erreur dans le fichier MAT5. Impossible de déterminer le taux "
+"d'échantillonnage."
 
 #: po/sndfile_str.c:139
 msgid "Error in PVF file. No PVF1 marker."
-msgstr ""
+msgstr "Erreur dans le PVF. Pas de marqueur PVF1."
 
 #: po/sndfile_str.c:140
-#, fuzzy
 msgid "Error in PVF file. Bad header."
-msgstr "Erreur en écrivant un en-tête de trame SDIF.\n"
+msgstr "Erreur dans le fichier PVF. Mauvais en-tête."
 
 #: po/sndfile_str.c:141
 msgid "Error in PVF file. Bad bit width."
-msgstr ""
+msgstr "Erreur dans le fichier PVF. Mauvaise largeur en bit."
 
 #: po/sndfile_str.c:142
-#, fuzzy
 msgid "Error in XI file. Bad header."
-msgstr "Erreur en écrivant un en-tête de trame SDIF.\n"
+msgstr "Erreur dans le fichier XI. Mauvais en-tête."
 
 #: po/sndfile_str.c:143
 msgid "Error in XI file. Excess samples in file."
-msgstr ""
+msgstr "Erreur dans le fichier XI. Trop d'échantillons dans le fichier."
 
 #: po/sndfile_str.c:144
 msgid "Error : not able to operate on XI files over a pipe."
-msgstr ""
+msgstr "Erreur : impossible d'opérer sur les fichiers XI dans un tube."
 
 #: po/sndfile_str.c:145
 msgid "Error : not able to operate on HTK files over a pipe."
-msgstr ""
+msgstr "Erreur : impossible d'opérer sur les fichiers HTK dans un tube."
 
 #: po/sndfile_str.c:146
-#, fuzzy
 msgid "Error : not an SDS file."
-msgstr "erreur : pas de nom de fichier d'entrée"
+msgstr "Erreur : ce n'est pas un fichier SDS."
 
 #: po/sndfile_str.c:147
 msgid "Error : bad bit width for SDS file."
-msgstr ""
+msgstr "Erreur : mauvaise largeur en bit pour le fichier SDS."
 
 #: po/sndfile_str.c:148
 msgid "Error : cannot open SD2 file without a file name."
-msgstr ""
+msgstr "Erreur : impossible d'ouvrir un fichier SD2 sans nom de fichier."
 
 #: po/sndfile_str.c:149
 msgid "Error : bad data offset."
-msgstr ""
+msgstr "Erreur : mauvais décalage des données."
 
 #: po/sndfile_str.c:150
 msgid "Error : bad map offset."
-msgstr ""
+msgstr "Erreur : mauvais décalage de correspondance."
 
 #: po/sndfile_str.c:151
 msgid "Error : bad data length."
-msgstr ""
+msgstr "Erreur : mauvaise longueur des données."
 
 #: po/sndfile_str.c:152
 msgid "Error : bad map length."
-msgstr ""
+msgstr "Erreur : mauvaise longueur de correspondance."
 
 #: po/sndfile_str.c:153
 msgid "Error : bad resource fork."
-msgstr ""
+msgstr "Erreur : mauvaise bifurcation de ressource."
 
 #: po/sndfile_str.c:154
 msgid "Error : bad sample size."
-msgstr ""
+msgstr "Erreur : mauvaise taille d'échantillon."
 
 #: po/sndfile_str.c:155
-#, fuzzy
 msgid "Error : bad flac header."
-msgstr "Erreur en écrivant un en-tête de trame SDIF.\n"
+msgstr "Erreur : mauvais en-tête flac."
 
 #: po/sndfile_str.c:156
 msgid "Error : problem while creating flac decoder."
-msgstr ""
+msgstr "Erreur : problème de création du décodeur flac."
 
 #: po/sndfile_str.c:157
 msgid "Error : problem with initialization of the flac decoder."
-msgstr ""
+msgstr "Erreur : problème avec l'initialisation du décodeur flac."
 
 #: po/sndfile_str.c:158
 msgid "Error : flac decoder lost sync."
-msgstr ""
+msgstr "Erreur : le décodeur flac a perdu sa synchro."
 
 #: po/sndfile_str.c:159
 msgid "Error : flac does not support this sample rate."
-msgstr ""
+msgstr "Erreur : flac ne supporte pas ce taux d'échantillonnage."
 
 #: po/sndfile_str.c:160
 msgid "Error : flac channel changed mid stream."
-msgstr ""
+msgstr "Erreur : le canal flac a changé au cours du flot."
 
 #: po/sndfile_str.c:161
 msgid "Error : unknown error in flac decoder."
-msgstr ""
+msgstr "Erreur : erreur inconnue dans le décodeur flac."
 
 #: po/sndfile_str.c:162
-#, fuzzy
 msgid "Error : not a WVE file."
-msgstr ""
-"\n"
-"pvsys : ce n'est pas un fichier WAV"
+msgstr "Erreur : ce n'est pas un fichier WVE."
 
 #: po/sndfile_str.c:163
 msgid "Error : not able to operate on WVE files over a pipe."
-msgstr ""
+msgstr "Erreur : impossible d'opérer sur les fichiers WVE dans un tube."
 
 #: po/sndfile_str.c:164
 msgid "Error : Bad bit width for DWVW encoding. Must be 12, 16 or 24."
 msgstr ""
+"Erreur : mauvaise largeur en bit pour l'encodage DWVW. Doit valoir 12, 16 "
+"ou 24."
 
 #: po/sndfile_str.c:165
 msgid "Error : G72x encoding does not support more than 1 channel."
-msgstr ""
+msgstr "Erreur : l'encodage G72x ne supporte pas plus d'un canal."
 
 #: po/sndfile_str.c:166
 msgid ""
 "Error : Sample rate chosen is known to trigger a Vorbis encoder bug on this "
 "CPU."
 msgstr ""
+"Erreur : le taux d'échantillonnage choisi est connu pour déclancher un bug "
+"de l'encodeur Vorbis sur ce CPU."
 
 #: po/sndfile_str.c:167
 msgid "Error : Not an RF64 file."
-msgstr ""
+msgstr "Erreur : ce n'est pas un fichier RF64."
 
 #: po/sndfile_str.c:168
-#, fuzzy
 msgid "Error in RF64 file. 'PEAK' chunk found before 'fmt ' chunk."
 msgstr ""
-"\n"
-"pvsys : le bloc PVXW a été trouvé avant le bloc fmt"
+"Erreur dans le fichier RF64. Tronçon 'PEAK' trouvé avant le tronçon 'fmt '."
 
 #: po/sndfile_str.c:169
 msgid "Error in RF64 file. No 'data' chunk marker."
-msgstr ""
+msgstr "Erreur dans le fichier RF64. Pas de marqueur de tronçon 'data'."
 
 #: po/sndfile_str.c:170
 msgid "Error : Failed to open tmp file for ALAC encoding."
-msgstr ""
+msgstr "Erreur : échec de l'ouverture d'un fichier tmp pour l'encodage ALAC."
 
 #: po/sndfile_str.c:171
 msgid "Error : Bad SF_CHUNK_INFO pointer."
-msgstr ""
+msgstr "Erreur : mauvais pointeur SF_CHUNK_INFO."
 
 #: po/sndfile_str.c:172
 msgid "Error : Unknown chunk marker."
-msgstr ""
+msgstr "Erreur : marqueur de tronçon inconnu."
 
 #: po/sndfile_str.c:173
 msgid "Error : Reading/writing chunks from this file format is not supported."
 msgstr ""
+"Erreur : la lecture/écriture des tronçons de ce format de fichier n'est pas "
+"supportée."
 
 #: po/sndfile_str.c:174
 msgid "Error : Bad chunk marker."
-msgstr ""
+msgstr "Erreur : mauvais marqueur de tronçon."
 
 #: po/sndfile_str.c:175
 msgid "Error : Bad data pointer in SF_CHUNK_INFO struct."
-msgstr ""
+msgstr "Erreur : mauvais pointeur de données dans la struct SF_CHUNK_INFO."
 
 #: po/sndfile_str.c:176
 msgid "Error : Supplied filename too long."
-msgstr ""
+msgstr "Erreur : le nom de fichier fourni est trop long."
 
 #: po/sndfile_str.c:177
 msgid "Error : Length parameter passed to read/write is negative."
-msgstr ""
+msgstr "Erreur : le paramètre de longueur passé à read/write est négatif."
 
 #~ msgid "diskin2: %s: failed to open file"
 #~ msgstr "diskin2 : %s: l'ouverture du fichier a échoué"
