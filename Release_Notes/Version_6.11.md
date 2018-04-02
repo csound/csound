@@ -29,6 +29,9 @@ realtime option is now considered stable and has the "experimental"
 tag removed.  There have been more steps towards completing the
 arithmetic operations involving a-arrays.
 
+Note that changes to GEN01 and diskin2 may not be backward copatible
+if a none zero value is given for the format.
+
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -68,7 +71,7 @@ addition to the audio.
 - print, printk2 now take an additional optional argument which if
   non-zero causes the k-variable name to be printed as well as the value.
 
-- getrow, setrow, getcol, and setcol can now act on i-rate arrays
+- getrow, setrow, getcol, and setcol can now act on i-rate arrays.
 
 - diskin2 was incorrectly described in the manual with respect to the
   iformat parameter.  Now if iformat is zero the file is expected to
@@ -104,9 +107,9 @@ addition to the audio.
 
 ## Bugs Fixed
 
-- linen was reworked to allow for long durations and overlaps
+- linen was reworked to allow for long durations and overlaps.
 
-- resetting csound caused a crash if Lua opcodes were used; fixed
+- resetting csound caused a crash if Lua opcodes were used; fixed.
 
 - The poscil family of opcodes could give incorrect results if used in
   multi-core orchestras AND another instrument changed the f-table.
