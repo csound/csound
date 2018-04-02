@@ -77,9 +77,12 @@ addition to the audio.
   ***THIS MAY BE INCOMPATIBLE***.  For most users the value of zero will
   be correct.
 
-- gen01 now uses format 0 to get the file type from the header; any
+- GEN01 now uses format 0 to get the file type from the header; any
   other value indicates a raw file. ***THIS MAY BE INCOMPATIBLE***.  For
   most users the value of zero will be correct.
+
+- GEN01 was uincrrectly documented with respect to the format
+  argment.  There are 9 raw formats whereas the earlier manual stated 6,
 
 ### Utilities
 
