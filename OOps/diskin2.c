@@ -2133,7 +2133,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     sfinfo.samplerate = (int32_t) (csound->esr + FL(0.5));
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
-    n = (int32_t) (*(p->iSampleFormat) + FL(2.5)) - 1;
+    n = (int32_t) (*(p->iSampleFormat) + FL(0.5));
     if (n == 1) {
       sfinfo.format = SF_FORMAT_RAW
         | (int32_t) FORMAT2SF(csound->oparms_.outformat);
