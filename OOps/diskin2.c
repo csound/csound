@@ -1573,7 +1573,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     sfinfo.samplerate = (int32_t)(csound->esr + FL(0.5));
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
-    n = (int32_t)(*(p->iSampleFormat) + FL(2.5)) - 1;
+    n = (int32_t)(*(p->iSampleFormat) + FL(0.5));
     if (UNLIKELY(n < 0 || n > 10))
       return csound->InitError(csound, Str("diskin2: unknown sample format"));
     sfinfo.format = diskin2_format_table[n];
