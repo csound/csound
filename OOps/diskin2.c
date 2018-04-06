@@ -318,10 +318,10 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     }
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.samplerate = (int32_t)(csound->esr + FL(0.5));
+    sfinfo.samplerate = MYFLT2LONG(csound->esr);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
-    n = (int32_t)(*(p->iSampleFormat) + FL(0.5));
+    n = MYFLT2LONG(*p->iSampleFormat);
     if (UNLIKELY(n < 0 || n > 10))
       return csound->InitError(csound, Str("diskin2: unknown sample format"));
     sfinfo.format = diskin2_format_table[n];
@@ -360,7 +360,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     /* interpolation window size: valid settings are 1 (no interpolation), */
     /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
     /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
-    p->winSize = (int32_t)((p->WinSize) + FL(0.5));
+    p->winSize = MYFLT2LONG(p->WinSize);
     if (p->winSize < 1)
       p->winSize = 4;               /* use cubic interpolation by default */
     else if (p->winSize > 2) {
@@ -375,7 +375,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     /* set file parameters from header info */
     p->fileLength = (int32_t) sfinfo.frames;
     p->warpScale = 1.0;
-    if ((int32_t)(csound->esr + FL(0.5)) != sfinfo.samplerate) {
+    if (MYFLT2LONG(csound->esr) != sfinfo.samplerate) {
       if (LIKELY(p->winSize != 1)) {
         /* will automatically convert sample rate if interpolation is enabled */
         p->warpScale = (double)sfinfo.samplerate / (double)csound->esr;
@@ -383,7 +383,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       else {
         csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
                                     "!= orchestra sr (%d)\n"),
-                        sfinfo.samplerate, (int32_t)(csound->esr + FL(0.5)));
+                        sfinfo.samplerate, MYFLT2LONG(csound->esr));
       }
     }
     /* wrap mode */
@@ -402,7 +402,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* allocate and initialise buffers */
-    p->bufSize = diskin2_calc_buffer_size(p, (int32_t)((p->BufSize) + FL(0.5)));
+    p->bufSize = diskin2_calc_buffer_size(p, MYFLT2LONG(p->BufSize));
     n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
     if (n != (int32_t)p->auxData.size)
       csound->AuxAlloc(csound, (int32_t) n, &(p->auxData));
@@ -1063,9 +1063,9 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     sfname = name;
     memset(&sfinfo, 0, sizeof(SF_INFO));
     //sfinfo.frames = 0;
-    sfinfo.samplerate = (int32_t) (csound->esr + FL(0.5));
+    sfinfo.samplerate = MYFLT2LONG(csound->esr);
     sfinfo.channels = nchns;
-    switch ((int32_t) (*iformat + FL(0.5))) {
+    switch (MYFLT2LONG(*iformat)) {
     case 1: format = AE_CHAR; break;
     case 4: format = AE_SHORT; break;
     case 5: format = AE_LONG; break;
@@ -1073,7 +1073,7 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     case 0: break;
     default:
       return csound->InitError(csound, Str("%s: invalid sample format: %d"),
-                               opname, (int32_t) (*iformat + FL(0.5)));
+                               opname, MYFLT2LONG(*iformat));
     }
     sfinfo.format = TYPE2SF(filetyp) | FORMAT2SF(format);
     if (q->fd == NULL) {
@@ -1570,10 +1570,10 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (t->data) p->nChannels = t->sizes[0];
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.samplerate = (int32_t)(csound->esr + FL(0.5));
+    sfinfo.samplerate = MYFLT2LONG(csound->esr);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
-    n = (int32_t)(*(p->iSampleFormat) + FL(0.5));
+    n = MYFLT2LONG(*p->iSampleFormat);
     if (UNLIKELY(n < 0 || n > 10))
       return csound->InitError(csound, Str("diskin2: unknown sample format"));
     sfinfo.format = diskin2_format_table[n];
@@ -1631,7 +1631,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* interpolation window size: valid settings are 1 (no interpolation), */
     /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
     /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
-    p->winSize = (int32_t)((p->WinSize) + FL(0.5));
+    p->winSize = MYFLT2LONG(p->WinSize);
     if (p->winSize < 1)
       p->winSize = 4;               /* use cubic interpolation by default */
     else if (p->winSize > 2) {
@@ -1646,7 +1646,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* set file parameters from header info */
     p->fileLength = (int32_t) sfinfo.frames;
     p->warpScale = 1.0;
-    if ((int32_t)(csound->esr + FL(0.5)) != sfinfo.samplerate) {
+    if (MYFLT2LONG(csound->esr) != sfinfo.samplerate) {
       if (LIKELY(p->winSize != 1)) {
         /* will automatically convert sample rate if interpolation is enabled */
         p->warpScale = (double)sfinfo.samplerate / (double)csound->esr;
@@ -1654,7 +1654,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       else {
         csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
                                     "!= orchestra sr (%d)\n"),
-                        sfinfo.samplerate, (int32_t)(csound->esr + FL(0.5)));
+                        sfinfo.samplerate, MYFLT2LONG(csound->esr));
       }
     }
     /* wrap mode */
@@ -1673,8 +1673,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
     /* allocate and initialise buffers */
-    p->bufSize = diskin2_calc_buffer_size_array(p,
-                                                (int32_t)((p->BufSize) + FL(0.5)));
+    p->bufSize = diskin2_calc_buffer_size_array(p, MYFLT2LONG(p->BufSize));
     n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
     if (n != (int32_t)p->auxData.size)
       csound->AuxAlloc(csound, (int32_t) n, &(p->auxData));
@@ -2120,7 +2119,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       return csound->InitError(csound,
                                Str("soundin: invalid number of channels"));
     }
-    p->bufSize = soundin_calc_buffer_size(p, (int32_t) (*(p->iBufSize) + FL(0.5)));
+    p->bufSize = soundin_calc_buffer_size(p, MYFLT2LONG(*p->iBufSize));
     /* if already open, close old file first */
     if (p->fdch.fd != NULL) {
       /* skip initialisation if requested */
@@ -2130,10 +2129,10 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     }
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.samplerate = (int32_t) (csound->esr + FL(0.5));
+    sfinfo.samplerate = MYFLT2LONG(csound->esr);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
-    n = (int32_t) (*(p->iSampleFormat) + FL(0.5));
+    n = MYFLT2LONG(*p->iSampleFormat);
     if (n == 1) {
       sfinfo.format = SF_FORMAT_RAW
         | (int32_t) FORMAT2SF(csound->oparms_.outformat);
@@ -2192,10 +2191,10 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       return OK;
     /* set file parameters from header info */
     p->fileLength = (int_least64_t) sfinfo.frames;
-    if ((int32_t) (csound->esr + FL(0.5)) != sfinfo.samplerate)
+    if (MYFLT2LONG(csound->esr) != sfinfo.samplerate)
       csound->Warning(csound, Str("soundin: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
-                      sfinfo.samplerate, (int32_t) (csound->esr + FL(0.5)));
+                      sfinfo.samplerate, MYFLT2LONG(csound->esr));
     fmt = sfinfo.format & SF_FORMAT_SUBMASK;
     typ = sfinfo.format & SF_FORMAT_TYPEMASK;
     if ((fmt != SF_FORMAT_FLOAT && fmt != SF_FORMAT_DOUBLE) ||

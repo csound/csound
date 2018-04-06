@@ -118,7 +118,7 @@ static HANDLE get_port(CSOUND *csound, int32_t port)
 
 typedef struct {
     OPDS  h;
-  MYFLT *returnedPort;
+    MYFLT *returnedPort;
     STRINGDAT *portName;
     MYFLT *baudRate;
 } SERIALBEGIN;
@@ -186,12 +186,12 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
             serialport,baud);
 
     fd = open(serialport, O_RDWR | O_NOCTTY | O_NDELAY);
-    if (fd == -1)  {
+    if (UNLIKELY(fd == -1))  {
       perror("init_serialport: Unable to open port ");
       return -1;
     }
 
-    if (tcgetattr(fd, &toptions) < 0) {
+    if (UNLIKELY(tcgetattr(fd, &toptions) < 0)) {
       perror("init_serialport: Couldn't get term attributes");
       close(fd);
       return -1;
@@ -232,7 +232,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     toptions.c_cc[VMIN]  = 0;
     toptions.c_cc[VTIME] = 20;
 
-    if ( tcsetattr(fd, TCSANOW, &toptions) < 0) {
+    if (UNLIKELY(tcsetattr(fd, TCSANOW, &toptions) < 0)) {
       close(fd);
       perror("init_serialport: Couldn't set term attributes");
       return -1;
@@ -253,10 +253,10 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
     if (q == NULL) {
-      if (csound->CreateGlobalVariable(csound, "serialGlobals_",
-                                       sizeof(SERIAL_GLOBALS)) != 0){
+      if (UNLIKLY(csound->CreateGlobalVariable(csound, "serialGlobals_",
+                                               sizeof(SERIAL_GLOBALS)) != 0)) {
         csound->ErrorMsg(csound, Str("serial: failed to allocate globals"));
-        return 0;
+        return -1;
       }
       q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
@@ -272,7 +272,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     hSerial = CreateFileA(serialport, GENERIC_READ | GENERIC_WRITE, 0,
                          NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
  //Check if the connection was successfull
-    if (hSerial==INVALID_HANDLE_VALUE) {
+    if (UNLIKELY(hSerial==INVALID_HANDLE_VALUE)) {
       //If not success full display an Error
       return csound->InitError(csound, Str("%s not available.\n"), serialport);
     }
@@ -297,13 +297,13 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     dcbSerialParams.StopBits=ONESTOPBIT;
     dcbSerialParams.Parity=NOPARITY;
     SetCommState(hSerial, &dcbSerialParams);
-    for(i=0; i>q->maxind; i++) {
+    for (i=0; i>q->maxind; i++) {
       if (q->handles[i]==NULL) {
         q->handles[i] = hSerial;
         return i;
       }
     }
-    if (q->maxind>=10)
+    if (UNLIKELY(q->maxind>=10))
       return csound->InitError(csound, Str("Number of serial handles exhausted"));
     q->handles[q->maxind++] = hSerial;
     return q->maxind-1;
@@ -311,23 +311,23 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
 /* Also
 #define BAUD_075        1
 #define BAUD_110        2
-#define BAUD_134_5        4
+#define BAUD_134_5      4
 #define BAUD_150        8
 #define BAUD_300        16
 #define BAUD_600        32
-#define BAUD_1200        64
-#define BAUD_1800        128
-#define BAUD_2400        256
-#define BAUD_4800        512
-#define BAUD_7200        1024
-#define BAUD_9600        2048
-#define BAUD_14400        4096
-#define BAUD_19200        8192
-#define BAUD_38400        16384
+#define BAUD_1200       64
+#define BAUD_1800       128
+#define BAUD_2400       256
+#define BAUD_4800       512
+#define BAUD_7200       1024
+#define BAUD_9600       2048
+#define BAUD_14400      4096
+#define BAUD_19200      8192
+#define BAUD_38400      16384
 #define BAUD_56K        32768
-#define BAUD_128K        65536
-#define BAUD_115200        131072
-#define BAUD_57600        262144
+#define BAUD_128K       65536
+#define BAUD_115200     131072
+#define BAUD_57600      262144
 */
 #endif
 
@@ -336,7 +336,7 @@ int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
     *p->returnedPort =
       (MYFLT)serialport_init(csound, (char *)p->portName->data, *p->baudRate);
-    return OK;
+    return OK;                  /* FIXME: In error case carroes on */
 }
 
 int32_t serialEnd(CSOUND *csound, SERIALEND *p)
@@ -346,7 +346,7 @@ int32_t serialEnd(CSOUND *csound, SERIALEND *p)
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
-    if (q = NULL)
+    if (UNLIKELY(q = NULL))
       return csound->PerfError(csound, Str("Nothing to close"));
     CloseHandle((HANDLE)q->handles[(int32_t)p->port]);
     q->handles[(int32_t)*p->port] = NULL;
@@ -361,7 +361,7 @@ int32_t serialWrite(CSOUND *csound, SERIALWRITE *p)
     IGN(csound);
 #ifdef WIN32
     HANDLE port = get_port(csound, (int32_t)*p->port);
-    if (port==NULL) return NOTOK;
+    if (UNLIKELY(port==NULL)) return NOTOK;
 #endif
     {
       unsigned char b = *p->toWrite;
@@ -381,7 +381,7 @@ int32_t serialWrite_S(CSOUND *csound, SERIALWRITE *p)
      IGN(csound);
 #ifdef WIN32
     HANDLE port = get_port(csound, (int32_t)*p->port);
-    if (port==NULL) return NOTOK;
+    if (UNLIKELY(port==NULL)) return NOTOK;
 #endif
 #ifndef WIN32
     if (UNLIKELY(write((int32_t)*p->port,
@@ -405,7 +405,7 @@ int32_t serialRead(CSOUND *csound, SERIALREAD *p)
 #ifdef WIN32
     size_t bytes;
     HANDLE port = get_port(csound, (int32_t)*p->port);
-    if (port==NULL) return NOTOK;
+    if (UNLIKELY(port==NULL)) return NOTOK;
     ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
 #else
     ssize_t bytes;
@@ -425,7 +425,7 @@ int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 #ifdef WIN32
     size_t bytes;
     HANDLE port = get_port(csound, (int32_t)*p->port);
-    if (port==NULL) return NOTOK;
+    if (UNLIKELY(port==NULL)) return NOTOK;
     ReadFile(port, str, 32768, (PDWORD)&bytes, NULL);
 #else
     ssize_t bytes;
