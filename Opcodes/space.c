@@ -68,7 +68,7 @@ static int32_t space(CSOUND *csound, SPACE *p)
     MYFLT   *rrev1, *rrev2, *rrev3, *rrev4;
     MYFLT   torev, localrev, globalrev;
     MYFLT   xndx, yndx;
-    MYFLT   half_pi = FL(0.5)*PI_F;
+    //MYFLT   half_pi = FL(0.5)*PI_F;
     MYFLT   sqrt2 = SQRT(FL(2.0));
     MYFLT   fabxndx, fabyndx;
     FUNC    *ftp;
@@ -133,10 +133,10 @@ static int32_t space(CSOUND *csound, SPACE *p)
     xndx = (xndx+FL(1.0))*FL(0.5);
     yndx = (yndx+FL(1.0))*FL(0.5);
 
-    ch2 = SIN(half_pi * xndx) * SIN(half_pi * yndx) * sqrt2;
-    ch4 = SIN(half_pi * xndx) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
-    ch1 = SIN(half_pi * (FL(1.0)-xndx)) * SIN(half_pi * yndx) * sqrt2;
-    ch3 = SIN(half_pi * (FL(1.0)-xndx)) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
+    ch2 = SIN(HALFPI_F * xndx) * SIN(HALFPI_F * yndx) * sqrt2;
+    ch4 = SIN(HALFPI_F * xndx) * SIN(HALFPI_F * (FL(1.0)-yndx)) * sqrt2;
+    ch1 = SIN(HALFPI_F * (FL(1.0)-xndx)) * SIN(HALFPI_F * yndx) * sqrt2;
+    ch3 = SIN(HALFPI_F * (FL(1.0)-xndx)) * SIN(HALFPI_F * (FL(1.0)-yndx)) * sqrt2;
 
     r1 = p->r1;
     r2 = p->r2;
