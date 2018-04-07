@@ -497,8 +497,10 @@ SET(BUILD_SHARED_LIBS ON)
 # First, required stuff
 if (MSVC)
   find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
+  find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-1 libsamplerate)
 else()
   find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
+  find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-1)
 endif()
 
 
@@ -1208,7 +1210,7 @@ if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
 endif()
 
-set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+set(libcsound_LIBS ${LIBSNDFILE_LIBRARY} ${LIBSAMPLERATE_LIBRARY})
 if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
   list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
