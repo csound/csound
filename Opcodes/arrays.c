@@ -3793,7 +3793,11 @@ static OENTRY arrayvars_localops[] =
 
     { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]iip",
       (SUBR) tabslice, NULL, NULL },
-    { "slicearray.x", sizeof(TABSLICE), 0, 3, ".[]", ".[]iip",
+    { "slicearray.k", sizeof(TABSLICE), 0, 3, "k[]", "k[]iip",
+      (SUBR) tabslice, (SUBR) tabslice, NULL },
+    { "slicearray.a", sizeof(TABSLICE), 0, 3, "a[]", "a[]iip",
+      (SUBR) tabslice, (SUBR) tabslice, NULL },
+    { "slicearray.S", sizeof(TABSLICE), 0, 3, "S[]", "S[]iip",
       (SUBR) tabslice, (SUBR) tabslice, NULL },
     //    { "slicearray.s", sizeof(TABSLICE), 0, 3, "S[]", "[]ii",
     //                                  (SUBR) tabsliceS, (SUBR) tabsliceS, NULL },
