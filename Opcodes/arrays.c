@@ -3002,11 +3002,11 @@ int32_t init_window(CSOUND *csound, FFT *p) {
     w = (MYFLT *) p->mem.auxp;
     switch(type) {
     case 0:
-      for (i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*2*PI/N);
+      for (i=0; i<N; i++) w[i] = 0.54 - 0.46*cos(i*TWOPI/N);
       break;
     case 1:
     default:
-      for (i=0; i<N; i++) w[i] = 0.5 - 0.5*cos(i*2*PI/N);
+      for (i=0; i<N; i++) w[i] = 0.5 - 0.5*cos(i*TWOPI/N);
     }
     return OK;
 }
@@ -3368,8 +3368,8 @@ int32_t unwrap(CSOUND *csound, FFT *p) {
     int32_t i,siz = p->in->sizes[0];
     MYFLT *phs = p->out->data;
     for (i=0; i < siz; i++) {
-      while (phs[i] >= PI) phs[i] -= 2*PI;
-      while (phs[i] < -PI) phs[i] += 2*PI;
+      while (phs[i] >= PI) phs[i] -= TWOPI;
+      while (phs[i] < -PI) phs[i] += TWOPI;
     }
     return OK;
 }
@@ -3793,7 +3793,11 @@ static OENTRY arrayvars_localops[] =
 
     { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]iip",
       (SUBR) tabslice, NULL, NULL },
-    { "slicearray.x", sizeof(TABSLICE), 0, 3, ".[]", ".[]iip",
+    { "slicearray.k", sizeof(TABSLICE), 0, 3, "k[]", "k[]iip",
+      (SUBR) tabslice, (SUBR) tabslice, NULL },
+    { "slicearray.a", sizeof(TABSLICE), 0, 3, "a[]", "a[]iip",
+      (SUBR) tabslice, (SUBR) tabslice, NULL },
+    { "slicearray.S", sizeof(TABSLICE), 0, 3, "S[]", "S[]iip",
       (SUBR) tabslice, (SUBR) tabslice, NULL },
     //    { "slicearray.s", sizeof(TABSLICE), 0, 3, "S[]", "[]ii",
     //                                  (SUBR) tabsliceS, (SUBR) tabsliceS, NULL },
