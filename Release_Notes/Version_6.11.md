@@ -84,8 +84,11 @@ addition to the audio.
   other value indicates a raw file. ***THIS MAY BE INCOMPATIBLE***.  For
   most users the value of zero will be correct.
 
-- GEN01 was uincrrectly documented with respect to the format
+- GEN01 was incorrectly documented with respect to the format
   argment.  There are 9 raw formats whereas the earlier manual stated 6,
+
+- Small change in slicearray should allow it to be used in fuctional
+  form in most cases.
 
 ### Utilities
 
