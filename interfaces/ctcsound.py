@@ -481,6 +481,8 @@ def pstring(s):
     return s
 
 def csoundArgList(lst):
+    if len(lst) == 1 and type(lst[0]) is list:
+        lst = lst[0]
     argc = len(lst)
     argv = (POINTER(c_char_p) * argc)()
     for i in range(argc):
