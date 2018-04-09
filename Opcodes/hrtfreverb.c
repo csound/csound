@@ -438,7 +438,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     Mtwentyfour = abs((int32_t)(delaytime / 24) - meanfpsamps);
     M = Mtwelve < Mtwentyfour ? (Msix < Mtwelve ? 6 : 12) : 24;
 
-    csound->Message(csound, "%d \n", M);
+    csound->Message(csound, "%d\n", M);
 
     delaytime /= M;
     delaytimeint= (int32_t)delaytime;
@@ -446,7 +446,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     if(delaytimeint < meanfpsamps)
       delaytimeint = meanfpsamps;
 
-    /*csound->Message(csound, "%d %d %d \n", M, delaytimeint, meanfpsamps);*/
+    /*csound->Message(csound, "%d %d %d\n", M, delaytimeint, meanfpsamps);*/
 
     /* maximum value, according to primes array and delay line allocation */
     if(delaytimeint > 10112)

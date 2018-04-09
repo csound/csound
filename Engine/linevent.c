@@ -361,7 +361,7 @@ static void sensLine(CSOUND *csound, void *userData)
               e.p[pcnt] = ch.d;           /* set as string with count */
             }
             e.scnt = scnt;
-            //printf("string: %s \n", sstrp);
+            //printf("string: %s\n", sstrp);
             continue;
           }
           if (UNLIKELY(!(isdigit(c) || c == '+' || c == '-' || c == '.')))

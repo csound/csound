@@ -935,7 +935,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
         csound->Message(csound, Str("Memory exhausted"));
         csound->LongJmp(csound, 1);
       }
-      /* csound->DebugMsg(csound, "alt_stack now %d long, \n", */
+      /* csound->DebugMsg(csound, "alt_stack now %d long,\n", */
       /*                  PARM->macro_stack_size); */
     }
     csound->DebugMsg(csound,"csound_prs(%d): stacking line %d at %d\n", __LINE__,

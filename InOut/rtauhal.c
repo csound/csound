@@ -267,14 +267,14 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     for (i = 0; (unsigned int)  i < devnos; i++) {
       if (isInput) {
         if(devinfo[i].inchannels) {
-          csound->Message(csound, Str("%d: %s (%d channels) \n"),
+          csound->Message(csound, Str("%d: %s (%d channels)\n"),
                           devinfo[i].indevnum, devinfo[i].name,
                           devinfo[i].inchannels);
         }
       }
       else {
         if(devinfo[i].outchannels)
-          csound->Message(csound, Str("%d: %s (%d channels) \n"),
+          csound->Message(csound, Str("%d: %s (%d channels)\n"),
                           devinfo[i].outdevnum, devinfo[i].name,
                           devinfo[i].outchannels);
       }
@@ -331,11 +331,11 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioObjectGetPropertyData(dev,
                                &prop, 0, NULL, &psize, &devName);
     if(isInput)
-      csound->Message(csound, Str("selected input device: %s \n"),
+      csound->Message(csound, Str("selected input device: %s\n"),
                       CFStringGetCStringPtr(devName, defaultEncoding));
 
     else
-      csound->Message(csound, Str("selected output device: %s \n"),
+      csound->Message(csound, Str("selected output device: %s\n"),
                       CFStringGetCStringPtr(devName, defaultEncoding));
 
     CFRelease(devName);
@@ -365,7 +365,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     if(UNLIKELY(sr != srate)) {
       csound->Warning(csound,
-                      Str("Attempted to set device SR, tried %.1f, got %.1f \n"),
+                      Str("Attempted to set device SR, tried %.1f, got %.1f\n"),
                       srate, sr);
     }
 

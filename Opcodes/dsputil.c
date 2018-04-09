@@ -104,7 +104,7 @@ void FrqToPhase(MYFLT *buf, int32 size, MYFLT incr, MYFLT sampRate, MYFLT fixUp)
     binMidFrq = FL(0.0);
     /* Of course, you get some phase shift with spot-on frq coz time shift */
     expectedDphas = FL(0.0);
-    eDphIncr = FL(2.0)*PI_F*((incr)/((MYFLT)actual(size)) + fixUp);
+    eDphIncr = TWOPI_F*((incr)/((MYFLT)actual(size)) + fixUp);
     for (i=0; i<someof(size); ++i) {
       p = pha[2L*i];
       p -= binMidFrq;

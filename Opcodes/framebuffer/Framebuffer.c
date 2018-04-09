@@ -166,7 +166,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
         if (UNLIKELY(array->sizes[0] > self->elementCount)) {
 
           csound->Die(csound, "%s", Str("framebuffer: Error, k-rate array input "
-                                  "element count must be less than \nor equal "
+                                  "element count must be less than\nor equal "
                                   "to specified framebuffer size, Exiting"));
         }
     }

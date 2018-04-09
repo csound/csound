@@ -175,7 +175,7 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
     if (UNLIKELY(p->fin1->format != PVS_AMP_FREQ)) {
       return
         csound->InitError(csound,
-                          Str("partials: first input not in AMP_FREQ format \n"));
+                          Str("partials: first input not in AMP_FREQ format\n"));
     }
 
     if (UNLIKELY(p->fin2->format != PVS_AMP_PHASE)) {

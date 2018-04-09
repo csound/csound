@@ -183,7 +183,7 @@ static int32_t quit(CSOUND *csound, char *msg)
     csound->Message(csound, Str("cvanal error: %s\n"), msg);
     csound->Message(csound, "%s", Str("Usage: cvanal [-d<duration>] "
                             "[-c<channel>] [-b<begin time>] [-X] <input soundfile>"
-                            " <output impulse response FFT file> \n"));
+                            " <output impulse response FFT file>\n"));
     return -1;
 }
 
