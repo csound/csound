@@ -450,7 +450,7 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
 
   dsp = ((llvm_dsp_factory *)fobj->obj)->createDSPInstance();
   if (dsp == NULL)
-    return csound->InitError(csound, "%s", Str("Faust instantiation problem \n"));
+    return csound->InitError(csound, "%s", Str("Faust instantiation problem\n"));
 
   dsp->buildUserInterface(ctls);
   pfdsp = (faustobj **)csound->QueryGlobalVariable(csound, varname);
@@ -560,7 +560,7 @@ void *init_faustgen_thread(void *pp) {
   dsp = p->factory->createDSPInstance();
   if (dsp == NULL) {
     int32_t ret = csound->InitError(csound, "%s",
-                                    Str("Faust instantiation problem \n"));
+                                    Str("Faust instantiation problem\n"));
     csound->Free(csound, pp);
     pthread_exit(&ret);
   }

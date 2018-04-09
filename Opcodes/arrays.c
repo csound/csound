@@ -342,7 +342,7 @@ static int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
 {
     ARRAYDAT *left = p->left;
     if (p->ans->data == left->data) {
-      printf("same ptr \n");
+      printf("same ptr\n");
       return OK;
     }
 
@@ -2757,7 +2757,7 @@ int32_t init_rfftmult(CSOUND *csound, FFT *p) {
     /* else
        return
          csound->InitError(csound, "%s",
-                           Str("non-pow-of-two case not implemented yet \n"));*/
+                           Str("non-pow-of-two case not implemented yet\n"));*/
     return OK;
 }
 
