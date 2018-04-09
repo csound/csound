@@ -773,7 +773,7 @@ static int32_t DoPoleInterpolation(int poleCount,
     int32_t i;
 
     if (UNLIKELY(poleCount%2!=0)) {
-      printf (Str("Cannot handle uneven pole count yet \n"));
+      printf (Str("Cannot handle uneven pole count yet\n"));
       return (0);
     }
 

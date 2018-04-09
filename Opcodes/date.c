@@ -78,15 +78,15 @@ static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
 
 static int32_t datestringset(CSOUND *csound, DATESTRING *p)
 {
-    time_t temp_time;
-    char *time_string;
+    time_t  temp_time;
+    char    *time_string;
     /* char *q; */
-    int32 tmp;
+    int32_t tmp;
 
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
-   tmp = (int32) MYFLT2LRND(*(p->timstmp));
+   tmp = (int32_t) MYFLT2LRND(*(p->timstmp));
 #else
-  tmp = (int32) (*(p->timstmp) + FL(0.5));
+  tmp = (int32_t) (*(p->timstmp) + FL(0.5));
 #endif
     if (tmp <= 0) temp_time = time(NULL);
     else         temp_time = (time_t)tmp;
@@ -103,7 +103,7 @@ static int32_t datestringset(CSOUND *csound, DATESTRING *p)
 }
 
 typedef struct {
-   OPDS h;
+   OPDS       h;
    STRINGDAT *Scd;
 } GETCWD;
 
@@ -124,7 +124,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
     if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #endif
       {
-        strncpy(p->Scd->data, "**Unknown**", p->Scd->size);
+        strncpy(p->Scd->data, Str("**Unknown**"), p->Scd->size);
         return csound->InitError(csound,
                                  Str("cannot determine current directory: %s\n"),
                                  strerror(errno));
