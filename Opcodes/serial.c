@@ -253,7 +253,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
     if (q == NULL) {
-      if (UNLIKLY(csound->CreateGlobalVariable(csound, "serialGlobals_",
+      if (UNLIKELY(csound->CreateGlobalVariable(csound, "serialGlobals_",
                                                sizeof(SERIAL_GLOBALS)) != 0)) {
         csound->InitError(csound, Str("serial: failed to allocate globals"));
         return -1;
