@@ -255,7 +255,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     if (q == NULL) {
       if (UNLIKLY(csound->CreateGlobalVariable(csound, "serialGlobals_",
                                                sizeof(SERIAL_GLOBALS)) != 0)) {
-        csound->ErrorMsg(csound, Str("serial: failed to allocate globals"));
+        csound->InitError(csound, Str("serial: failed to allocate globals"));
         return -1;
       }
       q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
@@ -303,8 +303,10 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
         return i;
       }
     }
-    if (UNLIKELY(q->maxind>=10))
-      return csound->InitError(csound, Str("Number of serial handles exhausted"));
+    if (UNLIKELY(q->maxind>=10)) {
+      csound->InitError(csound, Str("Number of serial handles exhausted"));
+      return -1;
+    }
     q->handles[q->maxind++] = hSerial;
     return q->maxind-1;
 }
@@ -334,9 +336,10 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
 
 int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
-    *p->returnedPort =
+    MYFLT xx = 
       (MYFLT)serialport_init(csound, (char *)p->portName->data, *p->baudRate);
-    return OK;                  /* FIXME: In error case carroes on */
+    *p->returnedPort =xx;
+    return(xx<0?NOTOK:OK);
 }
 
 int32_t serialEnd(CSOUND *csound, SERIALEND *p)
