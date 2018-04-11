@@ -321,13 +321,13 @@ else
 rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir fluidsynthbuild -ErrorAction SilentlyContinue
 cd fluidsynthbuild
-cmake ..\fluidsynth\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
+cmake ..\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
 cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
 copy .\src\Release\libfluidsynth.dll -Destination $depsBinDir -Force
-copy ..\fluidsynth\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
-robocopy ..\fluidsynth\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
+copy ..\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
+robocopy ..\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
 copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth -Force
 
 $buildTiming = (Get-Date).TimeOfDay
