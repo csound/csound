@@ -41,7 +41,7 @@ if a none zero value is given for the format.
 - loscilphs, loscil3phs are like loscil but return the phase in
 addition to the audio.
 
-- more arithmetic, between a-rate arrays and a-rate values; this
+- More arithmetic between a-rate arrays and a-rate values; this
   completes the arithmetic where one or more argument is an audio
   array.
 
@@ -77,15 +77,15 @@ addition to the audio.
   iformat parameter.  Now if iformat is zero the file is expected to
   have an audio header; if in the range 1-10 (rather than 0-9 as
   before) then it is opened as raw with the specified sample format.
-  ***THIS MAY BE INCOMPATIBLE***.  For most users the value of zero will
+  ***THIS MAY BE INCOMPATIBLE***. For most users the value of zero will
   be correct.
 
 - GEN01 now uses format 0 to get the file type from the header; any
-  other value indicates a raw file. ***THIS MAY BE INCOMPATIBLE***.  For
+  other value indicates a raw file. ***THIS MAY BE INCOMPATIBLE***. For
   most users the value of zero will be correct.
 
 - GEN01 was incorrectly documented with respect to the format
-  argment.  There are 9 raw formats whereas the earlier manual stated 6,
+  argment.  There are 9 raw formats whereas the earlier manual stated 6.
 
 - Small change in slicearray should allow it to be used in fuctional
   form in most cases.
@@ -112,13 +112,13 @@ addition to the audio.
 
 - linen was reworked to allow for long durations and overlaps.
 
-- resetting csound caused a crash if Lua opcodes were used; fixed.
+- Resetting csound caused a crash if Lua opcodes were used; fixed.
 
 - The poscil family of opcodes could give incorrect results if used in
   multi-core orchestras AND another instrument changed the f-table.
   This is now corrected.
 
-- use of out with an audio array did not check that the array
+- Use of out with an audio array did not check that the array
   dimension was not greater than the number of channels, which caused
   a crash.  It is now checked and truncated if too large with a
   warning.
@@ -141,9 +141,9 @@ addition to the audio.
 
 - The somewhat curious distinction between k-rate and a-rate perf-time
   has been removed throughput, so only threads 1, 2 and 3 are used,
-  and the s-type output is not used and some x-type inputs, having
+  the s-type output is not used, and some x-type inputs have 
   been changed for direct polymorphism.  This only matters for opcode
-  writers as the s, and x codes and threads 4,5,6 and 7 will be
+  writers as the s, and x codes and threads 4, 5, 6 and 7 will be
   removed in a while.
 
 ### Translations
