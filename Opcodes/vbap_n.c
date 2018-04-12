@@ -280,7 +280,7 @@ int32_t vbap_init(CSOUND *csound, VBAP *p)
     ptr = &(ls_table[3]);
     if (UNLIKELY(!p->q.ls_set_am))
       return csound->InitError(csound,
-                               Str("vbap system NOT configured. \nMissing"
+                               Str("vbap system NOT configured.\nMissing"
                                    " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
@@ -658,7 +658,7 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (UNLIKELY(!p->q.ls_set_am))
-      return csound->InitError(csound, Str("vbap system NOT configured. \nMissing"
+      return csound->InitError(csound, Str("vbap system NOT configured.\nMissing"
                                            " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {

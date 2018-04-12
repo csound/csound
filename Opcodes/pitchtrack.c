@@ -537,7 +537,7 @@ int32_t pitchafproc(CSOUND *csound, PITCHAF *p)
    V Lazzarini, 2012
 */
 
-#define ROOT2 (1.4142135623730950488)
+//#define ROOT2 (1.4142135623730950488)
 enum {LP1=0, LP2, HP};
 
 typedef struct biquad_ {

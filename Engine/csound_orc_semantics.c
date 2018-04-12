@@ -399,7 +399,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
         if (UNLIKELY(out == NULL)) {
           synterr(csound, Str("error: opcode '%s' for expression with arg "
-                              "types %s not found, line %d \n"),
+                              "types %s not found, line %d\n"),
                   opname, inArgTypes, tree->line);
           do_baktrace(csound, tree->locn);
           csound->Free(csound, inArgTypes);
@@ -457,7 +457,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (UNLIKELY(out == NULL)) {
         synterr(csound, Str("error: boolean expression '%s' with arg "
-                            "types %s not found, line %d \n"),
+                            "types %s not found, line %d\n"),
                 opname, inArgTypes, tree->line);
         do_baktrace(csound, tree->locn);
         csound->Free(csound, inArgTypes);
@@ -808,16 +808,16 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
         }
 
       }
-      //printf("delete %p \n", argsFound);
+      //printf("delete %p\n", argsFound);
       int n;
       for (n=0; argsFound[n] != NULL; n++) {
-        // printf("delete %p \n", argsFound[n]);
+        // printf("delete %p\n", argsFound[n]);
         csound->Free(csound, argsFound[n]);
       }
       csound->Free(csound, argsFound);
-      //printf("delete %p \n", argsRequired);
+      //printf("delete %p\n", argsRequired);
       for (n=0; argsRequired[n] != NULL; n++) {
-        //printf("delete %p \n", argsRequired[n]);
+        //printf("delete %p\n", argsRequired[n]);
         csound->Free(csound, argsRequired[n]);
       }
       csound->Free(csound, argsRequired);
@@ -935,16 +935,16 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
           returnVal = 1;
         }
       }
-      //printf("delete %p \n", argsFound);
+      //printf("delete %p\n", argsFound);
       int n;
       for (n=0; argsFound[n] != NULL; n++) {
-        // printf("delete %p \n", argsFound[n]);
+        // printf("delete %p\n", argsFound[n]);
         csound->Free(csound, argsFound[n]);
       }
       csound->Free(csound, argsFound);
-      //printf("delete %p \n", argsRequired);
+      //printf("delete %p\n", argsRequired);
       for (n=0; argsRequired[n] != NULL; n++) {
-        //printf("delete %p \n", argsRequired[n]);
+        //printf("delete %p\n", argsRequired[n]);
         csound->Free(csound, argsRequired[n]);
       }
       csound->Free(csound, argsRequired);
@@ -1462,7 +1462,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     add_args(csound, root->left, typeTable);
 
     opcodeName = root->value->lexeme;
-    //printf("%p %p (%s) \n", root, root->value, opcodeName);
+    //printf("%p %p (%s)\n", root, root->value, opcodeName);
     leftArgString = get_arg_string_from_tree(csound, left, typeTable);
     rightArgString = get_arg_string_from_tree(csound, right, typeTable);
 
@@ -1753,7 +1753,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     typeTable->labelList = get_label_list(csound, root);
 
     //if (root->value)
-    //printf("###verify %p %p (%s) \n", root, root->value, root->value->lexeme);
+    //printf("###verify %p %p (%s)\n", root, root->value, root->value->lexeme);
 
     if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Verifying AST\n");
 
@@ -2056,7 +2056,7 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     ans->locn  = locn;
     ans->markup = NULL;
     //if (ans->value)
-    // printf("make leaf %p %p (%s) \n", ans, ans->value, ans->value->lexeme);
+    // printf("make leaf %p %p (%s)\n", ans, ans->value, ans->value->lexeme);
     csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
                      __LINE__, line);
     return ans;
@@ -2081,7 +2081,7 @@ static void delete_tree(CSOUND *csound, TREE *l)
         csound->Free(csound, l->value);
         //l->value = NULL;
       }
-      // printf("left %p right %p \n", l->left, l->right);
+      // printf("left %p right %p\n", l->left, l->right);
       delete_tree(csound, l->left);
       //l->left = NULL;
       delete_tree(csound, l->right);
@@ -2558,11 +2558,11 @@ void handle_optional_args(CSOUND *csound, TREE *l)
           incnt++;
         } while (incnt < nreqd);
       }
-      //      printf("delete %p \n", inArgParts);
+      //      printf("delete %p\n", inArgParts);
       if (inArgParts != NULL) {
         int n;
         for (n=0; inArgParts[n] != NULL; n++) {
-          //printf("delete %p \n", inArgParts[n]);
+          //printf("delete %p\n", inArgParts[n]);
           csound->Free(csound, inArgParts[n]);
         }
         csound->Free(csound, inArgParts);

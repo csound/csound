@@ -500,7 +500,7 @@ public:
       noteOff:
         result = fluid_synth_noteoff(fluidSynth, midiChannel, midiData1);
         if (printMsgs)
-          csound->Message(csound, Str("result: %d \n Note off: c:%3d k:%3d\n"),
+          csound->Message(csound, Str("result: %d\n Note off: c:%3d k:%3d\n"),
                           result, midiChannel, midiData1);
         break;
       case (int32_t)0x90:
@@ -510,7 +510,7 @@ public:
         result =
             fluid_synth_noteon(fluidSynth, midiChannel, midiData1, midiData2);
         if (printMsgs)
-          log(csound, "result: %d \nNote on: c:%3d k:%3d v:%3d\n", result,
+          log(csound, "result: %d\nNote on: c:%3d k:%3d v:%3d\n", result,
               midiChannel, midiData1, midiData2);
         break;
       case (int32_t)0xA0:
@@ -625,7 +625,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
 }
 
 PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
-  // printf("csoundModuleInit: %p \n", csound);
+  // printf("csoundModuleInit: %p\n", csound);
   OENTRY *ep;
   int32_t err = 0;
 
@@ -644,7 +644,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
  * just before destroying it.
  */
 PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
-  // printf("csoundModuleDestroy: %p \n", csound);
+  // printf("csoundModuleDestroy: %p\n", csound);
   void *fluid_synths_mutex = 0;
   csound::QueryGlobalPointer(csound, "fluid_synths_mutex", fluid_synths_mutex);
   if (fluid_synths_mutex) {
@@ -654,7 +654,7 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
     if (fluid_synths) {
       for (size_t i = 0, n = fluid_synths->size(); i < n; i++) {
         fluid_synth_t *fluidSynth = (*fluid_synths)[i];
-        // printf("deleting engine: %p \n", fluidSynth);
+        // printf("deleting engine: %p\n", fluidSynth);
         fluid_settings_t *fluidSettings = fluid_synth_get_settings(fluidSynth);
         delete_fluid_synth(fluidSynth);
         delete_fluid_settings(fluidSettings);

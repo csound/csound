@@ -403,7 +403,7 @@ uintptr_t OSCthread(void *pp) {
 /*       p->thread = csound->CreateThread(OSCthread, p); */
 /*       p->lasta = *p->kwhen; */
 /*     } */
-/*     // printf("wait: %.13f \n", (csound->GetRealTime(&t))*1000.); */
+/*     // printf("wait: %.13f\n", (csound->GetRealTime(&t))*1000.); */
 /*     return OK; */
 /* } */
 
@@ -873,7 +873,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
             ftp->fno = fno;
 #ifdef OSC_DEBUG
-            printf("%d \n", len);
+            printf("%d\n", len);
 #endif
             if (len > ftp->flen*sizeof(MYFLT))
               ftp->ftable =
