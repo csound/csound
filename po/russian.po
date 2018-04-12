@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-30 08:53+0100\n"
-"PO-Revision-Date: 2008-09-16 17:28+0100\n"
+"PO-Revision-Date: 2018-04-11 18:15+0100\n"
 "Last-Translator: ???\n"
 "Language-Team: Russian\n"
 "Language: \n"
@@ -53,11 +53,11 @@ msgstr ""
 
 #: Engine/cfgvar.c:39
 msgid "(no error)"
-msgstr ""
+msgstr "(неизвестная ошибка)"
 
 #: Engine/cfgvar.c:40
 msgid "invalid variable name"
-msgstr ""
+msgstr "недопустимое имя переменной"
 
 #: Engine/cfgvar.c:41
 msgid "invalid variable type"
@@ -81,15 +81,15 @@ msgstr "пределенное значение слишком низко"
 
 #: Engine/cfgvar.c:46
 msgid "the specified value is not an integer power of two"
-msgstr ""
+msgstr "указанное значение не является целым числом двух"
 
 #: Engine/cfgvar.c:47
 msgid "invalid boolean value; must be 0 or 1"
-msgstr ""
+msgstr "недействительное логическое значение; должно быть 0 или 1"
 
 #: Engine/cfgvar.c:48
 msgid "memory allocation failed"
-msgstr ""
+msgstr "ошибка выделения памяти"
 
 #: Engine/cfgvar.c:49
 msgid "string exceeds maximum allowed length"
