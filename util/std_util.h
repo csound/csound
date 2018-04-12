@@ -42,7 +42,7 @@ extern int32_t pv_export_init_(CSOUND *);
 extern int32_t pv_import_init_(CSOUND *);
 extern int32_t scale_init_(CSOUND *);
 extern int32_t sndinfo_init_(CSOUND *);
-extern int32_t src_conv_init_(CSOUND *);
+extern int32_t srconv_init_(CSOUND *);
 extern int32_t xtrct_init_(CSOUND *);
 
 #endif  /* CSOUND_STD_UTIL_H */
