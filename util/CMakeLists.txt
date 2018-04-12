@@ -5,7 +5,7 @@ set(stdutil_SRCS
     het_export.c    het_import.c    hetro.c     lpanal.c
     lpc_export.c    lpc_import.c    mixer.c     pvanal.c
     pv_export.c     pv_import.c     pvlook.c    scale.c
-    sndinfo.c       srconv.c        std_util.c  xtrct.c
+    sndinfo.c       src_conv.c      std_util.c  xtrct.c
     SDIF/sdif.c)
 
 if(MSVC) 
@@ -18,7 +18,9 @@ else()
   make_plugin(stdutil "${stdutil_SRCS}" m ${LIBSNDFILE_LIBRARY})
 endif()
 
+find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
 add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
+add_dependency_to_framework(stdutil ${LIBSAMPLERATE_LIBRARY})
 
 if(BUILD_UTILITIES)
     make_utility(atsa        atsa_main.c)
@@ -43,20 +45,20 @@ if(BUILD_UTILITIES)
     make_utility(pv_import   pvi_main.c)
     make_utility(scale       scale_main.c)
     make_utility(sndinfo     sndinfo_main.c)
-    make_utility(srconv      srconv_main.c)
+    make_utility(src_conv    src_conv_main.c)
 
 
     #find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
-    find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
+    
 
-    if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)
-        make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
-        if(MSVC)
-            target_link_libraries(src_conv ${LIBSNDFILE_SUPPORT_LIBS})
-        endif()
-    else()
-        message(STATUS "Not building src_conv (libsndfile or libsamplerate not found).")
-    endif()
+    # if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)
+    #     make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
+    #     if(MSVC)
+    #         target_link_libraries(src_conv ${LIBSNDFILE_SUPPORT_LIBS})
+    #     endif()
+    # else()
+    #     message(STATUS "Not building src_conv (libsndfile or libsamplerate not found).")
+    # endif()
 
 endif()
 add_subdirectory(SDIF)
