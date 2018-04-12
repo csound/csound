@@ -159,7 +159,7 @@ int32_t p5g_data(CSOUND *csound, P5GLOVE *p)
     rels = (p->last & !buttons);
     p->last = buttons;
     if (kontrol<0) {
-      printf("debug: \n");
+      printf("debug:\n");
       *p->res = FL(0.0);
       return OK;
     }

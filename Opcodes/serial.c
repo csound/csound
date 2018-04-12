@@ -336,7 +336,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
 
 int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p)
 {
-    MYFLT xx = 
+    MYFLT xx =
       (MYFLT)serialport_init(csound, (char *)p->portName->data, *p->baudRate);
     *p->returnedPort =xx;
     return(xx<0?NOTOK:OK);

@@ -1652,7 +1652,7 @@ int32_t inch_opcode1(CSOUND *csound, INCH1 *p)
     uint32_t n, nsmps = CS_KSMPS, ch;
     MYFLT *sp, *ain;
 
-    ch = ((int32_t)*p->ch + FL(0.5));
+    ch = MYFLT2LRND(*p->ch);
     if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
       if (p->init)
         csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
@@ -1701,7 +1701,7 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
         csound->PerfError(csound, p->h.insdshead,
                           Str("Input and output argument count differs in inch"));
     for (nc=0; nc<nChannels; nc++) {
-      ch = (int32_t)(*p->ch[nc] + FL(0.5));
+      ch = MYFLT2LRND(*p->ch[nc]);
       if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
         if (p->init)
           csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
@@ -2023,7 +2023,7 @@ int32_t outch(CSOUND *csound, OUTCH *p)
     MYFLT *spout = CS_SPOUT;
     CSOUND_SPOUT_SPINLOCK
     for (j = 0; j < count; j += 2) {
-      ch = (int32_t)(*args[j] + FL(0.5));
+      ch = MYFLT2LRND(*args[j]);
       if (ch < 1) ch = 1;
       apn = args[j + 1];
       if (ch > nchnls) continue;

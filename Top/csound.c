@@ -114,24 +114,24 @@ void print_csound_version(CSOUND* csound)
 #ifdef USE_DOUBLE
 #ifdef BETA
     csound->Message(csound,
-                    Str("--Csound version %s beta (double samples) %s \n"
+                    Str("--Csound version %s beta (double samples) %s\n"
                         "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s \n"
+    csound->Message(csound, Str("--Csound version %s (double samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE
                     , STRING_HASH(GIT_HASH_VALUE));
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n"
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s \n"
+    csound->Message(csound, Str("--Csound version %s (float samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
@@ -1749,7 +1749,7 @@ int kperf_nodebug(CSOUND *csound)
                 }
             }
           }
-          /*else csound->Message(csound, "time %f \n",
+          /*else csound->Message(csound, "time %f\n",
                                  csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
@@ -2074,7 +2074,7 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
     }
     else {
       char *sc = scsortstr(csound, csound->scorestr);
-      //printf("%s \n", sc);
+      //printf("%s\n", sc);
       csoundInputMessageInternal(csound, (const char *) sc);
       csound->Free(csound, sc);
       corfile_rm(csound, &(csound->scorestr));
@@ -2090,7 +2090,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
     if (csound->jumpset == 0) {
@@ -2127,7 +2127,7 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
     /* setup jmp for return after an exit() */
@@ -2156,7 +2156,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
     /* Setup jmp for return after an exit(). */
@@ -2197,7 +2197,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
 
@@ -3069,7 +3069,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
     entryCopy = csound->Malloc(csound, sizeof(OENTRY));
-    //printf("%p \n", entryCopy);
+    //printf("%p\n", entryCopy);
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
 
@@ -4414,7 +4414,7 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
     /* setup jmp for return after an exit() */

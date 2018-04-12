@@ -37,7 +37,7 @@
 
 static void pv_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, "%s", Str("Usage: pv_import cstext_file pv_file \n"));
+    csound->Message(csound, "%s", Str("Usage: pv_import cstext_file pv_file\n"));
 }
 
 static float getnum(FILE* inf, char *term)

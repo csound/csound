@@ -25,7 +25,7 @@
 #include "dam.h"
 #include <math.h>
 
-#define SQRT2 FL(1.41421356237309504880168872421)
+#define SQRT2 ROOT2
 
 /*
  *   Dynamic Amplitude Modifier.

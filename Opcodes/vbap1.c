@@ -182,7 +182,7 @@ int32_t vbap1_init(CSOUND *csound, VBAP1 *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured. \nMissing"
+      return csound->InitError(csound, Str("vbap system NOT configured.\nMissing"
                                            " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
@@ -251,7 +251,7 @@ int32_t vbap1_init_a(CSOUND *csound, VBAPA1 *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured. \nMissing"
+      return csound->InitError(csound, Str("vbap system NOT configured.\nMissing"
                                            " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
@@ -535,7 +535,7 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured. \n"
+      return csound->InitError(csound, Str("vbap system NOT configured.\n"
                                            "Missing vbaplsinit opcode"
                                            " in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
@@ -610,7 +610,7 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (UNLIKELY(!p->q.ls_set_am))
-      return csound->InitError(csound, Str("vbap system NOT configured. \n"
+      return csound->InitError(csound, Str("vbap system NOT configured.\n"
                                            "Missing vbaplsinit opcode"
                                            " in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);

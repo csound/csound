@@ -446,7 +446,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return
         csound->InitError(csound, Str("diskgrain: soundfile channel numbers "
-                                      "do not match the number of outputs \n"));
+                                      "do not match the number of outputs\n"));
     }
 
     if (*p->ioff >= 0)
@@ -457,7 +457,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
       p->read2 = 0;
     }
     else {
-      return csound->InitError(csound, Str("diskgrain: could not read file \n"));
+      return csound->InitError(csound, Str("diskgrain: could not read file\n"));
     }
 
    /* -===-  */
