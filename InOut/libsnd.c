@@ -573,7 +573,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
                                          STA(inbufsiz)); /* alloc inbuf space */
     if (STA(pipdevout) == 2)
       csound->Message(csound,
-                      Str("reading %d sample blks of %lu-bit floats from %s \n"),
+                      Str("reading %d sample blks of %lu-bit floats from %s\n"),
                       O->inbufsamps * O->sfsampsize,
                       (unsigned long) sizeof(MYFLT)*8, sfname);
     else {
@@ -870,7 +870,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
     if (STA(pipdevout) == 2)
       csound->Message(csound,
-                      Str("writing %d sample blks of %lu-bit floats to %s \n"),
+                      Str("writing %d sample blks of %lu-bit floats to %s\n"),
                       O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
                       STA(sfoutname));
     else {

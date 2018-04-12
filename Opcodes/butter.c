@@ -42,7 +42,7 @@ typedef struct  {
 } BBFIL;
 
 #include <math.h>
-#define ROOT2 (1.4142135623730950488)
+//#define ROOT2 (1.4142135623730950488)
 
 static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
 

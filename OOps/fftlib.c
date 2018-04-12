@@ -43,8 +43,8 @@
 #define MCACHE  (11 - (sizeof(MYFLT) / 8))
 
 /* some math constants to 40 decimal places */
-#define MYPI      3.141592653589793238462643383279502884197   /* pi         */
-#define MYROOT2   1.414213562373095048801688724209698078569   /* sqrt(2)    */
+//#define MYPI      3.141592653589793238462643383279502884197   /* pi         */
+//#define MYROOT2   1.414213562373095048801688724209698078569   /* sqrt(2)    */
 #define MYCOSPID8 0.9238795325112867561281831893967882868224  /* cos(pi/8)  */
 #define MYSINPID8 0.3826834323650897717284599840303988667613  /* sin(pi/8)  */
 
@@ -324,7 +324,7 @@ static void fft4pt(MYFLT *ioptr)
 static void fft8pt(MYFLT *ioptr)
 {
   /***   RADIX 8 fft      ***/
-  MYFLT w0r = (MYFLT)(1.0 / MYROOT2);    /* cos(pi/4)   */
+  MYFLT w0r = (MYFLT)(1.0 / ROOT2);    /* cos(pi/4)   */
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
   MYFLT t0r, t0i, t1r, t1i;
@@ -559,7 +559,7 @@ static void bfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   MYFLT *pstrt;
   MYFLT *p0r, *p1r, *p2r, *p3r;
 
-  MYFLT w1r = FL(1.0) / FL(MYROOT2);    /* cos(pi/4)   */
+  MYFLT w1r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
   MYFLT t1r, t1i;
@@ -1363,7 +1363,7 @@ static void ifft4pt(MYFLT *ioptr, MYFLT scale)
 static void ifft8pt(MYFLT *ioptr, MYFLT scale)
 {
   /***   RADIX 8 ifft     ***/
-  MYFLT w0r = FL(1.0) / FL(MYROOT2);    /* cos(pi/4)   */
+  MYFLT w0r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
   MYFLT t0r, t0i, t1r, t1i;
@@ -1599,7 +1599,7 @@ static void ibfR4(MYFLT *ioptr, int32_t M, int32_t NDiffU)
   MYFLT *pstrt;
   MYFLT *p0r, *p1r, *p2r, *p3r;
 
-  MYFLT w1r = FL(1.0) / FL(MYROOT2);    /* cos(pi/4)   */
+  MYFLT w1r = FL(1.0) / FL(ROOT2);    /* cos(pi/4)   */
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT f4r, f4i, f5r, f5i, f6r, f6i, f7r, f7i;
   MYFLT t1r, t1i;
@@ -2240,7 +2240,7 @@ static void rfft4pt(MYFLT *ioptr)
   /***   RADIX 8 rfft     ***/
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT t0r, t0i, t1r, t1i;
-  MYFLT w0r = 1.0 / MYROOT2;    /* cos(pi/4)   */
+  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
   const MYFLT Two = FL(2.0);
   const MYFLT scale = FL(0.5);
 
@@ -2311,7 +2311,7 @@ static void rfft4pt(MYFLT *ioptr)
 static void rfft8pt(MYFLT *ioptr)
 {
   /***   RADIX 16 rfft    ***/
-  MYFLT w0r = 1.0 / MYROOT2;    /* cos(pi/4)   */
+  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
   MYFLT w1r = MYCOSPID8;        /* cos(pi/8)     */
   MYFLT w1i = MYSINPID8;        /* sin(pi/8)     */
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
@@ -2707,7 +2707,7 @@ static void rifft4pt(MYFLT *ioptr, MYFLT scale)
   /***   RADIX 8 rifft    ***/
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;
   MYFLT t0r, t0i, t1r, t1i;
-  MYFLT w0r = 1.0 / MYROOT2;    /* cos(pi/4)   */
+  MYFLT w0r = 1.0 / ROOT2;    /* cos(pi/4)   */
   const MYFLT Two = FL(2.0);
 
   /* bit reversed load */
@@ -2776,7 +2776,7 @@ static void rifft4pt(MYFLT *ioptr, MYFLT scale)
 static void rifft8pt(MYFLT *ioptr, MYFLT scale)
 {
   /***   RADIX 16 rifft   ***/
-  MYFLT w0r = (MYFLT) (1.0 / MYROOT2);    /* cos(pi/4)    */
+  MYFLT w0r = (MYFLT) (1.0 / ROOT2);    /* cos(pi/4)    */
   MYFLT w1r = MYCOSPID8;                  /* cos(pi/8)    */
   MYFLT w1i = MYSINPID8;                  /* sin(pi/8)    */
   MYFLT f0r, f0i, f1r, f1i, f2r, f2i, f3r, f3i;

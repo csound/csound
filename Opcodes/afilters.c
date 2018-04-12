@@ -437,7 +437,7 @@ typedef struct  {
         double  a[8];
 } BBFIL;
 
-#define ROOT2 (1.4142135623730950488)
+//#define ROOT2 (1.4142135623730950488)
 
 extern int32_t butset(CSOUND *csound, BFIL *p);
 

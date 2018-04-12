@@ -141,7 +141,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
       for (n=offset; n<nsmps; n++)  { /* for loops compile better */
         int32_t i = (int32_t)(ndx[n]*xbmul);
         if (UNLIKELY(i > len || i<0)) {
-          csound->Message(csound, "ndx: %f \n", ndx[n]);
+          csound->Message(csound, "ndx: %f\n", ndx[n]);
           return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
         }
         tab[i] = rslt[n];

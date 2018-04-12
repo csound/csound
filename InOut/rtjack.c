@@ -480,17 +480,17 @@ static void openJackStreams(RtJackGlobals *p)
 
         for (i = 0; i < p->nChannels_i; i++) {
           if (portNames[num+i] != NULL){
-            csound->Message(csound, Str("connecting channel %d to %s \n"),
+            csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i,portNames[num+i]);
             if (jack_connect(p->client, portNames[num+i],
                              jack_port_name(p->inPorts[i])) != 0) {
               csound->Warning(csound,
-                              Str("failed autoconnecting input channel %d \n"
+                              Str("failed autoconnecting input channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           } else
-            csound->Warning(csound, Str("jack port %d not valid \n"
-                                        "failed autoconnecting input channel %d \n"
+            csound->Warning(csound, Str("jack port %d not valid\n"
+                                        "failed autoconnecting input channel %d\n"
                                         "(needs manual connection)"), num+i, i+1);
         }
         jack_free(portNames);
@@ -505,12 +505,12 @@ static void openJackStreams(RtJackGlobals *p)
           if (!isalpha(dev_final[0])) dev_final++;
           for (i = 0; i < p->nChannels; i++) {
             snprintf(sp, 128-(dev-sp), "%d", i + 1);
-            csound->Message(csound, Str("connecting channel %d to %s \n"),
+            csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i, dev_final);
             if (UNLIKELY(jack_connect(p->client, dev_final,
                                       jack_port_name(p->inPorts[i])) != 0)) {
               csound->Warning(csound,
-                              Str("not autoconnecting input channel %d \n"
+                              Str("not autoconnecting input channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           }
@@ -532,17 +532,17 @@ static void openJackStreams(RtJackGlobals *p)
 
         for (i = 0; i < p->nChannels; i++) {
           if (portNames[num+i] != NULL) {
-            csound->Message(csound, Str("connecting channel %d to %s \n"),
+            csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i,portNames[num+i]);
             if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                              portNames[num+i]) != 0) {
               csound->Warning(csound,
-                              Str("failed autoconnecting output channel %d \n"
+                              Str("failed autoconnecting output channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           } else
-            csound->Warning(csound, Str("jack port %d not valid \n"
-                                        "failed autoconnecting output channel %d \n"
+            csound->Warning(csound, Str("jack port %d not valid\n"
+                                        "failed autoconnecting output channel %d\n"
                                         "(needs manual connection)"), num+i, i+1);
         }
 
@@ -557,12 +557,12 @@ static void openJackStreams(RtJackGlobals *p)
           if (!isalpha(dev_final[0])) dev_final++;
           for (i = 0; i < p->nChannels; i++) {
             snprintf(sp, 128-(dev-sp), "%d", i + 1);
-            csound->Message(csound, Str("connecting channel %d to %s \n"),
+            csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i, dev_final);
             if (UNLIKELY(jack_connect(p->client, jack_port_name(p->outPorts[i]),
                                       dev_final) != 0)) {
               csound->Warning(csound, Str("failed to autoconnect output channel "
-                                          "%d \n(needs manual connection)"), i+1);
+                                          "%d\n(needs manual connection)"), i+1);
 
             }
           }

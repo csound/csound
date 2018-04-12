@@ -64,7 +64,7 @@ static void checkOptions(CSOUND *csound)
         csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
                       csrcname);
       else
-        csound->Message(csound, Str("Reading options from $CSOUND6RC: %s \n"),
+        csound->Message(csound, Str("Reading options from $CSOUND6RC: %s\n"),
                         csrcname);
     }
     if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
@@ -93,7 +93,7 @@ static void checkOptions(CSOUND *csound)
       corfile_rewind(cf);
       readOptions(csound, cf, 0);
       csound->Message(csound,
-                      Str("Reading options from local directory .csound6rc \n"));
+                      Str("Reading options from local directory .csound6rc\n"));
       corfile_rm(csound, &cf);
       csound->FileClose(csound, fd);
     }
@@ -201,7 +201,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     if (csound->scorename == NULL && csound->scorestr==NULL) {
       /* No scorename yet */
       csound->Message(csound, "scoreless operation\n");
-      // csound->scorestr = corfile_create_r("f0 800000000000.0 \n");
+      // csound->scorestr = corfile_create_r("f0 800000000000.0\n");
       // VL 21-09-2016: it looks like #exit is needed for the
       // new score parser to work.
       csound->scorestr = corfile_create_r(csound, "\n#exit\n");
@@ -405,7 +405,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     }
     if (csound->instr0 == NULL) { /* compile dummy instr0 to allow csound to
                                      start with no orchestra */
-      csoundCompileOrcInternal(csound, "idummy = 0 \n", 0);
+      csoundCompileOrcInternal(csound, "idummy = 0\n", 0);
     }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {

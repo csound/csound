@@ -36,7 +36,7 @@
 
 static int32_t dcblockrset(CSOUND *csound, DCBlocker* p)
 {
-     IGN(csound);
+    IGN(csound);
     p->outputs = 0.0;
     p->inputs = 0.0;
     p->gain = (double)*p->gg;
@@ -47,10 +47,10 @@ static int32_t dcblockrset(CSOUND *csound, DCBlocker* p)
 
 static int32_t dcblockr(CSOUND *csound, DCBlocker* p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT       *ar = p->ar;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     double      gain = p->gain;
     double      outputs = p->outputs;
@@ -80,14 +80,14 @@ static int32_t dcblockr(CSOUND *csound, DCBlocker* p)
 /*******************************************/
 
 typedef struct _dcblk2 {
-  OPDS h;
-  MYFLT *output;
-  MYFLT *input, *order, *iskip;
-  AUXCH delay1;
-  AUXCH iirdelay1, iirdelay2, iirdelay3, iirdelay4;
-  double ydels[4];
+  OPDS    h;
+  MYFLT   *output;
+  MYFLT   *input, *order, *iskip;
+  AUXCH   delay1;
+  AUXCH   iirdelay1, iirdelay2, iirdelay3, iirdelay4;
+  double  ydels[4];
   int32_t dp1,dp2;
-  double scaler;
+  double  scaler;
 } DCBlock2;
 
 
@@ -139,7 +139,7 @@ static int32_t dcblock2set(CSOUND *csound, DCBlock2* p)
 
 static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
 {
-     IGN(csound);
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -187,7 +187,7 @@ static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
     }
 
     p->dp1 = p1; p->dp2 = p2;
-     return OK;
+    return OK;
 }
 
 
