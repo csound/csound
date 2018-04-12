@@ -79,7 +79,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
     err |= pvlook_init_(csound);
     err |= scale_init_(csound);
     err |= sndinfo_init_(csound);
-    err |= src_conv_init_(csound);
+    err |= srconv_init_(csound);
     return err;
 }
 
