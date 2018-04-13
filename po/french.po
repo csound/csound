@@ -265,7 +265,7 @@ msgid "-- deleted instr from deadpool\n"
 msgstr "-- instr supprimé de deadpool\n"
 
 #: Engine/csound_orc_compile.c:1006
-#, fuzzy, c-format
+#, c-format
 msgid " -- free instr def %p %p\n"
 msgstr " -- déf libre d'instr %p %p\n"
 
@@ -280,7 +280,6 @@ msgid "instr %<PRIi32> redefined, replacing previous definition"
 msgstr "instr %<PRIi32> redéfini, précédente définition remplacée"
 
 #: Engine/csound_orc_compile.c:1087
-#, fuzzy
 msgid "no active instances\n"
 msgstr "pas d'instances actives\n"
 
@@ -372,7 +371,7 @@ msgid "Opcode \"%s\" is deprecated\n"
 msgstr "L'opcode \"%s\" est obsolète\n"
 
 #: Engine/csound_orc_expressions.c:492
-#, fuzzy, c-format
+#, c-format
 msgid "error: function %s not found, line %d\n"
 msgstr "erreur : fonction %s introuvable, ligne %d\n"
 
@@ -447,7 +446,7 @@ msgstr ""
 "Ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:459
-#, fuzzy, c-format
+#, c-format
 msgid "error: boolean expression '%s' with arg types %s not found, line %d\n"
 msgstr ""
 "erreur : expression booléenne '%s' avec types d'arg %s introuvable, ligne "
@@ -1825,9 +1824,8 @@ msgid "insert_score_event(): insufficient p-fields\n"
 msgstr "insert_score_event() : pas assez de p-champs\n"
 
 #: Engine/musmon.c:1444
-#, fuzzy
 msgid "cannot rewind score: no score in memory\n"
-msgstr "impossible de reprendre la partition : pas de partition en mémoire\n"
+msgstr "impossible de remonter la partition : pas de partition en mémoire\n"
 
 #: Engine/namedins.c:71 Engine/namedins.c:94
 #, c-format
@@ -2160,7 +2158,7 @@ msgid "invalid output argument types found for opcode %s: %s\n"
 msgstr "types d'argument en sortie non valides pour l'opcode %s: %s\n"
 
 #: Engine/symbtab.c:339 Engine/symbtab.c:360
-#, fuzzy, c-format
+#, c-format
 msgid "invalid input type for opcode %s\n"
 msgstr "type d'entrée non valide pour l'opcode %s\n"
 
@@ -2200,27 +2198,25 @@ msgid "twarp: t has non-positive tempo\n"
 msgstr "twarp : t a un tempo non positif\n"
 
 #: InOut/cmidi.c:132
-#, fuzzy, c-format
+#, c-format
 msgid "%d MIDI sources in system\n"
 msgstr "%d sources MIDI dans le système\n"
 
 #: InOut/cmidi.c:134
-#, fuzzy
 msgid "receiving from all sources\n"
 msgstr "réception de toutes les sources\n"
 
 #: InOut/cmidi.c:140 InOut/cmidi.c:151
-#, fuzzy, c-format
+#, c-format
 msgid "connecting midi device %d: %s\n"
 msgstr "connexion du périphérique midi %d : %s\n"
 
 #: InOut/cmidi.c:156
-#, fuzzy, c-format
+#, c-format
 msgid "MIDI device number %d is out-of-range, not connected\n"
-msgstr "Le périphérique midi numéro %d est hors limites, pas de connexion\n"
+msgstr "Le périphérique MIDI numéro %d est hors limites, pas de connexion\n"
 
 #: InOut/cmidi.c:175
-#, fuzzy
 msgid "output not implemented yet in CoreMIDI\n"
 msgstr "sortie pas encore implémentée dans CoreMIDI\n"
 
@@ -2283,10 +2279,10 @@ msgid "audio_in %s has %d chnls, orch %d chnls_i"
 msgstr "l'entrée audio_in %s a %d voix, l'orchestre a %d voix"
 
 #: InOut/libsnd.c:576
-#, fuzzy, c-format
+#, c-format
 msgid "reading %d sample blks of %lu-bit floats from %s\n"
 msgstr ""
-"lecture de %d blocs d'échantillons de flottants sur %lu bit depuis %s\n"
+"lecture de %d blocs d'échantillons de flottants sur %lu-bit depuis %s\n"
 
 #: InOut/libsnd.c:581
 #, c-format
@@ -2326,9 +2322,9 @@ msgstr ""
 "%s"
 
 #: InOut/libsnd.c:873
-#, fuzzy, c-format
+#, c-format
 msgid "writing %d sample blks of %lu-bit floats to %s\n"
-msgstr "écriture de %d blocs d'échantillons de flottants sur %lu bit vers %s\n"
+msgstr "écriture de %d blocs d'échantillons de flottants sur %lu-bit vers %s\n"
 
 #: InOut/libsnd.c:877 util/srconv.c:507
 #, c-format
@@ -3008,9 +3004,9 @@ msgid "Error setting hardware parameters for real-time audio"
 msgstr "Erreur de réglage des paramètres logiciels pour l'audio en temps réel"
 
 #: InOut/rtalsa.c:521
-#, fuzzy, c-format
+#, c-format
 msgid "ALSA %s: total buffer size: %d, period size: %d\n"
-msgstr "ALSA %s : taille de tampon totale : %d, période : %d\n"
+msgstr "ALSA %s : taille de tampon totale : %d, taille de la période : %d\n"
 
 #: InOut/rtalsa.c:534
 msgid "Error setting software parameters for real-time audio"
@@ -3280,7 +3276,7 @@ msgid "AuHAL Module: found %d output device(s):\n"
 msgstr "Module AuHAL : %d périphérique(s) de sortie trouvé(s) :\n"
 
 #: InOut/rtauhal.c:270 InOut/rtauhal.c:277
-#, fuzzy, c-format
+#, c-format
 msgid "%d: %s (%d channels)\n"
 msgstr "%d: %s (%d canaux)\n"
 
@@ -3295,17 +3291,17 @@ msgid "requested device %d (%s) out of range"
 msgstr "Le périphérique requis %d (%s) est hors limites"
 
 #: InOut/rtauhal.c:334
-#, fuzzy, c-format
+#, c-format
 msgid "selected input device: %s\n"
 msgstr "périphérique d'entrée sélectionné : %s\n"
 
 #: InOut/rtauhal.c:338
-#, fuzzy, c-format
+#, c-format
 msgid "selected output device: %s\n"
 msgstr "périphérique de sortie sélectionné : %s\n"
 
 #: InOut/rtauhal.c:368
-#, fuzzy, c-format
+#, c-format
 msgid "Attempted to set device SR, tried %.1f, got %.1f\n"
 msgstr "Réglage du SR du périphérique, %.1f essayé, %.1f obtenu\n"
 
@@ -3406,32 +3402,32 @@ msgid "error activating JACK client"
 msgstr "erreur à l'activation du client JACK"
 
 #: InOut/rtjack.c:483 InOut/rtjack.c:508 InOut/rtjack.c:535 InOut/rtjack.c:560
-#, fuzzy, c-format
+#, c-format
 msgid "connecting channel %d to %s\n"
 msgstr "connexion du canal %d à %s\n"
 
 #: InOut/rtjack.c:488
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "failed autoconnecting input channel %d\n"
 "(needs manual connection)"
 msgstr ""
-"pas de connexion automatique du canal d'entrée %d\n"
+"échec de la connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:492
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "jack port %d not valid\n"
 "failed autoconnecting input channel %d\n"
 "(needs manual connection)"
 msgstr ""
-"port jack %d invalide\n"
-"pas de connexion automatique du canal d'entrée %d\n"
+"port jack %d non valide\n"
+"échec de la connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:513
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "not autoconnecting input channel %d\n"
 "(needs manual connection)"
@@ -3444,32 +3440,32 @@ msgid "put port not connected\n"
 msgstr "port d'entrée non connecté\n"
 
 #: InOut/rtjack.c:540
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "failed autoconnecting output channel %d\n"
 "(needs manual connection)"
 msgstr ""
-"pas de connexion automatique du canal de sortie %d\n"
+"échec de la connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:544
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "jack port %d not valid\n"
 "failed autoconnecting output channel %d\n"
 "(needs manual connection)"
 msgstr ""
-"port jack %d invalide\n"
-"pas de connexion automatique du canal de sortie %d\n"
+"port jack %d non valide\n"
+"échec de la connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:564
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "failed to autoconnect output channel %d\n"
 "(needs manual connection)"
 msgstr ""
-"pas de connexion automatique du canal de sortie %d\n"
+"échec de la connexion automatique du canal de sortie %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:571
@@ -3668,7 +3664,6 @@ msgid "PortAudio: using ALSA device '%s'\n"
 msgstr "PortAudio : utilisation du périphérique ALSA '%s'\n"
 
 #: InOut/rtpa.c:863
-#, fuzzy
 msgid "rtaudio: PortAudio module enabled ...\n"
 msgstr "rtaudio : module PortAudio activé ...\n"
 
@@ -5462,9 +5457,8 @@ msgstr "--strset : format non valide"
 
 #: OOps/str_ops.c:258 OOps/str_ops.c:260 OOps/str_ops.c:296 OOps/str_ops.c:297
 #: OOps/str_ops.c:335 OOps/str_ops.c:336
-#, fuzzy
 msgid "NULL string\n"
-msgstr "chaîne nulle\n"
+msgstr "chaîne de caractères NULL\n"
 
 #: OOps/str_ops.c:371
 msgid "a-rate argument not allowed"
@@ -5667,9 +5661,8 @@ msgid "osciln: not initialised"
 msgstr "osciln : non initialisé"
 
 #: OOps/ugens2.c:1191
-#, fuzzy
 msgid "array size not pow-of-two\n"
-msgstr "la taille de la table %d n'est pas une puissance de deux"
+msgstr "la taille du tableau n'est pas une puissance de deux\n"
 
 #: OOps/ugens2.c:1222
 msgid "oscil(krate): not initialised"
@@ -5863,7 +5856,6 @@ msgid "Real: %f   Imag: %f\n"
 msgstr "Partie réelle : %f   Partie imaginaire : %f\n"
 
 #: OOps/ugens5.c:776
-#, fuzzy
 msgid "Cannot handle uneven pole count yet\n"
 msgstr "Impossible de traiter actuellement un nombre impair de pôles\n"
 
@@ -6765,9 +6757,8 @@ msgid "crossfm: ftable not found"
 msgstr "crossfm : table non trouvée"
 
 #: Opcodes/date.c:127
-#, fuzzy
 msgid "**Unknown**"
-msgstr "inconnu"
+msgstr "**Inconnu**"
 
 #: Opcodes/date.c:129
 #, c-format
@@ -7035,7 +7026,6 @@ msgid "factory not found %d\n"
 msgstr "fabrique non trouvée %d\n"
 
 #: Opcodes/faustgen.cpp:453 Opcodes/faustgen.cpp:563
-#, fuzzy
 msgid "Faust instantiation problem\n"
 msgstr "Problème d'instanciation de Faust\n"
 
@@ -7090,12 +7080,12 @@ msgid "fluid: unable to load %s"
 msgstr "fluid : impossible d'ouvrir le fichier %s"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.cpp:503
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "result: %d\n"
 " Note off: c:%3d k:%3d\n"
 msgstr ""
-"résultat : %d \n"
+"résultat : %d\n"
 " Note off : c:%3d k:%3d\n"
 
 #: Opcodes/fluidOpcodes/fluidOpcodes.cpp:582
@@ -7186,7 +7176,6 @@ msgstr ""
 "unidimensionnel , sortie"
 
 #: Opcodes/framebuffer/Framebuffer.c:168
-#, fuzzy
 msgid ""
 "framebuffer: Error, k-rate array input element count must be less than\n"
 "or equal to specified framebuffer size, Exiting"
@@ -8071,7 +8060,7 @@ msgid "granule_set: Illegal combination of igskip and ilength"
 msgstr "granule_set : combinaison illégale de igskip et de ilength"
 
 #: Opcodes/grain4.c:247
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "granule_set: WARNING * ilength may be too short *\n"
 "            ilength should be greater than kgsize * max up\n"
@@ -8601,12 +8590,12 @@ msgid "could not set priority\n"
 msgstr "impossible de fixer la priorité\n"
 
 #: Opcodes/mp3in.c:1176 Opcodes/mp3in.c:2057
-#, fuzzy, c-format
+#, c-format
 msgid "mp3scal_load error: %s\n"
 msgstr "erreur de mp3scal_load : %s\n"
 
 #: Opcodes/mp3in.c:1180 Opcodes/mp3in.c:2061
-#, fuzzy, c-format
+#, c-format
 msgid "mp3scal_load error: could not open %s\n"
 msgstr "erreur de mp3scal_load : impossible d'ouvrir %s\n"
 
@@ -8764,7 +8753,6 @@ msgid "Unknown panning type"
 msgstr "Type de panoramique inconnu"
 
 #: Opcodes/partials.c:178
-#, fuzzy
 msgid "partials: first input not in AMP_FREQ format\n"
 msgstr "partials : la première entrée n'est pas au format AMP_FREQ\n"
 
@@ -9372,7 +9360,6 @@ msgid "pvsdemix : formats are different.\n"
 msgstr "pvsdemix : les formats sont différents\n"
 
 #: Opcodes/pvsdemix.c:182
-#, fuzzy
 msgid "pvsdemix : not initialised\n"
 msgstr "pvsdemix : non initialisé\n"
 
@@ -9626,7 +9613,7 @@ msgid "%3d<--%-20s\t(prog:%-3d bank:%d)\n"
 msgstr "%3d<--%-20s\t(prog : %-3d bank : %d)\n"
 
 #: Opcodes/sfont.c:254
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "All presets have been assigned to preset handles from %d to %d\n"
@@ -9634,8 +9621,8 @@ msgid ""
 msgstr ""
 "\n"
 "Tous les presets ont été assignés aux descripteurs de preset allant de %d à "
-"%d \n"
-"\n"
+"%d\n"
+"XS\n"
 
 #: Opcodes/sfont.c:267
 #, c-format
@@ -10189,7 +10176,6 @@ msgid "diskgrain: could not open file: %s\n"
 msgstr "diskgrain : impossible d'ouvrir le fichier  %s\n"
 
 #: Opcodes/syncgrain.c:448
-#, fuzzy
 msgid ""
 "diskgrain: soundfile channel numbers do not match the number of outputs\n"
 msgstr ""
@@ -12050,7 +12036,7 @@ msgid "Error de-initialising module '%s'"
 msgstr "Erreur de dé-initialisation du module '%s'"
 
 #: Top/csound.c:117
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "--Csound version %s beta (double samples) %s\n"
 "[commit: %s]\n"
@@ -12059,7 +12045,7 @@ msgstr ""
 "[commit : %s]\n"
 
 #: Top/csound.c:122
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "--Csound version %s (double samples) %s\n"
 "[commit: %s]\n"
@@ -12068,7 +12054,7 @@ msgstr ""
 "[commit : %s]\n"
 
 #: Top/csound.c:129
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "--Csound version %s beta (float samples) %s\n"
 "[commit: %s]\n"
@@ -12077,7 +12063,7 @@ msgstr ""
 "[commit : %s]\n"
 
 #: Top/csound.c:134
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "--Csound version %s (float samples) %s\n"
 "[commit: %s]\n"
@@ -12100,7 +12086,6 @@ msgstr "Mauvais ThreadId"
 
 #: Top/csound.c:2092 Top/csound.c:2129 Top/csound.c:2158 Top/csound.c:2199
 #: Top/csound.c:4416
-#, fuzzy
 msgid "Csound not ready for performance: csoundStart() has not been called\n"
 msgstr ""
 "Csound n'est pas prêt pour l'exécution : csoundStart() n'a pas été appelée\n"
@@ -12296,7 +12281,6 @@ msgid "Reading options from $HOME/.csound6rc\n"
 msgstr "Lecture des options depuis $HOME/.csound6rc\n"
 
 #: Top/main.c:96
-#, fuzzy
 msgid "Reading options from local directory .csound6rc\n"
 msgstr "Lecture des options depuis le .csound6rc du répertoire local\n"
 
@@ -12711,7 +12695,7 @@ msgid "UDP: sock end failed"
 msgstr "UDP : la fin du socket a échoué"
 
 #: Top/server.c:112
-#, fuzzy, c-format
+#, c-format
 msgid "UDP server started on port %d\n"
 msgstr "Serveur UDP démarré sur le port %d\n"
 
@@ -14239,9 +14223,8 @@ msgid "translate PVOC analysis file to text form"
 msgstr "traduction du fichier d'analyse PVOC en format texte"
 
 #: util/pv_import.c:40
-#, fuzzy
 msgid "Usage: pv_import cstext_file pv_file\n"
-msgstr "Utilisation : pv_import fichier_textcsv fichier_pv\n"
+msgstr "Utilisation : pv_import fichier_textecsv fichier_pv\n"
 
 #: util/pv_import.c:73 util/pv_import.c:93
 msgid "Not a PV file\n"
