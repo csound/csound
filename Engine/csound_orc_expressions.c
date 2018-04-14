@@ -490,7 +490,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
         if (UNLIKELY(opentries->count == 0)) {
           csound->Warning(csound,
                           Str("error: function %s not found, "
-                              "line %d \n"),
+                              "line %d\n"),
                           root->value->lexeme, line);
           outtype = "i";
         }

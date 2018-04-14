@@ -179,7 +179,7 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
                              Str("pvsdemix : formats are different.\n"));
  err2:
     return csound->PerfError(csound, p->h.insdshead,
-                             Str("pvsdemix : not initialised \n"));
+                             Str("pvsdemix : not initialised\n"));
 }
 
 static OENTRY localops[] =

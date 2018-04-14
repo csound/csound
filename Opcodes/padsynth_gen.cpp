@@ -451,7 +451,7 @@ results are very close to zero
     };
 */
 
-#define ROOT2 FL(1.41421356237309504880168872421)
+//#define ROOT2 FL(1.41421356237309504880168872421)
 
 /**
  * This function computes a Csound function table

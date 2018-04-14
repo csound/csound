@@ -245,7 +245,7 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     if (UNLIKELY(*p->ilength < (20 * *p->kgsize)))
       csound->Warning(csound, Str("granule_set: "
-                                  "WARNING * ilength may be too short * \n"
+                                  "WARNING * ilength may be too short *\n"
                                   "            ilength should be "
                                   "greater than kgsize * max up\n"
                                   "            pitch shift. Also, igsize_os "
