@@ -293,15 +293,15 @@ static int32_t CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to sen
     for (i=0; i<10; i++){
       if (UNLIKELY(connect(rfd, (struct sockaddr *) &ST(to_addr),
                            sizeof(ST(to_addr))) < 0))
-        csound->Message(csound, Str("---> Could not connect \n"));
+        csound->Message(csound, Str("---> Could not connect\n"));
       else goto conok;
     }
     close(rfd);
     return csound->InitError(csound,
-                             Str("---> Failed all attempts to connect. \n"));
+                             Str("---> Failed all attempts to connect.\n"));
 
  conok:
-    csound->Message(csound, Str("--->  Connected. \n"));
+    csound->Message(csound, Str("--->  Connected.\n"));
     for (sop = ST(socksout); sop < sop_end; sop++)
       if (sop->adr == NULL) {
         sop->adr = ipadrs;                         /* record the new socket */
@@ -318,7 +318,7 @@ int32_t CLsend(CSOUND *csound, int32_t conn, void *data, int32_t length)
       csound->ErrorMsg(csound, Str("write to socket failed"));
       return NOTOK;
     }
-    /*    csound->Message(csound, "nbytes sent: %d \n", nbytes); */
+    /*    csound->Message(csound, "nbytes sent: %d\n", nbytes); */
     return OK;
 }
 
@@ -338,7 +338,7 @@ static int32_t SVopen(CSOUND *csound)
     if (UNLIKELY((socklisten = socket(PF_INET, SOCK_STREAM, 0)) < 0)) {
       return csound->InitError(csound, Str("creating socket\n"));
     }
-    else csound->Message(csound, Str("created socket \n"));
+    else csound->Message(csound, Str("created socket\n"));
     /* set the addresse to be reusable */
 #if defined(WIN32) && !defined(__CYGWIN__)
     if (UNLIKELY( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR,
@@ -381,7 +381,7 @@ static int32_t SVopen(CSOUND *csound)
       return csound->InitError(csound, Str("accept failed"));
     }
     else {
-      csound->Message(csound, Str("accepted, conn=%d \n"), conn);
+      csound->Message(csound, Str("accepted, conn=%d\n"), conn);
       for (sop = ST(socksin); sop < sop_end; sop++)
         if (*sop == 0) {
           *sop = conn;                       /* record the new connection */
@@ -405,7 +405,7 @@ int32_t SVrecv(CSOUND *csound, int32_t conn, void *data, int32_t length)
     size_t n;
     IGN(csound);
     n = recvfrom(conn, data, length, MSG_DONTWAIT, &from, &clilen);
-    /*  if (n>0) csound->Message(csound, "nbytes received: %d \n", (int32_t)n); */
+    /*  if (n>0) csound->Message(csound, "nbytes received: %d\n", (int32_t)n); */
     return (int32_t)n;
 }
 

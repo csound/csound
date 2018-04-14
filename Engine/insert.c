@@ -373,7 +373,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
 
     /* pop from free instance chain */
     if (UNLIKELY(csound->oparms->odebug))
-      csoundMessage(csound, "insert(): tp->act_instance = %p \n", tp->act_instance);
+      csoundMessage(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
     ip = tp->act_instance;
     ATOMIC_SET(ip->init_done, 0);
     tp->act_instance = ip->nxtact;
@@ -530,7 +530,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
         double p2 = (double) ip->p2.value + csound->timeOffs;
         ip->offtim += (csound->icurTime/csound->esr - p2);
       }
-    //printf("%lf \n",   );
+    //printf("%lf\n",   );
     schedofftim(csound, ip);                  /*   put in turnoff list */
   }
   else {
@@ -862,7 +862,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
     }
 #ifdef BETA
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound,"schedofftim: %lf %lf %lf \n", ip->offtim,
+      csound->Message(csound,"schedofftim: %lf %lf %lf\n", ip->offtim,
                       (csound->icurTime + (0.505 * csound->ksmps))/csound->esr,
                       csound->ekr*((csound->icurTime +
                                     (0.505 * csound->ksmps))/csound->esr));
@@ -933,7 +933,7 @@ static void deact(CSOUND *csound, INSDS *ip)
 
 int kill_instance(CSOUND *csound, KILLOP *p) {
   if (LIKELY(*p->inst)) xturnoff(csound, (INSDS *) ((uintptr_t)*p->inst));
-  else csound->Warning(csound, Str("instance not valid \n"));
+  else csound->Warning(csound, Str("instance not valid\n"));
   return OK;
 }
 
@@ -1758,7 +1758,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
   if (UNLIKELY(!done)) /* init not done, exit */
     return OK;
 
-  //printf("%s \n", p->ip->strarg);
+  //printf("%s\n", p->ip->strarg);
 
   if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
     return csoundPerfError(csound, p->h.insdshead,
@@ -1835,7 +1835,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     for (pbuf = ip->spout + chan*nsmps, frame = 0;
          frame < nsmps; frame++) {
       p->ar[chan][frame] = pbuf[frame];
-      //printf("%f \n", p->ar[chan][frame]);
+      //printf("%f\n", p->ar[chan][frame]);
       //pbuf += csound->nchnls;
     }
   }
@@ -2336,7 +2336,7 @@ static void instance(CSOUND *csound, int insno)
   tp->act_instance = ip;
   ip->insno = insno;
   if (UNLIKELY(csound->oparms->odebug))
-    csoundMessage(csound,"instance(): tp->act_instance = %p \n",
+    csoundMessage(csound,"instance(): tp->act_instance = %p\n",
                   tp->act_instance);
 
 

@@ -1188,7 +1188,7 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
        fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
       return OK;
       }
-      else return csound->InitError(csound, "array size not pow-of-two \n");
+    else return csound->InitError(csound, Str("array size not pow-of-two\n"));
 }
 
 int32_t oscset(CSOUND *csound, OSC *p)

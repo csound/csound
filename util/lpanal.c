@@ -682,7 +682,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
           csound->Message(csound, "filterCoef: %f\n", filterCoef[i]);
 #endif
           if (UNLIKELY(filterCoef[i]-polyReal[lpc.poleCount-i]>1e-10))
-            csound->Message(csound, Str("Error in coef %d : %f <> %f \n"),
+            csound->Message(csound, Str("Error in coef %d : %f <> %f\n"),
                                     i, filterCoef[i], polyReal[lpc.poleCount-i]);
         }
         csound->Message(csound,".");

@@ -1465,7 +1465,7 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
     case CSFILE_SND_R:
     case CSFILE_SND_W:
       ret = sf_seek(p->sf,pos,whence);
-      //csoundMessage(csound, "seek set %d \n", pos);
+      //csoundMessage(csound, "seek set %d\n", pos);
       csound->FlushCircularBuffer(csound, p->cb);
       p->items = 0;
       break;

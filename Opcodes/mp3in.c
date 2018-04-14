@@ -175,15 +175,15 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     p->buf = (uint8_t *) p->auxch.auxp;
     p->bufused = -1;
     buffersize /= (mpainfo.decoded_sample_size);
-    //printf("===%d \n", skip);
+    //printf("===%d\n", skip);
     //skip = skip - 528;
     while (skip > 0) {
       int32_t xx= skip;
-      // printf("%d \n", skip);
+      // printf("%d\n", skip);
       if (xx > buffersize) xx = buffersize;
       skip -= xx;
       r = mp3dec_decode(mpa, p->buf, mpainfo.decoded_sample_size*xx, &p->bufused);
-      // printf("u %d \n", p->bufused);
+      // printf("u %d\n", p->bufused);
     }
     //if(!skip)
     //mp3dec_seek(mpa, skip, MP3DEC_SEEK_SAMPLES);
@@ -469,12 +469,12 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
       return
         csound->InitError(csound, Str("mp3scale: %s: failed to open file"), name);
     }// else
-    // csound->Message(csound, Str("mp3scale: open %s \n"), name);
+    // csound->Message(csound, Str("mp3scale: open %s\n"), name);
     if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       return csound->InitError(csound, "%s", mp3dec_error(r));
     } // else
-    // csound->Message(csound, Str("mp3scale: init %s \n"), name);
+    // csound->Message(csound, Str("mp3scale: init %s\n"), name);
 
     if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                  MP3DEC_RETCODE_OK)) {
@@ -529,7 +529,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
       p->fdch.fd = fd;
       fdrecord(csound, &(p->fdch));
     */
-    printf("fftsize = %d \n", p->N);
+    printf("fftsize = %d\n", p->N);
     int32_t buffersize = size;
     buffersize /= mpainfo.decoded_sample_size;
     int32_t skip = (int32_t)(*p->skip*CS_ESR)*p->resamp;
@@ -935,7 +935,7 @@ void fillbuf2(CSOUND *csound, MP3SCAL2 *p, int32_t nsmps){
       //policy = SCHED_OTHER;
       if(pthread_setschedparam(p->t1, policy,
                                &param) != 0)
-        csound->Message(csound, Str("could not set priority \n"));
+        csound->Message(csound, Str("could not set priority\n"));
     }
     else
       buffiller((void *) p);
@@ -1130,7 +1130,7 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
           byts = read(fd,dat,4);
           pad = dat[2] & 0x02 ? 1 : 0;
           lseek(fd,(int32_t)fsize + pad - 4, SEEK_CUR);
-          //printf("skip %d pad %d \n", i, pad);
+          //printf("skip %d pad %d\n", i, pad);
         }
       } else
         mp3dec_seek(mpa, skips, MP3DEC_SEEK_SAMPLES);
@@ -1139,7 +1139,7 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
 
     /*clock_gettime(CLOCK_MONOTONIC, &ts);
       dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
-      csound->Message(csound, "skip time %f \n", dtime);*/
+      csound->Message(csound, "skip time %f\n", dtime);*/
 
     // fill buffers
     p->orsr = mpainfo.frequency;
@@ -1173,11 +1173,11 @@ void *loader_thread(void *p){
     LOADER *pp = (LOADER *) p;
     if(filinit(pp->p.csound,pp) == NOTOK) {
       if(pp->p.error > 0)
-        pp->p.csound->Message(pp->p.csound, Str("mp3scal_load error: %s \n"),
+        pp->p.csound->Message(pp->p.csound, Str("mp3scal_load error: %s\n"),
                               mp3dec_error(pp->p.error));
       else
         pp->p.csound->Message(pp->p.csound,
-                              Str("mp3scal_load error: could not open %s \n"),
+                              Str("mp3scal_load error: could not open %s\n"),
                               pp->name->data);
     }
     return NULL;
@@ -1190,7 +1190,7 @@ static int32_t loader_init(CSOUND *csound, LOADER *pp){
     p->ti = 0;
     if(p->playing == 0){
       if(pthread_create(&(pp->p.t), NULL, loader_thread, pp) != 0)
-        csound->Message(csound, Str("failed to start thread \n"));
+        csound->Message(csound, Str("failed to start thread\n"));
       struct sched_param param;
       int32_t policy;
       pthread_getschedparam((pp->p.t), &policy,
@@ -1199,7 +1199,7 @@ static int32_t loader_init(CSOUND *csound, LOADER *pp){
       policy = SCHED_OTHER;
       if(pthread_setschedparam((pp->p.t), policy,
                                &param) != 0)
-        csound->Message(csound, Str("could not set priority \n"));
+        csound->Message(csound, Str("could not set priority\n"));
     }
     else return csound->InitError(csound,
                                   Str("cannot load: player still active\n"));
@@ -1225,7 +1225,7 @@ static int32_t check_init(CSOUND *csound, CHECK *p){
        p->pp->size != sizeof(MP3SCAL2)) {
       p->p = (MP3SCAL2 *) p->pp->data;
     }
-    else return csound->InitError(csound, Str("invalid handle \n"));
+    else return csound->InitError(csound, Str("invalid handle\n"));
     return OK;
 }
 
@@ -1274,7 +1274,7 @@ static int32_t player_init(CSOUND *csound, PLAYER *p){
        p->pp->size != sizeof(MP3SCAL2)) {
       p->p = (MP3SCAL2 *) p->pp->data;
     }
-    else return csound->InitError(csound, Str("invalid handle \n"));
+    else return csound->InitError(csound, Str("invalid handle\n"));
     *p->ilen = p->p->ilen;
     p->p->async = *p->async;
     if(p->p->initDone == 0)
@@ -1455,7 +1455,7 @@ static int32_t player_play(CSOUND *csound, PLAYER *pp)
         out = j == 0 ? pp->out1 : pp->out2;
         memset(out, '\0', nsmps*sizeof(MYFLT));
       }
-      csound->Message(csound, Str("not init \n"));
+      csound->Message(csound, Str("not init\n"));
       p->ti++;
       *pp->kstamp = 0;
       return OK;
@@ -2054,11 +2054,11 @@ void *loader_thread2(void *p){
     LOADER *pp = (LOADER *) p;
     if(filinit2(pp->p.csound,pp) == NOTOK) {
       if(pp->p.error > 0)
-        pp->p.csound->Message(pp->p.csound, Str("mp3scal_load error: %s \n"),
+        pp->p.csound->Message(pp->p.csound, Str("mp3scal_load error: %s\n"),
                               mp3dec_error(pp->p.error));
       else
         pp->p.csound->Message(pp->p.csound,
-                              Str("mp3scal_load error: could not open %s \n"),
+                              Str("mp3scal_load error: could not open %s\n"),
                               pp->name->data);
     }
     return NULL;
@@ -2080,7 +2080,7 @@ static int32_t loader_init2(CSOUND *csound, LOADER *pp){
       policy = SCHED_OTHER;
       if(pthread_setschedparam((pp->p.t), policy,
                                &param) != 0)
-        csound->Message(csound, "could not set priority \n");
+        csound->Message(csound, "could not set priority\n");
     }
     else return csound->InitError(csound,
                                   Str("cannot load: player still active\n"));
@@ -2094,7 +2094,7 @@ static int32_t player_init2(CSOUND *csound, PLAYER *p){
        p->pp->size != sizeof(MP3SCAL2)) {
       p->p = (MP3SCAL2 *) p->pp->data;
     }
-    else return csound->InitError(csound, "invalid handle \n");
+    else return csound->InitError(csound, "invalid handle\n");
     *p->ilen = p->p->ilen;
     p->p->async = *p->async;
     if(p->p->initDone == 0)

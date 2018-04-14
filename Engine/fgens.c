@@ -302,7 +302,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       /*        size, sizeof(MYFLT)*size, ftp->args); */
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size); /* is this right? */
       /*for (k=0; k < size; k++)
-        csound->Message(csound, "%f \n", ftp->args[k]);*/
+        csound->Message(csound, "%f\n", ftp->args[k]);*/
     }
     return 0;
 }
@@ -2782,7 +2782,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       //if (size>=PMAX) size=PMAX; // Coverity 96615 says this overflows
       memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
       /* for (k=0; k < size; k++)
-         csound->Message(csound, "%f \n", ftp->args[k]);*/
+         csound->Message(csound, "%f\n", ftp->args[k]);*/
     }
     return OK;
 }
@@ -3198,7 +3198,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     if (wbuf != NULL && !(mode & 4))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 0);
     if (!(mode & 1)) {
-      csound->Message(csound, "linear-phase output \n");
+      csound->Message(csound, "linear-phase output\n");
       return;
     }
     /* ---- minimum phase impulse response ---- */
