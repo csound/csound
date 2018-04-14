@@ -654,7 +654,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     if (M > N) {
       if (Meven)
-        *aWin *= (MYFLT)N * (MYFLT) sin(PI*0.5/(double)N) /( PI_F*FL(0.5));
+        *aWin *= (MYFLT)N * (MYFLT) sin(HALFPI/(double)N) /( HALFPI_F);
       for (i = 1; i <= aLen; i++)
         aWin[i] *= (MYFLT) (N * sin(PI * ((double) i + 0.5 * (double) Meven)
                                     / (double) N)
@@ -710,7 +710,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
         sWin[-i] = sWin[i - Leven];
 
       if (Leven)
-        *sWin *= (MYFLT) (I * sin(PI*0.5/(double) I) / (PI*0.5));
+        *sWin *= (MYFLT) (I * sin(HALFPI/(double) I) / (HALFPI));
       for (i = 1; i <= sLen; i++)
         sWin[i] *= (MYFLT)(I * sin(PI * ((double) i + 0.5 * (double) Leven)
                                    / (double) I)

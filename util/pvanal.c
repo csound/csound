@@ -643,7 +643,7 @@ static int32_t init(CSOUND *csound,
     if (M > N) {
       if (Mf)
         *thispvx->analWindow *=
-          (MYFLT)((double)N*sin(PI*0.5/(double)N)/(PI*0.5));
+          (MYFLT)((double)N*sin(HALFPI/(double)N)/(HALFPI));
       for (i = 1; i <= thispvx->analWinLen; i++)
         *(thispvx->analWindow + i) *=   /* D.T. 2000*/
           (MYFLT)((double)N*sin((double)(PI*(i+0.5*Mf)/N))/(PI*(i+0.5*Mf)));

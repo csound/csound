@@ -76,7 +76,7 @@ int32_t apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
 int32_t seedrand(CSOUND *csound, PRAND *p)
 {
     uint32_t  seedVal = (uint32_t)0;
-   int32_t xx = (int32_t)((double)*p->out + 0.5);
+    int32_t xx = (int32_t)((double)*p->out + 0.5);
 
     if (xx > FL(0.0))
       seedVal = (uint32_t)xx;
@@ -208,7 +208,7 @@ static MYFLT pcauchrand(CSOUND *csound, MYFLT a)
     do {
       r1 = csoundRandMT(&(csound->randState_));
     } while (r1 > (uint32_t)4286377121U);      /* Limit range artificially */
-    x = TAN((MYFLT)r1 * (PI_F * FL(0.5) / FL(4294967295.0)))
+    x = TAN((MYFLT)r1 * HALFPI_F / FL(4294967295.0))
       * (FL(1.0) / FL(318.3));
     return (x * a);
 }

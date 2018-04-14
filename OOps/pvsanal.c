@@ -225,7 +225,7 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
       double dN = (double)N;
       /*  sinc function */
       if (Mf)
-        *analwinhalf *= (MYFLT)(dN * sin(PI*0.5/dN) / (PI*0.5));
+        *analwinhalf *= (MYFLT)(dN * sin(HALFPI/dN) / (HALFPI));
       for (i = 1; i <= halfwinsize; i++)
         *(analwinhalf + i) *= (MYFLT)
           (dN * sin((double)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
@@ -787,7 +787,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
 
       // sinc function
     if (Mf) {
-        *analwinhalf *= (MYFLT)(dN * sin(PI*0.5/dN) / ( PI*0.5));
+        *analwinhalf *= (MYFLT)(dN * sin(HALFPI/dN) / ( HALFPI));
     }
       for (i = 1; i <= halfwinsize; i++)
         *(analwinhalf + i) *= (MYFLT)
@@ -808,7 +808,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
         *(synwinhalf - i) = *(synwinhalf + i - Lf);
 
       if (Lf)
-        *synwinhalf *= (MYFLT)(IO * sin((double)(PI*0.5/IO)) / (PI*0.5));
+        *synwinhalf *= (MYFLT)(IO * sin((double)(HALFPI/IO)) / (HALFPI));
       for (i = 1; i <= halfwinsize; i++)
         *(synwinhalf + i) *= (MYFLT)
           ((double)IO * sin((double)(PI*(i+0.5*Lf)/IO)) /

@@ -860,7 +860,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "PORTAUDIO") == 0 || strcmp(drv, "PA") == 0 ||
           strcmp(drv, "PA_BL") == 0 || strcmp(drv, "PA_CB") == 0))
       return 0;
-    csound->Message(csound, "%s", Str("rtaudio: PortAudio module enabled ... \n"));
+    csound->Message(csound, "%s", Str("rtaudio: PortAudio module enabled ...\n"));
     /* set function pointers */
 #ifdef LINUX
     if (strcmp(drv, "PA_CB") != 0)
