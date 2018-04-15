@@ -531,7 +531,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       if (STA(infile) == NULL) {
         /* open failed: maybe raw file ? */
         memset(&sfinfo, 0, sizeof(SF_INFO));
-        sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+        sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
         sfinfo.channels = csound->nchnls;
         /* FIXME: assumes input sample format is same as output */
         sfinfo.format = TYPE2SF(TYP_RAW) | FORMAT2SF(O->outformat);
@@ -547,10 +547,10 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       sfname = fullName;
     }
     /* chk the hdr codes  */
-    if (sfinfo.samplerate != (int) (csound->esr + FL(0.5))) {
+    if (sfinfo.samplerate != (int) MYFLT2LRND(csound->esr)) {
       csound->Warning(csound, Str("audio_in %s has sr = %d, orch sr = %d"),
                               sfname, (int) sfinfo.samplerate,
-                              (int) (csound->esr + FL(0.5)));
+                              (int) MYFLT2LRND(csound->esr));
     }
     if (sfinfo.channels != csound->inchnls) {
       csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls_i"),
@@ -752,14 +752,12 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* set format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
     //sfinfo.frames     = 0;
-    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+    sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
     sfinfo.channels   = csound->nchnls;
     sfinfo.format     = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     /* open file */
     if (STA(pipdevout)) {
       STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
-      sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
-                 &O->quality, sizeof(double));
 #ifdef PIPES
       if (STA(outfile) == NULL) {
         char fmt_name[6];
@@ -781,13 +779,13 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
                                     "for use in pipe\n"), fmt_name);
         sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
         STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
-        sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
-                 &O->quality, sizeof(double));
       }
 #endif
       if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                   Str(sf_strerror(NULL)));
+      sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+                 &O->quality, sizeof(double));
     }
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
