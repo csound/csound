@@ -1013,7 +1013,7 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 }
 
 
-#elif defined(HAVE_ATOMIC_BUILTIN)
+#elif defined(HAVE_BUILTIN_ATOMIC)
 // No POSIX spinlocks but GCC intrinsics
 
 void csoundSpinLock(spin_lock_t *spinlock){
