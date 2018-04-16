@@ -120,7 +120,6 @@ public:
 };
 
 extern "C" {
-
 PUBLIC int csoundModuleInit_ampmidid(CSOUND *csound) {
   int status = csound->AppendOpcode(
       csound, (char *)"ampmidid.k", sizeof(KAMPMIDID), 0, 3, (char *)"k",
