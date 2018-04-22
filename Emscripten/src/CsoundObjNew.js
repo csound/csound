@@ -528,7 +528,7 @@ if(typeof AudioWorkletNode !== 'undefined' &&
         WAM["ENVIRONMENT"] = "WEB";
         WAM["print"] = (t) => console.log(t);
         WAM["printErr"] = (t) => console.log(t);
-        WAM["wasmBinaryFile"] = script_base + 'libcsound.wasm';
+        WAM["locateFile"] = (f) => script_base + f;
 
         AudioWorkletGlobalScope.libcsound(WAM).then(() => {
           resolve();
