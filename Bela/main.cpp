@@ -286,8 +286,7 @@ void csound_cleanup(BelaContext *context, void *p)
   delete csData->csound;
 }
 
-Midi gMidi;
-
+static Midi gMidi;
 /** MIDI functions 
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
