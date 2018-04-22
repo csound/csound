@@ -43,6 +43,7 @@ cd ..
 rm -rf dist-web-csound
 mkdir dist-web-csound
 cp src/FileList.js dist-web-csound/
+cp src/CsoundProcessor.js dist-web-csound/CsoundProcessor.js
 cp src/CsoundObjNew.js dist-web-csound/CsoundObj.js
 cp build-web-csound/libcsound.js dist-web-csound/
 cp build-web-csound/libcsound.wasm dist-web-csound/
