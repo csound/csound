@@ -155,7 +155,6 @@ struct CsData {
   int count;
   CsChan channel[ANCHNS];
   CsChan ochannel[ANCHNS];
-  Midi midi;
 };
 
 bool csound_setup(BelaContext *context, void *p)
@@ -287,11 +286,12 @@ void csound_cleanup(BelaContext *context, void *p)
   delete csData->csound;
 }
 
+Midi gMidi;
+
 /** MIDI functions 
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
-  CsData *hdata = (CsData *) csound->GetHostData(csound);
-  Midi *midi = &(hdata->midi);
+  Midi *midi = &gMidi
   if(midi->readFrom(dev) == 1) {
     midi->enableParser(false);
     *userData = (void *) midi;
@@ -320,8 +320,7 @@ int ReadMidiData(CSOUND *csound, void *userData,
 }
 
 int OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev) {
-  CsData *hdata = (CsData *) csound->GetHostData(csound);
-  Midi *midi = &(hdata->midi);
+  Midi *midi = &gMidi;
   if(midi->writeTo(dev) == 1) {
     midi->enableParser(false);
     *userData = (void *) midi;

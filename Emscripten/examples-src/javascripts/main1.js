@@ -39,7 +39,7 @@ function main() {
 	Module['noExitRuntime'] = true;
         Module['_main'] = function() {
 	  const csound = new CsoundObj();
-          console.log("Welcome to Web Csound !");
+          console.log("Welcome to Wasm Csound !");
 	};
 
        require(["jquery","bootstrap", "libcsound", "CsoundObj"], function () {   
