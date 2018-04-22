@@ -197,18 +197,6 @@ if(typeof AudioWorkletNode !== 'undefined' &&
     var _destroy = WAM.cwrap('CsoundObj_destroy', null, ['number']);
     var running;
 
-    var getAudioContext = function() {
-
-	try {
-	    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-	    return new AudioContext();	
-	}
-	catch(error) {
-
-	    console.log('Web Audio API is not supported in this browser');
-	}
-    };
-
     this.setMidiCallbacks = function() {
 	_setMidiCallbacks(_self);
     }
@@ -287,7 +275,7 @@ if(typeof AudioWorkletNode !== 'undefined' &&
     };
 
 
-    var audioContext = getAudioContext();
+    var audioContext = CSOUND_AUDIO_CONTEXT;
     var samplerate = audioContext.sampleRate;
     var compiled = false;
 
