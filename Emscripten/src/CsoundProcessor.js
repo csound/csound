@@ -94,6 +94,8 @@ class CsoundProcessor extends AudioWorkletProcessor {
       } 
     }
 
+    this.cnt = cnt;
+
     return true;
   }
 
