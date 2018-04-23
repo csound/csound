@@ -77,18 +77,21 @@ class CsoundProcessor extends AudioWorkletProcessor {
     let ksmps = this.ksmps;
     let zerodBFS = this.zerodBFS;
 
-    for (let i = 0; i < bufferLen / ksmps; i++) {
-      Csound.performKsmps(this.csObj);
+    let cnt = this.cnt;
+    let nchnls = this.nchnls;
 
-      for (let channel = 0; channel < output.length; channel++) {
-        //let inputChannel = input[channel];
-        let outputChannel = output[channel];
-
-        for (let j = 0; j < ksmps; j++) {
-          outputChannel[i * ksmps + j] = csOut[j * 2 + channel] / zerodBFS;
-        }
+    for (let i = 0; i < bufferLen; i++, cnt++) {
+      if(cnt == ksmps) {
+        // if we need more samples from Csound
+        Csound.performKsmps(this.csObj);
+        cnt = 0;
       }
 
+      // de-interleave 
+      for (let channel = 0; channel < output.length; channel++) {
+        let outputChannel = output[channel];
+        outputChannel[i] = csOut[cnt*nchnls + channel] / zerodBFS;
+      } 
     }
 
     return true;
@@ -98,9 +101,13 @@ class CsoundProcessor extends AudioWorkletProcessor {
     let csObj = this.csObj;
     let ksmps = Csound.getKsmps(csObj);
     this.ksmps = ksmps;
+    this.cnt = ksmps;
     let outputChannelCount = 2;
     let inputChannelCount = 1;
 
+    //hardcode for now, but has to match Node's input/output settings
+    this.nchnls = 2;
+    this.nchnls_i = 1;
 
     Csound.prepareRT(csObj);
     Csound.play(csObj);
