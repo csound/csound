@@ -290,7 +290,7 @@ static Midi gMidi;
 /** MIDI functions 
  */
 int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev) {
-  Midi *midi = &gMidi
+  Midi *midi = &gMidi;
   if(midi->readFrom(dev) == 1) {
     midi->enableParser(false);
     *userData = (void *) midi;
