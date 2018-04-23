@@ -133,6 +133,9 @@ class CsoundProcessor extends AudioWorkletProcessor {
     let data = event.data;
 
     switch (data[0]) {
+      case "compileCSD":
+        Csound.compileCSD(this.csObj, data[1]);
+        break;
       case "compileOrc":
         Csound.compileOrc(this.csObj, data[1]);
         break;

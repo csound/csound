@@ -72,11 +72,11 @@ if(typeof AudioWorkletNode !== 'undefined' &&
       this.node.connect(this.audioContext.destination);
     }
 
-    compileCsd(filePath) {
+    compileCSD(filePath) {
       // not sure what to do about file path...
       // need to see what can be accessed in
       // worklet scope
-      this.node.port.postMessage(["compileCsd", filePath]);
+      this.node.port.postMessage(["compileCSD", filePath]);
     }
 
     compileOrc(orcString) {
