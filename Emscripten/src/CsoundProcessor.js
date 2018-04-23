@@ -58,6 +58,8 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
     let csObj = Csound.new();
     this.csObj = csObj;
+    Csound.setOption(this.csObj, "-odac");
+    Csound.setOption(this.csObj, "-+rtaudio=null");
 
     this.port.onmessage = this.handleMessage.bind(this);
   }
@@ -156,6 +158,8 @@ class CsoundProcessor extends AudioWorkletProcessor {
         break;
       case "reset":
         Csound.reset(this.csObj);
+        Csound.setOption(this.csObj, "-odac");
+        Csound.setOption(this.csObj, "-+rtaudio=null");
         this.csoundOutputBuffer = null; 
         this.ksmps = null; 
         this.zerodBFS = null; 
