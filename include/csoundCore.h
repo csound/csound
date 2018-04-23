@@ -51,8 +51,8 @@
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
-#ifndef _MM_DENORMALS_ZERO_ON
 #include <xmmintrin.h>
+#ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0x0040
 #define _MM_DENORMALS_ZERO_ON     0x0040
 #define _MM_DENORMALS_ZERO_OFF    0x0000
