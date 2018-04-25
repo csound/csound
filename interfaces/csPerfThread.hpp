@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
 */
 
 #ifdef __SSE__
- #ifndef _MM_DENORMALS_ZERO_ON
   #include <xmmintrin.h>
+#ifndef _MM_DENORMALS_ZERO_ON
   #define _MM_DENORMALS_ZERO_MASK   0x0040
   #define _MM_DENORMALS_ZERO_ON     0x0040
   #define _MM_DENORMALS_ZERO_OFF    0x0000
