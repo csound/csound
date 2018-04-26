@@ -242,6 +242,7 @@ PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
  * before calling this function, and csoundReset() should be called
  * after sorting the score to clean up. On success, zero is returned.
  */
+
 PUBLIC int csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
 {
     int   err;
@@ -251,6 +252,7 @@ PUBLIC int csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     while ((c=getc(inFile))!=EOF) corfile_putc(csound, c, inf);
+    corfile_puts(csound, "\ne\n#exit\n", inf);
     corfile_rewind(inf);
     /* scsortstr() ignores the second arg - Jan 5 2012 */
     csound->scorestr = inf;
