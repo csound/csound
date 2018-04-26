@@ -1,0 +1,69 @@
+<!DOCTYPE html> 
+<html> 
+<!-- 
+ WasmCsound example 
+ Copyright (C) 2017 V Lazzarini 
+--> 
+<head> 
+ <title>Random Generator</title>
+</head>
+<script src="js/CsoundObj.js"></script>
+<script type="text/javascript">
+
+// fancy colours
+function getRandomColor() {
+  var letters = '0123456789ABCDEF'.split('');
+  var color = '#';
+  for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+// message printout
+function print_msg(message) {
+   var messField = document.getElementById("console") 
+   messField.innerText = message;
+   messField.style.color = getRandomColor();
+};
+
+
+function main() {
+  CsoundObj.importScripts("./js/").then(() => {
+  console.log = print_msg;
+  console.warn = print_msg;
+    var csound = new CsoundObj();
+    csound.compileOrc(document.getElementById('instruments').value);
+    csound.start();
+     window.addEventListener("unload", function(e){
+	if(csound != null)
+            csound.destroy();
+   }, false);
+});
+}
+
+</script>
+<body onload="main()">
+<h1> WASM Csound Example</h2>
+<div id="console">loading...
+</div>
+
+<textarea class="code" id="instruments" hidden>
+/* this is the synthesis code
+   for this example
+*/
+nchnls=2
+0dbfs=1
+instr 1
+ k1 expon p4,p3,p4*0.001
+ a1 oscili k1,p5
+ outs a1,a1
+ schedule 1,0.25,0.5,0.1+rnd(0.1),500+rnd(500)
+endin 
+schedule 1,0,0.5,0.1,500
+</textarea>
+</body>
+</html>
+  
+
+  
