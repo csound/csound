@@ -33,8 +33,7 @@ emcc -v -O2 -g4 -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=1 -s "BINARYEN_M
 ## Second build for WASM/AudioWorklet (async compilation = 0, assertions = 0)
 emcc -v -O2 -g4 -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s "BINARYEN_METHOD='native-wasm'" -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=0 -s BINARYEN_ASYNC_COMPILATION=0 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\" -s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/libsndfile-1.0.25/libsndfile-wasm.a -o libcsound-worklet.js
 
-
-sh ../convert.sh
+nodejs ../convert.js
 
 echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
 echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound-worklet.js
@@ -48,5 +47,5 @@ cp src/CsoundObjNew.js dist-web-csound/CsoundObj.js
 cp build-web-csound/libcsound.js dist-web-csound/
 cp build-web-csound/libcsound.wasm dist-web-csound/
 cp build-web-csound/libcsound-worklet.js dist-web-csound/
-cp build-web-csound/libcsound-worklet.base64.js dist-web-csound/
+cp build-web-csound/libcsound-worklet.wasm.js dist-web-csound/
 #cp build-wasm/libcsound.js.map dist-wasm/
