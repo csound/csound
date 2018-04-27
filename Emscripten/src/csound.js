@@ -44,28 +44,28 @@ var csound = (function() {
 
     function createModule() {
         var path = absolute_path();
+        load_dep(path + "libcsound.js", "script", function() {
             load_dep(path + "CsoundObj.js", "script", function() {
-                console.log("loaded CsoundObj");
-                CsoundObj.importScripts(path).then(() => {
+                console.log("loaded scripts");
+                Module["onRuntimeInitialized"] = function() {
                     console.log("loaded WASM runtime");
                     csound.Csound = new CsoundObj();
-		    // csound.Csound.setOption("-M0");
-                    // csound.Csound.setMidiCallbacks();
+		    csound.Csound.setOption("-M0");
+                    csound.Csound.setMidiCallbacks();
                     csound.module = true;
                     if (typeof window.handleMessage !== 'undefined') { 
                         console.log = console.warn = function(mess) {
                             mess += "\n";
                             window.handleMessage(mess);
-                        }
-			csound.Csound.setMessageCallback(console.log);
+                            }
                     }
                     if (typeof window.moduleDidLoad !== 'undefined')
                         window.moduleDidLoad();
                     if (typeof window.attachListeners !== 'undefined') 
                         window.attachListeners();
-		    csound.updateStatus('Ready.');
-                });
+                };
             });
+        });
     }
 
     var fileData = null;
@@ -369,7 +369,6 @@ var csound = (function() {
      * @param {function} callback completion callback
      */
     function CopyUrlToLocal(url, name, callback = null) {
-	load_dep("./js/libcsound.js", "script", function() {
         var xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.onload = function() {
             var data = new Uint8Array(xmlHttpRequest.response);
@@ -380,8 +379,7 @@ var csound = (function() {
         };
         xmlHttpRequest.open("get", url, true);
         xmlHttpRequest.responseType = "arraybuffer";
-            xmlHttpRequest.send(null);
-	});
+        xmlHttpRequest.send(null);
     }
 
     /**

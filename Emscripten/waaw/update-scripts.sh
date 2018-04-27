@@ -1,2 +1,2 @@
 cp ../dist-web-csound/* ./js/
-cp ../src/csound.js ./js/
+cp ../src/csound.new.js ./js/csound.js
