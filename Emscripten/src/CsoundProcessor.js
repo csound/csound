@@ -56,12 +56,22 @@ class CsoundProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super(options);
 
+    let p = this.port;
+
+    WAM["print"] = (t) => {
+      p.postMessage(["log", t]);
+    };
+    WAM["printErr"] = (t) => {
+      p.postMessage(["log", t]);
+    };
+
     let csObj = Csound.new();
     this.csObj = csObj;
     Csound.setOption(this.csObj, "-odac");
     Csound.setOption(this.csObj, "-+rtaudio=null");
 
     this.port.onmessage = this.handleMessage.bind(this);
+    this.port.start();
   }
 
 
