@@ -5,7 +5,6 @@
    background-color: #000077 }
 </style>
 <title>Sliders</title>
-<script src="js/libcsound.js"></script>
 <script src="js/CsoundObj.js"></script>
 <script type="text/javascript">
 
@@ -15,6 +14,7 @@ function moduleDidLoad() {
   console.log = print_msg;
   console.warn = print_msg;
   csound = new CsoundObj();
+  csound.setMessageCallback(print_msg);
   csound.compileOrc(document.getElementById('instruments').value);
   SetParam("amp", '', 1000., 0.);
   SetParam("cf", 'Hz', 1., 0.);
