@@ -21,6 +21,7 @@
  */
 var csound = (function() {
     var Csound = null;
+    var FS = null;
     function load_dep(file, elm, callback) {
         var jsl = document.createElement(elm);
         jsl.type = "text/javascript";
@@ -52,6 +53,7 @@ var csound = (function() {
 		    // csound.Csound.setOption("-M0");
                     // csound.Csound.setMidiCallbacks();
                     csound.module = true;
+		    FS = AudioWorkletGlobalScope.WAM["FS"];
                     if (typeof window.handleMessage !== 'undefined') { 
                         console.log = console.warn = function(mess) {
                             mess += "\n";
@@ -369,7 +371,6 @@ var csound = (function() {
      * @param {function} callback completion callback
      */
     function CopyUrlToLocal(url, name, callback = null) {
-	load_dep("./js/libcsound.js", "script", function() {
         var xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.onload = function() {
             var data = new Uint8Array(xmlHttpRequest.response);
@@ -380,8 +381,8 @@ var csound = (function() {
         };
         xmlHttpRequest.open("get", url, true);
         xmlHttpRequest.responseType = "arraybuffer";
-            xmlHttpRequest.send(null);
-	});
+        xmlHttpRequest.send(null);
+
     }
 
     /**
