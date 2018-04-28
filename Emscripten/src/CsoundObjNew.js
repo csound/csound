@@ -85,6 +85,10 @@ if(typeof AudioWorkletNode !== 'undefined' &&
       this.node.connect(this.audioContext.destination);
     }
 
+    writeToFS(filePath, blobData) {
+      this.node.port.postMessage(["writeToFS", filePath, blobData]);
+    }
+
     compileCSD(filePath) {
       // not sure what to do about file path...
       // need to see what can be accessed in
@@ -518,6 +522,15 @@ if(typeof AudioWorkletNode !== 'undefined' &&
 
     this.setMessageCallback = function(msgCallback) {
       this.msgCallback = msgCallback;
+    }
+
+    this.writeToFS = function (filePath, blobData) {
+
+      let FS = WAM["FS"];
+      let stream = FS.open(filePath, 'w+');
+      let buf = new Uint8Array(blobData)
+      FS.write(stream, buf, 0, buf.length, 0);
+      FS.close(stream);
     }
 
     }
