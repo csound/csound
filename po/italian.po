@@ -846,7 +846,7 @@ msgid "insufficient gen arguments"
 msgstr "gli argomenti della gen sono insufficienti"
 
 #: Engine/fgens.c:215 Opcodes/ftgen.c:118 Opcodes/ftgen.c:675
-#: Opcodes/signalflowgraph.cpp:1363
+#: Opcodes/signalflowgraph.cpp:1364
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr "gen chiamata \"%s\" non definita"
@@ -1052,8 +1052,8 @@ msgstr "sostituisco la precedente ftable %d"
 #: Engine/fgens.c:2395 Engine/fgens.c:2511 Engine/fgens.c:2539
 #: Engine/fgens.c:2546 Opcodes/gab/gab.c:577 Opcodes/gab/gab.c:634
 #: Opcodes/midiops2.c:235 Opcodes/midiops2.c:391 Opcodes/midiops2.c:473
-#: Opcodes/uggab.c:1668 Opcodes/uggab.c:1704 Opcodes/uggab.c:1726
-#: Opcodes/uggab.c:1780
+#: Opcodes/uggab.c:1666 Opcodes/uggab.c:1702 Opcodes/uggab.c:1724
+#: Opcodes/uggab.c:1778
 #, c-format
 msgid "Invalid ftable no. %f"
 msgstr "ftable num. %f non valida"
@@ -2298,7 +2298,7 @@ msgstr "lettura di %d blocchi-campione di %d-byte floats da %s\n"
 msgid "reading %d-byte blks of %s from %s (%s)\n"
 msgstr "lettura blocchi di %d-byte di %s da %s (%s)\n"
 
-#: InOut/libsnd.c:702 InOut/libsnd.c:780
+#: InOut/libsnd.c:702 InOut/libsnd.c:778
 #, c-format
 msgid "Output file type changed to %s for use in pipe\n"
 msgstr "Tipo di file output cambiato in %s per usarlo nella pipe\n"
@@ -2307,7 +2307,7 @@ msgstr "Tipo di file output cambiato in %s per usarlo nella pipe\n"
 msgid "Failed to initialise real time audio output"
 msgstr "Fallita inizializzazione dell'output audio in tempo reale"
 
-#: InOut/libsnd.c:768 InOut/libsnd.c:775 InOut/libsnd.c:789
+#: InOut/libsnd.c:766 InOut/libsnd.c:773 InOut/libsnd.c:785
 #, c-format
 msgid ""
 "sfinit: cannot open fd %d\n"
@@ -2316,12 +2316,12 @@ msgstr ""
 "sfinit: impossibile aprire fd %d\n"
 "%s"
 
-#: InOut/libsnd.c:795
+#: InOut/libsnd.c:793
 #, c-format
 msgid "sfinit: cannot open %s"
 msgstr "sfinit: impossibile aprire %s"
 
-#: InOut/libsnd.c:799
+#: InOut/libsnd.c:797
 #, c-format
 msgid ""
 "sfinit: cannot open %s\n"
@@ -2330,39 +2330,39 @@ msgstr ""
 "sfinit: impossibile aprire %s\n"
 "%s"
 
-#: InOut/libsnd.c:873
+#: InOut/libsnd.c:871
 #, fuzzy, c-format
 msgid "writing %d sample blks of %lu-bit floats to %s\n"
 msgstr "scrittura di %d blocchi-campione di %d-bit floats su %s \n"
 
-#: InOut/libsnd.c:877 util/srconv.c:507
+#: InOut/libsnd.c:875 util/srconv.c:507
 #, c-format
 msgid "writing %d-byte blks of %s to %s"
 msgstr "scrittura blocchi di %d-byte di %s su %s"
 
-#: InOut/libsnd.c:882 InOut/libsnd.c:958
+#: InOut/libsnd.c:880 InOut/libsnd.c:956
 msgid " (raw)\n"
 msgstr " (raw)\n"
 
-#: InOut/libsnd.c:949
+#: InOut/libsnd.c:947
 msgid "sample blks of "
 msgstr ""
 
-#: InOut/libsnd.c:950
+#: InOut/libsnd.c:948
 msgid "-bit floats written to "
 msgstr ""
 
-#: InOut/libsnd.c:954
+#: InOut/libsnd.c:952
 #, fuzzy, c-format
 msgid "%<PRIi32> %d sample blks of %s written to %s"
 msgstr "%ld %d blocchi-campione %s scritti su %s"
 
-#: InOut/libsnd.c:971
+#: InOut/libsnd.c:969
 #, c-format
 msgid "soundfile write returned bytecount of %d, not %d"
 msgstr "il soundfile scritto restituisce conteggio byte di %d, non %d"
 
-#: InOut/libsnd.c:974
+#: InOut/libsnd.c:972
 msgid ""
 "(disk may be full...\n"
 " closing the file ...)"
@@ -2370,11 +2370,11 @@ msgstr ""
 "(forse disco pieno...\n"
 " chiusura file ...)"
 
-#: InOut/libsnd.c:977
+#: InOut/libsnd.c:975
 msgid "\t... closed\n"
 msgstr "\t... chiuso\n"
 
-#: InOut/libsnd.c:983
+#: InOut/libsnd.c:981
 msgid "not writing to sound disk\n"
 msgstr "nessuna scrittura su sound disk\n"
 
@@ -6898,12 +6898,12 @@ msgstr "DSSI4CS: variabile d'ambiente LADSPA_PATH non impostata.\n"
 msgid "DSSI4CS: DSSI_PATH environment variable not set.\n"
 msgstr "DSSI4CS: variabile d'ambiente DSSI_PATH non impostata.\n"
 
-#: Opcodes/dssi4cs/src/load.c:154
+#: Opcodes/dssi4cs/src/load.c:143
 #, c-format
 msgid "Failed to load plugin \"%s\": %s"
 msgstr "Fallito caricamento del plugin \"%s\": %s"
 
-#: Opcodes/dssi4cs/src/load.c:190
+#: Opcodes/dssi4cs/src/load.c:179
 #, c-format
 msgid ""
 "Unable to find ladspa_descriptor() function in plugin library file \"%s\": "
@@ -6911,14 +6911,14 @@ msgid ""
 "Are you sure this is a LADSPA plugin file ?"
 msgstr ""
 
-#: Opcodes/dssi4cs/src/load.c:196
+#: Opcodes/dssi4cs/src/load.c:185
 #, c-format
 msgid ""
 "Unable to find ladspa_descriptor() function in plugin library file \"%s\".\n"
 "Are you sure this is a LADSPA plugin file ?"
 msgstr ""
 
-#: Opcodes/dssi4cs/src/load.c:211
+#: Opcodes/dssi4cs/src/load.c:200
 #, c-format
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
@@ -7213,7 +7213,7 @@ msgstr "ftconv: non inizializzato"
 msgid "Error deleting ftable %d"
 msgstr "Errore cancellazione ftable %d"
 
-#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1388
+#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1389
 msgid "ftgen string arg not allowed"
 msgstr "ftgen argomento stringa non permesso"
 
@@ -7399,35 +7399,6 @@ msgstr "vphaseseg: funzione mancante o non valida"
 #: Opcodes/gab/newgabopc.c:40 Opcodes/gab/newgabopc.c:56
 msgid "vtable1: incorrect table number"
 msgstr "vtable1: numero di tavola non corretto"
-
-#: Opcodes/gab/newgabopc.c:245 Opcodes/gab/newgabopc.c:303
-msgid "copyTabElems: incorrect destination table number"
-msgstr "copyTabElems: numero di tavola di destinazione non corretto"
-
-#: Opcodes/gab/newgabopc.c:251 Opcodes/gab/newgabopc.c:308
-msgid ""
-"copyTabElems: destination table too short or number of elements to copy too "
-"big"
-msgstr ""
-"copyTabElems: tavola di destinazione troppo piccola o numero di elementi da "
-"copiare troppo grande"
-
-#: Opcodes/gab/newgabopc.c:257 Opcodes/gab/newgabopc.c:313
-msgid "copyTabElems: incorrect source table number"
-msgstr "copyTabElems: numero di tavola sorgente non corretto"
-
-#: Opcodes/gab/newgabopc.c:262 Opcodes/gab/newgabopc.c:317
-msgid ""
-"copyTabElems: source table size less than the number of elements to copy"
-msgstr ""
-
-#: Opcodes/gab/newgabopc.c:280 Opcodes/gab/newgabopc.c:327
-msgid "copyTabElems: source table too short"
-msgstr "copyTabElems: tavola sorgente troppo corta"
-
-#: Opcodes/gab/newgabopc.c:283 Opcodes/gab/newgabopc.c:330
-msgid "copyTabElems: destination table too short"
-msgstr "copyTabElems: tavola di destinazione troppo corta"
 
 #: Opcodes/gab/newgabopc.c:356
 msgid "inrg: audio input is not enabled"
@@ -9072,7 +9043,7 @@ msgstr ""
 #: Opcodes/pvlock.c:885 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:716
 #: Opcodes/pvsbasic.c:1047 Opcodes/pvsbasic.c:1262 Opcodes/pvsbasic.c:1369
 #: Opcodes/pvsbasic.c:1614 Opcodes/pvsbasic.c:1838 Opcodes/pvsbasic.c:2011
-#: Opcodes/pvsgendy.c:44 Opcodes/signalflowgraph.cpp:711
+#: Opcodes/pvsgendy.c:44 Opcodes/signalflowgraph.cpp:712
 msgid "Unsafe to have same fsig as in and out"
 msgstr ""
 
@@ -9544,54 +9515,54 @@ msgstr ""
 msgid "powershape: ifullscale must be strictly positive"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:328 Opcodes/signalflowgraph.cpp:473
-#: Opcodes/signalflowgraph.cpp:975
+#: Opcodes/signalflowgraph.cpp:329 Opcodes/signalflowgraph.cpp:474
+#: Opcodes/signalflowgraph.cpp:976
 #, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
 msgstr "Creata l'istanza 0x%x di %d istanze di outlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:341
+#: Opcodes/signalflowgraph.cpp:342
 #, c-format
 msgid "Removed instance 0x%x of %d instances of outleta %s\n"
 msgstr "Rimossa l'istanza 0x%x di %d istanze di outleta %s\n"
 
-#: Opcodes/signalflowgraph.cpp:393 Opcodes/signalflowgraph.cpp:532
-#: Opcodes/signalflowgraph.cpp:666 Opcodes/signalflowgraph.cpp:1038
+#: Opcodes/signalflowgraph.cpp:394 Opcodes/signalflowgraph.cpp:533
+#: Opcodes/signalflowgraph.cpp:667 Opcodes/signalflowgraph.cpp:1039
 #, c-format
 msgid "Created instance 0x%x of inlet %s\n"
 msgstr "Creata l'istanza 0x%x di inlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:407 Opcodes/signalflowgraph.cpp:680
-#: Opcodes/signalflowgraph.cpp:1052
+#: Opcodes/signalflowgraph.cpp:408 Opcodes/signalflowgraph.cpp:681
+#: Opcodes/signalflowgraph.cpp:1053
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:485
+#: Opcodes/signalflowgraph.cpp:486
 #, c-format
 msgid "Removed 0x%x of %d instances of outletk %s\n"
 msgstr "Rimossa 0x%x di %d istanze di outletk %s\n"
 
-#: Opcodes/signalflowgraph.cpp:546
+#: Opcodes/signalflowgraph.cpp:547
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:604
+#: Opcodes/signalflowgraph.cpp:605
 #, c-format
 msgid "Created instance 0x%x of outlet %s\n"
 msgstr "Creata l'istanza 0x%x di outlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:615
+#: Opcodes/signalflowgraph.cpp:616
 #, c-format
 msgid "Removed 0x%x of %d instances of outletf %s\n"
 msgstr "Rimossa 0x%x di %d istanze di outletf %s\n"
 
-#: Opcodes/signalflowgraph.cpp:738
+#: Opcodes/signalflowgraph.cpp:739
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr "inletf: il formato del segnale deve essere amp-phase o amp-freq."
 
-#: Opcodes/signalflowgraph.cpp:803
+#: Opcodes/signalflowgraph.cpp:804
 #, c-format
 msgid ""
 "Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: "
@@ -9600,44 +9571,44 @@ msgstr ""
 "Creata l'istanza 0x%x di %d istanze di outlet %s (out arraydat: 0x%x dims: "
 "%2d size: %4d [%4d] data: 0x%x (0x%x))\n"
 
-#: Opcodes/signalflowgraph.cpp:819
+#: Opcodes/signalflowgraph.cpp:820
 #, c-format
 msgid "Removed 0x%x of %d instances of outletv %s\n"
 msgstr "Rimossa 0x%x di %d istanze di outletv %s\n"
 
-#: Opcodes/signalflowgraph.cpp:880
+#: Opcodes/signalflowgraph.cpp:881
 #, c-format
 msgid ""
 "Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d "
 "[%4d] data: 0x%x (0x%x))\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:896
+#: Opcodes/signalflowgraph.cpp:897
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s\n"
 msgstr "Connesse le istanze di outlet %s all'istanza 0x%x di inlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:987
+#: Opcodes/signalflowgraph.cpp:988
 #, c-format
 msgid "Removed 0x%x of %d instances of outletkid %s\n"
 msgstr "Rimossa 0x%x di %d istanze di outletkid %s\n"
 
-#: Opcodes/signalflowgraph.cpp:1115 Opcodes/signalflowgraph.cpp:1148
-#: Opcodes/signalflowgraph.cpp:1181 Opcodes/signalflowgraph.cpp:1211
+#: Opcodes/signalflowgraph.cpp:1116 Opcodes/signalflowgraph.cpp:1149
+#: Opcodes/signalflowgraph.cpp:1182 Opcodes/signalflowgraph.cpp:1212
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1406 Opcodes/signalflowgraph.cpp:1411
+#: Opcodes/signalflowgraph.cpp:1407 Opcodes/signalflowgraph.cpp:1412
 #, c-format
 msgid "ftgenonce: re-using existing func: %f\n"
 msgstr ""
 
-#: Opcodes/signalflowgraph.cpp:1416
+#: Opcodes/signalflowgraph.cpp:1417
 msgid "ftgenonce error"
 msgstr "errore ftgenonce"
 
-#: Opcodes/signalflowgraph.cpp:1421
+#: Opcodes/signalflowgraph.cpp:1422
 #, c-format
 msgid "ftgenonce: created new func: %d\n"
 msgstr ""
@@ -10129,50 +10100,50 @@ msgstr "IR srate != orch's srate"
 msgid "PCONVOLVE: less sound than expected!"
 msgstr ""
 
-#: Opcodes/uggab.c:184
+#: Opcodes/uggab.c:182
 msgid " bad imode value"
 msgstr ""
 
-#: Opcodes/uggab.c:205
+#: Opcodes/uggab.c:203
 msgid "Min and max the same"
 msgstr ""
 
-#: Opcodes/uggab.c:244
+#: Opcodes/uggab.c:242
 msgid "table not found in poscil"
 msgstr "tavola non trovata in poscil"
 
-#: Opcodes/uggab.c:269 Opcodes/uggab.c:300 Opcodes/uggab.c:337
-#: Opcodes/uggab.c:374
+#: Opcodes/uggab.c:267 Opcodes/uggab.c:298 Opcodes/uggab.c:335
+#: Opcodes/uggab.c:372
 msgid "poscil: not initialised"
 msgstr "poscil: non inizializzato"
 
-#: Opcodes/uggab.c:430 Opcodes/uggab.c:485 Opcodes/uggab.c:541
-#: Opcodes/uggab.c:598
+#: Opcodes/uggab.c:428 Opcodes/uggab.c:483 Opcodes/uggab.c:539
+#: Opcodes/uggab.c:596
 msgid "poscil3: not initialised"
 msgstr "poscil3: non inizializzato"
 
-#: Opcodes/uggab.c:685
+#: Opcodes/uggab.c:683
 msgid "losc: no sample rate stored in function assuming=sr\n"
 msgstr ""
 
-#: Opcodes/uggab.c:850
+#: Opcodes/uggab.c:848
 #, c-format
 msgid "illegal reson iscl value: %f"
 msgstr ""
 
-#: Opcodes/uggab.c:873
+#: Opcodes/uggab.c:871
 msgid "loop cannot be zero"
 msgstr ""
 
-#: Opcodes/uggab.c:975
+#: Opcodes/uggab.c:973
 msgid "loop opcode: wrong argument count"
 msgstr ""
 
-#: Opcodes/uggab.c:1323
+#: Opcodes/uggab.c:1321
 msgid "vibrato@ Phase out of range"
 msgstr "vibrato@ Fase fuori intervallo"
 
-#: Opcodes/uggab.c:1383 Opcodes/uggab.c:1426
+#: Opcodes/uggab.c:1381 Opcodes/uggab.c:1424
 msgid "vibrato(krate): not initialised"
 msgstr "vibrato(krate): non inizializzato"
 
@@ -15235,6 +15206,25 @@ msgstr ""
 #: po/sndfile_str.c:177
 msgid "Error : Length parameter passed to read/write is negative."
 msgstr ""
+
+#~ msgid "copyTabElems: incorrect destination table number"
+#~ msgstr "copyTabElems: numero di tavola di destinazione non corretto"
+
+#~ msgid ""
+#~ "copyTabElems: destination table too short or number of elements to copy "
+#~ "too big"
+#~ msgstr ""
+#~ "copyTabElems: tavola di destinazione troppo piccola o numero di elementi "
+#~ "da copiare troppo grande"
+
+#~ msgid "copyTabElems: incorrect source table number"
+#~ msgstr "copyTabElems: numero di tavola sorgente non corretto"
+
+#~ msgid "copyTabElems: source table too short"
+#~ msgstr "copyTabElems: tavola sorgente troppo corta"
+
+#~ msgid "copyTabElems: destination table too short"
+#~ msgstr "copyTabElems: tavola di destinazione troppo corta"
 
 #~ msgid "%s inconsistent sr, kr, ksmps \n"
 #~ msgstr "%s sr, kr e ksmps sono incongruenti\n"
