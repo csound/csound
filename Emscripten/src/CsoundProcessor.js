@@ -159,7 +159,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
             this.status = Csound.compileCSD(this.csObj, data[1]);
             break;
 	case "compileOrc":
-            this.status = Csound.compileOrc(this.csObj, data[1]);
+            Csound.compileOrc(this.csObj, data[1]);
             break;
 	case "evalCode":
             Csound.evaluateCode(this.csObj, data[1]);
