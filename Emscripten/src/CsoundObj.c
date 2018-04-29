@@ -76,13 +76,13 @@ void CsoundObj_setOption(CsoundObj *self, const char *option)
 }
 
 EMSCRIPTEN_KEEPALIVE 
-void CsoundObj_compileCSD(CsoundObj *self, char *csd)
+int32_t CsoundObj_compileCSD(CsoundObj *self, char *csd)
 {
     csoundMessage(self->csound, "CsoundObj_compileCSD...\n");
     int result = 0;
     if (csd == 0) {
         csoundMessage(self->csound, "Error: Null CSD.\n");
-        return;
+        return -1;
     }
 
 #ifdef INIT_STATIC_MODULES
@@ -100,7 +100,6 @@ void CsoundObj_compileCSD(CsoundObj *self, char *csd)
         } else {
             self->status = CS_STARTED_STATUS;
         }
-        return;
     } else {
         csoundMessage(self->csound, "csoundCompile...\n");
         const char *argv[2] = {
@@ -114,6 +113,7 @@ void CsoundObj_compileCSD(CsoundObj *self, char *csd)
             self->status = CS_STARTED_STATUS;
         }
     }
+    return result;
 }
 
 EMSCRIPTEN_KEEPALIVE 

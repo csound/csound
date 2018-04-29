@@ -32,6 +32,7 @@
  function handleMessage(message) {
    var element = document.getElementById('console');
    element.value += message;
+   element.scrollTop = 99999; // focus on bottom
    count += 1;
    if(count == 1000) {
      element.value = ' ';
@@ -51,7 +52,7 @@
    csound.PlayCsd("gm.csd");
    started = true;
   }
-  document.getElementById('playButton').innerText = "Pause";
+  document.getElementById('playButton').disabled = true;//"Pause";
   playing = true;
   } else {
   csound.Csound.stop()
