@@ -73,6 +73,8 @@ class CsoundProcessor extends AudioWorkletProcessor {
 	this.csObj = csObj;
 	// engine status
 	this.status = 0;
+	this.running = false;
+	this.started = false;
 	
 	Csound.setOption(this.csObj, "-odac");
 	Csound.setOption(this.csObj, "-+rtaudio=null");
@@ -83,7 +85,8 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
 
     process(inputs, outputs, parameters) {
-	if (this.csoundOutputBuffer == null) {
+	if (this.csoundOutputBuffer == null ||
+	    this.running == false) {
 	    return true;
 	}
 
@@ -124,6 +127,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
     }
 
     start() {
+	if(this.started == false) {
 	let csObj = this.csObj;
 	let ksmps = Csound.getKsmps(csObj);
 	this.ksmps = ksmps;
@@ -137,14 +141,15 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
 	Csound.prepareRT(csObj);
 	Csound.play(csObj);
-
-
+	
 	let outputPointer = Csound.getOutputBuffer(csObj);
 	this.csoundOutputBuffer = new Float32Array(WAM.HEAP8.buffer, outputPointer, ksmps * outputChannelCount);
 	let inputPointer = Csound.getInputBuffer(csObj);
 	this.csoundInputBuffer = new Float32Array(WAM.HEAP8.buffer, inputPointer, ksmps * inputChannelCount);
 	this.zerodBFS = Csound.getZerodBFS(csObj);
-
+	this.started = true;
+	}
+	this.running = true;
     }
 
     compileOrc(orcString) {
@@ -178,6 +183,12 @@ class CsoundProcessor extends AudioWorkletProcessor {
 	case "start":
             this.start();
             break;
+	case "stop":
+	    this.running = false;
+	    break;
+	case "play":
+	    this.start();
+	    break;
 	case "setOption":
             Csound.setOption(this.csObj, data[1]);
             break;

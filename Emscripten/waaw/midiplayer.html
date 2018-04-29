@@ -32,7 +32,6 @@
  function handleMessage(message) {
    var element = document.getElementById('console');
    element.value += message;
-   element.scrollTop = 99999; // focus on bottom
    count += 1;
    if(count == 1000) {
      element.value = ' ';
@@ -52,7 +51,7 @@
    csound.PlayCsd("gm.csd");
    started = true;
   }
-  document.getElementById('playButton').disabled = true;//"Pause";
+  document.getElementById('playButton').innerText = "Pause";
   playing = true;
   } else {
   csound.Csound.stop()
@@ -66,7 +65,7 @@ function handleFileSelect(evt) {
    if(!loaded) {
     var files = evt.target.files; 
     var f = files[0];
-    var objectURL = window.URL.createObjectURL(f);
+    var objectURL = window.webkitURL.createObjectURL(f);
     csound.CopyUrlToLocal(objectURL,"midifile.mid", function() {
     loaded = true;
     console.log("Ready to play. \n");
@@ -79,7 +78,7 @@ function handleFileSelect(evt) {
 </script>
 </head>
 <body>
-   <H1> WAAW Csound Example </H1>
+   <H1> WASM Csound Example </H1>
    <textarea class="console" cols="65" rows="20" id="console"
   value="">Csound: not loaded</textarea>
   <p>
