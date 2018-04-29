@@ -96,6 +96,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
 	let bufferLen = output[0].length;
 
 	let csOut = this.csoundOutputBuffer;
+	let csIn = this.csoundInputBuffer;
 	let ksmps = this.ksmps;
 	let zerodBFS = this.zerodBFS;
 
@@ -110,7 +111,10 @@ class CsoundProcessor extends AudioWorkletProcessor {
 		cnt = 0;
 	    }
 
-	    // de-interleave 
+	    for (let channel = 0; channel < input.length; channel++) {
+		let inputChannel = input[channel];
+                csIn[cnt*nchnls + channel] = inputChannel[i] * zerodBFS;
+	    }
 	    for (let channel = 0; channel < output.length; channel++) {
 		let outputChannel = output[channel];
 		if(status == 0)
