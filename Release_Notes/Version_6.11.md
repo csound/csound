@@ -90,6 +90,10 @@ addition to the audio.
 - Small change in slicearray should allow it to be used in fuctional
   form in most cases.
 
+- The family of opcide tb0 to tb15 and their initialisation opcodes
+  tb0_init to tb15_init are deprecated as multi-arguent functions are
+  allowed.
+
 ### Utilities
 
 -
