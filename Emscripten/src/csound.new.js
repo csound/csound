@@ -21,7 +21,6 @@
  */
 var csound = (function() {
     var Csound = null;
-    var FS = null;
     function load_dep(file, elm, callback) {
         var jsl = document.createElement(elm);
         jsl.type = "text/javascript";
@@ -53,7 +52,6 @@ var csound = (function() {
 		    // csound.Csound.setOption("-M0");
                     // csound.Csound.setMidiCallbacks();
                     csound.module = true;
-		    FS = AudioWorkletGlobalScope.WAM["FS"];
                     if (typeof window.handleMessage !== 'undefined') { 
                         console.log = console.warn = function(mess) {
                             mess += "\n";
@@ -142,19 +140,6 @@ var csound = (function() {
         csound.Csound.evaluateCode(s);
     }
 
-    function loadCSD(url, callback) {
-        var xmlHttpRequest = new XMLHttpRequest();
-        xmlHttpRequest.onload = function() {
-            var data = new Uint8Array(xmlHttpRequest.response);
-            var stream = FS.open(url, 'w+');
-            FS.write(stream, data, 0, data.length, 0);
-            FS.close(stream);
-            callback();
-        };
-        xmlHttpRequest.open("get", url, true);
-        xmlHttpRequest.responseType = "arraybuffer";
-        xmlHttpRequest.send(null);
-    }
 
     /**
      * Starts real-time audio playback with a CSD. The variable can contain 
@@ -163,7 +148,7 @@ var csound = (function() {
      * @param {string} s A string containing the pathname to the CSD.
      */
     function PlayCsd(s) {
-        loadCSD(s, function() {
+        CopyUrlToLocal(s, s, function() {
             csound.Csound.compileCSD(s);
             csound.Csound.start();
             started = true;
@@ -190,7 +175,7 @@ var csound = (function() {
      * @param {function} callback completion callback
      */
     function RenderCsd(s, callback = null) {
-        loadCSD(s, function() {
+        CopyUrlToLocal(s, s, function() {
             csound.Csound.render(s);
             callback();
         });
@@ -374,10 +359,8 @@ var csound = (function() {
         var xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.onload = function() {
             var data = new Uint8Array(xmlHttpRequest.response);
-            var stream = FS.open(name, 'w+');
-            FS.write(stream, data, 0, data.length, 0);
-            FS.close(stream);
-            if (callback != null) callback();
+            csound.Csound.writeToFS(name, data);
+	    callback();
         };
         xmlHttpRequest.open("get", url, true);
         xmlHttpRequest.responseType = "arraybuffer";

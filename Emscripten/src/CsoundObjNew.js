@@ -189,7 +189,7 @@ if(typeof AudioWorkletNode !== 'undefined' &&
 
     var that = this;
     var _new = WAM.cwrap('CsoundObj_new', ['number'], null);
-    var _compileCSD = WAM.cwrap('CsoundObj_compileCSD', null, ['number', 'string']);
+    var _compileCSD = WAM.cwrap('CsoundObj_compileCSD', ['number'], ['number', 'string']);
     var _evaluateCode = WAM.cwrap('CsoundObj_evaluateCode', ['number'], ['number', 'string']);
     var _readScore = WAM.cwrap('CsoundObj_readScore', ['number'], ['number', 'string']);
     var _reset = WAM.cwrap('CsoundObj_reset', null, ['number']);
