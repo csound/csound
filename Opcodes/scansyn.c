@@ -552,6 +552,8 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
         phs += inc;
         if (phs >= p->tlen)
           phs -= p->tlen;    /* Remember phase */
+        if (phs < 0)
+          phs += p->tlen;    /* Remember phase */
       }
       break;
     case 3:
@@ -569,6 +571,8 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
         phs += inc;
         if (phs >= p->tlen)
           phs -= p->tlen;    /* Remember phase */
+	 if (phs < 0)
+          phs += p->tlen;    /* Remember phase */
       }
       break;
     case 4:
@@ -590,6 +594,8 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
         phs += inc;
         if (phs >= p->tlen)
           phs -= p->tlen;    /* Remember phase */
+	if (phs < 0)
+          phs += p->tlen;    /* Remember phase */
       }
       break;
     }
