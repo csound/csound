@@ -562,6 +562,7 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
+	/* VL -- what happens if phs is 0? */
         MYFLT x = phs - (int32_t)phs;
         MYFLT y1 = pinterp(phs-1, t);
         MYFLT y2 = pinterp(phs  , t);
@@ -581,6 +582,7 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
+	/* VL -- what happens if phs is 0? */
         MYFLT x = phs - (int32_t)phs;
         MYFLT y1 = pinterp(phs-1, t);
         MYFLT y2 = pinterp(phs  , t);
