@@ -630,7 +630,7 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
     if (string != NULL && chstring != NULL) {
       n2 = strlen(chstring);
       strNcpy(string,chstring, n2);
-      //string[n2] = 0;
+      string[n2] = '\0';
     }
     if (lock != NULL)
       csoundSpinUnLock(lock);
