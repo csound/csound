@@ -91,7 +91,7 @@ addition to the audio.
   form in most cases.
 
 - The family of opcide tb0 to tb15 and their initialisation opcodes
-  tb0_init to tb15_init are deprecated as multi-arguent functions are
+  tb0_init to tb15_init are deprecated as multi-argument functions are
   allowed.
 
 ### Utilities
