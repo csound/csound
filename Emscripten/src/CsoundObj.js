@@ -67,6 +67,72 @@ if(typeof AudioWorkletNode !== 'undefined' &&
 	    };
 	}
 
+    	writeToFS(filePath, blobData) {
+	    this.port.postMessage(["writeToFS", filePath, blobData]);
+	}
+
+	compileCSD(filePath) {
+	    this.port.postMessage(["compileCSD", filePath]);
+	}
+
+	compileOrc(orcString) {
+	    this.port.postMessage(["compileOrc", orcString]);
+	}
+
+	setOption(option) {
+	    this.port.postMessage(["setOption", option]);    
+	}
+
+	render(filePath) {
+	}
+
+	evaluateCode(codeString) {
+	    this.port.postMessage(["evalCode", codeString]);
+	}
+
+	readScore(scoreString) {
+	    this.port.postMessage(["readScore", scoreString]);
+	}
+
+	setControlChannel(channelName, value) {
+	    this.port.postMessage(["setControlChannel",
+					channelName, value]);
+	}
+
+	setStringChannel(channelName, value) {
+	    this.port.postMessage(["setStringChannel",
+					channelName, value]);
+	}
+
+	start() {
+	    this.port.postMessage(["start"]);
+	}
+
+	reset() {
+	    this.port.postMessage(["reset"]);
+	}
+
+	destroy() {
+	}
+
+	openAudioOut() {
+	}
+
+	closeAudioOut() {
+	}
+
+	play() {
+	    this.port.postMessage(["play"]);
+	}
+
+	stop() {
+	    this.port.postMessage(["stop"]);
+	}
+
+	setMessageCallback(msgCallback) {
+	    this.msgCallback = msgCallback;
+	}
+	
     }
 
 
@@ -85,52 +151,48 @@ if(typeof AudioWorkletNode !== 'undefined' &&
 	    this.node.connect(this.audioContext.destination);
 	}
 
-	writeToFS(filePath, blobData) {
-	    this.node.port.postMessage(["writeToFS", filePath, blobData]);
+	// methods delegate to node
+       	writeToFS(filePath, blobData) {
+	    this.node.writeToFS(filePath, blobData);
 	}
 
 	compileCSD(filePath) {
-	    // not sure what to do about file path...
-	    // need to see what can be accessed in
-	    // worklet scope
-	    this.node.port.postMessage(["compileCSD", filePath]);
+	    this.node.compileCSD(filePath);
 	}
 
 	compileOrc(orcString) {
-	    this.node.port.postMessage(["compileOrc", orcString]);
+	    this.node.compileOrc(orcString);
 	}
 
 	setOption(option) {
-	    this.node.port.postMessage(["setOption", option]);    
+	    this.node.setOption(option);  
 	}
 
 	render(filePath) {
 	}
 
 	evaluateCode(codeString) {
-	    this.node.port.postMessage(["evalCode", codeString]);
+	    this.node.evaluateCode(codeString);
 	}
 
 	readScore(scoreString) {
-	    this.node.port.postMessage(["readScore", scoreString]);
+	    this.node.readScore(scoreString);
 	}
 
 	setControlChannel(channelName, value) {
-	    this.node.port.postMessage(["setControlChannel",
-					channelName, value]);
+	    this.node.setControlChannel(channelName, value);
 	}
 
 	setStringChannel(channelName, value) {
-	    this.node.port.postMessage(["setStringChannel",
-					channelName, value]);
+	    this.node.setStringChannel(channelName, value);
 	}
 
 	start() {
-	    this.node.port.postMessage(["start"]);
+	    this.node.start();
 	}
 
 	reset() {
-	    this.node.port.postMessage(["reset"]);
+	    this.node.reset();
 	}
 
 	destroy() {
@@ -143,15 +205,15 @@ if(typeof AudioWorkletNode !== 'undefined' &&
 	}
 
 	play() {
-	    this.node.port.postMessage(["play"]);
+	    this.node.play();
 	}
 
 	stop() {
-	     this.node.port.postMessage(["stop"]);
+	    this.node.stop();
 	}
 
 	setMessageCallback(msgCallback) {
-	    this.node.msgCallback = msgCallback;
+	    this.node.setMessageCallback(msgCallback);
 	}
 
 
