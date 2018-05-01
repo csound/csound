@@ -124,5 +124,6 @@ typedef struct {
     MYFLT   *aout, *ain, *kfreq, *kq, *reinit;
     double  xnm1, ynm1, ynm2, a0, a1, a2, d;
     MYFLT   lfq,lq;
+    MYFLT   limit;
 } MODE;
 
