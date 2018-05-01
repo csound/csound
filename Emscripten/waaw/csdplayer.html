@@ -1,37 +1,33 @@
 <!DOCTYPE html>
 <html>
 <!--
- csound.js MIDI file player example
+ csound.js CSD file player example
  Copyright (C) 2013 V Lazzarini
 -->
 <head>
- <title> midi player </title>
+ <title> CSD player </title>
  <style type="text/css">
-   textarea.console { font-family: "Courier New"; color: #FCF477;
-                     background-color: #770077 }
+   textarea.console { font-family: "Courier New"; color: #00FF99;
+                     background-color: #000000 }
   </style>
  <script type="text/javascript" src="js/csound.js"></script>
  <script type="text/javascript">
  // called by csound.js
- function moduleDidLoad() {
-   csound.CopyUrlToLocal("sf_GMbank.sf2","sf_GMbank.sf2", function() {
-     fcopied = true;
-     console.log("Ready. Now load a MIDI file using the button below. \n");
-}); 
- }
+function moduleDidLoad() {
+}
  function attachListeners() { 
-  document.getElementById('playButton').
-       addEventListener('click', togglePlay);
    document.getElementById('files').
-      addEventListener('change', handleFileSelect, false);
+    addEventListener('change', handleFileSelect, false);
+    document.getElementById('playButton').
+       addEventListener('click', togglePlay);
  }
 
- var fcopied = false;
  var count = 0;
 
  function handleMessage(message) {
    var element = document.getElementById('console');
    element.value += message;
+   element.scrollTop = 99999; // focus on bottom
    count += 1;
    if(count == 1000) {
      element.value = ' ';
@@ -44,11 +40,12 @@
  var loaded = false;
 
  function togglePlay(){
-  if(loaded && fcopied) {
+  if(loaded) {
   if(!playing) {
-  if(started) csound.Play();
+  if(started) csound.Csound.start();
   else {
-   csound.PlayCsd("gm.csd");
+   csound.Csound.compileCSD("csdfile.csd");
+   csound.Csound.start(); 
    started = true;
   }
   document.getElementById('playButton').innerText = "Pause";
@@ -65,26 +62,27 @@ function handleFileSelect(evt) {
    if(!loaded) {
     var files = evt.target.files; 
     var f = files[0];
-    var objectURL = window.webkitURL.createObjectURL(f);
-    csound.CopyUrlToLocal(objectURL,"midifile.mid", function() {
-    loaded = true;
-    console.log("Ready to play. \n");
+    var objectURL = window.URL.createObjectURL(f);
+    csound.CopyUrlToLocal(objectURL,"csdfile.csd", function() {
+    loaded = true; 
     });
    } else {
-   csound.updateStatus("to load a new midfile, first refresh page!")
+   csound.updateStatus("to load a new CSD file, first refresh page!")
   }
 }
  
 </script>
 </head>
 <body>
-   <H1> WASM Csound Example </H1>
-   <textarea class="console" cols="65" rows="20" id="console"
-  value="">Csound: not loaded</textarea>
-  <p>
+ 
+<H1> WAAW Csound </H1>
+   <p> CSD file:
   <input type="file" id="files" name="file" />
   <button id="playButton">Play</button>
   </p>
+   <textarea class="console" cols="80" rows="24" id="console"
+  value="">Csound: not loaded</textarea>
+
 </body>
 </html>
 
