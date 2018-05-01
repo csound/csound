@@ -1,3 +1,4 @@
+
 mkdir -p deps
 cd deps
 
@@ -12,4 +13,4 @@ fi
 cd libsndfile-1.0.25
 emconfigure ./configure --enable-static --disable-shared --disable-libtool-lock --disable-cpu-clip --disable-sqlite --disable-alsa --disable-external-libs --build=i686
 emmake make
-cd ./src/.libs
+cp ./src/.libs/libsndfile.a libsndfile-wasm.a

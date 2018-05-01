@@ -57,6 +57,7 @@ if(playing) {
    y=e.clientY - rect.top
    csound.SetChannel('amp',y);
    csound.SetChannel('freq',x);
+
    ctx.clearRect(0,0,400,400);
    ctx.fillStyle="#0000FF";
    ctx.fillRect(x,y,10,10);
@@ -93,7 +94,7 @@ function cnvs_out()
 </script>
 </head>
 <body>
-<H1> WASM Csound Example </H1>
+<H1> WAAW Csound Example </H1>
   <p>
 <canvas class="cnvs" id="cnvs" width="400" height="400" style="border:1px solid#000000;"
  onmousemove="cnvs_getCoordinates(event)"

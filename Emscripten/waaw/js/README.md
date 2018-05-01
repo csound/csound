@@ -1,1 +1,1 @@
-Web Assembly scripts should be copied here. Use `../update_scripts.sh` for this purpose.
+WebAudio Cosund scripts should be copied here. Use `../update-scripts.sh` for this purpose.

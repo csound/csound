@@ -19,10 +19,10 @@ function moduleDidLoad() {
   "a1 oscili 0.1, icps\n" +
   "outs a1,a1 \n" +
   "endin");
-  document.getElementById("tit").innerHTML = "Click on the page below to play";
+  document.getElementById("tit").innerHTML = "Click here to play";
  }
 function attachListeners() {
-   document.getElementById("mess").
+   document.getElementById("clickarea").
        addEventListener("click",Play);
  }
  function handleMessage(message) {
@@ -37,11 +37,12 @@ function Play() {
  </script>
 </head>
 <body>
-  <H1> WASM Csound Example </H1>
+<div id="clickarea">
+  <H1> WAAW Csound Example </H1>
   <div id="console"></div>
    <h3 id="tit"> </h3>
   <div id="mess"> </div>
-    
+</div>    
 </body>
 </html>
 
