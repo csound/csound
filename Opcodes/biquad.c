@@ -1523,7 +1523,8 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
       p->a0 = p->a1 = p->a2 = p->d = 0.0;
     }
     p->lfq = -FL(1.0); p->lq = -FL(1.0);
-    p->limit = csound->GetSr(csound)/PI_F-1;
+    p->limit = csound->GetSr(csound)/PI_F-FL(100.0);
+    //printf("*** limit = %lf\n", p->limit);
     return OK;
 }
 
@@ -1541,7 +1542,10 @@ static int32_t mode(CSOUND *csound, MODE *p)
     double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
     int32_t    asgfr = IS_ASIG_ARG(p->kfreq), asgq = IS_ASIG_ARG(p->kq);
 
-    if (kfq>p->limit) kfq = p->limit;
+    if (kfq>p->limit) { 
+      //printf("*** freq, limit = %f, %f\n", *p->kfreq, p->limit);
+      kfq = p->limit;
+    }
     if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1550,7 +1554,10 @@ static int32_t mode(CSOUND *csound, MODE *p)
     for (n=offset; n<nsmps; n++) {
       if (asgfr) {
         kfq = p->kfreq[n];
-        if (kfq>p->limit) kfq = p->limit;
+        if (kfq>p->limit) {
+          //printf("*** freq, limit = %f, %f\n", *p->kfreq, p->limit);
+          kfq = p->limit;
+        }
       }
       if (asgq) kq = p->kq[n];
       if (lfq != kfq || lq != kq) {
