@@ -109,7 +109,10 @@ class CsoundNodeFactory {
     let cs = CSOUND.new();
     CSOUND.setMidiCallbacks(cs);
     CSOUND.setOption(cs, "-odac");
+    CSOUND.setOption(cs, "-iadc");
+    CSOUND.setOption(cs, "-M0");
     CSOUND.setOption(cs, "-+rtaudio=null");
+    CSOUND.setOption(cs, "-+rtmidi=null");
 
     let CsoundMixin = {
       csound: cs,
