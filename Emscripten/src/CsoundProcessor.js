@@ -80,7 +80,10 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
     Csound.setMidiCallbacks(csObj);
     Csound.setOption(csObj, "-odac");
+    Csound.setOption(csObj, "-iadc");
+    Csound.setOption(csObj, "-M0");
     Csound.setOption(csObj, "-+rtaudio=null");
+    Csound.setOption(csObj, "-+rtmidi=null");
 
     this.port.onmessage = this.handleMessage.bind(this);
     this.port.start();
