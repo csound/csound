@@ -46,6 +46,8 @@ const Csound = {
   setTable: WAM.cwrap('CsoundObj_setTable', null, ['number', 'number', 'number', 'number']),
   play: WAM.cwrap('CsoundObj_play', null, ['number']),
   pause: WAM.cwrap('CsoundObj_pause', null, ['number']),
+  pushMidiMessage: WAM.cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']),
+  setMidiCallbacks: WAM.cwrap('CsoundObj_setMidiCallbacks', null, ['number']),
 
 }
 //var _openAudioOut = WAM.cwrap('CsoundObj_openAudioOut', null, ['number']);
@@ -76,8 +78,9 @@ class CsoundProcessor extends AudioWorkletProcessor {
     this.running = false;
     this.started = false;
 
-    Csound.setOption(this.csObj, "-odac");
-    Csound.setOption(this.csObj, "-+rtaudio=null");
+    Csound.setMidiCallbacks(csObj);
+    Csound.setOption(csObj, "-odac");
+    Csound.setOption(csObj, "-+rtaudio=null");
 
     this.port.onmessage = this.handleMessage.bind(this);
     this.port.start();
@@ -212,8 +215,14 @@ class CsoundProcessor extends AudioWorkletProcessor {
         FS.write(stream, buf, 0, buf.length, 0);
         FS.close(stream);
 
-        break
-        default:
+        break;
+      case "midiMessage":
+        let byte1 = data[1];
+        let byte2 = data[2];
+        let byte3 = data[3];
+        Csound.pushMidiMessage(this.csObj, byte1, byte2, byte3);
+        break;
+      default:
         console.log('[CsoundAudioProcessor] Invalid Message: "' + event.data);
     }
   }

@@ -136,6 +136,78 @@ class CsoundObj {
     this.node.setMessageCallback(msgCallback);
   }
 
+  midiMessage(byte1, byte2, byte3) {
+    this.node.midiMessage(byte1, byte2, byte3);
+  }
+
+
+//  enableMidiInput(midiInputCallback) {
+
+//      let handleMidiInput = function(event) {
+//        _pushMidiMessage(_self, event.data[0], event.data[1], event.data[2]);	
+//      };
+
+//      let midiSuccess = function(midiInterface) {
+//        var inputs = midiInterface.inputs.values();
+
+//        for (var input = inputs.next(); input && !input.done; input = inputs.next() ){
+
+//          input = input.value;
+//          input.onmidimessage = handleMidiInput;
+//        }
+//        _setMidiCallbacks(_self);
+//        midiInputCallback(true);
+//     };
+
+//    var midiFail = function(error) {
+//        Module['print']("MIDI failed to start, error:" + error);
+//        midiInputCallback(false);
+//      };
+
+//    if (navigator.requestMIDIAccess) {
+//      navigator.requestMIDIAccess().then(midiSuccess, midiFail);
+//    } else {
+      //Module['print']("MIDI not supported in this browser");
+//      midiInputCallback(false);
+ //   }	
+//  }
+
+//    this.enableMidiInput = function(midiInputCallback) {
+
+//      var handleMidiInput = function(event) {
+
+//        _pushMidiMessage(_self, event.data[0], event.data[1], event.data[2]);	
+//      };
+
+//      var midiSuccess = function(midiInterface) {
+
+//        var inputs = midiInterface.inputs.values();
+
+//        for (var input = inputs.next(); input && !input.done; input = inputs.next() ){
+
+//          input = input.value;
+//          input.onmidimessage = handleMidiInput;
+//        }
+//        _setMidiCallbacks(_self);
+//        midiInputCallback(true);
+//      };
+
+//      var midiFail = function(error) {
+
+//        Module['print']("MIDI failed to start, error:" + error);
+//        midiInputCallback(false);
+//      };
+//      if (navigator.requestMIDIAccess) {
+
+//        navigator.requestMIDIAccess().then(midiSuccess, midiFail);
+//      }
+//      else {
+
+//        Module['print']("MIDI not supported in this browser");
+//        midiInputCallback(false);
+//      }	
+//    };
+
 
   /** Use to asynchronously setup AudioWorklet */
   static importScripts(script_base='./') {
