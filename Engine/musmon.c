@@ -887,7 +887,8 @@ static int process_rt_event(CSOUND *csound, int sensType)
   retval = 0;
   if (csound->curp2 * csound->esr < (double)csound->icurTime) {
     csound->curp2 = (double)csound->icurTime/csound->esr;
-    if(sensType != 2) print_amp_values(csound, 0);
+    //if(sensType != 2)
+      print_amp_values(csound, 0);
   }
   if (sensType == 4) {                  /* RM: Realtime orc event   */
     EVTNODE *e = csound->OrcTrigEvts;
