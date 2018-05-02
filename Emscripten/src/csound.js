@@ -44,28 +44,28 @@ var csound = (function() {
 
     function createModule() {
         var path = absolute_path();
-        load_dep(path + "libcsound.js", "script", function() {
             load_dep(path + "CsoundObj.js", "script", function() {
-                console.log("loaded scripts");
-                Module["onRuntimeInitialized"] = function() {
+                console.log("loaded CsoundObj");
+                CsoundObj.importScripts(path).then(() => {
                     console.log("loaded WASM runtime");
                     csound.Csound = new CsoundObj();
-		    csound.Csound.setOption("-M0");
-                    csound.Csound.setMidiCallbacks();
+		    // csound.Csound.setOption("-M0");
+                    // csound.Csound.setMidiCallbacks();
                     csound.module = true;
                     if (typeof window.handleMessage !== 'undefined') { 
                         console.log = console.warn = function(mess) {
                             mess += "\n";
                             window.handleMessage(mess);
-                            }
+                        }
+			csound.Csound.setMessageCallback(console.log);
                     }
                     if (typeof window.moduleDidLoad !== 'undefined')
                         window.moduleDidLoad();
                     if (typeof window.attachListeners !== 'undefined') 
                         window.attachListeners();
-                };
+		    csound.updateStatus('Ready.');
+                });
             });
-        });
     }
 
     var fileData = null;
@@ -140,19 +140,6 @@ var csound = (function() {
         csound.Csound.evaluateCode(s);
     }
 
-    function loadCSD(url, callback) {
-        var xmlHttpRequest = new XMLHttpRequest();
-        xmlHttpRequest.onload = function() {
-            var data = new Uint8Array(xmlHttpRequest.response);
-            var stream = FS.open(url, 'w+');
-            FS.write(stream, data, 0, data.length, 0);
-            FS.close(stream);
-            callback();
-        };
-        xmlHttpRequest.open("get", url, true);
-        xmlHttpRequest.responseType = "arraybuffer";
-        xmlHttpRequest.send(null);
-    }
 
     /**
      * Starts real-time audio playback with a CSD. The variable can contain 
@@ -161,7 +148,7 @@ var csound = (function() {
      * @param {string} s A string containing the pathname to the CSD.
      */
     function PlayCsd(s) {
-        loadCSD(s, function() {
+        CopyUrlToLocal(s, s, function() {
             csound.Csound.compileCSD(s);
             csound.Csound.start();
             started = true;
@@ -188,7 +175,7 @@ var csound = (function() {
      * @param {function} callback completion callback
      */
     function RenderCsd(s, callback = null) {
-        loadCSD(s, function() {
+        CopyUrlToLocal(s, s, function() {
             csound.Csound.render(s);
             callback();
         });
@@ -372,14 +359,13 @@ var csound = (function() {
         var xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.onload = function() {
             var data = new Uint8Array(xmlHttpRequest.response);
-            var stream = FS.open(name, 'w+');
-            FS.write(stream, data, 0, data.length, 0);
-            FS.close(stream);
-            if (callback != null) callback();
+            csound.Csound.writeToFS(name, data);
+	    callback();
         };
         xmlHttpRequest.open("get", url, true);
         xmlHttpRequest.responseType = "arraybuffer";
         xmlHttpRequest.send(null);
+
     }
 
     /**
