@@ -121,7 +121,10 @@ class CsoundNode extends AudioWorkletNode {
   setMessageCallback(msgCallback) {
     this.msgCallback = msgCallback;
   }
-
+  
+  midiMessage(byte1, byte2, byte3) {
+    this.port.postMessage(["midiMessage", byte1, byte2, byte3]);
+  }
 
 }
 
