@@ -1523,7 +1523,8 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
       p->a0 = p->a1 = p->a2 = p->d = 0.0;
     }
     p->lfq = -FL(1.0); p->lq = -FL(1.0);
-    p->limit = csound->GetSr(csound)/PI_F-FL(100.0);
+    /* set a limit below theoretical sr/pi */
+    p->limit = csound->GetSr(csound)*(FL(1.0)/PI_F-FL(1.0)/FL(100.0));
     //printf("*** limit = %lf\n", p->limit);
     return OK;
 }
