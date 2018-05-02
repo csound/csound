@@ -213,8 +213,8 @@ class CsoundNodeFactory {
         this.msgCallBack = msgCallback;
       },
 
-      pushMidiMessage(byte1, byte2, byte3) {
-        CSOUNDpushMidiMessage(this.csound, byte1, byte2, byte3);
+      midiMessage(byte1, byte2, byte3) {
+        CSOUND.pushMidiMessage(this.csound, byte1, byte2, byte3);
       },
 
       onaudioprocess(e) {
