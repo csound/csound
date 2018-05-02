@@ -29,24 +29,68 @@ function print_msg(message) {
 
 
 function main() {
+
   CsoundObj.importScripts("./js/").then(() => {
-  console.log = print_msg;
-  console.warn = print_msg;
-    var csound = new CsoundObj();
+    console.log = print_msg;
+    console.warn = print_msg;
+    csound = new CsoundObj();
     csound.compileOrc(document.getElementById('instruments').value);
     csound.start();
-     window.addEventListener("unload", function(e){
+    window.addEventListener("unload", function(e){
 	if(csound != null)
-            csound.destroy();
-   }, false);
+          csound.destroy();}, false);
+
+    scopeNode = new AnalyserNode(CSOUND_AUDIO_CONTEXT);
+    csound.getNode().connect(scopeNode);
+
+    scope = function () {
+
+       let ctx = document.getElementById('scope').getContext('2d');
+       let width = ctx.canvas.width;
+       let height = ctx.canvas.height;
+       let timeData = new Uint8Array(scopeNode.frequencyBinCount);
+       let scaling = height / 256;
+       let risingEdge = 0;
+       let edgeThreshold = 5;
+       scopeNode.getByteTimeDomainData(timeData);
+
+       ctx.fillStyle = 'rgba(0, 20, 0, 0.1)';
+       ctx.fillRect(0, 0, width, height);
+       ctx.lineWidth = 2;
+       ctx.strokeStyle = 'rgb(0, 200, 0)';
+       ctx.beginPath();
+
+      
+       while (timeData[risingEdge++] - 128 > 0 && risingEdge <= width);
+       if (risingEdge >= width) risingEdge = 0;
+       while (timeData[risingEdge++] - 128 < edgeThreshold && risingEdge <= width);
+       if (risingEdge >= width) risingEdge = 0;
+       for (var x = risingEdge; x < timeData.length && x - risingEdge < width; x++)
+         ctx.lineTo(x - risingEdge, height - timeData[x] * scaling);
+       ctx.stroke();
+  
+       requestAnimationFrame(scope);
+     }
+
+     scope();
+
 });
+
+
 }
+
+
+
+
+
 
 </script>
 <body onload="main()">
 <h1> WASM Csound Example</h2>
 <div id="console">loading...
 </div>
+
+<canvas id='scope' width=400 height=200 style="border:1px solid#000000;"></canvas>
 
 <textarea class="code" id="instruments" hidden>
 /* this is the synthesis code
