@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<!--
+ csound.js CSD file player example
+ Copyright (C) 2013 V Lazzarini
+-->
+<head>
+ <title> CSD player </title>
+ <style type="text/css">
+   textarea.console { font-family: "Courier New"; color: #00FF99;
+                     background-color: #000000 }
+  </style>
+ <script type="text/javascript" src="js/csound.js"></script>
+ <script type="text/javascript">
+ // called by csound.js
+function moduleDidLoad() {
+}
+ function attachListeners() { 
+   document.getElementById('files').
+    addEventListener('change', handleFileSelect, false);
+    document.getElementById('playButton').
+       addEventListener('click', togglePlay);
+ }
+
+ var count = 0;
+
+ function handleMessage(message) {
+   var element = document.getElementById('console');
+   element.value += message;
+   element.scrollTop = 99999; // focus on bottom
+   count += 1;
+   if(count == 1000) {
+     element.value = ' ';
+     count = 0;
+   }
+ }
+
+ var playing = false;
+ var started = false;
+ var loaded = false;
+
+ function togglePlay(){
+  if(loaded) {
+  if(!playing) {
+  if(started) csound.Csound.start();
+  else {
+   csound.Csound.compileCSD("csdfile.csd");
+   csound.Csound.start(); 
+   started = true;
+  }
+  document.getElementById('playButton').innerText = "Pause";
+  playing = true;
+  } else {
+  csound.Csound.stop()
+  document.getElementById('playButton').innerText ="Play";
+  playing = false;
+  }
+}
+}
+
+function handleFileSelect(evt) { 
+   if(!loaded) {
+    var files = evt.target.files; 
+    var f = files[0];
+    var objectURL = window.URL.createObjectURL(f);
+    csound.CopyUrlToLocal(objectURL,"csdfile.csd", function() {
+    loaded = true; 
+    });
+   } else {
+   csound.updateStatus("to load a new CSD file, first refresh page!")
+  }
+}
+ 
+</script>
+</head>
+<body>
+ 
+<H1> WAAW Csound </H1>
+   <p> CSD file:
+  <input type="file" id="files" name="file" />
+  <button id="playButton">Play</button>
+  </p>
+   <textarea class="console" cols="80" rows="24" id="console"
+  value="">Csound: not loaded</textarea>
+
+</body>
+</html>
+

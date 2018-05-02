@@ -1,6 +1,6 @@
 #!/bin/sh
 export CS_VERSION="6.10.0-1"
-export RELEASE_DIR=csound-emscripten-${CS_VERSION}
+export RELEASE_DIR=csound-web-${CS_VERSION}
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
