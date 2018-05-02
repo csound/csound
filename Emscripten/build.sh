@@ -42,9 +42,11 @@ cd ..
 rm -rf dist
 mkdir dist
 cp src/FileList.js dist/
-cp src/CsoundProcessor.js dist/CsoundProcessor.js
-cp src/CsoundObj.js dist/CsoundObj.js
-cp src/csound.js dist/csound.js
+cp src/CsoundProcessor.js dist/
+cp src/CsoundNode.js dist/
+cp src/CsoundScriptProcessorNode.js dist/
+cp src/CsoundObj.js dist/
+cp src/csound.js dist/
 cp build/libcsound.js dist/
 cp build/libcsound.wasm dist/
 cp build/libcsound-worklet.js dist/
