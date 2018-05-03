@@ -84,6 +84,11 @@ class CsoundProcessor extends AudioWorkletProcessor {
     Csound.setOption(csObj, "-M0");
     Csound.setOption(csObj, "-+rtaudio=null");
     Csound.setOption(csObj, "-+rtmidi=null");
+    Csound.prepareRT(csObj);
+    this.nchnls = 2;
+    this.nchnls_i = 1;
+    Csound.setOption(csObj, "--nchnls=" + this.nchnls);
+    Csound.setOption(csObj, "--nchnls_i=" + this.nchnls_i); 
 
     this.port.onmessage = this.handleMessage.bind(this);
     this.port.start();
@@ -108,6 +113,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
     let cnt = this.cnt;
     let nchnls = this.nchnls;
+    let nchnls_i = this.nchnls_i;
     let status = this.status;
 
     for (let i = 0; i < bufferLen; i++, cnt++) {
@@ -119,7 +125,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
       for (let channel = 0; channel < input.length; channel++) {
         let inputChannel = input[channel];
-        csIn[cnt*nchnls + channel] = inputChannel[i] * zerodBFS;
+        csIn[cnt*nchnls_i + channel] = inputChannel[i] * zerodBFS;
       }
       for (let channel = 0; channel < output.length; channel++) {
         let outputChannel = output[channel];
@@ -142,20 +148,11 @@ class CsoundProcessor extends AudioWorkletProcessor {
       let ksmps = Csound.getKsmps(csObj);
       this.ksmps = ksmps;
       this.cnt = ksmps;
-      let outputChannelCount = 2;
-      let inputChannelCount = 1;
-
-      //hardcode for now, but has to match Node's input/output settings
-      this.nchnls = 2;
-      this.nchnls_i = 1;
-
-      Csound.prepareRT(csObj);
-      Csound.play(csObj);
-
+  
       let outputPointer = Csound.getOutputBuffer(csObj);
-      this.csoundOutputBuffer = new Float32Array(WAM.HEAP8.buffer, outputPointer, ksmps * outputChannelCount);
+	this.csoundOutputBuffer = new Float32Array(WAM.HEAP8.buffer, outputPointer, ksmps * this.nchnls);
       let inputPointer = Csound.getInputBuffer(csObj);
-      this.csoundInputBuffer = new Float32Array(WAM.HEAP8.buffer, inputPointer, ksmps * inputChannelCount);
+      this.csoundInputBuffer = new Float32Array(WAM.HEAP8.buffer, inputPointer, ksmps * this.nchnls_i);
       this.zerodBFS = Csound.getZerodBFS(csObj);
       this.started = true;
     }

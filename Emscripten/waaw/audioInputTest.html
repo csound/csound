@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Csound MIDI</title>
+    <title>Csound Reverb</title>
   </head>
 
   <body>
@@ -14,32 +14,17 @@
 let csoundObj;
 const TEST_CSD = 
 `
-<CsoundSynthesizer>
-<CsOptions>
--o dac -+rtmidi=null -+rtaudio=null -d -+msg_color=0 -M0 -m0 -iadc
-</CsOptions>
-<CsInstruments>
-
-sr = 48000
+sr = 44100
 ksmps = 32 
 nchnls = 2
 nchnls_i = 1
 0dbfs = 1
 
 instr 1
-  ain in
-
-  al, ar reverbsc ain, ain, 4000, 0.8
-
-  outc(al, ar) 
+  ain inch 1
+  al, ar freeverb ain,ain, 0.7, 0.5
+  out  al, ar
 endin
-
-</CsInstruments>
-<CsScore>
-i1 0 3600
-</CsScore>
-</CsoundSynthesizer>
-
 `;
 
     CsoundObj.importScripts("./js/").then(() => {
@@ -51,8 +36,9 @@ i1 0 3600
       
       if(res) {
 
-        csoundObj.setOption("-m0");
-        csoundObj.compileCSD(TEST_CSD);
+        //csoundObj.setOption("-m0");
+        csoundObj.compileOrc(TEST_CSD);
+        csoundObj.readScore("i1 0 36000");
         csoundObj.setMessageCallback((msg) => document.body.innerText +=  msg + "\n");
 
         csoundObj.start();
