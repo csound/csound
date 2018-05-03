@@ -1,5 +1,5 @@
 #!/bin/sh
-export CS_VERSION="6.10.0-1"
+export CS_VERSION="6.11.0-beta"
 export RELEASE_DIR=csound-web-${CS_VERSION}
 
 #remove backup files ending with ~
