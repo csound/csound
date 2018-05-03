@@ -26,7 +26,7 @@ var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT ||
 	console.log('Web Audio API is not supported in this browser');
     }
     return null;
-}());
+  }());
 
 
 /* CsoundNode class to use for AudioWorklet */
@@ -37,6 +37,7 @@ class CsoundNode extends AudioWorkletNode {
     options.numberOfInputs  = 1;
     options.numberOfOutputs = 2;
     options.channelCount = 2;
+    options.sampleRate = CSOUND_AUDIO_CONTEXT.sampleRate;  
 
     super(context, 'Csound', options);
 
