@@ -14,10 +14,6 @@
 let csoundObj;
 const TEST_CSD = 
 `
-<CsoundSynthesizer>
-<CsOptions>
-</CsOptions>
-<CsInstruments>
 sr = 44100
 ksmps = 32 
 nchnls = 2
@@ -26,17 +22,9 @@ nchnls_i = 1
 
 instr 1
   ain inch 1
-  printk2 k(ain)
-  al, ar reverbsc ain, ain, 4000, 0.8
-  outc(al, ar) 
+  al, ar freeverb ain,ain, 0.7, 0.5
+  out  al, ar
 endin
-
-</CsInstruments>
-<CsScore>
-i1 0 3600
-</CsScore>
-</CsoundSynthesizer>
-
 `;
 
     CsoundObj.importScripts("./js/").then(() => {
@@ -49,7 +37,8 @@ i1 0 3600
       if(res) {
 
         //csoundObj.setOption("-m0");
-        csoundObj.compileCSD(TEST_CSD);
+        csoundObj.compileOrc(TEST_CSD);
+        csoundObj.readScore("i1 0 36000");
         csoundObj.setMessageCallback((msg) => document.body.innerText +=  msg + "\n");
 
         csoundObj.start();
