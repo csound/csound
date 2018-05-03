@@ -238,6 +238,7 @@ class CsoundNodeFactory {
 
         let cnt = this.cnt;
         let nchnls = this.nchnls;
+	let nchnls_i = this.nchnls_i;  
         let res = this.res;
 
         for (let i = 0; i < bufferLen; i++, cnt++) {
@@ -249,7 +250,7 @@ class CsoundNodeFactory {
 
           for (let channel = 0; channel < input.numberOfChannels; channel++) {
             let inputChannel = input.getChannelData(channel);
-            csIn[cnt*nchnls + channel] = inputChannel[i] * zerodBFS;
+            csIn[cnt*nchnls_i + channel] = inputChannel[i] * zerodBFS;
           }
           for (let channel = 0; channel < output.numberOfChannels; channel++) {
             let outputChannel = output.getChannelData(channel);

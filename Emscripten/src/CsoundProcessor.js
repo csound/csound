@@ -108,6 +108,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
     let cnt = this.cnt;
     let nchnls = this.nchnls;
+    let nchnls_i = this.nchnls_i;
     let status = this.status;
 
     for (let i = 0; i < bufferLen; i++, cnt++) {
@@ -119,7 +120,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
       for (let channel = 0; channel < input.length; channel++) {
         let inputChannel = input[channel];
-        csIn[cnt*nchnls + channel] = inputChannel[i] * zerodBFS;
+        csIn[cnt*nchnls_i + channel] = inputChannel[i] * zerodBFS;
       }
       for (let channel = 0; channel < output.length; channel++) {
         let outputChannel = output[channel];
