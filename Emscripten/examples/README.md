@@ -29,7 +29,7 @@ MIDI input example using HTML 5 buttons to generate MIDI data.
 * [MIDIPlayer](https://github.com/csound/csound/blob/develop/emscripten/examples/midiplayer.html):
 GM MIDI file player ported from the PNaCl Csound collection.
 
-*[CSDPlayer](https://github.com/csound/csound/blob/develop/emscripten/examples/csdplayer.html):
+* [CSDPlayer](https://github.com/csound/csound/blob/develop/emscripten/examples/csdplayer.html):
 Offline render example ported from the PNaCl Csound collection.
 
 * [Stria](https://github.com/csound/csound/blob/develop/emscripten/examples/stria.html):
