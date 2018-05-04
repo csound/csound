@@ -22,8 +22,10 @@
 
 
 
-/** @constructor 
-    Creates a Csound frontend object.
+/** 
+* @classdesc Csound frontend class 
+*
+* @constructor 
 */
 Csound = function() {
     var Csound = null;
@@ -55,7 +57,7 @@ Csound = function() {
                 CsoundObj.importScripts(path).then(() => {
                     console.log("loaded WASM runtime");
                     csound.Csound = new CsoundObj();
-		    // csound.Csound.setOption("-M0");
+                    // csound.Csound.setOption("-M0");
                     // csound.Csound.setMidiCallbacks();
                     csound.module = true;
                     if (typeof window.handleMessage !== 'undefined') { 
@@ -63,13 +65,13 @@ Csound = function() {
                             mess += "\n";
                             window.handleMessage(mess);
                         }
-			csound.Csound.setMessageCallback(console.log);
+                        csound.Csound.setMessageCallback(console.log);
                     }
                     if (typeof window.moduleDidLoad !== 'undefined')
                         window.moduleDidLoad();
                     if (typeof window.attachListeners !== 'undefined') 
                         window.attachListeners();
-		    csound.updateStatus('Ready.');
+                    csound.updateStatus('Ready.');
                 });
             });
     }
@@ -366,7 +368,7 @@ Csound = function() {
         xmlHttpRequest.onload = function() {
             var data = new Uint8Array(xmlHttpRequest.response);
             csound.Csound.writeToFS(name, data);
-	    callback();
+            callback();
         };
         xmlHttpRequest.open("get", url, true);
         xmlHttpRequest.responseType = "arraybuffer";
