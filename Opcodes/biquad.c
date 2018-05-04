@@ -1543,7 +1543,7 @@ static int32_t mode(CSOUND *csound, MODE *p)
     double xnm1 = p->xnm1, ynm1 = p->ynm1, ynm2 = p->ynm2;
     int32_t    asgfr = IS_ASIG_ARG(p->kfreq), asgq = IS_ASIG_ARG(p->kq);
 
-    if (kfq>p->limit) { 
+    if (kfq>p->limit) {
       //printf("*** freq, limit = %f, %f\n", *p->kfreq, p->limit);
       kfq = p->limit;
     }
