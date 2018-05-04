@@ -69,6 +69,9 @@ static int32_t scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT sgn)
     MYFLT *f;
     MYFLT tab = FABS(*p->i_init);
 
+    if (pos<FL(0.0)) pos = FL(0.0);
+    if (pos>FL(1.0)) pos = FL(1.0);
+
     /* Get table */
     //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
     if (UNLIKELY((fi = csound->FTnp2Find(csound, &tab)) == NULL)) {
@@ -377,6 +380,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
     if (UNLIKELY(pp == NULL)) goto err1;
 
     if (UNLIKELY(early)) nsmps -= early;
+    // *** TODO** zero unused part in sample-accurate
     for (n = offset ; n < nsmps ; n++) {
 
       /* Put audio input in external force */
@@ -478,7 +482,7 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     t = csound->FTnp2Find(csound, p->i_trj);
     if (UNLIKELY(t == NULL)) {
       return csound->InitError(csound, "%s", Str("scans: Could not find "
-                                           "the ifntraj table"));
+                                          "the ifntraj table"));
     }
     if (oscil_interp<1 || oscil_interp>4) oscil_interp = 4;
     p->oscil_interp = oscil_interp;
@@ -535,9 +539,9 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
         out[i] = *p->k_amp * (pinterp(phs, t));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        if (phs >= p->tlen)
+        while (UNLIKELY(phs >= p->tlen))
           phs -= p->tlen;    /* Remember phase */
-	if (phs < 0)
+        while (UNLIKELY(phs < 0))
           phs += p->tlen;    /* Remember phase */
       }
       break;
@@ -552,9 +556,9 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
         out[i] = *p->k_amp * (y1 + x*(y2 - y1));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        if (phs >= p->tlen)
+        while (phs >= p->tlen)
           phs -= p->tlen;    /* Remember phase */
-        if (phs < 0)
+        while (phs < 0)
           phs += p->tlen;    /* Remember phase */
       }
       break;
@@ -562,7 +566,7 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
-	/* VL -- what happens if phs is 0? */
+        /* VL -- what happens if phs is 0? */
         MYFLT x = phs - (int32_t)phs;
         MYFLT y1 = pinterp(phs-1, t);
         MYFLT y2 = pinterp(phs  , t);
@@ -572,9 +576,9 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
           (y2 + x*(-y1*FL(0.5) + x*(y1*FL(0.5) - y2 + y3*FL(0.5)) + y3*FL(0.5)));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        if (phs >= p->tlen)
+        while (UNLIKELY(phs >= p->tlen))
           phs -= p->tlen;    /* Remember phase */
-	 if (phs < 0)
+        while (UNLIKELY(phs < 0))
           phs += p->tlen;    /* Remember phase */
       }
       break;
@@ -582,7 +586,7 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
         PSCSNU *pp = p->p;
-	/* VL -- what happens if phs is 0? */
+        /* VL -- what happens if phs is 0? */
         MYFLT x = phs - (int32_t)phs;
         MYFLT y1 = pinterp(phs-1, t);
         MYFLT y2 = pinterp(phs  , t);
@@ -596,9 +600,9 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
                          y4/FL(6.0))) - y4/FL(6.0)));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        if (phs >= p->tlen)
+        while (UNLIKELY(phs >= p->tlen))
           phs -= p->tlen;    /* Remember phase */
-	if (phs < 0)
+        while (UNLIKELY(phs < 0))
           phs += p->tlen;    /* Remember phase */
       }
       break;

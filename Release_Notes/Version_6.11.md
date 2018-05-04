@@ -94,6 +94,8 @@ addition to the audio.
   tb0_init to tb15_init are deprecated as multi-argument functions are
   allowed.
 
+- The mode filter now does not allow a frequency in the unstable region.
+
 ### Utilities
 
 -
