@@ -19,7 +19,13 @@
  * License along with this software; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-var csound = (function() {
+
+
+
+/** @constructor 
+    Creates a Csound frontend object.
+*/
+Csound = function() {
     var Csound = null;
     function load_dep(file, elm, callback) {
         var jsl = document.createElement(elm);
@@ -424,7 +430,11 @@ var csound = (function() {
             else csound.updateStatus("failed to enable audio input\n");
         });
     }
-    
+
+     /**
+     * Reset the Csound engine
+     *
+     */
     function reset() {
         csound.Csound.reset();
     }
@@ -476,7 +486,7 @@ var csound = (function() {
         stop: Stop,
         updateStatus: updateStatus
     };
-}());
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     csound.updateStatus('page loaded');
@@ -492,3 +502,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }, false);
 
 });
+
+/**
+ *  The global csound object
+ * 
+ */
+var csound = new Csound();
