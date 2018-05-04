@@ -65,7 +65,7 @@ function handleFileSelect(evt) {
    if(!loaded) {
     var files = evt.target.files; 
     var f = files[0];
-    var objectURL = window.webkitURL.createObjectURL(f);
+    var objectURL = window.URL.createObjectURL(f);
     csound.CopyUrlToLocal(objectURL,"midifile.mid", function() {
     loaded = true;
     console.log("Ready to play. \n");
