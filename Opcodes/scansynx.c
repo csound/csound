@@ -117,6 +117,9 @@ static int32_t scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
     MYFLT tab = FABS(*p->i_init);
     int32 len  = p->len;
 
+    if (pos<FL(0.0)) pos = FL(0.0);
+    if (pos>FL(1.0)) pos = FL(1.0);
+
     /* Get table */
     //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
     if (UNLIKELY((fi = csound->FTnp2Find(csound, &tab)) == NULL)) {
@@ -291,14 +294,14 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
         for (j = 0 ; j != len ; j++) {
 #ifdef USING_CHAR
           p->f[ilen+j] = (f->ftable[ilen+j] != 0 ? 1 : 0);
-          if (p->f[ilen+j])
-            csound->Message(csound, "%.0f: %d %d\n", *p->i_f, i, j);
+          /* if (p->f[ilen+j]) */
+          /*   csound->Message(csound, "%.0f: %d %d\n", *p->i_f, i, j); */
 #else
            /* dead reckonng would be faster */
           int32_t wd = (ilen+j)>>LOG_BITS_PER_UNIT;
           int32_t bt = (ilen+j)&(BITS_PER_UNIT-1);
-          csound->Message(csound,
-                          "%.0f: %d %d -> wd%d/bt%d\n", *p->i_f, i, j, wd, bt);
+          /* csound->Message(csound, */
+          /*                 "%.0f: %d %d -> wd%d/bt%d\n", *p->i_f, i, j, wd, bt); */
           p->f[wd] |= (1<<bt);
 #endif
         }
@@ -644,7 +647,7 @@ static int32_t scsnsx_init(CSOUND *csound, PSCSNSX *p)
  */
 static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT   *out = p->a_out;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -669,7 +672,8 @@ static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
         out[i] = amp * (PINTERP(ph, t));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        if (UNLIKELY(phs >= tlen)) phs -= tlen;
+        while (UNLIKELY(phs >= tlen)) phs -= tlen;
+        while (UNLIKELY(phs <  0   )) phs += tlen;
       }
       break;
     case 2:
@@ -682,7 +686,8 @@ static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
         out[i] = amp * (y1 + x*(y2 - y1));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        if (UNLIKELY(phs >= tlen)) phs -= tlen;
+        while (UNLIKELY(phs >= tlen)) phs -= tlen;
+        while (UNLIKELY(phs <  0   )) phs += tlen;
       }
       break;
     case 3:
@@ -697,7 +702,8 @@ static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
           (y2 + x*(-y1*FL(0.5) + x*(y1*FL(0.5) - y2 + y3*FL(0.5)) + y3*FL(0.5)));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        if (UNLIKELY(phs >= tlen)) phs -= tlen;
+        while (UNLIKELY(phs >= tlen)) phs -= tlen;
+        while (UNLIKELY(phs <  0   )) phs += tlen;
       }
       break;
     case 4:
@@ -716,7 +722,8 @@ static int32_t scsnsx(CSOUND *csound, PSCSNSX *p)
                    y4/FL(6.0)));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        if (UNLIKELY(phs >= tlen)) phs -= tlen;
+        while (UNLIKELY(phs >= tlen)) phs -= tlen;
+        while (UNLIKELY(phs <  0   )) phs += tlen;
       }
       break;
     }
