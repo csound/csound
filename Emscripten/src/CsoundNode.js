@@ -18,12 +18,12 @@ var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT ||
   (function() {
 
     try {
-	var AudioContext = window.AudioContext || window.webkitAudioContext;
-	return new AudioContext();	
+        var AudioContext = window.AudioContext || window.webkitAudioContext;
+        return new AudioContext();      
     }
     catch(error) {
 
-	console.log('Web Audio API is not supported in this browser');
+        console.log('Web Audio API is not supported in this browser');
     }
     return null;
   }());
