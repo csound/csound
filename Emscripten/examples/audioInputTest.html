@@ -21,8 +21,10 @@ nchnls_i = 1
 0dbfs = 1
 
 instr 1
-  ain inch 1
-  al, ar freeverb ain,ain, 0.7, 0.5
+ain inch 1
+printk 0.5, k(ain)
+al, ar freeverb ain,ain, 0.7, 0.5
+
   out  al, ar
 endin
 `;
