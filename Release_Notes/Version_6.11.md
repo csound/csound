@@ -96,6 +96,10 @@ addition to the audio.
 
 - The mode filter now does not allow a frequency in the unstable region.
 
+- In scanu and xscanu the value of kpos is supposed to be in the range
+[0,1].  This is now inforced by treating all negative values as 0 and all
+values bigger than 1 as 1.
+
 ### Utilities
 
 -
