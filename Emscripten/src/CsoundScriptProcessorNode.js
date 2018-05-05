@@ -36,9 +36,9 @@ var CSOUND;
 
 /** This E6 class is used to setup scripts and
     allow the creation of new CsoundScriptProcessorNode objects
-*/
-class CsoundNodeFactory {
-
+    *  @hideconstructor
+    */
+class CsoundScriptProcessorNodeFactory {
 
     // Utility function to load a script and set callback
     static loadScript(src, callback) {
@@ -56,7 +56,7 @@ class CsoundNodeFactory {
      */
     static importScripts(script_base='./') {
         return new Promise((resolve) => {
-            CsoundNodeFactory.loadScript(script_base + 'libcsound.js', () => {
+            CsoundScriptProcessorNodeFactory.loadScript(script_base + 'libcsound.js', () => {
                 AudioWorkletGlobalScope.WAM = {}
                 let WAM = AudioWorkletGlobalScope.WAM;
 
@@ -106,10 +106,16 @@ class CsoundNodeFactory {
 
     /** 
      * This static method creates a new CsoundScriptProcessorNode. 
-     *  @param {number} inputChannelCount number of input channels
-     *  @param {number} outputChannelCount number of output channels
+     *  @param {number} inputChannelCount Number of input channels
+     *  @param {number} outputChannelCount Number of output channels
+     *  @returns {object} A new CsoundScriptProcessorNode
      */
     static createNode(inputChannelCount=1, outputChannelCount=2) {
+        /**  @classdesc A CsoundScriptProcessorNode containing a Csound engine
+         *   @class CsoundScriptProcessorNode
+         *   @mixes CsoundMixin
+         *   @hideconstructor
+         */
         var spn = CSOUND_AUDIO_CONTEXT.createScriptProcessor(0, inputChannelCount, outputChannelCount);
         spn.inputCount = inputChannelCount;
         spn.outputCount = outputChannelCount;
@@ -126,7 +132,11 @@ class CsoundNodeFactory {
         CSOUND.setOption(cs, "--sample-rate="+sampleRate);
         CSOUND.setOption(cs, "--nchnls=" + this.nchnls);
         CSOUND.setOption(cs, "--nchnls_i=" + this.nchnls_i); 
-     
+
+        /**  Provides methods to manipulate an ScriptProcessorNode
+         *
+         *   @mixin CsoundMixin
+         */
         let CsoundMixin = {
             csound: cs,
             compiled: false,
@@ -144,6 +154,15 @@ class CsoundNodeFactory {
             nchnls_i: inputChannelCount, 
             nchnls: outputChannelCount,         
 
+            /** 
+             *
+             *  Writes data to a file in the WASM filesystem for
+             *  use with csound.
+             *
+             * @param {string} filePath A string containing the path to write to.
+             * @param {blob}   blobData The data to write to file.
+             * @memberof CsoundMixin
+             */ 
             writeToFS(filePath, blobData) {
                 let FS = WAM["FS"];
                 let stream = FS.open(filePath, 'w+');
@@ -151,45 +170,93 @@ class CsoundNodeFactory {
                 FS.write(stream, buf, 0, buf.length, 0);
                 FS.close(stream);
             },
-
-            compileCSD(filePath) {
+            
+            /** Compiles a CSD, which may be given as a filename in the
+             *  WASM filesystem or a string containing the code
+             *
+             * @param {string} csd A string containing the CSD filename or the CSD code.
+             * @memberof CsoundMixin
+             */ 
+            compileCSD(csd) {
                 CSOUND.prepareRT(this.csound);
                 CSOUND.compileCSD(this.csound, filePath);
                 this.compiled = true;
             },
 
+            /** Compiles Csound orchestra code.
+             *
+             * @param {string} orcString A string containing the orchestra code.
+             * @memberof CsoundMixin
+             */  
             compileOrc(orcString) {
                 CSOUND.prepareRT(this.csound);
                 CSOUND.compileOrc(this.csound, orcString);
                 this.compiled = true;
             },
 
+            /** Sets a Csound engine option (flag)
+             *  
+             *
+             * @param {string} option The Csound engine option to set. This should
+             * not contain any whitespace.
+             * @memberof CsoundMixin
+             */  
             setOption(option) {
                 CSOUND.setOption(this.csound, option);
             },
 
+            /** Renders a CSD, which may be given as a filename in the
+             *  WASM filesystem or a string containing the code. This is used for
+             *  disk rendering only.
+             * @param {string} csd A string containing the CSD filename or the CSD code.
+             * @memberof CsoundMixin
+             */ 
             render(filePath) {
                 CSOUND.compileCSD(this.csound, filePath);
                 CSOUND.render(this.csound);
                 this.compiled = false;
             },
 
+            /** Evaluates Csound orchestra code.
+             *
+             * @param {string} codeString A string containing the orchestra code.
+             * @memberof CsoundMixin
+             */  
             evaluateCode(codeString) {
                 CSOUND.evaluateCode(this.csound, codeString);
             },
-
+            /** Reads a numeric score string.
+             *
+             * @param {string} scoreString A string containing a numeric score.
+             * @memberof CsoundMixin
+             */   
             readScore(scoreString) {
                 CSOUND.readScore(this.csound, scoreString);
             },
-
+            
+            /** Sets the value of a control channel in the software bus
+             *
+             * @param {string} channelName A string containing the channel name.
+             * @param {number} value The value to be set.
+             * @memberof CsoundMixin
+             */ 
             setControlChannel(channelName, value) {
                 CSOUND.setControlChannel(this.csound, channelName, value);
             },
-
+            
+            /** Sets the value of a string channel in the software bus
+             *
+             * @param {string} channelName A string containing the channel name.
+             * @param {string} stringValue The string to be set.
+             * @memberof CsoundMixin
+             */ 
             setStringChannel(channelName, value) {
                 CSOUND.setStringChannel(this.csound, channelName, value); 
             },
-
+            
+            /** Starts processing in this node
+             *  @memberof CsoundMixin
+             */ 
             start() {
                 if(this.started == false) {
                     let ksmps = CSOUND.getKsmps(this.csound);
@@ -207,6 +274,9 @@ class CsoundNodeFactory {
 
             },
 
+            /** Resets the Csound engine.
+             *  @memberof CsoundMixin
+             */ 
             reset() {
                 CSOUND.reset(this.csound);
                 this.compiled = false;
@@ -216,14 +286,39 @@ class CsoundNodeFactory {
                 CSOUND.destroy(this.csound);
             },
 
+            /** Starts performance, same as start()
+             * @memberof CsoundMixin
+             */ 
             play() {
-                CSOUND.play(this.csound); 
+                CSOUND.start(this.csound); 
             },
 
+            /** Stops (pauses) performance
+             *   @memberof CsoundMixin
+             */      
+            stop() {
+                this.running = false;
+            },
+
+            /** Sets a callback to process Csound console messages.
+             *
+             * @param {function} msgCallback A callback to process messages 
+             * with signature function(message), where message is a string
+             * from Csound.
+             * @memberof CsoundMixin
+             */           
             setMessageCallback(msgCallback) {
                 this.msgCallBack = msgCallback;
             },
-
+            
+            /** Sends a MIDI channel message to Csound
+             *
+             * @param {number} byte1 MIDI status byte
+             * @param {number} byte2 MIDI data byte 1
+             * @param {number} byte1 MIDI data byte 2
+             *
+             * @memberof CsoundMixin
+             */  
             midiMessage(byte1, byte2, byte3) {
                 CSOUND.pushMidiMessage(this.csound, byte1, byte2, byte3);
             },
