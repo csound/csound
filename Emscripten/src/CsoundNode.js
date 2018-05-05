@@ -34,11 +34,12 @@ var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT ||
  */
 class CsoundNode extends AudioWorkletNode {
 
-    /** @constructor
-     *
-     * @param {AudioContext} context AudioContext in which this node will run.
+    /** 
+     * @constructor
+     * @param {AudioContext} context AudioContext in which this node will run
      * @param {object} options Configuration options, holding numberOfInputs,
-     *   numberOfOutputs.
+     *   numberOfOutputs
+     * @returns {object} A new CsoundNode
      */
     constructor(context, options) {
         options = options || {};
