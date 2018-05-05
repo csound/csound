@@ -35,6 +35,7 @@ var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT ||
 class CsoundNode extends AudioWorkletNode {
 
     /** 
+     *
      * @constructor
      * @param {AudioContext} context AudioContext in which this node will run
      * @param {object} options Configuration options, holding numberOfInputs,
@@ -62,7 +63,6 @@ class CsoundNode extends AudioWorkletNode {
             default:
                 console.log('[CsoundNode] Invalid Message: "' + event.data);
             }
-
         };
     }
     

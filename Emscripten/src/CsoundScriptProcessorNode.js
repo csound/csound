@@ -123,7 +123,6 @@ class CsoundScriptProcessorNodeFactory {
  *   @param {AudioContext} context AudioContext in which this node will run
  *   @param {object} options Configuration options, holding numberOfInputs,
  *   numberOfOutputs
- *   @returns {object} A new CsoundScriptProcessorNode
 */
 CsoundScriptProcessorNode  = function(context, options) {
     var spn = context.createScriptProcessor(0, options.numberOfInputs, options.numberOfOutputs);
