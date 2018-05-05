@@ -31,7 +31,7 @@ typedef struct {
     MYFLT       *x0, *x1, *x2, *x3, *ext, *v, rate;
     MYFLT       *m, *f, *c, *d, *out;
     int32        idx, len, exti;
-    int32_t         id;
+    int32_t      id;
     void        *win;
     SCANSYN_GLOBALS *pp;
 } PSCSNU;
@@ -45,7 +45,7 @@ typedef struct {
     AUXCH       aux_t;
     MYFLT       fix, phs;
     int32        tlen, *t;
-    int32_t         oscil_interp;
+    int32_t     oscil_interp;
     PSCSNU      *p;
 } PSCSNS;
 
