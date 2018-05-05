@@ -200,6 +200,17 @@ class CsoundObj {
     this.node.setMessageCallback(msgCallback);
   }
 
+  /** Sends a MIDI channel message to Csound
+   *
+   * @param {number} byte1 MIDI status byte
+   * @param {number} byte2 MIDI data byte 1
+   * @param {number} byte1 MIDI data byte 2
+   *
+   */
+  midiMessage(byte1, byte2, byte3) {
+      this.node.midiMessage(byte1, byte2, byte3);
+  }
+
   /** Enables microphone (external audio) input in browser
    *
    * @param {function} audioInputCallback A callback with a signature
