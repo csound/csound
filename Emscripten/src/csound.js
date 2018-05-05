@@ -1,7 +1,7 @@
 /*
  * Csound JS frontend, adapted from PNaCl Csound
  *
- * Copyright (C) 2017 V Lazzarini
+ * Copyright (C) 2017-8 V Lazzarini
  *
  * This file belongs to Csound.
  *
@@ -23,7 +23,7 @@
 
 
 /** 
-* @classdesc Csound frontend class 
+* @classdesc Csound frontend class, wrapping CsoundObj
 *
 * @constructor 
 */
