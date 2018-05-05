@@ -556,9 +556,9 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
         out[i] = *p->k_amp * (y1 + x*(y2 - y1));
                 /* Update oscillator phase and wrap around if needed */
         phs += inc;
-        while (phs >= p->tlen)
+        while (UNLIKELY(phs >= p->tlen))
           phs -= p->tlen;    /* Remember phase */
-        while (phs < 0)
+        while (UNLIKELY(phs < 0))
           phs += p->tlen;    /* Remember phase */
       }
       break;
