@@ -193,6 +193,7 @@ class CsoundNode extends AudioWorkletNode {
 
 /** This E6 class is used to setup scripts and
     allow the creation of new CsoundNode objects
+   @hideconstructor
 */
 class CsoundNodeFactory {
 
@@ -214,8 +215,9 @@ class CsoundNodeFactory {
 
     /** 
      * This static method creates a new CsoundNode. 
-     *  @param {number} inputChannelCount number of input channels
-     *  @param {number} outputChannelCount number of output channels
+     *  @param {number} InputChannelCount number of input channels
+     *  @param {number} OutputChannelCount number of output channels
+     *  @returns {object}
      */
     static createNode(inputChannelCount=1, outputChannelCount=2) {
         var options = {};

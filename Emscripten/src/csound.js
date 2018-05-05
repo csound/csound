@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- *  The global csound object
+ *  The global singleton csound frontend object
  * 
  */
 var csound = new Csound();
