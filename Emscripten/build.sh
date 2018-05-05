@@ -51,3 +51,6 @@ cp build/libcsound.js dist/
 cp build/libcsound.wasm dist/
 cp build/libcsound-worklet.js dist/
 cp build/libcsound-worklet.wasm.js dist/
+
+# documentation
+jsdoc -d dist/docs src/csound.js src/CsoundObj.js src/CsoundScriptProcessorNode.js src/CsoundNode.js src/README.md
