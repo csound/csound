@@ -189,7 +189,7 @@ CsoundScriptProcessorNode  = function(context, options) {
          */ 
         compileCSD(csd) {
             CSOUND.prepareRT(this.csound);
-            CSOUND.compileCSD(this.csound, filePath);
+            CSOUND.compileCSD(this.csound, csd);
             this.compiled = true;
         },
 
@@ -221,8 +221,8 @@ CsoundScriptProcessorNode  = function(context, options) {
          * @param {string} csd A string containing the CSD filename or the CSD code.
          * @memberof CsoundMixin
          */ 
-        render(filePath) {
-            CSOUND.compileCSD(this.csound, filePath);
+        render(csd) {
+            CSOUND.compileCSD(this.csound, csd);
             CSOUND.render(this.csound);
             this.compiled = false;
         },
