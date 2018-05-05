@@ -34,19 +34,17 @@ var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT ||
 // Global singleton variables
 var AudioWorkletGlobalScope = AudioWorkletGlobalScope || {};
 var CSOUND_NODE_SCRIPT;
-var factory;
-var hasAudioWorklet;
 
 /* SETUP NODE TYPE */
 if(typeof AudioWorkletNode !== 'undefined' &&
    CSOUND_AUDIO_CONTEXT.audioWorklet !== null) {
     console.log("Using WASM + AudioWorklet Csound implementation");
     CSOUND_NODE_SCRIPT = 'CsoundNode.js';
-    hasAudioWorklet = true;
+    CSOUND_AUDIO_CONTEXT.hasAudioWorklet = true;
 } else {
     console.log("Using WASM + ScriptProcessorNode Csound implementation");
     CSOUND_NODE_SCRIPT = 'CsoundScriptProcessorNode.js';
-    hasAudioWorklet = false;  
+    CSOUND_AUDIO_CONTEXT.hasAudioWorklet = false;  
 }
 
 
@@ -252,9 +250,9 @@ class CsoundObj {
     static importScripts(script_base='./') {
         return new Promise((resolve) => {
             csound_load_script(script_base + CSOUND_NODE_SCRIPT, () => {
-                if(hasAudioWorklet) factory = CsoundNodeFactory;
-                else factory = CsoundScriptProcessorNodeFactory;
-                factory.importScripts(script_base).then(() => {
+                if(CSOUND_AUDIO_CONTEXT.hasAudioWorklet) CSOUND_AUDIO_CONTEXT.factory = CsoundNodeFactory;
+                else CSOUND_AUDIO_CONTEXT.factory = CsoundScriptProcessorNodeFactory;
+                CSOUND_AUDIO_CONTEXT.factory.importScripts(script_base).then(() => {
                     resolve();
                 })
             })
@@ -271,7 +269,7 @@ class CsoundObj {
      *  @return A new Csound Engine Node (CsoundNode or CsoundScriptProcessorNode)
      */
     static createNode(inputChannelCount=1, outputChannelCount=2) {
-        return factory.createNode(inputChannelCount,outputChannelCount);
+        return CSOUND_AUDIO_CONTEXT.factory.createNode(inputChannelCount,outputChannelCount);
     }
 
 }

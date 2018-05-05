@@ -17,7 +17,6 @@
 // Setup a single global AudioContext object
 var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT || 
     (function() {
-
         try {
             var AudioContext = window.AudioContext || window.webkitAudioContext;
             return new AudioContext();  
@@ -144,9 +143,9 @@ CsoundScriptProcessorNode  = function(context, options) {
     CSOUND.setOption(cs, "--nchnls=" + this.nchnls);
     CSOUND.setOption(cs, "--nchnls_i=" + this.nchnls_i); 
 
-    /**  Provides methods to manipulate an ScriptProcessorNode
-     *
+    /**  
      *   @mixin CsoundMixin
+     *   @ignore
      */
     let CsoundMixin = {
         csound: cs,
@@ -301,7 +300,7 @@ CsoundScriptProcessorNode  = function(context, options) {
          * @memberof CsoundMixin
          */ 
         play() {
-            CSOUND.start(this.csound); 
+            this.start(this.csound); 
         },
 
         /** Stops (pauses) performance
