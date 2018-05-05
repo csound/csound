@@ -34,6 +34,9 @@ var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT ||
 var AudioWorkletGlobalScope = AudioWorkletGlobalScope || {};
 var CSOUND;
 
+/** This E6 class is used to setup scripts and
+    allow the creation of new CsoundScriptProcessorNode objects
+*/
 class CsoundNodeFactory {
 
 
@@ -45,6 +48,12 @@ class CsoundNodeFactory {
         document.head.appendChild(script);
     }
 
+    /** 
+     * This static method is used to asynchronously setup scripts for 
+     *  ScriptProcessorNode Csound
+     *
+     * @param {string} script_base A string containing the base path to scripts
+     */
     static importScripts(script_base='./') {
         return new Promise((resolve) => {
             CsoundNodeFactory.loadScript(script_base + 'libcsound.js', () => {
@@ -86,8 +95,6 @@ class CsoundNodeFactory {
                         prepareRT: WAM.cwrap('CsoundObj_prepareRT', null, ['number']),
                         getScoreTime: WAM.cwrap('CsoundObj_getScoreTime', null, ['number']),
                         setTable: WAM.cwrap('CsoundObj_setTable', null, ['number', 'number', 'number', 'number']),
-                        openAudioOut: WAM.cwrap('CsoundObj_openAudioOut', null, ['number']),
-                        closeAudioOut: WAM.cwrap('CsoundObj_closeAudioOut', null, ['number']),
                         destroy: WAM.cwrap('CsoundObj_destroy', null, ['number'])
                     }
 
@@ -97,10 +104,13 @@ class CsoundNodeFactory {
         });
     }
 
+    /** 
+     * This static method creates a new CsoundScriptProcessorNode. 
+     *  @param {number} inputChannelCount number of input channels
+     *  @param {number} outputChannelCount number of output channels
+     */
     static createNode(inputChannelCount=1, outputChannelCount=2) {
         var spn = CSOUND_AUDIO_CONTEXT.createScriptProcessor(0, inputChannelCount, outputChannelCount);
-        //bufferSize = audioProcessNode.bufferSize;
-        // console.error("bufferSize = " + bufferSize);
         spn.inputCount = inputChannelCount;
         spn.outputCount = outputChannelCount;
 
@@ -116,7 +126,7 @@ class CsoundNodeFactory {
         CSOUND.setOption(cs, "--sample-rate="+sampleRate);
         CSOUND.setOption(cs, "--nchnls=" + this.nchnls);
         CSOUND.setOption(cs, "--nchnls_i=" + this.nchnls_i); 
-
+     
         let CsoundMixin = {
             csound: cs,
             compiled: false,
@@ -263,7 +273,6 @@ class CsoundNodeFactory {
                 this.res = res;
             }
         }
-
 
         let WAM = AudioWorkletGlobalScope.WAM;
         WAM["print"] = (t) => spn.msgCallback(t);
