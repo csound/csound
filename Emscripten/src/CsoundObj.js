@@ -176,6 +176,26 @@ class CsoundObj {
     getChannel(channelName) {
         return this.node.getChannel(channelName);
     }
+
+    /** Request the data from a Csound function table
+     *
+     * @param {number} number The function table number
+     * @param {function} callback An optional callback to be called when
+     *  the requested data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    requestTable(number, callback = null) {
+         this.node.requestTable(number, callback);
+    }
+
+    /** Get the requested table number
+     *
+     * @param {number} number The function table number
+     * @returns {Float32Array} The table as a typed array.
+     */   
+    getTable(number) {
+        return this.node.getTable(number);
+    }
     
     /** Starts the node containing the Csound engine.
      */
