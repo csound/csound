@@ -71,7 +71,7 @@ Csound = function() {
                         window.moduleDidLoad();
                     if (typeof window.attachListeners !== 'undefined') 
                         window.attachListeners();
-                    csound.updateStatus('Ready.');
+                    csound.UpdateStatus('Ready.');
                 });
             });
     }
@@ -85,7 +85,7 @@ Csound = function() {
      * Prints current status to the console.
      * @param {string} opt_message The status message.
      */
-    function updateStatus(opt_message, keep) {
+    function UpdateStatus(opt_message, keep) {
         if (opt_message) {
             statusText = 'Csound: ' + opt_message + '\n';
         }
@@ -341,7 +341,8 @@ Csound = function() {
      *
      */
     function RequestChannel(name) {
-        return csound.Csound.getControlChannel(name);
+      csound.Csound.requestControlChannel(name);
+      return csound.Csound.getChannel(name);  
     }
 
     /**
@@ -376,50 +377,8 @@ Csound = function() {
 
     }
 
-    /**
-     * Requests the data from a local file;
-     * module sends "Complete" message when done.
-     *
-     * @param {string} url  The file name
-     */
-    function RequestFileFromLocal(name) {
-        fileData = FS.readFile(name, {
-            encoding: 'binary'
-        });
-    }
-
-    /**
-     * Returns the most recently requested file data.
-     *
-     */
-    function GetFileData() {
-        return fileData;
-    }
-
-    /**
-     * Requests the data from a table;
-     * module sends "Complete" message when done.
-     *
-     * @param {number} num  The table number
-     */
-    function RequestTable(num) {
-        tableData = csound.Csound.getTable(num);
-    }
-
-    /**
-     * Returns the most recently requested table data.
-     *
-     */
-    function GetTableData() {
-        return tableData;
-    }
-
-    function message(text) {
-        csound.updateStatus(text);
-    }
-
-    function start() {
-        csound.Csound.start();
+    function Message(text) {
+        csound.UpdateStatus(text);
     }
 
     /**
@@ -428,8 +387,8 @@ Csound = function() {
      */
     function StartInputAudio() {
         csound.Csound.enableInput(function(status) {
-            if (status) csound.updateStatus("enabled audio input\n");
-            else csound.updateStatus("failed to enable audio input\n");
+            if (status) csound.UpdateStatus("enabled audio input\n");
+            else csound.UpdateStatus("failed to enable audio input\n");
         });
     }
 
@@ -437,7 +396,7 @@ Csound = function() {
      * Reset the Csound engine
      *
      */
-    function reset() {
+    function Reset() {
         csound.Csound.reset();
     }
 
@@ -455,11 +414,9 @@ Csound = function() {
         CopyUrlToLocal: CopyUrlToLocal,
         createModule: createModule,
         Event: Event,
-        GetFileData: GetFileData,
         GetScoreTime: GetScoreTime,
         getScoreTime: GetScoreTime,
-        GetTableData: GetTableData,
-        message: message,
+        Message: Message,
         MIDIin: MIDIin,
         NoteOff: NoteOff,
         NoteOn: NoteOn,
@@ -471,32 +428,27 @@ Csound = function() {
         PolyAftertouch: PolyAftertouch,
         ProgramChange: ProgramChange,
         ReadScore: ReadScore,
-        readScore: ReadScore,
         RenderCsd: RenderCsd,
         RequestChannel: RequestChannel,
-        RequestFileFromLocal: RequestFileFromLocal,
-        RequestTable: RequestTable,
-        reset: reset,
+        Reset: Reset,
         SetChannel: SetChannel,
-        setControlChannel: SetChannel,
+        SetControlChannel: SetChannel,
         SetStringChannel: SetStringChannel,
-        setStringChannel: SetStringChannel,
         SetTable: SetTable,
         StartInputAudio: StartInputAudio,
-        start: start,
         Start: Play,
-        stop: Stop,
-        updateStatus: updateStatus
+        Stop: Stop,
+        UpdateStatus: UpdateStatus
     };
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-    csound.updateStatus('page loaded');
+    csound.UpdateStatus('page loaded');
     if (csound.module == false) {
-        csound.updateStatus('Loading WASM Csound module.\nThis might take a little while.');
+        csound.UpdateStatus('Loading WASM Csound module.\nThis might take a little while.');
         csound.createModule();
     } else {
-        csound.updateStatus('Not ready.');
+        csound.UpdateStatus('Not ready.');
     }
     window.addEventListener("unload", function(e) {
         if (csound != null && csound.Csound != null)

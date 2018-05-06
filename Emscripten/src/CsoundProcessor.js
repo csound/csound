@@ -214,8 +214,6 @@ class CsoundProcessor extends AudioWorkletProcessor {
             Csound.setOption(csObj, "-+rtmidi=null");
             Csound.setOption(csObj, "--sample-rate="+this.sampleRate);  
             Csound.prepareRT(csObj);
-            this.nchnls = options.numberOfOutputs;
-            this.nchnls_i = options.numberOfInputs;
             Csound.setOption(csObj, "--nchnls=" + this.nchnls);
             Csound.setOption(csObj, "--nchnls_i=" + this.nchnls_i);
             this.csoundOutputBuffer = null; 
