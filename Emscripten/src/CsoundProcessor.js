@@ -94,6 +94,14 @@ class CsoundProcessor extends AudioWorkletProcessor {
     process(inputs, outputs, parameters) {
         if (this.csoundOutputBuffer == null ||
             this.running == false) {
+             let output =  outputs[0];
+                let bufferLen = output[0].length;
+                for (let i = 0; i < bufferLen; i++) {
+                    for (let channel = 0; channel < output.numberOfChannels; channel++) {
+                        let outputChannel = output[channel];
+                        outputChannel[i] = 0;
+                    }
+                }
             return true;
         }
 
