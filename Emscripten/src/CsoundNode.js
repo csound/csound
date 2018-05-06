@@ -54,11 +54,15 @@ class CsoundNode extends AudioWorkletNode {
         this.msgCallback = (msg) => { console.log(msg); }
 
         this.port.start();
+        this.channel =  {};
         this.port.onmessage = (event) => {
             let data = event.data;
             switch(data[0]) {
             case "log":
                 this.msgCallback(data[1]);
+                break;
+            case "control":
+                this.channel[data[1]] = data[2];
                 break;
             default:
                 console.log('[CsoundNode] Invalid Message: "' + event.data);
@@ -142,6 +146,16 @@ class CsoundNode extends AudioWorkletNode {
                                channelName, value]);
     }
 
+    requestControlChannel(channelName) {
+         this.port.postMessage(["getControlChannel",
+                                channelName]);
+    }
+
+    getControlChannel(channelName) {
+        this.requestControlChannel(channelName)
+        return this.channel[channelName];
+    }
+    
     /** Starts processing in this node
      */
     start() {

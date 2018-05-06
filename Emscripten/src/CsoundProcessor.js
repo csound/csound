@@ -161,6 +161,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
     handleMessage(event) {
         let data = event.data;
+        let p = this.port;
 
         switch (data[0]) {
         case "compileCSD":
@@ -228,6 +229,10 @@ class CsoundProcessor extends AudioWorkletProcessor {
             let byte3 = data[3];
             Csound.pushMidiMessage(this.csObj, byte1, byte2, byte3);
             break;
+        case "getChannel":
+            let channel = data[1];
+            let value = Csound.getControlChannel(csObj, channel);
+            p.postMessage(["control", channel, value]);
         default:
             console.log('[CsoundAudioProcessor] Invalid Message: "' + event.data);
         }

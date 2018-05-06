@@ -127,6 +127,7 @@ nchnls=2
 instr 1
  k1 expon p4,p3,p4*0.001
  a1 oscili k1,p5
+ chnset p5, "freq"
  outs a1,a1
  schedule 1,0.25,0.5,0.3+rnd(0.2),1000+birnd(500)
 endin 
