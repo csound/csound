@@ -214,6 +214,8 @@ class CsoundProcessor extends AudioWorkletProcessor {
             Csound.setOption(csObj, "-+rtmidi=null");
             Csound.setOption(csObj, "--sample-rate="+this.sampleRate);  
             Csound.prepareRT(csObj);
+            this.nchnls = options.numberOfOutputs;
+            this.nchnls_i = options.numberOfInputs;
             Csound.setOption(csObj, "--nchnls=" + this.nchnls);
             Csound.setOption(csObj, "--nchnls_i=" + this.nchnls_i);
             this.csoundOutputBuffer = null; 
@@ -240,6 +242,13 @@ class CsoundProcessor extends AudioWorkletProcessor {
             let value = Csound.getControlChannel(this.csObj, channel);
             p.postMessage(["control", channel, value]);
             break;
+        case "getTable":
+            let buffer = Csound.getTable(this.csObj, data[1]);
+            let len = Csound.getTableLength(this.csObj, data[1]);
+            let src = new Float32Array(WAM.HEAP8.buffer, buffer, len);
+            let table = new Float32Array(src);
+            p.postMessage(["table", data[1], table]);
+            break
         default:
             console.log('[CsoundAudioProcessor] Invalid Message: "' + event.data);
         }

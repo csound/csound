@@ -56,6 +56,8 @@ class CsoundNode extends AudioWorkletNode {
         this.port.start();
         this.channel =  {};
         this.channelCallback = {};
+        this.table = {};
+        this.tableCallback = {};
         this.port.onmessage = (event) => {
             let data = event.data;
             switch(data[0]) {
@@ -67,6 +69,11 @@ class CsoundNode extends AudioWorkletNode {
                 if (typeof this.channelCallback[data[1]] != 'undefined')
                       this.channelCallback[data[1]](); 
                 break;
+            case "table":
+                this.table[data[1]] = data[2];
+                if (typeof this.tableCallback[data[1]] != 'undefined')
+                      this.tableCallback[data[1]](); 
+               break;
             default:
                 console.log('[CsoundNode] Invalid Message: "' + event.data);
             }
@@ -170,6 +177,28 @@ class CsoundNode extends AudioWorkletNode {
      */   
     getChannel(channelName) {
         return this.channel[channelName];
+    }
+
+     /** Request the data from a Csound function table
+     *
+     * @param {number} number The function table number
+     * @param {function} callback An optional callback to be called when
+     *  the requested data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    requestTable(number, callback = null) {
+        this.port.postMessage(["getTable", number]);
+        if (callback !== null)
+          this.tableCallback[number] = callback;
+    }
+
+    /** Get the requested table number
+     *
+     * @param {number} number The function table number
+     * @returns {Float32Array} The table as a typed array.
+     */   
+    getTable(number) {
+        return this.table[number];
     }
     
     /** Starts processing in this node

@@ -165,6 +165,8 @@ CsoundScriptProcessorNode  = function(context, options) {
         nchnls: options.numberOfOutputs,
         channel: {},
         channelCallback: {},
+        table: {},
+        tableCallback: {},
         
         /** 
          *
@@ -290,6 +292,32 @@ CsoundScriptProcessorNode  = function(context, options) {
             return this.channel[channelName];
         },
 
+        /** Request the data from a Csound function table
+         *
+         * @param {number} number The function table number
+         * @param {function} callback An optional callback to be called when
+         *  the requested data is available. This can be set once for all
+         *  subsequent requests.
+         */ 
+        requestTable(number, callback = null) {
+            let buffer = CSOUND.getTable(this.csound, number);
+            let len = CSOUND.getTableLength(this.csound, number);
+            let src = new Float32Array(WAM.HEAP8.buffer, buffer, len);
+            this.table[number] = new Float32Array(src);
+            if (callback !== null)
+                this.tableCallback[number] = callback;
+            if(typeof this.tableCallback[number] != 'undefined')
+                this.tableCallback[number]();
+        },
+
+        /** Get the requested table number
+         *
+         * @param {number} number The function table number
+         * @returns {Float32Array} The table as a typed array.
+         */   
+        getTable(number) {
+            return this.table[number];
+        },
         
         /** Starts processing in this node
          *  @memberof CsoundMixin
