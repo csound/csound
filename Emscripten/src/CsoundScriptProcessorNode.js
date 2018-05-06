@@ -363,6 +363,14 @@ CsoundScriptProcessorNode  = function(context, options) {
         onaudioprocess(e) {
             if (this.csoundOutputBuffer == null ||
                 this.running == false) {
+                let output = e.outputBuffer;
+                let bufferLen = output.getChannelData(0).length;
+                for (let i = 0; i < bufferLen; i++) {
+                    for (let channel = 0; channel < output.numberOfChannels; channel++) {
+                        let outputChannel = output.getChannelData(channel);
+                        outputChannel[i] = 0;
+                    }
+                }
                 return;
             }
 
