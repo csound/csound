@@ -55,6 +55,7 @@ class CsoundNode extends AudioWorkletNode {
 
         this.port.start();
         this.channel =  {};
+        this.channelCallback = {};
         this.port.onmessage = (event) => {
             let data = event.data;
             switch(data[0]) {
@@ -63,6 +64,8 @@ class CsoundNode extends AudioWorkletNode {
                 break;
             case "control":
                 this.channel[data[1]] = data[2];
+                if (typeof this.channelCallback[data[1]] != 'undefined')
+                      this.channelCallback[data[1]](); 
                 break;
             default:
                 console.log('[CsoundNode] Invalid Message: "' + event.data);
@@ -146,13 +149,26 @@ class CsoundNode extends AudioWorkletNode {
                                channelName, value]);
     }
 
-    requestControlChannel(channelName) {
-         this.port.postMessage(["getControlChannel",
-                                channelName]);
+    /** Request the data from a control channel 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @param {function} callback An optional callback to be called when
+     *  the requested data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    requestControlChannel(channelName, callback = null) {
+        this.port.postMessage(["getControlChannel",
+                               channelName]);
+        if (callback !== null)
+          this.channelCallback[channelName] = callback;
     }
 
-    getControlChannel(channelName) {
-        this.requestControlChannel(channelName)
+    /** Get the latest requested channel data 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @returns {(number|string)} The latest channel value requested.
+     */   
+    getChannel(channelName) {
         return this.channel[channelName];
     }
     
