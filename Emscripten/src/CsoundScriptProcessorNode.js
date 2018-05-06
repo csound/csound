@@ -318,6 +318,26 @@ CsoundScriptProcessorNode  = function(context, options) {
         getTable(number) {
             return this.table[number];
         },
+
+        /** Set a specific table position
+         *
+         * @param {number} number The function table number
+         * @param {number} index The index of the position to be set
+         * @param {number} value The value to set
+         */ 
+        setTableValue(number, index, value) {
+            CSOUND.setTable(this.csound, number, index, value);
+        },
+
+        /** Set a table with data from an array
+         *
+         * @param {number} number The function table number
+         * @param {Float32Array} table The source data for the table
+         */   
+        setTable(number, table) {
+            for(let i = 0; i < table.length; i++)
+                Csound.setTable(this.csound, number, i, table[i]);
+        },
         
         /** Starts processing in this node
          *  @memberof CsoundMixin
