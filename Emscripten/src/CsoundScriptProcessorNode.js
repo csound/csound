@@ -123,7 +123,8 @@ class CsoundScriptProcessorNodeFactory {
  *   @param {AudioContext} context AudioContext in which this node will run
  *   @param {object} options Configuration options, holding numberOfInputs,
  *   numberOfOutputs
-*/
+ *   @returns {object} A new CsoundScriptProcessorNode
+ */
 CsoundScriptProcessorNode  = function(context, options) {
     var spn = context.createScriptProcessor(0, options.numberOfInputs, options.numberOfOutputs);
     spn.inputCount = options.numberOfInputs;
@@ -161,8 +162,10 @@ CsoundScriptProcessorNode  = function(context, options) {
         cnt: 0,
         res: 0,
         nchnls_i: options.numberOfInputs, 
-        nchnls: options.numberOfOutputs,         
-
+        nchnls: options.numberOfOutputs,
+        channel: {},
+        channelCallback: {},
+        
         /** 
          *
          *  Writes data to a file in the WASM filesystem for
@@ -262,6 +265,31 @@ CsoundScriptProcessorNode  = function(context, options) {
         setStringChannel(channelName, value) {
             CSOUND.setStringChannel(this.csound, channelName, value); 
         },
+
+        /** Request the data from a control channel 
+         *
+         * @param {string} channelName A string containing the channel name.
+         * @param {function} callback An optional callback to be called when
+         *  the requested data is available. This can be set once for all
+         *  subsequent requests.
+         */ 
+        requestControlChannel(channelName, callback = null) {
+            this.channel[channelName] = CSOUND.getControlChannel(this.csound, channelName);
+            if (callback !== null)
+                this.channelCallback[channelName] = callback;
+            if (typeof this.channelCallback[channelName] !== 'undefined')
+                this.channelCallback[channelName]();   
+        },
+
+        /** Get the latest requested channel data 
+         *
+         * @param {string} channelName A string containing the channel name.
+         * @returns {(number|string)} The latest channel value requested.
+         */   
+        getChannel(channelName) {
+            return this.channel[channelName];
+        },
+
         
         /** Starts processing in this node
          *  @memberof CsoundMixin
