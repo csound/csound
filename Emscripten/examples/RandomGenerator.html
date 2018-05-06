@@ -11,6 +11,7 @@
 <script type="text/javascript">
 
 var random_colour;
+var node;
 
 // fancy colours
 function getRandomColor() {
@@ -23,11 +24,20 @@ function getRandomColor() {
 }
 
 // message printout
-function print_msg(message) {
-   var messField = document.getElementById("console") 
+function display_msg(message) {
+   var messField = document.getElementById("console")
    messField.innerText = message;
    random_colour = messField.style.color = getRandomColor();
-};
+}
+
+
+function print_msg(message) {
+  node.requestControlChannel("freq", function() {
+     freq = Math.round(node.getChannel("freq"));
+     mess = message + " :: " + freq + " Hz";
+     display_msg(mess);
+   });
+}
 
 
 function main() {
@@ -38,6 +48,7 @@ function main() {
     csound = new CsoundObj();
     csound.compileOrc(document.getElementById('instruments').value);
     csound.start();
+    node = csound.getNode();
     window.addEventListener("unload", function(e){
 	if(csound != null)
           csound.destroy();}, false);
