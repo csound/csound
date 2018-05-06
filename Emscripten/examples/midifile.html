@@ -55,7 +55,7 @@
   document.getElementById('playButton').disabled = true;//"Pause";
   playing = true;
   } else {
-  csound.Csound.stop()
+  csound.Stop()
   document.getElementById('playButton').innerText ="Play";
   playing = false;
   }
@@ -72,7 +72,7 @@ function handleFileSelect(evt) {
     console.log("Ready to play. \n");
     });
    } else {
-   csound.updateStatus("to load a new midfile, first refresh page!")
+   csound.UpdateStatus("to load a new midfile, first refresh page!")
   }
 }
  
