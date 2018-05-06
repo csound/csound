@@ -248,7 +248,15 @@ class CsoundProcessor extends AudioWorkletProcessor {
             let src = new Float32Array(WAM.HEAP8.buffer, buffer, len);
             let table = new Float32Array(src);
             p.postMessage(["table", data[1], table]);
-            break
+            break;
+        case "setTableAtIndex":
+            Csound.setTable(this.csObj, data[1], data[2], data[3]);
+            break;
+        case "setTable":
+            let table = new Float32Array(data[2]);
+            for(let i = 0; i < table.length; i++)
+                Csound.setTable(this.csObj, data[1], i, table[i]);
+            break;         
         default:
             console.log('[CsoundAudioProcessor] Invalid Message: "' + event.data);
         }
