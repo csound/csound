@@ -7,11 +7,11 @@ relevant code to the local `js` directory. You will also need a
 http-server to serve the WebAudio Csound source files.
 
 
-* [Random note generator](https://github.com/csound/csound/blob/develop/emscripten/examples/RandomGenerator.html):
+* [Random note generator](https://github.com/csound/csound/blob/develop/emscripten/examples/randgen.html):
 This example demonstrates how to load the WASM Csound library and use the CsoundObj class to compile and perform 
 simple synthesis code that is embedded in the HTML page.
 
-* [Sliders](https://github.com/csound/csound/blob/develop/emscripten/examples/Sliders.html):
+* [Sliders](https://github.com/csound/csound/blob/develop/emscripten/examples/sliders.html):
 This example demonstrates how to use channels to send control data into Csound from HTML 5
 sliders.
 
@@ -24,6 +24,9 @@ Canvas widget example ported from the PNaCl Csound collection.
 
 * [StepSeq](https://github.com/csound/csound/blob/develop/emscripten/examples/tabex.html):
 Step Sequencer example demonstrating the use of tables in Csound.
+
+* [Reverb](https://github.com/csound/csound/blob/develop/emscripten/examples/reverb.html):
+Reverb effect demonstrating realtime audio input (e.g. microphone).
 
 * [MIDI](https://github.com/csound/csound/blob/develop/emscripten/examples/midi.html):
 MIDI input example using HTML 5 buttons to generate MIDI data.

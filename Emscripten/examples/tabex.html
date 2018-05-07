@@ -1,182 +1,189 @@
-<!DOCTYPE html> 
-<html> 
-<!-- 
- WebAudio Csound example 
- Copyright (C) 2017 V Lazzarini 
---> 
-<head> 
- <title>WebAudio Csound</title>
+<!DOCTYPE html>
+<html>
+<!--
+ WebAudio Csound example
+ Copyright (C) 2017 V Lazzarini
+-->
+
+<head>
+    <title>WebAudio Csound</title>
+    <style type="text/css">
+        input[type=checkbox] {
+            transform: scale(1.5);
+            margin: 10px 20px;
+        }
+
+        .center {
+            margin: auto;
+            padding: 10px;
+        }
+
+        .bpm input[type="range"] {
+            width: 600px;
+            margin: 10px 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 10px 20px;
+        }
+    </style>
+
+
+    <script src="js/CsoundObj.js"></script>
+    <script type="text/javascript">
+        var colour;
+        var pitch_colour = ['#1166BB', '#2255CC', '#3344AA', '#443399',
+            '#554488', '#665577', '#776666', '#887755', '#998844', '#999933',
+            '#99AA44', '#AABB55', '#CCDD66'
+        ];
+
+        var colour_tab = [pitch_colour[0], pitch_colour[2], pitch_colour[4],
+            pitch_colour[5], pitch_colour[7], pitch_colour[9], pitch_colour[11],
+            pitch_colour[12]
+        ];
+
+        var tab = new Float32Array(8);
+        var pc = new Float32Array(8);
+        var prv;
+
+        function isOn(n) {
+            var elem = document.getElementById("step" + n);
+            return elem.checked ? 1.0 : 0.0;
+        }
+
+        function setStep() {
+            for (let i = 0; i < tab.length; i++) {
+                tab[i] = isOn(i + 1);
+            }
+            csound.setTable(2, tab);
+        }
+
+        function setPitch() {
+            for (let i = 0; i < pc.length; i++) {
+                var value = document.getElementById("freq" + (i + 1)).value;
+                pc[i] = value / 100.;
+                colour_tab[i] = pitch_colour[value];
+            }
+            csound.setTable(1, pc);
+        }
+
+        function setBpm() {
+            var value = document.getElementById("bpm").value;
+            csound.setControlChannel("bpm", value);
+        }
+
+
+        // message printout
+        function display_msg(mess, step) {
+            var messField = document.getElementById("console");
+            colour = messField.style.color = colour_tab[step];
+            messField.innerText = mess;
+            var ths = document.getElementById("tab" + (step + 1));
+            var sm1 = step == 0 ? 8 : step;
+            var prv = document.getElementById("tab" + sm1);
+            if (isOn(step + 1) == 1)
+                ths.style.backgroundColor = colour_tab[step];
+            prv.style.backgroundColor = 'white';
+        }
+
+
+        function print_msg(message) {
+            csound.requestControlChannel("step", function() {
+                step = Math.round(csound.getChannel("step"));
+                display_msg(message, step);
+            });
+        }
+
+
+        function main() {
+
+            CsoundObj.importScripts("./js/").then(() => {
+                console.log = print_msg;
+                console.warn = print_msg;
+                csound = new CsoundObj();
+                csound.compileOrc(document.getElementById('instruments').value);
+                csound.start();
+                window.addEventListener("unload", function(e) {
+                    if (csound != null)
+                        csound.destroy();
+                }, false);
+
+                scopeNode = new AnalyserNode(CSOUND_AUDIO_CONTEXT);
+                csound.getNode().connect(scopeNode);
+
+                scope = function() {
+
+                    let ctx = document.getElementById('scope').getContext('2d');
+                    let width = ctx.canvas.width;
+                    let height = ctx.canvas.height;
+                    let timeData = new Uint8Array(scopeNode.frequencyBinCount);
+                    let scaling = height / 256;
+                    let risingEdge = 0;
+                    let edgeThreshold = 5;
+                    scopeNode.getByteTimeDomainData(timeData);
+
+                    ctx.fillStyle = 'rgba(0, 20, 0, 0.1)';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = colour;
+                    ctx.beginPath();
+
+
+                    while (timeData[risingEdge++] - 128 > 0 &&
+                        risingEdge <= width);
+                    if (risingEdge >= width) risingEdge = 0;
+                    while (timeData[risingEdge++] - 128 < edgeThreshold &&
+                        risingEdge <= width);
+                    if (risingEdge >= width) risingEdge = 0;
+                    for (var x = risingEdge; x < timeData.length &&
+                        x - risingEdge < width; x++)
+                        ctx.lineTo(x - risingEdge,
+                          height - timeData[x] * scaling);
+                    ctx.stroke();
+
+                    requestAnimationFrame(scope);
+                }
+
+                scope();
+
+                mags = function() {
+                    let ctx = document.getElementById('mags').getContext('2d');
+                    let width = ctx.canvas.width;
+                    let height = ctx.canvas.height;
+                    let freqData = new Uint8Array(scopeNode.frequencyBinCount);
+                    let scaling = height / 256;
+
+                    scopeNode.getByteFrequencyData(freqData);
+
+                    ctx.fillStyle = 'rgba(0, 20, 0, 0.1)';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = colour;
+                    ctx.beginPath();
+
+                    for (var x = 0; x < width; x++)
+                        ctx.lineTo(x, height - freqData[x] * scaling);
+
+                    ctx.stroke();
+                    requestAnimationFrame(mags);
+                }
+                mags();
+            });
+
+        }
+    </script>
 </head>
-<style type="text/css">
-input[type=checkbox] {
-transform: scale(1.5);
-margin: 10px 20px;
-}
 
-.center {
-margin: auto;
-padding: 10px;
-}
-
-.bpm 
-input[type="range"] {
-width:600px;
-margin: 10px 20px;
-}
-
-
-
-table, th, td {
-border: 1px solid black;
-}
-
-th, td {
-border: 1px solid black;
-padding: 10px 20px;
-}
-
-</style>
-
-
-<script src="js/CsoundObj.js"></script>
-<script type="text/javascript">
-
-var random_colour;
-var pitch_colour = ['#1166BB', '#2255CC', '#3344AA', '#443399',
-'#554488', '#665577', '#776666', '#887755', '#998844', '#999933',
-'#99AA44', '#AABB55', '#CCDD66'];
-
-var colour_tab = [pitch_colour[0], pitch_colour[2], pitch_colour[4],
-pitch_colour[5], pitch_colour[7], pitch_colour[9], pitch_colour[11],
-pitch_colour[12]];
-
-var tab = new Float32Array(8);
-var pc = new Float32Array(8);
-var prv;
-
-function isOn(n) {
-   var elem = document.getElementById("step"+n);
-   return elem.checked ? 1.0 : 0.0;
-}
-
-function setStep() {
- for(let i=0; i < tab.length; i++) {
-   tab[i] = isOn(i+1);
-}
-csound.setTable(2, tab);
-}
-
-function setPitch() {
-for(let i=0; i < pc.length; i++) {
-  var value = document.getElementById("freq"+(i+1)).value;
-  pc[i] = value/100.;
-  colour_tab[i] = pitch_colour[value];
-}
-csound.setTable(1, pc);
-}
-
-
-
-// message printout
-function display_msg(mess, step) {
- var messField = document.getElementById("console");
- random_colour = messField.style.color = colour_tab[step];
-  messField.innerText = mess;
-  var ths = document.getElementById("tab"+(step+1));
-  var sm1 = step == 0 ? 8 : step;
-  var prv = document.getElementById("tab"+sm1);
-  if(isOn(step+1) == 1)
-    ths.style.backgroundColor = colour_tab[step];
-  prv.style.backgroundColor =  'white';
-}
-
-
-function print_msg(message) {
-  csound.requestControlChannel("step", function() {
-     step = Math.round(csound.getChannel("step"));
-     display_msg(message, step);
-   });
-}
-
-
-function main() {
-
-  CsoundObj.importScripts("./js/").then(() => {
-    console.log = print_msg;
-    console.warn = print_msg;
-    csound = new CsoundObj();
-    csound.compileOrc(document.getElementById('instruments').value);
-    csound.start();
-    window.addEventListener("unload", function(e){
-	if(csound != null)
-          csound.destroy();}, false);
-
-    scopeNode = new AnalyserNode(CSOUND_AUDIO_CONTEXT);
-    csound.getNode().connect(scopeNode);
-
-    scope = function () {
-
-       let ctx = document.getElementById('scope').getContext('2d');
-       let width = ctx.canvas.width;
-       let height = ctx.canvas.height;
-       let timeData = new Uint8Array(scopeNode.frequencyBinCount);
-       let scaling = height / 256;
-       let risingEdge = 0;
-       let edgeThreshold = 5;
-       scopeNode.getByteTimeDomainData(timeData);
-
-       ctx.fillStyle = 'rgba(0, 20, 0, 0.1)';
-       ctx.fillRect(0, 0, width, height);
-       ctx.lineWidth = 2;
-       ctx.strokeStyle = random_colour;
-       ctx.beginPath();
-
-      
-       while (timeData[risingEdge++] - 128 > 0 && risingEdge <= width);
-       if (risingEdge >= width) risingEdge = 0;
-       while (timeData[risingEdge++] - 128 < edgeThreshold && risingEdge <= width);
-       if (risingEdge >= width) risingEdge = 0;
-       for (var x = risingEdge; x < timeData.length && x - risingEdge < width; x++)
-         ctx.lineTo(x - risingEdge, height - timeData[x] * scaling);
-       ctx.stroke();
-  
-       requestAnimationFrame(scope);
-     }
-
-   scope();
-
-   mags = function() {
-      let ctx = document.getElementById('mags').getContext('2d');
-      let width = ctx.canvas.width;
-      let height = ctx.canvas.height;
-      let freqData = new Uint8Array(scopeNode.frequencyBinCount);
-      let scaling = height / 256;
-
-      scopeNode.getByteFrequencyData(freqData);
-
-      ctx.fillStyle = 'rgba(0, 20, 0, 0.1)';
-      ctx.fillRect(0, 0, width, height);
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = random_colour;
-      ctx.beginPath();
-
-      for (var x = 0; x < width; x++)
-        ctx.lineTo(x, height - freqData[x] * scaling);
-
-      ctx.stroke();
-        requestAnimationFrame(mags);
-     }
-     mags();
-});
-
-}
-function setBpm() {
-var value = document.getElementById("bpm").value;
-csound.setControlChannel("bpm", value);
-}
-</script>
 <body onload="main()">
-<h1 class="center"> Step Sequencer </h2>
+    <h1 class="center"> Step Sequencer </h2>
 <div id="console" class="center">
 </div>
 
@@ -224,40 +231,25 @@ csound.setControlChannel("bpm", value);
       onchange="setStep()"> 8
     <br>
     <input type="range" name="frequency" id="freq8" step="1" value="12"
-        min="0" max="12" onchange="setPitch()"> </input></th>   
+        min="0" max="12" onchange="setPitch()"> </input></th>
   </tr>
 </table>
 </form>
 <div class="bpm">
-<input  type="range" name="bpm" id="bpm" step="1" value="120" 
+<input  type="range" name="bpm" id="bpm" step="1" value="120"
   min="30" max="480" oninput="setBpm()"> BPM </input>
 <div>
 </div>
 <div id="screens">
-<canvas id='scope' width=400 height=200 style="border:1px solid#000000;"></canvas>
-<canvas id='mags' width=400 height=200 style="border:1px solid#000000;"></canvas>
+<canvas id='scope' width=400 height=200 style="border:1px solid#000000;">
+</canvas>
+<canvas id='mags' width=400 height=200 style="border:1px solid#000000;">
+</canvas>
 </div>
 </div>
-
-<datalist id="tickmarks">
-  <option value="0">
-  <option value="1">
-  <option value="2">
-  <option value="3">
-  <option value="4">
-  <option value="5">
-  <option value="6">
-  <option value="7">
-  <option value="8">
-  <option value="9">
-  <option value="10">
-  <option value="11">
-  <option value="12">
-</datalist>
-
 
 <textarea class="code" id="instruments" hidden>
-/* this is the synthesis code
+/* this is the Csound synthesis code
    for this example
 */
 nchnls=2
@@ -275,13 +267,10 @@ instr 1
  inext = (p5 == 7 ? 0 : p5+1)
  inxt = 30/ibpm
  schedule 1,inxt,0.5,0.3+rnd(0.2),inext
-endin 
+endin
 schedule 1,0,0.5,0.1,0
 gifn ftgen 1,0,8,-2,0,.02,.04,.05,.07,.09,.11,.12
 gifn ftgen 2,0,8,-2,1,1,1,1,1,1,1,1
 </textarea>
 </body>
 </html>
-  
-
-  
