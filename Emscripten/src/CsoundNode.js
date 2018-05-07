@@ -47,8 +47,7 @@ class CsoundNode extends AudioWorkletNode {
         options.numberOfInputs  = 1;
         options.numberOfOutputs = 2;
         options.channelCount = 2;
-        options.sampleRate = context.sampleRate;  
-
+        
         super(context, 'Csound', options);
 
         this.msgCallback = (msg) => { console.log(msg); }

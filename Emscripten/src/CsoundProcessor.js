@@ -71,7 +71,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
         this.status = 0;
         this.running = false;
         this.started = false;
-        this.sampleRate = options.sampleRate;  
+        this.sampleRate = sampleRate;  
 
         Csound.setMidiCallbacks(csObj);
         Csound.setOption(csObj, "-odac");
@@ -79,7 +79,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
         Csound.setOption(csObj, "-M0");
         Csound.setOption(csObj, "-+rtaudio=null");
         Csound.setOption(csObj, "-+rtmidi=null");
-        Csound.setOption(csObj, "--sample-rate="+this.sampleRate);  
+        Csound.setOption(csObj, "--sample-rate="+sampleRate);  
         Csound.prepareRT(csObj);
         this.nchnls = options.numberOfOutputs;
         this.nchnls_i = options.numberOfInputs;

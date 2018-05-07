@@ -51,7 +51,7 @@
                     csound.destroy();
             }, false);
 
-            scopeNode = new AnalyserNode(CSOUND_AUDIO_CONTEXT);
+            scopeNode = CSOUND_AUDIO_CONTEXT.createAnalyser();
             csound.getNode().connect(scopeNode);
 
             scope = function() {
