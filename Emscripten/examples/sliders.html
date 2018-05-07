@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+
+<head>
+    <style type="text/css">
+        textarea.console {
+            font-family: "Courier New";
+            color: #FCF477;
+            background-color: #000077
+        }
+    </style>
+    <title>WebAudio Csound</title>
+    <script src="js/CsoundObj.js"></script>
+    <script type="text/javascript">
+        // this will get called when WASM is loaded
+        function moduleDidLoad() {
+            clear_console();
+            console.log = print_msg;
+            console.warn = print_msg;
+            csound = new CsoundObj();
+            csound.setMessageCallback(print_msg);
+            csound.compileOrc(document.getElementById('instruments').value);
+            SetParam("amp", '', 1000., 0.);
+            SetParam("cf", 'Hz', 1., 0.);
+            SetParam("freq", 'Hz', 1., 440.);
+            attachListeners();
+            csound.start();
+            window.addEventListener("unload", function(e) {
+                if (csound != null)
+                    csound.destroy();
+            }, false);
+        }
+
+        // attach callbacks to sliders
+        function attachListeners() {
+            document.getElementById("freq").
+            addEventListener("input", SetFreq);
+            document.getElementById("amp").
+            addEventListener("input", SetAmp);
+            document.getElementById("cf").
+            addEventListener("input", SetCf);
+        }
+
+        // clear console
+        function clear_console() {
+            var element = document.getElementById('console');
+            element.value = ' ';
+            document.getElementById('pause').
+            addEventListener('click', pause);
+        }
+
+        // print to console
+        var count = 0;
+
+        function print_msg(message) {
+            var element = document.getElementById('console');
+            element.value += (message + "\n");
+            element.scrollTop = 99999; // focus on bottom
+            count += 1;
+            if (count == 1000) {
+                clear_console();
+                count = 0;
+            }
+        }
+
+        // set amplitude
+        function SetAmp() {
+            SetParam('amp', '', 1000., 0.0);
+        }
+
+        // set fundamental
+        function SetFreq() {
+            SetParam('freq', 'Hz', 1., 440.);
+        }
+
+        // set centre frequency
+        function SetCf() {
+            SetParam('cf', 'Hz', 1., 0.);
+        }
+
+        // set parameter
+        function SetParam(name, label, scal, off) {
+            var val = document.getElementById(name).value / scal + off;
+            csound.setControlChannel(name, val);
+            console.log(name + ": " + val + " " + label);
+        }
+
+        var paused = false;
+
+        function pause() {
+            if (paused == false) {
+                csound.stop();
+                console.log("pause");
+                document.getElementById('pause').
+                innerText = 'play';
+                paused = true;
+            } else {
+                csound.start();
+                document.getElementById('pause').
+                innerText = 'pause';
+                paused = false;
+            }
+        }
+        CsoundObj.importScripts("./js/").then(() => {
+            moduleDidLoad();
+        });
+    </script>
+</head>
+
+<body>
+    <h1>Slider Synth</h2>
+  <p>
+  <input type="range" name="frequency" id="freq" step="1" value="50"
+  min="0" max="100"> fundamental </p>
+  <p>
+  <input type="range" name="frequency" id="amp" step="1" value="500"
+  min="0" max="1000"> amplitude</p>
+  <p>
+  <input type="range" name="frequency" id="cf" step="1" value="880"
+  min="880" max="3000"> filter frequency</p>
+  <textarea class="console" cols="55" rows="16" id="console"
+value="">loading...</textarea>
+<p>
+<button type="button" id="pause"> pause </button>
+</p>
+<textarea class="code" id="instruments" hidden>
+/* this is the synthesis code
+   for this example
+*/
+0dbfs = 1
+nchnls = 2
+schedule 1,0,-1
+instr 1
+ kfr chnget "freq"
+ kamp chnget "amp"
+ kcf chnget "cf"
+ a1 vco2 kamp,kfr
+ a2 moogvcf a1, kcf, 0.8
+   outs a2,a2
+endin
+</textarea>
+
+</body> </html>
