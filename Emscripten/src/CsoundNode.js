@@ -208,8 +208,8 @@ class CsoundNode extends AudioWorkletNode {
      * @param {number} value The value to set
      */ 
     setTableValue(number, index, value) {
-        this.port.postMessage(["setTableAtIndex"], number,
-                              index, value);
+        this.port.postMessage(["setTableAtIndex", number,
+                              index, value]);
     }
 
     /** Set a table with data from an array
@@ -218,7 +218,7 @@ class CsoundNode extends AudioWorkletNode {
      * @param {Float32Array} table The source data for the table
      */   
     setTable(number, table) {
-        this.port.postMessage(["setTable"], number, table);
+        this.port.postMessage(["setTable", number, table]);
     }
     
     /** Starts processing in this node

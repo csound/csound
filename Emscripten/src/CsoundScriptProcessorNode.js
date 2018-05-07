@@ -336,7 +336,7 @@ CsoundScriptProcessorNode  = function(context, options) {
          */   
         setTable(number, table) {
             for(let i = 0; i < table.length; i++)
-                Csound.setTable(this.csound, number, i, table[i]);
+                CSOUND.setTable(this.csound, number, i, table[i]);
         },
         
         /** Starts processing in this node
