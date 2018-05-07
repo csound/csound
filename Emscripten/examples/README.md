@@ -22,6 +22,8 @@ be used to port PNaCl Csound examples more conveniently.
 * [Canvas](https://github.com/csound/csound/blob/develop/emscripten/examples/canvas.html):
 Canvas widget example ported from the PNaCl Csound collection.
 
+* [StepSeq](https://github.com/csound/csound/blob/develop/emscripten/examples/tabex.html):
+Step Sequencer example demonstrating the use of tables in Csound.
 
 * [MIDI](https://github.com/csound/csound/blob/develop/emscripten/examples/midi.html):
 MIDI input example using HTML 5 buttons to generate MIDI data.
