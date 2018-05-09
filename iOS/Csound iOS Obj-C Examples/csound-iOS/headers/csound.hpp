@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
     As a special exception, if other files instantiate templates or
     use macros or inline functions from this file, this file does not
@@ -35,7 +35,6 @@
 %module csnd6
 %{
 #include "csound.h"
-
 %}
 #else
 #include "csound.h"
@@ -43,7 +42,6 @@
 #include <pthread.h>
 #endif
 #ifdef __BUILDING_CSOUND_INTERFACES
-
 #endif
 #endif
 
@@ -106,13 +104,15 @@ protected:
   CSOUND *csound;
 public:
   void *pydata;
-
 public:
   virtual CSOUND *GetCsound()
   {
     return csound;
   }
-  // csound.h interface
+  virtual void SetCsound(CSOUND *csound_)
+  {
+    csound = csound_;
+  }
   virtual int InitializeCscore(FILE *insco, FILE *outsco)
   {
     return csoundInitializeCscore(csound, insco, outsco);
@@ -140,38 +140,35 @@ public:
   virtual int SetGlobalEnv(const char *name,const char *value)
   {
     return csoundSetGlobalEnv(name, value);
-
   }
-  virtual int SetOption(char *option)
+  virtual int SetOption(const char *option)
   {
    return csoundSetOption(csound, option);
   }
-
   virtual void SetParams(CSOUND_PARAMS *p){
    csoundSetParams(csound, p);
   }
   virtual void GetParams(CSOUND_PARAMS *p){
    csoundGetParams(csound, p);
   }
-  virtual void SetOutput(char *name, char *type, char *format){
+  virtual void SetOutput(const char *name,const char *type,const char *format){
     csoundSetOutput(csound, name, type, format);
   }
-  virtual void SetInput(char *name){
+  virtual void SetInput(const char *name){
     csoundSetInput(csound, name);
   }
-  virtual void SetMIDIInput(char *name){
+  virtual void SetMIDIInput(const char *name){
     csoundSetMIDIInput(csound,name);
   }
-  virtual void SetMIDIFileInput(char *name){
+  virtual void SetMIDIFileInput(const char *name){
     csoundSetMIDIFileInput(csound,name);
   }
-  virtual void SetMIDIOutput(char *name){
+  virtual void SetMIDIOutput(const char *name){
      csoundSetMIDIOutput(csound,name);
   }
-   virtual void SetMIDIFileOutput(char *name){
+   virtual void SetMIDIFileOutput(const char *name){
     csoundSetMIDIFileOutput(csound,name);
   }
-  // performance
   virtual TREE *ParseOrc(const char *str)
   {
     return csoundParseOrc(csound, str);
@@ -196,38 +193,34 @@ public:
   {
     return csoundReadScore(csound, str);
   }
-  virtual int CompileArgs(int argc, char **argv)
+  virtual int CompileArgs(int argc,const char **argv)
   {
     return csoundCompileArgs(csound, argc, argv);
   }
-  virtual int Start(CSOUND *csound)
-  {
-    return  csoundStart(csound);
-  }
-  virtual int Compile(int argc, char **argv)
+  virtual int Compile(int argc,const char **argv)
   {
     return csoundCompile(csound, argc, argv);
   }
-  virtual int Compile(char *csdName)
+  virtual int Compile(const char *csdName)
   {
-    char  *argv[3];
+    const char  *argv[3];
     argv[0] = (char*)"csound";
     argv[1] = csdName;
     argv[2] = (char*) 0;
     return csoundCompile(csound, 2, &(argv[0]));
   }
-  virtual int Compile(char *orcName, char *scoName)
+  virtual int Compile(const char *orcName,const  char *scoName)
   {
-    char  *argv[4];
+    const char  *argv[4];
     argv[0] = (char*)"csound";
     argv[1] = orcName;
     argv[2] = scoName;
     argv[3] = (char*) 0;
     return csoundCompile(csound, 3, &(argv[0]));
   }
-  virtual int Compile(char *arg1, char *arg2, char *arg3)
+  virtual int Compile(const char *arg1,const  char *arg2,const  char *arg3)
   {
-    char  *argv[5];
+    const char  *argv[5];
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
@@ -235,9 +228,9 @@ public:
     argv[4] = (char*) 0;
     return csoundCompile(csound, 4, &(argv[0]));
   }
-  virtual int Compile(char *arg1, char *arg2, char *arg3, char *arg4)
+  virtual int Compile(const char *arg1,const  char *arg2,const  char *arg3,const  char *arg4)
   {
-    char  *argv[6];
+    const char  *argv[6];
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
@@ -246,10 +239,10 @@ public:
     argv[5] = (char*) 0;
     return csoundCompile(csound, 5, &(argv[0]));
   }
-  virtual int Compile(char *arg1, char *arg2, char *arg3,
-                      char *arg4, char *arg5)
+  virtual int Compile(const char *arg1,const  char *arg2,const char *arg3,
+                      const char *arg4,const  char *arg5)
   {
-    char  *argv[7];
+    const char  *argv[7];
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
@@ -259,11 +252,11 @@ public:
     argv[6] = (char*) 0;
     return csoundCompile(csound, 6, &(argv[0]));
   }
-  virtual int CompileCsd(char *csd)
+  virtual int CompileCsd(const char *csd)
   {
     return csoundCompileCsd(csound, csd);
   }
-  virtual int CompileCsdText(char *csd_text)
+  virtual int CompileCsdText(const char *csd_text)
   {
     return csoundCompileCsdText(csound, csd_text);
   }
@@ -275,73 +268,82 @@ public:
   {
     return csoundPerform(csound);
   }
-  virtual int Perform(int argc, char **argv)
+  virtual int Perform(int argc, const char **argv)
   {
-    int retval = csoundCompile(csound, argc, argv);
-    if (!retval)
-      retval = csoundPerform(csound);
+    int result = csoundCompile(csound, argc, argv);
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
-  virtual int Perform(char *csdName)
+  virtual int Perform(const char *csdName)
   {
-    char  *argv[3];
-    int   retval;
+    const char  *argv[3];
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = csdName;
     argv[2] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 2, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 2, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
-  virtual int Perform(char *orcName, char *scoName)
+  virtual int Perform(const char *orcName, const char *scoName)
   {
-    char  *argv[4];
-    int   retval;
+    const char  *argv[4];
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = orcName;
     argv[2] = scoName;
     argv[3] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 3, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 3, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
-  virtual int Perform(char *arg1, char *arg2, char *arg3)
+  virtual int Perform(const char *arg1, const char *arg2, const char *arg3)
   {
-    char  *argv[5];
-    int   retval;
+    const char  *argv[5];
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
     argv[4] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 4, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 4, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
-  virtual int Perform(char *arg1, char *arg2, char *arg3, char *arg4)
+  virtual int Perform(const char *arg1, const  char *arg2, const  char *arg3, const  char *arg4)
   {
-    char  *argv[6];
-    int   retval;
+    const char  *argv[6];
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
     argv[3] = arg3;
     argv[4] = arg4;
     argv[5] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 5, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 5, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
-  virtual int Perform(char *arg1, char *arg2, char *arg3,
-                      char *arg4, char *arg5)
+  virtual int Perform(const char *arg1, const  char *arg2, const  char *arg3,
+                      const char *arg4, const  char *arg5)
   {
-    char  *argv[7];
-    int   retval;
+    const char  *argv[7];
+    int result;
     argv[0] = (char*)"csound";
     argv[1] = arg1;
     argv[2] = arg2;
@@ -349,10 +351,12 @@ public:
     argv[4] = arg4;
     argv[5] = arg5;
     argv[6] = (char*) 0;
-    if (!(retval = csoundCompile(csound, 6, &(argv[0]))))
-      retval = csoundPerform(csound);
+    result = csoundCompile(csound, 6, &(argv[0]));
+    if (result == 0) {
+      result = csoundPerform(csound);
+    }
     csoundCleanup(csound);
-    return (retval >= 0 ? 0 : retval);
+    return (result >= 0 ? 0 : result);
   }
   virtual int PerformKsmps()
   {
@@ -374,7 +378,6 @@ public:
   {
     csoundReset(csound);
   }
-  // attributes
   virtual MYFLT GetSr()
   {
     return csoundGetSr(csound);
@@ -442,7 +445,6 @@ public:
   {
     return csoundGetScoreTime(csound);
   }
-  // score handling
   virtual int IsScorePending()
   {
     return csoundIsScorePending(csound);
@@ -475,7 +477,6 @@ public:
   {
     return csoundScoreExtract(csound, inFile, outFile, extractFile);
   }
-  // messages & text
   virtual void Message(const char *format, ...)
   {
     va_list args;
@@ -516,7 +517,6 @@ public:
   {
     csoundKeyPress(csound, c);
   }
-  // control and events
   virtual int ScoreEvent(char type, const MYFLT *pFields, long numFields)
   {
     return csoundScoreEvent(csound, type, pFields, numFields);
@@ -526,7 +526,6 @@ public:
   {
     return csoundScoreEventAbsolute(csound, type, pFields, numFields, time_ofs);
   }
-  // MIDI
   virtual void SetExternalMidiInOpenCallback(
       int (*func)(CSOUND *, void **, const char *))
   {
@@ -562,7 +561,6 @@ public:
   {
     csoundSetExternalMidiErrorStringCallback(csound, func);
   }
-  // function table display
   virtual int SetIsGraphable(int isGraphable)
   {
     return csoundSetIsGraphable(csound, isGraphable);
@@ -587,7 +585,6 @@ public:
   {
     csoundSetExitGraphCallback(csound, exitGraphCallback_);
   }
-  // opcodes
   virtual int NewOpcodeList(opcodeListEntry* &opcodelist)
   {
     opcodeListEntry *tmp = (opcodeListEntry*) 0;
@@ -610,12 +607,10 @@ public:
       return csoundAppendOpcode(csound, opname, dsblksiz, flags, thread,
                               outypes, intypes, iopadr, kopadr, aopadr);
   }
-  // miscellaneous functions
   virtual void SetYieldCallback(int (*yieldCallback_)(CSOUND *))
   {
     csoundSetYieldCallback(csound, yieldCallback_);
   }
-  // real-time audio play and record
   virtual void SetPlayopenCallback(
       int (*playopen__)(CSOUND *, const csRtAudioParams *parm))
   {
@@ -641,7 +636,6 @@ public:
   {
     csoundSetRtcloseCallback(csound, rtclose__);
   }
-  // --------
   virtual int GetDebug()
   {
     return csoundGetDebug(csound);
@@ -725,6 +719,7 @@ public:
   {
     MYFLT *tmp;
     int   retval;
+    if(strlen(name) == 0) return CSOUND_ERROR;
     retval = csoundGetChannelPtr(csound, &tmp, name, type);
     p = tmp;
     return retval;
@@ -754,7 +749,15 @@ public:
   {
     csoundSetControlChannel(csound,name,value);
   }
+  virtual void SetControlChannel(const char *name, double value)
+  {
+    csoundSetControlChannel(csound,name,value);
+  }
   virtual void SetChannel(const char *name, char *string)
+  {
+   csoundSetStringChannel(csound,name,string);
+  }
+  virtual void SetStringChannel(const char *name, char *string)
   {
    csoundSetStringChannel(csound,name,string);
   }
@@ -763,6 +766,10 @@ public:
    csoundSetAudioChannel(csound,name,samples);
   }
   virtual MYFLT GetChannel(const char *name, int *err = NULL)
+  {
+   return csoundGetControlChannel(csound,name, err);
+  }
+  virtual MYFLT GetControlChannel(const char *name, int *err = NULL)
   {
    return csoundGetControlChannel(csound,name, err);
   }
@@ -802,16 +809,6 @@ public:
     return csoundCreateConfigurationVariable(csound, name, p, type, flags,
                                              min, max, shortDesc, longDesc);
   }
-#if 0
-  virtual int CopyGlobalConfigurationVariable(const char *name, void *p)
-  {
-    return csoundCopyGlobalConfigurationVariable(csound, name, p);
-  }
-  virtual int CopyGlobalConfigurationVariables()
-  {
-    return csoundCopyGlobalConfigurationVariables(csound);
-  }
-#endif
   virtual int SetConfigurationVariable(const char *name, void *value)
   {
     return csoundSetConfigurationVariable(csound, name, value);
@@ -832,14 +829,24 @@ public:
   {
     return csoundDeleteConfigurationVariable(csound, name);
   }
-  // constructors
-  // FIXME: should throw exception on failure ?
   Csound()
   {
     csound = csoundCreate((CSOUND*) 0);
      #ifdef SWIGPYTHON
       pydata =(pycbdata *) new pycbdata;
-      memset(pydata, 0, sizeof(pydata));
+      memset(pydata, 0, sizeof(pycbdata));
+    ((pycbdata *)pydata)->mfunc = NULL;
+    ((pycbdata *)pydata)->messageBufferIndex = 0;
+    csoundSetHostData(csound, this);
+    #else
+    pydata = NULL;
+    #endif
+
+  }
+  Csound(CSOUND *csound_) : csound(csound_)
+  {
+     #ifdef SWIGPYTHON
+      pydata =(pycbdata *) new pycbdata;
     ((pycbdata *)pydata)->mfunc = NULL;
     ((pycbdata *)pydata)->messageBufferIndex = 0;
     csoundSetHostData(csound, this);
@@ -860,7 +867,6 @@ public:
     pydata = NULL;
     #endif
   }
-  // destructor
   virtual ~Csound()
   {
     csoundDestroy(csound);
@@ -870,7 +876,6 @@ public:
     #endif
 
   }
-  // Functions for embedding.
   virtual void CreateMessageBuffer(int toStdOut)
   {
     csoundCreateMessageBuffer(csound, toStdOut);
@@ -903,9 +908,11 @@ public:
   {
     return csoundGetSpoutSample(csound, frame, channel);
   }
+  virtual const char *GetInputName()
+  {
+    return csoundGetInputName(csound);
+  }
 };
-
-// thread locks
 
 class CsoundThreadLock {
 protected:
@@ -963,8 +970,6 @@ public:
   {
     csoundUnlockMutex(mutex_);
   }
-  // constructors
-  // FIXME: should throw exception on failure ?
   CsoundMutex()
   {
     mutex_ = csoundCreateMutex(1);
@@ -973,7 +978,6 @@ public:
   {
     mutex_ = csoundCreateMutex(isRecursive);
   }
-  // destructor
   ~CsoundMutex()
   {
     csoundDestroyMutex(mutex_);
@@ -998,7 +1002,6 @@ public:
   {
     csoundSeedRandMT(&mt, initKey, (uint32_t) keyLength);
   }
-  // constructors
   CsoundRandMT()
   {
     csoundSeedRandMT(&mt, (uint32_t*) 0, csoundGetRandomSeedFromTime());

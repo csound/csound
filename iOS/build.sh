@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 rm -rf cs6iOS
 mkdir cs6iOS
 cd cs6iOS
