@@ -26,7 +26,9 @@ There has been a great amount of internal reorganisation, which should
 not affect most users.  Some components are now independently managed
 and will eventually be installable via a new package manager.  The
 realtime option is now considered stable and has the "experimental"
-tag removed.  There have been more steps towards completing the
+tag removed. Special support for the Bela platform has been introduced.
+
+There have been more steps towards completing the
 arithmetic operations involving a-arrays.
 
 Note that changes to GEN01 and diskin2 may not be backward copatible
@@ -102,17 +104,12 @@ values bigger than 1 as 1.
 
 ### Utilities
 
--
+- src_conv is now available on Windows and MacOS
 
 ### Frontends
 
-- icsound:
-
-- csound~:
-
-- csdebugger:
-
-- Emscripten: 
+- Belacsound: a new frontend specific for the Bela platform is introduced
+in this version.
 
 - CsoundQt: 
 
@@ -142,7 +139,6 @@ values bigger than 1 as 1.
 - Loading of LADSPA plugins when relying on search paths was wrong and
   mangled the name; now fixed.
 
-
 ## SYSTEM LEVEL CHANGES
 
 - OPCODE6DIR{64} now can contain a colon-separated list of directories.
@@ -160,25 +156,27 @@ values bigger than 1 as 1.
 
 - As ever the French translations are complete.
 
-- 
-
 ### API
 
-- 
+- No changes to the API
 
 ### Platform Specific
 
-- iOS
+- WebAudio: from this release onwards, the Csound port for the web platforms has been 
+merged into a single package henceforth called 'WebAudio Csound'. There are many internal
+changes to this, the AudioWorklet interface is employed wherever supported, with a fallback to 
+ScriptProcessorNode elsewhere. Csound is also available in the form of independent Nodes,
+in addition to the original CsoundObj API. The csound.js frontend, originally designed for
+PNaCl Csound, is also ported to WebAudio Csound, following the deprecation of that
+port of Csound.
 
- -
+- iOS
 
 - Android
 
- -
-
 - Windows
 
-- OSX
+- MacOS
 
 - GNU/Linux
 
