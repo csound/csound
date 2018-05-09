@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 if [ $# == 0 ]; then
   echo "Must give branch name to build from"
   exit
@@ -251,7 +253,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-0.9.5-MacOs10.13.dmg .
+cp  ../../../DmgResources/CsoundQt-0.9.5.1-MacOs.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..

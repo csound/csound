@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
@@ -28,9 +28,15 @@
 #ifndef CSOUNDCORE_H
 #define CSOUNDCORE_H
 
+#if defined(__EMSCRIPTEN__) && !defined(EMSCRIPTEN)
+#define EMSCRIPTEN
+#endif
+
 #include "sysdep.h"
-#ifndef EMSCRIPTEN
+#if !defined(EMSCRIPTEN) && !defined(CABBAGE)
+#if defined(HAVE_PTHREAD)
 #include <pthread.h>
+#endif
 #endif
 #include "cs_par_structs.h"
 #include <stdarg.h>
@@ -45,8 +51,8 @@
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
-#ifndef _MM_DENORMALS_ZERO_ON
 #include <xmmintrin.h>
+#ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0x0040
 #define _MM_DENORMALS_ZERO_ON     0x0040
 #define _MM_DENORMALS_ZERO_OFF    0x0000
@@ -56,10 +62,12 @@
             (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
 #endif
 #else
+#ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0
 #define _MM_DENORMALS_ZERO_ON     0
 #define _MM_DENORMALS_ZERO_OFF    0
 #define _MM_SET_DENORMALS_ZERO_MODE(mode)
+#endif
 #endif
 #endif
 
@@ -72,6 +80,7 @@ extern "C" {
 #endif
 
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
+#include <pthread.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -170,7 +179,8 @@ extern int ISSTRCOD(MYFLT);
 #define MAXOCTS         8
 #define MAXCHAN         16      /* 16 MIDI channels; only one port for now */
 
-#define ONEPT           1.02197486              /* A440 tuning factor */
+         /* A440 tuning factor */
+#define ONEPT           (csound->A4/430.5389646099018460319362438314060262605)
 #define LOG10D20        0.11512925              /* for db to ampfac   */
 #define DV32768         FL(0.000030517578125)
 
@@ -178,9 +188,12 @@ extern int ISSTRCOD(MYFLT);
 #define PI      (3.141592653589793238462643383279502884197)
 #endif /* pi */
 #define TWOPI   (6.283185307179586476925286766559005768394)
+#define HALFPI  (1.570796326794896619231321691639751442099)
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
+#define HALFPI_F ((MYFLT) HALFPI)
 #define INF     (2147483647.0)
+#define ROOT2   (1.414213562373095048801688724209698078569)
 
 #define AMPLMSG 01
 #define RNGEMSG 02
@@ -202,6 +215,11 @@ extern int ISSTRCOD(MYFLT);
 enum {FFT_LIB=0, PFFT_LIB, VDSP_LIB};
 enum {FFT_FWD=0, FFT_INV};
 
+/* advance declaration for
+  API  message queue struct
+*/
+struct _message_queue;
+
 typedef struct CORFIL {
     char    *body;
     unsigned int     len;
@@ -215,12 +233,12 @@ typedef struct CORFIL {
     int     informat, outformat;
     int     sfsampsize;
     int     displays, graphsoff, postscript, msglevel;
-    int     Beatmode, cmdTempo, oMaxLag;
+    int     Beatmode, oMaxLag;
     int     usingcscore, Linein;
     int     RTevents, Midiin, FMidiin, RMidiin;
     int     ringbell, termifend;
     int     rewrt_hdr, heartbeat, gen01defer;
-    //    int     expr_opt;       /* IV - Jan 27 2005: for --expression-opt */
+    double  cmdTempo;
     float   sr_override, kr_override;
     int     nchnls_override, nchnls_i_override;
     char    *infilename, *outfilename;
@@ -242,6 +260,7 @@ typedef struct CORFIL {
     double  quality;        /* for ogg encoding */
     int     ksmps_override;
     int     fft_lib;
+    int     echo;
   } OPARMS;
 
   typedef struct arglst {
@@ -273,18 +292,6 @@ typedef struct CORFIL {
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 
-    // holds matching oentries from opcodeList
-    // has space for 16 matches and next pointer in case more are found
-    // (unlikely though)
-    typedef struct oentries {
-        OENTRY* entries[16];
-//        int opnum[16];
-        int count;
-        char *opname;
-        int prvnum;
-        struct oentries* next;
-    } OENTRIES;
-
   /**
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
@@ -312,7 +319,7 @@ typedef struct CORFIL {
     TEXT    t;                      /* Text of instrument (same in nxtop) */
     int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                        opcodes in instr */
-    int     mdepends;               /* Opcode type (i/k/a) */
+    //int     mdepends;               /* Opcode type (i/k/a) */
     CS_VAR_POOL* varPool;
 
     //    int     optxtcount;
@@ -365,6 +372,24 @@ typedef struct CORFIL {
     size_t  size;
     void    *auxp, *endp;
   } AUXCH;
+
+  /**  this callback is used to notify the
+       availability of new storage in AUXCH *.
+       It can be used to swap the old storage
+       for the new one and return it for deallocation.
+  */
+  typedef AUXCH* (*aux_cb)(CSOUND *, void *, AUXCH *);
+
+  /**
+   * AuxAllocAsync data
+   */
+  typedef struct {
+    CSOUND *csound;
+    size_t nbytes;
+    AUXCH *auxchp;
+    void *userData;
+    aux_cb notify;
+  } AUXASYNC;
 
   typedef struct {
     int      dimensions;
@@ -560,7 +585,7 @@ typedef struct CORFIL {
 #define CS_ESR       (csound->esr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
-#define CS_SPOUT      (p->h.insdshead->spout)
+#define CS_SPOUT     (p->h.insdshead->spout)
 
   typedef int (*SUBR)(CSOUND *, void *);
 
@@ -864,17 +889,17 @@ typedef struct S_MACRO {          /* To store active macros */
 typedef struct in_stack_s {     /* Stack of active inputs */
     int16       is_marked_repeat;     /* 1 if this input created by 'n' stmnt */
     int16       args;                 /* Argument count for macro */
-    CORFIL      *cf;                  /* In core file */
-    void        *fd;                  /* for closing stream */
+  //CORFIL      *cf;                  /* In core file */
+  //void        *fd;                  /* for closing stream */
     S_MACRO       *mac;
     int         line;
+    int32       oposit;
 } IN_STACK;
 
 typedef struct marked_sections {
     char        *name;
     int32       posit;
     int         line;
-    char        *file;
 } MARKED_SECTIONS;
 
 typedef struct namelst {
@@ -906,8 +931,8 @@ typedef struct NAME__ {
    */
   typedef struct engine_state {
     CS_VAR_POOL    *varPool;  /* global variable pool */
-    MYFLT_POOL*   constantsPool;
-    CS_HASH_TABLE*  stringPool;
+    CS_HASH_TABLE  *constantsPool;
+    CS_HASH_TABLE  *stringPool;
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor;
@@ -917,12 +942,45 @@ typedef struct NAME__ {
 
 
   /**
+   * Nen FFT interface
+   */
+  typedef struct _FFT_SETUP{
+    int N, M;
+    void  *setup;
+    MYFLT *buffer;
+    int    lib;
+    int    d;
+    int  p2;
+  } CSOUND_FFT_SETUP;
+
+
+  /**
    * plugin module info
    */
   typedef struct {
     char module[12];
     char type[12];
   } MODULE_INFO;
+
+
+#define MAX_ALLOC_QUEUE 1024
+
+typedef struct _alloc_data_ {
+  int type;
+  int insno;
+  EVTBLK blk;
+  MCHNBLK *chn;
+  MEVENT mep;
+  INSDS *ip;
+  OPDS *ids;
+} ALLOC_DATA;
+
+#define MAX_MESSAGE_STR 1024
+typedef struct _message_queue_t_ {
+    int attr;
+    char str[MAX_MESSAGE_STR];
+} message_string_queue_t;
+
 
   /**
    * Contains all function pointers, data, and data pointers required
@@ -1306,11 +1364,17 @@ typedef struct NAME__ {
                            int d);
     void (*RealFFT2)(CSOUND *csound,
                      void *p, MYFLT *sig);
+    int  (*ftError)(const FGDATA *, const char *, ...);
+    MYFLT (*GetA4)(CSOUND *csound);
+    int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
+                         AUXASYNC *, aux_cb, void *);
+    void *(*GetHostData)(CSOUND *);
+    char *(*strNcpy)(char *dst, const char *src, size_t siz);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[40];
+    SUBR dummyfn_2[37];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1421,9 +1485,9 @@ typedef struct NAME__ {
     int           *argoffspace;
     INSDS         *frstoff;
     MYFLT         *zkstart;
-    long          zklast;
+    int64_t          zklast;
     MYFLT         *zastart;
-    long          zalast;
+    int64_t          zalast;
     /** reserved for std opcode library  */
     void          *stdOp_Env;
     int           holdrand;
@@ -1435,6 +1499,7 @@ typedef struct NAME__ {
     char          **strsets;
     MYFLT         *spin;
     MYFLT         *spout;
+    MYFLT         *spraw;
     int           nspin;
     int           nspout;
     MYFLT         *auxspin;
@@ -1450,6 +1515,7 @@ typedef struct NAME__ {
     int           reinitflag;
     int           tieflag;
     MYFLT         e0dbfs, dbfs_to_float;
+    double        A4;
     void          *rtRecord_userdata;
     void          *rtPlay_userdata;
     jmp_buf       exitjmp;
@@ -1491,24 +1557,16 @@ typedef struct NAME__ {
     void          *tseg, *tpsave, *tplim;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    pthread_t    file_io_thread;
+    void         *file_io_thread;
     int          file_io_start;
     void         *file_io_threadlock;
     int          realtime_audio_flag;
-    pthread_t    init_pass_thread;
-    int          init_pass_loop;
+    void         *event_insert_thread;
+    int          event_insert_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
-    #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t spoutlock, spinlock;
-#else
-    int           spoutlock, spinlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t memlock, spinlock1;
-#else
-    int           memlock, spinlock1;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
+    spin_lock_t spoutlock, spinlock;
+    spin_lock_t memlock, spinlock1;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
     struct sreadStatics__ {
@@ -1524,7 +1582,7 @@ typedef struct NAME__ {
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
       S_MACRO   *macros;
-      int     next_name /* = -1 */;
+      int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;
       int     pop;                    /* Number of macros to pop              */
@@ -1545,6 +1603,7 @@ typedef struct NAME__ {
       int32   repeat_point;
       int     repeat_inc /* = 1 */;
       S_MACRO   *repeat_mm;
+      int     nocarry;
     } sreadStatics;
     struct onefileStatics__ {
       NAMELST *toremove;
@@ -1561,6 +1620,8 @@ typedef struct NAME__ {
       EVTBLK  prve;
       char    *Linebuf;
       int     linebufsiz;
+      char *orchestra, *orchestrab;
+      int   oflag;
     } lineventStatics;
     struct musmonStatics__ {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
@@ -1664,17 +1725,16 @@ typedef struct NAME__ {
     int            nchanif, nchanof;
     char           *chanif, *chanof;
     /* VL: internal yield callback */
-    void          *multiThreadedBarrier1;
-    void          *multiThreadedBarrier2;
     int           multiThreadedComplete;
     THREADINFO    *multiThreadedThreadInfo;
     struct dag_t        *multiThreadedDag;
-    pthread_barrier_t   *barrier1;
-    pthread_barrier_t   *barrier2;
+    void          *barrier1;
+    void          *barrier2;
     /* Statics from cs_par_dispatch; */
-    struct global_var_lock_t *global_var_lock_root;
-    struct global_var_lock_t **global_var_lock_cache;
-    int           global_var_lock_count;
+    /* ********These are no longer used******** */
+    void          *pointer1; //struct global_var_lock_t *global_var_lock_root;
+    void          *pointer2; //struct global_var_lock_t **global_var_lock_cache;
+    int           int1; //global_var_lock_count;
     /* statics from cs_par_orc_semantic_analysis */
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
@@ -1715,6 +1775,30 @@ typedef struct NAME__ {
     int           score_parser;
     CS_HASH_TABLE* symbtab;
     int           tseglen;
+    int           inZero;       /* flag compilation of instr0 */
+    struct _message_queue **msg_queue;
+    volatile long msg_queue_wget; /* Writer - Get index */
+    volatile long msg_queue_wput; /* Writer - Put Index */
+    volatile long msg_queue_rstart; /* Reader - start index */
+    volatile long msg_queue_items;
+    int      aftouch;
+    void     *directory;
+    ALLOC_DATA *alloc_queue;
+    volatile unsigned long alloc_queue_items;
+    unsigned long alloc_queue_wp;
+#ifdef MACOSX
+    spin_lock_t alloc_spinlock;
+#else
+    int alloc_spinlock;
+#endif
+    EVTBLK *init_event;
+    void (*csoundMessageStringCallback)(CSOUND *csound,
+                                        int attr,
+                                        const char *str);
+    char* message_string;
+    volatile unsigned long message_string_queue_items;
+    unsigned long message_string_queue_wp;
+    message_string_queue_t *message_string_queue;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

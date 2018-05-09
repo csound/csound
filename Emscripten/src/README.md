@@ -50,7 +50,7 @@ See the examples provided in the examples folder for demo code that shows includ
 calling importScripts(), and using a callback to setup and run Csound. 
 
 
-##About the Implementations
+## About the Implementations
 
 WebAudio Csound currently has two backends: 
 
