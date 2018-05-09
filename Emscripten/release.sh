@@ -10,7 +10,7 @@ mkdir $RELEASE_DIR
 cp -R examples ${RELEASE_DIR}/
 rm ${RELEASE_DIR}/examples/update-scripts.sh
 # documentation
-jsdoc -d ${RELEASE_DIR}/docs src/csound.js src/CsoundObj.js src/CsoundScriptProcessorNode.js src/CsoundNode.js src/README.md
+./src/mkdoc.sh ${RELEASE_DIR}/docs
 
 cp README-RELEASE.md ${RELEASE_DIR}/README.md
 zip -r ${RELEASE_DIR}.zip ${RELEASE_DIR}
