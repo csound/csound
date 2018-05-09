@@ -29,7 +29,7 @@ realtime option is now considered stable and has the "experimental"
 tag removed.  There have been more steps towards completing the
 arithmetic operations involving a-arrays.
 
-Note that changes to GEN01 and diskin2 may not be backward copatible
+Note that changes to GEN01 and diskin2 may not be backward compatible
 if a none zero value is given for the format.
 
 -- The Developers
@@ -60,7 +60,7 @@ addition to the audio.
 
 - Characters following a \ in a score string are treated as escaped, so
   \n is a newline rather than two characters.   It handles escaped a,
-  b, f, n, r, t and v.  Other characters following a \ ignore the \.
+  b, f, n, r, t and v.  Other characters following a \ ignore the backslash.
 
 ### Options
 
@@ -85,19 +85,19 @@ addition to the audio.
   most users the value of zero will be correct.
 
 - GEN01 was incorrectly documented with respect to the format
-  argment.  There are 9 raw formats whereas the earlier manual stated 6.
+  argument.  There are 9 raw formats whereas the earlier manual stated 6.
 
-- Small change in slicearray should allow it to be used in fuctional
+- Small change in slicearray should allow it to be used in functional
   form in most cases.
 
-- The family of opcide tb0 to tb15 and their initialisation opcodes
+- The family of opcodes tb0 to tb15 and their initialisation opcodes
   tb0_init to tb15_init are deprecated as multi-argument functions are
   allowed.
 
 - The mode filter now does not allow a frequency in the unstable region.
 
 - In scanu and xscanu the value of kpos is supposed to be in the range
-[0,1].  This is now inforced by treating all negative values as 0 and all
+[0,1].  This is now enforced by treating all negative values as 0 and all
 values bigger than 1 as 1.
 
 ### Utilities
