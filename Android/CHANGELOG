@@ -2,6 +2,10 @@ Csound for Android ChangeLog
 
 This ChangeLog shows changes specific to Csound for Android. For changes relevant to Csound, please consult the main ChangeLog or release announcements.
 
+6.11.0 - 2018-05-09
+
+* FLAC support added for libsndfile (allows using FLAC within Csound)
+
 6.10.0 - 2017-12-20
 
 * Fixed audio input handling (Did not properly work for nchnls_i=1 and many
