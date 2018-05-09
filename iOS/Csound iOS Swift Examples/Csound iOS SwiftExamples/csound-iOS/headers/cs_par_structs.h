@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef __CS_PAR_DISPATCH_H
@@ -62,7 +62,9 @@ typedef struct _stateWithPadding {
 typedef struct _watchList {
   taskID id;
   struct _watchList *next;
-  uint8_t padding [(CONCURRENTPADDING - (sizeof(taskID) + sizeof(struct _watchList *))) / sizeof(uint8_t)];
+  uint8_t padding [(CONCURRENTPADDING -
+                    (sizeof(taskID) +
+                     sizeof(struct _watchList *))) / sizeof(uint8_t)];
 } watchList;
 
 #endif
