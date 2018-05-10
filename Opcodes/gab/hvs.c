@@ -12,8 +12,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 //#include "csdl.h"
@@ -53,10 +53,10 @@ typedef struct {
         MYFLT   *kx,  *inumParms, *inumPointsX, *iOutTab, *iPositionsTab,
                 *iSnapTab, *iConfigTab;
         MYFLT   *outTable, *posTable, *snapTable, *confTable;
-        int iconfFlag;
+        int32_t iconfFlag;
 } HVS1;
 
-static int hvs1_set(CSOUND *csound, HVS1 *p)
+static int32_t hvs1_set(CSOUND *csound, HVS1 *p)
 {
     FUNC        *ftp;
 
@@ -85,24 +85,25 @@ static int hvs1_set(CSOUND *csound, HVS1 *p)
 }
 
 
-static int hvs1(CSOUND *csound, HVS1 *p)
+static int32_t hvs1(CSOUND *csound, HVS1 *p)
 {
+    IGN(csound);
     MYFLT x = *p->kx * (*p->inumPointsX-1);
-    int posX = (int) x;
+    int32_t posX = (int32_t) x;
 
     MYFLT fracX = x - posX;
 
-    int noc = (int) *p->inumParms;
-//      int linesX = (int) *p->inumPointsX;
+    int32_t noc = (int32_t) *p->inumParms;
+//      int32_t linesX = (int32_t) *p->inumPointsX;
 
-    int ndx1 = (int) p->posTable[posX];
-    int ndx2 = (int) p->posTable[posX+1];
+    int32_t ndx1 = (int32_t) p->posTable[posX];
+    int32_t ndx2 = (int32_t) p->posTable[posX+1];
 
-    int j;
+    int32_t j;
 
     if (p->iconfFlag) {
       for (j =0; j< noc; j++) {
-        switch ((int) p->confTable[j]) {
+        switch ((int32_t) p->confTable[j]) {
         case -1: // ignore parameter
           break;
         case 0: // linear interpolation
@@ -137,12 +138,12 @@ typedef struct {
         MYFLT   *kx, *ky, *inumParms, *inumlinesX, *inumlinesY,
                 *iOutTab, *iPositionsTab, *iSnapTab, *iConfigTab;
         MYFLT   *outTable, *posTable, *snapTable, *confTable;
-        int iconfFlag;
+        int32_t iconfFlag;
 } HVS2;
 
 
 
-static int hvs2_set(CSOUND *csound, HVS2 *p)
+static int32_t hvs2_set(CSOUND *csound, HVS2 *p)
 {
     FUNC        *ftp;
 
@@ -171,29 +172,30 @@ static int hvs2_set(CSOUND *csound, HVS2 *p)
 }
 
 
-static int hvs2(CSOUND *csound, HVS2 *p)
+static int32_t hvs2(CSOUND *csound, HVS2 *p)
 {
+    IGN(csound);
     MYFLT x = *p->kx * (*p->inumlinesX-1);
     MYFLT y = *p->ky * (*p->inumlinesY-1);
-    int posX = (int) x;
-    int posY = (int) y;
+    int32_t posX = (int32_t) x;
+    int32_t posY = (int32_t) y;
 
     MYFLT fracX = x - posX;
     MYFLT fracY = y - posY;
 
-    int noc = (int) *p->inumParms;
-    int linesX = (int) *p->inumlinesX;
+    int32_t noc = (int32_t) *p->inumParms;
+    int32_t linesX = (int32_t) *p->inumlinesX;
 
-    int ndx1 = (int) p->posTable[posX   + posY     * linesX];
-    int ndx2 = (int) p->posTable[posX+1 + posY     * linesX];
-    int ndx3 = (int) p->posTable[posX   + (posY+1) * linesX];
-    int ndx4 = (int) p->posTable[posX+1 + (posY+1) * linesX];
+    int32_t ndx1 = (int32_t) p->posTable[posX   + posY     * linesX];
+    int32_t ndx2 = (int32_t) p->posTable[posX+1 + posY     * linesX];
+    int32_t ndx3 = (int32_t) p->posTable[posX   + (posY+1) * linesX];
+    int32_t ndx4 = (int32_t) p->posTable[posX+1 + (posY+1) * linesX];
 
-    int j;
+    int32_t j;
 
     if (p->iconfFlag) {
       for ( j =0; j< noc; j++) {
-        switch ((int) p->confTable[j]) {
+        switch ((int32_t) p->confTable[j]) {
         case -1: // ignore parameter
           break;
         case 0: // linear interpolation
@@ -237,11 +239,11 @@ typedef struct {
         MYFLT   *kx, *ky, *kz, *inumParms, *inumlinesX, *inumlinesY,
                 *inumlinesZ, *iOutTab, *iPositionsTab, *iSnapTab, *iConfigTab;
         MYFLT   *outTable, *posTable, *snapTable, *confTable;
-        int iconfFlag;
+        int32_t iconfFlag;
 } HVS3;
 
 
-static int hvs3_set(CSOUND *csound, HVS3 *p)
+static int32_t hvs3_set(CSOUND *csound, HVS3 *p)
 {
     FUNC        *ftp;
 
@@ -271,40 +273,41 @@ static int hvs3_set(CSOUND *csound, HVS3 *p)
 }
 
 
-static int hvs3(CSOUND *csound, HVS3 *p)
+static int32_t hvs3(CSOUND *csound, HVS3 *p)
 {
+    IGN(csound);
     MYFLT x = *p->kx * (*p->inumlinesX-1);
     MYFLT y = *p->ky * (*p->inumlinesY-1);
     MYFLT z = *p->kz * (*p->inumlinesZ-1);
-    int posX = (int) x;
-    int posY = (int) y;
-    int posZ = (int) z;
+    int32_t posX = (int32_t) x;
+    int32_t posY = (int32_t) y;
+    int32_t posZ = (int32_t) z;
 
 
     MYFLT fracX = x - posX;
     MYFLT fracY = y - posY;
     MYFLT fracZ = z - posZ;
 
-    int noc         = (int) *p->inumParms;
-    int linesX      = (int) *p->inumlinesX;
-    int linesXY  = linesX * (int) *p->inumlinesY;
+    int32_t noc         = (int32_t) *p->inumParms;
+    int32_t linesX      = (int32_t) *p->inumlinesX;
+    int32_t linesXY  = linesX * (int32_t) *p->inumlinesY;
 
-    int ndx1 = (int) p->posTable[posX   + posY     * linesX + posZ * linesXY];
-    int ndx2 = (int) p->posTable[posX+1 + posY     * linesX + posZ * linesXY];
-    int ndx3 = (int) p->posTable[posX   + (posY+1) * linesX + posZ * linesXY];
-    int ndx4 = (int) p->posTable[posX+1 + (posY+1) * linesX + posZ * linesXY];
+    int32_t ndx1 = (int32_t) p->posTable[posX  +posY    *linesX+posZ*linesXY];
+    int32_t ndx2 = (int32_t) p->posTable[posX+1+posY    *linesX+posZ*linesXY];
+    int32_t ndx3 = (int32_t) p->posTable[posX  +(posY+1)*linesX+posZ*linesXY];
+    int32_t ndx4 = (int32_t) p->posTable[posX+1+(posY+1)*linesX+posZ*linesXY];
 
-    int ndx5 = (int) p->posTable[posX   + posY     * linesX + (posZ+1) * linesXY];
-    int ndx6 = (int) p->posTable[posX+1 + posY     * linesX + (posZ+1) * linesXY];
-    int ndx7 = (int) p->posTable[posX   + (posY+1) * linesX + (posZ+1) * linesXY];
-    int ndx8 = (int) p->posTable[posX+1 + (posY+1) * linesX + (posZ+1) * linesXY];
+    int32_t ndx5 = (int32_t) p->posTable[posX  +posY    *linesX+(posZ+1)*linesXY];
+    int32_t ndx6 = (int32_t) p->posTable[posX+1+posY    *linesX+(posZ+1)*linesXY];
+    int32_t ndx7 = (int32_t) p->posTable[posX  +(posY+1)*linesX+(posZ+1)*linesXY];
+    int32_t ndx8 = (int32_t) p->posTable[posX+1+(posY+1)*linesX+(posZ+1)*linesXY];
 
 
-    int j;
+    int32_t j;
 
     if (p->iconfFlag) {
       for ( j =0; j< noc; j++) {
-        switch ((int) p->confTable[j]) {
+        switch ((int32_t) p->confTable[j]) {
         case -1: // ignore parameter
           break;
         case 0: // linear interpolation
@@ -375,15 +378,15 @@ typedef struct {
         MYFLT   *kphase, *ioutfunc, *ielements,*argums[VARGMAX];
         TSEG2    *cursegp;
         MYFLT *vector;
-        int     elements;
-        long    nsegs;
+        int32_t     elements;
+        int64_t    nsegs;
         AUXCH   auxch;
 } VPSEG;
 
-static int vphaseseg_set(CSOUND *csound, VPSEG *p)
+static int32_t vphaseseg_set(CSOUND *csound, VPSEG *p)
 {
     TSEG2       *segp;
-    int nsegs,j;
+    int32_t nsegs,j;
     MYFLT       **argp;
     double dur, durtot = 0.0, prevphs;
     FUNC *nxtfunc, *curfunc, *ftp;
@@ -391,7 +394,7 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
     nsegs = p->nsegs =((p->INCOUNT-3) >> 1);    /* count segs & alloc if nec */
 
     if ((segp = (TSEG2 *) p->auxch.auxp) == NULL) {
-      csound->AuxAlloc(csound, (long)(nsegs+1)*sizeof(TSEG2), &p->auxch);
+      csound->AuxAlloc(csound, (int64_t)(nsegs+1)*sizeof(TSEG2), &p->auxch);
       p->cursegp = segp = (TSEG2 *) p->auxch.auxp;
       //(segp+nsegs)->cnt = MAXPOS;
     }
@@ -402,10 +405,10 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
                                    "invalid or missing"));
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ioutfunc)) != NULL)) {
       p->vector = ftp->ftable;
-      p->elements = (int) *p->ielements;
+      p->elements = (int32_t) *p->ielements;
     }
     else return csound->InitError(csound, Str("Failed to find ftable"));
-    if (UNLIKELY(p->elements > (int)ftp->flen))
+    if (UNLIKELY(p->elements > (int32_t)ftp->flen))
       return csound->InitError(csound,
                                Str("vphaseseg: invalid num. of elements"));
     /* vector = p->vector; */
@@ -431,7 +434,7 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
         segp->d = dur; //* ekr;
         segp->function = curfunc;
         segp->nxtfunction = nxtfunc;
-        //segp->cnt = (long) (segp->d + .5);
+        //segp->cnt = (int64_t) (segp->d + .5);
       }
       else break;             /*  .. til 0 dur or done */
     } while (--nsegs);
@@ -460,11 +463,12 @@ static int vphaseseg_set(CSOUND *csound, VPSEG *p)
 
 }
 
-static int vphaseseg(CSOUND *csound, VPSEG *p)
+static int32_t vphaseseg(CSOUND *csound, VPSEG *p)
 {
+    IGN(csound);
     TSEG2       *segp = p->cursegp;
     double phase = *p->kphase, partialPhase = 0.0;
-    int j, flength;
+    int32_t j, flength;
     MYFLT   *curtab = NULL, *nxttab = NULL, curval, nxtval, *vector;
 
     while (phase >= 1.0) phase -= 1.0;
@@ -507,9 +511,9 @@ OENTRY hvs_localops[] = {
 };
 
 
-int hvs_init_(CSOUND *csound)
+int32_t hvs_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(hvs_localops[0]),
-                                 (int) (sizeof(hvs_localops) / sizeof(OENTRY)));
+                                 (int32_t) (sizeof(hvs_localops) / sizeof(OENTRY)));
 }
 

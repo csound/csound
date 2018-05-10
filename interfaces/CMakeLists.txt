@@ -49,7 +49,6 @@ if(BUILD_CXX_INTERFACE)
     target_compile_options(libcsnd6 PRIVATE "-std=c++11")
    endif()
 
-
     if(${libcsnd6_CFLAGS})
         target_compile_options(libcsnd6 PRIVATE ${libcsnd6_CFLAGS})
     endif()
@@ -106,20 +105,25 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SET_SOURCE_FILES_PROPERTIES(python_interface.i
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME csnd6)
-        set(SWIG_MODULE_csnd6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
-                                        cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
-                                        CppSound.hpp filebuilding.h Soundfile.hpp)
-		swig_add_module(csnd6 python python_interface.i)
+        set(SWIG_MODULE_csnd6_EXTRA_DEPS
+             ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
+             cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
+             CppSound.hpp filebuilding.h Soundfile.hpp)
+        swig_add_module(csnd6 python python_interface.i)
         swig_link_libraries(csnd6 ${swigpython_LIBS})
         target_include_directories(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE ${PYTHON_INCLUDE_PATH})
         set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
-	if(APPLE)
-	    set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
+        if(APPLE)
+            set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
-	endif()
+        endif()
+        if(${CMAKE_COMPILER_IS_GNUCC})
+          target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-error")
+	  target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-unused-parameter")
+        endif()
 
         install(TARGETS ${SWIG_MODULE_csnd6_REAL_NAME}
             LIBRARY DESTINATION "${PYTHON_MODULE_INSTALL_DIR}"
@@ -137,12 +141,12 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
 
        message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}.")
 
-      	if(WIN32)
+        if(WIN32)
              set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
                ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} libcsnd6)
         elseif(APPLE)
              set(swigjava_LIBS  ${JAVA_VM_LIBRARY} ${CSOUNDLIB}
-	             ${LIBSNDFILE_LIBRARY} libcsnd6)
+                     ${LIBSNDFILE_LIBRARY} libcsnd6)
         else()
              set(swigjava_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
         endif()
@@ -157,12 +161,17 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
 
         SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
-        target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME} PRIVATE ${JNI_INCLUDE_DIRS})
+        target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME}
+        PRIVATE ${JNI_INCLUDE_DIRS})
+        if((APPLE) OR (LINUX))
+        set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
+            PROPERTIES COMPILE_FLAGS "-Wno-unused-function" )
+         endif()
 
         ADD_CUSTOM_COMMAND(TARGET _jcsound6
             POST_BUILD
             COMMAND cmake -E make_directory ./csnd6
-            COMMAND ${JAVA_COMPILE} *.java -source 1.6 -target 1.6 -d .
+            COMMAND ${JAVA_COMPILE} *.java -source 1.8 -target 1.8 -d .
             COMMAND ${JAVA_ARCHIVE} cf ../csnd6.jar csnd6
             COMMENT "Building JAVA package csnd6.jar")
 
@@ -170,6 +179,9 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+        if(${CMAKE_COMPILER_IS_GNUCC})
+            target_compile_options(_jcsound6 PRIVATE "-Wno-error")
+        endif()
 
         install(TARGETS _jcsound6
             LIBRARY DESTINATION "${JAVA_MODULE_INSTALL_DIR}"
@@ -196,16 +208,19 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
 
         target_include_directories(${SWIG_MODULE_luaCsnd6_REAL_NAME} PRIVATE ${LUA_H_PATH})
 
-      	if(APPLE)
+        if(APPLE)
             set_target_properties(${SWIG_MODULE_luaCsnd6_REAL_NAME} PROPERTIES
                 LINK_FLAGS "-undefined dynamic_lookup")
-      	endif()
+        endif()
 
         set_target_properties(${SWIG_MODULE_luaCsnd6_REAL_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             PREFIX "")
+        if(${CMAKE_COMPILER_IS_GNUCC})
+            target_compile_options(${SWIG_MODULE_luaCsnd6_REAL_NAME} PRIVATE "-Wno-error")
+        endif()
 
         install(TARGETS luaCsnd6
             LIBRARY DESTINATION "${LUA_MODULE_INSTALL_DIR}"

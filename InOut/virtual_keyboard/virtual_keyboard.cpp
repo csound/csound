@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csdl.h"
@@ -87,6 +87,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 
 static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
 {
+  IGN(csound); IGN(userData); IGN(dev);
     /* report success */
     return 0;
 }
@@ -94,6 +95,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
 static int ReadMidiWindow(CSOUND *csound, FLTKKeyboardWindow *keyWin,
                          unsigned char *mbuf, int nbytes)
 {
+  IGN(nbytes);
     int i;
     Fl_lock(csound);
     Fl_awake(csound);
@@ -242,6 +244,8 @@ static int ReadMidiWidget(CSOUND *csound, FLTKKeyboardWidget *widget,
                          unsigned char *mbuf, int nbytes)
 {
 
+     IGN(csound);
+     IGN(nbytes);
     int i;
 
     if(!widget->visible()) {
@@ -360,6 +364,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 static int WriteMidiData_(CSOUND *csound, void *userData,
                           const unsigned char *mbuf, int nbytes)
 {
+   IGN(csound);IGN(userData);IGN(mbuf);IGN(nbytes);
     /* return the number of bytes written */
     return 0;
 }
@@ -374,6 +379,7 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 
 static int CloseMidiOutDevice_(CSOUND *csound, void *userData)
 {
+  IGN(csound);IGN(userData);
     return 0;
 }
 
@@ -412,6 +418,7 @@ const OENTRY widgetOpcodes_[] = {
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
+  IGN(csound);
     /* nothing to do, report success */
     //csound->Message(csound, "virtual_keyboard real time MIDI plugin for Csound\n");
     return 0;

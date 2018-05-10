@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*******************************************/
@@ -39,13 +39,13 @@
 #include "moog1.h"
 
 void OneZero_setCoeff(OneZero*, MYFLT);
-MYFLT Wave_tick(MYFLT *, int len, MYFLT *, MYFLT, MYFLT);
+MYFLT Wave_tick(MYFLT *, int32_t len, MYFLT *, MYFLT, MYFLT);
 
 static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq);
 static MYFLT SingWave_tick(CSOUND *csound, SingWave *p);
 static void VoicForm_setVoicedUnVoiced(VOICF *p, MYFLT vGain, MYFLT nGain);
 
-static inline void make_SubNoise(SubNoise *p, int subSample)
+static inline void make_SubNoise(SubNoise *p, int32_t subSample)
 {
     p->lastOutput = FL(0.0);
     p->howOften = p->counter = subSample-1;
@@ -75,7 +75,7 @@ static MYFLT SubNoise_tick(CSOUND *csound, SubNoise *p)
 #define POLE_POS  (FL(0.999))
 #define RND_SCALE (FL(10.0))
 
-static int make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
+static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 {
     FUNC        *ftp;
 
@@ -118,7 +118,7 @@ static void Modulatr_print(CSOUND *csound, Modulatr *p)
 }
 #endif
 
-static int make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
+static int32_t make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
 {
     FUNC        *ftp;
 
@@ -189,7 +189,7 @@ static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
     alpha = mytime - (MYFLT) temp;    /*  fractional part of time address */
 
     temp1 = temp + 1;
-    if (temp1==(int)p->wave->flen) temp1 = temp; /* Wrap!! */
+    if (temp1==(int32_t)p->wave->flen) temp1 = temp; /* Wrap!! */
 
     lastOutput = alpha * p->wave->ftable[temp1];         /*  Do linear  */
     //    printf("             : (%d %d) %f %f ", temp, temp1, alpha, lastOutput);
@@ -257,7 +257,7 @@ char phonemes[32][4] =
 #define VoicForm_setFormantAll(p,w,f,r,g) \
         FormSwep_setTargets(& p->filters[w],f,r,g)
 
-static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int i, MYFLT sc)
+static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int32_t i, MYFLT sc)
 {
     if (i>16) i = i%16;
     VoicForm_setFormantAll(p, 0,sc*phonParams[i][0][0], phonParams[i][0][1],
@@ -322,10 +322,10 @@ static void make_FormSwep(FormSwep *p)
     p->outputs[0]    = p->outputs[1] = FL(0.0);
 }
 
-int voicformset(CSOUND *csound, VOICF *p)
+int32_t voicformset(CSOUND *csound, VOICF *p)
 {
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-    int i;
+    int32_t i;
 
     if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)==NOTOK))
       return NOTOK;
@@ -349,7 +349,7 @@ int voicformset(CSOUND *csound, VOICF *p)
     Envelope_setTarget(&p->noiseEnv, FL(0.0));
 
     p->oldform = *p->formant;
-    p->ph = (int)(FL(0.5)+ *p->phoneme);
+    p->ph = (int32_t)(FL(0.5)+ *p->phoneme);
     VoicForm_setPhoneme(csound, p, p->ph, p->oldform);
                                 /* Clear */
 /*  OnePole_clear(&p->onepole); */ /* Included in make */
@@ -375,7 +375,7 @@ int voicformset(CSOUND *csound, VOICF *p)
     return OK;
 }
 
-int voicform(CSOUND *csound, VOICF *p)
+int32_t voicform(CSOUND *csound, VOICF *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -392,12 +392,12 @@ int voicform(CSOUND *csound, VOICF *p)
     SingWave_setVibFreq(p->voiced, *p->vibf);
     Modulatr_setVibAmt(p->voiced.modulator, *p->vibAmt);
                                 /* Set phoneme */
-    if (p->oldform != *p->formant || p->ph != (int)(0.5+*p->phoneme)) {
+    if (p->oldform != *p->formant || p->ph != (int32_t)(0.5+*p->phoneme)) {
       p->oldform = *p->formant;
-      p->ph = (int)(0.5 + *p->phoneme);
+      p->ph = (int32_t)(0.5 + *p->phoneme);
       csound->Warning(csound, Str("Setting Phoneme: %d %f\n"),
                               p->ph, p->oldform);
-      VoicForm_setPhoneme(csound, p, (int) *p->phoneme, p->oldform);
+      VoicForm_setPhoneme(csound, p, (int32_t) *p->phoneme, p->oldform);
     }
 /*  voicprint(csound, p); */
 

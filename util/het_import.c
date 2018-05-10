@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 /* ***************************************************************** */
 /* ******** Program to import hetro files from tabular format. ***** */
@@ -42,31 +42,31 @@
 
 void het_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: het_import csvtext_file het_file\n"));
+    csound->Message(csound, "%s", Str("Usage: het_import csvtext_file het_file\n"));
 }
 
 int16 getnum(FILE* inf, char *term)
 {
     char buff[16];
-    int  cc;
-    int p = 0;
+    int32_t  cc;
+    int32_t p = 0;
     while ((cc=getc(inf))!=',' && cc!='\n' && p<15) {
       if (UNLIKELY(cc == EOF)) {
-            *term = '\0';
-            return 0;
-        }
-        buff[p++] = cc;
+        *term = '\0';
+        return 0;
+      }
+      buff[p++] = cc;
     }
     buff[p]='\0';
     *term = cc;
     return (int16)atoi(buff);
 }
 
-static int het_import(CSOUND *csound, int argc, char **argv)
+static int32_t het_import(CSOUND *csound, int32_t argc, char **argv)
 {
-    FILE *infd;
-    FILE *outf;
-    int c;
+    FILE    *infd;
+    FILE    *outf;
+    int32_t c;
 
     if (UNLIKELY(argc!= 3)) {
       het_import_usage(csound);
@@ -87,7 +87,7 @@ static int het_import(CSOUND *csound, int argc, char **argv)
 
     if ((c=getc(infd)) == 'H') {
       char buf[6];
-      int i;
+      int32_t i;
       for (i=0; i<4; i++) buf[i]=(char)getc(infd);
       if (UNLIKELY(strncmp(buf, "ETRO", 4)!=0)) {
         csound->Message(csound, Str("Not an hetro anaysis file %s\n"), argv[1]);
@@ -98,7 +98,7 @@ static int het_import(CSOUND *csound, int argc, char **argv)
     else ungetc(c, infd);
     for (;;) {
       int16 x;
-      char term;
+      char  term;
       int16 end = END;
       x = getnum(infd, &term);
       if (term == '\0') break;
@@ -115,9 +115,9 @@ static int het_import(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int het_import_init_(CSOUND *csound)
+int32_t het_import_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "het_import", het_import);
+    int32_t retval = csound->AddUtility(csound, "het_import", het_import);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "het_import",

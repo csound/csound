@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* the smoothsort is from the Web
@@ -241,7 +241,7 @@ void sort(CSOUND *csound)
       return;
     do {
       n++;                      /* Need to count to alloc the array */
-      switch (bp->text[0]) {
+      switch ((int) bp->text[0]) {
       case 'd':
       case 'i':
         if (bp->insno < 0)
@@ -292,7 +292,7 @@ void sort(CSOUND *csound)
       for (i=1; i<n-1; i++ ) {
         bp = A[i]; bp->prvblk = A[i-1]; bp->nxtblk = A[i+1];
       }
-      if (n>1) bp = A[n-1]; bp->nxtblk = NULL; bp->prvblk = A[n-2];
+      if (n>1) { bp = A[n-1]; } bp->nxtblk = NULL; bp->prvblk = A[n-2];
       /* and return temporary space */
       csound->Free(csound, A);
 

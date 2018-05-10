@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*                                                      AOPS.H          */
@@ -62,19 +62,19 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    int     *rbool;
+    int32_t     *rbool;
     MYFLT   *a, *b;
 } RELAT;
 
 typedef struct {
     OPDS    h;
-    int     *rbool, *ibool, *jbool;
+    int32_t     *rbool, *ibool, *jbool;
 } LOGCL;
 
 typedef struct {
     OPDS    h;
     MYFLT   *r;
-    int     *cond;
+    int32_t     *cond;
     MYFLT   *a, *b;
 } CONVAL;
 
@@ -132,14 +132,14 @@ typedef struct {
     OPDS    h;
     MYFLT   *ar[40];
     MYFLT   *ch[VARGMAX];
-    int     init;
+    int32_t     init;
 } INCH;
 
 typedef struct {
     OPDS    h;
     MYFLT   *ar;
     MYFLT   *ch;
-    int     init;
+    int32_t     init;
 } INCH1;
 
 typedef struct {
@@ -148,8 +148,9 @@ typedef struct {
 } OUTX;
 
 typedef struct {
-    OPDS    h;
+    OPDS       h;
     ARRAYDAT   *tabin;
+    int32_t    nowarn;
 } OUTARRAY;
 
 typedef struct {
@@ -191,11 +192,11 @@ typedef struct MONITOR_OPCODE_ {
 typedef struct {
         OPDS    h;
         MYFLT   *kstartChan, *argums[VARGMAX];
-        int narg;
+        int32_t narg;
 } OUTRANGE;
 
-int monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
-int monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
-int outRange_i(CSOUND *csound, OUTRANGE *p);
-int outRange(CSOUND *csound, OUTRANGE *p);
-int hw_channels(CSOUND *csound, ASSIGN *p);
+int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
+int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
+int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
+int32_t outRange(CSOUND *csound, OUTRANGE *p);
+int32_t hw_channels(CSOUND *csound, ASSIGN *p);

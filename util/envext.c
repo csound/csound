@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*******************************************************\
@@ -38,7 +38,7 @@
 #define SHORTMAX 32767.0
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-'))) {          \
-      csound->Message(csound, MSG); csound->LongJmp(csound, 1); }
+      csound->Message(csound, "%s", MSG); csound->LongJmp(csound, 1); }
 
 /* Static function prototypes */
 
@@ -49,18 +49,18 @@ static void envext_usage(CSOUND *csound, char *mesg, ...)
 {
     va_list args;
 
-    csound->Message(csound,Str("Usage:\tenvext [-flags] soundfile\n"));
-    csound->Message(csound,Str("Legal flags are:\n"));
-    csound->Message(csound,Str("-o fnam\tsound output filename\n"));
-    csound->Message(csound,Str( "-w time\tSize of window\n"));
-    csound->Message(csound,Str("flag defaults: envext -onewenv -w0.25\n"));
+    csound->Message(csound,"%s", Str("Usage:\tenvext [-flags] soundfile\n"));
+    csound->Message(csound,"%s", Str("Legal flags are:\n"));
+    csound->Message(csound,"%s", Str("-o fnam\tsound output filename\n"));
+    csound->Message(csound, "%s", Str( "-w time\tSize of window\n"));
+    csound->Message(csound,"%s", Str("flag defaults: envext -onewenv -w0.25\n"));
     va_start(args, mesg);
     csound->ErrMsgV(csound, Str("envext: error: "), mesg, args);
     va_end(args);
     csound->LongJmp(csound, 1);
 }
 
-static int envext(CSOUND *csound, int argc, char **argv)
+static int32_t envext(CSOUND *csound, int32_t argc, char **argv)
 {
     char        *inputfile = NULL;
     SNDFILE     *infd;
@@ -74,7 +74,7 @@ static int envext(CSOUND *csound, int argc, char **argv)
 
     /* Check arguments */
     if (UNLIKELY(!(--argc)))
-      envext_usage(csound, Str("Insufficient arguments"));
+      envext_usage(csound, "%s", Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                        /* read all flags:  */
@@ -120,13 +120,13 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
     *pp = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
-    strncpy(p->sfname, inputfile, MAXSNDNAME-1);
+    strNcpy(p->sfname, inputfile, MAXSNDNAME-1);
     if ((infd = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skiptime*/
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
-    csound->Message(csound,Str("enveloping %ld sample frames (%3.1f secs)\n"),
-           (long) p->getframes, dur);
+    csound->Message(csound,Str("enveloping %"PRId64" sample frames (%3.1f secs)\n"),
+           (int64_t) p->getframes, dur);
     return(infd);
 }
 
@@ -136,16 +136,16 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
 {
     double      tpersample;
     double      max, min;
-    long        mxpos, minpos;
-    int         block = 0;
+    int64_t     mxpos, minpos;
+    int32_t     block = 0;
     MYFLT       *buffer;
-    int         bufferlen;
-    long        read_in;
-    int         i;
+    int32_t     bufferlen;
+    int64_t     read_in;
+    int32_t     i;
     FILE *      outfile;
 
     outfile = fopen((outname == NULL ? "newenv" : outname), "w");
-    bufferlen = (int)(window*(double)p->sr);
+    bufferlen = (int32_t)(window*(double)p->sr);
     buffer = (MYFLT*) malloc(bufferlen*sizeof(MYFLT));
     tpersample = 1.0/(double)p->sr;
     fprintf(outfile, "%.3f\t%.3f\n", 0.0, 0.0);
@@ -169,9 +169,9 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
 
 /* module interface */
 
-int envext_init_(CSOUND *csound)
+int32_t envext_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "envext", envext);
+    int32_t retval = csound->AddUtility(csound, "envext", envext);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "envext",

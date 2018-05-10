@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* pluck.c -- plucked string class definitions */
@@ -58,11 +58,11 @@ static inline void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
 /* ***** plucked string class member function definitions ***** */
 
 /* pluck::excite -- excitation function for plucked string */
-static int pluckExcite(CSOUND *csound, WGPLUCK* p)
+static int32_t pluckExcite(CSOUND *csound, WGPLUCK* p)
 {
     MYFLT *shape;
-    int i;
-    int size = p->wg.upperRail.size;
+    int32_t i;
+    int32_t size = p->wg.upperRail.size;
 
     /* set the delay element to pick at */
     p->pickSamp=(len_t)(size * *p->pickPos);
@@ -90,7 +90,7 @@ static int pluckExcite(CSOUND *csound, WGPLUCK* p)
 }
 
 /* ::pluck -- create the plucked-string instrument */
-static int pluckPluck(CSOUND *csound, WGPLUCK* p)
+static int32_t pluckPluck(CSOUND *csound, WGPLUCK* p)
 {
     /* ndelay = total required delay - 1.0 */
     len_t ndelay = (len_t) (CS_ESR / *p->freq - FL(1.0));
@@ -192,15 +192,16 @@ static inline void guideRailUpdate(guideRail *gr,MYFLT samp)
 }
 
 /* ::getSamps -- the sample generating routine */
-static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
+static int32_t pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 {
+    IGN(csound);
     MYFLT       yr0,yl0,yrM,ylM;        /* Key positions on the waveguide */
     MYFLT *ar = p->out;    /* The sample output buffer */
     len_t M=p->wg.upperRail.size; /* Length of the guide rail */
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     len_t n,nsmps=CS_KSMPS;
-/*    int i = 0; */
+/*    int32_t i = 0; */
     MYFLT *fdbk = p->afdbk;
     /* set the delay element to pickup at */
     len_t pickupSamp=(len_t)(M * *p->pickupPos);
@@ -237,9 +238,10 @@ static int pluckGetSamps(CSOUND *csound, WGPLUCK* p)
 #define EPSILON (FL(0.25))      /* threshold for small tuning values */
 /* prototypes */
 
-static inline int circularBufferCircularBuffer(CSOUND *csound,
+static inline int32_t circularBufferCircularBuffer(CSOUND *csound,
                                          circularBuffer* cb, len_t N)
 {
+    IGN(csound);
     MYFLT *data = cb->data;
     /* if (UNLIKELY(!data)) */
     /*   return csound->InitError(csound, */
@@ -352,14 +354,16 @@ static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "wgpluck",S(WGPLUCK),0, 5,"a","iikiiia",
-   (SUBR)pluckPluck,NULL,(SUBR)pluckGetSamps}
+static OENTRY localops[] =
+  {
+   { "wgpluck",S(WGPLUCK),0, 3,"a","iikiiia",
+     (SUBR)pluckPluck,(SUBR)pluckGetSamps}
 };
 
-int pluck_init_(CSOUND *csound)
+int32_t pluck_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

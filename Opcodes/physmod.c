@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Collection of physical modelled instruments */
@@ -113,7 +113,7 @@ void OneZero_setCoeff(OneZero* z, MYFLT aValue)
 /* } */
 
 /* *********************************************************************** */
-int clarinset(CSOUND *csound, CLARIN *p)
+int32_t clarinset(CSOUND *csound, CLARIN *p)
 {
     FUNC        *ftp;
 
@@ -123,13 +123,13 @@ int clarinset(CSOUND *csound, CLARIN *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq)
-        p->length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
+        p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
       else if (LIKELY(*p->frequency))
-        p->length = (int32) (CS_ESR / *p->frequency + FL(1.0));
+        p->length = (int32_t) (CS_ESR / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound, Str("No base frequency for clarinet "
                                     "-- assuming 50Hz\n"));
-        p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
+        p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       }
       make_DLineL(csound, &p->delayLine, p->length);
       p->reedTable.offSet = FL(0.7);
@@ -140,13 +140,13 @@ int clarinset(CSOUND *csound, CLARIN *p)
     /*    p->noiseGain = 0.2f; */       /* Arguemnts; suggested values? */
     /*    p->vibrGain = 0.1f; */
       {
-        int relestim = (int)(CS_EKR * FL(0.1));
+        int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((int32) (p->h.insdshead->offtim * CS_EKR)
-                        - (int32) (CS_EKR * *p->attack));
+      p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
+                        - (int32_t) (CS_EKR * *p->attack));
 #ifdef BETA
       csound->Message(csound, "offtim=%f  kloop=%d\n",
                               p->h.insdshead->offtim, p->kloop);
@@ -157,7 +157,7 @@ int clarinset(CSOUND *csound, CLARIN *p)
     return OK;
 }
 
-int clarin(CSOUND *csound, CLARIN *p)
+int32_t clarin(CSOUND *csound, CLARIN *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -165,7 +165,7 @@ int clarin(CSOUND *csound, CLARIN *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT nGain = *p->noiseGain;
-    int v_len = (int)p->vibr->flen;
+    int32_t v_len = (int32_t)p->vibr->flen;
     MYFLT *v_data = p->vibr->ftable;
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
@@ -224,7 +224,7 @@ int clarin(CSOUND *csound, CLARIN *p)
           temp_time += v_len;            /*  loop back to beginning */
       }
 #endif
-      temp = (int32) temp_time;    /*  Integer part of time address    */
+      temp = (int32_t) temp_time;    /*  Integer part of time address    */
                                    /*  fractional part of time address */
       alpha = temp_time - (MYFLT)temp;
       v_lastOutput = v_data[temp]; /* Do linear interpolation */
@@ -280,7 +280,7 @@ static inline MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
     return j;
 }
 
-int fluteset(CSOUND *csound, FLUTE *p)
+int32_t fluteset(CSOUND *csound, FLUTE *p)
 {
     FUNC        *ftp;
     int32        length;
@@ -291,17 +291,17 @@ int fluteset(CSOUND *csound, FLUTE *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
       if (*p->lowestFreq!=FL(0.0)) {
-        length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
+        length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
         p->limit = *p->lowestFreq;
       }
       else if (*p->frequency!=FL(0.0)) {
-        length = (int32) (CS_ESR / *p->frequency + FL(1.0));
+        length = (int32_t) (CS_ESR / *p->frequency + FL(1.0));
         p->limit = *p->frequency;
       }
       else {
         csound->Warning(csound, Str("No base frequency for flute "
                                     "-- assumed to be 50Hz\n"));
-        length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
+        length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
       }
       make_DLineL(csound, &p->boreDelay, length);
@@ -334,7 +334,7 @@ int fluteset(CSOUND *csound, FLUTE *p)
       p->maxPress = FL(2.3) / FL(0.8);
       p->outputGain = FL(1.001);
       ADSR_keyOn(&p->adsr);
-      p->kloop = (MYFLT)((int)(p->h.insdshead->offtim*CS_EKR -
+      p->kloop = (MYFLT)((int32_t)(p->h.insdshead->offtim*CS_EKR -
                                CS_EKR*(*p->dettack)));
 
       p->lastFreq = FL(0.0);
@@ -345,7 +345,7 @@ int fluteset(CSOUND *csound, FLUTE *p)
     return OK;
 }
 
-int flute(CSOUND *csound, FLUTE *p)
+int32_t flute(CSOUND *csound, FLUTE *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -353,7 +353,7 @@ int flute(CSOUND *csound, FLUTE *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       temp;
-    int         v_len = (int)p->vibr->flen;
+    int32_t     v_len = (int32_t)p->vibr->flen;
     MYFLT       *v_data = p->vibr->ftable;
     MYFLT       v_time = p->v_time;
     MYFLT       vibGain = *p->vibAmt;
@@ -434,7 +434,7 @@ int flute(CSOUND *csound, FLUTE *p)
       }
 #endif
 
-      temp = (int32) temp_time;        /*  Integer part of time address    */
+      temp = (int32_t) temp_time;        /*  Integer part of time address    */
                                        /*  fractional part of time address */
       alpha = temp_time - (MYFLT)temp;
       v_lastOutput = v_data[temp];    /* Do linear interpolation */
@@ -493,7 +493,7 @@ MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
     return lastOutput;
 }
 
-int bowedset(CSOUND *csound, BOWED *p)
+int32_t bowedset(CSOUND *csound, BOWED *p)
 {
     int32        length;
     FUNC        *ftp;
@@ -505,17 +505,17 @@ int bowedset(CSOUND *csound, BOWED *p)
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0)) {
-        length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
+        length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
         p->limit = *p->lowestFreq;
       }
       else if (*p->frequency!=FL(0.0)) {
-        length = (int32) (CS_ESR / *p->frequency + FL(1.0));
+        length = (int32_t) (CS_ESR / *p->frequency + FL(1.0));
         p->limit = *p->frequency;
       }
       else {
         csound->Warning(csound, Str("unknown lowest frequency for bowed string "
                                     "-- assuming 50Hz\n"));
-        length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
+        length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
       }
       make_DLineL(csound, &p->neckDelay, length);
@@ -558,7 +558,7 @@ int bowedset(CSOUND *csound, BOWED *p)
     return OK;
 }
 
-int bowed(CSOUND *csound, BOWED *p)
+int32_t bowed(CSOUND *csound, BOWED *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -566,7 +566,7 @@ int bowed(CSOUND *csound, BOWED *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT       maxVel;
-    int         freq_changed = 0;
+    int32_t         freq_changed = 0;
 
     if (amp != p->lastamp) {
       p->maxVelocity = FL(0.03) + (FL(0.2) * amp);
@@ -649,7 +649,7 @@ int bowed(CSOUND *csound, BOWED *p)
             temp_time += p->vibr->flen;      /*  loop back to beginning */
         }
 #endif
-        temp = (int32) temp_time;    /*  Integer part of time address    */
+        temp = (int32_t) temp_time;    /*  Integer part of time address    */
                                 /*  fractional part of time address */
         alpha = temp_time - (MYFLT)temp;
         p->v_lastOutput = p->vibr->ftable[temp]; /* Do linear interpolation */
@@ -707,7 +707,7 @@ void make_DLineA(CSOUND *csound, DLineA *p, int32 max_length)
     p->outPoint = max_length >> 1;
 }
 
-int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
+int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
 {
     MYFLT outputPointer;
   /* outPoint chases inpoint + 2 for interp and other        */
@@ -716,7 +716,7 @@ int DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     if (UNLIKELY(p->length<=0)) goto err1;
     while (outputPointer<0)
         outputPointer += p->length;        /* modulo table length            */
-    p->outPoint = (int32) outputPointer;    /* Integer part of delay          */
+    p->outPoint = (int32_t) outputPointer;    /* Integer part of delay          */
     p->alpha = FL(1.0) + p->outPoint - outputPointer;/* fractional part of delay */
     if (p->alpha<FL(0.1)) {
       outputPointer += FL(1.0);             /*  Hack to avoid pole/zero       */
@@ -787,7 +787,7 @@ MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
 
 /* ====================================================================== */
 
-int brassset(CSOUND *csound, BRASS *p)
+int32_t brassset(CSOUND *csound, BRASS *p)
 {
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
@@ -799,17 +799,17 @@ int brassset(CSOUND *csound, BRASS *p)
     p->frq = *p->frequency;     /* Remember */
     if (*p->lowestFreq>=FL(0.0)) {
       if (*p->lowestFreq!=FL(0.0)) {
-        p->length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
+        p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
         p->limit = *p->lowestFreq;
       }
       else if (p->frq!=FL(0.0)) {
-        p->length = (int32) (CS_ESR / p->frq + FL(1.0));
+        p->length = (int32_t) (CS_ESR / p->frq + FL(1.0));
         p->limit = p->frq;
       }
       else {
         csound->Warning(csound, Str("No base frequency for brass "
                                     "-- assumed to be 50Hz\n"));
-        p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
+        p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
       }
       make_DLineA(csound, &p->delayLine, p->length);
@@ -838,18 +838,18 @@ int brassset(CSOUND *csound, BRASS *p)
       /*                     p->lipTarget * (MYFLT)pow(4.0,
                                                        (2.0* p->lipT) -1.0)); */
       {
-        int relestim = (int)(CS_EKR * FL(0.1));
+        int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int) ((int32) (p->h.insdshead->offtim * CS_EKR)
-                        - (int32) (CS_EKR * *p->dettack));
+      p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
+                        - (int32_t) (CS_EKR * *p->dettack));
     }
     return OK;
 }
 
-int brass(CSOUND *csound, BRASS *p)
+int32_t brass(CSOUND *csound, BRASS *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -857,7 +857,7 @@ int brass(CSOUND *csound, BRASS *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     MYFLT maxPressure = p->maxPressure = amp;
-    int v_len = (int)p->vibr->flen;
+    int32_t v_len = (int32_t)p->vibr->flen;
     MYFLT *v_data = p->vibr->ftable;
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
@@ -897,7 +897,7 @@ int brass(CSOUND *csound, BRASS *p)
     for (n=offset;n<nsmps;n++) {
       MYFLT     breathPressure;
       MYFLT     lastOutput;
-      int       temp;
+      int32_t       temp;
       MYFLT     temp_time, alpha;
       MYFLT     v_lastOutput;
       MYFLT     ans;
@@ -922,7 +922,7 @@ int brass(CSOUND *csound, BRASS *p)
       }
 #endif
 
-      temp = (int) temp_time;            /*  Integer part of time address    */
+      temp = (int32_t) temp_time;            /*  Integer part of time address    */
                                          /*  fractional part of time address */
       alpha = temp_time - (MYFLT)temp;
       v_lastOutput = v_data[temp];  /* Do linear interpolation, same as */
@@ -952,52 +952,54 @@ int brass(CSOUND *csound, BRASS *p)
 #include "fm4op.h"
 #include "bowedbar.h"
 
-int tubebellset(void*,void*);
-int tubebell(void*,void*);
-int rhodeset(void*,void*);
-int wurleyset(void*,void*);
-int wurley(void*,void*);
-int heavymetset(void*,void*);
-int heavymet(void*,void*);
-int b3set(void*,void*);
-int hammondB3(void*,void*);
-int FMVoiceset(void*,void*);
-int FMVoice(void*,void*);
-int percfluteset(void*,void*);
-int percflute(void*,void*);
-int Moog1set(void*,void*);
-int Moog1(void*,void*);
-int mandolinset(void*,void*);
-int mandolin(void*,void*);
-int voicformset(void*,void*);
-int voicform(void*,void*);
-int shakerset(void*,void*);
-int shaker(void*,void*);
-int bowedbarset(void*,void*);
-int bowedbar(void*,void*);
+int32_t tubebellset(void*,void*);
+int32_t tubebell(void*,void*);
+int32_t rhodeset(void*,void*);
+int32_t wurleyset(void*,void*);
+int32_t wurley(void*,void*);
+int32_t heavymetset(void*,void*);
+int32_t heavymet(void*,void*);
+int32_t b3set(void*,void*);
+int32_t hammondB3(void*,void*);
+int32_t FMVoiceset(void*,void*);
+int32_t FMVoice(void*,void*);
+int32_t percfluteset(void*,void*);
+int32_t percflute(void*,void*);
+int32_t Moog1set(void*,void*);
+int32_t Moog1(void*,void*);
+int32_t mandolinset(void*,void*);
+int32_t mandolin(void*,void*);
+int32_t voicformset(void*,void*);
+int32_t voicform(void*,void*);
+int32_t shakerset(void*,void*);
+int32_t shaker(void*,void*);
+int32_t bowedbarset(void*,void*);
+int32_t
+bowedbar(void*,void*);
 
-static OENTRY physmod_localops[] = {
-{ "wgclar",  S(CLARIN),TR, 5, "a", "kkkiikkkjo",(SUBR)clarinset,NULL, (SUBR)clarin },
-{ "wgflute", S(FLUTE), TR, 5, "a", "kkkiikkkjovv",(SUBR)fluteset,NULL, (SUBR)flute },
-{ "wgbow",   S(BOWED), TR, 5, "a", "kkkkkkjo", (SUBR)bowedset, NULL,   (SUBR)bowed },
-{ "wgbrass", S(BRASS), TR, 5, "a", "kkkikkjo", (SUBR)brassset, NULL,    (SUBR)brass},
-{ "mandol", S(MANDOL), TR, 5, "a", "kkkkkkio",(SUBR)mandolinset,NULL,(SUBR)mandolin},
-{ "voice", S(VOICF),   TR, 5, "a", "kkkkkkii",(SUBR)voicformset,NULL,(SUBR)voicform},
-{ "fmbell",  S(FM4OP), TR, 5, "a", "kkkkkkjjjjjo",
-                                            (SUBR)tubebellset,NULL,(SUBR)tubebell},
-{ "fmrhode", S(FM4OP), TR, 5, "a", "kkkkkkiiiii",(SUBR)rhodeset,NULL,(SUBR)tubebell},
-{ "fmwurlie", S(FM4OP),TR, 5, "a", "kkkkkkiiiii",(SUBR)wurleyset,NULL,(SUBR)wurley },
-{ "fmmetal", S(FM4OP), TR, 5, "a", "kkkkkkiiiii",
-                                          (SUBR)heavymetset, NULL, (SUBR)heavymet},
-{ "fmb3", S(FM4OP),    TR, 5, "a", "kkkkkkjjjjj", (SUBR)b3set,NULL,(SUBR)hammondB3 },
-{ "fmvoice", S(FM4OPV),TR, 5, "a", "kkkkkkjjjjj",
-                                       (SUBR)FMVoiceset,NULL,(SUBR)FMVoice},
-{ "fmpercfl", S(FM4OP),TR, 5, "a", "kkkkkkjjjjj",
-                                        (SUBR)percfluteset, NULL, (SUBR)percflute},
-{ "moog", S(MOOG1),    TR, 5, "a", "kkkkkkiii", (SUBR)Moog1set, NULL, (SUBR)Moog1  },
-{ "shaker", S(SHAKER), 0, 5, "a", "kkkkko",  (SUBR)shakerset, NULL,   (SUBR)shaker},
-{ "wgbowedbar", S(BOWEDBAR), 0, 5, "a","kkkkkoooo",
-                             (SUBR)bowedbarset, NULL,(SUBR) bowedbar },
+static OENTRY physmod_localops[] =
+  {
+   { "wgclar",  S(CLARIN),TR, 3, "a", "kkkiikkkjo",(SUBR)clarinset, (SUBR)clarin },
+   { "wgflute", S(FLUTE), TR, 3, "a", "kkkiikkkjovv",(SUBR)fluteset, (SUBR)flute },
+   { "wgbow",   S(BOWED), TR, 3, "a", "kkkkkkjo", (SUBR)bowedset,   (SUBR)bowed },
+   { "wgbrass", S(BRASS), TR, 3, "a", "kkkikkjo", (SUBR)brassset,    (SUBR)brass},
+   { "mandol", S(MANDOL), TR, 3, "a", "kkkkkkio",(SUBR)mandolinset,(SUBR)mandolin},
+   { "voice", S(VOICF),   TR, 3, "a", "kkkkkkii",(SUBR)voicformset,(SUBR)voicform},
+   { "fmbell",  S(FM4OP), TR, 3, "a", "kkkkkkjjjjjo",
+     (SUBR)tubebellset,(SUBR)tubebell},
+   { "fmrhode", S(FM4OP), TR, 3, "a", "kkkkkkiiiii",(SUBR)rhodeset,(SUBR)tubebell},
+   { "fmwurlie", S(FM4OP),TR, 3, "a", "kkkkkkiiiii",(SUBR)wurleyset,(SUBR)wurley },
+   { "fmmetal", S(FM4OP), TR, 3, "a", "kkkkkkiiiii",
+     (SUBR)heavymetset, (SUBR)heavymet},
+   { "fmb3", S(FM4OP),    TR, 3, "a", "kkkkkkjjjjj", (SUBR)b3set,(SUBR)hammondB3 },
+   { "fmvoice", S(FM4OPV),TR, 3, "a", "kkkkkkjjjjj",
+     (SUBR)FMVoiceset,(SUBR)FMVoice},
+   { "fmpercfl", S(FM4OP),TR, 3, "a", "kkkkkkjjjjj",
+     (SUBR)percfluteset, (SUBR)percflute},
+   { "moog", S(MOOG1),    TR, 3, "a", "kkkkkkiii", (SUBR)Moog1set, (SUBR)Moog1  },
+   { "shaker", S(SHAKER), 0, 3, "a", "kkkkko",  (SUBR)shakerset,   (SUBR)shaker},
+   { "wgbowedbar", S(BOWEDBAR), 0, 3, "a","kkkkkoooo",
+     (SUBR)bowedbarset,(SUBR) bowedbar },
 };
 
 LINKAGE_BUILTIN(physmod_localops)

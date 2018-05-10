@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 /* ***************************************************************** */
 /* ******** Program to import lpanal files in tabular format. ****** */
@@ -36,15 +36,15 @@
 
 void lpc_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: lpc_import cstext_file lpc_file\n"));
+    csound->Message(csound, "%s", Str("Usage: lpc_import cstext_file lpc_file\n"));
 }
 
-static int lpc_import(CSOUND *csound, int argc, char **argv)
+static int32_t lpc_import(CSOUND *csound, int32_t argc, char **argv)
 {
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
-    unsigned int i, j;
+    uint32_t i, j;
     char *str;
     MYFLT *coef;
 
@@ -65,7 +65,7 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
     }
     if (UNLIKELY(fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
                  (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2))) {
-      csound->Message(csound, Str("Failed to read LPC header\n"));
+      csound->Message(csound, "%s", Str("Failed to read LPC header\n"));
       fclose(outf);
       fclose(inf);
       return 1;
@@ -89,7 +89,7 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
     if (UNLIKELY(fread(str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4))
-      csound->Message(csound, Str("Read failure\n"));
+      csound->Message(csound, "%s", Str("Read failure\n"));
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
@@ -97,7 +97,7 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
     for (i = 0; i<hdr.nvals; i++) {
       if (UNLIKELY(fread(&coef[0], sizeof(MYFLT),
                          hdr.npoles, inf)!=(size_t)hdr.npoles))
-        csound->Message(csound, Str("Read failure\n"));
+        csound->Message(csound, "%s", Str("Read failure\n"));
       for (j=0; j<hdr.npoles; j++)
         fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));
     }
@@ -109,9 +109,9 @@ static int lpc_import(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int lpc_import_init_(CSOUND *csound)
+int32_t lpc_import_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "lpc_import", lpc_import);
+    int32_t retval = csound->AddUtility(csound, "lpc_import", lpc_import);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "lpc_import",

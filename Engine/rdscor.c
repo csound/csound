@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
@@ -76,7 +76,20 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       while (n--!=0) sstrp += strlen(sstrp)+1;
       n = sstrp-csound->sstrbuf;
       while ((c = corfile_getc(csound->scstr)) != '"') {
-        //if (c=='\\') c = corfile_getc(csound->scstr);
+        if (c=='\\') { c = corfile_getc(csound->scstr);
+          switch (c) {
+          case '"': c = '"'; break;
+          case '\'': c = '\''; break;
+          case '\\': c = '\\'; break;
+          case 'a': c = '\a'; break;
+          case 'b': c = '\b'; break;
+          case 'f': c = '\f'; break;
+          case 'n': c = '\n'; break;
+          case 'r': c = '\r'; break;
+          case 't': c = '\t'; break;
+          case 'v': c = '\v'; break;
+          }
+        }
         *sstrp++ = c;
         n++;
         if (n > csound->strsiz-10) {

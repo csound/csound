@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /**************************************************************/
@@ -34,16 +34,16 @@
 
 #define unirand(x) ((MYFLT) (x->Rand31(&(x->randSeed1)) - 1) / FL(2147483645.0))
 
-static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
+static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
 {
-    int         i;
-    int         nsections;
+    int32_t         i;
+    int32_t         nsections;
     FUNC        *ftpWind, *ftpSamp;
     WARPSECTION *exp;
     char        *auxp;
     MYFLT       iwsize;
 
-    nsections = (int)*p->ioverlap;
+    nsections = (int32_t)*p->ioverlap;
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
       if (nsections != p->nsections)
         auxp = p->auxch.auxp=NULL;
@@ -65,19 +65,19 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
 
     p->maxFr   = -1 + ftpSamp->flen;
     p->prFlg   = 1;    /* true */
-    p->begin   = (int)(*p->ibegin * CS_ESR);
+    p->begin   = (int32_t)(*p->ibegin * CS_ESR);
 
     exp        = p->exp;
     iwsize = *p->iwsize;
     for (i=0; i< *p->ioverlap; i++) {
       if (i==0) {
-        exp[i].wsize = (int)iwsize;
+        exp[i].wsize = (int32_t)iwsize;
         exp[i].cnt = 0;
         exp[i].ampphs = FL(0.0);
       }
       else {
-        exp[i].wsize = (int) (iwsize + (unirand(csound) * (*p->irandw)));
-        exp[i].cnt=(int)(exp[i].wsize*((MYFLT)i/(*p->ioverlap)));
+        exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
+        exp[i].cnt=(int32_t)(exp[i].wsize*((MYFLT)i/(*p->ioverlap)));
         exp[i].ampphs = p->flen*((MYFLT)i/(*p->ioverlap));
       }
       exp[i].offset = (MYFLT)p->begin;
@@ -91,7 +91,7 @@ static int sndwarpgetset(CSOUND *csound, SNDWARP *p)
     return OK;
 }
 
-static int sndwarp(CSOUND *csound, SNDWARP *p)
+static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -102,11 +102,11 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
     MYFLT       *r1, *r2, *amp, *timewarpby, *resample;
     WARPSECTION *exp;
     FUNC        *ftpWind, *ftpSamp;
-    int         i;
+    int32_t         i;
     MYFLT       v1, v2, windowamp, fract;
     MYFLT       flen = (MYFLT)p->flen;
     MYFLT       iwsize = *p->iwsize;
-    int         overlap = *p->ioverlap;
+    int32_t         overlap = *p->ioverlap;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     r1 = p->r1;
@@ -147,7 +147,7 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
           exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
 
         exp[i].cnt=0;
-        exp[i].wsize = (int) (iwsize + (unirand(csound) * (*p->irandw)));
+        exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
         exp[i].ampphs = FL(0.0);
         exp[i].ampincr = flen/(exp[i].wsize-1);
 
@@ -201,10 +201,10 @@ static int sndwarp(CSOUND *csound, SNDWARP *p)
 /**************STEREO VERSION OF SNDWARP*************************/
 /****************************************************************/
 
-static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
+static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
 {
-    int         i;
-    int         nsections;
+    int32_t         i;
+    int32_t         nsections;
     FUNC        *ftpWind, *ftpSamp;
     WARPSECTION *exp;
     char        *auxp;
@@ -214,7 +214,7 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
       return csound->InitError(csound, Str("Wrong number of outputs "
                                            "in sndwarpst; must be 2 or 4"));
     }
-    nsections = (int)*p->ioverlap;
+    nsections = (int32_t)*p->ioverlap;
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
       if (nsections != p->nsections)
         auxp=p->auxch.auxp=NULL;
@@ -236,18 +236,18 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
 
     p->maxFr  = -1L + (int32)(ftpSamp->flen*FL(0.5));
     p->prFlg = 1;    /* true */
-    p->begin = (int)(*p->ibegin * CS_ESR);
+    p->begin = (int32_t)(*p->ibegin * CS_ESR);
     iwsize = *p->iwsize;
     exp = p->exp;
     for (i=0; i< nsections; i++) {
       if (i==0) {
-        exp[i].wsize = (int)iwsize;
+        exp[i].wsize = (int32_t)iwsize;
         exp[i].cnt=0;
         exp[i].ampphs = FL(0.0);
       }
       else {
-        exp[i].wsize = (int) (iwsize + (unirand(csound) * (*p->irandw)));
-        exp[i].cnt=(int)(exp[i].wsize*((MYFLT)i/(*p->ioverlap)));
+        exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
+        exp[i].cnt=(int32_t)(exp[i].wsize*((MYFLT)i/(*p->ioverlap)));
         exp[i].ampphs = p->flen*(i/(*p->ioverlap));
       }
       exp[i].offset = (MYFLT)p->begin;
@@ -261,12 +261,12 @@ static int sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     return OK;
 }
 
-static int sndwarpstset(CSOUND *csound, SNDWARPST *p)
+static int32_t sndwarpstset(CSOUND *csound, SNDWARPST *p)
 {
     return sndwarpstgetset(csound,p);
 }
 
-static int sndwarpst(CSOUND *csound, SNDWARPST *p)
+static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -277,7 +277,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
     MYFLT       *r1, *r2,*r3, *r4, *amp, *timewarpby, *resample;
     WARPSECTION *exp;
     FUNC        *ftpWind, *ftpSamp;
-    int         i;
+    int32_t         i;
     MYFLT       v1, v2, windowamp, fract;
     MYFLT       flen = (MYFLT)p->flen;
     MYFLT       iwsize = *p->iwsize;
@@ -311,7 +311,7 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
           exp[i].offset += (MYFLT)exp[i].wsize/(*timewarpby);
 
         exp[i].cnt=0;
-        exp[i].wsize = (int) (iwsize + (unirand(csound) * (*p->irandw)));
+        exp[i].wsize = (int32_t) (iwsize + (unirand(csound) * (*p->irandw)));
         exp[i].ampphs = FL(0.0);
         exp[i].ampincr = flen/(exp[i].wsize-1);
 
@@ -371,16 +371,18 @@ static int sndwarpst(CSOUND *csound, SNDWARPST *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "sndwarp", S(SNDWARP), TR, 5, "mm", "xxxiiiiiii",
-    (SUBR)sndwarpgetset, NULL, (SUBR)sndwarp},
-  { "sndwarpst", S(SNDWARPST), TR, 5, "mmmm","xxxiiiiiii",
-    (SUBR)sndwarpstset,NULL,(SUBR)sndwarpst}
+static OENTRY localops[] =
+  {
+   { "sndwarp", S(SNDWARP), TR, 3, "mm", "xxxiiiiiii",
+    (SUBR)sndwarpgetset, (SUBR)sndwarp},
+   { "sndwarpst", S(SNDWARPST), TR, 3, "mmmm","xxxiiiiiii",
+    (SUBR)sndwarpstset,(SUBR)sndwarpst}
 };
 
-int sndwarp_init_(CSOUND *csound)
+int32_t sndwarp_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

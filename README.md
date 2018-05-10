@@ -1,14 +1,12 @@
 # CSOUND
-Version 6.10.0
+Version 6.11.0 (Beta)
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
-![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg)
 [![Build status](https://ci.appveyor.com/api/projects/status/1qamc986774rsbjq/branch/develop?svg=true)](https://ci.appveyor.com/project/csound/csound/branch/develop)
+<!--- ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg) --->
+A sound and music computing system.
 
-A user-programmable and user-extensible sound processing language
-and software synthesizer.
-
-Csound is copyright (c) 1991 Barry Vercoe, John ffitch, and other contributors.
+Csound is copyright (c) 1991-2018 The Csound Developers, see CONTRIBUTORS
 
 Csound is free software; you can redistribute them
 and/or modify them under the terms of the GNU Lesser General Public
@@ -22,33 +20,26 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this software; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307 USA
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+02110-1301 USA
 
 # GETTING STARTED
 
-CsoundQt, a graphical shell for Csound, is an excellent place to begin
-the exploration of Csound, especially as CsoundQt has an extensive menu
-of built-in examples that show off Csound's capabilities. Many musicians make
-CsoundQt their main Csound environment, although there are other excellent
-environments. CsoundQt runs not only Csound code, but also Python scripts and, 
-in the latest version, HTML5 code.
+This repository contains the code for the core Csound library, the
+interfaces library, and the command-line interface frontend. It also
+contains specific code for ports to various embedded, mobile and web platforms.
 
-The examples directory and its subdirectories contain numerous working 
-Csound orchestras, and even complete pieces. 
+For general project information, please look at http://csound.com,
+where all details about Csound, what it does, its history, music
+made with it, and many other things can be found.
 
-The Csound Reference Manual may be found online at 
-http://csound.github.io/docs/manual/indexframes.html, or it may be installed with 
-Csound in a location that varies by operating system.
-
-This version of Csound is programmable in C, C++, JavaScript, Python, Java, Lua, 
-and Common Lisp, and scores can be generated in these languages.
+The Csound Reference Manual can be found online at http://docs.csound.com.
 
 The Csound API application programming interface reference 
-may be found online at http://csound.github.io/docs/api/index.html, or it may be 
-installed with Csound in a location that varies by operating system. The API 
-reference is generated from and for the C and C++ API, but it is also helpful when 
-programming Csound in other languages.
+may be found online at http://csound.github.io/docs/api/index.html.
+
+Information on how to build Csound on various platforms is given in
+the BUILD.md file at the top level directory of this repository.
 
 # CONTRIBUTORS
 
@@ -58,6 +49,7 @@ from around the world. They include (but are not limited to):
 * Allan Lee
 * Andres Cabrera
 * Anthony Kozar
+* Barry Vercoe
 * Bill Gardner
 * Bill Verplank
 * Dan Ellis

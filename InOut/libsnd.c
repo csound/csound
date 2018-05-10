@@ -17,14 +17,15 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"                 /*             SNDLIB.C         */
 #include "soundio.h"
 #include <stdlib.h>
 #include <time.h>
+#include <inttypes.h>
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
@@ -518,7 +519,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       STA(infile) = sf_open_fd(isfd, SFM_READ, &sfinfo, 0);
       if (UNLIKELY(STA(infile) == NULL)) {
         /* open failed: possibly raw file, but cannot seek back to try again */
-        const char *sfError = sf_strerror(NULL);
+        const char *sfError = Str(sf_strerror(NULL));
         csoundDie(csound, Str("isfinit: cannot open %s -- %s"), sfname, sfError);
       }
     }
@@ -530,14 +531,14 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       if (STA(infile) == NULL) {
         /* open failed: maybe raw file ? */
         memset(&sfinfo, 0, sizeof(SF_INFO));
-        sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+        sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
         sfinfo.channels = csound->nchnls;
         /* FIXME: assumes input sample format is same as output */
         sfinfo.format = TYPE2SF(TYP_RAW) | FORMAT2SF(O->outformat);
         STA(infile) = sf_open(fullName, SFM_READ, &sfinfo);  /* try again */
       }
       if (UNLIKELY(STA(infile) == NULL)) {
-        const char *sfError = sf_strerror(NULL);
+        const char *sfError = Str(sf_strerror(NULL));
         csoundDie(csound, Str("isfinit: cannot open %s -- %s"), fullName, sfError);
       }
       /* only notify the host if we opened a real file, not stdin or a pipe */
@@ -546,10 +547,10 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       sfname = fullName;
     }
     /* chk the hdr codes  */
-    if (sfinfo.samplerate != (int) (csound->esr + FL(0.5))) {
+    if (sfinfo.samplerate != (int) MYFLT2LRND(csound->esr)) {
       csound->Warning(csound, Str("audio_in %s has sr = %d, orch sr = %d"),
                               sfname, (int) sfinfo.samplerate,
-                              (int) (csound->esr + FL(0.5)));
+                              (int) MYFLT2LRND(csound->esr));
     }
     if (sfinfo.channels != csound->inchnls) {
       csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls_i"),
@@ -572,8 +573,9 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
                                          STA(inbufsiz)); /* alloc inbuf space */
     if (STA(pipdevout) == 2)
       csound->Message(csound,
-                      Str("reading %d sample blks of %lu-bit floats from %s \n"),
-                      O->inbufsamps * O->sfsampsize, sizeof(MYFLT)*8, sfname);
+                      Str("reading %d sample blks of %lu-bit floats from %s\n"),
+                      O->inbufsamps * O->sfsampsize,
+                      (unsigned long) sizeof(MYFLT)*8, sfname);
     else {
       csound->Message(csound,
                       Str("reading %d-byte blks of %s from %s (%s)\n"),
@@ -750,28 +752,26 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* set format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
     //sfinfo.frames     = 0;
-    sfinfo.samplerate = (int) (csound->esr + FL(0.5));
+    sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
     sfinfo.channels   = csound->nchnls;
     sfinfo.format     = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     /* open file */
     if (STA(pipdevout)) {
       STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
-      sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
-                 &O->quality, sizeof(double));
 #ifdef PIPES
       if (STA(outfile) == NULL) {
         char fmt_name[6];
         if (O->sfsampsize == 8) {
           if (UNLIKELY(O->filetyp == TYP_AU))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                      sf_strerror(NULL));
+                      Str(sf_strerror(NULL)));
           strcpy(fmt_name, "AU");
           O->filetyp = TYP_AU;
         }
         else {
           if (UNLIKELY(O->filetyp == TYP_IRCAM))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                      sf_strerror(NULL));
+                      Str(sf_strerror(NULL)));
           strcpy(fmt_name, "IRCAM");
           O->filetyp = TYP_IRCAM;
         }
@@ -779,13 +779,13 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
                                     "for use in pipe\n"), fmt_name);
         sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
         STA(outfile) = sf_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
-        sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
-                 &O->quality, sizeof(double));
       }
 #endif
       if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                  sf_strerror(NULL));
+                  Str(sf_strerror(NULL)));
+      sf_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+                 &O->quality, sizeof(double));
     }
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
@@ -868,8 +868,9 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
     if (STA(pipdevout) == 2)
       csound->Message(csound,
-                      Str("writing %d sample blks of %lu-bit floats to %s \n"),
-                      O->outbufsamps, sizeof(MYFLT)*8, STA(sfoutname));
+                      Str("writing %d sample blks of %lu-bit floats to %s\n"),
+                      O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
+                      STA(sfoutname));
     else {
      csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
@@ -942,12 +943,13 @@ void sfcloseout(CSOUND *csound)
  report:
     if (STA(pipdevout) == 2) {
       csound->Message(csound,
-                      Str("%d %d sample blks of %lu-bit floats written to %s\n"),
-                      csound->nrecs, O->outbufsamps,
-                      sizeof(MYFLT)*8, STA(sfoutname));
+                      "%"PRIi32" %d %s%lu%s%s\n",
+                      csound->nrecs, O->outbufsamps, Str("sample blks of "),
+                      (unsigned long)sizeof(MYFLT)*8,Str("-bit floats written to "),
+                      STA(sfoutname));
     }
     else {
-      csound->Message(csound, Str("%d %d sample blks of %s written to %s"),
+      csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
                       getstrformat(O->outformat), STA(sfoutname));
       if (O->sfheader == 0)

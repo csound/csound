@@ -1,5 +1,8 @@
 /* load.c
 
+   Copyright 2005 Richard W.E. Furse
+   with Csound adjustments by Andres Cabrera, Istvan Varga, John ffitch
+
    Free software by Richard W.E. Furse. Do with as you will. No
    warranty. */
 
@@ -14,7 +17,7 @@
    not an absolute path (i.e. does not begin with / character), this
    routine will search the LADSPA_PATH for the file. */
 /* TODO static? */
-void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
+void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
 {
 
     char   *pcBuffer;
@@ -22,8 +25,8 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
     char *pcLADSPAPath = NULL;
     char *pcDSSIPath = NULL;
     const char *pcStart;
-    int     iEndsInSO;
-    int     iNeedSlash;
+    int32_t     iEndsInSO;
+    int32_t     iNeedSlash;
     size_t  iFilenameLength;
     void   *pvResult;
     char *tmp;
@@ -59,7 +62,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
 #endif
       }
       if (pcDSSIPath) {
-        int len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
+        int32_t len = strlen(pcLADSPAPath)+strlen(pcDSSIPath)+2;
         char *tmp = (char*)malloc(len);
         snprintf(tmp, len, "%s:%s", pcLADSPAPath, pcDSSIPath);
         free(pcLADSPAPath);
@@ -74,7 +77,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int iFlag)
           pcBuffer = csound->Malloc(csound,
                                     iFilenameLength + 2 + (pcEnd - pcStart));
           if (pcEnd > pcStart)
-            strncpy(pcBuffer, pcStart, pcEnd - pcStart);
+            strNcpy(pcBuffer, pcStart, pcEnd - pcStart);
           iNeedSlash = 0;
           if (pcEnd > pcStart)
             if (*(pcEnd - 1) != '/') {
@@ -148,6 +151,7 @@ void   *loadLADSPAPluginLibrary(CSOUND *csound, const char *pcPluginFilename)
 
 void unloadLADSPAPluginLibrary(CSOUND *csound, void *pvLADSPAPluginLibrary)
 {
+  IGN(csound);
     dlclose(pvLADSPAPluginLibrary);
 }
 
@@ -162,7 +166,7 @@ const LADSPA_Descriptor *
 
     const LADSPA_Descriptor *psDescriptor;
     LADSPA_Descriptor_Function pfDescriptorFunction;
-    unsigned long lPluginIndex;
+    uint64_t lPluginIndex;
 
     dlerror();
     pfDescriptorFunction

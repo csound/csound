@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <AudioUnit/AudioUnit.h>
@@ -28,6 +28,40 @@
 #include <stdint.h>
 #include "csdl.h"
 #include "soundio.h"
+
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
 
 #if !defined(MAC_OS_X_VERSION_10_6)
 /* the API was changed for 10.6, these make it backwards compatible  */
@@ -172,10 +206,10 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, &devName);
       if(CFStringGetCStringPtr(devName, defaultEncoding))
-        strncpy(devinfo[i].name,
+        strNcpy(devinfo[i].name,
                 CFStringGetCStringPtr(devName, defaultEncoding), 127);
       else
-        strncpy(devinfo[i].name, "unnamed device", 127);
+        strNcpy(devinfo[i].name, "unnamed device", 127);
       CFRelease(devName);
 
       devchannels = 0;
@@ -233,14 +267,14 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     for (i = 0; (unsigned int)  i < devnos; i++) {
       if (isInput) {
         if(devinfo[i].inchannels) {
-          csound->Message(csound, Str("%d: %s (%d channels) \n"),
+          csound->Message(csound, Str("%d: %s (%d channels)\n"),
                           devinfo[i].indevnum, devinfo[i].name,
                           devinfo[i].inchannels);
         }
       }
       else {
         if(devinfo[i].outchannels)
-          csound->Message(csound, Str("%d: %s (%d channels) \n"),
+          csound->Message(csound, Str("%d: %s (%d channels)\n"),
                           devinfo[i].outdevnum, devinfo[i].name,
                           devinfo[i].outchannels);
       }
@@ -297,11 +331,11 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioObjectGetPropertyData(dev,
                                &prop, 0, NULL, &psize, &devName);
     if(isInput)
-      csound->Message(csound, Str("selected input device: %s \n"),
+      csound->Message(csound, Str("selected input device: %s\n"),
                       CFStringGetCStringPtr(devName, defaultEncoding));
 
     else
-      csound->Message(csound, Str("selected output device: %s \n"),
+      csound->Message(csound, Str("selected output device: %s\n"),
                       CFStringGetCStringPtr(devName, defaultEncoding));
 
     CFRelease(devName);
@@ -331,7 +365,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     if(UNLIKELY(sr != srate)) {
       csound->Warning(csound,
-                      Str("Attempted to set device SR, tried %.1f, got %.1f \n"),
+                      Str("Attempted to set device SR, tried %.1f, got %.1f\n"),
                       srate, sr);
     }
 
@@ -434,8 +468,9 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       AudioUnitInitialize(*aunit);
       AudioOutputUnitStart(*aunit);
       csound->Message(csound,
-              "***** AuHAL module: input device open with %d buffer frames\n",
-                      bufframes);
+                      Str("***** AuHAL module: input device open with "
+                          "%d buffer frames\n"),
+                      (int) bufframes);
     }
     if(!cdata->disp)
       csound->Message(csound,
@@ -480,7 +515,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
                                  &prop, 0, NULL, &psize, &devName);
       memset(devinfo[i].name,0,128);
       if(CFStringGetCStringPtr(devName, defaultEncoding) != NULL)
-        strncpy(devinfo[i].name,
+        strNcpy(devinfo[i].name,
                 CFStringGetCStringPtr(devName, defaultEncoding),127);
       CFRelease(devName);
 
@@ -536,10 +571,10 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       if(!isOutput){
         for(i=0; (unsigned int)  i < devnos; i++) {
           if(devinfo[i].inchannels) {
-            strncpy(list[n].device_name,  devinfo[i].name, 63);
+            strNcpy(list[n].device_name,  devinfo[i].name, 63);
             snprintf(tmp, 64, "adc%d", devinfo[i].indevnum);
-            strncpy(list[n].device_id, tmp, 63);
-            strncpy(list[n].rt_module, s, 63);
+            strNcpy(list[n].device_id, tmp, 63);
+            strNcpy(list[n].rt_module, s, 63);
             list[n].max_nchnls = devinfo[i].inchannels;
             list[n].isOutput = 0;
             n++;
@@ -549,10 +584,10 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       } else {
         for(i=0;(unsigned int) i < devnos; i++){
           if(devinfo[i].outchannels) {
-            strncpy(list[n].device_name,  devinfo[i].name, 63);
+            strNcpy(list[n].device_name,  devinfo[i].name, 63);
             snprintf(tmp, 64, "dac%d", devinfo[i].outdevnum);
-            strncpy(list[n].device_id, tmp, 63);
-            strncpy(list[n].rt_module, s, 63);
+            strNcpy(list[n].device_id, tmp, 63);
+            strNcpy(list[n].rt_module, s, 63);
             list[n].max_nchnls = devinfo[i].outchannels;
             list[n].isOutput = 1;
             n++;
@@ -779,7 +814,7 @@ static void rtclose_(CSOUND *csound)
       csound->DestroyCircularBuffer(csound, cdata->incb);
       csound->DestroyCircularBuffer(csound, cdata->outcb);
       csound->Free(csound,cdata);
-      csound->Message(csound, Str("AuHAL module: device closed\n"));
+      csound->Message(csound, "%s", Str("AuHAL module: device closed\n"));
     }
 }
 
@@ -796,7 +831,7 @@ int csoundModuleInit(CSOUND *csound)
           strcmp(drv, "COREAUDIO") == 0))
       return 0;
     //if (csound->oparms->msglevel & 0x400)
-    csound->Message(csound, Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
+    csound->Message(csound, "%s", Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);

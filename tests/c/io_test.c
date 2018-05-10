@@ -91,6 +91,7 @@ void test_dev_list(void)
 int key_callback_evt(void *userData, void *p,
                      unsigned int type)
 {
+  (void) type;
     int *prev = (int *) userData;
     *((int *) p) = *prev;
     *prev += 1;
@@ -100,6 +101,7 @@ int key_callback_evt(void *userData, void *p,
 int key_callback_txt(void *userData, void *p,
                      unsigned int type)
 {
+  (void) type;
     int *prev = (int *) userData;
     *((int *) p) =  *prev;
     *prev += 1;
@@ -156,11 +158,11 @@ void test_audio_modules(void)
     while(!csoundGetModule(csound, n++, &name, &type)) {
         if (strcmp(type, "audio") == 0) {
             const char  *instrument =
-                    "ksmps = 256\n"
-                    "instr 1 \n"
-                    "asig oscil 0.1, 440\n"
-                    "out asig\n"
-                    "endin \n";
+            "ksmps = 256\n"
+            "instr 1 \n"
+            "asig oscil 0dbfs/4, A4\n"
+            "out linen(asig,0.005,p3,0.05)\n"
+            "endin \n";
             csoundSetOption(csound, "-B4096");
             csoundCompileOrc(csound, instrument);
             csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
@@ -187,8 +189,8 @@ void test_audio_hostbased(void)
     const char  *instrument =
             "ksmps = 256\n"
             "instr 1 \n"
-            "asig oscil 0.1, 440\n"
-            "out asig\n"
+            "asig oscil 0dbfs/4, A4\n"
+            "out linen(asig,0.005,p3,0.05)\n"
             "endin \n";
     csoundSetOption(csound, "-B4096");
     csoundCompileOrc(csound, instrument);
@@ -203,6 +205,31 @@ void test_audio_hostbased(void)
     csoundReset(csound);
 }
 
+void test_audio_realtime_mode(void)
+{
+    CSOUND  *csound;
+    csound = csoundCreate(NULL);
+    const char  *instrument =
+            "ksmps = 256\n"
+            "instr 1 \n"
+            "asig oscil 0dbfs/4, A4\n"
+            "out linen(asig,0.005,p3,0.05)\n"
+            "endin \n";
+    csoundSetOption(csound, "-B256");
+    csoundSetOption(csound, "-b64");
+    csoundSetOption(csound, "--realtime");
+    csoundSetOption(csound, "-odac");
+    csoundCompileOrc(csound, instrument);
+    csoundReadScore(csound,  "i 1 0 0.1\n e 0.2");
+    int ret = csoundStart(csound);
+    CU_ASSERT(ret == 0);
+    ret = csoundPerform(csound);
+    CU_ASSERT(ret > 0);
+    csoundReset(csound);
+}
+
+
+
 
 void test_midi_modules(void)
 {
@@ -214,11 +241,11 @@ void test_midi_modules(void)
     while(!csoundGetModule(csound, n++, &name, &type)) {
         if (strcmp(type, "midi") == 0) {
             const char  *instrument =
-                    "ksmps = 256\n"
-                    "instr 1 \n"
-                    "asig oscil 0.1, 440\n"
-                    "out asig\n"
-                    "endin \n";
+            "ksmps = 256\n"
+            "instr 1 \n"
+            "asig oscil 0dbfs/4, A4\n"
+            "out linen(asig,0.005,p3,0.05)\n"
+            "endin \n";
             csoundSetOption(csound, "-B4096");
             csoundCompileOrc(csound, instrument);
             csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
@@ -240,8 +267,8 @@ void test_midi_hostbased(void)
     const char  *instrument =
             "ksmps = 256\n"
             "instr 1 \n"
-            "asig oscil 0.1, 440\n"
-            "out asig\n"
+            "asig oscil 0dbfs/4, A4\n"
+            "out linen(asig,0.005,p3,0.05)\n"
             "endin \n";
     csoundSetOption(csound, "-B4096");
     csoundCompileOrc(csound, instrument);
@@ -257,7 +284,7 @@ void test_midi_hostbased(void)
 }
 
 
-int main(int argc, char **argv)
+int main()
 {
     CU_pSuite pSuite = NULL;
 
@@ -274,11 +301,12 @@ int main(int argc, char **argv)
 
     /* add the tests to the suite */
     if ((NULL == CU_add_test(pSuite, "Device Listing", test_dev_list))
-            || (NULL == CU_add_test(pSuite, "Keyboard IO", test_keyboard_io))
-            || (NULL == CU_add_test(pSuite, "Audio Modules", test_audio_modules))
-            || (NULL == CU_add_test(pSuite, "Audio Hostbased", test_audio_hostbased))
-            || (NULL == CU_add_test(pSuite, "MIDI Modules", test_midi_modules))
-            || (NULL == CU_add_test(pSuite, "MIDI Hostbased", test_midi_hostbased))
+            || (NULL == CU_add_test(pSuite, "Keyboard IO\n", test_keyboard_io))
+            || (NULL == CU_add_test(pSuite, "Audio Modules\n", test_audio_modules))
+            || (NULL == CU_add_test(pSuite, "Audio Hostbased\n", test_audio_hostbased))
+            || (NULL == CU_add_test(pSuite, "MIDI Modules\n", test_midi_modules))
+            || (NULL == CU_add_test(pSuite, "MIDI Hostbased\n", test_midi_hostbased))
+            || (NULL == CU_add_test(pSuite, "Audio realtime mode\n", test_audio_realtime_mode))
         )
     {
        CU_cleanup_registry();

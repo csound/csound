@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MAc
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MAc
+    02110-1301 USA
 */
 
 #include <stdio.h>
@@ -29,6 +29,7 @@
 #include <ctype.h>
 #include "csoundCore.h"
 #include "corfile.h"
+#include <inttypes.h>
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
@@ -739,7 +740,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       uint8_t n = file_to_int(csound, buffer);
       char bb[128];
       PARM->lstack[PARM->depth] = n;
-      sprintf(bb, "#source %llu\n", PARM->locn = make_location(PARM));
+      sprintf(bb, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
       corfile_puts(csound, bb, csound->expanded_orc);
     }
@@ -758,7 +759,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
         csound->Message(csound, Str("Memory exhausted"));
         csound->LongJmp(csound, 1);
       }
-      /* csound->DebugMsg(csound, "alt_stack now %d long, \n", */
+      /* csound->DebugMsg(csound, "alt_stack now %d long,\n", */
       /*                  PARM->macro_stack_size); */
     }
     csound->DebugMsg(csound,"cso_pre(%d): stacking line %d at %d\n", __LINE__,
@@ -1212,7 +1213,7 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
       if (p == NULL)
         p = s + strlen(s);
       if (csound->oparms->msglevel & 7)
-        csound->Message(csound, Str("Macro definition for %*s\n"), (int) (p - s), s);
+        csound->Message(csound, Str("Macro definition for %*s\n"), (int)(p - s), s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {
         csound->Die(csound, Str("Invalid macro name for --omacro"));
@@ -1270,7 +1271,7 @@ void csound_pre_line(CSOUND *csound, CORFIL* cf, void *yyscanner)
       uint64_t llocn = PARM->llocn;
       if (UNLIKELY(locn != llocn)) {
         char bb[80];
-        sprintf(bb, "#source %llu\n", locn);
+        sprintf(bb, "#source %"PRIu64"\n", locn);
         corfile_puts(csound, bb, cf);
       }
       PARM->llocn = locn;

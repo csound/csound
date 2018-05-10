@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*
@@ -109,4 +109,5 @@ typedef struct {
 //
 //} K35HPF;
 
-static int zdf_ladder_perf(CSOUND * csound, ZDF_LADDER * p);
+static int32_t
+zdf_ladder_perf(CSOUND * csound, ZDF_LADDER * p);

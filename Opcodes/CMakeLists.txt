@@ -1,8 +1,7 @@
 option(BUILD_CHUA_OPCODES "Build the chua opcodes" ON)
 option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
-option(BUILD_JACK_OPCODES "Build the JACK related opcodes" OFF)
-option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the Linear Algebra Opcodes" ON)
+option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
 option(BUILD_PYTHON_OPCODES "Build the Python opcodes" ON)
@@ -11,7 +10,7 @@ option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON)
 option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
-option(BUILD_FAUST_OPCODES "Build the Faust opcodes" OFF)
+option(BUILD_FAUST_OPCODES "Build the Faust opcodes" ON)
 option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
 option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
@@ -19,6 +18,8 @@ option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
+option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" OFF)
+option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
 
 message(STATUS "## Building Opcodes ##")
 #find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -44,12 +45,6 @@ find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
 find_library(P5GLOVE_LIB p5glove)
 
-if(BUILD_FAUST_OPCODES)
-find_package(LLVM)
-exec_program(llvm-config ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
-find_library(FAUST_LIBRARY libfaust.a HINTS /usr/local/lib)
-endif()
-
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
 make_plugin(mixer mixer.cpp)
@@ -67,12 +62,10 @@ make_plugin(liveconv liveconv.c)
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
 
+
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
-   set_target_properties(arrayops PROPERTIES COMPILE_FLAGS
-   "-std=c++11")
-    make_plugin(pvsops pvsops.cpp)
-   set_target_properties(pvsops PROPERTIES COMPILE_FLAGS "-std=c++11")
+   make_plugin(pvsops pvsops.cpp)
 elseif(LINUX)
     include(CheckCXXCompilerFlag)
     CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_CXX11)
@@ -156,7 +149,10 @@ endif()
 check_deps(BUILD_CHUA_OPCODES EIGEN3_INCLUDE_PATH)
 if(BUILD_CHUA_OPCODES)
     make_plugin(chua chua/ChuaOscillator.cpp)
-    target_include_directories(chua PRIVATE ${Boost_INCLUDE_DIRS})
+    target_include_directories(chua PRIVATE)
+ if(APPLE)
+   set_target_properties(chua PROPERTIES COMPILE_FLAGS "-Wno-unused-local-typedef")
+ endif()
 endif()
 
 check_deps(BUILD_DSSI_OPCODES LINUX)
@@ -200,14 +196,24 @@ if(BUILD_JACK_OPCODES)
     make_plugin(jackTransport jackTransport.c "${jack_LIBS}")
 endif()
 
-check_deps(BUILD_LINEAR_ALGEBRA_OPCODES GMM_FOUND)
+
 if(BUILD_LINEAR_ALGEBRA_OPCODES)
+if(GMM_FOUND)
+if(USE_DOUBLE)
     make_plugin(linear_algebra linear_algebra.cpp)
     target_include_directories(linear_algebra PRIVATE ${GMM_INCLUDE_DIRS})
     if (MSVC)
         target_compile_options(linear_algebra PRIVATE "/D_SCL_SECURE_NO_DEPRECATE")
     endif()
+ else()
+ message(STATUS "Not building linear algebra opcodes: float-sample configuration")
+ endif()
+ else()
+ message(STATUS "Not building linear algebra opcodes: gmm not found")
 endif()
+endif()
+  
+
 
 check_deps(BUILD_OSC_OPCODES LIBLO_LIBRARY OSC_HEADER)
 if(BUILD_OSC_OPCODES)
@@ -284,7 +290,12 @@ if(BUILD_STACK_OPCODES)
     make_plugin(stackops stackops.c)
 endif()
 
-check_deps(BUILD_FAUST_OPCODES LLVM_FOUND FAUST_LIBRARY)
+if(BUILD_PVSGENDY_OPCODES)
+    make_plugin(pvsgendy pvsgendy.c)
+endif()
+
+
+check_deps(BUILD_FAUST_OPCODES FAUST_FOUND)
 if(BUILD_FAUST_OPCODES)
   make_plugin(faustcsound faustgen.cpp)
 if(APPLE)
@@ -301,16 +312,16 @@ endif()
 
  if(APPLE)
  if(${OSX_VERSION} STREQUAL "10.6")
-    target_link_libraries(faustcsound ${FAUST_LIBRARY} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
+    target_link_libraries(faustcsound ${FAUST_LIBRARIES} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
   else()
       target_compile_options(faustcsound PRIVATE "-stdlib=libc++")
-     target_link_libraries(faustcsound ${FAUST_LIBRARY} -stdlib=libc++ -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
+     target_link_libraries(faustcsound ${FAUST_LIBRARIES} -stdlib=libc++ -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
   endif()
   else()
-    target_link_libraries(faustcsound ${FAUST_LIBRARY} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
+    target_link_libraries(faustcsound ${FAUST_LIBRARIES} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
    endif()
 
-  target_include_directories(faustcsound PRIVATE ${LLVM_INCLUDE_DIRS})
+  target_include_directories(faustcsound PRIVATE ${LLVM_DIR})
 endif()
 
 
@@ -351,6 +362,7 @@ if(BUILD_VST4CS_OPCODES)
         else()
             target_link_libraries(vst4cs PRIVATE ${PTHREAD_LIBRARY})
         endif()
+        set_target_properties(vst4cs PROPERTIES COMPILE_FLAGS "-Wno-multichar")
     endif()
     install(TARGETS vst4cs
         LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
@@ -393,6 +405,15 @@ if(BUILD_ABLETON_LINK_OPCODES)
         LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
         ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 endif()
+
+#if(APPLE)
+#foreach(TARG ampmidid doppler mixer signalflowgraph arrayops pvsops
+#ftsamplebank padsynth)
+#set_target_properties(${TARG} PROPERTIES COMPILE_FLAGS "-std=c++11
+#-stdlib=libc++"
+#   LINK_FLAGS "-std=c++11 -stdlib=libc++")
+#endforeach(TARG)
+#endif()
 
 add_subdirectory(stk)
 add_subdirectory(cuda)

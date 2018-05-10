@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
+# silence RPATH cmake warning
+set(CMAKE_MACOSX_RPATH 1)
 
 project(Csound)
 
@@ -13,7 +15,12 @@ message(STATUS "${CMAKE_HOME_DIRECTORY}")
 if(NOT MSVC AND NOT WASM)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
 set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
 endif()
+
+# C++11 needed
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # Project definitions
 set(APIVERSION "6.0")
@@ -150,6 +157,23 @@ if(CUSTOM_CMAKE)
     include(${CUSTOM_CMAKE})
 else()
     message(STATUS "Not using Custom.cmake file.")
+endif()
+
+# in Release configuration, set NDEBUG
+if(${CMAKE_BUILD_TYPE} MATCHES "Release")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
+endif()
+
+if(APPLE)
+set(CMAKE_REQUIRED_INCLUDES time.h)
+CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
+if(${CLOCK_GETTIME})
+ message(STATUS  "clock_gettime() found")
+ set(CMAKE_C_FLAGS "-DHAVE_CLOCK_GETTIME ${CMAKE_C_FLAGS}")
+else()
+ message(STATUS  "clock_gettime() not found")
+endif()
 endif()
 
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
@@ -383,13 +407,16 @@ message(STATUS "Building for OSX")
 
   set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
 
-  if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
+ if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
-  endif()
+ endif()
 
-  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*")
+  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*"
+     AND (NOT  CMAKE_OSX_DEPLOYMENT_TARGET))
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
     message(STATUS "OSX: Setting Deployment Target to 10.7")
+  else()
+    message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
   endif()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
@@ -438,12 +465,6 @@ if(BUILD_RELEASE)
 else()
     add_definitions("-DBETA")
 endif()
-
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions("-Wno-format")
-endif()
-
-
 
 #if(USE_DOUBLE)
 #    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins64)
@@ -499,6 +520,7 @@ find_package(FLTK )
 #        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
 #    endif()
 #endif()
+find_package(FAUST)
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
@@ -581,7 +603,7 @@ set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
     sys/time.h sys/types.h termios.h
     values.h winsock.h sys/socket.h
-    dirent.h )
+    dirent.h inttypes.h)
 
 foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
@@ -590,6 +612,11 @@ foreach(header ${HEADERS_TO_CHECK})
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
     check_include_file(${header} HAVE_${upper_header})
 endforeach()
+
+if (NOT HAVE_INTTYPES_H)
+    message(FATAL_ERROR "Csound requires inttypes.h")
+endif()
+
 
 check_deps(USE_LRINT HAVE_LRINT)
 if(USE_LRINT)
@@ -630,6 +657,8 @@ include_directories(./include)
 include_directories(./Engine)
 
 #adding this for files that #include SDIF/sdif*
+include_directories(./util)
+#adding this for files that #include files in local dirs
 include_directories(./)
 
 #checking pthread functions
@@ -878,8 +907,7 @@ set(cs_pvs_ops_SRCS
     Opcodes/pvsdemix.c
     Opcodes/pvs_ops.c
     Opcodes/pvsband.c
-    Opcodes/pvsbuffer.c
-    Opcodes/pvsgendy.c)
+    Opcodes/pvsbuffer.c)
 
 set(oldpvoc_SRCS
     Opcodes/dsputil.c
@@ -924,10 +952,12 @@ set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
 
 set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
-
-set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
+PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
+set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)  
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
-
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c
+PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
 add_custom_command(
     OUTPUT ${LEX_OUT}
     DEPENDS ${LEX_SRC}
@@ -1032,8 +1062,7 @@ if(BUILD_MULTI_CORE)
     list(APPEND libcsound_SRCS
         Engine/cs_new_dispatch.c
         Engine/cs_par_base.c
-        Engine/cs_par_orc_semantic_analysis.c
-        Engine/cs_par_dispatch.c)
+        Engine/cs_par_orc_semantic_analysis.c)
 
     list(APPEND libcsound_CFLAGS -DPARCS)
 
@@ -1369,10 +1398,10 @@ endif()
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(interfaces)
-add_subdirectory(frontends)
+add_subdirectory(Frontends)
+add_subdirectory(Bela)
 add_subdirectory(util)
 add_subdirectory(util1)
-add_subdirectory(SDIF)
 add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
@@ -1417,3 +1446,7 @@ if(DOXYGEN_FOUND)
  else()
    message(STATUS "Not building documentation")
 endif(DOXYGEN_FOUND)
+
+# install CMake module
+install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")

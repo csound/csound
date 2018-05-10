@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 /* The implementation is indebted to the ftconv opcode by Istvan Varga 2005 */
@@ -32,18 +32,18 @@
 
 typedef struct {
   enum { NO_LOAD, LOADING, UNLOADING } status;
-  int pos;
+  int32_t pos;
 } load_t;
 
 typedef struct {
   load_t  *begin;
   load_t  *end;
   load_t  *head;
-  int                     available;
+  int32_t                     available;
 } rbload_t;
 
 static inline
-void init_load(rbload_t *buffer, int size)
+void init_load(rbload_t *buffer, int32_t size)
 {
     load_t* iter = buffer->begin;
 
@@ -97,12 +97,12 @@ typedef struct {
   /*
   ** Internal state of opcode maintained outside
   */
-  int     initDone;       /* flag to indicate initialization */
-  int     cnt;            /* buffer position, 0 to partSize - 1       */
-  int     nPartitions;    /* number of convolve partitions            */
-  int     partSize;       /* partition length in sample frames
+  int32_t     initDone;       /* flag to indicate initialization */
+  int32_t     cnt;            /* buffer position, 0 to partSize - 1       */
+  int32_t     nPartitions;    /* number of convolve partitions            */
+  int32_t     partSize;       /* partition length in sample frames
                              (= iPartLen as integer) */
-  int     rbCnt;          /* ring buffer index, 0 to nPartitions - 1  */
+  int32_t     rbCnt;          /* ring buffer index, 0 to nPartitions - 1  */
 
   /* The following pointer point into the auxData buffer */
   MYFLT   *tmpBuf;        /* temporary buffer for accumulating FFTs   */
@@ -129,8 +129,8 @@ typedef struct {
 **                        last filled partition)
 */
 static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf, MYFLT *IR_Data,
-                                 int partSize, int nPartitions,
-                                 int ringBuf_startPos)
+                                 int32_t partSize, int nPartitions,
+                                 int32_t ringBuf_startPos)
 {
     MYFLT   re, im, re1, re2, im1, im2;
     MYFLT   *rbPtr, *irPtr, *outBufPtr, *outBufEndPm2, *rbEndP;
@@ -138,9 +138,9 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf, MYFLT *IR_Data,
     /* note: partSize must be at least 2 samples */
     partSize <<= 1; /* locale partsize is twice the size of the partition size */
              /* Finding the index of the last sample pair in the output buffer */
-    outBufEndPm2 = (MYFLT*) outBuf + (int) (partSize - 2);
+    outBufEndPm2 = (MYFLT*) outBuf + (int32_t) (partSize - 2);
                                                  /* The end of the ring buffer */
-    rbEndP = (MYFLT*) ringBuf + (int) (partSize * nPartitions);
+    rbEndP = (MYFLT*) ringBuf + (int32_t) (partSize * nPartitions);
     rbPtr = &(ringBuf[ringBuf_startPos]);    /* Initialize ring buffer pointer */
     irPtr = IR_Data;                        /* Initialize impulse data pointer */
     outBufPtr = outBuf;                    /* Initialize output buffer pointer */
@@ -206,23 +206,23 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf, MYFLT *IR_Data,
 
     } while (--nPartitions);
 }
-static inline int buf_bytes_alloc(int partSize, int nPartitions)
+static inline int32_t buf_bytes_alloc(int32_t partSize, int32_t nPartitions)
 {
-    int nSmps;
+    int32_t nSmps;
 
     nSmps = (partSize << 1);                            /* tmpBuf     */
     nSmps += ((partSize << 1) * nPartitions);           /* ringBuf    */
     nSmps += ((partSize << 1) * nPartitions);           /* IR_Data    */
     nSmps += ((partSize << 1));                         /* outBuf */
-    nSmps *= (int) sizeof(MYFLT);                       /* Buffer type MYFLT */
+    nSmps *= (int32_t) sizeof(MYFLT);                   /* Buffer type MYFLT */
 
-    nSmps += (nPartitions+1) * (int) sizeof(load_t);    /* Load/unload structure */
+    nSmps += (nPartitions+1) * (int32_t) sizeof(load_t);/* Load/unload structure */
     /* One load/unload pr. partitions and an extra for buffering is sufficient */
 
     return nSmps;
 }
 
-static void set_buf_pointers(liveconv_t *p, int partSize, int nPartitions)
+static void set_buf_pointers(liveconv_t *p, int32_t partSize, int32_t nPartitions)
 {
     MYFLT *ptr;
 
@@ -239,17 +239,18 @@ static void set_buf_pointers(liveconv_t *p, int partSize, int nPartitions)
     p->loader.begin = (load_t*) ptr;
 }
 
-static int liveconv_init(CSOUND *csound, liveconv_t *p)
+static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
 {
     FUNC    *ftp;       // function table
-    int     n, nBytes;
+    int32_t     n, nBytes;
 
     /* set p->partSize to the initial partition length, iPartLen */
     p->partSize = MYFLT2LRND(*(p->iPartLen));
     if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
       // Must be a power of 2 at least as large as 4
-      return csound->InitError(csound, Str("liveconv: invalid impulse response "
-                                           "partition length"));
+      return csound->InitError(csound, "%s",
+                               Str("liveconv: invalid impulse response "
+                                   "partition length"));
     }
 
     /* Find and assign the function table numbered iFTNum */
@@ -258,9 +259,9 @@ static int liveconv_init(CSOUND *csound, liveconv_t *p)
       return NOTOK; /* ftfind should already have printed the error message */
 
     /* Calculate the total length  */
-    n = (int) ftp->flen;
+    n = (int32_t) ftp->flen;
     if (UNLIKELY(n <= 0)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("liveconv: invalid length, or insufficient"
                                    " IR data for convolution"));
     }
@@ -275,7 +276,7 @@ static int liveconv_init(CSOUND *csound, liveconv_t *p)
     */
 
     nBytes = buf_bytes_alloc(p->partSize, p->nPartitions);
-    if (nBytes != (int) p->auxData.size)
+    if (nBytes != (int32_t) p->auxData.size)
       csound->AuxAlloc(csound, (int32) nBytes, &(p->auxData));
 
     /*
@@ -317,11 +318,11 @@ static int liveconv_init(CSOUND *csound, liveconv_t *p)
     return OK;
 }
 
-static int liveconv_perf(CSOUND *csound, liveconv_t *p)
+static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
 {
     MYFLT       *x, *rBuf;
     FUNC        *ftp;       // function table
-    int         i, k, n, nSamples, rBufPos, updateIR, clearBuf, nPart, cnt;
+    int32_t         i, k, n, nSamples, rBufPos, updateIR, clearBuf, nPart, cnt;
 
     load_t      *load_ptr;
     // uint32_t                numLoad = p->nPartitions + 1;
@@ -419,7 +420,8 @@ static int liveconv_perf(CSOUND *csound, liveconv_t *p)
           /* Iterate over IR partitions in reverse order */
           for (k = 0; k < nSamples; k++) {
             /* Fill IR_Data with scaled IR data, or zero if outside the IR buffer */
-            p->IR_Data[n + k] = (cnt < (int)ftp->flen) ? ftp->ftable[cnt] : FL(0.0);
+            p->IR_Data[n + k] =
+              (cnt < (int32_t)ftp->flen) ? ftp->ftable[cnt] : FL(0.0);
             cnt++;
           }
 
@@ -499,7 +501,7 @@ static int liveconv_perf(CSOUND *csound, liveconv_t *p)
 
  err1:
     return csound->PerfError(csound, p->h.insdshead,
-                             Str("liveconv: not initialised"));
+                             "%s", Str("liveconv: not initialised"));
 }
 
 /* module interface functions */
@@ -508,11 +510,10 @@ static OENTRY localops[] = {
   {
     "liveconv",             // name of opcode
     sizeof(liveconv_t),     // data size of state block
-    TR, 5,                  // thread
+    TR, 3,                  // thread
     "a",                    // output arguments
     "aiikk",                // input arguments
     (SUBR) liveconv_init,   // init function
-    (SUBR) NULL,            // k-rate function
     (SUBR) liveconv_perf    // a-rate function
   }
 };

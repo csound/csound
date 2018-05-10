@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 /*********************************************************/
@@ -73,7 +73,7 @@ MYFLT TwoZero_tick(TwoZero *p, MYFLT sample)
     return lastOutput;
 }
 
-MYFLT Wave_tick(MYFLT *vTime, int len, MYFLT *data, MYFLT rate, MYFLT phase)
+MYFLT Wave_tick(MYFLT *vTime, int32_t len, MYFLT *data, MYFLT rate, MYFLT phase)
 {                                /* Tick on vibrato table */
     int32   temp;
     MYFLT   alpha;
@@ -107,7 +107,7 @@ MYFLT Wave_tick(MYFLT *vTime, int len, MYFLT *data, MYFLT rate, MYFLT phase)
 
 /* ---------------------------------------------------------------------- */
 
-static int      FM_tabs_built = 0;
+static int32_t      FM_tabs_built = 0;
 static MYFLT    FM4Op_gains[100];
 static MYFLT    FM4Op_susLevels[16];
 static MYFLT    FM4Op_attTimes[32];
@@ -115,7 +115,7 @@ static MYFLT    FM4Op_attTimes[32];
 void build_FM(void)
 {                                /* The following tables are pre-built */
     MYFLT       temp = FL(1.0);
-    int         i;
+    int32_t         i;
 
     for (i=99; i>=0; i--) {
       FM4Op_gains[i] = temp;
@@ -134,7 +134,7 @@ void build_FM(void)
     FM_tabs_built = 1;
 }
 
-int make_FM4Op(CSOUND *csound, FM4OP *p)
+int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
 {
     MYFLT       tempCoeffs[2] = {FL(0.0), -FL(1.0)};
     FUNC        *ftp;
@@ -167,7 +167,7 @@ int make_FM4Op(CSOUND *csound, FM4OP *p)
                              Str("No table for VibWaveato"));
 }
 
-static int FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
+static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
 {
     FUNC        *ftp;
 
@@ -186,7 +186,7 @@ static int FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
                              Str("No table for FM4Op")); /* Expect sine wave */
 }
 
-void FM4Op_setRatio(FM4OP *p, int whichOne, MYFLT ratio)
+void FM4Op_setRatio(FM4OP *p, int32_t whichOne, MYFLT ratio)
 {
     p->ratios[whichOne] = ratio;
     if (ratio>FL(0.0))
@@ -224,25 +224,25 @@ MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
     MYFLT       lastOutput;
 
     temp = p->gains[1] * ADSR_tick(&p->adsr[1]) *
-      Wave_tick(&p->w_time[1], (int)p->waves[1]->flen, p->waves[1]->ftable,
+      Wave_tick(&p->w_time[1], (int32_t)p->waves[1]->flen, p->waves[1]->ftable,
                 p->w_rate[1], p->w_phase[1]);
     temp = temp * c1;
     p->w_phase[0] = p->waves[0]->flen * temp; /* addPhaseOffset */
     p->w_phase[3] = p->waves[0]->flen * p->twozero.lastOutput;
     temp =  p->gains[3] * ADSR_tick(&p->adsr[3]) *
-      Wave_tick(&p->w_time[3], (int)p->waves[3]->flen, p->waves[3]->ftable,
+      Wave_tick(&p->w_time[3], (int32_t)p->waves[3]->flen, p->waves[3]->ftable,
                 p->w_rate[3], p->w_phase[3]);
     TwoZero_tick(&p->twozero, temp);
     p->w_phase[2] = p->waves[2]->flen * temp; /* addPhaseOffset */
     temp = (FL(1.0) - ( c2 * FL(0.5))) *  p->gains[0] *
       ADSR_tick(&p->adsr[0]) *
-      Wave_tick(&p->w_time[0], (int)p->waves[0]->flen, p->waves[0]->ftable,
+      Wave_tick(&p->w_time[0], (int32_t)p->waves[0]->flen, p->waves[0]->ftable,
                 p->w_rate[0], p->w_phase[0]);
     temp +=  c2 * FL(0.5) *  p->gains[2] * ADSR_tick(&p->adsr[2]) *
-      Wave_tick(&p->w_time[2], (int)p->waves[2]->flen, p->waves[2]->ftable,
+      Wave_tick(&p->w_time[2], (int32_t)p->waves[2]->flen, p->waves[2]->ftable,
                 p->w_rate[2], p->w_phase[2]);
 
-    temp2 = Wave_tick(&p->v_time, (int)p->vibWave->flen,
+    temp2 = Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                       p->vibWave->ftable, p->v_rate, FL(0.0)) *
       *p->modDepth; /* Calculate amplitude mod */
     temp = temp * (FL(1.0) + temp2); /*  and apply it to output */
@@ -257,7 +257,7 @@ MYFLT FM4Alg5_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 /*  Recoded in C by John ffitch 1997-98                        */
 /***************************************************************/
 
-int tubebellset(CSOUND *csound, FM4OP *p)
+int32_t tubebellset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       opt = *p->opt;
@@ -298,7 +298,7 @@ int tubebellset(CSOUND *csound, FM4OP *p)
     return OK;
 }
 
-int tubebell(CSOUND *csound, FM4OP *p)
+int32_t tubebell(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -338,7 +338,7 @@ int tubebell(CSOUND *csound, FM4OP *p)
 /*  Recoded in C by John ffitch 1997-98                          */
 /*****************************************************************/
 
-int rhodeset(CSOUND *csound, FM4OP *p)
+int32_t rhodeset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -383,7 +383,7 @@ int rhodeset(CSOUND *csound, FM4OP *p)
 /*  Recoded in C by John ffitch 1997-98                        */
 /***************************************************************/
 
-int wurleyset(CSOUND *csound, FM4OP *p)
+int32_t wurleyset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -421,7 +421,7 @@ int wurleyset(CSOUND *csound, FM4OP *p)
     return OK;
 }
 
-int wurley(CSOUND *csound, FM4OP *p)
+int32_t wurley(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -473,7 +473,7 @@ MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2)
     MYFLT       lastOutput;
 
     temp = *p->modDepth * FL(0.2) *
-      Wave_tick(&p->v_time, (int)p->vibWave->flen,
+      Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                 p->vibWave->ftable, p->v_rate, FL(0.0));
     p->w_rate[0] = p->baseFreq * (FL(1.0) + temp) * p->ratios[0];
     p->w_rate[1] = p->baseFreq * (FL(1.0) + temp) * p->ratios[1];
@@ -481,30 +481,30 @@ MYFLT FM4Alg3_tick(FM4OP *p, MYFLT c1, MYFLT c2)
     p->w_rate[3] = p->baseFreq * (FL(1.0) + temp) * p->ratios[3];
 
     temp = p->gains[2] * ADSR_tick(&p->adsr[2]) *
-      Wave_tick(&p->w_time[2], (int)p->waves[2]->flen, p->waves[2]->ftable,
+      Wave_tick(&p->w_time[2], (int32_t)p->waves[2]->flen, p->waves[2]->ftable,
                 p->w_rate[2], p->w_phase[2]);
     p->w_phase[1] = p->waves[1]->flen * temp;
     p->w_phase[3] = p->waves[3]->flen * p->twozero.lastOutput;
     temp = (FL(1.0) - (c2 * FL(0.5))) * p->gains[3] * ADSR_tick(&p->adsr[3]) *
-      Wave_tick(&p->w_time[3], (int)p->waves[3]->flen, p->waves[3]->ftable,
+      Wave_tick(&p->w_time[3], (int32_t)p->waves[3]->flen, p->waves[3]->ftable,
                 p->w_rate[3], p->w_phase[3]);
     TwoZero_tick(&p->twozero, temp);
 
     temp += c2 * FL(0.5) * p->gains[1] * ADSR_tick(&p->adsr[1]) *
-      Wave_tick(&p->w_time[1], (int)p->waves[1]->flen, p->waves[1]->ftable,
+      Wave_tick(&p->w_time[1], (int32_t)p->waves[1]->flen, p->waves[1]->ftable,
                 p->w_rate[1], p->w_phase[1]);
     temp = temp * c1;
 
     p->w_phase[0] = p->waves[0]->flen * temp;
     temp = p->gains[0] * ADSR_tick(&p->adsr[0]) *
-      Wave_tick(&p->w_time[0], (int)p->waves[0]->flen, p->waves[0]->ftable,
+      Wave_tick(&p->w_time[0], (int32_t)p->waves[0]->flen, p->waves[0]->ftable,
                 p->w_rate[0], p->w_phase[0]);
 
     lastOutput = temp * FL(0.5);
     return lastOutput;
 }
 
-int heavymetset(CSOUND *csound, FM4OP *p)
+int32_t heavymetset(CSOUND *csound, FM4OP *p)
 {
     if (UNLIKELY(make_FM4Op(csound,p))) return NOTOK;
     if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK;  /* Mixed -- 2 x sine;
@@ -530,7 +530,7 @@ int heavymetset(CSOUND *csound, FM4OP *p)
     return OK;
 }
 
-int heavymet(CSOUND *csound, FM4OP *p)
+int32_t heavymet(CSOUND *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -590,17 +590,17 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
     p->w_phase[3] = p->waves[3]->flen * p->twozero.lastOutput;
 
     temp = c1 * FL(2.0) * p->gains[3] * ADSR_tick(&p->adsr[3]) *
-      Wave_tick(&p->w_time[3], (int)p->waves[3]->flen, p->waves[3]->ftable,
+      Wave_tick(&p->w_time[3], (int32_t)p->waves[3]->flen, p->waves[3]->ftable,
                 p->w_rate[3], p->w_phase[3]);
     TwoZero_tick(&p->twozero, temp);
     temp += c2 * FL(2.0) * p->gains[2] * ADSR_tick(&p->adsr[2]) *
-      Wave_tick(&p->w_time[2], (int)p->waves[2]->flen, p->waves[2]->ftable,
+      Wave_tick(&p->w_time[2], (int32_t)p->waves[2]->flen, p->waves[2]->ftable,
                 p->w_rate[2], p->w_phase[2]);
     temp += p->gains[1] * ADSR_tick(&p->adsr[1]) *
-      Wave_tick(&p->w_time[1], (int)p->waves[1]->flen, p->waves[1]->ftable,
+      Wave_tick(&p->w_time[1], (int32_t)p->waves[1]->flen, p->waves[1]->ftable,
                 p->w_rate[1], p->w_phase[1]);
     temp += p->gains[0] * ADSR_tick(&p->adsr[0]) *
-      Wave_tick(&p->w_time[0], (int)p->waves[0]->flen, p->waves[0]->ftable,
+      Wave_tick(&p->w_time[0], (int32_t)p->waves[0]->flen, p->waves[0]->ftable,
                 p->w_rate[0], p->w_phase[0]);
 
     lastOutput = temp * FL(0.125);
@@ -613,7 +613,7 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 /*  Recoded in C by John ffitch 1997-98                       */
 /**************************************************************/
 
-int b3set(CSOUND *csound, FM4OP *p)
+int32_t b3set(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -644,7 +644,7 @@ int b3set(CSOUND *csound, FM4OP *p)
     return OK;
 }
 
-int hammondB3(CSOUND *csound, FM4OP *p)
+int32_t hammondB3(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
     MYFLT       *ar = p->ar;
@@ -670,7 +670,7 @@ int hammondB3(CSOUND *csound, FM4OP *p)
       if (*p->modDepth > FL(0.0)) {
         p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
         temp = FL(1.0) + (*p->modDepth * FL(0.1) *
-                          Wave_tick(&p->v_time, (int)p->vibWave->flen,
+                          Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                                     p->vibWave->ftable, p->v_rate, FL(0.0)));
         temp *= p->baseFreq * csound->onedsr;
         p->w_rate[0] = p->ratios[0] * temp * p->waves[0]->flen;
@@ -703,10 +703,10 @@ MYFLT FM4Alg6_tick(CSOUND *csound, FM4OPV *q)
     FM4OP       *p = (FM4OP*)q;
 
     temp = p->gains[3] * ADSR_tick(&p->adsr[3]) *
-      Wave_tick(&p->w_time[3], (int)p->waves[3]->flen, p->waves[3]->ftable,
+      Wave_tick(&p->w_time[3], (int32_t)p->waves[3]->flen, p->waves[3]->ftable,
                 p->w_rate[3], p->w_phase[3]);
     /*  Calculate frequency mod  */
-    temp2 = Wave_tick(&p->v_time, (int)p->vibWave->flen, p->vibWave->ftable,
+    temp2 = Wave_tick(&p->v_time, (int32_t)p->vibWave->flen, p->vibWave->ftable,
                       p->v_rate, FL(0.0)) * *p->modDepth * FL(0.1);
 
     temp2 = (FL(1.0) + temp2) * p->baseFreq * csound->onedsr;
@@ -723,13 +723,13 @@ MYFLT FM4Alg6_tick(CSOUND *csound, FM4OPV *q)
     TwoZero_tick(&p->twozero, temp);
 
     temp =  p->gains[0] * q->tilt[0] * ADSR_tick(&p->adsr[0]) *
-      Wave_tick(&p->w_time[0], (int)p->waves[0]->flen, p->waves[0]->ftable,
+      Wave_tick(&p->w_time[0], (int32_t)p->waves[0]->flen, p->waves[0]->ftable,
                 p->w_rate[0], p->w_phase[0]);
     temp += p->gains[1] * q->tilt[1] * ADSR_tick(&p->adsr[1]) *
-      Wave_tick(&p->w_time[1], (int)p->waves[1]->flen, p->waves[1]->ftable,
+      Wave_tick(&p->w_time[1], (int32_t)p->waves[1]->flen, p->waves[1]->ftable,
                 p->w_rate[1], p->w_phase[1]);
     temp += p->gains[2] * q->tilt[2] * ADSR_tick(&p->adsr[2]) *
-      Wave_tick(&p->w_time[2], (int)p->waves[2]->flen, p->waves[2]->ftable,
+      Wave_tick(&p->w_time[2], (int32_t)p->waves[2]->flen, p->waves[2]->ftable,
                 p->w_rate[2], p->w_phase[2]);
 
     return temp * FL(0.33);
@@ -921,40 +921,40 @@ MYFLT phonParams[32][4][3] =
 void FMVoices_setFreq(FM4OPV *q, MYFLT frequency)
 {
     MYFLT       temp,temp2 = FL(0.0);
-    int         tempi,tempi2 = 0;
+    int32_t         tempi,tempi2 = 0;
 
     if (currentVowel < 32)      {
-      tempi2 = (int)currentVowel;
+      tempi2 = (int32_t)currentVowel;
       temp2 = FL(0.9);
     }
     else if (currentVowel < 64) {
-      tempi2 =(int) currentVowel - 32;
+      tempi2 =(int32_t) currentVowel - 32;
       temp2 = FL(1.0);
     }
     else if (currentVowel < 96) {
-      tempi2 = (int)currentVowel - 64;
+      tempi2 = (int32_t)currentVowel - 64;
       temp2 = FL(1.1);
     }
     else if (currentVowel < 128)        {
-      tempi2 = (int)currentVowel - 96;
+      tempi2 = (int32_t)currentVowel - 96;
       temp2 = FL(1.2);
     }
     q->baseFreq = frequency;
     temp = (temp2 * phonParams[tempi2][0][0] / q->baseFreq) + FL(0.5);
-    tempi = (int) temp;
+    tempi = (int32_t) temp;
     FM4Op_setRatio((FM4OP*)q, 0, (MYFLT) tempi);
     temp = (temp2 * phonParams[tempi2][1][0] / q->baseFreq) + FL(0.5);
-    tempi = (int) temp;
+    tempi = (int32_t) temp;
     FM4Op_setRatio((FM4OP*)q, 1, (MYFLT) tempi);
     temp = (temp2 * phonParams[tempi2][2][0] / q->baseFreq) + FL(0.5);
-    tempi = (int) temp;
+    tempi = (int32_t) temp;
     FM4Op_setRatio((FM4OP*)q, 2, (MYFLT) tempi);
     q->gains[0] = FL(1.0);  /* pow(10.0f,phonParams[tempi2][0][2] * 0.05f); */
     q->gains[1] = FL(1.0);  /* pow(10.0f,phonParams[tempi2][1][2] * 0.05f); */
     q->gains[2] = FL(1.0);  /* pow(10.0f,phonParams[tempi2][2][2] * 0.05f); */
 }
 
-int FMVoiceset(CSOUND *csound, FM4OPV *q)
+int32_t FMVoiceset(CSOUND *csound, FM4OPV *q)
 {
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
@@ -995,7 +995,7 @@ int FMVoiceset(CSOUND *csound, FM4OPV *q)
     return OK;
 }
 
-int FMVoice(CSOUND *csound, FM4OPV *q)
+int32_t FMVoice(CSOUND *csound, FM4OPV *q)
 {
     FM4OP       *p = (FM4OP *)q;
     MYFLT       amp = *q->amp * AMP_RSCALE;
@@ -1012,7 +1012,7 @@ int FMVoice(CSOUND *csound, FM4OPV *q)
     q->tilt[0] = amp;
     q->tilt[1] = amp * amp;
     q->tilt[2] = amp * amp * amp;
-    p->gains[3] = FM4Op_gains[(int) (*p->control2 * FL(0.78125))];
+    p->gains[3] = FM4Op_gains[(int32_t) (*p->control2 * FL(0.78125))];
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1048,7 +1048,7 @@ MYFLT FM4Alg4_tick(CSOUND *csound, FM4OP *p, MYFLT c1, MYFLT c2)
     MYFLT       temp;
     MYFLT       lastOutput;
 
-    temp = Wave_tick(&p->v_time, (int)p->vibWave->flen,
+    temp = Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                      p->vibWave->ftable, p->v_rate, FL(0.0)) *
       *p->modDepth * FL(0.2);
     temp = p-> baseFreq * (FL(1.0) + temp)* csound->onedsr;
@@ -1059,27 +1059,27 @@ MYFLT FM4Alg4_tick(CSOUND *csound, FM4OP *p, MYFLT c1, MYFLT c2)
 
     p->w_phase[3] = p->waves[3]->flen * p->twozero.lastOutput;
     temp = p->gains[3] * ADSR_tick(&p->adsr[3]) *
-      Wave_tick(&p->w_time[3], (int)p->waves[3]->flen, p->waves[3]->ftable,
+      Wave_tick(&p->w_time[3], (int32_t)p->waves[3]->flen, p->waves[3]->ftable,
                 p->w_rate[3], p->w_phase[3]);
     TwoZero_tick(&p->twozero, temp);
     p->w_phase[2] = p->waves[2]->flen * temp;
     temp = (FL(1.0) - (c2 * FL(0.5))) * p->gains[2] * ADSR_tick(&p->adsr[2]) *
-      Wave_tick(&p->w_time[2], (int)p->waves[2]->flen, p->waves[2]->ftable,
+      Wave_tick(&p->w_time[2], (int32_t)p->waves[2]->flen, p->waves[2]->ftable,
                 p->w_rate[2], p->w_phase[2]);
     temp += c2 * FL(0.5) * p->gains[1] * ADSR_tick(&p->adsr[1]) *
-      Wave_tick(&p->w_time[1], (int)p->waves[1]->flen, p->waves[1]->ftable,
+      Wave_tick(&p->w_time[1], (int32_t)p->waves[1]->flen, p->waves[1]->ftable,
                 p->w_rate[1], p->w_phase[1]);
     temp = temp * c1;
     p->w_phase[0] = p->waves[0]->flen * temp;
     temp = p->gains[0] * ADSR_tick(&p->adsr[0]) *
-      Wave_tick(&p->w_time[0], (int)p->waves[0]->flen, p->waves[0]->ftable,
+      Wave_tick(&p->w_time[0], (int32_t)p->waves[0]->flen, p->waves[0]->ftable,
                 p->w_rate[0], p->w_phase[0]);
 
     lastOutput = temp * FL(0.5);
     return lastOutput;
 }
 
-int percfluteset(CSOUND *csound, FM4OP *p)
+int32_t percfluteset(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
 
@@ -1113,7 +1113,7 @@ int percfluteset(CSOUND *csound, FM4OP *p)
     return OK;
 }
 
-int percflute(CSOUND *csound, FM4OP *p)
+int32_t percflute(CSOUND *csound, FM4OP *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;

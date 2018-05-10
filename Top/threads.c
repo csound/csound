@@ -1,6 +1,8 @@
 /*
   threads.c:
 
+  Copyright (C) 2007 The Csound #project
+
   This file is part of Csound.
 
   The Csound Library is free software; you can redistribute it
@@ -15,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #if defined(__linux) || defined(__linux__)
@@ -967,5 +969,129 @@ PUBLIC void csoundSleep(size_t milliseconds) {
   //notImplementedWarning_("csoundSleep");
 }
 
+
+#endif
+
+#if defined(MSVC)
+// Spinlocks use MSVC atomics
+/* This pragma must come before all public function declarations */
+# pragma intrinsic(_InterlockedExchange)
+void csoundSpinLock(spin_lock_t *spinlock) {
+  while (_InterlockedExchange(spinlock, 1) == 1){};
+}
+
+void csoundSpinUnLock(spin_lock_t *spinlock){
+      _InterlockedExchange(spinlock, 0);
+}
+
+int csoundSpinTryLock(spin_lock_t *spinlock) {
+  return _InterlockedExchange(spinlock, 1) == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+int csoundSpinLockInit(spin_lock_t *spinlock) {
+  *spinlock = SPINLOCK_INIT;
+  return 0;
+}
+
+#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+// POSIX spin locks
+
+void csoundSpinLock(spin_lock_t *spinlock) {
+  pthread_spin_lock(spinlock);
+}
+
+void csoundSpinUnLock(spin_lock_t *spinlock){
+  pthread_spin_unlock(spinlock);
+}
+
+int csoundSpinTryLock(spin_lock_t *spinlock) {
+  return pthread_spin_trylock(spinlock);
+}
+
+int csoundSpinLockInit(spin_lock_t *spinlock) {
+  return pthread_spin_init(spinlock, PTHREAD_PROCESS_PRIVATE);
+}
+
+
+#elif defined(HAVE_BUILTIN_ATOMIC)
+// No POSIX spinlocks but GCC intrinsics
+
+void csoundSpinLock(spin_lock_t *spinlock){
+  while (__sync_lock_test_and_set(spinlock, 1) == 1) { };
+}
+
+void csoundSpinUnLock(spin_lock_t *spinlock){
+      __sync_lock_release(spinlock);
+}
+
+int csoundSpinTryLock(spin_lock_t *spinlock) {
+  return __sync_lock_test_and_set(spinlock, 1) == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+int csoundSpinLockInit(spin_lock_t *spinlock) {
+  *spinlock = SPINLOCK_INIT;
+  return 0;
+}
+
+#elif defined(MACOSX) // MacOS native locks
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+// New spinlock interface
+
+void csoundSpinLock(spin_lock_t *spinlock){
+      os_unfair_lock_lock(spinlock);
+}
+
+void csoundSpinUnLock(spin_lock_t *spinlock){
+      os_unfair_lock_unlock(spinlock);
+}
+
+int csoundSpinTryLock(spin_lock_t *spinlock) {
+  return os_unfair_lock_trylock(spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+int csoundSpinLockInit(spin_lock_t *spinlock) {
+  IGN(spinlock);
+  return 0;
+}
+
+#else // Old spinlock interface
+
+void csoundSpinLock(spin_lock_t *spinlock) {
+      OSSpinLockLock(spinlock);
+}
+
+void csoundSpinUnLock(spin_lock_t *spinlock) {
+      OSSpinLockUnlock(spinlock);
+}
+
+int csoundSpinTryLock(spin_lock_t *spinlock) {
+  return OSSpinLockTry(spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+int csoundSpinLockInit(spin_lock_t *spinlock) {
+  *spinlock = SPINLOCK_INIT;
+  return 0;
+}
+
+#endif // MAC_OS_X_VERSION_MIN_REQUIRED
+
+#else // No spinlocks
+void csoundSpinLock(spin_lock_t *spinlock) {
+      IGN(spinlock);
+}
+void csoundSpinUnLock(spin_lock_t *spinlock) {
+      IGN(spinlock);
+}
+
+int csoundSpinTryLock(spin_lock_t *spinlock) {
+  IGN(spinlock);
+  return 1;
+}
+
+int csoundSpinLockInit(spin_lock_t *spinlock) {
+  IGN(spinlock);
+  return 0;
+}
 
 #endif

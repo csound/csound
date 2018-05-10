@@ -16,8 +16,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"         /*                      WINEPS.C        */
@@ -125,7 +125,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     /**
      *  Remove extension from sound-file and add ".eps"
      */
-    strncpy(pathnam, filenam, 1024); pathnam[1023] = '\0';
+    strNcpy(pathnam, filenam, 1024); //pathnam[1023] = '\0';
     t = strrchr(pathnam, '.');
     if (t != NULL) *t = '\0';
     strlcat(pathnam, ".eps", 1024);

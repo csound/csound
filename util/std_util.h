@@ -15,34 +15,35 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_STD_UTIL_H
 #define CSOUND_STD_UTIL_H
 
 #include "csdl.h"
+#include <inttypes.h>
 
-extern int atsa_init_(CSOUND *);
-extern int cvanal_init_(CSOUND *);
-extern int dnoise_init_(CSOUND *);
-extern int envext_init_(CSOUND *);
-extern int het_export_init_(CSOUND *);
-extern int het_import_init_(CSOUND *);
-extern int hetro_init_(CSOUND *);
-extern int lpanal_init_(CSOUND *);
-extern int lpc_export_init_(CSOUND *);
-extern int lpc_import_init_(CSOUND *);
-extern int mixer_init_(CSOUND *);
-extern int pvanal_init_(CSOUND *);
-extern int pvlook_init_(CSOUND *);
-extern int pv_export_init_(CSOUND *);
-extern int pv_import_init_(CSOUND *);
-extern int scale_init_(CSOUND *);
-extern int sndinfo_init_(CSOUND *);
-extern int srconv_init_(CSOUND *);
-extern int xtrct_init_(CSOUND *);
+extern int32_t atsa_init_(CSOUND *);
+extern int32_t cvanal_init_(CSOUND *);
+extern int32_t dnoise_init_(CSOUND *);
+extern int32_t envext_init_(CSOUND *);
+extern int32_t het_export_init_(CSOUND *);
+extern int32_t het_import_init_(CSOUND *);
+extern int32_t hetro_init_(CSOUND *);
+extern int32_t lpanal_init_(CSOUND *);
+extern int32_t lpc_export_init_(CSOUND *);
+extern int32_t lpc_import_init_(CSOUND *);
+extern int32_t mixer_init_(CSOUND *);
+extern int32_t pvanal_init_(CSOUND *);
+extern int32_t pvlook_init_(CSOUND *);
+extern int32_t pv_export_init_(CSOUND *);
+extern int32_t pv_import_init_(CSOUND *);
+extern int32_t scale_init_(CSOUND *);
+extern int32_t sndinfo_init_(CSOUND *);
+extern int32_t srconv_init_(CSOUND *);
+extern int32_t xtrct_init_(CSOUND *);
 
 #endif  /* CSOUND_STD_UTIL_H */
 

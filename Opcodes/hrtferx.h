@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 /****************** hrtferxk.h *******************/
@@ -32,7 +32,7 @@ typedef struct {
   STRINGDAT     *ifilno; /* and inputs */
   MEMFIL        *mfp;                        /* file pointer */
   int16         *fpbegin;
-  int           oldel_index, oldaz_index;
+  int32_t           oldel_index, oldaz_index;
   int32         incount, outfront, outend, outcount;
   AUXCH         auxch;      /* will point to allocated memory */
   HRTF_DATUM    hrtf_data, oldhrtf_data;  /* matrix to store HRTF data */

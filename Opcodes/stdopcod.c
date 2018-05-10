@@ -1,6 +1,8 @@
 /*
     stdopcod.c:
 
+    Copyright (c) 2005 Istvan Varga
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -15,23 +17,23 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "stdopcod.h"
 
-/* PUBLIC int csoundModuleCreate(CSOUND *csound)
+/* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
 }
 */
 
-int stdopc_ModuleInit(CSOUND *csound)
+int32_t stdopc_ModuleInit(CSOUND *csound)
 {
     STDOPCOD_GLOBALS  *p;
-    int               err = 0;
+    int32_t               err = 0;
 
     if (UNLIKELY(csound->stdOp_Env != NULL)) {
       csound->ErrorMsg(csound, Str("stdopcod.c: error: globals already allocated"));
@@ -95,9 +97,9 @@ int stdopc_ModuleInit(CSOUND *csound)
 }
 
 /*
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT));
 }
 */
 

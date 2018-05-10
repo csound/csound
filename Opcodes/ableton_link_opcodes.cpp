@@ -13,8 +13,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 #if defined(__MINGW64__)
 #include <stdint.h>
@@ -36,7 +36,7 @@ extern "C" {
  * So we must replace all the ifaddrs code.
  * Pretend that ifaddrs.h has been included:
  */
-#define _IFADDRS_H
+#define _IFADDRS_H_
 // Put in our own ifaddrs.h from https://raw.githubusercontent.com/libpd/abl_link/master/external/android-ifaddrs/ifaddrs.h.
 //////////////////////////////////////////////////////////////////////////////
 /*
@@ -76,7 +76,7 @@ extern "C" {
 struct ifaddrs {
   struct ifaddrs* ifa_next;
   char* ifa_name;
-  unsigned int ifa_flags;
+  uint32_t ifa_flags;
   struct sockaddr* ifa_addr;
   struct sockaddr* ifa_netmask;
   // Real ifaddrs has broadcast, point to point and data members.
@@ -88,10 +88,7 @@ void freeifaddrs(struct ifaddrs* addrs);
 //////////////////////////////////////////////////////////////////////////////
 // Put in our own ifaddrs.cpp from https://raw.githubusercontent.com/libpd/abl_link/master/external/android-ifaddrs/ifaddrs.cpp.
 //////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-#endif // defined(__ANDROID__)
-/*
- * libjingle
+/* libjingle
  * Copyright 2012, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,8 +113,7 @@ void freeifaddrs(struct ifaddrs* addrs);
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#if defined(ANDROID)
-#include "ifaddrs.h"
+//#include "ifaddrs.h"
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -473,7 +469,7 @@ class link_tempo_set_t : public OpcodeBase<link_tempo_set_t>
 public:
     int init(CSOUND *csound) {
         link.myflt = *p0_link;
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         prior_bpm = *p1_bpm;
         if (*p2_at_time_seconds == FL(-1.0)) {
             at_time_microseconds = link.pointer->clock().micros();
@@ -481,12 +477,12 @@ public:
             at_time_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(floating_point_seconds(*p2_at_time_seconds));
         }
         timeline.setTempo(prior_bpm, at_time_microseconds);
-        link.pointer->commitAudioTimeline(timeline);
+        link.pointer->commitAudioSessionState (timeline);
         return OK;
     }
     int kontrol(CSOUND *csound) {
         if (prior_bpm != *p1_bpm) {
-            ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+            auto timeline = link.pointer->captureAudioSessionState();
             prior_bpm = *p1_bpm;
             if (*p2_at_time_seconds == FL(-1.0)) {
                 at_time_microseconds = link.pointer->clock().micros();
@@ -494,7 +490,7 @@ public:
                 at_time_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(floating_point_seconds(*p2_at_time_seconds));
             }
             timeline.setTempo(prior_bpm, at_time_microseconds);
-            link.pointer->commitAudioTimeline(timeline);
+            link.pointer->commitAudioSessionState(timeline);
         }
         return OK;
     }
@@ -513,12 +509,12 @@ class link_tempo_get_t : public OpcodeBase<link_tempo_get_t>
 public:
     int init(CSOUND *csound) {
         link.myflt = *p0_link;
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         *r0_bpm = timeline.tempo();
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         *r0_bpm = timeline.tempo();
         return OK;
     }
@@ -541,7 +537,7 @@ class link_beat_get_t : public OpcodeBase<link_beat_get_t>
 public:
     int init(CSOUND *csound) {
         link.myflt = *p0_link;
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         at_time_microseconds = link.pointer->clock().micros();
         *r0_beat = timeline.beatAtTime(at_time_microseconds, *p1_quantum);
         *r1_phase = timeline.phaseAtTime(at_time_microseconds, *p1_quantum);
@@ -549,7 +545,7 @@ public:
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         at_time_microseconds = link.pointer->clock().micros();
         *r0_beat = timeline.beatAtTime(at_time_microseconds, *p1_quantum);
         *r1_phase = timeline.phaseAtTime(at_time_microseconds, *p1_quantum);
@@ -580,7 +576,7 @@ public:
     int init(CSOUND *csound) {
         link.myflt = *p0_link;
         debug("link_metro i: link.pointer: %p link.myflt: %g\n", link.pointer, link.myflt);
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         at_time_microseconds = link.pointer->clock().micros();
         *r0_trigger = 0;
         *r1_beat = timeline.beatAtTime(at_time_microseconds, *p1_quantum);
@@ -591,7 +587,7 @@ public:
         return OK;
     }
     int kontrol(CSOUND *csound) {
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         at_time_microseconds = link.pointer->clock().micros();
         *r1_beat = timeline.beatAtTime(at_time_microseconds, *p1_quantum);
         *r2_phase = timeline.phaseAtTime(at_time_microseconds, *p1_quantum);
@@ -634,9 +630,9 @@ public:
         } else {
             at_time_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(floating_point_seconds(*p2_at_time_seconds));
         }
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         timeline.requestBeatAtTime(prior_beat, at_time_microseconds, prior_quantum);
-        link.pointer->commitAudioTimeline(timeline);
+        link.pointer->commitAudioSessionState(timeline);
         return OK;
     }
     int kontrol(CSOUND *csound) {
@@ -646,9 +642,9 @@ public:
             } else {
                 at_time_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(floating_point_seconds(*p2_at_time_seconds));
             }
-            ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+            auto timeline = link.pointer->captureAudioSessionState();
             timeline.requestBeatAtTime(prior_beat, at_time_microseconds, prior_quantum);
-            link.pointer->commitAudioTimeline(timeline);
+            link.pointer->commitAudioSessionState(timeline);
             prior_beat = *p1_beat;
             prior_at_time_seconds = *p2_at_time_seconds;
             prior_quantum = *p3_quantum;
@@ -684,9 +680,9 @@ public:
         } else {
             at_time_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(floating_point_seconds(*p2_at_time_seconds));
         }
-        ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+        auto timeline = link.pointer->captureAudioSessionState();
         timeline.forceBeatAtTime(prior_beat, at_time_microseconds, prior_quantum);
-        link.pointer->commitAudioTimeline(timeline);
+        link.pointer->commitAudioSessionState(timeline);
         return OK;
     }
     int kontrol(CSOUND *csound) {
@@ -696,9 +692,9 @@ public:
             } else {
                 at_time_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(floating_point_seconds(*p2_at_time_seconds));
             }
-            ableton::Link::Timeline timeline = link.pointer->captureAudioTimeline();
+            auto timeline = link.pointer->captureAudioSessionState();
             timeline.forceBeatAtTime(prior_beat, at_time_microseconds, prior_quantum);
-            link.pointer->commitAudioTimeline(timeline);
+            link.pointer->commitAudioSessionState(timeline);
             prior_beat = *p1_beat;
             prior_at_time_seconds = *p2_at_time_seconds;
             prior_quantum = *p3_quantum;

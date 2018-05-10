@@ -209,11 +209,11 @@ doing it.
 
 -   `cd src `
 
--   `wget http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz `
+-   `wget http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.28.tar.gz `
 
--   `tar xf libsndfile-1.0.25.tar.gz`
+-   `tar xf libsndfile-1.0.28.tar.gz`
 
--   `cd libsndfile-1.0.25 `
+-   `cd libsndfile-1.0.28 `
 
 -   `./configure --prefix=$HOME`
 
@@ -369,8 +369,7 @@ After adding that to the sources.list, you should run `sudo apt-get update ` and
 
 6.  `cd cs6make`
 
-7.  `cmake ../csound -DBUILD_CSOUND_AC=OFF -DCMAKE_BUILD_TYPE="Release"` (this will not build CsoundAC, that
-    gives errors)
+7.  `cmake ../csound -DCMAKE_BUILD_TYPE="Release"` 
 
 8.  `make -j6`
 
@@ -407,12 +406,14 @@ Custom.cmake. In that file, the line
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon")
 
 2. If step 1 fails, there might be no NEON support for your arm chip,
-in which case, you need to change the line above to
+or there might be a compiler issue, in which case, you need to change the line above to
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE")
 
-    in order to disable the vectorial code and use standard C scalar operations.
+    in order to disable the vectorial code and use standard C scalar
+    operations.
 
+There is no support for NEON on rpi 1 or zero. This is available for rpi 2 and 3, though.
 
 Fedora 18 <a name="fedora">
 ---------
@@ -669,10 +670,10 @@ Requirements
 
  $ git clone https://bitbucket.org/kunstmusik/libsndfile-android.git
 
-3. Set the ANDROID_NDK_MODULE variable to point to the top directory
+3. Set the NDK_MODULE_PATH variable to point to the top directory
 where the libsndfile sources are located,e.g.
 
- $ export ANDROID_NDK_MODULE=$HOME/android
+ $ export NDK_MODULE_PATH=$HOME/android
 
 4. Download boost and install (headers only) in your include path (e.g. /usr/local/include). There is
 no need to build the library.

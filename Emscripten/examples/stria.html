@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<!--
+    WebAudio Csound example
+    Copyright (C) 2018 V Lazzarini
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+-->
+<head>
+    <title>WebAudio Csound</title>
+    <script type="text/javascript" src="js/csound.js"></script>
+    <script type="text/javascript">
+        // called by csound.js
+        function moduleDidLoad() {
+            csound.PlayCsd("stria.csd");
+            document.getElementById("tit").innerHTML =
+                "Stria (J. Chowning)";
+            document.getElementById("stit").innerHTML =
+                "reconstruction by K. Dahan";
+        }
+
+        function attachListeners() {}
+
+        function handleMessage(message) {
+            var messField = document.getElementById("mess")
+            messField.innerText += message;
+            scrollTo(0, messField.scrollHeight);
+        }
+    </script>
+</head>
+
+<body>
+    <div id="console"></div>
+    <h1 id="tit"></h1>
+    <h2 id="stit"></h2>
+    <div id="mess"> </div>
+</body>
+
+</html>

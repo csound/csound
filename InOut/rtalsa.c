@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef _ISOC99_SOURCE
@@ -57,6 +57,41 @@
 
 
 #include "soundio.h"
+
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
+
 
 typedef struct devparams_ {
     snd_pcm_t       *handle;        /* handle                           */
@@ -194,6 +229,7 @@ static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed
 static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf,
                                      int16_t *outBuf, int *seed)
 {
+  IGN(seed);
     MYFLT tmp_f;
     int   tmp_i;
     int n;
@@ -372,13 +408,13 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* allocate hardware and software parameters */
     if (UNLIKELY(snd_pcm_hw_params_any(dev->handle, hw_params) < 0)) {
-      strncpy(msg, Str("No real-time audio configurations found"), MSGLEN);
+      strNcpy(msg, Str("No real-time audio configurations found"), MSGLEN);
       goto err_return_msg;
     }
     /*=======================*/
     unsigned int hwchns;
     if (UNLIKELY(snd_pcm_hw_params_get_channels_max(hw_params, &hwchns) < 0)) {
-      strncpy(msg, Str("Could not retrieve max number of channels"), MSGLEN);
+      strNcpy(msg, Str("Could not retrieve max number of channels"), MSGLEN);
       goto err_return_msg;
     }
     if(play) {
@@ -391,7 +427,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     /* access method, */
     if (UNLIKELY(snd_pcm_hw_params_set_access(dev->handle, hw_params,
                                               SND_PCM_ACCESS_RW_INTERLEAVED) < 0)) {
-      strncpy(msg, Str("Error setting access type for soundcard"), MSGLEN);
+      strNcpy(msg, Str("Error setting access type for soundcard"), MSGLEN);
       goto err_return_msg;
     }
     /* sample format, */
@@ -404,19 +440,19 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       else      dev->rec_conv = (void (*)(int, void*, MYFLT*)) fp;
     }
     if (UNLIKELY(alsaFmt == SND_PCM_FORMAT_UNKNOWN)) {
-      strncpy(msg, Str("Unknown sample format.\n *** Only 16-bit and 32-bit "
+      strNcpy(msg, Str("Unknown sample format.\n *** Only 16-bit and 32-bit "
                        "integers, and 32-bit floats are supported."), MSGLEN);
       goto err_return_msg;
     }
     if (UNLIKELY(snd_pcm_hw_params_set_format(dev->handle, hw_params, alsaFmt)<0)) {
-      strncpy(msg,
+      strNcpy(msg,
               Str("Unable to set requested sample format on soundcard"),MSGLEN);
       goto err_return_msg;
     }
     /* number of channels, */
     if (UNLIKELY(snd_pcm_hw_params_set_channels(dev->handle, hw_params,
                                                 (unsigned int) dev->nchns) < 0)) {
-      strncpy(msg, Str("Unable to set number of channels on soundcard"), MSGLEN);
+      strNcpy(msg, Str("Unable to set number of channels on soundcard"), MSGLEN);
       goto err_return_msg;
     }
     /* sample rate, (patched for sound cards that object to fixed rate) */
@@ -426,7 +462,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                                                    hw_params,
                                                    (unsigned int *) &dev->srate, 0)
                    < 0)) {
-        strncpy(msg, Str("Unable to set sample rate on soundcard"), MSGLEN);
+        strNcpy(msg, Str("Unable to set sample rate on soundcard"), MSGLEN);
         goto err_return_msg;
       }
       if (dev->srate!=target)
@@ -474,7 +510,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* set up device according to the above parameters */
     if (UNLIKELY(snd_pcm_hw_params(dev->handle, hw_params) < 0)) {
-      strncpy(msg,
+      strNcpy(msg,
               Str("Error setting hardware parameters for real-time audio"),
               MSGLEN);
       goto err_return_msg;
@@ -482,7 +518,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     /* print settings */
 
     if (p->GetMessageLevel(p) != 0)
-      p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d \n"),
+      p->Message(p, Str("ALSA %s: total buffer size: %d, period size: %d\n"),
                  (play ? "output" : "input"),
                  dev->buffer_smps, dev->period_smps /*, dev->srate*/);
     /* now set software parameters */
@@ -494,7 +530,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
                                            dev->period_smps) < 0 ||
         /* snd_pcm_sw_params_set_xfer_align(dev->handle, sw_params, 1) < 0 || */
                  snd_pcm_sw_params(dev->handle, sw_params) < 0)) {
-      strncpy(msg,
+      strNcpy(msg,
               Str("Error setting software parameters for real-time audio"),MSGLEN);
       goto err_return_msg;
     }
@@ -502,7 +538,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     n = (dev->format == AE_SHORT ? 2 : 4) * dev->nchns * alloc_smps;
     dev->buf = (void*) csound->Malloc(csound, (size_t) n);
     if (UNLIKELY(dev->buf == NULL)) {
-      strncpy(msg, Str("Memory allocation failure"),MSGLEN);
+      strNcpy(msg, Str("Memory allocation failure"),MSGLEN);
       goto err_return_msg;
     }
     memset(dev->buf, 0, (size_t) n);
@@ -551,6 +587,7 @@ static void list_devices(CSOUND *csound)
 
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
+  IGN(csound);
     FILE * f = fopen("/proc/asound/pcm", "r");
     /*file presents this format:
       02-00: Analog PCM : Mona : playback 6 : capture 4*/
@@ -590,10 +627,10 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
           /* for some reason, there appears to be a memory
              problem if we try to copy more than 10 chars,
              even though list[n].device_name is 64 chars long */
-          strncpy(list[n].device_name, temp, 10);
-          list[n].device_name[10] = '\0';
+          strNcpy(list[n].device_name, temp, 11);
+          //list[n].device_name[10] = '\0';
           snprintf(tmp, 64, "%shw:%i,%i", isOutput ? "dac:" : "adc:", card, num);
-          strncpy(list[n].device_id, tmp, 16);
+          strNcpy(list[n].device_id, tmp, 16);
           list[n].max_nchnls = -1;
           list[n].isOutput = isOutput;
         }
@@ -896,6 +933,7 @@ static int midi_in_read(CSOUND *csound,
     alsaMidiInputDevice *dev = (alsaMidiInputDevice*) userData;
     int             bufpos = 0;
     unsigned char   c;
+    IGN(csound);
 
     if (!dev) { /* No devices */
       /*  fprintf(stderr, "No devices!"); */
@@ -1210,6 +1248,7 @@ static int midi_out_close_file(CSOUND *csound, void *userData)
 static int alsaseq_get_client_id(CSOUND *csound, alsaseqMidi *amidi,
                                  unsigned int capability, const char *name)
 {
+  IGN(csound);
     snd_seq_client_info_t *client_info = amidi->cinfo;
     snd_seq_port_info_t   *port_info = amidi->pinfo;
 
@@ -1284,7 +1323,8 @@ static char *my_strchr(const char *s, int c, int escape_all)
 /* Searching for port number after ':' at the end of the string */
 static int get_port_from_string(CSOUND *csound, char *str)
 {
-    int port = 0;
+  IGN(csound);
+  int port = 0;
     char *end, *tmp, *c = str;
 
     while (1) {
@@ -1673,11 +1713,11 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
             if (sub < subs_in && !isOutput)  {
               if (list) {
                 char devid[32];
-                strncpy(list[count].device_name, name, 31);
+                strNcpy(list[count].device_name, name, 32);
                 snprintf(devid, 32, "hw:%d,%d", card, device);
-                strncpy(list[count].device_id, devid, 63);
-                strncpy(list[count].interface_name, devid, 31);
-                strncpy(list[count].midi_module, "alsaraw", 8);
+                strNcpy(list[count].device_id, devid, 64);
+                strNcpy(list[count].interface_name, devid, 32);
+                memcpy(list[count].midi_module, "alsaraw", 8);
                 list[count].isOutput = isOutput;
               }
               count++;
@@ -1685,11 +1725,11 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
             if (sub < subs_out && isOutput)  {
               if (list) {
                 char devid[64];
-                strncpy(list[count].device_name, name, 63);
+                strNcpy(list[count].device_name, name, 64);
                 snprintf(devid, 64, "hw:%d,%d", card, device);
-                strncpy(list[count].device_id, devid, 63);
-                strncpy(list[count].interface_name, devid, 31);
-                strncpy(list[count].midi_module, "alsaraw", 8);
+                strNcpy(list[count].device_id, devid, 64);
+                strNcpy(list[count].interface_name, devid, 32);
+                memcpy(list[count].midi_module, "alsaraw", 8);
                 list[count].isOutput = isOutput;
               }
               count++;
@@ -1699,10 +1739,10 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
             if (sub < subs_in && !isOutput)  {
               if (list) {
                 char devid[64];
-                strncpy(list[count].device_name, sub_name, 63);
+                strNcpy(list[count].device_name, sub_name, 64);
                 snprintf(devid, 64, "hw:%d,%d,%d", card, device,sub);
-                strncpy(list[count].device_id, devid, 63);
-                strncpy(list[count].midi_module, "alsaraw", 8);
+                strNcpy(list[count].device_id, devid, 64);
+                memcpy(list[count].midi_module, "alsaraw", 8);
                 list[count].isOutput = isOutput;
               }
               count++;
@@ -1710,10 +1750,10 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
             if (sub < subs_out && isOutput)  {
               if (list) {
                 char devid[64];
-                strncpy(list[count].device_name, sub_name, 63);
+                strNcpy(list[count].device_name, sub_name, 64);
                 snprintf(devid, 64, "hw:%d,%d,%d", card, device,sub);
-                strncpy(list[count].device_id, devid, 63);
-                strncpy(list[count].midi_module, "alsaraw", 8);
+                strNcpy(list[count].device_id, devid, 64);
+                memcpy(list[count].midi_module, "alsaraw", 8);
                 list[count].isOutput = isOutput;
               }
               count++;
@@ -1782,10 +1822,10 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
       while (snd_seq_query_next_port(seq, pinfo) >= 0) {
         if (check_permission(pinfo, isOutput? LIST_OUTPUT : LIST_INPUT)) {
           if (list) {
-            strncpy(list[numdevs].midi_module, "alsaseq", 15);
-            strncpy(list[numdevs].device_name,
+            strNcpy(list[numdevs].midi_module, "alsaseq", 15);
+            strNcpy(list[numdevs].device_name,
                     snd_seq_port_info_get_name(pinfo), 63);
-            strncpy(list[numdevs].interface_name,
+            strNcpy(list[numdevs].interface_name,
                     snd_seq_client_info_get_name(cinfo), 63);
             snprintf(list[numdevs].device_id, 64, "hw:%d,%d",
                     snd_seq_client_info_get_client(cinfo),

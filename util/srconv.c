@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*
@@ -94,7 +94,8 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
     return length;
 }
 
-static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *oparms)
+static char set_output_format(CSOUND *csound, char c, char outformch,
+                              OPARMS *oparms)
 {
     if (oparms->outformat) {
       csound->Warning(csound, Str("Sound format -%c has been overruled by -%c"),
@@ -253,12 +254,12 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O.outfilename, "stdin") == 0) {
-              csound->ErrorMsg(csound, Str("-o cannot be stdin"));
+              csound->ErrorMsg(csound, "%s", Str("-o cannot be stdin"));
               return -1;
             }
 #if defined(WIN32)
             if (strcmp(O.outfilename, "stdout") == 0) {
-              csound->ErrorMsg(csound, Str("stdout audio not supported"));
+              csound->ErrorMsg(csound, "%s", Str("stdout audio not supported"));
               return -1;
             }
 #endif
@@ -346,7 +347,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       }
     }
     if (infile == NULL) {
-      csound->Message(csound, Str("No input given\n"));
+      csound->Message(csound, "%s", Str("No input given\n"));
       usage(csound);
       return -1;
     }
@@ -363,7 +364,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       Chans = 1;
 
     if ((P != FL(0.0)) && (Rout != FL(0.0))) {
-      strncpy(err_msg, Str("srconv: cannot specify both -r and -P"), 256);
+      strNcpy(err_msg, Str("srconv: cannot specify both -r and -P"), 256);
       goto err_rtn_msg;
     }
     if (P != FL(0.0))
@@ -374,16 +375,16 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     if (tvflg) {
       P = FL(0.0);        /* will be reset to max in time-vary function */
       if ((tvfp = fopen(bfile, "r")) == NULL) {
-        strncpy(err_msg,
+        strNcpy(err_msg,
                 Str("srconv: cannot open time-vary function file"), 256);
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */
       (void) csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
       if (UNLIKELY(fscanf(tvfp, "%d", &tvlen) != 1))
-        csound->Message(csound, Str("Read failure\n"));
+        csound->Message(csound, "%s", Str("Read failure\n"));
       if (UNLKELY(tvlen <= 0)) {
-            strncpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
+            strNcpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
             goto err_rtn_msg;
        }
       fxval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
@@ -397,7 +398,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         if ((fscanf(tvfp, "%f %f", i0, i1)) != 2)
 #endif
           {
-            strncpy(err_msg, Str("srconv: too few x-y pairs "
+            strNcpy(err_msg, Str("srconv: too few x-y pairs "
                                  "in time-vary function file"), 256);
             goto err_rtn_msg;
           }
@@ -411,17 +412,17 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       tvy1 = fyval[1];
       tvdx = tvx1 - tvx0;
       if (tvx0 != FL(0.0)) {
-        strncpy(err_msg, Str("srconv: first x value "
+        strNcpy(err_msg, Str("srconv: first x value "
                              "in time-vary function must be 0"), 256);
         goto err_rtn_msg;
       }
       if (tvy0 <= FL(0.0)) {
-        strncpy(err_msg, Str("srconv: invalid initial y value "
+        strNcpy(err_msg, Str("srconv: invalid initial y value "
                              "in time-vary function"),256);
         goto err_rtn_msg;
       }
       if (tvdx <= FL(0.0)) {
-        strncpy(err_msg,
+        strNcpy(err_msg,
                        Str("srconv: invalid x values in time-vary function"),
                        256);
         goto err_rtn_msg;
@@ -729,7 +730,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
               tvy1 = fyval[tvnxt];
               tvdx = tvx1 - tvx0;
               if (tvdx <= FL(0.0)) {
-                strncpy(err_msg, Str("srconv: invalid x values "
+                strNcpy(err_msg, Str("srconv: invalid x values "
                                      "in time-vary function"), 256);
                 goto err_rtn_msg;
               }
@@ -755,13 +756,21 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     return -1;
 }
 #else
+
 #ifndef WIN32
 #include <unistd.h>
 #endif
+
 static int srconv(CSOUND *csound, int argc, char **argv)
 {
-    csound->Message(csound, Str("Do not use srconv but the src_conv program\n"));
+  (void) argc;
+    csound->Message(csound, "%s",
+                    Str("Do not use srconv but the src_conv program\n"));
+#ifndef MSVC
     return execv("src_conv", argv);
+#else
+    return 0;
+#endif
 }
 #endif
 

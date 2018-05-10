@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************/
@@ -44,16 +44,17 @@ typedef struct Shaker {
 
     BiQuad      filter;
     ADSR        envelope;
-    int         num_beans;
-    int         wait_time;
-    int         shake_num;
+    int32_t         num_beans;
+    int32_t         wait_time;
+    int32_t         shake_num;
     MYFLT       shake_speed;    /* A + amp*N -- hides two parameters */
     MYFLT       res_freq;
     MYFLT       coll_damp;
     MYFLT       shakeEnergy;
     MYFLT       noiseGain;
     MYFLT       gain_norm;
-    int         kloop;
+    int32_t
+    kloop;
     MYFLT       freq;
 } SHAKER;
 

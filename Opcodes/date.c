@@ -17,13 +17,17 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csdl.h"
 #include <time.h>
 #include <errno.h>
+
+#if defined(WIN32)
+#include "direct.h"
+#endif
 
 #if defined(__MACH__)
 #include <unistd.h>
@@ -41,8 +45,9 @@ typedef struct {
    MYFLT *timstmp;
 } DATESTRING;
 
-static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
+static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
 {
+    IGN(csound);
 #ifdef USE_DOUBLE
     const time_t base = 0;
 #else
@@ -59,7 +64,7 @@ static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
   #ifdef __MACH
     // There may be more accurate methods.....
     struct timeval tp;
-    int rv = gettimeofday(&tp, NULL);
+    int32_t rv = gettimeofday(&tp, NULL);
     *p->time_  = (MYFLT)(tp.tv_sec-base);
     *p->time_ += (MYFLT)(tp.tv_usec)*1.0e-6;
     if (p->OUTOCOUNT==2) *p->nano =(MYFLT)(tp.tv_usec * 1000);
@@ -71,17 +76,17 @@ static int datemyfltset(CSOUND *csound, DATEMYFLT *p)
     return OK;
 }
 
-static int datestringset(CSOUND *csound, DATESTRING *p)
+static int32_t datestringset(CSOUND *csound, DATESTRING *p)
 {
-    time_t temp_time;
-    char *time_string;
+    time_t  temp_time;
+    char    *time_string;
     /* char *q; */
-    int32 tmp;
+    int32_t tmp;
 
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
-   tmp = (int32) MYFLT2LRND(*(p->timstmp));
+   tmp = (int32_t) MYFLT2LRND(*(p->timstmp));
 #else
-  tmp = (int32) (*(p->timstmp) + FL(0.5));
+  tmp = (int32_t) (*(p->timstmp) + FL(0.5));
 #endif
     if (tmp <= 0) temp_time = time(NULL);
     else         temp_time = (time_t)tmp;
@@ -98,11 +103,11 @@ static int datestringset(CSOUND *csound, DATESTRING *p)
 }
 
 typedef struct {
-   OPDS h;
+   OPDS       h;
    STRINGDAT *Scd;
 } GETCWD;
 
-static int getcurdir(CSOUND *csound, GETCWD *p)
+static int32_t getcurdir(CSOUND *csound, GETCWD *p)
 {
   if (p->Scd->size < 1024) {
     p->Scd->size = 1024;
@@ -113,13 +118,13 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
       p->Scd->data = csound->Calloc(csound, p->Scd->size);
     }
 
-#if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__) || defined(__CYGWIN__)
+#if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__) || defined(__CYGWIN__) || defined(__GNUC__)
     if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
     if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #endif
       {
-        strncpy(p->Scd->data, "**Unknown**", p->Scd->size-1);
+        strncpy(p->Scd->data, Str("**Unknown**"), p->Scd->size);
         return csound->InitError(csound,
                                  Str("cannot determine current directory: %s\n"),
                                  strerror(errno));
@@ -132,54 +137,58 @@ static int getcurdir(CSOUND *csound, GETCWD *p)
 #endif
 
 typedef struct {
-  OPDS h;
+  OPDS      h;
   STRINGDAT *Sline;
-  MYFLT *line;
-  MYFLT *Sfile;
-  FILE  *fd;
-  int   lineno;
+  MYFLT     *line;
+  MYFLT     *Sfile;
+  FILE      *fd;
+  int32_t   lineno;
 } READF;
 
-static int readf_delete(CSOUND *csound, void *p)
+static int32_t readf_delete(CSOUND *csound, void *p)
 {
+    IGN(csound);
     READF *pp = (READF*)p;
 
     if (pp->fd) fclose(pp->fd);
     return OK;
 }
 
-static int readf_init_(CSOUND *csound, READF *p, int isstring)
+static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
 {
     char name[1024];
-    if(isstring) strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
+    if (isstring) {
+      strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
+      name[1023] = '\0';
+    }
     else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;
     if (p->Sline->size < MAXLINE) {
-      if(p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
+      if (p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
       p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
     p->Sline->size = MAXLINE;
     }
     if (UNLIKELY(p->fd==NULL))
-      return csound->InitError(csound, Str("readf: failed to open file"));
+      return csound->InitError(csound, "%s", Str("readf: failed to open file"));
     return csound->RegisterDeinitCallback(csound, p, readf_delete);
 }
 
-static int readf_init(CSOUND *csound, READF *p){
+static int32_t readf_init(CSOUND *csound, READF *p){
     return readf_init_(csound,p,0);
 }
 
-static int readf_init_S(CSOUND *csound, READF *p){
+static int32_t readf_init_S(CSOUND *csound, READF *p){
     return readf_init_(csound,p,1);
 }
 
 
-static int readf(CSOUND *csound, READF *p)
+static int32_t readf(CSOUND *csound, READF *p)
 {
     p->Sline->data[0] = '\0';
     if (UNLIKELY(fgets(p->Sline->data,
                        p->Sline->size-1, p->fd)==NULL)) {
-      int ff = feof(p->fd);
+      int32_t ff = feof(p->fd);
       fclose(p->fd);
       p->fd = NULL;
       if (ff) {
@@ -188,25 +197,25 @@ static int readf(CSOUND *csound, READF *p)
       }
       else
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("readf: read failure"));
+                                 "%s", Str("readf: read failure"));
     }
     *p->line = ++p->lineno;
     return OK;
 }
 
-static int readfi(CSOUND *csound, READF *p)
+static int32_t readfi(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init(csound, p)!= OK))
-        return csound->InitError(csound, Str("readi failed to initialise"));
+        return csound->InitError(csound, "%s", Str("readi failed to initialise"));
     return readf(csound, p);
 }
 
-static int readfi_S(CSOUND *csound, READF *p)
+static int32_t readfi_S(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init_S(csound, p)!= OK))
-        return csound->InitError(csound, Str("readi failed to initialise"));
+        return csound->InitError(csound, "%s", Str("readi failed to initialise"));
     return readf(csound, p);
 }
 
@@ -219,10 +228,10 @@ static OENTRY date_localops[] =
     { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
     { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
     { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
-    { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,       },
+    { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,     },
     { "readf",  sizeof(READF),      0, 3, "Sk",   "i", (SUBR)readf_init,
-      (SUBR)readf         },
-    { "readf.S",  sizeof(READF),      0, 3, "Sk",   "S", (SUBR)readf_init_S,
+      (SUBR)readf                                                          },
+    { "readf.S",  sizeof(READF),    0, 3, "Sk",   "S", (SUBR)readf_init_S,
                                                        (SUBR)readf         }
 
 };

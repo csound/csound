@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "stdopcod.h"
@@ -36,12 +36,12 @@ typedef struct {
     MYFLT   *iTotLen;
     MYFLT   *iSkipInit;
  /* ------------------------- */
-    int     initDone;
-    int     nChannels;
-    int     cnt;                /* buffer position, 0 to partSize - 1       */
-    int     nPartitions;        /* number of convolve partitions            */
-    int     partSize;           /* partition length in sample frames        */
-    int     rbCnt;              /* ring buffer index, 0 to nPartitions - 1  */
+    int32_t     initDone;
+    int32_t     nChannels;
+    int32_t     cnt;            /* buffer position, 0 to partSize - 1       */
+    int32_t     nPartitions;    /* number of convolve partitions            */
+    int32_t     partSize;       /* partition length in sample frames        */
+    int32_t     rbCnt;          /* ring buffer index, 0 to nPartitions - 1  */
     MYFLT   *tmpBuf;            /* temporary buffer for accumulating FFTs   */
     MYFLT   *ringBuf;           /* ring buffer of FFTs of input partitions  */
     MYFLT   *IR_Data[FTCONV_MAXCHN];    /* impulse responses (scaled)       */
@@ -51,16 +51,17 @@ typedef struct {
 } FTCONV;
 
 static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
-                                 MYFLT *IR_Data, int partSize, int nPartitions,
-                                 int ringBuf_startPos)
+                                 MYFLT *IR_Data, int32_t partSize,
+                                 int32_t nPartitions,
+                                 int32_t ringBuf_startPos)
 {
     MYFLT   re, im, re1, re2, im1, im2;
     MYFLT   *rbPtr, *irPtr, *outBufPtr, *outBufEndPm2, *rbEndP;
 
     /* note: partSize must be at least 2 samples */
     partSize <<= 1;
-    outBufEndPm2 = (MYFLT*) outBuf + (int) (partSize - 2);
-    rbEndP = (MYFLT*) ringBuf + (int) (partSize * nPartitions);
+    outBufEndPm2 = (MYFLT*) outBuf + (int32_t) (partSize - 2);
+    rbEndP = (MYFLT*) ringBuf + (int32_t) (partSize * nPartitions);
     rbPtr = &(ringBuf[ringBuf_startPos]);
     irPtr = IR_Data;
     outBufPtr = outBuf;
@@ -112,23 +113,25 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     } while (--nPartitions);
 }
 
-static inline int buf_bytes_alloc(int nChannels, int partSize, int nPartitions)
+static inline int32_t buf_bytes_alloc(int32_t nChannels,
+                                      int32_t partSize, int32_t nPartitions)
 {
-    int nSmps;
+    int32_t nSmps;
 
     nSmps = (partSize << 1);                                /* tmpBuf     */
     nSmps += ((partSize << 1) * nPartitions);               /* ringBuf    */
     nSmps += ((partSize << 1) * nChannels * nPartitions);   /* IR_Data    */
     nSmps += ((partSize << 1) * nChannels);                 /* outBuffers */
 
-    return ((int) sizeof(MYFLT) * nSmps);
+    return ((int32_t) sizeof(MYFLT) * nSmps);
 }
 
 static void set_buf_pointers(FTCONV *p,
-                             int nChannels, int partSize, int nPartitions)
+                             int32_t nChannels, int32_t partSize,
+                             int32_t nPartitions)
 {
     MYFLT *ptr;
-    int   i;
+    int32_t   i;
 
     ptr = (MYFLT*) (p->auxData.auxp);
     p->tmpBuf = ptr;
@@ -145,14 +148,14 @@ static void set_buf_pointers(FTCONV *p,
     }
 }
 
-static int ftconv_init(CSOUND *csound, FTCONV *p)
+static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
 {
     FUNC    *ftp;
-    int     i, j, k, n, nBytes, skipSamples;
+    int32_t     i, j, k, n, nBytes, skipSamples;
     //MYFLT   FFTscale;
 
     /* check parameters */
-    p->nChannels = (int) p->OUTOCOUNT;
+    p->nChannels = (int32_t) p->OUTOCOUNT;
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > FTCONV_MAXCHN)) {
       return csound->InitError(csound, Str("ftconv: invalid number of channels"));
     }
@@ -166,7 +169,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     if (UNLIKELY(ftp == NULL))
       return NOTOK; /* ftfind should already have printed the error message */
     /* calculate total length / number of partitions */
-    n = (int) ftp->flen / p->nChannels;
+    n = (int32_t) ftp->flen / p->nChannels;
     skipSamples = MYFLT2LRND(*(p->iSkipSamples));
     n -= skipSamples;
     if (MYFLT2LRND(*(p->iTotLen)) > 0 && n > MYFLT2LRND(*(p->iTotLen)))
@@ -179,7 +182,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     p->nPartitions = (n + (p->partSize - 1)) / p->partSize;
     /* calculate the amount of aux space to allocate (in bytes) */
     nBytes = buf_bytes_alloc(p->nChannels, p->partSize, p->nPartitions);
-    if (nBytes != (int) p->auxData.size)
+    if (nBytes != (int32_t) p->auxData.size)
       csound->AuxAlloc(csound, (int32) nBytes, &(p->auxData));
     else if (p->initDone > 0 && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
@@ -187,8 +190,8 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     /*
       if (skipSamples > 0 && (csound->oparms->msglevel & WARNMSG)) {
       n = skipSamples * p->nChannels;
-      if (n > (int) ftp->flen)
-        n = (int) ftp->flen;
+      if (n > (int32_t) ftp->flen)
+        n = (int32_t) ftp->flen;
       for (i = 0; i < n; i++) {
         if (UNLIKELY(ftp->ftable[i] != FL(0.0))) {
           csound->Warning(csound,
@@ -218,7 +221,7 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
       n = (p->partSize << 1) * (p->nPartitions - 1);  /* IR write position */
       do {
         for (k = 0; k < p->partSize; k++) {
-          if (i >= 0 && i < (int) ftp->flen)
+          if (i >= 0 && i < (int32_t) ftp->flen)
             p->IR_Data[j][n + k] = ftp->ftable[i];// * FFTscale;
           else
             p->IR_Data[j][n + k] = FL(0.0);
@@ -243,10 +246,10 @@ static int ftconv_init(CSOUND *csound, FTCONV *p)
     return OK;
 }
 
-static int ftconv_perf(CSOUND *csound, FTCONV *p)
+static int32_t ftconv_perf(CSOUND *csound, FTCONV *p)
 {
     MYFLT         *x, *rBuf;
-    int           i, n, nSamples, rBufPos;
+    int32_t           i, n, nSamples, rBufPos;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
@@ -306,12 +309,13 @@ static int ftconv_perf(CSOUND *csound, FTCONV *p)
 
 /* module interface functions */
 
-int ftconv_init_(CSOUND *csound)
+int32_t ftconv_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "ftconv",
-                                (int) sizeof(FTCONV), TR, 5, "mmmmmmmm", "aiiooo",
-                                (int (*)(CSOUND *, void *)) ftconv_init,
-                                (int (*)(CSOUND *, void *)) NULL,
-                                (int (*)(CSOUND *, void *)) ftconv_perf);
+                                (int32_t) sizeof(FTCONV), TR, 3,
+                                "mmmmmmmm", "aiiooo",
+                                (int32_t (*)(CSOUND *, void *)) ftconv_init,
+                                (int32_t (*)(CSOUND *, void *)) ftconv_perf,
+                                NULL);
 }
 

@@ -1,5 +1,8 @@
 /* utils.h
 
+   Copyright 2005 Richard W.E. Furse
+   with Csound adjustments by Andres Cabrera, John ffitch
+
    Free software by Richard W.E. Furse. Do with as you will. No
    warranty.
    Modified for csound by Andres Cabrera*/
@@ -23,7 +26,7 @@
    message to stderr and calling exit(1). It is alright (although
    inefficient) to call this more than once for the same file. */
 
-void * dlopenLADSPA(CSOUND * csound, const char * pcFilename, int iFlag);
+void * dlopenLADSPA(CSOUND * csound, const char * pcFilename, int32_t iFlag);
 
 void * loadLADSPAPluginLibrary(CSOUND * csound, const char * pcPluginFilename);
 
@@ -69,9 +72,9 @@ void LADSPAPluginSearch(CSOUND * csound,
 
 /* Find the default value for a port. Return 0 if a default is found
    and -1 if not. */
-int getLADSPADefault(CSOUND * csound,
+int32_t getLADSPADefault(CSOUND * csound,
                      const LADSPA_PortRangeHint * psPortRangeHint,
-                     const unsigned long          lSampleRate,
+                     const uint64_t             lSampleRate,
                      LADSPA_Data                * pfResult);
 
 /*****************************************************************************/

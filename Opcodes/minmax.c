@@ -26,8 +26,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 // #include "csdl.h"
@@ -46,8 +46,9 @@ typedef struct {
 } MINMAX;
 
 /* Which implementation is faster ?? */
-static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *p)
+static int32_t MaxAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
+    IGN(csound);
     MYFLT   cur;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -69,8 +70,9 @@ static int MaxAccumulate(CSOUND *csound, MINMAXACCUM *p)
     return OK;
 }
 
-static int MinAccumulate(CSOUND *csound, MINMAXACCUM *p)
+static int32_t MinAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
+    IGN(csound);
     MYFLT   cur;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -93,8 +95,9 @@ static int MinAccumulate(CSOUND *csound, MINMAXACCUM *p)
 }
 
 /* Absolute value versions of the above */
-static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
+static int32_t MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -116,8 +119,9 @@ static int MaxAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
     return OK;
 }
 
-static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
+static int32_t MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -140,13 +144,14 @@ static int MinAbsAccumulate(CSOUND *csound, MINMAXACCUM *p)
 }
 
 /* Multiple input min and max opcodes */
-static int Max_arate(CSOUND *csound, MINMAX *p)
+static int32_t Max_arate(CSOUND *csound, MINMAX *p)
 {
-    int     i;
+    IGN(csound);
+    int32_t     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     nargs = ((int) p->INOCOUNT) - 1;
+    int32_t     nargs = ((int) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;
@@ -170,13 +175,14 @@ static int Max_arate(CSOUND *csound, MINMAX *p)
     return OK;
 }
 
-static int Min_arate(CSOUND *csound, MINMAX *p)
+static int32_t Min_arate(CSOUND *csound, MINMAX *p)
 {
-    int     i;
+    IGN(csound);
+    int32_t     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     nargs = ((int) p->INOCOUNT) - 1;
+    int32_t     nargs = ((int32_t) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;
@@ -201,13 +207,14 @@ static int Min_arate(CSOUND *csound, MINMAX *p)
 }
 
 /* Absolute value versions of multiple input opcodes */
-static int MaxAbs_arate(CSOUND *csound, MINMAX *p)
+static int32_t MaxAbs_arate(CSOUND *csound, MINMAX *p)
 {
-    int     i;
+    IGN(csound);
+    int32_t     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     nargs = ((int) p->INOCOUNT) - 1;
+    int32_t     nargs = ((int32_t) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;
@@ -231,13 +238,14 @@ static int MaxAbs_arate(CSOUND *csound, MINMAX *p)
     return OK;
 }
 
-static int MinAbs_arate(CSOUND *csound, MINMAX *p)
+static int32_t MinAbs_arate(CSOUND *csound, MINMAX *p)
 {
-    int     i;
+    IGN(csound);
+    int32_t     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     nargs = ((int) p->INOCOUNT) - 1;
+    int32_t     nargs = ((int32_t) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;
@@ -262,10 +270,11 @@ static int MinAbs_arate(CSOUND *csound, MINMAX *p)
 }
 
 /* k-rate multiple input min and max opcodes */
-static int Max_krate(CSOUND *csound, MINMAX *p)
+static int32_t Max_krate(CSOUND *csound, MINMAX *p)
 {
-    int     i;
-    int     nargs = ((int) p->INOCOUNT) - 1;
+    IGN(csound);
+    int32_t     i;
+    int32_t     nargs = ((int32_t) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;
@@ -282,10 +291,11 @@ static int Max_krate(CSOUND *csound, MINMAX *p)
     return OK;
 }
 
-static int Min_krate(CSOUND *csound, MINMAX *p)
+static int32_t Min_krate(CSOUND *csound, MINMAX *p)
 {
-    int     i;
-    int     nargs = ((int) p->INOCOUNT) - 1;
+    IGN(csound);
+    int32_t     i;
+    int32_t     nargs = ((int32_t) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;
@@ -303,10 +313,11 @@ static int Min_krate(CSOUND *csound, MINMAX *p)
 }
 
 /* Absolute value versions of k-rate opcodes */
-static int MaxAbs_krate(CSOUND *csound, MINMAX *p)
+static int32_t MaxAbs_krate(CSOUND *csound, MINMAX *p)
 {
-    int     i;
-    int     nargs = ((int) p->INOCOUNT) - 1;
+    IGN(csound);
+    int32_t     i;
+    int32_t     nargs = ((int32_t) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;
@@ -323,10 +334,11 @@ static int MaxAbs_krate(CSOUND *csound, MINMAX *p)
     return OK;
 }
 
-static int MinAbs_krate(CSOUND *csound, MINMAX *p)
+static int32_t MinAbs_krate(CSOUND *csound, MINMAX *p)
 {
-    int     i;
-    int     nargs = ((int) p->INOCOUNT) - 1;
+    IGN(csound);
+    int32_t     i;
+    int32_t     nargs = ((int32_t) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;
@@ -348,20 +360,16 @@ static int MinAbs_krate(CSOUND *csound, MINMAX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY minmax_localops[] = {
-  {"maxaccum", S(MINMAXACCUM), 0, 4, "", "aa", NULL, NULL, (SUBR) MaxAccumulate},
-    {"minaccum", S(MINMAXACCUM), 0, 4, "", "aa", NULL, NULL, (SUBR) MinAccumulate},
-    {"maxabsaccum", S(MINMAXACCUM), 0, 4, "", "aa", NULL, NULL,
+    {"maxaccum", S(MINMAXACCUM), 0, 2, "", "aa", NULL, (SUBR) MaxAccumulate},
+    {"minaccum", S(MINMAXACCUM), 0, 2, "", "aa", NULL, (SUBR) MinAccumulate},
+    {"maxabsaccum", S(MINMAXACCUM), 0, 2, "", "aa", NULL,
      (SUBR) MaxAbsAccumulate},
-    {"minabsaccum", S(MINMAXACCUM), 0, 4, "", "aa", NULL, NULL,
+    {"minabsaccum", S(MINMAXACCUM), 0, 2, "", "aa", NULL,
      (SUBR) MinAbsAccumulate},
-    {"max", 0xffff},
-    {"min", 0xffff},
-    {"maxabs", 0xffff},
-    {"minabs", 0xffff},
-    {"max.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) Max_arate},
-    {"min.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) Min_arate},
-    {"maxabs.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) MaxAbs_arate},
-    {"minabs.a", S(MINMAX), 0, 4, "a", "ay", NULL, NULL, (SUBR) MinAbs_arate},
+    {"max.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) Max_arate},
+    {"min.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) Min_arate},
+    {"maxabs.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) MaxAbs_arate},
+    {"minabs.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) MinAbs_arate},
     {"max.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) Max_krate, NULL},
     {"min.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) Min_krate, NULL},
     {"max.i", S(MINMAX), 0, 1, "i", "im", (SUBR) Max_krate, NULL, NULL},

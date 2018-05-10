@@ -1,6 +1,8 @@
 /*
     ugnorman.h:
 
+    Copyright 2004 Alex Norman
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -15,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* ats-csound version 0.1
@@ -36,8 +38,8 @@ typedef struct atsdataloc {
 } ATS_DATA_LOC;
 
 typedef struct _randiats { /* the data for the randi UG */
-    int     size;   /* size of the frame in samples this should be sr/freq. */
-    int     cnt;    /* sample position counter */
+    int32_t     size;   /* size of the frame in samples this should be sr/freq. */
+    int32_t     cnt;    /* sample position counter */
     int32   a1;     /* first amplitude value */
     int32   a2;     /* next  amplitude value */
 } RANDIATS;
@@ -75,33 +77,33 @@ typedef struct _atsread {
     /* outputs (2) and inputs */
     MYFLT   *kfreq, *kamp, *ktimpnt, *ifileno, *ipartial;
     /* indicates the maximun frame */
-    int     maxFr;
+    int32_t     maxFr;
     /* a flag used to indicate if we've steped out of the time range */
     /* of the data, so we do not print too many warnings */
-    int     prFlg;
+    int32_t     prFlg;
     /* points to the start of the data */
     double  *datastart;
     /* tells the location of the partal to output */
     /* and the number of doubles to increment to get to the next frame */
-    int     partialloc, frmInc;
+    int32_t     partialloc, frmInc;
     MEMFIL  *atsmemfile;
     double  timefrmInc;
     /* indicates if the data file is byte swapped or not */
-    int     swapped;
+    int32_t     swapped;
 } ATSREAD;
 
 typedef struct _atsreadnz {
     OPDS    h;
     MYFLT   *kenergy, *ktimpnt, *ifileno, *inzbin; /* outputs (1) and inputs */
-    int     maxFr;
+    int32_t     maxFr;
     /* a flag used to indicate if we've steped out of the time range */
     /* of the data, so we do not print too many warnings */
-    int     prFlg;
+    int32_t     prFlg;
     double  *datastart; /* points to the start of the data */
-    int     nzbandloc, frmInc;
+    int32_t     nzbandloc, frmInc;
     MEMFIL  *atsmemfile;
     double  timefrmInc;
-    int     swapped;    /* indicates if the data file is byte swapped or not */
+    int32_t     swapped;    /* indicates if the data file is byte swapped or not */
 } ATSREADNZ;
 
 typedef struct _atsadd {
@@ -118,14 +120,14 @@ typedef struct _atsadd {
     double  maxFr;
     /* a flag used to indicate if we've steped out of the time range */
     /* of the data, so we do not print too many warnings */
-    int     prFlg;
+    int32_t     prFlg;
     double  timefrmInc;
     double  MaxAmp;     /* maximum amplitude in anaylsis file */
-    int     firstpartial, partialinc, frmInc;
+    int32_t     firstpartial, partialinc, frmInc;
     double  *datastart;
     double  *oscphase;  /* oscillator phase */
     ATS_DATA_LOC *buf;
-    int     swapped;    /* indicates if the data file is byte swapped or not */
+    int32_t     swapped;    /* indicates if the data file is byte swapped or not */
   MYFLT *oldamps;
 } ATSADD;
 
@@ -139,8 +141,8 @@ typedef struct _atsaddnz {
     MEMFIL  *atsmemfile;  /* a pointer into the ATS file */
 
     double  maxFr;
-    int     prFlg;
-    int     frmInc; /* amount to increment frame pointer to get to next frame */
+    int32_t     prFlg;
+    int32_t     frmInc; /* amount to increment frame pointer to get to next frame */
     double  timefrmInc;
     double  winsize;    /* size of windows in analysis file, used to */
                         /*   compute RMS amplitude from energy in noise band */
@@ -151,9 +153,9 @@ typedef struct _atsaddnz {
     double  oscphase[25]; /* the phase of all the oscilators */
     RANDIATS randinoise[25]; /* pointer to the interpolated random noise info */
     double  nfreq[25];
-    int     firstband;
-    int     swapped;    /* indicates if the data file is byte swapped or not */
-    int     bands, bandoffset, bandincr;
+    int32_t     firstband;
+    int32_t     swapped;    /* indicates if the data file is byte swapped or not */
+    int32_t     bands, bandoffset, bandincr;
     ATSSTRUCT atshead;
 } ATSADDNZ;
 
@@ -162,20 +164,20 @@ struct _atsbufread {
     MYFLT   *ktimpnt, *kfmod, *ifileno, *iptls;
     MYFLT   *iptloffset, *iptlincr;     /* optional arguments */
     MEMFIL  *mfp;
-    int     maxFr, prFlg;
+    int32_t     maxFr, prFlg;
     /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
     AUXCH   auxch;
     ATS_DATA_LOC *table;  /* store freq and amp info for later use */
     ATS_DATA_LOC *utable; /* store freq and amp info for later use (unsorted) */
-    int     frmInc; /* amount to increment frame pointer to get to next frame */
-    int     firstpartial; /* location of first wanted partial in the frame */
-    int     partialinc; /* amount to increment pointer by */
+    int32_t     frmInc; /* amount to increment frame pointer to get to next frame */
+    int32_t     firstpartial; /* location of first wanted partial in the frame */
+    int32_t     partialinc; /* amount to increment pointer by */
                         /*   to get at the next partial in a frame */
     double  timefrmInc;
     MYFLT   MaxAmp;     /* maximum amplitude in anaylsis file */
     double  *datastart; /* pointer to the data (past the header) */
     ATSSTRUCT atshead;
-    int     swapped;    /* indicates if the data file is byte swapped or not */
+    int32_t     swapped;    /* indicates if the data file is byte swapped or not */
 };
 
 typedef struct _atscross {
@@ -194,14 +196,14 @@ typedef struct _atscross {
     double  maxFr;
     /* a flag used to indicate if we've steped out of the time range */
     /* of the data, so we do not print too many warnings */
-    int     prFlg;
+    int32_t     prFlg;
     double  timefrmInc;
     double  MaxAmp;     /* maximum amplitude in anaylsis file */
-    int     firstpartial, partialinc, frmInc;
+    int32_t     firstpartial, partialinc, frmInc;
     double  *datastart;
     double  *oscphase;  /* oscillator phase */
     ATS_DATA_LOC *buf;
-    int     swapped;    /* indicates if the data file is byte swapped or not */
+    int32_t     swapped;    /* indicates if the data file is byte swapped or not */
   MYFLT   *oldamps;
 } ATSCROSS;             /* modified from atsadd */
 
@@ -216,19 +218,19 @@ typedef struct _atssinnoi {
     AUXCH   auxch;
 
     double  maxFr;
-    int     prFlg;
-    int     nzmemsize;
+    int32_t     prFlg;
+    int32_t     nzmemsize;
  /* double  winsize; */   /* size of windows in analysis file, used to */
                           /* compute RMS amplitude from energy in noise band */
     double  *datastart;
     double  *nzdata;
 
-    int     firstpartial;
-    int     partialinc;
-    int     firstband;
-    int     frmInc; /* amount to increment frame pointer to get to next frame */
+    int32_t     firstpartial;
+    int32_t     partialinc;
+    int32_t     firstband;
+    int32_t     frmInc; /* amount to increment frame pointer to get to next frame */
     double  timefrmInc;
-    int     npartials;
+    int32_t     npartials;
 
     ATS_DATA_LOC *oscbuf; /* stores band information for passing data */
 
@@ -237,7 +239,7 @@ typedef struct _atssinnoi {
     RANDIATS *randinoise; /* a pointer to the interpolated random noise info */
     ATSSTRUCT *atshead;
     char    *filename;
-    int     swapped;    /* indicates if the data file is byte swapped or not */
+    int32_t     swapped;    /* indicates if the data file is byte swapped or not */
   double noiphase[25];
   double phaseinc[25];
 
@@ -251,6 +253,6 @@ typedef struct _atspartialtap {
 typedef struct _atsinterpread {
     OPDS    h;
     MYFLT   *kamp, *kfreq;              /* output amp, input: frequency */
-    int     overflowflag;
+    int32_t     overflowflag;
 } ATSINTERPREAD;
 

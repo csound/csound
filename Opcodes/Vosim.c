@@ -1,9 +1,27 @@
 /* VOSIM.C: VOice SIMulation implementation
- * by rasmus ekman March 13, 2008, for Csound.
- * This code is released under the Csound license,
- * GNU Lesser General Public License version 2.1,
- * or (at your option) any later version.
- */
+
+   Copyright 2008 rasmus ekman
+
+   rasmus ekman March 13, 2008, for Csound.
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+*/
+
 
 /* Programmer note:
  * Pre- and post-conditions are noted at function level.
@@ -41,7 +59,7 @@ typedef struct {
 
 
 /* Post: unless skipping init, timrem == 0 */
-int vosimset(CSOUND* csound, VOSIM *p)
+int32_t vosimset(CSOUND* csound, VOSIM *p)
 {
     if (*p->iskip)
       return OK;
@@ -103,6 +121,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
  */
 void vosim_pulse(CSOUND* csound, VOSIM *p)
 {
+    IGN(csound);
     int32 pulselen;
     p->pulsephs &= PHMASK;
     p->pulseinc *= p->lenfact;
@@ -116,7 +135,7 @@ void vosim_pulse(CSOUND* csound, VOSIM *p)
 }
 
 
-int vosim(CSOUND* csound, VOSIM *p)
+int32_t vosim(CSOUND* csound, VOSIM *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -175,7 +194,7 @@ int vosim(CSOUND* csound, VOSIM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY vosim_localops[] = {
-  { "vosim", S(VOSIM), TR, 5, "a", "kkkkkkio", (SUBR)vosimset, NULL, (SUBR)vosim }
+  { "vosim", S(VOSIM), TR, 3, "a", "kkkkkkio", (SUBR)vosimset, (SUBR)vosim }
 };
 
 

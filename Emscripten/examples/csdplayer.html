@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<!--
+    WebAudio Csound example
+    Copyright (C) 2018 V Lazzarini
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+-->
+
+<head>
+    <title> WebAudio Csound </title>
+    <style type="text/css">
+        textarea.console {
+            font-family: "Courier New";
+            color: #00FF99;
+            background-color: #000000
+        }
+    </style>
+    <script type="text/javascript" src="js/csound.js"></script>
+    <script type="text/javascript">
+        // called by csound.js
+        function moduleDidLoad() {}
+
+        function attachListeners() {
+            document.getElementById('files').
+            addEventListener('change', handleFileSelect, false);
+            document.getElementById('playButton').
+            addEventListener('click', togglePlay);
+        }
+
+        var count = 0;
+
+        function handleMessage(message) {
+            var element = document.getElementById('console');
+            element.value += message;
+            element.scrollTop = 99999; // focus on bottom
+            count += 1;
+            if (count == 1000) {
+                element.value = ' ';
+                count = 0;
+            }
+        }
+
+        var playing = false;
+        var started = false;
+        var loaded = false;
+
+        function togglePlay() {
+            if (loaded) {
+                if (!playing) {
+                    if (started) csound.Csound.start();
+                    else {
+                        csound.Csound.compileCSD("csdfile.csd");
+                        csound.Csound.start();
+                        started = true;
+                    }
+                    document.getElementById('playButton').innerText = "Pause";
+                    playing = true;
+                } else {
+                    csound.Csound.stop()
+                    document.getElementById('playButton').innerText = "Play";
+                    playing = false;
+                }
+            }
+        }
+
+        function handleFileSelect(evt) {
+            if (!loaded) {
+                var files = evt.target.files;
+                var f = files[0];
+                var objectURL = window.URL.createObjectURL(f);
+                csound.CopyUrlToLocal(objectURL, "csdfile.csd",
+                    function() {
+                        loaded = true;
+                    });
+            } else {
+                csound.UpdateStatus("to load a new CSD file, " +
+                "first refresh page!")
+            }
+        }
+    </script>
+</head>
+<body>
+    <H1> CSD Player </H1>
+    <p> CSD file:
+        <input type="file" id="files" name="file" />
+        <button id="playButton">Play</button>
+    </p>
+    <textarea class="console" cols="80" rows="24" id="console">
+      Csound: not loaded</textarea>
+
+</body>
+
+</html>

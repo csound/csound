@@ -1,6 +1,8 @@
 /*
     libsnd_u.c:
 
+    Copyright (C) 2005 Barry Vercoe, John ffitch, Istvan Varga
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -15,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -43,7 +45,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
 
     csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
     *ap = p = (SOUNDIN*) csound->Calloc(csound, sizeof(SOUNDIN));
-    strncpy(p->sfname, infilnam, 511); p->sfname[511] = '\0';
+    strNcpy(p->sfname, infilnam, 512); //p->sfname[511] = '\0';
     if (UNLIKELY(channel < 1 && channel != ALLCHNLS)) {
       csound->Message(csound, Str("channel request %d illegal\n"), channel);
       csound->Free(csound, p);
@@ -136,7 +138,8 @@ void *sndgetset(CSOUND *csound, void *p_)
                                      sfname, &sfinfo, "SFDIR;SSDIR",
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(p->fd == NULL)) {
-      csound->ErrorMsg(csound, Str("soundin cannot open %s"), sfname);
+      csound->ErrorMsg(csound, Str("soundin cannot open %s: %s"),
+                       sfname, sf_strerror(NULL));
       goto err_return;
     }
     /* & record fullpath filnam */

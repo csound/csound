@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"                 /*              MEMALLOC.C      */
@@ -55,7 +55,7 @@ typedef struct memAllocBlock_s {
 
 static void memdie(CSOUND *csound, size_t nbytes)
 {
-    csound->ErrorMsg(csound, Str("memory allocate failure for %zu"),
+    csound->ErrorMsg(csound, Str("memory allocate failure for %zd"),
                              nbytes);
     csound->LongJmp(csound, CSOUND_MEMORY);
 }

@@ -16,8 +16,7 @@
  *
  */
 
-// only available on Linux (no /proc/stat on OSX)
-#if defined(LINUX)
+#ifndef WIN32
 
 #include "csoundCore.h"
 #include <time.h>
@@ -36,6 +35,8 @@
 #include <limits.h>
 #include <float.h>
 
+// only available on Linux (no /proc/stat on OSX)
+#if defined(LINUX)
 /*######  Miscellaneous global stuff  ####################################*/
 #define SMLBUFSIZ (512)
 #define TEST (0)
@@ -56,7 +57,7 @@ typedef struct {
         AUXCH   cpu_a;
         CPU_t   *cpus;
         uint32_t cpu_max;
-        int     cnt, trig;
+        int32_t     cnt, trig;
         FILE    *fp;
 } CPUMETER;
 
@@ -67,12 +68,12 @@ typedef struct {
          *    cpus[Cpu_tot]        == tics from the 1st /proc/stat line */
 
 
-static int cpupercent_renew(CSOUND *csound, CPUMETER* p);
+static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p);
 
-int cpupercent_init(CSOUND *csound, CPUMETER* p)
+int32_t cpupercent_init(CSOUND *csound, CPUMETER* p)
 {
     char buf[SMLBUFSIZ];
-    int k, num;
+    int32_t k, num;
     TIC_t id, u, n, s, i, w, x, y, z;
     if (!(p->fp = fopen("/proc/stat", "r")))
       return
@@ -93,11 +94,11 @@ int cpupercent_init(CSOUND *csound, CPUMETER* p)
     csound->AuxAlloc(csound,k*sizeof(CPU_t), &(p->cpu_a));
     p->cpus = (CPU_t *) p->cpu_a.auxp;
     k = cpupercent_renew(csound, p);
-    p->cnt = (p->trig = (int)(*p->itrig * csound->GetSr(csound)));
+    p->cnt = (p->trig = (int32_t)(*p->itrig * csound->GetSr(csound)));
     return k;
 }
 
-static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
+static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
 {
 #define TRIMz(x)  ((tz = (SIC_t)(x)) < 0 ? 0 : tz)
     SIC_t u_frme, s_frme, n_frme, i_frme,
@@ -196,16 +197,36 @@ static int cpupercent_renew(CSOUND *csound, CPUMETER* p)
     return OK;
 #undef TRIMz
 }
-static int cpupercent(CSOUND *csound, CPUMETER* p)
+static int32_t cpupercent(CSOUND *csound, CPUMETER* p)
 {
     p->cnt -= CS_KSMPS;
     if (p->cnt< 0) {
-      int n = cpupercent_renew(csound, p);
+      int32_t n = cpupercent_renew(csound, p);
       p->cnt = p->trig;
       return n;
     }
     return OK;
 }
+
+#else
+typedef struct {
+        OPDS    h;
+        MYFLT   *k0, *kk[8], *itrig;
+} CPUMETER;
+
+
+int32_t cpupercent_init(CSOUND *csound, CPUMETER *p) {
+   IGN(p);
+  csound->Message(csound, "not implemented\n");
+  return OK;
+}
+
+int32_t cpupercent(CSOUND *c, CPUMETER *p) {
+  IGN(c);
+  IGN(p);
+  return OK;
+}
+#endif
 
 typedef struct {
     OPDS   h;
@@ -213,25 +234,28 @@ typedef struct {
 } SYST;
 
 
-static int systime(CSOUND *csound, SYST *p){
+static int32_t
+systime(CSOUND *csound, SYST *p){
+    IGN(csound);
+#if HAVE_CLOCK_GETTIME
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     *p->ti = round((ts.tv_sec + ts.tv_nsec/1.e9)*1000);
+#else
+    *p->ti = FL(0.0);
+#endif
     return OK;
 }
-
-
-
 
 #define S(x)    sizeof(x)
 
 static OENTRY cpumeter_localops[] = {
-  { "cpumeter",   S(CPUMETER),   0,5, "kzzzzzzzz", "i",
-    (SUBR)cpupercent_init, (SUBR)cpupercent, NULL   },
+  { "cpumeter",   S(CPUMETER),   0,3, "kzzzzzzzz", "i",
+    (SUBR)cpupercent_init, (SUBR)cpupercent   },
 { "systime", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime},
 { "systime", S(SYST),0, 1, "i",    "", (SUBR)systime}
 };
 
 LINKAGE_BUILTIN(cpumeter_localops)
-
 #endif
+

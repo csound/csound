@@ -1,9 +1,9 @@
 /*  pvscent.c:
     Calculation of spectral centroid as Beauchamp
 
-    (c) John ffitch, 2005
-    (c) Alan OCinneide, 2005
-    (c) V Lazzarin, 2012
+    Copyright (c) John ffitch, 2005
+    Copyright (c) Alan OCinneide, 2005
+    Copyright (c) V Lazzarini, 2012
 
     This file is part of Csound.
 
@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "pvs_ops.h"
@@ -34,7 +34,7 @@ typedef struct {
   MYFLT   old;
 } PVSCENT;
 
-static int pvscentset(CSOUND *csound, PVSCENT *p)
+static int32_t pvscentset(CSOUND *csound, PVSCENT *p)
 {
     *p->ans = FL(0.0);
     p->lastframe = 0;
@@ -46,7 +46,7 @@ static int pvscentset(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
-static int pvscent(CSOUND *csound, PVSCENT *p)
+static int32_t pvscent(CSOUND *csound, PVSCENT *p)
 {
     int32 i,N = p->fin->N;
     MYFLT c = FL(0.0);
@@ -54,7 +54,7 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     MYFLT j, binsize = CS_ESR/(MYFLT)N;
     if (p->fin->sliding) {
       CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
-      int NB = p->fin->NB;
+      int32_t NB = p->fin->NB;
       for (i=0, j=FL(0.5)*binsize; i<NB; i++, j += binsize) {
         c += fin[i].re*j;
         d += fin[i].re;
@@ -76,7 +76,7 @@ static int pvscent(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
-static int pvsscent(CSOUND *csound, PVSCENT *p)
+static int32_t pvsscent(CSOUND *csound, PVSCENT *p)
 {
     MYFLT *a = p->ans;
     if (p->fin->sliding) {
@@ -88,7 +88,7 @@ static int pvsscent(CSOUND *csound, PVSCENT *p)
       MYFLT c = FL(0.0);
       MYFLT d = FL(0.0);
       MYFLT j, binsize = CS_ESR/(MYFLT)N;
-      int NB = p->fin->NB;
+      int32_t NB = p->fin->NB;
       if (UNLIKELY(offset)) memset(a, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
@@ -142,9 +142,9 @@ typedef struct _cent {
   AUXCH frame, windowed, win;
 } CENT;
 
-static int cent_i(CSOUND *csound, CENT *p)
+static int32_t cent_i(CSOUND *csound, CENT *p)
 {
-    int fftsize = *p->ifftsize;
+    int32_t fftsize = *p->ifftsize;
     p->count = 0;
     p->fsize = 1;
     while(fftsize >>= 1) p->fsize <<= 1;
@@ -159,7 +159,7 @@ static int cent_i(CSOUND *csound, CENT *p)
     if (p->windowed.auxp == NULL || p->windowed.size < p->fsize*sizeof(MYFLT))
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->windowed);
     if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT)) {
-      unsigned int i;
+      uint32_t i;
       MYFLT *win;
       csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->win);
       win = (MYFLT *) p->win.auxp;
@@ -174,9 +174,9 @@ static int cent_i(CSOUND *csound, CENT *p)
 }
 
 
-static int cent_k(CSOUND *csound, CENT *p)
+static int32_t cent_k(CSOUND *csound, CENT *p)
 {
-    unsigned int n = p->count, k;
+    uint32_t n = p->count, k;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -256,17 +256,17 @@ typedef struct _pvspitch
 #define TRUE (!FALSE)
 #endif
 
-#define RoundNum(Number)  (int)MYFLT2LRND(Number)
+#define RoundNum(Number)  (int32_t)MYFLT2LRND(Number)
 
 /* Should one use remainder or drem ?? */
 #define Remainder(Numerator, Denominator)               \
-  Numerator/Denominator - (int) (Numerator/Denominator)
+  Numerator/Denominator - (int32_t) (Numerator/Denominator)
 
 
-int pvspitch_init(CSOUND *csound, PVSPITCH *p)
+int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
 {
     /* Initialise frame count to zero. */
-    unsigned int size;
+    uint32_t size;
     p->lastframe = 0;
 
     if (UNLIKELY(p->fin->sliding))
@@ -284,25 +284,25 @@ int pvspitch_init(CSOUND *csound, PVSPITCH *p)
     return OK;
 }
 
-int pvspitch_process(CSOUND *csound, PVSPITCH *p)
+int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
 {
     /* Initialised inputs */
     float *Frame            = (float *) p->fin->frame.auxp;
     MYFLT *PeakFreq         = (MYFLT *) p->peakfreq.auxp;
     MYFLT *inharmonic       = (MYFLT *) p->inharmonic.auxp;
     MYFLT Threshold         = (MYFLT) *p->ithreshold;
-    int fftsize             = (int) p->fin->N;
-    int numBins             = fftsize/2 + 1;
+    int32_t fftsize             = (int32_t) p->fin->N;
+    int32_t numBins             = fftsize/2 + 1;
 
     MYFLT f0Cand, Frac, Freq = FL(0.0);
-    int i, j,  P1, P2, maxPartial;
+    int32_t i, j,  P1, P2, maxPartial;
     MYFLT lowHearThreshold  = FL(20.0);
     MYFLT Amp               = FL(0.0);
-    int Partial             = 0;
-    int     numPeaks        = 0;
-    int maxAdj              = 3;
-    int Adj                 = FALSE;
-    int PrevNotAdj          = FALSE;
+    int32_t Partial             = 0;
+    int32_t     numPeaks        = 0;
+    int32_t maxAdj              = 3;
+    int32_t Adj                 = FALSE;
+    int32_t PrevNotAdj          = FALSE;
 
     /* Un-normalise the threshold value */
     Threshold *= csound->e0dbfs;
@@ -335,7 +335,7 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
       else {
         /* Threshold of hearing is 20 Hz, so no need to look beyond
            there for the fundamental. */
-        maxPartial = (int) (PeakFreq[0]/lowHearThreshold);
+        maxPartial = (int32_t) (PeakFreq[0]/lowHearThreshold);
 
         /* Calculates the inharmonicity for each fundamental candidate */
         for (i=0; i<maxPartial && i < numBins/2; i++) {
@@ -406,15 +406,18 @@ int pvspitch_process(CSOUND *csound, PVSPITCH *p)
 }
 
 static OENTRY localops[] = {
-  { "pvscent", sizeof(PVSCENT), 0, 3, "s", "f",
-                             (SUBR)pvscentset, (SUBR)pvscent, (SUBR)pvsscent },
+  { "pvscent", sizeof(PVSCENT), 0, 3, "k", "f",
+                             (SUBR)pvscentset, (SUBR)pvscent },
+  { "pvscent", sizeof(PVSCENT), 0, 3, "a", "f",
+                             (SUBR)pvscentset, (SUBR)pvsscent },
   { "centroid", sizeof(CENT), 0, 3, "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL},
   { "pvspitch", sizeof(PVSPITCH), 0, 3, "kk", "fk",
                             (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
 
-int pvscent_init_(CSOUND *csound)
+int32_t pvscent_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-                               (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int32_t
+                                ) (sizeof(localops) / sizeof(OENTRY)));
 }

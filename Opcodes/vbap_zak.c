@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* vbap_zak.c
@@ -35,16 +35,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
-int vbap_zak_control(CSOUND *,VBAP_ZAK *);
+int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
+int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);
 
-int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
+int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
 {
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
-    int j;
-    int n = p->n;
+    int32_t j;
+    int32_t n = p->n;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -87,13 +87,13 @@ int vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
     return OK;
 }
 
-int vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
+int32_t vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
     ANG_VEC atmp;
     int32 i,j, spreaddirnum;
-    int n = p->n;
+    int32_t n = p->n;
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0);
     if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Warning(csound,
@@ -194,12 +194,12 @@ int vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
     return OK;
 }
 
-int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
+int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
 {                               /* Initializations before run time */
-    int     i, j, indx;
+    int32_t     i, j, indx;
     MYFLT   *ls_table, *ptr; /* , *gains; */
     LS_SET  *ls_set_ptr;
-    int n = p->n = (int)MYFLT2LONG(*p->numb); /* Set size */
+    int32_t n = p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
     char name[24];
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
@@ -211,8 +211,8 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
       return csound->PerfError(csound, p->h.insdshead,
                                Str("outz index < 0. No output."));
     }
-    if ((int)*p->layout==0) strcpy(name, "vbap_ls_table");
-    else snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout==0);
+    if ((int32_t)*p->layout==0) strcpy(name, "vbap_ls_table");
+    else snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout==0);
     /* Now read from the array in za space and write to the output. */
     p->out_array     = csound->zastart + (indx * CS_KSMPS);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
@@ -221,9 +221,9 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     p->end_gains     = p->beg_gains + p->n;
     p->updated_gains = p->end_gains + p->n;
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
-    p->dim           = (int) ls_table[0];   /* reading in loudspeaker info */
-    p->ls_am         = (int) ls_table[1];
-    p->ls_set_am     = (int) ls_table[2];
+    p->dim           = (int32_t) ls_table[0];   /* reading in loudspeaker info */
+    p->ls_am         = (int32_t) ls_table[1];
+    p->ls_set_am     = (int32_t) ls_table[2];
     ptr              = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (UNLIKELY(p->aux.auxp == NULL)) {
@@ -234,7 +234,7 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     for (i=0 ; i < p->ls_set_am ; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
       for (j=0 ; j < p->dim ; j++) {
-        ls_set_ptr[i].ls_nos[j] = (int) *(ptr++);
+        ls_set_ptr[i].ls_nos[j] = (int32_t) *(ptr++);
       }
       for (j=0 ; j < 9; j++)
         ls_set_ptr[i].ls_mx[j] = FL(0.0);  /* initial setting */
@@ -264,12 +264,12 @@ int vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     return OK;
 }
 
-int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
+int32_t vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
 {                                           /* during note performance: */
     MYFLT *outptr, *inptr;
     MYFLT ogain, ngain, gainsubstr;
     MYFLT invfloatn;
-    int j;
+    int32_t j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -312,13 +312,13 @@ int vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
     return OK;
 }
 
-int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
+int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
     ANG_VEC atmp;
     int32 i,j, spreaddirnum;
-    int n = p->n;
+    int32_t n = p->n;
     CART_VEC tmp1, tmp2, tmp3;
     MYFLT coeff, angle;
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0); /* Array long enough */
@@ -335,7 +335,7 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
     if (p->point_change_counter++ >= p->point_change_interval) {
       p->point_change_counter = 0;
       p->curr_fld = p->next_fld;
-      if (++p->next_fld >= (int) fabs(*p->field_am)) {
+      if (++p->next_fld >= (int32_t) fabs(*p->field_am)) {
         if (*p->field_am >= FL(0.0)) /* point-to-point */
           p->next_fld = 0;
         else
@@ -343,7 +343,7 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
       }
       if (p->dim == 3) { /* jumping over second field */
         p->curr_fld = p->next_fld;
-        if (++p->next_fld >= ((int) fabs(*p->field_am))) {
+        if (++p->next_fld >= ((int32_t) fabs(*p->field_am))) {
           if (*p->field_am >= FL(0.0)) /* point-to-point */
             p->next_fld = 0;
           else
@@ -385,9 +385,9 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
         scale_angles(&(p->prev_ang_dir));
         scale_angles(&(p->next_ang_dir));
         angle = (p->prev_ang_dir.azi - p->next_ang_dir.azi);
-        while(angle > FL(180.0))
+        while (angle > FL(180.0))
           angle -= FL(360.0);
-        while(angle < -FL(180.0))
+        while (angle < -FL(180.0))
           angle += FL(360.0);
         coeff = ((MYFLT) p->point_change_counter) /
           ((MYFLT) p->point_change_interval);
@@ -506,13 +506,13 @@ int vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
   return OK;
 }
 
-int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
+int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
 {
-    int     i, j, indx;
+    int32_t     i, j, indx;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
-    int n = p->n;
-    p->n = (int)MYFLT2LONG(*p->numb); /* Set size */
+    int32_t n = p->n;
+    p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
@@ -533,9 +533,9 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     /* reading in loudspeaker info */
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
                                                         "vbap_ls_table_0"));
-    p->dim           = (int) ls_table[0];
-    p->ls_am         = (int) ls_table[1];
-    p->ls_set_am     = (int) ls_table[2];
+    p->dim           = (int32_t) ls_table[0];
+    p->ls_am         = (int32_t) ls_table[1];
+    p->ls_set_am     = (int32_t) ls_table[2];
     ptr              = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (UNLIKELY(p->aux.auxp == NULL)) {
@@ -546,7 +546,7 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     for (i=0 ; i < p->ls_set_am ; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
       for (j=0 ; j < p->dim ; j++) {
-        ls_set_ptr[i].ls_nos[j] = (int) *(ptr++);
+        ls_set_ptr[i].ls_nos[j] = (int32_t) *(ptr++);
       }
       memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));
       /* for (j=0 ; j < 9; j++) */
@@ -564,10 +564,10 @@ int vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
                   2 + (p->dim - 2) * 2);
     }
     if (p->dim == 2)
-      p->point_change_interval = (int) (CS_EKR * *p->dur
+      p->point_change_interval = (int32_t) (CS_EKR * *p->dur
                                         / (fabs(*p->field_am) - 1.0));
     else if (LIKELY(p->dim == 3))
-      p->point_change_interval = (int) (CS_EKR * *p->dur
+      p->point_change_interval = (int32_t) (CS_EKR * *p->dur
                                         / (fabs(*p->field_am) * 0.5 - 1.0));
     else
       return csound->InitError(csound, Str("Wrong dimension"));

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"     /*                              CORFILES.C      */
@@ -34,7 +34,7 @@ CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 CORFIL *corfile_create_w(CSOUND *csound)
 {
     CORFIL *ans = (CORFIL*) csound->Malloc(csound, sizeof(CORFIL));
-    ans->body = (char*)csound->Calloc(csound,100);
+    ans->body = (char*)csound->Calloc(csound,100); /* 100 is just a number */
     ans->len = 100;
     ans->p = 0;
     return ans;
@@ -52,10 +52,9 @@ CORFIL *corfile_create_r(CSOUND *csound, const char *text)
 
 void corfile_putc(CSOUND *csound, int c, CORFIL *f)
 {
-    char *new;
     f->body[f->p++] = c;
     if (UNLIKELY(f->p >= f->len)) {
-      new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
+      char *new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
       if (UNLIKELY(new==NULL)) {
         fprintf(stderr, Str("Out of Memory\n"));
         exit(7);
@@ -73,10 +72,9 @@ void corfile_puts(CSOUND *csound, const char *s, CORFIL *f)
     for (n=0; f->p > 0 && f->body[f->p-1] == '\0'; n++, f->p--);
     /* append the string */
     for (c = s; *c != '\0'; c++) {
-      char *new;
       f->body[f->p++] = *c;
       if (UNLIKELY(f->p >= f->len)) {
-        new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
+        char *new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
         if (UNLIKELY(new==NULL)) {
           fprintf(stderr, Str("Out of Memory\n"));
           exit(7);
@@ -87,10 +85,9 @@ void corfile_puts(CSOUND *csound, const char *s, CORFIL *f)
     if (n > 0) {
       /* put the extra NULL chars to the end */
       while (--n >= 0) {
-        char *new;
         f->body[f->p++] = '\0';
         if (UNLIKELY(f->p >= f->len)) {
-          new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
+          char *new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
           if (UNLIKELY(new==NULL)) {
             fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
@@ -239,6 +236,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     fd = fopen_path(csound, &ff, (char *)fname, NULL, (char *)env, fromScore);
     if (UNLIKELY(ff==NULL)) return NULL;
     mm = corfile_create_w(csound);
+    if (fromScore) corfile_putc(csound, '\n', mm);
     memset(buffer, '\0', 1024);
     while ((n = fread(buffer, 1, 1023, ff))) {
       /* Need to lose \r characters  here */
@@ -252,13 +250,14 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     }
     //#ifdef SCORE_PARSER
     if (fromScore) {
-      corfile_puts(csound, "\n#exit\n", mm);
+      corfile_puts(csound, "\ne\n#exit\n", mm);
     }
     //#endif
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(csound, mm);
     csoundFileClose(csound, fd);
+    if (fromScore) printf("Copy is >>%s<<\n", mm->body);
     return mm;
 }
 
@@ -398,6 +397,8 @@ int main(void)
 }
 #endif
 
+#ifdef JPFF
+/* Start of directory of corfiles currently unused except experimental in CsFileC */
 typedef struct dir {
   char       *name;
   CORFIL     *corfile;
@@ -412,3 +413,4 @@ void add_corfile(CSOUND* csound, CORFIL *smpf, char *filename)
     entry->next = (CORDIR *)csound->directory;
     csound->directory = entry;
 }
+#endif

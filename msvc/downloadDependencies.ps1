@@ -93,7 +93,7 @@ $targetTriplet = "x64-windows"
 $targetTripletStatic = "x64-windows-static"
 #vcpkg --triplet $targetTriplet install eigen3 fltk zlib 
 #vcpkg --triplet $targetTripletStatic install libflac libogg libvorbis libsndfile
-vcpkg --triplet $targetTripletStatic install eigen3 fltk zlib libflac libogg libvorbis libsndfile
+vcpkg --triplet $targetTripletStatic install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate
 $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
@@ -118,7 +118,7 @@ $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
 "http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
-"http://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.19-Std-win7_64-vs2015.zip",
+"https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.19/bin/windows/hdf5-1.8.19-Std-win10_64-vs2015.zip",
 "https://github.com/thestk/stk/archive/master.zip"
 
 # commenting out 1.8.20 for now
@@ -172,27 +172,28 @@ for($i=0; $i -lt $uriList.Length; $i++)
     echo "Extracted $fileName to $destDir"
 }
 
+# Ableton
 cd $depsDir
 echo "Ableton Link..."
 if (Test-Path "link")
 {
-    cd link
-    git pull
-    git submodule update --recursive
-    echo "Ableton Link already downloaded, updated."
+   cd link
+   git pull
+   git submodule update --recursive
+   echo "Ableton Link already downloaded, updated."
 }
 else
 {
-    git clone "https://github.com/Ableton/link.git"
-    cd link
-    git submodule update --init --recursive
-    echo "Ableton Link downloaded."
+   git clone --branch Link-3.0.0 https://github.com/Ableton/link.git
+   cd link
+   git submodule update --init --recursive
+   echo "Ableton Link downloaded."
 }
+
 mkdir build
 cd build
 cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
 cmake --build .
-
 
 # disable 1.8.20 for time being
 # cd $depsDir    
@@ -320,13 +321,13 @@ else
 rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir fluidsynthbuild -ErrorAction SilentlyContinue
 cd fluidsynthbuild
-cmake ..\fluidsynth\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
+cmake ..\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
 cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
 copy .\src\Release\libfluidsynth.dll -Destination $depsBinDir -Force
-copy ..\fluidsynth\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
-robocopy ..\fluidsynth\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
+copy ..\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
+robocopy ..\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
 copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth -Force
 
 $buildTiming = (Get-Date).TimeOfDay

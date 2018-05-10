@@ -18,8 +18,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <jack/jack.h>
@@ -38,6 +38,41 @@
 #ifdef LINUX
 #include <sched.h>
 #endif
+
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
+
 
 #include "cs_jack.h"
 static int listDevices(CSOUND *csound,
@@ -61,6 +96,7 @@ static inline void rtJack_Lock(CSOUND *csound, pthread_mutex_t *p)
 static inline int rtJack_LockTimeout(CSOUND *csound, pthread_mutex_t *p,
                                      size_t milliseconds)
 {
+  IGN(csound);
     struct timeval  tv;
     struct timespec ts;
     register size_t n, s;
@@ -175,7 +211,7 @@ static void freeWheelCallback(int starting, void *arg)
     if (starting) {
       if (UNLIKELY(sched_getscheduler(0) != SCHED_OTHER)) {
         struct sched_param sp;
-        csound->Message(csound, Str(" *** WARNING: "
+        csound->Message(csound, "%s", Str(" *** WARNING: "
                                     "disabling --sched in freewheel mode\n"));
         memset(&sp, 0, sizeof(struct sched_param));
         sp.sched_priority = 0;
@@ -444,17 +480,17 @@ static void openJackStreams(RtJackGlobals *p)
 
         for (i = 0; i < p->nChannels_i; i++) {
           if (portNames[num+i] != NULL){
-            csound->Message(csound, Str("connecting channel %d to %s \n"),
+            csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i,portNames[num+i]);
             if (jack_connect(p->client, portNames[num+i],
                              jack_port_name(p->inPorts[i])) != 0) {
               csound->Warning(csound,
-                              Str("failed autoconnecting input channel %d \n"
+                              Str("failed autoconnecting input channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           } else
-            csound->Warning(csound, Str("jack port %d not valid \n"
-                                        "failed autoconnecting input channel %d \n"
+            csound->Warning(csound, Str("jack port %d not valid\n"
+                                        "failed autoconnecting input channel %d\n"
                                         "(needs manual connection)"), num+i, i+1);
         }
         jack_free(portNames);
@@ -463,24 +499,24 @@ static void openJackStreams(RtJackGlobals *p)
       else {
         if (strcmp(p->outDevName, "null") && p->inDevName != NULL){
           char dev[128], *dev_final, *sp;
-          strncpy(dev, p->inDevName, 128); dev[127]='\0';
+          strNcpy(dev, p->inDevName, 128); //dev[127]='\0';
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
           for (i = 0; i < p->nChannels; i++) {
             snprintf(sp, 128-(dev-sp), "%d", i + 1);
-            csound->Message(csound, Str("connecting channel %d to %s \n"),
+            csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i, dev_final);
             if (UNLIKELY(jack_connect(p->client, dev_final,
                                       jack_port_name(p->inPorts[i])) != 0)) {
               csound->Warning(csound,
-                              Str("not autoconnecting input channel %d \n"
+                              Str("not autoconnecting input channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           }
           *sp = (char) 0;
         }
-        csound->Message(csound, Str("put port not connected\n"));
+        csound->Message(csound, "%s", Str("put port not connected\n"));
       }
 
     }
@@ -496,17 +532,17 @@ static void openJackStreams(RtJackGlobals *p)
 
         for (i = 0; i < p->nChannels; i++) {
           if (portNames[num+i] != NULL) {
-            csound->Message(csound, Str("connecting channel %d to %s \n"),
+            csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i,portNames[num+i]);
             if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                              portNames[num+i]) != 0) {
               csound->Warning(csound,
-                              Str("failed autoconnecting output channel %d \n"
+                              Str("failed autoconnecting output channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           } else
-            csound->Warning(csound, Str("jack port %d not valid \n"
-                                        "failed autoconnecting output channel %d \n"
+            csound->Warning(csound, Str("jack port %d not valid\n"
+                                        "failed autoconnecting output channel %d\n"
                                         "(needs manual connection)"), num+i, i+1);
         }
 
@@ -515,24 +551,24 @@ static void openJackStreams(RtJackGlobals *p)
       else {
         if (p->outDevName != NULL && strcmp(p->outDevName, "null")){
           char dev[128], *dev_final, *sp;
-          strncpy(dev, p->outDevName, 128); dev[127]='\0';
+          strNcpy(dev, p->outDevName, 128); //dev[127]='\0';
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
           for (i = 0; i < p->nChannels; i++) {
             snprintf(sp, 128-(dev-sp), "%d", i + 1);
-            csound->Message(csound, Str("connecting channel %d to %s \n"),
+            csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i, dev_final);
             if (UNLIKELY(jack_connect(p->client, jack_port_name(p->outPorts[i]),
                                       dev_final) != 0)) {
               csound->Warning(csound, Str("failed to autoconnect output channel "
-                                          "%d \n(needs manual connection)"), i+1);
+                                          "%d\n(needs manual connection)"), i+1);
 
             }
           }
           *sp = (char) 0;
         } else
-          csound->Message(csound, Str("output port not connected\n"));
+          csound->Message(csound, "%s", Str("output port not connected\n"));
       }
     }
     /* stream is now active */
@@ -746,7 +782,7 @@ static CS_NOINLINE void rtJack_Restart(RtJackGlobals *p)
 {
     CSOUND  *csound = p->csound;
 
-    csound->ErrorMsg(csound, Str(" *** rtjack: connection to JACK "
+    csound->ErrorMsg(csound, "%s", Str(" *** rtjack: connection to JACK "
                                  "server was lost, reconnecting..."));
     p->jackState = -1;
     jack_client_close(p->client);
@@ -785,7 +821,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
           OPARMS oparms;
           csound->GetOParms(csound, &oparms);
           if (UNLIKELY(oparms.msglevel & 4))
-            csound->Warning(csound, Str("rtjack: input audio timeout"));
+            csound->Warning(csound, "%s", Str("rtjack: input audio timeout"));
           return bytes_;
         }
       }
@@ -811,7 +847,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (UNLIKELY(oparms.msglevel & 4))
-        csound->Warning(csound, Str("rtjack: xrun in real time audio"));
+        csound->Warning(csound, "%s", Str("rtjack: xrun in real time audio"));
     }
 
     return bytes_;
@@ -857,7 +893,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf_, int bytes_)
     }
     if (p->xrunFlag) {
       p->xrunFlag = 0;
-      csound->Warning(csound, Str("rtjack: xrun in real time audio"));
+      csound->Warning(csound, "%s", Str("rtjack: xrun in real time audio"));
     }
 }
 
@@ -988,10 +1024,10 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++, cnt++) {
       n = (int) strlen(portNames[i]);
-      strncpy(port, portNames[i], n);
-      port[n] = '\0';
+      strNcpy(port, portNames[i], n+1);
+      //port[n] = '\0';
       if (list != NULL) {
-        strncpy(list[cnt].device_name, port, 63);
+        strNcpy(list[cnt].device_name, port, 63);
         snprintf(list[cnt].device_id, 63, "%s%d",
                  isOutput ? "dac" : "adc", cnt);
         list[cnt].max_nchnls = 1;
@@ -1021,10 +1057,11 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
     /* allocate and initialise globals */
     if (UNLIKELY(oparms.msglevel & 0x400))
-      csound->Message(csound, Str("JACK real-time audio module for Csound\n"));
+      csound->Message(csound, "%s",
+                      Str("JACK real-time audio module for Csound\n"));
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtjackGlobals",
                                               sizeof(RtJackGlobals)) != 0)) {
-      csound->ErrorMsg(csound, Str(" *** rtjack: error allocating globals"));
+      csound->ErrorMsg(csound, "%s", Str(" *** rtjack: error allocating globals"));
       return -1;
     }
     p = (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
@@ -1083,10 +1120,11 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
     RtJackMIDIGlobals *pm;
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, Str("JACK MIDI module for Csound\n"));
+      csound->Message(csound, "%s", Str("JACK MIDI module for Csound\n"));
     if (csound->CreateGlobalVariable(csound, "_rtjackMIDIGlobals",
                                      sizeof(RtJackMIDIGlobals)) != 0) {
-      csound->ErrorMsg(csound, Str(" *** rtjack MIDI: error allocating globals"));
+      csound->ErrorMsg(csound, "%s",
+                       Str(" *** rtjack MIDI: error allocating globals"));
       return -1;
     }
     pm = (RtJackMIDIGlobals*)
@@ -1148,7 +1186,7 @@ int MidiInProcessCallback(jack_nframes_t nframes, void *userData){
       if (UNLIKELY(csound->WriteCircularBuffer(csound,dev->cb,
                                               event.buffer,event.size)
                   != (int) event.size)){
-        csound->Warning(csound, Str("Jack MIDI module: buffer overflow"));
+        csound->Warning(csound, "%s", Str("Jack MIDI module: buffer overflow"));
         return 1;
       }
     }
@@ -1174,7 +1212,7 @@ static int midi_in_open(CSOUND *csound,
     if (UNLIKELY((jack_client =
                  jack_client_open(clientName, 0, NULL)) == NULL)){
       *userData = NULL;
-      csound->ErrorMsg(csound,
+      csound->ErrorMsg(csound, "%s",
                        Str("Jack MIDI module: failed to create client for input"));
       return NOTOK;
     }
@@ -1186,7 +1224,7 @@ static int midi_in_open(CSOUND *csound,
                                                 0)) == NULL)){
       jack_client_close(jack_client);
       *userData = NULL;
-      csound->ErrorMsg(csound,
+      csound->ErrorMsg(csound, "%s",
                        Str("Jack MIDI module: failed to register input port"));
       return NOTOK;
     }
@@ -1206,7 +1244,7 @@ static int midi_in_open(CSOUND *csound,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       csound->ErrorMsg(csound,
-                       Str("Jack MIDI module: failed to set input"
+                       "%s", Str("Jack MIDI module: failed to set input"
                            " process callback"));
       return NOTOK;
     }
@@ -1216,14 +1254,15 @@ static int midi_in_open(CSOUND *csound,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       *userData = NULL;
-      csound->ErrorMsg(csound, Str("Jack MIDI module: failed to activate input"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("Jack MIDI module: failed to activate input"));
       return NOTOK;
     }
 
     if (strcmp(devName,"0")){
       if (UNLIKELY(jack_connect(jack_client,devName,
                                 jack_port_name(dev->port)) != 0)){
-        csound->Warning(csound, Str("Jack MIDI module: failed to connect to: %s"),
+        csound->Warning(csound,  Str("Jack MIDI module: failed to connect to: %s"),
                         devName);
       }
     }
@@ -1262,7 +1301,7 @@ int MidiOutProcessCallback(jack_nframes_t nframes, void *userData){
                                           JACK_MIDI_BUFFSIZE)) != 0) {
       if(UNLIKELY(jack_midi_event_write(jack_port_get_buffer(dev->port,nframes),
                                         0, buf,n) != 0)){
-        csound->Warning(csound, Str("Jack MIDI module: out buffer overflow"));
+        csound->Warning(csound, "%s", Str("Jack MIDI module: out buffer overflow"));
         return 1;
       }
     }
@@ -1286,7 +1325,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
     if(UNLIKELY((jack_client =
                  jack_client_open(clientName, 0, NULL)) == NULL)){
       *userData = NULL;
-      csound->ErrorMsg(csound,
+      csound->ErrorMsg(csound, "%s",
                        Str("Jack MIDI module: failed to create client for output"));
       return NOTOK;
     }
@@ -1298,7 +1337,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
                                                 0)) == NULL)){
       jack_client_close(jack_client);
       *userData = NULL;
-      csound->ErrorMsg(csound,
+      csound->ErrorMsg(csound, "%s",
                        Str("Jack MIDI module: failed to register output port"));
       return NOTOK;
     }
@@ -1318,7 +1357,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       csound->ErrorMsg(csound,
-                       Str("Jack MIDI module: failed to set input"
+                       "%s", Str("Jack MIDI module: failed to set input"
                            " process callback"));
       return NOTOK;
     }
@@ -1328,7 +1367,8 @@ static int midi_out_open(CSOUND *csound, void **userData,
       csound->DestroyCircularBuffer(csound, dev->cb);
       csound->Free(csound, dev);
       *userData = NULL;
-      csound->ErrorMsg(csound, Str("Jack MIDI module: failed to activate output"));
+      csound->ErrorMsg(csound, "%s",
+                       Str("Jack MIDI module: failed to activate output"));
       return NOTOK;
     }
 
@@ -1336,7 +1376,7 @@ static int midi_out_open(CSOUND *csound, void **userData,
       if(UNLIKELY(jack_connect(jack_client,
                                jack_port_name(dev->port),devName) != 0)){
         csound->Warning(csound,
-                        Str("Jack MIDI out module: failed to connect to: %s"),
+                         Str("Jack MIDI out module: failed to connect to: %s"),
                         devName);
       }
     }
@@ -1397,14 +1437,14 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++, cnt++) {
       n = (int) strlen(portNames[i]);
-      strncpy(port, portNames[i], n);
-      port[n] = '\0';
+      strNcpy(port, portNames[i], n+1);
+      //port[n] = '\0';
       if (list != NULL) {
-        strncpy(list[cnt].device_name, port, 63);
+        strNcpy(list[cnt].device_name, port, 64);
         snprintf(list[cnt].device_id, 63, "%d", cnt);
         list[cnt].isOutput = isOutput;
         strcpy(list[i].interface_name, "");
-        strncpy(list[i].midi_module, drv, 63);
+        strNcpy(list[i].midi_module, drv, 64);
       }
     }
     jack_free(portNames);
@@ -1429,14 +1469,14 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
   for (i = 0; i < cnt; i++) {
   info = portMidi_getDeviceInfo(i, isOutput);
   if(info->name != NULL)
-  strncpy(list[i].device_name, info->name, 63);
+  strNcpy(list[i].device_name, info->name, 64);
   snprintf(tmp, 64, "%d", i);
-  strncpy(list[i].device_id, tmp, 63);
+  strNcpy(list[i].device_id, tmp, 64);
   list[i].isOutput = isOutput;
   if (info->interf != NULL)
-  strncpy(list[i].interface_name, info->interf, 63);
+  strNcpy(list[i].interface_name, info->interf, 64);
   else strcpy(list[i].interface_name, "");
-  strncpy(list[i].midi_module, drv, 63);
+  strNcpy(list[i].midi_module, drv, 64);
   }
   return cnt;
   }
@@ -1467,7 +1507,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    csound->Message(csound, Str("rtaudio: JACK module enabled\n"));
+    csound->Message(csound, "%s", Str("rtaudio: JACK module enabled\n"));
     {
       /* register Csound interface functions */
       csound->SetPlayopenCallback(csound, playopen_);
@@ -1485,7 +1525,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           strcmp(drv, "JACK") == 0))
       return 0;
 
-    csound->Message(csound, Str("rtmidi: JACK module enabled\n"));
+    csound->Message(csound, "%s", Str("rtmidi: JACK module enabled\n"));
     {
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);

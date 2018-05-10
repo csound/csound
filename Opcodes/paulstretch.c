@@ -21,8 +21,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 #include <stdlib.h>
 #include <complex.h>
@@ -35,6 +35,11 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "H/fftlib.h"
+
+#ifdef ANDROID
+float crealf(_Complex float);
+float cimagf(_Complex float);
+#endif
 
 typedef struct {
     OPDS h;
@@ -115,11 +120,11 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     p->start_pos += p->displace_pos;
 }
 
-static int ps_init(CSOUND* csound, PAULSTRETCH *p)
+static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
     FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
     uint32_t i = 0;
-    unsigned int size;
+    uint32_t size;
 
     if (ftp == NULL)
       return csound->InitError(csound, Str("paulstretch: table not found"));
@@ -169,7 +174,7 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
     return OK;
 }
 
-static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
+static int32_t paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -196,10 +201,9 @@ static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
 }
 
 static OENTRY paulstretch_localops[] = {
-  { "paulstretch", (int) sizeof(PAULSTRETCH), TR, 5, "a", "iii",
-   (int (*)(CSOUND *, void *)) ps_init,
-                                (int (*)(CSOUND *, void *)) NULL,
-                        (int (*)(CSOUND *, void *)) paulstretch_perf}
+  { "paulstretch", (int32_t) sizeof(PAULSTRETCH), TR, 3, "a", "iii",
+    (int32_t (*)(CSOUND *, void *)) ps_init,
+    (int32_t (*)(CSOUND *, void *)) paulstretch_perf}
 };
 
 LINKAGE_BUILTIN(paulstretch_localops)

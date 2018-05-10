@@ -24,8 +24,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -96,7 +96,7 @@ typedef struct {
 #define ROOT27 (5.1961524227066318806)
 #define ROOT135d16 (0.72618437741389066597) /* sqrt(135.0/256.0) */
 
-static int ibformenc(CSOUND * csound, AMBIC * p)
+static int32_t ibformenc(CSOUND * csound, AMBIC * p)
 {
     /* All we do in here is police our parameters. */
     switch (p->OUTOCOUNT) {
@@ -110,7 +110,7 @@ static int ibformenc(CSOUND * csound, AMBIC * p)
   }
 }
 
-static int ibformenc_a(CSOUND * csound, AMBICA * p)
+static int32_t ibformenc_a(CSOUND * csound, AMBICA * p)
 {
     if (UNLIKELY(p->tabout->data==NULL || p->tabout->dimensions!=1))
       return csound->InitError(csound,
@@ -128,9 +128,10 @@ static int ibformenc_a(CSOUND * csound, AMBICA * p)
   }
 }
 
-static int
+static int32_t
 abformenc(CSOUND * csound, AMBIC * p) {
 
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t sampleCount, sampleIndex, channelCount, channelIndex;
@@ -166,6 +167,7 @@ abformenc(CSOUND * csound, AMBIC * p) {
       coefficients[14] = (MYFLT)(x * (x2 - 3.0 * y2));
       coefficients[15] = (MYFLT)(y * (3.0 * x2 - y2));
       /* Deliberately no break;. */
+      /* FALLTHRU */
     case 9:
       /* Second order. */
       coefficients[ 4] = (MYFLT)(1.5 * z2 - 0.5);
@@ -174,6 +176,7 @@ abformenc(CSOUND * csound, AMBIC * p) {
       coefficients[ 7] = (MYFLT)(x2 - y2);
       coefficients[ 8] = (MYFLT)(2.0 * x * y);
       /* Deliberately no break;. */
+      /* FALLTHRU */
     case 4:
       /* Zero and first order. */
       coefficients[ 0] = SQRT(FL(0.5));
@@ -205,9 +208,9 @@ abformenc(CSOUND * csound, AMBIC * p) {
 
 }
 
-static int
+static int32_t
 abformenc_a(CSOUND * csound, AMBICA * p) {
-
+   IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t sampleCount, sampleIndex, channelCount, channelIndex, ksmps;
@@ -243,6 +246,7 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
       coefficients[14] = (MYFLT)(x * (x2 - 3.0 * y2));
       coefficients[15] = (MYFLT)(y * (3.0 * x2 - y2));
       /* Deliberately no break;. */
+      /* FALLTHRU */
     case 9:
       /* Second order. */
       coefficients[ 4] = (MYFLT)(1.5 * z2 - 0.5);
@@ -251,6 +255,7 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
       coefficients[ 7] = (MYFLT)(x2 - y2);
       coefficients[ 8] = (MYFLT)(2.0 * x * y);
       /* Deliberately no break;. */
+      /* FALLTHRU */
     case 4:
       /* Zero and first order. */
       coefficients[ 0] = SQRT(FL(0.5));
@@ -284,7 +289,7 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
 
 /* ------------------------------------------------------------------------- */
 
-static int
+static int32_t
 ibformdec(CSOUND * csound, AMBID * p) {
     /* All we do in here is police our parameters. */
     if (UNLIKELY(p->INOCOUNT != 1 + 4 &&
@@ -328,7 +333,7 @@ ibformdec(CSOUND * csound, AMBID * p) {
     return OK;                    /* Never used */
 }
 
-static int
+static int32_t
 abformdec(CSOUND * csound, AMBID * p) {
 
     /* All assert() calls in here should already have been validated in
@@ -339,6 +344,7 @@ abformdec(CSOUND * csound, AMBID * p) {
        suggest these aren't removed until everyone is sure the
        unoptimised code is doing the right thing!) */
 
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t sampleCount = CS_KSMPS, sampleIndex;
@@ -346,7 +352,7 @@ abformdec(CSOUND * csound, AMBID * p) {
 
     assert(p->INOCOUNT >= 5);
 
-    switch ((int)*(p->isetup)) {
+    switch ((int32_t)*(p->isetup)) {
     case 1: /* Stereo */
       assert(p->OUTOCOUNT == 2);
       /* Use a 90degree stereo decode, equivalent to a M+S microphone
@@ -675,9 +681,9 @@ abformdec(CSOUND * csound, AMBID * p) {
 
 }
 
-static int
+static int32_t
 ibformdec_a(CSOUND * csound, AMBIDA * p) {
-    int dim;
+    int32_t dim;
     if (p->tabout->data==NULL || p->tabout->dimensions!=1)
       return csound->InitError(csound,
                                Str("bformdec1 output array not initilised"));
@@ -725,7 +731,7 @@ ibformdec_a(CSOUND * csound, AMBIDA * p) {
     return OK;                    /* Never used */
 }
 
-static int
+static int32_t
 abformdec_a(CSOUND * csound, AMBIDA * p) {
 
     /* All assert() calls in here should already have been validated in
@@ -735,6 +741,7 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
     /* (There are some repeated multiplies in the code below, but I
        suggest these aren't removed until everyone is sure the
        unoptimised code is doing the right thing!) */
+    IGN(csound);
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -744,7 +751,8 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
     uint32_t dim = p->dim;
     MYFLT *tabin = p->tabin->data, *tabout = p->tabout->data;
 
-    switch ((int)*(p->isetup)) {
+    switch ((int32_t
+             )*(p->isetup)) {
     case 1: /* Stereo */
       /* Use a 90degree stereo decode, equivalent to a M+S microphone
          array at the origin. Works better than front-facing
@@ -1076,14 +1084,14 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
 #define S(x) sizeof(x)
 
 static OENTRY ambicode1_localops[] = {
-  { "bformenc1.a", S(AMBIC), 0, 5, "mmmmmmmmmmmmmmmm", "akk",
-                (SUBR)ibformenc, NULL, (SUBR)abformenc },
-  { "bformenc1.A", S(AMBIC), 0, 5, "a[]", "akk",
-                (SUBR)ibformenc_a, NULL, (SUBR)abformenc_a },
-  { "bformdec1.a", S(AMBID), 0, 5, "mmmmmmmm", "iy",
-    (SUBR)ibformdec, NULL, (SUBR)abformdec },
-  { "bformdec1.A", S(AMBIDA), 0, 5, "a[]", "ia[]",
-    (SUBR)ibformdec_a, NULL, (SUBR)abformdec_a },
+  { "bformenc1.a", S(AMBIC), 0, 3, "mmmmmmmmmmmmmmmm", "akk",
+                (SUBR)ibformenc,  (SUBR)abformenc },
+  { "bformenc1.A", S(AMBIC), 0, 3, "a[]", "akk",
+                (SUBR)ibformenc_a,  (SUBR)abformenc_a },
+  { "bformdec1.a", S(AMBID), 0, 3, "mmmmmmmm", "iy",
+    (SUBR)ibformdec,  (SUBR)abformdec },
+  { "bformdec1.A", S(AMBIDA), 0, 3, "a[]", "ia[]",
+    (SUBR)ibformdec_a,  (SUBR)abformdec_a },
 };
 
 LINKAGE_BUILTIN(ambicode1_localops)

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<!--
+    WebAudio Csound example
+    Copyright (C) 2018 V Lazzarini
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+-->
+
+<head>
+    <title>WebAudio Csound</title>
+    <style type="text/css">
+        textarea.console {
+            font-family: "Courier New";
+            color: #FCF477;
+            background-color: #770077
+        }
+    </style>
+    <script type="text/javascript" src="js/csound.js"></script>
+    <script type="text/javascript">
+        // called by csound.js
+        function moduleDidLoad() {
+            csound.CopyUrlToLocal("sf_GMbank.sf2", "sf_GMbank.sf2", function() {
+                fcopied = true;
+                console.log("Ready to load a MIDI file.\n");
+            });
+        }
+
+        function attachListeners() {
+            document.getElementById('playButton').
+            addEventListener('click', togglePlay);
+            document.getElementById('files').
+            addEventListener('change', handleFileSelect, false);
+        }
+
+        var fcopied = false;
+        var count = 0;
+
+        function handleMessage(message) {
+            var element = document.getElementById('console');
+            element.value += message;
+            count += 1;
+            if (count == 1000) {
+                element.value = ' ';
+                count = 0;
+            }
+        }
+
+        var playing = false;
+        var started = false;
+        var loaded = false;
+
+        function togglePlay() {
+            if (loaded && fcopied) {
+                if (!playing) {
+                    if (started) csound.Play();
+                    else {
+                        csound.PlayCsd("gm.csd");
+                        started = true;
+                    }
+                    document.getElementById('playButton').innerText = "Pause";
+                    playing = true;
+                } else {
+                    csound.Pause()
+                    document.getElementById('playButton').innerText = "Play";
+                    playing = false;
+                }
+            }
+        }
+
+        function handleFileSelect(evt) {
+            if (!loaded) {
+                var files = evt.target.files;
+                var f = files[0];
+                var objectURL = window.URL.createObjectURL(f);
+                csound.CopyUrlToLocal(objectURL, "midifile.mid", function() {
+                    loaded = true;
+                    console.log("Ready to play. \n");
+                });
+            } else {
+                csound.UpdateStatus("to load a new file, first refresh page!")
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <H1> MIDI File Player </H1>
+    <textarea class="console" cols="65" rows="20" id="console">
+      Csound: not loaded</textarea>
+    <p>
+        <input type="file" id="files" name="file" />
+        <button id="playButton">Play</button>
+    </p>
+</body>
+
+</html>

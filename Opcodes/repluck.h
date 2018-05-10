@@ -17,14 +17,14 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                                                         /* repluck.h */
 typedef struct _DelayLine {
     MYFLT   *data;
-    int length;
+    int32_t length;
     MYFLT   *pointer;
     MYFLT   *end;
 } DelayLine;
@@ -38,8 +38,8 @@ typedef struct  {
     AUXCH   up_data;
     AUXCH   down_data;
     MYFLT   state;
-    int     scale;
-    int     rail_len;
+    int32_t     scale;
+    int32_t     rail_len;
 } WGPLUCK2;
 
 /****************************************************/
@@ -53,5 +53,5 @@ typedef struct{
         double   LPdelay, APdelay;
         MYFLT   *Cdelay;
         AUXCH   aux;
-        int     wpointer, rpointer, size;
+        int32_t     wpointer, rpointer, size;
 } STRES;

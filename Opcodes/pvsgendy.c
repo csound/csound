@@ -2,7 +2,7 @@
     pvsgendy.c:
     gendy style transformation in frequency domain
 
-    (c) John ffitch, 2009
+    Copyright (c) John ffitch, 2009
 
     This file is part of Csound.
 
@@ -18,11 +18,12 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csdl.h"
+//#include "csoundCore.h"
 #include "pstream.h"
 
 typedef struct {
@@ -31,20 +32,20 @@ typedef struct {
     PVSDAT *fin;
     MYFLT  *kmrate;
     MYFLT  *kfrate;
-    unsigned int lastframe;
+    uint32_t lastframe;
 } PVSGENDY;
 
 
-static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
+static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
 {
-    int     N = p->fin->N;
+    int32_t     N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 
     if (UNLIKELY(p->fin->sliding)) {
       if (p->fout->frame.auxp==NULL ||
-          CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
+          CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fout->frame.size)
         csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
       else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     }
@@ -53,7 +54,7 @@ static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
         if (p->fout->frame.auxp == NULL ||
             p->fout->frame.size < (N+2)*sizeof(float))  /* RWD MUST be 32bit */
           csound->AuxAlloc(csound, (N+2)*sizeof(float), &p->fout->frame);
-        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(MYFLT));
+        else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(float));
       }
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
@@ -67,9 +68,9 @@ static int pvsgendyinit(CSOUND *csound, PVSGENDY *p)
     return OK;
 }
 
-static int pvsgendy(CSOUND *csound, PVSGENDY *p)
+static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
 {
-    int     i, N = p->fin->N;
+    int32_t     i, N = p->fin->N;
     MYFLT   mrate = *p->kmrate;
     MYFLT   frate = *p->kfrate;
     float   *finf = (float *) p->fin->frame.auxp;
@@ -81,12 +82,12 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
-      int NB  = p->fout->NB;
+      int32_t NB  = p->fout->NB;
       for (n=0; n<offset; n+=2) foutf[n] = foutf[n+1] = FL(0.0);
       for (n=nsmps-early; n<nsmps; n+=2) foutf[n] = foutf[n+1] = FL(0.0);
       nsmps -= early;
       for (n=offset; n<nsmps; n++) {
-        //int change = 0;
+        //int32_t change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         for (i = 0; i < NB-1; i++) {
@@ -103,7 +104,7 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
       for (i = 0; i < N; i += 2) {
         MYFLT x = frate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX/(MYFLT)(i+1);
         foutf[i+1] = finf[i+1] + x;
-        foutf[i] = finf[i] + mrate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
+        foutf[i] = finf[i] ;//+ mrate * (MYFLT)(rand()-RAND_MAX/2)/(MYFLT)RAND_MAX;
       }
       p->fout->framecount = p->lastframe = p->fin->framecount;
     }
@@ -113,12 +114,12 @@ static int pvsgendy(CSOUND *csound, PVSGENDY *p)
                              Str("pvsgendy: not initialised"));
 }
 
-static OENTRY pvsgendy_localops[] = {
+static OENTRY localops[] = {
   { "pvsgendy", sizeof(PVSGENDY), 0, 3, "f", "fkk",
                 (SUBR) pvsgendyinit, (SUBR) pvsgendy, (SUBR) NULL }
 };
 
-LINKAGE_BUILTIN(pvsgendy_localops)
+LINKAGE
 
 
 

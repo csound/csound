@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <csoundCore.h>
@@ -35,11 +35,11 @@ typedef struct _retval {
   MYFLT *ret;
 } RETVAL;
 
-int compile_orc_i(CSOUND *csound, COMPILE *c);
-int compile_str_i(CSOUND *csound, COMPILE *c);
-int compile_csd_i(CSOUND *csound, COMPILE *c);
-int read_score_i(CSOUND *csound, COMPILE *c);
-int eval_str_i(CSOUND *csound, COMPILE *p);
-int eval_str_k(CSOUND *csound, COMPILE *p);
-int retval_i(CSOUND *csound, RETVAL *p);
-int eval_str_k(CSOUND *csound, COMPILE *p);
+int32_t compile_orc_i(CSOUND *csound, COMPILE *c);
+int32_t compile_str_i(CSOUND *csound, COMPILE *c);
+int32_t compile_csd_i(CSOUND *csound, COMPILE *c);
+int32_t read_score_i(CSOUND *csound, COMPILE *c);
+int32_t eval_str_i(CSOUND *csound, COMPILE *p);
+int32_t eval_str_k(CSOUND *csound, COMPILE *p);
+int32_t retval_i(CSOUND *csound, RETVAL *p);
+int32_t eval_str_k(CSOUND *csound, COMPILE *p);

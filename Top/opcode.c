@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                                 /* OPCODE.C */
@@ -84,6 +84,14 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
             ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
             ep->outypes != NULL && ep->intypes != NULL) {
           cnt++;
+#ifdef JPFF
+          if (strchr(ep->intypes, 'x'))
+            printf("%s, type %d %s -> %s\n", ep->opname, ep->thread,
+                   ep->intypes, ep->outypes);
+          /* else if (ep->thread==5 */
+          /*   printf("%s, type 6 %s -> %s\n", ep->opname, */
+          /*          ep->intypes, ep->outypes); */
+#endif
           nBytes += sizeof(opcodeListEntry);
           for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++);
           nBytes += (size_t) i;

@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"     /*                              MEMFILES.C      */
@@ -31,6 +31,7 @@
 #include "namedins.h"
 #include <sndfile.h>
 #include <string.h>
+#include <inttypes.h>
 
 static int Load_Het_File_(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)
@@ -56,7 +57,7 @@ static int Load_Het_File_(CSOUND *csound, const char *filnam,
       return NOTOK;
     }
     //for (i=0; i<6; i++) getc(f); /* Skip HETRO */
-    /*dummy =*/ (void)fgets(buffer, 10, f);         /* number of partials */
+    ignore_value(fgets(buffer, 10, f));         /* number of partials */
     x = atoi(buffer);
     memcpy(&all[0], &x, sizeof(int16));
     /* Read data until end, pack as int16 */
@@ -142,7 +143,7 @@ static int Load_CV_File_(CSOUND *csound, const char *filnam,
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_CVANAL, 0, 0);
     all = (char *)csound->Malloc(csound, (size_t) length);
-    /* dummy =*/ (void)fgets(buff, 120, f); /* Skip CVANAL */
+    ignore_value(fgets(buff, 120, f)); /* Skip CVANAL */
     cvh.magic = CVMAGIC;
     p = fgets(buff, 120, f);
     if (UNLIKELY(p==NULL)) {
@@ -205,7 +206,7 @@ static int Load_LP_File_(CSOUND *csound, const char *filnam,
       fclose(f);
       return csound->InitError(csound, Str("Ill-formed LPC file\n"));
     }
-    /* dummy = */ (void)fgets(buff, 120, f);
+    ignore_value(fgets(buff, 120, f));
     lph.framrate = (MYFLT)cs_strtod(buff, &p);
     lph.srate = (MYFLT)cs_strtod(p, &p);
     lph.duration = (MYFLT)cs_strtod(p, &p);
@@ -254,7 +255,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
       return 1;                                 /*    return 1             */
     if (csFileType==CSFTYPE_HETRO) {
       char buff[8];
-      /* dummy = */ (void)fgets(buff, 6, f);
+      ignore_value(fgets(buff, 6, f));
       if (strcmp(buff, "HETRO")==0) {
         fclose(f);
         return Load_Het_File_(csound, filnam, allocp, len);
@@ -262,7 +263,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     }
     else if (csFileType==CSFTYPE_CVANAL) {
       char buff[8];
-      /* dummy = */ (void)fgets(buff, 7, f);
+      ignore_value(fgets(buff, 7, f));
       if (strcmp(buff, "CVANAL")==0) {
         fclose(f);
         return Load_CV_File_(csound, filnam, allocp, len);
@@ -270,7 +271,7 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     }
     else if (csFileType==CSFTYPE_LPC) {
       char buff[8];
-      /* dummy = */ (void)fgets(buff, 7, f);
+      ignore_value(fgets(buff, 7, f));
       if (strcmp(buff, "LPANAL")==0) {
         fclose(f);
         return Load_LP_File_(csound, filnam, allocp, len);
@@ -326,8 +327,8 @@ MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
                          int (*callback)(CSOUND*, MEMFIL*))
 {                               /* read an entire file into memory and log it */
     MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
-    char    *allocp;            /* if not fullpath, look in current directory,*/
-    int32    len;                /*   then SADIR (if defined).                 */
+    char    *allocp = NULL;     /* if not fullpath, look in current directory,*/
+    int32    len = 0;           /*   then SADIR (if defined).                 */
     char    *pathnam;           /* Used by adsyn, pvoc, and lpread            */
 
     mfp = csound->memfiles;
@@ -344,7 +345,7 @@ MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
     else
       csound->memfiles = mfp;
     mfp->next = NULL;
-    strncpy(mfp->filename, filnam, 255);
+    strNcpy(mfp->filename, filnam, 256);
 
     pathnam = csoundFindInputFile(csound, filnam, "SADIR");
     if (UNLIKELY(pathnam == NULL)) {
@@ -554,8 +555,8 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
 
     /* link into PVOC-EX memfile chain */
     csound->pvx_memfiles = pp;
-    csound->Message(csound, Str("file %s (%d bytes) loaded into memory\n"),
-                            fname, (int32) mem_wanted);
+    csound->Message(csound, Str("file %s (%"PRIi32" bytes) loaded into memory\n"),
+                            fname, mem_wanted);
 
     memcpy(p, pp, sizeof(PVOCEX_MEMFILE));
     return 0;
@@ -618,8 +619,8 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound,
-                       Str("csoundLoadSoundFile(): failed to open '%s'"),
-                       fileName);
+                       Str("csoundLoadSoundFile(): failed to open '%s' %s"),
+                       fileName, Str(sf_strerror(NULL)));
       return NULL;
     }
     p = (SNDMEMFILE*)
@@ -675,11 +676,11 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     p->data[p->nFrames] = 0.0f;
     csound->FileClose(csound, fd);
-    csound->Message(csound, Str("File '%s' (sr = %d Hz, %d channel(s), %lld "
-                                "sample frames) loaded into memory\n"),
-                            p->fullName, (int) sfinfo->samplerate,
-                            (int) sfinfo->channels,
-                            sfinfo->frames);
+    csound->Message(csound, "%s '%s' (sr = %d Hz, %d %s, %" PRId64 " %s) %s",
+                    Str("File"), p->fullName, sfinfo->samplerate,
+                    sfinfo->channels, Str("channel(s)"), (int64_t)sfinfo->frames,
+                    Str("sample frames"),
+                    Str("loaded into memory\n"));
 
     /* link into database */
     cs_hash_table_put(csound, csound->sndmemfiles, (char*)fileName, p);

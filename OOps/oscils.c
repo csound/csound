@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* ------ oscils, lphasor, and tablexkt by Istvan Varga (Jan 5 2002) ------ */
@@ -64,11 +64,11 @@ static void init_sine_gen(double a, double f, double p,
 
 /* -------- oscils set-up -------- */
 
-int oscils_set(CSOUND *csound, OSCILS *p)
+int32_t oscils_set(CSOUND *csound, OSCILS *p)
 {
-    int     iflg;
+    int32_t     iflg;
 
-    iflg = (int) (*(p->iflg) + FL(0.5)) & 0x07; /* check flags */
+    iflg = (int32_t) (*(p->iflg) + FL(0.5)) & 0x07; /* check flags */
     if (UNLIKELY(iflg & 1)) return OK;          /* skip init, nothing to do */
     p->use_double = (iflg & 2 ? 1 : 0);         /* use doubles internally */
     init_sine_gen((double)*(p->iamp), (double)(*(p->icps) * csound->tpidsr),
@@ -84,7 +84,7 @@ int oscils_set(CSOUND *csound, OSCILS *p)
 
 /* -------- oscils performance -------- */
 
-int oscils(CSOUND *csound, OSCILS *p)
+int32_t oscils(CSOUND *csound, OSCILS *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -124,7 +124,7 @@ int oscils(CSOUND *csound, OSCILS *p)
 
 /* -------- lphasor set-up -------- */
 
-int lphasor_set(CSOUND *csound, LPHASOR *p)
+int32_t lphasor_set(CSOUND *csound, LPHASOR *p)
 {
     IGN(csound);
     if (UNLIKELY(*(p->istor) != FL(0.0))) return OK;       /* nothing to do */
@@ -132,7 +132,7 @@ int lphasor_set(CSOUND *csound, LPHASOR *p)
     p->phs = (double)*(p->istrt);                          /* start phase */
     p->lps = (double)*(p->ilps);                           /* loop start */
     p->lpe = (double)*(p->ilpe);                           /* loop end */
-    p->loop_mode = (int) (*(p->imode) + FL(0.5)) & 0x03;   /* loop mode */
+    p->loop_mode = (int32_t) (*(p->imode) + FL(0.5)) & 0x03;   /* loop mode */
     if (p->lpe <= p->lps) p->loop_mode = 0;                /* disable loop */
     p->dir = 1;                                            /* direction */
     return OK;
@@ -140,16 +140,16 @@ int lphasor_set(CSOUND *csound, LPHASOR *p)
 
 /* -------- lphasor performance -------- */
 
-int lphasor(CSOUND *csound, LPHASOR *p)
+int32_t lphasor(CSOUND *csound, LPHASOR *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int loop_mode, dir;
+    int32_t loop_mode, dir;
     MYFLT   *ar, *xtrns;
     double  trns, phs, lps, lpe, lpt;
-    int     assxtr = IS_ASIG_ARG(p->xtrns);
+    int32_t     assxtr = IS_ASIG_ARG(p->xtrns);
 
     /* copy object data to local variables */
     ar = p->ar; xtrns = p->xtrns;
@@ -170,14 +170,14 @@ int lphasor(CSOUND *csound, LPHASOR *p)
       if (loop_mode) {
         dir = (trns < 0.0 ? !(p->dir) : p->dir);
         if (dir && (phs >= lpe)) {
-          phs += lpt * (double)((int)((lps - phs) / lpt));
+          phs += lpt * (double)((int32_t)((lps - phs) / lpt));
           if (loop_mode & 2) {
             phs = lps + lpe - phs;  /* reverse direction */
             p->dir = !(p->dir);
           }
         }
         else if (!dir && (phs <= lps)) {
-          phs += lpt * (double)((int)((lpe - phs) / lpt));
+          phs += lpt * (double)((int32_t)((lpe - phs) / lpt));
           if (loop_mode & 1) {
             phs = lps + lpe - phs;  /* reverse direction */
             p->dir = !(p->dir);
@@ -192,10 +192,10 @@ int lphasor(CSOUND *csound, LPHASOR *p)
 
 /* -------- tablexkt set-up -------- */
 
-int tablexkt_set(CSOUND *csound, TABLEXKT *p)
+int32_t tablexkt_set(CSOUND *csound, TABLEXKT *p)
 {
    IGN(csound);
-    p->wsize = (int)(*(p->iwsize) + 0.5);                  /* window size */
+    p->wsize = (int32_t)(*(p->iwsize) + 0.5);                  /* window size */
     if (UNLIKELY(p->wsize < 3)) {
       p->wsize = 2;
     }
@@ -217,18 +217,18 @@ int tablexkt_set(CSOUND *csound, TABLEXKT *p)
 
 /* -------- tablexkt opcode -------- */
 
-int tablexkt(CSOUND *csound, TABLEXKT *p)
+int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int i, wsize, wsized2, wrap_ndx, warp;
+    int32_t i, wsize, wsized2, wrap_ndx, warp;
     double  ndx, d, x, c, v, flen_d, onedpi_d, pidwarp_d;
-    int32    ndx_i=0, flen;
+    int32_t ndx_i=0, flen;
     MYFLT   *ar, *xndx, ndx_f, a0, a1, a2, a3, v0, v1, v2, v3, *ftable;
     MYFLT   onedwarp, win_fact;
     FUNC    *ftp;
-    int     asgx = IS_ASIG_ARG(p->xndx);
+    int32_t asgx = IS_ASIG_ARG(p->xndx);
 
     /* window size */
     wsize = p->wsize;
@@ -255,7 +255,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
       pidwarp_d = PI / (double)*(p->kwarp);
       /* correct window for kwarp */
       x = v = (double)wsized2; x *= x; x = 1.0 / x;
-      v *= (double)onedwarp; v -= (double)((int)v) + 0.5; v *= 4.0 * v;
+      v *= (double)onedwarp; v -= (double)((int32_t)v) + 0.5; v *= 4.0 * v;
       win_fact = (MYFLT)(((double)p->win_fact - x) * v + x);
     }
     else {
@@ -278,7 +278,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
         if (p->ndx_scl) ndx *= flen_d;
       }
       /* integer and fractional part of table index */
-      ndx_i = (int32)ndx;
+      ndx_i = (int32_t)ndx;
       ndx_f = (MYFLT) (ndx - (double)ndx_i);
       if (ndx_f < FL(0.0)) {
         ndx_f++; ndx_i--;
@@ -325,7 +325,7 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
         default:                    /* ---- sinc interpolation ---- */
           ar[n] = FL(0.0);        /* clear output */
           ndx = (double)ndx_f;
-          ndx_i += (int32)(1 - wsized2);
+          ndx_i += (int32_t)(1 - wsized2);
           d = (double)(1 - wsized2) - ndx;
           if (warp) {           /* ---- warp enabled ---- */
             init_sine_gen(onedpi_d, pidwarp_d, pidwarp_d * d, &x, &c, &v);
@@ -372,11 +372,11 @@ int tablexkt(CSOUND *csound, TABLEXKT *p)
           else {                /* ---- warp disabled ---- */
             /* avoid division by zero */
             if (UNLIKELY(ndx < 0.00001)) {
-              ndx_i += (int32) (wsized2 - 1);    /* no need to check here */
+              ndx_i += (int32_t) (wsized2 - 1);    /* no need to check here */
               ar[n] = ftable[ndx_i];
             }
             else if (ndx > 0.99999) {
-              ndx_i += (int32) wsized2;          /* does need range checking */
+              ndx_i += (int32_t) wsized2;          /* does need range checking */
               if (ndx_i >= flen) ndx_i = (wrap_ndx ? ndx_i - flen : flen);
               ar[n] = ftable[ndx_i];
             }

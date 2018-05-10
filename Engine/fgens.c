@@ -20,8 +20,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"         /*                      FGENS.C         */
@@ -302,7 +302,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       /*        size, sizeof(MYFLT)*size, ftp->args); */
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size); /* is this right? */
       /*for (k=0; k < size; k++)
-        csound->Message(csound, "%f \n", ftp->args[k]);*/
+        csound->Message(csound, "%f\n", ftp->args[k]);*/
     }
     return 0;
 }
@@ -1789,7 +1789,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     l1 = (int) ftp->flen;
 
     x = (MYFLT*) csound->Calloc(csound, (l2 + 2)*sizeof(MYFLT));
-    y = (MYFLT*) csound->Calloc(csound, l1 + 2*sizeof(MYFLT));
+    y = (MYFLT*) csound->Calloc(csound, (l1 + 2)*sizeof(MYFLT));
     /* read and analyze src table, apply amplitude scale */
     a = csound->GetInverseRealFFTScale(csound, l1) * (MYFLT) l1 / (MYFLT) l2;
     for (i = 0; i < l2; i++)
@@ -1816,7 +1816,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
       p *= TWOPI_F;
       d_re = cos((double) p); d_im = sin((double) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
-      for (i = k = 0; (i <= l1 && k <= l2); i += (n << 1), k += 2) {
+      for (i = k = 0; (i < l1 && k <l2); i += (n << 1), k += 2) {
         /* mix to table */
         y[i + 0] += a * (x[k + 0] * (MYFLT) p_re - x[k + 1] * (MYFLT) p_im);
         y[i + 1] += a * (x[k + 1] * (MYFLT) p_re + x[k + 0] * (MYFLT) p_im);
@@ -2570,7 +2570,7 @@ static int gen01(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ-1);
+      strNcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
       return OK;
     }
     return gen01raw(ff, ftp);
@@ -2586,10 +2586,10 @@ static void needsiz(CSOUND *csound, FGDATA *ff, int32 maxend)
                             (int) ff->fno, nxtpow);
 }
 
-static const int gen01_format_table[11] = {
+static const int gen01_format_table[10] = {
     0,
-    0,          AE_CHAR,    AE_ALAW,    AE_ULAW,    AE_SHORT,
-    AE_LONG,    AE_FLOAT,   AE_UNCH,    AE_24INT,   AE_DOUBLE
+    AE_CHAR,    AE_ALAW,    AE_ULAW,    AE_SHORT,    AE_LONG,
+    AE_FLOAT,   AE_UNCH,    AE_24INT,   AE_DOUBLE
 };
 
 /* read ftable values from a sound file */
@@ -2624,32 +2624,28 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
           /* printf("****line %d\n" , __LINE__); */
-          strncpy(p->sfname, ff->e.strarg + 1, 512);
+          strNcpy(p->sfname, ff->e.strarg + 1, 512);
           if (len >= 0 && p->sfname[len] == '"')
             p->sfname[len] = '\0';
         }
         else {
           /* printf("****line %d\n" , __LINE__); */
-          strncpy(p->sfname, ff->e.strarg, 512);
+          strNcpy(p->sfname, ff->e.strarg, 512);
         }
       }
       else if (filno >= 0 && filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno]) {
         /* printf("****line %d\n" , __LINE__); */
-        strncpy(p->sfname, csound->strsets[filno], 512);
+        strNcpy(p->sfname, csound->strsets[filno], 512);
       }
       else {
         /* printf("****line %d\n" , __LINE__); */
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
       }
       /* printf("****line %d: sfname=%s\n" , __LINE__, p->sfname); */
-      if (!fmt)
-        p->format = csound->oparms->outformat;
-      else {
-        if (UNLIKELY(fmt < -1 || fmt > 9))
-          return fterror(ff, Str("invalid sample format: %d"), fmt);
-        p->format = gen01_format_table[fmt + 1];
-      }
+      if (UNLIKELY(fmt < 0 || fmt > 9))
+        return fterror(ff, Str("invalid sample format: %d"), fmt);
+      p->format = gen01_format_table[fmt];
     }
     p->skiptime = ff->e.p[6];
     p->channel  = (int) MYFLT2LRND(ff->e.p[8]);
@@ -2731,7 +2727,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         ftp->loopmode2 = (lpd.loops[1].mode == SF_LOOP_NONE ? 0 :
                           lpd.loops[1].mode == SF_LOOP_FORWARD ? 1 :
                           2);
-        ftp->begin1 = lpd.loops[0].start;
+         ftp->begin1 = lpd.loops[0].start;
         ftp->begin2 = lpd.loops[1].start;
         if (ftp->loopmode1)             /* Greg Sullivan */
           ftp->end1 = lpd.loops[0].end;
@@ -2786,7 +2782,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       //if (size>=PMAX) size=PMAX; // Coverity 96615 says this overflows
       memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
       /* for (k=0; k < size; k++)
-         csound->Message(csound, "%f \n", ftp->args[k]);*/
+         csound->Message(csound, "%f\n", ftp->args[k]);*/
     }
     return OK;
 }
@@ -2825,7 +2821,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
 
     filno = &ff->e.p[5];
     if (isstrcod(ff->e.p[5]))
-      strncpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME-1);
+      strNcpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
     else
       csound->strarg2name(csound, filename, filno, "pvoc.", 0);
 
@@ -2903,17 +2899,17 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       if (isstrcod(ff->e.p[5])) {
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
-          strncpy(sfname, ff->e.strarg + 1, 1023);
+          strNcpy(sfname, ff->e.strarg + 1, 1024);
           if (len >= 0 && sfname[len] == '"')
             sfname[len] = '\0';
         }
         else
-          strncpy(sfname, ff->e.strarg, 1023);
+          strNcpy(sfname, ff->e.strarg, 1024);
       }
       else if ((filno= (int32) MYFLT2LRND(ff->e.p[5])) >= 0 &&
                filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno])
-        strncpy(sfname, csound->strsets[filno], 1023);
+        strNcpy(sfname, csound->strsets[filno], 1024);
       else
         snprintf(sfname, 1024, "soundin.%d", filno);   /* soundin.filno */
     }
@@ -2947,7 +2943,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     //    fd = open(sfname, O_RDONLY); /* search paths */
     if (UNLIKELY(fd < 0)) {
       mp3dec_uninit(mpa);
-      fterror(ff, "sfname");
+      return fterror(ff, "sfname");
     }
     if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
@@ -3048,7 +3044,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
       ftp->gen01args.iskptim = ff->e.p[6];
       ftp->gen01args.iformat = ff->e.p[7];
       ftp->gen01args.channel = ff->e.p[8];
-      strncpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ-1);
+      strNcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
       return OK;
     }
     return gen49raw(ff, ftp);
@@ -3202,7 +3198,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     if (wbuf != NULL && !(mode & 4))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 0);
     if (!(mode & 1)) {
-      csound->Message(csound, "linear-phase output \n");
+      csound->Message(csound, "linear-phase output\n");
       return;
     }
     /* ---- minimum phase impulse response ---- */
@@ -3367,12 +3363,14 @@ int csoundIsNamedGEN(CSOUND *csound, int num) {
     return 0;
 }
 
-/* ODDITY:  does not stop when num found but continues to end; aso not used! */
+/* ODDITY:  does not stop when num found but continues to end; also not used!
+   But has API use
+ */
 void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len) {
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
     while (n != NULL) {
       if (n->genum == abs(num)) {
-        strncpy(name,n->name,len);
+        strNcpy(name,n->name,len+1);
         return;
       }
       n = n->next;

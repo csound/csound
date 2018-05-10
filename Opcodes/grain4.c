@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Verson 4.0 -    Mar 95                               */
@@ -43,10 +43,10 @@
 
 static MYFLT grand(GRAINV4 *);
 
-static int grainsetv4(CSOUND *csound, GRAINV4 *p)
+static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
-    int         nvoice, cnt;
+    int32_t         nvoice, cnt;
     int32_t    tmplong1, tmplong2;
     MYFLT       tmpfloat1;
     MYFLT       pitch[4];
@@ -230,22 +230,22 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
 
     if (*p->ithd != 0) {        /* Do thresholding.... */
       tmplong2 = 0;
-      for (tmplong1=0; tmplong1< (int) ftp->flen; tmplong1++)
+      for (tmplong1=0; tmplong1< (int32_t) ftp->flen; tmplong1++)
         if (fabs(ftp->ftable[tmplong1]) >= *p->ithd )
           ftp->ftable[tmplong2++] = ftp->ftable[tmplong1];
       ftp->flen = tmplong2;
     }
 
-    if (p->gend > (int) ftp->flen) {
+    if (UNLIKELY(p->gend > (int32_t) ftp->flen)) {
       return csound->InitError(csound, Str("granule_set: Illegal combination "
                                            "of igskip and ilength"));
     }
 
-    nvoice = (int)*p->ivoice;
+    nvoice = (int32_t)*p->ivoice;
 
     if (UNLIKELY(*p->ilength < (20 * *p->kgsize)))
       csound->Warning(csound, Str("granule_set: "
-                                  "WARNING * ilength may be too short * \n"
+                                  "WARNING * ilength may be too short *\n"
                                   "            ilength should be "
                                   "greater than kgsize * max up\n"
                                   "            pitch shift. Also, igsize_os "
@@ -255,18 +255,18 @@ static int grainsetv4(CSOUND *csound, GRAINV4 *p)
                                   "%f Sec, kgsize is %f Sec\n"),
                       *p->ilength, *p->kgsize);
 
-    p->clock = 0;               /* init clock */
+    //p->clock = 0;               /* init clock */
     return OK;
 } /* end grainsetv4(p) */
 
-static int graingenv4(CSOUND *csound, GRAINV4 *p)
+static int32_t graingenv4(CSOUND *csound, GRAINV4 *p)
 {
     FUNC        *ftp, *ftp_env;
     MYFLT       *ar, *ftbl, *ftbl_env=NULL;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int         nvoice;
+    int32_t         nvoice;
     int32       tmplong1, tmplong2, tmplong3, tmpfpnt, flen_env=0;
     MYFLT       fract, v1, tmpfloat1;
     int32       att_len, dec_len, att_sus;
@@ -292,10 +292,10 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
    /* Recover audio output pointer... */
    ar   = p->ar;
    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
+   if (UNLIKELY(early)) {
+     nsmps -= early;
+     memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+   }
    /* *** Start the loop .... *** */
    for (n=offset; n<nsmps; n++) {
                                 /* Optimisations */
@@ -395,25 +395,26 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 
          if (*gskip < gstart) *gskip = gstart;
 
-         if (*p->imode == 0)
+         if (*p->imode == 0) {
            *mode = (grand(p) < 0) ? -1 : 1;
+         }
 
-           if (*p->ipshift == 0) {
-             tmpfloat1 = grand(p);
-             *pshift = (tmpfloat1 < FL(0.0)) ?
-               (tmpfloat1*FL(0.5))+FL(1.0) : tmpfloat1+FL(1.0);
-           }
+         if (*p->ipshift == 0) {
+           tmpfloat1 = grand(p);
+           *pshift = (tmpfloat1 < FL(0.0)) ?
+             (tmpfloat1*FL(0.5))+FL(1.0) : tmpfloat1+FL(1.0);
+         }
 
-           *gap = (int32)(*p->kgap * CS_ESR);
-           if (*p->igap_os != 0) {
-             *gap += (int32)((*gap * p->gap_os) * grand(p));
-           }
+         *gap = (int32)(*p->kgap * CS_ESR);
+         if (*p->igap_os != 0) {
+           *gap += (int32)((*gap * p->gap_os) * grand(p));
+         }
 
-           *gsize = (int32)(*p->kgsize * CS_ESR * *pshift);
-           if (*p->igsize_os != 0)
-             *gsize += (int32)((*gsize * p->gsize_os) * grand(p));
+         *gsize = (int32)(*p->kgsize * CS_ESR * *pshift);
+         if (*p->igsize_os != 0)
+           *gsize += (int32)((*gsize * p->gsize_os) * grand(p));
 
-           *stretch = *gsize + *gap;
+         *stretch = *gsize + *gap;
 
        }
        fpnt++; cnt++; gskip++; gap++; gsize++;
@@ -432,7 +433,8 @@ static int graingenv4(CSOUND *csound, GRAINV4 *p)
 /* Function return a float random number between -1 to +1 */
 static MYFLT grand( GRAINV4 *p)
 {
-   p->grnd *= (int)RNDMUL;
+   p->grnd *= (int32_t
+               )RNDMUL;
    p->grnd += 1;
    return ((MYFLT) p->grnd * DV32768);  /* IV - Jul 11 2002 */
 } /* end grand(p) */
@@ -445,8 +447,8 @@ static MYFLT grand( GRAINV4 *p)
 
 
 static OENTRY grain4_localops[] = {
-  { "granule", S(GRAINV4), TR, 5, "a", "xiiiiiiiiikikiiivppppo",
-             (SUBR)grainsetv4, NULL, (SUBR)graingenv4},
+  { "granule", S(GRAINV4), TR, 3, "a", "xiiiiiiiiikikiiivppppo",
+             (SUBR)grainsetv4, (SUBR)graingenv4},
 };
 
 LINKAGE_BUILTIN(grain4_localops)

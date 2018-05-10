@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_SYSDEP_H
@@ -31,9 +31,9 @@ typedef void *locale_t;
 #endif
 #endif
 
+#include <limits.h>
 /* this checks for 64BIT builds */
 #if defined(__MACH__) || defined(LINUX)
-#include <limits.h>
 #if ( __WORDSIZE == 64 ) || defined(__x86_64__) || defined(__amd64__)
 #define B64BIT
 #endif
@@ -44,6 +44,8 @@ typedef void *locale_t;
 #define B64BIT
 #endif
 #endif
+
+
 
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
@@ -102,13 +104,19 @@ typedef uint_least16_t uint16;
 #include <AvailabilityMacros.h>
 #endif
 
+#if !defined(USE_DOUBLE)
+#if !defined(_MSC_VER)
 #include "float-version.h"
+#else
+#define USE_DOUBLE
+#endif
+#endif
 
+#ifdef USE_DOUBLE
 /* Defined here as Android does not have log2 functions */
 #define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */
 #define LOG2(a) (MYRECIPLN2*log(a))       /* floating point logarithm base 2 */
 
-#ifdef USE_DOUBLE
   #define ACOS acos
   #define ASIN asin
   #define ATAN atan
@@ -135,6 +143,10 @@ typedef uint_least16_t uint16;
   #define FMOD fmod
   #define MODF modf
 #else
+/* Defined here as Android does not have log2 functions */
+#define MYRECIPLN2  1.442695040888963407359924681001892137426 /* 1.0/log(2) */
+#define LOG2(a) (MYRECIPLN2*logf(a))       /* floating point logarithm base 2 */
+
   #define ACOS acosf
   #define ASIN asinf
   #define ATAN atanf
@@ -155,7 +167,7 @@ typedef uint_least16_t uint16;
   #define POWER powf
   #define SQRT sqrtf
   #define HYPOT hypotf
-  #define FABS fabsf
+  #define FABS(x) fabsf(FL(x))
   #define FLOOR floorf
   #define CEIL ceilf
   #define FMOD fmodf
@@ -264,6 +276,7 @@ typedef int64_t             int_least64_t;
 typedef uint64_t            uint_least64_t;
 #elif defined(HAVE_STDINT_H) || defined(HAVE_C99)
 #  include <stdint.h>
+
 #    if defined(__CYGWIN__)
 #define __int8 char
 #define __int16 short
@@ -294,6 +307,8 @@ typedef unsigned long       uintptr_t;
 #endif
 #endif      /* !(USE_GUSI2 || HAVE_STDINT_H || HAVE_C99) */
 
+
+
 /* function attributes */
 
 #if defined(HAVE_GCC3) && !defined(SWIG)
@@ -311,8 +326,6 @@ typedef unsigned long       uintptr_t;
 #  define CS_PRINTF3    __attribute__ ((__format__ (__printf__, 3, 4)))
 /* a function with no side effects or dependencies on volatile data */
 #  define CS_PURE       __attribute__ ((__pure__))
-#  define LIKELY(x)     __builtin_expect(!!(x),1)
-#  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else
 #  define CS_DEPRECATED
 #  define CS_NOINLINE
@@ -321,6 +334,11 @@ typedef unsigned long       uintptr_t;
 #  define CS_PRINTF2
 #  define CS_PRINTF3
 #  define CS_PURE
+#endif
+#if defined(__clang__) ||  defined(HAVE_GCC3)
+#  define LIKELY(x)     __builtin_expect(!!(x),1)
+#  define UNLIKELY(x)   __builtin_expect(!!(x),0)
+#else
 #  define LIKELY(x)     x
 #  define UNLIKELY(x)   x
 #endif
@@ -333,37 +351,37 @@ typedef unsigned long       uintptr_t;
 
 #ifdef USE_LRINT
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) ((int32) lrintf((float) (x)))
-#    define MYFLT2LRND(x) ((int32) lrintf((float) (x)))
+#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrintf((float) (x)) : 0)
+#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrintf((float) (x)) : 0)
 #  else
-#    define MYFLT2LONG(x) ((int32) lrint((double) (x)))
-#    define MYFLT2LRND(x) ((int32) lrint((double) (x)))
+#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrint((double) (x)) : 0)
+#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int32) lrint((double) (x)) : 0)
 #  endif
 #elif defined(MSVC)
+#include <emmintrin.h>
 #  ifndef USE_DOUBLE
-static inline int32 MYFLT2LRND(float fval)
-{
-    int result;
-    _asm {
-      fld   fval
-      fistp result
-      mov   eax, result
-    }
-    return result;
+// From Agner Fog optimisation manuals p.144
+static inline int MYFLT2LONG (float const x) {
+    return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
+
+static inline int MYFLT2LRND (float const x) {
+    return _mm_cvtss_si32 (_mm_load_ss (&x));
+}
+
 #  else
-static inline int32 MYFLT2LRND(double fval)
-{
-    int result;
-    _asm {
-      fld   fval
-      fistp result
-      mov   eax, result
-    }
-    return result;
+static inline int MYFLT2LONG (double const x) {
+    return _mm_cvtsd_si32 (_mm_load_sd (&x));
+}
+
+static inline int MYFLT2LRND (double const x) {
+    return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 #  endif
-#  define MYFLT2LONG(x) MYFLT2LRND(x)
 #else
 #  ifndef USE_DOUBLE
 #    define MYFLT2LONG(x) ((int32) (x))
@@ -429,5 +447,121 @@ static inline double csoundUndenormalizeDouble(double x)
 #if !defined(HAVE_STRLCAT) && !defined(strlcat)
 size_t strlcat(char *dst, const char *src, size_t siz);
 #endif
+char *strNcpy(char *dst, const char *src, size_t siz);
+
+/* atomics */
+#if defined(MSVC)
+#define ATOMIC_SET(var, val)  InterlockedExchange(&var, val);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SET(var, val) __sync_lock_test_and_set(&var, val);
+#else
+#define ATOMIC_SET(var, val) var = val;
+#endif
+
+#if defined(MSVC)
+#define ATOMIC_SET8(var, val)  InterlockedExchange8(&var, val);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SET8(var, val) __sync_lock_test_and_set(&var, val);
+#else
+#define ATOMIC_SET8(var, val) var = val;
+#endif
+
+#ifdef MSVC
+#define ATOMIC_GET(var) InterlockedExchangeAdd(&var, 0)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_GET(var) __atomic_load_n(&var, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_GET(var) var
+#endif
+
+#ifdef MSVC
+#define ATOMIC_GET8(var) InterlockedExchangeAdd8(&var, 0)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_GET8(var) __atomic_load_n(&var, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_GET8(var) var
+#endif
+
+#ifdef MSVC
+#define ATOMIC_DECR(var) InterlockedExchangeAdd(&var, -1)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_DECR(var) __atomic_sub_fetch(&var, 1, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_DECR(var) var -= 1
+#endif
+
+#ifdef MSVC
+#define ATOMIC_INCR(var) InterlockedExchangeAdd(&var, 1)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_INCR(var) __atomic_add_fetch(&var, 1, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_INCR(var) var += 1
+#endif
+
+#ifdef MSVC
+#define ATOMIC_SUB(var, val) InterlockedExchangeAdd(&var, -val)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SUB(var, val) __atomic_sub_fetch(&var, val, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_SUB(var, val) var -= val
+#endif
+
+#ifdef MSVC
+#define ATOMIC_ADD(var, val) InterlockedExchangeAdd(&var, val)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_ADD(var, val) __atomic_add_fetch(&var, val, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_ADD(var, val) var += val
+#endif
+
+#if defined(MSVC)
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  (InterlockedCompareExchange(val, newVal, oldVal) != oldVal)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  !(__atomic_compare_exchange(val, (long *) &oldVal, &newVal, 0,        \
+                              __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+#else /* FIXME: no atomics, what to do? */
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
+#endif
+
+#if defined(WIN32)
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
+#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+typedef pthread_spinlock_t spin_lock_t;
+#define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
+#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
+#elif defined(MACOSX)
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#include <os/lock.h>
+typedef struct os_unfair_lock_s spin_lock_t;
+#define SPINLOCK_INIT {0}
+#else
+#include <libkern/OSAtomic.h>
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
+#endif // MAC_OS_X_VERSION_MIN_REQUIRED
+#else
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
+#endif
+
+/* The ignore_value() macro is taken from GNULIB ignore-value.h,
+   licensed under the terms of the LGPLv2+
+   Normally casting an expression to void discards its value, but GCC
+   versions 3.4 and newer have __attribute__ ((__warn_unused_result__))
+   which may cause unwanted diagnostics in that case.  Use __typeof__
+   and __extension__ to work around the problem, if the workaround is
+   known to be needed.  */
+#if 3 < __GNUC__ + (4 <= __GNUC_MINOR__)
+# define ignore_value(x) \
+    (__extension__ ({ __typeof__ (x) __x = (x); (void) __x; }))
+#else
+# define ignore_value(x) ((void) (x))
+#endif
+
 
 #endif  /* CSOUND_SYSDEP_H */

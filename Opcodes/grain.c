@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*      Granular synthesizer designed and coded by Paris Smaragdis      */
@@ -37,7 +37,7 @@ static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
     return (x * a);
 }
 
-static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
+static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
 {
     FUNC        *gftp, *eftp;
     int32        bufsize;
@@ -61,11 +61,11 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     bufsize = sizeof(MYFLT) * (2L * (size_t) (CS_ESR * *p->imkglen)
                                + (3L * CS_KSMPS));
 
-    if (p->aux.auxp == NULL || (unsigned int)bufsize > p->aux.size)
+    if (p->aux.auxp == NULL || (uint32_t)bufsize > p->aux.size)
       csound->AuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
-    d +=  (int)(CS_ESR * *p->imkglen) + CS_KSMPS;
+    d +=  (int32_t)(CS_ESR * *p->imkglen) + CS_KSMPS;
     p->y = d;
 
     p->ampadv = IS_ASIG_ARG(p->xamp) ? 1 : 0;
@@ -74,7 +74,7 @@ static int agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
     return OK;
 }
 
-static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
+static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 {
     FUNC        *gtp, *etp;
     MYFLT       *buf, *out, *rem, *gtbl, *etbl;
@@ -82,9 +82,9 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
     int32       isc, isc2, inc, inc2, lb, lb2;
     int32       n, bufsize;
     int32       ekglen;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t i, nsmps = CS_KSMPS;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    i, nsmps = CS_KSMPS;
     MYFLT       kglen = *p->kglen;
     MYFLT       gcount = p->gcount;
 
@@ -162,13 +162,15 @@ static int ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "grain", S(PGRA),  TR, 5,   "a",    "xxxkkkiiio", (SUBR)agsset, NULL, (SUBR)ags }
-};
+static OENTRY localops[] =
+  {
+   { "grain", S(PGRA),  TR, 3,   "a",    "xxxkkkiiio", (SUBR)agsset, (SUBR)ags }
+  };
 
-int grain_init_(CSOUND *csound)
+int32_t grain_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

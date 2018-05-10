@@ -11,7 +11,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#if defined(WIN32) && defined(__GNUC__)
+#if defined(WIN32)
 #include <process.h>
 #endif
 

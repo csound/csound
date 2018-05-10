@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"     /*                      CSCORFNS.C      */
@@ -324,17 +324,17 @@ PUBLIC void cscorePutEvent(CSOUND *csound, EVENT *e)
       if (pcnt--)       fprintf(csound->oscfp," %g",*q++);
       //else goto termin; /* cannot happen */
       if (pcnt--) {
-        if (warpout)    fprintf(csound->oscfp," %g", e->p2orig);
+        if (warpout) {    fprintf(csound->oscfp," %g", e->p2orig);}
                         fprintf(csound->oscfp," %g",*q++);
       }
       else goto termin;
       if (pcnt--) {
-        if (warpout)    fprintf(csound->oscfp," %g", e->p3orig);
+        if (warpout)  {  fprintf(csound->oscfp," %g", e->p3orig); }
                         fprintf(csound->oscfp," %g",*q++);
       }
       else goto termin;
       while (pcnt--)
-        fprintf(csound->oscfp," %g",*q++);
+        { fprintf(csound->oscfp," %g",*q++); }
     }
  termin:
     putc((int)'\n', csound->oscfp);
@@ -542,6 +542,7 @@ PUBLIC EVLIST * cscoreListConcatenate(CSOUND *csound, EVLIST *a, EVLIST *b)
 
 PUBLIC void cscoreListSort(CSOUND *csound, EVLIST *a)
 {
+    IGN(csound);
     EVENT **p, **q;
     EVENT *e, *f;
     int  n, gap, i, j;
@@ -729,6 +730,7 @@ PUBLIC EVLIST * cscoreListSeparateTWF(CSOUND *csound, EVLIST *a)
 
 PUBLIC void cscoreFreeEvent(CSOUND *csound, EVENT *e)
 {
+    IGN(csound);
     csfree((CSHDR *) e);
 }
 
@@ -736,6 +738,7 @@ PUBLIC void cscoreFreeEvent(CSOUND *csound, EVENT *e)
 
 PUBLIC void cscoreListFree(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     csfree((CSHDR *) a);
 }
 
@@ -743,6 +746,7 @@ PUBLIC void cscoreListFree(CSOUND *csound, EVLIST *a)
 
 PUBLIC void cscoreListFreeEvents(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     EVENT **p = &a->e[1];
     int  n = a->nevents;
 
@@ -934,6 +938,7 @@ PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 
 PUBLIC int cscoreListCount(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     EVENT **p;
     int  n, nrem;
 

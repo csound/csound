@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csdl.h"
@@ -41,7 +41,7 @@ static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)
       return p;
     if (csound->CreateGlobalVariable(csound, "controlGlobals_",
                                      sizeof(CONTROL_GLOBALS)) != 0){
-      csound->Warning(csound, Str("control: failed to allocate globals"));
+      csound->Warning(csound, "%s", Str("control: failed to allocate globals"));
       return NULL;
     }
     p = (CONTROL_GLOBALS*) csound->QueryGlobalVariable(csound,
@@ -57,7 +57,7 @@ static inline CONTROL_GLOBALS *get_globals(CSOUND *csound, CONTROL_GLOBALS **p)
     return (*p);
 }
 
-static int kill_wish(CSOUND *csound, CONTROL_GLOBALS *p)
+static int32_t kill_wish(CSOUND *csound, CONTROL_GLOBALS *p)
 {
     csound->Message(csound, Str("Closing down wish(%d)\n"), p->wish_pid);
     kill(p->wish_pid, 9);
@@ -73,7 +73,7 @@ static int kill_wish(CSOUND *csound, CONTROL_GLOBALS *p)
 
 static void start_tcl_tk(CONTROL_GLOBALS *p)
 {
-    int i;
+    int32_t i;
 
     p->csound->Message(p->csound, "TCL/Tk\n");
     if (UNLIKELY(pipe(p->pip1) || pipe(p->pip2))) {
@@ -106,18 +106,18 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
     setvbuf(p->wish_cmd, (char*) NULL, _IOLBF, 0);
     setvbuf(p->wish_res, (char*) NULL, _IOLBF, 0);
     p->csound->RegisterResetCallback(p->csound, (void*) p,
-                                     (int (*)(CSOUND *, void *)) kill_wish);
+                                     (int32_t (*)(CSOUND *, void *)) kill_wish);
     fprintf(p->wish_cmd, "source nsliders.tk\n");
     if (UNLIKELY(NULL==fgets(p->cmd, 100, p->wish_res))) {
       printf("Failed to read from child");
       return;
     };
     p->csound->Message(p->csound, "Wish %s\n", p->cmd);
-    p->values = (int*) p->csound->Calloc(p->csound,8*sizeof(int));
-    p->minvals = (int*) p->csound->Calloc(p->csound,8* sizeof(int));
-    p->maxvals = (int*) p->csound->Calloc(p->csound,8* sizeof(int));
-    p->buttons = (int*) p->csound->Calloc(p->csound,8* sizeof(int));
-    p->checks  = (int*) p->csound->Calloc(p->csound,8* sizeof(int));
+    p->values = (int32_t*) p->csound->Calloc(p->csound,8*sizeof(int32_t));
+    p->minvals = (int32_t*) p->csound->Calloc(p->csound,8* sizeof(int32_t));
+    p->maxvals = (int32_t*) p->csound->Calloc(p->csound,8* sizeof(int32_t));
+    p->buttons = (int32_t*) p->csound->Calloc(p->csound,8* sizeof(int32_t));
+    p->checks  = (int32_t*) p->csound->Calloc(p->csound,8* sizeof(int32_t));
     p->max_sliders = 8;
     p->max_button = 8;
     p->max_check = 8;
@@ -127,16 +127,19 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
     p->csound->Sleep(1500);
 }
 
-static void ensure_slider(CONTROL_GLOBALS *p, int n)
+static void ensure_slider(CONTROL_GLOBALS *p, int32_t n)
 {
 /*  p->csound->Message(p->csound, "Ensure_slider %d\n", n); */
     if (p->wish_pid == 0)
       start_tcl_tk(p);
     if (n > p->max_sliders) {
-      int i, nn = n + 1;
-      p->values  = (int*) p->csound->ReAlloc(p->csound,p->values, nn * sizeof(int));
-      p->minvals = (int*) p->csound->ReAlloc(p->csound,p->minvals,nn * sizeof(int));
-      p->maxvals = (int*) p->csound->ReAlloc(p->csound,p->maxvals,nn * sizeof(int));
+      int32_t i, nn = n + 1;
+      p->values  = (int32_t*) p->csound->ReAlloc(p->csound,
+                                                 p->values, nn * sizeof(int32_t));
+      p->minvals = (int32_t*) p->csound->ReAlloc(p->csound,
+                                                 p->minvals,nn * sizeof(int32_t));
+      p->maxvals = (int32_t*) p->csound->ReAlloc(p->csound,
+                                                 p->maxvals,nn * sizeof(int32_t));
       for (i = p->max_sliders + 1; i < nn; i++) {
         p->values[i] = 0; p->minvals[i] = 0; p->maxvals[i] = 127;
       }
@@ -158,7 +161,7 @@ static void readvalues(CONTROL_GLOBALS *p)
     tv.tv_usec = 0;
                                 /* Read all changes */
     while (select(p->pip1[0] + 1, &rfds, NULL, NULL, &tv)) {
-      int n, val;
+      int32_t n, val;
       if (UNLIKELY(2!=fscanf(p->wish_res, "%d %d", &n, &val))) {
         printf("Failed to read from child");
         return;
@@ -172,43 +175,43 @@ static void readvalues(CONTROL_GLOBALS *p)
     }
 }
 
-static int cntrl_set(CSOUND *csound, CNTRL *p)
+static int32_t cntrl_set(CSOUND *csound, CNTRL *p)
 {
-    ensure_slider(get_globals(csound, &(p->p)), (int) MYFLT2LONG(*p->kcntl));
+    ensure_slider(get_globals(csound, &(p->p)), (int32_t) MYFLT2LONG(*p->kcntl));
     return OK;
 }
 
-static int control(CSOUND *csound, CNTRL *p)
+static int32_t control(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     readvalues(pp);
-    *p->kdest = pp->values[(int)MYFLT2LONG(*p->kcntl)];
+    *p->kdest = pp->values[(int32_t)MYFLT2LONG(*p->kcntl)];
     return OK;
 }
 
-static int ocontrol_(CSOUND *csound, SCNTRL *p, int istring)
+static int32_t ocontrol_(CSOUND *csound, SCNTRL *p, int32_t istring)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
-    int c = (int) *p->which;
-    int slider = (int) MYFLT2LONG(*p->kcntl);
+    int32_t c = (int32_t) *p->which;
+    int32_t slider = (int32_t) MYFLT2LONG(*p->kcntl);
 
 /*  csound->Message(csound, "ocontrol: %d %d %f\n", slider, c, *p->val); */
     ensure_slider(pp, slider);
     switch (c) {
     case 1:
-      fprintf(pp->wish_cmd, "setvalue %d %d\n", slider, (int) *p->val);
-      pp->values[slider] = (int) *p->val;
+      fprintf(pp->wish_cmd, "setvalue %d %d\n", slider, (int32_t) *p->val);
+      pp->values[slider] = (int32_t) *p->val;
       break;
     case 2:
-      if (pp->minvals[slider] != (int) *p->val) {
-        fprintf(pp->wish_cmd, "setmin %d %d\n", slider, (int) *p->val);
-        pp->minvals[slider] = (int) *p->val;
+      if (pp->minvals[slider] != (int32_t) *p->val) {
+        fprintf(pp->wish_cmd, "setmin %d %d\n", slider, (int32_t) *p->val);
+        pp->minvals[slider] = (int32_t) *p->val;
       }
       break;
     case 3:
-      if (pp->maxvals[slider] != (int) *p->val) {
-        fprintf(pp->wish_cmd, "setmax %d %d\n", slider, (int) *p->val);
-        pp->maxvals[slider] = (int) *p->val;
+      if (pp->maxvals[slider] != (int32_t) *p->val) {
+        fprintf(pp->wish_cmd, "setmax %d %d\n", slider, (int32_t) *p->val);
+        pp->maxvals[slider] = (int32_t) *p->val;
       }
       break;
     case 4:
@@ -230,24 +233,24 @@ static int ocontrol_(CSOUND *csound, SCNTRL *p, int istring)
     return OK;
 }
 
-static int ocontrol(CSOUND *csound, SCNTRL *p){
+static int32_t ocontrol(CSOUND *csound, SCNTRL *p){
   return ocontrol_(csound,p,0);
 }
 
-static int ocontrol_S(CSOUND *csound, SCNTRL *p){
+static int32_t ocontrol_S(CSOUND *csound, SCNTRL *p){
   return ocontrol_(csound,p,1);
 }
 
-static int button_set(CSOUND *csound, CNTRL *p)
+static int32_t button_set(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
-    int n = (int) MYFLT2LONG(*p->kcntl);
+    int32_t n = (int32_t) MYFLT2LONG(*p->kcntl);
 
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_button) {
-      pp->buttons = (int*) csound->ReAlloc(csound, pp->buttons,
-                                           (n + 1) * sizeof(int));
+      pp->buttons = (int32_t*) csound->ReAlloc(csound, pp->buttons,
+                                           (n + 1) * sizeof(int32_t));
       do {
         pp->buttons[++(pp->max_button)] = 0;
       } while (pp->max_button < n);
@@ -256,25 +259,26 @@ static int button_set(CSOUND *csound, CNTRL *p)
     return OK;
 }
 
-static int button(CSOUND *csound, CNTRL *p)
+static int32_t button(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
-    int t = (int)MYFLT2LONG(*p->kcntl);
+    int32_t t = (int32_t)MYFLT2LONG(*p->kcntl);
     readvalues(pp);
     *p->kdest = pp->buttons[t];
     pp->buttons[t] = 0;
     return OK;
 }
 
-static int check_set(CSOUND *csound, CNTRL *p)
+static int32_t check_set(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
-    int n = (int) MYFLT2LONG(*p->kcntl);
+    int32_t n = (int32_t) MYFLT2LONG(*p->kcntl);
 
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_check) {
-      pp->checks = (int*) csound->ReAlloc(csound,pp->checks, (n + 1) * sizeof(int));
+      pp->checks = (int32_t*) csound->ReAlloc(csound,pp->checks,
+                                              (n + 1) * sizeof(int32_t));
       do {
         pp->checks[++(pp->max_check)] = 0;
       } while (pp->max_check < n);
@@ -283,20 +287,20 @@ static int check_set(CSOUND *csound, CNTRL *p)
     return OK;
 }
 
-static int check(CSOUND *csound, CNTRL *p)
+static int32_t check(CSOUND *csound, CNTRL *p)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
     readvalues(pp);
-    *p->kdest = pp->checks[(int) MYFLT2LONG(*p->kcntl)];
+    *p->kdest = pp->checks[(int32_t) MYFLT2LONG(*p->kcntl)];
     return OK;
 }
 
 /* **** Text Windows **** */
 
-static int textflash_(CSOUND *csound, TXTWIN *p, int istring)
+static int32_t textflash_(CSOUND *csound, TXTWIN *p, int32_t istring)
 {
     CONTROL_GLOBALS *pp = get_globals(csound, &(p->p));
-    int   wind = (int) MYFLT2LONG(*p->kcntl);
+    int32_t   wind = (int32_t) MYFLT2LONG(*p->kcntl);
     char  buffer[100];
 
     if (pp->wish_pid == 0)
@@ -315,11 +319,12 @@ static int textflash_(CSOUND *csound, TXTWIN *p, int istring)
     return OK;
 }
 
-static int textflash(CSOUND *csound, TXTWIN *p){
+static int32_t textflash(CSOUND *csound, TXTWIN *p){
     return textflash_(csound, p, 0);
 }
 
-static int textflash_S(CSOUND *csound, TXTWIN *p){
+static int32_t
+textflash_S(CSOUND *csound, TXTWIN *p){
     return textflash_(csound, p, 1);
 }
 

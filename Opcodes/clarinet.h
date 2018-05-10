@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************/
@@ -40,7 +40,7 @@
 #include "physutil.h"
 
 /**********************************************/
-/*  One break point linear reed table object  */
+/*  One break poinr32_t linear reed table object  */
 /*  by Perry R. Cook, 1995-96                 */
 /*  Consult McIntyre, Schumacher, & Woodhouse */
 /*        Smith, Hirschman, Cook, Scavone,    */
@@ -99,11 +99,11 @@ typedef struct CLARIN {
     Noise       noise;
     int32       length;
     MYFLT       outputGain;
-    int         kloop;
+    int32       kloop;
 } CLARIN;
 
-/* int clarinetset(CLARINET *p); */
-/* int clarinet(CLARINET *p) */
+/* int32_tclarinetset(CLARINET *p); */
+/* int32_tclarinet(CLARINET *p) */
 
 #endif
 

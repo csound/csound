@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<!--
+    WebAudio Csound example
+    Copyright (C) 2018 V Lazzarini
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+-->
+<head>
+    <title>WebAudio Csound</title>
+    <style type="text/css">
+        textarea.console {
+            font-family: "Courier New";
+            color: #FCF477;
+            background-color: #000000
+        }
+    </style>
+    <script type="text/javascript" src="js/csound.js"></script>
+    <script type="text/javascript">
+        // called by csound.js
+        function moduleDidLoad() {
+            csound.Play();
+            csound.CompileOrc(
+                `massign 1,1
+  instr 1
+  icps = cpsmidi()
+  chnset icps, \"freq\"
+  k1 linenr 0.5,0.01,0.1, 0.01
+  a1 oscili k1, icps
+  outs a1,a1
+  endin`);
+
+        }
+
+        function attachListeners() {
+            var notes = ['c', 'd', 'e', 'g', 'a'];
+            for (i = 0; i < notes.length; i++) {
+                document.getElementById(notes[i]).
+                addEventListener("mousedown", Play);
+                document.getElementById(notes[i]).
+                addEventListener("mouseup", Stop);
+                document.getElementById(notes[i]).
+                addEventListener("mouseleave", Stop);
+            }
+        }
+        var count = 0;
+
+        function handleMessage(message) {
+            var element = document.getElementById('console');
+            element.value += message;
+            element.scrollTop = 99999; // focus on bottom
+            count += 1;
+            if (count == 1000) {
+                element.value = ' ';
+                count = 0;
+            }
+        }
+
+        var playing = false;
+        // click handler
+        function Play(event) {
+            let note = event.target.value;
+            csound.NoteOn(1, note, 60);
+            playing = true;
+        }
+
+        function Stop(event) {
+            if (playing) {
+                let note = event.target.value;
+                csound.NoteOff(1, note, 60);
+                playing = false;
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <H1> Virtual MIDI Keys </H1>
+    <p>
+        <button id="c" value=60>C</button>
+        <button id="d" value=62>D</button>
+        <button id="e" value=64>E</button>
+        <button id="g" value=67>G</button>
+        <button id="a" value=69>A</button>
+    </p>
+    <textarea class="console" cols="65" rows="20"
+    id="console">Csound: not loaded</textarea>
+</body>
+
+</html>

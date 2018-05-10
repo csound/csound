@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 //#include "csdl.h"
@@ -38,16 +38,16 @@ typedef struct {
     MYFLT   *ipos, *ivel, *iwid;
 
     double  *w, *w1, *w2;
-    int     step, first;
+    int32_t     step, first;
     double  s0, s1, s2, t0, t1;
-    int     bcL, bcR, N;
+    int32_t     bcL, bcR, N;
     AUXCH   w_aux;
 } BAR;
 
-static int bar_init(CSOUND *csound, BAR *p)
+static int32_t bar_init(CSOUND *csound, BAR *p)
 {
     if (*p->iK >= FL(0.0) || p->w_aux.auxp == NULL) {
-      double  K = FABS(*p->iK);       /* ~=3.0  stiffness parameter, dimensionless */
+      double  K = FABS(*p->iK); /* ~=3.0  stiffness parameter, dimensionless */
       double  T30 = *p->iT30;   /* ~=5.0; 30 db decay time (s) */
       double  b = *p->ib;       /* ~=0.001 high-frequency loss parameter
                                    (keep small) */
@@ -56,7 +56,7 @@ static int bar_init(CSOUND *csound, BAR *p)
       double  dt = (double)csound->onedsr;
       double  sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
       double  dxmin = sqrt(dt*(b+hypot(b, K+K)));
-      int     N = (int) (1.0/dxmin);
+      int32_t N = (int32_t) (1.0/dxmin);
       double  dx = 1.0/N;
 
       /* %%%%%%%%%%%%%%%%%%% scheme coefficients */
@@ -89,21 +89,22 @@ static int bar_init(CSOUND *csound, BAR *p)
     return OK;
 }
 
-static int bar_run(CSOUND *csound, BAR *p)
+static int32_t bar_run(CSOUND *csound, BAR *p)
 {
     double xofreq = TWOPI* (*p->kscan)/CS_ESR; /* kspan ~=0.23; */
     double xo, xofrac;
-    int xoint;
-    int step = p->step;
-    int first = p->first;
-    int N = p->N, rr;
+    int32_t xoint;
+    int32_t step = p->step;
+    int32_t first = p->first;
+    int32_t N = p->N, rr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     double *w = p->w, *w1 = p->w1, *w2 = p->w2;
     double s0 = p->s0, s1 = p->s1, s2 = p->s2, t0 = p->t0, t1 = p->t1;
-    int bcL = (int)MYFLT2LONG(*p->kbcL);    /*  boundary condition pair */
-    int bcR = (int)MYFLT2LONG(*p->kbcR);    /*  1: clamped, 2: pivoting, 3: free */
+    /*  boundary condition pair  1: clamped, 2: pivoting, 3: free */
+    int32_t bcL = (int32_t)MYFLT2LONG(*p->kbcL);
+    int32_t bcR = (int32_t)MYFLT2LONG(*p->kbcR);
     double SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
     double COSNW = cos(xofreq*step); /* formula rather than many calls    */
     double SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
@@ -180,8 +181,8 @@ static int bar_run(CSOUND *csound, BAR *p)
         COSNW = yy;
       }
       xo = 0.5 + 0.5*SINNW;
-      xoint = (int) (xo*N) + 2;
-      xofrac = xo*N - (int)(xo*N);
+      xoint = (int32_t) (xo*N) + 2;
+      xofrac = xo*N - (int32_t)(xo*N);
 
 /*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ",
                          xo, xoint, xofrac, w[xoint], w[xoint+1]); */
@@ -242,25 +243,25 @@ typedef struct {
     MYFLT *rub, *rub1, *rub2;
     MYFLT *s0, *s1, s2, t0, t1;
     MYFLT *hammer_force;
-    int    stereo;
+    int32_t    stereo;
     uint32_t    NS;
-    int    N, init, step;
+    int32_t    N, init, step;
     uint32_t    rattle_num, rubber_num;
-    int    hammer_index, hammer_on, hammer_contact;
+    int32_t    hammer_index, hammer_on, hammer_contact;
     MYFLT  ham, ham1, ham2;
     AUXCH  auxch;
     RATTLE *rattle;
     RUBBER *rubber;
 } CSPP;
 
-int init_pp(CSOUND *csound, CSPP *p)
+int32_t init_pp(CSOUND *csound, CSPP *p)
 {
     if (*p->K >= FL(0.0)) {
       double K = *p->K; /* stiffness parameter, dimensionless */
       double f0 = *p->ifreq;      /* fundamental freq. (Hz) */
       double T30 = *p->iT30;      /* 30 db decay time (s) */
       double b = *p->ib;          /* high-frequency loss parameter (keep small) */
-      uint32_t NS = p->NS = (int)*p->iNS;       /* number of strings */
+      uint32_t NS = p->NS = (int32_t)*p->iNS;       /* number of strings */
       double D = *p->iD;  /* detune parameter (multiple strings) in cents */
                           /* I.e., a total of D cents diff between highest */
                           /* and lowest string in set */
@@ -347,13 +348,13 @@ int init_pp(CSOUND *csound, CSPP *p)
     return OK;
 }
 
-int play_pp(CSOUND *csound, CSPP *p)
+int32_t play_pp(CSOUND *csound, CSPP *p)
 {
     MYFLT *ar = p->ar;
     MYFLT *ar1 = p->ar1;
     uint32_t NS = p->NS;
     uint32_t N = p->N;
-    int step = p->step;
+    int32_t step = p->step;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t t, n, nsmps = CS_KSMPS;
@@ -394,7 +395,7 @@ int play_pp(CSOUND *csound, CSPP *p)
     if (p->init) {
       p->hammer_on = 1;          /*  turns on hammer updating */
       p->hammer_contact = 0;     /* hammer not in contact with string yet */
-      p->hammer_index = 2+(int)(*p->ipos*N);   /* find location of hammer strike */
+      p->hammer_index = 2+(int32_t)(*p->ipos*N); /* find location of hammerstrike */
       p->ham2 = *p->ham_initial;
       p->ham1 = *p->ham_initial+dt*(*p->vel);    /* initialize hammer */
       p->init = 0;
@@ -413,20 +414,20 @@ int play_pp(CSOUND *csound, CSPP *p)
       uint32_t qq;
       for (n=0; n<NS; n++) p->hammer_force[n] = 0.0;
       /* set boundary conditions on last state w1 */
-      if ((int)*p->kbcl==1) {
+      if ((int32_t)*p->kbcl==1) {
         for (n=0; n<NS; n++)
           w1[n+NS*2] = w1[n+NS*3] = 0.0;
       }
-      else if ((int)*p->kbcl==2) {
+      else if ((int32_t)*p->kbcl==2) {
         for (qq=0; qq<NS; qq++) {
           w1[qq+NS*2] = 0.0;  w1[qq+NS*1] = -w1[qq+NS*3];
         }
       }
-      if ((int)*p->kbcr==1) {
+      if ((int32_t)*p->kbcr==1) {
         for (n=0; n<NS; n++)
           w1[n+NS*(N+2)] = w1[n+NS*(N+1)] = 0.0;
       }
-      else if ((int)*p->kbcr==2) {
+      else if ((int32_t)*p->kbcr==2) {
         for (n=0; n<NS; n++) {
           w1[n+NS*(N+2)] = 0.0;  w1[n+NS*(N+3)] = -w1[n+NS*(N+1)];
         }
@@ -446,7 +447,7 @@ int play_pp(CSOUND *csound, CSPP *p)
       if (p->rattle_num)
         /* do this only if at least one rattle is specified */
         for (qq=0; qq<p->rattle_num; qq++) {
-          int rattle_index = (int)(2+p->rattle[qq].pos*N);
+          int32_t rattle_index = (int32_t)(2+p->rattle[qq].pos*N);
           for (n=0; n<NS; n++) {
             MYFLT pos, force, temp;
             /* calc. pos. diff between center of rattle and string */
@@ -467,7 +468,7 @@ int play_pp(CSOUND *csound, CSPP *p)
       if (p->rubber_num) {
         /* do this only if at least one rubber is specified */
         for (qq=0; qq<p->rubber_num; qq++) {
-          int rubber_index = (int)(2+p->rubber[0].pos*N);
+          int32_t rubber_index = (int32_t)(2+p->rubber[0].pos*N);
           MYFLT force = 0.0;
           for (n=0; n<NS; n++) {
             MYFLT pos;
@@ -518,7 +519,7 @@ int play_pp(CSOUND *csound, CSPP *p)
       {
 #define       xoamp  FL(0.3333)
 #define       xoctr  FL(0.3333)
-        int xoint;
+        int32_t xoint;
         MYFLT xofrac, xo;
         MYFLT out = 0.0;
         double  xx = SINNW*COS1W + COSNW*SIN1W;
@@ -528,7 +529,7 @@ int play_pp(CSOUND *csound, CSPP *p)
         COSNW = yy;
         xo = xoctr + xoamp*SINNW;
         /*        xo = xoctr+xoamp*(MYFLT)sin(TWOPI*(*p->scanfreq)*n*dt); */
-        xoint = (int)(xo*N)+2;
+        xoint = (int32_t)(xo*N)+2;
         xofrac = xo*N - xoint + FL(2.0);
         for (qq=0; qq<NS; qq++) {
           out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
@@ -540,7 +541,7 @@ int play_pp(CSOUND *csound, CSPP *p)
           yy = COSNW2*COS1W2 - SINNW2*SIN1W2;
           xo = xoctr + xoamp*SINNW2;
           /*        xo = xoctr+xoamp*(MYFLT)sin(TWOPI*(*p->scanfreq)*n*dt); */
-          xoint = (int)(xo*N)+2;
+          xoint = (int32_t)(xo*N)+2;
           xofrac = xo*N - xoint + FL(2.0);
           for (qq=0; qq<NS; qq++) {
             out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
@@ -571,10 +572,10 @@ int play_pp(CSOUND *csound, CSPP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY bilbar_localops[] = {
-  {"barmodel", S(BAR), 0, 5, "a", "kkiikiiii", (SUBR) bar_init, NULL,
+  {"barmodel", S(BAR), 0, 3, "a", "kkiikiiii", (SUBR) bar_init,
                                                (SUBR) bar_run},
-  { "prepiano", S(CSPP), 0, 5, "mm", "iiiiiikkiiiiiiioo",
-      (                            SUBR)init_pp, NULL, (SUBR)play_pp },
+  { "prepiano", S(CSPP), 0, 3, "mm", "iiiiiikkiiiiiiioo",
+                                (SUBR)init_pp, (SUBR)play_pp },
 };
 
 LINKAGE_BUILTIN(bilbar_localops)

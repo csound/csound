@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* sliders and other MIDI opcodes by Gabriel Maldonado */
@@ -45,7 +45,7 @@
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
-      int j = 0;                                                  \
+      int32_t j = 0;                                                  \
       SLD *sld = p->s;                                            \
       unsigned char *slnum = p->slnum;                            \
       MYFLT *min = p->min, *max= p->max;                          \
@@ -69,7 +69,7 @@
         else                 *ftp++ = NULL;                       \
         value =  (*(sld++)->initvalue - *min) / (*max++ - *min);  \
         min++;                                                    \
-        chanblock[*slnum++] =  (MYFLT)((int)(value * f7bit + FL(0.5))); \
+        chanblock[*slnum++] =  (MYFLT)((int32_t)(value * f7bit + FL(0.5))); \
       }                                                           \
     }                                                             \
     return OK;                                                    \
@@ -78,7 +78,7 @@
 #define SLIDER_INIT(p, n)                                         \
 {                                                                 \
     MYFLT value;                                                  \
-    int j = 0;                                                    \
+    int32_t j = 0;                                                    \
     FUNC **ftp = p->ftp-1;                                        \
     MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val; \
     unsigned char  *slnum = p->slnum;                             \
@@ -97,42 +97,42 @@
 
 /*--------------------------------------------------------*/
 
-static int slider_i8(CSOUND *csound, SLIDER8 *p)
+static int32_t slider_i8(CSOUND *csound, SLIDER8 *p)
 {
     SLIDERI_INIT(p, 8);
 }
 
-static int slider8(CSOUND *csound, SLIDER8 *p)
+static int32_t slider8(CSOUND *csound, SLIDER8 *p)
 {
     SLIDER_INIT(p, 8);
 }
 
-static int slider_i16(CSOUND *csound, SLIDER16 *p)
+static int32_t slider_i16(CSOUND *csound, SLIDER16 *p)
 {
     SLIDERI_INIT(p, 16);
 }
 
-static int slider16(CSOUND *csound, SLIDER16 *p)
+static int32_t slider16(CSOUND *csound, SLIDER16 *p)
 {
     SLIDER_INIT(p, 16);
 }
 
-static int slider_i32(CSOUND *csound, SLIDER32 *p)
+static int32_t slider_i32(CSOUND *csound, SLIDER32 *p)
 {
     SLIDERI_INIT(p, 32);
 }
 
-static int slider32(CSOUND *csound, SLIDER32 *p)
+static int32_t slider32(CSOUND *csound, SLIDER32 *p)
 {
     SLIDER_INIT(p, 32);
 }
 
-static int slider_i64(CSOUND *csound, SLIDER64 *p)
+static int32_t slider_i64(CSOUND *csound, SLIDER64 *p)
 {
     SLIDERI_INIT(p, 64);
 }
 
-static int slider64(CSOUND *csound, SLIDER64 *p)
+static int32_t slider64(CSOUND *csound, SLIDER64 *p)
 {
     SLIDER_INIT(p, 64);
 }
@@ -147,7 +147,7 @@ static int slider64(CSOUND *csound, SLIDER64 *p)
     }                                                             \
     {                                                             \
       MYFLT value = FL(0.0);                                      \
-      int j = 0;                                                  \
+      int32_t j = 0;                                                  \
       SLDf *sld = p->s;                                           \
       unsigned char *slnum = p->slnum;                            \
       MYFLT *min = p->min, *max= p->max;                          \
@@ -172,7 +172,7 @@ static int slider64(CSOUND *csound, SLIDER64 *p)
         else                 *ftp++ = NULL;                       \
         value =  (*sld->initvalue - *min) / (*max++ - *min);      \
         min++;;                                                   \
-        chanblock[*slnum++] =  (MYFLT)(int)(value * f7bit + FL(0.5));\
+        chanblock[*slnum++] =  (MYFLT)(int32_t)(value * f7bit + FL(0.5));\
                                                                   \
                 /*----- init filtering coeffs*/                   \
         *yt1++ = FL(0.0);                                         \
@@ -189,7 +189,7 @@ static int slider64(CSOUND *csound, SLIDER64 *p)
 #define SLIDERF(p, n)                                             \
 {                                                                 \
     MYFLT value;                                                  \
-    int j = 0;                                                    \
+    int32_t j = 0;                                                    \
     FUNC **ftp = p->ftp-1;                                        \
     MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val; \
     unsigned char  *slnum = p->slnum;                             \
@@ -209,42 +209,42 @@ static int slider64(CSOUND *csound, SLIDER64 *p)
     return OK;                                                    \
 }
 
-static int slider_i8f(CSOUND *csound, SLIDER8f *p)
+static int32_t slider_i8f(CSOUND *csound, SLIDER8f *p)
 {
     SLIDERIF(p, 8);
 }
 
-static int slider8f(CSOUND *csound, SLIDER8f *p)
+static int32_t slider8f(CSOUND *csound, SLIDER8f *p)
 {
     SLIDERF(p, 8);
 }
 
-static int slider_i16f(CSOUND *csound, SLIDER16f *p)
+static int32_t slider_i16f(CSOUND *csound, SLIDER16f *p)
 {
     SLIDERIF(p, 16);
 }
 
-static int slider16f(CSOUND *csound, SLIDER16f *p)
+static int32_t slider16f(CSOUND *csound, SLIDER16f *p)
 {
     SLIDERF(p, 16);
 }
 
-static int slider_i32f(CSOUND *csound, SLIDER32f *p)
+static int32_t slider_i32f(CSOUND *csound, SLIDER32f *p)
 {
     SLIDERIF(p, 32);
 }
 
-static int slider32f(CSOUND *csound, SLIDER32f *p)
+static int32_t slider32f(CSOUND *csound, SLIDER32f *p)
 {
     SLIDERF(p, 32);
 }
 
-static int slider_i64f(CSOUND *csound, SLIDER64f *p)
+static int32_t slider_i64f(CSOUND *csound, SLIDER64f *p)
 {
     SLIDERIF(p, 64);
 }
 
-static int slider64f(CSOUND *csound, SLIDER64f *p)
+static int32_t slider64f(CSOUND *csound, SLIDER64f *p)
 {
     SLIDERF(p, 64);
 }
@@ -260,7 +260,7 @@ if (UNLIKELY(chan  > 15))  {                                      \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
-      int j = 0;                                                  \
+      int32_t j = 0;                                                  \
       ISLD *sld = p->s;                                           \
       unsigned char slnum;                                        \
       MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
@@ -287,22 +287,22 @@ if (UNLIKELY(chan  > 15))  {                                      \
     return OK;                                                    \
 }
 
-static int islider8(CSOUND *csound, ISLIDER8 *p)
+static int32_t islider8(CSOUND *csound, ISLIDER8 *p)
 {
     ISLIDER(p, 8);
 }
 
-static int islider16(CSOUND *csound, ISLIDER16 *p)
+static int32_t islider16(CSOUND *csound, ISLIDER16 *p)
 {
     ISLIDER(p, 16);
 }
 
-static int islider32(CSOUND *csound, ISLIDER32 *p)
+static int32_t islider32(CSOUND *csound, ISLIDER32 *p)
 {
     ISLIDER(p, 32);
 }
 
-static int islider64(CSOUND *csound, ISLIDER64 *p)
+static int32_t islider64(CSOUND *csound, ISLIDER64 *p)
 {
     ISLIDER(p, 64);
 }
@@ -318,7 +318,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
     }                                                                  \
     {                                                                  \
       MYFLT value;                                                     \
-      int intvalue, j = 0;                                             \
+      int32_t intvalue, j = 0;                                             \
       SLD14 *sld = p->s;                                               \
       unsigned char *slnum_msb = p->slnum_msb;                         \
       unsigned char *slnum_lsb = p->slnum_lsb;                         \
@@ -349,7 +349,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
         }                                                              \
         if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Find(csound, sld->ifn); \
         else                 *ftp++ = NULL;                            \
-        intvalue = (int) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
+        intvalue = (int32_t) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
                           * f14bit+FL(0.5));                           \
         min++;                                                         \
         chanblock[*slnum_msb++] =  (MYFLT) (intvalue >> 7);            \
@@ -362,7 +362,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
 #define SLIDER14(p, n)                                                 \
 {                                                                      \
     MYFLT value = FL(0.0);                                             \
-    int j = 0;                                                         \
+    int32_t j = 0;                                                         \
     FUNC **ftp = p->ftp-1;                                             \
     MYFLT *chanblock = (MYFLT *) csound->m_chnbp[p->slchan]->ctl_val;  \
     unsigned char  *slnum_msb = p->slnum_msb;                          \
@@ -384,22 +384,22 @@ if (UNLIKELY(chan  > 15))  {                                           \
     return OK;                                                         \
 }
 
-static int slider_i16bit14(CSOUND *csound, SLIDER16BIT14 *p)
+static int32_t slider_i16bit14(CSOUND *csound, SLIDER16BIT14 *p)
 {
     SLIDERI14(p, 16);
 }
 
-static int slider16bit14(CSOUND *csound, SLIDER16BIT14 *p)
+static int32_t slider16bit14(CSOUND *csound, SLIDER16BIT14 *p)
 {
     SLIDER14(p, 16);
 }
 
-static int slider_i32bit14(CSOUND *csound, SLIDER32BIT14 *p)
+static int32_t slider_i32bit14(CSOUND *csound, SLIDER32BIT14 *p)
 {
     SLIDERI14(p, 32);
 }
 
-static int slider32bit14(CSOUND *csound, SLIDER32BIT14 *p)
+static int32_t slider32bit14(CSOUND *csound, SLIDER32BIT14 *p)
 {
     SLIDER14(p, 32);
 }
@@ -414,7 +414,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
     }                                                                  \
     {                                                                  \
       MYFLT value;                                                     \
-      int j = 0;                                                       \
+      int32_t j = 0;                                                       \
       ISLD14 *sld = p->s;                                              \
       unsigned char slnum_msb;                                         \
       unsigned char slnum_lsb;                                         \
@@ -453,12 +453,12 @@ if (UNLIKELY(chan  > 15))  {                                           \
     return OK;                                                         \
 }
 
-static int islider16bit14(CSOUND *csound, ISLIDER16BIT14 *p)
+static int32_t islider16bit14(CSOUND *csound, ISLIDER16BIT14 *p)
 {
     ISLIDER14(p, 16);
 }
 
-static int islider32bit14(CSOUND *csound, ISLIDER32BIT14 *p)
+static int32_t islider32bit14(CSOUND *csound, ISLIDER32BIT14 *p)
 {
     ISLIDER14(p, 32);
 }
@@ -592,9 +592,10 @@ static OENTRY localops[] = {
                                         (SUBR)islider32bit14, NULL, NULL  }
 };
 
-int midiops3_init_(CSOUND *csound)
+int32_t midiops3_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

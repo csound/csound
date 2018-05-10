@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************************************************
@@ -369,7 +369,7 @@ static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
     /* printf("DEBUG %s(%d): check fname=%s\n", __FILE__, __LINE__, fname); */
     /* printf("DEBUG %s(%d): list %s\n", __FILE__, __LINE__, list); */
     if (list==NULL) return 0;
-    strncpy(buff, fname, 255); buff[255]='\0';
+    strNcpy(buff, fname, 255); //buff[255]='\0';
     strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
     p = cs_strdup(csound, list);
     deny = cs_strtok_r(p, ",", &th);
@@ -403,6 +403,14 @@ int csoundLoadModules(CSOUND *csound)
     const char      *dname, *fname;
     char            buf[1024];
     int             i, n, len, err = CSOUND_SUCCESS;
+    char   *dname1, *end;
+    int     read_directory = 1;
+    char sep =
+#ifdef WIN32
+    ';';
+#else
+    ':';
+#endif
 
     if (UNLIKELY(csound->csmodule_db != NULL))
       return CSOUND_ERROR;
@@ -423,18 +431,40 @@ int csoundLoadModules(CSOUND *csound)
 #else
       dname = "";
 #endif
+    }
 
+    /* We now loop through the directory list */
+    while(read_directory) {
+      /* find separator */
+    if((end = strchr(dname, sep)) != NULL) {
+      *end = '\0';
+      /* copy directory name */
+      dname1 = cs_strdup(csound, (char *) dname);
+      /* move to next directory name */
+      dname = end + 1;
+    } else {
+      /* copy last directory name) */
+      dname1 = cs_strdup(csound, (char *) dname);
+      read_directory = 0;
     }
-    dir = opendir(dname);
+
+    /* protect for the case where there is an
+       extra separator at the end */
+    if(*dname1 == '\0') {
+      csound->Free(csound, dname1);
+      break;
+    }
+
+    dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
-      //if (dname != NULL)  /* cannot be other */
       csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
-                               dname, strerror(errno));
-      //else
-      //csound->Warning(csound, Str("Error opening plugin directory: %s"),
-      //                         strerror(errno));
-      return CSOUND_SUCCESS;
+                               dname1, strerror(errno));
+      csound->Free(csound, dname1);
+      continue;
     }
+
+    if(UNLIKELY(csound->oparms->odebug))
+      csound->Message(csound, "Opening plugin directory: %s\n", dname1);
     /* load database for deferred plugin loading */
 /*     n = csoundLoadOpcodeDB(csound, dname); */
 /*     if (n != 0) */
@@ -478,7 +508,7 @@ int csoundLoadModules(CSOUND *csound)
       snprintf(buf, 1024, "%s%c%s", dname, DIRSEP, fname);
       if (UNLIKELY(csound->oparms->odebug)) {
         csoundMessage(csound, Str("Loading '%s'\n"), buf);
-      }
+       }
       n = csoundLoadExternal(csound, buf);
       if (UNLIKELY(UNLIKELY(n == CSOUND_ERROR)))
         continue;               /* ignore non-plugin files */
@@ -486,6 +516,8 @@ int csoundLoadModules(CSOUND *csound)
         err = n;                /* record serious errors */
     }
     closedir(dir);
+    csound->Free(csound, dname1);
+    }
     return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
     return CSOUND_SUCCESS;
@@ -778,7 +810,6 @@ extern long babo_localops_init(CSOUND *, void *);
 extern long bilbar_localops_init(CSOUND *, void *);
 extern long compress_localops_init(CSOUND *, void *);
 extern long pvsbuffer_localops_init(CSOUND *, void *);
-extern long pvsgendy_localops_init(CSOUND *, void *);
 extern long vosim_localops_init(CSOUND *, void *);
 extern long eqfil_localops_init(CSOUND *, void *);
 extern long modal4_localops_init(CSOUND *, void *);
@@ -814,7 +845,6 @@ extern long crossfm_localops_init(CSOUND *, void *);
 extern long pvlock_localops_init(CSOUND *, void *);
 extern long fareyseq_localops_init(CSOUND *, void *);
 extern long cpumeter_localops_init(CSOUND *, void *);
-extern long gendy_localops_init(CSOUND *, void *);
 extern long scnoise_localops_init(CSOUND *, void *);
 #ifndef NACL
 extern long socksend_localops_init(CSOUND *, void *);
@@ -849,8 +879,8 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
-                                 vaops_localops_init, pvsgendy_localops_init,
-                                 paulstretch_localops_init, squinewave_localops_init,
+                                 vaops_localops_init, paulstretch_localops_init,
+                                 squinewave_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
@@ -859,7 +889,6 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  sockrecv_localops_init,
                                  socksend_localops_init,
 #endif
-                                 gendy_localops_init,
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init,
                                  wpfilters_localops_init,

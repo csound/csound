@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*    winFLTK.c         */
@@ -101,7 +101,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           csound->SetExitGraphCallback(csound, ExitGraph_FLTK);
            /* seemed to crash, but not anymore... */
           csound->RegisterResetCallback(csound, NULL, widget_reset);
-          csound->Message(csound, "graph init... \n");
+          csound->Message(csound, "graph init...\n");
 
         }
 #ifdef LINUX

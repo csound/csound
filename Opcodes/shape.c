@@ -26,8 +26,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
  */
 
 #include "csoundCore.h"
@@ -42,7 +42,7 @@ typedef struct {
     MYFLT   maxamplitude, one_over_maxamp;
 } POWER_SHAPE;
 
-static int PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
+static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
 {
     p->maxamplitude = *p->ifullscale;
     if (UNLIKELY(p->maxamplitude<= 0.0))
@@ -53,8 +53,9 @@ static int PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
     return OK;
 }
 
-static int PowerShape(CSOUND* csound, POWER_SHAPE* p)
+static int32_t PowerShape(CSOUND* csound, POWER_SHAPE* p)
 {
+    IGN(csound);
     MYFLT     cur, amt, maxampl, invmaxampl;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t  early  = p->h.insdshead->ksmps_no_end;
@@ -100,13 +101,13 @@ typedef struct {
 
 /* Efficiently evaluates a polynomial of arbitrary order --   */
 /* coefficients are k-rate and in this order: a0, a1, a2, ... */
-static int Polynomial(CSOUND* csound, POLYNOMIAL* p)
+static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
 {
-    int   i;
+    int32_t   i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int   ncoeff =    /* index of the last coefficient */
+    int32_t   ncoeff =    /* index of the last coefficient */
                    csound->GetInputArgCnt(p) - 2;
     MYFLT *out = p->aout;
     MYFLT *in = p->ain;
@@ -138,9 +139,9 @@ typedef struct {
     AUXCH   coeff;
 } CHEBPOLY;
 
-static int ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
+static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
 {
-    int     ncoeff = csound->GetInputArgCnt(p) - 1;
+    int32_t     ncoeff = csound->GetInputArgCnt(p) - 1;
 
     /* Need two MYFLT arrays of length ncoeff: first for the coefficients
        of the sum of polynomials, and the second for the coefficients of
@@ -154,13 +155,13 @@ static int ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
    Coefficients (k0, k1, k2, ... ) are k-rate multipliers of each Chebyshev
    polynomial starting with the zero-order polynomial T0(x) = 1, then
    T1(x) = x, T2(x) = 2x^2 - 1, etc. */
-static int ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
+static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
 {
-    int     i, j;
+    int32_t     i, j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     ncoeff =            /* index of the last coefficient */
+    int32_t     ncoeff =            /* index of the last coefficient */
                      csound->GetInputArgCnt(p) - 2;
     MYFLT   *out = p->aout;
     MYFLT   *in = p->ain;
@@ -229,17 +230,18 @@ typedef struct {
     MYFLT   *aout, *ain, *kwidth, *kcenter, *ibipolar, *ifullscale;
 } PD_CLIP;
 
-static int PDClip(CSOUND* csound, PD_CLIP* p)
+static int32_t PDClip(CSOUND* csound, PD_CLIP* p)
 {
+    IGN(csound);
     MYFLT     cur, low, high, maxampl, width, unwidth, center, outscalar;
-    int       bipolarMode;
+    int32_t       bipolarMode;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT*    out = p->aout;
     MYFLT*    in = p->ain;
 
-    bipolarMode = (int) *(p->ibipolar);
+    bipolarMode = (int32_t) *(p->ibipolar);
     maxampl = *(p->ifullscale);
     width = (*(p->kwidth) > FL(1.0) ? FL(1.0) :
              (*(p->kwidth) < FL(0.0) ? FL(0.0) : *(p->kwidth)));
@@ -294,8 +296,9 @@ typedef struct {
 } PD_HALF;
 
 /* Casio-style phase distortion with "pivot point" on the X axis */
-static int PDHalfX(CSOUND* csound, PD_HALF* p)
+static int32_t PDHalfX(CSOUND* csound, PD_HALF* p)
 {
+    IGN(csound);
     MYFLT     cur, maxampl, midpoint, leftslope, rightslope;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -352,8 +355,9 @@ static int PDHalfX(CSOUND* csound, PD_HALF* p)
 }
 
 /* Casio-style phase distortion with "pivot point" on the Y axis */
-static int PDHalfY(CSOUND* csound, PD_HALF* p)
+static int32_t PDHalfY(CSOUND* csound, PD_HALF* p)
 {
+    IGN(csound);
     MYFLT     cur, maxampl, midpoint, leftslope, rightslope;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -415,7 +419,7 @@ typedef struct {
     double  curphase;
 } SYNCPHASOR;
 
-int SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
+int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 {
     MYFLT  phs;
     int32   longphs;
@@ -429,7 +433,7 @@ int SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
     return OK;
 }
 
-int SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
+int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
 {
     double      phase;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -437,7 +441,7 @@ int SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *out, *syncout, *syncin;
     double      incr;
-    int         cpsIsARate;
+    int32_t         cpsIsARate;
 
     out = p->aphase;
     syncout = p->asyncout;
@@ -511,14 +515,14 @@ typedef struct {
     MYFLT   lastin, maxamplitude;
 } PHASINE;
 
-static int PhasineInit(CSOUND* csound, PHASINE* p)
+static int32_t PhasineInit(CSOUND* csound, PHASINE* p)
 {
     p->lastin = FL(0.0);
     p->maxamplitude = *p->ifullscale;
     return OK;
 }
 
-static int Phasine(CSOUND* csound, PHASINE* p)
+static int32_t Phasine(CSOUND* csound, PHASINE* p)
 {
     MYFLT     last, cur, phase, adjust, maxampl;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -559,19 +563,20 @@ static int Phasine(CSOUND* csound, PHASINE* p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY shape_localops[] = {
-  /* { "phasine", S(PHASINE), 0, 5, "a", "akp",
-                        (SUBR)PhasineInit, NULL, (SUBR)Phasine }, */
-  { "powershape", S(POWER_SHAPE), 0, 5, "a", "akp",
-                        (SUBR)PowerShapeInit, NULL, (SUBR)PowerShape },
-  { "polynomial", S(POLYNOMIAL), 0, 4, "a", "az", NULL, NULL, (SUBR)Polynomial },
-  { "chebyshevpoly", S(CHEBPOLY), 0, 5, "a", "az",
-                     (SUBR)ChebyshevPolyInit, NULL, (SUBR)ChebyshevPolynomial },
-  { "pdclip", S(PD_CLIP), 0, 4, "a", "akkop", NULL, NULL, (SUBR)PDClip },
-  { "pdhalf", S(PD_HALF), 0, 4, "a", "akop", NULL, NULL, (SUBR)PDHalfX },
-  { "pdhalfy", S(PD_HALF), 0, 4, "a", "akop", NULL, NULL, (SUBR)PDHalfY },
-  { "syncphasor", S(SYNCPHASOR), 0, 5, "aa", "xao",
-                  (SUBR)SyncPhasorInit, NULL, (SUBR)SyncPhasor },
+static OENTRY shape_localops[] =
+  {
+  /* { "phasine", S(PHASINE), 0, 3, "a", "akp",
+     (SUBR)PhasineInit, (SUBR)Phasine }, */
+   { "powershape", S(POWER_SHAPE), 0, 3, "a", "akp",
+     (SUBR)PowerShapeInit, (SUBR)PowerShape },
+   { "polynomial", S(POLYNOMIAL), 0, 2, "a", "az", NULL, (SUBR)Polynomial },
+   { "chebyshevpoly", S(CHEBPOLY), 0, 3, "a", "az",
+     (SUBR)ChebyshevPolyInit, (SUBR)ChebyshevPolynomial },
+   { "pdclip", S(PD_CLIP), 0, 2, "a", "akkop", NULL, (SUBR)PDClip },
+   { "pdhalf", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfX },
+   { "pdhalfy", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfY },
+   { "syncphasor", S(SYNCPHASOR), 0, 3, "aa", "xao",
+     (SUBR)SyncPhasorInit, (SUBR)SyncPhasor },
 };
 
 LINKAGE_BUILTIN(shape_localops)

@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -177,7 +177,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n",
               corfile_body(csound->orchstr));
-      //csound->DebugMsg(csound,"FILE: %s \n", csound->orchstr->body);
+      //csound->DebugMsg(csound,"FILE: %s\n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
       cs_init_math_constants_macros(csound, &qq);
       cs_init_omacros(csound, &qq, csound->omacros);
@@ -216,9 +216,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                              corfile_tell(csound->expanded_orc), pp.yyscanner);
 
       //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
-      //printf("%p \n", astTree);
+      //printf("%p\n", astTree);
       err = csound_orcparse(&pp, pp.yyscanner, csound, &astTree);
-      //printf("%p \n", astTree);
+      //printf("%p\n", astTree);
       //print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
       corfile_rm(csound, &csound->expanded_orc);

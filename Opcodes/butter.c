@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*              Butterworth filters coded by Paris Smaragdis 1994       */
@@ -42,12 +42,13 @@ typedef struct  {
 } BBFIL;
 
 #include <math.h>
-#define ROOT2 (1.4142135623730950488)
+//#define ROOT2 (1.4142135623730950488)
 
 static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
 
-int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
+int32_t butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
+     IGN(csound);
     if (*p->istor==FL(0.0)) {
       p->a[6] = p->a[7] = 0.0;
       p->lkf = FL(0.0);
@@ -55,7 +56,7 @@ int butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
     return OK;
 }
 
-static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
+static int32_t hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
 {
     MYFLT       *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -92,7 +93,7 @@ static int hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
     return OK;
 }
 
-static int lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
+static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
     MYFLT       *out, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -150,14 +151,15 @@ static void butter_filter(uint32_t n, uint32_t offset,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "butterhp.k", S(BFIL), 0, 5, "a",    "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butterlp.k", S(BFIL), 0, 5, "a",    "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
-{ "buthp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)hibut  },
-{ "butlp.k",    S(BFIL),  0, 5, "a",   "ako",  (SUBR)butset,  NULL, (SUBR)lobut  },
+{ "butterhp.k", S(BFIL), 0, 3, "a",    "ako",  (SUBR)butset,   (SUBR)hibut  },
+{ "butterlp.k", S(BFIL), 0, 3, "a",    "ako",  (SUBR)butset,   (SUBR)lobut  },
+{ "buthp.k",    S(BFIL),  0, 3, "a",   "ako",  (SUBR)butset,   (SUBR)hibut  },
+{ "butlp.k",    S(BFIL),  0, 3, "a",   "ako",  (SUBR)butset,   (SUBR)lobut  },
 };
 
-int butter_init_(CSOUND *csound)
+int32_t butter_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

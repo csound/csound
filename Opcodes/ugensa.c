@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "stdopcod.h"                 /*                              UGENSA.C  */
@@ -28,12 +28,12 @@
 
 /* FOG generator */
 
-static int newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
+static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
 
-static int fogset(CSOUND *csound, FOGS *p)
+static int32_t fogset(CSOUND *csound, FOGS *p)
 {
     /* legato test, not sure if the last bit (auxch) is correct? */
-    int skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
+    int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
     if (LIKELY((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
                (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL)) {
       OVERLAP *ovp, *nxtovp;
@@ -76,7 +76,7 @@ static int fogset(CSOUND *csound, FOGS *p)
     return OK;
 }
 
-static int fog(CSOUND *csound, FOGS *p)
+static int32_t fog(CSOUND *csound, FOGS *p)
 {
     OVERLAP *ovp;
     FUNC        *ftp1,  *ftp2;
@@ -86,7 +86,7 @@ static int fog(CSOUND *csound, FOGS *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32   fund_inc, form_inc;
-    /* long speed_inc; */ /*JMC added last--out for phs version*/
+    /* int64_t speed_inc; */ /*JMC added last--out for phs version*/
 
     ar = p->ar;
     amp = p->xamp;
@@ -166,7 +166,7 @@ static int fog(CSOUND *csound, FOGS *p)
                              Str("FOF needs more overlaps"));
 }
 
-static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
+static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
                     MYFLT *fund, MYFLT *ptch)
 {
     MYFLT       octamp = *amp, oct;
@@ -176,7 +176,8 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
         (*p->iskip==FL(0.0)))  /* ringtime    */
       return(0);
     if ((oct = *p->koct) > 0.0) {                   /* octaviation */
-      int32 ioct = (int32)oct, bitpat = ~(-1L << ioct);
+      int64_t cnst = -1L;
+      int32 ioct = (int32)oct, bitpat = ~(cnst << ioct);
       if (bitpat & ++p->fofcount)
         return(0);
       if ((bitpat += 1) & p->fofcount)
@@ -227,12 +228,12 @@ static int newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "fog",  S(FOGS), TR, 5, "a","xxxakkkkkiiiiooo",(SUBR)fogset,NULL,(SUBR)fog}
+  { "fog",  S(FOGS), TR, 3, "a","xxxakkkkkiiiiooo",(SUBR)fogset,(SUBR)fog}
 };
 
-int ugensa_init_(CSOUND *csound)
+int32_t ugensa_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

@@ -2,7 +2,7 @@
     pvsband.c:
     bandpass filter transformation of streaming PV signals
 
-    (c) John ffitch, 2007
+    Copyright (c) John ffitch, 2007
 
     This file is part of Csound.
 
@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "pvs_ops.h"
@@ -38,16 +38,16 @@ typedef struct {
 } PVSBAND;
 
 
-static int pvsbandinit(CSOUND *csound, PVSBAND *p)
+static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
 {
-    int     N = p->fin->N;
+    int32_t     N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
       csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
 
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
-          CS_KSMPS*(N+2)*sizeof(MYFLT) > (unsigned int)p->fout->frame.size)
+          CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fout->frame.size)
         csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
       else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     }
@@ -70,9 +70,9 @@ static int pvsbandinit(CSOUND *csound, PVSBAND *p)
     return OK;
 }
 
-static int pvsband(CSOUND *csound, PVSBAND *p)
+static int32_t pvsband(CSOUND *csound, PVSBAND *p)
 {
-    int     i, N = p->fin->N;
+    int32_t     i, N = p->fin->N;
     MYFLT   lowcut = *p->klowcut;
     MYFLT   lowbnd = *p->klowbnd;
     MYFLT   higbnd = *p->khigbnd;
@@ -92,11 +92,11 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
-      int NB  = p->fout->NB;
+      int32_t NB  = p->fout->NB;
 
       if (UNLIKELY(early)) nsmps -= early;
       for (n=offset; n<nsmps; n++) {
-        int change = 0;
+        int32_t change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         if (IS_ASIG_ARG(p->klowcut)) lowcut = p->klowcut[n], change = 1;
@@ -178,9 +178,9 @@ static int pvsband(CSOUND *csound, PVSBAND *p)
                              Str("pvsband: not initialised"));
 }
 
-static int pvsbrej(CSOUND *csound, PVSBAND *p)
+static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
 {
-    int     i, N = p->fin->N;
+    int32_t     i, N = p->fin->N;
     MYFLT   lowcut = *p->klowcut;
     MYFLT   lowbnd = *p->klowbnd;
     MYFLT   higbnd = *p->khigbnd;
@@ -200,11 +200,11 @@ static int pvsbrej(CSOUND *csound, PVSBAND *p)
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
-      int NB  = p->fout->NB;
+      int32_t NB  = p->fout->NB;
 
       if (UNLIKELY(early)) nsmps -= early;
       for (n=offset; n<nsmps; n++) {
-        int change = 0;
+        int32_t change = 0;
         CMPLX *fin = (CMPLX *) p->fin->frame.auxp + n*NB;
         CMPLX *fout = (CMPLX *) p->fout->frame.auxp + n*NB;
         if (IS_ASIG_ARG(p->klowcut)) lowcut = p->klowcut[n], change = 1;
@@ -291,8 +291,9 @@ static OENTRY localops[] = {
                     (SUBR) pvsbandinit, (SUBR) pvsbrej, (SUBR) NULL }
 };
 
-int pvsband_init_(CSOUND *csound)
+int32_t pvsband_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-                               (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int32_t
+                                ) (sizeof(localops) / sizeof(OENTRY)));
 }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 static int pycall0_krate(CSOUND *csound, PYCALL0 *p)
@@ -202,6 +202,7 @@ static int pycall1_krate(CSOUND *csound, PYCALL1 *p)
 
 static int pylcall1_irate(CSOUND *csound, PYCALL1 *p)
 {
+     IGN(csound);
     create_private_namespace_if_needed(&p->h);
     return OK;
 }

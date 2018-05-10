@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <stdio.h>
@@ -173,6 +173,7 @@ int isUDOAnsList(char *s)
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
+    IGN(yyscanner);
     int type = T_IDENT;
     ORCTOKEN *a;
     ORCTOKEN *ans;
@@ -335,7 +336,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid input type for opcode %s \n"), in_arg);
+            synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
             err++;
             continue;
           }
@@ -356,7 +357,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid input type for opcode %s \n"), in_arg);
+            synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
             err++;
             continue;
           }
@@ -458,7 +459,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 early_exit:
     if(in_args != NULL) {
       while(in_args[n] != NULL)  {
-        // printf("delete %p \n", argsFound[n]);
+        // printf("delete %p\n", argsFound[n]);
         csound->Free(csound, in_args[n]);
         n++;
       }
@@ -467,7 +468,7 @@ early_exit:
     if (out_args != NULL) {
       n = 0;
       while(out_args[n] != NULL)  {
-        // printf("delete %p \n", argsFound[n]);
+        // printf("delete %p\n", argsFound[n]);
         csound->Free(csound, out_args[n]);
         n++;
       }

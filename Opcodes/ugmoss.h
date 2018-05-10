@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                                                          /* ugmoss.h */
@@ -29,7 +29,7 @@ typedef struct {
   MYFLT                 *curp;
   FUNC                  *ftp;
   AUXCH                 sigbuf;
-  unsigned int          len;
+  uint32_t          len;
 } DCONV;
 
 typedef struct {
@@ -45,7 +45,7 @@ typedef struct {
   MYFLT                 *kftndx, *iftfn, *iresfn;
   FUNC                  *ftfn, *resfn;
   MYFLT                 ftndx;
-  unsigned int  len;
+  uint32_t              len;
 } FTMORF;
 
 /* end ugmoss.h */

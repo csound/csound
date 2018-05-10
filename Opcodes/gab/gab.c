@@ -14,8 +14,8 @@
 
 /*  You should have received a copy of the GNU Lesser General Public */
 /*  License along with the gab library; if not, write to the Free Software */
-/*  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA */
-/*  02111-1307 USA */
+/*  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA */
+/*  02110-1301 USA */
 
 /* Ported to csound5 by: Andres Cabrera */
 /* This file includes the opcodes from newopcodes.c */
@@ -37,16 +37,16 @@
 
 #define FLT_MAX ((MYFLT)0x7fffffff)
 
-static int krsnsetx(CSOUND *csound, KRESONX *p)
+static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
   /* Gabriel Maldonado, modifies for arb order  */
 {
-    int scale;
-    p->scale = scale = (int) *p->iscl;
+    int32_t scale;
+    p->scale = scale = (int32_t) *p->iscl;
     if (UNLIKELY((p->loop = MYFLT2LRND(*p->ord)) < 1))
       p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
-                       (unsigned int)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (long)(p->loop*2*sizeof(MYFLT)), &p->aux);
+                       (uint32_t)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
+      csound->AuxAlloc(csound, (int64_t)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
       return csound->InitError(csound,Str("illegal reson iscl value, %f"),
@@ -60,9 +60,9 @@ static int krsnsetx(CSOUND *csound, KRESONX *p)
     return OK;
 }
 
-static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
+static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 {
-    int flag = 0, j;
+    int32_t flag = 0, j;
     MYFLT       *ar, *asig;
     MYFLT       c3p1, c3t4, omc3, c2sqr;
     MYFLT *yt1, *yt2, c1,c2,c3;
@@ -107,7 +107,7 @@ static int kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 
 /* /////////////////////////////////////////// */
 
-static int fastab_set(CSOUND *csound, FASTAB *p)
+static int32_t fastab_set(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
@@ -115,7 +115,7 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
     }
     p->table = ftp->ftable;
     p->tablen = ftp->flen;
-    p->xmode = (int) *p->ixmode;
+    p->xmode = (int32_t) *p->ixmode;
     if (p->xmode)
       p->xbmul = (MYFLT) p->tablen /*- FL(0.001)*/;
     else
@@ -123,7 +123,7 @@ static int fastab_set(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-static int fastabw(CSOUND *csound, FASTAB *p)
+static int32_t fastabw(CSOUND *csound, FASTAB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -137,20 +137,20 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     if (UNLIKELY(early)) nsmps -= early;
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;   /* load once */
-      int len = p->tablen;
+      int32_t len = p->tablen;
       for (n=offset; n<nsmps; n++)  { /* for loops compile better */
-        int i = (int)(ndx[n]*xbmul);
+        int32_t i = (int32_t)(ndx[n]*xbmul);
         if (UNLIKELY(i > len || i<0)) {
-          csound->Message(csound, "ndx: %f \n", ndx[n]);
+          csound->Message(csound, "ndx: %f\n", ndx[n]);
           return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
         }
         tab[i] = rslt[n];
       }
     }
     else {
-      int len = p->tablen;
+      int32_t len = p->tablen;
       for (n=offset; n<nsmps; n++) {
-        int i = ndx[n];
+        int32_t i = ndx[n];
         if (UNLIKELY(i > len || i<0)) {
           return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
         }
@@ -160,13 +160,13 @@ static int fastabw(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-static int fastabk(CSOUND *csound, FASTAB *p)
+static int32_t fastabk(CSOUND *csound, FASTAB *p)
 {
-    int i;
+    int32_t i;
     if (p->xmode)
-      i = (int) (*p->xndx * p->xbmul);
+      i = (int32_t) (*p->xndx * p->xbmul);
     else
-      i = (int) *p->xndx;
+      i = (int32_t) *p->xndx;
     if (UNLIKELY(i > p->tablen || i<0)) {
       return csound->PerfError(csound, p->h.insdshead, Str("tab off end %i"), i);
     }
@@ -174,13 +174,13 @@ static int fastabk(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-static int fastabkw(CSOUND *csound, FASTAB *p)
+static int32_t fastabkw(CSOUND *csound, FASTAB *p)
 {
-    int i;
+    int32_t i;
     if (p->xmode)
-      i = (int) (*p->xndx * p->xbmul);
+      i = (int32_t) (*p->xndx * p->xbmul);
     else
-      i = (int) *p->xndx;
+      i = (int32_t) *p->xndx;
     if (UNLIKELY(i > p->tablen || i<0)) {
       return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
     }
@@ -188,7 +188,7 @@ static int fastabkw(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-static int fastabi(CSOUND *csound, FASTAB *p)
+static int32_t fastabi(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
     int32 i;
@@ -202,13 +202,13 @@ static int fastabi(CSOUND *csound, FASTAB *p)
       i = (int32) *p->xndx;
     if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
       return csound->InitError(csound, Str("tab_i off end: table number: %d\n"),
-                               (int) *p->xfn);
+                               (int32_t) *p->xfn);
     }
     *p->rslt =  ftp->ftable[i];
     return OK;
 }
 
-static int fastabiw(CSOUND *csound, FASTAB *p)
+static int32_t fastabiw(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
     int32 i;
@@ -227,7 +227,7 @@ static int fastabiw(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-static int fastab(CSOUND *csound, FASTAB *p)
+static int32_t fastab(CSOUND *csound, FASTAB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -243,9 +243,9 @@ static int fastab(CSOUND *csound, FASTAB *p)
     }
     if (p->xmode) {
       MYFLT xbmul = p->xbmul;
-      int len = p->tablen;
+      int32_t len = p->tablen;
       for (i=offset; i<nsmps; i++) {
-        int n = (int) (ndx[i] * xbmul);
+        int32_t n = (int32_t) (ndx[i] * xbmul);
         if (UNLIKELY(n > len || n<0)) {
           return csound->PerfError(csound, p->h.insdshead, Str("tab off end %d"),n);
         }
@@ -253,9 +253,9 @@ static int fastab(CSOUND *csound, FASTAB *p)
       }
     }
     else {
-      int len = p->tablen;
+      int32_t len = p->tablen;
       for (i=offset; i<nsmps; i++) {
-        int n = (int) ndx[i];
+        int32_t n = (int32_t) ndx[i];
         if (UNLIKELY(n > len || n<0)) {
           return csound->PerfError(csound, p->h.insdshead, Str("tab off end %d"),n);
         }
@@ -265,7 +265,7 @@ static int fastab(CSOUND *csound, FASTAB *p)
     return OK;
 }
 
-static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
+static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
 {
     MYFLT             *ft;
     STDOPCOD_GLOBALS  *pp;
@@ -276,13 +276,14 @@ static CS_NOINLINE int tab_init(CSOUND *csound, TB_INIT *p, int ndx)
     return OK;
 }
 
-static CS_NOINLINE int tab_perf(CSOUND *csound, FASTB *p)
+static CS_NOINLINE int32_t tab_perf(CSOUND *csound, FASTB *p)
 {
-    *p->r = (*p->tb_ptr)[(int) *p->ndx];
+     IGN(csound);
+    *p->r = (*p->tb_ptr)[(int32_t) *p->ndx];
     return OK;
 }
 
-static CS_NOINLINE int tab_i_tmp(CSOUND *csound, FASTB *p, int ndx)
+static CS_NOINLINE int32_t tab_i_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
 {
     STDOPCOD_GLOBALS  *pp;
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
@@ -291,7 +292,7 @@ static CS_NOINLINE int tab_i_tmp(CSOUND *csound, FASTB *p, int ndx)
     return tab_perf(csound, p);
 }
 
-static CS_NOINLINE int tab_k_tmp(CSOUND *csound, FASTB *p, int ndx)
+static CS_NOINLINE int32_t tab_k_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
 {
     STDOPCOD_GLOBALS  *pp;
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
@@ -305,11 +306,11 @@ static CS_NOINLINE int tab_k_tmp(CSOUND *csound, FASTB *p, int ndx)
 #endif
 
 #define TAB_MACRO(W,X,Y,Z)                  \
-static int W(CSOUND *csound, TB_INIT *p)    \
+static int32_t W(CSOUND *csound, TB_INIT *p)    \
 {   return tab_init(csound, p, Z);  }       \
-static int X(CSOUND *csound, FASTB *p)      \
+static int32_t X(CSOUND *csound, FASTB *p)      \
 {   return tab_i_tmp(csound, p, Z); }       \
-static int Y(CSOUND *csound, FASTB *p)      \
+static int32_t Y(CSOUND *csound, FASTB *p)      \
 {   return tab_k_tmp(csound, p, Z); }
 
 TAB_MACRO(tab0_init, tab0_i_tmp, tab0_k_tmp, 0)
@@ -333,17 +334,19 @@ TAB_MACRO(tab15_init, tab15_i_tmp, tab15_k_tmp, 15)
 /* opcodes from Jens Groh */
 /* ====================== */
 
-static int nlalp_set(CSOUND *csound, NLALP *p)
+static int32_t nlalp_set(CSOUND *csound, NLALP *p)
 {
+    IGN(csound);
     if (LIKELY(!(*p->istor))) {
-     p->m0 = 0.0;
-     p->m1 = 0.0;
-   }
-   return OK;
+      p->m0 = 0.0;
+      p->m1 = 0.0;
+    }
+    return OK;
 }
 
-static int nlalp(CSOUND *csound, NLALP *p)
+static int32_t nlalp(CSOUND *csound, NLALP *p)
 {
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -413,12 +416,12 @@ static int nlalp(CSOUND *csound, NLALP *p)
 
 /* ----------------------------------------------- */
 
-static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
+static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp;
-    unsigned int     count;
+    uint32_t count;
     int32   *lphs;
-    MYFLT   iphs = *p->iphs;
+    MYFLT    iphs = *p->iphs;
 
     p->inerr = 0;
 
@@ -430,7 +433,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       return csound->InitError(csound, Str("adsynt2: wavetable not found!"));
     }
 
-    count = (unsigned int)*p->icnt;
+    count = (uint32_t)*p->icnt;
     if (UNLIKELY(count < 1)) count = 1;
     p->count = count;
 
@@ -468,7 +471,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     lphs = (int32*)p->lphs.auxp;
 
     if (iphs > 1) {
-      unsigned int c;
+      uint32_t c;
       for (c=0; c<count; c++) {
         lphs[c] = ((int32)
                    ((MYFLT) ((double) (csound->Rand31(&(csound->randSeed1)) - 1)
@@ -476,7 +479,7 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       }
     }
     else if (iphs >= 0) {
-      unsigned int c;
+      uint32_t c;
       for (c=0; c<count; c++) {
         lphs[c] = ((int32)(iphs * FMAXLEN)) & PHMASK;
       }
@@ -489,14 +492,14 @@ static int adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     return OK;
 }
 
-static int adsynt2(CSOUND *csound,ADSYNT2 *p)
+static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
     MYFLT   *ar, *ftbl, *freqtbl, *amptbl, *prevAmp;
     MYFLT   amp0, amp, cps0, cps, ampIncr, amp2;
     int32   phs, inc, lobits;
     int32   *lphs;
-    int     c, count;
+    int32_t     c, count;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -546,15 +549,16 @@ static int adsynt2(CSOUND *csound,ADSYNT2 *p)
     return OK;
 }
 
-static int exitnow(CSOUND *csound, EXITNOW *p)
+static int32_t exitnow(CSOUND *csound, EXITNOW *p)
 {
     (void) p;
     csound->LongJmp(csound, MYFLT2LRND(*p->retval));
     return OK;  /* compiler only */
 }
 
-static int tabrec_set(CSOUND *csound,TABREC *p)
+static int32_t tabrec_set(CSOUND *csound,TABREC *p)
 {
+    IGN(csound);
     p->recording = 0;
     p->currtic = 0;
     p->ndx = 0;
@@ -562,15 +566,16 @@ static int tabrec_set(CSOUND *csound,TABREC *p)
     return OK;
 }
 
-static int tabrec_k(CSOUND *csound,TABREC *p)
+static int32_t tabrec_k(CSOUND *csound,TABREC *p)
 {
     if (*p->ktrig_start) {
       if (*p->kfn != p->old_fn) {
-        int flen;
-        if (UNLIKELY((flen = csoundGetTable(csound,&(p->table),(int)*p->kfn)) < 0))
+        int32_t flen;
+        if (UNLIKELY((flen = csoundGetTable(csound,&(p->table),
+                                            (int32_t)*p->kfn)) < 0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Invalid ftable no. %f"), *p->kfn);
-        p->tablen = (long) flen;
+        p->tablen = (int64_t) flen;
         *(p->table++) = *p->numtics;
         p->old_fn = *p->kfn;
       }
@@ -587,7 +592,7 @@ static int tabrec_k(CSOUND *csound,TABREC *p)
       p->currtic++;
     }
     if (p->recording) {
-      int j, curr_frame = p->ndx * p->numins;
+      int32_t j, curr_frame = p->ndx * p->numins;
 
       MYFLT *table = p->table;
       MYFLT **inargs = p->inargs;
@@ -601,7 +606,7 @@ static int tabrec_k(CSOUND *csound,TABREC *p)
     return OK;
 }
 /*-------------------------*/
-static int tabplay_set(CSOUND *csound,TABPLAY *p)
+static int32_t tabplay_set(CSOUND *csound,TABPLAY *p)
 {
     /*   FUNC *ftp; */
     /* if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
@@ -610,6 +615,7 @@ static int tabplay_set(CSOUND *csound,TABPLAY *p)
     /* } */
     /*  p->table = ftp->ftable; */
     /*  p->tablen = ftp->flen; */
+    IGN(csound);
     p->playing = 0;
     p->currtic = 0;
     p->ndx = 0;
@@ -617,15 +623,16 @@ static int tabplay_set(CSOUND *csound,TABPLAY *p)
     return OK;
 }
 
-static int tabplay_k(CSOUND *csound,TABPLAY *p)
+static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
 {
     if (*p->ktrig) {
       if (*p->kfn != p->old_fn) {
-        int flen;
-        if (UNLIKELY((flen = csoundGetTable(csound, &(p->table),(int)*p->kfn)) < 0))
+        int32_t flen;
+        if (UNLIKELY((flen = csoundGetTable(csound, &(p->table),
+                                            (int32_t)*p->kfn)) < 0))
           return csound->PerfError(csound, p->h.insdshead,
                                    Str("Invalid ftable no. %f"), *p->kfn);
-        p->tablen = (long) flen;
+        p->tablen = (int64_t) flen;
         p->currtic = 0;
         p->ndx = 0;
         *(p->table++) = *p->numtics;
@@ -639,11 +646,11 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
         return OK;
       }
       p->currtic++;
-      p->currtic %= (long) *p->numtics;
+      p->currtic %= (int64_t) *p->numtics;
 
     }
     if (p->playing) {
-      int j, curr_frame = p->ndx * p->numouts;
+      int32_t j, curr_frame = p->ndx * p->numouts;
       MYFLT *table = p->table;
       MYFLT **outargs = p->outargs;
       if (UNLIKELY(curr_frame + p->numouts < p->tablen)) {
@@ -656,19 +663,21 @@ static int tabplay_k(CSOUND *csound,TABPLAY *p)
     return OK;
 }
 
-static int isChanged_set(CSOUND *csound,ISCHANGED *p)
+static int32_t isChanged_set(CSOUND *csound,ISCHANGED *p)
 {
+     IGN(csound);
     p->numargs = p->INOCOUNT;
     memset(p->old_inargs, 0, sizeof(MYFLT)*p->numargs); /* Initialise */
     p->cnt = 1;
     return OK;
 }
 
-static int isChanged(CSOUND *csound,ISCHANGED *p)
+static int32_t isChanged(CSOUND *csound,ISCHANGED *p)
 {
+     IGN(csound);
     MYFLT **inargs = p->inargs;
     MYFLT *old_inargs = p->old_inargs;
-    int numargs = p->numargs, ktrig = 0, j;
+    int32_t numargs = p->numargs, ktrig = 0, j;
 
     if (LIKELY(p->cnt))
       for (j =0; j< numargs; j++) {
@@ -688,17 +697,17 @@ static int isChanged(CSOUND *csound,ISCHANGED *p)
     return OK;
 }
 
-static int isChanged2_set(CSOUND *csound,ISCHANGED *p)
+static int32_t isChanged2_set(CSOUND *csound,ISCHANGED *p)
 {
-    int res = isChanged_set(csound,p);
+    int32_t res = isChanged_set(csound,p);
     p->cnt = 0;
     return res;
 }
 
 /* changed in array */
-static int isAChanged_set(CSOUND *csound, ISACHANGED *p)
+static int32_t isAChanged_set(CSOUND *csound, ISACHANGED *p)
 {
-    int size = 0, i;
+    int32_t size = 0, i;
     ARRAYDAT *arr = p->chk;
     //char *tmp;
     for (i=0; i<arr->dimensions; i++) size += arr->sizes[i];
@@ -713,12 +722,13 @@ static int isAChanged_set(CSOUND *csound, ISACHANGED *p)
 }
 
 
-static int isAChanged(CSOUND *csound,ISACHANGED *p)
+static int32_t isAChanged(CSOUND *csound,ISACHANGED *p)
 {
+     IGN(csound);
     ARRAYDAT *chk = p->chk;
     void *old_chk = p->old_chk.auxp;
-    int size = p->size;
-    int ktrig = memcmp(chk->data, old_chk, size);
+    int32_t size = p->size;
+    int32_t ktrig = memcmp(chk->data, old_chk, size);
     memcpy(old_chk, chk->data, size);
     *p->ktrig = (p->cnt && ktrig)?FL(1.0):FL(0.0);
     p->cnt++;
@@ -728,9 +738,10 @@ static int isAChanged(CSOUND *csound,ISACHANGED *p)
 
 /* ------------------------- */
 
-static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
+static int32_t partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
 {
-    int flag = (int) *p->imaxflag;
+     IGN(csound);
+    int32_t flag = (int32_t) *p->imaxflag;
     switch (flag) {
     case 1:
       p->max = 0; break;
@@ -745,12 +756,12 @@ static int partial_maximum_set(CSOUND *csound,P_MAXIMUM *p)
     return OK;
 }
 
-static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
+static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int flag = (int) *p->imaxflag;
+    int32_t flag = (int32_t) *p->imaxflag;
     MYFLT *a = p->asig;
     MYFLT max = p->max;
     if (UNLIKELY(early)) nsmps -= early;
@@ -810,19 +821,21 @@ static int partial_maximum(CSOUND *csound,P_MAXIMUM *p)
 
 /* From fractals.c */
 /* mandelbrot set scanner  */
-static int mandel_set(CSOUND *csound,MANDEL *p)
+static int32_t mandel_set(CSOUND *csound,MANDEL *p)
 {
+     IGN(csound);
     p->oldx=-99999; /*probably unused values  */
     p->oldy=-99999;
     p->oldCount = -1;
     return OK;
 }
 
-static int mandel(CSOUND *csound,MANDEL *p)
+static int32_t mandel(CSOUND *csound,MANDEL *p)
 {
+     IGN(csound);
     MYFLT px=*p->kx, py=*p->ky;
     if (*p->ktrig && (px != p->oldx || py != p->oldy)) {
-      int maxIter = (int) *p->kmaxIter, j;
+      int32_t maxIter = (int32_t) *p->kmaxIter, j;
       MYFLT x=FL(0.0), y=FL(0.0), newx, newy;
       for (j=0; j<maxIter; j++) {
         newx = x*x - y*y + px;
@@ -850,74 +863,76 @@ OENTRY gab_localops[] = {
   {"resonxk", S(KRESONX),    0, 3,   "k",    "kkkooo",
                             (SUBR) krsnsetx, (SUBR) kresonx, NULL },
   { "tab_i",S(FASTAB),       TR, 1,   "i",    "iio", (SUBR) fastabi, NULL, NULL },
-  { "tab",S(FASTAB),         TR, 5,   "a",    "xio",
-                            (SUBR) fastab_set, (SUBR)NULL, (SUBR) fastab },
-  { "tab.k",S(FASTAB),         TR, 3,   "k",    "kio",
+  { "tab",S(FASTAB),         TR, 3,   "a",    "xio",
+                            (SUBR) fastab_set, (SUBR) fastab },
+  { "tab.k",S(FASTAB),       TR, 3,   "k",    "kio",
                             (SUBR) fastab_set, (SUBR)fastabk, NULL },
   { "tabw_i",S(FASTAB),      TW, 1,   "",    "iiio", (SUBR) fastabiw, NULL, NULL },
-  { "tabw",S(FASTAB),        TW, 7,   "",    "xxio",
-                            (SUBR)fastab_set, (SUBR)fastabkw, (SUBR)fastabw },
-  { "tb0_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab0_init},
-  { "tb1_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab1_init},
-  { "tb2_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab2_init},
-  { "tb3_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab3_init},
-  { "tb4_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab4_init},
-  { "tb5_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab5_init},
-  { "tb6_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab6_init},
-  { "tb7_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab7_init},
-  { "tb8_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab8_init},
-  { "tb9_init", S(TB_INIT),  TR, 1,   "",      "i",    (SUBR)tab9_init},
-  { "tb10_init", S(TB_INIT), TR, 1,   "",      "i",    (SUBR)tab10_init},
-  { "tb11_init", S(TB_INIT), TR, 1,   "",      "i",    (SUBR)tab11_init},
-  { "tb12_init", S(TB_INIT), TR, 1,   "",      "i",    (SUBR)tab12_init},
-  { "tb13_init", S(TB_INIT), TR, 1,   "",      "i",    (SUBR)tab13_init},
-  { "tb14_init", S(TB_INIT), TR, 1,   "",      "i",    (SUBR)tab14_init},
-  { "tb15_init", S(TB_INIT), TR, 1,   "",      "i",    (SUBR)tab15_init},
+  { "tabw",S(FASTAB),        TW, 3,   "",    "kkio",
+                            (SUBR)fastab_set, (SUBR)fastabkw          },
+  { "tabw",S(FASTAB),        TW, 3,   "",    "aaio",
+                            (SUBR)fastab_set, (SUBR)fastabw     },
+  { "tb0_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab0_init},
+  { "tb1_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab1_init},
+  { "tb2_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab2_init},
+  { "tb3_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab3_init},
+  { "tb4_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab4_init},
+  { "tb5_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab5_init},
+  { "tb6_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab6_init},
+  { "tb7_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab7_init},
+  { "tb8_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab8_init},
+  { "tb9_init", S(TB_INIT),  _QQ, 1,   "",      "i",    (SUBR)tab9_init},
+  { "tb10_init", S(TB_INIT), _QQ, 1,   "",      "i",    (SUBR)tab10_init},
+  { "tb11_init", S(TB_INIT), _QQ, 1,   "",      "i",    (SUBR)tab11_init},
+  { "tb12_init", S(TB_INIT), _QQ, 1,   "",      "i",    (SUBR)tab12_init},
+  { "tb13_init", S(TB_INIT), _QQ, 1,   "",      "i",    (SUBR)tab13_init},
+  { "tb14_init", S(TB_INIT), _QQ, 1,   "",      "i",    (SUBR)tab14_init},
+  { "tb15_init", S(TB_INIT), _QQ, 1,   "",      "i",    (SUBR)tab15_init},
   /* tbx_t (t-rate version removed here) */
-  { "tb0.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab0_i_tmp    },
-  { "tb1.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab1_i_tmp    },
-  { "tb2.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab2_i_tmp    },
-  { "tb3.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab3_i_tmp    },
-  { "tb4.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab4_i_tmp    },
-  { "tb5.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab5_i_tmp    },
-  { "tb6.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab6_i_tmp    },
-  { "tb7.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab7_i_tmp    },
-  { "tb8.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab8_i_tmp    },
-  { "tb9.i",      S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab9_i_tmp    },
-  { "tb10.i",     S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab10_i_tmp   },
-  { "tb11.i",     S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab11_i_tmp   },
-  { "tb12.i",     S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab12_i_tmp   },
-  { "tb13.i",     S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab13_i_tmp   },
-  { "tb14.i",     S(FASTB), 0, 1,    "i",     "i",    (SUBR) tab14_i_tmp   },
-  { "tb15.i",     S(FASTB),0,  1,    "i",     "i",    (SUBR) tab15_i_tmp   },
-  { "tb0.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab0_k_tmp,  NULL  },
-  { "tb1.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab1_k_tmp,  NULL  },
-  { "tb2.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab2_k_tmp,  NULL  },
-  { "tb3.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab3_k_tmp,  NULL  },
-  { "tb4.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab4_k_tmp,  NULL  },
-  { "tb5.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab5_k_tmp,  NULL  },
-  { "tb6.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab6_k_tmp,  NULL  },
-  { "tb7.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab7_k_tmp,  NULL  },
-  { "tb8.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab8_k_tmp,  NULL  },
-  { "tb9.k",  S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab9_k_tmp,  NULL  },
-  { "tb10.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab10_k_tmp, NULL  },
-  { "tb11.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab11_k_tmp, NULL  },
-  { "tb12.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab12_k_tmp, NULL  },
-  { "tb13.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab13_k_tmp, NULL  },
-  { "tb14.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab14_k_tmp, NULL  },
-  { "tb15.k", S(FASTB), 0, 2,  "k",    "k",    NULL, (SUBR) tab15_k_tmp, NULL  },
-  { "nlalp",      S(NLALP), 0, 5,    "a",     "akkoo",
-                            (SUBR) nlalp_set, NULL, (SUBR) nlalp   },
-  { "adsynt2",S(ADSYNT2),TR, 5,    "a",     "kkiiiio",
-                            (SUBR) adsynt2_set, NULL, (SUBR)adsynt2 },
+  { "tb0.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab0_i_tmp    },
+  { "tb1.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab1_i_tmp    },
+  { "tb2.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab2_i_tmp    },
+  { "tb3.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab3_i_tmp    },
+  { "tb4.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab4_i_tmp    },
+  { "tb5.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab5_i_tmp    },
+  { "tb6.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab6_i_tmp    },
+  { "tb7.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab7_i_tmp    },
+  { "tb8.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab8_i_tmp    },
+  { "tb9.i",      S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab9_i_tmp    },
+  { "tb10.i",     S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab10_i_tmp   },
+  { "tb11.i",     S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab11_i_tmp   },
+  { "tb12.i",     S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab12_i_tmp   },
+  { "tb13.i",     S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab13_i_tmp   },
+  { "tb14.i",     S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab14_i_tmp   },
+  { "tb15.i",     S(FASTB), _QQ|TR, 1,    "i",     "i", (SUBR) tab15_i_tmp   },
+  { "tb0.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab0_k_tmp  },
+  { "tb1.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab1_k_tmp  },
+  { "tb2.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab2_k_tmp  },
+  { "tb3.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab3_k_tmp  },
+  { "tb4.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab4_k_tmp  },
+  { "tb5.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab5_k_tmp  },
+  { "tb6.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab6_k_tmp  },
+  { "tb7.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab7_k_tmp  },
+  { "tb8.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab8_k_tmp  },
+  { "tb9.k",  S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab9_k_tmp  },
+  { "tb10.k", S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab10_k_tmp  },
+  { "tb11.k", S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab11_k_tmp  },
+  { "tb12.k", S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab12_k_tmp  },
+  { "tb13.k", S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab13_k_tmp  },
+  { "tb14.k", S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab14_k_tmp  },
+  { "tb15.k", S(FASTB), _QQ|TR, 2,  "k",    "k",    NULL, (SUBR) tab15_k_tmp  },
+  { "nlalp",  S(NLALP), 0,  3,  "a",    "akkoo",
+                            (SUBR) nlalp_set, (SUBR) nlalp   },
+  { "adsynt2",S(ADSYNT2),TR, 3,    "a",     "kkiiiio",
+                            (SUBR) adsynt2_set, (SUBR)adsynt2 },
   { "exitnow",S(EXITNOW),   0, 1,    "",  "o", (SUBR) exitnow, NULL, NULL },
 /* { "zr_i",  S(ZKR),     0, 1,  "i",  "i",  (SUBR)zread, NULL, NULL}, */
 /* { "zr_k",  S(ZKR),     0, 2,  "k",  "k",  NULL, (SUBR)zread, NULL}, */
-/* { "zr_a",  S(ZAR),     0, 5,  "a",  "a",  (SUBR)zaset, NULL, (SUBR)zar}, */
+/* { "zr_a",  S(ZAR),     0, 3,  "a",  "a",  (SUBR)zaset, (SUBR)zar}, */
 /* { "k_i",   S(ASSIGN),  0, 1,  "k",  "i",  (SUBR)assign}, */
 /* { "k_t",   S(ASSIGN),  0, 2,  "k",  "t",  NULL, (SUBR)assign}, */
-/* { "a_k",   S(INDIFF),  0, 5,  "a",  "k",  (SUBR)a_k_set,NULL, (SUBR)interp }, */
-  { "tabrec",   S(TABREC),  0, 3,     "",      "kkkkz",
+/* { "a_k",   S(INDIFF),  0, 3,  "a",  "k",  (SUBR)a_k_set, (SUBR)interp }, */
+  { "tabrec",   S(TABREC),  TW, 3,     "",      "kkkkz",
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
   { "tabplay",  S(TABPLAY), TR, 3,     "",      "kkkz",
                             (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
@@ -927,18 +942,15 @@ OENTRY gab_localops[] = {
                             (SUBR) isChanged2_set, (SUBR)isChanged, NULL },
   { "changed2.A", S(ISACHANGED), 0, 3,     "k",     ".[]",
                             (SUBR) isAChanged_set, (SUBR)isAChanged, NULL },
-  /*{ "ftlen_k",S(EVAL),    0, 2,      "k",    "k", NULL,      (SUBR)ftlen   }, */
-  { "max_k",  S(P_MAXIMUM), 0, 5,      "k",    "aki",
-            (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum },
-/*{ "maxk",   S(P_MAXIMUM), 0, 5,      "k",    "aki", */
-/*        (SUBR) partial_maximum_set, (SUBR) NULL, (SUBR) partial_maximum }, */
+  { "max_k",  S(P_MAXIMUM), 0, 3,      "k",    "aki",
+            (SUBR) partial_maximum_set, (SUBR) partial_maximum },
   { "mandel",S(MANDEL),     0, 3,      "kk",    "kkkk",
                             (SUBR) mandel_set, (SUBR) mandel, NULL }
 };
 
-int gab_gab_init_(CSOUND *csound)
+int32_t gab_gab_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(gab_localops[0]),
-                                 (int) (sizeof(gab_localops) / sizeof(OENTRY)));
+                                 (int32_t) (sizeof(gab_localops) / sizeof(OENTRY)));
 }
 

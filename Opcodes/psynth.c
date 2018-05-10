@@ -1,6 +1,6 @@
 /*  psynth.c
 
-    (c) Victor Lazzarini, 2005
+    Copyright (c) Victor Lazzarini, 2005
 
     This file is part of Csound.
 
@@ -16,8 +16,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* TRADSYN
@@ -71,7 +71,7 @@ typedef struct _psyn {
     MYFLT   *out;
     PVSDAT  *fin;
     MYFLT   *scal, *pitch, *maxtracks, *ftb, *thresh;
-    int     tracks, pos, numbins, hopsize;
+    int32_t     tracks, pos, numbins, hopsize;
     FUNC    *func;
     AUXCH   sum, amps, freqs, phases, trackID;
     double   factor, facsqr, min;
@@ -82,15 +82,15 @@ typedef struct _psyn2 {
     MYFLT   *out;
     PVSDAT  *fin;
     MYFLT   *scal, *maxtracks, *ftb, *thresh;
-    int     tracks, pos, numbins, hopsize;
+    int32_t     tracks, pos, numbins, hopsize;
     FUNC    *func;
     AUXCH   sum, amps, freqs, phases, trackID;
     double   factor, facsqr, min;
 } _PSYN2;
 
-static int psynth_init(CSOUND *csound, _PSYN *p)
+static int32_t psynth_init(CSOUND *csound, _PSYN *p)
 {
-    int     numbins = p->fin->N / 2 + 1;
+    int32_t     numbins = p->fin->N / 2 + 1;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
@@ -111,55 +111,55 @@ static int psynth_init(CSOUND *csound, _PSYN *p)
     else p->min = *p->thresh*csound->Get0dBFS(csound);
 
     if (p->amps.auxp == NULL ||
-        (unsigned) p->amps.size < sizeof(double) * numbins)
+        (uint32_t) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
     else
       memset(p->amps.auxp, 0, sizeof(double) * numbins );
     if (p->freqs.auxp == NULL ||
-        (unsigned) p->freqs.size < sizeof(double) * numbins)
+        (uint32_t) p->freqs.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
     else
       memset(p->freqs.auxp, 0, sizeof(double) * numbins );
     if (p->phases.auxp == NULL ||
-        (unsigned) p->phases.size < sizeof(double) * numbins)
+        (uint32_t) p->phases.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->phases);
     else
       memset(p->phases.auxp, 0, sizeof(double) * numbins );
     if (p->sum.auxp == NULL ||
-        (unsigned) p->sum.size < sizeof(double) * p->hopsize)
+        (uint32_t) p->sum.size < sizeof(double) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
     else
       memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
     if (p->trackID.auxp == NULL ||
-        (unsigned) p->trackID.size < sizeof(int) * numbins)
-      csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
+        (uint32_t) p->trackID.size < sizeof(int32_t) * numbins)
+      csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
     else
-      memset(p->trackID.auxp, 0, sizeof(int) * numbins );
+      memset(p->trackID.auxp, 0, sizeof(int32_t) * numbins );
 
     return OK;
 }
 
-static int psynth_process(CSOUND *csound, _PSYN *p)
+static int32_t psynth_process(CSOUND *csound, _PSYN *p)
 {
     double  ampnext, amp, freq, freqnext, phase, ratio;
     double  a, f, frac, incra, incrph, factor;
     MYFLT   scale = *p->scal, pitch = *p->pitch;
-    int     ndx, size = p->func->flen;
-    int     i, j, k, m, id;
-    int     notcontin = 0;
-    int     contin = 0;
-    int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
+    int32_t     ndx, size = p->func->flen;
+    int32_t     i, j, k, m, id;
+    int32_t     notcontin = 0;
+    int32_t     contin = 0;
+    int32_t     tracks = p->tracks, maxtracks = (int32_t) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      pos = p->pos;
+    int32_t      pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
-    int     *trackID = (int *) p->trackID.auxp;
-    int     hopsize = p->hopsize;
+    int32_t     *trackID = (int32_t *) p->trackID.auxp;
+    int32_t     hopsize = p->hopsize;
     double  min = p->min;
     ratio = size * csound->onedsr;
     factor = p->factor;
@@ -182,7 +182,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
 
           ampnext = (double) fin[i] * scale;
           freqnext = (double) fin[i + 1] * pitch;
-          if ((id = (int) fin[i + 3]) != -1) {
+          if ((id = (int32_t) fin[i + 3]) != -1) {
             j = k + notcontin;
 
             if (k < tracks - notcontin) {
@@ -224,7 +224,7 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
                   phase += size;
                 while (phase >= size)
                   phase -= size;
-                ndx = (int) phase;
+                ndx = (int32_t) phase;
                 frac = phase - ndx;
                 outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
                 a += incra;
@@ -255,9 +255,9 @@ static int psynth_process(CSOUND *csound, _PSYN *p)
     return OK;
 }
 
-static int psynth2_init(CSOUND *csound, _PSYN2 *p)
+static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
 {
-    int     numbins = p->fin->N / 2 + 1;
+    int32_t     numbins = p->fin->N / 2 + 1;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
@@ -278,57 +278,57 @@ static int psynth2_init(CSOUND *csound, _PSYN2 *p)
     else p->min = *p->thresh*csound->Get0dBFS(csound);
 
     if (p->amps.auxp == NULL ||
-        (unsigned) p->amps.size < sizeof(double) * numbins)
+        (uint32_t) p->amps.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
     else
       memset(p->amps.auxp, 0, sizeof(double) * numbins );
     if (p->freqs.auxp == NULL ||
-        (unsigned) p->freqs.size < sizeof(double) * numbins)
+        (uint32_t) p->freqs.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
     else
       memset(p->freqs.auxp, 0, sizeof(double) * numbins );
     if (p->phases.auxp == NULL ||
-        (unsigned) p->phases.size < sizeof(double) * numbins)
+        (uint32_t) p->phases.size < sizeof(double) * numbins)
       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->phases);
     else
       memset(p->phases.auxp, 0, sizeof(double) * numbins  );
     if (p->sum.auxp == NULL ||
-        (unsigned) p->sum.size < sizeof(double) * p->hopsize)
+        (uint32_t) p->sum.size < sizeof(double) * p->hopsize)
       csound->AuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
     else
       memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
     if (p->trackID.auxp == NULL ||
-        (unsigned) p->trackID.size < sizeof(int) * numbins)
-      csound->AuxAlloc(csound, sizeof(int) * numbins, &p->trackID);
+        (uint32_t) p->trackID.size < sizeof(int32_t) * numbins)
+      csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
     else
-      memset(p->trackID.auxp, 0, sizeof(int) * numbins );
+      memset(p->trackID.auxp, 0, sizeof(int32_t) * numbins );
 
     return OK;
 }
 
-static int psynth2_process(CSOUND *csound, _PSYN2 *p)
+static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
 {
     double   ampnext, amp, freq, freqnext, phase, phasenext;
     double  a2, a3, cph;
     double   phasediff, facsqr, ph;
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal;
-    int     ndx, size = p->func->flen;
-    int     i=0, j, k, m, id;
-    int     notcontin = 0;
-    int     contin = 0;
-    int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
+    int32_t     ndx, size = p->func->flen;
+    int32_t     i=0, j, k, m, id;
+    int32_t     notcontin = 0;
+    int32_t     contin = 0;
+    int32_t     tracks = p->tracks, maxtracks = (int32_t) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      pos = p->pos;
+    int32_t      pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT   *outsum = (MYFLT *) p->sum.auxp;
-    int     *trackID = (int *) p->trackID.auxp;
-    int     hopsize = p->hopsize;
+    int32_t     *trackID = (int32_t *) p->trackID.auxp;
+    int32_t     hopsize = p->hopsize;
     double  min = p->min;
 
     incrph = csound->onedsr;
@@ -354,7 +354,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
           ampnext = (double) fin[i] * scale;
           freqnext = (double) fin[i + 1] * TWOPI_F;
           phasenext = (double) fin[i + 2];
-          if ((id = (int) fin[i + 3]) != -1) {
+          if ((id = (int32_t) fin[i + 3]) != -1) {
 
             j = k + notcontin;
 
@@ -395,7 +395,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
                 phasediff += TWOPI_F;
               /* update phasediff to match the freq */
               cph = ((freq + freqnext) * factor * 0.5 - phasediff) / TWOPI;
-              phasediff += TWOPI_F * (int) (cph + 0.5);
+              phasediff += TWOPI_F * (int32_t) (cph + 0.5);
               /* interpolation coefs */
               a2 = 3.0 / facsqr * (phasediff -
                                    factor / 3.0 * (2.0 * freq + freqnext));
@@ -412,7 +412,7 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
                   ph += size;
                 while (ph >= size)
                   ph -= size;
-                ndx = (int) ph;
+                ndx = (int32_t) ph;
                 frac = ph - ndx;
                 outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
                 a += incra;
@@ -447,29 +447,29 @@ static int psynth2_process(CSOUND *csound, _PSYN2 *p)
     return OK;
 }
 
-static int psynth3_process(CSOUND *csound, _PSYN *p)
+static int32_t psynth3_process(CSOUND *csound, _PSYN *p)
 {
     double   ampnext, amp, freq, freqnext, phase, phasenext;
     double  a2, a3, cph=0.0;
     double   phasediff, facsqr, ph;
     double   a, frac, incra, incrph, factor, lotwopi, cnt;
     MYFLT   scale = *p->scal, pitch = *p->pitch;
-    int     ndx, size = p->func->flen;
-    int     i, j, k, m, id;
-    int     notcontin = 0;
-    int     contin = 0;
-    int     tracks = p->tracks, maxtracks = (int) *p->maxtracks;
+    int32_t     ndx, size = p->func->flen;
+    int32_t     i, j, k, m, id;
+    int32_t     notcontin = 0;
+    int32_t     contin = 0;
+    int32_t     tracks = p->tracks, maxtracks = (int32_t) *p->maxtracks;
     MYFLT   *tab = p->func->ftable, *out = p->out;
     float   *fin = (float *) p->fin->frame.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      pos = p->pos;
+    int32_t      pos = p->pos;
     double   *amps = (double *) p->amps.auxp, *freqs = (double *) p->freqs.auxp;
     double   *phases = (double *) p->phases.auxp;
     MYFLT    *outsum = (MYFLT *) p->sum.auxp;
-    int     *trackID = (int *) p->trackID.auxp;
-    int     hopsize = p->hopsize;
+    int32_t     *trackID = (int32_t *) p->trackID.auxp;
+    int32_t     hopsize = p->hopsize;
     double  min = p->min;
 
     incrph = csound->onedsr;
@@ -494,7 +494,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
           ampnext = (double) fin[i] * scale;
           freqnext = (double) fin[i + 1] * TWOPI_F * pitch;
           phasenext = (double) fin[i + 2];
-          if ((id = (int) fin[i + 3]) != -1) {
+          if ((id = (int32_t) fin[i + 3]) != -1) {
             j = k + notcontin;
 
             if (k < tracks - notcontin) {
@@ -549,7 +549,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
                   ph += size;
                 while (ph >= size)
                   ph -= size;
-                ndx = (int) ph;
+                ndx = (int32_t) ph;
                 frac = ph - ndx;
                 outsum[m] += a * (tab[ndx] + (tab[ndx + 1] - tab[ndx]) * frac);
                 a += incra;
@@ -561,7 +561,7 @@ static int psynth3_process(CSOUND *csound, _PSYN *p)
             if (contin) {
               amps[k] = ampnext;
               freqs[k] = freqnext;
-              phasenext += (cph - (int) cph) * TWOPI;
+              phasenext += (cph - (int32_t) cph) * TWOPI;
               while (phasenext < 0)
                 phasenext += TWOPI_F;
               while (phasenext >= TWOPI_F)
@@ -594,13 +594,13 @@ typedef struct _ptrans {
     MYFLT   *kgain;
     MYFLT   *pad1;
     MYFLT   *pad2;
-    unsigned int lastframe;
-    int     numbins;
+    uint32_t lastframe;
+    int32_t     numbins;
 } _PTRANS;
 
-static int trans_init(CSOUND *csound, _PTRANS *p)
+static int32_t trans_init(CSOUND *csound, _PTRANS *p)
 {
-    int     numbins;
+    int32_t     numbins;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound, Str("Input not in TRACKS format\n"));
@@ -622,14 +622,14 @@ static int trans_init(CSOUND *csound, _PTRANS *p)
     return OK;
 }
 
-static int trscale_process(CSOUND *csound, _PTRANS *p)
+static int32_t trscale_process(CSOUND *csound, _PTRANS *p)
 {
     MYFLT   scale = *p->kpar;
     MYFLT   gain = (p->kgain != NULL ? *p->kgain : FL(1.0));
     MYFLT   nyq = CS_ESR * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
     MYFLT   outfr;
 
     if (p->lastframe < p->fin->framecount) {
@@ -641,7 +641,7 @@ static int trscale_process(CSOUND *csound, _PTRANS *p)
         outfr = framein[i + 1] * scale;
         frameout[i + 1] = (float) (outfr < nyq ? outfr : nyq);
         frameout[i + 2] = framein[i + 2];
-        id = (int) framein[i + 3];
+        id = (int32_t) framein[i + 3];
         frameout[i + 3] = (float) id;
         i += 4;
       } while (id != -1 && i < end);
@@ -651,14 +651,14 @@ static int trscale_process(CSOUND *csound, _PTRANS *p)
     return OK;
 }
 
-static int trshift_process(CSOUND *csound, _PTRANS *p)
+static int32_t trshift_process(CSOUND *csound, _PTRANS *p)
 {
     MYFLT   shift = *p->kpar;
     MYFLT   gain = (p->kgain != NULL ? *p->kgain : FL(1.0));
     MYFLT   nyq = CS_ESR * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t     i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
     MYFLT   outfr;
 
     if (p->lastframe < p->fin->framecount) {
@@ -670,7 +670,7 @@ static int trshift_process(CSOUND *csound, _PTRANS *p)
         outfr = framein[i + 1] + shift;
         frameout[i + 1] = (float) (outfr < nyq ? outfr : nyq);
         frameout[i + 2] = framein[i + 2];
-        id = (int) framein[i + 3];
+        id = (int32_t) framein[i + 3];
         frameout[i + 3] = (float) id;
         i += 4;
       } while (id != -1 && i < end);
@@ -687,13 +687,13 @@ typedef struct _plow {
     MYFLT   *kamp;
     PVSDAT  *fin;
     MYFLT   *kpar;
-    unsigned int lastframe;
-    int     numbins;
+    uint32_t lastframe;
+    int32_t     numbins;
 } _PLOW;
 
-static int trlowest_init(CSOUND *csound, _PLOW *p)
+static int32_t trlowest_init(CSOUND *csound, _PLOW *p)
 {
-    int     numbins;
+    int32_t     numbins;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound, Str("Input not in TRACKS format\n"));
@@ -715,14 +715,14 @@ static int trlowest_init(CSOUND *csound, _PLOW *p)
     return OK;
 }
 
-static int trlowest_process(CSOUND *csound, _PLOW *p)
+static int32_t trlowest_process(CSOUND *csound, _PLOW *p)
 {
     MYFLT   scale = *p->kpar;
     MYFLT   nyq = CS_ESR * FL(0.5);
     float   lowest = (float) nyq, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       do {
@@ -732,7 +732,7 @@ static int trlowest_process(CSOUND *csound, _PLOW *p)
           outph = framein[i + 2];
           outid = framein[i + 3];
         }
-        id = (int) framein[i + 3];
+        id = (int32_t) framein[i + 3];
         i += 4;
       } while (id != -1 && i < end);
       frameout[0] = outamp * scale;
@@ -749,13 +749,14 @@ static int trlowest_process(CSOUND *csound, _PLOW *p)
     return OK;
 }
 
-static int trhighest_process(CSOUND *csound, _PLOW *p)
+static int32_t trhighest_process(CSOUND *csound, _PLOW *p)
 {
+    IGN(csound);
     MYFLT   scale = *p->kpar;
     float   highest = 0.0f, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int     i = 0, id = (int) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       do {
@@ -765,7 +766,7 @@ static int trhighest_process(CSOUND *csound, _PLOW *p)
           outph = framein[i + 2];
           outid = framein[i + 3];
         }
-        id = (int) framein[i + 3];
+        id = (int32_t) framein[i + 3];
         i += 4;
       } while (id != -1 && i < end);
       frameout[0] = outamp * scale;
@@ -792,13 +793,13 @@ typedef struct _psplit {
     MYFLT   *kgain2;
     MYFLT   *pad1;
     MYFLT   *pad2;
-    unsigned int lastframe;
-    int     numbins;
+    uint32_t lastframe;
+    int32_t     numbins;
 } _PSPLIT;
 
-static int trsplit_init(CSOUND *csound, _PSPLIT *p)
+static int32_t trsplit_init(CSOUND *csound, _PSPLIT *p)
 {
-    int     numbins;
+    int32_t     numbins;
 
     if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
       return csound->InitError(csound, Str("trsplit: input not "
@@ -832,16 +833,17 @@ static int trsplit_init(CSOUND *csound, _PSPLIT *p)
     return OK;
 }
 
-static int trsplit_process(CSOUND *csound, _PSPLIT *p)
+static int32_t trsplit_process(CSOUND *csound, _PSPLIT *p)
 {
+    IGN(csound);
     MYFLT   split = *p->kpar;
     MYFLT   gain1 = (p->kgain1 != NULL ? *p->kgain1 : FL(1.0));
     MYFLT   gain2 = (p->kgain2 != NULL ? *p->kgain2 : FL(1.0));
     float   *framein = (float *) p->fsig3->frame.auxp;
     float   *frameout1 = (float *) p->fsig1->frame.auxp;
     float   *frameout2 = (float *) p->fsig2->frame.auxp;
-    int     i = 0, id = (int) framein[3], end = p->numbins * 4;
-    int     trkcnt1 = 0, trkcnt2 = 0;
+    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
+    int32_t     trkcnt1 = 0, trkcnt2 = 0;
 
     if (p->lastframe < p->fsig3->framecount) {
       do {
@@ -853,7 +855,7 @@ static int trsplit_process(CSOUND *csound, _PSPLIT *p)
             frameout1[trkcnt1] = framein[i];
           frameout1[trkcnt1 + 1] = framein[i + 1];
           frameout1[trkcnt1 + 2] = framein[i + 2];
-          id = (int) framein[i + 3];
+          id = (int32_t) framein[i + 3];
           frameout1[trkcnt1 + 3] = (float) id;
           trkcnt1 += 4;
         }
@@ -864,7 +866,7 @@ static int trsplit_process(CSOUND *csound, _PSPLIT *p)
             frameout2[trkcnt2] = framein[i];
           frameout2[trkcnt2 + 1] = framein[i + 1];
           frameout2[trkcnt2 + 2] = framein[i + 2];
-          id = (int) framein[i + 3];
+          id = (int32_t) framein[i + 3];
           frameout2[trkcnt2 + 3] = (float) id;
           trkcnt2 += 4;
         }
@@ -887,13 +889,13 @@ typedef struct _psmix {
     PVSDAT  *fsig1;
     PVSDAT  *fsig2;
     PVSDAT  *fsig3;
-    unsigned int lastframe;
-    int     numbins;
+    uint32_t lastframe;
+    int32_t     numbins;
 } _PSMIX;
 
-static int trmix_init(CSOUND *csound, _PSMIX *p)
+static int32_t trmix_init(CSOUND *csound, _PSMIX *p)
 {
-    int     numbins;
+    int32_t     numbins;
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
@@ -921,12 +923,13 @@ static int trmix_init(CSOUND *csound, _PSMIX *p)
     return OK;
 }
 
-static int trmix_process(CSOUND *csound, _PSMIX *p)
+static int32_t trmix_process(CSOUND *csound, _PSMIX *p)
 {
+     IGN(csound);
     float   *framein2 = (float *) p->fsig3->frame.auxp;
     float   *frameout = (float *) p->fsig1->frame.auxp;
     float   *framein1 = (float *) p->fsig2->frame.auxp;
-    int     i = 0, j = 0, id = (int) framein1[3], end = p->numbins * 4;
+    int32_t   i = 0, j = 0, id = (int32_t) framein1[3], end = p->numbins * 4;
 
     if (p->lastframe < p->fsig2->framecount) {
 
@@ -936,9 +939,9 @@ static int trmix_process(CSOUND *csound, _PSMIX *p)
         frameout[i + 2] = framein1[i + 2];
         frameout[i + 3] = (float) id;
         i += 4;
-        id = (int) framein1[i + 3];
+        id = (int32_t) framein1[i + 3];
       }
-      id = (int) framein2[3];
+      id = (int32_t) framein2[3];
       while (id != -1 && i < end && j < end) {
         frameout[i] = framein2[j];
         frameout[i + 1] = framein2[j + 1];
@@ -946,7 +949,7 @@ static int trmix_process(CSOUND *csound, _PSMIX *p)
         frameout[i + 3] = (float) id;
         i += 4;
         j += 4;
-        id = (int) framein2[j + 3];
+        id = (int32_t) framein2[j + 3];
       }
       if (i + 3 < p->numbins * 4)
         frameout[i + 3] = -1.0f;
@@ -964,14 +967,14 @@ typedef struct _psfil {
     MYFLT   *kpar;
     MYFLT   *ifn;
     FUNC    *tab;
-    int     len;
-    unsigned int lastframe;
-    int     numbins;
+    int32_t     len;
+    uint32_t lastframe;
+    int32_t     numbins;
 } _PSFIL;
 
-static int trfil_init(CSOUND *csound, _PSFIL *p)
+static int32_t trfil_init(CSOUND *csound, _PSFIL *p)
 {
-    int     numbins;
+    int32_t     numbins;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
@@ -999,18 +1002,18 @@ static int trfil_init(CSOUND *csound, _PSFIL *p)
     return OK;
 }
 
-static int trfil_process(CSOUND *csound, _PSFIL *p)
+static int32_t trfil_process(CSOUND *csound, _PSFIL *p)
 {
     MYFLT   amnt = *p->kpar, gain = FL(1.0);
     MYFLT   nyq = CS_ESR * FL(0.5);
     MYFLT   *fil = p->tab->ftable;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int     i = 0, id = (int) framein[3], len = p->len, end = p->numbins * 4;
+    int32_t i = 0, id = (int32_t) framein[3], len = p->len, end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       MYFLT   fr, pos = FL(0.0), frac = FL(0.0);
-      int     posi = 0;
+      int32_t     posi = 0;
 
       if (UNLIKELY(amnt > 1))
         amnt = 1;
@@ -1023,13 +1026,13 @@ static int trfil_process(CSOUND *csound, _PSFIL *p)
         //if (fr < 0)
         fr = FABS(fr);
         pos = fr * len / nyq;
-        posi = (int) pos;
+        posi = (int32_t) pos;
         frac = pos - posi;
         gain = fil[posi] + frac * (fil[posi + 1] - fil[posi]);
         frameout[i] = (float) (framein[i] * (FL(1.0) - amnt + gain * amnt));
         frameout[i + 1] = fr;
         frameout[i + 2] = framein[i + 2];
-        id = (int) framein[i + 3];
+        id = (int32_t) framein[i + 3];
         frameout[i + 3] = (float) id;
         i += 4;
       } while (id != -1 && i < end);
@@ -1049,13 +1052,13 @@ typedef struct _pscross {
     MYFLT   *kpar1;
     MYFLT   *kpar2;
     MYFLT   *kpar3;
-    unsigned int lastframe;
-    int     numbins;
+    uint32_t lastframe;
+    int32_t     numbins;
 } _PSCROSS;
 
-static int trcross_init(CSOUND *csound, _PSCROSS *p)
+static int32_t trcross_init(CSOUND *csound, _PSCROSS *p)
 {
-    int     numbins;
+    int32_t     numbins;
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
@@ -1083,19 +1086,20 @@ static int trcross_init(CSOUND *csound, _PSCROSS *p)
     return OK;
 }
 
-static int trcross_process(CSOUND *csound, _PSCROSS *p)
+static int32_t trcross_process(CSOUND *csound, _PSCROSS *p)
 {
+     IGN(csound);
     MYFLT   interval = *p->kpar1, bal = *p->kpar2;
-    int     mode = p->kpar3 != NULL ? (int) *p->kpar3 : 0;
+    int32_t mode = p->kpar3 != NULL ? (int32_t) *p->kpar3 : 0;
     float   *framein2 = (float *) p->fsig3->frame.auxp;
     float   *frameout = (float *) p->fsig1->frame.auxp;
     float   *framein1 = (float *) p->fsig2->frame.auxp;
-    int     i = 0, j = 0, nomatch = 1, id, end = p->numbins * 4;
+    int32_t     i = 0, j = 0, nomatch = 1, id, end = p->numbins * 4;
     float   max = 0;
     MYFLT   boundup, boundown;
-    int     maxj = -1;
+    int32_t     maxj = -1;
 
-    id = (int) framein1[3];
+    id = (int32_t) framein1[3];
 
     if (p->lastframe < p->fsig2->framecount) {
       if (bal > 1)
@@ -1106,7 +1110,7 @@ static int trcross_process(CSOUND *csound, _PSCROSS *p)
         for (i = 0; framein2[i + 3] != -1 && i < end; i += 4)
           max = framein2[i] > max ? framein2[i] : max;
 
-      for (i = 0; id != -1 && i < end; i += 4, id = (int) framein1[i + 3]) {
+      for (i = 0; id != -1 && i < end; i += 4, id = (int32_t) framein1[i + 3]) {
 
         boundup = framein1[i + 1] * interval;
         boundown = framein1[i + 1] * (FL(1.0) / interval);
@@ -1156,21 +1160,21 @@ typedef struct _psbin {
     PVSDAT  *fsig1;
     PVSDAT  *fsig2;
     MYFLT   *ipar;
-    int     N;
-    unsigned int lastframe;
-    int     numbins;
+    int32_t     N;
+    uint32_t lastframe;
+    int32_t     numbins;
 } _PSBIN;
 
-static int binit_init(CSOUND *csound, _PSBIN *p)
+static int32_t binit_init(CSOUND *csound, _PSBIN *p)
 {
-    int     numbins, N;
+    int32_t     numbins, N;
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
                                Str("binit: first input not in TRACKS format\n"));
     }
 
-    N = p->N = (int) *p->ipar;
+    N = p->N = (int32_t) *p->ipar;
     p->numbins = numbins = p->fsig2->N / 2 + 1;
     if (p->fsig1->frame.auxp == NULL ||
         p->fsig1->frame.size < sizeof(float) * (N + 2))
@@ -1187,13 +1191,13 @@ static int binit_init(CSOUND *csound, _PSBIN *p)
     return OK;
 }
 
-static int binit_process(CSOUND *csound, _PSBIN *p)
+static int32_t binit_process(CSOUND *csound, _PSBIN *p)
 {
-    int     N = (int) p->N;
+    int32_t N = (int32_t) p->N;
     float   *frameout = (float *) p->fsig1->frame.auxp;
     float   *framein = (float *) p->fsig2->frame.auxp;
-    int     i = 0, n = 0, id = (int) framein[3], end = p->numbins * 4;
-    int     maxi = -1;
+    int32_t i = 0, n = 0, id = (int32_t) framein[3], end = p->numbins * 4;
+    int32_t     maxi = -1;
     MYFLT   bw = CS_ESR / (MYFLT)N, boundup, boundown;
     MYFLT   nyq = CS_ESR * FL(0.5), centre;
 
@@ -1205,7 +1209,7 @@ static int binit_process(CSOUND *csound, _PSBIN *p)
         boundup = (n == N - 2 ? nyq : centre + (bw / 2));
         boundown = (n == 2 ? 0 : centre - (bw / 2));
 
-        for (i = 0; id != -1 && i < end; i += 4, id = (int) framein[i + 3]) {
+        for (i = 0; id != -1 && i < end; i += 4, id = (int32_t) framein[i + 3]) {
           if ((framein[i + 1] > boundown) && (framein[i + 1] <= boundup)) {
             if (maxi != -1)
               maxi = (framein[i] > framein[maxi] ? i : maxi);
@@ -1223,7 +1227,7 @@ static int binit_process(CSOUND *csound, _PSBIN *p)
           frameout[n] = 0.f;
           frameout[n + 1] = 0.f;
         }
-        id = (int) framein[3];
+        id = (int32_t) framein[3];
       }
 
       frameout[0] = 0.f;
@@ -1236,13 +1240,13 @@ static int binit_process(CSOUND *csound, _PSBIN *p)
 
 static OENTRY localops[] =
   {
-    {"tradsyn", sizeof(_PSYN),0,  5, "a", "fkkkij", (SUBR) psynth_init, NULL,
+   {"tradsyn", sizeof(_PSYN),0,  3, "a", "fkkkij", (SUBR) psynth_init,
      (SUBR) psynth_process}
     ,
-    {"sinsyn", sizeof(_PSYN2), TR, 5, "a", "fkkij", (SUBR) psynth2_init, NULL,
+   {"sinsyn", sizeof(_PSYN2), TR, 3, "a", "fkkij", (SUBR) psynth2_init,
      (SUBR) psynth2_process}
     ,
-    {"resyn", sizeof(_PSYN), TR, 5, "a", "fkkkij", (SUBR) psynth_init, NULL,
+   {"resyn", sizeof(_PSYN), TR, 3, "a", "fkkkij", (SUBR) psynth_init,
      (SUBR) psynth3_process}
     ,
     {"trscale", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,
@@ -1273,8 +1277,9 @@ static OENTRY localops[] =
      (SUBR) binit_process}
   };
 
-int psynth_init_(CSOUND *csound)
+int32_t psynth_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-                               (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int32_t
+                                ) (sizeof(localops) / sizeof(OENTRY)));
 }

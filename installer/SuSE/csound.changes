@@ -1,0 +1,158 @@
+-------------------------------------------------------------------
+Sun Dec 31 22:00:33 UTC 2017 - jpff@codemist.co.uk
+
+- change to v6.10
+
+-------------------------------------------------------------------
+Thu Nov 23 14:49:33 UTC 2017 - dimstar@opensuse.org
+
+- Add csound-scons-on-py3.patch: Fix build with scons using python3
+  as interpreter.
+
+-------------------------------------------------------------------
+Wed Nov  8 18:22:43 UTC 2017 - dimstar@opensuse.org
+
+- Rename README.SuSE to README.SUSE, adhering to the correct
+  spelling.
+
+-------------------------------------------------------------------
+Sat Feb 11 14:14:39 UTC 2017 - jengelh@inai.de
+
+- Fix RPM groups, trim descriptions from repeated information.
+  Remove unnecessary ldconfig calls (they do not apply for
+  plugin directories).
+
+-------------------------------------------------------------------
+Mon Jan 16 19:54:07 UTC 2017 - bwiedemann@suse.com
+
+- drop useless uninstall script and make build reproducible
+
+-------------------------------------------------------------------
+Tue Nov  6 16:03:11 CET 2012 - tiwai@suse.de
+
+- updated to version 5.18.02, including previous security fixes:
+  this fixes the build failure on FACTORY with new bison, too;
+  see ChangeLog for detailed updates and fixes
+
+-------------------------------------------------------------------
+Wed Apr 18 11:21:46 CEST 2012 - tiwai@suse.de
+
+- VUL-0: csound: buffer overflow in pv_import (CVE-2012-2106,
+  bnc#757254),
+  VUL-0: csound: buffer overflow in lpc_import (CVE-2012-2107,
+  bnc#757255),
+  VUL-0: csound: Stack-based buffer overflow in lpc_import
+  (CVE-2012-2108, bnc#757256):
+  a single patch for all three issues
+
+-------------------------------------------------------------------
+Mon Feb 27 12:04:56 CET 2012 - tiwai@suse.de
+
+- updated to version 5.16.6, including a fix for
+  VUL-0: CVE-2012-0270: csound: two buffer overflow flaws in
+  getnum() (bnc#749073)
+- drop obsoleted patches
+
+-------------------------------------------------------------------
+Sun Jan  8 15:04:23 UTC 2012 - prusnak@opensuse.org
+
+- updated to version 5.15.0
+- drop unused patches
+- fix wrong memset and strncat usage ({memset,strncat}-fix.patch)
+- create -devel subpackage
+
+-------------------------------------------------------------------
+Sun Sep 18 00:04:38 UTC 2011 - jengelh@medozas.de
+
+- Remove redundant tags/sections from specfile
+
+-------------------------------------------------------------------
+Thu Jul 16 18:04:52 CEST 2009 - tiwai@suse.de
+
+- fix scons argument to build for 64bit archs (bnc#521979)
+
+-------------------------------------------------------------------
+Wed Jan 28 14:40:46 CET 2009 - tiwai@suse.de
+
+- Fix python module search path insecure issue (bnc#470095)
+  This package is unaffected; the patch is included just for any
+  possible cases in future.
+
+-------------------------------------------------------------------
+Wed Oct  1 15:28:52 CEST 2008 - tiwai@suse.de
+
+- fix build with python-2.6
+
+-------------------------------------------------------------------
+Wed Jun 20 15:44:26 CEST 2007 - tiwai@suse.de
+
+- fix fdupes usage
+
+-------------------------------------------------------------------
+Mon Jun 11 17:57:22 CEST 2007 - tiwai@suse.de
+
+- updated to version 5.06:
+  * fix k-rate, vrandh and vrandi scaling problems, mod fix
+  * new opcodes: partikkel, partikkelsync
+
+-------------------------------------------------------------------
+Tue Mar 27 18:08:43 CEST 2007 - tiwai@suse.de
+
+- update to version 5.05:
+  * fixes/improvements on FLTK support
+  * fix heap overflow
+  * clean up old codes
+
+-------------------------------------------------------------------
+Mon Jan 22 13:11:02 CET 2007 - tiwai@suse.de
+
+- major update to version 5.04
+  (not built with fltk due to lack of threading support)
+
+-------------------------------------------------------------------
+Mon Mar 27 18:54:23 CEST 2006 - pth@suse.de
+
+- Add missing parameter in printf call (bug #129676).
+
+-------------------------------------------------------------------
+Wed Jan 25 21:35:15 CET 2006 - mls@suse.de
+
+- converted neededforbuild to BuildRequires
+
+-------------------------------------------------------------------
+Fri Oct 15 10:54:27 CEST 2004 - tiwai@suse.de
+
+- renamed extract to csound-extract to avoid name confliction
+  (bug #45347).
+
+-------------------------------------------------------------------
+Wed Jun  2 17:05:41 CEST 2004 - tiwai@suse.de
+
+- fixed the ALSA RT plugin with the new API.
+
+-------------------------------------------------------------------
+Sat Jan 10 18:11:42 CET 2004 - adrian@suse.de
+
+- add %run_ldconfig and %defattr
+
+-------------------------------------------------------------------
+Tue Aug  5 12:48:27 CEST 2003 - tiwai@suse.de
+
+- renamed sndinfo to csndinfo to avoid name confliction with snd.
+
+-------------------------------------------------------------------
+Wed Jul 30 12:48:59 CEST 2003 - tiwai@suse.de
+
+- fixed the build on x86-64.
+
+-------------------------------------------------------------------
+Mon Jul 28 16:11:55 CEST 2003 - tiwai@suse.de
+
+- updated to 4.24.1.
+- fixed tmpnam with mkstemp.
+
+-------------------------------------------------------------------
+Thu Feb  1 19:18:36 CET 2001 - tiwai@suse.de
+
+- Initial vesrion: unofficial-4.10.0.0c
+

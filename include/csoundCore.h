@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
@@ -51,8 +51,8 @@
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
-#ifndef _MM_DENORMALS_ZERO_ON
 #include <xmmintrin.h>
+#ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0x0040
 #define _MM_DENORMALS_ZERO_ON     0x0040
 #define _MM_DENORMALS_ZERO_OFF    0x0000
@@ -188,9 +188,12 @@ extern int ISSTRCOD(MYFLT);
 #define PI      (3.141592653589793238462643383279502884197)
 #endif /* pi */
 #define TWOPI   (6.283185307179586476925286766559005768394)
+#define HALFPI  (1.570796326794896619231321691639751442099)
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
+#define HALFPI_F ((MYFLT) HALFPI)
 #define INF     (2147483647.0)
+#define ROOT2   (1.414213562373095048801688724209698078569)
 
 #define AMPLMSG 01
 #define RNGEMSG 02
@@ -316,7 +319,7 @@ typedef struct CORFIL {
     TEXT    t;                      /* Text of instrument (same in nxtop) */
     int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                        opcodes in instr */
-    int     mdepends;               /* Opcode type (i/k/a) */
+    //int     mdepends;               /* Opcode type (i/k/a) */
     CS_VAR_POOL* varPool;
 
     //    int     optxtcount;
@@ -960,6 +963,25 @@ typedef struct NAME__ {
   } MODULE_INFO;
 
 
+#define MAX_ALLOC_QUEUE 1024
+
+typedef struct _alloc_data_ {
+  int type;
+  int insno;
+  EVTBLK blk;
+  MCHNBLK *chn;
+  MEVENT mep;
+  INSDS *ip;
+  OPDS *ids;
+} ALLOC_DATA;
+
+#define MAX_MESSAGE_STR 1024
+typedef struct _message_queue_t_ {
+    int attr;
+    char str[MAX_MESSAGE_STR];
+} message_string_queue_t;
+
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1346,11 +1368,13 @@ typedef struct NAME__ {
     MYFLT (*GetA4)(CSOUND *csound);
     int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
                          AUXASYNC *, aux_cb, void *);
+    void *(*GetHostData)(CSOUND *);
+    char *(*strNcpy)(char *dst, const char *src, size_t siz);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[38];
+    SUBR dummyfn_2[37];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1461,9 +1485,9 @@ typedef struct NAME__ {
     int           *argoffspace;
     INSDS         *frstoff;
     MYFLT         *zkstart;
-    long          zklast;
+    int64_t          zklast;
     MYFLT         *zastart;
-    long          zalast;
+    int64_t          zalast;
     /** reserved for std opcode library  */
     void          *stdOp_Env;
     int           holdrand;
@@ -1537,20 +1561,12 @@ typedef struct NAME__ {
     int          file_io_start;
     void         *file_io_threadlock;
     int          realtime_audio_flag;
-    void         *init_pass_thread;
-    int          init_pass_loop;
+    void         *event_insert_thread;
+    int          event_insert_loop;
     void         *init_pass_threadlock;
     void         *API_lock;
-    #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    void *spoutlock, *spinlock;
-#else
-    int           spoutlock, spinlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    void *memlock, *spinlock1;
-#else
-    int           memlock, spinlock1;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
+    spin_lock_t spoutlock, spinlock;
+    spin_lock_t memlock, spinlock1;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
     struct sreadStatics__ {
@@ -1715,9 +1731,10 @@ typedef struct NAME__ {
     void          *barrier1;
     void          *barrier2;
     /* Statics from cs_par_dispatch; */
-    struct global_var_lock_t *global_var_lock_root;
-    struct global_var_lock_t **global_var_lock_cache;
-    int           global_var_lock_count;
+    /* ********These are no longer used******** */
+    void          *pointer1; //struct global_var_lock_t *global_var_lock_root;
+    void          *pointer2; //struct global_var_lock_t **global_var_lock_cache;
+    int           int1; //global_var_lock_count;
     /* statics from cs_par_orc_semantic_analysis */
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
@@ -1764,8 +1781,24 @@ typedef struct NAME__ {
     volatile long msg_queue_wput; /* Writer - Put Index */
     volatile long msg_queue_rstart; /* Reader - start index */
     volatile long msg_queue_items;
-    void     *directory;
     int      aftouch;
+    void     *directory;
+    ALLOC_DATA *alloc_queue;
+    volatile unsigned long alloc_queue_items;
+    unsigned long alloc_queue_wp;
+#ifdef MACOSX
+    spin_lock_t alloc_spinlock;
+#else
+    int alloc_spinlock;
+#endif
+    EVTBLK *init_event;
+    void (*csoundMessageStringCallback)(CSOUND *csound,
+                                        int attr,
+                                        const char *str);
+    char* message_string;
+    volatile unsigned long message_string_queue_items;
+    unsigned long message_string_queue_wp;
+    message_string_queue_t *message_string_queue;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

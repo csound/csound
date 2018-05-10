@@ -46,6 +46,8 @@ void test_add_bkpt(void)
 
 static void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+  (void)  csound;
+  (void)  bkpt_info;
     int *count = (int *) userdata;
     *count = *count + 1;
 }
@@ -124,6 +126,7 @@ void test_breakpoint_remove(void)
 
 static void brkpt_cb3(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+  (void)  csound;  (void)  userdata;
     debug_variable_t *vars = bkpt_info->instrVarList;
 
     MYFLT data = *((MYFLT *)vars->data);
@@ -155,6 +158,7 @@ void test_variables(void)
 
 static void brkpt_cb4(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+     (void)  csound;  (void)  userdata;
     debug_instr_t *debug_instr = bkpt_info->breakpointInstr;
     CU_ASSERT_EQUAL(debug_instr->p1, 1);
     CU_ASSERT_EQUAL(debug_instr->p2, 0);
@@ -182,6 +186,7 @@ void test_bkpt_instrument(void)
 int count = 0;
 static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+  (void)  csound;  (void)  userdata; (void) bkpt_info;
   /*debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;*/
     count++;
 }
@@ -222,6 +227,7 @@ void test_line_breakpoint_add_remove(void)
 
 static void brkpt_cb6(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+     (void)  csound;  (void)  userdata;
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
     if (count == 0) {
         CU_ASSERT_STRING_EQUAL(debug_opcode->opname, "oscils");
@@ -293,6 +299,7 @@ void test_line_breakpoint(void)
 
 static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
+  (void)  csound;
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
     int *line = (int *) line_;
     CU_ASSERT(debug_opcode->line == *line);
@@ -377,6 +384,7 @@ void test_no_callback(void)
 
 static void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
+  (void)  csound;  (void)  line_;
     switch (count) {
     case 0:
         CU_ASSERT_EQUAL(bkpt_info->breakpointInstr->p1, 1.2);
@@ -403,6 +411,7 @@ static void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 
 static void brkpt_cb9(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
+     (void)  csound;  (void)  line_;
     debug_variable_t *vars = bkpt_info->instrVarList;
     MYFLT val = -1;
     while (vars) {

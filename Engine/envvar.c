@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -30,6 +30,12 @@
 #if defined(MSVC)
 #include <fcntl.h>
 #endif
+
+#if defined(WIN32) && !defined(__CYGWIN__)
+#  include <direct.h>
+#  define getcwd(x,y) _getcwd(x,y)
+#endif
+
 
 #include "namedins.h"
 
@@ -363,7 +369,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     value = strchr(name, '=');
     append_mode = 0;
     if (UNLIKELY(value == NULL || value == name)) {
-      strncpy(msg, Str(" *** invalid format for --env\n"), 255);
+      strNcpy(msg, Str(" *** invalid format for --env\n"), 256);
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -373,7 +379,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
       *(value - 2) = '\0';
     }
     if (UNLIKELY(!is_valid_envvar_name(name))) {
-      strncpy(msg, Str(" *** invalid environment variable name\n"), 255);
+      strNcpy(msg, Str(" *** invalid environment variable name\n"), 256);
       retval = CSOUND_ERROR;
       goto err_return;
     }
@@ -383,9 +389,9 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     else
       retval = csoundAppendEnv(csound, name, value);
     if (UNLIKELY(retval == CSOUND_MEMORY))
-      strncpy(msg, Str(" *** memory allocation failure\n"), 255);
+      strNcpy(msg, Str(" *** memory allocation failure\n"), 256);
     else
-      strncpy(msg, Str(" *** error setting environment variable\n"), 255);
+      strNcpy(msg, Str(" *** error setting environment variable\n"), 256);
 
  err_return:
     if (UNLIKELY(retval != CSOUND_SUCCESS))
@@ -650,8 +656,8 @@ char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
     else {
         len = lastIndex - convPath;
         partialPath = (char*) csound->Malloc(csound, len+1);
-        strncpy(partialPath, convPath, len);
-        partialPath[len] = '\0';
+        strNcpy(partialPath, convPath, len+1);
+        //partialPath[len] = '\0';
    }
    csound->Free(csound, convPath);
    return partialPath;
@@ -719,7 +725,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
       len = (lastIndex - tempPath);
 
       partialPath = (char *)csound->Calloc(csound, len + 1);
-      strncpy(partialPath, tempPath, len);
+      strNcpy(partialPath, tempPath, len+1);
 
       csound->Free(csound, tempPath);
 
@@ -747,7 +753,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     len = (lastIndex - tempPath);  /* could be 0 on OS 9 */
 
     partialPath = (char *)csound->Calloc(csound, len + 1);
-    strncpy(partialPath, tempPath, len);
+    strNcpy(partialPath, tempPath, len+1);
 
     retval = csoundConcatenatePaths(csound, cwd, partialPath);
 
@@ -1094,7 +1100,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       *((FILE**) fd) = tmp_f;
       break;
     case CSFILE_SND_R:                        /* sound file read */
-      memset(&sfinfo, 0, sizeof(SF_INFO));
+      memcpy(&sfinfo, param, sizeof(SF_INFO));
       p->sf = sf_open_fd(tmp_fd, SFM_READ, &sfinfo, 0);
       if (p->sf == (SNDFILE*) NULL) {
         int   extPos;
@@ -1103,10 +1109,10 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
         /* check for .sd2 file first */
         if (extPos > 0 &&
             p->fullName[extPos] == (char) '.' &&
-            (p->fullName[extPos + 1] | (char) 0x20) == (char) 's' &&
-            (p->fullName[extPos + 2] | (char) 0x20) == (char) 'd' &&
+            tolower(p->fullName[extPos + 1]) == (char) 's' &&
+            tolower(p->fullName[extPos + 2]) == (char) 'd' &&
             p->fullName[extPos + 3] == (char) '2') {
-          memset(&sfinfo, 0, sizeof(SF_INFO));
+          //memset(&sfinfo, 0, sizeof(SF_INFO));
           p->sf = sf_open(&(p->fullName[0]), SFM_READ, &sfinfo);
           if (p->sf != (SNDFILE*) NULL) {
             /* if successfully opened as .sd2, */
@@ -1118,11 +1124,25 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
             goto doneSFOpen;
           }
         }
+#if 0
         /* maybe raw file ? rewind and try again */
-        if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0)
-          p->sf = sf_open_fd(tmp_fd, SFM_READ, (SF_INFO*) param, 0);
-        if (UNLIKELY(p->sf == (SNDFILE*) NULL))
+        if (lseek(tmp_fd, (off_t) 0, SEEK_SET) == (off_t) 0) {
+          SF_INFO *sf = (SF_INFO*)param;
+          sf->format = SF_FORMAT_RAW | SF_FORMAT_PCM_16;
+          sf->samplerate = csound->esr;
+          //sf->channels = 1;//csound->inchnls;
+          csound->Warning(csound,
+                          Str("After open failure(%s)\n"
+                              "will try to open %s as raw\n"),
+                          sf_strerror(NULL), fullName);
+          p->sf = sf_open_fd(tmp_fd, SFM_READ, sf, 0);
+        }
+#endif
+        if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
+          /* csound->Warning(csound, Str("Failed to open %s: %s\n"), */
+          /*                 fullName, sf_strerror(NULL)); */
           goto err_return;
+        }
       }
       else {
       doneSFOpen:
@@ -1132,8 +1152,11 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       break;
     case CSFILE_SND_W:                        /* sound file write */
       p->sf = sf_open_fd(tmp_fd, SFM_WRITE, (SF_INFO*) param, 0);
-      if (UNLIKELY(p->sf == (SNDFILE*) NULL))
+      if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
+          csound->Warning(csound, Str("Failed to open %s: %s\n"),
+                          fullName, sf_strerror(NULL));
         goto err_return;
+      }
       sf_command(p->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
       sf_command(p->sf, SFC_SET_VBR_ENCODING_QUALITY,
                  &csound->oparms->quality, sizeof(double));
@@ -1442,7 +1465,7 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
     case CSFILE_SND_R:
     case CSFILE_SND_W:
       ret = sf_seek(p->sf,pos,whence);
-      //csoundMessage(csound, "seek set %d \n", pos);
+      //csoundMessage(csound, "seek set %d\n", pos);
       csound->FlushCircularBuffer(csound, p->cb);
       p->items = 0;
       break;

@@ -25,8 +25,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"       /*                              PINKER.C         */
@@ -120,7 +120,14 @@ static int pink_perf(CSOUND* csound, PINKER *p)
       lfsr <<= 1;                  /* shift lfsr                      */
       dec |= inc & mask;           /* copy increment to decrement bit */
       inc ^= bit & mask;           /* new random bit                  */
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
       *((int *)(&yy)) = accu;      /* save biased value as float      */
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
       //printf("yy = %f ", yy);
       accu += inc - dec;           /* integrate                       */
       lfsr ^= bit & 0x46000001;    /* update lfsr                     */
@@ -144,11 +151,19 @@ static int pink_perf(CSOUND* csound, PINKER *p)
     return OK;
 };
 
-static int pink_init(CSOUND *csund, PINKER *p)      // constructor
+static int pink_init(CSOUND *csound, PINKER *p)      // constructor
 {
+    IGN(csound);
     p->lfsr  = 0x5EED41F5 + instance_cnt++;   // seed for lfsr,
                                               // decorrelate multiple instances
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
     *((float*)(&p->accu))  = PINK_BIAS;       // init float hack
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
     p->cnt = 0;                               // counter from zero
     p->inc   = 0x0CCC;                        // balance initial states to avoid DC
     p->dec   = 0x0CCC;
@@ -158,7 +173,7 @@ static int pink_init(CSOUND *csund, PINKER *p)      // constructor
 
 static OENTRY pinker_localops[] =
 {
-  { "pinker", sizeof(PINKER),0,5, "a", "", (SUBR)pink_init, NULL, (SUBR)pink_perf }
+ { "pinker", sizeof(PINKER),0,3, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
 };
 
 LINKAGE_BUILTIN(pinker_localops)

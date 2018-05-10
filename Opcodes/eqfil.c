@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 // #include "csdl.h"
@@ -35,7 +35,7 @@ typedef struct _equ {
 
 } equ;
 
-static int equ_init(CSOUND *csound, equ *p)
+static int32_t equ_init(CSOUND *csound, equ *p)
 {
     if (*p->ini==0) {
       double sr = (double)CS_ESR;
@@ -48,13 +48,14 @@ static int equ_init(CSOUND *csound, equ *p)
     return OK;
 }
 
-static int equ_process(CSOUND *csound, equ *p)
+static int32_t equ_process(CSOUND *csound, equ *p)
 {
     double z1 = p->z1, z2 = p->z2,c,d,w,a,y;
     MYFLT  *in= p->sig,*out=p->out,g;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int i, ksmps = CS_KSMPS;
+    int32_t
+      i, ksmps = CS_KSMPS;
 
     if (*p->bw != p->bwv || *p->fr != p->frv){
       double sr = (double)CS_ESR;
@@ -87,8 +88,8 @@ static int equ_process(CSOUND *csound, equ *p)
 }
 
 static OENTRY eqfil_localops[] = {
-  {"eqfil", sizeof(equ), 0, 5,
-   "a", "akkko", (SUBR)equ_init, NULL, (SUBR)equ_process},
+  {"eqfil", sizeof(equ), 0, 3,
+   "a", "akkko", (SUBR)equ_init, (SUBR)equ_process},
 };
 
 LINKAGE_BUILTIN(eqfil_localops)

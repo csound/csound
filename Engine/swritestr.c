@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"                                  /*    SWRITESTR.C  */
@@ -40,11 +40,7 @@ static char   *fpnum(CSOUND *,char *, int, int, CORFIL *sco);
 static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
     char *c, buffer[1024];
-#ifdef USE_DOUBLE
-    CS_SPRINTF(buffer, "%.17lg", n);
-#else
-    CS_SPRINTF(buffer, "%.9g", n);
-#endif
+    CS_SPRINTF(buffer, "%a", (double)n);
     /* corfile_puts(buffer, sco); */
     for (c = buffer; *c != '\0'; c++)
       corfile_putc(csound, *c, sco);
@@ -86,7 +82,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     p = bp->text;
     c = *p++;
     isntAfunc = 1;
-    switch (c) {
+    switch ((int) c) {
     case 'z':
       printf("skip z\n");
       //corfile_putc('\n', sco);
@@ -508,8 +504,10 @@ static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt, CORFIL *sco)
 {                             /* moves quoted ascii string to SCOREOUT file */
     char *q = p;              /*   with no internal format chk              */
     corfile_putc(csound, *p++, sco);
-    while (*p != '"')
+    while (*p != '"') {
       corfile_putc(csound, *p++, sco);
+      if (*(p-1)=='\\') corfile_putc(csound, *p++, sco);
+    }
     corfile_putc(csound, *p++, sco);
     if (UNLIKELY(*p != SP && *p != LF)) {
       csound->Message(csound, Str("swrite: output, sect%d line%d p%d "

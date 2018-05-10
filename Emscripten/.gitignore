@@ -1,0 +1,13 @@
+deps
+build
+build-wasm
+build-web-csound
+dist
+dist-wasm
+dist-web-csound
+ace
+examples
+examples-wasm
+csound-emscripten-*
+csound-wasm-*
+csound-web-*

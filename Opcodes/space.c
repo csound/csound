@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************/
@@ -33,7 +33,7 @@
 
 #define RESOLUTION 100
 
-static int spaceset(CSOUND *csound, SPACE *p)
+static int32_t spaceset(CSOUND *csound, SPACE *p)
 {
     STDOPCOD_GLOBALS  *pp;
     FUNC              *ftp = NULL;
@@ -61,14 +61,14 @@ static int spaceset(CSOUND *csound, SPACE *p)
     return OK;
 }
 
-static int space(CSOUND *csound, SPACE *p)
+static int32_t space(CSOUND *csound, SPACE *p)
 {
     MYFLT   *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
     MYFLT   distance=FL(1.0), distr, distrsq, direct;
     MYFLT   *rrev1, *rrev2, *rrev3, *rrev4;
     MYFLT   torev, localrev, globalrev;
     MYFLT   xndx, yndx;
-    MYFLT   half_pi = FL(0.5)*PI_F;
+    //MYFLT   half_pi = FL(0.5)*PI_F;
     MYFLT   sqrt2 = SQRT(FL(2.0));
     MYFLT   fabxndx, fabyndx;
     FUNC    *ftp;
@@ -133,10 +133,10 @@ static int space(CSOUND *csound, SPACE *p)
     xndx = (xndx+FL(1.0))*FL(0.5);
     yndx = (yndx+FL(1.0))*FL(0.5);
 
-    ch2 = SIN(half_pi * xndx) * SIN(half_pi * yndx) * sqrt2;
-    ch4 = SIN(half_pi * xndx) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
-    ch1 = SIN(half_pi * (FL(1.0)-xndx)) * SIN(half_pi * yndx) * sqrt2;
-    ch3 = SIN(half_pi * (FL(1.0)-xndx)) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
+    ch2 = SIN(HALFPI_F * xndx) * SIN(HALFPI_F * yndx) * sqrt2;
+    ch4 = SIN(HALFPI_F * xndx) * SIN(HALFPI_F * (FL(1.0)-yndx)) * sqrt2;
+    ch1 = SIN(HALFPI_F * (FL(1.0)-xndx)) * SIN(HALFPI_F * yndx) * sqrt2;
+    ch3 = SIN(HALFPI_F * (FL(1.0)-xndx)) * SIN(HALFPI_F * (FL(1.0)-yndx)) * sqrt2;
 
     r1 = p->r1;
     r2 = p->r2;
@@ -180,7 +180,7 @@ static int space(CSOUND *csound, SPACE *p)
                              Str("space: not initialised"));
 }
 
-static int spsendset(CSOUND *csound, SPSEND *p)
+static int32_t spsendset(CSOUND *csound, SPSEND *p)
 {
     STDOPCOD_GLOBALS  *pp;
 
@@ -189,10 +189,11 @@ static int spsendset(CSOUND *csound, SPSEND *p)
     return OK;
 }
 
-static int spsend(CSOUND *csound, SPSEND *p)
+static int32_t spsend(CSOUND *csound, SPSEND *p)
 {
+    IGN(csound);
     SPACE *q = p->space;
-    int nbytes = CS_KSMPS*sizeof(MYFLT);
+    int32_t nbytes = CS_KSMPS*sizeof(MYFLT);
 
     memmove(p->r1, q->rrev1, nbytes);
     memmove(p->r2, q->rrev2, nbytes);
@@ -201,7 +202,7 @@ static int spsend(CSOUND *csound, SPSEND *p)
     return OK;
 }
 
-static int spdistset(CSOUND *csound, SPDIST *p)
+static int32_t spdistset(CSOUND *csound, SPDIST *p)
 {
    FUNC *ftp;
 
@@ -213,7 +214,7 @@ static int spdistset(CSOUND *csound, SPDIST *p)
    return OK;
 }
 
-static int spdist(CSOUND *csound, SPDIST *p)
+static int32_t spdist(CSOUND *csound, SPDIST *p)
 {
     MYFLT      *r;
     MYFLT       distance, xndx, yndx;
@@ -265,15 +266,17 @@ static int spdist(CSOUND *csound, SPDIST *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "space",  S(SPACE), TR,5, "aaaa", "aikkkk",(SUBR)spaceset, NULL, (SUBR)space },
-  { "spsend", S(SPSEND), 0,5, "aaaa", "",     (SUBR)spsendset, NULL, (SUBR)spsend },
-  { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist, NULL }
+static OENTRY localops[] =
+  {
+   { "space",  S(SPACE), TR,3, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space },
+   { "spsend", S(SPSEND), 0,3, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend },
+   { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist }
 };
 
-int space_init_(CSOUND *csound)
+int32_t space_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

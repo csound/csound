@@ -1,6 +1,8 @@
 /*
     pvs_ops.h:
 
+    Copyright (c) 2003 Istvan Varga, John ffitch
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -15,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_PVS_OPS_H
@@ -28,13 +30,14 @@
 #include "interlocks.h"
 
 
-extern int ifd_init_(CSOUND *);
-extern int partials_init_(CSOUND *);
-extern int psynth_init_(CSOUND *);
-extern int pvsbasic_init_(CSOUND *);
-extern int pvscent_init_(CSOUND *);
-extern int pvsdemix_init_(CSOUND *);
-extern int pvsband_init_(CSOUND *);
+extern int32_t ifd_init_(CSOUND *);
+extern int32_t partials_init_(CSOUND *);
+extern int32_t psynth_init_(CSOUND *);
+extern int32_t pvsbasic_init_(CSOUND *);
+extern int32_t pvscent_init_(CSOUND *);
+extern int32_t pvsdemix_init_(CSOUND *);
+extern int32_t
+pvsband_init_(CSOUND *);
 
 #endif  /* CSOUND_PVS_OPS_H */
 

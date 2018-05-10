@@ -17,24 +17,25 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"         /*                      UGENS4.C        */
 #include "ugens4.h"
 #include <math.h>
+#include <inttypes.h>
 
 /* The branch prediction slows it down!! */
 
-int bzzset(CSOUND *csound, BUZZ *p)
+int32_t bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
 
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
-        p->lphs = (int32)(*p->iphs * FL(0.5) * FMAXLEN);
+        p->lphs = (int32_t)(*p->iphs * FL(0.5) * FMAXLEN);
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
       p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
       p->reported = 0;          /* No errors yet */
@@ -43,16 +44,16 @@ int bzzset(CSOUND *csound, BUZZ *p)
     return NOTOK;
 }
 
-int buzz(CSOUND *csound, BUZZ *p)
+int32_t buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    int32       phs, inc, lobits, dwnphs, tnp1, lenmask;
+    int32_t       phs, inc, lobits, dwnphs, tnp1, lenmask;
     MYFLT       sicvt2, over2n, scal, num, denom;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
-    int32       nn;
+    int32_t       nn;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
@@ -62,14 +63,14 @@ int buzz(CSOUND *csound, BUZZ *p)
     lenmask = ftp->lenmask;
     ampp = p->xamp;
     cpsp = p->xcps;
-    if ((nn = (int)*p->knh) < 0) nn = -nn;
+    if ((nn = (int32_t)*p->knh) < 0) nn = -nn;
     if (UNLIKELY(nn == 0)) {     /* fix nn = knh */
       nn = 1;
     }
     tnp1 = (nn<<1) + 1;          /* calc 2n + 1 */
     over2n = FL(0.5) / (MYFLT)nn;
     scal = *ampp * over2n;
-    inc = (int32)(*cpsp * sicvt2);
+    inc = (int32_t)(*cpsp * sicvt2);
     ar = p->ar;
     phs = p->lphs;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -82,7 +83,7 @@ int buzz(CSOUND *csound, BUZZ *p)
       if (p->ampcod)
         scal = ampp[n] * over2n;
       if (p->cpscod)
-        inc = (int32)(cpsp[n] * sicvt2);
+        inc = (int32_t)(cpsp[n] * sicvt2);
       dwnphs = phs >> lobits;
       denom = ftbl[dwnphs];
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
@@ -99,14 +100,14 @@ int buzz(CSOUND *csound, BUZZ *p)
     return csound->PerfError(csound, p->h.insdshead, Str("buzz: not initialised"));
 }
 
-int gbzset(CSOUND *csound, GBUZZ *p)
+int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
 
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0) {
-        p->lphs = (int32)(*p->iphs * FMAXLEN);
+        p->lphs = (int32_t)(*p->iphs * FMAXLEN);
         p->prvr = FL(0.0);
       }
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
@@ -118,7 +119,7 @@ int gbzset(CSOUND *csound, GBUZZ *p)
     return NOTOK;
 }
 
-static inline MYFLT intpow1(MYFLT x, int32 n)   /* Binary positive power function */
+static inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power function */
 {
     MYFLT ans = FL(1.0);
     while (n!=0) {
@@ -129,7 +130,7 @@ static inline MYFLT intpow1(MYFLT x, int32 n)   /* Binary positive power functio
     return ans;
 }
 
-MYFLT intpow(MYFLT x, int32 n)   /* Binary power function */
+MYFLT intpow(MYFLT x, int32_t n)   /* Binary power function */
 {
     if (n<0) {
       n = -n;
@@ -138,16 +139,16 @@ MYFLT intpow(MYFLT x, int32 n)   /* Binary power function */
     return intpow1(x, n);
 }
 
-int gbuzz(CSOUND *csound, GBUZZ *p)
+int32_t gbuzz(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
     MYFLT       *ar, *ampp, *cpsp, *ftbl;
-    int32       phs, inc, lobits, lenmask, k, km1, kpn, kpnm1;
+    int32_t       phs, inc, lobits, lenmask, k, km1, kpn, kpnm1;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       r, absr, num, denom, scal, last = p->last;
-    int32       nn, lphs = p->lphs;
+    int32_t       nn, lphs = p->lphs;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -156,8 +157,8 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
     lenmask = ftp->lenmask;
     ampp = p->xamp;
     cpsp = p->xcps;
-    k = (int32)*p->kk;                   /* fix k and n  */
-    if ((nn = (int32)*p->kn)<0) nn = -nn;
+    k = (int32_t)*p->kk;                   /* fix k and n  */
+    if ((nn = (int32_t)*p->kn)<0) nn = -nn;
     if (UNLIKELY(nn == 0)) {              /* n must be > 0 */
       nn = 1;
     }
@@ -176,7 +177,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
       p->prvn = (int16)nn;
     }
     scal =  *ampp * p->rsumr;
-    inc = (int32)(*cpsp * csound->sicvt);
+    inc = (int32_t)(*cpsp * csound->sicvt);
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -187,7 +188,7 @@ int gbuzz(CSOUND *csound, GBUZZ *p)
       if (p->ampcod)
         scal =  p->rsumr * ampp[n];
       if (p->cpscod)
-        inc = (int32)(cpsp[n] * csound->sicvt);
+        inc = (int32_t)(cpsp[n] * csound->sicvt);
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * ftbl[phs];
       num = ftbl[phs * k & lenmask]
@@ -218,14 +219,14 @@ static  int16   rand16(CSOUND *);
 
 int plukset(CSOUND *csound, PLUCK *p)
 {
-    int         n;
-    int32       npts, iphs;
+    int32_t         n;
+    int32_t       npts, iphs;
     char        *auxp;
     FUNC        *ftp;
     MYFLT       *ap, *fp;
     MYFLT       phs, phsinc;
 
-    if (UNLIKELY((npts = (int32)(csound->esr / *p->icps)) < PLUKMIN)) {
+    if (UNLIKELY((npts = (int32_t)(csound->esr / *p->icps)) < PLUKMIN)) {
                                         /* npts is wavelen in sampls */
       npts = PLUKMIN;                   /*  (but at least min size)  */
     }
@@ -244,7 +245,7 @@ int plukset(CSOUND *csound, PLUCK *p)
       phs = FL(0.0);
       phsinc = (MYFLT)(ftp->flen/npts);
       for (n=npts; n--; phs += phsinc) {
-        iphs = (int32)phs;
+        iphs = (int32_t)phs;
         *ap++ = fp[iphs];
       }
     }
@@ -296,10 +297,10 @@ int plukset(CSOUND *csound, PLUCK *p)
     return OK;
 }
 
-int pluck(CSOUND *csound, PLUCK *p)
+int32_t pluck(CSOUND *csound, PLUCK *p)
 {
     MYFLT       *ar, *fp;
-    int32       phs256, phsinc, ltwopi, offset;
+    int32_t       phs256, phsinc, ltwopi, offset;
     uint32_t koffset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -307,7 +308,7 @@ int pluck(CSOUND *csound, PLUCK *p)
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD FIX */
     ar = p->ar;
-    phsinc = (int32)(*p->kcps * p->sicps);
+    phsinc = (int32_t)(*p->kcps * p->sicps);
     phs256 = p->phs256;
     ltwopi = p->npts << 8;
     if (UNLIKELY(phsinc > ltwopi)) goto err2;
@@ -323,7 +324,7 @@ int pluck(CSOUND *csound, PLUCK *p)
       frac = (MYFLT)(phs256 & 255) / FL(256.0); /*  w. interpolation */
       ar[n] =   (fp[0] + diff*frac) * *p->kamp; /*  gives output val */
       if ((phs256 += phsinc) >= ltwopi) {
-        int nn;
+        int32_t nn;
         MYFLT   newval, preval;
         phs256 -= ltwopi;               /* at phase wrap,    */
         fp=(MYFLT *)p->auxch.auxp;
@@ -447,8 +448,8 @@ int32 randint31(int32 seed31)
 {
     uint32 rilo, rihi;
 
-    rilo = RIA * (int32)(seed31 & 0xFFFF);
-    rihi = RIA * (int32)((uint32)seed31 >> 16);
+    rilo = RIA * (int32_t)(seed31 & 0xFFFF);
+    rihi = RIA * (int32_t)((uint32)seed31 >> 16);
     rilo += (rihi & 0x7FFF) << 16;
     if (rilo > RIM) {
       rilo &= RIM;
@@ -459,29 +460,29 @@ int32 randint31(int32 seed31)
       rilo &= RIM;
       ++rilo;
     }
-    return (int32)rilo;
+    return (int32_t)rilo;
 }
 
-int rndset(CSOUND *csound, RAND *p)
+int32_t rndset(CSOUND *csound, RAND *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {
       if (*p->iseed > FL(1.0)) {    /* As manual suggest seed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
-          p->rand = (int32) (seed & 0xFFFFUL);
+          p->rand = (int32_t) (seed & 0xFFFFUL);
         }
         else {
-          p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
+          p->rand = (int32_t) (seed % 0x7FFFFFFEUL) + 1L;
         }
       }
       else {
         if (p->new) {
           MYFLT seed = *p->iseed;
           if (seed==FL(0.0)) seed = FL(0.5);
-          p->rand = (int32) (seed * FL(2147483648.0));
+          p->rand = (int32_t) (seed * FL(2147483648.0));
           p->rand = randint31(p->rand);
           p->rand = randint31(p->rand);
         }
@@ -494,13 +495,14 @@ int rndset(CSOUND *csound, RAND *p)
     return OK;
 }
 
-int krand(CSOUND *csound, RAND *p)
+int32_t krand(CSOUND *csound, RAND *p)
 {
+    IGN(csound);
     if (p->new) {
-      int32 r = randint31(p->rand);      /* result is a 31-bit value */
+      int32_t r = randint31(p->rand);      /* result is a 31-bit value */
       p->rand = r;
       *p->ar = *p->base +
-        dv2_31 * (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * *p->xamp;
+        dv2_31 * (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * *p->xamp;
     }
     else {
       int16 rand = (int16)p->rand;
@@ -513,8 +515,9 @@ int krand(CSOUND *csound, RAND *p)
     return OK;
 }
 
-int arand(CSOUND *csound, RAND *p)
+int32_t arand(CSOUND *csound, RAND *p)
 {
+    IGN(csound);
     MYFLT       *ar;
     int16       rndmul = RNDMUL;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -551,12 +554,12 @@ int arand(CSOUND *csound, RAND *p)
       p->rand = rand;   /* save current rand */
     }
     else {
-      int       rand = p->rand;
+      int32_t       rand = p->rand;
       if (!(p->ampcod)) {
         ampscl = *p->xamp * dv2_31;
         for (n=offset;n<nsmps;n++) {
           rand = randint31(rand);
-          ar[n] = base + (MYFLT)((int32)((unsigned)rand<<1)-BIPOLAR) * ampscl;
+          ar[n] = base + (MYFLT)((int32_t)((uint32_t)rand<<1)-BIPOLAR) * ampscl;
         }
       }
       else {
@@ -564,7 +567,7 @@ int arand(CSOUND *csound, RAND *p)
         for (n=offset;n<nsmps;n++) {
           rand = randint31(rand);
           ar[n] = base +
-            dv2_31 * (MYFLT)((int32)((unsigned)rand<<1)-BIPOLAR) * xamp[n];
+            dv2_31 * (MYFLT)((int32_t)((uint32_t)rand<<1)-BIPOLAR) * xamp[n];
         }
       }
       p->rand = rand;   /* save current rand */
@@ -573,21 +576,21 @@ int arand(CSOUND *csound, RAND *p)
     return OK;
 }
 
-int rhset(CSOUND *csound, RANDH *p)
+int32_t rhset(CSOUND *csound, RANDH *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
-          p->rand = (int32) (seed & 0xFFFFUL);
+          p->rand = (int32_t) (seed & 0xFFFFUL);
           p->num1 = (MYFLT) ((int16) p->rand) * DV32768;
         }
         else {
-          p->rand = (int32) (seed % 0x7FFFFFFEUL) + 1L;
-          p->num1 = (MYFLT) ((int32) ((unsigned)p->rand<<1) - BIPOLAR) * dv2_31;
+          p->rand = (int32_t) (seed % 0x7FFFFFFEUL) + 1L;
+          p->num1 = (MYFLT) ((int32_t) ((uint32_t)p->rand<<1) - BIPOLAR) * dv2_31;
         }
       }
       else if (!p->new) {
@@ -596,11 +599,11 @@ int rhset(CSOUND *csound, RANDH *p)
       }
       else {
         MYFLT ss = *p->iseed;
-        if (ss>FL(1.0)) p->rand = (int32) ss;
-        else p->rand = (int32) (*p->iseed * FL(2147483648.0));
+        if (ss>FL(1.0)) p->rand = (int32_t) ss;
+        else p->rand = (int32_t) (*p->iseed * FL(2147483648.0));
         p->rand = randint31(p->rand);
         p->rand = randint31(p->rand);
-        p->num1 = (MYFLT) ((int32) ((unsigned)p->rand<<1) - BIPOLAR) * dv2_31;
+        p->num1 = (MYFLT) ((int32_t) ((uint32_t)p->rand<<1) - BIPOLAR) * dv2_31;
       }
       p->phs = 0;                               /*      & phs           */
     }
@@ -609,11 +612,11 @@ int rhset(CSOUND *csound, RANDH *p)
     return OK;
 }
 
-int krandh(CSOUND *csound, RANDH *p)
+int32_t krandh(CSOUND *csound, RANDH *p)
 {
-    /* IV - Jul 11 2002 */
+    IGN(csound);
     *p->ar = *p->base + p->num1 * *p->xamp;     /* rslt = num * amp     */
-    p->phs += (long)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += (int64_t)(*p->xcps * CS_KICVT); /* phs += inc           */
 
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
@@ -625,17 +628,17 @@ int krandh(CSOUND *csound, RANDH *p)
         p->rand = rand;
       }
       else {
-        int32 r = randint31(p->rand);            /*      & recalc number */
+        int32_t r = randint31(p->rand);            /*      & recalc number */
         p->rand = r;
-        p->num1 = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        p->num1 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
       }
     }
     return OK;
 }
 
-int randh(CSOUND *csound, RANDH *p)
+int32_t randh(CSOUND *csound, RANDH *p)
 {
-    long      phs = p->phs, inc;
+    int64_t      phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -650,7 +653,7 @@ int randh(CSOUND *csound, RANDH *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = (long)(*cpsp++ * csound->sicvt);
+    inc = (int64_t)(*cpsp++ * csound->sicvt);
     for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + p->num1 * *ampp;   /* rslt = num * amp */
@@ -658,20 +661,20 @@ int randh(CSOUND *csound, RANDH *p)
         ampp++;
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
-        inc = (long)(*cpsp++ * csound->sicvt);
+        inc = (int64_t)(*cpsp++ * csound->sicvt);
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
           int16 rand = p->rand;
-          rand *= RNDMUL;               /*   calc new number */
+          rand *= RNDMUL;                       /*   calc new number */
           rand += 1;
           p->num1 = (MYFLT)rand * DV32768;      /* IV - Jul 11 2002 */
           p->rand = rand;
         }
         else {
-          int32 r = randint31(p->rand);          /*   calc new number */
+          int32_t r = randint31(p->rand);       /*   calc new number */
           p->rand = r;
-          p->num1 = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+          p->num1 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
         }
       }
     }
@@ -679,14 +682,14 @@ int randh(CSOUND *csound, RANDH *p)
     return OK;
 }
 
-int riset(CSOUND *csound, RANDI *p)
+int32_t riset(CSOUND *csound, RANDI *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                    /* new seed:            */
       if (*p->iseed > FL(1.0)) { /* As manual suggest sseed in range [0,1] */
         uint32 seed;             /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %u\n"), seed);
+        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */
@@ -700,7 +703,7 @@ int riset(CSOUND *csound, RANDI *p)
 /*                  ss,ss,p->rand, p->rand, p->num1, p->num2); */
         }
         else {
-          p->rand = randint31((int32) (seed % 0x7FFFFFFEUL) + 1L);
+          p->rand = randint31((int32_t) (seed % 0x7FFFFFFEUL) + 1L);
           p->rand = randint31(p->rand);
           p->num1 = (MYFLT)(p->rand<<1) * dv2_31; /* store num1,2 */
           p->rand = randint31(p->rand);
@@ -717,8 +720,8 @@ int riset(CSOUND *csound, RANDI *p)
       }
       else {
         MYFLT ss = *p->iseed;
-        if (ss>FL(1.0)) p->rand = (int32) ss;
-        else p->rand = (int32) (*p->iseed * FL(2147483648.0));
+        if (ss>FL(1.0)) p->rand = (int32_t) ss;
+        else p->rand = (int32_t) (*p->iseed * FL(2147483648.0));
         p->rand = randint31(p->rand);
         p->rand = randint31(p->rand);
         p->num1 = (MYFLT)(p->rand<1) * dv2_31; /* store num1,2 */
@@ -733,11 +736,11 @@ int riset(CSOUND *csound, RANDI *p)
     return OK;
 }
 
-int krandi(CSOUND *csound, RANDI *p)
+int32_t krandi(CSOUND *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
-    /* IV - Jul 11 2002 */
+   IGN(csound);
     *p->ar = *p->base + (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;
-    p->phs += (long)(*p->xcps * CS_KICVT); /* phs += inc           */
+    p->phs += (int64_t)(*p->xcps * CS_KICVT); /* phs += inc           */
     if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
       p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
@@ -749,19 +752,19 @@ int krandi(CSOUND *csound, RANDI *p)
         p->rand = rand;
       }
       else {
-        int32 r = randint31(p->rand);    /*      recalc random   */
+        int32_t r = randint31(p->rand);    /*      recalc random   */
         p->rand = r;
         p->num1 = p->num2;              /*      & new num vals  */
-        p->num2 = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+        p->num2 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
       }
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
 }
 
-int randi(CSOUND *csound, RANDI *p)
+int32_t randi(CSOUND *csound, RANDI *p)
 {
-    long       phs = p->phs, inc;
+    int64_t       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -776,7 +779,7 @@ int randi(CSOUND *csound, RANDI *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = (long)(*cpsp++ * csound->sicvt);
+    inc = (int64_t)(*cpsp++ * csound->sicvt);
     for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + (p->num1 + (MYFLT)phs * p->dfdmax) * *ampp;
@@ -784,7 +787,7 @@ int randi(CSOUND *csound, RANDI *p)
         ampp++;
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
-        inc = (long)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int64_t)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
@@ -796,10 +799,10 @@ int randi(CSOUND *csound, RANDI *p)
           p->rand = rand;
         }
         else {
-          int32 r = randint31(p->rand);          /*   calc new numbers*/
+          int32_t r = randint31(p->rand);          /*   calc new numbers*/
           p->rand = r;
           p->num1 = p->num2;
-          p->num2 = (MYFLT)((int32)((unsigned)r<<1)-BIPOLAR) * dv2_31;
+          p->num2 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
         }
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
       }

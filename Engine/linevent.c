@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"     /*                              LINEVENT.C      */
@@ -337,7 +337,13 @@ static void sensLine(CSOUND *csound, void *userData)
               //  csound->ErrorMsg(csound, Str("unmatched quotes"));
               //  goto Lerr;
               //}
-              if(c == '\\') { cp++; c = *cp;}
+
+              if(c == '\\') {
+                cp++;
+                if(*cp == '"') c = *cp; /* if it is a double quote */
+                /* otherwise we ignore it */
+                else cp--;
+              }
               sstrp[n++] = c;                   /*   save in private strbuf */
 
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
@@ -355,7 +361,7 @@ static void sensLine(CSOUND *csound, void *userData)
               e.p[pcnt] = ch.d;           /* set as string with count */
             }
             e.scnt = scnt;
-            //printf("string: %s \n", sstrp);
+            //printf("string: %s\n", sstrp);
             continue;
           }
           if (UNLIKELY(!(isdigit(c) || c == '+' || c == '-' || c == '.')))
@@ -462,12 +468,14 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
           return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_2));
         evt.p[1] =  csound->strarg2insno(csound,
                                            ((STRINGDAT*) p->args[1])->data, 1);
+        if (UNLIKELY(evt.p[1]<0)) return NOTOK;
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
         if (csound->ISSTRCOD(*p->args[1])) {
           evt.p[1]  = csound->strarg2insno(csound,
                                            get_arg_string(csound, *p->args[1]), 1);
+          if (UNLIKELY(evt.p[1]<0)) return NOTOK;
         } else evt.p[1] = *p->args[1];
         evt.strarg = NULL; evt.scnt = 0;
       }
@@ -526,6 +534,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
           return csound->InitError(csound, "%s", Str(errmsg_2));
         evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
+        if (UNLIKELY(evt.p[1]<0)) return NOTOK;
         evt.strarg = NULL; evt.scnt = 0;
         for (i = 2; i <= evt.pcnt; i++)
            evt.p[i] = *p->args[i];
@@ -535,6 +544,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
         if (csound->ISSTRCOD(*p->args[1])) {
           evt.p[1]  = csound->strarg2insno(csound,
                                            get_arg_string(csound, *p->args[1]), 1);
+          if (UNLIKELY(evt.p[1]<0)) return NOTOK;
         } else evt.p[1] = *p->args[1];
         for (i = 2; i <= evt.pcnt; i++)
           evt.p[i] = *p->args[i];
@@ -583,13 +593,15 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
     if (evt.pcnt > 0) {
       if (insname) {
         evt.p[1] =  csound->strarg2insno(csound,
-                                           ((STRINGDAT*) p->args[0])->data, 1);
+                                         ((STRINGDAT*) p->args[0])->data, 1);
+        if (UNLIKELY(evt.p[1]<0)) return NOTOK;
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
         if (csound->ISSTRCOD(*p->args[0])) {
           evt.p[1]  = csound->strarg2insno(csound,
                                            get_arg_string(csound, *p->args[0]), 1);
+          if (UNLIKELY(evt.p[1]<0)) return NOTOK;
         } else evt.p[1] = *p->args[0];
         evt.strarg = NULL; evt.scnt = 0;
       }

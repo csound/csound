@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 // #include "csdl.h"
@@ -34,27 +34,29 @@ typedef struct {
     MYFLT *asig;
     MYFLT *pan;                  /* pan position */
     MYFLT *itype;                /* type of panning */
-    int   type;
+    int32_t   type;
 } PAN2;
-#define SQRT2 FL(1.41421356237309504880)
+//#define SQRT2 FL(1.41421356237309504880)
 
-static int pan2set(CSOUND *csound, PAN2 *p)
+static int32_t pan2set(CSOUND *csound, PAN2 *p)
 {
-    int type = p->type = MYFLT2LRND(*p->itype);
+    int32_t type = p->type = MYFLT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 3))
       return csound->InitError(csound, Str("Unknown panning type"));
     return OK;
 }
 
-static int pan2run(CSOUND *csound, PAN2 *p)
+static int32_t pan2run(CSOUND *csound, PAN2 *p)
 {
-    int type = p->type;
+    IGN(csound);
+    int32_t type = p->type;
     MYFLT *ain = p->asig;
     MYFLT *al = p->aleft, *ar = p->aright;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      asgp = IS_ASIG_ARG(p->pan);
+    int32_t
+      asgp = IS_ASIG_ARG(p->pan);
 
     if (UNLIKELY(offset)) {
       memset(ar, '\0', offset*sizeof(MYFLT));
@@ -68,9 +70,9 @@ static int pan2run(CSOUND *csound, PAN2 *p)
     switch (type) {
     case 0:
       {
-        MYFLT kangl = PI_F*FL(0.5) * *p->pan;
+        MYFLT kangl = HALFPI_F * *p->pan;
         for (n=offset; n<nsmps; n++) {
-          if (asgp) kangl = PI_F*FL(0.5) * p->pan[n];
+          if (asgp) kangl = HALFPI_F * p->pan[n];
           ar[n] = ain[n] * SIN(kangl);
         al[n] = ain[n] * COS(kangl);
         }
@@ -101,10 +103,10 @@ static int pan2run(CSOUND *csound, PAN2 *p)
         MYFLT kangl = *p->pan, cc, ss, l, r;
         for (n=offset; n<nsmps; n++) {
           if (asgp) kangl = p->pan[n];
-          cc = COS(PI*kangl*FL(0.5));
-          ss = SIN(PI*kangl*FL(0.5));
-          l = SQRT2*(cc+ss)*0.5;
-          r = SQRT2*(cc-ss)*0.5;
+          cc = COS(HALFPI*kangl);
+          ss = SIN(HALFPI*kangl);
+          l = ROOT2*(cc+ss)*0.5;
+          r = ROOT2*(cc-ss)*0.5;
           al[n] = ain[n] * l;
           ar[n] = ain[n] * r;
         }
@@ -116,7 +118,7 @@ static int pan2run(CSOUND *csound, PAN2 *p)
 
 static OENTRY pan2_localops[] =
 {
-  { "pan2", sizeof(PAN2), 0, 5, "aa", "axo", (SUBR) pan2set, 0, (SUBR) pan2run },
+ { "pan2", sizeof(PAN2), 0, 3, "aa", "axo", (SUBR) pan2set, (SUBR) pan2run },
 };
 
 LINKAGE_BUILTIN(pan2_localops)

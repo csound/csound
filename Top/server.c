@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 #ifdef NACL
 typedef unsigned int u_int32_t;
@@ -109,7 +109,7 @@ static uintptr_t udp_recv(void *pdata){
   char *start = orchestra;
   size_t timout = (size_t) lround(1000/csound->GetKr(csound));
 
-  csound->Message(csound, Str("UDP server started on port %d \n"),port);
+  csound->Message(csound, Str("UDP server started on port %d\n"),port);
   while (p->status) {
     if ((received =
          recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0) {
@@ -166,7 +166,8 @@ static uintptr_t udp_recv(void *pdata){
               == CSOUND_SUCCESS) {
             STRINGDAT* stringdat = (STRINGDAT*) pstring;
             int size = stringdat->size;
-            int *lock = csoundGetChannelLock(csound, (char*) chn);
+            spin_lock_t *lock =
+              (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
             msg = (char *) csound->Calloc(csound, strlen(chn) + size);
             if (lock != NULL)
               csoundSpinLock(lock);
@@ -200,12 +201,12 @@ static uintptr_t udp_recv(void *pdata){
         }
         if(!cont) {
           orchestra = start;
-          //csound->Message(csound, "%s \n", orchestra+1);
+          //csound->Message(csound, "%s\n", orchestra+1);
           csoundCompileOrcAsync(csound, orchestra+1);
         }
       }
       else {
-        //csound->Message(csound, "%s \n", orchestra);
+        //csound->Message(csound, "%s\n", orchestra);
         csoundCompileOrcAsync(csound, orchestra);
       }
     }
@@ -390,7 +391,7 @@ int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
       csound->SetMessageCallback(csound, udp_msg_callback);
       csound->RegisterResetCallback(csound, p, udp_console_stop);
     } else {
-      csound->Warning(csound, "Could not set UDP console \n");
+      csound->Warning(csound, "Could not set UDP console\n");
       return CSOUND_ERROR;
     }
     return CSOUND_SUCCESS;

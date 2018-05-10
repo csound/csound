@@ -35,7 +35,7 @@ def showHelp():
     print message
 
 def runTest():
-    runArgs = "-Wdo test.wav"
+    runArgs = "-Wd -n"
 
     tests = [
         ["buga1.csd", " "],
@@ -46,14 +46,30 @@ def runTest():
         ["buginit.csd", " "],
         ["bugl.csd", " "],
         ["bugm.csd", " "],
-        ["bugn.csd", " "],
-        ["bugs.csd", " "],
+        ["bugn.csd", "named instruments"],
+        ["bugs.csd", "multipe strings in score"],
         ["bugsort.csd", "memory problem in sort"],
-        ["bugst.csd", " "],
-        ["bugtrans.csd", " "],
-        ["bugbra.csd", " "],
+        ["bugst.csd", "string in score"],
+        ["bugtrans.csd", "transegr"],
+        ["bugbra.csd", "Open bracket in expression"],
         ["bugy.csd", "y in score"],
-        ["bugbigargs.csd", "many arguments in score"]
+        ["bugbigargs.csd", "many arguments in score"],
+        ["bugadsr.csd", "xadsr"],
+        ["bug18.csd", "gen18"],
+        ["bugaa.csd", "arate array arithmetic"],
+        ["bugarray.csd", "krate array arithmetic"],
+        ["bugausst.csd", "gausstrig"],
+        ["bugblam.csd", "macro test"],
+        ["bugcopy.csd", "copy mixed rate arrays"],
+        ["bugftlen.csd", "table size oddity"],
+        ["buglosc.csd", "non integer loscil"],
+        ["bugpow.csd", "karray power"],
+        ["bugrezzy.csd", "rezzy stabilised"],
+        ["buggen31.csd", "gen31 test"],
+        ["bugg.csd", "grain3"],
+        ["bugline.csd", "comments in score"],
+        ["arrayout.csd", "array dimension greater than nchls"],
+        ["bugstr1.csd", "escaes in score strings"]
     ]
 
     output = ""
@@ -77,7 +93,8 @@ def runTest():
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s &> %s"%(executable, runArgs, filename, tempfile)
+            command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
+            print command
             retVal = os.system(command)
   
         out = ""

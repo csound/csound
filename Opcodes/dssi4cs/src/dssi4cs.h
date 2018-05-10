@@ -12,8 +12,8 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with The dssi4cs library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- *  02111-1307 USA
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ *  02110-1301 USA
  */
 
 #ifndef DSSI4CS_H
@@ -34,13 +34,13 @@ typedef struct DSSI4CS_PLUGIN_ {
     /* For Type 1=LADSPA 2=DSSI */
     enum PluginType Type;
     LADSPA_Handle Handle;
-    int Active;
+    int32_t Active;
     LADSPA_Data ** control;
     LADSPA_Data ** audio;
     snd_seq_event_t *Events;
-    unsigned long EventCount;
-    int PluginNumber;
-    int * PluginCount;
+    uint64_t EventCount;
+    int32_t PluginNumber;
+    int32_t * PluginCount;
     void * NextPlugin;
     /* float * kinputs_[]; */
     /* float * koutputs_[]; */
@@ -59,7 +59,7 @@ typedef struct DSSIACTIVATE_ {
     OPDS h;
     MYFLT *iDSSIhandle;
     MYFLT *ktrigger;
-    int printflag;
+    int32_t printflag;
     DSSI4CS_PLUGIN * DSSIPlugin_;
 } DSSIACTIVATE ;
 
@@ -74,10 +74,10 @@ typedef struct DSSIAUDIO_ {
 /*  MYFLT *ain2; */
 /*  MYFLT *ain3; */
 /*  MYFLT *ain4; */
-    int NumInputPorts;
-    int NumOutputPorts;
-    unsigned long * InputPorts;
-    unsigned long * OutputPorts;
+    int32_t NumInputPorts;
+    int32_t NumOutputPorts;
+    uint64_t * InputPorts;
+    uint64_t * OutputPorts;
     DSSI4CS_PLUGIN * DSSIPlugin_;
     /* State. */
     /* size_t framesPerBlock; */
@@ -91,8 +91,8 @@ typedef struct DSSICTLS_ {
     MYFLT *val;
     MYFLT *ktrig;
     /* float *Data; */
-    unsigned long PortNumber;
-    int HintSampleRate;
+    uint64_t PortNumber;
+    int32_t HintSampleRate;
     DSSI4CS_PLUGIN * DSSIPlugin_;
 } DSSICTLS;
 
@@ -101,10 +101,10 @@ typedef struct DSSISYNTH_ {
     MYFLT *aout[DSSI4CS_MAX_OUT_CHANNELS];
     /* Inputs. */
     MYFLT *iDSSIhandle;
-    int NumInputPorts;
-    int NumOutputPorts;
-    unsigned long * InputPorts;
-    unsigned long * OutputPorts;
+    int32_t NumInputPorts;
+    int32_t NumOutputPorts;
+    uint64_t * InputPorts;
+    uint64_t * OutputPorts;
     DSSI4CS_PLUGIN * DSSIPlugin_;
 } DSSISYNTH;
 

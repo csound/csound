@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -91,7 +91,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
         s = _tempnam(s, "cs");
         if (UNLIKELY(s == NULL))
           csound->Die(csound, Str(" *** cannot create temporary file"));
-        strncpy(lbuf, s, nBytes);
+        strNcpy(lbuf, s, nBytes);
         free(s);
       }
 #endif
@@ -510,6 +510,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
 
     if (csound->scorestr == NULL)
       csound->scorestr = corfile_create_w(csound);
+    corfile_putc(csound, '\n', csound->scorestr);
     csound->scoLineOffset = STA(csdlinecount);
  nxt:
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
@@ -518,7 +519,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
       if (state == 0 &&
           (q = strstr(p, "</CsScore>")) &&
           all_blank(buffer,q)) {
-        corfile_puts(csound, "\n#exit\n", csound->scorestr);
+        corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         return TRUE;
@@ -620,7 +621,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
       return FALSE;
     }
     *q = '\0';
-    strncpy(prog, p+5, 255); prog[255]='\0';/* after "<CsExScore " */
+    strNcpy(prog, p+5, 256); //prog[255]='\0';/* after "<CsExScore " */
     /* Generate score name */
     if (STA(sconame)) free(STA(sconame));
     STA(sconame) = csoundTmpFileName(csound, ".sco");
@@ -887,7 +888,7 @@ static int createFile(CSOUND *csound, char *buffer, CORFIL *cf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strncpy(filename, p, 255); filename[255]='\0';
+    strNcpy(filename, p, 256); //filename[255]='\0';
 //sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
 //    if (filename[0] != '\0' &&
 //       filename[strlen(filename) - 1] == '>' &&
@@ -936,7 +937,7 @@ static int createCorfile(CSOUND *csound, char *buffer, CORFIL *cf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strncpy(filename, p, 255); filename[255]='\0';
+    strNcpy(filename, p, 256); //filename[255]='\0';
 //sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
 //    if (filename[0] != '\0' &&
 //       filename[strlen(filename) - 1] == '>' &&
@@ -980,7 +981,7 @@ static int createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
       q = strchr(p, '>');
     if (q) *q='\0';
     //  printf("p=>>%s<<\n", p);
-    strncpy(filename, p, 255); filename[255]='\0';
+    strNcpy(filename, p, 256); //filename[255]='\0';
     if (UNLIKELY((smpf = fopen(filename, "r")) != NULL)) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);

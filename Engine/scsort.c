@@ -17,12 +17,13 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
+#include <ctype.h>
 
 extern void sort(CSOUND*);
 extern void twarp(CSOUND*);
@@ -38,7 +39,7 @@ extern void sread_initstr(CSOUND *, CORFIL *sco);
 char *scsortstr(CSOUND *csound, CORFIL *scin)
 {
     int     n;
-    int     m = 0, first = 0;
+    int     first = 0;
     CORFIL *sco;
 
     csound->scoreout = NULL;
@@ -51,16 +52,26 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     sread_initstr(csound, scin);
 
     while ((n = sread(csound)) > 0) {
+      if (csound->frstbp->text[0] == 's') { // ignore empty segment
+        // should this free memory?
+        //printf("repeated 's'\n");
+        continue;
+      }
       sort(csound);
       twarp(csound);
       swritestr(csound, sco, first);
       //printf("sorted: >>>%s<<<\n", sco->body);
-      m++;
     }
+    //printf("**** first = %d body = >>%s<<\n", first, sco->body);
     if (first) {
-      if (m==0)
+      int i = 0;
+      while (isspace(sco->body[i])) i++;
+      if (sco->body[i] == 'e' && sco->body[i+1] == '\n' && sco->body[i+2] != 'e') {
+        corfile_rewind(sco);
         corfile_puts(csound, "f0 800000000000.0\ne\n", sco); /* ~25367 years */
+      }
       else corfile_puts(csound, "e\n", sco);
+      //printf("body >>%s<<\n", sco->body);
     }
     corfile_flush(csound, sco);
     sfree(csound);

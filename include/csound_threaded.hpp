@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
     As a special exception, if other files instantiate templates or
     use macros or inline functions from this file, this file does not
@@ -251,7 +251,6 @@ public:
         Message("CsoundThreaded::PerformAndResetRoutine(): Reset() returned...\n");
         Message("Ended CsoundThreaded::PerformAndResetRoutine() with %d.\n", result);
         return result;
-
     }
     /**
      * Overrides Csound::Perform to run in a separate thread of execution.

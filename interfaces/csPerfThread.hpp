@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_CSPERFTHREAD_HPP
@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
 */
 
 #ifdef __SSE__
- #ifndef _MM_DENORMALS_ZERO_ON
   #include <xmmintrin.h>
+#ifndef _MM_DENORMALS_ZERO_ON
   #define _MM_DENORMALS_ZERO_MASK   0x0040
   #define _MM_DENORMALS_ZERO_ON     0x0040
   #define _MM_DENORMALS_ZERO_OFF    0x0000

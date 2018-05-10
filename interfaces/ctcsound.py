@@ -17,8 +17,8 @@
     
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 '''
 
 from ctypes import *
@@ -236,6 +236,8 @@ libcsound.csoundSetDebug.argtypes = [c_void_p, c_int]
 
 libcsound.csoundGetOutputName.restype = c_char_p
 libcsound.csoundGetOutputName.argtypes = [c_void_p]
+libcsound.csoundGetInputName.restype = c_char_p
+libcsound.csoundGetInputName.argtypes = [c_void_p]
 libcsound.csoundSetOutput.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
 libcsound.csoundGetOutputFormat.argtypes = [c_void_p, c_char_p, c_char_p]
 libcsound.csoundSetInput.argtypes = [c_void_p, c_char_p]
@@ -418,12 +420,10 @@ libcsound.csoundCreateBarrier.argtypes = [c_uint]
 libcsound.csoundDestroyBarrier.argtypes = [c_void_p]
 libcsound.csoundWaitBarrier.argtypes = [c_void_p]
 libcsound.csoundSleep.argtypes = [c_uint]
-hasSpinLock = True
-try:
-    libcsound.csoundSpinLock.argtypes = [c_void_p]
-    libcsound.csoundSpinUnLock.argtypes = [c_void_p]
-except AttributeError:
-    hasSpinLock = False
+libcsound.csoundSpinLockInit.argtypes = [POINTER(c_int32)]
+libcsound.csoundSpinLock.argtypes = [POINTER(c_int32)]
+libcsound.csoundSpinTryLock.argtypes = [POINTER(c_int32)]
+libcsound.csoundSpinUnLock.argtypes = [POINTER(c_int32)]
 
 libcsound.csoundRunCommand.restype = c_long 
 libcsound.csoundRunCommand.argtypes = [POINTER(c_char_p), c_int]
@@ -481,6 +481,8 @@ def pstring(s):
     return s
 
 def csoundArgList(lst):
+    if len(lst) == 1 and type(lst[0]) is list:
+        lst = lst[0]
     argc = len(lst)
     argv = (POINTER(c_char_p) * argc)()
     for i in range(argc):
@@ -1028,8 +1030,13 @@ class Csound:
 
     #General Input/Output
     def outputName(self):
-        """Return the output audio output name (-o)"""
+        """Return the audio output name (-o)"""
         s = libcsound.csoundGetOutputName(self.cs)
+        return pstring(s)
+    
+    def inputName(self):
+        """Return the audio input name (-i)"""
+        s = libcsound.csoundGetInputName(self.cs)
         return pstring(s)
     
     def setOutput(self, name, type_, format):
@@ -2222,37 +2229,43 @@ class Csound:
         It yields the CPU to other threads.
         """
         libcsound.csoundSleep(c_uint(milliseconds))
-    
-    if (hasSpinLock):
-        def spinLock(self, spinlock):
-            """Lock the specified spinlock.
-            
-            If the spinlock is not locked, lock it and return;
-            if is is locked, wait until it is unlocked, then lock it and return.
-            Uses atomic compare and swap operations that are safe across processors
-            and safe for out of order operations,
-            and which are more efficient than operating system locks.
-            Use spinlocks to protect access to shared data, especially in functions
-            that do little more than read or write such data, for example:
-            
-                lock = ctypes.c_int(0)
-                def write(cs, frames, signal):
-                    cs.spinLock(ctypes.byref(lock))
-                    for frame in range(frames) :
-                        global_buffer[frame] += signal[frame];
-                    cs.spinUnlock(ctypes.byref(lock))
-            """
-            libcsound.csoundSpinLock(spinlock)
+
+    def spinLockInit(self, spinlock):
+        """Inits the spinlock.
         
-        def spinUnlock(self, spinlock):
-            """Unlock the specified spinlock ; (see spinlock())."""
-            libcsound.csoundSpinUnLock(spinlock)
-    else:
-        def spinLock(self, spinlock):
-            pass
+        If the spinlock is not locked, lock it and return;
+        if is is locked, wait until it is unlocked, then lock it and return.
+        Uses atomic compare and swap operations that are safe across processors
+        and safe for out of order operations,
+        and which are more efficient than operating system locks.
+        Use spinlocks to protect access to shared data, especially in functions
+        that do little more than read or write such data, for example:
         
-        def spinUnlock(self, spinlock):
-            pass
+            lock = ctypes.c_int32(0)
+            cs.spinLockInit(lock)
+            def write(cs, frames, signal):
+                cs.spinLock(lock)
+                for frame in range(frames) :
+                    global_buffer[frame] += signal[frame];
+                cs.spinUnlock(lock)
+        """
+        return libcsound.csoundSpinLockInit(byref(spinlock))
+
+    def spinLock(self, spinlock):
+        """Locks the spinlock."""
+        libcsound.csoundSpinLock(byref(spinlock))
+
+    def spinTryLock(self,spinlock):
+        """Tries the spinlock.
+        
+        returns CSOUND_SUCCESS if lock could be acquired,
+        CSOUND_ERROR, otherwise.
+        """
+        return libcsound.csoundSpinLock(byref(spinlock))
+
+    def spinUnlock(self, spinlock):
+        """Unlocks the spinlock."""
+        libcsound.csoundSpinUnLock(byref(spinlock))
     
     #Miscellaneous Functions
     def runCommand(self, args, noWait):

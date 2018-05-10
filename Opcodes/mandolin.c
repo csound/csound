@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /********************************************/
@@ -43,11 +43,11 @@
 #include "csoundCore.h"
 #include "mandolin.h"
 
-static inline int infoTick(MANDOL *p)
+static inline int32_t infoTick(MANDOL *p)
 {
     int32 temp;
     MYFLT temp_time, alpha;
-    int allDone = 0;
+    int32_t allDone = 0;
 
     p->s_time += *p->s_rate;    /*  Update current time          */
 
@@ -72,7 +72,7 @@ static inline int infoTick(MANDOL *p)
 }
 
 /* Suggested values pluckAmp = 0.3; pluckPos = 0.4; detuning = 0.995; */
-int mandolinset(CSOUND *csound, MANDOL *p)
+int32_t mandolinset(CSOUND *csound, MANDOL *p)
 {
     FUNC *ftp;
 
@@ -117,17 +117,17 @@ int mandolinset(CSOUND *csound, MANDOL *p)
       p->dampTime = (int32) p->lastLength; /* See tick method below */
       p->waveDone = 0;
       {
-        int relestim = (int)(CS_EKR * FL(0.1));
+        int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
         /* 1/10th second decay extention */
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int)(p->h.insdshead->offtim * CS_EKR);  /* ??? */
+      p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR);  /* ??? */
     }
     return OK;
 }
 
-int mandolin(CSOUND *csound, MANDOL *p)
+int32_t mandolin(CSOUND *csound, MANDOL *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;

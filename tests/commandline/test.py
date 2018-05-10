@@ -46,7 +46,7 @@ def showHelp():
     print message
 
 def runTest():
-    runArgs = "-Wdo test.wav"
+    runArgs = "-nd"# "-Wdo test.wav"
 
     if (parserType == "--old-parser"):
         print "Testing with old parser"
@@ -182,8 +182,8 @@ def runTest():
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s %s"%(executable, parserType, runArgs, filename)
-            #print command
+            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            print command
             retVal = os.system(command)
   
         out = ""

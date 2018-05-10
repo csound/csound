@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* mono and stereo automatic audio cutters */
@@ -59,25 +59,24 @@ typedef struct {
       MYFLT     *envelopingon;  /* default 1 */
 
       /* integer values */
-      int Subdiv,Phrasebars,Numrepeats;
-      int Stutterspeed;
+      int32_t Subdiv,Phrasebars,Numrepeats;
+      int32_t Stutterspeed;
 
   /* internal data */
-  /* unsigned long int sampdone; */
-      int samplesperunit;
-      int repeatlengthsamp;
-      int repeatsampdone;
-
-      int numbarsnow;
+  /* uint64_t sampdone; */
+      int32_t samplesperunit;
+      int32_t repeatlengthsamp;
+      int32_t repeatsampdone;
+      int32_t numbarsnow;
       /* unitblock can be a float if stutterspeed greater than 1 */
       MYFLT unitblock,unitsleft,unitsdone;
-      int totalunits;
+      int32_t totalunits;
 
-      int repeats,repeatsdone;
-      int stutteron;
+      int32_t repeats,repeatsdone;
+      int32_t stutteron;
 
       /* enveloping */
-      int Envelopingon,envsize;
+      int32_t Envelopingon,envsize;
 
       /* to hold repeat data */
       AUXCH repeatbuffer;
@@ -108,25 +107,25 @@ typedef struct {
       MYFLT     *envelopingon;  /* default 1 */
 
       /* integer values */
-      int Subdiv,Phrasebars,Numrepeats;
-      int Stutterspeed;
+      int32_t Subdiv,Phrasebars,Numrepeats;
+      int32_t Stutterspeed;
 
       /* internal data */
-      /* unsigned long int sampdone; */
-      int samplesperunit;
-      int repeatlengthsamp;
-      int repeatsampdone;
+      /* unsigned long sampdone; */
+      int32_t samplesperunit;
+      int32_t repeatlengthsamp;
+      int32_t repeatsampdone;
 
-      int numbarsnow;
+      int32_t numbarsnow;
       /* unitblock can be a float if stutterspeed greater than 1 */
       MYFLT unitblock,unitsleft,unitsdone;
-      int totalunits;
+      int32_t totalunits;
 
-      int repeats,repeatsdone;
-      int stutteron;
+      int32_t repeats,repeatsdone;
+      int32_t stutteron;
 
       /* enveloping */
-      int Envelopingon,envsize;
+      int32_t Envelopingon,envsize;
 
       /* to hold repeat data- interleaved stereo buffer, twice size
          for mono version */

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*                                                              UGENS3.H        */
@@ -43,6 +43,19 @@ typedef struct {
         int16   seg1, curmod, looping, stereo;
         FUNC    *ftp;
 } LOSC;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *sphs, *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
+                *imod2,*ibeg2,*iend2;
+        MYFLT   cpscvt;
+        MYFLT   lphs;
+        int16   mod1, mod2;
+        MYFLT   beg1, beg2;
+        MYFLT   end1, end2;
+        int16   seg1, curmod, looping, stereo;
+        FUNC    *ftp;
+} LOSCPHS;
 
 typedef struct {
         int16   tim;

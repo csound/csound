@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* pvfileio.c
@@ -76,14 +76,14 @@ const GUID KSDATAFORMAT_SUBTYPE_PVOC = {
 typedef struct pvoc_file {
     WAVEFORMATEX fmtdata;
     PVOCDATA    pvdata;
-    int32       datachunkoffset;
-    int32       nFrames;        /* no of frames in file */
-    int32       FramePos;       /* where we are in file */
+    int32_t       datachunkoffset;
+    int32_t       nFrames;        /* no of frames in file */
+    int32_t       FramePos;       /* where we are in file */
     FILE        *fp;
     void        *fd;
-    int32       curpos;
-    int         to_delete;
-    int         readonly;
+    int32_t       curpos;
+    int32_t         to_delete;
+    int32_t         readonly;
     char        *name;
     float       *customWindow;
 } PVOCFILE;
@@ -135,24 +135,24 @@ static const char *pvErrorStrings[] = {
     NULL                                                            /* -43 */
 };
 
-static  int     pvoc_writeheader(CSOUND *csound, PVOCFILE *p);
-static  int     pvoc_readheader(CSOUND *csound, PVOCFILE *p,
+static  int32_t     pvoc_writeheader(CSOUND *csound, PVOCFILE *p);
+static  int32_t     pvoc_readheader(CSOUND *csound, PVOCFILE *p,
                                                  WAVEFORMATPVOCEX *pWfpx);
 
 /* thanks to the SNDAN programmers for this! */
 /* return 1 for big-endian machine, 0 for little-endian machine */
 
-static inline int byte_order(void)
+static inline int32_t byte_order(void)
 {
-    const int one = 1;
+    const int32_t one = 1;
     return (!*((char*) &one));
 }
 
 /* low level file I/O */
 
-static inline int pvfile_read_tag(PVOCFILE *p, char *s)
+static inline int32_t pvfile_read_tag(PVOCFILE *p, char *s)
 {
-    if (UNLIKELY((int) fread(s, 1, 4, p->fp) != 4)) {
+    if (UNLIKELY((int32_t) fread(s, 1, 4, p->fp) != 4)) {
       s[0] = '\0';
       return -1;
     }
@@ -160,18 +160,18 @@ static inline int pvfile_read_tag(PVOCFILE *p, char *s)
     return 0;
 }
 
-static inline int pvfile_write_tag(PVOCFILE *p, const char *s)
+static inline int32_t pvfile_write_tag(PVOCFILE *p, const char *s)
 {
-    if (UNLIKELY((int) fwrite((void*) s, 1, 4, p->fp) != 4))
+    if (UNLIKELY((int32_t) fwrite((void*) s, 1, 4, p->fp) != 4))
       return -1;
     return 0;
 }
 
-static inline int32 pvfile_read_16(PVOCFILE *p, void *data, int32 cnt)
+static inline int32_t pvfile_read_16(PVOCFILE *p, void *data, int32_t cnt)
 {
-    int32 n = (int32) fread(data, sizeof(uint16_t), (size_t) cnt, p->fp);
+    int32_t n = (int32_t) fread(data, sizeof(uint16_t), (size_t) cnt, p->fp);
     if (byte_order()) {
-      int32     i;
+      int32_t     i;
       uint16_t  tmp;
       for (i = 0; i < n; i++) {
         tmp = ((uint16_t*) data)[i];
@@ -182,9 +182,9 @@ static inline int32 pvfile_read_16(PVOCFILE *p, void *data, int32 cnt)
     return n;
 }
 
-static inline int pvfile_write_16(PVOCFILE *p, void *data, int32 cnt)
+static inline int32_t pvfile_write_16(PVOCFILE *p, void *data, int32_t cnt)
 {
-    int32  n;
+    int32_t  n;
 
     if (byte_order()) {
       uint16_t  tmp;
@@ -200,11 +200,11 @@ static inline int pvfile_write_16(PVOCFILE *p, void *data, int32 cnt)
     return (n != cnt);
 }
 
-static inline int32 pvfile_read_32(PVOCFILE *p, void *data, int32 cnt)
+static inline int32_t pvfile_read_32(PVOCFILE *p, void *data, int32_t cnt)
 {
-    int32  n = (int32) fread(data, sizeof(uint32_t), (size_t) cnt, p->fp);
+    int32_t  n = (int32_t) fread(data, sizeof(uint32_t), (size_t) cnt, p->fp);
     if (byte_order()) {
-      int32     i;
+      int32_t     i;
       uint32_t  tmp;
       for (i = 0; i < n; i++) {
         tmp = ((uint32_t*) data)[i];
@@ -218,9 +218,9 @@ static inline int32 pvfile_read_32(PVOCFILE *p, void *data, int32 cnt)
     return n;
 }
 
-static inline int pvfile_write_32(PVOCFILE *p, void *data, int32 cnt)
+static inline int32_t pvfile_write_32(PVOCFILE *p, void *data, int32_t cnt)
 {
-    int32  n;
+    int32_t  n;
 
     if (byte_order()) {
       uint32_t  tmp;
@@ -239,25 +239,25 @@ static inline int pvfile_write_32(PVOCFILE *p, void *data, int32 cnt)
     return (n != cnt);
 }
 
-static int write_guid(PVOCFILE *p, const GUID *pGuid)
+static int32_t write_guid(PVOCFILE *p, const GUID *pGuid)
 {
-    int err = 0;
+    int32_t err = 0;
     err |= pvfile_write_32(p, (void*) &(pGuid->Data1), 1L);
     err |= pvfile_write_16(p, (void*) &(pGuid->Data2), 1L);
     err |= pvfile_write_16(p, (void*) &(pGuid->Data3), 1L);
-    err |= ((int) fwrite(&(pGuid->Data4[0]), 1, 8, p->fp) != 8);
+    err |= ((int32_t) fwrite(&(pGuid->Data4[0]), 1, 8, p->fp) != 8);
     return err;
 }
 
-static int compare_guids(const GUID *gleft, const GUID *gright)
+static int32_t compare_guids(const GUID *gleft, const GUID *gright)
 {
     const char *left = (const char *) gleft, *right = (const char *) gright;
     return !memcmp(left, right, sizeof(GUID));
 }
 
-static int write_pvocdata(PVOCFILE *p)
+static int32_t write_pvocdata(PVOCFILE *p)
 {
-    int err = 0;
+    int32_t err = 0;
     err |= pvfile_write_16(p, &(p->pvdata.wWordFormat), 1L);
     err |= pvfile_write_16(p, &(p->pvdata.wAnalFormat), 1L);
     err |= pvfile_write_16(p, &(p->pvdata.wSourceFormat), 1L);
@@ -271,9 +271,9 @@ static int write_pvocdata(PVOCFILE *p)
     return err;
 }
 
-static int write_fmt(PVOCFILE *p)
+static int32_t write_fmt(PVOCFILE *p)
 {
-    int err = 0;
+    int32_t err = 0;
     err |= pvfile_write_16(p, &(p->fmtdata.wFormatTag), 1L);
     err |= pvfile_write_16(p, &(p->fmtdata.nChannels), 1L);
     err |= pvfile_write_32(p, &(p->fmtdata.nSamplesPerSec), 1L);
@@ -284,19 +284,19 @@ static int write_fmt(PVOCFILE *p)
     return err;
 }
 
-static int pvoc_writeWindow(PVOCFILE *p, float *window, uint32_t length)
+static int32_t pvoc_writeWindow(PVOCFILE *p, float *window, uint32_t length)
 {
-    return (pvfile_write_32(p, window, (int32) length));
+    return (pvfile_write_32(p, window, (int32_t) length));
 }
 
-static int pvoc_readWindow(PVOCFILE *p, float *window, uint32_t length)
+static int32_t pvoc_readWindow(PVOCFILE *p, float *window, uint32_t length)
 {
-    return (pvfile_read_32(p, window, (int32) length) != (int32) length);
+    return (pvfile_read_32(p, window, (int32_t) length) != (int32_t) length);
 }
 
 const char *pvoc_errorstr(CSOUND *csound)
 {
-    int i = -(csound->pvErrorCode);
+    int32_t i = -(csound->pvErrorCode);
 
     if (UNLIKELY(i < 0 || i > 42)) i = 1;
     return (const char *) Str(pvErrorStrings[i]);
@@ -311,7 +311,7 @@ const char *pvoc_errorstr(CSOUND *csound)
  * But avoiding the full monty of a C++ implementation.
  *******************************************/
 
-int init_pvsys(CSOUND *csound)
+int32_t init_pvsys(CSOUND *csound)
 {
     if (UNLIKELY(csound->pvNumFiles)) {
       csound->pvErrorCode = -2;
@@ -330,14 +330,14 @@ static inline PVOCFILE *pvsys_getFileHandle(CSOUND *csound, int fd)
 
 static int pvsys_createFileHandle(CSOUND *csound)
 {
-    int i;
+    int32_t i;
     for (i = 0; i < csound->pvNumFiles; i++) {
       if (PVFILETABLE[i] == NULL)
         break;
     }
     if (i >= csound->pvNumFiles) {
       PVOCFILE  **tmp;
-      int       j = i;
+      int32_t       j = i;
       /* extend table */
       if (!csound->pvNumFiles) {
         csound->pvNumFiles = 8;
@@ -403,14 +403,14 @@ static void prepare_pvfmt(WAVEFORMATEX *pfmt, uint32 chans,
 /* NB currently this does not enforce a soundfile extension; */
 /* probably it should... */
 
-int  pvoc_createfile(CSOUND *csound, const char *filename,
+int32_t  pvoc_createfile(CSOUND *csound, const char *filename,
                      uint32 fftlen, uint32 overlap,
                      uint32 chans, uint32 format,
-                     int32 srate, int stype, int wtype,
+                     int32_t srate, int32_t stype, int32_t wtype,
                      float wparam, float *fWindow, uint32 dwWinlen)
 {
-    int       fd;
-    int32     N, D;
+    int32_t       fd;
+    int32_t     N, D;
     char      *pname;
     PVOCFILE  *p = NULL;
     float     winparam = 0.0f;
@@ -419,7 +419,7 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
     D = overlap;
     csound->pvErrorCode = -1;
 
-    if (UNLIKELY(N == 0 || (int) chans <= 0 || filename == NULL || D > N)) {
+    if (UNLIKELY(N == 0 || (int32_t) chans <= 0 || filename == NULL || D > N)) {
       csound->pvErrorCode = -3;
       return -1;
     }
@@ -509,13 +509,13 @@ int  pvoc_createfile(CSOUND *csound, const char *filename,
     return fd;
 }
 
-int pvoc_openfile(CSOUND *csound,
+int32_t pvoc_openfile(CSOUND *csound,
                   const char *filename, void *data_, void *fmt_)
 {
     WAVEFORMATPVOCEX  wfpx;
     char              *pname;
     PVOCFILE          *p = NULL;
-    int               fd;
+    int32_t               fd;
     PVOCDATA         *data = (PVOCDATA *) data_;
     WAVEFORMATEX      *fmt = (WAVEFORMATEX *) fmt_;
 
@@ -561,11 +561,11 @@ int pvoc_openfile(CSOUND *csound,
     return fd;
 }
 
-static int pvoc_readfmt(CSOUND *csound, PVOCFILE *p, WAVEFORMATPVOCEX *pWfpx)
+static int32_t pvoc_readfmt(CSOUND *csound, PVOCFILE *p, WAVEFORMATPVOCEX *pWfpx)
 {
     WAVEFORMATEXTENSIBLE  *wxfmt = &(pWfpx->wxFormat);
     WAVEFORMATEX          *fmt = &(wxfmt->Format);
-    int                   err = 0;
+    int32_t                   err = 0;
 
     memset(pWfpx, 0, sizeof(WAVEFORMATPVOCEX));
     err |= (pvfile_read_16(p, &(fmt->wFormatTag), 1L) != 1L);
@@ -593,7 +593,7 @@ static int pvoc_readfmt(CSOUND *csound, PVOCFILE *p, WAVEFORMATPVOCEX *pWfpx)
     err |= (pvfile_read_32(p, &(wxfmt->SubFormat.Data1), 1L) != 1L);
     err |= (pvfile_read_16(p, &(wxfmt->SubFormat.Data2), 1L) != 1L);
     err |= (pvfile_read_16(p, &(wxfmt->SubFormat.Data3), 1L) != 1L);
-    err |= ((int) fread(&(wxfmt->SubFormat.Data4[0]), 1, 8, p->fp) != 8);
+    err |= ((int32_t) fread(&(wxfmt->SubFormat.Data4[0]), 1, 8, p->fp) != 8);
     if (UNLIKELY(err)) {
       csound->pvErrorCode = -13;
       return -1;
@@ -629,13 +629,13 @@ static int pvoc_readfmt(CSOUND *csound, PVOCFILE *p, WAVEFORMATPVOCEX *pWfpx)
     return 0;
 }
 
-static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
+static int32_t pvoc_readheader(CSOUND *csound, PVOCFILE *p,
                                             WAVEFORMATPVOCEX *pWfpx)
 {
     char      tag[5];
     uint32_t  size;
     uint32_t  riffsize;
-    int       fmtseen = 0, windowseen = 0;
+    int32_t       fmtseen = 0, windowseen = 0;
 
     if (UNLIKELY(pvfile_read_tag(p, &(tag[0])) != 0 ||
         strcmp(tag, "RIFF") != 0 ||
@@ -663,7 +663,7 @@ static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
       riffsize -= 2 * sizeof(uint32_t);
       if (strcmp(tag, "fmt ") == 0) {
         /* bail out if not a pvoc file: not trying to read all WAVE formats!*/
-        if (UNLIKELY((int) size < (int) SIZEOF_FMTPVOCEX)) {
+        if (UNLIKELY((int32_t) size < (int32_t) SIZEOF_FMTPVOCEX)) {
           csound->pvErrorCode = -14;
           return -1;
         }
@@ -709,7 +709,7 @@ static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
             return -1;
           }
         }
-        p->datachunkoffset = (int32) ftell(p->fp);
+        p->datachunkoffset = (int32_t) ftell(p->fp);
         p->curpos = p->datachunkoffset;
         /* not m/c frames, for now */
         p->nFrames = size / p->pvdata.dwFrameAlign;
@@ -718,7 +718,7 @@ static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
       else {
         /* skip any unknown chunks */
         riffsize -= 2 * sizeof(uint32_t);
-        if (UNLIKELY(fseek(p->fp, (int32) size, SEEK_CUR) != 0)) {
+        if (UNLIKELY(fseek(p->fp, (int32_t) size, SEEK_CUR) != 0)) {
           csound->pvErrorCode = -28;
           return -1;
         }
@@ -730,10 +730,10 @@ static int pvoc_readheader(CSOUND *csound, PVOCFILE *p,
     return -1;
 }
 
-static int pvoc_writeheader(CSOUND *csound, PVOCFILE *p)
+static int32_t pvoc_writeheader(CSOUND *csound, PVOCFILE *p)
 {
     uint32_t  version, size = (uint32_t) 0;
-    int       err = 0;
+    int32_t       err = 0;
 
     err |= pvfile_write_tag(p, "RIFF");
     err |= pvfile_write_32(p, &size, 1L);
@@ -809,13 +809,13 @@ static int pvoc_writeheader(CSOUND *csound, PVOCFILE *p)
       csound->pvErrorCode = -30;
       return -1;
     }
-    p->datachunkoffset = (int32) ftell(p->fp);
+    p->datachunkoffset = (int32_t) ftell(p->fp);
     p->curpos = p->datachunkoffset;
 
     return 0;
 }
 
-static int pvoc_updateheader(CSOUND *csound, int ofd)
+static int32_t pvoc_updateheader(CSOUND *csound, int32_t ofd)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
     uint32_t  riffsize, datasize;
@@ -825,7 +825,7 @@ static int pvoc_updateheader(CSOUND *csound, int ofd)
       return 0;
     }
     if (UNLIKELY(fseek(p->fp,
-                       (int32) (p->datachunkoffset - sizeof(uint32_t)), SEEK_SET)
+                       (int32_t) (p->datachunkoffset - sizeof(uint32_t)), SEEK_SET)
                  != 0)) {
       csound->pvErrorCode = -33;
       return 0;
@@ -835,7 +835,7 @@ static int pvoc_updateheader(CSOUND *csound, int ofd)
       csound->pvErrorCode = -33;
       return 0;
     }
-    if (UNLIKELY(fseek(p->fp, (int32) sizeof(uint32_t), SEEK_SET) != 0)) {
+    if (UNLIKELY(fseek(p->fp, (int32_t) sizeof(uint32_t), SEEK_SET) != 0)) {
       csound->pvErrorCode = -33;
       return 0;
     }
@@ -852,10 +852,10 @@ static int pvoc_updateheader(CSOUND *csound, int ofd)
     return 1;
 }
 
-int pvoc_closefile(CSOUND *csound, int ofd)
+int32_t pvoc_closefile(CSOUND *csound, int32_t ofd)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
-    int       rc = 1;
+    int32_t       rc = 1;
 
     csound->pvErrorCode = 0;
     if (UNLIKELY(p == NULL)) {
@@ -899,10 +899,11 @@ int pvoc_closefile(CSOUND *csound, int ofd)
  *
  * return 0 for error, 1 for success. This could change....
  */
-int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, int32 numframes)
+int32_t pvoc_putframes(CSOUND *csound, int32_t ofd, const float *frame,
+                       int32_t numframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
-    int32     towrite;  /* count in 'words' */
+    int32_t     towrite;  /* count in 'words' */
 
     if (UNLIKELY(p == NULL)) {
       csound->pvErrorCode = -38;
@@ -913,7 +914,7 @@ int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, int32 numframes)
       return 0;
     }
     /* NB doubles not supported yet */
-    towrite = (int32) p->pvdata.nAnalysisBins * 2L * numframes;
+    towrite = (int32_t) p->pvdata.nAnalysisBins * 2L * numframes;
     if (UNLIKELY(pvfile_write_32(p, (void*) frame, towrite) != 0)) {
       csound->pvErrorCode = -39;
       return 0;
@@ -927,11 +928,11 @@ int pvoc_putframes(CSOUND *csound, int ofd, const float *frame, int32 numframes)
  * best practice here is to read nChannels frames
  * return -1 for error, 0 for EOF, else numframes read
  */
-int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
+int32_t pvoc_getframes(CSOUND *csound, int32_t ifd, float *frames,
                                     uint32 nframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
-    int32     toread, got;
+    int32_t     toread, got;
 
     if (UNLIKELY(p == NULL)) {
       csound->pvErrorCode = -38;
@@ -941,28 +942,28 @@ int pvoc_getframes(CSOUND *csound, int ifd, float *frames,
       csound->pvErrorCode = -37;
       return -1;
     }
-    toread = (int32) p->pvdata.nAnalysisBins * 2L * (int32) nframes;
+    toread = (int32_t) p->pvdata.nAnalysisBins * 2L * (int32_t) nframes;
     got = pvfile_read_32(p, frames, toread);
     if (got != toread) {
       if (UNLIKELY(ferror(p->fp))) {
         csound->pvErrorCode = -40;
         return -1;
       }
-      p->curpos += (int32) (got * sizeof(float));
-      got = got / (int32) (p->pvdata.nAnalysisBins * 2);
+      p->curpos += (int32_t) (got * sizeof(float));
+      got = got / (int32_t) (p->pvdata.nAnalysisBins * 2);
       p->FramePos += got;
-      return (int) got;
+      return (int32_t) got;
     }
     p->curpos += (toread * sizeof(float));
-    p->FramePos += (int32) nframes;
+    p->FramePos += (int32_t) nframes;
 
-    return (int) nframes;
+    return (int32_t) nframes;
 }
 
-int pvoc_fseek(CSOUND *csound, int ifd, int offset)
+int32_t pvoc_fseek(CSOUND *csound, int32_t ifd, int32_t offset)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
-    int32     pos, skipframes, skipsize;
+    int32_t   pos, skipframes, skipsize;
 
     if (UNLIKELY(p == NULL)) {
       csound->pvErrorCode = -38;
@@ -973,12 +974,12 @@ int pvoc_fseek(CSOUND *csound, int ifd, int offset)
       return -1;
     }
     if (offset == 1)
-    skipframes = (int32) p->fmtdata.nChannels;
+    skipframes = (int32_t) p->fmtdata.nChannels;
     else skipframes = offset;
     skipsize = p->pvdata.dwFrameAlign * skipframes;
 
     pos = p->datachunkoffset + skipsize;
-    if (UNLIKELY(fseek(p->fp, (int32) pos, SEEK_SET) != 0)) {
+    if (UNLIKELY(fseek(p->fp, (int32_t) pos, SEEK_SET) != 0)) {
       csound->pvErrorCode = -41;
       return -1;
     }
@@ -990,9 +991,9 @@ int pvoc_fseek(CSOUND *csound, int ifd, int offset)
 
 /* may be more to do in here later on */
 
-int pvsys_release(CSOUND *csound)
+int32_t pvsys_release(CSOUND *csound)
 {
-    int i;
+    int32_t i;
 
     csound->pvErrorCode = 0;
     for (i = 0; i < csound->pvNumFiles; i++) {
@@ -1012,7 +1013,7 @@ int pvsys_release(CSOUND *csound)
 
 /* return raw framecount: channel-agnostic for now */
 
-int pvoc_framecount(CSOUND *csound, int ifd)
+int32_t pvoc_framecount(CSOUND *csound, int32_t ifd)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
     if (UNLIKELY(p == NULL)) {

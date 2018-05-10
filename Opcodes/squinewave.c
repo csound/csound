@@ -20,8 +20,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <math.h>
@@ -98,7 +98,8 @@ static inline MYFLT Clamp(const MYFLT x, const MYFLT minval, const MYFLT maxval)
 
 /* ================================================================== */
 
-int squinewave_init(CSOUND* csound, SQUINEWAVE *p)
+
+int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 {
     const double sr = csound->GetSr(csound);
 
@@ -128,8 +129,9 @@ int squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 
 /* ================================================================== */
 
-int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
+int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 {
+    IGN(csound);
     const uint32_t nsmps = CS_KSMPS;
     uint32_t n;
 
@@ -383,9 +385,10 @@ int squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
 /* ar[, aSyncOut] squinewave   aFreq, aClip, aSkew [, aSyncIn, aMinSweep, iphase] */
 
-static OENTRY squinewave_localops[] = {
-    { "squinewave", sizeof(SQUINEWAVE), 0, 5, "am", "aaaxoj",
-      (SUBR)squinewave_init, NULL, (SUBR)squinewave_gen },
+static OENTRY squinewave_localops[] =
+  {
+   { "squinewave", sizeof(SQUINEWAVE), 0, 3, "am", "aaaxoj",
+     (SUBR)squinewave_init, (SUBR)squinewave_gen },
 };
 
 LINKAGE_BUILTIN(squinewave_localops)

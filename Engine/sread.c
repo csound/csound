@@ -17,13 +17,14 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"                             /*   SREAD.C     */
 #include <math.h>      /* for fabs() */
 #include <ctype.h>
+#include <inttypes.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
 #include "Engine/score_param.h"
@@ -716,76 +717,6 @@ static int getscochar(CSOUND *csound, int expand)
 /*   return 0; */
 /* } */
 
-#if 0
-static void init_smacros(CSOUND *csound, NAMES *nn)
-{
-    S_MACRO *mm;
-    while (nn) {
-      char  *s = nn->mac;
-      char  *p = strchr(s, '=');
-      char  *mname;
-
-      if (p == NULL)
-        p = s + strlen(s);
-      //if (csound->oparms->msglevel & 7)
-      //sound->Message(csound, Str("Macro definition for %*s\n"), p - s, s);
-      s = strchr(s, ':') + 1;                   /* skip arg bit */
-      if (UNLIKELY(s == NULL || s >= p))
-        csound->Die(csound, Str("Invalid macro name for --smacro"));
-      mname = (char*) csound->Malloc(csound, (p - s) + 1);
-      strncpy(mname, s, p - s);
-      mname[p - s] = '\0';
-      /* check if macro is already defined */
-      for (mm = STA(macros); mm != NULL; mm = mm->next) {
-        if (strcmp(mm->name, mname) == 0)
-          break;
-      }
-      if (mm == NULL) {
-        mm = (S_MACRO*) csound->Calloc(csound, sizeof(S_MACRO));
-        mm->name = mname;
-        mm->next = STA(macros);
-        STA(macros) = mm;
-      }
-      else
-        csound->Free(csound, mname);
-      mm->margs = MARGS;    /* Initial size */
-      mm->acnt = 0;
-      if (*p != '\0')
-        p++;
-      mm->body = corfile_create_r(p);
-#ifdef MACDEBUG
-      csound->DebugMsg(csound,"%s(%d): init %s %p\n",
-                       __FILE__, __LINE__, mm->name, mm->body);
-#endif
-      nn = nn->next;
-    }
-    mm = (S_MACRO*) csound->Calloc(csound, sizeof(S_MACRO));
-    mm->name = (char*)csound->Malloc(csound,4);
-    strcpy(mm->name, "INF");
-    mm->body = corfile_create_r("800000000000.0");
-#ifdef MACDEBUG
-    csound->DebugMsg(csound,"%s(%d): INF %p\n", __FILE__, __LINE__, mm->body);
-#endif
-    mm->next = STA(macros);
-    STA(macros) = mm;
-}
-#endif
-
-/* #if never */
-/* void sread_init(CSOUND *csound) */
-/* { */
-/*   /\* sread_alloc_globals(csound); *\/ */
-/*   STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK)); */
-/*   STA(input_size) = 20; */
-/*   STA(input_cnt) = 0; */
-/*   STA(str) = STA(inputs); */
-/*   STA(str)->cf = csound->scstr; */
-/*   STA(str)->is_marked_repeat = 0; */
-/*   STA(str)->line = 1; STA(str)->mac = NULL; */
-/*   init_smacros(csound, csound->smacros); */
-/* } */
-/* #endif */
-
 void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
@@ -838,11 +769,12 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
       exit(0);
     }
 #endif
-
+    //printf("sread starts with >>%s<<\n", csound->expanded_sco->body);
     while ((STA(op) = getop(csound)) != EOF) { /* read next op from scorefile */
       rtncod = 1;
       salcblk(csound);          /* build a line structure; init bp,nxp  */
     again:
+      //printf("reading: %c (%.2x)\n", STA(op), STA(op));
       switch (STA(op)) {         /*  and dispatch on opcodes             */
       case 'y':
         {
@@ -992,7 +924,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
 /*         STA(repeat_cnt_n)[STA(repeat_index)] = 0; */
 /*         do { */
 /*           c = getscochar(csound, 1); */
-/*         } while(isblank(c)); */
+/*         } while (isblank(c)); */
 /*         while (isdigit(c)) { */
 /*           STA(repeat_cnt_n)[STA(repeat_index)] = */
 /*             10 * STA(repeat_cnt_n)[STA(repeat_index)] + c - '0'; */
@@ -1164,7 +1096,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           STA(names)[j].line = STA(str)->line;
           //printf("line-%d\n",STA(names)[j].line);
           if (csound->oparms->msglevel & TIMEMSG)
-            csound->Message(csound,Str("%d: %s position %d\n"),
+            csound->Message(csound,Str("%d: %s position %"PRIi32"\n"),
                             j, STA(names)[j].name,
                             STA(names)[j].posit);
           STA(op) = getop(csound);
@@ -1592,6 +1524,7 @@ static void flushlin(CSOUND *csound)
     STA(linpos) = 0;
     STA(lincnt)++;
 }
+
 /* unused at the moment
 static inline int check_preproc_name(CSOUND *csound, const char *name)
 {
@@ -1605,6 +1538,7 @@ static inline int check_preproc_name(CSOUND *csound, const char *name)
     return 1;
 }
 */
+
 static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 {
     int c;
@@ -2122,6 +2056,10 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
           return(0);
         }
         *p++ = c;                       /*   copy to matched quote */
+        if (c=='\\') {
+          *p++ = getscochar(csound, 1);
+          //          printf("escaped %c\n", *(p-1));
+        }
         /* **** CHECK **** */
         if (p >= STA(memend))
           p = (char*) ((uintptr_t) p + expand_nxp(csound));

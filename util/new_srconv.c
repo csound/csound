@@ -8,7 +8,7 @@
 /*
     srconv.c
 
-    Copyright (C) 2015 John ffitch after Eric de Castro Lopo
+    Copyright (C) 2015 John ffitch after Erik de Castro Lopo
 
     This file is associated with Csound.
 
@@ -24,7 +24,7 @@
 **
 ** You should have received a copy of the GNU General Public License
 ** along with this program; if not, write to the Free Software
-** Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+** Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 */
 
@@ -63,7 +63,7 @@
 
 #define Str_noop(x) x
 
-#if !(defined(__MACH__) && (__GNUC__ == 3) && (__GNUC_MINOR__ < 2))
+#if defined(__clang__) ||  defined(HAVE_GCC3)
 #  define LIKELY(x)     __builtin_expect(!!(x),1)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else
@@ -168,9 +168,9 @@ int main(int argc, char **argv)
     SF_INFO sfinfo;
 
     double
-      P = 0.0,              /* Rin / Rout */
-      Rin = 0.0,            /* input sampling rate */
-      Rout = 0.0;           /* output sample rate */
+      P = 0.0,                  /* Rin / Rout */
+      Rin = 0.0,                /* input sampling rate */
+      Rout = 0.0;               /* output sample rate */
 
     int
       i,                        /* index variables */
@@ -546,7 +546,7 @@ int main(int argc, char **argv)
     sf_close(inf);
   err_rtn_msg:
     err_msg[255] = '\0';
-    fprintf(stderr, err_msg);
+    fprintf(stderr, "%s", err_msg);
     return -1;
 }
 

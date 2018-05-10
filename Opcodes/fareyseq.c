@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*
@@ -32,8 +32,8 @@
 #include <time.h>
 
 #define MAX_PFACTOR 16
-const int MAX_PRIMES = 1229;
-const int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
+const int32_t MAX_PRIMES = 1229;
+const int32_t primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                       47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
                       107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163,
                       167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227,
@@ -168,8 +168,8 @@ const int primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                       9929, 9931, 9941, 9949, 9967, 9973};
 
 typedef struct pfactor_ {
-    int expon;
-    int base;
+    int32_t expon;
+    int32_t base;
 } PFACTOR;
 
 /* opcodes striuctures */
@@ -183,8 +183,8 @@ typedef struct {
     MYFLT *threshold;       /* user variable to set filter */
     /* Storage to remember what the table numbers were from a previous k
        cycle, and to store pointers to their FUNC data structures. */
-    int     pdft;           /* Previous destination */
-    int     psft;           /* source function table numbers. */
+    int32_t     pdft;           /* Previous destination */
+    int32_t     psft;           /* source function table numbers. */
     FUNC    *funcd, *funcs;
 } TABFILT;
 
@@ -193,7 +193,7 @@ typedef struct {
     MYFLT   *sft;           /* Source function table number */
     /* Storage to remember what the table numbers were from a previous k
        cycle, and to store pointers to their FUNC data structures. */
-    int     psft;           /* source function table numbers. */
+    int32_t     psft;           /* source function table numbers. */
     FUNC    *funcs;
 } TABSHUFFLE;
 
@@ -202,21 +202,22 @@ typedef struct {
     MYFLT *kr, *kn;
 } FAREYLEN;
 
-int tablefilter (CSOUND*,TABFILT *p);
-int tablefilterset (CSOUND*,TABFILT *p);
-int tableifilter (CSOUND*, TABFILT *p);
-int fareylen (CSOUND*, FAREYLEN *p);
-int tableshuffle (CSOUND*, TABSHUFFLE *p);
-int tableshuffleset (CSOUND*, TABSHUFFLE *p);
-int tableishuffle (CSOUND *, TABSHUFFLE *p);
+int32_t tablefilter (CSOUND*,TABFILT *p);
+int32_t tablefilterset (CSOUND*,TABFILT *p);
+int32_t tableifilter (CSOUND*, TABFILT *p);
+int32_t fareylen (CSOUND*, FAREYLEN *p);
+int32_t tableshuffle (CSOUND*, TABSHUFFLE *p);
+int32_t tableshuffleset (CSOUND*, TABSHUFFLE *p);
+int32_t tableishuffle (CSOUND *, TABSHUFFLE *p);
 
 /* utility functions */
-int EulerPhi (int n);
-int FareyLength (int n);
-int PrimeFactors (int n, PFACTOR p[]);
-MYFLT Digest (int n);
-void float2frac (CSOUND *csound, MYFLT in, int *p, int *q);
-void float_to_cfrac (CSOUND *csound, double r, int n, int a[], int p[], int q[]);
+int32_t EulerPhi (int32_t n);
+int32_t FareyLength (int32_t n);
+int32_t PrimeFactors (int32_t n, PFACTOR p[]);
+MYFLT Digest (int32_t n);
+void float2frac (CSOUND *csound, MYFLT in, int32_t *p, int32_t *q);
+void float_to_cfrac (CSOUND *csound, double r, int32_t n,
+                     int32_t a[], int32_t p[], int32_t q[]);
 
 /* a filter and table copy opcode for filtering tables containing
    Farey Sequences generated with fateytable GEN */
@@ -227,8 +228,9 @@ void float_to_cfrac (CSOUND *csound, double r, int n, int a[], int p[], int q[])
  *
  */
 
-int tablefilterset(CSOUND *csound, TABFILT *p)
+int32_t tablefilterset(CSOUND *csound, TABFILT *p)
 {
+   IGN(csound);
     p->pdft = 0;
     p->psft = 0;
     *p->ftype = 1;
@@ -241,28 +243,28 @@ int tablefilterset(CSOUND *csound, TABFILT *p)
  * k rate version - see tableifilter () for the init time version.
  *
  */
-static int dotablefilter (CSOUND *csound, TABFILT *p);
+static int32_t dotablefilter (CSOUND *csound, TABFILT *p);
 
-int tablefilter (CSOUND *csound, TABFILT *p)
+int32_t tablefilter (CSOUND *csound, TABFILT *p)
 {
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action.     */
     if (UNLIKELY((*p->dft < 1) || (*p->sft < 1))) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f"),
-                               *p->dft, *p->sft);
+                               (float)*p->dft, (float)*p->sft);
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, p->h.insdshead,
                                Str("Farey: Filter type < 1 ftype=%.2f"),
-                               *p->ftype);
+                               (float)*p->ftype);
     }
 
 
     /* Check each table number in turn.   */
 
     /* Destination  */
-    if (p->pdft != (int)*p->dft) {
+    if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
        * csoundFTFindP() for perf time. csoundFTFind() for init time.
        */
@@ -274,16 +276,16 @@ int tablefilter (CSOUND *csound, TABFILT *p)
       }
       /* Table number is valid.
        * Save the integer version of the table number for future reference.*/
-      p->pdft = (int)*p->dft;
+      p->pdft = (int32_t)*p->dft;
     }
     /* Source  */
-    if (p->psft != (int)*p->sft) {
+    if (p->psft != (int32_t)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
       }
-      p->psft = (int)*p->sft;
+      p->psft = (int32_t)*p->sft;
     }
     /* OK both tables present and the funcx pointers are pointing to
      * their data structures.    */
@@ -293,7 +295,7 @@ int tablefilter (CSOUND *csound, TABFILT *p)
 
 /*-----------------------------------*/
 
-int tableifilter (CSOUND *csound, TABFILT *p)
+int32_t tableifilter (CSOUND *csound, TABFILT *p)
 {
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action. */
@@ -304,14 +306,13 @@ int tableifilter (CSOUND *csound, TABFILT *p)
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, p->h.insdshead,
-                               Str("Farey: Filter type < 1 ftype=%.2f"),
-                               *p->ftype);
+                               Str("Farey: Filter type < 1"));
     }
 
     /* Check each table number in turn.  */
 
     /* Destination */
-    if (p->pdft != (int)*p->dft) {
+    if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
        * csoundFTFindP() for perf time. csoundFTFind() for init time. */
       if (UNLIKELY((p->funcd = csound->FTnp2Find(csound, p->dft)) == NULL)) {
@@ -322,16 +323,16 @@ int tableifilter (CSOUND *csound, TABFILT *p)
       }
       /* Table number is valid.
        * Save the integer version of the table number for future reference. */
-      p->pdft = (int)*p->dft;
+      p->pdft = (int32_t)*p->dft;
     }
     /* Source  */
-    if (p->psft != (int)*p->sft) {
+    if (p->psft != (int32_t)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
       }
-      p->psft = (int)*p->sft;
+      p->psft = (int32_t)*p->sft;
     }
     /* OK both tables present and the funcx pointers are pointing to
      * their data structures.    */
@@ -347,7 +348,7 @@ int tableifilter (CSOUND *csound, TABFILT *p)
  *
  *
  */
-static int dotablefilter (CSOUND *csound, TABFILT *p)
+static int32_t dotablefilter (CSOUND *csound, TABFILT *p)
 {
     int32 loopcount;     /* Loop counter. Set by the length of the dest table.*/
     int32 indx = 0;              /* Index to be added to offsets */
@@ -387,7 +388,7 @@ static int dotablefilter (CSOUND *csound, TABFILT *p)
         break;
       case 1:
         { /* filter all above threshold */
-          int p, q = 0;
+          int32_t p, q = 0;
           float2frac (csound, *ps, &p, &q);
           if (Digest (q) > threshold) {
             indx2++;
@@ -399,7 +400,7 @@ static int dotablefilter (CSOUND *csound, TABFILT *p)
         }
       case 2:
         { /* filter all below threshold */
-          int p, q = 0;
+          int32_t p, q = 0;
           float2frac (csound, *ps, &p, &q);
           if (Digest (q) < threshold) {
             indx2++;
@@ -431,15 +432,17 @@ static int dotablefilter (CSOUND *csound, TABFILT *p)
 /***************************************
 functions for shuffling an f-table
 ***************************************/
-static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p);
+static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p);
 
-int tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
+int32_t tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
 {
+    IGN(csound);
     p->psft = 0;
     return OK;
 }
 
-int tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
+
+int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
       return csound->PerfError(csound, p->h.insdshead,
@@ -448,19 +451,19 @@ int tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
     }
 
     /* Source  */
-    if (p->psft != (int)*p->sft) {
+    if (p->psft != (int32_t)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
       }
-      p->psft = (int)*p->sft;
+      p->psft = (int32_t)*p->sft;
     }
     dotableshuffle (csound, p);
     return OK;
 }
 
-int tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
+int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
       return csound->PerfError(csound, p->h.insdshead,
@@ -470,13 +473,13 @@ int tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
 
     /* Source  */
-    if (p->psft != (int)*p->sft) {
+    if (p->psft != (int32_t)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
       }
-      p->psft = (int)*p->sft;
+      p->psft = (int32_t)*p->sft;
     }
 
     dotableshuffle (csound, p);
@@ -487,10 +490,10 @@ int tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 /* dotableshuffle()
  * used to randomly shuffle the content of a csound f-table
  */
-static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
+static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
 {
     time_t now;
-    unsigned int seed = (unsigned int) time (&now);
+    uint32_t seed = (uint32_t) time (&now);
 
     MYFLT *bases;       /* Base address of the source table.*/
     MYFLT *temp;
@@ -521,19 +524,20 @@ static int dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     return OK;
 }
 
-int fareylen (CSOUND *csound, FAREYLEN *p)
+int32_t fareylen (CSOUND *csound, FAREYLEN *p)
 {
-    int n = (int) *p->kn;
+    IGN(csound);
+    int32_t n = (int32_t) *p->kn;
     *p->kr = (MYFLT) FareyLength (n);
     return OK;
 }
 
 /* utility functions */
 
-int EulerPhi (int n)
+int32_t EulerPhi (int32_t n)
 {
-    int i = 0;
-    //int pcount;
+    int32_t i = 0;
+    //int32_t pcount;
     MYFLT result;
     PFACTOR p[MAX_PFACTOR];
     memset(p, 0, sizeof(PFACTOR)*MAX_PFACTOR);
@@ -546,18 +550,18 @@ int EulerPhi (int n)
 
     result = (MYFLT)n;
     for (i = 0; i < MAX_PFACTOR; i++) {
-      int q = p[i].base;
+      int32_t q = p[i].base;
       if (!q)
         break;
       result *= (FL(1.0) - FL(1.0) / (MYFLT) q);
     }
-    return (int) result;
+    return (int32_t) result;
 }
 
-int FareyLength (int n)
+int32_t FareyLength (int32_t n)
 {
-    int i = 1;
-    int result = 1;
+    int32_t i = 1;
+    int32_t result = 1;
     n++;
     for (; i < n; i++)
       result += EulerPhi (i);
@@ -565,18 +569,18 @@ int FareyLength (int n)
 }
 
 
-int PrimeFactors (int n, PFACTOR p[])
+int32_t PrimeFactors (int32_t n, PFACTOR p[])
 {
-    int i = 0; int j = 0;
-    int i_exp = 0;
-    int pcount = 0;
+    int32_t i = 0; int32_t j = 0;
+    int32_t i_exp = 0;
+    int32_t pcount = 0;
 
     if (!n)
       return pcount;
 
     while (i < MAX_PRIMES)
       {
-        int aprime = primes[i++];
+        int32_t aprime = primes[i++];
         if (j == MAX_PFACTOR || aprime > n) {
           return pcount;
         }
@@ -615,18 +619,18 @@ int PrimeFactors (int n, PFACTOR p[])
  * The order of the first 16 integers according to Digest is:
  * 1, 2, 4, 3, 8, 6, 16, 12, 9, 5, 10, 15, 7, 14
  * ----------------------------------------------- */
-MYFLT Digest (int n)
+MYFLT Digest (int32_t n)
 {
     if (!n)
       return FL(0.0);
 
     {
       MYFLT result = FL(0.0);
-      int i = 0;
-      int exponent = 0;
+      int32_t i = 0;
+      int32_t exponent = 0;
       while( i < MAX_PRIMES )
         {
-          int prime = primes[i];
+          int32_t prime = primes[i];
           if (n == prime)
             {
               result += (((prime - 1)*(prime - 1)) / (MYFLT) prime);
@@ -652,14 +656,14 @@ MYFLT Digest (int n)
    continued fraction expansion
    in order to convert a real number <in>
    into an integer fraction <num, denom> with an error less than 10^-5 */
-void float2frac (CSOUND *csound, MYFLT in, int *num, int *denom)
+void float2frac (CSOUND *csound, MYFLT in, int32_t *num, int32_t *denom)
 {
 #define  N (10)
-    int a[N+1];
-    int p[N+2];
-    int q[N+2];
-    int P = 0; int Q = 0;
-    int i;
+    int32_t a[N+1];
+    int32_t p[N+2];
+    int32_t q[N+2];
+    int32_t P = 0; int32_t Q = 0;
+    int32_t i;
 
     float_to_cfrac (csound, (double)in, N, a, p, q);
 
@@ -681,22 +685,23 @@ void float2frac (CSOUND *csound, MYFLT in, int *num, int *denom)
 }
 
 /* continued fraction expansion */
-void float_to_cfrac (CSOUND *csound, double r, int n, int a[], int p[], int q[])
+void float_to_cfrac (CSOUND *csound, double r, int32_t n,
+                     int32_t a[], int32_t p[], int32_t q[])
 {
-    int i;
+    int32_t i;
     double r_copy;
     double *x;
 
     if (r == 0.0) {
-      memset(a, 0, sizeof(int)*(n+1));
+      memset(a, 0, sizeof(int32_t)*(n+1));
       /* for (i = 0; i <= n; i++) {  */
       /*   a[i] = 0;  */
       /* }  */
-      memset(p, 0, sizeof(int)*(n+2));
+      memset(p, 0, sizeof(int32_t)*(n+2));
       /* for (i = 0; i <= n+1; i++) {  */
       /*   p[i] = 0;  */
       /* }  */
-      memset(q, 0, sizeof(int)*(n+2));
+      memset(q, 0, sizeof(int32_t)*(n+2));
       /* for ( i = 0; i <= n+1; i++ ) {  */
       /*   q[i] = 0;  */
       /* }  */
@@ -710,14 +715,15 @@ void float_to_cfrac (CSOUND *csound, double r, int n, int a[], int p[], int q[])
     p[0] = 1;
     q[0] = 0;
 
-    p[1] = (int) r_copy;
+    p[1] = (int32_t) r_copy;
     q[1] = 1;
     x[0] = r_copy;
-    a[0] = (int) x[0];
+    a[0] = (int32_t) x[0];
 
     for (i = 1; i <= n; i++) {
       x[i] = 1.0 / (x[i-1] - (double) a[i-1]);
-      a[i] = (int) x[i];
+      a[i] = (int32_t
+              ) x[i];
       p[i+1] = a[i] * p[i] + p[i-1];
       q[i+1] = a[i] * q[i] + q[i-1];
     }
@@ -735,13 +741,13 @@ void float_to_cfrac (CSOUND *csound, double r, int n, int a[], int p[], int q[])
 
 static OENTRY fareyseq_localops[] = {
     {"tablefilteri", S(TABFILT),TB, 1, "i", "iiii", (SUBR) tableifilter,NULL,NULL},
-    {"tablefilter", S(TABFILT), TB, 2, "k", "kkkk",
+    {"tablefilter", S(TABFILT), TB, 3, "k", "kkkk",
                                 (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
     {"fareyleni", S(FAREYLEN), TR, 1, "i", "i", (SUBR) fareylen, NULL, NULL},
-    {"fareylen", S(FAREYLEN), TR, 2, "k", "k", NULL, (SUBR) fareylen, NULL},
+    {"fareylen", S(FAREYLEN), TR, 3, "k", "k", NULL, (SUBR) fareylen, NULL},
     {"tableshufflei", S(TABSHUFFLE), TB, 1, "", "i",
-                                      (SUBR) tableshuffle, NULL, NULL},
-    {"tableshuffle", S(TABSHUFFLE), TB, 2, "", "k",
+                                      (SUBR) tableishuffle, NULL, NULL},
+    {"tableshuffle", S(TABSHUFFLE), TB, 3, "", "k",
                       (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL},
 };
 

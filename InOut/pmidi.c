@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Realtime MIDI using Portmidi library */
@@ -504,6 +504,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     // csound->Message(csound, Str("PortMIDI real time MIDI plugin for Csound\n"));
+   IGN(csound);
     return 0;
 }
 
@@ -517,7 +518,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "portmidi") == 0 || strcmp(drv, "PortMidi") == 0 ||
           strcmp(drv, "PortMIDI") == 0 || strcmp(drv, "pm") == 0))
       return 0;
-    csound->Message(csound, Str("rtmidi: PortMIDI module enabled\n"));
+    csound->Message(csound, "%s", Str("rtmidi: PortMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);
@@ -531,6 +532,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound) {
 
+  IGN(csound);
     return 0;
 }
 

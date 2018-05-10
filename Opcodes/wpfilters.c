@@ -17,8 +17,8 @@
 
         You should have received a copy of the GNU Lesser General Public
         License along with Csound; if not, write to the Free Software
-        Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-        02111-1307 USA
+        Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+        02110-1301 USA
 */
 
 /*
@@ -43,7 +43,8 @@ Csound C versions by Steven Yi
 
 #include "wpfilters.h"
 
-static int zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
+static int32_t zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
+     IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->last_cut = -1.0;
@@ -52,8 +53,8 @@ static int zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
 }
 
 
-static int zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
-
+static int32_t zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
+     IGN(csound);
     double z1 = p->z1;
     double last_cut = p->last_cut;
     double G = p->G;
@@ -66,7 +67,7 @@ static int zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
-    int cutoff_arate = IS_ASIG_ARG(p->cutoff);
+    int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
 
@@ -119,7 +120,8 @@ static int zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
     return OK;
 }
 
-static int zdf_1pole_init(CSOUND* csound, ZDF_1POLE* p) {
+static int32_t zdf_1pole_init(CSOUND* csound, ZDF_1POLE* p) {
+   IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->last_cut = -1.0;
@@ -127,7 +129,7 @@ static int zdf_1pole_init(CSOUND* csound, ZDF_1POLE* p) {
     return OK;
 }
 
-static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
+static int32_t zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 
     double z1 = p->z1;
     double last_cut = p->last_cut;
@@ -140,9 +142,9 @@ static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
     double T = csound->onedsr;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
-    int mode = MYFLT2LONG(*p->mode);
+    int32_t mode = MYFLT2LONG(*p->mode);
 
-    int cutoff_arate = IS_ASIG_ARG(p->cutoff);
+    int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
 
@@ -206,7 +208,8 @@ static int zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 }
 
 
-static int zdf_2pole_mode_init(CSOUND* csound, ZDF_2POLE_MODE* p) {
+static int32_t zdf_2pole_mode_init(CSOUND* csound, ZDF_2POLE_MODE* p) {
+     IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -219,7 +222,7 @@ static int zdf_2pole_mode_init(CSOUND* csound, ZDF_2POLE_MODE* p) {
 }
 
 
-static int zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
+static int32_t zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
     double z1 = p->z1;
     double z2 = p->z2;
     double last_cut = p->last_cut;
@@ -236,8 +239,8 @@ static int zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
-    int cutoff_arate = IS_ASIG_ARG(p->cutoff);
-    int q_arate = IS_ASIG_ARG(p->q);
+    int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
+    int32_t q_arate = IS_ASIG_ARG(p->q);
 
     MYFLT cutoff = *p->cutoff;
     MYFLT q = *p->q;
@@ -303,7 +306,8 @@ static int zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
 }
 
 
-static int zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
+static int32_t zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
+     IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -315,12 +319,12 @@ static int zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
     return OK;
 }
 
-static int zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
+static int32_t zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
     double z1 = p->z1;
     double z2 = p->z2;
     double last_cut = p->last_cut;
     double last_q = p->last_q;
-    int mode = MYFLT2LONG(*p->mode);
+    int32_t mode = MYFLT2LONG(*p->mode);
     double g = p->g;
     double R = p->R;
     double g2 = g * g;
@@ -333,8 +337,8 @@ static int zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
-    int cutoff_arate = IS_ASIG_ARG(p->cutoff);
-    int q_arate = IS_ASIG_ARG(p->q);
+    int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
+    int32_t q_arate = IS_ASIG_ARG(p->q);
 
     MYFLT cutoff = *p->cutoff;
     MYFLT q = *p->q;
@@ -415,8 +419,8 @@ static int zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
     return OK;
 }
 
-static int zdf_ladder_init(CSOUND* csound, ZDF_LADDER* p) {
-
+static int32_t zdf_ladder_init(CSOUND* csound, ZDF_LADDER* p) {
+     IGN(csound);
     if (*p->skip == 0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -435,7 +439,7 @@ static int zdf_ladder_init(CSOUND* csound, ZDF_LADDER* p) {
     return OK;
 }
 
-static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
+static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
 
     double z1 = p->z1;
     double z2 = p->z2;
@@ -458,8 +462,8 @@ static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
-    int cutoff_arate = IS_ASIG_ARG(p->cutoff);
-    int q_arate = IS_ASIG_ARG(p->q);
+    int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
+    int32_t q_arate = IS_ASIG_ARG(p->q);
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT q = q_arate ? 0.0 : *p->q;
@@ -550,11 +554,11 @@ static int zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
 }
 
 
-static int diode_ladder_init(CSOUND* csound,
+static int32_t diode_ladder_init(CSOUND* csound,
                              DIODE_LADDER* p) {
-
+     IGN(csound);
     if (*p->skip == 0) {
-      int i;
+      int32_t i;
       p->a[0] = 1.0;
       p->a[1] = 0.5;
       p->a[2] = 0.5;
@@ -580,7 +584,7 @@ static int diode_ladder_init(CSOUND* csound,
     return OK;
 }
 
-static int diode_ladder_perf(CSOUND* csound,
+static int32_t diode_ladder_perf(CSOUND* csound,
                              DIODE_LADDER* p) {
 
     double a1 = p->a[0];
@@ -625,8 +629,8 @@ static int diode_ladder_perf(CSOUND* csound,
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
-    int cutoff_arate = IS_ASIG_ARG(p->cutoff);
-    int k_arate = IS_ASIG_ARG(p->kval);
+    int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
+    int32_t k_arate = IS_ASIG_ARG(p->kval);
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT k = k_arate ? 0.0 : *p->kval;
@@ -772,8 +776,8 @@ static int diode_ladder_perf(CSOUND* csound,
 }
 
 
-static int k35_lpf_init(CSOUND* csound, K35_LPF* p) {
-
+static int32_t k35_lpf_init(CSOUND* csound, K35_LPF* p) {
+     IGN(csound);
     if (*p->skip == 0.0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -792,7 +796,7 @@ static int k35_lpf_init(CSOUND* csound, K35_LPF* p) {
 }
 
 
-static int k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
+static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
 
     double z1 = p->z1;
     double z2 = p->z2;
@@ -815,13 +819,13 @@ static int k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
-    int cutoff_arate = IS_ASIG_ARG(p->cutoff);
-    int q_arate = IS_ASIG_ARG(p->q);
+    int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
+    int32_t q_arate = IS_ASIG_ARG(p->q);
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT q = q_arate ? 0.0 : *p->q;
 
-    int nonlinear = MYFLT2LONG(*p->nonlinear);
+    int32_t nonlinear = MYFLT2LONG(*p->nonlinear);
     double saturation = *p->saturation;
 
     if (UNLIKELY(offset)) {
@@ -911,8 +915,8 @@ static int k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
 }
 
 
-static int k35_hpf_init(CSOUND* csound, K35_HPF* p) {
-
+static int32_t k35_hpf_init(CSOUND* csound, K35_HPF* p) {
+     IGN(csound);
     if (*p->skip == 0.0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -931,7 +935,7 @@ static int k35_hpf_init(CSOUND* csound, K35_HPF* p) {
 }
 
 
-static int k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
+static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
     double z1 = p->z1;
     double z2 = p->z2;
@@ -954,13 +958,14 @@ static int k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
-    int cutoff_arate = IS_ASIG_ARG(p->cutoff);
-    int q_arate = IS_ASIG_ARG(p->q);
+    int32_t cutoff_arate = IS_ASIG_ARG(p->cutoff);
+    int32_t q_arate = IS_ASIG_ARG(p->q);
 
     MYFLT cutoff = cutoff_arate ? 0.0 : *p->cutoff;
     MYFLT q = q_arate ? 0.0 : *p->q;
 
-    int nonlinear = MYFLT2LONG(*p->nonlinear);
+    int32_t
+      nonlinear = MYFLT2LONG(*p->nonlinear);
     double saturation = *p->saturation;
 
     if (UNLIKELY(offset)) {
@@ -1052,22 +1057,22 @@ static int k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
 static OENTRY wpfilters_localops[] =
   {
-    { "zdf_1pole", sizeof(ZDF_1POLE), 0,5,"a","axOo",
-      (SUBR)zdf_1pole_init,NULL,(SUBR)zdf_1pole_perf},
-    { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,5,"aa","axo",
-      (SUBR)zdf_1pole_mode_init,NULL,(SUBR)zdf_1pole_mode_perf},
-    { "zdf_2pole", sizeof(ZDF_2POLE), 0,5,"a","axxOo",
-      (SUBR)zdf_2pole_init,NULL,(SUBR)zdf_2pole_perf},
-    { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,5,"aaa","axxo",
-      (SUBR)zdf_2pole_mode_init,NULL,(SUBR)zdf_2pole_mode_perf},
-    { "zdf_ladder", sizeof(ZDF_LADDER), 0,5,"a","axxo",
-      (SUBR)zdf_ladder_init,NULL,(SUBR)zdf_ladder_perf},
-    { "diode_ladder", sizeof(DIODE_LADDER), 0,5,"a","axxOPo",
-      (SUBR)diode_ladder_init,NULL,(SUBR)diode_ladder_perf},
-    { "K35_lpf", sizeof(K35_LPF), 0,5,"a","axxOPo",
-      (SUBR)k35_lpf_init,NULL,(SUBR)k35_lpf_perf},
-    { "K35_hpf", sizeof(K35_LPF), 0,5,"a","axxOPo",(SUBR)
-      k35_hpf_init,NULL,(SUBR)k35_hpf_perf},
+   { "zdf_1pole", sizeof(ZDF_1POLE), 0,3,"a","axOo",
+      (SUBR)zdf_1pole_init,(SUBR)zdf_1pole_perf},
+   { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,3,"aa","axo",
+      (SUBR)zdf_1pole_mode_init,(SUBR)zdf_1pole_mode_perf},
+   { "zdf_2pole", sizeof(ZDF_2POLE), 0,3,"a","axxOo",
+      (SUBR)zdf_2pole_init,(SUBR)zdf_2pole_perf},
+   { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,3,"aaa","axxo",
+      (SUBR)zdf_2pole_mode_init,(SUBR)zdf_2pole_mode_perf},
+   { "zdf_ladder", sizeof(ZDF_LADDER), 0,3,"a","axxo",
+      (SUBR)zdf_ladder_init,(SUBR)zdf_ladder_perf},
+   { "diode_ladder", sizeof(DIODE_LADDER), 0,3,"a","axxOPo",
+      (SUBR)diode_ladder_init,(SUBR)diode_ladder_perf},
+   { "K35_lpf", sizeof(K35_LPF), 0,3,"a","axxOPo",
+      (SUBR)k35_lpf_init,(SUBR)k35_lpf_perf},
+   { "K35_hpf", sizeof(K35_LPF), 0,3,"a","axxOPo",(SUBR)
+      k35_hpf_init,(SUBR)k35_hpf_perf},
   };
 
 LINKAGE_BUILTIN(wpfilters_localops)

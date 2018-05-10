@@ -20,7 +20,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * C S O U N D   M A N   P A G E
  *
@@ -88,13 +88,13 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     png_structp png_ptr;
     png_infop info_ptr;
     /* png_infop end_ptr; */
-    int is_png;
+    int32_t is_png;
     png_uint_32 width, height, rowbytes;
-    int bit_depth;
-    int color_type;
+    int32_t bit_depth;
+    int32_t color_type;
     unsigned char *image_data;
     png_bytepp row_pointers;
-    unsigned int i;
+    uint32_t i;
 
     Image *img;
 
@@ -122,14 +122,14 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
 
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (UNLIKELY(!png_ptr)) {
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       csound->FileClose(csound, fd);
       return NULL;
     }
     info_ptr = png_create_info_struct(png_ptr);
     if (UNLIKELY(!info_ptr)) {
       png_destroy_read_struct(&png_ptr, (png_infopp) NULL, (png_infopp) NULL);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       csound->FileClose(csound, fd);
       return NULL;
     }
@@ -137,7 +137,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     /* end_ptr = png_create_info_struct(png_ptr); */
     /* if (UNLIKELY(!end_ptr)) { */
     /*   png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) NULL); */
-    /*   csound->InitError(csound, Str("imageload: out of memory.\n")); */
+    /*   csound->InitError(csound, "%s", Str("imageload: out of memory.\n")); */
     /*   csound->FileClose(csound, fd); */
     /*   return NULL; */
     /* } */
@@ -169,7 +169,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     if (UNLIKELY((image_data =
                  (unsigned char *)csound->Malloc(csound,rowbytes*height))==NULL)) {
       png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       return NULL;
     }
 
@@ -178,7 +178,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
       png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
       csound->Free(csound,image_data);
       image_data = NULL;
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       return NULL;
     }
 
@@ -193,7 +193,7 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
     img = csound->Malloc(csound, sizeof(Image));
     if (UNLIKELY(!img)) {
       csound->Free(csound,image_data);
-      csound->InitError(csound, Str("imageload: out of memory.\n"));
+      csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
       return NULL;
     }
 
@@ -229,9 +229,9 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
 /*  Image *img;
     size_t datasize;
     SDL_Surface *srfc;
-    int x,y;
-    int bpp;
-    int indcount = 0;
+    int32_t x,y;
+    int32_t bpp;
+    int32_t indcount = 0;
     Uint32 *pixel;
     Uint8 r, g, b;
 
@@ -270,15 +270,15 @@ static Image * __doOpenImage(char * filename, CSOUND *csound)
 }
 
 
-static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
+static int32_t __doSaveImage(Image *image, char *filename, CSOUND *csound)
 {
 #ifdef USE_LIBPNG
 
     png_structp png_ptr;
     png_infop info_ptr;
     png_bytepp row_pointers;
-    unsigned rowbytes;
-    int i;
+    uint32_t rowbytes;
+    int32_t i;
 
     FILE *fp;
     void *fd;
@@ -296,14 +296,14 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
 
     if (UNLIKELY(!png_ptr)){
       csound->FileClose(csound, fd);
-      return csound->InitError(csound, Str("imageload: out of memory.\n"));
+      return csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
     }
 
     info_ptr = png_create_info_struct(png_ptr);
     if (UNLIKELY(!info_ptr)) {
       png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
       csound->FileClose(csound, fd);
-      return csound->InitError(csound, Str("imageload: out of memory.\n"));
+      return csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
     }
 
     png_init_io(png_ptr, fp);
@@ -316,7 +316,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
     row_pointers = (png_bytepp)csound->Malloc(csound, image->h*sizeof(png_bytep));
     if (UNLIKELY(row_pointers == NULL)) {
       png_destroy_write_struct(&png_ptr, &info_ptr);
-      return csound->InitError(csound, Str("imageload: out of memory.\n"));
+      return csound->InitError(csound, "%s", Str("imageload: out of memory.\n"));
     }
 
     rowbytes = png_get_rowbytes(png_ptr, info_ptr);
@@ -350,7 +350,7 @@ static int __doSaveImage(Image *image, char *filename, CSOUND *csound)
 }
 
 
-static Image * createImage(CSOUND *csound, int w, int h)
+static Image * createImage(CSOUND *csound, int32_t w, int32_t h)
 {
     Image *img;
     size_t datasize;
@@ -382,7 +382,7 @@ static Images * getImages(CSOUND *csound)
     return pimages;
 }
 
-static int imagecreate (CSOUND *csound, IMGCREATE * p)
+static int32_t imagecreate (CSOUND *csound, IMGCREATE * p)
 {
     Images *pimages;
     Image *img;
@@ -397,7 +397,7 @@ static int imagecreate (CSOUND *csound, IMGCREATE * p)
     img = createImage(csound, *p->kw, *p->kh);
 
     if (UNLIKELY(img==NULL)) {
-      return csound->InitError(csound, Str("Cannot allocate memory.\n"));
+      return csound->InitError(csound, "%s", Str("Cannot allocate memory.\n"));
     }
     else {
       pimages->images[pimages->cnt-1] = img;
@@ -406,7 +406,7 @@ static int imagecreate (CSOUND *csound, IMGCREATE * p)
     }
 }
 
-static int imageload (CSOUND *csound, IMGLOAD * p)
+static int32_t imageload (CSOUND *csound, IMGLOAD * p)
 {
     char filename[256];
     Images *pimages;
@@ -419,7 +419,7 @@ static int imageload (CSOUND *csound, IMGLOAD * p)
       (Image **) csound->ReAlloc(csound, pimages->images,
                                  sizeof(Image *) * pimages->cnt);
 
-    strncpy(filename, (char*) (p->ifilnam->data), 255);filename[255]='\0';
+    strncpy(filename, (char*) (p->ifilnam->data), 255); filename[255]='\0';
 
     img = __doOpenImage(filename, csound);
 
@@ -436,14 +436,14 @@ static int imageload (CSOUND *csound, IMGLOAD * p)
 }
 
 
-static int imagesize (CSOUND *csound, IMGSIZE * p)
+static int32_t imagesize (CSOUND *csound, IMGSIZE * p)
 {
     Images *pimages;
     Image *img;
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
-    img = pimages->images[(int)(*p->kn)-1];
+    img = pimages->images[(int32_t)(*p->kn)-1];
 
     *(p->kw) = (MYFLT) img->w;
     *(p->kh) = (MYFLT) img->h;
@@ -451,15 +451,15 @@ static int imagesize (CSOUND *csound, IMGSIZE * p)
 }
 
 
-static int imagegetpixel (CSOUND *csound, IMGGETPIXEL * p)
+static int32_t imagegetpixel (CSOUND *csound, IMGGETPIXEL * p)
 {
     Images *pimages;
     Image *img;
-    int w, h, x, y;
+    int32_t w, h, x, y;
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
-    img = pimages->images[(int)(*p->kn)-1];
+    img = pimages->images[(int32_t)(*p->kn)-1];
 
     w = img->w;
     h = img->h;
@@ -468,7 +468,7 @@ static int imagegetpixel (CSOUND *csound, IMGGETPIXEL * p)
     y = *p->ky*h;
 
     if (x >= 0 && x < w && y >= 0 && y < h ) {
-      int pixel = (w*y+x)*3;
+      int32_t pixel = (w*y+x)*3;
       *p->kr = img->imageData[pixel]/FL(255.0);
       *p->kg = img->imageData[pixel+1]/FL(255.0);
       *p->kb = img->imageData[pixel+2]/FL(255.0);
@@ -482,7 +482,7 @@ static int imagegetpixel (CSOUND *csound, IMGGETPIXEL * p)
     return OK;
 }
 
-static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
+static int32_t imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
 {
     Images *pimages;
     Image *img;
@@ -497,11 +497,11 @@ static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int w, h, x, y, pixel;
+    int32_t w, h, x, y, pixel;
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
-    img = pimages->images[(int)(*p->kn)-1];
+    img = pimages->images[(int32_t)(*p->kn)-1];
     w = img->w;
     h = img->h;
 
@@ -538,7 +538,7 @@ static int imagegetpixel_a (CSOUND *csound, IMGGETPIXEL * p)
     return OK;
 }
 
-static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
+static int32_t imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
 {
     Images *pimages;
     Image *img;
@@ -553,11 +553,11 @@ static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int h,w,x, y, pixel;
+    int32_t h,w,x, y, pixel;
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
-    img = pimages->images[(int)(*p->kn)-1];
+    img = pimages->images[(int32_t)(*p->kn)-1];
 
     w = img->w;
     h = img->h;
@@ -580,15 +580,15 @@ static int imagesetpixel_a (CSOUND *csound, IMGSETPIXEL * p)
     return OK;
 }
 
-static int imagesetpixel (CSOUND *csound, IMGSETPIXEL * p)
+static int32_t imagesetpixel (CSOUND *csound, IMGSETPIXEL * p)
 {
     Images *pimages;
     Image *img;
-    int w, h, x, y, pixel;
+    int32_t w, h, x, y, pixel;
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
-    img = pimages->images[(int)(*p->kn)-1];
+    img = pimages->images[(int32_t)(*p->kn)-1];
 
     w = img->w;
     h = img->h;
@@ -605,29 +605,30 @@ static int imagesetpixel (CSOUND *csound, IMGSETPIXEL * p)
     return OK;
 }
 
-static int imagesave (CSOUND *csound, IMGSAVE * p)
+static int32_t imagesave (CSOUND *csound, IMGSAVE * p)
 {
     Images *pimages;
     Image *img;
     char filename[256];
 
-    strncpy(filename, (char*) (p->ifilnam->data), 255);filename[255]='\0';
+    strncpy(filename, (char*) (p->ifilnam->data), 254); filename[255]='\0';
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
-    img = pimages->images[(int)(*p->kn)-1];
+    img = pimages->images[(int32_t)(*p->kn)-1];
 
     return __doSaveImage(img, filename, csound);
 }
 
-static int imagefree (CSOUND *csound, IMGSAVE * p)
+static int32_t imagefree (CSOUND *csound, IMGSAVE * p)
 {
     Images *pimages;
     Image *img;
 
     pimages = (Images *) csound->QueryGlobalVariable(csound,
                                                      "imageOpcodes.images");
-    img = pimages->images[(int)(*p->kn)-1];
+    img = pimages->images[(int32_t
+                           )(*p->kn)-1];
     csound->Free(csound,img->imageData);
     csound->Free(csound,img);
 
@@ -640,10 +641,14 @@ static OENTRY image_localops[] = {
   { "imageload",  S(IMGLOAD),  0, 1, "i", "S",   (SUBR)imageload, NULL, NULL   },
   { "imagecreate",S(IMGCREATE),0, 1, "i", "ii",  (SUBR)imagecreate, NULL, NULL },
   { "imagesize",  S(IMGSIZE),  0, 1, "ii", "i",  (SUBR)imagesize, NULL, NULL   },
-  { "imagegetpixel",  S(IMGGETPIXEL),  0, 7, "sss", "ixx",
-    (SUBR)imagegetpixel, (SUBR)imagegetpixel, (SUBR)imagegetpixel_a   },
-  { "imagesetpixel",  S(IMGSETPIXEL),  0, 7, "", "ixxxxx",
-    (SUBR)imagesetpixel, (SUBR)imagesetpixel, (SUBR)imagesetpixel_a   },
+  { "imagegetpixel",  S(IMGGETPIXEL),  0, 3, "kkk", "ixx",
+    (SUBR)imagegetpixel, (SUBR)imagegetpixel,                                  },
+  { "imagegetpixel",  S(IMGGETPIXEL),  0, 3, "aaa", "ixx",
+    (SUBR)imagegetpixel, (SUBR)imagegetpixel_a                           },
+  { "imagesetpixel",  S(IMGSETPIXEL),  0, 3, "", "ikkkkk",
+    (SUBR)imagesetpixel, (SUBR)imagesetpixel, (SUBR)imagesetpixel_a            },
+  { "imagesetpixel",  S(IMGSETPIXEL),  0, 3, "", "iaaaaa",
+    (SUBR)imagesetpixel, (SUBR)imagesetpixel_a                          },
   { "imagesave",  S(IMGSAVE),  0, 1, "", "iS",   (SUBR)imagesave, NULL, NULL   },
   { "imagefree",  S(IMGFREE),  0, 1, "", "i",    (SUBR)imagefree, NULL, NULL   },
 };

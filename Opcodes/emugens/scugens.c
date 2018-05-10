@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <math.h>
@@ -81,7 +81,8 @@ typedef struct {
   MYFLT   sr;
 } LAG;
 
-static int lagk_next(CSOUND *csound, LAG *p) {
+static int32_t lagk_next(CSOUND *csound, LAG *p) {
+     IGN(csound);
     MYFLT lag = *p->lagtime;
     MYFLT y0 = *p->in;
     MYFLT y1 = p->y1;
@@ -101,27 +102,29 @@ static int lagk_next(CSOUND *csound, LAG *p) {
     }
 }
 
-static int lag_init0(CSOUND *csound, LAG *p) {
+static int32_t lag_init0(CSOUND *csound, LAG *p) {
+    IGN(csound);
     p->lag = -1;
     p->b1 = FL(0.0);
     p->y1 = *p->first;
     return OK;
 }
 
-static int lagk_init(CSOUND *csound, LAG *p) {
+static int32_t lagk_init(CSOUND *csound, LAG *p) {
     lag_init0(csound, p);
     p->sr = csound->GetKr(csound);
     return lagk_next(csound, p);
 }
 
-static int laga_init(CSOUND *csound, LAG *p) {
+static int32_t laga_init(CSOUND *csound, LAG *p) {
     lag_init0(csound, p);
     p->sr = csound->GetSr(csound);
     return OK;
 }
 
 
-static int laga_next(CSOUND *csound, LAG *p) {
+static int32_t laga_next(CSOUND *csound, LAG *p) {
+     IGN(csound);
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT *in = p->in, *out = p->out;
     MYFLT lag = *p->lagtime;
@@ -167,7 +170,7 @@ typedef struct {
   MYFLT   lagu, lagd, b1u, b1d, y1;
 } LagUD;
 
-static int lagud_a(CSOUND *csound, LagUD *p) {
+static int32_t lagud_a(CSOUND *csound, LagUD *p) {
     MYFLT
       *out = p->out,
       *in = p->in,
@@ -218,7 +221,7 @@ static int lagud_a(CSOUND *csound, LagUD *p) {
     return OK;
 }
 
-static int lagud_k(CSOUND *csound, LagUD *p) {
+static int32_t lagud_k(CSOUND *csound, LagUD *p) {
     MYFLT
       *in = p->in,
       lagu = *p->lagtimeU,
@@ -253,7 +256,8 @@ static int lagud_k(CSOUND *csound, LagUD *p) {
     return OK;
 }
 
-static int lagud_init(CSOUND *csound, LagUD *p) {
+static int32_t lagud_init(CSOUND *csound, LagUD *p) {
+     IGN(csound);
     p->lagu = -1;
     p->lagd = -1;
     p->b1u = FL(0.0);
@@ -272,10 +276,10 @@ typedef struct {
   OPDS    h;
   MYFLT   *out, *in, *dur;
   MYFLT   level, prevtrig;
-  long counter;
+  int64_t counter;
 } Trig;
 
-static int trig_a(CSOUND *csound, Trig *p) {
+static int32_t trig_a(CSOUND *csound, Trig *p) {
     MYFLT
       *out = p->out,
       *in = p->in;
@@ -284,7 +288,7 @@ static int trig_a(CSOUND *csound, Trig *p) {
       sr = csound->GetSr(csound),
       prevtrig = p->prevtrig,
       level = p->level;
-    unsigned long counter = p->counter;
+    uint64_t counter = p->counter;
     uint32_t offset = p->h.insdshead->ksmps_offset; // delayed onset
     uint32_t early  = p->h.insdshead->ksmps_no_end; // early end of event
     uint32_t n, nsmps = CS_KSMPS;
@@ -300,7 +304,7 @@ static int trig_a(CSOUND *csound, Trig *p) {
         zout = --counter ? level : FL(0.0);
       } else {
         if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
-          counter = (long)(dur * sr + FL(0.5));
+          counter = (int64_t)(dur * sr + FL(0.5));
           if (counter < 1) counter = 1;
           level = curtrig;
           zout = level;
@@ -317,18 +321,18 @@ static int trig_a(CSOUND *csound, Trig *p) {
     return OK;
 }
 
-static int trig_k(CSOUND *csound, Trig *p) {
+static int32_t trig_k(CSOUND *csound, Trig *p) {
     MYFLT curtrig = *p->in;
     MYFLT dur = *p->dur;
     MYFLT kr = csound->GetKr(csound);
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
-    unsigned long counter = p->counter;
+    uint64_t counter = p->counter;
     if (counter > 0) {
       *p->out = --counter ? level : FL(0.0);
     } else {
       if (curtrig > FL(0.0) && prevtrig <= FL(0.0)) {
-        counter = (long)(dur * kr + FL(0.5));
+        counter = (int64_t)(dur * kr + FL(0.5));
         if (counter < 1)
           counter = 1;
         level = curtrig;
@@ -343,7 +347,7 @@ static int trig_k(CSOUND *csound, Trig *p) {
     return OK;
 }
 
-static int trig_init(CSOUND *csound, Trig *p) {
+static int32_t trig_init(CSOUND *csound, Trig *p) {
     p->counter = 0;
     p->prevtrig = FL(0.0);
     p->level = FL(0.0);
@@ -388,21 +392,23 @@ typedef struct {
   MYFLT   level, previn/*, resetk*/;
 } Phasor;
 
-static int phasor_init(CSOUND *csound, Phasor *p) {
+static int32_t phasor_init(CSOUND *csound, Phasor *p) {
+     IGN(csound);
     p->previn = 0;
     p->level = 0;
     /* p->resetk = 1; */
     return OK;
 }
 
-/* static int phasor_init0(CSOUND *csound, Phasor *p) { */
+/* static int32_t phasor_init0(CSOUND *csound, Phasor *p) { */
 /*     p->previn = 0; */
 /*     p->level = 0; */
 /*     p->resetk = 0; */
 /*     return OK; */
 /* } */
 
-static int phasor_aa(CSOUND *csound, Phasor *p) {
+static int32_t phasor_aa(CSOUND *csound, Phasor *p) {
+     IGN(csound);
     MYFLT *out  = p->out;
     MYFLT *in = p->trig;
     MYFLT *rate = p->rate;
@@ -437,7 +443,8 @@ static int phasor_aa(CSOUND *csound, Phasor *p) {
     return OK;
 }
 
-static int phasor_ak(CSOUND *csound, Phasor *p) {
+static int32_t phasor_ak(CSOUND *csound, Phasor *p) {
+     IGN(csound);
     MYFLT *out  = p->out;
     MYFLT *in   = p->trig;
     MYFLT rate  = *p->rate;
@@ -472,7 +479,8 @@ static int phasor_ak(CSOUND *csound, Phasor *p) {
     return OK;
 }
 
-static int phasor_kk(CSOUND *csound, Phasor *p) {
+static int32_t phasor_kk(CSOUND *csound, Phasor *p) {
+     IGN(csound);
     MYFLT curin = *p->trig;
     MYFLT rate  = *p->rate;
     MYFLT start = *p->start;
@@ -490,6 +498,7 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
     level += rate;
     p->previn = curin;
     p->level = level;
+
     return OK;
 }
 
@@ -499,26 +508,20 @@ static int phasor_kk(CSOUND *csound, Phasor *p) {
 static OENTRY localops[] = {
   { "sc_lag", S(LAG),   0, 3,   "k", "kko",
     (SUBR)lagk_init, (SUBR)lagk_next, NULL, NULL },
-  { "sc_lag", S(LAG),   0, 5,   "a", "ako",
-    (SUBR)laga_init, NULL, (SUBR)laga_next, NULL },
+  { "sc_lag", S(LAG),   0, 3,   "a", "ako",
+    (SUBR)laga_init, (SUBR)laga_next, NULL },
   { "sc_lagud",   S(LagUD), 0, 3,   "k", "kkko", (SUBR)lagud_init, (SUBR)lagud_k },
-  { "sc_lagud",   S(LagUD), 0, 5,   "a", "akko",
-    (SUBR)lagud_init, NULL, (SUBR)lagud_a },
+  { "sc_lagud",   S(LagUD), 0, 3,   "a", "akko",
+    (SUBR)lagud_init, (SUBR)lagud_a },
   { "sc_trig",    S(Trig),  0, 3,   "k", "kk", (SUBR)trig_init, (SUBR)trig_k },
-  { "sc_trig",    S(Trig),  0, 5,   "a", "ak",
-    (SUBR)trig_init, NULL, (SUBR)trig_a },
+  { "sc_trig",    S(Trig),  0, 3,   "a", "ak",
+    (SUBR)trig_init, (SUBR)trig_a },
   { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkkO",
     (SUBR)phasor_init, (SUBR)phasor_kk },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkkO",
-    (SUBR)phasor_init, NULL, (SUBR)phasor_ak },
-  { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakkO",
-    (SUBR)phasor_init, NULL, (SUBR)phasor_aa },
-  /* { "sc_phasor",  S(Phasor),  0, 3,   "k", "kkkk", */
-  /*   (SUBR)phasor_init0, (SUBR)phasor_kk }, */
-  /* { "sc_phasor",  S(Phasor),  0, 5,   "a", "akkk", */
-  /*   (SUBR)phasor_init0, NULL, (SUBR)phasor_ak }, */
-  /* { "sc_phasor",  S(Phasor),  0, 5,   "a", "aakk", */
-  /*   (SUBR)phasor_init0, NULL, (SUBR)phasor_aa } */
+  { "sc_phasor",  S(Phasor),  0, 3,   "a", "akkkO",
+    (SUBR)phasor_init, (SUBR)phasor_ak },
+  { "sc_phasor",  S(Phasor),  0, 3,   "a", "aakkO",
+    (SUBR)phasor_init, (SUBR)phasor_aa }
 };
 
 LINKAGE

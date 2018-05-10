@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -40,11 +40,11 @@
 #define MTU (1456)
 
 #ifndef WIN32
-extern  int     inet_aton(const char *cp, struct in_addr *inp);
+extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 #endif
 
 static  uintptr_t udpRecv(void *data);
-static  int     deinit_udpRecv(CSOUND *csound, void *pdata);
+static  int32_t     deinit_udpRecv(CSOUND *csound, void *pdata);
 
 typedef struct {
   OPDS    h;
@@ -52,7 +52,7 @@ typedef struct {
   STRINGDAT *ipaddress;
   MYFLT *port;
   AUXCH   aux, tmp;
-  int     sock, conn;
+  int32_t     sock, conn;
   struct sockaddr_in server_addr;
 } SOCKRECVT;
 
@@ -62,7 +62,7 @@ typedef struct {
   STRINGDAT *ipaddress;
   MYFLT *port;
   AUXCH   aux, tmp;
-  int     sock, conn;
+  int32_t     sock, conn;
   struct sockaddr_in server_addr;
 } SOCKRECVS;
 
@@ -73,10 +73,10 @@ typedef struct {
   MYFLT   *ptr1, *ptr2, *ptr3, *ptr4;
   AUXCH   buffer, tmp;
   MYFLT   *buf;
-  int     sock;
-  volatile int threadon;
-  int buffsize;
-  int outsamps, rcvsamps;
+  int32_t     sock;
+  volatile int32_t threadon;
+  int32_t buffsize;
+  int32_t outsamps, rcvsamps;
   CSOUND  *cs;
   void    *thrid;
   void  *cb;
@@ -91,17 +91,17 @@ typedef struct {
   MYFLT   *ptr2, *ptr3, *ptr4;
   AUXCH   buffer, tmp;
   char    *buf;
-  int     sock;
-  volatile int threadon;
-  int buffsize;
-  int outsamps, rcvsamps;
+  int32_t     sock;
+  volatile int32_t threadon;
+  int32_t buffsize;
+  int32_t outsamps, rcvsamps;
   CSOUND  *cs;
   void    *thrid;
   void  *cb;
   struct sockaddr_in server_addr;
 } SOCKRECVSTR;
 
-static int deinit_udpRecv(CSOUND *csound, void *pdata)
+static int32_t deinit_udpRecv(CSOUND *csound, void *pdata)
 {
     SOCKRECV *p = (SOCKRECV *) pdata;
 
@@ -116,7 +116,7 @@ static uintptr_t udpRecv(void *pdata)
     socklen_t clilen = sizeof(from);
     SOCKRECV *p = (SOCKRECV *) pdata;
     MYFLT   *tmp = (MYFLT *) p->tmp.auxp;
-    int     bytes;
+    int32_t     bytes;
     CSOUND *csound = p->cs;
 
     while (p->threadon) {
@@ -128,7 +128,7 @@ static uintptr_t udpRecv(void *pdata)
     return (uintptr_t) 0;
 }
 
-static int deinit_udpRecv_S(CSOUND *csound, void *pdata)
+static int32_t deinit_udpRecv_S(CSOUND *csound, void *pdata)
 {
     SOCKRECV *p = (SOCKRECV *) pdata;
 
@@ -151,7 +151,7 @@ static uintptr_t udpRecv_S(void *pdata)
     socklen_t clilen = sizeof(from);
     SOCKRECVSTR *p = (SOCKRECVSTR*) pdata;
     char *tmp = (char *) p->tmp.auxp;
-    int     bytes;
+    int32_t     bytes;
     CSOUND *csound = p->cs;
 
     while (p->threadon) {
@@ -166,12 +166,12 @@ static uintptr_t udpRecv_S(void *pdata)
 
 
 /* UDP version one channel */
-static int init_recv(CSOUND *csound, SOCKRECV *p)
+static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -195,13 +195,13 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    p->server_addr.sin_port = htons((int) *p->ptr2);    /* the port */
+    p->server_addr.sin_port = htons((int32_t) *p->ptr2);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
@@ -209,7 +209,7 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
       memset(buf, 0, MTU);
     }
     /* create a buffer to store the received interleaved audio data */
-    if (p->tmp.auxp == NULL || (long) p->tmp.size < MTU)
+    if (p->tmp.auxp == NULL || (int64_t) p->tmp.size < MTU)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->tmp);
     else {
@@ -228,12 +228,12 @@ static int init_recv(CSOUND *csound, SOCKRECV *p)
 }
 
 /* UDP version for strings */
-static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
+static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 {
     MYFLT   *buf;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -251,13 +251,13 @@ static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    p->server_addr.sin_port = htons((int) *p->ptr2);    /* the port */
+    p->server_addr.sin_port = htons((int32_t) *p->ptr2);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
@@ -265,7 +265,7 @@ static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
       memset(buf, 0, MTU);
     }
     /* create a buffer to store the received string data */
-    if (p->tmp.auxp == NULL || (long) p->tmp.size < MTU)
+    if (p->tmp.auxp == NULL || (int64_t) p->tmp.size < MTU)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->tmp);
     else {
@@ -283,7 +283,7 @@ static int init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     return OK;
 }
 
-static int send_recv_k(CSOUND *csound, SOCKRECV *p)
+static int32_t send_recv_k(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *ksig = p->ptr1;
     *ksig = FL(0.0);
@@ -296,10 +296,10 @@ static int send_recv_k(CSOUND *csound, SOCKRECV *p)
     return OK;
 }
 
-static int send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
+static int32_t send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 {
     STRINGDAT *str = p->ptr1;
-    int len;
+    int32_t len;
     if (p->outsamps >= p->rcvsamps) {
       p->outsamps =  0;
       p->rcvsamps =
@@ -311,20 +311,20 @@ static int send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
       str->data = csound->ReAlloc(csound, str->data, len+1);
       str->size  = len;
     }
-    strncpy(str->data, &p->buf[p->outsamps], len+1);
+    strNcpy(str->data, &p->buf[p->outsamps], len+1);
     p->outsamps += len+1;       /* Move bffer on */
     return OK;
 }
 
 
-static int send_recv(CSOUND *csound, SOCKRECV *p)
+static int32_t send_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *asig = p->ptr1;
     MYFLT   *buf = p->buf;
-    int     i, nsmps = CS_KSMPS;
+    int32_t     i, nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int outsamps = p->outsamps, rcvsamps = p->rcvsamps;
+    int32_t outsamps = p->outsamps, rcvsamps = p->rcvsamps;
     memset(asig, 0, sizeof(MYFLT)*nsmps);
     if (UNLIKELY(early)) nsmps -= early;
 
@@ -343,12 +343,12 @@ static int send_recv(CSOUND *csound, SOCKRECV *p)
 
 
 /* UDP version two channel */
-static int init_recvS(CSOUND *csound, SOCKRECV *p)
+static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -366,13 +366,13 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    p->server_addr.sin_port = htons((int) *p->ptr3);    /* the port */
+    p->server_addr.sin_port = htons((int32_t) *p->ptr3);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
@@ -380,7 +380,7 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
       memset(buf, 0, MTU);
     }
     /* create a buffer to store the received interleaved audio data */
-    if (p->tmp.auxp == NULL || (long) p->tmp.size < MTU)
+    if (p->tmp.auxp == NULL || (int64_t) p->tmp.size < MTU)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->tmp);
     else {
@@ -398,13 +398,13 @@ static int init_recvS(CSOUND *csound, SOCKRECV *p)
     return OK;
 }
 
-static int send_recvS(CSOUND *csound, SOCKRECV *p)
+static int32_t send_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *asigl = p->ptr1;
     MYFLT   *asigr = p->ptr2;
     MYFLT   *buf = p->buf;
-    int     i, nsmps = CS_KSMPS;
-    int outsamps = p->outsamps, rcvsamps = p->rcvsamps;
+    int32_t     i, nsmps = CS_KSMPS;
+    int32_t outsamps = p->outsamps, rcvsamps = p->rcvsamps;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
 
@@ -427,12 +427,12 @@ static int send_recvS(CSOUND *csound, SOCKRECV *p)
 }
 
 /* TCP version */
-static int init_srecv(CSOUND *csound, SOCKRECVT *p)
+static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     socklen_t clilen;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -459,7 +459,7 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     inet_aton((const char *) p->ipaddress->data, &(p->server_addr.sin_addr));
 #endif
     /* the port we are going to listen on, in network byte order */
-    p->server_addr.sin_port = htons((int) *p->port);
+    p->server_addr.sin_port = htons((int32_t) *p->port);
 
     /* associate the socket with the address and port */
     if (UNLIKELY(bind
@@ -481,9 +481,9 @@ static int init_srecv(CSOUND *csound, SOCKRECVT *p)
     return OK;
 }
 
-static int send_srecv(CSOUND *csound, SOCKRECVT *p)
+static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
 {
-    int     n = sizeof(MYFLT) * CS_KSMPS;
+    int32_t     n = sizeof(MYFLT) * CS_KSMPS;
 
     if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * CS_KSMPS))) {
       return csound->PerfError(csound, p->h.insdshead,
@@ -499,10 +499,10 @@ typedef struct _rawosc {
   MYFLT *kflag;
   MYFLT  *port;
   AUXCH   buffer;
-  int     sock;
+  int32_t     sock;
   /*
     AUXCH tmp;
-    volatile int threadon;
+    volatile int32_t threadon;
     CSOUND  *cs;
     void    *thrid;
     void  *cb;
@@ -511,7 +511,7 @@ typedef struct _rawosc {
 } RAWOSC;
 
 
-static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {
@@ -525,12 +525,12 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
       if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
       else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
       p->dimensions = 1;
-      p->sizes = (int*)csound->Malloc(csound, sizeof(int));
+      p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
       p->sizes[0] = size;
     }
 }
 
-static int destroy_raw_osc(CSOUND *csound, void *pp) {
+static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
     RAWOSC *p = (RAWOSC *) pp;
 #ifndef WIN32
     close(p->sock);
@@ -544,12 +544,12 @@ static int destroy_raw_osc(CSOUND *csound, void *pp) {
 
 
 
-static int init_raw_osc(CSOUND *csound, RAWOSC *p)
+static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
 {
     MYFLT   *buf;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -569,13 +569,13 @@ static int init_raw_osc(CSOUND *csound, RAWOSC *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
     p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    p->server_addr.sin_port = htons((int) *p->port);    /* the port */
+    p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) < 0))
       return csound->InitError(csound, Str("bind failed"));
 
-    if (p->buffer.auxp == NULL || (unsigned long) (MTU) > p->buffer.size)
+    if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
       csound->AuxAlloc(csound, MTU, &p->buffer);
     else {
@@ -597,10 +597,10 @@ static inline char le_test(){
     return le.c[0];
 }
 
-static inline char *byteswap(char *p, int N){
+static inline char *byteswap(char *p, int32_t N){
     if (le_test()) {
       char tmp;
-      int j ;
+      int32_t j ;
       for(j = 0; j < N/2; j++) {
         tmp = p[j];
         p[j] = p[N - j - 1];
@@ -610,7 +610,7 @@ static inline char *byteswap(char *p, int N){
     return p;
 }
 
-static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
+static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 
     ARRAYDAT *sout = p->sout;
     if (sout->sizes[0] < 2 ||
@@ -620,14 +620,14 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 
     STRINGDAT *str = (STRINGDAT *) p->sout->data;
     char *buf = (char *) p->buffer.auxp;
-    int len = 0, n = 0, j = 1;
+    int32_t len = 0, n = 0, j = 1;
     char c;
     memset(buf, 0, p->buffer.size);
     uint32_t size = 0;
     char *types  = NULL;
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
-    int bytes =
+    int32_t bytes =
       recvfrom(p->sock, (void *)buf, MTU-1, 0, &from, &clilen);
     if (bytes < 0) bytes = 0;
 
@@ -653,8 +653,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             memset(str[n].data,0,len+1);
             str[n].size  = len+1;
           }
-          strncpy(str[n].data, buf, len);
-          str[n].data[len] = '\0'; // explicitly terminate it.
+          strNcpy(str[n].data, buf, len+1);
+          //str[n].data[len] = '\0'; // explicitly terminate it.
           n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
         }
@@ -664,8 +664,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
             str[n].size  = len+1;
           }
-          strncpy(str[n].data, buf, len);
-          str[n].data[str[n].size-1] = '\0'; // explicitly terminate it.
+          strNcpy(str[n].data, buf, len+1);
+          //str[n].data[str[n].size-1] = '\0'; // explicitly terminate it.
           types = str[n].data;
           n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
@@ -683,7 +683,7 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             snprintf(str[n].data, str[n].size, "%f", f);
             buf += 4;
           } else if (c == 'i') {
-            int d = *((int32_t *) buf);
+            int32_t d = *((int32_t *) buf);
             byteswap((char*) &d,4);
             if (str[n].size < 32) {
               str[n].data = csound->ReAlloc(csound, str[n].data, 32);
@@ -697,8 +697,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
-            strncpy(str[n].data, buf, len);
-            str[n].data[len] = '\0';
+            strNcpy(str[n].data, buf, len+1);
+            //str[n].data[len] = '\0';
             len = ceil((len+1)/4.)*4;
             buf += len;
           } else if (c == 'b') {
@@ -709,8 +709,8 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
-            strncpy(str[n].data, buf, len);
-            str[n].data[len] = '\0';
+            strNcpy(str[n].data, buf, len+1);
+            //str[n].data[len] = '\0';
             buf += len;
           }
           n++;
@@ -730,13 +730,18 @@ static int perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY sockrecv_localops[] = {
-  { "sockrecv", S(SOCKRECV), 0, 7, "s", "ii", (SUBR) init_recv, (SUBR) send_recv_k,
-    (SUBR) send_recv, NULL },
-  { "sockrecv", S(SOCKRECVSTR), 0, 3, "S", "ii", (SUBR) init_recv_S,
+  { "sockrecv.k", S(SOCKRECV), 0, 3, "k", "ii",
+    (SUBR) init_recv, (SUBR) send_recv_k, NULL },
+  { "sockrecv.a", S(SOCKRECV), 0, 3, "a", "ii",
+    (SUBR) init_recv, (SUBR) send_recv, NULL },
+  { "sockrecv.S", S(SOCKRECVSTR), 0, 3, "S", "ii",
+    (SUBR) init_recv_S,
     (SUBR) send_recv_S, NULL },
-  { "sockrecvs", S(SOCKRECV), 0, 5, "aa", "ii", (SUBR) init_recvS, NULL,
+  { "sockrecvs", S(SOCKRECV), 0, 3, "aa", "ii",
+    (SUBR) init_recvS,
     (SUBR) send_recvS, NULL },
-  { "strecv", S(SOCKRECVT), 0, 5, "a", "Si", (SUBR) init_srecv, NULL,
+  { "strecv", S(SOCKRECVT), 0, 3, "a", "Si",
+    (SUBR) init_srecv,
     (SUBR) send_srecv, NULL },
   { "OSCraw", S(RAWOSC), 0, 3, "S[]k", "i",
     (SUBR) init_raw_osc, (SUBR) perf_raw_osc, NULL, NULL}

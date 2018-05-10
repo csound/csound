@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* vbap1.c
@@ -36,14 +36,14 @@ Ville Pulkki heavily modified by John ffitch 2012
 #include <stdio.h>
 #include <stdlib.h>
 
-static int vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, INSDS *, MYFLT,
+static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, INSDS *, MYFLT,
                                 MYFLT, MYFLT, MYFLT**);
-static int vbap1_control(CSOUND *, VBAP1_DATA *, MYFLT*, MYFLT*, MYFLT*);
+static int32_t vbap1_control(CSOUND *, VBAP1_DATA *, MYFLT*, MYFLT*, MYFLT*);
 
-int vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
+int32_t vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
 {
-    int j;
-    int cnt = p->q.number;
+    int32_t j;
+    int32_t cnt = p->q.number;
     vbap1_control(csound,&p->q, p->azi, p->ele, p->spread);
 
     /* write gains */
@@ -53,14 +53,14 @@ int vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
     return OK;
 }
 
-static int vbap1_control(CSOUND *csound, VBAP1_DATA *p,
+static int32_t vbap1_control(CSOUND *csound, VBAP1_DATA *p,
                          MYFLT* azi, MYFLT* ele, MYFLT* spread)
 {
     CART_VEC spreaddir[16];
     CART_VEC spreadbase[16];
     ANG_VEC atmp;
     int32 i,j, spreaddirnum;
-    int cnt = p->number;
+    int32_t cnt = p->number;
     MYFLT *tmp_gains=malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
     if (UNLIKELY(p->dim == 2 && fabs(*ele) > 0.0)) {
       csound->Warning(csound,
@@ -164,25 +164,25 @@ static int vbap1_control(CSOUND *csound, VBAP1_DATA *p,
     return OK;
 }
 
-int vbap1_init(CSOUND *csound, VBAP1 *p)
+int32_t vbap1_init(CSOUND *csound, VBAP1 *p)
 {                               /* Initializations before run time*/
-    int     i, j;
+    int32_t     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
     char name[24];
-    snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout);
+    snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
     if (ls_table==NULL)
       return csound->InitError(csound,
                                Str("could not find layout table no.%d"),
-                               (int)*p->layout );
+                               (int32_t)*p->layout );
     p->q.number = p->OUTOCOUNT;
-    p->q.dim       = (int)ls_table[0];   /* reading in loudspeaker info */
-    p->q.ls_am     = (int)ls_table[1];
-    p->q.ls_set_am = (int)ls_table[2];
+    p->q.dim       = (int32_t)ls_table[0];   /* reading in loudspeaker info */
+    p->q.ls_am     = (int32_t)ls_table[1];
+    p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured. \nMissing"
+      return csound->InitError(csound, Str("vbap system NOT configured.\nMissing"
                                            " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
@@ -193,7 +193,7 @@ int vbap1_init(CSOUND *csound, VBAP1 *p)
     for (i=0; i < p->q.ls_set_am; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
       for (j=0 ; j < p->q.dim ; j++) {
-        ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
+        ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
       }
       memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT)); // initial setting
       /* for (j=0 ; j < 9; j++) */
@@ -220,10 +220,10 @@ int vbap1_init(CSOUND *csound, VBAP1 *p)
     return OK;
 }
 
-int vbap1a(CSOUND *csound, VBAPA1 *p) /* during note performance: */
+int32_t vbap1a(CSOUND *csound, VBAPA1 *p) /* during note performance: */
 {
-    int j;
-    int cnt = p->q.number;
+    int32_t j;
+    int32_t cnt = p->q.number;
     vbap1_control(csound,&p->q, p->azi, p->ele, p->spread);
 
     /* write gains */
@@ -233,25 +233,25 @@ int vbap1a(CSOUND *csound, VBAPA1 *p) /* during note performance: */
     return OK;
 }
 
-int vbap1_init_a(CSOUND *csound, VBAPA1 *p)
+int32_t vbap1_init_a(CSOUND *csound, VBAPA1 *p)
 {                               /* Initializations before run time*/
-    int     i, j;
+    int32_t     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
     char name[24];
-    snprintf(name, 24, "vbap_ls_table_%d", (int)*p->layout);
+    snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
     if (ls_table==NULL)
       return csound->InitError(csound,
                                Str("could not find layout table no.%d"),
-                               (int)*p->layout );
+                               (int32_t)*p->layout );
     p->q.number = p->tabout->sizes[0];
-    p->q.dim       = (int)ls_table[0];   /* reading in loudspeaker info */
-    p->q.ls_am     = (int)ls_table[1];
-    p->q.ls_set_am = (int)ls_table[2];
+    p->q.dim       = (int32_t)ls_table[0];   /* reading in loudspeaker info */
+    p->q.ls_am     = (int32_t)ls_table[1];
+    p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured. \nMissing"
+      return csound->InitError(csound, Str("vbap system NOT configured.\nMissing"
                                            " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
@@ -262,7 +262,7 @@ int vbap1_init_a(CSOUND *csound, VBAPA1 *p)
     for (i=0; i < p->q.ls_set_am; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
       for (j=0 ; j < p->q.dim ; j++) {
-        ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
+        ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
       }
       memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));  /*initial setting*/
       for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
@@ -287,10 +287,10 @@ int vbap1_init_a(CSOUND *csound, VBAPA1 *p)
     return OK;
 }
 
-int vbap1_moving(CSOUND *csound, VBAP1_MOVING *p)
+int32_t vbap1_moving(CSOUND *csound, VBAP1_MOVING *p)
 {                               /* during note performance:   */
-    int j;
-    int cnt = p->q.number;
+    int32_t j;
+    int32_t cnt = p->q.number;
 
     vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
                          *p->spread, *p->field_am, p->fld);
@@ -303,10 +303,10 @@ int vbap1_moving(CSOUND *csound, VBAP1_MOVING *p)
     return OK;
 }
 
-int vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
+int32_t vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
 {                               /* during note performance:   */
-    //    int j;
-    int cnt = p->q.number;
+    //    int32_t j;
+    int32_t cnt = p->q.number;
 
     vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
                          *p->spread, *p->field_am, p->fld);
@@ -320,7 +320,7 @@ int vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
     return OK;
 }
 
-static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
+static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
                                 INSDS *insdshead, MYFLT ONEDKR,
                                 MYFLT spread, MYFLT field_am, MYFLT **fld)
 {
@@ -330,7 +330,7 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
     int32 i,j, spreaddirnum;
     CART_VEC tmp1, tmp2, tmp3;
     MYFLT coeff, angle;
-    int cnt = p->number;
+    int32_t cnt = p->number;
     MYFLT *tmp_gains=malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
 #ifdef JPFF
     printf("cnt=%d dim=%d\n", cnt, p->dim);
@@ -347,7 +347,7 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
     if (p->point_change_counter++ >= p->point_change_interval) {
       p->point_change_counter = 0;
       p->curr_fld = p->next_fld;
-      if (++p->next_fld >= (int) fabs(field_am)) {
+      if (++p->next_fld >= (int32_t) fabs(field_am)) {
         if (field_am >= FL(0.0)) /* point-to-point */
           p->next_fld = 0;
         else
@@ -355,7 +355,7 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
       }
       if (p->dim == 3) { /*jumping over second field */
         p->curr_fld = p->next_fld;
-        if (++p->next_fld >= ((int) fabs(field_am))) {
+        if (++p->next_fld >= ((int32_t) fabs(field_am))) {
           if (field_am >= FL(0.0)) /* point-to-point */
             p->next_fld = 0;
           else
@@ -520,9 +520,9 @@ static int vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
     return OK;
 }
 
-int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
+int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
 {
-    int     i, j;
+    int32_t     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
 
@@ -530,12 +530,12 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     ls_table =
       (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
     /* reading in loudspeaker info */
-    p->q.dim       = (int)ls_table[0];
-    p->q.ls_am     = (int)ls_table[1];
-    p->q.ls_set_am = (int)ls_table[2];
+    p->q.dim       = (int32_t)ls_table[0];
+    p->q.ls_am     = (int32_t)ls_table[1];
+    p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured. \n"
+      return csound->InitError(csound, Str("vbap system NOT configured.\n"
                                            "Missing vbaplsinit opcode"
                                            " in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
@@ -547,7 +547,7 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     for (i=0 ; i < p->q.ls_set_am ; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
       for (j=0 ; j < p->q.dim ; j++) {
-        ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
+        ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
       }
       for (j=0 ; j < 9; j++)
         ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
@@ -565,10 +565,10 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     }
     if (p->q.dim == 2)
       p->q.point_change_interval =
-        (int)(CS_EKR * *p->dur /(fabs(*p->field_am) - 1.0));
+        (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am) - 1.0));
     else if (LIKELY(p->q.dim == 3))
       p->q.point_change_interval =
-        (int)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
+        (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
       return csound->InitError(csound, Str("Wrong dimension"));
     p->q.point_change_counter = 0;
@@ -593,9 +593,9 @@ int vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     return OK;
 }
 
-int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
+int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
 {
-    int     i, j;
+    int32_t     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
 
@@ -605,12 +605,12 @@ int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     ls_table =
       (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
     /* reading in loudspeaker info */
-    p->q.dim       = (int)ls_table[0];
-    p->q.ls_am     = (int)ls_table[1];
-    p->q.ls_set_am = (int)ls_table[2];
+    p->q.dim       = (int32_t)ls_table[0];
+    p->q.ls_am     = (int32_t)ls_table[1];
+    p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (UNLIKELY(!p->q.ls_set_am))
-      return csound->InitError(csound, Str("vbap system NOT configured. \n"
+      return csound->InitError(csound, Str("vbap system NOT configured.\n"
                                            "Missing vbaplsinit opcode"
                                            " in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
@@ -622,7 +622,7 @@ int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     for (i=0 ; i < p->q.ls_set_am ; i++) {
       ls_set_ptr[i].ls_nos[2] = 0;     /* initial setting */
       for (j=0 ; j < p->q.dim ; j++) {
-        ls_set_ptr[i].ls_nos[j] = (int)*(ptr++);
+        ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
       }
       for (j=0 ; j < 9; j++)
         ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
@@ -640,10 +640,10 @@ int vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     }
     if (p->q.dim == 2)
       p->q.point_change_interval =
-        (int)(CS_EKR * *p->dur /(fabs(*p->field_am) - 1.0));
+        (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am) - 1.0));
     else if (LIKELY(p->q.dim == 3))
       p->q.point_change_interval =
-        (int)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
+        (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
       return csound->InitError(csound, Str("Wrong dimension"));
     p->q.point_change_counter = 0;

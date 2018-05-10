@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /* $Id: layer2.c,v 1.2 2009/03/01 15:27:05 jpff Exp $ */
@@ -40,12 +40,12 @@ static void II_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
     if (mpa->frame.channels > 1) {
       unsigned jsbound = mpa->frame.jsbound;
       sblimit2 = sblimit << 1;
-      for (i = jsbound; i; i--, alloc += (1 << step)) {
+      for (i = jsbound; i; i--, alloc += ((int64_t)(1) << step)) {
         step = alloc->bits;
         *ba++ = (uint8_t)GETBITS(step);
         *ba++ = (uint8_t)GETBITS(step);
       }
-      for (i = sblimit - jsbound; i; i--, alloc += (1 << step)) {
+      for (i = sblimit - jsbound; i; i--, alloc += ((int64_t)(1) << step)) {
         step = alloc->bits;
         ba[0] = (uint8_t)GETBITS(step);
         ba[1] = ba[0];
@@ -56,7 +56,7 @@ static void II_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
       for (i = sblimit2; i; i--) if (*ba++) *scfsi++ = (uint8_t)GETBITS(2);
     } else {
       sblimit2 = sblimit;
-      for (i = sblimit; i; i--, alloc += (1 << step)) {
+      for (i = sblimit; i; i--, alloc += ((int64_t)(1) << step)) {
         step = alloc->bits;
         *ba++ = (uint8_t)GETBITS(step);
       }
@@ -110,7 +110,7 @@ static void II_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
     unsigned i, j, k, step, sblimit = mpa->frame.sblimit;
     unsigned jsbound = mpa->frame.jsbound;
 
-    for (i = 0; i < jsbound; i++, alloc += (1 << step)) {
+    for (i = 0; i < jsbound; i++, alloc += ((int64_t)(1 << step))) {
       step = alloc->bits;
       for (j = 0; j < (unsigned)mpa->frame.channels; j++) {
         unsigned b = *ba++; int d;
@@ -134,7 +134,7 @@ static void II_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
         } else fraction[j][0][i] = fraction[j][1][i] = fraction[j][2][i] = 0.0;
       }
     }
-    for (i = jsbound; i < sblimit; i++, alloc += (1 << step)) {
+    for (i = jsbound; i < sblimit; i++, alloc += ((int64_t)(1) << step)) {
       unsigned b = ba[1]; int d;
       step = alloc->bits;
       ba += 2;

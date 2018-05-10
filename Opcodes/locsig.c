@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*LOCSIG*/
@@ -33,10 +33,10 @@
 #include "locsig.h"
 #include <math.h>
 
-static int locsigset(CSOUND *csound, LOCSIG *p)
+static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {
     STDOPCOD_GLOBALS  *pp;
-    int     outcount = p->OUTOCOUNT;
+    int32_t     outcount = p->OUTOCOUNT;
 
     if (UNLIKELY(outcount != 2 && outcount != 4))
       return csound->InitError(csound, Str("Wrong number of outputs in locsig; "
@@ -63,8 +63,9 @@ static int locsigset(CSOUND *csound, LOCSIG *p)
     return OK;
 }
 
-static int locsig(CSOUND *csound, LOCSIG *p)
+static int32_t locsig(CSOUND *csound, LOCSIG *p)
 {
+    IGN(csound);
     MYFLT *r1, *r2, *r3=NULL, *r4=NULL, degree, *asig;
     MYFLT direct, *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL;
     MYFLT torev, localrev, globalrev;
@@ -151,7 +152,7 @@ static int locsig(CSOUND *csound, LOCSIG *p)
     return OK;
 }
 
-static int locsendset(CSOUND *csound, LOCSEND *p)
+static int32_t locsendset(CSOUND *csound, LOCSEND *p)
 {
     STDOPCOD_GLOBALS  *pp;
     LOCSIG  *q;
@@ -167,10 +168,11 @@ static int locsendset(CSOUND *csound, LOCSEND *p)
     return OK;
 }
 
-static int locsend(CSOUND *csound, LOCSEND *p)
+static int32_t locsend(CSOUND *csound, LOCSEND *p)
 {
 /*     MYFLT       *r1, *r2, *r3=NULL, *r4=NULL; */
 /*     MYFLT       *rrev1, *rrev2, *rrev3=NULL, *rrev4=NULL; */
+     IGN(csound);
     LOCSIG *q = p->locsig;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -227,14 +229,16 @@ static int locsend(CSOUND *csound, LOCSEND *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "locsig", S(LOCSIG),  0, 5, "mmmm", "akkk",
-                                         (SUBR)locsigset,NULL, (SUBR)locsig    },
-{ "locsend", S(LOCSEND),0, 5, "mmmm", "",(SUBR)locsendset, NULL, (SUBR)locsend }
-};
+static OENTRY localops[] =
+  {
+   { "locsig", S(LOCSIG),  0, 3, "mmmm", "akkk",
+     (SUBR)locsigset, (SUBR)locsig    },
+   { "locsend", S(LOCSEND),0, 3, "mmmm", "",(SUBR)locsendset, (SUBR)locsend }
+  };
 
-int locsig_init_(CSOUND *csound)
+int32_t locsig_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

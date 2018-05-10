@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "stdopcod.h"
@@ -31,7 +31,7 @@
  *          en6mjg@bath.ac.uk
  */
 
-static int wtinit(CSOUND *csound, WAVETER *p)
+static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
     /* DECLARE */
     FUNC *ftpx = csound->FTnp2Find(csound, p->i_tabx);
@@ -39,7 +39,7 @@ static int wtinit(CSOUND *csound, WAVETER *p)
 
     /* CHECK */
     if (UNLIKELY((ftpx == NULL)||(ftpy == NULL))) {
-      return csound->InitError(csound, Str("wterrain: ftable not found"));
+      return csound->InitError(csound, "%s", Str("wterrain: ftable not found"));
     }
 
     /* POINT xarr AND yarr AT THE TABLES */
@@ -53,12 +53,12 @@ static int wtinit(CSOUND *csound, WAVETER *p)
     return OK;
 }
 
-static int wtPerf(CSOUND *csound, WAVETER *p)
+static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int xloc, yloc;
+    int32_t xloc, yloc;
     MYFLT xc, yc;
     MYFLT amp = *p->kamp;
     MYFLT pch = *p->kpch;
@@ -85,8 +85,8 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
       yc = yc-FLOOR(yc);
 
       /* SCALE TO TABLE-SIZE SQUARE */
-      xloc = (int)(xc * sizx);
-      yloc = (int)(yc * sizy);
+      xloc = (int32_t)(xc * sizx);
+      yloc = (int32_t)(yc * sizy);
 
       /* OUTPUT AM OF TABLE VALUES * KAMP */
       aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
@@ -109,16 +109,16 @@ static int wtPerf(CSOUND *csound, WAVETER *p)
  *          en6mjg@bath.ac.uk
  */
 
-static int scanhinit(CSOUND *csound, SCANHAMMER *p)
+static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
 {
-  unsigned int srcpos = 0;
-  unsigned int dstpos = (unsigned int)MYFLT2LONG(*p->ipos);
+  uint32_t srcpos = 0;
+  uint32_t dstpos = (uint32_t)MYFLT2LONG(*p->ipos);
 
   FUNC *fsrc = csound->FTnp2Find(csound, p->isrc); /* Source table */
   FUNC *fdst = csound->FTnp2Find(csound, p->idst); /* Destination table */
 
   if (UNLIKELY(fsrc->flen > fdst->flen)) {
-    return csound->InitError(csound, Str("Source table must be same size or "
+    return csound->InitError(csound,  "%s",  Str("Source table must be same size or "
                                          "smaller than dest table\n"));
   }
 
@@ -143,7 +143,7 @@ static int scanhinit(CSOUND *csound, SCANHAMMER *p)
  *          en6mjg@bath.ac.uk
  */
 
-static int scantinit(CSOUND *csound, SCANTABLE *p)
+static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
 {
     /* DECLARE */
     FUNC *fpoint = csound->FTnp2Find(csound, p->i_point);
@@ -154,23 +154,23 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
 
     /* CHECK */
     if (UNLIKELY(fpoint == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("Scantable: point table not found"));
     }
     if (UNLIKELY(fmass == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("Scantable: mass table not found"));
     }
     if (UNLIKELY(fstiff == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("Scantable: stiffness table not found"));
     }
     if (UNLIKELY(fdamp == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("Scantable: damping table not found"));
     }
     if (UNLIKELY(fvel == NULL)) {
-      return csound->InitError(csound,
+      return csound->InitError(csound, "%s",
                                Str("Scantable: velocity table not found"));
     }
 
@@ -179,7 +179,7 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
           (fdamp->flen==fstiff->flen)  &&
           (fvel->flen==fstiff->flen)   &&
                    (fpoint->flen==fdamp->flen)))) {
-      return csound->InitError(csound, Str("Table lengths do not agree!!"));
+      return csound->InitError(csound, "%s", Str("Table lengths do not agree!!"));
     }
 
     p->fpoint = fpoint;
@@ -204,13 +204,13 @@ static int scantinit(CSOUND *csound, SCANTABLE *p)
     return OK;
 }
 
-static int scantPerf(CSOUND *csound, SCANTABLE *p)
+static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT force, fc1, fc2;
-    int next, last;
+    int32_t next, last;
 
     /* DECLARE */
     FUNC *fpoint = p->fpoint;
@@ -241,7 +241,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
         next = 0;
       }
       else if (UNLIKELY(i == 0)) {
-        last = (int)p->size - 1;
+        last = (int32_t)p->size - 1;
       }
 
       if (UNLIKELY(fmass->ftable[i] == 0)) {
@@ -270,7 +270,7 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
     for (i=offset; i<nsmps; i++) {
 
       /* NO INTERPOLATION */
-      aout[i] = fpoint->ftable[(int)pos] * amp;
+      aout[i] = fpoint->ftable[(int32_t)pos] * amp;
 
       pos += inc /* p->size * *(p->kpch) * csound->onedsr */;
       if (UNLIKELY(pos > p->size)) {
@@ -291,16 +291,16 @@ static int scantPerf(CSOUND *csound, SCANTABLE *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "wterrain", S(WAVETER), TR, 5,  "a", "kkkkkkii",
-                                            (SUBR)wtinit, NULL, (SUBR)wtPerf },
-{ "scantable", S(SCANTABLE),TR, 5,"a", "kkiiiii",
-                                         (SUBR)scantinit,NULL,(SUBR)scantPerf},
-{ "scanhammer",S(SCANHAMMER),TB, 1,"", "iiii", (SUBR)scanhinit, NULL, NULL    }
+  { "wterrain", S(WAVETER), TR, 3,  "a", "kkkkkkii",
+    (SUBR)wtinit, (SUBR)wtPerf },
+  { "scantable", S(SCANTABLE),TR, 3,"a", "kkiiiii",
+    (SUBR)scantinit,(SUBR)scantPerf},
+  { "scanhammer",S(SCANHAMMER),TB, 1,"", "iiii", (SUBR)scanhinit, NULL, NULL    }
 };
 
-int wave_terrain_init_(CSOUND *csound)
+int32_t wave_terrain_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
-

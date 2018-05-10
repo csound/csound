@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 #include "csoundCore.h"         /*                      ARGDECODE.C     */
 #include "soundio.h"
@@ -298,8 +298,8 @@ static const char *longUsageList[] = {
   Str_noop("--port=N                listen to UDP port N for instruments/orchestra "
                                     "code (implies --daemon)"),
   Str_noop("--vbr-quality=Ft        set quality of variable bit-rate compression"),
-  Str_noop("--devices[=in|out]      list available MIDI devices and exit"),
-  Str_noop("--midi-devices[=in|out] list available audio devices and exit"),
+  Str_noop("--devices[=in|out]      list available audio devices and exit"),
+  Str_noop("--midi-devices[=in|out] list available MIDI devices and exit"),
   Str_noop("--get-system-sr         print system sr and exit"),
   Str_noop("--ksmps=N               override ksmps"),
   Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, "
@@ -350,10 +350,10 @@ CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
     csound->ErrMsgV(csound, Str("Csound Command ERROR:    "), s, args);
     va_end(args);
     //***FIXME This code makes no sense
-    if (csound->info_message_request == 0) {
-      csound->info_message_request = 0;
-      csound->LongJmp(csound, 1);
-    }
+    /* if (csound->info_message_request == 0) { */
+    /*   csound->info_message_request = 0; */
+    /*   csound->LongJmp(csound, 1); */
+    /* } */
     //Added longjump -- JPff
     csound->LongJmp(csound, 1);
 }
@@ -1080,7 +1080,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;  /* Try new parser */
     }
     else if (!(strcmp(s, "daemon"))) {
-      O->daemon = 1;
+      if(O->daemon == 0) O->daemon = 1;
       return 1;
     }
     else if (!(strncmp(s, "port=",5))) {
@@ -1237,6 +1237,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'I':
             csound->initonly = 1;         /* I-only overrides */
             O->syntaxCheckOnly = 0;       /* --syntax-check-only and implies */
+            /* FALLTHRU */
           case 'n':
             O->sfwrite = 0;               /* nosound        */
             break;
@@ -1799,10 +1800,10 @@ static void list_audio_devices(CSOUND *csound, int output){
       csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
     if (output)
       csound->MessageS(csound,CSOUNDMSG_STDOUT,
-                       Str("%d audio output devices \n"), n);
+                       Str("%d audio output devices\n"), n);
     else
       csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d audio input devices \n"), n);
+                       Str("%d audio input devices\n"), n);
     csoundGetAudioDevList(csound,devs,output);
     for (i=0; i < n; i++)
       csound->Message(csound, " %d: %s (%s)\n",
@@ -1817,10 +1818,10 @@ static void list_midi_devices(CSOUND *csound, int output){
       (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
     if (output)
       csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d MIDI output devices \n"), n);
+                       Str("%d MIDI output devices\n"), n);
     else
       csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d MIDI input devices \n"), n);
+                       Str("%d MIDI input devices\n"), n);
     csoundGetMIDIDevList(csound,devs,output);
     for (i=0; i < n; i++)
       csound->Message(csound, " %d: %s (%s)\n",

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
 #ifdef _DEBUG
@@ -193,7 +193,7 @@ static int pyinit(CSOUND *csound, PYINIT *p)
       return NOTOK;
     }
     PyObject *public = PyModule_GetDict(module);
-    PyObject *csobj = Py_BuildValue("l", (long) csound);
+    PyObject *csobj = Py_BuildValue("l", (uintptr_t) csound);
     PyDict_SetItemString(public, "_CSOUND_", csobj);
     return OK;
 }
@@ -203,6 +203,7 @@ static int pyinit(CSOUND *csound, PYINIT *p)
 
 static int pycalln_krate(CSOUND *csound, PYCALLN *p)
 {
+    IGN(csound);
     int       i;
     char      command[1024];
     PyObject  *result;
@@ -225,12 +226,14 @@ static int pycalln_krate(CSOUND *csound, PYCALLN *p)
 
 static int pylcalln_irate(CSOUND *csound, PYCALLN *p)
 {
+     IGN(csound);
     create_private_namespace_if_needed(&p->h);
     return OK;
 }
 
 static int pylcalln_krate(CSOUND *csound, PYCALLN *p)
 {
+     IGN(csound);
     int       i;
     char      command[1024];
     PyObject  *result;
@@ -252,6 +255,7 @@ static int pylcalln_krate(CSOUND *csound, PYCALLN *p)
 
 static int pylcallni_irate(CSOUND *csound, PYCALLN *p)
 {
+     IGN(csound);
     int       i;
     char      command[1024];
     PyObject  *result;

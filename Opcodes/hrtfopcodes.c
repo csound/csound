@@ -1,7 +1,7 @@
 /*
     hrtfopcodes.c: new HRTF opcodes
 
-    (c) Brian Carty, 2010
+    Copyright (c) Brian Carty, 2010
 
     This file is part of Csound.
 
@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -49,7 +49,7 @@ static const float nonlinitd96k[5] =
 
 /* number of measurements per elev: mit data const:read only, static:exists
    for whole process... */
-static const int elevationarray[14] =
+static const int32_t elevationarray[14] =
   {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, 36, 24, 12, 1 };
 
 /* assumed mit hrtf data will be used here. Otherwise delay data would need
@@ -122,11 +122,11 @@ static const float minphasedels[368] =
 
 
 #ifdef WORDS_BIGENDIAN
-static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
+static int32_t swap4bytes(CSOUND* csound, MEMFIL* mfp)
 {
     char c1, c2, c3, c4;
     char *p = mfp->beginp;
-    int  size = mfp->length;
+    int32_t  size = mfp->length;
 
     while (size >= 4)
       {
@@ -138,7 +138,7 @@ static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
     return OK;
 }
 #else
-static int (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
+static int32_t (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 #endif
 
 /* Csound hrtf magnitude interpolation, phase truncation object */
@@ -163,24 +163,24 @@ typedef struct
         float *fpbeginl,*fpbeginr;
 
         /* see definitions in INIT */
-        int irlength, irlengthpad, overlapsize;
+        int32_t irlength, irlengthpad, overlapsize;
 
         MYFLT sr;
 
         /* old indices for checking if changes occur in trajectory. */
-        int oldelevindex, oldangleindex;
+        int32_t oldelevindex, oldangleindex;
 
-        int counter;
+        int32_t counter;
 
         /* initialfade used to avoid fade in of data...if not,'old' data
            faded out with zero hrtf,'new' data faded in. */
-        int cross,l,initialfade;
+        int32_t cross,l,initialfade;
 
         /* user defined buffer size for fades. */
-        int fadebuffer, fade;
+        int32_t fadebuffer, fade;
 
         /* flags for process type */
-        int minphase,phasetrunc;
+        int32_t minphase,phasetrunc;
 
         /* hrtf data padded */
         AUXCH hrtflpad,hrtfrpad;
@@ -215,25 +215,25 @@ typedef struct
 
         /* delay */
         AUXCH delmeml, delmemr;
-        int ptl, ptr, mdtl, mdtr;
+        int32_t ptl, ptr, mdtl, mdtr;
 }
 hrtfmove;
 
-static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
+static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
 {
     /* left and right data files: spectral mag, phase format. */
     MEMFIL *fpl = NULL,*fpr = NULL;
-    int i;
+    int32_t i;
     char filel[MAXNAME],filer[MAXNAME];
 
-    int mode = (int)*p->omode;
-    int fade = (int)*p->ofade;
+    int32_t mode = (int32_t)*p->omode;
+    int32_t fade = (int32_t)*p->ofade;
     MYFLT sr = *p->osr;
 
     MYFLT *win;
 
     /* time domain impulse length, padded, overlap add */
-    int irlength=0, irlengthpad=0, overlapsize=0;
+    int32_t irlength=0, irlengthpad=0, overlapsize=0;
 
     /* flag for process type: default phase trunc */
     if(mode == 1)
@@ -277,8 +277,8 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
       }
 
     /* copy in string name */
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); filel[MAXNAME-1]='\0';
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); filel[MAXNAME-1]='\0';
+    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -300,7 +300,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
     p->overlapsize = overlapsize;
 
     /* the amount of buffers to fade over. */
-    p->fadebuffer = (int)fade*irlength;
+    p->fadebuffer = (int32_t)fade*irlength;
 
     /* file handles */
     p->fpbeginl = (float *) fpl->beginp;
@@ -439,14 +439,16 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     /* delay buffers */
     if (!p->delmeml.auxp ||
-        p->delmeml.size < (int)(sr * maxdeltime) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (int)(sr * maxdeltime) * sizeof(MYFLT), &p->delmeml);
+        p->delmeml.size < (int32_t)(sr * maxdeltime) * sizeof(MYFLT))
+      csound->AuxAlloc(csound,
+                       (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmeml);
     if (!p->delmemr.auxp ||
-        p->delmemr.size < (int)(sr * maxdeltime) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (int)(sr * maxdeltime) * sizeof(MYFLT), &p->delmemr);
+        p->delmemr.size < (int32_t)(sr * maxdeltime) * sizeof(MYFLT))
+      csound->AuxAlloc(csound,
+                       (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmemr);
 
-    memset(p->delmeml.auxp, 0, (int)(sr * maxdeltime) * sizeof(MYFLT));
-    memset(p->delmemr.auxp, 0, (int)(sr * maxdeltime) * sizeof(MYFLT));
+    memset(p->delmeml.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(MYFLT));
+    memset(p->delmemr.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(MYFLT));
 
     if (!p->win.auxp || p->win.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->win);
@@ -461,8 +463,8 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
     for(i = ((irlength / 2) + 1); i < irlength; i++)
       win[i] = FL(0.0);
 
-    p->mdtl = (int)(FL(0.00095) * sr);
-    p->mdtr = (int)(FL(0.00095) * sr);
+    p->mdtl = (int32_t)(FL(0.00095) * sr);
+    p->mdtr = (int32_t)(FL(0.00095) * sr);
     p->delayfloat = FL(0.0);
 
     p->ptl = 0;
@@ -477,7 +479,7 @@ static int hrtfmove_init(CSOUND *csound, hrtfmove *p)
 }
 
 
-static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
+static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
 {
     /* local pointers to p */
     MYFLT *in = p->in;
@@ -504,22 +506,22 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT elev = *p->kelev;
     MYFLT angle = *p->kangle;
 
-    int counter = p->counter;
+    int32_t counter = p->counter;
 
     /* pointers into HRTF files: floating point data (even in 64 bit csound) */
     float *fpindexl;
     float *fpindexr;
 
-    int i,elevindex, angleindex, skip = 0;
+    int32_t i,elevindex, angleindex, skip = 0;
 
-    int minphase = p->minphase;
-    int phasetrunc = p->phasetrunc;
+    int32_t minphase = p->minphase;
+    int32_t phasetrunc = p->phasetrunc;
 
     MYFLT sr = p->sr;
 
-    int irlength = p->irlength;
-    int irlengthpad = p->irlengthpad;
-    int overlapsize = p->overlapsize;
+    int32_t irlength = p->irlength;
+    int32_t irlengthpad = p->irlengthpad;
+    int32_t overlapsize = p->overlapsize;
 
     /* local variables, mainly used for simplification */
     MYFLT elevindexstore;
@@ -540,7 +542,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
     /* local interpolation values */
     MYFLT elevindexhighper, angleindex2per, angleindex4per;
-    int elevindexlow, elevindexhigh, angleindex1, angleindex2,
+    int32_t elevindexlow, elevindexhigh, angleindex1, angleindex2,
       angleindex3, angleindex4;
     MYFLT magl,magr,phasel,phaser, magllow, magrlow, maglhigh, magrhigh;
 
@@ -554,18 +556,18 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT *overlapoldl = (MYFLT *)p->overlapoldl.auxp;
     MYFLT *overlapoldr = (MYFLT *)p->overlapoldr.auxp;
 
-    int oldelevindex = p ->oldelevindex;
-    int oldangleindex = p ->oldangleindex;
+    int32_t oldelevindex = p ->oldelevindex;
+    int32_t oldangleindex = p ->oldangleindex;
 
-    int cross = p ->cross;
-    int l = p->l;
-    int initialfade = p->initialfade;
+    int32_t cross = p ->cross;
+    int32_t l = p->l;
+    int32_t initialfade = p->initialfade;
 
-    int crossfade;
-    int crossout;
+    int32_t crossfade;
+    int32_t crossout;
 
-    int fade = p->fade;
-    int fadebuffer = p->fadebuffer;
+    int32_t fade = p->fade;
+    int32_t fadebuffer = p->fadebuffer;
 
     /* minimum phase buffers */
     MYFLT *logmagl = (MYFLT *)p->logmagl.auxp;
@@ -583,11 +585,11 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
     MYFLT *delmemr = (MYFLT *)p->delmemr.auxp;
     MYFLT delaylow1, delaylow2, delayhigh1, delayhigh2, delaylow, delayhigh;
     MYFLT delayfloat = p->delayfloat;
-    int ptl = p->ptl;
-    int ptr = p->ptr;
-    int mdtl = p->mdtl;
-    int mdtr = p->mdtr;
-    int posl, posr;
+    int32_t ptl = p->ptl;
+    int32_t ptr = p->ptr;
+    int32_t mdtl = p->mdtl;
+    int32_t mdtr = p->mdtr;
+    int32_t posl, posr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t j, nsmps = CS_KSMPS;
@@ -644,7 +646,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
               {
                 /* two nearest elev indices to avoid recalculating */
                 elevindexstore = (elev - minelev) / elevincrement;
-                elevindexlow = (int)elevindexstore;
+                elevindexlow = (int32_t)elevindexstore;
 
                 if(elevindexlow < 13)
                   elevindexhigh = elevindexlow + 1;
@@ -658,9 +660,9 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 /* read using an index system based on number of points
                    measured per elevation at mit */
                 /* lookup indices, used to check for crossfade */
-                elevindex = (int)(elevindexstore + FL(0.5));
+                elevindex = (int32_t)(elevindexstore + FL(0.5));
 
-                angleindex = (int)(angle / (FL(360.0) / elevationarray[elevindex])
+                angleindex = (int32_t)(angle/(FL(360.0) / elevationarray[elevindex])
                                    + FL(0.5));
                 angleindex = angleindex % elevationarray[elevindex];
 
@@ -671,12 +673,12 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                                                elevationarray[elevindexhigh]);
 
                 /* 4 closest indices, 2 low and 2 high */
-                angleindex1 = (int)angleindexlowstore;
+                angleindex1 = (int32_t)angleindexlowstore;
 
                 angleindex2 = angleindex1 + 1;
                 angleindex2 = angleindex2 % elevationarray[elevindexlow];
 
-                angleindex3 = (int)angleindexhighstore;
+                angleindex3 = (int32_t)angleindexhighstore;
 
                 angleindex4 = angleindex3 + 1;
                 angleindex4 = angleindex4 % elevationarray[elevindexhigh];
@@ -722,7 +724,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                         if(angleindex > elevationarray[elevindex] / 2)
                           {
                             for(i = 0; i < elevindex; i++)
-                              skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                              skip +=((int32_t)(elevationarray[i] / 2)+1)*irlength;
                             for (i = 0;
                                  i < (elevationarray[elevindex] - angleindex);
                                  i++)
@@ -736,7 +738,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                         else
                           {
                             for(i = 0; i < elevindex; i++)
-                              skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                              skip +=((int32_t)(elevationarray[i] / 2)+1)*irlength;
                             for (i = 0; i < angleindex; i++)
                               skip += irlength;
                             for(i = 0; i < irlength; i++)
@@ -757,7 +759,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 if(angleindex1 > elevationarray[elevindexlow] / 2)
                   {
                     for(i = 0; i < elevindexlow; i++)
-                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexlow] - angleindex1);
                          i++)
@@ -771,7 +773,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 else
                   {
                     for(i = 0; i < elevindexlow; i++)
-                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0; i < angleindex1; i++)
                       skip += irlength;
                     for(i = 0; i < irlength; i++)
@@ -785,7 +787,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 if(angleindex2 > elevationarray[elevindexlow] / 2)
                   {
                     for(i = 0; i < elevindexlow; i++)
-                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexlow] - angleindex2);
                          i++)
@@ -799,7 +801,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 else
                   {
                     for(i = 0; i < elevindexlow; i++)
-                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0; i < angleindex2; i++)
                       skip += irlength;
                     for(i = 0; i < irlength; i++)
@@ -813,7 +815,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 if(angleindex3 > elevationarray[elevindexhigh] / 2)
                   {
                     for(i = 0; i < elevindexhigh; i++)
-                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexhigh] - angleindex3);
                          i++)
@@ -827,7 +829,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 else
                   {
                     for(i = 0; i < elevindexhigh; i++)
-                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0; i < angleindex3; i++)
                       skip += irlength;
                     for(i = 0; i < irlength; i++)
@@ -841,7 +843,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 if(angleindex4 > elevationarray[elevindexhigh] / 2)
                   {
                     for(i = 0; i < elevindexhigh; i++)
-                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexhigh] - angleindex4);
                          i++)
@@ -855,7 +857,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 else
                   {
                     for(i = 0; i < elevindexhigh; i++)
-                      skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0; i < angleindex4; i++)
                       skip += irlength;
                     for(i = 0; i < irlength; i++)
@@ -1061,7 +1063,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     if(angleindex1 > elevationarray[elevindexlow] / 2)
                       {
                         for (i = 0; i < elevindexlow; i++)
-                          skip += ((int)(elevationarray[i] / 2) + 1);
+                          skip += ((int32_t)(elevationarray[i] / 2) + 1);
                         for(i = 0;
                             i < (elevationarray[elevindexlow] - angleindex1);
                             i++)
@@ -1071,7 +1073,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     else
                       {
                         for (i = 0; i < elevindexlow; i++)
-                          skip += ((int)(elevationarray[i] / 2) + 1);
+                          skip += ((int32_t)(elevationarray[i] / 2) + 1);
                         for(i = 0; i < angleindex1; i++)
                           skip++;
                         delaylow1 = minphasedels[skip];
@@ -1082,7 +1084,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     if(angleindex2 > elevationarray[elevindexlow] / 2)
                       {
                         for (i = 0; i < elevindexlow; i++)
-                          skip += ((int)(elevationarray[i] / 2) + 1);
+                          skip += ((int32_t)(elevationarray[i] / 2) + 1);
                         for(i = 0;
                             i < (elevationarray[elevindexlow] - angleindex2);
                             i++)
@@ -1092,7 +1094,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     else
                       {
                         for (i = 0; i < elevindexlow; i++)
-                          skip += ((int)(elevationarray[i] / 2) + 1);
+                          skip += ((int32_t)(elevationarray[i] / 2) + 1);
                         for (i = 0; i < angleindex2; i++)
                           skip++;
                         delaylow2 = minphasedels[skip];
@@ -1103,7 +1105,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     if(angleindex3 > elevationarray[elevindexhigh] / 2)
                       {
                         for (i = 0; i < elevindexhigh; i++)
-                          skip += ((int)(elevationarray[i] / 2) + 1);
+                          skip += ((int32_t)(elevationarray[i] / 2) + 1);
                         for(i = 0;
                             i < (elevationarray[elevindexhigh] - angleindex3);
                             i++)
@@ -1113,7 +1115,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     else
                       {
                         for (i = 0; i < elevindexhigh; i++)
-                          skip += ((int)(elevationarray[i] / 2) + 1);
+                          skip += ((int32_t)(elevationarray[i] / 2) + 1);
                         for (i = 0; i < angleindex3; i++)
                           skip++;
                         delayhigh1 = minphasedels[skip];
@@ -1124,7 +1126,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     if(angleindex4 > elevationarray[elevindexhigh] / 2)
                       {
                         for (i = 0; i < elevindexhigh; i++)
-                          skip += ((int)(elevationarray[i] / 2) + 1);
+                          skip += ((int32_t)(elevationarray[i] / 2) + 1);
                         for(i = 0;
                             i < (elevationarray[elevindexhigh] - angleindex4);
                             i++)
@@ -1134,7 +1136,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     else
                       {
                         for (i = 0; i < elevindexhigh; i++)
-                          skip += ((int)(elevationarray[i] / 2) + 1);
+                          skip += ((int32_t)(elevationarray[i] / 2) + 1);
                         for (i = 0; i < angleindex4; i++)
                           skip++;
                         delayhigh2 = minphasedels[skip];
@@ -1283,7 +1285,7 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   {
                     rpr = ptr - vdtr;
                     rpr = (rpr >= 0 ? (rpr < mdtr ? rpr : rpr - mdtr) : rpr + mdtr);
-                    posr = (int) rpr;
+                    posr = (int32_t) rpr;
                     fracr = rpr - posr;
                     delmemr[ptr] = outr[i];
                     outvdr =  delmemr[posr] + fracr *
@@ -1299,8 +1301,8 @@ static int hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   {
                     rpl = ptl - vdtl;
                     rpl = (rpl >= 0 ? (rpl < mdtl ? rpl : rpl - mdtl) : rpl + mdtl);
-                    posl = (int) rpl;
-                    fracl = rpl - (int) posl;
+                    posl = (int32_t) rpl;
+                    fracl = rpl - (int32_t) posl;
                     delmeml[ptl] = outl[i];
                     outvdl =  delmeml[posl] + fracl *
                       (delmeml[(posl + 1 < mdtl ? posl + 1 : 0)] - delmeml[posl]);
@@ -1352,10 +1354,10 @@ typedef struct
         MYFLT *oradius, *osr;
 
         /*see definitions in INIT*/
-        int irlength, irlengthpad, overlapsize;
+        int32_t irlength, irlengthpad, overlapsize;
         MYFLT sroverN;
 
-        int counter;
+        int32_t counter;
         MYFLT sr;
 
         /* hrtf data padded */
@@ -1382,7 +1384,7 @@ typedef struct
 }
 hrtfstat;
 
-static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
+static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
 {
     /* left and right data files: spectral mag, phase format. */
     MEMFIL *fpl = NULL, *fpr = NULL;
@@ -1414,13 +1416,13 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     float *fpindexr=NULL;
 
     /* time domain impulse length, padded, overlap add */
-    int irlength=0, irlengthpad=0, overlapsize=0;
+    int32_t irlength=0, irlengthpad=0, overlapsize=0;
 
-    int i, skip = 0;
+    int32_t i, skip = 0;
 
     /* local interpolation values */
     MYFLT elevindexhighper, angleindex2per, angleindex4per;
-    int elevindexlow, elevindexhigh, angleindex1, angleindex2,
+    int32_t elevindexlow, elevindexhigh, angleindex1, angleindex2,
       angleindex3, angleindex4;
     MYFLT magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
 
@@ -1433,7 +1435,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     MYFLT radianangle, radianelev, itd=0, itdww, freq;
 
     /* shift */
-    int shift;
+    int32_t shift;
     MYFLT *leftshiftbuffer;
     MYFLT *rightshiftbuffer;
 
@@ -1462,8 +1464,8 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
 
     /* copy in string name... */
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); filel[MAXNAME-1]='\0';
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); filel[MAXNAME-1]='\0';
+    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -1602,7 +1604,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
     /* two nearest elev indices to avoid recalculating */
     elevindexstore = (elev - minelev) / elevincrement;
-    elevindexlow = (int)elevindexstore;
+    elevindexlow = (int32_t)elevindexstore;
 
     if(elevindexlow < 13)
       elevindexhigh = elevindexlow + 1;
@@ -1618,12 +1620,12 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     angleindexhighstore = angle / (FL(360.0) / elevationarray[elevindexhigh]);
 
     /* 4 closest indices, 2 low and 2 high */
-    angleindex1 = (int)angleindexlowstore;
+    angleindex1 = (int32_t)angleindexlowstore;
 
     angleindex2 = angleindex1 + 1;
     angleindex2 = angleindex2 % elevationarray[elevindexlow];
 
-    angleindex3 = (int)angleindexhighstore;
+    angleindex3 = (int32_t)angleindexhighstore;
 
     angleindex4 = angleindex3 + 1;
     angleindex4 = angleindex4 % elevationarray[elevindexhigh];
@@ -1638,7 +1640,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     if(angleindex1 > elevationarray[elevindexlow] / 2)
       {
         for(i = 0; i < elevindexlow; i++)
-          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+          skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
         for (i = 0; i < (elevationarray[elevindexlow] - angleindex1); i++)
           skip += irlength;
         for(i = 0; i < irlength; i++)
@@ -1650,7 +1652,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     else
       {
         for(i = 0; i < elevindexlow; i++)
-          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+          skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
         for (i = 0; i < angleindex1; i++)
           skip += irlength;
         for(i = 0; i < irlength; i++)
@@ -1664,7 +1666,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     if(angleindex2 > elevationarray[elevindexlow] / 2)
       {
         for(i = 0; i < elevindexlow; i++)
-          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+          skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
         for (i = 0; i < (elevationarray[elevindexlow] - angleindex2); i++)
           skip += irlength;
         for(i = 0; i < irlength; i++)
@@ -1676,7 +1678,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     else
       {
         for(i = 0; i < elevindexlow; i++)
-          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+          skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
         for (i = 0; i < angleindex2; i++)
           skip += irlength;
         for(i = 0; i < irlength; i++)
@@ -1690,7 +1692,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     if(angleindex3 > elevationarray[elevindexhigh] / 2)
       {
         for(i = 0; i < elevindexhigh; i++)
-          skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+          skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
         for (i = 0; i < (elevationarray[elevindexhigh] - angleindex3); i++)
           skip += irlength;
         for(i = 0; i < irlength; i++)
@@ -1702,7 +1704,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     else
       {
         for(i = 0; i < elevindexhigh; i++)
-          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+          skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
         for (i = 0; i < angleindex3; i++)
           skip += irlength;
         for(i = 0; i < irlength; i++)
@@ -1716,7 +1718,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     if(angleindex4 > elevationarray[elevindexhigh] / 2)
       {
         for(i = 0; i < elevindexhigh; i++)
-          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+          skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
         for (i = 0; i < (elevationarray[elevindexhigh] - angleindex4); i++)
           skip += irlength;
         for(i = 0; i < irlength; i++)
@@ -1728,7 +1730,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
     else
       {
         for(i = 0; i < elevindexhigh; i++)
-          skip +=((int)(elevationarray[i] / 2) + 1) * irlength;
+          skip +=((int32_t)(elevationarray[i] / 2) + 1) * irlength;
         for (i = 0; i < angleindex4; i++)
           skip += irlength;
         for(i = 0; i < irlength; i++)
@@ -1873,7 +1875,7 @@ static int hrtfstat_init(CSOUND *csound, hrtfstat *p)
 }
 
 
-static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
+static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
 {
         /* local pointers to p */
     MYFLT *in = p->in;
@@ -1895,15 +1897,15 @@ static int hrtfstat_process(CSOUND *csound, hrtfstat *p)
     MYFLT *overlapl = (MYFLT *)p->overlapl.auxp;
     MYFLT *overlapr = (MYFLT *)p->overlapr.auxp;
 
-    int counter = p->counter;
-    int i;
+    int32_t counter = p->counter;
+    int32_t i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t j, nsmps = CS_KSMPS;
 
-    int irlength = p->irlength;
-    int irlengthpad = p->irlengthpad;
-    int overlapsize = p->overlapsize;
+    int32_t irlength = p->irlength;
+    int32_t irlengthpad = p->irlengthpad;
+    int32_t overlapsize = p->overlapsize;
 
     MYFLT sr = p->sr;
 
@@ -2006,21 +2008,21 @@ MYFLT *ooverlap, *oradius, *osr;
         MYFLT anglev, elevv;
 
         /* see definitions in INIT */
-        int irlength;
+        int32_t irlength;
         MYFLT sroverN;
         MYFLT sr;
 
         /* test inputs in init, get accepted value/default, and store in
            variables below. */
-        int overlap;
+        int32_t overlap;
         MYFLT radius;
 
-        int hopsize;
+        int32_t hopsize;
 
         float *fpbeginl,*fpbeginr;
 
         /* to keep track of process */
-        int counter, t;
+        int32_t counter, t;
 
         /* in and output buffers */
         AUXCH inbuf;
@@ -2045,7 +2047,7 @@ MYFLT *ooverlap, *oradius, *osr;
 }
 hrtfmove2;
 
-static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
+static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 {
     /* left and right data files: spectral mag, phase format. */
     MEMFIL *fpl = NULL, *fpr = NULL;
@@ -2053,20 +2055,20 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     char filel[MAXNAME], filer[MAXNAME];
 
     /* time domain impulse length */
-    int irlength=0;
+    int32_t irlength=0;
 
     /* stft window */
     MYFLT *win;
     /* overlap skip buffers */
-    int *overlapskipin, *overlapskipout;
+    int32_t *overlapskipin, *overlapskipout;
     //MYFLT *inbuf;
     //MYFLT *outbufl, *outbufr;
 
-    int overlap = (int)*p->ooverlap;
+    int32_t overlap = (int32_t)*p->ooverlap;
     MYFLT r = *p->oradius;
     MYFLT sr = *p->osr;
 
-    int i = 0;
+    int32_t i = 0;
 
     if(sr != 44100 && sr != 48000 && sr != 96000)
       sr = 44100;
@@ -2084,8 +2086,8 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       irlength = 256;
 
     /* copy in string name... */
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); filel[MAXNAME-1] = '\0';
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); filer[MAXNAME-1] = '\0';
+    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1] = '\0';
+    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1] = '\0';
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -2117,7 +2119,7 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       r = FL(8.8);
     p->radius = r;
 
-    p->hopsize = (int)(irlength / overlap);
+    p->hopsize = (int32_t)(irlength / overlap);
 
     /* buffers */
     if (!p->inbuf.auxp || p->inbuf.size < (overlap * irlength) * sizeof(MYFLT))
@@ -2176,18 +2178,19 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
     if (!p->win.auxp || p->win.size < irlength * sizeof(MYFLT))
       csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->win);
-    if (!p->overlapskipin.auxp || p->overlapskipin.size < overlap * sizeof(int))
-      csound->AuxAlloc(csound, overlap * sizeof(int), &p->overlapskipin);
-    if (!p->overlapskipout.auxp || p->overlapskipout.size < overlap * sizeof(int))
-      csound->AuxAlloc(csound, overlap * sizeof(int), &p->overlapskipout);
+    if (!p->overlapskipin.auxp || p->overlapskipin.size < overlap * sizeof(int32_t))
+      csound->AuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipin);
+    if (!p->overlapskipout.auxp ||
+        p->overlapskipout.size < overlap * sizeof(int32_t))
+      csound->AuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipout);
 
     memset(p->win.auxp, 0, irlength * sizeof(MYFLT));
-    memset(p->overlapskipin.auxp, 0, overlap * sizeof(int));
-    memset(p->overlapskipout.auxp, 0, overlap * sizeof(int));
+    memset(p->overlapskipin.auxp, 0, overlap * sizeof(int32_t));
+    memset(p->overlapskipout.auxp, 0, overlap * sizeof(int32_t));
 
     win = (MYFLT *)p->win.auxp;
-    overlapskipin = (int *)p->overlapskipin.auxp;
-    overlapskipout = (int *)p->overlapskipout.auxp;
+    overlapskipin = (int32_t *)p->overlapskipin.auxp;
+    overlapskipout = (int32_t *)p->overlapskipout.auxp;
 
     /* window is Hanning */
     for(i = 0; i < irlength; i++)
@@ -2213,7 +2216,7 @@ static int hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 }
 
 
-static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
+static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 {
     /* local pointers to p */
     MYFLT *in = p->in;
@@ -2236,26 +2239,26 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 
     MYFLT elev = *p->kelev;
     MYFLT angle = *p->kangle;
-    int overlap = p->overlap;
+    int32_t overlap = p->overlap;
     MYFLT r = p->radius;
 
     MYFLT sr = p->sr;
     MYFLT sroverN = p->sroverN;
 
-    int hopsize = p->hopsize;
+    int32_t hopsize = p->hopsize;
 
     MYFLT *win = (MYFLT *)p->win.auxp;
-    int *overlapskipin = (int *)p->overlapskipin.auxp;
-    int *overlapskipout = (int *)p->overlapskipout.auxp;
+    int32_t *overlapskipin = (int32_t *)p->overlapskipin.auxp;
+    int32_t *overlapskipout = (int32_t *)p->overlapskipout.auxp;
 
-    int counter = p ->counter;
-    int t = p ->t;
+    int32_t counter = p ->counter;
+    int32_t t = p ->t;
 
         /* pointers into HRTF files */
     float *fpindexl;
     float *fpindexr;
 
-    int i, skip = 0;
+    int32_t i, skip = 0;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t j, nsmps = CS_KSMPS;
@@ -2272,14 +2275,14 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 
     /* local interpolation values */
     MYFLT elevindexhighper, angleindex2per, angleindex4per;
-    int elevindexlow, elevindexhigh, angleindex1, angleindex2,
+    int32_t elevindexlow, elevindexhigh, angleindex1, angleindex2,
       angleindex3, angleindex4;
     MYFLT magl, magr, phasel, phaser, magllow, magrlow, maglhigh, magrhigh;
 
     /* woodworth values */
     MYFLT radianangle, radianelev, itd=0, itdww, freq;
 
-    int irlength = p->irlength;
+    int32_t irlength = p->irlength;
 
     /* local variables, mainly used for simplification */
     MYFLT elevindexstore;
@@ -2331,7 +2334,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
               {
                 /* two nearest elev indices to avoid recalculating */
                 elevindexstore = (elev - minelev) / elevincrement;
-                elevindexlow = (int)elevindexstore;
+                elevindexlow = (int32_t)elevindexstore;
 
                 if(elevindexlow < 13)
                   elevindexhigh = elevindexlow + 1;
@@ -2349,12 +2352,12 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                                                elevationarray[elevindexhigh]);
 
                 /* 4 closest indices, 2 low and 2 high */
-                angleindex1 = (int)angleindexlowstore;
+                angleindex1 = (int32_t)angleindexlowstore;
 
                 angleindex2 = angleindex1 + 1;
                 angleindex2 = angleindex2 % elevationarray[elevindexlow];
 
-                angleindex3 = (int)angleindexhighstore;
+                angleindex3 = (int32_t)angleindexhighstore;
 
                 angleindex4 = angleindex3 + 1;
                 angleindex4 = angleindex4 % elevationarray[elevindexhigh];
@@ -2369,7 +2372,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                 if(angleindex1 > elevationarray[elevindexlow] / 2)
                   {
                     for(i = 0; i < elevindexlow; i++)
-                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexlow] - angleindex1);
                          i++)
@@ -2383,7 +2386,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                 else
                   {
                     for(i = 0; i < elevindexlow; i++)
-                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0; i < angleindex1; i++)
                       skip += irlength;
                     for(i = 0; i < irlength; i++)
@@ -2397,7 +2400,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                 if(angleindex2 > elevationarray[elevindexlow] / 2)
                   {
                     for(i = 0; i < elevindexlow; i++)
-                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexlow] - angleindex2);
                          i++)
@@ -2411,7 +2414,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                 else
                   {
                     for(i = 0; i < elevindexlow; i++)
-                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0; i < angleindex2; i++)
                       skip += irlength;
                     for(i = 0; i < irlength; i++)
@@ -2425,7 +2428,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                 if(angleindex3 > elevationarray[elevindexhigh] / 2)
                   {
                     for(i = 0; i < elevindexhigh; i++)
-                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexhigh] - angleindex3);
                          i++)
@@ -2439,7 +2442,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                 else
                   {
                     for(i = 0; i < elevindexhigh; i++)
-                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0; i < angleindex3; i++)
                       skip += irlength;
                     for(i = 0; i < irlength; i++)
@@ -2453,7 +2456,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                 if(angleindex4 > elevationarray[elevindexhigh] / 2)
                   {
                     for(i = 0; i < elevindexhigh; i++)
-                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0;
                          i < (elevationarray[elevindexhigh] - angleindex4);
                          i++)
@@ -2467,7 +2470,7 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                 else
                   {
                     for(i = 0; i < elevindexhigh; i++)
-                      skip += ((int)(elevationarray[i] / 2) + 1) * irlength;
+                      skip += ((int32_t)(elevationarray[i] / 2) + 1) * irlength;
                     for (i = 0; i < angleindex4; i++)
                       skip += irlength;
                     for(i = 0; i < irlength; i++)
@@ -2623,7 +2626,8 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 
         outsuml = outsumr = FL(0.0);
 
-        for(i = 0; i < (int)overlap; i++)
+        for(i = 0; i < (int32_t
+                        )overlap; i++)
           {
             outsuml += outbufl[(i * irlength) +
                                overlapskipout[i]] * win[overlapskipout[i]];
@@ -2656,12 +2660,12 @@ static int hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 /* see csound manual (extending csound) for details of below */
 static OENTRY hrtfopcodes_localops[] =
 {
-  { "hrtfmove", sizeof(hrtfmove),0, 5, "aa", "akkSSooo",
-    (SUBR)hrtfmove_init, NULL, (SUBR)hrtfmove_process },
-  { "hrtfstat", sizeof(hrtfstat),0, 5, "aa", "aiiSSoo",
-    (SUBR)hrtfstat_init, NULL, (SUBR)hrtfstat_process },
-  { "hrtfmove2",  sizeof(hrtfmove2),0, 5, "aa", "akkSSooo",
-    (SUBR)hrtfmove2_init, NULL, (SUBR)hrtfmove2_process }
+ { "hrtfmove", sizeof(hrtfmove),0, 3, "aa", "akkSSooo",
+    (SUBR)hrtfmove_init, (SUBR)hrtfmove_process },
+ { "hrtfstat", sizeof(hrtfstat),0, 3, "aa", "aiiSSoo",
+    (SUBR)hrtfstat_init, (SUBR)hrtfstat_process },
+ { "hrtfmove2",  sizeof(hrtfmove2),0, 3, "aa", "akkSSooo",
+    (SUBR)hrtfmove2_init, (SUBR)hrtfmove2_process }
 };
 
 LINKAGE_BUILTIN(hrtfopcodes_localops)

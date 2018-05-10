@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
 
 ** Fast system for managing task dependencies and dispatching to threads.
@@ -166,10 +166,11 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
 static int dag_intersect(CSOUND *csound, struct set_t *current,
                          struct set_t *later, int cnt)
 {
+    IGN(cnt);
     struct set_t *ans;
     int res = 0;
     struct set_element_t *ele;
-    csp_set_intersection(csound, current, later, &ans);
+    ans = csp_set_intersection(csound, current, later);
     res = ans->count;
     ele = ans->head;
     while (ele != NULL) {
@@ -382,6 +383,7 @@ static const watchList DoNotRead = { INVALID, NULL};
 inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
                             watchList *t)
 {
+     IGN(csound);
     watchList *local=*w;
     t->next = NULL;
     //printf("moveWatch\n");

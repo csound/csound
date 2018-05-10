@@ -1,6 +1,8 @@
 /*
     ugnorman.c:
 
+    Copyright 2004 Alex Norman
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -15,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* ats-csound version 0.1
@@ -101,24 +103,24 @@ static CS_PURE double bswap(const double *swap_me)
 
 /* load ATS file into memory; returns "is swapped" boolean, or -1 on error */
 
-static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
-                        void *name_arg, int istring)
+static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
+                        void *name_arg, int32_t istring)
 {
     char              opname[64];
     STDOPCOD_GLOBALS  *pp;
     ATSSTRUCT         *atsh;
-    int               i;
+    int32_t               i;
 
-    strncpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
+    strNcpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
     opname[63]='\0';
     for (i = 0; opname[i] != '\0'; i++)
       opname[i] = toupper(opname[i]);           /* converted to upper case */
 
     /* copy in ats file name */
-    if (istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
+    if (istring) strNcpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
     else {
       if (csound->ISSTRCOD(*((MYFLT*)name_arg)))
-        strncpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
+        strNcpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
          else csound->strarg2name(csound, fname, name_arg, "ats.",0);
     }
     /* load memfile */
@@ -134,7 +136,7 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     if (atsh->magic == 123.0)
       return 0;
     /* check to see if it is byteswapped */
-    if (UNLIKELY((int) bswap(&(atsh->magic)) != 123)) {
+    if (UNLIKELY((int32_t) bswap(&(atsh->magic)) != 123)) {
       return csound->InitError(csound, Str("%s: either %s is not an ATS file "
                                            "or the byte endianness is wrong"),
                                opname, fname);
@@ -153,13 +155,13 @@ static int load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
 }
 
 /* ats info simply reads data out of the header of an atsfile. (i-rate) */
-static int atsinfo_S(CSOUND *csound, ATSINFO *p)
+static int32_t atsinfo_S(CSOUND *csound, ATSINFO *p)
 {
     char      atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
     MEMFIL    *memfile = NULL;
     double    *ret_data;    /* data to return */
-    int       swapped = 0;  /* flag to indicate if data needs to be swapped */
+    int32_t       swapped = 0;  /* flag to indicate if data needs to be swapped */
 
     /* load memfile */
     swapped = load_atsfile(csound, p, &memfile, atsfilname, p->ifileno, 1);
@@ -167,7 +169,7 @@ static int atsinfo_S(CSOUND *csound, ATSINFO *p)
       return NOTOK;
     atsh = (ATSSTRUCT*) memfile->beginp;
 
-    switch ((int) MYFLT2LRND(*p->ilocation)) {
+    switch ((int32_t) MYFLT2LRND(*p->ilocation)) {
       case 0:   ret_data = &(atsh->sampr);  break;
       case 1:   ret_data = &(atsh->frmsz);  break;
       case 2:   ret_data = &(atsh->winsz);  break;
@@ -192,13 +194,13 @@ static int atsinfo_S(CSOUND *csound, ATSINFO *p)
     return OK;
 }
 
-static int atsinfo(CSOUND *csound, ATSINFO *p)
+static int32_t atsinfo(CSOUND *csound, ATSINFO *p)
 {
     char      atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
     MEMFIL    *memfile = NULL;
     double    *ret_data;    /* data to return */
-    int       swapped = 0;  /* flag to indicate if data needs to be swapped */
+    int32_t       swapped = 0;  /* flag to indicate if data needs to be swapped */
 
     /* load memfile */
     swapped = load_atsfile(csound, p, &memfile, atsfilname, p->ifileno, 0);
@@ -206,7 +208,7 @@ static int atsinfo(CSOUND *csound, ATSINFO *p)
       return NOTOK;
     atsh = (ATSSTRUCT*) memfile->beginp;
 
-    switch ((int) MYFLT2LRND(*p->ilocation)) {
+    switch ((int32_t) MYFLT2LRND(*p->ilocation)) {
       case 0:   ret_data = &(atsh->sampr);  break;
       case 1:   ret_data = &(atsh->frmsz);  break;
       case 2:   ret_data = &(atsh->winsz);  break;
@@ -238,11 +240,11 @@ static int atsinfo(CSOUND *csound, ATSINFO *p)
 static void FetchPartial(ATSREAD *p, MYFLT *buf, MYFLT position)
 {
     MYFLT   frac;           /* the distance in time we are between frames */
-    int     frame;          /* the number of the first frame */
-    double  *frm_1, *frm_2;   /* a pointer to frame 1 and frame 2 */
+    int32_t frame;          /* the number of the first frame */
+    double  *frm_1, *frm_2; /* a pointer to frame 1 and frame 2 */
     double  frm1amp, frm1freq, frm2amp, frm2freq;
 
-    frame = (int) position;
+    frame = (int32_t) position;
     frm_1 = p->datastart + p->frmInc * frame + p->partialloc;
 
     /* if we are using the data from the last frame */
@@ -278,12 +280,12 @@ static void FetchPartial(ATSREAD *p, MYFLT *buf, MYFLT position)
     buf[1] = (MYFLT) (frm1freq + frac * (frm2freq - frm1freq)); /* calc freq */
 }
 
-static int atsreadset(CSOUND *csound, ATSREAD *p)
+static int32_t atsreadset(CSOUND *csound, ATSREAD *p)
 {
     char    atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
-    int     n_partials;
-    int     type;
+    int32_t     n_partials;
+    int32_t     type;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
@@ -294,23 +296,24 @@ static int atsreadset(CSOUND *csound, ATSREAD *p)
 
     /* byte swap if necessary */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      n_partials = (int) bswap(&atsh->npartials);
-      type = (int) bswap(&atsh->type);
+      n_partials = (int32_t) bswap(&atsh->npartials);
+      type = (int32_t) bswap(&atsh->type);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      n_partials = (int) atsh->npartials;
-      type = (int) atsh->type;
+      n_partials = (int32_t) atsh->npartials;
+      type = (int32_t) atsh->type;
     }
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int) (*p->ipartial) > n_partials || (int) (*p->ipartial) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->ipartial) > n_partials ||
+                 (int32_t) (*p->ipartial) <= 0)) {
       return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
                                            "max allowed is %i"),
-                                       (int) (*p->ipartial), n_partials);
+                                       (int32_t) (*p->ipartial), n_partials);
     }
 
     /* point the data pointer to the correct partial */
@@ -344,12 +347,12 @@ static int atsreadset(CSOUND *csound, ATSREAD *p)
 }
 
 
-static int atsreadset_S(CSOUND *csound, ATSREAD *p)
+static int32_t atsreadset_S(CSOUND *csound, ATSREAD *p)
 {
-    char    atsfilname[MAXNAME];
+    char      atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
-    int     n_partials;
-    int     type;
+    int32_t   n_partials;
+    int32_t   type;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
@@ -360,23 +363,24 @@ static int atsreadset_S(CSOUND *csound, ATSREAD *p)
 
     /* byte swap if necessary */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      n_partials = (int) bswap(&atsh->npartials);
-      type = (int) bswap(&atsh->type);
+      n_partials = (int32_t) bswap(&atsh->npartials);
+      type = (int32_t) bswap(&atsh->type);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      n_partials = (int) atsh->npartials;
-      type = (int) atsh->type;
+      n_partials = (int32_t) atsh->npartials;
+      type = (int32_t) atsh->type;
     }
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int) (*p->ipartial) > n_partials || (int) (*p->ipartial) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->ipartial) > n_partials ||
+                 (int32_t) (*p->ipartial) <= 0)) {
       return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
                                            "max allowed is %i"),
-                                       (int) (*p->ipartial), n_partials);
+                                       (int32_t) (*p->ipartial), n_partials);
     }
 
     /* point the data pointer to the correct partial */
@@ -409,7 +413,7 @@ static int atsreadset_S(CSOUND *csound, ATSREAD *p)
     return OK;
 }
 
-static int atsread(CSOUND *csound, ATSREAD *p)
+static int32_t atsread(CSOUND *csound, ATSREAD *p)
 {
     MYFLT   frIndx;
     MYFLT   buf[2];
@@ -451,11 +455,11 @@ static int atsread(CSOUND *csound, ATSREAD *p)
 static MYFLT FetchNzBand(ATSREADNZ *p, MYFLT position)
 {
     MYFLT   frac;               /* the distance in time we are between frames */
-    int     frame;              /* the time of the first frame */
+    int32_t frame;              /* the time of the first frame */
     double  *frm_1, *frm_2;
     double  frm1val, frm2val;
 
-    frame = (int) position;
+    frame = (int32_t) position;
     frm_1 = p->datastart + p->frmInc * frame + p->nzbandloc;
     frm1val = (p->swapped == 1) ? bswap(frm_1) : *frm_1;
 
@@ -471,12 +475,12 @@ static MYFLT FetchNzBand(ATSREADNZ *p, MYFLT position)
     return (MYFLT) (frm1val + frac * (frm2val - frm1val));  /* calc energy */
 }
 
-static int atsreadnzset(CSOUND *csound, ATSREADNZ *p)
+static int32_t atsreadnzset(CSOUND *csound, ATSREADNZ *p)
 {
-    char    atsfilname[MAXNAME];
+    char      atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
-    int     n_partials;
-    int     type;
+    int32_t   n_partials;
+    int32_t   type;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
@@ -487,37 +491,37 @@ static int atsreadnzset(CSOUND *csound, ATSREADNZ *p)
 
     /* byte swap if necessary */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      n_partials = (int) bswap(&atsh->npartials);
-      type = (int) bswap(&atsh->type);
+      n_partials = (int32_t) bswap(&atsh->npartials);
+      type = (int32_t) bswap(&atsh->type);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      n_partials = (int) atsh->npartials;
-      type = (int) atsh->type;
+      n_partials = (int32_t) atsh->npartials;
+      type = (int32_t) atsh->type;
     }
 
     /* point the data pointer to the correct partial */
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
     /* check to see if band is valid */
-    if (UNLIKELY((int) (*p->inzbin) > 25 || (int) (*p->inzbin) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->inzbin) > 25 || (int32_t) (*p->inzbin) <= 0)) {
       return csound->InitError(csound, Str("ATSREADNZ: band %i out of range, "
                                            "1-25 are the valid band values"),
-                                       (int) (*p->inzbin));
+                                       (int32_t) (*p->inzbin));
     }
 
     switch (type) {
     case 3:
       /* get past the partial data to the noise */
-      p->nzbandloc = (int) (2 * n_partials + *p->inzbin);
+      p->nzbandloc = (int32_t) (2 * n_partials + *p->inzbin);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
-      p->nzbandloc = (int) (3 * n_partials + *p->inzbin);
+      p->nzbandloc = (int32_t) (3 * n_partials + *p->inzbin);
       p->frmInc = n_partials * 3 + 26;
       break;
     default:
@@ -531,12 +535,12 @@ static int atsreadnzset(CSOUND *csound, ATSREADNZ *p)
     return OK;
 }
 
-static int atsreadnzset_S(CSOUND *csound, ATSREADNZ *p)
+static int32_t atsreadnzset_S(CSOUND *csound, ATSREADNZ *p)
 {
-    char    atsfilname[MAXNAME];
+    char      atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
-    int     n_partials;
-    int     type;
+    int32_t   n_partials;
+    int32_t   type;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
@@ -547,37 +551,37 @@ static int atsreadnzset_S(CSOUND *csound, ATSREADNZ *p)
 
     /* byte swap if necessary */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      n_partials = (int) bswap(&atsh->npartials);
-      type = (int) bswap(&atsh->type);
+      n_partials = (int32_t) bswap(&atsh->npartials);
+      type = (int32_t) bswap(&atsh->type);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      n_partials = (int) atsh->npartials;
-      type = (int) atsh->type;
+      n_partials = (int32_t) atsh->npartials;
+      type = (int32_t) atsh->type;
     }
 
     /* point the data pointer to the correct partial */
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
 
     /* check to see if band is valid */
-    if (UNLIKELY((int) (*p->inzbin) > 25 || (int) (*p->inzbin) <= 0)) {
+    if (UNLIKELY((int32_t) (*p->inzbin) > 25 || (int32_t) (*p->inzbin) <= 0)) {
       return csound->InitError(csound, Str("ATSREADNZ: band %i out of range, "
                                            "1-25 are the valid band values"),
-                                       (int) (*p->inzbin));
+                                       (int32_t) (*p->inzbin));
     }
 
     switch (type) {
     case 3:
       /* get past the partial data to the noise */
-      p->nzbandloc = (int) (2 * n_partials + *p->inzbin);
+      p->nzbandloc = (int32_t) (2 * n_partials + *p->inzbin);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
-      p->nzbandloc = (int) (3 * n_partials + *p->inzbin);
+      p->nzbandloc = (int32_t) (3 * n_partials + *p->inzbin);
       p->frmInc = n_partials * 3 + 26;
       break;
     default:
@@ -592,7 +596,7 @@ static int atsreadnzset_S(CSOUND *csound, ATSREADNZ *p)
 }
 
 
-static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
+static int32_t atsreadnz(CSOUND *csound, ATSREADNZ *p)
 {
     MYFLT   frIndx;
 
@@ -628,14 +632,14 @@ static int atsreadnz(CSOUND *csound, ATSREADNZ *p)
  * ATSADD
  */
 static  void    FetchADDPartials(ATSADD *, ATS_DATA_LOC *, MYFLT);
-static  void    AtsAmpGate(ATS_DATA_LOC *, int, FUNC *, double);
+static  void    AtsAmpGate(ATS_DATA_LOC *, int32_t, FUNC *, double);
 
-static int atsaddset(CSOUND *csound, ATSADD *p)
+static int32_t atsaddset(CSOUND *csound, ATSADD *p)
 {
-    char    atsfilname[MAXNAME];
+    char      atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
-    FUNC    *ftp, *AmpGateFunc;
-    int     memsize, n_partials, type;
+    FUNC      *ftp, *AmpGateFunc;
+    int32_t   memsize, n_partials, type;
 
     /* set up function table for synthesis */
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
@@ -662,37 +666,37 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* calculate how much memory we have to allocate for this */
-    memsize =   (int) (*p->iptls) * sizeof(ATS_DATA_LOC)
-              + (int) (*p->iptls) * sizeof(double)
-              + (int) (*p->iptls) * sizeof(MYFLT);
+    memsize =   (int32_t) (*p->iptls) * sizeof(ATS_DATA_LOC)
+              + (int32_t) (*p->iptls) * sizeof(double)
+              + (int32_t) (*p->iptls) * sizeof(MYFLT);
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if (p->auxch.auxp == NULL || p->auxch.size < (unsigned int)memsize)
+    if (p->auxch.auxp == NULL || p->auxch.size < (uint32_t)memsize)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
-    p->oscphase = (double *) (p->buf + (int) (*p->iptls));
-    p->oldamps = (MYFLT *) (p->oscphase + (int) (*p->iptls));
+    p->oscphase = (double *) (p->buf + (int32_t) (*p->iptls));
+    p->oldamps = (MYFLT *) (p->oscphase + (int32_t) (*p->iptls));
     /* byte swap if necessary */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      n_partials = (int) bswap(&atsh->npartials);
+      n_partials = (int32_t) bswap(&atsh->npartials);
       p->MaxAmp = bswap(&atsh->ampmax);  /* store the maxium amplitude */
-      type = (int) bswap(&atsh->type);
+      type = (int32_t) bswap(&atsh->type);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      n_partials = (int) atsh->npartials;
+      n_partials = (int32_t) atsh->npartials;
       p->MaxAmp = atsh->ampmax;  /* store the maxium amplitude */
-      type = (int) atsh->type;
+      type = (int32_t) atsh->type;
     }
 
     /* make sure partials are in range */
-    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-                 (int) (*p->iptloffset) < 0)) {
+    if (UNLIKELY((int32_t) (*p->iptloffset+*p->iptls * *p->iptlincr) > n_partials ||
+                 (int32_t) (*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSADD: Partial(s) out of range, "
                                            "max partial allowed is %i"),
                                        n_partials);
@@ -703,26 +707,26 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
     /* get increments for the partials */
     switch (type) {
     case 1:
-      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int32_t)(*p->iptloffset);
+      p->partialinc = 2 * (int32_t) (*p->iptlincr);
       p->frmInc = n_partials * 2 + 1;
       break;
 
     case 2:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int32_t)(*p->iptloffset);
+      p->partialinc = 3 * (int32_t) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 1;
       break;
 
     case 3:
-      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int32_t)(*p->iptloffset);
+      p->partialinc = 2 * (int32_t) (*p->iptlincr);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int32_t)(*p->iptloffset);
+      p->partialinc = 3 * (int32_t) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
 
@@ -738,12 +742,12 @@ static int atsaddset(CSOUND *csound, ATSADD *p)
 
 
 
-static int atsaddset_S(CSOUND *csound, ATSADD *p)
+static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
 {
-    char    atsfilname[MAXNAME];
+    char      atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
-    FUNC    *ftp, *AmpGateFunc;
-    int     memsize, n_partials, type;
+    FUNC      *ftp, *AmpGateFunc;
+    int32_t   memsize, n_partials, type;
 
     /* set up function table for synthesis */
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
@@ -770,37 +774,37 @@ static int atsaddset_S(CSOUND *csound, ATSADD *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* calculate how much memory we have to allocate for this */
-    memsize =   (int) (*p->iptls) * sizeof(ATS_DATA_LOC)
-              + (int) (*p->iptls) * sizeof(double)
-              + (int) (*p->iptls) * sizeof(MYFLT);
+    memsize =   (int32_t) (*p->iptls) * sizeof(ATS_DATA_LOC)
+              + (int32_t) (*p->iptls) * sizeof(double)
+              + (int32_t) (*p->iptls) * sizeof(MYFLT);
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if (p->auxch.auxp == NULL || p->auxch.size < (unsigned int)memsize)
+    if (p->auxch.auxp == NULL || p->auxch.size < (uint32_t)memsize)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
-    p->oscphase = (double *) (p->buf + (int) (*p->iptls));
-    p->oldamps = (MYFLT *) (p->oscphase + (int) (*p->iptls));
+    p->oscphase = (double *) (p->buf + (int32_t) (*p->iptls));
+    p->oldamps = (MYFLT *) (p->oscphase + (int32_t) (*p->iptls));
     /* byte swap if necessary */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      n_partials = (int) bswap(&atsh->npartials);
+      n_partials = (int32_t) bswap(&atsh->npartials);
       p->MaxAmp = bswap(&atsh->ampmax);  /* store the maxium amplitude */
-      type = (int) bswap(&atsh->type);
+      type = (int32_t) bswap(&atsh->type);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      n_partials = (int) atsh->npartials;
+      n_partials = (int32_t) atsh->npartials;
       p->MaxAmp = atsh->ampmax;  /* store the maxium amplitude */
-      type = (int) atsh->type;
+      type = (int32_t) atsh->type;
     }
 
     /* make sure partials are in range */
-    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-                 (int) (*p->iptloffset) < 0)) {
+    if (UNLIKELY((int32_t) (*p->iptloffset+*p->iptls * *p->iptlincr) > n_partials ||
+                 (int32_t) (*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSADD: Partial(s) out of range, "
                                            "max partial allowed is %i"),
                                        n_partials);
@@ -811,26 +815,26 @@ static int atsaddset_S(CSOUND *csound, ATSADD *p)
     /* get increments for the partials */
     switch (type) {
     case 1:
-      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int32_t)(*p->iptloffset);
+      p->partialinc = 2 * (int32_t) (*p->iptlincr);
       p->frmInc = n_partials * 2 + 1;
       break;
 
     case 2:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int32_t)(*p->iptloffset);
+      p->partialinc = 3 * (int32_t) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 1;
       break;
 
     case 3:
-      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int32_t)(*p->iptloffset);
+      p->partialinc = 2 * (int32_t) (*p->iptlincr);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int32_t)(*p->iptloffset);
+      p->partialinc = 3 * (int32_t) (*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
 
@@ -844,18 +848,18 @@ static int atsaddset_S(CSOUND *csound, ATSADD *p)
     return OK;
 }
 
-static int atsadd(CSOUND *csound, ATSADD *p)
+static int32_t atsadd(CSOUND *csound, ATSADD *p)
 {
     MYFLT   frIndx;
     MYFLT   *ar, amp, fract, v1, *ftab,a,inca, *oldamps = p->oldamps;
     FUNC    *ftp;
     int32   lobits, phase, inc;
     double  *oscphase;
-    int     i;
+    int32_t i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     numpartials = (int) *p->iptls;
+    int32_t  numpartials = (int32_t) *p->iptls;
     ATS_DATA_LOC *buf;
 
     buf = p->buf;
@@ -928,12 +932,12 @@ static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
     double  *frm_0, *frm_1;
     double  temp0amp, temp1amp;
     double  temp0freq, temp1freq;
-    int     frame;
-    int     i;                  /* for the for loop */
-    int     partialloc = p->firstpartial;
-    int     npartials = (int) *p->iptls;
+    int32_t frame;
+    int32_t i;                  /* for the for loop */
+    int32_t partialloc = p->firstpartial;
+    int32_t npartials = (int32_t) *p->iptls;
 
-    frame = (int) position;
+    frame = (int32_t) position;
     frm_0 = p->datastart + frame * p->frmInc;
 
     /* if we are using the data from the last frame */
@@ -977,11 +981,11 @@ static void FetchADDPartials(ATSADD *p, ATS_DATA_LOC *buf, MYFLT position)
 
 static void AtsAmpGate(            /* adaption of PvAmpGate by Richard Karpen */
                 ATS_DATA_LOC *buf, /* where to get our mag/freq pairs */
-                int npartials,     /* number of partials we are working with */
+                int32_t npartials, /* number of partials we are working with */
                 FUNC *ampfunc, double MaxAmpInData)
 {
-    int     j;
-    int32    funclen, mapPoint;
+    int32_t  j;
+    int32_t  funclen, mapPoint;
 
     funclen = ampfunc->flen;
 
@@ -1006,7 +1010,7 @@ static void AtsAmpGate(            /* adaption of PvAmpGate by Richard Karpen */
 
 static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat)
 {
-    radat->size = (int) MYFLT2LRND(CS_ESR / freq);
+    radat->size = (int32_t) MYFLT2LRND(CS_ESR / freq);
     radat->cnt = 0;
     radat->a1 = (int32) csound->Rand31(&(csound->randSeed1));
     radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
@@ -1032,21 +1036,21 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 
 /* ------------------------------------------------------------------ */
 
-static void FetchADDNZbands(int ptls, int firstband, double *datastart,
-                            int frmInc, int maxFr, int swapped,
+static void FetchADDNZbands(int32_t ptls, int32_t firstband, double *datastart,
+                            int32_t frmInc, int32_t maxFr, int swapped,
                             double *buf, MYFLT position)
 {
     double  frac;               /* the distance in time we are between frames */
     double  *frm_0, *frm_1;
     double  frm0val, frm1val;
-    int     frame;
-    int     i;                  /* for the for loop */
-    /*int     firstband = p->firstband;*/
+    int32_t frame;
+    int32_t i;                  /* for the for loop */
+    /*int32_t     firstband = p->firstband;*/
 
 #ifdef BETA
     printf("FetchADDNZbands: position %f\n", (double)position);
 #endif
-    frame = (int) position;
+    frame = (int32_t) position;
     frm_0 = datastart + frame * frmInc;
 
     /* if we are using the data from the last frame */
@@ -1083,24 +1087,24 @@ static const double freqs[25]= {
   210.0, 240.0, 280.0, 320.0, 380.0, 450.0, 550.0, 700.0, 900.0, 1100.0,
   1300.0, 1800.0, 2500.0, 3500.0, 4500.0};
 
-static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
+static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 {
     char        atsfilname[MAXNAME];
     ATSSTRUCT   *atsh;
-    int         i, type, n_partials;
+    int32_t     i, type, n_partials;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno, 0);
     if (UNLIKELY(p->swapped < 0))
       return NOTOK;
-    p->bands = (int)(*p->ibands);
-    p->bandoffset = (int) (*p->ibandoffset);
-    p->bandincr = (int) (*p->ibandincr);
+    p->bands = (int32_t)(*p->ibands);
+    p->bandoffset = (int32_t) (*p->ibandoffset);
+    p->bandincr = (int32_t) (*p->ibandincr);
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* make sure that this file contains noise */
-    type = (p->swapped == 1) ? (int) bswap(&atsh->type) : (int) atsh->type;
+    type = (p->swapped == 1) ? (int32_t) bswap(&atsh->type) : (int32_t) atsh->type;
 
     if (UNLIKELY(type != 4 && type != 3)) {
       if (type < 5)
@@ -1116,15 +1120,15 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
     /* byte swap if necessary */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      n_partials = (int) bswap(&atsh->npartials);
+      n_partials = (int32_t) bswap(&atsh->npartials);
       p->winsize = (MYFLT) bswap(&atsh->winsz);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      n_partials = (int) atsh->npartials;
+      n_partials = (int32_t) atsh->npartials;
       p->winsize = (MYFLT) atsh->winsz;
     }
 
@@ -1253,24 +1257,24 @@ static int atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     return OK;
 }
 
-static int atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
+static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
 {
     char        atsfilname[MAXNAME];
     ATSSTRUCT   *atsh;
-    int         i, type, n_partials;
+    int32_t     i, type, n_partials;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
                               p, &(p->atsmemfile), atsfilname, p->ifileno, 1);
     if (UNLIKELY(p->swapped < 0))
       return NOTOK;
-    p->bands = (int)(*p->ibands);
-    p->bandoffset = (int) (*p->ibandoffset);
-    p->bandincr = (int) (*p->ibandincr);
+    p->bands = (int32_t)(*p->ibands);
+    p->bandoffset = (int32_t) (*p->ibandoffset);
+    p->bandincr = (int32_t) (*p->ibandincr);
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* make sure that this file contains noise */
-    type = (p->swapped == 1) ? (int) bswap(&atsh->type) : (int) atsh->type;
+    type = (p->swapped == 1) ? (int32_t) bswap(&atsh->type) : (int32_t) atsh->type;
 
     if (UNLIKELY(type != 4 && type != 3)) {
       if (type < 5)
@@ -1286,15 +1290,15 @@ static int atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
     p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
     /* byte swap if necessary */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      n_partials = (int) bswap(&atsh->npartials);
+      n_partials = (int32_t) bswap(&atsh->npartials);
       p->winsize = (MYFLT) bswap(&atsh->winsz);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      n_partials = (int) atsh->npartials;
+      n_partials = (int32_t) atsh->npartials;
       p->winsize = (MYFLT) atsh->winsz;
     }
 
@@ -1423,16 +1427,16 @@ static int atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
     return OK;
 }
 
-static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
+static int32_t atsaddnz(CSOUND *csound, ATSADDNZ *p)
 {
     MYFLT   frIndx;
     MYFLT   *ar, amp;
-    int     i;
+    int32_t i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     synthme;
-    int     nsynthed;
+    int32_t  synthme;
+    int32_t  nsynthed;
 
     /* make sure time pointer is within range */
     if ((frIndx = *(p->ktimpnt) * p->timefrmInc) < FL(0.0)) {
@@ -1491,45 +1495,46 @@ static int atsaddnz(CSOUND *csound, ATSADDNZ *p)
 
 static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
 {
-    int     i, j, k;
+    int32_t     i, j, k;
     MYFLT   edges[] = ATSA_CRITICAL_BAND_EDGES;
     double  *curframe = p->datastart;
     double  bandsum[25];
     double  partialfreq;
     double  partialamp;
     double  **partialband;
-    int     *bandnum;
+    int32_t *bandnum;
 
     partialband = (double **) csound->Malloc(csound, sizeof(double*)
-                                     * (int) p->atshead->npartials);
-    bandnum = (int *) csound->Malloc(csound,
-                                     sizeof(int) * (int) p->atshead->npartials);
+                                     * (int32_t) p->atshead->npartials);
+    bandnum =
+      (int32_t *) csound->Malloc(csound,
+                                 sizeof(int32_t) * (int32_t) p->atshead->npartials);
 
-    for (i = 0; i < (int) p->atshead->nfrms; i++) {
+    for (i = 0; i < (int32_t) p->atshead->nfrms; i++) {
       /* init sums */
       memset(bandsum, 0, 25*sizeof(double));
       /* find sums per band */
-      for (j = 0; j < (int) p->atshead->npartials; j++) {
-        partialfreq = *(curframe + 2 + j * (int) p->partialinc);
-        partialamp = *(curframe + 1 + j * (int) p->partialinc);
+      for (j = 0; j < (int32_t) p->atshead->npartials; j++) {
+        partialfreq = *(curframe + 2 + j * (int32_t) p->partialinc);
+        partialamp = *(curframe + 1 + j * (int32_t) p->partialinc);
         for (k = 0; k < 25; k++) {
           if ((partialfreq < edges[k + 1]) && (partialfreq >= edges[k])) {
             bandsum[k] += partialamp;
             bandnum[j] = k;
-            partialband[j] = (curframe + (int) p->firstband + k);
+            partialband[j] = (curframe + (int32_t) p->firstband + k);
             break;
           }
         }
       }
 
       /* compute energy per partial */
-      for (j = 0; j < (int) p->atshead->npartials; j++) {
+      for (j = 0; j < (int32_t) p->atshead->npartials; j++) {
         if (bandsum[bandnum[j]] > 0.0)
-          *(p->nzdata + i * (int) p->atshead->npartials + j) =
-              (*(curframe + 1 + j * (int) p->partialinc) * *(partialband[j])) /
+          *(p->nzdata + i * (int32_t) p->atshead->npartials + j) =
+              (*(curframe + 1 + j * (int32_t) p->partialinc) * *(partialband[j])) /
               bandsum[bandnum[j]];
         else
-          *(p->nzdata + i * (int) p->atshead->npartials + j) = 0.0;
+          *(p->nzdata + i * (int32_t) p->atshead->npartials + j) = 0.0;
       }
       curframe += p->frmInc;
     }
@@ -1540,11 +1545,11 @@ static void band_energy_to_res(CSOUND *csound, ATSSINNOI *p)
 
 static void fetchSINNOIpartials(ATSSINNOI *, MYFLT);
 
-static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
+static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 {
     char        atsfilname[MAXNAME];
     ATSSTRUCT   *atsh;
-    int         i, memsize, nzmemsize, type;
+    int32_t     i, memsize, nzmemsize, type;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
@@ -1558,32 +1563,32 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     /* calculate how much memory we have to allocate for this */
     /* need room for a buffer and the noise data and the noise info */
     /* per partial for synthesizing noise */
-    memsize = (int) (*p->iptls) * (sizeof(ATS_DATA_LOC) + 2 * sizeof(double)
+    memsize = (int32_t) (*p->iptls) * (sizeof(ATS_DATA_LOC) + 2 * sizeof(double)
                                                         + sizeof(RANDIATS));
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if (p->auxch.auxp != NULL || memsize > (int)p->auxch.size)
-        csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
+    if (p->auxch.auxp != NULL || memsize > (int32_t)p->auxch.size)
+      csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->oscbuf = (ATS_DATA_LOC *) (p->auxch.auxp);
-    p->randinoise = (RANDIATS *) (p->oscbuf + (int) (*p->iptls));
-    p->oscphase = (double *) (p->randinoise + (int) (*p->iptls));
-    p->nzbuf = (double *) (p->oscphase + (int) (*p->iptls));
+    p->randinoise = (RANDIATS *) (p->oscbuf + (int32_t) (*p->iptls));
+    p->oscphase = (double *) (p->randinoise + (int32_t) (*p->iptls));
+    p->nzbuf = (double *) (p->oscphase + (int32_t) (*p->iptls));
 
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      p->npartials = (int) bswap(&atsh->npartials);
-      nzmemsize = (int) (p->npartials * bswap(&atsh->nfrms));
-      type = (int) bswap(&atsh->type);
+      p->npartials = (int32_t) bswap(&atsh->npartials);
+      nzmemsize = (int32_t) (p->npartials * bswap(&atsh->nfrms));
+      type = (int32_t) bswap(&atsh->type);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      p->npartials = (int) atsh->npartials;
-      nzmemsize = (int) (p->npartials * atsh->nfrms);
-      type = (int) atsh->type;
+      p->npartials = (int32_t) atsh->npartials;
+      nzmemsize = (int32_t) (p->npartials * atsh->nfrms);
+      type = (int32_t) atsh->type;
     }
 
     /* see if we have to allocate memory for the nzdata */
@@ -1595,8 +1600,8 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 
 
     /* make sure partials are in range */
-    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > p->npartials ||
-                 (int) (*p->iptloffset) < 0)) {
+    if (UNLIKELY((int32_t)(*p->iptloffset+*p->iptls* *p->iptlincr) > p->npartials ||
+                 (int32_t) (*p->iptloffset) < 0)) {
       return csound->InitError(csound,
                                Str("ATSSINNOI: Partial(s) out of range, "
                                    "max partial allowed is %i"), p->npartials);
@@ -1607,29 +1612,29 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 
     switch (type) {
     case 1:
-      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int32_t)(*p->iptloffset);
+      p->partialinc = 2 * (int32_t) (*p->iptlincr);
       p->frmInc = p->npartials * 2 + 1;
       p->firstband = -1;
       break;
 
     case 2:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int32_t)(*p->iptloffset);
+      p->partialinc = 3 * (int32_t) (*p->iptlincr);
       p->frmInc = p->npartials * 3 + 1;
       p->firstband = -1;
       break;
 
     case 3:
-      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
-      p->partialinc = 2 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int32_t)(*p->iptloffset);
+      p->partialinc = 2 * (int32_t) (*p->iptlincr);
       p->frmInc = p->npartials * 2 + 26;
       p->firstband = 1 + 2 * p->npartials;
       break;
 
     case 4:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
-      p->partialinc = 3 * (int) (*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int32_t)(*p->iptloffset);
+      p->partialinc = 3 * (int32_t) (*p->iptlincr);
       p->frmInc = p->npartials * 3 + 26;
       p->firstband = 1 + 3 * p->npartials;
       break;
@@ -1718,18 +1723,18 @@ static int atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     /* p->oscphase[24] = 0.0; */
 
     /* initialise band limited noise parameters */
-    for (i = 0; i < (int) *p->iptls; i++) {
+    for (i = 0; i < (int32_t) *p->iptls; i++) {
       randiats_setup(csound, freqs[i], &(p->randinoise[i]));
     }
 
     return OK;
 }
 
-static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
+static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
 {
     char        atsfilname[MAXNAME];
     ATSSTRUCT   *atsh;
-    int         i, memsize, nzmemsize, type;
+    int32_t     i, memsize, nzmemsize, type;
 
     /* load memfile */
     p->swapped = load_atsfile(csound,
@@ -1743,32 +1748,32 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     /* calculate how much memory we have to allocate for this */
     /* need room for a buffer and the noise data and the noise info */
     /* per partial for synthesizing noise */
-    memsize = (int) (*p->iptls) * (sizeof(ATS_DATA_LOC) + 2 * sizeof(double)
+    memsize = (int32_t) (*p->iptls) * (sizeof(ATS_DATA_LOC) + 2 * sizeof(double)
                                                         + sizeof(RANDIATS));
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if (p->auxch.auxp != NULL || memsize > (int)p->auxch.size)
+    if (p->auxch.auxp != NULL || memsize > (int32_t)p->auxch.size)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->oscbuf = (ATS_DATA_LOC *) (p->auxch.auxp);
-    p->randinoise = (RANDIATS *) (p->oscbuf + (int) (*p->iptls));
-    p->oscphase = (double *) (p->randinoise + (int) (*p->iptls));
-    p->nzbuf = (double *) (p->oscphase + (int) (*p->iptls));
+    p->randinoise = (RANDIATS *) (p->oscbuf + (int32_t) (*p->iptls));
+    p->oscphase = (double *) (p->randinoise + (int32_t) (*p->iptls));
+    p->nzbuf = (double *) (p->oscphase + (int32_t) (*p->iptls));
 
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      p->npartials = (int) bswap(&atsh->npartials);
-      nzmemsize = (int) (p->npartials * bswap(&atsh->nfrms));
-      type = (int) bswap(&atsh->type);
+      p->npartials = (int32_t) bswap(&atsh->npartials);
+      nzmemsize = (int32_t) (p->npartials * bswap(&atsh->nfrms));
+      type = (int32_t) bswap(&atsh->type);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      p->npartials = (int) atsh->npartials;
-      nzmemsize = (int) (p->npartials * atsh->nfrms);
-      type = (int) atsh->type;
+      p->npartials = (int32_t) atsh->npartials;
+      nzmemsize = (int32_t) (p->npartials * atsh->nfrms);
+      type = (int32_t) atsh->type;
     }
 
     /* see if we have to allocate memory for the nzdata */
@@ -1780,8 +1785,9 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
 
 
     /* make sure partials are in range */
-    if (UNLIKELY((int) (*p->iptloffset + *p->iptls * *p->iptlincr) > p->npartials ||
-                 (int) (*p->iptloffset) < 0)) {
+    if (UNLIKELY((int32_t) (*p->iptloffset + *p->iptls * *p->iptlincr) >
+                 p->npartials ||
+                 (int32_t) (*p->iptloffset) < 0)) {
       return csound->InitError(csound,
                                Str("ATSSINNOI: Partial(s) out of range, "
                                    "max partial allowed is %i"), p->npartials);
@@ -1792,29 +1798,29 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
 
     switch (type) {
     case 1:
-      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
-      p->partialinc = 2 * (int)(*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int32_t)(*p->iptloffset);
+      p->partialinc = 2 * (int32_t)(*p->iptlincr);
       p->frmInc = p->npartials * 2 + 1;
       p->firstband = -1;
       break;
 
     case 2:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
-      p->partialinc = 3 * (int)(*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int32_t)(*p->iptloffset);
+      p->partialinc = 3 * (int32_t)(*p->iptlincr);
       p->frmInc = p->npartials * 3 + 1;
       p->firstband = -1;
       break;
 
     case 3:
-      p->firstpartial = 1 + 2 * (int)(*p->iptloffset);
-      p->partialinc = 2 * (int)(*p->iptlincr);
+      p->firstpartial = 1 + 2 * (int32_t)(*p->iptloffset);
+      p->partialinc = 2 * (int32_t)(*p->iptlincr);
       p->frmInc = p->npartials * 2 + 26;
       p->firstband = 1 + 2 * p->npartials;
       break;
 
     case 4:
-      p->firstpartial = 1 + 3 * (int)(*p->iptloffset);
-      p->partialinc = 3 * (int)(*p->iptlincr);
+      p->firstpartial = 1 + 3 * (int32_t)(*p->iptloffset);
+      p->partialinc = 3 * (int32_t)(*p->iptlincr);
       p->frmInc = p->npartials * 3 + 26;
       p->firstband = 1 + 3 * p->npartials;
       break;
@@ -1878,28 +1884,28 @@ static int atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     memset(p->noiphase, 0, 25*sizeof(double));
 
     /* initialise band limited noise parameters */
-    for (i = 0; i < (int) *p->iptls; i++) {
+    for (i = 0; i < (int32_t) *p->iptls; i++) {
       randiats_setup(csound, freqs[i], &(p->randinoise[i]));
     }
 
     return OK;
 }
 
-static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
+static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
 {
-    MYFLT   frIndx;
+    MYFLT    frIndx;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   *ar;
-    double  noise;
-    double  inc;
-    int     i;
-    double  phase;
-    double  amp;
-    double  nzamp;              /* noize amp */
-    double  sinewave;
-    MYFLT   freq;
+    MYFLT    *ar;
+    double   noise;
+    double   inc;
+    int32_t  i;
+    double   phase;
+    double   amp;
+    double   nzamp;              /* noize amp */
+    double   sinewave;
+    MYFLT    freq;
     ATS_DATA_LOC *oscbuf;
     //csound->Message(csound , "start \n");
 
@@ -1945,7 +1951,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
     /* do synthesis */
     if (p->firstband != -1) {
 
-      for (i = 0; i < (int) *p->iptls; i++) {
+      for (i = 0; i < (int32_t) *p->iptls; i++) {
         phase = p->oscphase[i];
         ar = p->aoutput;
         amp = oscbuf[i].amp;
@@ -1974,7 +1980,7 @@ static int atssinnoi(CSOUND *csound, ATSSINNOI *p)
 
     }
     else {
-      for (i = 0; i < (int) *p->iptls; i++) {
+      for (i = 0; i < (int32_t) *p->iptls; i++) {
         phase = p->oscphase[i];
         ar = p->aoutput;
         amp = oscbuf[i].amp;
@@ -2003,11 +2009,11 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     double  nz0, nz1;
     ATS_DATA_LOC *oscbuf;
     double  *nzbuf;
-    int     frame;
-    int     i;                  /* for the for loop */
-    int     npartials = p->npartials;
+    int32_t frame;
+    int32_t i;                  /* for the for loop */
+    int32_t npartials = p->npartials;
 
-    frame = (int) position;
+    frame = (int32_t) position;
     frm_0 = p->datastart + frame * p->frmInc;
 
     oscbuf = p->oscbuf;
@@ -2018,38 +2024,38 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     if (UNLIKELY(frame == p->maxFr)) {
       if (p->firstband == -1) { /* there is no noise data */
         if (p->swapped == 1) {
-          for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
-               i += (int) *p->iptlincr) {
-            oscbuf->amp = bswap(frm_0 + 1 + i * (int) p->partialinc);  /* amp */
-            oscbuf->freq = bswap(frm_0 + 2 + i * (int) p->partialinc); /* freq */
+          for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
+               i += (int32_t) *p->iptlincr) {
+            oscbuf->amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc); /* amp */
+            oscbuf->freq= bswap(frm_0 + 2 + i * (int32_t) p->partialinc); /* freq */
             oscbuf++;
           }
         }
         else {
-          for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
-               i += (int) *p->iptlincr) {
-            oscbuf->amp = *(frm_0 + 1 + i * (int) p->partialinc);    /* amp */
-            oscbuf->freq = *(frm_0 + 2 + i * (int) p->partialinc);   /* freq */
+          for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
+               i += (int32_t) *p->iptlincr) {
+            oscbuf->amp = *(frm_0 + 1 + i * (int32_t) p->partialinc);    /* amp */
+            oscbuf->freq = *(frm_0 + 2 + i * (int32_t) p->partialinc);   /* freq */
             oscbuf++;
           }
         }
       }
       else {
         if (p->swapped == 1) {
-          for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
-               i += (int) *p->iptlincr) {
-            oscbuf->amp = bswap(frm_0 + 1 + i * (int) p->partialinc);  /* amp */
-            oscbuf->freq = bswap(frm_0 + 2 + i * (int) p->partialinc); /* freq */
+          for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
+               i += (int32_t) *p->iptlincr) {
+            oscbuf->amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc); /* amp */
+            oscbuf->freq= bswap(frm_0 + 2 + i * (int32_t) p->partialinc); /* freq */
             *nzbuf = bswap(p->nzdata + frame * npartials + i);
             nzbuf++;
             oscbuf++;
           }
         }
         else {
-          for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
-               i += (int) *p->iptlincr) {
-            oscbuf->amp = *(frm_0 + 1 + i * (int) p->partialinc);    /* amp */
-            oscbuf->freq = *(frm_0 + 2 + i * (int) p->partialinc);   /* freq */
+          for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
+               i += (int32_t) *p->iptlincr) {
+            oscbuf->amp = *(frm_0 + 1 + i * (int32_t) p->partialinc);    /* amp */
+            oscbuf->freq = *(frm_0 + 2 + i * (int32_t) p->partialinc);   /* freq */
             *nzbuf = *(p->nzdata + frame * npartials + i);
             nzbuf++;
             oscbuf++;
@@ -2064,24 +2070,24 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
 
     if (p->firstband == -1) {   /* there is no noise data */
       if (p->swapped == 1) {
-        for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
-             i += (int) *p->iptlincr) {
-          frm0amp = bswap(frm_0 + 1 + i * (int) p->partialinc);
-          frm1amp = bswap(frm_1 + 1 + i * (int) p->partialinc);
-          frm0freq = bswap(frm_0 + 2 + i * (int) p->partialinc);
-          frm1freq = bswap(frm_1 + 2 + i * (int) p->partialinc);
+        for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
+             i += (int32_t) *p->iptlincr) {
+          frm0amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc);
+          frm1amp = bswap(frm_1 + 1 + i * (int32_t) p->partialinc);
+          frm0freq = bswap(frm_0 + 2 + i * (int32_t) p->partialinc);
+          frm1freq = bswap(frm_1 + 2 + i * (int32_t) p->partialinc);
           oscbuf->amp = frm0amp + frac * (frm1amp - frm0amp);       /* amp */
           oscbuf->freq = frm0freq + frac * (frm1freq - frm0freq);   /* freq */
           oscbuf++;
         }
       }
       else {
-        for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
-             i += (int) *p->iptlincr) {
-          frm0amp = *(frm_0 + 1 + i * (int) p->partialinc);
-          frm1amp = *(frm_1 + 1 + i * (int) p->partialinc);
-          frm0freq = *(frm_0 + 2 + i * (int) p->partialinc);
-          frm1freq = *(frm_1 + 2 + i * (int) p->partialinc);
+        for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
+             i += (int32_t) *p->iptlincr) {
+          frm0amp = *(frm_0 + 1 + i * (int32_t) p->partialinc);
+          frm1amp = *(frm_1 + 1 + i * (int32_t) p->partialinc);
+          frm0freq = *(frm_0 + 2 + i * (int32_t) p->partialinc);
+          frm1freq = *(frm_1 + 2 + i * (int32_t) p->partialinc);
           oscbuf->amp = frm0amp + frac * (frm1amp - frm0amp);       /* amp */
           oscbuf->freq = frm0freq + frac * (frm1freq - frm0freq);   /* freq */
           oscbuf++;
@@ -2090,12 +2096,12 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
     }
     else {
       if (p->swapped == 1) {
-        for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
-             i += (int) *p->iptlincr) {
-          frm0amp = bswap(frm_0 + 1 + i * (int) p->partialinc);
-          frm1amp = bswap(frm_1 + 1 + i * (int) p->partialinc);
-          frm0freq = bswap(frm_0 + 2 + i * (int) p->partialinc);
-          frm1freq = bswap(frm_1 + 2 + i * (int) p->partialinc);
+        for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
+             i += (int32_t) *p->iptlincr) {
+          frm0amp = bswap(frm_0 + 1 + i * (int32_t) p->partialinc);
+          frm1amp = bswap(frm_1 + 1 + i * (int32_t) p->partialinc);
+          frm0freq = bswap(frm_0 + 2 + i * (int32_t) p->partialinc);
+          frm1freq = bswap(frm_1 + 2 + i * (int32_t) p->partialinc);
           nz0 = bswap(p->nzdata + frame * npartials + i);
           nz1 = bswap(p->nzdata + (frame + 1) * npartials + i);
           oscbuf->amp = frm0amp + frac * (frm1amp - frm0amp);       /* amp */
@@ -2107,12 +2113,12 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
         }
       }
       else {
-        for (i = (int) *p->iptloffset; i < (int) *p->iptls+*p->iptloffset;
-             i += (int) *p->iptlincr) {
-          frm0amp = *(frm_0 + 1 + i * (int) p->partialinc);
-          frm1amp = *(frm_1 + 1 + i * (int) p->partialinc);
-          frm0freq = *(frm_0 + 2 + i * (int) p->partialinc);
-          frm1freq = *(frm_1 + 2 + i * (int) p->partialinc);
+        for (i = (int32_t) *p->iptloffset; i < (int32_t) *p->iptls+*p->iptloffset;
+             i += (int32_t) *p->iptlincr) {
+          frm0amp = *(frm_0 + 1 + i * (int32_t) p->partialinc);
+          frm1amp = *(frm_1 + 1 + i * (int32_t) p->partialinc);
+          frm0freq = *(frm_0 + 2 + i * (int32_t) p->partialinc);
+          frm1freq = *(frm_1 + 2 + i * (int32_t) p->partialinc);
           nz0 = *(p->nzdata + frame * npartials + i);
           nz1 = *(p->nzdata + (frame + 1) * npartials + i);
           oscbuf->amp = frm0amp + frac * (frm1amp - frm0amp);       /* amp */
@@ -2130,14 +2136,14 @@ static void fetchSINNOIpartials(ATSSINNOI *p, MYFLT position)
 /*********** ATSBUFREAD *************************************/
 /************************************************************/
 
-static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
+static int32_t atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
 {
     char    atsfilname[MAXNAME];
     MEMFIL  *mfp;
     ATS_DATA_LOC *fltp;
     ATSSTRUCT *atsh;
-    int     type, n_partials;
-    int     memsize;            /* the size of the memory to request for AUX */
+    int32_t  type, n_partials;
+    int32_t  memsize;            /* the size of the memory to request for AUX */
 
     /* load memfile */
     p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno, 0);
@@ -2151,31 +2157,31 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
 
     /* is swapped? */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      type = (int) bswap(&atsh->type);
-      n_partials = (int) bswap(&atsh->npartials);
+      type = (int32_t) bswap(&atsh->type);
+      n_partials = (int32_t) bswap(&atsh->npartials);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      type = (int) atsh->type;
-      n_partials = (int) atsh->npartials;
+      type = (int32_t) atsh->type;
+      n_partials = (int32_t) atsh->npartials;
     }
 
     /* we need room for 2 * (1 table + 2 for 20 and 20,000 hz) */
     /* (one sorted one unsorted) */
-    memsize = 2 * ((int) *(p->iptls) + 2);
+    memsize = 2 * ((int32_t) *(p->iptls) + 2);
 
     csound->AuxAlloc(csound, (size_t)memsize * sizeof(ATS_DATA_LOC), &p->auxch);
 
     fltp = (ATS_DATA_LOC *) p->auxch.auxp;
     p->table = fltp;
-    p->utable = fltp + ((int) *(p->iptls) + 2);
+    p->utable = fltp + ((int32_t) *(p->iptls) + 2);
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-                 (int)(*p->iptloffset) < 0)) {
+    if (UNLIKELY((int32_t)(*p->iptloffset+ *p->iptls * *p->iptlincr) > n_partials ||
+                 (int32_t)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
                                            "max partial is %i"), n_partials);
     }
@@ -2215,23 +2221,25 @@ static int atsbufreadset(CSOUND *csound, ATSBUFREAD *p)
     /* to make interpolation easier later */
     p->table[0].freq = p->utable[0].freq = 20;
     p->table[0].amp = p->utable[0].amp = 0;
-    p->table[(int) *p->iptls + 1].freq = p->utable[(int) *p->iptls + 1].freq =
+    p->table[(int32_t) *p->iptls + 1].freq =
+      p->utable[(int32_t) *p->iptls + 1].freq =
         20000;
-    p->table[(int) *p->iptls + 1].amp = p->utable[(int) *p->iptls + 1].amp = 0;
+    p->table[(int32_t) *p->iptls + 1].amp =
+      p->utable[(int32_t) *p->iptls + 1].amp = 0;
 
     *(get_atsbufreadaddrp(csound)) = p;
 
     return OK;
 }
 
-static int atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
+static int32_t atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
 {
     char    atsfilname[MAXNAME];
     MEMFIL  *mfp;
     ATS_DATA_LOC *fltp;
     ATSSTRUCT *atsh;
-    int     type, n_partials;
-    int     memsize;            /* the size of the memory to request for AUX */
+    int32_t type, n_partials;
+    int32_t memsize;            /* the size of the memory to request for AUX */
 
     /* load memfile */
     p->swapped = load_atsfile(csound, p, &mfp, atsfilname, p->ifileno, 1);
@@ -2245,31 +2253,32 @@ static int atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
 
     /* is swapped? */
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      type = (int) bswap(&atsh->type);
-      n_partials = (int) bswap(&atsh->npartials);
+      type = (int32_t) bswap(&atsh->type);
+      n_partials = (int32_t) bswap(&atsh->npartials);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      type = (int) atsh->type;
-      n_partials = (int) atsh->npartials;
+      type = (int32_t) atsh->type;
+      n_partials = (int32_t) atsh->npartials;
     }
 
     /* we need room for 2 * (1 table + 2 for 20 and 20,000 hz) */
     /* (one sorted one unsorted) */
-    memsize = 2 * ((int) *(p->iptls) + 2);
+    memsize = 2 * ((int32_t) *(p->iptls) + 2);
 
     csound->AuxAlloc(csound, (size_t)memsize * sizeof(ATS_DATA_LOC), &p->auxch);
 
     fltp = (ATS_DATA_LOC *) p->auxch.auxp;
     p->table = fltp;
-    p->utable = fltp + ((int) *(p->iptls) + 2);
+    p->utable = fltp + ((int32_t) *(p->iptls) + 2);
 
     /* check to see if partial is valid */
-    if (UNLIKELY((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-                 (int)(*p->iptloffset) < 0)) {
+    if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) >
+                 n_partials ||
+                 (int32_t)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
                                            "max partial is %i"), n_partials);
     }
@@ -2309,9 +2318,11 @@ static int atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
     /* to make interpolation easier later */
     p->table[0].freq = p->utable[0].freq = 20;
     p->table[0].amp = p->utable[0].amp = 0;
-    p->table[(int) *p->iptls + 1].freq = p->utable[(int) *p->iptls + 1].freq =
+    p->table[(int32_t) *p->iptls + 1].freq =
+      p->utable[(int32_t) *p->iptls + 1].freq =
         20000;
-    p->table[(int) *p->iptls + 1].amp = p->utable[(int) *p->iptls + 1].amp = 0;
+    p->table[(int32_t) *p->iptls + 1].amp =
+      p->utable[(int32_t) *p->iptls + 1].amp = 0;
 
     *(get_atsbufreadaddrp(csound)) = p;
 
@@ -2319,7 +2330,7 @@ static int atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
 }
 
 
-static int mycomp(const void *p1, const void *p2)
+static int32_t mycomp(const void *p1, const void *p2)
 {
     const ATS_DATA_LOC *a1 = p1;
     const ATS_DATA_LOC *a2 = p2;
@@ -2340,12 +2351,12 @@ static void FetchBUFPartials(ATSBUFREAD *p,
     MYFLT   frac;               /* the distance in time we are between frames */
     double  *frm_0, *frm_1;
     double  frm0amp, frm0freq, frm1amp, frm1freq;
-    int     frame;
-    int     i;                  /* for the for loop */
-    int     partialloc = p->firstpartial;
-    int     npartials = (int) *p->iptls;
+    int32_t frame;
+    int32_t i;                  /* for the for loop */
+    int32_t partialloc = p->firstpartial;
+    int32_t npartials = (int32_t) *p->iptls;
 
-    frame = (int) position;
+    frame = (int32_t) position;
     frm_0 = p->datastart + frame * p->frmInc;
 
     /* if we are using the data from the last frame */
@@ -2399,7 +2410,7 @@ static void FetchBUFPartials(ATSBUFREAD *p,
     }
 }
 
-static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
+static int32_t atsbufread(CSOUND *csound, ATSBUFREAD *p)
 {
     MYFLT         frIndx;
     ATS_DATA_LOC  *buf;
@@ -2436,7 +2447,7 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
     buf2 = p->utable + 1;
     FetchBUFPartials(p, buf, buf2, frIndx);
     /* must sort the buffered values */
-    qsort(buf, (int) *p->iptls, sizeof(ATS_DATA_LOC), mycomp);
+    qsort(buf, (int32_t) *p->iptls, sizeof(ATS_DATA_LOC), mycomp);
 
     return OK;
  err1:
@@ -2446,7 +2457,7 @@ static int atsbufread(CSOUND *csound, ATSBUFREAD *p)
 
 /* ATS partial tap */
 
-static int atspartialtapset(CSOUND *csound, ATSPARTIALTAP *p)
+static int32_t atspartialtapset(CSOUND *csound, ATSPARTIALTAP *p)
 {
     ATSBUFREAD  *atsbufreadaddr;
 
@@ -2456,26 +2467,26 @@ static int atspartialtapset(CSOUND *csound, ATSPARTIALTAP *p)
                                Str("ATSPARTIALTAP: you must have an "
                                    "atsbufread before an atspartialtap"));
     }
-    if (UNLIKELY((int) *p->iparnum > (int) *(atsbufreadaddr->iptls))) {
+    if (UNLIKELY((int32_t) *p->iparnum > (int32_t) *(atsbufreadaddr->iptls))) {
       return csound->InitError(csound, Str("ATSPARTIALTAP: exceeded "
                                            "max partial %i"),
-                                       (int) *(atsbufreadaddr->iptls));
+                                       (int32_t) *(atsbufreadaddr->iptls));
     }
-    if (UNLIKELY((int) *p->iparnum <= 0)) {
+    if (UNLIKELY((int32_t) *p->iparnum <= 0)) {
       return csound->InitError(csound, Str("ATSPARTIALTAP: partial must be "
                                            "positive and nonzero"));
     }
     return OK;
 }
 
-static int atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
+static int32_t atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
 {
     ATSBUFREAD  *atsbufreadaddr;
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
     if (UNLIKELY(atsbufreadaddr == NULL)) goto err1;
-    *p->kfreq = (MYFLT) ((atsbufreadaddr->utable)[(int)(*p->iparnum)].freq);
-    *p->kamp = (MYFLT) ((atsbufreadaddr->utable)[(int)(*p->iparnum)].amp);
+    *p->kfreq = (MYFLT) ((atsbufreadaddr->utable)[(int32_t)(*p->iparnum)].freq);
+    *p->kamp = (MYFLT) ((atsbufreadaddr->utable)[(int32_t)(*p->iparnum)].amp);
     return OK;
  err1:
     return csound->PerfError(csound, p->h.insdshead,
@@ -2485,7 +2496,7 @@ static int atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
 
 /* ATS interpread */
 
-static int atsinterpreadset(CSOUND *csound, ATSINTERPREAD *p)
+static int32_t atsinterpreadset(CSOUND *csound, ATSINTERPREAD *p)
 {
     if (UNLIKELY(*(get_atsbufreadaddrp(csound)) == NULL))
       return csound->InitError(csound,
@@ -2495,10 +2506,10 @@ static int atsinterpreadset(CSOUND *csound, ATSINTERPREAD *p)
     return OK;
 }
 
-static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
+static int32_t atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
 {
     ATSBUFREAD  *atsbufreadaddr;
-    int         i;
+    int32_t     i;
     MYFLT       frac;
 
     /* make sure we have data to read from */
@@ -2515,7 +2526,7 @@ static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
       return OK;
     }
     /* find the location in the table */
-    for (i = 0; i < (int) *(atsbufreadaddr->iptls); i++) {
+    for (i = 0; i < (int32_t) *(atsbufreadaddr->iptls); i++) {
       /* find i such that table i+1 is greater than the specified frequency */
       if ((MYFLT) ((atsbufreadaddr->table[i + 1]).freq) > *p->kfreq)
         break;
@@ -2543,13 +2554,13 @@ static int atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
 
 /* ATS cross */
 
-static int atscrossset(CSOUND *csound, ATSCROSS *p)
+static int32_t atscrossset(CSOUND *csound, ATSCROSS *p)
 {
     char    atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
     FUNC    *ftp;
-    int     memsize;
-    int     type, n_partials;
+    int32_t memsize;
+    int32_t type, n_partials;
 
     /* set up function table for synthesis */
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
@@ -2566,33 +2577,33 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* calculate how much memory we have to allocate for this */
-    memsize =   (int)(*p->iptls) *
+    memsize =   (int32_t)(*p->iptls) *
                       (sizeof(ATS_DATA_LOC) + sizeof(double) + sizeof(MYFLT)) ;
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if (p->auxch.auxp == NULL || p->auxch.size >= (unsigned int)memsize)
+    if (p->auxch.auxp == NULL || p->auxch.size >= (uint32_t)memsize)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
-    p->oscphase = (double *) (p->buf + (int)(*p->iptls));
-    p->oldamps =  (MYFLT *)  (p->oscphase + (int)(*p->iptls));
+    p->oscphase = (double *) (p->buf + (int32_t)(*p->iptls));
+    p->oldamps =  (MYFLT *)  (p->oscphase + (int32_t)(*p->iptls));
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      type = (int) bswap(&atsh->type);
-      n_partials = (int) bswap(&atsh->npartials);
+      type = (int32_t) bswap(&atsh->type);
+      n_partials = (int32_t) bswap(&atsh->npartials);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      type = (int) atsh->type;
-      n_partials = (int) atsh->npartials;
+      type = (int32_t) atsh->type;
+      n_partials = (int32_t) atsh->npartials;
     }
 
     /* make sure partials are in range */
-    if ((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-        (int)(*p->iptloffset) < 0) {
+    if ((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
+        (int32_t)(*p->iptloffset) < 0) {
       return csound->InitError(csound, Str("ATSCROSS: Partial(s) out of range, "
                                            "max partial allowed is %i"),
                                        n_partials);
@@ -2603,26 +2614,26 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     /* get increments for the partials */
     switch (type) {
     case 1:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int)(*p->iptlincr);
+      p->firstpartial = (int32_t) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int32_t)(*p->iptlincr);
       p->frmInc = n_partials * 2 + 1;
       break;
 
     case 2:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int)(*p->iptlincr);
+      p->firstpartial = (int32_t) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int32_t)(*p->iptlincr);
       p->frmInc = n_partials * 3 + 1;
       break;
 
     case 3:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int)(*p->iptlincr);
+      p->firstpartial = (int32_t) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int32_t)(*p->iptlincr);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int)(*p->iptlincr);
+      p->firstpartial = (int32_t) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int32_t)(*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
 
@@ -2637,13 +2648,13 @@ static int atscrossset(CSOUND *csound, ATSCROSS *p)
     return OK;
 }
 
-static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
+static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
 {
     char    atsfilname[MAXNAME];
     ATSSTRUCT *atsh;
     FUNC    *ftp;
-    int     memsize;
-    int     type, n_partials;
+    int32_t memsize;
+    int32_t type, n_partials;
 
     /* set up function table for synthesis */
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
@@ -2660,33 +2671,34 @@ static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
 
     /* calculate how much memory we have to allocate for this */
-    memsize =   (int)(*p->iptls) *
+    memsize =   (int32_t)(*p->iptls) *
                       (sizeof(ATS_DATA_LOC) + sizeof(double) + sizeof(MYFLT)) ;
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if (p->auxch.auxp == NULL || p->auxch.size >= (unsigned int)memsize)
+    if (p->auxch.auxp == NULL || p->auxch.size >= (uint32_t)memsize)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
     p->buf = (ATS_DATA_LOC *) (p->auxch.auxp);
-    p->oscphase = (double *) (p->buf + (int)(*p->iptls));
-    p->oldamps =  (MYFLT *)  (p->oscphase + (int)(*p->iptls));
+    p->oscphase = (double *) (p->buf + (int32_t)(*p->iptls));
+    p->oldamps =  (MYFLT *)  (p->oscphase + (int32_t)(*p->iptls));
     if (p->swapped == 1) {
-      p->maxFr = (int) bswap(&atsh->nfrms) - 1;
+      p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
-      type = (int) bswap(&atsh->type);
-      n_partials = (int) bswap(&atsh->npartials);
+      type = (int32_t) bswap(&atsh->type);
+      n_partials = (int32_t) bswap(&atsh->npartials);
     }
     else {
-      p->maxFr = (int) atsh->nfrms - 1;
+      p->maxFr = (int32_t) atsh->nfrms - 1;
       p->timefrmInc = atsh->nfrms / atsh->dur;
-      type = (int) atsh->type;
-      n_partials = (int) atsh->npartials;
+      type = (int32_t) atsh->type;
+      n_partials = (int32_t) atsh->npartials;
     }
 
     /* make sure partials are in range */
-    if (UNLIKELY((int)(*p->iptloffset + *p->iptls * *p->iptlincr) > n_partials ||
-                 (int)(*p->iptloffset) < 0)) {
+    if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) >
+                 n_partials ||
+                 (int32_t)(*p->iptloffset) < 0)) {
       return csound->InitError(csound, Str("ATSCROSS: Partial(s) out of range, "
                                            "max partial allowed is %i"),
                                        n_partials);
@@ -2697,26 +2709,26 @@ static int atscrossset_S(CSOUND *csound, ATSCROSS *p)
     /* get increments for the partials */
     switch (type) {
     case 1:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int)(*p->iptlincr);
+      p->firstpartial = (int32_t) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int32_t)(*p->iptlincr);
       p->frmInc = n_partials * 2 + 1;
       break;
 
     case 2:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int)(*p->iptlincr);
+      p->firstpartial = (int32_t) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int32_t)(*p->iptlincr);
       p->frmInc = n_partials * 3 + 1;
       break;
 
     case 3:
-      p->firstpartial = (int) (1 + 2 * (*p->iptloffset));
-      p->partialinc = 2 * (int)(*p->iptlincr);
+      p->firstpartial = (int32_t) (1 + 2 * (*p->iptloffset));
+      p->partialinc = 2 * (int32_t)(*p->iptlincr);
       p->frmInc = n_partials * 2 + 26;
       break;
 
     case 4:
-      p->firstpartial = (int) (1 + 3 * (*p->iptloffset));
-      p->partialinc = 3 * (int)(*p->iptlincr);
+      p->firstpartial = (int32_t) (1 + 3 * (*p->iptloffset));
+      p->partialinc = 3 * (int32_t)(*p->iptlincr);
       p->frmInc = n_partials * 3 + 26;
       break;
 
@@ -2736,12 +2748,12 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
     MYFLT   frac;               /* the distance in time we are between frames */
     double  *frm_0, *frm_1;
     double  frm0amp, frm0freq, frm1amp, frm1freq;
-    int     frame;
-    int     i;                  /* for the for loop */
-    int     partialloc = p->firstpartial;
-    int     npartials = (int) *p->iptls;
+    int32_t     frame;
+    int32_t     i;                  /* for the for loop */
+    int32_t     partialloc = p->firstpartial;
+    int32_t     npartials = (int32_t) *p->iptls;
 
-    frame = (int) position;
+    frame = (int32_t) position;
     frm_0 = p->datastart + frame * p->frmInc;
 
     /* if we are using the data from the last frame */
@@ -2794,16 +2806,17 @@ static void FetchCROSSPartials(ATSCROSS *p, ATS_DATA_LOC *buf, MYFLT position)
 static void ScalePartials(
                 CSOUND *csound,
                 ATS_DATA_LOC *cbuf, /* the current buffer */
-                int cbufnp,         /* the current buffer's number of partials */
+                int32_t cbufnp,     /* the current buffer's number of partials */
                 MYFLT cbufamp,      /* the amplitude for the current buffer */
                 ATS_DATA_LOC *tbuf, /* the table buffer */
-                int tbufnp,         /* the table buffer's n partials */
+                int32_t tbufnp,     /* the table buffer's n partials */
                 MYFLT tbufamp,      /* the amp of the table buffer */
                 MYFLT kthresh )
 {
+     IGN(csound);
     MYFLT   tempamp;            /* hold the cbufn amp for a bit */
     MYFLT   frac;               /* for interpilation */
-    int     i, j=0;               /* for the for loop */
+    int32_t     i, j=0;               /* for the for loop */
 
     for (i = 0; i < cbufnp; i++) {
       /* look for closest frequency in buffer */
@@ -2834,7 +2847,7 @@ static void ScalePartials(
     }
 }
 
-static int atscross(CSOUND *csound, ATSCROSS *p)
+static int32_t atscross(CSOUND *csound, ATSCROSS *p)
 {
     ATSBUFREAD  *atsbufreadaddr;
     MYFLT   frIndx, *oldamps = p->oldamps, a, inca;
@@ -2842,11 +2855,11 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
     FUNC    *ftp;
     int32    lobits, phase, inc;
     double  *oscphase;
-    int     i;
+    int32_t     i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int     numpartials = (int) *p->iptls;
+    int32_t     numpartials = (int32_t) *p->iptls;
     ATS_DATA_LOC *buf;
 
     atsbufreadaddr = *(get_atsbufreadaddrp(csound));
@@ -2881,10 +2894,10 @@ static int atscross(CSOUND *csound, ATSCROSS *p)
 
     ScalePartials(csound,
         buf,                    /* the current buffer */
-        (int) *(p->iptls),      /* the current buffer's number of partials */
+        (int32_t) *(p->iptls),      /* the current buffer's number of partials */
         *(p->kmyamp),           /* the amplitude for the current buffer */
         atsbufreadaddr->table,  /* the table buffer */
-        (int) *(atsbufreadaddr->iptls), /* the table buffer's n partials */
+        (int32_t) *(atsbufreadaddr->iptls), /* the table buffer's n partials */
                   *p->katsbufamp,
          *p->kthresh);        /* the amp of the table buffer */
 
@@ -2936,18 +2949,18 @@ static OENTRY localops[] = {
         (SUBR) atsreadnzset_S,        (SUBR) atsreadnz,       (SUBR) NULL      },
     { "ATSreadnz.i",      S(ATSREADNZ),      0, 3,  "k",    "kii",
         (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL      },
-    { "ATSadd",         S(ATSADD),          TR, 5,  "a",    "kkSiiopo",
-        (SUBR) atsaddset_S,           (SUBR) NULL,            (SUBR) atsadd    },
-    { "ATSadd.i",         S(ATSADD),          TR, 5,  "a",    "kkiiiopo",
-        (SUBR) atsaddset,           (SUBR) NULL,            (SUBR) atsadd    },
-    { "ATSaddnz",       S(ATSADDNZ),       0, 5,  "a",    "kSiop",
-        (SUBR) atsaddnzset_S,         (SUBR) NULL,            (SUBR) atsaddnz  },
-     { "ATSaddnz.i",       S(ATSADDNZ),       0, 5,  "a",    "kiiop",
-        (SUBR) atsaddnzset,         (SUBR) NULL,            (SUBR) atsaddnz  },
-    { "ATSsinnoi",      S(ATSSINNOI),       0,5,  "a",    "kkkkSiop",
-        (SUBR) atssinnoiset_S,        (SUBR) NULL,            (SUBR) atssinnoi },
-       { "ATSsinnoi.i",      S(ATSSINNOI),       0,5,  "a",    "kkkkiiop",
-        (SUBR) atssinnoiset,        (SUBR) NULL,            (SUBR) atssinnoi },
+    { "ATSadd",         S(ATSADD),          TR, 3,  "a",    "kkSiiopo",
+        (SUBR) atsaddset_S,            (SUBR) atsadd    },
+    { "ATSadd.i",         S(ATSADD),          TR, 3,  "a",    "kkiiiopo",
+        (SUBR) atsaddset,            (SUBR) atsadd    },
+    { "ATSaddnz",       S(ATSADDNZ),       0, 3,  "a",    "kSiop",
+        (SUBR) atsaddnzset_S,            (SUBR) atsaddnz  },
+    { "ATSaddnz.i",       S(ATSADDNZ),       0, 3,  "a",    "kiiop",
+        (SUBR) atsaddnzset,            (SUBR) atsaddnz  },
+    { "ATSsinnoi",      S(ATSSINNOI),       0,3,  "a",    "kkkkSiop",
+        (SUBR) atssinnoiset_S,            (SUBR) atssinnoi },
+    { "ATSsinnoi.i",      S(ATSSINNOI),       0,3,  "a",    "kkkkiiop",
+        (SUBR) atssinnoiset,            (SUBR) atssinnoi },
     { "ATSbufread",     S(ATSBUFREAD),      0,3,  "",     "kkSiop",
         (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) NULL      },
        { "ATSbufread.i",     S(ATSBUFREAD),      0,3,  "",     "kkiiop",
@@ -2956,18 +2969,19 @@ static OENTRY localops[] = {
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL      },
     { "ATSinterpread",  S(ATSINTERPREAD),   0,3,  "k",    "k",
         (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL      },
-    { "ATScross",       S(ATSCROSS),        TR, 5,  "a",    "kkSikkiopoo",
-        (SUBR) atscrossset_S,         (SUBR) NULL,            (SUBR) atscross  },
+    { "ATScross",       S(ATSCROSS),        TR, 3,  "a",    "kkSikkiopoo",
+        (SUBR) atscrossset_S,            (SUBR) atscross  },
     { "ATSinfo",        S(ATSINFO),         0,1,  "i",    "Si",
       (SUBR) atsinfo_S,             (SUBR) NULL,            (SUBR) NULL      },
-        { "ATScross.i",       S(ATSCROSS),        TR, 5,  "a",    "kkiikkiopoo",
-        (SUBR) atscrossset,         (SUBR) NULL,            (SUBR) atscross  },
+    { "ATScross.i",       S(ATSCROSS),        TR, 3,  "a",    "kkiikkiopoo",
+        (SUBR) atscrossset,            (SUBR) atscross  },
     { "ATSinfo.i",        S(ATSINFO),         0,1,  "i",    "ii",
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }
 };
 
-int ugnorman_init_(CSOUND *csound)
+int32_t ugnorman_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

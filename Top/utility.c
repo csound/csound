@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -242,6 +242,7 @@ PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
  * before calling this function, and csoundReset() should be called
  * after sorting the score to clean up. On success, zero is returned.
  */
+
 PUBLIC int csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
 {
     int   err;
@@ -251,6 +252,7 @@ PUBLIC int csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     while ((c=getc(inFile))!=EOF) corfile_putc(csound, c, inf);
+    corfile_puts(csound, "\ne\n#exit\n", inf);
     corfile_rewind(inf);
     /* scsortstr() ignores the second arg - Jan 5 2012 */
     csound->scorestr = inf;

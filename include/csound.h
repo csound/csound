@@ -1,9 +1,9 @@
 /*
-    csoud.h:
+    csound.h:
 
     Copyright (C) 2003 2005 2008 2013 by John ffitch, Istvan Varga,
                                          Mike Gogins, Victor Lazzarini,
-                                         Andres Cabrera
+                                         Andres Cabrera, Steven Yi
 
     This file is part of Csound.
 
@@ -19,16 +19,15 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_H
 #define CSOUND_H
 /*! \mainpage
  *
- * Csound is a unit generator-based, user-programmable,
- * user-extensible computer music system.  It was originally written
+ * Csound is a sound and music computing system. It was originally written
  * by Barry Vercoe at the Massachusetts Institute of Technology in
  * 1984 as the first C language version of this type of
  * software. Since then Csound has received numerous contributions
@@ -63,7 +62,7 @@
  *
  * \b Users
  *
- * Users of the Csound API fall into two main categories: hosts, and plugins.
+ * Users of the Csound API fall into two main categories: hosts and plugins.
  *
  * \li Hosts are applications that use Csound as a software synthesis engine.
  *     Hosts can link with the Csound API either statically or dynamically.
@@ -71,13 +70,14 @@
  * \li Plugins are shared libraries loaded by Csound at run time to implement
  *     external opcodes and/or drivers for audio or MIDI input and output.
  *     Plugin opcodes need only include the csdl.h header which brings all
- *     necessary functions and data structures. Plugins can be written in C++
- *     using either `include/plugin.h` (using the Csound allocator, for opcodes
+ *     necessary functions and data structures.
+ *     Plugins can be written in C or C++. For C++, OOP support is given through
+ *     `include/plugin.h` (using the Csound allocator, for opcodes
  *     that do not involve standard C++ library collections) or
  *     `include/OpcodeBase.hpp` (using the standard ++ allocator, for opcodes
  *     that do use standard C++ library collections).
  *
- * \section section_api_c_example Examples Using the Csound API
+ * \section section_api_c_example Examples Using the Csound (host) API
  *
  * The Csound command--line program is itself built using the Csound API.
  * Its code reads (in outline) as follows:
@@ -98,27 +98,31 @@
  * }
  * \endcode
  *
- * The Csound API defines two modes of operation for hosts. In the first mode,
- * a regular Csound score is performed and then performance automatically
- * ends. This could be called "score mode." In the second mode, Csound
- * continues to perform indefinitely until performance is explicitly ended by
- * calling csoundStop. This could be called "live mode." Which mode is used is
- * determined by when csoundStart is called. In more detail:
+ * Csound code can also be supplied directly using strings, either as
+ * a multi-section CSD (with the same format as CSD files) or
+ * directly as a string. It can be compiled any number of times
+ * before or during performance.
  *
- * \subsection s1 Score Mode
+ * \subsection s1 Using a CSD text
  *
- * \li The <CsOptions> section of the CSD file is processed.
- *
- * \li Either csoundStart must be called after csoundCompileCsd or csoundReadScore,
- *     or csoundReadScore must be called before csoundCompile.
- *
- * \li The score is pre-processed, and events are dispatched as regular score
- *     events. "f", "s", and "e" events are permitted in the score.
+ * System options can be passed via the CSD text before the engine
+ * is started. These are ignored in subsequent compilations.
  *
  * \code
  * #include "csound.h"
  *
- * const char *csd_text = "blah blah blah";
+ * const char *csd_text =
+ *  "<CsoundSynthesizer> \n"
+ *  "<CsOptions> -odac </CsOptions> \n"
+ *  "<CsInstruments> \n"
+ *  "instr 1 \n"
+ *  " out(linen(oscili(p4,p5),0.1,p3,0.1)) \n"
+ *  "endin \n"
+ *  "</CsInstruments> \n"
+ *  "<CsScore> \n"
+ *  "i1 0 5 1000 440 \n"
+ *  "</CsScore> \n"
+ *  "</CsoundSynthesizer> \n";
  *
  * int main(int argc, char **argv)
  * {
@@ -138,21 +142,19 @@
  * }
  * \endcode
  *
- * \subsection s2 Live Mode
+ * \subsection s2 Using Csound code directly.
  *
- * \li The <CsOptions> section of the CSD file not processed; options must
- *     be set by calling csoundSetOption.
- *
- * \li csoundStart must be called before csoundCompileCsd or csoundReadScore.
- *
- * \li The score is not pre-processed, and events are dispatched as real-time
- *     events. "f", "s", and "e" events are not permitted.
+ * Options can be passed via csoundSetOption() before the engine starts.
  *
  * \code
  * #include "csound.h"
  *
- * const char *orc_text = "blah blah blah";
- * const char *sco_text = "blah blah blah";
+ * const char *orc_text =
+ *  "instr 1 \n"
+ *  " out(linen(oscili(p4,p5),0.1,p3,0.1)) \n"
+ *  "endin \n";
+ *
+ * const char *sco_text = "i1 0 5 1000 440 \n";
  *
  * int main(int argc, char **argv)
  * {
@@ -248,7 +250,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /*
@@ -1071,9 +1073,14 @@ extern "C" {
    *  @{ */
 
   /**
-   * Returns the output audio output name (-o).
+   * Returns the audio output name (-o).
    */
   PUBLIC const char *csoundGetOutputName(CSOUND *);
+
+  /**
+   * Returns the audio input name (-i).
+   */
+  PUBLIC const char *csoundGetInputName(CSOUND *);
 
   /**
    *  Set output destination, type and format
@@ -1253,7 +1260,7 @@ extern "C" {
    * handling of sound I/O by the Csound library, allowing the host
    * application to use the spin/spout/input/output buffers directly.
    * For applications using spin/spout, bufSize should be set to 0.
-   * If 'bufSize' is greater than zero, the buffer size (-b) will be
+   * If 'bufSize' is greater than zero, the buffer size (-b) in frames will be
    * set to the integer multiple of ksmps that is nearest to the value
    * specified.
    */
@@ -1406,10 +1413,10 @@ extern "C" {
    * Sets callback for writing to real time MIDI output.
    */
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-                                                 int (*func)(CSOUND *,
-                                                             void *userData,
-                                                             const unsigned char *buf,
-                                                             int nBytes));
+                                              int (*func)(CSOUND *,
+                                                          void *userData,
+                                                          const unsigned char *buf,
+                                                          int nBytes));
 
   /**
    * Sets callback for closing real time MIDI output.
@@ -1553,12 +1560,23 @@ extern "C" {
 
   /**
    * Sets a function to be called by Csound to print an informational message.
+   * This callback is never called on --realtime mode
    */
   PUBLIC void csoundSetMessageCallback(CSOUND *,
                                    void (*csoundMessageCallback_)(CSOUND *,
                                                                   int attr,
                                                                   const char *format,
                                                                   va_list valist));
+
+  /**
+   * Sets an alternative function to be called by Csound to print an
+   * informational message, using a less granular signature.
+   *  This callback can be set for --realtime mode
+   */
+  PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
+              void (*csoundMessageStrCallback)(CSOUND *csound,
+                                               int attr,
+                                               const char *str));
 
   /**
    * Returns the Csound message level (from 0 to 231).
@@ -2241,7 +2259,8 @@ extern "C" {
    * that do little more than read or write such data, for example:
    *
    * @code
-   * static int lock = 0;
+   * static spin_lock_t lock = SPINLOCK_INIT;
+   * csoundSpinLockInit(&lock);
    * void write(size_t frames, int* signal)
    * {
    *   csoundSpinLock(&lock);
@@ -2252,90 +2271,24 @@ extern "C" {
    * }
    * @endcode
    */
+  PUBLIC int csoundSpinLockInit(spin_lock_t *spinlock);
 
-  /* PUBLIC void csoundSpinLock(int32_t *spinlock)   */
-  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+  /**
+   * Locks the spinlock
+   */
+  PUBLIC void csoundSpinLock(spin_lock_t *spinlock);
 
-#if defined(MSVC)
+  /**
+   * Tries the lock, returns CSOUND_SUCCESS if lock could be acquired,
+      CSOUND_ERROR, otherwise.
+   */
+  PUBLIC int csoundSpinTryLock(spin_lock_t *spinlock);
 
-  /* This pragma must come before all public function declarations */
+  /**
+   * Unlocks the spinlock
+   */
+  PUBLIC void csoundSpinUnLock(spin_lock_t *spinlock);
 
-# pragma intrinsic(_InterlockedExchange)
-# define csoundSpinLock(spinlock)                       \
-  {                                                     \
-      while (_InterlockedExchange(spinlock, 1) == 1) {  \
-      }                                                 \
-  }
-# define csoundSpinUnLock(spinlock)             \
-  {                                             \
-      _InterlockedExchange(spinlock, 0);        \
-  }
-# define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-# define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
-#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-  //# if defined(SWIG)
-#  define csoundSpinLock(spinlock)                              \
-  {                                                             \
-      pthread_spin_lock((pthread_spinlock_t *)spinlock);        \
-  }
-#  define csoundSpinUnLock(spinlock)                            \
-  {                                                             \
-      pthread_spin_unlock((pthread_spinlock_t *)spinlock);      \
-  }
-#  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-  //# else
-  //#  define csoundSpinLock(spinlock)
-  //     pthread_spin_lock((pthread_spinlock_t *)spinlock);
-  //#  define csoundSpinUnLock(spinlock)
-  //     pthread_spin_unlock((pthread_spinlock_t *)spinlock);
-  //#  define CSOUND_SPIN_LOCK
-  //#  define CSOUND_SPIN_UNLOCK
-  //#endif
-
-#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
-
-# define csoundSpinLock(spinlock)                               \
-  {                                                             \
-      while (__sync_lock_test_and_set(spinlock, 1) == 1) {      \
-      }                                                         \
-  }
-# define csoundSpinUnLock(spinlock)             \
-  {                                             \
-      __sync_lock_release(spinlock);            \
-  }
-# define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-# define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
-#elif defined(MACOSX)
-
-#ifndef SWIG
-
-#include <libkern/OSAtomic.h>
-
-#define csoundSpinLock(spinlock)                \
-  {                                             \
-      OSSpinLockLock(spinlock);                 \
-  }
-#define csoundSpinUnLock(spinlock)              \
-  {                                             \
-      OSSpinLockUnlock(spinlock);               \
-  }
-#define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-
-#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-#endif
-#else
-
-  /* We do not know the configuration,      */
-  /* so we define these symbols as nothing. */
-# define csoundSpinLock(spinlock)
-# define csoundSpinUnLock(spinlock)
-# define CSOUND_SPIN_LOCK
-# define CSOUND_SPIN_UNLOCK
-
-#endif
 
   /** @}*/
   /** @defgroup MISCELLANEOUS Miscellaneous functions
@@ -2582,7 +2535,7 @@ extern "C" {
 
 #ifdef SWIGPYTHON
 
-  PUBLIC CSOUND *csoundGetInstance(long obj){ return (CSOUND *)obj; }
+  PUBLIC CSOUND *csoundGetInstance(int64_t obj){ return (CSOUND *)obj; }
 
 #endif
 

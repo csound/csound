@@ -19,19 +19,19 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 
 */
 
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
+#include "csdl.h"
+#include "pstream.h"
 #include <algorithm>
 #include <complex>
-#include <csdl.h>
-#include <iostream>
-#include <pstream.h>
 #include <cstring>
+#include <iostream>
 
 namespace csnd {
 
@@ -69,25 +69,33 @@ class Csound : CSOUND {
   }
 
 public:
+  /** Host Data
+   */
+  void *host_data() { return GetHostData(this); }
+
   /** init-time error message
    */
   int init_error(const std::string &s) {
-    return InitError(this, "%s\n", s.c_str());
+    return InitError(this, "%s\n", LocalizeString(s.c_str()));
   }
 
   /** perf-time error message
    */
   int perf_error(const std::string &s, INSDS *inst) {
-    return PerfError(this, inst, "%s\n", s.c_str());
+    return PerfError(this, inst, "%s\n", LocalizeString(s.c_str()));
   }
 
   /** warning message
    */
-  void warning(const std::string &s) { Warning(this, "%s", s.c_str()); }
+  void warning(const std::string &s) {
+    Warning(this, "%s", LocalizeString(s.c_str()));
+  }
 
   /** console messages
    */
-  void message(const std::string &s) { Message(this, "%s\n", s.c_str()); }
+  void message(const std::string &s) {
+    Message(this, "%s\n", LocalizeString(s.c_str()));
+  }
 
   /** system sampling rate
    */
@@ -161,7 +169,7 @@ public:
 
   /** check for audio signal variable argument
    */
-  bool is_asig(void *arg){
+  bool is_asig(void *arg) {
     return !std::strcmp(GetTypeForArg(arg)->varTypeName, "a");
   }
 
@@ -173,33 +181,23 @@ public:
 
   /** Csound memory allocation - malloc style
    */
-  void *malloc(size_t size) {
-    return Malloc(this, size);
-  }
+  void *malloc(size_t size) { return Malloc(this, size); }
 
   /** Csound memory allocation - calloc style
    */
-  void *calloc(size_t size) {
-    return Calloc(this, size);
-  }
+  void *calloc(size_t size) { return Calloc(this, size); }
 
   /** Csound memory re-allocation
    */
-  void *realloc(void *p, size_t size) {
-    return ReAlloc(this, p,size);
-  }
+  void *realloc(void *p, size_t size) { return ReAlloc(this, p, size); }
 
   /** Csound string duplication
    */
-  char *strdup(char *s) {
-    return Strdup(this, s);
-  }
+  char *strdup(char *s) { return Strdup(this, s); }
 
   /** Csound memory de-allocation
    */
-  void free(void *p) {
-    Free(this,p);
-   }
+  void free(void *p) { Free(this, p); }
 
   /** FFT setup: real-to-complex and complex-to-real \n
       direction: FFT_FWD or FFT_INV \n
@@ -240,7 +238,6 @@ public:
   /** Sleep
    */
   void sleep(int ms) { Sleep(ms); }
-
 };
 
 /**
@@ -330,16 +327,15 @@ public:
 
   /** get early exit sample position
    */
-  uint32_t GetEarly() { return early;}
+  uint32_t GetEarly() { return early; }
 
   /** get early exit sample offset
    */
-  uint32_t GetOffset() { return offset;}
+  uint32_t GetOffset() { return offset; }
 
   /** get number of samples to process
   */
   uint32_t GetNsmps() { return nsmps; }
-
 };
 
 /** One-dimensional array container
@@ -385,7 +381,6 @@ public:
    */
   iterator end() { return (T *)((char *)data + sizes[0] * arrayMemberSize); }
 
-
   /** vector beginning
    */
   const_iterator cbegin() const { return (const T *)data; }
@@ -393,7 +388,8 @@ public:
   /** vector end
    */
   const_iterator cend() const {
-      return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
+    return (const T *)((char *)data + sizes[0] * arrayMemberSize);
+  }
 
   /** vector beginning
    */
@@ -402,7 +398,8 @@ public:
   /** vector end
    */
   const_iterator end() const {
-      return (const T *)((char *)data + sizes[0] * arrayMemberSize); }
+    return (const T *)((char *)data + sizes[0] * arrayMemberSize);
+  }
 
   /** array subscript access (write)
    */
@@ -531,7 +528,7 @@ public:
         std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0);
       }
     } else {
-      size_t  bytes = (n + 2) * sizeof(MYFLT) * nsmps;
+      size_t bytes = (n + 2) * sizeof(MYFLT) * nsmps;
       if (frame.auxp == NULL || frame.size < bytes)
         csound->AuxAlloc(csound, bytes, &frame);
     }
@@ -621,7 +618,7 @@ public:
   /** returns a const iterator to the
        end of the frame
     */
-  const_iterator end() const { return (const T *) (frame.auxp + N / 2 + 1); }
+  const_iterator end() const { return (const T *)(frame.auxp + N / 2 + 1); }
 
   /** returns a const iterator to the
       beginning of the frame
@@ -631,7 +628,7 @@ public:
   /** returns a const iterator to the
        end of the frame
     */
-  const_iterator cend() const { return (const T *) (frame.auxp + N / 2 + 1); }
+  const_iterator cend() const { return (const T *)(frame.auxp + N / 2 + 1); }
 
   /** array subscript access operator (write)
    */
@@ -694,9 +691,9 @@ public:
     */
   const_iterator end() const { return ftable + flen; }
 
-   /** returns a const iterator to the
-      beginning of the table
-   */
+  /** returns a const iterator to the
+     beginning of the table
+  */
   const_iterator cbegin() const { return ftable; }
 
   /** returns a const iterator to the
@@ -897,29 +894,24 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
     uint32_t early = insdshead->ksmps_no_end;
     nsmps = insdshead->ksmps - early;
     offset = insdshead->ksmps_offset;
-    if(UNLIKELY(offset || early))
-     for(auto &arg : outargs) {
-      if (csound->is_asig(arg)) {
-        std::fill(arg, arg + offset, 0);
-        std::fill(arg + nsmps, arg + nsmps + early, 0);
+    if (UNLIKELY(offset || early))
+      for (auto &arg : outargs) {
+        if (csound->is_asig(arg)) {
+          std::fill(arg, arg + offset, 0);
+          std::fill(arg + nsmps, arg + nsmps + early, 0);
+        }
       }
-     }
   }
 
   /** returns the number of output arguments
       used in the case of variable output count
   */
-  uint32_t out_count(){
-    return (uint32_t) optext->t.outArgCount;
-  }
+  uint32_t out_count() { return (uint32_t)optext->t.outArgCount; }
 
   /** returns the number of input arguments
       used in the case of variable input count
   */
-  uint32_t in_count(){
-    return (uint32_t) optext->t.inArgCount;
-  }
-
+  uint32_t in_count() { return (uint32_t)optext->t.inArgCount; }
 };
 
 /** Fsig plugin template base class:
@@ -976,7 +968,7 @@ template <typename T>
 int plugin(Csound *csound, const char *name, uint32_t thread,
            uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), 0, thread,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thread,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
                           (SUBR)kperf<T>, (SUBR)aperf<T>);
 }
@@ -990,9 +982,6 @@ template <typename T, typename... Types> T *constr(T *p, Types... args) {
   return new (p) T(args...);
 }
 
-template<typename T> void destr(T *p) {
-  p->T::~T();
-}
-
+template <typename T> void destr(T *p) { p->T::~T(); }
 }
 #endif

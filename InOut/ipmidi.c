@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Realtime MIDI using ipmidi library */
@@ -50,7 +50,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 #ifdef WIN32
     WSADATA wsaData;
     if (WSAStartup (MAKEWORD(2, 2), &wsaData) != 0) {
-      fprintf(stderr, Str("WSAStartup failed!\n"));
+      fprintf(stderr, "%s", Str("WSAStartup failed!\n"));
       return -1;
     }
 #endif
@@ -76,7 +76,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       printf("WSAGetLastError() = %d\n", WSAGetLastError());
 #else
       char buff[128];
-      (void)strerror_r(errno, buff, 128);
+      ignore_value(strerror_r(errno, buff, 128));
 #endif
 
         csound->ErrorMsg(csound, Str("Error binding socket to interface: %s"),
@@ -87,7 +87,8 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 
     mreq.imr_multiaddr.s_addr = inet_addr("225.0.0.37");
     mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-    status = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+    status = setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+                        (const char *)&mreq, sizeof(mreq));
 
     if ( status < 0 ) {
 #ifdef WIN32
@@ -96,7 +97,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
         return -1;
 #else
       char buff[128];
-      (void)strerror_r(errno, buff, 128);
+      ignore_value(strerror_r(errno, buff, 128));
 
       csound->ErrorMsg(csound, Str("Error adding membership to interface: %s"),
                        buff);
@@ -113,6 +114,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 static int ReadMidiData_(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int nbytes)
 {
+     IGN(csound);
     int             n;
     int             sock = *((int *) userData);
     fd_set          rset;
@@ -141,6 +143,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 
 static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
+     IGN(csound);
     int             sock = *((int *) userData);
     //printf("CloseMidiInDevice_\n");
     close(sock);
@@ -158,7 +161,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
      csound->GetOParms(csound, &oparms);
     /* nothing to do, report success */
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, Str("ipMIDI real time MIDI plugin for Csound\n"));
+      csound->Message(csound, "%s",
+                      Str("ipMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
 
@@ -174,7 +178,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (strcmp(drv, "ipmidi") != 0)
       return 0;
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, Str("ipmidi: ipMIDI module enabled\n"));
+      csound->Message(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);

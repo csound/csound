@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 /* ***************************************************************** */
 /* ******** Program to import pvoc files from tabular format. ****** */
@@ -37,24 +37,24 @@
 
 static void pv_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: pv_import cstext_file pv_file \n"));
+    csound->Message(csound, "%s", Str("Usage: pv_import cstext_file pv_file\n"));
 }
 
 static float getnum(FILE* inf, char *term)
 {
     char buff[100];
-    int  cc;
-    int p = 0;
+    int32_t  cc;
+    int32_t p = 0;
     while ((cc=getc(inf))!=',' && cc!='\n' && cc!=EOF && p<99) buff[p++] = cc;
     buff[p]='\0';
     *term = cc;
     return (float)atof(buff);
 }
 
-static int pv_import(CSOUND *csound, int argc, char **argv)
+static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
 {
     FILE *inf;
-    int outf;
+    int32_t outf;
     PVOCDATA data;
     WAVEFORMATEX fmt;
 
@@ -70,11 +70,11 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     if (UNLIKELY(UNLIKELY(EOF == fscanf(inf,
            "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
                                         "BlockAlign,BitsPerSample,cbSize\n")))) {
-      csound->Message(csound, Str("Not a PV file\n"));
+      csound->Message(csound, "%s", Str("Not a PV file\n"));
       exit(1);
     }
     {
-      int fmt1, fmt2, fmt3, fmt4, fmt5;
+      int32_t fmt1, fmt2, fmt3, fmt4, fmt5;
       if (UNLIKELY(7!=fscanf(inf, "%d,%d,%d,%d,%u,%u,%d\n",
              &fmt1, &fmt2, &fmt.nSamplesPerSec,
                              &fmt.nAvgBytesPerSec, &fmt3, &fmt4, &fmt5))) {
@@ -90,11 +90,11 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     if (UNLIKELY(EOF == fscanf(inf, "WordFormat,AnalFormat,SourceFormat,WindowType,"
             "AnalysisBins,Winlen,Overlap,FrameAlign,"
             "AnalysisRate,WindowParam\n"))) {
-      csound->Message(csound, Str("Not a PV file\n"));
+      csound->Message(csound, "%s", Str("Not a PV file\n"));
       exit(1);
     }
     {
-      int data1, data2, data3, data4;
+      int32_t data1, data2, data3, data4;
       if (UNLIKELY(10!=fscanf(inf, "%d,%d,%d,%d,%d,%d,%d,%d,%g,%g\n",
                               &data1,&data2,&data3,&data4,&data.nAnalysisBins,
                               &data.dwWinlen, &data.dwOverlap,&data.dwFrameAlign,
@@ -128,20 +128,20 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
     {
       float *frame =
         (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));
-      int i;
+      int32_t i;
       if (UNLIKELY(frame==NULL)) {
-        csound->Message(csound, Str("Memory failure\n"));
+        csound->Message(csound, "%s", Str("Memory failure\n"));
         exit(1);
       }
       for (i=1;;i++) {
-        unsigned int j;
+        uint32_t j;
         for (j=0; j<data.nAnalysisBins*2; j++) {
           char term;
           frame[j] = getnum(inf, &term);
           if (term==EOF) goto ending;
           if (feof(inf)) goto ending;
           if (UNLIKELY(term!=',' && term!='\n'))
-            csound->Message(csound, Str("Sync error\n"));
+            csound->Message(csound, "%s", Str("Sync error\n"));
         }
         if (UNLIKELY(i%100==0)) csound->Message(csound, "%d\n", i);
         csound->PVOC_PutFrames(csound, outf, frame, 1);
@@ -156,9 +156,9 @@ static int pv_import(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int pv_import_init_(CSOUND *csound)
+int32_t pv_import_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "pv_import", pv_import);
+    int32_t retval = csound->AddUtility(csound, "pv_import", pv_import);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "pv_import",

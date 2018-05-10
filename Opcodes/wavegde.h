@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* waveguide.h -- primitive data types and declarations for waveguides */
@@ -43,14 +43,14 @@
 #endif
 
 /* TYPEDEFS */
-typedef long    len_t;    /* length type */
+typedef int64_t    len_t;    /* length type */
 
 /* CLASS DEFINITIONS */
 
 /* circularBuffer -- circular buffer class */
 /* serves as base class for waveguides and lattice filters */
 typedef struct {
-  int    inited;           /* Data initialization flag */
+  int32_t    inited;           /* Data initialization flag */
   len_t  size;             /* Size of the digital filter lattice */
   MYFLT* insertionPoint;   /* Position in queue to place new data */
   MYFLT* extractionPoint;  /* Position to read data from */
@@ -84,7 +84,8 @@ static void guideRailUpdate(guideRail*,MYFLT);   /* delay line update routine */
 
 /* waveguide -- abstract base class definition for waveguide classes */
 typedef struct{
-  int excited;         /* excitation flag */
+  int32_t
+    excited;         /* excitation flag */
   guideRail upperRail; /* the right-going wave */
   guideRail lowerRail; /* the left-going wave */
   MYFLT c;             /* The tuning filter coefficient */

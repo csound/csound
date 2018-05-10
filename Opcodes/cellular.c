@@ -1,6 +1,6 @@
 
 /*
-    pitch.c:
+    cellular.c:
 
     Copyright (C) 2011 Gleb Rogozinsky
 
@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csdl.h"
@@ -32,36 +32,39 @@ typedef struct {
     MYFLT   *ktrig, *kreinit, *ioutFunc, *initStateFunc,
             *iRuleFunc, *ielements;
     MYFLT   *currLine, *outVec, *initVec, *ruleVec;
-    int     elements, NewOld;
-    AUXCH   auxch;
+    int32_t     elements, NewOld;
+  AUXCH   auxch;
 } CELL;
 
-static int cell_set(CSOUND *csound,CELL *p)
+static int32_t cell_set(CSOUND *csound,CELL *p)
 {
     FUNC        *ftp;
-    int elements=0;
+    int32_t elements=0;
     MYFLT *currLine, *initVec = NULL;
 
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
-      elements = (p->elements = (int) *p->ielements);
+      elements = (p->elements = (int32_t) *p->ielements);
 
-      if (UNLIKELY( elements > (int)ftp->flen ))
-        return csound->InitError(csound, Str("cell: invalid num of elements"));
+      if (UNLIKELY( elements > (int32_t)ftp->flen ))
+        return csound->InitError(csound, "%s",
+                                 Str("cell: invalid num of elements"));
     }
-    else return csound->InitError(csound, Str("cell: invalid output table"));
+    else return csound->InitError(csound, "%s", Str("cell: invalid output table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
-      if (UNLIKELY(elements > (int)ftp->flen ))
-        return csound->InitError(csound, Str("cell: invalid num of elements"));
+      if (UNLIKELY(elements > (int32_t)ftp->flen ))
+        return csound->InitError(csound, "%s",
+                                 Str("cell: invalid num of elements"));
     }
     else
-      return csound->InitError(csound, Str("cell: invalid initial state table"));
+      return csound->InitError(csound, "%s",
+                               Str("cell: invalid initial state table"));
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->iRuleFunc)) != NULL)) {
       p->ruleVec = ftp->ftable;
     }
     else
-      return csound->InitError(csound, Str("cell: invalid rule table"));
+      return csound->InitError(csound, "%s", Str("cell: invalid rule table"));
 
     if (p->auxch.auxp == NULL)
       csound->AuxAlloc(csound, elements * sizeof(MYFLT) * 2, &p->auxch);
@@ -76,8 +79,9 @@ static int cell_set(CSOUND *csound,CELL *p)
     return OK;
 }
 
-static int cell(CSOUND *csound,CELL *p)
+static int32_t cell(CSOUND *csound,CELL *p)
 {
+     IGN(csound);
     if (*p->kreinit) {
       p->NewOld = 0;
       memcpy(p->currLine, p->initVec, sizeof(MYFLT)*p->elements);
@@ -86,7 +90,7 @@ static int cell(CSOUND *csound,CELL *p)
       /* } while (--elements); */
     }
     if (*p->ktrig) {
-      int j, elements = p->elements, jm1;
+      int32_t j, elements = p->elements, jm1;
       MYFLT *actual, *previous, *outVec = p->outVec , *ruleVec = p->ruleVec;
 
       previous = &(p->currLine[elements * p->NewOld]);
@@ -99,12 +103,13 @@ static int cell(CSOUND *csound,CELL *p)
 
         jm1 = (j < 1) ? elements-1 : j-1;
         outVec[j] = previous[j];
-        actual[j] = ruleVec[(int)(previous[jm1]*4 + previous[j]*2 +
+        actual[j] = ruleVec[(int32_t)(previous[jm1]*4 + previous[j]*2 +
                                   previous[(j+1) % elements])];
       }
 
     } else {
-      int elements =  p->elements;
+      int32_t
+        elements =  p->elements;
       MYFLT *actual = &(p->currLine[elements * !(p->NewOld)]);
       memcpy(p->outVec, actual, sizeof(MYFLT)*elements);
       /* do { */

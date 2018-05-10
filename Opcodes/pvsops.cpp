@@ -16,8 +16,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 #include <algorithm>
 #include <plugin.h>
@@ -29,11 +29,11 @@ struct PVTrace : csnd::FPlugin<1, 2> {
 
   int init() {
     if (inargs.fsig_data(0).isSliding())
-      return csound->init_error(Str("sliding not supported"));
+      return csound->init_error("sliding not supported");
 
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
-      return csound->init_error(Str("fsig format not supported"));
+      return csound->init_error("fsig format not supported");
 
     amps.allocate(csound, inargs.fsig_data(0).nbins());
     csnd::Fsig &fout = outargs.fsig_data(0);
@@ -138,8 +138,10 @@ struct TVConv : csnd::Plugin<1, 6> {
     auto inc2 = csound->is_asig(frz2);
 
     for (auto &s : outsig) {
-      if(*frz1 > 0) itn[n] = *inp;
-      if(*frz2 > 0) itr[n] = *irp;
+      if (*frz1 > 0)
+        itn[n] = *inp;
+      if (*frz2 > 0)
+        itr[n] = *irp;
 
       s = out[n] + saved[n];
       saved[n] = out[n + pars];
@@ -161,12 +163,12 @@ struct TVConv : csnd::Plugin<1, 6> {
           itr = ir.begin();
         }
         // spectral delay line
-        for (csnd::AuxMem<MYFLT>::iterator it1 = itnsp,
-             it2 = irsp.end() - ffts; it2 >= irsp.begin();
-             it1 += ffts, it2 -= ffts) {
-          if (it1 == insp.end()) it1 = insp.begin();
-          ins =  to_cmplx(it1);
-          irs =  to_cmplx(it2);
+        for (csnd::AuxMem<MYFLT>::iterator it1 = itnsp, it2 = irsp.end() - ffts;
+             it2 >= irsp.begin(); it1 += ffts, it2 -= ffts) {
+          if (it1 == insp.end())
+            it1 = insp.begin();
+          ins = to_cmplx(it1);
+          irs = to_cmplx(it2);
           // spectral product
           for (uint32_t i = 1; i < pars; i++)
             ous[i] += ins[i] * irs[i];
@@ -182,7 +184,7 @@ struct TVConv : csnd::Plugin<1, 6> {
     return OK;
   }
 
- int dconv() {
+  int dconv() {
     csnd::AudioSig insig(this, inargs(0));
     csnd::AudioSig irsig(this, inargs(1));
     csnd::AudioSig outsig(this, outargs(0));
@@ -194,18 +196,20 @@ struct TVConv : csnd::Plugin<1, 6> {
     auto inc2 = csound->is_asig(frz2);
 
     for (auto &s : outsig) {
-      if(*frz1 > 0) *itn = *inp;
-      if(*frz2 > 0) *itr = *irp;
+      if (*frz1 > 0)
+        *itn = *inp;
+      if (*frz2 > 0)
+        *itr = *irp;
       itn++, itr++;
-      if(itn == in.end()) {
-         itn = in.begin();
-         itr = ir.begin();
+      if (itn == in.end()) {
+        itn = in.begin();
+        itr = ir.begin();
       }
       s = 0.;
-      for (csnd::AuxMem<MYFLT>::iterator it1 = itn,
-           it2 = ir.end() - 1; it2 >= ir.begin();
-           it1++, it2--) {
-        if(it1 == in.end()) it1  = in.begin();
+      for (csnd::AuxMem<MYFLT>::iterator it1 = itn, it2 = ir.end() - 1;
+           it2 >= ir.begin(); it1++, it2--) {
+        if (it1 == in.end())
+          it1 = in.begin();
         s += *it1 * *it2;
       }
       frz1 += inc1, frz2 += inc2;
@@ -291,8 +295,6 @@ struct TPrint : csnd::Plugin<0, 1> {
   }
 };
 */
-
-
 
 #include <modload.h>
 void csnd::on_load(Csound *csound) {

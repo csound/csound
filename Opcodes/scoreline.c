@@ -1,7 +1,7 @@
 /*
     scoreline.c:
 
-    (c) Victor Lazzarini, 2004,2008
+    Copyright (c) Victor Lazzarini, 2004,2008
 
     This file is part of Csound.
 
@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 //#include "csdl.h"
@@ -37,23 +37,25 @@ typedef struct _scorepos {
   MYFLT *spos;
 } SCOREPOS;
 
-int messi(CSOUND *csound, INMESS *p)
+int32_t messi(CSOUND *csound, INMESS *p)
 {
     csound->InputMessage(csound, (char *)p->SMess->data);
     return OK;
 }
 
-int messk(CSOUND *csound, INMESS *p){
+int32_t messk(CSOUND *csound, INMESS *p){
     if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess->data);
     return OK;
 }
 
-int setscorepos(CSOUND *csound, SCOREPOS *p){
+int32_t setscorepos(CSOUND *csound, SCOREPOS *p){
     csound->SetScoreOffsetSeconds(csound, *p->spos);
     return OK;
 }
 
-int rewindscore(CSOUND *csound, SCOREPOS *p){
+int32_t
+rewindscore(CSOUND *csound, SCOREPOS *p){
+    IGN(p);
     csound->RewindScore(csound);
     return OK;
 }

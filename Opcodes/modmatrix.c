@@ -27,9 +27,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <xmmintrin.h>
 #endif
 
-static int modmatrix_init(CSOUND *csound, MODMATRIX *m)
+static int32_t modmatrix_init(CSOUND *csound, MODMATRIX *m)
 {
-    unsigned int size;
+    uint32_t size;
 
     m->restab = csound->FTnp2Find(csound, m->ires);
     m->modtab = csound->FTnp2Find(csound, m->imod);
@@ -44,8 +44,8 @@ static int modmatrix_init(CSOUND *csound, MODMATRIX *m)
     if (UNLIKELY(!m->mattab))
         return INITERROR("unable to load routing matrix table");
 
-    m->nummod = (int)*m->inummod;
-    m->numparm = (int)*m->inumparm;
+    m->nummod = (int32_t)*m->inummod;
+    m->numparm = (int32_t)*m->inumparm;
     if (UNLIKELY(m->nummod <= 0))
         return INITERROR("number of modulators must be a positive integer");
     if (UNLIKELY(m->numparm <= 0))
@@ -55,14 +55,14 @@ static int modmatrix_init(CSOUND *csound, MODMATRIX *m)
        MYFLTs - nummod*numparm, nummod, numparm
        ints - nummod, numparm */
     size =  (m->nummod*m->numparm + m->nummod + m->numparm)*sizeof(MYFLT) +
-            (m->nummod + m->numparm)*sizeof(int);
+            (m->nummod + m->numparm)*sizeof(int32_t);
     if (m->aux.auxp == NULL || m->aux.size < size)
         csound->AuxAlloc(csound, size, &m->aux);
     if (UNLIKELY(m->aux.auxp == NULL))
         return INITERROR("memory allocation error");
 
     m->proc_mat = (MYFLT *)m->aux.auxp;
-    m->mod_map = (int *)(m->proc_mat + m->nummod*m->numparm);
+    m->mod_map = (int32_t *)(m->proc_mat + m->nummod*m->numparm);
     m->parm_map = m->mod_map + m->nummod;
     m->remap_mod = (MYFLT *)(m->parm_map + m->numparm);
     m->remap_parm = m->remap_mod + m->nummod;
@@ -74,12 +74,13 @@ static int modmatrix_init(CSOUND *csound, MODMATRIX *m)
 
 static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
 {
-    int i, j, k;
+    IGN(csound);
+    int32_t i, j, k;
     MYFLT *matval;
     /* Use the still unused process matrix for this temporary array */
-    int *coltab = (int *)m->proc_mat;
+    int32_t *coltab = (int32_t *)m->proc_mat;
 
-    memset(coltab, 0, m->numparm*sizeof(int));
+    memset(coltab, 0, m->numparm*sizeof(int32_t));
     m->nummod_scanned = m->numparm_scanned = 0;
 
     /* Scan for rows containing only zero */
@@ -101,7 +102,7 @@ static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
     /* Scan for columns containing only zero */
     for (i = 0; i < m->numparm; ++i) {
         MYFLT *cur = &m->mattab->ftable[i];
-        int nonzero = coltab[i];
+        int32_t nonzero = coltab[i];
 
         if (!nonzero) {
             /* Columns is not previously marked as being non-zero, scan it */
@@ -124,11 +125,11 @@ static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
     /* Rebuild matrix without zero rows and columns */
     matval = m->proc_mat;
     for (i = 0; i < m->nummod_scanned; ++i) {
-        int mod = m->mod_map[i];
+        int32_t mod = m->mod_map[i];
         MYFLT *row = &m->mattab->ftable[mod*m->numparm];
 
         for (j = 0; j < m->numparm_scanned; ++j) {
-            int parm = m->parm_map[j];
+            int32_t parm = m->parm_map[j];
             *matval++ = row[parm];
         }
     }
@@ -139,7 +140,8 @@ static void scan_modulation_matrix(CSOUND *csound, MODMATRIX *m)
 
 static void process(CSOUND *csound, MODMATRIX *m)
 {
-    int col = 0, row;
+    IGN(csound);
+    int32_t col = 0, row;
 
     MYFLT *src = &m->modtab->ftable[0];
     /* Use unrolled SSE based loops if possible. All loading and storing has to
@@ -203,8 +205,9 @@ static void process(CSOUND *csound, MODMATRIX *m)
 
 static void process_scanned(CSOUND *csound, MODMATRIX *m)
 {
-    int col = 0, row;
-    int i;
+    IGN(csound);
+    int32_t col = 0, row;
+    int32_t i;
     MYFLT *src = &m->remap_mod[0];
 
     for (i = 0; i < m->nummod_scanned; ++i)
@@ -225,7 +228,8 @@ static void process_scanned(CSOUND *csound, MODMATRIX *m)
     }
 }
 
-static int modmatrix(CSOUND *csound, MODMATRIX *m)
+static int32_t
+modmatrix(CSOUND *csound, MODMATRIX *m)
 {
     /* We wait until the update signal has gone low again before actually
        preprocessing a matrix */

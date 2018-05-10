@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************/
@@ -31,11 +31,11 @@
 #include "pvoc.h"
 #include <math.h>
 
-static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
+static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 
 /* This is used in pvadd instead of the Fetch() from dsputil.c */
 void FetchInForAdd(float *inp, MYFLT *buf, int32 fsize,
-                   MYFLT pos, int binoffset, int maxbin, int binincr)
+                   MYFLT pos, int32_t binoffset, int32_t maxbin, int32_t binincr)
 {
     int32    j;
     float   *frame0, *frame1;
@@ -62,11 +62,11 @@ void FetchInForAdd(float *inp, MYFLT *buf, int32 fsize,
     }
 }
 
-int pvaddset_(CSOUND *csound, PVADD *p, int stringname)
+int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
 {
-    int      ibins;
+    int32_t      ibins;
     char     pvfilnam[MAXNAME];
-    int      size;
+    int32_t      size;
     FUNC     *ftp = NULL, *AmpGateFunc = NULL;
     int32     memsize;
 
@@ -82,10 +82,10 @@ int pvaddset_(CSOUND *csound, PVADD *p, int stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;
@@ -121,25 +121,25 @@ int pvaddset_(CSOUND *csound, PVADD *p, int stringname)
 
    if (*p->imode == 1 || *p->imode == 2) {
      SpectralExtract(p->frPtr, p->pvcopy, size, p->maxFr,
-                     (int) *p->imode, *p->ifreqlim);
+                     (int32_t) *p->imode, *p->ifreqlim);
      p->frPtr = (float*) p->pvcopy;
    }
 
     memset(p->oscphase, 0, MAXBINS*sizeof(MYFLT));
 
-    ibins = (*p->ibins <= FL(0.0) ? (size / 2) : (int) *p->ibins);
-    p->maxbin = ibins + (int) *p->ibinoffset;
+    ibins = (*p->ibins <= FL(0.0) ? (size / 2) : (int32_t) *p->ibins);
+    p->maxbin = ibins + (int32_t) *p->ibinoffset;
     p->maxbin = (p->maxbin > (size / 2) ? (size / 2) : p->maxbin);
 
     return OK;
 }
 
-int pvadd(CSOUND *csound, PVADD *p)
+int32_t pvadd(CSOUND *csound, PVADD *p)
 {
     MYFLT   *ar, *ftab;
     MYFLT   frIndx;
-    int     size = pvfrsiz(p);
-    int     i, binincr = (int) *p->ibinincr;
+    int32_t     size = pvfrsiz(p);
+    int32_t i, binincr = (int32_t) *p->ibinincr;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -160,7 +160,7 @@ int pvadd(CSOUND *csound, PVADD *p)
       }
     }
     FetchInForAdd(p->frPtr, p->buf, size, frIndx,
-                  (int) *p->ibinoffset, p->maxbin, binincr);
+                  (int32_t) *p->ibinoffset, p->maxbin, binincr);
 
     if (*p->igatefun > 0)
       PvAmpGate(p->buf, p->maxbin*2, p->AmpGateFunc, p->PvMaxAmp);
@@ -169,7 +169,7 @@ int pvadd(CSOUND *csound, PVADD *p)
     memset(ar, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
     oscphase = p->oscphase;
-    for (i = (int) *p->ibinoffset; i < p->maxbin; i += binincr) {
+    for (i = (int32_t) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;
       phase = (int32) *oscphase;
       frq = p->buf[i * 2 + 1] * *p->kfmod;
@@ -200,16 +200,16 @@ int pvadd(CSOUND *csound, PVADD *p)
     return csound->PerfError(csound, p->h.insdshead, Str("PVADD timpnt < 0"));
 }
 
-int pvaddset(CSOUND *csound, PVADD *p){
+int32_t pvaddset(CSOUND *csound, PVADD *p){
     return pvaddset_(csound, p, 0);
 }
 
-int pvaddset_S(CSOUND *csound, PVADD *p){
+int32_t pvaddset_S(CSOUND *csound, PVADD *p){
     return pvaddset_(csound, p, 1);
 }
 
 
-static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
+static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
 {
     PVOCEX_MEMFILE  pp;
 
@@ -220,7 +220,8 @@ static int pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
     if (UNLIKELY(pp.fftsize > PVFRAMSIZE)) {
       return csound->InitError(csound, Str("pvoc-ex file %s: "
                                            "FFT size %d too large for Csound"),
-                               fname, (int) pp.fftsize);
+                               fname, (int32_t
+                                       ) pp.fftsize);
     }
     if (UNLIKELY(pp.fftsize < 128)) {
       return csound->InitError(csound, Str("PV frame %d seems too small in %s"),

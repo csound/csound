@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*******************************************/
@@ -37,9 +37,9 @@
 typedef struct Modal4 {
     Envelope envelope;
     FUNC        *wave;
-/*     int              w_looping; */
-    int         w_myData;
-    int         w_allDone;
+/*     int32_t              w_looping; */
+    int32_t         w_myData;
+    int32_t         w_allDone;
     MYFLT       w_rate;
     MYFLT       w_time;
     MYFLT       w_phaseOffset;
@@ -61,7 +61,8 @@ typedef struct Modal4 {
 
 void Modal4_clear(Modal4 *);
 void Modal4_setFreq(CSOUND*, Modal4 *m, MYFLT frequency);
-void Modal4_setRatioAndReson(CSOUND*,Modal4 *m, int whichOne,
+void Modal4_setRatioAndReson(CSOUND*,Modal4 *m, int32_t
+                             whichOne,
                              MYFLT ratio, MYFLT reson);
 #define Modal4_setMasterGain(m,Gain)    (m->masterGain = aGain)
 #define Modal4_setDirectGain(m,aGain)   (m->directGain = aGain)

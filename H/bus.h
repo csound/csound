@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*                                                      BUS.H           */
@@ -53,25 +53,16 @@ typedef struct {
     OPDS    h;
     MYFLT   *ans;
     MYFLT   *keyDown;
-    int     evtbuf;
+    int32_t     evtbuf;
 } KSENSE;
 
 typedef struct channelEntry_s {
     struct channelEntry_s *nxt;
     controlChannelHints_t hints;
     MYFLT   *data;
-#ifndef MACOSX
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    pthread_spinlock_t *lock;
-    pthread_spinlock_t theLock;
-#else
-    int     lock;
-#endif
-#else
-    int     lock;               /* Multi-thread protection */
-#endif
-    int     type;
-    int     datasize;  /* size of allocated chn data */
+    spin_lock_t  lock;               /* Multi-thread protection */
+    int32_t     type;
+    int32_t     datasize;  /* size of allocated chn data */
     char    name[1];
 } CHNENTRY;
 
@@ -80,8 +71,8 @@ typedef struct {
     MYFLT   *arg;
     STRINGDAT   *iname;
     MYFLT   *fp;
-    int     *lock;
-    int      pos;
+    spin_lock_t  *lock;
+    int32_t      pos;
     char     chname[MAX_CHAN_NAME+1];
 } CHNGET;
 
@@ -89,7 +80,7 @@ typedef struct {
     OPDS    h;
     STRINGDAT   *iname;
     MYFLT   *fp;
-    int     *lock;
+    spin_lock_t     *lock;
 } CHNCLEAR;
 
 typedef struct {
@@ -105,14 +96,14 @@ typedef struct {
     MYFLT   *iwidth;
     MYFLT   *iheight;
     STRINGDAT *Sattributes;
-    int     *lock;
+    spin_lock_t      *lock;
 } CHN_OPCODE_K;
 
 typedef struct {
     OPDS    h;
     STRINGDAT   *iname;
     MYFLT   *imode;
-    int     *lock;
+    spin_lock_t   *lock;
 } CHN_OPCODE;
 
 typedef struct {
@@ -153,52 +144,52 @@ typedef struct {
     void *channelptr;
 } OUTVAL;
 
-int     chano_opcode_perf_k(CSOUND *, CHNVAL *);
-int     chano_opcode_perf_a(CSOUND *, CHNVAL *);
-int     chani_opcode_perf_k(CSOUND *, CHNVAL *);
-int     chani_opcode_perf_a(CSOUND *, CHNVAL *);
-int     pvsin_init(CSOUND *, FCHAN *);
-int     pvsin_perf(CSOUND *, FCHAN *);
-int     pvsout_init(CSOUND *, FCHAN *);
-int     pvsout_perf(CSOUND *, FCHAN *);
+int32_t     chano_opcode_perf_k(CSOUND *, CHNVAL *);
+int32_t     chano_opcode_perf_a(CSOUND *, CHNVAL *);
+int32_t     chani_opcode_perf_k(CSOUND *, CHNVAL *);
+int32_t     chani_opcode_perf_a(CSOUND *, CHNVAL *);
+int32_t     pvsin_init(CSOUND *, FCHAN *);
+int32_t     pvsin_perf(CSOUND *, FCHAN *);
+int32_t     pvsout_init(CSOUND *, FCHAN *);
+int32_t     pvsout_perf(CSOUND *, FCHAN *);
 
-int     sensekey_perf(CSOUND *, KSENSE *);
+int32_t     sensekey_perf(CSOUND *, KSENSE *);
 
-int     notinit_opcode_stub(CSOUND *, void *);
-int     chnget_opcode_init_i(CSOUND *, CHNGET *);
-int     chnget_opcode_init_k(CSOUND *, CHNGET *);
-int     chnget_opcode_init_a(CSOUND *, CHNGET *);
-int     chnget_opcode_init_S(CSOUND *, CHNGET *);
-int     chnget_opcode_perf_S(CSOUND *, CHNGET *);
-int     chnset_opcode_init_i(CSOUND *, CHNGET *);
-int     chnset_opcode_init_k(CSOUND *, CHNGET *);
-int     chnset_opcode_init_a(CSOUND *, CHNGET *);
-int     chnset_opcode_init_S(CSOUND *, CHNGET *);
-int     chnset_opcode_perf_S(CSOUND *, CHNGET *);
-int     chnmix_opcode_init(CSOUND *, CHNGET *);
-int     chnclear_opcode_init(CSOUND *, CHNCLEAR *);
-int     chn_k_opcode_init(CSOUND *, CHN_OPCODE_K *);
-int     chn_a_opcode_init(CSOUND *, CHN_OPCODE *);
-int     chn_S_opcode_init(CSOUND *, CHN_OPCODE *);
-int     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);
-int     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
+int32_t     notinit_opcode_stub(CSOUND *, void *);
+int32_t     chnget_opcode_init_i(CSOUND *, CHNGET *);
+int32_t     chnget_opcode_init_k(CSOUND *, CHNGET *);
+int32_t     chnget_opcode_init_a(CSOUND *, CHNGET *);
+int32_t     chnget_opcode_init_S(CSOUND *, CHNGET *);
+int32_t     chnget_opcode_perf_S(CSOUND *, CHNGET *);
+int32_t     chnset_opcode_init_i(CSOUND *, CHNGET *);
+int32_t     chnset_opcode_init_k(CSOUND *, CHNGET *);
+int32_t     chnset_opcode_init_a(CSOUND *, CHNGET *);
+int32_t     chnset_opcode_init_S(CSOUND *, CHNGET *);
+int32_t     chnset_opcode_perf_S(CSOUND *, CHNGET *);
+int32_t     chnmix_opcode_init(CSOUND *, CHNGET *);
+int32_t     chnclear_opcode_init(CSOUND *, CHNCLEAR *);
+int32_t     chn_k_opcode_init(CSOUND *, CHN_OPCODE_K *);
+int32_t     chn_a_opcode_init(CSOUND *, CHN_OPCODE *);
+int32_t     chn_S_opcode_init(CSOUND *, CHN_OPCODE *);
+int32_t     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);
+int32_t     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
 
-int kinval(CSOUND *csound, INVAL *p);
-int kinvalS(CSOUND *csound, INVAL *p);
-int invalset(CSOUND *csound, INVAL *p);
-int invalset_string(CSOUND *csound, INVAL *p);
-int invalset_string_S(CSOUND *csound, INVAL *p);
-int invalset_S(CSOUND *csound, INVAL *p);
-int invalsetgo(CSOUND *csound, INVAL *p);
-int invalsetSgo(CSOUND *csound, INVAL *p);
-int koutval(CSOUND *csound, OUTVAL *p);
-int koutvalS(CSOUND *csound, OUTVAL *p);
-int outvalset(CSOUND *csound, OUTVAL *p);
-int outvalset_string(CSOUND *csound, OUTVAL *p);
-int outvalset_string_S(CSOUND *csound, OUTVAL *p);
-int outvalset_S(CSOUND *csound, OUTVAL *p);
-int outvalsetgo(CSOUND *csound, OUTVAL *p);
-int outvalsetSgo(CSOUND *csound, OUTVAL *p);
+int32_t kinval(CSOUND *csound, INVAL *p);
+int32_t kinvalS(CSOUND *csound, INVAL *p);
+int32_t invalset(CSOUND *csound, INVAL *p);
+int32_t invalset_string(CSOUND *csound, INVAL *p);
+int32_t invalset_string_S(CSOUND *csound, INVAL *p);
+int32_t invalset_S(CSOUND *csound, INVAL *p);
+int32_t invalsetgo(CSOUND *csound, INVAL *p);
+int32_t invalsetSgo(CSOUND *csound, INVAL *p);
+int32_t koutval(CSOUND *csound, OUTVAL *p);
+int32_t koutvalS(CSOUND *csound, OUTVAL *p);
+int32_t outvalset(CSOUND *csound, OUTVAL *p);
+int32_t outvalset_string(CSOUND *csound, OUTVAL *p);
+int32_t outvalset_string_S(CSOUND *csound, OUTVAL *p);
+int32_t outvalset_S(CSOUND *csound, OUTVAL *p);
+int32_t outvalsetgo(CSOUND *csound, OUTVAL *p);
+int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p);
 #ifdef __cplusplus
 }
 #endif

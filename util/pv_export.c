@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 /* ***************************************************************** */
 /* ******** Program to export pvoc files in tabular format. ******** */
@@ -37,14 +37,14 @@
 
 static void pv_export_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: pv_export pv_file cstext_file\n"));
+    csound->Message(csound, "%s", Str("Usage: pv_export pv_file cstext_file\n"));
 }
 
-static int pv_export(CSOUND *csound, int argc, char **argv)
+static int32_t pv_export(CSOUND *csound, int32_t argc, char **argv)
 {
-    int inf;
+    int32_t inf;
     FILE *outf;
-    int i;
+    int32_t i;
     PVOCDATA data;
     WAVEFORMATEX fmt;
 
@@ -86,7 +86,7 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
         (float*) csound->Malloc(csound, data.nAnalysisBins * 2 * sizeof(float));
 
       for (i=1;;i++) {
-        unsigned int j;
+        uint32_t j;
         if (1!=csound->PVOC_GetFrames(csound, inf, frame, 1)) break;
         for (j=0; j<data.nAnalysisBins*2; j++)
           fprintf(outf, "%s%g", (j==0 ? "" : ","), frame[j]);
@@ -99,7 +99,7 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
 /*       double *frame =
             (double*) malloc(data.nAnalysisBins * 2 * sizeof(double)); */
 /*       for (; i!=0; i--) { */
-/*         int j; */
+/*         int32_t j; */
 /*         csound->PVOC_GetFrames(csound, inf, frame, 1); */
 /*         for (j = 0; j<data.nAnalysisBins*2; j ++) */
 /*           fprintf(outf, "%s%g", (j==0 ? "" : ","), frame[j]); */
@@ -116,9 +116,9 @@ static int pv_export(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int pv_export_init_(CSOUND *csound)
+int32_t pv_export_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "pv_export", pv_export);
+    int32_t retval = csound->AddUtility(csound, "pv_export", pv_export);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "pv_export",

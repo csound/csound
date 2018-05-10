@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /* $Id: mp3dec.c,v 1.6 2009/03/01 15:27:05 jpff Exp $ */
@@ -132,7 +132,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       mp3->in_buffer_used -= mp3->in_buffer_offset;
       if (r != MPADEC_RETCODE_OK) {
         // this is a fix for ID3 tag at the start of a file
-        while(r == 7) { /* NO SYNC, read more data */
+        while (r == 7) { /* NO SYNC, read more data */
           int32_t n = sizeof(mp3->in_buffer);
           if (mp3->stream_size && (n > mp3->stream_size))
             n = (int32_t)mp3->stream_size;

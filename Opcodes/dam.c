@@ -17,15 +17,15 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "stdopcod.h"
 #include "dam.h"
 #include <math.h>
 
-#define SQRT2 FL(1.41421356237309504880168872421)
+#define SQRT2 ROOT2
 
 /*
  *   Dynamic Amplitude Modifier.
@@ -42,7 +42,7 @@
  *      Initialisation code
  */
 
-static int daminit(CSOUND *csound, DAM *p)
+static int32_t daminit(CSOUND *csound, DAM *p)
 {
    /* Initialise gain value */
 
@@ -62,8 +62,9 @@ static int daminit(CSOUND *csound, DAM *p)
  * Run-time computation code
  */
 
-static int dam(CSOUND *csound, DAM *p)
+static int32_t dam(CSOUND *csound, DAM *p)
 {
+     IGN(csound);
     MYFLT *ain,*aout;
     MYFLT threshold;
     MYFLT gain;
@@ -153,12 +154,13 @@ static int dam(CSOUND *csound, DAM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "dam",     S(DAM),  0, 5,     "a",    "akiiii",(SUBR)daminit, NULL, (SUBR)dam },
+{ "dam",     S(DAM),  0, 3,     "a",    "akiiii",(SUBR)daminit, (SUBR)dam },
 };
 
-int dam_init_(CSOUND *csound)
+int32_t dam_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                                                         /*      UGRW1.H */
@@ -277,9 +277,9 @@ typedef struct {
         MYFLT   *ptime;         /* How much time to leave between each print*/
         MYFLT   *val;           /* Value to print */
         MYFLT   *space;         /* Spaces to insert before printing */
-        MYFLT   initime, ctime; /* Time when initialised; initialised */
+        MYFLT   *named;
+        MYFLT   printat, ctime; /* Time when initialised; initialised */
         int32   pspace;         /* How many spaces to print */
-        int32   cysofar;        /* Number of print cycles so far */
         int     initialised;    /* Non zero for initialised */
 } PRINTK;
 
@@ -289,8 +289,7 @@ typedef struct {
         MYFLT   *ifilcod;       /* File name */
         MYFLT   *ptime;         /* How much time to leave between each print */
         MYFLT   *kvals[VARGMAX];/* values to print */
-        MYFLT   initime, ctime; /* Time when initialised; Cycle time */
-        int32   cysofar;        /* Number of print cycles so far from 0 */
+        MYFLT   printat, ctime; /* Time when initialised; Cycle time */
         int     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
         char* old;
@@ -315,9 +314,9 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *val, *space;
+        MYFLT   *val, *space, *named;
         MYFLT   oldvalue;
-        int     pspace;
+        int32_t pspace;
 } PRINTK2;
 
 typedef struct {
@@ -350,6 +349,7 @@ int peaka(CSOUND*,PEAK *p);
 int peakk(CSOUND*,PEAK *p);
 int printk(CSOUND*,PRINTK *p);
 int printk2(CSOUND*,PRINTK2 *p);
+int printk4(CSOUND*,PRINTK2 *p);
 int printk2set(CSOUND*,PRINTK2 *p);
 int printks(CSOUND*,PRINTKS *p);
 int printkset(CSOUND*,PRINTK *p);

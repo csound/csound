@@ -20,8 +20,8 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- 02111-1307 USA
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ 02110-1301 USA
  */
 
 
@@ -41,8 +41,8 @@ extern "C"
     {
         OPDS h;
         MYFLT *arguments[20];
-        int inputArgumentCount;
-        int outputArgumentCount;
+        int32_t inputArgumentCount;
+        int32_t outputArgumentCount;
         WebSocket *webSocket;
         OpcodeArgument *inputArguments;
         OpcodeArgument *outputArguments;
@@ -50,8 +50,8 @@ extern "C"
         CSOUND *csound;
     } WebSocketOpcode;
 
-    int WebSocketOpcode_initialise(CSOUND *csound, WebSocketOpcode *self);
-    int WebSocketOpcode_process(CSOUND *csound, WebSocketOpcode *self);
+    int32_t WebSocketOpcode_initialise(CSOUND *csound, WebSocketOpcode *self);
+    int32_t WebSocketOpcode_process(CSOUND *csound, WebSocketOpcode *self);
 #ifdef __cplusplus
 }
 #endif

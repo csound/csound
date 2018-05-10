@@ -14,8 +14,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with this plugin; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 
 */
 #include <unistd.h>
@@ -26,10 +26,11 @@ typedef struct
 {
   OPDS h;
   MYFLT *kresult, *kdev, *ktable;
-  int devFD;
-  unsigned int numk, numb;
-  int timeout, initme;
+  int32_t devFD;
+  uint32_t numk, numb;
+  int32_t timeout, initme;
   MYFLT table;
-  int dev;
+  int32_t
+  dev;
   FUNC *ftp;
 } LINUXJOYSTICK;

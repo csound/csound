@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -66,10 +66,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     extractStatics->onsect = 1;
     extractStatics->onbeat = FL(0.0);   /* other default vals   */
     extractStatics->offsect = 999;  extractStatics->offbeat = FL(0.0);
-    //    while (fscanf(xfp, s) != EOF) {
-    //  while (fscanf(xfp, "%.81s", s) != EOF) {
     while (fscanf(xfp, "%100s", s) > 0) {
-    //  while (fgets(s, 82, xfp) > 0) {
       char *c = s;
       int i;
       //printf("string: %s\n", s);
@@ -77,6 +74,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
       case 'i':
         all = 0;
         // intended no break here
+        /* FALLTHRU */
       case 'f':
       case 't':
         flag = *c++;
@@ -195,6 +193,7 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
             break;
           if (bp->newp3 < 0)            /* treat indef dur like f */
             goto casef;
+          /* FALLTHRU */
         case 'a':turnoff = bp->newp2 + bp->newp3;   /* i and a: */
           if (extractStatics->sectno == extractStatics->onsect) {
             if (turnoff < extractStatics->ontime)

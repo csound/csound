@@ -17,8 +17,8 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- 02111-1307 USA
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ 02110-1301 USA
  */
 
 #include "csoundCore.h"
@@ -391,7 +391,7 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
  * format is in pairs of specified type and types it can resolve into,
  * termintated by a NULL */
 const char* POLY_IN_TYPES[] = {
-    "x", "kacpri",
+    "x", "kacpri",              /* ***Deprecated*** */
     "T", "Sicpr",
     "U", "Sikcpr",
     "i", "cpri",
@@ -421,7 +421,7 @@ const char* VAR_ARG_IN_TYPES[] = {
 };
 
 const char* POLY_OUT_TYPES[] = {
-    "s", "ka",
+    "s", "ka",                  /* ***Deprecated*** */
     "i", "pi", NULL
 };
 

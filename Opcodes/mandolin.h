@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /**********************************************************************/
@@ -62,8 +62,9 @@ typedef struct Mandolin {
     MYFLT       lastFreq;
     MYFLT       lastLength;
     int32       dampTime;
-    int         waveDone;
-    int         kloop;
+    int32_t         waveDone;
+    int32_t
+    kloop;
 } MANDOL;
 
 #endif

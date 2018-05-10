@@ -15,8 +15,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*******************************************************\
@@ -41,7 +41,7 @@
 #define SHORTMAX                (32767)
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
-      csound->Die(csound, MSG);
+      csound->Die(csound, "%s", MSG);
 
 typedef struct {
   long        sample;         /* Time file starts in samples */
@@ -50,7 +50,7 @@ typedef struct {
   MYFLT       stime;          /* Time file starts in secs */
   MYFLT       endtime;        /* Time file ends in secs */
   MYFLT       dur;            /* Length in secs */
-  int         outputs;        /* Number of out chanels */
+  int32_t         outputs;        /* Number of out chanels */
   SOUNDIN *   p;              /* Csound structure */
 } XTRC;
 
@@ -63,23 +63,26 @@ static void usage(CSOUND *csound, char *mesg, ...)
 {
     va_list args;
 
-    csound->Message(csound,Str("Usage:\textractor [-flags] soundfile\n"));
-    csound->Message(csound,Str("Legal flags are:\n"));
-    csound->Message(csound,Str("-o fname\tsound output filename\n"));
-    csound->Message(csound,Str("-N\t\tnotify (ring the bell) when done\n"));
-    csound->Message(csound,Str("-S integer\tsample number at which"
-                               " to start file\n"));
-    csound->Message(csound,Str("-Z integer\tsample number at which to end file\n"));
-    csound->Message(csound,Str("-Q integer\tnumber of samples to read\n"));
+    csound->Message(csound,"%s", Str("Usage:\textractor [-flags] soundfile\n"));
+    csound->Message(csound,"%s", Str("Legal flags are:\n"));
+    csound->Message(csound,"%s", Str("-o fname\tsound output filename\n"));
+    csound->Message(csound,"%s", Str("-N\t\tnotify (ring the bell) when done\n"));
+    csound->Message(csound,"%s", Str("-S integer\tsample number at which"
+                                     " to start file\n"));
+    csound->Message(csound,"%s", Str("-Z integer\tsample number at which"
+                                     " to end file\n"));
+    csound->Message(csound,"%s", Str("-Q integer\tnumber of samples to read\n"));
 
-    csound->Message(csound,Str("-T fpnum\ttime in secs at which to start file\n"));
-    csound->Message(csound,Str("-E fpnum\ttime in secs at which to end file\n"));
-    csound->Message(csound,Str("-D fpnum\tduration in secs of extract\n"));
-    csound->Message(csound,Str("-R\tRewrite header\n"));
-    csound->Message(csound,Str("-H\t\tHeartbeat\n"));
-    csound->Message(csound,Str("-v\t\tverbose mode for debugging\n"));
-    csound->Message(csound,Str("-- fname\tLog output to file\n"));
-    csound->Message(csound,Str("flag defaults: extractor -otest -S 0\n"));
+    csound->Message(csound,"%s", Str("-T fpnum\ttime in secs at which"
+                                     " to start file\n"));
+    csound->Message(csound,"%s", Str("-E fpnum\ttime in secs at which"
+                                     " to end file\n"));
+    csound->Message(csound,"%s", Str("-D fpnum\tduration in secs of extract\n"));
+    csound->Message(csound,"%s", Str("-R\tRewrite header\n"));
+    csound->Message(csound,"%s", Str("-H\t\tHeartbeat\n"));
+    csound->Message(csound,"%s", Str("-v\t\tverbose mode for debugging\n"));
+    csound->Message(csound,"%s", Str("-- fname\tLog output to file\n"));
+    csound->Message(csound,"%s", Str("flag defaults: extractor -otest -S 0\n"));
 
     va_start(args, mesg);
     csound->ErrMsgV(csound, Str("extractor: error: "), mesg, args);
@@ -87,7 +90,7 @@ static void usage(CSOUND *csound, char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static int xtrct(CSOUND *csound, int argc, char **argv)
+static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
 {
     OPARMS      O;
     char        *inputfile = NULL;
@@ -96,8 +99,8 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     void        *fd;
     char        c, *s;
     SF_INFO     sfinfo;
-    int         debug   = 0;
-    int         Omsg;
+    int32_t         debug   = 0;
+    int32_t         Omsg;
     XTRC        xtrc;
 
     csound->GetOParms(csound, &O);
@@ -121,7 +124,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
-              csound->Die(csound, Str("-o cannot be stdin"));
+              csound->Die(csound, "%s", Str("-o cannot be stdin"));
             break;
           case 'S':
             FIND(Str("no start sample"));
@@ -129,7 +132,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             while (*++s);
             if (xtrc.stime >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-S overriding -T"));
+                csound->Message(csound,"%s", Str("-S overriding -T"));
               xtrc.stime = -1.0;
             }
             break;
@@ -139,7 +142,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             while (*++s);
             if (xtrc.sample >= 0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-T overriding -S"));
+                csound->Message(csound,"%s", Str("-T overriding -S"));
               xtrc.sample = -1;
             }
             break;
@@ -149,17 +152,17 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Z overriding -E"));
+                csound->Message(csound,"%s", Str("-Z overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.dur >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Z overriding -D"));
+                csound->Message(csound,"%s", Str("-Z overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.numsamps >=0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Z overriding -Q"));
+                csound->Message(csound,"%s", Str("-Z overriding -Q"));
               xtrc.numsamps = -1;
             }
             break;
@@ -169,17 +172,17 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             while (*++s);
             if (xtrc.dur >= 0.0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-E overriding -D"));
+                csound->Message(csound,"%s", Str("-E overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.numsamps >=0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-E overriding -Q"));
+                csound->Message(csound,"%s", Str("-E overriding -Q"));
               xtrc.numsamps = -1;
             }
             if (xtrc.stop >= 0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-E overriding -Z"));
+                csound->Message(csound,"%s", Str("-E overriding -Z"));
               xtrc.stop = -1;
             }
             break;
@@ -189,17 +192,17 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-D overriding -E"));
+                csound->Message(csound,"%s", Str("-D overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.numsamps >=0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-D overriding -Q"));
+                csound->Message(csound,"%s", Str("-D overriding -Q"));
               xtrc.numsamps = -1;
             }
             if (xtrc.stop >= 0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-D overriding -Z"));
+                csound->Message(csound,"%s", Str("-D overriding -Z"));
               xtrc.stop = -1;
             }
             break;
@@ -209,17 +212,17 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Q overriding -E"));
+                csound->Message(csound,"%s", Str("-Q overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.dur >= FL(0.0)) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Q overriding -D"));
+                csound->Message(csound,"%s", Str("-Q overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.stop >= 0) {
               if (UNLIKELY(Omsg & WARNMSG))
-                csound->Message(csound,Str("-Q overriding -Z"));
+                csound->Message(csound,"%s", Str("-Q overriding -Z"));
               xtrc.stop = -1;
             }
             break;
@@ -282,7 +285,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
     csound->SetUtilNchnls(csound, xtrc.outputs);
     memset(&sfinfo, 0, sizeof(SF_INFO));
     //sfinfo.frames = 0/*was -1*/;
-    sfinfo.samplerate = (int) ((MYFLT)xtrc.p->sr + FL(0.5));
+    sfinfo.samplerate = (int32_t) ((MYFLT)xtrc.p->sr + FL(0.5));
     sfinfo.channels = xtrc.outputs;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     /* open file for write */
@@ -294,7 +297,7 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
         fd = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W, "stdout");
         if (UNLIKELY(fd == NULL)) {
           sf_close(outfd);
-          csound->Die(csound, Str("Memory allocation failure"));
+          csound->Die(csound, "%s", Str("Memory allocation failure"));
         }
       }
     }
@@ -303,8 +306,8 @@ static int xtrct(CSOUND *csound, int argc, char **argv)
                        O.outfilename, &sfinfo, "SFDIR",
                        csound->type2csfiletype(O.filetyp, O.outformat), 0);
     if (UNLIKELY(fd == NULL))
-      csound->Die(csound, Str("Failed to open output file %s"),
-                          O.outfilename);
+      csound->Die(csound, Str("Failed to open output file %s: %s"),
+                  O.outfilename, Str(sf_strerror(NULL)));
     ExtractSound(csound, &xtrc, infd, outfd, &O);
     if (O.ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
@@ -321,7 +324,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
     x->p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     x->p->channel = ALLCHNLS;
     x->p->skiptime = FL(0.0);
-    strncpy(x->p->sfname, name,  MAXSNDNAME-1);
+    strNcpy(x->p->sfname, name,  MAXSNDNAME-1);
     if ((infd = csound->sndgetset(csound, x->p)) == 0) /*open sndfil, do skiptime*/
         return(0);
     x->p->getframes = x->p->framesrem;
@@ -337,11 +340,11 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
     double buffer[NUMBER_OF_SAMPLES];
     long  read_in;
     long  frames = 0;
-    int   block = 0;
+    int32_t   block = 0;
 
     sf_seek(infd, x->sample, SEEK_CUR);
     while (x->numsamps>0) {
-      int num = NUMBER_OF_SAMPLES / x->outputs;
+      int32_t num = NUMBER_OF_SAMPLES / x->outputs;
       if (x->numsamps < num)
         num = x->numsamps;
       x->numsamps -= num;
@@ -364,9 +367,9 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
 
 /* module interface */
 
-int xtrct_init_(CSOUND *csound)
+int32_t xtrct_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "extractor", xtrct);
+    int32_t retval = csound->AddUtility(csound, "extractor", xtrct);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "extractor",
                                              Str("Extract part of a sound file"));

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /***************************************************************/
@@ -37,24 +37,24 @@
 #include "stdopcod.h"
 #include "clfilt.h"
 
-static int clfiltset(CSOUND *csound, CLFILT *p)
+static int32_t clfiltset(CSOUND *csound, CLFILT *p)
 {
     MYFLT tanfpi, tanfpi2, cotfpi, cotfpi2;
     double eps, bethe, aleph, zee;
-    int m, nsec;
+    int32_t m, nsec;
     MYFLT pbr = *p->pbr, sbr = *p->sbr;        /* As cannot change */
     p->prvfreq = *p->freq;
     tanfpi = (MYFLT)tan(-csound->mpidsr*(*p->freq));
     tanfpi2 = tanfpi*tanfpi;
     cotfpi = FL(1.0)/tanfpi;
     cotfpi2 = cotfpi*cotfpi;
-    p->ilohi = (int)*p->lohi;
+    p->ilohi = (int32_t)*p->lohi;
     if (UNLIKELY((p->ilohi < 0) || (p->ilohi > 1))) {
       return csound->InitError(csound,
                                Str("filter type not lowpass or "
                                    "highpass in clfilt"));
     }
-    p->ikind = (int)*p->kind;
+    p->ikind = (int32_t)*p->kind;
     if (UNLIKELY((p->ikind < 0) || (p->ikind > 3))) {
       return csound->InitError(csound,
                                Str("filter kind, %d, out of range in clfilt"),
@@ -66,11 +66,11 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
 /*       p->nsec = nsec = 1; */
     }
     else if (UNLIKELY(fmod((double)*p->npol,2.0) != 0.0)) {
-      p->nsec = nsec = (int)((*p->npol+FL(1.0))*FL(0.5));
+      p->nsec = nsec = (int32_t)((*p->npol+FL(1.0))*FL(0.5));
       csound->Warning(csound, Str("odd number of poles chosen in clfilt,"
                                   " rounded to %d"), 2*nsec);
     }
-    else p->nsec = nsec = (int)((*p->npol)*FL(0.5));
+    else p->nsec = nsec = (int32_t)((*p->npol)*FL(0.5));
     switch (p->ilohi) {
     case 0: /* Lowpass filters */
       switch (p->ikind) {
@@ -167,8 +167,9 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
                                 }
         break;
       case 3: /* Lowpass Elliptical */
-        return csound->InitError(csound, Str(
-                             "Lowpass Elliptical not implemented yet. Sorry!"));
+        return
+          csound->InitError(csound,
+                            Str("Lowpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
         return csound->InitError(csound, Str("code error, ikind out of range"));
@@ -288,12 +289,12 @@ static int clfiltset(CSOUND *csound, CLFILT *p)
     return OK;
 } /* end clfiltset(p) */
 
-static int clfilt(CSOUND *csound, CLFILT *p)
+static int32_t clfilt(CSOUND *csound, CLFILT *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int m, nsec;
+    int32_t m, nsec;
     MYFLT *out, *in;
     MYFLT xn[CL_LIM+1], yn[CL_LIM];
     MYFLT a0[CL_LIM], a1[CL_LIM], a2[CL_LIM];
@@ -423,12 +424,13 @@ static int clfilt(CSOUND *csound, CLFILT *p)
 #define S sizeof
 
 static OENTRY localops[] = {
-{ "clfilt", S(CLFILT),  0, 5, "a", "akiioppo",(SUBR)clfiltset, NULL, (SUBR)clfilt },
+{ "clfilt", S(CLFILT),  0, 3, "a", "akiioppo",(SUBR)clfiltset, (SUBR)clfilt },
 };
 
-int clfilt_init_(CSOUND *csound)
+int32_t clfilt_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

@@ -22,7 +22,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -114,24 +114,24 @@ void print_csound_version(CSOUND* csound)
 #ifdef USE_DOUBLE
 #ifdef BETA
     csound->Message(csound,
-                    Str("--Csound version %s beta (double samples) %s \n"
+                    Str("--Csound version %s beta (double samples) %s\n"
                         "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s \n"
+    csound->Message(csound, Str("--Csound version %s (double samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE
                     , STRING_HASH(GIT_HASH_VALUE));
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s \n"
+    csound->Message(csound, Str("--Csound version %s beta (float samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s \n"
+    csound->Message(csound, Str("--Csound version %s (float samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
@@ -171,6 +171,7 @@ static void create_opcode_table(CSOUND *csound)
 
     if (UNLIKELY(err))
       csoundDie(csound, Str("Error allocating opcode list"));
+
 }
 
 #define MAX_MODULES 64
@@ -185,8 +186,8 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
        i++;
      }
      modules[i] = (MODULE_INFO *) csound->Malloc(csound, sizeof(MODULE_INFO));
-     strncpy(modules[i]->module, drv, 11);
-     strncpy(modules[i]->type, type, 11);
+     strNcpy(modules[i]->module, drv, 11);
+     strNcpy(modules[i]->type, type, 11);
     }
 }
 
@@ -478,11 +479,13 @@ static const CSOUND cenviron_ = {
     fterror,
     csoundGetA4,
     csoundAuxAllocAsync,
+    csoundGetHostData,
+    strNcpy,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -531,7 +534,7 @@ static const CSOUND cenviron_ = {
           NULL,
           0,0,0},
         0,0,0,
-        0,
+        //0,
         NULL,
         0,
         0,
@@ -631,8 +634,7 @@ static const CSOUND cenviron_ = {
     440.0,               /* A4 base frequency */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
-#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX) || \
-    (defined(_WIN32) && defined(__GNUC__))
+#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX)
     {0},
 #else
    {{{0}}},        /*  exitjmp of type jmp_buf */
@@ -731,19 +733,8 @@ static const CSOUND cenviron_ = {
     0,              /* init pass loop  */
     NULL,           /* init pass threadlock */
     NULL,           /* API_lock */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spoutlock           */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock            */
-#else
-    0,              /*  spoutlock           */
-    0,              /*  spinlock            */
-#endif
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  memlock             */
-    PTHREAD_SPINLOCK_INITIALIZER,              /*  spinlock1           */
-#else
-    0, 0,              /*  memlock, spinlock1             */
-#endif
+    SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
+    SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
     NULL, NULL,             /* Delayed messages */
     {
       NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
@@ -913,9 +904,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* multiThreadedDag */
     NULL,           /* barrier1 */
     NULL,           /* barrier2 */
-    NULL,           /* global_var_lock_root */
-    NULL,           /* global_var_lock_cache */
-    0,              /* global_var_lock_count */
+    NULL,           /* pointer1 was global_var_lock_root */
+    NULL,           /* pointer2 was global_var_lock_cache */
+    0,              /* int1 was global_var_lock_count */
     /* statics from cs_par_orc_semantic_analysis */
     NULL,           /* instCurr */
     NULL,           /* instRoot */
@@ -961,8 +952,18 @@ static const CSOUND cenviron_ = {
     0,              /* msg_queue_wput */
     0,              /* msg_queue_rstart */
     0,              /* msg_queue_items */
-    NULL,           /* directory for corfiles */
     127,            /* aftouch */
+    NULL,           /* directory for corfiles */
+    NULL,           /* alloc_queue */
+    0,              /* alloc_queue_items */
+    0,               /* alloc_queue_wp */
+    SPINLOCK_INIT,    /* alloc_spinlock */
+    NULL,            /* init_event */
+    NULL,            /* message string callback */
+    NULL,             /* message_string */
+    0,               /* message_string_queue_items */
+    0,               /* message_string_queue_wp */
+    NULL              /* message_string_queue */
     /*, NULL */           /* self-reference */
 };
 
@@ -981,6 +982,7 @@ static  volatile  csInstance_t  *instance_list = NULL;
 /* non-zero if performance should be terminated now */
 static  volatile  int exitNow_ = 0;
 
+#if !defined(WIN32)
 static void destroy_all_instances(void)
 {
     volatile csInstance_t *p;
@@ -1003,6 +1005,7 @@ static void destroy_all_instances(void)
       csoundDestroy(p->csound);
     }
 }
+#endif
 
 #if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
                          !defined(__HAIKU__) && !defined(__BEOS__) && \
@@ -1494,7 +1497,9 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
             /* this is the last cycle of performance */
             insds->ksmps_no_end = insds->no_end;
           }
-#ifdef HAVE_ATOMIC_BUILTIN
+#if defined(MSVC)
+        done = InterlockedExchangeAdd(&insds->init_done, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
         done = __sync_fetch_and_add((int *) &insds->init_done, 0);
 #else
         done = insds->init_done;
@@ -1691,25 +1696,24 @@ int kperf_nodebug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-#ifdef HAVE_ATOMIC_BUILTIN
-          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
-#else
-          done = ip->init_done;
-#endif
-
+          done = ATOMIC_GET(ip->init_done);
           if (done == 1) {/* if init-pass has been done */
+            int error = 0;
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
             ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
-              while ((opstart = opstart->nxtp) != NULL  && ip->actflg) {
+              while (error == 0 &&
+                     (opstart = opstart->nxtp) != NULL &&
+                     ip->actflg) {
                 opstart->insdshead->pds = opstart;
-                (*opstart->opadr)(csound, opstart); /* run each opcode */
+                error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
             } else {
-              int i, n = csound->nspout, start = 0;
+                int error = 0;
+                int i, n = csound->nspout, start = 0;
                 int lksmps = ip->ksmps;
                 int incr = csound->nchnls*lksmps;
                 int offset =  ip->ksmps_offset;
@@ -1735,16 +1739,17 @@ int kperf_nodebug(CSOUND *csound)
 
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
-                  while ((opstart = opstart->nxtp) != NULL && ip->actflg) {
+                  while (error ==  0 && (opstart = opstart->nxtp) != NULL
+                         && ip->actflg) {
                     opstart->insdshead->pds = opstart;
-                    (*opstart->opadr)(csound, opstart); /* run each opcode */
+                    error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
                   ip->kcounter++;
                 }
             }
           }
-          /*else csound->Message(csound, "time %f \n",
+          /*else csound->Message(csound, "time %f\n",
                                  csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
@@ -1945,12 +1950,7 @@ int kperf_debug(CSOUND *csound)
             //          ip->offtim, ip->no_end);
             ip->ksmps_no_end = ip->no_end;
           }
-#ifdef HAVE_ATOMIC_BUILTIN
-          done = __sync_fetch_and_add((int *) &ip->init_done, 0);
-#else
-          done = ip->init_done;
-#endif
-
+          done = ATOMIC_GET(ip->init_done);
           if (done == 1) {/* if init-pass has been done */
             /* check if next command pending and we are on the
                first instrument in the chain */
@@ -2074,7 +2074,7 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
     }
     else {
       char *sc = scsortstr(csound, csound->scorestr);
-      //printf("%s \n", sc);
+      //printf("%s\n", sc);
       csoundInputMessageInternal(csound, (const char *) sc);
       csound->Free(csound, sc);
       corfile_rm(csound, &(csound->scorestr));
@@ -2090,7 +2090,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
     if (csound->jumpset == 0) {
@@ -2100,18 +2100,21 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       if (UNLIKELY((returnValue = setjmp(csound->exitjmp))))
         return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    csoundLockMutex(csound->API_lock);
+    if(!csound->oparms->realtime) // no API lock in realtime mode
+      csoundLockMutex(csound->API_lock);
     do {
       done = sensevents(csound);
       if (UNLIKELY(done)) {
-        csoundUnlockMutex(csound->API_lock);
+        if(!csound->oparms->realtime) // no API lock in realtime mode
+         csoundUnlockMutex(csound->API_lock);
         csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
                       done);
         return done;
       }
     } while (csound->kperf(csound));
-    csoundUnlockMutex(csound->API_lock);
+    if(!csound->oparms->realtime) // no API lock in realtime mode
+       csoundUnlockMutex(csound->API_lock);
     return 0;
 }
 
@@ -2124,7 +2127,7 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
     /* setup jmp for return after an exit() */
@@ -2153,7 +2156,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
     /* Setup jmp for return after an exit(). */
@@ -2165,14 +2168,19 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     }
     csound->sampsNeeded += csound->oparms_.outbufsamps;
     while (csound->sampsNeeded > 0) {
+     if(!csound->oparms->realtime) {// no API lock in realtime mode
       csoundLockMutex(csound->API_lock);
+     }
       do {
         if (UNLIKELY((done = sensevents(csound)))){
-          csoundUnlockMutex(csound->API_lock);
+          if(!csound->oparms->realtime) // no API lock in realtime mode
+            csoundUnlockMutex(csound->API_lock);
           return done;
         }
       } while (csound->kperf(csound));
-      csoundUnlockMutex(csound->API_lock);
+      if(!csound->oparms->realtime) { // no API lock in realtime mode
+       csoundUnlockMutex(csound->API_lock);
+      }
       csound->sampsNeeded -= csound->nspout;
     }
     return 0;
@@ -2189,7 +2197,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
 
@@ -2202,10 +2210,12 @@ PUBLIC int csoundPerform(CSOUND *csound)
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     do {
+        if(!csound->oparms->realtime)
            csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
+          if(!csound->oparms->realtime)
           csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
             csound->multiThreadedComplete = 1;
@@ -2214,6 +2224,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
           return done;
         }
       } while (csound->kperf(csound));
+      if(!csound->oparms->realtime)
       csoundUnlockMutex(csound->API_lock);
     } while ((unsigned char) csound->performState == (unsigned char) '\0');
     csoundMessage(csound, Str("csoundPerform(): stopped.\n"));
@@ -2322,6 +2333,11 @@ PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel)
 PUBLIC const char *csoundGetOutputName(CSOUND *csound)
 {
     return (const char*) csound->oparms_.outfilename;
+}
+
+PUBLIC const char *csoundGetInputName(CSOUND *csound)
+{
+    return (const char*) csound->oparms_.infilename;
 }
 
 /**
@@ -2466,6 +2482,22 @@ PUBLIC void csoundSetDefaultMessageCallback(
     }
 }
 
+
+
+PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
+              void (*csoundMessageStrCallback)(CSOUND *csound,
+                                            int attr,
+                                            const char *str)) {
+
+  if (csoundMessageStrCallback) {
+    if(csound->message_string == NULL)
+      csound->message_string = (char *) csound->Calloc(csound, MAX_MESSAGE_STR);
+  csound->csoundMessageStringCallback = csoundMessageStrCallback;
+  csound->csoundMessageCallback_ = NULL;
+  }
+
+}
+
 PUBLIC void csoundSetMessageCallback(CSOUND *csound,
             void (*csoundMessageCallback)(CSOUND *csound,
                                           int attr,
@@ -2483,14 +2515,24 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
 {
+  if(csound->csoundMessageCallback_) {
     csound->csoundMessageCallback_(csound, attr, format, args);
+  } else {
+    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+    csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+  }
 }
 
 PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
+    if(csound->csoundMessageCallback_)
     csound->csoundMessageCallback_(csound, 0, format, args);
+    else {
+    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+    csound->csoundMessageStringCallback(csound, 0, csound->message_string);
+    }
     va_end(args);
 }
 
@@ -2498,7 +2540,12 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
+    if(csound->csoundMessageCallback_)
     csound->csoundMessageCallback_(csound, attr, format, args);
+    else {
+    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+    csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+    }
     va_end(args);
 }
 
@@ -2519,7 +2566,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...)
       return;
     csoundMessageS(csound, CSOUNDMSG_WARNING, Str("WARNING: "));
     va_start(args, msg);
-    csound->csoundMessageCallback_(csound, CSOUNDMSG_WARNING, msg, args);
+    csoundMessageV(csound, CSOUNDMSG_WARNING, msg, args);
     va_end(args);
     csoundMessageS(csound, CSOUNDMSG_WARNING, "\n");
 }
@@ -2530,7 +2577,7 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
     if (!(csound->oparms_.odebug))
       return;
     va_start(args, msg);
-    csound->csoundMessageCallback_(csound, 0, msg, args);
+    csoundMessageV(csound, 0, msg, args);
     va_end(args);
     csoundMessage(csound, "\n");
 }
@@ -2539,7 +2586,7 @@ void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
 {
     va_list args;
     va_start(args, msg);
-    csound->csoundMessageCallback_(csound, CSOUNDMSG_ERROR, msg, args);
+    csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
@@ -2549,7 +2596,7 @@ void csoundErrMsgV(CSOUND *csound,
 {
     if (hdr != NULL)
       csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
-    csound->csoundMessageCallback_(csound, CSOUNDMSG_ERROR, msg, args);
+    csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
 
@@ -2842,7 +2889,7 @@ int DummyMidiInOpen(CSOUND *csound, void **userData,
     if (UNLIKELY(s == NULL ||
         (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
          strcmp(s, "NULL") == 0))) {
-      csoundMessage(csound, Str("WARNING: real time midi input disabled, "
+      csoundMessage(csound, Str("!!WARNING: real time midi input disabled, "
                                 "using dummy functions\n"));
       return 0;
     }
@@ -3022,7 +3069,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
     entryCopy = csound->Malloc(csound, sizeof(OENTRY));
-    //printf("%p \n", entryCopy);
+    //printf("%p\n", entryCopy);
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
 
@@ -3036,6 +3083,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     if (shortName != ep->opname) {
         csound->Free(csound, shortName);
     }
+
     return 0;
 }
 
@@ -3221,7 +3269,7 @@ static void reset(CSOUND *csound)
 PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
     char *s;
     if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
-      strncpy(s, module, 20);
+      strNcpy(s, module, 20);
     if (UNLIKELY(s==NULL)) return;        /* Should not happen */
     if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
         strcmp(s, "NULL") == 0) {
@@ -3243,7 +3291,7 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module){
     char *s;
 
     if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
-      strncpy(s, module, 20);
+      strNcpy(s, module, 20);
     if (UNLIKELY(s==NULL)) return;        /* Should not happen */
     if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
        strcmp(s, "NULL") == 0) {
@@ -3285,16 +3333,10 @@ PUBLIC void csoundReset(CSOUND *csound)
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
-    #ifdef HAVE_PTHREAD_SPIN_LOCK
-     pthread_spin_init((pthread_spinlock_t*)&csound->spoutlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->memlock,
-                       PTHREAD_PROCESS_PRIVATE);
-     pthread_spin_init((pthread_spinlock_t*)&csound->spinlock1,
-                       PTHREAD_PROCESS_PRIVATE);
-    #endif
+     csoundSpinLockInit(&csound->spoutlock);
+     csoundSpinLockInit(&csound->spinlock);
+     csoundSpinLockInit(&csound->memlock);
+     csoundSpinLockInit(&csound->spinlock1);
      if (UNLIKELY(O->odebug))
         csound->Message(csound,"init spinlocks\n");
     }
@@ -4372,7 +4414,7 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
       csound->Warning(csound,
                       Str("Csound not ready for performance: csoundStart() "
-                          "has not been called \n"));
+                          "has not been called\n"));
       return CSOUND_ERROR;
     }
     /* setup jmp for return after an exit() */

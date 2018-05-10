@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Realtime MIDI using coremidi */
@@ -53,6 +53,7 @@ typedef struct _cdata {
 /* coremidi callback, called when MIDI data is available */
 void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 {
+    IGN(srcConnRefCon);
     cdata *data = (cdata *)refcon;
     MIDIdata *mdata = data->mdata;
     int *p = &data->p;
@@ -128,15 +129,15 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
       if (!ret){
         /* sources, we connect to all available input sources */
         endpoints = MIDIGetNumberOfSources();
-        csound->Message(csound, Str("%d MIDI sources in system \n"), endpoints);
+        csound->Message(csound, Str("%d MIDI sources in system\n"), endpoints);
         if (!strcmp(dev,"all")) {
-          csound->Message(csound, Str("receiving from all sources \n"));
+          csound->Message(csound, "%s", Str("receiving from all sources\n"));
           for(k=0; k < endpoints; k++){
             endpoint = MIDIGetSource(k);
             long srcRefCon = (long) endpoint;
             MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
             MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-            csound->Message(csound, Str("connecting midi device %d: %s \n"), k,
+            csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
                             CFStringGetCStringPtr(name, defaultEncoding));
           }
         }
@@ -147,13 +148,13 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
             long srcRefCon = (long) endpoint;
             MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
             MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-            csound->Message(csound, Str("connecting midi device %d: %s \n"), k,
+            csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
                             CFStringGetCStringPtr(name, defaultEncoding));
           }
           else
             csound->Message(csound,
                             Str("MIDI device number %d is out-of-range, "
-                                "not connected \n"), k);
+                                "not connected\n"), k);
         }
 
       }
@@ -169,8 +170,9 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 
 static int MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
+     IGN(userData); IGN(dev);
     /*stub for the moment */
-    csound->Message(csound, Str("output not implemented yet in CoreMIDI \n"));
+    csound->Message(csound, "%s", Str("output not implemented yet in CoreMIDI\n"));
     return 0;
 }
 
@@ -181,6 +183,7 @@ static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 static int MidiDataRead(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int nbytes)
 {
+  IGN(csound);
     cdata *data = (cdata *)userData;
     MIDIdata *mdata = data->mdata;
     int *q = &data->q, st, d1, d2, n = 0;
@@ -246,6 +249,7 @@ static int MidiDataWrite(CSOUND *csound, void *userData,
     /* stub at the moment */
     /*
     */
+  IGN(csound); IGN(userData); IGN(mbuf); IGN(nbytes);
     return nbytes;
 }
 
@@ -253,7 +257,8 @@ static int MidiDataWrite(CSOUND *csound, void *userData,
 
 static int MidiOutDeviceClose(CSOUND *csound, void *userData)
 {
-    /* stub at the mement */
+    /* stub at the moment */
+  IGN(csound); IGN(userData);
     return 0;
 }
 
@@ -262,7 +267,9 @@ static int MidiOutDeviceClose(CSOUND *csound, void *userData)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
-    //csound->Message(csound, Str("CoreMIDI real time MIDI plugin for Csound\n"));
+    //csound->Message(csound, "%s",
+    //                Str("CoreMIDI real time MIDI plugin for Csound\n"));
+    IGN(csound);
     return 0;
 }
 
@@ -276,7 +283,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "coremidi") == 0 || strcmp(drv, "CoreMidi") == 0 ||
           strcmp(drv, "CoreMIDI") == 0 || strcmp(drv, "cm") == 0))
       return 0;
-    csound->Message(csound, Str("rtmidi: CoreMIDI module enabled\n"));
+    csound->Message(csound, "%s", Str("rtmidi: CoreMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
     csound->SetExternalMidiReadCallback(csound, MidiDataRead);
     csound->SetExternalMidiInCloseCallback(csound, MidiInDeviceClose);

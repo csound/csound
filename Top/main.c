@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <ctype.h>
@@ -39,7 +39,6 @@ CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     init_pvsys(CSOUND *);
 //  char    *get_sconame(CSOUND *);
   void    print_benchmark_info(CSOUND *, const char *);
-  void    openMIDIout(CSOUND *);
   int     read_unified_file(CSOUND *, char **, char **);
   int     read_unified_file2(CSOUND *csound, char *csd);
   int     read_unified_file4(CSOUND *csound, CORFIL *csd);
@@ -65,7 +64,7 @@ static void checkOptions(CSOUND *csound)
         csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
                       csrcname);
       else
-        csound->Message(csound, Str("Reading options from $CSOUND6RC: %s \n"),
+        csound->Message(csound, Str("Reading options from $CSOUND6RC: %s\n"),
                         csrcname);
     }
     if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
@@ -94,7 +93,7 @@ static void checkOptions(CSOUND *csound)
       corfile_rewind(cf);
       readOptions(csound, cf, 0);
       csound->Message(csound,
-                      Str("Reading options from local directory .csound6rc \n"));
+                      Str("Reading options from local directory .csound6rc\n"));
       corfile_rm(csound, &cf);
       csound->FileClose(csound, fd);
     }
@@ -202,7 +201,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     if (csound->scorename == NULL && csound->scorestr==NULL) {
       /* No scorename yet */
       csound->Message(csound, "scoreless operation\n");
-      // csound->scorestr = corfile_create_r("f0 800000000000.0 \n");
+      // csound->scorestr = corfile_create_r("f0 800000000000.0\n");
       // VL 21-09-2016: it looks like #exit is needed for the
       // new score parser to work.
       csound->scorestr = corfile_create_r(csound, "\n#exit\n");
@@ -322,15 +321,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       csound->Message(csound, Str("Syntax check completed.\n"));
       return CSOUND_EXITJMP_SUCCESS;
     }
-
-    /* open MIDI output (moved here from argdecode) */
-    if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
-      O->Midioutname = NULL;
-    if (O->FMidioutname != NULL && O->FMidioutname[0] == (char) '\0')
-      O->FMidioutname = NULL;
-    if (O->Midioutname != NULL || O->FMidioutname != NULL)
-      openMIDIout(csound);
-
     return CSOUND_SUCCESS;
 }
 
@@ -415,7 +405,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     }
     if (csound->instr0 == NULL) { /* compile dummy instr0 to allow csound to
                                      start with no orchestra */
-      csoundCompileOrcInternal(csound, "idummy = 0 \n", 0);
+      csoundCompileOrcInternal(csound, "idummy = 0\n", 0);
     }
 
     if ((n = setjmp(csound->exitjmp)) != 0) {

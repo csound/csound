@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* svfilter.h
@@ -71,14 +71,14 @@ typedef struct {
         OPDS h;
         MYFLT *out, *in, *kcf, *kbw, *iscl, *istor;
         double xnm1, xnm2, ynm1, ynm2;
-        int scaletype, aratemod;
+        int32_t scaletype, aratemod;
 } RESONZ;
 
 /* Structure for cascade of 2nd order allpass filters */
 typedef struct {
         OPDS h;
         MYFLT *out, *in, *kbf, *kbw, *order, *mode, *ksep, *fbgain;
-        int loop, modetype;
+        int32_t loop, modetype;
         MYFLT *nm1, *nm2, feedback;
         AUXCH aux1, aux2;
 } PHASER2;
@@ -87,7 +87,8 @@ typedef struct {
 typedef struct {
         OPDS h;
         MYFLT *out, *in, *kcoef, *iorder, *fbgain, *istor;
-        int loop;
+        int32_t
+        loop;
         MYFLT *xnm1, *ynm1, feedback;
         AUXCH auxx, auxy;
 } PHASER1;
