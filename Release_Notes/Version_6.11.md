@@ -30,7 +30,7 @@ tag removed.  There have been more steps towards completing the
 arithmetic operations involving a-arrays.
 
 Note that changes to GEN01 and diskin2 may not be backward compatible
-if a none zero value is given for the format.
+if a non zero value is given for the format.
 
 -- The Developers
 
