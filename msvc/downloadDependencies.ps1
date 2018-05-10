@@ -325,7 +325,7 @@ cmake ..\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\
 cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
-copy .\src\Release\libfluidsynth.dll -Destination $depsBinDir -Force
+copy .\src\Release\libfluidsynth-2.dll -Destination $depsBinDir -Force
 copy ..\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
 robocopy ..\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
 copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth -Force
