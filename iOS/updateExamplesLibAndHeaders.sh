@@ -1,7 +1,7 @@
 #!/bin/sh
 export OUT_DIR_OBJC=`pwd`/Csound\ iOS\ Obj-C\ Examples/csound-iOS
 export OUT_DIR_SWIFT=`pwd`/Csound\ iOS\ Swift\ Examples/Csound\ iOS\ SwiftExamples/csound-iOS
-export LIBSNDFILE_LIB=`pwd`/../../iOS/csound-iOS-dependencies/libsndfile.a 
+export LIBSNDFILE_LIB=`pwd`/libsndfile.a 
 
 # Assemble release
 mkdir -p "$OUT_DIR_OBJC/libs"

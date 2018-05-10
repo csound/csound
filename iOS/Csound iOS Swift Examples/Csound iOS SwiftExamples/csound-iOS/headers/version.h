@@ -17,14 +17,14 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
-#define VERSION "6.07"
+#define VERSION "6.11"
 
 /* Define to the full name of this package. */
 #define CS_PACKAGE_NAME     "Csound"
@@ -38,15 +38,15 @@
 /* Define to the version of this package. */
 #define CS_PACKAGE_VERSION  VERSION
 #define CS_VERSION          (6)
-#define CS_SUBVER           (7)
+#define CS_SUBVER           (11)
 #define CS_PATCHLEVEL       (0)
 
-#define CS_APIVERSION       3   /* should be increased anytime a new version
+#define CS_APIVERSION       4   /* should be increased anytime a new version
                                    contains changes that an older host will
                                    not be able to handle -- most likely this
                                    will be a change to an API function or
                                    the CSOUND struct */
-#define CS_APISUBVER        1   /* for minor changes that will still allow
+#define CS_APISUBVER        0   /* for minor changes that will still allow
                                    compatiblity with older hosts */
 
 #ifndef CS_PACKAGE_DATE
