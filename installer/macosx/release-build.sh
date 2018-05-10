@@ -105,6 +105,7 @@ cp $BLD/../interfaces/ctcsound.py $FRAMEWORK64_DIR/$PYTHON_DIR
 echo "preparing framework..."
 
 cp  $DIST/lib/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
+cp  $DIST/lib/csnd6.jar $FRAMEWORK64_DIR/$JAVA_DIR
 cp  $DIST/lib/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
 
 echo "copying manual..."

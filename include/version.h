@@ -38,7 +38,7 @@
 /* Define to the version of this package. */
 #define CS_PACKAGE_VERSION  VERSION
 #define CS_VERSION          (6)
-#define CS_SUBVER           (12)
+#define CS_SUBVER           (11)
 #define CS_PATCHLEVEL       (0)
 
 #define CS_APIVERSION       4   /* should be increased anytime a new version
