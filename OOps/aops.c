@@ -1948,6 +1948,7 @@ int32_t outall(CSOUND *csound, OUTX *p)             /* Output a list of channels
 
 int32_t outarr_init(CSOUND *csound, OUTARRAY *p)
 {
+    IGN(csound);
     p->nowarn = 0;
     return OK;
 }
