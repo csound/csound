@@ -257,7 +257,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(csound, mm);
     csoundFileClose(csound, fd);
-    if (fromScore) printf("Copy is >>%s<<\n", mm->body);
+    //if (fromScore) printf("Copy is >>%s<<\n", mm->body);
     return mm;
 }
 
