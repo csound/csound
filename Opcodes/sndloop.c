@@ -449,8 +449,8 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
       if (p->mode == 0 || p->mode == 2){
         if ((p->ndx[0] = *p->start*CS_ESR) < 0)
           p->ndx[0] = 0;
-        if (p->ndx[0] >= p->sfunc->flen)
-          p->ndx[0] = (double) p->sfunc->flen - 1.0;
+        if (p->ndx[0] >= p->sfunc->flen/p->sfunc->nchanls)
+          p->ndx[0] = (double) p->sfunc->flen/p->sfunc->nchanls - 1.0;
         p->count = 0;
       }
       p->init = 1;
@@ -499,7 +499,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
       }
     }
     tab = p->sfunc->ftable;
-    len = p->sfunc->flen;
+    len = p->sfunc->flen/p->sfunc->nchanls;
 
     if (p->efunc != NULL) {
       etab = p->efunc->ftable;
