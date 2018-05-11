@@ -18,8 +18,8 @@ set(CMAKE_LINK_FLAGS "${CMAKE_LINK_FLAGS} -stdlib=libc++ -lc++abi")
 list(APPEND CMAKE_SYSTEM_LIBRARY_PATH "/Users/victor/src/stk-4.4.4/src")
 list(APPEND CMAKE_SYSTEM_INCLUDE_PATH "/Users/victor/src/stk-4.4.4/include")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wsign-compare -g  -DBETA -std=c++11 -mtune=corei7")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wsign-compare -Wmissing-braces -g -DBETA -mtune=corei7")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wsign-compare -std=c++11 -mtune=corei7")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wsign-compare -Wmissing-braces -mtune=corei7")
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
 include(CheckCCompilerFlag)
