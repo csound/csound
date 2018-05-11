@@ -45,6 +45,7 @@
 		244DC51F1EDF741600216C1B /* CsoundVirtualKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244DC51E1EDF741600216C1B /* CsoundVirtualKeyboard.swift */; };
 		244DC5211EDF743800216C1B /* Waveview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244DC5201EDF743800216C1B /* Waveview.swift */; };
 		244DC5231EDF746100216C1B /* LevelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244DC5221EDF746100216C1B /* LevelMeterView.swift */; };
+		2499964D20A60800002B6ED8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2499964C20A607FC002B6ED8 /* Accelerate.framework */; };
 		24BF2D561EDD13870091F04E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D551EDD13870091F04E /* AppDelegate.swift */; };
 		24BF2D581EDD13870091F04E /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D571EDD13870091F04E /* MasterViewController.swift */; };
 		24BF2D5D1EDD13870091F04E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D5B1EDD13870091F04E /* Main.storyboard */; };
@@ -125,6 +126,7 @@
 		244DC51E1EDF741600216C1B /* CsoundVirtualKeyboard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CsoundVirtualKeyboard.swift; sourceTree = "<group>"; };
 		244DC5201EDF743800216C1B /* Waveview.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Waveview.swift; sourceTree = "<group>"; };
 		244DC5221EDF746100216C1B /* LevelMeterView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LevelMeterView.swift; sourceTree = "<group>"; };
+		2499964C20A607FC002B6ED8 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		24BF2D521EDD13870091F04E /* Csound iOS SwiftExamples.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Csound iOS SwiftExamples.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24BF2D551EDD13870091F04E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		24BF2D571EDD13870091F04E /* MasterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
@@ -216,6 +218,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2499964D20A60800002B6ED8 /* Accelerate.framework in Frameworks */,
 				24BF2DE11EDD15190091F04E /* libcsound.a in Frameworks */,
 				24BF2DE21EDD15190091F04E /* libsndfile.a in Frameworks */,
 			);
@@ -224,11 +227,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2499964B20A607FC002B6ED8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2499964C20A607FC002B6ED8 /* Accelerate.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		24BF2D491EDD13870091F04E = {
 			isa = PBXGroup;
 			children = (
 				24BF2D541EDD13870091F04E /* Csound iOS SwiftExamples */,
 				24BF2D531EDD13870091F04E /* Products */,
+				2499964B20A607FC002B6ED8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -587,13 +599,13 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0830;
+				LastUpgradeCheck = 0910;
 				ORGANIZATIONNAME = "Nikhil Singh";
 				TargetAttributes = {
 					24BF2D511EDD13870091F04E = {
 						CreatedOnToolsVersion = 8.3.2;
 						DevelopmentTeam = AH2WVU4222;
-						LastSwiftMigration = 0830;
+						LastSwiftMigration = 0910;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -733,7 +745,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -741,7 +755,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -785,7 +803,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -793,7 +813,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -836,7 +860,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.csound.Csound-iOS-SwiftExamples";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -857,7 +882,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.csound.Csound-iOS-SwiftExamples";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
