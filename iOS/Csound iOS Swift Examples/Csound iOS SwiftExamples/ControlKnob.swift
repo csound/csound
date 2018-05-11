@@ -124,7 +124,7 @@ extension ControlKnob: CsoundBinding {
         addTarget(self, action: #selector(updateChannelValue(_:)), for: .valueChanged)
     }
     
-    func updateChannelValue(_ sender: ControlKnob) {
+    @objc func updateChannelValue(_ sender: ControlKnob) {
         channelValue = sender._value
     }
     
