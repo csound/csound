@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2499965020A60882002B6ED8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2499964F20A6087C002B6ED8 /* Accelerate.framework */; };
 		249B1A441E2FBB1F004F6566 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 249B1A431E2FBB1F004F6566 /* Assets.xcassets */; };
 		249B1A4A1E2FD95E004F6566 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 249B1A491E2FD95E004F6566 /* LaunchScreen.storyboard */; };
 		24D727291E33F9F400CEC022 /* csdStorage in Resources */ = {isa = PBXBuildFile; fileRef = 24D727281E33F9F400CEC022 /* csdStorage */; };
@@ -92,6 +93,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2499964F20A6087C002B6ED8 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		249B1A431E2FBB1F004F6566 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		249B1A491E2FD95E004F6566 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		24D727281E33F9F400CEC022 /* csdStorage */ = {isa = PBXFileReference; lastKnownFileType = folder; path = csdStorage; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2499965020A60882002B6ED8 /* Accelerate.framework in Frameworks */,
 				F604B21618288A9E00C7C552 /* libcsound.a in Frameworks */,
 				F6B647D014D353D2005F786B /* libsndfile.a in Frameworks */,
 			);
@@ -250,6 +253,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2499964E20A6087C002B6ED8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2499964F20A6087C002B6ED8 /* Accelerate.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C41F0A941973612A00997479 /* ConsoleOutput */ = {
 			isa = PBXGroup;
 			children = (
@@ -335,6 +346,7 @@
 				F6B6477C14D353D2005F786B /* csound-iOS */,
 				F6B6466314D348E5005F786B /* Csound iOS Examples */,
 				F6B6465A14D348E5005F786B /* Products */,
+				2499964E20A6087C002B6ED8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -652,7 +664,7 @@
 		F6B6465014D348E4005F786B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 0910;
 				TargetAttributes = {
 					F6B6465814D348E5005F786B = {
 						DevelopmentTeam = AH2WVU4222;
@@ -818,12 +830,18 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -864,12 +882,18 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
