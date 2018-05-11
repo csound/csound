@@ -142,7 +142,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 {                                     /*      presumes good format if warped */
     MYFLT   *pp, *plim;
     int     c;
-
+    
     e->pinstance = NULL;
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
@@ -151,12 +151,14 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       e->p[2] = FL(INF);
       e->p2orig = FL(INF);
       e->pcnt = 2;
+       
       return(1);
     }
+   
   /* else read the real score */
     while ((c = corfile_getc(csound->scstr)) != '\0') {
       csound->scnt = 0;
-      switch (c) {
+      switch (c) {       
       case ' ':
       case '\t':
       case '\n':
@@ -193,7 +195,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         goto setp;
       case 'e':
         e->opcod = c;
-        e->pcnt = 0;
+        e->pcnt = 0; 
         return(1);
       case EOF:                          /* necessary for cscoreGetEvent */
         return(0);
