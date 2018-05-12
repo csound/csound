@@ -27,7 +27,7 @@
 #include "soundio.h"
 #define MAXOUTS 2
 
-typedef struct dats{
+typedef struct dats {
   OPDS h;
   MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN,
     *idecim, *konset, *offset, *dbthresh;
@@ -175,8 +175,9 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
       if (cnt == hsize) {
         /* audio samples are stored in a function table */
         double tim;
-        double resamp = ft->gen01args.sample_rate/CS_ESR;
+        double resamp;
         ft = csound->FTnp2Find(csound,p->knum);
+        resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
@@ -390,8 +391,9 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
     for (n=offset; n < nsmps; n++) {
 
       if (cnt == hsize){
-        double resamp = ft->gen01args.sample_rate/CS_ESR;
+        double resamp;
         ft = csound->FTnp2Find(csound,p->knum);
+        resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         time  *= resamp;
         tab = ft->ftable;
