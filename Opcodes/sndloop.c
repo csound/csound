@@ -483,6 +483,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
         init = p->init, ijump = *p->ijump;
     uint32 tndx0, tndx1, nchnls, onchnls = p->nchnls;
     FUNC *func;
+    
     func = csound->FTnp2Find(csound, p->ifn);
 
     if(p->sfunc != func) {
@@ -500,6 +501,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     }
     tab = p->sfunc->ftable;
     len = p->sfunc->flen/p->sfunc->nchanls;
+    pitch *= p->sfunc->gen01args.sample_rate/CS_ESR;
 
     if (p->efunc != NULL) {
       etab = p->efunc->ftable;
