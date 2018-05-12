@@ -382,6 +382,8 @@ static int32_t flooper_process(CSOUND *csound, flooper *p)
     MYFLT  frac;
     int32_t tndx, loop_off = p->loop_off, nchnls = p->nchnls;
 
+    pitch *= p->sfunc->gen01args.sample_rate/CS_ESR;
+
     if (UNLIKELY(offset)) memset(aout[0], '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
