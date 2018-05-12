@@ -98,10 +98,10 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     int32_t     datasize = p->datasize, envtablesize = p->envtablesize;
 
     pitch  = *p->pitch * p->sfunc->gen01args.sample_rate/CS_ESR;
-    fperiod = FABS(CS_ESR/(*p->fr));
+    fperiod = FABS(p->sfunc->gen01args.sample_rate/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = CS_ESR * *p->grsize;
+    grsize = p->sfunc->gen01args.sample_rate * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     envincr = envtablesize/grsize;
     prate = *p->prate;
@@ -220,7 +220,7 @@ static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
     p->count = 0;                  /* sampling period counter */
     p->numstreams = 0;                  /* curr num of streams */
     p->firststream = 0;                 /* streams index (first stream)  */
-    p->start = *p->startpos*(CS_ESR);
+    p->start = *p->startpos*(p->sfunc->gen01args.sample_rate);
     p->frac = 0.0f;
     p->firsttime = 1;
     }
@@ -248,7 +248,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     int32_t     loop_end;
     int32_t     loopsize;
     int32_t     firsttime = p->firsttime;
-    MYFLT   sr = CS_ESR;
+    MYFLT   sr = p->sfunc->gen01args.sample_rate;
 
     /* loop points & checks */
     loop_start = (int32_t) (*p->loop_start*sr);
@@ -260,11 +260,11 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n",
                               loop_start, loop_end, loopsize);     */
 
-    pitch  = *p->pitch * p->sfunc->gen01args.sample_rate/CS_ESR;;
-    fperiod = FABS(CS_ESR/(*p->fr));
+    pitch  = *p->pitch * sr/CS_ESR;;
+    fperiod = FABS(sr/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = CS_ESR * *p->grsize;
+    grsize = sr * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
@@ -394,6 +394,7 @@ typedef struct _filegrain {
     int32_t     nChannels;
     int32   flen;
     MYFLT pscale;
+    MYFLT sr;
 } filegrain;
 
 #define MINFBUFSIZE  88200
@@ -450,7 +451,8 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
                                       "do not match the number of outputs\n"));
     }
 
-    p->pscale = sfinfo.samplerate/CS_ESR;
+    p->sr = sfinfo.samplerate;
+    p->pscale = p->sr/CS_ESR;
 
     if (*p->ioff >= 0)
       sf_seek(p->sf,*p->ioff * CS_ESR, SEEK_SET);
@@ -471,7 +473,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
 
     p->start = 0.0f;
     p->frac = 0.0f;
-    p->pos = *p->ioff*CS_ESR;
+    p->pos = *p->ioff*p->sr;
     p->trigger = 0.0f;
     p->flen = sfinfo.frames;
 
@@ -509,10 +511,10 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     hdatasize = hdataframes*chans;
 
     pitch  = *p->pitch * p->pscale;
-    fperiod = FABS(CS_ESR/(*p->fr));
+    fperiod = FABS(p->sr/(*p->fr));
     //if (UNLIKELY(fperiod  < FL(0.0))) fperiod = -fperiod;
     amp =    *p->amp;
-    grsize = CS_ESR * *p->grsize;
+    grsize = p->sr * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     if (grsize > hdataframes) grsize = hdataframes;
     envincr = envtablesize/grsize;
