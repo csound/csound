@@ -174,8 +174,10 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
 
       if (cnt == hsize) {
         /* audio samples are stored in a function table */
+        double tim;
+        double resamp = ft->gen01args.sample_rate/CS_ESR;
         ft = csound->FTnp2Find(csound,p->knum);
-        pitch *= ft->gen01args.sample_rate/CS_ESR;
+        pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
@@ -191,7 +193,8 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
            time[n] is current read position in secs
            esr is sampling rate
         */
-        spos  = hsize*(int64_t)((time[n])*CS_ESR/hsize);
+        tim = time[n]*resamp;
+        spos  = hsize*(int64_t)(tim*CS_ESR/hsize);
         sizefrs = size/nchans;
         while (spos > sizefrs) spos -= sizefrs;
         while (spos <= 0)  spos += sizefrs;
@@ -387,8 +390,10 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
     for (n=offset; n < nsmps; n++) {
 
       if (cnt == hsize){
+        double resamp = ft->gen01args.sample_rate/CS_ESR;
         ft = csound->FTnp2Find(csound,p->knum);
-        pitch *= ft->gen01args.sample_rate/CS_ESR;
+        pitch *= resamp;
+        time  *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
