@@ -300,17 +300,22 @@ static int32_t sndloop_process(CSOUND *csound, sndloop *p)
 static int32_t flooper_init(CSOUND *csound, flooper *p)
 {
     MYFLT *tab, *buffer, a = FL(0.0), inc;
-    int32 cfds = (int32) (*(p->cfd)*CS_ESR);     /* fade in samps  */
-    int32 starts = (int32) (*(p->start)*CS_ESR); /* start in samps */
-    int32 durs = (int32)  (*(p->dur)*CS_ESR);    /* dur in samps   */
+    int32 cfds;
+    int32 starts;
+    int32 durs;
     int32 len, i, nchnls;
 
+    p->sfunc = csound->FTnp2Find(csound, p->ifn) ;  /* function table */
+    cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);   
+    starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate); 
+    durs = (int32)  (*(p->dur)*p->sfunc->gen01args.sample_rate);   
+
+    
     if (UNLIKELY(cfds > durs))
       return csound->InitError(csound,
                                Str("crossfade longer than loop duration\n"));
 
     inc =  FL(1.0)/cfds;    /* inc/dec */
-    p->sfunc = csound->FTnp2Find(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,Str("function table not found\n"));
     }
