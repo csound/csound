@@ -582,9 +582,10 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
       return NOTOK;
 
     }
-
+    pitch *= ft->gen01args.sample_rate/CS_ESR;
     tab = ft->ftable;
     size = ft->flen;
+    
     /* nchans = ft->nchanls; */
     /* spos is the reading position in samples, hsize is hopsize,
        time is current read rate
