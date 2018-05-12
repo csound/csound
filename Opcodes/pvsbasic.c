@@ -573,7 +573,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
   float tmp_real, tmp_im, powrat;
 
   if ((int32_t)p->scnt >= hsize) {
-
+    double resamp;
     /* audio samples are stored in a function table */
     ft = csound->FTnp2Find(csound,p->knum);
     if (ft == NULL){
@@ -582,7 +582,9 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
       return NOTOK;
 
     }
-    pitch *= ft->gen01args.sample_rate/CS_ESR;
+    resamp = ft->gen01args.sample_rate/CS_ESR;
+    pitch *= resamp;
+    time *= resamp;
     tab = ft->ftable;
     size = ft->flen;
     
