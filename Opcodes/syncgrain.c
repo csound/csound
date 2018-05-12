@@ -97,7 +97,7 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     int32_t     count = p->count, j, newstream;
     int32_t     datasize = p->datasize, envtablesize = p->envtablesize;
 
-    pitch  = *p->pitch;
+    pitch  = *p->pitch * p->sfunc->gen01args.sample_rate/CS_ESR;
     fperiod = FABS(CS_ESR/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
@@ -260,7 +260,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n",
                               loop_start, loop_end, loopsize);     */
 
-    pitch  = *p->pitch;
+    pitch  = *p->pitch * p->sfunc->gen01args.sample_rate/CS_ESR;;
     fperiod = FABS(CS_ESR/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
@@ -393,6 +393,7 @@ typedef struct _filegrain {
     float   trigger;
     int32_t     nChannels;
     int32   flen;
+    MYFLT pscale;
 } filegrain;
 
 #define MINFBUFSIZE  88200
@@ -448,6 +449,8 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
         csound->InitError(csound, Str("diskgrain: soundfile channel numbers "
                                       "do not match the number of outputs\n"));
     }
+
+    p->pscale = sfinfo.samplerate/CS_ESR;
 
     if (*p->ioff >= 0)
       sf_seek(p->sf,*p->ioff * CS_ESR, SEEK_SET);
@@ -505,7 +508,7 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     datasize = dataframes*chans;
     hdatasize = hdataframes*chans;
 
-    pitch  = *p->pitch;
+    pitch  = *p->pitch * p->pscale;
     fperiod = FABS(CS_ESR/(*p->fr));
     //if (UNLIKELY(fperiod  < FL(0.0))) fperiod = -fperiod;
     amp =    *p->amp;
