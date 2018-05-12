@@ -449,7 +449,7 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
     if (*p->iskip == 0){
       p->mode = (int32_t) *p->imode;
       if (p->mode == 0 || p->mode == 2){
-        if ((p->ndx[0] = *p->start*CS_ESR) < 0)
+        if ((p->ndx[0] = *p->start*p->sfunc->gen01args.sample_rate) < 0)
           p->ndx[0] = 0;
         if (p->ndx[0] >= p->sfunc->flen/p->sfunc->nchanls)
           p->ndx[0] = (double) p->sfunc->flen/p->sfunc->nchanls - 1.0;
@@ -473,7 +473,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    MYFLT out[2], **aout = p->out, sr = CS_ESR;
+    MYFLT out[2], **aout = p->out, sr;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab;
     double *ndx = p->ndx;
@@ -487,6 +487,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     FUNC *func;
     
     func = csound->FTnp2Find(csound, p->ifn);
+    sr = p->sfunc->gen01args.sample_rate;
 
     if(p->sfunc != func) {
     p->sfunc = func;
