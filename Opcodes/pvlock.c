@@ -168,12 +168,14 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
       }
     }
 
+   
 
     for (n=offset; n < nsmps; n++) {
 
       if (cnt == hsize) {
         /* audio samples are stored in a function table */
         ft = csound->FTnp2Find(csound,p->knum);
+        pitch *= ft->gen01args.sample_rate/CS_ESR;
         tab = ft->ftable;
         size = ft->flen;
 
@@ -386,6 +388,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
 
       if (cnt == hsize){
         ft = csound->FTnp2Find(csound,p->knum);
+        pitch *= ft->gen01args.sample_rate/CS_ESR;
         tab = ft->ftable;
         size = ft->flen;
 
@@ -571,7 +574,6 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
     // open file
     void *fd;
     name = ((STRINGDAT *)p->knum)->data;
-    // ****FIXME: What if this fails?
     fd  = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (p->sf == NULL)
