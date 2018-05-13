@@ -53,7 +53,7 @@ class controls : public UI {
 
   struct ctl {
     FAUSTFLOAT *zone;
-    char label[64];
+    char label[65];
     MYFLT min, max;
     ctl *nxt;
   } anchor;
@@ -66,6 +66,7 @@ class controls : public UI {
     pctl->nxt = new ctl;
     pctl = pctl->nxt;
     strncpy(pctl->label, label, 64);
+    pctl->label[54] = '\n';
     pctl->zone = zone;
     pctl->min = min;
     pctl->max = max;
