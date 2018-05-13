@@ -300,17 +300,22 @@ static int32_t sndloop_process(CSOUND *csound, sndloop *p)
 static int32_t flooper_init(CSOUND *csound, flooper *p)
 {
     MYFLT *tab, *buffer, a = FL(0.0), inc;
-    int32 cfds = (int32) (*(p->cfd)*CS_ESR);     /* fade in samps  */
-    int32 starts = (int32) (*(p->start)*CS_ESR); /* start in samps */
-    int32 durs = (int32)  (*(p->dur)*CS_ESR);    /* dur in samps   */
+    int32 cfds;
+    int32 starts;
+    int32 durs;
     int32 len, i, nchnls;
 
+    p->sfunc = csound->FTnp2Find(csound, p->ifn) ;  /* function table */
+    cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);   
+    starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate); 
+    durs = (int32)  (*(p->dur)*p->sfunc->gen01args.sample_rate);   
+
+    
     if (UNLIKELY(cfds > durs))
       return csound->InitError(csound,
                                Str("crossfade longer than loop duration\n"));
 
     inc =  FL(1.0)/cfds;    /* inc/dec */
-    p->sfunc = csound->FTnp2Find(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,Str("function table not found\n"));
     }
@@ -449,7 +454,7 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
     if (*p->iskip == 0){
       p->mode = (int32_t) *p->imode;
       if (p->mode == 0 || p->mode == 2){
-        if ((p->ndx[0] = *p->start*CS_ESR) < 0)
+        if ((p->ndx[0] = *p->start*p->sfunc->gen01args.sample_rate) < 0)
           p->ndx[0] = 0;
         if (p->ndx[0] >= p->sfunc->flen/p->sfunc->nchanls)
           p->ndx[0] = (double) p->sfunc->flen/p->sfunc->nchanls - 1.0;
@@ -473,7 +478,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    MYFLT out[2], **aout = p->out, sr = CS_ESR;
+    MYFLT out[2], **aout = p->out, sr;
     MYFLT amp = *(p->amp), pitch = *(p->pitch);
     MYFLT *tab;
     double *ndx = p->ndx;
@@ -487,6 +492,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     FUNC *func;
     
     func = csound->FTnp2Find(csound, p->ifn);
+    sr = p->sfunc->gen01args.sample_rate;
 
     if(p->sfunc != func) {
     p->sfunc = func;

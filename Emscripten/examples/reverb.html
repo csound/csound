@@ -1,41 +1,21 @@
 <!doctype html>
 <html>
-<!--
-    WebAudio Csound example
-    Copyright (C) 2018 S Yi, V Lazzarini
 
-    This file is part of Csound.
-
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
--->
 <head>
-    <title>WebAudio Csound</title>
-    <style type="text/css">
-        textarea.console {
-            font-family: "Courier New";
-            color: #00FF99;
-            background-color: #000000
-        }
-    </style>
-    <script src='js/CsoundObj.js'></script>
-    <script>
-        let count = 0;
-        let csoundObj;
-        const TEST_CSD =
-            `
+  <title>WebAudio Csound</title>
+  <style type="text/css">
+    textarea.console {
+      font-family: "Courier New";
+      color: #00FF99;
+      background-color: #000000
+    }
+  </style>
+  <script src='js/CsoundObj.js'></script>
+  <script>
+    let count = 0;
+    let csoundObj;
+    const TEST_CSD =
+      `
   <CsoundSynthesizer>
   <CsOptions>
   </CsOptions>
@@ -57,35 +37,54 @@
   </CsScore>
   </CsoundSynthesizer>
   `;
-        CsoundObj.importScripts("./js/").then(() => {
-                    csoundObj = new CsoundObj();
-                    csoundObj.enableAudioInput((res) => {
-                        if (res) {
-                            csoundObj.setMessageCallback((msg) => {
-                                var element = document.getElementById('console');
-                                element.value += "\n" + msg;
-                                element.scrollTop = 99999; // focus on bottom
-                                count += 1;
-                                if (count == 1000) {
-                                    element.value = ' ';
-                                    count = 0;
-                                }
-                            });
-                          csoundObj.compileCSD(TEST_CSD);
-                            csoundObj.start();
-                        } else {
-                            alert("Unable to start microphone.");
-                        }
-                    });
-                  });
-    </script>
+    CsoundObj.importScripts("./js/").then(() => {
+      csoundObj = new CsoundObj();
+      csoundObj.enableAudioInput((res) => {
+        if (res) {
+          csoundObj.setMessageCallback((msg) => {
+            var element = document.getElementById('console');
+            element.value += "\n" + msg;
+            element.scrollTop = 99999; // focus on bottom
+            count += 1;
+            if (count == 1000) {
+              element.value = ' ';
+              count = 0;
+            }
+          });
+          document.getElementById('playButton').addEventListener('click',
+            click_this);
+          document.getElementById('playButton').disabled = false;
+          CSOUND_AUDIO_CONTEXT.suspend();
+          csoundObj.compileCSD(TEST_CSD);
+          csoundObj.start();
+        } else {
+          alert("Unable to start microphone.");
+        }
+      });
+    });
+
+    var playing = false;
+
+    function click_this() {
+      if (playing == false) {
+        CSOUND_AUDIO_CONTEXT.resume();
+        document.getElementById('playButton').innerText = "pause";
+        playing = true;
+      } else {
+        CSOUND_AUDIO_CONTEXT.suspend();
+        document.getElementById('playButton').innerText = "play";
+        playing = false;
+      }
+    }
+  </script>
 </head>
 
 <body>
-    <H1>Reverb</H1>
-    <textarea class="console" cols="65" rows="20"
-    id="console">Csound: loading...</textarea>
-    <p>
+  <H1>Reverb</H1>
+  <textarea class="console" cols="65" rows="20" id="console">Csound: loading...</textarea>
+  <p>
+    <button id="playButton" disabled>play</button>
+  </p>
 </body>
 
 </html>
