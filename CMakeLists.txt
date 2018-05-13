@@ -12,16 +12,6 @@ endif()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
 
-if(NOT MSVC AND NOT WASM)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
-set(CMAKE_C_FLAGS_RELEASE "-O3 ")
-if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror
--Wno-missing-field-initializers")
-endif()
-endif()
-
 # C++11 needed
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -169,6 +159,16 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
 else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
+endif()
+
+# set -Werror if in Debug configuration
+if(NOT MSVC AND NOT WASM)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
+endif()
 endif()
 
 if(APPLE)
