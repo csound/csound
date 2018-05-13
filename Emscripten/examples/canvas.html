@@ -150,15 +150,9 @@
         playing = false;
       }
 
-      cnvs.addEventListener("touchstart", cnvs_tplay, {
-        passive: true
-      });
-      cnvs.addEventListener("touchmove", cnvs_getTCoordinates, {
-        passive: true
-      });
-      cnvs.addEventListener("touchend", cnvs_tstop, {
-        passive: true
-      });
+      cnvs.addEventListener("touchstart", cnvs_tplay, false);
+      cnvs.addEventListener("touchmove", cnvs_getTCoordinates, false);
+      cnvs.addEventListener("touchend", cnvs_tstop, false);
       cnvs.addEventListener("mousedown", cnvs_play, false);
       cnvs.addEventListener("mouseup", cnvs_stop, false);
       cnvs.addEventListener("mousemove", cnvs_getCoordinates, false);
