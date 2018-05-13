@@ -1,26 +1,6 @@
 <!DOCTYPE html>
 <html>
-<!--
-    WebAudio Csound example
-    Copyright (C) 2018 V Lazzarini
 
-    This file is part of Csound.
-
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
--->
 <head>
     <style type="text/css">
         textarea.console {
@@ -44,7 +24,6 @@
             SetParam("cf", 'Hz', 1., 0.);
             SetParam("freq", 'Hz', 1., 440.);
             attachListeners();
-            csound.start();
             window.addEventListener("unload", function(e) {
                 if (csound != null)
                     csound.destroy();
@@ -105,8 +84,8 @@
             console.log(name + ": " + val + " " + label);
         }
 
-        var paused = false;
-
+        var paused = true;
+        var started = false;
         function pause() {
             if (paused == false) {
                 csound.stop();
@@ -115,15 +94,21 @@
                 innerText = 'play';
                 paused = true;
             } else {
+              if (started == false) {
+                CSOUND_AUDIO_CONTEXT.resume();
+                started = true;
+              }
                 csound.start();
                 document.getElementById('pause').
                 innerText = 'pause';
+                console.log("play");
                 paused = false;
             }
         }
         CsoundObj.importScripts("./js/").then(() => {
             moduleDidLoad();
         });
+
     </script>
 </head>
 
@@ -141,7 +126,7 @@
 <textarea class="console" cols="55" rows="16" id="console">
 loading...</textarea>
 <p>
-<button type="button" id="pause"> pause </button>
+<button type="button" id="pause"> play </button>
 </p>
 <textarea class="code" id="instruments" hidden>
 /* this is the synthesis code
