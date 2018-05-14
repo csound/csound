@@ -38,6 +38,8 @@ node ../convert.js
 echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
 echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound-worklet.js
 
+cat libcsound-worklet.js libcsound-worklet.wasm.js ../src/CsoundProcessor.js > libcsound-combined.js
+
 cd ..
 rm -rf dist
 mkdir dist
@@ -52,4 +54,8 @@ cp build/libcsound.wasm dist/
 cp build/libcsound-worklet.js dist/
 cp build/libcsound-worklet.wasm.js dist/
 
-
+mkdir dist/csound-npm
+cp src/CsoundNodeNPM.js dist/csound-npm/CsoundNode.js
+cp src/CsoundObjNPM.js dist/csound-npm/CsoundObj.js
+cp src/package.json dist/csound-npm
+cp build/libcsound-combined.js dist/csound-npm
