@@ -423,12 +423,12 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       int32_t *start;
 #endif
       // allocate buffer
-      n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
+      p->aOut_bufsize =  (unsigned int) p->bufSize < CS_KSMPS ? CS_KSMPS : p->bufSize;
+      n = p->aOut_bufsize*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
         csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
-      p->aOut_bufsize = CS_KSMPS;
       top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST");
 #ifndef __EMSCRIPTEN__
       if (top == NULL){
@@ -741,7 +741,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
 {
     /* nsmps is bufsize in frames */
-    int32_t nsmps = p->aOut_bufsize - p->h.insdshead->ksmps_offset;
+  int32_t nsmps = p->aOut_bufsize;// - p->h.insdshead->ksmps_offset;
     int32_t i, nn;
     int32_t chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
@@ -917,7 +917,7 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
       int32_t lc, mc=0, nc=nsmps*p->nChannels;
       int32_t *start = csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START");
       do{
-        lc = csound->WriteCircularBuffer(csound, p->cb, &aOut[mc], nc);
+        lc =  csound->WriteCircularBuffer(csound, p->cb, &aOut[mc], nc);
         nc -= lc;
         mc += lc;
       } while(nc && *start);
