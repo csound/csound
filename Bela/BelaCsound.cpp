@@ -257,7 +257,7 @@ void render(BelaContext *context, void *Data)
       }
       /* read/write audio data */
       for(i = 0; i < chns; i++){
-	audioIn[count+i] = audioRead(context,n,i);
+	audioIn[count+i] = audioRead(context,n,i)*scal;
 	audioWrite(context,n,i,audioOut[count+i]/scal);
       }
       /* read analogue data 
