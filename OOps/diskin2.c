@@ -1343,7 +1343,7 @@ int32_t diskin2_async_deinit_array(CSOUND *csound,  void *p){
 int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
 {
     /* nsmps is bufsize in frames */
-    int32_t nsmps = p->aOut_bufsize - p->h.insdshead->ksmps_offset;
+  int32_t nsmps = p->aOut_bufsize;// - p->h.insdshead->ksmps_offset;
     int32_t i, nn;
     int32_t chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
@@ -1694,12 +1694,12 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       int32_t *start;
 #endif
       // allocate buffer
-      n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
+      p->aOut_bufsize =  p->bufSize < (int) CS_KSMPS ? CS_KSMPS : p->bufSize;
+      n = p->aOut_bufsize*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
         csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
-      p->aOut_bufsize = CS_KSMPS;
       top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY");
 #ifndef __EMSCRIPTEN__
       if (top == NULL){
