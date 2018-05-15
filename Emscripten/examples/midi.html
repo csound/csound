@@ -4,11 +4,37 @@
 <head>
   <title>WebAudio Csound</title>
   <style type="text/css">
-    textarea.console {
-      font-family: "Courier New";
-      color: #FCF477;
-      background-color: #000000
+  html, body {
+    font-family: Monospace;
+    color: #bf94f7;
+    background-color: #000055;
+  }
+  #console {
+      font-family:  Monospace;
+      color: #b5b6ff;
+      background-color: #000000;
+      font-size: 16px;
+      width: 805px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-style: solid;
+      padding: 20px 0px;
     }
+
+
+   H1 {
+     font-size: 36px;
+   }
+
+   button {
+      margin: auto;
+      font-family: Monospace;
+      width: 155px;
+      padding: 10px 10px;
+      font-size: 24px;
+      background-color: #b5b6ff;
+   }
   </style>
   <script type="text/javascript" src="js/csound.js"></script>
   <script type="text/javascript">
@@ -36,6 +62,12 @@
         addEventListener("mouseup", Stop);
         document.getElementById(notes[i]).
         addEventListener("mouseleave", Stop);
+        document.getElementById(notes[i]).
+        addEventListener("touchstart", Play);
+        document.getElementById(notes[i]).
+        addEventListener("touchend", Stop);
+        document.getElementById(notes[i]).
+        addEventListener("touchmove", Stop);
       }
     }
     var count = 0;
@@ -54,6 +86,7 @@
     var playing = false;
     // click handler
     function Play(event) {
+      event.preventDefault();
       if (started == false) {
         CSOUND_AUDIO_CONTEXT.resume();
         started = true;
@@ -64,6 +97,7 @@
     }
 
     function Stop(event) {
+      event.preventDefault();
       if (playing) {
         let note = event.target.value;
         csound.NoteOff(1, note, 60);
@@ -82,7 +116,7 @@
     <button id="g" value=67>G</button>
     <button id="a" value=69>A</button>
   </p>
-  <textarea class="console" cols="65" rows="20" id="console">Csound: not loaded</textarea>
+  <textarea class="console" rows="20" id="console">Csound: not loaded</textarea>
 </body>
 
 </html>
