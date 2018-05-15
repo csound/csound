@@ -213,6 +213,7 @@ int32_t losset(CSOUND *csound, LOSC *p)
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
       uint32 maxphs = ftp->flenfrms;
       //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
+      //printf("cvtbas = %f\n", ftp->cvtbas);
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = (ftp->cvtbas / *p->ibas)/LOFACT;
@@ -501,6 +502,7 @@ int32_t loscil(CSOUND *csound, LOSC *p)
     ftbl = ftp->ftable;
     if ((inc = (*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
+    //printf("inc: %lf * %lf = %lf\n", *p->kcps, p->cpscvt, inc);
     xamp = p->xamp;
     xx = *xamp;
     aamp = IS_ASIG_ARG(p->xamp) ? 1 : 0;
@@ -529,7 +531,7 @@ int32_t loscil(CSOUND *csound, LOSC *p)
     }
  phschk:
     if (phs >= end && p->curmod != 3) {
-      //printf("****phs = %f end = %d\n", phs,end);
+      //printf("****phs = %f end = %f\n", phs,end);
       goto put0;
     }
     switch (p->curmod) {
@@ -539,7 +541,7 @@ int32_t loscil(CSOUND *csound, LOSC *p)
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if ((phs += inc) >= end) {
-          //printf("****phs, end = %f, %d\n", phs, end);
+          //printf("****phs, end = %f, %f\n", phs, end);
           goto nxtseg;
         }
       }
