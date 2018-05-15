@@ -8,11 +8,33 @@
 <head>
   <title>WebAudio Csound</title>
   <style type="text/css">
-    textarea.console {
-      font-family: "Courier New";
-      color: #00FF99;
-      background-color: #000000
+  html, body {
+    font-family: Monospace;
+    color: #bf94f7;
+    background-color: #000055;
+  }
+  #console {
+      font-family:  Monospace;
+      color: #b5b6ff;
+      background-color: #000000;
+      font-size: 16px;
     }
+
+   #tit {
+    font-family: Monospace;
+    font-size: 24px;
+    width: 810px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-style: solid;
+    padding: 20px 0px;
+   }
+
+   H1 {
+     font-size: 36px;
+   }
+
   </style>
   <script type="text/javascript" src="js/csound.js"></script>
   <script type="text/javascript">
@@ -20,11 +42,13 @@
     function moduleDidLoad() {
       csound.Play();
       csound.CompileOrc(
+        "maxalloc 1,10 \n" +
         "massign 1,1\n" +
         "instr 1 \n" +
         "icps = 440+rnd(440) \n" +
         "chnset icps, \"freq\" \n" +
-        "a1 oscili 0.1, icps\n" +
+        "a2 linen  0.1,0.01,p3,0.1 \n" +
+        "a1 oscili a2, icps\n" +
         "outs a1,a1 \n" +
         "endin");
       document.getElementById("tit").innerHTML = "Click here to play";
