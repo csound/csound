@@ -86,7 +86,8 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
 /* scale 'scl'.                                                         */
 
 static inline void diskin2_get_sample(CSOUND *csound,
-                                      DISKIN2 *p, int32_t fPos, int32_t n, MYFLT scl)
+                                      DISKIN2 *p, int32_t fPos, int32_t n,
+                                      MYFLT scl)
 {
     int32_t  bufPos, i;
 
@@ -423,7 +424,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       int32_t *start;
 #endif
       // allocate buffer
-      p->aOut_bufsize =  p->bufSize < (int) CS_KSMPS ? CS_KSMPS : p->bufSize;
+      p->aOut_bufsize =  ((unsigned int)p->bufSize) < CS_KSMPS ?
+        ((MYFLT)CS_KSMPS) : ((MYFLT)p->bufSize);
       n = p->aOut_bufsize*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
         csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
@@ -447,7 +449,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
           while(current->nxt != NULL) { /* find next empty slot in chain */
             current = current->nxt;
           }
-          current->nxt = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
+          current->nxt = (DISKIN_INST *) csound->Calloc(csound,
+                                                        sizeof(DISKIN_INST));
           current = current->nxt;
         }
       current->csound = csound;
@@ -1694,13 +1697,16 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       int32_t *start;
 #endif
       // allocate buffer
-      p->aOut_bufsize =  p->bufSize < (int) CS_KSMPS ? CS_KSMPS : p->bufSize;
+      p->aOut_bufsize =
+        ((unsigned int)p->bufSize) < CS_KSMPS ?
+        ((MYFLT)CS_KSMPS) : ((MYFLT)p->bufSize);
       n = p->aOut_bufsize*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
         csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
-      top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY");
+      top =
+        (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY");
 #ifndef __EMSCRIPTEN__
       if (top == NULL){
         csound->CreateGlobalVariable(csound,
