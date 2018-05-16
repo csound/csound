@@ -520,7 +520,7 @@ public:
       warn(csound, "lua_opdef: opcodename: %s\n", opcodename);
       char init_function[0x100];
       snprintf(init_function, 0x100, "%s_init",
-               opcodename); 
+               opcodename);
       lua_getglobal(L, init_function);
       if (lua_isfunction(L, lua_gettop(L))) {
           warn(csound, "lua_opdef: defined %s.\n", init_function);
@@ -531,7 +531,7 @@ public:
       lua_pop(L, 1);
       char kontrol_function[0x100];
       snprintf(kontrol_function, 0x100, "%s_kontrol",
-               opcodename); 
+               opcodename);
       lua_getglobal(L, kontrol_function);
       if (lua_isfunction(L, lua_gettop(L))) {
           warn(csound, "lua_opdef: defined %s.\n", kontrol_function);
@@ -542,7 +542,7 @@ public:
       lua_pop(L, 1);
       char audio_function[0x100];
       snprintf(audio_function, 0x100, "%s_audio",
-               opcodename); 
+               opcodename);
       lua_getglobal(L, audio_function);
       if (lua_isfunction(L, lua_gettop(L))) {
           warn(csound, "lua_opdef: defined %s.\n", audio_function);
@@ -553,7 +553,7 @@ public:
       lua_pop(L, 1);
       char noteoff_function[0x100];
       snprintf(noteoff_function, 0x100, "%s_noteoff",
-               opcodename); 
+               opcodename);
       lua_getglobal(L, noteoff_function);
       if (lua_isfunction(L, lua_gettop(L))) {
           warn(csound, "lua_opdef: defined %s.\n", noteoff_function);
