@@ -213,14 +213,15 @@ int32_t losset(CSOUND *csound, LOSC *p)
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
       uint32 maxphs = ftp->flenfrms;
       //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
-      //printf("cvtbas = %f\n", ftp->cvtbas);
+      //printf("****ftp cvtbas = %g ibas = %g\n", ftp->cvtbas, *p->ibas);
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = (ftp->cvtbas / *p->ibas)/LOFACT;
       else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
-        p->cpscvt = FL(261.62561); /* Middle C */
+        p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
+      else p->cpscvt /= LOFACT;
       //printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
@@ -313,9 +314,10 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
       if (*p->ibas != FL(0.0))
         p->cpscvt = (ftp->cvtbas / *p->ibas)/LOFACT;
       else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
-        p->cpscvt = FL(261.62561); /* Middle C */
+        p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
+      else p->cpscvt /= LOFACT;
       //printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
