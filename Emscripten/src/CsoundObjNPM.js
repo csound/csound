@@ -24,7 +24,7 @@
 /** Csound global AudioContext
  */
 
-import { CsoundNodeFactory } from "./CsoundNode";
+import { CsoundNode, CsoundNodeFactory } from "./CsoundNode";
 
 var CSOUND_AUDIO_CONTEXT =
     CSOUND_AUDIO_CONTEXT ||
@@ -73,7 +73,7 @@ export default class CsoundObj {
 
         // exposes node as property, user may access to set port onMessage callback
         // or we can add a setOnMessage(cb) method on CsoundObj...
-        this.node = CsoundObj.createNode();
+        this.node = CsoundObj.createNode(this.audioContext).awn;
         this.node.connect(this.audioContext.destination);
         this.microphoneNode = null;
     }
@@ -350,11 +350,10 @@ export default class CsoundObj {
      *  @param {number} OutputChannelCount number of output channels
      *  @return A new Csound Engine Node (CsoundNode or CsoundScriptProcessorNode)
      */
-    static createNode(inputChannelCount = 1, outputChannelCount = 2) {
-        return CSOUND_AUDIO_CONTEXT.factory.createNode(
-            CSOUND_AUDIO_CONTEXT,
-            inputChannelCount,
-            outputChannelCount
-        );
+    static createNode(context, inputChannelCount = 1, outputChannelCount = 2) {
+        var options = {};
+        options.numberOfInputs = inputChannelCount;
+        options.numberOfOutputs = outputChannelCount;
+        return new CsoundNode(context, options);
     }
 }

@@ -1,11 +1,11 @@
 {
-  "name": "csound",
-  "version": "1.0.0",
-  "description": "",
-  "main": "CsoundObj.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC"
+    "name": "csound-test-npm",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "LGPL-2.0"
 }

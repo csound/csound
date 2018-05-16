@@ -24,7 +24,10 @@
 /** This ES6 Class defines a Custom Node as an AudioWorkletNode
  *  that holds a Csound engine.
  */
-class CsoundNode extends window.AudioWorkletNode {
+
+import libcsound from "./libcsound-combined.js.txt";
+
+export class CsoundNode {
     /**
      *
      * @constructor
@@ -39,32 +42,32 @@ class CsoundNode extends window.AudioWorkletNode {
         options.numberOfOutputs = 2;
         options.channelCount = 2;
 
-        super(context, "Csound", options);
+        this.awn = new window.AudioWorkletNode(context, "Csound", options);
 
-        this.msgCallback = msg => {
+        this.awn.msgCallback = msg => {
             console.log(msg);
         };
 
-        this.port.start();
-        this.channel = {};
-        this.channelCallback = {};
-        this.table = {};
-        this.tableCallback = {};
-        this.port.onmessage = event => {
+        this.awn.port.start();
+        this.awn.channel = {};
+        this.awn.channelCallback = {};
+        this.awn.table = {};
+        this.awn.tableCallback = {};
+        this.awn.port.onmessage = event => {
             let data = event.data;
             switch (data[0]) {
                 case "log":
-                    this.msgCallback(data[1]);
+                    this.awn.msgCallback(data[1]);
                     break;
                 case "control":
-                    this.channel[data[1]] = data[2];
-                    if (typeof this.channelCallback[data[1]] != "undefined")
-                        this.channelCallback[data[1]]();
+                    this.awn.channel[data[1]] = data[2];
+                    if (typeof this.awn.channelCallback[data[1]] != "undefined")
+                        this.awn.channelCallback[data[1]]();
                     break;
                 case "table":
-                    this.table[data[1]] = data[2];
-                    if (typeof this.tableCallback[data[1]] != "undefined")
-                        this.tableCallback[data[1]]();
+                    this.awn.table[data[1]] = data[2];
+                    if (typeof this.awn.tableCallback[data[1]] != "undefined")
+                        this.awn.tableCallback[data[1]]();
                     break;
                 default:
                     console.log('[CsoundNode] Invalid Message: "' + event.data);
@@ -80,7 +83,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     writeToFS(filePath, blobData) {
-        this.port.postMessage(["writeToFS", filePath, blobData]);
+        this.awn.port.postMessage(["writeToFS", filePath, blobData]);
     }
 
     /** Compiles a CSD, which may be given as a filename in the
@@ -89,7 +92,7 @@ class CsoundNode extends window.AudioWorkletNode {
      * @param {string} csd A string containing the CSD filename or the CSD code.
      */
     compileCSD(filePath) {
-        this.port.postMessage(["compileCSD", filePath]);
+        this.awn.port.postMessage(["compileCSD", filePath]);
     }
 
     /** Compiles Csound orchestra code.
@@ -98,7 +101,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     compileOrc(orcString) {
-        this.port.postMessage(["compileOrc", orcString]);
+        this.awn.port.postMessage(["compileOrc", orcString]);
     }
 
     /** Sets a Csound engine option (flag)
@@ -108,7 +111,7 @@ class CsoundNode extends window.AudioWorkletNode {
      * not contain any whitespace.
      */
     setOption(option) {
-        this.port.postMessage(["setOption", option]);
+        this.awn.port.postMessage(["setOption", option]);
     }
 
     render(filePath) {}
@@ -119,7 +122,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     evaluateCode(codeString) {
-        this.port.postMessage(["evalCode", codeString]);
+        this.awn.port.postMessage(["evalCode", codeString]);
     }
 
     /** Reads a numeric score string.
@@ -128,7 +131,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     readScore(scoreString) {
-        this.port.postMessage(["readScore", scoreString]);
+        this.awn.port.postMessage(["readScore", scoreString]);
     }
 
     /** Sets the value of a control channel in the software bus
@@ -138,7 +141,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     setControlChannel(channelName, value) {
-        this.port.postMessage(["setControlChannel", channelName, value]);
+        this.awn.port.postMessage(["setControlChannel", channelName, value]);
     }
 
     /** Sets the value of a string channel in the software bus
@@ -148,7 +151,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     setStringChannel(channelName, value) {
-        this.port.postMessage(["setStringChannel", channelName, value]);
+        this.awn.port.postMessage(["setStringChannel", channelName, value]);
     }
 
     /** Request the data from a control channel
@@ -160,8 +163,8 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     requestControlChannel(channelName, callback = null) {
-        this.port.postMessage(["getControlChannel", channelName]);
-        if (callback !== null) this.channelCallback[channelName] = callback;
+        this.awn.port.postMessage(["getControlChannel", channelName]);
+        if (callback !== null) this.awn.channelCallback[channelName] = callback;
     }
 
     /** Get the latest requested channel data
@@ -171,7 +174,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     getChannel(channelName) {
-        return this.channel[channelName];
+        return this.awn.channel[channelName];
     }
 
     /** Request the data from a Csound function table
@@ -183,8 +186,8 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     requestTable(number, callback = null) {
-        this.port.postMessage(["getTable", number]);
-        if (callback !== null) this.tableCallback[number] = callback;
+        this.awn.port.postMessage(["getTable", number]);
+        if (callback !== null) this.awn.tableCallback[number] = callback;
     }
 
     /** Get the requested table number
@@ -194,7 +197,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     getTable(number) {
-        return this.table[number];
+        return this.awn.table[number];
     }
 
     /** Set a specific table position
@@ -205,7 +208,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     setTableValue(number, index, value) {
-        this.port.postMessage(["setTableAtIndex", number, index, value]);
+        this.awn.port.postMessage(["setTableAtIndex", number, index, value]);
     }
 
     /** Set a table with data from an array
@@ -215,19 +218,19 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     setTable(number, table) {
-        this.port.postMessage(["setTable", number, table]);
+        this.awn.port.postMessage(["setTable", number, table]);
     }
 
     /** Starts processing in this node
      */
     start() {
-        this.port.postMessage(["start"]);
+        this.awn.port.postMessage(["start"]);
     }
 
     /** Resets the Csound engine.
      */
     reset() {
-        this.port.postMessage(["reset"]);
+        this.awn.port.postMessage(["reset"]);
     }
 
     destroy() {}
@@ -235,13 +238,13 @@ class CsoundNode extends window.AudioWorkletNode {
     /** Starts performance, same as start()
      */
     play() {
-        this.port.postMessage(["play"]);
+        this.awn.port.postMessage(["play"]);
     }
 
     /** Stops (pauses) performance
      */
     stop() {
-        this.port.postMessage(["stop"]);
+        this.awn.port.postMessage(["stop"]);
     }
 
     /** Sets a callback to process Csound console messages.
@@ -252,7 +255,7 @@ class CsoundNode extends window.AudioWorkletNode {
      */
 
     setMessageCallback(msgCallback) {
-        this.msgCallback = msgCallback;
+        this.awn.msgCallback = msgCallback;
     }
 
     /** Sends a MIDI channel message to Csound
@@ -263,7 +266,7 @@ class CsoundNode extends window.AudioWorkletNode {
      *
      */
     midiMessage(byte1, byte2, byte3) {
-        this.port.postMessage(["midiMessage", byte1, byte2, byte3]);
+        this.awn.port.postMessage(["midiMessage", byte1, byte2, byte3]);
     }
 }
 
@@ -278,9 +281,12 @@ export class CsoundNodeFactory {
      * @param {string} script_base A string containing the base path to scripts
      */
     static importScripts(audioContext, script_base = "./") {
+        const blob = new Blob([libcsound], { type: "application/javascript" });
+        const blobURL = URL.createObjectURL(blob);
+
         return new Promise(resolve => {
             audioContext.audioWorklet
-                .addModule(script_base + "libcsound-combined.js")
+                .addModule(blobURL)
                 .then(() => {
                     resolve();
                 })
@@ -288,22 +294,5 @@ export class CsoundNodeFactory {
                     console.log(e);
                 });
         });
-    }
-
-    /**
-     * This static method creates a new CsoundNode.
-     *  @param {number} InputChannelCount number of input channels
-     *  @param {number} OutputChannelCount number of output channels
-     *  @returns {object}
-     */
-    static createNode(
-        audioContext,
-        inputChannelCount = 1,
-        outputChannelCount = 2
-    ) {
-        var options = {};
-        options.numberOfInputs = inputChannelCount;
-        options.numberOfOutputs = outputChannelCount;
-        return new CsoundNode(audioContext, options);
     }
 }

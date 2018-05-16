@@ -38,7 +38,8 @@ node ../convert.js
 echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
 echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound-worklet.js
 
-cat libcsound-worklet.js libcsound-worklet.wasm.js ../src/CsoundProcessor.js > libcsound-combined.js
+cat libcsound-worklet.js libcsound-worklet.wasm.js ../src/CsoundProcessor.js > libcsound-combined.js.txt
+
 
 cd ..
 rm -rf dist
@@ -54,8 +55,20 @@ cp build/libcsound.wasm dist/
 cp build/libcsound-worklet.js dist/
 cp build/libcsound-worklet.wasm.js dist/
 
-mkdir dist/csound-npm
-cp src/CsoundNodeNPM.js dist/csound-npm/CsoundNode.js
-cp src/CsoundObjNPM.js dist/csound-npm/CsoundObj.js
-cp src/package.json dist/csound-npm
-cp build/libcsound-combined.js dist/csound-npm
+mkdir build/csound-npm
+git clone https://github.com/DimiMikadze/create-react-library.git build/csound-npm
+cd build/csound-npm
+yarn
+cp ../../src/index.js src/lib/index.js 
+cp ../../src/libcsound.js src/lib/components/libcsound.js
+cp ../../src/CsoundNodeNPM.js src/lib/components/CsoundNode.js
+cp ../../src/CsoundObjNPM.js src/lib/components/CsoundObj.js
+cp ../../src/webpack.config.demo.js config/webpack.config.demo.js
+cp ../../src/webpack.config.dev.js config/webpack.config.dev.js
+cp ../../src/webpack.config.prod.js config/webpack.config.prod.js
+cp ../../build/libcsound-combined.js.txt src/lib/components/libcsound-combined.js.txt
+yarn add raw-loader
+yarn build
+mkdir ../../dist/csound-test-npm
+cp build/index.js ../../dist/csound-test-npm
+cp ../../src/package.json ../../dist/csound-test-npm
