@@ -8,11 +8,48 @@
 <head>
     <title> WebAudio Csound </title>
     <style type="text/css">
-        textarea.console {
-            font-family: "Courier New";
-            color: #00FF99;
-            background-color: #000000
-        }
+    html, body {
+      font-family: Monospace;
+      color: #bf94f7;
+      background-color: #000055;
+    }
+
+    #console {
+        font-family:  Monospace;
+        color: #b5b6ff;
+        background-color: #000000;
+        font-size: 16px;
+        width: 805px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-style: solid;
+        padding: 20px 0px;
+      }
+
+     #filebut {
+       font-size: 24px;
+       padding: 20px 0px;
+     }
+     input[type=file] {
+       font-family: Monospace;
+       font-size: 24px;
+       background-color: #b5b6ff;
+       color: #000000;
+     }
+
+     H1 {
+       font-size: 36px;
+     }
+
+     button {
+        margin: auto;
+        font-family: Monospace;
+        width: 805px;
+        padding: 10px 0px;
+        font-size: 24px;
+        background-color: #b5b6ff;
+     }
     </style>
     <script type="text/javascript" src="js/csound.js"></script>
     <script type="text/javascript">
@@ -81,13 +118,16 @@
 </head>
 <body>
     <H1> CSD Player </H1>
+    <div id="filebut">
     <p> CSD file:
         <input type="file" id="files" name="file" />
-        <button id="playButton">Play</button>
     </p>
-    <textarea class="console" cols="80" rows="24" id="console">
+  </div>
+    <textarea class="console" rows="24" id="console">
       Csound: not loaded</textarea>
-
+      <p>
+     <button id="playButton">Play</button>
+   </p>
 </body>
 
 </html>
