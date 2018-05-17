@@ -258,7 +258,7 @@ cp  ../../../DmgResources/CsoundQt-0.9.5.1-MacOs.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..
-hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR" 
+hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR" -fs HFS+ 
 
 echo "... finished."
 

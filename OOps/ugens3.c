@@ -213,13 +213,15 @@ int32_t losset(CSOUND *csound, LOSC *p)
     if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
       uint32 maxphs = ftp->flenfrms;
       //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
+      //printf("****ftp cvtbas = %g ibas = %g\n", ftp->cvtbas, *p->ibas);
       p->ftp = ftp;
       if (*p->ibas != FL(0.0))
         p->cpscvt = (ftp->cvtbas / *p->ibas)/LOFACT;
       else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
-        p->cpscvt = FL(261.62561); /* Middle C */
+        p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
+      else p->cpscvt /= LOFACT;
       //printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
@@ -312,9 +314,10 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
       if (*p->ibas != FL(0.0))
         p->cpscvt = (ftp->cvtbas / *p->ibas)/LOFACT;
       else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
-        p->cpscvt = FL(261.62561); /* Middle C */
+        p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
         csound->Warning(csound, Str("no legal base frequency"));
       }
+      else p->cpscvt /= LOFACT;
       //printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
@@ -501,6 +504,7 @@ int32_t loscil(CSOUND *csound, LOSC *p)
     ftbl = ftp->ftable;
     if ((inc = (*p->kcps * p->cpscvt)) < 0)
       inc = -inc;
+    //printf("inc: %lf * %lf = %lf\n", *p->kcps, p->cpscvt, inc);
     xamp = p->xamp;
     xx = *xamp;
     aamp = IS_ASIG_ARG(p->xamp) ? 1 : 0;
@@ -529,7 +533,7 @@ int32_t loscil(CSOUND *csound, LOSC *p)
     }
  phschk:
     if (phs >= end && p->curmod != 3) {
-      //printf("****phs = %f end = %d\n", phs,end);
+      //printf("****phs = %f end = %f\n", phs,end);
       goto put0;
     }
     switch (p->curmod) {
@@ -539,7 +543,7 @@ int32_t loscil(CSOUND *csound, LOSC *p)
         if (aamp) xx = xamp[n];
         ar1[n] *= xx;
         if ((phs += inc) >= end) {
-          //printf("****phs, end = %f, %d\n", phs, end);
+          //printf("****phs, end = %f, %f\n", phs, end);
           goto nxtseg;
         }
       }

@@ -4,11 +4,37 @@
 <head>
   <title>WebAudio Csound</title>
   <style type="text/css">
-    textarea.console {
-      font-family: "Courier New";
-      color: #00FF99;
-      background-color: #000000
+  html, body {
+    font-family: Monospace;
+    color: #bf94f7;
+    background-color: #000055;
+  }
+  #console {
+      font-family:  Monospace;
+      color: #b5b6ff;
+      background-color: #000000;
+      font-size: 16px;
+      width: 805px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-style: solid;
+      padding: 20px 0px;
     }
+
+
+   H1 {
+     font-size: 36px;
+   }
+
+   #playButton {
+      margin: auto;
+      font-family: Monospace;
+      width: 805px;
+      padding: 10px 0px;
+      font-size: 24px;
+      background-color: #b5b6ff;
+   }
   </style>
   <script src='js/CsoundObj.js'></script>
   <script>
@@ -68,11 +94,11 @@
     function click_this() {
       if (playing == false) {
         CSOUND_AUDIO_CONTEXT.resume();
-        document.getElementById('playButton').innerText = "pause";
+        document.getElementById('playButton').innerText = "off";
         playing = true;
       } else {
         CSOUND_AUDIO_CONTEXT.suspend();
-        document.getElementById('playButton').innerText = "play";
+        document.getElementById('playButton').innerText = "on";
         playing = false;
       }
     }
@@ -81,9 +107,9 @@
 
 <body>
   <H1>Reverb</H1>
-  <textarea class="console" cols="65" rows="20" id="console">Csound: loading...</textarea>
+  <textarea class="console" rows="24" id="console">Csound: loading...</textarea>
   <p>
-    <button id="playButton" disabled>play</button>
+    <button id="playButton" disabled>on</button>
   </p>
 </body>
 
