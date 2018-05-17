@@ -1033,7 +1033,7 @@ int sensevents(CSOUND *csound)
         if (!(rdscor(csound, e))){
           /* or rd nxt evt from scstr */
           e->opcod = 'e';
-        } 
+        }
       csound->currevent = e;
 
       switch (e->opcod) {

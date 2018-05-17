@@ -65,293 +65,15 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
 
 /* -------------------------------------------------------------------- */
 
-#if 0
-/* static void unquote(char *dst, char *src) */
-/* { */
-/*     if (src[0] == '"') { */
-/*       int32_t len = (int32_t) strlen(src) - 2; */
-/*       strcpy(dst, src + 1); */
-/*       if (len >= 0 && dst[len] == '"') */
-/*         dst[len] = '\0'; */
-/*     } */
-/*     else */
-/*       strcpy(dst, src); */
-/* } */
-
-/* PUBLIC int32_t Sched(CSOUND *csound, MYFLT  *args[], int32_t numargs) { */
-/*     double  starttime; */
-/*     int32_t     i; */
-/*     EVTBLK  evt; */
-/*     char    name[512]; */
-
-/* /\*    if (p->XSTRCODE) { */
-/*              evt.strarg = (char*) p->args[0]; */
-/*              evt.p[1] = SSTRCOD; */
-/*     } */
-/*     else *\/ */
-/*     if (*args[1] == SSTRCOD) { */
-/*       unquote(name, csound->currevent->strarg); */
-/*       evt.strarg = name; */
-/*       evt.p[1] = SSTRCOD; */
-/*       evt.scnt = 1; */
-/*     } */
-/*     else { */
-/*       evt.strarg = NULL; evt.scnt = 0; */
-/*       evt.p[1] = *args[1]; */
-/*     } */
-/*     evt.opcod = (char) *args[0]; */
-/*     if (evt.opcod == 0) evt.opcod = 'i'; */
-
-/*     evt.pcnt = numargs -1; */
-/*     /\* Add current time (see note about kadjust in triginset() above) *\/ */
-/*     starttime = *args[2]; */
-/*     if(starttime < FL(0.0)) { */
-/*       starttime = FL(0.0); */
-/*     } */
-/*     starttime += (double) csound->GetKcounter(csound) / */
-/*                  (double) csound->GetKr(csound); */
-/*     /\*starttime += (double) csound->global_kcounter / (double)csound->global_ekr;*\/ */
-/*    /\* Copy all arguments to the new event *\/ */
-/*     for (i = 0; i < numargs; i++) */
-/*       evt.p[i] = *args[i]; */
-
-/*     if (evt.p[2] < FL(0.0)) { */
-/*       evt.p[2] = FL(0.0); */
-/*     } */
-/*     return (csound->insert_score_event(csound, &evt, starttime) == 0 ? OK : NOTOK); */
-/* } */
-
-/* /\* These opcode has not been implemented because very similar ones exist *\/ */
-
-/* typedef struct { /\* GAB 11/Jan/2001 *\/ */
-/*      OPDS   h; */
-/*      MYFLT  *trigger; */
-/*      MYFLT  *args[PMAX+1]; */
-/* } SCHEDK; */
-
-
-/* static int32_t schedk(CSOUND *csound, SCHEDK *p) */
-/* { /\* based on code by rasmus *\/ */
-/*     if (*p->trigger) /\* Only do something if triggered *\/ */
-/*       Sched(csound, p->args, p->INOCOUNT-1); */
-/*     return OK; */
-/* } */
-
-/* static int32_t schedk_i(CSOUND *csound, SCHEDK *p) */
-/* { /\* based on code by rasmus *\/ */
-/*     OPARMS    *O = csound->oparms; */
-
-/*     O->RTevents = 1;     /\* Make sure kperf() looks for RT events *\/ */
-/*     /\*   O->ksensing = 1; *\/ */
-/*     /\*   O->OrcEvts  = 1; *\/    /\* - of the appropriate type *\/ */
-/*     if (CS_KCNT > 0 && *p->trigger != FL(0.0) && p->h.insdshead->p3 == 0) */
-/*       schedk(csound,p); */
-/*     return OK; */
-/* } */
-/* /\* -------------------------------------------------------------------- *\/ */
-
-/* /\* These opcodes have not been implemented *\/ */
-
-/* typedef struct { /\* GAB 11/Jan/2001 *\/ */
-/*      OPDS   h; */
-/*      MYFLT  *trigger; */
-/*      MYFLT  *args[PMAX+1]; */
-/*      MYFLT  args2[PMAX+1]; */
-/*      MYFLT  *argums[PMAX+1]; */
-/*      int32_t nargs, done, doneRel; */
-/*      char *relesing; */
-/*      MYFLT frac; */
-/* } SCHEDINTIME; */
-
-
-/* static int32_t schedInTime_set(CSOUND *csound, SCHEDINTIME *p) */
-/* { */
-/*      int32_t *xtra; */
-/*      int32_t j; */
-/*      OPARMS    *O = csound->oparms; */
-/*      /\* hugly hack, needs to be inserted in the CSOUND structure *\/ */
-/*      static MYFLT frac = 0; */
-
-/*      O->RTevents = 1;     /\* Make sure kperf() looks for RT events *\/ */
-/*      /\*   O.ksensing = 1; *\/ */
-/*      /\*   O.OrcEvts  = 1; \/\\* - of the appropriate type *\/ */
-/*      p->frac = frac; */
-/*      p->nargs = p->INOCOUNT; /\* num of arguments *\/ */
-/*      for( j = 1; j < p->nargs; j++) { */
-/*        p->args2[j] = *p->args[j-1]; */
-/*        p->argums[j]= &p->args2[j]; */
-/*      } */
-/*      p->args2[0]=0; */
-/*      p->argums[0]=&p->args2[0]; */
-
-
-/*      if (CS_KCNT > 0 && *p->trigger != 0 && p->h.insdshead->p3 == 0) { */
-/*        if (*p->argums[3] >= 0) *p->argums[3] = -1; /\* start a held note *\/ */
-/*        *p->argums[1] += p->frac; */
-/*        Sched(csound, p->argums, p->nargs); */
-/*        p->done = 1; /\* only once *\/ */
-/*      } */
-/*      else */
-/*        p->done = 0; */
-/*      p->doneRel = 0; */
-/*      xtra = &(p->h.insdshead->xtratim); */
-/*      if (*xtra < 1) */
-/*        *xtra = 1; */
-/*      p->relesing = &(p->h.insdshead->relesing); */
-
-/*      frac += INCR; */
-/*      frac = (frac >= 1) ? frac = 0 : frac; */
-/*      return OK; */
-/* } */
-
-
-/* static int32_t schedInTime(CSOUND *csound, SCHEDINTIME *p) */
-/* { */
-/*     if (*p->trigger && !p->done) {/\* Only do something if triggered *\/ */
-/*       if (*p->argums[3] >= 0) *p->argums[3] = -1; /\* start a held note *\/ */
-/*       *p->argums[1] += p->frac; */
-/*       Sched(csound, p->argums, p->nargs); */
-/*       p->done = 1; /\* only once *\/ */
-/*     } */
-/*     if (*p->relesing && !p->doneRel) { */
-/*       *p->argums[1] = -*p->argums[1]; /\* turn off the note with a negative p1 *\/ */
-/*       Sched(csound, p->argums, p->nargs); */
-/*       p->doneRel = 1; /\* only once *\/ */
-/*     } */
-/*     return OK; */
-/* } */
-
-
-/* /\* -------------------------------------------------------------------- *\/ */
-
-/* /\* These opocdes were not implemented because the functionality of      *\/ */
-/* /\* CopyTabElements has already been included in vcopy and vcopy_i       *\/ */
-
-/* typedef struct { /\* GAB 11/Jan/2001 *\/ */
-/*      OPDS   h; */
-/*      MYFLT  *ktrigger, *idestTab, *kdestIndex, *isourceTab, */
-/*             *ksourceIndex, *inumElems; */
-/*      MYFLT *dTable, *sTable; */
-/*      int64_t sLen, dLen; */
-/* } COPYTABELEMS; */
-
-
-/* static int32_t copyTabElems_set(CSOUND *csound, COPYTABELEMS *p) */
-/* { */
-/*     FUNC *ftp; */
-/*     int32_t nelems = (int32_t) *p->inumElems; */
-/*     if ((ftp = csound->FTnp2Find(csound, p->idestTab)) == NULL) */
-/*       return csound->InitError(csound, */
-/*                                Str("copyTabElems: incorrect destination " */
-/*                                    "table number")); */
-
-/*     p->dLen = ftp->flen; */
-/*     if (nelems > p->dLen) */
-/*       return csound->InitError(csound, */
-/*                                Str("copyTabElems: destination table too short " */
-/*                                    "or number of elements to copy too big")); */
-
-/*     p->dTable = ftp->ftable; */
-/*     if ((ftp = csound->FTnp2Find(csound, p->isourceTab)) == NULL) */
-/*       return csound->InitError(csound, */
-/*                                Str("copyTabElems: incorrect source table number")); */
-
-/*     p->sLen = ftp->flen; */
-/*     if (nelems > p->sLen) */
-/*       return csound->InitError(csound, */
-/*                                Str("copyTabElems: source table size less than " */
-/*                                    "the number of elements to copy")); */
-
-/*     p->sTable = ftp->ftable; */
-
-/*     return OK; */
-/* } */
-
-
-/* static int32_t copyTabElems(CSOUND *csound, COPYTABELEMS *p) */
-/* { */
-/*     if(*p->ktrigger) { */
-/*       int32_t nelems = (int32_t) *p->inumElems; */
-/*       int32_t j, sNdx = (int32_t) *p->ksourceIndex * nelems, */
-/*              dNdx = (int32_t) *p->kdestIndex * nelems; */
-/*       if (sNdx + nelems > p->sLen) */
-/*         return */
-/*           csound->PerfError(csound, p->h.insdshead, */
-/*                             Str("copyTabElems: source table too short")); */
-/*       if (dNdx + nelems > p->dLen) */
-/*         return csound->PerfError(csound, p->h.insdshead, */
-/*                                  Str("copyTabElems: destination table too short")); */
-
-/*       for (j = 0; j< nelems; j++) */
-/*         p->dTable[dNdx+j] = p->sTable[sNdx+j]; */
-/*     } */
-/*     return OK; */
-/* } */
-
-/* typedef struct { /\* GAB 11/Jan/2001 *\/ */
-/*      OPDS   h; */
-/*      MYFLT  *idestTab, *idestIndex, *isourceTab, *isourceIndex, *inumElems; */
-/* } COPYTABELEMS_I; */
-
-/* static int32_t copyTabElemsi(CSOUND *csound, COPYTABELEMS_I *p) */
-/* { */
-/*     FUNC *ftp; */
-/*     int32_t nelems = (int32_t) *p->inumElems, dLen, sLen; */
-/*     MYFLT *sTable, *dTable; */
-/*     if ((ftp = csound->FTnp2Find(csound, p->idestTab)) == NULL) */
-/*       return csound->InitError(csound, */
-/*                                Str("copyTabElems: incorrect destination " */
-/*                                    "table number")); */
-/*     dLen = ftp->flen; */
-/*     if (nelems > dLen) */
-/*       return csound->InitError(csound, */
-/*                                Str("copyTabElems: destination table too short " */
-/*                                    "or number of elements to copy too big")); */
-/*     dTable = ftp->ftable; */
-/*     if ((ftp = csound->FTnp2Find(csound, p->isourceTab)) == NULL) */
-/*       return csound->InitError(csound, */
-/*                                Str("copyTabElems: incorrect source table number")); */
-/*     sLen = ftp->flen; */
-/*     if (nelems > sLen) */
-/*       return csound->InitError(csound, */
-/*                                Str("copyTabElems: source table size less than " */
-/*                                    "the number of elements to copy")); */
-/*     sTable = ftp->ftable; */
-
-/*     { */
-/*       int32_t j, sNdx = (int32_t) *p->isourceIndex * nelems, */
-/*         dNdx = (int32_t) *p->idestIndex * nelems; */
-/*       if (sNdx + nelems > sLen) */
-/*         return */
-/*           csound->PerfError(csound, p->h.insdshead, */
-/*                             Str("copyTabElems: source table too short")); */
-/*       if (dNdx + nelems > dLen) */
-/*         return csound->PerfError(csound, p->h.insdshead, */
-/*                                  Str("copyTabElems: destination table too short")); */
-/*       for (j = 0; j< nelems; j++) { */
-/*         dTable[dNdx+j] = sTable[sNdx+j]; */
-/*       } */
-/*     } */
-/*     return OK; */
-/* } */
-
-#endif
-
-/* -------------------------------------------------------------------- */
-
 typedef struct {
         OPDS    h;
         MYFLT   *kstartChan, *argums[VARGMAX];
         int32_t numChans, narg;
 } INRANGE;
 
-/* extern       MYFLT   *spin, *spout; */
-/* extern    int32_t spoutactive, PortaudioNumOfInPorts; gab default, = nchnls */
-
 static int32_t inRange_i(CSOUND *csound, INRANGE *p)
 {
     p->narg = p->INOCOUNT-1;
-/*p->numChans = (PortaudioNumOfInPorts == -1) ? nchnls : PortaudioNumOfInPorts; */
     if (UNLIKELY(!csound->oparms->sfread))
       return csound->InitError(csound, Str("inrg: audio input is not enabled"));
     p->numChans = csound->GetNchnls(csound);
@@ -600,28 +322,28 @@ static int32_t trRangeRand(CSOUND *csound, TRANGERAND *p)
 /* Note: this opcode has been left out because it is undocumented */
 
 #if 0
-/* typedef struct */
-/* { */
-/*      OPDS    h; */
-/*      MYFLT   *rcar, *rmod; */
-/*      MYFLT   *kfreq_max, *kfreq_min, *kband_max, *kband_min; */
-/* } DSH; */
+typedef struct
+{
+     OPDS    h;
+     MYFLT   *rcar, *rmod;
+     MYFLT   *kfreq_max, *kfreq_min, *kband_max, *kband_min;
+} DSH;
 
 
 
-/* static int32_t dashow (CSOUND *csound, DSH *p) */
-/* { */
-/*     MYFLT range = *p->kband_max - *p->kband_min; */
-/*     if (range != FL(0.0)) */
-/*       *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min); */
-/*     else */
-/*       *p->rmod = FL(0.0); */
-/*     *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod)); */
+static int32_t dashow< (CSOUND *csound, DSH *p)
+{
+    MYFLT range = *p->kband_max - *p->kband_min;
+    if (range != FL(0.0))
+      *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
+    else
+      *p->rmod = FL(0.0);
+    *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
 
-/*     if (*p->rmod <= FL(0.0)) *p->rmod = FABS (*p->rmod); */
-/*     if (*p->rcar <= FL(0.0)) *p->rcar = FABS (*p->rcar); */
-/*     return OK; */
-/* } */
+    if (*p->rmod <= FL(0.0)) *p->rmod = FABS (*p->rmod);
+    if (*p->rcar <= FL(0.0)) *p->rcar = FABS (*p->rcar);
+    return OK;
+}
 #endif
 
 /* -------------------------------------------------------------------- */

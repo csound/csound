@@ -168,8 +168,6 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
       }
     }
 
-   
-
     for (n=offset; n < nsmps; n++) {
 
       if (cnt == hsize) {

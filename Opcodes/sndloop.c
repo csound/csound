@@ -306,11 +306,10 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     int32 len, i, nchnls;
 
     p->sfunc = csound->FTnp2Find(csound, p->ifn) ;  /* function table */
-    cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);   
-    starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate); 
-    durs = (int32)  (*(p->dur)*p->sfunc->gen01args.sample_rate);   
+    cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);
+    starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate);
+    durs = (int32)  (*(p->dur)*p->sfunc->gen01args.sample_rate);
 
-    
     if (UNLIKELY(cfds > durs))
       return csound->InitError(csound,
                                Str("crossfade longer than loop duration\n"));
@@ -490,7 +489,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
         init = p->init, ijump = *p->ijump;
     uint32 tndx0, tndx1, nchnls, onchnls = p->nchnls;
     FUNC *func;
-    
+
     func = csound->FTnp2Find(csound, p->ifn);
     sr = p->sfunc->gen01args.sample_rate;
 
