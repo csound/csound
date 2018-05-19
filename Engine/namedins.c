@@ -26,8 +26,6 @@
 #include "csound_orc_semantics.h"
 #include <ctype.h>
 
-#define NOT_AN_INSTRUMENT INT32_MAX
-
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
 

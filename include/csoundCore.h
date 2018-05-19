@@ -105,7 +105,8 @@ typedef struct {
 #define MAXINSNO  (200)
 #define PMAX      (1998)
 #define VARGMAX   (1999)
-
+#define NOT_AN_INSTRUMENT INT32_MAX
+  
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
 #define OUTCOUNT    ORTXT.outlist->count   /* Not used */

@@ -1654,7 +1654,7 @@ int nstrnumset(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
   *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, 0);
-  return (*(p->i_insno) > FL(0.0) ? OK : NOTOK);
+  return (*(p->i_insno) != NOT_AN_INSTRUMENT ? OK : NOTOK);
 }
 
 int nstrnumset_S(CSOUND *csound, NSTRNUM *p)
@@ -1662,7 +1662,7 @@ int nstrnumset_S(CSOUND *csound, NSTRNUM *p)
   /* IV - Oct 31 2002 */
   *(p->i_insno) = (MYFLT) strarg2insno(csound,
                                        ((STRINGDAT *)p->iname)->data, 1);
-  return (*(p->i_insno) > FL(0.0) ? OK : NOTOK);
+  return (*(p->i_insno) != NOT_AN_INSTRUMENT ? OK : NOTOK);
 }
 
 
@@ -2559,7 +2559,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
   else
     n = (int) (*p->insno + FL(0.5));
 
-  if (UNLIKELY(n < 1 ||
+  if (UNLIKELY(n == NOT_AN_INSTRUMENT ||
                n > csound->engineState.maxinsno ||
                csound->engineState.instrtxtp[n] == NULL))
     return OK;                /* Instrument does not exist so noop */
