@@ -331,11 +331,11 @@ typedef struct
 
 
 
-static int32_t dashow< (CSOUND *csound, DSH *p)
+static int32_t dashow(CSOUND *csound, DSH *p)
 {
     MYFLT range = *p->kband_max - *p->kband_min;
     if (range != FL(0.0))
-      *p->rmod = (*p->kfreq_max - *p->kfreq_min) / (*p->kband_max - *p->kband_min);
+      *p->rmod = (*p->kfreq_max - *p->kfreq_min) / range;
     else
       *p->rmod = FL(0.0);
     *p->rcar = (*p->kfreq_max - (*p->kband_max * *p->rmod));
