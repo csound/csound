@@ -124,8 +124,8 @@ void *sndgetset(CSOUND *csound, void *p_)
     sfname = &(p->sfname[0]);
     /* IV - Feb 26 2005: should initialise sfinfo structure */
     memset(&sfinfo, 0, sizeof(SF_INFO));
-    sfinfo.format = (p->format ?        /* store default sample format, */
-                     ((int) FORMAT2SF(p->format) | SF_FORMAT_RAW) : 0);
+    sfinfo.format = (p->format<0 ?        /* store default sample format, */
+                     ((int) FORMAT2SF(-p->format) | SF_FORMAT_RAW) : 0);
     sfinfo.channels = 1;                /* number of channels, */
     if (p->analonly)                    /* and sample rate */
       sfinfo.samplerate = (int) p->sr;

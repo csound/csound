@@ -2062,7 +2062,10 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
     csound->scorestr = corfile_create_w(csound);
     corfile_puts(csound, (char *)str, csound->scorestr);
     //#ifdef SCORE_PARSER
-    corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
+    if (csound->engineStatus&CS_STATE_COMP)
+      corfile_puts(csound, "\n#exit\n", csound->scorestr);
+    else
+      corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
     //#endif
     corfile_flush(csound, csound->scorestr);
     /* copy sorted score name */
