@@ -1662,7 +1662,6 @@ int nstrnumset(CSOUND *csound, NSTRNUM *p)
       *p->i_insno = (MYFLT)res; return OK;
     }
 }
-}
 
 int nstrnumset_S(CSOUND *csound, NSTRNUM *p)
 {
