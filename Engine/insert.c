@@ -1314,6 +1314,7 @@ int subinstrset_S(CSOUND *csound, SUBINST *p){
   init_op = (p->h.opadr == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
   instno = strarg2insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
+  if (UNLIKELY(instno==NOT_AN_INSTRUMENT)) instno = -1;
   return subinstrset_(csound,p,instno);
 }
 
@@ -1653,16 +1654,26 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
 int nstrnumset(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
-  *(p->i_insno) = (MYFLT) strarg2insno(csound, p->iname, 0);
-  return (*(p->i_insno) != NOT_AN_INSTRUMENT ? OK : NOTOK);
+    int res = strarg2insno(csound, p->iname, 0);
+    if (UNLIKELY(res == NOT_AN_INSTRUMENT)) {
+      *p->i_insno = -FL(1.0); return NOTOK;
+    }
+    else {
+      *p->i_insno = (MYFLT)res; return OK;
+    }
+}
 }
 
 int nstrnumset_S(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
-  *(p->i_insno) = (MYFLT) strarg2insno(csound,
-                                       ((STRINGDAT *)p->iname)->data, 1);
-  return (*(p->i_insno) != NOT_AN_INSTRUMENT ? OK : NOTOK);
+    int res = strarg2insno(csound, ((STRINGDAT *)p->iname)->data, 1);
+    if (UNLIKELY(res == NOT_AN_INSTRUMENT)) {
+      *p->i_insno = -FL(1.0); return NOTOK;
+    }
+    else {
+      *p->i_insno = (MYFLT)res; return OK;
+    }
 }
 
 
@@ -2515,28 +2526,27 @@ static void instance(CSOUND *csound, int insno)
 
 int prealloc_(CSOUND *csound, AOP *p, int instname)
 {
-  int     n, a;
+    int     n, a;
 
-  if (instname)
-    n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
-                           (*p->b == FL(0.0) ? 0 : 1));
-  else {
-    if (csound->ISSTRCOD(*p->r))
-      n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
+    if (instname)
+      n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                              (*p->b == FL(0.0) ? 0 : 1));
-    else n = *p->r;
-  }
+    else {
+      if (csound->ISSTRCOD(*p->r))
+        n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
+                               (*p->b == FL(0.0) ? 0 : 1));
+      else n = *p->r;
+    }
 
-  if (UNLIKELY(n < 1))
-    return NOTOK;
-  if(csound->oparms->realtime)
-           csoundSpinLock(&csound->alloc_spinlock);
-  a = (int) *p->a - csound->engineState.instrtxtp[n]->active;
-  for ( ; a > 0; a--)
-    instance(csound, n);
-  if(csound->oparms->realtime)
-          csoundSpinUnLock(&csound->alloc_spinlock);
-  return OK;
+    if (UNLIKELY(n == NOT_AN_INSTRUMENT)) return NOTOK;
+    if (csound->oparms->realtime)
+      csoundSpinLock(&csound->alloc_spinlock);
+    a = (int) *p->a - csound->engineState.instrtxtp[n]->active;
+    for ( ; a > 0; a--)
+      instance(csound, n);
+    if (csound->oparms->realtime)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+    return OK;
 }
 
 int prealloc(CSOUND *csound, AOP *p){
