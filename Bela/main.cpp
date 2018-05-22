@@ -24,6 +24,7 @@
 #include <getopt.h>
 #include <Bela.h>
 #include <Midi.h>
+#include <Scope.h>
 #include <csound.hpp>
 #include <plugin.h>
 #include <vector>
@@ -155,6 +156,7 @@ struct CsData {
   int count;
   CsChan channel[ANCHNS];
   CsChan ochannel[ANCHNS];
+  CsChan schannel;
 };
 
 bool csound_setup(BelaContext *context, void *p)
@@ -217,6 +219,10 @@ bool csound_setup(BelaContext *context, void *p)
     csData->ochannel[i].samples.resize(csound->GetKsmps());
     csData->ochannel[i].name << "analogOut" << i;
   }
+
+  gCsData.schannel.samples.resize(csound->GetKsmps());
+  gCsData.schannel.name << "scope";
+  scope.setup(1, context->audioSampleRate);
   
   return true;
 }
@@ -238,6 +244,7 @@ void csound_render(BelaContext *context, void *p)
       ANCHNS : context->analogInChannels;
     CsChan *channel = csData->channel;
     CsChan *ochannel = csData->ochannel;
+    CsChan &schannel = gCsData.scope;
     float frm = 0.f, incr =
       ((float) context->analogFrames)/context->audioFrames;
     count = csData->count;
@@ -248,15 +255,22 @@ void csound_render(BelaContext *context, void *p)
       if(count == blocksize) {
 	
 	/* set the channels */
-	for(i = 0; i < an_chns; i++) {
+	for(i = 0; i < an_chns; i++) 
           csound->SetChannel(channel[i].name.str().c_str(),
 			     channel[i].samples.data());
-	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
-				  ochannel[i].samples.data());
-	}
+	 
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
 	else break;
+
+        /* get the channels */
+        for(i = 0; i < an_chns; i++) 
+	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
+				  ochannel[i].samples.data());
+	
+        /* get the scope data */
+        csound->GetAudioChannel(schannel.name.str().c_str(),
+				  schannel.samples.data());
 	
       }
       /* read/write audio data */
@@ -273,7 +287,8 @@ void csound_render(BelaContext *context, void *p)
 	k = (int) frm;
         channel[i].samples[frmcount] = analogRead(context,k,i);
 	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]); 
-      }	
+      }
+      scope.log(schannel.samples[frmcount]);
     }
     csData->res = res;
     csData->count = count;
