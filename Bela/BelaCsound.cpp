@@ -22,6 +22,7 @@
 */
 #include <Bela.h>
 #include <Midi.h>
+#include <Scope.h>
 #include <csound/csound.hpp>
 #include <csound/plugin.h>
 #include <vector>
@@ -152,6 +153,8 @@ struct CsData {
   int count;
   CsChan channel[ANCHNS];
   CsChan ochannel[ANCHNS];
+  CsChan schannel;
+  Scope scope;
 };
   
 static CsData gCsData;
@@ -217,6 +220,10 @@ bool setup(BelaContext *context, void *Data)
     gCsData.ochannel[i].samples.resize(csound->GetKsmps());
     gCsData.ochannel[i].name << "analogOut" << i;
   }
+
+  gCsData.schannel.samples.resize(csound->GetKsmps());
+  gCsData.schannel.name << "scope";
+  gCsData.scope.setup(1, context->audioSampleRate);
   
   return true;
 }
@@ -236,6 +243,8 @@ void render(BelaContext *context, void *Data)
       ANCHNS : context->analogInChannels;
     CsChan *channel = gCsData.channel;
     CsChan *ochannel = gCsData.ochannel;
+    CsChan &schannel = gCsData.schannel;
+    Scope &scope = gCsData.scope;
     float frm = 0.f, incr =
       ((float) context->analogFrames)/context->audioFrames;
     count = gCsData.count;
@@ -245,15 +254,22 @@ void render(BelaContext *context, void *Data)
     for(n = 0; n < context->audioFrames; n++, frm+=incr, count+=nchnls){
       if(count == blocksize) {
 	/* set the channels */
-	for(i = 0; i < an_chns; i++) {
+	for(i = 0; i < an_chns; i++) 
           csound->SetChannel(channel[i].name.str().c_str(),
 			     channel[i].samples.data());
-	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
-				  ochannel[i].samples.data());
-	}
+	 
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
 	else break;
+
+        /* get the channels */
+        for(i = 0; i < an_chns; i++) 
+	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
+				  ochannel[i].samples.data());
+	
+        /* get the scope data */
+        csound->GetAudioChannel(schannel.name.str().c_str(),
+				  schannel.samples.data());
       }
       /* read/write audio data */
       for(i = 0; i < chns; i++){
@@ -268,8 +284,9 @@ void render(BelaContext *context, void *Data)
       for(i = 0; i < an_chns; i++) {
 	k = (int) frm;
         channel[i].samples[frmcount] = analogRead(context,k,i);
-	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]); 
-      }	
+	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]);
+      }
+      scope.log(schannel.samples[frmcount]);
     }
     gCsData.res = res;
     gCsData.count = count;
