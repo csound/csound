@@ -252,18 +252,22 @@ void render(BelaContext *context, void *Data)
     for(n = 0; n < context->audioFrames; n++, frm+=incr, count+=nchnls){
       if(count == blocksize) {
 	/* set the channels */
-	for(i = 0; i < an_chns; i++) {
+	for(i = 0; i < an_chns; i++) 
           csound->SetChannel(channel[i].name.str().c_str(),
 			     channel[i].samples.data());
-	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
-				  ochannel[i].samples.data());
-	}
-        /* get the scope data */
-        csound->GetAudioChannel(schannel.name.str().c_str(),
-				  schannel.samples.data());
+	 
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
 	else break;
+
+        /* get the channels */
+        for(i = 0; i < an_chns; i++) 
+	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
+				  ochannel[i].samples.data());
+	
+        /* get the scope data */
+        csound->GetAudioChannel(schannel.name.str().c_str(),
+				  schannel.samples.data());
       }
       /* read/write audio data */
       for(i = 0; i < chns; i++){
