@@ -22,6 +22,7 @@
 */
 #include <Bela.h>
 #include <Midi.h>
+#include <Scope.h>
 #include <csound/csound.hpp>
 #include <csound/plugin.h>
 #include <vector>
@@ -152,6 +153,7 @@ struct CsData {
   int count;
   CsChan channel[ANCHNS];
   CsChan ochannel[ANCHNS];
+  CsChan schannel;
 };
   
 static CsData gCsData;
@@ -217,6 +219,10 @@ bool setup(BelaContext *context, void *Data)
     gCsData.ochannel[i].samples.resize(csound->GetKsmps());
     gCsData.ochannel[i].name << "analogOut" << i;
   }
+
+  gCsData.schannel.samples.resize(csound->GetKsmps());
+  gCsData.schannel.name << "scope";
+  scope.setup(1, context->audioSampleRate);
   
   return true;
 }
@@ -236,6 +242,7 @@ void render(BelaContext *context, void *Data)
       ANCHNS : context->analogInChannels;
     CsChan *channel = gCsData.channel;
     CsChan *ochannel = gCsData.ochannel;
+    CsChan &schannel = gCsData.scope;
     float frm = 0.f, incr =
       ((float) context->analogFrames)/context->audioFrames;
     count = gCsData.count;
@@ -251,6 +258,9 @@ void render(BelaContext *context, void *Data)
 	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
 				  ochannel[i].samples.data());
 	}
+        /* get the scope data */
+        csound->GetAudioChannel(schannel.name.str().c_str(),
+				  schannel.samples.data());
 	/* run csound */
 	if((res = csound->PerformKsmps()) == 0) count = 0;
 	else break;
@@ -268,8 +278,9 @@ void render(BelaContext *context, void *Data)
       for(i = 0; i < an_chns; i++) {
 	k = (int) frm;
         channel[i].samples[frmcount] = analogRead(context,k,i);
-	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]); 
-      }	
+	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]);
+      }
+      scope.log(schannel.samples[frmcount]);
     }
     gCsData.res = res;
     gCsData.count = count;
