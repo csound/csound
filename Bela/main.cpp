@@ -157,6 +157,7 @@ struct CsData {
   CsChan channel[ANCHNS];
   CsChan ochannel[ANCHNS];
   CsChan schannel;
+  Scope scope;
 };
 
 bool csound_setup(BelaContext *context, void *p)
@@ -220,9 +221,9 @@ bool csound_setup(BelaContext *context, void *p)
     csData->ochannel[i].name << "analogOut" << i;
   }
 
-  gCsData.schannel.samples.resize(csound->GetKsmps());
-  gCsData.schannel.name << "scope";
-  scope.setup(1, context->audioSampleRate);
+  csData->schannel.samples.resize(csound->GetKsmps());
+  csData->schannel.name << "scope";
+  csData->scope.setup(1, context->audioSampleRate);
   
   return true;
 }
@@ -244,7 +245,8 @@ void csound_render(BelaContext *context, void *p)
       ANCHNS : context->analogInChannels;
     CsChan *channel = csData->channel;
     CsChan *ochannel = csData->ochannel;
-    CsChan &schannel = gCsData.scope;
+    CsChan &schannel = csData->schannel;
+    Scope &scope = csData->scope;
     float frm = 0.f, incr =
       ((float) context->analogFrames)/context->audioFrames;
     count = csData->count;
