@@ -291,6 +291,8 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
 
 /* **** ADSR is just a construction and use of linseg */
 
+#define MAXSEGDUR (INT_MAX/CS_ESR) 
+
 static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
 {
     SEG         *segp;
@@ -300,9 +302,10 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
     MYFLT       len = csound->curip->p3.value;
     MYFLT       release = *argp[3];
     int32_t       relestim;
+    
 
     //printf("len = %f\n", len);
-    if (UNLIKELY(len<=FL(0.0))) len = FL(100000.0); /* MIDI case set int32_t */
+    if (UNLIKELY(len<=FL(0.0))) len = (int32_t) MAXSEGDUR;// FL(10000.0); /* MIDI case set int32_t */
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
