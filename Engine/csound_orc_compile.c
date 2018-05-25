@@ -1544,9 +1544,6 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
       engineState->stringPool = csound->engineState.stringPool;
                                 //cs_hash_table_create(csound);
-      // VL 25.05.2018 copy the named instrument hash table
-      // so that already defined names can be found
-      
       engineState->constantsPool = cs_hash_table_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
@@ -1656,6 +1653,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
+                // VL 25.05.2018 copy the named instrument hash table
+                // so that already defined names can be found
                 engineState->instrumentNames = csound->engineState.instrumentNames;
                 named_instr_alloc(csound,c,instrtxt, insno_priority,
                                engineState,0);
@@ -1683,6 +1682,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
+                // VL 25.05.2018 copy the named instrument hash table
+                // so that already defined names can be found
                 engineState->instrumentNames = csound->engineState.instrumentNames;
                 named_instr_alloc(csound,c,instrtxt, insno_priority,
                                engineState,0);
