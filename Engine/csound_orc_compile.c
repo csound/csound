@@ -1326,6 +1326,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
 
     cs_hash_table_merge(csound, current_state->constantsPool,
                         engineState->constantsPool);
+
+
+    
    /* for (count = 0; count < engineState->constantsPool->count; count++) {
       if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound, Str(" merging constants %d) %f\n"),
@@ -1378,7 +1381,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     insert_instrtxt(csound,engineState->instrtxtp[0],0,current_state,1);
     for (i=1; i < end; i++) {
       current = engineState->instrtxtp[i];
+     
       if (current != NULL) {
+        //csound->Message(csound, "INSTR %d \n", i);
         if (current->insname == NULL) {
           if (csound->oparms->odebug)
             csound->Message(csound, Str("merging instr %d\n"), i);
@@ -1397,7 +1402,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState)
     }
     /* merges all named instruments */
     //printf("assign numbers; %p\n", current_state);
-    named_instr_assign_numbers(csound,current_state);\
+    named_instr_assign_numbers(csound,current_state);
     /* VL MOVED here after all instruments are merged so
        that we get the correct number */
     insert_opcodes(csound, csound->opcodeInfo, current_state);
@@ -1519,6 +1524,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
     CS_VARIABLE* var;
     TYPE_TABLE* typeTable = (TYPE_TABLE*)current->markup;
 
+    
     current = current->next;
     if (csound->instr0 == NULL) {
       engineState = &csound->engineState;
@@ -1538,6 +1544,9 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
       engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
       engineState->stringPool = csound->engineState.stringPool;
                                 //cs_hash_table_create(csound);
+      // VL 25.05.2018 copy the named instrument hash table
+      // so that already defined names can be found
+      engineState->instrumentNames = csound->engineState.instrumentNames;
       engineState->constantsPool = cs_hash_table_create(csound);
       engineState->varPool = typeTable->globalPool;
       prvinstxt = &(engineState->instxtanchor);
@@ -1609,6 +1618,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
+ 
+                
                 named_instr_alloc(csound,c,instrtxt, insno_priority,
                                engineState,0);
                 /* VL 10.10.14: check for redefinition */
@@ -1625,6 +1636,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                                                     /* list of instr names, eg:
                                                        instr Hello, 1, 2
                                                     */
+          
           TREE *p =  current->left;
           while (p) {
             if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);
@@ -1644,11 +1656,15 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c,
-                                                instrtxt, insno_priority,
-                                                engineState,0))) {
-                  synterr(csound, Str("instr %s redefined"), c);
-                }
+
+                named_instr_alloc(csound,c,instrtxt, insno_priority,
+                               engineState,0);
+                /* if (UNLIKELY(!named_instr_alloc(csound, c, */
+                /*                                 instrtxt, insno_priority, */
+                /*                                 engineState,0))) { */
+                /*   synterr(csound, Str("instr %s redefined"), c); */
+                /* } */
+                
                 instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
                 strcpy(instrtxt->insname, c);
               }
@@ -1667,11 +1683,13 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                if (UNLIKELY(!named_instr_alloc(csound, c,
-                                                instrtxt, insno_priority,
-                                                engineState,0))) {
-                  synterr(csound, Str("instr %s redefined"), c);
-                }
+                named_instr_alloc(csound,c,instrtxt, insno_priority,
+                               engineState,0);
+                /* if (UNLIKELY(!named_instr_alloc(csound, c, */
+                /*                                 instrtxt, insno_priority, */
+                /*                                 engineState,0))) { */
+                /*   synterr(csound, Str("instr %s redefined"), c); */
+                /* } */
                 instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
                 strcpy(instrtxt->insname, c);
               }
