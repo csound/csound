@@ -400,6 +400,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     ip->nxtact = nxtp;
     ip->prvact = prvp;
     prvp->nxtact = ip;
+    ip->tieflag = 0;
     ip->actflg++;                   /*    and mark the instr active */
   }
 
