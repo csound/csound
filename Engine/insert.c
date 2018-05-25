@@ -1204,7 +1204,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
                                        "args greater than nchnls"));
   }
   /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
-  if (!(pip->reinitflag | pip->tieflag)) {
+  if (!(pip->reinitflag | pip->tieflag) || p->ip == NULL) {
     /* get instance */
     if (csound->engineState.instrtxtp[instno]->act_instance == NULL)
       instance(csound, instno);
