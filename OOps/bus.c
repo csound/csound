@@ -1280,6 +1280,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     hints.dflt = *(p->idflt);
     hints.min = *(p->imin);
     hints.max = *(p->imax);
+    hints.x = hints.y = hints.width = hints.height = 0;
     hints.attributes = NULL;
     err = csoundSetControlChannelHints(csound, (char*) p->iname->data, hints);
     if (LIKELY(!err))
