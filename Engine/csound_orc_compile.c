@@ -1615,7 +1615,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
- 
+
                 
                 named_instr_alloc(csound,c,instrtxt, insno_priority,
                                engineState,0);
@@ -1653,9 +1653,10 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                // VL 25.05.2018 copy the named instrument hash table
-                // so that already defined names can be found
-                engineState->instrumentNames = csound->engineState.instrumentNames;
+                // VL 25.05.2018
+                // this should only be run here in the
+                // first compilation
+                if(engineState == &csound->engineState)
                 named_instr_alloc(csound,c,instrtxt, insno_priority,
                                engineState,0);
                 /* if (UNLIKELY(!named_instr_alloc(csound, c, */
@@ -1682,11 +1683,14 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                 if (UNLIKELY(!check_instr_name(c))) {
                   synterr(csound, Str("invalid name for instrument"));
                 }
-                // VL 25.05.2018 copy the named instrument hash table
-                // so that already defined names can be found
-                engineState->instrumentNames = csound->engineState.instrumentNames;
+                // VL 25.05.2018
+                // this should only be run here in the
+                // first compilation
+                if(engineState == &csound->engineState)
                 named_instr_alloc(csound,c,instrtxt, insno_priority,
                                engineState,0);
+  
+                
                 /* if (UNLIKELY(!named_instr_alloc(csound, c, */
                 /*                                 instrtxt, insno_priority, */
                 /*                                 engineState,0))) { */
