@@ -37,7 +37,7 @@
 #include <map>
 #include <string>
 #include <vector>
-
+#include <sstream>
 #include "OpcodeBase.hpp"
 #include "csdl.h"
 #include <fluidsynth.h>
