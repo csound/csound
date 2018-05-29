@@ -271,7 +271,7 @@ public:
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
-        while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) 
+        while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset))
         {
           std::stringstream ss;
           ss << "Bank: " << fluidPreset.get_banknum(&fluidPreset) <<
@@ -282,7 +282,7 @@ public:
 
     tabensure(csound, outArr, programs.size());
     STRINGDAT *strings = (STRINGDAT *)outArr->data;
-    
+
     for (unsigned int i = 0; i < programs.size(); i++) {
         program = &programs[i][0u];
         strings[i].size = strlen(program) + 1;
