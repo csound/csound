@@ -224,6 +224,27 @@ public:
   }
 };
 
+/* from Opcodes/arrays.c */
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size) {
+  if (p->data == NULL || p->dimensions == 0 ||
+      (p->dimensions == 1 && p->sizes[0] < size)) {
+    size_t ss;
+    if (p->data == NULL) {
+      CS_VARIABLE *var = p->arrayType->createVariable(csound, NULL);
+      p->arrayMemberSize = var->memBlockSize;
+    }
+
+    ss = p->arrayMemberSize * size;
+    if (p->data == NULL)
+      p->data = (MYFLT *)csound->Calloc(csound, ss);
+    else
+      p->data = (MYFLT *)csound->ReAlloc(csound, p->data, ss);
+    p->dimensions = 1;
+    p->sizes = (int *)csound->Malloc(csound, sizeof(int));
+    p->sizes[0] = size;
+  }
+}
+
 //Rory Walsh 2018
 class FluidInfo : public OpcodeBase<FluidInfo> {
   // Outputs.
