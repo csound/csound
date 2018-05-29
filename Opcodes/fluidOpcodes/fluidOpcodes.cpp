@@ -283,7 +283,7 @@ public:
     tabensure(csound, outArr, programs.size());
     STRINGDAT *strings = (STRINGDAT *)outArr->data;
     
-    for (int i = 0; i < programs.size(); i++) {
+    for (unsigned int i = 0; i < programs.size(); i++) {
         program = &programs[i][0u];
         strings[i].size = strlen(program) + 1;
         strings[i].data = csound->Strdup(csound, program);
