@@ -255,7 +255,6 @@ class FluidInfo : public OpcodeBase<FluidInfo> {
   std::vector<std::string> programs;
   char *program;
   fluid_synth_t *fluidSynth;
-  int32_t listPresets;
   void *mutex;
 
 public:
