@@ -168,6 +168,7 @@ int32_t p5g_data(CSOUND *csound, P5GLOVE *p)
       switch (kontrol) {
       case P5G_BUTTONS:
         *p->res = (MYFLT)(buttons);
+        return OK;
       case P5G_BUTTON_A:
         *p->res = (MYFLT)(buttons & P5GLOVE_BUTTON_A);
         return OK;
