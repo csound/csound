@@ -252,13 +252,13 @@ class FluidInfo : public OpcodeBase<FluidInfo> {
   // Inputs.
   MYFLT *iFluidSynth;
   // State.
-  std::vector<std::string> programs;
-  char *program;
   fluid_synth_t *fluidSynth;
   void *mutex;
 
 public:
   int32_t init(CSOUND *csound) {
+    std::vector<std::string> programs;
+    char *program;
     mutex = csound->Create_Mutex(0);
     LockGuard guard(csound, mutex);
     int32_t result = OK;
