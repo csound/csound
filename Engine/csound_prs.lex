@@ -94,6 +94,7 @@ CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 SEND            ^[ \t]*[es]
 ROP             ^[ \t]*r
 
+NP              np[0-9]+
 NM              [nm]
 
 %X incl
@@ -512,6 +513,9 @@ NM              [nm]
 {NM}            {
                   corfile_putc(csound, yytext[0], PARM->cf);
                   if (!PARM->isString) BEGIN(lname);
+                }
+{NP}            {
+                 corfile_puts(csound, yytext, PARM->cf);
                 }
 <lname>[ \t]*     /* eat the whitespace */
 <lname>{IDENT}   {
