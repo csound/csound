@@ -95,7 +95,7 @@ SEND            ^[ \t]*[es]
 ROP             ^[ \t]*r
 
 NP              np[0-9]+
-NM              [nm]
+NM              [nm][ \t]+
 
 %X incl
 %x macro
@@ -343,6 +343,9 @@ NM              [nm]
                   do_include(csound, yytext[0], yyscanner);
                   BEGIN(INITIAL);
                 }
+{NP}            { // special case for np3 type carries to avoid treatment as n
+                 corfile_puts(csound, yytext, PARM->cf);
+                }
 {EXIT}          {
                  //printf("exit found: >>>%s<<<\n", PARM->cf->body);
                   corfile_putc(csound, '\0', PARM->cf);
@@ -513,9 +516,6 @@ NM              [nm]
 {NM}            {
                   corfile_putc(csound, yytext[0], PARM->cf);
                   if (!PARM->isString) BEGIN(lname);
-                }
-{NP}            {
-                 corfile_puts(csound, yytext, PARM->cf);
                 }
 <lname>[ \t]*     /* eat the whitespace */
 <lname>{IDENT}   {
