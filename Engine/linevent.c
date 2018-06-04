@@ -308,6 +308,7 @@ static void sensLine(CSOUND *csound, void *userData)
         case 'q':
         case 'f':
         case 'a':
+        case 'd':
           e.opcod = c;
           break;
         default:
