@@ -24,14 +24,12 @@
 #include "entry1.h"             /*                      ENTRY1.C        */
 #include "interlocks.h"
 
-/* thread vals, where isub=1, ksub=2, asub=4:
+/* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
    1 =     1
    2 =             2
    3 =     1  AND  2
-   4 =                     4
-   5 =     1  AND          4
-   7 =     1  AND (2  OR   4)                              */
+ */
 
 /* inarg types include the following:
 
