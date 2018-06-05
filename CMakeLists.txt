@@ -808,6 +808,7 @@ set(libcsound_SRCS
     Opcodes/pitchtrack.c
     Opcodes/partikkel.c
     Opcodes/shape.c
+    Opcodes/tabsave.c
     Opcodes/tabsum.c
     Opcodes/crossfm.c
     Opcodes/pvlock.c

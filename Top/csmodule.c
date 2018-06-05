@@ -840,6 +840,7 @@ extern long squinewave_localops_init(CSOUND *, void *);
 
 extern long partikkel_localops_init(CSOUND *, void *);
 extern long shape_localops_init(CSOUND *, void *);
+extern long tabsave_localops_init(CSOUND *, void *);
 extern long tabsum_localops_init(CSOUND *, void *);
 extern long crossfm_localops_init(CSOUND *, void *);
 extern long pvlock_localops_init(CSOUND *, void *);
@@ -880,7 +881,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  fareyseq_localops_init, hrtfearly_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
                                  vaops_localops_init, paulstretch_localops_init,
-                                 squinewave_localops_init,
+                                 squinewave_localops_init, tabsave_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
