@@ -45,7 +45,7 @@ var CSOUND_NODE_SCRIPT;
 
 /* SETUP NODE TYPE */
 if(typeof AudioWorkletNode !== 'undefined' &&
-   CSOUND_AUDIO_CONTEXT.audioWorklet !== null) {
+   CSOUND_AUDIO_CONTEXT.audioWorklet !== undefined) {
     console.log("Using WASM + AudioWorklet Csound implementation");
     CSOUND_NODE_SCRIPT = 'CsoundNode.js';
     CSOUND_AUDIO_CONTEXT.hasAudioWorklet = true;
