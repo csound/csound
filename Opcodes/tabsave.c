@@ -54,8 +54,8 @@ static void *write_tab(void* pp)
     MYFLT*   ans = p->ans;
     CSOUND*  csound = p->csound;
     INSDS   *insdshead = p->insdshead;
+    free(pp);
     //printf("t=%p size=%d ff=%p\n", t, size, ff);
-    pthread_detach(pthread_self()); 
     if (fwrite(t, sizeof(MYFLT), size, ff) != size) {
       fclose(ff);
       csound->PerfError(csound, insdshead,
@@ -87,7 +87,7 @@ static int32_t tabsave(CSOUND *csound, TABSAVE *p)
         return csound->PerfError(csound, p->h.insdshead,
                                  Str("tabsave: failed to open file %s"),
                                  p->file->data);
-      if (*p->sync==FL(0.0)) {
+      if (*p->sync==FL(0.0)) {  /* write in perf thread */
         if (fwrite(t, sizeof(MYFLT), size, ff) != size) {
           fclose(ff);
           return csound->PerfError(csound, p->h.insdshead,
@@ -95,7 +95,7 @@ static int32_t tabsave(CSOUND *csound, TABSAVE *p)
         }
         fclose(ff);
       }
-      else {
+      else {                    /* Use a detached helper thread */
         SAVE_THREAD *q = (SAVE_THREAD*)malloc(sizeof(SAVE_THREAD));
         pthread_t write_thread;
         q->t = t;
@@ -110,6 +110,7 @@ static int32_t tabsave(CSOUND *csound, TABSAVE *p)
           return csound->PerfError(csound, i,
                                    Str("Error creating thread"));
         }
+        //pthread_detach(write_thread);
       }
     }
     return OK;
