@@ -1,5 +1,5 @@
 /*
-    tabsave.c:
+    tabaudio.c:
 
     Copyright (C) 2018 John ffitch
 
@@ -31,10 +31,11 @@ typedef struct {
     MYFLT   *trig;
     MYFLT   *itab;
     STRINGDAT *file;
+    MYFLT   format;
     MYFLT   *sync;
     
     /* Local */
-} TABSAVE;
+} TABAUDIO;
 
 typedef struct {
     MYFLT*   t;
@@ -59,7 +60,7 @@ static void *write_tab(void* pp)
     if (fwrite(t, sizeof(MYFLT), size, ff) != size) {
       fclose(ff);
       csound->PerfError(csound, insdshead,
-                           Str("tabsave: failed to write data %d"),size);
+                           Str("tabaudio: failed to write data %d"),size);
       *ans = -FL(1.0);
     }
     else *ans = FL(1.0);
@@ -67,31 +68,36 @@ static void *write_tab(void* pp)
     return NULL;
 }
 
-static int32_t tabsave(CSOUND *csound, TABSAVE *p)
+static int32_t tabaudio(CSOUND *csound, TABAUDIO *p)
 {
     if (*p->trig) {
       FUNC  *ftp;
       MYFLT *t;
       uint32_t size;
-      FILE  *ff;
+      SNDFILE *ff;
+      SF_INFO sfinfo;
+      int32_t  format = MYFLT2LRND(*p->format);
+      
       if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
-        return csound->InitError(csound, Str("tabsave: No table"));
+        return csound->InitError(csound, Str("tabaudio: No table"));
       }
       *p->kans = FL(0.0);
       t = ftp->ftable;
       size = ftp->flen;
+      memset(&sfinfo, 0, sizeof(SF_INFO));
+
 
       //printf("t=%p size=%d file=%s\n", t, size, p->file->data);
       ff = fopen(p->file->data, "wb");
       if (ff==NULL)
         return csound->PerfError(csound, p->h.insdshead,
-                                 Str("tabsave: failed to open file %s"),
+                                 Str("tabaudio: failed to open file %s"),
                                  p->file->data);
       if (*p->sync==FL(0.0)) {  /* write in perf thread */
         if (fwrite(t, sizeof(MYFLT), size, ff) != size) {
           fclose(ff);
           return csound->PerfError(csound, p->h.insdshead,
-                                   Str("tabsave: failed to write data %d"),size);
+                                   Str("tabaudio: failed to write data %d"),size);
         }
         fclose(ff);
       }
@@ -118,11 +124,11 @@ static int32_t tabsave(CSOUND *csound, TABSAVE *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY tabsave_localops[] = {
-{ "tabsave",     S(TABSAVE),     TR, 2,  "k",    "kkSp",  NULL, (SUBR)tabsave },
+static OENTRY tabaudio_localops[] = {
+{ "tabaudio",     S(TABAUDIO),     TR, 2,  "k",    "kkSp",  NULL, (SUBR)tabaudio },
 };
 
-LINKAGE_BUILTIN(tabsave_localops)
+LINKAGE_BUILTIN(tabaudio_localops)
 
 
 
