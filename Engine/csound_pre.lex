@@ -725,10 +725,36 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
         csound->Warning(csound, Str("Ill formed #include ignored"));
         return;
       }
-      buffer[p] = c;
-      p++;
+      if (c=='$') {
+        char macn[128];
+        int i = 0;
+        MACRO     *mm = PARM->macros;
+        while (isalnum(c=input(yyscanner)) || isdigit(c) || (c=='_'))
+          macn[i++] = c;
+        unput(c);
+        macn[i] = '\0';
+        //printf("***macro attempt found >>%s<<\n", macn);
+        mm = find_definition(mm, macn);
+        if (UNLIKELY(mm == NULL)) {
+          csound->Message(csound,Str("Undefined macro: '%s'"), macn);
+          //csound->LongJmp(csound, 1);
+          corfile_puts(csound, "$error", csound->expanded_orc);
+        }
+        else {
+          /* Need to copy from macro definition */
+          strncpy(&buffer[p], mm->body, 100);
+          p = strlen(buffer);
+          //printf("*** buffer >>%s<< p=%d\n", buffer, p);
+          /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
+        }
+      }
+      else {
+        buffer[p] = c;
+        p++;
+      }
     }
     buffer[p] = '\0';
+    //printf("****buffer >>%s<<\n", buffer);
     while ((c=input(yyscanner))!='\n');
     if (UNLIKELY(PARM->depth++>=1024)) {
       csound->Die(csound, Str("Includes nested too deeply"));
