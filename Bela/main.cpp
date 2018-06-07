@@ -211,12 +211,12 @@ bool csound_setup(BelaContext *context, void *p)
   csData->count = 0;
 
   /* set up the channels */
-  for(int i = 0; i < csData->channel.size(); i++) {
+  for(unsigned int i = 0; i < csData->channel.size(); i++) {
     csData->channel[i].samples.resize(csound->GetKsmps());
     csData->channel[i].name << "analogIn" << i;
   }
 
-  for(int i = 0; i < csData->ochannel.size(); i++) {
+  for(unsigned int i = 0; i < csData->ochannel.size(); i++) {
     csData->ochannel[i].samples.resize(csound->GetKsmps());
     csData->ochannel[i].name << "analogOut" << i;
   }
@@ -232,14 +232,15 @@ void csound_render(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   if(csData->res == 0) {
-    int i,k,count, frmcount,blocksize,res = csData->res;
+    unsigned int i,k,count, frmcount,blocksize;
+    int res = csData->res;
     unsigned int n;
     Csound *csound = csData->csound;
     MYFLT scal = csound->Get0dBFS();
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
     int nchnls = csound->GetNchnls();
-    int chns = (unsigned int) nchnls < context->audioOutChannels ?
+    unsigned int chns = (unsigned int) nchnls < context->audioOutChannels ?
       nchnls : context->audioOutChannels;
     std::vector<CsChan> &channel = csData->channel;
     std::vector<CsChan> &ochannel = csData->ochannel;
