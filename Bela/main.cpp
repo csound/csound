@@ -32,8 +32,6 @@
 #include <iostream>
 #include <atomic>
 
-#define ANCHNS 8
-
 static int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev);
 static int CloseMidiInDevice(CSOUND *csound, void *userData);
 static int ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf,
@@ -154,8 +152,8 @@ struct CsData {
   int blocksize;
   std::atomic_int res;
   int count;
-  CsChan channel[ANCHNS];
-  CsChan ochannel[ANCHNS];
+  std::vector<CsChan> channel;
+  std::vector<CsChan> ochannel;
   CsChan schannel;
   Scope scope;
 };
@@ -174,10 +172,9 @@ bool csound_setup(BelaContext *context, void *p)
     return false;
   }
 
-  if(context->analogInChannels != context->analogOutChannels) {
-    printf("Error: number of analog inputs != number of analog outputs.\n");
-    return false;
-  }
+  /* allocate analog channel memory */
+  csData->channel.resize(context->analogInChannels);
+  csData->ochannel.resize(context->analogOutChannels);
   
   /* set up Csound */
   csound = new Csound();
@@ -214,11 +211,14 @@ bool csound_setup(BelaContext *context, void *p)
   csData->count = 0;
 
   /* set up the channels */
-  for(int i=0; i < ANCHNS; i++) {
-    csData->channel[i].samples.resize(csound->GetKsmps());
-    csData->channel[i].name << "analogIn" << i;
-    csData->ochannel[i].samples.resize(csound->GetKsmps());
-    csData->ochannel[i].name << "analogOut" << i;
+  for(int i = 0; i < csdData->channel.size(); i++) {
+    csdData->channel[i].samples.resize(csound->GetKsmps());
+    csdData->channel[i].name << "analogIn" << i;
+  }
+
+  for(int i = 0; i < csdData->ochannel.size(); i++) {
+    csdData->ochannel[i].samples.resize(csound->GetKsmps());
+    csdData->ochannel[i].name << "analogOut" << i;
   }
 
   csData->schannel.samples.resize(csound->GetKsmps());
@@ -241,10 +241,8 @@ void csound_render(BelaContext *context, void *p)
     int nchnls = csound->GetNchnls();
     int chns = (unsigned int) nchnls < context->audioOutChannels ?
       nchnls : context->audioOutChannels;
-    int an_chns = context->analogInChannels > ANCHNS ?
-      ANCHNS : context->analogInChannels;
-    CsChan *channel = csData->channel;
-    CsChan *ochannel = csData->ochannel;
+    std::vector<CsChan> &channel = csData->channel;
+    std::vector<CsChan> &ochannel = csData->ochannel;
     CsChan &schannel = csData->schannel;
     Scope &scope = csData->scope;
     float frm = 0.f, incr =
@@ -257,7 +255,7 @@ void csound_render(BelaContext *context, void *p)
       if(count == blocksize) {
 	
 	/* set the channels */
-	for(i = 0; i < an_chns; i++) 
+	for(i = 0; i < channel.size(); i++) 
           csound->SetChannel(channel[i].name.str().c_str(),
 			     channel[i].samples.data());
 	 
@@ -266,7 +264,7 @@ void csound_render(BelaContext *context, void *p)
 	else break;
 
         /* get the channels */
-        for(i = 0; i < an_chns; i++) 
+        for(i = 0; i < ochannel.size(); i++) 
 	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
 				  ochannel[i].samples.data());
 	
@@ -277,19 +275,23 @@ void csound_render(BelaContext *context, void *p)
       }
       /* read/write audio data */
       for(i = 0; i < chns; i++){
-	audioIn[count+i] = audioRead(context,n,i)*scal;
-	audioWrite(context,n,i,audioOut[count+i]/scal);
+	 audioIn[count+i] = audioRead(context,n,i)*scal;
+	 audioWrite(context,n,i,audioOut[count+i]/scal);
       }
+      
       /* read analogue data 
          analogue frame pos frm gets incremented according to the
          ratio analogFrames/audioFrames.
       */
       frmcount = count/nchnls;
-      for(i = 0; i < an_chns; i++) {
-	k = (int) frm;
+      k = (int) frm;
+      for(i = 0; i < channel.size(); i++) 
         channel[i].samples[frmcount] = analogRead(context,k,i);
+
+      /* write analogue data */
+      for(i = 0; i < ochannel.size(); i++) 
 	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]); 
-      }
+      
       scope.log(schannel.samples[frmcount]);
     }
     csData->res = res;
