@@ -211,14 +211,14 @@ bool csound_setup(BelaContext *context, void *p)
   csData->count = 0;
 
   /* set up the channels */
-  for(int i = 0; i < csdData->channel.size(); i++) {
-    csdData->channel[i].samples.resize(csound->GetKsmps());
-    csdData->channel[i].name << "analogIn" << i;
+  for(int i = 0; i < csData->channel.size(); i++) {
+    csData->channel[i].samples.resize(csound->GetKsmps());
+    csData->channel[i].name << "analogIn" << i;
   }
 
-  for(int i = 0; i < csdData->ochannel.size(); i++) {
-    csdData->ochannel[i].samples.resize(csound->GetKsmps());
-    csdData->ochannel[i].name << "analogOut" << i;
+  for(int i = 0; i < csData->ochannel.size(); i++) {
+    csData->ochannel[i].samples.resize(csound->GetKsmps());
+    csData->ochannel[i].name << "analogOut" << i;
   }
 
   csData->schannel.samples.resize(csound->GetKsmps());
