@@ -66,6 +66,7 @@ typedef struct pre_parm_s {
     uint64_t        llocn;
     uint16_t        depth;
     uint16_t        lstack[1024];
+    unsigned char   isinclude;
 } PRE_PARM;
 
 typedef struct parse_parm_s {
