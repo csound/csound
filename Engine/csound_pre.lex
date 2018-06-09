@@ -34,6 +34,7 @@
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
+static void do_new_include(CSOUND *, yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
@@ -75,6 +76,7 @@ MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 
 STCOM           \/\*
 INCLUDE         "#include"
+READ            "#read"
 DEFINE          #[ \t]*define
 UNDEF           "#undef"
 IFDEF           #ifn?def
@@ -211,6 +213,10 @@ QNAN            "qnan"[ \t]*\(
 {STSTR}         {
                   corfile_putc(csound, '"', csound->expanded_orc);
                   PARM->isString = !PARM->isString;
+                  if (PARM->isinclude && PARM->isString==0) {
+                    do_new_include(csound, yyscanner);
+                    PARM->isinclude = 0;
+                  }
                 }
 {XSTR}          {
                   char c, *str = yytext;
@@ -398,6 +404,12 @@ QNAN            "qnan"[ \t]*\(
                      }
                    }
                  }
+{READ}          {
+                  if (PARM->isString != 1)
+                    PARM->isinclude = 1;
+                  else
+                    corfile_puts(csound, yytext, csound->expanded_orc);
+                }
 {INCLUDE}       {
                   if (PARM->isString != 1)
                     BEGIN(incl);
@@ -458,7 +470,7 @@ QNAN            "qnan"[ \t]*\(
                   }
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound, "csound_pe(%d): line now %d at %d\n",
+                  csound->DebugMsg(csound, "csound_pre(%d): line now %d at %d\n",
                                    __LINE__,
                                    csound_preget_lineno(yyscanner),
                                    PARM->macro_stack_ptr);
@@ -725,33 +737,8 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
         csound->Warning(csound, Str("Ill formed #include ignored"));
         return;
       }
-      if (c=='$') {
-        char macn[128];
-        int i = 0;
-        MACRO     *mm = PARM->macros;
-        while (isalnum(c=input(yyscanner)) || isdigit(c) || (c=='_'))
-          macn[i++] = c;
-        unput(c);
-        macn[i] = '\0';
-        //printf("***macro attempt found >>%s<<\n", macn);
-        mm = find_definition(mm, macn);
-        if (UNLIKELY(mm == NULL)) {
-          csound->Message(csound,Str("Undefined macro: '%s'"), macn);
-          //csound->LongJmp(csound, 1);
-          corfile_puts(csound, "$error", csound->expanded_orc);
-        }
-        else {
-          /* Need to copy from macro definition */
-          strncpy(&buffer[p], mm->body, 100);
-          p = strlen(buffer);
-          //printf("*** buffer >>%s<< p=%d\n", buffer, p);
-          /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
-        }
-      }
-      else {
-        buffer[p] = c;
-        p++;
-      }
+      buffer[p] = c;
+      p++;
     }
     buffer[p] = '\0';
     //printf("****buffer >>%s<<\n", buffer);
@@ -771,6 +758,66 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       corfile_puts(csound, bb, csound->expanded_orc);
     }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
+    if (UNLIKELY(isDir(buffer)))
+      csound->Warning(csound, Str("%s is a directory; not including"), buffer);
+    cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
+    if (UNLIKELY(cf == NULL))
+      csound->Die(csound,
+                  Str("Cannot open #include'd file %s\n"), buffer);
+    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+      PARM->alt_stack =
+        (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
+                                  sizeof(MACRON)*(PARM->macro_stack_size+=10));
+      if (UNLIKELY(PARM->alt_stack == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
+      /* csound->DebugMsg(csound, "alt_stack now %d long,\n", */
+      /*                  PARM->macro_stack_size); */
+    }
+    csound->DebugMsg(csound,"cso_pre(%d): stacking line %d at %d\n", __LINE__,
+           csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
+    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+    PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
+    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+    csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+    csound_pre_scan_string(cf->body, yyscanner);
+    corfile_rm(csound, &cf);
+    csound->DebugMsg(csound,"Set line number to 1\n");
+    csound_preset_lineno(1, yyscanner);
+}
+
+void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
+{
+    char buffer[128];
+    CORFIL *cf = csound->expanded_orc;
+    int p = cf->p-2;
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+    
+    //printf("*** in do_new_include\n");
+    cf->body[p+1] = '\0';
+    while (cf->body[p]!='"') p--;
+    //printf("*** name is >>%s<<\n", &cf->body[p]);
+    cf->body[p] = '\0';
+    strncpy(buffer, &cf->body[p+1],127); buffer[127]='\0';
+    cf->p = p;
+    //printf("****buffer >>%s<<\n", buffer);
+    while ((input(yyscanner))!='\n');
+    if (UNLIKELY(PARM->depth++>=1024)) {
+      csound->Die(csound, Str("Includes nested too deeply"));
+    }
+    csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
+    csound->DebugMsg(csound,"line %d at end of #include line\n",
+                     csound_preget_lineno(yyscanner));
+    {
+      uint8_t n = file_to_int(csound, buffer);
+      char bb[128];
+      PARM->lstack[PARM->depth] = n;
+      sprintf(bb, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
+      PARM->llocn = PARM->locn;
+      corfile_puts(csound, bb, csound->expanded_orc);
+    }
+    csound->DebugMsg(csound,"reading mincluded file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     cf = copy_to_corefile(csound, buffer, "INCDIR", 0);

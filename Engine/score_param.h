@@ -77,6 +77,7 @@ typedef struct prs_parm_s {
     IFDEFSTACK      *ifdefStack;
     unsigned char   isIfndef;
     unsigned char   isString;
+    unsigned char   isinclude;
     uint16_t        line;
     uint32_t        locn;
     uint32_t        llocn;
