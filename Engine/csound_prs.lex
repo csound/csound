@@ -84,7 +84,7 @@ NUMBER [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-f
 
 STCOM           \/\*
 INCLUDE         "#include"
-READ            "#read"
+INCLUDESTR      "#includestr"
 DEFINE          #[ \t]*define
 UNDEF           "#undef"
 IFDEF           #ifn?def
@@ -338,9 +338,11 @@ NM              [nm][ \t]+
                      }
                    }
                  }
-{READ}          {
-                  if (PARM->isString != 1)
+{INCLUDESTR}    {
+                  if (PARM->isString != 1) {
                     PARM->isinclude = 1;
+                    //corfile_putc(csound, '"', PARM->cf);
+                  }
                   else
                     corfile_puts(csound, yytext, csound->expanded_orc);
                 }
