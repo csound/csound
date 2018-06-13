@@ -205,3 +205,6 @@ Opcodes/stk/
 emscripten/examples/javascripts/CsoundObj.js
 emscripten/examples/javascripts/libcsound.js
 emscripten/dist-wasm
+
+# VST4CS src
+Opcodes/vst4cs/src/
