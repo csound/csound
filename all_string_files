@@ -448,12 +448,6 @@
 ./Opcodes/vibraphn.h
 ./Opcodes/vpvoc.c
 ./Opcodes/vpvoc.h
-./Opcodes/vst4cs/src/fxbank.cpp
-./Opcodes/vst4cs/src/fxbank.h
-./Opcodes/vst4cs/src/vst4cs.cpp
-./Opcodes/vst4cs/src/vst4cs.h
-./Opcodes/vst4cs/src/vsthost.cpp
-./Opcodes/vst4cs/src/vsthost.h
 ./Opcodes/wave-terrain.c
 ./Opcodes/wave-terrain.h
 ./Opcodes/wavegde.h
