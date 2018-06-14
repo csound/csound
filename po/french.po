@@ -275,9 +275,15 @@ msgid " -- added to deadpool slot %d\n"
 msgstr " -- ajout du slot %d au deadpool\n"
 
 #: Engine/csound_orc_compile.c:1046
+<<<<<<< HEAD
+#, fuzzy, c-format
+msgid "named instr %<PRIi32> redefined, replacing previous definition"
+msgstr "instr %<PRIi32> redéfini, précédente définition remplacée"
+=======
 #, c-format
 msgid "named instr %<PRIi32> redefined, replacing previous definition"
 msgstr "instr nommé %<PRIi32> redéfini, précédente définition remplacée"
+>>>>>>> 89ca1728077f0ec8152a766ad7c63500b29a166c
 
 #: Engine/csound_orc_compile.c:1080
 msgid "no active instances\n"
@@ -323,9 +329,15 @@ msgid "merging instr %d\n"
 msgstr "fusion de l'instr %d\n"
 
 #: Engine/csound_orc_compile.c:1402
+<<<<<<< HEAD
+#, fuzzy, c-format
+msgid "merging named instr %s\n"
+msgstr "fusion de l'instr %s\n"
+=======
 #, c-format
 msgid "merging named instr %s\n"
 msgstr "fusion de l'instr nommé %s\n"
+>>>>>>> 89ca1728077f0ec8152a766ad7c63500b29a166c
 
 #: Engine/csound_orc_compile.c:1615 Engine/csound_orc_compile.c:1652
 #: Engine/csound_orc_compile.c:1684
