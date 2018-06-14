@@ -80,7 +80,7 @@ using namespace std;
 */
 #undef CS_VSTHOST
 //#include "Opcodes/vst4cs/src/vsthost.h"
-xs
+
 #include "csdl.h"
 #include "winFLTK.h"
 
