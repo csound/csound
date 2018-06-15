@@ -15,11 +15,13 @@
 ; DIRECTORY STRUCTURE
 ;
 ; C:\Program Files\Csound6
-;     bin (copy Csound, CsoundQt, PortAudio, libsndfile binary trees here; but not Csound opcodes).
+;     bin (copy Csound, CsoundQt, PortAudio, libsndfile, LuaJIT, and NW.js binary trees here; but not Csound opcodes).
 ;     doc (copy tree)
 ;     examples (copy tree but exclude .wav files)
 ;     include
 ;         csound (copy include and interfaces dirs *.h and *.hpp)
+;         csoundac (copy dir *.hpp)
+;         luajit (copy dir *.h)
 ;         sndfile (copy dir *.h)
 ;     plugins64 (all Csound plugin opcodes)
 ;     samples (copy tree)
@@ -31,10 +33,16 @@
 ;
 ; Can run from the command line with "/S /D installation directory".
 ;
+; Uncomment the following line to build CsoundVST and vst4cs:
+;#define CSOUNDVST
 
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
-#define MyAppMinVersion "6.12"
+#ifdef CSOUNDVST
+#define MyAppMinVersion "6.09.2beta2-vst"
+#else
+#define MyAppMinVersion "6.09.2beta2"
+#endif
 #define MyAppPublisher "Csound"
 #define MyAppURL "http://csound.github.io/"
 ; If you are not Michael Gogins, change this to your msys64 directory.
@@ -72,7 +80,9 @@
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full;
-
+#ifdef CSOUNDVST
+Name: "csoundvst"; Description: "Csound VST plugin and vst4cs opcodes"; Types: full;
+#endif
 
 [Dirs]
 ; ALL programs and shared libraries (except opcodes and other Csound modules) go here.

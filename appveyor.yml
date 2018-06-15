@@ -10,6 +10,7 @@ environment:
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 15 2017 Win64
   VSTOOLSET: v141
+  VST_SDK2_HOME:  C:\projects\csound\msvc\deps\VST_SDK\VST2_SDK
 
 platform: x64
 configuration: RelWithDebInfo
@@ -44,7 +45,7 @@ install:
   - npm install -g nw-gyp
   - nodevars.bat
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
-  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%" 
+  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%" -vstSdkHome "%VST_SDK2_HOME%
   - cd ..
   #download an unzip manual and CsoundQT for inclusion with the installer
   - cd c:/
