@@ -111,7 +111,6 @@ echo "Downloading and installing non-VCPKG packages..."
 $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
 "https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip",
-"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/pkg-config_0.23-2_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
