@@ -75,8 +75,8 @@ MACROB          [a-zA-Z_][a-zA-Z0-9_]*\(
 MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 
 STCOM           \/\*
+INCLUDESTR      "#includestr"
 INCLUDE         "#include"
-READ            "#read"
 DEFINE          #[ \t]*define
 UNDEF           "#undef"
 IFDEF           #ifn?def
@@ -404,9 +404,11 @@ QNAN            "qnan"[ \t]*\(
                      }
                    }
                  }
-{READ}          {
-                  if (PARM->isString != 1)
+{INCLUDESTR}    {
+                  if (PARM->isString != 1) {
                     PARM->isinclude = 1;
+                    //corfile_putc(csound, '"', csound->expanded_orc);
+                  }
                   else
                     corfile_puts(csound, yytext, csound->expanded_orc);
                 }
