@@ -339,10 +339,8 @@ NM              [nm][ \t]+
                    }
                  }
 {INCLUDESTR}    {
-                  if (PARM->isString != 1) {
+                  if (PARM->isString != 1)
                     PARM->isinclude = 1;
-                    //corfile_putc(csound, '"', PARM->cf);
-                  }
                   else
                     corfile_puts(csound, yytext, csound->expanded_orc);
                 }

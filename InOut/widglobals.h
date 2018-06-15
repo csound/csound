@@ -79,7 +79,6 @@ using namespace std;
 ** Undefine CS_VSTHOST to build FLTK without VST.
 */
 #undef CS_VSTHOST
-//#include "Opcodes/vst4cs/src/vsthost.h"
 
 #include "csdl.h"
 #include "winFLTK.h"
