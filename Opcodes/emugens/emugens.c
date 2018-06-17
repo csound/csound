@@ -121,8 +121,9 @@ kfreq = mtof(69)
 
 typedef struct {
   OPDS    h;
-  MYFLT *r, *k;
+  MYFLT *r, *k, *irnd;
   MYFLT freqA4;
+  int   rnd;
 } PITCHCONV;
 
 static int32_t mtof(CSOUND *csound, PITCHCONV *p) {
@@ -138,13 +139,17 @@ static int32_t mtof_init(CSOUND *csound, PITCHCONV *p) {
 }
 
 static int32_t ftom(CSOUND *csound, PITCHCONV *p) {
+    MYFLT ans;
      IGN(csound);
-    *p->r = FL(12.0) * LOG2(*p->k / p->freqA4) + FL(69.0);
+    ans = FL(12.0) * LOG2(*p->k / p->freqA4) + FL(69.0);
+    if (UNLIKELY(p->rnd)) ans = (MYFLT)MYFLT2LRND(ans);
+    *p->r = ans;
     return OK;
 }
 
 static int32_t ftom_init(CSOUND *csound, PITCHCONV *p) {
     p->freqA4 = csound->GetA4(csound);
+    p->rnd = (int)*p->irnd;
     ftom(csound, p);
     return OK;
 }
@@ -536,8 +541,8 @@ static OENTRY localops[] = {
     (SUBR)xyscalei_init, (SUBR)xyscalei },
   { "mtof",    S(PITCHCONV), 0, 3,  "k", "k",  (SUBR)mtof_init, (SUBR)mtof},
   { "mtof",    S(PITCHCONV), 0, 1,  "i", "i",  (SUBR)mtof_init},
-  { "ftom",    S(PITCHCONV), 0, 3,  "k", "k",  (SUBR)ftom_init, (SUBR)ftom},
-  { "ftom",    S(PITCHCONV), 0, 1,  "i", "i",  (SUBR)ftom_init},
+  { "ftom",    S(PITCHCONV), 0, 3,  "k", "ko", (SUBR)ftom_init, (SUBR)ftom},
+  { "ftom",    S(PITCHCONV), 0, 1,  "i", "io", (SUBR)ftom_init},
   { "pchtom",  S(PITCHCONV), 0, 1,  "i", "i",   (SUBR)pchtom},
   { "pchtom",  S(PITCHCONV), 0, 2,  "k", "k",   NULL, (SUBR)pchtom},
   { "bpf",     S(BPF3),      0, 3,  "k", "kkkkkkk",     (SUBR)bpf3, (SUBR)bpf3 },

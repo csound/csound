@@ -972,7 +972,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     CORFIL *cf = PARM->cf;
     int p = cf->p-2;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
-    
+
     //printf("*** in do_new_include\n");
     cf->body[p+1] = '\0';
     while (cf->body[p]!='"') p--;
