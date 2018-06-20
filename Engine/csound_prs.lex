@@ -339,10 +339,8 @@ NM              [nm][ \t]+
                    }
                  }
 {INCLUDESTR}    {
-                  if (PARM->isString != 1) {
+                  if (PARM->isString != 1)
                     PARM->isinclude = 1;
-                    //corfile_putc(csound, '"', PARM->cf);
-                  }
                   else
                     corfile_puts(csound, yytext, csound->expanded_orc);
                 }
@@ -974,7 +972,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     CORFIL *cf = PARM->cf;
     int p = cf->p-2;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
-    
+
     //printf("*** in do_new_include\n");
     cf->body[p+1] = '\0';
     while (cf->body[p]!='"') p--;

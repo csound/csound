@@ -205,5 +205,6 @@ Opcodes/stk/
 emscripten/examples/javascripts/CsoundObj.js
 emscripten/examples/javascripts/libcsound.js
 emscripten/dist-wasm
-# aleged copyright violation
+
+# Alleged copyright violation.
 vst4cs/src
