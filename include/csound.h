@@ -426,7 +426,7 @@ extern "C" {
     CSFTYPE_HRTF,
 
     /* Types for plugins and the files they read/write */
-    CSFTYPE_VST_PLUGIN,
+    CSFTYPE_UNUSED,
     CSFTYPE_LADSPA_PLUGIN,
     CSFTYPE_SNAPSHOT,
 
