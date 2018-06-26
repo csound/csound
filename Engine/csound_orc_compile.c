@@ -1167,7 +1167,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
       inm2 = (INSTRNAME *)(inm->name); /* entry in the table */
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
-      if (UNLIKELY(csound->oparms->odebug))
+      if (UNLIKELY(csound->oparms->odebug) || (csound->oparms->msglevel > 0))
         csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
     }
