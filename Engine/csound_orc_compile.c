@@ -1616,7 +1616,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
         }
 
         named_instr_alloc(csound, c, instrtxt, insno_priority, engineState, 0);
-        named_instr_assign_numbers(csound, engineState);
+        //named_instr_assign_numbers(csound, engineState);
         /* VL 10.10.14: check for redefinition */
         // if (UNLIKELY(!named_instr_alloc(csound, c,
         //  instrtxt, insno_priority,
@@ -1754,7 +1754,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
   }
 
   /* now add the instruments with names, assigning them fake instr numbers */
-
+  named_instr_assign_numbers(csound, engineState);
   if (engineState != &csound->engineState) {
     OPDS *ids = csound->ids;
     /* any compilation other than the first one */
@@ -1775,7 +1775,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
     }
   } else {
     /* first compilation */
-    named_instr_assign_numbers(csound, engineState);
+    
     insert_opcodes(csound, csound->opcodeInfo, engineState);
     ip = engineState->instxtanchor.nxtinstxt;
     bp = (OPTXT *)ip;
