@@ -1411,7 +1411,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   }
   /* merges all named instruments */
   // printf("assign numbers; %p\n", current_state);
-  named_instr_assign_numbers(csound, current_state);
+  // named_instr_assign_numbers(csound, current_state);
   /* VL MOVED here after all instruments are merged so
      that we get the correct number */
   insert_opcodes(csound, csound->opcodeInfo, current_state);
@@ -1616,6 +1616,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
         }
 
         named_instr_alloc(csound, c, instrtxt, insno_priority, engineState, 0);
+        //if(engineState != &csound->engineState)
         //named_instr_assign_numbers(csound, engineState);
         /* VL 10.10.14: check for redefinition */
         // if (UNLIKELY(!named_instr_alloc(csound, c,
