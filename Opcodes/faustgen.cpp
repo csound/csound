@@ -66,7 +66,7 @@ class controls : public UI {
     pctl->nxt = new ctl;
     pctl = pctl->nxt;
     strncpy(pctl->label, label, 64);
-    pctl->label[54] = '\n';
+    pctl->label[64] = '\n';
     pctl->zone = zone;
     pctl->min = min;
     pctl->max = max;
