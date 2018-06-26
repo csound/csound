@@ -653,9 +653,9 @@ int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
     p->outfna  = p->outfnf = NULL;
     p->lastframe = 0;
 
-    if (UNLIKELY(!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE)))
+    if (UNLIKELY(!((p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))))
       return csound->InitError(csound, Str("pvsftw: signal format must be "
-                              "amp-phase or amp-freq.\n"));
+                                           "amp-phase or amp-freq.\n"));
     if (UNLIKELY(*p->ifna < 1.0f))
       return csound->InitError(csound, Str("pvsftw: bad value for ifna.\n"));
     if (UNLIKELY(*p->ifnf < 0.0f))                /* 0 = notused */
