@@ -1167,7 +1167,8 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
       inm2 = (INSTRNAME *)(inm->name); /* entry in the table */
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
-      if (UNLIKELY(csound->oparms->odebug) || (csound->oparms->msglevel > 0))
+      if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0) &&
+                   &csound->engineState == engineState))
         csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
     }
@@ -1411,7 +1412,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   }
   /* merges all named instruments */
   // printf("assign numbers; %p\n", current_state);
-  // named_instr_assign_numbers(csound, current_state);
+  named_instr_assign_numbers(csound, current_state);
   /* VL MOVED here after all instruments are merged so
      that we get the correct number */
   insert_opcodes(csound, csound->opcodeInfo, current_state);
@@ -1617,7 +1618,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
 
         named_instr_alloc(csound, c, instrtxt, insno_priority, engineState, 0);
         //if(engineState != &csound->engineState)
-        //named_instr_assign_numbers(csound, engineState);
+          //named_instr_assign_numbers(csound, engineState);
         /* VL 10.10.14: check for redefinition */
         // if (UNLIKELY(!named_instr_alloc(csound, c,
         //  instrtxt, insno_priority,
@@ -1776,7 +1777,6 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
     }
   } else {
     /* first compilation */
-    
     insert_opcodes(csound, csound->opcodeInfo, engineState);
     ip = engineState->instxtanchor.nxtinstxt;
     bp = (OPTXT *)ip;
