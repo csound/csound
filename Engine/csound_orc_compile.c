@@ -1133,22 +1133,31 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
 
   while (--insno_priority > -3) {
     if (insno_priority == -2) {
-      num = engineState->maxinsno; /* find last used instr number */
-      while (!engineState->instrtxtp[num] && --num)
+      num = engineState->maxinsno >
+        csound->engineState.maxinsno ?
+        engineState->maxinsno : csound->engineState.maxinsno; /* find last used instr number */
+      
+      while (!engineState->instrtxtp[num] &&
+             !csound->engineState.instrtxtp[num] &&
+             --num)
         ;
-    }
+        
+     }
     for (inm = inm_first; inm; inm = inm->next) {
       INSTRNAME *temp = (INSTRNAME *)inm->name;
       int no = 0;
       if ((int)inm->instno != insno_priority)
         continue;
       no = named_instr_find(csound, temp->name);
-      // csound->Message(csound, "%d %s \n", no, temp->name);
+      
       if (no == 0) { // if there is no allocated number
         /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
-        while (++num <= engineState->maxinsno && engineState->instrtxtp[num])
-          ;
+        num = 1;
+        while (num <= engineState->maxinsno
+               && (engineState->instrtxtp[num]
+              || csound->engineState.instrtxtp[num])) num++;
+        
         /* we may need to expand the instrument array */
         if (num > engineState->maxinsno) {
           int m = engineState->maxinsno;
@@ -1167,8 +1176,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
       inm2 = (INSTRNAME *)(inm->name); /* entry in the table */
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
-      if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0) &&
-                   &csound->engineState == engineState))
+      if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
         csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
     }
@@ -1617,8 +1625,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
         }
 
         named_instr_alloc(csound, c, instrtxt, insno_priority, engineState, 0);
-        //if(engineState != &csound->engineState)
-          //named_instr_assign_numbers(csound, engineState);
+        if(engineState != &csound->engineState)
+        named_instr_assign_numbers(csound, engineState);
         /* VL 10.10.14: check for redefinition */
         // if (UNLIKELY(!named_instr_alloc(csound, c,
         //  instrtxt, insno_priority,
@@ -1656,7 +1664,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
               // VL 25.05.2018
               // this should only be run here in the
               // first compilation
-              // if(engineState == &csound->engineState)
+              //if(engineState == &csound->engineState)
               named_instr_alloc(csound, c, instrtxt, insno_priority,
                                 engineState, 0);
               /* if (UNLIKELY(!named_instr_alloc(csound, c, */
@@ -1756,7 +1764,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
   }
 
   /* now add the instruments with names, assigning them fake instr numbers */
-  named_instr_assign_numbers(csound, engineState);
+  
   if (engineState != &csound->engineState) {
     OPDS *ids = csound->ids;
     /* any compilation other than the first one */
@@ -1777,6 +1785,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
     }
   } else {
     /* first compilation */
+    named_instr_assign_numbers(csound, engineState);
     insert_opcodes(csound, csound->opcodeInfo, engineState);
     ip = engineState->instxtanchor.nxtinstxt;
     bp = (OPTXT *)ip;
