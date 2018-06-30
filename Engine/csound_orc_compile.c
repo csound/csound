@@ -1133,12 +1133,14 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
 
   while (--insno_priority > -3) {
     if (insno_priority == -2) {
+      /* check both this state & current state */
       num = engineState->maxinsno >
         csound->engineState.maxinsno ?
         engineState->maxinsno : csound->engineState.maxinsno; /* find last used instr number */
-      
-      while (!engineState->instrtxtp[num] &&
-             !csound->engineState.instrtxtp[num] &&
+
+      /* check both this state & current state */
+      while ((!engineState->instrtxtp[num] ||
+              !csound->engineState.instrtxtp[num]) &&
              --num)
         ;
         
@@ -1153,7 +1155,9 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
       if (no == 0) { // if there is no allocated number
         /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
+        /* VL, start from instr 1 */
         num = 1;
+        /* check both this state & current state */
         while (num <= engineState->maxinsno
                && (engineState->instrtxtp[num]
               || csound->engineState.instrtxtp[num])) num++;
@@ -1174,11 +1178,16 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
         inum = no; // else use existing number
       /* hack: "name" actually points to the corresponding INSTRNAME */
       inm2 = (INSTRNAME *)(inm->name); /* entry in the table */
+      
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
-      if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
+
+      if(&csound->engineState == engineState) {
+        /* print message only after merge */
+       if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
         csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
+      }
     }
   }
   /* clear temporary chains */
@@ -1419,7 +1428,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     }
   }
   /* merges all named instruments */
-  // printf("assign numbers; %p\n", current_state);
+  // csound->Message(csound, "assign numbers; %p\n", current_state);
   named_instr_assign_numbers(csound, current_state);
   /* VL MOVED here after all instruments are merged so
      that we get the correct number */
