@@ -1020,6 +1020,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
                     csound->dead_instr_no - 1);
 }
 
+int32 named_instr_find(CSOUND *csound, char *s);
+int32  named_instr_find_in_engine(CSOUND *csound, char *s, ENGINE_STATE *engineState); 
 /**
    allocate entry for named instrument ip with name s
    instrument number is set to insno
@@ -1028,7 +1030,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
 int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState, int merge) {
   INSTRNAME *inm, *inm2, *inm_head;
-  int ret = 1, no = 0;
+  int ret = 1, no = insno;
 
   if (UNLIKELY(!engineState->instrumentNames))
     engineState->instrumentNames = cs_hash_table_create(csound);
@@ -1087,21 +1089,28 @@ cont:
 
   /* allocate entry, */
   inm = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
-  inm2 = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
+  
   /* and store parameters */
   inm->name = cs_strdup(csound, s);
   inm->ip = ip;
   // VL 26.05.2018 copy existing number
-  if(no) inm->instno = no;
-  inm2->instno = insno;
-  inm2->name = (char *)inm; /* hack */
+  if(no > 0)
+    inm->instno = no;
+
   //printf("insno %d %s\n", insno, s);
   /* link into chain */
   cs_hash_table_put(csound, engineState->instrumentNames, s, inm);
 
+  if(!merge) {
+  /* temporary chain for use by named_instr_assign_numbers() 
+     this is not needed at merge stage
+  */
+  inm2 = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
+  inm2->instno = insno;
+  inm2->name = (char *) inm; /* hack */
   inm_head = cs_hash_table_get(csound, engineState->instrumentNames,
                                (char *)INSTR_NAME_FIRST);
-  /* temporary chain for use by named_instr_assign_numbers() */
+  
   if (inm_head == NULL) {
     cs_hash_table_put(csound, engineState->instrumentNames,
                       (char *)INSTR_NAME_FIRST, inm2);
@@ -1111,6 +1120,7 @@ cont:
     }
     inm_head->next = inm2;
   }
+  }
 
   if (UNLIKELY(csound->oparms->odebug) && engineState == &csound->engineState)
     csound->Message(csound, "named instr name = \"%s\", txtp = %p,\n", s,
@@ -1118,7 +1128,7 @@ cont:
   return ret;
 }
 
-int32 named_instr_find(CSOUND *csound, char *s);
+
 /**
    assign instrument numbers to all named instruments
 */
@@ -1133,11 +1143,14 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
 
   while (--insno_priority > -3) {
     if (insno_priority == -2) {
+      /* check both this state & current state */
       num = engineState->maxinsno >
         csound->engineState.maxinsno ?
         engineState->maxinsno : csound->engineState.maxinsno; /* find last used instr number */
-      while (!engineState->instrtxtp[num] &&
-             !csound->engineState.instrtxtp[num] &&
+
+      /* check both this state & current state */
+      while ((!engineState->instrtxtp[num] ||
+              !csound->engineState.instrtxtp[num]) &&
              --num)
         ;
 
@@ -1150,9 +1163,10 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
       no = named_instr_find(csound, temp->name);
 
       if (no == 0) { // if there is no allocated number
-        /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
+        /* VL, start from instr 1 */
         num = 1;
+        /* check both this state & current state */
         while (num <= engineState->maxinsno
                && (engineState->instrtxtp[num]
               || csound->engineState.instrtxtp[num])) num++;
@@ -1173,11 +1187,16 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
         inum = no; // else use existing number
       /* hack: "name" actually points to the corresponding INSTRNAME */
       inm2 = (INSTRNAME *)(inm->name); /* entry in the table */
+      
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
-      if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
+
+      //if(&csound->engineState == engineState) {
+        /* print message only after merge */
+       if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
         csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
+       //}
     }
   }
   /* clear temporary chains */
@@ -1397,7 +1416,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     current = engineState->instrtxtp[i];
 
     if (current != NULL) {
-      //csound->Message(csound, "INSTR %d \n", i);
+      // csound->Message(csound, "INSTR %d \n", i);
       if (current->insname == NULL) {
         if (csound->oparms->odebug)
           csound->Message(csound, Str("merging instr %d\n"), i);
@@ -1406,20 +1425,26 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
         /* insert instrument in current engine */
         insert_instrtxt(csound, current, i, current_state, 1);
       } else {
-        if (UNLIKELY(csound->oparms->odebug))
+       if (UNLIKELY(csound->oparms->odebug))
           csound->Message(csound, Str("merging named instr %s\n"),
                           current->insname);
         /* allocate a named_instr string in the current engine */
-        named_instr_alloc(csound, current->insname, current, -1L, current_state,
-                          1);
+        /* find the assigned number in the engineState and use it for
+           the current engine */
+        int32 nnum = named_instr_find_in_engine(csound, current->insname, engineState);
+        named_instr_alloc(csound, current->insname, current, nnum, current_state,
+                         1);
         /* place it in the corresponding slot */
         current_state->instrtxtp[i] = current;
       }
     }
   }
-  /* merges all named instruments */
-  // printf("assign numbers; %p\n", current_state);
-  named_instr_assign_numbers(csound, current_state);
+  /* VL 30.6.2018 commented this out so all the assignment
+     occurs earlier on before merge
+  */
+  // csound->Message(csound, "assign numbers; %p\n", current_state);
+  //named_instr_assign_numbers(csound, current_state);
+  
   /* VL MOVED here after all instruments are merged so
      that we get the correct number */
   insert_opcodes(csound, csound->opcodeInfo, current_state);
@@ -1664,8 +1689,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
               // this should only be run here in the
               // first compilation
               //if(engineState == &csound->engineState)
-              named_instr_alloc(csound, c, instrtxt, insno_priority,
-                                engineState, 0);
+              //named_instr_alloc(csound, c, instrtxt, insno_priority,
+              //                engineState, 0);
               /* if (UNLIKELY(!named_instr_alloc(csound, c, */
               /*                                 instrtxt, insno_priority, */
               /*                                 engineState,0))) { */
@@ -1763,7 +1788,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
   }
 
   /* now add the instruments with names, assigning them fake instr numbers */
-
+  named_instr_assign_numbers(csound, engineState);
   if (engineState != &csound->engineState) {
     OPDS *ids = csound->ids;
     /* any compilation other than the first one */
@@ -1784,7 +1809,6 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
     }
   } else {
     /* first compilation */
-    named_instr_assign_numbers(csound, engineState);
     insert_opcodes(csound, csound->opcodeInfo, engineState);
     ip = engineState->instxtanchor.nxtinstxt;
     bp = (OPTXT *)ip;
