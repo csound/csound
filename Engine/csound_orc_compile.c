@@ -1136,20 +1136,19 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
       num = engineState->maxinsno >
         csound->engineState.maxinsno ?
         engineState->maxinsno : csound->engineState.maxinsno; /* find last used instr number */
-      
       while (!engineState->instrtxtp[num] &&
              !csound->engineState.instrtxtp[num] &&
              --num)
         ;
-        
-     }
+
+    }
     for (inm = inm_first; inm; inm = inm->next) {
       INSTRNAME *temp = (INSTRNAME *)inm->name;
       int no = 0;
       if ((int)inm->instno != insno_priority)
         continue;
       no = named_instr_find(csound, temp->name);
-      
+
       if (no == 0) { // if there is no allocated number
         /* the following is based on code by Matt J. Ingalls */
         /* find an unused number and use it */
@@ -1157,7 +1156,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
         while (num <= engineState->maxinsno
                && (engineState->instrtxtp[num]
               || csound->engineState.instrtxtp[num])) num++;
-        
+
         /* we may need to expand the instrument array */
         if (num > engineState->maxinsno) {
           int m = engineState->maxinsno;
@@ -1764,7 +1763,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
   }
 
   /* now add the instruments with names, assigning them fake instr numbers */
-  
+
   if (engineState != &csound->engineState) {
     OPDS *ids = csound->ids;
     /* any compilation other than the first one */

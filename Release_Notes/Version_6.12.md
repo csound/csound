@@ -31,7 +31,7 @@ Many changes including the removal of vst2cs functionality due to a copyright is
 
 The changes made in 6.11 to raw format reading have been modified so
 gen1 and diskin ignore positive file formats and use the file header,
-unless the format is negative when it uses the absolute vale in a raw
+unless the format is negative when it uses the absolute value in a raw
 audio file.  This should preserve most compatibility issues.
 
 -- The Developers
@@ -120,11 +120,13 @@ audio file.  This should preserve most compatibility issues.
 - Recompilation of named instruments totally reworked to avoid errors
   and memory leaks.
 
-- 
-### Translations
+- The allocation of instrument names to internal numbers has been
+  rewritten and should now be usable with replacements in live coding.
 
-- printing the number allocated to a named instrument now behaves the
+- Printing the number allocated to a named instrument now behaves the
   manual, not just for debug.
+
+### Translations
 
 ### API
 
@@ -159,24 +161,5 @@ audio file.  This should preserve most compatibility issues.
 commit 456dd30b8758a1805009eeec8032b2e5bd419b2c (HEAD -> develop, origin/develop)
 Author: jpff <jpff@codemist.co.uk>
 Date:   Wed Jun 27 15:57:57 2018 +0100
-
-
-commit e1de65cfaf08bc46652834011a4374fe1d59b5b2
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Wed Jun 27 08:17:23 2018 +0100
-
-    trying to fix double reporting of instr numbers
-
-commit ab835501ee560da6638b22e9d79d3538790dd2bf
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jun 26 23:46:15 2018 +0100
-
-    fixing double assignment of numbers
-
-commit 73982a19b4349d2e11bbd739578b2384660abc46
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Jun 26 21:49:24 2018 +0100
-
-     fixing named instruments
 
 
