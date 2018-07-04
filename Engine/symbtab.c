@@ -558,22 +558,24 @@ int add_udo_definition(CSOUND *csound, char *opname,
                         Str("WARNING: redefined opcode: %s\n"), opname);
     }
 
-    /* IV - Oct 31 2002 */
-    /* store the name in a linked list (note: must use csound->Calloc) */
-    inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
-    inm->name = cs_strdup(csound, opname);
-    inm->intypes = intypes;
-    inm->outtypes = outtypes;
-    inm->in_arg_pool = csoundCreateVarPool(csound);
-    inm->out_arg_pool = csoundCreateVarPool(csound);
-
-    inm->prv = csound->opcodeInfo;
-    csound->opcodeInfo = inm;
-
     if (opc != NULL) {
-        opc->useropinfo = inm;
+        //opc->useropinfo = inm;
         newopc = opc;
     } else {
+
+        /* IV - Oct 31 2002 */
+        /* store the name in a linked list (note: must use csound->Calloc) */
+        inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
+        inm->name = cs_strdup(csound, opname);
+        inm->intypes = intypes;
+        inm->outtypes = outtypes;
+        inm->in_arg_pool = csoundCreateVarPool(csound);
+        inm->out_arg_pool = csoundCreateVarPool(csound);
+
+        inm->prv = csound->opcodeInfo;
+        csound->opcodeInfo = inm;
+
+
         /* IV - Oct 31 2002: */
         /* create a fake opcode so we can call it as such */
         opc = find_opcode(csound, "##userOpcode");
