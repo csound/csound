@@ -52,9 +52,6 @@ class CsoundNode extends AudioWorkletNode {
      */
     constructor(context, options) {
         options = options || {};
-        options.numberOfInputs  = 1;
-        options.numberOfOutputs = 2;
-        options.channelCount = 2;
         
         super(context, 'Csound', options);
 
@@ -309,7 +306,8 @@ class CsoundNodeFactory {
     static createNode(inputChannelCount=1, outputChannelCount=2) {
         var options = {};
         options.numberOfInputs  = inputChannelCount;
-        options.numberOfOutputs  = outputChannelCount;
+        options.numberOfOutputs = 1;
+        options.outputChannelCount = [ outputChannelCount ];
         return new CsoundNode(CSOUND_AUDIO_CONTEXT, options);
     }
 }
