@@ -308,10 +308,8 @@ class CsoundObj {
     }
 
     enableMidiInput(midiInputCallback) {
-        const that = this;
-        const handleMidiInput = function(event) {
-            that.midiMessage(event.data[0], event.data[1], event.data[2]);
-            //console.log("midievent: " + event.data[0] + ", " + event.data[1] + ", " + event.data[2]);
+        const handleMidiInput = (evt) => {
+            that.midiMessage(evt.data[0], evt.data[1], evt.data[2]);
         };
         const midiSuccess = function(midiInterface) {
 
