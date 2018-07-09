@@ -57,8 +57,7 @@ Csound = function() {
                 CsoundObj.importScripts(path).then(() => {
                     console.log("loaded WASM runtime");
                     csound.Csound = new CsoundObj();
-                    // csound.Csound.setOption("-M0");
-                    // csound.Csound.setMidiCallbacks();
+                    csound.Csound.enableMidiInput(undefined);
                     csound.module = true;
                     if (typeof window.handleMessage !== 'undefined') { 
                         console.log = console.warn = function(mess) {
