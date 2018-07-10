@@ -307,6 +307,41 @@ class CsoundObj {
         }
     }
 
+    enableMidiInput(midiInputCallback) {
+        const handleMidiInput = (evt) => {
+            this.midiMessage(evt.data[0], evt.data[1], evt.data[2]);
+        };
+        const midiSuccess = function(midiInterface) {
+
+            const inputs = midiInterface.inputs.values();
+
+            for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+                input = input.value;
+                input.onmidimessage = handleMidiInput;
+            }
+            if (midiInputCallback) {
+                midiInputCallback(true);
+            }
+        };
+
+        const midiFail = function(error) {
+
+            Module['print']("MIDI failed to start, error:" + error);
+            if (midiInputCallback) {
+                midiInputCallback(false);
+            }
+        };
+
+
+        if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess().then(midiSuccess, midiFail);
+        } else {
+            Module['print']("MIDI not supported in this browser");
+            if (midiInputCallback) {
+                midiInputCallback(false);
+            }
+        }
+    }
     
     /** 
      * This static method is used to asynchronously setup the Csound
