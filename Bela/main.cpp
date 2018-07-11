@@ -141,6 +141,64 @@ struct DigiOut : csnd::Plugin<0, 2> {
   }
 };
 
+/** DigiIO opcode 
+    allows change of direction & pin
+    ksig/asig are used for input or output
+    digiIOBela ksig,kpin,kdir
+    digiIOBela asig,apin,adir 
+*/
+struct DigiIO : csnd::Plugin<0, 3> {
+  int fcount;
+  int frms;
+  BelaContext *context;
+  
+  int init() {
+    context = (BelaContext *) csound->host_data();
+    fcount = 0;
+    frms = context->digitalFrames; 
+    return OK;
+  }
+
+  int kperf() {
+    int pin = (int) inargs[1];
+    if(pin < 0 ) pin = 0;
+    if(pin > 15) pin = 15;
+    int mode = inargs[2] > 0.0 ? 1 : 0;
+    pinMode(context,fcount,pin,mode);
+    if(mode)
+     digitalWrite(context,fcount,pin,(inargs[0] > 0.0 ? 1 : 0));
+    else
+     inargs[0] = (MYFLT) digitalRead(context,fcount,pin);
+    fcount += nsmps;
+    fcount %= frms;
+    return OK;
+  }
+
+  int aperf() {
+    csnd::AudioSig sig(this, inargs(0));
+    csnd::AudioSig pins(this, inargs(1));
+    csnd::AudioSig modes(this, inargs(2));
+    int cnt = fcount;
+    int n = 0, pin, mode;
+    for (auto &s : sig) {
+      pin = pins[n];
+      if(pin < 0 ) pin = 0;
+      if(pin > 15) pin = 15;
+      mode = modes[n] > 0.0 ? 1 : 0;
+      pinModeOnce(context,cnt,pin,mode);
+      if(mode)
+       digitalWriteOnce(context,cnt,pin,(s > 0.0 ? 1 : 0));
+      else
+       s = (MYFLT) digitalRead(context,cnt,pin);
+      if(cnt == frms - 1) cnt = 0;
+      else cnt++;
+      n++;
+    }
+    fcount = cnt;
+    return OK;
+  }
+};
+
 struct CsChan {
   std::vector<MYFLT> samples;
   std::stringstream name;
@@ -201,7 +259,13 @@ bool csound_setup(BelaContext *context, void *p)
   if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" ,
 			   "", "ai", csnd::thread::ia) != 0)
     printf("Warning: could not add digiOutBela a-rate opcode\n");
-
+  if(csnd::plugin<DigiIO>((csnd::Csound *) csound->GetCsound(), "digiIOBela" ,
+			   "", "kkk", csnd::thread::ik) != 0)
+    printf("Warning: could not add digiIOBela k-rate opcode\n");
+  if(csnd::plugin<DigiIO>((csnd::Csound *) csound->GetCsound(), "digiIOBela" ,
+			   "", "aaa", csnd::thread::ia) != 0)
+    printf("Warning: could not add digiIOBela a-rate opcode\n");
+  
   /* compile CSD */  
   if((csData->res = csound->Compile(numArgs, args)) != 0) {
     printf("Error: Csound could not compile CSD file.\n");
