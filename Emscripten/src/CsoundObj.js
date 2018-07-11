@@ -287,7 +287,6 @@ class CsoundObj {
         let that = this;
 
         if (navigator.getUserMedia === null) {
-            //Module['print']("Audio Input not supported in this browser");
             audioInputCallback(false);
         } else {
             let onSuccess = function(stream) {
@@ -298,7 +297,6 @@ class CsoundObj {
             let onFailure = function(error) {
                 that.microphoneNode = null;
                 audioInputCallback(false);
-                //Module['print']("Could not initialise audio input, error:" + error);
             };
             navigator.getUserMedia({
                 audio: true, 
@@ -325,8 +323,6 @@ class CsoundObj {
         };
 
         const midiFail = function(error) {
-
-            Module['print']("MIDI failed to start, error:" + error);
             if (midiInputCallback) {
                 midiInputCallback(false);
             }
@@ -336,7 +332,6 @@ class CsoundObj {
         if (navigator.requestMIDIAccess) {
             navigator.requestMIDIAccess().then(midiSuccess, midiFail);
         } else {
-            Module['print']("MIDI not supported in this browser");
             if (midiInputCallback) {
                 midiInputCallback(false);
             }
