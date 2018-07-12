@@ -1225,7 +1225,7 @@ int32_t lnrset(CSOUND *csound, LINENR *p)
     else p->inc1 = p->val = FL(1.0);
     if (*p->idec > FL(0.0)) {
       int32_t relestim = (int32_t)(*p->idec * CS_EKR + FL(0.5));
-     
+
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (UNLIKELY(*p->iatdec <= FL(0.0))) {

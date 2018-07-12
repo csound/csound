@@ -524,8 +524,8 @@ int add_udo_definition(CSOUND *csound, char *opname,
     int len;
 
     if (UNLIKELY(!check_instr_name(opname))) {
-        synterr(csound, Str("invalid name for opcode"));
-        return -1;
+      synterr(csound, Str("invalid name for opcode"));
+      return -1;
     }
 
     len = strlen(intypes);
@@ -540,85 +540,84 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* check if opcode is already defined */
     if (UNLIKELY(opc != NULL)) {
-        /* IV - Oct 31 2002: redefine old opcode if possible */
-      if (UNLIKELY(
-               !strcmp(opname, "instr") ||
-               !strcmp(opname, "endin") ||
-               !strcmp(opname, "opcode") ||
-               !strcmp(opname, "endop") ||
-               !strcmp(opname, "$label") ||
-               !strcmp(opname, "pset") ||
-               !strcmp(opname, "xin") ||
-               !strcmp(opname, "xout") ||
-               !strcmp(opname, "subinstr"))) {
-          synterr(csound, Str("cannot redefine %s"), opname);
-          return -2;
-        }
-        csound->Message(csound,
-                        Str("WARNING: redefined opcode: %s\n"), opname);
+      /* IV - Oct 31 2002: redefine old opcode if possible */
+      if (UNLIKELY(!strcmp(opname, "instr") ||
+                   !strcmp(opname, "endin") ||
+                   !strcmp(opname, "opcode") ||
+                   !strcmp(opname, "endop") ||
+                   !strcmp(opname, "$label") ||
+                   !strcmp(opname, "pset") ||
+                   !strcmp(opname, "xin") ||
+                   !strcmp(opname, "xout") ||
+                   !strcmp(opname, "subinstr"))) {
+        synterr(csound, Str("cannot redefine %s"), opname);
+        return -2;
+      }
+      csound->Message(csound,
+                      Str("WARNING: redefined opcode: %s\n"), opname);
     }
 
     if (opc != NULL) {
-        //opc->useropinfo = inm;
-        newopc = opc;
+      //opc->useropinfo = inm;
+      newopc = opc;
     } else {
 
-        /* IV - Oct 31 2002 */
-        /* store the name in a linked list (note: must use csound->Calloc) */
-        inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
-        inm->name = cs_strdup(csound, opname);
-        inm->intypes = intypes;
-        inm->outtypes = outtypes;
-        inm->in_arg_pool = csoundCreateVarPool(csound);
-        inm->out_arg_pool = csoundCreateVarPool(csound);
+      /* IV - Oct 31 2002 */
+      /* store the name in a linked list (note: must use csound->Calloc) */
+      inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
+      inm->name = cs_strdup(csound, opname);
+      inm->intypes = intypes;
+      inm->outtypes = outtypes;
+      inm->in_arg_pool = csoundCreateVarPool(csound);
+      inm->out_arg_pool = csoundCreateVarPool(csound);
 
-        inm->prv = csound->opcodeInfo;
-        csound->opcodeInfo = inm;
+      inm->prv = csound->opcodeInfo;
+      csound->opcodeInfo = inm;
 
 
-        /* IV - Oct 31 2002: */
-        /* create a fake opcode so we can call it as such */
-        opc = find_opcode(csound, "##userOpcode");
-        memcpy(&tmpEntry, opc, sizeof(OENTRY));
-        tmpEntry.opname = cs_strdup(csound, opname);
+      /* IV - Oct 31 2002: */
+      /* create a fake opcode so we can call it as such */
+      opc = find_opcode(csound, "##userOpcode");
+      memcpy(&tmpEntry, opc, sizeof(OENTRY));
+      tmpEntry.opname = cs_strdup(csound, opname);
 
-        csound->AppendOpcodes(csound, &tmpEntry, 1);
-        newopc = csound_find_internal_oentry(csound, &tmpEntry);
+      csound->AppendOpcodes(csound, &tmpEntry, 1);
+      newopc = csound_find_internal_oentry(csound, &tmpEntry);
 
-        newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
+      newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
 
-        /* check in/out types and copy to the opcode's */
-        /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-        newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
-                                         + strlen(intypes) + 2);
-        newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
+      /* check in/out types and copy to the opcode's */
+      /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
+      newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
+                                       + strlen(intypes) + 2);
+      newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
 
-        if (strcmp(outtypes, "0")==0) {
-            add_token(csound, opname, T_OPCODE0);
-        } else {
-            add_token(csound, opname, T_OPCODE);
-        }
+      if (strcmp(outtypes, "0")==0) {
+        add_token(csound, opname, T_OPCODE0);
+      } else {
+        add_token(csound, opname, T_OPCODE);
+      }
 
     }
 
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
-        return -3;
+      return -3;
 
     return 0;
 }
 
 void synterr(CSOUND *csound, const char *s, ...)
 {
-  va_list args;
+    va_list args;
 
-  csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  "));
-  va_start(args, s);
-  csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
-  va_end(args);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  "));
+    va_start(args, s);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
+    va_end(args);
 
-  /* FIXME - Removed temporarily for debugging
-   * This function may not be necessary at all in the end if some of this is
-   * done in the parser
-   */
-  csound->synterrcnt++;
+    /* FIXME - Removed temporarily for debugging
+     * This function may not be necessary at all in the end if some of this is
+     * done in the parser
+     */
+    csound->synterrcnt++;
 }
