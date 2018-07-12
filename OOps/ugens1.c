@@ -395,7 +395,8 @@ int32_t lsgrset(CSOUND *csound, LINSEG *p)
     int32_t relestim;
     if (lsgset(csound,p) == OK){
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr
+    p->xtra = relestim;
+    /* VL 4-1-2011 was -1, making all linsegr
                             releases in an instr => xtratim
                             set to relestim seems to fix this */
     if (relestim > p->h.insdshead->xtratim)
@@ -1224,6 +1225,7 @@ int32_t lnrset(CSOUND *csound, LINENR *p)
     else p->inc1 = p->val = FL(1.0);
     if (*p->idec > FL(0.0)) {
       int32_t relestim = (int32_t)(*p->idec * CS_EKR + FL(0.5));
+     
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (UNLIKELY(*p->iatdec <= FL(0.0))) {
@@ -1285,7 +1287,7 @@ int32_t linenr(CSOUND *csound, LINENR *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t flag=0, n, nsmps = CS_KSMPS;
-    MYFLT *rs,*sg,val;
+    MYFLT *rs,*sg,val,val2 = p->val2;
     int32_t    asgsg = IS_ASIG_ARG(p->sig);
     val = p->val;
     rs = p->rslt;
@@ -1305,8 +1307,8 @@ int32_t linenr(CSOUND *csound, LINENR *p)
     }
     if (p->h.insdshead->relesing) {
       flag = 1;
-      val = p->val2;
-      p->val2 *= p->mlt2;
+      val = val2;
+      val2 *= p->mlt2;
     }
     if (flag) {
       if (asgsg)
@@ -1320,7 +1322,7 @@ int32_t linenr(CSOUND *csound, LINENR *p)
       }
     }
     p->val = val;
-    p->val2 = val;
+    p->val2 = val2;
     return OK;
 }
 
