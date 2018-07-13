@@ -111,7 +111,9 @@ audio file.  This should preserve most compatibility issues.
 - pvsftw had an incorrect check for fft format which led to incorrect
   claim of bad format; fixed.
 
-- if ksms was 1 te opcode linenr failed to work; fixed.
+- if ksmps was 1 the opcode linenr at arate failed to work; fixed.
+
+- window opcoe fixed.
 
 # SYSTEM LEVEL CHANGES
 
@@ -160,9 +162,9 @@ audio file.  This should preserve most compatibility issues.
 
 
 ========================================================================
-commit 2f4d7824e4b24d8e440f27c5e061f8e517a051a8 (origin/develop)
+commit 84b777591e72b288eb0558ca0cb6f58a8af0b263
 Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Thu Jul 12 17:08:18 2018 +0100
+Date:   Fri Jul 13 11:57:37 2018 +0100
 
-    fixed linenr arate bug with ksmps=1
+    fixed window opcode
 
