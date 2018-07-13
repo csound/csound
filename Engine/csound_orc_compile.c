@@ -72,39 +72,39 @@ extern const char *SYNTHESIZED_ARG;
 /* ------------------------------------------------------------------------ */
 
 char *strsav_string(CSOUND *csound, ENGINE_STATE *engineState, char *key) {
-  char *retVal =
+    char *retVal =
       cs_hash_table_get_key(csound, csound->engineState.stringPool, key);
 
-  if (retVal == NULL) {
-    // printf("strsav_string: %s\n", key);
-    retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
-  }
-  return retVal;
+    if (retVal == NULL) {
+      // printf("strsav_string: %s\n", key);
+      retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
+    }
+    return retVal;
 }
 
 int pnum(char *s) /* check a char string for pnum format  */
 /*   and return the pnum ( >= 0 )       */
 { /* else return -1                       */
-  int n;
+    int n;
 
-  if (*s == 'p' || *s == 'P')
-    if (sscanf(++s, "%d", &n))
-      return (n);
-  return (-1);
+    if (*s == 'p' || *s == 'P')
+      if (sscanf(++s, "%d", &n))
+        return (n);
+    return (-1);
 }
 
 #if 0
 static int argCount(ARG* arg)
 {
-  int retVal = -1;
-  if (arg != NULL) {
-    retVal = 0;
-    while (arg != NULL) {
-      arg = arg->next;
-      retVal++;
+    int retVal = -1;
+    if (arg != NULL) {
+      retVal = 0;
+      while (arg != NULL) {
+        arg = arg->next;
+        retVal++;
+      }
     }
-  }
-  return retVal;
+    return retVal;
 }
 #endif
 
@@ -1021,7 +1021,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
 }
 
 int32 named_instr_find(CSOUND *csound, char *s);
-int32  named_instr_find_in_engine(CSOUND *csound, char *s, ENGINE_STATE *engineState); 
+int32  named_instr_find_in_engine(CSOUND *csound, char *s,
+                                  ENGINE_STATE *engineState);
 /**
    allocate entry for named instrument ip with name s
    instrument number is set to insno
@@ -1089,7 +1090,7 @@ cont:
 
   /* allocate entry, */
   inm = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
-  
+
   /* and store parameters */
   inm->name = cs_strdup(csound, s);
   inm->ip = ip;
@@ -1102,24 +1103,24 @@ cont:
   cs_hash_table_put(csound, engineState->instrumentNames, s, inm);
 
   if(!merge) {
-  /* temporary chain for use by named_instr_assign_numbers() 
+  /* temporary chain for use by named_instr_assign_numbers()
      this is not needed at merge stage
   */
-  inm2 = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
-  inm2->instno = insno;
-  inm2->name = (char *) inm; /* hack */
-  inm_head = cs_hash_table_get(csound, engineState->instrumentNames,
-                               (char *)INSTR_NAME_FIRST);
-  
-  if (inm_head == NULL) {
-    cs_hash_table_put(csound, engineState->instrumentNames,
-                      (char *)INSTR_NAME_FIRST, inm2);
-  } else {
-    while (inm_head->next != NULL) {
-      inm_head = inm_head->next;
+    inm2 = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
+    inm2->instno = insno;
+    inm2->name = (char *) inm; /* hack */
+    inm_head = cs_hash_table_get(csound, engineState->instrumentNames,
+                                 (char *)INSTR_NAME_FIRST);
+
+    if (inm_head == NULL) {
+      cs_hash_table_put(csound, engineState->instrumentNames,
+                        (char *)INSTR_NAME_FIRST, inm2);
+    } else {
+      while (inm_head->next != NULL) {
+        inm_head = inm_head->next;
+      }
+      inm_head->next = inm2;
     }
-    inm_head->next = inm2;
-  }
   }
 
   if (UNLIKELY(csound->oparms->odebug) && engineState == &csound->engineState)
@@ -1146,7 +1147,8 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
       /* check both this state & current state */
       num = engineState->maxinsno >
         csound->engineState.maxinsno ?
-        engineState->maxinsno : csound->engineState.maxinsno; /* find last used instr number */
+        engineState->maxinsno :
+        csound->engineState.maxinsno; /* find last used instr number */
 
       /* check both this state & current state */
       while ((!engineState->instrtxtp[num] ||
@@ -1187,7 +1189,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
         inum = no; // else use existing number
       /* hack: "name" actually points to the corresponding INSTRNAME */
       inm2 = (INSTRNAME *)(inm->name); /* entry in the table */
-      
+
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
 
@@ -1291,7 +1293,8 @@ end:
 
   instrtxt->instance = instrtxt->act_instance = instrtxt->lst_instance = NULL;
   engineState->instrtxtp[instrNum] = instrtxt;
-  //csound->Message(csound, "instrument %d of %d: %p \n", instrNum, engineState->maxinsno, instrtxt);
+  //csound->Message(csound, "instrument %d of %d: %p \n",
+  //                instrNum, engineState->maxinsno, instrtxt);
 }
 
 void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
@@ -1431,7 +1434,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
         /* allocate a named_instr string in the current engine */
         /* find the assigned number in the engineState and use it for
            the current engine */
-        int32 nnum = named_instr_find_in_engine(csound, current->insname, engineState);
+        int32 nnum =
+          named_instr_find_in_engine(csound, current->insname, engineState);
         named_instr_alloc(csound, current->insname, current, nnum, current_state,
                          1);
         /* place it in the corresponding slot */
@@ -1444,7 +1448,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   */
   // csound->Message(csound, "assign numbers; %p\n", current_state);
   //named_instr_assign_numbers(csound, current_state);
-  
+
   /* VL MOVED here after all instruments are merged so
      that we get the correct number */
   insert_opcodes(csound, csound->opcodeInfo, current_state);
