@@ -3018,10 +3018,14 @@ int32_t perf_window(CSOUND *csound, FFT *p) {
     in = p->in->data;
     out = p->out->data;
     w = (MYFLT *) p->mem.auxp;
-    while (off < 0) off += end;
-    for (i=0;i<end;i++)
-      out[(i+off)%end] = in[i]*w[i];
+    /*while (off < 0) off += end;
+     for (i=0;i<end;i++)
+      out[(i+off)%end] = in[i]*w[i];*/
+    if(off) off = end - off;
+    for(i=0;i<end;i++)
+      out[i] = in[i]*w[(i+off)%end];
     return OK;
+   
 }
 
 #include "pstream.h"
