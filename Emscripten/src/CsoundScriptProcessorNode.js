@@ -48,7 +48,7 @@ class CsoundScriptProcessorNodeFactory {
 
     // Utility function to load a script and set callback
     static loadScript(src, callback) {
-        var script = document.createElement('script');
+        var script = document.createElementNS("http://www.w3.org/1999/xhtml", "script");
         script.src = src;
         script.onload = callback;
         document.head.appendChild(script);
