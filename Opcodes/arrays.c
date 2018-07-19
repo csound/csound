@@ -3025,7 +3025,7 @@ int32_t perf_window(CSOUND *csound, FFT *p) {
     for(i=0;i<end;i++)
       out[i] = in[i]*w[(i+off)%end];
     return OK;
-   
+ 
 }
 
 #include "pstream.h"

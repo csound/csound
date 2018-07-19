@@ -274,98 +274,98 @@ msgstr " -- déf libre d'instr %p %p\n"
 msgid " -- added to deadpool slot %d\n"
 msgstr " -- ajout du slot %d au deadpool\n"
 
-#: Engine/csound_orc_compile.c:1046
+#: Engine/csound_orc_compile.c:1049
 #, c-format
 msgid "named instr %<PRIi32> redefined, replacing previous definition"
 msgstr "instr nommé %<PRIi32> redéfini, précédente définition remplacée"
 
-#: Engine/csound_orc_compile.c:1080
+#: Engine/csound_orc_compile.c:1083
 msgid "no active instances\n"
 msgstr "pas d'instances actives\n"
 
-#: Engine/csound_orc_compile.c:1179
+#: Engine/csound_orc_compile.c:1199
 #, c-format
 msgid "instr %s uses instrument number %d\n"
 msgstr "l'instr %s utilise le numéro d'instrument %d\n"
 
-#: Engine/csound_orc_compile.c:1227
+#: Engine/csound_orc_compile.c:1248
 #, c-format
 msgid "instr %d redefined\n"
 msgstr "instr %d redéfini\n"
 
-#: Engine/csound_orc_compile.c:1229
+#: Engine/csound_orc_compile.c:1250
 #, c-format
 msgid "instr %<PRIi32> redefined, replacing previous definition"
 msgstr "instr %<PRIi32> redéfini, précédente définition remplacée"
 
-#: Engine/csound_orc_compile.c:1264
+#: Engine/csound_orc_compile.c:1285
 #, c-format
 msgid "no active instances of instr %d\n"
 msgstr "aucune instance active de l'instr %d\n"
 
-#: Engine/csound_orc_compile.c:1309
+#: Engine/csound_orc_compile.c:1331
 msgid "!!! csound->opcodeInfo is NULL !!!\n"
 msgstr "!!! csound->opcodeInfo est NULL !!!\n"
 
-#: Engine/csound_orc_compile.c:1357
+#: Engine/csound_orc_compile.c:1379
 #, c-format
 msgid " merging %p %d) %s:%s\n"
 msgstr " fusion de %p %d) %s : %s\n"
 
-#: Engine/csound_orc_compile.c:1373
+#: Engine/csound_orc_compile.c:1395
 #, c-format
 msgid " adding %p %d) %s:%s\n"
 msgstr " ajout de %p %d) %s : %s\n"
 
-#: Engine/csound_orc_compile.c:1403
+#: Engine/csound_orc_compile.c:1425
 #, c-format
 msgid "merging instr %d\n"
 msgstr "fusion de l'instr %d\n"
 
-#: Engine/csound_orc_compile.c:1410
+#: Engine/csound_orc_compile.c:1432
 #, c-format
 msgid "merging named instr %s\n"
 msgstr "fusion de l'instr nommé %s\n"
 
-#: Engine/csound_orc_compile.c:1623 Engine/csound_orc_compile.c:1661
-#: Engine/csound_orc_compile.c:1693
+#: Engine/csound_orc_compile.c:1652 Engine/csound_orc_compile.c:1690
+#: Engine/csound_orc_compile.c:1722
 msgid "invalid name for instrument"
 msgstr "nom d'instrument non valide"
 
-#: Engine/csound_orc_compile.c:1727
+#: Engine/csound_orc_compile.c:1756
 #, c-format
 msgid "ERROR: Could not find OPCODINFO for opname: %s\n"
 msgstr "ERREUR : impossible de trouver l'OPCODINFO pour : %s\n"
 
-#: Engine/csound_orc_compile.c:1748
+#: Engine/csound_orc_compile.c:1777
 #, c-format
 msgid "Unknown TREE node of type %d (%s) found in root.\n"
 msgstr "Noeud inconnu de type %d (%s) trouvé à la racine.\n"
 
-#: Engine/csound_orc_compile.c:1758
+#: Engine/csound_orc_compile.c:1787
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
 msgstr "%d erreurs de syntaxe dans l'orchestre. Compilation non valide\n"
 
-#: Engine/csound_orc_compile.c:1809
+#: Engine/csound_orc_compile.c:1837
 #, c-format
 msgid "%s: perf-time code in global space, ignored"
 msgstr "%s : code d'exécution dans l'espace global, ignoré"
 
-#: Engine/csound_orc_compile.c:1981
+#: Engine/csound_orc_compile.c:2009
 msgid "i[fixme] pset args != pmax"
 msgstr "i[fixme] pset args != pmax"
 
-#: Engine/csound_orc_compile.c:2131
+#: Engine/csound_orc_compile.c:2159
 #, c-format
 msgid "Missing local arg: %s\n"
 msgstr "Argument local manquant : %s\n"
 
-#: Engine/csound_orc_compile.c:2191
+#: Engine/csound_orc_compile.c:2219
 msgid "**unrecorded**"
 msgstr "**non enregistré**"
 
-#: Engine/csound_orc_compile.c:2263
+#: Engine/csound_orc_compile.c:2291
 #, c-format
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr "L'opcode \"%s\" est obsolète\n"
@@ -1831,17 +1831,17 @@ msgstr "insert_score_event() : pas assez de p-champs\n"
 msgid "cannot rewind score: no score in memory\n"
 msgstr "impossible de remonter la partition : pas de partition en mémoire\n"
 
-#: Engine/namedins.c:69 Engine/namedins.c:92
+#: Engine/namedins.c:76 Engine/namedins.c:99
 #, c-format
 msgid "instr %s not found"
 msgstr "instr %s non trouvé"
 
-#: Engine/namedins.c:77 Engine/namedins.c:115
+#: Engine/namedins.c:84 Engine/namedins.c:122
 #, c-format
 msgid "Cannot Find Instrument %d"
 msgstr "Impossible de trouver l'instrument %d"
 
-#: Engine/namedins.c:127
+#: Engine/namedins.c:134
 msgid "cannot find the specified instrument or opcode"
 msgstr "impossible de trouver l'instrument ou l'opcode spécifié"
 
@@ -2175,17 +2175,17 @@ msgstr "type de sortie non valide pour l'opcode %s"
 msgid "invalid name for opcode"
 msgstr "nom d'opcode non valide"
 
-#: Engine/symbtab.c:554
+#: Engine/symbtab.c:553
 #, c-format
 msgid "cannot redefine %s"
 msgstr "impossible de redéfinir %s"
 
-#: Engine/symbtab.c:558
+#: Engine/symbtab.c:557
 #, c-format
 msgid "WARNING: redefined opcode: %s\n"
 msgstr "AVERTISSEMENT : opcode redéfini : %s\n"
 
-#: Engine/symbtab.c:612
+#: Engine/symbtab.c:613
 msgid "error:  "
 msgstr "erreur :  "
 
@@ -5515,13 +5515,13 @@ msgstr "arg2 vaut zéro"
 msgid "unlike signs"
 msgstr "signes différents"
 
-#: OOps/ugens1.c:144 OOps/ugens1.c:501 OOps/ugens1.c:555 OOps/ugens1.c:615
-#: OOps/ugens1.c:676 OOps/ugens1.c:891 OOps/ugens1.c:1832
+#: OOps/ugens1.c:144 OOps/ugens1.c:502 OOps/ugens1.c:556 OOps/ugens1.c:616
+#: OOps/ugens1.c:677 OOps/ugens1.c:892 OOps/ugens1.c:1834
 #: Opcodes/gab/vectorial.c:2209 Opcodes/vpvoc.c:42
 msgid "incomplete number of input arguments"
 msgstr "nombre incorrect d'arguments en entrée"
 
-#: OOps/ugens1.c:196 OOps/ugens1.c:1895 OOps/ugens1.c:1905
+#: OOps/ugens1.c:196 OOps/ugens1.c:1897 OOps/ugens1.c:1907
 #, c-format
 msgid "Breakpoint %d not valid"
 msgstr "Point charnière %d non valide"
@@ -5538,74 +5538,74 @@ msgstr "linseg : non initialisé (taux-a)\n"
 msgid "length of ADSR note too short"
 msgstr "durée de la note de l'ADSR trop courte"
 
-#: OOps/ugens1.c:540 OOps/ugens1.c:542 OOps/ugens1.c:599 OOps/ugens1.c:601
-#: OOps/ugens1.c:661 OOps/ugens1.c:663 OOps/ugens1.c:717 OOps/ugens1.c:719
-#: OOps/ugens1.c:930 OOps/ugens1.c:932
+#: OOps/ugens1.c:541 OOps/ugens1.c:543 OOps/ugens1.c:600 OOps/ugens1.c:602
+#: OOps/ugens1.c:662 OOps/ugens1.c:664 OOps/ugens1.c:718 OOps/ugens1.c:720
+#: OOps/ugens1.c:931 OOps/ugens1.c:933
 #, c-format
 msgid "ival%d is zero"
 msgstr "ival%d vaut zéro"
 
-#: OOps/ugens1.c:543 OOps/ugens1.c:602 OOps/ugens1.c:664 OOps/ugens1.c:720
-#: OOps/ugens1.c:933
+#: OOps/ugens1.c:544 OOps/ugens1.c:603 OOps/ugens1.c:665 OOps/ugens1.c:721
+#: OOps/ugens1.c:934
 #, c-format
 msgid "ival%d sign conflict"
 msgstr "ival%d conflit de signe"
 
-#: OOps/ugens1.c:578 OOps/ugens1.c:637
+#: OOps/ugens1.c:579 OOps/ugens1.c:638
 #, c-format
 msgid "Breakpoint time %f not valid"
 msgstr "Date %f du point charnière non valide"
 
-#: OOps/ugens1.c:767
+#: OOps/ugens1.c:768
 msgid "length of XADSR note too short"
 msgstr "durée de la note de l'XADSR trop courte"
 
-#: OOps/ugens1.c:847
+#: OOps/ugens1.c:848
 msgid "expseg (krate): not initialised"
 msgstr "expseg (taux-k) : non initialisé"
 
-#: OOps/ugens1.c:879
+#: OOps/ugens1.c:880
 msgid "expseg (arate): not initialised"
 msgstr "expseg (taux-a) : non initialisé"
 
-#: OOps/ugens1.c:1082 OOps/ugens1.c:1113
+#: OOps/ugens1.c:1083 OOps/ugens1.c:1114
 msgid "p3 too short in linen"
 msgstr "p3 trop court dans linen"
 
-#: OOps/ugens1.c:1230 OOps/ugens1.c:1253 OOps/ugens1.c:1388 OOps/ugens1.c:1504
-#: OOps/ugens1.c:1635 OOps/ugens1.c:1694
+#: OOps/ugens1.c:1232 OOps/ugens1.c:1255 OOps/ugens1.c:1390 OOps/ugens1.c:1506
+#: OOps/ugens1.c:1637 OOps/ugens1.c:1696
 msgid "non-positive iatdec"
 msgstr "iatdec non positif"
 
-#: OOps/ugens1.c:1343 OOps/ugens1.c:1458 OOps/ugens1.c:1597 OOps/ugens1.c:1656
+#: OOps/ugens1.c:1345 OOps/ugens1.c:1460 OOps/ugens1.c:1599 OOps/ugens1.c:1658
 msgid "ixmod out of range."
 msgstr "ixmod hors limites"
 
-#: OOps/ugens1.c:1362 OOps/ugens1.c:1478
+#: OOps/ugens1.c:1364 OOps/ugens1.c:1480
 msgid "p3 too short in envlpx"
 msgstr "p3 trop court dans envlpx"
 
-#: OOps/ugens1.c:1373 OOps/ugens1.c:1489 OOps/ugens1.c:1625 OOps/ugens1.c:1684
+#: OOps/ugens1.c:1375 OOps/ugens1.c:1491 OOps/ugens1.c:1627 OOps/ugens1.c:1686
 msgid "rise func ends with zero"
 msgstr "la fonction d'attaque se termine par zéro"
 
-#: OOps/ugens1.c:1417 OOps/ugens1.c:1540 OOps/ugens1.c:1771
+#: OOps/ugens1.c:1419 OOps/ugens1.c:1542 OOps/ugens1.c:1773
 msgid "envlpx rise func ends with zero"
 msgstr "la fonction d'attaque de envlpx se termine zéro"
 
-#: OOps/ugens1.c:1439 OOps/ugens1.c:1533 OOps/ugens1.c:1764
+#: OOps/ugens1.c:1441 OOps/ugens1.c:1535 OOps/ugens1.c:1766
 msgid "envlpx(krate): not initialised"
 msgstr "envlpx(taux-k) : non initialisé"
 
-#: OOps/ugens1.c:1967 OOps/ugens1.c:2218
+#: OOps/ugens1.c:1969 OOps/ugens1.c:2220
 msgid "cosseg not initialised (krate)\n"
 msgstr "cosseg non initialisé (taux-k)\n"
 
-#: OOps/ugens1.c:2022
+#: OOps/ugens1.c:2024
 msgid "cosseg: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
-#: OOps/ugens1.c:2093 OOps/ugens1.c:2160
+#: OOps/ugens1.c:2095 OOps/ugens1.c:2162
 msgid "cossegr: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
@@ -6565,48 +6565,48 @@ msgstr "fftinv : seuls les tableaux unidimensionnels sont permis"
 msgid "in array sizes do not match: %d and %d\n"
 msgstr "dans array les tailles ne correspondent pas : %d et %d\n"
 
-#: Opcodes/arrays.c:3046 Opcodes/arrays.c:3086 Opcodes/arrays.c:3118
+#: Opcodes/arrays.c:3050 Opcodes/arrays.c:3090 Opcodes/arrays.c:3122
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr "non puissance de deux pas encore implémentée\n"
 
-#: Opcodes/arrays.c:3079
+#: Opcodes/arrays.c:3083
 msgid "FFT size too small (min 64 samples)\n"
 msgstr "Taille de TFR trop petite (min 64 échantillons)\n"
 
-#: Opcodes/arrays.c:3146 Opcodes/arrays.c:3185
+#: Opcodes/arrays.c:3150 Opcodes/arrays.c:3189
 msgid "in array not 2-dimensional\n"
 msgstr "dans array pas de 2-dimension\n"
 
-#: Opcodes/arrays.c:3158 Opcodes/arrays.c:3171
+#: Opcodes/arrays.c:3162 Opcodes/arrays.c:3175
 msgid "requested row is out of range\n"
 msgstr "ligne demandée hors limites\n"
 
-#: Opcodes/arrays.c:3199 Opcodes/arrays.c:3213
+#: Opcodes/arrays.c:3203 Opcodes/arrays.c:3217
 msgid "requested col is out of range\n"
 msgstr "colonne demandée hors limites\n"
 
-#: Opcodes/arrays.c:3251 Opcodes/arrays.c:3263 Opcodes/arrays.c:3285
-#: Opcodes/arrays.c:3299
+#: Opcodes/arrays.c:3255 Opcodes/arrays.c:3267 Opcodes/arrays.c:3289
+#: Opcodes/arrays.c:3303
 msgid "Error: index out of range\n"
 msgstr "Erreur : index hors limites\n"
 
-#: Opcodes/arrays.c:3334
+#: Opcodes/arrays.c:3338
 msgid "input array too small\n"
 msgstr "tableau d'entrée trop petit\n"
 
-#: Opcodes/arrays.c:3387
+#: Opcodes/arrays.c:3391
 msgid "dct: only one-dimensional arrays allowed"
 msgstr "dct : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:3394
+#: Opcodes/arrays.c:3398
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr "dct : tailles non puissance de deux pas encore implémentées"
 
-#: Opcodes/arrays.c:3416
+#: Opcodes/arrays.c:3420
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr "dctinv : seul les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:3424
+#: Opcodes/arrays.c:3428
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv : tailles non puissance de deux pas encore implémentées"
 
@@ -12417,8 +12417,8 @@ msgid "Invalid arguments in <CsOptions>: %s"
 msgstr "Arguments non valides dans <CsOptions> : %s"
 
 #: Top/one_file.c:356
-#, c-format
-msgid "Invalid arguments in .csoundrc or -@ file: %s"
+#, fuzzy, c-format
+msgid "Invalid arguments in .csound6rc or -@ file: %s"
 msgstr "Arguments non valides dans .csoundrc ou dans le fichier -@ : %s"
 
 #: Top/one_file.c:362 Top/one_file.c:1149
