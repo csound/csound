@@ -674,7 +674,7 @@ extern "C" {
 #endif
   }
 
-  /**
+  
   static CS_NOINLINE void InputValueCallback_wrapper(CSOUND *csound,
                                          const char *chnName, MYFLT *value)
   {
@@ -682,8 +682,8 @@ extern "C" {
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
     *value = (MYFLT) p->InputValueCallback(chnName);
   }
-  */
-  /**
+  
+  
   static CS_NOINLINE void OutputValueCallback_wrapper(CSOUND *csound,
                                           const char *chnName, MYFLT value)
   {
@@ -691,7 +691,7 @@ extern "C" {
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
     p->OutputValueCallback(chnName, (double) value);
   }
-  */
+  
   static CS_NOINLINE int YieldCallback_wrapper(CSOUND *csound)
   {
     CsoundCallbackWrapper *p;
