@@ -12417,9 +12417,9 @@ msgid "Invalid arguments in <CsOptions>: %s"
 msgstr "Arguments non valides dans <CsOptions> : %s"
 
 #: Top/one_file.c:356
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid arguments in .csound6rc or -@ file: %s"
-msgstr "Arguments non valides dans .csoundrc ou dans le fichier -@ : %s"
+msgstr "Arguments non valides dans .csound6rc ou dans le fichier -@ : %s"
 
 #: Top/one_file.c:362 Top/one_file.c:1149
 msgid "Missing end tag </CsOptions>"
