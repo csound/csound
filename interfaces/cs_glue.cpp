@@ -706,7 +706,7 @@ void CsoundCallbackWrapper::SetMessageCallback()
     csoundSetMessageCallback(csound_, MessageCallback_wrapper);
 }
 
-  /*void CsoundCallbackWrapper::SetInputValueCallback()
+void CsoundCallbackWrapper::SetInputValueCallback()
 {
     csoundSetInputValueCallback(csound_, InputValueCallback_wrapper);
 }
@@ -715,7 +715,7 @@ void CsoundCallbackWrapper::SetOutputValueCallback()
 {
     csoundSetOutputValueCallback(csound_, OutputValueCallback_wrapper);
 }
-  */
+ 
 void CsoundCallbackWrapper::SetYieldCallback()
 {
     csoundSetYieldCallback(csound_, YieldCallback_wrapper);
