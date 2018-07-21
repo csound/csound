@@ -66,6 +66,9 @@ audio file.  This should preserve most compatibility issues.
 
 -  bug in np operation fixed.
 
+- Use of [] syntax in a score could lead to a loss of precision for
+  numbers over about 1 million; older version restored.
+
 ### Options
 
 - 
