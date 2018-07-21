@@ -1876,6 +1876,7 @@ static MYFLT read_expression(CSOUND *csound)
             }
           }
           buffer[i] = '\0';
+          //printf("****>>%s<<\n", buffer);
           *++pv = stof(csound, buffer);
           type = 1;
           break;
@@ -2018,8 +2019,8 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
       return(0);
     if (c=='[') {
       MYFLT xx = read_expression(csound);
-      //printf("****xx=%g\n", xx);
-      snprintf(STA(sp) = STA(nxp), 16, "%g$", xx);
+      //printf("****xx=%a\n", xx);
+      snprintf(STA(sp) = STA(nxp), 16, "%a$", xx);
       p = strchr(STA(sp),'$');
       goto blank;
     }
