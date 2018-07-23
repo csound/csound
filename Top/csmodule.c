@@ -829,7 +829,7 @@ extern long hrtfopcodes_localops_init(CSOUND *, void *);
 extern long hrtfreverb_localops_init(CSOUND *, void *);
 extern long hrtfearly_localops_init(CSOUND *, void *);
 extern long minmax_localops_init(CSOUND *, void *);
-
+extern long gendy_localops_init(CSOUND *, void *);
 //extern long stackops_localops_init(CSOUND *, void *);
 extern long vbap_localops_init(CSOUND *, void *);
 extern long vaops_localops_init(CSOUND *, void*);
@@ -891,7 +891,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  socksend_localops_init,
 #endif
                                  scnoise_localops_init, afilts_localops_init,
-                                 pinker_localops_init,
+                                 pinker_localops_init, gendy_localops_init,
                                  wpfilters_localops_init,
                                  NULL };
 
