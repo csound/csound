@@ -733,8 +733,8 @@ struct Inletf : public OpcodeBase<Inletf> {
             fsignal->format = sourceOutlet->fsignal->format;
             fsignal->framecount = 1;
             lastframe = 0;
-            if (UNLIKELY(!(fsignal->format == PVS_AMP_FREQ) ||
-                         (fsignal->format == PVS_AMP_PHASE)))
+            if (UNLIKELY(!((fsignal->format == PVS_AMP_FREQ) ||
+                           (fsignal->format == PVS_AMP_PHASE))))
               result = csound->InitError(csound,
                                          "%s", Str("inletf: signal format "
                                              "must be amp-phase or amp-freq."));
