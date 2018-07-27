@@ -65,8 +65,8 @@ static int32_t pvsgainset(CSOUND *csound, PVSGAIN *p){
   p->fout->format = p->fa->format;
   p->fout->framecount = 1;
   p->lastframe = 0;
-  if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
-               (p->fout->format == PVS_AMP_PHASE)))
+  if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvsgain: signal format "
                                          "must be amp-phase or amp-freq."));
   return OK;
@@ -745,8 +745,8 @@ static int32_t pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
       if (p->freez.auxp == NULL || p->freez.size < sizeof(float) * (N + 2))
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->freez);
 
-      if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
-                   (p->fout->format == PVS_AMP_PHASE)))
+      if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
+                     (p->fout->format == PVS_AMP_PHASE))))
         return csound->InitError(csound, Str("pvsfreeze: signal format "
                                              "must be amp-phase or amp-freq."));
     }
@@ -1076,8 +1076,8 @@ static int32_t pvsmoothset(CSOUND *csound, PVSMOOTH *p)
   p->fout->format = p->fin->format;
   p->fout->framecount = 1;
   p->lastframe = 0;
-  if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
-               (p->fout->format == PVS_AMP_PHASE)))
+  if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvsmooth: signal format "
                                          "must be amp-phase or amp-freq."));
   return OK;
@@ -1194,8 +1194,8 @@ static int32_t pvsmixset(CSOUND *csound, PVSMIX *p)
   p->fout->format = p->fa->format;
   p->fout->framecount = 1;
   p->lastframe = 0;
-  if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
-               (p->fout->format == PVS_AMP_PHASE)))
+  if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvsmix: signal format "
                                          "must be amp-phase or amp-freq."));
   return OK;
@@ -1263,8 +1263,8 @@ static int32_t pvsfilterset(CSOUND *csound, PVSFILTER *p)
 
   if (UNLIKELY(p->fin == p->fout || p->fil == p->fout))
     csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
-  if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
-               (p->fout->format == PVS_AMP_PHASE)))
+  if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
+                 (p->fout->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvsfilter: signal format "
                                          "must be amp-phase or amp-freq."));
   p->fout->sliding = 0;
@@ -2185,8 +2185,8 @@ static int32_t pvstencilset(CSOUND *csound, PVSTENCIL *p)
           p->fout->frame.size < sizeof(float) * (N + 2))
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
-      if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ||
-                   (p->fout->format == PVS_AMP_PHASE)))
+      if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
+                     (p->fout->format == PVS_AMP_PHASE))))
         return csound->InitError(csound, Str("pvstencil: signal format "
                                              "must be amp-phase or amp-freq."));
     }
@@ -2433,8 +2433,8 @@ typedef struct pvs2tab_t {
 
 int32_t pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
 {
-  if (UNLIKELY(!(p->fsig->format == PVS_AMP_FREQ) ||
-               (p->fsig->format == PVS_AMP_PHASE)))
+    if (UNLIKELY(!((p->fsig->format == PVS_AMP_FREQ) ||
+                   (p->fsig->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvs2tab: signal format "
                                          "must be amp-phase or amp-freq."));
   if (LIKELY(p->ans->data)) return OK;
@@ -2461,8 +2461,8 @@ typedef struct pvs2tabsplit_t {
 
 int32_t pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
 {
-  if (UNLIKELY(!(p->fsig->format == PVS_AMP_FREQ) ||
-               (p->fsig->format == PVS_AMP_PHASE)))
+    if (UNLIKELY(!((p->fsig->format == PVS_AMP_FREQ) ||
+                   (p->fsig->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvs2tab: signal format "
                                          "must be amp-phase or amp-freq."));
 

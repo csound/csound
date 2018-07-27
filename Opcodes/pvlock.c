@@ -85,7 +85,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
       return csound->InitError(csound, Str("invalid number of output arguments"));
     p->nchans = nchans;
 
-    for (i=0; i < nchans; i++){
+    for (i=0; i < nchans; i++) {
 
       size = (N+2)*sizeof(MYFLT);
       if (p->fwin[i].auxp == NULL || p->fwin[i].size < size)
@@ -128,7 +128,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
     return OK;
 }
 
-static int32_t sinit1(CSOUND *csound, DATASPACE *p){
+static int32_t sinit1(CSOUND *csound, DATASPACE *p) {
     p->nchans = csound->GetOutputArgCnt(p);
     return sinit(csound, p);
 }
@@ -266,7 +266,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
           for (i=0; i < N + 2; i+=2) {
             if (lock) {  /* phase-locking */
               if (i > 0) {
-                if (i < N){
+                if (i < N) {
                   tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
                   tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
                 }
@@ -388,7 +388,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
 
     for (n=offset; n < nsmps; n++) {
 
-      if (cnt == hsize){
+      if (cnt == hsize) {
         double resamp;
         ft = csound->FTnp2Find(csound,p->knum);
         resamp = ft->gen01args.sample_rate/CS_ESR;
@@ -629,7 +629,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
   call to fillbuf
 */
 
-void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps){
+void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps) {
 
     IGN(csound);
     sf_count_t sampsread;
@@ -688,7 +688,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
 
       for (n=offset; n < nsmps; n++) {
 
-        if (cnt == hsize){
+        if (cnt == hsize) {
           tab = p->tab;
           size = p->fdata.size/sizeof(MYFLT);
 
@@ -920,7 +920,7 @@ static int32_t pvslockproc(CSOUND *csound, PVSLOCK *p)
       memcpy(fout,fin, sizeof(float)*(N+2));
       //int32_t l=0;
       if (*p->klock) {
-        for (i=2; i < N-4; i+=2){
+        for (i=2; i < N-4; i+=2) {
           float p2 = fin[i];
           float p3 = fin[i+2];
           float p1 = fin[i-2];
@@ -953,7 +953,7 @@ typedef struct hilb {
   int32_t N, hop;
 } HILB;
 
-static int32_t hilbert_init(CSOUND *csound, HILB *p){
+static int32_t hilbert_init(CSOUND *csound, HILB *p) {
     int32_t N = (int32_t) *p->ifftsize;
     int32_t h = (int32_t) *p->ihopsize;
     uint32_t size;
@@ -991,7 +991,7 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p){
       csound->AuxAlloc(csound, size, &p->oframecnt);
     p1 = (int32_t *) p->iframecnt.auxp;
     p2 = (int32_t *) p->oframecnt.auxp;
-    for(i = 0; i < N/h; i++){
+    for(i = 0; i < N/h; i++) {
       p1[i] = (decim - 1 - i)*h;
       p2[i] = 2*(decim - 1 - i)*h;
     }
@@ -1011,7 +1011,7 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p){
     return OK;
 }
 
-static int32_t hilbert_proc(CSOUND *csound, HILB *p){
+static int32_t hilbert_proc(CSOUND *csound, HILB *p) {
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1088,7 +1088,7 @@ int32_t am_fm_init(CSOUND *csound, AMFM *p) {
     return OK;
 }
 
-int32_t am_fm(CSOUND *csound, AMFM *p){
+int32_t am_fm(CSOUND *csound, AMFM *p) {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
