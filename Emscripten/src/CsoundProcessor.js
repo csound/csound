@@ -229,6 +229,9 @@ class CsoundProcessor extends AudioWorkletProcessor {
             break;
         case "reset":
             let csObj = this.csObj;
+            this.started = false;
+            this.running = false;
+            Csound.reset(csObj);
             Csound.setMidiCallbacks(csObj);
             Csound.setOption(csObj, "-odac");
             Csound.setOption(csObj, "-iadc");
@@ -237,8 +240,8 @@ class CsoundProcessor extends AudioWorkletProcessor {
             Csound.setOption(csObj, "-+rtmidi=null");
             Csound.setOption(csObj, "--sample-rate="+this.sampleRate);  
             Csound.prepareRT(csObj);
-            this.nchnls = options.numberOfOutputs;
-            this.nchnls_i = options.numberOfInputs;
+            //this.nchnls = options.numberOfOutputs;
+            //this.nchnls_i = options.numberOfInputs;
             Csound.setOption(csObj, "--nchnls=" + this.nchnls);
             Csound.setOption(csObj, "--nchnls_i=" + this.nchnls_i);
             this.csoundOutputBuffer = null; 

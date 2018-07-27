@@ -371,6 +371,7 @@ CsoundScriptProcessorNode  = function(context, options) {
          */ 
         reset() {
             CSOUND.reset(this.csound);
+            this.started = false;
             this.compiled = false;
         },
 
