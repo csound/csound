@@ -60,12 +60,14 @@ static void checkOptions(CSOUND *csound)
     if (csrcname != NULL && csrcname[0] != '\0') {
       fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                              CSFTYPE_OPTIONS, 0);
-      if (UNLIKELY(fd == NULL))
-        csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
-                      csrcname);
-      else
-        csound->Message(csound, Str("Reading options from $CSOUND6RC: %s\n"),
-                        csrcname);
+      if (UNLIKELY(fd == NULL)) {
+          csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
+              csrcname);
+      } else {
+          csound->Message(csound, Str("Reading options from $CSOUND6RC: %s\n"),
+              csrcname);
+          s = csound->Strdup(csound, csrcname);
+      }
     }
     if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
                        home_dir[0] != '\0')) {
