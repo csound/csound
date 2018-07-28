@@ -30,7 +30,7 @@
 Csound = function() {
     var Csound = null;
     function load_dep(file, elm, callback) {
-        var jsl = document.createElement(elm);
+        var jsl = document.createElementNS("http://www.w3.org/1999/xhtml", elm);
         jsl.type = "text/javascript";
         jsl.src = file;
         document.getElementsByTagName("head")[0].appendChild(jsl)
