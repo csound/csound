@@ -2020,7 +2020,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     if (c=='[') {
       MYFLT xx = read_expression(csound);
       //printf("****xx=%a\n", xx);
-      snprintf(STA(sp) = STA(nxp), 16, "%a$", xx);
+      snprintf(STA(sp) = STA(nxp), 28, "%a$", xx);
       p = strchr(STA(sp),'$');
       goto blank;
     }
