@@ -66,7 +66,7 @@ static void checkOptions(CSOUND *csound)
       } else {
           csound->Message(csound, Str("Reading options from $CSOUND6RC: %s\n"),
               csrcname);
-          s = csound->Strdup(csound, csrcname);
+          s = csound->Strdup(csound, (char*)csrcname);
       }
     }
     if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
