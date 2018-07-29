@@ -116,7 +116,10 @@ audio file.  This should preserve most compatibility issues.
 
 - if ksmps was 1 the opcode linenr at arate failed to work; fixed.
 
-- window opcoe fixed.
+- window opcode fixed.
+
+- The test for compatible subtypes of f-values in a number of pvs
+  opcodes was wrong, causing spurious error messages.
 
 # SYSTEM LEVEL CHANGES
 

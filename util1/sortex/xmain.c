@@ -40,11 +40,11 @@ int main(int ac, char **av)         /* stdio stub for standalone extract */
     signal(SIGPIPE, SIG_DFL);
 #endif
     if (ac != 2) {
-      fprintf(stderr, "usage: extract xfile <in >out\n");
+      fprintf(stderr, "usage: %s xfile <in >out\n", av[0]);
       goto err_return;
     }
     if ((xfp = fopen(av[1], "r")) == NULL) {
-      fprintf(stderr, "extract: can't open %s\n", av[1]);
+      fprintf(stderr, "%s: can not open %s\n", av[0], av[1]);
       goto err_return;
     }
     err = csoundScoreExtract(csound, stdin, stdout, xfp);
