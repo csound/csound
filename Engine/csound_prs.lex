@@ -45,8 +45,7 @@ static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
 #define MACDEBUG 1
 
-#define S_INC (20)
-
+#define S_INC (10)
 static inline int isNameChar(int cc, int pos)
 {
     unsigned char c = ((unsigned char) cc);
@@ -54,6 +53,8 @@ static inline int isNameChar(int cc, int pos)
 }
 
 #include "score_param.h"
+
+//static void trace_alt_stack(CSOUND*, PRS_PARM*, int);
 
 #define YY_EXTRA_TYPE  PRS_PARM *
 #define PARM    yyget_extra(yyscanner)
@@ -64,7 +65,7 @@ static inline int isNameChar(int cc, int pos)
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->cf = csound->expanded_sco;                                    \
   }
- static MACRO *find_definition(MACRO *, char *);
+static MACRO *find_definition(MACRO *, char *);
 %}
 %option reentrant
 %option noyywrap
@@ -180,8 +181,9 @@ NM              [nm][ \t]+
                        corfile_puts(csound, yytext, PARM->cf);
                      }
                      else {
-                       if (UNLIKELY(PARM->macro_stack_ptr>=
+                       if (UNLIKELY(PARM->macro_stack_ptr+1 >=
                                     PARM->macro_stack_size)) {
+                         //trace_alt_stack(csound, PARM, __LINE__);
                          printf("***extending macro stack %p\n", PARM->alt_stack);
                          PARM->alt_stack =
                            (MACRON*)
@@ -296,8 +298,9 @@ NM              [nm][ \t]+
                      }
                      if (!err) {
                        //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
-                       if (UNLIKELY(PARM->macro_stack_ptr >=
+                       if (UNLIKELY(PARM->macro_stack_ptr +1 >=
                                     PARM->macro_stack_size )) {
+                         //trace_alt_stack(csound, PARM, __LINE__);
                          PARM->alt_stack =
                            (MACRON*)
                            csound->ReAlloc(csound, PARM->alt_stack,
@@ -650,7 +653,8 @@ NM              [nm][ \t]+
           PARM->cf = PARM->cf_stack[PARM->repeat_index];
           //printf("****Repeat body\n>>>%s<<<\n", bdy->body);
           PARM->repeat_mm_n[PARM->repeat_index]->acnt = 0; /* uninhibit */
-          if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+          if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
+            //trace_alt_stack(csound, PARM, __LINE__);
             PARM->alt_stack =
               (MACRON*)csound->ReAlloc(csound, PARM->alt_stack,
                                        sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
@@ -946,7 +950,8 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
-    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+    if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
+      //trace_alt_stack(csound, PARM, __LINE__);
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
@@ -1006,7 +1011,8 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
-    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+    if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
+      //trace_alt_stack(csound, PARM, __LINE__);
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
@@ -1017,7 +1023,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
       /* csound->DebugMsg(csound, "alt_stack now %d long,\n", */
       /*                  PARM->macro_stack_size); */
     }
-    csound->DebugMsg(csound,"csoud_prs(%d): stacking line %d at %d\n", __LINE__,
+    csound->DebugMsg(csound,"csound_prs(%d): stacking line %d at %d\n", __LINE__,
            csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_prsget_lineno(yyscanner);
@@ -1524,6 +1530,12 @@ static MACRO *find_definition(MACRO *mmo, char *s)
     //if (mm) printf("found body #%s#%c\n****\n", mm->body, mm->acnt?'X':' ');
     return mm;
 }
+
+/* static void trace_alt_stack(CSOUND* csound, PRS_PARM* p, int line) */
+/* { */
+/*  printf("***Line %d extend alt_stack from %d/%d (%p)\n", */
+/*         line, p->macro_stack_ptr, p->macro_stack_size, p->alt_stack); */
+/* } */
 
 #if 0
 static void print_csound_prsdata(CSOUND *csound, char *mesg, void *yyscanner)
