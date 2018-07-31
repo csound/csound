@@ -371,6 +371,17 @@ CsoundScriptProcessorNode  = function(context, options) {
          */ 
         reset() {
             CSOUND.reset(this.csound);
+            CSOUND.setMidiCallbacks(this.csound);
+            CSOUND.setOption(this.csound, "-odac");
+            CSOUND.setOption(this.csound, "-iadc");
+            CSOUND.setOption(this.csound, "-M0");
+            CSOUND.setOption(this.csound, "-+rtaudio=null");
+            CSOUND.setOption(this.csound, "-+rtmidi=null");
+            CSOUND.prepareRT(this.csound);
+            var sampleRate = CSOUND_AUDIO_CONTEXT.sampleRate;
+            CSOUND.setOption(this.csound, "--sample-rate="+sampleRate);
+            CSOUND.setOption(this.csound, "--nchnls=" + this.nchnls);
+            CSOUND.setOption(this.csound, "--nchnls_i=" + this.nchnls_i); 
             this.started = false;
             this.compiled = false;
         },
