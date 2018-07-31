@@ -56,6 +56,7 @@ audio file.  This should preserve most compatibility issues.
 
 - Use of tied notes in subinstr fixed.
 
+- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
 
 ### Score
 
@@ -64,10 +65,12 @@ audio file.  This should preserve most compatibility issues.
 
 - 'd' score opcode for real-time performanceb.  This was issue #966.
 
--  bug in np operation fixed.
+- bug in np operation fixed.
 
 - Use of [] syntax in a score could lead to a loss of precision for
   numbers over about 1 million; older version restored.
+
+- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
 
 ### Options
 
