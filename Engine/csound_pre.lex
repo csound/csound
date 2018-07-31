@@ -56,7 +56,7 @@ static void do_function(CSOUND*, char *, CORFIL*);
   }
 static MACRO *find_definition(MACRO *, char *);
 
-#define S_INC (20)
+#define S_INC (10)
 
 %}
 %option reentrant
@@ -248,7 +248,7 @@ QNAN            "qnan"[ \t]*\(
                    }
                    else {
                      /* Need to read from macro definition */
-                     if (UNLIKELY(PARM->macro_stack_ptr >=
+                     if (UNLIKELY(PARM->macro_stack_ptr +1 >=
                                   PARM->macro_stack_size )) {
                        PARM->alt_stack =
                          (MACRON*)
@@ -362,7 +362,7 @@ QNAN            "qnan"[ \t]*\(
                      }
                      if (!err) {
                        //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
-                       if (UNLIKELY(PARM->macro_stack_ptr >=
+                       if (UNLIKELY(PARM->macro_stack_ptr +1 >=
                                     PARM->macro_stack_size )) {
                          PARM->alt_stack =
                            (MACRON*)
@@ -767,7 +767,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
-    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+    if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
@@ -827,7 +827,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
-    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+    if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));

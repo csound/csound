@@ -1,5 +1,5 @@
 /*
-    aops.h:
+    score_parm.h:
 
     Copyright (C) 2017 John ffitch
 
