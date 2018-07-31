@@ -45,6 +45,8 @@ static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
 #define MACDEBUG 1
 
+#define S_INC (20)
+
 static inline int isNameChar(int cc, int pos)
 {
     unsigned char c = ((unsigned char) cc);
@@ -180,10 +182,11 @@ NM              [nm][ \t]+
                      else {
                        if (UNLIKELY(PARM->macro_stack_ptr>=
                                     PARM->macro_stack_size)) {
+                         printf("***extending macro stack %p\n", PARM->alt_stack);
                          PARM->alt_stack =
                            (MACRON*)
                            csound->ReAlloc(csound, PARM->alt_stack,
-                                   sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
                          if (UNLIKELY(PARM->alt_stack == NULL)) {
                            csound->Message(csound, Str("Memory exhausted"));
                            csound->LongJmp(csound, 1);
@@ -298,7 +301,7 @@ NM              [nm][ \t]+
                          PARM->alt_stack =
                            (MACRON*)
                            csound->ReAlloc(csound, PARM->alt_stack,
-                                   sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
                          if (UNLIKELY(PARM->alt_stack == NULL)) {
                            csound->Message(csound, Str("Memory exhausted"));
                            csound->LongJmp(csound, 1);
@@ -650,7 +653,7 @@ NM              [nm][ \t]+
           if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
             PARM->alt_stack =
               (MACRON*)csound->ReAlloc(csound, PARM->alt_stack,
-                                       sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                       sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
             if (UNLIKELY(PARM->alt_stack == NULL)) {
               csound->Message(csound, Str("Memory exhausted"));
               csound->LongJmp(csound, 1);
@@ -946,7 +949,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
-                                  sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                  sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
       if (UNLIKELY(PARM->alt_stack == NULL)) {
         csound->Message(csound, Str("Memory exhausted"));
         csound->LongJmp(csound, 1);
@@ -1006,7 +1009,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
-                                  sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                  sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
       if (UNLIKELY(PARM->alt_stack == NULL)) {
         csound->Message(csound, Str("Memory exhausted"));
         csound->LongJmp(csound, 1);
