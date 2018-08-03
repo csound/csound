@@ -39,6 +39,8 @@
 /*     EVTBLK  e; */
 /* } rtEvt_t; */
 
+#define ARG_CNT (64)
+
 typedef struct {
     OPDS h;             /* default header */
     MYFLT *kwhen;
@@ -46,7 +48,7 @@ typedef struct {
     MYFLT *port;        /* UDP port */
     STRINGDAT *dest;
     STRINGDAT *type;
-    MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
+    MYFLT *arg[ARG_CNT]; /* only 26 can be used, but add a few more for safety */
     lo_address addr;
     MYFLT last;
     char  *lhost;
@@ -64,7 +66,7 @@ typedef struct osc_pat {
       MYFLT number;
       STRINGDAT string;
       void     *blob;
-    } args[31];
+    } args[ARG_CNT-1];
 } OSC_PAT;
 
 typedef struct {
@@ -103,10 +105,10 @@ typedef struct {
     MYFLT   *ihandle;
     STRINGDAT   *dest;
     STRINGDAT   *type;
-    MYFLT   *args[32];
+    MYFLT   *args[ARG_CNT];
     OSC_PORT  *port;
     char    *saved_path;
-    char    saved_types[32];    /* copy of type list */
+    char    saved_types[ARG_CNT];    /* copy of type list */
     OSC_PAT *patterns;          /* FIFO list of pending messages */
     OSC_PAT *freePatterns;      /* free message stack */
     void    *nxt;               /* pointer to next opcode on the same port */
@@ -130,7 +132,7 @@ static int32_t osc_send_set(CSOUND *csound, OSCSEND *p)
     //uint32_t i;
 
     /* with too many args, XINCODE may not work correctly */
-    if (UNLIKELY(p->INOCOUNT > 31))
+    if (UNLIKELY(p->INOCOUNT > ARG_CNT-1))
       return csound->InitError(csound, "%s", Str("Too many arguments to OSCsend"));
 /* a-rate arguments are not allowed */
 /* for (i = 0; i < p->INOCOUNT-5; i++) { */
@@ -225,12 +227,12 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     }
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int32_t i=0;
-      int32_t msk = 0x20;           /* First argument */
+      //int64_t msk = 0x20;           /* First argument */
       lo_message msg = lo_message_new();
       char *type = (char*)p->type->data;
       MYFLT **arg = p->arg;
       p->last = *p->kwhen;
-      for (i=0; type[i]!='\0'; i++, msk <<=1) {
+      for (i=0; type[i]!='\0'; i++/*, msk <<=1*/) {
         /* Need to add type checks */
         switch (type[i]) {
         case 'i':
@@ -270,7 +272,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
           {
             lo_timetag tt;
             tt.sec = (uint32_t)(*arg[i]+FL(0.5));
-            msk <<= 1; i++;
+            /*msk <<= 1;*/ i++;
             if (UNLIKELY(type[i]!='t'))
               return csound->PerfError(csound, p->h.insdshead,
                                        "%s", Str("Time stamp is two values"));
@@ -701,7 +703,7 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     strcpy(p->saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
     n = csound->GetInputArgCnt(p) - 3;
-    if (UNLIKELY(n < 1 || n > 28))
+    if (UNLIKELY(n < 1 || n > ARG_CNT-4))
       return csound->InitError(csound, "%s", Str("invalid number of arguments"));
     if (UNLIKELY((int32_t) strlen((char*) p->type->data) != n))
       return csound->InitError(csound,
