@@ -114,6 +114,21 @@ typedef struct {
     void    *nxt;               /* pointer to next opcode on the same port */
 } OSCLISTEN;
 
+typedef struct {
+    OPDS      h;                  /* default header */
+    MYFLT     *kans;
+    ARRAYDAT  *args;
+    MYFLT     *ihandle;
+    STRINGDAT *dest; 
+    STRINGDAT *type;
+    OSC_PORT  *port;
+    char      *saved_path;
+    char      saved_types[ARG_CNT];    /* copy of type list */
+    OSC_PAT   *patterns;          /* FIFO list of pending messages */
+    OSC_PAT   *freePatterns;      /* free message stack */
+    void      *nxt;               /* pointer to next opcode on the same port */
+} OSCLISTENA;
+
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND *p)
 {
     lo_address a = (lo_address)p->addr;
@@ -227,12 +242,11 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     }
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int32_t i=0;
-      //int64_t msk = 0x20;           /* First argument */
       lo_message msg = lo_message_new();
       char *type = (char*)p->type->data;
       MYFLT **arg = p->arg;
       p->last = *p->kwhen;
-      for (i=0; type[i]!='\0'; i++/*, msk <<=1*/) {
+      for (i=0; type[i]!='\0'; i++) {
         /* Need to add type checks */
         switch (type[i]) {
         case 'i':
@@ -272,7 +286,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
           {
             lo_timetag tt;
             tt.sec = (uint32_t)(*arg[i]+FL(0.5));
-            /*msk <<= 1;*/ i++;
+            i++;
             if (UNLIKELY(type[i]!='t'))
               return csound->PerfError(csound, p->h.insdshead,
                                        "%s", Str("Time stamp is two values"));
@@ -917,6 +931,214 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
     return OK;
 }
 
+/* ******** ARRAY VERSION **** EXPERIMENTAL *** */
+#if 0
+static CS_NOINLINE OSC_PAT *alloc_apattern(OSCLISTENA *pp)
+{
+    CSOUND  *csound;
+    OSC_PAT *p;
+    size_t  nbytes;
+
+    csound = pp->h.insdshead->csound;
+    /* number of bytes to allocate */
+    nbytes = sizeof(OSC_PAT);
+    /* allocate and initialise structure */
+    p = (OSC_PAT*) csound->Calloc(csound, nbytes);
+
+    return p;
+}
+#endif
+
+static inline OSC_PAT *get_apattern(OSCLISTENA *pp)
+{
+    OSC_PAT *p;
+
+    if (pp->freePatterns != NULL) {
+      p = pp->freePatterns;
+      pp->freePatterns = p->next;
+      return p;
+    }
+    return alloc_pattern((OSCLISTEN*)pp);
+}
+
+static int32_t OSC_ahandler(const char *path, const char *types,
+                       lo_arg **argv, int32_t argc, void *data, void *p)
+{
+    IGN(argc);  IGN(data);
+    OSC_PORT  *pp = (OSC_PORT*) p;
+    OSCLISTENA *o;
+    //CSOUND    *csound = (CSOUND *) pp->csound;
+    int32_t   retval = 1;
+    printf("***in ahandler\n");
+    pp->csound->LockMutex(pp->mutex_);
+    o = (OSCLISTENA*) pp->oplst;
+    printf("opst=%p\n", o);
+    while (o != NULL) {
+      printf("Looking at %s/%s against %s/%s\n",
+             o->saved_path, path,o->saved_types, types);
+      if (strcmp(o->saved_path, path) == 0 &&
+          strcmp(o->saved_types, types) == 0) {
+        /* Message is for this guy */
+        int32_t     i;
+        OSC_PAT *m;
+        printf("handler found message\n");
+        m = get_apattern(o);
+        if (m != NULL) {
+          /* queue message for being read by OSClisten opcode */
+          m->next = NULL;
+          if (o->patterns == NULL)
+            o->patterns = m;
+          else {
+            OSC_PAT *mm;
+            for (mm = o->patterns; mm->next != NULL; mm = mm->next)
+              ;
+            mm->next = m;
+          }
+          /* copy argument list */
+          for (i = 0; o->saved_types[i] != '\0'; i++) {
+            switch (types[i]) {
+            default:              /* Should not happen */
+            case 'i':
+              m->args[i].number = (MYFLT) argv[i]->i; break;
+            case 'h':
+              m->args[i].number = (MYFLT) argv[i]->i64; break;
+            case 'c':
+              m->args[i].number= (MYFLT) argv[i]->c; break;
+            case 'f':
+              m->args[i].number = (MYFLT) argv[i]->f; break;
+            case 'd':
+              m->args[i].number= (MYFLT) argv[i]->d; break;
+            }
+          }
+          retval = 0;
+        }
+        break;
+      }
+      o = (OSCLISTENA*) o->nxt;
+    }
+
+    pp->csound->UnlockMutex(pp->mutex_);
+    return retval;
+}
+
+static int32_t OSC_listadeinit(CSOUND *csound, OSCLISTENA *p)
+{
+    OSC_PAT *m;
+
+    if (p->port->mutex_==NULL) return NOTOK;
+    csound->LockMutex(p->port->mutex_);
+    if (p->port->oplst == (void*) p)
+      p->port->oplst = p->nxt;
+    else {
+      OSCLISTEN *o = (OSCLISTEN*) p->port->oplst;
+      for ( ; o->nxt != (void*) p; o = (OSCLISTEN*) o->nxt)
+        ;
+      o->nxt = p->nxt;
+    }
+    csound->UnlockMutex(p->port->mutex_);
+    lo_server_thread_del_method(p->port->thread, p->saved_path, p->saved_types);
+    csound->Free(csound, p->saved_path);
+    p->saved_path = NULL;
+    p->nxt = NULL;
+    m = p->patterns;
+    p->patterns = NULL;
+    while (m != NULL) {
+      OSC_PAT *mm = m->next;
+      csound->Free(csound, m);
+      m = mm;
+    }
+    m = p->freePatterns;
+    p->freePatterns = NULL;
+    while (m != NULL) {
+      OSC_PAT *mm = m->next;
+      csound->Free(csound, m);
+      m = mm;
+    }
+    return OK;
+}
+
+static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
+{
+    //void  *x;
+    int32_t   i, n;
+
+    OSC_GLOBALS *pp =
+      (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
+    if (UNLIKELY(pp == NULL))
+      return csound->InitError(csound, "%s", Str("OSC not running"));
+    /* find port */
+    n = (int32_t) *(p->ihandle);
+    if (UNLIKELY(n < 0 || n >= pp->nPorts))
+      return csound->InitError(csound, "%s", Str("invalid handle"));
+    p->port = &(pp->ports[n]);
+    p->saved_path = (char*) csound->Malloc(csound,
+                                           strlen((char*) p->dest->data) + 1);
+    strcpy(p->saved_path, (char*) p->dest->data);
+    /* check for a valid argument list */
+    if (p->args->dimensions!=1 ||
+        p->args->sizes[0] < (n=strlen((char*) p->type->data)))
+            return csound->InitError(csound,
+                               "%s", Str("argument array nconsistent with "
+                                   "format string"));
+    strcpy(p->saved_types, (char*) p->type->data);
+    for (i = 0; i < n; i++) {
+      switch (p->saved_types[i]) {
+      case 'c':
+      case 'd':
+      case 'f':
+      case 'h':
+      case 'i':
+        break;
+      default:
+        return csound->InitError(csound, "%s", Str("invalid type"));
+      }
+    }
+    csound->LockMutex(p->port->mutex_);
+    p->nxt = p->port->oplst;
+    p->port->oplst = (void*) p;
+    csound->UnlockMutex(p->port->mutex_);
+    (void) lo_server_thread_add_method(p->port->thread,
+                                       p->saved_path, p->saved_types,
+                                       OSC_ahandler, p->port);
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int32_t (*)(CSOUND *, void *)) OSC_listadeinit);
+    return OK;
+}
+
+static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
+{
+    OSC_PAT *m;
+    /* quick check for empty queue */
+    if (p->patterns == NULL) {
+      *p->kans = 0;
+      return OK;
+    }
+    csound->LockMutex(p->port->mutex_);
+    m = p->patterns;
+    /* check again for thread safety */
+    if (m != NULL) {
+      int32_t i;
+      /* unlink from queue */
+      p->patterns = m->next;
+      /* copy arguments */
+      //printf("copying args\n");
+      for (i = 0; p->saved_types[i] != '\0'; i++) {
+        printf("%d: type %c\n", i, p->saved_types[i]);
+        p->args->data[i] = m->args[i].number;
+      }
+      /* push to stack of free message structures */
+      m->next = p->freePatterns;
+      p->freePatterns = m;
+      *p->kans = 1;
+    }
+    else
+      *p->kans = 0;
+    csound->UnlockMutex(p->port->mutex_);
+    return OK;
+}
+
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
@@ -930,6 +1152,8 @@ static OENTRY localops[] = {
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
   { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS",
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
+  { "OSClisten", S(OSCLISTENA),0, 3, "kk[]", "iSS",
+    (SUBR)OSC_alist_init, (SUBR)OSC_alist, NULL, NULL },
   /* { "OSCsendA", S(OSCSEND), _QQ, 3, "", "kSkSS*", */
   /*   (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL } */
 };
