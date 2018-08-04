@@ -933,7 +933,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
 
 /* ******** ARRAY VERSION **** EXPERIMENTAL *** */
 #if 0
-/**** This fn only uses p to get csound pointer so any opcoe structwill do! ****
+//**** This fn only uses p to get csound pointer so any opcoe structwill do! ****
 static CS_NOINLINE OSC_PAT *alloc_apattern(OSCLISTENA *pp)
 {
     CSOUND  *csound;
