@@ -933,6 +933,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
 
 /* ******** ARRAY VERSION **** EXPERIMENTAL *** */
 #if 0
+/**** This fn only uses p to get csound pointer so any opcoe structwill do! ****
 static CS_NOINLINE OSC_PAT *alloc_apattern(OSCLISTENA *pp)
 {
     CSOUND  *csound;
@@ -969,19 +970,19 @@ static int32_t OSC_ahandler(const char *path, const char *types,
     OSCLISTENA *o;
     //CSOUND    *csound = (CSOUND *) pp->csound;
     int32_t   retval = 1;
-    printf("***in ahandler\n");
+    //printf("***in ahandler\n");
     pp->csound->LockMutex(pp->mutex_);
     o = (OSCLISTENA*) pp->oplst;
-    printf("opst=%p\n", o);
+    //printf("opst=%p\n", o);
     while (o != NULL) {
-      printf("Looking at %s/%s against %s/%s\n",
-             o->saved_path, path,o->saved_types, types);
+      //printf("Looking at %s/%s against %s/%s\n",
+      //       o->saved_path, path,o->saved_types, types);
       if (strcmp(o->saved_path, path) == 0 &&
           strcmp(o->saved_types, types) == 0) {
         /* Message is for this guy */
         int32_t     i;
         OSC_PAT *m;
-        printf("handler found message\n");
+        //printf("handler found message\n");
         m = get_apattern(o);
         if (m != NULL) {
           /* queue message for being read by OSClisten opcode */
@@ -1075,6 +1076,7 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
+    // ******** could use equivalent of tabensure here but it is static *******
     if (p->args->dimensions!=1 ||
         p->args->sizes[0] < (n=strlen((char*) p->type->data)))
             return csound->InitError(csound,
@@ -1123,8 +1125,8 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
       /* copy arguments */
       //printf("copying args\n");
       for (i = 0; p->saved_types[i] != '\0'; i++) {
-        printf("%d: type %c\n", i, p->saved_types[i]);
-        p->args->data[i] = m->args[i].number;
+        //printf("%d: type %c\n", i, p->saved_types[i]);
+        ((MYFLT*)p->args->data)[i] = m->args[i].number;
       }
       /* push to stack of free message structures */
       m->next = p->freePatterns;
