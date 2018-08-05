@@ -1058,6 +1058,25 @@ static int32_t OSC_listadeinit(CSOUND *csound, OSCLISTENA *p)
     return OK;
 }
 
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
+{
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
+      size_t ss;
+      if (p->data == NULL) {
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        p->arrayMemberSize = var->memBlockSize;
+      }
+
+      ss = p->arrayMemberSize*size;
+      if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
+      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+      p->dimensions = 1;
+      p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      p->sizes[0] = size;
+    }
+}
+
 static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
 {
     //void  *x;
@@ -1076,12 +1095,13 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
-    // ******** could use equivalent of tabensure here but it is static *******
-    if (p->args->dimensions!=1 ||
-        p->args->sizes[0] < (n=strlen((char*) p->type->data)))
-            return csound->InitError(csound,
-                               "%s", Str("argument array nconsistent with "
-                                   "format string"));
+    tabensure(csound, p->args, n=strlen((char*) p->type->data));
+    /* // ****** could use equivalent of tabensure here but it is static ***** */
+    /* if (p->args->dimensions!=1 || */
+    /*     p->args->sizes[0] < (n=strlen((char*) p->type->data))) */
+    /*         return csound->InitError(csound, */
+    /*                            "%s", Str("argument array nconsistent with " */
+    /*                                "format string")); */
     strcpy(p->saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       switch (p->saved_types[i]) {
