@@ -538,11 +538,10 @@ static char *fpnum(CSOUND *csound, char *p,
     if (*p=='0' && *(p+1)=='x') {
       while (!isspace(*p)) {
         corfile_putc(csound, *p++, sco);
-        dcnt++;
+        dcnt++;                 /* Not used so delete? */
       }
       return p;
     }
-    dcnt = 0;
     while (isdigit(*p)) {
       //      printf("*p=%c\n", *p);
       corfile_putc(csound, *p++, sco);
