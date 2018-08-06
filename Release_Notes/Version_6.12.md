@@ -45,6 +45,8 @@ audio file.  This should preserve most compatibility issues.
 - New opcode ftaudio writes a ftable to an audio file; irate and triggered
     k-rate version exist and k-rate version supports sync or async writing.
 
+- Version of OSClisten that writes the data to a k-rate array now exists.
+
 ### New Gen and Macros
 
 - 

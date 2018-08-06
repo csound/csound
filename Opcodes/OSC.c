@@ -119,7 +119,7 @@ typedef struct {
     MYFLT     *kans;
     ARRAYDAT  *args;
     MYFLT     *ihandle;
-    STRINGDAT *dest; 
+    STRINGDAT *dest;
     STRINGDAT *type;
     OSC_PORT  *port;
     char      *saved_path;
