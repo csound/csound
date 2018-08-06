@@ -528,7 +528,7 @@ static char *fpnum(CSOUND *csound, char *p,
 /* CONSIDER USING SIMPLER CODE */
 {
     char *q;
-    int dcnt;
+    int dcnt = 0;
     //printf(">>>>%20s\n", p);
     q = p;
     if (*p == '+')
