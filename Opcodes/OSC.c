@@ -569,6 +569,7 @@ static void OSC_error(int32_t num, const char *msg, const char *path)
     fprintf(stderr, "OSC server error %d in path %s: %s\n", num, path, msg);
 }
 
+
 static int32_t OSC_deinit(CSOUND *csound, OSCINIT *p)
 {
     int32_t n = (int32_t)*p->ihandle;
@@ -659,23 +660,23 @@ static int32_t osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
     return OK;
 }
 
-
 static int32_t OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 {
     OSC_PAT *m;
+    OSC_PORT *port = p->port;
 
-    if (p->port->mutex_==NULL) return NOTOK;
-    csound->LockMutex(p->port->mutex_);
-    if (p->port->oplst == (void*) &p->c)
-      p->port->oplst = p->c.nxt;
+    if (port->mutex_==NULL) return NOTOK;
+    csound->LockMutex(port->mutex_);
+    if (port->oplst == (void*) &p->c)
+      port->oplst = p->c.nxt;
     else {
-      OSCLCOMMON *o = (OSCLCOMMON*) p->port->oplst;
+      OSCLCOMMON *o = (OSCLCOMMON*) port->oplst;
       for ( ; o->nxt != (void*) &p->c; o = (OSCLCOMMON*)o->nxt)
         ;
       o->nxt = p->c.nxt;
     }
-    csound->UnlockMutex(p->port->mutex_);
-    lo_server_thread_del_method(p->port->thread, p->c.saved_path, p->c.saved_types);
+    csound->UnlockMutex(port->mutex_);
+    lo_server_thread_del_method(port->thread, p->c.saved_path, p->c.saved_types);
     csound->Free(csound, p->c.saved_path);
     p->c.saved_path = NULL;
     p->c.nxt = NULL;
@@ -994,19 +995,20 @@ static int32_t OSC_ahandler(const char *path, const char *types,
 static int32_t OSC_listadeinit(CSOUND *csound, OSCLISTENA *p)
 {
     OSC_PAT *m;
+    OSC_PORT *port = p->port;
 
-    if (p->port->mutex_==NULL) return NOTOK;
-    csound->LockMutex(p->port->mutex_);
-    if (p->port->oplst == (void*) &p->c)
-      p->port->oplst = p->c.nxt;
+    if (port->mutex_==NULL) return NOTOK;
+    csound->LockMutex(port->mutex_);
+    if (port->oplst == (void*) &p->c)
+      port->oplst = p->c.nxt;
     else {
-      OSCLCOMMON *o = (OSCLCOMMON*) p->port->oplst;
-      for ( ; o->nxt != (void*) p; o = (OSCLCOMMON*) o->nxt)
+      OSCLCOMMON *o = (OSCLCOMMON*) port->oplst;
+      for ( ; o->nxt != (void*) &p->c; o = (OSCLCOMMON*) o->nxt)
         ;
       o->nxt = p->c.nxt;
     }
-    csound->UnlockMutex(p->port->mutex_);
-    lo_server_thread_del_method(p->port->thread, p->c.saved_path, p->c.saved_types);
+    csound->UnlockMutex(port->mutex_);
+    lo_server_thread_del_method(port->thread, p->c.saved_path, p->c.saved_types);
     csound->Free(csound, p->c.saved_path);
     p->c.saved_path = NULL;
     p->c.nxt = NULL;
