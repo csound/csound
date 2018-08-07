@@ -660,35 +660,34 @@ static int32_t osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
     return OK;
 }
 
-static int32_t OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
+static int32_t OSC_listendeinit(CSOUND *csound, OSC_PORT *port, OSCLCOMMON *p)
 {
     OSC_PAT *m;
-    OSC_PORT *port = p->port;
 
     if (port->mutex_==NULL) return NOTOK;
     csound->LockMutex(port->mutex_);
-    if (port->oplst == (void*) &p->c)
-      port->oplst = p->c.nxt;
+    if (port->oplst == (void*)p)
+      port->oplst = p->nxt;
     else {
       OSCLCOMMON *o = (OSCLCOMMON*) port->oplst;
-      for ( ; o->nxt != (void*) &p->c; o = (OSCLCOMMON*)o->nxt)
+      for ( ; o->nxt != (void*) p; o = (OSCLCOMMON*) o->nxt)
         ;
-      o->nxt = p->c.nxt;
+      o->nxt = p->nxt;
     }
     csound->UnlockMutex(port->mutex_);
-    lo_server_thread_del_method(port->thread, p->c.saved_path, p->c.saved_types);
-    csound->Free(csound, p->c.saved_path);
-    p->c.saved_path = NULL;
-    p->c.nxt = NULL;
-    m = p->c.patterns;
-    p->c.patterns = NULL;
+    lo_server_thread_del_method(port->thread, p->saved_path, p->saved_types);
+    csound->Free(csound, p->saved_path);
+    p->saved_path = NULL;
+    p->nxt = NULL;
+    m = p->patterns;
+    p->patterns = NULL;
     while (m != NULL) {
       OSC_PAT *mm = m->next;
       csound->Free(csound, m);
       m = mm;
     }
-    m = p->c.freePatterns;
-    p->c.freePatterns = NULL;
+    m = p->freePatterns;
+    p->freePatterns = NULL;
     while (m != NULL) {
       OSC_PAT *mm = m->next;
       csound->Free(csound, m);
@@ -696,6 +695,19 @@ static int32_t OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
     }
     return OK;
 }
+
+static int32_t OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
+{
+    OSC_PORT *port = p->port;
+    return OSC_listendeinit(csound, port, &p->c);
+}
+
+static int32_t OSC_listadeinit(CSOUND *csound, OSCLISTENA *p)
+{
+    OSC_PORT *port = p->port;
+    return OSC_listendeinit(csound, port, &p->c);
+}
+
 
 static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
 {
@@ -990,43 +1002,6 @@ static int32_t OSC_ahandler(const char *path, const char *types,
 
     pp->csound->UnlockMutex(pp->mutex_);
     return retval;
-}
-
-static int32_t OSC_listadeinit(CSOUND *csound, OSCLISTENA *p)
-{
-    OSC_PAT *m;
-    OSC_PORT *port = p->port;
-
-    if (port->mutex_==NULL) return NOTOK;
-    csound->LockMutex(port->mutex_);
-    if (port->oplst == (void*) &p->c)
-      port->oplst = p->c.nxt;
-    else {
-      OSCLCOMMON *o = (OSCLCOMMON*) port->oplst;
-      for ( ; o->nxt != (void*) &p->c; o = (OSCLCOMMON*) o->nxt)
-        ;
-      o->nxt = p->c.nxt;
-    }
-    csound->UnlockMutex(port->mutex_);
-    lo_server_thread_del_method(port->thread, p->c.saved_path, p->c.saved_types);
-    csound->Free(csound, p->c.saved_path);
-    p->c.saved_path = NULL;
-    p->c.nxt = NULL;
-    m = p->c.patterns;
-    p->c.patterns = NULL;
-    while (m != NULL) {
-      OSC_PAT *mm = m->next;
-      csound->Free(csound, m);
-      m = mm;
-    }
-    m = p->c.freePatterns;
-    p->c.freePatterns = NULL;
-    while (m != NULL) {
-      OSC_PAT *mm = m->next;
-      csound->Free(csound, m);
-      m = mm;
-    }
-    return OK;
 }
 
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
