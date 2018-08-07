@@ -99,19 +99,23 @@ typedef struct {
     MYFLT   *port;              /* Port number on which to listen */
 } OSCINITM;
 
-typedef struct {
-    OPDS    h;                  /* default header */
-    MYFLT   *kans;
-    MYFLT   *ihandle;
-    STRINGDAT   *dest;
-    STRINGDAT   *type;
-    MYFLT   *args[ARG_CNT];
-    OSC_PORT  *port;
+typedef struct osclcommon{
     char    *saved_path;
     char    saved_types[ARG_CNT];    /* copy of type list */
     OSC_PAT *patterns;          /* FIFO list of pending messages */
     OSC_PAT *freePatterns;      /* free message stack */
-    void    *nxt;               /* pointer to next opcode on the same port */
+    struct osclcomon *nxt;       /* pointer to next opcode on the same port */
+} OSCLCOMMON;
+
+typedef struct {
+    OPDS        h;                  /* default header */
+    MYFLT       *kans;
+    MYFLT       *ihandle;
+    STRINGDAT   *dest;
+    STRINGDAT   *type;
+    MYFLT       *args[ARG_CNT];
+    OSC_PORT    *port;
+    OSCLCOMMON  c;
 } OSCLISTEN;
 
 typedef struct {
@@ -122,11 +126,7 @@ typedef struct {
     STRINGDAT *dest;
     STRINGDAT *type;
     OSC_PORT  *port;
-    char      *saved_path;
-    char      saved_types[ARG_CNT];    /* copy of type list */
-    OSC_PAT   *patterns;          /* FIFO list of pending messages */
-    OSC_PAT   *freePatterns;      /* free message stack */
-    void      *nxt;               /* pointer to next opcode on the same port */
+    OSCLCOMMON c;
 } OSCLISTENA;
 
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND *p)
@@ -449,13 +449,11 @@ static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
 
  /* ------------------------------------------------------------------------ */
 
-static CS_NOINLINE OSC_PAT *alloc_pattern(OSCLISTEN *pp)
+static CS_NOINLINE OSC_PAT *alloc_pattern(CSOUND *csound)
 {
-    CSOUND  *csound;
     OSC_PAT *p;
     size_t  nbytes;
 
-    csound = pp->h.insdshead->csound;
     /* number of bytes to allocate */
     nbytes = sizeof(OSC_PAT);
     /* allocate and initialise structure */
@@ -464,7 +462,7 @@ static CS_NOINLINE OSC_PAT *alloc_pattern(OSCLISTEN *pp)
     return p;
 }
 
-static inline OSC_PAT *get_pattern(OSCLISTEN *pp)
+static inline OSC_PAT *get_pattern(CSOUND *csound,OSCLCOMMON *pp)
 {
     OSC_PAT *p;
 
@@ -473,7 +471,7 @@ static inline OSC_PAT *get_pattern(OSCLISTEN *pp)
       pp->freePatterns = p->next;
       return p;
     }
-    return alloc_pattern(pp);
+    return alloc_pattern(csound);
 }
 
 static int32_t OSC_handler(const char *path, const char *types,
@@ -481,12 +479,12 @@ static int32_t OSC_handler(const char *path, const char *types,
 {
      IGN(argc);  IGN(data);
     OSC_PORT  *pp = (OSC_PORT*) p;
-    OSCLISTEN *o;
+    OSCLCOMMON *o;
     CSOUND    *csound = (CSOUND *) pp->csound;
     int32_t       retval = 1;
 
     pp->csound->LockMutex(pp->mutex_);
-    o = (OSCLISTEN*) pp->oplst;
+    o = (OSCLCOMMON*) pp->oplst;
     //printf("opst=%p\n", o);
     while (o != NULL) {
       //printf("Looking at %s/%s against %s/%s\n",
@@ -497,7 +495,7 @@ static int32_t OSC_handler(const char *path, const char *types,
         int32_t     i;
         OSC_PAT *m;
         //printf("handler found message\n");
-        m = get_pattern(o);
+        m = get_pattern(csound, o);
         if (m != NULL) {
           /* queue message for being read by OSClisten opcode */
           m->next = NULL;
@@ -559,7 +557,7 @@ static int32_t OSC_handler(const char *path, const char *types,
         }
         break;
       }
-      o = (OSCLISTEN*) o->nxt;
+      o = (OSCLCOMMON*) o->nxt;
     }
 
     pp->csound->UnlockMutex(pp->mutex_);
@@ -668,28 +666,28 @@ static int32_t OSC_listdeinit(CSOUND *csound, OSCLISTEN *p)
 
     if (p->port->mutex_==NULL) return NOTOK;
     csound->LockMutex(p->port->mutex_);
-    if (p->port->oplst == (void*) p)
-      p->port->oplst = p->nxt;
+    if (p->port->oplst == (void*) &p->c)
+      p->port->oplst = p->c.nxt;
     else {
-      OSCLISTEN *o = (OSCLISTEN*) p->port->oplst;
-      for ( ; o->nxt != (void*) p; o = (OSCLISTEN*) o->nxt)
+      OSCLCOMMON *o = (OSCLCOMMON*) p->port->oplst;
+      for ( ; o->nxt != (void*) &p->c; o = (OSCLCOMMON*)o->nxt)
         ;
-      o->nxt = p->nxt;
+      o->nxt = p->c.nxt;
     }
     csound->UnlockMutex(p->port->mutex_);
-    lo_server_thread_del_method(p->port->thread, p->saved_path, p->saved_types);
-    csound->Free(csound, p->saved_path);
-    p->saved_path = NULL;
-    p->nxt = NULL;
-    m = p->patterns;
-    p->patterns = NULL;
+    lo_server_thread_del_method(p->port->thread, p->c.saved_path, p->c.saved_types);
+    csound->Free(csound, p->c.saved_path);
+    p->c.saved_path = NULL;
+    p->c.nxt = NULL;
+    m = p->c.patterns;
+    p->c.patterns = NULL;
     while (m != NULL) {
       OSC_PAT *mm = m->next;
       csound->Free(csound, m);
       m = mm;
     }
-    m = p->freePatterns;
-    p->freePatterns = NULL;
+    m = p->c.freePatterns;
+    p->c.freePatterns = NULL;
     while (m != NULL) {
       OSC_PAT *mm = m->next;
       csound->Free(csound, m);
@@ -712,9 +710,9 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     if (UNLIKELY(n < 0 || n >= pp->nPorts))
       return csound->InitError(csound, "%s", Str("invalid handle"));
     p->port = &(pp->ports[n]);
-    p->saved_path = (char*) csound->Malloc(csound,
+    p->c.saved_path = (char*) csound->Malloc(csound,
                                            strlen((char*) p->dest->data) + 1);
-    strcpy(p->saved_path, (char*) p->dest->data);
+    strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
     n = csound->GetInputArgCnt(p) - 3;
     if (UNLIKELY(n < 1 || n > ARG_CNT-4))
@@ -723,19 +721,19 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       return csound->InitError(csound,
                                "%s", Str("argument list inconsistent with "
                                    "format string"));
-    strcpy(p->saved_types, (char*) p->type->data);
+    strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       const char *s;
       s = csound->GetInputArgName(p, i + 3);
       if (s[0] == 'g')
         s++;
-      switch (p->saved_types[i]) {
+      switch (p->c.saved_types[i]) {
       case 'G':
       case 'A':
       case 'D':
       case 'a':
       case 'S':
-        p->saved_types[i] = 'b';
+        p->c.saved_types[i] = 'b';
         break;
       case 'c':
       case 'd':
@@ -756,11 +754,11 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       }
     }
     csound->LockMutex(p->port->mutex_);
-    p->nxt = p->port->oplst;
-    p->port->oplst = (void*) p;
+    p->c.nxt = p->port->oplst;
+    p->port->oplst = (void*) &p->c;
     csound->UnlockMutex(p->port->mutex_);
     (void) lo_server_thread_add_method(p->port->thread,
-                                       p->saved_path, p->saved_types,
+                                       p->c.saved_path, p->c.saved_types,
                                        OSC_handler, p->port);
     csound->RegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) OSC_listdeinit);
@@ -772,22 +770,22 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
     OSC_PAT *m;
 
     /* quick check for empty queue */
-    if (p->patterns == NULL) {
+    if (p->c.patterns == NULL) {
       *p->kans = 0;
       return OK;
     }
     csound->LockMutex(p->port->mutex_);
-    m = p->patterns;
+    m = p->c.patterns;
     /* check again for thread safety */
     if (m != NULL) {
       int32_t i;
       /* unlink from queue */
-      p->patterns = m->next;
+      p->c.patterns = m->next;
       /* copy arguments */
       //printf("copying args\n");
-      for (i = 0; p->saved_types[i] != '\0'; i++) {
-        //printf("%d: type %c\n", i, p->saved_types[i]);
-        if (p->saved_types[i] == 's') {
+      for (i = 0; p->c.saved_types[i] != '\0'; i++) {
+        //printf("%d: type %c\n", i, p->c.saved_types[i]);
+        if (p->c.saved_types[i] == 's') {
           char *src = m->args[i].string.data;
           char *dst = ((STRINGDAT*) p->args[i])->data;
           if (src != NULL) {
@@ -801,7 +799,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
             strcpy(dst, src);
           }
         }
-        else if (p->saved_types[i]=='b') {
+        else if (p->c.saved_types[i]=='b') {
           char c = p->type->data[i];
           int32_t len =  lo_blob_datasize(m->args[i].blob);
           //printf("blob found %p type %c\n", m->args[i].blob, c);
@@ -921,8 +919,8 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
           *(p->args[i]) = m->args[i].number;
       }
       /* push to stack of free message structures */
-      m->next = p->freePatterns;
-      p->freePatterns = m;
+      m->next = p->c.freePatterns;
+      p->c.freePatterns = m;
       *p->kans = 1;
     }
     else
@@ -932,47 +930,18 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
 }
 
 /* ******** ARRAY VERSION **** EXPERIMENTAL *** */
-#if 0
-//**** This fn only uses p to get csound pointer so any opcoe structwill do! ****
-static CS_NOINLINE OSC_PAT *alloc_apattern(OSCLISTENA *pp)
-{
-    CSOUND  *csound;
-    OSC_PAT *p;
-    size_t  nbytes;
-
-    csound = pp->h.insdshead->csound;
-    /* number of bytes to allocate */
-    nbytes = sizeof(OSC_PAT);
-    /* allocate and initialise structure */
-    p = (OSC_PAT*) csound->Calloc(csound, nbytes);
-
-    return p;
-}
-#endif
-
-static inline OSC_PAT *get_apattern(OSCLISTENA *pp)
-{
-    OSC_PAT *p;
-
-    if (pp->freePatterns != NULL) {
-      p = pp->freePatterns;
-      pp->freePatterns = p->next;
-      return p;
-    }
-    return alloc_pattern((OSCLISTEN*)pp);
-}
 
 static int32_t OSC_ahandler(const char *path, const char *types,
                        lo_arg **argv, int32_t argc, void *data, void *p)
 {
     IGN(argc);  IGN(data);
     OSC_PORT  *pp = (OSC_PORT*) p;
-    OSCLISTENA *o;
-    //CSOUND    *csound = (CSOUND *) pp->csound;
+    OSCLCOMMON *o;
+    CSOUND    *csound = (CSOUND *) pp->csound;
     int32_t   retval = 1;
     //printf("***in ahandler\n");
     pp->csound->LockMutex(pp->mutex_);
-    o = (OSCLISTENA*) pp->oplst;
+    o = (OSCLCOMMON*) pp->oplst;
     //printf("opst=%p\n", o);
     while (o != NULL) {
       //printf("Looking at %s/%s against %s/%s\n",
@@ -983,7 +952,7 @@ static int32_t OSC_ahandler(const char *path, const char *types,
         int32_t     i;
         OSC_PAT *m;
         //printf("handler found message\n");
-        m = get_apattern(o);
+        m = get_pattern(csound, o);      
         if (m != NULL) {
           /* queue message for being read by OSClisten opcode */
           m->next = NULL;
@@ -1015,7 +984,7 @@ static int32_t OSC_ahandler(const char *path, const char *types,
         }
         break;
       }
-      o = (OSCLISTENA*) o->nxt;
+      o = (OSCLCOMMON*) o->nxt;
     }
 
     pp->csound->UnlockMutex(pp->mutex_);
@@ -1028,28 +997,28 @@ static int32_t OSC_listadeinit(CSOUND *csound, OSCLISTENA *p)
 
     if (p->port->mutex_==NULL) return NOTOK;
     csound->LockMutex(p->port->mutex_);
-    if (p->port->oplst == (void*) p)
-      p->port->oplst = p->nxt;
+    if (p->port->oplst == (void*) &p->c)
+      p->port->oplst = p->c.nxt;
     else {
-      OSCLISTEN *o = (OSCLISTEN*) p->port->oplst;
-      for ( ; o->nxt != (void*) p; o = (OSCLISTEN*) o->nxt)
+      OSCLCOMMON *o = (OSCLCOMMON*) p->port->oplst;
+      for ( ; o->nxt != (void*) p; o = (OSCLCOMMON*) o->nxt)
         ;
-      o->nxt = p->nxt;
+      o->nxt = p->c.nxt;
     }
     csound->UnlockMutex(p->port->mutex_);
-    lo_server_thread_del_method(p->port->thread, p->saved_path, p->saved_types);
-    csound->Free(csound, p->saved_path);
-    p->saved_path = NULL;
-    p->nxt = NULL;
-    m = p->patterns;
-    p->patterns = NULL;
+    lo_server_thread_del_method(p->port->thread, p->c.saved_path, p->c.saved_types);
+    csound->Free(csound, p->c.saved_path);
+    p->c.saved_path = NULL;
+    p->c.nxt = NULL;
+    m = p->c.patterns;
+    p->c.patterns = NULL;
     while (m != NULL) {
       OSC_PAT *mm = m->next;
       csound->Free(csound, m);
       m = mm;
     }
-    m = p->freePatterns;
-    p->freePatterns = NULL;
+    m = p->c.freePatterns;
+    p->c.freePatterns = NULL;
     while (m != NULL) {
       OSC_PAT *mm = m->next;
       csound->Free(csound, m);
@@ -1091,20 +1060,14 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
     if (UNLIKELY(n < 0 || n >= pp->nPorts))
       return csound->InitError(csound, "%s", Str("invalid handle"));
     p->port = &(pp->ports[n]);
-    p->saved_path = (char*) csound->Malloc(csound,
+    p->c.saved_path = (char*) csound->Malloc(csound,
                                            strlen((char*) p->dest->data) + 1);
-    strcpy(p->saved_path, (char*) p->dest->data);
+    strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
     tabensure(csound, p->args, n=strlen((char*) p->type->data));
-    /* // ****** could use equivalent of tabensure here but it is static ***** */
-    /* if (p->args->dimensions!=1 || */
-    /*     p->args->sizes[0] < (n=strlen((char*) p->type->data))) */
-    /*         return csound->InitError(csound, */
-    /*                            "%s", Str("argument array nconsistent with " */
-    /*                                "format string")); */
-    strcpy(p->saved_types, (char*) p->type->data);
+    strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
-      switch (p->saved_types[i]) {
+      switch (p->c.saved_types[i]) {
       case 'c':
       case 'd':
       case 'f':
@@ -1116,11 +1079,11 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
       }
     }
     csound->LockMutex(p->port->mutex_);
-    p->nxt = p->port->oplst;
-    p->port->oplst = (void*) p;
+    p->c.nxt = p->port->oplst;
+    p->port->oplst = (void*) &p->c;
     csound->UnlockMutex(p->port->mutex_);
     (void) lo_server_thread_add_method(p->port->thread,
-                                       p->saved_path, p->saved_types,
+                                       p->c.saved_path, p->c.saved_types,
                                        OSC_ahandler, p->port);
     csound->RegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) OSC_listadeinit);
@@ -1131,26 +1094,26 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
 {
     OSC_PAT *m;
     /* quick check for empty queue */
-    if (p->patterns == NULL) {
+    if (p->c.patterns == NULL) {
       *p->kans = 0;
       return OK;
     }
     csound->LockMutex(p->port->mutex_);
-    m = p->patterns;
+    m = p->c.patterns;
     /* check again for thread safety */
     if (m != NULL) {
       int32_t i;
       /* unlink from queue */
-      p->patterns = m->next;
+      p->c.patterns = m->next;
       /* copy arguments */
       //printf("copying args\n");
-      for (i = 0; p->saved_types[i] != '\0'; i++) {
-        //printf("%d: type %c\n", i, p->saved_types[i]);
+      for (i = 0; p->c.saved_types[i] != '\0'; i++) {
+        //printf("%d: type %c\n", i, p->c.saved_types[i]);
         ((MYFLT*)p->args->data)[i] = m->args[i].number;
       }
       /* push to stack of free message structures */
-      m->next = p->freePatterns;
-      p->freePatterns = m;
+      m->next = p->c.freePatterns;
+      p->c.freePatterns = m;
       *p->kans = 1;
     }
     else
