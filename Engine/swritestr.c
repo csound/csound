@@ -538,7 +538,7 @@ static char *fpnum(CSOUND *csound, char *p,
     if (*p=='0' && *(p+1)=='x') {
       while (!isspace(*p)) {
         corfile_putc(csound, *p++, sco);
-        dcnt++;                 /* Not used so delete? */
+        //dcnt++;                 /* Not used so delete? */
       }
       return p;
     }
