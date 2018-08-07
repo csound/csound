@@ -952,7 +952,7 @@ static int32_t OSC_ahandler(const char *path, const char *types,
         int32_t     i;
         OSC_PAT *m;
         //printf("handler found message\n");
-        m = get_pattern(csound, o);      
+        m = get_pattern(csound, o);
         if (m != NULL) {
           /* queue message for being read by OSClisten opcode */
           m->next = NULL;
