@@ -1,3 +1,4 @@
+
 /*
     OSC.c:
 
@@ -100,6 +101,7 @@ typedef struct {
 } OSCINITM;
 
 typedef struct osclcommon{
+    lo_method method;
     char    *saved_path;
     char    saved_types[ARG_CNT];    /* copy of type list */
     OSC_PAT *patterns;          /* FIFO list of pending messages */
@@ -675,7 +677,12 @@ static int32_t OSC_listendeinit(CSOUND *csound, OSC_PORT *port, OSCLCOMMON *p)
       o->nxt = p->nxt;
     }
     csound->UnlockMutex(port->mutex_);
+#ifdef LIBLO29
+    //Would like to use this call but requires liblo2.29
+    lo_server_thread_del_lo_method (port->thread, p->method);
+#else
     lo_server_thread_del_method(port->thread, p->saved_path, p->saved_types);
+#endif
     csound->Free(csound, p->saved_path);
     p->saved_path = NULL;
     p->nxt = NULL;
@@ -770,9 +777,9 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     p->c.nxt = p->port->oplst;
     p->port->oplst = (void*) &p->c;
     csound->UnlockMutex(p->port->mutex_);
-    (void) lo_server_thread_add_method(p->port->thread,
-                                       p->c.saved_path, p->c.saved_types,
-                                       OSC_handler, p->port);
+    p->c.method = lo_server_thread_add_method(p->port->thread,
+                                              p->c.saved_path, p->c.saved_types,
+                                              OSC_handler, p->port);
     csound->RegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) OSC_listdeinit);
     return OK;
@@ -1059,9 +1066,9 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
     p->c.nxt = p->port->oplst;
     p->port->oplst = (void*) &p->c;
     csound->UnlockMutex(p->port->mutex_);
-    (void) lo_server_thread_add_method(p->port->thread,
-                                       p->c.saved_path, p->c.saved_types,
-                                       OSC_ahandler, p->port);
+    p->c.method = lo_server_thread_add_method(p->port->thread,
+                                              p->c.saved_path, p->c.saved_types,
+                                              OSC_ahandler, p->port);
     csound->RegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) OSC_listadeinit);
     return OK;
