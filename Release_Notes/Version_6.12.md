@@ -60,6 +60,8 @@ audio file.  This should preserve most compatibility issues.
 
 - Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
 
+- runime error message now (usually) include a line number and a file/macro trace
+
 ### Score
 
 - New preprocessor option #includestr.  This is like #include but has

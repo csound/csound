@@ -350,7 +350,7 @@ int32_t serialEnd(CSOUND *csound, SERIALEND *p)
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
     if (UNLIKELY(q = NULL))
-      return csound->PerfError(csound, &(&(p->h)("Nothing to close"));
+      return csound->PerfError(csound, &(p->h), Str(("Nothing to close"));
     CloseHandle((HANDLE)q->handles[(int32_t)p->port]);
     q->handles[(int32_t)*p->port] = NULL;
 #else
