@@ -35,7 +35,7 @@ Ville Pulkki heavily modified by John ffitch 2012
 #include <stdio.h>
 #include <stdlib.h>
 
-int32_t vbap_moving_control(CSOUND *, VBAP_MOVE_DATA *, INSDS*, MYFLT,
+int32_t vbap_moving_control(CSOUND *, VBAP_MOVE_DATA *, OPDS*, MYFLT,
                         MYFLT *, MYFLT*,MYFLT**);
 
 int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
@@ -398,7 +398,7 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
     uint32_t i, nsmps = CS_KSMPS;
     int32_t cnt = p->q.number;
 
-    vbap_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+    vbap_moving_control(csound,&p->q, &(p->h), CS_ONEDKR,
                         p->spread, p->field_am, p->fld);
     //    vbap_moving_control(csound,p);
     for (j=0;j<cnt; j++) {
@@ -436,7 +436,7 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
     return OK;
 }
 
-int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, INSDS *insdshead,
+int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
                         MYFLT ONEDKR, MYFLT* spread, MYFLT* field_am, MYFLT *fld[])
 {
     CART_VEC spreaddir[16];
@@ -476,7 +476,7 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, INSDS *insdshead,
         }
       }
       if (UNLIKELY((fld[abs(p->next_fld)]==NULL)))
-        return csound->PerfError(csound, insdshead,
+        return csound->PerfError(csound, h,
                                  Str("Missing fields in vbapmove\n"));
       if (*field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*fld[p->next_fld] -
@@ -521,7 +521,7 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, INSDS *insdshead,
         p->ang_dir.ele = FL(0.0);
       }
       else {
-        return csound->PerfError(csound, insdshead,
+        return csound->PerfError(csound, h,
                                  Str("Missing fields in vbapmove\n"));
       }
     }
@@ -710,7 +710,7 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     p->q.spread_base.x  = p->q.cart_dir.y;
     p->q.spread_base.y  = p->q.cart_dir.z;
     p->q.spread_base.z  = -p->q.cart_dir.x;
-    vbap_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+    vbap_moving_control(csound,&p->q, &(p->h), CS_ONEDKR,
                         p->spread, p->field_am, p->fld);
     for (i = 0; i<cnt; i++) {
       p->q.beg_gains[i] = p->q.updated_gains[i];
@@ -731,7 +731,7 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
     uint32_t ksmps = nsmps;
     int32_t cnt = p->q.number;
 
-    vbap_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+    vbap_moving_control(csound,&p->q, &(p->h), CS_ONEDKR,
                         p->spread, p->field_am, p->fld);
     //    vbap_moving_control(csound,p);
     for (j=0;j<cnt; j++) {
@@ -848,7 +848,7 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
     p->q.spread_base.x  = p->q.cart_dir.y;
     p->q.spread_base.y  = p->q.cart_dir.z;
     p->q.spread_base.z  = -p->q.cart_dir.x;
-    vbap_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+    vbap_moving_control(csound,&p->q, &(p->h), CS_ONEDKR,
                         p->spread, p->field_am, p->fld);
     for (i = 0; i<cnt; i++) {
       p->q.beg_gains[i] = p->q.updated_gains[i];

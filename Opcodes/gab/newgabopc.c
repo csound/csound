@@ -52,7 +52,7 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
     if (p->pfn != (int64_t)*p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTFindP(csound, p->xfn) ) == NULL))
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("vtable1: incorrect table number"));
       p->pfn = (int64_t)*p->xfn;
       p->ftable = ftp->ftable;
@@ -92,7 +92,7 @@ static int32_t inRange(CSOUND *csound, INRANGE *p)
     int32_t narg = p->narg, numchans = p->numChans;
 
     if (UNLIKELY(startChan < 0))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("inrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
 

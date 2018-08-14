@@ -174,10 +174,10 @@ static int32_t fof(CSOUND *csound, FOFS *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("fof: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("FOF needs more overlaps"));
 }
 

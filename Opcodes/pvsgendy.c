@@ -110,7 +110,7 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvsgendy: not initialised"));
 }
 

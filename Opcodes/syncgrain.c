@@ -186,7 +186,7 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("grain size smaller than 1 sample\n"));
 }
 
@@ -359,7 +359,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     p->firsttime = firsttime;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("grain size smaller than 1 sample\n"));
 }
 
@@ -715,7 +715,7 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     p->pos = pos;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("grain size smaller than 1 sample\n"));
 }
 

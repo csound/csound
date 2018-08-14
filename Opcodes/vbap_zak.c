@@ -204,11 +204,11 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("outz index > isizea. No output"));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("outz index < 0. No output."));
     }
     if ((int32_t)*p->layout==0) strcpy(name, "vbap_ls_table");
@@ -351,7 +351,7 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
         }
       }
       if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL)))
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("Missing fields in vbapzmove\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld])
@@ -396,7 +396,7 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
         p->ang_dir.ele = FL(0.0);
       }
       else {
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("Missing fields in vbapzmove\n"));
       }
     }
@@ -516,11 +516,11 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("outz index > isizea. No output"));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */

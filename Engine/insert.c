@@ -1119,6 +1119,8 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
                   p1);
 }
 
+void do_baktrace(CSOUND *, uint64_t);
+
 int csoundInitError(CSOUND *csound, const char *s, ...)
 {
   va_list args;
@@ -1141,27 +1143,30 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
       ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
     } while (ip->opcod_iobufs);
     if (op)
-      snprintf(buf, 512, Str("INIT ERROR in instr %d (opcode %s): "),
-               ip->insno, op->name);
+      snprintf(buf, 512, Str("INIT ERROR in instr %d (opcode %s) line %d: "),
+               ip->insno, op->name, csound->ids->optext->t.linenum);
     else
-      snprintf(buf, 512, Str("INIT ERROR in instr %d (subinstr %d): "),
-               ip->insno, csound->ids->insdshead->insno);
+      snprintf(buf, 512, Str("INIT ERROR in instr %d (subinstr %d) line %d: "),
+               ip->insno, csound->ids->insdshead->insno,
+               csound->ids->optext->t.linenum);
   }
   else
-    snprintf(buf, 512, Str("INIT ERROR in instr %d: "), ip->insno);
+    snprintf(buf, 512, Str("INIT ERROR in instr %d line %d: "), ip->insno,
+             csound->ids->optext->t.linenum);
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
+  do_baktrace(csound, csound->ids->optext->t.locn);
   putop(csound, &(csound->ids->optext->t));
-
   return ++(csound->inerrcnt);
 }
 
-int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
+int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
 {
   va_list args;
   char    buf[512];
-
+  INSDS *ip = h->insdshead;
+  TEXT t = h->optext->t;
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
     /* find top level instrument instance */
@@ -1169,17 +1174,19 @@ int csoundPerfError(CSOUND *csound, INSDS *ip, const char *s, ...)
       ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
     } while (ip->opcod_iobufs);
     if (op)
-      snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s): "),
-               ip->insno, op->name);
+      snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s) line %d: "),
+               ip->insno, op->name, t.linenum);
     else
-      snprintf(buf, 512, Str("PERF ERROR in instr %d (subinstr %d): "),
-               ip->insno, ip->insno);
+      snprintf(buf, 512, Str("PERF ERROR in instr %d (subinstr %d) line %d: "),
+               ip->insno, ip->insno, t.linenum);
   }
   else
-    snprintf(buf, 512, Str("PERF ERROR in instr %d: "), ip->insno);
+    snprintf(buf, 512, Str("PERF ERROR in instr %d line %d: "),
+             ip->insno, t.linenum);
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
+  do_baktrace(csound, t.locn);
   if (ip->pds)
     putop(csound, &(ip->pds->optext->t));
   csoundMessage(csound, Str("   note aborted\n"));
@@ -1537,7 +1544,7 @@ int useropcd(CSOUND *csound, UOPCODE *p)
 {
 
   if (UNLIKELY(p->h.nxtp))
-    return csoundPerfError(csound, p->h.insdshead, Str("%s: not initialised"),
+    return csoundPerfError(csound, &(p->h), Str("%s: not initialised"),
                            p->h.optext->t.opcod);
   else
     return OK;
@@ -1772,7 +1779,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
   //printf("%s\n", p->ip->strarg);
 
   if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
-    return csoundPerfError(csound, p->h.insdshead,
+    return csoundPerfError(csound, &(p->h),
                            Str("subinstr: not initialised"));
   }
   /* copy current spout buffer and clear it */

@@ -146,7 +146,7 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                             sizeof(p->server_addr)) < 0)) {
-          return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+          return csound->PerfError(csound, &(p->h), Str("sendto failed"));
         }
         wp = 0;
       }
@@ -183,7 +183,7 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
       /* send the package when we have a full buffer */
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                           sizeof(p->server_addr)) < 0)) {
-        return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+        return csound->PerfError(csound, &(p->h), Str("sendto failed"));
       }
       p->wp = 0;
     }
@@ -220,7 +220,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     /* send the package with the string each time */
     if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                         sizeof(p->server_addr)) < 0)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+      return csound->PerfError(csound, &(p->h), Str("sendto failed"));
     }
     return OK;
 }
@@ -299,7 +299,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
                             sizeof(p->server_addr)) < 0)) {
-          return csound->PerfError(csound, p->h.insdshead, Str("sendto failed"));
+          return csound->PerfError(csound, &(p->h), Str("sendto failed"));
         }
         wp = 0;
       }
@@ -386,7 +386,7 @@ static int32_t send_ssend(CSOUND *csound, SOCKSEND *p)
     if (UNLIKELY(n != write(p->sock, &p->asig[offset], n))) {
       csound->Message(csound, Str("Expected %d got %d\n"),
                       (int32_t) (sizeof(MYFLT) * CS_KSMPS), n);
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("write to socket failed"));
     }
 
@@ -775,7 +775,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
-        return csound->PerfError(csound, p->h.insdshead, Str("OSCsend2 failed"));
+        return csound->PerfError(csound, &(p->h), Str("OSCsend2 failed"));
       }
       p->last = *p->kwhen;
     }

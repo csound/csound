@@ -1123,7 +1123,7 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
       FUNC* ftp = csound->FTnp2Find(csound, &t);
       int32_t len;
       if (UNLIKELY(ftp == NULL))
-        return csound->PerfError(csound, p->h.insdshead,Str("No tuning table %d"),
+        return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
                                  -((int32_t)*p->et));
       len = ftp->flen;
       while (fract>len) {
@@ -1151,7 +1151,7 @@ int32_t cps2pch(CSOUND *csound, XENH *p)
       FUNC* ftp = csound->FTnp2Find(csound, &t);
       int32_t len;
       if (UNLIKELY(ftp == NULL))
-        return csound->PerfError(csound, p->h.insdshead,Str("No tuning table %d"),
+        return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
                                  -((int32_t)*p->et));
       len = ftp->flen;
       while (fract>len) {
@@ -1196,7 +1196,7 @@ int32_t cpstun_i(CSOUND *csound, CPSTUNI *p)
     *p->r = func[grade] * factor * basefreq;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,Str("cpstun: invalid table"));
+    return csound->PerfError(csound, &(p->h),Str("cpstun: invalid table"));
 }
 
 int32_t cpstun(CSOUND *csound, CPSTUN *p)
@@ -1234,7 +1234,7 @@ int32_t cpstun(CSOUND *csound, CPSTUN *p)
     else *p->r = p->old_r;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,Str("cpstun: invalid table"));
+    return csound->PerfError(csound, &(p->h),Str("cpstun: invalid table"));
 }
 
 int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
@@ -1407,7 +1407,7 @@ int32_t in(CSOUND *csound, INM *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if (csound->inchnls != 1)
       return csound->PerfError(csound,
-                               p->h.insdshead,
+                               &(p->h),
                                "Wrong numnber of input channels\n");
     CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) memset(p->ar, '\0', offset);
@@ -1453,7 +1453,7 @@ int32_t ins(CSOUND *csound, INS *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps =CS_KSMPS, k;
     if (UNLIKELY(csound->inchnls != 2))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                "Wrong numnber of input channels\n");
     CSOUND_SPIN_SPINLOCK
     sp = CS_SPIN;
@@ -1485,7 +1485,7 @@ int32_t inq(CSOUND *csound, INQ *p)
     uint32_t n, nsmps =CS_KSMPS, k;
     if (UNLIKELY(csound->inchnls != 4))
       return csound->PerfError(csound,
-                               p->h.insdshead,
+                               &(p->h),
                                "Wrong numnber of input channels\n");
     CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) {
@@ -1520,7 +1520,7 @@ int32_t inh(CSOUND *csound, INH *p)
     uint32_t n, nsmps =CS_KSMPS, k;
     if (UNLIKELY(csound->inchnls != 6))
       return csound->PerfError(csound,
-                               p->h.insdshead,
+                               &(p->h),
                                "Wrong numnber of input channels\n");
     CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) {
@@ -1562,7 +1562,7 @@ int32_t ino(CSOUND *csound, INO *p)
     uint32_t n, nsmps =CS_KSMPS, k;
     if (UNLIKELY(csound->inchnls != 8))
       return csound->PerfError(csound,
-                               p->h.insdshead,
+                               &(p->h),
                                "Wrong numnber of input channels\n");
     CSOUND_SPIN_SPINLOCK
     if (UNLIKELY(offset)) {
@@ -1608,7 +1608,7 @@ static int32_t inn(CSOUND *csound, INALL *p, uint32_t n)
     uint32_t m, nsmps =CS_KSMPS, i;
     if (UNLIKELY(csound->inchnls != (int32_t) n))
       return csound->PerfError(csound,
-                               p->h.insdshead,
+                               &(p->h),
                                "Wrong numnber of input channels\n");
 
     CSOUND_SPIN_SPINLOCK
@@ -1698,7 +1698,7 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
     MYFLT *sp, *ain;
     if (UNLIKELY(nChannels != p->OUTOCOUNT))
       return
-        csound->PerfError(csound, p->h.insdshead,
+        csound->PerfError(csound, &(p->h),
                           Str("Input and output argument count differs in inch"));
     for (nc=0; nc<nChannels; nc++) {
       ch = MYFLT2LRND(*p->ch[nc]);
@@ -2156,7 +2156,7 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
     int32_t narg = p->narg;
 
     if (UNLIKELY(startChan < 0))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("outrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
 

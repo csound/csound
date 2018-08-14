@@ -115,13 +115,13 @@ int32_t p5glove_poll(CSOUND *csound, P5GLOVE *p)
     /* P5Glove *glove = (P5Glove*)csound->QueryGlobalVariable(csound,"p5glove"); */
     /* int32_t res; */
     /* if (glove == NULL) */
-    /*   return csound->PerfError(csound,  p->h.insdshead, */
+    /*   return csound->PerfError(csound,  &p->h, */
     /*                            Str("No glove open")); */
     /* res = p5glove_sample(*glove, -1); */
     /* if (res < 0 && errno == EAGAIN) return OK; */
     /* //res = p5glove_sample(*glove, -1); */
     /* if (UNLIKELY(res < 0)) */
-    /*   return csound->PerfError(csound,  p->h.insdshead, */
+    /*   return csound->PerfError(csound,  &p->h, */
     /*                            Str("P5Glove failure")); */
     return OK;
 }
@@ -153,7 +153,7 @@ int32_t p5g_data(CSOUND *csound, P5GLOVE *p)
     int32_t kontrol = (int)(*p->kControl+FL(0.5));
     uint32_t buttons, just, rels;
     if (glove==NULL)
-      csound->PerfError(csound,  p->h.insdshead, Str("No open glove"));
+      csound->PerfError(csound,  &p->h, Str("No open glove"));
     p5glove_get_buttons(*glove,&buttons);
     just = ((!p->last) & buttons);
     rels = (p->last & !buttons);

@@ -52,7 +52,8 @@ static int32_t tabsum(CSOUND *csound, TABSUM *p)
     MYFLT *t;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+
+      return csound->PerfError(csound, &(p->h),
                                Str("tabsum: Not initialised"));
     t = p->ftp->ftable;
     min = MYFLT2LRND(*p->kmin);

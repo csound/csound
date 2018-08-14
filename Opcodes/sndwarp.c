@@ -193,7 +193,7 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("sndwarp: not initialised"));
 }
 
@@ -365,7 +365,7 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("sndwarpst: not initialised"));
 }
 

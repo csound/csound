@@ -295,7 +295,7 @@ static int32_t stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 
 static int32_t notinit_opcode_stub_perf(CSOUND *csound, void *p)
 {
-    return csound->PerfError(csound, ((OPDS*)p)->insdshead,
+    return csound->PerfError(csound, &(((STACK_OPCODE*)p)->h),
                              Str("%s: not initialised"),
                              csound->GetOpcodeName(p));
 }

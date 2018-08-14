@@ -285,7 +285,8 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
     p->curval = val;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+
+    return csound->PerfError(csound, &(p->h),
                              Str("linseg: not initialised (arate)\n"));
 }
 
@@ -844,7 +845,7 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
     segp->val *= segp->mlt;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("expseg (krate): not initialised"));
 }
 
@@ -876,7 +877,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
     }
     return OK;
   err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("expseg (arate): not initialised"));
 }
 
@@ -1415,7 +1416,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         p->val = *(ftp->ftable + ftp->flen );
         if (UNLIKELY(!p->val)) {
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("envlpx rise func ends with zero"));
         }
         p->val -= p->asym;
@@ -1437,7 +1438,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
     *p->rslt = *p->xamp * fact;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
 }
 
@@ -1531,14 +1532,14 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
     asym = p->asym;
 
     if (UNLIKELY(p->ftp==NULL))
-       return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
     ftab = p->ftp->ftable;
     lobits = p->ftp->lobits;
     lomask = p->ftp->lomask;
     lodiv  = p->ftp->lodiv;
     if (UNLIKELY(ftab[p->ftp->flen] == 0.0))
-       return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                              Str("envlpx rise func ends with zero"));
 
     if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
@@ -1762,14 +1763,14 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
     asym = p->asym;
 
     if (UNLIKELY(p->ftp==NULL))
-       return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
     ftab = p->ftp->ftable;
     lobits = p->ftp->lobits;
     lomask = p->ftp->lomask;
     lodiv  = p->ftp->lodiv;
     if (UNLIKELY(ftab[p->ftp->flen] == 0.0))
-       return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                              Str("envlpx rise func ends with zero"));
 
     if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
@@ -2020,7 +2021,7 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("cosseg: not initialised (arate)\n"));
 }
 
@@ -2091,7 +2092,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
     p->val = val;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("cossegr: not initialised (arate)\n"));
 }
 
@@ -2158,7 +2159,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("cossegr: not initialised (arate)\n"));
 }
 #endif

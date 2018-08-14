@@ -175,10 +175,10 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvsdemix : formats are different.\n"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvsdemix : not initialised\n"));
 }
 
