@@ -81,7 +81,7 @@ public:
 
   /** perf-time error message
    */
-  int perf_error(const std::string &s, INSDS *inst) {
+  int perf_error(const std::string &s, OPDS *inst) {
     return PerfError(this, inst, "%s\n", LocalizeString(s.c_str()));
   }
 

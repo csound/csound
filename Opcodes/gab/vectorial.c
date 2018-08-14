@@ -84,7 +84,7 @@ static int32_t mtable_k(CSOUND *csound,MTABLE *p)
     if (p->pfn != (int64_t)*p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("vtablek: incorrect table number"));
       }
       p->pfn = (int64_t)*p->xfn;
@@ -138,7 +138,7 @@ static int32_t mtable_a(CSOUND *csound,MTABLE *p)
     if (p->pfn != (int64_t)*p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("vtablea: incorrect table number"));
       }
       p->pfn = (int64_t)*p->xfn;
@@ -314,7 +314,7 @@ static int32_t mtablew_k(CSOUND *csound,MTABLEW *p)
     if (p->pfn != (int64_t)*p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("vtablewk: incorrect table number"));
       }
       p->pfn = (int64_t)*p->xfn;
@@ -347,7 +347,7 @@ static int32_t mtablew_a(CSOUND *csound,MTABLEW *p)
     if (p->pfn != (int64_t)*p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("vtablewa: incorrect table number"));
       }
       p->pfn = (int64_t)*p->xfn;
@@ -411,7 +411,7 @@ static int32_t mtabw_k(CSOUND *csound,MTABW *p)
     if (p->pfn != (int64_t)*p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("vtablewk: incorrect table number"));
       }
       p->pfn = (int64_t)*p->xfn;
@@ -440,7 +440,7 @@ static int32_t mtabw_a(CSOUND *csound,MTABW *p)
     if (p->pfn != (int64_t)*p->xfn) {
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTnp2Find(csound, p->xfn) ) == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("vtabwa: incorrect table number"));
       }
       p->pfn = (int64_t)*p->xfn;

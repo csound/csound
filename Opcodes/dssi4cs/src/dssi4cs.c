@@ -665,7 +665,8 @@ int32_t dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
     case -100:
       {
         if (p->printflag != -100)
-          return csound->PerfError(csound, p->h.insdshead,
+
+          return csound->PerfError(csound, &(p->h),
                                    "DSSI4CS: dssiactivate "
                                    "not properly initialised.");
         p->printflag = -100;
@@ -844,7 +845,7 @@ int32_t dssictls_kk(CSOUND * csound, DSSICTLS * p)
 {
     LADSPA_Data Value = *p->val;
     if (!p->DSSIPlugin_) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("DSSI4CS: Invalid plugin handle."));
     }
     if (*p->ktrig == 1) {
@@ -855,7 +856,7 @@ int32_t dssictls_kk(CSOUND * csound, DSSICTLS * p)
 
 int32_t dssictls_ak(CSOUND * csound, DSSICTLS * p)
 {
-    csound->PerfError(csound, p->h.insdshead,
+    csound->PerfError(csound, &(p->h),
                       Str("DSSI4CS: Audio Rate control "
                           "ports not implemented yet."));
     return NOTOK;
@@ -937,7 +938,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
 
 int32_t dssictls_dummy(CSOUND * csound, DSSICTLS * p)
 {
-    csound->PerfError(csound, p->h.insdshead,
+    csound->PerfError(csound, &(p->h),
                       Str("DSSI4CS: Not initialised or wrong argument types."));
     return NOTOK;
 }

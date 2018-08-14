@@ -308,7 +308,7 @@ static int32_t pvsfwrite(CSOUND *csound, PVSFWRITE *p)
         fout[i+1] = fin[i+1];
       }
       if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1)))
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("pvsfwrite: could not write data\n"));
     }
     else {
@@ -577,7 +577,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
     /* audio samples are stored in a function table */
     ft = csound->FTnp2Find(csound,p->knum);
     if (ft == NULL){
-      csound->PerfError(csound, p->h.insdshead,
+      csound->PerfError(csound, &(p->h),
                         Str("could not find table number %d\n"), (int32_t) *p->knum);
       return NOTOK;
 
@@ -594,7 +594,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
        esr is sampling rate
     */
     if (UNLIKELY(ft->nchanls != (int32)nchans))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("number of output arguments "
                                    "inconsistent with number of "
                                    "sound file channels"));
@@ -1251,7 +1251,7 @@ static int32_t pvsmix(CSOUND *csound, PVSMIX *p)
   }
   return OK;
  err1:
-  return csound->PerfError(csound, p->h.insdshead,
+  return csound->PerfError(csound, &(p->h),
                            Str("pvsmix: formats are different."));
 }
 
@@ -1343,10 +1343,10 @@ static int32_t pvsfilter(CSOUND *csound, PVSFILTER *p)
   }
   return OK;
  err1:
-  return csound->PerfError(csound, p->h.insdshead,
+  return csound->PerfError(csound, &(p->h),
                            Str("pvsfilter: not initialised"));
  err2:
-  return csound->PerfError(csound, p->h.insdshead,
+  return csound->PerfError(csound, &(p->h),
                            Str("pvsfilter: formats are different."));
 }
 
@@ -1590,7 +1590,7 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
   }
   return OK;
  err1:
-  return csound->PerfError(csound, p->h.insdshead,
+  return csound->PerfError(csound, &(p->h),
                            Str("pvscale: not initialised"));
 }
 
@@ -1814,7 +1814,7 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
   }
   return OK;
  err1:
-  return csound->PerfError(csound, p->h.insdshead,
+  return csound->PerfError(csound, &(p->h),
                            Str("pvshift: not initialised"));
 }
 
@@ -1995,7 +1995,7 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
   }
   return OK;
  err1:
-  return csound->PerfError(csound, p->h.insdshead,
+  return csound->PerfError(csound, &(p->h),
                            Str("pvswarp: not initialised"));
 }
 
@@ -2150,7 +2150,7 @@ static int32_t pvsblur(CSOUND *csound, PVSBLUR *p)
 
   return OK;
  err1:
-  return csound->PerfError(csound, p->h.insdshead,
+  return csound->PerfError(csound, &(p->h),
                            Str("pvsblur: not initialised"));
 }
 
@@ -2275,7 +2275,7 @@ static int32_t pvstencil(CSOUND *csound, PVSTENCIL *p)
     }
   return OK;
  err1:
-  return csound->PerfError(csound, p->h.insdshead,
+  return csound->PerfError(csound, &(p->h),
                            Str("pvstencil: not initialised"));
 }
 
@@ -2342,7 +2342,7 @@ static int32_t pvsenvw(CSOUND *csound, PVSENVW *p)
   MYFLT *ftab;
 
   if (ft == NULL) {
-    csound->PerfError(csound, p->h.insdshead,
+    csound->PerfError(csound, &(p->h),
                       Str("could not find table number %d\n"), (int32_t) *p->ftab);
     return NOTOK;
   }

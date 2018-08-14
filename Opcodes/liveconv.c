@@ -500,7 +500,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
     return OK;
 
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              "%s", Str("liveconv: not initialised"));
 }
 

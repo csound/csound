@@ -114,7 +114,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("foscil: not initialised"));
 }
 
@@ -202,7 +202,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("foscili: not initialised"));
 }
 
@@ -1458,7 +1458,7 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
     int32_t   timkincr, nxtim;
 
     if (UNLIKELY(csound->isintab == NULL)) {      /* RWD fix */
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */

@@ -195,9 +195,9 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvadd: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("pvadd: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVADD timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), Str("PVADD timpnt < 0"));
 }
 
 int32_t pvaddset(CSOUND *csound, PVADD *p){

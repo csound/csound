@@ -176,7 +176,7 @@ static int32_t space(CSOUND *csound, SPACE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("space: not initialised"));
 }
 
@@ -260,7 +260,7 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
     *r=distance;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("spdist: not initialised"));
 }
 

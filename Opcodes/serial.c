@@ -345,12 +345,12 @@ int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p)
 int32_t serialEnd(CSOUND *csound, SERIALEND *p)
 {
     IGN(csound);
-#ifdef WN32
+#ifdef WIN32
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
     if (UNLIKELY(q = NULL))
-      return csound->PerfError(csound, Str("Nothing to close"));
+      return csound->PerfError(csound, &(&(p->h)("Nothing to close"));
     CloseHandle((HANDLE)q->handles[(int32_t)p->port]);
     q->handles[(int32_t)*p->port] = NULL;
 #else

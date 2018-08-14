@@ -97,7 +97,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("buzz: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("buzz: not initialised"));
 }
 
 int32_t gbzset(CSOUND *csound, GBUZZ *p)
@@ -209,7 +209,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
     p->lphs = lphs;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("gbuzz: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("gbuzz: not initialised"));
 }
 
 #define PLUKMIN 64
@@ -392,9 +392,9 @@ int32_t pluck(CSOUND *csound, PLUCK *p)
     p->phs256 = phs256;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pluck: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("pluck: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pluck: kcps more than sample rate"));
 }
 

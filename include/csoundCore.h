@@ -297,7 +297,8 @@ typedef struct CORFIL {
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
   typedef struct text {
-    int             linenum;        /* Line num in orch file (currently buggy!)  */
+    uint16_t        linenum;        /* Line num in orch file (currently buggy!)  */
+    uint64_t        locn;           /* and location */
     OENTRY          *oentry;
     char            *opcod;         /* Pointer to opcode name in global pool */
     ARGLST          *inlist;        /* Input args (pointer to item in name list) */
@@ -587,7 +588,6 @@ typedef struct CORFIL {
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
-
   typedef int (*SUBR)(CSOUND *, void *);
 
   /**
@@ -1154,7 +1154,7 @@ typedef struct _message_queue_t_ {
     /**@{ */
     CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 int (*InitError)(CSOUND *, const char *msg, ...);
-    CS_PRINTF3 int (*PerfError)(CSOUND *, INSDS *ip,  const char *msg, ...);
+    CS_PRINTF3 int (*PerfError)(CSOUND *, OPDS *h,  const char *msg, ...);
     CS_PRINTF2 void (*Warning)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 void (*DebugMsg)(CSOUND *, const char *msg, ...);
     CS_NORETURN void (*LongJmp)(CSOUND *, int);

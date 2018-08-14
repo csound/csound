@@ -221,7 +221,7 @@ int32_t lfok(CSOUND *csound, LFO *p)
     phs = p->phs;
     switch (p->lasttype) {
     default:
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("LFO: unknown oscilator type %d"),
                                p->lasttype);
     case 0:
@@ -285,7 +285,7 @@ int32_t lfoa(CSOUND *csound, LFO *p)
     for (n=offset; n<nsmps; n++) {
       switch (p->lasttype) {
       default:
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("LFO: unknown oscilator type %d"),
                                  p->lasttype);
       case 0:
@@ -546,7 +546,7 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
       if (p->pfn != (int32_t)*p->kfn) {
         FUNC *ftp;
         if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) {
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("trigseq: incorrect table number"));
         }
         p->pfn = (int32_t)*p->kfn;

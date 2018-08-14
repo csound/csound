@@ -486,7 +486,7 @@ static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
     int32_t     n = sizeof(MYFLT) * CS_KSMPS;
 
     if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * CS_KSMPS))) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("read from socket failed"));
     }
     return OK;
@@ -616,7 +616,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     if (sout->sizes[0] < 2 ||
        sout->dimensions > 1)
       return
-        csound->PerfError(csound, p->h.insdshead, Str("output array too small\n"));
+        csound->PerfError(csound, &(p->h), Str("output array too small\n"));
 
     STRINGDAT *str = (STRINGDAT *) p->sout->data;
     char *buf = (char *) p->buffer.auxp;

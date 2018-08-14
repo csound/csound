@@ -163,7 +163,7 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
     return OK;
  err1:
 /* Expect sine wave */
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("No table for VibWaveato"));
 }
 
@@ -182,7 +182,7 @@ static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("No table for FM4Op")); /* Expect sine wave */
 }
 

@@ -181,8 +181,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
         size = ft->flen;
 
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, p->h.insdshead,
-                                   Str("number of output arguments "
+          return csound->PerfError(csound, &(p->h), Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -411,7 +410,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
           p->tscale = 1;
         }
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));

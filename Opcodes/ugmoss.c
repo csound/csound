@@ -597,7 +597,7 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
     p->pntr = wp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vcomb: not initialised"));
 }
 
@@ -658,7 +658,7 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     p->pntr = wp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("valpass: not initialised"));
 }
 

@@ -290,7 +290,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             tt.sec = (uint32_t)(*arg[i]+FL(0.5));
             i++;
             if (UNLIKELY(type[i]!='t'))
-              return csound->PerfError(csound, p->h.insdshead,
+              return csound->PerfError(csound, &(p->h),
                                        "%s", Str("Time stamp is two values"));
             tt.frac = (uint32_t)(*arg[i]+FL(0.5));
             lo_message_add_timetag(msg, tt);
@@ -314,7 +314,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
                      ftp->ftable, sizeof(MYFLT)*len);
             }
             else {
-              return csound->PerfError(csound, p->h.insdshead,
+              return csound->PerfError(csound, &(p->h),
                                        Str("ftable %.2f does not exist"), *arg[i]);
             }
             myblob = lo_blob_new(olen, data);
@@ -350,7 +350,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
               len *= sizeof(MYFLT);
             }
             else {
-              return csound->PerfError(csound, p->h.insdshead,
+              return csound->PerfError(csound, &(p->h),
                                        Str("argument %d is not an array"), i);
             }
             // two parts needed
@@ -885,12 +885,12 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
             int32_t fno = MYFLT2LRND(*p->args[i]);
             FUNC *ftp;
             if (UNLIKELY(fno <= 0))
-              return csound->PerfError(csound, p->h.insdshead,
+              return csound->PerfError(csound, &(p->h),
                                        Str("Invalid ftable no. %d"), fno);
 
             ftp = csound->FTnp2Find(csound, p->args[i]);
             if (UNLIKELY(ftp==NULL)) {
-              return csound->PerfError(csound, p->h.insdshead,
+              return csound->PerfError(csound, &(p->h),
                                        "%s", Str("OSC internal error"));
             }
             if (len > (int32_t)  (ftp->flen*sizeof(MYFLT)))
@@ -901,7 +901,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
 #if 0
             ftp = csound->FTFindP(csound, p->args[i]);
             if (UNLIKELY(ftp==NULL)) { // need to allocate ***FIXME***
-              return csound->PerfError(csound, p->h.insdshead,
+              return csound->PerfError(csound, &(p->h),
                                        "%s", Str("OSC internal error"));
             }
             memcpy(ftp, data, sizeof(FUNC)-sizeof(MYFLT*));
@@ -932,7 +932,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
           }
           else if (c == 'S') {
           }
-          else return csound->PerfError(csound,  p->h.insdshead, "Oh dear");
+          else return csound->PerfError(csound,  &(p->h), "Oh dear");
           csound->Free(csound, m->args[i].blob);
         }
         else

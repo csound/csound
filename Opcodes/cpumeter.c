@@ -112,7 +112,7 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
     fflush(p->fp);
     k = p->cpu_max;
     if (!fgets(buf, SMLBUFSIZ, p->fp))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("failed /proc/stat read"));
     /*num = */sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                      &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
@@ -153,7 +153,7 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
 
     for (k=0; k<p->cpu_max && k+1<p->OUTOCOUNT; k++) {
       if (!fgets(buf, SMLBUFSIZ, p->fp))
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("failed /proc/stat read"));
       /*num = */ (void)sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                               &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,

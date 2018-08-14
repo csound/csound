@@ -445,7 +445,7 @@ static int32_t atsread(CSOUND *csound, ATSREAD *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("ATSREAD: not initialised"));
 }
 
@@ -624,7 +624,7 @@ static int32_t atsreadnz(CSOUND *csound, ATSREADNZ *p)
     *p->kenergy = FetchNzBand(p, frIndx);
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("ATSREADNZ: not initialised"));
 }
 
@@ -922,7 +922,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
     }
     return OK;
  err1:
-      return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                                Str("ATSADD: not initialised"));
 }
 
@@ -2451,7 +2451,7 @@ static int32_t atsbufread(CSOUND *csound, ATSBUFREAD *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("ATSBUFREAD: not initialised"));
 }
 
@@ -2489,7 +2489,7 @@ static int32_t atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
     *p->kamp = (MYFLT) ((atsbufreadaddr->utable)[(int32_t)(*p->iparnum)].amp);
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("ATSPARTIALTAP: you must have an "
                                  "atsbufread before an atspartialtap"));
 }
@@ -2547,7 +2547,7 @@ static int32_t atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
  /* *p->kamp = (MYFLT) (atsbufreadaddr->table[i]).amp; */
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("ATSINTERPREAD: you must have an "
                                  "atsbufread before an atsinterpread"));
 }
@@ -2931,7 +2931,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("ATSCROSS: you must have an "
                                  "atsbufread before an atsinterpread"));
 }

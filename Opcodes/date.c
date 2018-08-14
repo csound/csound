@@ -196,7 +196,7 @@ static int32_t readf(CSOUND *csound, READF *p)
         return OK;
       }
       else
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  "%s", Str("readf: read failure"));
     }
     *p->line = ++p->lineno;

@@ -306,11 +306,11 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
       len = strlen(outbuf);
       break;
     default:
-      csound->PerfError(csound,((KDUMP *)p)->h.insdshead,
+      csound->PerfError(csound,&(((KDUMP *)p)->h),
                         Str("unknown kdump format"));
     }
     if (UNLIKELY(fwrite(outbuf, len, 1, ofd)!=1)) { /* now write the buffer */
-      csound->PerfError(csound, ((KDUMP *)p)->h.insdshead,
+      csound->PerfError(csound, &(((KDUMP *)p)->h),
                         Str("write failure in dumpk"));
     }
 }
@@ -800,7 +800,7 @@ int32_t kreads(CSOUND *csound, KREADS *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       if (UNLIKELY(fgets(p->lasts, INITSIZE-1,  p->f)==NULL)) {
-        csound->PerfError(csound, p->h.insdshead, Str("Read failure in readks"));
+        csound->PerfError(csound, &(p->h), Str("Read failure in readks"));
       }
     }
     strNcpy((char*) p->str->data, p->lasts, INITSIZE);

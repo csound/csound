@@ -142,7 +142,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
         int32_t i = (int32_t)(ndx[n]*xbmul);
         if (UNLIKELY(i > len || i<0)) {
           csound->Message(csound, "ndx: %f\n", ndx[n]);
-          return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
+          return csound->PerfError(csound, &(p->h), Str("tabw off end"));
         }
         tab[i] = rslt[n];
       }
@@ -152,7 +152,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
       for (n=offset; n<nsmps; n++) {
         int32_t i = ndx[n];
         if (UNLIKELY(i > len || i<0)) {
-          return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
+          return csound->PerfError(csound, &(p->h), Str("tabw off end"));
         }
         tab[i] = rslt[n];
       }
@@ -168,7 +168,7 @@ static int32_t fastabk(CSOUND *csound, FASTAB *p)
     else
       i = (int32_t) *p->xndx;
     if (UNLIKELY(i > p->tablen || i<0)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("tab off end %i"), i);
+      return csound->PerfError(csound, &(p->h), Str("tab off end %i"), i);
     }
     *p->rslt =  p->table[i];
     return OK;
@@ -182,7 +182,7 @@ static int32_t fastabkw(CSOUND *csound, FASTAB *p)
     else
       i = (int32_t) *p->xndx;
     if (UNLIKELY(i > p->tablen || i<0)) {
-      return csound->PerfError(csound, p->h.insdshead, Str("tabw off end"));
+      return csound->PerfError(csound, &(p->h), Str("tabw off end"));
     }
     p->table[i] = *p->rslt;
     return OK;
@@ -221,7 +221,7 @@ static int32_t fastabiw(CSOUND *csound, FASTAB *p)
     else
       i = (int32) *p->xndx;
     if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
-        return csound->PerfError(csound, p->h.insdshead, Str("tabw_i off end"));
+      return csound->PerfError(csound, &(p->h), Str("tabw_i off end"));
     }
     ftp->ftable[i] = *p->rslt;
     return OK;
@@ -247,7 +247,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
       for (i=offset; i<nsmps; i++) {
         int32_t n = (int32_t) (ndx[i] * xbmul);
         if (UNLIKELY(n > len || n<0)) {
-          return csound->PerfError(csound, p->h.insdshead, Str("tab off end %d"),n);
+          return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
         }
         rslt[i] = tab[n];
       }
@@ -257,7 +257,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
       for (i=offset; i<nsmps; i++) {
         int32_t n = (int32_t) ndx[i];
         if (UNLIKELY(n > len || n<0)) {
-          return csound->PerfError(csound, p->h.insdshead, Str("tab off end %d"),n);
+          return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
         }
         rslt[i] = tab[n];
       }
@@ -573,7 +573,7 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
         int32_t flen;
         if (UNLIKELY((flen = csoundGetTable(csound,&(p->table),
                                             (int32_t)*p->kfn)) < 0))
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (int64_t) flen;
         *(p->table++) = *p->numtics;
@@ -630,7 +630,7 @@ static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
         int32_t flen;
         if (UNLIKELY((flen = csoundGetTable(csound, &(p->table),
                                             (int32_t)*p->kfn)) < 0))
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (int64_t) flen;
         p->currtic = 0;
@@ -795,7 +795,7 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
       }
       break;
     default:
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("max_k: invalid imaxflag value"));
     }
     if (*p->ktrig) {

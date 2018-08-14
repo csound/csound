@@ -576,7 +576,7 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
     p->exti = exti;
     return OK;
  err1:
-      return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                                "%s", Str("xscanu: not initialised"));
 }
 

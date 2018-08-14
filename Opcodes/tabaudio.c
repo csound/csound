@@ -55,7 +55,7 @@ typedef struct {
     SNDFILE* ff;
     MYFLT*   ans;
     void     *thread;
-    INSDS   *insdshead;
+    OPDS     *h;
 } SAVE_THREAD;
 
 static const int32_t format_table[51] = {
@@ -99,12 +99,12 @@ static uintptr_t write_tab(void* pp)
     SNDFILE* ff = p->ff;
     MYFLT*   ans = p->ans;
     CSOUND*  csound = p->csound;
-    INSDS   *insdshead = p->insdshead;
+    OPDS     *h = p->h;
     //free(pp);
     //printf("t=%p size=%d ff=%p\n", t, size, ff);
     if (sf_writef_MYFLT(ff, t, size) != size) {
       sf_close(ff);
-      csound->PerfError(csound, insdshead,
+      csound->PerfError(csound, h,
                            Str("tabaudio: failed to write data %d"),size);
       *ans = -FL(1.0);
     }
@@ -131,8 +131,7 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
       int32_t  format = MYFLT2LRND(*p->format);
   
       if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
-        return csound->PerfError(csound, p->h.insdshead,
-                                 Str("tabaudio: No table %g"), *p->itab);
+        return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g"), *p->itab);
       }
       *p->kans = FL(0.0);
       t = ftp->ftable;
@@ -153,14 +152,14 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
       sfinfo.channels = ftp->nchanls;
       ff = sf_open(p->file->data, SFM_WRITE, &sfinfo);
       if (ff==NULL)
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("tabaudio: failed to open file %s"),
                                  p->file->data);
       if (*p->sync==FL(0.0)) {  /* write in perf thread */
         if ((n=sf_writef_MYFLT(ff, t, size)) != size) {
           printf("%s\n", sf_strerror(ff));
           sf_close(ff);
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("tabaudio: failed to write data %d %d"),
                                    n,size);
         }
@@ -173,9 +172,9 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
         q->ff = ff;
         q->ans = p->kans;
         q->csound = csound;
-        q->insdshead = p->h.insdshead;
+        q->h = &(p->h);
         if ((q->thread = csound->CreateThread(write_tab, (void*)q))==NULL) {
-          INSDS * i = q->insdshead;
+          OPDS * i = q->h;
           free(q);
           return csound->PerfError(csound, i,
                                    Str("Error creating thread"));

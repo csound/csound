@@ -798,7 +798,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("vco: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("vco: not initialised"));
 }
 
 /***************************************************************************/
@@ -1191,7 +1191,7 @@ static int32_t nestedap(CSOUND *csound, NESTEDAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+ return csound->PerfError(csound, &(p->h),
                              Str("delay: not initialised"));
 }
 

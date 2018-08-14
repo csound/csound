@@ -455,7 +455,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e' && opcod != 'd')
                  /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
-      return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_1));
+      return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
     if (p->flag==1) evt.pcnt = p->argno-2;
@@ -467,7 +467,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       if (insname) {
         int res;
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
-          return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_2));
+          return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_2));
         res = csound->strarg2insno(csound, ((STRINGDAT*) p->args[1])->data, 1);
         if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
         evt.p[1] = (MYFLT) res;
@@ -493,7 +493,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     }
 
     if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("event: error creating '%c' event"),
                                opcod);
     return OK;
@@ -619,7 +619,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
         evt.p[i] = *p->args[i-1];
     }
     if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("instance: error creating event"));
 
     return OK;

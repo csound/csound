@@ -174,7 +174,8 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+
+    return csound->PerfError(csound, &(p->h),
                              Str("pvsband: not initialised"));
 }
 
@@ -280,7 +281,7 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvsband: not initialised"));
 }
 

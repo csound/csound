@@ -141,6 +141,11 @@ audio file.  This should preserve most compatibility issues.
 - Printing the number allocated to a named instrument now behaves the
   manual, not just for debug.
 
+- if liblo version 0.29 is avaiable csound can be built to use it (with
+  a compiler flag LIBLO29) and this fixes some bugs related to
+  heavy/complex use of OSClisten.  Unfortunately the older 0.28 version
+  is being distributed by some Linux dustros.
+
 ### Translations
 
 ### API

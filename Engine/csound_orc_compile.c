@@ -303,6 +303,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
   int n; // nreqd;
   optxt = (OPTXT *)csound->Calloc(csound, (int32)sizeof(OPTXT));
   tp = &(optxt->t);
+  tp->linenum = root->line; tp->locn = root->locn;
   OENTRY *labelOpcode;
 
   switch (root->type) {
@@ -339,7 +340,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     /* INITIAL SETUP */
     tp->oentry = (OENTRY *)root->markup;
     tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
-    tp->linenum = root->line;
+    //tp->linenum = root->line; tp->locn = root->locn;
     // ip->mdepends |= tp->oentry->flags;
     ip->opdstot += tp->oentry->dsblksiz;
 

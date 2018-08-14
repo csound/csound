@@ -192,11 +192,10 @@ int32_t zkw(CSOUND *csound, ZKW *p)
     /* Check to see this index is within the limits of zk space. */
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx > csound->zklast)) {
-      return csound->PerfError(csound, p->h.insdshead,
-                               Str("zkw index > isizek. Not writing."));
+      return csound->PerfError(csound, &(p->h), Str("zkw index > isizek. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, p->h.insdshead,
+                                  return csound->PerfError(csound, &(p->h),
                                Str("zkw index < 0. Not writing."));
     }
     else {
@@ -248,11 +247,11 @@ int32_t zkwm(CSOUND *csound, ZKWM *p)
     /* Check to see this index is within the limits of zk space.   */
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx > csound->zklast)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zkwm index > isizek. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zkwm index < 0. Not writing."));
     }
     else {
@@ -332,7 +331,7 @@ int32_t zkmod(CSOUND *csound, ZKMOD *p)
     /* Check to see this index is within the limits of zk space. */
 
     if (UNLIKELY(indx > csound->zklast)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zkmod kzkmod > isizek. Not writing."));
     }
     else {
@@ -358,14 +357,14 @@ int32_t zkcl(CSOUND *csound, ZKCL *p)
     /* Check to see both kfirst and klast are within the limits of zk space
      * and that last is >= first.                */
     if (UNLIKELY((first > csound->zklast) || (last > csound->zklast)))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zkcl first or last > isizek. Not clearing."));
     else if (UNLIKELY((first < 0) || (last < 0))) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zkcl first or last < 0. Not clearing."));
     }
     else if (UNLIKELY(first > last)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zkcl first > last. Not clearing."));
     }
     else {
@@ -417,12 +416,12 @@ int32_t zar(CSOUND *csound, ZAR *p)
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zar index > isizea. Returning 0."));
     }
     else if (UNLIKELY(indx < 0)) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zar index < 0. Returning 0."));
     }
     else {
@@ -462,13 +461,13 @@ int32_t zarg(CSOUND *csound, ZARG *p)
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
       memset(writeloc, 0, nsmps*sizeof(MYFLT));
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zarg index > isizea. Returning 0."));
     }
     else {
       if (UNLIKELY(indx < 0)) {
         memset(writeloc, 0, nsmps*sizeof(MYFLT));
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("zarg index < 0. Returning 0."));
       }
       else {
@@ -506,11 +505,11 @@ int32_t zaw(CSOUND *csound, ZAW *p)
     /* Check to see this index is within the limits of za space.     */
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
-        return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                  Str("zaw index > isizea. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-        return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                  Str("zaw index < 0. Not writing."));
     }
     else {
@@ -546,11 +545,11 @@ int32_t zawm(CSOUND *csound, ZAWM *p)
     /* Check to see this index is within the limits of za space.    */
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx > csound->zalast)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zaw index > isizea. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zaw index < 0. Not writing."));
     }
     else {
@@ -613,7 +612,7 @@ int32_t zamod(CSOUND *csound, ZAMOD *p)
     }
     /* Check to see this index is within the limits of za space.    */
     if (UNLIKELY(indx > csound->zalast)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zamod kzamod > isizea. Not writing."));
     }
     else {                      /* Now read the values from za space.    */
@@ -646,16 +645,16 @@ int32_t zacl(CSOUND *csound, ZACL *p)
     /* Check to see both kfirst and klast are within the limits of za space
      * and that last is >= first.    */
     if (UNLIKELY((first > csound->zalast) || (last > csound->zalast)))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("zacl first or last > isizea. Not clearing."));
     else {
       if (UNLIKELY((first < 0) || (last < 0))) {
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("zacl first or last < 0. Not clearing."));
       }
       else {
         if (UNLIKELY(first > last)) {
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("zacl first > last. Not clearing."));
         }
         else {  /* Now clear the appropriate locations in za space. */
@@ -781,7 +780,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
 int32_t printk(CSOUND *csound, PRINTK *p)
 {
     if (UNLIKELY(p->initialised != -1))
-      csound->PerfError(csound, p->h.insdshead, Str("printk not initialised"));
+      csound->PerfError(csound, &(p->h), Str("printk not initialised"));
 
     //printf("printk: KCNT = %lu\n", CS_KCNT);
     //printf("printat = %lf\n", p->printat);
@@ -1138,7 +1137,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
       char *sarg;
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)
-        return csoundPerfError(csound, p->h.insdshead, Str("null string\n"));
+        return csoundPerfError(csound, &(p->h), Str("null string\n"));
       if (strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
         csound->Free(csound, p->old);
@@ -1148,13 +1147,13 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
 
     /*-----------------------------------*/
     if (UNLIKELY(p->initialised != -1))
-      csound->PerfError(csound, p->h.insdshead, Str("printks not initialised"));
+      csound->PerfError(csound, &(p->h), Str("printks not initialised"));
     if (p->printat <= CS_KCNT-1) {
       //string[0]='\0';           /* incase of empty string */
       memset(string,0,8192);
       if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)==NOTOK)
         return
-          csound->PerfError(csound,  p->h.insdshead,
+          csound->PerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
       p->printat += p->ctime;
@@ -1309,7 +1308,7 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
       buff[0] = '\0';
       if (sprints(buff, p->sarg, vv, 1)==NOTOK)
         return
-          csound->PerfError(csound,  p->h.insdshead,
+          csound->PerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buff);
       p->oldvalue = value;
@@ -1342,10 +1341,10 @@ int32_t inz(CSOUND *csound, IOZ *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("inz index > isizea. Not writing."));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("inz index < 0. Not writing."));
 }
 
@@ -1389,9 +1388,9 @@ int32_t outz(CSOUND *csound, IOZ *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("outz index > isizea. No output"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("outz index < 0. No output."));
 }

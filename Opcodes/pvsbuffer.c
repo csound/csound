@@ -194,7 +194,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      snprintf(varname, 32, "::buffer%d", (int32_t)(*p->hptr));
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      if (phandle == NULL)
-       csound->PerfError(csound, p->h.insdshead,
+       csound->PerfError(csound, &(p->h),
                          Str("error... could not read handle "
                              "from global variable\n"));
      else
@@ -244,7 +244,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
    return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+   return csound->PerfError(csound, &(p->h),
                              Str("Invalid buffer handle"));
   }
 
@@ -265,7 +265,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       snprintf(varname, 32, "::buffer%d", (int32_t)(*p->hptr));
       phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
       if (phandle == NULL)
-        csound->PerfError(csound, p->h.insdshead,
+        csound->PerfError(csound, &(p->h),
                           Str("error... could not read handle from "
                               "global variable\n"));
       else
@@ -282,13 +282,13 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       frames = handle->frames-1;
       ftab = csound->FTnp2Find(csound, p->strt);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, p->h.insdshead,
+        csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
       ftab = csound->FTnp2Find(csound, p->end);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, p->h.insdshead,
+        csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab2 = ftab->ftable;
@@ -318,7 +318,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     p->scnt += CS_KSMPS;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("Invalid buffer handle"));
   }
 

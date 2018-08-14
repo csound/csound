@@ -569,7 +569,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit){
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -755,7 +755,7 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -951,7 +951,7 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
     if (!p->initDone && !p->SkipInit){
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     for (nn = offset; nn < nsmps; nn++){
@@ -1116,7 +1116,7 @@ int32_t soundout(CSOUND *csound, SNDOUT *p)
     uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("soundout: not initialised"));
     if (UNLIKELY(early)) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
@@ -1138,7 +1138,7 @@ int32_t soundouts(CSOUND *csound, SNDOUTS *p)
     uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("soundouts: not initialised"));
     if (UNLIKELY(early)) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
@@ -1357,7 +1357,7 @@ int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -1804,7 +1804,7 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit){
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -1997,7 +1997,7 @@ int32_t diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
     if (!p->initDone && !p->SkipInit){
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     for (nn = offset; nn < nsmps; nn++){
@@ -2248,7 +2248,7 @@ int32_t soundin(CSOUND *csound, SOUNDIN_ *p)
     int32_t i;
 
     if (UNLIKELY(p->fdch.fd == NULL)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("soundin: not initialised"));
     }
     if (UNLIKELY(offset)) for (i=0; i<p->nChannels; i++)
