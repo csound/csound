@@ -1313,34 +1313,34 @@ msgstr ""
 "ERREUR D'INITIALISATION : "
 
 #: Engine/insert.c:1146
-#, fuzzy, c-format
+#, c-format
 msgid "INIT ERROR in instr %d (opcode %s) line %d: "
-msgstr "ERREUR D'INITIALISATION dans l'instr %d (opcode %s) : "
+msgstr "ERREUR D'INITIALISATION dans l'instr %d (opcode %s) ligne %d : "
 
 #: Engine/insert.c:1149
-#, fuzzy, c-format
+#, c-format
 msgid "INIT ERROR in instr %d (subinstr %d) line %d: "
-msgstr "ERREUR D'INITIALISATION dans l'instr %d (subinstr %d) : "
+msgstr "ERREUR D'INITIALISATION dans l'instr %d (subinstr %d) ligne %d : "
 
 #: Engine/insert.c:1154
-#, fuzzy, c-format
+#, c-format
 msgid "INIT ERROR in instr %d line %d: "
-msgstr "ERREUR D'INITIALISATION dans l'instr %d : "
+msgstr "ERREUR D'INITIALISATION dans l'instr %d ligne %d : "
 
 #: Engine/insert.c:1177
-#, fuzzy, c-format
+#, c-format
 msgid "PERF ERROR in instr %d (opcode %s) line %d: "
-msgstr "ERREUR D'EXECUTION dans l'instr %d (opcode %s) : "
+msgstr "ERREUR D'EXECUTION dans l'instr %d (opcode %s) ligne %d : "
 
 #: Engine/insert.c:1180
-#, fuzzy, c-format
+#, c-format
 msgid "PERF ERROR in instr %d (subinstr %d) line %d: "
-msgstr "ERREUR D'EXECUTION dans l'instr %d (subinstr %d) : "
+msgstr "ERREUR D'EXECUTION dans l'instr %d (subinstr %d) ligne %d : "
 
 #: Engine/insert.c:1184
-#, fuzzy, c-format
+#, c-format
 msgid "PERF ERROR in instr %d line %d: "
-msgstr "ERREUR D'EXECUTION dans l'instr %d :"
+msgstr "ERREUR D'EXECUTION dans l'instr %d ligne %d :"
 
 #: Engine/insert.c:1192
 msgid "   note aborted\n"
