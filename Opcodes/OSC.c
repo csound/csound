@@ -85,6 +85,7 @@ typedef struct {
     int32_t   nPorts;
     OSC_PORT  *ports;
     int32_t   osccounter;
+    void      *mutex_;
 } OSC_GLOBALS;
 
 /* opcode for starting the OSC listener (called once from orchestra header) */
@@ -422,6 +423,7 @@ static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
     }
     pp = (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     pp->csound = csound;
+    pp->mutex_ = csound->Create_Mutex(0);
     csound->RegisterResetCallback(csound, (void*) pp,
                                   (int32_t (*)(CSOUND *, void *)) OSC_reset);
     return pp;
@@ -489,7 +491,9 @@ static int32_t OSC_handler(const char *path, const char *types,
         int32_t     i;
         OSC_PAT *m;
         OSC_GLOBALS *g = alloc_globals(csound);
+        pp->csound->LockMutex(g->mutex_);
         g->osccounter++;
+        pp->csound->UnlockMutex(g->mutex_);
         m = get_pattern(csound, o);
         if (m != NULL) {
           /* queue message for being read by OSClisten opcode */
@@ -935,7 +939,9 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
       p->c.freePatterns = m;
       *p->kans = 1;
       OSC_GLOBALS *g = alloc_globals(csound);
+      csound->LockMutex(g->mutex_);
       g->osccounter--;
+      csound->UnlockMutex(g->mutex_);
     }
     else
       *p->kans = 0;
@@ -954,7 +960,7 @@ static int32_t OSC_ahandler(const char *path, const char *types,
     CSOUND    *csound = (CSOUND *) pp->csound;
     int32_t   retval = 1;
     //printf("***in ahandler\n");
-    pp->csound->LockMutex(pp->mutex_);
+    csound->LockMutex(pp->mutex_);
     o = (OSCLCOMMON*) pp->oplst;
     //printf("opst=%p\n", o);
     while (o != NULL) {
@@ -966,7 +972,9 @@ static int32_t OSC_ahandler(const char *path, const char *types,
         int32_t     i;
         OSC_PAT *m;
         OSC_GLOBALS *g = alloc_globals(csound);
+        csound->LockMutex(g->mutex_);
         g->osccounter++;
+        csound->UnlockMutex(g->mutex_);
         //printf("handler found message\n");
         m = get_pattern(csound, o);
         if (m != NULL) {
@@ -1096,7 +1104,9 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
       p->c.freePatterns = m;
       *p->kans = 1;
       OSC_GLOBALS *g = alloc_globals(csound);
+      csound->LockMutex(g->mutex_);
       g->osccounter--;
+      csound->UnlockMutex(g->mutex_);
     }
     else
       *p->kans = 0;
