@@ -82,8 +82,9 @@ typedef struct {
 typedef struct {
     CSOUND  *csound;
     /* for OSCinit/OSClisten */
-    int32_t     nPorts;
+    int32_t   nPorts;
     OSC_PORT  *ports;
+    int32_t   osccounter;
 } OSC_GLOBALS;
 
 /* opcode for starting the OSC listener (called once from orchestra header) */
@@ -100,7 +101,7 @@ typedef struct {
     MYFLT   *port;              /* Port number on which to listen */
 } OSCINITM;
 
-typedef struct osclcommon{
+typedef struct osclcommon {
     lo_method method;
     char    *saved_path;
     char    saved_types[ARG_CNT];    /* copy of type list */
@@ -405,27 +406,6 @@ uintptr_t OSCthread(void *pp) {
   return 0;
 }
 
-/* static int32_t osc_send_async_set(CSOUND *csound, OSCSEND *p) { */
-/*   p->csound = csound; */
-/*   return osc_send_set(csound, p); */
-/* } */
-
-/* static int32_t osc_send_async(CSOUND *csound, OSCSEND *p) { */
-/*     /\*RTCLOCK t; */
-/*       csound->InitTimerStruct(&t);*\/ */
-/*     if (*p->kwhen != p->lasta) { */
-/*       if (p->thread != NULL) { */
-/*         csound->JoinThread(p->thread); */
-/*         p->thread = NULL; */
-/*       } */
-/*       p->thread = csound->CreateThread(OSCthread, p); */
-/*       p->lasta = *p->kwhen; */
-/*     } */
-/*     // printf("wait: %.13f\n", (csound->GetRealTime(&t))*1000.); */
-/*     return OK; */
-/* } */
-
-
 /* get pointer to globals structure, allocating it on the first call */
 
 static CS_NOINLINE OSC_GLOBALS *alloc_globals(CSOUND *csound)
@@ -476,10 +456,22 @@ static inline OSC_PAT *get_pattern(CSOUND *csound,OSCLCOMMON *pp)
     return alloc_pattern(csound);
 }
 
+typedef struct {
+      OPDS h;             /* default header */
+      MYFLT *ans;
+} OSCcount;
+
+static int32_t OSCcounter(CSOUND *csound, OSCcount *p)
+{
+    OSC_GLOBALS *g = alloc_globals(csound);
+    *p->ans = (MYFLT)g->osccounter;
+    return OK;
+}
+
 static int32_t OSC_handler(const char *path, const char *types,
                        lo_arg **argv, int32_t argc, void *data, void *p)
 {
-     IGN(argc);  IGN(data);
+    IGN(argc);  IGN(data);
     OSC_PORT  *pp = (OSC_PORT*) p;
     OSCLCOMMON *o;
     CSOUND    *csound = (CSOUND *) pp->csound;
@@ -496,7 +488,8 @@ static int32_t OSC_handler(const char *path, const char *types,
         /* Message is for this guy */
         int32_t     i;
         OSC_PAT *m;
-        //printf("handler found message\n");
+        OSC_GLOBALS *g = alloc_globals(csound);
+        g->osccounter++;
         m = get_pattern(csound, o);
         if (m != NULL) {
           /* queue message for being read by OSClisten opcode */
@@ -571,7 +564,6 @@ static void OSC_error(int32_t num, const char *msg, const char *path)
     fprintf(stderr, "OSC server error %d in path %s: %s\n", num, path, msg);
 }
 
-
 static int32_t OSC_deinit(CSOUND *csound, OSCINIT *p)
 {
     int32_t n = (int32_t)*p->ihandle;
@@ -629,7 +621,7 @@ static int32_t osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
     OSC_GLOBALS *pp;
     OSC_PORT    *ports;
     char        buff[32];
-    int32_t         n;
+    int32_t     n;
 
     /* allocate and initialise the globals structure */
     pp = alloc_globals(csound);
@@ -942,6 +934,8 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
       m->next = p->c.freePatterns;
       p->c.freePatterns = m;
       *p->kans = 1;
+      OSC_GLOBALS *g = alloc_globals(csound);
+      g->osccounter--;
     }
     else
       *p->kans = 0;
@@ -971,6 +965,8 @@ static int32_t OSC_ahandler(const char *path, const char *types,
         /* Message is for this guy */
         int32_t     i;
         OSC_PAT *m;
+        OSC_GLOBALS *g = alloc_globals(csound);
+        g->osccounter++;
         //printf("handler found message\n");
         m = get_pattern(csound, o);
         if (m != NULL) {
@@ -1099,6 +1095,8 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
       m->next = p->c.freePatterns;
       p->c.freePatterns = m;
       *p->kans = 1;
+      OSC_GLOBALS *g = alloc_globals(csound);
+      g->osccounter--;
     }
     else
       *p->kans = 0;
@@ -1123,8 +1121,8 @@ static OENTRY localops[] = {
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
   { "OSClisten", S(OSCLISTENA),0, 3, "kk[]", "iSS",
     (SUBR)OSC_alist_init, (SUBR)OSC_alist, NULL, NULL },
-  /* { "OSCsendA", S(OSCSEND), _QQ, 3, "", "kSkSS*", */
-  /*   (SUBR)osc_send_async_set, (SUBR)osc_send_async, NULL, NULL } */
+  { "OSCcount", S(OSCcount), 0, 3, "k", "",
+    (SUBR)OSCcounter, (SUBR)OSCcounter, NULL }
 };
 
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)
