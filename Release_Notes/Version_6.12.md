@@ -47,6 +47,8 @@ audio file.  This should preserve most compatibility issues.
 
 - Version of OSClisten that writes the data to a k-rate array now exists.
 
+- OSCcount returns the number of OSC incoming messages pending
+
 ### New Gen and Macros
 
 - 

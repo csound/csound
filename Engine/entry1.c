@@ -1091,7 +1091,7 @@ OENTRY opcodlst_1[] = {
     NULL, (SUBR) chnset_opcode_perf_S, NULL },
   { "chnmix",      S(CHNGET),           _CB, 3,      "",             "aS",
     (SUBR) chnmix_opcode_init, (SUBR) notinit_opcode_stub  },
-  { "chnclear",    S(CHNCLEAR),        _CW, 3,      "",             "S",
+  { "chnclear",    S(CHNCLEAR),        _CW, 3,      "",             "W",
     (SUBR) chnclear_opcode_init, (SUBR) notinit_opcode_stub },
   { "chn_k",       S(CHN_OPCODE_K),    _CW, 1,      "",             "SiooooooooN",
     (SUBR) chn_k_opcode_init, NULL, NULL                  },
