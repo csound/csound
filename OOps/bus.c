@@ -1039,11 +1039,6 @@ int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 {
     int32_t   err;
     int32_t   i, n = (int32_t)p->INCOUNT;
-    csound->AuxAlloc(csound,
-                     (int32_t)n*(sizeof(spin_lock_t*)+sizeof(MYFLT*)),
-                     &(p->aux));
-    p->lock = (spin_lock_t**)p->aux.auxp;
-    p->fp = (MYFLT**)p->aux.auxp+n*sizeof(spin_lock_t *);
     for (i=0; i<n; i++) {
       /* NOTE: p->imode is a pointer to the channel data here */
       err = csoundGetChannelPtr(csound, &(p->fp[i]), (char*) p->iname[i]->data,
