@@ -78,9 +78,10 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    STRINGDAT   *iname;
-    MYFLT   *fp;
-    spin_lock_t     *lock;
+    STRINGDAT   *iname[MAX_CHAN_NAME+1];
+    AUXCH   aux;
+    MYFLT   **fp;
+    spin_lock_t **lock;
 } CHNCLEAR;
 
 typedef struct {

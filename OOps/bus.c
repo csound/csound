@@ -935,11 +935,14 @@ static int32_t chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 
 static int32_t chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
+    int32_t i, n=p->INCOUNT;
     /* Need lock for the channel */
     IGN(csound);
-    csoundSpinLock(p->lock);
-    memset(p->fp, 0, CS_KSMPS*sizeof(MYFLT)); /* Should this leave start? */
-    csoundSpinUnLock(p->lock);
+    for (i=0; i<n; i++) {
+      csoundSpinLock(p->lock[i]);
+      memset(p->fp[i], 0, CS_KSMPS*sizeof(MYFLT)); /* Should this leave start? */
+      csoundSpinUnLock(p->lock[i]);
+    }
     return OK;
 }
 
@@ -1035,16 +1038,24 @@ int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
 int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 {
     int32_t   err;
-
-    /* NOTE: p->imode is a pointer to the channel data here */
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
-                              CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    if (LIKELY(!err)) {
-      p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
-      p->h.opadr = (SUBR) chnclear_opcode_perf;
-      return OK;
+    int32_t   i, n = (int32_t)p->INCOUNT;
+    csound->AuxAlloc(csound,
+                     (int32_t)n*(sizeof(spin_lock_t*)+sizeof(MYFLT*)),
+                     &(p->aux));
+    p->lock = (spin_lock_t**)p->aux.auxp;
+    p->fp = (MYFLT**)p->aux.auxp+n*sizeof(spin_lock_t *);
+    for (i=0; i<n; i++) {
+      /* NOTE: p->imode is a pointer to the channel data here */
+      err = csoundGetChannelPtr(csound, &(p->fp[i]), (char*) p->iname[i]->data,
+                                CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+      if (LIKELY(!err)) {
+        p->lock[i] = (spin_lock_t *)csoundGetChannelLock(csound,
+                                                         (char*) p->iname[i]->data);
+      }
+      else return print_chn_err(p, err);
     }
-    return print_chn_err(p, err);
+    p->h.opadr = (SUBR) chnclear_opcode_perf;
+    return OK;
 }
 
 /* send string to bus at init time */
