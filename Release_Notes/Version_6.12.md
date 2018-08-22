@@ -86,7 +86,9 @@ audio file.  This should preserve most compatibility issues.
 
 - Add optional argument to ftom for rounding answer to integer
 
-- flooper2 and syncgrain etc  now allow resampling. {IN MANUAL??]
+- flooper2 and syncgrain etc  now allow resampling. [IN MANUAL??]
+
+- chnclear can now take a list of channels to clear instead of just one.
 
 ### Utilities
 
