@@ -322,6 +322,8 @@ void *init_faustcompile_thread(void *pp) {
   csound->Free(csound, cmd);
   csound->Free(csound, pp);
 
+  csound->Message(csound, "Successfully compiled faust code\n");
+
   return NULL;
 }
 
