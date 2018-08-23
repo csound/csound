@@ -322,6 +322,8 @@ void *init_faustcompile_thread(void *pp) {
   csound->Free(csound, cmd);
   csound->Free(csound, pp);
 
+  csound->Message(csound, "%s", Str("\nFaust program compiled successfully\n"));
+
   return NULL;
 }
 
@@ -332,7 +334,7 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
   hdata *data = (hdata *)csound->Malloc(csound, sizeof(hdata));
   data->csound = csound;
   data->p = p;
-  *p->hptr = -1;
+  *p->hptr = 0;
 
   p->lock =
       (pthread_mutex_t *)csound->QueryGlobalVariable(csound, "::faustlock::");
@@ -427,11 +429,11 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   llvm_dsp *dsp;
   controls *ctls = new controls();
   const char *varname = "::dsp";
-  while ((int32_t)*((MYFLT *)p->code) == -1)
+  while (*((MYFLT *)p->code) == 0)
     csound->Sleep(1);
 
 
-  factory = (int32_t)*((MYFLT *)p->code);
+  factory = (uintptr_t) *((MYFLT *)(p->code));
 
   if (factory == -2)
     return csound->InitError(
