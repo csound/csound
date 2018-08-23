@@ -258,6 +258,14 @@ struct hdata {
   CSOUND *csound;
 };
 
+#if defined(MSVC)
+#define ATOMIC_SETP(var, val)  InterlockedExchange(var, val);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SETP(var, val) __sync_lock_test_and_set(var, val);
+#else
+#define ATOMIC_SETP(var, val) var = val;
+#endif
+
 void *init_faustcompile_thread(void *pp) {
 
   faustcompile *p = ((hdata *)pp)->p;
@@ -316,7 +324,7 @@ void *init_faustcompile_thread(void *pp) {
     ffactory->obj = factory;
   }
   p->factory = factory;
-  *p->hptr = (MYFLT)ffactory->cnt;
+  ATOMIC_SETP((int64_t *) p->hptr, ffactory->cnt);
   csound->RegisterResetCallback(csound, p, delete_faustcompile);
   csound->Free(csound, argv);
   csound->Free(csound, cmd);
@@ -422,6 +430,15 @@ int32_t delete_faustgen(CSOUND *csound, void *p) {
   return OK;
 }
 
+
+#ifdef MSVC
+#define ATOMIC_GET8P(var) InterlockedExchangeAdd8(&var, 0)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_GET8P(var) __atomic_load_n(var, __ATOMIC_SEQ_CST)
+#else
+#define ATOMIC_GET8P(var) var
+#endif
+
 int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   int32_t factory;
   OPARMS parms;
@@ -429,8 +446,16 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   llvm_dsp *dsp;
   controls *ctls = new controls();
   const char *varname = "::dsp";
-  while ((int32_t)*((MYFLT *)p->code) == -1)
+  int timout = 0;
+  while (ATOMIC_GET8P((int64_t *)p->code) == -1) {
     csound->Sleep(1);
+    timout++;
+    if(timout > 10) {
+      return csound->InitError(
+        csound, "%s", Str("Faust code was not ready. Try compiling it \n" 
+                          "in a separate instrument prior to running it here\n"));
+    }
+  }
 
 
   factory = (int32_t)*((MYFLT *)p->code);
