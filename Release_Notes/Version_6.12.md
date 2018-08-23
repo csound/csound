@@ -78,6 +78,9 @@ audio file.  This should preserve most compatibility issues.
 
 - Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
 
+- The forms for delayed ending of sections (e 5 or s 5) now work with
+  fractional delays; previously only read the integer part.
+  
 ### Options
 
 - 
