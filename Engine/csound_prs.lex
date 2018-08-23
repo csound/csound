@@ -785,7 +785,7 @@ NM              [nm][ \t]+
               while (1) {
                 int c = input(yyscanner);
                 if (c=='\n') break;
-                if (!isspace(c)&&!isdigit(c)) { unput(c); break;}
+                if (!isspace(c)&&!isdigit(c)&&!strchr(".e+-",c)) { unput(c); break;}
                 corfile_putc(csound, c, PARM->cf);
               }
               corfile_putc(csound, '\n', PARM->cf);
