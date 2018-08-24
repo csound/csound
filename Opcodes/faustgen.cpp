@@ -192,7 +192,7 @@ struct faustcompile {
   STRINGDAT *args;
   MYFLT *stacksize;
   llvm_dsp_factory *factory;
-  pthread_mutex_t *lock;
+  //pthread_mutex_t *lock;
 };
 
 char **parse_cmd(CSOUND *csound, char *str, int32_t *argc) {
@@ -266,24 +266,25 @@ void *init_faustcompile_thread(void *pp) {
   llvm_dsp_factory *factory;
   int32_t argc = 0;
   std::string err_msg;
-  char *cmd = (char *)csound->Malloc(csound, p->args->size + 8);
+  char *cmd = (char *) csound->Calloc(csound, p->args->size + 9);
+  char *ccode = csound->Strdup(csound, p->code->data);
   int32_t ret;
 
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
   strcat(cmd, " -double");
 #endif
-  const char **argv = (const char **)parse_cmd(csound, cmd, &argc);
+  const char **argv = (const char **) parse_cmd(csound, cmd, &argc);
   const char *varname = "::factory";
 
   // Need to protect this
 
-  csound->LockMutex(p->lock);
+  //csound->LockMutex(p->lock);
   // csound->Message(csound, "lock %p\n", p->lock);
-  factory = createDSPFactoryFromString("faustop", (const char *)p->code->data,
+  factory = createDSPFactoryFromString("faustop", (const char *) ccode,
                                        argc, argv, "", err_msg, 3);
   // csound->Message(csound, "unlock %p\n", p->lock);
-  csound->UnlockMutex(p->lock);
+  // csound->UnlockMutex(p->lock);
 
   if (factory == NULL) {
     csound->Message(csound, Str("\nFaust compilation problem:\nline %s\n"),
@@ -291,6 +292,7 @@ void *init_faustcompile_thread(void *pp) {
     *(p->hptr) = FL(-2.0); // error code.
     csound->Free(csound, argv);
     csound->Free(csound, cmd);
+    csound->Free(csound, ccode);
     csound->Free(csound, pp);
     ret = -1;
     pthread_exit(&ret);
@@ -316,10 +318,11 @@ void *init_faustcompile_thread(void *pp) {
     ffactory->obj = factory;
   }
   p->factory = factory;
-  *p->hptr = (MYFLT)ffactory->cnt;
+  *p->hptr = FL(ffactory->cnt);
   csound->RegisterResetCallback(csound, p, delete_faustcompile);
   csound->Free(csound, argv);
   csound->Free(csound, cmd);
+  csound->Free(csound, ccode);
   csound->Free(csound, pp);
 
   csound->Message(csound, "Successfully compiled faust code\n");
@@ -328,15 +331,15 @@ void *init_faustcompile_thread(void *pp) {
 }
 
 #define MBYTE 1048576
-int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
+int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
   pthread_t thread;
   pthread_attr_t attr;
   hdata *data = (hdata *)csound->Malloc(csound, sizeof(hdata));
   data->csound = csound;
   data->p = p;
-  *p->hptr = -1;
+  *p->hptr = -1.0;
 
-  p->lock =
+  /* p->lock =
       (pthread_mutex_t *)csound->QueryGlobalVariable(csound, "::faustlock::");
   if (p->lock == NULL) {
     csound->CreateGlobalVariable(csound,
@@ -346,11 +349,29 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
     pthread_mutex_init(p->lock, NULL);
     // csound->Message(csound, "lock created %p\n", p->lock);
   }
-
+  */
+  
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, *p->stacksize * MBYTE);
   pthread_create(&thread, &attr, init_faustcompile_thread, data);
-  return OK;
+
+  if(!async) {
+  int32_t *ret;
+  pthread_join(thread, (void **)&ret);
+  if (ret == NULL)
+    return OK;
+  else
+    return NOTOK;
+  }
+  else return OK;
+}
+
+int32_t init_faustcompile_async(CSOUND *csound, faustcompile *p) {
+  return init_faustcompile(csound, p, 1);
+}
+
+int32_t init_faustcompile_sync(CSOUND *csound, faustcompile *p) {
+  return init_faustcompile(csound, p, 0);
 }
 
 /**
@@ -422,6 +443,7 @@ int32_t delete_faustgen(CSOUND *csound, void *p) {
   return OK;
 }
 
+
 int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   int32_t factory;
   OPARMS parms;
@@ -429,8 +451,16 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   llvm_dsp *dsp;
   controls *ctls = new controls();
   const char *varname = "::dsp";
-  while ((int32_t)*((MYFLT *)p->code) == -1)
+  int timout = 0;
+  while (*((MYFLT *)p->code) == -1.0) {
     csound->Sleep(1);
+    timout++;
+    if(timout > 10) {
+      return csound->InitError(
+        csound, "%s", Str("Faust code was not ready. Try compiling it \n" 
+                          "in a separate instrument prior to running it here\n"));
+    }
+  }
 
 
   factory = (int32_t)*((MYFLT *)p->code);
@@ -775,7 +805,9 @@ static OENTRY localops[] = {
      (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"SM",
      (SUBR)init_faustgen, (SUBR)perf_faust},
     {(char *)"faustcompile", S(faustcompile), 0, 1, (char *)"i", (char *)"SSp",
-     (SUBR)init_faustcompile, NULL, NULL},
+     (SUBR)init_faustcompile_async, NULL, NULL},
+    {(char *)"faustcompile2", S(faustcompile), 0, 1, (char *)"i", (char *)"SSp",
+     (SUBR)init_faustcompile_sync, NULL, NULL},
     {(char *)"faustaudio", S(faustgen), 0, 3,
      (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"iM",
      (SUBR)init_faustaudio, (SUBR)perf_faust},
