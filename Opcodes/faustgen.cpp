@@ -192,7 +192,7 @@ struct faustcompile {
   STRINGDAT *args;
   MYFLT *stacksize;
   llvm_dsp_factory *factory;
-  pthread_mutex_t *lock;
+  //pthread_mutex_t *lock;
 };
 
 char **parse_cmd(CSOUND *csound, char *str, int32_t *argc) {
@@ -258,14 +258,6 @@ struct hdata {
   CSOUND *csound;
 };
 
-#if defined(MSVC)
-#define ATOMIC_SETP(var, val)  InterlockedExchange(var, val);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_SETP(var, val) __sync_lock_test_and_set(var, val);
-#else
-#define ATOMIC_SETP(var, val) var = val;
-#endif
-
 void *init_faustcompile_thread(void *pp) {
 
   faustcompile *p = ((hdata *)pp)->p;
@@ -274,24 +266,25 @@ void *init_faustcompile_thread(void *pp) {
   llvm_dsp_factory *factory;
   int32_t argc = 0;
   std::string err_msg;
-  char *cmd = (char *)csound->Malloc(csound, p->args->size + 8);
+  char *cmd = (char *) csound->Calloc(csound, p->args->size + 9);
+  char *ccode = csound->Strdup(csound, p->code->data);
   int32_t ret;
 
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
   strcat(cmd, " -double");
 #endif
-  const char **argv = (const char **)parse_cmd(csound, cmd, &argc);
+  const char **argv = (const char **) parse_cmd(csound, cmd, &argc);
   const char *varname = "::factory";
 
   // Need to protect this
 
-  csound->LockMutex(p->lock);
+  //csound->LockMutex(p->lock);
   // csound->Message(csound, "lock %p\n", p->lock);
-  factory = createDSPFactoryFromString("faustop", (const char *)p->code->data,
+  factory = createDSPFactoryFromString("faustop", (const char *) ccode,
                                        argc, argv, "", err_msg, 3);
   // csound->Message(csound, "unlock %p\n", p->lock);
-  csound->UnlockMutex(p->lock);
+  // csound->UnlockMutex(p->lock);
 
   if (factory == NULL) {
     csound->Message(csound, Str("\nFaust compilation problem:\nline %s\n"),
@@ -299,6 +292,7 @@ void *init_faustcompile_thread(void *pp) {
     *(p->hptr) = FL(-2.0); // error code.
     csound->Free(csound, argv);
     csound->Free(csound, cmd);
+    csound->Free(csound, ccode);
     csound->Free(csound, pp);
     ret = -1;
     pthread_exit(&ret);
@@ -324,10 +318,11 @@ void *init_faustcompile_thread(void *pp) {
     ffactory->obj = factory;
   }
   p->factory = factory;
-  ATOMIC_SETP((int64_t *) p->hptr, ffactory->cnt);
+  *p->hptr = FL(ffactory->cnt);
   csound->RegisterResetCallback(csound, p, delete_faustcompile);
   csound->Free(csound, argv);
   csound->Free(csound, cmd);
+  csound->Free(csound, ccode);
   csound->Free(csound, pp);
 
   csound->Message(csound, "Successfully compiled faust code\n");
@@ -342,9 +337,9 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
   hdata *data = (hdata *)csound->Malloc(csound, sizeof(hdata));
   data->csound = csound;
   data->p = p;
-  *p->hptr = -1;
+  *p->hptr = -1.0;
 
-  p->lock =
+  /* p->lock =
       (pthread_mutex_t *)csound->QueryGlobalVariable(csound, "::faustlock::");
   if (p->lock == NULL) {
     csound->CreateGlobalVariable(csound,
@@ -354,7 +349,8 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
     pthread_mutex_init(p->lock, NULL);
     // csound->Message(csound, "lock created %p\n", p->lock);
   }
-
+  */
+  
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, *p->stacksize * MBYTE);
   pthread_create(&thread, &attr, init_faustcompile_thread, data);
@@ -431,14 +427,6 @@ int32_t delete_faustgen(CSOUND *csound, void *p) {
 }
 
 
-#ifdef MSVC
-#define ATOMIC_GET8P(var) InterlockedExchangeAdd8(&var, 0)
-#elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_GET8P(var) __atomic_load_n(var, __ATOMIC_SEQ_CST)
-#else
-#define ATOMIC_GET8P(var) var
-#endif
-
 int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   int32_t factory;
   OPARMS parms;
@@ -447,7 +435,7 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   controls *ctls = new controls();
   const char *varname = "::dsp";
   int timout = 0;
-  while (ATOMIC_GET8P((int64_t *)p->code) == -1) {
+  while (*((MYFLT *)p->code) == -1.0) {
     csound->Sleep(1);
     timout++;
     if(timout > 10) {
