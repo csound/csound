@@ -49,6 +49,8 @@ audio file.  This should preserve most compatibility issues.
 
 - OSCcount returns the number of OSC incoming messages pending
 
+- faustcompile2 [NOT DOCUMENTED]
+
 ### New Gen and Macros
 
 - 
