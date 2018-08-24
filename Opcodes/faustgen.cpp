@@ -331,7 +331,7 @@ void *init_faustcompile_thread(void *pp) {
 }
 
 #define MBYTE 1048576
-int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
+int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
   pthread_t thread;
   pthread_attr_t attr;
   hdata *data = (hdata *)csound->Malloc(csound, sizeof(hdata));
@@ -354,7 +354,24 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, *p->stacksize * MBYTE);
   pthread_create(&thread, &attr, init_faustcompile_thread, data);
-  return OK;
+
+  if(!async) {
+  int32_t *ret;
+  pthread_join(thread, (void **)&ret);
+  if (ret == NULL)
+    return OK;
+  else
+    return NOTOK;
+  }
+  else return OK;
+}
+
+int32_t init_faustcompile_async(CSOUND *csound, faustcompile *p) {
+  return init_faustcompile(csound, p, 1);
+}
+
+int32_t init_faustcompile_sync(CSOUND *csound, faustcompile *p) {
+  return init_faustcompile(csound, p, 0);
 }
 
 /**
@@ -788,7 +805,9 @@ static OENTRY localops[] = {
      (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"SM",
      (SUBR)init_faustgen, (SUBR)perf_faust},
     {(char *)"faustcompile", S(faustcompile), 0, 1, (char *)"i", (char *)"SSp",
-     (SUBR)init_faustcompile, NULL, NULL},
+     (SUBR)init_faustcompile_async, NULL, NULL},
+    {(char *)"faustcompile2", S(faustcompile), 0, 1, (char *)"i", (char *)"SSp",
+     (SUBR)init_faustcompile_sync, NULL, NULL},
     {(char *)"faustaudio", S(faustgen), 0, 3,
      (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"iM",
      (SUBR)init_faustaudio, (SUBR)perf_faust},
