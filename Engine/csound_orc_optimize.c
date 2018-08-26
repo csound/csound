@@ -127,6 +127,8 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
     while (current) {
       if (PARSER_DEBUG) printf("in loop: curremt->type = %d\n", current->type);
       if (current->type == T_OPCODE &&
+          current->left != NULL &&
+          current->right != NULL &&
           current->left->value->lexeme[0]=='#') {
         TREE *nxt = current->next;
         if (PARSER_DEBUG) {
@@ -143,8 +145,12 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
         }
       }
       else {
-        current->right = remove_excess_assigns(csound, current->right);
-        current->left = remove_excess_assigns(csound, current->left);
+        if (current->right != NULL) {
+          current->right = remove_excess_assigns(csound, current->right);
+        }
+        if (current->left != NULL) {
+          current->left = remove_excess_assigns(csound, current->left);
+        }
       }
       current = current->next;
     }
