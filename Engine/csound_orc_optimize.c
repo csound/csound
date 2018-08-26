@@ -80,7 +80,7 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
     return root;
 }
 
-/** Verifies and optimise; constant fold and opcodes and args are correct*/
+/** Verifies opcodes and args are correct*/
 /* The wrong place to fold constants so done in parser -- JPff */
 static TREE * verify_tree1(CSOUND *csound, TREE *root)
 {
@@ -121,6 +121,37 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
     return root;
 }
 
+static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
+{
+    TREE* current = root;
+    while (current) {
+      if (PARSER_DEBUG) printf("in loop: curremt->type = %d\n", current->type);
+      if (current->type == T_OPCODE &&
+          current->left->value->lexeme[0]=='#') {
+        TREE *nxt = current->next;
+        if (PARSER_DEBUG) {
+          printf("passes test1 %s\n", current->left->value->lexeme);
+          printf("next type = %d; lexeme %s\n", nxt->type, nxt->right->value->lexeme);
+        }      
+        if (nxt->type == '=' &&
+            !strcmp(current->left->value->lexeme,nxt->right->value->lexeme)) {
+          if (PARSER_DEBUG) printf("passes test2\n");
+          csound->Free(csound, current->left->value);
+          current->left->value = nxt->left->value;
+          current->next = nxt->next;
+          csound->Free(csound,nxt);
+        }
+      }
+      else {
+        current->right = remove_excess_assigns(csound, current->right);
+        current->left = remove_excess_assigns(csound, current->left);
+      }
+      current = current->next;
+    }
+    return root;
+}
+
+/* Called directly from the parser */
 TREE* constant_fold(CSOUND *csound, TREE* root)
 {
     extern MYFLT MOD(MYFLT, MYFLT);
@@ -336,5 +367,5 @@ TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
       last = root;
       root = root->next;
     }
-    return original;
+    return remove_excess_assigns(csound,original);
 }
