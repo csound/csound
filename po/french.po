@@ -7017,6 +7017,8 @@ msgid ""
 "Faust code was not ready. Try compiling it \n"
 "in a separate instrument prior to running it here\n"
 msgstr ""
+"Le code Faust n'était pas prêt. Essayez de le compiler \n"
+"dans un instrument séparé avant de l'exécuter ici\n"
 
 #: Opcodes/faustgen.cpp:476 Opcodes/faustgen.cpp:722
 msgid ""
