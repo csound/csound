@@ -37,7 +37,9 @@
 #include "csdl.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/UI.h"
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 #include <string>
 #if defined(MACOSX) || defined(linux) || defined(HAIKU)
 #include <unistd.h>
@@ -192,7 +194,7 @@ struct faustcompile {
   STRINGDAT *args;
   MYFLT *stacksize;
   llvm_dsp_factory *factory;
-  pthread_t thread;
+  uintptr_t thread;
   //pthread_mutex_t *lock;
 };
 
@@ -234,7 +236,9 @@ int32_t delete_faustcompile(CSOUND *csound, void *p) {
 
   faustcompile *pp = ((faustcompile *)p);
   faustobj *fobj, *prv, **pfobj;
-  pthread_join(pp->thread, NULL);
+#ifdef HAVE_PTHREAD
+  pthread_join((pthread_t) pp->thread, NULL);
+#endif
   pfobj = (faustobj **)csound->QueryGlobalVariable(csound, "::factory");
   fobj = *pfobj;
   prv = fobj;
@@ -298,7 +302,11 @@ void *init_faustcompile_thread(void *pp) {
     csound->Free(csound, ccode);
     csound->Free(csound, pp);
     ret = -1;
+#ifdef HAVE_PTHREAD
     pthread_exit(&ret);
+#else
+    return NULL;
+#endif
   }
 
   pffactory = (faustobj **)csound->QueryGlobalVariable(csound, varname);
@@ -334,8 +342,7 @@ void *init_faustcompile_thread(void *pp) {
 
 #define MBYTE 1048576
 int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
-  pthread_t thread;
-  pthread_attr_t attr;
+  uintptr_t thread;
   hdata *data = (hdata *)csound->Malloc(csound, sizeof(hdata));
   data->csound = csound;
   data->p = p;
@@ -352,18 +359,32 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
     // csound->Message(csound, "lock created %p\n", p->lock);
   }
   */
-  
+
+#ifdef HAVE_PTHREAD
+  pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, *p->stacksize * MBYTE);
-  pthread_create(&thread, &attr, init_faustcompile_thread, data);
+  pthread_create((pthread_t *) &thread, &attr, init_faustcompile_thread, data);
+#else
+  // FIXME: for systems with no pthreads (e.g. Windows - MSVC)
+  // a means of setting the stack size will need to be found
+  thread = (uintptr_t)
+    csound->CreateThread((uintptr_t (*)(void *))init_faustcompile_thread, data); 
+#endif
+ 
   p->thread = thread;
   if(!async) {
+#ifdef HAVE_PTHREAD
   int32_t *ret;
-  pthread_join(thread, (void **)&ret);
+  pthread_join((pthread_t) thread, (void **)&ret);
   if (ret == NULL)
     return OK;
   else
     return NOTOK;
+#else
+  csound->JoinThread((void *) thread);
+  return OK;
+#endif
   }
   else return OK;
 }
@@ -839,7 +860,11 @@ void *init_faustgen_thread(void *pp) {
     int32_t ret = csound->InitError(csound, Str("Faust compilation problem: %s\n"),
                                 err_msg.c_str());
     csound->Free(csound, pp);
+#ifdef HAVE_PTHREAD
     pthread_exit(&ret);
+#else
+    return NULL;
+#endif
   }
 
   dsp = p->factory->createDSPInstance();
@@ -847,7 +872,11 @@ void *init_faustgen_thread(void *pp) {
     int32_t ret = csound->InitError(csound, "%s",
                                     Str("Faust instantiation problem\n"));
     csound->Free(csound, pp);
+#ifdef HAVE_PTHREAD
     pthread_exit(&ret);
+#else
+    return NULL;
+#endif
   }
 
   dsp->buildUserInterface(ctls);
@@ -915,20 +944,29 @@ void *init_faustgen_thread(void *pp) {
 }
 
 int32_t init_faustgen(CSOUND *csound, faustgen *p) {
-  pthread_t thread;
+  uintptr_t thread;
   pthread_attr_t attr;
   int32_t *ret;
   hdata2 *data = (hdata2 *)csound->Malloc(csound, sizeof(hdata2));
   data->csound = csound;
   data->p = p;
+#ifdef HAVE_PTHREAD
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, MBYTE);
-  pthread_create(&thread, &attr, init_faustgen_thread, data);
-  pthread_join(thread, (void **)&ret);
+  pthread_create((pthread_t *)&thread, &attr, init_faustgen_thread, data);
+  pthread_join((pthread_t)thread, (void **)&ret);
   if (ret == NULL)
     return OK;
   else
     return NOTOK;
+#else
+  // FIXME: for systems with no pthreads (e.g. Windows - MSVC)
+  // a means of setting the stack size will need to be found
+  thread = (uintptr_t)
+    csound->CreateThread((uintptr_t (*)(void *))init_faustcompile_thread, data);
+  csound->JoinThread((void *)thread);
+  return OK;
+#endif
 }
 
 int32_t perf_faust(CSOUND *csound, faustgen *p) {
