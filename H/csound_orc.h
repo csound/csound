@@ -47,6 +47,7 @@ typedef struct type_table {
 
 
 #ifndef PARSER_DEBUG
+
 #define PARSER_DEBUG (0)
 #endif
 
