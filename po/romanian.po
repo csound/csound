@@ -534,28 +534,28 @@ msgstr ""
 msgid "No number following instr\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:245 Engine/csound_pre.lex:290
+#: Engine/csound_pre.lex:246 Engine/csound_pre.lex:292
 #: Engine/csound_prs.lex:174 Engine/csound_prs.lex:227
 #: Engine/csound_prs.lex:572
 #, c-format
 msgid "Undefined macro: '%s'"
 msgstr ""
 
-#: Engine/csound_pre.lex:259 Engine/csound_pre.lex:304
-#: Engine/csound_pre.lex:309 Engine/csound_pre.lex:319
-#: Engine/csound_pre.lex:352 Engine/csound_pre.lex:373
-#: Engine/csound_pre.lex:775 Engine/csound_pre.lex:835
-#: Engine/csound_pre.lex:869 Engine/csound_pre.lex:875
-#: Engine/csound_pre.lex:888 Engine/csound_pre.lex:896
-#: Engine/csound_pre.lex:904 Engine/csound_pre.lex:915
-#: Engine/csound_pre.lex:924 Engine/csound_pre.lex:932
-#: Engine/csound_pre.lex:978 Engine/csound_pre.lex:990
-#: Engine/csound_pre.lex:1004 Engine/csound_pre.lex:1013
-#: Engine/csound_pre.lex:1035 Engine/csound_pre.lex:1043
-#: Engine/csound_pre.lex:1080 Engine/csound_pre.lex:1090
-#: Engine/csound_pre.lex:1099 Engine/csound_pre.lex:1156
-#: Engine/csound_pre.lex:1299 Engine/csound_pre.lex:1312
-#: Engine/csound_pre.lex:1327 Engine/csound_prs.lex:193
+#: Engine/csound_pre.lex:260 Engine/csound_pre.lex:306
+#: Engine/csound_pre.lex:311 Engine/csound_pre.lex:321
+#: Engine/csound_pre.lex:354 Engine/csound_pre.lex:375
+#: Engine/csound_pre.lex:790 Engine/csound_pre.lex:863
+#: Engine/csound_pre.lex:903 Engine/csound_pre.lex:909
+#: Engine/csound_pre.lex:922 Engine/csound_pre.lex:930
+#: Engine/csound_pre.lex:938 Engine/csound_pre.lex:949
+#: Engine/csound_pre.lex:958 Engine/csound_pre.lex:966
+#: Engine/csound_pre.lex:1012 Engine/csound_pre.lex:1024
+#: Engine/csound_pre.lex:1038 Engine/csound_pre.lex:1047
+#: Engine/csound_pre.lex:1069 Engine/csound_pre.lex:1077
+#: Engine/csound_pre.lex:1114 Engine/csound_pre.lex:1124
+#: Engine/csound_pre.lex:1133 Engine/csound_pre.lex:1190
+#: Engine/csound_pre.lex:1333 Engine/csound_pre.lex:1346
+#: Engine/csound_pre.lex:1361 Engine/csound_prs.lex:193
 #: Engine/csound_prs.lex:242 Engine/csound_prs.lex:247
 #: Engine/csound_prs.lex:257 Engine/csound_prs.lex:309
 #: Engine/csound_prs.lex:553 Engine/csound_prs.lex:623
@@ -575,73 +575,73 @@ msgstr ""
 msgid "Memory exhausted"
 msgstr ""
 
-#: Engine/csound_pre.lex:271 Engine/csound_pre.lex:398
+#: Engine/csound_pre.lex:273 Engine/csound_pre.lex:402
 #: Engine/csound_prs.lex:207 Engine/csound_prs.lex:334
 msgid "macros/include nested too deep: "
 msgstr ""
 
-#: Engine/csound_pre.lex:327 Engine/csound_prs.lex:265
+#: Engine/csound_pre.lex:329 Engine/csound_prs.lex:265
 msgid "Too few arguments to macro\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:341 Engine/csound_prs.lex:278
+#: Engine/csound_pre.lex:343 Engine/csound_prs.lex:278
 #, c-format
 msgid ""
 "Missing argument terminator\n"
 "%.98s"
 msgstr ""
 
-#: Engine/csound_pre.lex:439
+#: Engine/csound_pre.lex:443
 msgid "unexpected EOF!"
 msgstr ""
 
-#: Engine/csound_pre.lex:514 Engine/csound_prs.lex:459
+#: Engine/csound_pre.lex:522 Engine/csound_prs.lex:459
 #, c-format
 msgid "Unexpected character %c(%.2x) line %d\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:553 Engine/csound_prs.lex:498
+#: Engine/csound_pre.lex:561 Engine/csound_prs.lex:498
 msgid "#else without #if\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:557 Engine/csound_pre.lex:1217
+#: Engine/csound_pre.lex:565 Engine/csound_pre.lex:1251
 #: Engine/csound_prs.lex:502 Engine/csound_prs.lex:1396
 msgid "#else after #else\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:575 Engine/csound_prs.lex:520
+#: Engine/csound_pre.lex:583 Engine/csound_prs.lex:520
 msgid "Unmatched #end\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:740 Engine/csound_prs.lex:922
+#: Engine/csound_pre.lex:748 Engine/csound_prs.lex:922
 msgid "Ill formed #include ignored"
 msgstr ""
 
-#: Engine/csound_pre.lex:750 Engine/csound_pre.lex:810
+#: Engine/csound_pre.lex:758 Engine/csound_pre.lex:831
 #: Engine/csound_prs.lex:931 Engine/csound_prs.lex:994
 msgid "Includes nested too deeply"
 msgstr ""
 
-#: Engine/csound_pre.lex:765 Engine/csound_pre.lex:825
+#: Engine/csound_pre.lex:773 Engine/csound_pre.lex:846
 #: Engine/csound_prs.lex:948 Engine/csound_prs.lex:1009
 #, c-format
 msgid "%s is a directory; not including"
 msgstr ""
 
-#: Engine/csound_pre.lex:769 Engine/csound_pre.lex:829
+#: Engine/csound_pre.lex:784 Engine/csound_pre.lex:857
 #: Engine/csound_prs.lex:952 Engine/csound_prs.lex:1013
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:941 Engine/csound_prs.lex:1120
+#: Engine/csound_pre.lex:975 Engine/csound_prs.lex:1120
 msgid "macro error\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:946 Engine/csound_pre.lex:950
-#: Engine/csound_pre.lex:957 Engine/csound_pre.lex:963
-#: Engine/csound_pre.lex:1050 Engine/csound_pre.lex:1054
-#: Engine/csound_pre.lex:1061 Engine/csound_pre.lex:1067
+#: Engine/csound_pre.lex:980 Engine/csound_pre.lex:984
+#: Engine/csound_pre.lex:991 Engine/csound_pre.lex:997
+#: Engine/csound_pre.lex:1084 Engine/csound_pre.lex:1088
+#: Engine/csound_pre.lex:1095 Engine/csound_pre.lex:1101
 #: Engine/csound_prs.lex:1125 Engine/csound_prs.lex:1129
 #: Engine/csound_prs.lex:1136 Engine/csound_prs.lex:1142
 #: Engine/csound_prs.lex:1229 Engine/csound_prs.lex:1233
@@ -649,40 +649,40 @@ msgstr ""
 msgid "define macro runaway\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:970 Engine/csound_pre.lex:1074
+#: Engine/csound_pre.lex:1004 Engine/csound_pre.lex:1108
 #: Engine/csound_prs.lex:1149
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:984 Engine/csound_prs.lex:1163
+#: Engine/csound_pre.lex:1018 Engine/csound_prs.lex:1163
 msgid "define macro with args: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1085 Engine/csound_prs.lex:1264
+#: Engine/csound_pre.lex:1119 Engine/csound_prs.lex:1264
 msgid "define macro: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1120 Engine/csound_prs.lex:1299
+#: Engine/csound_pre.lex:1154 Engine/csound_prs.lex:1299
 #, c-format
 msgid "macro %s undefined\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1135 Engine/csound_prs.lex:1314 Engine/sread.c:219
+#: Engine/csound_pre.lex:1169 Engine/csound_prs.lex:1314 Engine/sread.c:219
 msgid "Undefining undefined macro"
 msgstr ""
 
-#: Engine/csound_pre.lex:1190 Engine/csound_prs.lex:1369
+#: Engine/csound_pre.lex:1224 Engine/csound_prs.lex:1369
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1292 Engine/csound_prs.lex:1434
+#: Engine/csound_pre.lex:1326 Engine/csound_prs.lex:1434
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1295
+#: Engine/csound_pre.lex:1329
 msgid "Invalid macro name for --omacro"
 msgstr ""
 
@@ -4181,35 +4181,35 @@ msgstr ""
 msgid "pvsout error %d:channel not found or not right type"
 msgstr ""
 
-#: OOps/bus.c:1131 OOps/bus.c:1180 OOps/bus.c:1201 OOps/bus.c:1248
+#: OOps/bus.c:1137 OOps/bus.c:1186 OOps/bus.c:1207 OOps/bus.c:1254
 msgid "invalid mode parameter"
 msgstr ""
 
-#: OOps/bus.c:1168 OOps/bus.c:1290
+#: OOps/bus.c:1174 OOps/bus.c:1296
 msgid "invalid channel parameters"
 msgstr ""
 
-#: OOps/bus.c:1256
+#: OOps/bus.c:1262
 msgid "channel already exists"
 msgstr ""
 
-#: OOps/bus.c:1293
+#: OOps/bus.c:1299
 msgid "invalid export variable"
 msgstr ""
 
-#: OOps/bus.c:1379
+#: OOps/bus.c:1385
 msgid "read failure in sensekey\n"
 msgstr ""
 
-#: OOps/bus.c:1387
+#: OOps/bus.c:1393
 msgid "sensekey error:"
 msgstr ""
 
-#: OOps/bus.c:1490 OOps/bus.c:1516 OOps/bus.c:1557 OOps/bus.c:1584
+#: OOps/bus.c:1496 OOps/bus.c:1522 OOps/bus.c:1563 OOps/bus.c:1590
 msgid "InputChannelCallback not set."
 msgstr ""
 
-#: OOps/bus.c:1635 OOps/bus.c:1661 OOps/bus.c:1689 OOps/bus.c:1715
+#: OOps/bus.c:1641 OOps/bus.c:1667 OOps/bus.c:1695 OOps/bus.c:1721
 msgid "OutputChannelCallback not set."
 msgstr ""
 
@@ -5988,82 +5988,82 @@ msgstr ""
 msgid "reverbx: not initialised"
 msgstr ""
 
-#: Opcodes/OSC.c:153
+#: Opcodes/OSC.c:155
 msgid "Too many arguments to OSCsend"
 msgstr ""
 
-#: Opcodes/OSC.c:231
+#: Opcodes/OSC.c:233
 msgid "Failed to set multicast"
 msgstr ""
 
-#: Opcodes/OSC.c:294
+#: Opcodes/OSC.c:296
 msgid "Time stamp is two values"
 msgstr ""
 
-#: Opcodes/OSC.c:318
+#: Opcodes/OSC.c:320
 #, c-format
 msgid "ftable %.2f does not exist"
 msgstr ""
 
-#: Opcodes/OSC.c:354
+#: Opcodes/OSC.c:356
 #, c-format
 msgid "argument %d is not an array"
 msgstr ""
 
-#: Opcodes/OSC.c:379
+#: Opcodes/OSC.c:381
 #, c-format
 msgid "Unknown OSC type %c\n"
 msgstr ""
 
-#: Opcodes/OSC.c:440
+#: Opcodes/OSC.c:421
 msgid "OSC: failed to allocate globals"
 msgstr ""
 
-#: Opcodes/OSC.c:588
+#: Opcodes/OSC.c:584
 msgid "OSC deinitiatised\n"
 msgstr ""
 
-#: Opcodes/OSC.c:611 Opcodes/OSC.c:647
+#: Opcodes/OSC.c:607 Opcodes/OSC.c:643
 #, c-format
 msgid "cannot start OSC listener on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:620
+#: Opcodes/OSC.c:616
 #, c-format
 msgid "OSC listener #%d started on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:657
+#: Opcodes/OSC.c:653
 #, c-format
 msgid "OSC multicast listener #%d started on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:727 Opcodes/OSC.c:1041
+#: Opcodes/OSC.c:723 Opcodes/OSC.c:1045
 msgid "OSC not running"
 msgstr ""
 
-#: Opcodes/OSC.c:731 Opcodes/OSC.c:1045
+#: Opcodes/OSC.c:727 Opcodes/OSC.c:1049
 msgid "invalid handle"
 msgstr ""
 
-#: Opcodes/OSC.c:739
+#: Opcodes/OSC.c:735
 msgid "invalid number of arguments"
 msgstr ""
 
-#: Opcodes/OSC.c:742 Opcodes/OSC.c:764 Opcodes/OSC.c:769
+#: Opcodes/OSC.c:738 Opcodes/OSC.c:760 Opcodes/OSC.c:765
 msgid "argument list inconsistent with format string"
 msgstr ""
 
-#: Opcodes/OSC.c:773 Opcodes/OSC.c:1062
+#: Opcodes/OSC.c:769 Opcodes/OSC.c:1066
 msgid "invalid type"
 msgstr ""
 
-#: Opcodes/OSC.c:889
+#: Opcodes/OSC.c:885
 #, c-format
 msgid "Invalid ftable no. %d"
 msgstr ""
 
-#: Opcodes/OSC.c:894 Opcodes/OSC.c:905
+#: Opcodes/OSC.c:890 Opcodes/OSC.c:901
 msgid "OSC internal error"
 msgstr ""
 
@@ -6720,7 +6720,7 @@ msgstr ""
 msgid "Source sft table %.2f not found."
 msgstr ""
 
-#: Opcodes/faustgen.cpp:289
+#: Opcodes/faustgen.cpp:293
 #, c-format
 msgid ""
 "\n"
@@ -6728,53 +6728,59 @@ msgid ""
 "line %s\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:415
+#: Opcodes/faustgen.cpp:447 Opcodes/faustgen.cpp:690
 #, c-format
 msgid "could not find DSP %p for deletion"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:438
+#: Opcodes/faustgen.cpp:467 Opcodes/faustgen.cpp:712
+msgid ""
+"Faust code was not ready. Try compiling it \n"
+"in a separate instrument prior to running it here\n"
+msgstr ""
+
+#: Opcodes/faustgen.cpp:476 Opcodes/faustgen.cpp:722
 msgid ""
 "Faust code did not compile properly.\n"
 "Check above messages for Faust compiler errors\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:443
+#: Opcodes/faustgen.cpp:481 Opcodes/faustgen.cpp:727
 msgid "no factory available\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:448
+#: Opcodes/faustgen.cpp:486 Opcodes/faustgen.cpp:732
 #, c-format
 msgid "factory not found %d\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:454 Opcodes/faustgen.cpp:564
+#: Opcodes/faustgen.cpp:492 Opcodes/faustgen.cpp:738 Opcodes/faustgen.cpp:848
 msgid "Faust instantiation problem\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:494 Opcodes/faustgen.cpp:601
-msgid "wrong number of input args\n"
-msgstr ""
-
-#: Opcodes/faustgen.cpp:498 Opcodes/faustgen.cpp:610
-msgid "wrong number of output args\n"
-msgstr ""
-
-#: Opcodes/faustgen.cpp:555
-#, c-format
-msgid "Faust compilation problem: %s\n"
-msgstr ""
-
-#: Opcodes/faustgen.cpp:737
+#: Opcodes/faustgen.cpp:558 Opcodes/faustgen.cpp:1021
 msgid "no dsp instances available\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:743
+#: Opcodes/faustgen.cpp:564 Opcodes/faustgen.cpp:1027
 #, c-format
 msgid "dsp instance not found %d\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:748
+#: Opcodes/faustgen.cpp:573 Opcodes/faustgen.cpp:778 Opcodes/faustgen.cpp:885
+msgid "wrong number of input args\n"
+msgstr ""
+
+#: Opcodes/faustgen.cpp:577 Opcodes/faustgen.cpp:782 Opcodes/faustgen.cpp:894
+msgid "wrong number of output args\n"
+msgstr ""
+
+#: Opcodes/faustgen.cpp:839
+#, c-format
+msgid "Faust compilation problem: %s\n"
+msgstr ""
+
+#: Opcodes/faustgen.cpp:1032
 #, c-format
 msgid "dsp control %s not found\n"
 msgstr ""
@@ -11971,13 +11977,15 @@ msgstr ""
 msgid "Could not find <CsoundSynthesizer> tag in CSD file.\n"
 msgstr ""
 
-#: Top/opcode.c:172
+#: Top/opcode.c:173
 msgid "Error creating opcode list"
 msgstr ""
 
-#: Top/opcode.c:179
+#: Top/opcode.c:225
 #, c-format
-msgid "%d opcodes\n"
+msgid ""
+"%d opcodes\n"
+"\n"
 msgstr ""
 
 #: Top/server.c:57
