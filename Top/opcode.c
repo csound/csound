@@ -165,7 +165,7 @@ void list_opcodes(CSOUND *csound, int level)
     opcodeListEntry *lst;
     const char      *sp = "                    ";   /* length should be 20 */
     int             j, k;
-    int             cnt, deprec = 0, len = 0, xlen = 0;
+    int             cnt, len = 0, xlen = 0;
     int             count = 0;
 
     cnt = csoundNewOpcodeList(csound, &lst);
@@ -174,9 +174,6 @@ void list_opcodes(CSOUND *csound, int level)
       csoundDisposeOpcodeList(csound, lst);
       return;
     }
-    if ((level&2)==0)
-      for (j=0; j<cnt; j++)
-        if ((lst[j].flags&_QQ) !=0) deprec++;
 
     for (j = 0, k = -1; j < cnt; j++) {
       if ((level&1) == 0) {                         /* Print in 4 columns */
@@ -225,6 +222,6 @@ void list_opcodes(CSOUND *csound, int level)
       count++;
     }
     csound->Message(csound, "\n");
-    csound->Message(csound, Str("%d opcodes\n"), count);
+    csound->Message(csound, Str("%d opcodes\n\n"), count);
     csoundDisposeOpcodeList(csound, lst);
 }

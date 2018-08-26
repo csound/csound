@@ -2035,7 +2035,7 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     return ans;
 }
 
-static void delete_tree(CSOUND *csound, TREE *l)
+void delete_tree(CSOUND *csound, TREE *l)
 {
     while (1) {
       TREE *old = l;
