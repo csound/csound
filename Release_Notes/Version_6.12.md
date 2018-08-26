@@ -139,7 +139,8 @@ audio file.  This should preserve most compatibility issues.
 
 # SYSTEM LEVEL CHANGES
 
-- 
+- the various -zN options now reoort the number of opcodes for the request, so
+differs with respect to deprecared and polymorphic opcodes.
 
 ### System Changes
 
