@@ -240,7 +240,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                current->right->value->value==0) ||
               (current->right->type == NUMBER_TOKEN &&
                current->right->value->fvalue==0)) {
-            print_tree(csound, "X op 0\n", current);
+            //print_tree(csound, "X op 0\n", current);
             switch (current->type) {
             case '+':
             case '-':
@@ -254,7 +254,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->right = current->left->right;
                 current->left = current->left->left;
                 csound->Free(csound, tmp);
-                print_tree(csound, "X op 0 -> X\n", current);
+                //print_tree(csound, "X op 0 -> X\n", current);
               }
               break;
             case '*':
@@ -266,7 +266,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->right = NULL;
                 current->left = NULL;
                 delete_tree(csound, tmp);
-                print_tree(csound, "X op 0 -> 0\n", current);
+                //print_tree(csound, "X op 0 -> 0\n", current);
                 break;
               }
             }
@@ -276,7 +276,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                current->left->value->value==0) ||
               (current->left->type == NUMBER_TOKEN &&
                current->left->value->fvalue==0)) {
-            print_tree(csound, "0 op X\n", current);
+            //print_tree(csound, "0 op X\n", current);
             switch (current->type) {
             case '+':
             case '|':
@@ -285,7 +285,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->value = current->right->value;
                 current->left = current->right->left;
                 current->right = current->right->right;
-                print_tree(csound, "0 op X -> X\n", current);
+                //print_tree(csound, "0 op X -> X\n", current);
               break;
             case '*':
             case '/':
@@ -298,7 +298,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->right = NULL;
                 current->left = NULL;
                 delete_tree(csound, tmp);
-                print_tree(csound, "0 op X -> 0\n", current);
+                //print_tree(csound, "0 op X -> 0\n", current);
                 break;
               }
             }
@@ -308,7 +308,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                  current->right->value->value==1) ||
                 (current->right->type == NUMBER_TOKEN &&
                  current->right->value->fvalue==FL(1.0))) {
-              print_tree(csound, "X op 1\n", current);
+              //print_tree(csound, "X op 1\n", current);
               switch (current->type) {
               case '*':
               case '/':
@@ -319,7 +319,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                   current->right = current->left->right;
                   current->left = current->left->left;
                   csound->Free(csound, tmp);
-                  print_tree(csound, "X op 1 -> X\n", current);
+                  //print_tree(csound, "X op 1 -> X\n", current);
                 }
               }
             }
@@ -328,7 +328,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                  current->left->value->value==1) ||
                 (current->left->type == NUMBER_TOKEN &&
                  current->left->value->fvalue==FL(1.0))) {
-              print_tree(csound, "1 op X\n", current);
+              //print_tree(csound, "1 op X\n", current);
               switch (current->type) {
               case '*':
                 delete_tree(csound,current->left);
@@ -336,7 +336,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->value = current->right->value;
                 current->left = current->right->left;
                 current->right = current->right->right;
-                print_tree(csound, "1 op X -> X\n", current);
+                //print_tree(csound, "1 op X -> X\n", current);
                 break;
               }
             }
