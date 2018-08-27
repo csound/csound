@@ -235,55 +235,72 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           csound->Free(csound, current->right);
           current->right = current->left = NULL;
         }
-#ifdef SOMEFINEDAY
         else                    /* X op 0 */
           if ((current->right->type == INTEGER_TOKEN &&
                current->right->value->value==0) ||
               (current->right->type == NUMBER_TOKEN &&
                current->right->value->fvalue==0)) {
+            print_tree(csound, "X op 0\n", current);
             switch (current->type) {
             case '+':
             case '-':
             case '|':
             case S_BITSHIFT_LEFT:
-            case S_BITSHIFT_RIGHT:
-              current->type = current->left->type;
-              current->value = current->left->value;
-              delete_tree(csound, current->right);
-              current->right = current->left = NULL;
+            case S_BITSHIFT_RIGHT: /* return X */
+              {
+                TREE* tmp = current->right;
+                current->type = current->left->type;
+                current->value = current->left->value;
+                current->right = current->left->right;
+                current->left = current->left->left;
+                csound->Free(csound, tmp);
+                print_tree(csound, "X op 0 -> X\n", current);
+              }
               break;
             case '*':
-            case '&':
-              current->type = current->right->type;
-              current->value = current->right->value;
-              delete_tree(csound, current->left);
-              current->right = current->left = NULL;
-              break;
+            case '&':           /* return zerop */
+              {
+                TREE* tmp = current->left;
+                current->type = current->right->type;
+                current->value = current->right->value;
+                current->right = NULL;
+                current->left = NULL;
+                delete_tree(csound, tmp);
+                print_tree(csound, "X op 0 -> 0\n", current);
+                break;
+              }
             }
           }
-        else                    /* 0 op X */
+          else                    /* 0 op X */
           if ((current->left->type == INTEGER_TOKEN &&
                current->left->value->value==0) ||
               (current->left->type == NUMBER_TOKEN &&
                current->left->value->fvalue==0)) {
+            print_tree(csound, "0 op X\n", current);
             switch (current->type) {
             case '+':
-            case '-':
             case '|':
-            case S_BITSHIFT_LEFT:
-            case S_BITSHIFT_RIGHT:
-              current->type = current->right->type;
-              current->value = current->right->value;
-              delete_tree(csound, current->left);
-              current->right = current->left = NULL;
+                delete_tree(csound,current->left);
+                current->type = current->right->type;
+                current->value = current->right->value;
+                current->left = current->right->left;
+                current->right = current->right->right;
+                print_tree(csound, "0 op X -> X\n", current);
               break;
             case '*':
+            case '/':
             case '&':
-              current->type = current->left->type;
-              current->value = current->left->value;
-              delete_tree(csound, current->right);
-              current->right = current->left = NULL;
-              break;
+            case S_BITSHIFT_LEFT:
+            case S_BITSHIFT_RIGHT: /* return 0 */
+              { TREE *tmp = current->right;
+                current->type = current->left->type;
+                current->value = current->left->value;
+                current->right = NULL;
+                current->left = NULL;
+                delete_tree(csound, tmp);
+                print_tree(csound, "0 op X -> 0\n", current);
+                break;
+              }
             }
           }
           else                    /* X op 1 */
@@ -291,16 +308,19 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                  current->right->value->value==1) ||
                 (current->right->type == NUMBER_TOKEN &&
                  current->right->value->fvalue==FL(1.0))) {
+              print_tree(csound, "X op 1\n", current);
               switch (current->type) {
               case '*':
               case '/':
-                print_tree(csound, "X op 1\n", current);
-                current->type = current->left->type;
-                current->value = current->left->value;
-                delete_tree(csound, current->right);
-                current->right = current->left = NULL;
-                print_tree(csound, "-> X\n", current);
-                break;
+                {
+                  TREE* tmp = current->right;
+                  current->type = current->left->type;
+                  current->value = current->left->value;
+                  current->right = current->left->right;
+                  current->left = current->left->left;
+                  csound->Free(csound, tmp);
+                  print_tree(csound, "X op 1 -> X\n", current);
+                }
               }
             }
           else                    /* 1 op X */
@@ -308,16 +328,18 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                  current->left->value->value==1) ||
                 (current->left->type == NUMBER_TOKEN &&
                  current->left->value->fvalue==FL(1.0))) {
+              print_tree(csound, "1 op X\n", current);
               switch (current->type) {
               case '*':
+                delete_tree(csound,current->left);
                 current->type = current->right->type;
                 current->value = current->right->value;
-                delete_tree(csound, current->left);
-                current->right = current->left = NULL;
+                current->left = current->right->left;
+                current->right = current->right->right;
+                print_tree(csound, "1 op X -> X\n", current);
                 break;
               }
             }
-#endif
         break;
       case S_UMINUS:
       case '~':
