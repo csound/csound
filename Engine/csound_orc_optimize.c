@@ -24,6 +24,7 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
+extern void print_tree(CSOUND *csound, char*, TREE *l);
 extern void delete_tree(CSOUND *csound, TREE *l);
 
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
@@ -126,7 +127,7 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
     TREE* current = root;
     while (current) {
       if (PARSER_DEBUG) printf("in loop: curremt->type = %d\n", current->type);
-      if (current->type == T_OPCODE &&
+      if ((current->type == T_OPCODE || current->type == '=') &&
           current->left != NULL &&
           current->right != NULL &&
           current->left->value->lexeme[0]=='#') {
@@ -134,7 +135,7 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
         if (PARSER_DEBUG) {
           printf("passes test1 %s\n", current->left->value->lexeme);
           printf("next type = %d; lexeme %s\n", nxt->type, nxt->right->value->lexeme);
-        }      
+        }
         if (nxt->type == '=' &&
             !strcmp(current->left->value->lexeme,nxt->right->value->lexeme)) {
           if (PARSER_DEBUG) printf("passes test2\n");
@@ -144,13 +145,9 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
           csound->Free(csound,nxt);
         }
       }
-      else {
-        if (current->right != NULL) {
+      else {                    /* no need to check for NULL */
           current->right = remove_excess_assigns(csound, current->right);
-        }
-        if (current->left != NULL) {
           current->left = remove_excess_assigns(csound, current->left);
-        }
       }
       current = current->next;
     }
@@ -238,6 +235,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           csound->Free(csound, current->right);
           current->right = current->left = NULL;
         }
+#ifdef SOMEFINEDAY
         else                    /* X op 0 */
           if ((current->right->type == INTEGER_TOKEN &&
                current->right->value->value==0) ||
@@ -295,12 +293,13 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                  current->right->value->fvalue==FL(1.0))) {
               switch (current->type) {
               case '*':
-              case '^':
               case '/':
+                print_tree(csound, "X op 1\n", current);
                 current->type = current->left->type;
                 current->value = current->left->value;
                 delete_tree(csound, current->right);
                 current->right = current->left = NULL;
+                print_tree(csound, "-> X\n", current);
                 break;
               }
             }
@@ -318,6 +317,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 break;
               }
             }
+#endif
         break;
       case S_UMINUS:
       case '~':
