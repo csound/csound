@@ -369,9 +369,9 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
   // FIXME: for systems with no pthreads (e.g. Windows - MSVC)
   // a means of setting the stack size will need to be found
   thread = (uintptr_t)
-    csound->CreateThread((uintptr_t (*)(void *))init_faustcompile_thread, data); 
+    csound->CreateThread((uintptr_t (*)(void *))init_faustcompile_thread, data);
 #endif
- 
+
   p->thread = thread;
   if(!async) {
 #ifdef HAVE_PTHREAD
@@ -447,7 +447,7 @@ struct faustdsp {
 */
 int32_t delete_faustdsp(CSOUND *csound, void *p) {
   faustdsp *pp = (faustdsp *)p;
-  faustobj *fobj, *prv, **pfobj;  
+  faustobj *fobj, *prv, **pfobj;
   pfobj = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
   fobj = *pfobj;
   prv = fobj;
@@ -485,11 +485,11 @@ int32_t init_faustdsp(CSOUND *csound, faustdsp *p) {
     timout++;
     if(timout > 1000) {
       return csound->InitError(
-        csound, "%s", Str("Faust code was not ready. Try compiling it \n" 
+        csound, "%s", Str("Faust code was not ready. Try compiling it \n"
                           "in a separate instrument prior to running it here\n"));
     }
   }
-  
+
   factory = (int32_t)*((MYFLT *)p->code);
 
   if (factory == -2)
@@ -556,7 +556,7 @@ int32_t init_faustdsp(CSOUND *csound, faustdsp *p) {
 struct faustplay {
   OPDS h;
   MYFLT *outs[MAXARG];       /* outputs */
-  MYFLT *inst;           
+  MYFLT *inst;
   MYFLT *ins[VARGMAX];       /* inputs */
   llvm_dsp *engine;          /* faust DSP */
   llvm_dsp_factory *factory; /* DSP factory */
@@ -585,7 +585,7 @@ int32_t init_faustplay(CSOUND *csound, faustplay *p) {
       return csound->InitError(csound, Str("dsp instance not found %d\n"),
                                (int32_t)*p->inst);
   }
-  
+
   p->engine = (llvm_dsp *)fobj->obj;
   p->engine->init(csound->GetSr(csound));
 
@@ -689,7 +689,7 @@ int32_t perf_faustplay(CSOUND *csound, faustplay *p) {
 */
 int32_t delete_faustgen(CSOUND *csound, void *p) {
   faustgen *pp = (faustgen *)p;
-  faustobj *fobj, *prv, **pfobj;  
+  faustobj *fobj, *prv, **pfobj;
   pfobj = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
   fobj = *pfobj;
   prv = fobj;
@@ -730,7 +730,7 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
     timout++;
     if(timout > 10) {
       return csound->InitError(
-        csound, "%s", Str("Faust code was not ready. Try compiling it \n" 
+        csound, "%s", Str("Faust code was not ready. Try compiling it \n"
                           "in a separate instrument prior to running it here\n"));
     }
   }
