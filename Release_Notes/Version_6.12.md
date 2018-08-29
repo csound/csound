@@ -34,6 +34,10 @@ gen1 and diskin ignore positive file formats and use the file header,
 unless the format is negative when it uses the absolute value in a raw
 audio file.  This should preserve most compatibility issues.
 
+There are a number of new and improved opcodes, new facilities in
+scores and many bug fixes.
+
+
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -65,6 +69,9 @@ audio file.  This should preserve most compatibility issues.
 - Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
 
 - runime error message now (usually) include a line number and a file/macro trace
+
+- multiple aasiments such as ka,kb=1,2 are again supported by the
+parser; it had inadvertantly got lost.
 
 ### Score
 
@@ -157,6 +164,9 @@ differs with respect to deprecared and polymorphic opcodes.
   a compiler flag LIBLO29) and this fixes some bugs related to
   heavy/complex use of OSClisten.  Unfortunately the older 0.28 version
   is being distributed by some Linux dustros.
+
+- The orchestra compiler has a number of new optimisations, avoiding
+unnecessary assignments and doing some more expression optimisatins.
 
 ### Translations
 

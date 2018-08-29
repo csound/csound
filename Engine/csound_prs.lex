@@ -184,7 +184,7 @@ NM              [nm][ \t]+
                        if (UNLIKELY(PARM->macro_stack_ptr+1 >=
                                     PARM->macro_stack_size)) {
                          //trace_alt_stack(csound, PARM, __LINE__);
-                         printf("***extending macro stack %p\n", PARM->alt_stack);
+                         //printf("***extending macro stack %p\n", PARM->alt_stack);
                          PARM->alt_stack =
                            (MACRON*)
                            csound->ReAlloc(csound, PARM->alt_stack,
