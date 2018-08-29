@@ -38,6 +38,7 @@
         :csoundSetOption
         :csoundStart
         :csoundCleanup
+        :render-with-csound
      )
 )
 
@@ -79,8 +80,6 @@
 (declaim (inline csoundCleanup))
 (define-alien-routine "csoundCleanup" integer (csound integer))
 
-(set-dispatch-macro-character #\# #\> #'cl-heredoc:read-heredoc)
-
 (in-package :cm)
 (use-package :sb-csound)
 
@@ -111,7 +110,7 @@ using 'test' for character equality.
           when pos do (write-string replacement out)
           while pos)))
 
-(defun render-with-csound (sequence csd-text &optional (channel-offset 1) (velocity-scale 127) (csound nil))
+(defun render-csound (sequence csd-text &optional (channel-offset 1) (velocity-scale 127) (csound nil))
 "
 Given a Common Music seq 'sequence', translates each of its events into a
 Csound 'i' statement, optionally offsetting the channel number and/or
@@ -146,6 +145,7 @@ performance, e.g.
                 (event-to-istatement event channel-offset velocity-scale))
             (setq score-list (mapcar 'curried-event-to-istatement (subobjects sequence)))
             (setq sco-text (format nil "~{~A~^ ~}" score-list))
+            (print sco-text)
             (if csound
                 (setq cs csound)
                 (progn
@@ -174,6 +174,5 @@ performance, e.g.
         )
     )
 )
-(export 'render-with-csound)
 
 
