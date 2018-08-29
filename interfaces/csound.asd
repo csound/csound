@@ -4,7 +4,7 @@
 ;;; Michael Gogins
 ;;; 11 July 2016
 ;;;
-(require :asdf)
+(require "asdf")
 (asdf::defsystem "csound"
   :name "csound"
   :description "CFFI interface to the Csound C API."
