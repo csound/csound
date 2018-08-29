@@ -11,6 +11,8 @@
   :version "1.0"
   :author "Michael Gogins <michael.gogins@gmail.com>"
   :licence "LLGPL"
+  :depends-on ("sb-posix"
+  "cm2")
   :serial t ;; the dependencies are linear.
   :components  
   ((:file "sb-csound")))
