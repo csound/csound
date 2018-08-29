@@ -38,6 +38,7 @@
         :csoundSetOption
         :csoundStart
         :csoundCleanup
+        :render-with-csound
      )
 )
 
@@ -146,6 +147,7 @@ performance, e.g.
                 (event-to-istatement event channel-offset velocity-scale))
             (setq score-list (mapcar 'curried-event-to-istatement (subobjects sequence)))
             (setq sco-text (format nil "~{~A~^ ~}" score-list))
+            (print sco-text)
             (if csound
                 (setq cs csound)
                 (progn
@@ -174,6 +176,5 @@ performance, e.g.
         )
     )
 )
-(export 'render-with-csound)
 
 

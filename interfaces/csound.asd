@@ -6,11 +6,12 @@
 ;;;
 (require :asdf)
 (asdf::defsystem "csound"
+  :name "csound"
   :description "CFFI interface to the Csound C API."
   :long-description "CFFI interface to the Csound C API."
   :version "1.0"
   :author "Michael Gogins <michael.gogins@gmail.com>"
-  :licence "LLGPL"
+  :licence "LGPL"
   :serial t ;; the dependencies are linear.
   :depends-on (:cffi)
   :components  

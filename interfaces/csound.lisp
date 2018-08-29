@@ -21,11 +21,60 @@
 ; This file is handwritten and should be maintained by keeping it up to date
 ; with regard to include/csound.h. This file is not intended to be complete
 ; and essentially defines a Lisp interface to a subset of the most useful
-; functions in csound.h. At the present time, only pointers, strings, and
+; functions in csound.h. At the present time, only pointers and
 ; other primitive types are used in this interface.
+;
+; Please note, in particular, that all strings passed to Csound are foreign 
+; strings, created for example with (setq foreign-string 
+; (cffi:foreign-string-alloc lisp-string))
 
 (defpackage :csound
-    (:use :common-lisp :cffi))
+    (:use :common-lisp :cffi :cm)
+    (:export 
+        #:csoundSetControlChannel
+        #:csoundInitialize
+        #:csoundCreate
+        #:csoundDestroy
+        #:csoundGetVersion
+        #:csoundGetAPIVersion
+        #:csoundCompileOrc
+        #:csoundEvalCode
+        #:csoundCompileArgs
+        #:csoundStart
+        #:csoundCompile
+        #:csoundCompileCsd
+        #:csoundCompileCsdText
+        #:csoundPerform
+        #:csoundPerformKsmps
+        #:csoundPerformBuffer
+        #:csoundStop
+        #:csoundCleanup
+        #:csoundReset
+        #:csoundGetSr
+        #:csoundGetKr
+        #:csoundGetKsmps
+        #:csoundGetNchnls
+        #:csoundGetNchnlsInput
+        #:csoundGet0dBFS
+        #:csoundGetCurrentTimeSamples
+        #:csoundGetSizeOfMYFLT
+        #:csoundGetHostData
+        #:csoundSetHostData
+        #:csoundSetOption
+        #:csoundGetOutputName
+        #:csoundSetOutput
+        #:csoundSetInput
+        #:csoundSetMIDIInput
+        #:csoundSetMIDIFileInput
+        #:csoundSetMIDIFileOutput
+        #:csoundSetRTAudioModule
+        #:csoundGetInputBufferSize
+        #:csoundGetOutputBufferSize
+        #:csoundGetInputBuffer
+        #:csoundGetOutputBuffer
+        #:csoundGetSpin
+        #:csoundReadScore
+        ))
 (cffi:define-foreign-library libcsound64
     (:darwin "libcsound64.dylib")
     (:unix "libcsound64.so")
@@ -33,6 +82,7 @@
     (t (:default "libcsound64")))
 (cffi:use-foreign-library libcsound64)
 (in-package :csound)
+(use-package :cm)
 
 ; You can paste below here new definitions including those created
 ; e.g. by SWIG. Be sure to TEST any changes you make to this file!
@@ -54,13 +104,13 @@
 
 ; (cffi:defcfun ("csoundRunUtility" csoundRunUtility) :int
   ; (csound :pointer)
-  ; (nayme :string)
+  ; (nayme :pointer)
   ; (argc :int)
   ; (argv :pointer))
 
 ; (cffi:defcfun ("csoundMessage" csoundMessage) :void
     ; (csound :pointer)
-    ; (control :string)
+    ; (control :pointer)
     ; &rest)
 
 ; (defun csoundMessage (csound control &rest values)
@@ -68,7 +118,7 @@
 
 (cffi:defcfun ("csoundSetControlChannel" csoundSetControlChannel) :void
   (csound :pointer)
-  (name :string)
+  (name :pointer)
   (value :double))
 
 (cffi:defcfun ("csoundInitialize" csoundInitialize) :int
@@ -86,11 +136,11 @@
 
 (cffi:defcfun ("csoundCompileOrc" csoundCompileOrc) :int
   (csound :pointer)
-  (orc :string))
+  (orc :pointer))
 
 (cffi:defcfun ("csoundEvalCode" csoundEvalCode) :double
   (csound :pointer)
-  (orc :string))
+  (orc :pointer))
 
 (cffi:defcfun ("csoundCompileArgs" csoundCompileArgs) :int
   (csound :pointer)
@@ -107,11 +157,11 @@
 
 (cffi:defcfun ("csoundCompileCsd" csoundCompileCsd) :int
   (csound :pointer)
-  (csd-pathname :string))
+  (csd-pathname :pointer))
 
 (cffi:defcfun ("csoundCompileCsdText" csoundCompileCsdText) :int
   (csound :pointer)
-  (csd-text :string))
+  (csd-text :pointer))
 
 (cffi:defcfun ("csoundPerform" csoundPerform) :int
   (csound :pointer))
@@ -163,40 +213,40 @@
 
 (cffi:defcfun ("csoundSetOption" csoundSetOption) :int
   (csound :pointer)
-  (option :string))
+  (option :pointer))
 
-(cffi:defcfun ("csoundGetOutputName" csoundGetOutputName) :string
+(cffi:defcfun ("csoundGetOutputName" csoundGetOutputName) :pointer
   (csound :pointer))
 
 (cffi:defcfun ("csoundSetOutput" csoundSetOutput) :void
   (csound :pointer)
-  (nayme :string)
-  (tipe :string)
-  (format :string))
+  (nayme :pointer)
+  (tipe :pointer)
+  (format :pointer))
 
 (cffi:defcfun ("csoundSetInput" csoundSetInput) :void
   (csound :pointer)
-  (nayme :string))
+  (nayme :pointer))
 
 (cffi:defcfun ("csoundSetMIDIInput" csoundSetMIDIInput) :void
   (csound :pointer)
-  (nayme :string))
+  (nayme :pointer))
 
 (cffi:defcfun ("csoundSetMIDIFileInput" csoundSetMIDIFileInput) :void
   (csound :pointer)
-  (nayme :string))
+  (nayme :pointer))
 
 (cffi:defcfun ("csoundSetMIDIOutput" csoundSetMIDIOutput) :void
   (csound :pointer)
-  (nayme :string))
+  (nayme :pointer))
 
 (cffi:defcfun ("csoundSetMIDIFileOutput" csoundSetMIDIFileOutput) :void
   (csound :pointer)
-  (nayme :string))
+  (nayme :pointer))
 
 (cffi:defcfun ("csoundSetRTAudioModule" csoundSetRTAudioModule) :void
   (csound :pointer)
-  (moduule :string))
+  (moduule :pointer))
 
 (cffi:defcfun ("csoundGetInputBufferSize" csoundGetInputBufferSize) :long
   (csound :pointer))
@@ -229,7 +279,7 @@
 
 (cffi:defcfun ("csoundReadScore" csoundReadScore) :int
   (csound :pointer)
-  (score :string))
+  (score :pointer))
 
 ; (cffi:defcfun ("csoundGetScoreTime" csoundGetScoreTime) :double
   ; (csound :pointer))
@@ -262,7 +312,7 @@
   ; (csound :pointer)
   ; (toStdOut :int))
 
-; (cffi:defcfun ("csoundGetFirstMessage" csoundGetFirstMessage) :string
+; (cffi:defcfun ("csoundGetFirstMessage" csoundGetFirstMessage) :pointer
   ; (csound :pointer))
 
 ; (cffi:defcfun ("csoundGetFirstMessageAttr" csoundGetFirstMessageAttr) :int
@@ -279,28 +329,28 @@
 
 ; (cffi:defcfun ("csoundGetControlChannel" csoundGetControlChannel) :double
   ; (csound :pointer)
-  ; (nayme :string)
+  ; (nayme :pointer)
   ; (err :pointer))
 
 ; (cffi:defcfun ("csoundGetAudioChannel" csoundGetAudioChannel) :void
   ; (csound :pointer)
-  ; (name :string)
+  ; (name :pointer)
   ; (samples :pointer))
 
 ; (cffi:defcfun ("csoundSetAudioChannel" csoundSetAudioChannel) :void
   ; (csound :pointer)
-  ; (name :string)
+  ; (name :pointer)
   ; (samples :pointer))
 
 ; (cffi:defcfun ("csoundGetStringChannel" csoundGetStringChannel) :void
   ; (csound :pointer)
-  ; (name :string)
-  ; (string :string))
+  ; (name :pointer)
+  ; (string :pointer))
 
 ; (cffi:defcfun ("csoundSetStringChannel" csoundSetStringChannel) :void
   ; (csound :pointer)
-  ; (name :string)
-  ; (string :string))
+  ; (name :pointer)
+  ; (string :pointer))
 
 ; (cffi:defcfun ("csoundScoreEvent" csoundScoreEvent) :int
   ; (csound :pointer)
@@ -317,7 +367,7 @@
 
 ; (cffi:defcfun ("csoundInputMessage" csoundInputMessage) :void
   ; (csound :pointer)
-  ; (message :string))
+  ; (message :pointer))
 
 ; (cffi:defcfun ("csoundIsNamedGEN" csoundIsNamedGEN) :int
   ; (csound :pointer)
@@ -326,49 +376,20 @@
 ; (cffi:defcfun ("csoundGetNamedGEN" csoundGetNamedGEN) :void
   ; (csound :pointer)
   ; (num :int)
-  ; (name :string)
+  ; (name :pointer)
   ; (len :int))
 
 ; (cffi:defcfun ("csoundAppendOpcode" csoundAppendOpcode) :int
   ; (csound :pointer)
-  ; (opname :string)
+  ; (opname :pointer)
   ; (dsblksiz :int)
   ; (flags :int)
   ; (thread :int)
-  ; (outypes :string)
-  ; (intypes :string)
+  ; (outypes :pointer)
+  ; (intypes :pointer)
   ; (iopadr :pointer)
   ; (kopadr :pointer)
   ; (aopadr :pointer))
   
-#||
-;;; Given a Common Music event source (event, seq, process, or list), 
-;;; translate each event into a Csound "i" statement, then render
-;;; the resulting score using the orc-text and options. No monkeying with files.
-(defun cm-event-to-istatement (event) 
-    (let ())
-)
-(defun render-csound (event-source orc-text options)
-    (progn
-        (format t "Building Csound score...~%")
-        (defparameter score-list (list)) 
-        (mapcar cm-event-to-istatement event-source score-list)
-        (let (sco-text (apply #'concatenate 'string list)))
-        (defparameter cs 0)
-        (defparameter result 0)
-        (setq cs (csound::csoundCreate (cffi:null-pointer)))
-        (format t "csoundCreate returned: ~S~%" cs)
-        (setq result (csound::csoundCompileOrc cs orc-text))
-        (format t "csoundCompileOrc returned: ~D~%" result)
-        (setq result (csound::readScore cs sco-text))
-        (format t "csound:readScore returned: ~D~%" result)
-        (setq result (csound::csoundStart cs))
-        (format t "csoundStart returned: ~D~%" result)
-        (loop 
-            (setq result (csound::csoundPerformKsmps cs))
-            (when (not (equal result 0))(return))
-        )        
-    ))
-||#
-
+(set-dispatch-macro-character #\# #\> #'cl-heredoc:read-heredoc)
 
