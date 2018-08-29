@@ -29,51 +29,51 @@
 ; (cffi:foreign-string-alloc lisp-string))
 
 (defpackage :csound
-    (:use :common-lisp :cffi :cm)
+    (:use :common-lisp :cffi)
     (:export 
-        #:csoundSetControlChannel
-        #:csoundInitialize
-        #:csoundCreate
-        #:csoundDestroy
-        #:csoundGetVersion
-        #:csoundGetAPIVersion
-        #:csoundCompileOrc
-        #:csoundEvalCode
-        #:csoundCompileArgs
-        #:csoundStart
-        #:csoundCompile
-        #:csoundCompileCsd
-        #:csoundCompileCsdText
-        #:csoundPerform
-        #:csoundPerformKsmps
-        #:csoundPerformBuffer
-        #:csoundStop
-        #:csoundCleanup
-        #:csoundReset
-        #:csoundGetSr
-        #:csoundGetKr
-        #:csoundGetKsmps
-        #:csoundGetNchnls
-        #:csoundGetNchnlsInput
-        #:csoundGet0dBFS
-        #:csoundGetCurrentTimeSamples
-        #:csoundGetSizeOfMYFLT
-        #:csoundGetHostData
-        #:csoundSetHostData
-        #:csoundSetOption
-        #:csoundGetOutputName
-        #:csoundSetOutput
-        #:csoundSetInput
-        #:csoundSetMIDIInput
-        #:csoundSetMIDIFileInput
-        #:csoundSetMIDIFileOutput
-        #:csoundSetRTAudioModule
-        #:csoundGetInputBufferSize
-        #:csoundGetOutputBufferSize
-        #:csoundGetInputBuffer
-        #:csoundGetOutputBuffer
-        #:csoundGetSpin
-        #:csoundReadScore
+        :csoundSetControlChannel
+        :csoundInitialize
+        :csoundCreate
+        :csoundDestroy
+        :csoundGetVersion
+        :csoundGetAPIVersion
+        :csoundCompileOrc
+        :csoundEvalCode
+        :csoundCompileArgs
+        :csoundStart
+        :csoundCompile
+        :csoundCompileCsd
+        :csoundCompileCsdText
+        :csoundPerform
+        :csoundPerformKsmps
+        :csoundPerformBuffer
+        :csoundStop
+        :csoundCleanup
+        :csoundReset
+        :csoundGetSr
+        :csoundGetKr
+        :csoundGetKsmps
+        :csoundGetNchnls
+        :csoundGetNchnlsInput
+        :csoundGet0dBFS
+        :csoundGetCurrentTimeSamples
+        :csoundGetSizeOfMYFLT
+        :csoundGetHostData
+        :csoundSetHostData
+        :csoundSetOption
+        :csoundGetOutputName
+        :csoundSetOutput
+        :csoundSetInput
+        :csoundSetMIDIInput
+        :csoundSetMIDIFileInput
+        :csoundSetMIDIFileOutput
+        :csoundSetRTAudioModule
+        :csoundGetInputBufferSize
+        :csoundGetOutputBufferSize
+        :csoundGetInputBuffer
+        :csoundGetOutputBuffer
+        :csoundGetSpin
+        :csoundReadScore
         ))
 (cffi:define-foreign-library libcsound64
     (:darwin "libcsound64.dylib")
@@ -82,7 +82,6 @@
     (t (:default "libcsound64")))
 (cffi:use-foreign-library libcsound64)
 (in-package :csound)
-(use-package :cm)
 
 ; You can paste below here new definitions including those created
 ; e.g. by SWIG. Be sure to TEST any changes you make to this file!
@@ -391,5 +390,5 @@
   ; (kopadr :pointer)
   ; (aopadr :pointer))
   
-(set-dispatch-macro-character #\# #\> #'cl-heredoc:read-heredoc)
+
 
