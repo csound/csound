@@ -996,9 +996,9 @@ OENTRY opcodlst_1[] = {
      (SUBR) sprintf_opcode, NULL, NULL                     },
   {  "sprintfk", S(SPRINTF_OP),WR,  3,  "S",    "SUN",
      (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, NULL           },
-  {  "printf_i", S(PRINTF_OP),0,   1,  "",     "SiTN",
+  {  "printf_i", S(PRINTF_OP),0,   1,  "",     "SiN", /* SiTN */
      (SUBR) printf_opcode_init, NULL, NULL                 },
-  {  "printf",   S(PRINTF_OP),WR,   3,  "",     "SkUN",
+  {  "printf",   S(PRINTF_OP),WR,   3,  "",     "SkN", /* SkUN */
      (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, NULL    },
   {  "puts",     S(PUTS_OP),WR,     3,  "",     "Sko",
      (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, NULL       },
