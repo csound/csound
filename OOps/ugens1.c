@@ -1831,13 +1831,13 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
     double val, y1, y2;
 
 
-    if (!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)) {
       return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
-    //print32_tf("nsegs = %d\n", nsegs);
+    //printf("****nsegs = %d\n", nsegs);
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
       csound->AuxAlloc(csound, (int32_t)(1+nsegs)*sizeof(SEG), &p->auxch);
@@ -1852,7 +1852,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
     p->curcnt = 0;
     p->cursegp = segp+1;          /* else setup first seg */
     p->segsrem = nsegs;
-    //printf("current seg = %p segp = %p\n", p->cursegp, segp);
+    //printf("****current seg = %p segp = %p\n", p->cursegp, segp);
     do {                                /* init each seg ..  */
       double dur = (double)**argp++;
       segp->nxtpt = (double)**argp++;
@@ -1861,8 +1861,8 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
       if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR)) < 0))
         segp->acnt = 0;
 
-      //printf("i: %d(%p): cnt=%d nxtpt=%f\n",
-      //   p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
+      //printf("****i: %d(%p): cnt=%d nxtpt=%f\n",
+      //       p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
       segp++;
     } while (--nsegs);
     p->y1 = y1;
@@ -1876,7 +1876,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
       p->inc = (y2!=y1 ? 1.0/(sp->cnt) : 0.0);
       p->curcnt = sp->cnt;
     }
-//printf("incx, y1,y2 = %g, %f, %f\n", p->inc, p->y1, p->y2);
+    //printf("****incx, y1,y2 = %g, %f, %f\n", p->inc, p->y1, p->y2);
     p->val = p->y1;
     return OK;
 }
@@ -1988,6 +1988,7 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
     }
 
     for (n=offset; n<nsmps; n++) {
+      double mu2;
       if (LIKELY(p->segsrem)) {             /* if no more segs putk */
         if (--p->curcnt <= 0) {             /*  if done cur segment */
           SEG *segp = p->cursegp;
@@ -1998,16 +1999,19 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
             goto putk;                      /*      put endval      */
           }
           val2 = p->y2 = segp->nxtpt;          /* Base of next segment */
-          p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+          inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
           x = 0.0;
+          //printf("****new seg val1.val2=%f,%f inc=%f\n", val1,val2, inc);
           p->cursegp = segp+1;              /*   else find the next */
           if (UNLIKELY(!(p->curcnt = segp->acnt))) {
             val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-            p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+            inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+            //printf("****val1,val2=%f,%f inc=%f\n", val1, val2, inc);
             goto chk1;
           }                                 /*   poslen = new slope */
         }
-        double mu2 = (1.0-cos(x*PI))*0.5;
+        mu2 = (1.0-cos(x*PI))*0.5;
+        //printf("****x=%f inc=%f mu2=%f\n", x, inc, mu2);
         rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
         x += inc;
       }
