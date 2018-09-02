@@ -102,6 +102,11 @@ parser; it had inadvertantly got lost.
 
 - chnclear can now take a list of channels to clear instead of just one.
 
+- printf and printf_i now are like the manual in all arguments beyond the
+  format and trigger are optional
+
+- prints and printks can take string arguments printed with %s
+
 ### Utilities
 
 - 
@@ -143,6 +148,8 @@ parser; it had inadvertantly got lost.
 
 - The test for compatible subtypes of f-values in a number of pvs
   opcodes was wrong, causing spurious error messages.
+
+- cosseg was broken for more than one segment; nor OK
 
 # SYSTEM LEVEL CHANGES
 

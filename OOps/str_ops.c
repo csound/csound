@@ -376,7 +376,10 @@ sprintf_opcode_(CSOUND *csound,
       StrOp_ErrMsg(p, Str("too many arguments"));
       return NOTOK;
     }
-
+    if (numVals==0) {
+      strcpy(str->data, fmt);
+      return OK;
+    }
 
     strseg = csound->Malloc(csound, siz);
     i = 0;
