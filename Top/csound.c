@@ -1500,7 +1500,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 #if defined(MSVC)
         done = InterlockedExchangeAdd(&insds->init_done, 0);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-        done = __sync_fetch_and_add((int *) &insds->init_done, 0);
+        done = __atomic_load_n((int *) &insds->init_done, __ATOMIC_SEQ_CST);
 #else
         done = insds->init_done;
 #endif

@@ -672,7 +672,7 @@ static int32_t chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
     MYFLT d;
     MYFLT_INT_TYPE i;
     } x;
-    x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *) p->fp, 0);
+    x.i = __atomic_load_n((MYFLT_INT_TYPE *) p->fp, __ATOMIC_SEQ_CST);
     *(p->arg) = x.d;
 #else
     *(p->arg) = *(p->fp);
@@ -744,7 +744,7 @@ int32_t chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
     MYFLT d;
     MYFLT_INT_TYPE i;
     } x;
-    x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *) p->fp, 0);
+    x.i = __atomic_load_n((MYFLT_INT_TYPE *) p->fp, __ATOMIC_SEQ_CST);
     *(p->arg) =  x.d;
     }
 #else
@@ -873,7 +873,7 @@ static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
       MYFLT_INT_TYPE i;
     } x;
     x.d = *(p->arg);
-    __sync_lock_test_and_set((MYFLT_INT_TYPE *)(p->fp),x.i);
+    __atomic_store_n((MYFLT_INT_TYPE *)(p->fp),x.i, __ATOMIC_SEQ_CST);
 #else
     csoundSpinLock(p->lock);
     *(p->fp) = *(p->arg);
@@ -971,7 +971,7 @@ int32_t chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
       MYFLT_INT_TYPE i;
     } x;
     x.d = *(p->arg);
-    __sync_lock_test_and_set((MYFLT_INT_TYPE *)(p->fp),x.i);
+    __atomic_store_n((MYFLT_INT_TYPE *)(p->fp),x.i, __ATOMIC_SEQ_CST);
 #else
     {
       spin_lock_t *lock;       /* Need lock for the channel */

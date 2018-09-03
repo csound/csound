@@ -1025,7 +1025,7 @@ void csoundSpinUnLock(spin_lock_t *spinlock){
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return __sync_lock_test_and_set(spinlock, 1) == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
+  return __atomic_test_and_set(spinlock, __ATOMIC_SEQ_CST) == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {

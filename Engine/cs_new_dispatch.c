@@ -38,6 +38,7 @@
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include <stdbool.h>
 
 #if defined(_MSC_VER)
 /* For InterlockedCompareExchange */
@@ -309,14 +310,14 @@ void dag_reinit(CSOUND *csound)
 #define ATOMIC_CAS(x,current,new) \
   (current == InterlockedCompareExchange(x, new, current))
 #else
-#define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
+#define ATOMIC_CAS(x,current,new)  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
 #endif
 
 #if defined(_MSC_VER)
 #define ATOMIC_CAS_PTR(x,current,new) \
   (current == InterlockedCompareExchangePointer(x, new, current))
 #else
-#define ATOMIC_CAS_PTR(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
+#define ATOMIC_CAS_PTR(x,current,new)  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
 #endif
 
 taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
@@ -343,7 +344,7 @@ taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
       switch (current_task_status) {
       case AVAILABLE :
         // Need to CAS as the value may have changed
-        if (ATOMIC_CAS(&(task_status[i].s), AVAILABLE, INPROGRESS)) {
+        if (ATOMIC_CAS(&(task_status[i].s), current_task_status, INPROGRESS)) {
           return (taskID)i;
         }
         break;
@@ -534,7 +535,7 @@ void initialiseWatch (watchList **w, taskID id) {
 
 inline watchList * getWatches(taskID id) {
 
-    return __sync_lock_test_and_set (&(watch[id]), doNotAdd);
+    return __atomic_test_and_set (&(watch[id]), doNotAdd);
 }
 
 int moveWatch (watchList **w, watchList *t) {
