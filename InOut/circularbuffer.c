@@ -86,7 +86,7 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items)
 #if defined(MSVC)
       InterlockedExchange(&((circular_buffer *)p)->rp, rp);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-      __sync_lock_test_and_set(&((circular_buffer *)p)->rp,rp);
+      __atomic_exchange_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
 #else
       ((circular_buffer *)p)->rp = rp;
 #endif
@@ -136,7 +136,7 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
 #if defined(MSVC)
       InterlockedExchange(&((circular_buffer *)p)->rp, rp);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-      __sync_lock_test_and_set(&((circular_buffer *)p)->rp,rp);
+      __atomic_store_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
 #else
       ((circular_buffer *)p)->rp = rp;
 #endif
@@ -164,7 +164,7 @@ int csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int items
 #if defined(MSVC)
       InterlockedExchange(&((circular_buffer *)p)->wp, wp);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-      __sync_lock_test_and_set(&((circular_buffer *)p)->wp,wp);
+      __atomic_store_n(&((circular_buffer *)p)->wp,wp, __ATOMIC_SEQ_CST);
 #else
       ((circular_buffer *)p)->wp = wp;
 #endif

@@ -38,6 +38,7 @@
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include <stdbool.h>
 
 #if defined(_MSC_VER)
 /* For InterlockedCompareExchange */
@@ -301,22 +302,22 @@ void dag_reinit(CSOUND *csound)
     //dag_print_state(csound);
 }
 
-//#define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0)
-//#define ATOMIC_WRITE(x,v) __sync_fetch_and_and(&(x), v)
+//#define ATOMIC_READ(x) __atomic_load(&(x), __ATOMIC_SEQ_CST)
+//#define ATOMIC_WRITE(x,v) __atomic_(&(x), v, __ATOMIC_SEQ_CST)
 #define ATOMIC_READ(x) x
 #define ATOMIC_WRITE(x,v) x = v;
 #if defined(_MSC_VER)
 #define ATOMIC_CAS(x,current,new) \
   (current == InterlockedCompareExchange(x, new, current))
 #else
-#define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
+#define ATOMIC_CAS(x,current,new)  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
 #endif
 
 #if defined(_MSC_VER)
 #define ATOMIC_CAS_PTR(x,current,new) \
   (current == InterlockedCompareExchangePointer(x, new, current))
 #else
-#define ATOMIC_CAS_PTR(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
+#define ATOMIC_CAS_PTR(x,current,new)  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
 #endif
 
 taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
@@ -343,7 +344,7 @@ taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
       switch (current_task_status) {
       case AVAILABLE :
         // Need to CAS as the value may have changed
-        if (ATOMIC_CAS(&(task_status[i].s), AVAILABLE, INPROGRESS)) {
+        if (ATOMIC_CAS(&(task_status[i].s), current_task_status, INPROGRESS)) {
           return (taskID)i;
         }
         break;
@@ -534,7 +535,7 @@ void initialiseWatch (watchList **w, taskID id) {
 
 inline watchList * getWatches(taskID id) {
 
-    return __sync_lock_test_and_set (&(watch[id]), doNotAdd);
+    return __atomic_test_and_set (&(watch[id]), doNotAdd);
 }
 
 int moveWatch (watchList **w, watchList *t) {
@@ -561,7 +562,7 @@ void appendToWL (taskID id, watchList *l) {
   do {
     w = watch[id];
     l->tail = w;
-    w = __sync_val_compare_and_swap(&(watch[id]),w,l);
+    w = __atomic_compare_exchange_n(&(watch[id]),w,l, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
   } while (!(w == l));
 
 }
