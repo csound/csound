@@ -149,7 +149,7 @@ parser; it had inadvertantly got lost.
 - The test for compatible subtypes of f-values in a number of pvs
   opcodes was wrong, causing spurious error messages.
 
-- cosseg was broken for more than one segment; nor OK
+- cosseg was broken for more than one segment; now OK
 
 # SYSTEM LEVEL CHANGES
 
