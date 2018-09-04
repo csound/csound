@@ -122,6 +122,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
     return root;
 }
 
+#ifdef JPFF
 static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
 {
     TREE* current = root;
@@ -153,6 +154,7 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
     }
     return root;
 }
+#endif
 
 /* Called directly from the parser */
 TREE* constant_fold(CSOUND *csound, TREE* root)
@@ -395,5 +397,9 @@ TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
       last = root;
       root = root->next;
     }
+#ifdef JPFF
     return remove_excess_assigns(csound,original);
+#else
+    return original;
+#endif
 }
