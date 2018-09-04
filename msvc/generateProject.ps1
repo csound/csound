@@ -1,14 +1,12 @@
 param
 (
     [string]$vsGenerator="Visual Studio 15 2017 Win64",
-    [string]$vsToolset="v141",
-    [string]$vstSdkHome
+    [string]$vsToolset="v141"
 )
 echo "Generating Csound Visual Studio solution..."
 
 echo "vsGenerator: $vsGenerator"
 echo "vsToolset:   $vsToolset"
-echo "vstSdkHome:  $vstSdkHome"
 
 $vcpkgCmake = ""
 
@@ -53,8 +51,5 @@ cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
  -DEIGEN3_INCLUDE_PATH:PATH="$vcpkgDir\packages\eigen3_x64-windows-static\include" `
- -DVSTSDK2X_INCLUDE_DIR:PATH="$vstSdkHome" `
- -DBUILD_CSOUND_VST:BOOL=ON `
  -DBUILD_PADSYNTH_OPCODES:BOOL=ON `
  -DBUILD_LINEAR_ALGEBRA_OPCODES:BOOL=ON `
- -DBUILD_VST4CS_OPCODES:BOOL=ON
