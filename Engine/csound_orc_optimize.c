@@ -173,7 +173,7 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
 }
 //#endif
 
-/* Called directly from the parser */
+/* Called directly from the parser; constant fold and some alebraic identities */
 TREE* constant_fold(CSOUND *csound, TREE* root)
 {
     extern MYFLT MOD(MYFLT, MYFLT);
@@ -288,6 +288,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 //print_tree(csound, "X op 0 -> 0\n", current);
                 break;
               }
+              //case '^':  /* 0 op X -> 1 */
             }
           }
           else                    /* 0 op X */
@@ -308,6 +309,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
               break;
             case '*':
             case '/':
+            case '^':
             case '&':
             case S_BITSHIFT_LEFT:
             case S_BITSHIFT_RIGHT: /* return 0 */
@@ -331,6 +333,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
               switch (current->type) {
               case '*':
               case '/':
+              case '^':
                 {
                   TREE* tmp = current->right;
                   current->type = current->left->type;
@@ -349,6 +352,16 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                  current->left->value->fvalue==FL(1.0))) {
               //print_tree(csound, "1 op X\n", current);
               switch (current->type) {
+              case'^':
+              { TREE *tmp = current->right;
+                current->type = current->left->type;
+                current->value = current->left->value;
+                current->right = NULL;
+                current->left = NULL;
+                delete_tree(csound, tmp);
+                //print_tree(csound, "1 op X -> 1\n", current);
+                break;
+              }
               case '*':
                 delete_tree(csound,current->left);
                 current->type = current->right->type;
