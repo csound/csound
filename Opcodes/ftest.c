@@ -123,10 +123,13 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     uint32_t     steps, newLen, *pnewLen;
     int32_t     nargs = ff->e.pcnt - 4;
     int32_t     *pOrder, *xfree;
-    FUNC    *srcfil = csound->flist[ffilno];
+    FUNC    *srcfil;
     MYFLT   *mirr;
     WAVELET wave, *pwaveS;
 
+    if (ffilno >csound->maxfnum || csound->flist[ffilno]==NULL)
+      return csound->InitError(csound, Str("ftable number does not exist\n"));
+    srcfil = csound->flist[ffilno];
     if (UNLIKELY(nargs < 3))
       csound->Warning(csound, Str("insufficient arguments"));
     fp_filter = srcfil->ftable;
