@@ -1472,6 +1472,9 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
               opcodeName);
       csoundMessage(csound, Str("Found: %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
+      csoundMessage(csound, Str("       %s %s %s\n"),
+                    root->left->value->lexeme, root->value->lexeme,
+                    root->right->value->lexeme);
       csoundMessage(csound, Str("Line: %d\n"),
                     root->line);
       do_baktrace(csound, root->locn);
