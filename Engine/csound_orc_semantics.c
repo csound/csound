@@ -1472,6 +1472,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
               opcodeName);
       csoundMessage(csound, Str("Found: %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
+      if (root->left && root->left->value && root->right && root->right->value)
       csoundMessage(csound, Str("       %s %s %s\n"),
                     root->left->value->lexeme, root->value->lexeme,
                     root->right->value->lexeme);
