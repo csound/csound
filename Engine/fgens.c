@@ -2269,7 +2269,7 @@ CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     csoundMessage(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (isstrcod(ff->e.p[4]))
-      csoundMessage(csound,"%s", ff->e.strarg);
+      csoundMessage(csound,"%s ", ff->e.strarg);
     else
       csoundMessage(csound, "%8.2f", ff->e.p[4]);
     if (isstrcod(ff->e.p[5]))

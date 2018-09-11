@@ -589,18 +589,26 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
         char* leftArgType =
           get_arg_string_from_tree(csound, root->left, typeTable);
+        //print_tree(csound, "bad case\n", root);
 
         //FIXME: this is sort of hackish as it's checking and arg
         // string; should use a function to get the CS_TYPE of the var
         // instead
+        //printf("leftArgType = %s\n", leftArgType);
         if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
+          char *type = get_array_sub_type(csound, root->left->value->lexeme);
+          //printf("**** type=%s right %s\n", type,root->right->value->lexeme);
 
+          if (type[0]== 'i') {
+            char *xx = get_arg_string_from_tree(csound, root->right, typeTable);
+            if (xx[0]=='k') type[0] = 'k';
+          }
           outarg = create_out_arg(csound,
-                                  get_array_sub_type(csound,
-                                                     root->left->value->lexeme),
+                                  type,
                                   typeTable->localPool->synthArgCount++,
                                   typeTable);
-        } else {
+        }
+        else {
 
           opentries = find_opcode2(csound, op);
 
