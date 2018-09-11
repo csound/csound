@@ -597,11 +597,17 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
         //printf("leftArgType = %s\n", leftArgType);
         if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
           char *type = get_array_sub_type(csound, root->left->value->lexeme);
-          //printf("**** type=%s right %s\n", type,root->right->value->lexeme);
-
           if (type[0]== 'i') {
-            char *xx = get_arg_string_from_tree(csound, root->right, typeTable);
-            if (xx[0]=='k') type[0] = 'k';
+            TREE* inds = root->right;
+            while (inds) {
+              char *xx = get_arg_string_from_tree(csound, inds, typeTable);
+              //printf("**** type=%s right %s\n", type, inds->value->lexeme);
+              if (xx[0]=='k') {
+                type[0] = 'k';
+                break;
+              }
+              inds = inds->next;
+            }
           }
           outarg = create_out_arg(csound,
                                   type,

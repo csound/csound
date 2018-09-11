@@ -379,7 +379,7 @@ msgstr "errore: non trovo la funzione %s alla linea %d\n"
 msgid "error: opcode %s with output type %s not found, line %d"
 msgstr "errore: opcode %s con tipo output %s non trovato, alla linea %d"
 
-#: Engine/csound_orc_expressions.c:1221
+#: Engine/csound_orc_expressions.c:1229
 #, c-format
 msgid "ERROR: Neither if-goto or if-then found on line %d!!!"
 msgstr "ERRORE: Non trovo if-goto o if-then alla linea %d!!!"
@@ -493,12 +493,17 @@ msgstr "Non trovo l'opcode per '%s' che combaci con il tipo di argomenti:\n"
 msgid "Found: %s %s %s\n"
 msgstr "Trovato: %s %s %s\n"
 
-#: Engine/csound_orc_semantics.c:1475
+#: Engine/csound_orc_semantics.c:1476
+#, c-format
+msgid "       %s %s %s ...\n"
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:1479
 #, c-format
 msgid "Line: %d\n"
 msgstr "Linea: %d\n"
 
-#: Engine/csound_orc_semantics.c:1630
+#: Engine/csound_orc_semantics.c:1634
 #, c-format
 msgid ""
 "expression for until/while statement not a boolean expression, line %d\n"
@@ -506,25 +511,25 @@ msgstr ""
 "l'espressione per dichiarazione until/while non ?? un'espressione booleana, "
 "alla linea %d\n"
 
-#: Engine/csound_orc_semantics.c:1673
+#: Engine/csound_orc_semantics.c:1677
 msgid "Multiple xin statements found. Only one is allowed."
 msgstr "Trovate pi?? dichiarazioni xin. Ne ?? permessa solo una."
 
-#: Engine/csound_orc_semantics.c:1682
+#: Engine/csound_orc_semantics.c:1686
 msgid "Multiple xout statements found. Only one is allowed."
 msgstr "Trovate pi?? dichiarazioni xout. Ne ?? permessa solo una."
 
-#: Engine/csound_orc_semantics.c:1699
+#: Engine/csound_orc_semantics.c:1703
 #, c-format
 msgid "invalid xin statement for UDO: defined '%s', found '%s'\n"
 msgstr "dichiarazione xin nell'UDO non valida: definita '%s', trovo '%s'\n"
 
-#: Engine/csound_orc_semantics.c:1708
+#: Engine/csound_orc_semantics.c:1712
 #, c-format
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr "dichiarazione xout nell'UDO non valida: definita '%s', trovo '%s'\n"
 
-#: Engine/csound_orc_semantics.c:1922
+#: Engine/csound_orc_semantics.c:1926
 #, c-format
 msgid ""
 "\n"
@@ -533,7 +538,7 @@ msgstr ""
 "\n"
 "errore: %s  (token \"%s\")"
 
-#: Engine/csound_orc_semantics.c:1925
+#: Engine/csound_orc_semantics.c:1929
 #, c-format
 msgid ""
 " line %d:\n"
@@ -542,12 +547,12 @@ msgstr ""
 " linea %d:\n"
 ">>>"
 
-#: Engine/csound_orc_semantics.c:1944
+#: Engine/csound_orc_semantics.c:1948
 #, c-format
 msgid " from file %s (%d)\n"
 msgstr " da file %s (%d)\n"
 
-#: Engine/csound_orc_semantics.c:2526
+#: Engine/csound_orc_semantics.c:2530
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr ""
@@ -577,18 +582,18 @@ msgstr "macro non definita: '%s'"
 #: Engine/csound_pre.lex:260 Engine/csound_pre.lex:306
 #: Engine/csound_pre.lex:311 Engine/csound_pre.lex:321
 #: Engine/csound_pre.lex:354 Engine/csound_pre.lex:375
-#: Engine/csound_pre.lex:790 Engine/csound_pre.lex:863
-#: Engine/csound_pre.lex:903 Engine/csound_pre.lex:909
-#: Engine/csound_pre.lex:922 Engine/csound_pre.lex:930
-#: Engine/csound_pre.lex:938 Engine/csound_pre.lex:949
-#: Engine/csound_pre.lex:958 Engine/csound_pre.lex:966
-#: Engine/csound_pre.lex:1012 Engine/csound_pre.lex:1024
-#: Engine/csound_pre.lex:1038 Engine/csound_pre.lex:1047
-#: Engine/csound_pre.lex:1069 Engine/csound_pre.lex:1077
-#: Engine/csound_pre.lex:1114 Engine/csound_pre.lex:1124
-#: Engine/csound_pre.lex:1133 Engine/csound_pre.lex:1190
-#: Engine/csound_pre.lex:1333 Engine/csound_pre.lex:1346
-#: Engine/csound_pre.lex:1361 Engine/csound_prs.lex:193
+#: Engine/csound_pre.lex:792 Engine/csound_pre.lex:867
+#: Engine/csound_pre.lex:907 Engine/csound_pre.lex:913
+#: Engine/csound_pre.lex:926 Engine/csound_pre.lex:934
+#: Engine/csound_pre.lex:942 Engine/csound_pre.lex:953
+#: Engine/csound_pre.lex:962 Engine/csound_pre.lex:970
+#: Engine/csound_pre.lex:1016 Engine/csound_pre.lex:1028
+#: Engine/csound_pre.lex:1042 Engine/csound_pre.lex:1051
+#: Engine/csound_pre.lex:1073 Engine/csound_pre.lex:1081
+#: Engine/csound_pre.lex:1118 Engine/csound_pre.lex:1128
+#: Engine/csound_pre.lex:1137 Engine/csound_pre.lex:1194
+#: Engine/csound_pre.lex:1337 Engine/csound_pre.lex:1350
+#: Engine/csound_pre.lex:1365 Engine/csound_prs.lex:193
 #: Engine/csound_prs.lex:242 Engine/csound_prs.lex:247
 #: Engine/csound_prs.lex:257 Engine/csound_prs.lex:309
 #: Engine/csound_prs.lex:553 Engine/csound_prs.lex:623
@@ -630,53 +635,53 @@ msgstr ""
 msgid "unexpected EOF!"
 msgstr "inaspettato EOF!"
 
-#: Engine/csound_pre.lex:522 Engine/csound_prs.lex:459
+#: Engine/csound_pre.lex:523 Engine/csound_prs.lex:459
 #, c-format
 msgid "Unexpected character %c(%.2x) line %d\n"
 msgstr "Carattere inatteso %c(%.2x) alla linea %d\n"
 
-#: Engine/csound_pre.lex:561 Engine/csound_prs.lex:498
+#: Engine/csound_pre.lex:562 Engine/csound_prs.lex:498
 msgid "#else without #if\n"
 msgstr "#else senza #if\n"
 
-#: Engine/csound_pre.lex:565 Engine/csound_pre.lex:1251
+#: Engine/csound_pre.lex:566 Engine/csound_pre.lex:1255
 #: Engine/csound_prs.lex:502 Engine/csound_prs.lex:1396
 msgid "#else after #else\n"
 msgstr "#else dopo #else\n"
 
-#: Engine/csound_pre.lex:583 Engine/csound_prs.lex:520
+#: Engine/csound_pre.lex:584 Engine/csound_prs.lex:520
 msgid "Unmatched #end\n"
 msgstr "#end senza corrispondenza\n"
 
-#: Engine/csound_pre.lex:748 Engine/csound_prs.lex:922
+#: Engine/csound_pre.lex:749 Engine/csound_prs.lex:922
 msgid "Ill formed #include ignored"
 msgstr "Ignorato #include non conforme"
 
-#: Engine/csound_pre.lex:758 Engine/csound_pre.lex:831
+#: Engine/csound_pre.lex:759 Engine/csound_pre.lex:835
 #: Engine/csound_prs.lex:931 Engine/csound_prs.lex:994
 msgid "Includes nested too deeply"
 msgstr "inclusioni (include)  innestate troppo in profondit??"
 
-#: Engine/csound_pre.lex:773 Engine/csound_pre.lex:846
+#: Engine/csound_pre.lex:774 Engine/csound_pre.lex:850
 #: Engine/csound_prs.lex:948 Engine/csound_prs.lex:1009
 #, c-format
 msgid "%s is a directory; not including"
 msgstr "%s ?? una directory; non la includo"
 
-#: Engine/csound_pre.lex:784 Engine/csound_pre.lex:857
+#: Engine/csound_pre.lex:786 Engine/csound_pre.lex:861
 #: Engine/csound_prs.lex:952 Engine/csound_prs.lex:1013
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr "Impossibile aprire il file #include %s\n"
 
-#: Engine/csound_pre.lex:975 Engine/csound_prs.lex:1120
+#: Engine/csound_pre.lex:979 Engine/csound_prs.lex:1120
 msgid "macro error\n"
 msgstr "errore macro\n"
 
-#: Engine/csound_pre.lex:980 Engine/csound_pre.lex:984
-#: Engine/csound_pre.lex:991 Engine/csound_pre.lex:997
-#: Engine/csound_pre.lex:1084 Engine/csound_pre.lex:1088
-#: Engine/csound_pre.lex:1095 Engine/csound_pre.lex:1101
+#: Engine/csound_pre.lex:984 Engine/csound_pre.lex:988
+#: Engine/csound_pre.lex:995 Engine/csound_pre.lex:1001
+#: Engine/csound_pre.lex:1088 Engine/csound_pre.lex:1092
+#: Engine/csound_pre.lex:1099 Engine/csound_pre.lex:1105
 #: Engine/csound_prs.lex:1125 Engine/csound_prs.lex:1129
 #: Engine/csound_prs.lex:1136 Engine/csound_prs.lex:1142
 #: Engine/csound_prs.lex:1229 Engine/csound_prs.lex:1233
@@ -684,41 +689,41 @@ msgstr "errore macro\n"
 msgid "define macro runaway\n"
 msgstr "definizione macro fuori controllo\n"
 
-#: Engine/csound_pre.lex:1004 Engine/csound_pre.lex:1108
+#: Engine/csound_pre.lex:1008 Engine/csound_pre.lex:1112
 #: Engine/csound_prs.lex:1149
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr ""
 "carattere inaspettato %c(0x%.2x) nella definizione macro, in attesa #\n"
 
-#: Engine/csound_pre.lex:1018 Engine/csound_prs.lex:1163
+#: Engine/csound_pre.lex:1022 Engine/csound_prs.lex:1163
 msgid "define macro with args: unexpected EOF"
 msgstr "definizione della macro con argomenti: inaspettato EOF"
 
-#: Engine/csound_pre.lex:1119 Engine/csound_prs.lex:1264
+#: Engine/csound_pre.lex:1123 Engine/csound_prs.lex:1264
 msgid "define macro: unexpected EOF"
 msgstr "definizione macro: inaspettato EOF"
 
-#: Engine/csound_pre.lex:1154 Engine/csound_prs.lex:1299
+#: Engine/csound_pre.lex:1158 Engine/csound_prs.lex:1299
 #, c-format
 msgid "macro %s undefined\n"
 msgstr "macro %s non definita\n"
 
-#: Engine/csound_pre.lex:1169 Engine/csound_prs.lex:1314 Engine/sread.c:219
+#: Engine/csound_pre.lex:1173 Engine/csound_prs.lex:1314 Engine/sread.c:219
 msgid "Undefining undefined macro"
 msgstr "Libero la macro non definita"
 
-#: Engine/csound_pre.lex:1224 Engine/csound_prs.lex:1369
+#: Engine/csound_pre.lex:1228 Engine/csound_prs.lex:1369
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr "#if%sdef senza corrispondenza\n"
 
-#: Engine/csound_pre.lex:1326 Engine/csound_prs.lex:1434
+#: Engine/csound_pre.lex:1330 Engine/csound_prs.lex:1434
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr "Definizione di macro per %*s\n"
 
-#: Engine/csound_pre.lex:1329
+#: Engine/csound_pre.lex:1333
 msgid "Invalid macro name for --omacro"
 msgstr "Nome di macro non valido per --omacro"
 
@@ -899,7 +904,7 @@ msgstr "intervallo di x non consentito"
 
 #: Engine/fgens.c:461 Engine/fgens.c:610 Engine/fgens.c:691 Engine/fgens.c:936
 #: Engine/fgens.c:1437 Engine/fgens.c:2562 Engine/fgens.c:2895
-#: Engine/fgens.c:3036 Opcodes/ftest.c:131 Opcodes/quadbezier.c:64
+#: Engine/fgens.c:3036 Opcodes/ftest.c:134 Opcodes/quadbezier.c:64
 #: Top/main.c:128 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "argomenti insufficienti"
@@ -3333,8 +3338,8 @@ msgstr " *** ATTENZIONE: disabilito --sched in modo freewheel\n"
 
 #: InOut/rtjack.c:276 InOut/rtjack.c:289 InOut/rtjack.c:294 InOut/rtjack.c:607
 #: InOut/rtjack.c:658 InOut/rtjack.c:664 InOut/rtjack.c:685 InOut/rtjack.c:691
-#: InOut/rtwinmm.c:107 InOut/rtwinmm.c:311 OOps/str_ops.c:434
-#: OOps/str_ops.c:460 OOps/str_ops.c:485 OOps/str_ops.c:502 Opcodes/ftgen.c:79
+#: InOut/rtwinmm.c:107 InOut/rtwinmm.c:311 OOps/str_ops.c:437
+#: OOps/str_ops.c:463 OOps/str_ops.c:488 OOps/str_ops.c:505 Opcodes/ftgen.c:79
 msgid "memory allocation failure"
 msgstr "allocazione di memoria fallita"
 
@@ -5463,35 +5468,35 @@ msgstr "argomento a-rate non consentito"
 msgid "too many arguments"
 msgstr "troppi argomenti"
 
-#: OOps/str_ops.c:410
+#: OOps/str_ops.c:413
 msgid "insufficient arguments for format"
 msgstr "argomenti insufficienti per il formato"
 
-#: OOps/str_ops.c:476
+#: OOps/str_ops.c:479
 msgid "output argument may not be the same as any of the input args"
 msgstr ""
 "l'argomento d'output potrebbe non essere lo stesso di nessuno degli "
 "argomenti d'input"
 
-#: OOps/str_ops.c:495
+#: OOps/str_ops.c:498
 msgid "invalid format string"
 msgstr "formato della stringa non valido"
 
-#: OOps/str_ops.c:527
+#: OOps/str_ops.c:530
 msgid "too many arguments for format"
 msgstr "troppi argomenti per il formato"
 
-#: OOps/str_ops.c:631 OOps/str_ops.c:634 OOps/str_ops.c:651 OOps/str_ops.c:670
-#: OOps/str_ops.c:727 OOps/str_ops.c:731
+#: OOps/str_ops.c:634 OOps/str_ops.c:637 OOps/str_ops.c:654 OOps/str_ops.c:673
+#: OOps/str_ops.c:730 OOps/str_ops.c:734
 msgid "empty string"
 msgstr "stringa vuota"
 
-#: OOps/str_ops.c:637 OOps/str_ops.c:654 OOps/str_ops.c:684 OOps/str_ops.c:705
-#: OOps/str_ops.c:745 OOps/str_ops.c:766
+#: OOps/str_ops.c:640 OOps/str_ops.c:657 OOps/str_ops.c:687 OOps/str_ops.c:708
+#: OOps/str_ops.c:748 OOps/str_ops.c:769
 msgid "invalid format"
 msgstr "formato non valido"
 
-#: OOps/str_ops.c:1030
+#: OOps/str_ops.c:1033
 #, c-format
 msgid "invalid option code: %g"
 msgstr "codice opzione non valido: %g"
@@ -5590,15 +5595,15 @@ msgstr "funzione rise di envlpx finisce con zero"
 msgid "envlpx(krate): not initialised"
 msgstr "envlpx(krate): non inizializzato"
 
-#: OOps/ugens1.c:1970 OOps/ugens1.c:2221
+#: OOps/ugens1.c:1970 OOps/ugens1.c:2225
 msgid "cosseg not initialised (krate)\n"
 msgstr "cosseg non inizializzato (krate)\n"
 
-#: OOps/ugens1.c:2025
+#: OOps/ugens1.c:2029
 msgid "cosseg: not initialised (arate)\n"
 msgstr "cosseg: non inizializzato (arate)\n"
 
-#: OOps/ugens1.c:2096 OOps/ugens1.c:2163
+#: OOps/ugens1.c:2100 OOps/ugens1.c:2167
 msgid "cossegr: not initialised (arate)\n"
 msgstr "cossegr: non inizializzato (arate)\n"
 
@@ -6121,36 +6126,36 @@ msgstr "printk: non inizializzato"
 msgid "time %11.5f: "
 msgstr "tempo %11.5f: "
 
-#: OOps/ugrw1.c:947 OOps/ugrw1.c:956 OOps/ugrw1.c:1140
+#: OOps/ugrw1.c:947 OOps/ugrw1.c:956 OOps/ugrw1.c:1147
 msgid "null string\n"
 msgstr "stringa nulla\n"
 
-#: OOps/ugrw1.c:1150
+#: OOps/ugrw1.c:1157
 msgid "printks not initialised"
 msgstr "printks: non inizializzato"
 
-#: OOps/ugrw1.c:1157 OOps/ugrw1.c:1179 OOps/ugrw1.c:1199 OOps/ugrw1.c:1312
+#: OOps/ugrw1.c:1164 OOps/ugrw1.c:1186 OOps/ugrw1.c:1206 OOps/ugrw1.c:1319
 msgid "Insufficient arguments in formatted printing"
 msgstr "argomenti insufficienti per la formattazione di stampa"
 
-#: OOps/ugrw1.c:1203
+#: OOps/ugrw1.c:1210
 #, c-format
 msgid "Formatting string too long: %s"
 msgstr "Stringa di formattazione troppo lunga: %s"
 
-#: OOps/ugrw1.c:1345
+#: OOps/ugrw1.c:1352
 msgid "inz index > isizea. Not writing."
 msgstr "inz index > isizea. Nessuna scrittura."
 
-#: OOps/ugrw1.c:1348
+#: OOps/ugrw1.c:1355
 msgid "inz index < 0. Not writing."
 msgstr "inz index < 0. Nessuna scrittura."
 
-#: OOps/ugrw1.c:1392 Opcodes/vbap_zak.c:208 Opcodes/vbap_zak.c:520
+#: OOps/ugrw1.c:1399 Opcodes/vbap_zak.c:208 Opcodes/vbap_zak.c:520
 msgid "outz index > isizea. No output"
 msgstr "outz index > isizea. Nessun output"
 
-#: OOps/ugrw1.c:1395 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
+#: OOps/ugrw1.c:1402 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
 msgid "outz index < 0. No output."
 msgstr "outz index < 0. Nessun output."
 
@@ -6982,7 +6987,7 @@ msgstr "Tavola no. < 1 sft=%.2f"
 msgid "Source sft table %.2f not found."
 msgstr "Tavola %.2f sorgente sft non trovata."
 
-#: Opcodes/faustgen.cpp:293
+#: Opcodes/faustgen.cpp:297
 #, c-format
 msgid ""
 "\n"
@@ -6993,18 +6998,18 @@ msgstr ""
 "problema di compilazione Faust:\n"
 "linea %s\n"
 
-#: Opcodes/faustgen.cpp:447 Opcodes/faustgen.cpp:690
+#: Opcodes/faustgen.cpp:468 Opcodes/faustgen.cpp:711
 #, c-format
 msgid "could not find DSP %p for deletion"
 msgstr "non riesco a trovare DSP %p per la cancellazione"
 
-#: Opcodes/faustgen.cpp:467 Opcodes/faustgen.cpp:712
+#: Opcodes/faustgen.cpp:488 Opcodes/faustgen.cpp:733
 msgid ""
 "Faust code was not ready. Try compiling it \n"
 "in a separate instrument prior to running it here\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:476 Opcodes/faustgen.cpp:722
+#: Opcodes/faustgen.cpp:497 Opcodes/faustgen.cpp:743
 msgid ""
 "Faust code did not compile properly.\n"
 "Check above messages for Faust compiler errors\n"
@@ -7012,42 +7017,42 @@ msgstr ""
 "Il codice Faust non ?? stato compilato correttamente.\n"
 "Verificate i messaggi sopra per gli errori nel compilatore Faust\n"
 
-#: Opcodes/faustgen.cpp:481 Opcodes/faustgen.cpp:727
+#: Opcodes/faustgen.cpp:502 Opcodes/faustgen.cpp:748
 msgid "no factory available\n"
 msgstr "no factory available\n"
 
-#: Opcodes/faustgen.cpp:486 Opcodes/faustgen.cpp:732
+#: Opcodes/faustgen.cpp:507 Opcodes/faustgen.cpp:753
 #, c-format
 msgid "factory not found %d\n"
 msgstr "factory non trovato %d\n"
 
-#: Opcodes/faustgen.cpp:492 Opcodes/faustgen.cpp:738 Opcodes/faustgen.cpp:848
+#: Opcodes/faustgen.cpp:513 Opcodes/faustgen.cpp:759 Opcodes/faustgen.cpp:873
 msgid "Faust instantiation problem\n"
 msgstr "problema istanziamento Faust\n"
 
-#: Opcodes/faustgen.cpp:558 Opcodes/faustgen.cpp:1021
+#: Opcodes/faustgen.cpp:579 Opcodes/faustgen.cpp:1059
 msgid "no dsp instances available\n"
 msgstr "nessuna istanza dsp disponibile\n"
 
-#: Opcodes/faustgen.cpp:564 Opcodes/faustgen.cpp:1027
+#: Opcodes/faustgen.cpp:585 Opcodes/faustgen.cpp:1065
 #, c-format
 msgid "dsp instance not found %d\n"
 msgstr "istanza dsp non trovata %d\n"
 
-#: Opcodes/faustgen.cpp:573 Opcodes/faustgen.cpp:778 Opcodes/faustgen.cpp:885
+#: Opcodes/faustgen.cpp:594 Opcodes/faustgen.cpp:799 Opcodes/faustgen.cpp:914
 msgid "wrong number of input args\n"
 msgstr "numero di argomenti in input sbagliato\n"
 
-#: Opcodes/faustgen.cpp:577 Opcodes/faustgen.cpp:782 Opcodes/faustgen.cpp:894
+#: Opcodes/faustgen.cpp:598 Opcodes/faustgen.cpp:803 Opcodes/faustgen.cpp:923
 msgid "wrong number of output args\n"
 msgstr "numero di argomenti d'output sbagliato\n"
 
-#: Opcodes/faustgen.cpp:839
+#: Opcodes/faustgen.cpp:860
 #, c-format
 msgid "Faust compilation problem: %s\n"
 msgstr "problema di compilazione Faust: %s\n"
 
-#: Opcodes/faustgen.cpp:1032
+#: Opcodes/faustgen.cpp:1070
 #, c-format
 msgid "dsp control %s not found\n"
 msgstr "controllo dsp %s non trovato\n"
@@ -7237,6 +7242,11 @@ msgstr "ftconv: lunghezza non valida, o dati IR insufficienti per convolution"
 #: Opcodes/ftconv.c:307
 msgid "ftconv: not initialised"
 msgstr "ftconv: non inizializzato"
+
+#: Opcodes/ftest.c:131
+#, fuzzy
+msgid "ftable number does not exist\n"
+msgstr "ftable non esiste"
 
 #: Opcodes/ftgen.c:69 Opcodes/ftgen.c:241
 #, c-format
