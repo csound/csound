@@ -1485,10 +1485,6 @@ typedef struct _message_queue_t_ {
     FILE*         scoreout;
     int           *argoffspace;
     INSDS         *frstoff;
-    MYFLT         *zkstart;
-    int64_t          zklast;
-    MYFLT         *zastart;
-    int64_t          zalast;
     /** reserved for std opcode library  */
     void          *stdOp_Env;
     int           holdrand;

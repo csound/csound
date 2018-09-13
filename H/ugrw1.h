@@ -180,6 +180,8 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt;          /* Where to write the value read from zk */
         MYFLT   *ndx;           /* Location in zk space to read */
+        MYFLT   *dummy;
+        void    *zz;
 } ZKR;
 
 /* ZKW data structure for ziw() and zkw(). */
@@ -187,6 +189,8 @@ typedef struct {
         OPDS    h;
         MYFLT   *sig;           /* Value to write */
         MYFLT   *ndx;           /* Locations to read */
+        MYFLT   *dummy;
+        void    *zz;
 } ZKW;
 
 /* ZKWM data structure for ziwm() and zkwm(). */
@@ -195,7 +199,7 @@ typedef struct {
         MYFLT   *sig;           /* Value to write */
         MYFLT   *ndx;           /* Locations to read */
         MYFLT   *mix;           /* 0 for write directly;  !0 for mix - add in */
-
+        void    *zz;
 } ZKWM;
 
 /* ZKMOD data structure for zkmod(). */
@@ -204,7 +208,7 @@ typedef struct {
         MYFLT   *rslt;          /* Points to where to write output */
         MYFLT   *sig;           /* Value to modulate */
         MYFLT   *zkmod;         /* Which zk variable to use to modulate sig */
-
+        void    *zz;
 } ZKMOD;
 
 /* ZKCL data structure for zkcl(). */
@@ -212,7 +216,8 @@ typedef struct {
         OPDS    h;
         MYFLT   *first;         /* First variable to clear */
         MYFLT   *last;          /* Final variable to clear */
-
+        MYFLT   *dummy;
+        void    *zz;
 } ZKCL;
 
 /* ZAR data structure for zar(). */
@@ -220,7 +225,8 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt;          /* Where to write the value */
         MYFLT   *ndx;           /* Location in za space to read */
-
+        MYFLT   *dummy;
+        void    *zz;
 } ZAR;
 
 /* ZARG data structure for zarg(). */
@@ -229,12 +235,15 @@ typedef struct {
         MYFLT   *rslt;          /* Where to write the zk location */
         MYFLT   *ndx;           /* Location in za space to read */
         MYFLT   *kgain;         /* Gain to be given to signal read */
+        void    *zz;
 } ZARG;
 
 /* ZAW data structure for zaw(). */
 typedef struct {
         OPDS    h;
         MYFLT   *sig, *ndx;
+        MYFLT   *dummy;
+        void    *zz;
 } ZAW;
 
 /* ZAWM data structure for zawm(). */
@@ -243,6 +252,7 @@ typedef struct {
         MYFLT   *sig;
         MYFLT   *ndx, *mix;     /* Locations to read;
                                    0 for write directly, or addd in */
+        void    *zz;
 } ZAWM;
 
 /* ZAWOD data structure for zamod(). */
@@ -250,12 +260,15 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt;
         MYFLT   *sig, *zamod;   /* Value to modulate; Which za variable to use */
+        void    *zz;
 } ZAMOD;
 
 /* ZACL data structure for zacl(). */
 typedef struct {
         OPDS    h;
         MYFLT   *first, *last;
+        MYFLT   *dummy;
+        void    *zz;
 } ZACL;
 
 /*****************************************************************************/
@@ -331,6 +344,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ndx;
+        MYFLT   *dummy, dummy1;
+        void    *zz;
 } IOZ;
 
 int instimek(CSOUND*,RDTIME *p);

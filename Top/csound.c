@@ -214,8 +214,15 @@ static int csoundGetDitherMode(CSOUND *csound){
 }
 
 static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
-    *zkstart = csound->zkstart;
-    return csound->zklast;
+#include "zak.h"
+    ZAK_GLOBALS *zz;
+    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    if (zz==NULL) {
+      *zkstart = NULL;
+      return 0;
+    }
+    *zkstart = zz->zkstart;
+    return zz->zklast;
 }
 
 static int csoundGetReinitFlag(CSOUND *csound){
@@ -596,10 +603,6 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-    NULL,           /*  zkstart             */
-    0L,             /*  zklast              */
-    NULL,           /*  zastart             */
-    0L,             /*  zalast              */
     NULL,           /*  stdOp_Env           */
     2345678,        /*  holdrand            */
     0,              /*  randSeed1           */
