@@ -451,7 +451,8 @@ QNAN            "qnan"[ \t]*\(
                   csound_pre_line(csound, csound->expanded_orc, yyscanner);
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
-                    printf("restoring path from %s to %s\n", PARM->path, PARM->alt_stack[PARM->macro_stack_ptr].path);
+                    //printf("restoring path from %s to %s\n", PARM->path,
+                    //       PARM->alt_stack[PARM->macro_stack_ptr].path);
                     free(PARM->path);
                     PARM->path = PARM->alt_stack[PARM->macro_stack_ptr].path;
                   }
@@ -774,7 +775,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     if (PARM->path && buffer[0]!= '/') { // if nested included directories
       char tmp[1024];
-      printf("using path %s\n", PARM->path);
+      //printf("using path %s\n", PARM->path);
       strncpy(tmp, PARM->path, 1023);
       strcat(tmp, "/");
       strncat(tmp, buffer, 1022-strlen(tmp));
@@ -801,10 +802,10 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
     if (strrchr(buffer,'/')) {
       PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
-      printf("setting path from %s to ", PARM->path);
+      //printf("setting path from %s to ", PARM->path);
       PARM->path = strdup(buffer); /* wasteful! */
       *(strrchr(PARM->path,'/')) = '\0';
-      printf("%s\n",PARM->path);
+      //printf("%s\n",PARM->path);
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
