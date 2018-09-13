@@ -705,13 +705,13 @@ int32_t inz(CSOUND *csound, IOZ *p)
 {
     int32_t    indx, i;
     ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
-    int32_t     nchns = csound->nchnls;
+    int32_t     nchns = csound->GetNchnls(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     /* Check to see this index is within the limits of za space.     */
     indx = (int32_t) *p->ndx;
-    if (UNLIKELY(indx + csound->nchnls >= zak->zalast)) goto err1;
+    if (UNLIKELY(indx + nchns >= zak->zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;
     else {
       MYFLT *writeloc;
@@ -741,12 +741,12 @@ int32_t outz(CSOUND *csound, IOZ *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t     nchns = csound->nchnls;
+    int32_t     nchns = csound->GetNchnls(csound);
     MYFLT *spout = csound->spraw;
 
     /* Check to see this index is within the limits of za space.    */
     indx = (int32) *p->ndx;
-    if (UNLIKELY((indx + csound->nchnls) >= zak->zalast)) goto err1;
+    if (UNLIKELY((indx + nchns) >= zak->zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;
     else {
       MYFLT *readloc;

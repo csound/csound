@@ -1,7 +1,7 @@
 /*
     zak.h:
 
-    Copyright (C) 2918 John ffitch
+    Copyright (C) 2018 John ffitch
 
     This file is part of Csound.
 
