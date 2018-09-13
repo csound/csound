@@ -45,10 +45,9 @@
  * clearly indicated as such.
  */
 
-/* #include "csoundCore.h" */
-/* #include "ugrw1.h" */
-/* #include <math.h> */
-/* #include <ctype.h> */
+#include "csoundCore.h"
+#include <math.h>
+#include <ctype.h>
 
 #include "zak.h"
 

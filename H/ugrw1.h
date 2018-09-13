@@ -160,117 +160,6 @@ typedef struct {
 } TABLEWA;
 
 /*****************************************************************************/
-
-/* Data structures for the zak family of ugens for patching data at i,
- * k or a rates.
- * See also four global variables declared in the C code.  */
-
-/* ZAKINIT data structure for zakinit(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *isizea;        /* Number of a locations, each an array of
-                                 * ksmps long, to to reserve for a rate
-                                 * patching */
-        MYFLT   *isizek;        /* Number of locations for i or k rate
-                                 * variables */
-} ZAKINIT;
-
-/* ZKR data structure for zir() and zkr(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt;          /* Where to write the value read from zk */
-        MYFLT   *ndx;           /* Location in zk space to read */
-        MYFLT   *dummy;
-        void    *zz;
-} ZKR;
-
-/* ZKW data structure for ziw() and zkw(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *sig;           /* Value to write */
-        MYFLT   *ndx;           /* Locations to read */
-        MYFLT   *dummy;
-        void    *zz;
-} ZKW;
-
-/* ZKWM data structure for ziwm() and zkwm(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *sig;           /* Value to write */
-        MYFLT   *ndx;           /* Locations to read */
-        MYFLT   *mix;           /* 0 for write directly;  !0 for mix - add in */
-        void    *zz;
-} ZKWM;
-
-/* ZKMOD data structure for zkmod(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt;          /* Points to where to write output */
-        MYFLT   *sig;           /* Value to modulate */
-        MYFLT   *zkmod;         /* Which zk variable to use to modulate sig */
-        void    *zz;
-} ZKMOD;
-
-/* ZKCL data structure for zkcl(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *first;         /* First variable to clear */
-        MYFLT   *last;          /* Final variable to clear */
-        MYFLT   *dummy;
-        void    *zz;
-} ZKCL;
-
-/* ZAR data structure for zar(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt;          /* Where to write the value */
-        MYFLT   *ndx;           /* Location in za space to read */
-        MYFLT   *dummy;
-        void    *zz;
-} ZAR;
-
-/* ZARG data structure for zarg(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt;          /* Where to write the zk location */
-        MYFLT   *ndx;           /* Location in za space to read */
-        MYFLT   *kgain;         /* Gain to be given to signal read */
-        void    *zz;
-} ZARG;
-
-/* ZAW data structure for zaw(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *sig, *ndx;
-        MYFLT   *dummy;
-        void    *zz;
-} ZAW;
-
-/* ZAWM data structure for zawm(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *sig;
-        MYFLT   *ndx, *mix;     /* Locations to read;
-                                   0 for write directly, or addd in */
-        void    *zz;
-} ZAWM;
-
-/* ZAWOD data structure for zamod(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt;
-        MYFLT   *sig, *zamod;   /* Value to modulate; Which za variable to use */
-        void    *zz;
-} ZAMOD;
-
-/* ZACL data structure for zacl(). */
-typedef struct {
-        OPDS    h;
-        MYFLT   *first, *last;
-        MYFLT   *dummy;
-        void    *zz;
-} ZACL;
-
 /*****************************************************************************/
 
 /* RDTIME data structure for timek(), times(), instimset(), instimek()
@@ -340,18 +229,9 @@ typedef struct {
         char    *sarg;
 } PRINTK3;
 
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *ndx;
-        MYFLT   *dummy, dummy1;
-        void    *zz;
-} IOZ;
-
 int instimek(CSOUND*,RDTIME *p);
 int instimes(CSOUND*,RDTIME *p);
 int instimset(CSOUND*,RDTIME *p);
-int inz(CSOUND*,IOZ *p);
 //int itablecopy(CSOUND*,TABLECOPY *p);
 //int itablegpw(CSOUND*,TABLEGPW *p);
 //int itablemix(CSOUND*,TABLEMIX *p);
@@ -359,7 +239,6 @@ int inz(CSOUND*,IOZ *p);
 //int itablew(CSOUND*,TABLEW *p);
 //int ktablew(CSOUND*,TABLEW   *p);
 //int ktablewkt(CSOUND*,TABLEW *p);
-int outz(CSOUND*,IOZ *p);
 int peaka(CSOUND*,PEAK *p);
 int peakk(CSOUND*,PEAK *p);
 int printk(CSOUND*,PRINTK *p);
@@ -391,22 +270,4 @@ int printk3set(CSOUND*,PRINTK3 *p);
 //int tblsetwkt(CSOUND*,TABLEW *p);
 int timek(CSOUND*,RDTIME *p);
 int timesr(CSOUND*,RDTIME *p);
-int zacl(CSOUND*,ZACL *p);
-int zakinit(CSOUND*,ZAKINIT *p);
-int zamod(CSOUND*,ZAMOD *p);
-int zar(CSOUND*,ZAR *p);
-int zarg(CSOUND*,ZARG *p);
-int zaset(CSOUND*,ZAR *p);
-int zaw(CSOUND*,ZAW *p);
-int zawm(CSOUND*,ZAWM *p);
-int zir(CSOUND*,ZKR *p);
-int ziw(CSOUND*,ZKW *p);
-int ziwm(CSOUND*,ZKWM *p);
-int zkcl(CSOUND*,ZKCL *p);
-int zkmod(CSOUND*,ZKMOD *p);
-int zkr(CSOUND*,ZKR *p);
-int zkset(CSOUND*,ZKR *p);
-int zkw(CSOUND*,ZKW *p);
-int zkwm(CSOUND*,ZKWM *p);
-
 

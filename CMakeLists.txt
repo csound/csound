@@ -776,6 +776,7 @@ set(libcsound_SRCS
     OOps/ugens6.c
     OOps/ugtabs.c
     OOps/ugrw1.c
+    OOps/zak.c
     OOps/vdelay.c
     OOps/compile_ops.c
     Opcodes/babo.c

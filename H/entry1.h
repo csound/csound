@@ -42,6 +42,7 @@
 #include "midiout.h"
 #include "sndinfUG.h"
 #include "ugrw1.h"
+#include "zak.h"
 #include "schedule.h"
 #include "vdelay.h"
 #include "pstream.h"
