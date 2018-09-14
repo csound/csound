@@ -18,122 +18,307 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
+
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
 
 #include <csdl.h>
+#include <math.h>
+
+#define SAMPLE_ACCURATE \
+    uint32_t n, nsmps = CS_KSMPS;                                    \
+    MYFLT *out = p->out;                                             \
+    uint32_t offset = p->h.insdshead->ksmps_offset;                  \
+    uint32_t early = p->h.insdshead->ksmps_no_end;                   \
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
+    if (UNLIKELY(early)) {                                           \
+        nsmps -= early;                                              \
+        memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
+    }                                                                \
+
+#define INITERR(m) (csound->InitError(csound, m))
+#define MSG(m) (csound->Message(csound, Str(m)))
+#define MSGF(m, ...) (csound->Message(csound, Str(m), __VA_ARGS__))
+#define PERFERROR(m) (csound->PerfError(csound, &(p->h), "%s", m))
+
+/* from Opcodes/arrays.c, original name: tabensure */
+static inline void
+arrayensure(CSOUND *csound, ARRAYDAT *p, size_t size) {
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
+        size_t ss;
+        if (p->data == NULL) {
+            CS_VARIABLE *var = p->arrayType->createVariable(csound, NULL);
+            p->arrayMemberSize = var->memBlockSize;
+        }
+        ss = p->arrayMemberSize*size;
+        if (p->data==NULL)
+            p->data = (MYFLT*)csound->Calloc(csound, ss);
+        else
+            p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->dimensions = 1;
+        p->sizes = (int*)csound->Malloc(csound, sizeof(size_t));
+        p->sizes[0] = size;
+    }
+}
+
 
 /*
 
-  linlin
+   linlin
 
-  linear to linear conversion
+   linear to linear conversion
 
-  ky = linlin(kx, kxlow, kxhigh, kylow, kyhigh)
+   ky   linlin kx, kylow, kyhigh, kxlow=0, kxhigh=1
 
-  ky = (kx - kxlow) / (kxhigh - kxlow) * (kyhigh - kylow) + kylow
+   ky = (kx - kxlow) / (kxhigh - kxlow) * (kyhigh - kylow) + kylow
 
-  linlin(0.25, 0, 1, 1, 3) ; --> 1.5
+   linlin(0.25, 1, 3, 0, 1)   -> 1.5
+   linlin(0.25, 1, 3)         -> 1.5
+   linlin(0.25, 1, 3, 0, 0.5) -> 2
+
+   Variants:
+
+   ky[] linlin kx[], kylow, kyhigh, kxlow=0, kxhigh=1
+   ky[] linlin kx, kylow[], kyhigh[], kxlow=0, kxhigh=1
 
  */
 
 typedef struct {
-  OPDS    h;
-  MYFLT   *kout, *kx, *kx0, *kx1, *ky0, *ky1;
-} LINLINK;
+    OPDS h;
+    MYFLT *kout, *kx, *ky0, *ky1, *kx0, *kx1;
+} LINLIN1;
 
-static int32_t linlink(CSOUND *csound, LINLINK *p) {
+static int32_t
+linlin1_perf(CSOUND *csound, LINLIN1 *p) {
     MYFLT x0 = *p->kx0;
     MYFLT y0 = *p->ky0;
     MYFLT x = *p->kx;
     MYFLT x1 = *p->kx1;
-    if (UNLIKELY(x0 == x1))
-
-      return csound->PerfError(csound, &(p->h),
-                               "%s", Str("linlin.k: Division by zero"));
+    if (UNLIKELY(x0 == x1)) {
+        return csound->PerfError(csound, &(p->h),
+                                 "%s", Str("linlin.k: Division by zero"));
+    }
     *p->kout = (x - x0) / (x1 -x0) * (*(p->ky1) - y0) + y0;
     return OK;
 }
 
+typedef struct {
+    OPDS h;
+    // kY[] linlin kX[], ky0, ky1, kx0=0, kx1=1
+    ARRAYDAT *ys, *xs;
+    MYFLT *ky0, *ky1, *kx0, *kx1;
+    int32_t numitems;
+} LINLINARR1;
 
-/* ------------- xyscale --------------
+static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
+    size_t numitems = p->xs->sizes[0];
+    arrayensure(csound, p->ys, numitems);
+    p->numitems = numitems;
+    return OK;
+}
 
-2d linear interpolation (normalized)
+static int32_t
+linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
+    MYFLT x0 = *p->kx0;
+    MYFLT y0 = *p->ky0;
+    MYFLT x1 = *p->kx1;
+    MYFLT y1 = *p->ky1;
 
-Given values for four points at (0, 0), (0, 1), (1, 0), (1, 1),
-calculate the interpolated value at a given coord (x, y) inside this square
+    if (UNLIKELY(x0 == x1)) {
+        return csound->PerfError(csound, &(p->h), "%s",
+                                 Str("linlin.k: Division by zero"));
+    }
+    MYFLT fact = 1/(x1 - x0) * (y1 - y0);
 
-inputs: kx, ky, v00, v10, v01, v11
+    int32_t numitems = p->xs->sizes[0];
+    if(numitems > p->numitems) {
+        arrayensure(csound, p->ys, numitems);
+        p->numitems = numitems;
+    }
+    MYFLT *out = p->ys->data;
+    MYFLT *in  = p->xs->data;
+    int32_t i;
+    for(i=0; i<numitems; i++) {
+        out[i] = (in[i] - x0) * fact + y0;
+    }
+    return OK;
+}
 
-kx, ky: coord, between 0-1
+static int32_t
+linlinarr1_i(CSOUND *csound, LINLINARR1 *p) {
+    linlinarr1_init(csound, p);
+    return linlinarr1_perf(csound, p);
+}
 
-This is conceptually the same as:
+typedef struct {
+    OPDS h;
+    // kOut[] linlin kx, kA[], kB[], kx0=0, kx1=1
+    ARRAYDAT *out;
+    MYFLT *kx;
+    ARRAYDAT *A, *B;
+    MYFLT *kx0, *kx1;
+    int32_t numitems;
+} BLENDARRAY;
 
-ky0 = scale(kx, v01, v00)
-ky1 = scale(kx, v11, v10)
-kout = scale(ky, ky1, ky0)
+static int32_t
+blendarray_init(CSOUND *csound, BLENDARRAY *p) {
+    int32_t numitemsA = p->A->sizes[0];
+    int32_t numitemsB = p->B->sizes[0];
+    int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
+    arrayensure(csound, p->out, numitems);
+    p->numitems = numitems;
+    return OK;
+}
+
+static int32_t
+blendarray_perf(CSOUND *csound, BLENDARRAY *p)
+{
+    MYFLT x0 = *p->kx0;
+    MYFLT x1 = *p->kx1;
+    MYFLT x = *p->kx;
+
+    if (UNLIKELY(x0 == x1)) {
+        return PERFERROR(Str("linlin: Division by zero"));
+    }
+    int32_t numitemsA = p->A->sizes[0];
+    int32_t numitemsB = p->B->sizes[0];
+    int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
+    if(numitems > p->numitems) {
+        arrayensure(csound, p->out, numitems);
+        p->numitems = numitems;
+    }
+
+    MYFLT *out = p->out->data;
+    MYFLT *A = p->A->data;
+    MYFLT *B = p->B->data;
+    MYFLT y0, y1;
+    MYFLT fact = (x - x0) / (x1 - x0);
+    int32_t i;
+    for(i=0; i<numitems; i++) {
+        y0 = A[i];
+        y1 = B[i];
+        out[i] = (y1 - y0) * fact + y0;
+    }
+    return OK;
+}
+
+static int32_t
+blendarray_i(CSOUND *csound, BLENDARRAY *p) {
+    blendarray_init(csound, p);
+    return blendarray_perf(csound, p);
+}
+
+
+/*
+ 
+    linear to cosine interpolation
+    ky lincos kx, ky0, ky1, kx0=0, kx1=1 
+
+    given x between x0 and x1, find y between y0 and y1 with cosine interpolation
+ 
+    The order of ky0 and ky1 are given first because it is often used in contexts
+    where kx is defined between 0 and 1
 
 */
 
+static int32_t
+lincos_perf(CSOUND *csound, LINLIN1 *p) {
+    MYFLT x0 = *p->kx0;
+    MYFLT y0 = *p->ky0;
+    MYFLT x = *p->kx;
+    MYFLT x1 = *p->kx1;
+    MYFLT y1 = *p->ky1;
+    if (UNLIKELY(x0 == x1)) {
+        return PERFERROR(Str("lincos: Division by zero"));
+    }
+    MYFLT dx = ((x-x0) / (x1-x0)) * M_PI + M_PI;
+    *p->kout = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
+    return OK;
+}
+
+/* ------------- xyscale --------------
+
+   2d linear interpolation (normalized)
+
+   Given values for four points at (0, 0), (0, 1), (1, 0), (1, 1),
+   calculate the interpolated value at a given coord (x, y) inside this square
+
+   inputs: kx, ky, v00, v10, v01, v11
+
+   kx, ky: coord, between 0-1
+
+   This is conceptually the same as:
+
+   ky0 = scale(kx, v01, v00)
+   ky1 = scale(kx, v11, v10)
+   kout = scale(ky, ky1, ky0)
+
+ */
+
 typedef struct {
-  OPDS    h;
-  MYFLT   *kout, *kx, *ky, *v00, *v10, *v01, *v11;
-  MYFLT   d0, d1;
+    OPDS h;
+    MYFLT *kout, *kx, *ky, *v00, *v10, *v01, *v11;
+    MYFLT d0, d1;
 } XYSCALE;
 
 static int32_t xyscalei_init(CSOUND *csound, XYSCALE *p) {
-     IGN(csound);
+    IGN(csound);
     p->d0 = (*p->v01) - (*p->v00);
     p->d1 = (*p->v11) - (*p->v10);
     return OK;
 }
 
 static int32_t xyscalei(CSOUND *csound, XYSCALE *p) {
-     IGN(csound);
+    IGN(csound);
     // x, y: between 0-1
     MYFLT x = *p->kx;
-    MYFLT y0 = x*(p->d0)+(*p->v00);
-    MYFLT y1 = x*(p->d1)+(*p->v10);
-    *p->kout = (*p->ky)*(y1-y0)+y0;
+    MYFLT y0 = x * (p->d0) + (*p->v00);
+    MYFLT y1 = x * (p->d1) + (*p->v10);
+    *p->kout = (*p->ky) * (y1 - y0) + y0;
     return OK;
 }
 
 static int32_t xyscale(CSOUND *csound, XYSCALE *p) {
-     IGN(csound);
+    IGN(csound);
     // x, y: between 0-1
     // x, y will interpolate between the values at the 4 corners
     MYFLT v00 = *p->v00;
     MYFLT v10 = *p->v10;
     MYFLT x = *p->kx;
-    MYFLT y0 = x*(*p->v01 - v00)+v00;
-    MYFLT y1 = x*(*p->v11 - v10)+v10;
-    *p->kout = (*p->ky)*(y1-y0)+y0;
+    MYFLT y0 = x * (*p->v01 - v00) + v00;
+    MYFLT y1 = x * (*p->v11 - v10) + v10;
+    *p->kout = (*p->ky) * (y1 - y0) + y0;
     return OK;
 }
 
+
 /*  mtof -- ftom
 
-midi to frequency conversion
+   midi to frequency conversion
 
-kfreq = mtof(69)
+   mtof(midinote)
 
-*/
+   kfreq = mtof(69)
+   
+ */
 
 typedef struct {
-  OPDS    h;
+  OPDS h;
   MYFLT *r, *k, *irnd;
   MYFLT freqA4;
-  int   rnd;
+  int rnd;
 } PITCHCONV;
 
 static int32_t mtof(CSOUND *csound, PITCHCONV *p) {
-     IGN(csound);
+    IGN(csound);
     *p->r = POWER(FL(2.0), (*p->k - FL(69.0)) / FL(12.0)) * p->freqA4;
     return OK;
 }
 
-static int32_t mtof_init(CSOUND *csound, PITCHCONV *p) {
+static int32_t
+mtof_init(CSOUND *csound, PITCHCONV *p) {
     p->freqA4 = csound->GetA4(csound);
     mtof(csound, p);
     return OK;
@@ -141,14 +326,15 @@ static int32_t mtof_init(CSOUND *csound, PITCHCONV *p) {
 
 static int32_t ftom(CSOUND *csound, PITCHCONV *p) {
     MYFLT ans;
-     IGN(csound);
+    IGN(csound);
     ans = FL(12.0) * LOG2(*p->k / p->freqA4) + FL(69.0);
     if (UNLIKELY(p->rnd)) ans = (MYFLT)MYFLT2LRND(ans);
     *p->r = ans;
     return OK;
 }
 
-static int32_t ftom_init(CSOUND *csound, PITCHCONV *p) {
+static int32_t
+ftom_init(CSOUND *csound, PITCHCONV *p) {
     p->freqA4 = csound->GetA4(csound);
     p->rnd = (int)*p->irnd;
     ftom(csound, p);
@@ -156,117 +342,204 @@ static int32_t ftom_init(CSOUND *csound, PITCHCONV *p) {
 }
 
 static int32_t pchtom(CSOUND *csound, PITCHCONV *p) {
-     IGN(csound);
+    IGN(csound);
     MYFLT pch = *p->k;
     MYFLT oct = FLOOR(pch);
     MYFLT note = pch - oct;
-    *p->r = (oct-FL(3.0))*FL(12.0)+note*FL(100.0);
+    *p->r = (oct - FL(3.0)) * FL(12.0) + note * FL(100.0);
     return OK;
 }
 
 
 /*
-  bpf  --> break point function with linear interpolation
+   bpf  --> break point function with linear interpolation
 
-  Useful for smaller cases where:
+   Useful for smaller cases where:
 
-  * defining a table is overkill
-  * higher accuracy in the x coord
-  * values are changing at k-rate
+ * defining a table is overkill
+ * higher accuracy in the x coord
+ * values are changing at k-rate
 
-  ky  bpf  kx, kx0, ky0, kx1, ky1, ...
+   ky  bpf  kx, kx0, ky0, kx1, ky1, ...
+   kY[] bpf kX[], kx0, ky0, kx1, ky1, ...
 
-*/
+ */
 
-
-#define INTERP_L(X, X0, X1, Y0, Y1) ((X) < (X0) ? (Y0) : \
-                                     (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0)))
-
-inline MYFLT interpol_l(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1) {
-    return x < x0 ? y0 : ((x-x0)/(x1-x0) * (y1-y0) + y0);
-}
-
-#define INTERP_R(X, X0, X1, Y0, Y1) ((X) > (X1) ? (Y1) : \
-                                     (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0)))
-
-inline MYFLT interpol_r(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1) {
-    return x > x1 ? y0 : ((x-x0)/(x1-x0) * (y1-y0) + y0);
-}
-
-#define INTERP_M(X, X0, X1, Y0, Y1) (((X)-(X0))/((X1)-(X0)) * ((Y1)-(Y0)) + (Y0))
-
-inline MYFLT interpol_m(MYFLT x, MYFLT x0, MYFLT x1, MYFLT y0, MYFLT y1) {
-    return (x-x0)/(x1-x0) * (y1-y0) + y0;
-}
-
+#define BPF_MAXPOINTS 256
 
 typedef struct {
-  OPDS    h;
-  MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2;
-} BPF3;
+    OPDS h;
+    MYFLT *r, *x, *data[BPF_MAXPOINTS];
+} BPFX;
 
-
-static int32_t bpf3(CSOUND *csound, BPF3 *p) {
-    IGN(csound);
+static int32_t bpfx(CSOUND *csound, BPFX *p) {
     MYFLT x = *p->x;
-    MYFLT n, m;
-    if(x<*p->x1) {
-      m = *p->x0; n = *p->y0;
-      *p->r = INTERP_L(x, m, *p->x1, n, *p->y1);
-    } else {
-      m = *p->x1;
-      n = *p->y1;
-      *p->r = INTERP_R(x, m, *p->x2, n, *p->y2);
+    MYFLT **data = p->data;
+    int32_t datalen = p->INOCOUNT - 1;
+    if(datalen % 2) {
+        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+    }
+    if(datalen >= BPF_MAXPOINTS) {
+        return INITERR(Str("bpf: too many pargs (max=256)"));
+    }
+    int32_t i;
+    MYFLT x0, x1, y0, y1;
+    x0 = *data[0];
+    y0 = *data[1];
+
+    if (x <= x0) {
+        *p->r = y0;
+        return OK;
+    }
+    if (x>=*data[datalen-2]) {
+        *p->r = *data[datalen-1];
+        return OK;
+    }
+    for(i=2; i<datalen; i+=2) {
+        x1 = *data[i];
+        y1 = *data[i+1];
+        if( x <= x1 ) {
+            *p->r = (x-x0)/(x1-x0)*(y1-y0)+y0;
+            return OK;
+        }
+        x0 = x1;
+        y0 = y1;
+    }
+    return NOTOK;
+}
+
+static int32_t bpfxcos(CSOUND *csound, BPFX *p) {
+    MYFLT x = *p->x;
+    MYFLT **data = p->data;
+    int32_t datalen = p->INOCOUNT - 1;
+    if(datalen % 2)
+        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+    if(datalen >= BPF_MAXPOINTS)
+        return INITERR(Str("bpf: too many pargs (max=256)"));
+    int32_t i;
+    MYFLT x0, x1, y0, y1, dx;
+    x0 = *data[0];
+    y0 = *data[1];
+
+    if (x <= x0) {
+        *p->r = y0;
+        return OK;
+    }
+    if (x>=*data[datalen-2]) {
+        *p->r = *data[datalen-1];
+        return OK;
+    }
+    for(i=2; i<datalen; i+=2) {
+        x1 = *data[i];
+        y1 = *data[i+1];
+        if( x <= x1 ) {
+            dx = ((x-x0) / (x1-x0)) * M_PI + M_PI;
+            *p->r = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
+            return OK;
+        }
+        x0 = x1;
+        y0 = y1;
+    }
+    return NOTOK;
+}
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *out, *in;
+    MYFLT *data[BPF_MAXPOINTS];
+} BPFARR;
+
+static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
+    int32_t N = p->in->sizes[0];
+    arrayensure(csound, p->out, N);
+    MYFLT **data = p->data;
+    MYFLT *out = p->out->data;
+    MYFLT *in  = p->in->data;
+
+    int32_t datalen = p->INOCOUNT - 1;
+    if(datalen % 2)
+        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+    if(datalen >= BPF_MAXPOINTS)
+        return INITERR(Str("bpf: too many pargs (max=256)"));
+    int32_t idx, i;
+    MYFLT x, x0, x1, y0, y1, firstx, firsty, lastx, lasty;
+    firstx = *data[0];
+    firsty = *data[1];
+    lastx = *data[datalen-2];
+    lasty = *data[datalen-1];
+
+    for(idx=0; idx<N; idx++) {
+        x = in[idx];
+        x0 = firstx;
+        y0 = firsty;
+
+        if (x <= x0)
+            out[idx] = y0;
+        else if (x>=lastx)
+            out[idx] = lasty;
+        else {
+            for(i=2; i<datalen; i+=2) {
+                x1 = *data[i];
+                y1 = *data[i+1];
+                if( x <= x1 ) {
+                    out[idx] = (x-x0)/(x1-x0)*(y1-y0)+y0;
+                    break;
+                }
+                x0 = x1;
+                y0 = y1;
+            }
+        }
     }
     return OK;
 }
 
-typedef struct {
-  OPDS    h;
-  MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3;
-} BPF4;
+            
+static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
+    int32_t N = p->in->sizes[0];
+    arrayensure(csound, p->out, N);
+    MYFLT **data = p->data;
+    MYFLT *out = p->out->data;
+    MYFLT *in  = p->in->data;
 
+    int32_t datalen = p->INOCOUNT - 1;
+    if(datalen % 2)
+        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+    if(datalen >= BPF_MAXPOINTS)
+        return INITERR(Str("bpf: too many pargs (max=256)"));
+    
+    int32_t idx, i;
+    MYFLT x, x0, x1, y0, y1, firstx, firsty, lastx, lasty, dx;
+    firstx = *data[0];
+    firsty = *data[1];
+    lastx = *data[datalen-2];
+    lasty = *data[datalen-1];
 
-static int32_t bpf4(CSOUND *csound, BPF4 *p) {
-    IGN(csound);
-    MYFLT x = *p->x;
-    MYFLT m, n;
-    if(x < (*p->x1)) {
-      m = *p->x0; n = *p->y0;
-      *p->r = INTERP_L(x, m, *p->x1, n, *p->y1);
-    } else if (x < (*p->x2)) {
-      m = *p->x1; n = *p->y1;
-      *p->r = INTERP_M(x, m, *p->x2, n, *p->y2);
-    }  else {
-      m = *p->x2; n = *p->y2;
-      *p->r = INTERP_R(x, m, *p->x3, n, *p->y3);
+    for(idx=0; idx<N; idx++) {
+        x = in[idx];
+        x0 = firstx;
+        y0 = firsty;
+
+        if (x <= x0)
+            out[idx] = y0;
+        else if (x>=lastx)
+            out[idx] = lasty;
+        else {
+            for(i=2; i<datalen; i+=2) {
+                x1 = *data[i];
+                y1 = *data[i+1];
+                if( x <= x1 ) {
+                    dx = ((x-x0) / (x1-x0)) * M_PI + M_PI;
+                    out[idx] = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
+                    break;
+                }
+                x0 = x1;
+                y0 = y1;
+            }
+        }
     }
     return OK;
 }
-
-typedef struct {
-  OPDS    h;
-  MYFLT *r, *x, *x0, *y0, *x1, *y1, *x2, *y2, *x3, *y3, *x4, *y4;
-} BPF5;
-
-static int32_t bpf5(CSOUND *csound, BPF5 *p) {
-     IGN(csound);
-    MYFLT x = *p->x;
-    if(x < (*p->x2)) {
-      if(x < (*p->x1)) {
-        *p->r = INTERP_L(x, *p->x0, *p->x1, *p->y0, *p->y1);
-      } else {
-        *p->r = INTERP_M(x, *p->x1, *p->x2, *p->y1, *p->y2);
-      }
-    }  else if (x < (*p->x3)) {
-      *p->r = INTERP_M(x, *p->x2, *p->x3, *p->y2, *p->y3);
-    }     else {
-      *p->r = INTERP_R(x, *p->x3, *p->x4, *p->y3, *p->y4);
-    }
-    return OK;
-}
-
-
+                    
 /*  ntom  - mton
 
         midi to notename conversion
@@ -277,134 +550,814 @@ static int32_t bpf5(CSOUND *csound, BPF5 *p) {
     Snotename = mton(69.5)
     Snotename = mton(kmidi)
 
-*/
+ */
 
 typedef struct {
-  OPDS h;
-  MYFLT *r;
-  STRINGDAT *notename;
+    OPDS h;
+    MYFLT *r;
+    STRINGDAT *notename;
 } NTOM;
 
 int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
-static int32_t ntom(CSOUND *csound, NTOM *p) {
+static int32_t
+ntom(CSOUND *csound, NTOM *p) {
     /*
-      formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
-      - no lowercase
-      - octave is necessary and comes always first
-      - no negative octaves, no octaves higher than 9
-    */
+       formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
+       - no lowercase
+       - octave is necessary and comes always first
+       - no negative octaves, no octaves higher than 9
+     */
     char *n = (char *) p->notename->data;
     int32_t octave = n[0] - '0';
     int32_t pcidx = n[1] - 'A';
     if (pcidx < 0 || pcidx >= 7) {
-      csound->Message(csound,
-                      Str("expecting a char between A and G, but got %c\n"),
-                      n[1]);
-      return NOTOK;
+        csound->Message(csound,
+                        Str("expecting a char between A and G, but got %c\n"),
+                        n[1]);
+        return NOTOK;
     }
     int32_t pc = _pcs[pcidx];
     int32_t cents = 0;
     int32_t cursor;
-    if(n[2] == '#') {
-      pc += 1;
-      cursor = 3;
+    if (n[2] == '#') {
+        pc += 1;
+        cursor = 3;
     } else if (n[2] == 'b') {
-      pc -= 1;
-      cursor = 3;
+        pc -= 1;
+        cursor = 3;
     } else {
-      cursor = 2;
+        cursor = 2;
     }
     int32_t rest = p->notename->size - 1 - cursor;
-    if(rest > 0) {
-      int32_t sign = n[cursor] == '+' ? 1 : -1;
-      if(rest == 1) {
-        cents = 50;
-      } else if(rest == 2) {
-        cents = n[cursor+1] - '0';
-      } else if (rest == 3) {
-        cents = 10*(n[cursor+1] - '0') + (n[cursor+2] - '0');
-      } else {
-        csound->Message(csound,"%s", Str("format not understood\n"));
-        return NOTOK;
-      }
-      cents *= sign;
+    if (rest > 0) {
+        int32_t sign = n[cursor] == '+' ? 1 : -1;
+        if (rest == 1) {
+            cents = 50;
+        } else if (rest == 2) {
+            cents = n[cursor + 1] - '0';
+        } else if (rest == 3) {
+            cents = 10 * (n[cursor + 1] - '0') + (n[cursor + 2] - '0');
+        } else {
+            csound->Message(csound,"%s", Str("format not understood\n"));
+            return NOTOK;
+        }
+        cents *= sign;
     }
-    *p->r = ((octave + 1)*12 + pc) + cents/FL(100.0);
+    *p->r = ((octave + 1) * 12 + pc) + cents / FL(100.0);
     return OK;
 }
 
+
+/*
+
+   mton -- midi to note
+
+   Snote mton 69.5   -> 4A+50
+
+ */
+
 typedef struct {
-  OPDS h;
-  STRINGDAT *Sdst;
-  MYFLT *kmidi;
+    OPDS h;
+    STRINGDAT *Sdst;
+    MYFLT *kmidi;
 } MTON;
 
-//               C  C# D D#  E  F  F# G G# A Bb B
+//                   C  C# D D#  E  F  F# G G# A Bb B
 int32_t _pc2idx[] = {2, 2, 3, 3, 4, 5, 5, 6, 6, 0, 1, 1};
 int32_t _pc2alt[] = {0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2, 0};
 char _alts[] = " #b";
 
-static int32_t mton(CSOUND *csound, MTON *p) {
+static int32_t
+mton(CSOUND *csound, MTON *p) {
     char *dst;
     MYFLT m = *p->kmidi;
-    int32_t maxsize = 7;  // 4C#+99\0
+    int32_t maxsize = 7; // 4C#+99\0
     if (p->Sdst->data == NULL) {
-      p->Sdst->data = csound->Calloc(csound, maxsize);
-      p->Sdst->size = maxsize;
+        p->Sdst->data = csound->Calloc(csound, maxsize);
+        p->Sdst->size = maxsize;
     }
     dst = (char*) p->Sdst->data;
     int32_t octave = m / 12 - 1;
     int32_t pc = (int32_t)m % 12;
-    int32_t cents = round((m - floor(m))*100.0);
-    int32_t sign, cursor, i;
+    int32_t cents = round((m - floor(m)) * 100.0);
+    int32_t sign, cursor;
 
-    if(cents == 0) {
-      sign = 0;
+    if (cents == 0) {
+        sign = 0;
     } else if (cents <= 50) {
-      sign = 1;
+        sign = 1;
     } else {
-      cents = 100 - cents;
-      sign = -1;
-      pc += 1;
-      if(pc == 12) {
-        pc = 0;
-        octave += 1;
-      }
+        cents = 100 - cents;
+        sign = -1;
+        pc += 1;
+        if (pc == 12) {
+            pc = 0;
+            octave += 1;
+        }
     }
     if(octave >= 0) {
-      dst[0] = '0' + octave;
-      cursor = 1;
+        dst[0] = '0' + octave;
+        cursor = 1;
     } else {
-      dst[0] = '-';
-      dst[1] = '0' - octave;
-      cursor = 2;
+        dst[0] = '-';
+        dst[1] = '0' - octave;
+        cursor = 2;
     }
     dst[cursor] = 'A' + _pc2idx[pc];
     cursor += 1;
     int32_t alt = _pc2alt[pc];
     if(alt > 0) {
-      dst[cursor++] = _alts[alt];
-    }
+        dst[cursor++] = _alts[alt];
+    }    
     if(sign == 1) {
-      dst[cursor++] = '+';
-      if(cents < 10) {
-        dst[cursor++] = '0'+cents;
-      } else if(cents != 50) {
-        dst[cursor++] = '0' + (int32_t)(cents / 10);
-        dst[cursor++] = '0' + (cents % 10);
-      }
+        dst[cursor++] = '+';
+        if (cents < 10) {
+            dst[cursor++] = '0' + cents;
+        } else if(cents != 50) {
+            dst[cursor++] = '0' + (int32_t)(cents / 10);
+            dst[cursor++] = '0' + (cents % 10);
+        }
     } else if(sign == -1) {
-      dst[cursor++] = '-';
-      if(cents < 10) {
-        dst[cursor++] = '0'+cents;
-      } else if(cents != 50) {
-        dst[cursor++] = '0' + (int32_t)(cents / 10);
-        dst[cursor++] = '0' + (cents % 10);
-      }
+        dst[cursor++] = '-';
+        if(cents < 10) {
+            dst[cursor++] = '0' + cents;
+        } else if(cents != 50) {
+            dst[cursor++] = '0' + (int32_t)(cents / 10);
+            dst[cursor++] = '0' + (cents % 10);
+        }
     }
-    for(i=cursor; i<maxsize; i++) {
-      dst[i] = '\0';            /* Why the loop?  one is enough - JPff */
+    dst[cursor] = '\0';
+    return OK;
+}
+
+
+/*
+
+   cmp
+
+   aout cmp a1, ">", a2
+   aout cmp a1, "<=", k2
+   aout cmp a1, "==", 0
+
+   kOut[] cmp kA[], "<", k1
+   kOut[] cmp kA[], "<", kB[]
+   kOut[] cmp k1, "<", kA[], "<=", k2
+
+ */
+
+typedef struct {
+    OPDS h;
+    MYFLT *out, *a0;
+    STRINGDAT *op;
+    MYFLT *a1;
+    int32_t mode;
+} Cmp;
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *out;
+    ARRAYDAT *in;
+    STRINGDAT *op;
+    MYFLT *k1;
+    int32_t mode;
+} Cmp_array1;
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *out;
+    ARRAYDAT *in1;
+    STRINGDAT *op;
+    ARRAYDAT *in2;
+    int32_t mode;
+} Cmp_array2;
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *out;
+    MYFLT *a;
+    STRINGDAT *op1;
+    ARRAYDAT *in;
+    STRINGDAT *op2;
+    MYFLT *b;
+    int32_t mode;
+} Cmp2_array1;
+
+static int32_t
+cmp_init(CSOUND *csound, Cmp *p) {
+    char *op = (char*) p->op->data;
+    int32_t opsize = p->op->size - 1;
+
+    if (op[0] == '>') {
+        p->mode = (opsize == 1) ? 0 : 1;
+    } else if (op[0] == '<') {
+        p->mode = (opsize == 1) ? 2 : 3;
+    } else if (op[0] == '=') {
+        p->mode = 4;
+    } else if (op[0] == '!' && op[1] == '=') {
+        p->mode = 5;
+    } else {
+        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+    }
+    return OK;
+}
+
+static int32_t
+cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
+    int32_t N = p->in->sizes[0];
+    arrayensure(csound, p->out, N);
+
+    char *op = (char*)p->op->data;
+    int32_t opsize = p->op->size - 1;
+
+    if (op[0] == '>')
+        p->mode = (opsize == 1) ? 0 : 1;
+    else if (op[0] == '<')
+        p->mode = (opsize == 1) ? 2 : 3;
+    else if (op[0] == '=')
+        p->mode = 4;
+    else if (op[0] == '!' && op[1] == '=')
+        p->mode = 5;
+    else
+        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+    return OK;
+}
+
+static int32_t
+cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
+    int32_t N1 = p->in1->sizes[0];
+    int32_t N2 = p->in2->sizes[0];
+    int32_t N = N1 < N2 ? N1 : N2;
+
+    // make sure that we can put the result in `out`,
+    // grow the array if necessary
+    arrayensure(csound, p->out, N);
+
+    char *op = (char*)p->op->data;
+    int32_t opsize = p->op->size - 1;
+
+    if (op[0] == '>')
+        p->mode = (opsize == 1) ? 0 : 1;
+    else if (op[0] == '<')
+        p->mode = (opsize == 1) ? 2 : 3;
+    else if (op[0] == '=')
+        p->mode = 4;
+    else if (op[0] == '!' && op[1] == '=')
+        p->mode = 5;
+    else
+        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+    return OK;
+}
+
+static int32_t
+cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
+    int32_t N = p->in->sizes[0];
+    arrayensure(csound, p->out, N);
+
+    char *op1 = (char*)p->op1->data;
+    int32_t op1size = p->op1->size - 1;
+    char *op2 = (char*)p->op2->data;
+    int32_t op2size = p->op2->size - 1;
+    int32_t mode;
+
+    if (op1[0] == '<') {
+        mode = (op1size == 1) ? 0 : 1;
+        if(op2[0] == '<')
+            mode += 2 * ((op2size == 1) ? 0 : 1);
+        else
+            return INITERR(Str("cmp (ternary comparator): operator 2 expected <"));
+    }
+    else {
+        return INITERR(Str("cmp (ternary comparator): operator 1 expected <"));
+    }
+    p->mode = mode;
+    return OK;
+}
+
+static int32_t
+cmp_aa(CSOUND *csound, Cmp* p) {
+    IGN(csound);
+
+    SAMPLE_ACCURATE
+
+    MYFLT *a0 = p->a0;
+    MYFLT *a1 = p->a1;
+
+    switch(p->mode) {
+    case 0:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] > a1[n];
+        }
+        break;
+    case 1:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] >= a1[n];
+        }
+        break;
+    case 2:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] < a1[n];
+        }
+        break;
+    case 3:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] <= a1[n];
+        }
+        break;
+    case 4:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] == a1[n];
+        }
+        break;
+    case 5:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] != a1[n];
+        }
+        break;
+    }
+    return OK;
+}
+
+static int32_t
+cmp_ak(CSOUND *csound, Cmp *p) {
+    IGN(csound);
+
+    SAMPLE_ACCURATE
+
+    MYFLT *a0 = p->a0;
+    MYFLT a1 = *(p->a1);
+
+    switch(p->mode) {
+    case 0:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] > a1;
+        }
+        break;
+    case 1:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] >= a1;
+        }
+        break;
+    case 2:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] < a1;
+        }
+        break;
+    case 3:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] <= a1;
+        }
+        break;
+    case 4:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] == a1;
+        }
+        break;
+    case 5:
+        for(n=offset; n<nsmps; n++) {
+            out[n] = a0[n] != a1;
+        }
+        break;
+    }
+    return OK;
+}
+
+static int32_t
+cmparray1_k(CSOUND *csound, Cmp_array1 *p) {
+    MYFLT *out = p->out->data;
+    MYFLT *in  = p->in->data;
+    MYFLT k1 = *p->k1;
+    int32_t L = p->out->sizes[0];
+    // int32_t N = p->in->sizes[0];
+    int32_t i;
+
+    switch(p->mode) {
+    case 0:
+        for(i=0; i<L; i++) {
+            out[i] = in[i] > k1;
+        }
+        break;
+    case 1:
+        for(i=0; i<L; i++) {
+            out[i] = in[i] >= k1;
+        }
+        break;
+    case 2:
+        for(i=0; i<L; i++) {
+            out[i] = in[i] < k1;
+        }
+        break;
+    case 3:
+        for(i=0; i<L; i++) {
+            out[i] = in[i] <= k1;
+        }
+        break;
+    case 4:
+        for(i=0; i<L; i++) {
+            out[i] = in[i] == k1;
+        }
+        break;
+    case 5:
+        for(i=0; i<L; i++) {
+            out[i] = in[i] != k1;
+        }
+        break;
+    }
+    return OK;
+}
+
+static int32_t
+cmp2array1_k(CSOUND *csound, Cmp2_array1 *p) {
+    MYFLT *out = p->out->data;
+    MYFLT *in  = p->in->data;
+    MYFLT a = *p->a;
+    MYFLT b = *p->b;
+    int32_t L = p->out->sizes[0];
+    // int32_t N = p->in->sizes[0];
+    int32_t i;
+    MYFLT x;
+
+    switch(p->mode) {
+    case 0:   // 00 -> <   <
+        for(i=0; i<L; i++) {
+            x = in[i];
+            out[i] = (a < x) && (x < b);
+        }
+        break;
+    case 1:   // 01 -> <=   <
+        for(i=0; i<L; i++) {
+            x = in[i];
+            out[i] = (a <= x) && (x < b);
+        }
+        break;
+    case 2:   // 10 -> <   <=
+        for(i=0; i<L; i++) {
+            x = in[i];
+            out[i] = (a < x) && (x <= b);
+        }
+        break;
+    case 3:   // 11 -> <=   <=
+        for(i=0; i<L; i++) {
+            x = in[i];
+            out[i] = (a <= x) && (x <= b);
+        }
+        break;
+    }
+    return OK;
+}
+
+static int32_t
+cmparray2_k(CSOUND *csound, Cmp_array2 *p) {
+    MYFLT *out = p->out->data;
+    MYFLT *in1  = p->in1->data;
+    MYFLT *in2  = p->in2->data;
+    int32_t L = p->out->sizes[0];
+    int32_t i;
+
+    switch(p->mode) {
+    case 0:
+        for(i=0; i<L; i++) {
+            out[i] = in1[i] > in2[i];
+        }
+        break;
+    case 1:
+        for(i=0; i<L; i++) {
+            out[i] = in1[i] >= in2[i];
+        }
+        break;
+    case 2:
+        for(i=0; i<L; i++) {
+            out[i] = in1[i] < in2[i];
+        }
+        break;
+    case 3:
+        for(i=0; i<L; i++) {
+            out[i] = in1[i] <= in2[i];
+        }
+        break;
+    case 4:
+        for(i=0; i<L; i++) {
+            out[i] = in1[i] == in2[i];
+        }
+        break;
+    case 5:
+        for(i=0; i<L; i++) {
+            out[i] = in1[i] != in2[i];
+        }
+        break;
+    }
+    return OK;
+}
+
+static int32_t
+cmparray2_i(CSOUND *csound, Cmp_array2 *p) {
+    cmparray2_init(csound, p);
+    return cmparray2_k(csound, p);
+}
+
+
+/*
+  ftslice
+
+  ftslice sourceTable:i, destTable:i, startIndex:k=0, endIndex:k=0, step:k=1
+
+  copy slice from source table to dest table (end is not inclusive)
+
+  sourceTable: the source table number
+  destTable  : the destination table number
+  startIndex : the index to start copying
+  endIndex   : the index to end copying. NOT INCLUSIVE
+  step       : how many indices to jump (1=contiguous)
+
+  See also: tab2array
+*/
+
+typedef struct {
+    OPDS h;
+    MYFLT *fnsrc, *fndst, *kstart, *kend, *kstep;
+    FUNC *ftpsrc;
+    FUNC *ftpdst;
+} TABSLICE;
+
+static int32_t
+tabslice_init(CSOUND *csound, TABSLICE *p) {
+    FUNC *ftpsrc, *ftpdst;
+    ftpsrc = csound->FTFind(csound, p->fnsrc);
+    if(UNLIKELY(ftpsrc == NULL))
+        return NOTOK;
+    p->ftpsrc = ftpsrc;
+    ftpdst = csound->FTFind(csound, p->fndst);
+    if(UNLIKELY(ftpdst == NULL))
+        return NOTOK;
+    p->ftpdst = ftpdst;
+
+    return OK;
+}
+
+static int32_t
+tabslice_k(CSOUND *csound, TABSLICE *p) {
+    FUNC *ftpsrc = p->ftpsrc;
+    FUNC *ftpdst = p->ftpdst;
+    int32_t start = (int32_t)*p->kstart;
+    int32_t end = (int32_t)*p->kend;
+    int32_t step = (int32_t)*p->kstep;
+    if(end < 1)
+        end = ftpsrc->flen;
+    int32_t numitems = (int32_t)ceil((end - start) / (float)step);
+    if(numitems > ftpdst->flen)
+        numitems = ftpdst->flen;
+    MYFLT *src = ftpsrc->ftable;
+    MYFLT *dst = ftpdst->ftable;
+
+    int32_t i, j=start;
+    for(i=0; i<numitems; i++) {
+        dst[i] = src[j];
+        j += step;
+    }
+    return OK;
+}
+
+/*
+
+  tab2array
+  
+  kout[] tab2array ifn, kstart=0, kend=0, kstep=1
+  iout[] tab2array ifn, istart=0, iend=0, istep=1
+  
+  copy slice from table into an array
+
+  kstart: start index
+  kend: end index (not inclusive). 0=end of table/array
+  kstep: increment
+
+  To copy a slice of an array, see slicearray 
+
+ */
+
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *out;
+    MYFLT *ifn, *kstart, *kend, *kstep;
+    FUNC * ftp;
+    int numitems;
+} TAB2ARRAY;
+
+static int
+tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
+    FUNC *ftp;
+    ftp = csound->FTFind(csound, p->ifn);
+    if (UNLIKELY(ftp == NULL))
+        return NOTOK;
+    p->ftp = ftp;
+    int start = (int)*p->kstart;
+    int end   = (int)*p->kend;
+    int step  = (int)*p->kstep;
+    if (end < 1)
+        end = ftp->flen;
+    int numitems = (int)ceil((end - start) / (float)step);
+    if(numitems < 0) {
+        return PERFERROR(Str("tab2array: can't copy a negative number of items"));
+    }
+    arrayensure(csound, p->out, numitems);
+    p->numitems = numitems;
+    return OK;
+}
+
+static int
+tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
+    FUNC *ftp = p->ftp;
+    int start = (int)*p->kstart;
+    int end   = (int)*p->kend;
+    int step  = (int)*p->kstep;
+    if (end < 1)
+        end = ftp->flen;
+    int numitems = (int)ceil((end - start) / (float)step);
+    if(numitems < 0)
+        return PERFERROR(Str("tab2array: can't copy a negative number of items"));
+    if(numitems > p->numitems) {
+        arrayensure(csound, p->out, numitems);
+        p->numitems = numitems;
+    }
+    MYFLT *out   = p->out->data;
+    MYFLT *table = ftp->ftable;
+
+    int i, j=0;
+    for(i=start; i<end; i+=step) {
+        out[j++] = table[i];
+    }
+    return OK;
+}
+
+static int
+tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
+    if(tab2array_init(csound, p) == OK)
+        return tab2array_k(csound, p);
+    return NOTOK;
+}
+
+
+/*
+
+  reshapearray
+
+  Reshape a 2D array, maintaining the capacity of the array
+  (it does NOT resize the array).
+  
+  reshapearray array[], inumrows, inumcols
+
+  works with i and k arrays, at i-time and k-time
+  
+*/
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *in;
+    MYFLT *numrows, *numcols;
+} ARRAYRESHAPE;
+
+static int32_t
+arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
+    ARRAYDAT *a = p->in;
+    int32_t dims = a->dimensions;
+    int32_t i;
+    int32_t numitems = 1;
+    int32_t numcols = (int32_t)(*p->numcols);
+    int32_t numrows = (int32_t)(*p->numrows);
+    for(i=0; i<dims; i++) {
+        numitems *= a->sizes[i];
+    }
+    int32_t numitems2 = numcols*numrows;
+    if(numitems != numitems2)
+        return NOTOK;
+    if(dims != 2) {
+        csound->Free(csound, a->sizes);
+        a->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*2);
+    }
+    a->dimensions = 2;
+    a->sizes[0] = numrows;
+    a->sizes[1] = numcols;
+    return OK;
+}
+
+
+/*
+  printarray
+
+  printarray array[], ktrig
+
+  Prints all the elements of the array whenever ktrig
+  changes from 0 to 1. If ktrig is -1, it prints always 
+  (each k-cycle)
+
+  Works with 1- and 2-dimensional arrays, at i- and k-time
+*/
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *in;
+    MYFLT *trig;
+    int32_t lasttrig;
+} ARRAYPRINT;
+
+static int32_t
+arrayprint_init(CSOUND *csound, ARRAYPRINT *p) {
+    p->lasttrig = 0;
+    return OK;
+}
+
+static int32_t
+arrayprint_perf(CSOUND *csound, ARRAYPRINT *p) {
+    int32_t trig = (int32_t)*p->trig;
+    int32_t lasttrig = p->lasttrig;
+    int32_t i, j;
+    MYFLT *in;
+    const int32_t rowlength = 8;
+    printf("printarray!\n");
+    if(trig < 0 || (trig && !lasttrig)) {
+        in = p->in->data;
+        switch(p->in->dimensions) {
+        case 1:
+            for(i=0; i<p->in->sizes[0]; i++) {
+                printf("%f.4f ", in[i]);
+                if(i % rowlength == 0)
+                    printf("\n");
+            }
+            break;
+        case 2:
+            for(i=0; i<p->in->sizes[0]; i++) {
+                for(j=0; j<p->in->sizes[1]; j++) {
+                    printf("%.4f ", *in);
+                    in++;
+                }
+                printf("\n");
+            }
+            break;
+        }
+    }
+    p->lasttrig = trig;
+    return OK;
+}
+
+static int32_t
+arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
+    *p->trig = 1;
+    arrayprint_init(csound, p);
+    return arrayprint_perf(csound, p);
+}
+
+
+/*
+  bit | and & for array
+
+*/
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *out;
+    ARRAYDAT *in1, *in2;
+    int32_t numitems;
+} BINOP_AAA;
+
+static int32_t
+array_binop_init(CSOUND *csound, BINOP_AAA *p) {
+    int32_t numitems = 1;
+    int32_t i;
+
+    for(i=0; i<p->in1->dimensions; i++) {
+        numitems *= p->in1->sizes[i];
+    }
+    arrayensure(csound, p->out, numitems);
+    p->numitems = numitems;
+    return OK;
+}
+
+static int32_t
+array_or(CSOUND *csound, BINOP_AAA *p) {
+    int32_t numitems = p->numitems;
+    int32_t i;
+    MYFLT *out = p->out->data;
+    MYFLT *in1 = p->in1->data;
+    MYFLT *in2 = p->in2->data;
+
+    // TODO: ensure size AND shape
+    for(i=0; i<numitems; i++) {
+        *(out++) = (MYFLT)((int32_t)*(in1++) | (int32_t)*(in2++));
+    }
+    return OK;
+}
+
+static int32_t
+array_and(CSOUND *csound, BINOP_AAA *p) {
+    int32_t numitems = p->numitems;
+    int32_t i;
+    MYFLT *out = p->out->data;
+    MYFLT *in1 = p->in1->data;
+    MYFLT *in2 = p->in2->data;
+
+    // TODO: ensure size AND shape
+    for(i=0; i<numitems; i++) {
+        *(out++) = (MYFLT)((int32_t)*(in1++) & (int32_t)*(in2++));
     }
     return OK;
 }
@@ -412,150 +1365,93 @@ static int32_t mton(CSOUND *csound, MTON *p) {
 
 /*
 
-  cmp
+   Input types:
+ * a, k, s, i, w, f,
+ * o (optional i-rate, default to 0), O optional krate=0
+ * p (opt, default to 1), P optional krate=1
+ * q (opt, 10),
+ * v(opt, 0.5),
+ * j(opt, ?1), J optional krate=-1
+ * h(opt, 127),
+ * y (multiple inputs, a-type),
+ * z (multiple inputs, k-type),
+ * Z (multiple inputs, alternating k- and a-types),
+ * m (multiple inputs, i-type),
+ * M (multiple inputs, any type)
+ * n (multiple inputs, odd number of inputs, i-type).
+ * . anytype
+ * ? optional
+ */
 
-  aout cmp a1, ">", a2
-  aout cmp a1, "<=", k2
-  aout cmp a1, "==", 0
-
-*/
-
-typedef struct {
-  OPDS h;
-  MYFLT *out, *a0;
-  STRINGDAT *op;
-  MYFLT *a1;
-  int32_t mode;
-} Cmp;
-
-static int32_t cmp_init(CSOUND *csound, Cmp *p) {
-    char *op = (char *) p->op->data;
-    int32_t opsize = p->op->size - 1;
-
-    if (op[0] == '>') {
-      p->mode = (opsize == 1) ? 0 : 1;
-    } else if (op[0] == '<') {
-      p->mode = (opsize == 1) ? 2 : 3;
-    } else if (op[0] == '=') {
-      p->mode = 4;
-    } else {
-      return
-        csound->InitError(csound, "%s", Str("cmp: operator not understood. "
-                                      "Expecting <, <=, >, >=, ==\n"));
-    }
-    return OK;
-}
-
-static int32_t cmp_aa(CSOUND *csound, Cmp* p) {
-     IGN(csound);
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT *out = p->out;
-    MYFLT *a0 = p->a0;
-    MYFLT *a1 = p->a1;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    switch(p->mode) {
-    case 0:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] > a1[n];
-      }
-      break;
-    case 1:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] >= a1[n];
-      }
-      break;
-    case 2:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] < a1[n];
-      }
-      break;
-    case 3:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] <= a1[n];
-      }
-      break;
-    case 4:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] == a1[n];
-      }
-      break;
-    }
-    return OK;
-}
-
-static int32_t cmp_ak(CSOUND *csound, Cmp* p) {
-    IGN(csound);
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT *out = p->out;
-    MYFLT *a0 = p->a0;
-    MYFLT a1 = *(p->a1);
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    switch(p->mode) {
-    case 0:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] > a1;
-      }
-      break;
-    case 1:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] >= a1;
-      }
-      break;
-    case 2:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] < a1;
-      }
-      break;
-    case 3:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] <= a1;
-      }
-      break;
-    case 4:
-      for(n=offset; n<nsmps; n++) {
-        out[n] = a0[n] == a1;
-      }
-      break;
-    }
-    return OK;
-}
-
-
-#define S(x)    sizeof(x)
+#define S(x) sizeof(x)
 
 static OENTRY localops[] = {
-  { "linlin",  S(LINLINK),   0, 2,  "k", "kkkkk",   NULL, (SUBR)linlink },
-  { "xyscale", S(XYSCALE),   0, 2,  "k", "kkkkkk",  NULL, (SUBR)xyscale },
-  { "xyscale", S(XYSCALE),   0, 3,  "k", "kkiiii",
-    (SUBR)xyscalei_init, (SUBR)xyscalei },
-  { "mtof",    S(PITCHCONV), 0, 3,  "k", "k",  (SUBR)mtof_init, (SUBR)mtof},
-  { "mtof",    S(PITCHCONV), 0, 1,  "i", "i",  (SUBR)mtof_init},
-  { "ftom",    S(PITCHCONV), 0, 3,  "k", "ko", (SUBR)ftom_init, (SUBR)ftom},
-  { "ftom",    S(PITCHCONV), 0, 1,  "i", "io", (SUBR)ftom_init},
-  { "pchtom",  S(PITCHCONV), 0, 1,  "i", "i",   (SUBR)pchtom},
-  { "pchtom",  S(PITCHCONV), 0, 2,  "k", "k",   NULL, (SUBR)pchtom},
-  { "bpf",     S(BPF3),      0, 3,  "k", "kkkkkkk",     (SUBR)bpf3, (SUBR)bpf3 },
-  { "bpf",     S(BPF4),      0, 3,  "k", "kkkkkkkkk",   (SUBR)bpf4, (SUBR)bpf4 },
-  { "bpf",     S(BPF5),      0, 3,  "k", "kkkkkkkkkkk", (SUBR)bpf5, (SUBR)bpf5 },
-  { "ntom",    S(NTOM),      0, 3,  "k", "S", (SUBR)ntom, (SUBR)ntom },
-  { "ntom",    S(NTOM),      0, 1,  "i", "S", (SUBR)ntom },
-  { "mton",    S(MTON),      0, 3,  "S", "k", (SUBR)mton, (SUBR)mton},
-  { "mton",    S(MTON),      0, 1,  "S", "i", (SUBR)mton},
-  { "cmp",     S(Cmp),       0, 3,  "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa },
-  { "cmp",     S(Cmp),       0, 3,  "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak }
-};
+    { "linlin", S(LINLIN1), 0, 2, "k", "kkkkk", NULL, (SUBR)linlin1_perf },
+    { "linlin", S(LINLIN1), 0, 2, "k", "kkkop", NULL, (SUBR)linlin1_perf },
+    { "linlin", S(LINLIN1), 0, 1, "i", "iiiop", (SUBR)linlin1_perf},
+    { "linlin", S(LINLINARR1), 0, 3, "k[]", "k[]kkOP", (SUBR)linlinarr1_init,
+      (SUBR)linlinarr1_perf},
+    { "linlin", S(LINLINARR1), 0, 1, "i[]", "i[]iiop", (SUBR)linlinarr1_i},
+    { "linlin", S(BLENDARRAY), 0, 3, "k[]", "kk[]k[]OP",
+      (SUBR)blendarray_init, (SUBR)blendarray_perf},
+    { "linlin", S(BLENDARRAY), 0, 1, "i[]", "ii[]i[]op", (SUBR)blendarray_i},
+    { "lincos", S(LINLIN1), 0, 2, "k", "kkkOP", NULL, (SUBR)lincos_perf },
+    { "lincos", S(LINLIN1), 0, 1, "k", "iiiop", (SUBR)lincos_perf },
+    
+    { "xyscale", S(XYSCALE), 0, 2, "k", "kkkkkk", NULL, (SUBR)xyscale },
+    { "xyscale", S(XYSCALE), 0, 3, "k", "kkiiii", (SUBR)xyscalei_init,
+        (SUBR)xyscalei },
 
+    { "mtof", S(PITCHCONV), 0, 3, "k", "k", (SUBR)mtof_init, (SUBR)mtof },
+    { "mtof", S(PITCHCONV), 0, 1, "i", "i", (SUBR)mtof_init },
+
+    { "ftom", S(PITCHCONV), 0, 3,  "k", "ko", (SUBR)ftom_init, (SUBR)ftom},
+    { "ftom", S(PITCHCONV), 0, 1,  "i", "io", (SUBR)ftom_init},
+
+    { "pchtom", S(PITCHCONV), 0, 1, "i", "i", (SUBR)pchtom },
+    { "pchtom", S(PITCHCONV), 0, 2, "k", "k", NULL, (SUBR)pchtom },
+
+    { "bpf", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfx },
+    { "bpf", S(BPFX), 0, 1, "i", "im", (SUBR)bpfx },
+    { "bpf", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarr },
+    { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
+    { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
+    { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
+    
+    { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
+    { "ntom", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },
+
+    { "mton", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
+    { "mton", S(MTON), 0, 1, "S", "i", (SUBR)mton },
+
+    { "cmp", S(Cmp), 0, 5, "a", "aSa", (SUBR)cmp_init, NULL, (SUBR)cmp_aa,},
+    { "cmp", S(Cmp), 0, 5, "a", "aSk", (SUBR)cmp_init, NULL, (SUBR)cmp_ak },
+    { "cmp", S(Cmp_array1), 0, 3, "k[]", "k[]Sk",
+      (SUBR)cmparray1_init, (SUBR)cmparray1_k },
+    { "cmp", S(Cmp_array2), 0, 3, "k[]", "k[]Sk[]",
+      (SUBR)cmparray2_init, (SUBR)cmparray2_k },
+    { "cmp", S(Cmp_array2), 0, 1, "i[]", "i[]Si[]",
+      (SUBR)cmparray2_i },
+    { "cmp", S(Cmp2_array1), 0, 3, "k[]", "kSk[]Sk",
+      (SUBR)cmp2array1_init, (SUBR)cmp2array1_k },
+
+    { "##or",  S(BINOP_AAA), 0, 3, "k[]", "k[]k[]",
+      (SUBR)array_binop_init, (SUBR)array_or},
+    { "##and", S(BINOP_AAA), 0, 3, "k[]", "k[]k[]",
+      (SUBR)array_binop_init, (SUBR)array_and},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "k[]ii", (SUBR)arrayreshape},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]ii", (SUBR)arrayreshape},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]ii",
+      NULL, (SUBR)arrayreshape},
+    { "ftslice", S(TABSLICE),  0, 3, "", "iiOOP",
+      (SUBR)tabslice_init, (SUBR)tabslice_k},
+    { "tab2array", S(TAB2ARRAY), 0, 3, "k[]", "iOOP", 
+      (SUBR)tab2array_init, (SUBR)tab2array_k},
+    { "tab2array", S(TAB2ARRAY), 0, 1, "i[]", "ioop", (SUBR)tab2array_i},
+
+    { "printarray", S(ARRAYPRINT), 0, 3, "", "k[]P", 
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
+};
 
 LINKAGE
