@@ -140,14 +140,6 @@ typedef struct {
         void    *zz;
 } ZACL;
 
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *ndx;
-        MYFLT   *dummy, dummy1;
-        void    *zz;
-} IOZ;
-
 int zacl(CSOUND*,ZACL *p);
 int zakinit(CSOUND*,ZAKINIT *p);
 int zamod(CSOUND*,ZAMOD *p);
@@ -165,6 +157,4 @@ int zkr(CSOUND*,ZKR *p);
 int zkset(CSOUND*,ZKR *p);
 int zkw(CSOUND*,ZKW *p);
 int zkwm(CSOUND*,ZKWM *p);
-int inz(CSOUND*,IOZ *p);
-int outz(CSOUND*,IOZ *p);
 

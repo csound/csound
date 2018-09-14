@@ -45,7 +45,8 @@
  * clearly indicated as such.
  */
 
-#include "csoundCore.h"
+//#include "csoundCore.h"
+#include "csdl.h"
 #include <math.h>
 #include <ctype.h>
 
@@ -697,85 +698,4 @@ int32_t zacl(CSOUND *csound, ZACL *p)
       }
     }
     return OK;
-}
-
-
-/* inz writes to za space at a rate as many channels as can. */
-int32_t inz(CSOUND *csound, IOZ *p)
-{
-    int32_t    indx, i;
-    ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
-    int32_t     nchns = csound->GetNchnls(csound);
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    /* Check to see this index is within the limits of za space.     */
-    indx = (int32_t) *p->ndx;
-    if (UNLIKELY(indx + nchns >= zak->zalast)) goto err1;
-    else if (UNLIKELY(indx < 0)) goto err2;
-    else {
-      MYFLT *writeloc;
-      /* Now write to the array in za space pointed to by indx.    */
-      writeloc = zak->zastart + (indx * nsmps);
-      early = nsmps - early;
-      for (i = 0; i < nchns; i++)
-        for (n = 0; n < nsmps; n++)
-          *writeloc++ = ((n>=offset && n<early) ?
-                         CS_SPIN[i * nsmps+n] : FL(0.0));
-    }
-    return OK;
- err1:
-    return csound->PerfError(csound, &(p->h),
-                             Str("inz index > isizea. Not writing."));
- err2:
-    return csound->PerfError(csound, &(p->h),
-                             Str("inz index < 0. Not writing."));
-}
-
-/* outz reads from za space at a rate to output. */
-int32_t outz(CSOUND *csound, IOZ *p)
-{
-    int32_t    indx;
-    ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
-    int32_t     i;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t     nchns = csound->GetNchnls(csound);
-    MYFLT *spout = csound->spraw;
-
-    /* Check to see this index is within the limits of za space.    */
-    indx = (int32) *p->ndx;
-    if (UNLIKELY((indx + nchns) >= zak->zalast)) goto err1;
-    else if (UNLIKELY(indx < 0)) goto err2;
-    else {
-      MYFLT *readloc;
-      /* Now read from the array in za space and write to the output. */
-      readloc = zak->zastart + (indx * nsmps);
-      early = nsmps-early;
-      if (!csound->spoutactive) {
-        memset(spout, '\0', nchns*nsmps*sizeof(MYFLT));
-        for (i = 0; i < nchns; i++) {
-          memcpy(&spout[i * nsmps+offset], readloc+offset,
-                 (early-offset)*sizeof(MYFLT));
-          readloc += nsmps;
-        }
-        csound->spoutactive = 1;
-      }
-      else {
-        for (i = 0; i < nchns; i++) {
-          for (n = offset; n < nsmps-early; n++) {
-            spout[n + i*nsmps] += readloc[n];
-          }
-          readloc += nsmps;
-        }
-      }
-    }
-    return OK;
- err1:
-    return csound->PerfError(csound, &(p->h),
-                             Str("outz index > isizea. No output"));
- err2:
-    return csound->PerfError(csound, &(p->h),
-                             Str("outz index < 0. No output."));
 }

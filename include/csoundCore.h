@@ -1371,11 +1371,13 @@ typedef struct _message_queue_t_ {
                          AUXASYNC *, aux_cb, void *);
     void *(*GetHostData)(CSOUND *);
     char *(*strNcpy)(char *dst, const char *src, size_t siz);
+    int (*GetZaBounds)(CSOUND *, MYFLT **);
+
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[37];
+    SUBR dummyfn_2[36];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

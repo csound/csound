@@ -229,6 +229,12 @@ typedef struct {
         char    *sarg;
 } PRINTK3;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *ndx;
+        MYFLT   *dummy, dummy1;
+} IOZ;
+
 int instimek(CSOUND*,RDTIME *p);
 int instimes(CSOUND*,RDTIME *p);
 int instimset(CSOUND*,RDTIME *p);
@@ -270,4 +276,6 @@ int printk3set(CSOUND*,PRINTK3 *p);
 //int tblsetwkt(CSOUND*,TABLEW *p);
 int timek(CSOUND*,RDTIME *p);
 int timesr(CSOUND*,RDTIME *p);
+int inz(CSOUND*,IOZ *p);
+int outz(CSOUND*,IOZ *p);
 
