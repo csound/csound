@@ -499,7 +499,7 @@ msgstr "Trouvé : %s %s %s\n"
 #: Engine/csound_orc_semantics.c:1476
 #, c-format
 msgid "       %s %s %s ...\n"
-msgstr ""
+msgstr "       %s %s %s ...\n"
 
 #: Engine/csound_orc_semantics.c:1479
 #, c-format
@@ -7263,9 +7263,8 @@ msgid "ftconv: not initialised"
 msgstr "ftconv : non initialisé"
 
 #: Opcodes/ftest.c:131
-#, fuzzy
 msgid "ftable number does not exist\n"
-msgstr "la ftable n'existe pas"
+msgstr "le numéro de ftable n'existe pas\n"
 
 #: Opcodes/ftgen.c:69 Opcodes/ftgen.c:241
 #, c-format
