@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 project(Csound)
 
