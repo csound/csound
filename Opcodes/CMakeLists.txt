@@ -58,6 +58,7 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
 make_plugin(getftargs getftargs.c)
 make_plugin(liveconv liveconv.c)
+make_plugin(zak zak.c)
 
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
@@ -140,7 +141,6 @@ if(UNIX)
 endif()
 
 if(LINUX)
-    #make_plugin(urandom urandom.c)
     make_plugin(joystick linuxjoystick.c)
 endif()
 

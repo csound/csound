@@ -213,7 +213,7 @@ static int csoundGetDitherMode(CSOUND *csound){
     return  csound->dither_output;
 }
 
-#include "zak.h"
+#include "Opcodes/zak.h"
 static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
