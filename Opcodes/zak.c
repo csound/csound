@@ -702,7 +702,7 @@ int32_t zacl(CSOUND *csound, ZACL *p)
 
 #define S(x)    sizeof(x)
 
-LINKAGE_BUILTIN(zak_localops)
+static OENTRY zak_localops[] = {
   { "zakinit", S(ZAKINIT), ZB, 1,  "",   "ii",   (SUBR)zakinit, NULL,  NULL      },
   { "zir",    S(ZKR),ZR,  1,   "i",  "i",    (SUBR)zir,     NULL,  NULL      },
   { "zkr",    S(ZKR),ZR,  3,   "k",  "k",    (SUBR)zkset,   (SUBR)zkr,   NULL},
@@ -717,7 +717,7 @@ LINKAGE_BUILTIN(zak_localops)
   { "zaw",    S(ZAW),    ZW, 3,   "",  "ak",   (SUBR)zaset,  (SUBR)zaw  },
   { "zawm",   S(ZAWM),   ZB, 3,   "",  "akp",  (SUBR)zaset,  (SUBR)zawm },
   { "zamod",  S(ZAMOD),  ZB, 3,   "a", "ak",   (SUBR)zaset,  (SUBR)zamod},
-  { "zacl",   S(ZACL),   ZW, 3,   "",  "kk",   (SUBR)zaset,  (SUBR)zacl},
+  { "zacl",   S(ZACL),   ZW, 3,   "",  "kk",   (SUBR)zaset,  (SUBR)zacl}
 };
 
 LINKAGE_BUILTIN(zak_localops)

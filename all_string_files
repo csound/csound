@@ -99,7 +99,7 @@
 ./H/vdelay.h
 ./H/windin.h
 ./H/winEPS.h
-./H/zak.h
+./Opcodes/zak.h
 ./InOut/FL_graph.cpp
 ./InOut/circularbuffer.c
 ./InOut/cmidi.c
@@ -184,7 +184,7 @@
 ./OOps/ugrw1.c
 ./OOps/ugtabs.c
 ./OOps/vdelay.c
-./OOps/zak.c
+./Opcodes/zak.c
 ./Opcodes/3Dug.h
 ./Opcodes/LuaCsound.cpp
 ./Opcodes/OSC.c
