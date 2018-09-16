@@ -24,7 +24,6 @@
 */
 
 #include <csdl.h>
-#include <math.h>
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
@@ -233,7 +232,9 @@ lincos_perf(CSOUND *csound, LINLIN1 *p) {
     if (UNLIKELY(x0 == x1)) {
         return PERFERROR(Str("lincos: Division by zero"));
     }
-    MYFLT dx = ((x-x0) / (x1-x0)) * M_PI + M_PI;
+    // PI is defined in csoundCore.h, use that instead of M_PI from math.h, which
+    // is not defined in windows
+    MYFLT dx = ((x-x0) / (x1-x0)) * PI + PI;
     *p->kout = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
     return OK;
 }
@@ -433,7 +434,7 @@ static int32_t bpfxcos(CSOUND *csound, BPFX *p) {
         x1 = *data[i];
         y1 = *data[i+1];
         if( x <= x1 ) {
-            dx = ((x-x0) / (x1-x0)) * M_PI + M_PI;
+            dx = ((x-x0) / (x1-x0)) * PI + PI;
             *p->r = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
             return OK;
         }
@@ -528,7 +529,7 @@ static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
                 x1 = *data[i];
                 y1 = *data[i+1];
                 if( x <= x1 ) {
-                    dx = ((x-x0) / (x1-x0)) * M_PI + M_PI;
+                    dx = ((x-x0) / (x1-x0)) * PI + PI;
                     out[idx] = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
                     break;
                 }
