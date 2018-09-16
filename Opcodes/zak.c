@@ -31,6 +31,7 @@
  * but was inelegantly coded.
  * In February 1998, John Fitch modified the code wrt types so it
  * compiled with MicroSoft C without warnings.
+ * September 2018 John ffitch moved zak to a new file ultimately for a plugin
  *
  *
  * Copyright notice - Robin Whittle  25 February 1997
@@ -45,8 +46,9 @@
  * clearly indicated as such.
  */
 
-//#include "csoundCore.h"
-#include "csdl.h"
+#include "csoundCore.h"
+//#include "csdl.h"
+#include "interlocks.h"
 #include <math.h>
 #include <ctype.h>
 
@@ -93,7 +95,7 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
     /* Allocate memory for zk space.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated. */
-    
+
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_zak_globals",
                                               sizeof(ZAK_GLOBALS)) != 0))
       return
@@ -109,7 +111,7 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
      * length ksmps.
      * This is all set to 0 and there will be an error report if the
      * memory cannot be allocated.       */
-    
+
 
     length = (zak->zalast + 1L) * sizeof(MYFLT) * CS_KSMPS;
     zak->zastart = (MYFLT*) csound->Calloc(csound, length);
@@ -404,7 +406,7 @@ int32_t zkcl(CSOUND *csound, ZKCL *p)
 
 /* AUDIO rate zak code.
  */
- 
+
 /* zaset() is called at the init time of the instance of the zar or zaw ugens.
  * All it has to do is spit the dummy if za space has not been allocated yet.
  */

@@ -488,7 +488,7 @@ static int32_t sprints(char *outstring,  char *fmt, MYFLT **kvals, int32_t numVa
             break;
           case 's':
             {
-              if (csoundGetTypeForArg(kvals[j]) == &CS_VAR_TYPE_S) 
+              if (csoundGetTypeForArg(kvals[j]) == &CS_VAR_TYPE_S)
                 snprintf(outstring, len, tmp,  ((STRINGDAT*)kvals[j])->data);
               else snprintf(outstring, len, tmp, "??");
               break;
