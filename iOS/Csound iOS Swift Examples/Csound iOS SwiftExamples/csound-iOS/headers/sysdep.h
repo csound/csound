@@ -453,7 +453,7 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #if defined(MSVC)
 #define ATOMIC_SET(var, val)  InterlockedExchange(&var, val);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_SET(var, val) __sync_lock_test_and_set(&var, val);
+#define ATOMIC_SET(var, val) __atomic_test_and_set(&var, val);
 #else
 #define ATOMIC_SET(var, val) var = val;
 #endif
@@ -461,7 +461,7 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #if defined(MSVC)
 #define ATOMIC_SET8(var, val)  InterlockedExchange8(&var, val);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_SET8(var, val) __sync_lock_test_and_set(&var, val);
+#define ATOMIC_SET8(var, val) __atomic_test_and_set(&var, val);
 #else
 #define ATOMIC_SET8(var, val) var = val;
 #endif
