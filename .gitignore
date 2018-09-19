@@ -208,3 +208,5 @@ emscripten/dist-wasm
 
 # Alleged copyright violation.
 vst4cs/src
+
+compile_commands.json
