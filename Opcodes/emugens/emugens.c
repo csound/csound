@@ -45,7 +45,7 @@
 static inline void
 arrayensure(CSOUND *csound, ARRAYDAT *p, size_t size) {
     if (p->data==NULL || p->dimensions == 0 ||
-        (p->dimensions==1 && p->sizes[0] < size)) {
+        (p->dimensions==1 && p->sizes[0] < (int)size)) {
         size_t ss;
         if (p->data == NULL) {
             CS_VARIABLE *var = p->arrayType->createVariable(csound, NULL);
@@ -211,12 +211,12 @@ blendarray_i(CSOUND *csound, BLENDARRAY *p) {
 
 
 /*
- 
+
     linear to cosine interpolation
-    ky lincos kx, ky0, ky1, kx0=0, kx1=1 
+    ky lincos kx, ky0, ky1, kx0=0, kx1=1
 
     given x between x0 and x1, find y between y0 and y1 with cosine interpolation
- 
+
     The order of ky0 and ky1 are given first because it is often used in contexts
     where kx is defined between 0 and 1
 
@@ -302,7 +302,7 @@ static int32_t xyscale(CSOUND *csound, XYSCALE *p) {
    mtof(midinote)
 
    kfreq = mtof(69)
-   
+
  */
 
 typedef struct {
@@ -494,7 +494,7 @@ static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
     return OK;
 }
 
-            
+
 static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
     int32_t N = p->in->sizes[0];
     arrayensure(csound, p->out, N);
@@ -507,7 +507,7 @@ static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
         return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
     if(datalen >= BPF_MAXPOINTS)
         return INITERR(Str("bpf: too many pargs (max=256)"));
-    
+
     int32_t idx, i;
     MYFLT x, x0, x1, y0, y1, firstx, firsty, lastx, lasty, dx;
     firstx = *data[0];
@@ -540,7 +540,7 @@ static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
     }
     return OK;
 }
-                    
+
 /*  ntom  - mton
 
         midi to notename conversion
@@ -670,7 +670,7 @@ mton(CSOUND *csound, MTON *p) {
     int32_t alt = _pc2alt[pc];
     if(alt > 0) {
         dst[cursor++] = _alts[alt];
-    }    
+    }
     if(sign == 1) {
         dst[cursor++] = '+';
         if (cents < 10) {
@@ -1104,13 +1104,13 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
     int32_t step = (int32_t)*p->kstep;
     if(end < 1)
         end = ftpsrc->flen;
-    int32_t numitems = (int32_t)ceil((end - start) / (float)step);
+    uint32_t numitems = (uint32_t)ceil((end - start) / (float)step);
     if(numitems > ftpdst->flen)
         numitems = ftpdst->flen;
     MYFLT *src = ftpsrc->ftable;
     MYFLT *dst = ftpdst->ftable;
 
-    int32_t i, j=start;
+    uint32_t i, j=start;
     for(i=0; i<numitems; i++) {
         dst[i] = src[j];
         j += step;
@@ -1121,17 +1121,17 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
 /*
 
   tab2array
-  
+
   kout[] tab2array ifn, kstart=0, kend=0, kstep=1
   iout[] tab2array ifn, istart=0, iend=0, istep=1
-  
+
   copy slice from table into an array
 
   kstart: start index
   kend: end index (not inclusive). 0=end of table/array
   kstep: increment
 
-  To copy a slice of an array, see slicearray 
+  To copy a slice of an array, see slicearray
 
  */
 
@@ -1204,11 +1204,11 @@ tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
 
   Reshape a 2D array, maintaining the capacity of the array
   (it does NOT resize the array).
-  
+
   reshapearray array[], inumrows, inumcols
 
   works with i and k arrays, at i-time and k-time
-  
+
 */
 
 typedef struct {
@@ -1248,7 +1248,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
   printarray array[], ktrig
 
   Prints all the elements of the array whenever ktrig
-  changes from 0 to 1. If ktrig is -1, it prints always 
+  changes from 0 to 1. If ktrig is -1, it prints always
   (each k-cycle)
 
   Works with 1- and 2-dimensional arrays, at i- and k-time
@@ -1398,7 +1398,7 @@ static OENTRY localops[] = {
     { "linlin", S(BLENDARRAY), 0, 1, "i[]", "ii[]i[]op", (SUBR)blendarray_i},
     { "lincos", S(LINLIN1), 0, 2, "k", "kkkOP", NULL, (SUBR)lincos_perf },
     { "lincos", S(LINLIN1), 0, 1, "k", "iiiop", (SUBR)lincos_perf },
-    
+
     { "xyscale", S(XYSCALE), 0, 2, "k", "kkkkkk", NULL, (SUBR)xyscale },
     { "xyscale", S(XYSCALE), 0, 3, "k", "kkiiii", (SUBR)xyscalei_init,
         (SUBR)xyscalei },
@@ -1418,7 +1418,7 @@ static OENTRY localops[] = {
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
     { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
-    
+
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
     { "ntom", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },
 
@@ -1446,11 +1446,11 @@ static OENTRY localops[] = {
       NULL, (SUBR)arrayreshape},
     { "ftslice", S(TABSLICE),  0, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
-    { "tab2array", S(TAB2ARRAY), 0, 3, "k[]", "iOOP", 
+    { "tab2array", S(TAB2ARRAY), 0, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
     { "tab2array", S(TAB2ARRAY), 0, 1, "i[]", "ioop", (SUBR)tab2array_i},
 
-    { "printarray", S(ARRAYPRINT), 0, 3, "", "k[]P", 
+    { "printarray", S(ARRAYPRINT), 0, 3, "", "k[]P",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
 };
