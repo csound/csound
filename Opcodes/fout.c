@@ -1550,7 +1550,7 @@ static OENTRY localops[] = {
 
     {"fprints",    S(FPRINTF),      0, 1,  "",     "SSM",
         (SUBR) fprintf_i_S, (SUBR) NULL,(SUBR) NULL, NULL, },
-        {"fprints.i",    S(FPRINTF),      0, 1,  "",     "iSM",
+    {"fprints.i",    S(FPRINTF),      0, 1,  "",     "iSM",
         (SUBR) fprintf_i, (SUBR) NULL,(SUBR) NULL, NULL},
     { "fprintks",   S(FPRINTF),    WR, 3,  "",     "SSM",
         (SUBR) fprintf_set_S,     (SUBR) fprintf_k,   (SUBR) NULL, NULL,},
@@ -1559,7 +1559,6 @@ static OENTRY localops[] = {
      { "vincr",      S(INCR),        0, 2,  "",     "aa",
         (SUBR) NULL,            (SUBR) incr, NULL         },
     { "clear",      S(CLEARS),      0, 2,  "",     "y",
-
         (SUBR) NULL,            (SUBR) clear, NULL},
     { "fout",       S(OUTFILE),     0, 3,  "",     "Siy",
         (SUBR) outfile_set_S,     (SUBR) outfile, NULL},
@@ -1569,17 +1568,15 @@ static OENTRY localops[] = {
     /*     (SUBR) outfile_set,     (SUBR) outfile, NULL}, */
     { "foutk",      S(KOUTFILE),    0, 3,  "",     "Siz",
         (SUBR) koutfile_set_S,    (SUBR) koutfile,    (SUBR) NULL, NULL },
-        { "foutk.i",      S(KOUTFILE),    0, 3,  "",     "iiz",
+    { "foutk.i",      S(KOUTFILE),    0, 3,  "",     "iiz",
         (SUBR) koutfile_set,    (SUBR) koutfile,    (SUBR) NULL, NULL },
-
     { "fouti",      S(IOUTFILE),    0, 1,  "",     "iiim",
         (SUBR) ioutfile_set,    (SUBR) NULL,        (SUBR) NULL, NULL         },
     { "foutir",     S(IOUTFILE_R),  0, 3,  "",     "iiim",
-
         (SUBR) ioutfile_set_r,  (SUBR) ioutfile_r,  (SUBR) NULL, NULL},
     { "fiopen",     S(FIOPEN),      0, 1,  "i",    "Si",
         (SUBR) fiopen_S,          (SUBR) NULL,        (SUBR) NULL, NULL},
-        { "fiopen.i",     S(FIOPEN),      0, 1,  "i",    "ii",
+    { "fiopen.i",     S(FIOPEN),      0, 1,  "i",    "ii",
         (SUBR) fiopen,          (SUBR) NULL,        (SUBR) NULL, NULL},
     { "ficlose",    S(FICLOSE),     0, 1,  "",     "S",
         (SUBR) ficlose_opcode_S,  (SUBR) NULL,        (SUBR) NULL, NULL},

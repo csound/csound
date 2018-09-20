@@ -34,6 +34,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "zak.h"
 
 int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
 int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);
@@ -202,8 +203,10 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     int32_t n = p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
     char name[24];
     /* Check to see this index is within the limits of za space.    */
+    MYFLT* zastart;
+    int zalast = csound->GetZaBounds(csound, &zastart);
     indx = (int32) *p->ndx;
-    if (UNLIKELY(indx > csound->zalast)) {
+    if (UNLIKELY(indx > zalast)) {
       return csound->PerfError(csound, &(p->h),
                                Str("outz index > isizea. No output"));
     }
@@ -214,7 +217,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     if ((int32_t)*p->layout==0) strcpy(name, "vbap_ls_table");
     else snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout==0);
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = csound->zastart + (indx * CS_KSMPS);/* outputs */
+    p->out_array     = zastart + (indx * CS_KSMPS);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;
@@ -514,8 +517,10 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     int32_t n = p->n;
     p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
     /* Check to see this index is within the limits of za space.    */
+    MYFLT* zastart;
+    int zalast = csound->GetZaBounds(csound, &zastart);
     indx = (int32) *p->ndx;
-    if (UNLIKELY(indx > csound->zalast)) {
+    if (UNLIKELY(indx > zalast)) {
       return csound->PerfError(csound, &(p->h),
                                Str("outz index > isizea. No output"));
     }
@@ -524,7 +529,7 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
                                Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
-    p->out_array     = csound->zastart + (indx * CS_KSMPS);/* outputs */
+    p->out_array     = zastart + (indx * CS_KSMPS);/* outputs */
     csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
     p->curr_gains    = (MYFLT*)p->auxch.auxp;
     p->beg_gains     = p->curr_gains + p->n;

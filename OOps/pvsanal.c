@@ -143,11 +143,11 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
       c[0] = 1.0; s[0] = 0.0; // assignment to s unnecessary as auxalloc zeros
         /*
           direct computation of c and s may be better for large n
-          c[i] = cos(2*M_PI*i/n);
-          s[i] = sin(2*M_PI*i/n);
+          c[i] = cos(2*PI*i/n);
+          s[i] = sin(2*PI*i/n);
           if (i % 16 == 15) {
-          c[i] = cos(2*M_PI*(i+1)/n);
-          s[i] = sin(2*M_PI*(i+1)/n);
+          c[i] = cos(2*PI*(i+1)/n);
+          s[i] = sin(2*PI*(i+1)/n);
         */
       for (i=1; i<NB; i++) {
           c[i] = dc*c[i-1] - ds*s[i-1];

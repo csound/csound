@@ -213,9 +213,27 @@ static int csoundGetDitherMode(CSOUND *csound){
     return  csound->dither_output;
 }
 
+#include "Opcodes/zak.h"
 static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
-    *zkstart = csound->zkstart;
-    return csound->zklast;
+    ZAK_GLOBALS *zz;
+    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    if (zz==NULL) {
+      *zkstart = NULL;
+      return -1;
+    }
+    *zkstart = zz->zkstart;
+    return zz->zklast;
+}
+
+static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
+    ZAK_GLOBALS *zz;
+    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    if (zz==NULL) {
+      *zastart = NULL;
+      return -1;
+    }
+    *zastart = zz->zastart;
+    return zz->zalast;
 }
 
 static int csoundGetReinitFlag(CSOUND *csound){
@@ -481,11 +499,12 @@ static const CSOUND cenviron_ = {
     csoundAuxAllocAsync,
     csoundGetHostData,
     strNcpy,
+    csoundGetZaBounds,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -596,10 +615,6 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-    NULL,           /*  zkstart             */
-    0L,             /*  zklast              */
-    NULL,           /*  zastart             */
-    0L,             /*  zalast              */
     NULL,           /*  stdOp_Env           */
     2345678,        /*  holdrand            */
     0,              /*  randSeed1           */
