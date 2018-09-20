@@ -1303,7 +1303,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
                          p->fname, istring, "w", 1);
     if (UNLIKELY(n < 0))
       return NOTOK;
-    setvbuf(p->f.f, (char*)NULL, _IOLBF, 0); /* Seems a good option */
+    setvbuf(p->f.f, (char*)NULL, _IOLBF, BUFSIZ); /* Seems a good option */
     /* Copy the string to the storage place in PRINTKS.
      *
      * We will look out for certain special codes and write special
