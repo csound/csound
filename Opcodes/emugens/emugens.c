@@ -18,7 +18,6 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
@@ -37,8 +36,9 @@
     }                                                                \
 
 #define INITERR(m) (csound->InitError(csound, "%s", m))
-#define MSG(m) (csound->Message(csound, Str(m)))
-#define MSGF(m, ...) (csound->Message(csound, Str(m), __VA_ARGS__))
+/* These  two do not work with translations */
+/* #define MSG(m) (csound->Message(csound, Str(m))) */
+/* #define MSGF(m, ...) (csound->Message(csound, Str(m), __VA_ARGS__)) */
 #define PERFERROR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 
 /* from Opcodes/arrays.c, original name: tabensure */
