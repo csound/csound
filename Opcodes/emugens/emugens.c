@@ -24,6 +24,7 @@
 */
 
 #include <csdl.h>
+#include "/usr/local/include/csound/csdl.h"
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
@@ -1267,34 +1268,37 @@ arrayprint_init(CSOUND *csound, ARRAYPRINT *p) {
     return OK;
 }
 
+inline void arrprint(ARRAYPRINT *p) {
+    MYFLT *in = p->in->data;
+    int32_t i, j;
+    const int32_t rowlength = 8;
+    switch(p->in->dimensions) {
+    case 1:
+        printf("printarray: 1d\n");
+        for(i=0; i<p->in->sizes[0]; i++) {
+            printf("%.4f ", in[i]);
+            if(i % rowlength == 0)
+                printf("\n");
+        }
+        break;
+    case 2:
+        for(i=0; i<p->in->sizes[0]; i++) {
+            for(j=0; j<p->in->sizes[1]; j++) {
+                printf("%.4f ", *in);
+                in++;
+            }
+            printf("\n");
+        }
+        break;
+    }
+}
+
 static int32_t
 arrayprint_perf(CSOUND *csound, ARRAYPRINT *p) {
     int32_t trig = (int32_t)*p->trig;
     int32_t lasttrig = p->lasttrig;
-    int32_t i, j;
-    MYFLT *in;
-    const int32_t rowlength = 8;
-    printf("printarray!\n");
     if(trig < 0 || (trig && !lasttrig)) {
-        in = p->in->data;
-        switch(p->in->dimensions) {
-        case 1:
-            for(i=0; i<p->in->sizes[0]; i++) {
-                printf("%f.4f ", in[i]);
-                if(i % rowlength == 0)
-                    printf("\n");
-            }
-            break;
-        case 2:
-            for(i=0; i<p->in->sizes[0]; i++) {
-                for(j=0; j<p->in->sizes[1]; j++) {
-                    printf("%.4f ", *in);
-                    in++;
-                }
-                printf("\n");
-            }
-            break;
-        }
+        arrprint(p);
     }
     p->lasttrig = trig;
     return OK;
@@ -1302,9 +1306,8 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINT *p) {
 
 static int32_t
 arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
-    *p->trig = 1;
-    arrayprint_init(csound, p);
-    return arrayprint_perf(csound, p);
+    arrprint(p);
+    return OK;
 }
 
 
