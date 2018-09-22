@@ -24,7 +24,7 @@
 */
 
 #include <csdl.h>
-#include "/usr/local/include/csound/csdl.h"
+// #include "/usr/local/include/csound/csdl.h"
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
@@ -1246,11 +1246,15 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
 /*
   printarray
 
-  printarray array[], ktrig
+  printarray karray[], [ktrig], [Sfmt], [Slabel]
+  printarray iarray[], [Sfmt], [Slabel]
 
-  Prints all the elements of the array whenever ktrig
-  changes from 0 to 1. If ktrig is -1, it prints always
-  (each k-cycle)
+  Prints all the elements of the array whenever ktrig changes from 0 to 1.
+  If ktrig is -1, it prints always (each k-cycle)
+
+  ktrig=1   controls when to print, when printing at k-time
+  Sfmt      Sets the format for each element of the array (default="%.4f")
+  Slabel    Optional string to print before the whole array
 
   Works with 1- and 2-dimensional arrays, at i- and k-time
 */
@@ -1259,46 +1263,128 @@ typedef struct {
     OPDS h;
     ARRAYDAT *in;
     MYFLT *trig;
+    STRINGDAT *Sfmt;
+    STRINGDAT *Slabel;
     int32_t lasttrig;
+    char *printfmt;
+} ARRAYPRINTK;
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *in;
+    STRINGDAT *Sfmt;
+    STRINGDAT *Slabel;
+    int32_t lasttrig;
+    char *printfmt;
 } ARRAYPRINT;
 
+static uint32_t print_linelength = 80;
+static char default_printfmt[64] = "%.4f\0";
+
 static int32_t
-arrayprint_init(CSOUND *csound, ARRAYPRINT *p) {
+arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
     p->lasttrig = 0;
+    // p->printfmt = "%.4f";
+    p->printfmt = default_printfmt;
     return OK;
 }
 
-inline void arrprint(ARRAYPRINT *p) {
-    MYFLT *in = p->in->data;
+static int32_t
+arrayprintf_init(CSOUND *csound, ARRAYPRINTK *p) {
+    p->lasttrig = 0;
+    p->printfmt = p->Sfmt->data;
+    return OK;
+}
+
+
+typedef struct {
+    OPDS h;
+    MYFLT *length;
+    STRINGDAT *Sfmt;
+} PRINTARRAY_SETFMT;
+
+
+static int32_t printarray_setfmt(CSOUND *cs, PRINTARRAY_SETFMT *p) {
+    uint32_t length = (uint32_t)*p->length;
+    print_linelength = length;
+    return OK;
+}
+
+static int32_t printarray_setfmt2(CSOUND *cs, PRINTARRAY_SETFMT *p) {
+    printarray_setfmt(cs, p);
+    strncpy(default_printfmt, p->Sfmt->data, p->Sfmt->size);
+    // default_printfmt = p->Sfmt->data;
+    return OK;
+}
+
+
+static inline void arrprint(char *fmt, int dims, MYFLT *data, int dim0, int dim1, char *label) {
+    MYFLT *in = data;
     int32_t i, j;
-    const int32_t rowlength = 8;
-    switch(p->in->dimensions) {
+    const uint32_t linelength = print_linelength;
+
+    uint32_t charswritten = 0;
+    if(label != NULL) {
+        printf("%s\n", label);
+    }
+    printf("    ");
+    switch(dims) {
     case 1:
-        printf("printarray: 1d\n");
-        for(i=0; i<p->in->sizes[0]; i++) {
-            printf("%.4f ", in[i]);
-            if(i % rowlength == 0)
-                printf("\n");
+        for(i=0; i<dim0; i++) {
+            charswritten += printf(fmt, in[i]);
+            if(charswritten < linelength) {
+                printf(" ");
+            } else {
+                printf("\n    ");
+                charswritten = 0;
+            }
         }
         break;
     case 2:
-        for(i=0; i<p->in->sizes[0]; i++) {
-            for(j=0; j<p->in->sizes[1]; j++) {
-                printf("%.4f ", *in);
+        for(i=0; i<dim0; i++) {
+            printf("    %d: ", i);
+            for(j=0; j<dim1; j++) {
+                charswritten += printf(fmt, *in);
+                if(charswritten < linelength)
+                    printf(" ");
+                else {
+                    printf("\n");
+                    charswritten = 0;
+                }
                 in++;
             }
-            printf("\n");
+            printf("\n    ");
         }
         break;
     }
+    printf("\n");
 }
 
+
+static inline void arrprintk(ARRAYPRINTK *p, char* fmt) {
+    int dims = p->in->dimensions;
+    int dim0 = p->in->sizes[0];
+    int dim1 = dims > 1 ? p->in->sizes[1] : 0;
+    char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
+    arrprint(fmt, dims, p->in->data, dim0, dim1, label);
+}
+
+static inline void arrprinti(ARRAYPRINT *p, char* fmt) {
+    int dims = p->in->dimensions;
+    int dim0 = p->in->sizes[0];
+    int dim1 = dims > 1 ? p->in->sizes[1] : 0;
+    char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
+    arrprint(fmt, dims, p->in->data, dim0, dim1, label);
+}
+
+
 static int32_t
-arrayprint_perf(CSOUND *csound, ARRAYPRINT *p) {
+arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
     int32_t trig = (int32_t)*p->trig;
     int32_t lasttrig = p->lasttrig;
+    char *fmt = p->printfmt;
     if(trig < 0 || (trig && !lasttrig)) {
-        arrprint(p);
+        arrprintk(p, fmt);
     }
     p->lasttrig = trig;
     return OK;
@@ -1306,7 +1392,14 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINT *p) {
 
 static int32_t
 arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
-    arrprint(p);
+    arrprinti(p, default_printfmt);
+    return OK;
+}
+
+static int32_t
+arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
+    char *fmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
+    arrprinti(p, fmt);
     return OK;
 }
 
@@ -1453,9 +1546,16 @@ static OENTRY localops[] = {
       (SUBR)tab2array_init, (SUBR)tab2array_k},
     { "tab2array", S(TAB2ARRAY), 0, 1, "i[]", "ioop", (SUBR)tab2array_i},
 
-    { "printarray", S(ARRAYPRINT), 0, 3, "", "k[]P",
-      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]P", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]iS", (SUBR)arrayprintf_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]iSS", (SUBR)arrayprintf_init, (SUBR)arrayprint_perf},
+
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
+    { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
+    { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]SS", (SUBR)arrayprintf_i},
+
+    { "printarray_setfmt", S(PRINTARRAY_SETFMT), 0, 1, "", "i", (SUBR)printarray_setfmt },
+    { "printarray_setfmt", S(PRINTARRAY_SETFMT), 0, 1, "", "iS", (SUBR)printarray_setfmt2 },
 };
 
 LINKAGE
