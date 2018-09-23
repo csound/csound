@@ -887,7 +887,7 @@ void *init_faustgen_thread(void *pp) {
   dsp->buildUserInterface(ctls);
 
   pfdsp = (faustobj **)csound->QueryGlobalVariable(csound, varname);
-  if (pfdsp == NULL) {
+  if (pfdsp == NULL ||  *pfdsp == NULL) {
     csound->CreateGlobalVariable(csound, varname, sizeof(faustobj *));
     pfdsp = (faustobj **)csound->QueryGlobalVariable(csound, varname);
     fdsp = (faustobj *)csound->Calloc(csound, sizeof(faustobj));
@@ -925,7 +925,10 @@ void *init_faustgen_thread(void *pp) {
     delete p->engine;
     deleteDSPFactory(p->factory);
     csound->Free(csound, pp);
-    ret = csound->InitError(csound, "%s", Str("wrong number of output args\n"));
+    ret = csound->InitError(csound, "%s: need %d had %d", Str("wrong number of output args\n"),
+                            p->engine->getNumOutputs(),
+                            p->OUTCOUNT - 1
+                            );
     p->engine = NULL;
     pthread_exit(&ret);
   }
@@ -943,7 +946,7 @@ void *init_faustgen_thread(void *pp) {
   }
   p->ctls = ctls;
   *p->ohptr = (MYFLT)fdsp->cnt;
-  csound->RegisterDeinitCallback(csound, p, delete_faustgen);
+  
   csound->Free(csound, pp);
   return NULL;
 }
@@ -960,6 +963,7 @@ int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   pthread_attr_setstacksize(&attr, MBYTE);
   pthread_create((pthread_t *)&thread, &attr, init_faustgen_thread, data);
   pthread_join((pthread_t)thread, (void **)&ret);
+  csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   if (ret == NULL)
     return OK;
   else
@@ -970,8 +974,11 @@ int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   thread = (uintptr_t)
     csound->CreateThread((uintptr_t (*)(void *))init_faustcompile_thread, data);
   csound->JoinThread((void *)thread);
-  return OK;
+  csound->RegisterDeinitCallback(csound, p, delete_faustgen);
+   return OK;
 #endif
+  
+ 
 }
 
 int32_t perf_faust(CSOUND *csound, faustgen *p) {
