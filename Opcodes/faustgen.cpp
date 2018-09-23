@@ -238,6 +238,8 @@ int32_t delete_faustcompile(CSOUND *csound, void *p) {
   faustobj *fobj, *prv, **pfobj;
 #ifdef HAVE_PTHREAD
   pthread_join((pthread_t) pp->thread, NULL);
+#else
+  csound->JoinThread((void *) pp->thread);
 #endif
   pfobj = (faustobj **)csound->QueryGlobalVariable(csound, "::factory");
   fobj = *pfobj;
@@ -275,8 +277,6 @@ void *init_faustcompile_thread(void *pp) {
   char *cmd = (char *) csound->Calloc(csound, p->args->size + 9);
   char *ccode = csound->Strdup(csound, p->code->data);
   int32_t ret;
-
-  csound->RegisterResetCallback(csound, p, delete_faustcompile);
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
   strcat(cmd, " -double");
@@ -336,7 +336,7 @@ void *init_faustcompile_thread(void *pp) {
   csound->Free(csound, ccode);
   csound->Free(csound, pp);
 
-  csound->Message(csound, "Successfully compiled faust code\n");
+  //csound->Message(csound, "Successfully compiled faust code\n");
   return NULL;
 }
 
@@ -386,7 +386,8 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
   return OK;
 #endif
   }
-  else return OK;
+  else csound->RegisterResetCallback(csound, p, delete_faustcompile);
+  return OK;
 }
 
 int32_t init_faustcompile_async(CSOUND *csound, faustcompile *p) {
@@ -728,7 +729,7 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
   while (*((MYFLT *)p->code) == -1.0) {
     csound->Sleep(1);
     timout++;
-    if(timout > 10) {
+    if(timout > 1000) {
       return csound->InitError(
         csound, "%s", Str("Faust code was not ready. Try compiling it \n"
                           "in a separate instrument prior to running it here\n"));
