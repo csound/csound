@@ -242,6 +242,7 @@ int32_t delete_faustcompile(CSOUND *csound, void *p) {
   csound->JoinThread((void *) pp->thread);
 #endif
   pfobj = (faustobj **)csound->QueryGlobalVariable(csound, "::factory");
+  if(pfobj != NULL) {
   fobj = *pfobj;
   prv = fobj;
   while (fobj != NULL) {
@@ -257,6 +258,7 @@ int32_t delete_faustcompile(CSOUND *csound, void *p) {
       *pfobj = fobj->nxt;
     deleteDSPFactory(pp->factory);
     csound->Free(csound, fobj);
+  }
   }
   return OK;
 }
@@ -691,7 +693,8 @@ int32_t perf_faustplay(CSOUND *csound, faustplay *p) {
 int32_t delete_faustgen(CSOUND *csound, void *p) {
   faustgen *pp = (faustgen *)p;
   faustobj *fobj, *prv, **pfobj;
-  pfobj = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
+  if((pfobj = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp"))
+       != NULL) {
   fobj = *pfobj;
   prv = fobj;
   while (fobj != NULL) {
@@ -711,6 +714,7 @@ int32_t delete_faustgen(CSOUND *csound, void *p) {
   } else
     csound->Warning(csound, Str("could not find DSP %p for deletion"),
                     pp->engine);
+  }
   if (pp->factory)
     deleteDSPFactory(pp->factory);
 
