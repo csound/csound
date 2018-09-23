@@ -59,6 +59,7 @@ if(typeof AudioWorkletNode !== 'undefined' &&
 const csound_load_script = function(src, callback) {
     var script = document.createElementNS("http://www.w3.org/1999/xhtml", "script");
     script.src = src;
+    script.type = 'module';
     script.onload = callback;
     document.head.appendChild(script);
 }

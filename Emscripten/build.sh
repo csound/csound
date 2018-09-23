@@ -25,31 +25,32 @@ emcc -s LINKABLE=1 -s ASSERTIONS=0 ../src/CsoundObj.c -I../../include -Iinclude 
 # 65536 * 1024 * 4 is 268435456
 
 # Keep exports in alphabetical order please, to correlate with CsoundObj.js.
+## First build for WASM/ScriptProcessorNode (async compilation = 1, assertions = 0)
+emcc -v -O2 -g4 -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s "BINARYEN_METHOD='native-wasm'" -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=0 -s SINGLE_FILE=1  -s BINARYEN_ASYNC_COMPILATION=1 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\" --pre-js ../src/FileList.js -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/libsndfile-1.0.25/libsndfile-wasm.a -o libcsound.js
 
 
-## First build for WASM/ScriptProcessorNode (async compilation = 1, assertions = 1)
-emcc -v -O2 -g4 -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=1 -s "BINARYEN_METHOD='native-wasm'" -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=0 -s BINARYEN_ASYNC_COMPILATION=1 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\" -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/libsndfile-1.0.25/libsndfile-wasm.a -o libcsound.js
- 
 ## Second build for WASM/AudioWorklet (async compilation = 0, assertions = 0)
-emcc -v -O2 -g4 -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s "BINARYEN_METHOD='native-wasm'" -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=0 -s BINARYEN_ASYNC_COMPILATION=0 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\"  -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/libsndfile-1.0.25/libsndfile-wasm.a -o libcsound-worklet.js
+emcc -v -O2 -g4 -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s "BINARYEN_METHOD='native-wasm'" -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=0 -s SINGLE_FILE=1  -s BINARYEN_ASYNC_COMPILATION=0 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\"  --pre-js ../src/FileList.js -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/libsndfile-1.0.25/libsndfile-wasm.a -o libcsound-worklet.js
 
-node ../convert.js
+# node ../convert.js
 
-echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
-echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound-worklet.js
+## --post-js does not work with MODULARIZE...
+echo "export default libcsound;" >> libcsound.js
+echo "export default libcsound;" >> libcsound-worklet.js
 
 cd ..
 rm -rf dist
 mkdir dist
-cp src/FileList.js dist/
+## cp src/FileList.js dist/
 cp src/CsoundProcessor.js dist/
 cp src/CsoundNode.js dist/
 cp src/CsoundScriptProcessorNode.js dist/
 cp src/CsoundObj.js dist/
 cp src/csound.js dist/
 cp build/libcsound.js dist/
-cp build/libcsound.wasm dist/
 cp build/libcsound-worklet.js dist/
-cp build/libcsound-worklet.wasm.js dist/
+#cp build/libcsound.wasm dist/
+#cp build/libcsound-worklet.js dist/
+#cp build/libcsound-worklet.wasm.js dist/
 
 

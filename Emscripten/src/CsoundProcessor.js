@@ -21,9 +21,9 @@
     02110-1301 USA
 */
 
-'use strict';
+import libcsound from './libcsound-worklet.js'
 
-const WAM = AudioWorkletGlobalScope.WAM;
+const WAM = {};
 
 WAM["ENVIRONMENT"] = "WEB";
 WAM["print"] = (t) => console.log(t);
@@ -31,7 +31,7 @@ WAM["printErr"] = (t) => console.log(t);
 
 
 // INITIALIAZE WASM
-AudioWorkletGlobalScope.libcsound(WAM);
+libcsound(WAM);
 
 // SETUP FS
 
