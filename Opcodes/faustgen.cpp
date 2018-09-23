@@ -196,7 +196,7 @@ struct faustcompile {
   MYFLT *stacksize;
   llvm_dsp_factory *factory;
   uintptr_t thread;
-  //pthread_mutex_t *lock;
+  pthread_mutex_t *lock;
 };
 
 char **parse_cmd(CSOUND *csound, char *str, int32_t *argc) {
@@ -289,12 +289,12 @@ void *init_faustcompile_thread(void *pp) {
 
   // Need to protect this
 
-  //csound->LockMutex(p->lock);
+  csound->LockMutex(p->lock);
   // csound->Message(csound, "lock %p\n", p->lock);
   factory = createDSPFactoryFromString("faustop", (const char *) ccode,
                                        argc, argv, "", err_msg, 3);
   // csound->Message(csound, "unlock %p\n", p->lock);
-  // csound->UnlockMutex(p->lock);
+  csound->UnlockMutex(p->lock);
 
   if (factory == NULL) {
     csound->Message(csound, Str("\nFaust compilation problem:\nline %s\n"),
@@ -351,7 +351,7 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
   data->p = p;
   *p->hptr = -1.0;
 
-  /* p->lock =
+   p->lock =
       (pthread_mutex_t *)csound->QueryGlobalVariable(csound, "::faustlock::");
   if (p->lock == NULL) {
     csound->CreateGlobalVariable(csound,
@@ -361,7 +361,7 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
     pthread_mutex_init(p->lock, NULL);
     // csound->Message(csound, "lock created %p\n", p->lock);
   }
-  */
+  
 
 #ifdef HAVE_PTHREAD
   pthread_attr_t attr;
@@ -376,7 +376,7 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
 #endif
 
   p->thread = thread;
-  if(!(int)*p->async || p->h.insdshead->p1.value == FL(0.0)) {
+  if(!(int)*p->async) {
 #ifdef HAVE_PTHREAD
   int32_t *ret;
   pthread_join((pthread_t) thread, (void **)&ret);
