@@ -179,7 +179,7 @@ struct faustobj {
  * Faust compile opcode
 
  usage:
- ihandle  faustcompile Scode, Sargs[,istacksize]
+ ihandle  faustcompile Scode, Sargs[,iasync, istacksize]
 
  ihandle - handle to compiled code
  Scode - Faust program
@@ -192,8 +192,8 @@ struct faustcompile {
   MYFLT *hptr;
   STRINGDAT *code;
   STRINGDAT *args;
-  MYFLT *stacksize;
   MYFLT *async;
+  MYFLT *stacksize;
   llvm_dsp_factory *factory;
   uintptr_t thread;
   //pthread_mutex_t *lock;
