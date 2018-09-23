@@ -185,7 +185,7 @@ struct faustobj {
  Scode - Faust program
  Sargs - Faust compiler args
  istacksize - compiler stack size in megabytes (default 1MB).
-
+ iasync - async operation (1 = on, 0 = off) default to 1
 **/
 struct faustcompile {
   OPDS h;
@@ -193,6 +193,7 @@ struct faustcompile {
   STRINGDAT *code;
   STRINGDAT *args;
   MYFLT *stacksize;
+  MYFLT *async;
   llvm_dsp_factory *factory;
   uintptr_t thread;
   //pthread_mutex_t *lock;
@@ -343,7 +344,7 @@ void *init_faustcompile_thread(void *pp) {
 }
 
 #define MBYTE 1048576
-int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
+int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
   uintptr_t thread;
   hdata *data = (hdata *)csound->Malloc(csound, sizeof(hdata));
   data->csound = csound;
@@ -375,7 +376,7 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
 #endif
 
   p->thread = thread;
-  if(!async) {
+  if(!(int)*p->async || p->h.insdshead->p1.value == FL(0.0)) {
 #ifdef HAVE_PTHREAD
   int32_t *ret;
   pthread_join((pthread_t) thread, (void **)&ret);
@@ -392,13 +393,6 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p, bool async) {
   return OK;
 }
 
-int32_t init_faustcompile_async(CSOUND *csound, faustcompile *p) {
-  return init_faustcompile(csound, p, 1);
-}
-
-int32_t init_faustcompile_sync(CSOUND *csound, faustcompile *p) {
-  return init_faustcompile(csound, p, 0);
-}
 
 /**
  * faustgen and faustaudio opcodes
@@ -1106,10 +1100,8 @@ static OENTRY localops[] = {
     {(char *)"faustgen", S(faustgen), 0, 3,
      (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"SM",
      (SUBR)init_faustgen, (SUBR)perf_faust},
-    {(char *)"faustcompile", S(faustcompile), 0, 1, (char *)"i", (char *)"SSp",
-     (SUBR)init_faustcompile_async, NULL, NULL},
-    {(char *)"faustcompile2", S(faustcompile), 0, 1, (char *)"i", (char *)"SSp",
-     (SUBR)init_faustcompile_sync, NULL, NULL},
+    {(char *)"faustcompile", S(faustcompile), 0, 1, (char *)"i", (char *)"SSpp",
+     (SUBR)init_faustcompile, NULL, NULL},
     {(char *)"faustaudio", S(faustgen), 0, 3,
      (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"iM",
      (SUBR)init_faustaudio, (SUBR)perf_faust},
