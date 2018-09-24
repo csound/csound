@@ -1035,11 +1035,13 @@ int32_t perf_faust(CSOUND *csound, faustgen *p) {
   return OK;
 }
 
+#define MAXPARAM 128
+
 /**
  * faustctl opcode
 
  usage:
- faustctl  idsp, Slabel, kval
+ faustctl  idsp, Slabel, kval[, Slabel1, kval1 ...]
 
  idsp - handle from an existing Faust DSP instance
  Slabel - name of control (in Faust program)
@@ -1051,14 +1053,21 @@ struct faustctl {
   MYFLT *inst;
   STRINGDAT *label;
   MYFLT *val;
+  MYFLT *extraparam[MAXPARAM];
   FAUSTFLOAT *zone;
   MYFLT min, max;
+  MYFLT minextra[MAXPARAM/2], maxextra[MAXPARAM/2];
+  FAUSTFLOAT *zonextra[MAXPARAM/2];
 };
 
 int32_t init_faustctl(CSOUND *csound, faustctl *p) {
 
   faustobj *fobj, **fobjp;
   int32_t instance = (int32_t)*p->inst;
+
+  /* checks that extra parameter count is even */
+  if((p->INCOUNT - 3)%2)
+    return csound->InitError(csound, "unbalanced parameter count \n"); 
 
   fobjp = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
   if (fobjp == NULL)
@@ -1071,6 +1080,7 @@ int32_t init_faustctl(CSOUND *csound, faustctl *p) {
       return csound->InitError(csound, Str("dsp instance not found %d\n"),
                                (int32_t)*p->inst);
   }
+  
   p->zone = fobj->ctls->getZone(p->label->data);
   if (p->zone == NULL)
     return csound->InitError(csound, Str("dsp control %s not found\n"),
@@ -1083,6 +1093,27 @@ int32_t init_faustctl(CSOUND *csound, faustctl *p) {
       val = val < p->min ? p->min : (val > p->max ? p->max : val);
     *p->zone = val;
   }
+
+  
+  /* implementation of extra optional parameters */
+  for(int n = 0; n < p->INCOUNT - 3; n+=2) {
+    char *name = ((STRINGDAT *)p->extraparam[n])->data;
+    p->zonextra[n/2] = fobj->ctls->getZone(name);
+    if (p->zonextra[n/2] == NULL)
+      return csound->InitError(csound, Str("dsp control %s not found\n"),
+                               name);
+      p->maxextra[n/2] = fobj->ctls->getMax(name);
+      p->minextra[n/2] = fobj->ctls->getMin(name);
+       {
+         MYFLT val = *(p->extraparam[n+1]);
+         MYFLT min = p->minextra[n/2];
+         MYFLT max = p->maxextra[n/2];
+         if (min != max)
+         val = val < min ? min : (val > max ? max : val);
+         *(p->zonextra[n/2]) = val;
+       }   
+      }
+  
   return OK;
 }
 
@@ -1091,6 +1122,16 @@ int32_t perf_faustctl(CSOUND *csound, faustctl *p) {
   if (p->min != p->max)
     val = val < p->min ? p->min : (val > p->max ? p->max : val);
   *p->zone = val;
+
+   /* implementation of extra optional parameters */
+  for(int n = 0; n < p->INCOUNT - 3; n+=2) {
+         MYFLT val = *(p->extraparam[n+1]);
+         MYFLT min = p->minextra[n/2];
+         MYFLT max = p->maxextra[n/2];
+         if (min != max)
+         val = val < min ? min : (val > max ? max : val);
+         *(p->zonextra[n/2]) = val;       
+   }
   return OK;
 }
 
@@ -1111,9 +1152,9 @@ static OENTRY localops[] = {
     {(char *)"faustplay", S(faustplay), 0, 3,
      (char *)"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"iM",
      (SUBR)init_faustplay, (SUBR)perf_faustplay},
-    {(char *)"faustctl.i", S(faustgen), 0, 1, (char *)"", (char *)"iSi",
+    {(char *)"faustctl.i", S(faustgen), 0, 1, (char *)"", (char *)"iSiN",
      (SUBR)init_faustctl},
-    {(char *)"faustctl.k ", S(faustgen), 0, 3, (char *)"", (char *)"iSk",
+    {(char *)"faustctl.k ", S(faustgen), 0, 3, (char *)"", (char *)"iSkN",
      (SUBR)init_faustctl, (SUBR)perf_faustctl}};
 
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep) {
