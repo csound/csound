@@ -581,8 +581,11 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
         if (sample >= mixin[i].start) {
           read_in = csound->getsndin(csound, mixin[i].fd, ibuffer,
                                      size*mixin[i].p->nchanls, mixin[i].p);
-          for(j=0; j < read_in; j++)
-            ibuffer[j] *= 1.0/csound->Get0dBFS(csound);
+          if (csound->Get0dBFS(csound)!=FL(1.0)) { /* Optimisation? */
+            MYFLT xx = 1.0/csound->Get0dBFS(csound);
+            for(j=0; j < read_in; j++)
+              ibuffer[j] *= xx;
+          }
           read_in /= mixin[i].p->nchanls;
           if (read_in > this_block) this_block = read_in;
           if (mixin[i].non_clear) {
