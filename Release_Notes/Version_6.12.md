@@ -109,7 +109,7 @@ parser; it had inadvertantly got lost.
 
 ### Utilities
 
-- 
+- A coding error in mixer was fixed.  It was very broken.
 
 ### Frontends
 
