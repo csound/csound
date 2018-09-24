@@ -404,8 +404,8 @@ typedef struct {
   MYFLT *arg[32];     /* only 26 can be used, but add a few more for safety */
   AUXCH   aux;
   AUXCH   types;
-  int32_t     sock, iargs;
-  MYFLT last;
+  int32_t sock, iargs;
+  MYFLT   last;
   struct sockaddr_in server_addr;
 } OSCSEND2;
 
