@@ -341,17 +341,19 @@ static int32_t tabiadd(CSOUND *csound, ARRAYDAT *ans,
 static int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
 {
     ARRAYDAT *left = p->left;
+    if (UNLIKELY(left->dimensions!=1))
+        return
+          csound->InitError(csound, "%s",
+                            Str("Dimension does not match in array arithmetic"));
+
+    
     if (p->ans->data == left->data) {
-      printf("same ptr\n");
+      // printf("same ptr\n");
       return OK;
     }
 
     if (LIKELY(left->data)) {
       int32_t size;
-      if (UNLIKELY(left->dimensions!=1))
-        return
-          csound->InitError(csound, "%s",
-                            Str("Dimension does not match in array arithmetic"));
       size = left->sizes[0];
       tabensure(csound, p->ans, size);
       p->ans->sizes[0] = size;
