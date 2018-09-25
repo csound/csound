@@ -53,7 +53,8 @@ scores and many bug fixes.
 
 - OSCcount returns the number of OSC incoming messages pending
 
-- faustcompile2 [NOT DOCUMENTED]
+- faustplay and faustdsp are new opcodes splitting the faust DSP
+instantiation and performance.
 
 ### New Gen and Macros
 
@@ -98,7 +99,7 @@ parser; it had inadvertantly got lost.
 
 - Add optional argument to ftom for rounding answer to integer
 
-- flooper2 and syncgrain etc  now allow resampling. [IN MANUAL??]
+- flooper2 and syncgrain etc  now allow resampling.
 
 - chnclear can now take a list of channels to clear instead of just one.
 
@@ -109,6 +110,9 @@ parser; it had inadvertantly got lost.
 
 - GEN2 can now take a size of zero, which s interpreted as size
 sufficient for the number of values provided.
+
+- faustcompile now includes a new optional parameter to allow it to be
+run in a blocking mode. Defaults (as before) to non-blocking.
 
 ### Utilities
 
