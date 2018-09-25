@@ -6965,12 +6965,12 @@ msgstr "lincos : division par zéro"
 #: Opcodes/emugens/emugens.c:381 Opcodes/emugens/emugens.c:417
 #: Opcodes/emugens/emugens.c:462 Opcodes/emugens/emugens.c:507
 msgid "bpf: data length should be even (pairs of x, y)"
-msgstr ""
+msgstr "bpf : la longueur des données doit être paire (couples de x, y)"
 
 #: Opcodes/emugens/emugens.c:384 Opcodes/emugens/emugens.c:419
 #: Opcodes/emugens/emugens.c:464 Opcodes/emugens/emugens.c:509
 msgid "bpf: too many pargs (max=256)"
-msgstr ""
+msgstr "bpf : trop de pargs (max=256)"
 
 #: Opcodes/emugens/emugens.c:577
 #, c-format
@@ -6988,15 +6988,15 @@ msgstr "cmp : opérateur incompris. <, <=, >, >=, == ou != attendu"
 
 #: Opcodes/emugens/emugens.c:829
 msgid "cmp (ternary comparator): operator 2 expected <"
-msgstr ""
+msgstr "cmp (comparateur ternaire) : opérateur 2 attendu <"
 
 #: Opcodes/emugens/emugens.c:832
 msgid "cmp (ternary comparator): operator 1 expected <"
-msgstr ""
+msgstr "cmp (comparateur ternaire) : opérateur 1 attendu <"
 
 #: Opcodes/emugens/emugens.c:1161 Opcodes/emugens/emugens.c:1178
 msgid "tab2array: can't copy a negative number of items"
-msgstr ""
+msgstr "tab2array : impossible de copier un nombre négatif d'items"
 
 #: Opcodes/fareygen.c:116
 msgid "insufficient arguments for fareytable"
