@@ -1425,8 +1425,8 @@ static OENTRY localops[] = {
     { "mton", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
     { "mton", S(MTON), 0, 1, "S", "i", (SUBR)mton },
 
-    { "cmp", S(Cmp), 0, 5, "a", "aSa", (SUBR)cmp_init, NULL, (SUBR)cmp_aa,},
-    { "cmp", S(Cmp), 0, 5, "a", "aSk", (SUBR)cmp_init, NULL, (SUBR)cmp_ak },
+    { "cmp", S(Cmp), 0, 3, "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
+    { "cmp", S(Cmp), 0, 3, "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },
     { "cmp", S(Cmp_array1), 0, 3, "k[]", "k[]Sk",
       (SUBR)cmparray1_init, (SUBR)cmparray1_k },
     { "cmp", S(Cmp_array2), 0, 3, "k[]", "k[]Sk[]",

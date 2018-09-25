@@ -405,7 +405,7 @@ static int gen02(FGDATA *ff, FUNC *ftp)
     if (ff->flen==0) {
       ff->flen = nvals;
       ftp = ftalloc(ff);
-    }      
+    }
     else if (nvals >= (int) ff->flen)
       nvals = (int) ff->flen + 1;               /* for all vals up to flen+1 */
     fp = ftp->ftable;

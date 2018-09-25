@@ -346,7 +346,7 @@ static int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
           csound->InitError(csound, "%s",
                             Str("Dimension does not match in array arithmetic"));
 
-    
+
     if (p->ans->data == left->data) {
       // printf("same ptr\n");
       return OK;
@@ -585,7 +585,8 @@ static int32_t tabaisub(CSOUND *csound, TABARITH1 *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h), Str("array-variable not initialised"));
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
 
     if (l->sizes[0]<size) size = l->sizes[0];
     if (ans->sizes[0]<size) size = ans->sizes[0];
@@ -615,7 +616,8 @@ static int32_t tabiasub(CSOUND *csound, TABARITH2 *p)
 }
 
 // Multiply scalar by array
-static int32_t tabimult(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p)
+static int32_t tabimult(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l,
+                        MYFLT r, void *p)
 {
     int32_t size    = ans->sizes[0];
     int32_t i;
@@ -659,7 +661,8 @@ static int32_t tabaidiv(CSOUND *csound, TABARITH1 *p)
     int32_t i;
 
     if (UNLIKELY(r==FL(0.0)))
-      return csound->PerfError(csound, &(p->h), Str("division by zero in array-var"));
+      return csound->PerfError(csound, &(p->h),
+                               Str("division by zero in array-var"));
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
