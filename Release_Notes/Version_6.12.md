@@ -108,6 +108,9 @@ parser; it had inadvertantly got lost.
 
 - prints and printks can take string arguments printed with %s
 
+- GEN2 can now take a size of zero, which s interpreted as size
+sufficient for the number of values provided.
+
 - faustcompile now includes a new optional parameter to allow it to be
 run in a blocking mode. Defaults (as before) to non-blocking.
 
