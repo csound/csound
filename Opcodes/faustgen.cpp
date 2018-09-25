@@ -394,42 +394,9 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
 }
 
 
-/**
- * faustgen and faustaudio opcodes
 
- usage:
- ihandle[,asig1,...] faustgen    Scode[,ain1,...]
- ihandle[,asig1,...] faustaudio  ifactory,[,ain1,...]
 
- Scode - Faust program
- ifactory - handle pointing to compiled code from faustcompile
- asig1 ... - audio outputs from Faust program
- ain1 ...  - audio inputs to Faust program
 
- ihandle - handle identifying this Faust DSP instance
-
-**/
-struct faustgen {
-  OPDS h;
-  MYFLT *ohptr;
-  MYFLT *outs[MAXARG];       /* outputs */
-  STRINGDAT *code;           /* faust code as string */
-  MYFLT *ins[VARGMAX];       /* inputs */
-  llvm_dsp *engine;          /* faust DSP */
-  llvm_dsp_factory *factory; /* DSP factory */
-  controls *ctls;
-  AUXCH memin;
-  AUXCH memout;
-#ifndef USE_DOUBLE
-  AUXCH buffin;
-  AUXCH buffout;
-#endif
-};
-
-struct hdata2 {
-  faustgen *p;
-  CSOUND *csound;
-};
 
 struct faustdsp {
   OPDS h;
@@ -681,6 +648,45 @@ int32_t perf_faustplay(CSOUND *csound, faustplay *p) {
   return OK;
 }
 
+
+/**
+ * faustgen and faustaudio opcodes
+
+ usage:
+ ihandle[,asig1,...] faustgen    Scode[,ain1,...]
+ ihandle[,asig1,...] faustaudio  ifactory,[,ain1,...]
+
+ Scode - Faust program
+ ifactory - handle pointing to compiled code from faustcompile
+ asig1 ... - audio outputs from Faust program
+ ain1 ...  - audio inputs to Faust program
+
+ ihandle - handle identifying this Faust DSP instance
+
+**/
+struct faustgen {
+  OPDS h;
+  MYFLT *ohptr;
+  MYFLT *outs[MAXARG];       /* outputs */
+  STRINGDAT *code;           /* faust code as string */
+  MYFLT *ins[VARGMAX];       /* inputs */
+  llvm_dsp *engine;          /* faust DSP */
+  llvm_dsp_factory *factory; /* DSP factory */
+  controls *ctls;
+  AUXCH memin;
+  AUXCH memout;
+#ifndef USE_DOUBLE
+  AUXCH buffin;
+  AUXCH buffout;
+#endif
+};
+
+struct hdata2 {
+  faustgen *p;
+  CSOUND *csound;
+};
+
+
 /* deinit function
    delete faust objects
 */
@@ -705,9 +711,9 @@ int32_t delete_faustgen(CSOUND *csound, void *p) {
     csound->Free(csound, fobj);
     delete pp->ctls;
     delete pp->engine;
-  } else
+  } /*else
     csound->Warning(csound, Str("could not find DSP %p for deletion"),
-                    pp->engine);
+    pp->engine);*/
   }
   if (pp->factory)
     deleteDSPFactory(pp->factory);
@@ -795,10 +801,12 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
 
   if (p->engine->getNumInputs() != p->INCOUNT - 1) {
     delete p->engine;
+    p->engine = NULL;
     return csound->InitError(csound, "%s", Str("wrong number of input args\n"));
   }
   if (p->engine->getNumOutputs() != p->OUTCOUNT - 1) {
     delete p->engine;
+    p->engine = NULL;
     return csound->InitError(csound, "%s", Str("wrong number of output args\n"));
   }
 
@@ -907,24 +915,26 @@ void *init_faustgen_thread(void *pp) {
   dsp->init(csound->GetSr(csound));
   if (p->engine->getNumInputs() != p->INCOUNT - 1) {
     int32_t ret;
+    ret = csound->InitError(csound, "%s", Str("wrong number of input args\n"));
     delete p->engine;
     deleteDSPFactory(p->factory);
-    csound->Free(csound, pp);
-    ret = csound->InitError(csound, "%s", Str("wrong number of input args\n"));
+    p->factory = NULL;
     p->engine = NULL;
+    csound->Free(csound, pp);
     pthread_exit(&ret);
   }
   if (p->engine->getNumOutputs() != p->OUTCOUNT - 1) {
     int32_t ret;
-    delete p->engine;
-    deleteDSPFactory(p->factory);
-    csound->Free(csound, pp);
     ret = csound->InitError(csound,
                             Str("wrong number of output args: need %d had %d"\n),
                             p->engine->getNumOutputs(),
                             p->OUTCOUNT - 1
                             );
+    delete p->engine;
+    deleteDSPFactory(p->factory);
+    csound->Free(csound, pp);
     p->engine = NULL;
+    p->factory = NULL;
     pthread_exit(&ret);
   }
 
@@ -957,8 +967,9 @@ int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr, MBYTE);
   pthread_create((pthread_t *)&thread, &attr, init_faustgen_thread, data);
-  pthread_join((pthread_t)thread, (void **)&ret);
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
+  pthread_join((pthread_t)thread, (void **)&ret);
+  
   if (ret == NULL)
     return OK;
   else
@@ -968,6 +979,7 @@ int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   // a means of setting the stack size will need to be found
   thread = (uintptr_t)
     csound->CreateThread((uintptr_t (*)(void *))init_faustcompile_thread, data);
+  csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   csound->JoinThread((void *)thread);
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
    return OK;
