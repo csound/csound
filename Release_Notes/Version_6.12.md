@@ -113,7 +113,7 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 ### Utilities
 
-- 
+- A coding error in mixer was fixed.  It was very broken.
 
 ### Frontends
 
