@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2018-09-25 20:59+0100\n"
+"PO-Revision-Date: 2018-09-25 21:47+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -6984,7 +6984,7 @@ msgstr "format non compris\n"
 #: Opcodes/emugens/emugens.c:761 Opcodes/emugens/emugens.c:783
 #: Opcodes/emugens/emugens.c:809
 msgid "cmp: unknown operator. Expecting <, <=, >, >=, ==, !="
-msgstr "cmp : opérateur incompris. <, <=, >, >=, == ou != attendu\n"
+msgstr "cmp : opérateur incompris. <, <=, >, >=, == ou != attendu"
 
 #: Opcodes/emugens/emugens.c:829
 msgid "cmp (ternary comparator): operator 2 expected <"
