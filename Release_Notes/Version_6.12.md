@@ -107,6 +107,9 @@ parser; it had inadvertantly got lost.
 
 - prints and printks can take string arguments printed with %s
 
+- GEN2 can now take a size of zero, which s interpreted as size
+sufficient for the number of values provided.
+
 ### Utilities
 
 - A coding error in mixer was fixed.  It was very broken.
