@@ -801,10 +801,12 @@ int32_t init_faustaudio(CSOUND *csound, faustgen *p) {
 
   if (p->engine->getNumInputs() != p->INCOUNT - 1) {
     delete p->engine;
+    p->engine = NULL;
     return csound->InitError(csound, "%s", Str("wrong number of input args\n"));
   }
   if (p->engine->getNumOutputs() != p->OUTCOUNT - 1) {
     delete p->engine;
+    p->engine = NULL;
     return csound->InitError(csound, "%s", Str("wrong number of output args\n"));
   }
 
