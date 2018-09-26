@@ -69,17 +69,17 @@ instantiation and performance.
 
 - Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
 
-- runime error message now (usually) include a line number and a file/macro trace
+- runtime error message now (usually) include a line number and a file/macro trace
 
-- multiple aasiments such as ka,kb=1,2 are again supported by the
-parser; it had inadvertantly got lost.
+- multiple assignments such as ka,kb=1,2 are again supported by the
+parser; it had inadvertently got lost.
 
 ### Score
 
 - New preprocessor option #includestr.  This is like #include but has
   macro expansion in the double-quote delimited string
 
-- 'd' score opcode for real-time performanceb.  This was issue #966.
+- 'd' score opcode for real-time performance.  This was issue #966.
 
 - bug in np operation fixed.
 
@@ -160,8 +160,8 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 # SYSTEM LEVEL CHANGES
 
-- the various -zN options now reoort the number of opcodes for the request, so
-differs with respect to deprecared and polymorphic opcodes.
+- the various -zN options now reports the number of opcodes for the request, so
+differs with respect to deprecated and polymorphic opcodes.
 
 ### System Changes
 
@@ -174,13 +174,13 @@ differs with respect to deprecared and polymorphic opcodes.
 - Printing the number allocated to a named instrument now behaves the
   manual, not just for debug.
 
-- if liblo version 0.29 is avaiable csound can be built to use it (with
+- if liblo version 0.29 is available csound can be built to use it (with
   a compiler flag LIBLO29) and this fixes some bugs related to
   heavy/complex use of OSClisten.  Unfortunately the older 0.28 version
-  is being distributed by some Linux dustros.
+  is being distributed by some Linux distros.
 
 - The orchestra compiler has a number of new optimisations, avoiding
-unnecessary assignments and doing some more expression optimisatins.
+unnecessary assignments and doing some more expression optimisations.
 
 ### Translations
 
@@ -208,15 +208,4 @@ unnecessary assignments and doing some more expression optimisatins.
  - allow analog in and out with different channel numbers
 
 ==END==
-
-
-========================================================================
-
-
-========================================================================
-commit 84b777591e72b288eb0558ca0cb6f58a8af0b263
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Jul 13 11:57:37 2018 +0100
-
-    fixed window opcode
 

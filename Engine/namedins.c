@@ -42,7 +42,8 @@ int check_instr_name(char *s)
 }
 
 
-int32  named_instr_find_in_engine(CSOUND *csound, char *s, ENGINE_STATE *engineState) {
+int32  named_instr_find_in_engine(CSOUND *csound, char *s,
+                                  ENGINE_STATE *engineState) {
 
   INSTRNAME     *inm;
     int ss = (*s=='-'?1:0);

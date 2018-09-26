@@ -310,14 +310,18 @@ void dag_reinit(CSOUND *csound)
 #define ATOMIC_CAS(x,current,new) \
   (current == InterlockedCompareExchange(x, new, current))
 #else
-#define ATOMIC_CAS(x,current,new)  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
+#define ATOMIC_CAS(x,current,new)  \
+  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST, \
+                              __ATOMIC_SEQ_CST)
 #endif
 
 #if defined(_MSC_VER)
 #define ATOMIC_CAS_PTR(x,current,new) \
   (current == InterlockedCompareExchangePointer(x, new, current))
 #else
-#define ATOMIC_CAS_PTR(x,current,new)  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)
+#define ATOMIC_CAS_PTR(x,current,new)  \
+  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST,\
+                              __ATOMIC_SEQ_CST)
 #endif
 
 taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
@@ -562,7 +566,8 @@ void appendToWL (taskID id, watchList *l) {
   do {
     w = watch[id];
     l->tail = w;
-    w = __atomic_compare_exchange_n(&(watch[id]),w,l, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+    w = __atomic_compare_exchange_n(&(watch[id]),w,l, false, \
+                                    __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
   } while (!(w == l));
 
 }

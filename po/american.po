@@ -101,7 +101,7 @@ msgid "(unknown error)"
 msgstr ""
 
 #: Engine/corfiles.c:59 Engine/corfiles.c:79 Engine/corfiles.c:92
-#: Engine/corfiles.c:108 Engine/fgens.c:1634 Engine/rdscor.c:231
+#: Engine/corfiles.c:108 Engine/fgens.c:1640 Engine/rdscor.c:231
 msgid "Out of Memory\n"
 msgstr ""
 
@@ -118,7 +118,7 @@ msgstr ""
 msgid "curl_easy_perform() failed: %s\n"
 msgstr ""
 
-#: Engine/cs_new_dispatch.c:159
+#: Engine/cs_new_dispatch.c:160
 #, c-format
 msgid "Failed to find semantic information for instrument '%i'"
 msgstr ""
@@ -368,7 +368,7 @@ msgstr ""
 msgid "error: opcode %s with output type %s not found, line %d"
 msgstr ""
 
-#: Engine/csound_orc_expressions.c:1229
+#: Engine/csound_orc_expressions.c:1235
 #, c-format
 msgid "ERROR: Neither if-goto or if-then found on line %d!!!"
 msgstr ""
@@ -539,28 +539,28 @@ msgstr ""
 msgid "No number following instr\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:246 Engine/csound_pre.lex:292
+#: Engine/csound_pre.lex:245 Engine/csound_pre.lex:290
 #: Engine/csound_prs.lex:174 Engine/csound_prs.lex:227
 #: Engine/csound_prs.lex:572
 #, c-format
 msgid "Undefined macro: '%s'"
 msgstr ""
 
-#: Engine/csound_pre.lex:260 Engine/csound_pre.lex:306
-#: Engine/csound_pre.lex:311 Engine/csound_pre.lex:321
-#: Engine/csound_pre.lex:354 Engine/csound_pre.lex:375
-#: Engine/csound_pre.lex:792 Engine/csound_pre.lex:867
-#: Engine/csound_pre.lex:907 Engine/csound_pre.lex:913
-#: Engine/csound_pre.lex:926 Engine/csound_pre.lex:934
-#: Engine/csound_pre.lex:942 Engine/csound_pre.lex:953
-#: Engine/csound_pre.lex:962 Engine/csound_pre.lex:970
-#: Engine/csound_pre.lex:1016 Engine/csound_pre.lex:1028
-#: Engine/csound_pre.lex:1042 Engine/csound_pre.lex:1051
-#: Engine/csound_pre.lex:1073 Engine/csound_pre.lex:1081
-#: Engine/csound_pre.lex:1118 Engine/csound_pre.lex:1128
-#: Engine/csound_pre.lex:1137 Engine/csound_pre.lex:1194
-#: Engine/csound_pre.lex:1337 Engine/csound_pre.lex:1350
-#: Engine/csound_pre.lex:1365 Engine/csound_prs.lex:193
+#: Engine/csound_pre.lex:259 Engine/csound_pre.lex:304
+#: Engine/csound_pre.lex:309 Engine/csound_pre.lex:319
+#: Engine/csound_pre.lex:352 Engine/csound_pre.lex:373
+#: Engine/csound_pre.lex:775 Engine/csound_pre.lex:835
+#: Engine/csound_pre.lex:869 Engine/csound_pre.lex:875
+#: Engine/csound_pre.lex:888 Engine/csound_pre.lex:896
+#: Engine/csound_pre.lex:904 Engine/csound_pre.lex:915
+#: Engine/csound_pre.lex:924 Engine/csound_pre.lex:932
+#: Engine/csound_pre.lex:978 Engine/csound_pre.lex:990
+#: Engine/csound_pre.lex:1004 Engine/csound_pre.lex:1013
+#: Engine/csound_pre.lex:1035 Engine/csound_pre.lex:1043
+#: Engine/csound_pre.lex:1080 Engine/csound_pre.lex:1090
+#: Engine/csound_pre.lex:1099 Engine/csound_pre.lex:1156
+#: Engine/csound_pre.lex:1299 Engine/csound_pre.lex:1312
+#: Engine/csound_pre.lex:1327 Engine/csound_prs.lex:193
 #: Engine/csound_prs.lex:242 Engine/csound_prs.lex:247
 #: Engine/csound_prs.lex:257 Engine/csound_prs.lex:309
 #: Engine/csound_prs.lex:553 Engine/csound_prs.lex:623
@@ -580,73 +580,73 @@ msgstr ""
 msgid "Memory exhausted"
 msgstr ""
 
-#: Engine/csound_pre.lex:273 Engine/csound_pre.lex:402
+#: Engine/csound_pre.lex:271 Engine/csound_pre.lex:398
 #: Engine/csound_prs.lex:207 Engine/csound_prs.lex:334
 msgid "macros/include nested too deep: "
 msgstr ""
 
-#: Engine/csound_pre.lex:329 Engine/csound_prs.lex:265
+#: Engine/csound_pre.lex:327 Engine/csound_prs.lex:265
 msgid "Too few arguments to macro\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:343 Engine/csound_prs.lex:278
+#: Engine/csound_pre.lex:341 Engine/csound_prs.lex:278
 #, c-format
 msgid ""
 "Missing argument terminator\n"
 "%.98s"
 msgstr ""
 
-#: Engine/csound_pre.lex:443
+#: Engine/csound_pre.lex:439
 msgid "unexpected EOF!"
 msgstr ""
 
-#: Engine/csound_pre.lex:523 Engine/csound_prs.lex:459
+#: Engine/csound_pre.lex:514 Engine/csound_prs.lex:459
 #, c-format
 msgid "Unexpected character %c(%.2x) line %d\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:562 Engine/csound_prs.lex:498
+#: Engine/csound_pre.lex:553 Engine/csound_prs.lex:498
 msgid "#else without #if\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:566 Engine/csound_pre.lex:1255
+#: Engine/csound_pre.lex:557 Engine/csound_pre.lex:1217
 #: Engine/csound_prs.lex:502 Engine/csound_prs.lex:1396
 msgid "#else after #else\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:584 Engine/csound_prs.lex:520
+#: Engine/csound_pre.lex:575 Engine/csound_prs.lex:520
 msgid "Unmatched #end\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:749 Engine/csound_prs.lex:922
+#: Engine/csound_pre.lex:740 Engine/csound_prs.lex:922
 msgid "Ill formed #include ignored"
 msgstr ""
 
-#: Engine/csound_pre.lex:759 Engine/csound_pre.lex:835
+#: Engine/csound_pre.lex:750 Engine/csound_pre.lex:810
 #: Engine/csound_prs.lex:931 Engine/csound_prs.lex:994
 msgid "Includes nested too deeply"
 msgstr ""
 
-#: Engine/csound_pre.lex:774 Engine/csound_pre.lex:850
+#: Engine/csound_pre.lex:765 Engine/csound_pre.lex:825
 #: Engine/csound_prs.lex:948 Engine/csound_prs.lex:1009
 #, c-format
 msgid "%s is a directory; not including"
 msgstr ""
 
-#: Engine/csound_pre.lex:786 Engine/csound_pre.lex:861
+#: Engine/csound_pre.lex:769 Engine/csound_pre.lex:829
 #: Engine/csound_prs.lex:952 Engine/csound_prs.lex:1013
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr "Can't open #include'd file %s\n"
 
-#: Engine/csound_pre.lex:979 Engine/csound_prs.lex:1120
+#: Engine/csound_pre.lex:941 Engine/csound_prs.lex:1120
 msgid "macro error\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:984 Engine/csound_pre.lex:988
-#: Engine/csound_pre.lex:995 Engine/csound_pre.lex:1001
-#: Engine/csound_pre.lex:1088 Engine/csound_pre.lex:1092
-#: Engine/csound_pre.lex:1099 Engine/csound_pre.lex:1105
+#: Engine/csound_pre.lex:946 Engine/csound_pre.lex:950
+#: Engine/csound_pre.lex:957 Engine/csound_pre.lex:963
+#: Engine/csound_pre.lex:1050 Engine/csound_pre.lex:1054
+#: Engine/csound_pre.lex:1061 Engine/csound_pre.lex:1067
 #: Engine/csound_prs.lex:1125 Engine/csound_prs.lex:1129
 #: Engine/csound_prs.lex:1136 Engine/csound_prs.lex:1142
 #: Engine/csound_prs.lex:1229 Engine/csound_prs.lex:1233
@@ -654,40 +654,40 @@ msgstr ""
 msgid "define macro runaway\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1008 Engine/csound_pre.lex:1112
+#: Engine/csound_pre.lex:970 Engine/csound_pre.lex:1074
 #: Engine/csound_prs.lex:1149
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1022 Engine/csound_prs.lex:1163
+#: Engine/csound_pre.lex:984 Engine/csound_prs.lex:1163
 msgid "define macro with args: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1123 Engine/csound_prs.lex:1264
+#: Engine/csound_pre.lex:1085 Engine/csound_prs.lex:1264
 msgid "define macro: unexpected EOF"
 msgstr ""
 
-#: Engine/csound_pre.lex:1158 Engine/csound_prs.lex:1299
+#: Engine/csound_pre.lex:1120 Engine/csound_prs.lex:1299
 #, c-format
 msgid "macro %s undefined\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1173 Engine/csound_prs.lex:1314 Engine/sread.c:219
+#: Engine/csound_pre.lex:1135 Engine/csound_prs.lex:1314 Engine/sread.c:219
 msgid "Undefining undefined macro"
 msgstr ""
 
-#: Engine/csound_pre.lex:1228 Engine/csound_prs.lex:1369
+#: Engine/csound_pre.lex:1190 Engine/csound_prs.lex:1369
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1330 Engine/csound_prs.lex:1434
+#: Engine/csound_pre.lex:1292 Engine/csound_prs.lex:1434
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1333
+#: Engine/csound_pre.lex:1295
 msgid "Invalid macro name for --omacro"
 msgstr ""
 
@@ -809,9 +809,9 @@ msgstr "ftable doesn't exist"
 msgid "ftable %d now deleted\n"
 msgstr ""
 
-#: Engine/fgens.c:187 Engine/fgens.c:1697 Engine/fgens.c:1783
-#: Engine/fgens.c:1867 Engine/fgens.c:1984 Engine/fgens.c:2065
-#: Engine/fgens.c:3109
+#: Engine/fgens.c:187 Engine/fgens.c:1703 Engine/fgens.c:1789
+#: Engine/fgens.c:1873 Engine/fgens.c:1990 Engine/fgens.c:2071
+#: Engine/fgens.c:3115
 msgid "insufficient gen arguments"
 msgstr ""
 
@@ -825,198 +825,198 @@ msgstr ""
 msgid "illegal gen number"
 msgstr ""
 
-#: Engine/fgens.c:231
-msgid "deferred size for GENs 1, 23, 28 or 49 only"
+#: Engine/fgens.c:232
+msgid "deferred size for GENs 1, 2, 23, 28 or 49 only"
 msgstr ""
 
-#: Engine/fgens.c:234 Engine/fgens.c:288
+#: Engine/fgens.c:235 Engine/fgens.c:289
 #, c-format
 msgid "ftable %d:\n"
 msgstr ""
 
-#: Engine/fgens.c:260 Engine/fgens.c:2400 Engine/fgens.c:2994
+#: Engine/fgens.c:261 Engine/fgens.c:2406 Engine/fgens.c:3000
 msgid "illegal table length"
 msgstr ""
 
-#: Engine/fgens.c:345 Engine/fgens.c:2358
+#: Engine/fgens.c:346 Engine/fgens.c:2364
 #, c-format
 msgid ""
 "ftable %d relocating due to size change\n"
 "         currently active instruments may find this disturbing"
 msgstr ""
 
-#: Engine/fgens.c:403 Engine/fgens.c:524 Engine/fgens.c:608 Engine/fgens.c:689
-#: Engine/fgens.c:764 Engine/fgens.c:813 Engine/fgens.c:934 Engine/fgens.c:1012
-#: Engine/fgens.c:1114 Engine/fgens.c:1158 Engine/fgens.c:1209
-#: Engine/fgens.c:1480 Engine/fgens.c:1542 Engine/fgens.c:1781
-#: Engine/fgens.c:1864 Engine/fgens.c:2224 Engine/fgens.c:3063
-#: Engine/fgens.c:3106
+#: Engine/fgens.c:404 Engine/fgens.c:530 Engine/fgens.c:614 Engine/fgens.c:695
+#: Engine/fgens.c:770 Engine/fgens.c:819 Engine/fgens.c:940 Engine/fgens.c:1018
+#: Engine/fgens.c:1120 Engine/fgens.c:1164 Engine/fgens.c:1215
+#: Engine/fgens.c:1486 Engine/fgens.c:1548 Engine/fgens.c:1787
+#: Engine/fgens.c:1870 Engine/fgens.c:2230 Engine/fgens.c:3069
+#: Engine/fgens.c:3112
 msgid "using extended arguments\n"
 msgstr ""
 
-#: Engine/fgens.c:427
+#: Engine/fgens.c:433
 msgid "no coefs present"
 msgstr ""
 
-#: Engine/fgens.c:432 Engine/fgens.c:698 Engine/fgens.c:706
+#: Engine/fgens.c:438 Engine/fgens.c:704 Engine/fgens.c:712
 msgid "illegal x interval"
 msgstr ""
 
-#: Engine/fgens.c:461 Engine/fgens.c:610 Engine/fgens.c:691 Engine/fgens.c:936
-#: Engine/fgens.c:1437 Engine/fgens.c:2562 Engine/fgens.c:2895
-#: Engine/fgens.c:3036 Opcodes/ftest.c:134 Opcodes/quadbezier.c:64
+#: Engine/fgens.c:467 Engine/fgens.c:616 Engine/fgens.c:697 Engine/fgens.c:942
+#: Engine/fgens.c:1443 Engine/fgens.c:2568 Engine/fgens.c:2901
+#: Engine/fgens.c:3042 Opcodes/ftest.c:134 Opcodes/quadbezier.c:64
 #: Top/main.c:128 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr ""
 
-#: Engine/fgens.c:465 Engine/fgens.c:1442
+#: Engine/fgens.c:471 Engine/fgens.c:1448
 msgid "unknown srctable number"
 msgstr ""
 
-#: Engine/fgens.c:478
+#: Engine/fgens.c:484
 msgid "table size too large"
 msgstr ""
 
-#: Engine/fgens.c:563 Engine/fgens.c:596
+#: Engine/fgens.c:569 Engine/fgens.c:602
 msgid "gen call has negative segment size:"
 msgstr ""
 
-#: Engine/fgens.c:565
+#: Engine/fgens.c:571
 msgid "illegal input vals for gen call, beginning:"
 msgstr ""
 
-#: Engine/fgens.c:631
+#: Engine/fgens.c:637
 msgid "negative segsiz"
 msgstr ""
 
-#: Engine/fgens.c:840
+#: Engine/fgens.c:846
 msgid "nh partials < 1"
 msgstr ""
 
-#: Engine/fgens.c:939
+#: Engine/fgens.c:945
 msgid "illegal xint value"
 msgstr ""
 
-#: Engine/fgens.c:942
+#: Engine/fgens.c:948
 msgid "illegal xamp value"
 msgstr ""
 
-#: Engine/fgens.c:1014
+#: Engine/fgens.c:1020
 msgid "uneven number of args"
 msgstr ""
 
-#: Engine/fgens.c:1142
+#: Engine/fgens.c:1148
 msgid "gen call has illegal x-ordinate values:"
 msgstr ""
 
-#: Engine/fgens.c:1160
+#: Engine/fgens.c:1166
 msgid "wrong number of args"
 msgstr ""
 
-#: Engine/fgens.c:1174
+#: Engine/fgens.c:1180
 msgid "a range given exceeds table length"
 msgstr ""
 
-#: Engine/fgens.c:1181
+#: Engine/fgens.c:1187
 msgid "an input function does not exist"
 msgstr "an input function doesn't exist"
 
-#: Engine/fgens.c:1318
+#: Engine/fgens.c:1324
 msgid "No such window type!"
 msgstr ""
 
-#: Engine/fgens.c:1336
+#: Engine/fgens.c:1342
 msgid "Wrong number of input arguments"
 msgstr ""
 
-#: Engine/fgens.c:1337
+#: Engine/fgens.c:1343
 msgid "unknown distribution"
 msgstr ""
 
-#: Engine/fgens.c:1389
+#: Engine/fgens.c:1395
 msgid "error opening ASCII file"
 msgstr ""
 
-#: Engine/fgens.c:1399
+#: Engine/fgens.c:1405
 #, c-format
 msgid "%ld elements in %s\n"
 msgstr ""
 
-#: Engine/fgens.c:1413
+#: Engine/fgens.c:1419
 #, c-format
 msgid "Number(s) after table full in GEN23, starting %f"
 msgstr ""
 
-#: Engine/fgens.c:1450
+#: Engine/fgens.c:1456
 msgid "table size must be the same of source table"
 msgstr ""
 
-#: Engine/fgens.c:1522 Engine/fgens.c:1591
+#: Engine/fgens.c:1528 Engine/fgens.c:1597
 msgid "x coordinates must all be in increasing order:"
 msgstr ""
 
-#: Engine/fgens.c:1525 Engine/fgens.c:1593
+#: Engine/fgens.c:1531 Engine/fgens.c:1599
 msgid "x coordinate greater than function size:"
 msgstr ""
 
-#: Engine/fgens.c:1529
+#: Engine/fgens.c:1535
 msgid "illegal input val (y <= 0) for gen call, beginning:"
 msgstr ""
 
-#: Engine/fgens.c:1611
+#: Engine/fgens.c:1617
 msgid "GEN28 requires zero table length"
 msgstr ""
 
-#: Engine/fgens.c:1680
+#: Engine/fgens.c:1686
 msgid "could not open space file"
 msgstr "couldn't open space file"
 
-#: Engine/fgens.c:1683
+#: Engine/fgens.c:1689
 msgid "Time values must be in increasing order"
 msgstr ""
 
-#: Engine/fgens.c:1704
+#: Engine/fgens.c:1710
 msgid "GEN30: source ftable not found"
 msgstr ""
 
-#: Engine/fgens.c:1787
+#: Engine/fgens.c:1793
 msgid "GEN31: source ftable not found"
 msgstr ""
 
-#: Engine/fgens.c:1900
+#: Engine/fgens.c:1906
 #, c-format
 msgid "GEN32: source ftable %d not found"
 msgstr ""
 
-#: Engine/fgens.c:1995
+#: Engine/fgens.c:2001
 msgid "GEN33: source ftable not found"
 msgstr ""
 
-#: Engine/fgens.c:2164
+#: Engine/fgens.c:2170
 msgid "unknown source table number"
 msgstr ""
 
-#: Engine/fgens.c:2196
+#: Engine/fgens.c:2202
 msgid "Gen41: negative probability not allowed"
 msgstr ""
 
-#: Engine/fgens.c:2265
+#: Engine/fgens.c:2271
 #, c-format
 msgid "ftable %d: "
 msgstr ""
 
-#: Engine/fgens.c:2309
+#: Engine/fgens.c:2315
 #, c-format
 msgid "ftable %d:"
 msgstr ""
 
-#: Engine/fgens.c:2352
+#: Engine/fgens.c:2358
 #, c-format
 msgid "replacing previous ftable %d"
 msgstr ""
 
-#: Engine/fgens.c:2396 Engine/fgens.c:2512 Engine/fgens.c:2540
-#: Engine/fgens.c:2547 Opcodes/gab/gab.c:577 Opcodes/gab/gab.c:634
+#: Engine/fgens.c:2402 Engine/fgens.c:2518 Engine/fgens.c:2546
+#: Engine/fgens.c:2553 Opcodes/gab/gab.c:577 Opcodes/gab/gab.c:634
 #: Opcodes/midiops2.c:235 Opcodes/midiops2.c:391 Opcodes/midiops2.c:473
 #: Opcodes/uggab.c:1666 Opcodes/uggab.c:1702 Opcodes/uggab.c:1724
 #: Opcodes/uggab.c:1778
@@ -1024,135 +1024,135 @@ msgstr ""
 msgid "Invalid ftable no. %f"
 msgstr ""
 
-#: Engine/fgens.c:2405
+#: Engine/fgens.c:2411
 #, c-format
 msgid "deferred-size ftable %f illegal here"
 msgstr ""
 
-#: Engine/fgens.c:2518
+#: Engine/fgens.c:2524
 #, c-format
 msgid "Deferred-size ftable %f load not available at perf time."
 msgstr ""
 
-#: Engine/fgens.c:2586
+#: Engine/fgens.c:2592
 #, c-format
 msgid "non-deferred ftable %d needs size %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2648 Opcodes/loscilx.c:70
+#: Engine/fgens.c:2654 Opcodes/loscilx.c:70
 #, c-format
 msgid "invalid sample format: %d"
 msgstr ""
 
-#: Engine/fgens.c:2655 Engine/fgens.c:2919
+#: Engine/fgens.c:2661 Engine/fgens.c:2925
 #, c-format
 msgid "channel %d illegal"
 msgstr ""
 
-#: Engine/fgens.c:2661
+#: Engine/fgens.c:2667
 #, c-format
 msgid "deferred alloc for %s\n"
 msgstr ""
 
-#: Engine/fgens.c:2665
+#: Engine/fgens.c:2671
 #, c-format
 msgid "Failed to open file %s"
 msgstr "Can't open input file %s"
 
-#: Engine/fgens.c:2670 Engine/fgens.c:2992
+#: Engine/fgens.c:2676 Engine/fgens.c:2998
 msgid "deferred size, but filesize unknown"
 msgstr ""
 
-#: Engine/fgens.c:2673 Engine/fgens.c:2996
+#: Engine/fgens.c:2679 Engine/fgens.c:3002
 #, c-format
 msgid "  defer length %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2741
+#: Engine/fgens.c:2747
 msgid "GEN1: input file truncated by ftable size"
 msgstr ""
 
-#: Engine/fgens.c:2745
+#: Engine/fgens.c:2751
 #, c-format
 msgid "\tlooping endpoint %d exceeds ftsize %d\n"
 msgstr ""
 
-#: Engine/fgens.c:2761
+#: Engine/fgens.c:2767
 msgid "GEN1 read error"
 msgstr ""
 
-#: Engine/fgens.c:2766
+#: Engine/fgens.c:2772
 msgid "GEN1: file truncated by ftable size"
 msgstr ""
 
-#: Engine/fgens.c:2767
+#: Engine/fgens.c:2773
 #, c-format
 msgid "\taudio samps %d exceeds ftsize %d"
 msgstr ""
 
-#: Engine/fgens.c:2820
+#: Engine/fgens.c:2826
 msgid "wrong number of ftable arguments"
 msgstr ""
 
-#: Engine/fgens.c:2830 OOps/pstream.c:388
+#: Engine/fgens.c:2836 OOps/pstream.c:388
 msgid "Failed to load PVOC-EX file"
 msgstr ""
 
-#: Engine/fgens.c:2842 InOut/midirecv.c:419 OOps/midiops.c:402
+#: Engine/fgens.c:2848 InOut/midirecv.c:419 OOps/midiops.c:402
 #: OOps/midiops.c:452 OOps/midiops.c:464
 msgid "illegal channel number"
 msgstr ""
 
-#: Engine/fgens.c:2860
+#: Engine/fgens.c:2866
 msgid "ftable size too small"
 msgstr ""
 
-#: Engine/fgens.c:2935 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
+#: Engine/fgens.c:2941 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr ""
 
-#: Engine/fgens.c:3073
+#: Engine/fgens.c:3079
 msgid "GEN51: invalid number of p-fields (too few grades)"
 msgstr ""
 
-#: Engine/fgens.c:3113
+#: Engine/fgens.c:3119
 msgid "number of channels inconsistent with number of args"
 msgstr ""
 
-#: Engine/fgens.c:3275
+#: Engine/fgens.c:3281
 msgid "GEN53: invalid number of gen arguments"
 msgstr ""
 
-#: Engine/fgens.c:3285
+#: Engine/fgens.c:3291
 msgid "GEN53: invalid table length"
 msgstr ""
 
-#: Engine/fgens.c:3289
+#: Engine/fgens.c:3295
 msgid "GEN53: invalid source table number"
 msgstr ""
 
-#: Engine/fgens.c:3292
+#: Engine/fgens.c:3298
 msgid "GEN53: mode must be in the range 0 to 15"
 msgstr ""
 
-#: Engine/fgens.c:3296
+#: Engine/fgens.c:3302
 msgid "GEN53: invalid source table length:"
 msgstr ""
 
-#: Engine/fgens.c:3301
+#: Engine/fgens.c:3307
 msgid "GEN53: invalid window table"
 msgstr ""
 
-#: Engine/fgens.c:3316
+#: Engine/fgens.c:3322
 msgid "GEN 53: impulse response input, "
 msgstr ""
 
-#: Engine/fgens.c:3322
+#: Engine/fgens.c:3328
 msgid "GEN 53: frequency response input, "
 msgstr ""
 
-#: Engine/fgens.c:3427
+#: Engine/fgens.c:3433
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr ""
@@ -5765,165 +5765,45 @@ msgstr "reverb: not initialized"
 msgid "pan: not initialised"
 msgstr "pan: not initialized"
 
-#: OOps/ugrw1.c:80
-msgid "zakinit should only be called once."
-msgstr ""
-
-#: OOps/ugrw1.c:84
-msgid "zakinit: both isizea and isizek should be > 0."
-msgstr ""
-
-#: OOps/ugrw1.c:118
-msgid "No zk space: zakinit has not been called yet."
-msgstr "No zk space: zakinit hasn't been called yet."
-
-#: OOps/ugrw1.c:137
-msgid "zkr index > isizek. Returning 0."
-msgstr ""
-
-#: OOps/ugrw1.c:141
-msgid "zkr index < 0. Returning 0."
-msgstr ""
-
-#: OOps/ugrw1.c:169
-msgid "zir index > isizek. Returning 0."
-msgstr ""
-
-#: OOps/ugrw1.c:173
-msgid "zir index < 0. Returning 0."
-msgstr ""
-
-#: OOps/ugrw1.c:195
-msgid "zkw index > isizek. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:199
-msgid "zkw index < 0. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:224
-msgid "ziw index > isizek. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:227
-msgid "ziw index < 0. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:251
-msgid "zkwm index > isizek. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:255
-msgid "zkwm index < 0. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:288
-msgid "ziwm index > isizek. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:291
-msgid "ziwm index < 0. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:335
-msgid "zkmod kzkmod > isizek. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:361
-msgid "zkcl first or last > isizek. Not clearing."
-msgstr ""
-
-#: OOps/ugrw1.c:364
-msgid "zkcl first or last < 0. Not clearing."
-msgstr ""
-
-#: OOps/ugrw1.c:368
-msgid "zkcl first > last. Not clearing."
-msgstr ""
-
-#: OOps/ugrw1.c:391
-msgid "No za space: zakinit has not been called yet."
-msgstr "No za space: zakinit hasn't been called yet."
-
-#: OOps/ugrw1.c:420
-msgid "zar index > isizea. Returning 0."
-msgstr ""
-
-#: OOps/ugrw1.c:425
-msgid "zar index < 0. Returning 0."
-msgstr ""
-
-#: OOps/ugrw1.c:465
-msgid "zarg index > isizea. Returning 0."
-msgstr ""
-
-#: OOps/ugrw1.c:471
-msgid "zarg index < 0. Returning 0."
-msgstr ""
-
-#: OOps/ugrw1.c:509 OOps/ugrw1.c:549
-msgid "zaw index > isizea. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:513 OOps/ugrw1.c:553
-msgid "zaw index < 0. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:616
-msgid "zamod kzamod > isizea. Not writing."
-msgstr ""
-
-#: OOps/ugrw1.c:649
-msgid "zacl first or last > isizea. Not clearing."
-msgstr "zacl first or last > isizea. Not clearing."
-
-#: OOps/ugrw1.c:653
-msgid "zacl first or last < 0. Not clearing."
-msgstr ""
-
-#: OOps/ugrw1.c:658
-msgid "zacl first > last. Not clearing."
-msgstr ""
-
-#: OOps/ugrw1.c:783
+#: OOps/ugrw1.c:167
 msgid "printk not initialised"
 msgstr "printk: not initialized"
 
-#: OOps/ugrw1.c:795
+#: OOps/ugrw1.c:179
 #, c-format
 msgid "time %11.5f: "
 msgstr ""
 
-#: OOps/ugrw1.c:947 OOps/ugrw1.c:956 OOps/ugrw1.c:1147
+#: OOps/ugrw1.c:331 OOps/ugrw1.c:340 OOps/ugrw1.c:531
 msgid "null string\n"
 msgstr ""
 
-#: OOps/ugrw1.c:1157
+#: OOps/ugrw1.c:541
 msgid "printks not initialised"
 msgstr "printks: not initialized"
 
-#: OOps/ugrw1.c:1164 OOps/ugrw1.c:1186 OOps/ugrw1.c:1206 OOps/ugrw1.c:1319
+#: OOps/ugrw1.c:548 OOps/ugrw1.c:570 OOps/ugrw1.c:590 OOps/ugrw1.c:703
 msgid "Insufficient arguments in formatted printing"
 msgstr ""
 
-#: OOps/ugrw1.c:1210
+#: OOps/ugrw1.c:594
 #, c-format
 msgid "Formatting string too long: %s"
 msgstr ""
 
-#: OOps/ugrw1.c:1352
+#: OOps/ugrw1.c:738
 msgid "inz index > isizea. Not writing."
 msgstr ""
 
-#: OOps/ugrw1.c:1355
+#: OOps/ugrw1.c:741
 msgid "inz index < 0. Not writing."
 msgstr ""
 
-#: OOps/ugrw1.c:1399 Opcodes/vbap_zak.c:208 Opcodes/vbap_zak.c:520
+#: OOps/ugrw1.c:787 Opcodes/vbap_zak.c:211 Opcodes/vbap_zak.c:525
 msgid "outz index > isizea. No output"
 msgstr ""
 
-#: OOps/ugrw1.c:1402 Opcodes/vbap_zak.c:212 Opcodes/vbap_zak.c:524
+#: OOps/ugrw1.c:790 Opcodes/vbap_zak.c:215 Opcodes/vbap_zak.c:529
 msgid "outz index < 0. No output."
 msgstr ""
 
@@ -6001,6 +5881,131 @@ msgstr ""
 #: OOps/vdelay.c:1238
 msgid "reverbx: not initialised"
 msgstr "reverbx: not initialized"
+
+#: Opcodes/zak.c:88
+msgid "zakinit should only be called once."
+msgstr ""
+
+#: Opcodes/zak.c:92
+msgid "zakinit: both isizea and isizek should be > 0."
+msgstr ""
+
+#: Opcodes/zak.c:103
+#, fuzzy
+msgid "zakinit: failed to allocate globals"
+msgstr "failed to initialize remote globals."
+
+#: Opcodes/zak.c:133
+msgid "No zk space: zakinit has not been called yet."
+msgstr "No zk space: zakinit hasn't been called yet."
+
+#: Opcodes/zak.c:154
+msgid "zkr index > isizek. Returning 0."
+msgstr ""
+
+#: Opcodes/zak.c:158
+msgid "zkr index < 0. Returning 0."
+msgstr ""
+
+#: Opcodes/zak.c:187
+msgid "zir index > isizek. Returning 0."
+msgstr ""
+
+#: Opcodes/zak.c:191
+msgid "zir index < 0. Returning 0."
+msgstr ""
+
+#: Opcodes/zak.c:215
+msgid "zkw index > isizek. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:219
+msgid "zkw index < 0. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:245
+msgid "ziw index > isizek. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:248
+msgid "ziw index < 0. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:273
+msgid "zkwm index > isizek. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:277
+msgid "zkwm index < 0. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:312
+msgid "ziwm index > isizek. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:315
+msgid "ziwm index < 0. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:360
+msgid "zkmod kzkmod > isizek. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:387
+msgid "zkcl first or last > isizek. Not clearing."
+msgstr ""
+
+#: Opcodes/zak.c:390
+msgid "zkcl first or last < 0. Not clearing."
+msgstr ""
+
+#: Opcodes/zak.c:394
+msgid "zkcl first > last. Not clearing."
+msgstr ""
+
+#: Opcodes/zak.c:419
+msgid "No za space: zakinit has not been called yet."
+msgstr "No za space: zakinit hasn't been called yet."
+
+#: Opcodes/zak.c:449
+msgid "zar index > isizea. Returning 0."
+msgstr ""
+
+#: Opcodes/zak.c:454
+msgid "zar index < 0. Returning 0."
+msgstr ""
+
+#: Opcodes/zak.c:495
+msgid "zarg index > isizea. Returning 0."
+msgstr ""
+
+#: Opcodes/zak.c:501
+msgid "zarg index < 0. Returning 0."
+msgstr ""
+
+#: Opcodes/zak.c:540 Opcodes/zak.c:581
+msgid "zaw index > isizea. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:544 Opcodes/zak.c:585
+msgid "zaw index < 0. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:649
+msgid "zamod kzamod > isizea. Not writing."
+msgstr ""
+
+#: Opcodes/zak.c:684
+msgid "zacl first or last > isizea. Not clearing."
+msgstr "zacl first or last > isizea. Not clearing."
+
+#: Opcodes/zak.c:688
+msgid "zacl first or last < 0. Not clearing."
+msgstr ""
+
+#: Opcodes/zak.c:693
+msgid "zacl first > last. Not clearing."
+msgstr ""
 
 #: Opcodes/OSC.c:155
 msgid "Too many arguments to OSCsend"
@@ -6206,168 +6211,168 @@ msgstr ""
 msgid "Dimensions do not match in array arithmetic"
 msgstr ""
 
-#: Opcodes/arrays.c:334 Opcodes/arrays.c:361 Opcodes/arrays.c:380
-#: Opcodes/arrays.c:393 Opcodes/arrays.c:412 Opcodes/arrays.c:448
-#: Opcodes/arrays.c:468 Opcodes/arrays.c:492 Opcodes/arrays.c:512
-#: Opcodes/arrays.c:549 Opcodes/arrays.c:586 Opcodes/arrays.c:606
-#: Opcodes/arrays.c:623 Opcodes/arrays.c:663 Opcodes/arrays.c:683
-#: Opcodes/arrays.c:710 Opcodes/arrays.c:730 Opcodes/arrays.c:758
-#: Opcodes/arrays.c:785 Opcodes/arrays.c:842 Opcodes/arrays.c:878
-#: Opcodes/arrays.c:911 Opcodes/arrays.c:944 Opcodes/arrays.c:982
-#: Opcodes/arrays.c:1014 Opcodes/arrays.c:1046 Opcodes/arrays.c:1078
-#: Opcodes/arrays.c:1110 Opcodes/arrays.c:1142 Opcodes/arrays.c:1174
-#: Opcodes/arrays.c:1211 Opcodes/arrays.c:1246 Opcodes/arrays.c:1281
-#: Opcodes/arrays.c:1313 Opcodes/arrays.c:1348 Opcodes/arrays.c:1383
-#: Opcodes/arrays.c:1418 Opcodes/arrays.c:1453 Opcodes/arrays.c:1488
-#: Opcodes/arrays.c:1523 Opcodes/arrays.c:1558 Opcodes/arrays.c:1594
-#: Opcodes/arrays.c:1630 Opcodes/arrays.c:1666 Opcodes/arrays.c:1702
-#: Opcodes/arrays.c:1738 Opcodes/arrays.c:1774 Opcodes/arrays.c:1810
-#: Opcodes/arrays.c:1846 Opcodes/arrays.c:1882 Opcodes/arrays.c:1918
-#: Opcodes/arrays.c:1954 Opcodes/arrays.c:1987 Opcodes/arrays.c:1993
-#: Opcodes/arrays.c:2004 Opcodes/arrays.c:2035 Opcodes/arrays.c:2066
-#: Opcodes/arrays.c:2087 Opcodes/arrays.c:2161 Opcodes/arrays.c:2208
+#: Opcodes/arrays.c:334 Opcodes/arrays.c:363 Opcodes/arrays.c:382
+#: Opcodes/arrays.c:395 Opcodes/arrays.c:414 Opcodes/arrays.c:450
+#: Opcodes/arrays.c:470 Opcodes/arrays.c:494 Opcodes/arrays.c:514
+#: Opcodes/arrays.c:551 Opcodes/arrays.c:588 Opcodes/arrays.c:608
+#: Opcodes/arrays.c:625 Opcodes/arrays.c:665 Opcodes/arrays.c:685
+#: Opcodes/arrays.c:712 Opcodes/arrays.c:732 Opcodes/arrays.c:760
+#: Opcodes/arrays.c:787 Opcodes/arrays.c:844 Opcodes/arrays.c:880
+#: Opcodes/arrays.c:913 Opcodes/arrays.c:946 Opcodes/arrays.c:984
+#: Opcodes/arrays.c:1016 Opcodes/arrays.c:1048 Opcodes/arrays.c:1080
+#: Opcodes/arrays.c:1112 Opcodes/arrays.c:1144 Opcodes/arrays.c:1176
+#: Opcodes/arrays.c:1213 Opcodes/arrays.c:1248 Opcodes/arrays.c:1283
+#: Opcodes/arrays.c:1315 Opcodes/arrays.c:1350 Opcodes/arrays.c:1385
+#: Opcodes/arrays.c:1420 Opcodes/arrays.c:1455 Opcodes/arrays.c:1490
+#: Opcodes/arrays.c:1525 Opcodes/arrays.c:1560 Opcodes/arrays.c:1596
+#: Opcodes/arrays.c:1632 Opcodes/arrays.c:1668 Opcodes/arrays.c:1704
+#: Opcodes/arrays.c:1740 Opcodes/arrays.c:1776 Opcodes/arrays.c:1812
+#: Opcodes/arrays.c:1848 Opcodes/arrays.c:1884 Opcodes/arrays.c:1920
+#: Opcodes/arrays.c:1956 Opcodes/arrays.c:1989 Opcodes/arrays.c:1995
+#: Opcodes/arrays.c:2006 Opcodes/arrays.c:2037 Opcodes/arrays.c:2068
+#: Opcodes/arrays.c:2089 Opcodes/arrays.c:2163 Opcodes/arrays.c:2210
 #: Opcodes/pvsbasic.c:2441 Opcodes/pvsbasic.c:2472 Opcodes/pvsbasic.c:2521
 msgid "array-variable not initialised"
 msgstr "array-variable not initialized"
 
-#: Opcodes/arrays.c:354 Opcodes/arrays.c:373
+#: Opcodes/arrays.c:347 Opcodes/arrays.c:375
 msgid "Dimension does not match in array arithmetic"
 msgstr "Dimension doesn't match in array arithmetic"
 
-#: Opcodes/arrays.c:478 Opcodes/arrays.c:738
+#: Opcodes/arrays.c:480 Opcodes/arrays.c:740
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:521 Opcodes/arrays.c:767 Opcodes/arrays.c:794
+#: Opcodes/arrays.c:523 Opcodes/arrays.c:769 Opcodes/arrays.c:796
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:660 Opcodes/arrays.c:690 Opcodes/arrays.c:707
-#: Opcodes/arrays.c:1214 Opcodes/arrays.c:1249
+#: Opcodes/arrays.c:662 Opcodes/arrays.c:692 Opcodes/arrays.c:709
+#: Opcodes/arrays.c:1216 Opcodes/arrays.c:1251
 msgid "division by zero in array-var"
 msgstr ""
 
-#: Opcodes/arrays.c:960 Opcodes/arrays.c:1189
+#: Opcodes/arrays.c:962 Opcodes/arrays.c:1191
 #, c-format
 msgid "division by zero in array-var at index %d/%d"
 msgstr ""
 
-#: Opcodes/arrays.c:2069
+#: Opcodes/arrays.c:2071
 msgid "array-variable not a vector"
 msgstr "array-variable not a vector"
 
-#: Opcodes/arrays.c:2165 Opcodes/arrays.c:2211
+#: Opcodes/arrays.c:2167 Opcodes/arrays.c:2213
 msgid "array-variable dimensions do not match"
 msgstr "array-variable dimensions don't match"
 
-#: Opcodes/arrays.c:2168
+#: Opcodes/arrays.c:2170
 msgid "array-variable types do not match"
 msgstr "array-variable types don't match"
 
-#: Opcodes/arrays.c:2261 Opcodes/arrays.c:2282 Opcodes/arrays.c:2465
-#: Opcodes/arrays.c:2501 Opcodes/arrays.c:2504
+#: Opcodes/arrays.c:2263 Opcodes/arrays.c:2284 Opcodes/arrays.c:2467
+#: Opcodes/arrays.c:2503 Opcodes/arrays.c:2506
 msgid "array-var not initialised"
 msgstr "array-var not initialized"
 
-#: Opcodes/arrays.c:2264 Opcodes/arrays.c:2284 Opcodes/arrays.c:2342
-#: Opcodes/arrays.c:2364
+#: Opcodes/arrays.c:2266 Opcodes/arrays.c:2286 Opcodes/arrays.c:2344
+#: Opcodes/arrays.c:2366
 msgid "No table for copy2ftab"
 msgstr ""
 
-#: Opcodes/arrays.c:2314
+#: Opcodes/arrays.c:2316
 msgid "inconsistent start, end and increment parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:2400
+#: Opcodes/arrays.c:2402
 msgid "inconsistent start, end parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:2404
+#: Opcodes/arrays.c:2406
 msgid "slice larger than original size"
 msgstr ""
 
-#: Opcodes/arrays.c:2408
+#: Opcodes/arrays.c:2410
 msgid "slice increment must be positive"
 msgstr ""
 
-#: Opcodes/arrays.c:2478
+#: Opcodes/arrays.c:2480
 #, c-format
 msgid "%s not found"
 msgstr "%s not found"
 
-#: Opcodes/arrays.c:2509
+#: Opcodes/arrays.c:2511
 msgid "map fn not found at k rate"
 msgstr ""
 
-#: Opcodes/arrays.c:2688
+#: Opcodes/arrays.c:2690
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2721
+#: Opcodes/arrays.c:2723
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2752
+#: Opcodes/arrays.c:2754
 msgid "array sizes do not match\n"
 msgstr "array sizes don't match\n"
 
-#: Opcodes/arrays.c:2776
+#: Opcodes/arrays.c:2778
 msgid "fft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2803
+#: Opcodes/arrays.c:2805
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2866
+#: Opcodes/arrays.c:2868
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3048 Opcodes/arrays.c:3088 Opcodes/arrays.c:3120
+#: Opcodes/arrays.c:3050 Opcodes/arrays.c:3090 Opcodes/arrays.c:3122
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3081
+#: Opcodes/arrays.c:3083
 msgid "FFT size too small (min 64 samples)\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3148 Opcodes/arrays.c:3187
+#: Opcodes/arrays.c:3150 Opcodes/arrays.c:3189
 msgid "in array not 2-dimensional\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3160 Opcodes/arrays.c:3173
+#: Opcodes/arrays.c:3162 Opcodes/arrays.c:3175
 msgid "requested row is out of range\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3201 Opcodes/arrays.c:3215
+#: Opcodes/arrays.c:3203 Opcodes/arrays.c:3217
 msgid "requested col is out of range\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3253 Opcodes/arrays.c:3265 Opcodes/arrays.c:3287
-#: Opcodes/arrays.c:3301
+#: Opcodes/arrays.c:3255 Opcodes/arrays.c:3267 Opcodes/arrays.c:3289
+#: Opcodes/arrays.c:3303
 msgid "Error: index out of range\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3336
+#: Opcodes/arrays.c:3338
 msgid "input array too small\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3389
+#: Opcodes/arrays.c:3391
 msgid "dct: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3396
+#: Opcodes/arrays.c:3398
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:3418
+#: Opcodes/arrays.c:3420
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3426
+#: Opcodes/arrays.c:3428
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
@@ -6679,21 +6684,52 @@ msgstr ""
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:54
+#: Opcodes/emugens/emugens.c:100 Opcodes/emugens/emugens.c:130
 msgid "linlin.k: Division by zero"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:302
+#: Opcodes/emugens/emugens.c:182
+msgid "linlin: Division by zero"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:233
+msgid "lincos: Division by zero"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:381 Opcodes/emugens/emugens.c:417
+#: Opcodes/emugens/emugens.c:462 Opcodes/emugens/emugens.c:507
+msgid "bpf: data length should be even (pairs of x, y)"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:384 Opcodes/emugens/emugens.c:419
+#: Opcodes/emugens/emugens.c:464 Opcodes/emugens/emugens.c:509
+msgid "bpf: too many pargs (max=256)"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:577
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:328
+#: Opcodes/emugens/emugens.c:603
 msgid "format not understood\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:443
-msgid "cmp: operator not understood. Expecting <, <=, >, >=, ==\n"
+#: Opcodes/emugens/emugens.c:761 Opcodes/emugens/emugens.c:783
+#: Opcodes/emugens/emugens.c:809
+msgid "cmp: unknown operator. Expecting <, <=, >, >=, ==, !="
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:829
+msgid "cmp (ternary comparator): operator 2 expected <"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:832
+msgid "cmp (ternary comparator): operator 1 expected <"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:1161 Opcodes/emugens/emugens.c:1178
+msgid "tab2array: can't copy a negative number of items"
 msgstr ""
 
 #: Opcodes/fareygen.c:116
@@ -6734,7 +6770,7 @@ msgstr ""
 msgid "Source sft table %.2f not found."
 msgstr ""
 
-#: Opcodes/faustgen.cpp:297
+#: Opcodes/faustgen.cpp:300
 #, c-format
 msgid ""
 "\n"
@@ -6742,59 +6778,59 @@ msgid ""
 "line %s\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:468 Opcodes/faustgen.cpp:711
+#: Opcodes/faustgen.cpp:465 Opcodes/faustgen.cpp:709
 #, c-format
 msgid "could not find DSP %p for deletion"
 msgstr "couldn't find DSP %p for deletion"
 
-#: Opcodes/faustgen.cpp:488 Opcodes/faustgen.cpp:733
+#: Opcodes/faustgen.cpp:485 Opcodes/faustgen.cpp:732
 msgid ""
 "Faust code was not ready. Try compiling it \n"
 "in a separate instrument prior to running it here\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:497 Opcodes/faustgen.cpp:743
+#: Opcodes/faustgen.cpp:494 Opcodes/faustgen.cpp:742
 msgid ""
 "Faust code did not compile properly.\n"
 "Check above messages for Faust compiler errors\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:502 Opcodes/faustgen.cpp:748
+#: Opcodes/faustgen.cpp:499 Opcodes/faustgen.cpp:747
 msgid "no factory available\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:507 Opcodes/faustgen.cpp:753
+#: Opcodes/faustgen.cpp:504 Opcodes/faustgen.cpp:752
 #, c-format
 msgid "factory not found %d\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:513 Opcodes/faustgen.cpp:759 Opcodes/faustgen.cpp:873
+#: Opcodes/faustgen.cpp:510 Opcodes/faustgen.cpp:758 Opcodes/faustgen.cpp:872
 msgid "Faust instantiation problem\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:579 Opcodes/faustgen.cpp:1059
+#: Opcodes/faustgen.cpp:576 Opcodes/faustgen.cpp:1074
 msgid "no dsp instances available\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:585 Opcodes/faustgen.cpp:1065
+#: Opcodes/faustgen.cpp:582 Opcodes/faustgen.cpp:1080
 #, c-format
 msgid "dsp instance not found %d\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:594 Opcodes/faustgen.cpp:799 Opcodes/faustgen.cpp:914
+#: Opcodes/faustgen.cpp:591 Opcodes/faustgen.cpp:798 Opcodes/faustgen.cpp:913
 msgid "wrong number of input args\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:598 Opcodes/faustgen.cpp:803 Opcodes/faustgen.cpp:923
+#: Opcodes/faustgen.cpp:595 Opcodes/faustgen.cpp:802 Opcodes/faustgen.cpp:922
 msgid "wrong number of output args\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:860
+#: Opcodes/faustgen.cpp:859
 #, c-format
 msgid "Faust compilation problem: %s\n"
 msgstr ""
 
-#: Opcodes/faustgen.cpp:1070
+#: Opcodes/faustgen.cpp:1086 Opcodes/faustgen.cpp:1103
 #, c-format
 msgid "dsp control %s not found\n"
 msgstr ""
@@ -9912,7 +9948,7 @@ msgstr ""
 #: Opcodes/ugmoss.c:524 Opcodes/vbap1.c:189 Opcodes/vbap1.c:258
 #: Opcodes/vbap1.c:543 Opcodes/vbap1.c:618 Opcodes/vbap_n.c:287
 #: Opcodes/vbap_n.c:352 Opcodes/vbap_n.c:665 Opcodes/vbap_n.c:802
-#: Opcodes/vbap_zak.c:230 Opcodes/vbap_zak.c:542
+#: Opcodes/vbap_zak.c:233 Opcodes/vbap_zak.c:547
 msgid "could not allocate memory"
 msgstr "couldn't allocate memory"
 
@@ -10212,8 +10248,8 @@ msgstr ""
 
 #: Opcodes/vbap1.c:67 Opcodes/vbap1.c:209 Opcodes/vbap1.c:276
 #: Opcodes/vbap1.c:340 Opcodes/vbap_n.c:154 Opcodes/vbap_n.c:307
-#: Opcodes/vbap_n.c:372 Opcodes/vbap_n.c:453 Opcodes/vbap_zak.c:100
-#: Opcodes/vbap_zak.c:249 Opcodes/vbap_zak.c:327
+#: Opcodes/vbap_n.c:372 Opcodes/vbap_n.c:453 Opcodes/vbap_zak.c:101
+#: Opcodes/vbap_zak.c:252 Opcodes/vbap_zak.c:330
 msgid "Warning: truncating elevation to 2-D plane\n"
 msgstr ""
 
@@ -10236,7 +10272,7 @@ msgstr ""
 msgid "Missing fields in vbapmove\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:372 Opcodes/vbap_n.c:485 Opcodes/vbap_zak.c:360
+#: Opcodes/vbap1.c:372 Opcodes/vbap_n.c:485 Opcodes/vbap_zak.c:363
 msgid "Warning: Ambiguous transition 180 degrees.\n"
 msgstr ""
 
@@ -10247,7 +10283,7 @@ msgid "Have to have at least %d directions in vbapmove"
 msgstr ""
 
 #: Opcodes/vbap1.c:573 Opcodes/vbap1.c:648 Opcodes/vbap_n.c:695
-#: Opcodes/vbap_n.c:833 Opcodes/vbap_zak.c:573
+#: Opcodes/vbap_n.c:833 Opcodes/vbap_zak.c:578
 msgid "Wrong dimension"
 msgstr ""
 
@@ -10263,11 +10299,11 @@ msgstr "couldn't find layout table no.0"
 msgid "Output array in vpabmove not initalised"
 msgstr "Output array in vpabmove not initalized"
 
-#: Opcodes/vbap_zak.c:355 Opcodes/vbap_zak.c:400
+#: Opcodes/vbap_zak.c:358 Opcodes/vbap_zak.c:403
 msgid "Missing fields in vbapzmove\n"
 msgstr ""
 
-#: Opcodes/vbap_zak.c:563
+#: Opcodes/vbap_zak.c:568
 #, c-format
 msgid "Have to have at least %d directions in vbapzmove"
 msgstr ""
@@ -11457,185 +11493,185 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1600
+#: Top/csound.c:1615
 #, c-format
 msgid "Multithread performance:thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1606
+#: Top/csound.c:1621
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:2095 Top/csound.c:2132 Top/csound.c:2161 Top/csound.c:2202
-#: Top/csound.c:4419
+#: Top/csound.c:2110 Top/csound.c:2147 Top/csound.c:2176 Top/csound.c:2217
+#: Top/csound.c:4434
 msgid "Csound not ready for performance: csoundStart() has not been called\n"
 msgstr "Csound not ready for performance: csoundStart() hasn't been called\n"
 
-#: Top/csound.c:2114
+#: Top/csound.c:2129
 #, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr ""
 
-#: Top/csound.c:2139 Top/csound.c:4426
+#: Top/csound.c:2154 Top/csound.c:4441
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:2146
+#: Top/csound.c:2161
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
 msgstr ""
 
-#: Top/csound.c:2168
+#: Top/csound.c:2183
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:2211
+#: Top/csound.c:2226
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2220
+#: Top/csound.c:2235
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2233
+#: Top/csound.c:2248
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2570
+#: Top/csound.c:2585
 msgid "WARNING: "
 msgstr ""
 
-#: Top/csound.c:2707
+#: Top/csound.c:2722
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2708
+#: Top/csound.c:2723
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2737 Top/csound.c:2774
+#: Top/csound.c:2752 Top/csound.c:2789
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2741 Top/csound.c:2778
+#: Top/csound.c:2756 Top/csound.c:2793
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2895
+#: Top/csound.c:2910
 msgid "!!WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2900 Top/csound.c:2934
+#: Top/csound.c:2915 Top/csound.c:2949
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2903 Top/csound.c:2937
+#: Top/csound.c:2918 Top/csound.c:2952
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2929
+#: Top/csound.c:2944
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2951
+#: Top/csound.c:2966
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:3115
+#: Top/csound.c:3130
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:3137
+#: Top/csound.c:3152
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3279 Top/main.c:368
+#: Top/csound.c:3294 Top/main.c:368
 msgid "setting dummy interface\n"
 msgstr ""
 
-#: Top/csound.c:3355
+#: Top/csound.c:3370
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3380
+#: Top/csound.c:3395
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3396
+#: Top/csound.c:3411
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3437
+#: Top/csound.c:3452
 msgid "Real time audio module name"
 msgstr ""
 
-#: Top/csound.c:3462
+#: Top/csound.c:3477
 msgid "Real time MIDI module name"
 msgstr ""
 
-#: Top/csound.c:3467
+#: Top/csound.c:3482
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3473
+#: Top/csound.c:3488
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3481
+#: Top/csound.c:3496
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3487
+#: Top/csound.c:3502
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3492
+#: Top/csound.c:3507
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3498
+#: Top/csound.c:3513
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3503
+#: Top/csound.c:3518
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3510
+#: Top/csound.c:3525
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3515
+#: Top/csound.c:3530
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3525
+#: Top/csound.c:3540
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3531
+#: Top/csound.c:3546
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3538
+#: Top/csound.c:3553
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3762
+#: Top/csound.c:3777
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr "Can't open /proc/cpuinfo. Support for RDTSC isn't available.\n"
 
-#: Top/csound.c:3792
+#: Top/csound.c:3807
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4314
+#: Top/csound.c:4329
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4346
+#: Top/csound.c:4361
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
@@ -13386,27 +13422,27 @@ msgstr "Can't open scale table file %s"
 msgid "mixing"
 msgstr ""
 
-#: util/mixer.c:650
+#: util/mixer.c:653
 #, c-format
 msgid "Max val %d at index %ld (time %.4f, chan %d) %d times\n"
 msgstr ""
 
-#: util/mixer.c:654
+#: util/mixer.c:657
 #, c-format
 msgid "Min val %d at index %ld (time %.4f, chan %d) %d times\n"
 msgstr ""
 
-#: util/mixer.c:659
+#: util/mixer.c:662
 #, c-format
 msgid "%d sample%s out of range\n"
 msgstr ""
 
-#: util/mixer.c:662 util/scale.c:459 util/scale.c:505
+#: util/mixer.c:665 util/scale.c:459 util/scale.c:505
 #, c-format
 msgid "Max scale factor = %.3f\n"
 msgstr ""
 
-#: util/mixer.c:673
+#: util/mixer.c:676
 #, c-format
 msgid "Mixes sound files (max. %d)"
 msgstr ""

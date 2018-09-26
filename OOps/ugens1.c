@@ -305,7 +305,8 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
     int32_t       relestim;
 
     //printf("len = %f\n", len);
-    if (UNLIKELY(len<=FL(0.0))) len = (int32_t) MAXSEGDUR;// FL(10000.0); /* MIDI case set int32_t */
+    if (UNLIKELY(len<=FL(0.0)))
+      len = (int32_t) MAXSEGDUR;// FL(10000.0); /* MIDI case set int32_t */
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {

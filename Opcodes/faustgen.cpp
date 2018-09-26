@@ -361,7 +361,7 @@ int32_t init_faustcompile(CSOUND *csound, faustcompile *p) {
     pthread_mutex_init(p->lock, NULL);
     // csound->Message(csound, "lock created %p\n", p->lock);
   }
-  
+
 
 #ifdef HAVE_PTHREAD
   pthread_attr_t attr;
@@ -925,7 +925,8 @@ void *init_faustgen_thread(void *pp) {
   }
   if (p->engine->getNumOutputs() != p->OUTCOUNT - 1) {
     int32_t ret;
-    ret = csound->InitError(csound, "%s: need %d had %d", Str("wrong number of output args\n"),
+    ret = csound->InitError(csound,
+                            Str("wrong number of output args: need %d had %d"\n),
                             p->engine->getNumOutputs(),
                             p->OUTCOUNT - 1
                             );
@@ -950,7 +951,7 @@ void *init_faustgen_thread(void *pp) {
   }
   p->ctls = ctls;
   *p->ohptr = (MYFLT)fdsp->cnt;
-  
+
   csound->Free(csound, pp);
   return NULL;
 }
@@ -983,8 +984,8 @@ int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
    return OK;
 #endif
-  
- 
+
+
 }
 
 int32_t perf_faust(CSOUND *csound, faustgen *p) {
@@ -1079,7 +1080,7 @@ int32_t init_faustctl(CSOUND *csound, faustctl *p) {
 
   /* checks that extra parameter count is even */
   if((p->INCOUNT - 3)%2)
-    return csound->InitError(csound, "unbalanced parameter count \n"); 
+    return csound->InitError(csound, "unbalanced parameter count \n");
 
   fobjp = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
   if (fobjp == NULL)
@@ -1092,7 +1093,7 @@ int32_t init_faustctl(CSOUND *csound, faustctl *p) {
       return csound->InitError(csound, Str("dsp instance not found %d\n"),
                                (int32_t)*p->inst);
   }
-  
+
   p->zone = fobj->ctls->getZone(p->label->data);
   if (p->zone == NULL)
     return csound->InitError(csound, Str("dsp control %s not found\n"),
@@ -1106,7 +1107,7 @@ int32_t init_faustctl(CSOUND *csound, faustctl *p) {
     *p->zone = val;
   }
 
-  
+
   /* implementation of extra optional parameters */
   for(int n = 0; n < p->INCOUNT - 3; n+=2) {
     char *name = ((STRINGDAT *)p->extraparam[n])->data;
@@ -1123,9 +1124,9 @@ int32_t init_faustctl(CSOUND *csound, faustctl *p) {
          if (min != max)
          val = val < min ? min : (val > max ? max : val);
          *(p->zonextra[n/2]) = val;
-       }   
+       }
       }
-  
+
   return OK;
 }
 
@@ -1142,7 +1143,7 @@ int32_t perf_faustctl(CSOUND *csound, faustctl *p) {
          MYFLT max = p->maxextra[n/2];
          if (min != max)
          val = val < min ? min : (val > max ? max : val);
-         *(p->zonextra[n/2]) = val;       
+         *(p->zonextra[n/2]) = val;
    }
   return OK;
 }
