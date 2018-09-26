@@ -54,7 +54,10 @@ scores and many bug fixes.
 - OSCcount returns the number of OSC incoming messages pending
 
 - faustplay and faustdsp are new opcodes splitting the faust DSP
-instantiation and performance.
+  instantiation and performance.
+
+- OSCbundle sends a collection of similr OSC essages as a single packet
+  for efficieny.
 
 ### New Gen and Macros
 
