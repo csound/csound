@@ -926,7 +926,7 @@ void *init_faustgen_thread(void *pp) {
   if (p->engine->getNumOutputs() != p->OUTCOUNT - 1) {
     int32_t ret;
     ret = csound->InitError(csound,
-                            Str("wrong number of output args: need %d had %d"\n),
+                            Str("wrong number of output args: need %d had %d\n"),
                             p->engine->getNumOutputs(),
                             p->OUTCOUNT - 1
                             );

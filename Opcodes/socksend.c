@@ -850,7 +850,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 
 #define INCR_AND_CHECK(S)  buffsize += S;  \
         if(buffsize >= MTU) { \
-          csound->Warning(csound, "Bundle msg exceeded MTU \n"); \
+          csound->Warning(csound, "Bundle msg exceeded MTU, not sent\n"); \
           return OK; }
 
 static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
@@ -874,6 +874,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
       type = (STRINGDAT *) p->type->data;
       cols = p->arg->sizes[1];
       for(i = 0; i < p->no_msgs; i++, size = 0) {
+        int32_t siz;
         dstr = dest[i].data;    
         dstrs = strlen(dstr)+1;
         size += ceil((dstrs+1)/4.)*4;
@@ -881,10 +882,11 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         tstrs = strlen(tstr)+1;
         size += ceil((tstrs+1)/4.)*4;
         msize = tstrs - 1; /* tstrs-1 is the number of ints or floats in msg */
-        size += msize*4;  
-        byteswap((char *) &size, 4);
+        size += msize*4;
+        siz = size;
+        //byteswap((char *) &siz, 4);
         INCR_AND_CHECK(4)
-        memcpy(buff, &size, 4);
+        memcpy(buff, &siz, 4);
         buff += 4;
         tmp = ceil((dstrs+1)/4.)*4;
         INCR_AND_CHECK(tmp)
@@ -893,13 +895,13 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         tmp = ceil((tstrs+1)/4.)*4;
         INCR_AND_CHECK(tmp)
         strcpy(buff,tstr);
-        buff += tmp;
+        buff += tmp;     
         for(n = 0; n < msize; n++) {
           switch(type[i].data[n]) {
           case 'f':
           if(n < cols)  
               fdata = (float) p->arg->data[cols*i+n];
-          else fdata = FL(0.0);
+          else fdata = FL(0.0);        
           byteswap((char *) &fdata, 4);
           INCR_AND_CHECK(4)
           memcpy(buff, &fdata, 4);
@@ -916,9 +918,10 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           break;
           default:
             csound->Message(csound, "only bundles with i and f types are supported \n");
-          }
+          }     
         }
       }
+
       if (UNLIKELY(sendto(p->sock, (void*) p->aux.auxp, buffsize, 0, to,
                           sizeof(p->server_addr)) < 0)) 
         return csound->PerfError(csound, &(p->h), Str("OSCbundle failed"));
