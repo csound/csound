@@ -2,6 +2,7 @@
   socksend.c:
 
   Copyright (C) 2006 by John ffitch
+                2018 by Victor Lazzarini
 
   This file is part of Csound.
 
@@ -790,7 +791,7 @@ typedef struct {
   MYFLT *port;        /* UDP port */
   ARRAYDAT *dest;
   ARRAYDAT *type;
-  ARRAYDAT *arg;     
+  ARRAYDAT *arg;
   AUXCH   aux;    /* MTU bytes */
   int32_t sock, iargs;
   MYFLT   last;
@@ -808,14 +809,17 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
   */
   if(p->type->dimensions > 1 ||
        p->dest->dimensions > 1)
-      return csound->InitError(csound, "type and dest arrays need to be unidimensionsal\n");
+    return csound->InitError(csound, "%s",
+                             Str("type and dest arrays need to be unidimensionsal\n"));
   if((p->type->sizes[0] !=
      p->dest->sizes[0]))
-    return csound->InitError(csound, "type and dest arrays need to have the same size\n");
+    return csound->InitError(csound, "%s",
+                             Str("type and dest arrays need to have the same size\n"));
   p->no_msgs =  p->type->sizes[0];
   if(p->no_msgs < p->arg->sizes[0])
-    return csound->InitError(csound, "arg array not big enough\n");
-  
+    return csound->InitError(csound, "s",
+                             Str("arg array not big enough\n"));
+
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
@@ -850,7 +854,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 
 #define INCR_AND_CHECK(S)  buffsize += S;  \
         if(buffsize >= MTU) { \
-          csound->Warning(csound, "Bundle msg exceeded MTU, not sent\n"); \
+          csound->Warning(csound, Srtr("Bundle msg exceeded MTU, not sent\n")); \
           return OK; }
 
 static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
@@ -875,7 +879,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
       cols = p->arg->sizes[1];
       for(i = 0; i < p->no_msgs; i++, size = 0) {
         int32_t siz;
-        dstr = dest[i].data;    
+        dstr = dest[i].data;
         dstrs = strlen(dstr)+1;
         size += ceil((dstrs)/4.)*4;
         tstr[0] = ',';
@@ -896,20 +900,20 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         tmp = ceil((tstrs)/4.)*4;
         INCR_AND_CHECK(tmp)
         strcpy(buff,tstr);
-        buff += tmp;     
+        buff += tmp;
         for(n = 0; n < msize; n++) {
           switch(type[i].data[n]) {
           case 'f':
-          if(n < cols)  
+          if(n < cols)
               fdata = (float) p->arg->data[cols*i+n];
-          else fdata = 0.f;        
+          else fdata = 0.f;
           byteswap((char *) &fdata, 4);
           INCR_AND_CHECK(4)
           memcpy(buff, &fdata, 4);
           buff += 4;
           break;
           case 'i':
-          if(n < cols)  
+          if(n < cols)
               idata = (int32_t) p->arg->data[cols*i+n];
           else idata = 0;
           byteswap((char *) &idata, 4);
@@ -919,15 +923,15 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           break;
           default:
             csound->Message(csound,
-                            "only bundles with i and f types are supported \n");
-          }     
+                            Str("only bundles with i and f types are supported \n"))<;
+          }
         }
       }
 
       if (UNLIKELY(sendto(p->sock, (void*) p->aux.auxp, buffsize, 0, to,
-                          sizeof(p->server_addr)) < 0)) 
+                          sizeof(p->server_addr)) < 0))
         return csound->PerfError(csound, &(p->h), Str("OSCbundle failed"));
-      p->last = *p->kwhen;  
+      p->last = *p->kwhen;
     }
     return OK;
 }
@@ -949,7 +953,7 @@ static OENTRY socksend_localops[] =
      (SUBR) send_ssend },
    { "OSCsend", S(OSCSEND2), 0, 3, "", "kSk*", (SUBR)osc_send2_init,
      (SUBR)osc_send2 },
-   { "OSCbundle", S(OSCSEND2), 0, 3, "", "kSkS[]S[]k[][]", (SUBR)oscbundle_init,
+   { "OSCbundle", S(OSCBUNDLE), 0, 3, "", "kSkS[]S[]k[][]", (SUBR)oscbundle_init,
      (SUBR)oscbundle_perf },
 };
 
