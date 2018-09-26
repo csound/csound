@@ -817,7 +817,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
                              Str("type and dest arrays need to have the same size\n"));
   p->no_msgs =  p->type->sizes[0];
   if(p->no_msgs < p->arg->sizes[0])
-    return csound->InitError(csound, "s",
+    return csound->InitError(csound, "%s",
                              Str("arg array not big enough\n"));
 
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -854,7 +854,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 
 #define INCR_AND_CHECK(S)  buffsize += S;  \
         if(buffsize >= MTU) { \
-          csound->Warning(csound, Srtr("Bundle msg exceeded MTU, not sent\n")); \
+          csound->Warning(csound, Str("Bundle msg exceeded MTU, not sent\n")); \
           return OK; }
 
 static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
@@ -923,7 +923,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           break;
           default:
             csound->Message(csound,
-                            Str("only bundles with i and f types are supported \n"))<;
+                            Str("only bundles with i and f types are supported \n"));
           }
         }
       }
