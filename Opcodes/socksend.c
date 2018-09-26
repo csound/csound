@@ -860,7 +860,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
       STRINGDAT *dest, *type;
       float fdata;
       int32_t idata, cols;
-      char *tstr, *dstr;
+      char tstr[64], *dstr;
       char *buff = (char *) p->aux.auxp;
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
       memset(buff, 0, MTU);
@@ -877,22 +877,23 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         int32_t siz;
         dstr = dest[i].data;    
         dstrs = strlen(dstr)+1;
-        size += ceil((dstrs+1)/4.)*4;
-        tstr = type[i].data;
+        size += ceil((dstrs)/4.)*4;
+        tstr[0] = ',';
+        strncpy(tstr+1, type[i].data, 63);
         tstrs = strlen(tstr)+1;
-        size += ceil((tstrs+1)/4.)*4;
-        msize = tstrs - 1; /* tstrs-1 is the number of ints or floats in msg */
+        size += ceil((tstrs)/4.)*4;
+        msize = tstrs - 2; /* tstrs-2 is the number of ints or floats in msg */
         size += msize*4;
         siz = size;
         byteswap((char *) &siz, 4);
         INCR_AND_CHECK(4)
         memcpy(buff, &siz, 4);
         buff += 4;
-        tmp = ceil((dstrs+1)/4.)*4;
+        tmp = ceil((dstrs)/4.)*4;
         INCR_AND_CHECK(tmp)
         strcpy(buff,dstr);
         buff += tmp;
-        tmp = ceil((tstrs+1)/4.)*4;
+        tmp = ceil((tstrs)/4.)*4;
         INCR_AND_CHECK(tmp)
         strcpy(buff,tstr);
         buff += tmp;     
@@ -901,7 +902,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           case 'f':
           if(n < cols)  
               fdata = (float) p->arg->data[cols*i+n];
-          else fdata = FL(0.0);        
+          else fdata = 0.f;        
           byteswap((char *) &fdata, 4);
           INCR_AND_CHECK(4)
           memcpy(buff, &fdata, 4);
@@ -909,15 +910,16 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           break;
           case 'i':
           if(n < cols)  
-          idata = (int32_t) p->arg->data[cols*i+n];
+              idata = (int32_t) p->arg->data[cols*i+n];
           else idata = 0;
-          byteswap((char *) &fdata, 4);
+          byteswap((char *) &idata, 4);
           INCR_AND_CHECK(4)
-          memcpy(buff, &fdata, 4);
+          memcpy(buff, &idata, 4);
           buff += 4;
           break;
           default:
-            csound->Message(csound, "only bundles with i and f types are supported \n");
+            csound->Message(csound,
+                            "only bundles with i and f types are supported \n");
           }     
         }
       }
