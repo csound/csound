@@ -884,7 +884,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         msize = tstrs - 1; /* tstrs-1 is the number of ints or floats in msg */
         size += msize*4;
         siz = size;
-        //byteswap((char *) &siz, 4);
+        byteswap((char *) &siz, 4);
         INCR_AND_CHECK(4)
         memcpy(buff, &siz, 4);
         buff += 4;
