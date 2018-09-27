@@ -782,6 +782,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
     return OK;
 }
 
+#define MAX_PACKET_SIZE 65536
 
 typedef struct {
   OPDS h;
@@ -790,7 +791,9 @@ typedef struct {
   MYFLT *port;        /* UDP port */
   ARRAYDAT *dest;
   ARRAYDAT *type;
-  ARRAYDAT *arg;     
+  ARRAYDAT *arg;
+  MYFLT *imtu;
+  int mtu;
   AUXCH   aux;    /* MTU bytes */
   int32_t sock, iargs;
   MYFLT   last;
@@ -800,21 +803,25 @@ typedef struct {
 
 
 static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
-
   /* check array sizes:
      type and dest should match
      arg should have the same number of rows as
      type and dest
   */
+  if(p->arg->dimensions != 2)
+    return csound->InitError(csound, "arg array needs to be two dimensional\n");
   if(p->type->dimensions > 1 ||
        p->dest->dimensions > 1)
-      return csound->InitError(csound, "type and dest arrays need to be unidimensionsal\n");
+      return csound->InitError(csound, "type and dest arrays need to be unidimensional\n");
   if((p->type->sizes[0] !=
      p->dest->sizes[0]))
     return csound->InitError(csound, "type and dest arrays need to have the same size\n");
   p->no_msgs =  p->type->sizes[0];
   if(p->no_msgs < p->arg->sizes[0])
     return csound->InitError(csound, "arg array not big enough\n");
+
+    if(*p->imtu) p->mtu = (int) *p->imtu;
+    else p->mtu = MAX_PACKET_SIZE;
   
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
@@ -840,16 +847,16 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 
     if (p->aux.auxp == NULL)
       /* allocate space for the buffer, MTU bytes */
-      csound->AuxAlloc(csound, MTU, &p->aux);
+      csound->AuxAlloc(csound, p->mtu, &p->aux);
     else {
-      memset(p->aux.auxp, 0, MTU);
+      memset(p->aux.auxp, 0, p->mtu);
     }
     p->last = FL(0.0);
     return OK;
 }
 
 #define INCR_AND_CHECK(S)  buffsize += S;  \
-        if(buffsize >= MTU) { \
+        if(buffsize >= p->mtu) { \
           csound->Warning(csound, "Bundle msg exceeded MTU, not sent\n"); \
           return OK; }
 
@@ -863,7 +870,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
       char tstr[64], *dstr;
       char *buff = (char *) p->aux.auxp;
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
-      memset(buff, 0, MTU);
+      memset(buff, 0, p->mtu);
       strcpy(buff, "#bundle");
       buff += 8;
       buffsize += 8;
@@ -949,7 +956,7 @@ static OENTRY socksend_localops[] =
      (SUBR) send_ssend },
    { "OSCsend", S(OSCSEND2), 0, 3, "", "kSk*", (SUBR)osc_send2_init,
      (SUBR)osc_send2 },
-   { "OSCbundle", S(OSCSEND2), 0, 3, "", "kSkS[]S[]k[][]", (SUBR)oscbundle_init,
+   { "OSCbundle", S(OSCSEND2), 0, 3, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
      (SUBR)oscbundle_perf },
 };
 
