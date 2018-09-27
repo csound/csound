@@ -56,8 +56,8 @@ scores and many bug fixes.
 - faustplay and faustdsp are new opcodes splitting the faust DSP
   instantiation and performance.
 
-- OSCbundle sends a collection of similr OSC essages as a single packet
-  for efficieny.
+- OSCbundle sends a collection of similar OSC messages as a single packet
+  for efficiency.
 
 ### New Gen and Macros
 

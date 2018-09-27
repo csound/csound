@@ -854,7 +854,7 @@ msgid "insufficient gen arguments"
 msgstr "nombre d'arguments de GEN insuffisant"
 
 #: Engine/fgens.c:215 Opcodes/ftgen.c:118 Opcodes/ftgen.c:675
-#: Opcodes/signalflowgraph.cpp:1364
+#: Opcodes/signalflowgraph.cpp:1350
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr "Le GEN nommé \"%s\" n'est pas défini"
@@ -1836,17 +1836,17 @@ msgstr "insert_score_event() : pas assez de p-champs\n"
 msgid "cannot rewind score: no score in memory\n"
 msgstr "impossible de remonter la partition : pas de partition en mémoire\n"
 
-#: Engine/namedins.c:76 Engine/namedins.c:99
+#: Engine/namedins.c:77 Engine/namedins.c:100
 #, c-format
 msgid "instr %s not found"
 msgstr "instr %s non trouvé"
 
-#: Engine/namedins.c:84 Engine/namedins.c:122
+#: Engine/namedins.c:85 Engine/namedins.c:123
 #, c-format
 msgid "Cannot Find Instrument %d"
 msgstr "Impossible de trouver l'instrument %d"
 
-#: Engine/namedins.c:134
+#: Engine/namedins.c:135
 msgid "cannot find the specified instrument or opcode"
 msgstr "impossible de trouver l'instrument ou l'opcode spécifié"
 
@@ -5305,7 +5305,7 @@ msgstr "---> Toutes les tentatives de connexion ont échoué.\n"
 msgid "--->  Connected.\n"
 msgstr "---> Connecté.\n"
 
-#: OOps/remote.c:318 Opcodes/socksend.c:390
+#: OOps/remote.c:318 Opcodes/socksend.c:391
 msgid "write to socket failed"
 msgstr "l'écriture sur le socket a échoué"
 
@@ -5520,13 +5520,13 @@ msgstr "arg2 vaut zéro"
 msgid "unlike signs"
 msgstr "signes différents"
 
-#: OOps/ugens1.c:144 OOps/ugens1.c:503 OOps/ugens1.c:557 OOps/ugens1.c:617
-#: OOps/ugens1.c:678 OOps/ugens1.c:893 OOps/ugens1.c:1835
+#: OOps/ugens1.c:144 OOps/ugens1.c:504 OOps/ugens1.c:558 OOps/ugens1.c:618
+#: OOps/ugens1.c:679 OOps/ugens1.c:894 OOps/ugens1.c:1836
 #: Opcodes/gab/vectorial.c:2209 Opcodes/vpvoc.c:42
 msgid "incomplete number of input arguments"
 msgstr "nombre incorrect d'arguments en entrée"
 
-#: OOps/ugens1.c:196 OOps/ugens1.c:1898 OOps/ugens1.c:1908
+#: OOps/ugens1.c:196 OOps/ugens1.c:1899 OOps/ugens1.c:1909
 #, c-format
 msgid "Breakpoint %d not valid"
 msgstr "Point charnière %d non valide"
@@ -5539,78 +5539,78 @@ msgstr "linseg non initialisé (taux-k)\n"
 msgid "linseg: not initialised (arate)\n"
 msgstr "linseg : non initialisé (taux-a)\n"
 
-#: OOps/ugens1.c:353
+#: OOps/ugens1.c:354
 msgid "length of ADSR note too short"
 msgstr "durée de la note de l'ADSR trop courte"
 
-#: OOps/ugens1.c:542 OOps/ugens1.c:544 OOps/ugens1.c:601 OOps/ugens1.c:603
-#: OOps/ugens1.c:663 OOps/ugens1.c:665 OOps/ugens1.c:719 OOps/ugens1.c:721
-#: OOps/ugens1.c:932 OOps/ugens1.c:934
+#: OOps/ugens1.c:543 OOps/ugens1.c:545 OOps/ugens1.c:602 OOps/ugens1.c:604
+#: OOps/ugens1.c:664 OOps/ugens1.c:666 OOps/ugens1.c:720 OOps/ugens1.c:722
+#: OOps/ugens1.c:933 OOps/ugens1.c:935
 #, c-format
 msgid "ival%d is zero"
 msgstr "ival%d vaut zéro"
 
-#: OOps/ugens1.c:545 OOps/ugens1.c:604 OOps/ugens1.c:666 OOps/ugens1.c:722
-#: OOps/ugens1.c:935
+#: OOps/ugens1.c:546 OOps/ugens1.c:605 OOps/ugens1.c:667 OOps/ugens1.c:723
+#: OOps/ugens1.c:936
 #, c-format
 msgid "ival%d sign conflict"
 msgstr "ival%d conflit de signe"
 
-#: OOps/ugens1.c:580 OOps/ugens1.c:639
+#: OOps/ugens1.c:581 OOps/ugens1.c:640
 #, c-format
 msgid "Breakpoint time %f not valid"
 msgstr "Date %f du point charnière non valide"
 
-#: OOps/ugens1.c:769
+#: OOps/ugens1.c:770
 msgid "length of XADSR note too short"
 msgstr "durée de la note de l'XADSR trop courte"
 
-#: OOps/ugens1.c:849
+#: OOps/ugens1.c:850
 msgid "expseg (krate): not initialised"
 msgstr "expseg (taux-k) : non initialisé"
 
-#: OOps/ugens1.c:881
+#: OOps/ugens1.c:882
 msgid "expseg (arate): not initialised"
 msgstr "expseg (taux-a) : non initialisé"
 
-#: OOps/ugens1.c:1084 OOps/ugens1.c:1115
+#: OOps/ugens1.c:1085 OOps/ugens1.c:1116
 msgid "p3 too short in linen"
 msgstr "p3 trop court dans linen"
 
-#: OOps/ugens1.c:1233 OOps/ugens1.c:1256 OOps/ugens1.c:1391 OOps/ugens1.c:1507
-#: OOps/ugens1.c:1638 OOps/ugens1.c:1697
+#: OOps/ugens1.c:1234 OOps/ugens1.c:1257 OOps/ugens1.c:1392 OOps/ugens1.c:1508
+#: OOps/ugens1.c:1639 OOps/ugens1.c:1698
 msgid "non-positive iatdec"
 msgstr "iatdec non positif"
 
-#: OOps/ugens1.c:1346 OOps/ugens1.c:1461 OOps/ugens1.c:1600 OOps/ugens1.c:1659
+#: OOps/ugens1.c:1347 OOps/ugens1.c:1462 OOps/ugens1.c:1601 OOps/ugens1.c:1660
 msgid "ixmod out of range."
 msgstr "ixmod hors limites"
 
-#: OOps/ugens1.c:1365 OOps/ugens1.c:1481
+#: OOps/ugens1.c:1366 OOps/ugens1.c:1482
 msgid "p3 too short in envlpx"
 msgstr "p3 trop court dans envlpx"
 
-#: OOps/ugens1.c:1376 OOps/ugens1.c:1492 OOps/ugens1.c:1628 OOps/ugens1.c:1687
+#: OOps/ugens1.c:1377 OOps/ugens1.c:1493 OOps/ugens1.c:1629 OOps/ugens1.c:1688
 msgid "rise func ends with zero"
 msgstr "la fonction d'attaque se termine par zéro"
 
-#: OOps/ugens1.c:1420 OOps/ugens1.c:1543 OOps/ugens1.c:1774
+#: OOps/ugens1.c:1421 OOps/ugens1.c:1544 OOps/ugens1.c:1775
 msgid "envlpx rise func ends with zero"
 msgstr "la fonction d'attaque de envlpx se termine zéro"
 
-#: OOps/ugens1.c:1442 OOps/ugens1.c:1536 OOps/ugens1.c:1767
+#: OOps/ugens1.c:1443 OOps/ugens1.c:1537 OOps/ugens1.c:1768
 msgid "envlpx(krate): not initialised"
 msgstr "envlpx(taux-k) : non initialisé"
 
-#: OOps/ugens1.c:1970 OOps/ugens1.c:2225
+#: OOps/ugens1.c:1971 OOps/ugens1.c:2226
 msgid "cosseg not initialised (krate)\n"
 msgstr "cosseg non initialisé (taux-k)\n"
 
-#: OOps/ugens1.c:2029
+#: OOps/ugens1.c:2030
 msgid "cosseg: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
-#: OOps/ugens1.c:2100 OOps/ugens1.c:2167
+#: OOps/ugens1.c:2101 OOps/ugens1.c:2168
 msgid "cossegr: not initialised (arate)\n"
 msgstr "cosseg : non initialisé (taux-a)\n"
 
@@ -6457,23 +6457,23 @@ msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 #: Opcodes/arrays.c:334 Opcodes/arrays.c:363 Opcodes/arrays.c:382
 #: Opcodes/arrays.c:395 Opcodes/arrays.c:414 Opcodes/arrays.c:450
 #: Opcodes/arrays.c:470 Opcodes/arrays.c:494 Opcodes/arrays.c:514
-#: Opcodes/arrays.c:551 Opcodes/arrays.c:588 Opcodes/arrays.c:608
-#: Opcodes/arrays.c:625 Opcodes/arrays.c:665 Opcodes/arrays.c:685
-#: Opcodes/arrays.c:712 Opcodes/arrays.c:732 Opcodes/arrays.c:760
-#: Opcodes/arrays.c:787 Opcodes/arrays.c:844 Opcodes/arrays.c:880
-#: Opcodes/arrays.c:913 Opcodes/arrays.c:946 Opcodes/arrays.c:984
-#: Opcodes/arrays.c:1016 Opcodes/arrays.c:1048 Opcodes/arrays.c:1080
-#: Opcodes/arrays.c:1112 Opcodes/arrays.c:1144 Opcodes/arrays.c:1176
-#: Opcodes/arrays.c:1213 Opcodes/arrays.c:1248 Opcodes/arrays.c:1283
-#: Opcodes/arrays.c:1315 Opcodes/arrays.c:1350 Opcodes/arrays.c:1385
-#: Opcodes/arrays.c:1420 Opcodes/arrays.c:1455 Opcodes/arrays.c:1490
-#: Opcodes/arrays.c:1525 Opcodes/arrays.c:1560 Opcodes/arrays.c:1596
-#: Opcodes/arrays.c:1632 Opcodes/arrays.c:1668 Opcodes/arrays.c:1704
-#: Opcodes/arrays.c:1740 Opcodes/arrays.c:1776 Opcodes/arrays.c:1812
-#: Opcodes/arrays.c:1848 Opcodes/arrays.c:1884 Opcodes/arrays.c:1920
-#: Opcodes/arrays.c:1956 Opcodes/arrays.c:1989 Opcodes/arrays.c:1995
-#: Opcodes/arrays.c:2006 Opcodes/arrays.c:2037 Opcodes/arrays.c:2068
-#: Opcodes/arrays.c:2089 Opcodes/arrays.c:2163 Opcodes/arrays.c:2210
+#: Opcodes/arrays.c:551 Opcodes/arrays.c:589 Opcodes/arrays.c:609
+#: Opcodes/arrays.c:627 Opcodes/arrays.c:668 Opcodes/arrays.c:688
+#: Opcodes/arrays.c:715 Opcodes/arrays.c:735 Opcodes/arrays.c:763
+#: Opcodes/arrays.c:790 Opcodes/arrays.c:847 Opcodes/arrays.c:883
+#: Opcodes/arrays.c:916 Opcodes/arrays.c:949 Opcodes/arrays.c:987
+#: Opcodes/arrays.c:1019 Opcodes/arrays.c:1051 Opcodes/arrays.c:1083
+#: Opcodes/arrays.c:1115 Opcodes/arrays.c:1147 Opcodes/arrays.c:1179
+#: Opcodes/arrays.c:1216 Opcodes/arrays.c:1251 Opcodes/arrays.c:1286
+#: Opcodes/arrays.c:1318 Opcodes/arrays.c:1353 Opcodes/arrays.c:1388
+#: Opcodes/arrays.c:1423 Opcodes/arrays.c:1458 Opcodes/arrays.c:1493
+#: Opcodes/arrays.c:1528 Opcodes/arrays.c:1563 Opcodes/arrays.c:1599
+#: Opcodes/arrays.c:1635 Opcodes/arrays.c:1671 Opcodes/arrays.c:1707
+#: Opcodes/arrays.c:1743 Opcodes/arrays.c:1779 Opcodes/arrays.c:1815
+#: Opcodes/arrays.c:1851 Opcodes/arrays.c:1887 Opcodes/arrays.c:1923
+#: Opcodes/arrays.c:1959 Opcodes/arrays.c:1992 Opcodes/arrays.c:1998
+#: Opcodes/arrays.c:2009 Opcodes/arrays.c:2040 Opcodes/arrays.c:2071
+#: Opcodes/arrays.c:2092 Opcodes/arrays.c:2166 Opcodes/arrays.c:2213
 #: Opcodes/pvsbasic.c:2441 Opcodes/pvsbasic.c:2472 Opcodes/pvsbasic.c:2521
 msgid "array-variable not initialised"
 msgstr "tableau : non initialisé"
@@ -6482,140 +6482,140 @@ msgstr "tableau : non initialisé"
 msgid "Dimension does not match in array arithmetic"
 msgstr "La dimension ne correspond pas dans l'arithmétique des tableaux"
 
-#: Opcodes/arrays.c:480 Opcodes/arrays.c:740
+#: Opcodes/arrays.c:480 Opcodes/arrays.c:743
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr "division par zéro dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:523 Opcodes/arrays.c:769 Opcodes/arrays.c:796
+#: Opcodes/arrays.c:523 Opcodes/arrays.c:772 Opcodes/arrays.c:799
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr "puissance indéfinie dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:662 Opcodes/arrays.c:692 Opcodes/arrays.c:709
-#: Opcodes/arrays.c:1216 Opcodes/arrays.c:1251
+#: Opcodes/arrays.c:665 Opcodes/arrays.c:695 Opcodes/arrays.c:712
+#: Opcodes/arrays.c:1219 Opcodes/arrays.c:1254
 msgid "division by zero in array-var"
 msgstr "division par zéro dans le tableau"
 
-#: Opcodes/arrays.c:962 Opcodes/arrays.c:1191
+#: Opcodes/arrays.c:965 Opcodes/arrays.c:1194
 #, c-format
 msgid "division by zero in array-var at index %d/%d"
 msgstr "division par zéro dans le tableau à l'indice %d/%d"
 
-#: Opcodes/arrays.c:2071
+#: Opcodes/arrays.c:2074
 msgid "array-variable not a vector"
 msgstr "tableau pas un vecteur"
 
-#: Opcodes/arrays.c:2167 Opcodes/arrays.c:2213
+#: Opcodes/arrays.c:2170 Opcodes/arrays.c:2216
 msgid "array-variable dimensions do not match"
 msgstr "les dimensions du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:2170
+#: Opcodes/arrays.c:2173
 msgid "array-variable types do not match"
 msgstr "les types du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:2263 Opcodes/arrays.c:2284 Opcodes/arrays.c:2467
-#: Opcodes/arrays.c:2503 Opcodes/arrays.c:2506
+#: Opcodes/arrays.c:2266 Opcodes/arrays.c:2287 Opcodes/arrays.c:2470
+#: Opcodes/arrays.c:2506 Opcodes/arrays.c:2509
 msgid "array-var not initialised"
 msgstr "tableau non initialisée"
 
-#: Opcodes/arrays.c:2266 Opcodes/arrays.c:2286 Opcodes/arrays.c:2344
-#: Opcodes/arrays.c:2366
+#: Opcodes/arrays.c:2269 Opcodes/arrays.c:2289 Opcodes/arrays.c:2347
+#: Opcodes/arrays.c:2369
 msgid "No table for copy2ftab"
 msgstr "Pas de table pour copy2ftab"
 
-#: Opcodes/arrays.c:2316
+#: Opcodes/arrays.c:2319
 msgid "inconsistent start, end and increment parameters"
 msgstr "paramètres début, fin et incrément inconstistants"
 
-#: Opcodes/arrays.c:2402
+#: Opcodes/arrays.c:2405
 msgid "inconsistent start, end parameters"
 msgstr "paramètres début, fin inconsistants"
 
-#: Opcodes/arrays.c:2406
+#: Opcodes/arrays.c:2409
 msgid "slice larger than original size"
 msgstr "intervalle plus grand que la taille d'origine"
 
-#: Opcodes/arrays.c:2410
+#: Opcodes/arrays.c:2413
 msgid "slice increment must be positive"
 msgstr "le paramètre de coupure doit être positif"
 
-#: Opcodes/arrays.c:2480
+#: Opcodes/arrays.c:2483
 #, c-format
 msgid "%s not found"
 msgstr "%s non trouvé"
 
-#: Opcodes/arrays.c:2511
+#: Opcodes/arrays.c:2514
 msgid "map fn not found at k rate"
 msgstr "fn de map introuvable au taux-k"
 
-#: Opcodes/arrays.c:2690
+#: Opcodes/arrays.c:2693
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr "rfft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2723
+#: Opcodes/arrays.c:2726
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr "rifft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2754
+#: Opcodes/arrays.c:2757
 msgid "array sizes do not match\n"
 msgstr "les tailles de tableau ne correspondent pas\n"
 
-#: Opcodes/arrays.c:2778
+#: Opcodes/arrays.c:2781
 msgid "fft: only one-dimensional arrays allowed"
 msgstr "fft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2805
+#: Opcodes/arrays.c:2808
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr "fftinv : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2868
+#: Opcodes/arrays.c:2871
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr "dans array les tailles ne correspondent pas : %d et %d\n"
 
-#: Opcodes/arrays.c:3050 Opcodes/arrays.c:3090 Opcodes/arrays.c:3122
+#: Opcodes/arrays.c:3053 Opcodes/arrays.c:3093 Opcodes/arrays.c:3125
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr "non puissance de deux pas encore implémentée\n"
 
-#: Opcodes/arrays.c:3083
+#: Opcodes/arrays.c:3086
 msgid "FFT size too small (min 64 samples)\n"
 msgstr "Taille de TFR trop petite (min 64 échantillons)\n"
 
-#: Opcodes/arrays.c:3150 Opcodes/arrays.c:3189
+#: Opcodes/arrays.c:3153 Opcodes/arrays.c:3192
 msgid "in array not 2-dimensional\n"
 msgstr "dans array pas de 2-dimension\n"
 
-#: Opcodes/arrays.c:3162 Opcodes/arrays.c:3175
+#: Opcodes/arrays.c:3165 Opcodes/arrays.c:3178
 msgid "requested row is out of range\n"
 msgstr "ligne demandée hors limites\n"
 
-#: Opcodes/arrays.c:3203 Opcodes/arrays.c:3217
+#: Opcodes/arrays.c:3206 Opcodes/arrays.c:3220
 msgid "requested col is out of range\n"
 msgstr "colonne demandée hors limites\n"
 
-#: Opcodes/arrays.c:3255 Opcodes/arrays.c:3267 Opcodes/arrays.c:3289
-#: Opcodes/arrays.c:3303
+#: Opcodes/arrays.c:3258 Opcodes/arrays.c:3270 Opcodes/arrays.c:3292
+#: Opcodes/arrays.c:3306
 msgid "Error: index out of range\n"
 msgstr "Erreur : index hors limites\n"
 
-#: Opcodes/arrays.c:3338
+#: Opcodes/arrays.c:3341
 msgid "input array too small\n"
 msgstr "tableau d'entrée trop petit\n"
 
-#: Opcodes/arrays.c:3391
+#: Opcodes/arrays.c:3394
 msgid "dct: only one-dimensional arrays allowed"
 msgstr "dct : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:3398
+#: Opcodes/arrays.c:3401
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr "dct : tailles non puissance de deux pas encore implémentées"
 
-#: Opcodes/arrays.c:3420
+#: Opcodes/arrays.c:3423
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr "dctinv : seul les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:3428
+#: Opcodes/arrays.c:3431
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv : tailles non puissance de deux pas encore implémentées"
 
@@ -7047,12 +7047,12 @@ msgstr ""
 "Problème de compilation de Faust : \n"
 "ligne %s\n"
 
-#: Opcodes/faustgen.cpp:465 Opcodes/faustgen.cpp:709
+#: Opcodes/faustgen.cpp:432
 #, c-format
 msgid "could not find DSP %p for deletion"
 msgstr "impossible de trouver le DSP %p pour suppression"
 
-#: Opcodes/faustgen.cpp:485 Opcodes/faustgen.cpp:732
+#: Opcodes/faustgen.cpp:452 Opcodes/faustgen.cpp:738
 msgid ""
 "Faust code was not ready. Try compiling it \n"
 "in a separate instrument prior to running it here\n"
@@ -7060,7 +7060,7 @@ msgstr ""
 "Le code Faust n'était pas prêt. Essayez de le compiler \n"
 "dans un instrument séparé avant de l'exécuter ici\n"
 
-#: Opcodes/faustgen.cpp:494 Opcodes/faustgen.cpp:742
+#: Opcodes/faustgen.cpp:461 Opcodes/faustgen.cpp:748
 msgid ""
 "Faust code did not compile properly.\n"
 "Check above messages for Faust compiler errors\n"
@@ -7068,42 +7068,47 @@ msgstr ""
 "Le code Faust n'a pas été compilé proprement.\n"
 "Verifier ci-dessus les messages d'erreur du compilateur Faust\n"
 
-#: Opcodes/faustgen.cpp:499 Opcodes/faustgen.cpp:747
+#: Opcodes/faustgen.cpp:466 Opcodes/faustgen.cpp:753
 msgid "no factory available\n"
 msgstr "aucune fabrique n'est disponible\n"
 
-#: Opcodes/faustgen.cpp:504 Opcodes/faustgen.cpp:752
+#: Opcodes/faustgen.cpp:471 Opcodes/faustgen.cpp:758
 #, c-format
 msgid "factory not found %d\n"
 msgstr "fabrique non trouvée %d\n"
 
-#: Opcodes/faustgen.cpp:510 Opcodes/faustgen.cpp:758 Opcodes/faustgen.cpp:872
+#: Opcodes/faustgen.cpp:477 Opcodes/faustgen.cpp:764 Opcodes/faustgen.cpp:880
 msgid "Faust instantiation problem\n"
 msgstr "Problème d'instanciation de Faust\n"
 
-#: Opcodes/faustgen.cpp:576 Opcodes/faustgen.cpp:1074
+#: Opcodes/faustgen.cpp:543 Opcodes/faustgen.cpp:1087
 msgid "no dsp instances available\n"
 msgstr "aucune iinstance de DSP n'est disponible\n"
 
-#: Opcodes/faustgen.cpp:582 Opcodes/faustgen.cpp:1080
+#: Opcodes/faustgen.cpp:549 Opcodes/faustgen.cpp:1093
 #, c-format
 msgid "dsp instance not found %d\n"
 msgstr "instance de DSP introuvable %d\n"
 
-#: Opcodes/faustgen.cpp:591 Opcodes/faustgen.cpp:798 Opcodes/faustgen.cpp:913
+#: Opcodes/faustgen.cpp:558 Opcodes/faustgen.cpp:805 Opcodes/faustgen.cpp:918
 msgid "wrong number of input args\n"
 msgstr "nombre incorrect d'arguments en entrée\n"
 
-#: Opcodes/faustgen.cpp:595 Opcodes/faustgen.cpp:802 Opcodes/faustgen.cpp:922
+#: Opcodes/faustgen.cpp:562 Opcodes/faustgen.cpp:810
 msgid "wrong number of output args\n"
 msgstr "nombre incorrect d'arguments en sortie\n"
 
-#: Opcodes/faustgen.cpp:859
+#: Opcodes/faustgen.cpp:867
 #, c-format
 msgid "Faust compilation problem: %s\n"
 msgstr "Problème de compilation de Faust : %s\n"
 
-#: Opcodes/faustgen.cpp:1086 Opcodes/faustgen.cpp:1103
+#: Opcodes/faustgen.cpp:929
+#, fuzzy, c-format
+msgid "wrong number of output args: need %d had %d\n"
+msgstr "nombre incorrect d'arguments en sortie\n"
+
+#: Opcodes/faustgen.cpp:1099 Opcodes/faustgen.cpp:1116
 #, c-format
 msgid "dsp control %s not found\n"
 msgstr "contrôle de DSP %s introuvable\n"
@@ -7306,7 +7311,7 @@ msgstr "le numéro de ftable n'existe pas\n"
 msgid "Error deleting ftable %d"
 msgstr "Erreur en supprimant la ftable %d"
 
-#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1389
+#: Opcodes/ftgen.c:139 Opcodes/signalflowgraph.cpp:1375
 msgid "ftgen string arg not allowed"
 msgstr "ftgen : argument chaîne interdit"
 
@@ -9220,7 +9225,7 @@ msgstr "filescal : nombres de canaux différents. %d sorties, %d entrées\n"
 #: Opcodes/pvlock.c:891 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:719
 #: Opcodes/pvsbasic.c:1050 Opcodes/pvsbasic.c:1265 Opcodes/pvsbasic.c:1372
 #: Opcodes/pvsbasic.c:1617 Opcodes/pvsbasic.c:1841 Opcodes/pvsbasic.c:2014
-#: Opcodes/pvsgendy.c:44 Opcodes/signalflowgraph.cpp:712
+#: Opcodes/pvsgendy.c:44 Opcodes/signalflowgraph.cpp:698
 msgid "Unsafe to have same fsig as in and out"
 msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
 
@@ -9709,54 +9714,54 @@ msgstr "erreur... impossible de créer les globales de sfont\n"
 msgid "powershape: ifullscale must be strictly positive"
 msgstr "powershape : la ftable ifullscale doit être entirèrement positive"
 
-#: Opcodes/signalflowgraph.cpp:329 Opcodes/signalflowgraph.cpp:474
-#: Opcodes/signalflowgraph.cpp:976
+#: Opcodes/signalflowgraph.cpp:315 Opcodes/signalflowgraph.cpp:460
+#: Opcodes/signalflowgraph.cpp:962
 #, c-format
 msgid "Created instance 0x%x of %d instances of outlet %s\n"
 msgstr "Création de l'instance 0x%x des %d instances de l'outlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:342
+#: Opcodes/signalflowgraph.cpp:328
 #, c-format
 msgid "Removed instance 0x%x of %d instances of outleta %s\n"
 msgstr "Suppression de l'instance 0x%x des %d instances de l'outleta %s\n"
 
-#: Opcodes/signalflowgraph.cpp:394 Opcodes/signalflowgraph.cpp:533
-#: Opcodes/signalflowgraph.cpp:667 Opcodes/signalflowgraph.cpp:1039
+#: Opcodes/signalflowgraph.cpp:380 Opcodes/signalflowgraph.cpp:519
+#: Opcodes/signalflowgraph.cpp:653 Opcodes/signalflowgraph.cpp:1025
 #, c-format
 msgid "Created instance 0x%x of inlet %s\n"
 msgstr "Création de l'instance 0x%x de l'inlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:408 Opcodes/signalflowgraph.cpp:681
-#: Opcodes/signalflowgraph.cpp:1053
+#: Opcodes/signalflowgraph.cpp:394 Opcodes/signalflowgraph.cpp:667
+#: Opcodes/signalflowgraph.cpp:1039
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s.\n"
 msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
 
-#: Opcodes/signalflowgraph.cpp:486
+#: Opcodes/signalflowgraph.cpp:472
 #, c-format
 msgid "Removed 0x%x of %d instances of outletk %s\n"
 msgstr "Suppression de 0x%x des %d instances de l'outletk %s\n"
 
-#: Opcodes/signalflowgraph.cpp:547
+#: Opcodes/signalflowgraph.cpp:533
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%xof inlet %s.\n"
 msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s.\n"
 
-#: Opcodes/signalflowgraph.cpp:605
+#: Opcodes/signalflowgraph.cpp:591
 #, c-format
 msgid "Created instance 0x%x of outlet %s\n"
 msgstr "Création de l'instance 0x%x de l'outlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:616
+#: Opcodes/signalflowgraph.cpp:602
 #, c-format
 msgid "Removed 0x%x of %d instances of outletf %s\n"
 msgstr "Suppression de 0x%x des %d instances de l'outletf %s\n"
 
-#: Opcodes/signalflowgraph.cpp:739
+#: Opcodes/signalflowgraph.cpp:725
 msgid "inletf: signal format must be amp-phase or amp-freq."
 msgstr "inletf : le format de signal doit être amp-phase ou amp-fréq."
 
-#: Opcodes/signalflowgraph.cpp:804
+#: Opcodes/signalflowgraph.cpp:790
 #, c-format
 msgid ""
 "Created instance 0x%x of %d instances of outlet %s (out arraydat: 0x%x dims: "
@@ -9765,12 +9770,12 @@ msgstr ""
 "Création de l'instance 0x%x des %d instances de l'outlet %s (out arraydat: 0x"
 "%x dims: %2d taille: %4d [%4d] données: 0x%x (0x%x))\n"
 
-#: Opcodes/signalflowgraph.cpp:820
+#: Opcodes/signalflowgraph.cpp:806
 #, c-format
 msgid "Removed 0x%x of %d instances of outletv %s\n"
 msgstr "Sppression de 0x%x des %d instances de l'outletv %s\n"
 
-#: Opcodes/signalflowgraph.cpp:881
+#: Opcodes/signalflowgraph.cpp:867
 #, c-format
 msgid ""
 "Created instance 0x%x of inlet %s (in arraydat: 0x%x dims: %2d size: %4d "
@@ -9779,32 +9784,32 @@ msgstr ""
 "Instance 0x%x de l'inlet %s créée (dans arraydat : 0x%x dims: %2d taille: "
 "%4d [%4d] données: 0x%x (0x%x))\n"
 
-#: Opcodes/signalflowgraph.cpp:897
+#: Opcodes/signalflowgraph.cpp:883
 #, c-format
 msgid "Connected instances of outlet %s to instance 0x%x of inlet %s\n"
 msgstr "Instances de l'outlet %s connectées à l'instance 0x%x de l'inlet %s\n"
 
-#: Opcodes/signalflowgraph.cpp:988
+#: Opcodes/signalflowgraph.cpp:974
 #, c-format
 msgid "Removed 0x%x of %d instances of outletkid %s\n"
 msgstr "Suppression de 0x%x des %d instances de l'outletkid %s\n"
 
-#: Opcodes/signalflowgraph.cpp:1116 Opcodes/signalflowgraph.cpp:1149
-#: Opcodes/signalflowgraph.cpp:1182 Opcodes/signalflowgraph.cpp:1212
+#: Opcodes/signalflowgraph.cpp:1102 Opcodes/signalflowgraph.cpp:1135
+#: Opcodes/signalflowgraph.cpp:1168 Opcodes/signalflowgraph.cpp:1198
 #, c-format
 msgid "Connected outlet %s to inlet %s.\n"
 msgstr "Outlet %s connectée à l'inlet %s.\n"
 
-#: Opcodes/signalflowgraph.cpp:1407 Opcodes/signalflowgraph.cpp:1412
+#: Opcodes/signalflowgraph.cpp:1393 Opcodes/signalflowgraph.cpp:1398
 #, c-format
 msgid "ftgenonce: re-using existing func: %f\n"
 msgstr "ftgenonce : réutilisation d'une fonction existante : %f\n"
 
-#: Opcodes/signalflowgraph.cpp:1417
+#: Opcodes/signalflowgraph.cpp:1403
 msgid "ftgenonce error"
 msgstr "erreur ftgenonce"
 
-#: Opcodes/signalflowgraph.cpp:1422
+#: Opcodes/signalflowgraph.cpp:1408
 #, c-format
 msgid "ftgenonce: created new func: %d\n"
 msgstr "ftgenonce : nouvelle fonction créée : %d\n"
@@ -9912,9 +9917,9 @@ msgid "OSCraw: Closing socket\n"
 msgstr "OSCraw : fermeture du socket\n"
 
 #: Opcodes/sockrecv.c:176 Opcodes/sockrecv.c:238 Opcodes/sockrecv.c:353
-#: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:554 Opcodes/socksend.c:90
-#: Opcodes/socksend.c:239 Opcodes/socksend.c:338 Opcodes/socksend.c:426
-#: Top/server.c:233
+#: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:554 Opcodes/socksend.c:91
+#: Opcodes/socksend.c:240 Opcodes/socksend.c:339 Opcodes/socksend.c:427
+#: Opcodes/socksend.c:833 Top/server.c:233
 #, c-format
 msgid "Winsock2 failed to start: %d"
 msgstr "Le démarrage de winsock2 a échoué : %d"
@@ -9925,8 +9930,9 @@ msgid "Cannot set nonblock"
 msgstr "Impossible de positionner nonblock"
 
 #: Opcodes/sockrecv.c:192 Opcodes/sockrecv.c:248 Opcodes/sockrecv.c:363
-#: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:566 Opcodes/socksend.c:104
-#: Opcodes/socksend.c:254 Opcodes/socksend.c:345 Opcodes/socksend.c:430
+#: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:566 Opcodes/socksend.c:105
+#: Opcodes/socksend.c:255 Opcodes/socksend.c:346 Opcodes/socksend.c:431
+#: Opcodes/socksend.c:837
 msgid "creating socket"
 msgstr "création du socket"
 
@@ -9938,40 +9944,75 @@ msgstr "la lecture depuis le socket a échoué"
 msgid "output array too small\n"
 msgstr "tableau de sortie trop petit\n"
 
-#: Opcodes/socksend.c:149 Opcodes/socksend.c:186 Opcodes/socksend.c:223
-#: Opcodes/socksend.c:302
+#: Opcodes/socksend.c:150 Opcodes/socksend.c:187 Opcodes/socksend.c:224
+#: Opcodes/socksend.c:303
 msgid "sendto failed"
 msgstr "sendto a échoué"
 
-#: Opcodes/socksend.c:215
+#: Opcodes/socksend.c:216
 msgid "string truncated in socksend"
 msgstr "chaîne tronquée dans socksend"
 
-#: Opcodes/socksend.c:374
+#: Opcodes/socksend.c:375
 #, c-format
 msgid "connect failed (%d)"
 msgstr "la connexion a échoué (%d)"
 
-#: Opcodes/socksend.c:387
+#: Opcodes/socksend.c:388
 #, c-format
 msgid "Expected %d got %d\n"
 msgstr "%d attendu, %d obtenu\n"
 
-#: Opcodes/socksend.c:419
+#: Opcodes/socksend.c:420
 msgid "insufficient number of arguments for OSC message types\n"
 msgstr "arguments insuffisants pour les types de message OSC\n"
 
-#: Opcodes/socksend.c:474
+#: Opcodes/socksend.c:475
 msgid "expecting a string argument\n"
 msgstr "argument chaîne de caractères attendu\n"
 
-#: Opcodes/socksend.c:508
+#: Opcodes/socksend.c:509
 #, c-format
 msgid "%c: data type not supported\n"
 msgstr "%c : type de donnée non supporté\n"
 
-#: Opcodes/socksend.c:778
+#: Opcodes/socksend.c:779
 msgid "OSCsend2 failed"
+msgstr "OSCsend2 a échoué"
+
+#: Opcodes/socksend.c:814
+#, fuzzy
+msgid "arg array needs to be two dimensional\n"
+msgstr "dans array pas de 2-dimension\n"
+
+#: Opcodes/socksend.c:818
+#, fuzzy
+msgid "type and dest arrays need to be unidimensional\n"
+msgstr "dans array pas de 2-dimension\n"
+
+#: Opcodes/socksend.c:822
+#, fuzzy
+msgid "type and dest arrays need to have the same size\n"
+msgstr ""
+"tableaux de magnitude et de fréquence non initialisés ou de tailles "
+"différentes"
+
+#: Opcodes/socksend.c:825
+#, fuzzy
+msgid "arg array not big enough\n"
+msgstr "dans array pas de 2-dimension\n"
+
+#: Opcodes/socksend.c:864
+msgid "Bundle msg exceeded max packet size, not sent\n"
+msgstr ""
+
+#: Opcodes/socksend.c:933
+msgid "only bundles with i and f types are supported \n"
+msgstr ""
+
+#: Opcodes/socksend.c:940
+#, fuzzy
+msgid "OSCbundle failed"
 msgstr "OSCsend2 a échoué"
 
 #: Opcodes/space.c:180
