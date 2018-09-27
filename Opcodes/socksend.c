@@ -793,11 +793,8 @@ typedef struct {
   ARRAYDAT *dest;
   ARRAYDAT *type;
   ARRAYDAT *arg;
-<<<<<<< HEAD
   MYFLT *imtu;
   int mtu;
-=======
->>>>>>> b74aa7aadf06c548fa17ed27844ca5b8c1682d14
   AUXCH   aux;    /* MTU bytes */
   int32_t sock, iargs;
   MYFLT   last;
@@ -816,29 +813,17 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
     return csound->InitError(csound, "arg array needs to be two dimensional\n");
   if(p->type->dimensions > 1 ||
        p->dest->dimensions > 1)
-<<<<<<< HEAD
       return csound->InitError(csound, "type and dest arrays need to be unidimensional\n");
-=======
-    return csound->InitError(csound, "%s",
-                             Str("type and dest arrays need to be unidimensionsal\n"));
->>>>>>> b74aa7aadf06c548fa17ed27844ca5b8c1682d14
   if((p->type->sizes[0] !=
      p->dest->sizes[0]))
     return csound->InitError(csound, "%s",
                              Str("type and dest arrays need to have the same size\n"));
   p->no_msgs =  p->type->sizes[0];
   if(p->no_msgs < p->arg->sizes[0])
-<<<<<<< HEAD
     return csound->InitError(csound, "arg array not big enough\n");
 
     if(*p->imtu) p->mtu = (int) *p->imtu;
     else p->mtu = MAX_PACKET_SIZE;
-  
-=======
-    return csound->InitError(csound, "%s",
-                             Str("arg array not big enough\n"));
-
->>>>>>> b74aa7aadf06c548fa17ed27844ca5b8c1682d14
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
