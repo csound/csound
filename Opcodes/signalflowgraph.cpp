@@ -284,20 +284,6 @@ struct SignalFlowGraphState {
 // We will use one critical section for each logically independent
 // potential data race here: ports and ftables.
 
-/**
- * All it does is clear the data structures for the current instance of Csound,
- * in case they are full from a previous performance.
- */
-struct SignalFlowGraph : public OpcodeBase<SignalFlowGraph> {
-  int init(CSOUND *csound) {
-    warn(csound, "signalflowgraph::init(0x%p)\n", csound);
-    SignalFlowGraphState *sfg_globals = 0;
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
-    sfg_globals->clear();
-    return OK;
-  };
-};
-
 struct Outleta : public OpcodeNoteoffBase<Outleta> {
   /**
    * Inputs.
@@ -1454,10 +1440,6 @@ static int ftgenonce_SS(CSOUND *csound, FTGEN *p) {
 
 extern "C" {
 static OENTRY oentries[] = {
-    {
-        (char *)"signalflowgraph", sizeof(SignalFlowGraph), 0, 1, (char *)"",
-        (char *)"", (SUBR)&SignalFlowGraph::init_, 0, 0,
-    },
     {(char *)"outleta", sizeof(Outleta), _CW, 3, (char *)"", (char *)"Sa",
      (SUBR)&Outleta::init_, (SUBR)&Outleta::audio_},
     {(char *)"inleta", sizeof(Inleta), _CR, 3, (char *)"a", (char *)"S",

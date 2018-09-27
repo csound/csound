@@ -809,18 +809,20 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
      arg should have the same number of rows as
      type and dest
   */
-  if(p->arg->dimensions != 2)
-    return csound->InitError(csound, "arg array needs to be two dimensional\n");
-  if(p->type->dimensions > 1 ||
+    if(p->arg->dimensions != 2)
+      return csound->InitError(csound, "%s",
+                               Str("arg array needs to be two dimensional\n"));
+    if(p->type->dimensions > 1 ||
        p->dest->dimensions > 1)
-      return csound->InitError(csound, "type and dest arrays need to be unidimensional\n");
-  if((p->type->sizes[0] !=
-     p->dest->sizes[0]))
-    return csound->InitError(csound, "%s",
-                             Str("type and dest arrays need to have the same size\n"));
-  p->no_msgs =  p->type->sizes[0];
-  if(p->no_msgs < p->arg->sizes[0])
-    return csound->InitError(csound, "arg array not big enough\n");
+      return csound->InitError(csound, "%s",
+                               Str("type and dest arrays need to be unidimensional\n"));
+    if((p->type->sizes[0] !=
+        p->dest->sizes[0]))
+      return csound->InitError(csound, "%s",
+                               Str("type and dest arrays need to have the same size\n"));
+    p->no_msgs =  p->type->sizes[0];
+    if(p->no_msgs < p->arg->sizes[0])
+      return csound->InitError(csound, "%s", Str("arg array not big enough\n"));
 
     if(*p->imtu) p->mtu = (int) *p->imtu;
     else p->mtu = MAX_PACKET_SIZE;
@@ -858,7 +860,8 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 
 #define INCR_AND_CHECK(S)  buffsize += S;  \
         if(buffsize >= p->mtu) { \
-          csound->Warning(csound, "Bundle msg exceeded max packet size, not sent\n"); \
+          csound->Warning(csound, "%s", \
+                          Str("Bundle msg exceeded max packet size, not sent\n")); \
           return OK; }
 
 static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){

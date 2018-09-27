@@ -44,7 +44,7 @@ scores and many bug fixes.
 
 ### New opcodes
 
-- fluidinfo retrieves program information from a currently loaded soundfont. 
+- fluidinfo retrieves program information from a currently loaded soundfont.
 
 - New opcode ftaudio writes a ftable to an audio file; irate and triggered
     k-rate version exist and k-rate version supports sync or async writing.
@@ -56,12 +56,12 @@ scores and many bug fixes.
 - faustplay and faustdsp are new opcodes splitting the faust DSP
   instantiation and performance.
 
-- OSCbundle sends a collection of similr OSC essages as a single packet
-  for efficieny.
+- OSCbundle sends a collection of similar OSC messages as a single packet
+  for efficiency.
 
 ### New Gen and Macros
 
-- 
+-
 
 ### Orchestra
 
@@ -93,10 +93,10 @@ parser; it had inadvertently got lost.
 
 - The forms for delayed ending of sections (e 5 or s 5) now work with
   fractional delays; previously only read the integer part.
-  
+
 ### Options
 
-- 
+-
 
 ### Modified Opcodes and Gens
 
@@ -123,9 +123,9 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 ### Frontends
 
-- Belacsound: 
+- Belacsound:
 
-- CsoundQt: 
+- CsoundQt:
 
 ### General Usage
 
@@ -195,7 +195,7 @@ unnecessary assignments and doing some more expression optimisations.
 
 ### Platform Specific
 
-- WebAudio: 
+- WebAudio:
 
 - iOS
 
@@ -211,4 +211,3 @@ unnecessary assignments and doing some more expression optimisations.
  - allow analog in and out with different channel numbers
 
 ==END==
-
