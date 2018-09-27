@@ -7104,9 +7104,9 @@ msgid "Faust compilation problem: %s\n"
 msgstr "Problème de compilation de Faust : %s\n"
 
 #: Opcodes/faustgen.cpp:929
-#, fuzzy, c-format
+#, c-format
 msgid "wrong number of output args: need %d had %d\n"
-msgstr "nombre incorrect d'arguments en sortie\n"
+msgstr "nombre incorrect d'arguments en sortie : %d requis %d fournis\n"
 
 #: Opcodes/faustgen.cpp:1099 Opcodes/faustgen.cpp:1116
 #, c-format
@@ -9981,39 +9981,32 @@ msgid "OSCsend2 failed"
 msgstr "OSCsend2 a échoué"
 
 #: Opcodes/socksend.c:814
-#, fuzzy
 msgid "arg array needs to be two dimensional\n"
-msgstr "dans array pas de 2-dimension\n"
+msgstr "l'arg tableau doit être à bidimensionnel\n"
 
 #: Opcodes/socksend.c:818
-#, fuzzy
 msgid "type and dest arrays need to be unidimensional\n"
-msgstr "dans array pas de 2-dimension\n"
+msgstr "les tableaux de  type et de dest doivent être unidimensionnels\n"
 
 #: Opcodes/socksend.c:822
-#, fuzzy
 msgid "type and dest arrays need to have the same size\n"
-msgstr ""
-"tableaux de magnitude et de fréquence non initialisés ou de tailles "
-"différentes"
+msgstr "les tableaux de type et de dest doivent avoir la même taille\n"
 
 #: Opcodes/socksend.c:825
-#, fuzzy
 msgid "arg array not big enough\n"
-msgstr "dans array pas de 2-dimension\n"
+msgstr "l'arg tableau n'est pas assez grand\n"
 
 #: Opcodes/socksend.c:864
 msgid "Bundle msg exceeded max packet size, not sent\n"
-msgstr ""
+msgstr "Le paquet msg dépasse la taille maximale, pas envoyé\n"
 
 #: Opcodes/socksend.c:933
 msgid "only bundles with i and f types are supported \n"
-msgstr ""
+msgstr "seuls les paquets avec les types i et f sont supportés\n"
 
 #: Opcodes/socksend.c:940
-#, fuzzy
 msgid "OSCbundle failed"
-msgstr "OSCsend2 a échoué"
+msgstr "OSCbundle a échoué"
 
 #: Opcodes/space.c:180
 msgid "space: not initialised"
