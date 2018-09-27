@@ -1711,7 +1711,7 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
       } else if (UNLIKELY(ch < 1)) {
         if (UNLIKELY(p->init))
           csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
-        memset(p->ar, 0, sizeof(MYFLT)*nsmps);
+        memset(p->ar[nc], 0, sizeof(MYFLT)*nsmps);
         p->init = 0;
       } else {
         sp = CS_SPIN + (ch - 1);
@@ -1725,6 +1725,7 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
           ain[n] = *sp;
           sp += csound->inchnls;
         }
+       
       }
     }
     return OK;
