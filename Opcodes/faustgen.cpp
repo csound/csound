@@ -969,7 +969,7 @@ int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   pthread_create((pthread_t *)&thread, &attr, init_faustgen_thread, data);
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   pthread_join((pthread_t)thread, (void **)&ret);
-  
+ 
   if (ret == NULL)
     return OK;
   else

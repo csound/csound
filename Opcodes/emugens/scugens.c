@@ -281,7 +281,7 @@ static int32_t lagud_init(CSOUND *csound, LagUD *p) {
 
 /* ------------------ Trig -------------------------
 
-   Returns 1 for a given duration whenever signal crosses from 
+   Returns 1 for a given duration whenever signal crosses from
      non-positive to positive
 
    kout    trig kin, kduration
