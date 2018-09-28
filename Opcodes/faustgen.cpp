@@ -969,7 +969,7 @@ int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   pthread_create((pthread_t *)&thread, &attr, init_faustgen_thread, data);
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   pthread_join((pthread_t)thread, (void **)&ret);
- 
+
   if (ret == NULL)
     return OK;
   else
@@ -982,7 +982,7 @@ int32_t init_faustgen(CSOUND *csound, faustgen *p) {
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
   csound->JoinThread((void *)thread);
   csound->RegisterDeinitCallback(csound, p, delete_faustgen);
-   return OK;
+  return OK;
 #endif
 
 
@@ -1039,7 +1039,7 @@ int32_t perf_faust(CSOUND *csound, faustgen *p) {
 #endif
 
   if (UNLIKELY(offset)) {
-    /* restore pos  */
+    /* restore pos  -- coud be memcpy?*/
     for (i = 0; i < p->OUTCOUNT - 1; i++)
       p->outs[i] = out_tmp[i];
     for (i = 0; i < p->INCOUNT - 1; i++)
