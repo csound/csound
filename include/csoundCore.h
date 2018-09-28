@@ -399,6 +399,7 @@ typedef struct CORFIL {
     int      arrayMemberSize;
     CS_TYPE* arrayType;
     MYFLT*   data;
+    int      allocated;
 //    AUXCH   aux;
   } ARRAYDAT;
 

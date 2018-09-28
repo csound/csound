@@ -85,6 +85,10 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
       p->dimensions = 1;
       p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
       p->sizes[0] = size;
+      p->allocated = ss;
+    }
+    else {
+      p->sizes[0] = size;
     }
 }
 
@@ -126,7 +130,8 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
       CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,NULL);
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
-      arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
+      arrayDat->data = csound->Calloc(csound,
+                                      arrayDat->allocated=var->memBlockSize*size);
       mem = (char *) arrayDat->data;
       for (i=0; i < size; i++) {
         var->initializeVariableMemory(csound, var,
