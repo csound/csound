@@ -909,12 +909,25 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {
-      uint32_t ss = sizeof(MYFLT)*size;
-      if (p->data==NULL) p->data = (MYFLT*)csound->Malloc(csound, ss);
-      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+      size_t ss;
+      if (p->data == NULL) {
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        p->arrayMemberSize = var->memBlockSize;
+      }
+      ss = p->arrayMemberSize*size;
+      if (p->data==NULL) {
+        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->allocated = ss;
+      }
+      else if (ss > p->allocated) {
+        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->allocated = ss;
+      }
       p->dimensions = 1;
-      p->arrayMemberSize = sizeof(MYFLT);
       p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      p->sizes[0] = size;
+    }
+    else {
       p->sizes[0] = size;
     }
 }

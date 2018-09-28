@@ -226,23 +226,29 @@ public:
 
 /* from Opcodes/arrays.c */
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size) {
-  if (p->data == NULL || p->dimensions == 0 ||
-      (p->dimensions == 1 && p->sizes[0] < size)) {
-    size_t ss;
-    if (p->data == NULL) {
-      CS_VARIABLE *var = p->arrayType->createVariable(csound, NULL);
-      p->arrayMemberSize = var->memBlockSize;
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
+      size_t ss;
+      if (p->data == NULL) {
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        p->arrayMemberSize = var->memBlockSize;
+      }
+      ss = p->arrayMemberSize*size;
+      if (p->data==NULL) {
+        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->allocated = ss;
+      }
+      else if (ss > p->allocated) {
+        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->allocated = ss;
+      }
+      p->dimensions = 1;
+      p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      p->sizes[0] = size;
     }
-
-    ss = p->arrayMemberSize * size;
-    if (p->data == NULL)
-      p->data = (MYFLT *)csound->Calloc(csound, ss);
-    else
-      p->data = (MYFLT *)csound->ReAlloc(csound, p->data, ss);
-    p->dimensions = 1;
-    p->sizes = (int *)csound->Malloc(csound, sizeof(int));
-    p->sizes[0] = size;
-  }
+    else {
+      p->sizes[0] = size;
+    }
 }
 
 //Rory Walsh 2018
