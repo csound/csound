@@ -24,7 +24,7 @@
 */
 
 #include <csdl.h>
-// #include "/usr/local/include/csound/csdl.h"
+#include "/usr/local/include/csound/csdl.h"
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
@@ -235,7 +235,7 @@ lincos_perf(CSOUND *csound, LINLIN1 *p) {
     }
     // PI is defined in csoundCore.h, use that instead of M_PI from math.h, which
     // is not defined in windows
-    MYFLT dx = ((x-x0) / (x1-x0)) * PI + PI;
+    MYFLT dx = ((x-x0) / (x1-x0)) * PI + PI;           // dx range pi - 2pi
     *p->kout = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
     return OK;
 }
@@ -745,22 +745,29 @@ typedef struct {
     int32_t mode;
 } Cmp2_array1;
 
+static int32_t op2mode(char *op, int32_t opsize) {
+    int32_t mode;
+    if (op[0] == '>') {
+        mode = (opsize == 1) ? 0 : 1;
+    } else if (op[0] == '<') {
+        mode = (opsize == 1) ? 2 : 3;
+    } else if (op[0] == '=') {
+        mode = 4;
+    } else if (op[0] == '!' && op[1] == '=') {
+        mode = 5;
+    } else {
+        return -1;
+    }
+    return mode;
+}
+
 static int32_t
 cmp_init(CSOUND *csound, Cmp *p) {
-    char *op = (char*) p->op->data;
-    int32_t opsize = p->op->size - 1;
-
-    if (op[0] == '>') {
-        p->mode = (opsize == 1) ? 0 : 1;
-    } else if (op[0] == '<') {
-        p->mode = (opsize == 1) ? 2 : 3;
-    } else if (op[0] == '=') {
-        p->mode = 4;
-    } else if (op[0] == '!' && op[1] == '=') {
-        p->mode = 5;
-    } else {
+    int32_t mode = op2mode(p->op->data, p->op->size-1);
+    if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
     }
+    p->mode = mode;
     return OK;
 }
 
@@ -768,20 +775,11 @@ static int32_t
 cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
     arrayensure(csound, p->out, N);
-
-    char *op = (char*)p->op->data;
-    int32_t opsize = p->op->size - 1;
-
-    if (op[0] == '>')
-        p->mode = (opsize == 1) ? 0 : 1;
-    else if (op[0] == '<')
-        p->mode = (opsize == 1) ? 2 : 3;
-    else if (op[0] == '=')
-        p->mode = 4;
-    else if (op[0] == '!' && op[1] == '=')
-        p->mode = 5;
-    else
+    int32_t mode = op2mode(p->op->data, p->op->size-1);
+    if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+    }
+    p->mode = mode;
     return OK;
 }
 
@@ -794,20 +792,11 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
     // make sure that we can put the result in `out`,
     // grow the array if necessary
     arrayensure(csound, p->out, N);
-
-    char *op = (char*)p->op->data;
-    int32_t opsize = p->op->size - 1;
-
-    if (op[0] == '>')
-        p->mode = (opsize == 1) ? 0 : 1;
-    else if (op[0] == '<')
-        p->mode = (opsize == 1) ? 2 : 3;
-    else if (op[0] == '=')
-        p->mode = 4;
-    else if (op[0] == '!' && op[1] == '=')
-        p->mode = 5;
-    else
+    int32_t mode = op2mode(p->op->data, p->op->size-1);
+    if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+    }
+    p->mode = mode;
     return OK;
 }
 
@@ -930,7 +919,6 @@ cmparray1_k(CSOUND *csound, Cmp_array1 *p) {
     MYFLT *in  = p->in->data;
     MYFLT k1 = *p->k1;
     int32_t L = p->out->sizes[0];
-    // int32_t N = p->in->sizes[0];
     int32_t i;
 
     switch(p->mode) {
@@ -969,13 +957,19 @@ cmparray1_k(CSOUND *csound, Cmp_array1 *p) {
 }
 
 static int32_t
+cmparray1_i(CSOUND *csound, Cmp_array1 *p) {
+    cmparray1_init(csound, p);
+    return cmparray1_k(csound, p);
+}
+
+
+static int32_t
 cmp2array1_k(CSOUND *csound, Cmp2_array1 *p) {
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
     MYFLT a = *p->a;
     MYFLT b = *p->b;
     int32_t L = p->out->sizes[0];
-    // int32_t N = p->in->sizes[0];
     int32_t i;
     MYFLT x;
 
@@ -1006,6 +1000,12 @@ cmp2array1_k(CSOUND *csound, Cmp2_array1 *p) {
         break;
     }
     return OK;
+}
+
+static int32_t
+cmp2array1_i(CSOUND *csound, Cmp2_array1 *p) {
+    cmp2array1_init(csound, p);
+    return cmp2array1_k(csound, p);
 }
 
 static int32_t
@@ -1084,15 +1084,14 @@ typedef struct {
 static int32_t
 tabslice_init(CSOUND *csound, TABSLICE *p) {
     FUNC *ftpsrc, *ftpdst;
-    ftpsrc = csound->FTFind(csound, p->fnsrc);
+    ftpsrc = csound->FTnp2Find(csound, p->fnsrc);
     if(UNLIKELY(ftpsrc == NULL))
         return NOTOK;
     p->ftpsrc = ftpsrc;
-    ftpdst = csound->FTFind(csound, p->fndst);
+    ftpdst = csound->FTnp2Find(csound, p->fndst);
     if(UNLIKELY(ftpdst == NULL))
         return NOTOK;
     p->ftpdst = ftpdst;
-
     return OK;
 }
 
@@ -1148,7 +1147,7 @@ typedef struct {
 static int
 tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     FUNC *ftp;
-    ftp = csound->FTFind(csound, p->ifn);
+    ftp = csound->FTnp2Find(csound, p->ifn);
     if (UNLIKELY(ftp == NULL))
         return NOTOK;
     p->ftp = ftp;
@@ -1203,10 +1202,14 @@ tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
 
   reshapearray
 
-  Reshape a 2D array, maintaining the capacity of the array
+  Reshape an array, maintaining the capacity of the array
   (it does NOT resize the array).
 
-  reshapearray array[], inumrows, inumcols
+  You can reshape a 2D array to another array of equal capacity
+  of reshape a 1D array to a 2D array, or a 2D array to a 1D
+  array
+
+  reshapearray array[], inumrows, inumcols=0
 
   works with i and k arrays, at i-time and k-time
 
@@ -1232,14 +1235,29 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     int32_t numitems2 = numcols*numrows;
     if(numitems != numitems2)
         return NOTOK;
-    if(dims != 2) {
+    if(dims == 2 && numrows==0) {
+        // 2 -> 1
+        a->dimensions = 1;
+        a->sizes[0] = numrows;
+        a->sizes[1] = 0;
+        return OK;
+    }
+    if(dims == 2) {
+        // 2 -> 2
+        a->sizes[0] = numrows;
+        a->sizes[1] = numcols;
+        return OK;
+    }
+    if(numcols>0) {
+        // 1 -> 2
         csound->Free(csound, a->sizes);
         a->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*2);
+        a->dimensions = 2;
+        a->sizes[0] = numrows;
+        a->sizes[1] = numcols;
+        return OK;
     }
-    a->dimensions = 2;
-    a->sizes[0] = numrows;
-    a->sizes[1] = numcols;
-    return OK;
+    return PERFERROR(Str("reshapearray: can't reshape"));
 }
 
 
@@ -1249,14 +1267,17 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
   printarray karray[], [ktrig], [Sfmt], [Slabel]
   printarray iarray[], [Sfmt], [Slabel]
 
-  Prints all the elements of the array whenever ktrig changes from 0 to 1.
-  If ktrig is -1, it prints always (each k-cycle)
+  Prints all the elements of the array (1- and 2- dymensions).
 
-  ktrig=1   controls when to print, when printing at k-time
-  Sfmt      Sets the format for each element of the array (default="%.4f")
+  ktrig=1   in the k-version, controls when to print
+            if ktrig is -1, prints each cycle. Otherwise, prints whenever
+            ktrig changes from 0 to 1
+  Sfmt      Sets the format (passed to printf) for each element of the array (default="%.4f")
   Slabel    Optional string to print before the whole array
 
   Works with 1- and 2-dimensional arrays, at i- and k-time
+
+  See also: printarray_setfmt
 */
 
 typedef struct {
@@ -1267,6 +1288,7 @@ typedef struct {
     STRINGDAT *Slabel;
     int32_t lasttrig;
     char *printfmt;
+    char *label;
 } ARRAYPRINTK;
 
 typedef struct {
@@ -1275,26 +1297,113 @@ typedef struct {
     STRINGDAT *Sfmt;
     STRINGDAT *Slabel;
     int32_t lasttrig;
-    char *printfmt;
 } ARRAYPRINT;
 
 static uint32_t print_linelength = 80;
 static char default_printfmt[64] = "%.4f\0";
 
+
 static int32_t
 arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
     p->lasttrig = 0;
-    // p->printfmt = "%.4f";
-    p->printfmt = default_printfmt;
+    if(p->Sfmt == NULL) {
+        p->printfmt = default_printfmt;
+    } else {
+        p->printfmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
+    }
+    p->label = p->Slabel != NULL ? p->Slabel->data : NULL;
+    return OK;
+}
+
+
+static inline void arrprint(char *fmt, int dims, MYFLT *data, int dim0, int dim1, char *label) {
+    MYFLT *in = data;
+    int32_t i, j;
+    const uint32_t linelength = print_linelength;
+
+    uint32_t charswritten = 0;
+    if(label != NULL) {
+        printf("%s\n", label);
+    }
+    switch(dims) {
+    case 1:
+        printf("  ");
+        for(i=0; i<dim0; i++) {
+            charswritten += printf(fmt, in[i]) + 1;
+            if(charswritten < linelength) {
+                printf(" ");
+            } else {
+                printf("\n  ");
+                charswritten = 0;
+            }
+        }
+        break;
+    case 2:
+        for(i=0; i<dim0; i++) {
+            printf(" %3d: ", i);
+            for(j=0; j<dim1; j++) {
+                charswritten += printf(fmt, *in) + 1;
+                if(charswritten < linelength)
+                    printf(" ");
+                else {
+                    printf("\n");
+                    charswritten = 0;
+                }
+                in++;
+            }
+            printf("\n");
+            charswritten = 0;
+        }
+        break;
+    }
+    printf("\n");
+}
+
+
+static inline void arrprinti(ARRAYPRINT *p, char* fmt) {
+    int dims = p->in->dimensions;
+    int dim0 = p->in->sizes[0];
+    int dim1 = dims > 1 ? p->in->sizes[1] : 0;
+    char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
+    arrprint(fmt, dims, p->in->data, dim0, dim1, label);
+}
+
+static int32_t
+arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
+    int32_t trig = (int32_t)*p->trig;
+    int dims, dim0, dim1;
+    if(trig < 0 || (trig>0 && p->lasttrig<=0)) {
+        dims = p->in->dimensions;
+        dim0 = p->in->sizes[0];
+        dim1 = dims > 1 ? p->in->sizes[1] : 0;
+        arrprint(p->printfmt, dims, p->in->data, dim0, dim1, p->label);
+    }
+    p->lasttrig = trig;
     return OK;
 }
 
 static int32_t
-arrayprintf_init(CSOUND *csound, ARRAYPRINTK *p) {
-    p->lasttrig = 0;
-    p->printfmt = p->Sfmt->data;
+arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
+    arrprinti(p, default_printfmt);
     return OK;
 }
+
+static int32_t
+arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
+    char *fmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
+    arrprinti(p, fmt);
+    return OK;
+}
+
+/*
+    printarray_setfmt
+
+    printarray_setfmt i_linewidth, [Sfmt]
+
+    Sets the max. linewidth and the default format for any subsequent
+    call to printarray
+
+*/
 
 
 typedef struct {
@@ -1313,93 +1422,71 @@ static int32_t printarray_setfmt(CSOUND *cs, PRINTARRAY_SETFMT *p) {
 static int32_t printarray_setfmt2(CSOUND *cs, PRINTARRAY_SETFMT *p) {
     printarray_setfmt(cs, p);
     strncpy(default_printfmt, p->Sfmt->data, p->Sfmt->size);
-    // default_printfmt = p->Sfmt->data;
     return OK;
 }
 
+/*
 
-static inline void arrprint(char *fmt, int dims, MYFLT *data, int dim0, int dim1, char *label) {
-    MYFLT *in = data;
-    int32_t i, j;
-    const uint32_t linelength = print_linelength;
+ftprint  - print the contents of a table (useful for debugging)
 
-    uint32_t charswritten = 0;
-    if(label != NULL) {
-        printf("%s\n", label);
-    }
-    printf("    ");
-    switch(dims) {
-    case 1:
-        for(i=0; i<dim0; i++) {
-            charswritten += printf(fmt, in[i]);
-            if(charswritten < linelength) {
-                printf(" ");
-            } else {
-                printf("\n    ");
-                charswritten = 0;
-            }
+ftprint ifn, ktrig=1, kstart=0, kend=0, kstep=1, inumcols=0
+
+ifn: the table to print
+ktrig: table will be printed whenever this changes from non-positive to positive
+kstart: start index
+kend: end index (non inclusive)
+kstep: number of elements to skip
+inumcols: number of elements to print per line
+
+See also: printarray
+
+*/
+
+typedef struct {
+    OPDS h;
+    MYFLT *ifn, *ktrig, *kstart, *kend, *kstep, *inumcols;
+    int32_t lasttrig;
+    int32_t numcols;
+    FUNC *ftp;
+} FTPRINT;
+
+
+static int32_t
+ftprint_init(CSOUND *csound, FTPRINT *p) {
+    p->lasttrig = 0;
+    p->numcols = (int32_t)*p->inumcols;
+    if(p->numcols == 0)
+        p->numcols = 10;
+    p->ftp = csound->FTnp2Find(csound, p->ifn);
+    return OK;
+}
+
+static int32_t
+ftprint_perf(CSOUND *csound, FTPRINT *p) {
+    FUNC *ftp = p->ftp;
+    int32_t start = (int32_t)*p->kstart;
+    int32_t end = (int32_t)*p->kend;
+    int32_t step = (int32_t)*p->kstep;
+    uint32_t ftplen = ftp->flen;
+    if(end < 1 || end > ftplen)
+        end = ftplen;
+    MYFLT *ftable = ftp->ftable;
+    char *fmt = default_printfmt;
+    uint32_t i;
+    int32_t numcols = (int32_t)p->numcols;
+    int32_t elemsprinted = 0;
+    printf("ftable %d:\n%3d: ", (int32_t)*p->ifn, start);
+    for(i=start; i<end; i+=step) {
+        printf(fmt, ftable[i]) + 1;
+        elemsprinted++;
+        if(elemsprinted < numcols) {
+            printf(" ");
+        } else {
+            printf("\n%3d: ", i+1);
+            elemsprinted = 0;
         }
-        break;
-    case 2:
-        for(i=0; i<dim0; i++) {
-            printf("    %d: ", i);
-            for(j=0; j<dim1; j++) {
-                charswritten += printf(fmt, *in);
-                if(charswritten < linelength)
-                    printf(" ");
-                else {
-                    printf("\n");
-                    charswritten = 0;
-                }
-                in++;
-            }
-            printf("\n    ");
-        }
-        break;
     }
     printf("\n");
-}
-
-
-static inline void arrprintk(ARRAYPRINTK *p, char* fmt) {
-    int dims = p->in->dimensions;
-    int dim0 = p->in->sizes[0];
-    int dim1 = dims > 1 ? p->in->sizes[1] : 0;
-    char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
-    arrprint(fmt, dims, p->in->data, dim0, dim1, label);
-}
-
-static inline void arrprinti(ARRAYPRINT *p, char* fmt) {
-    int dims = p->in->dimensions;
-    int dim0 = p->in->sizes[0];
-    int dim1 = dims > 1 ? p->in->sizes[1] : 0;
-    char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
-    arrprint(fmt, dims, p->in->data, dim0, dim1, label);
-}
-
-
-static int32_t
-arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
-    int32_t trig = (int32_t)*p->trig;
-    int32_t lasttrig = p->lasttrig;
-    char *fmt = p->printfmt;
-    if(trig < 0 || (trig && !lasttrig)) {
-        arrprintk(p, fmt);
-    }
-    p->lasttrig = trig;
-    return OK;
-}
-
-static int32_t
-arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
-    arrprinti(p, default_printfmt);
-    return OK;
-}
-
-static int32_t
-arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
-    char *fmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
-    arrprinti(p, fmt);
     return OK;
 }
 
@@ -1493,7 +1580,7 @@ static OENTRY localops[] = {
       (SUBR)blendarray_init, (SUBR)blendarray_perf},
     { "linlin", S(BLENDARRAY), 0, 1, "i[]", "ii[]i[]op", (SUBR)blendarray_i},
     { "lincos", S(LINLIN1), 0, 2, "k", "kkkOP", NULL, (SUBR)lincos_perf },
-    { "lincos", S(LINLIN1), 0, 1, "k", "iiiop", (SUBR)lincos_perf },
+    { "lincos", S(LINLIN1), 0, 1, "i", "iiiop", (SUBR)lincos_perf },
 
     { "xyscale", S(XYSCALE), 0, 2, "k", "kkkkkk", NULL, (SUBR)xyscale },
     { "xyscale", S(XYSCALE), 0, 3, "k", "kkiiii", (SUBR)xyscalei_init,
@@ -1525,21 +1612,24 @@ static OENTRY localops[] = {
     { "cmp", S(Cmp), 0, 5, "a", "aSk", (SUBR)cmp_init, NULL, (SUBR)cmp_ak },
     { "cmp", S(Cmp_array1), 0, 3, "k[]", "k[]Sk",
       (SUBR)cmparray1_init, (SUBR)cmparray1_k },
+    { "cmp", S(Cmp_array1), 0, 1, "i[]", "i[]Si", (SUBR)cmparray1_i },
+
     { "cmp", S(Cmp_array2), 0, 3, "k[]", "k[]Sk[]",
       (SUBR)cmparray2_init, (SUBR)cmparray2_k },
     { "cmp", S(Cmp_array2), 0, 1, "i[]", "i[]Si[]",
       (SUBR)cmparray2_i },
     { "cmp", S(Cmp2_array1), 0, 3, "k[]", "kSk[]Sk",
       (SUBR)cmp2array1_init, (SUBR)cmp2array1_k },
+    { "cmp", S(Cmp2_array1), 0, 1, "i[]", "iSi[]Si", (SUBR)cmp2array1_i},
+
 
     { "##or",  S(BINOP_AAA), 0, 3, "k[]", "k[]k[]",
       (SUBR)array_binop_init, (SUBR)array_or},
     { "##and", S(BINOP_AAA), 0, 3, "k[]", "k[]k[]",
       (SUBR)array_binop_init, (SUBR)array_and},
-    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "k[]ii", (SUBR)arrayreshape},
-    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]ii", (SUBR)arrayreshape},
-    { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]ii",
-      NULL, (SUBR)arrayreshape},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", ".[]io", (SUBR)arrayreshape},
+    // { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]io", (SUBR)arrayreshape},
+    // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
     { "ftslice", S(TABSLICE),  0, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
     { "tab2array", S(TAB2ARRAY), 0, 3, "k[]", "iOOP",
@@ -1547,8 +1637,8 @@ static OENTRY localops[] = {
     { "tab2array", S(TAB2ARRAY), 0, 1, "i[]", "ioop", (SUBR)tab2array_i},
 
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]P", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]iS", (SUBR)arrayprintf_init, (SUBR)arrayprint_perf},
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]iSS", (SUBR)arrayprintf_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kS", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kSS", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
 
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
@@ -1556,6 +1646,9 @@ static OENTRY localops[] = {
 
     { "printarray_setfmt", S(PRINTARRAY_SETFMT), 0, 1, "", "i", (SUBR)printarray_setfmt },
     { "printarray_setfmt", S(PRINTARRAY_SETFMT), 0, 1, "", "iS", (SUBR)printarray_setfmt2 },
+
+    { "ftprint", S(FTPRINT), 0, 3, "", "iPOOPo", (SUBR)ftprint_init, (SUBR)ftprint_perf },
+
 };
 
 LINKAGE

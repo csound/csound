@@ -21,7 +21,6 @@
    License along with the gab library; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA
-
    beosc and beadsynt are based on the algorithm implemented by
    Loris.
 
@@ -1040,8 +1039,6 @@ beadsynt_perf(CSOUND *csound, BEADSYNT *p) {
     tabrowlin krow, ifnsrc, ifndest, inumcols, ioffset=0, istart=0, iend=0,
        istep=1
 
-    kout[]  tabrowlin krow, ifnsrc, inumcols, ioffset=0, istart=0, iend=0, istep=1
-
     If reading out of bounds a PerformanceError will be raised. Because we
     interpolate between rows, the last row that can be read is
 
@@ -1084,7 +1081,7 @@ typedef struct {
     MYFLT *krow, *ifnsrc, *ifndest, *inumcols, *ioffset, *istart, *iend, *istep;
     MYFLT* tabsource;
     MYFLT* tabdest;
-    MYFLT  maxrow;
+    int maxrow;
     int tabsourcelen;
     int tabdestlen;
     int end;
@@ -1117,9 +1114,8 @@ tabrowcopy_init(CSOUND* csound, TABROWCOPY* p){
     if (numcols_to_copy > p->tabdestlen)
         return INITERR(Str("tabrowcopy: Destination table too small"));
 
-    p->maxrow = (p->tabsourcelen - *p->ioffset) / *p->inumcols - FL(2);
-
-    MSGF(Str("tabrowcopy: Max. Row = %f \n"), p->maxrow);
+    p->maxrow = (int)((p->tabsourcelen - *p->ioffset) / *p->inumcols) - 1;
+    // MSGF(Str("tabrowlin: Max. Row = %d \n"), p->maxrow);
     return OK;
 }
 
@@ -1128,6 +1124,11 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
     int i;
     MYFLT x0, x1;
     MYFLT row   = *p->krow;
+    if(row > p->maxrow) {
+        MSGF(Str(">>>> tabrowlin: row %.4f > maxrow %d! It will be clipped\n"), row, p->maxrow);
+        row = p->maxrow;
+    }
+    row = row < p->maxrow ? row : p->maxrow;
     int row0    = (int)row;
     MYFLT delta = row - row0;
     int numcols = *p->inumcols;
@@ -1148,15 +1149,17 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
         return PERFERROR(Str("tabrowcopy: krow can't be negative"));
 
     if (LIKELY(delta != 0)) {
-        if (UNLIKELY(idx1+numcols >= tabsourcelen))
+        if (UNLIKELY(idx1+numcols > tabsourcelen)) {
+            printf("krow: %f   row0: %d  idx1: %d  numcols: %d   tabsourcelen: %d\n", row, row0, idx1, numcols, tabsourcelen);
             return PERFERROR(Str("tabrowcopy: tab off end"));
+        }
         for (i=idx0; i<idx1; i+=step) {
             x0 = tabsource[i];
             x1 = tabsource[i + numcols];
             tabdest[j++] = x0 + (x1-x0)*delta;
         }
     } else {
-        if (UNLIKELY(idx1 >= tabsourcelen))
+        if (UNLIKELY(idx1 > tabsourcelen))
             return PERFERROR(Str("tabrowcopy: tab off end"));
         for (i=idx0; i<idx1; i+=step) {
             tabdest[j++] = tabsource[i];
@@ -1299,10 +1302,14 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
         p->numitems = numitems;
     }
     MYFLT row = *p->krow;
+    int maxrow = p->inarr->sizes[0] - 1;
     if(UNLIKELY(row < 0))
         return PERFERROR(Str("getrowlin: krow can't be negative"));
-    if(UNLIKELY(row > p->inarr->sizes[0] - 2))
-        return PERFERROR(Str("getrowlin: exceeded maximum row"));
+    if(UNLIKELY(row > maxrow)) {
+        MSGF(Str("getrowlin: row %.4f > maxrow %d, clipping\n"), row, maxrow);
+        row = maxrow;
+        // return PERFERROR(Str("getrowlin: exceeded maximum row"));
+    }
     int row0    = (int)row;
     MYFLT delta = row - row0;
 
@@ -1371,7 +1378,7 @@ static OENTRY localops[] = {
     {"getrowlin", S(TABROWCOPY), 0, 3, "k[]", "kiiooop", (SUBR)tabrowcopyarr_init, (SUBR)tabrowcopyarr_k},
 
     // kOut[] getrowlin kMtrx[], krow, kstart=0, kend=0, kstep=1
-    {"getrowlin", S(TABROWCOPY), 0, 3, "k[]", "k[]kOOP",  (SUBR)getrowlin_init, (SUBR)getrowlin_k },
+    {"getrowlin", S(GETROWLIN), 0, 3, "k[]", "k[]kOOP",  (SUBR)getrowlin_init, (SUBR)getrowlin_k },
 };
 
 LINKAGE
