@@ -44,7 +44,7 @@ scores and many bug fixes.
 
 ### New opcodes
 
-- fluidinfo retrieves program information from a currently loaded soundfont. 
+- fluidinfo retrieves program information from a currently loaded soundfont.
 
 - New opcode ftaudio writes a ftable to an audio file; irate and triggered
     k-rate version exist and k-rate version supports sync or async writing.
@@ -53,11 +53,15 @@ scores and many bug fixes.
 
 - OSCcount returns the number of OSC incoming messages pending
 
-- faustcompile2 [NOT DOCUMENTED]
+- faustplay and faustdsp are new opcodes splitting the faust DSP
+  instantiation and performance.
+
+- OSCbundle sends a collection of similar OSC messages as a single packet
+  for efficiency.
 
 ### New Gen and Macros
 
-- 
+-
 
 ### Orchestra
 
@@ -68,17 +72,17 @@ scores and many bug fixes.
 
 - Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
 
-- runime error message now (usually) include a line number and a file/macro trace
+- runtime error message now (usually) include a line number and a file/macro trace
 
-- multiple aasiments such as ka,kb=1,2 are again supported by the
-parser; it had inadvertantly got lost.
+- multiple assignments such as ka,kb=1,2 are again supported by the
+parser; it had inadvertently got lost.
 
 ### Score
 
 - New preprocessor option #includestr.  This is like #include but has
   macro expansion in the double-quote delimited string
 
-- 'd' score opcode for real-time performanceb.  This was issue #966.
+- 'd' score opcode for real-time performance.  This was issue #966.
 
 - bug in np operation fixed.
 
@@ -89,16 +93,16 @@ parser; it had inadvertantly got lost.
 
 - The forms for delayed ending of sections (e 5 or s 5) now work with
   fractional delays; previously only read the integer part.
-  
+
 ### Options
 
-- 
+-
 
 ### Modified Opcodes and Gens
 
 - Add optional argument to ftom for rounding answer to integer
 
-- flooper2 and syncgrain etc  now allow resampling. [IN MANUAL??]
+- flooper2 and syncgrain etc  now allow resampling.
 
 - chnclear can now take a list of channels to clear instead of just one.
 
@@ -107,15 +111,23 @@ parser; it had inadvertantly got lost.
 
 - prints and printks can take string arguments printed with %s
 
+- GEN2 can now take a size of zero, which s interpreted as size
+sufficient for the number of values provided.
+
+- faustcompile now includes a new optional parameter to allow it to be
+run in a blocking mode. Defaults (as before) to non-blocking.
+
+- fillarray can be run at k-rate if any of the argument/values are k-rate.
+
 ### Utilities
 
-- 
+- A coding error in mixer was fixed.  It was very broken.
 
 ### Frontends
 
-- Belacsound: 
+- Belacsound:
 
-- CsoundQt: 
+- CsoundQt:
 
 ### General Usage
 
@@ -153,8 +165,8 @@ parser; it had inadvertantly got lost.
 
 # SYSTEM LEVEL CHANGES
 
-- the various -zN options now reoort the number of opcodes for the request, so
-differs with respect to deprecared and polymorphic opcodes.
+- the various -zN options now reports the number of opcodes for the request, so
+differs with respect to deprecated and polymorphic opcodes.
 
 ### System Changes
 
@@ -167,13 +179,13 @@ differs with respect to deprecared and polymorphic opcodes.
 - Printing the number allocated to a named instrument now behaves the
   manual, not just for debug.
 
-- if liblo version 0.29 is avaiable csound can be built to use it (with
+- if liblo version 0.29 is available csound can be built to use it (with
   a compiler flag LIBLO29) and this fixes some bugs related to
   heavy/complex use of OSClisten.  Unfortunately the older 0.28 version
-  is being distributed by some Linux dustros.
+  is being distributed by some Linux distros.
 
 - The orchestra compiler has a number of new optimisations, avoiding
-unnecessary assignments and doing some more expression optimisatins.
+unnecessary assignments and doing some more expression optimisations.
 
 ### Translations
 
@@ -185,7 +197,7 @@ unnecessary assignments and doing some more expression optimisatins.
 
 ### Platform Specific
 
-- WebAudio: 
+- WebAudio:
 
 - iOS
 
@@ -201,15 +213,3 @@ unnecessary assignments and doing some more expression optimisatins.
  - allow analog in and out with different channel numbers
 
 ==END==
-
-
-========================================================================
-
-
-========================================================================
-commit 84b777591e72b288eb0558ca0cb6f58a8af0b263
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Fri Jul 13 11:57:37 2018 +0100
-
-    fixed window opcode
-

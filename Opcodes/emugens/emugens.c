@@ -18,7 +18,6 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
@@ -38,8 +37,9 @@
     }                                                                \
 
 #define INITERR(m) (csound->InitError(csound, "%s", m))
-#define MSG(m) (csound->Message(csound, Str(m)))
-#define MSGF(m, ...) (csound->Message(csound, Str(m), __VA_ARGS__))
+/* These  two do not work with translations */
+/* #define MSG(m) (csound->Message(csound, Str(m))) */
+/* #define MSGF(m, ...) (csound->Message(csound, Str(m), __VA_ARGS__)) */
 #define PERFERROR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 
 /* from Opcodes/arrays.c, original name: tabensure */
@@ -1608,8 +1608,8 @@ static OENTRY localops[] = {
     { "mton", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
     { "mton", S(MTON), 0, 1, "S", "i", (SUBR)mton },
 
-    { "cmp", S(Cmp), 0, 5, "a", "aSa", (SUBR)cmp_init, NULL, (SUBR)cmp_aa,},
-    { "cmp", S(Cmp), 0, 5, "a", "aSk", (SUBR)cmp_init, NULL, (SUBR)cmp_ak },
+    { "cmp", S(Cmp), 0, 3, "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
+    { "cmp", S(Cmp), 0, 3, "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },
     { "cmp", S(Cmp_array1), 0, 3, "k[]", "k[]Sk",
       (SUBR)cmparray1_init, (SUBR)cmparray1_k },
     { "cmp", S(Cmp_array1), 0, 1, "i[]", "i[]Si", (SUBR)cmparray1_i },

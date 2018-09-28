@@ -1303,7 +1303,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
                          p->fname, istring, "w", 1);
     if (UNLIKELY(n < 0))
       return NOTOK;
-    setvbuf(p->f.f, (char*)NULL, _IOLBF, BUFSIZ); /* Seems a good option */
+    //setvbuf(p->f.f, (char*)NULL, _IOLBF, BUFSIZ); /* Seems a good option */
     /* Copy the string to the storage place in PRINTKS.
      *
      * We will look out for certain special codes and write special
@@ -1516,7 +1516,7 @@ static int32_t fprintf_k(CSOUND *csound, FPRINTF *p)
     (void) csound;
     sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, "%s", string);
-
+    fflush(p->f.f);
     return OK;
 }
 
@@ -1529,7 +1529,7 @@ static int32_t fprintf_i(CSOUND *csound, FPRINTF *p)
       return NOTOK;
     sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f,"%s", string);
-    /* fflush(p->f.f); */
+    fflush(p->f.f);
     return OK;
 }
 
@@ -1541,7 +1541,7 @@ static int32_t fprintf_i_S(CSOUND *csound, FPRINTF *p)
       return NOTOK;
     sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, "%s", string);
-    /* fflush(p->f.f); */
+    fflush(p->f.f);
     return OK;
 }
 

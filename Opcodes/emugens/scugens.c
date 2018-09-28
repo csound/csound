@@ -175,7 +175,7 @@ laga_next(CSOUND *csound, LAG *p) {
 
   klagged lagud ksrc, klagtime_up, klagtime_down, initialvalue=0
   alagged lagud asrc, klagtime_up, klagtime_down, initialvalue=0
-  
+
 */
 
 
@@ -281,7 +281,8 @@ static int32_t lagud_init(CSOUND *csound, LagUD *p) {
 
 /* ------------------ Trig -------------------------
 
-   Returns 1 for a given duration whenever signal crosses from non-positive to positive
+   Returns 1 for a given duration whenever signal crosses from
+     non-positive to positive
 
    kout    trig kin, kduration
    aout    trig ain, kduration
@@ -374,7 +375,7 @@ static int32_t trig_init(CSOUND *csound, Trig *p) {
    aindex   sc_phasor  ktrig, krate, kstart, kend, kresetPos=kstart
    aindex   sc_phasor  atrig, krate, kstart, kend, kresetPos=kstart
    aindex   sc_phasor  atrig, arate, kstart, kend, kresetPos=kstart
-   
+
    Phasor is a linear ramp between start and end values. When its trigger
    input crosses from non-positive to positive, Phasor's output will jump
    to its reset position. Upon reaching the end of its ramp Phasor will wrap
@@ -448,7 +449,7 @@ phasor_a_aa(CSOUND *csound, Phasor *p) {
 static int32_t
 phasor_a_ak(CSOUND *csound, Phasor *p) {
     IGN(csound);
-    
+
     SAMPLE_ACCURATE
 
     MYFLT *in = p->trig;
@@ -478,7 +479,7 @@ phasor_a_ak(CSOUND *csound, Phasor *p) {
 static int32_t
 phasor_a_kk(CSOUND *csound, Phasor *p) {
     IGN(csound);
-    
+
     SAMPLE_ACCURATE
 
     MYFLT curin    = *p->trig;
@@ -528,15 +529,19 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 
 static OENTRY localops[] = {
     {"sc_lag",    S(LAG),    0, 3, "k", "kko",   (SUBR)lagk_init, (SUBR)lagk_next},
-    {"sc_lag",    S(LAG),    0, 5, "a", "ako",   (SUBR)laga_init, NULL, (SUBR)laga_next},
+    {"sc_lag",    S(LAG),    0, 3, "a", "ako",   (SUBR)laga_init, (SUBR)laga_next},
     {"sc_lagud",  S(LagUD),  0, 3, "k", "kkko",  (SUBR)lagud_init, (SUBR)lagud_k },
-    {"sc_lagud",  S(LagUD),  0, 5, "a", "akko",  (SUBR)lagud_init, NULL, (SUBR)lagud_a },
+    {"sc_lagud",  S(LagUD),  0, 3, "a", "akko",  (SUBR)lagud_init, (SUBR)lagud_a },
     {"sc_trig",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
-    {"sc_trig",   S(Trig),   0, 5, "a", "ak",    (SUBR)trig_init, NULL, (SUBR)trig_a },
-    {"sc_phasor", S(Phasor), 0, 3, "k", "kkkkO", (SUBR)phasor_init, (SUBR)phasor_k_kk },
-    {"sc_phasor", S(Phasor), 0, 5, "a", "akkkO", (SUBR)phasor_init, NULL, (SUBR)phasor_a_ak },
-    {"sc_phasor", S(Phasor), 0, 5, "a", "aakkO", (SUBR)phasor_init, NULL, (SUBR)phasor_a_aa },
-    {"sc_phasor", S(Phasor), 0, 5, "a", "kkkkO", (SUBR)phasor_init, NULL, (SUBR)phasor_a_kk }
+    {"sc_trig",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
+    {"sc_phasor", S(Phasor), 0, 3, "k", "kkkkO",
+     (SUBR)phasor_init, (SUBR)phasor_k_kk },
+    {"sc_phasor", S(Phasor), 0, 3, "a", "akkkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_ak },
+    {"sc_phasor", S(Phasor), 0, 3, "a", "aakkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_aa },
+    {"sc_phasor", S(Phasor), 0, 3, "a", "kkkkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_kk }
 };
 
 LINKAGE

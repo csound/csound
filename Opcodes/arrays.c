@@ -341,17 +341,19 @@ static int32_t tabiadd(CSOUND *csound, ARRAYDAT *ans,
 static int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
 {
     ARRAYDAT *left = p->left;
+    if (UNLIKELY(left->dimensions!=1))
+        return
+          csound->InitError(csound, "%s",
+                            Str("Dimension does not match in array arithmetic"));
+
+
     if (p->ans->data == left->data) {
-      printf("same ptr\n");
+      // printf("same ptr\n");
       return OK;
     }
 
     if (LIKELY(left->data)) {
       int32_t size;
-      if (UNLIKELY(left->dimensions!=1))
-        return
-          csound->InitError(csound, "%s",
-                            Str("Dimension does not match in array arithmetic"));
       size = left->sizes[0];
       tabensure(csound, p->ans, size);
       p->ans->sizes[0] = size;
@@ -583,7 +585,8 @@ static int32_t tabaisub(CSOUND *csound, TABARITH1 *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h), Str("array-variable not initialised"));
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
 
     if (l->sizes[0]<size) size = l->sizes[0];
     if (ans->sizes[0]<size) size = ans->sizes[0];
@@ -613,7 +616,8 @@ static int32_t tabiasub(CSOUND *csound, TABARITH2 *p)
 }
 
 // Multiply scalar by array
-static int32_t tabimult(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void *p)
+static int32_t tabimult(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l,
+                        MYFLT r, void *p)
 {
     int32_t size    = ans->sizes[0];
     int32_t i;
@@ -657,7 +661,8 @@ static int32_t tabaidiv(CSOUND *csound, TABARITH1 *p)
     int32_t i;
 
     if (UNLIKELY(r==FL(0.0)))
-      return csound->PerfError(csound, &(p->h), Str("division by zero in array-var"));
+      return csound->PerfError(csound, &(p->h),
+                               Str("division by zero in array-var"));
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
@@ -3573,11 +3578,10 @@ static OENTRY arrayvars_localops[] =
   {
     { "nxtpow2", sizeof(INOUT), 0, 1, "i", "i", (SUBR)nxtpow2},
     { "init.0", sizeof(ARRAYINIT), 0, 1, ".[]", "m", (SUBR)array_init },
-    { "fillarray", 0xffff },
     { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
     { "fillarray.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill },
     { "fillarray.s", sizeof(TABFILL), 0, 1, "S[]", "W", (SUBR)tabfill },
-    { "array", 0xffff },
+    { "fillarray.K", sizeof(TABFILL), 0, 2, "k[]", "z", NULL, (SUBR)tabfill },
     { "array.k", sizeof(TABFILL), _QQ, 1, "k[]", "m", (SUBR)tabfill     },
     { "array.i", sizeof(TABFILL), _QQ, 1, "i[]", "m", (SUBR)tabfill     },
     { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
@@ -3745,21 +3749,16 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabarkpow },
     {"##pow.a[k[", sizeof(TABARITH), 0, 3, "a[]", "a[]k[]",
      (SUBR)tabarithset, (SUBR)tabarkrpw },
-    { "maxtab", 0xffff},
     { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "kz", "k[]",
       (SUBR) tabqset, (SUBR) tabmax },
-    { "maxarray", 0xffff},
     { "maxarray.k", sizeof(TABQUERY), 0, 3, "kz", "k[]",
       (SUBR) tabqset,(SUBR) tabmax },
     { "maxarray.i", sizeof(TABQUERY), 0, 1, "iI", "i[]",(SUBR) tabmax1, NULL  },
-    { "mintab", 0xffff},
-    { "minarray", 0xffff},
     { "mintab.k", sizeof(TABQUERY),_QQ, 3, "kz", "k[]",
       (SUBR) tabqset, (SUBR) tabmin },
     { "minarray.k", sizeof(TABQUERY),0, 3, "kz", "k[]",(SUBR) tabqset,
       (SUBR) tabmin },
     { "minarray.i", sizeof(TABQUERY),0, 1, "iI", "i[]",(SUBR) tabmin1 },
-    { "sumarray", 0xffff},
     { "sumtab", sizeof(TABQUERY1),_QQ, 3, "k", "k[]",
       (SUBR) tabqset1, (SUBR) tabsum },
     { "sumarray.k", sizeof(TABQUERY1),0, 3, "k", "k[]",
