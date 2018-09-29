@@ -71,7 +71,7 @@ struct binamp {
 struct PVTrace2 : csnd::FPlugin<1, 2> {
   csnd::AuxMem<float> amps;
   csnd::AuxMem<binamp> binlist;
-  static constexpr char const *otypes = "fk[]";
+  static constexpr char const *otypes = "fk[]o";
   static constexpr char const *itypes = "fk";
 
   int init() {
@@ -113,7 +113,7 @@ struct PVTrace2 : csnd::FPlugin<1, 2> {
                      [thrsh, &mbins, &cnt, &bin](csnd::pv_bin f) {
                        if(f.amp() >= thrsh) {
                        mbins[cnt].bin = bin++;
-                       mbins[cnt++].amp = f.amp();
+                       mbins[cnt++].amp = f.amp(); 
                        return f;
                        }
                        else {
@@ -121,18 +121,18 @@ struct PVTrace2 : csnd::FPlugin<1, 2> {
                         return csnd::pv_bin();
                        }
                      });
-      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b) {
-          return (a.amp > b.amp);   
-      });
+      
+      if(inargs[2] > 0)
+      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b){
+          return (a.amp > b.amp);});
+      
       std::transform(binlist.begin(), binlist.begin()+cnt, bins.begin(),
                      [](binamp a) { return (MYFLT) a.bin;});
-     
       std::fill(bins.begin()+cnt, bins.end(), FL(0.0));
-      
+
       framecount = fout.count(fin.count());
     }
-    
-    
+     
     return OK;
   }
 };
