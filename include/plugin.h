@@ -363,8 +363,10 @@ public:
         data = (MYFLT *)csound->ReAlloc(csound, data, ss);
         allocated = ss;
       }
-      dimensions = 1;
-      sizes = (int *)csound->Malloc(csound, sizeof(int));
+      if(dimensions == 0) {
+        dimensions = 1;
+        sizes = (int *)csound->Malloc(csound, sizeof(int));
+      }
       sizes[0] = size;
     }
   }
