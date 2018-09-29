@@ -121,7 +121,7 @@ struct PVTrace2 : csnd::FPlugin<1, 2> {
                         return csnd::pv_bin();
                        }
                      });
-      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp &a, binamp &b) {
+      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b) {
           return (a.amp > b.amp);   
       });
       std::transform(binlist.begin(), binlist.begin()+cnt, bins.begin(),
