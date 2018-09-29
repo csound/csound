@@ -1286,8 +1286,8 @@ typedef struct {
     STRINGDAT *Sfmt;
     STRINGDAT *Slabel;
     int32_t lasttrig;
-    char *printfmt;
-    char *label;
+    const char *printfmt;
+    const char *label;
 } ARRAYPRINTK;
 
 typedef struct {
@@ -1299,7 +1299,7 @@ typedef struct {
 } ARRAYPRINT;
 
 static const uint32_t print_linelength = 80;
-static const char default_printfmt[] = "%.4f\0";
+static const char default_printfmt[] = "%.4f";
 
 
 static int32_t
@@ -1315,7 +1315,7 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
 }
 
 
-static inline void arrprint(char *fmt, int dims, MYFLT *data, int dim0, int dim1, char *label) {
+static inline void arrprint(const char *fmt, int dims, MYFLT *data, int dim0, int dim1, const char *label) {
     MYFLT *in = data;
     int32_t i, j;
     const uint32_t linelength = print_linelength;
@@ -1359,11 +1359,11 @@ static inline void arrprint(char *fmt, int dims, MYFLT *data, int dim0, int dim1
 }
 
 
-static inline void arrprinti(ARRAYPRINT *p, char* fmt) {
+static inline void arrprinti(ARRAYPRINT *p, const char* fmt) {
     int dims = p->in->dimensions;
     int dim0 = p->in->sizes[0];
     int dim1 = dims > 1 ? p->in->sizes[1] : 0;
-    char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
+    const char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
     arrprint(fmt, dims, p->in->data, dim0, dim1, label);
 }
 
@@ -1389,7 +1389,7 @@ arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
 
 static int32_t
 arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
-    char *fmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
+    const char *fmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
     arrprinti(p, fmt);
     return OK;
 }
@@ -1441,13 +1441,12 @@ ftprint_perf(CSOUND *csound, FTPRINT *p) {
     if(end < 1 || end > ftplen)
         end = ftplen;
     MYFLT *ftable = ftp->ftable;
-    char *fmt = default_printfmt;
     uint32_t i;
     int32_t numcols = (int32_t)p->numcols;
     int32_t elemsprinted = 0;
     printf("ftable %d:\n%3d: ", (int32_t)*p->ifn, start);
     for(i=start; i<end; i+=step) {
-        printf(fmt, ftable[i]) + 1;
+        printf(default_printfmt, ftable[i]) + 1;
         elemsprinted++;
         if(elemsprinted < numcols) {
             printf(" ");
