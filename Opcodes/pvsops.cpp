@@ -63,6 +63,82 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   }
 };
 
+struct binamp {
+  int bin;
+  float amp;
+};
+
+struct PVTrace2 : csnd::FPlugin<1, 2> {
+  csnd::AuxMem<float> amps;
+  csnd::AuxMem<binamp> binlist;
+  static constexpr char const *otypes = "fk[]o";
+  static constexpr char const *itypes = "fk";
+
+  int init() {
+    csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
+    if (inargs.fsig_data(0).isSliding())
+      return csound->init_error("sliding not supported");
+
+    if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
+        inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
+      return csound->init_error("fsig format not supported");
+
+    amps.allocate(csound, inargs.fsig_data(0).nbins());
+    binlist.allocate(csound, inargs.fsig_data(0).nbins());
+    csnd::Fsig &fout = outargs.fsig_data(0);
+    fout.init(csound, inargs.fsig_data(0));
+
+    bins.init(csound, inargs.fsig_data(0).nbins());
+    
+    framecount = 0;
+    return OK;
+  }
+
+  int kperf() {
+    csnd::pv_frame &fin = inargs.fsig_data(0);
+    csnd::pv_frame &fout = outargs.fsig_data(0);
+    csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
+    csnd::AuxMem<binamp> &mbins = binlist;
+
+    if (framecount < fin.count()) {
+      int n = fin.len() - (int)inargs[1];
+      float thrsh;
+      int cnt = 0;
+      int bin = 0;
+      std::transform(fin.begin(), fin.end(), amps.begin(),
+                     [](csnd::pv_bin f) { return f.amp(); });
+      std::nth_element(amps.begin(), amps.begin() + n, amps.end());
+      thrsh = amps[n];
+      std::transform(fin.begin(), fin.end(), fout.begin(),
+                     [thrsh, &mbins, &cnt, &bin](csnd::pv_bin f) {
+                       if(f.amp() >= thrsh) {
+                       mbins[cnt].bin = bin++;
+                       mbins[cnt++].amp = f.amp(); 
+                       return f;
+                       }
+                       else {
+                        bin++;
+                        return csnd::pv_bin();
+                       }
+                     });
+      
+      if(inargs[2] > 0)
+      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b){
+          return (a.amp > b.amp);});
+      
+      std::transform(binlist.begin(), binlist.begin()+cnt, bins.begin(),
+                     [](binamp a) { return (MYFLT) a.bin;});
+      std::fill(bins.begin()+cnt, bins.end(), FL(0.0));
+
+      framecount = fout.count(fin.count());
+    }
+     
+    return OK;
+  }
+};
+
+
+
 struct TVConv : csnd::Plugin<1, 6> {
   csnd::AuxMem<MYFLT> ir;
   csnd::AuxMem<MYFLT> in;
@@ -299,5 +375,6 @@ struct TPrint : csnd::Plugin<0, 1> {
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
+  csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
 }
