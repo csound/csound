@@ -78,12 +78,20 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
         CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
         p->arrayMemberSize = var->memBlockSize;
       }
-
       ss = p->arrayMemberSize*size;
-      if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
-      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+      if (p->data==NULL) {
+        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->allocated = ss;
+      }
+      else if (ss > p->allocated) {
+        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->allocated = ss;
+      }
       p->dimensions = 1;
       p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      p->sizes[0] = size;
+    }
+    else {
       p->sizes[0] = size;
     }
 }
@@ -126,7 +134,8 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
       CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,NULL);
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
-      arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
+      arrayDat->data = csound->Calloc(csound,
+                                      arrayDat->allocated=var->memBlockSize*size);
       mem = (char *) arrayDat->data;
       for (i=0; i < size; i++) {
         var->initializeVariableMemory(csound, var,
@@ -3578,11 +3587,10 @@ static OENTRY arrayvars_localops[] =
   {
     { "nxtpow2", sizeof(INOUT), 0, 1, "i", "i", (SUBR)nxtpow2},
     { "init.0", sizeof(ARRAYINIT), 0, 1, ".[]", "m", (SUBR)array_init },
-    { "fillarray", 0xffff },
     { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
     { "fillarray.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill },
     { "fillarray.s", sizeof(TABFILL), 0, 1, "S[]", "W", (SUBR)tabfill },
-    { "array", 0xffff },
+    { "fillarray.K", sizeof(TABFILL), 0, 2, "k[]", "z", NULL, (SUBR)tabfill },
     { "array.k", sizeof(TABFILL), _QQ, 1, "k[]", "m", (SUBR)tabfill     },
     { "array.i", sizeof(TABFILL), _QQ, 1, "i[]", "m", (SUBR)tabfill     },
     { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
@@ -3750,21 +3758,16 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabarkpow },
     {"##pow.a[k[", sizeof(TABARITH), 0, 3, "a[]", "a[]k[]",
      (SUBR)tabarithset, (SUBR)tabarkrpw },
-    { "maxtab", 0xffff},
     { "maxtab.k",sizeof(TABQUERY),_QQ, 3, "kz", "k[]",
       (SUBR) tabqset, (SUBR) tabmax },
-    { "maxarray", 0xffff},
     { "maxarray.k", sizeof(TABQUERY), 0, 3, "kz", "k[]",
       (SUBR) tabqset,(SUBR) tabmax },
     { "maxarray.i", sizeof(TABQUERY), 0, 1, "iI", "i[]",(SUBR) tabmax1, NULL  },
-    { "mintab", 0xffff},
-    { "minarray", 0xffff},
     { "mintab.k", sizeof(TABQUERY),_QQ, 3, "kz", "k[]",
       (SUBR) tabqset, (SUBR) tabmin },
     { "minarray.k", sizeof(TABQUERY),0, 3, "kz", "k[]",(SUBR) tabqset,
       (SUBR) tabmin },
     { "minarray.i", sizeof(TABQUERY),0, 1, "iI", "i[]",(SUBR) tabmin1 },
-    { "sumarray", 0xffff},
     { "sumtab", sizeof(TABQUERY1),_QQ, 3, "k", "k[]",
       (SUBR) tabqset1, (SUBR) tabsum },
     { "sumarray.k", sizeof(TABQUERY1),0, 3, "k", "k[]",

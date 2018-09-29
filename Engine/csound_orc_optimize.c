@@ -276,8 +276,9 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 //print_tree(csound, "X op 0 -> X\n", current);
               }
               break;
+#ifdef somefineday
             case '*':
-            case '&':           /* return zerop */
+            case '&':           /* return zero */
               {
                 TREE* tmp = current->left;
                 current->type = current->right->type;
@@ -288,6 +289,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 //print_tree(csound, "X op 0 -> 0\n", current);
                 break;
               }
+#endif
               //case '^':  /* 0 op X -> 1 */
             }
           }
@@ -307,9 +309,11 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->right = current->right->right;
                 //print_tree(csound, "0 op X -> X\n", current);
               break;
+#ifdef somefineday
             case '*':
             case '/':
             case '^':
+#endif
             case '&':
             case S_BITSHIFT_LEFT:
             case S_BITSHIFT_RIGHT: /* return 0 */

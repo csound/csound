@@ -117,6 +117,8 @@ sufficient for the number of values provided.
 - faustcompile now includes a new optional parameter to allow it to be
 run in a blocking mode. Defaults (as before) to non-blocking.
 
+- fillarray can be run at k-rate if any of the argument/values are k-rate.
+
 ### Utilities
 
 - A coding error in mixer was fixed.  It was very broken.
