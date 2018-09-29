@@ -1277,7 +1277,6 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
 
   Works with 1- and 2-dimensional arrays, at i- and k-time
 
-  See also: printarray_setfmt
 */
 
 typedef struct {
@@ -1299,8 +1298,8 @@ typedef struct {
     int32_t lasttrig;
 } ARRAYPRINT;
 
-static uint32_t print_linelength = 80;
-static char default_printfmt[64] = "%.4f\0";
+static const uint32_t print_linelength = 80;
+static const char default_printfmt[] = "%.4f\0";
 
 
 static int32_t
@@ -1395,35 +1394,6 @@ arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
     return OK;
 }
 
-/*
-    printarray_setfmt
-
-    printarray_setfmt i_linewidth, [Sfmt]
-
-    Sets the max. linewidth and the default format for any subsequent
-    call to printarray
-
-*/
-
-
-typedef struct {
-    OPDS h;
-    MYFLT *length;
-    STRINGDAT *Sfmt;
-} PRINTARRAY_SETFMT;
-
-
-static int32_t printarray_setfmt(CSOUND *cs, PRINTARRAY_SETFMT *p) {
-    uint32_t length = (uint32_t)*p->length;
-    print_linelength = length;
-    return OK;
-}
-
-static int32_t printarray_setfmt2(CSOUND *cs, PRINTARRAY_SETFMT *p) {
-    printarray_setfmt(cs, p);
-    strncpy(default_printfmt, p->Sfmt->data, p->Sfmt->size);
-    return OK;
-}
 
 /*
 
@@ -1643,9 +1613,6 @@ static OENTRY localops[] = {
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]SS", (SUBR)arrayprintf_i},
-
-    { "printarray_setfmt", S(PRINTARRAY_SETFMT), 0, 1, "", "i", (SUBR)printarray_setfmt },
-    { "printarray_setfmt", S(PRINTARRAY_SETFMT), 0, 1, "", "iS", (SUBR)printarray_setfmt2 },
 
     { "ftprint", S(FTPRINT), 0, 3, "", "iPOOPo", (SUBR)ftprint_init, (SUBR)ftprint_perf },
 
