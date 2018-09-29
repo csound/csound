@@ -355,10 +355,14 @@ public:
         arrayMemberSize = var->memBlockSize;
       }
       ss = arrayMemberSize * size;
-      if (data == NULL)
+      if (data == NULL) {
         data = (MYFLT *)csound->Calloc(csound, ss);
-      else
+        allocated = ss;
+      }
+      else if (ss > allocated) {
         data = (MYFLT *)csound->ReAlloc(csound, data, ss);
+        allocated = ss;
+      }
       dimensions = 1;
       sizes = (int *)csound->Malloc(csound, sizeof(int));
       sizes[0] = size;
