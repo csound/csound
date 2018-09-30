@@ -56,8 +56,10 @@ arrayensure(CSOUND *csound, ARRAYDAT *p, size_t size) {
             p->data = (MYFLT*)csound->Calloc(csound, ss);
         else
             p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-        p->dimensions = 1;
-        p->sizes = (int*)csound->Malloc(csound, sizeof(size_t));
+        if (p->dimensions==0) {
+          p->dimensions = 1;
+          p->sizes = (int*)csound->Malloc(csound, sizeof(size_t));
+        }
         p->sizes[0] = size;
     }
 }
