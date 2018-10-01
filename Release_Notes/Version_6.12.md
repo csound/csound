@@ -163,6 +163,8 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 - cosseg was broken for more than one segment; now OK
 
+- monitor opcode did not work correctly when using multiple processes; fixed.
+
 # SYSTEM LEVEL CHANGES
 
 - the various -zN options now reports the number of opcodes for the request, so

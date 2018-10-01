@@ -510,7 +510,8 @@ typedef struct _rawosc {
   struct sockaddr_in server_addr;
 } RAWOSC;
 
-
+#include "arrays.h"
+#if 0
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -539,6 +540,7 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
       p->sizes[0] = size;
     }
 }
+#endif
 
 static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
     RAWOSC *p = (RAWOSC *) pp;

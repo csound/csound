@@ -202,6 +202,8 @@ typedef struct {
 std::vector<std::string> searchDir(CSOUND *csound, char *directory,
                                    char *extension);
 
+#include "arrays.h"
+#if 0
 /* from Opcodes/arrays.c */
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size) {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -224,12 +226,10 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size) {
         p->dimensions = 1;
         p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
       }
-      p->sizes[0] = size;
     }
-    else {
-      p->sizes[0] = size;
-    }
+    p->sizes[0] = size;
 }
+#endif
 
 static int directory(CSOUND *csound, DIR_STRUCT *p) {
   int inArgCount = p->INOCOUNT;

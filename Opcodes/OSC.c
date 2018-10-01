@@ -1015,6 +1015,8 @@ static int32_t OSC_ahandler(const char *path, const char *types,
     return retval;
 }
 
+#include "arrays.h"
+#if 0
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -1043,6 +1045,7 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
       p->sizes[0] = size;
     }
 }
+#endif
 
 static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
 {
