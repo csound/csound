@@ -39,6 +39,7 @@
 ./Engine/symbtab.c
 ./Engine/twarp.c
 ./H/aops.h
+./H/arrays.h
 ./H/bus.h
 ./H/cmath.h
 ./H/compile_ops.h
