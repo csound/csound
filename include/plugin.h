@@ -367,8 +367,8 @@ public:
         dimensions = 1;
         sizes = (int *)csound->Malloc(csound, sizeof(int));
       }
-      sizes[0] = size;
     }
+    sizes[0] = size;
   }
 
   /** iterator type
