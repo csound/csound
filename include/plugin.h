@@ -28,6 +28,7 @@
 #define _PLUGIN_H_
 #include "csdl.h"
 #include "pstream.h"
+#include "arrays.h"
 #include <algorithm>
 #include <complex>
 #include <cstring>
@@ -347,22 +348,7 @@ public:
   /** Initialise the container
    */
   void init(Csound *csound, int size) {
-    if (data == NULL || dimensions == 0 ||
-        (dimensions == 1 && sizes[0] < size)) {
-      size_t ss;
-      if (data == NULL) {
-        CS_VARIABLE *var = arrayType->createVariable(csound, NULL);
-        arrayMemberSize = var->memBlockSize;
-      }
-      ss = arrayMemberSize * size;
-      if (data == NULL)
-        data = (MYFLT *)csound->Calloc(csound, ss);
-      else
-        data = (MYFLT *)csound->ReAlloc(csound, data, ss);
-      dimensions = 1;
-      sizes = (int *)csound->Malloc(csound, sizeof(int));
-      sizes[0] = size;
-    }
+    tabensure(csound, this, size);
   }
 
   /** iterator type

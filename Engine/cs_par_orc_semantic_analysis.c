@@ -253,6 +253,8 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       if (code&_CR) csp_set_add(csound, rr, "##chn");
       if (code&_CW) csp_set_add(csound, ww, "##chn");
       if (code&WR) csp_set_add(csound, ww, "##wri");
+      if (code&IR) csp_set_add(csound, rr, "##int");
+      if (code&IW) csp_set_add(csound, ww, "##int");
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
       if (UNLIKELY(code&_QQ)) csound->Message(csound, Str("opcode deprecated"));
     }

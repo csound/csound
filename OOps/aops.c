@@ -1725,7 +1725,7 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
           ain[n] = *sp;
           sp += csound->inchnls;
         }
-       
+
       }
     }
     return OK;

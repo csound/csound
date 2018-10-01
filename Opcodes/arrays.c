@@ -69,6 +69,8 @@ static int32_t array_del(CSOUND *csound, void *p)
 }
 #endif
 
+#include "arrays.h"
+#if 0
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -78,15 +80,23 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
         CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
         p->arrayMemberSize = var->memBlockSize;
       }
-
       ss = p->arrayMemberSize*size;
-      if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
-      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-      p->dimensions = 1;
-      p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-      p->sizes[0] = size;
+      if (p->data==NULL) {
+        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->allocated = ss;
+      }
+      else if (ss > p->allocated) {
+        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->allocated = ss;
+      }
+      if (p->dimensions==0) {
+        p->dimensions = 1;
+        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      }
     }
+    p->sizes[0] = size;
 }
+#endif
 
 static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
@@ -126,7 +136,8 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
       CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,NULL);
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
-      arrayDat->data = csound->Calloc(csound, var->memBlockSize*size);
+      arrayDat->data = csound->Calloc(csound,
+                                      arrayDat->allocated=var->memBlockSize*size);
       mem = (char *) arrayDat->data;
       for (i=0; i < size; i++) {
         var->initializeVariableMemory(csound, var,
@@ -3474,8 +3485,9 @@ static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr) {
 int32_t mfb_init(CSOUND *csound, MFB *p) {
   int32_t   L = *p->len;
   int32_t N = p->in->sizes[0];
-  if (LIKELY(L < N))
+  if (LIKELY(L < N)) {
    tabensure(csound, p->out, L);
+  }
   else
    return csound->InitError(csound, "%s",
        "mfb: filter bank size exceeds input array length");

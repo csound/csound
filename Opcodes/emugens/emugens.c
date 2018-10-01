@@ -43,6 +43,9 @@
 #define PERFERROR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 
 /* from Opcodes/arrays.c, original name: tabensure */
+#include "arrays.h"
+
+#if 0
 static inline void
 arrayensure(CSOUND *csound, ARRAYDAT *p, size_t size) {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -57,11 +60,14 @@ arrayensure(CSOUND *csound, ARRAYDAT *p, size_t size) {
             p->data = (MYFLT*)csound->Calloc(csound, ss);
         else
             p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-        p->dimensions = 1;
-        p->sizes = (int*)csound->Malloc(csound, sizeof(size_t));
+        if (p->dimensions==0) {
+          p->dimensions = 1;
+          p->sizes = (int*)csound->Malloc(csound, sizeof(size_t));
+        }
         p->sizes[0] = size;
     }
-}
+#endif
+
 
 
 /*
@@ -114,7 +120,7 @@ typedef struct {
 
 static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
     size_t numitems = p->xs->sizes[0];
-    arrayensure(csound, p->ys, numitems);
+    tabensure(csound, p->ys, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -134,7 +140,7 @@ linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
 
     int32_t numitems = p->xs->sizes[0];
     if(numitems > p->numitems) {
-        arrayensure(csound, p->ys, numitems);
+        tabensure(csound, p->ys, numitems);
         p->numitems = numitems;
     }
     MYFLT *out = p->ys->data;
@@ -167,7 +173,7 @@ blendarray_init(CSOUND *csound, BLENDARRAY *p) {
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    arrayensure(csound, p->out, numitems);
+    tabensure(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -186,7 +192,7 @@ blendarray_perf(CSOUND *csound, BLENDARRAY *p)
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
     if(numitems > p->numitems) {
-        arrayensure(csound, p->out, numitems);
+        tabensure(csound, p->out, numitems);
         p->numitems = numitems;
     }
 
@@ -453,7 +459,7 @@ typedef struct {
 
 static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
     int32_t N = p->in->sizes[0];
-    arrayensure(csound, p->out, N);
+    tabensure(csound, p->out, N);
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -498,7 +504,7 @@ static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
 
 static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
     int32_t N = p->in->sizes[0];
-    arrayensure(csound, p->out, N);
+    tabensure(csound, p->out, N);
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -774,7 +780,7 @@ cmp_init(CSOUND *csound, Cmp *p) {
 static int32_t
 cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
-    arrayensure(csound, p->out, N);
+    tabensure(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
@@ -791,7 +797,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 
     // make sure that we can put the result in `out`,
     // grow the array if necessary
-    arrayensure(csound, p->out, N);
+    tabensure(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
@@ -803,7 +809,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 static int32_t
 cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     int32_t N = p->in->sizes[0];
-    arrayensure(csound, p->out, N);
+    tabensure(csound, p->out, N);
 
     char *op1 = (char*)p->op1->data;
     int32_t op1size = p->op1->size - 1;
@@ -1160,7 +1166,7 @@ tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     if(numitems < 0) {
         return PERFERROR(Str("tab2array: can't copy a negative number of items"));
     }
-    arrayensure(csound, p->out, numitems);
+    tabensure(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -1177,7 +1183,7 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
     if(numitems < 0)
         return PERFERROR(Str("tab2array: can't copy a negative number of items"));
     if(numitems > p->numitems) {
-        arrayensure(csound, p->out, numitems);
+        tabensure(csound, p->out, numitems);
         p->numitems = numitems;
     }
     MYFLT *out   = p->out->data;
@@ -1480,7 +1486,7 @@ array_binop_init(CSOUND *csound, BINOP_AAA *p) {
     for(i=0; i<p->in1->dimensions; i++) {
         numitems *= p->in1->sizes[i];
     }
-    arrayensure(csound, p->out, numitems);
+    tabensure(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }

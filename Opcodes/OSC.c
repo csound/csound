@@ -1015,6 +1015,8 @@ static int32_t OSC_ahandler(const char *path, const char *types,
     return retval;
 }
 
+#include "arrays.h"
+#if 0
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
@@ -1024,15 +1026,26 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
         CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
         p->arrayMemberSize = var->memBlockSize;
       }
-
       ss = p->arrayMemberSize*size;
-      if (p->data==NULL) p->data = (MYFLT*)csound->Calloc(csound, ss);
-      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-      p->dimensions = 1;
-      p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      if (p->data==NULL) {
+        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->allocated = ss;
+      }
+      else if (ss > p->allocated) {
+        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->allocated = ss;
+      }
+      if (p->dimensions==0) {
+        p->dimensions = 1;
+        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      }
+      p->sizes[0] = size;
+    }
+    else {
       p->sizes[0] = size;
     }
 }
+#endif
 
 static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
 {

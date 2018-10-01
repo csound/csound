@@ -224,26 +224,40 @@ public:
   }
 };
 
+#include "arrays.h"
+#if 0
 /* from Opcodes/arrays.c */
-static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size) {
-  if (p->data == NULL || p->dimensions == 0 ||
-      (p->dimensions == 1 && p->sizes[0] < size)) {
-    size_t ss;
-    if (p->data == NULL) {
-      CS_VARIABLE *var = p->arrayType->createVariable(csound, NULL);
-      p->arrayMemberSize = var->memBlockSize;
+static inline void arrayensure(CSOUND *csound, ARRAYDAT *p, int size) {
+    tabensure(csound, p, size);
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
+      size_t ss;
+      if (p->data == NULL) {
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        p->arrayMemberSize = var->memBlockSize;
+      }
+      ss = p->arrayMemberSize*size;
+      if (p->data==NULL) {
+        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->allocated = ss;
+      }
+      else if (ss > p->allocated) {
+        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->allocated = ss;
+      }
+      if (p->dimensions==0) {
+        p->dimensions = 1;
+        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      }
+      p->sizes[0] = size;
     }
-
-    ss = p->arrayMemberSize * size;
-    if (p->data == NULL)
-      p->data = (MYFLT *)csound->Calloc(csound, ss);
-    else
-      p->data = (MYFLT *)csound->ReAlloc(csound, p->data, ss);
-    p->dimensions = 1;
-    p->sizes = (int *)csound->Malloc(csound, sizeof(int));
-    p->sizes[0] = size;
-  }
+    else {
+      p->sizes[0] = size;
+    }
 }
+#endif
+
+
 
 //Rory Walsh 2018
 class FluidInfo : public OpcodeBase<FluidInfo> {
@@ -257,30 +271,30 @@ class FluidInfo : public OpcodeBase<FluidInfo> {
 
 public:
   int32_t init(CSOUND *csound) {
-    std::vector<std::string> programs;
-    char *program;
-    mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
-    int32_t result = OK;
-    toa(iFluidSynth, fluidSynth);
+      std::vector<std::string> programs;
+      char *program;
+      mutex = csound->Create_Mutex(0);
+      LockGuard guard(csound, mutex);
+      int32_t result = OK;
+      toa(iFluidSynth, fluidSynth);
       fluid_sfont_t *fluidSoundfont =
-           fluid_synth_get_sfont(fluidSynth, 0);
+        fluid_synth_get_sfont(fluidSynth, 0);
       fluid_preset_t fluidPreset;
       fluidSoundfont->iteration_start(fluidSoundfont);
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
         while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset))
-        {
-          std::stringstream ss;
-          ss << "Bank: " << fluidPreset.get_banknum(&fluidPreset) <<
-                " Preset: " << fluidPreset.get_num(&fluidPreset) <<
+          {
+            std::stringstream ss;
+            ss << "Bank: " << fluidPreset.get_banknum(&fluidPreset) <<
+              " Preset: " << fluidPreset.get_num(&fluidPreset) <<
                 " Name: " << fluidPreset.get_name(&fluidPreset);
           programs.push_back(ss.str());
         }
 
-    tabensure(csound, outArr, programs.size());
-    STRINGDAT *strings = (STRINGDAT *)outArr->data;
+      tabensure(csound, outArr, programs.size());
+      STRINGDAT *strings = (STRINGDAT *)outArr->data;
 
     for (unsigned int i = 0; i < programs.size(); i++) {
         program = &programs[i][0u];
