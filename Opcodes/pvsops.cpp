@@ -68,7 +68,7 @@ struct binamp {
   float amp;
 };
 
-struct PVTrace2 : csnd::FPlugin<1, 2> {
+struct PVTrace2 : csnd::FPlugin<2, 3> {
   csnd::AuxMem<float> amps;
   csnd::AuxMem<binamp> binlist;
   static constexpr char const *otypes = "fk[]";
