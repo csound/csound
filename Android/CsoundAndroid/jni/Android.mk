@@ -121,6 +121,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/harmon.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pitchtrack.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/partikkel.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/shape.c  \
+$(CSOUND_SRC_ROOT)/Opcodes/tabaudio.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/tabsum.c \
 $(CSOUND_SRC_ROOT)/Opcodes/crossfm.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvlock.c  \
@@ -228,6 +229,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/ugens8.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vpvoc.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvoc.c \
 $(CSOUND_SRC_ROOT)/Opcodes/wpfilters.c \
+$(CSOUND_SRC_ROOT)/Opcodes/zak.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \
