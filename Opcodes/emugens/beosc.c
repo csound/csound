@@ -572,7 +572,7 @@ typedef struct {
     MYFLT *freqs;
     MYFLT *amps;
     MYFLT *bws;
-    int count;
+    unsigned int count;
     int inerr;
     AUXCH lphs;
     AUXCH pamp;
@@ -671,7 +671,7 @@ beadsynt_init(CSOUND *csound, BEADSYNT *p) {
         // count not specified, set it to the length of the amps table
         count = ftp->flen;
     }
-    if (ftp->flen < count) {
+    if (ftp->flen < (unsigned int)count) {
         return INITERR(Str("beadsynt: partial count > amptable size"));
     }
     p->amps = ftp->ftable;
@@ -680,7 +680,7 @@ beadsynt_init(CSOUND *csound, BEADSYNT *p) {
     if (ftp == NULL) {
         return INITERR(Str("beadsynt: freqtable not found!"));
     }
-    if (ftp->flen < count) {
+    if (ftp->flen < (unsigned int)count) {
         return INITERR(Str("beadsynt: partial count > freqtable size"));
     }
     p->freqs = ftp->ftable;
@@ -689,7 +689,7 @@ beadsynt_init(CSOUND *csound, BEADSYNT *p) {
     if (ftp == NULL) {
         return INITERR(Str("beadsynt: bandwidth table not found"));
     }
-    if (ftp->flen < count) {
+    if (ftp->flen < (unsigned int)count) {
         return INITERR(Str("beadsynt: partial count > bandwidth size"));
     }
     p->bws = ftp->ftable;
@@ -1213,7 +1213,7 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     uint32_t end   = (uint32_t)p->end;
     uint32_t step  = (uint32_t)*p->istep;
     uint32_t offset = (uint32_t)*p->ioffset;
-    uint32_t numitems = (uint32_t)ceil((end - start) / (float)step);
+    //uint32_t numitems = (uint32_t)ceil((end - start) / (float)step);
     uint32_t numcols = (uint32_t)*p->inumcols;
     MYFLT row = *p->krow;
     uint32_t row0 = (uint32_t)row;

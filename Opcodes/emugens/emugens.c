@@ -1441,7 +1441,7 @@ static int32_t
 ftprint_perf(CSOUND *csound, FTPRINT *p) {
     FUNC *ftp = p->ftp;
     int32_t start = (int32_t)*p->kstart;
-    int32_t end = (int32_t)*p->kend;
+    uint32_t end = (uint32_t)*p->kend;
     int32_t step = (int32_t)*p->kstep;
     uint32_t ftplen = ftp->flen;
     if(end < 1 || end > ftplen)
@@ -1452,7 +1452,7 @@ ftprint_perf(CSOUND *csound, FTPRINT *p) {
     int32_t elemsprinted = 0;
     printf("ftable %d:\n%3d: ", (int32_t)*p->ifn, start);
     for(i=start; i<end; i+=step) {
-        printf(default_printfmt, ftable[i]) + 1;
+      printf(default_printfmt, ftable[i]);// + 1;
         elemsprinted++;
         if(elemsprinted < numcols) {
             printf(" ");
