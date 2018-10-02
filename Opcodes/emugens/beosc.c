@@ -38,7 +38,7 @@
   beadsynt: band-enhanced additive synthesis (a bank of beosc)
   tabrowlin: copy a row of a 2D-table to another table or to an array
              (possibly selecting a slice and interpolating between two rows)
-  getrowlin: copy a row of a 2D-array to another array 
+  getrowlin: copy a row of a 2D-array to another array
              (possibly selecting a slice and interpolating between two rows)
 
 
@@ -129,7 +129,7 @@ FastRandFloat(uint32_t *seedptr) {
   which is then accessed using uniform noise. This renders an acceptable
   result for our purpose, while reducing the performance cost to simple
   uniform noise, without any logs or sqrts
-  
+
 */
 
 typedef struct {
@@ -344,7 +344,7 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
     MYFLT bw2 = sqrt( FL(2.0) * bwin );
 
     uint32_t seed;
-    
+
     switch (p->flags) {
     case 0:    // uniform noise, no interp.
         seed = p->gs.seed;
@@ -364,6 +364,7 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
         break;
     case 1:     // gaussian noise, no interp
         // gsptr = &(p->gs);
+        // **** SEED NOT INITIALISED ****
         for (n=offset; n<nsmps; n++) {
             x0 = x1; x1 = x2; x2 = x3;
             // x3 = gaussian_normal(gsptr);
@@ -392,7 +393,8 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
         }
         p->gs.seed = seed;
         break;
-    case 3:    
+    case 3:
+        // **** SEED NOT INITIALISED ****
         for (n=offset; n<nsmps; n++) {
             x0  = x1; x1 = x2; x2 = x3;
             // x3  = gaussian_normal(gsptr);
@@ -448,7 +450,7 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
     // GaussianState *gsptr;
 
     switch (p->flags) {
-    case 0:    
+    case 0:
         seed = p->gs.seed;
         for (n=offset; n<nsmps; n++) {
             x0  = x1; x1 = x2; x2 = x3;
@@ -698,7 +700,7 @@ beadsynt_init(CSOUND *csound, BEADSYNT *p) {
     p->updatearrays = 0;
     p->inerr = 0;
     p->count = count < 1 ? 1 : count;
-    
+
     return beadsynt_init_common(csound, p);
 }
 
@@ -719,14 +721,14 @@ beadsynt_init_array(CSOUND *csound, BEADSYNT *p) {
        bwsarr->dimensions != 1) {
         return INITERR(Str("The arrays should have 1 dimension"));
     }
-    
+
     int count = (int)*p->icnt;
     if (count < 0) {
         // count not specified: set it to the size of the amps array
         count = ampsarr->sizes[0];
     }
     p->count = count;
-    
+
     if(ampsarr->sizes[0] < count) {
         return INITERR(Str("Amplitudes array is too small"));
     }
@@ -817,7 +819,7 @@ beadsynt_perf(CSOUND *csound, BEADSYNT *p) {
         }
         freq = freqs[c] * freqmul;
         inc  = (int32_t) (freq * cpstoinc);
-        
+
         bwin = bws[c] * bwmul;
         bwin = bwin < 0 ? 0 : (bwin > 1 ? 1 : bwin);
         bw1  = sqrt(FL(1.0) - bwin);
@@ -1074,8 +1076,8 @@ beadsynt_perf(CSOUND *csound, BEADSYNT *p) {
     istart = 0
     iend = 0
     istep = 3
-    tabrowlin krow, ifnsrc, ifndest, inumoscil*istep, ioffset, istart, iend, istep 
-    
+    tabrowlin krow, ifnsrc, ifndest, inumoscil*istep, ioffset, istart, iend, istep
+
  */
 
 typedef struct {
@@ -1219,12 +1221,12 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     uint32_t numcols = (uint32_t)*p->inumcols;
     MYFLT row = *p->krow;
     uint32_t row0 = (uint32_t)row;
-    MYFLT delta = row - row0;    
+    MYFLT delta = row - row0;
     uint32_t tabsourcelen = p->tabsourcelen;
     MYFLT *out = p->outarr->data;
     MYFLT *tabsource = p->tabsource;
     MYFLT x0, x1;
-    
+
     if(UNLIKELY(row < 0)) {
         return PERFERROR(Str("krow can't be negative"));
     }
@@ -1266,7 +1268,7 @@ typedef struct {
   kOut[] getrowlin kMtrx[], krow, kstart=0, kend=0, kstep=1
 
   Given a 2D array kMtrx, get a row of this array (possibly a slice [kstart:kend:kstep]).
-  If krow is not an integer, the values are the result of the interpolation between 
+  If krow is not an integer, the values are the result of the interpolation between
   two rows
 
 */
