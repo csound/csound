@@ -1111,7 +1111,7 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
     if(end < 1)
         end = ftpsrc->flen;
     uint32_t numitems = (uint32_t)ceil((end - start) / (float)step);
-    if(numitems > ftpdst->flen)
+    if (numitems > ftpdst->flen)
         numitems = ftpdst->flen;
     MYFLT *src = ftpsrc->ftable;
     MYFLT *dst = ftpdst->ftable;
@@ -1605,11 +1605,11 @@ static OENTRY localops[] = {
     { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", ".[]io", (SUBR)arrayreshape},
     // { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]io", (SUBR)arrayreshape},
     // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
-    { "ftslice", S(TABSLICE),  0, 3, "", "iiOOP",
+    { "ftslice", S(TABSLICE),  TB, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
-    { "tab2array", S(TAB2ARRAY), 0, 3, "k[]", "iOOP",
+    { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
-    { "tab2array", S(TAB2ARRAY), 0, 1, "i[]", "ioop", (SUBR)tab2array_i},
+    { "tab2array", S(TAB2ARRAY), TR, 1, "i[]", "ioop", (SUBR)tab2array_i},
 
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]P", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kS", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
@@ -1619,7 +1619,7 @@ static OENTRY localops[] = {
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]SS", (SUBR)arrayprintf_i},
 
-    { "ftprint", S(FTPRINT), 0, 3, "", "iPOOPo", (SUBR)ftprint_init, (SUBR)ftprint_perf },
+    { "ftprint", S(FTPRINT), TR, 3, "", "iPOOPo", (SUBR)ftprint_init, (SUBR)ftprint_perf },
 
 };
 
