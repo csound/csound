@@ -464,7 +464,8 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
         }
         p->gs.seed = seed;
         break;
-    case 1:     
+    case 1:
+      // *** SEED NOT IITIALISED ****
         for (n=offset; n<nsmps; n++) {
             x0 = x1; x1 = x2; x2 = x3;
             // x3 = gaussian_normal(gsptr);
@@ -496,6 +497,7 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
         p->gs.seed = seed;
         break;
     case 3:    // + interp
+      // **** SEED NOT NITIALISED ****
         for (n=offset; n<nsmps; n++) {
             x0 = x1; x1 = x2; x2 = x3;
             // x3 = gaussian_normal(gsptr);
