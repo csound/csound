@@ -343,11 +343,10 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
     MYFLT bw1 = sqrt( FL(1.0) - bwin );
     MYFLT bw2 = sqrt( FL(2.0) * bwin );
 
-    uint32_t seed;
-
+    uint32_t seed = p->gs.seed;
+    
     switch (p->flags) {
     case 0:    // uniform noise, no interp.
-        seed = p->gs.seed;
         for (n=offset; n<nsmps; n++) {
             x0 = x1; x1 = x2; x2 = x3;
             // kelly uses 6. / GAIN
@@ -360,14 +359,11 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
                      * (bw1 + ( y3 * bw2 ));
             phase += phaseinc;
         }
-        p->gs.seed = seed;
+        
         break;
     case 1:     // gaussian noise, no interp
-        // gsptr = &(p->gs);
-        // **** SEED NOT INITIALISED ****
         for (n=offset; n<nsmps; n++) {
             x0 = x1; x1 = x2; x2 = x3;
-            // x3 = gaussian_normal(gsptr);
             x3  = GAUSSIANS_GET(&seed);
             x3 *= FL(0.00012864661681256);  // kelly uses 6. / GAIN
             y0  = y1; y1 = y2; y2 = y3;
@@ -379,7 +375,6 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
         }
         break;
     case 2:
-        seed = p->gs.seed;
         for (n=offset; n<nsmps; n++) {
             x0  = x1; x1 = x2; x2 = x3;
             x3  = (FastRandFloat(&seed) * FL(2.0) - FL(1.0));
@@ -391,13 +386,10 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
                      * (bw1 + ( y3 * bw2 ));
             phase += phaseinc;
         }
-        p->gs.seed = seed;
         break;
     case 3:
-        // **** SEED NOT INITIALISED ****
         for (n=offset; n<nsmps; n++) {
             x0  = x1; x1 = x2; x2 = x3;
-            // x3  = gaussian_normal(gsptr);
             x3  = GAUSSIANS_GET(&seed);
             x3 *= FL(0.00012864661681256); // kelly uses 6. / GAIN
             y0  = y1; y1 = y2; y2 = y3;
@@ -409,6 +401,7 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
         }
         break;
     }
+    p->gs.seed = seed;
     p->phase = phase;
     p->x1    = x1; p->x2 = x2; p->x3 = x3;
     p->y1    = y1; p->y2 = y2; p->y3 = y3;
@@ -442,7 +435,7 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
     MYFLT bw1 = sqrt( FL(1.0) - bwin );
     MYFLT bw2 = sqrt( FL(2.0) * bwin );
 
-    uint32_t seed;
+    uint32_t seed = p->gs.seed;
 
     MYFLT freq,
           cpstoinc = p->cpstoinc;
@@ -451,7 +444,6 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
 
     switch (p->flags) {
     case 0:
-        seed = p->gs.seed;
         for (n=offset; n<nsmps; n++) {
             x0  = x1; x1 = x2; x2 = x3;
             x3  = FastRandFloat(&seed) * FL(2.0) - FL(1.0);
@@ -464,10 +456,9 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
             freq   = freqptr[n];
             phase += (int32_t)(cpstoinc * freq);
         }
-        p->gs.seed = seed;
+        
         break;
     case 1:
-      // *** SEED NOT IITIALISED ****
         for (n=offset; n<nsmps; n++) {
             x0 = x1; x1 = x2; x2 = x3;
             // x3 = gaussian_normal(gsptr);
@@ -483,7 +474,6 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
         }
         break;
     case 2:    // + interp
-        seed = p->gs.seed;
         for (n=offset; n<nsmps; n++) {
             x0  = x1; x1 = x2; x2 = x3;
             x3  = FastRandFloat(&seed) * FL(2.0) - FL(1.0);
@@ -499,7 +489,6 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
         p->gs.seed = seed;
         break;
     case 3:    // + interp
-      // **** SEED NOT NITIALISED ****
         for (n=offset; n<nsmps; n++) {
             x0 = x1; x1 = x2; x2 = x3;
             // x3 = gaussian_normal(gsptr);
@@ -515,7 +504,7 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
         }
         break;
     }
-
+    p->gs.seed = seed;
     p->phase = phase;
     p->x1    = x1; p->x2 = x2; p->x3 = x3;
     p->y1    = y1; p->y2 = y2; p->y3 = y3;
