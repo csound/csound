@@ -59,6 +59,12 @@ scores and many bug fixes.
 - OSCbundle sends a collection of similar OSC messages as a single packet
   for efficiency.
 
+- beosc and beadsyn are band enhanced oscillator and oscillatot bank.
+  bpfcos is for breakpont files withe interpolation.  Similary lincos
+  adds cosine interpolation to linlin.
+
+- printarray and reshapearray act on arrays.
+
 ### New Gen and Macros
 
 -
