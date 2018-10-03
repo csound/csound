@@ -32,6 +32,14 @@ encouraged.  Any use of external libraries which introduces new
 dependencies is a potential problem and may be best discussed with the
 core team.
 
+Note that Csound is compiled with -Werror so code must be clean; no
+unused variables, no mixing of signed and unsigned integers etc.
+
+In the OENTRY list take care to include the semantic information in
+the third field if the opcode reads or writes ftables, ZAK or
+channels, or prints things other than messages.  If in doubt ask.
+Also note that the fourth field should have values 1,2, or 3.  Not 4
+or 5.
 
 Formatting/Indentation
 ----------------------
@@ -100,3 +108,4 @@ Probably easiest as a pull request on github, but direct mail to the
 developers' mailing list or direct contact with a core developer are OK.
 
 ==JPff 2017 Dec 14
+  updated 2018 Oct 03
