@@ -3582,6 +3582,65 @@ int32_t nxtpow2(CSOUND *csound, INOUT *p) {
     return OK;
 }
 
+
+typedef struct interl{
+  OPDS h;
+  ARRAYDAT *a;
+  ARRAYDAT *b;
+  ARRAYDAT *c;
+} INTERL;
+
+
+int32_t interleave_i (CSOUND *csound, INTERL *p) {
+  if(p->b->dimensions == 1 &&
+     p->c->dimensions == 1 &&
+     p->b->sizes[0] == p->c->sizes[0]) {
+    int32_t len = p->b->sizes[0], i,j;
+    tabensure(csound, p->a, len*2);
+    for(i = 0, j = 0; i < len; i++,j+=2) {
+      p->a->data[j] =  p->b->data[i];
+      p->a->data[j+1] = p->c->data[i];
+    }
+    return OK;
+  }
+  return csound->InitError(csound, "array inputs not in correct format\n");
+}
+
+int32_t interleave_perf (CSOUND *csound, INTERL *p) {
+    int32_t len = p->b->sizes[0], i,j;
+    for(i = 0, j = 0; i < len; i++,j+=2) {
+      p->a->data[j] =  p->b->data[i];
+      p->a->data[j+1] = p->c->data[i];
+    }
+    return OK;
+}
+
+int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
+  if(p->c->dimensions == 1) {
+    int32_t len = p->c->sizes[0]/2, i,j;
+    tabensure(csound, p->a, len);
+    tabensure(csound, p->b, len);
+    for(i = 0, j = 0; i < len; i++,j+=2) {
+      p->a->data[i] =  p->c->data[j];
+      p->b->data[i] = p->c->data[j+1];
+    }
+    return OK;
+  }
+  return csound->InitError(csound, "array inputs not in correct format\n");
+}
+
+int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {
+    int32_t len = p->c->sizes[0]/2, i,j;
+    for(i = 0, j = 0; i < len; i++,j+=2) {
+      p->a->data[i] =  p->c->data[j];
+      p->b->data[i] = p->c->data[j+1];
+    }
+    return OK;
+}
+
+
+
+
 // reverse, scramble, mirror, stutter, rotate, ...
 // jpff: stutter is an interesting one (very musical). It basically
 //          randomly repeats (holds) values based on a probability parameter
@@ -3917,7 +3976,15 @@ static OENTRY arrayvars_localops[] =
     {"centroid", sizeof(CENTR), 0, 1, "i","i[]",
      (SUBR) array_centroid, NULL, NULL},
     {"centroid", sizeof(CENTR), 0, 2, "k","k[]", NULL,
-     (SUBR)array_centroid, NULL}
+     (SUBR)array_centroid, NULL},
+    {"interleave", sizeof(INTERL), 0, 1, "i","i[]",
+     (SUBR)interleave_i},
+    {"interleave", sizeof(INTERL), 0, 1, "k","k[]", 
+     (SUBR)interleave_i, (SUBR) interleave_perf},
+    {"deinterleave", sizeof(INTERL), 0, 1, "i","i[]",
+     (SUBR)deinterleave_i},
+    {"deinterleave", sizeof(INTERL), 0, 1, "k","k[]",
+     (SUBR)deinterleave_i, (SUBR)deinterleave_perf}
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)
