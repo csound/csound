@@ -68,8 +68,8 @@
         memset(&out[nsmps], '\0', early*sizeof(MYFLT));                  \
     }                                                                \
 
-#define MSG(m) (csound->Message(csound, Str(m)))
-#define MSGF(m, ...) (csound->Message(csound, Str(m), __VA_ARGS__))
+#define MSG(m) (csound->Message(csound, m))
+#define MSGF(m, ...) (csound->Message(csound, m, __VA_ARGS__))
 
 #define INITERR(m) (csound->InitError(csound, m))
 #define PERFERROR(m) (csound->PerfError(csound, &(p->h), "%s", m))
@@ -582,7 +582,6 @@ beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
     int32_t *lphs;
     unsigned int c;
     unsigned int count = p->count;
-
     MYFLT iphs = *p->iphs;
     MYFLT sr   = csound->GetSr(csound);
     p->inerr = 0;
@@ -615,11 +614,12 @@ beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
             return INITERR(Str("beadsynt: phasetable not found"));
         }
         if (phasetp->flen < count) {
-            MSGF(Str("phase table too small (%d elements < %d oscillators), using random values"), phasetp->flen, count);
+            // we can't use the given table because it is too small, we choose not to fail
+            // but use random values (the default), and print an error message
+            csound->Message(csound, Str("phase table too small (%d elements < %d oscillators), using random values"), phasetp->flen, count);
             uint32_t seed = csound->GetRandomSeedFromTime();
             for (c=0; c<count; c++) {
                 lphs[c] = (int32_t)(FastRandFloat(&seed) * FMAXLEN) & PHMASK;
-                
             }
         } else {
             // use table to fill the phases
@@ -1118,7 +1118,6 @@ tabrowcopy_init(CSOUND* csound, TABROWCOPY* p){
         return INITERR(Str("tabrowcopy: Destination table too small"));
 
     p->maxrow = (int)((p->tabsourcelen - *p->ioffset) / *p->inumcols) - 1;
-    // MSGF(Str("tabrowlin: Max. Row = %d \n"), p->maxrow);
     return OK;
 }
 
@@ -1365,14 +1364,14 @@ Input types:
 
 static OENTRY localops[] = {
     // aout beosc xfreq, kbw, ifn=-1, iphase=0, iflags=1
-    {"beosc", S(BEOSC), 0, 5, "a", "kkjop", (SUBR)beosc_init, NULL, (SUBR)beosc_kkiii },
-    {"beosc", S(BEOSC), 0, 5, "a", "akjop", (SUBR)beosc_init, NULL, (SUBR)beosc_akiii },
+    {"beosc", S(BEOSC), TR, 3, "a", "kkjop", (SUBR)beosc_init, (SUBR)beosc_kkiii },
+    {"beosc", S(BEOSC), TR, 3, "a", "akjop", (SUBR)beosc_init, (SUBR)beosc_akiii },
 
     // aout beadsynt ifreqft, iampft, ibwft, inumosc, iflags=1, kfreq=1, kbw=1, ifn=-1, iphs=-1
-    {"beadsynt", S(BEADSYNT), 0, 5, "a", "iiijpPPjj", (SUBR)beadsynt_init, NULL, (SUBR)beadsynt_perf },
+    {"beadsynt", S(BEADSYNT), TR, 3, "a", "iiijpPPjj", (SUBR)beadsynt_init, (SUBR)beadsynt_perf },
 
     // aout beadsynt kFreq[], kAmp[], kBw[], inumosc=-1, iflags=1, kfreq=1, kbw=1, ifn=-1, iphs=-1
-    {"beadsynt", S(BEADSYNT), 0, 5, "a", "k[]k[]k[]jpPPjj", (SUBR)beadsynt_init_array, NULL, (SUBR)beadsynt_perf },
+    {"beadsynt", S(BEADSYNT), TR, 3, "a", "k[]k[]k[]jpPPjj", (SUBR)beadsynt_init_array, (SUBR)beadsynt_perf },
 
     // tabrowlin krow, ifnsrc, ifndest, inumcols, ioffset=0, istart=0, iend=0, istep=1
     {"tabrowlin", S(TABROWCOPY), 0, 3, "", "kiiiooop",  (SUBR)tabrowcopy_init, (SUBR)tabrowcopyk },

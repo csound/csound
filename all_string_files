@@ -238,6 +238,7 @@
 ./Opcodes/dssi4cs/src/ladspa.h
 ./Opcodes/dssi4cs/src/load.c
 ./Opcodes/dssi4cs/src/utils.h
+./Opcodes/emugens/beosc.c
 ./Opcodes/emugens/emugens.c
 ./Opcodes/emugens/scugens.c
 ./Opcodes/eqfil.c
