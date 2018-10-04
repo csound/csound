@@ -573,13 +573,11 @@ typedef struct {
     int updatearrays;
 } BEADSYNT;
 
-
 static int32_t
 beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
     FILTCOEFS *filtcoefs;
     int32_t *lphs;
     unsigned int c, count = p->count;
-
     MYFLT iphs = *p->iphs;
     MYFLT sr   = csound->GetSr(csound);
     p->inerr = 0;
@@ -594,25 +592,37 @@ beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
     lphs = (int32*)p->lphs.auxp;
 
     if (iphs < 0) {
-      // init phase with random values
+        // init phase with random values
         uint32_t seed = csound->GetRandomSeedFromTime();
         for (c=0; c<count; c++) {
             lphs[c] = (int32_t)(FastRandFloat(&seed) * FMAXLEN) & PHMASK;
         }
     } else if (iphs <= 1) {
-      // between 0 and 1, use this number as phase
+        // between 0 and 1, use this number as phase 
         for (c=0; c<count; c++) {
             lphs[c] = ((int32_t)(iphs * FMAXLEN)) & PHMASK;
         }
-    } else {  // iphs is the number of a table containing the phases
+    } else {
+        // iphs is the number of a table containing the phases, use this table
         FUNC *phasetp = csound->FTnp2Find(csound, p->iphs);
         if (phasetp == NULL) {
             p->inerr = 1;
             return INITERR(Str("beadsynt: phasetable not found"));
         }
-        for (c=0; c<count; c++) {
-            MYFLT ph = phasetp->ftable[c];
-            lphs[c] = ((int32_t)(ph * FMAXLEN)) & PHMASK;
+        if (phasetp->flen < count) {
+            // we can't use the given table because it is too small, we choose not to fail
+            // but use random values (the default), and print an error message
+            csound->Message(csound, Str("phase table too small (%d elements < %d oscillators), using random values"), phasetp->flen, count);
+            uint32_t seed = csound->GetRandomSeedFromTime();
+            for (c=0; c<count; c++) {
+                lphs[c] = (int32_t)(FastRandFloat(&seed) * FMAXLEN) & PHMASK;
+            }
+        } else {
+            // use table to fill the phases
+            for (c=0; c<count; c++) {
+                MYFLT ph = phasetp->ftable[c];
+                lphs[c] = ((int32_t)(ph * FMAXLEN)) & PHMASK;
+            }
         }
     }
 
