@@ -61,15 +61,12 @@
     uint32_t n, nsmps = CS_KSMPS;                                    \
     MYFLT *out = p->out;                                             \
     uint32_t offset = p->h.insdshead->ksmps_offset;                  \
-    uint32_t early  = p->h.insdshead->ksmps_no_end;                   \
+    uint32_t early  = p->h.insdshead->ksmps_no_end;                  \
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
     if (UNLIKELY(early)) {                                           \
-        nsmps -= early;                                                  \
-        memset(&out[nsmps], '\0', early*sizeof(MYFLT));                  \
+        nsmps -= early;                                              \
+        memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
     }                                                                \
-
-#define MSG(m) (csound->Message(csound, m))
-#define MSGF(m, ...) (csound->Message(csound, m, __VA_ARGS__))
 
 #define INITERR(m) (csound->InitError(csound, m))
 #define PERFERROR(m) (csound->PerfError(csound, &(p->h), "%s", m))
@@ -580,8 +577,7 @@ static int32_t
 beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
     FILTCOEFS *filtcoefs;
     int32_t *lphs;
-    unsigned int c;
-    unsigned int count = p->count;
+    unsigned int c, count = p->count;
     MYFLT iphs = *p->iphs;
     MYFLT sr   = csound->GetSr(csound);
     p->inerr = 0;
@@ -607,7 +603,7 @@ beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
             lphs[c] = ((int32_t)(iphs * FMAXLEN)) & PHMASK;
         }
     } else {
-        // iphs is the number of a table containing the phases
+        // iphs is the number of a table containing the phases, use this table
         FUNC *phasetp = csound->FTnp2Find(csound, p->iphs);
         if (phasetp == NULL) {
             p->inerr = 1;
@@ -1127,8 +1123,10 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
     MYFLT x0, x1;
     MYFLT row   = *p->krow;
     if(row > p->maxrow) {
-        MSGF(Str(">>>> tabrowlin: row %.4f > maxrow %d! It will be clipped\n"), row, p->maxrow);
-        row = p->maxrow;
+        csound->Message(csound, Str(">>>> tabrowlin: row %.4f > maxrow %d! "
+                                    "It will be clipped\n"),
+                        row, p->maxrow);
+       row = p->maxrow;
     }
     row = row < p->maxrow ? row : p->maxrow;
     int row0    = (int)row;
@@ -1152,7 +1150,8 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
 
     if (LIKELY(delta != 0)) {
         if (UNLIKELY(idx1+numcols > tabsourcelen)) {
-            printf("krow: %f   row0: %d  idx1: %d  numcols: %d   tabsourcelen: %d\n", row, row0, idx1, numcols, tabsourcelen);
+            printf("krow: %f   row0: %d  idx1: %d  numcols: %d   tabsourcelen: %d\n",
+                   row, row0, idx1, numcols, tabsourcelen);
             return PERFERROR(Str("tabrowcopy: tab off end"));
         }
         for (i=idx0; i<idx1; i+=step) {
@@ -1308,7 +1307,8 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     if(UNLIKELY(row < 0))
         return PERFERROR(Str("getrowlin: krow can't be negative"));
     if(UNLIKELY(row > maxrow)) {
-        MSGF(Str("getrowlin: row %.4f > maxrow %d, clipping\n"), row, maxrow);
+        csound->Message(csound, Str("getrowlin: row %.4f > maxrow %d, clipping\n"),
+                        row, maxrow);
         row = maxrow;
         // return PERFERROR(Str("getrowlin: exceeded maximum row"));
     }
@@ -1335,7 +1335,7 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     return OK;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 
 /*
