@@ -970,9 +970,8 @@ static OENTRY vbap_localops[] = {
   { "vbap.A",      S(VBAPA), TR, 3,  "a[]",    "akOOo",
     (SUBR) vbap_init_a,    (SUBR) vbap_a               },
   { "vbap4",      S(VBAP),
-    TR|_QQ, 3,  "aaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    TR|_QQ, 3,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-    
     "akOOo", (SUBR) vbap_init, (SUBR) vbap },
   { "vbap8",      S(VBAP),
     TR|_QQ, 3,  "aaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
