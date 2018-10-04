@@ -1123,9 +1123,9 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
     MYFLT x0, x1;
     MYFLT row   = *p->krow;
     if(row > p->maxrow) {
-        csound->Message(csound, Str(">>>> tabrowlin: row %.4f > maxrow %d! "
-                                    "It will be clipped\n"),
-                        row, p->maxrow);
+      csound->Message(csound, Str(">>>> tabrowlin: row %.4f > maxrow %d! "
+                                  "It will be clipped\n"),
+                      row, p->maxrow);
        row = p->maxrow;
     }
     row = row < p->maxrow ? row : p->maxrow;
@@ -1307,10 +1307,10 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     if(UNLIKELY(row < 0))
         return PERFERROR(Str("getrowlin: krow can't be negative"));
     if(UNLIKELY(row > maxrow)) {
-        csound->Message(csound, Str("getrowlin: row %.4f > maxrow %d, clipping\n"),
-                        row, maxrow);
-        row = maxrow;
-        // return PERFERROR(Str("getrowlin: exceeded maximum row"));
+      csound->Message(csound, Str("getrowlin: row %.4f > maxrow %d, clipping\n"),
+                      row, maxrow);
+      row = maxrow;
+      // return PERFERROR(Str("getrowlin: exceeded maximum row"));
     }
     int row0    = (int)row;
     MYFLT delta = row - row0;
