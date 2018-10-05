@@ -83,6 +83,8 @@ scores and many bug fixes.
 - multiple assignments such as ka,kb=1,2 are again supported by the
 parser; it had inadvertently got lost.
 
+- the problematic se f i()with an array element directy is now flagged as an error.
+
 ### Score
 
 - New preprocessor option #includestr.  This is like #include but has

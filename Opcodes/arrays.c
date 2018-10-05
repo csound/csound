@@ -3979,7 +3979,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR)array_centroid, NULL},
     {"interleave", sizeof(INTERL), 0, 1, "i[]","i[]i[]",
      (SUBR)interleave_i},
-    {"interleave", sizeof(INTERL), 0, 1, "k[]","k[]k[]", 
+    {"interleave", sizeof(INTERL), 0, 1, "k[]","k[]k[]",
      (SUBR)interleave_i, (SUBR) interleave_perf},
     {"deinterleave", sizeof(INTERL), 0, 1, "i[]i[]","i[]",
      (SUBR)deinterleave_i},
