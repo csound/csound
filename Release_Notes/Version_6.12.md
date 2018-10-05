@@ -81,9 +81,10 @@ scores and many bug fixes.
 - runtime error message now (usually) include a line number and a file/macro trace
 
 - multiple assignments such as ka,kb=1,2 are again supported by the
-parser; it had inadvertently got lost.
+  parser; it had inadvertently got lost.
 
-- the problematic se f i()with an array element directy is now flagged as an error.
+- the problematic use of i() with an array element directy is now
+  flagged as an error.
 
 ### Score
 
