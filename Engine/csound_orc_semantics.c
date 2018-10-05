@@ -326,7 +326,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         if (tree->right->type == T_ARRAY &&
             tree->right->left->type == T_IDENT &&
             isirate(/*csound,*/ tree->right->right)) {
-          //printf("OK array case\n");
+          synterr(csound, Str("Use of i() with array element ill formed\n"));
         }
         else
           if (UNLIKELY(tree->right->type != LABEL_TOKEN))
