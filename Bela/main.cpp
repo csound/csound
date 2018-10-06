@@ -442,34 +442,37 @@ int main(int argc, const char *argv[]) {
   CsData csData;
   int c;
   bool res = false;
-  BelaInitSettings settings;
+  BelaInitSettings* settings;
+  settings = Bela_InitSettings_alloc();
   const option opt[] = {{"csd", required_argument, NULL, 'f'},
 			{"help", 0, NULL, 'h'},
 			{NULL, 0, NULL, 0}};
   
-  Bela_defaultSettings(&settings);
-  settings.setup = csound_setup;
-  settings.render = csound_render;
-  settings.cleanup = csound_cleanup;
-  settings.highPerformanceMode = 1;
-  settings.interleave = 1;
-  settings.analogOutputsPersist = 0;
+  Bela_defaultSettings(settings);
+  settings->setup = csound_setup;
+  settings->render = csound_render;
+  settings->cleanup = csound_cleanup;
+  settings->highPerformanceMode = 1;
+  settings->interleave = 1;
+  settings->analogOutputsPersist = 0;
 
-  while((c = Bela_getopt_long(argc, (char **) argv, "hf", opt, &settings)) >= 0) {
+  while((c = Bela_getopt_long(argc, (char **) argv, "hf", opt, settings)) >= 0) {
     if (c == 'h') {
       usage(argv[0]);
+      Bela_InitSettings_free(settings);
       return 1;
     } else if (c == 'f') {
       csData.csdfile = optarg;
       res = true;
     } else {
       usage(argv[0]);
+      Bela_InitSettings_free(settings);
       return 1;
     }
   }
   
   if(res) {
-    res = Bela_initAudio(&settings, &csData);
+    res = Bela_initAudio(settings, &csData);
     if(!res){
       if(Bela_startAudio() == 0) {
          while(csData.res == 0)
@@ -480,8 +483,10 @@ int main(int argc, const char *argv[]) {
     } else
       std::cerr << "error initialising Bela \n";
     Bela_cleanupAudio();
+    Bela_InitSettings_free(settings);
     return 0;
   }
   std::cerr << "no csd provided, use --csd=name \n";
+  Bela_InitSettings_free(settings);
   return 1;
 }
