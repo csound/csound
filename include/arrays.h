@@ -47,7 +47,7 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
         p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
       }
     }
-     p->sizes[0] = size;
+    //p->sizes[0] = size;
 }
 
 
