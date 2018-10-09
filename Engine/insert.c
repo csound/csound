@@ -1404,13 +1404,16 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* if none was found, allocate a new instance */
     tp = csound->engineState.instrtxtp[instno];
     if (tp == NULL) {
-      return csound->InitError(csound, "Can't find instr %d (UDO %s)\n",
+      return csound->InitError(csound, "Cannot find instr %d (UDO %s)\n",
                                instno, inm->name);
     }
     if (!tp->act_instance)
       instance(csound, instno);
     lcurip = tp->act_instance;            /* use free intance, and  */
     tp->act_instance = lcurip->nxtact;    /* remove from chain      */
+    if (lcurip->opcod_iobufs==NULL)
+      return csound->InitError(csound, "Triuble ahead; broken UDO %d (UDO %s)\n",
+                               instno, inm->name);
     lcurip->actflg++;                     /*    and mark the instr active */
     tp->active++;
     tp->instcnt++;

@@ -569,9 +569,12 @@ int add_udo_definition(CSOUND *csound, char *opname,
     csound->opcodeInfo = inm;
 
     if (opc != NULL) {
+      printf("**** Redefining case: %s %s %s\n",
+             inm->name, inm->outtypes, inm->intypes);
       opc->useropinfo = inm;
       newopc = opc;
     } else {
+      printf("****New UDO: %s %s %s\n", inm->name, inm->outtypes, inm->intypes);
       /* IV - Oct 31 2002: */
       /* create a fake opcode so we can call it as such */
       opc = find_opcode(csound, "##userOpcode");
@@ -597,6 +600,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     }
 
+    printf("****Calling parse_opcode_args\n");
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
       return -3;
 

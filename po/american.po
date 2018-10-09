@@ -3163,8 +3163,8 @@ msgid "cannot get rawmidi information %d:%d:%d: %s\n"
 msgstr "can't get rawmidi information %d:%d:%d: %s\n"
 
 #: InOut/rtalsa.c:1810
-msgid "can't open sequencer\n"
-msgstr ""
+msgid "cannot open sequencer\n"
+msgstr "can't open sequencer\n"
 
 #: InOut/rtalsa.c:1853
 msgid "rtalsa: Wrong callback."
