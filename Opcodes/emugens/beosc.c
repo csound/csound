@@ -1097,7 +1097,7 @@ tabrowcopy_init(CSOUND* csound, TABROWCOPY* p){
 
     int end = *p->iend;
     if(end > *p->inumcols)
-      return INITERR(Str("tabrowcopy: iend can't be bigger than numcols"));
+      return INITERR(Str("tabrowcopy: iend cannot be bigger than numcols"));
 
     if(end == 0)
       end = *p->inumcols;
@@ -1141,7 +1141,7 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
     int j    = 0;
 
     if(UNLIKELY(row < 0))
-      return PERFERROR(Str("tabrowcopy: krow can't be negative"));
+      return PERFERROR(Str("tabrowcopy: krow cannot be negative"));
 
     if (LIKELY(delta != 0)) {
       if (UNLIKELY(idx1+numcols > tabsourcelen)) {
@@ -1187,7 +1187,7 @@ tabrowcopyarr_init(CSOUND *csound, TABROWCOPYARR *p) {
     uint32_t end   = (uint32_t)*p->iend;
     uint32_t step  = (uint32_t)*p->istep;
     if(end > *p->inumcols)
-      return INITERR(Str("tabrowlin: iend can't be bigger than numcols"));
+      return INITERR(Str("tabrowlin: iend cannot be bigger than numcols"));
     if(end == 0)
       end = *p->inumcols;
     if(end <= start) {
@@ -1221,7 +1221,7 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     MYFLT x0, x1;
 
     if(UNLIKELY(row < 0)) {
-      return PERFERROR(Str("krow can't be negative"));
+      return PERFERROR(Str("krow cannot be negative"));
     }
     // TODO : check maxrow
     uint32_t idx0 = offset + numcols * row0 + start;
@@ -1301,7 +1301,7 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     MYFLT row = *p->krow;
     int maxrow = p->inarr->sizes[0] - 1;
     if(UNLIKELY(row < 0))
-      return PERFERROR(Str("getrowlin: krow can't be negative"));
+      return PERFERROR(Str("getrowlin: krow cannot be negative"));
     if(UNLIKELY(row > maxrow)) {
       csound->Message(csound, Str("getrowlin: row %.4f > maxrow %d, clipping\n"),
                       row, maxrow);

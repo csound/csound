@@ -186,11 +186,11 @@ msgstr ""
 msgid "Invalid NULL parameter set to add to a global read_list\n"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:257
+#: Engine/cs_par_orc_semantic_analysis.c:259
 msgid "opcode deprecated"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:313
+#: Engine/cs_par_orc_semantic_analysis.c:315
 msgid "Not a proper list of ints"
 msgstr ""
 
@@ -409,6 +409,10 @@ msgstr ""
 #: Engine/csound_orc_semantics.c:309
 #, c-format
 msgid "unable to find ternary operator for types '%s ? %s : %s' line %d\n"
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:329
+msgid "Use of i() with array element ill formed\n"
 msgstr ""
 
 #: Engine/csound_orc_semantics.c:334
@@ -1345,26 +1349,31 @@ msgstr "subinstr: número de argumentos de salida es mayor que nchnls"
 msgid "subinstr: too many p-fields"
 msgstr "subinstr: demasiados campos-p (pfields)"
 
+#: Engine/insert.c:1386 Engine/insert.c:1407
+#, fuzzy, c-format
+msgid "Cannot find instr %d (UDO %s)\n"
+msgstr "auxlist para el instrumento %d (%p):\n"
+
 #: Engine/insert.c:1395
 #, c-format
 msgid "%s: invalid local ksmps value: %d"
 msgstr "%s: valor inválido de ksmps local: %d"
 
-#: Engine/insert.c:1547 OOps/bus.c:610 Opcodes/stackops.c:299
+#: Engine/insert.c:1550 OOps/bus.c:610 Opcodes/stackops.c:299
 #, c-format
 msgid "%s: not initialised"
 msgstr "%s: no ha sido inicializado"
 
-#: Engine/insert.c:1628
+#: Engine/insert.c:1631
 #, fuzzy, c-format
 msgid "setksmps: invalid ksmps value: %d, original: %d"
 msgstr "setksmps: valor inválido de ksmps: %d"
 
-#: Engine/insert.c:1783
+#: Engine/insert.c:1786
 msgid "subinstr: not initialised"
 msgstr "subinstr: no ha sido inicializado"
 
-#: Engine/insert.c:2380
+#: Engine/insert.c:2383
 #, c-format
 msgid ""
 "instr %d allocated at %p\n"
@@ -1373,39 +1382,39 @@ msgstr ""
 "instr %d colocado en %p\n"
 "\tlclbas %p, opds %p\n"
 
-#: Engine/insert.c:2407
+#: Engine/insert.c:2410
 #, fuzzy, c-format
 msgid "op (%s) allocated at %p\n"
 msgstr "op %d (%s) colocado en %p\n"
 
-#: Engine/insert.c:2433
+#: Engine/insert.c:2436
 msgid "null iopadr"
 msgstr ""
 
-#: Engine/insert.c:2444
+#: Engine/insert.c:2447
 msgid "null opadr"
 msgstr ""
 
-#: Engine/insert.c:2467
+#: Engine/insert.c:2470
 #, fuzzy, c-format
 msgid "FIXME: Unhandled out-arg type: %d\n"
 msgstr "Etiqueta CSD desconocida: %s\n"
 
-#: Engine/insert.c:2506
+#: Engine/insert.c:2509
 #, c-format
 msgid "FIXME: instance unexpected arg: %d\n"
 msgstr ""
 
-#: Engine/insert.c:2530
+#: Engine/insert.c:2533
 msgid "inconsistent opds total"
 msgstr ""
 
-#: Engine/insert.c:2591
+#: Engine/insert.c:2594
 #, fuzzy, c-format
 msgid "Instrument %s is still active"
 msgstr "Intrumento %s desactivado"
 
-#: Engine/insert.c:2594
+#: Engine/insert.c:2597
 #, c-format
 msgid "Instrument %d is still active"
 msgstr "Intrumento %d desactivado"
@@ -2170,7 +2179,7 @@ msgstr "no es posible redefinir %s"
 msgid "WARNING: redefined opcode: %s\n"
 msgstr "ATENCION: redefinición de opcode: %s\n"
 
-#: Engine/symbtab.c:613
+#: Engine/symbtab.c:614
 msgid "error:  "
 msgstr ""
 
@@ -3228,7 +3237,7 @@ msgstr ""
 
 #: InOut/rtalsa.c:1810
 #, fuzzy
-msgid "can't open sequencer\n"
+msgid "cannot open sequencer\n"
 msgstr "no es posible abrir %s"
 
 #: InOut/rtalsa.c:1853
@@ -4211,37 +4220,37 @@ msgstr "chani: índice inválido"
 msgid "Input and output argument count differs in inch"
 msgstr ""
 
-#: OOps/aops.c:1791
+#: OOps/aops.c:1792
 msgid "Channel greater than nchnls"
 msgstr ""
 
-#: OOps/aops.c:1939
+#: OOps/aops.c:1940
 #, fuzzy
 msgid "Excess channels ignored\n"
 msgstr "falta el número de canales"
 
-#: OOps/aops.c:1966
+#: OOps/aops.c:1967
 #, fuzzy, c-format
 msgid "out: number of channels truncated from %d to %d"
 msgstr "número de canales inválido"
 
-#: OOps/aops.c:2098
+#: OOps/aops.c:2099
 msgid "Unknown function called"
 msgstr ""
 
-#: OOps/aops.c:2131
+#: OOps/aops.c:2132
 msgid "number of arguments != nchnls"
 msgstr ""
 
-#: OOps/aops.c:2160
+#: OOps/aops.c:2161
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr ""
 
-#: OOps/aops.c:2194
+#: OOps/aops.c:2195
 msgid "number of hardware output channels not currently available"
 msgstr ""
 
-#: OOps/aops.c:2200
+#: OOps/aops.c:2201
 msgid "number of hardware input channels not currently available"
 msgstr ""
 
@@ -5190,7 +5199,7 @@ msgid "setting socket option to reuse the address\n"
 msgstr ""
 
 #: OOps/remote.c:370 Opcodes/sockrecv.c:202 Opcodes/sockrecv.c:258
-#: Opcodes/sockrecv.c:373 Opcodes/sockrecv.c:468 Opcodes/sockrecv.c:576
+#: Opcodes/sockrecv.c:373 Opcodes/sockrecv.c:468 Opcodes/sockrecv.c:588
 #: Top/server.c:268
 msgid "bind failed"
 msgstr ""
@@ -6173,11 +6182,11 @@ msgstr ""
 msgid "OSC multicast listener #%d started on port %s\n"
 msgstr ""
 
-#: Opcodes/OSC.c:723 Opcodes/OSC.c:1045
+#: Opcodes/OSC.c:723 Opcodes/OSC.c:1058
 msgid "OSC not running"
 msgstr "OSC no está corriendo"
 
-#: Opcodes/OSC.c:727 Opcodes/OSC.c:1049
+#: Opcodes/OSC.c:727 Opcodes/OSC.c:1062
 msgid "invalid handle"
 msgstr ""
 
@@ -6189,7 +6198,7 @@ msgstr "número inválido de argumentos"
 msgid "argument list inconsistent with format string"
 msgstr ""
 
-#: Opcodes/OSC.c:769 Opcodes/OSC.c:1066
+#: Opcodes/OSC.c:769 Opcodes/OSC.c:1079
 msgid "invalid type"
 msgstr ""
 
@@ -6287,223 +6296,223 @@ msgstr "t-var no ha sido inicializado"
 msgid "second input array is too short\n"
 msgstr "t-var no ha sido inicializado"
 
-#: Opcodes/arrays.c:101
+#: Opcodes/arrays.c:111
 msgid "Error: no sizes set for array initialization"
 msgstr ""
 
-#: Opcodes/arrays.c:107
+#: Opcodes/arrays.c:117
 msgid "Error: sizes must be > 0 for array initialization"
 msgstr ""
 
-#: Opcodes/arrays.c:150
+#: Opcodes/arrays.c:161
 msgid "fillarrray: arrays with dim > 2 not currently supported\n"
 msgstr ""
 
-#: Opcodes/arrays.c:165
+#: Opcodes/arrays.c:176
 msgid "Cannot set i-array at k-rate\n"
 msgstr ""
 
-#: Opcodes/arrays.c:178
+#: Opcodes/arrays.c:189
 msgid "Error: no indexes set for array set\n"
 msgstr ""
 
-#: Opcodes/arrays.c:183
+#: Opcodes/arrays.c:194
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:193 Opcodes/arrays.c:204 Opcodes/arrays.c:246
-#: Opcodes/arrays.c:257
+#: Opcodes/arrays.c:204 Opcodes/arrays.c:215 Opcodes/arrays.c:257
+#: Opcodes/arrays.c:268
 #, c-format
 msgid "Array index %d out of range (0,%d) for dimension %d"
 msgstr ""
 
-#: Opcodes/arrays.c:234
+#: Opcodes/arrays.c:245
 msgid "Error: no indexes set for array get"
 msgstr ""
 
-#: Opcodes/arrays.c:237
+#: Opcodes/arrays.c:248
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d"
 msgstr ""
 
-#: Opcodes/arrays.c:325
+#: Opcodes/arrays.c:336
 msgid "Dimensions do not match in array arithmetic"
 msgstr ""
 
-#: Opcodes/arrays.c:334 Opcodes/arrays.c:363 Opcodes/arrays.c:382
-#: Opcodes/arrays.c:395 Opcodes/arrays.c:414 Opcodes/arrays.c:450
-#: Opcodes/arrays.c:470 Opcodes/arrays.c:494 Opcodes/arrays.c:514
-#: Opcodes/arrays.c:551 Opcodes/arrays.c:589 Opcodes/arrays.c:609
-#: Opcodes/arrays.c:627 Opcodes/arrays.c:668 Opcodes/arrays.c:688
-#: Opcodes/arrays.c:715 Opcodes/arrays.c:735 Opcodes/arrays.c:763
-#: Opcodes/arrays.c:790 Opcodes/arrays.c:847 Opcodes/arrays.c:883
-#: Opcodes/arrays.c:916 Opcodes/arrays.c:949 Opcodes/arrays.c:987
-#: Opcodes/arrays.c:1019 Opcodes/arrays.c:1051 Opcodes/arrays.c:1083
-#: Opcodes/arrays.c:1115 Opcodes/arrays.c:1147 Opcodes/arrays.c:1179
-#: Opcodes/arrays.c:1216 Opcodes/arrays.c:1251 Opcodes/arrays.c:1286
-#: Opcodes/arrays.c:1318 Opcodes/arrays.c:1353 Opcodes/arrays.c:1388
-#: Opcodes/arrays.c:1423 Opcodes/arrays.c:1458 Opcodes/arrays.c:1493
-#: Opcodes/arrays.c:1528 Opcodes/arrays.c:1563 Opcodes/arrays.c:1599
-#: Opcodes/arrays.c:1635 Opcodes/arrays.c:1671 Opcodes/arrays.c:1707
-#: Opcodes/arrays.c:1743 Opcodes/arrays.c:1779 Opcodes/arrays.c:1815
-#: Opcodes/arrays.c:1851 Opcodes/arrays.c:1887 Opcodes/arrays.c:1923
-#: Opcodes/arrays.c:1959 Opcodes/arrays.c:1992 Opcodes/arrays.c:1998
-#: Opcodes/arrays.c:2009 Opcodes/arrays.c:2040 Opcodes/arrays.c:2071
-#: Opcodes/arrays.c:2092 Opcodes/arrays.c:2166 Opcodes/arrays.c:2213
+#: Opcodes/arrays.c:345 Opcodes/arrays.c:374 Opcodes/arrays.c:393
+#: Opcodes/arrays.c:406 Opcodes/arrays.c:425 Opcodes/arrays.c:461
+#: Opcodes/arrays.c:481 Opcodes/arrays.c:505 Opcodes/arrays.c:525
+#: Opcodes/arrays.c:562 Opcodes/arrays.c:600 Opcodes/arrays.c:620
+#: Opcodes/arrays.c:638 Opcodes/arrays.c:679 Opcodes/arrays.c:699
+#: Opcodes/arrays.c:726 Opcodes/arrays.c:746 Opcodes/arrays.c:774
+#: Opcodes/arrays.c:801 Opcodes/arrays.c:858 Opcodes/arrays.c:894
+#: Opcodes/arrays.c:927 Opcodes/arrays.c:960 Opcodes/arrays.c:998
+#: Opcodes/arrays.c:1030 Opcodes/arrays.c:1062 Opcodes/arrays.c:1094
+#: Opcodes/arrays.c:1126 Opcodes/arrays.c:1158 Opcodes/arrays.c:1190
+#: Opcodes/arrays.c:1227 Opcodes/arrays.c:1262 Opcodes/arrays.c:1297
+#: Opcodes/arrays.c:1329 Opcodes/arrays.c:1364 Opcodes/arrays.c:1399
+#: Opcodes/arrays.c:1434 Opcodes/arrays.c:1469 Opcodes/arrays.c:1504
+#: Opcodes/arrays.c:1539 Opcodes/arrays.c:1574 Opcodes/arrays.c:1610
+#: Opcodes/arrays.c:1646 Opcodes/arrays.c:1682 Opcodes/arrays.c:1718
+#: Opcodes/arrays.c:1754 Opcodes/arrays.c:1790 Opcodes/arrays.c:1826
+#: Opcodes/arrays.c:1862 Opcodes/arrays.c:1898 Opcodes/arrays.c:1934
+#: Opcodes/arrays.c:1970 Opcodes/arrays.c:2003 Opcodes/arrays.c:2009
+#: Opcodes/arrays.c:2020 Opcodes/arrays.c:2051 Opcodes/arrays.c:2082
+#: Opcodes/arrays.c:2103 Opcodes/arrays.c:2177 Opcodes/arrays.c:2224
 #: Opcodes/pvsbasic.c:2441 Opcodes/pvsbasic.c:2472 Opcodes/pvsbasic.c:2521
 #, fuzzy
 msgid "array-variable not initialised"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:347 Opcodes/arrays.c:375
+#: Opcodes/arrays.c:358 Opcodes/arrays.c:386
 msgid "Dimension does not match in array arithmetic"
 msgstr ""
 
-#: Opcodes/arrays.c:480 Opcodes/arrays.c:743
+#: Opcodes/arrays.c:491 Opcodes/arrays.c:754
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:523 Opcodes/arrays.c:772 Opcodes/arrays.c:799
+#: Opcodes/arrays.c:534 Opcodes/arrays.c:783 Opcodes/arrays.c:810
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:665 Opcodes/arrays.c:695 Opcodes/arrays.c:712
-#: Opcodes/arrays.c:1219 Opcodes/arrays.c:1254
+#: Opcodes/arrays.c:676 Opcodes/arrays.c:706 Opcodes/arrays.c:723
+#: Opcodes/arrays.c:1230 Opcodes/arrays.c:1265
 msgid "division by zero in array-var"
 msgstr ""
 
-#: Opcodes/arrays.c:965 Opcodes/arrays.c:1194
+#: Opcodes/arrays.c:976 Opcodes/arrays.c:1205
 #, c-format
 msgid "division by zero in array-var at index %d/%d"
 msgstr ""
 
-#: Opcodes/arrays.c:2074
+#: Opcodes/arrays.c:2085
 #, fuzzy
 msgid "array-variable not a vector"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:2170 Opcodes/arrays.c:2216
+#: Opcodes/arrays.c:2181 Opcodes/arrays.c:2227
 #, fuzzy
 msgid "array-variable dimensions do not match"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:2173
+#: Opcodes/arrays.c:2184
 #, fuzzy
 msgid "array-variable types do not match"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:2266 Opcodes/arrays.c:2287 Opcodes/arrays.c:2470
-#: Opcodes/arrays.c:2506 Opcodes/arrays.c:2509
+#: Opcodes/arrays.c:2277 Opcodes/arrays.c:2298 Opcodes/arrays.c:2493
+#: Opcodes/arrays.c:2529 Opcodes/arrays.c:2532
 #, fuzzy
 msgid "array-var not initialised"
 msgstr "t-var no ha sido inicializado"
 
-#: Opcodes/arrays.c:2269 Opcodes/arrays.c:2289 Opcodes/arrays.c:2347
-#: Opcodes/arrays.c:2369
+#: Opcodes/arrays.c:2280 Opcodes/arrays.c:2300 Opcodes/arrays.c:2358
+#: Opcodes/arrays.c:2380
 msgid "No table for copy2ftab"
 msgstr ""
 
-#: Opcodes/arrays.c:2319
+#: Opcodes/arrays.c:2330
 msgid "inconsistent start, end and increment parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:2405
+#: Opcodes/arrays.c:2428
 #, fuzzy
 msgid "inconsistent start, end parameters"
 msgstr "%s sr, kr, ksmps inconsistentes"
 
-#: Opcodes/arrays.c:2409
+#: Opcodes/arrays.c:2432
 msgid "slice larger than original size"
 msgstr ""
 
-#: Opcodes/arrays.c:2413
+#: Opcodes/arrays.c:2436
 #, fuzzy
 msgid "slice increment must be positive"
 msgstr "valor incorrecto para 0dbfs: debe ser positivo."
 
-#: Opcodes/arrays.c:2483
+#: Opcodes/arrays.c:2506
 #, fuzzy, c-format
 msgid "%s not found"
 msgstr "Nombre %s no encontrado"
 
-#: Opcodes/arrays.c:2514
+#: Opcodes/arrays.c:2537
 msgid "map fn not found at k rate"
 msgstr ""
 
-#: Opcodes/arrays.c:2693
+#: Opcodes/arrays.c:2716
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2726
+#: Opcodes/arrays.c:2749
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2757
+#: Opcodes/arrays.c:2780
 #, fuzzy
 msgid "array sizes do not match\n"
 msgstr "t-variable no ha sido inicializado"
 
-#: Opcodes/arrays.c:2781
+#: Opcodes/arrays.c:2804
 msgid "fft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2808
+#: Opcodes/arrays.c:2831
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2871
+#: Opcodes/arrays.c:2894
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3053 Opcodes/arrays.c:3093 Opcodes/arrays.c:3125
+#: Opcodes/arrays.c:3076 Opcodes/arrays.c:3116 Opcodes/arrays.c:3148
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3086
+#: Opcodes/arrays.c:3109
 msgid "FFT size too small (min 64 samples)\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3153 Opcodes/arrays.c:3192
+#: Opcodes/arrays.c:3176 Opcodes/arrays.c:3215
 msgid "in array not 2-dimensional\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3165 Opcodes/arrays.c:3178
+#: Opcodes/arrays.c:3188 Opcodes/arrays.c:3201
 #, fuzzy
 msgid "requested row is out of range\n"
 msgstr "el número del dispositivo está fuera de rango"
 
-#: Opcodes/arrays.c:3206 Opcodes/arrays.c:3220
+#: Opcodes/arrays.c:3229 Opcodes/arrays.c:3243
 #, fuzzy
 msgid "requested col is out of range\n"
 msgstr "el número del dispositivo está fuera de rango"
 
-#: Opcodes/arrays.c:3258 Opcodes/arrays.c:3270 Opcodes/arrays.c:3292
-#: Opcodes/arrays.c:3306
+#: Opcodes/arrays.c:3281 Opcodes/arrays.c:3293 Opcodes/arrays.c:3315
+#: Opcodes/arrays.c:3329
 #, fuzzy
 msgid "Error: index out of range\n"
 msgstr "error: el número de dispositivo está fuera de rango"
 
-#: Opcodes/arrays.c:3341
+#: Opcodes/arrays.c:3364
 msgid "input array too small\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3394
+#: Opcodes/arrays.c:3417
 msgid "dct: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3401
+#: Opcodes/arrays.c:3424
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:3423
+#: Opcodes/arrays.c:3446
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3431
+#: Opcodes/arrays.c:3454
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
@@ -6823,53 +6832,192 @@ msgstr ""
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:100 Opcodes/emugens/emugens.c:130
+#: Opcodes/emugens/beosc.c:616
+#, fuzzy
+msgid "beadsynt: phasetable not found"
+msgstr "GEN32: tabla-f (ftable) fuente %d no encontrada"
+
+#: Opcodes/emugens/beosc.c:658
+#, fuzzy
+msgid "beadsynt: wavetable not found"
+msgstr "GEN32: tabla-f (ftable) fuente %d no encontrada"
+
+#: Opcodes/emugens/beosc.c:669
+msgid "beadsynt: partial count > amptable size"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:675
+#, fuzzy
+msgid "beadsynt: freqtable not found!"
+msgstr "GEN32: tabla-f (ftable) fuente %d no encontrada"
+
+#: Opcodes/emugens/beosc.c:678
+msgid "beadsynt: partial count > freqtable size"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:684
+#, fuzzy
+msgid "beadsynt: bandwidth table not found"
+msgstr "Tabla %f no encontrada"
+
+#: Opcodes/emugens/beosc.c:687
+msgid "beadsynt: partial count > bandwidth size"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:703
+#, fuzzy
+msgid "beadsynt: wavetable not found!"
+msgstr "GEN32: tabla-f (ftable) fuente %d no encontrada"
+
+#: Opcodes/emugens/beosc.c:712
+msgid "The arrays should have 1 dimension"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:723
+#, fuzzy
+msgid "Amplitudes array is too small"
+msgstr "t-var no ha sido inicializado"
+
+#: Opcodes/emugens/beosc.c:726
+#, fuzzy
+msgid "Frequencies array is too small"
+msgstr "t-var no ha sido inicializado"
+
+#: Opcodes/emugens/beosc.c:729
+#, fuzzy
+msgid "bandwidths array is too small"
+msgstr "t-var no ha sido inicializado"
+
+#: Opcodes/emugens/beosc.c:762
+#, fuzzy
+msgid "beadsynt: not initialised"
+msgstr "adsynt: no ha sido inicializado"
+
+#: Opcodes/emugens/beosc.c:1090 Opcodes/emugens/beosc.c:1094
+#, fuzzy
+msgid "tabrowcopy: incorrect table number"
+msgstr "copyTabElems: número inválido de tabla fuente"
+
+#: Opcodes/emugens/beosc.c:1100
+#, fuzzy
+msgid "tabrowcopy: iend cannot be bigger than numcols"
+msgstr "copyTabElems: número inválido de tabla fuente"
+
+#: Opcodes/emugens/beosc.c:1109
+#, fuzzy
+msgid "tabrowcopy: Destination table too small"
+msgstr "copyTabElems: número inválido de tabla fuente"
+
+#: Opcodes/emugens/beosc.c:1121
+#, c-format
+msgid ">>>> tabrowlin: row %.4f > maxrow %d! It will be clipped\n"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:1144
+#, fuzzy
+msgid "tabrowcopy: krow cannot be negative"
+msgstr "pvsfread: ichan no puede ser negativo.\n"
+
+#: Opcodes/emugens/beosc.c:1151 Opcodes/emugens/beosc.c:1160
+msgid "tabrowcopy: tab off end"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:1183
+#, fuzzy
+msgid "tabrowlin: incorrect table number"
+msgstr "copyTabElems: número inválido de tabla fuente"
+
+#: Opcodes/emugens/beosc.c:1190
+msgid "tabrowlin: iend cannot be bigger than numcols"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:1194
+msgid "tabrowlin: end must be bigger than start"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:1199
+msgid "tabrowlin: no items to copy"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:1224
+#, fuzzy
+msgid "krow cannot be negative"
+msgstr "pvsfread: ichan no puede ser negativo.\n"
+
+#: Opcodes/emugens/beosc.c:1232 Opcodes/emugens/beosc.c:1240
+#, fuzzy
+msgid "tab off end"
+msgstr "número de tabla fuente (srctable) desconocido"
+
+#: Opcodes/emugens/beosc.c:1286
+msgid "The input array should be a 2D array"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:1296
+msgid "Asked to read too many items from a row"
+msgstr ""
+
+#: Opcodes/emugens/beosc.c:1304
+#, fuzzy
+msgid "getrowlin: krow cannot be negative"
+msgstr "pvsfread: ichan no puede ser negativo.\n"
+
+#: Opcodes/emugens/beosc.c:1306
+#, c-format
+msgid "getrowlin: row %.4f > maxrow %d, clipping\n"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:107 Opcodes/emugens/emugens.c:137
 msgid "linlin.k: Division by zero"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:182
+#: Opcodes/emugens/emugens.c:189
 msgid "linlin: Division by zero"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:233
+#: Opcodes/emugens/emugens.c:240
 msgid "lincos: Division by zero"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:381 Opcodes/emugens/emugens.c:417
-#: Opcodes/emugens/emugens.c:462 Opcodes/emugens/emugens.c:507
+#: Opcodes/emugens/emugens.c:388 Opcodes/emugens/emugens.c:424
+#: Opcodes/emugens/emugens.c:469 Opcodes/emugens/emugens.c:514
 msgid "bpf: data length should be even (pairs of x, y)"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:384 Opcodes/emugens/emugens.c:419
-#: Opcodes/emugens/emugens.c:464 Opcodes/emugens/emugens.c:509
+#: Opcodes/emugens/emugens.c:391 Opcodes/emugens/emugens.c:426
+#: Opcodes/emugens/emugens.c:471 Opcodes/emugens/emugens.c:516
 msgid "bpf: too many pargs (max=256)"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:577
+#: Opcodes/emugens/emugens.c:584
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:603
+#: Opcodes/emugens/emugens.c:610
 #, fuzzy
 msgid "format not understood\n"
 msgstr "Nombre %s no encontrado"
 
-#: Opcodes/emugens/emugens.c:761 Opcodes/emugens/emugens.c:783
-#: Opcodes/emugens/emugens.c:809
+#: Opcodes/emugens/emugens.c:774 Opcodes/emugens/emugens.c:786
+#: Opcodes/emugens/emugens.c:803
 msgid "cmp: unknown operator. Expecting <, <=, >, >=, ==, !="
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:829
+#: Opcodes/emugens/emugens.c:825
 msgid "cmp (ternary comparator): operator 2 expected <"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:832
+#: Opcodes/emugens/emugens.c:828
 msgid "cmp (ternary comparator): operator 1 expected <"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1161 Opcodes/emugens/emugens.c:1178
+#: Opcodes/emugens/emugens.c:1167 Opcodes/emugens/emugens.c:1184
 msgid "tab2array: can't copy a negative number of items"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:1266
+msgid "reshapearray: can't reshape"
 msgstr ""
 
 #: Opcodes/fareygen.c:116
@@ -7007,14 +7155,14 @@ msgstr "error cerrando el dispositivo de entrada"
 msgid "fluid: unable to load %s"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:573
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:587
 #, c-format
 msgid ""
 "result: %d\n"
 " Note off: c:%3d k:%3d\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:652
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:666
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr ""
 
@@ -7224,15 +7372,15 @@ msgstr "mp3in: %s: no se puede abrir el archivo"
 msgid "Cannot load file. Error opening directory: %s\n"
 msgstr "error abriendo el dispositivo de salida %d: %s"
 
-#: Opcodes/ftsamplebank.cpp:233
+#: Opcodes/ftsamplebank.cpp:241
 msgid "Error: you must pass a directory as a string."
 msgstr ""
 
-#: Opcodes/ftsamplebank.cpp:246
+#: Opcodes/ftsamplebank.cpp:254
 msgid "Error: second parameter to directory must be a string"
 msgstr ""
 
-#: Opcodes/ftsamplebank.cpp:301
+#: Opcodes/ftsamplebank.cpp:309
 #, fuzzy, c-format
 msgid "Cannot find directory. Error opening directory: %s\n"
 msgstr "error abriendo el dispositivo de salida %d: %s"
@@ -9705,13 +9853,13 @@ msgstr ""
 msgid "sndwarpst: not initialised"
 msgstr "sndwarpst: no ha sido inicializado"
 
-#: Opcodes/sockrecv.c:140 Opcodes/sockrecv.c:143 Opcodes/sockrecv.c:537
-#: Opcodes/sockrecv.c:540
+#: Opcodes/sockrecv.c:140 Opcodes/sockrecv.c:143 Opcodes/sockrecv.c:549
+#: Opcodes/sockrecv.c:552
 msgid "OSCraw: Closing socket\n"
 msgstr ""
 
 #: Opcodes/sockrecv.c:176 Opcodes/sockrecv.c:238 Opcodes/sockrecv.c:353
-#: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:554 Opcodes/socksend.c:91
+#: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:566 Opcodes/socksend.c:91
 #: Opcodes/socksend.c:240 Opcodes/socksend.c:339 Opcodes/socksend.c:427
 #: Opcodes/socksend.c:833 Top/server.c:233
 #, c-format
@@ -9719,12 +9867,12 @@ msgid "Winsock2 failed to start: %d"
 msgstr ""
 
 #: Opcodes/sockrecv.c:182 Opcodes/sockrecv.c:188 Opcodes/sockrecv.c:245
-#: Opcodes/sockrecv.c:360 Opcodes/sockrecv.c:559 Opcodes/sockrecv.c:563
+#: Opcodes/sockrecv.c:360 Opcodes/sockrecv.c:571 Opcodes/sockrecv.c:575
 msgid "Cannot set nonblock"
 msgstr ""
 
 #: Opcodes/sockrecv.c:192 Opcodes/sockrecv.c:248 Opcodes/sockrecv.c:363
-#: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:566 Opcodes/socksend.c:105
+#: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:578 Opcodes/socksend.c:105
 #: Opcodes/socksend.c:255 Opcodes/socksend.c:346 Opcodes/socksend.c:431
 #: Opcodes/socksend.c:837
 msgid "creating socket"
@@ -9734,7 +9882,7 @@ msgstr ""
 msgid "read from socket failed"
 msgstr ""
 
-#: Opcodes/sockrecv.c:619
+#: Opcodes/sockrecv.c:631
 #, fuzzy
 msgid "output array too small\n"
 msgstr "t-var no ha sido inicializado"
@@ -10187,8 +10335,8 @@ msgid "No table for dconv"
 msgstr ""
 
 #: Opcodes/ugmoss.c:524 Opcodes/vbap1.c:189 Opcodes/vbap1.c:258
-#: Opcodes/vbap1.c:543 Opcodes/vbap1.c:618 Opcodes/vbap_n.c:287
-#: Opcodes/vbap_n.c:352 Opcodes/vbap_n.c:665 Opcodes/vbap_n.c:802
+#: Opcodes/vbap1.c:543 Opcodes/vbap1.c:618 Opcodes/vbap_n.c:280
+#: Opcodes/vbap_n.c:345 Opcodes/vbap_n.c:658 Opcodes/vbap_n.c:795
 #: Opcodes/vbap_zak.c:233 Opcodes/vbap_zak.c:547
 msgid "could not allocate memory"
 msgstr ""
@@ -10489,44 +10637,44 @@ msgid "Pair %d Loudspeakers: "
 msgstr ""
 
 #: Opcodes/vbap1.c:67 Opcodes/vbap1.c:209 Opcodes/vbap1.c:276
-#: Opcodes/vbap1.c:340 Opcodes/vbap_n.c:154 Opcodes/vbap_n.c:307
-#: Opcodes/vbap_n.c:372 Opcodes/vbap_n.c:453 Opcodes/vbap_zak.c:101
+#: Opcodes/vbap1.c:340 Opcodes/vbap_n.c:154 Opcodes/vbap_n.c:300
+#: Opcodes/vbap_n.c:365 Opcodes/vbap_n.c:446 Opcodes/vbap_zak.c:101
 #: Opcodes/vbap_zak.c:252 Opcodes/vbap_zak.c:330
 msgid "Warning: truncating elevation to 2-D plane\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:177 Opcodes/vbap1.c:246 Opcodes/vbap_n.c:274
-#: Opcodes/vbap_n.c:339
+#: Opcodes/vbap1.c:177 Opcodes/vbap1.c:246 Opcodes/vbap_n.c:267
+#: Opcodes/vbap_n.c:332
 #, fuzzy, c-format
 msgid "could not find layout table no.%d"
 msgstr "número de tabla fuente (srctable) desconocido"
 
 #: Opcodes/vbap1.c:185 Opcodes/vbap1.c:254 Opcodes/vbap1.c:538
-#: Opcodes/vbap1.c:613 Opcodes/vbap_n.c:283 Opcodes/vbap_n.c:348
-#: Opcodes/vbap_n.c:661 Opcodes/vbap_n.c:798
+#: Opcodes/vbap1.c:613 Opcodes/vbap_n.c:276 Opcodes/vbap_n.c:341
+#: Opcodes/vbap_n.c:654 Opcodes/vbap_n.c:791
 msgid ""
 "vbap system NOT configured.\n"
 "Missing vbaplsinit opcode in orchestra?"
 msgstr ""
 
-#: Opcodes/vbap1.c:367 Opcodes/vbap1.c:413 Opcodes/vbap_n.c:480
-#: Opcodes/vbap_n.c:525
+#: Opcodes/vbap1.c:367 Opcodes/vbap1.c:413 Opcodes/vbap_n.c:473
+#: Opcodes/vbap_n.c:518
 #, fuzzy
 msgid "Missing fields in vbapmove\n"
 msgstr "Falta endin"
 
-#: Opcodes/vbap1.c:372 Opcodes/vbap_n.c:485 Opcodes/vbap_zak.c:363
+#: Opcodes/vbap1.c:372 Opcodes/vbap_n.c:478 Opcodes/vbap_zak.c:363
 msgid "Warning: Ambiguous transition 180 degrees.\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:563 Opcodes/vbap1.c:638 Opcodes/vbap_n.c:685
-#: Opcodes/vbap_n.c:823
+#: Opcodes/vbap1.c:563 Opcodes/vbap1.c:638 Opcodes/vbap_n.c:678
+#: Opcodes/vbap_n.c:816
 #, c-format
 msgid "Have to have at least %d directions in vbapmove"
 msgstr ""
 
-#: Opcodes/vbap1.c:573 Opcodes/vbap1.c:648 Opcodes/vbap_n.c:695
-#: Opcodes/vbap_n.c:833 Opcodes/vbap_zak.c:578
+#: Opcodes/vbap1.c:573 Opcodes/vbap1.c:648 Opcodes/vbap_n.c:688
+#: Opcodes/vbap_n.c:826 Opcodes/vbap_zak.c:578
 msgid "Wrong dimension"
 msgstr ""
 
@@ -10535,12 +10683,12 @@ msgstr ""
 msgid "Output array not initialised"
 msgstr "t-var no ha sido inicializado"
 
-#: Opcodes/vbap_n.c:653 Opcodes/vbap_n.c:789
+#: Opcodes/vbap_n.c:646 Opcodes/vbap_n.c:782
 #, fuzzy
 msgid "could not find layout table no.0"
 msgstr "número de tabla fuente (srctable) desconocido"
 
-#: Opcodes/vbap_n.c:782
+#: Opcodes/vbap_n.c:775
 #, fuzzy
 msgid "Output array in vpabmove not initalised"
 msgstr "t-variable no ha sido inicializado"
@@ -15242,10 +15390,6 @@ msgstr ""
 
 #, fuzzy
 #~ msgid "copyTabElems: source table too short"
-#~ msgstr "copyTabElems: número inválido de tabla fuente"
-
-#, fuzzy
-#~ msgid "copyTabElems: destination table too short"
 #~ msgstr "copyTabElems: número inválido de tabla fuente"
 
 #, fuzzy
