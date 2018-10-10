@@ -68,7 +68,7 @@
         memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
     }                                                                \
 
-#define INITERR(m) (csound->InitError(csound, m))
+#define INITERR(m) (csound->InitError(csound, "%s", m))
 #define PERFERROR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 
 
@@ -90,10 +90,12 @@ fastlog2 (float x) {
            - 1.72587999f / (0.3520887068f + mx.f);
 }
 
+#ifndef USE_DOUBLE
 static inline float
 fastlogf (float x) {
     return 0.69314718f * fastlog2 (x);
 }
+#endif
 
 static inline MYFLT
 fastlog(MYFLT x) {
@@ -226,12 +228,14 @@ PhaseFrac(uint32_t inPhase) {
     return u.ftemp - 1.f;
 }
 
+#ifndef USE_DOUBLE
 static inline float
 PhaseFrac1(uint32_t inPhase) {
     union { uint32_t itemp; float ftemp; } u;
     u.itemp = 0x3F800000 | (0x007FFF80 & ((inPhase)<<7));
     return u.ftemp;
 }
+#endif
 
 static inline MYFLT
 lookupi1(const MYFLT* table0, const MYFLT* table1,
