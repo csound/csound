@@ -1278,7 +1278,8 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
   ktrig=1   in the k-version, controls when to print
             if ktrig is -1, prints each cycle. Otherwise, prints whenever
             ktrig changes from 0 to 1
-  Sfmt      Sets the format (passed to printf) for each element of the array (default="%.4f")
+  Sfmt      Sets the format (passed to printf) for each element of the
+            array (default="%.4f")
   Slabel    Optional string to print before the whole array
 
   Works with 1- and 2-dimensional arrays, at i- and k-time
@@ -1321,7 +1322,8 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
 }
 
 
-static inline void arrprint(const char *fmt, int dims, MYFLT *data, int dim0, int dim1, const char *label) {
+static inline void arrprint(const char *fmt, int dims, MYFLT *data,
+                            int dim0, int dim1, const char *label) {
     MYFLT *in = data;
     int32_t i, j;
     const uint32_t linelength = print_linelength;
@@ -1603,23 +1605,27 @@ static OENTRY localops[] = {
     { "##and", S(BINOP_AAA), 0, 3, "k[]", "k[]k[]",
       (SUBR)array_binop_init, (SUBR)array_and},
     { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", ".[]io", (SUBR)arrayreshape},
-    // { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]io", (SUBR)arrayreshape},
-    // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
+ // { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]io", (SUBR)arrayreshape},
+ // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
     { "ftslice", S(TABSLICE),  TB, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
     { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
     { "tab2array", S(TAB2ARRAY), TR, 1, "i[]", "ioop", (SUBR)tab2array_i},
 
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]P", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kS", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kSS", (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]P",
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kS",
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kSS",
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
 
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]SS", (SUBR)arrayprintf_i},
 
-    { "ftprint", S(FTPRINT), TR, 3, "", "iPOOPo", (SUBR)ftprint_init, (SUBR)ftprint_perf },
+    { "ftprint", S(FTPRINT), TR, 3, "", "iPOOPo",
+      (SUBR)ftprint_init, (SUBR)ftprint_perf },
 
 };
 
