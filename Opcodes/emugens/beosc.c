@@ -68,7 +68,7 @@
         memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
     }                                                                \
 
-#define INITERR(m) (csound->InitError(csound, m))
+#define INITERR(m) (csound->InitError(csound, "%s", m))
 #define PERFERROR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 
 
