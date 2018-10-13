@@ -2371,9 +2371,9 @@ static int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
 static int32_t ftab2tab(CSOUND *csound, TABCOPY *p)
 {
     FUNC        *ftp;
-    int32_t         fsize;
+    int32_t      fsize;
     MYFLT       *fdata;
-    int32_t tlen;
+    int32_t      tlen;
 
     if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
       return csound->PerfError(csound,
@@ -2390,14 +2390,26 @@ static int32_t ftab2tab(CSOUND *csound, TABCOPY *p)
     return OK;
 }
 
+typedef struct {
+  OPDS h;
+  ARRAYDAT  *tab;
+  MYFLT     *size;
+} TRIM;
 
+static int32_t trim(CSOUND *csound, TRIM *p)
+{
+    int size = (int)(*p->size);
+    tabensure(csound, p->tab, size);
+    p->tab->sizes[0] = size;
+    return OK;
+}
 
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab, *tabin;
-  MYFLT *start, *end, *inc;
-  int32_t    len;
+  MYFLT    *start, *end, *inc;
+  int32_t   len;
 } TABSLICE;
 
 
@@ -3862,17 +3874,19 @@ static OENTRY arrayvars_localops[] =
     /*                                               (SUBR) tabmap_perf     }, */
     { "tabslice", sizeof(TABSLICE), _QQ, 2, "k[]", "k[]iip",
       NULL, (SUBR) tabslice, NULL },
-
     { "slicearray.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]iip",
       (SUBR) tabslice, NULL, NULL },
-    { "slicearray.k", sizeof(TABSLICE), 0, 3, "k[]", "k[]iip",
+    { "slicearray.k", sizeof(TABSLICE), 0, 2, "k[]", "k[]iip",
       (SUBR) tabslice, (SUBR) tabslice, NULL },
-    { "slicearray.a", sizeof(TABSLICE), 0, 3, "a[]", "a[]iip",
+    { "slicearray.a", sizeof(TABSLICE), 0, 2, "a[]", "a[]iip",
       (SUBR) tabslice, (SUBR) tabslice, NULL },
-    { "slicearray.S", sizeof(TABSLICE), 0, 3, "S[]", "S[]iip",
+    { "slicearray.S", sizeof(TABSLICE), 0, 2, "S[]", "S[]iip",
       (SUBR) tabslice, (SUBR) tabslice, NULL },
-    //    { "slicearray.s", sizeof(TABSLICE), 0, 3, "S[]", "[]ii",
-    //                                  (SUBR) tabsliceS, (SUBR) tabsliceS, NULL },
+    { "slicearray_i", sizeof(TABSLICE), 0, 1, ".[]", "i[]iip",
+      (SUBR) tabslice, NULL },
+    { "trim.i", sizeof(TRIM), 0, 1, "", "i[]i", (SUBR)trim, NULL },
+    { "trim.k", sizeof(TRIM), 0, 2, "", ".[]k", NULL, (SUBR)trim },
+    { "trim._i", sizeof(TRIM), 0, 1, "", ".[]i", (SUBR)trim, NULL },
     { "copy2ftab", sizeof(TABCOPY), TW|_QQ, 2, "", "k[]k", NULL, (SUBR) tab2ftab },
     { "copy2ttab", sizeof(TABCOPY), TR|_QQ, 2, "", "k[]k", NULL, (SUBR) ftab2tab },
     { "copya2ftab.k", sizeof(TABCOPY), TW, 3, "", "k[]k",

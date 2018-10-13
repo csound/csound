@@ -178,7 +178,8 @@ gaussians_init(uint32_t seed) {
     }
 }
 
-#define GAUSSIANS_GET(seed) (gaussians[(uint32_t)(FastRandFloat(seed)*(GAUSSIANS_SIZE-1))])
+#define GAUSSIANS_GET(seed) \
+  (gaussians[(uint32_t)(FastRandFloat(seed)*(GAUSSIANS_SIZE-1))])
 
 
 // from Opcodes/arrays.c, original name: tabensure.
@@ -523,13 +524,16 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
 
    beadsynt - Band enhanced oscillator bank
 
-   aout   beadsynt ifreqfn, iampfn, ibwfn, icnt, kfreq=1, kbw=1, iwfn=-1, iphs=-1, iflags=0
-   aout   beadsynt kFreq[], kAmp[], kBw[], icnt, kfreq=1, kbw=1, iwfn=-1, iphs=-1, iflags=0
+   aout   beadsynt ifreqfn, iampfn, ibwfn, icnt, \
+                  kfreq=1, kbw=1, iwfn=-1, iphs=-1, iflags=0
+   aout   beadsynt kFreq[], kAmp[], kBw[], icnt, \
+                  kfreq=1, kbw=1, iwfn=-1, iphs=-1, iflags=0
 
    ifreqfn: a table containing frequencies for each oscillator.
    iampfn:  a table containing amplitudes for each oscillator.
    ibwfn:   a table containing bandwidths for each oscillator.
-   icnt:    number of oscillators. All three tables or arrays must be at least this big
+   icnt:    number of oscillators. All three tables or arrays must be at
+            least this big
    kfreq:   frequency scaling, all frequencies are multiplied by this factor
    kbw:     bandwidth scaling, bandwidths are multiplied by this factor
    iwfn:    a table containing one wave cycle to be used for the oscillators.
@@ -1042,20 +1046,22 @@ beadsynt_perf(CSOUND *csound, BEADSYNT *p) {
 
     maxrow = (ftlen(ifnsrc)-ioffset)/inumcols - 2
 
-    krow     : the row to read (can be a fractional number, in which case interpolation
-               with the next row is performed)
+    krow     : the row to read (can be a fractional number, in which case
+             : interpolation with the next row is performed)
     ifnsrc   : index of the source table
     ifndest  : index of the dest table
     inumcols : the number of columns a row has, in the source table
-    ioffset  : an offset to where the data starts (used to skip a header, if present)
+    ioffset  : an offset to where the data starts (used to skip a header,
+             : if present)
     istart   : start index to read from the row
     iend     : end index to read from the row (not inclusive)
     istep    : step used to read the along the row
 
-    The use case is as follows: a bank of oscillators is driven by a table
-    containing the data. The bank has a fixed number of oscillators, each oscillator
-    is sampled regularly and for each instant, the frequency, amplitude and bandwidth
-    are recorded. All information is put into a table with following layout
+    The use case is as follows: a bank of oscillators is driven by a
+    table containing the data. The bank has a fixed number of
+    oscillators, each oscillator is sampled regularly and for each
+    instant, the frequency, amplitude and bandwidth are recorded. All
+    information is put into a table with following layout
 
     row0: f0 amp0 bw0 f1 amp1 bw1 f2 amp2 bw2 ...
     row1: f0 amp0 bw0 f1 amp1 bw1 f2 amp2 bw2 ...
@@ -1101,7 +1107,7 @@ tabrowcopy_init(CSOUND* csound, TABROWCOPY* p){
 
     int end = *p->iend;
     if(end > *p->inumcols)
-      return INITERR(Str("tabrowcopy: iend can't be bigger than numcols"));
+      return INITERR(Str("tabrowcopy: iend cannot be bigger than numcols"));
 
     if(end == 0)
       end = *p->inumcols;
@@ -1145,12 +1151,13 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
     int j    = 0;
 
     if(UNLIKELY(row < 0))
-      return PERFERROR(Str("tabrowcopy: krow can't be negative"));
+      return PERFERROR(Str("tabrowcopy: krow cannot be negative"));
 
     if (LIKELY(delta != 0)) {
       if (UNLIKELY(idx1+numcols > tabsourcelen)) {
         csound->Message(csound,
-                       "krow: %f   row0: %d  idx1: %d  numcols: %d   tabsourcelen: %d\n",
+                       "krow: %f   row0: %d  idx1: %d  numcols: %d   "
+                        "tabsourcelen: %d\n",
                         row, row0, idx1, numcols, tabsourcelen);
         return PERFERROR(Str("tabrowcopy: tab off end"));
       }
@@ -1191,7 +1198,7 @@ tabrowcopyarr_init(CSOUND *csound, TABROWCOPYARR *p) {
     uint32_t end   = (uint32_t)*p->iend;
     uint32_t step  = (uint32_t)*p->istep;
     if(end > *p->inumcols)
-      return INITERR(Str("tabrowlin: iend can't be bigger than numcols"));
+      return INITERR(Str("tabrowlin: iend cannot be bigger than numcols"));
     if(end == 0)
       end = *p->inumcols;
     if(end <= start) {
@@ -1225,7 +1232,7 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     MYFLT x0, x1;
 
     if(UNLIKELY(row < 0)) {
-      return PERFERROR(Str("krow can't be negative"));
+      return PERFERROR(Str("krow cannot be negative"));
     }
     // TODO : check maxrow
     uint32_t idx0 = offset + numcols * row0 + start;
@@ -1264,9 +1271,9 @@ typedef struct {
 
   kOut[] getrowlin kMtrx[], krow, kstart=0, kend=0, kstep=1
 
-  Given a 2D array kMtrx, get a row of this array (possibly a slice [kstart:kend:kstep]).
-  If krow is not an integer, the values are the result of the interpolation between
-  two rows
+  Given a 2D array kMtrx, get a row of this array (possibly a slice
+  [kstart:kend:kstep]).  If krow is not an integer, the values are the
+  result of the interpolation between two rows
 
 */
 
@@ -1305,7 +1312,7 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     MYFLT row = *p->krow;
     int maxrow = p->inarr->sizes[0] - 1;
     if(UNLIKELY(row < 0))
-      return PERFERROR(Str("getrowlin: krow can't be negative"));
+      return PERFERROR(Str("getrowlin: krow cannot be negative"));
     if(UNLIKELY(row > maxrow)) {
       csound->Message(csound, Str("getrowlin: row %.4f > maxrow %d, clipping\n"),
                       row, maxrow);
@@ -1369,20 +1376,29 @@ static OENTRY localops[] = {
     {"beosc", S(BEOSC), TR, 3, "a", "kkjop", (SUBR)beosc_init, (SUBR)beosc_kkiii },
     {"beosc", S(BEOSC), TR, 3, "a", "akjop", (SUBR)beosc_init, (SUBR)beosc_akiii },
 
-    // aout beadsynt ifreqft, iampft, ibwft, inumosc, iflags=1, kfreq=1, kbw=1, ifn=-1, iphs=-1
-    {"beadsynt", S(BEADSYNT), TR, 3, "a", "iiijpPPjj", (SUBR)beadsynt_init, (SUBR)beadsynt_perf },
+    // aout beadsynt ifreqft, iampft, ibwft, inumosc,
+    //               iflags=1, kfreq=1, kbw=1, ifn=-1, iphs=-1
+    {"beadsynt", S(BEADSYNT), TR, 3, "a", "iiijpPPjj",
+             (SUBR)beadsynt_init, (SUBR)beadsynt_perf },
 
-    // aout beadsynt kFreq[], kAmp[], kBw[], inumosc=-1, iflags=1, kfreq=1, kbw=1, ifn=-1, iphs=-1
-    {"beadsynt", S(BEADSYNT), TR, 3, "a", "k[]k[]k[]jpPPjj", (SUBR)beadsynt_init_array, (SUBR)beadsynt_perf },
+    // aout beadsynt kFreq[], kAmp[], kBw[],
+    //               inumosc=-1, iflags=1, kfreq=1, kbw=1, ifn=-1, iphs=-1
+    {"beadsynt", S(BEADSYNT), TR, 3, "a", "k[]k[]k[]jpPPjj",
+     (SUBR)beadsynt_init_array, (SUBR)beadsynt_perf },
 
-    // tabrowlin krow, ifnsrc, ifndest, inumcols, ioffset=0, istart=0, iend=0, istep=1
-    {"tabrowlin", S(TABROWCOPY), 0, 3, "", "kiiiooop",  (SUBR)tabrowcopy_init, (SUBR)tabrowcopyk },
+    // tabrowlin krow, ifnsrc, ifndest, inumcols,
+    //                 ioffset=0, istart=0, iend=0, istep=1
+    {"tabrowlin", S(TABROWCOPY), 0, 3, "", "kiiiooop",
+     (SUBR)tabrowcopy_init, (SUBR)tabrowcopyk },
 
-    // kOut[]  tabrowlin krow, ifnsrc, inumcols, ioffset=0, istart=0, iend=0, istep=1
-    {"getrowlin", S(TABROWCOPY), 0, 3, "k[]", "kiiooop", (SUBR)tabrowcopyarr_init, (SUBR)tabrowcopyarr_k},
+    // kOut[]  tabrowlin krow, ifnsrc, inumcols,
+    //                   ioffset=0, istart=0, iend=0, istep=1
+    {"getrowlin", S(TABROWCOPY), 0, 3, "k[]", "kiiooop",
+     (SUBR)tabrowcopyarr_init, (SUBR)tabrowcopyarr_k},
 
     // kOut[] getrowlin kMtrx[], krow, kstart=0, kend=0, kstep=1
-    {"getrowlin", S(GETROWLIN), 0, 3, "k[]", "k[]kOOP",  (SUBR)getrowlin_init, (SUBR)getrowlin_k },
+    {"getrowlin", S(GETROWLIN), 0, 3, "k[]", "k[]kOOP",
+     (SUBR)getrowlin_init, (SUBR)getrowlin_k },
 };
 
 LINKAGE

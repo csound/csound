@@ -65,6 +65,9 @@ scores and many bug fixes.
 
 - printarray and reshapearray act on arrays.
 
+- trim and trim_i adjust the size of a 1 diensional array, either
+  bigger or smaller, preserving data and/or padding with zeros.
+
 ### New Gen and Macros
 
 -
@@ -116,7 +119,7 @@ scores and many bug fixes.
 - chnclear can now take a list of channels to clear instead of just one.
 
 - printf and printf_i now are like the manual in all arguments beyond the
-  format and trigger are optional
+  format and trigger are optional.
 
 - prints and printks can take string arguments printed with %s
 
@@ -127,6 +130,8 @@ sufficient for the number of values provided.
 run in a blocking mode. Defaults (as before) to non-blocking.
 
 - fillarray can be run at k-rate if any of the argument/values are k-rate.
+
+- slicearray for other than i-rate arrays runs at k-rate only.
 
 ### Utilities
 
