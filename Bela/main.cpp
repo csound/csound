@@ -211,6 +211,7 @@ struct CsData {
   std::atomic_int res;
   int count;
   int counti;
+  int blockframes;
   std::vector<CsChan> channel;
   std::vector<CsChan> ochannel;
   CsChan schannel;
@@ -267,8 +268,10 @@ bool csound_setup(BelaContext *context, void *p)
     printf("Error: Csound could not compile CSD file.\n");
     return false;
   }
-  csData->blocksize = csound->GetKsmps()*csound->GetNchnls();
+  csData->blocksize = csound->GetKsmps();
   csData->count = 0;
+  csData->icount = 0;
+  csData->blockframes = 0;
 
   /* set up the channels */
   for(unsigned int i = 0; i < csData->channel.size(); i++) {
@@ -292,7 +295,7 @@ void csound_render(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   if(csData->res == 0) {
-    unsigned int i,k,count, frmcount,blocksize;
+    unsigned int i,k,count, frmcount, blocksize, blockframes;
     int res = csData->res;
     unsigned int n;
     Csound *csound = csData->csound;
@@ -313,11 +316,13 @@ void csound_render(BelaContext *context, void *p)
     float frm = 0.f, incr =
       ((float) context->analogFrames)/context->audioFrames;
     count = csData->count;
-    blocksize = csData->blocksize;
+    blocksize = csound->blocksize;
+    blockframes = csData->blockframes;
       
     /* processing loop */
-    for(n = 0; n < context->audioFrames; n++, frm+=incr, count+=nchnls, counti+=nchnls_i){
-      if(count == blocksize) {
+    for(n = 0; n < context->audioFrames; n++, blockframes++,
+          frm+=incr, count+=nchnls, counti+=nchnls_i){
+      if(blockframes == blocksize) {
 	
 	/* set the channels */
 	for(i = 0; i < channel.size(); i++) 
@@ -325,7 +330,11 @@ void csound_render(BelaContext *context, void *p)
 			     channel[i].samples.data());
 	 
 	/* run csound */
-	if((res = csound->PerformKsmps()) == 0) count = 0;
+	if((res = csound->PerformKsmps()) == 0){
+          count = 0;
+          counti = 0;
+          blockframes = 0;
+        }
 	else break;
 
         /* get the channels */
@@ -362,6 +371,7 @@ void csound_render(BelaContext *context, void *p)
     csData->res = res;
     csData->count = count;
     csData->counti = counti;
+    csData->blockframes = blockframes;
   }
 }
 
