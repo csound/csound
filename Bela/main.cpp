@@ -210,6 +210,7 @@ struct CsData {
   int blocksize;
   std::atomic_int res;
   int count;
+  int counti;
   std::vector<CsChan> channel;
   std::vector<CsChan> ochannel;
   CsChan schannel;
@@ -224,11 +225,6 @@ bool csound_setup(BelaContext *context, void *p)
 			 "-odac", "-+rtaudio=null",
 			 "--realtime", "--daemon" };
   int numArgs = (int) (sizeof(args)/sizeof(char *));
-
-  if(context->audioInChannels != context->audioOutChannels) {
-    printf("Error: number of audio inputs != number of audio outputs.\n");
-    return false;
-  }
 
   /* allocate analog channel memory */
   csData->channel.resize(context->analogInChannels);
@@ -304,8 +300,12 @@ void csound_render(BelaContext *context, void *p)
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
     int nchnls = csound->GetNchnls();
+    int nchnls_i = csound->GetNchnls_i();
     unsigned int chns = (unsigned int) nchnls < context->audioOutChannels ?
       nchnls : context->audioOutChannels;
+    unsigned int ichns = (unsigned int) nchnls_i < context->audioInChannels ?
+      nchnls_i : context->audioInChannels;
+    
     std::vector<CsChan> &channel = csData->channel;
     std::vector<CsChan> &ochannel = csData->ochannel;
     CsChan &schannel = csData->schannel;
@@ -316,7 +316,7 @@ void csound_render(BelaContext *context, void *p)
     blocksize = csData->blocksize;
       
     /* processing loop */
-    for(n = 0; n < context->audioFrames; n++, frm+=incr, count+=nchnls){
+    for(n = 0; n < context->audioFrames; n++, frm+=incr, count+=nchnls, counti+=nchnls_i){
       if(count == blocksize) {
 	
 	/* set the channels */
@@ -339,10 +339,10 @@ void csound_render(BelaContext *context, void *p)
 	
       }
       /* read/write audio data */
-      for(i = 0; i < chns; i++){
-	 audioIn[count+i] = audioRead(context,n,i)*scal;
+      for(i = 0; i < ichns; i++)
+	 audioIn[counti+i] = audioRead(context,n,i)*scal;
+      for(i = 0; i < chns; i++)
 	 audioWrite(context,n,i,audioOut[count+i]/scal);
-      }
       
       /* read analogue data 
          analogue frame pos frm gets incremented according to the
@@ -361,6 +361,7 @@ void csound_render(BelaContext *context, void *p)
     }
     csData->res = res;
     csData->count = count;
+    csData->counti = counti;
   }
 }
 
