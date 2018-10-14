@@ -210,6 +210,8 @@ struct CsData {
   int blocksize;
   std::atomic_int res;
   int count;
+  int counti;
+  int blockframes;
   std::vector<CsChan> channel;
   std::vector<CsChan> ochannel;
   CsChan schannel;
@@ -224,11 +226,6 @@ bool csound_setup(BelaContext *context, void *p)
 			 "-odac", "-+rtaudio=null",
 			 "--realtime", "--daemon" };
   int numArgs = (int) (sizeof(args)/sizeof(char *));
-
-  if(context->audioInChannels != context->audioOutChannels) {
-    printf("Error: number of audio inputs != number of audio outputs.\n");
-    return false;
-  }
 
   /* allocate analog channel memory */
   csData->channel.resize(context->analogInChannels);
@@ -271,8 +268,10 @@ bool csound_setup(BelaContext *context, void *p)
     printf("Error: Csound could not compile CSD file.\n");
     return false;
   }
-  csData->blocksize = csound->GetKsmps()*csound->GetNchnls();
+  csData->blocksize = csound->GetKsmps();
   csData->count = 0;
+  csData->counti = 0;
+  csData->blockframes = 0;
 
   /* set up the channels */
   for(unsigned int i = 0; i < csData->channel.size(); i++) {
@@ -296,7 +295,8 @@ void csound_render(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   if(csData->res == 0) {
-    unsigned int i,k,count, frmcount,blocksize;
+    unsigned int i, k, count, counti,
+      frmcount, blocksize, blockframes;
     int res = csData->res;
     unsigned int n;
     Csound *csound = csData->csound;
@@ -304,8 +304,12 @@ void csound_render(BelaContext *context, void *p)
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
     int nchnls = csound->GetNchnls();
+    int nchnls_i = csound->GetNchnlsInput();
     unsigned int chns = (unsigned int) nchnls < context->audioOutChannels ?
       nchnls : context->audioOutChannels;
+    unsigned int ichns = (unsigned int) nchnls_i < context->audioInChannels ?
+      nchnls_i : context->audioInChannels;
+    
     std::vector<CsChan> &channel = csData->channel;
     std::vector<CsChan> &ochannel = csData->ochannel;
     CsChan &schannel = csData->schannel;
@@ -313,11 +317,14 @@ void csound_render(BelaContext *context, void *p)
     float frm = 0.f, incr =
       ((float) context->analogFrames)/context->audioFrames;
     count = csData->count;
+    counti = csData->counti;
     blocksize = csData->blocksize;
+    blockframes = csData->blockframes;
       
     /* processing loop */
-    for(n = 0; n < context->audioFrames; n++, frm+=incr, count+=nchnls){
-      if(count == blocksize) {
+    for(n = 0; n < context->audioFrames; n++, blockframes++,
+          frm+=incr, count+=nchnls, counti+=nchnls_i){
+      if(blockframes == blocksize) {
 	
 	/* set the channels */
 	for(i = 0; i < channel.size(); i++) 
@@ -325,7 +332,11 @@ void csound_render(BelaContext *context, void *p)
 			     channel[i].samples.data());
 	 
 	/* run csound */
-	if((res = csound->PerformKsmps()) == 0) count = 0;
+	if((res = csound->PerformKsmps()) == 0){
+          count = 0;
+          counti = 0;
+          blockframes = 0;
+        }
 	else break;
 
         /* get the channels */
@@ -339,10 +350,10 @@ void csound_render(BelaContext *context, void *p)
 	
       }
       /* read/write audio data */
-      for(i = 0; i < chns; i++){
-	 audioIn[count+i] = audioRead(context,n,i)*scal;
+      for(i = 0; i < ichns; i++)
+	 audioIn[counti+i] = audioRead(context,n,i)*scal;
+      for(i = 0; i < chns; i++)
 	 audioWrite(context,n,i,audioOut[count+i]/scal);
-      }
       
       /* read analogue data 
          analogue frame pos frm gets incremented according to the
@@ -361,6 +372,8 @@ void csound_render(BelaContext *context, void *p)
     }
     csData->res = res;
     csData->count = count;
+    csData->counti = counti;
+    csData->blockframes = blockframes;
   }
 }
 
