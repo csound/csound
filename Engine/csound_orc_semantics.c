@@ -991,15 +991,18 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
     IGN(csound);
+    OENTRY* retVal = NULL;
     int i;
+
+    char* outTest = (!strcmp("0", outArgTypes)) ? "" : outArgTypes;
     for (i = 0; i < entries->count; i++) {
       OENTRY* temp = entries->entries[i];
       if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
-          temp->outypes != NULL && !strcmp(outArgTypes, temp->outypes)) {
-        return temp;
+          temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
+        retVal = temp;
       }
     }
-    return NULL;
+    return retVal;
 }
 
 /* used when creating T_FUNCTION's */
