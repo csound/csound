@@ -59,8 +59,8 @@ scores and many bug fixes.
 - OSCbundle sends a collection of similar OSC messages as a single packet
   for efficiency.
 
-- beosc and beadsyn are band enhanced oscillator and oscillatot bank.
-  bpfcos is for breakpont files withe interpolation.  Similary lincos
+- beosc and beadsyn are band enhanced oscillator and oscillator bank.
+  bpfcos is for breakpont files with interpolation.  Similary lincos
   adds cosine interpolation to linlin.
 
 - printarray and reshapearray act on arrays.
@@ -115,12 +115,12 @@ scores and many bug fixes.
 
 - chnclear can now take a list of channels to clear instead of just one.
 
-- printf and printf_i now are like the manual in all arguments beyond the
+- printf and printf_i now are like the manual: all arguments beyond the
   format and trigger are optional
 
 - prints and printks can take string arguments printed with %s
 
-- GEN2 can now take a size of zero, which s interpreted as size
+- GEN2 can now take a size of zero, which is interpreted as size
 sufficient for the number of values provided.
 
 - faustcompile now includes a new optional parameter to allow it to be
@@ -147,7 +147,7 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 - diskin to array fixed and also use with small ksmps.
 
-- in locil it sometimes failed to deal with the ibas argument; this
+- in loscil it sometimes failed to deal with the ibas argument; this
   has now been reworked to be correct.
 
 - madsr could overflow an internal counter when given a negative p3.
