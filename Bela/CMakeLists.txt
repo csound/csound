@@ -9,7 +9,7 @@ if(BUILD_BELA)
   set_source_files_properties(./main.cpp PROPERTIES COMPILE_FLAGS ${MAIN_FLAGS})
   target_link_libraries(belacsound ${CSOUNDLIB} -L$ENV{HOME}/Bela/lib -L/root/Bela/lib
     -fno-pie -no-pie ${XENOMAI_POSIX_LDFLAGS} -lbela
-    -lbelaextra -lNE10)
+    -lbelaextra -lNE10 -lprussdrv)
   target_include_directories(belacsound PRIVATE /usr/xenomai/include
     /usr/xenomai/include/posix
     /usr/local/include $ENV{HOME}/Bela/include /root/Bela/lib)
