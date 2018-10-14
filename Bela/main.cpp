@@ -486,18 +486,21 @@ int main(int argc, const char *argv[]) {
   
   if(res) {
     res = Bela_initAudio(settings, &csData);
+    Bela_InitSettings_free(settings);
     if(!res){
       if(Bela_startAudio() == 0) {
-         while(csData.res == 0)
-	   usleep(100000);
-      } else
-	std::cerr << "error starting audio \n";
+       while(csData.res == 0)
+         usleep(100000);
+      } else {
+        std::cerr << "error starting audio \n";
+      }
       Bela_stopAudio();
-    } else
+      Bela_cleanupAudio();
+      return 0;
+    } else {
       std::cerr << "error initialising Bela \n";
-    Bela_cleanupAudio();
-    Bela_InitSettings_free(settings);
-    return 0;
+      return 1;
+    }
   }
   std::cerr << "no csd provided, use --csd=name \n";
   Bela_InitSettings_free(settings);
