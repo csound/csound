@@ -89,6 +89,9 @@ scores and many bug fixes.
 - the problematic use of i() with an array element directy is now
   flagged as an error.
 
+- If an ncluded file name has a "/" in it then any nested include is
+  relative to that directory. (Issur #973)
+
 ### Score
 
 - New preprocessor option #includestr.  This is like #include but has
@@ -105,6 +108,9 @@ scores and many bug fixes.
 
 - The forms for delayed ending of sections (e 5 or s 5) now work with
   fractional delays; previously only read the integer part.
+
+- If an ncluded file name has a "/" in it then any nested include is
+  relative to that directory. (Issur #973)
 
 ### Options
 
