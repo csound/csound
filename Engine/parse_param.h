@@ -31,6 +31,7 @@ typedef struct MACRON {
   int             n;
   unsigned int    line;
   struct MACRO    *s;
+  char            *path;
 } MACRON;
 
 typedef struct MACRO {          /* To store active macros */
@@ -67,6 +68,7 @@ typedef struct pre_parm_s {
     uint16_t        depth;
     uint16_t        lstack[1024];
     unsigned char   isinclude;
+    char            *path;
 } PRE_PARM;
 
 typedef struct parse_parm_s {
