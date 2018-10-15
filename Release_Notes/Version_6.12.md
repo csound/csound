@@ -104,18 +104,13 @@ scores and many bug fixes.
 - Use of [] syntax in a score could lead to a loss of precision for
   numbers over about 1 million; older version restored.
 
-- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
+- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works.
 
 - The forms for delayed ending of sections (e 5 or s 5) now work with
   fractional delays; previously only read the integer part.
 
-<<<<<<< HEAD
-- If an ncluded file name has a "/" in it then any nested include is
-  relative to that directory. (Issur #973).
-=======
 - If an included file name has a "/" in it then any nested include is
   relative to that directory. (Issue #973)
->>>>>>> d37b4d4f37cda2092597d70271ddb267067bdd01
 
 ### Options
 
