@@ -86,11 +86,11 @@ scores and many bug fixes.
 - multiple assignments such as ka,kb=1,2 are again supported by the
   parser; it had inadvertently got lost.
 
-- the problematic use of i() with an array element directy is now
+- the problematic use of i() with an array element directly is now
   flagged as an error.
 
-- If an ncluded file name has a "/" in it then any nested include is
-  relative to that directory. (Issur #973)
+- If an included file name has a "/" in it then any nested include is
+  relative to that directory. (Issue #973)
 
 ### Score
 
@@ -109,8 +109,8 @@ scores and many bug fixes.
 - The forms for delayed ending of sections (e 5 or s 5) now work with
   fractional delays; previously only read the integer part.
 
-- If an ncluded file name has a "/" in it then any nested include is
-  relative to that directory. (Issur #973)
+- If an included file name has a "/" in it then any nested include is
+  relative to that directory. (Issue #973)
 
 ### Options
 
