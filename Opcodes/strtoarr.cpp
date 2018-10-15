@@ -24,7 +24,7 @@
 #include <vector>
 
 //opcode version of the StrToArr UDO written by Joachim Heintz
-struct StrToArr : csnd::Plugin<2, 2> {
+struct StrToArray : csnd::Plugin<2, 2> {
   
   int init() 
   {
@@ -74,7 +74,7 @@ struct StrToArr : csnd::Plugin<2, 2> {
 };
 
 //removes a number of occurrences of one string from another
-struct StrStrip : csnd::Plugin<1, 3> {
+struct StrRemove : csnd::Plugin<1, 3> {
   
   int init() 
   {
@@ -119,8 +119,8 @@ struct StrStrip : csnd::Plugin<1, 3> {
 #include <modload.h>
   
 void csnd::on_load(Csound *csound) {
-  csnd::plugin<StrToArr>(csound, "strtoarr.kk", "S[]k", "SS", csnd::thread::k);
-  csnd::plugin<StrToArr>(csound, "strtoarr.ii", "S[]i", "SS", csnd::thread::i);
-  csnd::plugin<StrStrip>(csound, "strstrip.ii", "S", "SSo", csnd::thread::i);
+  csnd::plugin<StrToArray>(csound, "strtoarray.kk", "S[]k", "SS", csnd::thread::k);
+  csnd::plugin<StrToArray>(csound, "strtoarray.ii", "S[]i", "SS", csnd::thread::i);
+  csnd::plugin<StrRemove>(csound, "strremove.ii", "S", "SSo", csnd::thread::i);
 }
 
