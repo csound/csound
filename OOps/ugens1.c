@@ -1309,7 +1309,7 @@ int32_t linenr(CSOUND *csound, LINENR *p)
     }
     if (p->h.insdshead->relesing) {
       flag = 1;
-      val = val2;
+      //val = val2;
       val2 *= p->mlt2;
     }
     if (flag) {

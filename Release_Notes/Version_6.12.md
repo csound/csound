@@ -51,7 +51,7 @@ scores and many bug fixes.
 
 - Version of OSClisten that writes the data to a k-rate array now exists.
 
-- OSCcount returns the number of OSC incoming messages pending
+- OSCcount returns the number of OSC incoming messages pending.
 
 - faustplay and faustdsp are new opcodes splitting the faust DSP
   instantiation and performance.
@@ -75,13 +75,13 @@ scores and many bug fixes.
 ### Orchestra
 
 - New preprocessor option #includestr.  This is like #include but has
-  macro expansion in the double-quote delimited string
+  macro expansion in the double-quote delimited string.
 
 - Use of tied notes in subinstr fixed.
 
-- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
+- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works.
 
-- runtime error message now (usually) include a line number and a file/macro trace
+- runtime error message now (usually) include a line number and a file/macro trace.
 
 - multiple assignments such as ka,kb=1,2 are again supported by the
   parser; it had inadvertently got lost.
@@ -90,7 +90,7 @@ scores and many bug fixes.
   flagged as an error.
 
 - If an ncluded file name has a "/" in it then any nested include is
-  relative to that directory. (Issur #973)
+  relative to that directory. (Issur #973).
 
 ### Score
 
@@ -110,7 +110,7 @@ scores and many bug fixes.
   fractional delays; previously only read the integer part.
 
 - If an ncluded file name has a "/" in it then any nested include is
-  relative to that directory. (Issur #973)
+  relative to that directory. (Issur #973).
 
 ### Options
 
@@ -118,19 +118,19 @@ scores and many bug fixes.
 
 ### Modified Opcodes and Gens
 
-- Add optional argument to ftom for rounding answer to integer
+- Add optional argument to ftom for rounding answer to integer.
 
 - flooper2 and syncgrain etc  now allow resampling.
 
 - chnclear can now take a list of channels to clear instead of just one.
 
 - printf and printf_i now are like the manual: all arguments beyond the
-  format and trigger are optional
+  format and trigger are optional.
 
-- prints and printks can take string arguments printed with %s
+- prints and printks can take string arguments printed with %s.
 
 - GEN2 can now take a size of zero, which is interpreted as size
-sufficient for the number of values provided.
+  sufficient for the number of values provided.
 
 - faustcompile now includes a new optional parameter to allow it to be
 run in a blocking mode. Defaults (as before) to non-blocking.
