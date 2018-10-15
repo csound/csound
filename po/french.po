@@ -416,7 +416,7 @@ msgstr ""
 
 #: Engine/csound_orc_semantics.c:329
 msgid "Use of i() with array element ill formed\n"
-msgstr ""
+msgstr "Mauvaise utilisation de i() avec un élément de tableau\n"
 
 #: Engine/csound_orc_semantics.c:334
 #, c-format
@@ -1364,9 +1364,9 @@ msgid "subinstr: too many p-fields"
 msgstr "subinstr : trop de p-champs"
 
 #: Engine/insert.c:1386 Engine/insert.c:1407
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot find instr %d (UDO %s)\n"
-msgstr "Impossible de trouver l'instrument %d"
+msgstr "Impossible de trouver l'instr %d (UDO %s)\n"
 
 #: Engine/insert.c:1395
 #, c-format
@@ -3260,7 +3260,6 @@ msgid "cannot get rawmidi information %d:%d:%d: %s\n"
 msgstr "impossible de lire l'information rawmidi %d:%d:%d %s\n"
 
 #: InOut/rtalsa.c:1810
-#, fuzzy
 msgid "cannot open sequencer\n"
 msgstr "impossible d'ouvrir le séquenceur\n"
 
@@ -6961,125 +6960,101 @@ msgstr ""
 "plugin \"%s\"."
 
 #: Opcodes/emugens/beosc.c:616
-#, fuzzy
 msgid "beadsynt: phasetable not found"
-msgstr "adsynt : table d'onde non trouvée !"
+msgstr "beadsynt : table de phase non trouvée !"
 
 #: Opcodes/emugens/beosc.c:658
-#, fuzzy
 msgid "beadsynt: wavetable not found"
-msgstr "adsynt : table d'onde non trouvée !"
+msgstr "beadsynt : table d'onde non trouvée !"
 
 #: Opcodes/emugens/beosc.c:669
-#, fuzzy
 msgid "beadsynt: partial count > amptable size"
-msgstr ""
-"adsynt : le nombre de partiels est supérieur à la taille de la table d'amp !"
+msgstr "beadsynt : nombre de partiels > taille de la table d'amplidude"
 
 #: Opcodes/emugens/beosc.c:675
-#, fuzzy
 msgid "beadsynt: freqtable not found!"
-msgstr "adsynt : table de fréq non trouvée !"
+msgstr "beadsynt : table de fréq non trouvée !"
 
 #: Opcodes/emugens/beosc.c:678
-#, fuzzy
 msgid "beadsynt: partial count > freqtable size"
-msgstr ""
-"adsynt : le nombre de partiels est supérieur à la taille de la table de "
-"fréq !"
+msgstr "beadsynt : nombre de partiels > taille de la table de fréq"
 
 #: Opcodes/emugens/beosc.c:684
-#, fuzzy
 msgid "beadsynt: bandwidth table not found"
-msgstr "adsynt : table d'amp non trouvée !"
+msgstr "beadsynt : table de largeur de bande trouvée !"
 
 #: Opcodes/emugens/beosc.c:687
-#, fuzzy
 msgid "beadsynt: partial count > bandwidth size"
-msgstr ""
-"adsynt : le nombre de partiels est supérieur à la taille de la table d'amp !"
+msgstr "beadsynt : nombre de partiels > taille de la table de largeurs de bande"
 
 #: Opcodes/emugens/beosc.c:703
-#, fuzzy
 msgid "beadsynt: wavetable not found!"
-msgstr "adsynt : table d'onde non trouvée !"
+msgstr "beadsynt : table d'onde non trouvée !"
 
 #: Opcodes/emugens/beosc.c:712
-#, fuzzy
 msgid "The arrays should have 1 dimension"
-msgstr "l'arg tableau doit être à bidimensionnel\n"
+msgstr "Les tableaux doivent être unidimensionnels"
 
 #: Opcodes/emugens/beosc.c:723
-#, fuzzy
 msgid "Amplitudes array is too small"
-msgstr "tableau d'entrée trop petit\n"
+msgstr "Tableau d'amplitudes trop petit"
 
 #: Opcodes/emugens/beosc.c:726
-#, fuzzy
 msgid "Frequencies array is too small"
-msgstr "tableau d'entrée trop petit\n"
+msgstr "Tableau de fréquences trop petit"
 
 #: Opcodes/emugens/beosc.c:729
-#, fuzzy
 msgid "bandwidths array is too small"
-msgstr "tableau d'entrée trop petit\n"
+msgstr "tableau de largeurs de bande trop petit"
 
 #: Opcodes/emugens/beosc.c:762
-#, fuzzy
 msgid "beadsynt: not initialised"
-msgstr "adsynt : non initialisé"
+msgstr "beadsynt : non initialisé"
 
 #: Opcodes/emugens/beosc.c:1090 Opcodes/emugens/beosc.c:1094
-#, fuzzy
 msgid "tabrowcopy: incorrect table number"
-msgstr "tabw_i : numéro de table incorrect"
+msgstr "tabrowcopy : numéro de table incorrect"
 
 #: Opcodes/emugens/beosc.c:1100
-#, fuzzy
 msgid "tabrowcopy: iend cannot be bigger than numcols"
-msgstr "tabw_i : numéro de table incorrect"
+msgstr "tabrowcopy : iend ne peut pas dépasser numcols"
 
 #: Opcodes/emugens/beosc.c:1109
-#, fuzzy
 msgid "tabrowcopy: Destination table too small"
-msgstr "copyTabElems : table de destination trop courte"
+msgstr "tabrowcopy : table de destination trop petite"
 
 #: Opcodes/emugens/beosc.c:1121
 #, c-format
 msgid ">>>> tabrowlin: row %.4f > maxrow %d! It will be clipped\n"
-msgstr ""
+msgstr ">>>> tabrowlin : ligne %.4f > maxrow %d ! Elle sera coupée\n"
 
 #: Opcodes/emugens/beosc.c:1144
-#, fuzzy
 msgid "tabrowcopy: krow cannot be negative"
-msgstr "Les boucles de section ne peuvent pas être imbriquées"
+msgstr "tabrowcopy : krow ne peut pas être négatif"
 
 #: Opcodes/emugens/beosc.c:1151 Opcodes/emugens/beosc.c:1160
-#, fuzzy
 msgid "tabrowcopy: tab off end"
-msgstr "tabw hors-limite"
+msgstr "tabrowcopy : tab hors-limite"
 
 #: Opcodes/emugens/beosc.c:1183
-#, fuzzy
 msgid "tabrowlin: incorrect table number"
-msgstr "tabw_i : numéro de table incorrect"
+msgstr "tabrowlin : numéro de table incorrect"
 
 #: Opcodes/emugens/beosc.c:1190
 msgid "tabrowlin: iend cannot be bigger than numcols"
-msgstr ""
+msgstr "tabrowlin : iend ne peut pas dépasser numcols"
 
 #: Opcodes/emugens/beosc.c:1194
 msgid "tabrowlin: end must be bigger than start"
-msgstr ""
+msgstr "tabrowlin : la fin doit dépasser le début"
 
 #: Opcodes/emugens/beosc.c:1199
 msgid "tabrowlin: no items to copy"
-msgstr ""
+msgstr "tabrowlin : aucun élément à copier"
 
 #: Opcodes/emugens/beosc.c:1224
-#, fuzzy
 msgid "krow cannot be negative"
-msgstr "pvsfread : ichan ne peut pas être négatif.\n"
+msgstr "krow ne peut pas être négatif"
 
 #: Opcodes/emugens/beosc.c:1232 Opcodes/emugens/beosc.c:1240
 msgid "tab off end"
@@ -7087,21 +7062,20 @@ msgstr "tab hors-limite"
 
 #: Opcodes/emugens/beosc.c:1286
 msgid "The input array should be a 2D array"
-msgstr ""
+msgstr "Le tableau d'entrée doit être bidimensionnel"
 
 #: Opcodes/emugens/beosc.c:1296
 msgid "Asked to read too many items from a row"
-msgstr ""
+msgstr "Trop d'éléments demandés en lecture depuis une ligne"
 
 #: Opcodes/emugens/beosc.c:1304
-#, fuzzy
 msgid "getrowlin: krow cannot be negative"
-msgstr "Les boucles de section ne peuvent pas être imbriquées"
+msgstr "getrowlin : krow ne peut pas être négatif"
 
 #: Opcodes/emugens/beosc.c:1306
 #, c-format
 msgid "getrowlin: row %.4f > maxrow %d, clipping\n"
-msgstr ""
+msgstr "getrowlin : row %.4f > maxrow %d, coupée\n"
 
 #: Opcodes/emugens/emugens.c:107 Opcodes/emugens/emugens.c:137
 msgid "linlin.k: Division by zero"
@@ -7153,7 +7127,7 @@ msgstr "tab2array : impossible de copier un nombre négatif d'items"
 
 #: Opcodes/emugens/emugens.c:1266
 msgid "reshapearray: can't reshape"
-msgstr ""
+msgstr "reshapearray : reformatage impossible"
 
 #: Opcodes/fareygen.c:116
 msgid "insufficient arguments for fareytable"
