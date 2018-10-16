@@ -167,7 +167,7 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 - the time calculation in flooper2, flooper, and syncgrain was corrected.
 
-- resampling and pitch fixed in pvstanal
+- resampling and pitch fixed in pvstanal.
 
 - Rare buffer overflow case in faust opcodes fixed.
 
@@ -181,7 +181,7 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 - The test for compatible subtypes of f-values in a number of pvs
   opcodes was wrong, causing spurious error messages.
 
-- cosseg was broken for more than one segment; now OK
+- cosseg was broken for more than one segment; now OK.
 
 - monitor opcode did not work correctly when using multiple processes; fixed.
 
@@ -232,6 +232,6 @@ unnecessary assignments and doing some more expression optimisations.
 - GNU/Linux
 
 - Bela
- - allow analog in and out with different channel numbers
+ - allow analog in and out with different channel numbers.
 
 ==END==
