@@ -313,7 +313,7 @@ if (Test-Path "fluidsynth")
 else
 {
     #Switch to offical branch when PR is merged in
-    git clone --depth=1 -b master "https://github.com/stekyne/fluidsynth.git"
+    git clone --depth=1 -b v1.1.10 "https://github.com/FluidSynth/fluidsynth.git"
 }
 
 rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
@@ -323,10 +323,10 @@ cmake ..\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\
 cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
-copy .\src\Release\libfluidsynth-2.dll -Destination $depsBinDir -Force
-copy ..\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
+copy .\src\Release\libfluidsynth-1.dll -Destination $depsBinDir -Force
+copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth\version.h -Force
+copy .\include\fluidsynth.h -Destination $depsIncDir -Force
 robocopy ..\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
-copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth -Force
 
 $buildTiming = (Get-Date).TimeOfDay
 
