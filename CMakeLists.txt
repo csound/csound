@@ -1463,3 +1463,5 @@ endif(DOXYGEN_FOUND)
 # install CMake module
 install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
+
+make_plugin(strtoarr Opcodes/strtoarr.cpp)
