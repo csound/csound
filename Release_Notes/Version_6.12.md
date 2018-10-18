@@ -60,12 +60,12 @@ scores and many bug fixes.
   for efficiency.
 
 - beosc and beadsyn are band enhanced oscillator and oscillator bank.
-  bpfcos is for breakpont files with interpolation.  Similary lincos
+  bpfcos is for breakpoint files with interpolation.  Similarly lincos
   adds cosine interpolation to linlin.
 
 - printarray and reshapearray act on arrays.
 
-- trim and trim_i adjust the size of a 1 diensional array, either
+- trim and trim_i adjust the size of a 1 dimensional array, either
   bigger or smaller, preserving data and/or padding with zeros.
 
 ### New Gen and Macros
@@ -184,6 +184,10 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 - cosseg was broken for more than one segment; now OK.
 
 - monitor opcode did not work correctly when using multiple processes; fixed.
+
+- in the linenr opcode if the release stage was entered before the end
+  of the rise the output value jumped to the end value and then
+  decayed, causing a glitch.  This is fixed. (#1048)
 
 # SYSTEM LEVEL CHANGES
 
