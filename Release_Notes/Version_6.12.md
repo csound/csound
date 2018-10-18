@@ -92,6 +92,8 @@ scores and many bug fixes.
 - If an included file name has a "/" in it then any nested include is
   relative to that directory. (Issue #973)
 
+- Redefinition of UDOs with zero output arguments fixed.
+
 ### Score
 
 - New preprocessor option #includestr.  This is like #include but has
@@ -139,7 +141,7 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 - slicearray for other than i-rate arrays runs at k-rate only.
 
-- pvstrace now has the option to also return an array containing the bin
+- pvstrace now has the option also to return an array containing the bin
   numbers.
 
 ### Utilities
