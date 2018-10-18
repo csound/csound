@@ -505,7 +505,7 @@ int csoundLoadModules(CSOUND *csound)
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
-      snprintf(buf, 1024, "%s%c%s", dname, DIRSEP, fname);
+      snprintf(buf, 1024, "%s%c%s", dname1, DIRSEP, fname);
       if (UNLIKELY(csound->oparms->odebug)) {
         csoundMessage(csound, Str("Loading '%s'\n"), buf);
        }
