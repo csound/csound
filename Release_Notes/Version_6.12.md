@@ -139,6 +139,9 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 - slicearray for other than i-rate arrays runs at k-rate only.
 
+- pvstrace now has the option to also return an array containing the bin
+  numbers.
+
 ### Utilities
 
 - A coding error in mixer was fixed.  It was very broken.
