@@ -889,6 +889,14 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
       }
   }
 
+  /** @private
+      set nsmps and offset value for kperf()
+   */
+  void nsmps_set() {
+    nsmps = insdshead->ksmps - insdshead->ksmps_no_end;;
+    offset = insdshead->ksmps_offset;
+  }
+
   /** returns the number of output arguments
       used in the case of variable output count
   */
@@ -923,6 +931,7 @@ template <typename T> int init(CSOUND *csound, T *p) {
 */
 template <typename T> int kperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
+  p->nsmps_set();
   return p->kperf();
 }
 
