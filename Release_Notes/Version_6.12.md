@@ -90,6 +90,9 @@ scores and many bug fixes.
   
 - Redefinition of UDOs with zero output arguments fixed.
 
+- A very ocscure bug in running sub-instruments, which has been in the
+  code for nearly a year, was fixed.
+
 ### Score
 
 - New preprocessor option #includestr.  This is like #include but has
