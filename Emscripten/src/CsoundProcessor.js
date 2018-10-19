@@ -270,9 +270,9 @@ class CsoundProcessor extends AudioWorkletProcessor {
             p.postMessage(["control", channel, value]);
             break;
         case "getStringChannel":
-            let channel = data[1];
-            let value = Csound.getStringChannel(this.csObj, channel);
-            p.postMessage(["stringChannel", channel, value]);
+            let schannel = data[1];
+            let svalue = Csound.getStringChannel(this.csObj, schannel);
+            p.postMessage(["stringChannel", schannel, svalue]);
             break;
         case "getTable":
             let buffer = Csound.getTable(this.csObj, data[1]);
