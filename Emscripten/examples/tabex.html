@@ -237,7 +237,7 @@
 
     function print_msg(message) {
       csound.requestControlChannel("step", function() {
-        step = Math.round(csound.getChannel("step"));
+        step = Math.round(csound.getControlChannel("step"));
         display_msg(message, step);
       });
     }

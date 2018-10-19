@@ -84,6 +84,7 @@ class CsoundScriptProcessorNodeFactory {
                         getInputBuffer: CSMOD.cwrap('CsoundObj_getInputBuffer', ['number'], ['number']),
                         getControlChannel: CSMOD.cwrap('CsoundObj_getControlChannel', ['number'], ['number', 'string']),
                         setControlChannel: CSMOD.cwrap('CsoundObj_setControlChannel', null, ['number', 'string', 'number']),
+                        getStringChannel: CSMOD.cwrap('CsoundObj_getStringChannel', ['string'], ['number', 'string']),
                         setStringChannel: CSMOD.cwrap('CsoundObj_setStringChannel', null, ['number', 'string', 'string']),
                         getKsmps: CSMOD.cwrap('CsoundObj_getKsmps', ['number'], ['number']),
                         performKsmps: CSMOD.cwrap('CsoundObj_performKsmps', ['number'], ['number']),
@@ -290,13 +291,37 @@ CsoundScriptProcessorNode  = function(context, options) {
                 this.channelCallback[channelName]();   
         },
 
+        /** Request the data from a string channel 
+         *
+         * @param {string} channelName A string containing the channel name.
+         * @param {function} callback An optional callback to be called when
+         *  the requested data is available. This can be set once for all
+         *  subsequent requests.
+         */ 
+        requestStringChannel(channelName, callback = null) {
+            this.stringChannel[channelName] = CSOUND.getStringChannel(this.csound, channelName);
+            if (callback !== null)
+                this.stringChannelCallback[channelName] = callback;
+            if (typeof this.strinChannelCallback[channelName] !== 'undefined')
+                this.stringChannelCallback[channelName]();   
+        },
+
         /** Get the latest requested channel data 
          *
          * @param {string} channelName A string containing the channel name.
          * @returns {(number|string)} The latest channel value requested.
          */   
-        getChannel(channelName) {
+        getControlChannel(channelName) {
             return this.channel[channelName];
+        },
+
+        /** Get the latest requested string channel data 
+         *
+         * @param {string} channelName A string containing the channel name.
+         * @returns {string} The latest channel value requested.
+         */   
+        getStringChannel(channelName) {
+            return this.stringChannel[channelName];
         },
 
         /** Request the data from a Csound function table

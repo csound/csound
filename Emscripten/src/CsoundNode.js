@@ -60,6 +60,8 @@ class CsoundNode extends AudioWorkletNode {
         this.port.start();
         this.channel =  {};
         this.channelCallback = {};
+        this.stringChannels =  {};
+        this.stringChannelCallback = {};
         this.table = {};
         this.tableCallback = {};
         this.port.onmessage = (event) => {
@@ -72,6 +74,11 @@ class CsoundNode extends AudioWorkletNode {
                 this.channel[data[1]] = data[2];
                 if (typeof this.channelCallback[data[1]] != 'undefined')
                       this.channelCallback[data[1]](); 
+                break;
+            case "stringChannel":
+                this.stringChannel[data[1]] = data[2];
+                if (typeof this.stringChannelCallback[data[1]] != 'undefined')
+                      this.stringChannelCallback[data[1]](); 
                 break;
             case "table":
                 this.table[data[1]] = data[2];
@@ -174,13 +181,36 @@ class CsoundNode extends AudioWorkletNode {
           this.channelCallback[channelName] = callback;
     }
 
+    /** Request the data from a String channel 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @param {function} callback An optional callback to be called when
+     *  the requested data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    requestStringChannel(channelName, callback = null) {
+        this.port.postMessage(["getStringChannel",
+                               channelName]);
+        if (callback !== null)
+          this.stringChannelCallback[channelName] = callback;
+    }
+
     /** Get the latest requested channel data 
      *
      * @param {string} channelName A string containing the channel name.
-     * @returns {(number|string)} The latest channel value requested.
+     * @returns {number} The latest channel value requested.
      */   
-    getChannel(channelName) {
+    getControlChannel(channelName) {
         return this.channel[channelName];
+    }
+
+    /** Get the latest requested string channel data 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @returns {string} The latest channel value requested.
+     */   
+    getControlChannel(channelName) {
+        return this.stringChannel[channelName];
     }
 
      /** Request the data from a Csound function table
