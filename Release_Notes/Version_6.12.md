@@ -21,10 +21,6 @@ Any valid HTML can also be used.
  --->
 
 
-DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT
-
-
-
 # CSOUND VERSION 6.12 RELEASE NOTES
 
 Many changes including the removal of vst2cs functionality due to a copyright issue.
@@ -91,7 +87,7 @@ scores and many bug fixes.
 
 - If an included file name has a "/" in it then any nested include is
   relative to that directory. (Issue #973)
-
+  
 - Redefinition of UDOs with zero output arguments fixed.
 
 ### Score
@@ -106,7 +102,8 @@ scores and many bug fixes.
 - Use of [] syntax in a score could lead to a loss of precision for
   numbers over about 1 million; older version restored.
 
-- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works.
+- Nesting macro calls more than about 10 caused a crash; now unlimited
+  nesting works.
 
 - The forms for delayed ending of sections (e 5 or s 5) now work with
   fractional delays; previously only read the integer part.
