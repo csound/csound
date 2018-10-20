@@ -102,6 +102,10 @@ public:
    */
   MYFLT sr() { return GetSr(this); }
 
+  /** system control rate
+   */
+  MYFLT kr() { return GetKr(this); }
+
   /** system max amp reference
    */
   MYFLT _0dbfs() { return Get0dBFS(this); }
