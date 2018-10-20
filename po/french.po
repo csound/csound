@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2018-09-25 21:47+0100\n"
+"PO-Revision-Date: 2018-10-20 19:36+0100\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -12453,9 +12453,9 @@ msgid "no orchestra name"
 msgstr "aucun nom d'orchestre"
 
 #: Top/main.c:177
-#, fuzzy, c-format
+#, c-format
 msgid "Reading CSD failed (%s)... stopping"
-msgstr "La lecture du CSD a échoué ... arrêt"
+msgstr ""
 
 #: Top/main.c:182
 msgid "Reading CSD failed ... stopping"
