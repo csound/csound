@@ -12455,7 +12455,7 @@ msgstr "aucun nom d'orchestre"
 #: Top/main.c:177
 #, c-format
 msgid "Reading CSD failed (%s)... stopping"
-msgstr ""
+msgstr "La lecture du CSD a échoué (%s)... arrêt"
 
 #: Top/main.c:182
 msgid "Reading CSD failed ... stopping"
