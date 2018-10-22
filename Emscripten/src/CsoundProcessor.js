@@ -36,6 +36,7 @@ libcsound(CSMOD);
 // SETUP FS
 
 let FS = CSMOD["FS"];
+let pointerStringify = CSMOD["Pointer_stringify"];
 
 
 
@@ -272,6 +273,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
         case "getStringChannel":
             let schannel = data[1];
             let svalue = Csound.getStringChannel(this.csObj, schannel);
+            svalue = pointerStringify(svalue);
             p.postMessage(["stringChannel", schannel, svalue]);
             break;
         case "getTable":

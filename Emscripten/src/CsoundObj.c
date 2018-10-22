@@ -185,6 +185,16 @@ float CsoundObj_getControlChannel(CsoundObj *self, const char *channelName) {
 }
 
 EMSCRIPTEN_KEEPALIVE 
+char* CsoundObj_getStringChannel(CsoundObj *self, const char *channelName) {
+  int len = csoundGetChannelDatasize(self->csound, channelName);
+  char *data = calloc(1, sizeof(char) * (len + 1));
+
+  csoundGetStringChannel(self->csound, channelName, data);
+  return data;
+}
+
+
+EMSCRIPTEN_KEEPALIVE 
 float CsoundObj_getScoreTime(CsoundObj *self) {
   return csoundGetScoreTime(self->csound);
 }
