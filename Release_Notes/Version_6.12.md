@@ -51,7 +51,7 @@ scores and many bug fixes.
 
 - Version of OSClisten that writes the data to a k-rate array now exists.
 
-- OSCcount returns the number of OSC incoming messages pending
+- OSCcount returns the number of OSC incoming messages pending.
 
 - faustplay and faustdsp are new opcodes splitting the faust DSP
   instantiation and performance.
@@ -59,11 +59,14 @@ scores and many bug fixes.
 - OSCbundle sends a collection of similar OSC messages as a single packet
   for efficiency.
 
-- beosc and beadsyn are band enhanced oscillator and oscillatot bank.
-  bpfcos is for breakpont files withe interpolation.  Similary lincos
+- beosc and beadsyn are band enhanced oscillator and oscillator bank.
+  bpfcos is for breakpoint files with interpolation.  Similarly lincos
   adds cosine interpolation to linlin.
 
 - printarray and reshapearray act on arrays.
+
+- trim and trim_i adjust the size of a 1 dimensional array, either
+  bigger or smaller, preserving data and/or padding with zeros.
 
 ### New Gen and Macros
 
@@ -72,16 +75,24 @@ scores and many bug fixes.
 ### Orchestra
 
 - New preprocessor option #includestr.  This is like #include but has
-  macro expansion in the double-quote delimited string
+  macro expansion in the double-quote delimited string.
 
 - Use of tied notes in subinstr fixed.
 
-- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
+- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works.
 
-- runtime error message now (usually) include a line number and a file/macro trace
+- runtime error message now (usually) include a line number and a file/macro trace.
 
 - multiple assignments such as ka,kb=1,2 are again supported by the
-parser; it had inadvertently got lost.
+  parser; it had inadvertently got lost.
+
+- the problematic use of i() with an array element directly is now
+  flagged as an error.
+
+- If an included file name has a "/" in it then any nested include is
+  relative to that directory. (Issue #973)
+
+- Redefinition of UDOs with zero output arguments fixed.
 
 ### Score
 
@@ -95,10 +106,13 @@ parser; it had inadvertently got lost.
 - Use of [] syntax in a score could lead to a loss of precision for
   numbers over about 1 million; older version restored.
 
-- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works
+- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works.
 
 - The forms for delayed ending of sections (e 5 or s 5) now work with
   fractional delays; previously only read the integer part.
+
+- If an included file name has a "/" in it then any nested include is
+  relative to that directory. (Issue #973)
 
 ### Options
 
@@ -106,24 +120,29 @@ parser; it had inadvertently got lost.
 
 ### Modified Opcodes and Gens
 
-- Add optional argument to ftom for rounding answer to integer
+- Add optional argument to ftom for rounding answer to integer.
 
 - flooper2 and syncgrain etc  now allow resampling.
 
 - chnclear can now take a list of channels to clear instead of just one.
 
-- printf and printf_i now are like the manual in all arguments beyond the
-  format and trigger are optional
+- printf and printf_i now are like the manual: all arguments beyond the
+  format and trigger are optional.
 
-- prints and printks can take string arguments printed with %s
+- prints and printks can take string arguments printed with %s.
 
-- GEN2 can now take a size of zero, which s interpreted as size
-sufficient for the number of values provided.
+- GEN2 can now take a size of zero, which is interpreted as size
+  sufficient for the number of values provided.
 
 - faustcompile now includes a new optional parameter to allow it to be
 run in a blocking mode. Defaults (as before) to non-blocking.
 
 - fillarray can be run at k-rate if any of the argument/values are k-rate.
+
+- slicearray for other than i-rate arrays runs at k-rate only.
+
+- pvstrace now has the option also to return an array containing the bin
+  numbers.
 
 ### Utilities
 
@@ -144,7 +163,7 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 - diskin to array fixed and also use with small ksmps.
 
-- in locil it sometimes failed to deal with the ibas argument; this
+- in loscil it sometimes failed to deal with the ibas argument; this
   has now been reworked to be correct.
 
 - madsr could overflow an internal counter when given a negative p3.
@@ -153,7 +172,7 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 
 - the time calculation in flooper2, flooper, and syncgrain was corrected.
 
-- resampling and pitch fixed in pvstanal
+- resampling and pitch fixed in pvstanal.
 
 - Rare buffer overflow case in faust opcodes fixed.
 
@@ -167,9 +186,13 @@ run in a blocking mode. Defaults (as before) to non-blocking.
 - The test for compatible subtypes of f-values in a number of pvs
   opcodes was wrong, causing spurious error messages.
 
-- cosseg was broken for more than one segment; now OK
+- cosseg was broken for more than one segment; now OK.
 
 - monitor opcode did not work correctly when using multiple processes; fixed.
+
+- in the linenr opcode if the release stage was entered before the end
+  of the rise the output value jumped to the end value and then
+  decayed, causing a glitch.  This is fixed. (#1048)
 
 # SYSTEM LEVEL CHANGES
 
@@ -218,6 +241,6 @@ unnecessary assignments and doing some more expression optimisations.
 - GNU/Linux
 
 - Bela
- - allow analog in and out with different channel numbers
+ - allow analog in and out with different channel numbers.
 
 ==END==

@@ -289,11 +289,9 @@ class CsoundNodeFactory {
     static importScripts(script_base='./') {
         let actx = CSOUND_AUDIO_CONTEXT;
         return new Promise( (resolve) => {
-            actx.audioWorklet.addModule(script_base + 'libcsound-worklet.wasm.js').then(() => {
-                actx.audioWorklet.addModule(script_base + 'libcsound-worklet.js').then(() => {
-                    actx.audioWorklet.addModule(script_base + 'CsoundProcessor.js').then(() => {
-                        resolve(); 
-                    }) }) })      
+            actx.audioWorklet.addModule(script_base + 'CsoundProcessor.js').then(() => {
+                resolve(); 
+            })      
         }) 
     }
 

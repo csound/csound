@@ -46,7 +46,7 @@ static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
 
 static TREE * optimize_ifun(CSOUND *csound, TREE *root)
 {
-    /* print_tree(csound, "optimize_ifun: before", root); */
+    //print_tree(csound, "optimize_ifun: before", root);
     switch(root->right->type) {
     case INTEGER_TOKEN:
     case NUMBER_TOKEN:               /* i(num)    -> num      */
@@ -62,7 +62,8 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
     case T_FUNCTION:                 /* i(fn(x))  -> fn(i(x)) */
       {
         TREE *funTree = root->right;
-        funTree->right = create_fun_token(csound, funTree->right, "i");
+        if (LIKELY(strcmp(funTree->value->lexeme,"i")!=0))
+          funTree->right = create_fun_token(csound, funTree->right, "i");
         root = funTree;
       }
       break;

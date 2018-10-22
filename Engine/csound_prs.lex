@@ -63,6 +63,7 @@ static inline int isNameChar(int cc, int pos)
     csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
     /*yyg->yy_flex_debug_r=1;*/ PARM->macro_stack_size = 0;             \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
+    PARM->path = ".";                                                  \
     PARM->cf = csound->expanded_sco;                                    \
   }
 static MACRO *find_definition(MACRO *, char *);
@@ -391,6 +392,12 @@ NM              [nm][ \t]+
                           YY_CURRENT_BUFFER);
                   csound_prs_line(PARM->cf, yyscanner);
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
+                  if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
+                    //printf("restoring path from %s to %s\n",
+                    //    PARM->path, PARM->alt_stack[PARM->macro_stack_ptr].path);
+                    free(PARM->path);
+                    PARM->path = PARM->alt_stack[PARM->macro_stack_ptr].path;
+                  }
                   /* printf("lineno on stack is %llu\n", */
                   /*        PARM->alt_stack[PARM->macro_stack_ptr].line); */
                   csound->DebugMsg(csound,"n=%d\n", n);
@@ -946,7 +953,15 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
-    cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
+    if (PARM->path && buffer[0]!= '/') { // if nested included directories
+      char tmp[1024];
+      printf("using path %s\n", PARM->path);
+      strncpy(tmp, PARM->path, 1023);
+      strcat(tmp, "/");
+      strncat(tmp, buffer, 1022-strlen(tmp));
+      cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
+    }
+    else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
@@ -966,6 +981,14 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
            csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_prsget_lineno(yyscanner);
+    if (strrchr(buffer,'/')) {
+      PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
+      printf("setting path from %s to ", PARM->path);
+      PARM->path = strdup(buffer); /* wasteful! */
+      *(strrchr(PARM->path,'/')) = '\0';
+      printf("%s\n",PARM->path);
+    }
+    else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_prs_scan_string(cf->body, yyscanner);
@@ -1007,7 +1030,14 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
-    cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
+    if (PARM->path && buffer[0]!='/') {
+      char tmp[1024];
+      strncpy(tmp, PARM->path, 1023);
+      strcat(tmp, "/");
+      strncat(tmp, buffer, 1022-strlen(tmp));
+      cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
+    }
+    else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
@@ -1027,6 +1057,12 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
            csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_prsget_lineno(yyscanner);
+    if (strrchr(buffer,'/')) {
+      PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
+      PARM->path = strdup(buffer); /* wasteful! */
+      *(strrchr(PARM->path,'/')) = '\0';
+    }
+    else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_prs_scan_string(cf->body, yyscanner);

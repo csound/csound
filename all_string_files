@@ -39,7 +39,6 @@
 ./Engine/symbtab.c
 ./Engine/twarp.c
 ./H/aops.h
-./H/arrays.h
 ./H/bus.h
 ./H/cmath.h
 ./H/compile_ops.h
@@ -486,6 +485,7 @@
 ./Frontends/debugger/csdebugger.cpp
 ./Frontends/winsound/main.cxx
 ./Frontends/winsound/winsound.fl
+./include/arrays.h
 ./include/OpcodeBase.hpp
 ./include/cfgvar.h
 ./include/cs_par_structs.h

@@ -1807,7 +1807,7 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
     IGN(csound);
 
     if (snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0) {
-      fprintf(stderr, Str("can't open sequencer\n"));
+      fprintf(stderr, Str("cannot open sequencer\n"));
       return 1;
     }
 

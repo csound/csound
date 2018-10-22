@@ -259,13 +259,6 @@ int32_t vbap_init(CSOUND *csound, VBAP *p)
     int32_t cnt = p->q.number = (int32_t)(p->OUTOCOUNT);
     char name[24];
 
-    /*if ((!strcmp(p->h.optext->t.opcod, "vbap.a")) == 0) {
-      p->audio = p->out_array[cnt];
-      p->azi = p->out_array[cnt+1];
-      p->ele = p->out_array[cnt+2];
-      p->spread = p->out_array[cnt+3];
-      p->layout = p->out_array[cnt+4];
-      } */
     snprintf(name, 24, "vbap_ls_table_%d", (p->layout==NULL?0:(int32_t)*p->layout));
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
 

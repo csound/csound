@@ -297,12 +297,12 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
 static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
 {
     SEG         *segp;
-    int32_t         nsegs;
+    int32_t     nsegs;
     MYFLT       **argp = p->argums;
     double      dur;
     MYFLT       len = csound->curip->p3.value;
     MYFLT       release = *argp[3];
-    int32_t       relestim;
+    int32_t     relestim;
 
     //printf("len = %f\n", len);
     if (UNLIKELY(len<=FL(0.0)))
@@ -1299,28 +1299,28 @@ int32_t linenr(CSOUND *csound, LINENR *p)
        nsmps -= early;
        memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
-
     for (n=offset; n<nsmps; n++) {
-    if (p->cnt1 > 0L) {
-      flag = 1;
-      val = p->lin1;
-      p->lin1 += p->inc1;
-      p->cnt1--;
-    }
-    if (p->h.insdshead->relesing) {
-      flag = 1;
-      val = val2;
-      val2 *= p->mlt2;
-    }
-    if (flag) {
-      if (asgsg)
+      if (p->cnt1 > 0L) {
+        flag = 1;
+        val = p->lin1;
+        p->lin1 += p->inc1;
+        p->cnt1--;
+      }
+      if (p->h.insdshead->relesing) {
+        flag = 1;
+        val = p->cnt1==0L ? val2 :val*val2;
+        //val *= val2;              /* If val = val2 jumps */
+        val2 *= p->mlt2;
+      }
+      if (flag) {
+        if (asgsg)
           rs[n] = sg[n] * val;
-      else
+        else
           rs[n] = *sg * val;
       }
-    else {
-      if (asgsg) rs[n] = sg[n];
-      else rs[n] = *sg;
+      else {
+        if (asgsg) rs[n] = sg[n];
+        else rs[n] = *sg;
       }
     }
     p->val = val;

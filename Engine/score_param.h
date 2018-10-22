@@ -46,6 +46,7 @@ typedef struct MACRON {
   int             n;
   unsigned int    line;
   struct MACRO    *s;
+  char            *path;
 } MACRON;
 
 typedef struct MACRO {          /* To store active macros */
@@ -78,6 +79,7 @@ typedef struct prs_parm_s {
     unsigned char   isIfndef;
     unsigned char   isString;
     unsigned char   isinclude;
+    char            *path;
     uint16_t        line;
     uint32_t        locn;
     uint32_t        llocn;

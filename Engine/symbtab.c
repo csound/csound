@@ -556,25 +556,25 @@ int add_udo_definition(CSOUND *csound, char *opname,
       csound->Message(csound,
                       Str("WARNING: redefined opcode: %s\n"), opname);
     }
+    /* IV - Oct 31 2002 */
+    /* store the name in a linked list (note: must use csound->Calloc) */
+    inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
+    inm->name = cs_strdup(csound, opname);
+    inm->intypes = intypes;
+    inm->outtypes = outtypes;
+    inm->in_arg_pool = csoundCreateVarPool(csound);
+    inm->out_arg_pool = csoundCreateVarPool(csound);
+
+    inm->prv = csound->opcodeInfo;
+    csound->opcodeInfo = inm;
 
     if (opc != NULL) {
-      //opc->useropinfo = inm;
+      /* printf("**** Redefining case: %s %s %s\n", */
+      /*        inm->name, inm->outtypes, inm->intypes); */
+      opc->useropinfo = inm;
       newopc = opc;
     } else {
-
-      /* IV - Oct 31 2002 */
-      /* store the name in a linked list (note: must use csound->Calloc) */
-      inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
-      inm->name = cs_strdup(csound, opname);
-      inm->intypes = intypes;
-      inm->outtypes = outtypes;
-      inm->in_arg_pool = csoundCreateVarPool(csound);
-      inm->out_arg_pool = csoundCreateVarPool(csound);
-
-      inm->prv = csound->opcodeInfo;
-      csound->opcodeInfo = inm;
-
-
+      //printf("****New UDO: %s %s %s\n", inm->name, inm->outtypes, inm->intypes);
       /* IV - Oct 31 2002: */
       /* create a fake opcode so we can call it as such */
       opc = find_opcode(csound, "##userOpcode");
@@ -600,6 +600,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     }
 
+    //printf("****Calling parse_opcode_args\n");
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
       return -3;
 
