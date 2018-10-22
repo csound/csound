@@ -911,7 +911,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
   */
   uint32_t in_count() { return (uint32_t)optext->t.inArgCount; }
 
-  /** local control rate 
+  /** local control rate
    */
   MYFLT kr() { return insdshead->ekr; }
 };

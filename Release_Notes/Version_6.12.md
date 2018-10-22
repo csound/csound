@@ -87,10 +87,10 @@ scores and many bug fixes.
 
 - If an included file name has a "/" in it then any nested include is
   relative to that directory. (Issue #973)
-  
+
 - Redefinition of UDOs with zero output arguments fixed.
 
-- A very ocscure bug in running sub-instruments, which has been in the
+- A very obscure bug in running sub-instruments, which has been in the
   code for nearly a year, was fixed.
 
 ### Score
@@ -135,7 +135,7 @@ scores and many bug fixes.
   sufficient for the number of values provided.
 
 - faustcompile now includes a new optional parameter to allow it to be
-run in a blocking mode. Defaults (as before) to non-blocking.
+  run in a blocking mode. Defaults (as before) to non-blocking.
 
 - fillarray can be run at k-rate if any of the argument/values are k-rate.
 
@@ -216,7 +216,7 @@ differs with respect to deprecated and polymorphic opcodes.
   is being distributed by some Linux distros.
 
 - The orchestra compiler has a number of new optimisations, avoiding
-unnecessary assignments and doing some more expression optimisations.
+  unnecessary assignments and doing some more expression optimisations.
 
 ### Translations
 
