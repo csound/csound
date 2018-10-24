@@ -877,42 +877,44 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
 
     /** midi channel number for this instrument
    */
-  int midi_channel() { return GetMidiChannelNumber(this); }
+  int midi_channel() { return ((CSOUND *)csound)->GetMidiChannelNumber(this); }
 
   /** midi note number for this instrument
    */
-  int midi_note_num() { return GetMidiNoteNumber(this); }
+  int midi_note_num() { return ((CSOUND *)csound)->GetMidiNoteNumber(this); }
 
   /** midi note velocity for this instrument
    */
-  int midi_note_vel() { return GetMidiVelocity(this); }
+  int midi_note_vel() { return ((CSOUND *)csound)->GetMidiVelocity(this); }
 
   /** midi aftertouch for this channel
    */
-  MYFLT midi_chn_aftertouch() { return GetMidiChannel(this)->aftouch; }
+  MYFLT midi_chn_aftertouch() {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->aftouch; }
 
   /** midi poly aftertouch for this channel
    */
   MYFLT midi_chn_polytouch(uint32_t note) {
-    return GetMidiChannel(this)->polyaft[note];
+    return ((CSOUND *)csound)->GetMidiChannel(this)->polyaft[note];
   }
 
   /** midi ctl change for this channel
    */
   MYFLT midi_chn_ctl(uint32_t ctl) {
-    return GetMidiChannel(this)->ctl_val[ctl];
+    return ((CSOUND *)csound)->GetMidiChannel(this)->ctl_val[ctl];
   }
 
   /** midi pitchbend for this channel
    */
-  MYFLT midi_chn_pitchbend() { return GetMidiChannel(this)->pchbend; }
+  MYFLT midi_chn_pitchbend() {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->pchbend; }
 
   /** list of active instrument instances for this channel \n
       returns an INSDS array with 128 items, one per
       MIDI note number. Inactive instances are marked NULL.
    */
   const INSDS *midi_chn_list() {
-    return (const INSDS *)GetMidiChannel(this)->kinsptr;
+    return (const INSDS *) ((CSOUND *)csound)->GetMidiChannel(this)->kinsptr;
   }
 };
 
