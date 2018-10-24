@@ -58,12 +58,12 @@ class CsoundNode extends AudioWorkletNode {
         this.msgCallback = (msg) => { console.log(msg); }
 
         this.port.start();
-        this.channel =  {};
-        this.channelCallback = {};
+        this.channels =  {};
+        this.channelCallbacks = {};
         this.stringChannels =  {};
-        this.stringChannelCallback = {};
+        this.stringChannelCallbacks = {};
         this.table = {};
-        this.tableCallback = {};
+        this.tableCallbacks = {};
         this.port.onmessage = (event) => {
             let data = event.data;
             switch(data[0]) {
@@ -71,19 +71,19 @@ class CsoundNode extends AudioWorkletNode {
                 this.msgCallback(data[1]);
                 break;
             case "control":
-                this.channel[data[1]] = data[2];
-                if (typeof this.channelCallback[data[1]] != 'undefined')
+                this.channels[data[1]] = data[2];
+                if (typeof this.channelCallbacks[data[1]] != 'undefined')
                       this.channelCallback[data[1]](); 
                 break;
             case "stringChannel":
-                this.stringChannel[data[1]] = data[2];
-                if (typeof this.stringChannelCallback[data[1]] != 'undefined')
-                      this.stringChannelCallback[data[1]](); 
+                this.stringChannels[data[1]] = data[2];
+                if (typeof this.stringChannelCallbacks[data[1]] != 'undefined')
+                      this.stringChannelCallbacks[data[1]](); 
                 break;
             case "table":
                 this.table[data[1]] = data[2];
-                if (typeof this.tableCallback[data[1]] != 'undefined')
-                      this.tableCallback[data[1]](); 
+                if (typeof this.tableCallbacks[data[1]] != 'undefined')
+                      this.tableCallbacks[data[1]](); 
                break;
             default:
                 console.log('[CsoundNode] Invalid Message: "' + event.data);
@@ -178,7 +178,7 @@ class CsoundNode extends AudioWorkletNode {
         this.port.postMessage(["getControlChannel",
                                channelName]);
         if (callback !== null)
-          this.channelCallback[channelName] = callback;
+          this.channelCallbacks[channelName] = callback;
     }
 
     /** Request the data from a String channel 
@@ -192,7 +192,7 @@ class CsoundNode extends AudioWorkletNode {
         this.port.postMessage(["getStringChannel",
                                channelName]);
         if (callback !== null)
-          this.stringChannelCallback[channelName] = callback;
+          this.stringChannelCallbacks[channelName] = callback;
     }
 
     /** Get the latest requested channel data 
@@ -201,7 +201,7 @@ class CsoundNode extends AudioWorkletNode {
      * @returns {number} The latest channel value requested.
      */   
     getControlChannel(channelName) {
-        return this.channel[channelName];
+        return this.channels[channelName];
     }
 
     /** Get the latest requested string channel data 
@@ -209,8 +209,8 @@ class CsoundNode extends AudioWorkletNode {
      * @param {string} channelName A string containing the channel name.
      * @returns {string} The latest channel value requested.
      */   
-    getControlChannel(channelName) {
-        return this.stringChannel[channelName];
+    getStringChannel(channelName) {
+        return this.stringChannels[channelName];
     }
 
      /** Request the data from a Csound function table
@@ -223,7 +223,7 @@ class CsoundNode extends AudioWorkletNode {
     requestTable(number, callback = null) {
         this.port.postMessage(["getTable", number]);
         if (callback !== null)
-          this.tableCallback[number] = callback;
+          this.tableCallbacks[number] = callback;
     }
 
     /** Get the requested table number

@@ -173,6 +173,8 @@ CsoundScriptProcessorNode  = function(context, options) {
         nchnls: options.numberOfOutputs,
         channel: {},
         channelCallback: {},
+        stringChannels: {},
+        stringChannelCallbacks: {},
         table: {},
         tableCallback: {},
         
@@ -299,11 +301,13 @@ CsoundScriptProcessorNode  = function(context, options) {
          *  subsequent requests.
          */ 
         requestStringChannel(channelName, callback = null) {
-            this.stringChannel[channelName] = CSOUND.getStringChannel(this.csound, channelName);
+            let pointerStringify = CSMOD["Pointer_stringify"];
+            let svalue = CSOUND.getStringChannel(this.csound, channelName);
+            this.stringChannels[channelName] = pointerStringify(svalue);
             if (callback !== null)
-                this.stringChannelCallback[channelName] = callback;
-            if (typeof this.strinChannelCallback[channelName] !== 'undefined')
-                this.stringChannelCallback[channelName]();   
+                this.stringChannelCallbacks[channelName] = callback;
+            if (typeof this.stringChannelCallbacks[channelName] !== 'undefined')
+                this.stringChannelCallbacks[channelName]();   
         },
 
         /** Get the latest requested channel data 
@@ -321,7 +325,7 @@ CsoundScriptProcessorNode  = function(context, options) {
          * @returns {string} The latest channel value requested.
          */   
         getStringChannel(channelName) {
-            return this.stringChannel[channelName];
+            return this.stringChannels[channelName];
         },
 
         /** Request the data from a Csound function table

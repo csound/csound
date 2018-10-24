@@ -1061,17 +1061,17 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 }
 
 #else // Old spinlock interface
-
+#include <libkern/OSAtomic.h>
 void csoundSpinLock(spin_lock_t *spinlock) {
-      OSSpinLockLock(spinlock);
+  OSSpinLockLock((volatile OSSpinLock *) spinlock);
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock) {
-      OSSpinLockUnlock(spinlock);
+OSSpinLockUnlock((volatile OSSpinLock *) spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return OSSpinLockTry(spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
+return OSSpinLockTry((volatile OSSpinLock *) spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
