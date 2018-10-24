@@ -78,9 +78,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    STRINGDAT   *iname;
-    MYFLT   *fp;
-    spin_lock_t     *lock;
+    STRINGDAT   *iname[MAX_CHAN_NAME+1];
+    MYFLT   *fp[MAX_CHAN_NAME+1];
+    spin_lock_t *lock[MAX_CHAN_NAME+1];
 } CHNCLEAR;
 
 typedef struct {

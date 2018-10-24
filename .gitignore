@@ -206,5 +206,7 @@ emscripten/examples/javascripts/CsoundObj.js
 emscripten/examples/javascripts/libcsound.js
 emscripten/dist-wasm
 
-# VST4CS src
-Opcodes/vst4cs/src/
+# Alleged copyright violation.
+vst4cs/src
+
+compile_commands.json

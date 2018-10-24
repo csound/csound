@@ -143,11 +143,11 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
       c[0] = 1.0; s[0] = 0.0; // assignment to s unnecessary as auxalloc zeros
         /*
           direct computation of c and s may be better for large n
-          c[i] = cos(2*M_PI*i/n);
-          s[i] = sin(2*M_PI*i/n);
+          c[i] = cos(2*PI*i/n);
+          s[i] = sin(2*PI*i/n);
           if (i % 16 == 15) {
-          c[i] = cos(2*M_PI*(i+1)/n);
-          s[i] = sin(2*M_PI*(i+1)/n);
+          c[i] = cos(2*PI*(i+1)/n);
+          s[i] = sin(2*PI*(i+1)/n);
         */
       for (i=1; i<NB; i++) {
           c[i] = dc*c[i-1] - ds*s[i-1];
@@ -467,7 +467,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     uint32_t i, nsmps = CS_KSMPS;
     int32_t wintype = p->fsig->wintype;
     if (UNLIKELY(data==NULL)) {
-      return csound->PerfError(csound,p->h.insdshead,
+      return csound->PerfError(csound,&(p->h),
                                Str("pvsanal: Not Initialised.\n"));
     }
     ain = p->ain;               /* The input samples */
@@ -681,7 +681,7 @@ int32_t pvsanal(CSOUND *csound, PVSANAL *p)
     ain = p->ain;
 
     if (UNLIKELY(p->input.auxp==NULL)) {
-      return csound->PerfError(csound,p->h.insdshead,
+      return csound->PerfError(csound,&(p->h),
                                Str("pvsanal: Not Initialised.\n"));
     }
     {
@@ -1053,7 +1053,7 @@ int32_t pvsynth(CSOUND *csound, PVSYNTH *p)
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->output.auxp==NULL)) {
-      return csound->PerfError(csound,p->h.insdshead,
+      return csound->PerfError(csound,&(p->h),
                                Str("pvsynth: Not Initialised.\n"));
     }
     if (p->fsig->sliding) return pvssynth(csound, p);

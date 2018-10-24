@@ -34,6 +34,7 @@
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
+static void do_new_include(CSOUND *, yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
@@ -52,8 +53,12 @@ static void do_function(CSOUND*, char *, CORFIL*);
     csound_preset_lineno(csound->orcLineOffset, yyscanner);             \
     yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
+    PARM->path = ".";                                                   \
   }
 static MACRO *find_definition(MACRO *, char *);
+
+#define S_INC (10)
+
 %}
 %option reentrant
 %option noyywrap
@@ -75,6 +80,7 @@ MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 
 STCOM           \/\*
 INCLUDE         "#include"
+INCLUDESTR      "#includestr"
 DEFINE          #[ \t]*define
 UNDEF           "#undef"
 IFDEF           #ifn?def
@@ -211,6 +217,10 @@ QNAN            "qnan"[ \t]*\(
 {STSTR}         {
                   corfile_putc(csound, '"', csound->expanded_orc);
                   PARM->isString = !PARM->isString;
+                  if (PARM->isinclude && PARM->isString==0) {
+                    do_new_include(csound, yyscanner);
+                    PARM->isinclude = 0;
+                  }
                 }
 {XSTR}          {
                   char c, *str = yytext;
@@ -239,13 +249,13 @@ QNAN            "qnan"[ \t]*\(
                    }
                    else {
                      /* Need to read from macro definition */
-                     if (UNLIKELY(PARM->macro_stack_ptr >=
+                     if (UNLIKELY(PARM->macro_stack_ptr +1 >=
                                   PARM->macro_stack_size )) {
                        PARM->alt_stack =
                          (MACRON*)
                          csound->ReAlloc(csound, PARM->alt_stack,
                                          sizeof(MACRON)*
-                                               (PARM->macro_stack_size+=10));
+                                               (PARM->macro_stack_size+=S_INC));
                        if (UNLIKELY(PARM->alt_stack == NULL)) {
                          csound->Message(csound, Str("Memory exhausted"));
                          csound->LongJmp(csound, 1);
@@ -254,6 +264,7 @@ QNAN            "qnan"[ \t]*\(
                      PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                      PARM->alt_stack[PARM->macro_stack_ptr].line =
                        csound_preget_lineno(yyscanner);
+                     PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
                      PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                      yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                      csound_preset_lineno(1, yyscanner);
@@ -353,13 +364,13 @@ QNAN            "qnan"[ \t]*\(
                      }
                      if (!err) {
                        //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
-                       if (UNLIKELY(PARM->macro_stack_ptr >=
+                       if (UNLIKELY(PARM->macro_stack_ptr +1 >=
                                     PARM->macro_stack_size )) {
                          PARM->alt_stack =
                            (MACRON*)
                            csound->ReAlloc(csound, PARM->alt_stack,
                                            sizeof(MACRON)*
-                                                 (PARM->macro_stack_size+=10));
+                                                 (PARM->macro_stack_size+=S_INC));
                          if (UNLIKELY(PARM->alt_stack == NULL)) {
                            csound->Message(csound, Str("Memory exhausted"));
                            csound->LongJmp(csound, 1);
@@ -372,10 +383,12 @@ QNAN            "qnan"[ \t]*\(
                          PARM->macros->acnt;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_preget_lineno(yyscanner);
+                       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
                        PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                        PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_preget_lineno(yyscanner);
+                       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
                        /* printf("stacked line = %llu at %d\n", */
                        /*  csound_preget_lineno(yyscanner), */
                        /* PARM->macro_stack_ptr-1); */
@@ -398,6 +411,12 @@ QNAN            "qnan"[ \t]*\(
                      }
                    }
                  }
+{INCLUDESTR}    {
+                  if (PARM->isString != 1)
+                    PARM->isinclude = 1;
+                  else
+                    corfile_puts(csound, yytext, csound->expanded_orc);
+                }
 {INCLUDE}       {
                   if (PARM->isString != 1)
                     BEGIN(incl);
@@ -431,6 +450,12 @@ QNAN            "qnan"[ \t]*\(
                           YY_CURRENT_BUFFER);
                   csound_pre_line(csound, csound->expanded_orc, yyscanner);
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
+                  if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
+                    //printf("restoring path from %s to %s\n",
+                    //    PARM->path, PARM->alt_stack[PARM->macro_stack_ptr].path);
+                    free(PARM->path);
+                    PARM->path = PARM->alt_stack[PARM->macro_stack_ptr].path;
+                  }
                   /* printf("lineno on stack is %llu\n", */
                   /*        PARM->alt_stack[PARM->macro_stack_ptr].line); */
                   csound->DebugMsg(csound,"n=%d\n", n);
@@ -458,15 +483,15 @@ QNAN            "qnan"[ \t]*\(
                   }
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound, "csound_pe(%d): line now %d at %d\n",
+                  csound->DebugMsg(csound, "csound_pre(%d): line now %d at %d\n",
                                    __LINE__,
                                    csound_preget_lineno(yyscanner),
                                    PARM->macro_stack_ptr);
                   csound->DebugMsg(csound,
                                    "End of input segment: macro pop %p -> %p\n",
                                    y, PARM->macros);
-                  csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
-                                       yyscanner);
+                  //csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
+                  //                     yyscanner);
                   //print_csound_predata(csound,"Before pre_line", yyscanner);
                   csound_pre_line(csound, csound->orchstr, yyscanner);
                   //print_csound_predata(csound,"After pre_line", yyscanner);
@@ -729,6 +754,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       p++;
     }
     buffer[p] = '\0';
+    //printf("****buffer >>%s<<\n", buffer);
     while ((c=input(yyscanner))!='\n');
     if (UNLIKELY(PARM->depth++>=1024)) {
       csound->Die(csound, Str("Includes nested too deeply"));
@@ -747,14 +773,22 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
-    cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
+    if (PARM->path && buffer[0]!= '/') { // if nested included directories
+      char tmp[1024];
+      printf("using path %s\n", PARM->path);
+      strncpy(tmp, PARM->path, 1023);
+      strcat(tmp, "/");
+      strncat(tmp, buffer, 1022-strlen(tmp));
+      cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
+    }
+    else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
-    if (UNLIKELY(PARM->macro_stack_ptr >= PARM->macro_stack_size )) {
+    if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
-                                  sizeof(MACRON)*(PARM->macro_stack_size+=10));
+                                  sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
       if (UNLIKELY(PARM->alt_stack == NULL)) {
         csound->Message(csound, Str("Memory exhausted"));
         csound->LongJmp(csound, 1);
@@ -766,6 +800,87 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
+    if (strrchr(buffer,'/')) {
+      PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
+      printf("setting path from %s to ", PARM->path);
+      PARM->path = strdup(buffer); /* wasteful! */
+      *(strrchr(PARM->path,'/')) = '\0';
+      printf("%s\n",PARM->path);
+    }
+    else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+    PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+    csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+    csound_pre_scan_string(cf->body, yyscanner);
+    corfile_rm(csound, &cf);
+    csound->DebugMsg(csound,"Set line number to 1\n");
+    csound_preset_lineno(1, yyscanner);
+}
+
+void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
+{
+    char buffer[128];
+    CORFIL *cf = csound->expanded_orc;
+    int p = cf->p-2;
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+
+    //printf("*** in do_new_include\n");
+    cf->body[p+1] = '\0';
+    while (cf->body[p]!='"') p--;
+    //printf("*** name is >>%s<<\n", &cf->body[p]);
+    cf->body[p] = '\0';
+    strncpy(buffer, &cf->body[p+1],127); buffer[127]='\0';
+    cf->p = p;
+    //printf("****buffer >>%s<<\n", buffer);
+    while ((input(yyscanner))!='\n');
+    if (UNLIKELY(PARM->depth++>=1024)) {
+      csound->Die(csound, Str("Includes nested too deeply"));
+    }
+    csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
+    csound->DebugMsg(csound,"line %d at end of #include line\n",
+                     csound_preget_lineno(yyscanner));
+    {
+      uint8_t n = file_to_int(csound, buffer);
+      char bb[128];
+      PARM->lstack[PARM->depth] = n;
+      sprintf(bb, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
+      PARM->llocn = PARM->locn;
+      corfile_puts(csound, bb, csound->expanded_orc);
+    }
+    csound->DebugMsg(csound,"reading mincluded file \"%s\"\n", buffer);
+    if (UNLIKELY(isDir(buffer)))
+      csound->Warning(csound, Str("%s is a directory; not including"), buffer);
+    if (PARM->path && buffer[0]!='/') {
+      char tmp[1024];
+      strncpy(tmp, PARM->path, 1023);
+      strcat(tmp, "/");
+      strncat(tmp, buffer, 1022-strlen(tmp));
+      cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
+    }
+    else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
+    if (UNLIKELY(cf == NULL))
+      csound->Die(csound,
+                  Str("Cannot open #include'd file %s\n"), buffer);
+    if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
+      PARM->alt_stack =
+        (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
+                                  sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
+      if (UNLIKELY(PARM->alt_stack == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
+      /* csound->DebugMsg(csound, "alt_stack now %d long,\n", */
+      /*                  PARM->macro_stack_size); */
+    }
+    csound->DebugMsg(csound,"cso_pre(%d): stacking line %d at %d\n", __LINE__,
+           csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
+    PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+    PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
+    if (strrchr(buffer,'/')) {
+      PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
+      PARM->path = strdup(buffer); /* wasteful! */
+      *(strrchr(PARM->path,'/')) = '\0';
+    }
+    else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);

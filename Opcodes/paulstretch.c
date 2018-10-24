@@ -91,9 +91,9 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     for (i = 0; i < windowsize + 2; i += 2) {
       MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
       // Android 5.1 does not seem to have cexpf ...
-      // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+      // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * PI);
       // so ...
-      MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+      MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * PI);
 #ifdef MSVC
       // TODO - Double check this is equivalent to non-windows complex definition
           _Fcomplex ph = { cos(x), sin(x) };

@@ -60,12 +60,14 @@ static void checkOptions(CSOUND *csound)
     if (csrcname != NULL && csrcname[0] != '\0') {
       fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                              CSFTYPE_OPTIONS, 0);
-      if (UNLIKELY(fd == NULL))
-        csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
-                      csrcname);
-      else
-        csound->Message(csound, Str("Reading options from $CSOUND6RC: %s\n"),
-                        csrcname);
+      if (UNLIKELY(fd == NULL)) {
+          csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
+              csrcname);
+      } else {
+          csound->Message(csound, Str("Reading options from $CSOUND6RC: %s\n"),
+              csrcname);
+          s = csound->Strdup(csound, (char*)csrcname);
+      }
     }
     if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
                        home_dir[0] != '\0')) {
@@ -106,7 +108,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     char    *s;
     FILE    *xfile = NULL;
     int     n;
-    int     csdFound = 0;
+    volatile int     csdFound = 0;
+    volatile int ac = argc;
     char    *fileDir;
 
 
@@ -114,6 +117,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
 
+    argc = ac;
     if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
       csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
                                   "before starting again.\n"));
@@ -170,11 +174,13 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       {
         CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
         if (UNLIKELY(cf == NULL)) {
-          csound->Die(csound, Str("Reading CSD failed ... stopping"));
+          csound->Die(csound, Str("Reading CSD failed (%s)... stopping"),
+                      strerror(errno));
         }
         corfile_rewind(cf);
         if (UNLIKELY(!read_unified_file4(csound, cf))) {
-          csound->Die(csound, Str("Reading CSD failed ... stopping"));
+          csound->Die(csound, Str("Reading CSD failed (%s)... stopping"),
+                      strerror(errno));
         }
         /* cf is deleted in read_unified_file4 */
       }

@@ -178,7 +178,7 @@ typedef struct {
 int32_t vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
-    p->a_base = 1000.0*M_PI/(csound->GetSr(csound));
+    p->a_base = 1000.0*PI/(csound->GetSr(csound));
     p->t_down = *p->down<FL(0.0) ? 3.0e3 : (double)*p->down;
     p->t_up   = *p->up<FL(0.0) ? 20.0 : (double)*p->up;
     return OK;
@@ -319,10 +319,10 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
 #define S       sizeof
 
 static OENTRY buchla_localops[] = {
-  //#ifdef JPFF
+  #ifdef JPFF
   { "buchla", S(BUCHLA), 0, 3, "a", "aakkaPP",
                             (SUBR)poly_LPG_init, (SUBR)poly_LPG_perf },
-  //#endif
+  #endif
   { "vactrol", S(VACTROL), 0, 3, "a", "ajj",
                                  (SUBR)vactrol_init, (SUBR)vactrol_perf }
 };

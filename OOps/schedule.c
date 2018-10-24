@@ -79,7 +79,7 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
 {
     int32_t i;
     int32_t argno = p->INOCOUNT+1;
-    char s[16384];
+    char s[16384], sf[64];
     sprintf(s, "i %f %f %f", *p->which, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
@@ -87,8 +87,12 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
            add_string_arg(s, ((STRINGDAT *)arg)->data);
            //sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
        }
-       else sprintf(s, "%s %f", s,  *arg);
-
+       else {
+         sprintf(sf, " %f", *arg);
+         if(strlen(s) < 16384)
+          strncat(s, sf, 16384-strlen(s));
+         //sprintf(s, "%s %f", s,  *arg);
+       }
     }
 
     csoundInputMessageInternal(csound, s);
@@ -99,14 +103,19 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
 {
     int32_t i;
     int32_t argno = p->INOCOUNT+1;
-    char s[16384];
+    char s[16384], sf[64];
     sprintf(s, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
          if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
            //sprintf(s, "%s \"%s\" ", s, ((STRINGDAT *)arg)->data);
            add_string_arg(s, ((STRINGDAT *)arg)->data);
-         else sprintf(s, "%s %f", s,  *arg);
+        else {
+         sprintf(sf, " %f", *arg);
+         if(strlen(s) < 16384)
+          strncat(s, sf, 16384-strlen(s));
+         //sprintf(s, "%s %f", s,  *arg);
+       }
     }
     //printf("%s\n", s);
     csoundInputMessageInternal(csound, s);
@@ -212,7 +221,7 @@ int32_t lfok(CSOUND *csound, LFO *p)
     phs = p->phs;
     switch (p->lasttype) {
     default:
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("LFO: unknown oscilator type %d"),
                                p->lasttype);
     case 0:
@@ -276,7 +285,7 @@ int32_t lfoa(CSOUND *csound, LFO *p)
     for (n=offset; n<nsmps; n++) {
       switch (p->lasttype) {
       default:
-        return csound->PerfError(csound, p->h.insdshead,
+        return csound->PerfError(csound, &(p->h),
                                  Str("LFO: unknown oscilator type %d"),
                                  p->lasttype);
       case 0:
@@ -537,7 +546,7 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
       if (p->pfn != (int32_t)*p->kfn) {
         FUNC *ftp;
         if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) {
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("trigseq: incorrect table number"));
         }
         p->pfn = (int32_t)*p->kfn;

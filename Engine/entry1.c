@@ -24,14 +24,12 @@
 #include "entry1.h"             /*                      ENTRY1.C        */
 #include "interlocks.h"
 
-/* thread vals, where isub=1, ksub=2, asub=4:
+/* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
    1 =     1
    2 =             2
    3 =     1  AND  2
-   4 =                     4
-   5 =     1  AND          4
-   7 =     1  AND (2  OR   4)                              */
+ */
 
 /* inarg types include the following:
 
@@ -160,7 +158,7 @@ OENTRY opcodlst_1[] = {
   { ":cond.i",     S(CONVAL),0,  1,      "i",    "bii",  conval                  },
   { ":cond.k",     S(CONVAL),0,  2,      "k",    "Bkk",  NULL,   conval          },
   { ":cond.a",     S(CONVAL),0,  2,      "a",    "Bxx",  NULL,   aconval },
-  { ":cond.s",     S(CONVAL),0,  3,      "S",    "bSS",  conval, NULL         },
+  { ":cond.s",     S(CONVAL),0,  1,      "S",    "bSS",  conval, NULL         },
   { ":cond.S",     S(CONVAL),0,  3,      "S",    "BSS",  conval, conval       },
   { "##add.ii",  S(AOP),0,    1,      "i",    "ii",   addkk                   },
   { "##sub.ii",  S(AOP),0,    1,      "i",    "ii",   subkk                   },
@@ -496,20 +494,20 @@ OENTRY opcodlst_1[] = {
   { "in.A",   S(INA),0,     2,      "a[]",  "",     NULL,   inarray },
   { "ins",    S(INS),0,     2,      "aa",   "",     NULL,   ins     },
   { "inq",    S(INQ),0,     2,      "aaaa", "",     NULL,   inq     },
-  { "out.a",  S(OUTX),0,     3,      "",     "y",    ochn,   outall },
-  { "out.A",  S(OUTARRAY),0, 3,      "",     "a[]",  outarr_init,  outarr },
-  { "outs",   S(OUTX),0,     3,      "",     "y",    ochn,   outall },
-  { "outq",   S(OUTX),0,     3,      "",     "y",    ochn,   outall },
-  { "outh",   S(OUTX),0,     3,      "",     "y",    ochn,   outall },
-  { "outo",   S(OUTX),0,     3,      "",     "y",    ochn,   outall },
-  { "outx",   S(OUTX),0,     3,      "",     "y",    ochn,   outall },
-  { "out32",  S(OUTX),0,     3,      "",     "y",    ochn,   outall },
-  { "outs1",  S(OUTM),0,    2,      "",     "a",    NULL,   outs1   },
-  { "outs2",  S(OUTM),0,    3,      "",     "a",    och2,   outs2   },
-  { "outq1",  S(OUTM),0,    2,      "",     "a",    NULL,   outs1   },
-  { "outq2",  S(OUTM),0,    3,      "",     "a",    och2,   outs2   },
-  { "outq3",  S(OUTM),0,    3,      "",     "a",    och3,   outq3   },
-  { "outq4",  S(OUTM),0,    3,      "",     "a",    och2,   outq4   },
+  { "out.a",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  { "out.A",  S(OUTARRAY),IR, 3,      "",     "a[]",  outarr_init,  outarr },
+  { "outs",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  { "outq",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  { "outh",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  { "outo",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  { "outx",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  { "out32",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  { "outs1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
+  { "outs2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
+  { "outq1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
+  { "outq2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
+  { "outq3",  S(OUTM),IR,    3,      "",     "a",    och3,   outq3   },
+  { "outq4",  S(OUTM),IR,    3,      "",     "a",    och2,   outq4   },
   { "igoto",  S(GOTO),0,    1,      "",     "l",    igoto                   },
   { "kgoto",  S(GOTO),0,    2,      "",     "l",    NULL,   kgoto           },
   { "goto",   S(GOTO),0,    3,      "",     "l",    igoto,  kgoto           },
@@ -714,23 +712,8 @@ OENTRY opcodlst_1[] = {
     NULL         },
   { "table3kt.a", S(TABL),TR, 3,  "a",  "xkooo", (SUBR)tablkt_setup,
     (SUBR)table3rkt_audio          },
-  { "zakinit", S(ZAKINIT), ZB, 1,  "",   "ii",   (SUBR)zakinit, NULL,  NULL      },
-  { "zir",    S(ZKR),ZR,  1,   "i",  "i",    (SUBR)zir,     NULL,  NULL      },
-  { "zkr",    S(ZKR),ZR,  3,   "k",  "k",    (SUBR)zkset,   (SUBR)zkr,   NULL},
-  { "ziw",    S(ZKW),ZW, 1,   "",   "ii",   (SUBR)ziw,     NULL,  NULL      },
-  { "zkw",    S(ZKW),     ZW, 3,   "",   "kk",   (SUBR)zkset,   (SUBR)zkw,   NULL},
-  { "ziwm",   S(ZKWM),    ZB, 1,   "",   "iip",  (SUBR)ziwm,    NULL,  NULL      },
-  { "zkwm",   S(ZKWM),    ZB, 3,   "",   "kkp",  (SUBR)zkset,   (SUBR)zkwm,  NULL},
-  { "zkmod",  S(ZKMOD),   ZB, 2,   "k",  "kk",   NULL,    (SUBR)zkmod, NULL      },
-  { "zkcl",   S(ZKCL),    ZW, 3,   "",  "kk",   (SUBR)zkset,   (SUBR)zkcl,  NULL },
-  { "zar",    S(ZAR),ZR,  3,   "a", "k",    (SUBR)zaset,  (SUBR)zar  },
-  { "zarg",   S(ZARG),   ZB, 3,   "a", "kk",   (SUBR)zaset,  (SUBR)zarg },
-  { "zaw",    S(ZAW),    ZW, 3,   "",  "ak",   (SUBR)zaset,  (SUBR)zaw  },
-  { "zawm",   S(ZAWM),   ZB, 3,   "",  "akp",  (SUBR)zaset,  (SUBR)zawm },
-  { "zamod",  S(ZAMOD),  ZB, 2,   "a", "ak",   NULL,  (SUBR)zamod},
-  { "zacl",   S(ZACL),   ZW, 3,   "",  "kk",   (SUBR)zaset,  (SUBR)zacl},
-  { "inz",    S(IOZ),    ZW, 2,   "",   "k",    (SUBR)zaset,   (SUBR)inz  },
-  { "outz",   S(IOZ),ZR,  2,   "",   "k",    (SUBR)zaset,   (SUBR)outz },
+  { "inz",    S(IOZ),    ZW, 2,   "",   "k",  NULL,   (SUBR)inz  },
+  { "outz",   S(IOZ),ZR|IR,  2,   "",   "k",    NULL,   (SUBR)outz },
   { "timek.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timek,   NULL,  NULL },
   { "times.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timesr,  NULL,  NULL },
   { "timek.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)timek, NULL },
@@ -743,13 +726,13 @@ OENTRY opcodlst_1[] = {
   { "peak.a",   S(PEAK),0,  2,   "k",  "a",    NULL,     (SUBR)peaka   },
   { "printk", S(PRINTK),WR,  3,"",     "ikoooo",
     (SUBR)printkset, (SUBR)printk, NULL },
-  { "printks",S(PRINTKS),WR, 3,   "",   "SiM",
+  { "printks",S(PRINTKS),WR, 3,   "",   "SiN",
     (SUBR)printksset_S,(SUBR)printks, NULL },
   { "printks2", sizeof(PRINTK3),0, 3, "", "Sk", (SUBR)printk3set, (SUBR)printk3 },
-  { "printks.i",S(PRINTKS),WR, 3,   "",   "iiM",
+  { "printks.i",S(PRINTKS),WR, 3,   "",   "iiN",
     (SUBR)printksset,(SUBR)printks, NULL },
-  { "prints",S(PRINTS),0,   1,   "",   "SM",   (SUBR)printsset_S, NULL, NULL },
-  { "prints.i",S(PRINTS),0,   1,   "",   "iM",   (SUBR)printsset, NULL, NULL },
+  { "prints",S(PRINTS),0,   1,   "",   "SN",   (SUBR)printsset_S, NULL, NULL },
+  { "prints.i",S(PRINTS),0,   1,   "",   "iN",   (SUBR)printsset, NULL, NULL },
   { "printk2", S(PRINTK2), WR, 3, "",   "koo",
     (SUBR)printk2set, (SUBR)printk2, NULL },
   { "portk",  S(KPORT),0,   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL },
@@ -779,8 +762,8 @@ OENTRY opcodlst_1[] = {
      ***BEWARE***
      CODE REMOVED 2011-Dec-14
   */
-  { "outch",  S(OUTCH),0,   2,      "",     "Z",    NULL,   outch   },
-  { "outc",   S(OUTX),0,    2,      "",     "y",    ochn,   outall  },
+  { "outch",  S(OUTCH),IR,   2,      "",     "Z",    NULL,   outch   },
+  { "outc",   S(OUTX),IR,    2,      "",     "y",    ochn,   outall  },
   { "cpsxpch", S(XENH),TR, 1,      "i",    "iiii", cpsxpch, NULL,  NULL    },
   { "cps2pch", S(XENH),TR, 1,      "i",    "ii",   cps2pch, NULL,  NULL    },
   { "cpstun", S(CPSTUN),  TR, 2,      "k",    "kkk",   NULL,   cpstun         },
@@ -998,9 +981,9 @@ OENTRY opcodlst_1[] = {
      (SUBR) sprintf_opcode, NULL, NULL                     },
   {  "sprintfk", S(SPRINTF_OP),WR,  3,  "S",    "SUN",
      (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, NULL           },
-  {  "printf_i", S(PRINTF_OP),0,   1,  "",     "SiTN",
+  {  "printf_i", S(PRINTF_OP),0,   1,  "",     "SiN", /* SiTN */
      (SUBR) printf_opcode_init, NULL, NULL                 },
-  {  "printf",   S(PRINTF_OP),WR,   3,  "",     "SkUN",
+  {  "printf",   S(PRINTF_OP),WR,   3,  "",     "SkN", /* SkUN */
      (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, NULL    },
   {  "puts",     S(PUTS_OP),WR,     3,  "",     "Sko",
      (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, NULL       },
@@ -1093,7 +1076,7 @@ OENTRY opcodlst_1[] = {
     NULL, (SUBR) chnset_opcode_perf_S, NULL },
   { "chnmix",      S(CHNGET),           _CB, 3,      "",             "aS",
     (SUBR) chnmix_opcode_init, (SUBR) notinit_opcode_stub  },
-  { "chnclear",    S(CHNCLEAR),        _CW, 3,      "",             "S",
+  { "chnclear",    S(CHNCLEAR),        _CW, 3,      "",             "W",
     (SUBR) chnclear_opcode_init, (SUBR) notinit_opcode_stub },
   { "chn_k",       S(CHN_OPCODE_K),    _CW, 1,      "",             "SiooooooooN",
     (SUBR) chn_k_opcode_init, NULL, NULL                  },
@@ -1162,9 +1145,9 @@ OENTRY opcodlst_1[] = {
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
   /* ----------------------------------------------------------------------- */
-  { "monitor",  sizeof(MONITOR_OPCODE), 0, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
+  { "monitor",  sizeof(MONITOR_OPCODE), IB, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
-  { "outrg", S(OUTRANGE), 0,3, "", "ky",
+  { "outrg", S(OUTRANGE), IR,3, "", "ky",
     (SUBR)outRange_i, (SUBR)outRange},
   { "nchnls_hw", S(ASSIGN), 0,1, "ii", "",
     (SUBR)hw_channels},

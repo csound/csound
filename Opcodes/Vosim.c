@@ -183,7 +183,7 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vosim: not initialised"));
 }
 

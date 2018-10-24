@@ -20,10 +20,8 @@
 ;;; - 08/2010: orc modifications (butlp filters)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+  ksmps = 10
 
-  sr        =           48000
-  kr        =           4800
-  ksmps     =           10
   nchnls    =           2
 
   gaudio    init        0

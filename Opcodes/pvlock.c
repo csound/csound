@@ -27,7 +27,7 @@
 #include "soundio.h"
 #define MAXOUTS 2
 
-typedef struct dats{
+typedef struct dats {
   OPDS h;
   MYFLT *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN,
     *idecim, *konset, *offset, *dbthresh;
@@ -85,7 +85,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
       return csound->InitError(csound, Str("invalid number of output arguments"));
     p->nchans = nchans;
 
-    for (i=0; i < nchans; i++){
+    for (i=0; i < nchans; i++) {
 
       size = (N+2)*sizeof(MYFLT);
       if (p->fwin[i].auxp == NULL || p->fwin[i].size < size)
@@ -128,7 +128,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
     return OK;
 }
 
-static int32_t sinit1(CSOUND *csound, DATASPACE *p){
+static int32_t sinit1(CSOUND *csound, DATASPACE *p) {
     p->nchans = csound->GetOutputArgCnt(p);
     return sinit(csound, p);
 }
@@ -168,18 +168,20 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
       }
     }
 
-
     for (n=offset; n < nsmps; n++) {
 
       if (cnt == hsize) {
         /* audio samples are stored in a function table */
+        double tim;
+        double resamp;
         ft = csound->FTnp2Find(csound,p->knum);
+        resamp = ft->gen01args.sample_rate/CS_ESR;
+        pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, p->h.insdshead,
-                                   Str("number of output arguments "
+          return csound->PerfError(csound, &(p->h), Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -189,7 +191,8 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
            time[n] is current read position in secs
            esr is sampling rate
         */
-        spos  = hsize*(int64_t)((time[n])*CS_ESR/hsize);
+        tim = time[n]*resamp;
+        spos  = hsize*(int64_t)(tim*CS_ESR/hsize);
         sizefrs = size/nchans;
         while (spos > sizefrs) spos -= sizefrs;
         while (spos <= 0)  spos += sizefrs;
@@ -262,7 +265,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
           for (i=0; i < N + 2; i+=2) {
             if (lock) {  /* phase-locking */
               if (i > 0) {
-                if (i < N){
+                if (i < N) {
                   tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
                   tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
                 }
@@ -384,8 +387,12 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
 
     for (n=offset; n < nsmps; n++) {
 
-      if (cnt == hsize){
+      if (cnt == hsize) {
+        double resamp;
         ft = csound->FTnp2Find(csound,p->knum);
+        resamp = ft->gen01args.sample_rate/CS_ESR;
+        pitch *= resamp;
+        time  *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
@@ -403,7 +410,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
           p->tscale = 1;
         }
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
@@ -571,7 +578,6 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
     // open file
     void *fd;
     name = ((STRINGDAT *)p->knum)->data;
-    // ****FIXME: What if this fails?
     fd  = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (p->sf == NULL)
@@ -622,7 +628,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
   call to fillbuf
 */
 
-void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps){
+void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps) {
 
     IGN(csound);
     sf_count_t sampsread;
@@ -681,7 +687,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
 
       for (n=offset; n < nsmps; n++) {
 
-        if (cnt == hsize){
+        if (cnt == hsize) {
           tab = p->tab;
           size = p->fdata.size/sizeof(MYFLT);
 
@@ -913,7 +919,7 @@ static int32_t pvslockproc(CSOUND *csound, PVSLOCK *p)
       memcpy(fout,fin, sizeof(float)*(N+2));
       //int32_t l=0;
       if (*p->klock) {
-        for (i=2; i < N-4; i+=2){
+        for (i=2; i < N-4; i+=2) {
           float p2 = fin[i];
           float p3 = fin[i+2];
           float p1 = fin[i-2];
@@ -946,7 +952,7 @@ typedef struct hilb {
   int32_t N, hop;
 } HILB;
 
-static int32_t hilbert_init(CSOUND *csound, HILB *p){
+static int32_t hilbert_init(CSOUND *csound, HILB *p) {
     int32_t N = (int32_t) *p->ifftsize;
     int32_t h = (int32_t) *p->ihopsize;
     uint32_t size;
@@ -984,7 +990,7 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p){
       csound->AuxAlloc(csound, size, &p->oframecnt);
     p1 = (int32_t *) p->iframecnt.auxp;
     p2 = (int32_t *) p->oframecnt.auxp;
-    for(i = 0; i < N/h; i++){
+    for(i = 0; i < N/h; i++) {
       p1[i] = (decim - 1 - i)*h;
       p2[i] = 2*(decim - 1 - i)*h;
     }
@@ -1004,7 +1010,7 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p){
     return OK;
 }
 
-static int32_t hilbert_proc(CSOUND *csound, HILB *p){
+static int32_t hilbert_proc(CSOUND *csound, HILB *p) {
 
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1081,7 +1087,7 @@ int32_t am_fm_init(CSOUND *csound, AMFM *p) {
     return OK;
 }
 
-int32_t am_fm(CSOUND *csound, AMFM *p){
+int32_t am_fm(CSOUND *csound, AMFM *p) {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;

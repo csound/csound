@@ -23,7 +23,7 @@ void process(char *name, int width)
       }
       p = strchr(buffer, '\t');
       if (p!=NULL)
-        printf("File=%s Line=%d tab at %d\n%s\n", name, count, p-buffer, buffer);
+        printf("File=%s Line=%d TAB at %d\n%s\n", name, count, p-buffer, buffer);
       p = strstr(buffer, " \n");
       if (p!=NULL)
         printf("File=%s Line=%d extra space at %d\n%s\n",

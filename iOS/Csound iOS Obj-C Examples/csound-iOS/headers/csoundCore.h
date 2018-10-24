@@ -1786,11 +1786,7 @@ typedef struct _message_queue_t_ {
     ALLOC_DATA *alloc_queue;
     volatile unsigned long alloc_queue_items;
     unsigned long alloc_queue_wp;
-#ifdef MACOSX
     spin_lock_t alloc_spinlock;
-#else
-    int alloc_spinlock;
-#endif
     EVTBLK *init_event;
     void (*csoundMessageStringCallback)(CSOUND *csound,
                                         int attr,

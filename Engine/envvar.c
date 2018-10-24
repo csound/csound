@@ -43,7 +43,7 @@
 
 static const char *envVar_list[] = {
     "CSNOSTOP",
-    "CSOUNDRC",
+    "CSOUND6RC",
     "CSSTRNGS",
     "CS_LANG",
     "HOME",

@@ -60,14 +60,13 @@ echo Must call vcvars64.bat first!
 set CSOUND_HOME=D:\\msys64\\home\\restore\\csound\\
 set PYTHON=C:\Program_Files\Anaconda2\python.exe
 set APPVEYOR_BUILD_FOLDER=D:\\msys64\\home\\restore\\csound\\
-set VST_SDK_HOME=D:\\msys64\\mingw64\\include\\vstsdk2.4
 set VCREDIST_CRT_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CRT
 set VCREDIST_CXXAMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CXXAMP
 set VCREDIST_OPENMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.OpenMP
 set HDF5_HOME=C:\\Program Files\\HDF_Group\\HDF5\\1.8.19
 powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
 rem powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
-powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp" -vstSdkHome "D:\\msys64\\mingw64\\include\\vstsdk2.4"
+powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp" 
 cmake --build csound-vs --config Release
 call build_csoundqt.bat
 cd %APPVEYOR_BUILD_FOLDER%\\frontends\\nwjs

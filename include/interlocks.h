@@ -26,7 +26,7 @@
 #define ZW (0x0002)
 #define ZB (0x0003)
 
-// Not used??
+// Not used
 #define MO (0x0004)
 
 //Tables
@@ -44,6 +44,11 @@
 
 //Printing
 #define WR (0x0100)
+
+// Internal oddities -- SPOUT
+#define IR (0x0200)
+#define IW (0x0400)
+#define IB (0x0600)
 
 //Deprecated
 #define _QQ (0x8000)

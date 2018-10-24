@@ -40,7 +40,7 @@ class ConsoleOutputViewController: BaseCsoundViewController {
     private var csdListVC: UIViewController?
     
     // This method is called by CsoundObj() to output console messages
-    func messageCallback(_ infoObj: NSValue) {
+    @objc func messageCallback(_ infoObj: NSValue) {
         var info = Message()    // Create instance of Message (a C Struct)
         infoObj.getValue(&info) // Store the infoObj value in Message
         let message = UnsafeMutablePointer<Int8>.allocate(capacity: 1024) // Create an empty C-String

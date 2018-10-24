@@ -40,9 +40,9 @@ if(FAUST_FOUND)
         set(LLVM_VERSION LLVM_${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
         find_package(OpenSSL REQUIRED)
-        set(FAUST_LIBRARIES ${FAUST_LIBRARIES} dl ${OPENSSL_LIBRARIES} curses z ${LLVM_LDFLAGS} ${LLVM_LIBS} )
+        set(FAUST_LIBRARIES ${FAUST_LIBRARIES} dl ${OPENSSL_LIBRARIES} ncurses z ${LLVM_LDFLAGS} ${LLVM_LIBS} )
 
-    endif()
+      endif()
 else()
     set(FAUST_LIBRARIES)
     set(FAUST_INCLUDE_DIRS)

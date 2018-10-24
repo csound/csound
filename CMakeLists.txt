@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 project(Csound)
 
@@ -11,13 +12,6 @@ set(CMAKE_COMPILER_IS_CLANG 1)
 endif()
 
 message(STATUS "${CMAKE_HOME_DIRECTORY}")
-
-if(NOT MSVC AND NOT WASM)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
-set(CMAKE_C_FLAGS_RELEASE "-O3 ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
-endif()
 
 # C++11 needed
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -163,6 +157,19 @@ endif()
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
+else()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
+endif()
+
+# set -Werror if in Debug configuration
+if(NOT MSVC AND NOT WASM)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
+endif()
 endif()
 
 if(APPLE)
@@ -542,7 +549,7 @@ if(WIN32)
   find_library(VORBIS_LIB vorbis)
   find_library(VORBISENC_LIB vorbisenc)
   set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${FLAC_LIB} ${OGG_LIB})
-  if(SPEEX_LIB) 
+  if(SPEEX_LIB)
     list(APPEND LIBSNDFILE_SUPPORT_LIBS ${SPEEX_LIB} )
   endif()
   #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
@@ -579,11 +586,12 @@ endif()
 
 option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 if(USE_ATOMIC_BUILTIN)
-include(cmake/CheckAtomic.cmake)
+  include(cmake/CheckAtomic.cmake)
   if(HAVE_ATOMIC_BUILTIN)
     message(STATUS "Using atomic builtins.")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+
   else()
     message(STATUS "Not using atomic builtins - not found")
   endif()
@@ -802,6 +810,7 @@ set(libcsound_SRCS
     Opcodes/pitchtrack.c
     Opcodes/partikkel.c
     Opcodes/shape.c
+    Opcodes/tabaudio.c
     Opcodes/tabsum.c
     Opcodes/crossfm.c
     Opcodes/pvlock.c
@@ -829,6 +838,7 @@ set(libcsound_SRCS
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
     Opcodes/wpfilters.c
+    Opcodes/zak.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
@@ -954,7 +964,7 @@ set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
 PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
-set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)  
+set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c
 PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
@@ -1211,6 +1221,9 @@ endif()
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
 if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
   list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
+endif()
+if (HAVE_ATOMIC_BUILTIN)
+  list(APPEND libcsound_LIBS ${ATOMIC_LIB})
 endif()
 
 if(WIN32)

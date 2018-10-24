@@ -308,6 +308,7 @@ static void sensLine(CSOUND *csound, void *userData)
         case 'q':
         case 'f':
         case 'a':
+        case 'd':
           e.opcod = c;
           break;
         default:
@@ -454,7 +455,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e' && opcod != 'd')
                  /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
-      return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_1));
+      return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
     if (p->flag==1) evt.pcnt = p->argno-2;
@@ -464,18 +465,21 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (insname) {
+        int res;
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
-          return csound->PerfError(csound, p->h.insdshead, "%s", Str(errmsg_2));
-        evt.p[1] =  csound->strarg2insno(csound,
-                                           ((STRINGDAT*) p->args[1])->data, 1);
-        if (UNLIKELY(evt.p[1]<0)) return NOTOK;
+          return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_2));
+        res = csound->strarg2insno(csound, ((STRINGDAT*) p->args[1])->data, 1);
+        if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
+        evt.p[1] = (MYFLT) res;
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
+        int res;
         if (csound->ISSTRCOD(*p->args[1])) {
-          evt.p[1]  = csound->strarg2insno(csound,
-                                           get_arg_string(csound, *p->args[1]), 1);
-          if (UNLIKELY(evt.p[1]<0)) return NOTOK;
+          res = csound->strarg2insno(csound,
+                                     get_arg_string(csound, *p->args[1]), 1);
+          if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
+          evt.p[1] = (MYFLT)res;
         } else evt.p[1] = *p->args[1];
         evt.strarg = NULL; evt.scnt = 0;
       }
@@ -489,7 +493,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     }
 
     if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("event: error creating '%c' event"),
                                opcod);
     return OK;
@@ -531,10 +535,12 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (insname) {
+        int res;
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
           return csound->InitError(csound, "%s", Str(errmsg_2));
-        evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
-        if (UNLIKELY(evt.p[1]<0)) return NOTOK;
+        res = csound->strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
+        if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
+        evt.p[1] = (MYFLT)res;
         evt.strarg = NULL; evt.scnt = 0;
         for (i = 2; i <= evt.pcnt; i++)
            evt.p[i] = *p->args[i];
@@ -542,9 +548,10 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       else {
         evt.strarg = NULL; evt.scnt = 0;
         if (csound->ISSTRCOD(*p->args[1])) {
-          evt.p[1]  = csound->strarg2insno(csound,
-                                           get_arg_string(csound, *p->args[1]), 1);
-          if (UNLIKELY(evt.p[1]<0)) return NOTOK;
+          int res = csound->strarg2insno(csound,
+                                         get_arg_string(csound, *p->args[1]), 1);
+          if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
+          evt.p[1] = (MYFLT)res;
         } else evt.p[1] = *p->args[1];
         for (i = 2; i <= evt.pcnt; i++)
           evt.p[i] = *p->args[i];
@@ -591,17 +598,20 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
 
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
+      int res;
       if (insname) {
-        evt.p[1] =  csound->strarg2insno(csound,
-                                         ((STRINGDAT*) p->args[0])->data, 1);
-        if (UNLIKELY(evt.p[1]<0)) return NOTOK;
+        res = csound->strarg2insno(csound,
+                                   ((STRINGDAT*) p->args[0])->data, 1);
+        if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
+        evt.p[1] = (MYFLT)res;
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
         if (csound->ISSTRCOD(*p->args[0])) {
-          evt.p[1]  = csound->strarg2insno(csound,
-                                           get_arg_string(csound, *p->args[0]), 1);
-          if (UNLIKELY(evt.p[1]<0)) return NOTOK;
+          res = csound->strarg2insno(csound,
+                                     get_arg_string(csound, *p->args[0]), 1);
+          if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
+          evt.p[1] = (MYFLT)res;
         } else evt.p[1] = *p->args[0];
         evt.strarg = NULL; evt.scnt = 0;
       }
@@ -609,7 +619,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
         evt.p[i] = *p->args[i-1];
     }
     if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("instance: error creating event"));
 
     return OK;

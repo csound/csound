@@ -30,7 +30,7 @@
 Csound = function() {
     var Csound = null;
     function load_dep(file, elm, callback) {
-        var jsl = document.createElement(elm);
+        var jsl = document.createElementNS("http://www.w3.org/1999/xhtml", elm);
         jsl.type = "text/javascript";
         jsl.src = file;
         document.getElementsByTagName("head")[0].appendChild(jsl)
@@ -57,8 +57,6 @@ Csound = function() {
                 CsoundObj.importScripts(path).then(() => {
                     console.log("loaded WASM runtime");
                     csound.Csound = new CsoundObj();
-                    // csound.Csound.setOption("-M0");
-                    // csound.Csound.setMidiCallbacks();
                     csound.module = true;
                     if (typeof window.handleMessage !== 'undefined') { 
                         console.log = console.warn = function(mess) {
@@ -342,7 +340,7 @@ Csound = function() {
      */
     function RequestChannel(name) {
       csound.Csound.requestControlChannel(name);
-      return csound.Csound.getChannel(name);  
+      return csound.Csound.getControlChannel(name);  
     }
 
     /**

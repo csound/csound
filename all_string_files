@@ -99,6 +99,7 @@
 ./H/vdelay.h
 ./H/windin.h
 ./H/winEPS.h
+./Opcodes/zak.h
 ./InOut/FL_graph.cpp
 ./InOut/circularbuffer.c
 ./InOut/cmidi.c
@@ -183,6 +184,7 @@
 ./OOps/ugrw1.c
 ./OOps/ugtabs.c
 ./OOps/vdelay.c
+./Opcodes/zak.c
 ./Opcodes/3Dug.h
 ./Opcodes/LuaCsound.cpp
 ./Opcodes/OSC.c
@@ -235,6 +237,7 @@
 ./Opcodes/dssi4cs/src/ladspa.h
 ./Opcodes/dssi4cs/src/load.c
 ./Opcodes/dssi4cs/src/utils.h
+./Opcodes/emugens/beosc.c
 ./Opcodes/emugens/emugens.c
 ./Opcodes/emugens/scugens.c
 ./Opcodes/eqfil.c
@@ -448,12 +451,6 @@
 ./Opcodes/vibraphn.h
 ./Opcodes/vpvoc.c
 ./Opcodes/vpvoc.h
-./Opcodes/vst4cs/src/fxbank.cpp
-./Opcodes/vst4cs/src/fxbank.h
-./Opcodes/vst4cs/src/vst4cs.cpp
-./Opcodes/vst4cs/src/vst4cs.h
-./Opcodes/vst4cs/src/vsthost.cpp
-./Opcodes/vst4cs/src/vsthost.h
 ./Opcodes/wave-terrain.c
 ./Opcodes/wave-terrain.h
 ./Opcodes/wavegde.h
@@ -488,6 +485,7 @@
 ./Frontends/debugger/csdebugger.cpp
 ./Frontends/winsound/main.cxx
 ./Frontends/winsound/winsound.fl
+./include/arrays.h
 ./include/OpcodeBase.hpp
 ./include/cfgvar.h
 ./include/cs_par_structs.h

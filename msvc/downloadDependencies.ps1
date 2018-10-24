@@ -111,7 +111,6 @@ echo "Downloading and installing non-VCPKG packages..."
 $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
 "https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip",
-"http://www.steinberg.net/sdk_downloads/vstsdk367_03_03_2017_build_352.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/pkg-config_0.23-2_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
@@ -126,7 +125,6 @@ $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-
 
 # Appends this folder location to the 'deps' uri
 $destList="win_flex_bison",
-"",
 "",
 "",
 "fluidsynthdeps",
@@ -314,8 +312,7 @@ if (Test-Path "fluidsynth")
 }
 else
 {
-    #Switch to offical branch when PR is merged in
-    git clone --depth=1 -b master "https://github.com/stekyne/fluidsynth.git"
+    git clone --depth=1 -b v1.1.10 "https://github.com/FluidSynth/fluidsynth.git"
 }
 
 rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
@@ -325,10 +322,10 @@ cmake ..\fluidsynth -G $vsGenerator -T $vsToolset -DCMAKE_PREFIX_PATH="$depsDir\
 cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
-copy .\src\Release\libfluidsynth-2.dll -Destination $depsBinDir -Force
-copy ..\fluidsynth\include\fluidsynth.h -Destination $depsIncDir -Force
+copy .\src\Release\libfluidsynth-1.dll -Destination $depsBinDir -Force
+copy .\include\fluidsynth.h -Destination $depsIncDir -Force
 robocopy ..\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJS
-copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth -Force
+copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth\version.h -Force
 
 $buildTiming = (Get-Date).TimeOfDay
 

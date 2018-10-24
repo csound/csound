@@ -140,7 +140,7 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     p->left = indx;             /*      and keep track of where you are */
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
 
@@ -251,7 +251,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     p->left = indx;             /*      and keep track of where you are */
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vdelay3: not initialised"));
 }
 
@@ -406,7 +406,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
 
@@ -475,7 +475,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
 
@@ -553,7 +553,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
 
@@ -630,7 +630,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
 
@@ -725,7 +725,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
 
@@ -820,7 +820,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
 
@@ -883,7 +883,7 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
     p->left = indx;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("multitap: not initialised"));
 }
 
@@ -1234,7 +1234,7 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("reverbx: not initialised"));
 }
 

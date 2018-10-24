@@ -79,8 +79,8 @@ static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
     p->fout->framecount = 1;
     p->lastframe = 0;
 
-    if (!(p->fout->format==PVS_AMP_FREQ) ||
-        (p->fout->format==PVS_AMP_PHASE))
+    if (!((p->fout->format==PVS_AMP_FREQ) ||
+          (p->fout->format==PVS_AMP_PHASE)))
       return csound->InitError(csound,
                   "pvsdemix: signal format must be amp-phase or amp-freq.\n");
 
@@ -175,10 +175,10 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvsdemix : formats are different.\n"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvsdemix : not initialised\n"));
 }
 

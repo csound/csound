@@ -227,8 +227,9 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     if (!ff.flen) {
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
-      if (UNLIKELY(genum != 1 && genum != 23 && genum != 28 && genum != 49)) {
-        return fterror(&ff, Str("deferred size for GENs 1, 23, 28 or 49 only"));
+      if (UNLIKELY(genum != 1 && genum != 2 && genum != 23 &&
+                   genum != 28 && genum != 49)) {
+        return fterror(&ff, Str("deferred size for GENs 1, 2, 23, 28 or 49 only"));
       }
       if (UNLIKELY(msg_enabled))
         csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
@@ -279,6 +280,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     ftp->lomask   = (int32) (i - 1);
     ftp->lodiv    = FL(1.0) / (MYFLT) i;        /*    & other useful vals   */
     ftp->nchanls  = 1;                          /*    presume mono for now  */
+    ftp->gen01args.sample_rate = csound->esr;  /* set table SR to esr */
     ftp->flenfrms = ff.flen;
     if (nonpowof2_flag)
       ftp->lenmask = 0xFFFFFFFF; /* gab: fixed for non-powoftwo function tables */
@@ -393,15 +395,20 @@ int csoundFTDelete(CSOUND *csound, int tableNum)
 
 static int gen02(FGDATA *ff, FUNC *ftp)
 {
-    MYFLT   *fp = ftp->ftable, *pp = &(ff->e.p[5]);
+    MYFLT   *fp, *pp = &(ff->e.p[5]);
     int     nvals = ff->e.pcnt - 4;
     int nsw = 1;
     CSOUND  *csound = ff->csound;
 
     if (UNLIKELY(ff->e.pcnt>=PMAX))
       csound->Warning(csound, Str("using extended arguments\n"));
-    if (nvals >= (int) ff->flen)
+    if (ff->flen==0) {
+      ff->flen = nvals;
+      ftp = ftalloc(ff);
+    }
+    else if (nvals >= (int) ff->flen)
       nvals = (int) ff->flen + 1;               /* for all vals up to flen+1 */
+    fp = ftp->ftable;
     while (nvals--) {
       *fp++ = *pp++;                            /*   copy into ftable   */
       if (UNLIKELY(nsw && pp>&ff->e.p[PMAX])) {
@@ -2268,7 +2275,7 @@ CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
     csoundMessage(csound, "f%3.0f %8.2f %8.2f ",
                             ff->e.p[1], ff->e.p2orig, ff->e.p3orig);
     if (isstrcod(ff->e.p[4]))
-      csoundMessage(csound,"%s", ff->e.strarg);
+      csoundMessage(csound,"%s ", ff->e.strarg);
     else
       csoundMessage(csound, "%8.2f", ff->e.p[4]);
     if (isstrcod(ff->e.p[5]))

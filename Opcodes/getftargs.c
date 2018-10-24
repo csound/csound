@@ -68,7 +68,7 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
     int32 argcnt, i, strlen = 0;
 
     if (UNLIKELY((src = csound->FTnp2Find(csound, p->ftable)) == NULL)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("table: could not find ftable %d"),
                                (int32_t) *p->ftable);
     }

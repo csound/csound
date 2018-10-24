@@ -1,6 +1,7 @@
 # Try to find the GMM library.
 # Once done this will define:
 #  GMM_FOUND - System has the GMM library.
+#  GMM_VERSION
 #  GMM_INCLUDE_DIRS - The GMM include directories.
 #  GMM_HAS_VECTOR_OSTREAM - Wether GMM defines operator<< for std::vector
 

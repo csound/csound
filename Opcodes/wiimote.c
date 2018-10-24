@@ -215,7 +215,7 @@ int32_t wii_data(CSOUND *csound, WIIMOTE *p)
     int32_t kontrol = (int32_t)(*p->kControl+FL(0.5));
     if (UNLIKELY(n>=MAX_WIIMOTES || !(wii[n]->state & WIIMOTE_STATE_CONNECTED))) {
       printf("state of wii %d is %x\n", n, wii[n]->state);
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("wiimote %d does not exist"), n);
     }
     if (kontrol<0) {
@@ -348,7 +348,7 @@ int32_t wii_send(CSOUND *csound, WIIMOTES *p)
     wiimote **wii = p->wii;
     int32_t num = (int32_t)*p->num;
     if (UNLIKELY(!(wii[num]->state & WIIMOTE_STATE_CONNECTED)))
-      return csound->PerfError(csound, p->h.insdshead, "%s", Str("Not open"));
+      return csound->PerfError(csound, &(p->h), "%s", Str("Not open"));
     switch ((int32_t)(*p->kControl+FL(0.5))) {
     /* case 1: */
     /*   wii->mode.acc = (int32_t)*p->kValue; */

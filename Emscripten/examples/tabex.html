@@ -1,271 +1,335 @@
 <!DOCTYPE html>
 <html>
 <!--
-    WebAudio Csound example
-    Copyright (C) 2018 V Lazzarini
-
-    This file is part of Csound.
-
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+ WebAudio Csound example
+ Copyright (C) 2017 V Lazzarini
 -->
 
 <head>
-    <title>WebAudio Csound</title>
-    <style type="text/css">
-        input[type=checkbox] {
-            transform: scale(1.5);
-            margin: 10px 20px;
-        }
+  <title>WebAudio Csound</title>
+  <style type="text/css">
+    input[type=checkbox] {
+      transform: scale(1.5);
+      margin: 10px 20px;
+    }
 
-        .center {
-            margin: auto;
-            padding: 10px;
-        }
+    table,
+    th,
+    td {
+      border: 1px solid black;
+      background-color: #FFFFFF;
+      color: #000000;
+    }
 
-        .bpm input[type="range"] {
-            width: 600px;
-            margin: 10px 20px;
-        }
+    th,
+    td {
+      border: 1px solid black;
+      padding: 10px 20px;
+    }
 
-        table,
-        th,
-        td {
-            border: 1px solid black;
-        }
+    html,
+    body {
+      font-family: Monospace;
+      color: #bf94f7;
+      background-color: #000055;
+    }
 
-        th,
-        td {
-            border: 1px solid black;
-            padding: 10px 20px;
-        }
-    </style>
+    #controls {
+      width: 705px;
+      padding: 10px 10px;
+    }
 
-
-    <script src="js/CsoundObj.js"></script>
-    <script type="text/javascript">
-        var colour;
-        var pitch_colour = ['#1166BB', '#2255CC', '#3344AA', '#443399',
-            '#554488', '#665577', '#776666', '#887755', '#998844', '#999933',
-            '#99AA44', '#AABB55', '#CCDD66'
-        ];
-
-        var colour_tab = [pitch_colour[0], pitch_colour[2], pitch_colour[4],
-            pitch_colour[5], pitch_colour[7], pitch_colour[9], pitch_colour[11],
-            pitch_colour[12]
-        ];
-
-        var tab = new Float32Array(8);
-        var pc = new Float32Array(8);
-        var prv;
-
-        function isOn(n) {
-            var elem = document.getElementById("step" + n);
-            return elem.checked ? 1.0 : 0.0;
-        }
-
-        function setStep() {
-            for (let i = 0; i < tab.length; i++) {
-                tab[i] = isOn(i + 1);
-            }
-            csound.setTable(2, tab);
-        }
-
-        function setPitch() {
-            for (let i = 0; i < pc.length; i++) {
-                var value = document.getElementById("freq" + (i + 1)).value;
-                pc[i] = value / 100.;
-                colour_tab[i] = pitch_colour[value];
-            }
-            csound.setTable(1, pc);
-        }
-
-        function setBpm() {
-            var value = document.getElementById("bpm").value;
-            csound.setControlChannel("bpm", value);
-        }
+    #console {
+      font-family: Monospace;
+      color: #b5b6ff;
+      background-color: #000000;
+      font-size: 16px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0px;
+    }
 
 
-        // message printout
-        function display_msg(mess, step) {
-            var messField = document.getElementById("console");
-            colour = messField.style.color = colour_tab[step];
-            messField.innerText = mess;
-            var ths = document.getElementById("tab" + (step + 1));
-            var sm1 = step == 0 ? 8 : step;
-            var prv = document.getElementById("tab" + sm1);
-            if (isOn(step + 1) == 1)
-                ths.style.backgroundColor = colour_tab[step];
-            prv.style.backgroundColor = 'white';
-        }
+    H1 {
+      font-size: 36px;
+    }
 
 
-        function print_msg(message) {
-            csound.requestControlChannel("step", function() {
-                step = Math.round(csound.getChannel("step"));
-                display_msg(message, step);
-            });
-        }
+    #playButton {
+      margin: auto;
+      font-family: Monospace;
+      width: 100%;
+      padding: 10px 0px;
+      font-size: 24px;
+      background-color: #b5b6ff;
+    }
+
+    .bpm {
+      font-size: 16px;
+      text-align: center
+    }
+
+    .bpm input[type=range] {
+      height: 32px;
+      -webkit-appearance: none;
+      margin: 10px 0;
+      width: 100%;
+      background: #000055;
+    }
+
+    .bpm input[type=range]:focus {
+      outline: none;
+    }
+
+    .bpm input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 16px;
+      cursor: pointer;
+      animate: 0.2s;
+      box-shadow: 0px 0px 0px #000000;
+      background: #b5b6ff;
+      border-radius: 25px;
+      border: 1px solid #000055;
+    }
+
+    .bpm input[type=range]::-webkit-slider-thumb {
+      box-shadow: 1px 1px 1px #828282;
+      border: 1px solid #8A8A8A;
+      height: 24px;
+      width: 35px;
+      border-radius: 6px;
+      background: #b5b6ff;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -5px;
+    }
+
+    .bpm input[type=range]:focus::-webkit-slider-runnable-track {
+      background: #b5b6ff;
+    }
+
+    .bpm input[type=range]::-moz-range-track {
+      width: 100%;
+      height: 16px;
+      cursor: pointer;
+      animate: 0.2s;
+      box-shadow: 0px 0px 0px #000000;
+      background: #b5b6ff;
+      border-radius: 25px;
+      border: 1px solid #000055;
+    }
+
+    .bpm input[type=range]::-moz-range-thumb {
+      box-shadow: 1px 1px 1px #828282;
+      border: 1px solid ##b5b6ff;
+      height: 24px;
+      width: 35px;
+      border-radius: 6px;
+      background: ##b5b6ff;
+      cursor: pointer;
+    }
+
+    .bpm input[type=range]::-ms-track {
+      width: 100%;
+      height: 16px;
+      cursor: pointer;
+      animate: 0.2s;
+      background: transparent;
+      border-color: transparent;
+      color: transparent;
+    }
+
+    .bpm input[type=range]::-ms-fill-lower {
+      background: #b5b6ff;
+      border: 1px solid #000055;
+      border-radius: 50px;
+      box-shadow: 0px 0px 0px #000000;
+    }
+
+    .bpm input[type=range]::-ms-fill-upper {
+      background: #b5b6ff;
+      border: 1px solid #000055;
+      border-radius: 50px;
+      box-shadow: 0px 0px 0px #000000;
+    }
+
+    .bpm input[type=range]::-ms-thumb {
+      margin-top: 1px;
+      box-shadow: 1px 1px 1px #828282;
+      border: 1px solid #b5b6ff;
+      height: 24px;
+      width: 35px;
+      border-radius: 6px;
+      background: #b5b6ff;
+      cursor: pointer;
+    }
+
+    .bpm input[type=range]:focus::-ms-fill-lower {
+      background: #b5b6ff;
+    }
+
+    .bpm input[type=range]:focus::-ms-fill-upper {
+      background: #b5b6ff;
+    }
+
+    }
+  </style>
 
 
-        function main() {
+  <script src="js/CsoundObj.js"></script>
+  <script type="text/javascript">
+    var pitch_colour = ['#1166BB', '#2255CC', '#3344AA', '#443399',
+      '#554488', '#665577', '#776666', '#887755', '#998844', '#999933',
+      '#99AA44', '#AABB55', '#CCDD66'
+    ];
 
-            CsoundObj.importScripts("./js/").then(() => {
-                console.log = print_msg;
-                console.warn = print_msg;
-                csound = new CsoundObj();
-                csound.compileOrc(document.getElementById('instruments').value);
-                csound.start();
-                window.addEventListener("unload", function(e) {
-                    if (csound != null)
-                        csound.destroy();
-                }, false);
+    var colour_tab = [pitch_colour[0], pitch_colour[2], pitch_colour[4],
+      pitch_colour[5], pitch_colour[7], pitch_colour[9], pitch_colour[11],
+      pitch_colour[12]
+    ];
 
-                scopeNode = CSOUND_AUDIO_CONTEXT.createAnalyser();
-                csound.getNode().connect(scopeNode);
+    var tab = new Float32Array(8);
+    var pc = new Float32Array(8);
+    var prv;
 
-                scope = function() {
+    function isOn(n) {
+      var elem = document.getElementById("step" + n);
+      return elem.checked ? 1.0 : 0.0;
+    }
 
-                    let ctx = document.getElementById('scope').getContext('2d');
-                    let width = ctx.canvas.width;
-                    let height = ctx.canvas.height;
-                    let timeData = new Uint8Array(scopeNode.frequencyBinCount);
-                    let scaling = height / 256;
-                    let risingEdge = 0;
-                    let edgeThreshold = 5;
-                    scopeNode.getByteTimeDomainData(timeData);
+    function setStep() {
+      for (let i = 0; i < tab.length; i++) {
+        tab[i] = isOn(i + 1);
+      }
+      csound.setTable(2, tab);
+    }
 
-                    ctx.fillStyle = 'rgba(0, 20, 0, 0.1)';
-                    ctx.fillRect(0, 0, width, height);
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = colour;
-                    ctx.beginPath();
+    function setPitch() {
+      for (let i = 0; i < pc.length; i++) {
+        var value = document.getElementById("freq" + (i + 1)).value;
+        pc[i] = value / 100.;
+        colour_tab[i] = pitch_colour[value];
+      }
+      csound.setTable(1, pc);
+    }
+
+    function setBpm() {
+      var value = document.getElementById("bpm").value;
+      csound.setControlChannel("bpm", value);
+    }
 
 
-                    while (timeData[risingEdge++] - 128 > 0 &&
-                        risingEdge <= width);
-                    if (risingEdge >= width) risingEdge = 0;
-                    while (timeData[risingEdge++] - 128 < edgeThreshold &&
-                        risingEdge <= width);
-                    if (risingEdge >= width) risingEdge = 0;
-                    for (var x = risingEdge; x < timeData.length &&
-                        x - risingEdge < width; x++)
-                        ctx.lineTo(x - risingEdge,
-                          height - timeData[x] * scaling);
-                    ctx.stroke();
+    // message printout
+    function display_msg(mess, step) {
+      var messField = document.getElementById("console");
+      messField.style.color = colour_tab[step];
+      messField.innerText = mess;
+      var ths = document.getElementById("tab" + (step + 1));
+      var sm1 = step == 0 ? 8 : step;
+      var prv = document.getElementById("tab" + sm1);
+      if (isOn(step + 1) == 1)
+        ths.style.backgroundColor = colour_tab[step];
+      prv.style.backgroundColor = 'white';
+    }
 
-                    requestAnimationFrame(scope);
-                }
 
-                scope();
+    function print_msg(message) {
+      csound.requestControlChannel("step", function() {
+        step = Math.round(csound.getControlChannel("step"));
+        display_msg(message, step);
+      });
+    }
 
-                mags = function() {
-                    let ctx = document.getElementById('mags').getContext('2d');
-                    let width = ctx.canvas.width;
-                    let height = ctx.canvas.height;
-                    let freqData = new Uint8Array(scopeNode.frequencyBinCount);
-                    let scaling = height / 256;
 
-                    scopeNode.getByteFrequencyData(freqData);
+    function main() {
 
-                    ctx.fillStyle = 'rgba(0, 20, 0, 0.1)';
-                    ctx.fillRect(0, 0, width, height);
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = colour;
-                    ctx.beginPath();
+      CsoundObj.importScripts("./js/").then(() => {
+        console.log = print_msg;
+        console.warn = print_msg;
+        document.getElementById('playButton').addEventListener('click',
+          click_this);
+        document.getElementById('playButton').disabled = false;
+        CSOUND_AUDIO_CONTEXT.suspend();
+        csound = new CsoundObj();
+        csound.compileOrc(document.getElementById('instruments').value);
+        csound.start();
+        window.addEventListener("unload", function(e) {
+          if (csound != null)
+            csound.destroy();
+        }, false);
+      });
 
-                    for (var x = 0; x < width; x++)
-                        ctx.lineTo(x, height - freqData[x] * scaling);
+    }
 
-                    ctx.stroke();
-                    requestAnimationFrame(mags);
-                }
-                mags();
-            });
+    var playing = false;
 
-        }
-    </script>
+    function click_this() {
+      if (playing == false) {
+        CSOUND_AUDIO_CONTEXT.resume();
+        document.getElementById('playButton').innerText = "pause";
+        playing = true;
+      } else {
+        CSOUND_AUDIO_CONTEXT.suspend();
+        document.getElementById('playButton').innerText = "play";
+        playing = false;
+      }
+    }
+  </script>
 </head>
 
 <body onload="main()">
-    <h1 class="center"> Step Sequencer </h1>
-<div id="console" class="center">
-</div>
+  <h1 class="center"> Step Sequencer </h1>
 
-<div id="display">
-  <div id="controls" class="center">
-<form id="forma">
-  <table>
-  <tr>
-    <th id="tab1"><input type="checkbox" id="step1" checked
-      onchange="setStep()"> 1 <br>
-    <input type="range" name="frequency" id="freq1" step="1" value="0"
-        min="0" max="12" onchange="setPitch()"> 
-    </th>
-    <th id="tab2"> <input type="checkbox" id="step2" checked
-      onchange="setStep()"> 2 <br>
-    <input type="range" name="frequency" id="freq2" step="1" value="2"
-        min="0" max="12" onchange="setPitch()"> ></th>
-    <th id="tab3"><input type="checkbox" id="step3" checked
-      onchange="setStep()"> 3
-    <br>
-    <input type="range" name="frequency" id="freq3" step="1" value="4"
-        min="0" max="12" onchange="setPitch()"> </th>
-    <th id="tab4"><input type="checkbox" id="step4" checked
-      onchange="setStep()"> 4
-    <br>
-    <input type="range" name="frequency" id="freq4" step="1" value="5"
-      min="0" max="12" onchange="setPitch()"> </th>
-    </tr><tr>
-    <th id="tab5"> <input type="checkbox" id="step5" checked
-      onchange="setStep()"> 5
-    <br>
-    <input type="range" name="frequency" id="freq5" step="1" value="7"
-        min="0" max="12" onchange="setPitch()"> </th>
-    <th id="tab6"><input type="checkbox" id="step6" checked
-      onchange="setStep()"> 6
-    <br>
-    <input type="range" name="frequency" id="freq6" step="1" value="9"
-        min="0" max="12" onchange="setPitch()"> </th>
-    <th id="tab7"><input type="checkbox" id="step7" checked
-      onchange="setStep()"> 7
-    <br>
-    <input type="range" name="frequency" id="freq7" step="1" value="11"
-        min="0" max="12" onchange="setPitch()"> </th>
-    <th id="tab8">  <input type="checkbox" id="step8" checked
-      onchange="setStep()"> 8
-    <br>
-    <input type="range" name="frequency" id="freq8" step="1" value="12"
-        min="0" max="12" onchange="setPitch()"> </th>
-  </tr>
-</table>
-</form>
-<div class="bpm">
-<input  type="range" name="bpm" id="bpm" step="1" value="120"
-  min="30" max="480" oninput="setBpm()"> BPM 
-</div>
-</div>
-<div id="screens">
-<canvas id='scope' width=400 height=200 style="border:1px solid#000000;">
-</canvas>
-<canvas id='mags' width=400 height=200 style="border:1px solid#000000;">
-</canvas>
-</div>
-</div>
+  <div id="controls">
+    <p>
+    <div id="console">
+    </div>
+    </p>
+    <form id="forma">
+      <table>
+        <tr>
+          <th id="tab1"><input type="checkbox" id="step1" checked onchange="setStep()"> 1 <br>
+            <input type="range" name="frequency" id="freq1" step="1" value="0" min="0" max="12" onchange="setPitch()">
+          </th>
+          <th id="tab2"> <input type="checkbox" id="step2" checked onchange="setStep()"> 2 <br>
+            <input type="range" name="frequency" id="freq2" step="1" value="2" min="0" max="12" onchange="setPitch()"> </th>
+          <th id="tab3"><input type="checkbox" id="step3" checked onchange="setStep()"> 3
+            <br>
+            <input type="range" name="frequency" id="freq3" step="1" value="4" min="0" max="12" onchange="setPitch()"> </th>
+          <th id="tab4"><input type="checkbox" id="step4" checked onchange="setStep()"> 4
+            <br>
+            <input type="range" name="frequency" id="freq4" step="1" value="5" min="0" max="12" onchange="setPitch()"> </th>
+        </tr>
+        <tr>
+          <th id="tab5"> <input type="checkbox" id="step5" checked onchange="setStep()"> 5
+            <br>
+            <input type="range" name="frequency" id="freq5" step="1" value="7" min="0" max="12" onchange="setPitch()"> </th>
+          <th id="tab6"><input type="checkbox" id="step6" checked onchange="setStep()"> 6
+            <br>
+            <input type="range" name="frequency" id="freq6" step="1" value="9" min="0" max="12" onchange="setPitch()"> </th>
+          <th id="tab7"><input type="checkbox" id="step7" checked onchange="setStep()"> 7
+            <br>
+            <input type="range" name="frequency" id="freq7" step="1" value="11" min="0" max="12" onchange="setPitch()"> </th>
+          <th id="tab8"> <input type="checkbox" id="step8" checked onchange="setStep()"> 8
+            <br>
+            <input type="range" name="frequency" id="freq8" step="1" value="12" min="0" max="12" onchange="setPitch()"> </th>
+        </tr>
+      </table>
+    </form>
+    <div class=bpm>
+      <p>
+        <input type="range" id="bpm" step="1" value="120" min="30" max="480" oninput="setBpm()"> BPM
+      </p>
+    </div>
+    <p>
+      <button id="playButton" disabled class="butt">play</button>
+    </p>
+  </div>
+  </div>
 
-<textarea class="code" id="instruments" hidden>
+  <textarea class="code" id="instruments" hidden>
 /* this is the Csound synthesis code
    for this example
 */
@@ -290,4 +354,5 @@ gifn ftgen 1,0,8,-2,0,.02,.04,.05,.07,.09,.11,.12
 gifn ftgen 2,0,8,-2,1,1,1,1,1,1,1,1
 </textarea>
 </body>
+
 </html>

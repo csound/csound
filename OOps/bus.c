@@ -80,14 +80,14 @@ int32_t chani_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     MYFLT *val;
 
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound, p->h.insdshead,Str("chani: invalid index"));
+      return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
 
     if (UNLIKELY(err))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("chani error %d:"
                                    "channel not found or not right type"), err);
     *(p->r) = *val;
@@ -102,14 +102,14 @@ int32_t chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
     MYFLT *val;
 
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound,p->h.insdshead,Str("chani: invalid index"));
+      return csound->PerfError(csound,&(p->h),Str("chani: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
 
     if (UNLIKELY(err))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("chano error %d:"
                                    "channel not found or not right type"), err);
     *val = *(p->r);
@@ -127,13 +127,13 @@ int32_t chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     MYFLT *val;
 
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound, p->h.insdshead,Str("chani: invalid index"));
+      return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("chani error %d:"
                                    "channel not found or not right type"), err);
     if (UNLIKELY(offset)) memset(p->r, '\0', offset * sizeof(MYFLT));
@@ -155,13 +155,13 @@ int32_t chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
     MYFLT *val;
 
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound, p->h.insdshead,Str("chani: invalid index"));
+      return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
     err = csoundGetChannelPtr(csound, &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("chano error %d:"
                                    "channel not found or not right type"), err);
 
@@ -216,14 +216,14 @@ int32_t pvsin_perf(CSOUND *csound, FCHAN *p)
     MYFLT      *pp;
 
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound, p->h.insdshead,Str("pvsin: invalid index"));
+      return csound->PerfError(csound, &(p->h),Str("pvsin: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
     err = csoundGetChannelPtr(csound, &pp, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL);
     fin = (PVSDATEXT *) pp;
     if (UNLIKELY(err))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("pvsin error %d:"
                                    "channel not found or not right type"), err);
 
@@ -279,14 +279,14 @@ int32_t pvsout_perf(CSOUND *csound, FCHAN *p)
     MYFLT *pp;
 
     if (UNLIKELY(n < 0))
-      return csound->PerfError(csound, p->h.insdshead,Str("pvsout: invalid index"));
+      return csound->PerfError(csound, &(p->h),Str("pvsout: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
     err = csoundGetChannelPtr(csound, &pp, chan_name,
                               CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     fout = (PVSDATEXT *) pp;
     if (UNLIKELY(err))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("pvsout error %d:"
                                    "channel not found or not right type"), err);
 
@@ -606,7 +606,7 @@ PUBLIC int32_t csoundGetControlChannelHints(CSOUND *csound, const char *name,
 
 int32_t notinit_opcode_stub(CSOUND *csound, void *p)
 {
-  return csound->PerfError(csound, ((CHNGET *)p)->h.insdshead,
+    return csound->PerfError(csound, &(((CHNGET *)p)->h),
                            Str("%s: not initialised"),
                            csound->GetOpcodeName(p));
 }
@@ -672,7 +672,7 @@ static int32_t chnget_opcode_perf_k(CSOUND *csound, CHNGET *p)
     MYFLT d;
     MYFLT_INT_TYPE i;
     } x;
-    x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *) p->fp, 0);
+    x.i = __atomic_load_n((MYFLT_INT_TYPE *) p->fp, __ATOMIC_SEQ_CST);
     *(p->arg) = x.d;
 #else
     *(p->arg) = *(p->fp);
@@ -744,7 +744,7 @@ int32_t chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
     MYFLT d;
     MYFLT_INT_TYPE i;
     } x;
-    x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *) p->fp, 0);
+    x.i = __atomic_load_n((MYFLT_INT_TYPE *) p->fp, __ATOMIC_SEQ_CST);
     *(p->arg) =  x.d;
     }
 #else
@@ -873,7 +873,7 @@ static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
       MYFLT_INT_TYPE i;
     } x;
     x.d = *(p->arg);
-    __sync_lock_test_and_set((MYFLT_INT_TYPE *)(p->fp),x.i);
+    __atomic_store_n((MYFLT_INT_TYPE *)(p->fp),x.i, __ATOMIC_SEQ_CST);
 #else
     csoundSpinLock(p->lock);
     *(p->fp) = *(p->arg);
@@ -935,11 +935,14 @@ static int32_t chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 
 static int32_t chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
+    int32_t i, n=p->INCOUNT;
     /* Need lock for the channel */
     IGN(csound);
-    csoundSpinLock(p->lock);
-    memset(p->fp, 0, CS_KSMPS*sizeof(MYFLT)); /* Should this leave start? */
-    csoundSpinUnLock(p->lock);
+    for (i=0; i<n; i++) {
+      csoundSpinLock(p->lock[i]);
+      memset(p->fp[i], 0, CS_KSMPS*sizeof(MYFLT)); /* Should this leave start? */
+      csoundSpinUnLock(p->lock[i]);
+    }
     return OK;
 }
 
@@ -968,7 +971,7 @@ int32_t chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
       MYFLT_INT_TYPE i;
     } x;
     x.d = *(p->arg);
-    __sync_lock_test_and_set((MYFLT_INT_TYPE *)(p->fp),x.i);
+    __atomic_store_n((MYFLT_INT_TYPE *)(p->fp),x.i, __ATOMIC_SEQ_CST);
 #else
     {
       spin_lock_t *lock;       /* Need lock for the channel */
@@ -1035,16 +1038,19 @@ int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
 int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 {
     int32_t   err;
-
-    /* NOTE: p->imode is a pointer to the channel data here */
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
-                              CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    if (LIKELY(!err)) {
-      p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
-      p->h.opadr = (SUBR) chnclear_opcode_perf;
-      return OK;
+    int32_t   i, n = (int32_t)p->INCOUNT;
+    for (i=0; i<n; i++) {
+      /* NOTE: p->imode is a pointer to the channel data here */
+      err = csoundGetChannelPtr(csound, &(p->fp[i]), (char*) p->iname[i]->data,
+                                CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
+      if (LIKELY(!err)) {
+        p->lock[i] = (spin_lock_t *)csoundGetChannelLock(csound,
+                                                         (char*) p->iname[i]->data);
+      }
+      else return print_chn_err(p, err);
     }
-    return print_chn_err(p, err);
+    p->h.opadr = (SUBR) chnclear_opcode_perf;
+    return OK;
 }
 
 /* send string to bus at init time */
@@ -1280,6 +1286,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     hints.dflt = *(p->idflt);
     hints.min = *(p->imin);
     hints.max = *(p->imax);
+    hints.x = hints.y = hints.width = hints.height = 0;
     hints.attributes = NULL;
     err = csoundSetControlChannelHints(csound, (char*) p->iname->data, hints);
     if (LIKELY(!err))
@@ -1374,7 +1381,7 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
           char    ch = '\0';
           int32_t n=0;
           if (UNLIKELY((n=read(0, &ch, 1))<0)) {
-            csound->PerfError(csound, p->h.insdshead,
+            csound->PerfError(csound, &(p->h),
                               Str("read failure in sensekey\n"));
             return NOTOK;
           }

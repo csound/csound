@@ -1669,8 +1669,8 @@ extern "C" {
    *
    * Operations on **p are not thread-safe by default. The host is required
    * to take care of threadsafety by
-   * 1) with control channels use __sync_fetch_and_add() or
-   *    __sync_fetch_and_or() gcc atomic builtins to get or set a channel,
+   * 1) with control channels use __atomic_load() or
+   *    __atomic_store() gcc atomic builtins to get or set a channel,
    *    if available.
    * 2) For string and audio channels (and controls if option 1 is not
    *    available), retrieve the channel lock with csoundGetChannelLock()

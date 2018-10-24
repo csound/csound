@@ -17,14 +17,13 @@ set VCREDIST_CRT_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CRT
 set VCREDIST_CXXAMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CXXAMP
 set VCREDIST_OPENMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.OpenMP
 set HDF5_HOME=C:\\Program Files\\HDF_Group\\HDF5\\1.8.19
-set VST_SDK2_HOME=D:/msys64/home/restore/csound/msvc/deps/VST_SDK/VST2_SDK
 
 if %BUILD_DEPENDENCIES%==1 (
 powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140"
 )
 
 if %BUILD_CSOUND%==1 (
-powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140" -vstSdkHome "%VST_SDK2_HOME%"
+powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140" 
 cmake --build csound-vs --config RelWithDebInfo
 )
 

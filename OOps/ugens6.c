@@ -403,7 +403,7 @@ int32_t delay(CSOUND *csound, DELAY *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("delay: not initialised"));
 }
 
@@ -430,7 +430,7 @@ int32_t delayr(CSOUND *csound, DELAYR *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("delayr: not initialised"));
 }
 
@@ -455,7 +455,7 @@ int32_t delayw(CSOUND *csound, DELAYW *p)
     q->curp = curp;                                     /* now sav new curp */
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("delayw: not initialised"));
 }
 
@@ -485,7 +485,7 @@ int32_t deltap(CSOUND *csound, DELTAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("deltap: not initialised"));
 }
 
@@ -542,10 +542,10 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                               Str("deltapi: not initialised"));
   err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                               Str("deltapi: INF delaytime"));
 }
 
@@ -598,7 +598,7 @@ int32_t deltapn(CSOUND *csound, DELTAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("deltapn: not initialised"));
 }
 
@@ -684,10 +684,10 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("deltap3: not initialised"));
   err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                               Str("deltapi: INF delaytime"));
 
 }
@@ -795,7 +795,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("deltap: not initialised"));
 }
 
@@ -880,7 +880,7 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("deltap: not initialised"));
 }
 
@@ -986,7 +986,7 @@ int32_t comb(CSOUND *csound, COMB *p)
     p->pntr = xp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("comb: not initialised"));
 }
 
@@ -1025,7 +1025,7 @@ int32_t invcomb(CSOUND *csound, COMB *p)
     p->pntr = xp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("combinv: not initialised"));
 }
 
@@ -1062,7 +1062,7 @@ int32_t alpass(CSOUND *csound, COMB *p)
     p->pntr = xp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("alpass: not initialised"));
 }
 
@@ -1187,7 +1187,7 @@ int32_t reverb(CSOUND *csound, REVERB *p)
     p->p6 = p6;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("reverb: not initialised"));
 }
 
@@ -1261,6 +1261,6 @@ int32_t pan(CSOUND *csound, PAN *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pan: not initialised"));
 }

@@ -13,6 +13,18 @@ if [ -d "$PYTHON_DIR" ]; then
   /bin/ln -sF $PY_SRC_DIR/ctcsound.py $PYTHON_DIR
 fi
 
+PYTHON3_DIR="/Library/Python/3.6/site-packages"
+if [ -d "$PYTHON3_DIR" ]; then
+  /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON3_DIR
+  /bin/ln -sF $PY_SRC_DIR/csnd6.py $PYTHON3_DIR
+  /bin/ln -sF $PY_SRC_DIR/ctcsound.py $PYTHON3_DIR
+else
+  mkdir -p $PYTHON3_DIR
+  /bin/ln -sF $PY_SRC_DIR/_csnd6.so $PYTHON3_DIR
+  /bin/ln -sF $PY_SRC_DIR/csnd6.py $PYTHON3_DIR
+  /bin/ln -sF $PY_SRC_DIR/ctcsound.py $PYTHON3_DIR
+fi
+
 
 PYTHON_DIR="/Library/Python/2.6/site-packages"
 if [ -d "$PYTHON_DIR" ]; then

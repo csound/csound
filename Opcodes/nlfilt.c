@@ -126,7 +126,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     p->point = point;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("nlfilt: not initialised"));
 } /* end nlfilt(p) */
 
@@ -202,7 +202,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     p->point = point;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
 

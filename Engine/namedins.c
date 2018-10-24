@@ -26,8 +26,6 @@
 #include "csound_orc_semantics.h"
 #include <ctype.h>
 
-#define NOT_AN_INSTRUMENT INT32_MAX
-
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
 
@@ -43,21 +41,29 @@ int check_instr_name(char *s)
     return 1;   /* no errors */
 }
 
+
+int32  named_instr_find_in_engine(CSOUND *csound, char *s,
+                                  ENGINE_STATE *engineState) {
+
+  INSTRNAME     *inm;
+    int ss = (*s=='-'?1:0);
+
+    if (!engineState->instrumentNames)
+      return 0L;                              /* no named instruments defined */
+    /* now find instrument */
+    inm = cs_hash_table_get(csound, engineState->instrumentNames, s+ss);
+
+    return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
+
+}
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
 int32 named_instr_find(CSOUND *csound, char *s)
 {
-    INSTRNAME     *inm;
-    int ss = (*s=='-'?1:0);
-
-    if (!csound->engineState.instrumentNames)
-      return 0L;                              /* no named instruments defined */
-    /* now find instrument */
-    inm = cs_hash_table_get(csound, csound->engineState.instrumentNames, s+ss);
-
-    return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
+  return named_instr_find_in_engine(csound, s, &csound->engineState);
 }
+
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */

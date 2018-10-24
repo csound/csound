@@ -220,15 +220,15 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead, Str("pvoc: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("pvoc: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("PVOC timpnt < 0"));
 }
 

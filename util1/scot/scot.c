@@ -684,7 +684,7 @@ void addparam(int n,            /* number of param to change */
 
     ps = findparam(n, ptop);
     if (strcmp(s, "."))
-      strncpy(ps, s, 1+strlen(s));
+      strncpy(ps, s, 31);
 }
 
 static                          /* returns pointer to */

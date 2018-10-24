@@ -1,54 +1,104 @@
 <!DOCTYPE html>
 <html>
 <!--
-    WebAudio Csound example
-    Copyright (C) 2018 V Lazzarini
-
-    This file is part of Csound.
-
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+ csound.js stria example
+ Copyright (C) 2017 V Lazzarini
 -->
+
 <head>
-    <title>WebAudio Csound</title>
-    <script type="text/javascript" src="js/csound.js"></script>
-    <script type="text/javascript">
-        // called by csound.js
-        function moduleDidLoad() {
-            csound.PlayCsd("stria.csd");
-            document.getElementById("tit").innerHTML =
-                "Stria (J. Chowning)";
-            document.getElementById("stit").innerHTML =
-                "reconstruction by K. Dahan";
-        }
+  <title>WebAudio Csound</title>
 
-        function attachListeners() {}
+  <style type="text/css">
+    html,
+    body {
+      font-family: Monospace;
+      color: #bf94f7;
+      background-color: #000055;
+    }
 
-        function handleMessage(message) {
-            var messField = document.getElementById("mess")
-            messField.innerText += message;
-            scrollTo(0, messField.scrollHeight);
+    #console {
+      font-family: Monospace;
+      color: #b5b6ff;
+      background-color: #000000;
+      font-size: 16px;
+      width: 805px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-style: solid;
+      padding: 20px 0px;
+    }
+
+
+    H1 {
+      font-size: 36px;
+    }
+
+    #playButton {
+      margin: auto;
+      font-family: Monospace;
+      width: 810px;
+      padding: 10px 0px;
+      font-size: 24px;
+      background-color: #b5b6ff;
+    }
+  </style>
+
+  <script type="text/javascript" src="js/csound.js"></script>
+  <script type="text/javascript">
+    // called by csound.js
+    function moduleDidLoad() {
+      document.getElementById('playButton').disabled = false;
+      CSOUND_AUDIO_CONTEXT.suspend();
+      csound.PlayCsd("stria.csd");
+
+    }
+
+    function attachListeners() {
+
+    }
+    var count = 0;
+
+    function handleMessage(message) {
+      var element = document.getElementById('console');
+      element.value += message;
+      element.scrollTop = 99999; // focus on bottom
+      count += 1;
+      if (count == 1000) {
+        element.value = ' ';
+        count = 0;
+      }
+    }
+
+    var playing = false;
+    var started = false;
+
+    function click_this() {
+      if (playing == false) {
+        CSOUND_AUDIO_CONTEXT.resume();
+        if (started == false) {
+          console.log("\n Stria by John Chowning");
+          console.log("reconstruction by K. Dahan \n");
+          started = true;
         }
-    </script>
+        document.getElementById('playButton').innerText = "pause";
+        playing = true;
+      } else {
+        CSOUND_AUDIO_CONTEXT.suspend();
+        document.getElementById('playButton').innerText = "play";
+        playing = false;
+      }
+    }
+  </script>
 </head>
 
 <body>
-    <div id="console"></div>
-    <h1 id="tit"></h1>
-    <h2 id="stit"></h2>
-    <div id="mess"> </div>
+  <H1> John Chowning: Stria </H1>
+  <textarea class="console" rows="24" id="console">
+    Csound: not loaded</textarea>
+  <p>
+    <button id="playButton" disabled onclick="click_this()">play</button>
+  </p>
 </body>
 
 </html>

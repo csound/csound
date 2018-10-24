@@ -45,7 +45,7 @@ var CSOUND_NODE_SCRIPT;
 
 /* SETUP NODE TYPE */
 if(typeof AudioWorkletNode !== 'undefined' &&
-   CSOUND_AUDIO_CONTEXT.audioWorklet !== null) {
+   CSOUND_AUDIO_CONTEXT.audioWorklet !== undefined) {
     console.log("Using WASM + AudioWorklet Csound implementation");
     CSOUND_NODE_SCRIPT = 'CsoundNode.js';
     CSOUND_AUDIO_CONTEXT.hasAudioWorklet = true;
@@ -57,7 +57,7 @@ if(typeof AudioWorkletNode !== 'undefined' &&
 
 
 const csound_load_script = function(src, callback) {
-    var script = document.createElement('script');
+    var script = document.createElementNS("http://www.w3.org/1999/xhtml", "script");
     script.src = src;
     script.onload = callback;
     document.head.appendChild(script);
@@ -176,13 +176,33 @@ class CsoundObj {
         this.node.requestControlChannel(channelName, callback);
     }
 
-    /** Get the latest requested channel data 
+    /** Request the string data from a control channel 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @param {function} callback An optional callback to be called when
+     *  the requested data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    requestStringChannel(channelName, callback = null) {
+        this.node.requestStringChannel(channelName, callback);
+    }
+
+    /** Get the latest requested control channel data 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @returns {(number)} The latest channel value requested.
+     */   
+    getControlChannel(channelName) {
+        return this.node.getControlChannel(channelName);
+    }
+
+    /** Get the latest requested string channel data 
      *
      * @param {string} channelName A string containing the channel name.
      * @returns {(number|string)} The latest channel value requested.
      */   
-    getChannel(channelName) {
-        return this.node.getChannel(channelName);
+    getStringChannel(channelName) {
+        return this.node.getStringChannel(channelName);
     }
 
     /** Request the data from a Csound function table
@@ -287,7 +307,7 @@ class CsoundObj {
         let that = this;
 
         if (navigator.getUserMedia === null) {
-            //Module['print']("Audio Input not supported in this browser");
+            console.log("Audio Input not supported in this browser");
             audioInputCallback(false);
         } else {
             let onSuccess = function(stream) {
@@ -297,8 +317,8 @@ class CsoundObj {
 
             let onFailure = function(error) {
                 that.microphoneNode = null;
+                console.log("Could not initialise audio input, error:" + error);
                 audioInputCallback(false);
-                //Module['print']("Could not initialise audio input, error:" + error);
             };
             navigator.getUserMedia({
                 audio: true, 
@@ -307,6 +327,40 @@ class CsoundObj {
         }
     }
 
+    enableMidiInput(midiInputCallback) {
+        const handleMidiInput = (evt) => {
+            this.midiMessage(evt.data[0], evt.data[1], evt.data[2]);
+        };
+        const midiSuccess = function(midiInterface) {
+
+            const inputs = midiInterface.inputs.values();
+
+            for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+                input = input.value;
+                input.onmidimessage = handleMidiInput;
+            }
+            if (midiInputCallback) {
+                midiInputCallback(true);
+            }
+        };
+
+        const midiFail = function(error) {
+            console.log("MIDI failed to start, error:" + error);
+            if (midiInputCallback) {
+                midiInputCallback(false);
+            }
+        };
+
+
+        if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess().then(midiSuccess, midiFail);
+        } else {
+            console.log("MIDI not supported in this browser");
+            if (midiInputCallback) {
+                midiInputCallback(false);
+            }
+        }
+    }
     
     /** 
      * This static method is used to asynchronously setup the Csound

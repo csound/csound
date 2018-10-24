@@ -1390,7 +1390,6 @@ static int midi_out_write(CSOUND *csound,
 {
     jackMidiDevice *dev = (jackMidiDevice *) userData;
     return csound->WriteCircularBuffer(csound,dev->cb,buf,nbytes);
-    return OK;
 }
 
 static int midi_out_close(CSOUND *csound, void *userData){

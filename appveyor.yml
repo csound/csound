@@ -5,12 +5,12 @@ environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
-  CSOUND_VERSION: 6.11.0-beta
+  CSOUND_VERSION: 6.12.0-beta
   HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 15 2017 Win64
   VSTOOLSET: v141
-  VST_SDK2_HOME:  C:\projects\csound\msvc\deps\VST_SDK\VST2_SDK
+#  VST_SDK2_HOME:  C:\projects\csound\msvc\deps\VST_SDK\VST2_SDK
 
 platform: x64
 configuration: RelWithDebInfo
@@ -19,33 +19,19 @@ init:
   - set CSOUND_HOME=%APPVEYOR_BUILD_FOLDER%
   - set PYTHON=C:\Python27-x64\python.exe
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - set VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CRT
+  - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.CXXAMP
+  - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.15.26706\x64\Microsoft.VC141.OpenMP
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2015" call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\vcvars64.bat"
-  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CRT
-  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.CXXAMP
-  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.MFC
-  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.MFCLOC
-  # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.12.25810\x64\Microsoft.VC141.OpenMP
-  - set VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.13.26020\x64\Microsoft.VC141.CRT
-  - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.13.26020\x64\Microsoft.VC141.CXXAMP
-  - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.13.26020\x64\Microsoft.VC141.OpenMP
-  - set
-  - echo "Redistributable runtime libraries:"
-  - dir /B /S "%VCToolsRedistDir%"
-  - dir /B /S "%VCREDIST_CRT_DIR%"
-  - dir /B /S "%VCREDIST_CXXAMP_DIR%"
-  - dir /B /S "%VCREDIST_OPENMP_DIR%"
   - set PATH=%PATH%;%CsoundDepsDir%
 
 install:
   - cd msvc
   - dir
-  # This is so nw-gyp can build csound.node.
-  - ps: Install-Product node 6.2.1 x64
-  - npm install -g nw-gyp
-  - nodevars.bat
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
-  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%" -vstSdkHome "%VST_SDK2_HOME%
+  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
+#-vstSdkHome "%VST_SDK2_HOME%
   - cd ..
   #download an unzip manual and CsoundQT for inclusion with the installer
   - cd c:/

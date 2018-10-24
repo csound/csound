@@ -323,7 +323,7 @@ topstatement : rident '=' expr NEWLINE
 
              ;
 
-statement : ident '=' expr NEWLINE
+statement : ans '=' exprlist NEWLINE
                 {
                     //int op = ($1->value->lexeme[0]!='a')?'=':LOCAL_ASSIGN;
                   TREE *ans = make_leaf(csound,LINE,LOCN, '=', (ORCTOKEN *)$2);

@@ -162,7 +162,7 @@ static int32_t fog(CSOUND *csound, FOGS *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("FOF needs more overlaps"));
 }
 

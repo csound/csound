@@ -17,7 +17,7 @@ Engine: files for internal engine operation
 * csound_pre.lex: csound language preprocessor lexer
 * csound_prs.lex: score preprocessor lexer
 * csound_sco.lex: score lexer
-* csound_sco.y: score parser
+* csound_sco.y: score parser (not used)
 * csound_standard_types.c : csound language internal types
 * csound_type_system.c : type system functions
 * entry1.c: opcode database

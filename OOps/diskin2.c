@@ -86,7 +86,8 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
 /* scale 'scl'.                                                         */
 
 static inline void diskin2_get_sample(CSOUND *csound,
-                                      DISKIN2 *p, int32_t fPos, int32_t n, MYFLT scl)
+                                      DISKIN2 *p, int32_t fPos, int32_t n,
+                                      MYFLT scl)
 {
     int32_t  bufPos, i;
 
@@ -423,12 +424,13 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       int32_t *start;
 #endif
       // allocate buffer
-      n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
+      p->aOut_bufsize =  ((unsigned int)p->bufSize) < CS_KSMPS ?
+        ((MYFLT)CS_KSMPS) : ((MYFLT)p->bufSize);
+      n = p->aOut_bufsize*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
         csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
-      p->aOut_bufsize = CS_KSMPS;
       top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST");
 #ifndef __EMSCRIPTEN__
       if (top == NULL){
@@ -447,7 +449,8 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
           while(current->nxt != NULL) { /* find next empty slot in chain */
             current = current->nxt;
           }
-          current->nxt = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
+          current->nxt = (DISKIN_INST *) csound->Calloc(csound,
+                                                        sizeof(DISKIN_INST));
           current = current->nxt;
         }
       current->csound = csound;
@@ -566,7 +569,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit){
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -741,7 +744,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
 {
     /* nsmps is bufsize in frames */
-    int32_t nsmps = p->aOut_bufsize - p->h.insdshead->ksmps_offset;
+    int32_t nsmps = p->aOut_bufsize;// - p->h.insdshead->ksmps_offset;
     int32_t i, nn;
     int32_t chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
@@ -752,7 +755,7 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -917,7 +920,7 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
       int32_t lc, mc=0, nc=nsmps*p->nChannels;
       int32_t *start = csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START");
       do{
-        lc = csound->WriteCircularBuffer(csound, p->cb, &aOut[mc], nc);
+        lc =  csound->WriteCircularBuffer(csound, p->cb, &aOut[mc], nc);
         nc -= lc;
         mc += lc;
       } while(nc && *start);
@@ -948,7 +951,7 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
     if (!p->initDone && !p->SkipInit){
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     for (nn = offset; nn < nsmps; nn++){
@@ -1113,7 +1116,7 @@ int32_t soundout(CSOUND *csound, SNDOUT *p)
     uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("soundout: not initialised"));
     if (UNLIKELY(early)) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
@@ -1135,7 +1138,7 @@ int32_t soundouts(CSOUND *csound, SNDOUTS *p)
     uint32_t nn, nsmps = CS_KSMPS;
 
     if (UNLIKELY(p->c.sf == NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("soundouts: not initialised"));
     if (UNLIKELY(early)) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
@@ -1343,7 +1346,7 @@ int32_t diskin2_async_deinit_array(CSOUND *csound,  void *p){
 int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
 {
     /* nsmps is bufsize in frames */
-    int32_t nsmps = p->aOut_bufsize - p->h.insdshead->ksmps_offset;
+  int32_t nsmps = p->aOut_bufsize;// - p->h.insdshead->ksmps_offset;
     int32_t i, nn;
     int32_t chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
@@ -1354,7 +1357,7 @@ int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -1694,13 +1697,16 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       int32_t *start;
 #endif
       // allocate buffer
-      n = CS_KSMPS*sizeof(MYFLT)*p->nChannels;
+      p->aOut_bufsize =
+        ((unsigned int)p->bufSize) < CS_KSMPS ?
+        ((MYFLT)CS_KSMPS) : ((MYFLT)p->bufSize);
+      n = p->aOut_bufsize*sizeof(MYFLT)*p->nChannels;
       if (n != (int32_t)p->auxData2.size)
         csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
       p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
       memset(p->aOut_buf, 0, n);
-      p->aOut_bufsize = CS_KSMPS;
-      top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY");
+      top =
+        (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY");
 #ifndef __EMSCRIPTEN__
       if (top == NULL){
         csound->CreateGlobalVariable(csound,
@@ -1798,7 +1804,7 @@ int32_t diskin2_perf_synchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit){
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     if (*(p->kTranspose) != p->prv_kTranspose) {
@@ -1991,7 +1997,7 @@ int32_t diskin2_perf_asynchronous_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
     if (UNLIKELY(p->fdch.fd == NULL)) return NOTOK;
     if (!p->initDone && !p->SkipInit){
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
     for (nn = offset; nn < nsmps; nn++){
@@ -2242,7 +2248,7 @@ int32_t soundin(CSOUND *csound, SOUNDIN_ *p)
     int32_t i;
 
     if (UNLIKELY(p->fdch.fd == NULL)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("soundin: not initialised"));
     }
     if (UNLIKELY(offset)) for (i=0; i<p->nChannels; i++)

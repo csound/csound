@@ -1,5 +1,5 @@
 /*
-    aops.h:
+    score_parm.h:
 
     Copyright (C) 2017 John ffitch
 
@@ -46,6 +46,7 @@ typedef struct MACRON {
   int             n;
   unsigned int    line;
   struct MACRO    *s;
+  char            *path;
 } MACRON;
 
 typedef struct MACRO {          /* To store active macros */
@@ -77,6 +78,8 @@ typedef struct prs_parm_s {
     IFDEFSTACK      *ifdefStack;
     unsigned char   isIfndef;
     unsigned char   isString;
+    unsigned char   isinclude;
+    char            *path;
     uint16_t        line;
     uint32_t        locn;
     uint32_t        llocn;

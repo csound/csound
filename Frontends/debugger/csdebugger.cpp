@@ -47,7 +47,8 @@ int main(int argc, char **argv)
 {
     if (argc == 1) {
         cout << "Usage:" << endl;
-        cout << argv[0] << " [filename.csd] [instrument number] [ksmps offset]" << endl;
+        cout << argv[0] << " [filename.csd] [instrument number] [ksmps offset]"
+             << endl;
         return -1;
     }
 

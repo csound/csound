@@ -52,19 +52,18 @@ class CsoundNode extends AudioWorkletNode {
      */
     constructor(context, options) {
         options = options || {};
-        options.numberOfInputs  = 1;
-        options.numberOfOutputs = 2;
-        options.channelCount = 2;
         
         super(context, 'Csound', options);
 
         this.msgCallback = (msg) => { console.log(msg); }
 
         this.port.start();
-        this.channel =  {};
-        this.channelCallback = {};
+        this.channels =  {};
+        this.channelCallbacks = {};
+        this.stringChannels =  {};
+        this.stringChannelCallbacks = {};
         this.table = {};
-        this.tableCallback = {};
+        this.tableCallbacks = {};
         this.port.onmessage = (event) => {
             let data = event.data;
             switch(data[0]) {
@@ -72,14 +71,19 @@ class CsoundNode extends AudioWorkletNode {
                 this.msgCallback(data[1]);
                 break;
             case "control":
-                this.channel[data[1]] = data[2];
-                if (typeof this.channelCallback[data[1]] != 'undefined')
+                this.channels[data[1]] = data[2];
+                if (typeof this.channelCallbacks[data[1]] != 'undefined')
                       this.channelCallback[data[1]](); 
+                break;
+            case "stringChannel":
+                this.stringChannels[data[1]] = data[2];
+                if (typeof this.stringChannelCallbacks[data[1]] != 'undefined')
+                      this.stringChannelCallbacks[data[1]](); 
                 break;
             case "table":
                 this.table[data[1]] = data[2];
-                if (typeof this.tableCallback[data[1]] != 'undefined')
-                      this.tableCallback[data[1]](); 
+                if (typeof this.tableCallbacks[data[1]] != 'undefined')
+                      this.tableCallbacks[data[1]](); 
                break;
             default:
                 console.log('[CsoundNode] Invalid Message: "' + event.data);
@@ -174,16 +178,39 @@ class CsoundNode extends AudioWorkletNode {
         this.port.postMessage(["getControlChannel",
                                channelName]);
         if (callback !== null)
-          this.channelCallback[channelName] = callback;
+          this.channelCallbacks[channelName] = callback;
+    }
+
+    /** Request the data from a String channel 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @param {function} callback An optional callback to be called when
+     *  the requested data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    requestStringChannel(channelName, callback = null) {
+        this.port.postMessage(["getStringChannel",
+                               channelName]);
+        if (callback !== null)
+          this.stringChannelCallbacks[channelName] = callback;
     }
 
     /** Get the latest requested channel data 
      *
      * @param {string} channelName A string containing the channel name.
-     * @returns {(number|string)} The latest channel value requested.
+     * @returns {number} The latest channel value requested.
      */   
-    getChannel(channelName) {
-        return this.channel[channelName];
+    getControlChannel(channelName) {
+        return this.channels[channelName];
+    }
+
+    /** Get the latest requested string channel data 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @returns {string} The latest channel value requested.
+     */   
+    getStringChannel(channelName) {
+        return this.stringChannels[channelName];
     }
 
      /** Request the data from a Csound function table
@@ -196,7 +223,7 @@ class CsoundNode extends AudioWorkletNode {
     requestTable(number, callback = null) {
         this.port.postMessage(["getTable", number]);
         if (callback !== null)
-          this.tableCallback[number] = callback;
+          this.tableCallbacks[number] = callback;
     }
 
     /** Get the requested table number
@@ -292,11 +319,9 @@ class CsoundNodeFactory {
     static importScripts(script_base='./') {
         let actx = CSOUND_AUDIO_CONTEXT;
         return new Promise( (resolve) => {
-            actx.audioWorklet.addModule(script_base + 'libcsound-worklet.wasm.js').then(() => {
-                actx.audioWorklet.addModule(script_base + 'libcsound-worklet.js').then(() => {
-                    actx.audioWorklet.addModule(script_base + 'CsoundProcessor.js').then(() => {
-                        resolve(); 
-                    }) }) })      
+            actx.audioWorklet.addModule(script_base + 'CsoundProcessor.js').then(() => {
+                resolve(); 
+            })      
         }) 
     }
 
@@ -309,7 +334,8 @@ class CsoundNodeFactory {
     static createNode(inputChannelCount=1, outputChannelCount=2) {
         var options = {};
         options.numberOfInputs  = inputChannelCount;
-        options.numberOfOutputs  = outputChannelCount;
+        options.numberOfOutputs = 1;
+        options.outputChannelCount = [ outputChannelCount ];
         return new CsoundNode(CSOUND_AUDIO_CONTEXT, options);
     }
 }

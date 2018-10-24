@@ -178,7 +178,7 @@ static int32_t trig(CSOUND *csound, TRIG *p)
       break;
     default:
       return
-        csound->PerfError(csound, p->h.insdshead,
+        csound->PerfError(csound, &(p->h),
                           Str(" bad imode value"));
     }
     p->old_sig = sig;
@@ -263,7 +263,7 @@ static int32_t posckk(CSOUND *csound, POSC *p)
     MYFLT       amp = *p->amp;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("poscil: not initialised"));
     ft = p->ftp->ftable;
     if (UNLIKELY(early)) nsmps -= early;
@@ -294,7 +294,7 @@ static int32_t poscaa(CSOUND *csound, POSC *p)
     MYFLT       *amp = p->amp; /*gab c3*/
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("poscil: not initialised"));
     ft = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -331,7 +331,7 @@ static int32_t poscka(CSOUND *csound, POSC *p)
     MYFLT       *freq = p->freq;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("poscil: not initialised"));
     ft = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -368,7 +368,7 @@ static int32_t poscak(CSOUND *csound, POSC *p)
     MYFLT       *amp = p->amp; /*gab c3*/
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("poscil: not initialised"));
     ft = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -424,7 +424,7 @@ static int32_t posc3kk(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -479,7 +479,7 @@ static int32_t posc3ak(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -535,7 +535,7 @@ static int32_t posc3ka(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -592,7 +592,7 @@ static int32_t posc3aa(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -1377,7 +1377,7 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("vibrato(krate): not initialised"));
 }
 
@@ -1420,7 +1420,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
     phs = p->lphs;
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) {
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("vibrato(krate): not initialised"));
     }
     fract = (MYFLT) (phs - (int32)phs); /*PFRAC(phs);*/
@@ -1662,7 +1662,7 @@ static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
     *p->out = p->ftp->ftable[(int32)(randGab * p->ftp->flen)];
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }
@@ -1698,7 +1698,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }
@@ -1720,7 +1720,7 @@ static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
     *p->out = (v1 + (v2 - v1) * fract) * (*p->max - *p->min) + *p->min;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }
@@ -1774,7 +1774,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }

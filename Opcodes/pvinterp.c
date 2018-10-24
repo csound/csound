@@ -140,10 +140,10 @@ int32_t pvbufread(CSOUND *csound, PVBUFREAD *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvbufread: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), Str("PVOC timpnt < 0"));
 }
 
 /************************************************************/
@@ -326,16 +326,16 @@ int32_t pvinterp(CSOUND *csound, PVINTERP *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvinterp: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, p->h.insdshead, Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), Str("PVOC timpnt < 0"));
 }
 
 /************************************************************/
@@ -529,15 +529,15 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("pvcross: not initialised"));
  err2:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("PVOC timpnt < 0"));
 }

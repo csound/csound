@@ -36,7 +36,7 @@ Ville Pulkki heavily modified by John ffitch 2012
 #include <stdio.h>
 #include <stdlib.h>
 
-static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, INSDS *, MYFLT,
+static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, OPDS *, MYFLT,
                                 MYFLT, MYFLT, MYFLT**);
 static int32_t vbap1_control(CSOUND *, VBAP1_DATA *, MYFLT*, MYFLT*, MYFLT*);
 
@@ -292,7 +292,7 @@ int32_t vbap1_moving(CSOUND *csound, VBAP1_MOVING *p)
     int32_t j;
     int32_t cnt = p->q.number;
 
-    vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+    vbap1_moving_control(csound,&p->q, &(p->h), CS_ONEDKR,
                          *p->spread, *p->field_am, p->fld);
 
     /* write audio to resulting audio streams weighted
@@ -308,7 +308,7 @@ int32_t vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
     //    int32_t j;
     int32_t cnt = p->q.number;
 
-    vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+    vbap1_moving_control(csound,&p->q, &(p->h), CS_ONEDKR,
                          *p->spread, *p->field_am, p->fld);
 
     /* write audio to resulting audio streams weighted
@@ -321,7 +321,7 @@ int32_t vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
 }
 
 static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
-                                INSDS *insdshead, MYFLT ONEDKR,
+                                OPDS *h, MYFLT ONEDKR,
                                 MYFLT spread, MYFLT field_am, MYFLT **fld)
 {
     CART_VEC spreaddir[16];
@@ -363,7 +363,7 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
         }
       }
       if (UNLIKELY((fld[abs(p->next_fld)]==NULL)))
-        return csound->PerfError(csound, insdshead,
+        return csound->PerfError(csound, h,
                                  Str("Missing fields in vbapmove\n"));
       if (field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*fld[p->next_fld] -
@@ -409,7 +409,7 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
       }
       else {
         free(tmp_gains);
-        return csound->PerfError(csound, insdshead,
+        return csound->PerfError(csound, h,
                                  Str("Missing fields in vbapmove\n"));
       }
     }
@@ -588,7 +588,7 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     p->q.spread_base.x  = p->q.cart_dir.y;
     p->q.spread_base.y  = p->q.cart_dir.z;
     p->q.spread_base.z  = -p->q.cart_dir.x;
-    vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+    vbap1_moving_control(csound,&p->q, &(p->h), CS_ONEDKR,
                          *p->spread, *p->field_am, p->fld);
     return OK;
 }
@@ -663,7 +663,7 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     p->q.spread_base.x  = p->q.cart_dir.y;
     p->q.spread_base.y  = p->q.cart_dir.z;
     p->q.spread_base.z  = -p->q.cart_dir.x;
-    vbap1_moving_control(csound,&p->q, p->h.insdshead, CS_ONEDKR,
+    vbap1_moving_control(csound,&p->q, &(p->h), CS_ONEDKR,
                          *p->spread, *p->field_am, p->fld);
     return OK;
 }

@@ -518,7 +518,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
 #if defined(MSVC)
     x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)pval, 0);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-    x.i = __sync_fetch_and_add((MYFLT_INT_TYPE *)pval, 0);
+    x.i = __atomic_load_n((MYFLT_INT_TYPE *)pval, __ATOMIC_SEQ_CST);
 #else
     x.d = *pval;
 #endif
@@ -543,7 +543,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
 #if defined(MSVC)
     InterlockedExchange64((MYFLT_INT_TYPE *)pval, x.i);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-    __sync_lock_test_and_set((MYFLT_INT_TYPE *)pval,x.i);
+    __atomic_store_n((MYFLT_INT_TYPE *)pval, x.i, __ATOMIC_SEQ_CST);
 #else
   {
     spin_lock_t *lock = (spin_lock_t *)

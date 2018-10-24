@@ -213,9 +213,27 @@ static int csoundGetDitherMode(CSOUND *csound){
     return  csound->dither_output;
 }
 
+#include "Opcodes/zak.h"
 static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
-    *zkstart = csound->zkstart;
-    return csound->zklast;
+    ZAK_GLOBALS *zz;
+    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    if (zz==NULL) {
+      *zkstart = NULL;
+      return -1;
+    }
+    *zkstart = zz->zkstart;
+    return zz->zklast;
+}
+
+static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
+    ZAK_GLOBALS *zz;
+    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    if (zz==NULL) {
+      *zastart = NULL;
+      return -1;
+    }
+    *zastart = zz->zastart;
+    return zz->zalast;
 }
 
 static int csoundGetReinitFlag(CSOUND *csound){
@@ -481,11 +499,12 @@ static const CSOUND cenviron_ = {
     csoundAuxAllocAsync,
     csoundGetHostData,
     strNcpy,
+    csoundGetZaBounds,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -530,7 +549,7 @@ static const CSOUND cenviron_ = {
         {
           0,0,
           NULL, NULL, NULL, NULL,
-          0,
+          0,0,
           NULL,
           0,0,0},
         0,0,0,
@@ -596,10 +615,6 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-    NULL,           /*  zkstart             */
-    0L,             /*  zklast              */
-    NULL,           /*  zastart             */
-    0L,             /*  zalast              */
     NULL,           /*  stdOp_Env           */
     2345678,        /*  holdrand            */
     0,              /*  randSeed1           */
@@ -1500,7 +1515,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 #if defined(MSVC)
         done = InterlockedExchangeAdd(&insds->init_done, 0);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-        done = __sync_fetch_and_add((int *) &insds->init_done, 0);
+        done = __atomic_load_n((int *) &insds->init_done, __ATOMIC_SEQ_CST);
 #else
         done = insds->init_done;
 #endif
@@ -2062,7 +2077,10 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
     csound->scorestr = corfile_create_w(csound);
     corfile_puts(csound, (char *)str, csound->scorestr);
     //#ifdef SCORE_PARSER
-    corfile_puts(csound, "\n#exit\n", csound->scorestr);
+    if (csound->engineStatus&CS_STATE_COMP)
+      corfile_puts(csound, "\n#exit\n", csound->scorestr);
+    else
+      corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
     //#endif
     corfile_flush(csound, csound->scorestr);
     /* copy sorted score name */

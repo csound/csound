@@ -58,6 +58,7 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
 make_plugin(getftargs getftargs.c)
 make_plugin(liveconv liveconv.c)
+##make_plugin(zak zak.c)
 
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
@@ -140,7 +141,6 @@ if(UNIX)
 endif()
 
 if(LINUX)
-    #make_plugin(urandom urandom.c)
     make_plugin(joystick linuxjoystick.c)
 endif()
 
@@ -300,21 +300,26 @@ if(BUILD_FAUST_OPCODES)
   make_plugin(faustcsound faustgen.cpp)
 if(APPLE)
   target_link_libraries(faustcsound -lcrypto)
-  target_link_libraries(faustcsound -lcurses)
+  target_link_libraries(faustcsound -lncurses)
   target_link_libraries(faustcsound -lz)
 else()
   target_link_libraries(faustcsound -Wl,-no-as-needed -lcrypto)
-  target_link_libraries(faustcsound -Wl,-no-as-needed -lcurses)
+  target_link_libraries(faustcsound -Wl,-no-as-needed -lncurses)
   target_link_libraries(faustcsound -Wl,-no-as-needed -lz)
 endif()
   target_link_libraries(faustcsound ${PTHREAD_LIBRARY})
-  target_compile_definitions(faustcsound PRIVATE "-DFAUSTFLOAT=double")
+  target_compile_definitions(faustcsound PRIVATE "-DFAUSTFLOAT=MYFLT")
+
+if(PTHREAD_LIBRARY)
+  target_compile_definitions(faustcsound PRIVATE "-DHAVE_PTHREAD")
+endif()
 
  if(APPLE)
  if(${OSX_VERSION} STREQUAL "10.6")
     target_link_libraries(faustcsound ${FAUST_LIBRARIES} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
   else()
       target_compile_options(faustcsound PRIVATE "-stdlib=libc++")
+     
      target_link_libraries(faustcsound ${FAUST_LIBRARIES} -stdlib=libc++ -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
   endif()
   else()
@@ -330,44 +335,6 @@ endif()
 #    set(vorbis_LIBS ${libcsound_LIBS} ${VORBISFILE_LIBRARY})
 #    make_plugin(ogg ogg.c "${vorbis_LIBS}")
 #endif()
-
-check_deps(BUILD_VST4CS_OPCODES VSTSDK2X_FOUND FLTK_FOUND)
-message(STATUS "VSTSDK2X_INCLUDE_DIR: ${VSTSDK2X_INCLUDE_DIR}")
-if(BUILD_VST4CS_OPCODES)
-    set(VST4CS_SRCS
-        vst4cs/src/vst4cs.cpp
-        vst4cs/src/vsthost.cpp
-        vst4cs/src/fxbank.cpp
-        ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffect.cpp
-        ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x/audioeffectx.cpp)
-    add_library(vst4cs SHARED ${VST4CS_SRCS})
-    target_compile_definitions(vst4cs PRIVATE -DVST_FORCE_DEPRECATED=0 -DCS_VSTHOST)
-    target_include_directories(vst4cs PRIVATE ${VSTSDK2X_INCLUDE_DIR})
-    target_include_directories(vst4cs PRIVATE ${VSTSDK2X_INCLUDE_DIR}/public.sdk/source/vst2.x)
-    target_include_directories(vst4cs PRIVATE ${VSTSDK2X_INCLUDE_DIR}/pluginterfaces/source/vst2.x)
-    target_include_directories(vst4cs PRIVATE ${FLTK_INCLUDE_DIR})
-    set_target_properties(vst4cs PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
-        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-        )
-    target_link_libraries(vst4cs PRIVATE ${CSOUNDLIB} ${FLTK_LIBRARIES})
-    if(NOT MSVC)
-        if(BUILD_STATIC_LIBRARY)
-            if(WIN32)
-                add_library(pthread STATIC IMPORTED)
-                set_target_properties(pthread PROPERTIES IMPORTED_LOCATION ${PTHREAD_LIBRARY})
-            endif()
-            target_link_libraries(vst4cs PRIVATE pthread)
-        else()
-            target_link_libraries(vst4cs PRIVATE ${PTHREAD_LIBRARY})
-        endif()
-        set_target_properties(vst4cs PROPERTIES COMPILE_FLAGS "-Wno-multichar")
-    endif()
-    install(TARGETS vst4cs
-        LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
-        ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
-endif()
 
 check_deps(BUILD_ABLETON_LINK_OPCODES ABLETON_LINK_HOME)
 if(BUILD_ABLETON_LINK_OPCODES)

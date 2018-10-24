@@ -905,19 +905,37 @@ static int32_t infile_set_S(CSOUND *csound, INFILE *p){
     return infile_set_(csound,p,1);
 }
 
+#include "arrays.h"
+#if 0
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {
-      uint32_t ss = sizeof(MYFLT)*size;
-      if (p->data==NULL) p->data = (MYFLT*)csound->Malloc(csound, ss);
-      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-      p->dimensions = 1;
-      p->arrayMemberSize = sizeof(MYFLT);
-      p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      size_t ss;
+      if (p->data == NULL) {
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        p->arrayMemberSize = var->memBlockSize;
+      }
+      ss = p->arrayMemberSize*size;
+      if (p->data==NULL) {
+        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->allocated = ss;
+      }
+      else if (ss > p->allocated) {
+        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->allocated = ss;
+      }
+      if (p->dimensions==0) {
+        p->dimensions = 1;
+        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      }
+      p->sizes[0] = size;
+    }
+    else {
       p->sizes[0] = size;
     }
 }
+#endif
 
 static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
 {
@@ -1303,7 +1321,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
                          p->fname, istring, "w", 1);
     if (UNLIKELY(n < 0))
       return NOTOK;
-    setvbuf(p->f.f, (char*)NULL, _IOLBF, 0); /* Seems a good option */
+    //setvbuf(p->f.f, (char*)NULL, _IOLBF, BUFSIZ); /* Seems a good option */
     /* Copy the string to the storage place in PRINTKS.
      *
      * We will look out for certain special codes and write special
@@ -1516,7 +1534,7 @@ static int32_t fprintf_k(CSOUND *csound, FPRINTF *p)
     (void) csound;
     sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, "%s", string);
-
+    fflush(p->f.f);
     return OK;
 }
 
@@ -1529,7 +1547,7 @@ static int32_t fprintf_i(CSOUND *csound, FPRINTF *p)
       return NOTOK;
     sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f,"%s", string);
-    /* fflush(p->f.f); */
+    fflush(p->f.f);
     return OK;
 }
 
@@ -1541,7 +1559,7 @@ static int32_t fprintf_i_S(CSOUND *csound, FPRINTF *p)
       return NOTOK;
     sprints1(string, p->txtstring, p->argums, p->INOCOUNT - 2);
     fprintf(p->f.f, "%s", string);
-    /* fflush(p->f.f); */
+    fflush(p->f.f);
     return OK;
 }
 
@@ -1550,7 +1568,7 @@ static OENTRY localops[] = {
 
     {"fprints",    S(FPRINTF),      0, 1,  "",     "SSM",
         (SUBR) fprintf_i_S, (SUBR) NULL,(SUBR) NULL, NULL, },
-        {"fprints.i",    S(FPRINTF),      0, 1,  "",     "iSM",
+    {"fprints.i",    S(FPRINTF),      0, 1,  "",     "iSM",
         (SUBR) fprintf_i, (SUBR) NULL,(SUBR) NULL, NULL},
     { "fprintks",   S(FPRINTF),    WR, 3,  "",     "SSM",
         (SUBR) fprintf_set_S,     (SUBR) fprintf_k,   (SUBR) NULL, NULL,},
@@ -1559,7 +1577,6 @@ static OENTRY localops[] = {
      { "vincr",      S(INCR),        0, 2,  "",     "aa",
         (SUBR) NULL,            (SUBR) incr, NULL         },
     { "clear",      S(CLEARS),      0, 2,  "",     "y",
-
         (SUBR) NULL,            (SUBR) clear, NULL},
     { "fout",       S(OUTFILE),     0, 3,  "",     "Siy",
         (SUBR) outfile_set_S,     (SUBR) outfile, NULL},
@@ -1569,17 +1586,15 @@ static OENTRY localops[] = {
     /*     (SUBR) outfile_set,     (SUBR) outfile, NULL}, */
     { "foutk",      S(KOUTFILE),    0, 3,  "",     "Siz",
         (SUBR) koutfile_set_S,    (SUBR) koutfile,    (SUBR) NULL, NULL },
-        { "foutk.i",      S(KOUTFILE),    0, 3,  "",     "iiz",
+    { "foutk.i",      S(KOUTFILE),    0, 3,  "",     "iiz",
         (SUBR) koutfile_set,    (SUBR) koutfile,    (SUBR) NULL, NULL },
-
     { "fouti",      S(IOUTFILE),    0, 1,  "",     "iiim",
         (SUBR) ioutfile_set,    (SUBR) NULL,        (SUBR) NULL, NULL         },
     { "foutir",     S(IOUTFILE_R),  0, 3,  "",     "iiim",
-
         (SUBR) ioutfile_set_r,  (SUBR) ioutfile_r,  (SUBR) NULL, NULL},
     { "fiopen",     S(FIOPEN),      0, 1,  "i",    "Si",
         (SUBR) fiopen_S,          (SUBR) NULL,        (SUBR) NULL, NULL},
-        { "fiopen.i",     S(FIOPEN),      0, 1,  "i",    "ii",
+    { "fiopen.i",     S(FIOPEN),      0, 1,  "i",    "ii",
         (SUBR) fiopen,          (SUBR) NULL,        (SUBR) NULL, NULL},
     { "ficlose",    S(FICLOSE),     0, 1,  "",     "S",
         (SUBR) ficlose_opcode_S,  (SUBR) NULL,        (SUBR) NULL, NULL},

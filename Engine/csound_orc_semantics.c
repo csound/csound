@@ -50,7 +50,7 @@ extern int pnum(char*);
 
 OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
-                               OENTRIES* entries, char* inArgTypes);
+                                OENTRIES* entries, char* inArgTypes);
 int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);
@@ -194,7 +194,7 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
 
 /* this checks if the annotated type exists */
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
-                              char* outArgTypes) {
+                           char* outArgTypes) {
     int i;
     for (i = 0; i < entries->count; i++) {
       OENTRY* temp = entries->entries[i];
@@ -326,7 +326,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         if (tree->right->type == T_ARRAY &&
             tree->right->left->type == T_IDENT &&
             isirate(/*csound,*/ tree->right->right)) {
-          //printf("OK array case\n");
+          synterr(csound, Str("Use of i() with array element ill formed\n"));
         }
         else
           if (UNLIKELY(tree->right->type != LABEL_TOKEN))
@@ -423,53 +423,53 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return get_arg_type2(csound, tree->left, typeTable);
       }
       else {
-      char* argTypeLeft = get_arg_type2(csound, tree->left, typeTable);
-      char* argTypeRight = get_arg_type2(csound, tree->right, typeTable);
+        char* argTypeLeft = get_arg_type2(csound, tree->left, typeTable);
+        char* argTypeRight = get_arg_type2(csound, tree->right, typeTable);
 
-      char* opname = get_boolean_expression_opcode_type(csound, tree);
-      int len1, len2;
-      char* inArgTypes;
-      char* out;
-      OENTRIES* entries;
+        char* opname = get_boolean_expression_opcode_type(csound, tree);
+        int len1, len2;
+        char* inArgTypes;
+        char* out;
+        OENTRIES* entries;
 
-      if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
-        synterr(csound,
-                Str("Unable to verify arg types for boolean expression '%s'\n"
-                    "Line %d\n"),
-                opname, tree->line);
-        do_baktrace(csound, tree->locn);
-        return NULL;
-      }
+        if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
+          synterr(csound,
+                  Str("Unable to verify arg types for boolean expression '%s'\n"
+                      "Line %d\n"),
+                  opname, tree->line);
+          do_baktrace(csound, tree->locn);
+          return NULL;
+        }
 
-      entries = find_opcode2(csound, opname);
+        entries = find_opcode2(csound, opname);
 
-      len1 = strlen(argTypeLeft);
-      len2 = strlen(argTypeRight);
-      inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
+        len1 = strlen(argTypeLeft);
+        len2 = strlen(argTypeRight);
+        inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
-      strncpy(inArgTypes, argTypeLeft, len1);
-      strncpy(inArgTypes + len1, argTypeRight, len2);
+        strncpy(inArgTypes, argTypeLeft, len1);
+        strncpy(inArgTypes + len1, argTypeRight, len2);
 
-      inArgTypes[len1 + len2] = '\0';
+        inArgTypes[len1 + len2] = '\0';
 
-      out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
-      csound->Free(csound, entries);
+        out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
+        csound->Free(csound, entries);
 
-      if (UNLIKELY(out == NULL)) {
-        synterr(csound, Str("error: boolean expression '%s' with arg "
-                            "types %s not found, line %d\n"),
-                opname, inArgTypes, tree->line);
-        do_baktrace(csound, tree->locn);
+        if (UNLIKELY(out == NULL)) {
+          synterr(csound, Str("error: boolean expression '%s' with arg "
+                              "types %s not found, line %d\n"),
+                  opname, inArgTypes, tree->line);
+          do_baktrace(csound, tree->locn);
+          csound->Free(csound, inArgTypes);
+          return NULL;
+        }
+
+        csound->Free(csound, argTypeLeft);
+        csound->Free(csound, argTypeRight);
         csound->Free(csound, inArgTypes);
-        return NULL;
+        return cs_strdup(csound, out);
+
       }
-
-      csound->Free(csound, argTypeLeft);
-      csound->Free(csound, argTypeRight);
-      csound->Free(csound, inArgTypes);
-      return cs_strdup(csound, out);
-
-    }
     }
 
     switch(tree->type) {
@@ -991,15 +991,18 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
     IGN(csound);
+    OENTRY* retVal = NULL;
     int i;
+
+    char* outTest = (!strcmp("0", outArgTypes)) ? "" : outArgTypes;
     for (i = 0; i < entries->count; i++) {
       OENTRY* temp = entries->entries[i];
       if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
-          temp->outypes != NULL && !strcmp(outArgTypes, temp->outypes)) {
-        return temp;
+          temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
+        retVal = temp;
       }
     }
-    return NULL;
+    return retVal;
 }
 
 /* used when creating T_FUNCTION's */
@@ -1021,33 +1024,6 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
     }
     return NULL;
 }
-
-//PUBLIC int resolve_opcode_num(CSOUND* csound, OENTRIES* entries,
-//                              char* outArgTypes, char* inArgTypes) {
-//
-//    int i;
-////    int retVal = -1;
-//
-//    for (i = 0; i < entries->count; i++) {
-//        OENTRY* temp = entries->entries[i];
-//        if (temp->intypes == NULL && temp->outypes == NULL) {
-//            continue;
-//        }
-//        if (check_in_args(csound, inArgTypes, temp->intypes) &&
-//            check_out_args(csound, outArgTypes, temp->outypes)) {
-////            if (retVal >= 0) {
-////                return 0;
-////            }
-////            retVal = entries->opnum[i];
-//            return entries->opnum[i];
-//        }
-//
-//    }
-//
-////    return (retVal < 0) ? 0 : retVal;
-//    return 0;
-//}
-
 
 /* Converts internal array specifier from [[a] to a[][].
  Used by get_arg_string_from_tree to create an arg string that is
@@ -1499,6 +1475,10 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
               opcodeName);
       csoundMessage(csound, Str("Found: %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
+      if (root->left && root->left->value && root->right && root->right->value)
+      csoundMessage(csound, Str("       %s %s %s ...\n"),
+                    root->left->value->lexeme, root->value->lexeme,
+                    root->right->value->lexeme);
       csoundMessage(csound, Str("Line: %d\n"),
                     root->line);
       do_baktrace(csound, root->locn);
@@ -1515,7 +1495,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
           left->value->lexeme[0]=='a') { /* Deal with sample accurate assigns */
         int i = 0;
         while (strcmp(entries->entries[i]->opname, "=.l")) {
-          printf("not %d %s\n",i, entries->entries[i]->opname);
+          //printf("not %d %s\n",i, entries->entries[i]->opname);
           i++;
         }
         oentry = entries->entries[i];
@@ -2062,7 +2042,7 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
     return ans;
 }
 
-static void delete_tree(CSOUND *csound, TREE *l)
+void delete_tree(CSOUND *csound, TREE *l)
 {
     while (1) {
       TREE *old = l;

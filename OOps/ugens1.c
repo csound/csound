@@ -1,5 +1,5 @@
 /*
-    ugens1.c:
+    gens1.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
 
@@ -285,24 +285,28 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
     p->curval = val;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+
+    return csound->PerfError(csound, &(p->h),
                              Str("linseg: not initialised (arate)\n"));
 }
 
 /* **** ADSR is just a construction and use of linseg */
 
+#define MAXSEGDUR (INT_MAX/CS_ESR)
+
 static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
 {
     SEG         *segp;
-    int32_t         nsegs;
+    int32_t     nsegs;
     MYFLT       **argp = p->argums;
     double      dur;
     MYFLT       len = csound->curip->p3.value;
     MYFLT       release = *argp[3];
-    int32_t       relestim;
+    int32_t     relestim;
 
     //printf("len = %f\n", len);
-    if (UNLIKELY(len<=FL(0.0))) len = FL(100000.0); /* MIDI case set int32_t */
+    if (UNLIKELY(len<=FL(0.0)))
+      len = (int32_t) MAXSEGDUR;// FL(10000.0); /* MIDI case set int32_t */
     nsegs = 6;          /* DADSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
@@ -393,7 +397,8 @@ int32_t lsgrset(CSOUND *csound, LINSEG *p)
     int32_t relestim;
     if (lsgset(csound,p) == OK){
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = relestim;  /* VL 4-1-2011 was -1, making all linsegr
+    p->xtra = relestim;
+    /* VL 4-1-2011 was -1, making all linsegr
                             releases in an instr => xtratim
                             set to relestim seems to fix this */
     if (relestim > p->h.insdshead->xtratim)
@@ -841,7 +846,7 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
     segp->val *= segp->mlt;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("expseg (krate): not initialised"));
 }
 
@@ -873,7 +878,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
     }
     return OK;
   err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("expseg (arate): not initialised"));
 }
 
@@ -1222,6 +1227,7 @@ int32_t lnrset(CSOUND *csound, LINENR *p)
     else p->inc1 = p->val = FL(1.0);
     if (*p->idec > FL(0.0)) {
       int32_t relestim = (int32_t)(*p->idec * CS_EKR + FL(0.5));
+
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (UNLIKELY(*p->iatdec <= FL(0.0))) {
@@ -1283,7 +1289,7 @@ int32_t linenr(CSOUND *csound, LINENR *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t flag=0, n, nsmps = CS_KSMPS;
-    MYFLT *rs,*sg,val;
+    MYFLT *rs,*sg,val,val2 = p->val2;
     int32_t    asgsg = IS_ASIG_ARG(p->sig);
     val = p->val;
     rs = p->rslt;
@@ -1293,32 +1299,32 @@ int32_t linenr(CSOUND *csound, LINENR *p)
        nsmps -= early;
        memset(&rs[nsmps], '\0', early*sizeof(MYFLT));
     }
-
     for (n=offset; n<nsmps; n++) {
-    if (p->cnt1 > 0L) {
-      flag = 1;
-      val = p->lin1;
-      p->lin1 += p->inc1;
-      p->cnt1--;
-    }
-    if (p->h.insdshead->relesing) {
-      flag = 1;
-      val = p->val2;
-      p->val2 *= p->mlt2;
-    }
-    if (flag) {
-      if (asgsg)
+      if (p->cnt1 > 0L) {
+        flag = 1;
+        val = p->lin1;
+        p->lin1 += p->inc1;
+        p->cnt1--;
+      }
+      if (p->h.insdshead->relesing) {
+        flag = 1;
+        val = p->cnt1==0L ? val2 :val*val2;
+        //val *= val2;              /* If val = val2 jumps */
+        val2 *= p->mlt2;
+      }
+      if (flag) {
+        if (asgsg)
           rs[n] = sg[n] * val;
-      else
+        else
           rs[n] = *sg * val;
       }
-    else {
-      if (asgsg) rs[n] = sg[n];
-      else rs[n] = *sg;
+      else {
+        if (asgsg) rs[n] = sg[n];
+        else rs[n] = *sg;
       }
     }
     p->val = val;
-    p->val2 = val;
+    p->val2 = val2;
     return OK;
 }
 
@@ -1411,7 +1417,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         p->val = *(ftp->ftable + ftp->flen );
         if (UNLIKELY(!p->val)) {
-          return csound->PerfError(csound, p->h.insdshead,
+          return csound->PerfError(csound, &(p->h),
                                    Str("envlpx rise func ends with zero"));
         }
         p->val -= p->asym;
@@ -1433,7 +1439,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
     *p->rslt = *p->xamp * fact;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
 }
 
@@ -1527,14 +1533,14 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
     asym = p->asym;
 
     if (UNLIKELY(p->ftp==NULL))
-       return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
     ftab = p->ftp->ftable;
     lobits = p->ftp->lobits;
     lomask = p->ftp->lomask;
     lodiv  = p->ftp->lodiv;
     if (UNLIKELY(ftab[p->ftp->flen] == 0.0))
-       return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                              Str("envlpx rise func ends with zero"));
 
     if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
@@ -1758,14 +1764,14 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
     asym = p->asym;
 
     if (UNLIKELY(p->ftp==NULL))
-       return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
     ftab = p->ftp->ftable;
     lobits = p->ftp->lobits;
     lomask = p->ftp->lomask;
     lodiv  = p->ftp->lodiv;
     if (UNLIKELY(ftab[p->ftp->flen] == 0.0))
-       return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                              Str("envlpx rise func ends with zero"));
 
     if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
@@ -1826,13 +1832,13 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
     double val, y1, y2;
 
 
-    if (!(p->INCOUNT & 1)){
+    if (!(p->INCOUNT & 1)) {
       return csound->InitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
-    //print32_tf("nsegs = %d\n", nsegs);
+    //printf("****nsegs = %d\n", nsegs);
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
       csound->AuxAlloc(csound, (int32_t)(1+nsegs)*sizeof(SEG), &p->auxch);
@@ -1847,7 +1853,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
     p->curcnt = 0;
     p->cursegp = segp+1;          /* else setup first seg */
     p->segsrem = nsegs;
-    //printf("current seg = %p segp = %p\n", p->cursegp, segp);
+    //printf("****current seg = %p segp = %p\n", p->cursegp, segp);
     do {                                /* init each seg ..  */
       double dur = (double)**argp++;
       segp->nxtpt = (double)**argp++;
@@ -1856,8 +1862,8 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
       if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR)) < 0))
         segp->acnt = 0;
 
-      //printf("i: %d(%p): cnt=%d nxtpt=%f\n",
-      //   p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
+      //printf("****i: %d(%p): cnt=%d nxtpt=%f\n",
+      //       p->segsrem-nsegs, segp, segp->cnt, segp->nxtpt);
       segp++;
     } while (--nsegs);
     p->y1 = y1;
@@ -1871,7 +1877,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
       p->inc = (y2!=y1 ? 1.0/(sp->cnt) : 0.0);
       p->curcnt = sp->cnt;
     }
-//printf("incx, y1,y2 = %g, %f, %f\n", p->inc, p->y1, p->y2);
+    //printf("****incx, y1,y2 = %g, %f, %f\n", p->inc, p->y1, p->y2);
     p->val = p->y1;
     return OK;
 }
@@ -1983,6 +1989,7 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
     }
 
     for (n=offset; n<nsmps; n++) {
+      double mu2;
       if (LIKELY(p->segsrem)) {             /* if no more segs putk */
         if (--p->curcnt <= 0) {             /*  if done cur segment */
           SEG *segp = p->cursegp;
@@ -1993,16 +2000,19 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
             goto putk;                      /*      put endval      */
           }
           val2 = p->y2 = segp->nxtpt;          /* Base of next segment */
-          p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+          inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
           x = 0.0;
+          //printf("****new seg val1.val2=%f,%f inc=%f\n", val1,val2, inc);
           p->cursegp = segp+1;              /*   else find the next */
           if (UNLIKELY(!(p->curcnt = segp->acnt))) {
             val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-            p->inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+            inc = (segp->acnt ? 1.0/(segp->acnt) : 0.0);
+            //printf("****val1,val2=%f,%f inc=%f\n", val1, val2, inc);
             goto chk1;
           }                                 /*   poslen = new slope */
         }
-        double mu2 = (1.0-cos(x*PI))*0.5;
+        mu2 = (1.0-cos(x*PI))*0.5;
+        //printf("****x=%f inc=%f mu2=%f\n", x, inc, mu2);
         rs[n] = (MYFLT)(val1*(1.0-mu2)+val2*mu2);
         x += inc;
       }
@@ -2016,7 +2026,7 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("cosseg: not initialised (arate)\n"));
 }
 
@@ -2087,7 +2097,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
     p->val = val;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("cossegr: not initialised (arate)\n"));
 }
 
@@ -2154,7 +2164,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("cossegr: not initialised (arate)\n"));
 }
 #endif

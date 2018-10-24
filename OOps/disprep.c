@@ -150,7 +150,7 @@ int32_t kdsplay(CSOUND *csound, DSPLAY *p)
     p->nxtp = fp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("display: not initialised"));
 }
 
@@ -402,7 +402,7 @@ int32_t kdspfft(CSOUND *csound, DSPFFT *p)
     p->bufp = bufp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("dispfft: not initialised"));
 }
 
@@ -454,7 +454,7 @@ int32_t dspfft(CSOUND *csound, DSPFFT *p)
     p->bufp = bufp;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("dispfft: not initialised"));
 }
 
@@ -737,6 +737,6 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
     *p->kout = p->tempo;                    /* put current tempo */
     return OK;
  err1:
-      return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                                Str("tempest: not initialised"));
 }

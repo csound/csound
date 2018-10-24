@@ -275,7 +275,7 @@ typedef struct {
   MYFLT     *numb, *ndx, *audio, *dur, *spread, *field_am,
             *fld[VARGMAX]; /* field_am positive: point to point
                                        negative: angle velocities */
-  int32_t       n;
+  int32_t   n;
   MYFLT     *out_array;
   AUXCH     auxch;
   AUXCH     aux;
@@ -283,14 +283,14 @@ typedef struct {
   MYFLT     *beg_gains;
   MYFLT     *end_gains;
   MYFLT     *updated_gains;
-  int32_t       dim;
+  int32_t   dim;
   LS_SET    *ls_sets;
-  int32_t       ls_am;
-  int32_t       ls_set_am;
+  int32_t   ls_am;
+  int32_t   ls_set_am;
   CART_VEC  cart_dir;
   CART_VEC  spread_base;
   ANG_VEC   ang_dir, prev_ang_dir, next_ang_dir;
-  int32_t       point_change_interval, point_change_counter, curr_fld, next_fld;
+  int32_t   point_change_interval, point_change_counter, curr_fld, next_fld;
   MYFLT     ele_vel;
 } VBAP_ZAK_MOVING;
 

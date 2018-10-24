@@ -453,7 +453,7 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #if defined(MSVC)
 #define ATOMIC_SET(var, val)  InterlockedExchange(&var, val);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_SET(var, val) __sync_lock_test_and_set(&var, val);
+#define ATOMIC_SET(var, val) __atomic_store_n(&var, val, __ATOMIC_SEQ_CST);
 #else
 #define ATOMIC_SET(var, val) var = val;
 #endif
@@ -461,7 +461,7 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #if defined(MSVC)
 #define ATOMIC_SET8(var, val)  InterlockedExchange8(&var, val);
 #elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_SET8(var, val) __sync_lock_test_and_set(&var, val);
+#define ATOMIC_SET8(var, val) __atomic_store_n(&var, val, __ATOMIC_SEQ_CST);
 #else
 #define ATOMIC_SET8(var, val) var = val;
 #endif
@@ -531,8 +531,8 @@ typedef int32_t spin_lock_t;
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
 typedef pthread_spinlock_t spin_lock_t;
 #define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
-#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
-typedef int32_t spin_lock_t;
+#elif defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN)
+typedef char spin_lock_t;
 #define SPINLOCK_INIT 0
 #elif defined(MACOSX)
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12

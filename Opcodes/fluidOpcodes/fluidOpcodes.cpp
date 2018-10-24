@@ -37,7 +37,7 @@
 #include <map>
 #include <string>
 #include <vector>
-
+#include <sstream>
 #include "OpcodeBase.hpp"
 #include "csdl.h"
 #include <fluidsynth.h>
@@ -220,6 +220,90 @@ public:
               fluidPreset.get_name(&fluidPreset));
         }
     }
+    return result;
+  }
+};
+
+#include "arrays.h"
+#if 0
+/* from Opcodes/arrays.c */
+static inline void arrayensure(CSOUND *csound, ARRAYDAT *p, int size) {
+    tabensure(csound, p, size);
+    if (p->data==NULL || p->dimensions == 0 ||
+        (p->dimensions==1 && p->sizes[0] < size)) {
+      size_t ss;
+      if (p->data == NULL) {
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        p->arrayMemberSize = var->memBlockSize;
+      }
+      ss = p->arrayMemberSize*size;
+      if (p->data==NULL) {
+        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->allocated = ss;
+      }
+      else if (ss > p->allocated) {
+        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->allocated = ss;
+      }
+      if (p->dimensions==0) {
+        p->dimensions = 1;
+        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+      }
+      p->sizes[0] = size;
+    }
+    else {
+      p->sizes[0] = size;
+    }
+}
+#endif
+
+
+
+//Rory Walsh 2018
+class FluidInfo : public OpcodeBase<FluidInfo> {
+  // Outputs.
+  ARRAYDAT *outArr;
+  // Inputs.
+  MYFLT *iFluidSynth;
+  // State.
+  fluid_synth_t *fluidSynth;
+  void *mutex;
+
+public:
+  int32_t init(CSOUND *csound) {
+      std::vector<std::string> programs;
+      char *program;
+      mutex = csound->Create_Mutex(0);
+      LockGuard guard(csound, mutex);
+      int32_t result = OK;
+      toa(iFluidSynth, fluidSynth);
+      fluid_sfont_t *fluidSoundfont =
+        fluid_synth_get_sfont(fluidSynth, 0);
+      fluid_preset_t fluidPreset;
+      fluidSoundfont->iteration_start(fluidSoundfont);
+      OPARMS oparms;
+      csound->GetOParms(csound, &oparms);
+      if (oparms.msglevel & 0x7)
+        while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset))
+          {
+            std::stringstream ss;
+            ss << "Bank: " << fluidPreset.get_banknum(&fluidPreset) <<
+              " Preset: " << fluidPreset.get_num(&fluidPreset) <<
+                " Name: " << fluidPreset.get_name(&fluidPreset);
+          programs.push_back(ss.str());
+        }
+
+      tabensure(csound, outArr, programs.size());
+      STRINGDAT *strings = (STRINGDAT *)outArr->data;
+
+    for (unsigned int i = 0; i < programs.size(); i++) {
+        program = &programs[i][0u];
+        strings[i].size = strlen(program) + 1;
+        strings[i].data = csound->Strdup(csound, program);
+    }
+
+    programs.clear();
+
     return result;
   }
 };
@@ -593,6 +677,8 @@ static OENTRY localops[] = {
      (char *)"ppoo", (SUBR)&FluidEngine::init_, (SUBR)0, (SUBR)0},
     {(char *)"fluidLoad", sizeof(FluidLoad), 0, 1, (char *)"i", (char *)"Tio",
      (SUBR)&FluidLoad::init_, (SUBR)0, (SUBR)0},
+    {(char *)"fluidInfo", sizeof(FluidInfo), 0, 1, (char *)"S[]", (char *)"i",
+     (SUBR)&FluidInfo::init_, (SUBR)0, (SUBR)0},
     {(char *)"fluidProgramSelect", sizeof(FluidProgramSelect), 0, 1, (char *)"",
      (char *)"iiiii", (SUBR)&FluidProgramSelect::init_, (SUBR)0, (SUBR)0},
     {(char *)"fluidCCi", sizeof(FluidCCI), 0, 1, (char *)"", (char *)"iiii",

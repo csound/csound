@@ -425,7 +425,7 @@ static int32_t graingenv4(CSOUND *csound, GRAINV4 *p)
    }
    return OK;
  err1:
-   return csound->PerfError(csound, p->h.insdshead,
+   return csound->PerfError(csound, &(p->h),
                             Str("grain4: not initialised"));
 
 } /* end graingenv4(p) */

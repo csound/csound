@@ -525,16 +525,23 @@ static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt, CORFIL *sco)
 static char *fpnum(CSOUND *csound, char *p,
                    int lincnt, int pcnt, CORFIL *sco) /* moves ascii string */
   /* to SCOREOUT file with fpnum format chk */
+/* CONSIDER USING SIMPLER CODE */
 {
     char *q;
-    int dcnt;
-
+    int dcnt = 0;
+    //printf(">>>>%20s\n", p);
     q = p;
     if (*p == '+')
       p++;
     if (*p == '-')
       corfile_putc(csound, *p++, sco);
-    dcnt = 0;
+    if (*p=='0' && *(p+1)=='x') {
+      while (!isspace(*p)) {
+        corfile_putc(csound, *p++, sco);
+        //dcnt++;                 /* Not used so delete? */
+      }
+      return p;
+    }
     while (isdigit(*p)) {
       //      printf("*p=%c\n", *p);
       corfile_putc(csound, *p++, sco);

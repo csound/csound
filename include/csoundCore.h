@@ -105,6 +105,7 @@ typedef struct {
 #define MAXINSNO  (200)
 #define PMAX      (1998)
 #define VARGMAX   (1999)
+#define NOT_AN_INSTRUMENT INT32_MAX
 
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
@@ -296,7 +297,8 @@ typedef struct CORFIL {
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
   typedef struct text {
-    int             linenum;        /* Line num in orch file (currently buggy!)  */
+    uint16_t        linenum;        /* Line num in orch file (currently buggy!)  */
+    uint64_t        locn;           /* and location */
     OENTRY          *oentry;
     char            *opcod;         /* Pointer to opcode name in global pool */
     ARGLST          *inlist;        /* Input args (pointer to item in name list) */
@@ -397,6 +399,7 @@ typedef struct CORFIL {
     int      arrayMemberSize;
     CS_TYPE* arrayType;
     MYFLT*   data;
+    size_t   allocated;
 //    AUXCH   aux;
   } ARRAYDAT;
 
@@ -586,7 +589,6 @@ typedef struct CORFIL {
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
-
   typedef int (*SUBR)(CSOUND *, void *);
 
   /**
@@ -1153,7 +1155,7 @@ typedef struct _message_queue_t_ {
     /**@{ */
     CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 int (*InitError)(CSOUND *, const char *msg, ...);
-    CS_PRINTF3 int (*PerfError)(CSOUND *, INSDS *ip,  const char *msg, ...);
+    CS_PRINTF3 int (*PerfError)(CSOUND *, OPDS *h,  const char *msg, ...);
     CS_PRINTF2 void (*Warning)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 void (*DebugMsg)(CSOUND *, const char *msg, ...);
     CS_NORETURN void (*LongJmp)(CSOUND *, int);
@@ -1370,11 +1372,13 @@ typedef struct _message_queue_t_ {
                          AUXASYNC *, aux_cb, void *);
     void *(*GetHostData)(CSOUND *);
     char *(*strNcpy)(char *dst, const char *src, size_t siz);
+    int (*GetZaBounds)(CSOUND *, MYFLT **);
+
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[37];
+    SUBR dummyfn_2[36];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1484,10 +1488,6 @@ typedef struct _message_queue_t_ {
     FILE*         scoreout;
     int           *argoffspace;
     INSDS         *frstoff;
-    MYFLT         *zkstart;
-    int64_t          zklast;
-    MYFLT         *zastart;
-    int64_t          zalast;
     /** reserved for std opcode library  */
     void          *stdOp_Env;
     int           holdrand;
@@ -1786,11 +1786,7 @@ typedef struct _message_queue_t_ {
     ALLOC_DATA *alloc_queue;
     volatile unsigned long alloc_queue_items;
     unsigned long alloc_queue_wp;
-#ifdef MACOSX
     spin_lock_t alloc_spinlock;
-#else
-    int alloc_spinlock;
-#endif
     EVTBLK *init_event;
     void (*csoundMessageStringCallback)(CSOUND *csound,
                                         int attr,

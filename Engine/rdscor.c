@@ -151,8 +151,10 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       e->p[2] = FL(INF);
       e->p2orig = FL(INF);
       e->pcnt = 2;
+
       return(1);
     }
+
   /* else read the real score */
     while ((c = corfile_getc(csound->scstr)) != '\0') {
       csound->scnt = 0;

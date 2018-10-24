@@ -303,7 +303,7 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("reverbsc: not initialised"));
 }
 

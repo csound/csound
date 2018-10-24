@@ -2108,20 +2108,20 @@ extern "C" {
       for (j = 0; j < (int) widgetGlobals->fl_windows.size(); j++) {
         widgetGlobals->fl_windows[j].panel->show();
       }
-#ifdef CS_VSTHOST
-      for (size_t k=0; k < widgetGlobals->VSTplugEditors.size(); k++) {
-        int panelNum = widgetGlobals->VSTplugEditors[k]->targetFLpanel;
-#ifdef WIN32
-        HWND xid = fl_xid(widgetGlobals->fl_windows[panelNum].panel);
-        widgetGlobals->VSTplugEditors[k]->SetEditWindow(xid);
-#elif defined (LINUX) || defined(MACOSX)
-        // put some appropriate alternative code here
-        Fl_Window * xid =
-          fl_find(fl_xid(widgetGlobals->fl_windows[panelNum].panel));
-        widgetGlobals->VSTplugEditors[k]->SetEditWindow(xid);
-#endif  // WIN32
-      }
-#endif  // CS_VSTHOST
+// #ifdef CS_VSTHOST
+//       for (size_t k=0; k < widgetGlobals->VSTplugEditors.size(); k++) {
+//         int panelNum = widgetGlobals->VSTplugEditors[k]->targetFLpanel;
+// #ifdef WIN32
+//         HWND xid = fl_xid(widgetGlobals->fl_windows[panelNum].panel);
+//         widgetGlobals->VSTplugEditors[k]->SetEditWindow(xid);
+// #elif defined (LINUX) || defined(MACOSX)
+//         // put some appropriate alternative code here
+//         Fl_Window * xid =
+//           fl_find(fl_xid(widgetGlobals->fl_windows[panelNum].panel));
+//         widgetGlobals->VSTplugEditors[k]->SetEditWindow(xid);
+// #endif  // WIN32
+//       }
+// #endif  // CS_VSTHOST
       if (!(p->fltkFlags & 16))
         Fl::awake();
       if (!(p->fltkFlags & 8))
@@ -5485,7 +5485,7 @@ extern "C" {
           {
             //      val = table[k];
             if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-              csound->PerfError(csound, p->h.insdshead,
+              csound->PerfError(csound, &p->h,
                                 "%s", Str("FLslidBnk2Setk: value out of range: "
                                     "function mapping requires a 0 to 1 "
                                     "range for input"));
@@ -5579,7 +5579,7 @@ extern "C" {
             {
               val = table[k];
               if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-                csound->PerfError(csound, p->h.insdshead,
+                csound->PerfError(csound, &p->h,
                                   "%s", Str("FLslidBnk2Setk: value out of range:"
                                       " function mapping requires a 0 to 1"
                                       " range for input"));
@@ -5669,7 +5669,7 @@ extern "C" {
             {
               val = table[k];
               if (UNLIKELY(val < 0 || val > 1)) { // input range must be 0 to 1
-                csound->PerfError(csound, p->h.insdshead,
+                csound->PerfError(csound, &p->h,
                                   "%s", Str("FLslidBnk2Setk: value out of range: "
                                       "function mapping requires a 0 to 1 range "
                                       "for input"));
