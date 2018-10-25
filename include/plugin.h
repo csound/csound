@@ -875,7 +875,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
    */
   MYFLT kr() { return insdshead->ekr; }
 
-    /** midi channel number for this instrument
+  /** midi channel number for this instrument
    */
   int midi_channel() { return ((CSOUND *)csound)->GetMidiChannelNumber(this); }
 
