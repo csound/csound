@@ -63,7 +63,7 @@ static inline int isNameChar(int cc, int pos)
     csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
     /*yyg->yy_flex_debug_r=1;*/ PARM->macro_stack_size = 0;             \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
-    PARM->path = ".";                                                  \
+    PARM->path = ".";                                                   \
     PARM->cf = csound->expanded_sco;                                    \
   }
 static MACRO *find_definition(MACRO *, char *);
@@ -200,6 +200,7 @@ NM              [nm][ \t]+
                        PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_prsget_lineno(yyscanner);
+                       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
                        PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                        yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                        csound_prsset_lineno(1, yyscanner);
@@ -318,10 +319,12 @@ NM              [nm][ \t]+
                          PARM->macros->acnt;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_prsget_lineno(yyscanner);
+                       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
                        PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
                        PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_prsget_lineno(yyscanner);
+                       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
                        /* printf("stacked line = %llu at %d\n", */
                        /*  csound_prsget_lineno(yyscanner), */
                        /*                       PARM->macro_stack_ptr-1); */

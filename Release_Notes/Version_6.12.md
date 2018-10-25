@@ -21,10 +21,6 @@ Any valid HTML can also be used.
  --->
 
 
-DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT   DRAFT
-
-
-
 # CSOUND VERSION 6.12 RELEASE NOTES
 
 Many changes including the removal of vst2cs functionality due to a copyright issue.
@@ -94,6 +90,9 @@ scores and many bug fixes.
 
 - Redefinition of UDOs with zero output arguments fixed.
 
+- A very obscure bug in running sub-instruments, which has been in the
+  code for nearly a year, was fixed.
+
 ### Score
 
 - New preprocessor option #includestr.  This is like #include but has
@@ -106,7 +105,8 @@ scores and many bug fixes.
 - Use of [] syntax in a score could lead to a loss of precision for
   numbers over about 1 million; older version restored.
 
-- Nesting macro calls more than about 10 caused a crash; now unlimited nesting works.
+- Nesting macro calls more than about 10 caused a crash; now unlimited
+  nesting works.
 
 - The forms for delayed ending of sections (e 5 or s 5) now work with
   fractional delays; previously only read the integer part.
@@ -135,7 +135,7 @@ scores and many bug fixes.
   sufficient for the number of values provided.
 
 - faustcompile now includes a new optional parameter to allow it to be
-run in a blocking mode. Defaults (as before) to non-blocking.
+  run in a blocking mode. Defaults (as before) to non-blocking.
 
 - fillarray can be run at k-rate if any of the argument/values are k-rate.
 
@@ -216,7 +216,7 @@ differs with respect to deprecated and polymorphic opcodes.
   is being distributed by some Linux distros.
 
 - The orchestra compiler has a number of new optimisations, avoiding
-unnecessary assignments and doing some more expression optimisations.
+  unnecessary assignments and doing some more expression optimisations.
 
 ### Translations
 

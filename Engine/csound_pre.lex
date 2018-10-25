@@ -53,7 +53,7 @@ static void do_function(CSOUND*, char *, CORFIL*);
     csound_preset_lineno(csound->orcLineOffset, yyscanner);             \
     yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
-    PARM->path = ".";                                                  \
+    PARM->path = ".";                                                   \
   }
 static MACRO *find_definition(MACRO *, char *);
 

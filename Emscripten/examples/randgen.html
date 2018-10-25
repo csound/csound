@@ -65,7 +65,7 @@
 
     function print_msg(message) {
       csound.requestControlChannel("freq", function() {
-        freq = Math.round(csound.getChannel("freq"));
+        freq = Math.round(csound.getControlChannel("freq"));
         mess = message + " :: " + freq + " Hz";
         display_msg(mess);
       });

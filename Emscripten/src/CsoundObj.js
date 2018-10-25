@@ -176,13 +176,33 @@ class CsoundObj {
         this.node.requestControlChannel(channelName, callback);
     }
 
-    /** Get the latest requested channel data 
+    /** Request the string data from a control channel 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @param {function} callback An optional callback to be called when
+     *  the requested data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    requestStringChannel(channelName, callback = null) {
+        this.node.requestStringChannel(channelName, callback);
+    }
+
+    /** Get the latest requested control channel data 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @returns {(number)} The latest channel value requested.
+     */   
+    getControlChannel(channelName) {
+        return this.node.getControlChannel(channelName);
+    }
+
+    /** Get the latest requested string channel data 
      *
      * @param {string} channelName A string containing the channel name.
      * @returns {(number|string)} The latest channel value requested.
      */   
-    getChannel(channelName) {
-        return this.node.getChannel(channelName);
+    getStringChannel(channelName) {
+        return this.node.getStringChannel(channelName);
     }
 
     /** Request the data from a Csound function table

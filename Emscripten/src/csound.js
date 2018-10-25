@@ -340,7 +340,7 @@ Csound = function() {
      */
     function RequestChannel(name) {
       csound.Csound.requestControlChannel(name);
-      return csound.Csound.getChannel(name);  
+      return csound.Csound.getControlChannel(name);  
     }
 
     /**

@@ -36,6 +36,7 @@ libcsound(CSMOD);
 // SETUP FS
 
 let FS = CSMOD["FS"];
+let pointerStringify = CSMOD["Pointer_stringify"];
 
 
 
@@ -52,6 +53,7 @@ const Csound = {
     getInputBuffer: CSMOD.cwrap('CsoundObj_getInputBuffer', ['number'], ['number']),
     getControlChannel: CSMOD.cwrap('CsoundObj_getControlChannel', ['number'], ['number', 'string']),
     setControlChannel: CSMOD.cwrap('CsoundObj_setControlChannel', null, ['number', 'string', 'number']),
+    getStringChannel: CSMOD.cwrap('CsoundObj_getStringChannel', ['string'], ['number', 'string']),
     setStringChannel: CSMOD.cwrap('CsoundObj_setStringChannel', null, ['number', 'string', 'string']),
     getKsmps: CSMOD.cwrap('CsoundObj_getKsmps', ['number'], ['number']),
     performKsmps: CSMOD.cwrap('CsoundObj_performKsmps', ['number'], ['number']),
@@ -267,6 +269,12 @@ class CsoundProcessor extends AudioWorkletProcessor {
             let channel = data[1];
             let value = Csound.getControlChannel(this.csObj, channel);
             p.postMessage(["control", channel, value]);
+            break;
+        case "getStringChannel":
+            let schannel = data[1];
+            let svalue = Csound.getStringChannel(this.csObj, schannel);
+            svalue = pointerStringify(svalue);
+            p.postMessage(["stringChannel", schannel, svalue]);
             break;
         case "getTable":
             let buffer = Csound.getTable(this.csObj, data[1]);

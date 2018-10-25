@@ -102,6 +102,10 @@ public:
    */
   MYFLT sr() { return GetSr(this); }
 
+  /** system control rate
+   */
+  MYFLT kr() { return GetKr(this); }
+
   /** system max amp reference
    */
   MYFLT _0dbfs() { return Get0dBFS(this); }
@@ -126,46 +130,6 @@ public:
    */
   double current_time_seconds() {
     return GetCurrentTimeSamples(this) / GetSr(this);
-  }
-
-  /** midi channel number for this instrument
-   */
-  int midi_channel() { return GetMidiChannelNumber(this); }
-
-  /** midi note number for this instrument
-   */
-  int midi_note_num() { return GetMidiNoteNumber(this); }
-
-  /** midi note velocity for this instrument
-   */
-  int midi_note_vel() { return GetMidiVelocity(this); }
-
-  /** midi aftertouch for this channel
-   */
-  MYFLT midi_chn_aftertouch() { return GetMidiChannel(this)->aftouch; }
-
-  /** midi poly aftertouch for this channel
-   */
-  MYFLT midi_chn_polytouch(uint32_t note) {
-    return GetMidiChannel(this)->polyaft[note];
-  }
-
-  /** midi ctl change for this channel
-   */
-  MYFLT midi_chn_ctl(uint32_t ctl) {
-    return GetMidiChannel(this)->ctl_val[ctl];
-  }
-
-  /** midi pitchbend for this channel
-   */
-  MYFLT midi_chn_pitchbend() { return GetMidiChannel(this)->pchbend; }
-
-  /** list of active instrument instances for this channel \n
-      returns an INSDS array with 128 items, one per
-      MIDI note number. Inactive instances are marked NULL.
-   */
-  const INSDS *midi_chn_list() {
-    return (const INSDS *)GetMidiChannel(this)->kinsptr;
   }
 
   /** check for audio signal variable argument
@@ -889,6 +853,14 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
       }
   }
 
+  /** @private
+      set nsmps and offset value for kperf()
+   */
+  void nsmps_set() {
+    nsmps = insdshead->ksmps - insdshead->ksmps_no_end;;
+    offset = insdshead->ksmps_offset;
+  }
+
   /** returns the number of output arguments
       used in the case of variable output count
   */
@@ -898,6 +870,52 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
       used in the case of variable input count
   */
   uint32_t in_count() { return (uint32_t)optext->t.inArgCount; }
+
+  /** local control rate
+   */
+  MYFLT kr() { return insdshead->ekr; }
+
+    /** midi channel number for this instrument
+   */
+  int midi_channel() { return ((CSOUND *)csound)->GetMidiChannelNumber(this); }
+
+  /** midi note number for this instrument
+   */
+  int midi_note_num() { return ((CSOUND *)csound)->GetMidiNoteNumber(this); }
+
+  /** midi note velocity for this instrument
+   */
+  int midi_note_vel() { return ((CSOUND *)csound)->GetMidiVelocity(this); }
+
+  /** midi aftertouch for this channel
+   */
+  MYFLT midi_chn_aftertouch() {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->aftouch; }
+
+  /** midi poly aftertouch for this channel
+   */
+  MYFLT midi_chn_polytouch(uint32_t note) {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->polyaft[note];
+  }
+
+  /** midi ctl change for this channel
+   */
+  MYFLT midi_chn_ctl(uint32_t ctl) {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->ctl_val[ctl];
+  }
+
+  /** midi pitchbend for this channel
+   */
+  MYFLT midi_chn_pitchbend() {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->pchbend; }
+
+  /** list of active instrument instances for this channel \n
+      returns an INSDS array with 128 items, one per
+      MIDI note number. Inactive instances are marked NULL.
+   */
+  const INSDS *midi_chn_list() {
+    return (const INSDS *) ((CSOUND *)csound)->GetMidiChannel(this)->kinsptr;
+  }
 };
 
 /** Fsig plugin template base class:
@@ -923,6 +941,7 @@ template <typename T> int init(CSOUND *csound, T *p) {
 */
 template <typename T> int kperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
+  p->nsmps_set();
   return p->kperf();
 }
 

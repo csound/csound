@@ -3886,7 +3886,7 @@ static OENTRY arrayvars_localops[] =
       (SUBR) tabslice, NULL },
     { "trim.i", sizeof(TRIM), 0, 1, "", "i[]i", (SUBR)trim, NULL },
     { "trim.k", sizeof(TRIM), 0, 2, "", ".[]k", NULL, (SUBR)trim },
-    { "trim._i", sizeof(TRIM), 0, 1, "", ".[]i", (SUBR)trim, NULL },
+    { "trim_i", sizeof(TRIM), 0, 1, "", ".[]i", (SUBR)trim, NULL },
     { "copy2ftab", sizeof(TABCOPY), TW|_QQ, 2, "", "k[]k", NULL, (SUBR) tab2ftab },
     { "copy2ttab", sizeof(TABCOPY), TR|_QQ, 2, "", "k[]k", NULL, (SUBR) ftab2tab },
     { "copya2ftab.k", sizeof(TABCOPY), TW, 3, "", "k[]k",
