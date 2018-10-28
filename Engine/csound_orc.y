@@ -447,9 +447,13 @@ statement : ans '=' exprlist NEWLINE
                     csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
+                    if (UNLIKELY(query_reversewrite_opcode(csound, $1->value))) {
+                      csp_orc_sa_global_write_add_list(csound,
+                                   csp_orc_sa_globals_find(csound, $1->right));
+                    }
                     csp_orc_sa_interlocks(csound, $1->value);
+                    query_deprecated_opcode(csound, $1->value);
                   }
-                  query_deprecated_opcode(csound, $1->value);
                 }
             | opcode0b exprlist ')' NEWLINE
                 {   /* VL: to allow general func ops with no answers */

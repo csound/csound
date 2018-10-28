@@ -165,7 +165,7 @@ int32_t tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
     return OK;
 }
 
-int32_t ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration */
+int32_t ihold(CSOUND *csound, LINK *p)  /* make this note indefinit duration */
 {                                       /* called by ihold statmnt at Itime  */
     IGN(csound);
     if (!p->h.insdshead->reinitflag) {  /* no-op at reinit                   */
@@ -175,7 +175,7 @@ int32_t ihold(CSOUND *csound, LINK *p)      /* make this note indefinit duration
     return OK;
 }
 
-int32_t turnoff(CSOUND *csound, LINK *p)    /* terminate the current instrument  */
+int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     IGN(csound);
     INSDS  *lcurip = CS_PDS->insdshead;

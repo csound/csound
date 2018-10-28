@@ -362,7 +362,7 @@ static OENTRY localops[] = {
                              (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
   { "lposcilsa2", S(LPOSC_ST), TR, 3, "aa","akkkio",
                     (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp},
-  { "inrg", S(INRANGE), 0,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange }
+  { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange }
 
 
 };
