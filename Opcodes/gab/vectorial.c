@@ -2621,15 +2621,15 @@ OENTRY vectorial_localops[] = {
   { "vmap",   S(VECTORSOPI), TB, 1, "",  "iiioo", (SUBR)vmap_i, NULL, NULL  },
   { "vlimit", S(VLIMIT),  TR, 3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vlimit },
   { "vwrap",  S(VLIMIT),  TB, 3, "",  "ikki",(SUBR)vlimit_set, (SUBR) vwrap },
-  { "vmirror", S(VLIMIT),  0,   3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror },
+  { "vmirror", S(VLIMIT),  TB,   3, "",  "ikki",(SUBR)vlimit_set, (SUBR)vmirror },
   { "vlinseg", S(VSEG),   TB, 3, "",  "iim", (SUBR)vseg_set,   (SUBR)vlinseg },
-  { "vexpseg", S(VSEG),    0,   3, "",  "iim", (SUBR)vseg_set, (SUBR)vexpseg },
+  { "vexpseg", S(VSEG),   TB, 3, "",  "iim", (SUBR)vseg_set, (SUBR)vexpseg },
   { "vrandh", S(VRANDH),  TB, 3, "",  "ikkiovoo",(SUBR)vrandh_set, (SUBR)vrandh},
   { "vrandi", S(VRANDI),  TB, 3, "",  "ikkiovoo",(SUBR)vrandi_set, (SUBR)vrandi },
   { "vport",  S(VPORT),   TB, 3, "",  "ikio",(SUBR)vport_set,  (SUBR)vport   },
-  { "vecdelay", S(VECDEL),0,    3, "",  "iiiiio",(SUBR)vecdly_set, (SUBR)vecdly },
-  { "vdelayk", S(KDEL),    0,   3, "k", "kkioo",(SUBR)kdel_set,  (SUBR)kdelay },
-  { "vcella", S(CELLA),      TR, 3, "",  "kkiiiiip",(SUBR)ca_set, (SUBR)ca    }
+  { "vecdelay", S(VECDEL), TB, 3, "",  "iiiiio",(SUBR)vecdly_set, (SUBR)vecdly },
+  { "vdelayk", S(KDEL),    0, 3, "k", "kkioo",(SUBR)kdel_set,  (SUBR)kdelay },
+  { "vcella", S(CELLA),    TB, 3, "",  "kkiiiiip",(SUBR)ca_set, (SUBR)ca    }
 };
 
 int32_t gab_vectorial_init_(CSOUND *csound)
