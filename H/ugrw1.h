@@ -50,38 +50,38 @@
  *      Header file containing data structures for UGRW1.C.
  */
 
-/* /\* TABLEW data structure used by all the tablew subroutines. *\/ */
+ /* TABLEW data structure used by all the tablew subroutines. */
 
-/* typedef struct { */
-/*         OPDS    h; */
-/*         MYFLT   *xsig;          /\* Input value to write to table. *\/ */
-/*         MYFLT   *xndx;          /\* Index into the table where want to write *\/ */
-/*         MYFLT   *xfn;           /\* Number of table we are writing to. *\/ */
-/*         MYFLT   *ixmode;        /\* Index mode (optional parm). */
-/*                                  * 0 --> Use raw xfn and ixoff. */
-/*                                  * 1 --> Use these with a range of 0 to 1 for */
-/*                                  * the entire range of the table. *\/ */
-/*         MYFLT   *ixoff;         /\* Offset (opt). Fixed value to add to ndx*\/ */
-/*         MYFLT   *iwgmode;       /\* Wrap and guard point mode (optional) */
-/*                                  *      0 --> Limit indx to between 0 table len */
-/*                                  *      1 --> Index wraps around modulo len */
-/*                                  *      2 --> Write with 0.5 step offset, and */
-/*                                  *            write both 0 and guard with the */
-/*                                  *             same data.  *\/ */
+typedef struct {
+        OPDS    h;
+        MYFLT   *xsig;          /* Input value to write to table. */
+        MYFLT   *xndx;          /* Index into the table where want to write */
+        MYFLT   *xfn;           /* Number of table we are writing to. */
+        MYFLT   *ixmode;        /* Index mode (optional parm).
+                                 * 0 --> Use raw xfn and ixoff.
+                                 * 1 --> Use these with a range of 0 to 1 for
+                                 * the entire range of the table. */
+        MYFLT   *ixoff;         /* Offset (opt). Fixed value to add to ndx*/
+        MYFLT   *iwgmode;       /* Wrap and guard point mode (optional)
+                                 *      0 --> Limit indx to between 0 table len
+                                 *      1 --> Index wraps around modulo len
+                                 *      2 --> Write with 0.5 step offset, and
+                                 *            write both 0 and guard with the
+                                 *             same data.  */
 
-/*         /\* Internal variable for previous state of xfn.  *\/ */
-/*         int32    pfn;            /\* Internal variable for what to multiply */
-/*                                  * the ndx and ixoff by. Set to 1 or table */
-/*                                  * length by tblwset() depending on ixmode. */
-/*                                  *\/ */
-/*         int32    xbmul;          /\* Internal variable for iwrap and igmode. *\/ */
-/*         int     iwgm;           /\* Internal variable for offset. *\/ */
-/*         MYFLT   offset;         /\* Pointer to data structure used to access */
-/*                                  * function table. tblwset() writes this, based */
-/*                                  * on the value of xfn. */
-/*                                  *\/ */
-/*         FUNC    *ftp; */
-/* } TABLEW; */
+        /* Internal variable for previous state of xfn.  */
+        int32    pfn;            /* Internal variable for what to multiply
+                                 * the ndx and ixoff by. Set to 1 or table
+                                 * length by tblwset() depending on ixmode.
+                                 */
+        int32    xbmul;          /* Internal variable for iwrap and igmode. */
+        int     iwgm;           /* Internal variable for offset. */
+        MYFLT   offset;         /* Pointer to data structure used to access
+                                 * function table. tblwset() writes this, based
+                                 * on the value of xfn.
+                                 */
+        FUNC    *ftp;
+} TABLEW;
 
 /* TABLENG data structure used by function tableng to return the
  * length of the table. */
