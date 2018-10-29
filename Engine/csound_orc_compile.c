@@ -2291,3 +2291,9 @@ void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o) {
   if (UNLIKELY(ep->flags & _QQ))
     csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
 }
+
+int query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o) {
+  char *name = o->lexeme;
+  OENTRY *ep = find_opcode(csound, name);
+  return (ep->flags & WI);
+}
