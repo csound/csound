@@ -670,10 +670,10 @@ OENTRY opcodlst_1[] = {
   { "filepeak.i", S(SNDINFOPEAK),0, 1, "i",   "io",   filepeak, NULL, NULL       },
   { "filevalid.i", S(FILEVALID),0, 1,  "i",   "i",    filevalid, NULL, NULL      },
   /*  { "nlalp", S(NLALP),0,     3,     "a",  "akkoo", nlalp_set, nlalp }, */
-  { "ptableiw",  S(TABLEW),TW, 1,   "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
-  { "ptablew.kk", S(TABLEW),0,  3,  "", "kkiooo",(SUBR)tabl_setup,
+  { "ptableiw",  S(TABLEW),TW|_QQ, 1, "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
+  { "ptablew.kk", S(TABLEW),TB,  3,  "", "kkiooo",(SUBR)tabl_setup,
     (SUBR)tablew_kontrol, NULL          },
-  { "ptablew.aa", S(TABLEW),0,  3,  "", "aaiooo",(SUBR)tabl_setup,
+  { "ptablew.aa", S(TABLEW),TB,  3,  "", "aaiooo",(SUBR)tabl_setup,
     (SUBR)tablew_audio               },
   { "tableiw",  S(TABL),TW, 1,    "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew",  S(TABL),TW, 1,    "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
