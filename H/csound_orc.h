@@ -67,6 +67,7 @@ ORCTOKEN *make_token(CSOUND *csound, char *s);
 extern int ksmps, nchnls; */
 
 void query_deprecated_opcode(CSOUND *, ORCTOKEN *);
+int  query_reversewrite_opcode(CSOUND *, ORCTOKEN *);
 
     // holds matching oentries from opcodeList
     // has space for 16 matches and next pointer in case more are found

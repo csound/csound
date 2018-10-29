@@ -26,8 +26,8 @@
 #define ZW (0x0002)
 #define ZB (0x0003)
 
-// Not used
-#define MO (0x0004)
+// Writes to inputs
+#define WI (0x0004)
 
 //Tables
 #define TR (0x0008)
