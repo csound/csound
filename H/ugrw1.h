@@ -50,7 +50,7 @@
  *      Header file containing data structures for UGRW1.C.
  */
 
-/* TABLEW data structure used by all the tablew subroutines. */
+ /* TABLEW data structure used by all the tablew subroutines. */
 
 typedef struct {
         OPDS    h;

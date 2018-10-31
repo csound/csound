@@ -1104,7 +1104,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 { // the constructor captures current values of all widgets
   // by copying all current values from "valuators" vector (AddrSetValue)
   // to the "fields" vector
-    is_empty = 1;
+    is_empty = 0;
     FLlock(); //<=================
     int i,k;
     int vsize  = valuators.size();
@@ -1343,8 +1343,11 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         fld->widg_name = p->itext->data;
       }
     }
+     FLunlock();
+     return;
  err:
     FLunlock(); //<=================
+    is_empty = 1;
 }
 
 int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
@@ -1352,6 +1355,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
     if (UNLIKELY(is_empty == 1)) {
       /*  FIXME: should have CSOUND* pointer here */
       /*  return csound->InitError(csound, "%s", Str("empty snapshot")); */
+      //printf("SNAPSHOT IS EMPTY\n");
       return -1;
     }
     FLlock(); //<=================
@@ -1601,8 +1605,11 @@ extern "C" {
           index = widgetGlobals->snapshots[group].size()-1;
         else if (index < 0) index=0;
         if (widgetGlobals->snapshots[group][index].get(widgetGlobals->AddrSetValue,
-                                                       (int) *p->group)!=OK)
-          return NOTOK;
+                                                       (int) *p->group)!=OK) {
+          csound->Warning(csound, "could not get snapshot from group %d index %d \n",
+                          group, index);
+          return OK;
+        }
       }
       *p->inum_el = widgetGlobals->snapshots[group].size();
       return OK;

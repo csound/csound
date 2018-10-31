@@ -1574,7 +1574,7 @@ static OENTRY localops[] = {
         (SUBR) fprintf_set_S,     (SUBR) fprintf_k,   (SUBR) NULL, NULL,},
     { "fprintks.i",   S(FPRINTF),    WR, 3,  "",     "iSM",
         (SUBR) fprintf_set,     (SUBR) fprintf_k,   (SUBR) NULL, NULL},
-     { "vincr",      S(INCR),        0, 2,  "",     "aa",
+     { "vincr",      S(INCR),       WI, 2,  "",     "aa",
         (SUBR) NULL,            (SUBR) incr, NULL         },
     { "clear",      S(CLEARS),      WI, 2,  "",     "y",
         (SUBR) NULL,            (SUBR) clear, NULL},
