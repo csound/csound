@@ -1677,7 +1677,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
           if (p->left) {
 
             if (p->left->type == INTEGER_TOKEN) {
-              //csound->Message(csound, "instrument %d \n", (int) p->left->value->value);
+              //csound->Message(csound, "instrument %d \n",
+              //                (int) p->left->value->value);
               insert_instrtxt(csound, instrtxt, p->left->value->value,
                               engineState, 0);
             } else if (p->left->type == T_IDENT) {
