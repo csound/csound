@@ -993,51 +993,6 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
   return 0;
 }
 
-#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-// POSIX spin locks
-
-void csoundSpinLock(spin_lock_t *spinlock) {
-  pthread_spin_lock(spinlock);
-}
-
-void csoundSpinUnLock(spin_lock_t *spinlock){
-  pthread_spin_unlock(spinlock);
-}
-
-int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return pthread_spin_trylock(spinlock);
-}
-
-int csoundSpinLockInit(spin_lock_t *spinlock) {
-  return pthread_spin_init(spinlock, PTHREAD_PROCESS_PRIVATE);
-}
-
-
-#elif defined(HAVE_ATOMIC_BUILTIN)
-// No POSIX spinlocks but GCC intrinsics
-#include <stdbool.h>
-
-void csoundSpinLock(spin_lock_t *spinlock){
-  spin_lock_t unset = 0;
-  spin_lock_t set = 1;
-  while (!__atomic_compare_exchange_n(spinlock, &unset, set, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) { };
-}
-
-void csoundSpinUnLock(spin_lock_t *spinlock){
-      __atomic_clear(spinlock, __ATOMIC_SEQ_CST);
-}
-
-int csoundSpinTryLock(spin_lock_t *spinlock) {
-  spin_lock_t unset = 0;
-  spin_lock_t set = 1;
-  return __atomic_compare_exchange_n(spinlock, &unset, set, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST) ? CSOUND_SUCCESS : CSOUND_ERROR;
-}
-
-int csoundSpinLockInit(spin_lock_t *spinlock) {
-  *spinlock = SPINLOCK_INIT;
-  return 0;
-}
-
 #elif defined(MACOSX) // MacOS native locks
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
@@ -1080,6 +1035,52 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 }
 
 #endif // MAC_OS_X_VERSION_MIN_REQUIRED
+
+#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+// POSIX spin locks
+
+void csoundSpinLock(spin_lock_t *spinlock) {
+  pthread_spin_lock(spinlock);
+}
+
+void csoundSpinUnLock(spin_lock_t *spinlock){
+  pthread_spin_unlock(spinlock);
+}
+
+int csoundSpinTryLock(spin_lock_t *spinlock) {
+  return pthread_spin_trylock(spinlock);
+}
+
+int csoundSpinLockInit(spin_lock_t *spinlock) {
+  return pthread_spin_init(spinlock, PTHREAD_PROCESS_PRIVATE);
+}
+
+
+#elif defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN)
+// No POSIX spinlocks but GCC intrinsics
+#include <stdbool.h>
+
+void csoundSpinLock(spin_lock_t *spinlock){
+  spin_lock_t unset = 0;
+  spin_lock_t set = 1;
+  while (!__atomic_compare_exchange_n(spinlock, &unset, set, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) { };
+}
+
+void csoundSpinUnLock(spin_lock_t *spinlock){
+      __atomic_clear(spinlock, __ATOMIC_SEQ_CST);
+}
+
+int csoundSpinTryLock(spin_lock_t *spinlock) {
+  spin_lock_t unset = 0;
+  spin_lock_t set = 1;
+  return __atomic_compare_exchange_n(spinlock, &unset, set, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST) ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+int csoundSpinLockInit(spin_lock_t *spinlock) {
+  *spinlock = SPINLOCK_INIT;
+  return 0;
+}
+
 
 #else // No spinlocks
 void csoundSpinLock(spin_lock_t *spinlock) {

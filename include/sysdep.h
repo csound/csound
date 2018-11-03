@@ -528,12 +528,7 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #if defined(WIN32)
 typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
-#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-typedef pthread_spinlock_t spin_lock_t;
-#define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
-#elif defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN)
-typedef char spin_lock_t;
-#define SPINLOCK_INIT 0
+
 #elif defined(MACOSX)
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
 #include <os/lock.h>
@@ -544,6 +539,14 @@ typedef struct os_unfair_lock_s spin_lock_t;
 typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 #endif // MAC_OS_X_VERSION_MIN_REQUIRED
+
+#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
+typedef pthread_spinlock_t spin_lock_t;
+#define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
+#elif defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN)
+typedef char spin_lock_t;
+#define SPINLOCK_INIT 0
+
 #else
 typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
