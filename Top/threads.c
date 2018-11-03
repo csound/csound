@@ -1016,11 +1016,7 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 }
 
 #else // Old spinlock interface
-<<<<<<< HEAD
 
-=======
-#include <libkern/OSAtomic.h>
->>>>>>> hotfix/6.12.1
 void csoundSpinLock(spin_lock_t *spinlock) {
   OSSpinLockLock((volatile OSSpinLock *) spinlock);
 }
