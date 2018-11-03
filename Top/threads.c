@@ -1016,7 +1016,11 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 }
 
 #else // Old spinlock interface
+<<<<<<< HEAD
 
+=======
+#include <libkern/OSAtomic.h>
+>>>>>>> hotfix/6.12.1
 void csoundSpinLock(spin_lock_t *spinlock) {
   OSSpinLockLock((volatile OSSpinLock *) spinlock);
 }
@@ -1055,6 +1059,7 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
   return pthread_spin_init(spinlock, PTHREAD_PROCESS_PRIVATE);
 }
 
+
 #elif defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN)
 // No POSIX spinlocks but GCC intrinsics
 #include <stdbool.h>
@@ -1080,7 +1085,10 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
   return 0;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> hotfix/6.12.1
 
 #else // No spinlocks
 void csoundSpinLock(spin_lock_t *spinlock) {
