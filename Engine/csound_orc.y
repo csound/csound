@@ -349,7 +349,7 @@ statement : ans '=' exprlist NEWLINE
                   //print_tree(csound, "+=", ans);
                   $$ = ans;
                   if (namedInstrFlag!=2)
-                      csp_orc_sa_global_read_write_add_list1(csound,
+                      csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
@@ -366,7 +366,7 @@ statement : ans '=' exprlist NEWLINE
                   //print_tree(csound, "-=", ans);
                   $$ = ans;
                   if (namedInstrFlag!=2)
-                    csp_orc_sa_global_read_write_add_list1(csound,
+                    csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
                 }
