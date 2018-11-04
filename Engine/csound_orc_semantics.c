@@ -125,6 +125,8 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
       return "##not";
     case T_ARRAY:
       return "##array_get";
+    case S_ADDIN:
+      return "##addin";
     }
     csound->Warning(csound, Str("Unknown function type found: %d [%c]\n"),
                     tree->type, tree->type);
@@ -2399,6 +2401,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                       l->value->lexeme); break;
     case S_ELIPSIS:
       csound->Message(csound,"name=\"S_ELIPSIS\""); break;
+    case S_ADDIN:
+      csound->Message(csound,"name=\"##addin\""); break;
 //    case T_MAPI:
 //      csound->Message(csound,"name=\"T_MAPI\""); break;
 //    case T_MAPK:
