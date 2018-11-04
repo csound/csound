@@ -344,10 +344,13 @@ statement : ans '=' exprlist NEWLINE
                        ans->right = $3;
                        ans->left = $1;
                        ans->value->optype = NULL;
-                       if (namedInstrFlag!=2)
-                        csp_orc_sa_global_read_write_add_list1(csound,
-                                    csp_orc_sa_globals_find(csound, ans->left),
+                       if (namedInstrFlag!=2) {
+                         csp_orc_sa_global_read_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->right));
+                         csp_orc_sa_global_read_write_add_list1(csound,
+                                    csp_orc_sa_globals_find(csound, ans->left),
+                                    csp_orc_sa_globals_find(csound, ans->left));
+                       }
                        $$ = ans;
                     }
                     else {
@@ -374,10 +377,13 @@ statement : ans '=' exprlist NEWLINE
                       ans->right = $3;
                       ans->left = $1;
                       ans->value->optype = NULL;
-                      if (namedInstrFlag!=2)
+                      if (namedInstrFlag!=2) {
+                         csp_orc_sa_global_read_add_list(csound,
+                                    csp_orc_sa_globals_find(csound, ans->right));
                         csp_orc_sa_global_read_write_add_list1(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
-                                    csp_orc_sa_globals_find(csound, ans->right));
+                                    csp_orc_sa_globals_find(csound, ans->left));
+                      }
                       $$ = ans;
                     }
                     else {
