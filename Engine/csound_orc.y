@@ -153,6 +153,7 @@
 #define csp_orc_sa_global_read_write_add_list1(a,b,c)
 #define csp_orc_sa_interlocks(a, b)
 #define csp_orc_sa_global_read_add_list(a,b)
+#define csp_orc_sa_global_write_add_list(a,b);
 #endif
 
 #define udoflag csound->parserUdoflag
