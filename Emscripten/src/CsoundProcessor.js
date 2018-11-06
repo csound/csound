@@ -25,9 +25,16 @@ import libcsound from './libcsound-worklet.js'
 
 const CSMOD = {} 
 
+let printCallbacks = [];
+let printMessages = (t) => {
+  for(let i = 0; i < printCallbacks.length; i++) {
+    printCallbacks[i](t);
+  }
+};
+
 CSMOD["ENVIRONMENT"] = "WEB";
-CSMOD["print"] = (t) => console.log(t);
-CSMOD["printErr"] = (t) => console.log(t);
+CSMOD["print"] = printMessages;
+CSMOD["printErr"] = printMessages;
 
 
 // INITIALIAZE WASM
@@ -83,12 +90,9 @@ class CsoundProcessor extends AudioWorkletProcessor {
     constructor(options) {
         super(options);
         let p = this.port;
-        CSMOD["print"] = (t) => {
+        printCallbacks.push((t) => {
             p.postMessage(["log", t]);
-        };
-        CSMOD["printErr"] = (t) => {
-            p.postMessage(["log", t]);
-        };
+        });
 
         let csObj = Csound.new();
         this.csObj = csObj;
