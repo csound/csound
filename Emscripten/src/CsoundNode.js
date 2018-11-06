@@ -73,7 +73,7 @@ class CsoundNode extends AudioWorkletNode {
             case "control":
                 this.channels[data[1]] = data[2];
                 if (typeof this.channelCallbacks[data[1]] != 'undefined')
-                      this.channelCallback[data[1]](); 
+                      this.channelCallbacks[data[1]](); 
                 break;
             case "stringChannel":
                 this.stringChannels[data[1]] = data[2];
