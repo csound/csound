@@ -100,13 +100,14 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     char    c;
     MYFLT   tempo, betspan, durbas, avgdur, stof(CSOUND *, char *);
     TSEG    *tp, *prvtp;
+    TSEG    *tseg = (TSEG*)csound->tseg;
 
-    if (csound->tseg == NULL) {               /* if no space yet, alloc */
-      csound->tseg = csound->Malloc(csound, (int32)TSEGMAX * sizeof(TSEG));
-      csound->tplim = (TSEG*) csound->tseg + TSEGMAX-1;
-      csound->tseglen = TSEGMAX;
-    }
-    tp = (TSEG*) (csound->tpsave = csound->tseg);
+    csound->tseg =
+      tseg = (TSEG*)csound->ReAlloc(csound,
+                                    csound->tseg, (1+bp->pcnt/2) * sizeof(TSEG));
+    csound->tplim = &tseg[(bp->pcnt/2)];
+    csound->tseglen = 1+bp->pcnt/2;
+    tp = (TSEG*) (csound->tpsave = tseg);
     if (UNLIKELY(bp->pcnt < 2))
       goto error1;
     p = bp->text;                             /* first go to p1        */
@@ -124,24 +125,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     while (c != LF) {                         /* for each time-tempo pair: */
       prvtp = tp;
       if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
-        /* extend */
-        TSEG* oldtseg = csound->tseg;
-        /* printf("<<tplim, tpsave, tp, prvtp, size = %p, %p, %p, %p, %d\n", */
-        /*        csound->tplim, csound->tpsave, tp, prvtp, csound->tseglen); */
-        /* printf("tseg extend %p->", oldtseg); */
-        csound->tseglen += TSEGMAX;
-        csound->tseg =
-          (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
-        if (csound->tseg != oldtseg) {
-          /* printf(" MOVED "); */
-          tp += ((TSEG*)csound->tseg - oldtseg); prvtp = tp-1;
-          csound->tplim = ((char*)csound->tseg) + csound->tseglen-1;
-          csound->tpsave = csound->tseg;
-        }
-        /* printf("%p\n", csound->tseg); */
-        /* printf("tplim, tpsave, tp, prvtp, size = %p, %p, %p, %p, %d>>\n", */
-        /*        csound->tplim, csound->tpsave, tp, prvtp, csound->tseglen); */
-        //goto error3;
+        csound->Die(csound, "Internal twarp error\n");
       }
       tp->betbas = stof(csound, p);           /* betbas = time         */
       while ((c = *p++) != SP && c != LF) {}
@@ -166,16 +150,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     tp->durslp = FL(0.0);                     /* clear last durslp */
     if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
       /* extend */
-      TSEG* oldtseg = csound->tseg;
-      /* printf("tplim, tpsave, tp, size = %p, %p, %p, %d\n", */
-      /*        csound->tplim, csound->tpsave, tp, csound->tseglen); */
-      /* printf("tseg extend %p->", oldtseg); */
-      csound->tseglen += TSEGMAX;
-      csound->tseg =
-        (TSEG*)csound->ReAlloc(csound, oldtseg, csound->tseglen*sizeof(TSEG));
-      tp += ((TSEG*)csound->tseg - oldtseg);
-      csound->tplim = ((char*)csound->tseg) + csound->tseglen-1;
-      csound->tpsave = csound->tseg;
+      csound->Die(csound, "Internal twarp error\n");
     }
     tp->betbas = FL(9223372036854775807.0);   /* and cap with large betval */
     return(1);
