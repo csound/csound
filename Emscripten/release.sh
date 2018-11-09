@@ -1,6 +1,6 @@
 #!/bin/sh
-export CS_VERSION="6.12.0"
-export RELEASE_DIR=csound-web-${CS_VERSION}
+export CS_VERSION="6.12.2"
+export RELEASE_DIR=Csound${CS_VERSION}-Web
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;

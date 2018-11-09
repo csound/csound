@@ -112,12 +112,12 @@ NM              [nm][ \t]+
 %%
 
 {CONT}          {
-#ifdef SCORE_PARSER
+#if 0
                   char bb[80];
 #endif
                   csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
                                        yyscanner);
-#ifdef SCORE_PARSER
+#if 0
                   if (PARM->isString==0) {
                     sprintf(bb, "#sline %d ", csound_prsget_lineno(yyscanner));
                     corfile_puts(csound, bb, PARM->cf);
