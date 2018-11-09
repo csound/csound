@@ -22,8 +22,8 @@
     02110-1301 USA
 */
 
-#include <csdl.h>
-// #include "/usr/local/include/csound/csdl.h"
+// #include <csdl.h>
+#include "/usr/local/include/csound/csdl.h"
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
@@ -447,6 +447,138 @@ static int32_t bpfxcos(CSOUND *csound, BPFX *p) {
         }
         x0 = x1;
         y0 = y1;
+    }
+    return NOTOK;
+}
+
+typedef struct {
+    OPDS h;
+    MYFLT *y, *x;
+    ARRAYDAT *xs, *ys;
+} BPFARRPOINTS;
+
+static int32_t bpfarrpoints(CSOUND *csound, BPFARRPOINTS *p) {
+    int32_t numxs = p->xs->sizes[0];
+    int32_t numys = p->ys->sizes[0];
+    int32_t N = numxs < numys ? numxs : numys;
+    MYFLT *xs = p->xs->data;
+    MYFLT *ys = p->ys->data;
+    MYFLT x = *p->x;
+    int32_t i;
+    MYFLT x0, y0, x1, y1;
+    if(x <= xs[0]) {
+        *p->y = ys[0];
+        return OK;
+    }
+    if(x >= xs[N-1]) {
+        *p->y = ys[N-1];
+        return OK;
+    }
+    x0 = xs[0];
+    for(i=0; i<N-1; i++) {
+        x1 = xs[i+1];
+        if(x0 <= x && x <= x1) {
+            y0 = ys[i];
+            y1 = ys[i+1];
+            *p->y = (x-x0)/(x1-x0)*(y1-y0)+y0;
+            return OK;
+        }
+        x0 = x1;
+    }
+    return NOTOK;
+}
+
+static inline int32_t bpfidx(MYFLT x, MYFLT *xs, int32_t xslen) {
+    // -1: lower bound, -2: upper bound, -3: error
+    if(x <= xs[0]) {
+        return -1;
+    }
+    if(x >= xs[xslen-1]) {
+        return -2;
+    }
+    MYFLT x0, x1;
+    int32_t i;
+    x0 = xs[0];
+    for(i=0; i<xslen-1; i++) {
+        x1 = xs[i+1];
+        if(x0 <= x && x <= x1) {
+            return i;
+        }
+        x0 = x1;
+    }
+    return -3;
+}
+
+static int32_t bpfcosarrpoints(CSOUND *csound, BPFARRPOINTS *p) {
+    int32_t numxs = p->xs->sizes[0];
+    int32_t numys = p->ys->sizes[0];
+    int32_t N = numxs < numys ? numxs : numys;
+    MYFLT *xs = p->xs->data;
+    MYFLT *ys = p->ys->data;
+    MYFLT x = *p->x;
+    int32_t i = bpfidx(x, xs, N);
+    MYFLT x0, y0, x1, y1, dx;
+    if(i == -1) {
+        *p->y = ys[0];
+        return OK;
+    }
+    if(i == -2) {
+        *p->y = ys[N-1];
+        return OK;
+    }
+    if(UNLIKELY(i == -3)) {
+        return NOTOK;
+    }
+    x0 = xs[i];
+    x1 = xs[i+1];
+    y0 = ys[i];
+    y1 = ys[i+1];
+    dx = ((x-x0) / (x1-x0)) * PI + PI;
+    *p->y = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);        
+    return OK;
+}
+
+typedef struct {
+    OPDS h;
+    MYFLT *y, *z, *x;
+    ARRAYDAT *xs, *ys, *zs;
+} BPFARRPOINTS2;
+
+static int32_t bpfarrpoints2(CSOUND *csound, BPFARRPOINTS2 *p) {
+    int32_t numxs = p->xs->sizes[0];
+    int32_t numys = p->ys->sizes[0];
+    int32_t numzs = p->zs->sizes[0];
+    int32_t N = numxs < numys ? numxs : numys;
+    N = N < numzs ? N : numzs;
+    
+    MYFLT *xs = p->xs->data;
+    MYFLT *ys = p->ys->data;
+    MYFLT *zs = p->zs->data;
+    MYFLT x = *p->x;
+    int32_t i;
+    MYFLT x0, x1, y0, z0, dx;
+    if(x <= xs[0]) {
+        *p->y = ys[0];
+        *p->z = zs[0];
+        return OK;
+    }
+    if(x >= xs[N-1]) {
+        *p->y = ys[N-1];
+        *p->z = zs[N-1];
+        return OK;
+    }
+    x0 = xs[0];
+    for(i=0; i<N-1; i++) {
+        x1 = xs[i+1];
+        if(x0 <= x && x <= x1) {
+            y0 = ys[i];
+            z0 = zs[i];
+            dx = (x-x0)/(x1-x0);
+            *p->y = dx*(ys[i+1]-y0)+y0;
+            *p->z = dx*(zs[i+1]-z0)+z0;
+            return OK;
+        }
+        x0 = x1;
     }
     return NOTOK;
 }
@@ -1575,9 +1707,22 @@ static OENTRY localops[] = {
     { "bpf", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfx },
     { "bpf", S(BPFX), 0, 1, "i", "im", (SUBR)bpfx },
     { "bpf", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarr },
+
+    { "bpf", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfarrpoints },
+    { "bpf", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfarrpoints },
+    { "bpf", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfarrpoints },
+
+    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]", NULL, (SUBR)bpfarrpoints2 },
+    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]", NULL, (SUBR)bpfarrpoints2 },
+    { "bpf", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpfarrpoints2 },
+    
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
     { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
+
+    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfcosarrpoints },
+    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfcosarrpoints },
+    { "bpfcos", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfcosarrpoints },
 
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
     { "ntom", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },
