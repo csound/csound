@@ -738,7 +738,7 @@ static const CSOUND cenviron_ = {
     0,              /*  FFT_max_size        */
     NULL,           /*  FFT_table_1         */
     NULL,           /*  FFT_table_2         */
-    NULL, NULL, NULL, /* tseg, tpsave, tplim */
+    NULL, NULL, NULL, /* tseg, tpsave, unused */
     (MYFLT*) NULL,  /*  gbloffbas           */
     NULL,           /* file_io_thread    */
     0,              /* file_io_start   */
@@ -960,7 +960,7 @@ static const CSOUND cenviron_ = {
     kperf_nodebug,  /* current kperf function - nodebug by default */
     0,              /* which score parser */
     NULL,           /* symbtab */
-    0,              /* tseglen */
+    0,              /* unusedint */
     1,              /* inZero */
     NULL,           /* msg_queue */
     0,              /* msg_queue_wget */
@@ -971,14 +971,14 @@ static const CSOUND cenviron_ = {
     NULL,           /* directory for corfiles */
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
-    0,               /* alloc_queue_wp */
-    SPINLOCK_INIT,    /* alloc_spinlock */
-    NULL,            /* init_event */
-    NULL,            /* message string callback */
-    NULL,             /* message_string */
-    0,               /* message_string_queue_items */
-    0,               /* message_string_queue_wp */
-    NULL              /* message_string_queue */
+    0,              /* alloc_queue_wp */
+    SPINLOCK_INIT,  /* alloc_spinlock */
+    NULL,           /* init_event */
+    NULL,           /* message string callback */
+    NULL,           /* message_string */
+    0,              /* message_string_queue_items */
+    0,              /* message_string_queue_wp */
+    NULL            /* message_string_queue */
     /*, NULL */           /* self-reference */
 };
 

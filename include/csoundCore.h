@@ -1554,7 +1554,7 @@ typedef struct _message_queue_t_ {
     void          *FFT_table_1;
     void          *FFT_table_2;
     /* statics from twarp.c should be TSEG* */
-    void          *tseg, *tpsave, *tplim;
+    void          *tseg, *tpsave, *unused;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void         *file_io_thread;
@@ -1774,7 +1774,7 @@ typedef struct _message_queue_t_ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           tseglen;
+    int           unusedint;
     int           inZero;       /* flag compilation of instr0 */
     struct _message_queue **msg_queue;
     volatile long msg_queue_wget; /* Writer - Get index */

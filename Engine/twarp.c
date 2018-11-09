@@ -23,10 +23,6 @@
 
 #include "csoundCore.h"                               /*    TWARP.C  */
 
-/* #define TSEGMAX (PMAX/2) */
-/* #define TSEGMAX (100) */
-#define TSEGMAX (20)
-
 typedef struct {
     MYFLT   betbas;
     MYFLT   durslp;
@@ -104,9 +100,9 @@ int realtset(CSOUND *csound, SRTBLK *bp)
 
     csound->tseg =
       tseg = (TSEG*)csound->ReAlloc(csound,
-                                    csound->tseg, (1+bp->pcnt/2) * sizeof(TSEG));
-    csound->tplim = &tseg[(bp->pcnt/2)];
-    csound->tseglen = 1+bp->pcnt/2;
+                                    tseg, (1+bp->pcnt/2) * sizeof(TSEG));
+    //tplim = &tseg[(bp->pcnt/2)];
+    //csound->tseglen = 1+bp->pcnt/2;
     tp = (TSEG*) (csound->tpsave = tseg);
     if (UNLIKELY(bp->pcnt < 2))
       goto error1;
@@ -124,9 +120,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     while ((c = *p++) != SP && c != LF) {}
     while (c != LF) {                         /* for each time-tempo pair: */
       prvtp = tp;
-      if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
-        csound->Die(csound, "Internal twarp error\n");
-      }
+      ++tp;
       tp->betbas = stof(csound, p);           /* betbas = time         */
       while ((c = *p++) != SP && c != LF) {}
       if (UNLIKELY(c == LF))
@@ -134,7 +128,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       if (UNLIKELY((tempo = stof(csound, p)) <= 0))     /* get tempo             */
         goto error2;
       if ((betspan = tp->betbas - prvtp->betbas) <= 0) {
-        if (UNLIKELY(betspan < 0))                      /* if time = lastime */
+        if (UNLIKELY(betspan < 0))            /* if time = lastime */
           goto error1;
         tp--;                                 /* overwrit prvdurbas*/
         tp->durbas = FL(60.0)/tempo;          /*   with 60/tempo   */
@@ -148,10 +142,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
       while ((c = *p++) != SP && c != LF) {}
     }
     tp->durslp = FL(0.0);                     /* clear last durslp */
-    if (UNLIKELY(++tp > (TSEG*) csound->tplim)) {
-      /* extend */
-      csound->Die(csound, "Internal twarp error\n");
-    }
+    ++tp;
     tp->betbas = FL(9223372036854775807.0);   /* and cap with large betval */
     return(1);
 
