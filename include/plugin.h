@@ -177,7 +177,7 @@ public:
   const INSDS *midi_chn_list() {
     return (const INSDS *)GetMidiChannel(this)->kinsptr;
   }
-  
+
   /** deinit registration for a given plugin class
    */
   template <typename T> void plugin_deinit(T *p) {

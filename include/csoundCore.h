@@ -1554,19 +1554,19 @@ typedef struct _message_queue_t_ {
     void          *FFT_table_1;
     void          *FFT_table_2;
     /* statics from twarp.c should be TSEG* */
-    void          *tseg, *tpsave, *unused;
+    void          *tseg, *tpsave, *unused_int0;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    void         *file_io_thread;
-    int          file_io_start;
-    void         *file_io_threadlock;
-    int          realtime_audio_flag;
-    void         *event_insert_thread;
-    int          event_insert_loop;
-    void         *init_pass_threadlock;
-    void         *API_lock;
-    spin_lock_t spoutlock, spinlock;
-    spin_lock_t memlock, spinlock1;
+    void          *file_io_thread;
+    int           file_io_start;
+    void          *file_io_threadlock;
+    int           realtime_audio_flag;
+    void          *event_insert_thread;
+    int           event_insert_loop;
+    void          *init_pass_threadlock;
+    void          *API_lock;
+    spin_lock_t   spoutlock, spinlock;
+    spin_lock_t   memlock, spinlock1;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
     struct sreadStatics__ {
@@ -1581,28 +1581,28 @@ typedef struct _message_queue_t_ {
       MYFLT   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      S_MACRO   *macros;
+      S_MACRO *macros;
       int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;
-      int     pop;                    /* Number of macros to pop              */
-      int     ingappop /* = 1 */;     /* Are we in a popable gap?             */
+      int     unused_int3;
+      int     unused_int2;
       int     linepos /* = -1 */;
       MARKED_SECTIONS names[30];
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
-      char    repeat_name_n[RPTDEPTH][NAMELEN];
-      int     repeat_cnt_n[RPTDEPTH];
-      int32   repeat_point_n[RPTDEPTH];
-      int     repeat_inc_n /* = 1 */;
-      S_MACRO   *repeat_mm_n[RPTDEPTH];
-      int     repeat_index;
+      char    unused_char0[RPTDEPTH][NAMELEN];
+      int     unused_int4[RPTDEPTH];
+      int32   unused_int7[RPTDEPTH];
+      int     unused_int5;
+      S_MACRO   *unused_ptr0[RPTDEPTH];
+      int     unused_int6;
      /* Variable for repeat sections */
-      char    repeat_name[NAMELEN];
-      int     repeat_cnt;
-      int32   repeat_point;
-      int     repeat_inc /* = 1 */;
-      S_MACRO   *repeat_mm;
+      char    unused_char1[NAMELEN];
+      int     unused_int8;
+      int32   unused_int9;
+      int     unused_intA;
+      S_MACRO   *unused_ptr1;
       int     nocarry;
     } sreadStatics;
     struct onefileStatics__ {
@@ -1774,7 +1774,7 @@ typedef struct _message_queue_t_ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           unusedint;
+    int           unused_int1;
     int           inZero;       /* flag compilation of instr0 */
     struct _message_queue **msg_queue;
     volatile long msg_queue_wget; /* Writer - Get index */
