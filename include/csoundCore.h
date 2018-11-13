@@ -1581,7 +1581,7 @@ typedef struct _message_queue_t_ {
       MYFLT   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      S_MACRO *macros;
+      S_MACRO *unused_ptr2;
       int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;

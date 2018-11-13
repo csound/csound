@@ -191,44 +191,44 @@ static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
-static int undefine_score_macro(CSOUND *csound, const char *name)
-{
-    S_MACRO *mm, *nn;
-    int   i;
+/* static int undefine_score_macro(CSOUND *csound, const char *name) */
+/* { */
+/*     S_MACRO *mm, *nn; */
+/*     int   i; */
 
-    if (strcmp(name, STA(macros)->name) == 0) {
-      mm = STA(macros)->next;
-      if (strcmp(STA(macros)->name, "[") != 0)
-        corfile_rm(csound, &(STA(macros)->body));
-      csound->Free(csound, STA(macros)->name);
- #ifdef MACDEBUG
-      csound->DebugMsg(csound,"%s(%d): corfile is %p\n",
-                       __FILE__, __LINE__, STA(macros)->body);
- #endif
-      for (i = 0; i < STA(macros)->acnt; i++)
-        csound->Free(csound, STA(macros)->arg[i]);
-      csound->Free(csound, STA(macros));
-      STA(macros) = mm;
-    }
-    else {
-      mm = STA(macros);
-      nn = mm->next;
-      while (strcmp(name, nn->name) != 0) {
-        mm = nn; nn = nn->next;
-        if (UNLIKELY(nn == NULL)) {
-          scorerr(csound, Str("Undefining undefined macro"));
-          return -1;
-        }
-      }
-      csound->Free(csound, nn->name);
-      corfile_rm(csound, &nn->body);
-      for (i = 0; i < nn->acnt; i++)
-        csound->Free(csound, nn->arg[i]);
-      mm->next = nn->next;
-      csound->Free(csound, nn);
-    }
-    return 0;
-}
+/*     if (strcmp(name, STA(macros)->name) == 0) { */
+/*       mm = STA(macros)->next; */
+/*       if (strcmp(STA(macros)->name, "[") != 0) */
+/*         corfile_rm(csound, &(STA(macros)->body)); */
+/*       csound->Free(csound, STA(macros)->name); */
+/*  #ifdef MACDEBUG */
+/*       csound->DebugMsg(csound,"%s(%d): corfile is %p\n", */
+/*                        __FILE__, __LINE__, STA(macros)->body); */
+/*  #endif */
+/*       for (i = 0; i < STA(macros)->acnt; i++) */
+/*         csound->Free(csound, STA(macros)->arg[i]); */
+/*       csound->Free(csound, STA(macros)); */
+/*       STA(macros) = mm; */
+/*     } */
+/*     else { */
+/*       mm = STA(macros); */
+/*       nn = mm->next; */
+/*       while (strcmp(name, nn->name) != 0) { */
+/*         mm = nn; nn = nn->next; */
+/*         if (UNLIKELY(nn == NULL)) { */
+/*           scorerr(csound, Str("Undefining undefined macro")); */
+/*           return -1; */
+/*         } */
+/*       } */
+/*       csound->Free(csound, nn->name); */
+/*       corfile_rm(csound, &nn->body); */
+/*       for (i = 0; i < nn->acnt; i++) */
+/*         csound->Free(csound, nn->arg[i]); */
+/*       mm->next = nn->next; */
+/*       csound->Free(csound, nn); */
+/*     } */
+/*     return 0; */
+/* } */
 
 static inline int isNameChar(int c, int pos)
 {
@@ -588,11 +588,11 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
     /*   /\*   return rtncod; *\/ */
     /*   *STA(nxp)++ = LF; */
     /* } */
-    if (!rtncod) {                      /* Ending so clear macros */
-      while (STA(macros) != NULL) {
-        undefine_score_macro(csound, STA(macros)->name);
-      }
-    }
+    /* if (!rtncod) {                      /\* Ending so clear macros *\/ */
+    /*   while (STA(macros) != NULL) { */
+    /*     undefine_score_macro(csound, STA(macros)->name); */
+    /*   } */
+    /* } */
     return rtncod;
 }
 
