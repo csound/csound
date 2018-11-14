@@ -603,8 +603,14 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     if (UNLIKELY(ksmps <= FL(0.0)))
       synterr(p, Str("%s invalid number of samples"), err_msg);
     else if (UNLIKELY(ksmps < FL(0.75) ||
-                      FLOAT_COMPARE(ksmps, MYFLT2LRND(ksmps))))
-      synterr(p, Str("%s invalid ksmps value"), err_msg);
+                      FLOAT_COMPARE(ksmps, MYFLT2LRND(ksmps)))) {
+      csound->Warning(p, Str("%s invalid ksmps value, needs to be integral."), err_msg);
+      ksmps = floor(ksmps);
+      kr = sr/ksmps;
+      csound->Warning(p, "resetting orc parameters to: "
+                 "sr = %.7g, kr = %.7g, ksmps = %.7g", sr, kr,
+                 ksmps);
+    }
     else if (UNLIKELY(FLOAT_COMPARE(sr, (double)kr * ksmps)))
       synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
     else if (UNLIKELY(ksmps > sr))
@@ -612,7 +618,6 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   }
 
   csound->ksmps = ksmps;
-
   csound->nchnls = nchnls;
   if (inchnls == 0)
     csound->inchnls = nchnls;
@@ -682,10 +687,16 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     /* chk consistency one more time */
     {
       char s[256];
-      CS_SPRINTF(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
+      CS_SPRINTF(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\n"),
                  csound->esr, csound->ekr, ensmps);
-      if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps)))
-        csoundDie(csound, Str("%s invalid ksmps value"), s);
+      if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps))) {
+         csound->Warning(csound, Str("%s invalid ksmps value, needs to be integral."), s);
+         ensmps = csound->ksmps = floor(ensmps);
+         csound->ekr  = csound->esr/csound->ksmps;
+         csound->Warning(csound, "resetting orc parameters to: "
+                 "sr = %.7g, kr = %.7g, ksmps = %u", csound->esr, csound->ekr, 
+               csound->ksmps);
+      }
       if (UNLIKELY(csound->esr <= FL(0.0)))
         csoundDie(csound, Str("%s invalid sample rate"), s);
       if (UNLIKELY(csound->ekr <= FL(0.0)))
