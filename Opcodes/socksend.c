@@ -415,7 +415,7 @@ typedef struct {
 static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     uint32_t     bsize;
-    
+
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) p->type->size + 4))
        return csound->InitError(csound,
                              Str("insufficient number of arguments for "
@@ -782,7 +782,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           csound->Warning(csound, Str("OSCsend failed to send "
                                       "message with destination %s to %s:%d\n"),
                                       p->dest->data, p->ipaddress->data,
-                          (int) p->port);
+                          (int) *p->port);
         p->err_state = 1;
         return OK;
       }
