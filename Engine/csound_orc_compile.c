@@ -604,6 +604,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       synterr(p, Str("%s invalid number of samples"), err_msg);
     else if (UNLIKELY(ksmps < FL(0.75) ||
                       FLOAT_COMPARE(ksmps, MYFLT2LRND(ksmps)))) {
+      /* VL 14/11/18: won't fail but correct values to make ksmps integral */
       csound->Warning(p, Str("%s invalid ksmps value, needs to be integral."), err_msg);
       ksmps = floor(ksmps);
       kr = sr/ksmps;
@@ -690,6 +691,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       CS_SPRINTF(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\n"),
                  csound->esr, csound->ekr, ensmps);
       if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps))) {
+        /* VL 14/11/18: won't fail but correct values to make ksmps integral */
          csound->Warning(csound, Str("%s invalid ksmps value, needs to be integral."), s);
          ensmps = csound->ksmps = floor(ensmps);
          csound->ekr  = csound->esr/csound->ksmps;

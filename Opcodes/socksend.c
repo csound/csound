@@ -776,7 +776,10 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
-        csound->Warning(csound, Str("OSCsend failed to send message\n"));
+        OPARMS parms;
+        csound->GetOParms(csound, &parms);
+        if(parms.odebug)
+           csound->Warning(csound, Str("OSCsend failed to send message\n"));
         return OK;
         //return csound->PerfError(csound, &(p->h), Str("OSCsend failed"));
       }
