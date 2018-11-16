@@ -692,12 +692,13 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                  csound->esr, csound->ekr, ensmps);
       if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps))) {
         /* VL 14/11/18: won't fail but correct values to make ksmps integral */
-         csound->Warning(csound, Str("%s invalid ksmps value, needs to be integral."), s);
-         ensmps = csound->ksmps = floor(ensmps);
-         csound->ekr  = csound->esr/csound->ksmps;
-         csound->Warning(csound, "resetting orc parameters to: "
-                 "sr = %.7g, kr = %.7g, ksmps = %u", csound->esr, csound->ekr, 
-               csound->ksmps);
+        csound->Warning(csound,
+                        Str("%s invalid ksmps value, needs to be integral."), s);
+        ensmps = csound->ksmps = floor(ensmps);
+        csound->ekr  = csound->esr/csound->ksmps;
+        csound->Warning(csound, Str("resetting orc parameters to: "
+                                    "sr = %.7g, kr = %.7g, ksmps = %u"),
+                        csound->esr, csound->ekr, csound->ksmps);
       }
       if (UNLIKELY(csound->esr <= FL(0.0)))
         csoundDie(csound, Str("%s invalid sample rate"), s);
