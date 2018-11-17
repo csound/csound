@@ -541,6 +541,7 @@ endif()
 find_package(SWIG)
 find_package(VSTSDK2X)
 
+
 # TODO should this work for MSVC also?
 if(WIN32)
   find_library(FLAC_LIB NAMES FLAC flac)
