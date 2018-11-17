@@ -1075,77 +1075,77 @@ struct faustctl {
 
 int32_t init_faustctl(CSOUND *csound, faustctl *p) {
 
-  faustobj *fobj, **fobjp;
-  int32_t instance = (int32_t)*p->inst;
+    faustobj *fobj, **fobjp;
+    int32_t instance = (int32_t)*p->inst;
 
-  /* checks that extra parameter count is even */
-  if((p->INCOUNT - 3)%2)
-    return csound->InitError(csound, "unbalanced parameter count \n");
+    /* checks that extra parameter count is even */
+    if((p->INCOUNT - 3)%2)
+      return csound->InitError(csound, "unbalanced parameter count \n");
 
-  fobjp = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
-  if (fobjp == NULL)
-    return csound->InitError(csound, "%s", Str("no dsp instances available\n"));
-  fobj = *fobjp;
+    fobjp = (faustobj **)csound->QueryGlobalVariable(csound, "::dsp");
+    if (fobjp == NULL)
+      return csound->InitError(csound, "%s", Str("no dsp instances available\n"));
+    fobj = *fobjp;
 
-  while ((int32_t)fobj->cnt != instance) {
-    fobj = fobj->nxt;
-    if (fobj == NULL)
-      return csound->InitError(csound, Str("dsp instance not found %d\n"),
-                               (int32_t)*p->inst);
-  }
+    while ((int32_t)fobj->cnt != instance) {
+      fobj = fobj->nxt;
+      if (fobj == NULL)
+        return csound->InitError(csound, Str("dsp instance not found %d\n"),
+                                 (int32_t)*p->inst);
+    }
 
-  p->zone = fobj->ctls->getZone(p->label->data);
-  if (p->zone == NULL)
-    return csound->InitError(csound, Str("dsp control %s not found\n"),
-                             p->label->data);
-  p->max = fobj->ctls->getMax(p->label->data);
-  p->min = fobj->ctls->getMin(p->label->data);
-  {
+    p->zone = fobj->ctls->getZone(p->label->data);
+    if (p->zone == NULL)
+      return csound->InitError(csound, Str("dsp control %s not found\n"),
+                               p->label->data);
+    p->max = fobj->ctls->getMax(p->label->data);
+    p->min = fobj->ctls->getMin(p->label->data);
+    {
+      MYFLT val = *p->val;
+      if (p->min != p->max)
+        val = val < p->min ? p->min : (val > p->max ? p->max : val);
+      *p->zone = val;
+    }
+
+
+    /* implementation of extra optional parameters */
+    for(int n = 0; n < p->INCOUNT - 3; n+=2) {
+      char *name = ((STRINGDAT *)p->extraparam[n])->data;
+      p->zonextra[n/2] = fobj->ctls->getZone(name);
+      if (p->zonextra[n/2] == NULL)
+        return csound->InitError(csound, Str("dsp control %s not found\n"),
+                                 name);
+      p->maxextra[n/2] = fobj->ctls->getMax(name);
+      p->minextra[n/2] = fobj->ctls->getMin(name);
+      {
+        MYFLT val = *(p->extraparam[n+1]);
+        MYFLT min = p->minextra[n/2];
+        MYFLT max = p->maxextra[n/2];
+        if (min != max)
+          val = val < min ? min : (val > max ? max : val);
+        *(p->zonextra[n/2]) = val;
+      }
+    }
+
+    return OK;
+}
+
+int32_t perf_faustctl(CSOUND *csound, faustctl *p) {
     MYFLT val = *p->val;
     if (p->min != p->max)
       val = val < p->min ? p->min : (val > p->max ? p->max : val);
     *p->zone = val;
-  }
 
-
-  /* implementation of extra optional parameters */
-  for(int n = 0; n < p->INCOUNT - 3; n+=2) {
-    char *name = ((STRINGDAT *)p->extraparam[n])->data;
-    p->zonextra[n/2] = fobj->ctls->getZone(name);
-    if (p->zonextra[n/2] == NULL)
-      return csound->InitError(csound, Str("dsp control %s not found\n"),
-                               name);
-      p->maxextra[n/2] = fobj->ctls->getMax(name);
-      p->minextra[n/2] = fobj->ctls->getMin(name);
-       {
-         MYFLT val = *(p->extraparam[n+1]);
-         MYFLT min = p->minextra[n/2];
-         MYFLT max = p->maxextra[n/2];
-         if (min != max)
-         val = val < min ? min : (val > max ? max : val);
-         *(p->zonextra[n/2]) = val;
-       }
-      }
-
-  return OK;
-}
-
-int32_t perf_faustctl(CSOUND *csound, faustctl *p) {
-  MYFLT val = *p->val;
-  if (p->min != p->max)
-    val = val < p->min ? p->min : (val > p->max ? p->max : val);
-  *p->zone = val;
-
-   /* implementation of extra optional parameters */
-  for(int n = 0; n < p->INCOUNT - 3; n+=2) {
-         MYFLT val = *(p->extraparam[n+1]);
-         MYFLT min = p->minextra[n/2];
-         MYFLT max = p->maxextra[n/2];
-         if (min != max)
-         val = val < min ? min : (val > max ? max : val);
-         *(p->zonextra[n/2]) = val;
-   }
-  return OK;
+    /* implementation of extra optional parameters */
+    for(int n = 0; n < p->INCOUNT - 3; n+=2) {
+      MYFLT val = *(p->extraparam[n+1]);
+      MYFLT min = p->minextra[n/2];
+      MYFLT max = p->maxextra[n/2];
+      if (min != max)
+        val = val < min ? min : (val > max ? max : val);
+      *(p->zonextra[n/2]) = val;
+    }
+    return OK;
 }
 
 #define S(x) sizeof(x)
