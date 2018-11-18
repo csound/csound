@@ -533,6 +533,11 @@ find_package(JNI)
 find_package(LIBLO)
 find_package(LUAJIT)
 find_package(MUSICXML)
+
+if(MUSICXML_FOUND)
+set(CMAKE_CXX_FLAGS "-DHAVE_MUSICXML2 ${CMAKE_CXX_FLAGS}")
+endif()
+
 find_package(PORTSMF)
 find_package(PythonLibs 2.7)
 if(NOT STK_LOCAL)
