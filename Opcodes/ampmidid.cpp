@@ -111,7 +111,7 @@ public:
     im = (MYFLT(1.0) - ib) / MYFLT(127.0);
     if (*iuse0dbfs != FL(0.0)) {
       dbfs = csound->Get0dBFS(csound);
-    }
+    } else dbfs = 1.0;
     *iamplitude =
         dbfs * std::pow((im * (*ivelocity + ib)), MYFLT(2.0)) * onedrms;
     return OK;
