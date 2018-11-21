@@ -1081,11 +1081,6 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
   return 0;
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> hotfix/6.12.1
-
 #else // No spinlocks
 void csoundSpinLock(spin_lock_t *spinlock) {
       IGN(spinlock);
