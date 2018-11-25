@@ -800,27 +800,27 @@ public:
 
   /** vector beginning
    */
-  iterator begin() { return reinterpret_cast<MYFLT **>(ptrs.begin()); }
+  iterator begin() { return reinterpret_cast<MYFLT **>(&ptrs[0]); }
 
   /** vector end
    */
-  iterator end() { return  reinterpret_cast<MYFLT **>(ptrs.end()); }
+  iterator end() { return  reinterpret_cast<MYFLT **>(&ptrs[N]); }
 
   /** vector beginning
    */
-  const_iterator begin() const { return (const MYFLT **) ptrs.begin(); }
+  const_iterator begin() const { return reinterpret_cast<const MYFLT **>(&ptrs[0]); }
 
   /** vector end
    */
-  const_iterator end() const { return (const MYFLT **) ptrs.end(); }
+  const_iterator end() const { return reinterpret_cast<const MYFLT **>(&ptrs[N]); }
 
   /** vector beginning
    */
-  const_iterator cbegin() const { return (const MYFLT **) ptrs.cbegin(); }
+  const_iterator cbegin() const { return reinterpret_cast<const MYFLT **>(&ptrs[0]); }
 
   /** vector end
    */
-  const_iterator cend() const { return (const MYFLT **) ptrs.cend(); }
+  const_iterator cend() const { return reinterpret_cast<const MYFLT **>(&ptrs[N]); }
 
   /** parameter data (MYFLT pointer) at index n
    */
