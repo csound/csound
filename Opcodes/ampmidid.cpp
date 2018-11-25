@@ -69,8 +69,10 @@ public:
     ib = MYFLT(127.0) / (MYFLT(126.0) * std::sqrt(ir)) -
          MYFLT(1.0) / MYFLT(126.0);
     im = (MYFLT(1.0) - ib) / MYFLT(127.0);
-    if (*iuse0dbfs != FL(0.0)) {
+    if (*iuse0dbfs == FL(0.0)) {
       dbfs = csound->Get0dBFS(csound);
+    } else {
+      dbfs = *iuse0dbfs;
     }
     return OK;
   }
@@ -109,9 +111,11 @@ public:
     ib = MYFLT(127.0) / (MYFLT(126.0) * std::sqrt(ir)) -
          MYFLT(1.0) / MYFLT(126.0);
     im = (MYFLT(1.0) - ib) / MYFLT(127.0);
-    if (*iuse0dbfs != FL(0.0)) {
+    if (*iuse0dbfs == FL(0.0)) {
       dbfs = csound->Get0dBFS(csound);
-    } else dbfs = 1.0;
+    } else {
+      dbfs = *iuse0dbfs;
+    }
     *iamplitude =
         dbfs * std::pow((im * (*ivelocity + ib)), MYFLT(2.0)) * onedrms;
     return OK;

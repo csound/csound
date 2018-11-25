@@ -1238,7 +1238,7 @@ if(WIN32)
 else()
 endif()
 
-if(CURL_FOUND)
+if(USE_CURL AND CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
   if(WIN32 AND NOT MSVC)
     # not quite working yet with msys2/mingw64
