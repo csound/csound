@@ -778,7 +778,7 @@ public:
 
 /** Parameters template class
  */
-template <uint32_t N> class Param {
+ template <std::size_t N> class Param {
   std::array<MYFLT *, N> ptrs;
 
 public:
@@ -800,11 +800,11 @@ public:
 
   /** vector beginning
    */
-  iterator begin() { return (MYFLT **) ptrs.begin(); }
+  iterator begin() { return reinterpret_cast<MYFLT **>(ptrs.begin()); }
 
   /** vector end
    */
-  iterator end() { return  (MYFLT **) ptrs.end(); }
+  iterator end() { return  reinterpret_cast<MYFLT **>(ptrs.end()); }
 
   /** vector beginning
    */
@@ -853,7 +853,7 @@ public:
 /** Plugin template base class:
     N outputs and M inputs
  */
-template <uint32_t N, uint32_t M> struct Plugin : OPDS {
+template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** output arguments */
   Param<N> outargs;
   /** input arguments */
@@ -966,7 +966,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
 /** Fsig plugin template base class:
     N outputs and M inputs
  */
-template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N, M> {
+template <std::size_t N, std::size_t M> struct FPlugin : Plugin<N, M> {
   /** current frame time index */
   uint32_t framecount;
 };
