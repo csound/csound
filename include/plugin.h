@@ -29,6 +29,7 @@
 #include "csdl.h"
 #include "pstream.h"
 #include "arrays.h"
+#include <array>
 #include <algorithm>
 #include <complex>
 #include <cstring>
@@ -773,10 +774,12 @@ public:
   uint32_t len() { return size / sizeof(T); }
 };
 
+
+
 /** Parameters template class
  */
 template <uint32_t N> class Param {
-  MYFLT *ptrs[N];
+  std::array<MYFLT *, N> ptrs;
 
 public:
   /** parameter access via array subscript (write)
@@ -797,27 +800,27 @@ public:
 
   /** vector beginning
    */
-  iterator begin() { return ptrs; }
+  iterator begin() { return (MYFLT **) ptrs.begin(); }
 
   /** vector end
    */
-  iterator end() { return ptrs + N; }
+  iterator end() { return  (MYFLT **) ptrs.end(); }
 
   /** vector beginning
    */
-  const_iterator begin() const { return ptrs; }
+  const_iterator begin() const { return (const MYFLT **) ptrs.begin(); }
 
   /** vector end
    */
-  const_iterator end() const { return ptrs + N; }
+  const_iterator end() const { return (const MYFLT **) ptrs.end(); }
 
   /** vector beginning
    */
-  const_iterator cbegin() const { return ptrs; }
+  const_iterator cbegin() const { return (const MYFLT **) ptrs.cbegin(); }
 
   /** vector end
    */
-  const_iterator cend() const { return ptrs + N; }
+  const_iterator cend() const { return (const MYFLT **) ptrs.cend(); }
 
   /** parameter data (MYFLT pointer) at index n
    */
@@ -959,6 +962,7 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
 
 };
 
+ 
 /** Fsig plugin template base class:
     N outputs and M inputs
  */
