@@ -161,7 +161,12 @@ if(BUILD_DSSI_OPCODES)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
+if(APPLE)
+check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_LIBRARY)
+else()
 check_deps(BUILD_FLUID_OPCODES FLUIDSYNTH_H FLUIDSYNTH_LIBRARY)
+endif()
+
 if(BUILD_FLUID_OPCODES)
     make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp)
     if(EXISTS ${FLUIDSYNTH_INCLUDE_DIR})

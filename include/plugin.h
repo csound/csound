@@ -808,7 +808,7 @@ public:
 
   /** vector beginning
    */
-  const_iterator begin() const { return (const MYFLT **) &ptrs[0]; }
+  const_iterator begin() const { return (const MYFLT **)&ptrs[0]; }
 
   /** vector end
    */
@@ -816,7 +816,7 @@ public:
 
   /** vector beginning
    */
-  const_iterator cbegin() const { return (const MYFLT **) &ptrs[0]; }
+  const_iterator cbegin() const { return (const MYFLT **)&ptrs[0]; }
 
   /** vector end
    */
