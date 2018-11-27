@@ -208,6 +208,7 @@ public:
     } else if (listPresets) {
       fluid_sfont_t *fluidSoundfont =
           fluid_synth_get_sfont_by_id(fluidSynth, soundFontId);
+#if FLUIDSYNTH_VERSION_MAJOR < 2
       fluid_preset_t fluidPreset;
       fluidSoundfont->iteration_start(fluidSoundfont);
       OPARMS oparms;
@@ -218,6 +219,18 @@ public:
               soundFontId, fluidPreset.get_banknum(&fluidPreset),
               fluidPreset.get_num(&fluidPreset),
               fluidPreset.get_name(&fluidPreset));
+#else
+      fluid_preset_t *fluidPreset;
+      fluid_sfont_iteration_start(fluidSoundfont);
+      OPARMS oparms;
+      csound->GetOParms(csound, &oparms);
+      if (oparms.msglevel & 0x7)
+		while ((fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))) {
+          log(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
+              soundFontId, fluid_preset_get_banknum(fluidPreset),
+              fluid_preset_get_num(fluidPreset),
+              fluid_preset_get_name(fluidPreset));
+#endif
         }
     }
     return result;
@@ -279,6 +292,7 @@ public:
       toa(iFluidSynth, fluidSynth);
       fluid_sfont_t *fluidSoundfont =
         fluid_synth_get_sfont(fluidSynth, 0);
+#if FLUIDSYNTH_VERSION_MAJOR < 2
       fluid_preset_t fluidPreset;
       fluidSoundfont->iteration_start(fluidSoundfont);
       OPARMS oparms;
@@ -290,6 +304,19 @@ public:
             ss << "Bank: " << fluidPreset.get_banknum(&fluidPreset) <<
               " Preset: " << fluidPreset.get_num(&fluidPreset) <<
                 " Name: " << fluidPreset.get_name(&fluidPreset);
+#else
+      fluid_preset_t *fluidPreset;
+      fluid_sfont_iteration_start(fluidSoundfont);
+      OPARMS oparms;
+      csound->GetOParms(csound, &oparms);
+      if (oparms.msglevel & 0x7)
+		while ((fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))) {
+          {
+            std::stringstream ss;
+            ss << "Bank: " << fluid_preset_get_banknum(fluidPreset) <<
+              " Preset: " << fluid_preset_get_num(fluidPreset) <<
+                " Name: " << fluid_preset_get_name(fluidPreset);
+#endif
           programs.push_back(ss.str());
         }
 
