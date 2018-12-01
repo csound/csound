@@ -6,7 +6,7 @@ matrix:
       sudo: false
       compiler: gcc
     - os: linux
-      dist: trusty
+      dist: xenial 
       sudo: false
       compiler: clang 
     - os: osx
