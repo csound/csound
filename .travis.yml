@@ -5,6 +5,7 @@ matrix:
       dist: trusty
       sudo: false
       compiler: gcc
+      compiler: clang 
     - os: osx
       compiler: clang
 env:
