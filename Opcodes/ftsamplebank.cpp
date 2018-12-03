@@ -145,18 +145,23 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
       while ((ent = readdir(dir)) != NULL) {
         std::ostringstream fullFileName;
         // only use supported file types
-        for (int i = 0; (size_t)i < fileExtensions.size(); i++) {
+        for (int i = 0; (size_t)i < fileExtensions.size(); i++) 
+        {
           std::string fname = ent->d_name;
-          if (fname.find(fileExtensions[i],
-                         (fname.length() - fileExtensions[i].length())) !=
-              std::string::npos) {
-            if (strlen(directory) > 2) {
+          std::string extension;
+          if(fname.find_last_of(".") != std::string::npos)
+            extension = fname.substr(fname.find_last_of(".")+1); 
+
+          if(extension == fileExtensions[i])
+            {
+              if (strlen(directory) > 2) {
 #if defined(WIN32)
               fullFileName << directory << "\\" << ent->d_name;
 #else
               fullFileName << directory << "/" << ent->d_name;
 #endif
-            } else
+            } 
+            else
               fullFileName << ent->d_name;
 
             noOfFiles++;
