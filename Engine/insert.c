@@ -769,8 +769,8 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     value = value * csound->e0dbfs;
     pfield->value = value;
     if (UNLIKELY(O->msglevel & WARNMSG)) {
-      csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %3d\n",
-                      pfield_index, (int)pfield->value);
+      csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %.3f\n",
+                      pfield_index, pfield->value);
     }
     if (pmax < pfield_index) pmax = pfield_index;
   }
