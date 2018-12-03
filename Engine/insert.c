@@ -2418,7 +2418,7 @@ static void instance(CSOUND *csound, int insno)
       lblbp->prvp = prvpds;
       continue;                               /*    for later refs */
     }
-    // ******** This needs revisipn with no distinction between k- anda- rate ****
+    // ******** This needs revisipn with no distinction between k- and a- rate ****
     if ((ep->thread & 07) == 0) {             /* thread 1 OR 2:  */
       if (ttp->pftype == 'b') {
         prvids = prvids->nxti = opds;
