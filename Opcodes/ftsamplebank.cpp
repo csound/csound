@@ -292,8 +292,9 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
       while ((ent = readdir(dir)) != NULL) {
         std::ostringstream fullFileName;
 
-        if (std::string(ent->d_name).find(fileExtension) != std::string::npos &&
-            strlen(ent->d_name) > 2) {
+        std::string fname = ent->d_name;
+        if (fname.find_last_of(".") != std::string::npos && fname.length() > 2 && 
+		    fname.substr(fname.find_last_of(".")) == fileExtension) {
           if (strlen(directory) > 2) {
 #if defined(WIN32)
             fullFileName << directory << "\\" << ent->d_name;
