@@ -55,7 +55,7 @@ __global__ void pconvol(float *out,float *in,
   out[k+1] = re*im2 + re2*im;
 
   if(t > dftsize+1) return;
-  syncthreads();
+  __syncthreads();
     for(int i=dftsize+2; i < end; i+=(dftsize+2))
       out[t] += out[t + i];
 
