@@ -60,7 +60,10 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= filter_init_(csound);
     err |= flanger_init_(csound);
     err |= follow_init_(csound);
+#ifndef NO_FS
     err |= fout_init_(csound);
+    err |= ugnorman_init_(csound);
+#endif
     err |= freeverb_init_(csound);
     err |= ftconv_init_(csound);
     err |= ftgen_init_(csound);
@@ -89,7 +92,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= ugensa_init_(csound);
     err |= uggab_init_(csound);
     err |= ugmoss_init_(csound);
-    err |= ugnorman_init_(csound);
+
     err |= ugsc_init_(csound);
     err |= wave_terrain_init_(csound);
 

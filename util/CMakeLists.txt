@@ -1,5 +1,6 @@
 # UTILITY PLUGIN AND PROGRAMS
 
+if(BUILD_UTILITIES AND NOT BUILD_NO_FS)
 set(stdutil_SRCS
     atsa.c          cvanal.c        dnoise.c    envext.c
     het_export.c    het_import.c    hetro.c     lpanal.c
@@ -20,7 +21,7 @@ endif()
 
 add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
 
-if(BUILD_UTILITIES)
+
     make_utility(atsa        atsa_main.c)
     make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c)
@@ -57,6 +58,5 @@ if(BUILD_UTILITIES)
     else()
         message(STATUS "Not building src_conv (libsndfile or libsamplerate not found).")
     endif()
-
-endif()
 add_subdirectory(SDIF)
+endif()

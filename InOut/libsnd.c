@@ -31,6 +31,13 @@
 # include <sys/types.h>
 #endif
 
+#ifdef NO_FS //dummy write/read functions
+size_t sf_write_MYFLT(SFP a, MYFLT *b, size_t c) { return 0;}
+size_t sf_writef_MYFLT(SFP a, MYFLT *b, size_t c) { return 0;}
+size_t sf_read_MYFLT(SFP a, MYFLT *b, size_t c){ return 0;}
+#endif
+
+
 #ifdef PIPES
 # if defined(SGI) || defined(LINUX) || defined(__BEOS__) || defined(NeXT) ||  \
      defined(__MACH__)
@@ -41,8 +48,10 @@ extern  FILE *  _popen(const char *, const char *);
 extern  int     _pclose(FILE *);
 #endif
 
+#ifndef NO_FS
 static  void    sndwrterr(CSOUND *, int, int);
 static  void    sndfilein_noscale(CSOUND *csound);
+#endif
 
 #define STA(x)   (csound->libsndStatics.x)
 
@@ -115,8 +124,8 @@ static void spoutsf(CSOUND *csound)
     csound->libsndStatics.nframes = nframes;
 }
 
+#ifndef NO_FS
 /* special version of spoutsf for "raw" floating point files */
-
 static void spoutsf_noscale(CSOUND *csound)
 {
     uint32_t chn = 0;
@@ -424,6 +433,7 @@ static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
     memset(&inbuf[i], 0, (n-i)*sizeof(MYFLT));
     return inbufsize;
 }
+#endif
 
 /* Checks if the specified file name is a real-time audio device. */
 /* Returns the device number (defaults to 1024) if it is, and -1 otherwise. */
@@ -470,6 +480,8 @@ int check_rtaudio_name(char *fName, char **devName, int isOutput)
 
 void sfopenin(CSOUND *csound)           /* init for continuous soundin */
 {
+
+#ifndef NO_FS
     OPARMS  *O = csound->oparms;
     char    *sfname, *fullName;
     SF_INFO sfinfo;
@@ -583,8 +595,10 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
                       getstrformat(O->informat), sfname, type2string(fileType));
     }
     STA(isfopen) = 1;
+ #endif   
 }
 
+#ifndef NO_FS
 static char* copyrightcode(int n)
 {
       char* a[] = {
@@ -600,9 +614,11 @@ static char* copyrightcode(int n)
       if (n>=8) n = 0;
       return a[n];
 }
+#endif
 
 void sfopenout(CSOUND *csound)                  /* init for sound out       */
 {                                               /* (not called if nosound)  */
+#ifndef NO_FS
     OPARMS  *O = csound->oparms;
     char    *s, *fName, *fullName;
     SF_INFO sfinfo;
@@ -883,10 +899,12 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     }
     STA(osfopen)   = 1;
     STA(outbufrem) = O->outbufsamps;
+#endif
 }
 
 void sfclosein(CSOUND *csound)
 {
+#ifndef NO_FS
     alloc_globals(csound);
     if (!STA(isfopen))
       return;
@@ -906,10 +924,12 @@ void sfclosein(CSOUND *csound)
       STA(infile) = NULL;
     }
     STA(isfopen) = 0;
+ #endif
 }
 
 void sfcloseout(CSOUND *csound)
 {
+ #ifndef NO_FS
     OPARMS  *O = csound->oparms;
     int     nb;
 
@@ -958,11 +978,12 @@ void sfcloseout(CSOUND *csound)
         csound->Message(csound, " (%s)\n", type2string(O->filetyp));
     }
     STA(osfopen) = 0;
+#endif
 }
 
+#ifndef NO_FS
 /* report soundfile write(osfd) error   */
 /* called after chk of write() bytecnt  */
-
 static void sndwrterr(CSOUND *csound, int nret, int nput)
 {
     csound->ErrorMsg(csound,
@@ -974,6 +995,7 @@ static void sndwrterr(CSOUND *csound, int nret, int nput)
     sfcloseout(csound);                           /* & try to close the file */
     csound->Die(csound, Str("\t... closed\n"));
 }
+#endif
 
 void sfnopenout(CSOUND *csound)
 {
@@ -1010,12 +1032,13 @@ static void sndfilein(CSOUND *csound)
     sndfilein_(csound, csound->e0dbfs);
 }
 
+#ifndef NO_FS
 /* special version of sndfilein for "raw" floating point files */
-
 static void sndfilein_noscale(CSOUND *csound)
 {
     sndfilein_(csound, FL(1.0));
 }
+#endif
 
 static int audrecv_dummy(CSOUND *csound, MYFLT *buf, int nbytes)
 {

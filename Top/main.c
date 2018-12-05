@@ -419,7 +419,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     }
 
 
-
+#ifndef NO_FS
     /* if sound file type is still not known, check SFOUTYP */
     if (O->filetyp <= 0) {
       const char  *envoutyp;
@@ -461,7 +461,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       O->outformat = AE_SHORT;              /*  default to short_ints */
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
     O->informat = O->outformat;             /* informat default */
-
+#endif
 
     if (O->numThreads > 1) {
       void csp_barrier_alloc(CSOUND *, void **, int);

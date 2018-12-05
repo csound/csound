@@ -128,7 +128,7 @@ endif()
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
-option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
+option(BUILD_UTILITIES "Build stand-alone executables for utilities# that can also be used with -U" ON)
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 option(BUILD_MULTI_CORE "Enable building for multicore system (requires BUILD_NEW_PARSER)" ON)
 option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
@@ -508,9 +508,14 @@ else()
   find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
 endif()
 
-
+if(NOT BUILD_NO_FS)
 if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
+endif()
+else()
+  message(STATUS "Building with no support for FS or libsndfile")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNO_FS")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_FS")
 endif()
 
 find_package(CURL)
@@ -786,6 +791,28 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/vdelay.c
     OOps/compile_ops.c
+    Top/argdecode.c
+    Top/csdebug.c
+    Top/cscore_internal.c
+    Top/cscorfns.c
+    Top/csmodule.c
+    Top/getstring.c
+    Top/main.c
+    Top/new_opts.c
+    Top/one_file.c
+    Top/opcode.c
+    Top/threads.c
+    Top/utility.c
+    Top/threadsafe.c
+    Top/server.c)
+if(WIN32 AND NOT MSVC)
+set_source_files_properties(Opcodes/sfont.c PROPERTIES
+    COMPILE_FLAGS -mno-ms-bitfields)
+endif()
+
+if(NOT BUILD_NO_FS) 
+set(stdopcod_SRCS
+    Opcodes/loscilx.c
     Opcodes/babo.c
     Opcodes/bilbar.c
     Opcodes/compress.c
@@ -800,7 +827,6 @@ set(libcsound_SRCS
     Opcodes/sfont.c
     Opcodes/grain4.c
     Opcodes/hrtferX.c
-    Opcodes/loscilx.c
     Opcodes/minmax.c
     Opcodes/pan2.c
     Opcodes/arrays.c
@@ -845,27 +871,6 @@ set(libcsound_SRCS
     Opcodes/afilters.c
     Opcodes/wpfilters.c
     Opcodes/zak.c
-    Top/argdecode.c
-    Top/csdebug.c
-    Top/cscore_internal.c
-    Top/cscorfns.c
-    Top/csmodule.c
-    Top/getstring.c
-    Top/main.c
-    Top/new_opts.c
-    Top/one_file.c
-    Top/opcode.c
-    Top/threads.c
-    Top/utility.c
-    Top/threadsafe.c
-    Top/server.c)
-
-if(WIN32 AND NOT MSVC)
-set_source_files_properties(Opcodes/sfont.c PROPERTIES
-    COMPILE_FLAGS -mno-ms-bitfields)
-endif()
-
-set(stdopcod_SRCS
     Opcodes/ambicode.c
     Opcodes/bbcut.c
     Opcodes/biquad.c
@@ -913,6 +918,103 @@ set(stdopcod_SRCS
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
+else()
+  set(stdopcod_SRCS
+    Opcodes/babo.c
+    Opcodes/bilbar.c
+    Opcodes/compress.c
+    Opcodes/eqfil.c
+    Opcodes/Vosim.c
+    Opcodes/squinewave.c
+    Opcodes/pinker.c
+    Opcodes/pitch.c
+    Opcodes/pitch0.c
+    Opcodes/spectra.c
+    Opcodes/ambicode1.c
+    Opcodes/grain4.c
+    Opcodes/minmax.c
+    Opcodes/pan2.c
+    Opcodes/arrays.c
+    Opcodes/phisem.c
+    Opcodes/vbap.c
+    Opcodes/vbap1.c
+    Opcodes/vbap_n.c
+    Opcodes/vbap_zak.c
+    Opcodes/vaops.c
+    Opcodes/ugakbari.c
+    Opcodes/harmon.c
+    Opcodes/pitchtrack.c
+    Opcodes/partikkel.c
+    Opcodes/shape.c
+    Opcodes/tabsum.c
+    Opcodes/crossfm.c
+    Opcodes/fareyseq.c
+    Opcodes/modmatrix.c
+    Opcodes/scoreline.c
+    Opcodes/modal4.c
+    Opcodes/physutil.c
+    Opcodes/physmod.c
+    Opcodes/mandolin.c
+    Opcodes/singwave.c
+    Opcodes/fm4op.c
+    Opcodes/moog1.c
+    Opcodes/shaker.c
+    Opcodes/bowedbar.c
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c
+    Opcodes/ftest.c
+    Opcodes/cpumeter.c
+    Opcodes/gendy.c
+    Opcodes/tl/sc_noise.c
+    Opcodes/afilters.c
+    Opcodes/wpfilters.c
+    Opcodes/zak.c
+    Opcodes/ambicode.c
+    Opcodes/bbcut.c
+    Opcodes/biquad.c
+    Opcodes/butter.c
+    Opcodes/clfilt.c
+    Opcodes/cross2.c
+    Opcodes/dam.c
+    Opcodes/dcblockr.c
+    Opcodes/filter.c
+    Opcodes/flanger.c
+    Opcodes/follow.c
+    Opcodes/freeverb.c
+    Opcodes/ftconv.c
+    Opcodes/ftgen.c
+    Opcodes/gab/gab.c
+    Opcodes/gab/vectorial.c
+    Opcodes/grain.c
+    Opcodes/locsig.c
+    Opcodes/lowpassr.c
+    Opcodes/metro.c
+    Opcodes/midiops2.c
+    Opcodes/midiops3.c
+    Opcodes/newfils.c
+    Opcodes/nlfilt.c
+    Opcodes/oscbnk.c
+    Opcodes/pluck.c
+    Opcodes/paulstretch.c
+    Opcodes/repluck.c
+    Opcodes/reverbsc.c
+    Opcodes/seqtime.c
+    Opcodes/sndloop.c
+    Opcodes/sndwarp.c
+    Opcodes/space.c
+    Opcodes/spat3d.c
+    Opcodes/syncgrain.c
+    Opcodes/ugens7.c
+    Opcodes/ugens9.c
+    Opcodes/ugensa.c
+    Opcodes/uggab.c
+    Opcodes/ugmoss.c
+    Opcodes/ugsc.c
+    Opcodes/wave-terrain.c
+    Opcodes/stdopcod.c) 
+endif()
 
 set(cs_pvs_ops_SRCS
     Opcodes/ifd.c

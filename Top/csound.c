@@ -3422,12 +3422,13 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
       print_csound_version(csound);
+#ifndef NO_FS
       {
-        char buffer[128];
+        char buffer[128];     
         sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
         csound->Message(csound, "%s\n", buffer);
       }
-
+#endif
       /* do not know file type yet */
       O->filetyp = -1;
       O->sfheader = 0;

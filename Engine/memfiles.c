@@ -29,10 +29,11 @@
 #include "lpc.h"
 #include "pstream.h"
 #include "namedins.h"
-#include <sndfile.h>
 #include <string.h>
 #include <inttypes.h>
 
+
+#ifndef NO_FS
 static int Load_Het_File_(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)
 {
@@ -688,3 +689,34 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     /* return with pointer to file structure */
     return p;
 }
+
+#else
+SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi){
+  IGN(csound);
+  IGN(fileName);
+  IGN(sfi);
+  return NULL;
+}
+int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p){
+  IGN(csound);
+  IGN(fname);
+  IGN(p);
+  return 0;
+}
+int delete_memfile(CSOUND *csound, const char *filnam) {
+  IGN(csound);
+  IGN(filnam);
+  return 0;
+}
+void rlsmemfiles(CSOUND *csound) {
+  IGN(csound);
+}
+MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
+                         int (*callback)(CSOUND*, MEMFIL*)){
+  IGN(csound);
+  IGN(filnam);
+  IGN(csFileType);
+  IGN(callback);
+  return 0;
+}
+#endif

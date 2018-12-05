@@ -1633,8 +1633,13 @@ typedef struct _message_queue_t_ {
       EVENT   *lsect;
     } musmonStatics;
     struct libsndStatics__ {
+#ifndef NO_FS
       SNDFILE       *outfile;
       SNDFILE       *infile;
+#else
+      void       *outfile;
+      void       *infile;
+#endif
       char          *sfoutname;           /* soundout filename            */
       MYFLT         *inbuf;
       MYFLT         *outbuf;              /* contin sndio buffers         */

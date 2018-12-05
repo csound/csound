@@ -24,7 +24,9 @@
 #ifndef CSOUND_SOUNDIO_H
 #define CSOUND_SOUNDIO_H
 
+#ifndef NO_FS
 #include <sndfile.h>
+#endif
 
 #ifdef WIN32
 #define IOBUFSAMPS   4096   /* default sampframes in audio iobuf, -b settable */
@@ -104,6 +106,8 @@
 #define TYPE2SF(x)   ((int) (x) << 16)
 #define SF2TYPE(x)   ((int) (x& SF_FORMAT_TYPEMASK) >> 16)
 
+
+#ifndef NO_FS  
 #ifdef  USE_DOUBLE
 #define sf_write_MYFLT  sf_write_double
 #define sf_writef_MYFLT  sf_writef_double
@@ -113,6 +117,14 @@
 #define sf_writef_MYFLT  sf_writef_float
 #define sf_read_MYFLT   sf_read_float
 #endif
+#else
+typedef struct SNDFILE_tag* SFP;
+size_t sf_write_MYFLT(SFP a, MYFLT *b, size_t c);
+size_t sf_writef_MYFLT(SFP a, MYFLT *b, size_t c);
+size_t sf_read_MYFLT(SFP a, MYFLT *b, size_t c);
+#endif
+
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -121,7 +133,11 @@ extern "C" {
 /* generic sound input structure */
 
 typedef struct {
+#ifndef NO_FS
         SNDFILE *sinfd;             /* sound file handle                    */
+#else
+        void *sinfd;
+#endif
         MYFLT   *inbufp, *bufend;   /* current buffer position, end of buf  */
         void    *fd;                /* handle returned by csoundFileOpen()  */
         int     bufsmps;            /* number of mono samples in buffer     */

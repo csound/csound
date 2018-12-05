@@ -441,7 +441,6 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
-    int32   *rngp;
     uint32_t n;
 
     csoundLockMutex(csound->API_lock);
@@ -506,11 +505,14 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       }
       for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
         print_maxamp(csound, *maxp++);
+#ifndef NO_FS
       if (csound->oparms->outformat != AE_FLOAT) {
+        int32   *rngp;
         csound->Message(csound, Str("\n\t   overall samples out of range:"));
         for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
           csound->Message(csound, "%9d", *rngp++);
       }
+#endif
       csound->Message(csound, Str("\n%d errors in performance\n"),
                       csound->perferrcnt);
       print_benchmark_info(csound, Str("end of performance"));

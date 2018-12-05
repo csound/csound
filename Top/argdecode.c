@@ -360,6 +360,7 @@ CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
 
 void set_output_format(OPARMS *O, char c)
 {
+#ifndef NO_FS
     switch (c) {
     case 'a':
       O->outformat = AE_ALAW;    /* a-law soundfile */
@@ -408,6 +409,10 @@ void set_output_format(OPARMS *O, char c)
     default:
       return; /* do nothing */
     };
+#else
+    IGN(c);
+    O->outformat = 0;
+#endif
 }
 
 
@@ -425,6 +430,7 @@ static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
 
 const char* get_output_format(OPARMS *O)
 {
+#ifndef NO_FS
   int i = 0;
   char c;
     switch (O->outformat) {
@@ -466,6 +472,9 @@ const char* get_output_format(OPARMS *O)
       i++;
     }
     return sample_format_map[i].longformat;
+#else
+    return NULL;
+#endif
 }
 
 
@@ -474,6 +483,7 @@ typedef struct {
     int     type;
 } SOUNDFILE_TYPE_ENTRY;
 
+#ifndef NO_FS
 static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { "wav",    TYP_WAV   },  { "aiff",   TYP_AIFF  },
     { "au",     TYP_AU    },  { "raw",    TYP_RAW   },
@@ -490,6 +500,9 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { "mpc2k",  TYP_MPC2K },  { "rf64",   TYP_RF64  },
     { NULL , -1 }
 };
+#else
+static const SOUNDFILE_TYPE_ENTRY file_type_map[] = { {NULL, -1} };
+#endif
 
 extern void sfopenout(CSOUND *csound);
 extern void sfcloseout(CSOUND *csound);
@@ -545,6 +558,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     /* -A */
+#ifndef NO_FS
     else if (!(strcmp (s, "aiff"))) {
       O->filetyp = TYP_AIFF;            /* AIFF output request */
       return 1;
@@ -553,6 +567,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->filetyp = TYP_AU;              /* AU output request */
       return 1;
     }
+#endif
     else if (!(strncmp (s, "iobufsamps=", 11))) {
       s += 11;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no iobufsamps"));
@@ -621,11 +636,13 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->postscript = 1;                /* don't use graphics but PostScript */
       return 1;
     }
+#ifndef NO_FS
     /* -h */
     else if (!(strcmp (s, "noheader"))) {
       O->filetyp = TYP_RAW;             /* RAW output request */
       return 1;
     }
+#endif
     else if (!(strncmp (s, "heartbeat=", 10))) {
       s += 10;
       if (*s == '\0') O->heartbeat = 1;
@@ -668,6 +685,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->sfwrite = 0;                   /* and implies nosound */
       return 1;
     }
+#ifndef NO_FS
     else if (!(strcmp (s, "ircam"))) {
       O->filetyp = TYP_IRCAM;           /* IRCAM output request */
       return 1;
@@ -677,6 +695,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->outformat = AE_VORBIS;         /* Xiph Vorbis encoding */
       return 1;
     }
+#endif
     /*
       -k N orchestra krate override
      */
@@ -931,10 +950,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->xfilename = s;
       return 1;
     }
+ #ifndef NO_FS
     else if (!(strcmp(s, "wave"))) {
       O->filetyp = TYP_WAV;             /* WAV output request */
       return 1;
     }
+ #endif
     else if (!(strncmp (s, "list-opcodes", 12))) {
       int full = 0;
       s += 12;
@@ -1286,6 +1307,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
             /* defaults in rtaudio.c */
             s += n;
             break;
+ #ifndef NO_FS
           case 'A':
             O->filetyp = TYP_AIFF;        /* AIFF output request*/
             break;
@@ -1298,6 +1320,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'h':
             O->filetyp = TYP_RAW;         /* RAW output request */
             break;
+  #endif
           case 'c':
           case 'a':
           case 'u':

@@ -2583,6 +2583,8 @@ static int gen01(FGDATA *ff, FUNC *ftp)
     return gen01raw(ff, ftp);
 }
 
+
+#ifndef NO_FS
 static void needsiz(CSOUND *csound, FGDATA *ff, int32 maxend)
 {
     int32 nxtpow;
@@ -2876,6 +2878,21 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+static int gen01raw(FGDATA *ff, FUNC *ftp) {
+  IGN(ff);
+  IGN(ftp);
+  return 0;
+}
+
+static int gen43(FGDATA *ff, FUNC *ftp) {
+  IGN(ff);
+  IGN(ftp);
+  return 0;
+}
+
+#endif
+
 #ifndef NACL
 #include "mp3dec.h"
 

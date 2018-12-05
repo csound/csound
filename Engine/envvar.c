@@ -66,7 +66,11 @@ typedef struct CSFILE_ {
     int             type;
     int             fd;
     FILE            *f;
+#ifndef NO_FS
     SNDFILE         *sf;
+#else
+    void            *sf;
+#endif
     void            *cb;
     int             async_flag;
     int             items;
@@ -129,6 +133,8 @@ static int is_valid_envvar_name(const char *name)
     return 1;
 }
 
+
+#ifndef NO_FS /* test for the presence of a FS */
 /**
  * Get pointer to value of environment variable 'name'.
  * Return value is NULL if the variable is not set.
@@ -151,6 +157,11 @@ PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
 
     return (const char*) cs_hash_table_get(csound, csound->envVarDB, (char*)name);
 }
+#else 
+PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name) {
+  return NULL;
+}
+#endif
 
 /**
  * Set the global value of environment variable 'name' to 'value',
@@ -764,6 +775,9 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     return retval;
 }
 
+
+
+#ifndef NO_FS /* test for the presence of a FS */
 static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
                                 const char *filename, const char *mode,
                                 const char *envList)
@@ -1513,9 +1527,6 @@ static int read_files(CSOUND *csound){
     return 1;
 }
 
-
-
-
 void *file_iothread(void *p){
     int res = 1;
     CSOUND *csound = p;
@@ -1531,3 +1542,109 @@ void *file_iothread(void *p){
     csound->file_io_start = 0;
     return NULL;
 }
+#else /* NO FS */
+
+char *csoundFindInputFile(CSOUND *csound,
+                          const char *filename, const char *envList) {
+  IGN(csound);
+  IGN(filename);
+  IGN(envList);
+  return NULL;
+}
+char *csoundFindOutputFile(CSOUND *csound,
+                           const char *filename, const char *envList) {
+  IGN(csound);
+  IGN(filename);
+  IGN(envList);
+  return NULL;
+}
+
+void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
+                             const char *name, void *param, const char *env,
+                             int csFileType, int isTemporary){
+  IGN(csound);
+  IGN(name);
+  IGN(fd);
+  IGN(type);
+  IGN(param);
+  IGN(env);
+  IGN(csFileType);
+  IGN(isTemporary);
+  return NULL;
+}
+void *csoundCreateFileHandle(CSOUND *csound,
+                             void *fd, int type, const char *fullName){
+  IGN(csound);
+  IGN(fullName);
+  IGN(fd);
+  IGN(type);
+  return NULL;
+}
+
+char *csoundGetFileName(void *fd){
+  IGN(fd);
+  return NULL;
+}
+
+int csoundFileClose(CSOUND *csound, void *fd) {
+    IGN(csound);
+  IGN(fd);
+  return 0;
+}
+
+void close_all_files(CSOUND *csound) {
+  IGN(csound);
+};
+
+void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
+                 char *env, int fromScore){
+  IGN(csound);
+  IGN(fp);
+  IGN(name);
+  IGN(basename);
+  IGN(env);
+  IGN(fromScore);
+  return NULL;
+}
+
+void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
+                                   const char *name, void *param, const char *env,
+                                   int csFileType, int buffsize, int isTemporary){
+  IGN(csound);
+  IGN(name);
+  IGN(fd);
+  IGN(type);
+  IGN(param);
+  IGN(env);
+  IGN(csFileType);
+  IGN(isTemporary);
+  return NULL;
+}
+
+unsigned int csoundReadAsync(CSOUND *csound, void *handle,
+                             MYFLT *buf, int items) {
+  IGN(csound);
+  IGN(handle);
+  IGN(buf);
+  IGN(items);
+  return 0;
+}
+
+unsigned int csoundWriteAsync(CSOUND *csound, void *handle,
+                              MYFLT *buf, int items) {
+  IGN(csound);
+  IGN(handle);
+  IGN(buf);
+  IGN(items);
+  return 0;
+}
+
+int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence) {
+  IGN(csound);
+  IGN(handle);
+  IGN(pos);
+  IGN(whence);
+  return 0;
+}
+  
+#endif
