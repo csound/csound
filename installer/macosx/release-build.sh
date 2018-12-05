@@ -191,8 +191,10 @@ install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/libpng16
 install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/libportaudio.2.dylib $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
 
 # install name changes for libs under framework, luajit not included here
-install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/CsoundLib64
-install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
+# will make libsndfile location absolute to avoid linking problems for API clients using flat namespace.
+# @loader_path/../../ => /Library/Frameworks/CsoundLib64.framework/
+install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib /Library/Frameworks/CsoundLib64.framework/libs/libsndfile.1.dylib $FRAMEWORK64_DIR/CsoundLib64
+install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib /Library/Frameworks/CsoundLib64.framework/libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
 
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
 
