@@ -500,15 +500,13 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
-
+if(NOT BUILD_NO_FS)
 # First, required stuff
 if (MSVC)
   find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 else()
   find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
 endif()
-
-if(NOT BUILD_NO_FS)
 if(NOT LIBSNDFILE_LIBRARY)
     message(FATAL_ERROR "Csound requires the sndfile library")
 endif()
