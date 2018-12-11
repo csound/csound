@@ -3247,7 +3247,7 @@ extern "C" {
   {
       //char *text = p->itext->data;
       Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
-                              (int)*p->iwidth, (int)*p->iheight, text);
+                              (int)*p->iwidth, (int)*p->iheight, strdup(text));
       widget_attributes(csound, o);
       Fl_Boxtype type;
       int itype = (int) *p->itype;
@@ -3331,6 +3331,7 @@ extern "C" {
       char *text = strdup(p->itext->data);
       ADDR_SET_VALUE v = widgetGlobals->AddrSetValue[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
+      free((void*)o->label());
       o->label(text);
       return OK;
   }
@@ -3345,7 +3346,8 @@ extern "C" {
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       if (i<0 || i>csound->GetStrsmax(csound)) text = (char *) "???";
       else if ((text=csound->GetStrsets(csound,i))==NULL) text = (char *) "???";
-      o->label(text);
+      free((void*)o->label());
+      o->label(strdup(text));
       return OK;
   }
 
