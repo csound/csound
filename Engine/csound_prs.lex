@@ -542,8 +542,12 @@ NM              [nm][ \t]+
                   }
                 }
 {NM}            {
-                  corfile_putc(csound, yytext[0], PARM->cf);
-                  if (!PARM->isString) BEGIN(lname);
+                  if (PARM->isString) {
+                    corfile_putc(csound, yytext[0], PARM->cf);
+                    BEGIN(lname);
+                  } else {
+                    corfile_puts(csound, yytext, PARM->cf);
+                  }
                 }
 <lname>[ \t]*     /* eat the whitespace */
 <lname>{IDENT}   {
