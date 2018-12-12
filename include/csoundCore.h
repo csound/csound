@@ -75,7 +75,7 @@
 extern "C" {
 #endif /*  __cplusplus */
 
-#if defined(__MACH__) || defined(__FreeBSD__)
+#if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
 #endif
 
