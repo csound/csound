@@ -3149,6 +3149,7 @@ extern "C" {
                                (int) *p->green,
                                (int) *p->blue);
       o->color(color);
+      o->redraw();
       return OK;
   }
 
@@ -3160,6 +3161,7 @@ extern "C" {
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       int color = fl_rgb_color((int) *p->red, (int) *p->green, (int) *p->blue);
       o->selection_color(color);
+      o->redraw();
       return OK;
   }
 
@@ -3171,6 +3173,7 @@ extern "C" {
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       int color = fl_rgb_color((int) *p->red, (int) *p->green, (int) *p->blue);
       o->labelcolor(color);
+      o->window()->redraw();
       return OK;
   }
 
