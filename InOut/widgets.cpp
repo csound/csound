@@ -3022,15 +3022,11 @@ static void fl_setWidgetValue_(CSOUND *csound,
       break;
     case 3:                                     // FLjoy
       {
-        static int  flag = 0;
-        // FLsetVal always requires two adjacent calls when setting FLjoy
-        if (!flag) {
+        if (v.joy == JOY_X) {
           ((Fl_Positioner *) o)->xvalue(val);
-          flag = 1;
         }
         else {
           ((Fl_Positioner *) o)->yvalue(val);
-          flag = 0;
         }
       }
       break;
