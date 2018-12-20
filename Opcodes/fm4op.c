@@ -160,6 +160,7 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
     p->gains[3] = FL(1.0);
     TwoZero_setZeroCoeffs(&p->twozero, tempCoeffs);
     p->twozero.gain = FL(0.0);
+    p->w_phase[3] = 0;          /* *** FIDDLE???? *** */
     return OK;
  err1:
 /* Expect sine wave */
@@ -641,6 +642,10 @@ int32_t b3set(CSOUND *csound, FM4OP *p)
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
     ADSR_keyOn(&p->adsr[3]);
+    p->w_rate[0] = p->ratios[0] * p->baseFreq * csound->onedsr * p->waves[0]->flen;
+    p->w_rate[1] = p->ratios[1] * p->baseFreq * csound->onedsr * p->waves[1]->flen;
+    p->w_rate[2] = p->ratios[2] * p->baseFreq * csound->onedsr * p->waves[2]->flen;
+    p->w_rate[3] = p->ratios[3] * p->baseFreq * csound->onedsr * p->waves[3]->flen;
     return OK;
 }
 
@@ -654,6 +659,7 @@ int32_t hammondB3(CSOUND *csound, FM4OP *p)
     MYFLT       c1 = *p->control1;
     MYFLT       c2 = *p->control2;
     MYFLT       temp;
+    MYFLT       moddep  = *p->modDepth;
 
     p->baseFreq = *p->frequency;
     p->gains[0] = amp * FM4Op_gains[95];
@@ -667,9 +673,9 @@ int32_t hammondB3(CSOUND *csound, FM4OP *p)
     }
     for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput;
-      if (*p->modDepth > FL(0.0)) {
+      if (moddep > FL(0.0)) {
         p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
-        temp = FL(1.0) + (*p->modDepth * FL(0.1) *
+        temp = FL(1.0) + (moddep * FL(0.1) *
                           Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                                     p->vibWave->ftable, p->v_rate, FL(0.0)));
         temp *= p->baseFreq * csound->onedsr;
@@ -678,6 +684,8 @@ int32_t hammondB3(CSOUND *csound, FM4OP *p)
         p->w_rate[2] = p->ratios[2] * temp * p->waves[2]->flen;
         p->w_rate[3] = p->ratios[3] * temp * p->waves[3]->flen;
       }
+      // *** if modDepth is zero it looks as if w_rate should be initialised
+      // *** but it make no difference ***
       lastOutput = FM4Alg8_tick(p, c1, c2);
       ar[n]= lastOutput*AMP_SCALE;
     }

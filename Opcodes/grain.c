@@ -105,15 +105,15 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     gcvt = glen/csound->GetSr(csound);
 
     pow2tab = ISPOW2(glen);
-    
+
     etp  = p->eftp;
     etbl = etp->ftable;
     elen = etp->flen;
     ecvt = elen/csound->GetSr(csound);
-    
+
     lb   = gtp->lobits;
     lb2  = etp->lobits;
-  
+
     buf  = p->x;
     rem  = p->y;
 
@@ -141,7 +141,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
         amp = *xamp + Unirand(csound, *p->kabnd);
 
         temp = buf + i;
-        n = ekglen;  
+        n = ekglen;
         isc = (int32) Unirand(csound, p->pr);
         isc2 = 0;
         if(pow2tab) {
@@ -158,13 +158,14 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
           /* VL 21/11/18 new code, floating-point indexing */
           MYFLT gph = (MYFLT) isc;
           MYFLT eph = FL(0.0);
-          MYFLT ginc = (*xlfr + Unirand(csound, *p->kbnd)) * gcvt;           
+          MYFLT ginc = (*xlfr + Unirand(csound, *p->kbnd)) * gcvt;
         do {
           *temp++ += amp * gtbl[(int)gph] * etbl[(int)eph];
           gph += ginc;
           eph += einc;
           while(gph < 0) gph += glen;
           while(gph >= glen) gph -= glen;
+          /* *** Can eph ever be negative?  only if einc negative *** * */
           while(eph < 0) eph += elen;
           while(eph >= elen) eph -= elen;
         } while (--n);
@@ -204,4 +205,3 @@ int32_t grain_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-

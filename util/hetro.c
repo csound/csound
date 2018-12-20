@@ -100,7 +100,7 @@ typedef struct {
 static int32_t writesdif(CSOUND*, HET*);
 #endif
 static  double  GETVAL(HET *, double *, int32);
-static  double  sq(double);
+//static  double  sq(double);
 static  void    PUTVAL(HET *,double *, int32, double);
 static  int32_t hetdyn(CSOUND *csound, HET *, int32_t);
 static  void    lpinit(HET*);
@@ -516,7 +516,7 @@ static void output_ph(HET *thishet,int32 smpl)
 {                               /* is taken to represent the freq. change.   */
     double      delt_temp;      /* the pairs are then comb filtered.         */
     double      temp_a;
-
+    
     if ((temp_a=GETVAL(thishet,thishet->a_term,smpl)) == 0)
             thishet->new_ph=
               (-PI/FL(2.0))*sgn(GETVAL(thishet,thishet->b_term,smpl));
@@ -533,8 +533,8 @@ static void output_ph(HET *thishet,int32 smpl)
                  (TWOPI*thishet->delta_t));
     if ((thishet->freq_c <= 1) || (smpl < 3)) {
       PUTVAL(thishet,thishet->amp_av1,smpl,
-             (MYFLT)sqrt(sq(GETVAL(thishet,thishet->a_term,smpl))
-                         + sq(GETVAL(thishet,thishet->b_term,smpl))));
+             (MYFLT)hypot(GETVAL(thishet,thishet->a_term,smpl),
+                          GETVAL(thishet,thishet->b_term,smpl)));
       average(thishet, thishet->windsiz,thishet->amp_av1,thishet->amp_av2,smpl);
       average(thishet, thishet->windsiz,thishet->amp_av2,thishet->amp_av3,smpl);
       average(thishet, thishet->windsiz,thishet->amp_av3,thishet->r_ampl,smpl);
@@ -545,8 +545,8 @@ static void output_ph(HET *thishet,int32 smpl)
     }
     else {
       PUTVAL(thishet,thishet->r_ampl,smpl,
-             (MYFLT)sqrt(sq(GETVAL(thishet,thishet->a_term,smpl))
-                         + sq(GETVAL(thishet,thishet->b_term,smpl))));
+              (MYFLT)hypot(GETVAL(thishet,thishet->a_term,smpl),
+                           GETVAL(thishet,thishet->b_term,smpl)));
       PUTVAL(thishet,thishet->a_avg,smpl,delt_temp);
     }
 }
@@ -573,10 +573,10 @@ static void output(HET *thishet, int32 smpl, int32_t hno, int32_t pnt)
 }
 
 /* If this function worthwhile?  Need to coinsider recalculation */
-inline static double sq(double num)     /* RETURNS SQUARE OF ARGUMENT */
-{
-    return (num * num);
-}
+/* inline static double sq(double num)     /\* RETURNS SQUARE OF ARGUMENT *\/ */
+/* { */
+/*     return (num * num); */
+/* } */
 
 static int32_t quit(CSOUND *csound, char *msg)
 {
@@ -752,7 +752,7 @@ static int32_t filedump(HET *thishet, CSOUND *csound)
                           "\tpeakamp %d\n"),
                       h, mpoints, fpoints, pkamp);
     }
-    csound->Message(csound, "%s%" PRId64 " %s%s\n", Str("wrote %"),
+    csound->Message(csound, "%s%" PRId64 " %s%s\n", Str("wrote "),
                     (int64_t)lenfil, Str("bytes to "), thishet->outfilnam);
     csound->Free(csound, magout);
     csound->Free(csound, frqout);

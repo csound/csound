@@ -962,7 +962,7 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
 
 };
 
- 
+
 /** Fsig plugin template base class:
     N outputs and M inputs
  */
