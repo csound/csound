@@ -85,8 +85,8 @@ typedef struct {
          amp_min;               /* amplitude cutout threshold */
   int32_t skip,                  /* flag to stop analysis if zeros*/
          bufsiz;                /* circular buffer size */
-  int32  smpsin;                /* num sampsin */
-  int32  midbuf,                /* set to bufsiz / 2   */
+  int32_t smpsin;                /* num sampsin */
+  int32_t midbuf,                /* set to bufsiz / 2   */
          bufmask;               /* set to bufsiz - 1   */
   char   *infilnam,             /* input file name */
          *outfilnam;            /* output file name */
@@ -300,7 +300,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     smpspc = thishet->smpsin * sizeof(double);
     bufspc = thishet->bufsiz * sizeof(double);
 
-    dsp = dspace = csound->Malloc(csound, smpspc * 2 + bufspc * 13);
+    dsp = dspace = csound->Calloc(csound, smpspc * 2 + bufspc * 13);
     thishet->c_p = (double *) dsp;      dsp += smpspc;  /* space for the    */
     thishet->s_p = (double *) dsp;      dsp += smpspc;  /* quadrature terms */
     begbufs = (double *) dsp;
@@ -516,7 +516,7 @@ static void output_ph(HET *thishet,int32 smpl)
 {                               /* is taken to represent the freq. change.   */
     double      delt_temp;      /* the pairs are then comb filtered.         */
     double      temp_a;
-    
+
     if ((temp_a=GETVAL(thishet,thishet->a_term,smpl)) == 0)
             thishet->new_ph=
               (-PI/FL(2.0))*sgn(GETVAL(thishet,thishet->b_term,smpl));
@@ -571,12 +571,6 @@ static void output(HET *thishet, int32 smpl, int32_t hno, int32_t pnt)
         thishet->max_amp = new_amp;
     }
 }
-
-/* If this function worthwhile?  Need to coinsider recalculation */
-/* inline static double sq(double num)     /\* RETURNS SQUARE OF ARGUMENT *\/ */
-/* { */
-/*     return (num * num); */
-/* } */
 
 static int32_t quit(CSOUND *csound, char *msg)
 {
@@ -641,9 +635,9 @@ static int32_t filedump(HET *thishet, CSOUND *csound)
     for (h = 0; h < thishet->hmax; h++) {
       for (pnt = 0; pnt < thishet->num_pts; pnt++) {
         x = thishet->MAGS[h][pnt] * scale;
-        mags[h][pnt] = (int16)(x*u(x));
+        mags[h][pnt] = (int16)(x*u(x)+0.5);
         y = thishet->FREQS[h][pnt];
-        freqs[h][pnt] = (int16)(y*u(y));
+        freqs[h][pnt] = (int16)(y*u(y)+0.5);
       }
     }
 

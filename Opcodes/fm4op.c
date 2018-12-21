@@ -617,6 +617,7 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 int32_t b3set(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
+    MYFLT       temp = p->baseFreq * csound->onedsr;
 
     if (UNLIKELY(make_FM4Op(csound,p))) return NOTOK;
     if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK;         /* sines */
@@ -633,19 +634,15 @@ int32_t b3set(CSOUND *csound, FM4OP *p)
     ADSR_setAllTimes(csound, &p->adsr[1], FL(0.005), FL(0.003), FL(1.0), FL(0.01));
     ADSR_setAllTimes(csound, &p->adsr[2], FL(0.005), FL(0.003), FL(1.0), FL(0.01));
     ADSR_setAllTimes(csound, &p->adsr[3], FL(0.005), FL(0.001), FL(0.4), FL(0.03));
-    /*      ADSR_setAll(&p->adsr[0], 0.05f, 0.03f, FL(1.0), FL(0.04)); */
-    /*      ADSR_setAll(&p->adsr[1], 0.05f, 0.03f, FL(1.0), FL(0.04)); */
-    /*      ADSR_setAll(&p->adsr[2], 0.05f, 0.03f, FL(1.0), FL(0.04)); */
-    /*      ADSR_setAll(&p->adsr[3], 0.05f, FL(0.001),0.4f, 0.06f); */
     p->twozero.gain = FL(0.1);
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
     ADSR_keyOn(&p->adsr[3]);
-    p->w_rate[0] = p->ratios[0] * p->baseFreq * csound->onedsr * p->waves[0]->flen;
-    p->w_rate[1] = p->ratios[1] * p->baseFreq * csound->onedsr * p->waves[1]->flen;
-    p->w_rate[2] = p->ratios[2] * p->baseFreq * csound->onedsr * p->waves[2]->flen;
-    p->w_rate[3] = p->ratios[3] * p->baseFreq * csound->onedsr * p->waves[3]->flen;
+    p->w_rate[0] = p->ratios[0] * temp * p->waves[0]->flen;
+    p->w_rate[1] = p->ratios[1] * temp * p->waves[1]->flen;
+    p->w_rate[2] = p->ratios[2] * temp * p->waves[2]->flen;
+    p->w_rate[3] = p->ratios[3] * temp * p->waves[3]->flen;
     return OK;
 }
 

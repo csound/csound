@@ -1103,7 +1103,7 @@ static void to_polar(ATS_FFT *ats_fft, double *mags, double *phase, int N,
     for (k = 0; k < N; k++) {
       x = (double) ats_fft->data[k << 1];
       y = (double) ats_fft->data[(k << 1) + 1];
-      mags[k] = norm * hypot(x, y)/*sqrt(x * x + y * y)*/;
+      mags[k] = norm * hypot(x, y);
       phase[k] = ((x == 0.0 && y == 0.0) ? 0.0 : atan2(y, x));
     }
 }
