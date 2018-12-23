@@ -1381,8 +1381,8 @@ cmplx_multiply_scal(MYFLT *ans_r, MYFLT *ans_i,
 static
 inline
 MYFLT
-inv_mag(MYFLT *a){  // FIXME: use HYPOT
-    return FL(1.0)/(sqrt(a[0]*a[0]+a[1]*a[1])+1.0e-15);
+inv_mag(MYFLT *a){
+    return FL(1.0)/(hypot(a[0], a[1])+1.0e-15);
     //return invsqrt(a[0]*a[0]+a[1]*a[1]);
 }
 static
@@ -1390,7 +1390,7 @@ inline
 MYFLT
 inv_mag2(MYFLT *a){  // FIXME: use HYPOT
     a[0] += 1.0e-15;
-    return FL(1.0)/(sqrt(a[0]*a[0]+a[1]*a[1]));
+    return FL(1.0)/(hypot(a[0],a[1]));
     //return invsqrt(a[0]*a[0]+a[1]*a[1]);
 }
 

@@ -1,4 +1,3 @@
-
 /*  Copyright (C) 2002-2004 Gabriel Maldonado */
 /*                2016 John ffitch (array changed) */
 
@@ -139,7 +138,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
       MYFLT xbmul = p->xbmul;   /* load once */
       int32_t len = p->tablen;
       for (n=offset; n<nsmps; n++)  { /* for loops compile better */
-        int32_t i = (int32_t)(ndx[n]*xbmul);
+        int32_t i = (int32_t)MYFLT2LRND(ndx[n]*xbmul);
         if (UNLIKELY(i > len || i<0)) {
           csound->Message(csound, "ndx: %f\n", ndx[n]);
           return csound->PerfError(csound, &(p->h), Str("tabw off end"));
@@ -150,7 +149,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
     else {
       int32_t len = p->tablen;
       for (n=offset; n<nsmps; n++) {
-        int32_t i = ndx[n];
+        int32_t i = MYFLT2LRND(ndx[n]);
         if (UNLIKELY(i > len || i<0)) {
           return csound->PerfError(csound, &(p->h), Str("tabw off end"));
         }
@@ -164,9 +163,9 @@ static int32_t fastabk(CSOUND *csound, FASTAB *p)
 {
     int32_t i;
     if (p->xmode)
-      i = (int32_t) (*p->xndx * p->xbmul);
+      i = (int32_t) MYFLT2LRND(*p->xndx * p->xbmul);
     else
-      i = (int32_t) *p->xndx;
+      i = (int32_t) MYFLT2LRND(*p->xndx);
     if (UNLIKELY(i > p->tablen || i<0)) {
       return csound->PerfError(csound, &(p->h), Str("tab off end %i"), i);
     }
@@ -178,9 +177,9 @@ static int32_t fastabkw(CSOUND *csound, FASTAB *p)
 {
     int32_t i;
     if (p->xmode)
-      i = (int32_t) (*p->xndx * p->xbmul);
+      i = (int32_t) MYFLT2LRND(*p->xndx * p->xbmul);
     else
-      i = (int32_t) *p->xndx;
+      i = (int32_t) MYFLT2LRND(*p->xndx);
     if (UNLIKELY(i > p->tablen || i<0)) {
       return csound->PerfError(csound, &(p->h), Str("tabw off end"));
     }
@@ -197,9 +196,9 @@ static int32_t fastabi(CSOUND *csound, FASTAB *p)
       return csound->InitError(csound, Str("tab_i: incorrect table number"));
     }
     if (*p->ixmode)
-      i = (int32) (*p->xndx * ftp->flen);
+      i = (int32) MYFLT2LRND(*p->xndx * ftp->flen);
     else
-      i = (int32) *p->xndx;
+      i = (int32) MYFLT2LRND(*p->xndx);
     if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
       return csound->InitError(csound, Str("tab_i off end: table number: %d\n"),
                                (int32_t) *p->xfn);
@@ -217,9 +216,9 @@ static int32_t fastabiw(CSOUND *csound, FASTAB *p)
       return csound->InitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
-      i = (int32) (*p->xndx * ftp->flen);
+      i = (int32) MYFLT2LRND(*p->xndx * ftp->flen);
     else
-      i = (int32) *p->xndx;
+      i = (int32) MYFLT2LRND(*p->xndx);
     if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
       return csound->PerfError(csound, &(p->h), Str("tabw_i off end"));
     }
@@ -245,7 +244,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
       MYFLT xbmul = p->xbmul;
       int32_t len = p->tablen;
       for (i=offset; i<nsmps; i++) {
-        int32_t n = (int32_t) (ndx[i] * xbmul);
+        int32_t n = (int32_t) MYFLT2LRND(ndx[i] * xbmul);
         if (UNLIKELY(n > len || n<0)) {
           return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
         }
@@ -255,7 +254,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
     else {
       int32_t len = p->tablen;
       for (i=offset; i<nsmps; i++) {
-        int32_t n = (int32_t) ndx[i];
+        int32_t n = (int32_t) MYFLT2LRND(ndx[i]);
         if (UNLIKELY(n > len || n<0)) {
           return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
         }
@@ -279,7 +278,7 @@ static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
 static CS_NOINLINE int32_t tab_perf(CSOUND *csound, FASTB *p)
 {
      IGN(csound);
-    *p->r = (*p->tb_ptr)[(int32_t) *p->ndx];
+     *p->r = (*p->tb_ptr)[(int32_t) MYFLT2LRND(*p->ndx)];
     return OK;
 }
 
