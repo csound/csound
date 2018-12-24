@@ -20,7 +20,7 @@ for plugin in *
 do
     echo "Building in " ${plugin}
     cd $plugin $1
-    $NDK_BUILD_CMD $1
+    $NDK_BUILD_CMD -j6 $1
     cd ..
 done
 
