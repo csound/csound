@@ -533,6 +533,11 @@ find_package(JNI)
 find_package(LIBLO)
 find_package(LUAJIT)
 find_package(MUSICXML)
+
+#if(MUSICXML_FOUND)
+#set(CMAKE_CXX_FLAGS "-DHAVE_MUSICXML2 ${CMAKE_CXX_FLAGS}")
+#endif()
+
 find_package(PORTSMF)
 find_package(PythonLibs 2.7)
 if(NOT STK_LOCAL)
@@ -540,6 +545,7 @@ if(NOT STK_LOCAL)
 endif()
 find_package(SWIG)
 find_package(VSTSDK2X)
+
 
 # TODO should this work for MSVC also?
 if(WIN32)
@@ -1232,7 +1238,7 @@ if(WIN32)
 else()
 endif()
 
-if(CURL_FOUND)
+if(USE_CURL AND CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
   if(WIN32 AND NOT MSVC)
     # not quite working yet with msys2/mingw64

@@ -408,6 +408,7 @@ typedef struct {
   int32_t sock, iargs;
   MYFLT   last;
   struct sockaddr_in server_addr;
+  int err_state;
 } OSCSEND2;
 
 
@@ -533,6 +534,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     }
 
     p->last = FL(0.0);
+    p->err_state = 0;
     return OK;
 }
 
@@ -776,12 +778,17 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
-        csound->Warning(csound, Str("OSCsend failed to send message\n"));
+        if(p->err_state == 0)
+          csound->Warning(csound, Str("OSCsend failed to send "
+                                      "message with destination %s to %s:%d\n"),
+                                      p->dest->data, p->ipaddress->data,
+                          (int) *p->port);
+        p->err_state = 1;
         return OK;
-        //return csound->PerfError(csound, &(p->h), Str("OSCsend failed"));
       }
       p->last = *p->kwhen;
     }
+    p->err_state = 0;
     return OK;
 }
 

@@ -29,6 +29,7 @@
 #include "csdl.h"
 #include "pstream.h"
 #include "arrays.h"
+#include <array>
 #include <algorithm>
 #include <complex>
 #include <cstring>
@@ -177,7 +178,7 @@ public:
   const INSDS *midi_chn_list() {
     return (const INSDS *)GetMidiChannel(this)->kinsptr;
   }
-  
+
   /** deinit registration for a given plugin class
    */
   template <typename T> void plugin_deinit(T *p) {
@@ -773,10 +774,12 @@ public:
   uint32_t len() { return size / sizeof(T); }
 };
 
+
+
 /** Parameters template class
  */
-template <uint32_t N> class Param {
-  MYFLT *ptrs[N];
+ template <std::size_t N> class Param {
+  std::array<MYFLT *, N> ptrs;
 
 public:
   /** parameter access via array subscript (write)
@@ -797,27 +800,27 @@ public:
 
   /** vector beginning
    */
-  iterator begin() { return ptrs; }
+  iterator begin() { return &ptrs[0]; }
 
   /** vector end
    */
-  iterator end() { return ptrs + N; }
+  iterator end() { return  &ptrs[N]; }
 
   /** vector beginning
    */
-  const_iterator begin() const { return ptrs; }
+  const_iterator begin() const { return (const MYFLT **)&ptrs[0]; }
 
   /** vector end
    */
-  const_iterator end() const { return ptrs + N; }
+  const_iterator end() const { return (const MYFLT **)&ptrs[N]; }
 
   /** vector beginning
    */
-  const_iterator cbegin() const { return ptrs; }
+  const_iterator cbegin() const { return (const MYFLT **)&ptrs[0]; }
 
   /** vector end
    */
-  const_iterator cend() const { return ptrs + N; }
+  const_iterator cend() const { return (const MYFLT **)&ptrs[N]; }
 
   /** parameter data (MYFLT pointer) at index n
    */
@@ -850,7 +853,7 @@ public:
 /** Plugin template base class:
     N outputs and M inputs
  */
-template <uint32_t N, uint32_t M> struct Plugin : OPDS {
+template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** output arguments */
   Param<N> outargs;
   /** input arguments */
@@ -959,10 +962,11 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
 
 };
 
+
 /** Fsig plugin template base class:
     N outputs and M inputs
  */
-template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N, M> {
+template <std::size_t N, std::size_t M> struct FPlugin : Plugin<N, M> {
   /** current frame time index */
   uint32_t framecount;
 };

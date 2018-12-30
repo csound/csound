@@ -105,7 +105,7 @@ __global__ void sample(float *out, float *frame, float pitch, int64_t *ph,
   a += ascl*(frame[k] - a);
   out[t] = a*sinf((2*PI*lph)/FMAXLEN);
   if(t >= vsize) return;
-  syncthreads();
+  __syncthreads();
   for(int i=vsize; i < vsize*bins; i+=vsize)
     out[t] += out[t + i];
 }

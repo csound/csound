@@ -685,7 +685,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
         while(dph < -PI) dph += TWOPI;
         fout[i+1] = (float) (dph*factor + k*fund);
         /* mags */
-        fout[i] = (float) sqrt(fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1]);
+        fout[i] = (float) hypot(fwin[i],fwin[i+1]);
       }
 
       p->fout[j]->framecount++;

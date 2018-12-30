@@ -177,10 +177,15 @@ int32_t zir(CSOUND *csound, ZKR *p)
 {
     /* See zkr() for more comments.  */
     int32_t    indx;
-    ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
+    ZAK_GLOBALS* zak;
 
-    if (UNLIKELY(zak == NULL))
-      return NOTOK;
+    if (UNLIKELY(zkset(csound, (ZKR*)p)!=OK))
+      return csound->InitError(csound, Str("No zk space: "
+                                           "zakinit has not been called yet."));
+    zak = (ZAK_GLOBALS*) p->zz;
+
+    /* if (UNLIKELY(zak == NULL)) */
+    /*   return NOTOK; */
     /* Check to see this index is within the limits of zk space. */
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx > zak->zklast)) {
@@ -236,10 +241,14 @@ int32_t zkw(CSOUND *csound, ZKW *p)
 int32_t ziw(CSOUND *csound, ZKW *p)
 {
     int32_t    indx;
-    ZAK_GLOBALS* zak = (ZAK_GLOBALS*) p->zz;
+    ZAK_GLOBALS* zak;
 
-    if (UNLIKELY(zak==NULL))
-      return NOTOK;
+    if (UNLIKELY(zkset(csound, (ZKR*)p)!= OK))
+      return csound->InitError(csound, Str("No zk space: "
+                                           "zakinit has not been called yet."));
+    zak = p->zz;
+    /* if (UNLIKELY(zak==NULL)) */
+    /*   return NOTOK; */
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->InitError(csound, Str("ziw index > isizek. Not writing."));

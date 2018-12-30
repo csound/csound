@@ -1157,7 +1157,7 @@ static void psignal_(int sig, char *str)
 }
 #else
 # if !defined(__CYGWIN__)
-static void psignal(int sig, char *str)
+static void psignal(int sig, const char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }

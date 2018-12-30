@@ -694,7 +694,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
           /* Store magnitude and phase (PI,-PI) */
           pr = polePart1[i];
           pi = polePart2[i];
-          pm = sqrt(pr*pr+pi*pi);
+          pm = hypot(pr, pi);
           if (pm!=0) {
             pp = atan2(pi,pr);
             if (pp>dPI)

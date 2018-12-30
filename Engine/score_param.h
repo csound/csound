@@ -92,7 +92,7 @@ typedef struct prs_parm_s {
     int     repeat_cnt_n[RPTDEPTH];
     int     repeat_indx[RPTDEPTH];
     CORFIL  *cf_stack[RPTDEPTH];
-    int     repeat_inc_n /* = 1 */;
+  //int     repeat_inc_n /* = 1 */;
     MACRO   *repeat_mm_n[RPTDEPTH];
     int     repeat_index;
          /* Variables for section repeat */

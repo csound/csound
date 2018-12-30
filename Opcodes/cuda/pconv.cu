@@ -130,9 +130,13 @@ int pconv_init(CSOUND *csound, PCONV *p){
 
   tmp = (float *) p->bufin.auxp;
   cufftPlan1d(&p->plan, dftsize, CUFFT_R2C, 1);
+#if __CUDACC_VER_MAJOR__ < 8
   cufftSetCompatibilityMode(p->plan, CUFFT_COMPATIBILITY_NATIVE);
+#endif
   cufftPlan1d(&p->iplan, dftsize, CUFFT_C2R, 1);
+#if __CUDACC_VER_MAJOR__ < 8
   cufftSetCompatibilityMode(p->iplan, CUFFT_COMPATIBILITY_NATIVE);
+#endif
 
   for(i =0, k=0; i < nparts; i++){
     for(j=0; j < dftsize; j++)

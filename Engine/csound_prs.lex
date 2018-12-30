@@ -542,8 +542,12 @@ NM              [nm][ \t]+
                   }
                 }
 {NM}            {
-                  corfile_putc(csound, yytext[0], PARM->cf);
-                  if (!PARM->isString) BEGIN(lname);
+                  if (PARM->isString) {
+                    corfile_putc(csound, yytext[0], PARM->cf);
+                    BEGIN(lname);
+                  } else {
+                    corfile_puts(csound, yytext, PARM->cf);
+                  }
                 }
 <lname>[ \t]*     /* eat the whitespace */
 <lname>{IDENT}   {
@@ -962,7 +966,8 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       strncpy(tmp, PARM->path, 1023);
       strcat(tmp, "/");
       strncat(tmp, buffer, 1022-strlen(tmp));
-      cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
+      if ((cf = copy_to_corefile(csound, tmp, "INCDIR", 0))==NULL)
+          cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     }
     else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (UNLIKELY(cf == NULL))

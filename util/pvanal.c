@@ -787,7 +787,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
            i++,i0+=2,i1+=2, oi++) {
         real = *i0;
         imag = *i1;
-        *i0 =(MYFLT) sqrt((double)(real * real + imag * imag));
+        *i0 =(MYFLT) hypot((double)real, (double)imag);
         /* phase unwrapping */
         /*if (*i0 == 0.)*/
         if (*i0 < FL(1.0E-10))        /* RWD don't mess with v small numbers! */
