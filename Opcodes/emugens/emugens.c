@@ -1454,57 +1454,74 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
 }
 
 
-static inline void arrprint(const char *fmt, int dims, MYFLT *data,
+#define MESSAGES(fmt, s) (csound->MessageS(csound, CSOUNDMSG_ORCH, fmt, (char*)s))
+#define ARRPRINT_SEP (csound->MessageS(csound, CSOUNDMSG_ORCH, "\n"))
+
+
+static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *data,
                             int dim0, int dim1, const char *label) {
     MYFLT *in = data;
-    int32_t i, j;
+    int32_t i, j, startidx;
     const uint32_t linelength = print_linelength;
-
+    const int MAXLINE = 1024;
+    char currline[MAXLINE];
     uint32_t charswritten = 0;
     if(label != NULL) {
-        printf("%s\n", label);
+        MESSAGES("%s\n", label);
     }
     switch(dims) {
     case 1:
-        printf("  ");
+        startidx = 0;
         for(i=0; i<dim0; i++) {
-            charswritten += printf(fmt, in[i]) + 1;
+            charswritten += sprintf(currline+charswritten, fmt, in[i]);
             if(charswritten < linelength) {
-                printf(" ");
+                currline[charswritten++] = ' ';
             } else {
-                printf("\n  ");
+                currline[charswritten+1] = '\0';
+                csound->MessageS(csound, CSOUNDMSG_ORCH, " %3d: %s\n", startidx, (char*)currline);
                 charswritten = 0;
+                startidx = i;
             }
         }
+        if (charswritten > 0) {
+            currline[charswritten] = '\0';
+            csound->MessageS(csound, CSOUNDMSG_ORCH, " %3d: %s\n", startidx, (char*)currline);
+        }
+        ARRPRINT_SEP;
         break;
     case 2:
         for(i=0; i<dim0; i++) {
-            printf(" %3d: ", i);
+            charswritten += sprintf(currline+charswritten, " %3d: ", i);
             for(j=0; j<dim1; j++) {
-                charswritten += printf(fmt, *in) + 1;
-                if(charswritten < linelength)
-                    printf(" ");
+                charswritten += sprintf(currline+charswritten, fmt, *in);
+                if(charswritten < linelength) {
+                    currline[charswritten++] = ' ';
+                }
                 else {
-                    printf("\n");
+                    currline[charswritten+1] = '\0';
+                    MESSAGES("%s\n", currline);
                     charswritten = 0;
                 }
                 in++;
             }
-            printf("\n");
-            charswritten = 0;
+            if (charswritten > 0) {
+                currline[charswritten] = '\0';
+                MESSAGES("%s\n", currline);
+                charswritten = 0;
+            }
         }
+        ARRPRINT_SEP;
         break;
     }
-    printf("\n");
 }
 
 
-static inline void arrprinti(ARRAYPRINT *p, const char* fmt) {
+static inline void arrprinti(CSOUND *csound, ARRAYPRINT *p, const char* fmt) {
     int dims = p->in->dimensions;
     int dim0 = p->in->sizes[0];
     int dim1 = dims > 1 ? p->in->sizes[1] : 0;
     const char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
-    arrprint(fmt, dims, p->in->data, dim0, dim1, label);
+    arrprint(csound, fmt, dims, p->in->data, dim0, dim1, label);
 }
 
 static int32_t
@@ -1515,7 +1532,7 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
         dims = p->in->dimensions;
         dim0 = p->in->sizes[0];
         dim1 = dims > 1 ? p->in->sizes[1] : 0;
-        arrprint(p->printfmt, dims, p->in->data, dim0, dim1, p->label);
+        arrprint(csound, p->printfmt, dims, p->in->data, dim0, dim1, p->label);
     }
     p->lasttrig = trig;
     return OK;
@@ -1523,14 +1540,14 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
 
 static int32_t
 arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
-    arrprinti(p, default_printfmt);
+    arrprinti(csound, p, default_printfmt);
     return OK;
 }
 
 static int32_t
 arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
     const char *fmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
-    arrprinti(p, fmt);
+    arrprinti(csound, p, fmt);
     return OK;
 }
 
