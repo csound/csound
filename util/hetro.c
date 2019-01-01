@@ -415,7 +415,7 @@ static int32_t hetdyn(CSOUND *csound,
           temp_a += cos_p[n];     /* sum over windsiz = nsmps in */
           temp_b += sin_p[n];     /*    1 period of fund. freq.  */
           //printf("temp = %f / %f\n", temp_a, temp_b);
-        } 
+        }
       }
       else {      /* if more than 1 fund. per. away from file end */
                   /* remove front value and add on new rear value */
