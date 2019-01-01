@@ -1465,7 +1465,7 @@ static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *da
     char currline[ARRPRINT_MAXLINE];
     uint32_t charswritten = 0;
     if(label != NULL) {
-        MESSAGES("%s\n", label);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char *)label);
     }
     switch(dims) {
     case 1:
@@ -1497,14 +1497,14 @@ static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *da
                 }
                 else {
                     currline[charswritten+1] = '\0';
-                    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline)
+                    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline);
                     charswritten = 0;
                 }
                 in++;
             }
             if (charswritten > 0) {
                 currline[charswritten] = '\0';
-                csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline)
+                csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline);
                 charswritten = 0;
             }
         }
