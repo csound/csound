@@ -216,9 +216,9 @@ msgid "%s invalid number of samples"
 msgstr "%s nombre d'échantillons non valide"
 
 #: Engine/csound_orc_compile.c:608 Engine/csound_orc_compile.c:696
-#, fuzzy, c-format
+#, c-format
 msgid "%s invalid ksmps value, needs to be integral."
-msgstr "%s valeur de ksmps non valide"
+msgstr "%s valeur de ksmps non valide, doit être entière."
 
 #: Engine/csound_orc_compile.c:616 Engine/csound_orc_compile.c:618
 #, c-format
@@ -231,18 +231,16 @@ msgstr ""
 "mauvaise valeur pour 0dbfs : elle doit être positive. Valeur par défaut."
 
 #: Engine/csound_orc_compile.c:691
-#, fuzzy, c-format
+#, c-format
 msgid "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
-msgstr ""
-"sr = %.7g, kr = %.7g, ksmps = %.7g\n"
-"erreur :"
+msgstr "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 
 #: Engine/csound_orc_compile.c:699
-#, fuzzy, c-format
+#, c-format
 msgid "resetting orc parameters to: sr = %.7g, kr = %.7g, ksmps = %u"
 msgstr ""
-"redéfinition des taux d'échantillonnage : esr = %7.4f, ekr = %7.4f, ksmps = "
-"%d\n"
+"réinitialiasation des paramètres d'orc à : "
+"sr = %.7g, kr = %.7g, ksmps = %u"
 
 #: Engine/csound_orc_compile.c:708
 #, c-format
@@ -10116,7 +10114,7 @@ msgstr "%c : type de donnée non supporté\n"
 #: Opcodes/socksend.c:782
 #, c-format
 msgid "OSCsend failed to send message with destination %s to %s:%d\n"
-msgstr ""
+msgstr "OSCsend n'a pas pu envoyer un message avec destination %s vers %s :%d\n"
 
 #: Opcodes/socksend.c:823
 msgid "arg array needs to be two dimensional\n"
@@ -13777,9 +13775,8 @@ msgstr ""
 "harmonique %d :\tpoints d'amp %d,\tpoints de frq %d,\tamp de crête %d\n"
 
 #: util/hetro.c:782
-#, fuzzy
 msgid "wrote "
-msgstr "a écrit %"
+msgstr "a écrit "
 
 #: util/hetro.c:783
 msgid "bytes to "
