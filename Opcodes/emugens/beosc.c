@@ -586,13 +586,11 @@ typedef struct {
     int updatearrays;
 } BEADSYNT;
 
-
 static int32_t
 beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
     FILTCOEFS *filtcoefs;
     int32_t *lphs;
     unsigned int c, count = p->count;
-
     MYFLT iphs = *p->iphs;
     MYFLT sr   = csound->GetSr(csound);
     p->inerr = 0;

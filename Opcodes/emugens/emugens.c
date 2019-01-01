@@ -453,6 +453,138 @@ static int32_t bpfxcos(CSOUND *csound, BPFX *p) {
 
 typedef struct {
     OPDS h;
+    MYFLT *y, *x;
+    ARRAYDAT *xs, *ys;
+} BPFARRPOINTS;
+
+static int32_t bpfarrpoints(CSOUND *csound, BPFARRPOINTS *p) {
+    int32_t numxs = p->xs->sizes[0];
+    int32_t numys = p->ys->sizes[0];
+    int32_t N = numxs < numys ? numxs : numys;
+    MYFLT *xs = p->xs->data;
+    MYFLT *ys = p->ys->data;
+    MYFLT x = *p->x;
+    int32_t i;
+    MYFLT x0, y0, x1, y1;
+    if(x <= xs[0]) {
+        *p->y = ys[0];
+        return OK;
+    }
+    if(x >= xs[N-1]) {
+        *p->y = ys[N-1];
+        return OK;
+    }
+    x0 = xs[0];
+    for(i=0; i<N-1; i++) {
+        x1 = xs[i+1];
+        if(x0 <= x && x <= x1) {
+            y0 = ys[i];
+            y1 = ys[i+1];
+            *p->y = (x-x0)/(x1-x0)*(y1-y0)+y0;
+            return OK;
+        }
+        x0 = x1;
+    }
+    return NOTOK;
+}
+
+static inline int32_t bpfidx(MYFLT x, MYFLT *xs, int32_t xslen) {
+    // -1: lower bound, -2: upper bound, -3: error
+    if(x <= xs[0]) {
+        return -1;
+    }
+    if(x >= xs[xslen-1]) {
+        return -2;
+    }
+    MYFLT x0, x1;
+    int32_t i;
+    x0 = xs[0];
+    for(i=0; i<xslen-1; i++) {
+        x1 = xs[i+1];
+        if(x0 <= x && x <= x1) {
+            return i;
+        }
+        x0 = x1;
+    }
+    return -3;
+}
+
+static int32_t bpfcosarrpoints(CSOUND *csound, BPFARRPOINTS *p) {
+    int32_t numxs = p->xs->sizes[0];
+    int32_t numys = p->ys->sizes[0];
+    int32_t N = numxs < numys ? numxs : numys;
+    MYFLT *xs = p->xs->data;
+    MYFLT *ys = p->ys->data;
+    MYFLT x = *p->x;
+    int32_t i = bpfidx(x, xs, N);
+    MYFLT x0, y0, x1, y1, dx;
+    if(i == -1) {
+        *p->y = ys[0];
+        return OK;
+    }
+    if(i == -2) {
+        *p->y = ys[N-1];
+        return OK;
+    }
+    if(UNLIKELY(i == -3)) {
+        return NOTOK;
+    }
+    x0 = xs[i];
+    x1 = xs[i+1];
+    y0 = ys[i];
+    y1 = ys[i+1];
+    dx = ((x-x0) / (x1-x0)) * PI + PI;
+    *p->y = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);        
+    return OK;
+}
+
+typedef struct {
+    OPDS h;
+    MYFLT *y, *z, *x;
+    ARRAYDAT *xs, *ys, *zs;
+} BPFARRPOINTS2;
+
+static int32_t bpfarrpoints2(CSOUND *csound, BPFARRPOINTS2 *p) {
+    int32_t numxs = p->xs->sizes[0];
+    int32_t numys = p->ys->sizes[0];
+    int32_t numzs = p->zs->sizes[0];
+    int32_t N = numxs < numys ? numxs : numys;
+    N = N < numzs ? N : numzs;
+    
+    MYFLT *xs = p->xs->data;
+    MYFLT *ys = p->ys->data;
+    MYFLT *zs = p->zs->data;
+    MYFLT x = *p->x;
+    int32_t i;
+    MYFLT x0, x1, y0, z0, dx;
+    if(x <= xs[0]) {
+        *p->y = ys[0];
+        *p->z = zs[0];
+        return OK;
+    }
+    if(x >= xs[N-1]) {
+        *p->y = ys[N-1];
+        *p->z = zs[N-1];
+        return OK;
+    }
+    x0 = xs[0];
+    for(i=0; i<N-1; i++) {
+        x1 = xs[i+1];
+        if(x0 <= x && x <= x1) {
+            y0 = ys[i];
+            z0 = zs[i];
+            dx = (x-x0)/(x1-x0);
+            *p->y = dx*(ys[i+1]-y0)+y0;
+            *p->z = dx*(zs[i+1]-z0)+z0;
+            return OK;
+        }
+        x0 = x1;
+    }
+    return NOTOK;
+}
+
+typedef struct {
+    OPDS h;
     ARRAYDAT *out, *in;
     MYFLT *data[BPF_MAXPOINTS];
 } BPFARR;
@@ -1322,57 +1454,74 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
 }
 
 
-static inline void arrprint(const char *fmt, int dims, MYFLT *data,
+#define MESSAGES(fmt, s) (csound->MessageS(csound, CSOUNDMSG_ORCH, fmt, (char*)s))
+#define ARRPRINT_SEP (csound->MessageS(csound, CSOUNDMSG_ORCH, "\n"))
+
+
+static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *data,
                             int dim0, int dim1, const char *label) {
     MYFLT *in = data;
-    int32_t i, j;
+    int32_t i, j, startidx;
     const uint32_t linelength = print_linelength;
-
+    const int MAXLINE = 1024;
+    char currline[MAXLINE];
     uint32_t charswritten = 0;
     if(label != NULL) {
-        printf("%s\n", label);
+        MESSAGES("%s\n", label);
     }
     switch(dims) {
     case 1:
-        printf("  ");
+        startidx = 0;
         for(i=0; i<dim0; i++) {
-            charswritten += printf(fmt, in[i]) + 1;
+            charswritten += sprintf(currline+charswritten, fmt, in[i]);
             if(charswritten < linelength) {
-                printf(" ");
+                currline[charswritten++] = ' ';
             } else {
-                printf("\n  ");
+                currline[charswritten+1] = '\0';
+                csound->MessageS(csound, CSOUNDMSG_ORCH, " %3d: %s\n", startidx, (char*)currline);
                 charswritten = 0;
+                startidx = i;
             }
         }
+        if (charswritten > 0) {
+            currline[charswritten] = '\0';
+            csound->MessageS(csound, CSOUNDMSG_ORCH, " %3d: %s\n", startidx, (char*)currline);
+        }
+        ARRPRINT_SEP;
         break;
     case 2:
         for(i=0; i<dim0; i++) {
-            printf(" %3d: ", i);
+            charswritten += sprintf(currline+charswritten, " %3d: ", i);
             for(j=0; j<dim1; j++) {
-                charswritten += printf(fmt, *in) + 1;
-                if(charswritten < linelength)
-                    printf(" ");
+                charswritten += sprintf(currline+charswritten, fmt, *in);
+                if(charswritten < linelength) {
+                    currline[charswritten++] = ' ';
+                }
                 else {
-                    printf("\n");
+                    currline[charswritten+1] = '\0';
+                    MESSAGES("%s\n", currline);
                     charswritten = 0;
                 }
                 in++;
             }
-            printf("\n");
-            charswritten = 0;
+            if (charswritten > 0) {
+                currline[charswritten] = '\0';
+                MESSAGES("%s\n", currline);
+                charswritten = 0;
+            }
         }
+        ARRPRINT_SEP;
         break;
     }
-    printf("\n");
 }
 
 
-static inline void arrprinti(ARRAYPRINT *p, const char* fmt) {
+static inline void arrprinti(CSOUND *csound, ARRAYPRINT *p, const char* fmt) {
     int dims = p->in->dimensions;
     int dim0 = p->in->sizes[0];
     int dim1 = dims > 1 ? p->in->sizes[1] : 0;
     const char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
-    arrprint(fmt, dims, p->in->data, dim0, dim1, label);
+    arrprint(csound, fmt, dims, p->in->data, dim0, dim1, label);
 }
 
 static int32_t
@@ -1383,7 +1532,7 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
         dims = p->in->dimensions;
         dim0 = p->in->sizes[0];
         dim1 = dims > 1 ? p->in->sizes[1] : 0;
-        arrprint(p->printfmt, dims, p->in->data, dim0, dim1, p->label);
+        arrprint(csound, p->printfmt, dims, p->in->data, dim0, dim1, p->label);
     }
     p->lasttrig = trig;
     return OK;
@@ -1391,14 +1540,14 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
 
 static int32_t
 arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
-    arrprinti(p, default_printfmt);
+    arrprinti(csound, p, default_printfmt);
     return OK;
 }
 
 static int32_t
 arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
     const char *fmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
-    arrprinti(p, fmt);
+    arrprinti(csound, p, fmt);
     return OK;
 }
 
@@ -1575,9 +1724,22 @@ static OENTRY localops[] = {
     { "bpf", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfx },
     { "bpf", S(BPFX), 0, 1, "i", "im", (SUBR)bpfx },
     { "bpf", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarr },
+
+    { "bpf", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfarrpoints },
+    { "bpf", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfarrpoints },
+    { "bpf", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfarrpoints },
+
+    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]", NULL, (SUBR)bpfarrpoints2 },
+    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]", NULL, (SUBR)bpfarrpoints2 },
+    { "bpf", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpfarrpoints2 },
+    
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
     { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
+
+    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfcosarrpoints },
+    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfcosarrpoints },
+    { "bpfcos", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfcosarrpoints },
 
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
     { "ntom", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },
