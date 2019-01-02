@@ -1479,14 +1479,16 @@ static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *da
                 currline[charswritten++] = ' ';
             } else {
                 currline[charswritten+1] = '\0';
-                csound->MessageS(csound, CSOUNDMSG_ORCH, " %3d: %s\n", startidx, (char*)currline);
+                csound->MessageS(csound, CSOUNDMSG_ORCH,
+                                 " %3d: %s\n", startidx, (char*)currline);
                 charswritten = 0;
                 startidx = i;
             }
         }
         if (charswritten > 0) {
             currline[charswritten] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_ORCH, " %3d: %s\n", startidx, (char*)currline);
+            csound->MessageS(csound, CSOUNDMSG_ORCH,
+                             " %3d: %s\n", startidx, (char*)currline);
         }
         ARRPRINT_SEP;
         break;
