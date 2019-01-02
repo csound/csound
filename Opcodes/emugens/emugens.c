@@ -242,7 +242,7 @@ lincos_perf(CSOUND *csound, LINLIN1 *p) {
     // PI is defined in csoundCore.h, use that instead of M_PI from math.h, which
     // is not defined in windows
     MYFLT dx = ((x-x0) / (x1-x0)) * PI + PI;           // dx range pi - 2pi
-    *p->kout = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
+    *p->kout = y0 + ((y1 - y0) * (1 + COS(dx)) / 2.0);
     return OK;
 }
 
@@ -442,7 +442,7 @@ static int32_t bpfxcos(CSOUND *csound, BPFX *p) {
         y1 = *data[i+1];
         if( x <= x1 ) {
             dx = ((x-x0) / (x1-x0)) * PI + PI;
-            *p->r = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
+            *p->r = y0 + ((y1 - y0) * (1 + COS(dx)) / 2.0);
             return OK;
         }
         x0 = x1;
@@ -534,7 +534,7 @@ static int32_t bpfcosarrpoints(CSOUND *csound, BPFARRPOINTS *p) {
     y0 = ys[i];
     y1 = ys[i+1];
     dx = ((x-x0) / (x1-x0)) * PI + PI;
-    *p->y = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);        
+    *p->y = y0 + ((y1 - y0) * (1 + COS(dx)) / 2.0);
     return OK;
 }
 
@@ -550,7 +550,7 @@ static int32_t bpfarrpoints2(CSOUND *csound, BPFARRPOINTS2 *p) {
     int32_t numzs = p->zs->sizes[0];
     int32_t N = numxs < numys ? numxs : numys;
     N = N < numzs ? N : numzs;
-    
+
     MYFLT *xs = p->xs->data;
     MYFLT *ys = p->ys->data;
     MYFLT *zs = p->zs->data;
@@ -669,7 +669,7 @@ static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
                 y1 = *data[i+1];
                 if( x <= x1 ) {
                     dx = ((x-x0) / (x1-x0)) * PI + PI;
-                    out[idx] = y0 + ((y1 - y0) * (1 + cos(dx)) / 2.0);
+                    out[idx] = y0 + ((y1 - y0) * (1 + COS(dx)) / 2.0);
                     break;
                 }
                 x0 = x1;
@@ -1732,7 +1732,7 @@ static OENTRY localops[] = {
     { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]", NULL, (SUBR)bpfarrpoints2 },
     { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]", NULL, (SUBR)bpfarrpoints2 },
     { "bpf", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpfarrpoints2 },
-    
+
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
     { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
