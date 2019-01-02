@@ -1457,13 +1457,14 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
 #define MESSAGES(fmt, s) (csound->MessageS(csound, CSOUNDMSG_ORCH, fmt, (char*)s))
 #define ARRPRINT_SEP (csound->MessageS(csound, CSOUNDMSG_ORCH, "\n"))
 
+#define MAXLINE 1024
 
 static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *data,
                             int dim0, int dim1, const char *label) {
     MYFLT *in = data;
     int32_t i, j, startidx;
     const uint32_t linelength = print_linelength;
-    const int MAXLINE = 1024;
+    //const int MAXLINE = 1024;
     char currline[MAXLINE];
     uint32_t charswritten = 0;
     if(label != NULL) {
