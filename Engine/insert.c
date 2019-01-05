@@ -2313,7 +2313,7 @@ static void instance(CSOUND *csound, int insno)
   OPTXT     *optxt;
   OPDS      *opds, *prvids, *prvpds;
   const OENTRY  *ep;
-  int       i, n, pextent, pextra, pextrab;
+  int       i, k, n, pextent, pextra, pextrab;
   char      *nxtopds, *opdslim;
   MYFLT     **argpp, *lclbas;
   CS_VAR_MEM *lcloffbas; // start of pfields
@@ -2484,8 +2484,12 @@ static void instance(CSOUND *csound, int insno)
 
     arg = ttp->inArgs;
     ip->lclbas = lclbas;
-    for (; arg != NULL; n++, arg = arg->next) {
+    for (k=1; arg != NULL; n++, k++, arg = arg->next) {
       CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
+      if (k>=VARGMAX) {
+        csound->Message(csound, Str("Too many inputs; truncated\n"));
+        break;
+      }
       if (arg->type == ARG_CONSTANT) {
         CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
         argpp[n] = &varMem->value;
