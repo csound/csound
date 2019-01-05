@@ -1454,43 +1454,54 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
 }
 
 
-#define MESSAGES(fmt, s) (csound->MessageS(csound, CSOUNDMSG_ORCH, fmt, (char*)s))
 #define ARRPRINT_SEP (csound->MessageS(csound, CSOUNDMSG_ORCH, "\n"))
-
-#define MAXLINE 1024
+#define ARRPRINT_MAXLINE 1024
+#define ARRPRINT_IDXLIMIT 100
 
 static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *data,
                             int dim0, int dim1, const char *label) {
     MYFLT *in = data;
     int32_t i, j, startidx;
     const uint32_t linelength = print_linelength;
-    //const int MAXLINE = 1024;
-    char currline[MAXLINE];
+    char currline[ARRPRINT_MAXLINE];
     uint32_t charswritten = 0;
+    int32_t showidx = 0;
     if(label != NULL) {
-        MESSAGES("%s\n", label);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char *)label);
     }
     switch(dims) {
     case 1:
         startidx = 0;
+        if (dim0 > ARRPRINT_IDXLIMIT) {
+            showidx = 1;
+        }
         for(i=0; i<dim0; i++) {
             charswritten += sprintf(currline+charswritten, fmt, in[i]);
             if(charswritten < linelength) {
                 currline[charswritten++] = ' ';
             } else {
                 currline[charswritten+1] = '\0';
-                csound->MessageS(csound, CSOUNDMSG_ORCH,
-                                 " %3d: %s\n", startidx, (char*)currline);
+                if (showidx) {
+                    csound->MessageS(csound, CSOUNDMSG_ORCH,
+                                     " %3d: %s\n", startidx, (char*)currline);
+                } else {
+                    csound->MessageS(csound, CSOUNDMSG_ORCH,
+                                     " %s\n", (char*)currline);
+                }
                 charswritten = 0;
                 startidx = i;
             }
         }
         if (charswritten > 0) {
             currline[charswritten] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_ORCH,
-                             " %3d: %s\n", startidx, (char*)currline);
+            if (showidx) {
+                csound->MessageS(csound, CSOUNDMSG_ORCH,
+                                 " %3d: %s\n", startidx, (char*)currline);
+            } else {
+                csound->MessageS(csound, CSOUNDMSG_ORCH,
+                                 " %s\n", (char*)currline);
+            }
         }
-        ARRPRINT_SEP;
         break;
     case 2:
         for(i=0; i<dim0; i++) {
@@ -1502,20 +1513,20 @@ static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *da
                 }
                 else {
                     currline[charswritten+1] = '\0';
-                    MESSAGES("%s\n", currline);
+                    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline);
                     charswritten = 0;
                 }
                 in++;
             }
             if (charswritten > 0) {
                 currline[charswritten] = '\0';
-                MESSAGES("%s\n", currline);
+                csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline);
                 charswritten = 0;
             }
         }
-        ARRPRINT_SEP;
         break;
     }
+    // ARRPRINT_SEP;
 }
 
 
