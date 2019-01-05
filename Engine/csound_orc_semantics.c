@@ -764,6 +764,10 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       if (argsRequired == NULL) {
         return 0;
       }
+      if (argsFoundCount>=VARGMAX) {
+        printf("*** too many inputs\n");
+        return 0;
+      }
 
       if ((argsFoundCount > argsRequiredCount) &&
           !(is_in_var_arg(*argsRequired[argsRequiredCount - 1]))) {
