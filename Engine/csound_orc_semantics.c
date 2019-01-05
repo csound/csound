@@ -765,7 +765,9 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
         return 0;
       }
       if (argsFoundCount>=VARGMAX) {
-        printf("*** too many inputs\n");
+        synterr(csound,
+                Str("Found %d inputs which is more than the %d allowed\n"),
+                argsFoundCount, VARGMAX);
         return 0;
       }
 
