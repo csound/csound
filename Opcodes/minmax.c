@@ -42,7 +42,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xout, *xin1, *xin2toN[VARGMAX];
+    MYFLT   *xout, *xin1, *xin2toN[VARGMAX-1];
 } MINMAX;
 
 /* Which implementation is faster ?? */
