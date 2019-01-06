@@ -765,10 +765,7 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
         return 0;
       }
       if (argsFoundCount>=VARGMAX) {
-        synterr(csound,
-                Str("Found %d inputs which is more than the %d allowed\n"),
-                argsFoundCount, VARGMAX);
-        return returnVal;
+        return -1;
       }
 
       if ((argsFoundCount > argsRequiredCount) &&
@@ -972,8 +969,7 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
 
 //    OENTRY* retVal = NULL;
-    int i;
-
+  int i, check;
 
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -983,12 +979,17 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 //            }
 //            continue;
 //        }
-        if (check_in_args(csound, inArgTypes, temp->intypes) &&
+        if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
             check_out_args(csound, outArgTypes, temp->outypes)) {
 //            if (retVal != NULL) {
 //                return NULL;
 //            }
 //            retVal = temp;
+          if(check == -1) 
+              synterr(csound,
+                      Str("Found %d inputs for %s which is more than the %d allowed\n"),
+                      argsRequired(inArgTypes), temp->opname, VARGMAX);
+    
             return temp;
         }
     }
