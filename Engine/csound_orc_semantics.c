@@ -1925,8 +1925,8 @@ extern char *csound_orcget_current_pointer(void *);
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE **astTree, const char *str)
 {
-     IGN(pp);
-      IGN(astTree);
+    IGN(pp);
+    IGN(astTree);
     char ch;
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
