@@ -768,7 +768,7 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
         synterr(csound,
                 Str("Found %d inputs which is more than the %d allowed\n"),
                 argsFoundCount, VARGMAX);
-        return 0;
+        return returnVal;
       }
 
       if ((argsFoundCount > argsRequiredCount) &&
