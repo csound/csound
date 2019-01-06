@@ -42,7 +42,7 @@ const double twopi = TWOPI;
 
 /** opcode threads: i-time, k-perf and/or a-perf
 */
-enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
+enum thread { i = 1, k = 2, ik = 3, a = 2, ia = 3, ika = 3 };
 
 /** fsig formats: phase vocoder, stft polar, stft complex, or
     sinusoidal tracks
