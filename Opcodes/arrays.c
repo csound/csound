@@ -158,16 +158,19 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 static int32_t tabfill(CSOUND *csound, TABFILL *p)
 {
     int32_t    nargs = p->INOCOUNT;
-    int32_t i;
+    int32_t i, size;
     size_t memMyfltSize;
     MYFLT  **valp = p->iargs;
     tabensure(csound, p->ans, nargs);
-    if (UNLIKELY(p->ans->dimensions > 2)) {
-      return
-        csound->InitError(csound, "%s",
-                          Str("fillarrray: arrays with dim > 2 not "
-                              "currently supported\n"));
-    }
+/*     if (UNLIKELY(p->ans->dimensions > 2)) { */
+/*       return */
+/*         csound->InitError(csound, "%s", */
+/*                           Str("fillarrray: arrays with dim > 2 not " */
+/*                               "currently supported\n")); */
+/*     } */
+    size = p->ans->sizes[0];
+    for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
+    if (size<nargs) nargs = size;
     memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     for (i=0; i<nargs; i++) {
       p->ans->arrayType->copyValue(csound,
@@ -213,7 +216,7 @@ static MYFLT nextval(FILE *f)
 
 static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
 {
-    int32_t i = 0, flen = 0;
+    int32_t i = 0, flen = 0, size;
     char *fname = p->fname->data;
     FILE    *infile;
     void    *fd = csound->FileOpen2(csound, &infile, CSFILE_STD, fname, "r",
@@ -221,19 +224,15 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound, Str("error opening ASCII file %s\n"), fname);
     }
-    
     do {
       flen++;
       nextval(infile);
     } while (!feof(infile));
     flen--; // overshoots by 1
     tabensure(csound, p->ans, flen);
-    if (UNLIKELY(p->ans->dimensions > 2)) {
-      return
-        csound->InitError(csound, "%s",
-                          Str("fillarrray: arrays with dim > 2 not "
-                              "currently supported\n"));
-    }
+    size = p->ans->sizes[0];
+    for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
+    if (size<flen) flen = size;
     if (p->ans->dimensions == 1 && (flen > p->ans->sizes[0]))
       flen = p->ans->sizes[0];
     else if (p->ans->dimensions == 2 && (flen > p->ans->sizes[0]*p->ans->sizes[1]))
@@ -242,6 +241,64 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
     rewind(infile);
     while (!feof(infile) && i < flen)
       ((MYFLT*)p->ans->data)[i++] = nextval(infile);
+    return OK;
+}
+
+static MYFLT nextsval(char **ff)
+{
+    /* Read the next charcater; suppress multiple space and comments to a
+       single space */
+    int c;
+    char *f = *ff;
+ top:
+    c = *f++;
+ top1:
+    if (UNLIKELY(c=='\0')) return NAN; /* Hope value is ignored */
+    if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
+      double d;                           /* A number starts */
+      char buff[128];
+      int j = 0;
+      do {                                /* Fill buffer */
+        buff[j++] = c;
+        c = *f++;
+      } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
+      buff[j]='\0';
+      d = atof(buff);
+      if (c==';' || c=='#') {             /* If exended with comment clear it now */
+        while ((c = *f++) != '\n');
+      }
+      *ff = f;
+      return (MYFLT)d;
+    }
+    while (isspace(c) || c == ',') c = *f++;       /* Whitespace */
+    if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
+      while ((c = *f++) != '\n');
+    }
+    if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') goto top1;
+    goto top;
+}
+
+static int32_t tabsfill(CSOUND *csound, TABFILLF *p)
+{
+    int32_t i = 0, flen = 0, size;
+    char *string = p->fname->data;
+    do {
+      flen++;
+      nextsval(&string);
+    } while (*string!='\0');
+    flen--; // overshoots by 1
+    tabensure(csound, p->ans, flen);
+    size = p->ans->sizes[0];
+    for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
+    if (size<flen) flen = size;
+    if (p->ans->dimensions == 1 && (flen > p->ans->sizes[0]))
+      flen = p->ans->sizes[0];
+    else if (p->ans->dimensions == 2 && (flen > p->ans->sizes[0]*p->ans->sizes[1]))
+      flen = p->ans->sizes[0]*p->ans->sizes[1];
+    //memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
+    string = p->fname->data;
+    while ((*string!='\0') && i < flen)
+      ((MYFLT*)p->ans->data)[i++] = nextsval(&string);
     return OK;
 }
 
@@ -3740,6 +3797,8 @@ static OENTRY arrayvars_localops[] =
     { "fillarray.K", sizeof(TABFILL), 0, 2, "k[]", "z", NULL, (SUBR)tabfill },
     { "fillarray.f", sizeof(TABFILLF), 0, 1, "k[]", "S", (SUBR)tabfillf },
     { "fillarray.F", sizeof(TABFILLF), 0, 1, "i[]", "S", (SUBR)tabfillf },
+    { "string2array.s", sizeof(TABFILLF), 0, 1, "k[]", "S", (SUBR)tabsfill },
+    { "string2array.S", sizeof(TABFILLF), 0, 1, "i[]", "S", (SUBR)tabsfill },
     { "array.k", sizeof(TABFILL), _QQ, 1, "k[]", "m", (SUBR)tabfill     },
     { "array.i", sizeof(TABFILL), _QQ, 1, "i[]", "m", (SUBR)tabfill     },
     { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
