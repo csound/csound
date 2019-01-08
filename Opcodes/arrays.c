@@ -184,7 +184,7 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
 
 static MYFLT nextval(FILE *f)
 {
-    /* Read the next charcater; suppress multiple space and comments to a
+    /* Read the next character; suppress multiple space and comments to a
        single space */
     int c;
  top:
@@ -246,8 +246,8 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
 
 static MYFLT nextsval(char **ff)
 {
-    /* Read the next charcater; suppress multiple space and comments to a
-       single space */
+    /* Read the next character; suppress multiple space 
+    * should use stdtod */
     int c;
     char *f = *ff;
  top:
@@ -264,16 +264,10 @@ static MYFLT nextsval(char **ff)
       } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
       buff[j]='\0';
       d = atof(buff);
-      if (c==';' || c=='#') {             /* If exended with comment clear it now */
-        while ((c = *f++) != '\n');
-      }
       *ff = f;
       return (MYFLT)d;
     }
     while (isspace(c) || c == ',') c = *f++;       /* Whitespace */
-    if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
-      while ((c = *f++) != '\n');
-    }
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') goto top1;
     goto top;
 }
