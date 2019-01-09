@@ -239,6 +239,7 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
       flen = p->ans->sizes[0]*p->ans->sizes[1];
     //memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     rewind(infile);
+    i = 0;
     while (!feof(infile) && i < flen)
       ((MYFLT*)p->ans->data)[i++] = nextval(infile);
     return OK;
@@ -291,6 +292,7 @@ static int32_t tabsfill(CSOUND *csound, TABFILLF *p)
       flen = p->ans->sizes[0]*p->ans->sizes[1];
     //memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     string = p->fname->data;
+    i = 0;
     while ((*string!='\0') && i < flen)
       ((MYFLT*)p->ans->data)[i++] = nextsval(&string);
     return OK;
