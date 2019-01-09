@@ -2420,7 +2420,7 @@ static void instance(CSOUND *csound, int insno)
       continue;                               /*    for later refs */
     }
     // ******** This needs revisipn with no distinction between k- and a- rate ****
-    if ((ep->thread & 07) == 0) {             /* thread 1 OR 2:  */
+    if ((ep->thread & 03) == 0) {             /* thread 1 OR 2:  */
       if (ttp->pftype == 'b') {
         prvids = prvids->nxti = opds;
         opds->iopadr = ep->iopadr;
@@ -2437,12 +2437,12 @@ static void instance(CSOUND *csound, int insno)
       if (UNLIKELY(opds->iopadr == NULL))
         csoundDie(csound, Str("null iopadr"));
     }
-    if ((n = ep->thread & 06) != 0) {         /* thread 2 OR 4:   */
+    if ((n = ep->thread & 02) != 0) {         /* thread 2     :   */
       prvpds = prvpds->nxtp = opds;           /* link into pchain */
-      if (!(n & 04) ||
-          ((ttp->pftype == 'k' || ttp->pftype == 'c') && ep->kopadr != NULL))
+      /* if (!(n & 04) || */
+      /*     ((ttp->pftype == 'k' || ttp->pftype == 'c') && ep->kopadr != NULL)) */
         opds->opadr = ep->kopadr;             /*      krate or    */
-      else opds->opadr = ep->aopadr;          /*      arate       */
+      /* else opds->opadr = ep->aopadr;          /\*      arate       *\/ */
       if (UNLIKELY(odebug))
         csound->Message(csound, "opadr = %p\n", (void*) opds->opadr);
       if (UNLIKELY(opds->opadr == NULL))

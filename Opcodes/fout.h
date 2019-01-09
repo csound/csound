@@ -32,14 +32,14 @@ typedef struct FOUT_FILE_ {
     FILE    *f;
     void    *fd;
     int32_t     bufsize;
-  int32_t     nchnls;
-  int32_t async;
+    int32_t     nchnls;
+    int32_t async;
     int32_t     idx;        /* file index + 1 */
 } FOUT_FILE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iflag, *argums[VARGMAX];
+    MYFLT   *fname, *iflag, *argums[VARGMAX-2];
     MYFLT   scaleFac;
     int32_t     nargs;
     int32_t     buf_pos;
@@ -61,7 +61,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iflag, *argums[VARGMAX];
+    MYFLT   *fname, *iflag, *argums[VARGMAX-2];
     MYFLT   scaleFac;
     uint32_t     nargs;
     int32_t     buf_pos;
@@ -72,7 +72,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
+    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
     MYFLT   scaleFac;
     int32   currpos;
     int32_t     flag;
@@ -103,7 +103,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
+    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
     MYFLT   scaleFac;
     int32   currpos;
     int32_t     flag;
@@ -118,7 +118,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX];
+    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
     int32   currpos;
     int32_t     flag;
 } I_INFILE;
@@ -147,21 +147,21 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
+    MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX-3];
 } IOUTFILE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX];
+    MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX-3];
     int32   counter;
     int32_t     done;
 } IOUTFILE_R;
 
 typedef struct {
     OPDS    h;
-  MYFLT   *fname;
-  STRINGDAT *fmt;
-  MYFLT  *argums[VARGMAX];
+    MYFLT   *fname;
+    STRINGDAT *fmt;
+    MYFLT  *argums[VARGMAX-2];
     FOUT_FILE f;
     char    txtstring[8192];    /* Place to store the string printed */
 } FPRINTF;

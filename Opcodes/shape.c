@@ -96,7 +96,7 @@ static int32_t PowerShape(CSOUND* csound, POWER_SHAPE* p)
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kcoefficients[VARGMAX];
+    MYFLT   *aout, *ain, *kcoefficients[VARGMAX-1];
 } POLYNOMIAL;
 
 /* Efficiently evaluates a polynomial of arbitrary order --   */
@@ -134,7 +134,7 @@ static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kcoefficients[VARGMAX];
+    MYFLT   *aout, *ain, *kcoefficients[VARGMAX-1];
     MYFLT   *chebn;
     AUXCH   coeff;
 } CHEBPOLY;

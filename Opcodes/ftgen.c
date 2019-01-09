@@ -32,7 +32,7 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX];
+    MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX-5];
 } FTGEN;
 
 typedef struct {
@@ -42,7 +42,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifilno, *ktrig, *iflag, *argums[VARGMAX];
+    MYFLT   *ifilno, *ktrig, *iflag, *argums[VARGMAX-2];
     FTLOAD  p;
 } FTLOAD_K; /* gab 30 jul 2002 */
 
