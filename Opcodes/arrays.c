@@ -281,7 +281,7 @@ static int32_t tabsfill(CSOUND *csound, TABFILLF *p)
       flen++;
       nextsval(&string);
     } while (*string!='\0');
-    flen--; // overshoots by 1
+    //flen--; // overshoots by 1
     tabensure(csound, p->ans, flen);
     size = p->ans->sizes[0];
     for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
