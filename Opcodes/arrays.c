@@ -201,7 +201,7 @@ static MYFLT nextval(FILE *f)
       } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
       buff[j]='\0';
       d = atof(buff);
-      if (c==';' || c=='#') {             /* If exended with comment clear it now */
+      if (c==';' || c=='#') {             /* If extended with comment clear it now */
         while ((c = getc(f)) != '\n');
       }
       return (MYFLT)d;
@@ -251,10 +251,11 @@ static MYFLT nextsval(char **ff)
     * should use stdtod */
     int c;
     char *f = *ff;
+    printf("nextsval %.16s...\n", f);
  top:
     c = *f++;
  top1:
-    if (UNLIKELY(c=='\0')) return NAN; /* Hope value is ignored */
+    if (UNLIKELY(c=='\0')) { *ff = f; return NAN; }/* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
       char buff[128];
