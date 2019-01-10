@@ -323,9 +323,12 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
     n = MYFLT2LONG(*p->iSampleFormat);
-    if (UNLIKELY(n < 0 || n > 10))
-      return csound->InitError(csound, Str("diskin2: unknown sample format"));
-    sfinfo.format = diskin2_format_table[n];
+    if (n<0) {
+      n = -n;
+      if (UNLIKELY(n < 0 || n > 10))
+        return csound->InitError(csound, Str("diskin2: unknown sample format"));
+      sfinfo.format = diskin2_format_table[n];
+    }
     /* open file */
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
@@ -1577,9 +1580,12 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
     n = MYFLT2LONG(*p->iSampleFormat);
-    if (UNLIKELY(n < 0 || n > 10))
-      return csound->InitError(csound, Str("diskin2: unknown sample format"));
-    sfinfo.format = diskin2_format_table[n];
+    if (n<0) {
+      n = -n;
+      if (UNLIKELY(n > 10))
+        return csound->InitError(csound, Str("diskin2: unknown sample format"));
+      sfinfo.format = diskin2_format_table[n];
+    }
     /* open file */
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
@@ -2144,9 +2150,12 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
         | (int32_t) FORMAT2SF(csound->oparms_.outformat);
     }
     else {
-      if (UNLIKELY(n < 0 || n > 10))
-        return csound->InitError(csound, Str("soundin: unknown sample format"));
-      sfinfo.format = diskin2_format_table[n];
+      if (n<0) {
+        n = -n;
+        if (UNLIKELY(n > 10))
+          return csound->InitError(csound, Str("soundin: unknown sample format"));
+        sfinfo.format = diskin2_format_table[n];
+      }
     }
     /* open file */
     /* FIXME: name can overflow with very long string */

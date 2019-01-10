@@ -251,11 +251,10 @@ static MYFLT nextsval(char **ff)
     * should use stdtod */
     int c;
     char *f = *ff;
-    printf("nextsval %.16s...\n", f);
  top:
     c = *f++;
  top1:
-    if (UNLIKELY(c=='\0')) { *ff = f; return NAN; }/* Hope value is ignored */
+    if (UNLIKELY(c=='\0')) { *ff = f; return NAN; }
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
       char buff[128];
@@ -278,9 +277,11 @@ static int32_t tabsfill(CSOUND *csound, TABFILLF *p)
 {
     int32_t i = 0, flen = 0, size;
     char *string = p->fname->data;
+    MYFLT x;
     do {
+      x = nextsval(&string);
+      if (x==NAN) break;
       flen++;
-      nextsval(&string);
     } while (*string!='\0');
     //flen--; // overshoots by 1
     tabensure(csound, p->ans, flen);
