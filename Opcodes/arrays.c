@@ -247,7 +247,7 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
 
 static MYFLT nextsval(char **ff)
 {
-    /* Read the next character; suppress multiple space 
+    /* Read the next character; suppress multiple space
     * should use stdtod */
     int c;
     char *f = *ff;
@@ -265,6 +265,7 @@ static MYFLT nextsval(char **ff)
       } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
       buff[j]='\0';
       d = atof(buff);
+      while (isspace(c) || c == ',') c = *f++;       /* Whitespace */
       *ff = f;
       return (MYFLT)d;
     }
@@ -3795,8 +3796,8 @@ static OENTRY arrayvars_localops[] =
     { "fillarray.K", sizeof(TABFILL), 0, 2, "k[]", "z", NULL, (SUBR)tabfill },
     { "fillarray.f", sizeof(TABFILLF), 0, 1, "k[]", "S", (SUBR)tabfillf },
     { "fillarray.F", sizeof(TABFILLF), 0, 1, "i[]", "S", (SUBR)tabfillf },
-    { "string2array.s", sizeof(TABFILLF), 0, 1, "k[]", "S", (SUBR)tabsfill },
     { "string2array.S", sizeof(TABFILLF), 0, 1, "i[]", "S", (SUBR)tabsfill },
+    { "string2array.s", sizeof(TABFILLF), 0, 1, "k[]", "S", (SUBR)tabsfill },
     { "array.k", sizeof(TABFILL), _QQ, 1, "k[]", "m", (SUBR)tabfill     },
     { "array.i", sizeof(TABFILL), _QQ, 1, "i[]", "m", (SUBR)tabfill     },
     { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },

@@ -232,7 +232,7 @@ static int32_t imidic21(CSOUND *csound, MIDICTL4 *p)
       /* but here it also does use the guard point */
       tmp = tab[(int32)phase];
       value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
-       
+
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -647,4 +647,3 @@ int32_t midiops2_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-

@@ -985,11 +985,11 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 //                return NULL;
 //            }
 //            retVal = temp;
-          if(check == -1) 
+          if(check == -1)
               synterr(csound,
                       Str("Found %d inputs for %s which is more than the %d allowed\n"),
                       argsRequired(inArgTypes), temp->opname, VARGMAX);
-    
+
             return temp;
         }
     }
