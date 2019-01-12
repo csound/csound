@@ -266,7 +266,8 @@ static MYFLT nextsval(char **ff)
       buff[j]='\0';
       d = atof(buff);
       while (isspace(c) || c == ',') c = *f++;       /* Whitespace */
-      *ff = f;
+      *ff = --f;
+      //printf(">> %f\n", d);
       return (MYFLT)d;
     }
     while (isspace(c) || c == ',') c = *f++;       /* Whitespace */
