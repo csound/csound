@@ -54,7 +54,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
-  void* value;
+  void    *value;
   MYFLT   *indexes[VARGMAX];
 } ARRAY_SET;
 
@@ -317,47 +317,38 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
 
     int32_t indefArgCount = p->INOCOUNT - 2;
 
+    //printf("*** value=%f, index = [%d][%d][%d]\n", *(double*)p->value,
+    //       (int)(*p->indexes[0]), (int)(*p->indexes[1]), (int)(*p->indexes[2]));
+
     if (UNLIKELY(indefArgCount == 0)) {
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
-    if (UNLIKELY(indefArgCount>dat->dimensions)) {
+    if (UNLIKELY(indefArgCount!=dat->dimensions)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Array dimension %d out of range "
+                               Str("Array dimension %d does not match "
                                    "for dimensions %d\n"),
                                indefArgCount, dat->dimensions);
-      //return NOTOK;
     }
-    end = indefArgCount - 1;
-    index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0)) {
-      return csound->PerfError(csound, &(p->h),
+    index = 0;
+    for (i=0;i<indefArgCount; i++) {
+      end = MYFLT2LRND(*p->indexes[i]);
+      //printf("** dimemnsion %d end = %d\n", i, end);
+      if (UNLIKELY(end>=dat->sizes[i]))
+        return csound->PerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
-                      index, dat->sizes[end]-1, indefArgCount);
-      //return NOTOK;
+                               end, dat->sizes[i], i+1);
+      // printf("*** index %d -> ", index);
+      index = (index * dat->sizes[i]) + end;
+      // printf("%d : %d\n", index, dat->sizes[i]);
     }
-
-    if (indefArgCount > 1) {
-      for (i = end - 1; i >= 0; i--) {
-        int32_t ind = MYFLT2LRND(*p->indexes[i]);
-        if (UNLIKELY(ind >= dat->sizes[i] || ind<0)) {
-          return csound->PerfError(csound, &(p->h),
-                            Str("Array index %d out of range (0,%d) "
-                                "for dimension %d"), ind,
-                          dat->sizes[i]-1, i+1);
-          //return NOTOK;
-        }
-        index += ind * dat->sizes[i + 1];
-      }
-    }
-
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     //memcpy(mem, p->value, dat->arrayMemberSize);
     dat->arrayType->copyValue(csound, mem, p->value);
     /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
-    /*        mem, incr, *((MYFLT*)p->value)); */
+    /*         mem, incr, *((MYFLT*)p->value)); */
     return OK;
 }
 
@@ -374,40 +365,29 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     if (UNLIKELY(indefArgCount == 0))
       csound->PerfError(csound, &(p->h),
                         Str("Error: no indexes set for array get"));
-    if (UNLIKELY(indefArgCount>dat->dimensions)) {
+    if (UNLIKELY(indefArgCount!=dat->dimensions)) {
       csound->PerfError(csound, &(p->h),
                        Str("Array dimension %d out of range "
                            "for dimensions %d"),
                        indefArgCount, dat->dimensions);
        return NOTOK;
     }
-    end = indefArgCount - 1;
-    index = MYFLT2LRND(*p->indexes[end]);
-    if (UNLIKELY(index >= dat->sizes[end] || index<0)) {
-      csound->PerfError(csound, &(p->h),
+    index = 0;
+    for (i=0;i<indefArgCount; i++) {
+      end = MYFLT2LRND(*p->indexes[i]);
+      //printf("** dimemnsion %d end = %d\n", i, end);
+      if (UNLIKELY(end>=dat->sizes[i]))
+        return csound->PerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
-                      index, dat->sizes[end]-1, end+1);
-      return NOTOK;
-
-    }
-    if (indefArgCount > 1) {
-      for (i = end - 1; i >= 0; i--) {
-        int32_t ind = MYFLT2LRND(*p->indexes[i]);
-        if (UNLIKELY(ind >= dat->sizes[i] || ind<0)) {
-          csound->PerfError(csound, &(p->h),
-                          Str("Array index %d out of range (0,%d) "
-                              "for dimension %d"), ind,
-                          dat->sizes[i]-1, i+1);
-          return NOTOK;
-        }
-        index += ind * dat->sizes[i + 1];
-      }
+                               end, dat->sizes[i], i+1);
+      // printf("*** index %d -> ", index);
+      index = (index * dat->sizes[i]) + end;
+      // printf("%d : %d\n", index, dat->sizes[i]);
     }
 
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
-    //    memcpy(p->out, &mem[incr], dat->arrayMemberSize);
     dat->arrayType->copyValue(csound, (void*)p->out, (void*)mem);
     return OK;
 }
