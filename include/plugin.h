@@ -42,7 +42,7 @@ const double twopi = TWOPI;
 
 /** opcode threads: i-time, k-perf and/or a-perf
 */
-enum thread { i = 1, k = 2, ik = 3, a = 2, ia = 3, ika = 3 };
+enum thread { i = 1, k = 2, ik = 3, a = 2, ia = 3 /*, ika = 3*/ };
 
 /** fsig formats: phase vocoder, stft polar, stft complex, or
     sinusoidal tracks
@@ -1004,23 +1004,34 @@ template <typename T> int aperf(CSOUND *csound, T *p) {
  */
 template <typename T>
 int plugin(Csound *csound, const char *name, const char *oargs,
-           const char *iargs, uint32_t thread, uint32_t flags = 0) {
+           const char *iargs, uint32_t thr, uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thread,
+  if(thr == thread::ia || thr == thread::a)
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)kperf<T>, (SUBR)aperf<T>);
+                          (SUBR)aperf<T>, NULL);
+  else
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+                          (char *)oargs, (char *)iargs, (SUBR)init<T>,
+                          (SUBR)kperf<T>, NULL);
 }
 
 /** plugin registration function template
     for classes with self-defined opcode argument types
  */
 template <typename T>
-int plugin(Csound *csound, const char *name, uint32_t thread,
+int plugin(Csound *csound, const char *name, uint32_t thr,
            uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thread,
+  if(thr == thread::ia || thr == thread::a)
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)kperf<T>, (SUBR)aperf<T>);
+                          (SUBR)aperf<T>, NULL);
+  else
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+                          (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
+                          (SUBR)kperf<T>, NULL);
+    
 }
 
 /** utility constructor function template for member classes: \n
