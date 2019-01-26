@@ -214,7 +214,8 @@ public:
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
-        while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) {
+        while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset))
+        {
           log(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
               soundFontId, fluidPreset.get_banknum(&fluidPreset),
               fluidPreset.get_num(&fluidPreset),
@@ -225,7 +226,8 @@ public:
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
-                while ((fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))) {
+        while (fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))
+        {
           log(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
               soundFontId, fluid_preset_get_banknum(fluidPreset),
               fluid_preset_get_num(fluidPreset),
@@ -290,8 +292,7 @@ public:
       LockGuard guard(csound, mutex);
       int32_t result = OK;
       toa(iFluidSynth, fluidSynth);
-      fluid_sfont_t *fluidSoundfont =
-        fluid_synth_get_sfont(fluidSynth, 0);
+      fluid_sfont_t *fluidSoundfont = fluid_synth_get_sfont(fluidSynth, 0);
 #if FLUIDSYNTH_VERSION_MAJOR < 2
       fluid_preset_t fluidPreset;
       fluidSoundfont->iteration_start(fluidSoundfont);
@@ -299,7 +300,7 @@ public:
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
         while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset))
-          {
+        {
             std::stringstream ss;
             ss << "Bank: " << fluidPreset.get_banknum(&fluidPreset) <<
               " Preset: " << fluidPreset.get_num(&fluidPreset) <<
@@ -310,8 +311,8 @@ public:
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
-                while ((fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))) {
-          {
+        while (fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))
+        {
             std::stringstream ss;
             ss << "Bank: " << fluid_preset_get_banknum(fluidPreset) <<
               " Preset: " << fluid_preset_get_num(fluidPreset) <<
