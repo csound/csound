@@ -363,14 +363,13 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     int32_t indefArgCount = p->INOCOUNT - 1;
 
     if (UNLIKELY(indefArgCount == 0))
-      csound->PerfError(csound, &(p->h),
-                        Str("Error: no indexes set for array get"));
+      return csound->PerfError(csound, &(p->h),
+                               Str("Error: no indexes set for array get"));
     if (UNLIKELY(indefArgCount!=dat->dimensions)) {
-      csound->PerfError(csound, &(p->h),
-                       Str("Array dimension %d out of range "
-                           "for dimensions %d"),
-                       indefArgCount, dat->dimensions);
-       return NOTOK;
+      return csound->PerfError(csound, &(p->h),
+                               Str("Array dimension %d out of range "
+                                   "for dimensions %d"),
+                               indefArgCount, dat->dimensions);
     }
     index = 0;
     for (i=0;i<indefArgCount; i++) {
@@ -1311,7 +1310,7 @@ static int32_t tabkadiv(CSOUND *csound, TABARITH2 *p)
       }
       for (n=0; n<nsmps; n++) {
         if (UNLIKELY(b[n]==FL(0.0)))
-          csound->PerfError(csound, &(p->h),
+          return csound->PerfError(csound, &(p->h),
                             Str("division by zero in array-var "
                                 "at index %d/%d"), i,n);
         aa[n] = l / b[n];
@@ -1336,8 +1335,8 @@ static int32_t tabakdiv(CSOUND *csound, TABARITH1 *p)
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     if (UNLIKELY(l==FL(0.0)))
-      csound->PerfError(csound, &(p->h),
-                        Str("division by zero in array-var"));
+      return csound->PerfError(csound, &(p->h),
+                               Str("division by zero in array-var"));
 
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
@@ -1371,8 +1370,8 @@ static int32_t tabarkrem(CSOUND *csound, TABARITH1 *p)
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     if (UNLIKELY(l==FL(0.0)))
-      csound->PerfError(csound, &(p->h),
-                        Str("division by zero in array-var"));
+      return csound->PerfError(csound, &(p->h),
+                               Str("division by zero in array-var"));
 
     if (r->sizes[0]<size) size = r->sizes[0];
     for (i=0; i<size; i++) {
