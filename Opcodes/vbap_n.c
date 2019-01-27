@@ -34,6 +34,7 @@ Ville Pulkki heavily modified by John ffitch 2012
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "arrays.h"
 
 int32_t vbap_moving_control(CSOUND *, VBAP_MOVE_DATA *, OPDS*, MYFLT,
                         MYFLT *, MYFLT*,MYFLT**);
@@ -323,7 +324,6 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
     int32_t cnt;
     char name[24];
 
-    cnt = p->q.number = p->tabout->sizes[0];
     snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
 
@@ -340,6 +340,9 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
       return csound->InitError(csound,
                                Str("vbap system NOT configured.\nMissing"
                                    " vbaplsinit opcode in orchestra?"));
+    //printf("**** size = %d\n", p->q.ls_set_am);
+    tabensure(csound,  p->tabout, p->q.ls_set_am);
+    cnt = p->q.number = p->tabout->sizes[0];
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
       return csound->InitError(csound, Str("could not allocate memory"));
