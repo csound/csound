@@ -332,7 +332,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     }
     index = 0;
     for (i=0;i<indefArgCount; i++) {
-      end = MYFLT2LRND(*p->indexes[i]);
+      <      end = (int)(*p->indexes[i]);
       //printf("** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
         return csound->PerfError(csound, &(p->h),
@@ -373,7 +373,7 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     }
     index = 0;
     for (i=0;i<indefArgCount; i++) {
-      end = MYFLT2LRND(*p->indexes[i]);
+      end = (int)(*p->indexes[i]);
       //printf("** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
         return csound->PerfError(csound, &(p->h),
